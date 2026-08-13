@@ -47,12 +47,70 @@ section[id] {
   color: #374151;
 }
 
+.prose-kci a {
+  text-decoration: underline;
+}
+
 .prose-kci ol li strong {
   color: #111827;
   font-weight: 600;
 }
 
-/* Progress bar carousel Tonggak Sejarah */
+/* Tabel daftar anggota — sederhana, dokumen korporat */
+.tabel-kci {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8px 0 20px;
+  font-size: 16px;
+  line-height: 28px;
+  color: #374151;
+}
+.tabel-kci th {
+  text-align: left;
+  font-weight: 600;
+  color: #111827;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 16px 8px 0;
+  white-space: nowrap;
+}
+.tabel-kci td {
+  border-bottom: 1px solid #e2e8f0;
+  padding: 8px 16px 8px 0;
+  vertical-align: top;
+}
+.tabel-kci a {
+  text-decoration: underline;
+}
+.tabel-kci .foto-anggota {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  display: block;
+}
+.tabel-kci .foto-anggota-kosong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 14px;
+  font-weight: 600;
+}
+.tabel-kci .elo-pilih {
+  white-space: nowrap;
+}
+.tabel-kci .elo-pilih select {
+  font: inherit;
+  font-size: 14px;
+  color: #374151;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 4px 2px 0;
+  outline: none;
+}
+
+/* Progress bar carousel Tonggak Sejarah — mengisi seperti loading bar */
 @keyframes progressbar {
   from {
     width: 0%;

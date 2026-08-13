@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
   ChevronDownIcon,
@@ -14,12 +15,12 @@ const FOOTER_COLUMNS = [
     id: "pengumuman",
     title: "Pengumuman",
     links: [
-      { title: "Berita Komunitas", href: "#" },
-      { title: "Pendaftaran Turnamen", href: "#" },
-      { title: "Pengumuman", href: "#" },
-      { title: "Jadwal Liga", href: "#" },
-      { title: "Musyawarah Anggota", href: "#" },
-      { title: "Volunteer", href: "#" },
+      { title: "Berita Komunitas", href: "/media-dan-informasi/berita-komunitas" },
+      { title: "Pendaftaran Turnamen", href: "/turnamen/turnamen-bulanan" },
+      { title: "Pengumuman", href: "/media-dan-informasi/pengumuman" },
+      { title: "Jadwal Liga", href: "/turnamen/liga-musiman" },
+      { title: "Musyawarah Anggota", href: "/keanggotaan" },
+      { title: "Volunteer", href: "/hubungi-kami" },
     ],
   },
   {
@@ -31,19 +32,19 @@ const FOOTER_COLUMNS = [
       { title: "Chapter Jawa Barat", href: "#" },
       { title: "Chapter Jawa Timur", href: "#" },
       { title: "Chapter Sulawesi Selatan", href: "#" },
-      { title: "Akademi Catur", href: "#" },
+      { title: "Akademi Catur", href: "/program-kami/sekolah-catur" },
     ],
   },
   {
     id: "tools",
     title: "Tools",
     links: [
-      { title: "Papan Interaktif", href: "#" },
-      { title: "Pendaftaran Anggota", href: "#" },
-      { title: "Kode Etik Komunitas", href: "#" },
-      { title: "Keterbukaan Informasi", href: "#" },
-      { title: "Kontak Kami", href: "#" },
-      { title: "Sistem Pengaduan", href: "#" },
+      { title: "Papan Interaktif", href: "/program-kami" },
+      { title: "Pendaftaran Anggota", href: "/keanggotaan/pendaftaran-anggota" },
+      { title: "Kode Etik Komunitas", href: "/keanggotaan/kode-etik-komunitas" },
+      { title: "Keterbukaan Informasi", href: "/media-dan-informasi" },
+      { title: "Kontak Kami", href: "/hubungi-kami" },
+      { title: "Sistem Pengaduan", href: "/hubungi-kami" },
     ],
   },
 ];
@@ -64,13 +65,13 @@ export default function Footer() {
       <div className="w-full max-w-7xl mx-auto grid grid-cols-1 items-start justify-between flex-wrap gap-6 md:gap-14 xl:gap-x-24">
         {/* Logo + alamat */}
         <div className="flex flex-col items-center gap-4 text-grey-800 mb-0">
-          <a
-            href="/"
+          <Link
+            to="/"
             title="Logo Komunitas Catur Indonesia"
             className="mb-6"
           >
             <Logo variant="dark" />
-          </a>
+          </Link>
           <div className="text-center">
             <p className="font-normal text-xs md:text-sm leading-relaxed xl:leading-loose">
               <strong className="font-semibold">Address:</strong> Sekretariat
