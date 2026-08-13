@@ -1,40 +1,32 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function PertanyaanUmum() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Pertanyaan Umum"
-      parent="Keanggotaan"
+      title={t("pertanyaan.judul")}
+      parent={t("nav.keanggotaan")}
       parentPath="/keanggotaan"
-      description="Jawaban singkat soal biaya, usia, domisili, dan cara mulai bertanding."
-      next={{ to: "/hubungi-kami", judul: "Hubungi Kami" }}
+      description={t("pertanyaan.deskripsi")}
+      next={{ to: "/hubungi-kami", judul: t("pertanyaan.nextJudul") }}
     >
-      <PageArtikel title="Pertanyaan yang Sering Diajukan">
+      <PageArtikel title={t("pertanyaan.artikel")}>
         <ol>
           <li className="ql-align-justify">
-            <strong>Apakah ada iuran wajib?</strong> Tidak ada iuran bulanan
-            wajib. Beberapa event memungut biaya administrasi. Anggota aktif
-            mendapat potongan.
+            <strong>{t("pertanyaan.q1a")}</strong> {t("pertanyaan.q1b")}
           </li>
           <li className="ql-align-justify">
-            <strong>Apakah anak-anak boleh gabung?</strong> Boleh. Di bawah 10
-            tahun perlu pendamping orang tua atau guru pada kegiatan luring.
+            <strong>{t("pertanyaan.q2a")}</strong> {t("pertanyaan.q2b")}
           </li>
           <li className="ql-align-justify">
-            <strong>Saya tinggal di luar Medan, bisa?</strong> Bisa. Kelas daring
-            dan turnamen daring terbuka untuk seluruh Indonesia. Chapter daerah
-            menyusul sesuai minat.
+            <strong>{t("pertanyaan.q3a")}</strong> {t("pertanyaan.q3b")}
           </li>
           <li className="ql-align-justify">
-            <strong>Bagaimana cara daftar?</strong> Buka Pendaftaran Anggota,
-            masukkan username Chess.com. Jika akun ada, nama Anda otomatis
-            masuk daftar keanggotaan beserta Elo dan rekor W/D/L dari
-            Chess.com.
+            <strong>{t("pertanyaan.q4a")}</strong> {t("pertanyaan.q4b")}
           </li>
           <li className="ql-align-justify">
-            <strong>Bagaimana ikut turnamen pertama?</strong> Daftar sebagai
-            anggota, lalu ikuti Turnamen Bulanan. Pemula tetap diterima; grup
-            dapat dipisah berdasarkan kekuatan.
+            <strong>{t("pertanyaan.q5a")}</strong> {t("pertanyaan.q5b")}
           </li>
         </ol>
       </PageArtikel>

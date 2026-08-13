@@ -1,27 +1,26 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function SyaratDanKetentuan() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Syarat & Ketentuan"
-      parent="Keanggotaan"
+      title={t("syarat.judul")}
+      parent={t("nav.keanggotaan")}
       parentPath="/keanggotaan"
-      description="Ketentuan administratif keanggotaan Komunitas Catur Indonesia."
+      description={t("syarat.deskripsi")}
       next={{
         to: "/keanggotaan/kode-etik-komunitas",
-        judul: "Kode Etik Komunitas",
+        judul: t("syarat.nextJudul"),
       }}
     >
-      <PageArtikel title="Ketentuan utama">
+      <PageArtikel title={t("syarat.artikel")}>
         <ol>
-          <li>Berusia sekurang-kurangnya 10 tahun, atau didampingi orang tua bila lebih muda.</li>
-          <li>Mengisi data yang benar pada formulir pendaftaran.</li>
-          <li>Menyetujui Kode Etik Komunitas.</li>
-          <li>Keanggotaan ditinjau ulang bila tidak ada aktivitas selama 18 bulan.</li>
-          <li>
-            Komunitas berhak menolak atau mencabut keanggotaan jika terjadi
-            pelanggaran berat terhadap kode etik.
-          </li>
+          <li>{t("syarat.l1")}</li>
+          <li>{t("syarat.l2")}</li>
+          <li>{t("syarat.l3")}</li>
+          <li>{t("syarat.l4")}</li>
+          <li>{t("syarat.l5")}</li>
         </ol>
       </PageArtikel>
     </HalamanIsi>

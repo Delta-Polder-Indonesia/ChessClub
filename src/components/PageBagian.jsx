@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightIcon } from "./icons.jsx";
 import Hero from "./Hero.jsx";
+import { useI18n } from "../lib/i18n.jsx";
 
 /** Kerangka halaman baru: hero + isi + blok Selanjutnya (sama seperti Pertamina). */
 export function HalamanIsi({
@@ -13,15 +14,16 @@ export function HalamanIsi({
   submenu,
   children,
 }) {
+  const { t } = useI18n();
   const crumbs = [
-    { label: "Home", to: "/" },
+    { label: t("common.home"), to: "/" },
     parent ? { label: parent, to: parentPath } : null,
     { label: title },
   ].filter(Boolean);
 
   useEffect(() => {
-    document.title = `${title} | Komunitas Catur Indonesia`;
-  }, [title]);
+    document.title = `${title} | ${t("common.namaKomunitas")}`;
+  }, [title, t]);
 
   return (
     <>
@@ -80,6 +82,7 @@ export function PageGambar({ src, alt, caption }) {
 
 /** Navigasi "Selanjutnya" — identik blok Pertamina. */
 export function PageSelanjutnya({ to, judul }) {
+  const { t } = useI18n();
   if (!to || !judul) return null;
   return (
     <section className="w-full relative bg-transparent pl-6 md:pl-0 xl:pl-40 pr-6 md:pr-0 xl:pr-40 pb-24 md:pb-24 xl:pb-24 pt-6 md:pt-8 xl:pt-12">
@@ -92,7 +95,7 @@ export function PageSelanjutnya({ to, judul }) {
           >
             <div className="flex flex-col">
               <span className="text-xs sm:text-sm text-gray-600">
-                Selanjutnya
+                {t("common.selanjutnya")}
               </span>
               <span className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-primary">
                 {judul}

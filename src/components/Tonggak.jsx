@@ -1,63 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "../lib/i18n.jsx";
 
 const SLIDE_DURATION = 7000;
-
-const SLIDES = [
-  {
-    img: "/images/tonggak-2015.jpg",
-    label: "2015 - 2016",
-    title: "Perjalanan 2015-2016",
-    paragraphs: [
-      "Sejarah mencatat bahwa eksistensi Komunitas Catur Indonesia dibangun sejak sekitar tahun 2014, ketika sekelompok pecatur Medan berkumpul rutin di sebuah warung kopi untuk bertanding catur kilat. Kemudian kelompok tersebut resmi menjadi komunitas dengan nama Komunitas Catur Indonesia pada 10 Desember 2015, yang hingga kini diperingati sebagai hari lahir komunitas.",
-      "Selama tahun pertama, komunitas memperkokoh eksistensi sebagai satu-satunya komunitas catur terpadu di Kota Medan yang mewadahi pecatur dari berbagai latar belakang, mulai dari pelajar hingga pekerja profesional.",
-    ],
-  },
-  {
-    img: "/images/tonggak-2016.jpg",
-    label: "2016 - 2017",
-    title: "Perjalanan 2016-2017",
-    paragraphs: [
-      "Memasuki tahun kedua, komunitas memaksimalkan pertumbuhan kegiatan dan memberikan kontribusi pada pembinaan catur daerah. Pada periode ini, eksistensi komunitas sebagai penggerak catur lokal mulai diakui oleh PERCASI Sumatera Utara. Perkembangan pesat tersebut salah satunya berkat kolaborasi turnamen bersama komunitas catur lain di Pulau Sumatera.",
-      "Pada tahun 2017, komunitas resmi membentuk klub di Chess.com sebagai basis pertandingan daring bagi seluruh anggota, sekaligus menandai dimulainya era pertandingan daring rutin.",
-    ],
-  },
-  {
-    img: "/images/tonggak-2018.jpg",
-    label: "2018 - 2019",
-    title: "Perjalanan 2018-2019",
-    paragraphs: [
-      "Pada periode ini, komunitas untuk pertama kalinya menyelenggarakan turnamen terbuka berskala kota dengan standar regulasi internasional. Dalam rentang waktu dua tahun ini, komunitas mampu menambah frekuensi turnamen internal menjadi dua kali dalam satu bulan.",
-      "Di awal 2019, komunitas mulai meletakkan dasar pembinaan usia dini melalui kelas catur gratis bagi pelajar, serta membangun perpustakaan materi latihan digital.",
-    ],
-  },
-  {
-    img: "/images/tonggak-2020.jpg",
-    label: "2020 - 2021",
-    title: "Perjalanan 2020-2021",
-    paragraphs: [
-      "Pada masa ini, komunitas menghadapi masa pandemi. Dengan dukungan para pengurus, pembenahan aspek organisasi dan platform daring dilakukan sebagai upaya komunitas untuk tetap aktif. Dalam rentang waktu ini, komunitas mampu menyelenggarakan turnamen daring mingguan yang diikuti anggota dari berbagai kota di Indonesia.",
-      "Komunitas juga menginisiasi program kelas catur daring gratis bagi pelajar di tengah masa pandemi, yang menjadi cikal bakal Akademi Catur Komunitas.",
-    ],
-  },
-  {
-    img: "/images/tonggak-2022.jpg",
-    label: "2022 - 2023",
-    title: "Perjalanan 2022-2023",
-    paragraphs: [
-      "Pada periode ini, komunitas berupaya mengembangkan pembinaan catur usia muda. Selama dua tahun terakhir, komunitas melakukan kerja sama dengan sekolah-sekolah di Medan dalam bentuk ekstrakurikuler catur dan lomba antar sekolah.",
-      "Komunitas menunjukkan kesungguhannya dalam menjalankan kegiatan yang berwawasan sportivitas dengan membentuk fungsi baru, yaitu Komite Etik dan Fair Play pada 2022. Komunitas juga mulai menerapkan program penilaian performa anggota untuk meningkatkan keterlibatan seluruh anggota dalam berlatih.",
-    ],
-  },
-  {
-    img: "/images/tonggak-2024.jpg",
-    label: "2024 - 2025",
-    title: "Perjalanan 2024-2025",
-    paragraphs: [
-      "Pada periode ini, tepatnya pada tahun 2024, komunitas mengubah struktur organisasi menjadi struktur kepengurusan dengan divisi-divisi fungsional guna mendukung efisiensi kegiatan. Pada 10 Desember 2024, komunitas memperbarui identitas visual dengan logo baru berwarna dasar biru, merah, dan hijau yang merefleksikan unsur dinamis dan kepedulian pada pembinaan.",
-      "Komunitas juga melakukan transformasi pada 20 Juli 2025 melalui perombakan kurikulum latihan yang mengintegrasikan analisis digital dan latihan bersama pecatur bergelar, sebagai bagian dari target pencapaian 5.000 anggota aktif.",
-    ],
-  },
-];
 
 /**
  * Carousel Tonggak Sejarah — identik dengan Swiper Pertamina:
@@ -65,8 +9,48 @@ const SLIDES = [
  * navigasi garis progress di atas dengan label tahun.
  */
 export default function Tonggak() {
+  const { t } = useI18n();
   const [index, setIndex] = useState(0);
   const progressRef = useRef(null);
+
+  const SLIDES = [
+    {
+      img: "/images/tonggak-2015.jpg",
+      label: "2015 - 2016",
+      title: t("tonggak.t1"),
+      paragraphs: [t("tonggak.p1a"), t("tonggak.p1b")],
+    },
+    {
+      img: "/images/tonggak-2016.jpg",
+      label: "2016 - 2017",
+      title: t("tonggak.t2"),
+      paragraphs: [t("tonggak.p2a"), t("tonggak.p2b")],
+    },
+    {
+      img: "/images/tonggak-2018.jpg",
+      label: "2018 - 2019",
+      title: t("tonggak.t3"),
+      paragraphs: [t("tonggak.p3a"), t("tonggak.p3b")],
+    },
+    {
+      img: "/images/tonggak-2020.jpg",
+      label: "2020 - 2021",
+      title: t("tonggak.t4"),
+      paragraphs: [t("tonggak.p4a"), t("tonggak.p4b")],
+    },
+    {
+      img: "/images/tonggak-2022.jpg",
+      label: "2022 - 2023",
+      title: t("tonggak.t5"),
+      paragraphs: [t("tonggak.p5a"), t("tonggak.p5b")],
+    },
+    {
+      img: "/images/tonggak-2024.jpg",
+      label: "2024 - 2025",
+      title: t("tonggak.t6"),
+      paragraphs: [t("tonggak.p6a"), t("tonggak.p6b")],
+    },
+  ];
 
   useEffect(() => {
     const el = progressRef.current;
@@ -97,7 +81,7 @@ export default function Tonggak() {
       <div className="w-full relative pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-6 md:pb-6 xl:pb-16">
         <div className="relative w-full mx-auto md:max-w-[1024px]">
           <h2 className="focus:outline-none focus:ring-0 font-semibold text-3xl md:text-3xl text-black">
-            Tonggak Sejarah
+            {t("tonggak.judul")}
           </h2>
         </div>
       </div>

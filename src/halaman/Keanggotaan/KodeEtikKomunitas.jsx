@@ -1,21 +1,26 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function KodeEtikKomunitas() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Kode Etik Komunitas"
-      parent="Keanggotaan"
+      title={t("kodeEtik.judul")}
+      parent={t("nav.keanggotaan")}
       parentPath="/keanggotaan"
-      description="Fair play, integritas, dan tata krama yang berlaku di papan, daring, maupun ruang diskusi."
-      next={{ to: "/keanggotaan/pertanyaan-umum", judul: "Pertanyaan Umum" }}
+      description={t("kodeEtik.deskripsi")}
+      next={{
+        to: "/keanggotaan/pertanyaan-umum",
+        judul: t("kodeEtik.nextJudul"),
+      }}
     >
-      <PageArtikel title="Yang wajib dipegang">
+      <PageArtikel title={t("kodeEtik.artikel")}>
         <ol>
-          <li>Tidak curang: dilarang engine, bantuan luar, atau identitas palsu.</li>
-          <li>Hormati lawan, wasit, dan panitia — di papan maupun di kolom obrolan.</li>
-          <li>Jangan menyebarkan kebencian, pelecehan, atau doxing.</li>
-          <li>Laporkan dugaan kecurangan ke Divisi Turnamen, bukan di ruang publik.</li>
-          <li>Langgar berulang dapat berujung skorsing hingga pencabutan keanggotaan.</li>
+          <li>{t("kodeEtik.l1")}</li>
+          <li>{t("kodeEtik.l2")}</li>
+          <li>{t("kodeEtik.l3")}</li>
+          <li>{t("kodeEtik.l4")}</li>
+          <li>{t("kodeEtik.l5")}</li>
         </ol>
       </PageArtikel>
     </HalamanIsi>

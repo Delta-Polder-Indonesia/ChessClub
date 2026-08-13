@@ -1,25 +1,25 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
-
-const EDISI = [
-  { bulan: "Juli 2026", isi: "Laporan Liga Musim II dan kurikulum kelas pemula baru." },
-  { bulan: "Juni 2026", isi: "Hasil simultan pelajar dan pembukaan chapter daring." },
-  { bulan: "Mei 2026", isi: "Wawancara pelatih tamu dan kalender semester depan." },
-];
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function BuletinBulanan() {
+  const { t } = useI18n();
+
+  const EDISI = [
+    { bulan: t("buletin.b1"), isi: t("buletin.e1") },
+    { bulan: t("buletin.b2"), isi: t("buletin.e2") },
+    { bulan: t("buletin.b3"), isi: t("buletin.e3") },
+  ];
+
   return (
     <HalamanIsi
-      title="Buletin Bulanan"
-      parent="Media & Informasi"
+      title={t("buletin.judul")}
+      parent={t("nav.mediaDanInformasi")}
       parentPath="/media-dan-informasi"
-      description="Ringkasan resmi kegiatan, hasil pertandingan, dan agenda bulan berikutnya."
-      next={{ to: "/keanggotaan", judul: "Keanggotaan" }}
+      description={t("buletin.deskripsi")}
+      next={{ to: "/keanggotaan", judul: t("buletin.nextJudul") }}
     >
-      <PageArtikel title="Edisi terbaru">
-        <p>
-          Buletin dikirim ke surel anggota aktif setiap tanggal 5. Publik dapat
-          membaca ringkasannya di halaman ini.
-        </p>
+      <PageArtikel title={t("buletin.artikel")}>
+        <p>{t("buletin.p1")}</p>
         <ol>
           {EDISI.map((e) => (
             <li key={e.bulan}>
