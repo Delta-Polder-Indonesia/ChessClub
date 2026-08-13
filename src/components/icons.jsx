@@ -118,6 +118,24 @@ export function FlagIDIcon({ className = "" }) {
   );
 }
 
+export function FlagENIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="12"
+      height="12"
+      viewBox="0 0 12 12"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <rect width="12" height="12" fill="#012169" />
+      <path d="M0 0L12 12M12 0L0 12" stroke="#FFFFFF" strokeWidth="2.4" />
+      <path d="M0 0L12 12M12 0L0 12" stroke="#C8102E" strokeWidth="1" />
+      <path d="M0 6H12M6 0V12" stroke="#FFFFFF" strokeWidth="4" />
+      <path d="M0 6H12M6 0V12" stroke="#C8102E" strokeWidth="2" />
+    </svg>
+  );
+}
+
 export function FacebookIcon({ className = "" }) {
   return (
     <svg className={className} width="20" height="21" viewBox="0 0 20 21" fill="none" xmlns="http://www.w3.org/2000/svg">

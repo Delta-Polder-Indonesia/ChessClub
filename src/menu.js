@@ -3,122 +3,125 @@
  * folder  → src/halaman/<folder>/
  * file    → nama file di folder itu
  * path    → alamat di browser
+ *
+ * `title` berisi kunci terjemahan `nav.*`; pemanggil bertugas menerjemahkan
+ * lewat `t(title)`.
  */
 export const MENU_UTAMA = [
   {
-    title: "Tentang Kami",
+    title: "nav.tentangKami",
     folder: "TentangKami",
     path: "/tentang-kami",
     children: [
-      { title: "Sekilas Komunitas", path: "/tentang-kami#sekilas-komunitas" },
-      { title: "Tonggak Sejarah", path: "/tentang-kami#tonggak-sejarah" },
-      { title: "Visi, Misi, & Tata Nilai", path: "/tentang-kami#visi-misi" },
-      { title: "Makna Logo", path: "/tentang-kami#makna-logo" },
-      { title: "Struktur Pengurus", path: "/tentang-kami#struktur-pengurus" },
+      { title: "nav.sekilasKomunitas", path: "/tentang-kami#sekilas-komunitas" },
+      { title: "nav.tonggakSejarah", path: "/tentang-kami#tonggak-sejarah" },
+      { title: "nav.visiMisiNilai", path: "/tentang-kami#visi-misi" },
+      { title: "nav.maknaLogo", path: "/tentang-kami#makna-logo" },
+      { title: "nav.strukturPengurus", path: "/tentang-kami#struktur-pengurus" },
     ],
   },
   {
-    title: "Program Kami",
+    title: "nav.programKami",
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
     children: [
       {
-        title: "Kelas & Pelatihan",
+        title: "nav.kelasPelatihan",
         path: "/program-kami/kelas-dan-pelatihan",
         file: "KelasDanPelatihan.jsx",
       },
       {
-        title: "Coaching Clinic",
+        title: "nav.coachingClinic",
         path: "/program-kami/coaching-clinic",
         file: "CoachingClinic.jsx",
       },
       {
-        title: "Simultan & Blindfold",
+        title: "nav.simultanBlindfold",
         path: "/program-kami/simultan-dan-blindfold",
         file: "SimultanDanBlindfold.jsx",
       },
       {
-        title: "Sekolah Catur",
+        title: "nav.sekolahCatur",
         path: "/program-kami/sekolah-catur",
         file: "SekolahCatur.jsx",
       },
     ],
   },
   {
-    title: "Turnamen",
+    title: "nav.turnamen",
     folder: "Turnamen",
     path: "/turnamen",
     file: "Turnamen.jsx",
     children: [
       {
-        title: "Turnamen Bulanan",
+        title: "nav.turnamenBulanan",
         path: "/turnamen/turnamen-bulanan",
         file: "TurnamenBulanan.jsx",
       },
       {
-        title: "Liga Musiman",
+        title: "nav.ligaMusiman",
         path: "/turnamen/liga-musiman",
         file: "LigaMusiman.jsx",
       },
       {
-        title: "Turnamen Terbuka",
+        title: "nav.turnamenTerbuka",
         path: "/turnamen/turnamen-terbuka",
         file: "TurnamenTerbuka.jsx",
       },
       {
-        title: "Liga Antar Komunitas",
+        title: "nav.ligaAntarKomunitas",
         path: "/turnamen/liga-antar-komunitas",
         file: "LigaAntarKomunitas.jsx",
       },
     ],
   },
   {
-    title: "Media & Informasi",
+    title: "nav.mediaDanInformasi",
     folder: "MediaDanInformasi",
     path: "/media-dan-informasi",
     file: "MediaDanInformasi.jsx",
     children: [
       {
-        title: "Berita Komunitas",
+        title: "nav.beritaKomunitas",
         path: "/media-dan-informasi/berita-komunitas",
         file: "BeritaKomunitas.jsx",
       },
       {
-        title: "Galeri",
+        title: "nav.galeri",
         path: "/media-dan-informasi/galeri",
         file: "Galeri.jsx",
       },
       {
-        title: "Buletin Bulanan",
+        title: "nav.buletinBulanan",
         path: "/media-dan-informasi/buletin-bulanan",
         file: "BuletinBulanan.jsx",
       },
     ],
   },
   {
-    title: "Keanggotaan",
+    title: "nav.keanggotaan",
     folder: "Keanggotaan",
     path: "/keanggotaan",
     file: "Keanggotaan.jsx",
     children: [
       {
-        title: "Pendaftaran Anggota",
+        title: "nav.pendaftaranAnggota",
         path: "/keanggotaan/pendaftaran-anggota",
         file: "PendaftaranAnggota.jsx",
       },
       {
-        title: "Syarat & Ketentuan",
+        title: "nav.syaratKetentuan",
         path: "/keanggotaan/syarat-dan-ketentuan",
         file: "SyaratDanKetentuan.jsx",
       },
       {
-        title: "Kode Etik Komunitas",
+        title: "nav.kodeEtik",
         path: "/keanggotaan/kode-etik-komunitas",
         file: "KodeEtikKomunitas.jsx",
       },
       {
-        title: "Pertanyaan Umum",
+        title: "nav.pertanyaanUmum",
         path: "/keanggotaan/pertanyaan-umum",
         file: "PertanyaanUmum.jsx",
       },
@@ -127,9 +130,9 @@ export const MENU_UTAMA = [
 ];
 
 export const MENU_ATAS = [
-  { title: "Turnamen", path: "/turnamen" },
-  { title: "Pengumuman", path: "/pengumuman" },
-  { title: "Hubungi Kami", path: "/hubungi-kami" },
+  { title: "nav.turnamen", path: "/turnamen" },
+  { title: "nav.pengumuman", path: "/pengumuman" },
+  { title: "nav.hubungiKami", path: "/hubungi-kami" },
 ];
 
 export function menuAktif(path, pathname) {
@@ -149,7 +152,7 @@ export function semuaHalaman() {
       list.push({ title: child.title, path: child.path });
     }
   }
-  list.push({ title: "Pengumuman", path: "/pengumuman" });
-  list.push({ title: "Hubungi Kami", path: "/hubungi-kami" });
+  list.push({ title: "nav.pengumuman", path: "/pengumuman" });
+  list.push({ title: "nav.hubungiKami", path: "/hubungi-kami" });
   return list;
 }

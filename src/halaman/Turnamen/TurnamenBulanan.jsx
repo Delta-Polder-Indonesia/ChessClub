@@ -1,28 +1,24 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function TurnamenBulanan() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Turnamen Bulanan"
-      parent="Turnamen"
+      title={t("turnamenBulanan.judul")}
+      parent={t("nav.turnamen")}
       parentPath="/turnamen"
-      description="Turnamen Swiss lima ronde yang diadakan setiap bulan untuk anggota dan tamu."
-      next={{ to: "/turnamen/liga-musiman", judul: "Liga Musiman" }}
+      description={t("turnamenBulanan.deskripsi")}
+      next={{ to: "/turnamen/liga-musiman", judul: t("turnamenBulanan.nextJudul") }}
     >
-      <PageArtikel title="Ketentuan ringkas">
-        <p>
-          Turnamen Bulanan memakai sistem Swiss 5 ronde. Tempo standar adalah
-          15+10 (kilat panjang). Grup dipisah bila peserta lebih dari 40 orang.
-        </p>
+      <PageArtikel title={t("turnamenBulanan.artikel")}>
+        <p>{t("turnamenBulanan.p1")}</p>
         <ol>
-          <li>Pendaftaran ditutup H-1 pukul 21.00 WIB.</li>
-          <li>Anggota aktif mendapat potongan biaya administrasi.</li>
-          <li>Hasil diumumkan di halaman Pengumuman pada malam yang sama.</li>
+          <li>{t("turnamenBulanan.l1")}</li>
+          <li>{t("turnamenBulanan.l2")}</li>
+          <li>{t("turnamenBulanan.l3")}</li>
         </ol>
-        <p>
-          Jadwal bulan berjalan diumumkan di kanal anggota dan halaman
-          Pengumuman.
-        </p>
+        <p>{t("turnamenBulanan.p2")}</p>
       </PageArtikel>
     </HalamanIsi>
   );

@@ -7,11 +7,14 @@ import VisiMisi from "../../components/VisiMisi.jsx";
 import MaknaLogo from "../../components/MaknaLogo.jsx";
 import Struktur from "../../components/Struktur.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function TentangKami() {
+  const { t } = useI18n();
+
   useEffect(() => {
-    document.title = "Tentang Kami | Komunitas Catur Indonesia";
-  }, []);
+    document.title = `${t("nav.tentangKami")} | ${t("common.namaKomunitas")}`;
+  }, [t]);
 
   return (
     <>
@@ -34,7 +37,7 @@ export default function TentangKami() {
 
       <Struktur />
 
-      <PageSelanjutnya to="/program-kami" judul="Program Kami" />
+      <PageSelanjutnya to="/program-kami" judul={t("nav.programKami")} />
     </>
   );
 }

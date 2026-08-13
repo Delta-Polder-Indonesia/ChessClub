@@ -1,27 +1,19 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function LigaAntarKomunitas() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Liga Antar Komunitas"
-      parent="Turnamen"
+      title={t("ligaAntar.judul")}
+      parent={t("nav.turnamen")}
       parentPath="/turnamen"
-      description="Pertandingan tim melawan komunitas dan klub lain di Sumatera maupun secara daring."
-      next={{ to: "/media-dan-informasi", judul: "Media & Informasi" }}
+      description={t("ligaAntar.deskripsi")}
+      next={{ to: "/media-dan-informasi", judul: t("ligaAntar.nextJudul") }}
     >
-      <PageArtikel title="Format tim">
-        <p>
-          Liga Antar Komunitas dimainkan dalam format tim 4 papan + 1 cadangan.
-          Satu klub boleh menurunkan lebih dari satu tim bila kuota memungkinkan.
-        </p>
-        <p>
-          Undangan ke komunitas mitra dikirim Divisi Turnamen. Komunitas yang
-          ingin menantang dapat menulis ke{" "}
-          <a href="mailto:info@komunitascatur.or.id">
-            info@komunitascatur.or.id
-          </a>
-          .
-        </p>
+      <PageArtikel title={t("ligaAntar.artikel")}>
+        <p>{t("ligaAntar.p1")}</p>
+        <p>{t("ligaAntar.p2")}</p>
       </PageArtikel>
     </HalamanIsi>
   );

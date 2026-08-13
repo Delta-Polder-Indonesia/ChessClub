@@ -1,17 +1,23 @@
 import { Link } from "react-router-dom";
+import { useI18n } from "../lib/i18n.jsx";
 
 /**
  * Hero halaman — latar gelap + foto + breadcrumb + judul.
  */
 export default function Hero({
-  title = "Tentang Kami",
-  description = "Telusuri sejarah perjalanan, visi, dan misi komunitas kami yang menjadi fondasi kegiatan, filosofi logo, serta struktur pengurus yang mendukung pengembangan catur Indonesia.",
-  crumbs = [
-    { label: "Home", to: "/" },
-    { label: "Tentang Kami" },
-  ],
+  title,
+  description,
+  crumbs,
   image = "/images/hero-about.jpg",
 }) {
+  const { t } = useI18n();
+  const judul = title ?? t("hero.tentangKami");
+  const deskripsi = description ?? t("hero.deskripsi");
+  const breadcrumbs = crumbs ?? [
+    { label: t("common.home"), to: "/" },
+    { label: t("hero.tentangKami") },
+  ];
+
   return (
     <section className="relative w-full h-[400px] lg:h-[500px] bg-hero">
       <div className="absolute w-full max-w-full left-1/2 -translate-x-1/2 h-full overflow-hidden">
@@ -32,7 +38,7 @@ export default function Hero({
       />
       <div className="relative w-full mx-auto max-w-[1080px] xl:max-w-7xl 2xl:max-w-8xl px-6 lg:px-8 xl:px-0 2xl:px-0 h-full flex flex-col justify-end gap-4 xl:gap-6 z-3 pb-6 lg:pb-16 xl:pb-[72px]">
         <div className="flex gap-2 items-center text-xs md:text-sm text-white flex-wrap">
-          {crumbs.map((c, i) => (
+          {breadcrumbs.map((c, i) => (
             <span key={`${c.label}-${i}`} className="flex items-center gap-2">
               {i > 0 && <span>/</span>}
               {c.to ? (
@@ -46,11 +52,11 @@ export default function Hero({
           ))}
         </div>
         <h1 className="text-white w-full lg:w-1/2 text-3xl md:text-[38px] leading-normal xl:leading-normal font-bold line-clamp-2">
-          {title}
+          {judul}
         </h1>
-        {description && (
+        {deskripsi && (
           <p className="w-full max-w-[840px] text-sm md:text-base font-normal text-white">
-            {description}
+            {deskripsi}
           </p>
         )}
       </div>

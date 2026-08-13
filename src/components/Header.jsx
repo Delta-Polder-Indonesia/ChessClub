@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
@@ -8,6 +8,7 @@ import {
   ChevronDownIcon,
   ArrowRightIcon,
   FlagIDIcon,
+  FlagENIcon,
 } from "./icons.jsx";
 import {
   MENU_UTAMA,
@@ -15,16 +16,19 @@ import {
   menuAktif,
   semuaHalaman,
 } from "../menu.js";
+import { useI18n } from "../lib/i18n.jsx";
 
 const SEARCH_PAGES = semuaHalaman();
 
 function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
+  const { t } = useI18n();
   const aktif = menuAktif(item.path, pathname);
+  const judul = t(item.title);
   return (
     <li className="relative group h-10 flex items-center">
       <Link
         to={item.path}
-        title={item.title}
+        title={judul}
         onClick={onNavigate}
         className={`flex items-center gap-1 transition-colors duration-200 ${
           scrolled
@@ -34,7 +38,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
             : "text-white hover:text-blue-400"
         }`}
       >
-        {item.title}
+        {judul}
         {item.children && <ChevronDownIcon className="size-4 opacity-80" />}
       </Link>
       {item.children && (
@@ -47,11 +51,11 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
               <div className="px-6 py-2 w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between">
                 <Link
                   to={child.path}
-                  title={child.title}
+                  title={t(child.title)}
                   onClick={onNavigate}
                   className="flex-1 w-full text-inherit hover:text-inherit font-normal text-sm"
                 >
-                  {child.title}
+                  {t(child.title)}
                 </Link>
               </div>
             </li>
@@ -63,6 +67,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
 }
 
 function MobileDrawer({ open, onClose, onNavigate }) {
+  const { t } = useI18n();
   const [expanded, setExpanded] = useState(null);
   if (!open) return null;
   return (
@@ -71,7 +76,7 @@ function MobileDrawer({ open, onClose, onNavigate }) {
         <Logo variant="dark" />
         <button
           type="button"
-          aria-label="close"
+          aria-label={t("header.close")}
           onClick={onClose}
           className="cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 text-slate-800"
         >
@@ -85,19 +90,19 @@ function MobileDrawer({ open, onClose, onNavigate }) {
               <div className="flex items-center justify-between py-4">
                 <Link
                   to={item.path}
-                  title={item.title}
+                  title={t(item.title)}
                   onClick={() => {
                     onNavigate();
                     onClose();
                   }}
                   className="flex-1"
                 >
-                  {item.title}
+                  {t(item.title)}
                 </Link>
                 {item.children && (
                   <button
                     type="button"
-                    aria-label={`expand ${item.title}`}
+                    aria-label={t("header.expand", { title: t(item.title) })}
                     onClick={() =>
                       setExpanded(expanded === item.title ? null : item.title)
                     }
@@ -115,14 +120,14 @@ function MobileDrawer({ open, onClose, onNavigate }) {
                     <li key={child.title}>
                       <Link
                         to={child.path}
-                        title={child.title}
+                        title={t(child.title)}
                         onClick={() => {
                           onNavigate();
                           onClose();
                         }}
                         className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary border-l-4 border-solid border-white hover:border-primary transition-all duration-200"
                       >
-                        {child.title}
+                        {t(child.title)}
                       </Link>
                     </li>
                   ))}
@@ -134,19 +139,19 @@ function MobileDrawer({ open, onClose, onNavigate }) {
         <ul className="flex flex-col gap-4 text-sm text-slate-700">
           {MENU_ATAS.map((l) => (
             <li key={l.title}>
-              <Link to={l.path} title={l.title} onClick={onClose}>
-                {l.title}
+              <Link to={l.path} title={t(l.title)} onClick={onClose}>
+                {t(l.title)}
               </Link>
             </li>
           ))}
         </ul>
         <Link
           to="/keanggotaan/pendaftaran-anggota"
-          title="Daftar Anggota"
+          title={t("common.daftarAnggota")}
           onClick={onClose}
           className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-primary text-primary"
         >
-          Daftar Anggota
+          {t("common.daftarAnggota")}
         </Link>
       </div>
     </div>
@@ -154,12 +159,16 @@ function MobileDrawer({ open, onClose, onNavigate }) {
 }
 
 function SearchOverlay({ open, onClose, onNavigate }) {
+  const { t } = useI18n();
   const [query, setQuery] = useState("");
+  const halaman = useMemo(
+    () => SEARCH_PAGES.map((r) => ({ path: r.path, label: t(r.title) })),
+    [t]
+  );
   if (!open) return null;
-  const results = query.trim()
-    ? SEARCH_PAGES.filter((p) =>
-        p.title.toLowerCase().includes(query.trim().toLowerCase())
-      )
+  const q = query.trim().toLowerCase();
+  const results = q
+    ? halaman.filter((p) => p.label.toLowerCase().includes(q))
     : [];
   return (
     <div className="fixed inset-0 z-[70] bg-white overflow-y-auto">
@@ -167,7 +176,7 @@ function SearchOverlay({ open, onClose, onNavigate }) {
         <Logo variant="dark" />
         <button
           type="button"
-          aria-label="close search"
+          aria-label={t("header.closeSearch")}
           onClick={onClose}
           className="cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 text-slate-800"
         >
@@ -184,24 +193,24 @@ function SearchOverlay({ open, onClose, onNavigate }) {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Ketik kata kunci pencarian"
-            aria-label="Pencarian"
+            placeholder={t("search.placeholder")}
+            aria-label={t("header.search")}
             className="flex-1 bg-transparent border-0 outline-none text-2xl md:text-3xl text-slate-900 placeholder:text-slate-300"
           />
           <button
             type="submit"
-            aria-label="search button"
+            aria-label={t("header.searchButton")}
             className="flex-none border-2 border-solid border-primary rounded-full size-12 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-200"
           >
             <ArrowRightIcon />
           </button>
         </form>
-        <p className="text-sm text-slate-400 mt-3">Tekan Enter untuk mencari</p>
+        <p className="text-sm text-slate-400 mt-3">{t("search.enter")}</p>
         {query.trim() && (
           <ul className="mt-8 flex flex-col gap-3">
             {results.length > 0 ? (
               results.map((r) => (
-                <li key={r.title}>
+                <li key={r.path}>
                   <Link
                     to={r.path}
                     onClick={() => {
@@ -210,13 +219,13 @@ function SearchOverlay({ open, onClose, onNavigate }) {
                     }}
                     className="block border-l-4 border-solid border-white hover:border-primary transition-all duration-200 px-4 py-2 text-slate-700 hover:text-primary"
                   >
-                    {r.title}
+                    {r.label}
                   </Link>
                 </li>
               ))
             ) : (
               <li className="text-slate-500">
-                Tidak ditemukan hasil untuk &ldquo;{query}&rdquo;.
+                {t("search.noResults", { query })}
               </li>
             )}
           </ul>
@@ -226,8 +235,68 @@ function SearchOverlay({ open, onClose, onNavigate }) {
   );
 }
 
+function DropdownBahasa() {
+  const { bahasa, setBahasa, t } = useI18n();
+  const [buka, setBuka] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!buka) return undefined;
+    const onDoc = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setBuka(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [buka]);
+
+  const OPSI = [
+    { kode: "id", label: t("common.bahasaIndonesia"), Bendera: FlagIDIcon },
+    { kode: "en", label: t("common.english"), Bendera: FlagENIcon },
+  ];
+  const aktif = OPSI.find((o) => o.kode === bahasa) || OPSI[0];
+  return (
+    <li className="relative hidden lg:block" ref={ref}>
+      <button
+        type="button"
+        title={t("common.pilihBahasa")}
+        aria-label={t("common.pilihBahasa")}
+        aria-expanded={buka}
+        onClick={() => setBuka((b) => !b)}
+        className="bg-transparent border-0 flex items-center gap-2 text-xs text-white cursor-pointer"
+      >
+        <span>{aktif.kode.toUpperCase()}</span>
+        <aktif.Bendera />
+      </button>
+      {buka && (
+        <ul className="absolute right-0 top-8 w-[180px] rounded-lg bg-white shadow-xl py-2 z-50">
+          {OPSI.map((o) => (
+            <li key={o.kode}>
+              <button
+                type="button"
+                onClick={() => {
+                  setBahasa(o.kode);
+                  setBuka(false);
+                }}
+                className={`w-full flex items-center gap-2 px-4 py-2 text-xs cursor-pointer ${
+                  o.kode === bahasa
+                    ? "text-primary font-semibold"
+                    : "text-slate-700 hover:text-primary"
+                }`}
+              >
+                <o.Bendera className="size-3" />
+                {o.label}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
 export default function Header() {
   const { pathname } = useLocation();
+  const { t } = useI18n();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -278,31 +347,23 @@ export default function Header() {
                     <li key={l.title} className="py-2">
                       <Link
                         to={l.path}
-                        title={l.title}
+                        title={t(l.title)}
                         className="text-sm hover:text-blue-400 transition-colors duration-200"
                       >
-                        {l.title}
+                        {t(l.title)}
                       </Link>
                     </li>
                   ))}
                 </ul>
               </li>
-              <li className="hidden lg:block">
-                <button
-                  type="button"
-                  className="bg-transparent border-0 flex items-center gap-2 text-xs text-white cursor-pointer"
-                >
-                  <span>ID</span>
-                  <FlagIDIcon />
-                </button>
-              </li>
+              <DropdownBahasa />
               <li>
                 <Link
                   to="/keanggotaan/pendaftaran-anggota"
-                  title="Daftar Anggota"
+                  title={t("common.daftarAnggota")}
                   className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-primary hover:bg-primary transition-all duration-100 ease-in-out hover:text-white text-white"
                 >
-                  Daftar Anggota
+                  {t("common.daftarAnggota")}
                 </Link>
               </li>
             </ul>
@@ -324,7 +385,7 @@ export default function Header() {
               </nav>
               <button
                 type="button"
-                aria-label="search"
+                aria-label={t("header.search")}
                 onClick={() => setSearchOpen(true)}
                 className={`cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 transition-colors duration-200 ${
                   scrolled ? "text-slate-800" : "text-white"
@@ -334,7 +395,7 @@ export default function Header() {
               </button>
               <button
                 type="button"
-                aria-label="menu"
+                aria-label={t("header.menu")}
                 onClick={() => setMenuOpen(true)}
                 className={`lg:hidden cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 transition-colors duration-200 ${
                   scrolled ? "text-slate-800" : "text-white"
