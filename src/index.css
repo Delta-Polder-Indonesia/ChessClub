@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", system-ui, sans-serif;
+  --color-primary: #0b2f9f;
+  --color-blue-400: #4d7cf5;
+  --color-grey-200: #e2e8f0;
+  --color-grey-600: #475569;
+  --color-grey-800: #1e293b;
+  --color-hero: #021624;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-sans);
+  color: #000000;
+}
+
+section[id] {
+  scroll-margin-top: 134px;
+}
+
+/* Prose artikel — identik dengan gaya konten Pertamina:
+   teks 16px / line-height 28px, warna #374151, rata kiri-kanan */
+.prose-kci p {
+  margin-bottom: 20px;
+  text-align: justify;
+  font-size: 16px;
+  line-height: 28px;
+  color: #374151;
+}
+
+.prose-kci ol {
+  list-style-type: decimal;
+  padding-left: 24px;
+  margin-bottom: 20px;
+}
+
+.prose-kci ol li {
+  margin-bottom: 8px;
+  text-align: justify;
+  font-size: 16px;
+  line-height: 28px;
+  color: #374151;
+}
+
+.prose-kci ol li strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+/* Progress bar carousel Tonggak Sejarah */
+@keyframes progressbar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
