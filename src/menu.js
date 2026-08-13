@@ -85,11 +85,6 @@ export const MENU_UTAMA = [
         file: "BeritaKomunitas.jsx",
       },
       {
-        title: "Pengumuman",
-        path: "/media-dan-informasi/pengumuman",
-        file: "Pengumuman.jsx",
-      },
-      {
         title: "Galeri",
         path: "/media-dan-informasi/galeri",
         file: "Galeri.jsx",
@@ -133,7 +128,7 @@ export const MENU_UTAMA = [
 
 export const MENU_ATAS = [
   { title: "Turnamen", path: "/turnamen" },
-  { title: "Galeri", path: "/media-dan-informasi/galeri" },
+  { title: "Pengumuman", path: "/pengumuman" },
   { title: "Hubungi Kami", path: "/hubungi-kami" },
 ];
 
@@ -154,6 +149,7 @@ export function semuaHalaman() {
       list.push({ title: child.title, path: child.path });
     }
   }
+  list.push({ title: "Pengumuman", path: "/pengumuman" });
   list.push({ title: "Hubungi Kami", path: "/hubungi-kami" });
   return list;
 }

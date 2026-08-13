@@ -26,10 +26,6 @@ export default function MediaDanInformasi() {
             : laporan kegiatan, wawancara, dan liputan turnamen.
           </li>
           <li className="ql-align-justify">
-            <Link to="/media-dan-informasi/pengumuman">Pengumuman</Link>: jadwal,
-            pendaftaran, dan pemberitahuan resmi.
-          </li>
-          <li className="ql-align-justify">
             <Link to="/media-dan-informasi/galeri">Galeri</Link>: foto kegiatan
             sekretariat, kelas, dan pertandingan.
           </li>

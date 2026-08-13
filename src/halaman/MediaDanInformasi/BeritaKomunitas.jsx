@@ -7,7 +7,7 @@ export default function BeritaKomunitas() {
       parent="Media & Informasi"
       parentPath="/media-dan-informasi"
       description="Liputan kegiatan, hasil pertandingan, dan cerita anggota."
-      next={{ to: "/media-dan-informasi/pengumuman", judul: "Pengumuman" }}
+      next={{ to: "/media-dan-informasi/galeri", judul: "Galeri" }}
     >
       <PageArtikel title="Terbaru">
         <ol>
