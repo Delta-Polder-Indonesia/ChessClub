@@ -1,41 +1,73 @@
-import Header from "./components/Header.jsx";
-import Hero from "./components/Hero.jsx";
-import StickyMenu from "./components/StickyMenu.jsx";
-import Sekilas from "./components/Sekilas.jsx";
-import Tonggak from "./components/Tonggak.jsx";
-import VisiMisi from "./components/VisiMisi.jsx";
-import MaknaLogo from "./components/MaknaLogo.jsx";
-import Struktur from "./components/Struktur.jsx";
-import Selanjutnya from "./components/Selanjutnya.jsx";
-import Footer from "./components/Footer.jsx";
+import { Route, Routes } from "react-router-dom";
+import PageLayout from "./components/PageLayout.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
+
+import TentangKami from "./halaman/TentangKami/TentangKami.jsx";
+
+import ProgramKami from "./halaman/ProgramKami/ProgramKami.jsx";
+import KelasDanPelatihan from "./halaman/ProgramKami/KelasDanPelatihan.jsx";
+import CoachingClinic from "./halaman/ProgramKami/CoachingClinic.jsx";
+import SimultanDanBlindfold from "./halaman/ProgramKami/SimultanDanBlindfold.jsx";
+import SekolahCatur from "./halaman/ProgramKami/SekolahCatur.jsx";
+
+import Turnamen from "./halaman/Turnamen/Turnamen.jsx";
+import TurnamenBulanan from "./halaman/Turnamen/TurnamenBulanan.jsx";
+import LigaMusiman from "./halaman/Turnamen/LigaMusiman.jsx";
+import TurnamenTerbuka from "./halaman/Turnamen/TurnamenTerbuka.jsx";
+import LigaAntarKomunitas from "./halaman/Turnamen/LigaAntarKomunitas.jsx";
+
+import MediaDanInformasi from "./halaman/MediaDanInformasi/MediaDanInformasi.jsx";
+import BeritaKomunitas from "./halaman/MediaDanInformasi/BeritaKomunitas.jsx";
+import Pengumuman from "./halaman/MediaDanInformasi/Pengumuman.jsx";
+import Galeri from "./halaman/MediaDanInformasi/Galeri.jsx";
+import BuletinBulanan from "./halaman/MediaDanInformasi/BuletinBulanan.jsx";
+
+import Keanggotaan from "./halaman/Keanggotaan/Keanggotaan.jsx";
+import PendaftaranAnggota from "./halaman/Keanggotaan/PendaftaranAnggota.jsx";
+import SyaratDanKetentuan from "./halaman/Keanggotaan/SyaratDanKetentuan.jsx";
+import KodeEtikKomunitas from "./halaman/Keanggotaan/KodeEtikKomunitas.jsx";
+import PertanyaanUmum from "./halaman/Keanggotaan/PertanyaanUmum.jsx";
+
+import HubungiKami from "./halaman/HubungiKami/HubungiKami.jsx";
+import TidakDitemukan from "./halaman/TidakDitemukan.jsx";
 
 export default function App() {
   return (
     <>
-      <Header />
-      <main className="page min-h-screen">
-        <Hero />
-        <StickyMenu />
+      <ScrollToTop />
+      <Routes>
+        <Route element={<PageLayout />}>
+          <Route path="/" element={<TentangKami />} />
+          <Route path="/tentang-kami" element={<TentangKami />} />
 
-        <Sekilas />
+          <Route path="/program-kami" element={<ProgramKami />} />
+          <Route path="/program-kami/kelas-dan-pelatihan" element={<KelasDanPelatihan />} />
+          <Route path="/program-kami/coaching-clinic" element={<CoachingClinic />} />
+          <Route path="/program-kami/simultan-dan-blindfold" element={<SimultanDanBlindfold />} />
+          <Route path="/program-kami/sekolah-catur" element={<SekolahCatur />} />
 
-        <div className="w-full border-t my-8 md:my-8 border-grey-200" />
+          <Route path="/turnamen" element={<Turnamen />} />
+          <Route path="/turnamen/turnamen-bulanan" element={<TurnamenBulanan />} />
+          <Route path="/turnamen/liga-musiman" element={<LigaMusiman />} />
+          <Route path="/turnamen/turnamen-terbuka" element={<TurnamenTerbuka />} />
+          <Route path="/turnamen/liga-antar-komunitas" element={<LigaAntarKomunitas />} />
 
-        <Tonggak />
+          <Route path="/media-dan-informasi" element={<MediaDanInformasi />} />
+          <Route path="/media-dan-informasi/berita-komunitas" element={<BeritaKomunitas />} />
+          <Route path="/media-dan-informasi/pengumuman" element={<Pengumuman />} />
+          <Route path="/media-dan-informasi/galeri" element={<Galeri />} />
+          <Route path="/media-dan-informasi/buletin-bulanan" element={<BuletinBulanan />} />
 
-        <VisiMisi />
+          <Route path="/keanggotaan" element={<Keanggotaan />} />
+          <Route path="/keanggotaan/pendaftaran-anggota" element={<PendaftaranAnggota />} />
+          <Route path="/keanggotaan/syarat-dan-ketentuan" element={<SyaratDanKetentuan />} />
+          <Route path="/keanggotaan/kode-etik-komunitas" element={<KodeEtikKomunitas />} />
+          <Route path="/keanggotaan/pertanyaan-umum" element={<PertanyaanUmum />} />
 
-        <div className="w-full border-t my-24 md:my-24 border-grey-200" />
-
-        <MaknaLogo />
-
-        <div className="w-full border-t my-0 md:my-0 border-grey-200" />
-
-        <Struktur />
-
-        <Selanjutnya />
-      </main>
-      <Footer />
+          <Route path="/hubungi-kami" element={<HubungiKami />} />
+          <Route path="*" element={<TidakDitemukan />} />
+        </Route>
+      </Routes>
     </>
   );
 }

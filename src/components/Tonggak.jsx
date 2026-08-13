@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const SLIDE_DURATION = 7000;
 
@@ -66,13 +66,29 @@ const SLIDES = [
  */
 export default function Tonggak() {
   const [index, setIndex] = useState(0);
+  const progressRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(
-      () => setIndex((i) => (i + 1) % SLIDES.length),
-      SLIDE_DURATION
-    );
-    return () => clearTimeout(timer);
+    const el = progressRef.current;
+    if (el) el.style.width = "0%";
+
+    const start = performance.now();
+    let raf = 0;
+
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / SLIDE_DURATION);
+      if (progressRef.current) {
+        progressRef.current.style.width = `${t * 100}%`;
+      }
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        setIndex((i) => (i + 1) % SLIDES.length);
+      }
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, [index]);
 
   return (
@@ -131,43 +147,52 @@ export default function Tonggak() {
           ))}
         </div>
 
-        {/* Navigasi garis progress */}
-        <div className="absolute top-5 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto px-8 md:px-10 lg:px-4 xl:px-0 flex gap-2 overflow-x-auto [scrollbar-width:none]">
-          {SLIDES.map((slide, i) => (
-            <button
-              key={slide.label}
-              type="button"
-              onClick={() => setIndex(i)}
-              aria-label={slide.label}
-              className={`group relative flex-1 text-left cursor-pointer whitespace-nowrap transition-all duration-300 text-xs md:text-sm font-medium border-b-[3px] ${
-                index === i
-                  ? "text-white border-[red]"
-                  : "text-white/50 border-white/30 hover:text-white"
-              }`}
-            >
-              <div className="relative flex items-center gap-1 md:gap-2 py-2 md:py-4">
-                <span
-                  className={`bullet-dot size-2 md:size-3 rounded-full transition-all duration-300 ${
-                    index === i
-                      ? "bg-[red] opacity-100"
-                      : "bg-current opacity-10 group-hover:opacity-100"
-                  }`}
+        {/* Navigasi garis progress — track putih, isi merah berjalan seperti loading bar */}
+        <div className="absolute !top-5 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 carousel-pagination !bottom-auto px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none]">
+          {SLIDES.map((slide, i) => {
+            const active = i === index;
+            return (
+              <div
+                key={slide.label}
+                id={`bullet-${i}`}
+                role="button"
+                tabIndex={0}
+                aria-label={slide.label}
+                aria-current={active ? "true" : undefined}
+                onClick={() => setIndex(i)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setIndex(i);
+                  }
+                }}
+                className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-medium group border-b-[3px] border-white/30 ${
+                  active ? "text-white" : "text-white/50"
+                }`}
+              >
+                <div className="flex items-center gap-1 md:gap-2">
+                  <svg
+                    className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
+                      active ? "text-[red] opacity-100" : "opacity-10"
+                    }`}
+                    viewBox="0 0 8 8"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <circle cx="4" cy="4" r="4" fill="currentColor" />
+                  </svg>
+                  <div className="bullet-title transition-all duration-300 group-hover:text-white whitespace-nowrap">
+                    {slide.label}
+                  </div>
+                </div>
+                <div
+                  ref={active ? progressRef : null}
+                  className="bullet-progress absolute left-0 bottom-[-3px] h-0 w-0 border-b-[3px] border-[red] pointer-events-none"
+                  style={{ width: active ? undefined : "0%" }}
                 />
-                <span className="bullet-title transition-all duration-300 group-hover:text-white whitespace-nowrap">
-                  {slide.label}
-                </span>
-                {index === i && (
-                  <span
-                    key={`progress-${i}-${index}`}
-                    className="bullet-progress absolute bottom-[-3px] left-0 h-[3px] w-0 bg-[red]"
-                    style={{
-                      animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
-                    }}
-                  />
-                )}
               </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

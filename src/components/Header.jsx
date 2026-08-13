@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
   SearchIcon,
@@ -8,99 +9,34 @@ import {
   ArrowRightIcon,
   FlagIDIcon,
 } from "./icons.jsx";
+import {
+  MENU_UTAMA,
+  MENU_ATAS,
+  menuAktif,
+  semuaHalaman,
+} from "../menu.js";
 
-const NAV_ITEMS = [
-  {
-    title: "Tentang Kami",
-    href: "#sekilas-komunitas",
-    active: true,
-    children: [
-      { title: "Sekilas Komunitas", href: "#sekilas-komunitas" },
-      { title: "Tonggak Sejarah", href: "#tonggak-sejarah" },
-      { title: "Visi, Misi, & Tata Nilai", href: "#visi-misi" },
-      { title: "Makna Logo", href: "#makna-logo" },
-      { title: "Struktur Pengurus", href: "#struktur-pengurus" },
-    ],
-  },
-  {
-    title: "Program Kami",
-    href: "#",
-    children: [
-      { title: "Kelas & Pelatihan", href: "#" },
-      { title: "Coaching Clinic", href: "#" },
-      { title: "Simultan & Blindfold", href: "#" },
-      { title: "Sekolah Catur", href: "#" },
-    ],
-  },
-  {
-    title: "Turnamen",
-    href: "#",
-    children: [
-      { title: "Turnamen Bulanan", href: "#" },
-      { title: "Liga Musiman", href: "#" },
-      { title: "Turnamen Terbuka", href: "#" },
-      { title: "Liga Antar Komunitas", href: "#" },
-    ],
-  },
-  {
-    title: "Media & Informasi",
-    href: "#",
-    children: [
-      { title: "Berita Komunitas", href: "#" },
-      { title: "Pengumuman", href: "#" },
-      { title: "Galeri", href: "#" },
-      { title: "Buletin Bulanan", href: "#" },
-    ],
-  },
-  {
-    title: "Keanggotaan",
-    href: "#",
-    children: [
-      { title: "Pendaftaran Anggota", href: "#" },
-      { title: "Syarat & Ketentuan", href: "#" },
-      { title: "Kode Etik Komunitas", href: "#" },
-      { title: "Pertanyaan Umum", href: "#" },
-    ],
-  },
-];
+const SEARCH_PAGES = semuaHalaman();
 
-const TOP_BAR_LINKS = [
-  { title: "Turnamen", href: "#" },
-  { title: "Galeri", href: "#" },
-  { title: "Hubungi Kami", href: "#" },
-];
-
-const SEARCH_PAGES = [
-  { title: "Tentang Kami", href: "#" },
-  { title: "Sekilas Komunitas", href: "#sekilas-komunitas" },
-  { title: "Tonggak Sejarah", href: "#tonggak-sejarah" },
-  { title: "Visi, Misi, & Tata Nilai", href: "#visi-misi" },
-  { title: "Makna Logo", href: "#makna-logo" },
-  { title: "Struktur Pengurus", href: "#struktur-pengurus" },
-  { title: "Program Kami", href: "#" },
-  { title: "Turnamen", href: "#" },
-  { title: "Turnamen Bulanan", href: "#" },
-  { title: "Media & Informasi", href: "#" },
-  { title: "Keanggotaan", href: "#" },
-  { title: "Hubungi Kami", href: "#" },
-];
-
-function NavItemDesktop({ item, onNavigate, scrolled }) {
+function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
+  const aktif = menuAktif(item.path, pathname);
   return (
     <li className="relative group h-10 flex items-center">
-      <a
-        href={item.href}
+      <Link
+        to={item.path}
         title={item.title}
         onClick={onNavigate}
         className={`flex items-center gap-1 transition-colors duration-200 ${
           scrolled
-            ? "text-slate-800 hover:text-primary"
+            ? aktif
+              ? "text-primary"
+              : "text-slate-800 hover:text-primary"
             : "text-white hover:text-blue-400"
         }`}
       >
         {item.title}
         {item.children && <ChevronDownIcon className="size-4 opacity-80" />}
-      </a>
+      </Link>
       {item.children && (
         <ul className="opacity-0 pointer-events-none absolute w-[288px] top-10 rounded-lg flex flex-col group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-in-out left-0 py-4 bg-white shadow-xl">
           {item.children.map((child) => (
@@ -109,14 +45,14 @@ function NavItemDesktop({ item, onNavigate, scrolled }) {
               className="relative group/item transition-all duration-200 ease-in-out text-[#64748B] hover:text-[#1E293B]"
             >
               <div className="px-6 py-2 w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between">
-                <a
-                  href={child.href}
+                <Link
+                  to={child.path}
                   title={child.title}
                   onClick={onNavigate}
                   className="flex-1 w-full text-inherit hover:text-inherit font-normal text-sm"
                 >
                   {child.title}
-                </a>
+                </Link>
               </div>
             </li>
           ))}
@@ -144,11 +80,11 @@ function MobileDrawer({ open, onClose, onNavigate }) {
       </div>
       <div className="px-6 py-6 flex flex-col gap-6">
         <ul className="flex flex-col gap-1 font-semibold text-slate-900">
-          {NAV_ITEMS.map((item) => (
+          {MENU_UTAMA.map((item) => (
             <li key={item.title} className="border-b border-slate-100">
               <div className="flex items-center justify-between py-4">
-                <a
-                  href={item.href}
+                <Link
+                  to={item.path}
                   title={item.title}
                   onClick={() => {
                     onNavigate();
@@ -157,7 +93,7 @@ function MobileDrawer({ open, onClose, onNavigate }) {
                   className="flex-1"
                 >
                   {item.title}
-                </a>
+                </Link>
                 {item.children && (
                   <button
                     type="button"
@@ -177,8 +113,8 @@ function MobileDrawer({ open, onClose, onNavigate }) {
                 <ul className="flex flex-col pb-4">
                   {item.children.map((child) => (
                     <li key={child.title}>
-                      <a
-                        href={child.href}
+                      <Link
+                        to={child.path}
                         title={child.title}
                         onClick={() => {
                           onNavigate();
@@ -187,7 +123,7 @@ function MobileDrawer({ open, onClose, onNavigate }) {
                         className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary border-l-4 border-solid border-white hover:border-primary transition-all duration-200"
                       >
                         {child.title}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -196,21 +132,22 @@ function MobileDrawer({ open, onClose, onNavigate }) {
           ))}
         </ul>
         <ul className="flex flex-col gap-4 text-sm text-slate-700">
-          {TOP_BAR_LINKS.map((l) => (
+          {MENU_ATAS.map((l) => (
             <li key={l.title}>
-              <a href={l.href} title={l.title} onClick={onClose}>
+              <Link to={l.path} title={l.title} onClick={onClose}>
                 {l.title}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>
-        <a
-          href="#"
+        <Link
+          to="/keanggotaan/pendaftaran-anggota"
           title="Daftar Anggota"
+          onClick={onClose}
           className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-primary text-primary"
         >
           Daftar Anggota
-        </a>
+        </Link>
       </div>
     </div>
   );
@@ -265,8 +202,8 @@ function SearchOverlay({ open, onClose, onNavigate }) {
             {results.length > 0 ? (
               results.map((r) => (
                 <li key={r.title}>
-                  <a
-                    href={r.href}
+                  <Link
+                    to={r.path}
                     onClick={() => {
                       onNavigate();
                       onClose();
@@ -274,7 +211,7 @@ function SearchOverlay({ open, onClose, onNavigate }) {
                     className="block border-l-4 border-solid border-white hover:border-primary transition-all duration-200 px-4 py-2 text-slate-700 hover:text-primary"
                   >
                     {r.title}
-                  </a>
+                  </Link>
                 </li>
               ))
             ) : (
@@ -290,6 +227,7 @@ function SearchOverlay({ open, onClose, onNavigate }) {
 }
 
 export default function Header() {
+  const { pathname } = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -319,14 +257,14 @@ export default function Header() {
             scrolled ? "py-3" : "py-6"
           }`}
         >
-          <a
-            href="/"
+          <Link
+            to="/"
             title="Logo Komunitas Catur Indonesia"
             aria-label="Logo Komunitas Catur Indonesia"
             className="flex-none flex items-center gap-4 md:gap-6"
           >
             <Logo variant={scrolled ? "dark" : "light"} />
-          </a>
+          </Link>
           <div className="flex flex-col lg:items-end">
             {/* Top bar — tersembunyi saat header menempel (seperti Pertamina) */}
             <ul
@@ -336,15 +274,15 @@ export default function Header() {
             >
               <li className="relative">
                 <ul className="flex items-center gap-x-6 gap-y-4 text-white">
-                  {TOP_BAR_LINKS.map((l) => (
+                  {MENU_ATAS.map((l) => (
                     <li key={l.title} className="py-2">
-                      <a
-                        href={l.href}
+                      <Link
+                        to={l.path}
                         title={l.title}
                         className="text-sm hover:text-blue-400 transition-colors duration-200"
                       >
                         {l.title}
-                      </a>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -359,13 +297,13 @@ export default function Header() {
                 </button>
               </li>
               <li>
-                <a
-                  href="#"
+                <Link
+                  to="/keanggotaan/pendaftaran-anggota"
                   title="Daftar Anggota"
                   className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-primary hover:bg-primary transition-all duration-100 ease-in-out hover:text-white text-white"
                 >
                   Daftar Anggota
-                </a>
+                </Link>
               </li>
             </ul>
 
@@ -373,12 +311,13 @@ export default function Header() {
               {/* Nav utama */}
               <nav className="relative bg-transparent min-h-[48px] hidden lg:block">
                 <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 font-semibold">
-                  {NAV_ITEMS.map((item) => (
+                  {MENU_UTAMA.map((item) => (
                     <NavItemDesktop
                       key={item.title}
                       item={item}
                       onNavigate={handleNavigate}
                       scrolled={scrolled}
+                      pathname={pathname}
                     />
                   ))}
                 </ul>
