@@ -1,39 +1,30 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function KelasDanPelatihan() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Kelas & Pelatihan"
-      parent="Program Kami"
+      title={t("kelas.judul")}
+      parent={t("nav.programKami")}
       parentPath="/program-kami"
-      description="Kelas rutin komunitas untuk pemula, menengah, dan mahir — daring maupun di sekretariat Medan."
-      next={{ to: "/program-kami/coaching-clinic", judul: "Coaching Clinic" }}
+      description={t("kelas.deskripsi")}
+      next={{ to: "/program-kami/coaching-clinic", judul: t("kelas.nextJudul") }}
     >
-      <PageArtikel title="Jalur belajar">
-        <p>
-          Kelas &amp; Pelatihan adalah tulang punggung pembinaan komunitas.
-          Materi disusun berjenjang supaya anggota baru tidak kebingungan, dan
-          anggota lama tetap punya tantangan.
-        </p>
+      <PageArtikel title={t("kelas.artikel")}>
+        <p>{t("kelas.p1")}</p>
         <ol>
           <li>
-            <strong>Pemula:</strong> peraturan, notasi, mat dasar, dan etiket
-            bertanding.
+            <strong>{t("kelas.l1a")}</strong> {t("kelas.l1b")}
           </li>
           <li>
-            <strong>Menengah:</strong> struktur pembukaan, rencana tengah
-            permainan, dan akhiran rook-pion.
+            <strong>{t("kelas.l2a")}</strong> {t("kelas.l2b")}
           </li>
           <li>
-            <strong>Mahir:</strong> analisis partai sendiri, persiapan lawan,
-            dan latihan perhitungan.
+            <strong>{t("kelas.l3a")}</strong> {t("kelas.l3b")}
           </li>
         </ol>
-        <p>
-          Jadwal daring diumumkan setiap minggu di kanal anggota. Kelas luring
-          diadakan di sekretariat Medan pada akhir pekan. Kuota tiap sesi
-          dibatasi agar pendampingan tetap personal.
-        </p>
+        <p>{t("kelas.p2")}</p>
       </PageArtikel>
     </HalamanIsi>
   );

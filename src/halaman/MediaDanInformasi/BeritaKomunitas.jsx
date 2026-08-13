@@ -1,30 +1,26 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function BeritaKomunitas() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Berita Komunitas"
-      parent="Media & Informasi"
+      title={t("berita.judul")}
+      parent={t("nav.mediaDanInformasi")}
       parentPath="/media-dan-informasi"
-      description="Liputan kegiatan, hasil pertandingan, dan cerita anggota."
-      next={{ to: "/media-dan-informasi/galeri", judul: "Galeri" }}
+      description={t("berita.deskripsi")}
+      next={{ to: "/media-dan-informasi/galeri", judul: t("berita.nextJudul") }}
     >
-      <PageArtikel title="Terbaru">
+      <PageArtikel title={t("berita.artikel")}>
         <ol>
           <li className="ql-align-justify">
-            <strong>12 Agustus 2026 — Turnamen Bulanan Agustus diikuti 64 pecatur.</strong>{" "}
-            Rekor peserta baru untuk event internal. Grup A dimenangkan pecatur
-            junior dari chapter Medan.
+            <strong>{t("berita.n1a")}</strong> {t("berita.n1b")}
           </li>
           <li className="ql-align-justify">
-            <strong>28 Juli 2026 — Coaching clinic struktur pion bersama pelatih tamu.</strong>{" "}
-            Sesi daring 110 menit membahas Isolated Queen Pawn dan cara
-            merencanakan break di pusat.
+            <strong>{t("berita.n2a")}</strong> {t("berita.n2b")}
           </li>
           <li className="ql-align-justify">
-            <strong>10 Desember 2025 — Hari lahir komunitas ke-10 dirayakan dengan simultan.</strong>{" "}
-            Dua puluh papan simultan dibuka untuk pelajar. Acara ditutup
-            pembaruan identitas visual.
+            <strong>{t("berita.n3a")}</strong> {t("berita.n3b")}
           </li>
         </ol>
       </PageArtikel>

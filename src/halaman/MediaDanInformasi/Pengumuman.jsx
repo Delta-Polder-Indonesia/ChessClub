@@ -1,25 +1,27 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function Pengumuman() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Pengumuman"
-      description="Pemberitahuan resmi: jadwal, pendaftaran, dan perubahan ketentuan."
-      next={{ to: "/media-dan-informasi/galeri", judul: "Galeri" }}
+      title={t("pengumuman.judul")}
+      description={t("pengumuman.deskripsi")}
+      next={{ to: "/media-dan-informasi/galeri", judul: t("pengumuman.nextJudul") }}
     >
-      <PageArtikel title="Berlaku saat ini">
+      <PageArtikel title={t("pengumuman.artikel")}>
         <ol>
           <li>
-            <strong>Pendaftaran Turnamen Bulanan September</strong> dibuka
-            hingga 31 Agustus 2026 pukul 21.00 WIB.
+            <strong>{t("pengumuman.p1a")}</strong>
+            {t("pengumuman.p1b")}
           </li>
           <li>
-            <strong>Libur sekretariat</strong> pada 17 Agustus 2026. Kelas
-            luring dialihkan ke sesi daring.
+            <strong>{t("pengumuman.p2a")}</strong>
+            {t("pengumuman.p2b")}
           </li>
           <li>
-            <strong>Pemanggilan tim Liga Antar Komunitas</strong> diumumkan
-            melalui surel anggota pada 20 Agustus 2026.
+            <strong>{t("pengumuman.p3a")}</strong>
+            {t("pengumuman.p3b")}
           </li>
         </ol>
       </PageArtikel>
