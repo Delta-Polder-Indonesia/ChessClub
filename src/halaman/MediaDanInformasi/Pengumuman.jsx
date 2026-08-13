@@ -4,8 +4,6 @@ export default function Pengumuman() {
   return (
     <HalamanIsi
       title="Pengumuman"
-      parent="Media & Informasi"
-      parentPath="/media-dan-informasi"
       description="Pemberitahuan resmi: jadwal, pendaftaran, dan perubahan ketentuan."
       next={{ to: "/media-dan-informasi/galeri", judul: "Galeri" }}
     >

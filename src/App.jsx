@@ -54,9 +54,9 @@ export default function App() {
 
           <Route path="/media-dan-informasi" element={<MediaDanInformasi />} />
           <Route path="/media-dan-informasi/berita-komunitas" element={<BeritaKomunitas />} />
-          <Route path="/media-dan-informasi/pengumuman" element={<Pengumuman />} />
           <Route path="/media-dan-informasi/galeri" element={<Galeri />} />
           <Route path="/media-dan-informasi/buletin-bulanan" element={<BuletinBulanan />} />
+          <Route path="/pengumuman" element={<Pengumuman />} />
 
           <Route path="/keanggotaan" element={<Keanggotaan />} />
           <Route path="/keanggotaan/pendaftaran-anggota" element={<PendaftaranAnggota />} />
