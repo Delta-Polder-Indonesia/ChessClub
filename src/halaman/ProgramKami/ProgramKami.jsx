@@ -1,42 +1,42 @@
 import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function ProgramKami() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Program Kami"
-      description="Empat pilar pembinaan Komunitas Catur Indonesia: kelas rutin, coaching clinic, simultan, dan sekolah catur."
-      next={{ to: "/program-kami/kelas-dan-pelatihan", judul: "Kelas & Pelatihan" }}
+      title={t("program.judul")}
+      description={t("program.deskripsi")}
+      next={{ to: "/program-kami/kelas-dan-pelatihan", judul: t("program.nextJudul") }}
     >
-      <PageArtikel title="Sekilas Program">
-        <p className="ql-align-justify">
-          Program komunitas disusun agar pecatur dari segala usia memiliki jalur
-          belajar yang jelas. Setiap pilar memiliki tujuan sendiri, tetapi
-          saling menopang: kelas membangun dasar, coaching clinic menajamkan,
-          simultan menumbuhkan nyali bertanding, dan sekolah catur merawat
-          regenerasi.
-        </p>
-        <p>Pilar program yang dijalankan saat ini adalah sebagai berikut:</p>
+      <PageArtikel title={t("program.artikel")}>
+        <p className="ql-align-justify">{t("program.p1")}</p>
+        <p>{t("program.p2")}</p>
         <ol>
           <li className="ql-align-justify">
             <Link to="/program-kami/kelas-dan-pelatihan">
-              Kelas &amp; Pelatihan
+              {t("nav.kelasPelatihan")}
             </Link>
-            : kelas rutin pemula hingga mahir, daring dan luring.
+            : {t("program.l1")}
           </li>
           <li className="ql-align-justify">
-            <Link to="/program-kami/coaching-clinic">Coaching Clinic</Link>:
-            sesi singkat bersama pelatih dan pecatur bergelar.
+            <Link to="/program-kami/coaching-clinic">
+              {t("nav.coachingClinic")}
+            </Link>
+            : {t("program.l2")}
           </li>
           <li className="ql-align-justify">
             <Link to="/program-kami/simultan-dan-blindfold">
-              Simultan &amp; Blindfold
+              {t("nav.simultanBlindfold")}
             </Link>
-            : pertunjukan simultan dan catur buta untuk anggota dan publik.
+            : {t("program.l3")}
           </li>
           <li className="ql-align-justify">
-            <Link to="/program-kami/sekolah-catur">Sekolah Catur</Link>:
-            program ekstrakurikuler dan kemitraan dengan sekolah.
+            <Link to="/program-kami/sekolah-catur">
+              {t("nav.sekolahCatur")}
+            </Link>
+            : {t("program.l4")}
           </li>
         </ol>
       </PageArtikel>

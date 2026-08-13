@@ -1,34 +1,30 @@
 import { useState } from "react";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function HubungiKami() {
+  const { t } = useI18n();
   const [kirim, setKirim] = useState(false);
 
   return (
     <HalamanIsi
-      title="Hubungi Kami"
-      description="Sekretariat Medan, surel resmi, dan formulir pesan."
+      title={t("hubungi.judul")}
+      description={t("hubungi.deskripsi")}
     >
-      <PageArtikel title="Sekretariat">
+      <PageArtikel title={t("hubungi.sekretariat")}>
+        <p>{t("hubungi.alamat")}</p>
         <p>
-          <strong>Address:</strong> Sekretariat Komunitas Catur Indonesia, Jl.
-          Gatot Subroto No. 11-13, Medan 20152, Sumatera Utara, Indonesia
-        </p>
-        <p>
-          <strong>Email:</strong>{" "}
+          <strong>{t("common.surel")}:</strong>{" "}
           <a href="mailto:info@komunitascatur.or.id">
             info@komunitascatur.or.id
           </a>
         </p>
-        <p className="ql-align-justify">
-          Jam kunjung luring: Sabtu 09.00–16.00 WIB, kecuali pada tanggal libur
-          yang diumumkan melalui halaman Pengumuman.
-        </p>
+        <p className="ql-align-justify">{t("hubungi.jam")}</p>
       </PageArtikel>
 
-      <PageArtikel title="Kirim Pesan">
+      <PageArtikel title={t("hubungi.kirimPesan")}>
         {kirim ? (
-          <p>Pesan terkirim. Kami membalas pada hari kerja.</p>
+          <p>{t("hubungi.terkirim")}</p>
         ) : (
           <form
             className="flex flex-col gap-6 max-w-xl"
@@ -38,7 +34,7 @@ export default function HubungiKami() {
             }}
           >
             <label className="flex flex-col gap-2 text-sm text-grey-800">
-              Nama
+              {t("hubungi.nama")}
               <input
                 required
                 name="nama"
@@ -46,7 +42,7 @@ export default function HubungiKami() {
               />
             </label>
             <label className="flex flex-col gap-2 text-sm text-grey-800">
-              Surel
+              {t("hubungi.surel")}
               <input
                 required
                 type="email"
@@ -55,7 +51,7 @@ export default function HubungiKami() {
               />
             </label>
             <label className="flex flex-col gap-2 text-sm text-grey-800">
-              Pesan
+              {t("hubungi.pesan")}
               <textarea
                 required
                 name="pesan"
@@ -67,7 +63,7 @@ export default function HubungiKami() {
               type="submit"
               className="self-start text-xs rounded-full px-4 py-2 border border-solid border-primary text-primary"
             >
-              Kirim
+              {t("hubungi.kirim")}
             </button>
           </form>
         )}

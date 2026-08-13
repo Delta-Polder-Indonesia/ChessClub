@@ -1,32 +1,20 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function SekolahCatur() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Sekolah Catur"
-      parent="Program Kami"
+      title={t("sekolahCatur.judul")}
+      parent={t("nav.programKami")}
       parentPath="/program-kami"
-      description="Kemitraan dengan sekolah untuk menumbuhkan catur sebagai kegiatan rutin, bukan sekadar lomba sesaat."
-      next={{ to: "/turnamen", judul: "Turnamen" }}
+      description={t("sekolahCatur.deskripsi")}
+      next={{ to: "/turnamen", judul: t("sekolahCatur.nextJudul") }}
     >
-      <PageArtikel title="Cara bermitra">
-        <p>
-          Sekolah Catur adalah program pembinaan usia muda di lingkungan
-          formal. Komunitas menyediakan kurikulum 12 pertemuan, pelatih
-          pendamping, dan perangkat papan untuk masa perkenalan.
-        </p>
-        <p>
-          Sekolah mitra menyediakan ruang, jadwal tetap, dan guru pendamping.
-          Setelah satu semester, siswa yang menonjol diundang ke kelas komunitas
-          dan turnamen pelajar.
-        </p>
-        <p>
-          Pengajuan kemitraan dikirim ke{" "}
-          <a href="mailto:info@komunitascatur.or.id">
-            info@komunitascatur.or.id
-          </a>{" "}
-          dengan subjek “Sekolah Catur — [nama sekolah]”.
-        </p>
+      <PageArtikel title={t("sekolahCatur.artikel")}>
+        <p>{t("sekolahCatur.p1")}</p>
+        <p>{t("sekolahCatur.p2")}</p>
+        <p>{t("sekolahCatur.p3")}</p>
       </PageArtikel>
     </HalamanIsi>
   );

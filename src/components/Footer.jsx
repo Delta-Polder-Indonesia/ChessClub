@@ -9,45 +9,7 @@ import {
   YoutubeIcon,
   LinkedinIcon,
 } from "./icons.jsx";
-
-const FOOTER_COLUMNS = [
-  {
-    id: "pengumuman",
-    title: "Pengumuman",
-    links: [
-      { title: "Berita Komunitas", href: "/media-dan-informasi/berita-komunitas" },
-      { title: "Pendaftaran Turnamen", href: "/turnamen/turnamen-bulanan" },
-      { title: "Pengumuman", href: "/media-dan-informasi/pengumuman" },
-      { title: "Jadwal Liga", href: "/turnamen/liga-musiman" },
-      { title: "Musyawarah Anggota", href: "/keanggotaan" },
-      { title: "Volunteer", href: "/hubungi-kami" },
-    ],
-  },
-  {
-    id: "network",
-    title: "Network",
-    links: [
-      { title: "Chapter Sumatera Utara", href: "#" },
-      { title: "Chapter DKI Jakarta", href: "#" },
-      { title: "Chapter Jawa Barat", href: "#" },
-      { title: "Chapter Jawa Timur", href: "#" },
-      { title: "Chapter Sulawesi Selatan", href: "#" },
-      { title: "Akademi Catur", href: "/program-kami/sekolah-catur" },
-    ],
-  },
-  {
-    id: "tools",
-    title: "Tools",
-    links: [
-      { title: "Papan Interaktif", href: "/program-kami" },
-      { title: "Pendaftaran Anggota", href: "/keanggotaan/pendaftaran-anggota" },
-      { title: "Kode Etik Komunitas", href: "/keanggotaan/kode-etik-komunitas" },
-      { title: "Keterbukaan Informasi", href: "/media-dan-informasi" },
-      { title: "Kontak Kami", href: "/hubungi-kami" },
-      { title: "Sistem Pengaduan", href: "/hubungi-kami" },
-    ],
-  },
-];
+import { useI18n } from "../lib/i18n.jsx";
 
 const SOCIALS = [
   { title: "Facebook", href: "#", Icon: FacebookIcon },
@@ -58,7 +20,47 @@ const SOCIALS = [
 ];
 
 export default function Footer() {
+  const { t } = useI18n();
   const [openSection, setOpenSection] = useState(null);
+
+  const FOOTER_COLUMNS = [
+    {
+      id: "pengumuman",
+      title: t("footer.pengumuman"),
+      links: [
+        { title: t("footer.beritaKomunitas"), href: "/media-dan-informasi/berita-komunitas" },
+        { title: t("footer.pendaftaranTurnamen"), href: "/turnamen/turnamen-bulanan" },
+        { title: t("footer.pengumumanLink"), href: "/media-dan-informasi/pengumuman" },
+        { title: t("footer.jadwalLiga"), href: "/turnamen/liga-musiman" },
+        { title: t("footer.musyawarahAnggota"), href: "/keanggotaan" },
+        { title: t("footer.volunteer"), href: "/hubungi-kami" },
+      ],
+    },
+    {
+      id: "network",
+      title: t("footer.network"),
+      links: [
+        { title: t("footer.chapterSumut"), href: "#" },
+        { title: t("footer.chapterJakarta"), href: "#" },
+        { title: t("footer.chapterJabar"), href: "#" },
+        { title: t("footer.chapterJatim"), href: "#" },
+        { title: t("footer.chapterSulsel"), href: "#" },
+        { title: t("footer.akademiCatur"), href: "/program-kami/sekolah-catur" },
+      ],
+    },
+    {
+      id: "tools",
+      title: t("footer.tools"),
+      links: [
+        { title: t("footer.papanInteraktif"), href: "/program-kami" },
+        { title: t("footer.pendaftaranAnggota"), href: "/keanggotaan/pendaftaran-anggota" },
+        { title: t("footer.kodeEtik"), href: "/keanggotaan/kode-etik-komunitas" },
+        { title: t("footer.keterbukaanInformasi"), href: "/media-dan-informasi" },
+        { title: t("footer.kontakKami"), href: "/hubungi-kami" },
+        { title: t("footer.sistemPengaduan"), href: "/hubungi-kami" },
+      ],
+    },
+  ];
 
   return (
     <footer className="relative bg-[#F8FAFC] text-black px-6 md:px-10 xl:px-20 pt-16 md:pt-24 pb-10 md:pb-20">
@@ -74,15 +76,13 @@ export default function Footer() {
           </Link>
           <div className="text-center">
             <p className="font-normal text-xs md:text-sm leading-relaxed xl:leading-loose">
-              <strong className="font-semibold">Address:</strong> Sekretariat
-              Komunitas Catur Indonesia, Jl. Gatot Subroto No. 11-13, Medan
-              20152, Sumatera Utara, Indonesia
+              {t("footer.alamat")}
             </p>
             <p className="font-normal text-xs md:text-sm leading-relaxed xl:leading-loose">
-              <strong className="font-semibold">Email:</strong>{" "}
+              <strong className="font-semibold">{t("common.surel")}:</strong>{" "}
               <a
                 href="mailto:info@komunitascatur.or.id"
-                title="Email"
+                title={t("common.surel")}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="hover:underline"
@@ -151,22 +151,22 @@ export default function Footer() {
         <div className="w-full h-[1px] bg-grey-200" />
         <div className="w-full flex flex-col-reverse xl:flex-row items-center justify-between gap-4 mt-6 md:mt-9">
           <div className="text-xs text-center leading-relaxed text-grey-800 flex gap-4 items-center justify-center xl:justify-start flex-wrap">
-            © Copyright Komunitas Catur Indonesia 2025. All Right Reserved.
+            {t("footer.copyright")}
             <span className="hidden md:inline-block">/</span>
             <a
               href="#"
-              title="Kebijakan Privasi"
+              title={t("footer.privasi")}
               className="text-grey-800 underline"
             >
-              Kebijakan Privasi
+              {t("footer.privasi")}
             </a>
             <span>/</span>
             <a
               href="#"
-              title="Waspada Penipuan"
+              title={t("footer.penipuan")}
               className="text-grey-800 underline"
             >
-              Waspada Penipuan
+              {t("footer.penipuan")}
             </a>
           </div>
           <div className="flex items-center gap-4">

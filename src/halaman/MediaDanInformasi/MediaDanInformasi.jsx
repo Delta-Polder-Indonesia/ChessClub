@@ -1,39 +1,37 @@
 import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function MediaDanInformasi() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Media & Informasi"
-      description="Kanal resmi berita, pengumuman, galeri, dan buletin Komunitas Catur Indonesia."
+      title={t("media.judul")}
+      description={t("media.deskripsi")}
       next={{
         to: "/media-dan-informasi/berita-komunitas",
-        judul: "Berita Komunitas",
+        judul: t("media.nextJudul"),
       }}
     >
-      <PageArtikel title="Satu Sumber Resmi">
-        <p className="ql-align-justify">
-          Semua informasi resmi komunitas hanya dikeluarkan melalui kanal ini
-          dan surel info@komunitascatur.or.id. Waspadai undangan turnamen atau
-          pungutan yang tidak tercantum di halaman Pengumuman.
-        </p>
-        <p>Kanal yang tersedia adalah sebagai berikut:</p>
+      <PageArtikel title={t("media.artikel")}>
+        <p className="ql-align-justify">{t("media.p1")}</p>
+        <p>{t("media.p2")}</p>
         <ol>
           <li className="ql-align-justify">
             <Link to="/media-dan-informasi/berita-komunitas">
-              Berita Komunitas
+              {t("nav.beritaKomunitas")}
             </Link>
-            : laporan kegiatan, wawancara, dan liputan turnamen.
+            : {t("media.l1")}
           </li>
           <li className="ql-align-justify">
-            <Link to="/media-dan-informasi/galeri">Galeri</Link>: foto kegiatan
-            sekretariat, kelas, dan pertandingan.
+            <Link to="/media-dan-informasi/galeri">{t("nav.galeri")}</Link>:{" "}
+            {t("media.l2")}
           </li>
           <li className="ql-align-justify">
             <Link to="/media-dan-informasi/buletin-bulanan">
-              Buletin Bulanan
+              {t("nav.buletinBulanan")}
             </Link>
-            : ringkasan bulanan untuk anggota dan publik.
+            : {t("media.l3")}
           </li>
         </ol>
       </PageArtikel>

@@ -3,14 +3,7 @@ import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import StickyMenu from "../../components/StickyMenu.jsx";
 import { ambilDaftarAnggota } from "../../lib/chessAnggota.js";
-
-const MENU_ELO = [
-  { id: "semua", label: "Semua" },
-  { id: "pemula", label: "Pemula" },
-  { id: "1000", label: "1000" },
-  { id: "2000", label: "2000" },
-  { id: "master", label: "Master" },
-];
+import { useI18n } from "../../lib/i18n.jsx";
 
 function sel(nilai) {
   return nilai === null || nilai === undefined || nilai === "" ? "—" : nilai;
@@ -28,6 +21,7 @@ function lolosFilter(a, tab) {
 }
 
 function BarisAnggota({ a, no }) {
+  const { t } = useI18n();
   const opsi = Object.keys(a.ratings || {});
   const awal = opsi.includes(a.kontrol) ? a.kontrol : opsi[0] || "";
   const [kontrol, setKontrol] = useState(awal);
@@ -68,15 +62,15 @@ function BarisAnggota({ a, no }) {
       </td>
       <td>
         {a.hilang ? (
-          "akun tidak ditemukan"
+          t("keanggotaan.akunHilang")
         ) : a.gagal ? (
-          "gagal memuat"
+          t("keanggotaan.gagal")
         ) : data.elo ? (
           <span className="elo-pilih">
             {data.elo}{" "}
             {opsi.length > 0 ? (
               <select
-                aria-label={`Jenis rating ${a.username}`}
+                aria-label={t("keanggotaan.ratingType", { username: a.username })}
                 value={kontrol}
                 onChange={(e) => setKontrol(e.target.value)}
               >
@@ -91,7 +85,7 @@ function BarisAnggota({ a, no }) {
             )}
           </span>
         ) : (
-          "belum ada rating"
+          t("keanggotaan.belumRating")
         )}
       </td>
       <td>{a.hilang || a.gagal ? "—" : sel(data.win)}</td>
@@ -102,17 +96,18 @@ function BarisAnggota({ a, no }) {
 }
 
 function TabelAnggota({ baris }) {
+  const { t } = useI18n();
   if (!baris.length) {
-    return <p>Tidak ada anggota pada kelompok ini.</p>;
+    return <p>{t("keanggotaan.tidakAda")}</p>;
   }
   return (
     <div className="overflow-x-auto">
       <table className="tabel-kci">
         <thead>
           <tr>
-            <th>No.</th>
-            <th>Foto</th>
-            <th>Nama</th>
+            <th>{t("keanggotaan.no")}</th>
+            <th>{t("keanggotaan.foto")}</th>
+            <th>{t("keanggotaan.nama")}</th>
             <th>Chess.com</th>
             <th>Elo</th>
             <th>W</th>
@@ -131,10 +126,19 @@ function TabelAnggota({ baris }) {
 }
 
 export default function Keanggotaan() {
+  const { t } = useI18n();
   const [anggota, setAnggota] = useState([]);
   const [status, setStatus] = useState("memuat");
   const [pesan, setPesan] = useState("");
   const [tab, setTab] = useState("semua");
+
+  const MENU_ELO = [
+    { id: "semua", label: t("keanggotaan.tabSemua") },
+    { id: "pemula", label: t("keanggotaan.tabPemula") },
+    { id: "1000", label: "1000" },
+    { id: "2000", label: "2000" },
+    { id: "master", label: t("keanggotaan.tabMaster") },
+  ];
 
   useEffect(() => {
     let hidup = true;
@@ -161,8 +165,8 @@ export default function Keanggotaan() {
 
   return (
     <HalamanIsi
-      title="Keanggotaan"
-      description="Daftar anggota yang terdaftar melalui akun Chess.com, dikelompokkan menurut Elo agar mudah dicari."
+      title={t("keanggotaan.judul")}
+      description={t("keanggotaan.deskripsi")}
       submenu={
         <StickyMenu
           sections={MENU_ELO}
@@ -172,30 +176,21 @@ export default function Keanggotaan() {
       }
       next={{
         to: "/keanggotaan/pendaftaran-anggota",
-        judul: "Pendaftaran Anggota",
+        judul: t("keanggotaan.nextJudul"),
       }}
     >
-      <PageArtikel title="Daftar Anggota">
-        <p className="ql-align-justify">
-          Anggota baru mendaftar dengan username Chess.com pada halaman{" "}
-          <Link to="/keanggotaan/pendaftaran-anggota">
-            Pendaftaran Anggota
-          </Link>
-          . Setelah akun terverifikasi, nama masuk ke daftar ini secara
-          otomatis. Elo dan W/D/L diambil dari Chess.com (diutamakan Rapid).
-          Pilih tab di atas untuk menyaring: Semua, Pemula (di bawah 1000),
-          1000, 2000, atau Master (3000 ke atas).
-        </p>
+      <PageArtikel title={t("keanggotaan.artikel")}>
+        <p className="ql-align-justify">{t("keanggotaan.intro")}</p>
 
-        {status === "memuat" && <p>Memuat data dari Chess.com…</p>}
+        {status === "memuat" && <p>{t("keanggotaan.memuat")}</p>}
         {status === "gagal" && <p>{pesan}</p>}
         {status === "siap" && anggota.length === 0 && (
           <p>
-            Belum ada anggota terdaftar. Silakan{" "}
+            {t("keanggotaan.kosong1")}
             <Link to="/keanggotaan/pendaftaran-anggota">
-              daftar dengan akun Chess.com
+              {t("keanggotaan.kosong2")}
             </Link>
-            .
+            {t("keanggotaan.kosong3")}
           </p>
         )}
         {status === "siap" && anggota.length > 0 && (

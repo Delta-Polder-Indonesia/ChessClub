@@ -1,28 +1,20 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 export default function LigaMusiman() {
+  const { t } = useI18n();
   return (
     <HalamanIsi
-      title="Liga Musiman"
-      parent="Turnamen"
+      title={t("ligaMusiman.judul")}
+      parent={t("nav.turnamen")}
       parentPath="/turnamen"
-      description="Tiga musim kompetisi setahun dengan klasemen yang berjalan, bukan event sekali selesai."
-      next={{ to: "/turnamen/turnamen-terbuka", judul: "Turnamen Terbuka" }}
+      description={t("ligaMusiman.deskripsi")}
+      next={{ to: "/turnamen/turnamen-terbuka", judul: t("ligaMusiman.nextJudul") }}
     >
-      <PageArtikel title="Musim dan format">
-        <p>
-          Liga Musiman dibagi menjadi Musim I (Januari–April), Musim II
-          (Mei–Agustus), dan Musim III (September–Desember). Setiap pemain
-          bermain minimal enam partai agar masuk klasemen resmi.
-        </p>
-        <p>
-          Poin dihitung 1 untuk menang, ½ untuk remis, 0 untuk kalah. Tie-break
-          memakai Sonneborn-Berger, kemudian hasil pertemuan langsung.
-        </p>
-        <p>
-          Juara musim mendapat undangan langsung ke final Turnamen Terbuka
-          akhir tahun.
-        </p>
+      <PageArtikel title={t("ligaMusiman.artikel")}>
+        <p>{t("ligaMusiman.p1")}</p>
+        <p>{t("ligaMusiman.p2")}</p>
+        <p>{t("ligaMusiman.p3")}</p>
       </PageArtikel>
     </HalamanIsi>
   );

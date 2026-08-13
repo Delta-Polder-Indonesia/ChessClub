@@ -1,28 +1,26 @@
 import { useEffect, useState } from "react";
-
-const SECTIONS = [
-  { id: "sekilas-komunitas", label: "Sekilas Komunitas" },
-  { id: "tonggak-sejarah", label: "Tonggak Sejarah" },
-  { id: "visi-misi", label: "Visi, Misi, & Tata Nilai" },
-  { id: "makna-logo", label: "Makna Logo" },
-  { id: "struktur-pengurus", label: "Struktur Pengurus" },
-];
+import { useI18n } from "../lib/i18n.jsx";
 
 /**
  * Submenu sticky di bawah hero — identik dengan #stickymenu Pertamina.
  * `sections` bisa diganti (mis. kelompok Elo di Keanggotaan).
  */
-export default function StickyMenu({
-  sections = SECTIONS,
-  activeId,
-  onSelect,
-}) {
-  const [active, setActive] = useState(sections[0]?.id);
+export default function StickyMenu({ sections, activeId, onSelect }) {
+  const { t } = useI18n();
+  const SECTIONS = [
+    { id: "sekilas-komunitas", label: t("sticky.sekilasKomunitas") },
+    { id: "tonggak-sejarah", label: t("sticky.tonggakSejarah") },
+    { id: "visi-misi", label: t("sticky.visiMisiNilai") },
+    { id: "makna-logo", label: t("sticky.maknaLogo") },
+    { id: "struktur-pengurus", label: t("sticky.strukturPengurus") },
+  ];
+  const daftar = sections ?? SECTIONS;
+  const [active, setActive] = useState(daftar[0]?.id);
   const current = onSelect ? activeId : active;
 
   useEffect(() => {
     if (onSelect) return undefined;
-    setActive(sections[0]?.id);
+    setActive(daftar[0]?.id);
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
@@ -33,12 +31,12 @@ export default function StickyMenu({
       },
       { rootMargin: "-35% 0px -55% 0px" }
     );
-    sections.forEach((s) => {
+    daftar.forEach((s) => {
       const el = document.getElementById(s.id);
       if (el) observer.observe(el);
     });
     return () => observer.disconnect();
-  }, [sections, onSelect]);
+  }, [daftar, onSelect]);
 
   const handleClick = (id) => {
     if (onSelect) {
@@ -56,7 +54,7 @@ export default function StickyMenu({
       className="max-lg:overflow-x-auto max-lg:[scrollbar-width:none] max-lg:whitespace-nowrap sticky w-full h-full mx-auto text-base bg-white z-40 border-b border-t top-[72px] transition-all duration-300 ease-in-out"
     >
       <div className="flex items-center lg:justify-center">
-        {sections.map((s) => (
+        {daftar.map((s) => (
           <button
             key={s.id}
             id="stickyitem"
