@@ -31,6 +31,7 @@ export const ID = {
     coachingClinic: "Coaching Clinic",
     simultanBlindfold: "Simultan & Blindfold",
     sekolahCatur: "Sekolah Catur",
+    caraBermainCatur: "Cara Bermain Catur",
     turnamenBulanan: "Turnamen Bulanan",
     ligaMusiman: "Liga Musiman",
     turnamenTerbuka: "Turnamen Terbuka",
@@ -373,6 +374,13 @@ export const ID = {
     p3: "Pengajuan kemitraan dikirim ke info@komunitascatur.or.id dengan subjek “Sekolah Catur — [nama sekolah]”.",
     nextJudul: "Turnamen",
   },
+  caraBermain: {
+    judul: "Cara Bermain Catur",
+    deskripsi:
+      "Panduan lengkap aturan dasar, gerakan buah, strategi awal, dan cara memenangkan permainan catur.",
+    lead:
+      "Pelajari dasar-dasar permainan catur dalam tujuh langkah praktis, mulai dari menyusun papan hingga memahami strategi dasar.",
+  },
   media: {
     judul: "Media & Informasi",
     deskripsi:
@@ -490,6 +498,7 @@ export const EN = {
     coachingClinic: "Coaching Clinic",
     simultanBlindfold: "Simultaneous & Blindfold",
     sekolahCatur: "Chess School",
+    caraBermainCatur: "How to Play Chess",
     turnamenBulanan: "Monthly Tournament",
     ligaMusiman: "Seasonal League",
     turnamenTerbuka: "Open Tournament",
@@ -833,6 +842,13 @@ export const EN = {
     p2: "Partner schools provide the space, a fixed schedule, and accompanying teachers. After one semester, outstanding students are invited to community classes and student tournaments.",
     p3: "Partnership applications are sent to info@komunitascatur.or.id with the subject “Chess School — [school name]”.",
     nextJudul: "Tournaments",
+  },
+  caraBermain: {
+    judul: "How to Play Chess",
+    deskripsi:
+      "A complete guide to the basic rules, piece movement, opening strategy, and how to win a chess game.",
+    lead:
+      "Learn the fundamentals of chess in seven practical steps, from setting up the board to understanding basic strategy.",
   },
   media: {
     judul: "Media & Information",
