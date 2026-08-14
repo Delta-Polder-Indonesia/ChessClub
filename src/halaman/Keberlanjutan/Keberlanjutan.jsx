@@ -8,24 +8,24 @@ export default function Keberlanjutan() {
     <HalamanIsi
       title={t("keberlanjutan.judul")}
       description={t("keberlanjutan.deskripsi")}
-      next={{ to: "/keanggotaan/syarat-dan-ketentuan", judul: t("keberlanjutan.nextJudul") }}
+      next={{ to: "/keberlanjutan/syarat-dan-ketentuan", judul: t("keberlanjutan.nextJudul") }}
     >
       <PageArtikel title={t("keberlanjutan.artikel")}>
         <ol>
           <li>
-            <Link to="/keanggotaan/syarat-dan-ketentuan">
+            <Link to="/keberlanjutan/syarat-dan-ketentuan">
               {t("nav.syaratKetentuan")}
             </Link>
             {t("keberlanjutan.l1b")}
           </li>
           <li>
-            <Link to="/keanggotaan/kode-etik-komunitas">
+            <Link to="/keberlanjutan/kode-etik-komunitas">
               {t("nav.kodeEtik")}
             </Link>
             {t("keberlanjutan.l2b")}
           </li>
           <li>
-            <Link to="/keanggotaan/pertanyaan-umum">
+            <Link to="/keberlanjutan/pertanyaan-umum">
               {t("nav.pertanyaanUmum")}
             </Link>
             {t("keberlanjutan.l3b")}

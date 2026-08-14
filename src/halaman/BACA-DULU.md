@@ -1,56 +1,87 @@
 # Peta folder halaman
 
-Setiap tab menu punya folder / file sendiri. Nama folder = kelompok menu. Nama file = nama tab.
+Struktur halaman mengikuti kelompok menu utama. Keanggotaan **hanya** menjadi tab di dalam halaman Struktur Grup Catur, bukan halaman menu atau halaman publik terpisah. Pendaftaran anggota adalah halaman aksi tersendiri yang hanya dibuka melalui tombol **Daftar Anggota**.
 
-```
+```text
 src/halaman/
 │
-├── BACA-DULU.md                  ← file ini
+├── BACA-DULU.md
 │
-├── TentangKami/                  ← tab "Tentang Kami" (sudah ada isinya)
-│   └── TentangKami.jsx
+├── TentangKami/                              ← menu utama: Tentang Kami
+│   ├── TentangKami.jsx                        ← halaman utama Tentang Kami
+│   └── StrukturGrupCatur/                     ← satu halaman bertab
+│       ├── StrukturGrupCatur.jsx              ← induk tab
+│       ├── Pengurus.jsx                       ← tab Pengurus
+│       ├── StrukturOrganisasiCatur.jsx        ← tab Struktur Organisasi Catur
+│       └── Keanggotaan/                       ← tab Keanggotaan, hanya dipanggil induk
+│           ├── Keanggotaan.jsx
+│           ├── TingkatanRating.jsx
+│           └── DaftarAnggota.jsx
 │
-├── ProgramKami/                  ← tab "Program Kami"
-│   ├── ProgramKami.jsx           ← halaman induk
-│   ├── KelasDanPelatihan.jsx     ← Kelas & Pelatihan
-│   ├── CoachingClinic.jsx        ← Coaching Clinic
-│   ├── SimultanDanBlindfold.jsx  ← Simultan & Blindfold
-│   └── SekolahCatur.jsx          ← Sekolah Catur
+├── PendaftaranAnggota/                        ← halaman aksi tombol Daftar Anggota
+│   └── PendaftaranAnggota.jsx
 │
-├── Turnamen/                     ← tab "Turnamen"
+├── ProgramKami/                               ← menu utama: Program Kami
+│   ├── ProgramKami.jsx
+│   ├── KelasDanPelatihan.jsx
+│   ├── CoachingClinic.jsx
+│   ├── SimultanDanBlindfold.jsx
+│   ├── SekolahCatur.jsx
+│   └── CaraBermainCatur.jsx
+│
+├── Turnamen/                                  ← menu utama: Turnamen
 │   ├── Turnamen.jsx
 │   ├── TurnamenBulanan.jsx
 │   ├── LigaMusiman.jsx
 │   ├── TurnamenTerbuka.jsx
 │   └── LigaAntarKomunitas.jsx
 │
-├── MediaDanInformasi/            ← tab "Media & Informasi"
+├── MediaDanInformasi/                         ← menu utama: Media & Informasi
 │   ├── MediaDanInformasi.jsx
 │   ├── BeritaKomunitas.jsx
 │   ├── Pengumuman.jsx
 │   ├── Galeri.jsx
 │   └── BuletinBulanan.jsx
 │
-├── Keanggotaan/                  ← tab "Keanggotaan"
-│   ├── Keanggotaan.jsx
-│   ├── PendaftaranAnggota.jsx
+├── Keberlanjutan/                             ← menu utama: Keberlanjutan
+│   ├── Keberlanjutan.jsx
 │   ├── SyaratDanKetentuan.jsx
 │   ├── KodeEtikKomunitas.jsx
 │   └── PertanyaanUmum.jsx
 │
-└── HubungiKami/                  ← tautan "Hubungi Kami" di menu atas
-    └── HubungiKami.jsx
+├── Pengadaan/                                 ← menu atas: Pengadaan
+│   └── Pengadaan.jsx
+│
+├── Karir/                                     ← menu atas: Karir
+│   └── Karir.jsx
+│
+├── HubungiKami/                               ← menu atas: Hubungi Kami
+│   └── HubungiKami.jsx
+│
+├── Pengurus/                                  ← area internal, bukan menu publik
+│   ├── Dashboard.jsx
+│   ├── PanelTurnamen.jsx
+│   └── ui.jsx
+│
+└── TidakDitemukan.jsx                         ← halaman fallback 404
 ```
 
-Alamat browser (contoh):
+## Alamat halaman utama
 
-| Tab menu              | File                              | Alamat                                      |
-| --------------------- | --------------------------------- | ------------------------------------------- |
-| Tentang Kami          | `TentangKami/TentangKami.jsx`     | `/` atau `/tentang-kami`                    |
-| Kelas & Pelatihan     | `ProgramKami/KelasDanPelatihan.jsx` | `/program-kami/kelas-dan-pelatihan`       |
-| Turnamen Bulanan      | `Turnamen/TurnamenBulanan.jsx`    | `/turnamen/turnamen-bulanan`                |
-| Galeri                | `MediaDanInformasi/Galeri.jsx`    | `/media-dan-informasi/galeri`               |
-| Pendaftaran Anggota   | `Keanggotaan/PendaftaranAnggota.jsx` | `/keanggotaan/pendaftaran-anggota`       |
-| Hubungi Kami          | `HubungiKami/HubungiKami.jsx`     | `/hubungi-kami`                             |
+| Fitur | Folder | Alamat kanonik |
+| --- | --- | --- |
+| Tentang Kami | `TentangKami/TentangKami.jsx` | `/tentang-kami` |
+| Struktur Grup Catur | `TentangKami/StrukturGrupCatur/` | `/tentang-kami/struktur-grup-catur` |
+| Tab Keanggotaan | `TentangKami/StrukturGrupCatur/Keanggotaan/` | `/tentang-kami/struktur-grup-catur#keanggotaan` |
+| Pendaftaran Anggota | `PendaftaranAnggota/PendaftaranAnggota.jsx` | `/pendaftaran-anggota` |
+| Keberlanjutan | `Keberlanjutan/Keberlanjutan.jsx` | `/keberlanjutan` |
+| Syarat & Ketentuan | `Keberlanjutan/SyaratDanKetentuan.jsx` | `/keberlanjutan/syarat-dan-ketentuan` |
+| Kode Etik | `Keberlanjutan/KodeEtikKomunitas.jsx` | `/keberlanjutan/kode-etik-komunitas` |
+| Pertanyaan Umum | `Keberlanjutan/PertanyaanUmum.jsx` | `/keberlanjutan/pertanyaan-umum` |
+| Pengadaan | `Pengadaan/Pengadaan.jsx` | `/pengadaan` |
+| Karir | `Karir/Karir.jsx` | `/karir` |
+| Hubungi Kami | `HubungiKami/HubungiKami.jsx` | `/hubungi-kami` |
 
-Daftar lengkap path ada di `src/menu.js`.
+Keanggotaan tidak memiliki halaman induk tersendiri. Route lama `/keanggotaan` dan `/tentang-kami/keanggotaan` diarahkan otomatis ke tab Keanggotaan di Struktur Grup Catur. Route lama pendaftaran diarahkan ke `/pendaftaran-anggota`.
+
+Daftar menu dan pemetaan folder berada di `src/menu.js`. Routing berada di `src/App.jsx`.

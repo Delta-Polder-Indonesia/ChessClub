@@ -1,4 +1,5 @@
 import { useI18n } from "../lib/i18n.jsx";
+import { gambar } from "../lib/asets.js";
 
 export default function VisiMisi() {
   const { t } = useI18n();
@@ -61,7 +62,7 @@ export default function VisiMisi() {
           <div className="flex justify-center items-center">
             <div className="flex flex-col justify-center items-center">
               <img
-                src="/images/tata-nilai.jpg"
+                src={gambar("/images/tata-nilai.jpg")}
                 alt={t("visimisi.nilaiImgAlt")}
                 className="w-full h-auto object-cover"
                 draggable="false"

@@ -65,7 +65,7 @@ export const konfigurasi = {
     /** Ke mana pengguna dikembalikan setelah login selesai. */
     tujuanSetelahLogin:
       process.env.KCI_TUJUAN_SETELAH_LOGIN ||
-      "/keanggotaan/pendaftaran-anggota",
+      "/pendaftaran-anggota",
   },
 
   /**

@@ -219,7 +219,7 @@ dropdown tertutup.
 ### 4.10 Halaman di `src/halaman/**`
 Semua halaman berikut: panggil `useI18n()`, ganti `title`, `description`, `parent`, `judul` pada
 `next`, serta seluruh teks body dengan `t("...")` sesuai kunci di kamus.
-- `Keanggotaan/*` (4 file): juga terjemahkan label tab Elo, header tabel (No/Foto/Nama), status
+- `TentangKami/StrukturGrupCatur/Keanggotaan/*` (3 file): hanya dirender sebagai tab di `StrukturGrupCatur.jsx`; terjemahkan label tab Elo, header tabel (No/Foto/Nama), status
   ("Memuat data...", "Tidak ada anggota...", "akun tidak ditemukan", "gagal memuat",
   "belum ada rating"), pesan error form.
 - `Turnamen/*` (5 file), `ProgramKami/*` (5 file), `MediaDanInformasi/*` (5 file),
@@ -242,7 +242,7 @@ Semua halaman berikut: panggil `useI18n()`, ganti `title`, `description`, `paren
    - Refresh browser → bahasa tetap English (localStorage).
    - Cek menu navigasi (desktop & mobile drawer), footer, hero, sticky menu, tabel keanggotaan,
      form Hubungi Kami, dan pencarian (search) ikut berubah.
-   - Cek semua halaman (Turnamen, Program, Media, Keanggotaan, 404) tanpa teks Indonesia tertinggal.
+   - Cek semua halaman (Turnamen, Program, Media, Keberlanjutan, Keanggotaan di bawah Tentang Kami, 404) tanpa teks Indonesia tertinggal.
 3. `npm run build` — pastikan build sukses.
 
 ## 7. Catatan tambahan

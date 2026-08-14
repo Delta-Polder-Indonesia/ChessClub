@@ -210,9 +210,44 @@ export const ID = {
     gagal: "gagal memuat",
     belumRating: "belum ada rating",
     ratingType: "Jenis rating {username}",
+    tingkatanJudul: "Tingkatan Kelompok Rating",
+    tingkatanRentang: "Rentang Rating",
+    tingkatanKategori: "Kategori Pemain",
+    tingkatanPenjelasan: "Penjelasan Kemampuan",
+    tingkatanBuka: "Klik untuk membuka daftar tingkatan rating",
+    tingkatanTutup: "Klik untuk melipat daftar tingkatan rating",
     tabSemua: "Semua",
-    tabPemula: "Pemula",
-    tabMaster: "Master",
+    tabTanpaRating: "Belum Ada Rating",
+    tingkatan: {
+      beginner: {
+        label: "Beginner (Pemula)",
+        deskripsi: "Baru memulai perjalanan catur dan memahami pergerakan dasar buah catur.",
+      },
+      novice: {
+        label: "Novice (Pemula Lanjutan)",
+        deskripsi: "Mulai mempelajari dasar taktik, mengamankan perwira, dan meminimalkan blunder.",
+      },
+      intermediate: {
+        label: "Intermediate (Menengah)",
+        deskripsi: "Mampu menyusun strategi, memahami taktik 2–3 langkah, dan menguasai pembukaan dasar.",
+      },
+      advanced: {
+        label: "Advanced (Mahir)",
+        deskripsi: "Memiliki pemahaman posisi yang konsisten, kalkulasi matang, dan jarang melakukan kesalahan fatal.",
+      },
+      expert: {
+        label: "Expert (Ahli)",
+        deskripsi: "Keterampilan tingkat tinggi dengan kalkulasi mendalam, manajemen waktu yang ketat, dan ketahanan mental.",
+      },
+      master: {
+        label: "Master Level (Pakar)",
+        deskripsi: "Pemain yang sangat kuat dengan kemampuan komprehensif di level turnamen nasional.",
+      },
+      elite: {
+        label: "Elite / Grandmaster",
+        deskripsi: "Kelas tertinggi tempat para pecatur profesional dunia bersaing.",
+      },
+    },
     nextJudul: "Pendaftaran Anggota",
   },
   verifikasi: {
@@ -842,9 +877,44 @@ export const EN = {
     gagal: "failed to load",
     belumRating: "no rating yet",
     ratingType: "Rating type {username}",
+    tingkatanJudul: "Rating Group Levels",
+    tingkatanRentang: "Rating Range",
+    tingkatanKategori: "Player Category",
+    tingkatanPenjelasan: "Ability Description",
+    tingkatanBuka: "Click to open the rating levels",
+    tingkatanTutup: "Click to collapse the rating levels",
     tabSemua: "All",
-    tabPemula: "Beginner",
-    tabMaster: "Master",
+    tabTanpaRating: "No Rating Yet",
+    tingkatan: {
+      beginner: {
+        label: "Beginner",
+        deskripsi: "Just starting the chess journey and learning the basic movement of the pieces.",
+      },
+      novice: {
+        label: "Novice",
+        deskripsi: "Starting to learn basic tactics, protect pieces, and reduce blunders.",
+      },
+      intermediate: {
+        label: "Intermediate",
+        deskripsi: "Able to build plans, calculate two to three moves, and understand basic openings.",
+      },
+      advanced: {
+        label: "Advanced",
+        deskripsi: "Shows consistent positional understanding, mature calculation, and rarely makes fatal errors.",
+      },
+      expert: {
+        label: "Expert",
+        deskripsi: "High-level skill with deep calculation, strict time management, and mental resilience.",
+      },
+      master: {
+        label: "Master Level",
+        deskripsi: "A very strong player with comprehensive ability at national tournament level.",
+      },
+      elite: {
+        label: "Elite / Grandmaster",
+        deskripsi: "The highest class, where professional chess players compete at the world level.",
+      },
+    },
     nextJudul: "Member Registration",
   },
   verifikasi: {

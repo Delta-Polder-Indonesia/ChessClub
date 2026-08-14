@@ -32,7 +32,7 @@ export default function Footer() {
         { title: t("footer.pendaftaranTurnamen"), href: "/turnamen/turnamen-bulanan" },
         { title: t("footer.pengumumanLink"), href: "/media-dan-informasi/pengumuman" },
         { title: t("footer.jadwalLiga"), href: "/turnamen/liga-musiman" },
-        { title: t("footer.musyawarahAnggota"), href: "/keanggotaan" },
+        { title: t("footer.musyawarahAnggota"), href: "/tentang-kami/struktur-grup-catur#keanggotaan" },
         { title: t("footer.volunteer"), href: "/hubungi-kami" },
       ],
     },
@@ -53,11 +53,22 @@ export default function Footer() {
       title: t("footer.tools"),
       links: [
         { title: t("footer.papanInteraktif"), href: "/program-kami" },
-        { title: t("footer.pendaftaranAnggota"), href: "/keanggotaan/pendaftaran-anggota" },
-        { title: t("footer.kodeEtik"), href: "/keanggotaan/kode-etik-komunitas" },
+        { title: t("footer.pendaftaranAnggota"), href: "/pendaftaran-anggota" },
+        { title: t("footer.kodeEtik"), href: "/keberlanjutan/kode-etik-komunitas" },
         { title: t("footer.keterbukaanInformasi"), href: "/media-dan-informasi" },
         { title: t("footer.kontakKami"), href: "/hubungi-kami" },
         { title: t("footer.sistemPengaduan"), href: "/hubungi-kami" },
+      ],
+    },
+    {
+      id: "program",
+      title: "Program Catur",
+      links: [
+        { title: t("nav.kelasPelatihan"), href: "/program-kami/kelas-dan-pelatihan" },
+        { title: t("nav.coachingClinic"), href: "/program-kami/coaching-clinic" },
+        { title: t("nav.simultanBlindfold"), href: "/program-kami/simultan-dan-blindfold" },
+        { title: t("nav.sekolahCatur"), href: "/program-kami/sekolah-catur" },
+        { title: t("nav.turnamen"), href: "/turnamen" },
       ],
     },
   ];
@@ -94,7 +105,7 @@ export default function Footer() {
         </div>
 
         {/* Kolom tautan */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 xl:grid-cols-3 gap-6 md:gap-6 flex-1">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-6 flex-1">
           {FOOTER_COLUMNS.map((col) => (
             <div
               key={col.id}
@@ -143,6 +154,22 @@ export default function Footer() {
               </ul>
             </div>
           ))}
+          <div className="flex-1 w-full border-t md:border-0 border-solid border-slate-200 py-3 md:py-0">
+            <div className="text-grey-800 text-sm leading-relaxed font-bold tracking-wider flex items-center justify-between">
+              {t("footer.kontakKami")}
+            </div>
+            <div className="mt-4 flex flex-col gap-3 text-xs leading-relaxed text-grey-800">
+              <a href="mailto:info@komunitascatur.or.id" className="rounded-full border border-grey-300 px-3 py-2 hover:border-primary hover:text-primary transition-colors">
+                info@komunitascatur.or.id
+              </a>
+              <a href="tel:+62611234567" className="rounded-full border border-grey-300 px-3 py-2 hover:border-primary hover:text-primary transition-colors">
+                +62 61 123 4567
+              </a>
+              <Link to="/hubungi-kami" className="font-semibold hover:underline">
+                {t("footer.sistemPengaduan")}
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
 

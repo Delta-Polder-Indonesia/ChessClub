@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../lib/i18n.jsx";
+import { gambar } from "../lib/asets.js";
 
 const SLIDE_DURATION = 7000;
 
@@ -15,37 +16,37 @@ export default function Tonggak() {
 
   const SLIDES = [
     {
-      img: "/images/tonggak-2015.jpg",
+      img: gambar("/images/tonggak-2015.jpg"),
       label: "2015 - 2016",
       title: t("tonggak.t1"),
       paragraphs: [t("tonggak.p1a"), t("tonggak.p1b")],
     },
     {
-      img: "/images/tonggak-2016.jpg",
+      img: gambar("/images/tonggak-2016.jpg"),
       label: "2016 - 2017",
       title: t("tonggak.t2"),
       paragraphs: [t("tonggak.p2a"), t("tonggak.p2b")],
     },
     {
-      img: "/images/tonggak-2018.jpg",
+      img: gambar("/images/tonggak-2018.jpg"),
       label: "2018 - 2019",
       title: t("tonggak.t3"),
       paragraphs: [t("tonggak.p3a"), t("tonggak.p3b")],
     },
     {
-      img: "/images/tonggak-2020.jpg",
+      img: gambar("/images/tonggak-2020.jpg"),
       label: "2020 - 2021",
       title: t("tonggak.t4"),
       paragraphs: [t("tonggak.p4a"), t("tonggak.p4b")],
     },
     {
-      img: "/images/tonggak-2022.jpg",
+      img: gambar("/images/tonggak-2022.jpg"),
       label: "2022 - 2023",
       title: t("tonggak.t5"),
       paragraphs: [t("tonggak.p5a"), t("tonggak.p5b")],
     },
     {
-      img: "/images/tonggak-2024.jpg",
+      img: gambar("/images/tonggak-2024.jpg"),
       label: "2024 - 2025",
       title: t("tonggak.t6"),
       paragraphs: [t("tonggak.p6a"), t("tonggak.p6b")],

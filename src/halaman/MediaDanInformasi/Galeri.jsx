@@ -1,5 +1,6 @@
 import { HalamanIsi, PageArtikel, PageGambar } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { gambar } from "../../lib/asets.js";
 
 export default function Galeri() {
   const { t } = useI18n();
@@ -19,17 +20,17 @@ export default function Galeri() {
       </PageArtikel>
 
       <PageGambar
-        src="/images/sekilas.jpg"
+        src={gambar("/images/sekilas.jpg")}
         alt={t("galeri.img1Alt")}
         caption={t("galeri.img1Caption")}
       />
       <PageGambar
-        src="/images/tata-nilai.jpg"
+        src={gambar("/images/tata-nilai.jpg")}
         alt={t("galeri.img2Alt")}
         caption={t("galeri.img2Caption")}
       />
       <PageGambar
-        src="/images/tonggak-2024.jpg"
+        src={gambar("/images/tonggak-2024.jpg")}
         alt={t("galeri.img3Alt")}
         caption={t("galeri.img3Caption")}
       />

@@ -6,8 +6,8 @@ export default function PertanyaanUmum() {
   return (
     <HalamanIsi
       title={t("pertanyaan.judul")}
-      parent={t("nav.keanggotaan")}
-      parentPath="/keanggotaan"
+      parent={t("nav.keberlanjutan")}
+      parentPath="/keberlanjutan"
       description={t("pertanyaan.deskripsi")}
       next={{ to: "/hubungi-kami", judul: t("pertanyaan.nextJudul") }}
     >

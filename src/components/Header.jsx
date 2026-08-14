@@ -223,7 +223,7 @@ function MobileDrawer({ open, onClose, onNavigate }) {
           ))}
         </ul>
         <Link
-          to="/keanggotaan/pendaftaran-anggota"
+          to="/pendaftaran-anggota"
           title={t("common.daftarAnggota")}
           onClick={onClose}
           className="btn-registrasi text-center text-xs rounded-full px-4 py-2 border border-solid border-primary text-primary"
@@ -396,7 +396,7 @@ export default function Header() {
               <TombolBahasa />
               <li>
                 <Link
-                  to="/keanggotaan/pendaftaran-anggota"
+                  to="/pendaftaran-anggota"
                   title={t("common.daftarAnggota")}
                   className="btn-registrasi text-xs rounded-full px-4 py-2 border border-solid border-slate-200 hover:border-primary hover:bg-primary transition-all duration-100 ease-in-out hover:text-white text-white"
                 >

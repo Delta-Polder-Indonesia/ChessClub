@@ -13,7 +13,22 @@ import tailwindcss from "@tailwindcss/vite";
  */
 const TARGET_API = process.env.KCI_API_URL || "http://localhost:8787";
 
+/**
+ * Dasar alamat aset publik.
+ *
+ * Saat build produksi, disetel "/ChessClub/" supaya gambar, JS, dan CSS
+ * ikut memuat saat disajikan di GitHub Pages
+ * (https://delta-polder-indonesia.github.io/ChessClub/). Bila nama
+ * repositori berbeda, set VITE_BASE_PUBLIC, misalnya:
+ *   VITE_BASE_PUBLIC=/nama-repo/ npm run build
+ * Saat pengembangan tetap "/" agar URL dev tidak berubah.
+ */
+const BASE_PUBLIC =
+  process.env.VITE_BASE_PUBLIC ||
+  (process.env.NODE_ENV === "production" ? "/ChessClub/" : "/");
+
 export default defineConfig({
+  base: BASE_PUBLIC,
   plugins: [react(), tailwindcss()],
   server: {
     host: true,
