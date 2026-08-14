@@ -132,7 +132,7 @@ export function oauthAktif() {
 }
 
 /** Langkah 1: buat URL untuk mengarahkan pengguna ke Chess.com. */
-export function mulaiLogin({ kembaliKe = "/keanggotaan/pendaftaran-anggota" } = {}) {
+export function mulaiLogin({ kembaliKe = "/pendaftaran-anggota" } = {}) {
   if (!oauthAktif()) {
     throw Object.assign(
       new Error("Login Chess.com belum diaktifkan pada server ini."),

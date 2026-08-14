@@ -20,9 +20,29 @@ export const MENU_UTAMA = [
       { title: "nav.strukturPengurus", path: "/tentang-kami#struktur-pengurus" },
       {
         title: "nav.strukturGrupCatur",
-        folder: "StrukturGrupCatur",
-        path: "/struktur-grup-catur",
+        folder: "TentangKami/StrukturGrupCatur",
+        path: "/tentang-kami/struktur-grup-catur",
         file: "StrukturGrupCatur.jsx",
+        children: [
+          {
+            title: "nav.pengurus",
+            folder: "TentangKami/StrukturGrupCatur",
+            path: "/tentang-kami/struktur-grup-catur#pengurus",
+            file: "Pengurus.jsx",
+          },
+          {
+            title: "nav.strukturOrganisasiCatur",
+            folder: "TentangKami/StrukturGrupCatur",
+            path: "/tentang-kami/struktur-grup-catur#organisasi",
+            file: "StrukturOrganisasiCatur.jsx",
+          },
+          {
+            title: "nav.keanggotaan",
+            folder: "TentangKami/StrukturGrupCatur/Keanggotaan",
+            path: "/tentang-kami/struktur-grup-catur#keanggotaan",
+            file: "Keanggotaan.jsx",
+          },
+        ],
       },
     ],
   },
@@ -125,17 +145,20 @@ export const MENU_UTAMA = [
     children: [
       {
         title: "nav.syaratKetentuan",
-        path: "/keanggotaan/syarat-dan-ketentuan",
+        folder: "Keberlanjutan",
+        path: "/keberlanjutan/syarat-dan-ketentuan",
         file: "SyaratDanKetentuan.jsx",
       },
       {
         title: "nav.kodeEtik",
-        path: "/keanggotaan/kode-etik-komunitas",
+        folder: "Keberlanjutan",
+        path: "/keberlanjutan/kode-etik-komunitas",
         file: "KodeEtikKomunitas.jsx",
       },
       {
         title: "nav.pertanyaanUmum",
-        path: "/keanggotaan/pertanyaan-umum",
+        folder: "Keberlanjutan",
+        path: "/keberlanjutan/pertanyaan-umum",
         file: "PertanyaanUmum.jsx",
       },
     ],
@@ -152,7 +175,7 @@ export function menuAktif(path, pathname) {
   const base = (path || "").split("#")[0];
   if (!base) return false;
   if (base === "/tentang-kami") {
-    return pathname === "/" || pathname === "/tentang-kami";
+    return pathname === "/" || pathname === "/tentang-kami" || pathname.startsWith("/tentang-kami/");
   }
   return pathname === base || pathname.startsWith(`${base}/`);
 }

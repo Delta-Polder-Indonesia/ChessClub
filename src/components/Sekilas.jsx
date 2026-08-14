@@ -1,4 +1,5 @@
 import { useI18n } from "../lib/i18n.jsx";
+import { gambar } from "../lib/asets.js";
 
 export default function Sekilas() {
   const { t } = useI18n();
@@ -26,7 +27,7 @@ export default function Sekilas() {
         <div className="border-guide flex justify-center">
           <div className="flex flex-col justify-center items-center">
             <img
-              src="/images/sekilas.jpg"
+              src={gambar("/images/sekilas.jpg")}
               alt={t("sekilas.imgAlt")}
               className="w-full h-auto object-cover"
               draggable="false"

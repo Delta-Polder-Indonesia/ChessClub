@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ambilDaftarAnggota } from "../../lib/chessAnggota.js";
-import { useI18n } from "../../lib/i18n.jsx";
+import { ambilDaftarAnggota } from "../../../../lib/chessAnggota.js";
+import { useI18n } from "../../../../lib/i18n.jsx";
+import { TINGKATAN_RATING } from "./TingkatanRating.jsx";
 
 function sel(nilai) {
   return nilai === null || nilai === undefined || nilai === "" ? "—" : nilai;
@@ -11,11 +11,13 @@ function lolosFilter(a, tab) {
   const elo = Number(a.elo);
   const ada = Number.isFinite(elo);
   if (tab === "semua") return true;
-  if (tab === "pemula") return !ada || elo < 1000;
-  if (tab === "1000") return ada && elo >= 1000 && elo < 2000;
-  if (tab === "2000") return ada && elo >= 2000 && elo < 3000;
-  if (tab === "master") return ada && elo >= 3000;
-  return true;
+  if (tab === "tanpa-rating") return !ada;
+
+  const tingkat = TINGKATAN_RATING.find((item) => item.id === tab);
+  if (!tingkat || !ada) return false;
+  if (tingkat.max === null) return elo >= tingkat.min;
+  // Batas bawah inklusif, batas atas eksklusif agar rating tidak masuk dua kelompok.
+  return elo >= tingkat.min && elo < tingkat.max;
 }
 
 function BarisAnggota({ a, no }) {
@@ -63,7 +65,7 @@ function BarisAnggota({ a, no }) {
           t("keanggotaan.akunHilang")
         ) : a.gagal ? (
           t("keanggotaan.gagal")
-        ) : data.elo ? (
+        ) : data.elo !== null && data.elo !== undefined && data.elo !== "" ? (
           <span className="elo-pilih">
             {data.elo}{" "}
             {opsi.length > 0 ? (
@@ -125,10 +127,11 @@ function TabelAnggota({ baris }) {
 
 const OPSI_ELO = (t) => [
   { id: "semua", label: t("keanggotaan.tabSemua") },
-  { id: "pemula", label: t("keanggotaan.tabPemula") },
-  { id: "1000", label: "1000" },
-  { id: "2000", label: "2000" },
-  { id: "master", label: t("keanggotaan.tabMaster") },
+  { id: "tanpa-rating", label: t("keanggotaan.tabTanpaRating") },
+  ...TINGKATAN_RATING.map((tingkat) => ({
+    id: tingkat.id,
+    label: `${tingkat.range} · ${t(`keanggotaan.tingkatan.${tingkat.id}.label`)}`,
+  })),
 ];
 
 export default function DaftarAnggota() {
@@ -188,10 +191,7 @@ export default function DaftarAnggota() {
       {status === "gagal" && <p>{pesan}</p>}
       {status === "siap" && anggota.length === 0 && (
         <p>
-          {t("keanggotaan.kosong1")}
-          <Link to="/keanggotaan/pendaftaran-anggota">
-            {t("keanggotaan.kosong2")}
-          </Link>
+          {t("keanggotaan.kosong1").replace("Silakan ", "")}
           {t("keanggotaan.kosong3")}
         </p>
       )}

@@ -1,5 +1,5 @@
-import { PageArtikel } from "../../components/PageBagian.jsx";
-import { useI18n } from "../../lib/i18n.jsx";
+import { PageArtikel } from "../../../components/PageBagian.jsx";
+import { useI18n } from "../../../lib/i18n.jsx";
 
 const JABATAN = [
   "pengurus.l1",

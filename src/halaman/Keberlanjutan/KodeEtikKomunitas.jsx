@@ -6,11 +6,11 @@ export default function KodeEtikKomunitas() {
   return (
     <HalamanIsi
       title={t("kodeEtik.judul")}
-      parent={t("nav.keanggotaan")}
-      parentPath="/keanggotaan"
+      parent={t("nav.keberlanjutan")}
+      parentPath="/keberlanjutan"
       description={t("kodeEtik.deskripsi")}
       next={{
-        to: "/keanggotaan/pertanyaan-umum",
+        to: "/keberlanjutan/pertanyaan-umum",
         judul: t("kodeEtik.nextJudul"),
       }}
     >

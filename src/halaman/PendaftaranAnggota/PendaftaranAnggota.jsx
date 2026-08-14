@@ -166,7 +166,7 @@ export default function PendaftaranAnggota() {
             : undefined,
       });
       setStatus("sukses");
-      navigate("/keanggotaan");
+      navigate("/tentang-kami/struktur-grup-catur#keanggotaan");
     } catch (err) {
       setStatus("gagal");
       setPesan(err.message);
@@ -180,10 +180,10 @@ export default function PendaftaranAnggota() {
   return (
     <HalamanIsi
       title={t("pendaftaran.judul")}
-      parent={t("nav.keanggotaan")}
-      parentPath="/keanggotaan"
+      parent={t("nav.tentangKami")}
+      parentPath="/tentang-kami"
       description={t("pendaftaran.deskripsi")}
-      next={{ to: "/keanggotaan", judul: t("pendaftaran.nextJudul") }}
+      next={{ to: "/tentang-kami/struktur-grup-catur#keanggotaan", judul: t("pendaftaran.nextJudul") }}
     >
       <PageArtikel title={t("pendaftaran.artikel")}>
         <p className="ql-align-justify">{t("pendaftaran.intro")}</p>

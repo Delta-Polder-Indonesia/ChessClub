@@ -6,11 +6,11 @@ export default function SyaratDanKetentuan() {
   return (
     <HalamanIsi
       title={t("syarat.judul")}
-      parent={t("nav.keanggotaan")}
-      parentPath="/keanggotaan"
+      parent={t("nav.keberlanjutan")}
+      parentPath="/keberlanjutan"
       description={t("syarat.deskripsi")}
       next={{
-        to: "/keanggotaan/kode-etik-komunitas",
+        to: "/keberlanjutan/kode-etik-komunitas",
         judul: t("syarat.nextJudul"),
       }}
     >

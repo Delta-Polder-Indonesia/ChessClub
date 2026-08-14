@@ -3,6 +3,8 @@
  * variant "light" = kuda putih + wordmark putih (header di atas hero)
  * variant "dark"  = kuda navy + wordmark gelap (header scroll, footer, drawer)
  */
+import { gambar } from "../lib/asets.js";
+
 const SIZES = {
   sm: 40,
   md: 52,
@@ -18,8 +20,8 @@ export default function Logo({
   const px = SIZES[size] || SIZES.md;
   const light = variant === "light";
   const src = light
-    ? "/images/logo-mark-light.png"
-    : "/images/logo-mark-dark.png";
+    ? gambar("/images/logo-mark-light.png")
+    : gambar("/images/logo-mark-dark.png");
 
   return (
     <span className={`flex items-center gap-3 select-none ${className}`}>

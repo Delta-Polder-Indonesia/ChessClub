@@ -39,7 +39,7 @@ npm run preview  # pratinjau hasil build
 
 ## Fitur
 
-- **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keanggotaan — masing-masing dengan dropdown
+- **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keberlanjutan. Keanggotaan hanya tampil sebagai tab di dalam Struktur Grup Catur pada menu Tentang Kami.
 - Dropdown menu hover + drawer menu mobile
 - Overlay pencarian (mirip halaman pencarian Pertamina) dengan hasil dari daftar halaman
 - Sticky submenu dengan scroll-spy (IntersectionObserver) + smooth scroll, menempel tepat di bawah header
