@@ -18,6 +18,12 @@ export const MENU_UTAMA = [
       { title: "nav.visiMisiNilai", path: "/tentang-kami#visi-misi" },
       { title: "nav.maknaLogo", path: "/tentang-kami#makna-logo" },
       { title: "nav.strukturPengurus", path: "/tentang-kami#struktur-pengurus" },
+      {
+        title: "nav.strukturGrupCatur",
+        folder: "StrukturGrupCatur",
+        path: "/struktur-grup-catur",
+        file: "StrukturGrupCatur.jsx",
+      },
     ],
   },
   {
@@ -95,6 +101,11 @@ export const MENU_UTAMA = [
         file: "BeritaKomunitas.jsx",
       },
       {
+        title: "nav.pengumuman",
+        path: "/media-dan-informasi/pengumuman",
+        file: "Pengumuman.jsx",
+      },
+      {
         title: "nav.galeri",
         path: "/media-dan-informasi/galeri",
         file: "Galeri.jsx",
@@ -107,16 +118,11 @@ export const MENU_UTAMA = [
     ],
   },
   {
-    title: "nav.keanggotaan",
-    folder: "Keanggotaan",
-    path: "/keanggotaan",
-    file: "Keanggotaan.jsx",
+    title: "nav.keberlanjutan",
+    folder: "Keberlanjutan",
+    path: "/keberlanjutan",
+    file: "Keberlanjutan.jsx",
     children: [
-      {
-        title: "nav.pendaftaranAnggota",
-        path: "/keanggotaan/pendaftaran-anggota",
-        file: "PendaftaranAnggota.jsx",
-      },
       {
         title: "nav.syaratKetentuan",
         path: "/keanggotaan/syarat-dan-ketentuan",
@@ -137,8 +143,8 @@ export const MENU_UTAMA = [
 ];
 
 export const MENU_ATAS = [
-  { title: "nav.turnamen", path: "/turnamen" },
-  { title: "nav.pengumuman", path: "/pengumuman" },
+  { title: "nav.pengadaan", path: "/pengadaan" },
+  { title: "nav.karir", path: "/karir" },
   { title: "nav.hubungiKami", path: "/hubungi-kami" },
 ];
 
@@ -160,7 +166,8 @@ export function semuaHalaman() {
   }
 
   for (const item of MENU_UTAMA) tambahkan(item);
-  list.push({ title: "nav.pengumuman", path: "/pengumuman" });
+  list.push({ title: "nav.pengadaan", path: "/pengadaan" });
+  list.push({ title: "nav.karir", path: "/karir" });
   list.push({ title: "nav.hubungiKami", path: "/hubungi-kami" });
   return list;
 }
