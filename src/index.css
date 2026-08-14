@@ -56,26 +56,61 @@ section[id] {
   font-weight: 600;
 }
 
-/* Artikel panduan catur — tata letak editorial, tanpa elemen dekoratif. */
-.article-chess p {
-  margin-bottom: 20px;
-  font-size: 16px;
-  line-height: 29px;
-  color: #475569;
+/* Panduan catur dari DokumenHistory — kelas kustom dokumen asli. */
+.text-chess-green {
+  color: #81b64c;
 }
 
-.article-chess ul {
-  margin: 4px 0 24px;
-  padding-left: 22px;
-  list-style-type: disc;
+.section-number {
+  background-color: #81b64c;
+  color: white;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-weight: 800;
+  display: inline-block;
 }
 
-.article-chess li {
-  margin-bottom: 8px;
-  padding-left: 4px;
-  font-size: 16px;
-  line-height: 28px;
-  color: #475569;
+.content-row {
+  overflow: hidden;
+}
+
+.content-row::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.board-panel {
+  width: 220px;
+  height: 220px;
+  position: relative;
+}
+
+.table-panel {
+  width: auto;
+  min-width: 200px;
+  max-width: 260px;
+  height: auto;
+}
+
+.text-content {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .board-panel {
+    float: none !important;
+    margin: 0 auto 1rem !important;
+    width: 190px;
+    height: 190px;
+  }
+
+  .table-panel {
+    float: none !important;
+    margin: 0 0 1rem !important;
+    width: 100%;
+    max-width: none;
+  }
 }
 
 /* Tabel daftar anggota — sederhana, dokumen korporat */

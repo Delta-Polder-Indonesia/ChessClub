@@ -377,9 +377,24 @@ export const ID = {
   caraBermain: {
     judul: "Cara Bermain Catur",
     deskripsi:
-      "Panduan lengkap aturan dasar, gerakan buah, strategi awal, dan cara memenangkan permainan catur.",
+      "Panduan lengkap mengenal bidak, aturan dasar, taktik, strategi, pembukaan, endgame, hingga pola latihan untuk menembus rating master.",
     lead:
-      "Pelajari dasar-dasar permainan catur dalam tujuh langkah praktis, mulai dari menyusun papan hingga memahami strategi dasar.",
+      "Panduan ini disusun bertahap: mulai dari pengenalan bidak dan aturan dasar, kemudian taktik, strategi, pembukaan, endgame, dan pola latihan untuk terus menaikkan rating.",
+    labelArtikel: "Panduan Lengkap",
+    daftarIsi: "Daftar Isi",
+    bab: "Bab",
+    gagalMuat:
+      "Gagal memuat panduan. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
+    kontenHanyaId:
+      "Konten panduan ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
+    babBidak: "Bidak & Nilainya",
+    babDasar: "Aturan & Dasar Permainan",
+    babPemula: "Level Pemula",
+    babMenengah: "Level Menengah",
+    babStrategi: "Strategi & Posisi",
+    babLanjut: "Level Lanjut",
+    babMaster: "Level Master",
+    babPenutup: "Penutup",
   },
   media: {
     judul: "Media & Informasi",
@@ -846,9 +861,24 @@ export const EN = {
   caraBermain: {
     judul: "How to Play Chess",
     deskripsi:
-      "A complete guide to the basic rules, piece movement, opening strategy, and how to win a chess game.",
+      "A complete guide to the pieces, basic rules, tactics, strategy, openings, endgames, and training routines for reaching master-level rating.",
     lead:
-      "Learn the fundamentals of chess in seven practical steps, from setting up the board to understanding basic strategy.",
+      "This guide is arranged step by step: from the pieces and basic rules, through tactics, strategy, openings, and endgames, to training routines for steadily improving your rating.",
+    labelArtikel: "Complete Guide",
+    daftarIsi: "Table of Contents",
+    bab: "Chapter",
+    gagalMuat:
+      "Failed to load the guide. Check your internet connection, then reload this page.",
+    kontenHanyaId:
+      "This guide is currently only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
+    babBidak: "Pieces & Their Values",
+    babDasar: "Rules & Fundamentals",
+    babPemula: "Beginner Level",
+    babMenengah: "Intermediate Level",
+    babStrategi: "Strategy & Positional Play",
+    babLanjut: "Advanced Level",
+    babMaster: "Master Level",
+    babPenutup: "Closing",
   },
   media: {
     judul: "Media & Information",
