@@ -48,7 +48,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
               key={child.title}
               className="relative group/item transition-all duration-200 ease-in-out text-[#64748B] hover:text-[#1E293B]"
             >
-              <div className="px-6 py-2 w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between">
+              <div className="px-6 py-2 w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between gap-2">
                 <Link
                   to={child.path}
                   title={t(child.title)}
@@ -57,7 +57,29 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
                 >
                   {t(child.title)}
                 </Link>
+                {child.children && (
+                  <ChevronDownIcon className="size-4 -rotate-90 opacity-70" />
+                )}
               </div>
+              {child.children && (
+                <ul className="opacity-0 pointer-events-none absolute w-[260px] left-full top-0 rounded-lg flex flex-col group-hover/item:opacity-100 group-hover/item:pointer-events-auto transition-all duration-200 ease-in-out py-4 bg-white shadow-xl">
+                  {child.children.map((subchild) => (
+                    <li
+                      key={subchild.title}
+                      className="text-[#64748B] hover:text-[#1E293B]"
+                    >
+                      <Link
+                        to={subchild.path}
+                        title={t(subchild.title)}
+                        onClick={onNavigate}
+                        className="block px-6 py-2 border-0 border-l-4 border-solid border-white hover:border-primary text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
+                      >
+                        {t(subchild.title)}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </li>
           ))}
         </ul>
@@ -69,6 +91,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
 function MobileDrawer({ open, onClose, onNavigate }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(null);
+  const [expandedChild, setExpandedChild] = useState(null);
   if (!open) return null;
   return (
     <div className="lg:hidden fixed inset-0 z-[60] bg-white overflow-y-auto">
@@ -118,17 +141,54 @@ function MobileDrawer({ open, onClose, onNavigate }) {
                 <ul className="flex flex-col pb-4">
                   {item.children.map((child) => (
                     <li key={child.title}>
-                      <Link
-                        to={child.path}
-                        title={t(child.title)}
-                        onClick={() => {
-                          onNavigate();
-                          onClose();
-                        }}
-                        className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary border-l-4 border-solid border-white hover:border-primary transition-all duration-200"
-                      >
-                        {t(child.title)}
-                      </Link>
+                      <div className="flex items-center border-l-4 border-solid border-white hover:border-primary transition-all duration-200">
+                        <Link
+                          to={child.path}
+                          title={t(child.title)}
+                          onClick={() => {
+                            onNavigate();
+                            onClose();
+                          }}
+                          className="flex-1 pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary"
+                        >
+                          {t(child.title)}
+                        </Link>
+                        {child.children && (
+                          <button
+                            type="button"
+                            aria-label={t("header.expand", { title: t(child.title) })}
+                            onClick={() =>
+                              setExpandedChild(
+                                expandedChild === child.title ? null : child.title
+                              )
+                            }
+                            className={`cursor-pointer p-2 text-slate-500 transition-transform duration-200 ${
+                              expandedChild === child.title ? "rotate-180" : ""
+                            }`}
+                          >
+                            <ChevronDownIcon className="size-4" />
+                          </button>
+                        )}
+                      </div>
+                      {child.children && expandedChild === child.title && (
+                        <ul className="ml-4 mb-2">
+                          {child.children.map((subchild) => (
+                            <li key={subchild.title}>
+                              <Link
+                                to={subchild.path}
+                                title={t(subchild.title)}
+                                onClick={() => {
+                                  onNavigate();
+                                  onClose();
+                                }}
+                                className="block pl-4 py-2 text-sm font-normal text-[#64748B] hover:text-primary border-l-4 border-solid border-slate-100 hover:border-primary transition-all duration-200"
+                              >
+                                {t(subchild.title)}
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </li>
                   ))}
                 </ul>

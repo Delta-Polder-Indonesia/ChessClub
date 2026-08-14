@@ -9,6 +9,7 @@ import KelasDanPelatihan from "./halaman/ProgramKami/KelasDanPelatihan.jsx";
 import CoachingClinic from "./halaman/ProgramKami/CoachingClinic.jsx";
 import SimultanDanBlindfold from "./halaman/ProgramKami/SimultanDanBlindfold.jsx";
 import SekolahCatur from "./halaman/ProgramKami/SekolahCatur.jsx";
+import CaraBermainCatur from "./halaman/ProgramKami/CaraBermainCatur.jsx";
 
 import Turnamen from "./halaman/Turnamen/Turnamen.jsx";
 import TurnamenBulanan from "./halaman/Turnamen/TurnamenBulanan.jsx";
@@ -45,6 +46,10 @@ export default function App() {
           <Route path="/program-kami/coaching-clinic" element={<CoachingClinic />} />
           <Route path="/program-kami/simultan-dan-blindfold" element={<SimultanDanBlindfold />} />
           <Route path="/program-kami/sekolah-catur" element={<SekolahCatur />} />
+          <Route
+            path="/program-kami/sekolah-catur/cara-bermain-catur"
+            element={<CaraBermainCatur />}
+          />
 
           <Route path="/turnamen" element={<Turnamen />} />
           <Route path="/turnamen/turnamen-bulanan" element={<TurnamenBulanan />} />

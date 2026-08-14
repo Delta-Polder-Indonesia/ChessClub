@@ -45,6 +45,13 @@ export const MENU_UTAMA = [
         title: "nav.sekolahCatur",
         path: "/program-kami/sekolah-catur",
         file: "SekolahCatur.jsx",
+        children: [
+          {
+            title: "nav.caraBermainCatur",
+            path: "/program-kami/sekolah-catur/cara-bermain-catur",
+            file: "CaraBermainCatur.jsx",
+          },
+        ],
       },
     ],
   },
@@ -146,12 +153,13 @@ export function menuAktif(path, pathname) {
 
 export function semuaHalaman() {
   const list = [];
-  for (const item of MENU_UTAMA) {
+
+  function tambahkan(item) {
     list.push({ title: item.title, path: item.path });
-    for (const child of item.children || []) {
-      list.push({ title: child.title, path: child.path });
-    }
+    for (const child of item.children || []) tambahkan(child);
   }
+
+  for (const item of MENU_UTAMA) tambahkan(item);
   list.push({ title: "nav.pengumuman", path: "/pengumuman" });
   list.push({ title: "nav.hubungiKami", path: "/hubungi-kami" });
   return list;
