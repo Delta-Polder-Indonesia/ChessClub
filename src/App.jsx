@@ -1,8 +1,9 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 
 import TentangKami from "./halaman/TentangKami/TentangKami.jsx";
+import StrukturGrupCatur from "./halaman/StrukturGrupCatur/StrukturGrupCatur.jsx";
 
 import ProgramKami from "./halaman/ProgramKami/ProgramKami.jsx";
 import KelasDanPelatihan from "./halaman/ProgramKami/KelasDanPelatihan.jsx";
@@ -25,12 +26,15 @@ import Galeri from "./halaman/MediaDanInformasi/Galeri.jsx";
 import BuletinBulanan from "./halaman/MediaDanInformasi/BuletinBulanan.jsx";
 
 import Keanggotaan from "./halaman/Keanggotaan/Keanggotaan.jsx";
+import Keberlanjutan from "./halaman/Keberlanjutan/Keberlanjutan.jsx";
 import PendaftaranAnggota from "./halaman/Keanggotaan/PendaftaranAnggota.jsx";
 import SyaratDanKetentuan from "./halaman/Keanggotaan/SyaratDanKetentuan.jsx";
 import KodeEtikKomunitas from "./halaman/Keanggotaan/KodeEtikKomunitas.jsx";
 import PertanyaanUmum from "./halaman/Keanggotaan/PertanyaanUmum.jsx";
 
 import HubungiKami from "./halaman/HubungiKami/HubungiKami.jsx";
+import Karir from "./halaman/Karir/Karir.jsx";
+import Pengadaan from "./halaman/Pengadaan/Pengadaan.jsx";
 import TidakDitemukan from "./halaman/TidakDitemukan.jsx";
 
 export default function App() {
@@ -41,6 +45,7 @@ export default function App() {
         <Route element={<PageLayout />}>
           <Route path="/" element={<TentangKami />} />
           <Route path="/tentang-kami" element={<TentangKami />} />
+          <Route path="/struktur-grup-catur" element={<StrukturGrupCatur />} />
 
           <Route path="/program-kami" element={<ProgramKami />} />
           <Route path="/program-kami/kelas-dan-pelatihan" element={<KelasDanPelatihan />} />
@@ -60,17 +65,21 @@ export default function App() {
 
           <Route path="/media-dan-informasi" element={<MediaDanInformasi />} />
           <Route path="/media-dan-informasi/berita-komunitas" element={<BeritaKomunitas />} />
+          <Route path="/media-dan-informasi/pengumuman" element={<Pengumuman />} />
+          <Route path="/pengumuman" element={<Navigate to="/media-dan-informasi/pengumuman" replace />} />
           <Route path="/media-dan-informasi/galeri" element={<Galeri />} />
           <Route path="/media-dan-informasi/buletin-bulanan" element={<BuletinBulanan />} />
-          <Route path="/pengumuman" element={<Pengumuman />} />
 
           <Route path="/keanggotaan" element={<Keanggotaan />} />
+          <Route path="/keberlanjutan" element={<Keberlanjutan />} />
           <Route path="/keanggotaan/pendaftaran-anggota" element={<PendaftaranAnggota />} />
           <Route path="/keanggotaan/syarat-dan-ketentuan" element={<SyaratDanKetentuan />} />
           <Route path="/keanggotaan/kode-etik-komunitas" element={<KodeEtikKomunitas />} />
           <Route path="/keanggotaan/pertanyaan-umum" element={<PertanyaanUmum />} />
 
           <Route path="/hubungi-kami" element={<HubungiKami />} />
+          <Route path="/karir" element={<Karir />} />
+          <Route path="/pengadaan" element={<Pengadaan />} />
           <Route path="*" element={<TidakDitemukan />} />
         </Route>
 

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
@@ -24,6 +24,9 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
   const { t } = useI18n();
   const aktif = menuAktif(item.path, pathname);
   const judul = t(item.title);
+  const [subBuka, setSubBuka] = useState({});
+  const toggleSub = (key) =>
+    setSubBuka((s) => ({ ...s, [key]: !s[key] }));
   return (
     <li className="relative group h-10 flex items-center">
       <Link
@@ -58,11 +61,25 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
                   {t(child.title)}
                 </Link>
                 {child.children && (
-                  <ChevronDownIcon className="size-4 -rotate-90 opacity-70" />
+                  <button
+                    type="button"
+                    aria-expanded={!!subBuka[child.title]}
+                    aria-label={t("header.expand", { title: t(child.title) })}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleSub(child.title);
+                    }}
+                    className={`cursor-pointer bg-transparent border-0 p-1 text-slate-400 transition-transform duration-200 ${
+                      subBuka[child.title] ? "rotate-180" : ""
+                    }`}
+                  >
+                    <ChevronDownIcon className="size-4 opacity-70" />
+                  </button>
                 )}
               </div>
-              {child.children && (
-                <ul className="opacity-0 pointer-events-none absolute w-[260px] left-full top-0 rounded-lg flex flex-col group-hover/item:opacity-100 group-hover/item:pointer-events-auto transition-all duration-200 ease-in-out py-4 bg-white shadow-xl">
+              {child.children && subBuka[child.title] && (
+                <ul className="pb-1">
                   {child.children.map((subchild) => (
                     <li
                       key={subchild.title}
@@ -72,7 +89,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
                         to={subchild.path}
                         title={t(subchild.title)}
                         onClick={onNavigate}
-                        className="block px-6 py-2 border-0 border-l-4 border-solid border-white hover:border-primary text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
+                        className="block pl-10 py-2 border-0 border-l-4 border-solid border-white hover:border-primary text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
                       >
                         {t(subchild.title)}
                       </Link>
@@ -295,61 +312,21 @@ function SearchOverlay({ open, onClose, onNavigate }) {
   );
 }
 
-function DropdownBahasa() {
+function TombolBahasa() {
   const { bahasa, setBahasa, t } = useI18n();
-  const [buka, setBuka] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (!buka) return undefined;
-    const onDoc = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setBuka(false);
-    };
-    document.addEventListener("mousedown", onDoc);
-    return () => document.removeEventListener("mousedown", onDoc);
-  }, [buka]);
-
-  const OPSI = [
-    { kode: "id", label: t("common.bahasaIndonesia"), Bendera: FlagIDIcon },
-    { kode: "en", label: t("common.english"), Bendera: FlagENIcon },
-  ];
-  const aktif = OPSI.find((o) => o.kode === bahasa) || OPSI[0];
+  const Bendera = bahasa === "en" ? FlagENIcon : FlagIDIcon;
   return (
-    <li className="relative hidden lg:block" ref={ref}>
+    <li className="hidden lg:block">
       <button
         type="button"
         title={t("common.pilihBahasa")}
         aria-label={t("common.pilihBahasa")}
-        aria-expanded={buka}
-        onClick={() => setBuka((b) => !b)}
+        onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
         className="bg-transparent border-0 flex items-center gap-2 text-xs text-white cursor-pointer"
       >
-        <span>{aktif.kode.toUpperCase()}</span>
-        <aktif.Bendera />
+        <span>{bahasa.toUpperCase()}</span>
+        <Bendera />
       </button>
-      {buka && (
-        <ul className="absolute right-0 top-8 w-[180px] rounded-lg bg-white shadow-xl py-2 z-50">
-          {OPSI.map((o) => (
-            <li key={o.kode}>
-              <button
-                type="button"
-                onClick={() => {
-                  setBahasa(o.kode);
-                  setBuka(false);
-                }}
-                className={`w-full flex items-center gap-2 px-4 py-2 text-xs cursor-pointer ${
-                  o.kode === bahasa
-                    ? "text-primary font-semibold"
-                    : "text-slate-700 hover:text-primary"
-                }`}
-              >
-                <o.Bendera className="size-3" />
-                {o.label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
     </li>
   );
 }
@@ -416,7 +393,7 @@ export default function Header() {
                   ))}
                 </ul>
               </li>
-              <DropdownBahasa />
+              <TombolBahasa />
               <li>
                 <Link
                   to="/keanggotaan/pendaftaran-anggota"
