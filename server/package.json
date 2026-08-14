@@ -1,0 +1,15 @@
+{
+  "name": "kci-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Backend Komunitas Catur Indonesia — keanggotaan, verifikasi Chess.com, dan daftar larangan pemain.",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "uji": "node ../scripts/uji-identitas.mjs"
+  }
+}

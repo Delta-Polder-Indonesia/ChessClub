@@ -10,6 +10,7 @@ import CoachingClinic from "./halaman/ProgramKami/CoachingClinic.jsx";
 import SimultanDanBlindfold from "./halaman/ProgramKami/SimultanDanBlindfold.jsx";
 import SekolahCatur from "./halaman/ProgramKami/SekolahCatur.jsx";
 import CaraBermainCatur from "./halaman/ProgramKami/CaraBermainCatur.jsx";
+import Dashboard from "./halaman/Pengurus/Dashboard.jsx";
 
 import Turnamen from "./halaman/Turnamen/Turnamen.jsx";
 import TurnamenBulanan from "./halaman/Turnamen/TurnamenBulanan.jsx";
@@ -72,6 +73,10 @@ export default function App() {
           <Route path="/hubungi-kami" element={<HubungiKami />} />
           <Route path="*" element={<TidakDitemukan />} />
         </Route>
+
+        {/* Dashboard pengurus berdiri sendiri: tanpa navbar & footer publik,
+            dan sengaja tidak ditautkan dari menu mana pun. */}
+        <Route path="/pengurus" element={<Dashboard />} />
       </Routes>
     </>
   );

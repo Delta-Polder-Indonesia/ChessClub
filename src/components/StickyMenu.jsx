@@ -51,16 +51,16 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
   return (
     <section
       id="stickymenu"
-      className="max-lg:overflow-x-auto max-lg:[scrollbar-width:none] max-lg:whitespace-nowrap sticky w-full h-full mx-auto text-base bg-white z-40 border-b border-t top-[72px] transition-all duration-300 ease-in-out"
+      className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden whitespace-nowrap sticky w-full h-full mx-auto text-base bg-white z-40 border-b border-t top-[72px] transition-all duration-300 ease-in-out"
     >
-      <div className="flex items-center lg:justify-center">
+      <div className="flex items-stretch lg:justify-center">
         {daftar.map((s) => (
           <button
             key={s.id}
             id="stickyitem"
             type="button"
             onClick={() => handleClick(s.id)}
-            className={`text-grey-600 hover:text-blue-400 font-semibold flex text-sm w-full items-center justify-center py-4 lg:py-5 px-6 hover:bg-slate-100 hover:text-slate-600 transition-colors ease-in-out duration-200 border-r ${
+            className={`text-grey-600 hover:text-blue-400 font-semibold flex text-sm flex-1 shrink-0 whitespace-nowrap min-h-[60px] lg:min-h-[62px] items-center justify-center py-4 lg:py-5 px-4 xl:px-6 hover:bg-slate-100 hover:text-slate-600 transition-colors ease-in-out duration-200 border-r ${
               current === s.id ? "text-primary" : ""
             }`}
           >

@@ -1,3 +1,4 @@
+import DaftarTurnamen from "../../components/DaftarTurnamen.jsx";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -15,6 +16,8 @@ export default function LigaAntarKomunitas() {
         <p>{t("ligaAntar.p1")}</p>
         <p>{t("ligaAntar.p2")}</p>
       </PageArtikel>
+
+      <DaftarTurnamen jenis="antar-komunitas" />
     </HalamanIsi>
   );
 }

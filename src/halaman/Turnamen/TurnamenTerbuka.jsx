@@ -1,3 +1,4 @@
+import DaftarTurnamen from "../../components/DaftarTurnamen.jsx";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -18,6 +19,8 @@ export default function TurnamenTerbuka() {
         <p>{t("turnamenTerbuka.p1")}</p>
         <p>{t("turnamenTerbuka.p2")}</p>
       </PageArtikel>
+
+      <DaftarTurnamen jenis="terbuka" />
     </HalamanIsi>
   );
 }
