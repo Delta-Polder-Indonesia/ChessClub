@@ -6,6 +6,7 @@ import {
   ambilDaftarHitam,
 } from "../../lib/chessAnggota.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
+import { Tombol, Bidang } from "./ui.jsx";
 
 /**
  * Dashboard pengurus — mengelola keanggotaan, daftar larangan, dan turnamen
@@ -32,41 +33,6 @@ function Kartu({ label, nilai, catatan, warna = "slate" }) {
       <p className={`mt-1 text-2xl font-bold ${warnaTeks}`}>{nilai}</p>
       {catatan && <p className="mt-0.5 text-xs text-slate-500">{catatan}</p>}
     </div>
-  );
-}
-
-export function Tombol({ anak, onClick, jenis = "biasa", kecil, ...sisa }) {
-  const gaya = {
-    biasa:
-      "border-slate-300 text-slate-700 hover:bg-slate-100 disabled:opacity-40",
-    utama:
-      "border-primary bg-primary text-white hover:opacity-90 disabled:opacity-40",
-    bahaya:
-      "border-red-300 text-red-700 hover:bg-red-50 disabled:opacity-40",
-  }[jenis];
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full border border-solid font-semibold transition-colors ${gaya} ${
-        kecil ? "px-3 py-1 text-xs" : "px-4 py-2 text-xs"
-      }`}
-      {...sisa}
-    >
-      {anak}
-    </button>
-  );
-}
-
-export function Bidang({ label, ...sisa }) {
-  return (
-    <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
-      {label}
-      <input
-        className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
-        {...sisa}
-      />
-    </label>
   );
 }
 

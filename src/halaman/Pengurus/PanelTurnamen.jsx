@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus, jenisTurnamen } from "../../lib/chessAnggota.js";
-import { Tombol, Bidang } from "./Dashboard.jsx";
+import { Tombol, Bidang } from "./ui.jsx";
 
 /**
  * Pengelolaan turnamen untuk pengurus.
