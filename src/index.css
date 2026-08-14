@@ -56,6 +56,28 @@ section[id] {
   font-weight: 600;
 }
 
+/* Artikel panduan catur — tata letak editorial, tanpa elemen dekoratif. */
+.article-chess p {
+  margin-bottom: 20px;
+  font-size: 16px;
+  line-height: 29px;
+  color: #475569;
+}
+
+.article-chess ul {
+  margin: 4px 0 24px;
+  padding-left: 22px;
+  list-style-type: disc;
+}
+
+.article-chess li {
+  margin-bottom: 8px;
+  padding-left: 4px;
+  font-size: 16px;
+  line-height: 28px;
+  color: #475569;
+}
+
 /* Tabel daftar anggota — sederhana, dokumen korporat */
 .tabel-kci {
   width: 100%;
