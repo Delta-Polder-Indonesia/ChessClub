@@ -1,3 +1,4 @@
+import DaftarTurnamen from "../../components/DaftarTurnamen.jsx";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -16,6 +17,8 @@ export default function LigaMusiman() {
         <p>{t("ligaMusiman.p2")}</p>
         <p>{t("ligaMusiman.p3")}</p>
       </PageArtikel>
+
+      <DaftarTurnamen jenis="musiman" />
     </HalamanIsi>
   );
 }

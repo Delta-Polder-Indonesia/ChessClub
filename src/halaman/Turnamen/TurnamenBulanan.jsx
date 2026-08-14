@@ -1,3 +1,4 @@
+import DaftarTurnamen from "../../components/DaftarTurnamen.jsx";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -20,6 +21,8 @@ export default function TurnamenBulanan() {
         </ol>
         <p>{t("turnamenBulanan.p2")}</p>
       </PageArtikel>
+
+      <DaftarTurnamen jenis="bulanan" />
     </HalamanIsi>
   );
 }

@@ -207,14 +207,37 @@ export const ID = {
     tabMaster: "Master",
     nextJudul: "Pendaftaran Anggota",
   },
+  verifikasi: {
+    judul: "Bukti Kepemilikan Akun",
+    penjelasan:
+      "Buktikan bahwa akun Chess.com yang Anda tulis benar-benar milik Anda. Ini mencegah orang lain mendaftarkan akun Anda, dan mencegah pendaftaran memakai akun milik pemain lain.",
+    tombolLogin: "Masuk dengan Chess.com",
+    catatanLogin:
+      "Anda akan diarahkan ke chess.com untuk masuk. Kata sandi Anda tidak pernah kami lihat maupun simpan.",
+    atau: "Atau tanpa login",
+    tombolKode: "Verifikasi lewat kode profil",
+    memproses: "Memproses…",
+    langkah1: "Buka pengaturan profil Chess.com Anda.",
+    langkah2: "Isi kolom Location dengan kode ini:",
+    langkah3:
+      "Simpan perubahan, lalu klik tombol di bawah. Setelah terverifikasi, kode boleh dihapus kembali.",
+    bukaPengaturan: "Buka pengaturan Chess.com",
+    sudahPasang: "Saya sudah memasang kode",
+    memeriksa: "Memeriksa profil…",
+    belumTerbaca:
+      "Kode belum terbaca. Pastikan sudah tersimpan, lalu coba lagi beberapa saat.",
+    isiUsernameDulu: "Isi username Chess.com Anda terlebih dahulu.",
+    berhasil: "Kepemilikan akun terverifikasi:",
+    ganti: "Ganti akun",
+  },
   pendaftaran: {
     judul: "Pendaftaran Anggota",
     parent: "Keanggotaan",
     deskripsi:
-      "Daftar dengan username akun Chess.com. Setelah terverifikasi, nama Anda masuk otomatis ke daftar keanggotaan beserta Elo dan rekor W/D/L.",
-    artikel: "Daftar dengan Chess.com",
+      "Lengkapi data diri dan akun Chess.com Anda. Setelah terverifikasi, nama panggilan Anda masuk otomatis ke daftar keanggotaan beserta Elo dan rekor W/D/L.",
+    artikel: "Daftar Menjadi Anggota",
     intro:
-      "Isi username Chess.com Anda (boleh username saja, atau tautan profil seperti https://www.chess.com/member/namaanda). Sistem memeriksa akun ke Chess.com. Jika akun ada, Anda langsung tercatat di daftar keanggotaan.",
+      "Isi formulir berikut dengan data yang benar. Sistem memverifikasi akun Anda langsung ke Chess.com, sekaligus memastikan setiap anggota hanya memiliki satu keanggotaan. Akun yang pernah ditutup Chess.com karena pelanggaran fair play tidak dapat bergabung.",
     label: "Username Chess.com",
     placeholder: "contoh: hikaru",
     wajib: "Masukkan username Chess.com.",
@@ -222,6 +245,66 @@ export const ID = {
     daftar: "Daftar",
     nextJudul: "Daftar Keanggotaan",
     linkDaftar: "daftar keanggotaan",
+
+    privasiJudul: "Data pribadi Anda aman",
+    privasiIsi:
+      "Nama lengkap, nomor HP/WhatsApp, dan nomor DANA hanya disimpan pada catatan pengurus dan tidak pernah ditampilkan di situs. Yang tampil publik hanya nama panggilan, kota, dan statistik Chess.com Anda. Data ini kami gunakan untuk memverifikasi bahwa satu orang hanya memiliki satu keanggotaan.",
+
+    grupAkun: "Akun Chess.com",
+    grupDiri: "Data Diri",
+    grupKontak: "Kontak & Pembayaran",
+
+    catatanUsername:
+      "Boleh username saja atau tautan profil chess.com/member/namaanda.",
+
+    labelNama: "Nama Lengkap",
+    phNama: "contoh: Budi Santoso",
+    catatanNama: "Sesuai identitas resmi, untuk sertifikat dan hadiah turnamen.",
+
+    labelPanggilan: "Nama Panggilan",
+    phPanggilan: "contoh: Budi",
+    catatanPanggilan: "Nama inilah yang tampil di daftar anggota.",
+
+    labelLahir: "Tanggal Lahir",
+    catatanLahir: "Dipakai untuk menentukan kategori umur turnamen.",
+    kategori: "Kategori",
+    tahun: "tahun",
+
+    labelKota: "Kota Asal",
+    phKota: "contoh: Medan",
+    catatanKota: "Untuk pembagian wilayah pada liga antar-komunitas.",
+
+    labelHp: "Nomor HP / WhatsApp",
+    phHp: "contoh: 0812-3456-7890",
+    catatanHp: "Nomor aktif WhatsApp, untuk undangan turnamen dan verifikasi.",
+    terbaca: "Terbaca",
+
+    labelDana: "Nomor DANA",
+    phDana: "kosongkan bila sama dengan nomor HP",
+    catatanDana: "Untuk pengiriman hadiah turnamen.",
+
+    labelEmail: "Email",
+    phEmail: "contoh: budi@email.com",
+    catatanEmail: "Untuk buletin bulanan dan pemberitahuan resmi.",
+
+    labelKlub: "Klub / Komunitas Asal",
+    phKlub: "contoh: Klub Catur Medan",
+    catatanKlub: "Bila Anda sudah tergabung di klub lain.",
+
+    setuju:
+      "Saya menyatakan data di atas benar, bahwa ini satu-satunya akun saya di komunitas, dan saya menyetujui Kode Etik Komunitas — termasuk larangan menggunakan bantuan engine.",
+
+    periksaIsian: "Periksa kembali isian yang ditandai merah.",
+    galatUsername: "Username Chess.com wajib diisi.",
+    galatNama: "Tulis nama lengkap (minimal dua kata).",
+    galatPanggilan: "Nama panggilan wajib diisi.",
+    galatHp: "Nomor HP/WhatsApp tidak valid. Contoh: 0812-3456-7890.",
+    galatDana: "Nomor DANA tidak valid.",
+    galatKota: "Kota asal wajib diisi.",
+    galatLahir: "Tanggal lahir wajib diisi.",
+    galatLahirAneh: "Tanggal lahir tidak masuk akal.",
+    galatEmail: "Format email tidak valid.",
+    galatSetuju: "Anda harus menyetujui kode etik komunitas.",
   },
   syarat: {
     judul: "Syarat & Ketentuan",
@@ -690,14 +773,37 @@ export const EN = {
     tabMaster: "Master",
     nextJudul: "Member Registration",
   },
+  verifikasi: {
+    judul: "Account Ownership Proof",
+    penjelasan:
+      "Prove that the Chess.com account you entered really belongs to you. This prevents other people from registering your account, and prevents anyone registering with someone else's account.",
+    tombolLogin: "Sign in with Chess.com",
+    catatanLogin:
+      "You will be redirected to chess.com to sign in. We never see or store your password.",
+    atau: "Or without signing in",
+    tombolKode: "Verify via profile code",
+    memproses: "Processing…",
+    langkah1: "Open your Chess.com profile settings.",
+    langkah2: "Set the Location field to this code:",
+    langkah3:
+      "Save your changes, then click the button below. Once verified, you may remove the code again.",
+    bukaPengaturan: "Open Chess.com settings",
+    sudahPasang: "I have added the code",
+    memeriksa: "Checking profile…",
+    belumTerbaca:
+      "The code was not found yet. Make sure it is saved, then try again shortly.",
+    isiUsernameDulu: "Please enter your Chess.com username first.",
+    berhasil: "Account ownership verified:",
+    ganti: "Change account",
+  },
   pendaftaran: {
     judul: "Member Registration",
     parent: "Membership",
     deskripsi:
-      "Register with your Chess.com account username. Once verified, your name is automatically added to the membership list along with your Elo and W/D/L record.",
-    artikel: "Register with Chess.com",
+      "Complete your personal details and Chess.com account. Once verified, your nickname is automatically added to the membership list along with your Elo and W/D/L record.",
+    artikel: "Become a Member",
     intro:
-      "Enter your Chess.com username (either just the username, or a profile link such as https://www.chess.com/member/yourname). The system checks the account against Chess.com. If the account exists, you are immediately recorded in the membership list.",
+      "Fill in the form below with accurate details. The system verifies your account directly against Chess.com and ensures each member holds only one membership. Accounts closed by Chess.com for fair play violations cannot join.",
     label: "Chess.com Username",
     placeholder: "e.g.: hikaru",
     wajib: "Enter your Chess.com username.",
@@ -705,6 +811,67 @@ export const EN = {
     daftar: "Register",
     nextJudul: "Membership List",
     linkDaftar: "membership list",
+
+    privasiJudul: "Your personal data is safe",
+    privasiIsi:
+      "Your full name, phone/WhatsApp number, and DANA number are stored only in the committee's records and are never shown on the site. Only your nickname, city, and Chess.com statistics are public. We use this data to verify that each person holds only one membership.",
+
+    grupAkun: "Chess.com Account",
+    grupDiri: "Personal Details",
+    grupKontak: "Contact & Payment",
+
+    catatanUsername:
+      "Either the username alone or a profile link chess.com/member/yourname.",
+
+    labelNama: "Full Name",
+    phNama: "e.g.: Budi Santoso",
+    catatanNama: "As per official ID, for certificates and tournament prizes.",
+
+    labelPanggilan: "Nickname",
+    phPanggilan: "e.g.: Budi",
+    catatanPanggilan: "This is the name shown in the membership list.",
+
+    labelLahir: "Date of Birth",
+    catatanLahir: "Used to determine your tournament age category.",
+    kategori: "Category",
+    tahun: "years old",
+
+    labelKota: "City of Origin",
+    phKota: "e.g.: Medan",
+    catatanKota: "For regional grouping in the inter-community league.",
+
+    labelHp: "Phone / WhatsApp Number",
+    phHp: "e.g.: 0812-3456-7890",
+    catatanHp:
+      "An active WhatsApp number, for tournament invitations and verification.",
+    terbaca: "Read as",
+
+    labelDana: "DANA Number",
+    phDana: "leave blank if same as phone number",
+    catatanDana: "For sending tournament prizes.",
+
+    labelEmail: "Email",
+    phEmail: "e.g.: budi@email.com",
+    catatanEmail: "For the monthly bulletin and official announcements.",
+
+    labelKlub: "Club / Home Community",
+    phKlub: "e.g.: Medan Chess Club",
+    catatanKlub: "If you already belong to another club.",
+
+    setuju:
+      "I declare that the data above is correct, that this is my only account in the community, and I agree to the Community Code of Ethics — including the prohibition on using engine assistance.",
+
+    periksaIsian: "Please review the fields marked in red.",
+    galatUsername: "Chess.com username is required.",
+    galatNama: "Enter your full name (at least two words).",
+    galatPanggilan: "Nickname is required.",
+    galatHp: "Invalid phone/WhatsApp number. Example: 0812-3456-7890.",
+    galatDana: "Invalid DANA number.",
+    galatKota: "City of origin is required.",
+    galatLahir: "Date of birth is required.",
+    galatLahirAneh: "That date of birth is not plausible.",
+    galatEmail: "Invalid email format.",
+    galatSetuju: "You must agree to the community code of ethics.",
   },
   syarat: {
     judul: "Terms & Conditions",
