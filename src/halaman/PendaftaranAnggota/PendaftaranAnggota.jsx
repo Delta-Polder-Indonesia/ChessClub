@@ -84,31 +84,24 @@ export default function PendaftaranAnggota() {
   const [verifikasi, setVerifikasi] = useState(null);
   const [paramUrl, setParamUrl] = useSearchParams();
 
-  /* Tangkap hasil kembalian dari login Chess.com. */
+  /* Tangkap hasil verifikasi dari sessionStorage (aman, tidak di URL). */
   useEffect(() => {
-    const hasil = paramUrl.get("verifikasi");
-    if (!hasil) return;
-
-    if (hasil === "sukses") {
-      const akun = paramUrl.get("akun");
-      const tiket = paramUrl.get("tiket");
-      if (akun && tiket) {
-        setVerifikasi({ username: akun, tiket });
-        setForm((f) => ({ ...f, username: akun }));
+    try {
+      const tersimpan = sessionStorage.getItem("kci-hasil-verifikasi");
+      if (!tersimpan) return;
+      sessionStorage.removeItem("kci-hasil-verifikasi");
+      const data = JSON.parse(tersimpan);
+      if (data.sukses && data.username && data.tiket) {
+        setVerifikasi({ username: data.username, tiket: data.tiket });
+        setForm((f) => ({ ...f, username: data.username }));
+      } else if (data.sebab) {
+        setPesan(`Verifikasi Chess.com gagal: ${data.sebab}`);
+        setStatus("gagal");
       }
-    } else {
-      setPesan(
-        paramUrl.get("sebab")
-          ? `Verifikasi Chess.com gagal: ${paramUrl.get("sebab")}`
-          : "Verifikasi Chess.com gagal."
-      );
-      setStatus("gagal");
+    } catch {
+      /* abaikan */
     }
-    // Bersihkan URL agar tiket tidak tertinggal di bilah alamat.
-    const bersihkan = new URLSearchParams(paramUrl);
-    ["verifikasi", "akun", "tiket", "sebab"].forEach((k) => bersihkan.delete(k));
-    setParamUrl(bersihkan, { replace: true });
-  }, [paramUrl, setParamUrl]);
+  }, []);
 
   const ubah = (nama, nilai) => {
     setForm((f) => ({ ...f, [nama]: nilai }));
