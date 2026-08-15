@@ -7,7 +7,7 @@
  */
 import { konfigurasi } from "./konfigurasi.js";
 import { buatRepo, tambahBaris } from "./simpanan.js";
-import { ambilProfil, ambilStatistik, ringkasRating } from "./chess.js";
+import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { pakaiTiket } from "./oauth.js";
 import {
   hashKunci,
@@ -389,6 +389,8 @@ export async function daftarkan(body, konteks = {}) {
   }));
 
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
+  // Hapus cache Chess.com agar data baru diambil pada request berikutnya
+  hapusCache(uname);
   return lengkapiAnggota(tanpaRahasia(baru));
 }
 
@@ -445,6 +447,8 @@ export async function blokirAnggota(username, keterangan) {
   }));
 
   await catatJejak("blokir-manual", { username: uname, keterangan });
+  // Hapus cache Chess.com agar data terbaru diambil
+  hapusCache(uname);
   return entri;
 }
 
@@ -520,6 +524,8 @@ export async function pindaiFairPlay() {
     diperiksa: hasil.diperiksa,
     diblokir: hasil.diblokir.length,
   });
+  // Hapus cache untuk anggota yang di-scan agar data terbaru diambil
+  for (const a of tersisa) hapusCache(a.username);
   return hasil;
 }
 

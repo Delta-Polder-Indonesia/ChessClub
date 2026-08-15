@@ -13,6 +13,31 @@ const cache = new Map(); // kunci -> { kedaluwarsa, nilai }
 
 const tidur = (ms) => new Promise((r) => setTimeout(r, ms));
 
+/* ---------------------------------------------------- pembatas konkurensi */
+
+/**
+ * Pembatas konkurensi (semaphore) agar tidak terlalu banyak permintaan
+ * bersamaan ke Chess.com. Mencegah rate-limit dan beban berlebih.
+ */
+const KONKURENSI_MAKS = 5; // maksimal 5 request bersamaan
+let aktif = 0;
+const antrean = [];
+
+async function kunciKonkurensi() {
+  if (aktif < KONKURENSI_MAKS) {
+    aktif++;
+    return;
+  }
+  await new Promise((resolve) => antrean.push(resolve));
+  aktif++;
+}
+
+function lepasKonkurensi() {
+  aktif--;
+  const berikutnya = antrean.shift();
+  if (berikutnya) berikutnya();
+}
+
 function dariCache(kunci) {
   const item = cache.get(kunci);
   if (!item) return undefined;
@@ -39,6 +64,14 @@ export function bersihkanCache() {
   cache.clear();
 }
 
+/** Hapus cache untuk username tertentu (pakai setelah data berubah). */
+export function hapusCache(username) {
+  if (!username) return;
+  const kunci = `/player/${encodeURIComponent(username)}`;
+  cache.delete(kunci);
+  cache.delete(`${kunci}/stats`);
+}
+
 /** Galat yang membedakan masalah jaringan dari jawaban resmi Chess.com. */
 export class GalatChess extends Error {
   constructor(pesan, { status = 0, sementara = false } = {}) {
@@ -50,6 +83,8 @@ export class GalatChess extends Error {
 }
 
 async function ambilSekali(jalur) {
+  // Tunggu giliran sesuai pembatas konkurensi
+  await kunciKonkurensi();
   const kendali = new AbortController();
   const jam = setTimeout(
     () => kendali.abort(),
@@ -65,6 +100,7 @@ async function ambilSekali(jalur) {
     });
   } finally {
     clearTimeout(jam);
+    lepasKonkurensi();
   }
 }
 
