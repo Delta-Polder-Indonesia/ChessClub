@@ -1,7 +1,7 @@
 /**
  * Utilitas HTTP: jawaban JSON, CORS, pembatasan laju, autentikasi pengurus,
- * dan router sederhana. Tanpa kerangka kerja eksternal agar server bisa
- * dijalankan hanya dengan Node.
+ * CSRF protection, dan router sederhana. Tanpa kerangka kerja eksternal agar
+ * server bisa dijalankan hanya dengan Node.
  */
 import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
@@ -38,7 +38,7 @@ export function pasangCors(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Token-Admin"
+    "Content-Type, Authorization, X-Token-Admin, X-CSRF-Token"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
   return true;
@@ -133,14 +133,50 @@ export function alamatIp(req) {
   return req.socket?.remoteAddress || "tidak-diketahui";
 }
 
+/* ----------------------------------------------------------- CSRF token */
+
+/** CSRF token per sesi (disimpan di memori, umur 24 jam). */
+const csrfToken = new Map(); // token -> { kedaluwarsa }
+
+const CSRF_UMUR_MS = 24 * 60 * 60 * 1000; // 24 jam
+
+const pembersihCsrf = setInterval(() => {
+  const kini = Date.now();
+  for (const [k, v] of csrfToken) if (kini > v.kedaluwarsa) csrfToken.delete(k);
+}, 60_000);
+pembersihCsrf.unref?.();
+
+/** Generate CSRF token baru. */
+export function buatCsrfToken() {
+  const token = crypto.randomBytes(32).toString("hex");
+  csrfToken.set(token, { kedaluwarsa: Date.now() + CSRF_UMUR_MS });
+  return token;
+}
+
+/** Validasi CSRF token. */
+export function validasiCsrfToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const data = csrfToken.get(token);
+  if (!data) return false;
+  if (Date.now() > data.kedaluwarsa) {
+    csrfToken.delete(token);
+    return false;
+  }
+  return true;
+}
+
 /* ------------------------------------------------------------- keamanan */
 
-/** Bandingkan dua string tanpa membocorkan waktu (anti timing attack). */
+/**
+ * Bandingkan dua string tanpa membocorkan waktu (anti timing attack).
+ * Menggunakan hashing terlebih dahulu agar panjang string tidak bocor,
+ * lalu membandingkan hash-nya dengan timingSafeEqual.
+ */
 function samaAman(a, b) {
-  const ba = Buffer.from(String(a));
-  const bb = Buffer.from(String(b));
-  if (ba.length !== bb.length) return false;
-  return crypto.timingSafeEqual(ba, bb);
+  const ha = crypto.createHash("sha256").update(String(a)).digest();
+  const hb = crypto.createHash("sha256").update(String(b)).digest();
+  if (ha.length !== hb.length) return false;
+  return crypto.timingSafeEqual(ha, hb);
 }
 
 /**

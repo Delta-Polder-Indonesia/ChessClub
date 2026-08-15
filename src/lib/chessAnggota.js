@@ -58,9 +58,13 @@ export async function ambilDaftarHitam() {
  *                        tanggalLahir, email, klub, setuju
  */
 export async function daftarDenganChessCom(data) {
+  const csrfToken = await ambilCsrfToken();
   const res = await fetch(url("/api/anggota"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
     body: JSON.stringify(data),
   });
   const hasil = await res.json().catch(() => ({}));
@@ -76,7 +80,11 @@ export async function daftarDenganChessCom(data) {
 
 /** Jalankan pemindaian fair play (aksi pengurus). */
 export async function pindaiFairPlay() {
-  const res = await fetch(url("/api/pengurus/pindai"), { method: "POST" });
+  const csrfToken = await ambilCsrfToken();
+  const res = await fetch(url("/api/pengurus/pindai"), {
+    method: "POST",
+    headers: { "X-CSRF-Token": csrfToken },
+  });
   if (!res.ok) throw new Error("Pemindaian gagal.");
   return res.json();
 }
@@ -101,9 +109,13 @@ export async function mulaiLoginChess(kembaliKe) {
 
 /** Minta kode untuk ditempel di profil Chess.com. */
 export async function mintaKodeProfil(username) {
+  const csrfToken = await ambilCsrfToken();
   const res = await fetch(url("/api/auth/kode/minta"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
     body: JSON.stringify({ username }),
   });
   const data = await res.json().catch(() => ({}));
@@ -113,9 +125,13 @@ export async function mintaKodeProfil(username) {
 
 /** Periksa apakah kode sudah terpasang di profil. */
 export async function periksaKodeProfil(username) {
+  const csrfToken = await ambilCsrfToken();
   const res = await fetch(url("/api/auth/kode/periksa"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
     body: JSON.stringify({ username }),
   });
   const data = await res.json().catch(() => ({}));
@@ -152,14 +168,42 @@ export const tokenPengurus = {
   },
 };
 
+/* ----------------------------------------------------------- CSRF token */
+
+const KUNCI_CSRF = "kci-csrf-token";
+
+/** Ambil CSRF token — generate baru jika belum ada. */
+export async function ambilCsrfToken() {
+  try {
+    const tersimpan = sessionStorage.getItem(KUNCI_CSRF);
+    if (tersimpan) return tersimpan;
+    // Generate token baru dari server
+    const res = await fetch(url("/api/csrf-token"));
+    if (res.ok) {
+      const data = await res.json();
+      if (data.token) {
+        sessionStorage.setItem(KUNCI_CSRF, data.token);
+        return data.token;
+      }
+    }
+  } catch {
+    /* abaikan */
+  }
+  return "";
+}
+
 /** Panggilan ke endpoint pengurus, otomatis menyertakan token. */
 export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
+  const headers = {
+    "X-Token-Admin": tokenPengurus.ambil(),
+  };
+  if (bodi) headers["Content-Type"] = "application/json";
+  if (metode === "POST") {
+    headers["X-CSRF-Token"] = await ambilCsrfToken();
+  }
   const res = await fetch(url(`/api/pengurus${jalur}`), {
     method: metode,
-    headers: {
-      "X-Token-Admin": tokenPengurus.ambil(),
-      ...(bodi ? { "Content-Type": "application/json" } : {}),
-    },
+    headers,
     body: bodi ? JSON.stringify(bodi) : undefined,
   });
   const data = await res.json().catch(() => ({}));
