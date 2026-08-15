@@ -140,14 +140,25 @@ export default function Footer() {
                 >
                   {col.links.map((link) => (
                     <li key={link.title}>
-                      <a
-                        href={link.href}
-                        className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
-                        title={link.title}
-                        aria-label={link.title}
-                      >
-                        {link.title}
-                      </a>
+                      {link.href.startsWith("/") ? (
+                        <Link
+                          to={link.href}
+                          className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
+                          title={link.title}
+                          aria-label={link.title}
+                        >
+                          {link.title}
+                        </Link>
+                      ) : (
+                        <a
+                          href={link.href}
+                          className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
+                          title={link.title}
+                          aria-label={link.title}
+                        >
+                          {link.title}
+                        </a>
+                      )}
                     </li>
                   ))}
                 </div>

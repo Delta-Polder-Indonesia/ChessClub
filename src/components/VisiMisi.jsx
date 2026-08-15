@@ -64,8 +64,11 @@ export default function VisiMisi() {
               <img
                 src={gambar("/images/tata-nilai.jpg")}
                 alt={t("visimisi.nilaiImgAlt")}
+                width={1280}
+                height={714}
                 className="w-full h-auto object-cover"
                 draggable="false"
+                decoding="async"
                 loading="lazy"
               />
               <p className="text-sm font-normal text-gray-500 mt-2">

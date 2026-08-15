@@ -12,15 +12,55 @@
       name="description"
       content="Telusuri sejarah perjalanan, visi, dan misi komunitas kami yang menjadi fondasi kegiatan, filosofi logo, serta struktur pengurus yang mendukung pengembangan catur Indonesia."
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      as="image"
+      href="/images/hero-about-828.webp"
+      type="image/webp"
+      fetchpriority="high"
+      imagesrcset="/images/hero-about-828.webp 828w, /images/hero-about.webp 1280w"
+      imagesizes="100vw"
     />
+    <style>
+      #boot-hero {
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 400px;
+        background: #021624;
+        overflow: hidden;
+        z-index: 0;
+        pointer-events: none;
+      }
+      #boot-hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      @media (min-width: 1024px) {
+        #boot-hero {
+          height: 500px;
+        }
+      }
+      #root {
+        position: relative;
+        z-index: 1;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="boot-hero" aria-hidden="true">
+      <img
+        src="/images/hero-about-828.webp"
+        srcset="/images/hero-about-828.webp 828w, /images/hero-about.webp 1280w"
+        sizes="100vw"
+        alt=""
+        width="828"
+        height="462"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

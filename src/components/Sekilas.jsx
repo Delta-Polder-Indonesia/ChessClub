@@ -29,8 +29,11 @@ export default function Sekilas() {
             <img
               src={gambar("/images/sekilas.jpg")}
               alt={t("sekilas.imgAlt")}
+              width={1280}
+              height={714}
               className="w-full h-auto object-cover"
               draggable="false"
+              decoding="async"
               loading="lazy"
             />
             <p className="text-sm font-normal text-gray-500 mt-2">

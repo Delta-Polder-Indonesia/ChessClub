@@ -26,3 +26,28 @@ export function LoadingSpinner({ label = "Memuat…", className = "" }) {
     </div>
   );
 }
+
+/**
+ * Placeholder Suspense seukuran hero — memakai foto LCP yang sama agar
+ * gambar terbesar tetap terlihat saat chunk halaman masih diunduh.
+ */
+export function HeroFallback() {
+  return (
+    <section
+      className="relative w-full h-[400px] lg:h-[500px] bg-hero overflow-hidden"
+      aria-hidden="true"
+    >
+      <img
+        src={`${import.meta.env.BASE_URL}images/hero-about-828.webp`}
+        srcSet={`${import.meta.env.BASE_URL}images/hero-about-828.webp 828w, ${import.meta.env.BASE_URL}images/hero-about.webp 1280w`}
+        sizes="100vw"
+        alt=""
+        width={828}
+        height={462}
+        fetchPriority="high"
+        decoding="async"
+        className="w-full h-full object-cover"
+      />
+    </section>
+  );
+}
