@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { ArrowRightIcon, ChevronDownIcon, MenuIcon } from "./icons.jsx";
 import Hero from "./Hero.jsx";
 import { useI18n } from "../lib/i18n.jsx";
-import { gambar } from "../lib/asets.js";
 
 /**
  * Kerangka halaman informasi korporat.
@@ -15,7 +14,7 @@ import { gambar } from "../lib/asets.js";
 export function CorporatePage({
   title,
   description,
-  image = gambar("/images/hero-about.jpg"),
+  image = "/images/hero-about.jpg",
   sidebar = [],
   next,
   children,
