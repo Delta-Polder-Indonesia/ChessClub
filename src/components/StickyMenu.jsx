@@ -172,7 +172,7 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
           className="relative flex items-stretch lg:justify-center"
           role="tablist"
         >
-          {daftar.map((s, i) => {
+          {daftar.map((s) => {
             const aktif = current === s.id;
             return (
               <button
@@ -192,9 +192,6 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
                     : "text-grey-600 hover:bg-slate-100 hover:text-blue-400"
                 }`}
               >
-                <span className="lg:hidden mr-2 text-xs font-bold opacity-60">
-                  {i + 1}
-                </span>
                 {s.label}
               </button>
             );
