@@ -23,14 +23,14 @@ function BlokBagian({ bagian }) {
       className="scroll-mt-36 border-t border-slate-200 py-10 md:py-14"
     >
       <div className="mb-4 flex items-center gap-4">
-        <span className="section-number text-2xl">{bagian.nomor}</span>
-        <h3 className="text-xl font-extrabold uppercase leading-tight text-chess-green md:text-2xl">
+        <span className="section-number text-sm">{bagian.nomor}</span>
+        <h3 className="text-xl font-semibold leading-snug text-slate-950 md:text-2xl">
           {bagian.judul}
         </h3>
       </div>
       {bagian.deskripsi && (
         <p
-          className="mb-6 leading-snug text-gray-600"
+          className="mb-6 text-base leading-7 text-slate-600"
           dangerouslySetInnerHTML={{ __html: bagian.deskripsi }}
         />
       )}
@@ -68,7 +68,7 @@ export function IsiPanduan({ panduan }) {
   }, [panduan]);
 
   return (
-    <article>
+    <article className="panduan-kci">
       <header className="pb-12 md:pb-16">
         <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
           {t("caraBermain.labelArtikel")}
