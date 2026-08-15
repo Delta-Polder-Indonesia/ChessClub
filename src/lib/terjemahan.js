@@ -15,6 +15,7 @@ export const ID = {
     alamat: "Address",
     surel: "Email",
     pilihBahasa: "Pilih bahasa",
+    navigasiBagian: "Navigasi bagian halaman",
   },
   nav: {
     tentangKami: "Tentang Kami",
@@ -681,6 +682,7 @@ export const EN = {
     alamat: "Address",
     surel: "Email",
     pilihBahasa: "Choose language",
+    navigasiBagian: "Page section navigation",
   },
   nav: {
     tentangKami: "About Us",
