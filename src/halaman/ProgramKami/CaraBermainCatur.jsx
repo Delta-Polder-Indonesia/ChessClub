@@ -10,28 +10,9 @@ import { useI18n } from "../../lib/i18n.jsx";
  * Konten dimuat terpisah (code-split) agar bundle utama tetap ringan.
  */
 
-/**
- * Buang emoji hiasan di awal judul (mis. "🤝 Stalemate" → "Stalemate").
- * Hanya dipakai untuk teks judul; isi papan catur dan notasi tidak lewat sini.
- */
-const EMOJI_JUDUL =
-  /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2190}-\u{21FF}\u{2300}-\u{23FF}\u{2650}-\u{265F}\u{FE0F}\u{20E3}]/gu;
-
-function tanpaEmoji(teks) {
-  return String(teks).replace(EMOJI_JUDUL, "").replace(/\s{2,}/g, " ").trim();
-}
-
-/**
- * Satu baris isi panduan — HTML dokumen asli (papan SVG, tabel, kartu) dirender utuh.
- * Emoji dibersihkan khusus di dalam <h3> saja; papan SVG dan notasi <code>
- * tidak disentuh sama sekali.
- */
+/** Satu baris isi panduan — HTML dokumen asli (papan SVG, tabel, kartu) dirender utuh. */
 function BarisKonten({ html }) {
-  const bersih = html.replace(
-    /(<h3\b[^>]*>)([\s\S]*?)(<\/h3>)/gi,
-    (_, buka, isi, tutup) => `${buka}${tanpaEmoji(isi)}${tutup}`
-  );
-  return <div dangerouslySetInnerHTML={{ __html: bersih }} />;
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
 }
 
 /** Satu bagian (section) panduan: nomor, judul, deskripsi, dan baris isi. */
@@ -44,7 +25,7 @@ function BlokBagian({ bagian }) {
       <div className="mb-4 flex items-center gap-4">
         <span className="section-number text-sm">{bagian.nomor}</span>
         <h3 className="text-xl font-semibold leading-snug text-slate-950 md:text-2xl">
-          {tanpaEmoji(bagian.judul)}
+          {bagian.judul}
         </h3>
       </div>
       {bagian.deskripsi && (
@@ -122,7 +103,7 @@ export function IsiPanduan({ panduan }) {
                         href={`#${b.id}`}
                         className="text-[15px] leading-6 text-slate-700 hover:text-primary hover:underline"
                       >
-                        {tanpaEmoji(b.judul)}
+                        {b.judul}
                       </a>
                     </li>
                   ))}
