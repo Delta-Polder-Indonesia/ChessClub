@@ -1,9 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../lib/i18n.jsx";
+
+/** Tinggi header + sticky menu — garis acuan bagian yang sedang dibaca. */
+const OFFSET_BACA = 140;
 
 /**
  * Submenu sticky di bawah hero — identik dengan #stickymenu Pertamina.
  * `sections` bisa diganti (mis. kelompok Elo di Keanggotaan).
+ *
+ * Saat halaman di-scroll, tab yang sesuai dengan bagian yang sedang dibaca
+ * ikut menyala, sehingga menu ini sekaligus jadi penanda posisi pengguna.
  */
 export default function StickyMenu({ sections, activeId, onSelect }) {
   const { t } = useI18n();
@@ -17,25 +23,53 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
   const daftar = sections ?? SECTIONS;
   const [active, setActive] = useState(daftar[0]?.id);
   const current = onSelect ? activeId : active;
+  /** Setelah tab diklik, scroll-spy dibekukan sebentar agar tidak meloncat. */
+  const kunci = useRef(0);
 
   useEffect(() => {
     if (onSelect) return undefined;
-    setActive(daftar[0]?.id);
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setActive(entry.target.id);
-          }
-        }
-      },
-      { rootMargin: "-35% 0px -55% 0px" }
-    );
-    daftar.forEach((s) => {
-      const el = document.getElementById(s.id);
-      if (el) observer.observe(el);
-    });
-    return () => observer.disconnect();
+
+    let frame = 0;
+
+    const hitung = () => {
+      frame = 0;
+      if (Date.now() < kunci.current) return;
+
+      const garis = window.scrollY + OFFSET_BACA;
+      let terpilih = daftar[0]?.id;
+
+      for (const s of daftar) {
+        const el = document.getElementById(s.id);
+        if (!el) continue;
+        const atas = el.getBoundingClientRect().top + window.scrollY;
+        if (atas <= garis + 1) terpilih = s.id;
+      }
+
+      const maksimal =
+        document.documentElement.scrollHeight - window.innerHeight;
+      if (maksimal > 0 && window.scrollY >= maksimal - 2) {
+        const akhir = [...daftar]
+          .reverse()
+          .find((s) => document.getElementById(s.id));
+        if (akhir) terpilih = akhir.id;
+      }
+
+      if (terpilih) setActive((lama) => (lama === terpilih ? lama : terpilih));
+    };
+
+    const onScroll = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(hitung);
+    };
+
+    hitung();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
   }, [daftar, onSelect]);
 
   const handleClick = (id) => {
@@ -43,6 +77,7 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
       onSelect(id);
       return;
     }
+    kunci.current = Date.now() + 700;
     setActive(id);
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
