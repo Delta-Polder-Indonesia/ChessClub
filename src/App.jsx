@@ -3,7 +3,7 @@ import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import { LoadingSpinner } from "./components/Loading.jsx";
+import { HeroFallback } from "./components/Loading.jsx";
 
 /* ------------------------------------------------------- code splitting
  * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
@@ -183,11 +183,15 @@ function PulihkanRute() {
 /* ---------------------------------------------------------------- app */
 
 export default function App() {
+  useEffect(() => {
+    document.getElementById("boot-hero")?.remove();
+  }, []);
+
   return (
     <>
       <PulihkanRute />
       <ScrollToTop />
-      <Suspense fallback={<LoadingSpinner className="min-h-[60vh]" />}>
+      <Suspense fallback={<HeroFallback />}>
         <Routes>
           <Route element={<PageLayout />}>
             {RUTE_HALAMAN.map(([jalur, Komponen]) => (

@@ -67,8 +67,11 @@ export function PageGambar({ src, alt, caption }) {
           <img
             src={src}
             alt={alt}
+            width={1280}
+            height={714}
             className="w-full h-auto object-cover"
             draggable="false"
+            decoding="async"
             loading="lazy"
           />
           {caption && (

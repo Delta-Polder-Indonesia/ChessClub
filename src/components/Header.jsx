@@ -369,7 +369,7 @@ export default function Header() {
             aria-label="Logo Komunitas Catur Indonesia"
             className="flex-none flex items-center gap-4 md:gap-6"
           >
-            <Logo variant={scrolled ? "dark" : "light"} />
+            <Logo variant={scrolled ? "dark" : "light"} priority />
           </Link>
           <div className="flex flex-col lg:items-end">
             {/* Top bar — tersembunyi saat header menempel (seperti Pertamina) */}
