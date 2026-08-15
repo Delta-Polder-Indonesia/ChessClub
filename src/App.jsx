@@ -1,41 +1,120 @@
-import { useEffect } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
+import { LoadingSpinner } from "./components/Loading.jsx";
 
-import TentangKami from "./halaman/TentangKami/TentangKami.jsx";
-import StrukturGrupCatur from "./halaman/TentangKami/StrukturGrupCatur/StrukturGrupCatur.jsx";
+/* ------------------------------------------------------- code splitting
+ * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
+ * chunk terpisah — bundel awal hanya berisi kerangka layout + router.
+ * Halaman berat (Dashboard, Galeri, CaraBermainCatur) paling diuntungkan:
+ * kodenya baru diunduh saat rutenya benar-benar dikunjungi. */
 
-import ProgramKami from "./halaman/ProgramKami/ProgramKami.jsx";
-import KelasDanPelatihan from "./halaman/ProgramKami/KelasDanPelatihan.jsx";
-import CoachingClinic from "./halaman/ProgramKami/CoachingClinic.jsx";
-import SimultanDanBlindfold from "./halaman/ProgramKami/SimultanDanBlindfold.jsx";
-import SekolahCatur from "./halaman/ProgramKami/SekolahCatur.jsx";
-import CaraBermainCatur from "./halaman/ProgramKami/CaraBermainCatur.jsx";
-import Dashboard from "./halaman/Pengurus/Dashboard.jsx";
+// Tentang Kami
+const TentangKami = lazy(() => import("./halaman/TentangKami/TentangKami.jsx"));
+const StrukturGrupCatur = lazy(() => import("./halaman/TentangKami/StrukturGrupCatur/StrukturGrupCatur.jsx"));
 
-import Turnamen from "./halaman/Turnamen/Turnamen.jsx";
-import TurnamenBulanan from "./halaman/Turnamen/TurnamenBulanan.jsx";
-import LigaMusiman from "./halaman/Turnamen/LigaMusiman.jsx";
-import TurnamenTerbuka from "./halaman/Turnamen/TurnamenTerbuka.jsx";
-import LigaAntarKomunitas from "./halaman/Turnamen/LigaAntarKomunitas.jsx";
+// Program Kami
+const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
+const KelasDanPelatihan = lazy(() => import("./halaman/ProgramKami/KelasDanPelatihan.jsx"));
+const CoachingClinic = lazy(() => import("./halaman/ProgramKami/CoachingClinic.jsx"));
+const SimultanDanBlindfold = lazy(() => import("./halaman/ProgramKami/SimultanDanBlindfold.jsx"));
+const SekolahCatur = lazy(() => import("./halaman/ProgramKami/SekolahCatur.jsx"));
+const CaraBermainCatur = lazy(() => import("./halaman/ProgramKami/CaraBermainCatur.jsx"));
 
-import MediaDanInformasi from "./halaman/MediaDanInformasi/MediaDanInformasi.jsx";
-import BeritaKomunitas from "./halaman/MediaDanInformasi/BeritaKomunitas.jsx";
-import Pengumuman from "./halaman/MediaDanInformasi/Pengumuman.jsx";
-import Galeri from "./halaman/MediaDanInformasi/Galeri.jsx";
-import BuletinBulanan from "./halaman/MediaDanInformasi/BuletinBulanan.jsx";
+// Turnamen
+const Turnamen = lazy(() => import("./halaman/Turnamen/Turnamen.jsx"));
+const TurnamenBulanan = lazy(() => import("./halaman/Turnamen/TurnamenBulanan.jsx"));
+const LigaMusiman = lazy(() => import("./halaman/Turnamen/LigaMusiman.jsx"));
+const TurnamenTerbuka = lazy(() => import("./halaman/Turnamen/TurnamenTerbuka.jsx"));
+const LigaAntarKomunitas = lazy(() => import("./halaman/Turnamen/LigaAntarKomunitas.jsx"));
 
-import Keberlanjutan from "./halaman/Keberlanjutan/Keberlanjutan.jsx";
-import PendaftaranAnggota from "./halaman/PendaftaranAnggota/PendaftaranAnggota.jsx";
-import SyaratDanKetentuan from "./halaman/Keberlanjutan/SyaratDanKetentuan.jsx";
-import KodeEtikKomunitas from "./halaman/Keberlanjutan/KodeEtikKomunitas.jsx";
-import PertanyaanUmum from "./halaman/Keberlanjutan/PertanyaanUmum.jsx";
+// Media & Informasi
+const MediaDanInformasi = lazy(() => import("./halaman/MediaDanInformasi/MediaDanInformasi.jsx"));
+const BeritaKomunitas = lazy(() => import("./halaman/MediaDanInformasi/BeritaKomunitas.jsx"));
+const Pengumuman = lazy(() => import("./halaman/MediaDanInformasi/Pengumuman.jsx"));
+const Galeri = lazy(() => import("./halaman/MediaDanInformasi/Galeri.jsx"));
+const BuletinBulanan = lazy(() => import("./halaman/MediaDanInformasi/BuletinBulanan.jsx"));
 
-import HubungiKami from "./halaman/HubungiKami/HubungiKami.jsx";
-import Karir from "./halaman/Karir/Karir.jsx";
-import Pengadaan from "./halaman/Pengadaan/Pengadaan.jsx";
-import TidakDitemukan from "./halaman/TidakDitemukan.jsx";
+// Keberlanjutan & keanggotaan
+const Keberlanjutan = lazy(() => import("./halaman/Keberlanjutan/Keberlanjutan.jsx"));
+const PendaftaranAnggota = lazy(() => import("./halaman/PendaftaranAnggota/PendaftaranAnggota.jsx"));
+const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanKetentuan.jsx"));
+const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
+const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
+
+// Lain-lain
+const HubungiKami = lazy(() => import("./halaman/HubungiKami/HubungiKami.jsx"));
+const Karir = lazy(() => import("./halaman/Karir/Karir.jsx"));
+const Pengadaan = lazy(() => import("./halaman/Pengadaan/Pengadaan.jsx"));
+const TidakDitemukan = lazy(() => import("./halaman/TidakDitemukan.jsx"));
+
+// Dashboard pengurus — chunk terpisah; tidak pernah ikut bundel publik.
+const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
+
+/* --------------------------------------------------------- konfigurasi */
+
+/** Rute konten utama: [path, Komponen]. */
+const RUTE_HALAMAN = [
+  ["/", TentangKami],
+  ["/tentang-kami", TentangKami],
+  ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],
+
+  ["/program-kami", ProgramKami],
+  ["/program-kami/kelas-dan-pelatihan", KelasDanPelatihan],
+  ["/program-kami/coaching-clinic", CoachingClinic],
+  ["/program-kami/simultan-dan-blindfold", SimultanDanBlindfold],
+  ["/program-kami/sekolah-catur", SekolahCatur],
+  ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
+
+  ["/turnamen", Turnamen],
+  ["/turnamen/turnamen-bulanan", TurnamenBulanan],
+  ["/turnamen/liga-musiman", LigaMusiman],
+  ["/turnamen/turnamen-terbuka", TurnamenTerbuka],
+  ["/turnamen/liga-antar-komunitas", LigaAntarKomunitas],
+
+  ["/media-dan-informasi", MediaDanInformasi],
+  ["/media-dan-informasi/berita-komunitas", BeritaKomunitas],
+  ["/media-dan-informasi/pengumuman", Pengumuman],
+  ["/media-dan-informasi/galeri", Galeri],
+  ["/media-dan-informasi/buletin-bulanan", BuletinBulanan],
+
+  // Keanggotaan hanya dirender sebagai tab di Struktur Grup Catur.
+  ["/pendaftaran-anggota", PendaftaranAnggota],
+
+  ["/keberlanjutan", Keberlanjutan],
+  ["/keberlanjutan/syarat-dan-ketentuan", SyaratDanKetentuan],
+  ["/keberlanjutan/kode-etik-komunitas", KodeEtikKomunitas],
+  ["/keberlanjutan/pertanyaan-umum", PertanyaanUmum],
+
+  ["/hubungi-kami", HubungiKami],
+  ["/pengadaan", Pengadaan],
+  ["/karir", Karir],
+];
+
+/**
+ * Alamat lama → alamat baru. Satu tempat untuk semua redirect sehingga
+ * komponen App() tetap ramping; menambah alias baru cukup satu baris.
+ */
+const RUTE_REDIRECT = new Map([
+  ["/struktur-grup-catur", "/tentang-kami/struktur-grup-catur"],
+  ["/pengumuman", "/media-dan-informasi/pengumuman"],
+
+  // Alias keanggotaan lama.
+  ["/keanggotaan", "/tentang-kami/struktur-grup-catur#keanggotaan"],
+  ["/tentang-kami/keanggotaan", "/tentang-kami/struktur-grup-catur#keanggotaan"],
+  ["/keanggotaan/pendaftaran-anggota", "/pendaftaran-anggota"],
+  ["/tentang-kami/keanggotaan/pendaftaran-anggota", "/pendaftaran-anggota"],
+  ["/tentang-kami/struktur-grup-catur/keanggotaan/pendaftaran-anggota", "/pendaftaran-anggota"],
+
+  // Dokumen keberlanjutan yang dulu berada di bawah /keanggotaan.
+  ["/keanggotaan/syarat-dan-ketentuan", "/keberlanjutan/syarat-dan-ketentuan"],
+  ["/keanggotaan/kode-etik-komunitas", "/keberlanjutan/kode-etik-komunitas"],
+  ["/keanggotaan/pertanyaan-umum", "/keberlanjutan/pertanyaan-umum"],
+]);
+
+/* ------------------------------------------------------- pulihkan rute */
 
 /**
  * Kunci sessionStorage yang dipakai public/404.html untuk menyimpan alamat
@@ -44,10 +123,36 @@ import TidakDitemukan from "./halaman/TidakDitemukan.jsx";
 const KUNCI_RUTE = "kci-rute-tersimpan";
 
 /**
+ * Nilai dari sessionStorage tetap data eksternal — pengguna (atau skrip
+ * jahat di tab yang sama) bisa menuliskannya. Hanya jalur INTERNAL relatif
+ * yang diterima; segala bentuk alamat absolut atau protokol ditolak agar
+ * tidak menjadi celah open redirect.
+ */
+function jalurInternalAman(jalur) {
+  if (typeof jalur !== "string" || !jalur) return false;
+  // Wajib diawali satu "/" — menolak "https://…", "javascript:…", "foo".
+  if (!jalur.startsWith("/")) return false;
+  // "//evil.com" dan "/\evil.com" diperlakukan browser sebagai URL absolut.
+  if (jalur.startsWith("//") || jalur.startsWith("/\\")) return false;
+  // Tolak karakter kontrol serta sisa skema yang tersamar (mis. "/a:javascript").
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f]/.test(jalur)) return false;
+  // Uji akhir: bila diurai relatif terhadap origin kita, origin-nya tidak
+  // boleh berubah. Menangkap trik encoding yang lolos pemeriksaan di atas.
+  try {
+    const asal = window.location.origin;
+    return new URL(jalur, asal).origin === asal;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Memulihkan rute yang disimpan oleh public/404.html.
  * 404.html menyimpan jalur lengkap (mis. "/ChessClub/tentang-kami#keanggotaan"),
  * lalu mengarahkan ke index.html. Komponen ini melepas prefix base dan
- * menavigasi ke rute semula tanpa reload.
+ * menavigasi ke rute semula tanpa reload — setelah lolos validasi
+ * jalurInternalAman() untuk mencegah open redirect.
  */
 function PulihkanRute() {
   const navigate = useNavigate();
@@ -57,11 +162,16 @@ function PulihkanRute() {
       const tersimpan = sessionStorage.getItem(KUNCI_RUTE);
       if (!tersimpan) return;
       sessionStorage.removeItem(KUNCI_RUTE);
+      if (!jalurInternalAman(tersimpan)) return;
       const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
       const jalur = tersimpan.startsWith(base)
         ? tersimpan.slice(base.length)
         : tersimpan;
-      if (jalur && jalur !== "/") navigate(jalur, { replace: true });
+      if (!jalur || jalur === "/") return;
+      // Validasi ulang setelah prefix base dilepas — pelepasan prefix bisa
+      // mengubah bentuk jalur (mis. "/ChessClub//evil.com" → "//evil.com").
+      if (!jalurInternalAman(jalur)) return;
+      navigate(jalur, { replace: true });
     } catch {
       /* abaikan — hanya berfungsi di lingkungan yang mendukung sessionStorage */
     }
@@ -70,67 +180,45 @@ function PulihkanRute() {
   return null;
 }
 
+/* ---------------------------------------------------------------- app */
+
 export default function App() {
   return (
     <>
       <PulihkanRute />
       <ScrollToTop />
-      <Routes>
-        <Route element={<PageLayout />}>
-          <Route path="/" element={<TentangKami />} />
-          <Route path="/tentang-kami" element={<TentangKami />} />
-          <Route path="/tentang-kami/struktur-grup-catur" element={<StrukturGrupCatur />} />
-          <Route path="/struktur-grup-catur" element={<Navigate to="/tentang-kami/struktur-grup-catur" replace />} />
+      <Suspense fallback={<LoadingSpinner className="min-h-[60vh]" />}>
+        <Routes>
+          <Route element={<PageLayout />}>
+            {RUTE_HALAMAN.map(([jalur, Komponen]) => (
+              <Route key={jalur} path={jalur} element={<Komponen />} />
+            ))}
 
-          <Route path="/program-kami" element={<ProgramKami />} />
-          <Route path="/program-kami/kelas-dan-pelatihan" element={<KelasDanPelatihan />} />
-          <Route path="/program-kami/coaching-clinic" element={<CoachingClinic />} />
-          <Route path="/program-kami/simultan-dan-blindfold" element={<SimultanDanBlindfold />} />
-          <Route path="/program-kami/sekolah-catur" element={<SekolahCatur />} />
+            {[...RUTE_REDIRECT].map(([dari, ke]) => (
+              <Route
+                key={dari}
+                path={dari}
+                element={<Navigate to={ke} replace />}
+              />
+            ))}
+
+            <Route path="*" element={<TidakDitemukan />} />
+          </Route>
+
+          {/* Dashboard pengurus berdiri sendiri: tanpa navbar & footer publik,
+              sengaja tidak ditautkan dari menu mana pun, dan dijaga
+              ProtectedRoute — token diverifikasi ke server sebelum halaman
+              dirender, sehingga menebak URL saja tidak membuka apa pun. */}
           <Route
-            path="/program-kami/sekolah-catur/cara-bermain-catur"
-            element={<CaraBermainCatur />}
+            path="/pengurus"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
           />
-
-          <Route path="/turnamen" element={<Turnamen />} />
-          <Route path="/turnamen/turnamen-bulanan" element={<TurnamenBulanan />} />
-          <Route path="/turnamen/liga-musiman" element={<LigaMusiman />} />
-          <Route path="/turnamen/turnamen-terbuka" element={<TurnamenTerbuka />} />
-          <Route path="/turnamen/liga-antar-komunitas" element={<LigaAntarKomunitas />} />
-
-          <Route path="/media-dan-informasi" element={<MediaDanInformasi />} />
-          <Route path="/media-dan-informasi/berita-komunitas" element={<BeritaKomunitas />} />
-          <Route path="/media-dan-informasi/pengumuman" element={<Pengumuman />} />
-          <Route path="/pengumuman" element={<Navigate to="/media-dan-informasi/pengumuman" replace />} />
-          <Route path="/media-dan-informasi/galeri" element={<Galeri />} />
-          <Route path="/media-dan-informasi/buletin-bulanan" element={<BuletinBulanan />} />
-
-          {/* Keanggotaan hanya dirender sebagai tab di Struktur Grup Catur. */}
-          <Route path="/pendaftaran-anggota" element={<PendaftaranAnggota />} />
-          <Route path="/tentang-kami/keanggotaan" element={<Navigate to="/tentang-kami/struktur-grup-catur#keanggotaan" replace />} />
-          <Route path="/tentang-kami/keanggotaan/pendaftaran-anggota" element={<Navigate to="/pendaftaran-anggota" replace />} />
-          <Route path="/tentang-kami/struktur-grup-catur/keanggotaan/pendaftaran-anggota" element={<Navigate to="/pendaftaran-anggota" replace />} />
-          <Route path="/keanggotaan" element={<Navigate to="/tentang-kami/struktur-grup-catur#keanggotaan" replace />} />
-          <Route path="/keanggotaan/pendaftaran-anggota" element={<Navigate to="/pendaftaran-anggota" replace />} />
-
-          <Route path="/keberlanjutan" element={<Keberlanjutan />} />
-          <Route path="/keberlanjutan/syarat-dan-ketentuan" element={<SyaratDanKetentuan />} />
-          <Route path="/keberlanjutan/kode-etik-komunitas" element={<KodeEtikKomunitas />} />
-          <Route path="/keberlanjutan/pertanyaan-umum" element={<PertanyaanUmum />} />
-          <Route path="/keanggotaan/syarat-dan-ketentuan" element={<Navigate to="/keberlanjutan/syarat-dan-ketentuan" replace />} />
-          <Route path="/keanggotaan/kode-etik-komunitas" element={<Navigate to="/keberlanjutan/kode-etik-komunitas" replace />} />
-          <Route path="/keanggotaan/pertanyaan-umum" element={<Navigate to="/keberlanjutan/pertanyaan-umum" replace />} />
-
-          <Route path="/hubungi-kami" element={<HubungiKami />} />
-          <Route path="/pengadaan" element={<Pengadaan />} />
-          <Route path="/karir" element={<Karir />} />
-          <Route path="*" element={<TidakDitemukan />} />
-        </Route>
-
-        {/* Dashboard pengurus berdiri sendiri: tanpa navbar & footer publik,
-            dan sengaja tidak ditautkan dari menu mana pun. */}
-        <Route path="/pengurus" element={<Dashboard />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   );
 }
