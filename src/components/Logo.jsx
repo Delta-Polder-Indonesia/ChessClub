@@ -16,6 +16,7 @@ export default function Logo({
   className = "",
   size = "md",
   showWordmark = true,
+  priority = false,
 }) {
   const px = SIZES[size] || SIZES.md;
   const light = variant === "light";
@@ -32,6 +33,8 @@ export default function Logo({
         height={px}
         draggable="false"
         decoding="async"
+        loading={priority ? "eager" : "lazy"}
+        fetchPriority={priority ? "high" : "auto"}
         className="flex-none object-contain"
         style={{ width: px, height: px }}
       />

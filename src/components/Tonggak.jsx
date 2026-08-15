@@ -99,10 +99,18 @@ export default function Tonggak() {
               style={{ zIndex: i === index ? 1 : 0 }}
               aria-hidden={i !== index}
             >
-              <div
-                className="w-full relative h-full min-h-[600px]"
-                style={{ backgroundImage: `url(${slide.img})`, backgroundSize: "cover", backgroundPosition: "center" }}
-              >
+              <div className="w-full relative h-full min-h-[600px] bg-[#021624]">
+                {i === index && (
+                  <img
+                    src={slide.img}
+                    alt=""
+                    width={1280}
+                    height={714}
+                    decoding="async"
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
                 {/* Lapisan gelap */}
                 <div className="absolute inset-0 pointer-events-none opacity-60 bg-[#000000CC]" />
                 {/* Konten teks */}

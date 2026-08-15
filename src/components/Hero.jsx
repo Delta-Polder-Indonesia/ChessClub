@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "../lib/i18n.jsx";
-import { gambar } from "../lib/asets.js";
+import { sumberHero } from "../lib/asets.js";
 
 /**
  * Hero halaman — latar gelap + foto + breadcrumb + judul.
@@ -9,7 +9,7 @@ export default function Hero({
   title,
   description,
   crumbs,
-  image = gambar("/images/hero-about.jpg"),
+  image = "/images/hero-about.jpg",
 }) {
   const { t } = useI18n();
   const judul = title ?? t("hero.tentangKami");
@@ -18,17 +18,23 @@ export default function Hero({
     { label: t("common.home"), to: "/" },
     { label: t("hero.tentangKami") },
   ];
+  const foto = sumberHero(image);
 
   return (
     <section className="relative w-full h-[400px] lg:h-[500px] bg-hero">
       <div className="absolute w-full max-w-full left-1/2 -translate-x-1/2 h-full overflow-hidden">
         <img
-          src={image}
+          src={foto.src}
+          srcSet={foto.srcSet}
+          sizes={foto.sizes}
           alt={judul}
           title={judul}
+          width={828}
+          height={462}
           className="w-full h-full object-cover"
           draggable="false"
           decoding="async"
+          fetchPriority="high"
         />
       </div>
       <div

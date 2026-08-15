@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { performaHalaman } from "./plugins/performa.js";
 
 /**
  * Panggilan /api/* diteruskan ke backend (server/src/index.js).
@@ -29,7 +30,10 @@ const BASE_PUBLIC =
 
 export default defineConfig({
   base: BASE_PUBLIC,
-  plugins: [react(), tailwindcss()],
+  build: {
+    modulePreload: { polyfill: false },
+    cssCodeSplit: false,
+  },
   server: {
     host: true,
     allowedHosts: true,
@@ -61,6 +65,11 @@ export default defineConfig({
   },
   preview: {
     host: true,
+    allowedHosts: true,
+    cors: { origin: true },
+    headers: {
+      "Cross-Origin-Resource-Policy": "cross-origin",
+    },
     proxy: {
       "/api": {
         target: TARGET_API,
@@ -68,4 +77,26 @@ export default defineConfig({
       },
     },
   },
+  plugins: [
+    react(),
+    tailwindcss(),
+    performaHalaman(),
+    {
+      name: "alihkan-akar-preview",
+      configurePreviewServer(server) {
+        const dasar = BASE_PUBLIC.replace(/\/+$/, "") || "";
+        if (!dasar) return;
+        server.middlewares.use((req, res, next) => {
+          const url = req.url || "/";
+          if (url === "/" || url === "") {
+            res.statusCode = 302;
+            res.setHeader("Location", `${dasar}/`);
+            res.end();
+            return;
+          }
+          next();
+        });
+      },
+    },
+  ],
 });

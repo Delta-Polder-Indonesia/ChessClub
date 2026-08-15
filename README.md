@@ -31,11 +31,23 @@ npm run preview  # pratinjau hasil build
 
 ## Desain
 
-- Font: **Plus Jakarta Sans** (sama dengan Pertamina), body 16px/24px
+- Font: **Plus Jakarta Sans** (self-hosted, tanpa Google Fonts), body 16px/24px
 - Warna primary biru `#0B2F9F`, hero `#021624`, teks artikel `#374151`, footer `#F8FAFC`
 - Judul H2 30px semibold, H1 hero putih 38px bold — nilai diambil langsung dari computed style situs Pertamina
 - Tanpa emoji, tanpa efek animasi yang tidak perlu (hanya transisi hover halus dan progress bar carousel yang meniru aslinya)
-- Foto-foto bertema catur di-generate khusus di `public/images/`
+- Foto-foto bertema catur di-generate khusus di `public/images/` (WebP, srcset 828/1280)
+
+## Performa (PageSpeed)
+
+Situs dioptimasi agar Lighthouse mobile/desktop menuju 100 pada keempat kategori:
+
+- Font Plus Jakarta Sans di-host sendiri (tanpa `fonts.googleapis.com`)
+- Foto dikompresi WebP + `srcset`; logo 14 KiB (sebelumnya ~100 KiB)
+- Gambar LCP (`hero-about`) di-preload dan dilukis dari HTML awal (`#boot-hero`)
+- CSS di-inline; setiap rute publik punya `index.html` agar GitHub Pages mengembalikan HTTP 200
+- `BrowserRouter` memakai `basename` `/ChessClub/` supaya homepage tidak jatuh ke 404
+
+Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
 
 ## Fitur
 
