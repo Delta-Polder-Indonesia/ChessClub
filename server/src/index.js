@@ -20,6 +20,8 @@ import {
   alamatIp,
   pastikanAdmin,
   buatRouter,
+  buatCsrfToken,
+  validasiCsrfToken,
 } from "./http.js";
 import {
   oauthAktif,
@@ -79,6 +81,12 @@ router.get("/api/kesehatan", async () => ({
   },
 }));
 
+/** CSRF token untuk request POST. */
+router.get("/api/csrf-token", async () => ({
+  status: 200,
+  isi: { token: buatCsrfToken() },
+}));
+
 router.get("/api/anggota", async () => ({
   status: 200,
   isi: await daftarAnggota(),
@@ -120,7 +128,10 @@ router.get("/api/auth/chess/mulai", async (req) => {
   return { status: 200, isi: { url: tujuan } };
 });
 
-/** Chess.com mengarahkan pengguna kembali ke sini setelah login. */
+/** Chess.com mengarahkan pengguna kembali ke sini setelah login.
+ * Mengembalikan HTML yang menyimpan hasil ke sessionStorage lalu redirect.
+ * Token TIDAK BOLEH ada di URL (bocor ke referrer header & history).
+ */
 router.get("/api/auth/chess/kembali", async (req, _p, konteks) => {
   const url = new URL(req.url, "http://x");
   const galat = url.searchParams.get("error");
@@ -129,37 +140,34 @@ router.get("/api/auth/chess/kembali", async (req, _p, konteks) => {
 
   const tujuanDasar = konfigurasi.oauth.tujuanSetelahLogin;
 
+  const hasilkanHtml = (data) => `<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><title>Login...</title></head>
+<body>
+<script>
+(function(){
+  var data = ${JSON.stringify(data)};
+  try {
+    sessionStorage.setItem("kci-hasil-verifikasi", JSON.stringify(data));
+  } catch(e) {}
+  window.location.replace("${tujuanDasar}");
+})();
+</script>
+</body></html>`;
+
   if (galat) {
-    return {
-      status: 302,
-      alihkan: `${tujuanDasar}?verifikasi=gagal&sebab=${encodeURIComponent(galat)}`,
-    };
+    return { status: 200, html: hasilkanHtml({ sukses: false, sebab: galat }) };
   }
   if (!kode || !state) {
-    return {
-      status: 302,
-      alihkan: `${tujuanDasar}?verifikasi=gagal&sebab=parameter-kurang`,
-    };
+    return { status: 200, html: hasilkanHtml({ sukses: false, sebab: "parameter-kurang" }) };
   }
 
   try {
     const { username, kembaliKe } = await selesaikanLogin({ code: kode, state });
     const { tiket } = terbitkanTiket(username, "oauth");
-    const tujuan = kembaliKe || tujuanDasar;
-    const pemisah = tujuan.includes("?") ? "&" : "?";
-    return {
-      status: 302,
-      alihkan:
-        `${tujuan}${pemisah}verifikasi=sukses` +
-        `&akun=${encodeURIComponent(username)}` +
-        `&tiket=${encodeURIComponent(tiket)}`,
-    };
+    return { status: 200, html: hasilkanHtml({ sukses: true, username, tiket }) };
   } catch (e) {
     console.error("[kci] gagal menyelesaikan login Chess.com:", e.message);
-    return {
-      status: 302,
-      alihkan: `${tujuanDasar}?verifikasi=gagal&sebab=${encodeURIComponent(e.message)}`,
-    };
+    return { status: 200, html: hasilkanHtml({ sukses: false, sebab: e.message }) };
   }
 });
 
@@ -371,6 +379,14 @@ async function tangani(req, res) {
     return kirimJson(res, 404, { pesan: "Endpoint tidak ditemukan." });
   }
 
+  // Validasi CSRF untuk request POST
+  if (metode === "POST") {
+    const csrfToken = req.headers["x-csrf-token"];
+    if (!validasiCsrfToken(csrfToken)) {
+      return kirimJson(res, 403, { pesan: "Token CSRF tidak valid." });
+    }
+  }
+
   const ip = alamatIp(req);
   const maks = rute.opsi.batas ?? konfigurasi.batas.maksUmum;
   const kunci = `${ip}|${rute.opsi.batas ? jalur : "umum"}`;
@@ -390,6 +406,13 @@ async function tangani(req, res) {
     if (hasil.alihkan) {
       res.writeHead(hasil.status || 302, { Location: hasil.alihkan });
       return res.end();
+    }
+    if (hasil.html) {
+      res.writeHead(hasil.status || 200, {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": "no-store",
+      });
+      return res.end(hasil.html);
     }
     kirimJson(res, hasil.status, hasil.isi);
   } catch (e) {
