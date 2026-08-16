@@ -1,22 +1,21 @@
 /**
- * Halaman: Informasi Jadwal Turnamen Catur (item pertama sidebar).
+ * Halaman: Daftar Juara.
  *
  * CATATAN: Ini konten TEMPAT (placeholder). Isi lengkapnya akan dilengkapi
  * pada tahap upgrade berikutnya.
  */
 import TataLetakBeranda from "./TataLetakBeranda.jsx";
 
-export default function Pengadaan() {
+export default function DaftarJuara() {
   return (
     <TataLetakBeranda
-      id="turnamen"
-      title="Beranda"
-      description="Jadwal turnamen catur komunitas."
-      sectionTitle="Informasi Jadwal Turnamen Catur"
+      id="daftar-juara"
+      title="Daftar Juara"
+      description="Daftar juara turnamen komunitas."
     >
       <p>
-        Halaman ini memuat informasi jadwal turnamen catur yang akan datang
-        maupun yang sedang berlangsung.
+        Halaman ini menampilkan daftar juara dari berbagai turnamen yang
+        diselenggarakan komunitas.
       </p>
       <p>
         <em>(Konten sedang dilengkapi. Bagian ini akan diperbarui pada tahap berikutnya.)</em>
