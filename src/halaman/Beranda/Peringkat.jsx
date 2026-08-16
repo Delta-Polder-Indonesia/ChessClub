@@ -36,7 +36,7 @@
  */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import TataLetakBeranda from "./TataLetakBeranda.jsx";
+import { BagianBeranda } from "./TataLetakBeranda.jsx";
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import {
   useAnggota,
@@ -154,11 +154,9 @@ export default function Peringkat() {
   const ubah = (setter) => (nilai) => setter(nilai);
 
   return (
-    <TataLetakBeranda
+    <BagianBeranda
       id="peringkat"
-      title="Peringkat"
-      description="Peringkat anggota Komunitas Catur Indonesia berdasarkan Elo Chess.com."
-      sectionTitle="Peringkat pemain Komunitas Catur Indonesia"
+      title="Peringkat pemain Komunitas Catur Indonesia"
     >
       <p className="ql-align-justify">
         Anggota Komunitas Catur Indonesia yang terdaftar dan terverifikasi.
@@ -276,6 +274,6 @@ export default function Peringkat() {
           </table>
         </div>
       )}
-    </TataLetakBeranda>
+    </BagianBeranda>
   );
 }

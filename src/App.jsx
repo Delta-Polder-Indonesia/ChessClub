@@ -4,6 +4,7 @@ import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { HeroFallback } from "./components/Loading.jsx";
+import TataLetakBeranda from "./halaman/Beranda/TataLetakBeranda.jsx";
 
 /* ------------------------------------------------------- code splitting
  * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
@@ -62,10 +63,20 @@ const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
 
 /* --------------------------------------------------------- konfigurasi */
 
+/** Rute area Beranda — satu layout (hero + sidebar) untuk semua tab. */
+const RUTE_BERANDA = [
+  ["/", Beranda],
+  ["/beranda", Beranda],
+  ["/beranda/daftar-juara", DaftarJuara],
+  ["/beranda/peringkat", Peringkat],
+  ["/beranda/ebook-panduan", EbookPanduan],
+  ["/beranda/teka-teki-tips", TekaTekiTips],
+  ["/beranda/hubungi-admin", HubungiAdmin],
+];
+
 /** Rute konten utama: [path, Komponen].
  *  "/" adalah Beranda — halaman pertama yang dilihat pengunjung. */
 const RUTE_HALAMAN = [
-  ["/", Beranda],
   ["/tentang-kami", TentangKami],
   ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],
 
@@ -98,14 +109,6 @@ const RUTE_HALAMAN = [
 
   ["/hubungi-kami", HubungiKami],
   ["/karir", Karir],
-
-  // Area Beranda — satu berkas per item sidebar.
-  ["/beranda", Beranda],
-  ["/beranda/daftar-juara", DaftarJuara],
-  ["/beranda/peringkat", Peringkat],
-  ["/beranda/ebook-panduan", EbookPanduan],
-  ["/beranda/teka-teki-tips", TekaTekiTips],
-  ["/beranda/hubungi-admin", HubungiAdmin],
 ];
 
 /**
@@ -218,6 +221,12 @@ export default function App() {
       <Suspense fallback={<HeroFallback />}>
         <Routes>
           <Route element={<PageLayout />}>
+            <Route element={<TataLetakBeranda />}>
+              {RUTE_BERANDA.map(([jalur, Komponen]) => (
+                <Route key={jalur} path={jalur} element={<Komponen />} />
+              ))}
+            </Route>
+
             {RUTE_HALAMAN.map(([jalur, Komponen]) => (
               <Route key={jalur} path={jalur} element={<Komponen />} />
             ))}
