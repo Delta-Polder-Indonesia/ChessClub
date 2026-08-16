@@ -9,7 +9,10 @@ export default function BeritaKomunitas() {
       parent={t("nav.mediaDanInformasi")}
       parentPath="/media-dan-informasi"
       description={t("berita.deskripsi")}
-      next={{ to: "/media-dan-informasi/galeri", judul: t("berita.nextJudul") }}
+      next={{
+        to: "/media-dan-informasi/pengumuman",
+        judul: t("nav.pengumuman"),
+      }}
     >
       <PageArtikel title={t("berita.artikel")}>
         <ol>

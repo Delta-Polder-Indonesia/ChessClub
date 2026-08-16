@@ -546,7 +546,6 @@ export const ID = {
     n2b: "Sesi daring 110 menit membahas Isolated Queen Pawn dan cara merencanakan break di pusat.",
     n3a: "10 Desember 2025 — Hari lahir komunitas ke-10 dirayakan dengan simultan.",
     n3b: "Dua puluh papan simultan dibuka untuk pelajar. Acara ditutup pembaruan identitas visual.",
-    nextJudul: "Galeri",
   },
   pengumuman: {
     judul: "Pengumuman",
@@ -587,7 +586,6 @@ export const ID = {
     e1: "Laporan Liga Musim II dan kurikulum kelas pemula baru.",
     e2: "Hasil simultan pelajar dan pembukaan chapter daring.",
     e3: "Wawancara pelatih tamu dan kalender semester depan.",
-    nextJudul: "Keanggotaan",
   },
   hubungi: {
     judul: "Hubungi Kami",
@@ -1217,7 +1215,6 @@ export const EN = {
     n2b: "A 110-minute online session covering the Isolated Queen Pawn and how to plan a central break.",
     n3a: "December 10, 2025 — The community's 10th anniversary celebrated with a simul.",
     n3b: "Twenty simul boards were opened to students. The event closed with the visual identity renewal.",
-    nextJudul: "Gallery",
   },
   pengumuman: {
     judul: "Announcements",
@@ -1257,7 +1254,6 @@ export const EN = {
     e1: "Season II League report and the new beginner class curriculum.",
     e2: "Student simul results and the launch of the online chapter.",
     e3: "Interview with the guest coach and next semester's calendar.",
-    nextJudul: "Membership",
   },
   hubungi: {
     judul: "Contact Us",
