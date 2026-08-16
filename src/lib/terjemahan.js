@@ -49,6 +49,7 @@ export const ID = {
     pertanyaanUmum: "Pertanyaan Umum",
     hubungiKami: "Hubungi Kami",
     karir: "Karir",
+    beranda: "Beranda",
     pengadaan: "Pengadaan",
     keberlanjutan: "Keberlanjutan",
   },
