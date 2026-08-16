@@ -49,8 +49,15 @@ src/halaman/
 │   ├── KodeEtikKomunitas.jsx
 │   └── PertanyaanUmum.jsx
 │
-├── Pengadaan/                                 ← menu atas: Pengadaan
-│   └── Pengadaan.jsx
+├── Beranda/                                   ← menu atas: Beranda
+│   ├── Beranda.jsx                            ← /beranda (jadwal turnamen)
+│   ├── DaftarJuara.jsx
+│   ├── Peringkat.jsx                          ← /beranda/peringkat
+│   ├── EbookPanduan.jsx
+│   ├── TekaTekiTips.jsx
+│   ├── HubungiAdmin.jsx
+│   ├── TataLetakBeranda.jsx
+│   └── sidebar.js
 │
 ├── Karir/                                     ← menu atas: Karir
 │   └── Karir.jsx
@@ -78,7 +85,8 @@ src/halaman/
 | Syarat & Ketentuan | `Keberlanjutan/SyaratDanKetentuan.jsx` | `/keberlanjutan/syarat-dan-ketentuan` |
 | Kode Etik | `Keberlanjutan/KodeEtikKomunitas.jsx` | `/keberlanjutan/kode-etik-komunitas` |
 | Pertanyaan Umum | `Keberlanjutan/PertanyaanUmum.jsx` | `/keberlanjutan/pertanyaan-umum` |
-| Pengadaan | `Pengadaan/Pengadaan.jsx` | `/pengadaan` |
+| Beranda | `Beranda/Beranda.jsx` | `/beranda` |
+| Peringkat | `Beranda/Peringkat.jsx` | `/beranda/peringkat` |
 | Karir | `Karir/Karir.jsx` | `/karir` |
 | Hubungi Kami | `HubungiKami/HubungiKami.jsx` | `/hubungi-kami` |
 

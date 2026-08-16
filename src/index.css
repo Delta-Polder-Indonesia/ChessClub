@@ -225,6 +225,24 @@ section[id] {
 .tabel-kci .elo-pilih {
   white-space: nowrap;
 }
+
+/* Tabel peringkat (halaman Beranda → Peringkat). */
+.tabel-peringkat {
+  font-size: 15px;
+  line-height: 24px;
+}
+.tabel-peringkat th,
+.tabel-peringkat td {
+  padding: 6px 16px 6px 0;
+  vertical-align: middle;
+}
+.tabel-peringkat tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+.tabel-peringkat tbody tr:hover {
+  background: #eef2ff;
+}
+
 .tabel-kci .elo-pilih select {
   font: inherit;
   font-size: 14px;

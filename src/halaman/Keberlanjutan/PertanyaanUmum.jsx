@@ -127,7 +127,7 @@ const DAFTAR_TANYA = [
       <p>
         Yang pertama Anda harus punya akun di Chess.com, yang kedua cukup
         kunjungi halaman{" "}
-        <Link to="/pengadaan/gabung-anggota" className="text-primary">
+        <Link to="/beranda/peringkat" className="text-primary">
           DAFTAR
         </Link>
         , yang ketiga bergabunglah dalam{" "}
