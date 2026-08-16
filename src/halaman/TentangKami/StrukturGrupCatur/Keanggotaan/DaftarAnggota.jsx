@@ -8,17 +8,17 @@
  *   No · Foto · Nama · Bergabung · Chess.com
  *
  * Klik nama membuka POPUP PROFIL berisi data yang diisi anggota saat
- * mendaftar: panggilan, kota, klub, kategori umur, tanggal bergabung,
- * username Chess.com, dan nomor WhatsApp. Nomor DANA, email, dan tanggal
- * lahir TIDAK pernah ditampilkan (privasi).
+ * mendaftar: panggilan, kota, klub, kategori umur, tanggal bergabung, dan
+ * username Chess.com. Nomor HP/DANA, email, dan tanggal lahir TIDAK pernah
+ * ditampilkan (privasi) — sesuai janji pada formulir pendaftaran.
  *
  * Sumber data TETAP satu pintu: useAnggota() → GET /api/anggota.
  * Urutan baris: anggota terbaru di atas (waktu gabung menurun).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { CentangBiru, LencanaBan } from "../../../../components/Lencana.jsx";
 import { useAnggota, kenaBan } from "../../../../lib/anggotaBersama.js";
-import { formatHp } from "../../../../lib/chessAnggota.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
 function sel(nilai) {
@@ -56,6 +56,9 @@ function PopupProfil({ a, tutup, bahasa }) {
     };
   }, [tutup]);
 
+  // Sesuai janji privasi formulir pendaftaran: nomor HP/WA, DANA, email,
+  // dan tanggal lahir TIDAK ditampilkan di situs. Kontak hanya dapat
+  // dilihat pengurus lewat endpoint khusus.
   const baris = [
     { label: t("keanggotaan.panggilan"), nilai: sel(a.panggilan) },
     { label: t("keanggotaan.kota"), nilai: sel(a.kota) },
@@ -65,7 +68,6 @@ function PopupProfil({ a, tutup, bahasa }) {
       label: t("keanggotaan.bergabung"),
       nilai: formatTanggal(a.daftarPada, bahasa),
     },
-    { label: t("keanggotaan.wa"), nilai: a.hp ? formatHp(a.hp) : "—" },
   ];
 
   return (
@@ -297,7 +299,10 @@ export default function DaftarAnggota() {
       {status === "gagal" && <p>{pesan}</p>}
       {status === "siap" && anggota.length === 0 && (
         <p>
-          {t("keanggotaan.kosong1").replace("Silakan ", "")}
+          {t("keanggotaan.kosong1")}
+          <Link to="/pendaftaran-anggota" className="text-primary">
+            {t("keanggotaan.kosong2")}
+          </Link>
           {t("keanggotaan.kosong3")}
         </p>
       )}

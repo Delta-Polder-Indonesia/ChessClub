@@ -15,11 +15,18 @@ node server/src/index.js
 | ------ | ----- | ---------- |
 | GET | `/api/kesehatan` | Status server (untuk monitoring/uptime check) |
 | GET | `/api/anggota` | Daftar anggota + Elo & rekor dari Chess.com |
+| GET | `/api/csrf-token` | Terbitkan token CSRF — **wajib** untuk semua POST |
+| GET | `/api/anggota` | Daftar anggota + Elo & rekor dari Chess.com |
 | GET | `/api/daftar-hitam` | Daftar larangan (username & alasan saja) |
 | POST | `/api/anggota` | Pendaftaran anggota baru |
 | GET | `/api/turnamen/jenis` | Empat jenis turnamen + aturannya |
 | GET | `/api/turnamen?jenis=&status=` | Turnamen terpublikasi (status `draf` disaring) |
 | GET | `/api/turnamen/:id` | Satu turnamen + klasemen (draf → 404) |
+
+> **CSRF:** semua request `POST` harus menyertakan header
+> `X-CSRF-Token: <token>` dengan token dari `GET /api/csrf-token`.
+> Tanpa itu server menjawab `403`. Token berlaku 24 jam dan tidak terikat
+> sesi, jadi satu token boleh dipakai ulang sampai kedaluwarsa.
 
 ### Verifikasi akun Chess.com
 
@@ -74,10 +81,12 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_DIR_DATA` | tidak | Lokasi berkas data, bawaan `./data` |
 | `KCI_BATAS_DAFTAR` | tidak | Maks. pendaftaran per IP per 15 menit (bawaan 5) |
 | `KCI_BATAS_UMUM` | tidak | Maks. permintaan umum per IP per 15 menit |
-| `KCI_WAJIB_VERIFIKASI` | tidak | `1` = pendaftaran wajib bertiket verifikasi |
-| `KCI_OAUTH_CLIENT_ID` | untuk OAuth | Dari Chess.com; kosong ⇒ hanya jalur kode profil |
-| `KCI_OAUTH_CLIENT_SECRET` | untuk OAuth | Dari Chess.com |
-| `KCI_OAUTH_REDIRECT` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |
+| `KCI_CHESS_DASAR` | **jangan di produksi** | Ganti alamat API Chess.com — hanya untuk uji tiruan lokal |
+| `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` (bawaan) / `wajib` — mewajibkan tiket verifikasi saat mendaftar |
+| `KCI_CHESS_CLIENT_ID` | untuk OAuth | Dari Chess.com; kosong ⇒ hanya jalur kode profil |
+| `KCI_CHESS_CLIENT_SECRET` | untuk OAuth | Dari Chess.com (opsional, PKCE tetap jalan tanpanya) |
+| `KCI_CHESS_REDIRECT_URI` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |
+| `KCI_TUJUAN_SETELAH_LOGIN` | tidak | Halaman tujuan setelah login selesai (bawaan `/pendaftaran-anggota`) |
 
 Server **menolak untuk start** di `NODE_ENV=production` bila `KCI_PEPPER`
 atau `KCI_TOKEN_ADMIN` belum diatur.
@@ -111,7 +120,17 @@ data/
 
 ## Uji
 
+Semua uji berjalan **mandiri tanpa internet** — skrip integrasi meluncurkan
+server terisolasi sendiri (port acak, data sementara di /tmp) dan meniru
+API Chess.com secara lokal.
+
 ```bash
-node scripts/uji-identitas.mjs          # unit, tanpa jaringan
-node server/uji/uji-backend.mjs         # integrasi via HTTP
+node scripts/uji-identitas.mjs          # unit: normalisasi & daftar hitam
+node scripts/uji-i18n.mjs               # paritas kamus terjemahan ID/EN
+node scripts/uji-rute.mjs               # rute publik App.jsx ⇄ plugins/performa.js
+node server/uji/uji-backend.mjs         # integrasi HTTP menyeluruh (49 cek)
+node server/uji/uji-verifikasi.mjs      # OAuth/PKCE/JWT + jalur kode profil (30 cek)
 ```
+
+Untuk menguji terhadap server yang sudah berjalan (mis. staging), tempelkan
+lewat `KCI_DASAR`, mis. `KCI_DASAR=https://kci-api.onrender.com node server/uji/uji-backend.mjs`.

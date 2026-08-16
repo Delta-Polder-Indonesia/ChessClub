@@ -16,7 +16,7 @@ export default function BuletinBulanan() {
       parent={t("nav.mediaDanInformasi")}
       parentPath="/media-dan-informasi"
       description={t("buletin.deskripsi")}
-      next={{ to: "/tentang-kami/struktur-grup-catur#keanggotaan", judul: t("buletin.nextJudul") }}
+      next={{ to: "/keberlanjutan", judul: t("nav.keberlanjutan") }}
     >
       <PageArtikel title={t("buletin.artikel")}>
         <p>{t("buletin.p1")}</p>
