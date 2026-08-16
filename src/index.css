@@ -97,6 +97,41 @@ section[id] {
   font-weight: 600;
 }
 
+.prose-kci h2 {
+  margin: 24px 0 16px;
+  font-size: 24px;
+  line-height: 32px;
+  font-weight: 600;
+  color: #000;
+}
+
+.prose-kci h3 {
+  margin: 16px 0 12px;
+  font-size: 18px;
+  line-height: 28px;
+  font-weight: 600;
+  color: #000;
+}
+
+.prose-kci ul {
+  list-style-type: disc;
+  padding-left: 24px;
+  margin-bottom: 20px;
+}
+
+.prose-kci ul li {
+  margin-bottom: 8px;
+  text-align: justify;
+  font-size: 16px;
+  line-height: 28px;
+  color: #374151;
+}
+
+.prose-kci strong {
+  color: #111827;
+  font-weight: 600;
+}
+
 /* Panduan catur dari DokumenHistory — kelas kustom dokumen asli.
    Warna hijau dokumen lama diganti hitam/abu korporat agar seragam dengan
    halaman lain. Catatan: hijau papan catur (#769656) berada di dalam <svg>
@@ -226,13 +261,38 @@ section[id] {
   white-space: nowrap;
 }
 
+/* Avatar pada popup profil anggota (Keanggotaan). */
+.foto-anggota {
+  border-radius: 9999px;
+}
+/* Foto potret ala KTP pada popup profil: kiri, info identitas di kanan. */
+.foto-ktp {
+  width: 96px;
+  height: 128px;
+  object-fit: cover;
+  display: block;
+  flex: none;
+  border-radius: 8px;
+}
+.foto-ktp.foto-anggota-kosong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e2e8f0;
+  color: #1e293b;
+  font-size: 28px;
+  font-weight: 600;
+}
+
 /* Tabel peringkat (Beranda → Peringkat).
-   Susunan kolom meniru https://ligacatur.com/ratings :
-   #  |  Rating  |  Nama  |  Klub  |  Lichess  |  Chess.com   */
+   Susunan kolom:
+   #  |  PROFILE  |  Nama  |  Rating  |  W/D/L  |  Game History  |  Chess.com  */
 .tabel-peringkat {
   font-size: 14px;
   line-height: 22px;
-  min-width: 720px;
+  min-width: 880px;
+  border-collapse: separate;
+  border-spacing: 0;
 }
 .tabel-peringkat th,
 .tabel-peringkat td {
@@ -241,6 +301,9 @@ section[id] {
   border-bottom: 1px solid #e5e7eb;
 }
 .tabel-peringkat thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   background: #f1f5f9;
   border-bottom: 2px solid #cbd5e1;
   padding-left: 10px;
@@ -266,9 +329,16 @@ section[id] {
   color: #64748b;
   font-variant-numeric: tabular-nums;
 }
+.tabel-peringkat .kol-profile {
+  width: 56px;
+}
+.tabel-peringkat .kol-profile img,
+.tabel-peringkat .kol-profile span {
+  border-radius: 9999px;
+}
 .tabel-peringkat .kol-rating {
   width: 88px;
-  text-align: right;
+  text-align: center;
   font-weight: 700;
   color: #0f172a;
   font-variant-numeric: tabular-nums;
@@ -277,6 +347,23 @@ section[id] {
   white-space: nowrap;
   font-weight: 500;
   color: #0f172a;
+}
+.tabel-peringkat .kol-wdl {
+  width: 110px;
+  text-align: center;
+  white-space: nowrap;
+}
+.tabel-peringkat .kol-wdl .rekap-wdl {
+  font-size: 12px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
+}
+.tabel-peringkat .kol-total {
+  width: 130px;
+  text-align: center;
+  font-weight: 600;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
 }
 .tabel-peringkat .kol-akun {
   white-space: nowrap;
@@ -287,45 +374,6 @@ section[id] {
 }
 .tabel-peringkat .kol-akun a:hover {
   text-decoration: underline;
-}
-
-/* Kolom "All Games": pemilih jenis permainan + rekap W/D/L. */
-.tabel-peringkat .kol-games {
-  width: 210px;
-  white-space: nowrap;
-}
-.tabel-peringkat .pilih-games {
-  font: inherit;
-  font-size: 13px;
-  color: #0f172a;
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 3px 26px 3px 8px;
-  cursor: pointer;
-  outline: none;
-  appearance: none;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 7px center;
-  background-size: 12px 12px;
-}
-.tabel-peringkat .pilih-games:hover {
-  border-color: #94a3b8;
-}
-.tabel-peringkat .pilih-games:focus {
-  border-color: #0B2F9F;
-  box-shadow: 0 0 0 2px rgba(11, 47, 159, 0.15);
-}
-.tabel-peringkat .pilih-games option:disabled {
-  color: #94a3b8;
-}
-.tabel-peringkat .rekap-wdl {
-  display: inline-block;
-  margin-left: 8px;
-  font-size: 12px;
-  color: #64748b;
-  font-variant-numeric: tabular-nums;
 }
 
 .tabel-kci .elo-pilih select {

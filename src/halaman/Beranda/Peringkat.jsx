@@ -9,96 +9,98 @@
  * terverifikasi, namanya langsung muncul di kedua halaman tanpa perlu
  * menyunting berkas apa pun.
  *
- * Susunan tabel mengikuti referensi https://ligacatur.com/ratings :
+ * Susunan tabel:
  *
- *   #  |  Rating  |  Nama  |  All Games  |  Chess.com
+ *   #  |  PROFILE  |  Nama  |  Rating  |  W/D/L  |  Game History  |  Chess.com
+ *
+ * - PROFILE: foto profil Chess.com (avatar); bila kosong, ditampilkan
+ *   lingkaran dengan huruf awal nama.
+ * - RATING: Elo pemain pada kontrol waktu yang sedang dipilih.
+ * - GAME HISTORY: jumlah TOTAL permainan (menang + seri + kalah) pemain
+ *   pada kontrol waktu yang sedang dipilih.
  *
  * Nama ditulis KAPITAL dengan lencana centang biru menempel di
- * belakangnya. Kolom "All Games" berisi PILIHAN (select) per pemain:
+ * belakangnya. Anggota yang akun Chess.com-nya kena ban fair play
+ * ditandai lingkaran larangan MERAH di belakang nama, dan tetap tampil
+ * sampai pengurus menghapusnya dari daftar anggota.
+ * Pemilih jenis permainan ada di deretan filter atas
+ * (di samping "Cari pemain" dan "Tingkatan") dan berlaku GLOBAL untuk
+ * seluruh tabel:
  *
- *   All Games (n) · Blitz (n) · Bullet (n) · Rapid (n) · Daily (n)
+ *   All Games · Blitz · Bullet · Rapid · Daily
  *
- * Memilih salah satunya menampilkan rating pemain itu pada kontrol
- * tersebut — angka di kolom Rating dan W/D/L ikut menyesuaikan, tanpa
- * memuat ulang halaman dan tanpa mengubah urutan peringkat.
+ * Ganti ke Blitz (misalnya) → kolom W/D/L dan GAME HISTORY semua pemain
+ * ikut menampilkan data Blitz, tanpa memuat ulang halaman dan tanpa
+ * mengubah urutan peringkat. Pemain tanpa data pada kontrol terpilih
+ * ditampilkan kosong.
  */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TataLetakBeranda from "./TataLetakBeranda.jsx";
+import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import {
   useAnggota,
   susunPeringkat,
   eloAnggota,
   namaTampil,
   opsiKontrol,
+  kenaBan,
+  KONTROL,
 } from "../../lib/anggotaBersama.js";
 import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx";
 
-const PER_HALAMAN = 100;
+/** Pilihan kontrol waktu GLOBAL untuk seluruh tabel ("all" = All Games). */
+const OPSI_KONTROL = [
+  { id: "all", label: "All Games" },
+  ...KONTROL.map((k) => ({ id: k, label: k })),
+];
 
-/** Lencana centang biru untuk anggota terverifikasi. */
-function CentangBiru() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className="inline-block w-4 h-4 ml-1 align-[-2px]"
-      role="img"
-      aria-label="terverifikasi"
-    >
-      <title>Akun terverifikasi</title>
-      <path
-        fill="#1d9bf0"
-        d="M12 1.5l2.6 1.9 3.2-.2.9 3.1 2.7 1.8-1.3 2.9 1.3 2.9-2.7 1.8-.9 3.1-3.2-.2L12 22.5l-2.6-1.9-3.2.2-.9-3.1-2.7-1.8L3.9 13 2.6 10.1l2.7-1.8.9-3.1 3.2.2L12 1.5z"
-      />
-      <path
-        fill="#fff"
-        d="M10.8 15.6l-3-3 1.3-1.3 1.7 1.7 4.1-4.1 1.3 1.3-5.4 5.4z"
-      />
-    </svg>
-  );
-}
-
-function BarisPeringkat({ a }) {
+function BarisPeringkat({ a, kontrol }) {
   const opsi = useMemo(() => opsiKontrol(a), [a]);
-  const [pilih, setPilih] = useState("all");
 
-  // Kontrol yang dipilih; bila kosong datanya, jatuh kembali ke All Games.
-  const aktif = opsi.find((o) => o.id === pilih) || opsi[0];
+  // Data kontrol global terpilih; null bila pemain tidak punya data di
+  // kontrol itu (misal Blitz dipilih tapi ia belum pernah main Blitz).
+  const aktif = opsi.find((o) => o.id === kontrol) || null;
   const bermasalah = a.hilang || a.gagal;
+  const tampilkan = !bermasalah && aktif;
 
   return (
     <tr>
       <td className="kol-no">{a.no ?? ""}</td>
-      <td className="kol-rating">
-        {aktif.elo === null || aktif.elo === undefined ? "" : aktif.elo}
+      <td className="kol-profile">
+        {a.foto ? (
+          <img
+            src={a.foto}
+            alt={a.username || "foto profil"}
+            width="40"
+            height="40"
+            loading="lazy"
+            className="foto-anggota"
+          />
+        ) : (
+          <span className="foto-anggota foto-anggota-kosong">
+            {(a.nama || a.username || "?").slice(0, 1).toUpperCase()}
+          </span>
+        )}
       </td>
       <td className="kol-nama">
         {namaTampil(a).toUpperCase()}
         {a.terverifikasi && <CentangBiru />}
+        {kenaBan(a) && <LencanaBan />}
       </td>
-      <td className="kol-games">
-        {bermasalah ? (
-          ""
+      <td className="kol-rating">
+        {aktif?.elo === null || aktif?.elo === undefined ? "" : aktif.elo}
+      </td>
+      <td className="kol-wdl">
+        {tampilkan ? (
+          <span className="rekap-wdl">
+            {aktif.win} / {aktif.draw} / {aktif.loss}
+          </span>
         ) : (
-          <>
-            <select
-              value={pilih}
-              onChange={(e) => setPilih(e.target.value)}
-              aria-label={`Pilih jenis permainan untuk ${namaTampil(a)}`}
-              className="pilih-games"
-            >
-              {opsi.map((o) => (
-                <option key={o.id} value={o.id} disabled={!o.ada}>
-                  {o.label} ({o.total})
-                </option>
-              ))}
-            </select>
-            <span className="rekap-wdl">
-              {aktif.win} / {aktif.draw} / {aktif.loss}
-            </span>
-          </>
+          ""
         )}
       </td>
+      <td className="kol-total">{tampilkan ? aktif.total : ""}</td>
       <td className="kol-akun">
         {a.username ? (
           <a
@@ -122,7 +124,7 @@ export default function Peringkat() {
 
   const [cari, setCari] = useState("");
   const [tingkat, setTingkat] = useState("semua");
-  const [tampil, setTampil] = useState(PER_HALAMAN);
+  const [kontrol, setKontrol] = useState("all");
 
   const berperingkat = useMemo(() => susunPeringkat(anggota), [anggota]);
 
@@ -149,12 +151,7 @@ export default function Peringkat() {
     });
   }, [berperingkat, cari, tingkat]);
 
-  const terlihat = hasil.slice(0, tampil);
-
-  const ubah = (setter) => (nilai) => {
-    setter(nilai);
-    setTampil(PER_HALAMAN);
-  };
+  const ubah = (setter) => (nilai) => setter(nilai);
 
   return (
     <TataLetakBeranda
@@ -211,14 +208,29 @@ export default function Peringkat() {
           </select>
         </label>
 
-        <div className="flex items-center gap-4 pb-1 ml-auto">
-          <p className="text-sm text-slate-500">
-            {terlihat.length} dari {hasil.length} pemain
+        <label className="flex flex-col gap-1 text-sm text-grey-800">
+          <span className="font-medium">Kontrol waktu</span>
+          <select
+            value={kontrol}
+            onChange={(e) => setKontrol(e.target.value)}
+            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
+          >
+            {OPSI_KONTROL.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="flex flex-row items-center gap-4 pb-1 ml-auto whitespace-nowrap">
+          <p className="text-sm text-slate-500 shrink-0">
+            {hasil.length} pemain
           </p>
           <button
             type="button"
             onClick={muatUlang}
-            className="text-sm text-primary underline underline-offset-2"
+            className="text-sm text-primary underline underline-offset-2 shrink-0"
           >
             Muat ulang
           </button>
@@ -243,36 +255,26 @@ export default function Peringkat() {
       )}
 
       {status === "siap" && hasil.length > 0 && (
-        <>
-          <div className="overflow-x-auto">
-            <table className="tabel-kci tabel-peringkat">
-              <thead>
-                <tr>
-                  <th className="kol-no">#</th>
-                  <th className="kol-rating">Rating</th>
-                  <th className="kol-nama">Nama</th>
-                  <th className="kol-games">All Games</th>
-                  <th className="kol-akun">Chess.com</th>
-                </tr>
-              </thead>
-              <tbody>
-                {terlihat.map((a) => (
-                  <BarisPeringkat key={a.username} a={a} />
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {tampil < hasil.length && (
-            <button
-              type="button"
-              onClick={() => setTampil((n) => n + PER_HALAMAN)}
-              className="mt-2 inline-flex items-center rounded border border-grey-300 px-4 py-2 text-sm font-medium text-grey-800 hover:border-primary hover:text-primary transition-colors"
-            >
-              Muat {Math.min(PER_HALAMAN, hasil.length - tampil)} pemain lagi
-            </button>
-          )}
-        </>
+        <div className="overflow-auto max-h-[760px]">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
+              <tr>
+                <th className="kol-no">#</th>
+                <th className="kol-profile">PROFILE</th>
+                <th className="kol-nama">NAMA</th>
+                <th className="kol-rating">RATING</th>
+                <th className="kol-wdl">W/D/L</th>
+                <th className="kol-total">GAME HISTORY</th>
+                <th className="kol-akun">CHESS.COM</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hasil.map((a) => (
+                <BarisPeringkat key={a.username} a={a} kontrol={kontrol} />
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </TataLetakBeranda>
   );

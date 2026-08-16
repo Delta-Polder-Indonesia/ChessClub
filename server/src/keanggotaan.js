@@ -171,11 +171,15 @@ function tanpaRahasia(anggota) {
 
 export async function daftarAnggota() {
   const dasar = await repoAnggota.baca();
-  const lengkap = await Promise.all(
-    dasar.map((a) => lengkapiAnggota(tanpaRahasia(a)))
-  );
+  const [kontak, lengkap] = await Promise.all([
+    repoKontak.baca(),
+    Promise.all(dasar.map((a) => lengkapiAnggota(tanpaRahasia(a)))),
+  ]);
   lengkap.sort((a, b) => (b.elo || 0) - (a.elo || 0));
-  return lengkap;
+  // Nomor WhatsApp ditambahkan agar profil anggota bisa ditampilkan pada
+  // popup Keanggotaan (data pribadi lain — DANA, email, tanggal lahir —
+  // tetap tidak pernah keluar ke klien).
+  return lengkap.map((a) => ({ ...a, hp: kontak[a.username]?.hp || null }));
 }
 
 export async function daftarHitamPublik() {
@@ -391,7 +395,8 @@ export async function daftarkan(body, konteks = {}) {
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
   // Hapus cache Chess.com agar data baru diambil pada request berikutnya
   hapusCache(uname);
-  return lengkapiAnggota(tanpaRahasia(baru));
+  const anggotaLengkap = await lengkapiAnggota(tanpaRahasia(baru));
+  return { ...anggotaLengkap, hp: bersih.hp };
 }
 
 /* --------------------------------------------------- operasi pengurus */
@@ -503,10 +508,12 @@ export async function pindaiFairPlay() {
           sumber: "otomatis",
         });
         hasil.diblokir.push(a.username);
-        continue; // tidak dikembalikan ke daftar anggota
       }
 
       if (st.ditutup) hasil.ditutup.push(a.username);
+      // Anggota yang kena ban TETAP di daftar anggota (ditandai status),
+      // agar lencana larangan tampil; pengurus yang menghapus secara manual
+      // (blokirAnggota) yang mengeluarkannya dari daftar.
       tersisa.push({
         ...a,
         statusChess: profil.status || null,
