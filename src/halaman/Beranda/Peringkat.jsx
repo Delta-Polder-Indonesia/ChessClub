@@ -1,32 +1,45 @@
 /**
  * Halaman: PERINGKAT.
  *
- * Konten mengikuti referensi https://ligacatur.com/ratings :
- * judul "Peringkat pemain Liga Catur Indonesia", paragraf pengantar berisi
- * tautan Pairing Rating / pendaftaran / Grup WA, lalu tabel peringkat dengan
- * kolom PERSIS seperti aslinya:
+ * SATU PINTU DATA — halaman ini TIDAK punya data sendiri. Sumbernya sama
+ * persis dengan tab Keanggotaan (TentangKami/StrukturGrupCatur/Keanggotaan):
+ * `useAnggota()` dari src/lib/anggotaBersama.js → GET /api/anggota.
  *
- *   #  |  Rating  |  Nama  |  Klub  |  Lichess  |  Chess.com
+ * Artinya: begitu seorang anggota mendaftar dan akun Chess.com-nya
+ * terverifikasi, namanya langsung muncul di kedua halaman tanpa perlu
+ * menyunting berkas apa pun.
  *
- * Tambahan yang tetap menjaga bentuk tabel: kotak pencarian, penyaring klub,
- * tombol "hanya yang punya Chess.com" (setara parameter ?chesscom=true pada
- * situs referensi), dan penampil bertahap (muat lebih banyak).
+ * Bentuk tabel mengikuti referensi https://ligacatur.com/ratings :
+ *
+ *   #  |  Rating  |  Nama  |  Klub  |  Chess.com  |  W/D/L
+ *
+ * Kolom "Lichess" pada situs referensi diganti "Chess.com" karena
+ * keanggotaan komunitas ini memang berbasis akun Chess.com; kolom W/D/L
+ * ditambahkan karena datanya sudah tersedia dari sumber yang sama.
  */
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import TataLetakBeranda from "./TataLetakBeranda.jsx";
-import { PEMAIN, DAFTAR_KLUB } from "../../data/peringkatPemain.js";
+import {
+  useAnggota,
+  susunPeringkat,
+  eloAnggota,
+  namaTampil,
+} from "../../lib/anggotaBersama.js";
+import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx";
 
 const PER_HALAMAN = 100;
 
-/** Lencana centang biru — padanan bluecheck.gif pada situs referensi. */
+/** Lencana centang biru untuk anggota terverifikasi. */
 function CentangBiru() {
   return (
     <svg
       viewBox="0 0 24 24"
       className="inline-block w-4 h-4 ml-1 align-[-2px]"
-      aria-label="terverifikasi"
       role="img"
+      aria-label="terverifikasi"
     >
+      <title>Akun terverifikasi</title>
       <path
         fill="#1d9bf0"
         d="M12 1.5l2.6 1.9 3.2-.2.9 3.1 2.7 1.8-1.3 2.9 1.3 2.9-2.7 1.8-.9 3.1-3.2-.2L12 22.5l-2.6-1.9-3.2.2-.9-3.1-2.7-1.8L3.9 13 2.6 10.1l2.7-1.8.9-3.1 3.2.2L12 1.5z"
@@ -39,84 +52,109 @@ function CentangBiru() {
   );
 }
 
-function TautanKlub({ klub }) {
-  if (!klub) return null;
-  const url = `https://ligacatur.com/teamprofile?Team=${encodeURIComponent(
-    klub.kode
-  )}&Name=${encodeURIComponent(klub.nama)}`;
+/** Nama tingkatan rating (dipakai bersama tab Keanggotaan). */
+function tingkatDari(elo) {
+  if (elo === null) return null;
   return (
-    <a href={url} target="_blank" rel="noreferrer noopener" title={klub.nama}>
-      {klub.kode}
-    </a>
+    TINGKATAN_RATING.find((t) =>
+      t.max === null ? elo >= t.min : elo >= t.min && elo < t.max
+    ) || null
   );
 }
 
-function BarisPemain({ p, no }) {
+function BarisPeringkat({ a }) {
+  const elo = eloAnggota(a);
+  const tingkat = tingkatDari(elo);
+  const bermasalah = a.hilang || a.gagal;
+
   return (
     <tr>
-      <td>{no}</td>
-      <td className="font-semibold text-slate-900">{p.rating}</td>
+      <td className="text-slate-500">{a.no ?? "—"}</td>
+      <td className="font-semibold text-slate-900 whitespace-nowrap">
+        {elo === null ? (
+          <span className="font-normal text-slate-400">—</span>
+        ) : (
+          <>
+            {elo}
+            {a.kontrol && (
+              <span className="ml-1 text-xs font-normal text-slate-500">
+                {a.kontrol}
+              </span>
+            )}
+          </>
+        )}
+      </td>
+      <td>
+        <span className="whitespace-nowrap">
+          {namaTampil(a).toUpperCase()}
+          {a.terverifikasi && <CentangBiru />}
+        </span>
+        {tingkat && (
+          <span className="block text-xs text-slate-500">
+            {tingkat.range}
+          </span>
+        )}
+      </td>
+      <td>{a.klub || ""}</td>
+      <td>
+        {a.url ? (
+          <a href={a.url} target="_blank" rel="noreferrer noopener">
+            {a.username}
+          </a>
+        ) : (
+          a.username
+        )}
+      </td>
       <td className="whitespace-nowrap">
-        {p.nama}
-        {p.terverifikasi && <CentangBiru />}
-      </td>
-      <td>
-        <TautanKlub klub={p.klub} />
-      </td>
-      <td>
-        {p.lichess ? (
-          <a
-            href={`https://lichess.org/@/${p.lichess}`}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {p.lichess}
-          </a>
-        ) : null}
-      </td>
-      <td>
-        {p.chesscom ? (
-          <a
-            href={`https://chess.com/member/${p.chesscom}`}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {p.chesscom}
-          </a>
-        ) : null}
+        {bermasalah
+          ? "—"
+          : `${a.win ?? 0} / ${a.draw ?? 0} / ${a.loss ?? 0}`}
       </td>
     </tr>
   );
 }
 
 export default function Peringkat() {
+  // Sumber data identik dengan tab Keanggotaan.
+  const { anggota, status, pesan, muatUlang } = useAnggota();
+
   const [cari, setCari] = useState("");
-  const [klub, setKlub] = useState("semua");
-  const [hanyaChesscom, setHanyaChesscom] = useState(false);
+  const [tingkat, setTingkat] = useState("semua");
   const [tampil, setTampil] = useState(PER_HALAMAN);
 
-  // Nomor urut (#) mengikuti peringkat GLOBAL, bukan urutan hasil saringan —
-  // sama seperti halaman referensi.
-  const berperingkat = useMemo(
-    () => PEMAIN.map((p, i) => ({ ...p, no: i + 1 })),
-    []
+  const berperingkat = useMemo(() => susunPeringkat(anggota), [anggota]);
+
+  const daftarKlub = useMemo(
+    () => [...new Set(anggota.map((a) => a.klub).filter(Boolean))].sort(),
+    [anggota]
   );
+  const [klub, setKlub] = useState("semua");
 
   const hasil = useMemo(() => {
     const kunci = cari.trim().toLowerCase();
-    return berperingkat.filter((p) => {
-      if (klub !== "semua" && p.klub?.kode !== klub) return false;
-      if (hanyaChesscom && !p.chesscom) return false;
+    return berperingkat.filter((a) => {
+      if (klub !== "semua" && a.klub !== klub) return false;
+
+      if (tingkat !== "semua") {
+        const elo = eloAnggota(a);
+        if (tingkat === "tanpa-rating") {
+          if (elo !== null) return false;
+        } else {
+          const t = TINGKATAN_RATING.find((x) => x.id === tingkat);
+          if (!t || elo === null) return false;
+          if (t.max === null ? elo < t.min : elo < t.min || elo >= t.max)
+            return false;
+        }
+      }
+
       if (!kunci) return true;
       return (
-        p.nama.toLowerCase().includes(kunci) ||
-        (p.lichess || "").toLowerCase().includes(kunci) ||
-        (p.chesscom || "").toLowerCase().includes(kunci) ||
-        (p.klub?.kode || "").toLowerCase().includes(kunci) ||
-        (p.klub?.nama || "").toLowerCase().includes(kunci)
+        namaTampil(a).toLowerCase().includes(kunci) ||
+        (a.username || "").toLowerCase().includes(kunci) ||
+        (a.klub || "").toLowerCase().includes(kunci)
       );
     });
-  }, [berperingkat, cari, klub, hanyaChesscom]);
+  }, [berperingkat, cari, klub, tingkat]);
 
   const terlihat = hasil.slice(0, tampil);
 
@@ -129,40 +167,26 @@ export default function Peringkat() {
     <TataLetakBeranda
       id="peringkat"
       title="Peringkat"
-      description="Peringkat pemain berdasarkan Pairing Rating: nama, klub, akun Lichess, dan Chess.com."
-      sectionTitle="Peringkat pemain Liga Catur Indonesia"
+      description="Peringkat anggota Komunitas Catur Indonesia berdasarkan Elo Chess.com."
+      sectionTitle="Peringkat pemain Komunitas Catur Indonesia"
     >
       <p className="ql-align-justify">
-        Pemain-pemain Liga Catur Indonesia yang terdaftar dan terverifikasi.
-        Rating yang ada di sini adalah{" "}
-        <a
-          href="https://ligacatur.com/pairingrating"
-          target="_blank"
-          rel="noreferrer noopener"
+        Anggota Komunitas Catur Indonesia yang terdaftar dan terverifikasi.
+        Peringkat disusun dari Elo akun Chess.com masing-masing anggota
+        (diutamakan Rapid) dan diperbarui otomatis. Daftar ini memakai data
+        yang sama dengan{" "}
+        <Link
+          to="/tentang-kami/struktur-grup-catur#keanggotaan"
           className="text-primary"
         >
-          Pairing Rating
-        </a>
-        . Klik{" "}
-        <a
-          href="https://ligacatur.com/register"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          di sini untuk mendaftar
-        </a>{" "}
-        menjadi anggota Liga Catur Indonesia, dan untuk verifikasinya, silahkan
-        gabung ke{" "}
-        <a
-          href="https://ligacatur.com/group"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          Grup WA
-        </a>{" "}
-        dan kirim pesan ke Admin.
+          Daftar Anggota
+        </Link>{" "}
+        — jadi satu kali mendaftar, nama Anda langsung muncul di kedua
+        halaman. Belum terdaftar? Silakan isi{" "}
+        <Link to="/pendaftaran-anggota" className="text-primary">
+          formulir Pendaftaran Anggota
+        </Link>
+        , lalu verifikasi kepemilikan akun Chess.com Anda.
       </p>
 
       <div className="flex flex-wrap items-end gap-x-6 gap-y-3 mb-4">
@@ -172,44 +196,78 @@ export default function Peringkat() {
             type="search"
             value={cari}
             onChange={(e) => ubah(setCari)(e.target.value)}
-            placeholder="Nama, klub, atau username"
+            placeholder="Nama, username, atau klub"
             className="border-0 border-b border-solid border-grey-300 outline-none py-1 pr-2 text-sm bg-transparent focus:border-primary min-w-[220px]"
           />
         </label>
 
         <label className="flex flex-col gap-1 text-sm text-grey-800">
-          <span className="font-medium">Klub</span>
+          <span className="font-medium">Tingkatan</span>
           <select
-            value={klub}
-            onChange={(e) => ubah(setKlub)(e.target.value)}
+            value={tingkat}
+            onChange={(e) => ubah(setTingkat)(e.target.value)}
             className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
           >
-            <option value="semua">Semua klub</option>
-            {DAFTAR_KLUB.map((kode) => (
-              <option key={kode} value={kode}>
-                {kode}
+            <option value="semua">Semua tingkatan</option>
+            <option value="tanpa-rating">Tanpa rating</option>
+            {TINGKATAN_RATING.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.range}
               </option>
             ))}
           </select>
         </label>
 
-        <label className="flex items-center gap-2 text-sm text-grey-800 pb-1">
-          <input
-            type="checkbox"
-            checked={hanyaChesscom}
-            onChange={(e) => ubah(setHanyaChesscom)(e.target.checked)}
-          />
-          <span>Hanya yang punya Chess.com</span>
-        </label>
+        {daftarKlub.length > 0 && (
+          <label className="flex flex-col gap-1 text-sm text-grey-800">
+            <span className="font-medium">Klub</span>
+            <select
+              value={klub}
+              onChange={(e) => ubah(setKlub)(e.target.value)}
+              className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
+            >
+              <option value="semua">Semua klub</option>
+              {daftarKlub.map((k) => (
+                <option key={k} value={k}>
+                  {k}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
-        <p className="text-sm text-slate-500 pb-1 ml-auto">
-          Menampilkan {terlihat.length} dari {hasil.length} pemain
-        </p>
+        <div className="flex items-center gap-4 pb-1 ml-auto">
+          <p className="text-sm text-slate-500">
+            {terlihat.length} dari {hasil.length} pemain
+          </p>
+          <button
+            type="button"
+            onClick={muatUlang}
+            className="text-sm text-primary underline underline-offset-2"
+          >
+            Muat ulang
+          </button>
+        </div>
       </div>
 
-      {hasil.length === 0 ? (
+      {status === "memuat" && <p>Memuat data anggota…</p>}
+      {status === "gagal" && <p>{pesan}</p>}
+
+      {status === "siap" && anggota.length === 0 && (
+        <p>
+          Belum ada anggota terdaftar.{" "}
+          <Link to="/pendaftaran-anggota" className="text-primary">
+            Daftar dengan akun Chess.com
+          </Link>{" "}
+          untuk menjadi yang pertama.
+        </p>
+      )}
+
+      {status === "siap" && anggota.length > 0 && hasil.length === 0 && (
         <p>Tidak ada pemain yang cocok dengan pencarian ini.</p>
-      ) : (
+      )}
+
+      {status === "siap" && hasil.length > 0 && (
         <>
           <div className="overflow-x-auto">
             <table className="tabel-kci tabel-peringkat">
@@ -219,17 +277,13 @@ export default function Peringkat() {
                   <th>Rating</th>
                   <th>Nama</th>
                   <th>Klub</th>
-                  <th>Lichess</th>
                   <th>Chess.com</th>
+                  <th>W / D / L</th>
                 </tr>
               </thead>
               <tbody>
-                {terlihat.map((p) => (
-                  <BarisPemain
-                    key={`${p.no}-${p.nama}`}
-                    p={p}
-                    no={p.no}
-                  />
+                {terlihat.map((a) => (
+                  <BarisPeringkat key={a.username} a={a} />
                 ))}
               </tbody>
             </table>

@@ -34,12 +34,12 @@ export const RUTE_PUBLIK = [
   "/keberlanjutan/kode-etik-komunitas",
   "/keberlanjutan/pertanyaan-umum",
   "/hubungi-kami",
-  "/pengadaan",
-  "/pengadaan/daftar-juara",
-  "/pengadaan/gabung-anggota",
-  "/pengadaan/ebook-panduan",
-  "/pengadaan/teka-teki-tips",
-  "/pengadaan/hubungi-admin",
+  "/beranda",
+  "/beranda/daftar-juara",
+  "/beranda/peringkat",
+  "/beranda/ebook-panduan",
+  "/beranda/teka-teki-tips",
+  "/beranda/hubungi-admin",
   "/karir",
 ];
 
