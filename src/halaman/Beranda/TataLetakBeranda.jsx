@@ -34,13 +34,26 @@ export default function TataLetakBeranda() {
   const { pathname } = useLocation();
   const id = idBerandaDariPath(pathname);
   const next = BERANDA_BERIKUT[id];
-  const pertama = useRef(true);
+  const idSebelumnya = useRef(null);
 
   useEffect(() => {
-    if (pertama.current) {
-      pertama.current = false;
-      return;
+    const sebelum = idSebelumnya.current;
+    idSebelumnya.current = id;
+
+    // Beranda utama (menu "Beranda"): foto hero tetap terlihat di atas —
+    // jangan gulir ke artikel meski id berubah dari tab isi ke "turnamen".
+    if (id === "turnamen") {
+      window.scrollTo(0, 0);
+      return undefined;
     }
+
+    // Bukan perpindahan antar tab isi (mount pertama, jalankan ulang effect
+    // di Strict Mode, atau path dengan id sama): biarkan ScrollToTop yang
+    // menentukan posisi — jangan gulir sendiri.
+    if (sebelum === null || sebelum === id) return undefined;
+
+    // Pindah ke tab isi (daftar-juara, peringkat, dll): fokus ke judul
+    // artikel di bawah foto, jangan loncat ke gambar hero.
     let coba = 0;
     let frame = 0;
     const gulir = () => {
