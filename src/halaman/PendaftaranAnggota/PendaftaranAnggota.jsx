@@ -9,6 +9,7 @@ import {
   kategoriUmur,
   hitungUmur,
 } from "../../lib/chessAnggota.js";
+import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
 
@@ -159,6 +160,9 @@ export default function PendaftaranAnggota() {
             : undefined,
       });
       setStatus("sukses");
+      // Satu pintu: kosongkan cache bersama agar anggota baru langsung
+      // tampil di tab Keanggotaan MAUPUN halaman Peringkat.
+      segarkanAnggota().catch(() => {});
       navigate("/tentang-kami/struktur-grup-catur#keanggotaan");
     } catch (err) {
       setStatus("gagal");

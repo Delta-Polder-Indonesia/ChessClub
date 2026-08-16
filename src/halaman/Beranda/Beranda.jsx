@@ -6,7 +6,7 @@
  */
 import TataLetakBeranda from "./TataLetakBeranda.jsx";
 
-export default function Pengadaan() {
+export default function Beranda() {
   return (
     <TataLetakBeranda
       id="turnamen"

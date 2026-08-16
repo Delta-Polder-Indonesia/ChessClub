@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { ambilDaftarAnggota } from "../../../../lib/chessAnggota.js";
+import { useMemo, useState } from "react";
+import { useAnggota } from "../../../../lib/anggotaBersama.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { TINGKATAN_RATING } from "./TingkatanRating.jsx";
 
@@ -137,27 +137,9 @@ const OPSI_ELO = (t) => [
 export default function DaftarAnggota() {
   const { t } = useI18n();
   const [tab, setTab] = useState("semua");
-  const [anggota, setAnggota] = useState([]);
-  const [status, setStatus] = useState("memuat");
-  const [pesan, setPesan] = useState("");
 
-  useEffect(() => {
-    let hidup = true;
-    ambilDaftarAnggota()
-      .then((data) => {
-        if (!hidup) return;
-        setAnggota(Array.isArray(data) ? data : []);
-        setStatus("siap");
-      })
-      .catch((err) => {
-        if (!hidup) return;
-        setPesan(err.message);
-        setStatus("gagal");
-      });
-    return () => {
-      hidup = false;
-    };
-  }, []);
+  // Satu pintu: sumber data yang sama dengan halaman Peringkat.
+  const { anggota, status, pesan } = useAnggota();
 
   const tampil = useMemo(
     () => anggota.filter((a) => lolosFilter(a, tab)),
