@@ -44,13 +44,13 @@ const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanK
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
 
-// Area Beranda/Pengadaan — satu berkas per item sidebar.
-const Pengadaan = lazy(() => import("./halaman/Pengadaan/Pengadaan.jsx"));
-const DaftarJuara = lazy(() => import("./halaman/Pengadaan/DaftarJuara.jsx"));
-const GabungAnggota = lazy(() => import("./halaman/Pengadaan/GabungAnggota.jsx"));
-const EbookPanduan = lazy(() => import("./halaman/Pengadaan/EbookPanduan.jsx"));
-const TekaTekiTips = lazy(() => import("./halaman/Pengadaan/TekaTekiTips.jsx"));
-const HubungiAdmin = lazy(() => import("./halaman/Pengadaan/HubungiAdmin.jsx"));
+// Area Beranda — satu berkas per item sidebar.
+const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
+const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
+const Peringkat = lazy(() => import("./halaman/Beranda/Peringkat.jsx"));
+const EbookPanduan = lazy(() => import("./halaman/Beranda/EbookPanduan.jsx"));
+const TekaTekiTips = lazy(() => import("./halaman/Beranda/TekaTekiTips.jsx"));
+const HubungiAdmin = lazy(() => import("./halaman/Beranda/HubungiAdmin.jsx"));
 
 // Lain-lain
 const HubungiKami = lazy(() => import("./halaman/HubungiKami/HubungiKami.jsx"));
@@ -98,13 +98,13 @@ const RUTE_HALAMAN = [
   ["/hubungi-kami", HubungiKami],
   ["/karir", Karir],
 
-  // Area Beranda/Pengadaan — satu berkas per item sidebar.
-  ["/pengadaan", Pengadaan],
-  ["/pengadaan/daftar-juara", DaftarJuara],
-  ["/pengadaan/gabung-anggota", GabungAnggota],
-  ["/pengadaan/ebook-panduan", EbookPanduan],
-  ["/pengadaan/teka-teki-tips", TekaTekiTips],
-  ["/pengadaan/hubungi-admin", HubungiAdmin],
+  // Area Beranda — satu berkas per item sidebar.
+  ["/beranda", Beranda],
+  ["/beranda/daftar-juara", DaftarJuara],
+  ["/beranda/peringkat", Peringkat],
+  ["/beranda/ebook-panduan", EbookPanduan],
+  ["/beranda/teka-teki-tips", TekaTekiTips],
+  ["/beranda/hubungi-admin", HubungiAdmin],
 ];
 
 /**
@@ -126,6 +126,15 @@ const RUTE_REDIRECT = new Map([
   ["/keanggotaan/syarat-dan-ketentuan", "/keberlanjutan/syarat-dan-ketentuan"],
   ["/keanggotaan/kode-etik-komunitas", "/keberlanjutan/kode-etik-komunitas"],
   ["/keanggotaan/pertanyaan-umum", "/keberlanjutan/pertanyaan-umum"],
+
+  // Alias lama area Beranda (dahulu /pengadaan).
+  ["/pengadaan", "/beranda"],
+  ["/pengadaan/daftar-juara", "/beranda/daftar-juara"],
+  ["/pengadaan/gabung-anggota", "/beranda/peringkat"],
+  ["/beranda/gabung-anggota", "/beranda/peringkat"],
+  ["/pengadaan/ebook-panduan", "/beranda/ebook-panduan"],
+  ["/pengadaan/teka-teki-tips", "/beranda/teka-teki-tips"],
+  ["/pengadaan/hubungi-admin", "/beranda/hubungi-admin"],
 ]);
 
 /* ------------------------------------------------------- pulihkan rute */

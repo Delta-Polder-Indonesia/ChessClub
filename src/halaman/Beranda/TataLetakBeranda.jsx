@@ -1,5 +1,5 @@
 /**
- * Tata letak area Beranda / Pengadaan.
+ * Tata letak area Beranda.
  *
  * Membungkus CorporatePage dengan sidebar sehingga setiap halaman
  * (Jadwal Turnamen, Daftar Juara, dst.) cukup memanggil:

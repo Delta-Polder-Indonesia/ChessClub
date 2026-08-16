@@ -166,7 +166,7 @@ export const MENU_UTAMA = [
 ];
 
 export const MENU_ATAS = [
-  { title: "nav.beranda", path: "/pengadaan" },
+  { title: "nav.beranda", path: "/beranda" },
   { title: "nav.karir", path: "/karir" },
   { title: "nav.hubungiKami", path: "/hubungi-kami" },
 ];
@@ -189,7 +189,7 @@ export function semuaHalaman() {
   }
 
   for (const item of MENU_UTAMA) tambahkan(item);
-  list.push({ title: "nav.beranda", path: "/pengadaan" });
+  list.push({ title: "nav.beranda", path: "/beranda" });
   list.push({ title: "nav.karir", path: "/karir" });
   list.push({ title: "nav.hubungiKami", path: "/hubungi-kami" });
   return list;
