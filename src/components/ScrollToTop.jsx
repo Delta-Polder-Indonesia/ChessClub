@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
-import { jalurBeranda } from "../halaman/Beranda/sidebar.js";
+import { jalurBeranda, jalurBerandaUtama } from "../halaman/Beranda/sidebar.js";
 
 export default function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -18,6 +18,13 @@ export default function ScrollToTop() {
       };
       const t = setTimeout(go, 80);
       return () => clearTimeout(t);
+    }
+
+    // Halaman utama Beranda ("/" atau "/beranda"): selalu tampilkan foto
+    // hero di atas — termasuk saat menekan menu Beranda dari tab lain.
+    if (jalurBerandaUtama(pathname)) {
+      window.scrollTo(0, 0);
+      return undefined;
     }
 
     // Pindah tab di dalam Beranda: hero tetap, fokus ke artikel di bawah foto.
