@@ -44,10 +44,17 @@ const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanK
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
 
+// Area Beranda/Pengadaan — satu berkas per item sidebar.
+const Pengadaan = lazy(() => import("./halaman/Pengadaan/Pengadaan.jsx"));
+const DaftarJuara = lazy(() => import("./halaman/Pengadaan/DaftarJuara.jsx"));
+const GabungAnggota = lazy(() => import("./halaman/Pengadaan/GabungAnggota.jsx"));
+const EbookPanduan = lazy(() => import("./halaman/Pengadaan/EbookPanduan.jsx"));
+const TekaTekiTips = lazy(() => import("./halaman/Pengadaan/TekaTekiTips.jsx"));
+const HubungiAdmin = lazy(() => import("./halaman/Pengadaan/HubungiAdmin.jsx"));
+
 // Lain-lain
 const HubungiKami = lazy(() => import("./halaman/HubungiKami/HubungiKami.jsx"));
 const Karir = lazy(() => import("./halaman/Karir/Karir.jsx"));
-const Pengadaan = lazy(() => import("./halaman/Pengadaan/Pengadaan.jsx"));
 const TidakDitemukan = lazy(() => import("./halaman/TidakDitemukan.jsx"));
 
 // Dashboard pengurus — chunk terpisah; tidak pernah ikut bundel publik.
@@ -89,8 +96,15 @@ const RUTE_HALAMAN = [
   ["/keberlanjutan/pertanyaan-umum", PertanyaanUmum],
 
   ["/hubungi-kami", HubungiKami],
-  ["/pengadaan", Pengadaan],
   ["/karir", Karir],
+
+  // Area Beranda/Pengadaan — satu berkas per item sidebar.
+  ["/pengadaan", Pengadaan],
+  ["/pengadaan/daftar-juara", DaftarJuara],
+  ["/pengadaan/gabung-anggota", GabungAnggota],
+  ["/pengadaan/ebook-panduan", EbookPanduan],
+  ["/pengadaan/teka-teki-tips", TekaTekiTips],
+  ["/pengadaan/hubungi-admin", HubungiAdmin],
 ];
 
 /**
