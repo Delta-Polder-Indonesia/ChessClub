@@ -1,9 +1,10 @@
 /**
  * Sidebar area Beranda.
  *
- * Sesuai permintaan, setiap item sidebar adalah HALAMAN/berkas TERPISAH,
- * bukan jangkar (#id) dalam satu halaman. Halaman pertama (jadwal turnamen)
- * adalah halaman default /beranda.
+ * Setiap item sidebar tetap HALAMAN/berkas terpisah, tetapi semuanya
+ * dirender di dalam TataLetakBeranda yang sama. Hero + sidebar tidak
+ * di-remount saat pindah tab — hanya artikel di bawah foto yang berganti,
+ * seperti tab di halaman Tentang Kami / Struktur Grup Catur.
  */
 export const MENU_BERANDA = [
   {
@@ -37,6 +38,18 @@ export const MENU_BERANDA = [
     href: "/beranda/hubungi-admin",
   },
 ];
+
+/** True bila path termasuk keluarga halaman Beranda (termasuk beranda di "/"). */
+export function jalurBeranda(path) {
+  return path === "/" || path === "/beranda" || path.startsWith("/beranda/");
+}
+
+/** Id item sidebar yang sesuai dengan path saat ini. */
+export function idBerandaDariPath(path) {
+  if (path === "/" || path === "/beranda") return "turnamen";
+  const item = MENU_BERANDA.find((m) => m.href === path);
+  return item?.id || "turnamen";
+}
 
 /** Kembalikan salinan menu dengan item ber-id `aktif` ditandai aktif. */
 export function sidebarBeranda(aktif) {
