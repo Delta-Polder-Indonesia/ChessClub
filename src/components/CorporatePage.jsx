@@ -92,24 +92,11 @@ export function CorporateSidebar({ title, items }) {
     <>
       <aside className="hidden lg:block sticky top-[88px] h-[calc(100vh-96px)] overflow-y-auto transition-all duration-300 ease-in-out w-[220px] min-w-[220px]">
         <ul className="relative flex gap-y-3 flex-col text-sm after:block after:bg-slate-200 after:absolute after:h-full after:w-px after:left-0 after:z-[-1]" aria-label={`${title} navigation`}>
-          {items.map((item) => {
-            const aktif = item.id === active;
-            return (
-              <li className="relative flex" key={item.id}>
-                <a
-                  href={item.href || `#${item.id}`}
-                  onClick={() => pilih(item.id)}
-                  className={`flex w-full py-2 pr-1 transition-all duration-300 ease-in-out hover:after:w-1 hover:after:h-full hover:after:bg-slate-600 hover:after:absolute hover:after:left-[-1px] hover:after:top-0 hover:after:z-1 pl-4 ${
-                    aktif
-                      ? "text-[#0B2F9F] after:w-1 after:h-full after:bg-[#0B2F9F] after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
-                      : "text-slate-500 hover:text-slate-600"
-                  }`}
-                >
-                  {item.label}
-                </a>
-              </li>
-            );
-          })}
+          {items.map((item) => (
+            <li className="relative flex" key={item.id}>
+              <SidebarItem item={item} aktif={item.id === active} onPilih={pilih} desktop />
+            </li>
+          ))}
         </ul>
       </aside>
 
@@ -128,29 +115,51 @@ export function CorporateSidebar({ title, items }) {
           </button>
           {open && (
             <ul className="mt-2 py-4 bg-white max-h-[calc(100vh-4rem)] overflow-y-auto relative flex gap-y-3 flex-col text-sm after:block after:bg-slate-200 after:absolute after:h-full after:w-px after:left-0 after:z-[-1]">
-              {items.map((item) => {
-                const aktif = item.id === active;
-                return (
-                  <li className="relative flex" key={item.id}>
-                    <a
-                      href={item.href || `#${item.id}`}
-                      onClick={() => pilih(item.id)}
-                      className={`flex w-full py-2 pr-1 pl-4 transition-all duration-300 ease-in-out ${
-                        aktif
-                          ? "text-[#0B2F9F] after:w-1 after:h-full after:bg-[#0B2F9F] after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
-                          : "text-slate-500 hover:text-slate-600"
-                      }`}
-                    >
-                      {item.label}
-                    </a>
-                  </li>
-                );
-              })}
+              {items.map((item) => (
+                <li className="relative flex" key={item.id}>
+                  <SidebarItem item={item} aktif={item.id === active} onPilih={pilih} />
+                </li>
+              ))}
             </ul>
           )}
         </div>
       </div>
     </>
+  );
+}
+
+/**
+ * Satu item sidebar.
+ *
+ * - href diawali "/" → rute internal (mis. "/pengadaan/daftar-juara"):
+ *   memakai <Link> React Router agar berpindah halaman TANPA refresh
+ *   (SPA). Basename router (mis. "/ChessClub/") ditangani otomatis.
+ * - selain itu (jangkar "#id" dalam halaman, atau URL penuh) → <a>
+ *   biasa, sehingga scroll ke bagian/halaman yang dituju tetap jalan.
+ */
+function SidebarItem({ item, aktif, onPilih, desktop = false }) {
+  const target = item.href || `#${item.id}`;
+  const internal = /^\//.test(target);
+  const kelasDesktop =
+    "flex w-full py-2 pr-1 transition-all duration-300 ease-in-out hover:after:w-1 hover:after:h-full hover:after:bg-slate-600 hover:after:absolute hover:after:left-[-1px] hover:after:top-0 hover:after:z-1 pl-4";
+  const kelasMobile =
+    "flex w-full py-2 pr-1 pl-4 transition-all duration-300 ease-in-out";
+  const kelasAktif = aktif
+    ? "text-[#0B2F9F] after:w-1 after:h-full after:bg-[#0B2F9F] after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
+    : "text-slate-500 hover:text-slate-600";
+  const className = `${desktop ? kelasDesktop : kelasMobile} ${kelasAktif}`;
+
+  if (internal) {
+    return (
+      <Link to={target} onClick={() => onPilih(item.id)} className={className}>
+        {item.label}
+      </Link>
+    );
+  }
+  return (
+    <a href={target} onClick={() => onPilih(item.id)} className={className}>
+      {item.label}
+    </a>
   );
 }
 
