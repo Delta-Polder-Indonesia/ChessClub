@@ -35,6 +35,11 @@ export const RUTE_PUBLIK = [
   "/keberlanjutan/pertanyaan-umum",
   "/hubungi-kami",
   "/pengadaan",
+  "/pengadaan/daftar-juara",
+  "/pengadaan/gabung-anggota",
+  "/pengadaan/ebook-panduan",
+  "/pengadaan/teka-teki-tips",
+  "/pengadaan/hubungi-admin",
   "/karir",
 ];
 
