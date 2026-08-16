@@ -19,6 +19,8 @@ import {
 } from "./identitas-server.js";
 import {
   normalisasiUsername,
+  normalisasiLichess,
+  lichessValid,
   normalisasiHp,
   hpValid,
   normalisasiNama,
@@ -104,6 +106,10 @@ export function validasiPendaftaran(body) {
   const klub = String(body.klub || "").trim();
   if (klub.length > 60) galat.klub = "Nama klub terlalu panjang.";
 
+  const lichess = normalisasiLichess(body.lichess);
+  if (!lichessValid(lichess))
+    galat.lichess = "Username Lichess tidak valid (2-30 huruf/angka/-/_).";
+
   if (!body.setuju) galat.setuju = "Anda harus menyetujui kode etik komunitas.";
 
   return {
@@ -118,6 +124,7 @@ export function validasiPendaftaran(body) {
       tanggalLahir: lahir,
       email,
       klub,
+      lichess,
     },
   };
 }
@@ -358,6 +365,7 @@ export async function daftarkan(body, konteks = {}) {
       kota: bersih.kota,
       kotaKunci: normalisasiKota(bersih.kota),
       klub: bersih.klub || null,
+      lichess: bersih.lichess || null,
       kategoriUmur: kategoriUmur(bersih.tanggalLahir),
       terverifikasi: Boolean(caraVerifikasi),
       caraVerifikasi,
@@ -382,6 +390,7 @@ export async function daftarkan(body, konteks = {}) {
         kota: bersih.kota,
         tanggalLahir: bersih.tanggalLahir,
         klub: bersih.klub || null,
+        lichess: bersih.lichess || null,
         dicatatPada: new Date().toISOString(),
       },
     },

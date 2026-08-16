@@ -21,6 +21,25 @@ export function normalisasiUsername(raw) {
 }
 
 /**
+ * Username Lichess ke bentuk baku.
+ * "https://lichess.org/@/NamaSaya", "@NamaSaya", "NamaSaya" → "NamaSaya".
+ * Huruf besar-kecil DIPERTAHANKAN karena Lichess menampilkannya apa adanya.
+ */
+export function normalisasiLichess(raw) {
+  let s = String(raw || "").trim();
+  s = s.replace(/^https?:\/\/(www\.)?lichess\.org\/@\//i, "");
+  s = s.replace(/^@/, "");
+  s = s.split(/[/?#\s]/)[0];
+  return s;
+}
+
+/** Format username Lichess valid? Kosong dianggap valid (opsional). */
+export function lichessValid(raw) {
+  const s = normalisasiLichess(raw);
+  return s === "" || /^[a-zA-Z0-9_-]{2,30}$/.test(s);
+}
+
+/**
  * Nomor Indonesia ke bentuk baku 62xxxxxxxxx.
  * "0812-3456-7890", "+62 812 3456 7890", "62 81234567890", "812 3456 7890"
  * semuanya menghasilkan "6281234567890".
