@@ -28,8 +28,9 @@ export function LoadingSpinner({ label = "Memuat…", className = "" }) {
 }
 
 /**
- * Placeholder Suspense seukuran hero — memakai foto LCP yang sama agar
- * gambar terbesar tetap terlihat saat chunk halaman masih diunduh.
+ * Placeholder Suspense seukuran hero — memakai foto laman Beranda (halaman
+ * pertama yang dimuat pengunjung) agar gambar terbesar tetap terlihat saat
+ * chunk halaman masih diunduh.
  */
 export function HeroFallback() {
   return (
@@ -38,8 +39,8 @@ export function HeroFallback() {
       aria-hidden="true"
     >
       <img
-        src={`${import.meta.env.BASE_URL}images/hero-about-828.webp`}
-        srcSet={`${import.meta.env.BASE_URL}images/hero-about-828.webp 828w, ${import.meta.env.BASE_URL}images/hero-about.webp 1280w`}
+        src={`${import.meta.env.BASE_URL}images/sekilas-828.webp`}
+        srcSet={`${import.meta.env.BASE_URL}images/sekilas-828.webp 828w, ${import.meta.env.BASE_URL}images/sekilas.webp 1280w`}
         sizes="100vw"
         alt=""
         width={828}

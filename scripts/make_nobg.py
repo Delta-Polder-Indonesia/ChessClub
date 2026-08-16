@@ -8,7 +8,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path("/home/user/WebCatur/public/images")
+# Akar repo diturunkan dari lokasi skrip ini (scripts/ -> <repo>),
+# bukan path absolut, agar skrip jalan di mesin mana pun.
+ROOT = Path(__file__).resolve().parents[1] / "public" / "images"
 SRC = ROOT / "logo-nobg-source.png"
 NAVY = np.array([159, 47, 11], dtype=np.float32)  # BGR #0B2F9F
 

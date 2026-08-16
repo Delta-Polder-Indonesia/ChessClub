@@ -123,7 +123,7 @@ semua, pindah ke `wajib`.
 
 ## 6. Yang sudah diuji
 
-29 uji otomatis (`node server/uji/uji-verifikasi.mjs`), termasuk serangan:
+30 uji otomatis (`node server/uji/uji-verifikasi.mjs`), termasuk serangan:
 
 | Serangan | Hasil |
 | -------- | ----- |

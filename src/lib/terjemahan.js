@@ -546,7 +546,6 @@ export const ID = {
     n2b: "Sesi daring 110 menit membahas Isolated Queen Pawn dan cara merencanakan break di pusat.",
     n3a: "10 Desember 2025 — Hari lahir komunitas ke-10 dirayakan dengan simultan.",
     n3b: "Dua puluh papan simultan dibuka untuk pelajar. Acara ditutup pembaruan identitas visual.",
-    nextJudul: "Galeri",
   },
   pengumuman: {
     judul: "Pengumuman",
@@ -587,7 +586,6 @@ export const ID = {
     e1: "Laporan Liga Musim II dan kurikulum kelas pemula baru.",
     e2: "Hasil simultan pelajar dan pembukaan chapter daring.",
     e3: "Wawancara pelatih tamu dan kalender semester depan.",
-    nextJudul: "Keanggotaan",
   },
   hubungi: {
     judul: "Hubungi Kami",
@@ -665,7 +663,7 @@ export const ID = {
     deskripsi: "Alamat yang Anda tuju tidak ada di situs ini.",
     kembali: "Kembali",
     p1: "Periksa kembali tautan, atau kembali ke ",
-    p2: "beranda Tentang Kami",
+    p2: "beranda",
     p3: ".",
   },
 };
@@ -717,6 +715,7 @@ export const EN = {
     pertanyaanUmum: "Frequently Asked Questions",
     hubungiKami: "Contact Us",
     karir: "Careers",
+    beranda: "Home",
     peringkat: "Ratings",
     pengadaan: "Procurement",
     keberlanjutan: "Sustainability",
@@ -1216,7 +1215,6 @@ export const EN = {
     n2b: "A 110-minute online session covering the Isolated Queen Pawn and how to plan a central break.",
     n3a: "December 10, 2025 — The community's 10th anniversary celebrated with a simul.",
     n3b: "Twenty simul boards were opened to students. The event closed with the visual identity renewal.",
-    nextJudul: "Gallery",
   },
   pengumuman: {
     judul: "Announcements",
@@ -1256,7 +1254,6 @@ export const EN = {
     e1: "Season II League report and the new beginner class curriculum.",
     e2: "Student simul results and the launch of the online chapter.",
     e3: "Interview with the guest coach and next semester's calendar.",
-    nextJudul: "Membership",
   },
   hubungi: {
     judul: "Contact Us",
@@ -1334,7 +1331,7 @@ export const EN = {
     deskripsi: "The address you are looking for does not exist on this site.",
     kembali: "Go Back",
     p1: "Check the link again, or return to the ",
-    p2: "About Us home page",
+    p2: "home page",
     p3: ".",
   },
 };

@@ -62,9 +62,10 @@ const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
 
 /* --------------------------------------------------------- konfigurasi */
 
-/** Rute konten utama: [path, Komponen]. */
+/** Rute konten utama: [path, Komponen].
+ *  "/" adalah Beranda — halaman pertama yang dilihat pengunjung. */
 const RUTE_HALAMAN = [
-  ["/", TentangKami],
+  ["/", Beranda],
   ["/tentang-kami", TentangKami],
   ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],
 
