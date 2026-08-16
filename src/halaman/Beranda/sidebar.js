@@ -39,14 +39,22 @@ export const MENU_BERANDA = [
   },
 ];
 
+/**
+ * True bila path adalah halaman utama Beranda ("/" atau "/beranda") — halaman
+ * tempat foto hero tampil di atas, sebelum tab-tab isi di bawahnya.
+ */
+export function jalurBerandaUtama(path) {
+  return path === "/" || path === "/beranda";
+}
+
 /** True bila path termasuk keluarga halaman Beranda (termasuk beranda di "/"). */
 export function jalurBeranda(path) {
-  return path === "/" || path === "/beranda" || path.startsWith("/beranda/");
+  return jalurBerandaUtama(path) || path.startsWith("/beranda/");
 }
 
 /** Id item sidebar yang sesuai dengan path saat ini. */
 export function idBerandaDariPath(path) {
-  if (path === "/" || path === "/beranda") return "turnamen";
+  if (jalurBerandaUtama(path)) return "turnamen";
   const item = MENU_BERANDA.find((m) => m.href === path);
   return item?.id || "turnamen";
 }
