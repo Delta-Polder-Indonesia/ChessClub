@@ -4,15 +4,13 @@
  * CATATAN: Ini konten TEMPAT (placeholder). Isi lengkapnya akan dilengkapi
  * pada tahap upgrade berikutnya.
  */
-import TataLetakBeranda from "./TataLetakBeranda.jsx";
+import { BagianBeranda } from "./TataLetakBeranda.jsx";
 
 export default function Beranda() {
   return (
-    <TataLetakBeranda
+    <BagianBeranda
       id="turnamen"
-      title="Beranda"
-      description="Jadwal turnamen catur komunitas."
-      sectionTitle="Informasi Jadwal Turnamen Catur"
+      title="Informasi Jadwal Turnamen Catur"
     >
       <p>
         Halaman ini memuat informasi jadwal turnamen catur yang akan datang
@@ -21,6 +19,6 @@ export default function Beranda() {
       <p>
         <em>(Konten sedang dilengkapi. Bagian ini akan diperbarui pada tahap berikutnya.)</em>
       </p>
-    </TataLetakBeranda>
+    </BagianBeranda>
   );
 }

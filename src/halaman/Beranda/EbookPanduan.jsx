@@ -8,15 +8,11 @@ import {
   DocumentGrid,
   DocumentCard,
 } from "../../components/CorporatePage.jsx";
-import TataLetakBeranda from "./TataLetakBeranda.jsx";
+import { BagianBeranda } from "./TataLetakBeranda.jsx";
 
 export default function EbookPanduan() {
   return (
-    <TataLetakBeranda
-      id="ebook-catur"
-      title="E-Book & Panduan"
-      description="Kumpulan e-book dan panduan catur untuk anggota."
-    >
+    <BagianBeranda id="ebook-catur" title="E-Book & Panduan">
       <p>
         Halaman ini memuat koleksi e-book dan panduan catur yang dapat
         diunduh oleh anggota, dari tingkat pemula hingga lanjut.
@@ -28,6 +24,6 @@ export default function EbookPanduan() {
         <DocumentCard title="Panduan Catur untuk Pemula" />
         <DocumentCard title="Strategi Pembukaan Catur" />
       </DocumentGrid>
-    </TataLetakBeranda>
+    </BagianBeranda>
   );
 }

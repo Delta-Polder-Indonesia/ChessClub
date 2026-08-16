@@ -49,8 +49,13 @@ export function CorporatePage({
 
 export function CorporateSidebar({ title, items }) {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(items.find((item) => item.active)?.id || items[0]?.id);
+  const aktifDariProps = items.find((item) => item.active)?.id;
+  const [active, setActive] = useState(aktifDariProps || items[0]?.id);
   const current = items.find((item) => item.id === active) || items[0];
+
+  useEffect(() => {
+    if (aktifDariProps) setActive(aktifDariProps);
+  }, [aktifDariProps]);
 
   useEffect(() => {
     const onHashChange = () => {
