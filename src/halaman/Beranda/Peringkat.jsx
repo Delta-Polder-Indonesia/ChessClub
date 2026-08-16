@@ -9,15 +9,18 @@
  * terverifikasi, namanya langsung muncul di kedua halaman tanpa perlu
  * menyunting berkas apa pun.
  *
- * Susunan tabel dibuat SAMA PERSIS dengan referensi
- * https://ligacatur.com/ratings — enam kolom, urutan identik:
+ * Susunan tabel mengikuti referensi https://ligacatur.com/ratings :
  *
- *   #  |  Rating  |  Nama  |  Klub  |  Lichess  |  Chess.com
+ *   #  |  Rating  |  Nama  |  All Games  |  Chess.com
  *
  * Nama ditulis KAPITAL dengan lencana centang biru menempel di
- * belakangnya, kolom Klub berisi kode klub singkat, dan dua kolom
- * terakhir berisi username yang tertaut ke profil masing-masing.
- * Sel yang kosong dibiarkan benar-benar kosong, seperti aslinya.
+ * belakangnya. Kolom "All Games" berisi PILIHAN (select) per pemain:
+ *
+ *   All Games (n) · Blitz (n) · Bullet (n) · Rapid (n) · Daily (n)
+ *
+ * Memilih salah satunya menampilkan rating pemain itu pada kontrol
+ * tersebut — angka di kolom Rating dan W/D/L ikut menyesuaikan, tanpa
+ * memuat ulang halaman dan tanpa mengubah urutan peringkat.
  */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -27,6 +30,7 @@ import {
   susunPeringkat,
   eloAnggota,
   namaTampil,
+  opsiKontrol,
 } from "../../lib/anggotaBersama.js";
 import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx";
 
@@ -55,28 +59,44 @@ function CentangBiru() {
 }
 
 function BarisPeringkat({ a }) {
-  const elo = eloAnggota(a);
+  const opsi = useMemo(() => opsiKontrol(a), [a]);
+  const [pilih, setPilih] = useState("all");
+
+  // Kontrol yang dipilih; bila kosong datanya, jatuh kembali ke All Games.
+  const aktif = opsi.find((o) => o.id === pilih) || opsi[0];
+  const bermasalah = a.hilang || a.gagal;
 
   return (
     <tr>
       <td className="kol-no">{a.no ?? ""}</td>
-      <td className="kol-rating">{elo === null ? "" : elo}</td>
+      <td className="kol-rating">
+        {aktif.elo === null || aktif.elo === undefined ? "" : aktif.elo}
+      </td>
       <td className="kol-nama">
         {namaTampil(a).toUpperCase()}
         {a.terverifikasi && <CentangBiru />}
       </td>
-      <td className="kol-klub">{a.klub || ""}</td>
-      <td className="kol-akun">
-        {a.lichess ? (
-          <a
-            href={`https://lichess.org/@/${a.lichess}`}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {a.lichess}
-          </a>
-        ) : (
+      <td className="kol-games">
+        {bermasalah ? (
           ""
+        ) : (
+          <>
+            <select
+              value={pilih}
+              onChange={(e) => setPilih(e.target.value)}
+              aria-label={`Pilih jenis permainan untuk ${namaTampil(a)}`}
+              className="pilih-games"
+            >
+              {opsi.map((o) => (
+                <option key={o.id} value={o.id} disabled={!o.ada}>
+                  {o.label} ({o.total})
+                </option>
+              ))}
+            </select>
+            <span className="rekap-wdl">
+              {aktif.win} / {aktif.draw} / {aktif.loss}
+            </span>
+          </>
         )}
       </td>
       <td className="kol-akun">
@@ -106,17 +126,9 @@ export default function Peringkat() {
 
   const berperingkat = useMemo(() => susunPeringkat(anggota), [anggota]);
 
-  const daftarKlub = useMemo(
-    () => [...new Set(anggota.map((a) => a.klub).filter(Boolean))].sort(),
-    [anggota]
-  );
-  const [klub, setKlub] = useState("semua");
-
   const hasil = useMemo(() => {
     const kunci = cari.trim().toLowerCase();
     return berperingkat.filter((a) => {
-      if (klub !== "semua" && a.klub !== klub) return false;
-
       if (tingkat !== "semua") {
         const elo = eloAnggota(a);
         if (tingkat === "tanpa-rating") {
@@ -132,12 +144,10 @@ export default function Peringkat() {
       if (!kunci) return true;
       return (
         namaTampil(a).toLowerCase().includes(kunci) ||
-        (a.username || "").toLowerCase().includes(kunci) ||
-        (a.lichess || "").toLowerCase().includes(kunci) ||
-        (a.klub || "").toLowerCase().includes(kunci)
+        (a.username || "").toLowerCase().includes(kunci)
       );
     });
-  }, [berperingkat, cari, klub, tingkat]);
+  }, [berperingkat, cari, tingkat]);
 
   const terlihat = hasil.slice(0, tampil);
 
@@ -179,7 +189,7 @@ export default function Peringkat() {
             type="search"
             value={cari}
             onChange={(e) => ubah(setCari)(e.target.value)}
-            placeholder="Nama, username, atau klub"
+            placeholder="Nama atau username"
             className="border-0 border-b border-solid border-grey-300 outline-none py-1 pr-2 text-sm bg-transparent focus:border-primary min-w-[220px]"
           />
         </label>
@@ -200,24 +210,6 @@ export default function Peringkat() {
             ))}
           </select>
         </label>
-
-        {daftarKlub.length > 0 && (
-          <label className="flex flex-col gap-1 text-sm text-grey-800">
-            <span className="font-medium">Klub</span>
-            <select
-              value={klub}
-              onChange={(e) => ubah(setKlub)(e.target.value)}
-              className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
-            >
-              <option value="semua">Semua klub</option>
-              {daftarKlub.map((k) => (
-                <option key={k} value={k}>
-                  {k}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
 
         <div className="flex items-center gap-4 pb-1 ml-auto">
           <p className="text-sm text-slate-500">
@@ -259,8 +251,7 @@ export default function Peringkat() {
                   <th className="kol-no">#</th>
                   <th className="kol-rating">Rating</th>
                   <th className="kol-nama">Nama</th>
-                  <th className="kol-klub">Klub</th>
-                  <th className="kol-akun">Lichess</th>
+                  <th className="kol-games">All Games</th>
                   <th className="kol-akun">Chess.com</th>
                 </tr>
               </thead>

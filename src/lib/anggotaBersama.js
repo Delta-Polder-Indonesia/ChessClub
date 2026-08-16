@@ -129,6 +129,72 @@ export function namaTampil(a) {
 }
 
 /**
+ * Kontrol waktu yang dikenal Chess.com, beserta urutan tampilnya.
+ * Label dipakai apa adanya pada pilihan "All Games" di tabel Peringkat.
+ */
+export const KONTROL = ["Blitz", "Bullet", "Rapid", "Daily"];
+
+/** Jumlah partai satu blok rating (menang + seri + kalah). */
+function totalPartai(r) {
+  return (r?.win ?? 0) + (r?.draw ?? 0) + (r?.loss ?? 0);
+}
+
+/**
+ * Ringkas rating seorang anggota menjadi daftar pilihan:
+ *
+ *   All Games (n) · Blitz (n) · Bullet (n) · Rapid (n) · Daily (n)
+ *
+ * - "All Games" memakai Elo kontrol utama (`kontrol`, biasanya Rapid) dan
+ *   MENJUMLAHKAN W/D/L dari seluruh kontrol, sehingga angka partainya
+ *   mewakili semua permainan anggota tersebut.
+ * - Kontrol yang belum pernah dimainkan tetap ditampilkan sebagai (0)
+ *   dan dinonaktifkan, supaya susunan pilihan setiap pemain seragam.
+ *
+ * @returns {Array<{id,label,elo,win,draw,loss,total,ada}>}
+ */
+export function opsiKontrol(a) {
+  const ratings = a?.ratings || {};
+
+  let win = 0;
+  let draw = 0;
+  let loss = 0;
+  for (const nama of KONTROL) {
+    const r = ratings[nama];
+    if (!r) continue;
+    win += r.win ?? 0;
+    draw += r.draw ?? 0;
+    loss += r.loss ?? 0;
+  }
+
+  const semua = {
+    id: "all",
+    label: "All Games",
+    elo: eloAnggota(a),
+    win,
+    draw,
+    loss,
+    total: win + draw + loss,
+    ada: true,
+  };
+
+  const rinci = KONTROL.map((nama) => {
+    const r = ratings[nama];
+    return {
+      id: nama,
+      label: nama,
+      elo: r?.elo ?? null,
+      win: r?.win ?? 0,
+      draw: r?.draw ?? 0,
+      loss: r?.loss ?? 0,
+      total: totalPartai(r),
+      ada: Boolean(r),
+    };
+  });
+
+  return [semua, ...rinci];
+}
+
+/**
  * Susun papan peringkat dari daftar anggota yang sama.
  *
  * Anggota tanpa rating tidak diberi nomor peringkat (`no: null`) supaya
