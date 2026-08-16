@@ -23,7 +23,6 @@ const AWAL = {
   tanggalLahir: "",
   email: "",
   klub: "",
-  lichess: "",
   setuju: false,
 };
 
@@ -336,15 +335,6 @@ export default function PendaftaranAnggota() {
               onChange={ubah}
               placeholder={t("pendaftaran.phKlub")}
               catatan={t("pendaftaran.catatanKlub")}
-            />
-            <Isian
-              nama="lichess"
-              label={t("pendaftaran.labelLichess")}
-              nilai={form.lichess}
-              onChange={ubah}
-              galat={galat.lichess}
-              placeholder={t("pendaftaran.phLichess")}
-              catatan={t("pendaftaran.catatanLichess")}
             />
           </fieldset>
 

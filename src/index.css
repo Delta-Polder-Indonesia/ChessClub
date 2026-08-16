@@ -278,22 +278,54 @@ section[id] {
   font-weight: 500;
   color: #0f172a;
 }
-.tabel-peringkat .kol-klub {
-  width: 110px;
-  white-space: nowrap;
-  font-weight: 600;
-}
 .tabel-peringkat .kol-akun {
   white-space: nowrap;
 }
-.tabel-peringkat .kol-akun a,
-.tabel-peringkat .kol-klub a {
+.tabel-peringkat .kol-akun a {
   color: #0B2F9F;
   text-decoration: none;
 }
-.tabel-peringkat .kol-akun a:hover,
-.tabel-peringkat .kol-klub a:hover {
+.tabel-peringkat .kol-akun a:hover {
   text-decoration: underline;
+}
+
+/* Kolom "All Games": pemilih jenis permainan + rekap W/D/L. */
+.tabel-peringkat .kol-games {
+  width: 210px;
+  white-space: nowrap;
+}
+.tabel-peringkat .pilih-games {
+  font: inherit;
+  font-size: 13px;
+  color: #0f172a;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 3px 26px 3px 8px;
+  cursor: pointer;
+  outline: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 7px center;
+  background-size: 12px 12px;
+}
+.tabel-peringkat .pilih-games:hover {
+  border-color: #94a3b8;
+}
+.tabel-peringkat .pilih-games:focus {
+  border-color: #0B2F9F;
+  box-shadow: 0 0 0 2px rgba(11, 47, 159, 0.15);
+}
+.tabel-peringkat .pilih-games option:disabled {
+  color: #94a3b8;
+}
+.tabel-peringkat .rekap-wdl {
+  display: inline-block;
+  margin-left: 8px;
+  font-size: 12px;
+  color: #64748b;
+  font-variant-numeric: tabular-nums;
 }
 
 .tabel-kci .elo-pilih select {
