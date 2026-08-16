@@ -60,14 +60,22 @@ export default function HubungiKami() {
       <CorporateSection id="hubungi-kami" title="Kirim Pesan" className="pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0">
         {terkirim ? (
           <div className="border border-green-200 bg-green-50 rounded-lg p-5 text-green-800">
-            <p className="font-semibold mb-1">Pesan berhasil dikirim.</p>
-            <p>Terima kasih. Tim kami akan membalas melalui email pada hari kerja.</p>
+            <p className="font-semibold mb-1">Pesan Anda sudah disiapkan di aplikasi email.</p>
+            <p>
+              Isi pesan telah dimasukkan ke draf email — tekan <strong>Kirim</strong> di
+              aplikasi email Anda untuk mengirimkannya. Bila aplikasi email tidak
+              terbuka, kirim pesan Anda secara manual ke{" "}
+              <a className="font-semibold underline" href="mailto:info@komunitascatur.or.id">
+                info@komunitascatur.or.id
+              </a>
+              .
+            </p>
             <button
               type="button"
               onClick={() => setTerkirim(false)}
               className="mt-4 text-sm font-semibold text-primary hover:underline"
             >
-              Kirim pesan lain
+              Tulis pesan lain
             </button>
           </div>
         ) : (
@@ -76,6 +84,22 @@ export default function HubungiKami() {
             className="flex flex-col gap-4"
             onSubmit={(event) => {
               event.preventDefault();
+              // Situs statis tidak punya server email — pesan disampaikan lewat
+              // klien email pengguna (mailto) agar tetap benar-benar sampai.
+              const data = new FormData(event.currentTarget);
+              const ambil = (k) => String(data.get(k) || "").trim();
+              const subjek = ambil("subjek") || "Pesan untuk Komunitas Catur Indonesia";
+              const kepala = [
+                `Nama: ${ambil("nama")}`,
+                ambil("telepon") ? `Telepon: ${ambil("telepon")}` : null,
+                ambil("organisasi") ? `Organisasi/Klub: ${ambil("organisasi")}` : null,
+                `Email: ${ambil("email")}`,
+              ].filter(Boolean);
+              const badan = [...kepala, "", ambil("pesan")].join("\n");
+              window.location.href =
+                `mailto:info@komunitascatur.or.id` +
+                `?subject=${encodeURIComponent(subjek)}` +
+                `&body=${encodeURIComponent(badan)}`;
               setTerkirim(true);
             }}
           >

@@ -171,15 +171,14 @@ function tanpaRahasia(anggota) {
 
 export async function daftarAnggota() {
   const dasar = await repoAnggota.baca();
-  const [kontak, lengkap] = await Promise.all([
-    repoKontak.baca(),
-    Promise.all(dasar.map((a) => lengkapiAnggota(tanpaRahasia(a)))),
-  ]);
+  const lengkap = await Promise.all(
+    dasar.map((a) => lengkapiAnggota(tanpaRahasia(a)))
+  );
   lengkap.sort((a, b) => (b.elo || 0) - (a.elo || 0));
-  // Nomor WhatsApp ditambahkan agar profil anggota bisa ditampilkan pada
-  // popup Keanggotaan (data pribadi lain — DANA, email, tanggal lahir —
-  // tetap tidak pernah keluar ke klien).
-  return lengkap.map((a) => ({ ...a, hp: kontak[a.username]?.hp || null }));
+  // Data pribadi (nama asli, HP/WA, DANA, email, tanggal lahir) TIDAK ikut
+  // ke respons publik — sesuai janji privasi pada formulir pendaftaran.
+  // Kontak hanya disajikan lewat endpoint pengurus /api/pengurus/kontak/:username.
+  return lengkap;
 }
 
 export async function daftarHitamPublik() {
@@ -395,8 +394,9 @@ export async function daftarkan(body, konteks = {}) {
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
   // Hapus cache Chess.com agar data baru diambil pada request berikutnya
   hapusCache(uname);
-  const anggotaLengkap = await lengkapiAnggota(tanpaRahasia(baru));
-  return { ...anggotaLengkap, hp: bersih.hp };
+  // Respons tidak menyertakan data pribadi — pengguna pun tidak perlu
+  // menerima kembali apa yang baru saja ia kirim.
+  return lengkapiAnggota(tanpaRahasia(baru));
 }
 
 /* --------------------------------------------------- operasi pengurus */
