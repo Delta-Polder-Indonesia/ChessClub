@@ -131,7 +131,7 @@ export function CorporateSidebar({ title, items }) {
 /**
  * Satu item sidebar.
  *
- * - href diawali "/" → rute internal (mis. "/pengadaan/daftar-juara"):
+ * - href diawali "/" → rute internal (mis. "/beranda/daftar-juara"):
  *   memakai <Link> React Router agar berpindah halaman TANPA refresh
  *   (SPA). Basename router (mis. "/ChessClub/") ditangani otomatis.
  * - selain itu (jangkar "#id" dalam halaman, atau URL penuh) → <a>
