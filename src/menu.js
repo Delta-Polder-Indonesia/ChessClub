@@ -174,9 +174,6 @@ export const MENU_ATAS = [
 export function menuAktif(path, pathname) {
   const base = (path || "").split("#")[0];
   if (!base) return false;
-  if (base === "/tentang-kami") {
-    return pathname === "/" || pathname === "/tentang-kami" || pathname.startsWith("/tentang-kami/");
-  }
   return pathname === base || pathname.startsWith(`${base}/`);
 }
 

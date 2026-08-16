@@ -665,7 +665,7 @@ export const ID = {
     deskripsi: "Alamat yang Anda tuju tidak ada di situs ini.",
     kembali: "Kembali",
     p1: "Periksa kembali tautan, atau kembali ke ",
-    p2: "beranda Tentang Kami",
+    p2: "beranda",
     p3: ".",
   },
 };
@@ -1335,7 +1335,7 @@ export const EN = {
     deskripsi: "The address you are looking for does not exist on this site.",
     kembali: "Go Back",
     p1: "Check the link again, or return to the ",
-    p2: "About Us home page",
+    p2: "home page",
     p3: ".",
   },
 };
