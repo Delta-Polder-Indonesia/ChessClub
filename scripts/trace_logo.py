@@ -9,7 +9,9 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-ROOT = Path("/home/user/WebCatur")
+# Akar repo diturunkan dari lokasi skrip ini (scripts/ -> <repo>),
+# bukan path absolut, agar skrip jalan di mesin mana pun.
+ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "public/images/logo-concept.png"
 OUT = ROOT / "public"
 

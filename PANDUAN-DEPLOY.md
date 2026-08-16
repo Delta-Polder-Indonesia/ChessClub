@@ -161,20 +161,27 @@ Poin 3 wajib menghasilkan **401**. Bila menghasilkan 200, berarti
 
 ## 5. Rutinitas pengurus
 
+Semua request POST juga butuh token CSRF — ambil sekali dari
+`GET /api/csrf-token` (berlaku 24 jam, boleh dipakai ulang).
+
 ```bash
 API=https://kci-api.onrender.com
 TOKEN=token-anda
+CSRF=$(curl -s $API/api/csrf-token | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).token))")
 
 # Pindai ban fair play — jalankan sebelum tiap turnamen
-curl -X POST -H "X-Token-Admin: $TOKEN" $API/api/pengurus/pindai
+curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+  $API/api/pengurus/pindai
 
 # Blokir pemain
-curl -X POST -H "X-Token-Admin: $TOKEN" -H "Content-Type: application/json" \
+curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+  -H "Content-Type: application/json" \
   -d '{"username":"namauser","keterangan":"Terbukti memakai engine."}' \
   $API/api/pengurus/blokir
 
 # Cek nomor HP sebelum menerima pemain
-curl -X POST -H "X-Token-Admin: $TOKEN" -H "Content-Type: application/json" \
+curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+  -H "Content-Type: application/json" \
   -d '{"hp":"0812-3456-7890"}' $API/api/pengurus/cek-nomor
 ```
 

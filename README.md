@@ -26,7 +26,7 @@ npm run preview  # pratinjau hasil build
 | Visi, Misi, & Tata Nilai       | `src/components/VisiMisi.jsx`    |
 | Makna Logo                     | `src/components/MaknaLogo.jsx`   |
 | Struktur Grup Perusahaan       | `src/components/Struktur.jsx`    |
-| Navigasi "Selanjutnya"         | `src/components/Selanjutnya.jsx` |
+| Navigasi "Selanjutnya"         | `src/components/PageBagian.jsx` (`PageSelanjutnya`) |
 | Footer (kolom + sosial media)  | `src/components/Footer.jsx`      |
 
 ## Desain

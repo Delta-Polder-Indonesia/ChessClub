@@ -717,6 +717,7 @@ export const EN = {
     pertanyaanUmum: "Frequently Asked Questions",
     hubungiKami: "Contact Us",
     karir: "Careers",
+    beranda: "Home",
     peringkat: "Ratings",
     pengadaan: "Procurement",
     keberlanjutan: "Sustainability",

@@ -428,6 +428,13 @@ async function tangani(req, res) {
     if (e.kode === "JSON_RUSAK" || e.kode === "BUKAN_OBJEK") {
       return kirimJson(res, 400, { pesan: e.message });
     }
+    // Kegagalan berbicara dengan Chess.com bukan kesalahan logika kita —
+    // jawab 502 (Bad Gateway) yang jelas, bukan 500 generik.
+    if (e.name === "GalatChess") {
+      return kirimJson(res, 502, {
+        pesan: e.message || "Chess.com sedang tidak dapat dihubungi.",
+      });
+    }
     console.error(`[kci] galat tak tertangani pada ${metode} ${jalur}:`, e);
     kirimJson(res, 500, { pesan: "Kesalahan server." });
   }

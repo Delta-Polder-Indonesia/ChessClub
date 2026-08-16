@@ -57,8 +57,9 @@ export default class ErrorBoundary extends Component {
               Terjadi Kesalahan
             </h2>
             <p className="mb-6 text-sm leading-6 text-slate-600">
-              Maaf, sesuatu yang tidak terduga terjadi. Silakan coba lagi atau
-              hubungi masalah ini berkelanjutan.
+              Maaf, sesuatu yang tidak terduga terjadi. Silakan coba lagi.
+              Bila masalah ini terus berulang, hubungi kami lewat halaman
+              Hubungi Kami.
             </p>
             <button
               type="button"

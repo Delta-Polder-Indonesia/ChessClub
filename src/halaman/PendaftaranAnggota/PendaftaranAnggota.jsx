@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import {
   daftarDenganChessCom,
@@ -83,7 +83,6 @@ export default function PendaftaranAnggota() {
   const [pesan, setPesan] = useState("");
   const [diblokir, setDiblokir] = useState(false);
   const [verifikasi, setVerifikasi] = useState(null);
-  const [paramUrl, setParamUrl] = useSearchParams();
 
   /* Tangkap hasil verifikasi dari sessionStorage (aman, tidak di URL). */
   useEffect(() => {

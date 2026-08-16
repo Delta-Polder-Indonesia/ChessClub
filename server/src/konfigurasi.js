@@ -78,7 +78,10 @@ export const konfigurasi = {
 
   /** Chess.com */
   chess: {
-    dasar: "https://api.chess.com/pub",
+    /** Alamat dasar API publik Chess.com.
+     * KCI_CHESS_DASAR hanya untuk pengujian (menunjuk server tiruan lokal);
+     * jangan diatur di produksi. */
+    dasar: process.env.KCI_CHESS_DASAR || "https://api.chess.com/pub",
     ua:
       process.env.KCI_USER_AGENT ||
       "KomunitasCaturIndonesia/1.0 (contact: info@komunitascatur.or.id)",
