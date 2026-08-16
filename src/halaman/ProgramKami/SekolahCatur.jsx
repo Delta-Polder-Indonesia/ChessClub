@@ -9,7 +9,10 @@ export default function SekolahCatur() {
       parent={t("nav.programKami")}
       parentPath="/program-kami"
       description={t("sekolahCatur.deskripsi")}
-      next={{ to: "/turnamen", judul: t("sekolahCatur.nextJudul") }}
+      next={{
+        to: "/program-kami/sekolah-catur/cara-bermain-catur",
+        judul: t("nav.caraBermainCatur"),
+      }}
     >
       <PageArtikel title={t("sekolahCatur.artikel")}>
         <p>{t("sekolahCatur.p1")}</p>

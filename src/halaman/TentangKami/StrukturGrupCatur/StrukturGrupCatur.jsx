@@ -41,6 +41,7 @@ export default function StrukturGrupCatur() {
       description={t("strukturGrupCatur.deskripsi")}
       parent={t("nav.tentangKami")}
       parentPath="/tentang-kami"
+      next={{ to: "/program-kami", judul: t("nav.programKami") }}
       submenu={
         <StickyMenu
           sections={TAB_MENU}

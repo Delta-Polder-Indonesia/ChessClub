@@ -37,7 +37,10 @@ export default function TentangKami() {
 
       <Struktur />
 
-      <PageSelanjutnya to="/program-kami" judul={t("nav.programKami")} />
+      <PageSelanjutnya
+        to="/tentang-kami/struktur-grup-catur"
+        judul={t("nav.strukturGrupCatur")}
+      />
     </>
   );
 }
