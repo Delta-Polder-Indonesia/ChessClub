@@ -129,6 +129,18 @@ export function namaTampil(a) {
 }
 
 /**
+ * Apakah akun Chess.com anggota terkena ban fair play.
+ * Chess.com menutup akun pelanggar dengan status `closed:fair_play_violations`
+ * (diterjemahkan server menjadi `alasanStatus: "fair_play_violations"`).
+ */
+export function kenaBan(a) {
+  return (
+    a?.statusChess === "closed:fair_play_violations" ||
+    a?.alasanStatus === "fair_play_violations"
+  );
+}
+
+/**
  * Kontrol waktu yang dikenal Chess.com, beserta urutan tampilnya.
  * Label dipakai apa adanya pada pilihan "All Games" di tabel Peringkat.
  */

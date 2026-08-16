@@ -1,37 +1,195 @@
-import { useMemo, useState } from "react";
-import { useAnggota } from "../../../../lib/anggotaBersama.js";
+/**
+ * Tab Keanggotaan → Daftar Anggota.
+ *
+ * Fokus bagian ini adalah IDENTITAS pemain, bukan statistik (W/D/L,
+ * rating, dan riwayat permainan sudah lengkap di halaman Peringkat).
+ * Kolomnya sederhana:
+ *
+ *   No · Foto · Nama · Bergabung · Chess.com
+ *
+ * Klik nama membuka POPUP PROFIL berisi data yang diisi anggota saat
+ * mendaftar: panggilan, kota, klub, kategori umur, tanggal bergabung,
+ * username Chess.com, dan nomor WhatsApp. Nomor DANA, email, dan tanggal
+ * lahir TIDAK pernah ditampilkan (privasi).
+ *
+ * Sumber data TETAP satu pintu: useAnggota() → GET /api/anggota.
+ * Urutan baris: anggota terbaru di atas (waktu gabung menurun).
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
+import { CentangBiru, LencanaBan } from "../../../../components/Lencana.jsx";
+import { useAnggota, kenaBan } from "../../../../lib/anggotaBersama.js";
+import { formatHp } from "../../../../lib/chessAnggota.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
-import { TINGKATAN_RATING } from "./TingkatanRating.jsx";
 
 function sel(nilai) {
   return nilai === null || nilai === undefined || nilai === "" ? "—" : nilai;
 }
 
-function lolosFilter(a, tab) {
-  const elo = Number(a.elo);
-  const ada = Number.isFinite(elo);
-  if (tab === "semua") return true;
-  if (tab === "tanpa-rating") return !ada;
-
-  const tingkat = TINGKATAN_RATING.find((item) => item.id === tab);
-  if (!tingkat || !ada) return false;
-  if (tingkat.max === null) return elo >= tingkat.min;
-  // Batas bawah inklusif, batas atas eksklusif agar rating tidak masuk dua kelompok.
-  return elo >= tingkat.min && elo < tingkat.max;
+/** Format tanggal ISO menjadi "13 Agustus 2026" mengikuti bahasa aktif. */
+function formatTanggal(iso, bahasa) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(bahasa === "en" ? "en-US" : "id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 }
 
-function BarisAnggota({ a, no }) {
+/** Popup profil anggota — isi sesuai data yang ia isi saat pendaftaran. */
+function PopupProfil({ a, tutup, bahasa }) {
   const { t } = useI18n();
-  const opsi = Object.keys(a.ratings || {});
-  const awal = opsi.includes(a.kontrol) ? a.kontrol : opsi[0] || "";
-  const [kontrol, setKontrol] = useState(awal);
-  const data = (kontrol && a.ratings?.[kontrol]) || {
-    elo: a.elo,
-    win: a.win,
-    draw: a.draw,
-    loss: a.loss,
-  };
+  const refTombolTutup = useRef(null);
 
+  useEffect(() => {
+    refTombolTutup.current?.focus();
+    const tangkapKunci = (e) => {
+      if (e.key === "Escape") tutup();
+    };
+    const lebarSebelum = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", tangkapKunci);
+    return () => {
+      document.body.style.overflow = lebarSebelum;
+      document.removeEventListener("keydown", tangkapKunci);
+    };
+  }, [tutup]);
+
+  const baris = [
+    { label: t("keanggotaan.panggilan"), nilai: sel(a.panggilan) },
+    { label: t("keanggotaan.kota"), nilai: sel(a.kota) },
+    { label: t("keanggotaan.klub"), nilai: sel(a.klub) },
+    { label: t("keanggotaan.kategoriUmur"), nilai: sel(a.kategoriUmur) },
+    {
+      label: t("keanggotaan.bergabung"),
+      nilai: formatTanggal(a.daftarPada, bahasa),
+    },
+    { label: t("keanggotaan.wa"), nilai: a.hp ? formatHp(a.hp) : "—" },
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="profil-anggota-judul"
+      className="fixed inset-0 z-[80] flex items-center justify-center p-4"
+      onClick={tutup}
+    >
+      <div className="absolute inset-0 bg-slate-900/50" aria-hidden="true" />
+      <div
+        className="relative w-full max-w-2xl rounded-xl border border-slate-200 bg-white p-5 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          ref={refTombolTutup}
+          type="button"
+          onClick={tutup}
+          aria-label={t("keanggotaan.tutup")}
+          className="absolute right-3 top-3 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            className="h-5 w-5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+
+        <p
+          id="profil-anggota-judul"
+          className="break-words pr-8 text-lg font-bold leading-6 text-slate-900"
+        >
+          {a.nama || a.username}
+          {a.terverifikasi && <CentangBiru />}
+          {kenaBan(a) && <LencanaBan />}
+          {a.panggilan && (
+            <span className="ml-2 text-sm font-normal italic text-slate-500">
+              “{a.panggilan}”
+            </span>
+          )}
+        </p>
+
+        <div className="mt-4 flex items-start gap-4">
+          <div className="flex-none">
+            <div className="mt-4">
+              {a.foto ? (
+                <img
+                  src={a.foto}
+                  alt={a.nama || a.username}
+                  width="96"
+                  height="128"
+                  className="foto-ktp"
+                />
+              ) : (
+                <span className="foto-ktp foto-anggota-kosong">
+                  {(a.nama || a.username || "?").slice(0, 1).toUpperCase()}
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <dl className="mt-3 grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+              {baris.map((b) => (
+                <div key={b.label}>
+                  <dt className="text-xs uppercase tracking-wide text-slate-500">
+                    {b.label}
+                  </dt>
+                  <dd className="break-words font-medium text-slate-800">
+                    {b.nilai}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+
+            <div className="mt-3 border-t border-slate-100 pt-2 text-sm">
+              <dt className="text-xs uppercase tracking-wide text-slate-500">
+                Chess.com
+              </dt>
+              <dd className="mt-0.5 break-words font-medium">
+                {a.url ? (
+                  <a
+                    href={a.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-[#0B2F9F] underline underline-offset-2 hover:text-primary"
+                  >
+                    {a.username}
+                  </a>
+                ) : (
+                  a.username
+                )}
+              </dd>
+            </div>
+          </div>
+        </div>
+
+        {kenaBan(a) && (
+          <p className="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs leading-5 text-red-900">
+            {a.peringatan || t("keanggotaan.terkenaBan")}
+          </p>
+        )}
+        {a.hilang && (
+          <p className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+            {t("keanggotaan.akunHilang")}
+          </p>
+        )}
+        {a.gagal && (
+          <p className="mt-4 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+            {t("keanggotaan.gagal")}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function BarisAnggota({ a, no, lihatProfil, bahasa }) {
+  const { t } = useI18n();
   return (
     <tr>
       <td>{no}</td>
@@ -42,6 +200,7 @@ function BarisAnggota({ a, no }) {
             alt={a.nama || a.username}
             width="40"
             height="40"
+            loading="lazy"
             className="foto-anggota"
           />
         ) : (
@@ -50,7 +209,21 @@ function BarisAnggota({ a, no }) {
           </span>
         )}
       </td>
-      <td>{a.nama || a.username}</td>
+      <td>
+        <button
+          type="button"
+          onClick={() => lihatProfil(a)}
+          aria-label={`${t("keanggotaan.lihatProfil")}: ${a.nama || a.username}`}
+          className="inline-flex items-center gap-0.5 text-left font-medium text-slate-900 underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:text-primary hover:decoration-primary"
+        >
+          {a.nama || a.username}
+          {a.terverifikasi && <CentangBiru />}
+          {kenaBan(a) && <LencanaBan />}
+        </button>
+      </td>
+      <td className="whitespace-nowrap">
+        {formatTanggal(a.daftarPada, bahasa)}
+      </td>
       <td>
         {a.url ? (
           <a href={a.url} target="_blank" rel="noreferrer noopener">
@@ -60,46 +233,12 @@ function BarisAnggota({ a, no }) {
           a.username
         )}
       </td>
-      <td>
-        {a.hilang ? (
-          t("keanggotaan.akunHilang")
-        ) : a.gagal ? (
-          t("keanggotaan.gagal")
-        ) : data.elo !== null && data.elo !== undefined && data.elo !== "" ? (
-          <span className="elo-pilih">
-            {data.elo}{" "}
-            {opsi.length > 0 ? (
-              <select
-                aria-label={t("keanggotaan.ratingType", { username: a.username })}
-                value={kontrol}
-                onChange={(e) => setKontrol(e.target.value)}
-              >
-                {opsi.map((k) => (
-                  <option key={k} value={k}>
-                    {k}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              `(${a.kontrol})`
-            )}
-          </span>
-        ) : (
-          t("keanggotaan.belumRating")
-        )}
-      </td>
-      <td>{a.hilang || a.gagal ? "—" : sel(data.win)}</td>
-      <td>{a.hilang || a.gagal ? "—" : sel(data.draw)}</td>
-      <td>{a.hilang || a.gagal ? "—" : sel(data.loss)}</td>
     </tr>
   );
 }
 
-function TabelAnggota({ baris }) {
+function TabelAnggota({ baris, lihatProfil, bahasa }) {
   const { t } = useI18n();
-  if (!baris.length) {
-    return <p>{t("keanggotaan.tidakAda")}</p>;
-  }
   return (
     <div className="overflow-x-auto">
       <table className="tabel-kci">
@@ -108,16 +247,19 @@ function TabelAnggota({ baris }) {
             <th>{t("keanggotaan.no")}</th>
             <th>{t("keanggotaan.foto")}</th>
             <th>{t("keanggotaan.nama")}</th>
+            <th>{t("keanggotaan.bergabung")}</th>
             <th>Chess.com</th>
-            <th>Elo</th>
-            <th>W</th>
-            <th>D</th>
-            <th>L</th>
           </tr>
         </thead>
         <tbody>
           {baris.map((a, i) => (
-            <BarisAnggota key={a.username} a={a} no={i + 1} />
+            <BarisAnggota
+              key={a.username}
+              a={a}
+              no={i + 1}
+              lihatProfil={lihatProfil}
+              bahasa={bahasa}
+            />
           ))}
         </tbody>
       </table>
@@ -125,48 +267,30 @@ function TabelAnggota({ baris }) {
   );
 }
 
-const OPSI_ELO = (t) => [
-  { id: "semua", label: t("keanggotaan.tabSemua") },
-  { id: "tanpa-rating", label: t("keanggotaan.tabTanpaRating") },
-  ...TINGKATAN_RATING.map((tingkat) => ({
-    id: tingkat.id,
-    label: `${tingkat.range} · ${t(`keanggotaan.tingkatan.${tingkat.id}.label`)}`,
-  })),
-];
-
 export default function DaftarAnggota() {
-  const { t } = useI18n();
-  const [tab, setTab] = useState("semua");
+  const { t, bahasa } = useI18n();
+  const [dipilih, setDipilih] = useState(null);
 
   // Satu pintu: sumber data yang sama dengan halaman Peringkat.
   const { anggota, status, pesan } = useAnggota();
 
+  // Anggota terbaru di atas (urutan waktu gabung menurun).
   const tampil = useMemo(
-    () => anggota.filter((a) => lolosFilter(a, tab)),
-    [anggota, tab]
+    () =>
+      [...anggota].sort((x, y) => {
+        const tx = x.daftarPada ? new Date(x.daftarPada).getTime() : 0;
+        const ty = y.daftarPada ? new Date(y.daftarPada).getTime() : 0;
+        return ty - tx;
+      }),
+    [anggota]
   );
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-slate-500">
           {t("keanggotaan.jumlah", { jumlah: anggota.length })}
         </p>
-        <label className="flex items-center gap-2 text-sm text-grey-800">
-          <span className="font-medium">{t("keanggotaan.saringElo")}</span>
-          <select
-            value={tab}
-            onChange={(e) => setTab(e.target.value)}
-            aria-label={t("keanggotaan.saringElo")}
-            className="border-0 border-b border-solid border-grey-300 outline-none py-1 pl-1 pr-8 text-sm bg-transparent focus:border-primary cursor-pointer"
-          >
-            {OPSI_ELO(t).map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.label}
-              </option>
-            ))}
-          </select>
-        </label>
       </div>
 
       {status === "memuat" && <p>{t("keanggotaan.memuat")}</p>}
@@ -178,7 +302,19 @@ export default function DaftarAnggota() {
         </p>
       )}
       {status === "siap" && anggota.length > 0 && (
-        <TabelAnggota baris={tampil} />
+        <TabelAnggota
+          baris={tampil}
+          lihatProfil={setDipilih}
+          bahasa={bahasa}
+        />
+      )}
+
+      {dipilih && (
+        <PopupProfil
+          a={dipilih}
+          tutup={() => setDipilih(null)}
+          bahasa={bahasa}
+        />
       )}
     </>
   );
