@@ -335,6 +335,9 @@ export const ID = {
     labelKlub: "Klub / Komunitas Asal",
     phKlub: "contoh: Klub Catur Medan",
     catatanKlub: "Bila Anda sudah tergabung di klub lain.",
+    labelLichess: "Username Lichess (opsional)",
+    phLichess: "contoh: namasaya",
+    catatanLichess: "Bila punya akun Lichess, akan tampil di tabel Peringkat.",
 
     setuju:
       "Saya menyatakan data di atas benar, bahwa ini satu-satunya akun saya di komunitas, dan saya menyetujui Kode Etik Komunitas — termasuk larangan menggunakan bantuan engine.",
@@ -1004,6 +1007,9 @@ export const EN = {
     labelKlub: "Club / Home Community",
     phKlub: "e.g.: Medan Chess Club",
     catatanKlub: "If you already belong to another club.",
+    labelLichess: "Lichess Username (optional)",
+    phLichess: "e.g.: myname",
+    catatanLichess: "If you have a Lichess account, it will show in the Ratings table.",
 
     setuju:
       "I declare that the data above is correct, that this is my only account in the community, and I agree to the Community Code of Ethics — including the prohibition on using engine assistance.",

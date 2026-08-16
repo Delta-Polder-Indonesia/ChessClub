@@ -9,13 +9,15 @@
  * terverifikasi, namanya langsung muncul di kedua halaman tanpa perlu
  * menyunting berkas apa pun.
  *
- * Bentuk tabel mengikuti referensi https://ligacatur.com/ratings :
+ * Susunan tabel dibuat SAMA PERSIS dengan referensi
+ * https://ligacatur.com/ratings — enam kolom, urutan identik:
  *
- *   #  |  Rating  |  Nama  |  Klub  |  Chess.com  |  W/D/L
+ *   #  |  Rating  |  Nama  |  Klub  |  Lichess  |  Chess.com
  *
- * Kolom "Lichess" pada situs referensi diganti "Chess.com" karena
- * keanggotaan komunitas ini memang berbasis akun Chess.com; kolom W/D/L
- * ditambahkan karena datanya sudah tersedia dari sumber yang sama.
+ * Nama ditulis KAPITAL dengan lencana centang biru menempel di
+ * belakangnya, kolom Klub berisi kode klub singkat, dan dua kolom
+ * terakhir berisi username yang tertaut ke profil masing-masing.
+ * Sel yang kosong dibiarkan benar-benar kosong, seperti aslinya.
  */
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -52,63 +54,43 @@ function CentangBiru() {
   );
 }
 
-/** Nama tingkatan rating (dipakai bersama tab Keanggotaan). */
-function tingkatDari(elo) {
-  if (elo === null) return null;
-  return (
-    TINGKATAN_RATING.find((t) =>
-      t.max === null ? elo >= t.min : elo >= t.min && elo < t.max
-    ) || null
-  );
-}
-
 function BarisPeringkat({ a }) {
   const elo = eloAnggota(a);
-  const tingkat = tingkatDari(elo);
-  const bermasalah = a.hilang || a.gagal;
 
   return (
     <tr>
-      <td className="text-slate-500">{a.no ?? "—"}</td>
-      <td className="font-semibold text-slate-900 whitespace-nowrap">
-        {elo === null ? (
-          <span className="font-normal text-slate-400">—</span>
+      <td className="kol-no">{a.no ?? ""}</td>
+      <td className="kol-rating">{elo === null ? "" : elo}</td>
+      <td className="kol-nama">
+        {namaTampil(a).toUpperCase()}
+        {a.terverifikasi && <CentangBiru />}
+      </td>
+      <td className="kol-klub">{a.klub || ""}</td>
+      <td className="kol-akun">
+        {a.lichess ? (
+          <a
+            href={`https://lichess.org/@/${a.lichess}`}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            {a.lichess}
+          </a>
         ) : (
-          <>
-            {elo}
-            {a.kontrol && (
-              <span className="ml-1 text-xs font-normal text-slate-500">
-                {a.kontrol}
-              </span>
-            )}
-          </>
+          ""
         )}
       </td>
-      <td>
-        <span className="whitespace-nowrap">
-          {namaTampil(a).toUpperCase()}
-          {a.terverifikasi && <CentangBiru />}
-        </span>
-        {tingkat && (
-          <span className="block text-xs text-slate-500">
-            {tingkat.range}
-          </span>
-        )}
-      </td>
-      <td>{a.klub || ""}</td>
-      <td>
-        {a.url ? (
-          <a href={a.url} target="_blank" rel="noreferrer noopener">
+      <td className="kol-akun">
+        {a.username ? (
+          <a
+            href={a.url || `https://chess.com/member/${a.username}`}
+            target="_blank"
+            rel="noreferrer noopener"
+          >
             {a.username}
           </a>
         ) : (
-          a.username
+          ""
         )}
-      </td>
-      <td className="whitespace-nowrap">
-        {bermasalah
-          ? "—"
-          : `${a.win ?? 0} / ${a.draw ?? 0} / ${a.loss ?? 0}`}
       </td>
     </tr>
   );
@@ -151,6 +133,7 @@ export default function Peringkat() {
       return (
         namaTampil(a).toLowerCase().includes(kunci) ||
         (a.username || "").toLowerCase().includes(kunci) ||
+        (a.lichess || "").toLowerCase().includes(kunci) ||
         (a.klub || "").toLowerCase().includes(kunci)
       );
     });
@@ -273,12 +256,12 @@ export default function Peringkat() {
             <table className="tabel-kci tabel-peringkat">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th>Rating</th>
-                  <th>Nama</th>
-                  <th>Klub</th>
-                  <th>Chess.com</th>
-                  <th>W / D / L</th>
+                  <th className="kol-no">#</th>
+                  <th className="kol-rating">Rating</th>
+                  <th className="kol-nama">Nama</th>
+                  <th className="kol-klub">Klub</th>
+                  <th className="kol-akun">Lichess</th>
+                  <th className="kol-akun">Chess.com</th>
                 </tr>
               </thead>
               <tbody>
