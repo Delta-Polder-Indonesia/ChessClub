@@ -44,6 +44,15 @@ export function jalurBeranda(path) {
   return path === "/" || path === "/beranda" || path.startsWith("/beranda/");
 }
 
+/**
+ * True bila path adalah Beranda UTAMA (foto hero di atas tetap terlihat):
+ * "/" atau "/beranda". Berbeda dengan jalurBeranda() yang juga mencakup
+ * tab isi ("/beranda/daftar-juara", dsb).
+ */
+export function jalurBerandaUtama(path) {
+  return path === "/" || path === "/beranda";
+}
+
 /** Id item sidebar yang sesuai dengan path saat ini. */
 export function idBerandaDariPath(path) {
   if (path === "/" || path === "/beranda") return "turnamen";

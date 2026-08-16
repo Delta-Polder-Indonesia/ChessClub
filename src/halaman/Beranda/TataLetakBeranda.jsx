@@ -34,13 +34,36 @@ export default function TataLetakBeranda() {
   const { pathname } = useLocation();
   const id = idBerandaDariPath(pathname);
   const next = BERANDA_BERIKUT[id];
-  const pertama = useRef(true);
+  // Menyimpan id tab SEBELUMNYA (riwayat navigasi), BUKAN flag "pertama kali".
+  // Tidak memakai pola useRef(true) yang di-set false di dalam effect: pola
+  // itu RUSAK di React StrictMode (effect dijalankan dua kali, ref tetap
+  // bernilai false pada run kedua sehingga halaman langsung menggulir ke
+  // artikel saat pertama buka Beranda).
+  const idSebelumnya = useRef(null);
 
   useEffect(() => {
-    if (pertama.current) {
-      pertama.current = false;
-      return;
+    const prev = idSebelumnya.current;
+    idSebelumnya.current = id;
+
+    // Mount pertama (termasuk saat tiba langsung ke tab isi): jangan gulir
+    // ke artikel — foto hero di atas harus tetap terlihat.
+    if (prev === null) {
+      return undefined;
     }
+
+    // Id tidak berubah (mis. StrictMode menjalankan effect ulang): tidak ada
+    // yang perlu digulir.
+    if (prev === id) {
+      return undefined;
+    }
+
+    // Kembali ke Beranda utama ("turnamen"): foto hero di atas terlihat.
+    if (id === "turnamen") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return undefined;
+    }
+
+    // Pindah ke tab isi: fokus ke judul artikel di bawah foto (bukan hero).
     let coba = 0;
     let frame = 0;
     const gulir = () => {
