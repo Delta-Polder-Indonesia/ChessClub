@@ -31,6 +31,22 @@ export const konfigurasi = {
   port: angka(process.env.PORT, 8787),
   host: process.env.HOST || "0.0.0.0",
 
+  /**
+   * Jumlah proxy tepercaya di DEPAN server (mis. Cloudflare, Nginx,
+   * Render, Load Balancer). Header X-Forwarded-For hanya dihormati
+   * bila nilai ini > 0.
+   *
+   * - 0 (bawaan): server terhubung langsung ke klien. X-Forwarded-For
+   *   DIABAIKAN — IP klien diambil dari socket, sehingga penyerang tidak
+   *   bisa memalsukan identitas untuk melewati pembatasan laju.
+   * - 1: satu proxy tepercaya. IP klien adalah entri PALING KANAN di
+   *   X-Forwarded-For (yang ditambahkan proxy tepercaya).
+   * - N: N proxy tepercaya. Hitung N entri dari kanan.
+   *
+   * Jangan naikkan nilai ini tanpa benar-benar ada proxy di depan.
+   */
+  jumlahProxyTepercaya: angka(process.env.KCI_JUMLAH_PROXY, 0),
+
   /** Kata rahasia untuk hashing identitas. Wajib di produksi. */
   pepper: process.env.KCI_PEPPER || "",
 

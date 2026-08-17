@@ -45,7 +45,7 @@ export class GalatAplikasi extends Error {
 
 /* --------------------------------------------------------------- audit */
 
-async function catatJejak(peristiwa, rincian) {
+export async function catatJejak(peristiwa, rincian) {
   try {
     await tambahBaris(konfigurasi.berkasJejak, {
       waktu: new Date().toISOString(),
@@ -507,6 +507,7 @@ export async function blokir({
  */
 export async function blokirAnggota(username, keterangan) {
   const uname = normalisasiUsername(username);
+  const keter = String(keterangan || "").trim().slice(0, 500);
   const [anggotaLokal, anggotaKlub] = await Promise.all([
     repoAnggota.baca(),
     daftarAnggotaKlub(),
@@ -522,7 +523,7 @@ export async function blokirAnggota(username, keterangan) {
     playerId: targetLokal?.playerId ?? null,
     identitas: targetLokal?.identitas || {},
     alasan: "keputusan_pengurus",
-    keterangan: keterangan || "Diblokir berdasarkan keputusan pengurus.",
+    keterangan: keter || "Diblokir berdasarkan keputusan pengurus.",
     sumber: "pengurus",
   });
 
@@ -535,7 +536,7 @@ export async function blokirAnggota(username, keterangan) {
     }));
   }
 
-  await catatJejak("blokir-manual", { username: uname, keterangan });
+  await catatJejak("blokir-manual", { username: uname, keterangan: keter });
   // Hapus cache Chess.com agar data terbaru diambil
   hapusCache(uname);
   return entri;
@@ -690,7 +691,8 @@ export async function ringkasan() {
     daftarHitam: hitam.length,
     otomatis: hitam.filter((h) => h.sumber === "otomatis").length,
     pengurus: hitam.filter((h) => h.sumber === "pengurus").length,
-    sidikPepper: sidikPepper(),
+    // Catatan: sidikPepper() sengaja TIDAK dikirim ke klien. Ia hanya
+    // dipakai server untuk mendeteksi perubahan pepper antar-berkas.
   };
 }
 

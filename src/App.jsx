@@ -37,6 +37,9 @@ const BeritaKomunitas = lazy(() => import("./halaman/MediaDanInformasi/BeritaKom
 const Pengumuman = lazy(() => import("./halaman/MediaDanInformasi/Pengumuman.jsx"));
 const Galeri = lazy(() => import("./halaman/MediaDanInformasi/Galeri.jsx"));
 const BuletinBulanan = lazy(() => import("./halaman/MediaDanInformasi/BuletinBulanan.jsx"));
+const DetailKonten = lazy(() => import("./halaman/MediaDanInformasi/DetailKonten.jsx"));
+const DetailBerita = () => <DetailKonten jenis="berita" />;
+const DetailPengumuman = () => <DetailKonten jenis="pengumuman" />;
 
 // Keberlanjutan & keanggotaan
 const Keberlanjutan = lazy(() => import("./halaman/Keberlanjutan/Keberlanjutan.jsx"));
@@ -96,7 +99,9 @@ const RUTE_HALAMAN = [
 
   ["/media-dan-informasi", MediaDanInformasi],
   ["/media-dan-informasi/berita-komunitas", BeritaKomunitas],
+  ["/media-dan-informasi/berita/:id", DetailBerita],
   ["/media-dan-informasi/pengumuman", Pengumuman],
+  ["/media-dan-informasi/pengumuman/:id", DetailPengumuman],
   ["/media-dan-informasi/galeri", Galeri],
   ["/media-dan-informasi/buletin-bulanan", BuletinBulanan],
 

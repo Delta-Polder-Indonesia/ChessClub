@@ -157,6 +157,9 @@ export async function luncurkanServerUji({ tanpaToken = false, chessDasar, env =
       KCI_CHESS_DASAR: targetChess,
       KCI_CHESS_TIMEOUT: "1500",
       KCI_CHESS_RETRY: "2",
+      // Uji mensimulasikan IP klien lewat X-Forwarded-For; beri tahu
+      // server bahwa ada satu proxy tepercaya di depannya.
+      KCI_JUMLAH_PROXY: "1",
       ...env,
     },
     stdio: ["ignore", "inherit", "inherit"],

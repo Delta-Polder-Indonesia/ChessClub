@@ -34,8 +34,14 @@ export default function ProtectedRoute({ children }) {
       if (err.status === 401 || err.status === 403) {
         // Token tidak sah: buang agar tidak dipakai ulang.
         tokenPengurus.hapus();
+        setStatus("tanpa-akses");
+        return;
       }
-      setStatus("tanpa-akses");
+      // 5xx / jaringan / Chess.com sementara tak terjangkau BUKAN
+      // alasan untuk menendang pengguna keluar. Tampilkan pesan dan
+      // izinkan mencoba lagi — jangan kunci dashboard seumur hidup
+      // hanya karena layanan pihak ketiga sedang down.
+      setStatus("galat");
     }
   }, []);
 
@@ -47,6 +53,28 @@ export default function ProtectedRoute({ children }) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50">
         <LoadingSpinner label="Memeriksa akses…" />
+      </div>
+    );
+  }
+
+  if (status === "galat") {
+    return (
+      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-6 text-center">
+        <h1 className="text-lg font-bold text-slate-900">
+          Tidak dapat menghubungi server
+        </h1>
+        <p className="mt-2 text-sm leading-6 text-slate-600">
+          Token Anda masih tersimpan, tetapi verifikasi ke server gagal
+          (mis. Chess.com sedang tidak dapat dihubungi). Coba lagi beberapa
+          saat lagi.
+        </p>
+        <button
+          type="button"
+          onClick={periksa}
+          className="mt-5 rounded-full bg-primary px-5 py-2.5 text-xs font-bold text-white hover:opacity-90"
+        >
+          Coba lagi
+        </button>
       </div>
     );
   }
