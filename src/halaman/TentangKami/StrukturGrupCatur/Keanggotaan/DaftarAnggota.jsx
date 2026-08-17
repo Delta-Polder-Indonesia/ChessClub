@@ -7,16 +7,15 @@
  *
  *   No · Foto · Nama · Bergabung · Chess.com
  *
- * Klik nama membuka POPUP PROFIL berisi data yang diisi anggota saat
- * mendaftar: panggilan, kota, klub, kategori umur, tanggal bergabung, dan
- * username Chess.com. Nomor HP/DANA, email, dan tanggal lahir TIDAK pernah
- * ditampilkan (privasi) — sesuai janji pada formulir pendaftaran.
+ * Klik nama membuka POPUP PROFIL dengan data publik akun dan, bila pemain
+ * pernah melengkapi formulir, metadata tambahan seperti panggilan dan kota.
+ * Nomor HP/DANA, email, dan tanggal lahir TIDAK pernah ditampilkan.
  *
- * Sumber data TETAP satu pintu: useAnggota() → GET /api/anggota.
- * Urutan baris: anggota terbaru di atas (waktu gabung menurun).
+ * Sumber data TETAP satu pintu: useAnggota() → GET /api/anggota. Server
+ * mengambil roster publik klub BLUNDER SKUAD di Chess.com. Urutan baris:
+ * anggota terbaru di atas (waktu bergabung ke klub menurun).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { CentangBiru, LencanaBan } from "../../../../components/Lencana.jsx";
 import { useAnggota, kenaBan } from "../../../../lib/anggotaBersama.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -37,7 +36,13 @@ function formatTanggal(iso, bahasa) {
   });
 }
 
-/** Popup profil anggota — isi sesuai data yang ia isi saat pendaftaran. */
+function namaKlub(slug) {
+  return String(slug || "Chess.com")
+    .replace(/-/g, " ")
+    .toUpperCase();
+}
+
+/** Popup profil anggota — data publik Chess.com + metadata bila tersedia. */
 function PopupProfil({ a, tutup, bahasa }) {
   const { t } = useI18n();
   const refTombolTutup = useRef(null);
@@ -68,6 +73,14 @@ function PopupProfil({ a, tutup, bahasa }) {
       label: t("keanggotaan.bergabung"),
       nilai: formatTanggal(a.daftarPada, bahasa),
     },
+    ...(a.aktivitasKlub
+      ? [
+          {
+            label: t("keanggotaan.aktivitasKlub"),
+            nilai: t(`keanggotaan.aktivitas.${a.aktivitasKlub}`),
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -169,6 +182,20 @@ function PopupProfil({ a, tutup, bahasa }) {
             </div>
           </div>
         </div>
+
+        {a.urlKlub && (
+          <p className="mt-4 text-xs leading-5 text-slate-500">
+            {t("keanggotaan.sumber")} {" "}
+            <a
+              href={a.urlKlub}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-semibold text-[#0B2F9F] underline underline-offset-2"
+            >
+              {namaKlub(a.klubChess)}
+            </a>
+          </p>
+        )}
 
         {kenaBan(a) && (
           <p className="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs leading-5 text-red-900">
@@ -275,6 +302,9 @@ export default function DaftarAnggota() {
 
   // Satu pintu: sumber data yang sama dengan halaman Peringkat.
   const { anggota, status, pesan } = useAnggota();
+  const sumberKlub = anggota.find(
+    (a) => a.sumberAnggota === "chesscom-klub" && a.urlKlub
+  );
 
   // Anggota terbaru di atas (urutan waktu gabung menurun).
   const tampil = useMemo(
@@ -290,21 +320,31 @@ export default function DaftarAnggota() {
   return (
     <>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-slate-500">
-          {t("keanggotaan.jumlah", { jumlah: anggota.length })}
-        </p>
+        <div>
+          <p className="text-sm text-slate-500">
+            {t("keanggotaan.jumlah", { jumlah: anggota.length })}
+          </p>
+          {sumberKlub && (
+            <p className="mt-1 text-xs leading-5 text-slate-500">
+              {t("keanggotaan.sumber")} {" "}
+              <a
+                href={sumberKlub.urlKlub}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="font-semibold text-[#0B2F9F] underline underline-offset-2"
+              >
+                {namaKlub(sumberKlub.klubChess)}
+              </a>
+              <span className="ml-1">{t("keanggotaan.sumberCatatan")}</span>
+            </p>
+          )}
+        </div>
       </div>
 
       {status === "memuat" && <p>{t("keanggotaan.memuat")}</p>}
       {status === "gagal" && <p>{pesan}</p>}
       {status === "siap" && anggota.length === 0 && (
-        <p>
-          {t("keanggotaan.kosong1")}
-          <Link to="/pendaftaran-anggota" className="text-primary">
-            {t("keanggotaan.kosong2")}
-          </Link>
-          {t("keanggotaan.kosong3")}
-        </p>
+        <p>{t("keanggotaan.kosongKlub")}</p>
       )}
       {status === "siap" && anggota.length > 0 && (
         <TabelAnggota

@@ -92,6 +92,7 @@ router.get("/api/csrf-token", async () => ({
   isi: { token: buatCsrfToken() },
 }));
 
+// Roster publik klub Chess.com (lihat klub.js), diperkaya profil/rating.
 router.get("/api/anggota", async () => ({
   status: 200,
   isi: await daftarAnggota(),

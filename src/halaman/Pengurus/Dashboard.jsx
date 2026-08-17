@@ -45,6 +45,9 @@ function PanelAnggota({ anggota, hitam, muatUlang, beriTahu }) {
   const [sibuk, setSibuk] = useState("");
   const [cariNomor, setCariNomor] = useState("");
   const [hasilNomor, setHasilNomor] = useState(null);
+  const klub = String(anggota.find((a) => a.klubChess)?.klubChess || "")
+    .replace(/-/g, " ")
+    .toUpperCase();
 
   const jalankan = async (kunci, fn) => {
     setSibuk(kunci);
@@ -111,7 +114,7 @@ function PanelAnggota({ anggota, hitam, muatUlang, beriTahu }) {
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-bold text-slate-900">
-            Anggota ({anggota.length})
+            {klub ? `Anggota ${klub}` : "Anggota"} ({anggota.length})
           </h2>
           <Tombol
             anak={sibuk === "pindai" ? "Memindai…" : "Pindai ban fair play"}
@@ -121,8 +124,10 @@ function PanelAnggota({ anggota, hitam, muatUlang, beriTahu }) {
           />
         </div>
         <p className="mb-3 text-xs leading-5 text-slate-500">
-          Pemindaian memeriksa setiap anggota ke Chess.com. Yang akunnya ditutup
-          karena pelanggaran fair play otomatis masuk daftar larangan.
+          Daftar diambil dari roster klub Chess.com. Pemindaian memeriksa setiap
+          akun pada roster; pelanggaran fair play otomatis masuk daftar larangan.
+          Blokir di sini membatasi kegiatan situs dan turnamen, bukan menghapus
+          akun dari klub Chess.com.
         </p>
 
         <div className="overflow-x-auto rounded-lg border border-slate-200">
@@ -181,7 +186,7 @@ function PanelAnggota({ anggota, hitam, muatUlang, beriTahu }) {
               {!anggota.length && (
                 <tr>
                   <td colSpan={6} className="px-3 py-6 text-center text-slate-500">
-                    Belum ada anggota.
+                    Belum ada anggota dari roster klub.
                   </td>
                 </tr>
               )}

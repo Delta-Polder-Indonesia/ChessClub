@@ -1,7 +1,9 @@
 # Backend Komunitas Catur Indonesia
 
 Server HTTP mandiri untuk keanggotaan, verifikasi Chess.com, dan daftar
-larangan pemain. **Tanpa dependensi eksternal** — cukup Node.js 20+.
+larangan pemain. Daftar publik anggota disinkronkan dari roster klub
+[BLUNDER SKUAD](https://www.chess.com/club/blunder-skuad) melalui Published
+Data API Chess.com. **Tanpa dependensi eksternal** — cukup Node.js 20+.
 
 ```bash
 node server/src/index.js
@@ -14,9 +16,8 @@ node server/src/index.js
 | Metode | Jalur | Keterangan |
 | ------ | ----- | ---------- |
 | GET | `/api/kesehatan` | Status server (untuk monitoring/uptime check) |
-| GET | `/api/anggota` | Daftar anggota + Elo & rekor dari Chess.com |
+| GET | `/api/anggota` | Roster anggota klub Chess.com + Elo & rekor terkini |
 | GET | `/api/csrf-token` | Terbitkan token CSRF — **wajib** untuk semua POST |
-| GET | `/api/anggota` | Daftar anggota + Elo & rekor dari Chess.com |
 | GET | `/api/daftar-hitam` | Daftar larangan (username & alasan saja) |
 | POST | `/api/anggota` | Pendaftaran anggota baru |
 | GET | `/api/turnamen/jenis` | Empat jenis turnamen + aturannya |
@@ -27,6 +28,12 @@ node server/src/index.js
 > `X-CSRF-Token: <token>` dengan token dari `GET /api/csrf-token`.
 > Tanpa itu server menjawab `403`. Token berlaku 24 jam dan tidak terikat
 > sesi, jadi satu token boleh dipakai ulang sampai kedaluwarsa.
+
+> **Sumber anggota:** `GET /api/anggota` mengambil
+> `https://api.chess.com/pub/club/blunder-skuad/members`, lalu menambah profil,
+> rating, dan rekor publik tiap pemain. Chess.com memperbarui roster tersebut
+> maksimal sekali per 12 jam; server mencache roster pada interval yang sama.
+> Akun yang mengisi formulir juga wajib sudah ada di roster klub.
 
 ### Verifikasi akun Chess.com
 
@@ -82,6 +89,9 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_BATAS_DAFTAR` | tidak | Maks. pendaftaran per IP per 15 menit (bawaan 5) |
 | `KCI_BATAS_UMUM` | tidak | Maks. permintaan umum per IP per 15 menit |
 | `KCI_CHESS_DASAR` | **jangan di produksi** | Ganti alamat API Chess.com — hanya untuk uji tiruan lokal |
+| `KCI_CHESS_KLUB` | tidak | URL-ID klub sumber anggota; bawaan `blunder-skuad` |
+| `KCI_CHESS_KLUB_CACHE` | tidak | Cache roster klub dalam detik; bawaan `43200` (12 jam) |
+| `KCI_CHESS_KLUB_PROFILE_CACHE` | tidak | Cache profil/rating roster dalam detik; bawaan `3600` |
 | `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` (bawaan) / `wajib` — mewajibkan tiket verifikasi saat mendaftar |
 | `KCI_CHESS_CLIENT_ID` | untuk OAuth | Dari Chess.com; kosong ⇒ hanya jalur kode profil |
 | `KCI_CHESS_CLIENT_SECRET` | untuk OAuth | Dari Chess.com (opsional, PKCE tetap jalan tanpanya) |
@@ -111,7 +121,7 @@ Berkas data (`KCI_DIR_DATA`, bawaan `./data`):
 
 ```
 data/
-  anggota.json         anggota aktif — identitas hanya berupa hash
+  anggota.json         metadata formulir anggota (roster aktif dari Chess.com)
   daftar-hitam.json    larangan; sumber "otomatis" atau "pengurus"
   turnamen.json        semua turnamen, peserta, dan hasil partai
   rahasia/kontak.json  data pribadi — TIDAK ikut git
@@ -128,7 +138,7 @@ API Chess.com secara lokal.
 node scripts/uji-identitas.mjs          # unit: normalisasi & daftar hitam
 node scripts/uji-i18n.mjs               # paritas kamus terjemahan ID/EN
 node scripts/uji-rute.mjs               # rute publik App.jsx ⇄ plugins/performa.js
-node server/uji/uji-backend.mjs         # integrasi HTTP menyeluruh (49 cek)
+node server/uji/uji-backend.mjs         # integrasi HTTP menyeluruh (55 cek)
 node server/uji/uji-verifikasi.mjs      # OAuth/PKCE/JWT + jalur kode profil (30 cek)
 ```
 

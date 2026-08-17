@@ -8,6 +8,7 @@
 import { konfigurasi } from "./konfigurasi.js";
 import { buatRepo, tambahBaris } from "./simpanan.js";
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
+import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
 import { pakaiTiket } from "./oauth.js";
 import {
   hashKunci,
@@ -124,13 +125,18 @@ export function validasiPendaftaran(body) {
 
 /* ---------------------------------------------------------- pengayaan */
 
-/** Lengkapi data anggota dengan profil & rating terkini dari Chess.com. */
-export async function lengkapiAnggota(anggota) {
+/**
+ * Lengkapi data anggota dengan profil & rating terkini dari Chess.com.
+ * `cacheDetik` dipanjangkan saat memuat satu roster klub penuh agar satu
+ * kunjungan halaman tidak membuat ratusan profil diambil berulang kali.
+ */
+export async function lengkapiAnggota(anggota, { cacheDetik } = {}) {
   const { username } = anggota;
+  const opsiCache = cacheDetik ? { cacheDetik } : undefined;
   try {
     const [pRes, sRes] = await Promise.all([
-      ambilProfil(username),
-      ambilStatistik(username).catch(() => ({ ada: false, data: null })),
+      ambilProfil(username, opsiCache),
+      ambilStatistik(username, opsiCache).catch(() => ({ ada: false, data: null })),
     ]);
 
     if (!pRes.ada) {
@@ -170,10 +176,55 @@ function tanpaRahasia(anggota) {
 /* ------------------------------------------------------------- layanan */
 
 export async function daftarAnggota() {
-  const dasar = await repoAnggota.baca();
-  const lengkap = await Promise.all(
-    dasar.map((a) => lengkapiAnggota(tanpaRahasia(a)))
+  /*
+   * Roster klub adalah sumber keanggotaan publik. data/anggota.json tetap
+   * dipakai untuk metadata pendaftaran (panggilan, kota, verifikasi, dan
+   * hash identitas), lalu hanya menimpa data akun yang memang ada di klub.
+   * Dengan begitu anggota yang baru bergabung di Chess.com langsung tampil
+   * tanpa perlu mengisi formulir situs.
+   */
+  const [dasar, dariKlub, hitam] = await Promise.all([
+    repoAnggota.baca(),
+    daftarAnggotaKlub(),
+    repoHitam.baca(),
+  ]);
+  const lokalPerUsername = new Map(
+    dasar.map((a) => [String(a.username || "").toLowerCase(), a])
   );
+  const hitamPerUsername = new Map(
+    hitam.map((a) => [String(a.username || "").toLowerCase(), a])
+  );
+
+  const lengkap = await Promise.all(
+    dariKlub.map(async (anggotaKlub) => {
+      const lokal = lokalPerUsername.get(anggotaKlub.username);
+      const gabung = {
+        ...(lokal ? tanpaRahasia(lokal) : {}),
+        ...anggotaKlub,
+        // Sumber klub selalu berwenang untuk username dan tanggal bergabung.
+        username: anggotaKlub.username,
+        daftarPada: anggotaKlub.daftarPada,
+      };
+      const hasil = await lengkapiAnggota(gabung, {
+        cacheDetik: konfigurasi.chess.klub.profilCacheDetik,
+      });
+      const larangan = hitamPerUsername.get(anggotaKlub.username);
+
+      // Daftar larangan komunitas dapat berisi blokir manual, yang tidak
+      // selalu tercermin sebagai `closed:*` pada profil Chess.com.
+      if (!larangan) return hasil;
+      return {
+        ...hasil,
+        diblokirKomunitas: true,
+        alasanStatus: larangan.alasan || hasil.alasanStatus || null,
+        peringatan:
+          larangan.keterangan ||
+          hasil.peringatan ||
+          "Akun ini tidak dapat mengikuti kegiatan komunitas.",
+      };
+    })
+  );
+
   lengkap.sort((a, b) => (b.elo || 0) - (a.elo || 0));
   // Data pribadi (nama asli, HP/WA, DANA, email, tanggal lahir) TIDAK ikut
   // ke respons publik — sesuai janji privasi pada formulir pendaftaran.
@@ -335,6 +386,24 @@ export async function daftarkan(body, konteks = {}) {
 
   const uname = (profil.username || bersih.username).toLowerCase();
 
+  /* Keanggotaan publik mengikuti roster klub, bukan sekadar formulir lokal.
+     Endpoint roster Chess.com dapat membutuhkan hingga 12 jam untuk ikut
+     memperbarui setelah seseorang baru bergabung. */
+  if (!(await anggotaAdaDiKlub(uname))) {
+    throw new GalatAplikasi(
+      403,
+      `Akun ini belum tercatat di klub Chess.com "${konfigurasi.chess.klub.slug}". ` +
+        "Gabung ke klub tersebut terlebih dahulu, lalu coba lagi setelah daftar anggotanya diperbarui.",
+      {
+        galat: {
+          username:
+            "Username harus sudah menjadi anggota klub Chess.com yang digunakan komunitas.",
+        },
+        perluGabungKlub: true,
+      }
+    );
+  }
+
   /* 5. Simpan — pengecekan duplikat dilakukan DI DALAM antrean agar
         dua permintaan bersamaan tidak lolos berdua. */
   const baru = await repoAnggota.ubah(async (daftar) => {
@@ -428,28 +497,40 @@ export async function blokir({
   });
 }
 
-/** Blokir anggota yang sudah terdaftar, sekaligus keluarkan dari keanggotaan. */
+/**
+ * Blokir anggota dari roster klub. Pemblokiran membatasi kegiatan di situs
+ * dan turnamen; pengurus tetap perlu mengeluarkan akun dari klub Chess.com
+ * bila ingin mencabut keanggotaannya di platform Chess.com juga.
+ */
 export async function blokirAnggota(username, keterangan) {
   const uname = normalisasiUsername(username);
-  const anggota = await repoAnggota.baca();
-  const target = anggota.find((a) => a.username === uname);
-  if (!target) {
-    throw new GalatAplikasi(404, `"${uname}" tidak ada di daftar anggota.`);
+  const [anggotaLokal, anggotaKlub] = await Promise.all([
+    repoAnggota.baca(),
+    daftarAnggotaKlub(),
+  ]);
+  const targetLokal = anggotaLokal.find((a) => a.username === uname);
+  const targetKlub = anggotaKlub.find((a) => a.username === uname);
+  if (!targetKlub) {
+    throw new GalatAplikasi(404, `"${uname}" tidak ada di roster anggota klub.`);
   }
 
   const entri = await blokir({
-    username: target.username,
-    playerId: target.playerId ?? null,
-    identitas: target.identitas || {},
+    username: uname,
+    playerId: targetLokal?.playerId ?? null,
+    identitas: targetLokal?.identitas || {},
     alasan: "keputusan_pengurus",
     keterangan: keterangan || "Diblokir berdasarkan keputusan pengurus.",
     sumber: "pengurus",
   });
 
-  await repoAnggota.ubah(async (daftar) => ({
-    data: daftar.filter((a) => a.username !== uname),
-    hasil: null,
-  }));
+  // Metadata pribadi tidak lagi dibutuhkan setelah hash identitas dipindah
+  // ke daftar hitam; roster publik tetap ditarik dari Chess.com.
+  if (targetLokal) {
+    await repoAnggota.ubah(async (daftar) => ({
+      data: daftar.filter((a) => a.username !== uname),
+      hasil: null,
+    }));
+  }
 
   await catatJejak("blokir-manual", { username: uname, keterangan });
   // Hapus cache Chess.com agar data terbaru diambil
@@ -476,7 +557,17 @@ export async function bukaBlokir(username) {
  * dipindahkan ke daftar hitam.
  */
 export async function pindaiFairPlay() {
-  const anggota = await repoAnggota.baca();
+  // Yang dipindai adalah roster Chess.com, bukan hanya akun yang pernah
+  // mengisi formulir lokal. Data lokal dipakai bila tersedia agar hash
+  // identitas tetap ikut tercatat ketika suatu akun diblokir.
+  const [anggotaLokal, anggotaKlub] = await Promise.all([
+    repoAnggota.baca(),
+    daftarAnggotaKlub(),
+  ]);
+  const lokalPerUsername = new Map(
+    anggotaLokal.map((a) => [a.username, a])
+  );
+  const pembaruanLokal = new Map();
   const hasil = {
     diperiksa: 0,
     diblokir: [],
@@ -484,55 +575,66 @@ export async function pindaiFairPlay() {
     hilang: [],
     gagal: [],
   };
-  const tersisa = [];
 
-  for (const a of anggota) {
-    hasil.diperiksa += 1;
-    try {
-      const pRes = await ambilProfil(a.username, { pakaiCache: false });
-      if (!pRes.ada) {
-        hasil.hilang.push(a.username);
-        tersisa.push(a);
-        continue;
+  // Promise seluruh roster dijalankan bersamaan, tetapi chess.js tetap
+  // membatasi koneksi keluar menjadi lima sehingga tidak membanjiri API.
+  await Promise.all(
+    anggotaKlub.map(async (a) => {
+      hasil.diperiksa += 1;
+      const rekamLokal = lokalPerUsername.get(a.username);
+      try {
+        const pRes = await ambilProfil(a.username, { pakaiCache: false });
+        if (!pRes.ada) {
+          hasil.hilang.push(a.username);
+          return;
+        }
+        const profil = pRes.data;
+        const st = evaluasiStatusChess(profil.status);
+
+        if (st.diblokir) {
+          await blokir({
+            username: a.username,
+            playerId: profil.player_id ?? rekamLokal?.playerId ?? null,
+            identitas: rekamLokal?.identitas || {},
+            alasan: st.alasan,
+            keterangan: st.keterangan,
+            sumber: "otomatis",
+          });
+          hasil.diblokir.push(a.username);
+        }
+
+        if (st.ditutup) hasil.ditutup.push(a.username);
+        if (rekamLokal) {
+          pembaruanLokal.set(a.username, {
+            statusChess: profil.status || null,
+            playerId: profil.player_id ?? rekamLokal.playerId ?? null,
+          });
+        }
+      } catch (e) {
+        hasil.gagal.push({ username: a.username, sebab: e.message });
       }
-      const profil = pRes.data;
-      const st = evaluasiStatusChess(profil.status);
+    })
+  );
 
-      if (st.diblokir) {
-        await blokir({
-          username: a.username,
-          playerId: profil.player_id ?? a.playerId ?? null,
-          identitas: a.identitas || {},
-          alasan: st.alasan,
-          keterangan: st.keterangan,
-          sumber: "otomatis",
-        });
-        hasil.diblokir.push(a.username);
-      }
-
-      if (st.ditutup) hasil.ditutup.push(a.username);
-      // Anggota yang kena ban TETAP di daftar anggota (ditandai status),
-      // agar lencana larangan tampil; pengurus yang menghapus secara manual
-      // (blokirAnggota) yang mengeluarkannya dari daftar.
-      tersisa.push({
+  // Hanya metadata anggota yang pernah mendaftar lokal yang ditulis balik;
+  // roster utama tidak disalin ke data/anggota.json.
+  if (pembaruanLokal.size) {
+    await repoAnggota.ubah(async (daftar) => ({
+      data: daftar.map((a) => ({
         ...a,
-        statusChess: profil.status || null,
-        playerId: profil.player_id ?? a.playerId ?? null,
-      });
-    } catch (e) {
-      hasil.gagal.push({ username: a.username, sebab: e.message });
-      tersisa.push(a);
-    }
+        ...(pembaruanLokal.get(a.username) || {}),
+      })),
+      hasil: null,
+    }));
   }
 
-  await repoAnggota.tulis(tersisa);
   hasil.selesaiPada = new Date().toISOString();
   await catatJejak("pindai-fairplay", {
     diperiksa: hasil.diperiksa,
     diblokir: hasil.diblokir.length,
   });
   // Hapus cache untuk anggota yang di-scan agar data terbaru diambil
-  for (const a of tersisa) hapusCache(a.username);
+  for (const a of anggotaKlub) hapusCache(a.username);
   return hasil;
 }
 
@@ -572,12 +674,16 @@ export async function kontakAnggota(username) {
 }
 
 export async function ringkasan() {
-  const [anggota, hitam] = await Promise.all([
+  const [anggotaLokal, anggotaKlub, hitam] = await Promise.all([
     repoAnggota.baca(),
+    daftarAnggotaKlub(),
     repoHitam.baca(),
   ]);
   return {
-    anggota: anggota.length,
+    // Angka utama mengikuti sumber publik yang sama dengan halaman anggota.
+    anggota: anggotaKlub.length,
+    anggotaTerdata: anggotaLokal.length,
+    klubChess: konfigurasi.chess.klub.slug,
     daftarHitam: hitam.length,
     otomatis: hitam.filter((h) => h.sumber === "otomatis").length,
     pengurus: hitam.filter((h) => h.sumber === "pengurus").length,

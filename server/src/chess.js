@@ -48,10 +48,10 @@ function dariCache(kunci) {
   return item.nilai;
 }
 
-function keCache(kunci, nilai) {
+function keCache(kunci, nilai, cacheDetik = konfigurasi.chess.cacheDetik) {
   cache.set(kunci, {
     nilai,
-    kedaluwarsa: Date.now() + konfigurasi.chess.cacheDetik * 1000,
+    kedaluwarsa: Date.now() + cacheDetik * 1000,
   });
   // Jaga agar cache tidak tumbuh tanpa batas.
   if (cache.size > 5000) {
@@ -108,7 +108,10 @@ async function ambilSekali(jalur) {
  * GET ke Chess.com dengan coba ulang.
  * Mengembalikan { ada: false } untuk 404 (bukan galat — akun memang tak ada).
  */
-export async function chessGet(jalur, { pakaiCache = true } = {}) {
+export async function chessGet(
+  jalur,
+  { pakaiCache = true, cacheDetik = konfigurasi.chess.cacheDetik } = {}
+) {
   if (pakaiCache) {
     const tersimpan = dariCache(jalur);
     if (tersimpan !== undefined) return tersimpan;
@@ -121,14 +124,14 @@ export async function chessGet(jalur, { pakaiCache = true } = {}) {
 
       if (res.status === 404) {
         const hasil = { ada: false, status: 404, data: null };
-        if (pakaiCache) keCache(jalur, hasil);
+        if (pakaiCache) keCache(jalur, hasil, cacheDetik);
         return hasil;
       }
 
       if (res.ok) {
         const data = await res.json();
         const hasil = { ada: true, status: res.status, data };
-        if (pakaiCache) keCache(jalur, hasil);
+        if (pakaiCache) keCache(jalur, hasil, cacheDetik);
         return hasil;
       }
 
@@ -163,11 +166,18 @@ export async function chessGet(jalur, { pakaiCache = true } = {}) {
   throw galatTerakhir;
 }
 
-export const ambilProfil = (username) =>
-  chessGet(`/player/${encodeURIComponent(username)}`);
+export const ambilProfil = (username, opsi) =>
+  chessGet(`/player/${encodeURIComponent(username)}`, opsi);
 
-export const ambilStatistik = (username) =>
-  chessGet(`/player/${encodeURIComponent(username)}/stats`);
+export const ambilStatistik = (username, opsi) =>
+  chessGet(`/player/${encodeURIComponent(username)}/stats`, opsi);
+
+/**
+ * Roster publik sebuah klub Chess.com. Respons berisi `weekly`, `monthly`,
+ * dan `all_time`; penggabungan ketiganya dilakukan di klub.js.
+ */
+export const ambilAnggotaKlub = (slug, opsi) =>
+  chessGet(`/club/${encodeURIComponent(slug)}/members`, opsi);
 
 /** Ringkas semua kontrol waktu menjadi satu objek rating. */
 export function ringkasRating(stats) {
