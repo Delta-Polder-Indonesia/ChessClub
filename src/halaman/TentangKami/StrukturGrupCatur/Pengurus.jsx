@@ -4,10 +4,7 @@ import { useI18n } from "../../../lib/i18n.jsx";
 
 /**
  * Susunan pengurus publik BLUNDER SKUAD di Chess.com.
- *
- * Data diperbarui dari halaman "About Club" pada 17 Agustus 2026. Nilai
- * rating mengikuti angka yang ditampilkan Chess.com saat pembaruan, bukan
- * rating turnamen internal komunitas.
+ * Data diperbarui dari halaman "About Club" pada 17 Agustus 2026.
  */
 const KELOMPOK_PENGURUS = [
   {
@@ -111,12 +108,11 @@ function formatTanggal(tanggal, bahasa) {
 
 function Avatar({ anggota }) {
   const [gagal, setGagal] = useState(false);
-  const inisial = anggota.username.slice(0, 1).toUpperCase();
 
   if (gagal || !anggota.foto) {
     return (
-      <span className="avatar-pengurus avatar-pengurus-kosong" aria-hidden="true">
-        {inisial}
+      <span className="foto-pengurus foto-pengurus-kosong" aria-hidden="true">
+        {anggota.username.slice(0, 1).toUpperCase()}
       </span>
     );
   }
@@ -125,63 +121,54 @@ function Avatar({ anggota }) {
     <img
       src={anggota.foto}
       alt=""
-      width="80"
-      height="80"
+      width="64"
+      height="64"
       loading="lazy"
       referrerPolicy="no-referrer"
-      className="avatar-pengurus"
+      className="foto-pengurus"
       onError={() => setGagal(true)}
     />
   );
 }
 
-function KartuPengurus({ anggota, bahasa, t }) {
+function BarisPengurus({ anggota, bahasa, t }) {
   const url = `https://www.chess.com/member/${anggota.username.toLowerCase()}`;
 
   return (
-    <article className="kartu-pengurus">
+    <li className="baris-pengurus">
       <a
         href={url}
         target="_blank"
         rel="noreferrer noopener"
-        className="tautan-avatar-pengurus"
         aria-label={`${t("pengurus.bukaProfil")} ${anggota.username}`}
+        className="tautan-foto-pengurus"
       >
         <Avatar anggota={anggota} />
       </a>
 
-      <div className="min-w-0 flex-1">
-        <a
-          href={url}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="nama-pengurus"
-        >
+      <div className="identitas-pengurus">
+        <a href={url} target="_blank" rel="noreferrer noopener">
           {anggota.username}
-          <svg viewBox="0 0 20 20" aria-hidden="true">
-            <path d="M7.5 4.5h-3v11h11v-3M10 4.5h5.5V10M15 5l-7 7" />
-          </svg>
         </a>
         {anggota.nama && anggota.nama !== anggota.username && (
-          <p className="nama-asli-pengurus">{anggota.nama}</p>
+          <span className="nama-lengkap-pengurus">{anggota.nama}</span>
         )}
-        <p className="negara-pengurus">
+        <span className="negara-pengurus">
           <span aria-hidden="true">{BENDERA[anggota.kodeNegara]}</span>
           {anggota.negara}
-        </p>
-        <p className="tanggal-pengurus">
-          {t("pengurus.bergabung")} {formatTanggal(anggota.bergabung, bahasa)}
-        </p>
+        </span>
       </div>
 
-      <div className="rating-pengurus" aria-label={`${t("pengurus.rating")}: ${anggota.rating ?? t("pengurus.belumDinilai")}`}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M8.5 4.5h7l1 3.5-2 3v4.5h2v3h-9v-3h2V11l-2-3 1-3.5Z" />
-        </svg>
-        <strong>{anggota.rating ?? t("pengurus.belumDinilai")}</strong>
-        {anggota.rating !== null && <span>{t("pengurus.rating")}</span>}
+      <div className="bergabung-pengurus">
+        <span>{t("pengurus.bergabung")}</span>
+        <strong>{formatTanggal(anggota.bergabung, bahasa)}</strong>
       </div>
-    </article>
+
+      <div className="nilai-pengurus">
+        <span>{t("pengurus.rating")}</span>
+        <strong>{anggota.rating ?? t("pengurus.belumDinilai")}</strong>
+      </div>
+    </li>
   );
 }
 
@@ -192,23 +179,20 @@ export default function Pengurus() {
     <PageArtikel title={t("pengurus.artikel")}>
       <p>{t("pengurus.p1")}</p>
 
-      <div className="daftar-pengurus" aria-label={t("pengurus.artikel")}>
+      <div className="daftar-pengurus">
         {KELOMPOK_PENGURUS.map((kelompok) => (
-          <section key={kelompok.id} aria-labelledby={kelompok.id} className="kelompok-pengurus">
-            <div className="kepala-kelompok-pengurus">
-              <h3 id={kelompok.id}>{kelompok.label}</h3>
-              <span>{kelompok.anggota.length}</span>
-            </div>
-            <div className="grid-pengurus">
+          <section key={kelompok.id} className="kelompok-pengurus" aria-labelledby={kelompok.id}>
+            <h3 id={kelompok.id}>{kelompok.label}</h3>
+            <ul aria-label={kelompok.label}>
               {kelompok.anggota.map((anggota) => (
-                <KartuPengurus
+                <BarisPengurus
                   key={anggota.username}
                   anggota={anggota}
                   bahasa={bahasa}
                   t={t}
                 />
               ))}
-            </div>
+            </ul>
           </section>
         ))}
       </div>
