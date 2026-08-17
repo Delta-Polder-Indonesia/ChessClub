@@ -15,6 +15,7 @@ import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
 import { buatRepo } from "./simpanan.js";
 import { ambilProfil } from "./chess.js";
+import { daftarAnggotaKlub } from "./klub.js";
 import { evaluasiStatusChess } from "./identitas-server.js";
 import { normalisasiUsername } from "../../src/lib/identitas.js";
 import { GalatAplikasi, repoAnggota, repoHitam, blokir } from "./keanggotaan.js";
@@ -378,8 +379,9 @@ export async function daftarkanPeserta(id, { username, tim }) {
   const uname = normalisasiUsername(username);
   if (!uname) throw new GalatAplikasi(400, "Username wajib diisi.");
 
-  const [anggota, hitam] = await Promise.all([
+  const [anggotaLokal, anggotaKlub, hitam] = await Promise.all([
     repoAnggota.baca(),
+    daftarAnggotaKlub(),
     repoHitam.baca(),
   ]);
 
@@ -392,7 +394,10 @@ export async function daftarkanPeserta(id, { username, tim }) {
     );
   }
 
-  const rekamAnggota = anggota.find((a) => a.username === uname);
+  const rekamLokal = anggotaLokal.find((a) => a.username === uname);
+  // Status anggota mengikuti roster klub publik yang sama dengan halaman
+  // Keanggotaan, bukan hanya siapa yang sudah mengisi formulir lokal.
+  const rekamKlub = anggotaKlub.find((a) => a.username === uname);
 
   return repoTurnamen.ubah(async (semua) => {
     const i = semua.findIndex((t) => t.id === id);
@@ -411,17 +416,17 @@ export async function daftarkanPeserta(id, { username, tim }) {
     if (t.kuota && (t.peserta || []).length >= t.kuota) {
       throw new GalatAplikasi(409, "Kuota peserta sudah penuh.");
     }
-    if (!JENIS[t.jenis].bolehNonAnggota && !rekamAnggota) {
+    if (!JENIS[t.jenis].bolehNonAnggota && !rekamKlub) {
       throw new GalatAplikasi(
         403,
-        `Turnamen ini khusus anggota. "${uname}" belum terdaftar sebagai anggota komunitas.`
+        `Turnamen ini khusus anggota. "${uname}" belum tercatat di klub Chess.com komunitas.`
       );
     }
 
     const peserta = {
       username: uname,
-      panggilan: rekamAnggota?.panggilan || uname,
-      anggota: Boolean(rekamAnggota),
+      panggilan: rekamLokal?.panggilan || uname,
+      anggota: Boolean(rekamKlub),
       tim: JENIS[t.jenis].beregu ? String(tim || "").trim() || null : null,
       daftarPada: kiniIso(),
     };

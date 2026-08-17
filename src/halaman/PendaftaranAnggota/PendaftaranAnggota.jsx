@@ -13,6 +13,8 @@ import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
 
+const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
+
 const AWAL = {
   username: "",
   namaLengkap: "",
@@ -183,6 +185,21 @@ export default function PendaftaranAnggota() {
     >
       <PageArtikel title={t("pendaftaran.artikel")}>
         <p className="ql-align-justify">{t("pendaftaran.intro")}</p>
+
+        <div className="not-prose my-6 rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm leading-6 text-slate-700">
+          <p className="font-semibold text-slate-900">
+            {t("pendaftaran.klubWajibJudul")}
+          </p>
+          <p className="mt-1">{t("pendaftaran.klubWajibIsi")}</p>
+          <a
+            href={URL_KLUB}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
+          >
+            {t("pendaftaran.gabungKlub")}
+          </a>
+        </div>
 
         <div className="not-prose my-6 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-6 text-slate-700">
           <p className="font-semibold text-slate-900">

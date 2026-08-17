@@ -49,10 +49,16 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    | `KCI_PEPPER` | hasil generate di atas |
    | `KCI_TOKEN_ADMIN` | hasil generate di atas |
    | `KCI_ASAL_DIIZINKAN` | `https://delta-polder-indonesia.github.io` |
+   | `KCI_CHESS_KLUB` | `blunder-skuad` |
    | `KCI_DIR_DATA` | `/var/data` |
 
 5. **Wajib**: tambahkan **Disk** (Advanced → Add Disk), mount path `/var/data`.
    Tanpa disk, data anggota hilang setiap kali server restart.
+
+> Daftar anggota publik tidak perlu diimpor manual: backend mengambil roster
+> `BLUNDER SKUAD` dari Chess.com. Chess.com memperbarui roster itu maksimal
+> setiap 12 jam; biarkan `KCI_CHESS_KLUB_CACHE=43200` kecuali ada alasan kuat
+> untuk mengubahnya.
 
 ### Pilihan B — VPS sendiri (systemd)
 
@@ -72,6 +78,7 @@ Environment=NODE_ENV=production
 Environment=PORT=8787
 Environment=KCI_PEPPER=isi-pepper-di-sini
 Environment=KCI_TOKEN_ADMIN=isi-token-di-sini
+Environment=KCI_CHESS_KLUB=blunder-skuad
 Environment=KCI_ASAL_DIIZINKAN=https://catur.example.id
 
 [Install]
@@ -195,7 +202,7 @@ Berkas yang wajib dicadangkan rutin:
 
 | Berkas | Isi |
 | ------ | --- |
-| `data/anggota.json` | Daftar anggota |
+| `data/anggota.json` | Metadata formulir anggota (roster aktif dari Chess.com) |
 | `data/daftar-hitam.json` | Daftar larangan |
 | `data/rahasia/kontak.json` | **Data pribadi** — jaga kerahasiaannya |
 

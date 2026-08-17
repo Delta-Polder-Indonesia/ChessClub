@@ -5,8 +5,8 @@
  * persis dengan tab Keanggotaan (TentangKami/StrukturGrupCatur/Keanggotaan):
  * `useAnggota()` dari src/lib/anggotaBersama.js → GET /api/anggota.
  *
- * Artinya: begitu seorang anggota mendaftar dan akun Chess.com-nya
- * terverifikasi, namanya langsung muncul di kedua halaman tanpa perlu
+ * Artinya: begitu sebuah akun muncul di roster klub BLUNDER SKUAD pada
+ * Chess.com, namanya otomatis tampil di kedua halaman tanpa perlu
  * menyunting berkas apa pun.
  *
  * Susunan tabel:
@@ -54,6 +54,8 @@ const OPSI_KONTROL = [
   { id: "all", label: "All Games" },
   ...KONTROL.map((k) => ({ id: k, label: k })),
 ];
+
+const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
 
 function BarisPeringkat({ a, kontrol }) {
   const opsi = useMemo(() => opsiKontrol(a), [a]);
@@ -156,25 +158,28 @@ export default function Peringkat() {
   return (
     <BagianBeranda
       id="peringkat"
-      title="Peringkat pemain Komunitas Catur Indonesia"
+      title="Peringkat pemain BLUNDER SKUAD"
     >
       <p className="ql-align-justify">
-        Anggota Komunitas Catur Indonesia yang terdaftar dan terverifikasi.
-        Peringkat disusun dari Elo akun Chess.com masing-masing anggota
-        (diutamakan Rapid) dan diperbarui otomatis. Daftar ini memakai data
-        yang sama dengan{" "}
+        Peringkat disusun dari akun pada{" "}
+        <a
+          href={URL_KLUB}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="text-primary"
+        >
+          klub BLUNDER SKUAD di Chess.com
+        </a>{" "}
+        dengan Elo Chess.com masing-masing pemain (diutamakan Rapid).
+        Keanggotaan memakai roster publik yang sama dengan{" "}
         <Link
           to="/tentang-kami/struktur-grup-catur#keanggotaan"
           className="text-primary"
         >
           Daftar Anggota
         </Link>{" "}
-        — jadi satu kali mendaftar, nama Anda langsung muncul di kedua
-        halaman. Belum terdaftar? Silakan isi{" "}
-        <Link to="/pendaftaran-anggota" className="text-primary">
-          formulir Pendaftaran Anggota
-        </Link>
-        , lalu verifikasi kepemilikan akun Chess.com Anda.
+        dan diperbarui otomatis. Chess.com memperbarui roster klub maksimal
+        setiap 12 jam; rating dan rekor pemain disegarkan saat data dimuat.
       </p>
 
       <div className="flex flex-wrap items-end gap-x-6 gap-y-3 mb-4">
@@ -240,11 +245,16 @@ export default function Peringkat() {
 
       {status === "siap" && anggota.length === 0 && (
         <p>
-          Belum ada anggota terdaftar.{" "}
-          <Link to="/pendaftaran-anggota" className="text-primary">
-            Daftar dengan akun Chess.com
-          </Link>{" "}
-          untuk menjadi yang pertama.
+          Belum ada anggota yang terbaca dari{" "}
+          <a
+            href={URL_KLUB}
+            target="_blank"
+            rel="noreferrer noopener"
+            className="text-primary"
+          >
+            klub BLUNDER SKUAD
+          </a>
+          .
         </p>
       )}
 
