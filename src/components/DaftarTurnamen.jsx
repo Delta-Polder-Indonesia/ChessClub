@@ -62,6 +62,7 @@ const KATA = {
     belumMain: "Belum ada partai yang dicatat.",
     belumResmi: "belum memenuhi minimal partai",
     daftar: "Daftar jadi anggota untuk ikut",
+    bukaTurnamen: "Buka turnamen",
   },
   en: {
     memuat: "Loading schedule…",
@@ -89,6 +90,7 @@ const KATA = {
     belumMain: "No games recorded yet.",
     belumResmi: "minimum games not met",
     daftar: "Join as a member to play",
+    bukaTurnamen: "Open tournament",
   },
 };
 
@@ -210,7 +212,20 @@ function KartuTurnamen({ t, k, bahasa }) {
     <article className="border-b border-slate-200 py-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-bold text-slate-900">{t.nama}</h3>
+          <h3 className="text-lg font-bold text-slate-900">
+            {t.tautan ? (
+              <a
+                href={t.tautan}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="hover:text-primary hover:underline"
+              >
+                {t.nama} <span aria-hidden="true">↗</span>
+              </a>
+            ) : (
+              t.nama
+            )}
+          </h3>
           <p className="mt-0.5 text-sm text-slate-500">
             {t.jumlahPeserta} {k.peserta}
             {t.kuota ? ` / ${t.kuota}` : ""}
@@ -252,10 +267,10 @@ function KartuTurnamen({ t, k, bahasa }) {
           <a
             href={t.tautan}
             target="_blank"
-            rel="noreferrer"
+            rel="noreferrer noopener"
             className="text-xs font-semibold text-primary hover:underline"
           >
-            {t.tautan.replace(/^https?:\/\//, "").slice(0, 40)}
+            {k.bukaTurnamen} ↗
           </a>
         )}
       </div>

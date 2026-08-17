@@ -43,6 +43,7 @@ function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
     biaya: "",
     hadiah: "",
     tempat: "Daring — Chess.com",
+    tautan: "",
     deskripsi: "",
   });
   const [galat, setGalat] = useState({});
@@ -148,6 +149,22 @@ function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
         />
       </div>
 
+      <div className="mt-3">
+        <Bidang
+          label="Tautan turnamen (opsional)"
+          type="url"
+          value={data.tautan}
+          onChange={(e) => ubah("tautan", e.target.value)}
+          placeholder="https://www.chess.com/play/arena/..."
+        />
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Jika diisi, nama turnamen di Beranda akan langsung membuka tautan ini.
+        </p>
+        {galat.tautan && (
+          <p className="mt-1 text-xs text-red-600">{galat.tautan}</p>
+        )}
+      </div>
+
       <p className="mt-3 rounded bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
         <strong>{sifat?.label}</strong> — sistem {sifat?.sistem}
         {sifat?.bolehNonAnggota
@@ -179,11 +196,14 @@ function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBerubah }) {
   const [sibuk, setSibuk] = useState("");
   const [pesertaBaru, setPesertaBaru] = useState("");
   const [timBaru, setTimBaru] = useState("");
+  const [tautan, setTautan] = useState("");
   const [hasil, setHasil] = useState({ ronde: 1, putih: "", hitam: "", skor: "1-0" });
 
   const muat = useCallback(async () => {
     try {
-      setT(await apiPengurus(`/turnamen/${id}`));
+      const data = await apiPengurus(`/turnamen/${id}`);
+      setT(data);
+      setTautan(data.tautan || "");
     } catch (e) {
       beriTahu(e.message, "galat");
     }
@@ -217,6 +237,26 @@ function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBerubah }) {
       () => apiPengurus(`/turnamen/${id}/ubah`, { metode: "POST", bodi: { status } }),
       `Status diubah menjadi "${status}".`
     );
+
+  const simpanTautan = (e) => {
+    e.preventDefault();
+    const nilai = tautan.trim();
+    if (nilai && !/^https:\/\//i.test(nilai)) {
+      beriTahu("Tautan turnamen harus diawali https://", "galat");
+      return;
+    }
+    jalankan(
+      "tautan",
+      () =>
+        apiPengurus(`/turnamen/${id}/ubah`, {
+          metode: "POST",
+          bodi: { tautan: nilai },
+        }),
+      nilai
+        ? "Tautan turnamen disimpan. Nama turnamen di Beranda sekarang dapat diklik."
+        : "Tautan turnamen dihapus."
+    );
+  };
 
   const tambahPeserta = (e) => {
     e.preventDefault();
@@ -297,6 +337,43 @@ function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBerubah }) {
           disabled={sibuk === "pindai" || !t.jumlahPeserta}
         />
       </div>
+
+      <form
+        onSubmit={simpanTautan}
+        className="mb-5 border-y border-slate-200 bg-slate-50/60 px-3 py-3"
+      >
+        <div className="flex flex-wrap items-end gap-2">
+          <div className="min-w-[260px] flex-1">
+            <Bidang
+              label="Tautan turnamen"
+              type="url"
+              value={tautan}
+              onChange={(e) => setTautan(e.target.value)}
+              placeholder="https://www.chess.com/play/arena/..."
+            />
+          </div>
+          <Tombol
+            anak={sibuk === "tautan" ? "Menyimpan…" : "Simpan tautan"}
+            jenis="utama"
+            onClick={simpanTautan}
+            disabled={sibuk === "tautan"}
+          />
+          {/^https:\/\//i.test(tautan) && (
+            <a
+              href={tautan}
+              target="_blank"
+              rel="noreferrer noopener"
+              className="px-2 py-2 text-xs font-semibold text-primary hover:underline"
+            >
+              Uji tautan ↗
+            </a>
+          )}
+        </div>
+        <p className="mt-1 text-xs leading-5 text-slate-500">
+          Player yang mengklik nama turnamen di Beranda akan diarahkan langsung
+          ke alamat ini. Kosongkan lalu simpan untuk menghapus tautan.
+        </p>
+      </form>
 
       <div className="grid gap-5 lg:grid-cols-2">
         {/* peserta */}

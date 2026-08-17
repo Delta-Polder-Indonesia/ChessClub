@@ -288,6 +288,14 @@ function validasiTurnamen(data, { baru = false } = {}) {
   if (data.mulai && data.selesai && String(data.selesai) < String(data.mulai)) {
     galat.selesai = "Tanggal selesai mendahului tanggal mulai.";
   }
+  if (data.tautan !== undefined && String(data.tautan || "").trim()) {
+    try {
+      const u = new URL(String(data.tautan).trim());
+      if (u.protocol !== "https:") throw new Error("protokol");
+    } catch {
+      galat.tautan = "Tautan turnamen harus berupa URL HTTPS lengkap.";
+    }
+  }
   return galat;
 }
 
@@ -346,6 +354,9 @@ export async function ubahTurnamen(id, perubahan) {
     const ubah = { ...semua[i] };
     for (const k of bolehUbah) {
       if (perubahan[k] !== undefined) ubah[k] = perubahan[k];
+    }
+    if (perubahan.tautan !== undefined) {
+      ubah.tautan = String(perubahan.tautan || "").trim();
     }
     if (perubahan.kuota !== undefined) {
       ubah.kuota = perubahan.kuota ? Number(perubahan.kuota) : null;

@@ -115,7 +115,17 @@ export default function Beranda() {
                 return (
                   <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
                     <td className="kol-turnamen">
-                      {href ? (
+                      {t.tautan ? (
+                        <a
+                          href={t.tautan}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="font-medium text-primary hover:underline"
+                          title="Buka turnamen"
+                        >
+                          {t.nama} <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : href ? (
                         <Link
                           to={href}
                           className="font-medium text-primary hover:underline"
