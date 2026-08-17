@@ -19,6 +19,9 @@ import {
   lewatBatas,
   alamatIp,
   pastikanAdmin,
+  catatPercobaanAdmin,
+  statusKunciAdmin,
+  identitasPengurus,
   buatRouter,
   buatCsrfToken,
   validasiCsrfToken,
@@ -67,6 +70,7 @@ import {
   cekNomor,
   kontakAnggota,
   ringkasan,
+  catatJejak,
 } from "./keanggotaan.js";
 import {
   berita,
@@ -77,6 +81,7 @@ import {
   kirimPesan,
   daftarPesan,
   tandaiDibaca,
+  tandaiSemuaDibaca,
   hapusPesan,
   ringkasanPesan,
 } from "./pesan.js";
@@ -96,11 +101,14 @@ router.get("/api/kesehatan", async () => ({
   },
 }));
 
-/** CSRF token untuk request POST. */
-router.get("/api/csrf-token", async () => ({
-  status: 200,
-  isi: { token: buatCsrfToken() },
-}));
+/** CSRF token untuk request POST.
+ *  Dibatasi agar penyerang tidak bisa mengisi memori server dengan jutaan
+ *  token (tiap token disimpan di Map sampai kedaluwarsa 24 jam). */
+router.get(
+  "/api/csrf-token",
+  async () => ({ status: 200, isi: { token: buatCsrfToken() } }),
+  { batas: 60 }
+);
 
 // Roster publik klub Chess.com (lihat klub.js), diperkaya profil/rating.
 router.get("/api/anggota", async () => ({
@@ -496,6 +504,13 @@ router.get("/api/pengurus/pesan", async (req) => {
   return { status: 200, isi: await daftarPesan() };
 });
 
+/** Tandai SEMUA pesan sebagai sudah dibaca. */
+router.post("/api/pengurus/pesan/semua-baca", async (req) => {
+  pastikanAdmin(req);
+  await tandaiSemuaDibaca();
+  return { status: 200, isi: { pesan: "Semua pesan ditandai dibaca." } };
+});
+
 /** Tandai pesan sebagai sudah dibaca. */
 router.post("/api/pengurus/pesan/:id/baca", async (req, param) => {
   pastikanAdmin(req);
@@ -557,8 +572,43 @@ async function tangani(req, res) {
     });
   }
 
+  // Kunci tambahan khusus endpoint pengurus: IP yang sudah gagal
+  // autentikasi beberapa kali diblokir lebih awal, sebelum sampai ke
+  // handler. Pencatatan gagal/sukses dilakukan setelah handler
+  // berjalan, agar satu permintaan yang berhasil tidak dihitung gagal.
+  if (jalur.startsWith("/api/pengurus/")) {
+    const kunci = statusKunciAdmin(ip);
+    if (kunci.terkunci) {
+      res.setHeader("Retry-After", String(kunci.cobaLagiDetik));
+      return kirimJson(res, 429, {
+        pesan:
+          `Terlalu banyak percobaan token pengurus yang gagal. ` +
+          `Coba lagi dalam ${kunci.cobaLagiDetik} detik.`,
+      });
+    }
+  }
+
+  const pengguna = identitasPengurus(req);
+  const konteks = { ip, pengguna };
+
   try {
-    const hasil = await rute.penangan(req, rute.param, { ip });
+    const hasil = await rute.penangan(req, rute.param, konteks);
+    if (jalur.startsWith("/api/pengurus/")) {
+      // Handler selesai tanpa melempar → autentikasi berhasil. Reset
+      // hitungan gagal untuk IP ini.
+      catatPercobaanAdmin(ip, true);
+
+      // Catat aksi pengubah-data (POST) ke jejak audit. Endpoint baca
+      // (/pesan/:id/baca) tidak dicatat agar log tidak penuh.
+      if (metode === "POST" && !jalur.endsWith("/baca")) {
+        catatJejak(`admin-${metode.toLowerCase()}-${jalur}`, {
+          pengguna,
+          ip,
+        }).catch(() => {
+          /* audit tidak boleh menggagalkan permintaan */
+        });
+      }
+    }
     if (hasil.alihkan) {
       res.writeHead(hasil.status || 302, { Location: hasil.alihkan });
       return res.end();
@@ -572,6 +622,10 @@ async function tangani(req, res) {
     }
     kirimJson(res, hasil.status, hasil.isi);
   } catch (e) {
+    // 401 dari endpoint pengurus = percobaan token gagal.
+    if (jalur.startsWith("/api/pengurus/") && e?.status === 401) {
+      catatPercobaanAdmin(ip, false);
+    }
     if (e instanceof GalatAplikasi) {
       return kirimJson(res, e.status, { pesan: e.message, ...e.tambahan });
     }

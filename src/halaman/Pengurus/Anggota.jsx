@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { apiPengurus } from "../../lib/chessAnggota.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
-import { Tombol, Avatar } from "./ui.jsx";
+import { Tombol, Avatar, Modal } from "./ui.jsx";
 
 export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
   const [sibuk, setSibuk] = useState("");
+  const [kontak, setKontak] = useState(null);
+  const [targetBlokir, setTargetBlokir] = useState(null);
   const klub = String(anggota.find((a) => a.klubChess)?.klubChess || "")
     .replace(/-/g, " ")
     .toUpperCase();
@@ -20,12 +22,10 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
     }
   };
 
-  const blokir = (username) => {
-    const alasan = window.prompt(
-      `Alasan memblokir "${username}"?`,
-      "Terbukti menggunakan bantuan engine."
-    );
-    if (alasan === null) return;
+  const konfirmasiBlokir = (alasan) => {
+    const username = targetBlokir;
+    setTargetBlokir(null);
+    if (!username) return;
     jalankan(`blokir-${username}`, async () => {
       await apiPengurus("/blokir", {
         metode: "POST",
@@ -35,6 +35,12 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
       await muatUlang();
     });
   };
+
+  const lihatKontak = (username) =>
+    jalankan(`kontak-${username}`, async () => {
+      const data = await apiPengurus(`/kontak/${username}`);
+      setKontak({ username, data });
+    });
 
   const pindai = () =>
     jalankan("pindai", async () => {
@@ -121,13 +127,30 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
                       )}
                     </td>
                     <td className="px-3 py-2">
-                      <Tombol
-                        anak="Blokir"
-                        jenis="bahaya"
-                        kecil
-                        onClick={() => blokir(a.username)}
-                        disabled={sibuk === `blokir-${a.username}`}
-                      />
+                      <div className="flex gap-1.5">
+                        <Tombol
+                          anak="Kontak"
+                          kecil
+                          onClick={() => lihatKontak(a.username)}
+                          disabled={sibuk === `kontak-${a.username}`}
+                        />
+                        {a.diblokirKomunitas || a.alasanStatus ? (
+                          <Tombol
+                            anak="Diblokir"
+                            kecil
+                            jenis="bahaya"
+                            disabled
+                          />
+                        ) : (
+                          <Tombol
+                            anak="Blokir"
+                            jenis="bahaya"
+                            kecil
+                            onClick={() => setTargetBlokir(a.username)}
+                            disabled={sibuk === `blokir-${a.username}`}
+                          />
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -146,6 +169,94 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
           </div>
         </div>
       </section>
+
+      <Modal
+        terbuka={Boolean(targetBlokir)}
+        judul={`Blokir ${targetBlokir || ""}`}
+        labelKonfirmasi="Blokir"
+        jenisKonfirmasi="bahaya"
+        butuhInput
+        placeholderInput="Alasan pemblokiran…"
+        nilaiBawaanInput="Terbukti menggunakan bantuan engine."
+        catatanInput="Tindakan ini membatasi kegiatan situs dan turnamen, bukan mengeluarkan akun dari klub Chess.com."
+        sibuk={sibuk === `blokir-${targetBlokir}`}
+        onBatal={() => setTargetBlokir(null)}
+        onKonfirmasi={konfirmasiBlokir}
+      >
+        Tindakan ini akan memasukkan{" "}
+        <strong>{targetBlokir}</strong> ke daftar larangan komunitas.
+      </Modal>
+
+      {kontak && (
+        <section
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setKontak(null)}
+        >
+          <div
+            className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-base font-bold text-slate-900">
+              Kontak {kontak.username}
+            </h3>
+            <p className="mt-1 text-xs text-slate-500">
+              Data pribadi ini hanya terlihat oleh pengurus.
+            </p>
+            <dl className="mt-4 space-y-2 text-sm">
+              {[
+                ["Nama lengkap", kontak.data.namaLengkap],
+                ["Panggilan", kontak.data.panggilan],
+                ["HP / WhatsApp", kontak.data.hp],
+                ["DANA", kontak.data.dana],
+                ["Email", kontak.data.email],
+                ["Kota", kontak.data.kota],
+                ["Tanggal lahir", kontak.data.tanggalLahir],
+                ["Klub", kontak.data.klub],
+              ].map(([label, nilai]) =>
+                nilai ? (
+                  <div key={label} className="flex justify-between gap-4">
+                    <dt className="text-slate-500">{label}</dt>
+                    <dd className="text-right font-medium text-slate-900 break-all">
+                      {nilai}
+                    </dd>
+                  </div>
+                ) : null
+              )}
+            </dl>
+            <div className="mt-5 flex justify-end gap-2">
+              {kontak.data.email && (
+                <Tombol
+                  anak="Email"
+                  kecil
+                  onClick={() =>
+                    (window.location.href = `mailto:${kontak.data.email}`)
+                  }
+                />
+              )}
+              {kontak.data.hp && (
+                <Tombol
+                  anak="WhatsApp"
+                  kecil
+                  jenis="utama"
+                  onClick={() =>
+                    window.open(
+                      `https://wa.me/${String(kontak.data.hp).replace(
+                        /^0/,
+                        "62"
+                      )}`,
+                      "_blank",
+                      "noopener"
+                    )
+                  }
+                />
+              )}
+              <Tombol anak="Tutup" kecil onClick={() => setKontak(null)} />
+            </div>
+          </div>
+        </section>
+      )}
     </div>
   );
 }

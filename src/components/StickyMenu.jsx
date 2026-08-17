@@ -18,7 +18,6 @@ export default function StickyMenu({ sections, activeId, onSelect }) {
     { id: "tonggak-sejarah", label: t("sticky.tonggakSejarah") },
     { id: "visi-misi", label: t("sticky.visiMisiNilai") },
     { id: "makna-logo", label: t("sticky.maknaLogo") },
-    { id: "struktur-pengurus", label: t("sticky.strukturPengurus") },
   ];
   const daftar = sections ?? SECTIONS;
   const [active, setActive] = useState(daftar[0]?.id);

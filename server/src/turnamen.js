@@ -401,9 +401,10 @@ export async function ajukanKeikutsertaan(id, { username }) {
   ]);
 
   if (!anggotaKlub.some((a) => a.username === uname)) {
+    const namaKlub = konfigurasi.chess.klub.slug.replace(/-/g, " ").toUpperCase();
     throw new GalatAplikasi(
       403,
-      `"${uname}" belum terdaftar sebagai anggota BLUNDER SKUAD. Bergabunglah ke klub dan lengkapi data diri di website terlebih dahulu.`,
+      `"${uname}" belum terdaftar sebagai anggota ${namaKlub}. Bergabunglah ke klub dan lengkapi data diri di website terlebih dahulu.`,
       { harusDaftarAnggota: true }
     );
   }
@@ -506,6 +507,9 @@ export async function terimaPengajuan(id, username) {
 
 export async function tolakPengajuan(id, { username, alasan }) {
   const uname = normalisasiUsername(username);
+  const alasanRingkas = String(alasan || "")
+    .trim()
+    .slice(0, 300);
   return repoTurnamen.ubah(async (semua) => {
     const indeks = semua.findIndex((x) => x.id === id);
     if (indeks === -1) throw new GalatAplikasi(404, "Turnamen tidak ditemukan.");
@@ -520,7 +524,7 @@ export async function tolakPengajuan(id, { username, alasan }) {
             ...p,
             status: "ditolak",
             diputuskanPada: kiniIso(),
-            alasan: String(alasan || "Tidak lolos peninjauan pengurus.").trim(),
+            alasan: alasanRingkas || "Tidak lolos peninjauan pengurus.",
           }
         : p
     );

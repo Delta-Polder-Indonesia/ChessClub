@@ -5,7 +5,6 @@ import Sekilas from "../../components/Sekilas.jsx";
 import Tonggak from "../../components/Tonggak.jsx";
 import VisiMisi from "../../components/VisiMisi.jsx";
 import MaknaLogo from "../../components/MaknaLogo.jsx";
-import Struktur from "../../components/Struktur.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -32,10 +31,6 @@ export default function TentangKami() {
       <div className="w-full border-t my-24 md:my-24 border-grey-200" />
 
       <MaknaLogo />
-
-      <div className="w-full border-t my-0 md:my-0 border-grey-200" />
-
-      <Struktur />
 
       <PageSelanjutnya
         to="/tentang-kami/struktur-grup-catur"
