@@ -331,6 +331,17 @@ let pendaftaranBerhasil = false;
   }
   if (pendaftaranBerhasil) {
     ipSaatIni = ipBaru();
+    const rosterSesudahDaftar = await panggil("GET", "/api/anggota");
+    cek(
+      "roster menandai data website sudah lengkap",
+      rosterSesudahDaftar.data?.find((a) => a.username === "magnuscarlsen")
+        ?.dataSitusLengkap === true &&
+        rosterSesudahDaftar.data?.find((a) => a.username === "hikaru")
+          ?.dataSitusLengkap === false,
+      JSON.stringify(rosterSesudahDaftar.data)
+    );
+
+    ipSaatIni = ipBaru();
     const ulang = await panggil("POST", "/api/anggota", anggotaSah("magnuscarlsen"));
     cek("username sama -> 409", ulang.status === 409, `dapat ${ulang.status}`);
   } else if (daring) {
@@ -565,16 +576,16 @@ console.log("\nPersetujuan peserta turnamen");
 
     ipSaatIni = ipBaru();
     const ajukan = await panggil("POST", `/api/turnamen/${id}/daftar`, {
-      username: "magnuscarlsen",
+      username: "gothamchess",
     });
     cek(
-      "anggota dapat mengirim pengajuan",
+      "anggota dengan data lengkap dapat mengirim pengajuan",
       ajukan.status === 201 && ajukan.data?.status === "menunggu",
       JSON.stringify(ajukan.data)
     );
 
     const ganda = await panggil("POST", `/api/turnamen/${id}/daftar`, {
-      username: "magnuscarlsen",
+      username: "gothamchess",
     });
     cek("pengajuan ganda ditolak", ganda.status === 409, JSON.stringify(ganda.data));
 
@@ -583,7 +594,7 @@ console.log("\nPersetujuan peserta turnamen");
     cek(
       "pengurus melihat pengajuan beserta usia akun",
       detail.status === 200 &&
-        detail.data?.pengajuan?.[0]?.username === "magnuscarlsen" &&
+        detail.data?.pengajuan?.[0]?.username === "gothamchess" &&
         Boolean(detail.data?.pengajuan?.[0]?.akunDibuatPada),
       JSON.stringify(detail.data?.pengajuan)
     );
@@ -591,19 +602,41 @@ console.log("\nPersetujuan peserta turnamen");
     const terima = await panggil(
       "POST",
       `/api/pengurus/turnamen/${id}/pengajuan-terima`,
-      { username: "magnuscarlsen" }
+      { username: "gothamchess" }
     );
     cek("pengurus menerima pengajuan", terima.status === 200);
 
     const sesudah = await panggil("GET", `/api/pengurus/turnamen/${id}`);
     cek(
       "pengajuan diterima masuk daftar peserta",
-      sesudah.data?.peserta?.some((p) => p.username === "magnuscarlsen") &&
+      sesudah.data?.peserta?.some((p) => p.username === "gothamchess") &&
         sesudah.data?.pengajuan?.[0]?.status === "diterima",
       JSON.stringify(sesudah.data)
     );
 
     ipSaatIni = ipBaru();
+    const belumLengkap = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "hikaru",
+    });
+    cek(
+      "anggota roster tanpa data website ditolak",
+      belumLengkap.status === 403 && belumLengkap.data?.dataSitusBelumLengkap === true,
+      JSON.stringify(belumLengkap.data)
+    );
+
+    ipSaatIni = ipBaru();
+    const lengkapiHikaru = await panggil(
+      "POST",
+      "/api/anggota",
+      anggotaSah("hikaru", {
+        namaLengkap: "Hikaru Nakamura",
+        panggilan: "Hikaru",
+        hp: "0814-5555-7777",
+        tanggalLahir: "1987-12-09",
+      })
+    );
+    cek("anggota melengkapi data website", lengkapiHikaru.status === 201);
+
     const ajukanKedua = await panggil("POST", `/api/turnamen/${id}/daftar`, {
       username: "hikaru",
     });
@@ -625,11 +658,13 @@ console.log("\nPersetujuan peserta turnamen");
   } else {
     for (const nama of [
       "non-anggota ditolak dan diarahkan mendaftar",
-      "anggota dapat mengirim pengajuan",
+      "anggota dengan data lengkap dapat mengirim pengajuan",
       "pengajuan ganda ditolak",
       "pengurus melihat pengajuan beserta usia akun",
       "pengurus menerima pengajuan",
       "pengajuan diterima masuk daftar peserta",
+      "anggota roster tanpa data website ditolak",
+      "anggota melengkapi data website",
       "anggota kedua dapat mengajukan",
       "pengurus dapat menolak pengajuan",
       "pengajuan ditolak tidak masuk peserta",

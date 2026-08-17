@@ -6,8 +6,10 @@ pencegahan pemain curang kembali bergabung lewat "akun kecil".
 > **Sumber anggota:** daftar publik situs mengikuti roster klub
 > [BLUNDER SKUAD di Chess.com](https://www.chess.com/club/blunder-skuad),
 > bukan `data/anggota.json`. Chess.com memperbarui roster publik maksimal
-> setiap 12 jam. Berkas lokal tetap dipakai untuk metadata formulir,
-> verifikasi, dan perlindungan identitas.
+> setiap 12 jam. Anggota roster yang belum melengkapi formulir website diberi
+> tanda **?** di samping namanya dan belum dapat mengajukan diri ke turnamen.
+> Berkas lokal dipakai untuk metadata formulir, verifikasi, dan perlindungan
+> identitas.
 
 ---
 

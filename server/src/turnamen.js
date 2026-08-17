@@ -403,14 +403,21 @@ export async function ajukanKeikutsertaan(id, { username }) {
   if (!anggotaKlub.some((a) => a.username === uname)) {
     throw new GalatAplikasi(
       403,
-      `"${uname}" belum terdaftar sebagai anggota BLUNDER SKUAD. Daftarkan diri sebagai anggota terlebih dahulu.`,
+      `"${uname}" belum terdaftar sebagai anggota BLUNDER SKUAD. Bergabunglah ke klub dan lengkapi data diri di website terlebih dahulu.`,
       { harusDaftarAnggota: true }
+    );
+  }
+  const rekamLokal = anggotaLokal.find((a) => a.username === uname);
+  if (!rekamLokal) {
+    throw new GalatAplikasi(
+      403,
+      `"${uname}" sudah ada di roster Chess.com, tetapi belum melengkapi data diri di website komunitas.`,
+      { harusDaftarAnggota: true, dataSitusBelumLengkap: true }
     );
   }
   if (!profil.ada) throw new GalatAplikasi(404, `Akun Chess.com "${uname}" tidak ditemukan.`);
 
   const laranganUsername = hitam.find((h) => h.username === uname);
-  const rekamLokal = anggotaLokal.find((a) => a.username === uname);
   const laranganIdentitas = rekamLokal?.identitas
     ? cariDiDaftarHitam(rekamLokal.identitas, hitam)
     : null;
