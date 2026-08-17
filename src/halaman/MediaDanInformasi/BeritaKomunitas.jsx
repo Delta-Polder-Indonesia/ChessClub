@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ambilBeritaPublik } from "../../lib/chessAnggota.js";
+import DaftarKontenMedia from "../../components/DaftarKontenMedia.jsx";
 
 export default function BeritaKomunitas() {
   const { t } = useI18n();
@@ -38,24 +39,7 @@ export default function BeritaKomunitas() {
         {daftar === null && !galat ? (
           <p className="text-sm text-slate-500">Memuat berita…</p>
         ) : daftar && daftar.length ? (
-          <ul className="space-y-8">
-            {daftar.map((b) => (
-              <li key={b.id} className="space-y-1.5">
-                <h3 className="text-lg font-semibold text-slate-900">
-                  {b.judul}
-                </h3>
-                <p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-                  {b.tanggal}
-                </p>
-                {b.ringkasan && (
-                  <p className="text-sm font-medium text-slate-700">
-                    {b.ringkasan}
-                  </p>
-                )}
-                <p className="text-sm leading-6 text-slate-600">{b.isi}</p>
-              </li>
-            ))}
-          </ul>
+          <DaftarKontenMedia daftar={daftar} jenis="berita" />
         ) : (
           <p className="text-sm text-slate-500">Belum ada berita komunitas.</p>
         )}

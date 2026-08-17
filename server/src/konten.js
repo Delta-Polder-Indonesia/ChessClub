@@ -30,6 +30,27 @@ function statusBoleh(s) {
   return s === "publik" ? "publik" : s === "draf" ? "draf" : undefined;
 }
 
+/**
+ * Gambar boleh berupa URL HTTPS atau data URL gambar hasil kompresi dashboard.
+ * Skema lain (javascript:, file:, data:text/html) ditolak agar nilai ini aman
+ * dipasang langsung pada atribut src di halaman publik.
+ */
+function gambarAman(nilai) {
+  const gambar = String(nilai || "").trim();
+  if (!gambar) return "";
+  if (/^https:\/\/[^\s]+$/i.test(gambar) && gambar.length <= 2048) return gambar;
+  if (
+    /^data:image\/(?:jpeg|png|webp|gif);base64,[a-z0-9+/=\r\n]+$/i.test(gambar) &&
+    gambar.length <= 1_900_000
+  ) {
+    return gambar;
+  }
+  throw new GalatAplikasi(
+    400,
+    "Gambar harus berupa JPG, PNG, WebP, GIF, atau URL HTTPS yang sah."
+  );
+}
+
 /* ----------------------------------------------------------- pabrik */
 
 /**
@@ -50,6 +71,8 @@ function mesinKonten({ kunci, namaFile, label, punyaRingkasan }) {
       judul: x.judul,
       ...(punyaRingkasan ? { ringkasan: x.ringkasan || "" } : {}),
       isi: x.isi,
+      gambar: x.gambar || "",
+      altGambar: x.altGambar || x.judul,
       tanggal: x.tanggal,
       status: x.status,
     };
@@ -83,6 +106,8 @@ function mesinKonten({ kunci, namaFile, label, punyaRingkasan }) {
         ? { ringkasan: String(data.ringkasan || "").trim() }
         : {}),
       isi: String(data.isi).trim(),
+      gambar: gambarAman(data.gambar),
+      altGambar: String(data.altGambar || data.judul).trim().slice(0, 180),
       tanggal: data.tanggal || hariIni(),
       status: statusBoleh(data.status) || "publik",
       dibuatPada: kiniIso(),
@@ -102,6 +127,10 @@ function mesinKonten({ kunci, namaFile, label, punyaRingkasan }) {
         entri.ringkasan = String(data.ringkasan).trim();
       }
       if (data.isi !== undefined) entri.isi = String(data.isi).trim();
+      if (data.gambar !== undefined) entri.gambar = gambarAman(data.gambar);
+      if (data.altGambar !== undefined) {
+        entri.altGambar = String(data.altGambar || entri.judul).trim().slice(0, 180);
+      }
       if (data.tanggal !== undefined) entri.tanggal = data.tanggal;
       if (data.status !== undefined) {
         const s = statusBoleh(data.status);

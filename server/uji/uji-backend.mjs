@@ -331,6 +331,17 @@ let pendaftaranBerhasil = false;
   }
   if (pendaftaranBerhasil) {
     ipSaatIni = ipBaru();
+    const rosterSesudahDaftar = await panggil("GET", "/api/anggota");
+    cek(
+      "roster menandai data website sudah lengkap",
+      rosterSesudahDaftar.data?.find((a) => a.username === "magnuscarlsen")
+        ?.dataSitusLengkap === true &&
+        rosterSesudahDaftar.data?.find((a) => a.username === "hikaru")
+          ?.dataSitusLengkap === false,
+      JSON.stringify(rosterSesudahDaftar.data)
+    );
+
+    ipSaatIni = ipBaru();
     const ulang = await panggil("POST", "/api/anggota", anggotaSah("magnuscarlsen"));
     cek("username sama -> 409", ulang.status === 409, `dapat ${ulang.status}`);
   } else if (daring) {
@@ -538,6 +549,127 @@ console.log("\nDaftar hitam & pencegahan akun kecil  (butuh api.chess.com)");
     "daftar hitam publik tidak membocorkan hash",
     !JSON.stringify(publik.data).includes("identitas")
   );
+}
+
+/* ---------------------------------------------- persetujuan peserta turnamen */
+console.log("\nPersetujuan peserta turnamen");
+{
+  ipSaatIni = ipBaru();
+  const buat = await panggil("POST", "/api/pengurus/turnamen", {
+    jenis: "bulanan",
+    nama: "Turnamen Uji Persetujuan",
+    status: "pendaftaran",
+  });
+  cek("pengurus membuat turnamen pendaftaran", buat.status === 201, JSON.stringify(buat.data));
+  const id = buat.data?.id;
+
+  if (id && daring) {
+    ipSaatIni = ipBaru();
+    const nonAnggota = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "bukananggota",
+    });
+    cek(
+      "non-anggota ditolak dan diarahkan mendaftar",
+      nonAnggota.status === 403 && nonAnggota.data?.harusDaftarAnggota === true,
+      JSON.stringify(nonAnggota.data)
+    );
+
+    ipSaatIni = ipBaru();
+    const ajukan = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "gothamchess",
+    });
+    cek(
+      "anggota dengan data lengkap dapat mengirim pengajuan",
+      ajukan.status === 201 && ajukan.data?.status === "menunggu",
+      JSON.stringify(ajukan.data)
+    );
+
+    const ganda = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "gothamchess",
+    });
+    cek("pengajuan ganda ditolak", ganda.status === 409, JSON.stringify(ganda.data));
+
+    ipSaatIni = ipBaru();
+    const detail = await panggil("GET", `/api/pengurus/turnamen/${id}`);
+    cek(
+      "pengurus melihat pengajuan beserta usia akun",
+      detail.status === 200 &&
+        detail.data?.pengajuan?.[0]?.username === "gothamchess" &&
+        Boolean(detail.data?.pengajuan?.[0]?.akunDibuatPada),
+      JSON.stringify(detail.data?.pengajuan)
+    );
+
+    const terima = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/pengajuan-terima`,
+      { username: "gothamchess" }
+    );
+    cek("pengurus menerima pengajuan", terima.status === 200);
+
+    const sesudah = await panggil("GET", `/api/pengurus/turnamen/${id}`);
+    cek(
+      "pengajuan diterima masuk daftar peserta",
+      sesudah.data?.peserta?.some((p) => p.username === "gothamchess") &&
+        sesudah.data?.pengajuan?.[0]?.status === "diterima",
+      JSON.stringify(sesudah.data)
+    );
+
+    ipSaatIni = ipBaru();
+    const belumLengkap = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "hikaru",
+    });
+    cek(
+      "anggota roster tanpa data website ditolak",
+      belumLengkap.status === 403 && belumLengkap.data?.dataSitusBelumLengkap === true,
+      JSON.stringify(belumLengkap.data)
+    );
+
+    ipSaatIni = ipBaru();
+    const lengkapiHikaru = await panggil(
+      "POST",
+      "/api/anggota",
+      anggotaSah("hikaru", {
+        namaLengkap: "Hikaru Nakamura",
+        panggilan: "Hikaru",
+        hp: "0814-5555-7777",
+        tanggalLahir: "1987-12-09",
+      })
+    );
+    cek("anggota melengkapi data website", lengkapiHikaru.status === 201);
+
+    const ajukanKedua = await panggil("POST", `/api/turnamen/${id}/daftar`, {
+      username: "hikaru",
+    });
+    cek("anggota kedua dapat mengajukan", ajukanKedua.status === 201);
+    const tolak = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/pengajuan-tolak`,
+      { username: "hikaru", alasan: "Akun perlu peninjauan lanjutan." }
+    );
+    cek("pengurus dapat menolak pengajuan", tolak.status === 200);
+    const setelahTolak = await panggil("GET", `/api/pengurus/turnamen/${id}`);
+    cek(
+      "pengajuan ditolak tidak masuk peserta",
+      !setelahTolak.data?.peserta?.some((p) => p.username === "hikaru") &&
+        setelahTolak.data?.pengajuan?.find((p) => p.username === "hikaru")?.status ===
+          "ditolak",
+      JSON.stringify(setelahTolak.data)
+    );
+  } else {
+    for (const nama of [
+      "non-anggota ditolak dan diarahkan mendaftar",
+      "anggota dengan data lengkap dapat mengirim pengajuan",
+      "pengajuan ganda ditolak",
+      "pengurus melihat pengajuan beserta usia akun",
+      "pengurus menerima pengajuan",
+      "pengajuan diterima masuk daftar peserta",
+      "anggota roster tanpa data website ditolak",
+      "anggota melengkapi data website",
+      "anggota kedua dapat mengajukan",
+      "pengurus dapat menolak pengajuan",
+      "pengajuan ditolak tidak masuk peserta",
+    ]) lewati(nama);
+  }
 }
 
 /* -------------------------------------------------------------- privasi */
