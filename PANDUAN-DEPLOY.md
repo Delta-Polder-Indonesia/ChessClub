@@ -49,8 +49,14 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    | `KCI_PEPPER` | hasil generate di atas |
    | `KCI_TOKEN_ADMIN` | hasil generate di atas |
    | `KCI_ASAL_DIIZINKAN` | `https://delta-polder-indonesia.github.io` |
+   | `KCI_JUMLAH_PROXY` | `1` (lihat catatan di bawah) |
    | `KCI_CHESS_KLUB` | `blunder-skuad` |
    | `KCI_DIR_DATA` | `/var/data` |
+
+   > Render (dan kebanyakan PaaS) meletakkan satu reverse proxy di depan
+   > aplikasi. Setel `KCI_JUMLAH_PROXY=1` agar server membaca IP klien
+   > dari `X-Forwarded-For` dengan benar. Biarkan `0` bila server
+   > terhubung langsung ke internet tanpa proxy.
 
 5. **Wajib**: tambahkan **Disk** (Advanced → Add Disk), mount path `/var/data`.
    Tanpa disk, data anggota hilang setiap kali server restart.
@@ -80,6 +86,8 @@ Environment=KCI_PEPPER=isi-pepper-di-sini
 Environment=KCI_TOKEN_ADMIN=isi-token-di-sini
 Environment=KCI_CHESS_KLUB=blunder-skuad
 Environment=KCI_ASAL_DIIZINKAN=https://catur.example.id
+# Nginx adalah satu-satunya proxy tepercaya di depan aplikasi.
+Environment=KCI_JUMLAH_PROXY=1
 
 [Install]
 WantedBy=multi-user.target
@@ -101,7 +109,9 @@ location /api/ {
 ```
 
 > `X-Forwarded-For` penting — tanpa itu semua pengunjung terlihat berasal
-> dari satu IP dan rate limit akan salah sasaran.
+> dari satu IP dan rate limit akan salah sasaran. **Jangan** menambah
+> `KCI_JUMLAH_PROXY` bila server tidak berada di balik proxy; header itu
+> dapat dipalsukan dan akan melumpuhkan pembatasan laju.
 
 ---
 

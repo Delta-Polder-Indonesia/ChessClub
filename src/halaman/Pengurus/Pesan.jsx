@@ -1,12 +1,31 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/chessAnggota.js";
-import { Tombol } from "./ui.jsx";
+import { Tombol, Modal } from "./ui.jsx";
 
-export default function PanelPesan({ beriTahu, muatUlang }) {
+export default function PanelPesan({
+  beriTahu,
+  muatUlang,
+  pesanTerpilihId,
+  onPesanTerbuka,
+}) {
   const [pesan, setPesan] = useState([]);
   const [memuat, setMemuat] = useState(true);
   const [pesanTerpilih, setPesanTerpilih] = useState(null);
   const [sibuk, setSibuk] = useState("");
+  const [targetHapus, setTargetHapus] = useState(null);
+
+  // Bila Dashboard memberi id pesan (dari klik notifikasi), buka pesan
+  // itu setelah daftar termuat.
+  useEffect(() => {
+    if (!pesanTerpilihId || !pesan.length) return;
+    const ditemukan = pesan.find((p) => p.id === pesanTerpilihId);
+    if (ditemukan) {
+      setPesanTerpilih(ditemukan);
+      if (!ditemukan.dibaca) tandaiDibaca(ditemukan.id);
+    }
+    onPesanTerbuka?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pesanTerpilihId, pesan]);
 
   const muatPesan = useCallback(async () => {
     setMemuat(true);
@@ -47,8 +66,16 @@ export default function PanelPesan({ beriTahu, muatUlang }) {
       "Pesan ditandai sudah dibaca."
     );
 
-  const hapusPesan = (id) => {
-    if (!window.confirm("Hapus pesan ini?")) return;
+  const hapusPesan = (id) => setTargetHapus(id);
+
+  const konfirmasiHapus = () => {
+    const id = targetHapus;
+    setTargetHapus(null);
+    if (!id) return;
+    // Bila pesan yang sedang dibuka dihapus, panel rincian harus
+    // dikosongkan — kalau tidak, ia terus menampilkan data yang sudah
+    // tidak ada di daftar.
+    if (pesanTerpilih?.id === id) setPesanTerpilih(null);
     jalankan(
       `hapus-${id}`,
       async () => {
@@ -124,6 +151,8 @@ export default function PanelPesan({ beriTahu, muatUlang }) {
                     anak="×"
                     kecil
                     jenis="bahaya"
+                    aria-label={`Hapus pesan dari ${p.nama}`}
+                    title="Hapus pesan"
                     onClick={(e) => {
                       e.stopPropagation();
                       hapusPesan(p.id);
@@ -193,6 +222,18 @@ export default function PanelPesan({ beriTahu, muatUlang }) {
           )}
         </div>
       )}
+
+      <Modal
+        terbuka={Boolean(targetHapus)}
+        judul="Hapus pesan?"
+        labelKonfirmasi="Hapus"
+        jenisKonfirmasi="bahaya"
+        sibuk={sibuk === `hapus-${targetHapus}`}
+        onBatal={() => setTargetHapus(null)}
+        onKonfirmasi={konfirmasiHapus}
+      >
+        Pesan yang dihapus tidak dapat dikembalikan.
+      </Modal>
     </div>
   );
 }

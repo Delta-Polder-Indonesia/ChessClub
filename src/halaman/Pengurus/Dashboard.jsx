@@ -1,13 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   apiPengurus,
   tokenPengurus,
+  adminPengguna,
   ambilDaftarAnggota,
   ambilDaftarHitam,
 } from "../../lib/chessAnggota.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
 import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
-import Gerbang from "./Gerbang.jsx";
 import PanelAnggota from "./Anggota.jsx";
 import PanelLarangan from "./Larangan.jsx";
 import PanelPesan from "./Pesan.jsx";
@@ -18,6 +19,11 @@ import { Tombol, Kartu } from "./ui.jsx";
    ======================================================== */
 
 const MENU_SIDEBAR = [
+  {
+    kunci: "dashboard",
+    label: "Dashboard",
+    icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  },
   {
     kunci: "anggota",
     label: "Anggota",
@@ -134,6 +140,164 @@ function Sidebar({ tab, setTab, terbuka }) {
 }
 
 /* ========================================================
+   KOMPONEN: Dropdown Notifikasi
+   ========================================================
+   Berisi pesan-pesan terbaru dari form "Hubungi Kami".
+   Tiap item menampilkan nama pengirim, subjek, cuplikan isi,
+   dan waktu relatif. Klik item menandai pesan dibaca lalu
+   membukanya di panel Pesan.
+   ======================================================== */
+
+function waktuRelatif(iso) {
+  if (!iso) return "";
+  const sekarang = Date.now();
+  const waktu = new Date(iso).getTime();
+  if (Number.isNaN(waktu)) return "";
+  const detik = Math.max(0, Math.round((sekarang - waktu) / 1000));
+  if (detik < 60) return "baru saja";
+  const menit = Math.round(detik / 60);
+  if (menit < 60) return `${menit} menit lalu`;
+  const jam = Math.round(menit / 60);
+  if (jam < 24) return `${jam} jam lalu`;
+  const hari = Math.round(jam / 24);
+  if (hari < 7) return `${hari} hari lalu`;
+  return new Date(iso).toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+  });
+}
+
+function cuplikan(teks, maks = 80) {
+  const s = String(teks || "").replace(/\s+/g, " ").trim();
+  return s.length > maks ? `${s.slice(0, maks - 1)}…` : s;
+}
+
+function DropdownNotifikasi({
+  terbuka,
+  pesan,
+  memuat,
+  onBuka,
+  onBukaPesan,
+  onTandaiSemua,
+}) {
+  return (
+    <div
+      className={`
+        absolute right-0 mt-2 w-80 sm:w-96 z-50
+        bg-white rounded-lg shadow-lg border border-slate-200
+        origin-top-right transform-gpu
+        transition-[opacity,transform] duration-200
+        ease-[cubic-bezier(0.22,1,0.36,1)]
+        ${terbuka
+          ? "opacity-100 scale-100 translate-y-0 pointer-events-auto"
+          : "opacity-0 scale-95 -translate-y-2 pointer-events-none"
+        }
+      `}
+    >
+      <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+        <div>
+          <p className="text-sm font-bold text-slate-900">Notifikasi</p>
+          <p className="text-xs text-slate-500">
+            Pesan masuk dari form Hubungi Kami
+          </p>
+        </div>
+        {pesan.some((p) => !p.dibaca) && (
+          <button
+            type="button"
+            onClick={onTandaiSemua}
+            className="text-xs font-semibold text-primary hover:underline"
+          >
+            Tandai semua dibaca
+          </button>
+        )}
+      </div>
+
+      <div className="max-h-[26rem] overflow-y-auto">
+        {memuat && pesan.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-slate-500">
+            Memuat…
+          </p>
+        ) : pesan.length === 0 ? (
+          <div className="px-4 py-10 text-center">
+            <svg
+              className="mx-auto h-9 w-9 text-slate-300"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.6}
+                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+              />
+            </svg>
+            <p className="mt-2 text-sm text-slate-500">Belum ada pesan masuk.</p>
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {pesan.map((p) => (
+              <li key={p.id}>
+                <button
+                  type="button"
+                  onClick={() => onBukaPesan(p)}
+                  className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
+                    p.dibaca ? "bg-white" : "bg-blue-50/40"
+                  }`}
+                >
+                  <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    {String(p.nama || "?").charAt(0).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p
+                        className={`truncate text-sm ${
+                          p.dibaca
+                            ? "font-medium text-slate-700"
+                            : "font-bold text-slate-900"
+                        }`}
+                      >
+                        {p.nama}
+                      </p>
+                      <span className="shrink-0 text-[11px] text-slate-400">
+                        {waktuRelatif(p.tanggal)}
+                      </span>
+                    </div>
+                    <p className="truncate text-xs text-slate-600">
+                      {p.subjek || "(tanpa subjek)"}
+                    </p>
+                    <p className="mt-0.5 truncate text-xs text-slate-400">
+                      {cuplikan(p.pesan)}
+                    </p>
+                  </div>
+                  {!p.dibaca && (
+                    <span
+                      className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500"
+                      aria-label="belum dibaca"
+                    />
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="border-t border-slate-100 px-2 py-2">
+        <button
+          type="button"
+          onClick={onBuka}
+          className="w-full rounded-md px-3 py-2 text-center text-xs font-semibold text-primary hover:bg-blue-50"
+        >
+          Lihat semua pesan →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ========================================================
    KOMPONEN: Dropdown Profil
    ========================================================
    Selalu di-render (tidak di-unmount).
@@ -182,7 +346,14 @@ function ItemDropdown({
   );
 }
 
-function DropdownProfil({ terbuka, onTutup, onMuatUlang, onKeluar, memuat }) {
+function DropdownProfil({
+  terbuka,
+  pengguna,
+  onTutup,
+  onMuatUlang,
+  onKeluar,
+  memuat,
+}) {
   return (
     <div
       className={`
@@ -198,26 +369,29 @@ function DropdownProfil({ terbuka, onTutup, onMuatUlang, onKeluar, memuat }) {
       `}
     >
       <div className="px-4 py-3 border-b border-slate-100">
-        <p className="text-sm font-semibold text-slate-900">Admin Pengurus</p>
-        <p className="text-xs text-slate-500">admin@komunitascatur.or.id</p>
+        <p className="text-xs uppercase tracking-wide text-slate-500">
+          Masuk sebagai
+        </p>
+        <p className="truncate text-sm font-semibold text-slate-900">
+          {pengguna ? (
+            <a
+              href={`https://www.chess.com/member/${encodeURIComponent(pengguna)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {pengguna}
+            </a>
+          ) : (
+            "Pengurus"
+          )}
+        </p>
       </div>
 
       <ItemDropdown
-        icon="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-        label="Profil"
-        onClick={onTutup}
-      />
-      <ItemDropdown
-        icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065zM15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        label="Pengaturan"
-        onClick={onTutup}
-      />
-
-      <div className="border-t border-slate-100 my-1" />
-
-      <ItemDropdown
         icon="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-        label="Muat ulang"
+        label="Muat ulang data"
         onClick={() => {
           onTutup();
           onMuatUlang();
@@ -238,12 +412,258 @@ function DropdownProfil({ terbuka, onTutup, onMuatUlang, onKeluar, memuat }) {
 }
 
 /* ========================================================
+   KOMPONEN: Ringkasan Dashboard
+   ========================================================
+   Kartu-kartu ikhtisar yang HANYA tampil di tab Dashboard.
+   Tab lain (Anggota, Pesan, Turnamen, dst.) tidak memuatnya
+   supaya ruang kerja tidak berkurang.
+   ======================================================== */
+
+const LABEL_MODE_VERIFIKASI = {
+  wajib: "Wajib",
+  opsional: "Opsional",
+  off: "Nonaktif",
+};
+
+function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }) {
+  const jumlahKonten =
+    (ringkas.konten?.berita ?? 0) + (ringkas.konten?.pengumuman ?? 0);
+
+  // Daftar pemain yang kena ban OTOMATis (pemindaian fair play
+  // ke Chess.com). Diurutkan dari yang terbaru.
+  const banOtomatis = (hitam || [])
+    .filter((h) => h.sumber === "otomatis")
+    .sort(
+      (a, b) =>
+        new Date(b.diblokirPada || 0).getTime() -
+        new Date(a.diblokirPada || 0).getTime()
+    );
+
+  const labelAlasan = {
+    fair_play_violations: "Pelanggaran fair play",
+    keputusan_pengurus: "Keputusan pengurus",
+  };
+
+  const formatTanggal = (iso) => {
+    if (!iso) return "—";
+    try {
+      return new Date(iso).toLocaleDateString("id-ID", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    } catch {
+      return "—";
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+        <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
+        <Kartu
+          label="Daftar larangan"
+          nilai={ringkas.daftarHitam}
+          catatan={`${ringkas.otomatis} otomatis / ${ringkas.pengurus} pengurus`}
+          warna={ringkas.daftarHitam ? "merah" : "slate"}
+        />
+        <Kartu
+          label="Pesan"
+          nilai={ringkas.pesan?.total ?? 0}
+          catatan={`${belumBaca} belum dibaca`}
+          warna={belumBaca ? "merah" : "slate"}
+        />
+        <Kartu
+          label="Turnamen"
+          nilai={ringkas.turnamen?.total ?? 0}
+          catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`}
+        />
+        <Kartu
+          label="Konten"
+          nilai={jumlahKonten}
+          catatan={`${ringkas.konten?.berita ?? 0} berita / ${ringkas.konten?.pengumuman ?? 0} pengumuman`}
+          warna={jumlahKonten ? "hijau" : "slate"}
+        />
+        <Kartu
+          label="Verifikasi"
+          nilai={
+            LABEL_MODE_VERIFIKASI[ringkas.verifikasi?.mode] ??
+            ringkas.verifikasi?.mode ??
+            "—"
+          }
+          catatan={
+            ringkas.verifikasi?.oauthAktif
+              ? "login Chess.com aktif"
+              : "kode profil"
+          }
+          warna="hijau"
+        />
+      </div>
+
+      {/* Aksi cepat */}
+      <section>
+        <h2 className="mb-3 text-sm font-bold text-slate-900">Aksi cepat</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            {
+              kunci: "pesan",
+              judul: "Pesan masuk",
+              teks: `${belumBaca} belum dibaca`,
+              ikon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
+              sorot: belumBaca > 0,
+            },
+            {
+              kunci: "turnamen",
+              judul: "Turnamen",
+              teks: `${ringkas.turnamen?.pendaftaran ?? 0} pendaftaran dibuka`,
+              ikon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
+              sorot: (ringkas.turnamen?.pendaftaran ?? 0) > 0,
+            },
+            {
+              kunci: "berita",
+              judul: "Berita komunitas",
+              teks: `${ringkas.konten?.berita ?? 0} berita tersimpan`,
+              ikon: "M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2",
+            },
+            {
+              kunci: "anggota",
+              judul: "Anggota",
+              teks: `${ringkas.anggotaTerdata ?? 0} data tercatat`,
+              ikon: "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
+            },
+          ].map((aksi) => (
+            <button
+              key={aksi.kunci}
+              type="button"
+              onClick={() => onBuka(aksi.kunci)}
+              className={`flex items-start gap-3 rounded-lg border bg-white p-4 text-left transition-colors hover:border-primary hover:bg-slate-50 ${
+                aksi.sorot ? "border-amber-300" : "border-slate-200"
+              }`}
+            >
+              <span
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                  aksi.sorot
+                    ? "bg-amber-50 text-amber-700"
+                    : "bg-primary/10 text-primary"
+                }`}
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={aksi.ikon}
+                  />
+                </svg>
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-slate-900">
+                  {aksi.judul}
+                </span>
+                <span className="block text-xs text-slate-500">{aksi.teks}</span>
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Daftar pemain yang kena ban otomatis (fair play) */}
+      <section>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-bold text-slate-900">
+            Pemain terblokir otomatis
+          </h2>
+          <div className="flex items-center gap-3 text-xs text-slate-500">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="h-2 w-2 rounded-full bg-amber-500" />
+              {banOtomatis.length} akun terdeteksi
+            </span>
+            <button
+              type="button"
+              onClick={() => onBuka("larangan")}
+              className="font-semibold text-primary hover:underline"
+            >
+              Kelola daftar larangan →
+            </button>
+          </div>
+        </div>
+
+        {banOtomatis.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
+            <p className="text-sm text-slate-500">
+              Belum ada anggota yang terdeteksi melakukan pelanggaran fair
+              play. Jalankan pemindaian dari tab Anggota atau Turnamen untuk
+              memeriksa.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-3 py-2 font-semibold">#</th>
+                  <th className="px-3 py-2 font-semibold">Akun Chess.com</th>
+                  <th className="px-3 py-2 font-semibold">Alasan</th>
+                  <th className="px-3 py-2 font-semibold">Terdeteksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {banOtomatis.map((h, i) => (
+                  <tr key={h.username} className="border-t border-slate-100">
+                    <td className="px-3 py-2 text-slate-500 font-medium">
+                      {i + 1}
+                    </td>
+                    <td className="px-3 py-2">
+                      <a
+                        href={`https://www.chess.com/member/${encodeURIComponent(
+                          h.username
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-semibold text-primary hover:underline"
+                      >
+                        {h.username}
+                      </a>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-800">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        {labelAlasan[h.alasan] || h.alasan || "—"}
+                      </span>
+                      {h.keterangan && (
+                        <span className="mt-0.5 block max-w-md truncate text-xs text-slate-500" title={h.keterangan}>
+                          {h.keterangan}
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-3 py-2 text-xs text-slate-500">
+                      {formatTanggal(h.diblokirPada)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}
+
+/* ========================================================
    HALAMAN UTAMA: Dashboard
    ======================================================== */
 
 export default function Dashboard() {
-  const [masuk, setMasuk] = useState(Boolean(tokenPengurus.ambil()));
-  const [tab, setTab] = useState("anggota");
+  const navigate = useNavigate();
+  const [pengguna] = useState(() => adminPengguna.ambil());
+  const [tab, setTab] = useState("dashboard");
   const [ringkas, setRingkas] = useState(null);
   const [anggota, setAnggota] = useState([]);
   const [hitam, setHitam] = useState([]);
@@ -251,7 +671,13 @@ export default function Dashboard() {
   const [kabar, setKabar] = useState(null);
   const [menuProfile, setMenuProfile] = useState(false);
   const [sidebarTerbuka, setSidebarTerbuka] = useState(true);
+  const [menuNotif, setMenuNotif] = useState(false);
+  const [notif, setNotif] = useState([]);
+  const [memuatNotif, setMemuatNotif] = useState(false);
+  const [bukaPesanId, setBukaPesanId] = useState(null);
   const profileRef = useRef(null);
+  const notifRef = useRef(null);
+  const belumDibacaSebelumnya = useRef(0);
 
   /* Timer notifikasi */
   const jamKabar = useRef(null);
@@ -263,7 +689,26 @@ export default function Dashboard() {
 
   useEffect(() => () => clearTimeout(jamKabar.current), []);
 
-  /* Muat data */
+  /**
+   * Tangani galat 401 dari panel anak: token ditolak (dicabut/diganti),
+   * jangan biarkan pengguna mengira dashboard masih aktif — bersihkan
+   * token dan muat ulang halaman. ProtectedRoute akan menampilkan
+   * Gerbang kembali setelah verifikasi ulang gagal.
+   */
+  const tanganiGalat = useCallback(
+    (e) => {
+      if (e?.status === 401) {
+        tokenPengurus.hapus();
+        adminPengguna.hapus();
+        navigate(0);
+        return;
+      }
+      beriTahu(e?.message || "Terjadi kesalahan.", "galat");
+    },
+    [beriTahu, navigate]
+  );
+
+  /* Muat data — dipanggil saat pertama masuk dan lewat "Muat ulang data". */
   const muatUlang = useCallback(async () => {
     setMemuat(true);
     try {
@@ -276,39 +721,138 @@ export default function Dashboard() {
       setAnggota(a);
       setHitam(h);
     } catch (e) {
-      if (e.status === 401) {
-        tokenPengurus.hapus();
-        setMasuk(false);
-      } else {
-        beriTahu(e.message, "galat");
-      }
+      tanganiGalat(e);
     } finally {
       setMemuat(false);
     }
-  }, [beriTahu]);
+  }, [tanganiGalat]);
+
+  /**
+   * Segarkan kartu ringkasan SAJA — dipakai oleh panel ringan (Pesan,
+   * Konten) yang perubahannya tidak memengaruhi daftar anggota maupun
+   * daftar larangan. Menghindari memanggil endpoint roster Chess.com
+   * yang mahal setiap kali sebuah pesan ditandai dibaca.
+   */
+  const segarkanRingkasan = useCallback(async () => {
+    try {
+      const r = await apiPengurus("/ringkasan");
+      setRingkas(r);
+    } catch (e) {
+      tanganiGalat(e);
+    }
+  }, [tanganiGalat]);
+
+  /**
+   * Ambil daftar pesan untuk dropdown lonceng (10 terbaru). Dipanggil
+   * saat dropdown dibuka dan setiap 30 detik bila tab dashboard aktif.
+   */
+  const muatNotif = useCallback(async () => {
+    setMemuatNotif(true);
+    try {
+      const data = await apiPengurus("/pesan");
+      const terbaru = data.slice(0, 10);
+      setNotif(terbaru);
+      const belum = (data || []).filter((p) => !p.dibaca).length;
+      // Tandai judul tab saat ada pesan belum dibaca.
+      document.title =
+        belum > 0
+          ? `(${belum}) Dashboard Pengurus | Komunitas Catur Indonesia`
+          : "Dashboard Pengurus | Komunitas Catur Indonesia";
+
+      // Beri umpan balik saat pesan BARU tiba (jumlah belum dibaca naik).
+      if (
+        belumDibacaSebelumnya.current > 0 &&
+        belum > belumDibacaSebelumnya.current
+      ) {
+        beriTahu(
+          `${belum - belumDibacaSebelumnya.current} pesan baru masuk.`,
+          "peringatan"
+        );
+      }
+      belumDibacaSebelumnya.current = belum;
+      setRingkas((r) =>
+        r ? { ...r, pesan: { ...r.pesan, total: data.length, belumDibaca: belum } } : r
+      );
+    } catch (e) {
+      // Bila gagal (mis. koneksi terputus), jangan tampilkan galat ke
+      // pengguna — polling akan mencoba lagi.
+      if (e?.status === 401) tanganiGalat(e);
+    } finally {
+      setMemuatNotif(false);
+    }
+  }, [beriTahu, tanganiGalat]);
 
   useEffect(() => {
     document.title = "Dashboard Pengurus | Komunitas Catur Indonesia";
-    if (masuk) muatUlang();
-  }, [masuk, muatUlang]);
+    muatUlang();
+    // polling ringan untuk notifikasi pesan masuk
+    muatNotif();
+    const id = setInterval(muatNotif, 30_000);
+    return () => {
+      clearInterval(id);
+      document.title = "Dashboard Pengurus | Komunitas Catur Indonesia";
+    };
+  }, [muatUlang, muatNotif]);
+
+  // Muat ulang notifikasi setiap kali dropdown dibuka.
+  useEffect(() => {
+    if (menuNotif) muatNotif();
+  }, [menuNotif, muatNotif]);
+
+  const bukaPesan = useCallback(
+    (p) => {
+      setMenuNotif(false);
+      setTab("pesan");
+      setBukaPesanId(p.id);
+      // Tandai dibaca di server agar badge langsung turun.
+      if (!p.dibaca) {
+        apiPengurus(`/pesan/${p.id}/baca`, { metode: "POST" })
+          .then(muatNotif)
+          .catch(() => {
+            /* abaikan — panel pesan akan mencoba lagi */
+          });
+      }
+    },
+    [muatNotif]
+  );
+
+  const tandaiSemuaDibaca = useCallback(async () => {
+    try {
+      await apiPengurus("/pesan/semua-baca", { metode: "POST" });
+      await muatNotif();
+      beriTahu("Semua pesan ditandai dibaca.", "sukses");
+    } catch (e) {
+      tanganiGalat(e);
+    }
+  }, [muatNotif, beriTahu, tanganiGalat]);
+
+  /**
+   * Callback untuk PanelPesan: saat pesan di dalam panel dibaca/dihapus,
+   * daftar notifikasi di header ikut disegarkan.
+   */
+  const onPesanBerubah = useCallback(async () => {
+    await Promise.all([segarkanRingkasan(), muatNotif()]);
+  }, [segarkanRingkasan, muatNotif]);
 
   /* Tutup dropdown saat klik di luar */
   useEffect(() => {
-    if (!menuProfile) return;
+    if (!menuProfile && !menuNotif) return;
     const tutup = (e) => {
       if (profileRef.current && !profileRef.current.contains(e.target)) {
         setMenuProfile(false);
       }
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setMenuNotif(false);
+      }
     };
     document.addEventListener("mousedown", tutup);
     return () => document.removeEventListener("mousedown", tutup);
-  }, [menuProfile]);
-
-  if (!masuk) return <Gerbang onMasuk={() => setMasuk(true)} />;
+  }, [menuProfile, menuNotif]);
 
   const keluar = () => {
     tokenPengurus.hapus();
-    setMasuk(false);
+    adminPengguna.hapus();
+    navigate(0);
   };
 
   return (
@@ -345,54 +889,77 @@ export default function Dashboard() {
 
           {/* Kanan: lonceng + profil */}
           <div className="flex items-center gap-2">
-            {/* Lonceng */}
-            <button
-              onClick={() => setTab("pesan")}
-              className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
-              title="Pesan masuk"
-            >
-              <svg
-                className="w-5 h-5 text-slate-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
+            {/* Lonceng notifikasi */}
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => {
+                  setMenuProfile(false);
+                  setMenuNotif((v) => !v);
+                }}
+                className="relative p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
+                title="Notifikasi pesan masuk"
+                aria-haspopup="true"
+                aria-expanded={menuNotif}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              {ringkas?.pesan?.belumDibaca > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
-                  {ringkas.pesan.belumDibaca}
-                </span>
-              )}
-            </button>
+                <svg
+                  className="w-5 h-5 text-slate-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {ringkas?.pesan?.belumDibaca > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+                    {ringkas.pesan.belumDibaca > 99
+                      ? "99+"
+                      : ringkas.pesan.belumDibaca}
+                  </span>
+                )}
+              </button>
+
+              <DropdownNotifikasi
+                terbuka={menuNotif}
+                pesan={notif}
+                memuat={memuatNotif}
+                onBuka={() => {
+                  setMenuNotif(false);
+                  setTab("pesan");
+                }}
+                onBukaPesan={bukaPesan}
+                onTandaiSemua={tandaiSemuaDibaca}
+              />
+            </div>
 
             {/* Profil + dropdown */}
             <div className="relative" ref={profileRef}>
               <button
                 onClick={() => setMenuProfile((v) => !v)}
                 className="flex items-center gap-3 rounded-md px-2 py-1.5 hover:bg-slate-100 transition-colors duration-150 focus:outline-none"
+                title={pengguna ? `Masuk sebagai ${pengguna}` : ""}
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight">
-                    Admin Pengurus
+                    {pengguna || "Pengurus"}
                   </p>
                   <p className="text-xs text-slate-500">
-                    admin@komunitascatur.or.id
+                    Pengurus komunitas
                   </p>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0">
-                  AP
+                <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase">
+                  {(pengguna || "?").charAt(0)}
                 </div>
               </button>
 
               <DropdownProfil
                 terbuka={menuProfile}
+                pengguna={pengguna}
                 onTutup={() => setMenuProfile(false)}
                 onMuatUlang={muatUlang}
                 onKeluar={keluar}
@@ -424,60 +991,25 @@ export default function Dashboard() {
             </p>
           )}
 
-          {/* Kartu ringkasan */}
-          {ringkas && (
-            <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-              <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
-              <Kartu
-                label="Daftar larangan"
-                nilai={ringkas.daftarHitam}
-                catatan={`${ringkas.otomatis} otomatis / ${ringkas.pengurus} pengurus`}
-                warna={ringkas.daftarHitam ? "merah" : "slate"}
-              />
-              <Kartu
-                label="Pesan"
-                nilai={ringkas.pesan?.total ?? 0}
-                catatan={`${ringkas.pesan?.belumDibaca ?? 0} belum dibaca`}
-                warna={ringkas.pesan?.belumDibaca ? "merah" : "slate"}
-              />
-              <Kartu
-                label="Turnamen"
-                nilai={ringkas.turnamen?.total ?? 0}
-                catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`}
-              />
-              <Kartu
-                label="Konten"
-                nilai={
-                  (ringkas.konten?.berita ?? 0) +
-                  (ringkas.konten?.pengumuman ?? 0)
-                }
-                catatan={`${ringkas.konten?.berita ?? 0} berita / ${ringkas.konten?.pengumuman ?? 0} pengumuman`}
-                warna={
-                  (ringkas.konten?.berita ?? 0) +
-                    (ringkas.konten?.pengumuman ?? 0)
-                    ? "hijau"
-                    : "slate"
-                }
-              />
-              <Kartu
-                label="Verifikasi"
-                nilai={ringkas.verifikasi?.mode ?? "—"}
-                catatan={
-                  ringkas.verifikasi?.oauthAktif
-                    ? "login Chess.com aktif"
-                    : "kode profil"
-                }
-                warna="hijau"
-              />
-            </div>
-          )}
+          {/* Kartu ringkasan HANYA di tab Dashboard. */}
+          {tab === "dashboard" &&
+            (memuat && !ringkas ? (
+              <p className="py-10 text-center text-sm text-slate-500">
+                Memuat…
+              </p>
+            ) : (
+              ringkas && (
+                <RingkasanDashboard
+                  ringkas={ringkas}
+                  belumBaca={ringkas.pesan?.belumDibaca ?? 0}
+                  onBuka={setTab}
+                  hitam={hitam}
+                />
+              )
+            ))}
 
           {/* Panel konten */}
-          {memuat && !ringkas ? (
-            <p className="py-10 text-center text-sm text-slate-500">
-              Memuat…
-            </p>
-          ) : tab === "anggota" ? (
+          {tab === "dashboard" ? null : tab === "anggota" ? (
             <PanelAnggota
               anggota={anggota}
               muatUlang={muatUlang}
@@ -490,11 +1022,16 @@ export default function Dashboard() {
               beriTahu={beriTahu}
             />
           ) : tab === "pesan" ? (
-            <PanelPesan beriTahu={beriTahu} muatUlang={muatUlang} />
+            <PanelPesan
+              beriTahu={beriTahu}
+              muatUlang={onPesanBerubah}
+              pesanTerpilihId={bukaPesanId}
+              onPesanTerbuka={() => setBukaPesanId(null)}
+            />
           ) : tab === "berita" ? (
-            <PanelBerita beriTahu={beriTahu} muatUlang={muatUlang} />
+            <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
           ) : tab === "pengumuman" ? (
-            <PanelPengumuman beriTahu={beriTahu} muatUlang={muatUlang} />
+            <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
           ) : (
             <PanelTurnamen
               beriTahu={beriTahu}

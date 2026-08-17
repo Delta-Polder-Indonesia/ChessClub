@@ -17,7 +17,6 @@ export const MENU_UTAMA = [
       { title: "nav.tonggakSejarah", path: "/tentang-kami#tonggak-sejarah" },
       { title: "nav.visiMisiNilai", path: "/tentang-kami#visi-misi" },
       { title: "nav.maknaLogo", path: "/tentang-kami#makna-logo" },
-      { title: "nav.strukturPengurus", path: "/tentang-kami#struktur-pengurus" },
       {
         title: "nav.strukturGrupCatur",
         folder: "TentangKami/StrukturGrupCatur",
