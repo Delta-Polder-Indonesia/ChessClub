@@ -119,10 +119,15 @@ blok "Jadwal & Klasemen" di bawahnya.
    sistem, dan jumlah ronde terisi otomatis sesuai aturan jenis tersebut.
    Turnamen baru berstatus **Draf** dan **belum terlihat publik**.
 2. **Pendaftaran** — ubah status ke *Pendaftaran*. Sejak titik ini turnamen
-   muncul di halaman publik. Tambahkan peserta lewat username Chess.com;
-   sistem otomatis menolak yang ada di daftar larangan, dan menolak
-   non-anggota pada jenis yang khusus anggota.
-3. **Berlangsung** — ubah status. Pendaftaran tertutup, hasil mulai dicatat
+   muncul di halaman publik dengan tombol **Daftar sebagai peserta**. Player
+   memasukkan username Chess.com; sistem menolak non-anggota, akun tertutup,
+   username terlarang, serta identitas terverifikasi yang cocok dengan daftar
+   larangan. Pengajuan yang lolos pemeriksaan awal masuk ke tabel **Pengajuan
+   Peserta** dan belum menjadi peserta sampai pengurus menekan **Terima**.
+   Periksa profil serta tanggal pembuatan akun sebelum menerima, atau tekan
+   **Tolak** dan berikan alasan. Pengurus tetap dapat menambahkan peserta
+   langsung lewat username bila diperlukan.
+3. **Berlangsung** — ubah status. Pendaftaran dan pengajuan baru ditutup, hasil mulai dicatat
    per ronde. Klasemen dihitung ulang setiap kali hasil disimpan.
 4. **Selesai** — klasemen akhir tetap tampil di halaman publik.
 
