@@ -5,6 +5,7 @@
  */
 import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
+import { normalisasiUsername } from "../../src/lib/identitas.js";
 
 /* -------------------------------------------------------------- jawaban */
 
@@ -15,6 +16,12 @@ export function kirimJson(res, status, isi) {
     "Content-Length": Buffer.byteLength(teks),
     "Cache-Control": "no-store",
     "X-Content-Type-Options": "nosniff",
+    // CSP ketat untuk respons JSON: tidak ada skrip, tidak ada embedding.
+    // Aplikasi sebenarnya dilayani oleh frontend (Vite/Nginx) yang
+    // harus memasang CSP-nya sendiri.
+    "Content-Security-Policy":
+      "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
+    "Referrer-Policy": "no-referrer",
   });
   res.end(teks);
 }
@@ -38,7 +45,7 @@ export function pasangCors(req, res) {
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.setHeader(
     "Access-Control-Allow-Headers",
-    "Content-Type, Authorization, X-Token-Admin, X-CSRF-Token"
+    "Content-Type, Authorization, X-Token-Admin, X-CSRF-Token, X-Admin-User"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
   return true;
@@ -124,13 +131,111 @@ export function bersihkanBatas() {
   ember.clear();
 }
 
-/** Alamat IP klien, memperhitungkan proxy/CDN di depan server. */
-export function alamatIp(req) {
-  const teruskan = req.headers["x-forwarded-for"];
-  if (typeof teruskan === "string" && teruskan.trim()) {
-    return teruskan.split(",")[0].trim();
+/* --------------------------------- anti brute-force endpoint pengurus
+ *
+ * Token admin adalah satu-satunya pintu ke /api/pengurus/*. Tanpa kunci
+ * ini, penyerang bisa menebak token dengan laju 100 percobaan/15 menit/IP
+ * (batas umum). Kunci terpisah yang jauh lebih ketat dipasang khusus
+ * untuk percobaan gagal, dan kunci ini tidak disetel ulang oleh
+ * permintaan sukses — satu IP yang terus gagal tetap terkunci sampai
+ * jendelanya kedaluwarsa.
+ */
+
+const BATAS_GAGAL_ADMIN = 5;
+const JENDELA_GAGAL_ADMIN_MS = 15 * 60 * 1000;
+
+/**
+ * Catat satu percobaan autentikasi admin.
+ * @param {string} ip
+ * @param {boolean} sukses
+ * @returns {{ sisaGagal: number, terkunci: boolean, cobaLagiDetik: number }}
+ */
+export function catatPercobaanAdmin(ip, sukses) {
+  const kunci = `admin-gagal|${ip}`;
+  const kini = Date.now();
+  let data = gagalAdmin.get(kunci);
+
+  if (!data || kini > data.reset) {
+    data = { jumlah: 0, reset: kini + JENDELA_GAGAL_ADMIN_MS };
+    gagalAdmin.set(kunci, data);
   }
-  return req.socket?.remoteAddress || "tidak-diketahui";
+
+  if (sukses) {
+    // Login sah — bersihkan hitungan untuk IP ini.
+    gagalAdmin.delete(kunci);
+    return { sisaGagal: BATAS_GAGAL_ADMIN, terkunci: false, cobaLagiDetik: 0 };
+  }
+
+  data.jumlah += 1;
+  const terkunci = data.jumlah >= BATAS_GAGAL_ADMIN;
+  return {
+    sisaGagal: Math.max(0, BATAS_GAGAL_ADMIN - data.jumlah),
+    terkunci,
+    cobaLagiDetik: terkunci
+      ? Math.ceil((data.reset - kini) / 1000)
+      : 0,
+  };
+}
+
+/** Lihat status kunci admin untuk sebuah IP tanpa mengubah hitungan. */
+export function statusKunciAdmin(ip) {
+  const kunci = `admin-gagal|${ip}`;
+  const kini = Date.now();
+  const data = gagalAdmin.get(kunci);
+  if (!data || kini > data.reset) {
+    return { terkunci: false, cobaLagiDetik: 0 };
+  }
+  const terkunci = data.jumlah >= BATAS_GAGAL_ADMIN;
+  return {
+    terkunci,
+    cobaLagiDetik: terkunci ? Math.ceil((data.reset - kini) / 1000) : 0,
+  };
+}
+
+const gagalAdmin = new Map();
+const pembersihGagalAdmin = setInterval(() => {
+  const kini = Date.now();
+  for (const [k, v] of gagalAdmin) if (kini > v.reset) gagalAdmin.delete(k);
+}, 60_000);
+pembersihGagalAdmin.unref?.();
+
+/**
+ * Apakah koneksi datang dari loopback mesin yang sama?
+ *
+ * Dipakai agar mode "tanpa token admin" (hanya untuk pengembangan) hanya
+ * berlaku ketika server diakses dari 127.0.0.1/::1. Bila server tanpa
+ * token tidak sengaja ter-expose ke jaringan publik, endpoint pengurus
+ * tetap tertutup untuk koneksi eksternal.
+ */
+export function dariLokal(req) {
+  const a = req.socket?.remoteAddress || "";
+  return a === "127.0.0.1" || a === "::1" || a === "::ffff:127.0.0.1";
+}
+
+/**
+ * Alamat IP klien, memperhitungkan proxy/CDN di depan server.
+ *
+ * Catatan keamanan: header X-Forwarded-For bisa dipalsukan klien. Entri
+ * PALING KANAN adalah alamat yang disisipkan oleh proxy tepercaya
+ * terakhir; entri di sebelah kirinya adalah klaim klien dan TIDAK boleh
+ * dipercaya. Karena itu kita ambil paling kanan, bukan paling kiri —
+ * mencegah penyerang melewati pembatas laju dengan menyertakan IP acak
+ * pada header.
+ */
+export function alamatIp(req) {
+  const socketIp = req.socket?.remoteAddress || "tidak-diketahui";
+  const n = konfigurasi.jumlahProxyTepercaya;
+  if (!n) return socketIp;
+
+  const teruskan = req.headers["x-forwarded-for"];
+  if (typeof teruskan !== "string" || !teruskan.trim()) {
+    return socketIp;
+  }
+  const bagian = teruskan.split(",").map((s) => s.trim()).filter(Boolean);
+  if (!bagian.length) return socketIp;
+  // n proxy = entri ke-n dari kanan; untuk n=1 itu paling kanan.
+  const indeks = bagian.length - n;
+  return bagian[indeks] || socketIp;
 }
 
 /* ----------------------------------------------------------- CSRF token */
@@ -182,6 +287,11 @@ function samaAman(a, b) {
 /**
  * Pastikan permintaan membawa token pengurus.
  * Token dibaca dari header `X-Token-Admin` atau `Authorization: Bearer …`.
+ *
+ * Ketika `KCI_TOKEN_ADMIN` tidak diatur, endpoint hanya terbuka untuk
+ * koneksi dari loopback (127.0.0.1/::1) — itupun hanya di luar produksi.
+ * Ini mencegah bencana: server tanpa token tidak sengaja ter-expose ke
+ * jaringan publik hanya karena lupa menyetel NODE_ENV.
  */
 export function pastikanAdmin(req) {
   const token = konfigurasi.tokenAdmin;
@@ -192,7 +302,15 @@ export function pastikanAdmin(req) {
       e.status = 503;
       throw e;
     }
-    return; // pengembangan tanpa token
+    if (!dariLokal(req)) {
+      const e = new Error(
+        "Token pengurus belum diatur. Akses dari luar loopback ditolak. " +
+        "Setel KCI_TOKEN_ADMIN atau jalankan dari server itu sendiri."
+      );
+      e.status = 503;
+      throw e;
+    }
+    return; // pengembangan lokal tanpa token
   }
 
   const dariHeader = req.headers["x-token-admin"];
@@ -207,6 +325,23 @@ export function pastikanAdmin(req) {
     e.status = 401;
     throw e;
   }
+}
+
+/**
+ * Identitas pengurus yang sedang login, dari header X-Admin-User.
+ *
+ * BUKAN kredensial (otorisasi tetap oleh token), hanya label untuk
+ * jejak audit — supaya log aksi pengurus bisa ditelusuri ke username
+ * Chess.com orang yang melakukannya. Nilai yang tidak berbentuk
+ * username Chess.com dibuang agar tidak bisa dipakai menyisipkan teks
+ * liar ke berkas log.
+ */
+export function identitasPengurus(req) {
+  const mentah = req.headers["x-admin-user"];
+  if (typeof mentah !== "string" || !mentah) return "";
+  const nama = normalisasiUsername(mentah);
+  if (!/^[a-z0-9_-]{3,25}$/.test(nama)) return "";
+  return nama;
 }
 
 /* --------------------------------------------------------------- router */

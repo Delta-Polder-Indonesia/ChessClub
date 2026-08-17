@@ -722,6 +722,77 @@ console.log("\nPembatasan laju");
   ipSaatIni = ipBaru();
 }
 
+/* ---------------------------------- anti brute-force endpoint pengurus */
+console.log("\nAnti brute-force token pengurus");
+if (TOKEN) {
+  ipSaatIni = ipBaru();
+  let terlihat429 = false;
+  let terakhir = 0;
+  // 6 percobaan token salah dalam satu jendela → 5 percobaan pertama
+  // lolos ke handler (dibalas 401), percobaan ke-6 harus diblokir 429
+  // SEBELUM sampai ke handler.
+  for (let i = 0; i < 6; i++) {
+    const r = await fetch(DASAR + "/api/pengurus/ringkasan", {
+      headers: {
+        "X-Token-Admin": `token-salah-${i}`,
+        "X-Forwarded-For": ipSaatIni,
+      },
+    });
+    terakhir = r.status;
+    if (r.status === 429) terlihat429 = true;
+  }
+  cek(
+    "percobaan token salah berulang diblokir 429",
+    terlihat429,
+    `status terakhir ${terakhir}`
+  );
+
+  // IP lain masih boleh mengakses.
+  const ipLain = ipBaru();
+  const rLain = await fetch(DASAR + "/api/pengurus/ringkasan", {
+    headers: {
+      "X-Token-Admin": TOKEN,
+      "X-Forwarded-For": ipLain,
+    },
+  });
+  cek("IP lain tidak terkena kunci", rLain.status === 200, `dapat ${rLain.status}`);
+  ipSaatIni = ipBaru();
+} else {
+  lewati("percobaan token salah berulang diblokir 429");
+  lewati("IP lain tidak terkena kunci");
+}
+
+/* --------------------------------------------- validasi pesan publik */
+console.log("\nValidasi pesan publik");
+{
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const emailBodong = await panggil("POST", "/api/pesan", {
+    nama: "Budi",
+    email: "bukan-email",
+    pesan: "halo",
+  });
+  cek("email tidak valid -> 400", emailBodong.status === 400, `dapat ${emailBodong.status}`);
+
+  const pesanPanjang = await panggil("POST", "/api/pesan", {
+    nama: "Budi",
+    email: "budi@contoh.id",
+    pesan: "x".repeat(6000),
+  });
+  cek("pesan terlalu panjang -> 400", pesanPanjang.status === 400, `dapat ${pesanPanjang.status}`);
+
+  // Butuh IP baru: kuota pesan per IP adalah 5 per 15 menit.
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const pesanSah = await panggil("POST", "/api/pesan", {
+    nama: "Budi",
+    email: "budi@contoh.id",
+    pesan: "halo pengurus",
+  });
+  cek("pesan sah -> 201", pesanSah.status === 201, `dapat ${pesanSah.status}`);
+  ipSaatIni = ipBaru();
+}
+
 /* ------------------------------------------------------------ ringkasan */
 console.log(`\n${"=".repeat(52)}`);
 console.log(`  ${lulus} lulus, ${gagal} gagal, ${dilewati} dilewati`);

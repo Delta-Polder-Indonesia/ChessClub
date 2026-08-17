@@ -8,7 +8,10 @@ import { RUTE_PUBLIK } from "../plugins/performa.js";
 
 const app = await readFile(path.resolve("src/App.jsx"), "utf8");
 const diApp = [...app.matchAll(/\["(\/[^"]*)",\s*\w+\]/g)].map((m) => m[1]);
-const publikApp = diApp.filter((r) => r !== "/");
+// Rute dinamis (mis. "/media-dan-informasi/berita/:id") tidak bisa
+// dipra-render menjadi berkas HTML statis — penanganannya diserahkan
+// ke 404.html (fallback SPA GitHub Pages). Jangan diuji di sini.
+const publikApp = diApp.filter((r) => r !== "/" && !r.includes(":"));
 const kurang = publikApp.filter((r) => !RUTE_PUBLIK.includes(r));
 const lebih = RUTE_PUBLIK.filter((r) => !publikApp.includes(r));
 

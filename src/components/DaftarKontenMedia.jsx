@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { useI18n } from "../lib/i18n.jsx";
 
 function formatTanggal(tanggal, bahasa) {
@@ -40,10 +41,29 @@ export default function DaftarKontenMedia({ daftar, jenis }) {
             <p className="jenis-konten-media">
               {jenis === "berita" ? "Berita Komunitas" : "Pengumuman"}
             </p>
-            <h3>{item.judul}</h3>
+            <h3>
+              <Link
+                to={`/media-dan-informasi/${
+                  jenis === "berita" ? "berita" : "pengumuman"
+                }/${item.id}`}
+                className="hover:text-primary hover:underline"
+              >
+                {item.judul}
+              </Link>
+            </h3>
             <time dateTime={item.tanggal}>{formatTanggal(item.tanggal, bahasa)}</time>
             {item.ringkasan && <p className="ringkasan-konten-media">{item.ringkasan}</p>}
             <p className="teks-konten-media">{item.isi}</p>
+            <p className="mt-2">
+              <Link
+                to={`/media-dan-informasi/${
+                  jenis === "berita" ? "berita" : "pengumuman"
+                }/${item.id}`}
+                className="text-sm font-semibold text-primary hover:underline"
+              >
+                Baca selengkapnya →
+              </Link>
+            </p>
           </article>
         </li>
       ))}

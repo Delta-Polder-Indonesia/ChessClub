@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/chessAnggota.js";
-import { Tombol, Bidang } from "./ui.jsx";
+import { Tombol, Bidang, Modal } from "./ui.jsx";
 
 /**
  * Pengelolaan konten komunitas (berita & pengumuman).
@@ -29,8 +29,12 @@ function Lencana({ status }) {
 /** Kecilkan gambar sebelum disimpan agar data konten tetap ringan. */
 function kompresGambar(file) {
   return new Promise((resolve, reject) => {
-    if (!file?.type?.match(/^image\/(jpeg|png|webp|gif)$/)) {
-      reject(new Error("Pilih berkas JPG, PNG, WebP, atau GIF."));
+    // Catatan: GIF animasi didukung server, tetapi kompresi sisi klien
+    // melalui <canvas> hanya menyimpan satu bingkai dan animasinya
+    // hilang. Agar pengurus tidak terkaget, GIF animasi ditolak di
+    // sini; unggah JPG/PNG/WebP atau pasang URL gambar langsung.
+    if (!file?.type?.match(/^image\/(jpeg|png|webp)$/)) {
+      reject(new Error("Pilih berkas JPG, PNG, atau WebP."));
       return;
     }
     if (file.size > 8 * 1024 * 1024) {
@@ -163,15 +167,16 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
           Gambar <span className="font-normal text-slate-500">(opsional)</span>
         </legend>
         <p className="text-xs leading-5 text-slate-500">
-          Konten tanpa gambar tetap dapat diterbitkan. JPG, PNG, WebP, atau GIF;
-          maksimal 8 MB dan otomatis diperkecil.
+          Konten tanpa gambar tetap dapat diterbitkan. JPG, PNG, atau WebP
+          sampai 8 MB; otomatis diperkecil. GIF animasi tidak didukung
+          (animasinya hilang saat kompresi).
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <label className="cursor-pointer rounded-full border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-blue-50">
             {memprosesGambar ? "Memproses…" : data.gambar ? "Ganti gambar" : "Pilih gambar"}
             <input
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/jpeg,image/png,image/webp"
               onChange={pilihGambar}
               disabled={memprosesGambar}
               className="sr-only"
@@ -239,6 +244,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   const [memuat, setMemuat] = useState(true);
   const [formulir, setFormulir] = useState(null); // null | {item:null} | {item}
   const [saring, setSaring] = useState("");
+  const [targetHapus, setTargetHapus] = useState(null);
 
   const muat = useCallback(async () => {
     setMemuat(true);
@@ -271,13 +277,12 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
     muatUlang?.();
   };
 
-  const hapus = async (x) => {
-    if (
-      !window.confirm(
-        `Hapus ${konfig.label.toLowerCase()} "${x.judul}"? Tindakan ini permanen.`
-      )
-    )
-      return;
+  const hapus = (x) => setTargetHapus(x);
+
+  const konfirmasiHapus = async () => {
+    const x = targetHapus;
+    setTargetHapus(null);
+    if (!x) return;
     try {
       await apiPengurus(`/${konfig.jalur}/${x.id}/hapus`, { metode: "POST" });
       beriTahu(`${konfig.label} dihapus.`, "sukses");
@@ -393,6 +398,17 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
           </table>
         </div>
       )}
+
+      <Modal
+        terbuka={Boolean(targetHapus)}
+        judul={`Hapus ${konfig.label.toLowerCase()}?`}
+        labelKonfirmasi="Hapus"
+        jenisKonfirmasi="bahaya"
+        onBatal={() => setTargetHapus(null)}
+        onKonfirmasi={konfirmasiHapus}
+      >
+        "{targetHapus?.judul}" akan dihapus permanen.
+      </Modal>
     </div>
   );
 }

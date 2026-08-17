@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { apiPengurus } from "../../lib/chessAnggota.js";
-import { Tombol, Bidang } from "./ui.jsx";
+import { Tombol, Bidang, Modal } from "./ui.jsx";
 
 export default function PanelLarangan({ hitam, muatUlang, beriTahu }) {
   const [sibuk, setSibuk] = useState("");
   const [cariNomor, setCariNomor] = useState("");
   const [hasilNomor, setHasilNomor] = useState(null);
+  const [targetBuka, setTargetBuka] = useState(null);
 
   const jalankan = async (kunci, fn) => {
     setSibuk(kunci);
@@ -18,8 +19,10 @@ export default function PanelLarangan({ hitam, muatUlang, beriTahu }) {
     }
   };
 
-  const buka = (username) => {
-    if (!window.confirm(`Cabut larangan untuk "${username}"?`)) return;
+  const konfirmasiBuka = () => {
+    const username = targetBuka;
+    setTargetBuka(null);
+    if (!username) return;
     jalankan(`buka-${username}`, async () => {
       await apiPengurus("/buka", { metode: "POST", bodi: { username } });
       beriTahu(`Larangan "${username}" dicabut.`, "sukses");
@@ -73,6 +76,19 @@ export default function PanelLarangan({ hitam, muatUlang, beriTahu }) {
           )}
         </form>
 
+      <Modal
+        terbuka={Boolean(targetBuka)}
+        judul={`Cabut larangan ${targetBuka || ""}`}
+        labelKonfirmasi="Cabut larangan"
+        jenisKonfirmasi="bahaya"
+        sibuk={sibuk === `buka-${targetBuka}`}
+        onBatal={() => setTargetBuka(null)}
+        onKonfirmasi={konfirmasiBuka}
+      >
+        Pengguna ini akan dapat kembali mendaftar dan mengikuti kegiatan
+        komunitas. Tindakan ini tetap tercatat di jejak audit.
+      </Modal>
+
         <div className="overflow-x-auto rounded-lg border border-slate-200">
           <div className="max-h-[400px] overflow-y-auto">
             <table className="w-full min-w-[640px] text-sm">
@@ -123,7 +139,7 @@ export default function PanelLarangan({ hitam, muatUlang, beriTahu }) {
                       <Tombol
                         anak="Cabut"
                         kecil
-                        onClick={() => buka(h.username)}
+                        onClick={() => setTargetBuka(h.username)}
                         disabled={sibuk === `buka-${h.username}`}
                       />
                     </td>
