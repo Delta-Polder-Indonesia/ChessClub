@@ -21,6 +21,9 @@ const daftar = (v) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+/** URL-ID klub Chess.com hanya boleh berupa slug, bukan URL penuh. */
+const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
+
 export const konfigurasi = {
   lingkungan: process.env.NODE_ENV || "development",
   produksi: process.env.NODE_ENV === "production",
@@ -88,6 +91,20 @@ export const konfigurasi = {
     tenggangMs: angka(process.env.KCI_CHESS_TIMEOUT, 8000),
     cacheDetik: angka(process.env.KCI_CHESS_CACHE, 300),
     percobaan: angka(process.env.KCI_CHESS_RETRY, 3),
+
+    /**
+     * Roster publik ini menjadi sumber anggota yang tampil di situs.
+     * Chess.com sendiri memperbarui endpoint anggota klub maksimal setiap
+     * 12 jam; cache lokal mengikuti ritme itu agar API tidak dibanjiri.
+     */
+    klub: {
+      slug: slugKlub(process.env.KCI_CHESS_KLUB),
+      cacheDetik: angka(process.env.KCI_CHESS_KLUB_CACHE, 12 * 60 * 60),
+      profilCacheDetik: angka(
+        process.env.KCI_CHESS_KLUB_PROFILE_CACHE,
+        60 * 60
+      ),
+    },
   },
 
   /** Pembatasan laju permintaan (anti-spam pendaftaran). */
@@ -122,6 +139,11 @@ export function periksaProduksi() {
     masalah.push(
       "KCI_ASAL_DIIZINKAN sebaiknya diisi di produksi, mis. " +
         "https://delta-polder-indonesia.github.io"
+    );
+  }
+  if (!/^[a-z0-9][a-z0-9-]{0,99}$/.test(konfigurasi.chess.klub.slug)) {
+    masalah.push(
+      "KCI_CHESS_KLUB harus berupa URL-ID Chess.com, mis. blunder-skuad."
     );
   }
   return masalah;

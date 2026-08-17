@@ -3,6 +3,12 @@
 Dokumen ini menjelaskan cara kerja sistem pendaftaran anggota dan
 pencegahan pemain curang kembali bergabung lewat "akun kecil".
 
+> **Sumber anggota:** daftar publik situs mengikuti roster klub
+> [BLUNDER SKUAD di Chess.com](https://www.chess.com/club/blunder-skuad),
+> bukan `data/anggota.json`. Chess.com memperbarui roster publik maksimal
+> setiap 12 jam. Berkas lokal tetap dipakai untuk metadata formulir,
+> verifikasi, dan perlindungan identitas.
+
 ---
 
 ## 1. Masalah yang diselesaikan
@@ -23,20 +29,21 @@ Sistem ini mengunci **orang**-nya, bukan sekadar akunnya.
 
 ---
 
-## 2. Tiga lapis pertahanan
+## 2. Pemeriksaan perlindungan
 
-Saat seseorang menekan "Daftar", sistem memeriksa berurutan:
+Saat seseorang mengirim formulir administrasi, sistem memeriksa berurutan:
 
-1. **Username sudah terdaftar?** → ditolak.
-2. **Username ada di daftar hitam?** → ditolak.
-3. **Identitas cocok dengan daftar hitam?** → ditolak.
+1. **Username ada di daftar hitam?** → ditolak.
+2. **Identitas cocok dengan daftar hitam?** → ditolak.
    Inilah yang menutup celah akun kecil. Cocok bila **salah satu** sama:
    - nomor HP/WA (format apa pun: `0812…`, `+62812…`, `62812…`)
    - nomor DANA — termasuk bila nomor lama dipindah ke kolom DANA
    - kombinasi nama lengkap + tanggal lahir
-4. **Identitas dipakai anggota aktif lain?** → ditolak (cegah akun ganda).
-5. **Akun Chess.com ada?** → diverifikasi langsung ke Chess.com.
-6. **Akun ditutup karena fair play?** → ditolak **dan langsung masuk daftar hitam**.
+3. **Akun Chess.com ada dan aktif?** → diverifikasi langsung ke Chess.com.
+4. **Akun ditutup karena fair play?** → ditolak **dan langsung masuk daftar hitam**.
+5. **Akun ada di roster BLUNDER SKUAD?** → wajib; bila belum, formulir ditolak.
+6. **Username sudah pernah mengisi formulir?** → ditolak.
+7. **Identitas dipakai anggota aktif lain?** → ditolak (cegah akun ganda).
 
 ---
 
@@ -46,7 +53,7 @@ Repositori ini **publik**. Karena itu data dipisah:
 
 | Berkas | Isi | Masuk Git? |
 | ------ | --- | ---------- |
-| `data/anggota.json` | username, panggilan, kota, kategori umur, **hash** identitas | ya (aman) |
+| `data/anggota.json` | metadata formulir: panggilan, kota, kategori umur, **hash** identitas; bukan roster aktif | ya (aman) |
 | `data/daftar-hitam.json` | username, alasan, **hash** identitas | ya (aman) |
 | `data/rahasia/kontak.json` | nama asli, HP, DANA, email, tanggal lahir | **tidak** (di-`.gitignore`) |
 
@@ -86,12 +93,16 @@ Isi dashboard:
 
 | Bagian | Fungsi |
 | ------ | ------ |
-| Kartu ringkasan | Jumlah anggota, larangan, turnamen, mode verifikasi |
-| Tab **Anggota & Larangan** | Tabel anggota (Elo & status verifikasi), tombol **Blokir**, tabel larangan dengan tombol **Cabut**, cek nomor HP, dan **Pindai ban fair play** |
+| Kartu ringkasan | Jumlah anggota roster klub, larangan, turnamen, mode verifikasi |
+| Tab **Anggota & Larangan** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, tabel larangan dengan tombol **Cabut**, cek nomor HP, dan **Pindai ban fair play** |
 | Tab **Turnamen** | Buat & kelola keempat jenis turnamen |
 
-Semua yang bisa dilakukan lewat terminal (bagian 5) juga bisa dilakukan di
+Semua yang bisa dilakukan lewat terminal (bagian 6) juga bisa dilakukan di
 sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.
+
+> Tombol **Blokir** membatasi akun dari situs dan turnamen. Tombol itu tidak
+> dapat mengeluarkan akun dari klub Chess.com; lakukan penghapusan anggota
+> tersebut langsung di Chess.com bila diperlukan.
 
 ---
 
@@ -149,11 +160,11 @@ curang beberapa minggu setelah kejadian, jadi pemenang bisa berubah.
 Selalu jalankan dengan `KCI_PEPPER` yang sama seperti server.
 
 ```bash
-# Periksa semua anggota ke Chess.com.
+# Periksa seluruh roster BLUNDER SKUAD ke Chess.com.
 # Yang akunnya ditutup karena fair play otomatis masuk daftar hitam.
 node scripts/pengurus.mjs pindai
 
-# Blokir manual (mis. terbukti curang di turnamen internal kita sendiri)
+# Blokir manual dari kegiatan situs/turnamen (mis. terbukti curang)
 node scripts/pengurus.mjs blokir namauser "Terbukti memakai engine, Turnamen Agustus."
 
 # Cek apakah sebuah nomor HP ada di daftar hitam (sebelum menerima pemain)

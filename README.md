@@ -52,6 +52,7 @@ Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpee
 ## Fitur
 
 - **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keberlanjutan. Keanggotaan hanya tampil sebagai tab di dalam Struktur Grup Catur pada menu Tentang Kami.
+- **Daftar anggota otomatis dari Chess.com**: backend mengambil roster publik [BLUNDER SKUAD](https://www.chess.com/club/blunder-skuad), menyatukan kelompok aktivitasnya, lalu memperkaya profil dan rating pemain. Roster Chess.com sendiri diperbarui maksimal tiap 12 jam.
 - Dropdown menu hover + drawer menu mobile
 - Overlay pencarian (mirip halaman pencarian Pertamina) dengan hasil dari daftar halaman
 - Sticky submenu dengan scroll-spy (IntersectionObserver) + smooth scroll, menempel tepat di bawah header

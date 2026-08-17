@@ -41,6 +41,9 @@ import { normalisasiHp, normalisasiUsername } from "../src/lib/identitas.js";
 const DATA = path.resolve("data/anggota.json");
 const HITAM = path.resolve("data/daftar-hitam.json");
 const UA = "KomunitasCaturIndonesia/1.0 (contact: info@komunitascatur.or.id)";
+const KLUB = String(process.env.KCI_CHESS_KLUB || "blunder-skuad")
+  .trim()
+  .toLowerCase();
 
 const baca = (f, b) => {
   try {
@@ -79,92 +82,142 @@ async function chessGet(p) {
   });
 }
 
+/** Ambil dan satukan `weekly`, `monthly`, serta `all_time` dari roster klub. */
+async function rosterKlub() {
+  const res = await chessGet(`/club/${encodeURIComponent(KLUB)}/members`);
+  if (!res.ok) {
+    throw new Error(
+      res.status === 404
+        ? `Klub Chess.com "${KLUB}" tidak ditemukan.`
+        : `Gagal mengambil roster klub (${res.status}).`
+    );
+  }
+  const data = await res.json();
+  const username = new Set();
+  for (const kategori of ["weekly", "monthly", "all_time"]) {
+    for (const anggota of Array.isArray(data?.[kategori]) ? data[kategori] : []) {
+      const nama = normalisasiUsername(anggota?.username);
+      if (nama) username.add(nama);
+    }
+  }
+  return [...username].sort();
+}
+
 /* ------------------------------------------------------------- perintah */
 
 async function pindai() {
-  const anggota = baca(DATA, []);
+  const anggotaLokal = baca(DATA, []);
   const hitam = baca(HITAM, []);
   pastikanPepper(hitam);
+
+  let anggota;
+  try {
+    anggota = await rosterKlub();
+  } catch (e) {
+    console.error(`GALAT: ${e.message}`);
+    return;
+  }
   if (!anggota.length) {
-    console.log("Belum ada anggota terdaftar.");
+    console.log(`Roster klub "${KLUB}" kosong.`);
     return;
   }
 
-  console.log(`Memeriksa ${anggota.length} anggota ke Chess.com…\n`);
-  const tersisa = [];
+  const lokalPerUsername = new Map(anggotaLokal.map((a) => [a.username, a]));
+  const pembaruan = new Map();
+  console.log(`Memeriksa ${anggota.length} anggota ${KLUB} ke Chess.com…\n`);
   let diblokir = 0;
 
-  for (const a of anggota) {
-    process.stdout.write(`  ${a.username.padEnd(24)} `);
+  for (const username of anggota) {
+    process.stdout.write(`  ${username.padEnd(24)} `);
+    const lokal = lokalPerUsername.get(username);
     try {
-      const res = await chessGet(`/player/${encodeURIComponent(a.username)}`);
+      const res = await chessGet(`/player/${encodeURIComponent(username)}`);
       if (!res.ok) {
         console.log(res.status === 404 ? "akun hilang" : `gagal (${res.status})`);
-        tersisa.push(a);
         continue;
       }
       const profil = await res.json();
       const st = evaluasiStatusChess(profil.status);
 
       if (st.diblokir) {
-        hitam.push({
-          username: a.username,
-          playerId: profil.player_id ?? a.playerId ?? null,
-          identitas: a.identitas || {},
-          sidikPepper: sidikPepper(),
-          alasan: st.alasan,
-          keterangan: st.keterangan,
-          sumber: "otomatis",
-          diblokirPada: new Date().toISOString(),
-        });
-        diblokir += 1;
+        if (!hitam.some((h) => h.username === username)) {
+          hitam.push({
+            username,
+            playerId: profil.player_id ?? lokal?.playerId ?? null,
+            identitas: lokal?.identitas || {},
+            sidikPepper: sidikPepper(),
+            alasan: st.alasan,
+            keterangan: st.keterangan,
+            sumber: "otomatis",
+            diblokirPada: new Date().toISOString(),
+          });
+          diblokir += 1;
+        }
         console.log("DIBLOKIR — pelanggaran fair play");
         continue;
       }
       console.log(profil.status || "aktif");
-      tersisa.push({ ...a, statusChess: profil.status || null });
+      if (lokal) {
+        pembaruan.set(username, {
+          statusChess: profil.status || null,
+          playerId: profil.player_id ?? lokal.playerId ?? null,
+        });
+      }
     } catch (e) {
       console.log(`galat: ${e.message}`);
-      tersisa.push(a);
     }
   }
 
-  tulis(DATA, tersisa);
+  // Roster tidak disalin ke data/anggota.json; hanya metadata formulir yang
+  // telah ada sebelumnya diperbarui.
+  if (pembaruan.size) {
+    tulis(
+      DATA,
+      anggotaLokal.map((a) => ({ ...a, ...(pembaruan.get(a.username) || {}) }))
+    );
+  }
   tulis(HITAM, hitam);
   console.log(
-    `\nSelesai. ${diblokir} anggota dipindahkan ke daftar hitam, ${tersisa.length} tetap aktif.`
+    `\nSelesai. ${diblokir} akun baru masuk daftar hitam; ${anggota.length} akun roster diperiksa.`
   );
 }
 
-function blokir(username, alasanTeks) {
+async function blokir(username, alasanTeks) {
   const uname = normalisasiUsername(username);
   if (!uname) return console.error("Sebutkan username.");
-  const anggota = baca(DATA, []);
+  const anggotaLokal = baca(DATA, []);
   const hitam = baca(HITAM, []);
   pastikanPepper(hitam);
 
-  const idx = anggota.findIndex((a) => a.username === uname);
-  if (idx === -1) return console.error(`"${uname}" tidak ada di daftar anggota.`);
+  let roster;
+  try {
+    roster = await rosterKlub();
+  } catch (e) {
+    return console.error(`GALAT: ${e.message}`);
+  }
+  if (!roster.includes(uname))
+    return console.error(`"${uname}" tidak ada di roster klub "${KLUB}".`);
   if (hitam.some((h) => h.username === uname))
     return console.error(`"${uname}" sudah ada di daftar hitam.`);
 
-  const a = anggota[idx];
+  const a = anggotaLokal.find((anggota) => anggota.username === uname);
   hitam.push({
-    username: a.username,
-    playerId: a.playerId ?? null,
-    identitas: a.identitas || {},
+    username: uname,
+    playerId: a?.playerId ?? null,
+    identitas: a?.identitas || {},
     sidikPepper: sidikPepper(),
     alasan: "keputusan_pengurus",
     keterangan: alasanTeks || "Diblokir berdasarkan keputusan pengurus.",
     sumber: "pengurus",
     diblokirPada: new Date().toISOString(),
   });
-  anggota.splice(idx, 1);
-  tulis(DATA, anggota);
+  // PII tetap tersimpan terpisah untuk audit, sedangkan metadata formulir
+  // dapat dibuang karena roster aktif selalu ditarik dari Chess.com.
+  tulis(DATA, anggotaLokal.filter((anggota) => anggota.username !== uname));
   tulis(HITAM, hitam);
   console.log(
-    `"${uname}" diblokir. Identitasnya tercatat, sehingga pendaftaran ulang ` +
-      `dengan nomor HP/DANA atau nama+tanggal lahir yang sama akan ditolak.`
+    `"${uname}" diblokir dari kegiatan situs dan turnamen. Jika perlu ` +
+      `mencabut keanggotaannya di Chess.com, keluarkan akun itu dari klub juga.`
   );
 }
 
@@ -218,7 +271,7 @@ switch (perintah) {
     await pindai();
     break;
   case "blokir":
-    blokir(arg[0], arg.slice(1).join(" "));
+    await blokir(arg[0], arg.slice(1).join(" "));
     break;
   case "buka":
     buka(arg[0]);
