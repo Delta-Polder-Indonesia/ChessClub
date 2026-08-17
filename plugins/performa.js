@@ -35,6 +35,7 @@ export const RUTE_PUBLIK = [
   "/keberlanjutan/pertanyaan-umum",
   "/hubungi-kami",
   "/beranda",
+  "/beranda/turnamen",
   "/beranda/daftar-juara",
   "/beranda/peringkat",
   "/beranda/ebook-panduan",

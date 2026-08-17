@@ -38,7 +38,7 @@ export function CorporatePage({
         crumbs={crumbs}
         image={image}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-12 xl:gap-24 max-w-[1080px] xl:max-w-[1280px] relative w-full mx-auto pt-0 pb-12 lg:pt-20 lg:pb-20 px-6 md:px-8 xl:px-0">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4 xl:gap-6 max-w-[1080px] xl:max-w-[1280px] relative w-full mx-auto pt-0 pb-12 lg:pt-20 lg:pb-20 px-6 md:px-8 xl:px-0">
         <CorporateSidebar title={title} items={sidebar} />
         <div className="relative w-full min-w-0">{children}</div>
       </div>

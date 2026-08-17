@@ -237,3 +237,19 @@ export async function ambilSatuTurnamen(id) {
   if (!res.ok) throw new Error("Turnamen tidak ditemukan.");
   return res.json();
 }
+
+/* ------------------------------------------------------------- konten */
+
+/** Berita komunitas yang sudah dipublikasikan. */
+export async function ambilBeritaPublik() {
+  const res = await fetch(url("/api/berita"));
+  if (!res.ok) throw new Error("Gagal memuat berita komunitas.");
+  return res.json();
+}
+
+/** Pengumuman yang sudah dipublikasikan. */
+export async function ambilPengumumanPublik() {
+  const res = await fetch(url("/api/pengumuman"));
+  if (!res.ok) throw new Error("Gagal memuat pengumuman.");
+  return res.json();
+}

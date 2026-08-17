@@ -126,21 +126,21 @@ function Klasemen({ id, k }) {
     <div className="mt-4 space-y-4">
       <div>
         <h4 className="mb-2 text-sm font-bold text-slate-900">{k.klasemen}</h4>
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full min-w-[420px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <div className="overflow-auto max-h-[760px]">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-3 py-2">{k.peringkat}</th>
-                <th className="px-3 py-2">{k.pemain}</th>
-                <th className="px-3 py-2">{k.main}</th>
-                <th className="px-3 py-2">{k.poin}</th>
+                <th className="kol-peringkat">{k.peringkat}</th>
+                <th className="kol-pemain">{k.pemain}</th>
+                <th className="kol-main">{k.main}</th>
+                <th className="kol-poin">{k.poin}</th>
               </tr>
             </thead>
             <tbody>
-              {data.klasemen.map((b) => (
-                <tr key={b.username} className="border-t border-slate-100">
-                  <td className="px-3 py-2 text-slate-500">{b.peringkat}</td>
-                  <td className="px-3 py-2 font-medium text-slate-800">
+              {data.klasemen.map((b, index) => (
+                <tr key={b.username} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                  <td className="kol-peringkat">{b.peringkat}</td>
+                  <td className="kol-pemain">
                     {b.panggilan}
                     {b.resmi === false && (
                       <span className="ml-1.5 text-xs font-normal text-amber-700">
@@ -148,8 +148,8 @@ function Klasemen({ id, k }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-slate-600">{b.main}</td>
-                  <td className="px-3 py-2 font-bold text-slate-900">{b.poin}</td>
+                  <td className="kol-main">{b.main}</td>
+                  <td className="kol-poin">{b.poin}</td>
                 </tr>
               ))}
             </tbody>
@@ -162,23 +162,23 @@ function Klasemen({ id, k }) {
           <h4 className="mb-2 text-sm font-bold text-slate-900">
             {k.klasemenTim}
           </h4>
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <div className="overflow-auto max-h-[760px]">
+            <table className="tabel-kci tabel-peringkat">
+              <thead>
                 <tr>
-                  <th className="px-3 py-2">{k.peringkat}</th>
-                  <th className="px-3 py-2">{k.tim}</th>
-                  <th className="px-3 py-2">{k.poin}</th>
+                  <th className="kol-peringkat">{k.peringkat}</th>
+                  <th className="kol-tim">{k.tim}</th>
+                  <th className="kol-poin">{k.poin}</th>
                 </tr>
               </thead>
               <tbody>
-                {data.klasemenTim.map((b) => (
-                  <tr key={b.tim} className="border-t border-slate-100">
-                    <td className="px-3 py-2 text-slate-500">{b.peringkat}</td>
-                    <td className="px-3 py-2 font-medium text-slate-800">
+                {data.klasemenTim.map((b, index) => (
+                  <tr key={b.tim} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                    <td className="kol-peringkat">{b.peringkat}</td>
+                    <td className="kol-tim">
                       {b.tim}
                     </td>
-                    <td className="px-3 py-2 font-bold text-slate-900">
+                    <td className="kol-poin">
                       {b.poin}
                     </td>
                   </tr>
@@ -207,7 +207,7 @@ function KartuTurnamen({ t, k, bahasa }) {
   ].filter(([, v]) => v && v !== "—");
 
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+    <article className="border-b border-slate-200 py-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-bold text-slate-900">{t.nama}</h3>
@@ -217,7 +217,7 @@ function KartuTurnamen({ t, k, bahasa }) {
           </p>
         </div>
         <span
-          className={`rounded-full border px-3 py-1 text-xs font-semibold ${warna}`}
+          className={`px-3 py-1 text-xs font-semibold ${warna}`}
         >
           {label}
         </span>
@@ -244,7 +244,7 @@ function KartuTurnamen({ t, k, bahasa }) {
         <button
           type="button"
           onClick={() => setBuka((b) => !b)}
-          className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary"
+          className="px-4 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:text-primary"
         >
           {buka ? k.tutupRincian : k.lihat}
         </button>
@@ -305,7 +305,7 @@ export default function DaftarTurnamen({ jenis }) {
             {k.kosong}
           </p>
         ) : (
-          <div className="space-y-4">
+          <div>
             {daftar.map((t) => (
               <KartuTurnamen key={t.id} t={t} k={k} bahasa={bahasa} />
             ))}

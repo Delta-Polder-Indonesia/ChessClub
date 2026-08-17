@@ -6,7 +6,9 @@ import {
   ambilDaftarHitam,
 } from "../../lib/chessAnggota.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
+import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
 import Gerbang from "./Gerbang.jsx";
+import { LencanaBan } from "../../components/Lencana.jsx";
 import { Tombol, Bidang } from "./ui.jsx";
 
 /**
@@ -139,14 +141,17 @@ function PanelAnggota({ anggota, hitam, muatUlang, beriTahu }) {
               {anggota.map((a) => (
                 <tr key={a.username} className="border-t border-slate-100">
                   <td className="px-3 py-2">
-                    <a
-                      href={a.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {a.username}
-                    </a>
+                    <span className="flex items-center gap-2">
+                      <a
+                        href={a.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-primary hover:underline"
+                      >
+                        {a.username}
+                      </a>
+                      {a.alasanStatus && <LencanaBan />}
+                    </span>
                   </td>
                   <td className="px-3 py-2 text-slate-700">{a.panggilan || "—"}</td>
                   <td className="px-3 py-2 text-slate-700">{a.kota || "—"}</td>
@@ -368,7 +373,7 @@ export default function Dashboard() {
         )}
 
         {ringkas && (
-          <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-5">
             <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
             <Kartu
               label="Daftar larangan"
@@ -380,6 +385,14 @@ export default function Dashboard() {
               label="Turnamen"
               nilai={ringkas.turnamen?.total ?? 0}
               catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`}
+            />
+            <Kartu
+              label="Konten"
+              nilai={ringkas.konten?.berita + ringkas.konten?.pengumuman || 0}
+              catatan={`${ringkas.konten?.berita ?? 0} berita / ${
+                ringkas.konten?.pengumuman ?? 0
+              } pengumuman`}
+              warna={ringkas.konten?.berita + ringkas.konten?.pengumuman ? "hijau" : "slate"}
             />
             <Kartu
               label="Verifikasi"
@@ -398,6 +411,8 @@ export default function Dashboard() {
           {[
             ["anggota", "Anggota & Larangan"],
             ["turnamen", "Turnamen"],
+            ["berita", "Berita Komunitas"],
+            ["pengumuman", "Pengumuman"],
           ].map(([kunci, label]) => (
             <button
               key={kunci}
@@ -423,6 +438,10 @@ export default function Dashboard() {
             muatUlang={muatUlang}
             beriTahu={beriTahu}
           />
+        ) : tab === "berita" ? (
+          <PanelBerita beriTahu={beriTahu} muatUlang={muatUlang} />
+        ) : tab === "pengumuman" ? (
+          <PanelPengumuman beriTahu={beriTahu} muatUlang={muatUlang} />
         ) : (
           <PanelTurnamen
             beriTahu={beriTahu}

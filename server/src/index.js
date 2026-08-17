@@ -65,6 +65,11 @@ import {
   kontakAnggota,
   ringkasan,
 } from "./keanggotaan.js";
+import {
+  berita,
+  pengumuman,
+  ringkasanKonten,
+} from "./konten.js";
 
 const mulaiPada = Date.now();
 const router = buatRouter();
@@ -214,6 +219,7 @@ router.get("/api/pengurus/ringkasan", async (req) => {
     isi: {
       ...(await ringkasan()),
       turnamen: await ringkasanTurnamen(),
+      konten: await ringkasanKonten(),
       verifikasi: {
         mode: konfigurasi.wajibVerifikasi,
         oauthAktif: oauthAktif(),
@@ -358,6 +364,73 @@ router.post("/api/pengurus/turnamen/:id/hasil-hapus", async (req, param) => {
 router.post("/api/pengurus/turnamen/:id/pindai", async (req, param) => {
   pastikanAdmin(req);
   return { status: 200, isi: await pindaiPesertaTurnamen(param.id) };
+});
+
+/* ------------------------------------------------------------ konten */
+
+/** Berita komunitas yang sudah dipublikasikan. */
+router.get("/api/berita", async () => {
+  const semua = await berita.daftar({ status: "publik" });
+  return { status: 200, isi: semua.map(berita.untukPublik) };
+});
+
+/** Pengumuman yang sudah dipublikasikan. */
+router.get("/api/pengumuman", async () => {
+  const semua = await pengumuman.daftar({ status: "publik" });
+  return { status: 200, isi: semua.map(pengumuman.untukPublik) };
+});
+
+/* ------------------------------------------------ konten — pengurus */
+
+router.get("/api/pengurus/berita", async (req) => {
+  pastikanAdmin(req);
+  const semua = await berita.daftar();
+  return { status: 200, isi: semua.map(berita.untukPublik) };
+});
+
+router.post("/api/pengurus/berita", async (req) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return { status: 201, isi: berita.untukPublik(await berita.buat(bodi)) };
+});
+
+router.post("/api/pengurus/berita/:id/ubah", async (req, param) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return { status: 200, isi: berita.untukPublik(await berita.ubah(param.id, bodi)) };
+});
+
+router.post("/api/pengurus/berita/:id/hapus", async (req, param) => {
+  pastikanAdmin(req);
+  await berita.hapus(param.id);
+  return { status: 200, isi: { pesan: "Berita dihapus." } };
+});
+
+router.get("/api/pengurus/pengumuman", async (req) => {
+  pastikanAdmin(req);
+  const semua = await pengumuman.daftar();
+  return { status: 200, isi: semua.map(pengumuman.untukPublik) };
+});
+
+router.post("/api/pengurus/pengumuman", async (req) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return { status: 201, isi: pengumuman.untukPublik(await pengumuman.buat(bodi)) };
+});
+
+router.post("/api/pengurus/pengumuman/:id/ubah", async (req, param) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return {
+    status: 200,
+    isi: pengumuman.untukPublik(await pengumuman.ubah(param.id, bodi)),
+  };
+});
+
+router.post("/api/pengurus/pengumuman/:id/hapus", async (req, param) => {
+  pastikanAdmin(req);
+  await pengumuman.hapus(param.id);
+  return { status: 200, isi: { pesan: "Pengumuman dihapus." } };
 });
 
 /* -------------------------------------------------------------- penangan */

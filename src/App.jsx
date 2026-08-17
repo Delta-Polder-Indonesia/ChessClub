@@ -67,6 +67,7 @@ const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
 const RUTE_BERANDA = [
   ["/", Beranda],
   ["/beranda", Beranda],
+  ["/beranda/turnamen", Beranda],
   ["/beranda/daftar-juara", DaftarJuara],
   ["/beranda/peringkat", Peringkat],
   ["/beranda/ebook-panduan", EbookPanduan],
