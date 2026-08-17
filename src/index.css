@@ -132,207 +132,128 @@ section[id] {
   font-weight: 600;
 }
 
-/* Daftar pengurus — pola kartu ringkas seperti daftar staf Chess.com. */
+/* Daftar pengurus — tetap mengikuti bahasa visual halaman korporat:
+   tipografi sederhana, ruang putih, dan garis pemisah tanpa kartu dekoratif. */
 .daftar-pengurus {
-  display: flex;
-  flex-direction: column;
-  gap: 36px;
-  margin-top: 32px;
+  margin-top: 40px;
 }
 
-.prose-kci .kelompok-pengurus {
-  scroll-margin-top: 150px;
+.kelompok-pengurus + .kelompok-pengurus {
+  margin-top: 48px;
 }
 
-.kepala-kelompok-pengurus {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #0b2f9f;
-}
-
-.prose-kci .kepala-kelompok-pengurus h3 {
+.prose-kci .kelompok-pengurus h3 {
   margin: 0;
-  color: #0f172a;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #cbd5e1;
+  color: #111827;
   font-size: 20px;
   line-height: 30px;
-  font-weight: 700;
+  font-weight: 600;
 }
 
-.kepala-kelompok-pengurus > span {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 25px;
-  height: 25px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: #e8eefc;
-  color: #0b2f9f;
-  font-size: 12px;
-  font-weight: 700;
+.prose-kci .kelompok-pengurus ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.grid-pengurus {
+.prose-kci .baris-pengurus {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  grid-template-columns: 64px minmax(0, 1fr) 150px 100px;
+  align-items: center;
+  gap: 20px;
+  margin: 0;
+  padding: 20px 0;
+  border-bottom: 1px solid #e2e8f0;
+  color: #374151;
+  text-align: left;
 }
 
-.kartu-pengurus {
+.tautan-foto-pengurus {
+  display: block;
+  width: 64px;
+  height: 64px;
+}
+
+.foto-pengurus {
+  display: block;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: #e2e8f0;
+}
+
+.foto-pengurus-kosong {
   display: flex;
   align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.identitas-pengurus {
+  display: flex;
   min-width: 0;
-  min-height: 126px;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
-  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.kartu-pengurus:hover {
-  border-color: #b8c8ee;
-  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
-  transform: translateY(-1px);
-}
-
-.prose-kci .tautan-avatar-pengurus,
-.prose-kci .nama-pengurus {
+.prose-kci .identitas-pengurus > a {
+  overflow-wrap: anywhere;
+  color: #0b2f9f;
+  font-size: 15px;
+  line-height: 23px;
+  font-weight: 600;
   text-decoration: none;
 }
 
-.tautan-avatar-pengurus {
-  flex: none;
-  border-radius: 10px;
+.prose-kci .identitas-pengurus > a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
-.avatar-pengurus {
-  display: block;
-  width: 72px;
-  height: 72px;
-  flex: none;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  object-fit: cover;
-  background: #f1f5f9;
-}
-
-.avatar-pengurus-kosong {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(145deg, #0b2f9f, #3158ba);
-  color: white;
-  font-size: 25px;
-  font-weight: 700;
-}
-
-.nama-pengurus {
-  display: inline-flex;
-  max-width: 100%;
-  align-items: center;
-  gap: 5px;
-  overflow-wrap: anywhere;
-  color: #0f172a;
-  font-size: 15px;
-  line-height: 22px;
-  font-weight: 700;
-  transition: color 150ms ease;
-}
-
-.nama-pengurus:hover {
-  color: #0b2f9f;
-}
-
-.nama-pengurus svg {
-  width: 14px;
-  height: 14px;
-  flex: none;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.prose-kci .nama-asli-pengurus,
-.prose-kci .negara-pengurus,
-.prose-kci .tanggal-pengurus {
-  margin: 0;
-  text-align: left;
+.nama-lengkap-pengurus,
+.negara-pengurus {
+  color: #64748b;
   font-size: 12px;
-  line-height: 19px;
+  line-height: 20px;
 }
 
-.prose-kci .nama-asli-pengurus {
-  color: #475569;
+.negara-pengurus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bergabung-pengurus,
+.nilai-pengurus {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.bergabung-pengurus > span,
+.nilai-pengurus > span {
+  color: #94a3b8;
+  font-size: 10px;
+  line-height: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.prose-kci .bergabung-pengurus > strong,
+.prose-kci .nilai-pengurus > strong {
+  color: #334155;
+  font-size: 13px;
+  line-height: 21px;
   font-weight: 500;
 }
 
-.prose-kci .negara-pengurus {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 6px;
-  color: #475569;
-}
-
-.prose-kci .negara-pengurus span {
-  font-size: 15px;
-}
-
-.prose-kci .tanggal-pengurus {
-  color: #94a3b8;
-}
-
-.rating-pengurus {
-  display: flex;
-  min-width: 62px;
-  flex: none;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  align-self: stretch;
-  padding-left: 14px;
-  border-left: 1px solid #e2e8f0;
-  color: #64748b;
-  text-align: center;
-}
-
-.rating-pengurus svg {
-  width: 21px;
-  height: 21px;
-  margin-bottom: 3px;
-  fill: none;
-  stroke: #0b2f9f;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.prose-kci .rating-pengurus strong {
-  color: #0f172a;
-  font-size: 14px;
-  line-height: 19px;
-  font-variant-numeric: tabular-nums;
-}
-
-.rating-pengurus span {
-  font-size: 9px;
-  line-height: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
 .prose-kci .sumber-pengurus {
-  margin: 32px 0 0;
-  padding-top: 16px;
-  border-top: 1px solid #e2e8f0;
+  margin: 40px 0 0;
   color: #64748b;
   text-align: left;
   font-size: 12px;
@@ -345,31 +266,29 @@ section[id] {
   text-underline-offset: 2px;
 }
 
-@media (max-width: 800px) {
-  .grid-pengurus {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .kartu-pengurus {
-    min-height: 112px;
-    gap: 12px;
-    padding: 14px;
+@media (max-width: 700px) {
+  .prose-kci .baris-pengurus {
+    grid-template-columns: 52px minmax(0, 1fr) auto;
+    gap: 14px;
+    padding: 16px 0;
   }
 
-  .avatar-pengurus {
-    width: 60px;
-    height: 60px;
+  .tautan-foto-pengurus,
+  .foto-pengurus {
+    width: 52px;
+    height: 52px;
   }
 
-  .rating-pengurus {
-    min-width: 52px;
-    padding-left: 10px;
+  .bergabung-pengurus {
+    grid-column: 2 / -1;
+    margin-top: -10px;
   }
 
-  .prose-kci .rating-pengurus strong {
-    font-size: 12px;
+  .nilai-pengurus {
+    grid-column: 3;
+    grid-row: 1;
+    align-items: flex-end;
+    text-align: right;
   }
 }
 
