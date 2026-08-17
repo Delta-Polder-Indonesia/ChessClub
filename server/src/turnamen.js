@@ -16,7 +16,7 @@ import { konfigurasi } from "./konfigurasi.js";
 import { buatRepo } from "./simpanan.js";
 import { ambilProfil } from "./chess.js";
 import { daftarAnggotaKlub } from "./klub.js";
-import { evaluasiStatusChess } from "./identitas-server.js";
+import { evaluasiStatusChess, cariDiDaftarHitam } from "./identitas-server.js";
 import { normalisasiUsername } from "../../src/lib/identitas.js";
 import { GalatAplikasi, repoAnggota, repoHitam, blokir } from "./keanggotaan.js";
 
@@ -375,6 +375,155 @@ export async function hapusTurnamen(id) {
       throw new GalatAplikasi(404, "Turnamen tidak ditemukan.");
     }
     return { data: sisa, hasil: true };
+  });
+}
+
+/* ------------------------------------------------------ pengajuan peserta */
+
+/**
+ * Player mengajukan diri dari halaman publik. Pengajuan belum menjadikannya
+ * peserta; pengurus tetap harus meninjau dan menerima terlebih dahulu.
+ */
+export async function ajukanKeikutsertaan(id, { username }) {
+  const uname = normalisasiUsername(username);
+  if (!uname) throw new GalatAplikasi(400, "Username Chess.com wajib diisi.");
+
+  const t = await ambilTurnamen(id);
+  if (t.status !== "pendaftaran") {
+    throw new GalatAplikasi(409, "Pendaftaran turnamen ini sedang tidak dibuka.");
+  }
+
+  const [anggotaKlub, anggotaLokal, hitam, profil] = await Promise.all([
+    daftarAnggotaKlub(),
+    repoAnggota.baca(),
+    repoHitam.baca(),
+    ambilProfil(uname, { pakaiCache: false }),
+  ]);
+
+  if (!anggotaKlub.some((a) => a.username === uname)) {
+    throw new GalatAplikasi(
+      403,
+      `"${uname}" belum terdaftar sebagai anggota BLUNDER SKUAD. Daftarkan diri sebagai anggota terlebih dahulu.`,
+      { harusDaftarAnggota: true }
+    );
+  }
+  if (!profil.ada) throw new GalatAplikasi(404, `Akun Chess.com "${uname}" tidak ditemukan.`);
+
+  const laranganUsername = hitam.find((h) => h.username === uname);
+  const rekamLokal = anggotaLokal.find((a) => a.username === uname);
+  const laranganIdentitas = rekamLokal?.identitas
+    ? cariDiDaftarHitam(rekamLokal.identitas, hitam)
+    : null;
+  if (laranganUsername || laranganIdentitas) {
+    throw new GalatAplikasi(
+      403,
+      "Pengajuan ditolak karena akun atau identitas terhubung dengan daftar larangan komunitas.",
+      { diblokir: true }
+    );
+  }
+
+  const kondisi = evaluasiStatusChess(profil.data.status);
+  if (kondisi.diblokir) {
+    throw new GalatAplikasi(403, kondisi.keterangan, {
+      diblokir: true,
+      alasan: kondisi.alasan,
+    });
+  }
+
+  return repoTurnamen.ubah(async (semua) => {
+    const indeks = semua.findIndex((x) => x.id === id);
+    if (indeks === -1) throw new GalatAplikasi(404, "Turnamen tidak ditemukan.");
+    const turnamen = { ...semua[indeks] };
+    if (turnamen.status !== "pendaftaran") {
+      throw new GalatAplikasi(409, "Pendaftaran turnamen ini sudah ditutup.");
+    }
+    if ((turnamen.peserta || []).some((p) => p.username === uname)) {
+      throw new GalatAplikasi(409, `"${uname}" sudah menjadi peserta turnamen ini.`);
+    }
+    const lama = (turnamen.pengajuan || []).find((p) => p.username === uname);
+    if (lama?.status === "menunggu") {
+      throw new GalatAplikasi(409, "Pengajuan Anda masih menunggu keputusan pengurus.");
+    }
+    if (lama?.status === "diterima") {
+      throw new GalatAplikasi(409, "Pengajuan Anda sudah diterima.");
+    }
+
+    const pengajuan = {
+      username: uname,
+      panggilan: rekamLokal?.panggilan || profil.data.name || uname,
+      status: "menunggu",
+      diajukanPada: kiniIso(),
+      akunDibuatPada: profil.data.joined
+        ? new Date(Number(profil.data.joined) * 1000).toISOString()
+        : null,
+      statusChess: profil.data.status || "premium",
+      url: `https://www.chess.com/member/${encodeURIComponent(uname)}`,
+    };
+    turnamen.pengajuan = [
+      ...(turnamen.pengajuan || []).filter((p) => p.username !== uname),
+      pengajuan,
+    ];
+    turnamen.diubahPada = kiniIso();
+    const salinan = [...semua];
+    salinan[indeks] = turnamen;
+    return { data: salinan, hasil: pengajuan };
+  });
+}
+
+/** Terima pengajuan: pemeriksaan roster/larangan diulang oleh daftarkanPeserta. */
+export async function terimaPengajuan(id, username) {
+  const uname = normalisasiUsername(username);
+  const t = await ambilTurnamen(id);
+  const pengajuan = (t.pengajuan || []).find(
+    (p) => p.username === uname && p.status === "menunggu"
+  );
+  if (!pengajuan) throw new GalatAplikasi(404, "Pengajuan menunggu tidak ditemukan.");
+
+  await daftarkanPeserta(id, { username: uname });
+  return repoTurnamen.ubah(async (semua) => {
+    const indeks = semua.findIndex((x) => x.id === id);
+    const turnamen = { ...semua[indeks] };
+    turnamen.pengajuan = (turnamen.pengajuan || []).map((p) =>
+      p.username === uname
+        ? { ...p, status: "diterima", diputuskanPada: kiniIso(), alasan: "" }
+        : p
+    );
+    const salinan = [...semua];
+    salinan[indeks] = turnamen;
+    return {
+      data: salinan,
+      hasil: turnamen.pengajuan.find((p) => p.username === uname),
+    };
+  });
+}
+
+export async function tolakPengajuan(id, { username, alasan }) {
+  const uname = normalisasiUsername(username);
+  return repoTurnamen.ubah(async (semua) => {
+    const indeks = semua.findIndex((x) => x.id === id);
+    if (indeks === -1) throw new GalatAplikasi(404, "Turnamen tidak ditemukan.");
+    const turnamen = { ...semua[indeks] };
+    const ada = (turnamen.pengajuan || []).some(
+      (p) => p.username === uname && p.status === "menunggu"
+    );
+    if (!ada) throw new GalatAplikasi(404, "Pengajuan menunggu tidak ditemukan.");
+    turnamen.pengajuan = turnamen.pengajuan.map((p) =>
+      p.username === uname
+        ? {
+            ...p,
+            status: "ditolak",
+            diputuskanPada: kiniIso(),
+            alasan: String(alasan || "Tidak lolos peninjauan pengurus.").trim(),
+          }
+        : p
+    );
+    turnamen.diubahPada = kiniIso();
+    const salinan = [...semua];
+    salinan[indeks] = turnamen;
+    return {
+      data: salinan,
+      hasil: turnamen.pengajuan.find((p) => p.username === uname),
+    };
   });
 }
 

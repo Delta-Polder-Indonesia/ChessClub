@@ -288,6 +288,29 @@ export async function ambilTurnamenPublik(jenis) {
   return res.json();
 }
 
+/** Ajukan diri sebagai peserta; pengurus akan menerima atau menolak. */
+export async function ajukanPesertaTurnamen(id, username) {
+  const csrfToken = await ambilCsrfToken();
+  const res = await fetch(url(`/api/turnamen/${encodeURIComponent(id)}/daftar`), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": csrfToken,
+    },
+    body: JSON.stringify({ username }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new GalatPendaftaran(data.pesan || "Pengajuan turnamen gagal.", {
+      diblokir: data.diblokir,
+      alasan: data.alasan,
+      status: res.status,
+      galat: { harusDaftarAnggota: data.harusDaftarAnggota },
+    });
+  }
+  return data;
+}
+
 /** Satu turnamen beserta klasemen. */
 export async function ambilSatuTurnamen(id) {
   const res = await fetch(url(`/api/turnamen/${encodeURIComponent(id)}`));

@@ -47,6 +47,9 @@ import {
   ubahTurnamen,
   hapusTurnamen,
   daftarkanPeserta,
+  ajukanKeikutsertaan,
+  terimaPengajuan,
+  tolakPengajuan,
   keluarkanPeserta,
   catatHasil,
   hapusHasil,
@@ -288,6 +291,16 @@ router.get("/api/turnamen", async (req) => {
   return { status: 200, isi: tampil.map(untukPublik) };
 });
 
+/** Player mengajukan diri; keputusan akhir tetap berada pada pengurus. */
+router.post(
+  "/api/turnamen/:id/daftar",
+  async (req, param) => {
+    const bodi = await bacaBodi(req);
+    return { status: 201, isi: await ajukanKeikutsertaan(param.id, bodi) };
+  },
+  { batas: 10 }
+);
+
 /** Satu turnamen beserta klasemennya. */
 router.get("/api/turnamen/:id", async (_req, param) => {
   const t = await ambilTurnamen(param.id);
@@ -305,7 +318,13 @@ router.get("/api/turnamen/:id", async (_req, param) => {
 router.get("/api/pengurus/turnamen", async (req) => {
   pastikanAdmin(req);
   const semua = await daftarTurnamen();
-  return { status: 200, isi: semua.map(untukPublik) };
+  return {
+    status: 200,
+    isi: semua.map((t) => ({
+      ...untukPublik(t),
+      jumlahPengajuan: (t.pengajuan || []).filter((p) => p.status === "menunggu").length,
+    })),
+  };
 });
 
 router.get("/api/pengurus/turnamen/:id", async (req, param) => {
@@ -313,7 +332,12 @@ router.get("/api/pengurus/turnamen/:id", async (req, param) => {
   const t = await ambilTurnamen(param.id);
   return {
     status: 200,
-    isi: { ...untukPublik(t), klasemenTim: klasemenTim(t), hasil: t.hasil || [] },
+    isi: {
+      ...untukPublik(t),
+      klasemenTim: klasemenTim(t),
+      hasil: t.hasil || [],
+      pengajuan: t.pengajuan || [],
+    },
   };
 });
 
@@ -339,6 +363,18 @@ router.post("/api/pengurus/turnamen/:id/peserta", async (req, param) => {
   pastikanAdmin(req);
   const bodi = await bacaBodi(req);
   return { status: 201, isi: await daftarkanPeserta(param.id, bodi) };
+});
+
+router.post("/api/pengurus/turnamen/:id/pengajuan-terima", async (req, param) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return { status: 200, isi: await terimaPengajuan(param.id, bodi.username) };
+});
+
+router.post("/api/pengurus/turnamen/:id/pengajuan-tolak", async (req, param) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  return { status: 200, isi: await tolakPengajuan(param.id, bodi) };
 });
 
 router.post("/api/pengurus/turnamen/:id/peserta-keluar", async (req, param) => {
