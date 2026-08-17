@@ -654,8 +654,13 @@ export const ID = {
   strukturOrganisasiCatur: {
     judul: "Struktur Organisasi Catur",
     deskripsi: "Bagan struktur organisasi Komunitas Catur Indonesia.",
-    artikel: "Bagan Organisasi",
-    p1: "Berikut bagan struktur organisasi Komunitas Catur Indonesia berdasarkan keputusan Musyawarah Anggota.",
+    artikel: "Struktur Organisasi BLUNDER SKUAD",
+    p1: "Struktur organisasi menggambarkan hubungan peran pengurus hingga anggota klub. Susunan pengurus mengikuti data publik BLUNDER SKUAD di Chess.com, sedangkan jumlah anggota disinkronkan dari roster klub.",
+    klub: "Klub Catur",
+    anggota: "Anggota Klub",
+    orang: "anggota",
+    roster: "Roster BLUNDER SKUAD",
+    caption: "Super Admins memimpin pengelolaan klub, didukung oleh Admins dan Event Coordinators dalam melayani seluruh anggota BLUNDER SKUAD.",
   },
   keberlanjutan: {
     judul: "Keberlanjutan",
@@ -1333,8 +1338,13 @@ export const EN = {
   strukturOrganisasiCatur: {
     judul: "Organization Structure",
     deskripsi: "The organizational structure chart of the Indonesian Chess Community.",
-    artikel: "Organization Chart",
-    p1: "The following is the organizational structure chart based on the Member Assembly decision.",
+    artikel: "BLUNDER SKUAD Organization Structure",
+    p1: "The organization structure shows the relationship between club staff and members. Staff assignments follow the public BLUNDER SKUAD data on Chess.com, while the member count is synchronized from the club roster.",
+    klub: "Chess Club",
+    anggota: "Club Members",
+    orang: "members",
+    roster: "BLUNDER SKUAD roster",
+    caption: "Super Admins lead the club management, supported by Admins and Event Coordinators in serving all BLUNDER SKUAD members.",
   },
   keberlanjutan: {
     judul: "Sustainability",
