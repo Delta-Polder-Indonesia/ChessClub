@@ -19,6 +19,16 @@ import { fileURLToPath } from "node:url";
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
 /** Akun-akun Chess.com tiruan. Username lain dijawab 404. */
+export const ANGGOTA_KLUB_TIRUAN = {
+  // Sengaja ada Magnus di dua kelompok untuk menguji deduplikasi roster.
+  weekly: [{ username: "magnuscarlsen", joined: 1767225600 }],
+  monthly: [{ username: "gothamchess", joined: 1764547200 }],
+  all_time: [
+    { username: "magnuscarlsen", joined: 1767225600 },
+    { username: "hikaru", joined: 1761955200 },
+  ],
+};
+
 export const PEMAIN_TIRUAN = {
   magnuscarlsen: {
     username: "MagnusCarlsen",
@@ -43,6 +53,16 @@ export const PEMAIN_TIRUAN = {
       chess_rapid: { last: { rating: 2500 }, record: { win: 8, draw: 1, loss: 4 } },
     },
   },
+  di_luar_klub: {
+    username: "Di_Luar_Klub",
+    player_id: 444,
+    status: "basic",
+    name: "Pemain Luar Klub",
+    url: "https://www.chess.com/member/di_luar_klub",
+    stats: {
+      chess_rapid: { last: { rating: 1200 }, record: { win: 2, draw: 0, loss: 2 } },
+    },
+  },
   hikaru: {
     username: "Hikaru",
     player_id: 333,
@@ -63,9 +83,14 @@ export function nyalakanPeniruChess(pemainTambahan = {}) {
       res.writeHead(status, { "Content-Type": "application/json" });
       res.end(JSON.stringify(isi));
     };
-    const cocok = /^\/player\/([^/]+?)(\/stats)?$/.exec(
-      decodeURIComponent((req.url || "").split("?")[0])
-    );
+    const jalur = decodeURIComponent((req.url || "").split("?")[0]);
+    const klub = /^\/club\/([^/]+)\/members$/.exec(jalur);
+    if (klub) {
+      return klub[1].toLowerCase() === "blunder-skuad"
+        ? kirim(200, ANGGOTA_KLUB_TIRUAN)
+        : kirim(404, { code: 0, message: "Not Found" });
+    }
+    const cocok = /^\/player\/([^/]+?)(\/stats)?$/.exec(jalur);
     if (!cocok) return kirim(404, { pesan: "jalur tak dikenal" });
     const data = pemain[cocok[1].toLowerCase()];
     if (!data) return kirim(404, { code: 0, message: "Not Found" });

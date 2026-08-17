@@ -196,6 +196,23 @@ console.log("\nKesehatan & rute dasar");
   cek("GET /api/anggota -> 200", anggota.status === 200);
   cek("mengembalikan array", Array.isArray(anggota.data));
   cek(
+    "mengambil roster klub Chess.com tanpa akun ganda",
+    anggota.data?.length === 3 &&
+      anggota.data.some((a) => a.username === "magnuscarlsen") &&
+      anggota.data.some((a) => a.username === "gothamchess") &&
+      anggota.data.some((a) => a.username === "hikaru"),
+    JSON.stringify(anggota.data)?.slice(0, 220)
+  );
+  const magnusKlub = anggota.data?.find((a) => a.username === "magnuscarlsen");
+  cek(
+    "menyertakan sumber dan tanggal gabung klub",
+    magnusKlub?.sumberAnggota === "chesscom-klub" &&
+      magnusKlub?.klubChess === "blunder-skuad" &&
+      magnusKlub?.aktivitasKlub === "weekly" &&
+      Boolean(magnusKlub?.daftarPada),
+    JSON.stringify(magnusKlub)
+  );
+  cek(
     "tidak membocorkan hash identitas",
     !JSON.stringify(anggota.data).includes("identitas")
   );
@@ -289,6 +306,18 @@ let pendaftaranBerhasil = false;
     anggotaSah("akuntidakada998877665", { hp: "0811-1111-1111" })
   );
   cekNet("akun Chess.com tak ada -> 404", hantu.status === 404, `dapat ${hantu.status}`);
+
+  ipSaatIni = ipBaru();
+  const luarKlub = await panggil(
+    "POST",
+    "/api/anggota",
+    anggotaSah("di_luar_klub", { hp: "0811-2222-3333" })
+  );
+  cekNet(
+    "akun di luar roster klub -> 403",
+    luarKlub.status === 403 && luarKlub.data?.perluGabungKlub === true,
+    `dapat ${luarKlub.status}`
+  );
 
   ipSaatIni = ipBaru();
   const sah = await panggil("POST", "/api/anggota", anggotaSah("magnuscarlsen"));
@@ -476,6 +505,29 @@ console.log("\nDaftar hitam & pencegahan akun kecil  (butuh api.chess.com)");
       hp: "0812-3456-7890",
     });
     cek("nomor bersih setelah dicabut", setelahBuka.data?.diblokir === false);
+
+    // hikaru ada di roster klub tiruan, tetapi tidak pernah mengisi formulir.
+    // Pengurus tetap harus bisa memblokirnya dari kegiatan situs/turnamen.
+    const blokirRoster = await panggil("POST", "/api/pengurus/blokir", {
+      username: "hikaru",
+      keterangan: "Uji blokir anggota roster.",
+    });
+    cek(
+      "anggota roster tanpa formulir dapat diblokir",
+      blokirRoster.status === 200 && blokirRoster.data?.username === "hikaru",
+      `dapat ${blokirRoster.status}`
+    );
+    const bukaRoster = await panggil("POST", "/api/pengurus/buka", {
+      username: "hikaru",
+    });
+    cek("blokir anggota roster dapat dicabut", bukaRoster.status === 200);
+
+    const pindaiRoster = await panggil("POST", "/api/pengurus/pindai");
+    cek(
+      "pindai fair play memeriksa seluruh roster klub",
+      pindaiRoster.status === 200 && pindaiRoster.data?.diperiksa === 3,
+      JSON.stringify(pindaiRoster.data)
+    );
   }
 
   // Daftar hitam publik bisa diuji tanpa jaringan.

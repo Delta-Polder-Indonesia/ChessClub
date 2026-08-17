@@ -194,12 +194,21 @@ export const ID = {
   keanggotaan: {
     judul: "Keanggotaan",
     deskripsi:
-      "Daftar anggota yang terdaftar melalui akun Chess.com, lengkap dengan identitas yang diisi saat pendaftaran.",
+      "Daftar anggota yang disinkronkan otomatis dari klub BLUNDER SKUAD di Chess.com.",
     artikel: "Daftar Anggota",
     intro:
-      "Anggota baru mendaftar dengan username Chess.com pada halaman Pendaftaran Anggota. Setelah akun terverifikasi, nama masuk ke daftar ini secara otomatis. Klik nama untuk melihat profil lengkap anggota beserta kontak yang ia isi saat mendaftar.",
+      "Daftar ini menggunakan roster publik klub BLUNDER SKUAD di Chess.com. Setelah bergabung ke klub, akun akan muncul otomatis saat Chess.com memperbarui roster (maksimal sekitar 12 jam). Formulir situs hanya dipakai untuk verifikasi dan administrasi tambahan; bukan sumber daftar anggota.",
     jumlah: "Jumlah anggota: {jumlah}",
+    sumber: "Sumber anggota:",
+    sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
     memuat: "Memuat data dari Chess.com…",
+    kosongKlub: "Belum ada anggota yang terbaca dari klub Chess.com.",
+    aktivitasKlub: "Aktivitas klub",
+    aktivitas: {
+      weekly: "Aktif mingguan",
+      monthly: "Aktif bulanan",
+      all_time: "Aktif sebelumnya",
+    },
     kosong1: "Belum ada anggota terdaftar. Silakan ",
     kosong2: "daftar dengan akun Chess.com",
     kosong3: ".",
@@ -218,7 +227,7 @@ export const ID = {
     tutup: "Tutup",
     lihatProfil: "Klik untuk melihat profil",
     terkenaBan:
-      "Akun ditutup Chess.com karena pelanggaran fair play.",
+      "Akun ini diblokir dari kegiatan komunitas. Periksa keterangan pengurus atau status Chess.com.",
     tingkatanJudul: "Tingkatan Kelompok Rating",
     tingkatanRentang: "Rentang Rating",
     tingkatanKategori: "Kategori Pemain",
@@ -284,10 +293,14 @@ export const ID = {
     judul: "Pendaftaran Anggota",
     parent: "Keanggotaan",
     deskripsi:
-      "Lengkapi data diri dan akun Chess.com Anda. Setelah terverifikasi, nama panggilan Anda masuk otomatis ke daftar keanggotaan beserta Elo dan rekor W/D/L.",
-    artikel: "Daftar Menjadi Anggota",
+      "Lengkapi data administrasi dan verifikasi akun Chess.com Anda setelah bergabung ke klub BLUNDER SKUAD.",
+    artikel: "Lengkapi Data Anggota",
     intro:
-      "Isi formulir berikut dengan data yang benar. Sistem memverifikasi akun Anda langsung ke Chess.com, sekaligus memastikan setiap anggota hanya memiliki satu keanggotaan. Akun yang pernah ditutup Chess.com karena pelanggaran fair play tidak dapat bergabung.",
+      "Daftar anggota situs diambil otomatis dari roster klub BLUNDER SKUAD di Chess.com. Isi formulir ini setelah akun Anda ada di klub untuk verifikasi dan administrasi tambahan. Sistem memastikan satu orang hanya menggunakan satu akun, dan akun yang ditutup Chess.com karena pelanggaran fair play tidak dapat mengikuti kegiatan komunitas.",
+    klubWajibJudul: "Bergabung ke klub terlebih dahulu",
+    klubWajibIsi:
+      "Username harus sudah tercatat sebagai anggota BLUNDER SKUAD di Chess.com. Roster Chess.com dapat membutuhkan hingga 12 jam untuk diperbarui.",
+    gabungKlub: "Buka klub BLUNDER SKUAD di Chess.com",
     label: "Username Chess.com",
     placeholder: "contoh: hikaru",
     wajib: "Masukkan username Chess.com.",
@@ -305,7 +318,7 @@ export const ID = {
     grupKontak: "Kontak & Pembayaran",
 
     catatanUsername:
-      "Boleh username saja atau tautan profil chess.com/member/namaanda.",
+      "Gunakan username atau tautan profil chess.com/member/namaanda yang sudah bergabung di BLUNDER SKUAD.",
 
     labelNama: "Nama Lengkap",
     phNama: "contoh: Budi Santoso",
@@ -313,7 +326,7 @@ export const ID = {
 
     labelPanggilan: "Nama Panggilan",
     phPanggilan: "contoh: Budi",
-    catatanPanggilan: "Nama inilah yang tampil di daftar anggota.",
+    catatanPanggilan: "Dipakai pengurus untuk administrasi dan turnamen.",
 
     labelLahir: "Tanggal Lahir",
     catatanLahir: "Dipakai untuk menentukan kategori umur turnamen.",
@@ -386,7 +399,7 @@ export const ID = {
     q3a: "Saya tinggal di luar Medan, bisa?",
     q3b: "Bisa. Kelas daring dan turnamen daring terbuka untuk seluruh Indonesia. Chapter daerah menyusul sesuai minat.",
     q4a: "Bagaimana cara daftar?",
-    q4b: "Buka Pendaftaran Anggota, masukkan username Chess.com. Jika akun ada, nama Anda otomatis masuk daftar keanggotaan beserta Elo dan rekor W/D/L dari Chess.com.",
+    q4b: "Bergabunglah terlebih dahulu ke klub BLUNDER SKUAD di Chess.com. Nama akan masuk otomatis ke daftar anggota saat roster Chess.com diperbarui (maksimal sekitar 12 jam); formulir Pendaftaran Anggota dipakai untuk verifikasi dan administrasi tambahan.",
     q5a: "Bagaimana ikut turnamen pertama?",
     q5b: "Daftar sebagai anggota, lalu ikuti Turnamen Bulanan. Pemula tetap diterima; grup dapat dipisah berdasarkan kekuatan.",
     nextJudul: "Hubungi Kami",
@@ -861,12 +874,21 @@ export const EN = {
   keanggotaan: {
     judul: "Membership",
     deskripsi:
-      "List of members registered through their Chess.com accounts, complete with the identity they filled in at registration.",
+      "Member list automatically synchronized from the BLUNDER SKUAD club on Chess.com.",
     artikel: "Member List",
     intro:
-      "New members register with their Chess.com username on the Member Registration page. Once the account is verified, the name is automatically added to this list. Click a name to see the full member profile and the contact details they filled in at registration.",
+      "This list uses the public roster of the BLUNDER SKUAD club on Chess.com. After joining the club, an account appears automatically when Chess.com refreshes the roster (up to about 12 hours). The website form is only for verification and additional administration; it is not the source of the member list.",
     jumlah: "Total members: {jumlah}",
+    sumber: "Member source:",
+    sumberCatatan: "The public Chess.com roster refreshes at most every 12 hours.",
     memuat: "Loading data from Chess.com…",
+    kosongKlub: "No members could be read from the Chess.com club yet.",
+    aktivitasKlub: "Club activity",
+    aktivitas: {
+      weekly: "Weekly active",
+      monthly: "Monthly active",
+      all_time: "Previously active",
+    },
     kosong1: "No members registered yet. Please ",
     kosong2: "register with your Chess.com account",
     kosong3: ".",
@@ -885,7 +907,7 @@ export const EN = {
     tutup: "Close",
     lihatProfil: "Click to view profile",
     terkenaBan:
-      "Account closed by Chess.com due to a fair play violation.",
+      "This account is barred from community activities. Check the committee note or Chess.com status.",
     tingkatanJudul: "Rating Group Levels",
     tingkatanRentang: "Rating Range",
     tingkatanKategori: "Player Category",
@@ -951,10 +973,14 @@ export const EN = {
     judul: "Member Registration",
     parent: "Membership",
     deskripsi:
-      "Complete your personal details and Chess.com account. Once verified, your nickname is automatically added to the membership list along with your Elo and W/D/L record.",
-    artikel: "Become a Member",
+      "Complete your administrative details and verify your Chess.com account after joining the BLUNDER SKUAD club.",
+    artikel: "Complete Member Details",
     intro:
-      "Fill in the form below with accurate details. The system verifies your account directly against Chess.com and ensures each member holds only one membership. Accounts closed by Chess.com for fair play violations cannot join.",
+      "The site's member list is automatically taken from the BLUNDER SKUAD club roster on Chess.com. Complete this form after your account is in the club for verification and additional administration. The system ensures one person uses one account, and accounts closed by Chess.com for fair play violations cannot take part in community activities.",
+    klubWajibJudul: "Join the club first",
+    klubWajibIsi:
+      "Your username must already be a BLUNDER SKUAD member on Chess.com. The Chess.com roster can take up to 12 hours to refresh.",
+    gabungKlub: "Open the BLUNDER SKUAD club on Chess.com",
     label: "Chess.com Username",
     placeholder: "e.g.: hikaru",
     wajib: "Enter your Chess.com username.",
@@ -972,7 +998,7 @@ export const EN = {
     grupKontak: "Contact & Payment",
 
     catatanUsername:
-      "Either the username alone or a profile link chess.com/member/yourname.",
+      "Use the username or chess.com/member/yourname profile link that has joined BLUNDER SKUAD.",
 
     labelNama: "Full Name",
     phNama: "e.g.: Budi Santoso",
@@ -980,7 +1006,7 @@ export const EN = {
 
     labelPanggilan: "Nickname",
     phPanggilan: "e.g.: Budi",
-    catatanPanggilan: "This is the name shown in the membership list.",
+    catatanPanggilan: "Used by the committee for administration and tournaments.",
 
     labelLahir: "Date of Birth",
     catatanLahir: "Used to determine your tournament age category.",
@@ -1055,7 +1081,7 @@ export const EN = {
     q3a: "I live outside Medan, can I join?",
     q3b: "Yes. Online classes and online tournaments are open to all of Indonesia. Regional chapters will follow based on interest.",
     q4a: "How do I register?",
-    q4b: "Open Member Registration, enter your Chess.com username. If the account exists, your name is automatically added to the membership list along with your Elo and W/D/L record from Chess.com.",
+    q4b: "First join the BLUNDER SKUAD club on Chess.com. Your name is automatically added to the member list when Chess.com refreshes its roster (up to about 12 hours); the Member Registration form is for verification and additional administration.",
     q5a: "How do I join my first tournament?",
     q5b: "Register as a member, then join the Monthly Tournament. Beginners are still accepted; groups can be separated by strength.",
     nextJudul: "Contact Us",

@@ -14,8 +14,9 @@
  * - Aturan turunan (peringkat, nomor urut, penyaring rating) ditulis
  *   sekali di sini sehingga kedua halaman tidak pernah berbeda angka.
  *
- * Sumber sebenarnya tetap satu: GET /api/anggota (server/src/keanggotaan.js),
- * yang sudah diperkaya profil + rating Chess.com dan diurut rating menurun.
+ * Sumber sebenarnya tetap satu: GET /api/anggota (server/src/keanggotaan.js).
+ * Server mengambil roster publik klub Chess.com, lalu memperkaya profil +
+ * rating pemain dan mengurutkannya menurut rating menurun.
  */
 import { useEffect, useState } from "react";
 import { ambilDaftarAnggota } from "./chessAnggota.js";
@@ -135,8 +136,10 @@ export function namaTampil(a) {
  */
 export function kenaBan(a) {
   return (
+    a?.diblokirKomunitas === true ||
     a?.statusChess === "closed:fair_play_violations" ||
-    a?.alasanStatus === "fair_play_violations"
+    a?.alasanStatus === "fair_play_violations" ||
+    a?.alasanStatus === "keputusan_pengurus"
   );
 }
 
