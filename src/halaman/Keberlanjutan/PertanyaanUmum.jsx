@@ -445,7 +445,7 @@ export default function PertanyaanUmum() {
       next={{ to: "/hubungi-kami", judul: t("pertanyaan.nextJudul") }}
     >
       <PageArtikel title={t("pertanyaan.artikel")}>
-        <ol className="space-y-6">
+        <ol className="space-y-6 list-none!">
           {DAFTAR_TANYA.map((item, index) => (
             <li key={index} className="ql-align-justify">
               <p className="font-semibold mb-1">

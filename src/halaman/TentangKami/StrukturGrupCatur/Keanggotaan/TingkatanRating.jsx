@@ -17,13 +17,13 @@ export default function TingkatanRating() {
   const [terbuka, setTerbuka] = useState(false);
 
   return (
-    <section className="not-prose my-6 rounded-lg border border-slate-200" aria-labelledby="tingkatan-rating-title">
+    <section className="not-prose my-6" aria-labelledby="tingkatan-rating-title">
       <button
         type="button"
         onClick={() => setTerbuka((value) => !value)}
         aria-expanded={terbuka}
         aria-controls="tingkatan-rating-content"
-        className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors hover:bg-slate-50 md:px-5"
+        className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition-colors md:px-5"
       >
         <span>
           <span id="tingkatan-rating-title" className="block text-xl font-semibold text-black md:text-2xl">
@@ -38,7 +38,7 @@ export default function TingkatanRating() {
 
       {terbuka && (
         <div id="tingkatan-rating-content" className="border-t border-slate-200 px-3 pb-3 pt-3 md:px-4 md:pb-4">
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <div className="overflow-x-auto">
             <table className="tingkat-rating">
               <thead>
                 <tr>

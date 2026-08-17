@@ -1,0 +1,310 @@
+import { useCallback, useEffect, useState } from "react";
+import { apiPengurus } from "../../lib/chessAnggota.js";
+import { Tombol, Bidang } from "./ui.jsx";
+
+/**
+ * Pengelolaan konten komunitas (berita & pengumuman).
+ *
+ * Satu panel generik dipakai dua jenis konten yang bentuknya hampir sama
+ * (judul, isi, tanggal, status) — perbedaannya hanya ringkasan yang khusus
+ * untuk berita. PanelBerita dan PanelPengumuman tinggal mengatur konfigurasi.
+ */
+
+const STATUS = {
+  draf: { teks: "Draf", kelas: "bg-slate-100 text-slate-700" },
+  publik: { teks: "Publik", kelas: "bg-emerald-50 text-emerald-700" },
+};
+
+function Lencana({ status }) {
+  const s = STATUS[status] || STATUS.draf;
+  return (
+    <span className={`rounded px-2 py-0.5 text-xs font-semibold ${s.kelas}`}>
+      {s.teks}
+    </span>
+  );
+}
+
+/* ------------------------------------------------------- formulir konten */
+
+function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
+  const [data, setData] = useState({
+    judul: item?.judul || "",
+    tanggal: item?.tanggal || "",
+    ringkasan: item?.ringkasan || "",
+    isi: item?.isi || "",
+    status: item?.status || "publik",
+  });
+  const [pesan, setPesan] = useState("");
+  const [sibuk, setSibuk] = useState(false);
+
+  const ubah = (k, v) => {
+    setData((d) => ({ ...d, [k]: v }));
+    setPesan("");
+  };
+
+  const kirim = async (e) => {
+    e.preventDefault();
+    setSibuk(true);
+    setPesan("");
+    try {
+      await onSimpan(data);
+    } catch (err) {
+      setPesan(err.message || "Gagal menyimpan.");
+    } finally {
+      setSibuk(false);
+    }
+  };
+
+  return (
+    <form
+      onSubmit={kirim}
+      className="mb-6 space-y-3 rounded-lg border border-slate-200 bg-white p-4"
+    >
+      <h3 className="text-sm font-bold text-slate-900">
+        {item ? `Ubah ${konfig.label}` : `${konfig.label} Baru`}
+      </h3>
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <Bidang
+          label="Judul"
+          value={data.judul}
+          onChange={(e) => ubah("judul", e.target.value)}
+          placeholder={`contoh: ${konfig.contohJudul}`}
+        />
+        <Bidang
+          label="Tanggal"
+          type="date"
+          value={data.tanggal}
+          onChange={(e) => ubah("tanggal", e.target.value)}
+        />
+      </div>
+
+      {konfig.punyaRingkasan && (
+        <Bidang
+          label="Ringkasan"
+          value={data.ringkasan}
+          onChange={(e) => ubah("ringkasan", e.target.value)}
+          placeholder="Cuplikan pendek yang tampil di bawah judul"
+        />
+      )}
+
+      <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+        Isi
+        <textarea
+          rows={6}
+          value={data.isi}
+          onChange={(e) => ubah("isi", e.target.value)}
+          className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+        />
+      </label>
+
+      <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
+        Status
+        <select
+          value={data.status}
+          onChange={(e) => ubah("status", e.target.value)}
+          className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+        >
+          <option value="publik">Publik — langsung tampil di situs</option>
+          <option value="draf">Draf — hanya terlihat di dashboard</option>
+        </select>
+      </label>
+
+      {pesan && <p className="text-xs text-red-600">{pesan}</p>}
+
+      <div className="flex gap-2">
+        <button
+          type="submit"
+          disabled={sibuk || !data.judul.trim()}
+          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+        >
+          {sibuk ? "Menyimpan…" : "Simpan"}
+        </button>
+        <Tombol anak="Batal" onClick={onBatal} />
+      </div>
+    </form>
+  );
+}
+
+/* -------------------------------------------------------------- panel */
+
+function PanelKonten({ konfig, beriTahu, muatUlang }) {
+  const [daftar, setDaftar] = useState([]);
+  const [memuat, setMemuat] = useState(true);
+  const [formulir, setFormulir] = useState(null); // null | {item:null} | {item}
+  const [saring, setSaring] = useState("");
+
+  const muat = useCallback(async () => {
+    setMemuat(true);
+    try {
+      setDaftar(await apiPengurus(`/${konfig.jalur}`));
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    } finally {
+      setMemuat(false);
+    }
+  }, [konfig.jalur, beriTahu]);
+
+  useEffect(() => {
+    muat();
+  }, [muat]);
+
+  const simpan = async (data) => {
+    const jalur = formulir?.item
+      ? `/${konfig.jalur}/${formulir.item.id}/ubah`
+      : `/${konfig.jalur}`;
+    const hasil = await apiPengurus(jalur, { metode: "POST", bodi: data });
+    beriTahu(
+      formulir?.item
+        ? `${konfig.label} "${hasil.judul}" diperbarui.`
+        : `${konfig.label} "${hasil.judul}" dibuat.`,
+      "sukses"
+    );
+    setFormulir(null);
+    await muat();
+    muatUlang?.();
+  };
+
+  const hapus = async (x) => {
+    if (
+      !window.confirm(
+        `Hapus ${konfig.label.toLowerCase()} "${x.judul}"? Tindakan ini permanen.`
+      )
+    )
+      return;
+    try {
+      await apiPengurus(`/${konfig.jalur}/${x.id}/hapus`, { metode: "POST" });
+      beriTahu(`${konfig.label} dihapus.`, "sukses");
+      if (formulir?.item?.id === x.id) setFormulir(null);
+      await muat();
+      muatUlang?.();
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    }
+  };
+
+  const tampil = saring ? daftar.filter((x) => x.status === saring) : daftar;
+
+  return (
+    <div>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-1.5">
+          <Tombol
+            anak="Semua"
+            kecil
+            jenis={saring === "" ? "utama" : "biasa"}
+            onClick={() => setSaring("")}
+          />
+          {Object.entries(STATUS).map(([k, v]) => (
+            <Tombol
+              key={k}
+              anak={v.teks}
+              kecil
+              jenis={saring === k ? "utama" : "biasa"}
+              onClick={() => setSaring(k)}
+            />
+          ))}
+        </div>
+        <Tombol
+          anak={formulir ? "Tutup formulir" : `+ ${konfig.label} baru`}
+          jenis="utama"
+          onClick={() => setFormulir((f) => (f ? null : { item: null }))}
+        />
+      </div>
+
+      {formulir && (
+        <FormulirKonten
+          konfig={konfig}
+          item={formulir.item}
+          onSimpan={simpan}
+          onBatal={() => setFormulir(null)}
+        />
+      )}
+
+      {memuat ? (
+        <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+      ) : (
+        <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <table className="w-full min-w-[640px] text-sm">
+            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-3 py-2 font-semibold">Judul</th>
+                <th className="px-3 py-2 font-semibold">Tanggal</th>
+                <th className="px-3 py-2 font-semibold">Status</th>
+                <th className="px-3 py-2 font-semibold">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tampil.map((x) => (
+                <tr key={x.id} className="border-t border-slate-100">
+                  <td className="px-3 py-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormulir({ item: x })}
+                      className="text-left font-medium text-primary hover:underline"
+                    >
+                      {x.judul}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2 text-slate-600">{x.tanggal || "—"}</td>
+                  <td className="px-3 py-2">
+                    <Lencana status={x.status} />
+                  </td>
+                  <td className="px-3 py-2">
+                    <div className="flex gap-1.5">
+                      <Tombol anak="Ubah" kecil onClick={() => setFormulir({ item: x })} />
+                      <Tombol
+                        anak="Hapus"
+                        kecil
+                        jenis="bahaya"
+                        onClick={() => hapus(x)}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!tampil.length && (
+                <tr>
+                  <td colSpan={4} className="px-3 py-8 text-center text-slate-500">
+                    Belum ada {konfig.label.toLowerCase()}. Tekan “+
+                    {konfig.label} baru” untuk membuat.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------ panel jadi */
+
+export function PanelBerita(props) {
+  return (
+    <PanelKonten
+      {...props}
+      konfig={{
+        jalur: "berita",
+        label: "Berita",
+        punyaRingkasan: true,
+        contohJudul: "Coaching clinic struktur pion bersama pelatih tamu",
+      }}
+    />
+  );
+}
+
+export function PanelPengumuman(props) {
+  return (
+    <PanelKonten
+      {...props}
+      konfig={{
+        jalur: "pengumuman",
+        label: "Pengumuman",
+        punyaRingkasan: false,
+        contohJudul: "Pendaftaran Turnamen Bulanan September dibuka",
+      }}
+    />
+  );
+}

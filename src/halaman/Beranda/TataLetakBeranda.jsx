@@ -16,10 +16,11 @@ import {
 import {
   sidebarBeranda,
   BERANDA_BERIKUT,
+  jalurBerandaUtama,
   idBerandaDariPath,
 } from "./sidebar.js";
 
-const KELAS_BAGIAN = "pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0";
+const KELAS_BAGIAN = "pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0 xl:pr-12!";
 
 /** Artikel satu tab Beranda — judul yang tampil di bawah foto hero. */
 export function BagianBeranda({ id, title, children }) {
@@ -40,9 +41,9 @@ export default function TataLetakBeranda() {
     const sebelum = idSebelumnya.current;
     idSebelumnya.current = id;
 
-    // Beranda utama (menu "Beranda"): foto hero tetap terlihat di atas —
-    // jangan gulir ke artikel meski id berubah dari tab isi ke "turnamen".
-    if (id === "turnamen") {
+    // Beranda utama ("/" atau "/beranda", dibuka lewat menu "Beranda" di
+    // atas): foto hero tetap terlihat di atas — jangan gulir ke artikel.
+    if (jalurBerandaUtama(pathname)) {
       window.scrollTo(0, 0);
       return undefined;
     }
@@ -69,7 +70,7 @@ export default function TataLetakBeranda() {
       window.clearTimeout(t);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [id]);
+  }, [id, pathname]);
 
   return (
     <CorporatePage

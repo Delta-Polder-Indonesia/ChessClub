@@ -1,24 +1,184 @@
 /**
- * Halaman: Informasi Jadwal Turnamen Catur (item pertama sidebar).
+ * Halaman: Informasi Jadwal Turnamen Catur (item pertama sidebar Beranda).
  *
- * CATATAN: Ini konten TEMPAT (placeholder). Isi lengkapnya akan dilengkapi
- * pada tahap upgrade berikutnya.
+ * Menampilkan rangkuman dua hal yang dikelola pengurus di dashboard:
+ *   - seluruh jadwal turnamen yang dipublikasikan (semua status),
+ *   - pengumuman resmi terbaru.
+ * Detail dan klasemen tetap di halaman turnamen masing-masing.
  */
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
+import {
+  ambilTurnamenPublik,
+  ambilPengumumanPublik,
+  jenisTurnamen,
+} from "../../lib/chessAnggota.js";
+
+const WARNA_STATUS = {
+  pendaftaran: "bg-blue-50 text-blue-700",
+  berlangsung: "bg-amber-50 text-amber-800",
+  selesai: "bg-emerald-50 text-emerald-700",
+  batal: "bg-red-50 text-red-700",
+};
+
+const TEKS_STATUS = {
+  pendaftaran: "Pendaftaran",
+  berlangsung: "Berlangsung",
+  selesai: "Selesai",
+  batal: "Batal",
+};
+
+function formatTanggal(nilai) {
+  if (!nilai) return "—";
+  const d = new Date(nilai);
+  if (Number.isNaN(d.getTime())) return nilai;
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+function LencanaStatus({ status }) {
+  return (
+    <span
+      className={`px-2.5 py-0.5 text-xs font-semibold ${
+        WARNA_STATUS[status] || "bg-slate-100 text-slate-700"
+      }`}
+    >
+      {TEKS_STATUS[status] || status}
+    </span>
+  );
+}
 
 export default function Beranda() {
+  const [turnamen, setTurnamen] = useState(null);
+  const [jenis, setJenis] = useState({});
+  const [pengumuman, setPengumuman] = useState(null);
+  const [gagal, setGagal] = useState(false);
+
+  useEffect(() => {
+    let hidup = true;
+    Promise.all([
+      ambilTurnamenPublik(),
+      jenisTurnamen()
+        .then((j) => j.jenis || {})
+        .catch(() => ({})),
+      ambilPengumumanPublik(),
+    ])
+      .then(([t, j, p]) => {
+        if (!hidup) return;
+        setTurnamen(t);
+        setJenis(j);
+        setPengumuman(p);
+      })
+      .catch(() => {
+        if (hidup) setGagal(true);
+      });
+    return () => {
+      hidup = false;
+    };
+  }, []);
+
   return (
-    <BagianBeranda
-      id="turnamen"
-      title="Informasi Jadwal Turnamen Catur"
-    >
-      <p>
-        Halaman ini memuat informasi jadwal turnamen catur yang akan datang
-        maupun yang sedang berlangsung.
+    <BagianBeranda id="turnamen" title="Informasi Jadwal Turnamen Catur">
+      <p className="ql-align-justify">
+        Berikut rangkuman jadwal seluruh turnamen yang dikelola komunitas dan
+        pengumuman resmi terbaru. Rincian lengkap, peserta, dan klasemen ada di
+        halaman turnamen masing-masing.
       </p>
-      <p>
-        <em>(Konten sedang dilengkapi. Bagian ini akan diperbarui pada tahap berikutnya.)</em>
-      </p>
+
+      <h3>Rangkuman Jadwal Turnamen</h3>
+      {gagal ? (
+        <p>Jadwal sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
+      ) : turnamen === null ? (
+        <p>Memuat jadwal…</p>
+      ) : turnamen.length ? (
+        <div className="overflow-auto max-h-[760px]">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
+              <tr>
+                <th className="kol-turnamen">TURNAMEN</th>
+                <th className="kol-jenis">JENIS</th>
+                <th className="kol-status">STATUS</th>
+                <th className="kol-mulai">MULAI</th>
+                <th className="kol-tutup">TUTUP DAFTAR</th>
+                <th className="kol-tempo">TEMPO</th>
+                <th className="kol-tempat">TEMPAT</th>
+              </tr>
+            </thead>
+            <tbody>
+              {turnamen.map((t, index) => {
+                const j = jenis[t.jenis] || {};
+                const href = j.slug ? `/turnamen/${j.slug}` : "";
+                return (
+                  <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                    <td className="kol-turnamen">
+                      {href ? (
+                        <Link
+                          to={href}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {t.nama}
+                        </Link>
+                      ) : (
+                        <span className="font-medium text-slate-900">{t.nama}</span>
+                      )}
+                    </td>
+                    <td className="kol-jenis">
+                      {j.label || t.jenis}
+                    </td>
+                    <td className="kol-status">
+                      <LencanaStatus status={t.status} />
+                    </td>
+                    <td className="kol-mulai">
+                      {formatTanggal(t.mulai)}
+                    </td>
+                    <td className="kol-tutup">
+                      {formatTanggal(t.tutupDaftar)}
+                    </td>
+                    <td className="kol-tempo">{t.tempo || "—"}</td>
+                    <td className="kol-tempat">{t.tempat || "—"}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p>Belum ada jadwal turnamen yang dipublikasikan.</p>
+      )}
+
+      <h3>Rangkuman Pengumuman</h3>
+      {gagal ? (
+        <p>
+          Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.
+        </p>
+      ) : pengumuman === null ? (
+        <p>Memuat pengumuman…</p>
+      ) : pengumuman.length ? (
+        <div>
+          {pengumuman.map((p) => (
+            <article
+              key={p.id}
+              className="border-b border-slate-200 py-3"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4 className="text-sm font-semibold text-slate-900">{p.judul}</h4>
+                <span className="text-xs uppercase tracking-wide text-slate-500">
+                  {p.tanggal}
+                </span>
+              </div>
+              <p className="mb-0! mt-1 text-sm leading-6 text-slate-600">
+                {p.isi}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p>Belum ada pengumuman.</p>
+      )}
     </BagianBeranda>
   );
 }

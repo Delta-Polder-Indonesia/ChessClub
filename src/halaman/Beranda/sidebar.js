@@ -10,7 +10,7 @@ export const MENU_BERANDA = [
   {
     id: "turnamen",
     label: "Informasi Jadwal Turnamen Catur",
-    href: "/beranda",
+    href: "/beranda/turnamen",
   },
   {
     id: "daftar-juara",
@@ -71,5 +71,5 @@ export const BERANDA_BERIKUT = {
   peringkat: { to: "/beranda/ebook-panduan", title: "E-Book & Panduan" },
   "ebook-catur": { to: "/beranda/teka-teki-tips", title: "Teka-Teki & Tips" },
   "konten-tiktok": { to: "/beranda/hubungi-admin", title: "Hubungi Admin" },
-  "hubungi-admin": { to: "/beranda", title: "Informasi Jadwal Turnamen Catur" },
+  "hubungi-admin": { to: "/beranda/turnamen", title: "Informasi Jadwal Turnamen Catur" },
 };
