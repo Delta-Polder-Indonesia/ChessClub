@@ -8,6 +8,12 @@ import {
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 
+async function ambilCsrfToken() {
+  const res = await fetch("/api/csrf-token");
+  const data = await res.json();
+  return data.token;
+}
+
 const SIDEBAR = [
   { id: "sekretariat", label: "Sekretariat", active: true },
   { id: "hubungi-kami", label: "Kirim Pesan" },
@@ -17,6 +23,8 @@ const SIDEBAR = [
 export default function HubungiKami() {
   const { t } = useI18n();
   const [terkirim, setTerkirim] = useState(false);
+  const [sedangMengirim, setSedangMengirim] = useState(false);
+  const [galat, setGalat] = useState("");
 
   return (
     <CorporatePage
@@ -60,15 +68,10 @@ export default function HubungiKami() {
       <CorporateSection id="hubungi-kami" title="Kirim Pesan" className="pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0">
         {terkirim ? (
           <div className="border border-green-200 bg-green-50 rounded-lg p-5 text-green-800">
-            <p className="font-semibold mb-1">Pesan Anda sudah disiapkan di aplikasi email.</p>
+            <p className="font-semibold mb-1">Pesan Anda berhasil dikirim!</p>
             <p>
-              Isi pesan telah dimasukkan ke draf email — tekan <strong>Kirim</strong> di
-              aplikasi email Anda untuk mengirimkannya. Bila aplikasi email tidak
-              terbuka, kirim pesan Anda secara manual ke{" "}
-              <a className="font-semibold underline" href="mailto:info@komunitascatur.or.id">
-                info@komunitascatur.or.id
-              </a>
-              .
+              Terima kasih telah menghubungi Komunitas Catur Indonesia. Tim kami akan
+              segera merespons pesan Anda melalui email yang Anda berikan.
             </p>
             <button
               type="button"
@@ -82,27 +85,52 @@ export default function HubungiKami() {
           <form
             method="post"
             className="flex flex-col gap-4"
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.preventDefault();
-              // Situs statis tidak punya server email — pesan disampaikan lewat
-              // klien email pengguna (mailto) agar tetap benar-benar sampai.
-              const data = new FormData(event.currentTarget);
-              const ambil = (k) => String(data.get(k) || "").trim();
-              const subjek = ambil("subjek") || "Pesan untuk Komunitas Catur Indonesia";
-              const kepala = [
-                `Nama: ${ambil("nama")}`,
-                ambil("telepon") ? `Telepon: ${ambil("telepon")}` : null,
-                ambil("organisasi") ? `Organisasi/Klub: ${ambil("organisasi")}` : null,
-                `Email: ${ambil("email")}`,
-              ].filter(Boolean);
-              const badan = [...kepala, "", ambil("pesan")].join("\n");
-              window.location.href =
-                `mailto:info@komunitascatur.or.id` +
-                `?subject=${encodeURIComponent(subjek)}` +
-                `&body=${encodeURIComponent(badan)}`;
-              setTerkirim(true);
+              setSedangMengirim(true);
+              setGalat("");
+
+              try {
+                const data = new FormData(event.currentTarget);
+                const csrfToken = await ambilCsrfToken();
+
+                const bodi = {
+                  nama: data.get("nama"),
+                  email: data.get("email"),
+                  telepon: data.get("telepon"),
+                  organisasi: data.get("organisasi"),
+                  subjek: data.get("subjek"),
+                  pesan: data.get("pesan"),
+                };
+
+                const res = await fetch("/api/pesan", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-Token": csrfToken,
+                  },
+                  body: JSON.stringify(bodi),
+                });
+
+                if (!res.ok) {
+                  const data = await res.json();
+                  throw new Error(data.pesan || "Gagal mengirim pesan");
+                }
+
+                setTerkirim(true);
+              } catch (err) {
+                setGalat(err.message || "Gagal mengirim pesan. Silakan coba lagi.");
+              } finally {
+                setSedangMengirim(false);
+              }
             }}
           >
+            {galat && (
+              <div className="border border-red-300 bg-red-50 rounded-lg p-4 text-red-800">
+                <p className="font-semibold">Gagal mengirim pesan</p>
+                <p className="text-sm">{galat}</p>
+              </div>
+            )}
             <div className="w-full flex flex-col md:flex-row items-start gap-4">
               <input required name="nama" placeholder="Nama Lengkap" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
               <input name="telepon" placeholder="Nomor Telepon (Opsional)" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border border-slate-200 rounded-md" />
@@ -138,8 +166,12 @@ export default function HubungiKami() {
               </div>
             </div>
 
-            <button type="submit" className="self-start text-sm font-semibold rounded-full px-6 py-3 border border-solid border-primary bg-primary text-white hover:bg-blue-800 transition-colors">
-              Kirim Pesan
+            <button
+              type="submit"
+              disabled={sedangMengirim}
+              className="self-start text-sm font-semibold rounded-full px-6 py-3 border border-solid border-primary bg-primary text-white hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {sedangMengirim ? "Mengirim..." : "Kirim Pesan"}
             </button>
           </form>
         )}

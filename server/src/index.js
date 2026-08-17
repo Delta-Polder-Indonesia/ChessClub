@@ -73,6 +73,13 @@ import {
   pengumuman,
   ringkasanKonten,
 } from "./konten.js";
+import {
+  kirimPesan,
+  daftarPesan,
+  tandaiDibaca,
+  hapusPesan,
+  ringkasanPesan,
+} from "./pesan.js";
 
 const mulaiPada = Date.now();
 const router = buatRouter();
@@ -224,6 +231,7 @@ router.get("/api/pengurus/ringkasan", async (req) => {
       ...(await ringkasan()),
       turnamen: await ringkasanTurnamen(),
       konten: await ringkasanKonten(),
+      pesan: await ringkasanPesan(),
       verifikasi: {
         mode: konfigurasi.wajibVerifikasi,
         oauthAktif: oauthAktif(),
@@ -468,6 +476,44 @@ router.post("/api/pengurus/pengumuman/:id/hapus", async (req, param) => {
   pastikanAdmin(req);
   await pengumuman.hapus(param.id);
   return { status: 200, isi: { pesan: "Pengumuman dihapus." } };
+});
+
+/* ---------------------------------------------------------- pesan */
+
+/** Kirim pesan dari form "Hubungi Kami" (publik). */
+router.post(
+  "/api/pesan",
+  async (req) => {
+    const bodi = await bacaBodi(req);
+    return { status: 201, isi: await kirimPesan(bodi) };
+  },
+  { batas: 5 }
+);
+
+/** Ambil semua pesan untuk pengurus. */
+router.get("/api/pengurus/pesan", async (req) => {
+  pastikanAdmin(req);
+  return { status: 200, isi: await daftarPesan() };
+});
+
+/** Tandai pesan sebagai sudah dibaca. */
+router.post("/api/pengurus/pesan/:id/baca", async (req, param) => {
+  pastikanAdmin(req);
+  await tandaiDibaca(param.id);
+  return { status: 200, isi: { pesan: "Pesan ditandai sudah dibaca." } };
+});
+
+/** Hapus pesan. */
+router.post("/api/pengurus/pesan/:id/hapus", async (req, param) => {
+  pastikanAdmin(req);
+  await hapusPesan(param.id);
+  return { status: 200, isi: { pesan: "Pesan dihapus." } };
+});
+
+/** Ringkasan pesan untuk dashboard. */
+router.get("/api/pengurus/ringkasan-pesan", async (req) => {
+  pastikanAdmin(req);
+  return { status: 200, isi: await ringkasanPesan() };
 });
 
 /* -------------------------------------------------------------- penangan */
