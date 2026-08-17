@@ -132,6 +132,101 @@ section[id] {
   font-weight: 600;
 }
 
+/* Berita & pengumuman — susunan editorial bergambar seperti portal berita,
+   tetapi tetap memakai tipografi, warna, dan garis identitas korporat. */
+.prose-kci .daftar-konten-media {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prose-kci .baris-konten-media {
+  display: grid;
+  grid-template-columns: minmax(0, 260px) minmax(0, 1fr);
+  gap: 24px;
+  margin: 0;
+  padding: 24px 0;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.prose-kci .baris-konten-media:first-child {
+  padding-top: 0;
+}
+
+.prose-kci .baris-konten-media.tanpa-gambar {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.gambar-konten-media {
+  overflow: hidden;
+  align-self: start;
+  background: #f1f5f9;
+}
+
+.gambar-konten-media img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.isi-konten-media {
+  min-width: 0;
+}
+
+.prose-kci .jenis-konten-media {
+  margin: 0 0 4px;
+  color: #0b2f9f;
+  text-align: left;
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.prose-kci .isi-konten-media h3 {
+  margin: 0 0 6px;
+  color: #0f172a;
+  font-size: 19px;
+  line-height: 28px;
+  font-weight: 600;
+}
+
+.isi-konten-media time {
+  display: block;
+  margin-bottom: 10px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 18px;
+}
+
+.prose-kci .ringkasan-konten-media,
+.prose-kci .teks-konten-media {
+  margin: 0;
+  color: #475569;
+  text-align: left;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.prose-kci .ringkasan-konten-media {
+  margin-bottom: 5px;
+  color: #334155;
+  font-weight: 500;
+}
+
+@media (max-width: 700px) {
+  .prose-kci .baris-konten-media {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .gambar-konten-media {
+    width: 100%;
+    max-width: 420px;
+  }
+}
+
 /* Daftar pengurus — tetap mengikuti bahasa visual halaman korporat:
    tipografi sederhana, ruang putih, dan garis pemisah tanpa kartu dekoratif. */
 .daftar-pengurus {

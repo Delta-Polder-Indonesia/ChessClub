@@ -114,8 +114,10 @@ export const konfigurasi = {
     maksDaftar: angka(process.env.KCI_BATAS_DAFTAR, 5),
   },
 
-  /** Ukuran maksimum badan permintaan. */
-  maksBodiBita: angka(process.env.KCI_MAKS_BODI, 64 * 1024),
+  /** Ukuran maksimum badan permintaan.
+   * 2 MiB diperlukan agar gambar berita/pengumuman yang sudah dikompresi
+   * di browser dapat dikirim sebagai data URL tanpa endpoint unggah terpisah. */
+  maksBodiBita: angka(process.env.KCI_MAKS_BODI, 2 * 1024 * 1024),
 };
 
 /** Daftar masalah konfigurasi yang fatal di produksi. */
