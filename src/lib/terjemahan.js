@@ -197,8 +197,15 @@ export const ID = {
       "Daftar anggota yang disinkronkan otomatis dari klub BLUNDER SKUAD di Chess.com.",
     artikel: "Daftar Anggota",
     intro:
-      "Daftar ini menggunakan roster publik klub BLUNDER SKUAD di Chess.com. Setelah bergabung ke klub, akun akan muncul otomatis saat Chess.com memperbarui roster (maksimal sekitar 12 jam). Formulir situs hanya dipakai untuk verifikasi dan administrasi tambahan; bukan sumber daftar anggota.",
+      "Daftar ini menggunakan roster publik klub BLUNDER SKUAD di Chess.com. Anggota yang sudah bergabung di Chess.com tetap perlu melengkapi pendaftaran data diri di situs ini. Data tersebut membantu pengurus mengenali pemain, memeriksa riwayat larangan, dan mencegah pemain yang terkena ban kembali memakai akun baru.",
     jumlah: "Jumlah anggota: {jumlah}",
+    dataBelumLengkap: "Belum melengkapi data diri di website",
+    dataBelumLengkapPenjelasan:
+      "Akun ini sudah bergabung di BLUNDER SKUAD pada Chess.com, tetapi belum melengkapi data diri di website komunitas. Data diri disimpan secara privat agar pengurus dapat mengenali pemain dan mencocokkan identitas bila akun terkena ban.",
+    tandaTanyaJudul: "{jumlah} anggota belum melengkapi data website",
+    tandaTanyaPenjelasan:
+      "Tanda tanya di samping nama berarti player sudah menjadi anggota BLUNDER SKUAD di Chess.com, tetapi belum mendaftar ulang di website. Pendaftaran ulang diperlukan untuk menyimpan data identitas secara aman, membantu pemeriksaan turnamen, dan mencegah pemain terlarang kembali dengan akun baru.",
+    lengkapiData: "Lengkapi data diri di website",
     sumber: "Sumber anggota:",
     sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
     memuat: "Memuat data dari Chess.com…",
@@ -880,8 +887,15 @@ export const EN = {
       "Member list automatically synchronized from the BLUNDER SKUAD club on Chess.com.",
     artikel: "Member List",
     intro:
-      "This list uses the public roster of the BLUNDER SKUAD club on Chess.com. After joining the club, an account appears automatically when Chess.com refreshes the roster (up to about 12 hours). The website form is only for verification and additional administration; it is not the source of the member list.",
+      "This list uses the public BLUNDER SKUAD roster on Chess.com. Members who have joined on Chess.com must still complete their personal-data registration on this website. This helps staff identify players, review ban history, and prevent banned players from returning with new accounts.",
     jumlah: "Total members: {jumlah}",
+    dataBelumLengkap: "Website personal data is incomplete",
+    dataBelumLengkapPenjelasan:
+      "This account has joined BLUNDER SKUAD on Chess.com but has not completed its personal data on the community website. Personal data is kept private so staff can identify the player and match their identity if the account is banned.",
+    tandaTanyaJudul: "{jumlah} members have not completed their website data",
+    tandaTanyaPenjelasan:
+      "A question mark beside a name means the player is already a BLUNDER SKUAD member on Chess.com but has not re-registered on the website. Re-registration securely records identity data, supports tournament checks, and helps prevent banned players from returning with a new account.",
+    lengkapiData: "Complete personal data on the website",
     sumber: "Member source:",
     sumberCatatan: "The public Chess.com roster refreshes at most every 12 hours.",
     memuat: "Loading data from Chess.com…",

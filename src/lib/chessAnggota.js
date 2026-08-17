@@ -76,6 +76,9 @@ async function ambilRosterPublikChess() {
         klubChess: "blunder-skuad",
         urlKlub: URL_KLUB_CHESS,
         sumberAnggota: "chesscom-klub",
+        // Tanpa backend kita hanya mengetahui roster Chess.com, bukan apakah
+        // formulir data diri situs sudah dilengkapi.
+        dataSitusLengkap: false,
         ratings: {},
         elo: null,
       });

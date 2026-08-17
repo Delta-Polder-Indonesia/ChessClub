@@ -201,6 +201,9 @@ export async function daftarAnggota() {
       const gabung = {
         ...(lokal ? tanpaRahasia(lokal) : {}),
         ...anggotaKlub,
+        // Menandai apakah anggota roster sudah melengkapi formulir data diri
+        // di situs. Nilai ini aman dipublikasikan; data pribadinya tetap rahasia.
+        dataSitusLengkap: Boolean(lokal),
         // Sumber klub selalu berwenang untuk username dan tanggal bergabung.
         username: anggotaKlub.username,
         daftarPada: anggotaKlub.daftarPada,

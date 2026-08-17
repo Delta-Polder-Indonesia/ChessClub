@@ -48,6 +48,7 @@ export const PEMAIN_TIRUAN = {
     username: "GothamChess",
     player_id: 222,
     status: "basic",
+    joined: 1432500000,
     name: "Levy Rozman",
     url: "https://www.chess.com/member/gothamchess",
     stats: {

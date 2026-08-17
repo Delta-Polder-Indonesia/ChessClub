@@ -414,8 +414,8 @@ function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBerubah }) {
         </div>
         <p className="mb-3 text-xs leading-5 text-slate-500">
           Periksa profil dan usia akun sebelum menerima. Sistem sudah menolak
-          non-anggota, akun yang ditutup, username terlarang, serta identitas
-          terverifikasi yang cocok dengan daftar larangan.
+          non-anggota, anggota yang belum melengkapi data website, akun yang
+          ditutup, username terlarang, serta identitas yang cocok dengan daftar larangan.
         </p>
         <div className="overflow-x-auto border border-slate-200">
           <table className="w-full min-w-[680px] text-sm">

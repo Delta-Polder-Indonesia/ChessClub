@@ -74,7 +74,7 @@ const KATA = {
     mengirim: "Mengirim…",
     pengajuanTerkirim: "Pengajuan terkirim dan sedang menunggu persetujuan pengurus.",
     daftarAnggotaDulu: "Daftar menjadi anggota",
-    catatanDaftar: "Hanya anggota BLUNDER SKUAD yang dapat mengajukan diri. Pengurus akan memeriksa akun sebelum menerima peserta.",
+    catatanDaftar: "Hanya anggota BLUNDER SKUAD yang sudah melengkapi data diri di website yang dapat mengajukan diri. Pengurus akan memeriksa akun sebelum menerima peserta.",
   },
   en: {
     memuat: "Loading schedule…",
@@ -109,7 +109,7 @@ const KATA = {
     mengirim: "Submitting…",
     pengajuanTerkirim: "Your application was submitted and is awaiting staff approval.",
     daftarAnggotaDulu: "Register as a member",
-    catatanDaftar: "Only BLUNDER SKUAD members may apply. Staff will review the account before accepting a participant.",
+    catatanDaftar: "Only BLUNDER SKUAD members who have completed their personal data on the website may apply. Staff will review the account before accepting a participant.",
   },
 };
 

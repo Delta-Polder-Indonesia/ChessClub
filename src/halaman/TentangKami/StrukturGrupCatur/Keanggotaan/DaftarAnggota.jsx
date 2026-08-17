@@ -16,6 +16,7 @@
  * anggota terbaru di atas (waktu bergabung ke klub menurun).
  */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { CentangBiru, LencanaBan } from "../../../../components/Lencana.jsx";
 import { useAnggota, kenaBan } from "../../../../lib/anggotaBersama.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -40,6 +41,22 @@ function namaKlub(slug) {
   return String(slug || "Chess.com")
     .replace(/-/g, " ")
     .toUpperCase();
+}
+
+/** Tanda tanya = sudah di roster Chess.com, belum melengkapi data situs. */
+function TandaDataBelumLengkap({ username }) {
+  const { t } = useI18n();
+  return (
+    <Link
+      to={`/pendaftaran-anggota?username=${encodeURIComponent(username)}`}
+      title={t("keanggotaan.dataBelumLengkap")}
+      aria-label={`${username}: ${t("keanggotaan.dataBelumLengkap")}`}
+      onClick={(e) => e.stopPropagation()}
+      className="ml-1 inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400 bg-amber-50 text-[11px] font-bold leading-none text-amber-800 no-underline hover:bg-amber-100"
+    >
+      ?
+    </Link>
+  );
 }
 
 /** Popup profil anggota — data publik Chess.com + metadata bila tersedia. */
@@ -120,6 +137,9 @@ function PopupProfil({ a, tutup, bahasa }) {
           className="break-words pr-8 text-lg font-bold leading-6 text-slate-900"
         >
           {a.nama || a.username}
+          {a.dataSitusLengkap === false && (
+            <TandaDataBelumLengkap username={a.username} />
+          )}
           {a.terverifikasi && <CentangBiru />}
           {kenaBan(a) && <LencanaBan />}
           {a.panggilan && (
@@ -197,6 +217,20 @@ function PopupProfil({ a, tutup, bahasa }) {
           </p>
         )}
 
+        {a.dataSitusLengkap === false && (
+          <div className="mt-4 border border-amber-300 bg-amber-50 px-3 py-3 text-xs leading-5 text-amber-900">
+            <p className="m-0 text-left text-xs leading-5 text-amber-900">
+              {t("keanggotaan.dataBelumLengkapPenjelasan")}
+            </p>
+            <Link
+              to={`/pendaftaran-anggota?username=${encodeURIComponent(a.username)}`}
+              className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
+            >
+              {t("keanggotaan.lengkapiData")}
+            </Link>
+          </div>
+        )}
+
         {kenaBan(a) && (
           <p className="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs leading-5 text-red-900">
             {a.peringatan || t("keanggotaan.terkenaBan")}
@@ -239,16 +273,21 @@ function BarisAnggota({ a, no, lihatProfil, bahasa }) {
         )}
       </td>
       <td>
-        <button
-          type="button"
-          onClick={() => lihatProfil(a)}
-          aria-label={`${t("keanggotaan.lihatProfil")}: ${a.nama || a.username}`}
-          className="inline-flex items-center gap-0.5 text-left font-medium text-slate-900 underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:text-primary hover:decoration-primary"
-        >
-          {a.nama || a.username}
-          {a.terverifikasi && <CentangBiru />}
-          {kenaBan(a) && <LencanaBan />}
-        </button>
+        <span className="inline-flex items-center">
+          <button
+            type="button"
+            onClick={() => lihatProfil(a)}
+            aria-label={`${t("keanggotaan.lihatProfil")}: ${a.nama || a.username}`}
+            className="inline-flex items-center gap-0.5 text-left font-medium text-slate-900 underline decoration-slate-300 decoration-dotted underline-offset-4 transition-colors hover:text-primary hover:decoration-primary"
+          >
+            {a.nama || a.username}
+            {a.terverifikasi && <CentangBiru />}
+            {kenaBan(a) && <LencanaBan />}
+          </button>
+          {a.dataSitusLengkap === false && (
+            <TandaDataBelumLengkap username={a.username} />
+          )}
+        </span>
       </td>
       <td className="whitespace-nowrap">
         {formatTanggal(a.daftarPada, bahasa)}
@@ -305,6 +344,9 @@ export default function DaftarAnggota() {
   const sumberKlub = anggota.find(
     (a) => a.sumberAnggota === "chesscom-klub" && a.urlKlub
   );
+  const jumlahBelumLengkap = anggota.filter(
+    (a) => a.dataSitusLengkap === false
+  ).length;
 
   // Anggota terbaru di atas (urutan waktu gabung menurun).
   const tampil = useMemo(
@@ -340,6 +382,24 @@ export default function DaftarAnggota() {
           )}
         </div>
       </div>
+
+      {status === "siap" && jumlahBelumLengkap > 0 && (
+        <div className="not-prose mb-7 border-y border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-slate-700">
+          <p className="font-semibold text-slate-900">
+            <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400 text-xs font-bold text-amber-800">
+              ?
+            </span>
+            {t("keanggotaan.tandaTanyaJudul", { jumlah: jumlahBelumLengkap })}
+          </p>
+          <p className="mt-1">{t("keanggotaan.tandaTanyaPenjelasan")}</p>
+          <Link
+            to="/pendaftaran-anggota"
+            className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
+          >
+            {t("keanggotaan.lengkapiData")}
+          </Link>
+        </div>
+      )}
 
       {status === "memuat" && <p>{t("keanggotaan.memuat")}</p>}
       {status === "gagal" && <p>{pesan}</p>}
