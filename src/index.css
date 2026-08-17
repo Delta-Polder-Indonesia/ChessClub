@@ -132,6 +132,247 @@ section[id] {
   font-weight: 600;
 }
 
+/* Daftar pengurus — pola kartu ringkas seperti daftar staf Chess.com. */
+.daftar-pengurus {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  margin-top: 32px;
+}
+
+.prose-kci .kelompok-pengurus {
+  scroll-margin-top: 150px;
+}
+
+.kepala-kelompok-pengurus {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #0b2f9f;
+}
+
+.prose-kci .kepala-kelompok-pengurus h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 700;
+}
+
+.kepala-kelompok-pengurus > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 25px;
+  height: 25px;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #e8eefc;
+  color: #0b2f9f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.grid-pengurus {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.kartu-pengurus {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 126px;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 0.04);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.kartu-pengurus:hover {
+  border-color: #b8c8ee;
+  box-shadow: 0 8px 24px rgb(15 23 42 / 0.08);
+  transform: translateY(-1px);
+}
+
+.prose-kci .tautan-avatar-pengurus,
+.prose-kci .nama-pengurus {
+  text-decoration: none;
+}
+
+.tautan-avatar-pengurus {
+  flex: none;
+  border-radius: 10px;
+}
+
+.avatar-pengurus {
+  display: block;
+  width: 72px;
+  height: 72px;
+  flex: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  object-fit: cover;
+  background: #f1f5f9;
+}
+
+.avatar-pengurus-kosong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(145deg, #0b2f9f, #3158ba);
+  color: white;
+  font-size: 25px;
+  font-weight: 700;
+}
+
+.nama-pengurus {
+  display: inline-flex;
+  max-width: 100%;
+  align-items: center;
+  gap: 5px;
+  overflow-wrap: anywhere;
+  color: #0f172a;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+  transition: color 150ms ease;
+}
+
+.nama-pengurus:hover {
+  color: #0b2f9f;
+}
+
+.nama-pengurus svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prose-kci .nama-asli-pengurus,
+.prose-kci .negara-pengurus,
+.prose-kci .tanggal-pengurus {
+  margin: 0;
+  text-align: left;
+  font-size: 12px;
+  line-height: 19px;
+}
+
+.prose-kci .nama-asli-pengurus {
+  color: #475569;
+  font-weight: 500;
+}
+
+.prose-kci .negara-pengurus {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: #475569;
+}
+
+.prose-kci .negara-pengurus span {
+  font-size: 15px;
+}
+
+.prose-kci .tanggal-pengurus {
+  color: #94a3b8;
+}
+
+.rating-pengurus {
+  display: flex;
+  min-width: 62px;
+  flex: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding-left: 14px;
+  border-left: 1px solid #e2e8f0;
+  color: #64748b;
+  text-align: center;
+}
+
+.rating-pengurus svg {
+  width: 21px;
+  height: 21px;
+  margin-bottom: 3px;
+  fill: none;
+  stroke: #0b2f9f;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prose-kci .rating-pengurus strong {
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 19px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rating-pengurus span {
+  font-size: 9px;
+  line-height: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.prose-kci .sumber-pengurus {
+  margin: 32px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  color: #64748b;
+  text-align: left;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.prose-kci .sumber-pengurus a {
+  color: #0b2f9f;
+  font-weight: 600;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 800px) {
+  .grid-pengurus {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .kartu-pengurus {
+    min-height: 112px;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .avatar-pengurus {
+    width: 60px;
+    height: 60px;
+  }
+
+  .rating-pengurus {
+    min-width: 52px;
+    padding-left: 10px;
+  }
+
+  .prose-kci .rating-pengurus strong {
+    font-size: 12px;
+  }
+}
+
 /* Panduan catur dari DokumenHistory — kelas kustom dokumen asli.
    Warna hijau dokumen lama diganti hitam/abu korporat agar seragam dengan
    halaman lain. Catatan: hijau papan catur (#769656) berada di dalam <svg>
