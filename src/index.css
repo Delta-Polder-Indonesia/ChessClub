@@ -292,6 +292,287 @@ section[id] {
   }
 }
 
+/* Bagan organisasi klub — memakai garis, tipografi, dan bidang datar agar
+   tetap menyatu dengan identitas visual korporat halaman Tentang Kami. */
+.organisasi-klub {
+  width: 100%;
+  max-width: 820px;
+  margin: 48px auto 0;
+  padding: 8px 24px;
+}
+
+.kepala-organisasi-klub,
+.anggota-organisasi {
+  display: flex;
+  width: 260px;
+  min-height: 88px;
+  margin: 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  text-align: center;
+}
+
+.kepala-organisasi-klub {
+  background: #0b2f9f;
+  color: #fff;
+}
+
+.kepala-organisasi-klub span,
+.anggota-organisasi span {
+  font-size: 11px;
+  line-height: 18px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.kepala-organisasi-klub strong,
+.anggota-organisasi strong {
+  font-size: 16px;
+  line-height: 25px;
+  font-weight: 600;
+}
+
+.garis-organisasi {
+  width: 1px;
+  height: 32px;
+  margin: 0 auto;
+  background: #94a3b8;
+}
+
+.kotak-peran-organisasi {
+  min-width: 0;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+}
+
+.kotak-peran-utama {
+  width: min(100%, 560px);
+  margin: 0 auto;
+  border-color: #0b2f9f;
+}
+
+.prose-kci .kotak-peran-organisasi h3 {
+  margin: 0;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-size: 14px;
+  line-height: 22px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.prose-kci .kotak-peran-utama h3 {
+  background: #0b2f9f;
+  border-bottom-color: #0b2f9f;
+  color: #fff;
+}
+
+.prose-kci .kotak-peran-organisasi ul {
+  display: flex;
+  margin: 0;
+  padding: 14px 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  list-style: none;
+}
+
+.prose-kci .kotak-peran-organisasi li {
+  margin: 0;
+  color: #475569;
+  text-align: center;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.prose-kci .kotak-peran-organisasi a {
+  color: #334155;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.prose-kci .kotak-peran-organisasi a:hover {
+  color: #0b2f9f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.penghubung-cabang-organisasi {
+  position: relative;
+  width: 100%;
+  height: 32px;
+  margin: 0 auto;
+}
+
+.penghubung-cabang-organisasi::before {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 16px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-cabang-organisasi::after {
+  position: absolute;
+  top: 16px;
+  right: 25%;
+  left: 25%;
+  height: 1px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-cabang-organisasi > span::before,
+.penghubung-cabang-organisasi > span::after {
+  position: absolute;
+  top: 16px;
+  width: 1px;
+  height: 16px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-cabang-organisasi > span::before {
+  left: 25%;
+}
+
+.penghubung-cabang-organisasi > span::after {
+  right: 25%;
+}
+
+.cabang-organisasi {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+}
+
+.penghubung-gabung-organisasi {
+  position: relative;
+  width: 100%;
+  height: 32px;
+}
+
+.penghubung-gabung-organisasi::before {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  width: 1px;
+  height: 16px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-gabung-organisasi::after {
+  position: absolute;
+  top: 16px;
+  right: 25%;
+  left: 25%;
+  height: 1px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-gabung-organisasi > span::before,
+.penghubung-gabung-organisasi > span::after {
+  position: absolute;
+  top: 0;
+  width: 1px;
+  height: 16px;
+  background: #94a3b8;
+  content: "";
+}
+
+.penghubung-gabung-organisasi > span::before {
+  left: 25%;
+}
+
+.penghubung-gabung-organisasi > span::after {
+  right: 25%;
+}
+
+.anggota-organisasi {
+  border: 1px solid #0b2f9f;
+  color: #0b2f9f;
+}
+
+.anggota-organisasi small {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 17px;
+}
+
+.prose-kci .catatan-organisasi {
+  max-width: 820px;
+  margin: 24px auto 0;
+  color: #64748b;
+  text-align: center;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+@media (max-width: 640px) {
+  .organisasi-klub {
+    margin-top: 32px;
+    padding: 0;
+  }
+
+  .kepala-organisasi-klub,
+  .anggota-organisasi {
+    width: min(100%, 240px);
+  }
+
+  .penghubung-cabang-organisasi {
+    width: 1px;
+    height: 24px;
+    background: #94a3b8;
+  }
+
+  .penghubung-cabang-organisasi::before,
+  .penghubung-cabang-organisasi::after,
+  .penghubung-cabang-organisasi > span {
+    display: none;
+  }
+
+  .cabang-organisasi {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .cabang-organisasi .kotak-peran-organisasi + .kotak-peran-organisasi {
+    position: relative;
+    margin-top: 16px;
+  }
+
+  .cabang-organisasi .kotak-peran-organisasi + .kotak-peran-organisasi::before {
+    position: absolute;
+    top: -33px;
+    left: 50%;
+    width: 1px;
+    height: 32px;
+    background: #94a3b8;
+    content: "";
+  }
+
+  .penghubung-gabung-organisasi {
+    width: 1px;
+    height: 24px;
+    margin: 0 auto;
+    background: #94a3b8;
+  }
+
+  .penghubung-gabung-organisasi::before,
+  .penghubung-gabung-organisasi::after,
+  .penghubung-gabung-organisasi > span {
+    display: none;
+  }
+}
+
 /* Panduan catur dari DokumenHistory — kelas kustom dokumen asli.
    Warna hijau dokumen lama diganti hitam/abu korporat agar seragam dengan
    halaman lain. Catatan: hijau papan catur (#769656) berada di dalam <svg>
