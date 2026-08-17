@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import {
   daftarDenganChessCom,
@@ -79,7 +79,11 @@ function Isian({
 export default function PendaftaranAnggota() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [form, setForm] = useState(AWAL);
+  const [parameter] = useSearchParams();
+  const [form, setForm] = useState(() => ({
+    ...AWAL,
+    username: normalisasiUsername(parameter.get("username")),
+  }));
   const [galat, setGalat] = useState({});
   const [status, setStatus] = useState("idle");
   const [pesan, setPesan] = useState("");

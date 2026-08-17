@@ -26,20 +26,80 @@ function Lencana({ status }) {
 
 /* ------------------------------------------------------- formulir konten */
 
+/** Kecilkan gambar sebelum disimpan agar data konten tetap ringan. */
+function kompresGambar(file) {
+  return new Promise((resolve, reject) => {
+    if (!file?.type?.match(/^image\/(jpeg|png|webp|gif)$/)) {
+      reject(new Error("Pilih berkas JPG, PNG, WebP, atau GIF."));
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      reject(new Error("Ukuran gambar asli maksimal 8 MB."));
+      return;
+    }
+
+    const pembaca = new FileReader();
+    pembaca.onerror = () => reject(new Error("Gambar tidak dapat dibaca."));
+    pembaca.onload = () => {
+      const gambar = new Image();
+      gambar.onerror = () => reject(new Error("Format gambar tidak dapat diproses."));
+      gambar.onload = () => {
+        const batas = 1600;
+        const skala = Math.min(1, batas / Math.max(gambar.width, gambar.height));
+        const kanvas = document.createElement("canvas");
+        kanvas.width = Math.max(1, Math.round(gambar.width * skala));
+        kanvas.height = Math.max(1, Math.round(gambar.height * skala));
+        kanvas.getContext("2d").drawImage(gambar, 0, 0, kanvas.width, kanvas.height);
+        const hasil = kanvas.toDataURL("image/webp", 0.82);
+        if (hasil.length > 1_900_000) {
+          reject(new Error("Gambar masih terlalu besar. Pilih gambar lain yang lebih kecil."));
+          return;
+        }
+        resolve(hasil);
+      };
+      gambar.src = pembaca.result;
+    };
+    pembaca.readAsDataURL(file);
+  });
+}
+
 function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
   const [data, setData] = useState({
     judul: item?.judul || "",
     tanggal: item?.tanggal || "",
     ringkasan: item?.ringkasan || "",
     isi: item?.isi || "",
+    gambar: item?.gambar || "",
+    altGambar: item?.altGambar || item?.judul || "",
     status: item?.status || "publik",
   });
   const [pesan, setPesan] = useState("");
   const [sibuk, setSibuk] = useState(false);
+  const [memprosesGambar, setMemprosesGambar] = useState(false);
 
   const ubah = (k, v) => {
     setData((d) => ({ ...d, [k]: v }));
     setPesan("");
+  };
+
+  const pilihGambar = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMemprosesGambar(true);
+    setPesan("");
+    try {
+      const gambar = await kompresGambar(file);
+      setData((d) => ({
+        ...d,
+        gambar,
+        altGambar: d.altGambar || d.judul || file.name.replace(/\.[^.]+$/, ""),
+      }));
+    } catch (err) {
+      setPesan(err.message || "Gagal memproses gambar.");
+    } finally {
+      setMemprosesGambar(false);
+      e.target.value = "";
+    }
   };
 
   const kirim = async (e) => {
@@ -98,6 +158,52 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
         />
       </label>
 
+      <fieldset className="space-y-2 rounded border border-slate-200 p-3">
+        <legend className="px-1 text-xs font-semibold text-slate-700">
+          Gambar <span className="font-normal text-slate-500">(opsional)</span>
+        </legend>
+        <p className="text-xs leading-5 text-slate-500">
+          Konten tanpa gambar tetap dapat diterbitkan. JPG, PNG, WebP, atau GIF;
+          maksimal 8 MB dan otomatis diperkecil.
+        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="cursor-pointer rounded-full border border-primary px-3 py-1.5 text-xs font-semibold text-primary hover:bg-blue-50">
+            {memprosesGambar ? "Memproses…" : data.gambar ? "Ganti gambar" : "Pilih gambar"}
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              onChange={pilihGambar}
+              disabled={memprosesGambar}
+              className="sr-only"
+            />
+          </label>
+          {data.gambar && (
+            <button
+              type="button"
+              onClick={() => setData((d) => ({ ...d, gambar: "", altGambar: "" }))}
+              className="text-xs font-semibold text-red-600 hover:underline"
+            >
+              Hapus gambar
+            </button>
+          )}
+        </div>
+        {data.gambar && (
+          <div className="grid gap-3 sm:grid-cols-[180px_1fr]">
+            <img
+              src={data.gambar}
+              alt="Pratinjau gambar konten"
+              className="aspect-video w-full border border-slate-200 object-cover"
+            />
+            <Bidang
+              label="Teks alternatif gambar"
+              value={data.altGambar}
+              onChange={(e) => ubah("altGambar", e.target.value)}
+              placeholder="Jelaskan isi gambar untuk pembaca layar"
+            />
+          </div>
+        )}
+      </fieldset>
+
       <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
         Status
         <select
@@ -115,7 +221,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
       <div className="flex gap-2">
         <button
           type="submit"
-          disabled={sibuk || !data.judul.trim()}
+          disabled={sibuk || memprosesGambar || !data.judul.trim()}
           className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
         >
           {sibuk ? "Menyimpan…" : "Simpan"}
@@ -228,6 +334,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
           <table className="w-full min-w-[640px] text-sm">
             <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
               <tr>
+                <th className="px-3 py-2 font-semibold">Gambar</th>
                 <th className="px-3 py-2 font-semibold">Judul</th>
                 <th className="px-3 py-2 font-semibold">Tanggal</th>
                 <th className="px-3 py-2 font-semibold">Status</th>
@@ -237,6 +344,17 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             <tbody>
               {tampil.map((x) => (
                 <tr key={x.id} className="border-t border-slate-100">
+                  <td className="px-3 py-2">
+                    {x.gambar ? (
+                      <img
+                        src={x.gambar}
+                        alt=""
+                        className="h-10 w-16 border border-slate-200 object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs text-slate-400">Tanpa gambar</span>
+                    )}
+                  </td>
                   <td className="px-3 py-2">
                     <button
                       type="button"
@@ -265,7 +383,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
               ))}
               {!tampil.length && (
                 <tr>
-                  <td colSpan={4} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
                     Belum ada {konfig.label.toLowerCase()}. Tekan “+
                     {konfig.label} baru” untuk membuat.
                   </td>

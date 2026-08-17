@@ -34,6 +34,7 @@ export const PEMAIN_TIRUAN = {
     username: "MagnusCarlsen",
     player_id: 111,
     status: "premium",
+    joined: 1262051374,
     name: "Magnus Carlsen",
     avatar: "https://images.chesscomfiles.com/uploads/v1/user/111.abc.jpg",
     url: "https://www.chess.com/member/magnuscarlsen",
@@ -47,6 +48,7 @@ export const PEMAIN_TIRUAN = {
     username: "GothamChess",
     player_id: 222,
     status: "basic",
+    joined: 1432500000,
     name: "Levy Rozman",
     url: "https://www.chess.com/member/gothamchess",
     stats: {
