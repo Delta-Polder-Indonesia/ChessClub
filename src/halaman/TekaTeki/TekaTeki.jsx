@@ -3,20 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
-
-/**
- * Halaman "Teka-teki Catur" — pemutar interaktif 4.462 soal skakmat
- * (Mate in One/Two/Three) dari buku László Polgár (1994).
- *
- * Data dimuat terpisah dari public/data/teka-teki.json (4.462 soal
- * skakmat Polgár) sehingga bundel utama tetap ringan.
- * Validasi langkah & deteksi skakmat memakai chess.js.
- */
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
 const KUNCI_INGAT = "kci-teka-teki-ingat";
+const KUNCI_SET_BIDAK = "kci-teka-teki-set-bidak";
+const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
 const KUNCI_TIPE = {
   "Mate in One": "skakmat1",
   "Mate in Two": "skakmat2",
@@ -28,7 +22,6 @@ const KUNCI_SUSAH = {
   "Mate in Three": "sulit",
 };
 
-/** "f6-g7" | "e7-e8q" → { from, to, promo } */
 function parseLangkah(teks) {
   return {
     from: teks.slice(0, 2),
@@ -37,7 +30,6 @@ function parseLangkah(teks) {
   };
 }
 
-/** Terapkan satu langkah pada posisi; melempar bila ilegal. */
 function terapkan(fen, { from, to, promo }) {
   const game = new Chess(fen);
   const opsi = { from, to };
@@ -49,7 +41,6 @@ function terapkan(fen, { from, to, promo }) {
   return game;
 }
 
-/** Baca daftar soal yang sudah dipecahkan (disimpan di localStorage). */
 function bacaTerpecahkan() {
   try {
     const simpan = JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]");
@@ -59,7 +50,6 @@ function bacaTerpecahkan() {
   }
 }
 
-/** Baca nomor soal terakhir yang dilihat pengguna. */
 function bacaPosisi() {
   try {
     const n = Number(localStorage.getItem(KUNCI_POSISI));
@@ -69,7 +59,6 @@ function bacaPosisi() {
   }
 }
 
-/** Apakah fitur "ingat posisi terakhir" aktif? (aktif secara bawaan). */
 function bacaIngat() {
   try {
     return localStorage.getItem(KUNCI_INGAT) !== "0";
@@ -78,7 +67,22 @@ function bacaIngat() {
   }
 }
 
-/** Kerangka pemuatan sebelum data teka-teki tiba. */
+function bacaSetBidak() {
+  try {
+    const simpan = localStorage.getItem(KUNCI_SET_BIDAK);
+    if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
+  } catch {}
+  return "merida";
+}
+
+function bacaOtomatis() {
+  try {
+    return localStorage.getItem(KUNCI_OTOMATIS) === "1";
+  } catch {
+    return false;
+  }
+}
+
 function KerangkaTekaTeki() {
   return (
     <div aria-hidden="true" className="animate-pulse">
@@ -93,11 +97,10 @@ export default function TekaTeki() {
   const { t } = useI18n();
   const [params, setParams] = useSearchParams();
 
-  const [soal, setSoal] = useState(null); // seluruh 4.462 soal
+  const [soal, setSoal] = useState(null);
   const [gagal, setGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
 
-  // Keadaan satu permainan.
   const [fen, setFen] = useState("");
   const [sisa, setSisa] = useState([]);
   const [terpilih, setTerpilih] = useState(null);
@@ -105,32 +108,31 @@ export default function TekaTeki() {
   const [petunjuk, setPetunjuk] = useState(null);
   const [kesalahan, setKesalahan] = useState(null);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
-  const [pesan, setPesan] = useState(null); // { jenis: "salah"|"benar"|"selesai", teks }
+  const [pesan, setPesan] = useState(null);
   const [komputer, setKomputer] = useState(false);
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
 
-  // Tanda bantu analisis (klik kanan): panah & petak berwarna.
   const [tanda, setTanda] = useState({ panah: [], petak: {} });
 
-  // Pengaturan & navigasi: ingat posisi terakhir + lompat ke nomor soal.
   const [ingatPosisi, setIngatPosisi] = useState(bacaIngat);
   const [posisiTersimpan, setPosisiTersimpan] = useState(bacaPosisi);
   const [nomorSoal, setNomorSoal] = useState("");
   const [galatNomor, setGalatNomor] = useState(null);
+  const [setBidak, setSetBidak] = useState(bacaSetBidak);
+  const [otomatis, setOtomatis] = useState(bacaOtomatis);
+
+  // ★ State baru: sedang menyeret bidak
+  const [sedangSeret, setSedangSeret] = useState(false);
 
   const timerSalah = useRef(null);
+  const timerOtomatis = useRef(null);
   const masalah = soal?.[indeks];
 
-  /* ------------------------------------------------------- pemuatan data */
-
-  /** Simpan nomor soal terakhir yang dilihat agar bisa dilanjutkan lagi. */
   const simpanPosisi = useCallback((id) => {
     try {
       localStorage.setItem(KUNCI_POSISI, String(id));
-    } catch {
-      /* localStorage tidak tersedia */
-    }
+    } catch {}
     setPosisiTersimpan(id);
   }, []);
 
@@ -148,10 +150,8 @@ export default function TekaTeki() {
         const idParam = Number(params.get("id"));
         let awal;
         if (idParam >= 1 && idParam <= daftar.length) {
-          // Tautan ?id=N (misalnya dibagikan) lebih diutamakan.
           awal = idParam - 1;
         } else if (ingatPosisi) {
-          // Lanjutkan dari posisi terakhir yang tersimpan.
           const tersimpan = bacaPosisi();
           awal =
             tersimpan >= 1 && tersimpan <= daftar.length
@@ -182,13 +182,23 @@ export default function TekaTeki() {
   useEffect(
     () => () => {
       window.clearTimeout(timerSalah.current);
+      window.clearTimeout(timerOtomatis.current);
     },
     []
   );
 
-  /* --------------------------------------------------------- alur permainan */
+  useEffect(() => {
+    try {
+      localStorage.setItem(KUNCI_SET_BIDAK, setBidak);
+    } catch {}
+  }, [setBidak]);
 
-  /** Muat soal ke papan (setel ulang seluruh keadaan permainan). */
+  useEffect(() => {
+    try {
+      localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0");
+    } catch {}
+  }, [otomatis]);
+
   const terapkanSoal = useCallback((m) => {
     setFen(m.fen);
     setSisa(m.moves.split(";"));
@@ -201,9 +211,9 @@ export default function TekaTeki() {
     setKomputer(false);
     setSelesai(false);
     setTanda({ panah: [], petak: {} });
+    setSedangSeret(false);
   }, []);
 
-  /** Pindah ke soal lain (indeks di-wrap dalam 0..total-1). */
   const pindahSoal = useCallback(
     (indeksBaru) => {
       if (!soal || !soal.length) return;
@@ -214,7 +224,6 @@ export default function TekaTeki() {
       terapkanSoal(m);
       setParams({ id: String(m.problemid) }, { replace: true });
       if (ingatPosisi) simpanPosisi(m.problemid);
-      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [soal, terapkanSoal, setParams, ingatPosisi, simpanPosisi]
   );
@@ -222,13 +231,17 @@ export default function TekaTeki() {
   const pilihAcak = () =>
     pindahSoal(Math.floor(Math.random() * (soal?.length || 1)));
 
-  /** Pilih bidak sendiri (dipakai klik maupun awal seret/drag). */
   function pilihPetak(petak) {
     if (!masalah || komputer || selesai || !fen) return;
+    if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
+      hapusSemuaTanda();
+    }
     const game = new Chess(fen);
     const bidak = game.get(petak);
     if (bidak && bidak.color === game.turn()) {
-      const tujuan = game.moves({ square: petak, verbose: true }).map((m) => m.to);
+      const tujuan = game
+        .moves({ square: petak, verbose: true })
+        .map((m) => m.to);
       setTerpilih(petak);
       setSasaran(tujuan);
     } else {
@@ -237,17 +250,18 @@ export default function TekaTeki() {
     }
   }
 
-  /** Klik kiri: pilih bidak / coba langkah — klik pada petak tanpa aksi permainan menghapus SEMUA tanda. */
   function klikPetak(petak) {
     if (!masalah || !fen || komputer) return;
 
-    // Petak tujuan legal dari bidak terpilih → coba langkah.
+    if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
+      hapusSemuaTanda();
+    }
+
     if (!selesai && terpilih && sasaran.includes(petak)) {
       cobaLangkah(terpilih, petak);
       return;
     }
 
-    // Bidak sendiri → pilih (tanda tetap dipertahankan).
     if (!selesai) {
       const game = new Chess(fen);
       const bidak = game.get(petak);
@@ -257,34 +271,23 @@ export default function TekaTeki() {
       }
     }
 
-    // Klik kiri pada petak kosong/lawan (tanpa aksi permainan):
-    // batalkan pilihan, lalu hapus semua tanda bila ada.
     setTerpilih(null);
     setSasaran([]);
-    if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
-      hapusSemuaTanda();
-    }
   }
 
-  /** Coba langkah pemain: cocok dengan solusi (atau skakmat apa pun di akhir). */
   function cobaLangkah(from, to) {
     const diharapkan = parseLangkah(sisa[0]);
     let lanjut = null;
 
     if (sisa.length === 1) {
-      // Langkah pamungkas: terima langkah legal apa pun yang berujung skakmat.
       try {
         const g = terapkan(fen, { from, to });
         if (g.isCheckmate()) lanjut = g;
-      } catch {
-        /* langkah ilegal — tetap dianggap salah */
-      }
+      } catch {}
     } else if (from === diharapkan.from && to === diharapkan.to) {
       try {
         lanjut = terapkan(fen, diharapkan);
-      } catch {
-        /* data janggal — abaikan */
-      }
+      } catch {}
     }
 
     if (!lanjut) {
@@ -310,13 +313,18 @@ export default function TekaTeki() {
       setSelesai(true);
       setPesan({ jenis: "selesai", teks: t("tekaTeki.terpecahkan") });
       catatTerpecahkan(masalah.problemid);
+      if (otomatis) {
+        window.clearTimeout(timerOtomatis.current);
+        timerOtomatis.current = window.setTimeout(() => {
+          pindahSoal(indeks + 1);
+        }, 1200);
+      }
     } else {
       setPesan({ jenis: "benar", teks: t("tekaTeki.benar") });
       setKomputer(true);
     }
   }
 
-  /** Lawan membalas otomatis sesuai solusi setelah pemain melangkah. */
   useEffect(() => {
     if (!komputer || selesai || !sisa.length) return;
     const timer = window.setTimeout(() => {
@@ -325,9 +333,7 @@ export default function TekaTeki() {
         const g = terapkan(fen, diharapkan);
         setFen(g.fen());
         setLangkahAkhir({ from: diharapkan.from, to: diharapkan.to });
-      } catch {
-        /* data janggal — lewati balasan */
-      }
+      } catch {}
       setSisa((s) => s.slice(1));
       setKomputer(false);
       setPesan(null);
@@ -348,14 +354,11 @@ export default function TekaTeki() {
       baru.add(id);
       try {
         localStorage.setItem(KUNCI_SELESAI, JSON.stringify([...baru]));
-      } catch {
-        /* localStorage tidak tersedia */
-      }
+      } catch {}
       return baru;
     });
   }
 
-  /** Hidupkan/matikan "ingat posisi terakhir" (pengaturan). */
   function ubahIngat(nilai) {
     setIngatPosisi(nilai);
     try {
@@ -370,12 +373,9 @@ export default function TekaTeki() {
         localStorage.removeItem(KUNCI_POSISI);
         setPosisiTersimpan(null);
       }
-    } catch {
-      /* localStorage tidak tersedia */
-    }
+    } catch {}
   }
 
-  /** Lompat langsung ke nomor soal yang diketik pengguna. */
   function bukaNomor(e) {
     e.preventDefault();
     if (!soal?.length) return;
@@ -390,9 +390,43 @@ export default function TekaTeki() {
     pindahSoal(n - 1);
   }
 
-  /* ------------------------------------------------ tanda bantu (klik kanan) */
+  // ★ Pembatalan seret: klik kanan saat drag → bidak kembali
+  const batalkanSeret = useCallback(() => {
+    setSedangSeret(false);
+    setTerpilih(null);
+    setSasaran([]);
+  }, []);
 
-  /** Klik kanan pada petak: tandai — klik kanan lagi pada petak yang bertanda menghapus SEMUA tanda. */
+  // ★ Mulai seret
+  const mulaiSeret = useCallback(
+    (petak) => {
+      if (!masalah || komputer || selesai || !fen) return;
+      const game = new Chess(fen);
+      const bidak = game.get(petak);
+      if (bidak && bidak.color === game.turn()) {
+        setSedangSeret(true);
+        pilihPetak(petak);
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [masalah, komputer, selesai, fen]
+  );
+
+  // ★ Selesai seret (jatuhkan di petak tujuan)
+  const selesaiSeret = useCallback(
+    (from, to) => {
+      setSedangSeret(false);
+      if (!masalah || komputer || selesai || !fen) return;
+      if (from === to) {
+        // Dijatuhkan di petak asal → tetap terpilih (klik biasa)
+        return;
+      }
+      cobaLangkah(from, to);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [masalah, komputer, selesai, fen, sisa, terpilih, sasaran]
+  );
+
   function tandaPetak(petak, warna) {
     setTanda((lama) => {
       if (lama.petak[petak]) return { panah: [], petak: {} };
@@ -400,7 +434,6 @@ export default function TekaTeki() {
     });
   }
 
-  /** Klik kanan lalu seret: gambar panah — seret ulang panah yang sama untuk menghapusnya. */
   function tandaPanah(from, to, warna) {
     setTanda((lama) => {
       const ada = lama.panah.some((p) => p.from === from && p.to === to);
@@ -415,8 +448,6 @@ export default function TekaTeki() {
     setTanda({ panah: [], petak: {} });
   }
 
-  /* -------------------------------------------------------------- tampilan */
-
   const crumbs = [
     { label: t("common.home"), to: "/" },
     { label: t("tekaTeki.judul") },
@@ -427,7 +458,6 @@ export default function TekaTeki() {
 
   return (
     <>
-      {/* Kepala halaman penuh sendiri — tanpa gambar/foto di atasnya. */}
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto max-w-[1024px] px-6 py-8 md:px-8 md:py-12">
           <nav
@@ -435,14 +465,22 @@ export default function TekaTeki() {
             className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 md:text-sm"
           >
             {crumbs.map((c, i) => (
-              <span key={`${c.label}-${i}`} className="flex items-center gap-2">
+              <span
+                key={`${c.label}-${i}`}
+                className="flex items-center gap-2"
+              >
                 {i > 0 && <span aria-hidden="true">/</span>}
                 {c.to ? (
-                  <Link to={c.to} className="hover:text-primary hover:underline">
+                  <Link
+                    to={c.to}
+                    className="hover:text-primary hover:underline"
+                  >
                     {c.label}
                   </Link>
                 ) : (
-                  <span className="font-semibold text-slate-800">{c.label}</span>
+                  <span className="font-semibold text-slate-800">
+                    {c.label}
+                  </span>
                 )}
               </span>
             ))}
@@ -464,12 +502,13 @@ export default function TekaTeki() {
             </p>
           ) : !masalah ? (
             <div className="mx-auto max-w-[560px]">
-              <p className="mb-6 text-sm text-slate-500">{t("tekaTeki.memuat")}</p>
+              <p className="mb-6 text-sm text-slate-500">
+                {t("tekaTeki.memuat")}
+              </p>
               <KerangkaTekaTeki />
             </div>
           ) : (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-              {/* Papan catur */}
               <div className="mx-auto w-full max-w-[520px] shrink-0 lg:mx-0">
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <h2 className="m-0 text-base font-bold text-slate-950 md:text-lg">
@@ -488,6 +527,7 @@ export default function TekaTeki() {
                   </div>
                 </div>
 
+                {/* ★ PapanTekaTeki menerima prop baru untuk drag & cancel */}
                 <PapanTekaTeki
                   fen={fen}
                   orientasi={orientasi}
@@ -499,8 +539,13 @@ export default function TekaTeki() {
                   tanda={tanda}
                   terkunci={komputer || selesai}
                   membeku={komputer}
+                  setBidak={setBidak}
+                  sedangSeret={sedangSeret}
                   onKlik={klikPetak}
                   onPilih={pilihPetak}
+                  onMulaiSeret={mulaiSeret}
+                  onSelesaiSeret={selesaiSeret}
+                  onBatalSeret={batalkanSeret}
                   onJatuh={cobaLangkah}
                   onTandaPetak={tandaPetak}
                   onTandaPanah={tandaPanah}
@@ -514,7 +559,9 @@ export default function TekaTeki() {
                   <span
                     aria-hidden="true"
                     className={`inline-block h-3 w-3 rounded-full ${
-                      masalah.first === "White to Move" ? "bg-white ring-1 ring-slate-400" : "bg-slate-800"
+                      masalah.first === "White to Move"
+                        ? "bg-white ring-1 ring-slate-400"
+                        : "bg-slate-800"
                     }`}
                   />
                   {t(
@@ -525,13 +572,11 @@ export default function TekaTeki() {
                 </p>
               </div>
 
-              {/* Panel samping */}
               <div className="min-w-0 flex-1">
                 <p className="text-sm leading-7 text-slate-600 md:text-base">
                   {t("tekaTeki.caraMain")}
                 </p>
 
-                {/* Kotak pesan hasil langkah */}
                 <div aria-live="polite" className="mt-4 min-h-[52px]">
                   {pesan?.jenis === "salah" && (
                     <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
@@ -556,8 +601,7 @@ export default function TekaTeki() {
                   </p>
                 )}
 
-                {/* Tombol kendali */}
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+                <div className="mt-5 flex gap-3">
                   <button
                     type="button"
                     onClick={tampilPetunjuk}
@@ -573,103 +617,154 @@ export default function TekaTeki() {
                   >
                     {t("tekaTeki.lewati")}
                   </button>
+                </div>
+
+                <div className="mt-3 flex gap-3">
                   <button
                     type="button"
                     onClick={pilihAcak}
-                    className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    title={t("tekaTeki.acak")}
+                    aria-label={t("tekaTeki.acak")}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
-                    {t("tekaTeki.acak")}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="16 3 21 3 21 8" />
+                      <line x1="4" y1="20" x2="21" y2="3" />
+                      <polyline points="21 16 21 21 16 21" />
+                      <line x1="15" y1="15" x2="21" y2="21" />
+                      <line x1="4" y1="4" x2="9" y2="9" />
+                    </svg>
                   </button>
                   <button
                     type="button"
                     onClick={() => pindahSoal(indeks - 1)}
-                    className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    title={t("tekaTeki.sebelumnya")}
+                    aria-label={t("tekaTeki.sebelumnya")}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
-                    ← {t("tekaTeki.sebelumnya")}
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOtomatis((v) => !v)}
+                    title={
+                      otomatis
+                        ? "Nonaktifkan next otomatis"
+                        : "Aktifkan next otomatis"
+                    }
+                    aria-label={
+                      otomatis
+                        ? "Nonaktifkan next otomatis"
+                        : "Aktifkan next otomatis"
+                    }
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    {otomatis ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        stroke="none"
+                      >
+                        <rect x="6" y="4" width="4" height="16" rx="1" />
+                        <rect x="14" y="4" width="4" height="16" rx="1" />
+                      </svg>
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        stroke="none"
+                      >
+                        <polygon points="5,3 19,12 5,21" />
+                      </svg>
+                    )}
                   </button>
                   <button
                     type="button"
                     onClick={() => pindahSoal(indeks + 1)}
-                    className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    title={t("tekaTeki.berikutnya")}
+                    aria-label={t("tekaTeki.berikutnya")}
+                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
-                    {t("tekaTeki.berikutnya")} →
+                    →
                   </button>
-                  {(tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) && (
-                    <button
-                      type="button"
-                      onClick={hapusSemuaTanda}
-                      className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                      {t("tekaTeki.hapusSemuaTanda")}
-                    </button>
-                  )}
                 </div>
 
-                {/* Kolom input nomor soal + pengaturan lanjutkan posisi */}
-                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                <div className="mt-6 max-w-xs">
                   <form
                     onSubmit={bukaNomor}
-                    className="rounded-md border border-slate-200 bg-slate-50 p-4"
+                    className="flex items-center gap-2"
                   >
                     <label
-                      htmlFor="nomor-soal"
-                      className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                      htmlFor="ingat-posisi"
+                      title={t("tekaTeki.ingatPosisi")}
+                      className="shrink-0 cursor-pointer"
                     >
-                      {t("tekaTeki.langsungKe")}
-                    </label>
-                    <div className="mt-2 flex gap-2">
                       <input
-                        id="nomor-soal"
-                        type="number"
-                        min={1}
-                        max={soal.length}
-                        value={nomorSoal}
-                        onChange={(e) => setNomorSoal(e.target.value)}
-                        placeholder={`1–${soal.length}`}
-                        className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
-                      <button
-                        type="submit"
-                        className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
-                      >
-                        {t("tekaTeki.buka")}
-                      </button>
-                    </div>
-                    {galatNomor ? (
-                      <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
-                        {galatNomor}
-                      </p>
-                    ) : (
-                      <p className="mt-1.5 text-xs text-slate-400">
-                        {t("tekaTeki.rentangNomor", { total: soal.length })}
-                      </p>
-                    )}
-                  </form>
-
-                  <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      {t("tekaTeki.pengaturan")}
-                    </p>
-                    <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-sm leading-6 text-slate-700">
-                      <input
+                        id="ingat-posisi"
                         type="checkbox"
                         checked={ingatPosisi}
                         onChange={(e) => ubahIngat(e.target.checked)}
-                        className="mt-1 h-4 w-4 shrink-0 accent-[#0b2f9f]"
+                        className="h-4 w-4 accent-[#0b2f9f]"
                       />
-                      <span>{t("tekaTeki.ingatPosisi")}</span>
                     </label>
-                    <p className="mt-2 text-xs leading-5 text-slate-400">
-                      {ingatPosisi
-                        ? t("tekaTeki.posisiTersimpan", {
-                            n: posisiTersimpan ?? masalah.problemid,
-                          })
-                        : t("tekaTeki.ingatNonaktif")}
+                    <input
+                      id="nomor-soal"
+                      type="number"
+                      min={1}
+                      max={soal.length}
+                      value={nomorSoal}
+                      onChange={(e) => setNomorSoal(e.target.value)}
+                      placeholder={`1–${soal.length}`}
+                      className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                    <button
+                      type="submit"
+                      className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
+                    >
+                      {t("tekaTeki.buka")}
+                    </button>
+                  </form>
+                  {galatNomor && (
+                    <p
+                      role="alert"
+                      className="mt-1.5 text-xs font-medium text-red-600"
+                    >
+                      {galatNomor}
                     </p>
-                  </div>
+                  )}
                 </div>
 
-                {/* Rekor terselesaikan */}
+                <div className="mt-4 max-w-xs">
+                  <select
+                    id="pilih-set-bidak"
+                    value={setBidak}
+                    onChange={(e) => setSetBidak(e.target.value)}
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    {DAFTAR_SET.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.nama}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <p className="mt-5 text-sm text-slate-500">
                   {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
                 </p>

@@ -30,12 +30,12 @@ const WARNA_PETAK = {
   biru: "rgba(60, 90, 216, 0.5)",
 };
 
-/** Warna tanda berdasarkan tombol pengubah: Shift=merah, Ctrl=hijau, Alt=biru. */
+/** Warna tanda berdasarkan tombol pengubah: default=merah, Shift=kuning, Ctrl=hijau, Alt=biru. */
 function warnaDariPeristiwa(e) {
-  if (e.shiftKey) return "merah";
+  if (e.shiftKey) return "bawaan";
   if (e.ctrlKey || e.metaKey) return "hijau";
   if (e.altKey) return "biru";
-  return "bawaan";
+  return "merah";
 }
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak. */
@@ -210,6 +210,7 @@ export default function PapanTekaTeki({
   tanda = { panah: [], petak: {} },
   terkunci = false,
   membeku = false,
+  setBidak = "merida",
   onKlik,
   onPilih,
   onJatuh,
@@ -259,7 +260,7 @@ export default function PapanTekaTeki({
       e.preventDefault();
       const warna = warnaDariPeristiwa(e);
       kananRef.current = { petak: petakAwal, warna };
-      setPanahSementara({ from: petakAwal, to: petakAwal, warna });
+      setPanahSementara({ from: petakAwal, to: petakAwal, warna: "bawaan" });
       try {
         akar.current?.setPointerCapture(e.pointerId);
       } catch {
@@ -309,8 +310,8 @@ export default function PapanTekaTeki({
       const { petak: asal, warna } = kananRef.current;
       const tujuan = cariPetak(e.clientX, e.clientY);
       if (tujuan && tujuan !== asal) {
-        // Seret klik kanan → gambar/hapus panah.
-        onTandaPanah?.(asal, tujuan, warna);
+        // Seret klik kanan → gambar/hapus panah (selalu warna bawaan/oranye).
+        onTandaPanah?.(asal, tujuan, "bawaan");
       } else if (tujuan) {
         // Klik kanan biasa → tandai petak (atau hapus semua tanda).
         onTandaPetak?.(asal, warna);
@@ -451,7 +452,7 @@ export default function PapanTekaTeki({
               {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
               {bidak && !sedangDiseret && (
                 <span className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none">
-                  <ChessPiece piece={bidak} className="h-full w-full" />
+                  <ChessPiece piece={bidak} set={setBidak} className="h-full w-full" />
                 </span>
               )}
 
@@ -509,7 +510,7 @@ export default function PapanTekaTeki({
           aria-hidden="true"
         >
           <div className="h-full w-full scale-110 drop-shadow-2xl">
-            <ChessPiece piece={peta[seret.from]} className="h-full w-full" />
+            <ChessPiece piece={peta[seret.from]} set={setBidak} className="h-full w-full" />
           </div>
         </div>
       )}
