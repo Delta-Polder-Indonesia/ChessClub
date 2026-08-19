@@ -9,8 +9,8 @@ import PapanTekaTeki from "./PapanTekaTeki.jsx";
  * Halaman "Teka-teki Catur" — pemutar interaktif 4.462 soal skakmat
  * (Mate in One/Two/Three) dari buku László Polgár (1994).
  *
- * Data dimuat terpisah dari public/data/teka-teki.json (berasal dari
- * FileRefrensi/problems.json) sehingga bundel utama tetap ringan.
+ * Data dimuat terpisah dari public/data/teka-teki.json (4.462 soal
+ * skakmat Polgár) sehingga bundel utama tetap ringan.
  * Validasi langkah & deteksi skakmat memakai chess.js.
  */
 
