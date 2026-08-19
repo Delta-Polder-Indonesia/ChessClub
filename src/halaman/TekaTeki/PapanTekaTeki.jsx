@@ -12,7 +12,10 @@ const NAMA_BIDAK = {
   k: "raja",
 };
 
-/** Warna tanda bantu (panah & petak) — ala chess.com (RGBA dengan alfa). */
+/**
+ * Warna tanda bantu (panah & petak) — mengikuti referensi chess.com:
+ * fill rgba(..., 0.8) dengan opacity 0.8 untuk panah (persis SVG chess.com).
+ */
 const WARNA_PANAH = {
   oranye: "rgba(255, 170, 0, 0.8)", // bawaan chess.com
   merah: "rgba(216, 60, 60, 0.8)",
@@ -20,10 +23,10 @@ const WARNA_PANAH = {
   biru: "rgba(60, 90, 216, 0.8)",
 };
 const WARNA_PETAK = {
-  oranye: "rgba(255, 170, 0, 0.55)",
-  merah: "rgba(216, 60, 60, 0.55)",
-  hijau: "rgba(0, 150, 80, 0.55)",
-  biru: "rgba(60, 90, 216, 0.55)",
+  oranye: "rgba(255, 170, 0, 0.5)",
+  merah: "rgba(216, 60, 60, 0.5)",
+  hijau: "rgba(0, 150, 80, 0.5)",
+  biru: "rgba(60, 90, 216, 0.5)",
 };
 
 /** Warna tanda berdasarkan tombol pengubah: Shift=merah, Ctrl=hijau, Alt=biru. */
@@ -78,39 +81,110 @@ function pusatPetak(petak, orientasi) {
   };
 }
 
-/** Geometri panah ala chess.com: batang (garis) + kepala (poligon, punggung cekung). */
-function geometriPanah(from, to, orientasi) {
-  const s = pusatPetak(from, orientasi);
-  const t = pusatPetak(to, orientasi);
+/** Selisih langkah dalam satuan petak (tidak terpengaruh orientasi). */
+function langkahKotak(from, to) {
+  return {
+    dx: FILE.indexOf(to[0]) - FILE.indexOf(from[0]),
+    dy: Number(to[1]) - Number(from[1]),
+  };
+}
+
+/*
+ * Geometri panah — direkayasa-balik dari SVG chess.com agar SAMA PERSIS.
+ *
+ * Referensi (panah lurus, e2-e4):
+ *   points 54.875 85.75, 54.875 101.75, 53 101.75, 56.25 106.25,
+ *           59.5 101.75, 57.625 101.75, 57.625 85.75
+ *   transform rotate(180 56.25 81.25)  — pusat putar = petak asal
+ *   fill rgba(255,170,0,0.8), opacity 0.8
+ * → batang setengah-lebar 1.375 dari +4.5 hingga L−4.5; kepala segitiga
+ *   berpunggung DATAR setengah-lebar 3.25; ujung tepat di tengah tujuan.
+ *
+ * Referensi (panah kuda, f1-e3): poligon 9 titik berbentuk SIKU —
+ *   batang mengikuti kaki panjang, membelok di sudut, kepala masuk ke tujuan.
+ */
+const SETENGAH_BATANG = 1.375;
+const SETENGAH_KEPALA = 3.25;
+const JARAK_AWAL = 4.5;
+
+/** Panah lurus (bidak, benteng, gajah, menteri, raja): 7 titik. */
+function titikPanahLurus(s, t) {
   const dx = t.x - s.x;
   const dy = t.y - s.y;
   const L = Math.hypot(dx, dy) || 1;
-  const ux = dx / L;
-  const uy = dy / L;
-  // Vektor "kanan" dari arah panah (sistem koordinat layar, y ke bawah).
-  const rx = -uy;
-  const ry = ux;
+  const u = { x: dx / L, y: dy / L };
+  const n = { x: -u.y, y: u.x };
+  const p = (depan, samping) => ({
+    x: s.x + u.x * depan + n.x * samping,
+    y: s.y + u.y * depan + n.y * samping,
+  });
+  return [
+    p(JARAK_AWAL, -SETENGAH_BATANG),
+    p(L - JARAK_AWAL, -SETENGAH_BATANG),
+    p(L - JARAK_AWAL, -SETENGAH_KEPALA),
+    p(L, 0),
+    p(L - JARAK_AWAL, SETENGAH_KEPALA),
+    p(L - JARAK_AWAL, SETENGAH_BATANG),
+    p(JARAK_AWAL, SETENGAH_BATANG),
+  ];
+}
 
-  // Kepala panah: ujung tepat di tengah petak tujuan, punggung cekung.
-  const headR = {
-    x: s.x + ux * (L - 4.6) + rx * 3.4,
-    y: s.y + uy * (L - 4.6) + ry * 3.4,
-  };
-  const headL = {
-    x: s.x + ux * (L - 4.6) - rx * 3.4,
-    y: s.y + uy * (L - 4.6) - ry * 3.4,
-  };
-  const notch = { x: s.x + ux * (L - 2.8), y: s.y + uy * (L - 2.8) };
-  const points = `${t.x},${t.y} ${headR.x},${headR.y} ${notch.x},${notch.y} ${headL.x},${headL.y}`;
+/** Panah langkah kuda: poligon siku 9 titik (sama dengan chess.com). */
+function titikPanahKuda(s, t) {
+  const dx = t.x - s.x;
+  const dy = t.y - s.y;
+  // Kaki pertama = sumbu panjang, kaki kedua = sumbu pendek.
+  let u1;
+  let u2;
+  let L1;
+  let L2;
+  if (Math.abs(dy) >= Math.abs(dx)) {
+    u1 = { x: 0, y: Math.sign(dy) || 1 };
+    u2 = { x: Math.sign(dx) || 1, y: 0 };
+    L1 = Math.abs(dy);
+    L2 = Math.abs(dx);
+  } else {
+    u1 = { x: Math.sign(dx) || 1, y: 0 };
+    u2 = { x: 0, y: Math.sign(dy) || 1 };
+    L1 = Math.abs(dx);
+    L2 = Math.abs(dy);
+  }
+  // Kerangka lokal: sumbu x → u2, sumbu y → u1.
+  const p = (x, y) => ({
+    x: s.x + u2.x * x + u1.x * y,
+    y: s.y + u2.y * x + u1.y * y,
+  });
+  return [
+    p(-SETENGAH_BATANG, JARAK_AWAL),
+    p(-SETENGAH_BATANG, L1 + SETENGAH_BATANG),
+    p(L2 - JARAK_AWAL, L1 + SETENGAH_BATANG),
+    p(L2 - JARAK_AWAL, L1 + SETENGAH_KEPALA),
+    p(L2, L1),
+    p(L2 - JARAK_AWAL, L1 - SETENGAH_KEPALA),
+    p(L2 - JARAK_AWAL, L1 - SETENGAH_BATANG),
+    p(SETENGAH_BATANG, L1 - SETENGAH_BATANG),
+  ];
+}
 
-  // Batang panah: dari sedikit di luar pusat petak asal hingga masuk ke kepala.
-  const a = { x: s.x + ux * 4.2, y: s.y + uy * 4.2 };
-  const b = { x: s.x + ux * (L - 2.9), y: s.y + uy * (L - 2.9) };
-  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, points };
+/** Titik-titik poligon panah dari petak ke petak. */
+function titikPanah(from, to, orientasi) {
+  const s = pusatPetak(from, orientasi);
+  const t = pusatPetak(to, orientasi);
+  const { dx, dy } = langkahKotak(from, to);
+  const kuda =
+    (Math.abs(dx) === 1 && Math.abs(dy) === 2) ||
+    (Math.abs(dx) === 2 && Math.abs(dy) === 1);
+  return kuda ? titikPanahKuda(s, t) : titikPanahLurus(s, t);
+}
+
+function titikKePoints(titik) {
+  return titik
+    .map((p) => `${p.x.toFixed(3)},${p.y.toFixed(3)}`)
+    .join(" ");
 }
 
 /**
- * Papan catur interaktif untuk teka-teki.
+ * Papan catur interaktif untuk teka-teki — tampilan & perilaku ala chess.com.
  *
  * Gerakan bidak:
  *  - Klik bidak → klik petak tujuan (termasuk layar sentuh & keyboard).
@@ -118,7 +192,7 @@ function geometriPanah(from, to, orientasi) {
  *
  * Tanda bantu ala chess.com:
  *  - Klik kanan pada petak = tandai petak dengan warna.
- *  - Tahan klik kanan lalu seret = gambar panah antar petak.
+ *  - Tahan klik kanan lalu seret = gambar panah (lurus; siku untuk langkah kuda).
  *  - Klik kanan petak yang sudah ditandai = hapus semua tanda.
  *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
  */
@@ -234,10 +308,11 @@ export default function PapanTekaTeki({
       if (tujuan && tujuan !== asal) {
         // Seret klik kanan → gambar/hapus panah.
         onTandaPanah?.(asal, tujuan, warna);
-      } else {
+      } else if (tujuan) {
         // Klik kanan biasa → tandai petak (atau hapus semua tanda).
         onTandaPetak?.(asal, warna);
       }
+      // Dilepas di luar papan → dibatalkan, tidak membuat tanda apa pun.
       kananRef.current = null;
       setPanahSementara(null);
     }
@@ -262,7 +337,7 @@ export default function PapanTekaTeki({
       onPointerCancel={padaBatal}
       onLostPointerCapture={padaBatal}
       onContextMenu={(e) => e.preventDefault()}
-      className={`relative w-full aspect-square select-none overflow-hidden rounded-lg shadow-lg ring-1 ring-black/10 ${
+      className={`relative w-full aspect-square select-none overflow-hidden rounded shadow-lg ring-1 ring-black/10 ${
         seret ? "cursor-grabbing" : ""
       }`}
     >
@@ -295,7 +370,7 @@ export default function PapanTekaTeki({
           const jadiAkhir = langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq);
           const sedangDiseret = seret && seret.from === sq;
           const warnaMark = tanda.petak[sq];
-          const warnaLabel = terang ? "text-[#8a5a3b]" : "text-[#f3e7d3]";
+          const warnaLabel = terang ? "text-[#739552]" : "text-[#ebecd0]";
 
           return (
             <button
@@ -311,13 +386,37 @@ export default function PapanTekaTeki({
               onClick={() => onKlik && onKlik(sq)}
               style={bisaSeret ? { touchAction: "none" } : undefined}
               className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${
-                terang ? "bg-[#ecd9b4]" : "bg-[#a2734f]"
+                terang ? "bg-[#ebecd0]" : "bg-[#779556]"
               } ${bisaSeret ? "cursor-grab" : ""}`}
             >
-              {jadiAkhir && <span className="absolute inset-0 bg-[#f5d76e]/45" aria-hidden="true" />}
-              {jadiPetunjuk && <span className="absolute inset-0 bg-yellow-300/60" aria-hidden="true" />}
-              {jadiSalah && <span className="kci-goyang absolute inset-0 bg-red-400/60" aria-hidden="true" />}
-              {dipilih && <span className="absolute inset-0 bg-emerald-400/50" aria-hidden="true" />}
+              {jadiAkhir && (
+                <span
+                  className="absolute inset-0"
+                  style={{ backgroundColor: "rgba(205, 210, 106, 0.5)" }}
+                  aria-hidden="true"
+                />
+              )}
+              {jadiPetunjuk && (
+                <span
+                  className="absolute inset-0"
+                  style={{ backgroundColor: "rgba(0, 150, 80, 0.5)" }}
+                  aria-hidden="true"
+                />
+              )}
+              {jadiSalah && (
+                <span
+                  className="kci-goyang absolute inset-0"
+                  style={{ backgroundColor: "rgba(216, 60, 60, 0.55)" }}
+                  aria-hidden="true"
+                />
+              )}
+              {dipilih && (
+                <span
+                  className="absolute inset-0"
+                  style={{ backgroundColor: "rgba(255, 255, 0, 0.45)" }}
+                  aria-hidden="true"
+                />
+              )}
 
               {/* Tanda petak hasil klik kanan — di bawah bidak agar bidak tetap jelas. */}
               {warnaMark && (
@@ -342,14 +441,14 @@ export default function PapanTekaTeki({
 
               {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
               {bidak && !sedangDiseret && (
-                <span className="relative z-10 flex h-[84%] w-[84%] items-center justify-center drop-shadow pointer-events-none">
+                <span className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none">
                   <ChessPiece piece={bidak} className="h-full w-full" />
                 </span>
               )}
 
               {/* Penanda petak tujuan legal. */}
               {jadiSasaran && !bidak && (
-                <span className="absolute z-10 h-[30%] w-[30%] rounded-full bg-black/25" aria-hidden="true" />
+                <span className="absolute z-10 h-[30%] w-[30%] rounded-full bg-black/15" aria-hidden="true" />
               )}
               {jadiSasaran && bidak && (
                 <span className="absolute inset-[3%] z-10 rounded-full border-4 border-black/30" aria-hidden="true" />
@@ -359,49 +458,33 @@ export default function PapanTekaTeki({
         })}
       </div>
 
-      {/* Lapisan panah (tanda klik kanan) + panah sementara saat menggambar. */}
+      {/* Lapisan panah — poligon persis ala chess.com (fill + opacity 0.8). */}
       <svg
-        className="pointer-events-none absolute inset-0 z-30 h-full w-full"
+        className="arrows pointer-events-none absolute inset-0 z-30 h-full w-full"
         viewBox="0 0 100 100"
         aria-hidden="true"
       >
-        {tanda.panah.map((p, i) => {
-          const g = geometriPanah(p.from, p.to, orientasi);
-          const warna = WARNA_PANAH[p.warna];
-          return (
-            <g key={`${p.from}-${p.to}-${i}`}>
-              <line
-                x1={g.x1}
-                y1={g.y1}
-                x2={g.x2}
-                y2={g.y2}
-                stroke={warna}
-                strokeWidth="2.8"
-                strokeLinecap="round"
-              />
-              <polygon points={g.points} fill={warna} />
-            </g>
-          );
-        })}
+        {tanda.panah.map((p, i) => (
+          <polygon
+            key={`${p.from}-${p.to}-${i}`}
+            data-arrow={`${p.from}${p.to}`}
+            className="arrow"
+            points={titikKePoints(titikPanah(p.from, p.to, orientasi))}
+            fill={WARNA_PANAH[p.warna]}
+            style={{ opacity: 0.8 }}
+          />
+        ))}
 
-        {panahSementara && panahSementara.to !== panahSementara.from && (() => {
-          const g = geometriPanah(panahSementara.from, panahSementara.to, orientasi);
-          const warna = WARNA_PANAH[panahSementara.warna];
-          return (
-            <g opacity="0.6">
-              <line
-                x1={g.x1}
-                y1={g.y1}
-                x2={g.x2}
-                y2={g.y2}
-                stroke={warna}
-                strokeWidth="2.8"
-                strokeLinecap="round"
-              />
-              <polygon points={g.points} fill={warna} />
-            </g>
-          );
-        })()}
+        {panahSementara && panahSementara.to !== panahSementara.from && (
+          <polygon
+            className="arrow"
+            points={titikKePoints(
+              titikPanah(panahSementara.from, panahSementara.to, orientasi)
+            )}
+            fill={WARNA_PANAH[panahSementara.warna]}
+            style={{ opacity: 0.5 }}
+          />
+        )}
       </svg>
 
       {/* Bidak hantu yang mengikuti kursor saat diseret. */}
