@@ -689,7 +689,10 @@ export const ID = {
     gagalMuat:
       "Gagal memuat data teka-teki. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
     caraMain:
-      "Klik bidak milikmu, lalu klik petak tujuan. Cari langkah yang berujung skakmat — lawan akan membalas otomatis sesuai pertahanan terbaiknya.",
+      "Klik atau seret bidak milikmu ke petak tujuan. Cari langkah yang berujung skakmat — lawan akan membalas otomatis sesuai pertahanan terbaiknya.",
+    caraTanda:
+      "Tanda bantu analisis: klik kanan petak untuk menandainya; tahan klik kanan lalu seret untuk menggambar panah; klik kanan petak yang sudah ditandai untuk menghapus semua tanda. Tahan Shift/Ctrl/Alt saat menandai untuk warna merah/kuning/biru.",
+    hapusSemuaTanda: "Hapus Semua Tanda",
     soal: "Soal #{n} dari {total}",
     skakmat1: "Skakmat dalam 1 Langkah",
     skakmat2: "Skakmat dalam 2 Langkah",
@@ -1421,7 +1424,10 @@ export const EN = {
     gagalMuat:
       "Failed to load the puzzle data. Check your internet connection, then reload this page.",
     caraMain:
-      "Click one of your pieces, then click a destination square. Find the move that leads to checkmate — the opponent will reply automatically with its best defense.",
+      "Click or drag one of your pieces to a destination square. Find the move that leads to checkmate — the opponent will reply automatically with its best defense.",
+    caraTanda:
+      "Analysis marks: right-click a square to mark it; hold right-click and drag to draw an arrow; right-click a marked square to clear all marks. Hold Shift/Ctrl/Alt while marking for red/yellow/blue.",
+    hapusSemuaTanda: "Clear All Marks",
     soal: "Puzzle #{n} of {total}",
     skakmat1: "Mate in One",
     skakmat2: "Mate in Two",
