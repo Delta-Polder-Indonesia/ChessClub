@@ -48,6 +48,9 @@ const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanK
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
 
+// Teka-teki interaktif (pemutar 4.462 soal skakmat Polgár).
+const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
+
 // Area Beranda — satu berkas per item sidebar.
 const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
@@ -90,6 +93,8 @@ const RUTE_HALAMAN = [
   ["/program-kami/simultan-dan-blindfold", SimultanDanBlindfold],
   ["/program-kami/sekolah-catur", SekolahCatur],
   ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
+
+  ["/teka-teki", TekaTeki],
 
   ["/turnamen", Turnamen],
   ["/turnamen/turnamen-bulanan", TurnamenBulanan],

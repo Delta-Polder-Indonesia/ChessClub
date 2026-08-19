@@ -53,12 +53,11 @@ function ChessBoardComponent() {
             const piece = BOARD_PIECES[rIdx][fIdx] || "";
             const squareName = `${file}${rank}`;
 
-            let bgClass = isLight ? "bg-[#d8c3a5]" : "bg-[#8f6843]";
-
             return (
               <div
                 key={squareName}
-                className={`relative flex items-center justify-center ${bgClass}`}
+                className="relative flex items-center justify-center"
+                style={{ backgroundColor: isLight ? "#d8c3a5" : "#8f6843" }}
               >
                 {/* File coordinate (at bottom rank 1) */}
                 {rIdx === 7 && (
@@ -333,7 +332,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <a
                     className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
-                    href="/program-kami/sekolah-catur/cara-bermain-catur"
+                    href="/teka-teki"
                   >
                     Mulai Teka-teki
                   </a>
