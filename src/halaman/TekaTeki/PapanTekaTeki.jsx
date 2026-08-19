@@ -13,17 +13,18 @@ const NAMA_BIDAK = {
 };
 
 /**
- * Warna tanda bantu (panah & petak) — mengikuti referensi chess.com:
- * fill rgba(..., 0.8) dengan opacity 0.8 untuk panah (persis SVG chess.com).
+ * Warna tanda bantu — mengikuti referensi chess.com.
+ * Panah: fill rgba(..., 0.8) + opacity 0.8 (persis SVG chess.com, oranye).
+ * Petak: warna bawaan KUNING; Shift/Ctrl/Alt → merah/hijau/biru.
  */
 const WARNA_PANAH = {
-  oranye: "rgba(255, 170, 0, 0.8)", // bawaan chess.com
+  bawaan: "rgba(255, 170, 0, 0.8)", // oranye khas chess.com
   merah: "rgba(216, 60, 60, 0.8)",
   hijau: "rgba(0, 150, 80, 0.8)",
   biru: "rgba(60, 90, 216, 0.8)",
 };
 const WARNA_PETAK = {
-  oranye: "rgba(255, 170, 0, 0.5)",
+  bawaan: "rgba(255, 255, 0, 0.5)", // kuning — tanda petak
   merah: "rgba(216, 60, 60, 0.5)",
   hijau: "rgba(0, 150, 80, 0.5)",
   biru: "rgba(60, 90, 216, 0.5)",
@@ -34,7 +35,7 @@ function warnaDariPeristiwa(e) {
   if (e.shiftKey) return "merah";
   if (e.ctrlKey || e.metaKey) return "hijau";
   if (e.altKey) return "biru";
-  return "oranye";
+  return "bawaan";
 }
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak. */
@@ -191,9 +192,10 @@ function titikKePoints(titik) {
  *  - Seret (drag & drop) bidak ke petak tujuan.
  *
  * Tanda bantu ala chess.com:
- *  - Klik kanan pada petak = tandai petak dengan warna; klik kanan lagi pada
- *    petak yang sama = hapus tanda petak itu saja.
- *  - Tahan klik kanan lalu seret = gambar panah (lurus; siku untuk langkah kuda).
+ *  - Klik kanan pada petak = tandai petak dengan warna kuning; klik kanan lagi
+ *    pada petak yang sama = hapus tanda petak itu saja.
+ *  - Tahan klik kanan lalu seret = gambar panah oranye (lurus; siku untuk
+ *    langkah kuda).
  *  - Klik kiri pada petak kosong (tanpa aksi permainan) = hapus SEMUA tanda.
  *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
  */
