@@ -44,7 +44,7 @@ const BOARD_PIECES = [
 
 function ChessBoardComponent() {
   return (
-    <div className="relative w-full max-w-[304px] aspect-square select-none overflow-hidden rounded border border-white/10 shadow-lg bg-[#201d24]">
+    <div className="relative w-full max-w-[304px] aspect-square select-none overflow-hidden rounded bg-white">
       {/* 8x8 Board Grid */}
       <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
         {RANKS.map((rank, rIdx) =>
@@ -151,9 +151,9 @@ function MovesByRatingChartComponent() {
       className="flex h-full w-full flex-col bg-transparent"
     >
       {/* Legend & Title */}
-      <div className="flex flex-wrap items-center justify-between gap-1 p-2 border-b border-white/5">
-        <span className="text-xs font-semibold text-white/90">
-          Moves by Rating
+      <div className="flex flex-wrap items-center justify-between gap-1 p-2">
+        <span className="text-xs font-semibold text-gray-700">
+          Langkah Berdasarkan Rating
         </span>
         <div className="flex items-center gap-2 text-[10px]">
           <span className="font-semibold" style={{ color: "rgb(252, 187, 161)" }}>
@@ -199,27 +199,27 @@ function MovesByRatingChartComponent() {
 
           {/* Grid lines horizontal */}
           <g>
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="60" y1="155" x2="259" y2="155" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="60" y1="120" x2="259" y2="120" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="60" y1="85" x2="259" y2="85" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="60" y1="50" x2="259" y2="50" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="60" y1="15" x2="259" y2="15" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="60" y1="155" x2="259" y2="155" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="60" y1="120" x2="259" y2="120" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="60" y1="85" x2="259" y2="85" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="60" y1="50" x2="259" y2="50" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="60" y1="15" x2="259" y2="15" />
           </g>
 
           {/* Grid lines vertical */}
           <g>
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="84.875" y1="15" x2="84.875" y2="155" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="134.625" y1="15" x2="134.625" y2="155" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="184.375" y1="15" x2="184.375" y2="155" />
-            <line strokeDasharray="3 3" stroke="#3C3C3C" x1="234.125" y1="15" x2="234.125" y2="155" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="84.875" y1="15" x2="84.875" y2="155" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="134.625" y1="15" x2="134.625" y2="155" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="184.375" y1="15" x2="184.375" y2="155" />
+            <line strokeDasharray="3 3" stroke="#D1D5DB" x1="234.125" y1="15" x2="234.125" y2="155" />
           </g>
 
           {/* Y-Axis Ticks */}
-          <text x="52" y="158" fill="white" fontSize="10" textAnchor="end">0%</text>
-          <text x="52" y="123" fill="white" fontSize="10" textAnchor="end">25%</text>
-          <text x="52" y="88" fill="white" fontSize="10" textAnchor="end">50%</text>
-          <text x="52" y="53" fill="white" fontSize="10" textAnchor="end">75%</text>
-          <text x="52" y="18" fill="white" fontSize="10" textAnchor="end">100%</text>
+          <text x="52" y="158" fill="#374151" fontSize="10" textAnchor="end">0%</text>
+          <text x="52" y="123" fill="#374151" fontSize="10" textAnchor="end">25%</text>
+          <text x="52" y="88" fill="#374151" fontSize="10" textAnchor="end">50%</text>
+          <text x="52" y="53" fill="#374151" fontSize="10" textAnchor="end">75%</text>
+          <text x="52" y="18" fill="#374151" fontSize="10" textAnchor="end">100%</text>
 
           {/* Y-Axis Label */}
           <text
@@ -231,14 +231,14 @@ function MovesByRatingChartComponent() {
             fontWeight="600"
             textAnchor="middle"
           >
-            Maia Probability
+            Probabilitas Maia
           </text>
 
           {/* X-Axis Ticks */}
-          <text x="84.875" y="170" fill="white" fontSize="10" textAnchor="middle">1200</text>
-          <text x="134.625" y="170" fill="white" fontSize="10" textAnchor="middle">1400</text>
-          <text x="184.375" y="170" fill="white" fontSize="10" textAnchor="middle">1600</text>
-          <text x="234.125" y="170" fill="white" fontSize="10" textAnchor="middle">1800</text>
+          <text x="84.875" y="170" fill="#374151" fontSize="10" textAnchor="middle">1200</text>
+          <text x="134.625" y="170" fill="#374151" fontSize="10" textAnchor="middle">1400</text>
+          <text x="184.375" y="170" fill="#374151" fontSize="10" textAnchor="middle">1600</text>
+          <text x="234.125" y="170" fill="#374151" fontSize="10" textAnchor="middle">1800</text>
 
           {/* Area 1: Bxe2 (Salmon / Peach) */}
           <path
@@ -301,83 +301,70 @@ function MovesByRatingChartComponent() {
 
 export default function TekaTekiTips() {
   return (
-    <BagianBeranda id="konten-tiktok" title="Teka-Teki & Tips">
-      {/* Kontainer Luar dengan Gradien Radial Gelap Maia Chess */}
-      <div className="relative bg-[#120f17] text-white rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              "radial-gradient(ellipse 100% 85% at 0% 90%, rgba(239, 68, 68, 0.07) 0%, transparent 75%), radial-gradient(ellipse 75% 65% at 100% 40%, rgba(239, 68, 68, 0.05) 0%, transparent 75%)",
-          }}
-        />
+    <BagianBeranda id="konten-tiktok">
+      {/* Kontainer Luar tanpa background gelap */}
+      <div className="relative text-gray-800 overflow-hidden -ml-6 md:-ml-8 xl:-ml-0 -mr-6 md:-mr-8 xl:-mr-0">
 
         <section
           id="train-section"
-          className="relative w-full flex-col items-center overflow-hidden bg-transparent py-8 sm:py-10 md:py-14"
+          className="relative w-full flex-col items-center overflow-hidden bg-transparent pt-0 pb-8 sm:pb-10 md:pb-14"
         >
-          <div className="z-10 mx-auto flex w-full max-w-[95%] flex-col items-center px-2 md:max-w-[92%] md:flex-row md:gap-8 md:px-4 lg:gap-12">
-            {/* Kolom Kiri: Teks & Tombol Mulai (md:w-2/5) */}
-            <div className="mb-6 w-full md:mb-0 md:w-2/5">
-              <div className="mb-3 inline-block rounded-full bg-[#ef4444]/10 border border-[#ef4444]/20 px-4 py-1 text-xs sm:text-sm font-medium text-[#fe7f6d] md:mb-4">
-                Human-Centered Puzzles
-              </div>
+          <div className="z-10 mx-auto flex w-full flex-col px-6 md:px-8 xl:px-0">
+            <div className="flex w-full flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
+              {/* Kolom Kiri: Teks & Tombol Mulai (md:w-2/5) */}
+              <div className="mb-6 w-full md:mb-0 md:w-2/5">
+                <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl text-gray-800 leading-tight md:mb-5">
+                  Latih Dirimu dengan Maia sebagai Pelatihmu
+                </h2>
 
-              <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl text-white leading-tight md:mb-5">
-                Train with Maia as your coach
-              </h2>
+                <p className="mb-3 text-sm text-gray-600 leading-relaxed md:mb-4 md:text-base">
+                  Maia menyusun teka-teki berdasarkan pemahamannya tentang cara
+                  jutaan pemain meningkatkan kemampuan. Dengan teka-teki Maia, kamu
+                  dapat mengukur kemampuanmu, fokus pada kelemahan pemahamanmu,
+                  dan mengubah ide-ide yang sulit ditemukan menjadi kebiasaan.
+                </p>
 
-              <p className="mb-3 text-sm text-white/80 leading-relaxed md:mb-4 md:text-base">
-                Maia curates puzzles based on its understanding of how millions of
-                players improve. With Maia puzzles, you can benchmark your vision,
-                focus on your gaps in understanding, and turn hard-to-spot ideas into
-                second nature.
-              </p>
+                <p className="mb-6 text-sm text-gray-600 leading-relaxed md:mb-6 md:text-base">
+                  Setiap teka-teki dilengkapi data yang menunjukkan bagaimana
+                  pemain dengan rating berbeda menyikapi posisi tersebut, sehingga
+                  latihanmu lebih terarah dan efektif.
+                </p>
 
-              <p className="mb-6 text-sm text-white/80 leading-relaxed md:mb-6 md:text-base">
-                Each puzzle includes data showing how players of different ratings
-                approach the position, making your training more targeted and
-                effective.
-              </p>
-
-              <div className="flex flex-wrap gap-4">
-                <a
-                  className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
-                  href="/program-kami/sekolah-catur/cara-bermain-catur"
-                >
-                  Start Puzzles
-                </a>
-              </div>
-            </div>
-
-            {/* Kolom Kanan: Glass Card Papan Catur & Analisis (md:w-3/5) */}
-            <div className="relative w-full md:w-3/5">
-              <div className="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.04] backdrop-blur-md shadow-2xl">
-                {/* Header Kartu */}
-                <div className="border-b border-white/10 px-4 py-3 sm:px-5 sm:py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#fe7f6d]" />
-                      <p className="font-semibold text-sm sm:text-base text-white m-0!">
-                        Tactical Puzzle
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <span className="rounded bg-white/10 border border-white/10 px-2.5 py-0.5 text-xs text-white/80 font-medium">
-                        Intermediate
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-xs sm:text-sm text-white/60 mt-1 m-0!">
-                    Find the best move in this tactical position
-                  </p>
+                <div className="flex flex-wrap gap-4">
+                  <a
+                    className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                    href="/program-kami/sekolah-catur/cara-bermain-catur"
+                  >
+                    Mulai Teka-teki
+                  </a>
                 </div>
+              </div>
 
-                {/* Isi Kartu: 2 Sub-Kolom (Kiri Papan Catur, Kanan Grafik & Analisis) */}
-                <div className="flex flex-col gap-4 p-4 md:flex-row items-center md:items-start">
+              {/* Kolom Kanan: Papan Catur & Analisis (md:w-3/5) */}
+              <div className="relative w-full md:w-3/5">
+                {/* Header Puzzle */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#fe7f6d]" />
+                    <p className="font-semibold text-sm sm:text-base text-gray-800 m-0!">
+                      Teka-teki Taktis
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
+                      Menengah
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
+                  Temukan langkah terbaik dalam posisi taktis ini
+                </p>
+
+                {/* Isi: 2 Sub-Kolom (Kiri Papan Catur, Kanan Grafik & Analisis) */}
+                <div className="flex flex-col gap-4 md:flex-row items-center md:items-start">
                   {/* Sub-Kolom 1: Papan Catur (md:w-1/2) */}
                   <div className="flex w-full justify-center md:w-1/2">
-                    <div className="w-full max-w-[304px] flex flex-col overflow-hidden rounded border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-1">
+                    <div className="w-full max-w-[304px] flex flex-col overflow-hidden rounded p-1">
                       <ChessBoardComponent />
                     </div>
                   </div>
@@ -385,39 +372,39 @@ export default function TekaTekiTips() {
                   {/* Sub-Kolom 2: Grafik & Analisis Posisi (md:w-1/2) */}
                   <div className="flex w-full flex-col md:w-1/2 gap-3">
                     {/* Kotak Grafik Moves by Rating */}
-                    <div className="overflow-hidden rounded border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-2 sm:p-3 backdrop-blur-md">
+                    <div className="overflow-hidden rounded p-2 sm:p-3">
                       <MovesByRatingChartComponent />
                     </div>
 
                     {/* Kotak Analisis Posisi */}
-                    <div className="overflow-hidden rounded border border-white/10 bg-gradient-to-br from-white/[0.06] to-white/[0.02] p-3 backdrop-blur-md text-xs">
-                      <h4 className="mb-2 text-sm font-semibold text-white m-0!">
-                        Position Analysis
+                    <div className="overflow-hidden rounded p-3 text-xs">
+                      <h4 className="mb-2 text-sm font-semibold text-gray-800 m-0!">
+                        Analisis Posisi
                       </h4>
-                      <p className="mb-3 text-[11px] leading-relaxed text-white/80 m-0!">
-                        Be alert, this position is highly treacherous! It is easy
-                        to go astray with tempting blunders like{" "}
+                      <p className="mb-3 text-[11px] leading-relaxed text-gray-600 m-0!">
+                        Waspada, posisi ini sangat berbahaya! Sangat mudah
+                        terjebak dengan kesalahan yang menggiurkan seperti{" "}
                         <span
                           className="font-mono font-semibold"
                           style={{ color: "rgb(252, 187, 161)" }}
                         >
                           Bxe2
                         </span>
-                        . Only{" "}
+                        . Hanya{" "}
                         <span
                           className="font-mono font-semibold"
                           style={{ color: "rgb(35, 139, 69)" }}
                         >
                           Bxf6
                         </span>{" "}
-                        offers an advantage, and it is hard for human players to find.
+                        yang memberikan keunggulan, dan sulit ditemukan oleh pemain manusia.
                       </p>
 
-                      <div className="flex flex-col gap-1.5 2xl:flex-row pt-2 border-t border-white/10 text-[11px]">
+                      <div className="flex flex-col gap-1.5 2xl:flex-row pt-2 text-[11px]">
                         <div className="flex items-center justify-between sm:justify-start gap-2">
                           <div className="flex items-center">
                             <span className="mr-1.5 h-2 w-2 rounded-full bg-[#238b45]" />
-                            <span className="text-white/70">Best Move</span>
+                            <span className="text-gray-600">Langkah Terbaik</span>
                           </div>
                           <span
                             className="font-mono font-semibold"
@@ -430,7 +417,7 @@ export default function TekaTekiTips() {
                         <div className="flex items-center justify-between sm:justify-start gap-2">
                           <div className="flex items-center">
                             <span className="mr-1.5 h-2 w-2 rounded-full bg-[#fcbba1]" />
-                            <span className="text-white/70">Common Mistake</span>
+                            <span className="text-gray-600">Kesalahan Umum</span>
                           </div>
                           <span
                             className="font-mono font-semibold"
@@ -443,7 +430,7 @@ export default function TekaTekiTips() {
                         <div className="flex items-center justify-between sm:justify-start gap-2">
                           <div className="flex items-center">
                             <span className="mr-1.5 h-2 w-2 rounded-full bg-[#cb181d]" />
-                            <span className="text-white/70">Other Mistake</span>
+                            <span className="text-gray-600">Kesalahan Lain</span>
                           </div>
                           <span
                             className="font-mono font-semibold"
