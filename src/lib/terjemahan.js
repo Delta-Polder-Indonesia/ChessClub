@@ -691,7 +691,7 @@ export const ID = {
     caraMain:
       "Klik atau seret bidak milikmu ke petak tujuan. Cari langkah yang berujung skakmat — lawan akan membalas otomatis sesuai pertahanan terbaiknya.",
     caraTanda:
-      "Tanda bantu analisis: klik kanan petak untuk menandainya dengan warna kuning (klik kanan lagi pada petak yang sama untuk menghapus tanda itu); tahan klik kanan lalu seret untuk menggambar panah oranye; klik kiri satu kali pada petak kosong untuk menghapus semua tanda. Tahan Shift/Ctrl/Alt saat menandai untuk warna merah/hijau/biru.",
+      "Tanda bantu analisis: klik kanan petak untuk menandainya dengan warna kuning; tahan klik kanan lalu seret untuk menggambar panah oranye; klik kanan pada petak yang sudah bertanda (atau klik kiri satu kali pada petak kosong) untuk menghapus semua tanda. Tahan Shift/Ctrl/Alt saat menandai untuk warna merah/hijau/biru.",
     hapusSemuaTanda: "Hapus Semua Tanda",
     soal: "Soal #{n} dari {total}",
     skakmat1: "Skakmat dalam 1 Langkah",
@@ -1426,7 +1426,7 @@ export const EN = {
     caraMain:
       "Click or drag one of your pieces to a destination square. Find the move that leads to checkmate — the opponent will reply automatically with its best defense.",
     caraTanda:
-      "Analysis marks: right-click a square to mark it yellow (right-click the same square again to remove that mark); hold right-click and drag to draw an orange arrow; left-click once on an empty square to clear all marks. Hold Shift/Ctrl/Alt while marking for red/green/blue.",
+      "Analysis marks: right-click a square to mark it yellow; hold right-click and drag to draw an orange arrow; right-click a marked square (or left-click once on an empty square) to clear all marks. Hold Shift/Ctrl/Alt while marking for red/green/blue.",
     hapusSemuaTanda: "Clear All Marks",
     soal: "Puzzle #{n} of {total}",
     skakmat1: "Mate in One",
