@@ -53,12 +53,11 @@ function ChessBoardComponent() {
             const piece = BOARD_PIECES[rIdx][fIdx] || "";
             const squareName = `${file}${rank}`;
 
-            let bgClass = isLight ? "bg-[#d8c3a5]" : "bg-[#8f6843]";
-
             return (
               <div
                 key={squareName}
-                className={`relative flex items-center justify-center ${bgClass}`}
+                className="relative flex items-center justify-center"
+                style={{ backgroundColor: isLight ? "#d8c3a5" : "#8f6843" }}
               >
                 {/* File coordinate (at bottom rank 1) */}
                 {rIdx === 7 && (

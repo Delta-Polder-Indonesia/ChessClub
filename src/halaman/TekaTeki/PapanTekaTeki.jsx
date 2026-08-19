@@ -373,7 +373,6 @@ export default function PapanTekaTeki({
           const jadiAkhir = langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq);
           const sedangDiseret = seret && seret.from === sq;
           const warnaMark = tanda.petak[sq];
-          const warnaLabel = terang ? "text-[#739552]" : "text-[#ebecd0]";
 
           return (
             <button
@@ -387,10 +386,11 @@ export default function PapanTekaTeki({
               }`}
               onPointerDown={(e) => padaTekan(e, sq)}
               onClick={() => onKlik && onKlik(sq)}
-              style={bisaSeret ? { touchAction: "none" } : undefined}
-              className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${
-                terang ? "bg-[#ebecd0]" : "bg-[#779556]"
-              } ${bisaSeret ? "cursor-grab" : ""}`}
+              style={{
+                backgroundColor: terang ? "#ebecd0" : "#779556",
+                touchAction: bisaSeret ? "none" : undefined,
+              }}
+              className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${bisaSeret ? "cursor-grab" : ""}`}
             >
               {jadiAkhir && (
                 <span
@@ -432,12 +432,18 @@ export default function PapanTekaTeki({
 
               {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
               {baris === 7 && (
-                <span className={`absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none ${warnaLabel}`}>
+                <span
+                  className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
+                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                >
                   {sq[0]}
                 </span>
               )}
               {kolom === 0 && (
-                <span className={`absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none ${warnaLabel}`}>
+                <span
+                  className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
+                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                >
                   {sq[1]}
                 </span>
               )}
