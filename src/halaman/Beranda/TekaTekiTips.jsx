@@ -333,7 +333,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <a
                     className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
-                    href="/program-kami/sekolah-catur/cara-bermain-catur"
+                    href="/teka-teki"
                   >
                     Mulai Teka-teki
                   </a>
