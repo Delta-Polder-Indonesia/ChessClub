@@ -122,8 +122,9 @@ export default function TekaTeki() {
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
 
-  // ★ State baru: sedang menyeret bidak
+  // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
+  const abaikanKlikRef = useRef(false);
 
   const timerSalah = useRef(null);
   const timerOtomatis = useRef(null);
@@ -252,6 +253,11 @@ export default function TekaTeki() {
 
   function klikPetak(petak) {
     if (!masalah || !fen || komputer) return;
+    // Klik sisa setelah drag-drop atau klik-kanan-batal tidak boleh jadi langkah.
+    if (abaikanKlikRef.current) {
+      abaikanKlikRef.current = false;
+      return;
+    }
 
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
       hapusSemuaTanda();
@@ -390,20 +396,21 @@ export default function TekaTeki() {
     pindahSoal(n - 1);
   }
 
-  // ★ Pembatalan seret: klik kanan saat drag → bidak kembali
+  // Klik kanan saat drag → bidak kembali ke petak asal (perilaku chess.com).
   const batalkanSeret = useCallback(() => {
+    abaikanKlikRef.current = true;
     setSedangSeret(false);
     setTerpilih(null);
     setSasaran([]);
   }, []);
 
-  // ★ Mulai seret
   const mulaiSeret = useCallback(
     (petak) => {
       if (!masalah || komputer || selesai || !fen) return;
       const game = new Chess(fen);
       const bidak = game.get(petak);
       if (bidak && bidak.color === game.turn()) {
+        abaikanKlikRef.current = false;
         setSedangSeret(true);
         pilihPetak(petak);
       }
@@ -412,15 +419,15 @@ export default function TekaTeki() {
     [masalah, komputer, selesai, fen]
   );
 
-  // ★ Selesai seret (jatuhkan di petak tujuan)
   const selesaiSeret = useCallback(
     (from, to) => {
       setSedangSeret(false);
       if (!masalah || komputer || selesai || !fen) return;
-      if (from === to) {
-        // Dijatuhkan di petak asal → tetap terpilih (klik biasa)
+      if (!to || from === to) {
+        // Dijatuhkan di petak asal / di luar papan → tetap terpilih.
         return;
       }
+      abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -527,7 +534,6 @@ export default function TekaTeki() {
                   </div>
                 </div>
 
-                {/* ★ PapanTekaTeki menerima prop baru untuk drag & cancel */}
                 <PapanTekaTeki
                   fen={fen}
                   orientasi={orientasi}
