@@ -110,6 +110,9 @@ export default function TekaTeki() {
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
 
+  // Tanda bantu analisis (klik kanan): panah & petak berwarna.
+  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+
   // Pengaturan & navigasi: ingat posisi terakhir + lompat ke nomor soal.
   const [ingatPosisi, setIngatPosisi] = useState(bacaIngat);
   const [posisiTersimpan, setPosisiTersimpan] = useState(bacaPosisi);
@@ -197,6 +200,7 @@ export default function TekaTeki() {
     setPesan(null);
     setKomputer(false);
     setSelesai(false);
+    setTanda({ panah: [], petak: {} });
   }, []);
 
   /** Pindah ke soal lain (indeks di-wrap dalam 0..total-1). */
@@ -218,18 +222,12 @@ export default function TekaTeki() {
   const pilihAcak = () =>
     pindahSoal(Math.floor(Math.random() * (soal?.length || 1)));
 
-  /** Klik petak: pilih bidak sendiri atau coba langkah ke petak sasaran. */
-  function klikPetak(petak) {
+  /** Pilih bidak sendiri (dipakai klik maupun awal seret/drag). */
+  function pilihPetak(petak) {
     if (!masalah || komputer || selesai || !fen) return;
     const game = new Chess(fen);
     const bidak = game.get(petak);
-    const giliran = game.turn();
-
-    if (terpilih && sasaran.includes(petak)) {
-      cobaLangkah(terpilih, petak);
-      return;
-    }
-    if (bidak && bidak.color === giliran) {
+    if (bidak && bidak.color === game.turn()) {
       const tujuan = game.moves({ square: petak, verbose: true }).map((m) => m.to);
       setTerpilih(petak);
       setSasaran(tujuan);
@@ -237,6 +235,16 @@ export default function TekaTeki() {
       setTerpilih(null);
       setSasaran([]);
     }
+  }
+
+  /** Klik petak: pilih bidak sendiri atau coba langkah ke petak sasaran. */
+  function klikPetak(petak) {
+    if (!masalah || komputer || selesai || !fen) return;
+    if (terpilih && sasaran.includes(petak)) {
+      cobaLangkah(terpilih, petak);
+      return;
+    }
+    pilihPetak(petak);
   }
 
   /** Coba langkah pemain: cocok dengan solusi (atau skakmat apa pun di akhir). */
@@ -363,6 +371,31 @@ export default function TekaTeki() {
     pindahSoal(n - 1);
   }
 
+  /* ------------------------------------------------ tanda bantu (klik kanan) */
+
+  /** Klik kanan pada petak: tandai — atau hapus SEMUA tanda bila sudah ditandai. */
+  function tandaPetak(petak, warna) {
+    setTanda((lama) => {
+      if (lama.petak[petak]) return { panah: [], petak: {} };
+      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
+    });
+  }
+
+  /** Klik kanan lalu seret: gambar panah — seret ulang panah yang sama untuk menghapusnya. */
+  function tandaPanah(from, to, warna) {
+    setTanda((lama) => {
+      const ada = lama.panah.some((p) => p.from === from && p.to === to);
+      const panah = ada
+        ? lama.panah.filter((p) => !(p.from === from && p.to === to))
+        : [...lama.panah, { from, to, warna }];
+      return { ...lama, panah };
+    });
+  }
+
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
+  }
+
   /* -------------------------------------------------------------- tampilan */
 
   const crumbs = [
@@ -444,8 +477,19 @@ export default function TekaTeki() {
                   petunjuk={petunjuk}
                   kesalahan={kesalahan}
                   langkahAkhir={langkahAkhir}
+                  tanda={tanda}
+                  terkunci={komputer || selesai}
+                  membeku={komputer}
                   onKlik={klikPetak}
+                  onPilih={pilihPetak}
+                  onJatuh={cobaLangkah}
+                  onTandaPetak={tandaPetak}
+                  onTandaPanah={tandaPanah}
                 />
+
+                <p className="mt-3 text-xs leading-5 text-slate-400">
+                  {t("tekaTeki.caraTanda")}
+                </p>
 
                 <p className="mt-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
                   <span
@@ -531,6 +575,15 @@ export default function TekaTeki() {
                   >
                     {t("tekaTeki.berikutnya")} →
                   </button>
+                  {(tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) && (
+                    <button
+                      type="button"
+                      onClick={hapusSemuaTanda}
+                      className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      {t("tekaTeki.hapusSemuaTanda")}
+                    </button>
+                  )}
                 </div>
 
                 {/* Kolom input nomor soal + pengaturan lanjutkan posisi */}
