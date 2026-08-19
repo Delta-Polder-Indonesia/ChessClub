@@ -12,20 +12,26 @@ const NAMA_BIDAK = {
   k: "raja",
 };
 
-/** Warna tanda bantu (panah & petak) — ala chess.com. */
-const WARNA_TANDA = {
-  hijau: "#16a34a",
-  merah: "#dc2626",
-  kuning: "#eab308",
-  biru: "#2563eb",
+/** Warna tanda bantu (panah & petak) — ala chess.com (RGBA dengan alfa). */
+const WARNA_PANAH = {
+  oranye: "rgba(255, 170, 0, 0.8)", // bawaan chess.com
+  merah: "rgba(216, 60, 60, 0.8)",
+  hijau: "rgba(0, 150, 80, 0.8)",
+  biru: "rgba(60, 90, 216, 0.8)",
+};
+const WARNA_PETAK = {
+  oranye: "rgba(255, 170, 0, 0.55)",
+  merah: "rgba(216, 60, 60, 0.55)",
+  hijau: "rgba(0, 150, 80, 0.55)",
+  biru: "rgba(60, 90, 216, 0.55)",
 };
 
-/** Warna tanda berdasarkan tombol pengubah: Shift=merah, Ctrl=kuning, Alt=biru. */
+/** Warna tanda berdasarkan tombol pengubah: Shift=merah, Ctrl=hijau, Alt=biru. */
 function warnaDariPeristiwa(e) {
   if (e.shiftKey) return "merah";
-  if (e.ctrlKey || e.metaKey) return "kuning";
+  if (e.ctrlKey || e.metaKey) return "hijau";
   if (e.altKey) return "biru";
-  return "hijau";
+  return "oranye";
 }
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak. */
@@ -72,21 +78,35 @@ function pusatPetak(petak, orientasi) {
   };
 }
 
-/** Koordinat garis panah — ujung dipangkas sedikit untuk ruang kepala panah. */
-function garisPanah(from, to, orientasi) {
-  const a = pusatPetak(from, orientasi);
-  const b = pusatPetak(to, orientasi);
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const panjang = Math.hypot(dx, dy) || 1;
-  const ux = dx / panjang;
-  const uy = dy / panjang;
-  return {
-    x1: a.x + ux * 2.4,
-    y1: a.y + uy * 2.4,
-    x2: b.x - ux * 4.6,
-    y2: b.y - uy * 4.6,
+/** Geometri panah ala chess.com: batang (garis) + kepala (poligon, punggung cekung). */
+function geometriPanah(from, to, orientasi) {
+  const s = pusatPetak(from, orientasi);
+  const t = pusatPetak(to, orientasi);
+  const dx = t.x - s.x;
+  const dy = t.y - s.y;
+  const L = Math.hypot(dx, dy) || 1;
+  const ux = dx / L;
+  const uy = dy / L;
+  // Vektor "kanan" dari arah panah (sistem koordinat layar, y ke bawah).
+  const rx = -uy;
+  const ry = ux;
+
+  // Kepala panah: ujung tepat di tengah petak tujuan, punggung cekung.
+  const headR = {
+    x: s.x + ux * (L - 4.6) + rx * 3.4,
+    y: s.y + uy * (L - 4.6) + ry * 3.4,
   };
+  const headL = {
+    x: s.x + ux * (L - 4.6) - rx * 3.4,
+    y: s.y + uy * (L - 4.6) - ry * 3.4,
+  };
+  const notch = { x: s.x + ux * (L - 2.8), y: s.y + uy * (L - 2.8) };
+  const points = `${t.x},${t.y} ${headR.x},${headR.y} ${notch.x},${notch.y} ${headL.x},${headL.y}`;
+
+  // Batang panah: dari sedikit di luar pusat petak asal hingga masuk ke kepala.
+  const a = { x: s.x + ux * 4.2, y: s.y + uy * 4.2 };
+  const b = { x: s.x + ux * (L - 2.9), y: s.y + uy * (L - 2.9) };
+  return { x1: a.x, y1: a.y, x2: b.x, y2: b.y, points };
 }
 
 /**
@@ -100,7 +120,7 @@ function garisPanah(from, to, orientasi) {
  *  - Klik kanan pada petak = tandai petak dengan warna.
  *  - Tahan klik kanan lalu seret = gambar panah antar petak.
  *  - Klik kanan petak yang sudah ditandai = hapus semua tanda.
- *  - Shift/Ctrl/Alt saat menandai memilih warna merah/kuning/biru.
+ *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
  */
 export default function PapanTekaTeki({
   fen,
@@ -303,7 +323,7 @@ export default function PapanTekaTeki({
               {warnaMark && (
                 <span
                   className="absolute inset-0"
-                  style={{ backgroundColor: WARNA_TANDA[warnaMark], opacity: 0.5 }}
+                  style={{ backgroundColor: WARNA_PETAK[warnaMark] }}
                   aria-hidden="true"
                 />
               )}
@@ -345,55 +365,41 @@ export default function PapanTekaTeki({
         viewBox="0 0 100 100"
         aria-hidden="true"
       >
-        <defs>
-          {Object.entries(WARNA_TANDA).map(([nama, warna]) => (
-            <marker
-              key={nama}
-              id={`kci-kepala-${nama}`}
-              orient="auto"
-              markerUnits="userSpaceOnUse"
-              markerWidth="4"
-              markerHeight="4"
-              refX="4"
-              refY="2"
-            >
-              <path d="M0,0 L4,2 L0,4 Z" fill={warna} />
-            </marker>
-          ))}
-        </defs>
-
         {tanda.panah.map((p, i) => {
-          const g = garisPanah(p.from, p.to, orientasi);
+          const g = geometriPanah(p.from, p.to, orientasi);
+          const warna = WARNA_PANAH[p.warna];
           return (
-            <line
-              key={`${p.from}-${p.to}-${i}`}
-              x1={g.x1}
-              y1={g.y1}
-              x2={g.x2}
-              y2={g.y2}
-              stroke={WARNA_TANDA[p.warna]}
-              strokeWidth="2.8"
-              strokeLinecap="round"
-              opacity="0.9"
-              markerEnd={`url(#kci-kepala-${p.warna})`}
-            />
+            <g key={`${p.from}-${p.to}-${i}`}>
+              <line
+                x1={g.x1}
+                y1={g.y1}
+                x2={g.x2}
+                y2={g.y2}
+                stroke={warna}
+                strokeWidth="2.8"
+                strokeLinecap="round"
+              />
+              <polygon points={g.points} fill={warna} />
+            </g>
           );
         })}
 
         {panahSementara && panahSementara.to !== panahSementara.from && (() => {
-          const g = garisPanah(panahSementara.from, panahSementara.to, orientasi);
+          const g = geometriPanah(panahSementara.from, panahSementara.to, orientasi);
+          const warna = WARNA_PANAH[panahSementara.warna];
           return (
-            <line
-              x1={g.x1}
-              y1={g.y1}
-              x2={g.x2}
-              y2={g.y2}
-              stroke={WARNA_TANDA[panahSementara.warna]}
-              strokeWidth="2.8"
-              strokeLinecap="round"
-              opacity="0.65"
-              markerEnd={`url(#kci-kepala-${panahSementara.warna})`}
-            />
+            <g opacity="0.6">
+              <line
+                x1={g.x1}
+                y1={g.y1}
+                x2={g.x2}
+                y2={g.y2}
+                stroke={warna}
+                strokeWidth="2.8"
+                strokeLinecap="round"
+              />
+              <polygon points={g.points} fill={warna} />
+            </g>
           );
         })()}
       </svg>
