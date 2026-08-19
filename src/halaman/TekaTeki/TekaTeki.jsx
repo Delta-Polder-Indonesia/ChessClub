@@ -237,14 +237,33 @@ export default function TekaTeki() {
     }
   }
 
-  /** Klik petak: pilih bidak sendiri atau coba langkah ke petak sasaran. */
+  /** Klik kiri: pilih bidak / coba langkah — klik pada petak tanpa aksi permainan menghapus SEMUA tanda. */
   function klikPetak(petak) {
-    if (!masalah || komputer || selesai || !fen) return;
-    if (terpilih && sasaran.includes(petak)) {
+    if (!masalah || !fen || komputer) return;
+
+    // Petak tujuan legal dari bidak terpilih → coba langkah.
+    if (!selesai && terpilih && sasaran.includes(petak)) {
       cobaLangkah(terpilih, petak);
       return;
     }
-    pilihPetak(petak);
+
+    // Bidak sendiri → pilih (tanda tetap dipertahankan).
+    if (!selesai) {
+      const game = new Chess(fen);
+      const bidak = game.get(petak);
+      if (bidak && bidak.color === game.turn()) {
+        pilihPetak(petak);
+        return;
+      }
+    }
+
+    // Klik kiri pada petak kosong/lawan (tanpa aksi permainan):
+    // batalkan pilihan, lalu hapus semua tanda bila ada.
+    setTerpilih(null);
+    setSasaran([]);
+    if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
+      hapusSemuaTanda();
+    }
   }
 
   /** Coba langkah pemain: cocok dengan solusi (atau skakmat apa pun di akhir). */
@@ -373,10 +392,13 @@ export default function TekaTeki() {
 
   /* ------------------------------------------------ tanda bantu (klik kanan) */
 
-  /** Klik kanan pada petak: tandai — atau hapus SEMUA tanda bila sudah ditandai. */
+  /** Klik kanan pada petak: tandai — klik kanan lagi pada petak yang sama menghapus tanda petak itu saja. */
   function tandaPetak(petak, warna) {
     setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
+      if (lama.petak[petak]) {
+        const { [petak]: _buang, ...sisa } = lama.petak;
+        return { ...lama, petak: sisa };
+      }
       return { ...lama, petak: { ...lama.petak, [petak]: warna } };
     });
   }
