@@ -5,8 +5,7 @@ import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
 /**
- * Halaman "Cara Bermain Catur" — panduan lengkap 71 bagian yang bersumber dari
- * DokumenHistory/index.html (diubah menjadi data lewat scripts/ekstrak-panduan-catur.py).
+ * Halaman "Cara Bermain Catur" — panduan lengkap 71 bagian.
  * Konten dimuat terpisah (code-split) agar bundle utama tetap ringan.
  */
 

@@ -18,6 +18,7 @@ export const RUTE_PUBLIK = [
   "/program-kami/simultan-dan-blindfold",
   "/program-kami/sekolah-catur",
   "/program-kami/sekolah-catur/cara-bermain-catur",
+  "/teka-teki",
   "/turnamen",
   "/turnamen/turnamen-bulanan",
   "/turnamen/liga-musiman",
