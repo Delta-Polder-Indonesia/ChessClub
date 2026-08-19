@@ -15,6 +15,8 @@ import PapanTekaTeki from "./PapanTekaTeki.jsx";
  */
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
+const KUNCI_POSISI = "kci-teka-teki-posisi";
+const KUNCI_INGAT = "kci-teka-teki-ingat";
 const KUNCI_TIPE = {
   "Mate in One": "skakmat1",
   "Mate in Two": "skakmat2",
@@ -57,6 +59,25 @@ function bacaTerpecahkan() {
   }
 }
 
+/** Baca nomor soal terakhir yang dilihat pengguna. */
+function bacaPosisi() {
+  try {
+    const n = Number(localStorage.getItem(KUNCI_POSISI));
+    return Number.isInteger(n) && n >= 1 ? n : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Apakah fitur "ingat posisi terakhir" aktif? (aktif secara bawaan). */
+function bacaIngat() {
+  try {
+    return localStorage.getItem(KUNCI_INGAT) !== "0";
+  } catch {
+    return true;
+  }
+}
+
 /** Kerangka pemuatan sebelum data teka-teki tiba. */
 function KerangkaTekaTeki() {
   return (
@@ -89,10 +110,27 @@ export default function TekaTeki() {
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
 
+  // Pengaturan & navigasi: ingat posisi terakhir + lompat ke nomor soal.
+  const [ingatPosisi, setIngatPosisi] = useState(bacaIngat);
+  const [posisiTersimpan, setPosisiTersimpan] = useState(bacaPosisi);
+  const [nomorSoal, setNomorSoal] = useState("");
+  const [galatNomor, setGalatNomor] = useState(null);
+
   const timerSalah = useRef(null);
   const masalah = soal?.[indeks];
 
   /* ------------------------------------------------------- pemuatan data */
+
+  /** Simpan nomor soal terakhir yang dilihat agar bisa dilanjutkan lagi. */
+  const simpanPosisi = useCallback((id) => {
+    try {
+      localStorage.setItem(KUNCI_POSISI, String(id));
+    } catch {
+      /* localStorage tidak tersedia */
+    }
+    setPosisiTersimpan(id);
+  }, []);
+
   useEffect(() => {
     let aktif = true;
     fetch(`${import.meta.env.BASE_URL}data/teka-teki.json`)
@@ -105,14 +143,25 @@ export default function TekaTeki() {
         const daftar = data.problems || [];
         if (!daftar.length) throw new Error("data kosong");
         const idParam = Number(params.get("id"));
-        const awal =
-          idParam >= 1 && idParam <= daftar.length
-            ? idParam - 1
-            : Math.floor(Math.random() * daftar.length);
+        let awal;
+        if (idParam >= 1 && idParam <= daftar.length) {
+          // Tautan ?id=N (misalnya dibagikan) lebih diutamakan.
+          awal = idParam - 1;
+        } else if (ingatPosisi) {
+          // Lanjutkan dari posisi terakhir yang tersimpan.
+          const tersimpan = bacaPosisi();
+          awal =
+            tersimpan >= 1 && tersimpan <= daftar.length
+              ? tersimpan - 1
+              : Math.floor(Math.random() * daftar.length);
+        } else {
+          awal = Math.floor(Math.random() * daftar.length);
+        }
         setSoal(daftar);
         setIndeks(awal);
         terapkanSoal(daftar[awal]);
         setParams({ id: String(daftar[awal].problemid) }, { replace: true });
+        if (ingatPosisi) simpanPosisi(daftar[awal].problemid);
       })
       .catch(() => {
         if (aktif) setGagal(true);
@@ -160,9 +209,10 @@ export default function TekaTeki() {
       setIndeks(idx);
       terapkanSoal(m);
       setParams({ id: String(m.problemid) }, { replace: true });
+      if (ingatPosisi) simpanPosisi(m.problemid);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [soal, terapkanSoal, setParams]
+    [soal, terapkanSoal, setParams, ingatPosisi, simpanPosisi]
   );
 
   const pilihAcak = () =>
@@ -278,6 +328,41 @@ export default function TekaTeki() {
     });
   }
 
+  /** Hidupkan/matikan "ingat posisi terakhir" (pengaturan). */
+  function ubahIngat(nilai) {
+    setIngatPosisi(nilai);
+    try {
+      if (nilai) {
+        if (masalah) {
+          localStorage.setItem(KUNCI_POSISI, String(masalah.problemid));
+          setPosisiTersimpan(masalah.problemid);
+        }
+        localStorage.setItem(KUNCI_INGAT, "1");
+      } else {
+        localStorage.setItem(KUNCI_INGAT, "0");
+        localStorage.removeItem(KUNCI_POSISI);
+        setPosisiTersimpan(null);
+      }
+    } catch {
+      /* localStorage tidak tersedia */
+    }
+  }
+
+  /** Lompat langsung ke nomor soal yang diketik pengguna. */
+  function bukaNomor(e) {
+    e.preventDefault();
+    if (!soal?.length) return;
+    const teks = nomorSoal.trim();
+    const n = Number(teks);
+    if (!/^\d+$/.test(teks) || n < 1 || n > soal.length) {
+      setGalatNomor(t("tekaTeki.nomorTidakValid", { total: soal.length }));
+      return;
+    }
+    setGalatNomor(null);
+    setNomorSoal("");
+    pindahSoal(n - 1);
+  }
+
   /* -------------------------------------------------------------- tampilan */
 
   const crumbs = [
@@ -387,12 +472,12 @@ export default function TekaTeki() {
                 <div aria-live="polite" className="mt-4 min-h-[52px]">
                   {pesan?.jenis === "salah" && (
                     <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
-                      ✗ {pesan.teks}
+                      {pesan.teks}
                     </p>
                   )}
                   {pesan?.jenis === "benar" && (
                     <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                      ✓ {pesan.teks}
+                      {pesan.teks}
                     </p>
                   )}
                   {pesan?.jenis === "selesai" && (
@@ -404,7 +489,7 @@ export default function TekaTeki() {
 
                 {sudahPecah && !pesan && (
                   <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-emerald-700">
-                    ✓ {t("tekaTeki.sudahTerpecahkan")}
+                    {t("tekaTeki.sudahTerpecahkan")}
                   </p>
                 )}
 
@@ -448,9 +533,73 @@ export default function TekaTeki() {
                   </button>
                 </div>
 
+                {/* Kolom input nomor soal + pengaturan lanjutkan posisi */}
+                <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                  <form
+                    onSubmit={bukaNomor}
+                    className="rounded-md border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <label
+                      htmlFor="nomor-soal"
+                      className="block text-xs font-semibold uppercase tracking-wide text-slate-500"
+                    >
+                      {t("tekaTeki.langsungKe")}
+                    </label>
+                    <div className="mt-2 flex gap-2">
+                      <input
+                        id="nomor-soal"
+                        type="number"
+                        min={1}
+                        max={soal.length}
+                        value={nomorSoal}
+                        onChange={(e) => setNomorSoal(e.target.value)}
+                        placeholder={`1–${soal.length}`}
+                        className="w-full min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        type="submit"
+                        className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90"
+                      >
+                        {t("tekaTeki.buka")}
+                      </button>
+                    </div>
+                    {galatNomor ? (
+                      <p role="alert" className="mt-1.5 text-xs font-medium text-red-600">
+                        {galatNomor}
+                      </p>
+                    ) : (
+                      <p className="mt-1.5 text-xs text-slate-400">
+                        {t("tekaTeki.rentangNomor", { total: soal.length })}
+                      </p>
+                    )}
+                  </form>
+
+                  <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                      {t("tekaTeki.pengaturan")}
+                    </p>
+                    <label className="mt-3 flex cursor-pointer items-start gap-2.5 text-sm leading-6 text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={ingatPosisi}
+                        onChange={(e) => ubahIngat(e.target.checked)}
+                        className="mt-1 h-4 w-4 shrink-0 accent-[#0b2f9f]"
+                      />
+                      <span>{t("tekaTeki.ingatPosisi")}</span>
+                    </label>
+                    <p className="mt-2 text-xs leading-5 text-slate-400">
+                      {ingatPosisi
+                        ? t("tekaTeki.posisiTersimpan", {
+                            n: posisiTersimpan ?? masalah.problemid,
+                          })
+                        : t("tekaTeki.ingatNonaktif")}
+                    </p>
+                  </div>
+                </div>
+
                 {/* Rekor terselesaikan */}
                 <p className="mt-5 text-sm text-slate-500">
-                  🏆 {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
+                  {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
                 </p>
 
                 <p className="mt-6 border-t border-slate-200 pt-4 text-xs leading-6 text-slate-400">
