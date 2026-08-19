@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChessPiece } from "../Beranda/ChessPieceSvg.jsx";
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
@@ -190,6 +190,8 @@ function titikKePoints(titik) {
  * Gerakan bidak:
  *  - Klik bidak → klik petak tujuan (termasuk layar sentuh & keyboard).
  *  - Seret (drag & drop) bidak ke petak tujuan.
+ *  - Klik kanan saat sedang menyeret (tahan kiri + drag) = batalkan:
+ *    bidak kembali ke petak asal, seperti chess.com.
  *
  * Tanda bantu ala chess.com:
  *  - Klik kanan pada petak = tandai petak dengan warna kuning.
@@ -214,6 +216,9 @@ export default function PapanTekaTeki({
   onKlik,
   onPilih,
   onJatuh,
+  onMulaiSeret,
+  onSelesaiSeret,
+  onBatalSeret,
   onTandaPetak,
   onTandaPanah,
 }) {
@@ -225,8 +230,13 @@ export default function PapanTekaTeki({
   const ukuran = useRef(0);
 
   // Keadaan gerakan seret bidak.
-  const seretRef = useRef(null); // { dari, x0, y0, pindah }
+  const seretRef = useRef(null); // { dari, x0, y0, pindah, pointerId }
   const [seret, setSeret] = useState(null); // { from, x, y } → bidak hantu
+  const abaikanKlikRef = useRef(false);
+  const baruBatalRef = useRef(false);
+  const onBatalSeretRef = useRef(onBatalSeret);
+  onBatalSeretRef.current = onBatalSeret;
+  const batalkanSeretRef = useRef(() => {});
 
   // Keadaan tanda klik kanan.
   const kananRef = useRef(null); // { petak, warna }
@@ -240,21 +250,103 @@ export default function PapanTekaTeki({
 
   /* ---------------------------------------------------------- gerakan bidak */
 
+  /** Kembalikan bidak ke petak asal — klik kanan saat drag, seperti chess.com. */
+  function batalkanSeretInternal() {
+    if (!seretRef.current) return;
+    const id = seretRef.current.pointerId;
+    seretRef.current = null;
+    kananRef.current = null;
+    setSeret(null);
+    setPanahSementara(null);
+    abaikanKlikRef.current = true;
+    baruBatalRef.current = true;
+    if (id != null) {
+      try {
+        akar.current?.releasePointerCapture(id);
+      } catch {
+        /* pointer capture tidak aktif */
+      }
+    }
+    onBatalSeretRef.current?.();
+  }
+  batalkanSeretRef.current = batalkanSeretInternal;
+
+  // Dengarkan klik kanan di seluruh dokumen selama seret, termasuk di luar papan.
+  useEffect(() => {
+    function saatKlikKanan(e) {
+      if (!seretRef.current) return;
+      e.preventDefault();
+      e.stopPropagation();
+      batalkanSeretRef.current();
+    }
+
+    function onPointerDown(e) {
+      if (e.button === 2) saatKlikKanan(e);
+    }
+    function onMouseDown(e) {
+      if (e.button === 2) saatKlikKanan(e);
+    }
+    function onContextMenu(e) {
+      saatKlikKanan(e);
+    }
+    function onPointerMove(e) {
+      if (e.buttons & 2) saatKlikKanan(e);
+    }
+    function onClick(e) {
+      if (!abaikanKlikRef.current) return;
+      abaikanKlikRef.current = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    function onPointerUp() {
+      if (baruBatalRef.current) baruBatalRef.current = false;
+    }
+
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("mousedown", onMouseDown, true);
+    document.addEventListener("contextmenu", onContextMenu, true);
+    document.addEventListener("pointermove", onPointerMove, true);
+    document.addEventListener("click", onClick, true);
+    document.addEventListener("pointerup", onPointerUp, true);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("mousedown", onMouseDown, true);
+      document.removeEventListener("contextmenu", onContextMenu, true);
+      document.removeEventListener("pointermove", onPointerMove, true);
+      document.removeEventListener("click", onClick, true);
+      document.removeEventListener("pointerup", onPointerUp, true);
+    };
+  }, []);
+
   function mulaiSeret(e, petakAwal) {
     if (e.pointerType !== "touch") e.preventDefault();
     ukuran.current = akar.current?.getBoundingClientRect().width || 0;
-    seretRef.current = { dari: petakAwal, x0: e.clientX, y0: e.clientY, pindah: false };
+    seretRef.current = {
+      dari: petakAwal,
+      x0: e.clientX,
+      y0: e.clientY,
+      pindah: false,
+      pointerId: e.pointerId,
+    };
     setSeret({ from: petakAwal, x: e.clientX, y: e.clientY });
     try {
       akar.current?.setPointerCapture(e.pointerId);
     } catch {
       /* pointer capture tidak tersedia */
     }
-    onPilih?.(petakAwal);
+    if (onMulaiSeret) onMulaiSeret(petakAwal);
+    else onPilih?.(petakAwal);
   }
 
   function padaTekan(e, petakAwal) {
     if (e.button === 2) {
+      // Klik kanan saat menyeret bidak → kembalikan ke petak asal.
+      // baruBatalRef menahan event kanan yang sama agar tidak jadi panah/tanda.
+      if (seretRef.current || baruBatalRef.current) {
+        e.preventDefault();
+        batalkanSeretInternal();
+        return;
+      }
       // Klik kanan: awal gerakan tanda (mark/panah).
       if (membeku) return;
       e.preventDefault();
@@ -269,6 +361,7 @@ export default function PapanTekaTeki({
       return;
     }
     if (e.button !== 0 || terkunci) return;
+    baruBatalRef.current = false;
     const bidak = peta[petakAwal];
     const warnaBidak = bidak ? (bidak === bidak.toUpperCase() ? "w" : "b") : null;
     if (bidak && warnaBidak === giliran) {
@@ -278,6 +371,11 @@ export default function PapanTekaTeki({
 
   function padaGerak(e) {
     if (seretRef.current) {
+      // Tombol kanan ditekan di tengah seret → batalkan (chess.com).
+      if (e.buttons & 2) {
+        batalkanSeretInternal();
+        return;
+      }
       const jarak = Math.hypot(
         e.clientX - seretRef.current.x0,
         e.clientY - seretRef.current.y0
@@ -298,15 +396,22 @@ export default function PapanTekaTeki({
   function padaLepas(e) {
     if (e.button === 0 && seretRef.current) {
       const { dari, pindah } = seretRef.current;
-      if (pindah) {
-        const tujuan = cariPetak(e.clientX, e.clientY);
-        if (tujuan && tujuan !== dari) onJatuh?.(dari, tujuan);
-      }
       seretRef.current = null;
       setSeret(null);
+      const tujuan = pindah ? cariPetak(e.clientX, e.clientY) || dari : dari;
+      if (pindah && tujuan !== dari) abaikanKlikRef.current = true;
+      if (onSelesaiSeret) onSelesaiSeret(dari, tujuan);
+      else if (pindah && tujuan !== dari) onJatuh?.(dari, tujuan);
       return;
     }
-    if (e.button === 2 && kananRef.current) {
+    if (e.button === 2) {
+      if (baruBatalRef.current) {
+        kananRef.current = null;
+        setPanahSementara(null);
+        baruBatalRef.current = false;
+        return;
+      }
+      if (!kananRef.current) return;
       const { petak: asal, warna } = kananRef.current;
       const tujuan = cariPetak(e.clientX, e.clientY);
       if (tujuan && tujuan !== asal) {
@@ -323,10 +428,24 @@ export default function PapanTekaTeki({
   }
 
   function padaBatal() {
+    const adaSeret = !!seretRef.current;
     seretRef.current = null;
     kananRef.current = null;
     setSeret(null);
     setPanahSementara(null);
+    if (adaSeret) {
+      abaikanKlikRef.current = true;
+      baruBatalRef.current = true;
+      onBatalSeretRef.current?.();
+    }
+  }
+
+  function padaKlikPetak(sq) {
+    if (abaikanKlikRef.current) {
+      abaikanKlikRef.current = false;
+      return;
+    }
+    onKlik?.(sq);
   }
 
   /* -------------------------------------------------------------- tampilan */
@@ -340,7 +459,16 @@ export default function PapanTekaTeki({
       onPointerUp={padaLepas}
       onPointerCancel={padaBatal}
       onLostPointerCapture={padaBatal}
-      onContextMenu={(e) => e.preventDefault()}
+      onPointerDown={(e) => {
+        if (e.button === 2 && (seretRef.current || baruBatalRef.current)) {
+          e.preventDefault();
+          batalkanSeretInternal();
+        }
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (seretRef.current) batalkanSeretInternal();
+      }}
       className={`relative w-full aspect-square select-none overflow-hidden rounded shadow-lg ring-1 ring-black/10 ${
         seret ? "cursor-grabbing" : ""
       }`}
@@ -386,7 +514,7 @@ export default function PapanTekaTeki({
                   : ", kosong"
               }`}
               onPointerDown={(e) => padaTekan(e, sq)}
-              onClick={() => onKlik && onKlik(sq)}
+              onClick={() => padaKlikPetak(sq)}
               style={{
                 backgroundColor: terang ? "#ebecd0" : "#779556",
                 touchAction: bisaSeret ? "none" : undefined,
