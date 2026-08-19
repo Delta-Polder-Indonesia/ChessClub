@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import Hero from "../../components/Hero.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
@@ -291,11 +290,34 @@ export default function TekaTeki() {
 
   return (
     <>
-      <Hero
-        title={t("tekaTeki.judul")}
-        description={t("tekaTeki.deskripsi")}
-        crumbs={crumbs}
-      />
+      {/* Kepala halaman penuh sendiri — tanpa gambar/foto di atasnya. */}
+      <header className="border-b border-slate-200 bg-white">
+        <div className="mx-auto max-w-[1024px] px-6 py-8 md:px-8 md:py-12">
+          <nav
+            aria-label="Breadcrumb"
+            className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500 md:text-sm"
+          >
+            {crumbs.map((c, i) => (
+              <span key={`${c.label}-${i}`} className="flex items-center gap-2">
+                {i > 0 && <span aria-hidden="true">/</span>}
+                {c.to ? (
+                  <Link to={c.to} className="hover:text-primary hover:underline">
+                    {c.label}
+                  </Link>
+                ) : (
+                  <span className="font-semibold text-slate-800">{c.label}</span>
+                )}
+              </span>
+            ))}
+          </nav>
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-slate-950 md:text-4xl">
+            {t("tekaTeki.judul")}
+          </h1>
+          <p className="mt-3 max-w-[840px] text-sm leading-7 text-slate-600 md:text-base">
+            {t("tekaTeki.deskripsi")}
+          </p>
+        </div>
+      </header>
 
       <main className="px-6 md:px-8">
         <div className="mx-auto max-w-[1024px] py-10 md:py-16">
