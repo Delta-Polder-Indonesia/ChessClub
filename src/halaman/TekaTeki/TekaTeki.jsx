@@ -392,13 +392,10 @@ export default function TekaTeki() {
 
   /* ------------------------------------------------ tanda bantu (klik kanan) */
 
-  /** Klik kanan pada petak: tandai — klik kanan lagi pada petak yang sama menghapus tanda petak itu saja. */
+  /** Klik kanan pada petak: tandai — klik kanan lagi pada petak yang bertanda menghapus SEMUA tanda. */
   function tandaPetak(petak, warna) {
     setTanda((lama) => {
-      if (lama.petak[petak]) {
-        const { [petak]: _buang, ...sisa } = lama.petak;
-        return { ...lama, petak: sisa };
-      }
+      if (lama.petak[petak]) return { panah: [], petak: {} };
       return { ...lama, petak: { ...lama.petak, [petak]: warna } };
     });
   }

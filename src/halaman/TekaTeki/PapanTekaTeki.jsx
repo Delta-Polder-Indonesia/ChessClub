@@ -192,10 +192,10 @@ function titikKePoints(titik) {
  *  - Seret (drag & drop) bidak ke petak tujuan.
  *
  * Tanda bantu ala chess.com:
- *  - Klik kanan pada petak = tandai petak dengan warna kuning; klik kanan lagi
- *    pada petak yang sama = hapus tanda petak itu saja.
+ *  - Klik kanan pada petak = tandai petak dengan warna kuning.
  *  - Tahan klik kanan lalu seret = gambar panah oranye (lurus; siku untuk
  *    langkah kuda).
+ *  - Klik kanan pada petak yang sudah bertanda = hapus SEMUA tanda & panah.
  *  - Klik kiri pada petak kosong (tanpa aksi permainan) = hapus SEMUA tanda.
  *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
  */
