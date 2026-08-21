@@ -54,6 +54,102 @@ function susunKatalog(pohon) {
   return hasil;
 }
 
+/** Pola langkah koordinat ("e2e4") — dipakai untuk membedakan jenis kunci pohon. */
+const POLA_KOORDINAT = /^[a-h][1-8][a-h][1-8]$/;
+
+/**
+ * Ubah buku pembukaan berformat "daftar rata" (format Lichess, mis.
+ * [{ eco, opening, moves: "e2e4 e7e5 g1f3 …" }, …]) menjadi pohon langkah
+ * ber-key koordinat yang sama bentuknya dengan keluaran
+ * scripts/bangun-pembukaan.mjs: node = { "n"?: [[eco, nama], …], "c"?: {…} }.
+ * Konversi ini murni penyusunan string sehingga cepat (tidak butuh chess.js).
+ */
+function pohonDariDaftar(daftar) {
+  const akar = {};
+  for (const entri of daftar) {
+    const eco = entri.eco || entri.code || "?";
+    const nama = entri.opening || entri.name;
+    const langkah = String(entri.moves || entri.uci || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!nama || !langkah.length) continue;
+    let node = akar;
+    for (const k of langkah) {
+      if (!node.c) node.c = {};
+      if (!node.c[k]) node.c[k] = {};
+      node = node.c[k];
+    }
+    if (!node.n) node.n = [];
+    if (!node.n.some(([e, n]) => e === eco && n === nama)) {
+      node.n.push([eco, nama]);
+    }
+  }
+  return akar;
+}
+
+/** Tebak kunci pohon: koordinat ("e2e4") atau SAN ("e4", "Nf3", …). */
+function modeDariPohon(pohon) {
+  const kunci = Object.keys((pohon && pohon.c) || {});
+  if (!kunci.length) return "koordinat";
+  return kunci.every((k) => POLA_KOORDINAT.test(k)) ? "koordinat" : "san";
+}
+
+/** Kunci pohon untuk satu pindahan: koordinat atau SAN, sesuai mode. */
+function kuciDariPindahan(pindah, mode) {
+  return mode === "koordinat" ? `${pindah.from}${pindah.to}` : pindah.san;
+}
+
+/** Ubah satu langkah koordinat menjadi SAN pada posisi `game` (lalu undo). */
+function sanDiPosisi(game, koordinat) {
+  try {
+    const pindah = game.move({ from: koordinat.slice(0, 2), to: koordinat.slice(2, 4) });
+    if (pindah) {
+      game.undo();
+      return pindah.san;
+    }
+  } catch {}
+  return koordinat;
+}
+
+/** Replay deret koordinat menjadi { fen, san } (untuk memuat jalur katalog). */
+function fenDanSanDariKoordinat(daftarKoordinat) {
+  const game = new Chess();
+  const san = [];
+  for (const k of daftarKoordinat) {
+    let pindah;
+    try {
+      pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
+    } catch {
+      pindah = null;
+    }
+    if (!pindah) return null;
+    san.push(pindah.san);
+  }
+  return { fen: game.fen(), san };
+}
+
+/** Pratinjau SAN untuk deret koordinat (dipakai daftar katalog; di-cache). */
+const KACI_PRATINJAU = new Map();
+function pratinjauSan(daftarKoordinat) {
+  const kuci = daftarKoordinat.slice(0, 6).join(" ");
+  if (KACI_PRATINJAU.has(kuci)) return KACI_PRATINJAU.get(kuci);
+  const game = new Chess();
+  const san = [];
+  for (const k of daftarKoordinat.slice(0, 6)) {
+    try {
+      const pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
+      if (!pindah) break;
+      san.push(pindah.san);
+    } catch {
+      break;
+    }
+  }
+  const teks = san.join(" ") + (daftarKoordinat.length > 6 ? " …" : "");
+  KACI_PRATINJAU.set(kuci, teks);
+  return teks;
+}
+
 function Kerangka() {
   return (
     <div aria-hidden="true" className="animate-pulse">
@@ -67,10 +163,12 @@ export default function PapanInteraktif() {
   const { t } = useI18n();
 
   const [pohon, setPohon] = useState(null);
+  const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
   const [gagal, setGagal] = useState(false);
 
   const [fen, setFen] = useState(FEN_AWAL);
-  const [riwayat, setRiwayat] = useState([]);
+  const [riwayat, setRiwayat] = useState([]); // SAN, untuk PGN
+  const [jalur, setJalur] = useState([]); // kunci pohon, untuk menelusuri pembukaan
   const [orientasi, setOrientasi] = useState("w");
 
   const [terpilih, setTerpilih] = useState(null);
@@ -98,7 +196,16 @@ export default function PapanInteraktif() {
         return respon.json();
       })
       .then((data) => {
-        if (aktif) setPohon(data);
+        if (!aktif) return;
+        // Daftar rata (format Lichess) → bangun pohon koordinat di tempat.
+        // Objek pohon → pakai langsung (dukung kunci SAN lama maupun koordinat).
+        if (Array.isArray(data)) {
+          setPohon(pohonDariDaftar(data));
+          setMode("koordinat");
+        } else {
+          setPohon(data);
+          setMode(modeDariPohon(data));
+        }
       })
       .catch(() => {
         if (aktif) setGagal(true);
@@ -126,24 +233,27 @@ export default function PapanInteraktif() {
     let node = pohon;
     let namaTerdalam = null;
     let cocok = true;
-    for (const san of riwayat) {
-      if (!node.c || !node.c[san]) {
+    for (const k of jalur) {
+      if (!node.c || !node.c[k]) {
         cocok = false;
         break;
       }
-      node = node.c[san];
+      node = node.c[k];
       if (node.n && node.n.length) namaTerdalam = node.n;
     }
-    const saran = cocok
-      ? Object.entries(node.c || {})
-          .map(([san, anak]) => ({
-            san,
-            nama: anak.n && anak.n.length ? anak.n[0][1] : null,
-          }))
-          .slice(0, 8)
-      : [];
+    let saran = [];
+    if (cocok) {
+      const game = new Chess(fen);
+      saran = Object.entries(node.c || {})
+        .slice(0, 8)
+        .map(([k, anak]) => ({
+          k,
+          san: mode === "koordinat" ? sanDiPosisi(game, k) : k,
+          nama: anak.n && anak.n.length ? anak.n[0][1] : null,
+        }));
+    }
     return { nama: namaTerdalam, saran, cocok };
-  }, [pohon, riwayat]);
+  }, [pohon, jalur, fen, mode]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
@@ -226,6 +336,7 @@ export default function PapanInteraktif() {
 
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from, to });
     setTerpilih(null);
     setSasaran([]);
@@ -244,6 +355,7 @@ export default function PapanInteraktif() {
     }
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
     setSasaran([]);
@@ -323,6 +435,7 @@ export default function PapanInteraktif() {
   function reset() {
     setFen(FEN_AWAL);
     setRiwayat([]);
+    setJalur([]);
     setOrientasi("w");
     setTerpilih(null);
     setSasaran([]);
@@ -335,6 +448,7 @@ export default function PapanInteraktif() {
     if (!riwayat.length) return;
     const baru = riwayat.slice(0, -1);
     setRiwayat(baru);
+    setJalur((lama) => lama.slice(0, -1));
     setFen(fenDariLangkah(baru));
     setTerpilih(null);
     setSasaran([]);
@@ -358,8 +472,17 @@ export default function PapanInteraktif() {
   }
 
   function muatJalur(entri) {
-    setRiwayat([...entri.langkah]);
-    setFen(fenDariLangkah(entri.langkah));
+    if (mode === "koordinat") {
+      const hasil = fenDanSanDariKoordinat(entri.langkah);
+      if (!hasil) return;
+      setRiwayat(hasil.san);
+      setJalur([...entri.langkah]);
+      setFen(hasil.fen);
+    } else {
+      setRiwayat([...entri.langkah]);
+      setJalur([...entri.langkah]);
+      setFen(fenDariLangkah(entri.langkah));
+    }
     setOrientasi("w");
     setTerpilih(null);
     setSasaran([]);
@@ -568,7 +691,7 @@ export default function PapanInteraktif() {
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {infoPembukaan.saran.map((s) => (
                           <button
-                            key={s.san}
+                            key={s.k}
                             type="button"
                             onClick={() => mainkanSan(s.san)}
                             title={s.nama || s.san}
@@ -603,7 +726,7 @@ export default function PapanInteraktif() {
                             total: katalog.length,
                           })}
                         </p>
-                        <DaftarKatalog entri={hasilCari} onMuat={muatJalur} />
+                        <DaftarKatalog entri={hasilCari} onMuat={muatJalur} mode={mode} />
                       </>
                     ) : (
                       <p className="mt-2 text-sm text-slate-500">
@@ -614,6 +737,7 @@ export default function PapanInteraktif() {
                     <DaftarKatalog
                       entri={katalog.slice(0, 40)}
                       onMuat={muatJalur}
+                      mode={mode}
                     />
                   )}
                 </div>
@@ -639,12 +763,12 @@ export default function PapanInteraktif() {
   );
 }
 
-function DaftarKatalog({ entri, onMuat }) {
+function DaftarKatalog({ entri, onMuat, mode }) {
   if (!entri.length) return null;
   return (
     <ul className="mt-2 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white">
       {entri.map((k) => (
-        <li key={`${k.eco}-${k.nama}`} className="border-b border-slate-100 last:border-0">
+        <li key={`${k.eco}-${k.nama}-${k.langkah.join(" ")}`} className="border-b border-slate-100 last:border-0">
           <button
             type="button"
             onClick={() => onMuat(k)}
@@ -657,8 +781,9 @@ function DaftarKatalog({ entri, onMuat }) {
               {k.nama}
             </span>
             <span className="hidden shrink-0 truncate font-mono text-xs text-slate-400 sm:block">
-              {k.langkah.slice(0, 6).join(" ")}
-              {k.langkah.length > 6 ? " …" : ""}
+              {mode === "koordinat"
+                ? pratinjauSan(k.langkah)
+                : k.langkah.slice(0, 6).join(" ") + (k.langkah.length > 6 ? " …" : "")}
             </span>
           </button>
         </li>
