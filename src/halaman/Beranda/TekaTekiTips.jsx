@@ -95,8 +95,8 @@ function ChessBoardComponent() {
           <marker
             id="arrowhead-red"
             orient="auto"
-            markerWidth="5"
-            markerHeight="5"
+            markerWidth="7"
+            markerHeight="7"
             refX="3"
             refY="2.5"
           >
@@ -105,8 +105,8 @@ function ChessBoardComponent() {
           <marker
             id="arrowhead-blue"
             orient="auto"
-            markerWidth="5"
-            markerHeight="5"
+            markerWidth="7"
+            markerHeight="7"
             refX="3"
             refY="2.5"
           >
@@ -121,7 +121,7 @@ function ChessBoardComponent() {
           x2="57.5"
           y2="78.75"
           stroke="#dc2626"
-          strokeWidth="2.8"
+          strokeWidth="4.2"
           strokeLinecap="round"
           markerEnd="url(#arrowhead-red)"
           opacity="0.85"
@@ -134,7 +134,7 @@ function ChessBoardComponent() {
           x2="69.5"
           y2="30.5"
           stroke="#2563eb"
-          strokeWidth="2.8"
+          strokeWidth="4.2"
           strokeLinecap="round"
           markerEnd="url(#arrowhead-blue)"
           opacity="0.85"
