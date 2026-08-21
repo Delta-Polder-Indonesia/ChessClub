@@ -23,3 +23,7 @@ Thumbs.db
 !.env.contoh
 # Data pribadi anggota (nama asli, HP/WA, DANA) — JANGAN pernah di-commit
 data/rahasia/
+
+# Pesan dari form "Hubungi Kami" berisi nama/email/telepon publik.
+# Server membuatnya sendiri saat pertama ditulis; jangan ikut commit.
+data/pesan.json

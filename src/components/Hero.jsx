@@ -34,7 +34,7 @@ export default function Hero({
           className="w-full h-full object-cover"
           draggable="false"
           decoding="async"
-          fetchPriority="high"
+          fetchpriority="high"
         />
       </div>
       <div

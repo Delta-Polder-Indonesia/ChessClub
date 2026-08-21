@@ -6,6 +6,8 @@ import {
   ajukanPesertaTurnamen,
 } from "../lib/chessAnggota.js";
 import { useI18n } from "../lib/i18n.jsx";
+import { parseWaktuKomunitas } from "../lib/waktu.js";
+import { WARNA_STATUS, TEKS_STATUS } from "./LencanaStatus.jsx";
 
 /**
  * Bagian dinamis untuk keempat halaman turnamen publik.
@@ -17,28 +19,6 @@ import { useI18n } from "../lib/i18n.jsx";
  * Bila belum ada turnamen yang dipublikasikan, komponen ini menampilkan
  * pesan tenang — bukan galat — supaya halaman tetap rapi.
  */
-
-const WARNA_STATUS = {
-  pendaftaran: "bg-blue-50 text-blue-700 border-blue-200",
-  berlangsung: "bg-amber-50 text-amber-800 border-amber-200",
-  selesai: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  batal: "bg-red-50 text-red-700 border-red-200",
-};
-
-const TEKS_STATUS = {
-  id: {
-    pendaftaran: "Pendaftaran dibuka",
-    berlangsung: "Sedang berlangsung",
-    selesai: "Selesai",
-    batal: "Dibatalkan",
-  },
-  en: {
-    pendaftaran: "Registration open",
-    berlangsung: "In progress",
-    selesai: "Finished",
-    batal: "Cancelled",
-  },
-};
 
 const KATA = {
   id: {
@@ -115,8 +95,10 @@ const KATA = {
 
 function tanggal(nilai, bahasa) {
   if (!nilai) return "—";
-  const d = new Date(nilai);
-  if (Number.isNaN(d.getTime())) return nilai;
+  // Jam turnamen disimpan tanpa zona waktu; parse eksplisit sebagai
+  // Asia/Jakarta agar tidak bergeser di zona browser pengunjung.
+  const d = parseWaktuKomunitas(nilai);
+  if (!d) return nilai;
   return d.toLocaleDateString(bahasa === "en" ? "en-GB" : "id-ID", {
     day: "numeric",
     month: "long",

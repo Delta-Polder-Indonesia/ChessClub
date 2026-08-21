@@ -21,11 +21,10 @@ npm run preview  # pratinjau hasil build
 | Hero (breadcrumb, H1, deskripsi) | `src/components/Hero.jsx`      |
 | Sticky submenu (scroll-spy)    | `src/components/StickyMenu.jsx`  |
 | Sekilas Pertamina              | `src/components/Sekilas.jsx`     |
-| Divider `border-t my-24`       | di `src/App.jsx`                 |
 | Tonggak Sejarah (Swiper)       | `src/components/Tonggak.jsx`     |
 | Visi, Misi, & Tata Nilai       | `src/components/VisiMisi.jsx`    |
 | Makna Logo                     | `src/components/MaknaLogo.jsx`   |
-| Struktur Grup Perusahaan       | `src/components/Struktur.jsx`    |
+| Struktur Grup Catur            | `src/halaman/TentangKami/StrukturGrupCatur/` |
 | Navigasi "Selanjutnya"         | `src/components/PageBagian.jsx` (`PageSelanjutnya`) |
 | Footer (kolom + sosial media)  | `src/components/Footer.jsx`      |
 
@@ -48,6 +47,16 @@ Situs dioptimasi agar Lighthouse mobile/desktop menuju 100 pada keempat kategori
 - `BrowserRouter` memakai `basename` `/ChessClub/` supaya homepage tidak jatuh ke 404
 
 Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
+
+## Backend (keanggotaan, verifikasi, turnamen)
+
+Situs terdiri dari **dua bagian**: frontend statis (repo ini) dan backend
+Node tanpa dependensi di `server/` (`node server/src/index.js`). Backend
+menyediakan API `/api/*` untuk anggota, verifikasi Chess.com, turnamen,
+konten, dan pesan — detail lengkap ada di `server/README.md` dan
+`PANDUAN-DEPLOY.md`. Saat frontend di-deploy ke GitHub Pages (tanpa proxy),
+backend harus dicapai langsung lewat `VITE_API_DASAR` — sudah diatur
+otomatis oleh workflow deploy.
 
 ## Fitur
 

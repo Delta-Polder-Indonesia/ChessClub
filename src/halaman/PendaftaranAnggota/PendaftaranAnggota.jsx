@@ -11,6 +11,7 @@ import {
 } from "../../lib/chessAnggota.js";
 import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
+import { hariIniLokal } from "../../lib/waktu.js";
 import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
@@ -177,7 +178,7 @@ export default function PendaftaranAnggota() {
     }
   };
 
-  const hariIni = new Date().toISOString().slice(0, 10);
+  const hariIni = hariIniLokal();
 
   return (
     <HalamanIsi

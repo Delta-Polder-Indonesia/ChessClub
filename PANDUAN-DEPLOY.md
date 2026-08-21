@@ -86,6 +86,9 @@ Environment=KCI_PEPPER=isi-pepper-di-sini
 Environment=KCI_TOKEN_ADMIN=isi-token-di-sini
 Environment=KCI_CHESS_KLUB=blunder-skuad
 Environment=KCI_ASAL_DIIZINKAN=https://catur.example.id
+# Data (anggota, larangan, kontak, pesan, jejak audit) ditulis DI LUAR
+# folder repo — tanpa ini data PII bisa ikut ter-commit/backup repo.
+Environment=KCI_DIR_DATA=/var/lib/kci
 # Nginx adalah satu-satunya proxy tepercaya di depan aplikasi.
 Environment=KCI_JUMLAH_PROXY=1
 
@@ -141,10 +144,16 @@ ada masalah CORS sama sekali.
 ### Bila frontend tetap di GitHub Pages
 
 GitHub Pages tidak mendukung proxy, jadi frontend harus memanggil backend
-secara langsung. Tambahkan berkas `.env.production`:
+secara langsung. Workflow deploy (`.github/workflows/deploy.yml`) **sudah
+menyetel `VITE_API_DASAR` otomatis** — bawaan `https://kci-api.onrender.com`.
+Untuk alamat backend yang berbeda, atur repository variable `KCI_API_URL`
+di GitHub (Settings → Secrets and variables → Actions → Variables); nilai
+itu dipakai menggantikan bawaan.
 
-```
-VITE_API_DASAR=https://kci-api.onrender.com
+Untuk build manual di luar workflow, set variabel pada perintah build:
+
+```bash
+VITE_API_DASAR=https://kci-api.onrender.com npm run build
 ```
 
 Lalu pastikan `KCI_ASAL_DIIZINKAN` di backend memuat
@@ -214,7 +223,14 @@ Berkas yang wajib dicadangkan rutin:
 | ------ | --- |
 | `data/anggota.json` | Metadata formulir anggota (roster aktif dari Chess.com) |
 | `data/daftar-hitam.json` | Daftar larangan |
+| `data/turnamen.json` | Turnamen, peserta, hasil, klasemen |
+| `data/berita.json`, `data/pengumuman.json` | Konten komunitas |
+| `data/pesan.json` | Pesan dari form Hubungi Kami (nama/email/telepon) |
 | `data/rahasia/kontak.json` | **Data pribadi** — jaga kerahasiaannya |
+| `data/rahasia/jejak-audit.jsonl` | Jejak aksi pengurus |
+
+> `data/pesan.json` dan `data/rahasia/` TIDAK ikut git — cadangkan lewat
+> backup berkala direktori `$KCI_DIR_DATA`.
 
 Plus **pepper**. Kehilangan pepper = daftar hitam tidak bisa dipakai lagi.
 

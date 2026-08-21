@@ -57,6 +57,12 @@ export default function Tonggak() {
     const el = progressRef.current;
     if (el) el.style.width = "0%";
 
+    // Hormati prefers-reduced-motion: tanpa autoplay, pengguna memilih
+    // slide sendiri lewat navigasi tahun.
+    const gerakDikurangi =
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false;
+    if (gerakDikurangi) return undefined;
+
     const start = performance.now();
     let raf = 0;
 
