@@ -393,7 +393,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     to="/teka-teki"
-                    className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                    className="flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base"
                   >
                     Mulai Teka-teki
                   </Link>
@@ -534,7 +534,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     to="/papan-interaktif"
-                    className="flex items-center justify-center rounded-md bg-[#0b2f9f] hover:bg-[#0a2790] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                    className="flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base"
                   >
                     Buka Opening Book
                   </Link>
