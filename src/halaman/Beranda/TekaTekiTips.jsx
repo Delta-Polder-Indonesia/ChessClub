@@ -94,23 +94,25 @@ function ChessBoardComponent() {
         <defs>
           <marker
             id="arrowhead-red"
+            viewBox="0 0 8 8"
             orient="auto"
             markerWidth="4"
             markerHeight="4"
-            refX="3"
-            refY="2.5"
+            refX="7"
+            refY="4"
           >
-            <path d="M0,0 L5,2.5 L0,5 Z" fill="#dc2626" />
+            <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626" />
           </marker>
           <marker
             id="arrowhead-blue"
+            viewBox="0 0 8 8"
             orient="auto"
             markerWidth="4"
             markerHeight="4"
-            refX="3"
-            refY="2.5"
+            refX="7"
+            refY="4"
           >
-            <path d="M0,0 L5,2.5 L0,5 Z" fill="#2563eb" />
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2563eb" />
           </marker>
         </defs>
 
