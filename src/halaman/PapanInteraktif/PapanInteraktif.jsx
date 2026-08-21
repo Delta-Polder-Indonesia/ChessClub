@@ -161,27 +161,6 @@ function fenDanSanDariKoordinat(daftarKoordinat) {
   return { fen: game.fen(), san };
 }
 
-/** Pratinjau SAN untuk deret koordinat (dipakai daftar katalog; di-cache). */
-const KACI_PRATINJAU = new Map();
-function pratinjauSan(daftarKoordinat) {
-  const kuci = daftarKoordinat.slice(0, 6).join(" ");
-  if (KACI_PRATINJAU.has(kuci)) return KACI_PRATINJAU.get(kuci);
-  const game = new Chess();
-  const san = [];
-  for (const k of daftarKoordinat.slice(0, 6)) {
-    try {
-      const pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
-      if (!pindah) break;
-      san.push(pindah.san);
-    } catch {
-      break;
-    }
-  }
-  const teks = san.join(" ") + (daftarKoordinat.length > 6 ? " …" : "");
-  KACI_PRATINJAU.set(kuci, teks);
-  return teks;
-}
-
 /** Format angka sesuai bahasa aktif (22.326 → "22.326" id / "22,326" en). */
 function formatAngka(nilai, bahasa) {
   return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID").format(nilai);
@@ -224,6 +203,7 @@ export default function PapanInteraktif() {
 
   const [fen, setFen] = useState(FEN_AWAL);
   const [riwayat, setRiwayat] = useState([]); // SAN, untuk PGN
+  const [riwayatLengkap, setRiwayatLengkap] = useState([]); // semua langkah untuk navigasi forward
   const [jalur, setJalur] = useState([]); // kunci pohon, untuk menelusuri pembukaan
   const [orientasi, setOrientasi] = useState("w");
 
@@ -237,10 +217,10 @@ export default function PapanInteraktif() {
   const [setBidak, setSetBidak] = useState("alpha");
   const [warnaPapan, setWarnaPapan] = useState("metal");
 
-  const [cari, setCari] = useState("");
-  const [tersalin, setTersalin] = useState(false);
+  const [pgnTersalin, setPgnTersalin] = useState(false);
   const [fenTersalin, setFenTersalin] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
+  const [tampilSetting, setTampilSetting] = useState(false);
 
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
@@ -369,15 +349,6 @@ export default function PapanInteraktif() {
     return { kelompok: urut, rata, idDari };
   }, [katalog]);
 
-  const hasilCari = useMemo(() => {
-    const q = cari.trim().toLowerCase();
-    if (!q) return [];
-    const ecoQ = cari.trim().toUpperCase();
-    return katalog
-      .filter((k) => k.nama.toLowerCase().includes(q) || k.eco.includes(ecoQ))
-      .slice(0, 60);
-  }, [cari, katalog]);
-
   /* ------------------------------------------------------ gerakan bidak */
   function pilihPetak(petak) {
     if (!fen || promosi) return;
@@ -448,6 +419,7 @@ export default function PapanInteraktif() {
 
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setRiwayatLengkap((lama) => [...lama, pindah.san]);
     setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from, to });
     setTerpilih(null);
@@ -467,6 +439,7 @@ export default function PapanInteraktif() {
     }
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setRiwayatLengkap((lama) => [...lama, pindah.san]);
     setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
@@ -494,6 +467,15 @@ export default function PapanInteraktif() {
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
   }, [promosi]);
+
+  useEffect(() => {
+    if (!tampilSetting) return;
+    function saatEscape(e) {
+      if (e.key === "Escape") setTampilSetting(false);
+    }
+    window.addEventListener("keydown", saatEscape);
+    return () => window.removeEventListener("keydown", saatEscape);
+  }, [tampilSetting]);
 
   const mulaiSeret = useCallback(
     (petak) => {
@@ -547,6 +529,20 @@ export default function PapanInteraktif() {
   function reset() {
     setFen(FEN_AWAL);
     setRiwayat([]);
+    setRiwayatLengkap([]);
+    setJalur([]);
+    setPilihan(-1);
+    setOrientasi("w");
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahAkhir(null);
+    setPromosi(null);
+    setTanda({ panah: [], petak: {} });
+  }
+
+  function keAwal() {
+    setFen(FEN_AWAL);
+    setRiwayat([]);
     setJalur([]);
     setPilihan(-1);
     setOrientasi("w");
@@ -569,13 +565,53 @@ export default function PapanInteraktif() {
     setPromosi(null);
   }
 
+  function redo() {
+    if (riwayat.length >= riwayatLengkap.length) return;
+    const langkahBerikutnya = riwayatLengkap[riwayat.length];
+    const game = new Chess(fen);
+    let pindah;
+    try {
+      pindah = game.move(langkahBerikutnya);
+    } catch {
+      return;
+    }
+    setFen(game.fen());
+    setRiwayat((lama) => [...lama, pindah.san]);
+    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
+    setLangkahAkhir({ from: pindah.from, to: pindah.to });
+    setTerpilih(null);
+    setSasaran([]);
+  }
+
+  function keAkhir() {
+    if (!riwayatLengkap.length) return;
+    setRiwayat([...riwayatLengkap]);
+    setJalur((lama) => {
+      // Rebuild jalur dari riwayat lengkap
+      const game = new Chess();
+      const jalurBaru = [];
+      for (const san of riwayatLengkap) {
+        const pindah = game.move(san);
+        if (pindah) {
+          jalurBaru.push(kuciDariPindahan(pindah, mode));
+        }
+      }
+      return jalurBaru;
+    });
+    setFen(fenDariLangkah(riwayatLengkap));
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahAkhir(null);
+    setPromosi(null);
+  }
+
   function salinPgn() {
     if (!riwayat.length) return;
     const teks = susunPgn(riwayat);
     const selesai = () => {
-      setTersalin(true);
+      setPgnTersalin(true);
       window.clearTimeout(timerSalin.current);
-      timerSalin.current = window.setTimeout(() => setTersalin(false), 1500);
+      timerSalin.current = window.setTimeout(() => setPgnTersalin(false), 1500);
     };
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(teks).then(selesai).catch(selesai);
@@ -590,7 +626,11 @@ export default function PapanInteraktif() {
       window.clearTimeout(timerSalin.current);
       timerSalin.current = window.setTimeout(() => setFenTersalin(false), 1500);
     };
-    navigator.clipboard?.writeText ? navigator.clipboard.writeText(fen).then(selesai).catch(selesai) : selesai();
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(fen).then(selesai).catch(selesai);
+    } else {
+      selesai();
+    }
   }
 
   function muatJalur(entri) {
@@ -598,10 +638,12 @@ export default function PapanInteraktif() {
       const hasil = fenDanSanDariKoordinat(entri.langkah);
       if (!hasil) return;
       setRiwayat(hasil.san);
+      setRiwayatLengkap(hasil.san);
       setJalur([...entri.langkah]);
       setFen(hasil.fen);
     } else {
       setRiwayat([...entri.langkah]);
+      setRiwayatLengkap([...entri.langkah]);
       setJalur([...entri.langkah]);
       setFen(fenDariLangkah(entri.langkah));
     }
@@ -632,7 +674,7 @@ export default function PapanInteraktif() {
 
       <main className="bg-[#f5f5f5] px-4 py-8 md:px-8 md:py-12">
         <div className="mx-auto max-w-[1180px]">
-          <section className="border border-[#d4d4d4] bg-white p-4 shadow-sm md:p-6">
+          <section className="p-4 md:p-6">
             <div className="mb-5 border-b border-[#d8d8d8] pb-4">
               <h2 className="text-xl font-bold text-[#333]">Opening Explorer</h2>
               <p className="mt-1 text-sm leading-6 text-[#555]">Telusuri variasi pembukaan langkah demi langkah dan lihat statistik setiap kelanjutan.</p>
@@ -649,7 +691,7 @@ export default function PapanInteraktif() {
           ) : (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
               <div className="mx-auto w-full max-w-[500px] shrink-0 lg:mx-0">
-                <div className="border border-[#999] bg-[#eee] p-1 shadow-sm">
+                <div className="p-1">
                   <div className="relative">
                   <PapanTekaTeki
                     fen={fen}
@@ -681,7 +723,7 @@ export default function PapanInteraktif() {
                         role="dialog"
                         aria-modal="true"
                         aria-label={t("tekaTeki.promosiJudul")}
-                        className="flex flex-col items-center gap-3 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10"
+                        className="flex flex-col items-center gap-3 rounded-lg bg-white/95 p-4"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <p className="text-sm font-semibold text-slate-700">
@@ -723,87 +765,205 @@ export default function PapanInteraktif() {
                 </div>
 
                 <div className="mt-3 border-t border-[#d8d8d8] pt-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-slate-500">
-                      {t("papan.setBidak")}
-                    </label>
-                    <select
-                      value={setBidak}
-                      onChange={(e) => setSetBidak(e.target.value)}
-                      className="border border-[#bcbcbc] bg-white px-2 py-1.5 text-sm text-[#333] outline-none focus:border-[#3977b9]"
-                    >
-                      {DAFTAR_SET.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.nama}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="mt-3 flex flex-col gap-1">
-                    <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">Warna papan</label>
-                    <select
-                      id="warna-papan"
-                      value={warnaPapan}
-                      onChange={(e) => setWarnaPapan(e.target.value)}
-                      className="border border-[#bcbcbc] bg-white px-2 py-1.5 text-sm text-[#333] outline-none focus:border-[#3977b9]"
-                    >
-                      {PILIHAN_WARNA_PAPAN.map(([nilai, nama]) => <option key={nilai} value={nilai}>{nama}</option>)}
-                    </select>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  {/* Tombol navigasi utama */}
+                  <div className="flex flex-wrap items-center justify-center gap-1.5">
                     <button
                       type="button"
-                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      onClick={keAwal}
+                      disabled={!riwayat.length}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      title="Ke awal"
                     >
-                      {t("papan.flip")}
+                      |&lt;
                     </button>
                     <button
                       type="button"
                       onClick={undo}
                       disabled={!riwayat.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      title="Mundur"
                     >
-                      {t("papan.undo")}
+                      &lt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={redo}
+                      disabled={riwayat.length >= riwayatLengkap.length}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      title="Maju"
+                    >
+                      &gt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={keAkhir}
+                      disabled={riwayat.length >= riwayatLengkap.length}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      title="Ke akhir"
+                    >
+                      &gt;|
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      title="Flip papan"
+                    >
+                      Flip
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTampilSetting(!tampilSetting)}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      title="Pengaturan"
+                    >
+                      ⚙️
                     </button>
                     <button
                       type="button"
                       onClick={reset}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      title="Reset papan"
                     >
                       {t("papan.reset")}
                     </button>
-                    <button
-                      type="button"
-                      onClick={salinPgn}
-                      disabled={!riwayat.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                    <select
+                      value={pilihan}
+                      onChange={(e) => {
+                        const id = Number(e.target.value);
+                        setPilihan(id);
+                        const item = daftarPilih.rata[id];
+                        if (item) muatJalur(item.entri);
+                      }}
+                      aria-label={t("papan.pilihPembukaan")}
+                      className="max-w-[120px] border border-[#b8b8b8] bg-white px-2 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]"
+                      title="Pilih pembukaan"
                     >
-                      {tersalin ? t("papan.tersalin") : t("papan.salinPgn")}
-                    </button>
+                      <option value={-1}>{t("papan.pilihPembukaan")}</option>
+                      {daftarPilih.kelompok.map((g) => (
+                        <optgroup key={g.nama} label={g.nama}>
+                          {g.daftar.map((entri) => (
+                            <option
+                              key={daftarPilih.idDari.get(entri)}
+                              value={daftarPilih.idDari.get(entri)}
+                            >
+                              {entri.nama}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Popup pengaturan */}
+                  {tampilSetting && (
+                    <div
+                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+                      onClick={() => setTampilSetting(false)}
+                    >
+                      <div
+                        className="w-full max-w-sm rounded-lg bg-white p-5"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <div className="mb-4 flex items-center justify-between">
+                          <h3 className="text-lg font-bold text-[#333]">Pengaturan Papan</h3>
+                          <button
+                            type="button"
+                            onClick={() => setTampilSetting(false)}
+                            className="text-slate-400 transition hover:text-slate-600"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <div className="flex flex-col gap-4">
+                          <div className="flex flex-col gap-1">
+                            <label className="text-sm font-semibold text-slate-600">
+                              {t("papan.setBidak")}
+                            </label>
+                            <select
+                              value={setBidak}
+                              onChange={(e) => setSetBidak(e.target.value)}
+                              className="border border-[#bcbcbc] bg-white px-3 py-2 text-sm text-[#333] outline-none focus:border-[#3977b9]"
+                            >
+                              {DAFTAR_SET.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.nama}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <label htmlFor="warna-papan" className="text-sm font-semibold text-slate-600">Warna papan</label>
+                            <select
+                              id="warna-papan"
+                              value={warnaPapan}
+                              onChange={(e) => setWarnaPapan(e.target.value)}
+                              className="border border-[#bcbcbc] bg-white px-3 py-2 text-sm text-[#333] outline-none focus:border-[#3977b9]"
+                            >
+                              {PILIHAN_WARNA_PAPAN.map(([nilai, nama]) => <option key={nilai} value={nilai}>{nama}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div className="mt-5 flex justify-end">
+                          <button
+                            type="button"
+                            onClick={() => setTampilSetting(false)}
+                            className="rounded border border-[#3977b9] bg-[#3977b9] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2d5f8f]"
+                          >
+                            Tutup
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Input FEN */}
+                  <div className="mt-3 border-t border-[#d8d8d8] pt-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-500">Posisi FEN</label>
+                      <div className="flex gap-1.5">
+                        <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
+                          <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
+                            {fen}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={salinFen}
+                          className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                        >
+                          {fenTersalin ? "Tersalin" : "Salin"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Daftar langkah (PGN) */}
+                  <div className="mt-3 border-t border-[#d8d8d8] pt-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-semibold text-slate-500">Daftar Langkah (PGN)</label>
+                      <div className="flex gap-1.5">
+                        <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
+                          <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
+                            {riwayat.length ? susunPgn(riwayat) : "Posisi awal"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={salinPgn}
+                          disabled={!riwayat.length}
+                          className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {pgnTersalin ? "Tersalin" : "Salin"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="border border-[#d3d3d3] bg-[#f7f7f7] p-4">
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
-                    <label className="block text-xs font-bold text-[#4a4a4a]">
-                      Posisi FEN
-                      <input readOnly value={fen} className="mt-1 block w-full border border-[#bdbdbd] bg-white px-2 py-1.5 font-mono text-[11px] font-normal text-[#333]" />
-                    </label>
-                    <button type="button" onClick={salinFen} className="border border-[#b8b8b8] bg-white px-3 py-1.5 text-xs font-semibold text-[#333] hover:bg-[#ececec]">
-                      {fenTersalin ? "FEN tersalin" : "Salin FEN"}
-                    </button>
-                  </div>
-                  <div className="mt-3 border-t border-[#d7d7d7] pt-3">
-                    <p className="text-xs font-bold text-[#4a4a4a]">Daftar langkah</p>
-                    <p className="mt-1 min-h-6 break-words font-mono text-sm leading-6 text-[#333]">{riwayat.length ? susunPgn(riwayat) : "Posisi awal"}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 border border-[#d3d3d3] bg-white p-4">
+                <div className="p-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
                     {t("papan.pembukaan")}
                   </p>
@@ -930,69 +1090,6 @@ export default function PapanInteraktif() {
                   )}
                 </div>
 
-                <div className="mt-4">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t("papan.katalog")}
-                  </p>
-
-                  <select
-                    value={pilihan}
-                    onChange={(e) => {
-                      const id = Number(e.target.value);
-                      setPilihan(id);
-                      const item = daftarPilih.rata[id];
-                      if (item) muatJalur(item.entri);
-                    }}
-                    aria-label={t("papan.pilihPembukaan")}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value={-1}>{t("papan.pilihPembukaan")}</option>
-                    {daftarPilih.kelompok.map((g) => (
-                      <optgroup key={g.nama} label={g.nama}>
-                        {g.daftar.map((entri) => (
-                          <option
-                            key={daftarPilih.idDari.get(entri)}
-                            value={daftarPilih.idDari.get(entri)}
-                          >
-                            {entri.nama}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-
-                  <input
-                    type="text"
-                    value={cari}
-                    onChange={(e) => setCari(e.target.value)}
-                    placeholder={t("papan.cariPembukaan")}
-                    className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                  />
-                  {cari.trim() ? (
-                    hasilCari.length ? (
-                      <>
-                        <p className="mt-1.5 text-xs text-slate-500">
-                          {t("papan.menampilkan", {
-                            n: hasilCari.length,
-                            total: katalog.length,
-                          })}
-                        </p>
-                        <DaftarKatalog entri={hasilCari} onMuat={muatJalur} mode={mode} />
-                      </>
-                    ) : (
-                      <p className="mt-2 text-sm text-slate-500">
-                        {t("papan.tidakAdaHasil", { q: cari.trim() })}
-                      </p>
-                    )
-                  ) : (
-                    <DaftarKatalog
-                      entri={katalog.slice(0, 40)}
-                      onMuat={muatJalur}
-                      mode={mode}
-                    />
-                  )}
-                </div>
-
                 <p className="mt-6 border-t border-slate-200 pt-4 text-xs leading-6 text-slate-400">
                   {t("papan.sumber")}
                 </p>
@@ -1008,7 +1105,7 @@ export default function PapanInteraktif() {
 
 function LangkahExplorer({ langkah, bahasa, onPilih }) {
   return (
-    <div className="overflow-x-auto border border-[#cfcfcf]">
+    <div className="overflow-x-auto">
       <table className="w-full min-w-[510px] border-collapse text-left text-xs text-[#333]">
         <thead className="bg-[#e8e8e8] text-[#333]">
           <tr>
@@ -1054,31 +1151,4 @@ function HasilBar({ stat, bahasa }) {
   </>;
 }
 
-function DaftarKatalog({ entri, onMuat, mode }) {
-  if (!entri.length) return null;
-  return (
-    <ul className="mt-2 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white">
-      {entri.map((k) => (
-        <li key={`${k.eco}-${k.nama}-${k.langkah.join(" ")}`} className="border-b border-slate-100 last:border-0">
-          <button
-            type="button"
-            onClick={() => onMuat(k)}
-            className="flex w-full items-baseline gap-2 px-3 py-2 text-left transition hover:bg-slate-50"
-          >
-            <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-bold text-slate-600">
-              {k.eco}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">
-              {k.nama}
-            </span>
-            <span className="hidden shrink-0 truncate font-mono text-xs text-slate-400 sm:block">
-              {mode === "koordinat"
-                ? pratinjauSan(k.langkah)
-                : k.langkah.slice(0, 6).join(" ") + (k.langkah.length > 6 ? " …" : "")}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ul>
-  );
-}
+
