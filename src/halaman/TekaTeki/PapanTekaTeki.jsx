@@ -213,6 +213,7 @@ export default function PapanTekaTeki({
   terkunci = false,
   membeku = false,
   setBidak = "merida",
+  tema = "hijau",
   onKlik,
   onPilih,
   onJatuh,
@@ -451,6 +452,28 @@ export default function PapanTekaTeki({
   /* -------------------------------------------------------------- tampilan */
 
   const ukuranKotak = ukuran.current ? ukuran.current / 8 : 0;
+  const TEMA_PAPAN = {
+    blue: { terang: "#d7e5f0", gelap: "#4f82a8" },
+    brown: { terang: "#ead2ad", gelap: "#9b6847" },
+    orange: { terang: "#f5d7a1", gelap: "#cf7e36" },
+    green: { terang: "#e4e8d0", gelap: "#779556" },
+    grey: { terang: "#dedede", gelap: "#8c8c8c" },
+    "light-blue": { terang: "#e3eff3", gelap: "#80aec1" },
+    "dark-blue": { terang: "#b9cad5", gelap: "#355772" },
+    wood: { terang: "#e7c78f", gelap: "#a66a35" },
+    "marble-brown": { terang: "#dfd1c0", gelap: "#947966" },
+    "marble-green": { terang: "#d5ddd3", gelap: "#6f8a73" },
+    metal: { terang: "#aeb2b3", gelap: "#596062" },
+    klasik: { terang: "#f0d9b5", gelap: "#b58863" },
+    hijau: { terang: "#ebecd0", gelap: "#779556" },
+  };
+  const palet = TEMA_PAPAN[tema] || TEMA_PAPAN.hijau;
+  const warnaPapan = {
+    terang: palet.terang,
+    gelap: palet.gelap,
+    teksTerang: palet.gelap,
+    teksGelap: palet.terang,
+  };
 
   return (
     <div
@@ -516,7 +539,7 @@ export default function PapanTekaTeki({
               onPointerDown={(e) => padaTekan(e, sq)}
               onClick={() => padaKlikPetak(sq)}
               style={{
-                backgroundColor: terang ? "#ebecd0" : "#779556",
+                backgroundColor: terang ? warnaPapan.terang : warnaPapan.gelap,
                 touchAction: bisaSeret ? "none" : undefined,
               }}
               className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${bisaSeret ? "cursor-grab" : ""}`}
@@ -563,7 +586,7 @@ export default function PapanTekaTeki({
               {baris === 7 && (
                 <span
                   className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
                 >
                   {sq[0]}
                 </span>
@@ -571,7 +594,7 @@ export default function PapanTekaTeki({
               {kolom === 0 && (
                 <span
                   className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
                 >
                   {sq[1]}
                 </span>
