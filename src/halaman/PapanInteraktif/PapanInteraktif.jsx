@@ -17,19 +17,19 @@ const KUCI_NAMA_PROMOSI = {
 };
 
 
-/** Pilihan warna papan, mengikuti opsi pengaturan Opening Explorer. */
+/** Pilihan warna papan (nilai + kunci terjemahan), mengikuti opsi pengaturan. */
 const PILIHAN_WARNA_PAPAN = [
-  ["blue", "Biru"],
-  ["brown", "Cokelat"],
-  ["orange", "Oranye"],
-  ["green", "Hijau"],
-  ["grey", "Abu-abu"],
-  ["light-blue", "Biru muda"],
-  ["dark-blue", "Biru tua"],
-  ["wood", "Kayu"],
-  ["marble-brown", "Marmer cokelat"],
-  ["marble-green", "Marmer hijau"],
-  ["metal", "Metal"],
+  ["blue", "papan.warnaBiru"],
+  ["brown", "papan.warnaCokelat"],
+  ["orange", "papan.warnaOranye"],
+  ["green", "papan.warnaHijau"],
+  ["grey", "papan.warnaAbu"],
+  ["light-blue", "papan.warnaBiruMuda"],
+  ["dark-blue", "papan.warnaBiruTua"],
+  ["wood", "papan.warnaKayu"],
+  ["marble-brown", "papan.warnaMarmerCokelat"],
+  ["marble-green", "papan.warnaMarmerHijau"],
+  ["metal", "papan.warnaMetal"],
 ];
 
 /** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
@@ -658,7 +658,7 @@ export default function PapanInteraktif() {
   /* ------------------------------------------------------------ tampilan */
   const crumbs = [
     { label: t("common.home"), to: "/" },
-    { label: t("papan.judul") },
+    { label: t("papan.remah") },
   ];
 
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
@@ -676,8 +676,8 @@ export default function PapanInteraktif() {
         <div className="mx-auto max-w-[1180px]">
           <section className="p-4 md:p-6">
             <div className="mb-5 border-b border-[#d8d8d8] pb-4">
-              <h2 className="text-xl font-bold text-[#333]">Opening Explorer</h2>
-              <p className="mt-1 text-sm leading-6 text-[#555]">Telusuri variasi pembukaan langkah demi langkah dan lihat statistik setiap kelanjutan.</p>
+              <h2 className="text-xl font-bold text-[#333]">{t("papan.penjelajah")}</h2>
+              <p className="mt-1 text-sm leading-6 text-[#555]">{t("papan.penjelajahDeskripsi")}</p>
             </div>
           {gagal ? (
             <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
@@ -772,7 +772,8 @@ export default function PapanInteraktif() {
                       onClick={keAwal}
                       disabled={!riwayat.length}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Ke awal"
+                      title={t("papan.keAwal")}
+                      aria-label={t("papan.keAwal")}
                     >
                       |&lt;
                     </button>
@@ -781,7 +782,8 @@ export default function PapanInteraktif() {
                       onClick={undo}
                       disabled={!riwayat.length}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Mundur"
+                      title={t("papan.mundur")}
+                      aria-label={t("papan.mundur")}
                     >
                       &lt;
                     </button>
@@ -790,7 +792,8 @@ export default function PapanInteraktif() {
                       onClick={redo}
                       disabled={riwayat.length >= riwayatLengkap.length}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Maju"
+                      title={t("papan.maju")}
+                      aria-label={t("papan.maju")}
                     >
                       &gt;
                     </button>
@@ -799,7 +802,8 @@ export default function PapanInteraktif() {
                       onClick={keAkhir}
                       disabled={riwayat.length >= riwayatLengkap.length}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title="Ke akhir"
+                      title={t("papan.keAkhir")}
+                      aria-label={t("papan.keAkhir")}
                     >
                       &gt;|
                     </button>
@@ -807,15 +811,17 @@ export default function PapanInteraktif() {
                       type="button"
                       onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title="Flip papan"
+                      title={t("papan.flip")}
+                      aria-label={t("papan.flip")}
                     >
-                      Flip
+                      {t("papan.flip")}
                     </button>
                     <button
                       type="button"
                       onClick={() => setTampilSetting(!tampilSetting)}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title="Pengaturan"
+                      title={t("papan.pengaturan")}
+                      aria-label={t("papan.pengaturan")}
                     >
                       ⚙️
                     </button>
@@ -823,7 +829,7 @@ export default function PapanInteraktif() {
                       type="button"
                       onClick={reset}
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title="Reset papan"
+                      title={t("papan.resetPapan")}
                     >
                       {t("papan.reset")}
                     </button>
@@ -837,7 +843,7 @@ export default function PapanInteraktif() {
                       }}
                       aria-label={t("papan.pilihPembukaan")}
                       className="max-w-[120px] border border-[#b8b8b8] bg-white px-2 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]"
-                      title="Pilih pembukaan"
+                      title={t("papan.pilihPembukaan")}
                     >
                       <option value={-1}>{t("papan.pilihPembukaan")}</option>
                       {daftarPilih.kelompok.map((g) => (
@@ -866,11 +872,13 @@ export default function PapanInteraktif() {
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="mb-4 flex items-center justify-between">
-                          <h3 className="text-lg font-bold text-[#333]">Pengaturan Papan</h3>
+                          <h3 className="text-lg font-bold text-[#333]">{t("papan.pengaturanPapan")}</h3>
                           <button
                             type="button"
                             onClick={() => setTampilSetting(false)}
                             className="text-slate-400 transition hover:text-slate-600"
+                            title={t("papan.tutup")}
+                            aria-label={t("papan.tutup")}
                           >
                             ✕
                           </button>
@@ -893,14 +901,14 @@ export default function PapanInteraktif() {
                             </select>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <label htmlFor="warna-papan" className="text-sm font-semibold text-slate-600">Warna papan</label>
+                            <label htmlFor="warna-papan" className="text-sm font-semibold text-slate-600">{t("papan.warnaPapan")}</label>
                             <select
                               id="warna-papan"
                               value={warnaPapan}
                               onChange={(e) => setWarnaPapan(e.target.value)}
                               className="border border-[#bcbcbc] bg-white px-3 py-2 text-sm text-[#333] outline-none focus:border-[#3977b9]"
                             >
-                              {PILIHAN_WARNA_PAPAN.map(([nilai, nama]) => <option key={nilai} value={nilai}>{nama}</option>)}
+                              {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
                             </select>
                           </div>
                         </div>
@@ -910,7 +918,7 @@ export default function PapanInteraktif() {
                             onClick={() => setTampilSetting(false)}
                             className="rounded border border-[#3977b9] bg-[#3977b9] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2d5f8f]"
                           >
-                            Tutup
+                            {t("papan.tutup")}
                           </button>
                         </div>
                       </div>
@@ -920,7 +928,7 @@ export default function PapanInteraktif() {
                   {/* Input FEN */}
                   <div className="mt-3 border-t border-[#d8d8d8] pt-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-slate-500">Posisi FEN</label>
+                      <label className="text-xs font-semibold text-slate-500">{t("papan.posisiFen")}</label>
                       <div className="flex gap-1.5">
                         <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
                           <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
@@ -932,7 +940,7 @@ export default function PapanInteraktif() {
                           onClick={salinFen}
                           className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
                         >
-                          {fenTersalin ? "Tersalin" : "Salin"}
+                          {fenTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
                         </button>
                       </div>
                     </div>
@@ -941,11 +949,11 @@ export default function PapanInteraktif() {
                   {/* Daftar langkah (PGN) */}
                   <div className="mt-3 border-t border-[#d8d8d8] pt-3">
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-slate-500">Daftar Langkah (PGN)</label>
+                      <label className="text-xs font-semibold text-slate-500">{t("papan.daftarLangkahPgn")}</label>
                       <div className="flex gap-1.5">
                         <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
                           <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
-                            {riwayat.length ? susunPgn(riwayat) : "Posisi awal"}
+                            {riwayat.length ? susunPgn(riwayat) : t("papan.posisiAwal")}
                           </span>
                         </div>
                         <button
@@ -954,7 +962,7 @@ export default function PapanInteraktif() {
                           disabled={!riwayat.length}
                           className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
                         >
-                          {pgnTersalin ? "Tersalin" : "Salin"}
+                          {pgnTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
                         </button>
                       </div>
                     </div>
@@ -1082,10 +1090,10 @@ export default function PapanInteraktif() {
                   {infoPembukaan.saran.length > 0 && (
                     <div className="mt-5 border-t border-[#d8d8d8] pt-4">
                       <div className="mb-2 flex items-center justify-between">
-                        <p className="text-sm font-bold text-[#333]">Moves List</p>
-                        <span className="text-xs text-[#666]">Opening Explorer Database</span>
+                        <p className="text-sm font-bold text-[#333]">{t("papan.daftarLangkah")}</p>
+                        <span className="text-xs text-[#666]">{t("papan.basisData")}</span>
                       </div>
-                      <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} />
+                      <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
                     </div>
                   )}
                 </div>
@@ -1103,16 +1111,16 @@ export default function PapanInteraktif() {
   );
 }
 
-function LangkahExplorer({ langkah, bahasa, onPilih }) {
+function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[510px] border-collapse text-left text-xs text-[#333]">
         <thead className="bg-[#e8e8e8] text-[#333]">
           <tr>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">Next Move</th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold"># of Games</th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">Winnings percentage<br /><span className="font-normal">White / Draw / Black</span></th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">Opening</th>
+            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomLangkah")}</th>
+            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomJumlah")}</th>
+            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomPersen")}<br /><span className="font-normal">{t("papan.kolomPutihSeriHitam")}</span></th>
+            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.pembukaan")}</th>
           </tr>
         </thead>
         <tbody>

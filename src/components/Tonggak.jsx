@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../lib/i18n.jsx";
 import { gambar } from "../lib/asets.js";
 
@@ -12,7 +12,6 @@ const SLIDE_DURATION = 7000;
 export default function Tonggak() {
   const { t } = useI18n();
   const [index, setIndex] = useState(0);
-  const progressRef = useRef(null);
 
   const SLIDES = [
     {
@@ -53,34 +52,16 @@ export default function Tonggak() {
     },
   ];
 
+  // Autoplay: maju otomatis tiap SLIDE_DURATION. Memakai setTimeout (bukan
+  // requestAnimationFrame) agar tetap berjalan di dalam iframe pratinjau —
+  // rAF sering di-throttle/dijeda saat halaman disematkan atau tidak fokus.
+  // Progress bar dijalankan lewat animasi CSS (di-reset dengan key={index}).
   useEffect(() => {
-    const el = progressRef.current;
-    if (el) el.style.width = "0%";
-
-    // Hormati prefers-reduced-motion: tanpa autoplay, pengguna memilih
-    // slide sendiri lewat navigasi tahun.
-    const gerakDikurangi =
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches || false;
-    if (gerakDikurangi) return undefined;
-
-    const start = performance.now();
-    let raf = 0;
-
-    const tick = (now) => {
-      const t = Math.min(1, (now - start) / SLIDE_DURATION);
-      if (progressRef.current) {
-        progressRef.current.style.width = `${t * 100}%`;
-      }
-      if (t < 1) {
-        raf = requestAnimationFrame(tick);
-      } else {
-        setIndex((i) => (i + 1) % SLIDES.length);
-      }
-    };
-
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [index]);
+    const timer = window.setTimeout(() => {
+      setIndex((i) => (i + 1) % SLIDES.length);
+    }, SLIDE_DURATION);
+    return () => window.clearTimeout(timer);
+  }, [index, SLIDES.length]);
 
   return (
     <section id="tonggak-sejarah" className="w-full relative bg-transparent">
@@ -185,9 +166,15 @@ export default function Tonggak() {
                   </div>
                 </div>
                 <div
-                  ref={active ? progressRef : null}
-                  className="bullet-progress absolute left-0 bottom-[-3px] h-0 w-0 border-b-[3px] border-[red] pointer-events-none"
-                  style={{ width: active ? undefined : "0%" }}
+                  key={active ? `progress-${index}` : undefined}
+                  className="bullet-progress absolute left-0 bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                  style={
+                    active
+                      ? {
+                          animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
+                        }
+                      : { width: "0%" }
+                  }
                 />
               </div>
             );
