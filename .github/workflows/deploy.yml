@@ -19,6 +19,12 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    # Alamat backend yang dipakai frontend saat di GitHub Pages. GitHub Pages
+    # tidak bisa mem-proxy /api/*, jadi frontend harus memanggil backend
+    # langsung. Ganti lewat repository variable KCI_API_URL bila backend
+    # pindah alamat; bawaan mengikuti PANDUAN-DEPLOY.md.
+    env:
+      VITE_API_DASAR: ${{ vars.KCI_API_URL || 'https://kci-api.onrender.com' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
