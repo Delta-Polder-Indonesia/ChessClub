@@ -4,7 +4,7 @@ import { Chess } from "chess.js";
 import Hero from "../../components/Hero.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
+import { ChessPiece, DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
@@ -29,6 +29,15 @@ function parseLangkah(teks) {
     promo: teks.length > 5 ? teks[5] : null,
   };
 }
+
+/** Urutan pilihan bidak promosi (menteri, benteng, gajah, kuda). */
+const PILIHAN_PROMOSI = ["q", "r", "b", "n"];
+const KUCI_NAMA_PROMOSI = {
+  q: "tekaTeki.promosiMenteri",
+  r: "tekaTeki.promosiBenteng",
+  b: "tekaTeki.promosiGajah",
+  n: "tekaTeki.promosiKuda",
+};
 
 function terapkan(fen, { from, to, promo }) {
   const game = new Chess(fen);
@@ -117,6 +126,9 @@ export default function TekaTeki() {
   // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
   const abaikanKlikRef = useRef(false);
+
+  // Bidak sampai di baris terakhir → pemain wajib memilih bidak promosi.
+  const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
   const timerSalah = useRef(null);
   const timerOtomatis = useRef(null);
@@ -222,6 +234,7 @@ export default function TekaTeki() {
     setSelesai(false);
     setTanda({ panah: [], petak: {} });
     setSedangSeret(false);
+    setPromosi(null);
   }, []);
 
   const pindahSoal = useCallback(
@@ -290,18 +303,43 @@ export default function TekaTeki() {
     setSasaran([]);
   }
 
-  function cobaLangkah(from, to) {
+  function cobaLangkah(from, to, promo) {
     const diharapkan = parseLangkah(sisa[0]);
+
+    // Bidak menuju baris terakhir → promosi wajib. Bila pemain belum memilih
+    // bidak promosi, buka pemilihnya (jangan langsung dianggap salah).
+    let butuhPromosi = false;
+    let warnaPromosi = "w";
+    try {
+      const papan = new Chess(fen);
+      const bidak = papan.get(from);
+      if (
+        bidak &&
+        bidak.type === "p" &&
+        (to.endsWith("8") || to.endsWith("1"))
+      ) {
+        butuhPromosi = true;
+        warnaPromosi = bidak.color;
+      }
+    } catch {}
+
+    if (butuhPromosi && !promo) {
+      setPromosi({ from, to, warna: warnaPromosi });
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+
     let lanjut = null;
 
     if (sisa.length === 1) {
       try {
-        const g = terapkan(fen, { from, to });
+        const g = terapkan(fen, { from, to, promo });
         if (g.isCheckmate()) lanjut = g;
       } catch {}
     } else if (from === diharapkan.from && to === diharapkan.to) {
       try {
-        lanjut = terapkan(fen, diharapkan);
+        lanjut = terapkan(fen, { from, to, promo: promo || diharapkan.promo });
       } catch {}
     }
 
@@ -339,6 +377,29 @@ export default function TekaTeki() {
       setKomputer(true);
     }
   }
+
+  function pilihPromosi(bidakPromosi) {
+    if (!promosi) return;
+    const { from, to } = promosi;
+    setPromosi(null);
+    cobaLangkah(from, to, bidakPromosi);
+  }
+
+  function batalPromosi() {
+    setPromosi(null);
+    setTerpilih(null);
+    setSasaran([]);
+  }
+
+  useEffect(() => {
+    if (!promosi) return;
+    function saatEscape(e) {
+      if (e.key === "Escape") batalPromosi();
+    }
+    window.addEventListener("keydown", saatEscape);
+    return () => window.removeEventListener("keydown", saatEscape);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [promosi]);
 
   useEffect(() => {
     if (!komputer || selesai || !sisa.length) return;
@@ -479,28 +540,78 @@ export default function TekaTeki() {
           ) : (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
               <div className="mx-auto w-full max-w-[520px] shrink-0 lg:mx-0">
-                <PapanTekaTeki
-                  fen={fen}
-                  orientasi={orientasi}
-                  terpilih={terpilih}
-                  sasaran={sasaran}
-                  petunjuk={petunjuk}
-                  kesalahan={kesalahan}
-                  langkahAkhir={langkahAkhir}
-                  tanda={tanda}
-                  terkunci={komputer || selesai}
-                  membeku={komputer}
-                  setBidak={setBidak}
-                  sedangSeret={sedangSeret}
-                  onKlik={klikPetak}
-                  onPilih={pilihPetak}
-                  onMulaiSeret={mulaiSeret}
-                  onSelesaiSeret={selesaiSeret}
-                  onBatalSeret={batalkanSeret}
-                  onJatuh={cobaLangkah}
-                  onTandaPetak={tandaPetak}
-                  onTandaPanah={tandaPanah}
-                />
+                <div className="relative">
+                  <PapanTekaTeki
+                    fen={fen}
+                    orientasi={orientasi}
+                    terpilih={terpilih}
+                    sasaran={sasaran}
+                    petunjuk={petunjuk}
+                    kesalahan={kesalahan}
+                    langkahAkhir={langkahAkhir}
+                    tanda={tanda}
+                    terkunci={komputer || selesai || !!promosi}
+                    membeku={komputer}
+                    setBidak={setBidak}
+                    sedangSeret={sedangSeret}
+                    onKlik={klikPetak}
+                    onPilih={pilihPetak}
+                    onMulaiSeret={mulaiSeret}
+                    onSelesaiSeret={selesaiSeret}
+                    onBatalSeret={batalkanSeret}
+                    onJatuh={cobaLangkah}
+                    onTandaPetak={tandaPetak}
+                    onTandaPanah={tandaPanah}
+                  />
+
+                  {promosi && (
+                    <div
+                      className="absolute inset-0 z-50 flex items-center justify-center bg-black/40"
+                      onClick={batalPromosi}
+                    >
+                      <div
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label={t("tekaTeki.promosiJudul")}
+                        className="flex flex-col items-center gap-3 rounded-lg bg-white/95 p-4 shadow-xl ring-1 ring-black/10"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <p className="text-sm font-semibold text-slate-700">
+                          {t(
+                            promosi.warna === "w"
+                              ? "tekaTeki.promosiPutih"
+                              : "tekaTeki.promosiHitam"
+                          )}
+                        </p>
+                        <div className="flex gap-2">
+                          {PILIHAN_PROMOSI.map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => pilihPromosi(p)}
+                              aria-label={t(KUCI_NAMA_PROMOSI[p])}
+                              title={t(KUCI_NAMA_PROMOSI[p])}
+                              className="flex h-14 w-14 items-center justify-center rounded-md bg-slate-100 p-1.5 transition hover:bg-slate-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                            >
+                              <ChessPiece
+                                piece={promosi.warna === "w" ? p.toUpperCase() : p}
+                                set={setBidak}
+                                className="h-full w-full"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={batalPromosi}
+                          className="text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-slate-700 hover:underline"
+                        >
+                          {t("tekaTeki.promosiBatal")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <p className="mt-3 text-xs leading-5 text-slate-400">
                   {t("tekaTeki.caraTanda")}
