@@ -58,7 +58,7 @@ function ChessBoardComponent() {
               <div
                 key={squareName}
                 className="relative flex items-center justify-center"
-                style={{ backgroundColor: isLight ? "#d8c3a5" : "#8f6843" }}
+                style={{ backgroundColor: isLight ? "#f0d9b5" : "#b58863" }}
               >
                 {/* File coordinate (at bottom rank 1) */}
                 {rIdx === 7 && (
@@ -94,23 +94,25 @@ function ChessBoardComponent() {
         <defs>
           <marker
             id="arrowhead-red"
+            viewBox="0 0 8 8"
             orient="auto"
-            markerWidth="5"
-            markerHeight="5"
-            refX="3"
-            refY="2.5"
+            markerWidth="4"
+            markerHeight="4"
+            refX="7"
+            refY="4"
           >
-            <path d="M0,0 L5,2.5 L0,5 Z" fill="#dc2626" />
+            <path d="M0,0 L8,4 L0,8 Z" fill="#dc2626" />
           </marker>
           <marker
             id="arrowhead-blue"
+            viewBox="0 0 8 8"
             orient="auto"
-            markerWidth="5"
-            markerHeight="5"
-            refX="3"
-            refY="2.5"
+            markerWidth="4"
+            markerHeight="4"
+            refX="7"
+            refY="4"
           >
-            <path d="M0,0 L5,2.5 L0,5 Z" fill="#2563eb" />
+            <path d="M0,0 L8,4 L0,8 Z" fill="#2563eb" />
           </marker>
         </defs>
 
@@ -121,7 +123,7 @@ function ChessBoardComponent() {
           x2="57.5"
           y2="78.75"
           stroke="#dc2626"
-          strokeWidth="2.8"
+          strokeWidth="1.4"
           strokeLinecap="round"
           markerEnd="url(#arrowhead-red)"
           opacity="0.85"
@@ -134,7 +136,7 @@ function ChessBoardComponent() {
           x2="69.5"
           y2="30.5"
           stroke="#2563eb"
-          strokeWidth="2.8"
+          strokeWidth="1.4"
           strokeLinecap="round"
           markerEnd="url(#arrowhead-blue)"
           opacity="0.85"
@@ -314,52 +316,46 @@ const OPENING_BOARD_PIECES = [
 /** Petak asal-tujuan langkah terakhir (Bf1-b5) untuk disorot. */
 const OPENING_HIGHLIGHT = new Set(["b5", "f1"]);
 
+function MiniOpeningBoard({ variant = 0 }) {
+  const pieces = OPENING_BOARD_PIECES.map((row) => row.slice());
+  if (variant % 3 === 1) pieces[4][4] = "";
+  if (variant % 3 === 2) pieces[5][5] = "";
+  return <div className="aspect-square w-full overflow-hidden rounded-[2px] border border-[#d5c4ae]/40 bg-[#d8c3a5] opacity-90">
+    <div className="grid h-full w-full grid-cols-8 grid-rows-8">
+      {RANKS.map((rank, rIdx) => FILES.map((file, fIdx) => {
+        const piece = pieces[rIdx][fIdx] || "";
+        return <div key={`${file}${rank}`} className="flex items-center justify-center" style={{ backgroundColor: (rIdx + fIdx) % 2 === 0 ? "#ead6b8" : "#b9a98d" }}>
+          {piece && <div className="h-[92%] w-[92%]"><ChessPiece piece={piece} /></div>}
+        </div>;
+      }))}
+    </div>
+  </div>;
+}
+
 function OpeningBookBoardComponent() {
   return (
-    <div className="relative w-full max-w-[304px] aspect-square select-none overflow-hidden rounded bg-white">
-      <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
-        {RANKS.map((rank, rIdx) =>
-          FILES.map((file, fIdx) => {
-            const isLight = (rIdx + fIdx) % 2 === 0;
-            const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
+    <div className="relative aspect-square w-full max-w-[520px] overflow-hidden bg-transparent">
+      <div className="absolute left-0 top-0 grid w-[58%] grid-cols-6 gap-1 opacity-75">
+        {Array.from({ length: 36 }, (_, i) => <MiniOpeningBoard key={i} variant={i} />)}
+      </div>
+      <div className="absolute bottom-0 right-0 z-10 aspect-square w-[78%] overflow-hidden bg-[#d8c3a5]">
+        <div className="grid h-full w-full grid-cols-8 grid-rows-8">
+          {RANKS.map((rank, rIdx) => FILES.map((file, fIdx) => {
             const squareName = `${file}${rank}`;
+            const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
             const highlighted = OPENING_HIGHLIGHT.has(squareName);
-
-            return (
-              <div
-                key={squareName}
-                className="relative flex items-center justify-center"
-                style={{ backgroundColor: isLight ? "#d8c3a5" : "#8f6843" }}
-              >
-                {highlighted && (
-                  <span
-                    aria-hidden="true"
-                    className="absolute inset-0"
-                    style={{ backgroundColor: "rgba(255, 213, 79, 0.45)" }}
-                  />
-                )}
-
-                {rIdx === 7 && (
-                  <span className="absolute bottom-0.5 right-1 text-[8px] font-bold text-slate-700/80 leading-none">
-                    {file}
-                  </span>
-                )}
-
-                {fIdx === 0 && (
-                  <span className="absolute top-0.5 left-1 text-[8px] font-bold text-slate-700/80 leading-none">
-                    {rank}
-                  </span>
-                )}
-
-                {piece && (
-                  <div className="relative z-10 w-[85%] h-[85%] flex items-center justify-center pointer-events-none drop-shadow">
-                    <ChessPiece piece={piece} />
-                  </div>
-                )}
-              </div>
-            );
-          })
-        )}
+            return <div key={squareName} className="relative flex items-center justify-center" style={{ backgroundColor: (rIdx + fIdx) % 2 === 0 ? "#ead6b8" : "#b9a98d" }}>
+              {highlighted && <span className="absolute inset-0 bg-[#c56555]/30" />}
+              {rIdx === 7 && <span className="absolute bottom-0.5 right-1 text-[8px] font-bold text-slate-700/70">{file}</span>}
+              {fIdx === 0 && <span className="absolute left-1 top-0.5 text-[8px] font-bold text-slate-700/70">{rank}</span>}
+              {piece && <div className="relative z-10 h-[88%] w-[88%] drop-shadow-[0_2px_2px_rgba(0,0,0,.25)]"><ChessPiece piece={piece} /></div>}
+            </div>;
+          }))}
+        </div>
+        <svg className="pointer-events-none absolute inset-0 z-20 h-full w-full" viewBox="0 0 100 100" aria-hidden="true">
+          <defs><marker id="opening-arrow-professional" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#bf5f52" /></marker></defs>
+          <line x1="68.75" y1="93.75" x2="18.75" y2="43.75" stroke="#bf5f52" strokeWidth="1.4" markerEnd="url(#opening-arrow-professional)" opacity=".8" />
+        </svg>
       </div>
     </div>
   );
@@ -399,7 +395,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     to="/teka-teki"
-                    className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                    className="flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base"
                   >
                     Mulai Teka-teki
                   </Link>
@@ -540,7 +536,7 @@ export default function TekaTekiTips() {
                 <div className="flex flex-wrap gap-4">
                   <Link
                     to="/papan-interaktif"
-                    className="flex items-center justify-center rounded-md bg-[#0b2f9f] hover:bg-[#0a2790] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                    className="flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base"
                   >
                     Buka Opening Book
                   </Link>
