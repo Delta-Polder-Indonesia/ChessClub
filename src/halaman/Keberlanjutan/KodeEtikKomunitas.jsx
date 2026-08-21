@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -94,10 +95,8 @@ export default function KodeEtikKomunitas() {
           Pengguna yang menemukan pelanggaran terhadap kebijakan kami dapat
           melaporkan perilaku ini kepada kami dengan mengklik ikon "Laporkan" di
           samping konten yang dilaporkan atau dengan menghubungi{" "}
-          <a href="/support" target="_blank" rel="noreferrer noopener">
-            Dukungan
-          </a>
-          . Pengguna Uni Eropa dapat melaporkan konten ilegal berdasarkan
+          <Link to="/hubungi-kami">Dukungan</Link>. Pengguna Uni Eropa dapat
+          melaporkan konten ilegal berdasarkan
           Undang-Undang Layanan Digital Uni Eropa.
         </p>
         <p>
