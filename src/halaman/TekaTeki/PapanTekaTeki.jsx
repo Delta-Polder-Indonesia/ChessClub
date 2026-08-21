@@ -213,6 +213,7 @@ export default function PapanTekaTeki({
   terkunci = false,
   membeku = false,
   setBidak = "merida",
+  tema = "hijau",
   onKlik,
   onPilih,
   onJatuh,
@@ -451,6 +452,9 @@ export default function PapanTekaTeki({
   /* -------------------------------------------------------------- tampilan */
 
   const ukuranKotak = ukuran.current ? ukuran.current / 8 : 0;
+  const warnaPapan = tema === "klasik"
+    ? { terang: "#f0d9b5", gelap: "#b58863", teksTerang: "#b58863", teksGelap: "#f0d9b5" }
+    : { terang: "#ebecd0", gelap: "#779556", teksTerang: "#739552", teksGelap: "#ebecd0" };
 
   return (
     <div
@@ -516,7 +520,7 @@ export default function PapanTekaTeki({
               onPointerDown={(e) => padaTekan(e, sq)}
               onClick={() => padaKlikPetak(sq)}
               style={{
-                backgroundColor: terang ? "#ebecd0" : "#779556",
+                backgroundColor: terang ? warnaPapan.terang : warnaPapan.gelap,
                 touchAction: bisaSeret ? "none" : undefined,
               }}
               className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${bisaSeret ? "cursor-grab" : ""}`}
@@ -563,7 +567,7 @@ export default function PapanTekaTeki({
               {baris === 7 && (
                 <span
                   className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
                 >
                   {sq[0]}
                 </span>
@@ -571,7 +575,7 @@ export default function PapanTekaTeki({
               {kolom === 0 && (
                 <span
                   className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? "#739552" : "#ebecd0" }}
+                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
                 >
                   {sq[1]}
                 </span>
