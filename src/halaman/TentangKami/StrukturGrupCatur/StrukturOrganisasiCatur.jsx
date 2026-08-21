@@ -19,10 +19,10 @@ function NamaPengurus({ anggota }) {
   );
 }
 
-function KotakPeran({ kelompok, utama = false }) {
+function KotakPeran({ kelompok, utama = false, t }) {
   return (
     <section className={`kotak-peran-organisasi${utama ? " kotak-peran-utama" : ""}`}>
-      <h3>{kelompok.label}</h3>
+      <h3>{t(`pengurus.peran.${kelompok.id}`)}</h3>
       <ul>
         {kelompok.anggota.map((anggota) => (
           <NamaPengurus key={anggota.username} anggota={anggota} />
@@ -56,15 +56,15 @@ export default function StrukturOrganisasiCatur() {
         </div>
 
         <div className="garis-organisasi" aria-hidden="true" />
-        <KotakPeran kelompok={superAdmins} utama />
+        <KotakPeran kelompok={superAdmins} utama t={t} />
 
         <div className="penghubung-cabang-organisasi" aria-hidden="true">
           <span />
         </div>
 
         <div className="cabang-organisasi">
-          <KotakPeran kelompok={admins} />
-          <KotakPeran kelompok={koordinator} />
+          <KotakPeran kelompok={admins} t={t} />
+          <KotakPeran kelompok={koordinator} t={t} />
         </div>
 
         <div className="penghubung-gabung-organisasi" aria-hidden="true">

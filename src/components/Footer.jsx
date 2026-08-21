@@ -1,23 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import Logo from "./Logo.jsx";
-import {
-  ChevronDownIcon,
-  FacebookIcon,
-  XIcon,
-  InstagramIcon,
-  YoutubeIcon,
-  LinkedinIcon,
-} from "./icons.jsx";
+import { ChevronDownIcon } from "./icons.jsx";
 import { useI18n } from "../lib/i18n.jsx";
-
-const SOCIALS = [
-  { title: "Facebook", href: "#", Icon: FacebookIcon },
-  { title: "X", href: "#", Icon: XIcon },
-  { title: "Instagram", href: "#", Icon: InstagramIcon },
-  { title: "YouTube", href: "#", Icon: YoutubeIcon },
-  { title: "LinkedIn", href: "#", Icon: LinkedinIcon },
-];
 
 export default function Footer() {
   const { t } = useI18n();
@@ -37,18 +22,6 @@ export default function Footer() {
       ],
     },
     {
-      id: "network",
-      title: t("footer.network"),
-      links: [
-        { title: t("footer.chapterSumut"), href: "#" },
-        { title: t("footer.chapterJakarta"), href: "#" },
-        { title: t("footer.chapterJabar"), href: "#" },
-        { title: t("footer.chapterJatim"), href: "#" },
-        { title: t("footer.chapterSulsel"), href: "#" },
-        { title: t("footer.akademiCatur"), href: "/program-kami/sekolah-catur" },
-      ],
-    },
-    {
       id: "tools",
       title: t("footer.tools"),
       links: [
@@ -62,7 +35,7 @@ export default function Footer() {
     },
     {
       id: "program",
-      title: "Program Catur",
+      title: t("footer.programCatur"),
       links: [
         { title: t("nav.kelasPelatihan"), href: "/program-kami/kelas-dan-pelatihan" },
         { title: t("nav.coachingClinic"), href: "/program-kami/coaching-clinic" },
@@ -105,7 +78,7 @@ export default function Footer() {
         </div>
 
         {/* Kolom tautan */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-6 md:gap-6 flex-1">
+        <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-6 flex-1">
           {FOOTER_COLUMNS.map((col) => (
             <div
               key={col.id}
@@ -165,63 +138,15 @@ export default function Footer() {
               </ul>
             </div>
           ))}
-          <div className="flex-1 w-full border-t md:border-0 border-solid border-slate-200 py-3 md:py-0">
-            <div className="text-grey-800 text-sm leading-relaxed font-bold tracking-wider flex items-center justify-between">
-              {t("footer.kontakKami")}
-            </div>
-            <div className="mt-4 flex flex-col gap-3 text-xs leading-relaxed text-grey-800">
-              <a href="mailto:info@komunitascatur.or.id" className="rounded-full border border-grey-300 px-3 py-2 hover:border-primary hover:text-primary transition-colors">
-                info@komunitascatur.or.id
-              </a>
-              <a href="tel:+62611234567" className="rounded-full border border-grey-300 px-3 py-2 hover:border-primary hover:text-primary transition-colors">
-                +62 61 123 4567
-              </a>
-              <Link to="/hubungi-kami" className="font-semibold hover:underline">
-                {t("footer.sistemPengaduan")}
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* Baris bawah */}
       <div className="w-full max-w-7xl mx-auto pt-6 md:pt-10">
         <div className="w-full h-[1px] bg-grey-200" />
-        <div className="w-full flex flex-col-reverse xl:flex-row items-center justify-between gap-4 mt-6 md:mt-9">
-          <div className="text-xs text-center leading-relaxed text-grey-800 flex gap-4 items-center justify-center xl:justify-start flex-wrap">
+        <div className="w-full flex items-center justify-center mt-6 md:mt-9">
+          <div className="text-xs text-center leading-relaxed text-grey-800">
             {t("footer.copyright")}
-            <span className="hidden md:inline-block">/</span>
-            <a
-              href="#"
-              title={t("footer.privasi")}
-              className="text-grey-800 underline"
-            >
-              {t("footer.privasi")}
-            </a>
-            <span>/</span>
-            <a
-              href="#"
-              title={t("footer.penipuan")}
-              className="text-grey-800 underline"
-            >
-              {t("footer.penipuan")}
-            </a>
-          </div>
-          <div className="flex items-center gap-4">
-            {SOCIALS.map(({ title, href, Icon }) => (
-              <a
-                key={title}
-                href={href}
-                title={title}
-                aria-label={title}
-                target="_blank"
-                referrerPolicy="no-referrer"
-              >
-                <i className="text-grey-800 transition-all duration-200 ease-in-out hover:text-blue-400">
-                  <Icon />
-                </i>
-              </a>
-            ))}
           </div>
         </div>
       </div>

@@ -86,10 +86,12 @@ export default function Pengurus() {
       <p>{t("pengurus.p1")}</p>
 
       <div className="daftar-pengurus">
-        {KELOMPOK_PENGURUS.map((kelompok) => (
+        {KELOMPOK_PENGURUS.map((kelompok) => {
+          const labelPeran = t(`pengurus.peran.${kelompok.id}`);
+          return (
           <section key={kelompok.id} className="kelompok-pengurus" aria-labelledby={kelompok.id}>
-            <h3 id={kelompok.id}>{kelompok.label}</h3>
-            <ul aria-label={kelompok.label}>
+            <h3 id={kelompok.id}>{labelPeran}</h3>
+            <ul aria-label={labelPeran}>
               {kelompok.anggota.map((anggota) => (
                 <BarisPengurus
                   key={anggota.username}
@@ -100,7 +102,8 @@ export default function Pengurus() {
               ))}
             </ul>
           </section>
-        ))}
+          );
+        })}
       </div>
 
       <p className="sumber-pengurus">
