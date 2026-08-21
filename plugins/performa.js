@@ -19,6 +19,7 @@ export const RUTE_PUBLIK = [
   "/program-kami/sekolah-catur",
   "/program-kami/sekolah-catur/cara-bermain-catur",
   "/teka-teki",
+  "/papan-interaktif",
   "/turnamen",
   "/turnamen/turnamen-bulanan",
   "/turnamen/liga-musiman",

@@ -52,7 +52,7 @@ export default function Footer() {
       id: "tools",
       title: t("footer.tools"),
       links: [
-        { title: t("footer.papanInteraktif"), href: "/program-kami" },
+        { title: t("footer.papanInteraktif"), href: "/papan-interaktif" },
         { title: t("footer.pendaftaranAnggota"), href: "/pendaftaran-anggota" },
         { title: t("footer.kodeEtik"), href: "/keberlanjutan/kode-etik-komunitas" },
         { title: t("footer.keterbukaanInformasi"), href: "/media-dan-informasi" },
