@@ -60,8 +60,7 @@ const POLA_KOORDINAT = /^[a-h][1-8][a-h][1-8]$/;
 /**
  * Ubah buku pembukaan berformat "daftar rata" (format Lichess, mis.
  * [{ eco, opening, moves: "e2e4 e7e5 g1f3 …" }, …]) menjadi pohon langkah
- * ber-key koordinat yang sama bentuknya dengan keluaran
- * scripts/bangun-pembukaan.mjs: node = { "n"?: [[eco, nama], …], "c"?: {…} }.
+ * ber-key koordinat: node = { "n"?: [[eco, nama], …], "c"?: {…} }.
  * Konversi ini murni penyusunan string sehingga cepat (tidak butuh chess.js).
  */
 function pohonDariDaftar(daftar) {
