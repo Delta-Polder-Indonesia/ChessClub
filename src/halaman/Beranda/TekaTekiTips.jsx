@@ -299,6 +299,72 @@ function MovesByRatingChartComponent() {
   );
 }
 
+/** Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5 */
+const OPENING_BOARD_PIECES = [
+  ["r", "", "b", "q", "k", "b", "n", "r"],
+  ["p", "p", "p", "p", "", "p", "p", "p"],
+  ["", "", "n", "", "", "", "", ""],
+  ["", "B", "", "", "p", "", "", ""],
+  ["", "", "", "", "P", "", "", ""],
+  ["", "", "", "", "", "N", "", ""],
+  ["P", "P", "P", "P", "", "P", "P", "P"],
+  ["R", "N", "B", "Q", "K", "", "", "R"],
+];
+
+/** Petak asal-tujuan langkah terakhir (Bf1-b5) untuk disorot. */
+const OPENING_HIGHLIGHT = new Set(["b5", "f1"]);
+
+function OpeningBookBoardComponent() {
+  return (
+    <div className="relative w-full max-w-[304px] aspect-square select-none overflow-hidden rounded bg-white">
+      <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
+        {RANKS.map((rank, rIdx) =>
+          FILES.map((file, fIdx) => {
+            const isLight = (rIdx + fIdx) % 2 === 0;
+            const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
+            const squareName = `${file}${rank}`;
+            const highlighted = OPENING_HIGHLIGHT.has(squareName);
+
+            return (
+              <div
+                key={squareName}
+                className="relative flex items-center justify-center"
+                style={{ backgroundColor: isLight ? "#d8c3a5" : "#8f6843" }}
+              >
+                {highlighted && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute inset-0"
+                    style={{ backgroundColor: "rgba(255, 213, 79, 0.45)" }}
+                  />
+                )}
+
+                {rIdx === 7 && (
+                  <span className="absolute bottom-0.5 right-1 text-[8px] font-bold text-slate-700/80 leading-none">
+                    {file}
+                  </span>
+                )}
+
+                {fIdx === 0 && (
+                  <span className="absolute top-0.5 left-1 text-[8px] font-bold text-slate-700/80 leading-none">
+                    {rank}
+                  </span>
+                )}
+
+                {piece && (
+                  <div className="relative z-10 w-[85%] h-[85%] flex items-center justify-center pointer-events-none drop-shadow">
+                    <ChessPiece piece={piece} />
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function TekaTekiTips() {
   return (
     <BagianBeranda id="konten-tiktok">
@@ -439,6 +505,103 @@ export default function TekaTekiTips() {
                             Qxf6
                           </span>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="opening-book-section"
+          className="relative w-full flex-col items-center overflow-hidden bg-transparent pt-6 sm:pt-8 md:pt-10 pb-8 sm:pb-10 md:pb-14"
+        >
+          <div className="z-10 mx-auto flex w-full flex-col px-6 md:px-8 xl:px-0">
+            <div className="flex w-full flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
+              {/* Kolom Kiri: Teks & Tombol (md:w-2/5) */}
+              <div className="mb-6 w-full md:mb-0 md:w-2/5">
+                <h2 className="mb-4 text-2xl font-bold sm:text-3xl lg:text-4xl text-gray-800 leading-tight md:mb-5">
+                  Opening Book: Kenali Nama Pembukaanmu
+                </h2>
+
+                <p className="mb-3 text-sm text-gray-600 leading-relaxed md:mb-4 md:text-base">
+                  Mainkan langkah di papan bebas dan buku pembukaan akan
+                  langsung mengenali nama pembukaan beserta kode ECO-nya — mulai
+                  dari Ruy Lopez, Sicilian Najdorf, hingga Queen's Gambit.
+                </p>
+
+                <p className="mb-6 text-sm text-gray-600 leading-relaxed md:mb-6 md:text-base">
+                  Lengkap dengan saran langkah berikutnya dan katalog 3.810
+                  jalur pembukaan dari data lichess (lisensi CC0).
+                </p>
+
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    to="/papan-interaktif"
+                    className="flex items-center justify-center rounded-md bg-[#0b2f9f] hover:bg-[#0a2790] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
+                  >
+                    Buka Opening Book
+                  </Link>
+                </div>
+              </div>
+
+              {/* Kolom Kanan: Papan & Info Pembukaan (md:w-3/5) */}
+              <div className="relative w-full md:w-3/5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center">
+                    <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#0b2f9f]" />
+                    <p className="font-semibold text-sm sm:text-base text-gray-800 m-0!">
+                      Buku Pembukaan
+                    </p>
+                  </div>
+                  <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
+                    C70
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
+                  Nama pembukaan muncul otomatis saat posisinya dikenali
+                </p>
+
+                <div className="flex flex-col gap-4 md:flex-row items-center md:items-start">
+                  {/* Sub-Kolom 1: Papan Catur (md:w-1/2) */}
+                  <div className="flex w-full justify-center md:w-1/2">
+                    <div className="w-full max-w-[304px] flex flex-col overflow-hidden rounded p-1">
+                      <OpeningBookBoardComponent />
+                    </div>
+                  </div>
+
+                  {/* Sub-Kolom 2: Info Pembukaan (md:w-1/2) */}
+                  <div className="flex w-full flex-col md:w-1/2 gap-3">
+                    <div className="overflow-hidden rounded p-3 text-xs">
+                      <h4 className="mb-2 text-sm font-semibold text-gray-800 m-0!">
+                        Ruy Lopez
+                      </h4>
+                      <p className="mb-3 text-[11px] leading-relaxed text-gray-600 m-0!">
+                        Setelah{" "}
+                        <span className="font-mono font-semibold">
+                          1. e4 e5 2. Nf3 Nc6 3. Bb5
+                        </span>
+                        , buku pembukaan langsung mengenali posisi ini sebagai{" "}
+                        <span className="font-semibold text-gray-800">
+                          Ruy Lopez (C70)
+                        </span>
+                        .
+                      </p>
+
+                      <p className="mb-2 text-[11px] font-semibold text-gray-700">
+                        Langkah berikutnya
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {["Ba4", "Bxc6", "a6", "Nf6", "d6", "f5"].map((m) => (
+                          <span
+                            key={m}
+                            className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 font-mono text-[11px] text-gray-700"
+                          >
+                            {m}
+                          </span>
+                        ))}
                       </div>
                     </div>
                   </div>
