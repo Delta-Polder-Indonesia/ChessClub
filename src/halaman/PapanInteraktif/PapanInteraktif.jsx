@@ -181,6 +181,7 @@ export default function PapanInteraktif() {
 
   const [cari, setCari] = useState("");
   const [tersalin, setTersalin] = useState(false);
+  const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
 
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
@@ -255,6 +256,40 @@ export default function PapanInteraktif() {
   }, [pohon, jalur, fen, mode]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
+
+  /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
+      menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
+      "Caro-Kann Defense" → semua varian Caro-Kann). */
+  const daftarPilih = useMemo(() => {
+    const wakil = new Map();
+    for (const k of katalog) {
+      const ada = wakil.get(k.nama);
+      if (!ada || k.langkah.length < ada.langkah.length) wakil.set(k.nama, k);
+    }
+    const kelompok = new Map();
+    for (const k of wakil.values()) {
+      const keluarga = (k.nama.split(":")[0] || k.nama).trim();
+      if (!kelompok.has(keluarga)) kelompok.set(keluarga, []);
+      kelompok.get(keluarga).push(k);
+    }
+    const urut = [...kelompok.entries()]
+      .map(([nama, daftar]) => ({
+        nama,
+        daftar: daftar.sort((a, b) => a.nama.localeCompare(b.nama)),
+      }))
+      .sort((a, b) => a.nama.localeCompare(b.nama));
+
+    const rata = [];
+    const idDari = new Map();
+    for (const g of urut) {
+      for (const entri of g.daftar) {
+        const id = rata.length;
+        idDari.set(entri, id);
+        rata.push({ id, entri });
+      }
+    }
+    return { kelompok: urut, rata, idDari };
+  }, [katalog]);
 
   const hasilCari = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -435,6 +470,7 @@ export default function PapanInteraktif() {
     setFen(FEN_AWAL);
     setRiwayat([]);
     setJalur([]);
+    setPilihan(-1);
     setOrientasi("w");
     setTerpilih(null);
     setSasaran([]);
@@ -709,12 +745,39 @@ export default function PapanInteraktif() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     {t("papan.katalog")}
                   </p>
+
+                  <select
+                    value={pilihan}
+                    onChange={(e) => {
+                      const id = Number(e.target.value);
+                      setPilihan(id);
+                      const item = daftarPilih.rata[id];
+                      if (item) muatJalur(item.entri);
+                    }}
+                    aria-label={t("papan.pilihPembukaan")}
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value={-1}>{t("papan.pilihPembukaan")}</option>
+                    {daftarPilih.kelompok.map((g) => (
+                      <optgroup key={g.nama} label={g.nama}>
+                        {g.daftar.map((entri) => (
+                          <option
+                            key={daftarPilih.idDari.get(entri)}
+                            value={daftarPilih.idDari.get(entri)}
+                          >
+                            {entri.nama}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+
                   <input
                     type="text"
                     value={cari}
                     onChange={(e) => setCari(e.target.value)}
                     placeholder={t("papan.cariPembukaan")}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   {cari.trim() ? (
                     hasilCari.length ? (
