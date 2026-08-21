@@ -57,10 +57,23 @@ function susunKatalog(pohon) {
 /** Pola langkah koordinat ("e2e4") — dipakai untuk membedakan jenis kunci pohon. */
 const POLA_KOORDINAT = /^[a-h][1-8][a-h][1-8]$/;
 
+/** Ambil statistik dari satu entri (null bila entri tidak punya statistik). */
+function statDariEntri(entri) {
+  if (typeof entri.games !== "number") return null;
+  const angka = (v) => (typeof v === "number" ? v : null);
+  return {
+    games: entri.games,
+    whiteWin: angka(entri.white_win_rate),
+    blackWin: angka(entri.black_win_rate),
+    draw: angka(entri.draw_rate),
+    rating: angka(entri.avg_rating),
+  };
+}
+
 /**
  * Ubah buku pembukaan berformat "daftar rata" (format Lichess, mis.
  * [{ eco, opening, moves: "e2e4 e7e5 g1f3 …" }, …]) menjadi pohon langkah
- * ber-key koordinat: node = { "n"?: [[eco, nama], …], "c"?: {…} }.
+ * ber-key koordinat: node = { "n"?: [[eco, nama, stat], …], "c"?: {…} }.
  * Konversi ini murni penyusunan string sehingga cepat (tidak butuh chess.js).
  */
 function pohonDariDaftar(daftar) {
@@ -73,6 +86,7 @@ function pohonDariDaftar(daftar) {
       .split(/\s+/)
       .filter(Boolean);
     if (!nama || !langkah.length) continue;
+    const stat = statDariEntri(entri);
     let node = akar;
     for (const k of langkah) {
       if (!node.c) node.c = {};
@@ -80,8 +94,11 @@ function pohonDariDaftar(daftar) {
       node = node.c[k];
     }
     if (!node.n) node.n = [];
-    if (!node.n.some(([e, n]) => e === eco && n === nama)) {
-      node.n.push([eco, nama]);
+    const ada = node.n.find(([e, n]) => e === eco && n === nama);
+    if (!ada) {
+      node.n.push([eco, nama, stat]);
+    } else if (!ada[2] && stat) {
+      ada[2] = stat; // lengkapi statistik pada nama duplikat yang belum punya
     }
   }
   return akar;
@@ -149,6 +166,19 @@ function pratinjauSan(daftarKoordinat) {
   return teks;
 }
 
+/** Format angka sesuai bahasa aktif (22.326 → "22.326" id / "22,326" en). */
+function formatAngka(nilai, bahasa) {
+  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID").format(nilai);
+}
+
+/** Ubah pecahan (0..1) menjadi persen berdesimal (0.527 → "52,7"/"52.7"). */
+function formatPersen(pecahan, bahasa) {
+  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(pecahan * 100);
+}
+
 function Kerangka() {
   return (
     <div aria-hidden="true" className="animate-pulse">
@@ -159,7 +189,7 @@ function Kerangka() {
 }
 
 export default function PapanInteraktif() {
-  const { t } = useI18n();
+  const { t, bahasa } = useI18n();
 
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
@@ -254,6 +284,24 @@ export default function PapanInteraktif() {
     }
     return { nama: namaTerdalam, saran, cocok };
   }, [pohon, jalur, fen, mode]);
+
+  /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
+  const statTampil = useMemo(() => {
+    const tuple = infoPembukaan.nama
+      ? infoPembukaan.nama.find(([, , s]) => s && typeof s.games === "number") ||
+        null
+      : null;
+    const s = tuple ? tuple[2] : null;
+    if (!s) return null;
+    const pecahan = (v) => (typeof v === "number" ? v : null);
+    return {
+      games: s.games,
+      rating: pecahan(s.rating),
+      putih: pecahan(s.whiteWin),
+      seri: pecahan(s.draw),
+      hitam: pecahan(s.blackWin),
+    };
+  }, [infoPembukaan.nama]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
@@ -703,6 +751,85 @@ export default function PapanInteraktif() {
                           </span>
                         )}
                       </div>
+
+                      {statTampil && (
+                        <div className="mt-3 border-t border-slate-200 pt-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            {t("papan.statistik")}
+                          </p>
+
+                          <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
+                            <span>
+                              <span className="font-bold text-slate-800">
+                                {formatAngka(statTampil.games, bahasa)}
+                              </span>{" "}
+                              {t("papan.partai")}
+                            </span>
+                            {typeof statTampil.rating === "number" && (
+                              <span>
+                                {t("papan.ratingRata")}{" "}
+                                <span className="font-bold text-slate-800">
+                                  {formatAngka(statTampil.rating, bahasa)}
+                                </span>
+                              </span>
+                            )}
+                          </div>
+
+                          {(statTampil.putih !== null ||
+                            statTampil.hitam !== null) && (
+                            <>
+                              <div
+                                className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-slate-200"
+                                role="img"
+                                aria-label={t("papan.statistik")}
+                              >
+                                {statTampil.putih !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.putih * 100}%` }}
+                                    className="bg-slate-800"
+                                  />
+                                )}
+                                {statTampil.seri !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.seri * 100}%` }}
+                                    className="bg-slate-400"
+                                  />
+                                )}
+                                {statTampil.hitam !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.hitam * 100}%` }}
+                                    className="bg-slate-500"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                                {statTampil.putih !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-800" />
+                                    {t("papan.menangPutih")}{" "}
+                                    {formatPersen(statTampil.putih, bahasa)}%
+                                  </span>
+                                )}
+                                {statTampil.seri !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-400" />
+                                    {t("papan.seri")}{" "}
+                                    {formatPersen(statTampil.seri, bahasa)}%
+                                  </span>
+                                )}
+                                {statTampil.hitam !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-500" />
+                                    {t("papan.menangHitam")}{" "}
+                                    {formatPersen(statTampil.hitam, bahasa)}%
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="mt-1.5 text-sm font-medium text-slate-600">
