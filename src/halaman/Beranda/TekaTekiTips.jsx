@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
 import { ChessPiece } from "./ChessPieceSvg.jsx";
 
@@ -330,12 +331,12 @@ export default function TekaTekiTips() {
                 </p>
 
                 <div className="flex flex-wrap gap-4">
-                  <a
+                  <Link
+                    to="/teka-teki"
                     className="flex items-center justify-center rounded-md bg-[#b85244] hover:bg-[#a54538] px-6 py-3 font-medium text-white transition duration-200 shadow-md text-sm md:text-base"
-                    href="/teka-teki"
                   >
                     Mulai Teka-teki
-                  </a>
+                  </Link>
                 </div>
               </div>
 
