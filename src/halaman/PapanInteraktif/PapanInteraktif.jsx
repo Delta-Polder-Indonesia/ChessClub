@@ -16,6 +16,22 @@ const KUCI_NAMA_PROMOSI = {
   n: "tekaTeki.promosiKuda",
 };
 
+
+/** Pilihan warna papan, mengikuti opsi pengaturan Opening Explorer. */
+const PILIHAN_WARNA_PAPAN = [
+  ["blue", "Biru"],
+  ["brown", "Cokelat"],
+  ["orange", "Oranye"],
+  ["green", "Hijau"],
+  ["grey", "Abu-abu"],
+  ["light-blue", "Biru muda"],
+  ["dark-blue", "Biru tua"],
+  ["wood", "Kayu"],
+  ["marble-brown", "Marmer cokelat"],
+  ["marble-green", "Marmer hijau"],
+  ["metal", "Metal"],
+];
+
 /** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
 function fenDariLangkah(daftarSan) {
   const game = new Chess();
@@ -219,6 +235,7 @@ export default function PapanInteraktif() {
 
   const [tanda, setTanda] = useState({ panah: [], petak: {} });
   const [setBidak, setSetBidak] = useState("alpha");
+  const [warnaPapan, setWarnaPapan] = useState("metal");
 
   const [cari, setCari] = useState("");
   const [tersalin, setTersalin] = useState(false);
@@ -645,7 +662,7 @@ export default function PapanInteraktif() {
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
-                    tema="klasik"
+                    tema={warnaPapan}
                     onKlik={klikPetak}
                     onMulaiSeret={mulaiSeret}
                     onSelesaiSeret={selesaiSeret}
@@ -720,6 +737,17 @@ export default function PapanInteraktif() {
                           {s.nama}
                         </option>
                       ))}
+                    </select>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-1">
+                    <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">Warna papan</label>
+                    <select
+                      id="warna-papan"
+                      value={warnaPapan}
+                      onChange={(e) => setWarnaPapan(e.target.value)}
+                      className="border border-[#bcbcbc] bg-white px-2 py-1.5 text-sm text-[#333] outline-none focus:border-[#3977b9]"
+                    >
+                      {PILIHAN_WARNA_PAPAN.map(([nilai, nama]) => <option key={nilai} value={nilai}>{nama}</option>)}
                     </select>
                   </div>
 

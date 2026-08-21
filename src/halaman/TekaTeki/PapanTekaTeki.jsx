@@ -452,9 +452,28 @@ export default function PapanTekaTeki({
   /* -------------------------------------------------------------- tampilan */
 
   const ukuranKotak = ukuran.current ? ukuran.current / 8 : 0;
-  const warnaPapan = tema === "klasik"
-    ? { terang: "#f0d9b5", gelap: "#b58863", teksTerang: "#b58863", teksGelap: "#f0d9b5" }
-    : { terang: "#ebecd0", gelap: "#779556", teksTerang: "#739552", teksGelap: "#ebecd0" };
+  const TEMA_PAPAN = {
+    blue: { terang: "#d7e5f0", gelap: "#4f82a8" },
+    brown: { terang: "#ead2ad", gelap: "#9b6847" },
+    orange: { terang: "#f5d7a1", gelap: "#cf7e36" },
+    green: { terang: "#e4e8d0", gelap: "#779556" },
+    grey: { terang: "#dedede", gelap: "#8c8c8c" },
+    "light-blue": { terang: "#e3eff3", gelap: "#80aec1" },
+    "dark-blue": { terang: "#b9cad5", gelap: "#355772" },
+    wood: { terang: "#e7c78f", gelap: "#a66a35" },
+    "marble-brown": { terang: "#dfd1c0", gelap: "#947966" },
+    "marble-green": { terang: "#d5ddd3", gelap: "#6f8a73" },
+    metal: { terang: "#aeb2b3", gelap: "#596062" },
+    klasik: { terang: "#f0d9b5", gelap: "#b58863" },
+    hijau: { terang: "#ebecd0", gelap: "#779556" },
+  };
+  const palet = TEMA_PAPAN[tema] || TEMA_PAPAN.hijau;
+  const warnaPapan = {
+    terang: palet.terang,
+    gelap: palet.gelap,
+    teksTerang: palet.gelap,
+    teksGelap: palet.terang,
+  };
 
   return (
     <div
