@@ -34,7 +34,7 @@ export default function Logo({
         draggable="false"
         decoding="async"
         loading={priority ? "eager" : "lazy"}
-        fetchPriority={priority ? "high" : "auto"}
+        fetchpriority={priority ? "high" : "auto"}
         className="flex-none object-contain"
         style={{ width: px, height: px }}
       />

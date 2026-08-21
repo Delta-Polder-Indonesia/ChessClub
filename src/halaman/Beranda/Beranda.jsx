@@ -14,42 +14,20 @@ import {
   ambilPengumumanPublik,
   jenisTurnamen,
 } from "../../lib/chessAnggota.js";
-
-const WARNA_STATUS = {
-  pendaftaran: "bg-blue-50 text-blue-700",
-  berlangsung: "bg-amber-50 text-amber-800",
-  selesai: "bg-emerald-50 text-emerald-700",
-  batal: "bg-red-50 text-red-700",
-};
-
-const TEKS_STATUS = {
-  pendaftaran: "Pendaftaran",
-  berlangsung: "Berlangsung",
-  selesai: "Selesai",
-  batal: "Batal",
-};
+import { parseWaktuKomunitas } from "../../lib/waktu.js";
+import LencanaStatus from "../../components/LencanaStatus.jsx";
 
 function formatTanggal(nilai) {
   if (!nilai) return "—";
-  const d = new Date(nilai);
-  if (Number.isNaN(d.getTime())) return nilai;
+  // Jam turnamen disimpan tanpa zona waktu; parse eksplisit sebagai
+  // Asia/Jakarta agar tidak bergeser di zona browser pengunjung.
+  const d = parseWaktuKomunitas(nilai);
+  if (!d) return nilai;
   return d.toLocaleDateString("id-ID", {
     day: "numeric",
     month: "short",
     year: "numeric",
   });
-}
-
-function LencanaStatus({ status }) {
-  return (
-    <span
-      className={`px-2.5 py-0.5 text-xs font-semibold ${
-        WARNA_STATUS[status] || "bg-slate-100 text-slate-700"
-      }`}
-    >
-      {TEKS_STATUS[status] || status}
-    </span>
-  );
 }
 
 export default function Beranda() {

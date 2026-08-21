@@ -33,6 +33,7 @@ import {
   terbitkanTiket,
   intipTiket,
   statistikSesi,
+  jalurInternal,
 } from "./oauth.js";
 import {
   mintaKode,
@@ -164,7 +165,13 @@ router.get("/api/auth/chess/kembali", async (req, _p, konteks) => {
 
   const tujuanDasar = konfigurasi.oauth.tujuanSetelahLogin;
 
-  const hasilkanHtml = (data) => `<!doctype html>
+  /**
+   * Halaman penutup login: simpan hasil ke sessionStorage lalu redirect.
+   * `tujuan` adalah jalur internal yang sudah divalidasi jalurInternal()
+   * (dari sesi OAuth atau bawaan env) — tetap di-JSON.stringify agar tidak
+   * bisa menyisipkan markup/JavaScript ke dalam HTML.
+   */
+  const hasilkanHtml = (data, tujuan = tujuanDasar) => `<!doctype html>
 <html lang="id"><head><meta charset="utf-8"><title>Login...</title></head>
 <body>
 <script>
@@ -173,7 +180,7 @@ router.get("/api/auth/chess/kembali", async (req, _p, konteks) => {
   try {
     sessionStorage.setItem("kci-hasil-verifikasi", JSON.stringify(data));
   } catch(e) {}
-  window.location.replace("${tujuanDasar}");
+  window.location.replace(${JSON.stringify(jalurInternal(tujuan) || "/")});
 })();
 </script>
 </body></html>`;
@@ -188,7 +195,10 @@ router.get("/api/auth/chess/kembali", async (req, _p, konteks) => {
   try {
     const { username, kembaliKe } = await selesaikanLogin({ code: kode, state });
     const { tiket } = terbitkanTiket(username, "oauth");
-    return { status: 200, html: hasilkanHtml({ sukses: true, username, tiket }) };
+    return {
+      status: 200,
+      html: hasilkanHtml({ sukses: true, username, tiket }, kembaliKe),
+    };
   } catch (e) {
     console.error("[kci] gagal menyelesaikan login Chess.com:", e.message);
     return { status: 200, html: hasilkanHtml({ sukses: false, sebab: e.message }) };

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -152,72 +152,6 @@ const RUTE_REDIRECT = new Map([
   ["/pengadaan/hubungi-admin", "/beranda/hubungi-admin"],
 ]);
 
-/* ------------------------------------------------------- pulihkan rute */
-
-/**
- * Kunci sessionStorage yang dipakai public/404.html untuk menyimpan alamat
- * asli saat pengguna me-refresh rute dalam di GitHub Pages.
- */
-const KUNCI_RUTE = "kci-rute-tersimpan";
-
-/**
- * Nilai dari sessionStorage tetap data eksternal — pengguna (atau skrip
- * jahat di tab yang sama) bisa menuliskannya. Hanya jalur INTERNAL relatif
- * yang diterima; segala bentuk alamat absolut atau protokol ditolak agar
- * tidak menjadi celah open redirect.
- */
-function jalurInternalAman(jalur) {
-  if (typeof jalur !== "string" || !jalur) return false;
-  // Wajib diawali satu "/" — menolak "https://…", "javascript:…", "foo".
-  if (!jalur.startsWith("/")) return false;
-  // "//evil.com" dan "/\evil.com" diperlakukan browser sebagai URL absolut.
-  if (jalur.startsWith("//") || jalur.startsWith("/\\")) return false;
-  // Tolak karakter kontrol serta sisa skema yang tersamar (mis. "/a:javascript").
-  // eslint-disable-next-line no-control-regex
-  if (/[\u0000-\u001f\u007f]/.test(jalur)) return false;
-  // Uji akhir: bila diurai relatif terhadap origin kita, origin-nya tidak
-  // boleh berubah. Menangkap trik encoding yang lolos pemeriksaan di atas.
-  try {
-    const asal = window.location.origin;
-    return new URL(jalur, asal).origin === asal;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Memulihkan rute yang disimpan oleh public/404.html.
- * 404.html menyimpan jalur lengkap (mis. "/ChessClub/tentang-kami#keanggotaan"),
- * lalu mengarahkan ke index.html. Komponen ini melepas prefix base dan
- * menavigasi ke rute semula tanpa reload — setelah lolos validasi
- * jalurInternalAman() untuk mencegah open redirect.
- */
-function PulihkanRute() {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    try {
-      const tersimpan = sessionStorage.getItem(KUNCI_RUTE);
-      if (!tersimpan) return;
-      sessionStorage.removeItem(KUNCI_RUTE);
-      if (!jalurInternalAman(tersimpan)) return;
-      const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
-      const jalur = tersimpan.startsWith(base)
-        ? tersimpan.slice(base.length)
-        : tersimpan;
-      if (!jalur || jalur === "/") return;
-      // Validasi ulang setelah prefix base dilepas — pelepasan prefix bisa
-      // mengubah bentuk jalur (mis. "/ChessClub//evil.com" → "//evil.com").
-      if (!jalurInternalAman(jalur)) return;
-      navigate(jalur, { replace: true });
-    } catch {
-      /* abaikan — hanya berfungsi di lingkungan yang mendukung sessionStorage */
-    }
-  }, [navigate]);
-
-  return null;
-}
-
 /* ---------------------------------------------------------------- app */
 
 export default function App() {
@@ -227,7 +161,6 @@ export default function App() {
 
   return (
     <>
-      <PulihkanRute />
       <ScrollToTop />
       <Suspense fallback={<HeroFallback />}>
         <Routes>

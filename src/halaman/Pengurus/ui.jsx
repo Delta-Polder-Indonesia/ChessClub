@@ -87,22 +87,61 @@ export function Modal({
 }) {
   const [nilai, setNilai] = useState(nilaiBawaanInput);
   const inputRef = useRef(null);
+  const wadahRef = useRef(null);
+
+  /** Fokus elemen pertama yang bisa di-fokus di dalam dialog. */
+  const fokusPertama = () => {
+    const wadah = wadahRef.current;
+    if (!wadah) return;
+    const fokus = wadah.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    (fokus[0] || wadah).focus?.();
+  };
 
   useEffect(() => {
     if (terbuka) {
       setNilai(nilaiBawaanInput);
-      const t = setTimeout(() => inputRef.current?.focus(), 50);
+      const t = setTimeout(fokusPertama, 50);
       return () => clearTimeout(t);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [terbuka, nilaiBawaanInput]);
 
   useEffect(() => {
     if (!terbuka) return;
+    const tadi = document.activeElement;
     const onEsc = (e) => {
       if (e.key === "Escape" && !sibuk) onBatal?.();
     };
+    // Focus trap: Tab/Shift+Tab berputar di dalam dialog, tidak keluar
+    // ke halaman di belakangnya.
+    const onTab = (e) => {
+      if (e.key !== "Tab") return;
+      const wadah = wadahRef.current;
+      if (!wadah) return;
+      const fokus = [...wadah.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      )].filter((el) => !el.disabled);
+      if (!fokus.length) return;
+      const pertama = fokus[0];
+      const terakhir = fokus[fokus.length - 1];
+      if (e.shiftKey && document.activeElement === pertama) {
+        e.preventDefault();
+        terakhir.focus();
+      } else if (!e.shiftKey && document.activeElement === terakhir) {
+        e.preventDefault();
+        pertama.focus();
+      }
+    };
     document.addEventListener("keydown", onEsc);
-    return () => document.removeEventListener("keydown", onEsc);
+    document.addEventListener("keydown", onTab);
+    return () => {
+      document.removeEventListener("keydown", onEsc);
+      document.removeEventListener("keydown", onTab);
+      // Kembalikan fokus ke elemen pemicu setelah dialog ditutup.
+      if (tadi && typeof tadi.focus === "function") tadi.focus();
+    };
   }, [terbuka, sibuk, onBatal]);
 
   if (!terbuka) return null;
@@ -119,9 +158,11 @@ export function Modal({
       className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4"
       role="dialog"
       aria-modal="true"
+      aria-label={judul}
       onClick={() => !sibuk && onBatal?.()}
     >
       <div
+        ref={wadahRef}
         className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >

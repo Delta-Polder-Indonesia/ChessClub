@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   CorporateDivider,
   CorporatePage,
@@ -7,12 +8,7 @@ import {
 } from "../../components/CorporatePage.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
-
-async function ambilCsrfToken() {
-  const res = await fetch("/api/csrf-token");
-  const data = await res.json();
-  return data.token;
-}
+import { kirimPesan } from "../../lib/chessAnggota.js";
 
 const SIDEBAR = [
   { id: "sekretariat", label: "Sekretariat", active: true },
@@ -92,30 +88,14 @@ export default function HubungiKami() {
 
               try {
                 const data = new FormData(event.currentTarget);
-                const csrfToken = await ambilCsrfToken();
-
-                const bodi = {
+                await kirimPesan({
                   nama: data.get("nama"),
                   email: data.get("email"),
                   telepon: data.get("telepon"),
                   organisasi: data.get("organisasi"),
                   subjek: data.get("subjek"),
                   pesan: data.get("pesan"),
-                };
-
-                const res = await fetch("/api/pesan", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRF-Token": csrfToken,
-                  },
-                  body: JSON.stringify(bodi),
                 });
-
-                if (!res.ok) {
-                  const data = await res.json();
-                  throw new Error(data.pesan || "Gagal mengirim pesan");
-                }
 
                 setTerkirim(true);
               } catch (err) {
@@ -157,7 +137,14 @@ export default function HubungiKami() {
                   <p>
                     Dengan mengirimkan pesan, Anda memahami dan menyetujui pemrosesan data yang Anda berikan sesuai dengan kebijakan privasi yang berlaku.
                   </p>
-                  <p><a href="#privacy" className="text-primary no-underline font-bold">Baca Selengkapnya</a></p>
+                  <p>
+                    <Link
+                      to="/keberlanjutan/syarat-dan-ketentuan"
+                      className="text-primary no-underline font-bold"
+                    >
+                      Baca Selengkapnya
+                    </Link>
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

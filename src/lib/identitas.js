@@ -79,12 +79,26 @@ export function normalisasiKota(raw) {
     .trim();
 }
 
-/** Tanggal lahir baku YYYY-MM-DD, atau "" bila tidak valid. */
+/**
+ * Tanggal lahir baku YYYY-MM-DD, atau "" bila tidak valid.
+ * Validasi KALENDER eksplisit: `new Date("2026-02-30T00:00:00Z")` di V8
+ * di-rollover menjadi 2 Maret dan tampak "valid" — di sini komponen
+ * tanggal dibandingkan ulang agar 30 Februari dst. ditolak.
+ */
 export function normalisasiTanggal(raw) {
   const s = String(raw || "").trim();
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return "";
-  const d = new Date(s + "T00:00:00Z");
-  if (Number.isNaN(d.getTime())) return "";
+  const cocok = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  if (!cocok) return "";
+  const [y, m, d] = [Number(cocok[1]), Number(cocok[2]), Number(cocok[3])];
+  if (m < 1 || m > 12 || d < 1 || d > 31) return "";
+  const tgl = new Date(Date.UTC(y, m - 1, d));
+  if (
+    tgl.getUTCFullYear() !== y ||
+    tgl.getUTCMonth() !== m - 1 ||
+    tgl.getUTCDate() !== d
+  ) {
+    return "";
+  }
   return s;
 }
 

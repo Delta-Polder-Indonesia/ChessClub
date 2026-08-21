@@ -785,11 +785,23 @@ export default function Dashboard() {
   useEffect(() => {
     document.title = "Dashboard Pengurus | Komunitas Catur Indonesia";
     muatUlang();
-    // polling ringan untuk notifikasi pesan masuk
+    // polling ringan untuk notifikasi pesan masuk — dijeda saat tab
+    // tersembunyi dan dilanjutkan (dengan muat segera) saat kembali.
     muatNotif();
-    const id = setInterval(muatNotif, 30_000);
+    let id = setInterval(muatNotif, 30_000);
+    const onVisibilitas = () => {
+      if (document.visibilityState === "hidden") {
+        if (id) clearInterval(id);
+        id = null;
+      } else if (!id) {
+        muatNotif();
+        id = setInterval(muatNotif, 30_000);
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilitas);
     return () => {
-      clearInterval(id);
+      if (id) clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisibilitas);
       document.title = "Dashboard Pengurus | Komunitas Catur Indonesia";
     };
   }, [muatUlang, muatNotif]);

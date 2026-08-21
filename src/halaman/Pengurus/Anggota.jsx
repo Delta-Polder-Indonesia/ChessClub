@@ -120,7 +120,7 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
                     <td className="px-3 py-2">
                       {a.terverifikasi ? (
                         <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          {a.caraVerifikasi === "oauth" ? "login" : "kode"}
+                          terverifikasi
                         </span>
                       ) : (
                         <span className="text-xs text-slate-400">belum</span>

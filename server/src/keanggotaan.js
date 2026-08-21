@@ -167,9 +167,31 @@ export async function lengkapiAnggota(anggota, { cacheDetik } = {}) {
   }
 }
 
-/** Buang field sensitif sebelum dikirim ke klien. */
+/**
+ * Buang field internal/sensitif sebelum dikirim ke klien.
+ *
+ * Memakai ALLOW-LIST eksplisit, bukan destructuring satu field: field baru
+ * yang ditambahkan ke catatan anggota tidak akan pernah bocor tanpa sengaja
+ * (sidikPepper, kotaKunci, hash identitas, dan caraVerifikasi adalah data
+ * internal — sidikPepper bahkan memberi sidik jari pepper rahasia ke publik).
+ */
+const FIELD_PUBLIK = new Set([
+  "username",
+  "playerId",
+  "panggilan",
+  "kota",
+  "klub",
+  "kategoriUmur",
+  "terverifikasi",
+  "statusChess",
+  "daftarPada",
+]);
+
 function tanpaRahasia(anggota) {
-  const { identitas, ...aman } = anggota;
+  const aman = {};
+  for (const k of FIELD_PUBLIK) {
+    if (anggota[k] !== undefined) aman[k] = anggota[k];
+  }
   return aman;
 }
 
