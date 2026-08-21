@@ -54,6 +54,131 @@ function susunKatalog(pohon) {
   return hasil;
 }
 
+/** Pola langkah koordinat ("e2e4") — dipakai untuk membedakan jenis kunci pohon. */
+const POLA_KOORDINAT = /^[a-h][1-8][a-h][1-8]$/;
+
+/** Ambil statistik dari satu entri (null bila entri tidak punya statistik). */
+function statDariEntri(entri) {
+  if (typeof entri.games !== "number") return null;
+  const angka = (v) => (typeof v === "number" ? v : null);
+  return {
+    games: entri.games,
+    whiteWin: angka(entri.white_win_rate),
+    blackWin: angka(entri.black_win_rate),
+    draw: angka(entri.draw_rate),
+    rating: angka(entri.avg_rating),
+  };
+}
+
+/**
+ * Ubah buku pembukaan berformat "daftar rata" (format Lichess, mis.
+ * [{ eco, opening, moves: "e2e4 e7e5 g1f3 …" }, …]) menjadi pohon langkah
+ * ber-key koordinat: node = { "n"?: [[eco, nama, stat], …], "c"?: {…} }.
+ * Konversi ini murni penyusunan string sehingga cepat (tidak butuh chess.js).
+ */
+function pohonDariDaftar(daftar) {
+  const akar = {};
+  for (const entri of daftar) {
+    const eco = entri.eco || entri.code || "?";
+    const nama = entri.opening || entri.name;
+    const langkah = String(entri.moves || entri.uci || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (!nama || !langkah.length) continue;
+    const stat = statDariEntri(entri);
+    let node = akar;
+    for (const k of langkah) {
+      if (!node.c) node.c = {};
+      if (!node.c[k]) node.c[k] = {};
+      node = node.c[k];
+    }
+    if (!node.n) node.n = [];
+    const ada = node.n.find(([e, n]) => e === eco && n === nama);
+    if (!ada) {
+      node.n.push([eco, nama, stat]);
+    } else if (!ada[2] && stat) {
+      ada[2] = stat; // lengkapi statistik pada nama duplikat yang belum punya
+    }
+  }
+  return akar;
+}
+
+/** Tebak kunci pohon: koordinat ("e2e4") atau SAN ("e4", "Nf3", …). */
+function modeDariPohon(pohon) {
+  const kunci = Object.keys((pohon && pohon.c) || {});
+  if (!kunci.length) return "koordinat";
+  return kunci.every((k) => POLA_KOORDINAT.test(k)) ? "koordinat" : "san";
+}
+
+/** Kunci pohon untuk satu pindahan: koordinat atau SAN, sesuai mode. */
+function kuciDariPindahan(pindah, mode) {
+  return mode === "koordinat" ? `${pindah.from}${pindah.to}` : pindah.san;
+}
+
+/** Ubah satu langkah koordinat menjadi SAN pada posisi `game` (lalu undo). */
+function sanDiPosisi(game, koordinat) {
+  try {
+    const pindah = game.move({ from: koordinat.slice(0, 2), to: koordinat.slice(2, 4) });
+    if (pindah) {
+      game.undo();
+      return pindah.san;
+    }
+  } catch {}
+  return koordinat;
+}
+
+/** Replay deret koordinat menjadi { fen, san } (untuk memuat jalur katalog). */
+function fenDanSanDariKoordinat(daftarKoordinat) {
+  const game = new Chess();
+  const san = [];
+  for (const k of daftarKoordinat) {
+    let pindah;
+    try {
+      pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
+    } catch {
+      pindah = null;
+    }
+    if (!pindah) return null;
+    san.push(pindah.san);
+  }
+  return { fen: game.fen(), san };
+}
+
+/** Pratinjau SAN untuk deret koordinat (dipakai daftar katalog; di-cache). */
+const KACI_PRATINJAU = new Map();
+function pratinjauSan(daftarKoordinat) {
+  const kuci = daftarKoordinat.slice(0, 6).join(" ");
+  if (KACI_PRATINJAU.has(kuci)) return KACI_PRATINJAU.get(kuci);
+  const game = new Chess();
+  const san = [];
+  for (const k of daftarKoordinat.slice(0, 6)) {
+    try {
+      const pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
+      if (!pindah) break;
+      san.push(pindah.san);
+    } catch {
+      break;
+    }
+  }
+  const teks = san.join(" ") + (daftarKoordinat.length > 6 ? " …" : "");
+  KACI_PRATINJAU.set(kuci, teks);
+  return teks;
+}
+
+/** Format angka sesuai bahasa aktif (22.326 → "22.326" id / "22,326" en). */
+function formatAngka(nilai, bahasa) {
+  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID").format(nilai);
+}
+
+/** Ubah pecahan (0..1) menjadi persen berdesimal (0.527 → "52,7"/"52.7"). */
+function formatPersen(pecahan, bahasa) {
+  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(pecahan * 100);
+}
+
 function Kerangka() {
   return (
     <div aria-hidden="true" className="animate-pulse">
@@ -64,13 +189,15 @@ function Kerangka() {
 }
 
 export default function PapanInteraktif() {
-  const { t } = useI18n();
+  const { t, bahasa } = useI18n();
 
   const [pohon, setPohon] = useState(null);
+  const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
   const [gagal, setGagal] = useState(false);
 
   const [fen, setFen] = useState(FEN_AWAL);
-  const [riwayat, setRiwayat] = useState([]);
+  const [riwayat, setRiwayat] = useState([]); // SAN, untuk PGN
+  const [jalur, setJalur] = useState([]); // kunci pohon, untuk menelusuri pembukaan
   const [orientasi, setOrientasi] = useState("w");
 
   const [terpilih, setTerpilih] = useState(null);
@@ -84,6 +211,7 @@ export default function PapanInteraktif() {
 
   const [cari, setCari] = useState("");
   const [tersalin, setTersalin] = useState(false);
+  const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
 
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
@@ -98,7 +226,16 @@ export default function PapanInteraktif() {
         return respon.json();
       })
       .then((data) => {
-        if (aktif) setPohon(data);
+        if (!aktif) return;
+        // Daftar rata (format Lichess) → bangun pohon koordinat di tempat.
+        // Objek pohon → pakai langsung (dukung kunci SAN lama maupun koordinat).
+        if (Array.isArray(data)) {
+          setPohon(pohonDariDaftar(data));
+          setMode("koordinat");
+        } else {
+          setPohon(data);
+          setMode(modeDariPohon(data));
+        }
       })
       .catch(() => {
         if (aktif) setGagal(true);
@@ -126,26 +263,81 @@ export default function PapanInteraktif() {
     let node = pohon;
     let namaTerdalam = null;
     let cocok = true;
-    for (const san of riwayat) {
-      if (!node.c || !node.c[san]) {
+    for (const k of jalur) {
+      if (!node.c || !node.c[k]) {
         cocok = false;
         break;
       }
-      node = node.c[san];
+      node = node.c[k];
       if (node.n && node.n.length) namaTerdalam = node.n;
     }
-    const saran = cocok
-      ? Object.entries(node.c || {})
-          .map(([san, anak]) => ({
-            san,
-            nama: anak.n && anak.n.length ? anak.n[0][1] : null,
-          }))
-          .slice(0, 8)
-      : [];
+    let saran = [];
+    if (cocok) {
+      const game = new Chess(fen);
+      saran = Object.entries(node.c || {})
+        .slice(0, 8)
+        .map(([k, anak]) => ({
+          k,
+          san: mode === "koordinat" ? sanDiPosisi(game, k) : k,
+          nama: anak.n && anak.n.length ? anak.n[0][1] : null,
+        }));
+    }
     return { nama: namaTerdalam, saran, cocok };
-  }, [pohon, riwayat]);
+  }, [pohon, jalur, fen, mode]);
+
+  /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
+  const statTampil = useMemo(() => {
+    const tuple = infoPembukaan.nama
+      ? infoPembukaan.nama.find(([, , s]) => s && typeof s.games === "number") ||
+        null
+      : null;
+    const s = tuple ? tuple[2] : null;
+    if (!s) return null;
+    const pecahan = (v) => (typeof v === "number" ? v : null);
+    return {
+      games: s.games,
+      rating: pecahan(s.rating),
+      putih: pecahan(s.whiteWin),
+      seri: pecahan(s.draw),
+      hitam: pecahan(s.blackWin),
+    };
+  }, [infoPembukaan.nama]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
+
+  /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
+      menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
+      "Caro-Kann Defense" → semua varian Caro-Kann). */
+  const daftarPilih = useMemo(() => {
+    const wakil = new Map();
+    for (const k of katalog) {
+      const ada = wakil.get(k.nama);
+      if (!ada || k.langkah.length < ada.langkah.length) wakil.set(k.nama, k);
+    }
+    const kelompok = new Map();
+    for (const k of wakil.values()) {
+      const keluarga = (k.nama.split(":")[0] || k.nama).trim();
+      if (!kelompok.has(keluarga)) kelompok.set(keluarga, []);
+      kelompok.get(keluarga).push(k);
+    }
+    const urut = [...kelompok.entries()]
+      .map(([nama, daftar]) => ({
+        nama,
+        daftar: daftar.sort((a, b) => a.nama.localeCompare(b.nama)),
+      }))
+      .sort((a, b) => a.nama.localeCompare(b.nama));
+
+    const rata = [];
+    const idDari = new Map();
+    for (const g of urut) {
+      for (const entri of g.daftar) {
+        const id = rata.length;
+        idDari.set(entri, id);
+        rata.push({ id, entri });
+      }
+    }
+    return { kelompok: urut, rata, idDari };
+  }, [katalog]);
 
   const hasilCari = useMemo(() => {
     const q = cari.trim().toLowerCase();
@@ -226,6 +418,7 @@ export default function PapanInteraktif() {
 
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from, to });
     setTerpilih(null);
     setSasaran([]);
@@ -244,6 +437,7 @@ export default function PapanInteraktif() {
     }
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
+    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
     setSasaran([]);
@@ -323,6 +517,8 @@ export default function PapanInteraktif() {
   function reset() {
     setFen(FEN_AWAL);
     setRiwayat([]);
+    setJalur([]);
+    setPilihan(-1);
     setOrientasi("w");
     setTerpilih(null);
     setSasaran([]);
@@ -335,6 +531,7 @@ export default function PapanInteraktif() {
     if (!riwayat.length) return;
     const baru = riwayat.slice(0, -1);
     setRiwayat(baru);
+    setJalur((lama) => lama.slice(0, -1));
     setFen(fenDariLangkah(baru));
     setTerpilih(null);
     setSasaran([]);
@@ -358,8 +555,17 @@ export default function PapanInteraktif() {
   }
 
   function muatJalur(entri) {
-    setRiwayat([...entri.langkah]);
-    setFen(fenDariLangkah(entri.langkah));
+    if (mode === "koordinat") {
+      const hasil = fenDanSanDariKoordinat(entri.langkah);
+      if (!hasil) return;
+      setRiwayat(hasil.san);
+      setJalur([...entri.langkah]);
+      setFen(hasil.fen);
+    } else {
+      setRiwayat([...entri.langkah]);
+      setJalur([...entri.langkah]);
+      setFen(fenDariLangkah(entri.langkah));
+    }
     setOrientasi("w");
     setTerpilih(null);
     setSasaran([]);
@@ -545,6 +751,85 @@ export default function PapanInteraktif() {
                           </span>
                         )}
                       </div>
+
+                      {statTampil && (
+                        <div className="mt-3 border-t border-slate-200 pt-3">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            {t("papan.statistik")}
+                          </p>
+
+                          <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
+                            <span>
+                              <span className="font-bold text-slate-800">
+                                {formatAngka(statTampil.games, bahasa)}
+                              </span>{" "}
+                              {t("papan.partai")}
+                            </span>
+                            {typeof statTampil.rating === "number" && (
+                              <span>
+                                {t("papan.ratingRata")}{" "}
+                                <span className="font-bold text-slate-800">
+                                  {formatAngka(statTampil.rating, bahasa)}
+                                </span>
+                              </span>
+                            )}
+                          </div>
+
+                          {(statTampil.putih !== null ||
+                            statTampil.hitam !== null) && (
+                            <>
+                              <div
+                                className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-slate-200"
+                                role="img"
+                                aria-label={t("papan.statistik")}
+                              >
+                                {statTampil.putih !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.putih * 100}%` }}
+                                    className="bg-slate-800"
+                                  />
+                                )}
+                                {statTampil.seri !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.seri * 100}%` }}
+                                    className="bg-slate-400"
+                                  />
+                                )}
+                                {statTampil.hitam !== null && (
+                                  <div
+                                    style={{ width: `${statTampil.hitam * 100}%` }}
+                                    className="bg-slate-500"
+                                  />
+                                )}
+                              </div>
+
+                              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+                                {statTampil.putih !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-800" />
+                                    {t("papan.menangPutih")}{" "}
+                                    {formatPersen(statTampil.putih, bahasa)}%
+                                  </span>
+                                )}
+                                {statTampil.seri !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-400" />
+                                    {t("papan.seri")}{" "}
+                                    {formatPersen(statTampil.seri, bahasa)}%
+                                  </span>
+                                )}
+                                {statTampil.hitam !== null && (
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-500" />
+                                    {t("papan.menangHitam")}{" "}
+                                    {formatPersen(statTampil.hitam, bahasa)}%
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="mt-1.5 text-sm font-medium text-slate-600">
@@ -568,7 +853,7 @@ export default function PapanInteraktif() {
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {infoPembukaan.saran.map((s) => (
                           <button
-                            key={s.san}
+                            key={s.k}
                             type="button"
                             onClick={() => mainkanSan(s.san)}
                             title={s.nama || s.san}
@@ -587,12 +872,39 @@ export default function PapanInteraktif() {
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
                     {t("papan.katalog")}
                   </p>
+
+                  <select
+                    value={pilihan}
+                    onChange={(e) => {
+                      const id = Number(e.target.value);
+                      setPilihan(id);
+                      const item = daftarPilih.rata[id];
+                      if (item) muatJalur(item.entri);
+                    }}
+                    aria-label={t("papan.pilihPembukaan")}
+                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                  >
+                    <option value={-1}>{t("papan.pilihPembukaan")}</option>
+                    {daftarPilih.kelompok.map((g) => (
+                      <optgroup key={g.nama} label={g.nama}>
+                        {g.daftar.map((entri) => (
+                          <option
+                            key={daftarPilih.idDari.get(entri)}
+                            value={daftarPilih.idDari.get(entri)}
+                          >
+                            {entri.nama}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+
                   <input
                     type="text"
                     value={cari}
                     onChange={(e) => setCari(e.target.value)}
                     placeholder={t("papan.cariPembukaan")}
-                    className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                   />
                   {cari.trim() ? (
                     hasilCari.length ? (
@@ -603,7 +915,7 @@ export default function PapanInteraktif() {
                             total: katalog.length,
                           })}
                         </p>
-                        <DaftarKatalog entri={hasilCari} onMuat={muatJalur} />
+                        <DaftarKatalog entri={hasilCari} onMuat={muatJalur} mode={mode} />
                       </>
                     ) : (
                       <p className="mt-2 text-sm text-slate-500">
@@ -614,6 +926,7 @@ export default function PapanInteraktif() {
                     <DaftarKatalog
                       entri={katalog.slice(0, 40)}
                       onMuat={muatJalur}
+                      mode={mode}
                     />
                   )}
                 </div>
@@ -639,12 +952,12 @@ export default function PapanInteraktif() {
   );
 }
 
-function DaftarKatalog({ entri, onMuat }) {
+function DaftarKatalog({ entri, onMuat, mode }) {
   if (!entri.length) return null;
   return (
     <ul className="mt-2 max-h-72 overflow-y-auto rounded-md border border-slate-200 bg-white">
       {entri.map((k) => (
-        <li key={`${k.eco}-${k.nama}`} className="border-b border-slate-100 last:border-0">
+        <li key={`${k.eco}-${k.nama}-${k.langkah.join(" ")}`} className="border-b border-slate-100 last:border-0">
           <button
             type="button"
             onClick={() => onMuat(k)}
@@ -657,8 +970,9 @@ function DaftarKatalog({ entri, onMuat }) {
               {k.nama}
             </span>
             <span className="hidden shrink-0 truncate font-mono text-xs text-slate-400 sm:block">
-              {k.langkah.slice(0, 6).join(" ")}
-              {k.langkah.length > 6 ? " …" : ""}
+              {mode === "koordinat"
+                ? pratinjauSan(k.langkah)
+                : k.langkah.slice(0, 6).join(" ") + (k.langkah.length > 6 ? " …" : "")}
             </span>
           </button>
         </li>
