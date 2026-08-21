@@ -275,6 +275,20 @@ console.log("\nValidasi masukan");
   cek("tanggal lahir mustahil ditolak", lahir.status === 400, `dapat ${lahir.status}`);
 
   ipSaatIni = ipBaru();
+  const lahirKalender = await panggil(
+    "POST",
+    "/api/anggota",
+    // 30 Februari tidak pernah ada di kalender — harus ditolak, bukan
+    // di-rollover diam-diam menjadi 2 Maret oleh Date.
+    anggotaSah("magnuscarlsen", { tanggalLahir: "2026-02-30" })
+  );
+  cek(
+    "tanggal kalender mustahil (2026-02-30) ditolak",
+    lahirKalender.status === 400 && lahirKalender.data?.galat?.tanggalLahir,
+    `dapat ${lahirKalender.status}: ${JSON.stringify(lahirKalender.data?.galat)}`
+  );
+
+  ipSaatIni = ipBaru();
   const surel = await panggil(
     "POST",
     "/api/anggota",
@@ -339,6 +353,16 @@ let pendaftaranBerhasil = false;
         rosterSesudahDaftar.data?.find((a) => a.username === "hikaru")
           ?.dataSitusLengkap === false,
       JSON.stringify(rosterSesudahDaftar.data)
+    );
+
+    const teksRoster = JSON.stringify(rosterSesudahDaftar.data);
+    cek(
+      "roster publik tidak membocorkan sidikPepper",
+      !teksRoster.includes("sidikPepper")
+    );
+    cek(
+      "roster publik tidak membocorkan kotaKunci/caraVerifikasi",
+      !teksRoster.includes("kotaKunci") && !teksRoster.includes("caraVerifikasi")
     );
 
     ipSaatIni = ipBaru();
@@ -669,6 +693,71 @@ console.log("\nPersetujuan peserta turnamen");
       "pengurus dapat menolak pengajuan",
       "pengajuan ditolak tidak masuk peserta",
     ]) lewati(nama);
+  }
+}
+
+/* ------------------------------------------------ pencatatan hasil partai */
+console.log("\nPencatatan hasil partai");
+{
+  ipSaatIni = ipBaru();
+  const buat = await panggil("POST", "/api/pengurus/turnamen", {
+    jenis: "bulanan",
+    nama: "Turnamen Uji Hasil",
+    status: "pendaftaran",
+  });
+  cek(
+    "pengurus membuat turnamen untuk uji hasil",
+    buat.status === 201,
+    JSON.stringify(buat.data)
+  );
+  const id = buat.data?.id;
+
+  if (id) {
+    for (const u of ["magnuscarlsen", "gothamchess", "hikaru"]) {
+      ipSaatIni = ipBaru();
+      const dftr = await panggil(
+        "POST",
+        `/api/pengurus/turnamen/${id}/peserta`,
+        { username: u }
+      );
+      cek(`peserta ${u} didaftarkan pengurus`, dftr.status === 201, JSON.stringify(dftr.data)?.slice(0, 120));
+    }
+
+    ipSaatIni = ipBaru();
+    const hasil1 = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/hasil`,
+      { ronde: 1, putih: "magnuscarlsen", hitam: "gothamchess", skor: "1-0" }
+    );
+    cek("hasil ronde 1 tercatat", hasil1.status === 201, JSON.stringify(hasil1.data)?.slice(0, 120));
+
+    ipSaatIni = ipBaru();
+    const duplikat = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/hasil`,
+      { ronde: 1, putih: "magnuscarlsen", hitam: "gothamchess", skor: "0-1" }
+    );
+    cek("partai sama di ronde sama ditolak", duplikat.status === 409, `dapat ${duplikat.status}`);
+
+    ipSaatIni = ipBaru();
+    const duaKali = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/hasil`,
+      { ronde: 1, putih: "magnuscarlsen", hitam: "hikaru", skor: "1-0" }
+    );
+    cek(
+      "pemain tidak bisa dua partai di ronde sama",
+      duaKali.status === 409,
+      JSON.stringify(duaKali.data)?.slice(0, 140)
+    );
+
+    ipSaatIni = ipBaru();
+    const ronde2 = await panggil(
+      "POST",
+      `/api/pengurus/turnamen/${id}/hasil`,
+      { ronde: 2, putih: "magnuscarlsen", hitam: "hikaru", skor: "0.5-0.5" }
+    );
+    cek("ronde berikutnya tetap bisa dicatat", ronde2.status === 201, `dapat ${ronde2.status}`);
   }
 }
 

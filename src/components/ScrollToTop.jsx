@@ -11,7 +11,13 @@ export default function ScrollToTop() {
     sebelumnya.current = pathname;
 
     if (hash) {
-      const id = decodeURIComponent(hash.slice(1));
+      let id;
+      try {
+        id = decodeURIComponent(hash.slice(1));
+      } catch {
+        // Hash malformed (mis. "/#%zz") — jangan biarkan aplikasi crash.
+        id = hash.slice(1);
+      }
       const go = () => {
         const el = document.getElementById(id);
         if (el) el.scrollIntoView({ behavior: "smooth" });

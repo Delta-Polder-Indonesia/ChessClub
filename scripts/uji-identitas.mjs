@@ -5,6 +5,7 @@ import {
   formatHp,
   normalisasiNama,
   normalisasiKota,
+  normalisasiTanggal,
   kategoriUmur,
   hitungUmur,
 } from "../src/lib/identitas.js";
@@ -60,6 +61,14 @@ cek("umur", hitungUmur("2000-01-01", acuan), 26);
 cek("junior", kategoriUmur("2012-01-01", acuan), "Junior");
 cek("cilik", kategoriUmur("2016-01-01", acuan), "Pemula Cilik");
 cek("senior", kategoriUmur("1970-01-01", acuan), "Senior");
+
+console.log("\n== Validasi tanggal kalender (30 Feb dst. harus ditolak) ==");
+cek("tanggal baku", normalisasiTanggal("2026-08-14"), "2026-08-14");
+cek("tolak 2026-02-30", normalisasiTanggal("2026-02-30"), "");
+cek("tolak 2026-04-31", normalisasiTanggal("2026-04-31"), "");
+cek("tolak bulan 13", normalisasiTanggal("2026-13-01"), "");
+cek("tolak format salah", normalisasiTanggal("14/08/2026"), "");
+cek("tolak kosong", normalisasiTanggal(""), "");
 
 console.log("\n== Status Chess.com ==");
 cek("fair play -> blokir", evaluasiStatusChess("closed:fair_play_violations").diblokir, true);

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
   SearchIcon,
@@ -45,7 +45,7 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
         {item.children && <ChevronDownIcon className="size-4 opacity-80" />}
       </Link>
       {item.children && (
-        <ul className="opacity-0 pointer-events-none absolute w-[288px] top-10 rounded-lg flex flex-col group-hover:opacity-100 group-hover:pointer-events-auto transition-all duration-200 ease-in-out left-0 py-4 bg-white shadow-xl">
+        <ul className="opacity-0 pointer-events-none absolute w-[288px] top-10 rounded-lg flex flex-col group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition-all duration-200 ease-in-out left-0 py-4 bg-white shadow-xl">
           {item.children.map((child) => (
             <li
               key={child.title}
@@ -109,6 +109,22 @@ function MobileDrawer({ open, onClose, onNavigate }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(null);
   const [expandedChild, setExpandedChild] = useState(null);
+
+  // Escape menutup drawer; gulir halaman dikunci selama drawer terbuka.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const sebelumnya = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = sebelumnya;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
   return (
     <div className="lg:hidden fixed inset-0 z-[60] bg-white overflow-y-auto">
@@ -237,16 +253,38 @@ function MobileDrawer({ open, onClose, onNavigate }) {
 
 function SearchOverlay({ open, onClose, onNavigate }) {
   const { t } = useI18n();
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const halaman = useMemo(
     () => SEARCH_PAGES.map((r) => ({ path: r.path, label: t(r.title) })),
     [t]
   );
+
+  // Escape menutup overlay; gulir halaman dikunci selama terbuka.
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    const sebelumnya = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = sebelumnya;
+    };
+  }, [open, onClose]);
+
   if (!open) return null;
   const q = query.trim().toLowerCase();
   const results = q
     ? halaman.filter((p) => p.label.toLowerCase().includes(q))
     : [];
+  const bukaHasil = (r) => {
+    onNavigate();
+    onClose();
+    navigate(r.path);
+  };
   return (
     <div className="fixed inset-0 z-[70] bg-white overflow-y-auto">
       <div className="w-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 py-5 flex items-center justify-between">
@@ -262,7 +300,12 @@ function SearchOverlay({ open, onClose, onNavigate }) {
       </div>
       <div className="w-full max-w-3xl mx-auto px-6 mt-16 md:mt-24">
         <form
-          onSubmit={(e) => e.preventDefault()}
+          onSubmit={(e) => {
+            e.preventDefault();
+            // "Tekan Enter untuk mencari" — Enter membuka hasil pertama.
+            const r = results[0];
+            if (r) bukaHasil(r);
+          }}
           className="flex items-center gap-4 border-b-2 border-solid border-primary pb-4"
         >
           <input
@@ -290,10 +333,7 @@ function SearchOverlay({ open, onClose, onNavigate }) {
                 <li key={r.path}>
                   <Link
                     to={r.path}
-                    onClick={() => {
-                      onNavigate();
-                      onClose();
-                    }}
+                    onClick={() => bukaHasil(r)}
                     className="block border-l-4 border-solid border-white hover:border-primary transition-all duration-200 px-4 py-2 text-slate-700 hover:text-primary"
                   >
                     {r.label}

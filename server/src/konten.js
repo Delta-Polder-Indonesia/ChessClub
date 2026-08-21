@@ -19,7 +19,24 @@ import { GalatAplikasi } from "./keanggotaan.js";
 /* ------------------------------------------------------------ bantuan */
 
 const kiniIso = () => new Date().toISOString();
-const hariIni = () => kiniIso().slice(0, 10);
+/**
+ * Tanggal "hari ini" dalam zona waktu komunitas (Asia/Jakarta, UTC+7).
+ * toISOString().slice(0,10) memakai UTC — konten yang dibuat jam 00:30 WIB
+ * bisa tertulis sehari sebelumnya. "en-CA" menghasilkan format YYYY-MM-DD.
+ */
+const hariIni = () =>
+  new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+
+/** Tanggal konten baku YYYY-MM-DD (tanpa waktu), atau false bila tidak sah. */
+function tanggalSah(v) {
+  const s = String(v || "").trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : false;
+}
 
 function buatId(kunci) {
   const acak = crypto.randomBytes(3).toString("hex");
@@ -108,7 +125,7 @@ function mesinKonten({ kunci, namaFile, label, punyaRingkasan }) {
       isi: String(data.isi).trim(),
       gambar: gambarAman(data.gambar),
       altGambar: String(data.altGambar || data.judul).trim().slice(0, 180),
-      tanggal: data.tanggal || hariIni(),
+      tanggal: tanggalSah(data.tanggal) || hariIni(),
       status: statusBoleh(data.status) || "publik",
       dibuatPada: kiniIso(),
     };
@@ -131,7 +148,11 @@ function mesinKonten({ kunci, namaFile, label, punyaRingkasan }) {
       if (data.altGambar !== undefined) {
         entri.altGambar = String(data.altGambar || entri.judul).trim().slice(0, 180);
       }
-      if (data.tanggal !== undefined) entri.tanggal = data.tanggal;
+      if (data.tanggal !== undefined) {
+        const t = tanggalSah(data.tanggal);
+        if (!t) throw new GalatAplikasi(400, "Format tanggal harus YYYY-MM-DD.");
+        entri.tanggal = t;
+      }
       if (data.status !== undefined) {
         const s = statusBoleh(data.status);
         if (!s) throw new GalatAplikasi(400, "Status tidak dikenal.");

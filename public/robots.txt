@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://delta-polder-indonesia.github.io/ChessClub/sitemap.xml

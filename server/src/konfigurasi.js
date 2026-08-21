@@ -136,10 +136,19 @@ export const konfigurasi = {
   maksBodiBita: angka(process.env.KCI_MAKS_BODI, 2 * 1024 * 1024),
 };
 
-/** Daftar masalah konfigurasi yang fatal di produksi. */
+/**
+ * Daftar masalah konfigurasi yang fatal di produksi.
+ *
+ * "Mode produksi" dianggap aktif bila NODE_ENV=production ATAU pengelola
+ * sudah menyetel KCI_ASAL_DIIZINKAN (indikasi kuat server akan terpapar
+ * publik). Tanpa kedua penanda itu, pepper/token pengembangan masih aman
+ * dipakai untuk kerja lokal di loopback.
+ */
 export function periksaProduksi() {
   const masalah = [];
-  if (!konfigurasi.produksi) return masalah;
+  const produksi =
+    konfigurasi.produksi || konfigurasi.asalDiizinkan.length > 0;
+  if (!produksi) return masalah;
 
   if (!konfigurasi.pepper || konfigurasi.pepper.length < 16) {
     masalah.push(

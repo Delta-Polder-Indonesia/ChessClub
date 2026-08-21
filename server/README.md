@@ -40,8 +40,8 @@ node server/src/index.js
 | Metode | Jalur | Keterangan |
 | ------ | ----- | ---------- |
 | GET | `/api/auth/cara` | Mode verifikasi yang aktif di server ini |
-| GET | `/api/auth/chess/mulai?kembali=` | Mulai login OAuth, redirect ke chess.com |
-| GET | `/api/auth/chess/kembali` | Callback OAuth → `?verifikasi=sukses&akun=&tiket=` |
+| GET | `/api/auth/chess/mulai?kembali=` | Mulai login OAuth, redirect ke chess.com (`kembali` hanya menerima jalur internal) |
+| GET | `/api/auth/chess/kembali` | Callback OAuth — hasil login disimpan ke `sessionStorage` (`kci-hasil-verifikasi`) lalu redirect ke halaman tujuan |
 | POST | `/api/auth/kode/minta` | Jalur cadangan: minta kode `KCI-XXXXXX` |
 | POST | `/api/auth/kode/periksa` | Cek kode di kolom Location profil |
 | GET | `/api/auth/tiket/:nilai` | Status tiket verifikasi |
@@ -98,8 +98,10 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_CHESS_REDIRECT_URI` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |
 | `KCI_TUJUAN_SETELAH_LOGIN` | tidak | Halaman tujuan setelah login selesai (bawaan `/pendaftaran-anggota`) |
 
-Server **menolak untuk start** di `NODE_ENV=production` bila `KCI_PEPPER`
-atau `KCI_TOKEN_ADMIN` belum diatur.
+Server **menolak untuk start** bila dianggap mode produksi — yaitu saat
+`NODE_ENV=production` ATAU `KCI_ASAL_DIIZINKAN` diisi — dan `KCI_PEPPER`
+atau `KCI_TOKEN_ADMIN` belum diatur. Ini mencegah server ter-publish dengan
+pepper/token pengembangan yang ada di source code.
 
 ## Struktur
 

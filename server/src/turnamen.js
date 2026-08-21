@@ -670,6 +670,21 @@ export async function catatHasil(id, { ronde, putih, hitam, skor }) {
       );
     }
 
+    // Satu ronde = satu partai per pemain (aturan Swiss/liga). Tanpa ini
+    // seorang peserta bisa bermain dua kali pada ronde yang sama melawan
+    // lawan berbeda.
+    const sudahMainRondeIni = (t.hasil || []).some(
+      (x) =>
+        x.ronde === r &&
+        (x.putih === p || x.hitam === p || x.putih === h || x.hitam === h)
+    );
+    if (sudahMainRondeIni) {
+      throw new GalatAplikasi(
+        409,
+        `Salah satu pemain sudah bermain pada ronde ${r}. Satu pemain hanya satu partai per ronde.`
+      );
+    }
+
     t.hasil = [
       ...(t.hasil || []),
       { ronde: r, putih: p, hitam: h, skor, dicatatPada: kiniIso() },

@@ -24,6 +24,31 @@ const OAUTH_DASAR = "https://oauth.chess.com";
 
 const acakUrl = (bita = 32) => crypto.randomBytes(bita).toString("base64url");
 
+/**
+ * Hanya terima jalur INTERNAL (relatif, diawali "/") sebagai tujuan
+ * kembali — menolak "https://…", "//evil.com", "/\evil.com", dan karakter
+ * kontrol, agar parameter `kembali` tidak menjadi celah open redirect.
+ */
+export function jalurInternal(jalur) {
+  if (typeof jalur !== "string" || !jalur) return null;
+  if (!jalur.startsWith("/")) return null;
+  if (jalur.startsWith("//") || jalur.startsWith("/\\")) return null;
+  // eslint-disable-next-line no-control-regex
+  if (/[\u0000-\u001f\u007f]/.test(jalur)) return null;
+  return jalur;
+}
+
+/** fetch dengan tenggang waktu — OAuth tidak boleh menggantung server. */
+async function fetchDenganTenggang(alamat, opsi = {}, ms = 8000) {
+  const kendali = new AbortController();
+  const jam = setTimeout(() => kendali.abort(), ms);
+  try {
+    return await fetch(alamat, { ...opsi, signal: kendali.signal });
+  } finally {
+    clearTimeout(jam);
+  }
+}
+
 /** code_challenge = Base64URL(SHA256(code_verifier)) */
 export function buatPkce() {
   const verifier = acakUrl(48); // 64 karakter, dalam rentang 43–128
@@ -72,7 +97,7 @@ export async function ambilKunciPublik() {
   if (cacheKunci.nilai && Date.now() < cacheKunci.kedaluwarsa) {
     return cacheKunci.nilai;
   }
-  const res = await fetch(`${OAUTH_DASAR}/certs`, {
+  const res = await fetchDenganTenggang(`${OAUTH_DASAR}/certs`, {
     headers: { Accept: "application/json" },
   });
   if (!res.ok) throw new Error(`Gagal mengambil kunci publik (${res.status}).`);
@@ -143,9 +168,13 @@ export function mulaiLogin({ kembaliKe = "/pendaftaran-anggota" } = {}) {
   const { verifier, challenge } = buatPkce();
   const state = acakUrl(16);
 
+  // Validasi di sisi SERVER sebelum disimpan: nilai `kembali` dari query
+  // string adalah input pengguna — hanya jalur internal yang diterima.
+  const tujuan = jalurInternal(kembaliKe) || "/pendaftaran-anggota";
+
   sesi.set(state, {
     verifier,
-    kembaliKe,
+    kembaliKe: tujuan,
     kedaluwarsa: Date.now() + UMUR_SESI_MS,
   });
 
@@ -184,7 +213,7 @@ export async function selesaikanLogin({ code, state }) {
     bodi.set("client_secret", konfigurasi.oauth.clientSecret);
   }
 
-  const res = await fetch(`${OAUTH_DASAR}/token`, {
+  const res = await fetchDenganTenggang(`${OAUTH_DASAR}/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
