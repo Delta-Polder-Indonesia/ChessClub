@@ -709,6 +709,7 @@ export const ID = {
     promosiBatal: "Batal",
     petunjuk: "Petunjuk",
     lewati: "Lewati",
+    selanjutnya: "Selanjutnya",
     acak: "Acak",
     sebelumnya: "Sebelumnya",
     berikutnya: "Berikutnya",
@@ -727,7 +728,7 @@ export const ID = {
     posisiTersimpan: "Posisi tersimpan: soal #{n}",
     ingatNonaktif: "Posisi tidak disimpan.",
     sumber:
-      "Soal diambil dari buku “Chess: 5,334 Problems, Combinations, and Games” karya László Polgár (1994).",
+      'Soal diambil dari buku "Chess: 5,334 Problems, Combinations, and Games" karya <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2024)</a>.',
     selanjutnyaJudul: "Pelajari Cara Bermain Catur",
   },
   papan: {
@@ -799,7 +800,7 @@ export const ID = {
     warnaMarmerHijau: "Marmer hijau",
     warnaMetal: "Metal",
     sumber:
-      "Data pembukaan diambil dari lichess-org/chess-openings (lisensi CC0, domain publik).",
+      'Data pembukaan diambil dari lichess-org/chess-openings (lisensi CC0, domain publik), hasil karya <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2025)</a>.',
   },
   t404: {
     judul: "Halaman tidak ditemukan",
@@ -1520,6 +1521,7 @@ export const EN = {
     promosiBatal: "Cancel",
     petunjuk: "Hint",
     lewati: "Skip",
+    selanjutnya: "Next",
     acak: "Random",
     sebelumnya: "Previous",
     berikutnya: "Next",
@@ -1538,7 +1540,7 @@ export const EN = {
     posisiTersimpan: "Saved position: puzzle #{n}",
     ingatNonaktif: "Position is not being saved.",
     sumber:
-      "Puzzles come from “Chess: 5,334 Problems, Combinations, and Games” by László Polgár (1994).",
+      'Puzzles come from "Chess: 5,334 Problems, Combinations, and Games" by <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2024)</a>.',
     selanjutnyaJudul: "Learn How to Play Chess",
   },
   papan: {
@@ -1609,7 +1611,7 @@ export const EN = {
     warnaMarmerHijau: "Marble green",
     warnaMetal: "Metal",
     sumber:
-      "Opening data taken from lichess-org/chess-openings (CC0, public domain).",
+      'Opening data taken from lichess-org/chess-openings (CC0, public domain), work by <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2025)</a>.',
   },
   t404: {
     judul: "Page Not Found",

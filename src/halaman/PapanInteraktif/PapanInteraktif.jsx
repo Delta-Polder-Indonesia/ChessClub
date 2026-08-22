@@ -1097,13 +1097,17 @@ export default function PapanInteraktif() {
                     </div>
                   )}
                 </div>
-
-                <p className="mt-6 border-t border-slate-200 pt-4 text-xs leading-6 text-slate-400">
-                  {t("papan.sumber")}
-                </p>
               </div>
             </div>
           )}
+
+          {/* Sumber data di tengah halaman */}
+          <div className="mt-8 text-center">
+            <p 
+              className="text-xs leading-6 text-slate-400"
+              dangerouslySetInnerHTML={{ __html: t("papan.sumber") }}
+            />
+          </div>
           </section>
         </div>
       </main>

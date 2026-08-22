@@ -492,7 +492,7 @@ export default function PapanTekaTeki({
         e.preventDefault();
         if (seretRef.current) batalkanSeretInternal();
       }}
-      className={`relative w-full aspect-square select-none overflow-hidden rounded shadow-lg ring-1 ring-black/10 ${
+      className={`relative w-full aspect-square select-none overflow-hidden rounded ring-1 ring-black/10 ${
         seret ? "cursor-grabbing" : ""
       }`}
     >
