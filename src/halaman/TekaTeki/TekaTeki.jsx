@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import Hero from "../../components/Hero.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
+import { SettingsIcon, ShuffleIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
@@ -10,6 +11,7 @@ import PapanTekaTeki from "./PapanTekaTeki.jsx";
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
 const KUNCI_SET_BIDAK = "kci-teka-teki-set-bidak";
+const KUNCI_WARNA_PAPAN = "kci-teka-teki-warna-papan";
 const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
 const KUNCI_TIPE = {
   "Mate in One": "skakmat1",
@@ -20,6 +22,31 @@ const KUNCI_SUSAH = {
   "Mate in One": "mudah",
   "Mate in Two": "menengah",
   "Mate in Three": "sulit",
+};
+
+/** Pilihan warna papan (nilai + kunci terjemahan), mengikuti halaman papan interaktif. */
+const PILIHAN_WARNA_PAPAN = [
+  ["blue", "papan.warnaBiru"],
+  ["brown", "papan.warnaCokelat"],
+  ["orange", "papan.warnaOranye"],
+  ["green", "papan.warnaHijau"],
+  ["grey", "papan.warnaAbu"],
+  ["light-blue", "papan.warnaBiruMuda"],
+  ["dark-blue", "papan.warnaBiruTua"],
+  ["wood", "papan.warnaKayu"],
+  ["marble-brown", "papan.warnaMarmerCokelat"],
+  ["marble-green", "papan.warnaMarmerHijau"],
+  ["metal", "papan.warnaMetal"],
+];
+
+/** Label & warna kategori hasil tablebase Syzygy (dari sisi yang giliran). */
+const PETA_KATEGORI_SYZYGY = {
+  win: { teks: "Menang", kelas: "bg-emerald-100 text-emerald-800" },
+  "cursed-win": { teks: "Menang terkutuk", kelas: "bg-lime-100 text-lime-800" },
+  draw: { teks: "Seri", kelas: "bg-slate-200 text-slate-700" },
+  "blessed-loss": { teks: "Kalah berkat", kelas: "bg-amber-100 text-amber-800" },
+  loss: { teks: "Kalah", kelas: "bg-red-100 text-red-800" },
+  unknown: { teks: "Tidak diketahui", kelas: "bg-slate-100 text-slate-600" },
 };
 
 function parseLangkah(teks) {
@@ -76,6 +103,16 @@ function bacaSetBidak() {
   return "merida";
 }
 
+function bacaWarnaPapan() {
+  try {
+    const simpan = localStorage.getItem(KUNCI_WARNA_PAPAN);
+    if (simpan && PILIHAN_WARNA_PAPAN.some(([nilai]) => nilai === simpan)) {
+      return simpan;
+    }
+  } catch {}
+  return "hijau";
+}
+
 function bacaOtomatis() {
   try {
     return localStorage.getItem(KUNCI_OTOMATIS) === "1";
@@ -100,6 +137,8 @@ export default function TekaTeki() {
 
   const [semuaSoal, setSemuaSoal] = useState(null);
   const [gagal, setGagal] = useState(false);
+  const [syzygy, setSyzygy] = useState(null);
+  const [syzygyGagal, setSyzygyGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
   const [filterTipe, setFilterTipe] = useState("semua");
 
@@ -110,6 +149,8 @@ export default function TekaTeki() {
   const [petunjuk, setPetunjuk] = useState(null);
   const [kesalahan, setKesalahan] = useState(null);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
+  const [jalurFen, setJalurFen] = useState([]);
+  const [orientasi, setOrientasi] = useState("w");
   const [pesan, setPesan] = useState(null);
   const [komputer, setKomputer] = useState(false);
   const [selesai, setSelesai] = useState(false);
@@ -121,7 +162,9 @@ export default function TekaTeki() {
   const [nomorSoal, setNomorSoal] = useState("");
   const [galatNomor, setGalatNomor] = useState(null);
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
+  const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
+  const [bukaPengaturan, setBukaPengaturan] = useState(false);
 
   // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
@@ -140,6 +183,8 @@ export default function TekaTeki() {
   }, [semuaSoal, filterTipe]);
 
   const masalah = soal?.[indeks];
+  const langkahPenuh = masalah ? masalah.moves.split(";") : [];
+  const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
   const simpanPosisi = useCallback((id) => {
     try {
@@ -201,6 +246,40 @@ export default function TekaTeki() {
     document.title = `${t("tekaTeki.judul")} | ${t("common.namaKomunitas")}`;
   }, [t]);
 
+  useEffect(() => {
+    if (!fen) return;
+    let aktif = true;
+    const timer = window.setTimeout(() => {
+      fetch(
+        `https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`
+      )
+        .then((respon) => {
+          if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+          return respon.json();
+        })
+        .then((data) => {
+          if (aktif) setSyzygy(data);
+        })
+        .catch(() => {
+          if (aktif) {
+            setSyzygy(null);
+            setSyzygyGagal(true);
+          }
+        });
+    }, 300);
+    return () => {
+      aktif = false;
+      window.clearTimeout(timer);
+    };
+  }, [fen]);
+
+  // Pesan salah otomatis hilang setelah 3 detik.
+  useEffect(() => {
+    if (pesan?.jenis !== "salah") return;
+    const timer = window.setTimeout(() => setPesan(null), 3000);
+    return () => window.clearTimeout(timer);
+  }, [pesan]);
+
   useEffect(
     () => () => {
       window.clearTimeout(timerSalah.current);
@@ -217,6 +296,12 @@ export default function TekaTeki() {
 
   useEffect(() => {
     try {
+      localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan);
+    } catch {}
+  }, [warnaPapan]);
+
+  useEffect(() => {
+    try {
       localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0");
     } catch {}
   }, [otomatis]);
@@ -224,6 +309,8 @@ export default function TekaTeki() {
   const terapkanSoal = useCallback((m) => {
     setFen(m.fen);
     setSisa(m.moves.split(";"));
+    setJalurFen([m.fen]);
+    setOrientasi(m.first === "Black to Move" ? "b" : "w");
     setTerpilih(null);
     setSasaran([]);
     setPetunjuk(null);
@@ -235,6 +322,8 @@ export default function TekaTeki() {
     setTanda({ panah: [], petak: {} });
     setSedangSeret(false);
     setPromosi(null);
+    setSyzygy(null);
+    setSyzygyGagal(false);
   }, []);
 
   const pindahSoal = useCallback(
@@ -304,6 +393,7 @@ export default function TekaTeki() {
   }
 
   function cobaLangkah(from, to, promo) {
+    if (!sisa.length) return;
     const diharapkan = parseLangkah(sisa[0]);
 
     // Bidak menuju baris terakhir → promosi wajib. Bila pemain belum memilih
@@ -355,6 +445,7 @@ export default function TekaTeki() {
 
     const sisaBaru = sisa.slice(1);
     setFen(lanjut.fen());
+    setJalurFen((l) => [...l, lanjut.fen()]);
     setSisa(sisaBaru);
     setLangkahAkhir({ from, to });
     setTerpilih(null);
@@ -402,12 +493,22 @@ export default function TekaTeki() {
   }, [promosi]);
 
   useEffect(() => {
+    if (!bukaPengaturan) return;
+    function saatEscape(e) {
+      if (e.key === "Escape") setBukaPengaturan(false);
+    }
+    window.addEventListener("keydown", saatEscape);
+    return () => window.removeEventListener("keydown", saatEscape);
+  }, [bukaPengaturan]);
+
+  useEffect(() => {
     if (!komputer || selesai || !sisa.length) return;
     const timer = window.setTimeout(() => {
       const diharapkan = parseLangkah(sisa[0]);
       try {
         const g = terapkan(fen, diharapkan);
         setFen(g.fen());
+        setJalurFen((l) => [...l, g.fen()]);
         setLangkahAkhir({ from: diharapkan.from, to: diharapkan.to });
       } catch {}
       setSisa((s) => s.slice(1));
@@ -421,6 +522,100 @@ export default function TekaTeki() {
     if (!sisa.length || selesai) return;
     const d = parseLangkah(sisa[0]);
     setPetunjuk({ from: d.from, to: d.to });
+  }
+
+  /* --------------------------------------------- navigasi langkah (|< < > >|) */
+
+  function tutupBantu() {
+    setTerpilih(null);
+    setSasaran([]);
+    setPetunjuk(null);
+    setKesalahan(null);
+    setPesan(null);
+    setPromosi(null);
+  }
+
+  /** |< — kembali ke posisi awal soal. */
+  function keAwalLangkah() {
+    if (!masalah || komputer) return;
+    terapkanSoal(masalah);
+  }
+
+  /** < — mundur satu langkah. */
+  function mundurLangkah() {
+    if (!langkahPenuh.length || komputer || promosi) return;
+    const posisi = Math.max(0, langkahPenuh.length - sisa.length);
+    if (posisi <= 0) return;
+    const baru = posisi - 1;
+    setFen(jalurFen[baru]);
+    setSisa(langkahPenuh.slice(baru));
+    setJalurFen((l) => l.slice(0, baru + 1));
+    setSelesai(false);
+    setKomputer(false);
+    tutupBantu();
+    if (baru >= 1) {
+      const p = parseLangkah(langkahPenuh[baru - 1]);
+      setLangkahAkhir({ from: p.from, to: p.to });
+    } else {
+      setLangkahAkhir(null);
+    }
+  }
+
+  /** > — maju satu langkah mengikuti jalur solusi. */
+  function majuLangkah() {
+    if (!langkahPenuh.length || komputer || promosi) return;
+    const posisi = Math.max(0, langkahPenuh.length - sisa.length);
+    if (posisi >= langkahPenuh.length) return;
+    const d = parseLangkah(langkahPenuh[posisi]);
+    try {
+      const g = terapkan(fen, d);
+      const fenBaru = g.fen();
+      setFen(fenBaru);
+      setSisa(langkahPenuh.slice(posisi + 1));
+      setJalurFen((l) => [...l.slice(0, posisi), fenBaru]);
+      setLangkahAkhir({ from: d.from, to: d.to });
+      setSelesai(false);
+      setKomputer(false);
+      tutupBantu();
+    } catch {}
+  }
+
+  /** >| — maju sampai posisi akhir solusi. */
+  function keAkhirLangkah() {
+    if (!langkahPenuh.length || komputer || promosi) return;
+    const posisi = Math.max(0, langkahPenuh.length - sisa.length);
+    if (posisi >= langkahPenuh.length) return;
+    let game;
+    try {
+      game = new Chess(fen);
+    } catch {
+      return;
+    }
+    const fens = [];
+    let akhir = null;
+    for (let i = posisi; i < langkahPenuh.length; i++) {
+      const d = parseLangkah(langkahPenuh[i]);
+      try {
+        const mv = game.move({
+          from: d.from,
+          to: d.to,
+          promotion: d.promo || undefined,
+        });
+        if (!mv) break;
+      } catch {
+        break;
+      }
+      fens.push(game.fen());
+      akhir = { from: d.from, to: d.to };
+    }
+    if (!fens.length) return;
+    setFen(fens[fens.length - 1]);
+    setSisa([]);
+    setJalurFen((l) => [...l.slice(0, posisi), ...fens]);
+    setLangkahAkhir(akhir);
+    setSelesai(false);
+    setKomputer(false);
+    tutupBantu();
   }
 
   function catatTerpecahkan(id) {
@@ -513,7 +708,6 @@ export default function TekaTeki() {
     { label: t("tekaTeki.judul") },
   ];
 
-  const orientasi = masalah?.first === "Black to Move" ? "b" : "w";
   const sudahPecah = masalah ? terpecahkan.has(masalah.problemid) : false;
 
   return (
@@ -552,7 +746,8 @@ export default function TekaTeki() {
                     tanda={tanda}
                     terkunci={komputer || selesai || !!promosi}
                     membeku={komputer}
-                    setBidak={setBidak}
+                     setBidak={setBidak}
+                     tema={warnaPapan}
                     sedangSeret={sedangSeret}
                     onKlik={klikPetak}
                     onPilih={pilihPetak}
@@ -613,9 +808,248 @@ export default function TekaTeki() {
                   )}
                 </div>
 
-                <p className="mt-3 text-xs leading-5 text-slate-400">
-                  {t("tekaTeki.caraTanda")}
-                </p>
+                {/* Tombol navigasi di bawah papan catur */}
+                <div className="relative mt-3 border-t border-[#d8d8d8] pt-3">
+                  <div className="flex flex-nowrap items-center justify-start gap-1.5 overflow-x-auto sm:justify-center">
+                    <button
+                      type="button"
+                      onClick={pilihAcak}
+                      title={t("tekaTeki.acak")}
+                      aria-label={t("tekaTeki.acak")}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                    >
+                      <ShuffleIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={keAwalLangkah}
+                      disabled={komputer || posisiLangkah <= 0}
+                      title={t("papan.keAwal")}
+                      aria-label={t("papan.keAwal")}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      |&lt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={mundurLangkah}
+                      disabled={komputer || posisiLangkah <= 0}
+                      title={t("papan.mundur")}
+                      aria-label={t("papan.mundur")}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      &lt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOtomatis((v) => !v)}
+                      title={
+                        otomatis
+                          ? "Nonaktifkan next otomatis"
+                          : "Aktifkan next otomatis"
+                      }
+                      aria-label={
+                        otomatis
+                          ? "Nonaktifkan next otomatis"
+                          : "Aktifkan next otomatis"
+                      }
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                    >
+                      {otomatis ? "⏸" : "▶"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={majuLangkah}
+                      disabled={komputer || posisiLangkah >= langkahPenuh.length}
+                      title={t("papan.maju")}
+                      aria-label={t("papan.maju")}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      &gt;
+                    </button>
+                    <button
+                      type="button"
+                      onClick={keAkhirLangkah}
+                      disabled={komputer || posisiLangkah >= langkahPenuh.length}
+                      title={t("papan.keAkhir")}
+                      aria-label={t("papan.keAkhir")}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      &gt;|
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      title={t("papan.flip")}
+                      aria-label={t("papan.flip")}
+                    >
+                      Flip
+                    </button>
+                    <button
+                      type="button"
+                      onClick={tampilPetunjuk}
+                      disabled={selesai || !sisa.length}
+                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      title={t("tekaTeki.petunjuk")}
+                      aria-label={t("tekaTeki.petunjuk")}
+                    >
+                      💡
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBukaPengaturan((v) => !v)}
+                      title="Pengaturan"
+                      aria-label="Pengaturan"
+                      aria-expanded={bukaPengaturan}
+                      className={`border border-[#b8b8b8] px-2 py-1.5 text-xs font-semibold text-[#333] transition ${
+                        bukaPengaturan
+                          ? "bg-[#e9e9e9]"
+                          : "bg-[#f7f7f7] hover:bg-[#e9e9e9]"
+                      }`}
+                    >
+                      <SettingsIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => pindahSoal(indeks + 1)}
+                      title={
+                        selesai
+                          ? t("tekaTeki.selanjutnya")
+                          : t("tekaTeki.lewati")
+                      }
+                      aria-label={
+                        selesai
+                          ? t("tekaTeki.selanjutnya")
+                          : t("tekaTeki.lewati")
+                      }
+                      className="shrink-0 whitespace-nowrap border border-[#b8b8b8] bg-white px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                    >
+                      {selesai
+                        ? t("tekaTeki.selanjutnya")
+                        : t("tekaTeki.lewati")}
+                    </button>
+                  </div>
+
+                  {bukaPengaturan && (
+                    <>
+                      <div
+                        aria-hidden="true"
+                        className="fixed inset-0 z-40"
+                        onClick={() => setBukaPengaturan(false)}
+                      />
+                      <div
+                        role="dialog"
+                        aria-modal="false"
+                        aria-label="Pengaturan"
+                        className="absolute bottom-full left-1/2 z-50 mb-2 w-64 max-w-[90vw] -translate-x-1/2 rounded-lg bg-white p-4 shadow-xl ring-1 ring-black/10"
+                      >
+                        <p className="mb-3 text-sm font-bold text-slate-800">
+                          Pengaturan
+                        </p>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="text-xs font-semibold text-slate-500">Level</label>
+                            <select
+                              value={
+                                filterTipe === "Mate in One"
+                                  ? "mudah"
+                                  : filterTipe === "Mate in Two"
+                                    ? "menengah"
+                                    : filterTipe === "Mate in Three"
+                                      ? "sulit"
+                                      : "semua"
+                              }
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setFilterTipe(
+                                  v === "mudah"
+                                    ? "Mate in One"
+                                    : v === "menengah"
+                                      ? "Mate in Two"
+                                      : v === "sulit"
+                                        ? "Mate in Three"
+                                        : "semua"
+                                );
+                              }}
+                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              <option value="semua">Semua</option>
+                              <option value="mudah">Mudah</option>
+                              <option value="menengah">Menengah</option>
+                              <option value="sulit">Sulit</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <label className="text-xs font-semibold text-slate-500">Langkah</label>
+                            <select
+                              value={
+                                filterTipe === "Mate in One"
+                                  ? "1"
+                                  : filterTipe === "Mate in Two"
+                                    ? "2"
+                                    : filterTipe === "Mate in Three"
+                                      ? "3"
+                                      : "semua"
+                              }
+                              onChange={(e) => {
+                                const v = e.target.value;
+                                setFilterTipe(
+                                  v === "1"
+                                    ? "Mate in One"
+                                    : v === "2"
+                                      ? "Mate in Two"
+                                      : v === "3"
+                                        ? "Mate in Three"
+                                        : "semua"
+                                );
+                              }}
+                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              <option value="semua">Semua</option>
+                              <option value="1">1 Langkah</option>
+                              <option value="2">2 Langkah</option>
+                              <option value="3">3 Langkah</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <label htmlFor="pilih-set-bidak" className="text-xs font-semibold text-slate-500">Bidak</label>
+                            <select
+                              id="pilih-set-bidak"
+                              value={setBidak}
+                              onChange={(e) => setSetBidak(e.target.value)}
+                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              {DAFTAR_SET.map((s) => (
+                                <option key={s.id} value={s.id}>
+                                  {s.nama}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">Warna Papan</label>
+                            <select
+                              id="warna-papan"
+                              value={warnaPapan}
+                              onChange={(e) => setWarnaPapan(e.target.value)}
+                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => (
+                                <option key={nilai} value={nilai}>
+                                  {t(kunci)}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
               </div>
 
               <div className="min-w-0 flex-1">
@@ -651,124 +1085,16 @@ export default function TekaTeki() {
                   </div>
                 </div>
 
-                <div className="mt-4 flex gap-3">
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-slate-500">Level</label>
-                    <select
-                      value={
-                        filterTipe === "Mate in One"
-                          ? "mudah"
-                          : filterTipe === "Mate in Two"
-                            ? "menengah"
-                            : filterTipe === "Mate in Three"
-                              ? "sulit"
-                              : "semua"
-                      }
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setFilterTipe(
-                          v === "mudah"
-                            ? "Mate in One"
-                            : v === "menengah"
-                              ? "Mate in Two"
-                              : v === "sulit"
-                                ? "Mate in Three"
-                                : "semua"
-                        );
-                      }}
-                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    >
-                      <option value="semua">Semua</option>
-                      <option value="mudah">Mudah</option>
-                      <option value="menengah">Menengah</option>
-                      <option value="sulit">Sulit</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-slate-500">Langkah</label>
-                    <select
-                      value={
-                        filterTipe === "Mate in One"
-                          ? "1"
-                          : filterTipe === "Mate in Two"
-                            ? "2"
-                            : filterTipe === "Mate in Three"
-                              ? "3"
-                              : "semua"
-                      }
-                      onChange={(e) => {
-                        const v = e.target.value;
-                        setFilterTipe(
-                          v === "1"
-                            ? "Mate in One"
-                            : v === "2"
-                              ? "Mate in Two"
-                              : v === "3"
-                                ? "Mate in Three"
-                                : "semua"
-                        );
-                      }}
-                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    >
-                      <option value="semua">Semua</option>
-                      <option value="1">1 Langkah</option>
-                      <option value="2">2 Langkah</option>
-                      <option value="3">3 Langkah</option>
-                    </select>
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <label className="text-xs font-semibold text-slate-500">Bidak</label>
-                    <select
-                      id="pilih-set-bidak"
-                      value={setBidak}
-                      onChange={(e) => setSetBidak(e.target.value)}
-                      className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    >
-                      {DAFTAR_SET.map((s) => (
-                        <option key={s.id} value={s.id}>
-                          {s.nama}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div aria-live="polite" className="mt-4">
-                  {pesan?.jenis === "salah" && (
-                    <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
-                      {pesan.teks}
-                    </p>
-                  )}
-                  {pesan?.jenis === "benar" && (
+                {pesan?.jenis === "benar" && (
+                  <div aria-live="polite" className="mt-4">
                     <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
                       {pesan.teks}
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
-                <div className="mt-5 flex gap-3 items-center">
-                  <button
-                    type="button"
-                    onClick={tampilPetunjuk}
-                    disabled={selesai || !sisa.length}
-                    className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {t("tekaTeki.petunjuk")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => pindahSoal(indeks + 1)}
-                    className="rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    {t("tekaTeki.lewati")}
-                  </button>
-
-                  <form
-                    onSubmit={bukaNomor}
-                    className="flex items-center gap-2"
-                  >
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <form onSubmit={bukaNomor} className="flex items-center gap-2">
                     <input
                       id="nomor-soal"
                       type="number"
@@ -786,105 +1112,99 @@ export default function TekaTeki() {
                       {t("tekaTeki.buka")}
                     </button>
                   </form>
-                </div>
-                {galatNomor && (
-                  <p
-                    role="alert"
-                    className="mt-1.5 text-xs font-medium text-red-600"
-                  >
-                    {galatNomor}
-                  </p>
-                )}
 
-                <div className="mt-3 flex gap-3">
-                  <button
-                    type="button"
-                    onClick={pilihAcak}
-                    title={t("tekaTeki.acak")}
-                    aria-label={t("tekaTeki.acak")}
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
+                  {pesan?.jenis === "salah" ? (
+                    <p
+                      role="status"
+                      className="text-sm font-semibold text-red-600"
                     >
-                      <polyline points="16 3 21 3 21 8" />
-                      <line x1="4" y1="20" x2="21" y2="3" />
-                      <polyline points="21 16 21 21 16 21" />
-                      <line x1="15" y1="15" x2="21" y2="21" />
-                      <line x1="4" y1="4" x2="9" y2="9" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => pindahSoal(indeks - 1)}
-                    title={t("tekaTeki.sebelumnya")}
-                    aria-label={t("tekaTeki.sebelumnya")}
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    ←
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOtomatis((v) => !v)}
-                    title={
-                      otomatis
-                        ? "Nonaktifkan next otomatis"
-                        : "Aktifkan next otomatis"
-                    }
-                    aria-label={
-                      otomatis
-                        ? "Nonaktifkan next otomatis"
-                        : "Aktifkan next otomatis"
-                    }
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    {otomatis ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        stroke="none"
-                      >
-                        <rect x="6" y="4" width="4" height="16" rx="1" />
-                        <rect x="14" y="4" width="4" height="16" rx="1" />
-                      </svg>
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="currentColor"
-                        stroke="none"
-                      >
-                        <polygon points="5,3 19,12 5,21" />
-                      </svg>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => pindahSoal(indeks + 1)}
-                    title={t("tekaTeki.berikutnya")}
-                    aria-label={t("tekaTeki.berikutnya")}
-                    className="rounded-md border border-slate-300 bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                  >
-                    →
-                  </button>
+                      {pesan.teks}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-slate-500">
+                      {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
+                    </p>
+                  )}
+
+                  {galatNomor && (
+                    <p role="alert" className="text-xs font-medium text-red-600">
+                      {galatNomor}
+                    </p>
+                  )}
                 </div>
 
-                <p className="mt-5 text-sm text-slate-500">
-                  {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
-                </p>
+                {/* Syzygy Tablebase */}
+                <div className="mt-6 border-t border-slate-200 pt-4">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-sm font-bold text-slate-800">Syzygy Tablebase</h3>
+                    <span className="text-xs text-slate-500">Powered by Lichess</span>
+                  </div>
+
+                  {!fen ? null : syzygyGagal ? (
+                    <p className="text-sm text-amber-700">
+                      Posisi ini tidak bisa dianalisis tablebase (maksimal 7 bidak).
+                    </p>
+                  ) : !syzygy ? (
+                    <p className="text-sm text-slate-500">Menganalisis posisi…</p>
+                  ) : (
+                    <>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <span
+                          className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                            PETA_KATEGORI_SYZYGY[syzygy.category]?.kelas ||
+                            "bg-slate-100 text-slate-600"
+                          }`}
+                        >
+                          {PETA_KATEGORI_SYZYGY[syzygy.category]?.teks ||
+                            syzygy.category}
+                        </span>
+                        <span className="text-xs text-slate-600">
+                          DTZ: {syzygy.dtz ?? "-"}
+                        </span>
+                        <span className="text-xs text-slate-600">
+                          DTM: {syzygy.dtm ?? "-"}
+                        </span>
+                        <a
+                          href={`https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-auto text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          Detail di Lichess ↗
+                        </a>
+                      </div>
+
+                      {Array.isArray(syzygy.moves) && syzygy.moves.length > 0 && (
+                        <ul className="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto pr-1">
+                          {syzygy.moves.map((m) => (
+                            <li
+                              key={m.san}
+                              className="flex items-center justify-between gap-2 py-1.5"
+                            >
+                              <span className="font-mono text-xs font-semibold text-slate-800">
+                                {m.san}
+                              </span>
+                              <span
+                                className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                                  PETA_KATEGORI_SYZYGY[m.category]?.kelas ||
+                                  "bg-slate-100 text-slate-600"
+                                }`}
+                              >
+                                {PETA_KATEGORI_SYZYGY[m.category]?.teks ||
+                                  m.category}
+                                {typeof m.dtz === "number" ? ` · DTZ ${m.dtz}` : ""}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      <p className="mt-2 text-[11px] leading-4 text-slate-500">
+                        Hasil optimal dari sisi yang giliran sekarang.
+                      </p>
+                    </>
+                  )}
+                </div>
 
                 {pesan?.jenis === "selesai" && (
                   <p className="mt-2 text-sm font-bold text-slate-800">
@@ -897,13 +1217,17 @@ export default function TekaTeki() {
                     {t("tekaTeki.sudahTerpecahkan")}
                   </p>
                 )}
-
-                <p className="mt-6 border-t border-slate-200 pt-4 text-xs leading-6 text-slate-400">
-                  {t("tekaTeki.sumber")}
-                </p>
               </div>
             </div>
           )}
+        </div>
+
+        {/* Sumber data di tengah halaman */}
+        <div className="mt-8 text-center">
+          <p 
+            className="text-xs leading-6 text-slate-400"
+            dangerouslySetInnerHTML={{ __html: t("tekaTeki.sumber") }}
+          />
         </div>
       </main>
 
