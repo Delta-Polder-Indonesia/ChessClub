@@ -62,7 +62,7 @@ Periksa dan ganti data contoh berikut sebelum publikasi bila belum sesuai:
 | `src/components/Footer.jsx` | Email dan alamat singkat footer. |
 | `index.html` | Canonical URL, Open Graph URL/gambar, JSON-LD Organization. |
 | `public/robots.txt` dan `public/sitemap.xml` | Domain canonical bila memakai domain sendiri. |
-| `.github/workflows/deploy.yml` | Variable `KCI_API_URL` dan `KCI_CHESS_KLUB` di GitHub, bukan nilai rahasia di source. |
+| `deploy/github-workflows/*.yml.md` | Template workflow; setelah merge, salin/ubah ekstensi menjadi `.github/workflows/*.yml` dari komputer lokal. |
 
 ### Data aplikasi
 
