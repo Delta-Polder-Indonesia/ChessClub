@@ -86,6 +86,20 @@ test("navigasi publik dan pencarian dapat digunakan", async ({ page }) => {
   periksaGalat();
 });
 
+test("overlay pencarian dapat ditutup dengan Escape dan mengembalikan fokus", async ({ page }) => {
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/");
+  const pemicu = page.getByRole("button", { name: "cari" });
+  await pemicu.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "cari" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "tutup pencarian" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog", { name: "cari" })).toBeHidden();
+  await expect(pemicu).toBeFocused();
+  periksaGalat();
+});
+
 test("panduan catur memuat bab awal dan bab lain secara progresif", async ({ page }) => {
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/program-kami/sekolah-catur/cara-bermain-catur");
@@ -219,7 +233,12 @@ test("menu mobile membuka tautan pendaftaran", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Khusus viewport mobile.");
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/");
-  await page.getByRole("button", { name: "menu" }).click();
+  const pemicu = page.getByRole("button", { name: "menu" });
+  await pemicu.click();
+  await expect(page.getByRole("button", { name: "tutup" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(pemicu).toBeFocused();
+  await pemicu.click();
   await expect(page.getByRole("link", { name: "Daftar Anggota" })).toBeVisible();
   await page.getByRole("link", { name: "Daftar Anggota" }).click();
   await expect(page).toHaveURL(/\/pendaftaran-anggota$/);

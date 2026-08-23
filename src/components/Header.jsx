@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
@@ -19,6 +19,48 @@ import {
 import { useI18n } from "../lib/i18n.jsx";
 
 const SEARCH_PAGES = semuaHalaman();
+
+/** Fokus dialog: Escape menutup, Tab tetap berada di overlay, lalu fokus
+ * kembali ke tombol pemicu. Ini menjaga drawer/search setara dialog produk. */
+function useFokusDialog(terbuka, onTutup, pemicu) {
+  const dialogRef = useRef(null);
+
+  useEffect(() => {
+    if (!terbuka) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      dialogRef.current?.querySelector("[data-fokus-awal], button, input, a[href]")?.focus();
+    });
+    const saatTombol = (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onTutup();
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const fokus = [...(dialogRef.current?.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])'
+      ) || [])];
+      if (!fokus.length) return;
+      const pertama = fokus[0];
+      const terakhir = fokus[fokus.length - 1];
+      if (event.shiftKey && document.activeElement === pertama) {
+        event.preventDefault();
+        terakhir.focus();
+      } else if (!event.shiftKey && document.activeElement === terakhir) {
+        event.preventDefault();
+        pertama.focus();
+      }
+    };
+    document.addEventListener("keydown", saatTombol);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("keydown", saatTombol);
+      pemicu.current?.focus?.();
+    };
+  }, [terbuka, onTutup, pemicu]);
+
+  return dialogRef;
+}
 
 function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
   const { t } = useI18n();
@@ -105,34 +147,29 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
   );
 }
 
-function MobileDrawer({ open, onClose, onNavigate }) {
+function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
   const { t } = useI18n();
   const [expanded, setExpanded] = useState(null);
   const [expandedChild, setExpandedChild] = useState(null);
+  const dialogRef = useFokusDialog(open, onClose, pemicu);
 
-  // Escape menutup drawer; gulir halaman dikunci selama drawer terbuka.
+  // Gulir halaman dikunci selama drawer terbuka.
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
     const sebelumnya = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = sebelumnya;
-    };
-  }, [open, onClose]);
+    return () => { document.body.style.overflow = sebelumnya; };
+  }, [open]);
 
   if (!open) return null;
   return (
-    <div className="lg:hidden fixed inset-0 z-[60] bg-white overflow-y-auto">
+    <div id="drawer-navigasi" ref={dialogRef} role="dialog" aria-modal="true" aria-label={t("header.menu")} className="lg:hidden fixed inset-0 z-[60] bg-white overflow-y-auto">
       <div className="w-full mx-auto px-6 py-5 flex items-center justify-between border-b border-slate-200">
         <Logo variant="dark" />
         <button
           type="button"
           aria-label={t("header.close")}
+          data-fokus-awal
           onClick={onClose}
           className="cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 text-slate-800"
         >
@@ -251,29 +288,23 @@ function MobileDrawer({ open, onClose, onNavigate }) {
   );
 }
 
-function SearchOverlay({ open, onClose, onNavigate }) {
+function SearchOverlay({ open, onClose, onNavigate, pemicu }) {
   const { t } = useI18n();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
+  const dialogRef = useFokusDialog(open, onClose, pemicu);
   const halaman = useMemo(
     () => SEARCH_PAGES.map((r) => ({ path: r.path, label: t(r.title) })),
     [t]
   );
 
-  // Escape menutup overlay; gulir halaman dikunci selama terbuka.
+  // Gulir halaman dikunci selama overlay terbuka.
   useEffect(() => {
     if (!open) return undefined;
-    const onKey = (e) => {
-      if (e.key === "Escape") onClose();
-    };
-    document.addEventListener("keydown", onKey);
     const sebelumnya = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = sebelumnya;
-    };
-  }, [open, onClose]);
+    return () => { document.body.style.overflow = sebelumnya; };
+  }, [open]);
 
   if (!open) return null;
   const q = query.trim().toLowerCase();
@@ -286,12 +317,13 @@ function SearchOverlay({ open, onClose, onNavigate }) {
     navigate(r.path);
   };
   return (
-    <div className="fixed inset-0 z-[70] bg-white overflow-y-auto">
+    <div id="overlay-pencarian" ref={dialogRef} role="dialog" aria-modal="true" aria-label={t("header.search")} className="fixed inset-0 z-[70] bg-white overflow-y-auto">
       <div className="w-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 py-5 flex items-center justify-between">
         <Logo variant="dark" />
         <button
           type="button"
           aria-label={t("header.closeSearch")}
+          data-fokus-awal
           onClick={onClose}
           className="cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 text-slate-800"
         >
@@ -377,6 +409,8 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const menuButtonRef = useRef(null);
+  const searchButtonRef = useRef(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -461,8 +495,11 @@ export default function Header() {
                 </ul>
               </nav>
               <button
+                ref={searchButtonRef}
                 type="button"
                 aria-label={t("header.search")}
+                aria-expanded={searchOpen}
+                aria-controls="overlay-pencarian"
                 onClick={() => setSearchOpen(true)}
                 className={`cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 transition-colors duration-200 ${
                   scrolled ? "text-slate-800" : "text-white"
@@ -471,8 +508,11 @@ export default function Header() {
                 <SearchIcon className="size-6" />
               </button>
               <button
+                ref={menuButtonRef}
                 type="button"
                 aria-label={t("header.menu")}
+                aria-expanded={menuOpen}
+                aria-controls="drawer-navigasi"
                 onClick={() => setMenuOpen(true)}
                 className={`lg:hidden cursor-pointer rounded-full flex items-center justify-center border-0 bg-transparent p-2 transition-colors duration-200 ${
                   scrolled ? "text-slate-800" : "text-white"
@@ -489,11 +529,13 @@ export default function Header() {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onNavigate={handleNavigate}
+        pemicu={menuButtonRef}
       />
       <SearchOverlay
         open={searchOpen}
         onClose={() => setSearchOpen(false)}
         onNavigate={handleNavigate}
+        pemicu={searchButtonRef}
       />
     </>
   );
