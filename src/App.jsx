@@ -46,7 +46,7 @@ const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanK
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
 
-// Teka-teki interaktif (pemutar 4.462 soal skakmat Polgár).
+// Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 
 // Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0).
