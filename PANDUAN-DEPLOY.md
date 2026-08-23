@@ -101,6 +101,21 @@ sudo systemctl enable --now kci-api
 sudo systemctl status kci-api
 ```
 
+> Template yang lebih ketat (service hardening + backup timer) tersedia di
+> `deploy/systemd/`. Salin `kci-api.env.example` sebagai `/etc/kci/kci-api.env`,
+> isi nilai asli, lalu batasi izinnya (`chmod 640`, pemilik `root:kci`). Setelah
+> menyesuaikan path, pasang semua unit dengan:
+>
+> ```bash
+> sudo cp deploy/systemd/kci-*.service deploy/systemd/kci-*.timer /etc/systemd/system/
+> sudo systemctl daemon-reload
+> sudo systemctl enable --now kci-api.service kci-backup.timer
+> systemctl list-timers kci-backup.timer
+> ```
+>
+> Pastikan `/var/lib/kci` dan `/var/backups/kci` dimiliki user `kci`; lihat
+> `CHECKLIST-IMPLEMENTASI-LOKAL.md` sebelum mengaktifkan backup.
+
 Nginx di depannya:
 
 ```nginx

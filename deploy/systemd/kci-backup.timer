@@ -1,0 +1,11 @@
+[Unit]
+Description=Jadwal backup harian Komunitas Catur Indonesia
+
+[Timer]
+# 02:17 waktu server; Persistent menjalankan backup yang terlewat setelah boot.
+OnCalendar=*-*-* 02:17:00
+Persistent=true
+Unit=kci-backup.service
+
+[Install]
+WantedBy=timers.target
