@@ -4,18 +4,16 @@ import { Tombol, Modal } from "./ui.jsx";
 import { Lencana } from "./PanelTurnamen/bagian.jsx";
 import FormulirTurnamen from "./PanelTurnamen/Formulir.jsx";
 import RincianTurnamen from "./PanelTurnamen/Rincian.jsx";
+import { parseWaktuKomunitas } from "../../lib/waktu.js";
 
 /**
  * Pengelolaan turnamen untuk pengurus.
  *
- * Satu antarmuka untuk keempat jenis turnamen (Bulanan, Liga Musiman,
- * Terbuka, Liga Antar Komunitas) — yang membedakan hanya aturannya, dan
- * aturan itu datang dari server lewat /api/turnamen/jenis.
- *
- * Berkas ini sengaja tetap tipis: formulir pembuatan dan rincian
- * turnamen hidup di subfolder PanelTurnamen/ agar mudah dirawat.
+ * Fitur mengikuti versi lama (saring jenis, formulir lengkap, rincian),
+ * tetapi markup tabelnya disamakan dengan panel Juara Turnamen:
+ * tabel-kci/tabel-peringkat, baris belang, dan aksi berbasis ikon.
  */
-export default function PanelTurnamen({ beriTahu, muatUlang }) {
+export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) {
   const [jenis, setJenis] = useState({});
   const [daftar, setDaftar] = useState([]);
   const [pilih, setPilih] = useState(null);
@@ -41,16 +39,28 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
     muat();
   }, [muat]);
 
+  // Header Dashboard kembali ke "Dashboard Pengurus" bila panel ditutup
+  // (termasuk saat berpindah menu sidebar tanpa menekan Tutup).
+  useEffect(() => () => saatBukaRincian?.(null), [saatBukaRincian]);
+
+  const bukaRincian = (t) => {
+    setPilih(t.id);
+    saatBukaRincian?.(t.nama || "");
+  };
+
+  const tutupRincian = () => {
+    setPilih(null);
+    saatBukaRincian?.(null);
+  };
+
   const simpanBaru = async (data) => {
     const t = await apiPengurus("/turnamen", { metode: "POST", bodi: data });
     beriTahu(`Turnamen "${t.nama}" dibuat.`, "sukses");
     setBuatBaru(false);
     await muat();
     muatUlang?.();
-    setPilih(t.id);
+    bukaRincian(t);
   };
-
-  const hapus = (t) => setTargetHapus(t);
 
   const konfirmasiHapus = async () => {
     const t = targetHapus;
@@ -75,7 +85,7 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
         id={pilih}
         jenis={jenis}
         beriTahu={beriTahu}
-        onTutup={() => setPilih(null)}
+        onTutup={tutupRincian}
         onBerubah={() => {
           muat();
           muatUlang?.();
@@ -85,25 +95,22 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
   }
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <Tombol
-            anak="Semua"
-            kecil
-            jenis={saring === "" ? "utama" : "biasa"}
-            onClick={() => setSaring("")}
-          />
+    <div className="space-y-4">
+      <h2 className="text-base font-bold text-slate-900">Turnamen</h2>
+
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <select
+          value={saring}
+          onChange={(e) => setSaring(e.target.value)}
+          className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-primary"
+        >
+          <option value="">Semua turnamen</option>
           {Object.entries(jenis).map(([k, v]) => (
-            <Tombol
-              key={k}
-              anak={v.label}
-              kecil
-              jenis={saring === k ? "utama" : "biasa"}
-              onClick={() => setSaring(k)}
-            />
+            <option key={k} value={k}>
+              {v.label}
+            </option>
           ))}
-        </div>
+        </select>
         <Tombol
           anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}
           jenis="utama"
@@ -120,27 +127,35 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
       )}
 
       {memuat ? (
-        <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+          Memuat…
+        </p>
+      ) : tampil.length === 0 ? (
+        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+          Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
+        </p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full min-w-[720px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <div className="overflow-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-3 py-2 font-semibold">Nama</th>
-                <th className="px-3 py-2 font-semibold">Jenis</th>
-                <th className="px-3 py-2 font-semibold">Status</th>
-                <th className="px-3 py-2 font-semibold">Mulai</th>
-                <th className="px-3 py-2 font-semibold">Peserta</th>
-                <th className="px-3 py-2 font-semibold">Aksi</th>
+                <th>#</th>
+                <th>Nama Turnamen</th>
+                <th>Kategori</th>
+                <th>Status</th>
+                <th>Tanggal Mulai</th>
+                <th>Peserta</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {tampil.map((t) => (
-                <tr key={t.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2">
+              {tampil.map((t, index) => (
+                <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                  <td>{index + 1}</td>
+                  <td>
                     <button
                       type="button"
-                      onClick={() => setPilih(t.id)}
+                      onClick={() => bukaRincian(t)}
                       className="font-medium text-primary hover:underline"
                     >
                       {t.nama}
@@ -151,37 +166,37 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-slate-700">
-                    {jenis[t.jenis]?.label || t.jenis}
-                  </td>
-                  <td className="px-3 py-2">
+                  <td>{jenis[t.jenis]?.label || t.jenis}</td>
+                  <td>
                     <Lencana status={t.status} />
                   </td>
-                  <td className="px-3 py-2 text-slate-600">{t.mulai || "—"}</td>
-                  <td className="px-3 py-2 text-slate-700">
+                  <td>{tanggal(t.mulai)}</td>
+                  <td>
                     {t.jumlahPeserta}
                     {t.kuota ? ` / ${t.kuota}` : ""}
                   </td>
-                  <td className="px-3 py-2">
-                    <div className="flex gap-1.5">
-                      <Tombol anak="Kelola" kecil onClick={() => setPilih(t.id)} />
-                      <Tombol
-                        anak="Hapus"
-                        kecil
-                        jenis="bahaya"
-                        onClick={() => hapus(t)}
-                      />
+                  <td>
+                    <div className="flex gap-1">
+                      <button
+                        type="button"
+                        title="Kelola"
+                        onClick={() => bukaRincian(t)}
+                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary"
+                      >
+                        <IkonPensil />
+                      </button>
+                      <button
+                        type="button"
+                        title="Hapus"
+                        onClick={() => setTargetHapus(t)}
+                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                      >
+                        <IkonSampah />
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {!tampil.length && (
-                <tr>
-                  <td colSpan={6} className="px-3 py-8 text-center text-slate-500">
-                    Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
@@ -199,5 +214,52 @@ export default function PanelTurnamen({ beriTahu, muatUlang }) {
         dan hasilnya.
       </Modal>
     </div>
+  );
+}
+
+function tanggal(nilai) {
+  if (!nilai) return "—";
+  // Jam turnamen disimpan tanpa zona waktu; parse eksplisit sebagai
+  // Asia/Jakarta agar tidak bergeser di zona browser.
+  const d = parseWaktuKomunitas(nilai);
+  if (!d) return nilai;
+  return d.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function IkonPensil() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M17 3a2.828 2.828 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+    </svg>
+  );
+}
+
+function IkonSampah() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+    </svg>
   );
 }

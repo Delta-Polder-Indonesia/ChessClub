@@ -89,75 +89,66 @@ export default function PanelLarangan({ hitam, muatUlang, beriTahu }) {
         komunitas. Tindakan ini tetap tercatat di jejak audit.
       </Modal>
 
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <div className="max-h-[400px] overflow-y-auto">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 sticky top-0">
-                <tr>
-                  <th className="px-3 py-2 font-semibold w-12">#</th>
-                  <th className="px-3 py-2 font-semibold">Akun</th>
-                  <th className="px-3 py-2 font-semibold">Alasan</th>
-                  <th className="px-3 py-2 font-semibold">Sumber</th>
-                  <th className="px-3 py-2 font-semibold">Sejak</th>
-                  <th className="px-3 py-2 font-semibold">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {hitam.map((h, index) => (
-                  <tr key={h.username} className="border-t border-slate-100">
-                    <td className="px-3 py-2 text-slate-500 font-medium">
-                      {index + 1}
-                    </td>
-                    <td className="px-3 py-2 font-medium text-slate-900">
-                      {h.username}
-                    </td>
-                    <td className="px-3 py-2 text-slate-700">
-                      {h.alasan === "fair_play_violations"
-                        ? "Pelanggaran fair play"
-                        : "Keputusan pengurus"}
-                      {h.keterangan && (
-                        <span className="block text-xs text-slate-500">
-                          {h.keterangan}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <span
-                        className={`rounded px-1.5 py-0.5 text-xs font-semibold ${
-                          h.sumber === "otomatis"
-                            ? "bg-amber-50 text-amber-800"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        {h.sumber}
+        <div className="max-h-[400px] overflow-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Akun</th>
+                <th>Alasan</th>
+                <th>Sumber</th>
+                <th>Sejak</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {hitam.map((h, index) => (
+                <tr key={h.username}>
+                  <td className="font-medium text-slate-500">{index + 1}</td>
+                  <td className="font-medium text-slate-900">{h.username}</td>
+                  <td className="text-slate-700">
+                    {h.alasan === "fair_play_violations"
+                      ? "Pelanggaran fair play"
+                      : "Keputusan pengurus"}
+                    {h.keterangan && (
+                      <span className="block text-xs text-slate-500">
+                        {h.keterangan}
                       </span>
-                    </td>
-                    <td className="px-3 py-2 text-xs text-slate-500">
-                      {String(h.diblokirPada || "").slice(0, 10)}
-                    </td>
-                    <td className="px-3 py-2">
-                      <Tombol
-                        anak="Cabut"
-                        kecil
-                        onClick={() => setTargetBuka(h.username)}
-                        disabled={sibuk === `buka-${h.username}`}
-                      />
-                    </td>
-                  </tr>
-                ))}
-                {!hitam.length && (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-3 py-6 text-center text-slate-500"
+                    )}
+                  </td>
+                  <td>
+                    <span
+                      className={`rounded px-1.5 py-0.5 text-xs font-semibold ${
+                        h.sumber === "otomatis"
+                          ? "bg-amber-50 text-amber-800"
+                          : "bg-slate-100 text-slate-700"
+                      }`}
                     >
-                      Daftar larangan kosong.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                      {h.sumber}
+                    </span>
+                  </td>
+                  <td className="text-xs text-slate-500">
+                    {String(h.diblokirPada || "").slice(0, 10)}
+                  </td>
+                  <td>
+                    <Tombol
+                      anak="Cabut"
+                      kecil
+                      onClick={() => setTargetBuka(h.username)}
+                      disabled={sibuk === `buka-${h.username}`}
+                    />
+                  </td>
+                </tr>
+              ))}
+              {!hitam.length && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-slate-500">
+                    Daftar larangan kosong.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
     </div>

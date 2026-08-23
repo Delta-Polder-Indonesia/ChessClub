@@ -60,6 +60,7 @@ import {
   hapusHasil,
   pindaiPesertaTurnamen,
   ringkasanTurnamen,
+  rincianUntukPengurus,
 } from "./turnamen.js";
 import {
   GalatAplikasi,
@@ -356,16 +357,7 @@ router.get("/api/pengurus/turnamen", async (req) => {
 
 router.get("/api/pengurus/turnamen/:id", async (req, param) => {
   pastikanAdmin(req);
-  const t = await ambilTurnamen(param.id);
-  return {
-    status: 200,
-    isi: {
-      ...untukPublik(t),
-      klasemenTim: klasemenTim(t),
-      hasil: t.hasil || [],
-      pengajuan: t.pengajuan || [],
-    },
-  };
+  return { status: 200, isi: await rincianUntukPengurus(param.id) };
 });
 
 router.post("/api/pengurus/turnamen", async (req) => {

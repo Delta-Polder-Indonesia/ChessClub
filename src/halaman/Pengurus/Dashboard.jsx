@@ -8,6 +8,7 @@ import {
   ambilDaftarHitam,
 } from "../../lib/api/index.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
+import PanelJuara from "./PanelJuara.jsx";
 import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
 import PanelAnggota from "./Anggota.jsx";
 import PanelLarangan from "./Larangan.jsx";
@@ -43,6 +44,11 @@ const MENU_SIDEBAR = [
     kunci: "turnamen",
     label: "Turnamen",
     icon: "M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z",
+  },
+  {
+    kunci: "juara",
+    label: "Juara Turnamen",
+    icon: "M8 21h8m-4-4v4M7 4h10v4a5 5 0 01-10 0V4zM7 5H4v1a3 3 0 003 3m10-4h3v1a3 3 0 01-3 3",
   },
   {
     kunci: "berita",
@@ -671,6 +677,7 @@ export default function Dashboard() {
   const [kabar, setKabar] = useState(null);
   const [menuProfile, setMenuProfile] = useState(false);
   const [sidebarTerbuka, setSidebarTerbuka] = useState(true);
+  const [judulRincian, setJudulRincian] = useState(null);
   const [menuNotif, setMenuNotif] = useState(false);
   const [notif, setNotif] = useState([]);
   const [memuatNotif, setMemuatNotif] = useState(false);
@@ -868,15 +875,12 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-white">
       {/* ── Header ─────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200 px-6 py-0">
         <div className="flex items-center justify-between">
-          {/* Kiri: judul + toggle sidebar */}
+          {/* Kiri: toggle sidebar + judul */}
           <div className="flex items-center gap-4">
-            <h1 className="text-lg font-bold text-slate-900">
-              Dashboard Pengurus
-            </h1>
             <button
               onClick={() => setSidebarTerbuka((s) => !s)}
               className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
@@ -897,6 +901,9 @@ export default function Dashboard() {
                 />
               </svg>
             </button>
+            <h1 className="text-lg font-bold text-slate-900">
+              {judulRincian || "Dashboard Pengurus"}
+            </h1>
           </div>
 
           {/* Kanan: lonceng + profil */}
@@ -1044,11 +1051,14 @@ export default function Dashboard() {
             <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
           ) : tab === "pengumuman" ? (
             <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
+          ) : tab === "juara" ? (
+            <PanelJuara beriTahu={beriTahu} />
           ) : (
             <PanelTurnamen
               beriTahu={beriTahu}
               anggota={anggota}
               muatUlang={muatUlang}
+              saatBukaRincian={setJudulRincian}
             />
           )}
         </main>

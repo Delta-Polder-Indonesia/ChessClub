@@ -120,10 +120,7 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
   };
 
   return (
-    <form
-      onSubmit={kirim}
-      className="mb-6 space-y-3 rounded-lg border border-slate-200 bg-white p-4"
-    >
+    <form onSubmit={kirim} className="mb-6 space-y-3">
       <h3 className="text-sm font-bold text-slate-900">
         {item ? `Ubah ${konfig.label}` : `${konfig.label} Baru`}
       </h3>
@@ -335,32 +332,32 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
       {memuat ? (
         <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <table className="w-full min-w-[640px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <div className="overflow-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-3 py-2 font-semibold">Gambar</th>
-                <th className="px-3 py-2 font-semibold">Judul</th>
-                <th className="px-3 py-2 font-semibold">Tanggal</th>
-                <th className="px-3 py-2 font-semibold">Status</th>
-                <th className="px-3 py-2 font-semibold">Aksi</th>
+                <th>Gambar</th>
+                <th>Judul</th>
+                <th>Tanggal</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {tampil.map((x) => (
-                <tr key={x.id} className="border-t border-slate-100">
-                  <td className="px-3 py-2">
+                <tr key={x.id}>
+                  <td>
                     {x.gambar ? (
                       <img
                         src={x.gambar}
                         alt=""
-                        className="h-10 w-16 border border-slate-200 object-cover"
+                        className="h-10 w-16 object-cover"
                       />
                     ) : (
                       <span className="text-xs text-slate-400">Tanpa gambar</span>
                     )}
                   </td>
-                  <td className="px-3 py-2">
+                  <td>
                     <button
                       type="button"
                       onClick={() => setFormulir({ item: x })}
@@ -369,11 +366,11 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
                       {x.judul}
                     </button>
                   </td>
-                  <td className="px-3 py-2 text-slate-600">{x.tanggal || "—"}</td>
-                  <td className="px-3 py-2">
+                  <td className="text-slate-600">{x.tanggal || "—"}</td>
+                  <td>
                     <Lencana status={x.status} />
                   </td>
-                  <td className="px-3 py-2">
+                  <td>
                     <div className="flex gap-1.5">
                       <Tombol anak="Ubah" kecil onClick={() => setFormulir({ item: x })} />
                       <Tombol
@@ -388,7 +385,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
               ))}
               {!tampil.length && (
                 <tr>
-                  <td colSpan={5} className="px-3 py-8 text-center text-slate-500">
+                  <td colSpan={5} className="py-8 text-center text-slate-500">
                     Belum ada {konfig.label.toLowerCase()}. Tekan “+
                     {konfig.label} baru” untuk membuat.
                   </td>
