@@ -8,37 +8,24 @@ export default function ProgramKami() {
     <HalamanIsi
       title={t("program.judul")}
       description={t("program.deskripsi")}
-      next={{ to: "/program-kami/kelas-dan-pelatihan", judul: t("program.nextJudul") }}
+      next={{
+        to: "/program-kami/sekolah-catur/cara-bermain-catur",
+        judul: t("nav.caraBermainCatur"),
+      }}
     >
       <PageArtikel title={t("program.artikel")}>
         <p className="ql-align-justify">{t("program.p1")}</p>
         <p>{t("program.p2")}</p>
-        <ol>
-          <li className="ql-align-justify">
-            <Link to="/program-kami/kelas-dan-pelatihan">
-              {t("nav.kelasPelatihan")}
-            </Link>
-            : {t("program.l1")}
-          </li>
-          <li className="ql-align-justify">
-            <Link to="/program-kami/coaching-clinic">
-              {t("nav.coachingClinic")}
-            </Link>
-            : {t("program.l2")}
-          </li>
-          <li className="ql-align-justify">
-            <Link to="/program-kami/simultan-dan-blindfold">
-              {t("nav.simultanBlindfold")}
-            </Link>
-            : {t("program.l3")}
-          </li>
-          <li className="ql-align-justify">
-            <Link to="/program-kami/sekolah-catur">
-              {t("nav.sekolahCatur")}
-            </Link>
-            : {t("program.l4")}
-          </li>
-        </ol>
+        <h3>{t("program.h1")}</h3>
+        <p>
+          {t("program.p3a")}{" "}
+          <Link to="/program-kami/sekolah-catur/cara-bermain-catur">
+            {t("nav.caraBermainCatur")}
+          </Link>{" "}
+          {t("program.p3b")}{" "}
+          <Link to="/teka-teki">{t("tekaTeki.judul")}</Link>{" "}
+          {t("program.p3c")}
+        </p>
       </PageArtikel>
     </HalamanIsi>
   );

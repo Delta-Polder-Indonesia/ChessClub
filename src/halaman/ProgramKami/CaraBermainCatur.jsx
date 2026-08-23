@@ -173,7 +173,6 @@ export default function CaraBermainCatur() {
   const crumbs = [
     { label: t("common.home"), to: "/" },
     { label: t("nav.programKami"), to: "/program-kami" },
-    { label: t("nav.sekolahCatur"), to: "/program-kami/sekolah-catur" },
     { label: t("caraBermain.judul") },
   ];
 
@@ -220,7 +219,7 @@ export default function CaraBermainCatur() {
         </div>
       </main>
 
-      <PageSelanjutnya to="/turnamen" judul={t("sekolahCatur.nextJudul")} />
+      <PageSelanjutnya to="/turnamen" judul={t("nav.turnamen")} />
     </>
   );
 }

@@ -18,10 +18,8 @@ const StrukturGrupCatur = lazy(() => import("./halaman/TentangKami/StrukturGrupC
 
 // Program Kami
 const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
-const KelasDanPelatihan = lazy(() => import("./halaman/ProgramKami/KelasDanPelatihan.jsx"));
-const CoachingClinic = lazy(() => import("./halaman/ProgramKami/CoachingClinic.jsx"));
-const SimultanDanBlindfold = lazy(() => import("./halaman/ProgramKami/SimultanDanBlindfold.jsx"));
-const SekolahCatur = lazy(() => import("./halaman/ProgramKami/SekolahCatur.jsx"));
+const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.jsx"));
+const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const CaraBermainCatur = lazy(() => import("./halaman/ProgramKami/CaraBermainCatur.jsx"));
 
 // Turnamen
@@ -59,7 +57,6 @@ const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
 const Peringkat = lazy(() => import("./halaman/Beranda/Peringkat.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/Beranda/EbookPanduan.jsx"));
-const TekaTekiTips = lazy(() => import("./halaman/Beranda/TekaTekiTips.jsx"));
 const HubungiAdmin = lazy(() => import("./halaman/Beranda/HubungiAdmin.jsx"));
 
 // Lain-lain
@@ -80,7 +77,6 @@ const RUTE_BERANDA = [
   ["/beranda/daftar-juara", DaftarJuara],
   ["/beranda/peringkat", Peringkat],
   ["/beranda/ebook-panduan", EbookPanduan],
-  ["/beranda/teka-teki-tips", TekaTekiTips],
   ["/beranda/hubungi-admin", HubungiAdmin],
 ];
 
@@ -91,10 +87,8 @@ const RUTE_HALAMAN = [
   ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],
 
   ["/program-kami", ProgramKami],
-  ["/program-kami/kelas-dan-pelatihan", KelasDanPelatihan],
-  ["/program-kami/coaching-clinic", CoachingClinic],
-  ["/program-kami/simultan-dan-blindfold", SimultanDanBlindfold],
-  ["/program-kami/sekolah-catur", SekolahCatur],
+  ["/program-kami/teka-teki", TekaTekiKonten],
+  ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
 
   ["/teka-teki", TekaTeki],
@@ -134,6 +128,15 @@ const RUTE_REDIRECT = new Map([
   ["/struktur-grup-catur", "/tentang-kami/struktur-grup-catur"],
   ["/pengumuman", "/media-dan-informasi/pengumuman"],
 
+  // Sub-halaman Program Kami yang dihapus — tautan lama tidak boleh 404.
+  ["/program-kami/kelas-dan-pelatihan", "/program-kami"],
+  ["/program-kami/coaching-clinic", "/program-kami"],
+  ["/program-kami/simultan-dan-blindfold", "/program-kami"],
+  ["/program-kami/sekolah-catur", "/program-kami/sekolah-catur/cara-bermain-catur"],
+
+  // Tab Beranda "Teka-Teki & Tips" pindah menjadi halaman Program Kami.
+  ["/beranda/teka-teki-tips", "/program-kami/teka-teki"],
+
   // Alias keanggotaan lama.
   ["/keanggotaan", "/tentang-kami/struktur-grup-catur#keanggotaan"],
   ["/tentang-kami/keanggotaan", "/tentang-kami/struktur-grup-catur#keanggotaan"],
@@ -152,7 +155,7 @@ const RUTE_REDIRECT = new Map([
   ["/pengadaan/gabung-anggota", "/beranda/peringkat"],
   ["/beranda/gabung-anggota", "/beranda/peringkat"],
   ["/pengadaan/ebook-panduan", "/beranda/ebook-panduan"],
-  ["/pengadaan/teka-teki-tips", "/beranda/teka-teki-tips"],
+  ["/pengadaan/teka-teki-tips", "/program-kami/teka-teki"],
   ["/pengadaan/hubungi-admin", "/beranda/hubungi-admin"],
 ]);
 
