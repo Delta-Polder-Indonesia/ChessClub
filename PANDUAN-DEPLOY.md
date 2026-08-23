@@ -234,7 +234,51 @@ Berkas yang wajib dicadangkan rutin:
 
 Plus **pepper**. Kehilangan pepper = daftar hitam tidak bisa dipakai lagi.
 
+### Backup terjadwal yang aman
+
+Gunakan skrip bawaan; skrip ini menolak backup yang disimpan di dalam direktori
+sumber, membuat arsip dengan izin `0600`, dan otomatis menyisakan sejumlah
+arsip terakhir (`KCI_RETENSI_BACKUP`, bawaan 14). Direktori backup harus berada
+di disk privat/terenkripsi dan **bukan** folder repository.
+
 ```bash
-# contoh cadangan harian di VPS
-0 2 * * * tar czf /backup/kci-$(date +\%F).tar.gz /srv/chessclub/data
+# Sekali: siapkan lokasi privat yang hanya dapat dibaca user service.
+sudo install -d -m 700 -o kci -g kci /var/backups/kci
+
+# Uji manual sebagai user service.
+sudo -u kci env \
+  KCI_DIR_DATA=/var/lib/kci \
+  KCI_DIR_BACKUP=/var/backups/kci \
+  KCI_RETENSI_BACKUP=14 \
+  npm --prefix /srv/chessclub run operasi:backup
 ```
+
+Tambahkan cron harian (misalnya pukul 02:17):
+
+```cron
+17 2 * * * kci KCI_DIR_DATA=/var/lib/kci KCI_DIR_BACKUP=/var/backups/kci KCI_RETENSI_BACKUP=14 /usr/bin/npm --prefix /srv/chessclub run operasi:backup >> /var/log/kci-backup.log 2>&1
+```
+
+Uji restore di server/staging terpisah sebelum terjadi insiden:
+
+```bash
+mkdir /tmp/kci-restore && tar xzf /var/backups/kci/kci-data-TANGGAL.tar.gz -C /tmp/kci-restore
+# Periksa isi /tmp/kci-restore tanpa pernah menimpa data produksi.
+```
+
+### Health check dan alert
+
+Endpoint ringan `GET /api/kesehatan` dapat diuji secara manual:
+
+```bash
+KCI_API_URL=https://api-domain-anda.example npm run operasi:kesehatan
+```
+
+Workflow `.github/workflows/health.yml` menjalankannya setiap 6 jam dan dapat
+dijalankan manual dari tab **Actions**. Atur repository variable
+`KCI_API_URL` di GitHub agar workflow aktif. GitHub akan menandai workflow
+merah bila API timeout, mengembalikan HTTP gagal, atau status selain `sehat`.
+
+> Simpan backup di lokasi berbeda dari server utama (object storage privat atau
+> server cadangan) secara berkala. Backup dan pepper adalah data rahasia:
+> jangan pernah mengunggahnya ke Git, artifact CI, atau chat.

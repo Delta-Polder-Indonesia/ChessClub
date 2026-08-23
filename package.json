@@ -12,7 +12,9 @@
     "uji:i18n": "node scripts/uji-i18n.mjs",
     "uji:backend": "node server/uji/uji-backend.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
-    "uji:e2e": "playwright test"
+    "uji:e2e": "playwright test",
+    "operasi:backup": "node scripts/backup-data.mjs",
+    "operasi:kesehatan": "node scripts/cek-kesehatan.mjs"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
