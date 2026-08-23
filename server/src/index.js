@@ -11,6 +11,7 @@
  *   KCI_ASAL_DIIZINKAN   daftar origin dipisah koma
  */
 import http from "node:http";
+import { randomUUID } from "node:crypto";
 import { konfigurasi, periksaProduksi } from "./konfigurasi.js";
 import {
   kirimJson,
@@ -655,7 +656,7 @@ async function tangani(req, res) {
         pesan: e.message || "Chess.com sedang tidak dapat dihubungi.",
       });
     }
-    console.error(`[kci] galat tak tertangani pada ${metode} ${jalur}:`, e);
+    console.error(`[kci] galat tak tertangani id=${req.kciRequestId || "-"} pada ${metode} ${jalur}:`, e);
     kirimJson(res, 500, { pesan: "Kesalahan server." });
   }
 }
@@ -678,8 +679,28 @@ if (!konfigurasi.pepper) {
 }
 
 const server = http.createServer((req, res) => {
+  const mulai = performance.now();
+  const requestId = randomUUID();
+  req.kciRequestId = requestId;
+  res.setHeader("X-Request-Id", requestId);
+
+  // Log terstruktur sengaja tidak memuat query string, body, token, atau IP.
+  // Aktifkan dengan KCI_LOG_PERMINTAAN=1 bila journal/log collector tersedia.
+  res.on("finish", () => {
+    if (!konfigurasi.logPermintaan) return;
+    const jalur = (req.url || "/").split("?")[0];
+    console.log(JSON.stringify({
+      event: "http_request",
+      requestId,
+      method: req.method || "GET",
+      path: jalur,
+      status: res.statusCode,
+      durationMs: Math.round(performance.now() - mulai),
+    }));
+  });
+
   tangani(req, res).catch((e) => {
-    console.error("[kci] galat fatal:", e);
+    console.error(`[kci] galat fatal id=${requestId}:`, e);
     if (!res.headersSent) kirimJson(res, 500, { pesan: "Kesalahan server." });
   });
 });

@@ -21,7 +21,8 @@ try {
   if (!respons.ok || data?.status !== "sehat") {
     throw new Error(`HTTP ${respons.status}; status=${data?.status || "tidak sah"}`);
   }
-  console.log(`[health] sehat — ${url}`);
+  const requestId = respons.headers.get("x-request-id");
+  console.log(`[health] sehat — ${url}${requestId ? ` (request ${requestId})` : ""}`);
 } catch (error) {
   console.error(`[health] GAGAL — ${url}: ${error.name === "AbortError" ? "timeout" : error.message}`);
   process.exitCode = 1;

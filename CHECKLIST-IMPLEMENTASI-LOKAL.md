@@ -44,6 +44,7 @@ Isi nilai berikut untuk backend produksi/staging:
 | `KCI_CHESS_KLUB` | Ya | Slug klub Chess.com, mis. `blunder-skuad`. |
 | `KCI_DIR_BACKUP` | Untuk backup | Lokasi privat di luar repo, mis. `/var/backups/kci`. |
 | `KCI_RETENSI_BACKUP` | Disarankan | Jumlah arsip terakhir, mis. `14`. |
+| `KCI_LOG_PERMINTAAN` | Disarankan | `1` untuk log JSON ringkas tanpa body/token/IP. |
 | `VITE_API_DASAR` | GH Pages | URL backend tanpa trailing slash, mis. `https://api.domain-anda.id`. |
 | `VITE_CHESS_KLUB` | Disarankan | Samakan dengan `KCI_CHESS_KLUB`. |
 
