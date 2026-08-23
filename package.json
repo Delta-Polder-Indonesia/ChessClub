@@ -11,7 +11,8 @@
     "uji:rute": "node scripts/uji-rute.mjs",
     "uji:i18n": "node scripts/uji-i18n.mjs",
     "uji:backend": "node server/uji/uji-backend.mjs",
-    "uji:verifikasi": "node server/uji/uji-verifikasi.mjs"
+    "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
+    "uji:e2e": "playwright test"
   },
   "dependencies": {
     "chess.js": "^1.4.0",
@@ -20,6 +21,7 @@
     "react-router-dom": "^7.18.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.0.0",
