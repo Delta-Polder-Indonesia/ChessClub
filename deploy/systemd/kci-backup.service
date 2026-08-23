@@ -1,0 +1,18 @@
+# Dipanggil oleh kci-backup.timer. Jangan jalankan sebagai root.
+[Unit]
+Description=Backup data Komunitas Catur Indonesia
+After=kci-api.service
+
+[Service]
+Type=oneshot
+User=kci
+Group=kci
+WorkingDirectory=/srv/chessclub
+EnvironmentFile=/etc/kci/kci-api.env
+ExecStart=/usr/bin/npm --prefix /srv/chessclub run operasi:backup
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/kci /var/backups/kci

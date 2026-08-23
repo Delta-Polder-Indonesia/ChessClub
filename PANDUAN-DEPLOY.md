@@ -101,6 +101,21 @@ sudo systemctl enable --now kci-api
 sudo systemctl status kci-api
 ```
 
+> Template yang lebih ketat (service hardening + backup timer) tersedia di
+> `deploy/systemd/`. Salin `kci-api.env.example` sebagai `/etc/kci/kci-api.env`,
+> isi nilai asli, lalu batasi izinnya (`chmod 640`, pemilik `root:kci`). Setelah
+> menyesuaikan path, pasang semua unit dengan:
+>
+> ```bash
+> sudo cp deploy/systemd/kci-*.service deploy/systemd/kci-*.timer /etc/systemd/system/
+> sudo systemctl daemon-reload
+> sudo systemctl enable --now kci-api.service kci-backup.timer
+> systemctl list-timers kci-backup.timer
+> ```
+>
+> Pastikan `/var/lib/kci` dan `/var/backups/kci` dimiliki user `kci`; lihat
+> `CHECKLIST-IMPLEMENTASI-LOKAL.md` sebelum mengaktifkan backup.
+
 Nginx di depannya:
 
 ```nginx
@@ -144,8 +159,10 @@ ada masalah CORS sama sekali.
 ### Bila frontend tetap di GitHub Pages
 
 GitHub Pages tidak mendukung proxy, jadi frontend harus memanggil backend
-secara langsung. Workflow deploy (`.github/workflows/deploy.yml`) **sudah
-menyetel `VITE_API_DASAR` otomatis** — bawaan `https://kci-api.onrender.com`.
+secara langsung. Template workflow deploy (`deploy/github-workflows/deploy.yml.md`)
+menyetel `VITE_API_DASAR` otomatis — bawaan `https://kci-api.onrender.com`.
+Aktifkan template tersebut sebagai `.github/workflows/deploy.yml` dari komputer
+lokal setelah merge (lihat `deploy/github-workflows/README.md`).
 Untuk alamat backend yang berbeda, atur repository variable `KCI_API_URL`
 di GitHub (Settings → Secrets and variables → Actions → Variables); nilai
 itu dipakai menggantikan bawaan.
@@ -234,7 +251,52 @@ Berkas yang wajib dicadangkan rutin:
 
 Plus **pepper**. Kehilangan pepper = daftar hitam tidak bisa dipakai lagi.
 
+### Backup terjadwal yang aman
+
+Gunakan skrip bawaan; skrip ini menolak backup yang disimpan di dalam direktori
+sumber, membuat arsip dengan izin `0600`, dan otomatis menyisakan sejumlah
+arsip terakhir (`KCI_RETENSI_BACKUP`, bawaan 14). Direktori backup harus berada
+di disk privat/terenkripsi dan **bukan** folder repository.
+
 ```bash
-# contoh cadangan harian di VPS
-0 2 * * * tar czf /backup/kci-$(date +\%F).tar.gz /srv/chessclub/data
+# Sekali: siapkan lokasi privat yang hanya dapat dibaca user service.
+sudo install -d -m 700 -o kci -g kci /var/backups/kci
+
+# Uji manual sebagai user service.
+sudo -u kci env \
+  KCI_DIR_DATA=/var/lib/kci \
+  KCI_DIR_BACKUP=/var/backups/kci \
+  KCI_RETENSI_BACKUP=14 \
+  npm --prefix /srv/chessclub run operasi:backup
 ```
+
+Tambahkan cron harian (misalnya pukul 02:17):
+
+```cron
+17 2 * * * kci KCI_DIR_DATA=/var/lib/kci KCI_DIR_BACKUP=/var/backups/kci KCI_RETENSI_BACKUP=14 /usr/bin/npm --prefix /srv/chessclub run operasi:backup >> /var/log/kci-backup.log 2>&1
+```
+
+Uji restore di server/staging terpisah sebelum terjadi insiden:
+
+```bash
+mkdir /tmp/kci-restore && tar xzf /var/backups/kci/kci-data-TANGGAL.tar.gz -C /tmp/kci-restore
+# Periksa isi /tmp/kci-restore tanpa pernah menimpa data produksi.
+```
+
+### Health check dan alert
+
+Endpoint ringan `GET /api/kesehatan` dapat diuji secara manual:
+
+```bash
+KCI_API_URL=https://api-domain-anda.example npm run operasi:kesehatan
+```
+
+Template `deploy/github-workflows/health.yml.md` menjalankannya setiap 6 jam
+dan dapat dijalankan manual dari tab **Actions** setelah Anda menyalinnya ke
+`.github/workflows/health.yml` dari komputer lokal. Atur repository variable
+`KCI_API_URL` di GitHub agar workflow aktif. GitHub akan menandai workflow
+merah bila API timeout, mengembalikan HTTP gagal, atau status selain `sehat`.
+
+> Simpan backup di lokasi berbeda dari server utama (object storage privat atau
+> server cadangan) secara berkala. Backup dan pepper adalah data rahasia:
+> jangan pernah mengunggahnya ke Git, artifact CI, atau chat.

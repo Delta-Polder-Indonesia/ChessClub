@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece } from "../Beranda/ChessPieceSvg.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];

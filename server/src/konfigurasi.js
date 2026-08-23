@@ -31,6 +31,10 @@ export const konfigurasi = {
   port: angka(process.env.PORT, 8787),
   host: process.env.HOST || "0.0.0.0",
 
+  /** Log ringkas request (tanpa body, token, atau data pribadi). Aktifkan
+   * di produksi bila log dikirim ke systemd/journal atau observability. */
+  logPermintaan: process.env.KCI_LOG_PERMINTAAN === "1",
+
   /**
    * Jumlah proxy tepercaya di DEPAN server (mis. Cloudflare, Nginx,
    * Render, Load Balancer). Header X-Forwarded-For hanya dihormati

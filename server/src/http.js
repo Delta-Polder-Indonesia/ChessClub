@@ -48,6 +48,8 @@ export function pasangCors(req, res) {
     "Content-Type, Authorization, X-Token-Admin, X-CSRF-Token, X-Admin-User"
   );
   res.setHeader("Access-Control-Max-Age", "86400");
+  // Browser frontend dapat menyertakan ID ini saat melaporkan kegagalan.
+  res.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After, X-RateLimit-Remaining");
   return true;
 }
 

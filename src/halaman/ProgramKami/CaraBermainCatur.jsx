@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Hero from "../../components/Hero.jsx";
 import StickyMenu from "../../components/StickyMenu.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { PANDUAN_CATUR, muatBab } from "../../data/panduan/index.js";
 
 /**
  * Halaman "Cara Bermain Catur" — panduan lengkap 71 bagian.
@@ -40,9 +41,12 @@ function BlokBagian({ bagian }) {
   );
 }
 
-/** Isi lengkap panduan: judul artikel, daftar isi, bab, dan seluruh bagian. */
+/** Isi panduan dengan pemuatan konten per bab, bukan satu artikel raksasa. */
 export function IsiPanduan({ panduan }) {
   const { t } = useI18n();
+  const [bagianTerbuka, setBagianTerbuka] = useState({});
+  const [sedangMuat, setSedangMuat] = useState({});
+  const [targetGulir, setTargetGulir] = useState(null);
 
   const labelBab = {
     "bab-bidak": t("caraBermain.babBidak"),
@@ -55,16 +59,41 @@ export function IsiPanduan({ panduan }) {
     "bab-penutup": t("caraBermain.babPenutup"),
   };
 
-  const perBab = useMemo(() => {
-    const urut = panduan.bab.map((b) => b.id);
-    const peta = new Map(urut.map((id) => [id, []]));
-    for (const b of panduan.bagian) {
-      if (peta.has(b.bab)) peta.get(b.bab).push(b);
+  const bukaBab = useCallback(async (id) => {
+    if (bagianTerbuka[id] || sedangMuat[id]) return;
+    setSedangMuat((lama) => ({ ...lama, [id]: true }));
+    try {
+      const daftar = await muatBab(id);
+      setBagianTerbuka((lama) => ({ ...lama, [id]: daftar }));
+    } finally {
+      setSedangMuat((lama) => ({ ...lama, [id]: false }));
     }
-    return urut
-      .map((id) => ({ id, daftar: peta.get(id) ?? [] }))
-      .filter((k) => k.daftar.length > 0);
+  }, [bagianTerbuka, sedangMuat]);
+
+  // Bab pertama dimuat otomatis agar pembaca langsung mendapat isi artikel.
+  useEffect(() => {
+    setBagianTerbuka({});
+    setSedangMuat({});
+    bukaBab(panduan.bab[0]?.id);
+    // Manifest panduan tidak berubah sepanjang masa pakai halaman.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panduan]);
+
+  // Tautan daftar isi juga dapat membuka bab yang belum pernah dimuat.
+  useEffect(() => {
+    if (!targetGulir) return;
+    const elemen = document.getElementById(targetGulir);
+    if (elemen) {
+      elemen.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTargetGulir(null);
+    }
+  }, [bagianTerbuka, targetGulir]);
+
+  const bukaDariDaftarIsi = (event, bab, bagian) => {
+    event.preventDefault();
+    setTargetGulir(bagian.id);
+    void bukaBab(bab.id);
+  };
 
   return (
     <article className="panduan-kci">
@@ -79,30 +108,17 @@ export function IsiPanduan({ panduan }) {
           {t("caraBermain.lead")}
         </p>
 
-        <nav
-          aria-label={t("caraBermain.daftarIsi")}
-          className="mt-10 border-y border-slate-200 py-6"
-        >
-          <p className="mb-3 text-sm font-semibold text-slate-950">
-            {t("caraBermain.daftarIsi")}
-          </p>
+        <nav aria-label={t("caraBermain.daftarIsi")} className="mt-10 border-y border-slate-200 py-6">
+          <p className="mb-3 text-sm font-semibold text-slate-950">{t("caraBermain.daftarIsi")}</p>
           <div className="grid gap-x-10 md:grid-cols-2">
-            {perBab.map(({ id, daftar }) => (
-              <div key={id} className="min-w-0">
-                <p className="mt-3 mb-1.5 text-xs font-bold uppercase tracking-[0.12em] text-primary">
-                  {labelBab[id]}
-                </p>
+            {panduan.bab.map((bab) => (
+              <div key={bab.id} className="min-w-0">
+                <p className="mt-3 mb-1.5 text-xs font-bold uppercase tracking-[0.12em] text-primary">{labelBab[bab.id]}</p>
                 <ol>
-                  {daftar.map((b) => (
-                    <li
-                      key={b.id}
-                      className="border-b border-dashed border-slate-200 py-1 last:border-0"
-                    >
-                      <a
-                        href={`#${b.id}`}
-                        className="text-[15px] leading-6 text-slate-700 hover:text-primary hover:underline"
-                      >
-                        {b.judul}
+                  {bab.bagian.map((bagian) => (
+                    <li key={bagian.id} className="border-b border-dashed border-slate-200 py-1 last:border-0">
+                      <a href={`#${bagian.id}`} onClick={(event) => bukaDariDaftarIsi(event, bab, bagian)} className="text-[15px] leading-6 text-slate-700 hover:text-primary hover:underline">
+                        {bagian.judul}
                       </a>
                     </li>
                   ))}
@@ -113,62 +129,37 @@ export function IsiPanduan({ panduan }) {
         </nav>
       </header>
 
-      {perBab.map(({ id, daftar }, idx) => (
-        <section key={id} id={id} className="scroll-mt-36 pt-10 md:pt-14">
-          <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">
-            {t("caraBermain.bab")} {idx + 1}
-          </p>
-          <h2 className="mt-2 border-b-2 border-slate-200 pb-4 text-2xl font-bold text-slate-950 md:text-3xl">
-            {labelBab[id]}
-          </h2>
-          {daftar.map((b) => (
-            <BlokBagian key={b.id} bagian={b} />
-          ))}
-        </section>
-      ))}
+      {panduan.bab.map((bab, idx) => {
+        const daftar = bagianTerbuka[bab.id];
+        const memuat = sedangMuat[bab.id];
+        return (
+          <section key={bab.id} id={bab.id} className="scroll-mt-36 pt-10 md:pt-14">
+            <p className="text-sm font-semibold uppercase tracking-[0.12em] text-primary">{t("caraBermain.bab")} {idx + 1}</p>
+            <h2 className="mt-2 border-b-2 border-slate-200 pb-4 text-2xl font-bold text-slate-950 md:text-3xl">{labelBab[bab.id]}</h2>
+            {daftar ? daftar.map((bagian) => <BlokBagian key={bagian.id} bagian={bagian} />) : (
+              <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-5">
+                <p className="text-sm leading-6 text-slate-600">Bab ini dimuat saat Anda membukanya agar halaman tetap cepat.</p>
+                <button type="button" onClick={() => void bukaBab(bab.id)} disabled={memuat} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60">
+                  {memuat ? "Memuat bab…" : "Muat bab ini"}
+                </button>
+              </div>
+            )}
+          </section>
+        );
+      })}
     </article>
-  );
-}
-
-/** Kerangka pemuatan saat data panduan dimuat secara terpisah. */
-function KerangkaPanduan() {
-  return (
-    <div aria-hidden="true" className="animate-pulse">
-      <div className="h-4 w-40 rounded bg-slate-200" />
-      <div className="mt-4 h-12 w-3/4 rounded bg-slate-200" />
-      <div className="mt-6 h-28 rounded bg-slate-100" />
-      <div className="mt-10 space-y-4">
-        {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="h-44 rounded border border-slate-200 bg-slate-50" />
-        ))}
-      </div>
-    </div>
   );
 }
 
 export default function CaraBermainCatur() {
   const { t, bahasa } = useI18n();
   const isEN = bahasa === "en";
-  const [panduan, setPanduan] = useState(null);
-  const [gagal, setGagal] = useState(false);
 
   useEffect(() => {
     document.title = `${t("caraBermain.judul")} | ${t("common.namaKomunitas")}`;
   }, [t]);
 
-  useEffect(() => {
-    let aktif = true;
-    import("../../data/panduanCatur.js")
-      .then((modul) => {
-        if (aktif) setPanduan(modul.PANDUAN_CATUR);
-      })
-      .catch(() => {
-        if (aktif) setGagal(true);
-      });
-    return () => {
-      aktif = false;
-    };
-  }, []);
+
 
   const crumbs = [
     { label: t("common.home"), to: "/" },
@@ -207,15 +198,7 @@ export default function CaraBermainCatur() {
             </div>
           )}
 
-          {gagal ? (
-            <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-              {t("caraBermain.gagalMuat")}
-            </p>
-          ) : panduan ? (
-            <IsiPanduan panduan={panduan} />
-          ) : (
-            <KerangkaPanduan />
-          )}
+<IsiPanduan panduan={PANDUAN_CATUR} />
         </div>
       </main>
 

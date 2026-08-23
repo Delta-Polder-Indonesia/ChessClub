@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { apiPengurus } from "../../lib/chessAnggota.js";
+import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
 import { Tombol, Avatar, Modal } from "./ui.jsx";
 

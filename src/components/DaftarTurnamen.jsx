@@ -4,7 +4,7 @@ import {
   ambilTurnamenPublik,
   ambilSatuTurnamen,
   ajukanPesertaTurnamen,
-} from "../lib/chessAnggota.js";
+} from "../lib/api/index.js";
 import { useI18n } from "../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../lib/waktu.js";
 import { WARNA_STATUS, TEKS_STATUS } from "./LencanaStatus.jsx";

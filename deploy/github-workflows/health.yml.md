@@ -1,0 +1,31 @@
+name: Production health check
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  health:
+    # Atur repository variable KCI_API_URL terlebih dahulu. Job sengaja
+    # dilewati bila belum ada URL agar tidak menghasilkan alarm palsu.
+    if: ${{ vars.KCI_API_URL != '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    env:
+      KCI_API_URL: ${{ vars.KCI_API_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Check public API health
+        run: npm run operasi:kesehatan

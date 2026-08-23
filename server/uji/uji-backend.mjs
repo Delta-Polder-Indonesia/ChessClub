@@ -188,6 +188,10 @@ console.log("\nKesehatan & rute dasar");
   const r = await panggil("GET", "/api/kesehatan");
   cek("GET /api/kesehatan -> 200", r.status === 200, `dapat ${r.status}`);
   cek("melaporkan status sehat", r.data?.status === "sehat");
+  cek(
+    "menerbitkan ID permintaan untuk penelusuran galat",
+    /^[0-9a-f-]{36}$/i.test(r.headers.get("x-request-id") || "")
+  );
 
   const nf = await panggil("GET", "/api/tidak-ada");
   cek("rute tak dikenal -> 404", nf.status === 404, `dapat ${nf.status}`);

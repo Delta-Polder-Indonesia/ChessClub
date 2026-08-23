@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Chess } from "chess.js";
 import Hero from "../../components/Hero.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece, DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
+import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";

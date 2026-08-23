@@ -1,0 +1,25 @@
+# Salin ke /etc/systemd/system/kci-api.service lalu sesuaikan path/domain.
+[Unit]
+Description=Backend Komunitas Catur Indonesia
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kci
+Group=kci
+WorkingDirectory=/srv/chessclub
+EnvironmentFile=/etc/kci/kci-api.env
+ExecStart=/usr/bin/node server/src/index.js
+Restart=on-failure
+RestartSec=5
+
+# Hardening proses: aplikasi hanya dapat menulis ke direktori data eksplisit.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/kci
+
+[Install]
+WantedBy=multi-user.target

@@ -6,7 +6,7 @@ import {
   adminPengguna,
   ambilDaftarAnggota,
   ambilDaftarHitam,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
 import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
 import PanelAnggota from "./Anggota.jsx";

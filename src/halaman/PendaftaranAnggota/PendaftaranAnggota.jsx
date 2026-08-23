@@ -8,7 +8,7 @@ import {
   formatHp,
   kategoriUmur,
   hitungUmur,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { hariIniLokal } from "../../lib/waktu.js";
@@ -69,7 +69,7 @@ function Isian({
         <span className="text-xs leading-5 text-slate-500">{catatan}</span>
       )}
       {galat && (
-        <span id={idGalat} className="text-xs leading-5 text-red-600">
+        <span id={idGalat} role="alert" className="text-xs leading-5 text-red-600">
           {galat}
         </span>
       )}

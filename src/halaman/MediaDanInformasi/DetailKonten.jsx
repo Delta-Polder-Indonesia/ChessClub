@@ -5,7 +5,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 import {
   ambilBeritaPublik,
   ambilPengumumanPublik,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 
 /**
  * Halaman detail satu berita / pengumuman.
