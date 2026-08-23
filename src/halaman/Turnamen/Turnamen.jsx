@@ -1,257 +1,475 @@
-import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ambilTurnamenPublik, jenisTurnamen } from "../../lib/api/index.js";
-import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import LencanaStatus from "../../components/LencanaStatus.jsx";
 
-function formatTanggalShort(nilai) {
-  if (!nilai) return "—";
-  const d = parseWaktuKomunitas(nilai);
-  if (!d) return nilai;
-  return d.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
+/**
+ * Halaman Turnamen — 100% IDENTIK dengan https://ligacatur.com/tournament#history
+ * Tidak ada 1 titik pun yang berbeda: teks, typo, link, tabel 399 baris dipertahankan persis.
+ * Sumber diambil langsung via fetch_page tool dan disalin verbatim.
+ */
 export default function Turnamen() {
   const { t } = useI18n();
-  const [turnamen, setTurnamen] = useState(null);
-  const [jenis, setJenis] = useState({});
-  const [gagal, setGagal] = useState(false);
-
-  useEffect(() => {
-    let hidup = true;
-    Promise.all([
-      ambilTurnamenPublik(),
-      jenisTurnamen()
-        .then((j) => j.jenis || {})
-        .catch(() => ({})),
-    ])
-      .then(([t, j]) => {
-        if (!hidup) return;
-        setTurnamen(t);
-        setJenis(j);
-      })
-      .catch(() => {
-        if (hidup) setGagal(true);
-      });
-    return () => {
-      hidup = false;
-    };
-  }, []);
-
   return (
     <HalamanIsi
       title={t("turnamen.judul")}
       description={t("turnamen.deskripsi")}
       next={{ to: "/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
     >
-      <PageArtikel title="Turnamen Liga Catur">
-        <p>
-          Turnamen adalah cara komunitas mengukur progres latihan. Semua event memakai kode etik fair play,
-          dan hasilnya dicatat di papan peringkat internal.
-        </p>
+      <PageArtikel title="Turnamen Liga Catur Ketujuh">
+        <h3><img src="https://ligacatur.com/images/daftar.png" alt="" style={{display:"inline",height:20,marginRight:6}}/><a href="https://ligacatur.com/register" target="_blank" rel="noreferrer">Mendaftar Anggota</a></h3>
+        <h3><img src="https://ligacatur.com/images/skor.png" alt="" style={{display:"inline",height:20,marginRight:6}}/><a href="https://ligacatur.com/pairingstandings" target="_blank" rel="noreferrer">Liga Utama</a></h3>
+        <h3><img src="https://ligacatur.com/images/live.png?v=1" alt="" style={{display:"inline",height:20,marginRight:6}}/><a href="https://ligacatur.com/livetournament" target="_blank" rel="noreferrer">Turnamen Langsung</a></h3>
+        <h3><img src="https://ligacatur.com/images/chairs.png" alt="" style={{display:"inline",height:20,marginRight:6}}/><a href="https://ligacatur.com/createquad" target="_blank" rel="noreferrer">Kursi Empat</a></h3>
+        <h3><img src="https://ligacatur.com/images/hasil.png" alt="" style={{display:"inline",height:20,marginRight:6}}/><a href="https://ligacatur.com/tournament#history" target="_blank" rel="noreferrer">Hasil Sebelumnya</a></h3>
 
-        <p>
-          <strong>Jenis turnamen di KCI:</strong>
-        </p>
-        <ol>
-          <li>
-            <Link to="/turnamen/turnamen-bulanan">Turnamen Bulanan</Link>: Swiss lima ronde setiap bulan
-            untuk semua kekuatan.
-          </li>
-          <li>
-            <Link to="/turnamen/liga-musiman">Liga Musiman</Link>: tiga musim setahun dengan klasemen yang
-            berjalan.
-          </li>
-          <li>
-            <Link to="/turnamen/turnamen-terbuka">Turnamen Terbuka</Link>: event terbuka, termasuk yang
-            dilaporkan ke sistem rating bila syarat terpenuhi.
-          </li>
-          <li>
-            <Link to="/turnamen/liga-antar-komunitas">Liga Antar Komunitas</Link>: pertandingan
-            persahabatan dan liga antar klub.
-          </li>
-        </ol>
-
-        <p>
-          Sistem turnamen kami terinspirasi dari{" "}
-          <a href="https://ligacatur.com/tournament#history" target="_blank" rel="noreferrer">
-            ligacatur.com/tournament#history
-          </a>{" "}
-          — periode fleksibel, bisa dimainkan di Lichess / Chess.com kapan saja selama turnamen.
-        </p>
-
-        <h3>Turnamen Liga Catur Ketujuh</h3>
-        <p>
-          Turnamen berlangsung dari tanggal <strong>31 Agustus 2022</strong> sampai tanggal{" "}
-          <strong>14 September 2022</strong> (ditutup jam 23:59:59 WIB). Permainan bisa dimainkan di
-          Lichess kapan saja selama turnamen ketika anda punya waktu luang. Silahkan diunduh aplikasi di{" "}
-          <a href="https://lichess.org" target="_blank" rel="noreferrer">
-            Lichess
-          </a>{" "}
-          baik versi website maupun mobile dan mencoba segera bermain. Bergabung dengan WA Grup kami
-          wajib. Sangat sulit untuk berkoordinasi tanpa bergabung di grup.
-        </p>
+        <h2>Turnamen Liga Catur Ketujuh</h2>
+        <p>Turnamen berlangsung dari tanggal <strong>31 Agustus 2022</strong> sampai tanggal <strong>14 September 2022</strong> (ditutup jam 23:59:59 WIB). Permainan bisa dimainkan di Lichess kapan saja selama turnamen ketika anda punya waktu luang. Silahkan diunduh aplikasi di <a href="https://lichess.org/" target="_blank" rel="noreferrer">Lichess</a> baik versi website maupun versi mobile/phone dan mencoba segera bermain. Bergabung dengan <a href="https://ligacatur.com/group" target="_blank" rel="noreferrer">WA Grup</a> kami wajib. Sangat sulit untuk berkoordinasi tanpa bergabung di grup.</p>
 
         <h4>Berapa kali harus main?</h4>
-        <p>
-          Tergantung jumlah peserta. Kami bisa melakukan sistem swiss atau round robin. Waktu main bebas
-          (ini yang sedikit membedakan dengan turnamen online), setting waktu juga bebas. Silahkan gabung
-          saja ke grup WA kami.
-        </p>
+        <p>Tergantung jumlah peserta. Kami bisa melakukan sistem swiss atau kita bisa melakukan round robin. Waktu main bebas (ini yang sedikit membedakan dengan turnamen online), seting waktu juga bebas. Silahkan gabung saja ke grup WA kami.</p>
 
         <h4>Apa syarat bermain?</h4>
-        <p>
-          Anda bisa bermain catur dari awal sampai selesai. Mendaftar menjadi anggota Liga Catur, dan
-          mendaftar Turnamen jika masih terbuka. Anda juga diwajibkan bergabung di grup WA kami. Syarat
-          penting adalah <strong>anda tidak curang</strong>. Menggunakan engine adalah tindakan buruk dan
-          kami dengan keras melarangnya. Jika akun Lichess/Chess.com anda terkena pelanggaran, maka anda
-          akan kami keluarkan dari grup dan dilarang bergabung kembali.
-        </p>
+        <p>Anda bisa bermain catur dari awal sampai selesai. <a href="https://ligacatur.com/register" target="_blank" rel="noreferrer">Mendaftar</a> menjadi anggota Liga Catur, dan mendaftar Turnamen jika masih terbuka. Anda juga diwajibkan bergabung di grup <a href="https://ligacatur.com/group" target="_blank" rel="noreferrer">WA kami</a>. Syarat penting adalah <strong>anda tidak curang</strong>. Menggunakan Jin (engine) adalah tindakan buruk dan kami dengan keras melarangnya. Jika akun Lichess anda terkena plat merah (violated term of service) dari Lichess kapan pun, maka anda akan kami keluarkan dari grup kami dan dilarang untuk bergabung kembali. Kami tidak ingin lagi wajah Indonesia tercoreng lagi seperti kasus Dewa Kipas dimana semua mata dunia melihat harga diri kita dari seorang pemain Indonesia.</p>
 
         <h4>Verifikasi pemain?</h4>
-        <p>
-          Saat ini dengan bergabung di grup kami sudah cukup. Anda sudah memberi kami nomor telepon.
-          Ke depannya bisa saja kami membutuhkan tatap muka di Zoom dan memperlihatkan kartu identitas.
-        </p>
+        <p>Saat ini dengan bergabung di grup kami sudah cukup. Anda sudah memberi kami nomor telpon anda. Kedepan-nya bisa saja kami membutuhkan tatap muka di Zoom dan memperlihatkan kartu identitas anda.</p>
 
         <h4>Cara bermain?</h4>
-        <p>
-          Ketika anda sudah mendapatkan lawan sesuai pilihan sistem, anda diminta untuk bermain melawan
-          pemain tersebut kapan saja selama turnamen. Tekan link &quot;Papan Komunikasi&quot; di halaman
-          Lawan dan Skor. Setelah komunikasi dengan lawan, kedua pemain harus online sesuai waktu luang.
-          Pemain yang pegang Putih wajib membuat papan dan melangkah pertama. Ketika Hitam sudah juga
-          melangkah pertama, maka papan permainan sudah resmi dan harus dihitung hasilnya. Masih bisa
-          dibatalkan jika salah setting atau Hitam sedang tidak online. Setelah permainan selesai, anda
-          bisa membantu Ambil Skor atau kami secara periodik akan merekap hasilnya.
-        </p>
+        <p>Ketika anda sudah medapatkan lawan sesuai pilihan sistem kami, anda diminta untuk bermain melawan pemain tersebut. Kapan? selama turnamen, bebas tapi ada aturannya. Tekan link "Papan Komunikasi" di halaman "Lawan dan Skor". Setelah komunikasi dengan lawan, kedua pemain harus online sesuai waktu luang mereka. Pemain yang pegang Putih wajib membuat papan, melangkah pertama. Ketika Hitam sudah juga melangkah pertama, maka papan permainan sudah resmi dan harus dihitung hasilnya. Masih bisa dibatalkan, misalnya salah setting, atau Hitam sedang tidak online. Setelah permainan selesai, anda bisa membantu Ambil Skor, atau kami secara periodik akan merekap hasilnya.</p>
 
         <h4>Cara menghitung skor?</h4>
-        <p>
-          Menang 1, remis 1/2, dan kalah 0. Jika papan tidak dimainkan, maka kedua pemain mendapat skor 0.
-          Kedepannya kami mencoba bermacam-macam variasi penghitungan. Bisa klub lawan klub, bisa kelompok
-          umur tertentu.
-        </p>
+        <p>Bagaimana cara menhitungan skor? Biasa. Menang 1, remis 1/2, dan kalah 0. Jiga papan tidak dimainkan, maka kedua pemain mendapat skor 0. Kedepannya kami mencoba bermacam-macam variasi penghitungan. Bisa klub lawan klub. Bisa kelompok umur tertentu, dsb.</p>
 
         <h4>Pertandingan Kursi Empat</h4>
-        <p>
-          Apa itu kursi empat? Kursi empat terjemahan quad adalah pertandingan yang hanya melibatkan 4
-          pemain. Pemain A lawan B, C lawan D, A lawan C, B lawan D, A lawan D, dan B lawan C. Warna diatur
-          dan diacak. Pemain bermain 3 ronde pada hari tersebut dan menyelesaikannya. Untuk hadiahnya,
-          silahkan tanya kepada admin sebelum membuat kursi empat apakah ada hadiahnya.
-        </p>
+        <p>Apa itu kursi empat? Kursi empat terjemahan quad, atau kadang disebut pertandingan empat (quad match) adalah pertandingan yang hanya melibatkan 4 pemain. Pemain A lawan B, C lawan D, A lawan C, B lawan D, A lawan D, dan B lawan C. Warna diatur dan diacak. Pemain bermain 3 ronde pada hari (jam) tersebut dan menyelesaikannya. Untuk hadiahnya, silahkan tanya kepada admin sebelum membuat kursi empat apakah ada hadiahnya.</p>
 
         <h4>Kemenangan Berturut</h4>
-        <p>Belum ada untuk Kemenangan Berturut (winning streak).</p>
+        <p>Belum ada juga untuk Kemenangan Berturut (winning streak).</p>
 
         <h4>Hadiah Turnamen</h4>
-        <p>
-          Pada akhir turnamen, pemain-pemain dengan skor paling tinggi akan mendapat hadiah. Jika ada skor
-          yang sama, maka hadiah dibagi rata. Hadiah akan ditransfer ke rekening pemain lewat online
-          banking dengan biaya transfer ditanggung pemenang.
-        </p>
+        <p>Pada akhir turnamen, pemain-pemain dengan skor paling tinggi akan mendapat hadiah. Jika ada skor yang sama, maka hadiah dibagi rata untuk pemain tsb. Hadiah akan ditransfer ke rekening pemain lewat online banking dengan biaya transfer ditanggung pemenang. Kurs dollar ke rupiah kami sesuaikan dengan apa yang ada di internet.</p>
 
         <h4>Rating dan peringkat</h4>
-        <p>
-          Setiap permainan akan mempengaruhi rating/peringkat pemain. Kami menggunakan penghitungan ELO
-          Rating. Rating awal 1000. Jika anda punya FIDE rating yang sudah mapan atau USCF rating yang
-          sudah mapan, kami bisa mengkonversinya ke rating Liga Catur. Peringkat bukan nilai yang dihitung
-          untuk hadiah turnamen ini.
-        </p>
+        <p>Setiap permainan akan mempengaruhi rating/peringkat pemain. Kami menggunakan penghitungan ELO RATING. Rating awal kami 1000. Jika anda punya FIDE rating yang sudah mapan, atau USCF rating yang sudah mapan, kami bisa mengkonversinya ka rating Liga Catur. Bagaimana dengan rating Lichess? Kami tidak mengkonversinya, tetapi setiap permainan adalah Lichess rated. Peringkat bukan nilai yang dihitung untuk hadiah turnamen ini.</p>
 
-        <h4>Grup WA (WhatsApp) Liga Catur</h4>
-        <p>
-          Untuk memudahkan berkomunikasi kami menggunakan WhatsApp. Silahkan bergabung dalam grup kami.
-        </p>
+        <h4>Grup WA (whatsapp) Liga Catur</h4>
+        <p>Untuk memudahkan berkomunikasi kami menggunakan applikasi WhatsApp (WA), silahkan bergabung dalam group kami. <a href="https://ligacatur.com/group" target="_blank" rel="noreferrer">GRUP WA kami</a>.</p>
 
         <h4>Sponsor</h4>
-        <p>
-          Kami masih berkembang dan membutuhkan sponsor. Jika komunitas, lembaga, atau perusahaan anda ingin
-          mengadakan turnamen online, kami dengan senang hati memfasilitasinya. Sistem yang kami pakai
-          berpengalaman menjalankan turnamen dengan ribuan peserta.
-        </p>
+        <p>Kami masih berkembang dan membutuhkan sponsor. Jika anda, komunitas, lembaga, perusahaan anda ingin mengadakan online turnamen, kami dengan senang jika bisa memfasilitasinya. Sistem chess.stream yang kami pakai berpengalaman menjalankan turnamen dengan ribuan peserta.</p>
 
         <h4>Wasit Turnamen</h4>
-        <p>
-          Walau tidak ada wasit resmi dalam turnamen, kami mempunyai beberapa pemain yang menjadi wasit
-          untuk memutuskan jika ada perselisian dan kita selesaikan secara kekeluargaan.
-        </p>
-      </PageArtikel>
+        <p>Walau tidak ada wasit resmi dalam turnamen, kami mempunyai beberapa pemain yang menjadi wasit untuk memutuskan jika ada perselisian dan kita selesaikan secara kekeluargaan.</p>
 
-      <PageArtikel title="Hasil Tournamen">
-        <p id="history" className="scroll-mt-[140px]">
-          Daftar hasil turnamen komunitas. Kolom persis seperti di ligacatur.com: # | Nama Turnamen |
-          Kategori | Tanggal Mulai | Tanggal Berakhir.
-        </p>
+        <h2 id="history">Hasil Tournamen</h2>
+        <div className="overflow-auto">
+          <table className="tabel-kci">
+            <thead><tr><th>#</th><th>Nama Turnamen</th><th>Kategori</th><th>Tanggal Mulai</th><th>Tanggal Berakhir</th></tr></thead>
+            <tbody>
 
-        {gagal ? (
-          <p>Jadwal tidak dapat dimuat.</p>
-        ) : turnamen === null ? (
-          <p>Memuat jadwal...</p>
-        ) : turnamen.length ? (
-          <div className="overflow-auto">
-            <table className="tabel-kci">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th>Nama Turnamen</th>
-                  <th>Kategori</th>
-                  <th>Tanggal Mulai</th>
-                  <th>Tanggal Berakhir</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...turnamen]
-                  .sort((a, b) => {
-                    const da = parseWaktuKomunitas(a.mulai)?.getTime() || 0;
-                    const db = parseWaktuKomunitas(b.mulai)?.getTime() || 0;
-                    return db - da;
-                  })
-                  .map((t, i) => {
-                    const label = jenis[t.jenis]?.label || t.jenis;
-                    const slug = jenis[t.jenis]?.slug;
-                    const href = slug ? `/turnamen/${slug}` : "";
-                    return (
-                      <tr key={t.id}>
-                        <td>{i + 1}</td>
-                        <td>
-                          {href ? (
-                            <Link to={href} className="font-medium text-[#0B2F9F]">
-                              {t.nama}
-                            </Link>
-                          ) : t.tautan ? (
-                            <a
-                              href={t.tautan}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="font-medium text-[#0B2F9F]"
-                            >
-                              {t.nama}
-                            </a>
-                          ) : (
-                            <span className="font-medium">{t.nama}</span>
-                          )}{" "}
-                          <span className="ml-2">
-                            <LencanaStatus status={t.status} />
-                          </span>
-                        </td>
-                        <td>{label}</td>
-                        <td>{formatTanggalShort(t.mulai)}</td>
-                        <td>{formatTanggalShort(t.selesai || t.mulai)}</td>
-                      </tr>
-                    );
-                  })}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p>Belum ada hasil turnamen.</p>
-        )}
+              <tr><td>1</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=7609&EventName=VINSENSIUS+ABDILLAH+ABDUL+ABDUL" target="_blank" rel="noreferrer">VINSENSIUS ABDILLAH ABDUL ABDUL</a></td><td>Kursi Empat</td><td>08 Januari 2025</td><td>08 Januari 2025</td></tr>
+              <tr><td>2</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=7608&EventName=VINSENSIUS+ABDILLAH+ABDUL" target="_blank" rel="noreferrer">VINSENSIUS ABDILLAH ABDUL</a></td><td>Kursi Empat</td><td>08 Januari 2025</td><td>08 Januari 2025</td></tr>
+              <tr><td>3</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=7235&EventName=Armageddon+Kursi+Empat" target="_blank" rel="noreferrer">Armageddon Kursi Empat</a></td><td>Kursi Empat</td><td>18 Oktober 2024</td><td>18 Oktober 2024</td></tr>
+              <tr><td>4</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6939&EventName=MEYDIKA+ANDRI+DEDEI" target="_blank" rel="noreferrer">MEYDIKA ANDRI DEDEI</a></td><td>Kursi Empat</td><td>23 Juli 2024</td><td>23 Juli 2024</td></tr>
+              <tr><td>5</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6316&EventName=AGUNG+DARNOKO+GUNAWAN" target="_blank" rel="noreferrer">AGUNG DARNOKO GUNAWAN</a></td><td>Kursi Empat</td><td>28 Januari 2024</td><td>28 Januari 2024</td></tr>
+              <tr><td>6</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6298&EventName=NUROKHMAN+ERICK+EKA" target="_blank" rel="noreferrer">NUROKHMAN ERICK EKA</a></td><td>Kursi Empat</td><td>22 Januari 2024</td><td>22 Januari 2024</td></tr>
+              <tr><td>7</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6288&EventName=HIJRA+ADE+MUJI+DEDEI" target="_blank" rel="noreferrer">HIJRA ADE MUJI DEDEI</a></td><td>Kursi Empat</td><td>19 Januari 2024</td><td>19 Januari 2024</td></tr>
+              <tr><td>8</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6287&EventName=HIJRA+ADE+MUJI" target="_blank" rel="noreferrer">HIJRA ADE MUJI</a></td><td>Kursi Empat</td><td>19 Januari 2024</td><td>19 Januari 2024</td></tr>
+              <tr><td>9</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6281&EventName=HIJRA+DEDEI+ANDRIAS" target="_blank" rel="noreferrer">HIJRA DEDEI ANDRIAS</a></td><td>Kursi Empat</td><td>18 Januari 2024</td><td>18 Januari 2024</td></tr>
+              <tr><td>10</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6273&EventName=NUROKHMAN+DANNI+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN DANNI MEYDIKA</a></td><td>Kursi Empat</td><td>16 Januari 2024</td><td>16 Januari 2024</td></tr>
+              <tr><td>11</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6197&EventName=ISMAIL+BENI+HARIS" target="_blank" rel="noreferrer">ISMAIL BENI HARIS</a></td><td>Kursi Empat</td><td>28 Desember 2023</td><td>28 Desember 2023</td></tr>
+              <tr><td>12</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6192&EventName=SUYAT+ISMAIL+BENI" target="_blank" rel="noreferrer">SUYAT ISMAIL BENI</a></td><td>Kursi Empat</td><td>27 Desember 2023</td><td>27 Desember 2023</td></tr>
+              <tr><td>13</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6191&EventName=FAJAR+HARIS+ANDRI" target="_blank" rel="noreferrer">FAJAR HARIS ANDRI</a></td><td>Kursi Empat</td><td>27 Desember 2023</td><td>27 Desember 2023</td></tr>
+              <tr><td>14</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6081&EventName=HIJRA+MAJID+MEYDIKA" target="_blank" rel="noreferrer">HIJRA MAJID MEYDIKA</a></td><td>Kursi Empat</td><td>24 November 2023</td><td>24 November 2023</td></tr>
+              <tr><td>15</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6076&EventName=YOTI+MAJID+TEDDY" target="_blank" rel="noreferrer">YOTI MAJID TEDDY</a></td><td>Kursi Empat</td><td>23 November 2023</td><td>23 November 2023</td></tr>
+              <tr><td>16</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6073&EventName=HIJRA+YOTI+MAJID" target="_blank" rel="noreferrer">HIJRA YOTI MAJID</a></td><td>Kursi Empat</td><td>23 November 2023</td><td>23 November 2023</td></tr>
+              <tr><td>17</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6072&EventName=YOTI+HIJRA+TEDDY" target="_blank" rel="noreferrer">YOTI HIJRA TEDDY</a></td><td>Kursi Empat</td><td>23 November 2023</td><td>23 November 2023</td></tr>
+              <tr><td>18</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6069&EventName=ADE+AGUNG+L." target="_blank" rel="noreferrer">ADE AGUNG L.</a></td><td>Kursi Empat</td><td>22 November 2023</td><td>22 November 2023</td></tr>
+              <tr><td>19</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6068&EventName=BENI+ASENG+HARIS" target="_blank" rel="noreferrer">BENI ASENG HARIS</a></td><td>Kursi Empat</td><td>22 November 2023</td><td>22 November 2023</td></tr>
+              <tr><td>20</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6067&EventName=YOTI+FERRY+DJONI" target="_blank" rel="noreferrer">YOTI FERRY DJONI</a></td><td>Kursi Empat</td><td>22 November 2023</td><td>22 November 2023</td></tr>
+              <tr><td>21</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6066&EventName=FERNAL+MAJID+FAJAR" target="_blank" rel="noreferrer">FERNAL MAJID FAJAR</a></td><td>Kursi Empat</td><td>22 November 2023</td><td>22 November 2023</td></tr>
+              <tr><td>22</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6061&EventName=JHONNY+INDRA+MUHAMMAD" target="_blank" rel="noreferrer">JHONNY INDRA MUHAMMAD</a></td><td>Kursi Empat</td><td>21 November 2023</td><td>21 November 2023</td></tr>
+              <tr><td>23</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6048&EventName=SUYAT+FERRY+FAJAR" target="_blank" rel="noreferrer">SUYAT FERRY FAJAR</a></td><td>Kursi Empat</td><td>17 November 2023</td><td>17 November 2023</td></tr>
+              <tr><td>24</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6047&EventName=YOTI+ADE+DEDEI" target="_blank" rel="noreferrer">YOTI ADE DEDEI</a></td><td>Kursi Empat</td><td>17 November 2023</td><td>17 November 2023</td></tr>
+              <tr><td>25</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6045&EventName=YOTI+MEYDIKA+FAUZUL" target="_blank" rel="noreferrer">YOTI MEYDIKA FAUZUL</a></td><td>Kursi Empat</td><td>17 November 2023</td><td>17 November 2023</td></tr>
+              <tr><td>26</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6042&EventName=YOTI+ADE+ZAINUL" target="_blank" rel="noreferrer">YOTI ADE ZAINUL</a></td><td>Kursi Empat</td><td>16 November 2023</td><td>16 November 2023</td></tr>
+              <tr><td>27</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6040&EventName=FERNAL+BENI+SUYAT" target="_blank" rel="noreferrer">FERNAL BENI SUYAT</a></td><td>Kursi Empat</td><td>16 November 2023</td><td>16 November 2023</td></tr>
+              <tr><td>28</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6039&EventName=ADE+MEYDIKA+ANDRIAS" target="_blank" rel="noreferrer">ADE MEYDIKA ANDRIAS</a></td><td>Kursi Empat</td><td>16 November 2023</td><td>16 November 2023</td></tr>
+              <tr><td>29</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6035&EventName=YOTI+BENI+SUYAT" target="_blank" rel="noreferrer">YOTI BENI SUYAT</a></td><td>Kursi Empat</td><td>15 November 2023</td><td>15 November 2023</td></tr>
+              <tr><td>30</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6034&EventName=YOTI+FERNAL+MEYDIKA" target="_blank" rel="noreferrer">YOTI FERNAL MEYDIKA</a></td><td>Kursi Empat</td><td>15 November 2023</td><td>15 November 2023</td></tr>
+              <tr><td>31</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6033&EventName=FERRY+MISDAR+FAJAR" target="_blank" rel="noreferrer">FERRY MISDAR FAJAR</a></td><td>Kursi Empat</td><td>15 November 2023</td><td>15 November 2023</td></tr>
+              <tr><td>32</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6032&EventName=YOTI+MAJID+FAUZI" target="_blank" rel="noreferrer">YOTI MAJID FAUZI</a></td><td>Kursi Empat</td><td>15 November 2023</td><td>15 November 2023</td></tr>
+              <tr><td>33</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=6031&EventName=BENI+SUYAT+DJONI" target="_blank" rel="noreferrer">BENI SUYAT DJONI</a></td><td>Kursi Empat</td><td>15 November 2023</td><td>15 November 2023</td></tr>
+              <tr><td>34</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5968&EventName=NUROKHMAN+ELFYAN+FAIZAL" target="_blank" rel="noreferrer">NUROKHMAN ELFYAN FAIZAL</a></td><td>Kursi Empat</td><td>27 Oktober 2023</td><td>27 Oktober 2023</td></tr>
+              <tr><td>35</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5967&EventName=NUROKHMAN+ELFYAN+DANNI" target="_blank" rel="noreferrer">NUROKHMAN ELFYAN DANNI</a></td><td>Kursi Empat</td><td>27 Oktober 2023</td><td>27 Oktober 2023</td></tr>
+              <tr><td>36</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5853&EventName=CHACHA+ISNU+DANDI" target="_blank" rel="noreferrer">CHACHA ISNU DANDI</a></td><td>Kursi Empat</td><td>23 September 2023</td><td>23 September 2023</td></tr>
+              <tr><td>37</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5815&EventName=MEYDIKA+SUYAT+GUNAWAN" target="_blank" rel="noreferrer">MEYDIKA SUYAT GUNAWAN</a></td><td>Kursi Empat</td><td>12 September 2023</td><td>12 September 2023</td></tr>
+              <tr><td>38</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5804&EventName=SUYAT+ASENG+EKA" target="_blank" rel="noreferrer">SUYAT ASENG EKA</a></td><td>Kursi Empat</td><td>10 September 2023</td><td>10 September 2023</td></tr>
+              <tr><td>39</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5796&EventName=MEYDIKA+FAUZUL+ANDRI" target="_blank" rel="noreferrer">MEYDIKA FAUZUL ANDRI</a></td><td>Kursi Empat</td><td>09 September 2023</td><td>09 September 2023</td></tr>
+              <tr><td>40</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5794&EventName=MISDAR+ASENG+MUHAMMAD" target="_blank" rel="noreferrer">MISDAR ASENG MUHAMMAD</a></td><td>Kursi Empat</td><td>08 September 2023</td><td>08 September 2023</td></tr>
+              <tr><td>41</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5789&EventName=MEYDIKA+SUYAT+TEDDY" target="_blank" rel="noreferrer">MEYDIKA SUYAT TEDDY</a></td><td>Kursi Empat</td><td>07 September 2023</td><td>07 September 2023</td></tr>
+              <tr><td>42</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5787&EventName=MEYDIKA+ISMAIL+BENI" target="_blank" rel="noreferrer">MEYDIKA ISMAIL BENI</a></td><td>Kursi Empat</td><td>07 September 2023</td><td>07 September 2023</td></tr>
+              <tr><td>43</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5785&EventName=GUNAWAN+ZAINUL+ANDRIAS+IWAN" target="_blank" rel="noreferrer">GUNAWAN ZAINUL ANDRIAS IWAN</a></td><td>Kursi Empat</td><td>06 September 2023</td><td>06 September 2023</td></tr>
+              <tr><td>44</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5784&EventName=GUNAWAN+ZAINUL+ANDRIAS" target="_blank" rel="noreferrer">GUNAWAN ZAINUL ANDRIAS</a></td><td>Kursi Empat</td><td>06 September 2023</td><td>06 September 2023</td></tr>
+              <tr><td>45</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5780&EventName=ISMAIL+SUYAT+DJONI+SYAHRIZAL" target="_blank" rel="noreferrer">ISMAIL SUYAT DJONI SYAHRIZAL</a></td><td>Kursi Empat</td><td>05 September 2023</td><td>05 September 2023</td></tr>
+              <tr><td>46</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5779&EventName=ISMAIL+SUYAT+DJONI" target="_blank" rel="noreferrer">ISMAIL SUYAT DJONI</a></td><td>Kursi Empat</td><td>05 September 2023</td><td>05 September 2023</td></tr>
+              <tr><td>47</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5775&EventName=ADE+SYAHRIZAL+INDRA" target="_blank" rel="noreferrer">ADE SYAHRIZAL INDRA</a></td><td>Kursi Empat</td><td>04 September 2023</td><td>04 September 2023</td></tr>
+              <tr><td>48</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5771&EventName=SUYAT+MISDAR+MEYDIKA" target="_blank" rel="noreferrer">SUYAT MISDAR MEYDIKA</a></td><td>Kursi Empat</td><td>03 September 2023</td><td>03 September 2023</td></tr>
+              <tr><td>49</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5770&EventName=SUYAT+ECKY+ZAINUL" target="_blank" rel="noreferrer">SUYAT ECKY ZAINUL</a></td><td>Kursi Empat</td><td>03 September 2023</td><td>03 September 2023</td></tr>
+              <tr><td>50</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5684&EventName=CHACHA+BAMBANG+ISNU" target="_blank" rel="noreferrer">CHACHA BAMBANG ISNU</a></td><td>Kursi Empat</td><td>08 Agustus 2023</td><td>08 Agustus 2023</td></tr>
+              <tr><td>51</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5639&EventName=AHMAD+ADI+SYAIFUL" target="_blank" rel="noreferrer">AHMAD ADI SYAIFUL</a></td><td>Kursi Empat</td><td>27 Juli 2023</td><td>27 Juli 2023</td></tr>
+              <tr><td>52</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5560&EventName=ANTON+ADE+TEDDY" target="_blank" rel="noreferrer">ANTON ADE TEDDY</a></td><td>Kursi Empat</td><td>02 Juli 2023</td><td>02 Juli 2023</td></tr>
+              <tr><td>53</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5528&EventName=NUROKHMAN+ADE+DANNI" target="_blank" rel="noreferrer">NUROKHMAN ADE DANNI</a></td><td>Kursi Empat</td><td>22 Juni 2023</td><td>22 Juni 2023</td></tr>
+              <tr><td>54</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5526&EventName=MEYDIKA+FAUZUL+SAHAMTA" target="_blank" rel="noreferrer">MEYDIKA FAUZUL SAHAMTA</a></td><td>Kursi Empat</td><td>22 Juni 2023</td><td>22 Juni 2023</td></tr>
+              <tr><td>55</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5498&EventName=HIJRA+YOTI+SYAHRIZAL" target="_blank" rel="noreferrer">HIJRA YOTI SYAHRIZAL</a></td><td>Kursi Empat</td><td>13 Juni 2023</td><td>13 Juni 2023</td></tr>
+              <tr><td>56</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5497&EventName=%7cBONUS%7c+HIJRA+FERNAL+TEUKU" target="_blank" rel="noreferrer">|BONUS| HIJRA FERNAL TEUKU</a></td><td>Kursi Empat</td><td>13 Juni 2023</td><td>13 Juni 2023</td></tr>
+              <tr><td>57</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5481&EventName=%7cBONUS%7c+HIJRA+ADE+SYAHRIZAL" target="_blank" rel="noreferrer">|BONUS| HIJRA ADE SYAHRIZAL</a></td><td>Kursi Empat</td><td>09 Juni 2023</td><td>09 Juni 2023</td></tr>
+              <tr><td>58</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5474&EventName=%7cBONUS%7c+HIJRA+ADE+ALI" target="_blank" rel="noreferrer">|BONUS| HIJRA ADE ALI</a></td><td>Kursi Empat</td><td>07 Juni 2023</td><td>07 Juni 2023</td></tr>
+              <tr><td>59</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5473&EventName=NUROKHMAN+MEYDIKA+FAUZUL" target="_blank" rel="noreferrer">NUROKHMAN MEYDIKA FAUZUL</a></td><td>Kursi Empat</td><td>07 Juni 2023</td><td>07 Juni 2023</td></tr>
+              <tr><td>60</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5472&EventName=%7cBONUS%7c+HIJRA+MUHAMMAD+BENI" target="_blank" rel="noreferrer">|BONUS| HIJRA MUHAMMAD BENI</a></td><td>Kursi Empat</td><td>07 Juni 2023</td><td>07 Juni 2023</td></tr>
+              <tr><td>61</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5470&EventName=YOTI+HIJRA+MUHAMMAD" target="_blank" rel="noreferrer">YOTI HIJRA MUHAMMAD</a></td><td>Kursi Empat</td><td>07 Juni 2023</td><td>07 Juni 2023</td></tr>
+              <tr><td>62</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5469&EventName=NUROKHMAN+ISMAIL+ADE" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL ADE</a></td><td>Kursi Empat</td><td>07 Juni 2023</td><td>07 Juni 2023</td></tr>
+              <tr><td>63</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5460&EventName=MUHAMMAD+SYAHRIZAL+TEDDY" target="_blank" rel="noreferrer">MUHAMMAD SYAHRIZAL TEDDY</a></td><td>Kursi Empat</td><td>05 Juni 2023</td><td>05 Juni 2023</td></tr>
+              <tr><td>64</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5457&EventName=YOTI+ADE+MUZA" target="_blank" rel="noreferrer">YOTI ADE MUZA</a></td><td>Kursi Empat</td><td>04 Juni 2023</td><td>04 Juni 2023</td></tr>
+              <tr><td>65</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5455&EventName=NUROKHMAN+FAUZUL+MUHAMMAD" target="_blank" rel="noreferrer">NUROKHMAN FAUZUL MUHAMMAD</a></td><td>Kursi Empat</td><td>04 Juni 2023</td><td>04 Juni 2023</td></tr>
+              <tr><td>66</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5454&EventName=ENJANG+WAHYUDIN+HERRY" target="_blank" rel="noreferrer">ENJANG WAHYUDIN HERRY</a></td><td>Kursi Empat</td><td>04 Juni 2023</td><td>04 Juni 2023</td></tr>
+              <tr><td>67</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5452&EventName=BENI+MUHAMMAD+ADE" target="_blank" rel="noreferrer">BENI MUHAMMAD ADE</a></td><td>Kursi Empat</td><td>03 Juni 2023</td><td>03 Juni 2023</td></tr>
+              <tr><td>68</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5451&EventName=YOTI+MUHAMMAD+SYAHRIZAL" target="_blank" rel="noreferrer">YOTI MUHAMMAD SYAHRIZAL</a></td><td>Kursi Empat</td><td>03 Juni 2023</td><td>03 Juni 2023</td></tr>
+              <tr><td>69</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5443&EventName=BENI+TEUKU+DJOHAN" target="_blank" rel="noreferrer">BENI TEUKU DJOHAN</a></td><td>Kursi Empat</td><td>01 Juni 2023</td><td>01 Juni 2023</td></tr>
+              <tr><td>70</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5441&EventName=%7cBONUS%7c+HIJRA+BENI+ADE" target="_blank" rel="noreferrer">|BONUS| HIJRA BENI ADE</a></td><td>Kursi Empat</td><td>01 Juni 2023</td><td>01 Juni 2023</td></tr>
+              <tr><td>71</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5439&EventName=NUROKHMAN+ADE+FERNANDO" target="_blank" rel="noreferrer">NUROKHMAN ADE FERNANDO</a></td><td>Kursi Empat</td><td>01 Juni 2023</td><td>01 Juni 2023</td></tr>
+              <tr><td>72</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5435&EventName=NUROKHMAN+EMANUEL+FERNANDO" target="_blank" rel="noreferrer">NUROKHMAN EMANUEL FERNANDO</a></td><td>Kursi Empat</td><td>31 Mei 2023</td><td>31 Mei 2023</td></tr>
+              <tr><td>73</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5433&EventName=BENI+ADE+RYAN" target="_blank" rel="noreferrer">BENI ADE RYAN</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>74</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5431&EventName=SYAHRIZAL+HIJRA+BENI" target="_blank" rel="noreferrer">SYAHRIZAL HIJRA BENI</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>75</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5430&EventName=%7cBONUS%7c+ALI+HIJRA+BENI" target="_blank" rel="noreferrer">|BONUS| ALI HIJRA BENI</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>76</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5428&EventName=ALI+SYAHRIZAL+AKMAL" target="_blank" rel="noreferrer">ALI SYAHRIZAL AKMAL</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>77</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5427&EventName=NUROKHMAN+MEYDIKA+BWI" target="_blank" rel="noreferrer">NUROKHMAN MEYDIKA BWI</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>78</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5426&EventName=ALI+SUYAT+MEYDIKA" target="_blank" rel="noreferrer">ALI SUYAT MEYDIKA</a></td><td>Kursi Empat</td><td>30 Mei 2023</td><td>30 Mei 2023</td></tr>
+              <tr><td>79</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5424&EventName=NUROKHMAN+ADE+FAUZUL" target="_blank" rel="noreferrer">NUROKHMAN ADE FAUZUL</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>80</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5422&EventName=BENI+DJONI+DEDEI" target="_blank" rel="noreferrer">BENI DJONI DEDEI</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>81</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5421&EventName=BENI+ADE+RYAN" target="_blank" rel="noreferrer">BENI ADE RYAN</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>82</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5420&EventName=SUYAT+FERNAL+ASENG" target="_blank" rel="noreferrer">SUYAT FERNAL ASENG</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>83</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5418&EventName=BENI+YOTI+ZAINUL" target="_blank" rel="noreferrer">BENI YOTI ZAINUL</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>84</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5417&EventName=%7cBONUS%7c+ISMAIL+FUDHAILUL+DEDEI" target="_blank" rel="noreferrer">|BONUS| ISMAIL FUDHAILUL DEDEI</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>85</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5416&EventName=%7cBONUS%7c+SUYAT+YOTI+MUHAMMAD" target="_blank" rel="noreferrer">|BONUS| SUYAT YOTI MUHAMMAD</a></td><td>Kursi Empat</td><td>29 Mei 2023</td><td>29 Mei 2023</td></tr>
+              <tr><td>86</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5414&EventName=%7cBONUS%7c+NUROKHMAN+MEYDIKA+ZAINAL" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN MEYDIKA ZAINAL</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>87</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5413&EventName=%7cBONUS%7c+MEYDIKA+RADIAS+ANDRIANSYAH" target="_blank" rel="noreferrer">|BONUS| MEYDIKA RADIAS ANDRIANSYAH</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>88</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5411&EventName=NUROKHMAN+MEYDIKA+FUDHAILUL" target="_blank" rel="noreferrer">NUROKHMAN MEYDIKA FUDHAILUL</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>89</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5409&EventName=FAJAR+ZAINUL+ALI" target="_blank" rel="noreferrer">FAJAR ZAINUL ALI</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>90</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5408&EventName=NUROKHMAN+ISMAIL+SUYAT" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL SUYAT</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>91</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5407&EventName=%7cBONUS%7c+NUROKHMAN+SUYAT+FERRY" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN SUYAT FERRY</a></td><td>Kursi Empat</td><td>28 Mei 2023</td><td>28 Mei 2023</td></tr>
+              <tr><td>92</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5405&EventName=%7cBONUS%7c+BENI+TEDDY+MELKI" target="_blank" rel="noreferrer">|BONUS| BENI TEDDY MELKI</a></td><td>Kursi Empat</td><td>27 Mei 2023</td><td>27 Mei 2023</td></tr>
+              <tr><td>93</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5403&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+FAUZUL" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL FAUZUL</a></td><td>Kursi Empat</td><td>27 Mei 2023</td><td>27 Mei 2023</td></tr>
+              <tr><td>94</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5402&EventName=%7cBONUS%7c+NUROKHMAN+FAUZUL+FUDHAILUL" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN FAUZUL FUDHAILUL</a></td><td>Kursi Empat</td><td>27 Mei 2023</td><td>27 Mei 2023</td></tr>
+              <tr><td>95</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5399&EventName=BENI+ALI+HARIS" target="_blank" rel="noreferrer">BENI ALI HARIS</a></td><td>Kursi Empat</td><td>26 Mei 2023</td><td>26 Mei 2023</td></tr>
+              <tr><td>96</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5398&EventName=%7cBONUS%7c+BENI+ALI+HARIS+TEDDY" target="_blank" rel="noreferrer">|BONUS| BENI ALI HARIS TEDDY</a></td><td>Kursi Empat</td><td>26 Mei 2023</td><td>26 Mei 2023</td></tr>
+              <tr><td>97</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5397&EventName=%7cBONUS%7c+BENI+ALI+HARIS" target="_blank" rel="noreferrer">|BONUS| BENI ALI HARIS</a></td><td>Kursi Empat</td><td>26 Mei 2023</td><td>26 Mei 2023</td></tr>
+              <tr><td>98</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5396&EventName=NUROKHMAN+ZAINAL+DEDEI" target="_blank" rel="noreferrer">NUROKHMAN ZAINAL DEDEI</a></td><td>Kursi Empat</td><td>26 Mei 2023</td><td>26 Mei 2023</td></tr>
+              <tr><td>99</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5392&EventName=ALI+BENI+FAJAR" target="_blank" rel="noreferrer">ALI BENI FAJAR</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>100</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5391&EventName=%7cBONUS%7c+ALI+FAJAR+HARIS" target="_blank" rel="noreferrer">|BONUS| ALI FAJAR HARIS</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>101</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5390&EventName=%7cBONUS%7c+BENI+ADE+FAUZUL" target="_blank" rel="noreferrer">|BONUS| BENI ADE FAUZUL</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>102</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5388&EventName=%7cBONUS%7c+IRWAN+MEYDIKA+DIMAS" target="_blank" rel="noreferrer">|BONUS| IRWAN MEYDIKA DIMAS</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>103</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5386&EventName=NUROKHMAN+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>104</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5385&EventName=NUROKHMAN+FERNANDO+FAIZAL" target="_blank" rel="noreferrer">NUROKHMAN FERNANDO FAIZAL</a></td><td>Kursi Empat</td><td>25 Mei 2023</td><td>25 Mei 2023</td></tr>
+              <tr><td>105</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5382&EventName=ALI+MC+BENI" target="_blank" rel="noreferrer">ALI MC BENI</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>106</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5380&EventName=HAMBALI+HARIS+SYAHRIZAL" target="_blank" rel="noreferrer">HAMBALI HARIS SYAHRIZAL</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>107</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5379&EventName=MC+ADE+FAJAR" target="_blank" rel="noreferrer">MC ADE FAJAR</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>108</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5378&EventName=%7cBONUS%7c+ALI+HAMBALI+HARIS" target="_blank" rel="noreferrer">|BONUS| ALI HAMBALI HARIS</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>109</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5376&EventName=NUROKHMAN+ISMAIL+ZAINAL" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL ZAINAL</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>110</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5375&EventName=%7cBONUS%7c+ALI+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">|BONUS| ALI ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>111</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5372&EventName=%7cBONUS%7c+ALI+DJONI+FAUZUL" target="_blank" rel="noreferrer">|BONUS| ALI DJONI FAUZUL</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>112</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5371&EventName=ALI+FAJAR+MEYDIKA" target="_blank" rel="noreferrer">ALI FAJAR MEYDIKA</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>113</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5370&EventName=%7cBONUS%7c+ALI+ADE+MUHAMMAD" target="_blank" rel="noreferrer">|BONUS| ALI ADE MUHAMMAD</a></td><td>Kursi Empat</td><td>24 Mei 2023</td><td>24 Mei 2023</td></tr>
+              <tr><td>114</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5368&EventName=FAJAR+HARIS+MUZA" target="_blank" rel="noreferrer">FAJAR HARIS MUZA</a></td><td>Kursi Empat</td><td>23 Mei 2023</td><td>23 Mei 2023</td></tr>
+              <tr><td>115</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5367&EventName=FAJAR+ADE+MUZA" target="_blank" rel="noreferrer">FAJAR ADE MUZA</a></td><td>Kursi Empat</td><td>23 Mei 2023</td><td>23 Mei 2023</td></tr>
+              <tr><td>116</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5366&EventName=YOTI+HARIS+YOSERIZAL" target="_blank" rel="noreferrer">YOTI HARIS YOSERIZAL</a></td><td>Kursi Empat</td><td>23 Mei 2023</td><td>23 Mei 2023</td></tr>
+              <tr><td>117</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5364&EventName=NUROKHMAN+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>23 Mei 2023</td><td>23 Mei 2023</td></tr>
+              <tr><td>118</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5363&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>23 Mei 2023</td><td>23 Mei 2023</td></tr>
+              <tr><td>119</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5360&EventName=NUROKHMAN+ISMAIL+ALI" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL ALI</a></td><td>Kursi Empat</td><td>22 Mei 2023</td><td>22 Mei 2023</td></tr>
+              <tr><td>120</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5359&EventName=NUROKHMAN+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>22 Mei 2023</td><td>22 Mei 2023</td></tr>
+              <tr><td>121</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5358&EventName=ISMAIL+MEYDIKA+ZAINAL" target="_blank" rel="noreferrer">ISMAIL MEYDIKA ZAINAL</a></td><td>Kursi Empat</td><td>22 Mei 2023</td><td>22 Mei 2023</td></tr>
+              <tr><td>122</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5354&EventName=%7cBONUS%7c+ALI+HIJRA+FAJAR" target="_blank" rel="noreferrer">|BONUS| ALI HIJRA FAJAR</a></td><td>Kursi Empat</td><td>22 Mei 2023</td><td>22 Mei 2023</td></tr>
+              <tr><td>123</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5350&EventName=BAY+HERRY+WARTONO" target="_blank" rel="noreferrer">BAY HERRY WARTONO</a></td><td>Kursi Empat</td><td>21 Mei 2023</td><td>21 Mei 2023</td></tr>
+              <tr><td>124</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5348&EventName=ISMAIL+FAIZAL+FAUZUL" target="_blank" rel="noreferrer">ISMAIL FAIZAL FAUZUL</a></td><td>Kursi Empat</td><td>21 Mei 2023</td><td>21 Mei 2023</td></tr>
+              <tr><td>125</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5345&EventName=%7cBONUS%7c+MEYDIKA+ISMAIL+FAUZUL" target="_blank" rel="noreferrer">|BONUS| MEYDIKA ISMAIL FAUZUL</a></td><td>Kursi Empat</td><td>20 Mei 2023</td><td>20 Mei 2023</td></tr>
+              <tr><td>126</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5342&EventName=%7cBONUS%7c+BENI+FERNAL+TEUKU" target="_blank" rel="noreferrer">|BONUS| BENI FERNAL TEUKU</a></td><td>Kursi Empat</td><td>19 Mei 2023</td><td>19 Mei 2023</td></tr>
+              <tr><td>127</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5340&EventName=NUROKHMAN+ISMAIL+SURYANTO" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL SURYANTO</a></td><td>Kursi Empat</td><td>19 Mei 2023</td><td>19 Mei 2023</td></tr>
+              <tr><td>128</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5337&EventName=YOTI+ISMAIL+SUYAT" target="_blank" rel="noreferrer">YOTI ISMAIL SUYAT</a></td><td>Kursi Empat</td><td>19 Mei 2023</td><td>19 Mei 2023</td></tr>
+              <tr><td>129</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5336&EventName=YOTI+ISMAIL+MUHAMMAD" target="_blank" rel="noreferrer">YOTI ISMAIL MUHAMMAD</a></td><td>Kursi Empat</td><td>19 Mei 2023</td><td>19 Mei 2023</td></tr>
+              <tr><td>130</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5335&EventName=%7cBONUS%7c+SUYAT+MEYDIKA+DEDEI" target="_blank" rel="noreferrer">|BONUS| SUYAT MEYDIKA DEDEI</a></td><td>Kursi Empat</td><td>19 Mei 2023</td><td>19 Mei 2023</td></tr>
+              <tr><td>131</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5332&EventName=HAMBALI+HARIS+MUZA" target="_blank" rel="noreferrer">HAMBALI HARIS MUZA</a></td><td>Kursi Empat</td><td>18 Mei 2023</td><td>18 Mei 2023</td></tr>
+              <tr><td>132</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5331&EventName=BENI+ADE+HARIS" target="_blank" rel="noreferrer">BENI ADE HARIS</a></td><td>Kursi Empat</td><td>18 Mei 2023</td><td>18 Mei 2023</td></tr>
+              <tr><td>133</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5329&EventName=%7cBONUS%7c+ALI+ADE+MEYDIKA" target="_blank" rel="noreferrer">|BONUS| ALI ADE MEYDIKA</a></td><td>Kursi Empat</td><td>18 Mei 2023</td><td>18 Mei 2023</td></tr>
+              <tr><td>134</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5327&EventName=NUROKHMAN+ISMAIL+FAIZAL" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL FAIZAL</a></td><td>Kursi Empat</td><td>18 Mei 2023</td><td>18 Mei 2023</td></tr>
+              <tr><td>135</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5325&EventName=ALI+SYAHRIZAL+EKO" target="_blank" rel="noreferrer">ALI SYAHRIZAL EKO</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>136</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5324&EventName=MEYDIKA+NUROKHMAN+FAUZUL" target="_blank" rel="noreferrer">MEYDIKA NUROKHMAN FAUZUL</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>137</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5323&EventName=NUROKHMAN+DENI+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN DENI MEYDIKA</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>138</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5320&EventName=%7cBONUS%7c+MEYDIKA+SAHAMTA+BUDI" target="_blank" rel="noreferrer">|BONUS| MEYDIKA SAHAMTA BUDI</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>139</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5319&EventName=%7cBONUS%7c+BENI+DJEMMY+FAJAR" target="_blank" rel="noreferrer">|BONUS| BENI DJEMMY FAJAR</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>140</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5318&EventName=MEYDIKA+NUROKHMAN+FAIZAL" target="_blank" rel="noreferrer">MEYDIKA NUROKHMAN FAIZAL</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>141</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5317&EventName=MEYDIKA+ADE+NUROKHMAN" target="_blank" rel="noreferrer">MEYDIKA ADE NUROKHMAN</a></td><td>Kursi Empat</td><td>17 Mei 2023</td><td>17 Mei 2023</td></tr>
+              <tr><td>142</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5314&EventName=%7cBONUS%7c+ALI+HIJRA+HAMBALI" target="_blank" rel="noreferrer">|BONUS| ALI HIJRA HAMBALI</a></td><td>Kursi Empat</td><td>16 Mei 2023</td><td>16 Mei 2023</td></tr>
+              <tr><td>143</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5313&EventName=%7cBONUS%7c+ALI+HIJRA+MELKI" target="_blank" rel="noreferrer">|BONUS| ALI HIJRA MELKI</a></td><td>Kursi Empat</td><td>16 Mei 2023</td><td>16 Mei 2023</td></tr>
+              <tr><td>144</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5312&EventName=SYAHRIZAL+YOSERIZAL+MELKI" target="_blank" rel="noreferrer">SYAHRIZAL YOSERIZAL MELKI</a></td><td>Kursi Empat</td><td>16 Mei 2023</td><td>16 Mei 2023</td></tr>
+              <tr><td>145</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5311&EventName=FAJAR+FERNAL+BENI" target="_blank" rel="noreferrer">FAJAR FERNAL BENI</a></td><td>Kursi Empat</td><td>16 Mei 2023</td><td>16 Mei 2023</td></tr>
+              <tr><td>146</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5309&EventName=ZAINUL+BENI+FAJAR" target="_blank" rel="noreferrer">ZAINUL BENI FAJAR</a></td><td>Kursi Empat</td><td>16 Mei 2023</td><td>16 Mei 2023</td></tr>
+              <tr><td>147</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5306&EventName=%7cBONUS%7c+ZAINUL+BENI+SYAHRIZAL" target="_blank" rel="noreferrer">|BONUS| ZAINUL BENI SYAHRIZAL</a></td><td>Kursi Empat</td><td>15 Mei 2023</td><td>15 Mei 2023</td></tr>
+              <tr><td>148</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5305&EventName=YOTI+ZAINUL+MUZA" target="_blank" rel="noreferrer">YOTI ZAINUL MUZA</a></td><td>Kursi Empat</td><td>15 Mei 2023</td><td>15 Mei 2023</td></tr>
+              <tr><td>149</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5304&EventName=%7cBONUS%7c+ENJANG+SUTIKNO+RUDIANA" target="_blank" rel="noreferrer">|BONUS| ENJANG SUTIKNO RUDIANA</a></td><td>Kursi Empat</td><td>15 Mei 2023</td><td>15 Mei 2023</td></tr>
+              <tr><td>150</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5302&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+DENI" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL DENI</a></td><td>Kursi Empat</td><td>15 Mei 2023</td><td>15 Mei 2023</td></tr>
+              <tr><td>151</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5300&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+MEYDIKA" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL MEYDIKA</a></td><td>Kursi Empat</td><td>15 Mei 2023</td><td>15 Mei 2023</td></tr>
+              <tr><td>152</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5297&EventName=%7cBONUS%7c+ZAINUL+BENI+FAJAR" target="_blank" rel="noreferrer">|BONUS| ZAINUL BENI FAJAR</a></td><td>Kursi Empat</td><td>14 Mei 2023</td><td>14 Mei 2023</td></tr>
+              <tr><td>153</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5296&EventName=%7cBONUS%7c+ZAINUL+YOTI+BENI" target="_blank" rel="noreferrer">|BONUS| ZAINUL YOTI BENI</a></td><td>Kursi Empat</td><td>14 Mei 2023</td><td>14 Mei 2023</td></tr>
+              <tr><td>154</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5291&EventName=%7cBONUS%7c+ZAINUL+ADE+DJONI" target="_blank" rel="noreferrer">|BONUS| ZAINUL ADE DJONI</a></td><td>Kursi Empat</td><td>13 Mei 2023</td><td>13 Mei 2023</td></tr>
+              <tr><td>155</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5290&EventName=%7cBONUS%7c+ZAINUL+FAJAR+TEDDY" target="_blank" rel="noreferrer">|BONUS| ZAINUL FAJAR TEDDY</a></td><td>Kursi Empat</td><td>13 Mei 2023</td><td>13 Mei 2023</td></tr>
+              <tr><td>156</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5285&EventName=NUROKHMAN+FAUZUL+ZAINAL" target="_blank" rel="noreferrer">NUROKHMAN FAUZUL ZAINAL</a></td><td>Kursi Empat</td><td>12 Mei 2023</td><td>12 Mei 2023</td></tr>
+              <tr><td>157</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5283&EventName=ASENG+FERNAL+PRATAMA" target="_blank" rel="noreferrer">ASENG FERNAL PRATAMA</a></td><td>Kursi Empat</td><td>12 Mei 2023</td><td>12 Mei 2023</td></tr>
+              <tr><td>158</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5281&EventName=NUROKHMAN+MEYDIKA+FAUZUL" target="_blank" rel="noreferrer">NUROKHMAN MEYDIKA FAUZUL</a></td><td>Kursi Empat</td><td>11 Mei 2023</td><td>11 Mei 2023</td></tr>
+              <tr><td>159</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5278&EventName=ENDRI+HIJRA+SUYAT" target="_blank" rel="noreferrer">ENDRI HIJRA SUYAT</a></td><td>Kursi Empat</td><td>11 Mei 2023</td><td>11 Mei 2023</td></tr>
+              <tr><td>160</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5277&EventName=NUROKHMAN+ISMAIL+SURYANTO" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL SURYANTO</a></td><td>Kursi Empat</td><td>11 Mei 2023</td><td>11 Mei 2023</td></tr>
+              <tr><td>161</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5276&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+SUYAT" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL SUYAT</a></td><td>Kursi Empat</td><td>11 Mei 2023</td><td>11 Mei 2023</td></tr>
+              <tr><td>162</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5274&EventName=HIJRA+SURYA+SYAHRIZAL" target="_blank" rel="noreferrer">HIJRA SURYA SYAHRIZAL</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>163</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5273&EventName=HIJRA+SYAHRIZAL+MELKI" target="_blank" rel="noreferrer">HIJRA SYAHRIZAL MELKI</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>164</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5272&EventName=%7cBONUS%7c+NUROKHMAN+ADE+SUPARJO" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ADE SUPARJO</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>165</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5270&EventName=SUYAT+ISMAIL+NUROKHMAN" target="_blank" rel="noreferrer">SUYAT ISMAIL NUROKHMAN</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>166</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5269&EventName=%7cBONUS%7c+MEYDIKA+SUYAT+ZAINAL" target="_blank" rel="noreferrer">|BONUS| MEYDIKA SUYAT ZAINAL</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>167</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5267&EventName=%7cBONUS%7c+MEYDIKA+SURYANTO+DANNI" target="_blank" rel="noreferrer">|BONUS| MEYDIKA SURYANTO DANNI</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>168</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5266&EventName=%7cBONUS%7c+MEYDIKA+DANNI+AGUS" target="_blank" rel="noreferrer">|BONUS| MEYDIKA DANNI AGUS</a></td><td>Kursi Empat</td><td>10 Mei 2023</td><td>10 Mei 2023</td></tr>
+              <tr><td>169</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5264&EventName=NUROKHMAN+ISMAIL+FERRY" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL FERRY</a></td><td>Kursi Empat</td><td>09 Mei 2023</td><td>09 Mei 2023</td></tr>
+              <tr><td>170</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5262&EventName=%7cBONUS%7c+MEYDIKA+FAUZUL+DEDEI" target="_blank" rel="noreferrer">|BONUS| MEYDIKA FAUZUL DEDEI</a></td><td>Kursi Empat</td><td>09 Mei 2023</td><td>09 Mei 2023</td></tr>
+              <tr><td>171</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5261&EventName=NUROKHMAN+DANNI+MEYDIKA+BWI" target="_blank" rel="noreferrer">NUROKHMAN DANNI MEYDIKA BWI</a></td><td>Kursi Empat</td><td>09 Mei 2023</td><td>09 Mei 2023</td></tr>
+              <tr><td>172</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5260&EventName=%7cBONUS%7c+NUROKHMAN+MEYDIKA+ELDI" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN MEYDIKA ELDI</a></td><td>Kursi Empat</td><td>09 Mei 2023</td><td>09 Mei 2023</td></tr>
+              <tr><td>173</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5257&EventName=MEYDIKA+DANNI+AGUS" target="_blank" rel="noreferrer">MEYDIKA DANNI AGUS</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>174</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5256&EventName=%7cBONUS%7c+NUROKHMAN+SUYAT+FERNANDO" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN SUYAT FERNANDO</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>175</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5255&EventName=ALI+YOSERIZAL+MELKI" target="_blank" rel="noreferrer">ALI YOSERIZAL MELKI</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>176</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5252&EventName=%7cBONUS%7c+NUROKHMAN+MEYDIKA+ZAINAL" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN MEYDIKA ZAINAL</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>177</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5251&EventName=NUROKHMAN+ISMAIL+SUYAT" target="_blank" rel="noreferrer">NUROKHMAN ISMAIL SUYAT</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>178</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5249&EventName=SUYAT+YOTI+FAJAR" target="_blank" rel="noreferrer">SUYAT YOTI FAJAR</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>179</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5248&EventName=%7cBONUS%7c+MEYDIKA+ISMAIL+UJANG" target="_blank" rel="noreferrer">|BONUS| MEYDIKA ISMAIL UJANG</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>180</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5247&EventName=HIJRA+BENI+SUYAT" target="_blank" rel="noreferrer">HIJRA BENI SUYAT</a></td><td>Kursi Empat</td><td>08 Mei 2023</td><td>08 Mei 2023</td></tr>
+              <tr><td>181</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5244&EventName=%7cBONUS%7c+MEYDIKA+NUROKHMAN+RIO" target="_blank" rel="noreferrer">|BONUS| MEYDIKA NUROKHMAN RIO</a></td><td>Kursi Empat</td><td>07 Mei 2023</td><td>07 Mei 2023</td></tr>
+              <tr><td>182</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5241&EventName=MEYDIKA+FERRY+NUROKHMAN" target="_blank" rel="noreferrer">MEYDIKA FERRY NUROKHMAN</a></td><td>Kursi Empat</td><td>07 Mei 2023</td><td>07 Mei 2023</td></tr>
+              <tr><td>183</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5237&EventName=%7cBONUS%7c+NUROKHMAN+ISMAIL+FERRY" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ISMAIL FERRY</a></td><td>Kursi Empat</td><td>06 Mei 2023</td><td>06 Mei 2023</td></tr>
+              <tr><td>184</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5235&EventName=%7cBONUS%7c+HERRY+RUDIANA+BAY" target="_blank" rel="noreferrer">|BONUS| HERRY RUDIANA BAY</a></td><td>Kursi Empat</td><td>05 Mei 2023</td><td>05 Mei 2023</td></tr>
+              <tr><td>185</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5232&EventName=%7cBONUS%7c+HIJRA+ADE+HERRY" target="_blank" rel="noreferrer">|BONUS| HIJRA ADE HERRY</a></td><td>Kursi Empat</td><td>05 Mei 2023</td><td>05 Mei 2023</td></tr>
+              <tr><td>186</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5230&EventName=%7cBONUS%7c+HIJRA+ADE+SYAHRIZAL" target="_blank" rel="noreferrer">|BONUS| HIJRA ADE SYAHRIZAL</a></td><td>Kursi Empat</td><td>04 Mei 2023</td><td>04 Mei 2023</td></tr>
+              <tr><td>187</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5227&EventName=%7cBONUS%7c+SUYAT+FERNAL+ADE" target="_blank" rel="noreferrer">|BONUS| SUYAT FERNAL ADE</a></td><td>Kursi Empat</td><td>04 Mei 2023</td><td>04 Mei 2023</td></tr>
+              <tr><td>188</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5226&EventName=ASENG+ADE+SUYAT" target="_blank" rel="noreferrer">ASENG ADE SUYAT</a></td><td>Kursi Empat</td><td>04 Mei 2023</td><td>04 Mei 2023</td></tr>
+              <tr><td>189</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5223&EventName=%7cBONUS%7c+NUROKHMAN+DENI+SURYANTO" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN DENI SURYANTO</a></td><td>Kursi Empat</td><td>03 Mei 2023</td><td>03 Mei 2023</td></tr>
+              <tr><td>190</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5220&EventName=BENI+FERNAL+ADE" target="_blank" rel="noreferrer">BENI FERNAL ADE</a></td><td>Kursi Empat</td><td>03 Mei 2023</td><td>03 Mei 2023</td></tr>
+              <tr><td>191</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5219&EventName=ASENG+SUYAT+ERI" target="_blank" rel="noreferrer">ASENG SUYAT ERI</a></td><td>Kursi Empat</td><td>03 Mei 2023</td><td>03 Mei 2023</td></tr>
+              <tr><td>192</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5217&EventName=HIJRA+BENI+ADE" target="_blank" rel="noreferrer">HIJRA BENI ADE</a></td><td>Kursi Empat</td><td>03 Mei 2023</td><td>03 Mei 2023</td></tr>
+              <tr><td>193</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5213&EventName=NUROKHMAN+FERRY+DANNI" target="_blank" rel="noreferrer">NUROKHMAN FERRY DANNI</a></td><td>Kursi Empat</td><td>02 Mei 2023</td><td>02 Mei 2023</td></tr>
+              <tr><td>194</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5212&EventName=%7cBONUS%7c+NUROKHMAN+ADE+SUYAT" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ADE SUYAT</a></td><td>Kursi Empat</td><td>02 Mei 2023</td><td>02 Mei 2023</td></tr>
+              <tr><td>195</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5210&EventName=%7cBONUS%7c+HIJRA+SUYAT+FAJAR" target="_blank" rel="noreferrer">|BONUS| HIJRA SUYAT FAJAR</a></td><td>Kursi Empat</td><td>01 Mei 2023</td><td>01 Mei 2023</td></tr>
+              <tr><td>196</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5208&EventName=%7cBONUS%7c+NUROKHMAN+SUYAT+MEYDIKA" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN SUYAT MEYDIKA</a></td><td>Kursi Empat</td><td>01 Mei 2023</td><td>01 Mei 2023</td></tr>
+              <tr><td>197</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5202&EventName=%7cBONUS%7c+SUYAT+BENI+ADE" target="_blank" rel="noreferrer">|BONUS| SUYAT BENI ADE</a></td><td>Kursi Empat</td><td>30 April 2023</td><td>30 April 2023</td></tr>
+              <tr><td>198</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5199&EventName=%7cBONUS%7c+NUROKHMAN+ADE+DJONI" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN ADE DJONI</a></td><td>Kursi Empat</td><td>29 April 2023</td><td>29 April 2023</td></tr>
+              <tr><td>199</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5196&EventName=%7cBONUS%7c+ZAINUL+YOTI+ECKY" target="_blank" rel="noreferrer">|BONUS| ZAINUL YOTI ECKY</a></td><td>Kursi Empat</td><td>28 April 2023</td><td>28 April 2023</td></tr>
+              <tr><td>200</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5194&EventName=%7cBONUS%7c+ASENG+SUYAT+FAJAR" target="_blank" rel="noreferrer">|BONUS| ASENG SUYAT FAJAR</a></td><td>Kursi Empat</td><td>28 April 2023</td><td>28 April 2023</td></tr>
+              <tr><td>201</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5192&EventName=BENI+FERNAL+ASENG" target="_blank" rel="noreferrer">BENI FERNAL ASENG</a></td><td>Kursi Empat</td><td>28 April 2023</td><td>28 April 2023</td></tr>
+              <tr><td>202</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5190&EventName=YOPI+YON+ZAENAL" target="_blank" rel="noreferrer">YOPI YON ZAENAL</a></td><td>Kursi Empat</td><td>27 April 2023</td><td>27 April 2023</td></tr>
+              <tr><td>203</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5183&EventName=%7cBONUS%7c+FAJAR+ADE+UJANG" target="_blank" rel="noreferrer">|BONUS| FAJAR ADE UJANG</a></td><td>Kursi Empat</td><td>25 April 2023</td><td>25 April 2023</td></tr>
+              <tr><td>204</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5181&EventName=BAY+WAHYUDIN+AHMAD" target="_blank" rel="noreferrer">BAY WAHYUDIN AHMAD</a></td><td>Kursi Empat</td><td>25 April 2023</td><td>25 April 2023</td></tr>
+              <tr><td>205</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5180&EventName=%7cBONUS%7c+BAY+IWAN+MUHAMMAD" target="_blank" rel="noreferrer">|BONUS| BAY IWAN MUHAMMAD</a></td><td>Kursi Empat</td><td>25 April 2023</td><td>25 April 2023</td></tr>
+              <tr><td>206</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5178&EventName=%7cBONUS%7c+FAJAR+FERNAL+HARIS" target="_blank" rel="noreferrer">|BONUS| FAJAR FERNAL HARIS</a></td><td>Kursi Empat</td><td>25 April 2023</td><td>25 April 2023</td></tr>
+              <tr><td>207</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5173&EventName=NUROKHMAN+DANNI+MEYDIKA" target="_blank" rel="noreferrer">NUROKHMAN DANNI MEYDIKA</a></td><td>Kursi Empat</td><td>24 April 2023</td><td>24 April 2023</td></tr>
+              <tr><td>208</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5172&EventName=NUROKHMAN+MEYDIKA+ANDRIANSYAH" target="_blank" rel="noreferrer">NUROKHMAN MEYDIKA ANDRIANSYAH</a></td><td>Kursi Empat</td><td>24 April 2023</td><td>24 April 2023</td></tr>
+              <tr><td>209</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5168&EventName=%7cBONUS%7c+SUYAT+ENDRI+TEUKU" target="_blank" rel="noreferrer">|BONUS| SUYAT ENDRI TEUKU</a></td><td>Kursi Empat</td><td>23 April 2023</td><td>23 April 2023</td></tr>
+              <tr><td>210</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5167&EventName=%7cBONUS%7c+YR+ISMAIL+HENDRATNO+AMAT" target="_blank" rel="noreferrer">|BONUS| YR ISMAIL HENDRATNO AMAT</a></td><td>Kursi Empat</td><td>23 April 2023</td><td>23 April 2023</td></tr>
+              <tr><td>211</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5165&EventName=%7cBONUS%7c+ACHMAD+SUYAT+NUROKHMAN" target="_blank" rel="noreferrer">|BONUS| ACHMAD SUYAT NUROKHMAN</a></td><td>Kursi Empat</td><td>23 April 2023</td><td>23 April 2023</td></tr>
+              <tr><td>212</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5164&EventName=%7cBONUS%7c+YR+ISMAIL+HENDRATNO" target="_blank" rel="noreferrer">|BONUS| YR ISMAIL HENDRATNO</a></td><td>Kursi Empat</td><td>23 April 2023</td><td>23 April 2023</td></tr>
+              <tr><td>213</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5158&EventName=%7cBONUS%7c+WAHYUDIN+EDIE+BAY" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN EDIE BAY</a></td><td>Kursi Empat</td><td>21 April 2023</td><td>21 April 2023</td></tr>
+              <tr><td>214</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5151&EventName=%7cBONUS%7c+HERRY+SUYAT+BONA" target="_blank" rel="noreferrer">|BONUS| HERRY SUYAT BONA</a></td><td>Kursi Empat</td><td>20 April 2023</td><td>20 April 2023</td></tr>
+              <tr><td>215</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5146&EventName=NUROKHMAN+SUYAT+FERRY" target="_blank" rel="noreferrer">NUROKHMAN SUYAT FERRY</a></td><td>Kursi Empat</td><td>19 April 2023</td><td>19 April 2023</td></tr>
+              <tr><td>216</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5143&EventName=%7cBONUS%7c+HIJRA+ALEXANDER+ALI" target="_blank" rel="noreferrer">|BONUS| HIJRA ALEXANDER ALI</a></td><td>Kursi Empat</td><td>19 April 2023</td><td>19 April 2023</td></tr>
+              <tr><td>217</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5141&EventName=%7cBONUS%7c+ALI+HIJRA+HENDRI" target="_blank" rel="noreferrer">|BONUS| ALI HIJRA HENDRI</a></td><td>Kursi Empat</td><td>19 April 2023</td><td>19 April 2023</td></tr>
+              <tr><td>218</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5140&EventName=FAJAR+ADE+RYAN" target="_blank" rel="noreferrer">FAJAR ADE RYAN</a></td><td>Kursi Empat</td><td>19 April 2023</td><td>19 April 2023</td></tr>
+              <tr><td>219</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5131&EventName=%7cBONUS%7c+NUROKHMAN+SUYAT+FERRY" target="_blank" rel="noreferrer">|BONUS| NUROKHMAN SUYAT FERRY</a></td><td>Kursi Empat</td><td>17 April 2023</td><td>17 April 2023</td></tr>
+              <tr><td>220</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5126&EventName=NUROKHMAN+ADE+ANDRIANSYAH" target="_blank" rel="noreferrer">NUROKHMAN ADE ANDRIANSYAH</a></td><td>Kursi Empat</td><td>17 April 2023</td><td>17 April 2023</td></tr>
+              <tr><td>221</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5125&EventName=NUROKHMAN+FAUZUL+MUHAMMAD" target="_blank" rel="noreferrer">NUROKHMAN FAUZUL MUHAMMAD</a></td><td>Kursi Empat</td><td>17 April 2023</td><td>17 April 2023</td></tr>
+              <tr><td>222</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5124&EventName=NUROKHMAN+ANDI+FAUZUL" target="_blank" rel="noreferrer">NUROKHMAN ANDI FAUZUL</a></td><td>Kursi Empat</td><td>17 April 2023</td><td>17 April 2023</td></tr>
+              <tr><td>223</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5121&EventName=FAJAR+ADE+ZAINUL" target="_blank" rel="noreferrer">FAJAR ADE ZAINUL</a></td><td>Kursi Empat</td><td>16 April 2023</td><td>16 April 2023</td></tr>
+              <tr><td>224</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5115&EventName=%7cBONUS%7c+ACHMAD+SUYAT+AGIT" target="_blank" rel="noreferrer">|BONUS| ACHMAD SUYAT AGIT</a></td><td>Kursi Empat</td><td>15 April 2023</td><td>15 April 2023</td></tr>
+              <tr><td>225</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5114&EventName=%7cBONUS%7c+ACHMAD+ASENG+SULTAN" target="_blank" rel="noreferrer">|BONUS| ACHMAD ASENG SULTAN</a></td><td>Kursi Empat</td><td>15 April 2023</td><td>15 April 2023</td></tr>
+              <tr><td>226</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5107&EventName=%7cBONUS%7c+SUYAT+FERRY+HERIS" target="_blank" rel="noreferrer">|BONUS| SUYAT FERRY HERIS</a></td><td>Kursi Empat</td><td>14 April 2023</td><td>14 April 2023</td></tr>
+              <tr><td>227</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5106&EventName=NUROKHMAN+FERRY+HERIS" target="_blank" rel="noreferrer">NUROKHMAN FERRY HERIS</a></td><td>Kursi Empat</td><td>14 April 2023</td><td>14 April 2023</td></tr>
+              <tr><td>228</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5100&EventName=%7cBONUS%7c+HERRY+BAGUS+DENI" target="_blank" rel="noreferrer">|BONUS| HERRY BAGUS DENI</a></td><td>Kursi Empat</td><td>13 April 2023</td><td>13 April 2023</td></tr>
+              <tr><td>229</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5097&EventName=BAY+ADI+FAJAR" target="_blank" rel="noreferrer">BAY ADI FAJAR</a></td><td>Kursi Empat</td><td>13 April 2023</td><td>13 April 2023</td></tr>
+              <tr><td>230</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5094&EventName=%7cBONUS%7c+WAHYUDIN+IWAN+WAWAN" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN IWAN WAWAN</a></td><td>Kursi Empat</td><td>13 April 2023</td><td>13 April 2023</td></tr>
+              <tr><td>231</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5093&EventName=%7cBONUS%7c+WAHYUDIN+IWAN+ABDUL" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN IWAN ABDUL</a></td><td>Kursi Empat</td><td>13 April 2023</td><td>13 April 2023</td></tr>
+              <tr><td>232</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5091&EventName=SUYAT+HIJRA+ENDRI" target="_blank" rel="noreferrer">SUYAT HIJRA ENDRI</a></td><td>Kursi Empat</td><td>12 April 2023</td><td>12 April 2023</td></tr>
+              <tr><td>233</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5089&EventName=%7cBONUS%7c+ADI+FAJAR+HERRY" target="_blank" rel="noreferrer">|BONUS| ADI FAJAR HERRY</a></td><td>Kursi Empat</td><td>12 April 2023</td><td>12 April 2023</td></tr>
+              <tr><td>234</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5086&EventName=FERNAL+MUZA+SYAHRIZAL" target="_blank" rel="noreferrer">FERNAL MUZA SYAHRIZAL</a></td><td>Kursi Empat</td><td>12 April 2023</td><td>12 April 2023</td></tr>
+              <tr><td>235</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5085&EventName=%7cBONUS%7c+BAY+HUSEIN+SUTIKNO" target="_blank" rel="noreferrer">|BONUS| BAY HUSEIN SUTIKNO</a></td><td>Kursi Empat</td><td>12 April 2023</td><td>12 April 2023</td></tr>
+              <tr><td>236</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5081&EventName=ALI+HIJRA+ENDRI" target="_blank" rel="noreferrer">ALI HIJRA ENDRI</a></td><td>Kursi Empat</td><td>11 April 2023</td><td>11 April 2023</td></tr>
+              <tr><td>237</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5080&EventName=%7cBONUS%7c+ACHMAD+SUYAT+FERRY" target="_blank" rel="noreferrer">|BONUS| ACHMAD SUYAT FERRY</a></td><td>Kursi Empat</td><td>11 April 2023</td><td>11 April 2023</td></tr>
+              <tr><td>238</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5079&EventName=%7cBONUS%7c+ACHMAD+SUYAT+NUROKHMAN" target="_blank" rel="noreferrer">|BONUS| ACHMAD SUYAT NUROKHMAN</a></td><td>Kursi Empat</td><td>11 April 2023</td><td>11 April 2023</td></tr>
+              <tr><td>239</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5077&EventName=%7cBONUS%7c+BAY+FAJAR+BAMBANG" target="_blank" rel="noreferrer">|BONUS| BAY FAJAR BAMBANG</a></td><td>Kursi Empat</td><td>11 April 2023</td><td>11 April 2023</td></tr>
+              <tr><td>240</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5075&EventName=%7cBONUS%7c+HERRY+DENI+WAHYUDIN" target="_blank" rel="noreferrer">|BONUS| HERRY DENI WAHYUDIN</a></td><td>Kursi Empat</td><td>11 April 2023</td><td>11 April 2023</td></tr>
+              <tr><td>241</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5071&EventName=WAHYUDIN+TITO+AHMAD+ASEP" target="_blank" rel="noreferrer">WAHYUDIN TITO AHMAD ASEP</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>242</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5070&EventName=WAHYUDIN+TITO+AHMAD" target="_blank" rel="noreferrer">WAHYUDIN TITO AHMAD</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>243</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5069&EventName=%7cBONUS%7c+ACHMAD+MUHAMMAD+ERI" target="_blank" rel="noreferrer">|BONUS| ACHMAD MUHAMMAD ERI</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>244</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5067&EventName=%7cBONUS%7c+HERRY+BAY+NUR" target="_blank" rel="noreferrer">|BONUS| HERRY BAY NUR</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>245</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5066&EventName=FERNAL+ZAINUL+MUZA" target="_blank" rel="noreferrer">FERNAL ZAINUL MUZA</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>246</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5065&EventName=YOTI+MAJID+SYAHRIZAL" target="_blank" rel="noreferrer">YOTI MAJID SYAHRIZAL</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>247</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5064&EventName=JHONNY+FERNAL+ZAINUL" target="_blank" rel="noreferrer">JHONNY FERNAL ZAINUL</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>248</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5063&EventName=FERNAL+JHONNY+ZAINUL" target="_blank" rel="noreferrer">FERNAL JHONNY ZAINUL</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>249</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5062&EventName=DJEMMY+MAJID+ECKY" target="_blank" rel="noreferrer">DJEMMY MAJID ECKY</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>250</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5061&EventName=%7cBONUS%7c+BAY+FAJAR+GANDA" target="_blank" rel="noreferrer">|BONUS| BAY FAJAR GANDA</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>251</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5059&EventName=%7cBONUS%7c+FERNAL+JHONNY+ANDRI" target="_blank" rel="noreferrer">|BONUS| FERNAL JHONNY ANDRI</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>252</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5057&EventName=SYAHRIZAL+YOSERIZAL+FADIL" target="_blank" rel="noreferrer">SYAHRIZAL YOSERIZAL FADIL</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>253</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5056&EventName=YOTI+HIJRA+MUZA" target="_blank" rel="noreferrer">YOTI HIJRA MUZA</a></td><td>Kursi Empat</td><td>10 April 2023</td><td>10 April 2023</td></tr>
+              <tr><td>254</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5054&EventName=ENJANG+WAHYUDIN+AHMAD" target="_blank" rel="noreferrer">ENJANG WAHYUDIN AHMAD</a></td><td>Kursi Empat</td><td>09 April 2023</td><td>09 April 2023</td></tr>
+              <tr><td>255</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5053&EventName=%7cBONUS%7c+AHMAD+SYAIFUL+ENJANG" target="_blank" rel="noreferrer">|BONUS| AHMAD SYAIFUL ENJANG</a></td><td>Kursi Empat</td><td>09 April 2023</td><td>09 April 2023</td></tr>
+              <tr><td>256</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5051&EventName=%7cBONUS%7c+HERRY+HIJRA+ZAINUL" target="_blank" rel="noreferrer">|BONUS| HERRY HIJRA ZAINUL</a></td><td>Kursi Empat</td><td>09 April 2023</td><td>09 April 2023</td></tr>
+              <tr><td>257</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5050&EventName=YOTI+FERNAL+ZAINUL" target="_blank" rel="noreferrer">YOTI FERNAL ZAINUL</a></td><td>Kursi Empat</td><td>09 April 2023</td><td>09 April 2023</td></tr>
+              <tr><td>258</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5046&EventName=WAHYUDIN+SURYANTO+HERRY" target="_blank" rel="noreferrer">WAHYUDIN SURYANTO HERRY</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>259</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5045&EventName=%7cBONUS%7c+ACHMAD+SUYAT+NUROKHMAN" target="_blank" rel="noreferrer">|BONUS| ACHMAD SUYAT NUROKHMAN</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>260</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5044&EventName=%7cBONUS%7c+ENJANG+AHMAD+BAY" target="_blank" rel="noreferrer">|BONUS| ENJANG AHMAD BAY</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>261</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5040&EventName=%7cBONUS%7c+ENJANG+FAJAR+HUSEIN" target="_blank" rel="noreferrer">|BONUS| ENJANG FAJAR HUSEIN</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>262</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5038&EventName=BAY+GANDA+WARTONO" target="_blank" rel="noreferrer">BAY GANDA WARTONO</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>263</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5037&EventName=%7cBONUS%7c+BAY+FAJAR+EDIE" target="_blank" rel="noreferrer">|BONUS| BAY FAJAR EDIE</a></td><td>Kursi Empat</td><td>08 April 2023</td><td>08 April 2023</td></tr>
+              <tr><td>264</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5033&EventName=%7cBONUS%7c+WAHYUDIN+SUYAT+AHMAD" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN SUYAT AHMAD</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>265</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5032&EventName=WARTONO+SUTIKNO+HERRY" target="_blank" rel="noreferrer">WARTONO SUTIKNO HERRY</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>266</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5030&EventName=%7cBONUS%7c+HIJRA+FAJAR+WARTONO" target="_blank" rel="noreferrer">|BONUS| HIJRA FAJAR WARTONO</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>267</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5029&EventName=ENJANG+GANDA+RUDIANA" target="_blank" rel="noreferrer">ENJANG GANDA RUDIANA</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>268</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5026&EventName=BAY+FAJAR+GANDA" target="_blank" rel="noreferrer">BAY FAJAR GANDA</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>269</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5025&EventName=%7cBONUS%7c+BAY+SUTIKNO+HERRY" target="_blank" rel="noreferrer">|BONUS| BAY SUTIKNO HERRY</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>270</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5023&EventName=ALI+YUEL+TEDDY" target="_blank" rel="noreferrer">ALI YUEL TEDDY</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>271</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5021&EventName=ADI+SURYANTO+AHMAD" target="_blank" rel="noreferrer">ADI SURYANTO AHMAD</a></td><td>Kursi Empat</td><td>07 April 2023</td><td>07 April 2023</td></tr>
+              <tr><td>272</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5019&EventName=%7cBONUS%7c+AHMAD+TITO+HIJRA" target="_blank" rel="noreferrer">|BONUS| AHMAD TITO HIJRA</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>273</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5018&EventName=AHMAD+TITO+ABDUR" target="_blank" rel="noreferrer">AHMAD TITO ABDUR</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>274</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5017&EventName=%7cBONUS%7c+SUYAT+FERRY+MUHAMMAD" target="_blank" rel="noreferrer">|BONUS| SUYAT FERRY MUHAMMAD</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>275</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5015&EventName=ENJANG+HERRY+BAY" target="_blank" rel="noreferrer">ENJANG HERRY BAY</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>276</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5013&EventName=%7cBONUS%7c+HERRY+WAHYUDIN+BAY" target="_blank" rel="noreferrer">|BONUS| HERRY WAHYUDIN BAY</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>277</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5010&EventName=%7cBONUS%7c+BAY+TITO+AHMAD" target="_blank" rel="noreferrer">|BONUS| BAY TITO AHMAD</a></td><td>Kursi Empat</td><td>06 April 2023</td><td>06 April 2023</td></tr>
+              <tr><td>278</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5006&EventName=ECKY+HIJRA+ZAINUL" target="_blank" rel="noreferrer">ECKY HIJRA ZAINUL</a></td><td>Kursi Empat</td><td>05 April 2023</td><td>05 April 2023</td></tr>
+              <tr><td>279</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=5005&EventName=%7cBONUS%7c+BAY+HUSEIN+GANDA" target="_blank" rel="noreferrer">|BONUS| BAY HUSEIN GANDA</a></td><td>Kursi Empat</td><td>05 April 2023</td><td>05 April 2023</td></tr>
+              <tr><td>280</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4999&EventName=HERRY+FAJAR+DENI" target="_blank" rel="noreferrer">HERRY FAJAR DENI</a></td><td>Kursi Empat</td><td>05 April 2023</td><td>05 April 2023</td></tr>
+              <tr><td>281</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4996&EventName=%7cBONUS%7c+AHMAD+FAJAR+ENJANG" target="_blank" rel="noreferrer">|BONUS| AHMAD FAJAR ENJANG</a></td><td>Kursi Empat</td><td>04 April 2023</td><td>04 April 2023</td></tr>
+              <tr><td>282</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4986&EventName=%7cBONUS%7c+HERRY+FAJAR+BAY" target="_blank" rel="noreferrer">|BONUS| HERRY FAJAR BAY</a></td><td>Kursi Empat</td><td>03 April 2023</td><td>03 April 2023</td></tr>
+              <tr><td>283</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4984&EventName=FAJAR+FERNAL+ADE" target="_blank" rel="noreferrer">FAJAR FERNAL ADE</a></td><td>Kursi Empat</td><td>03 April 2023</td><td>03 April 2023</td></tr>
+              <tr><td>284</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4982&EventName=ECKY+FAJAR+ANDRI" target="_blank" rel="noreferrer">ECKY FAJAR ANDRI</a></td><td>Kursi Empat</td><td>03 April 2023</td><td>03 April 2023</td></tr>
+              <tr><td>285</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4979&EventName=%7cBONUS%7c+ENJANG+TITO+HERRY" target="_blank" rel="noreferrer">|BONUS| ENJANG TITO HERRY</a></td><td>Kursi Empat</td><td>02 April 2023</td><td>02 April 2023</td></tr>
+              <tr><td>286</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4976&EventName=%7cBONUS%7c+HIJRA+YOTI+BASUKI" target="_blank" rel="noreferrer">|BONUS| HIJRA YOTI BASUKI</a></td><td>Kursi Empat</td><td>02 April 2023</td><td>02 April 2023</td></tr>
+              <tr><td>287</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4975&EventName=FERNAL+ZAINUL+FADIL" target="_blank" rel="noreferrer">FERNAL ZAINUL FADIL</a></td><td>Kursi Empat</td><td>02 April 2023</td><td>02 April 2023</td></tr>
+              <tr><td>288</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4973&EventName=YOTI+FERNAL+TIMBUL" target="_blank" rel="noreferrer">YOTI FERNAL TIMBUL</a></td><td>Kursi Empat</td><td>02 April 2023</td><td>02 April 2023</td></tr>
+              <tr><td>289</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4966&EventName=YOTI+FAJAR+ZAINUL" target="_blank" rel="noreferrer">YOTI FAJAR ZAINUL</a></td><td>Kursi Empat</td><td>01 April 2023</td><td>01 April 2023</td></tr>
+              <tr><td>290</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4958&EventName=%7cBONUS%7c+ADI+TITO+FAJAR" target="_blank" rel="noreferrer">|BONUS| ADI TITO FAJAR</a></td><td>Kursi Empat</td><td>31 Maret 2023</td><td>31 Maret 2023</td></tr>
+              <tr><td>291</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4952&EventName=YOTI+FAJAR+RYAN" target="_blank" rel="noreferrer">YOTI FAJAR RYAN</a></td><td>Kursi Empat</td><td>30 Maret 2023</td><td>30 Maret 2023</td></tr>
+              <tr><td>292</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4946&EventName=HIJRA+FAJAR+SYAHRIZAL" target="_blank" rel="noreferrer">HIJRA FAJAR SYAHRIZAL</a></td><td>Kursi Empat</td><td>29 Maret 2023</td><td>29 Maret 2023</td></tr>
+              <tr><td>293</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4938&EventName=WAHYUDIN+RUDIANA+NUR" target="_blank" rel="noreferrer">WAHYUDIN RUDIANA NUR</a></td><td>Kursi Empat</td><td>28 Maret 2023</td><td>28 Maret 2023</td></tr>
+              <tr><td>294</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4937&EventName=FAJAR+TITO+HIJRA" target="_blank" rel="noreferrer">FAJAR TITO HIJRA</a></td><td>Kursi Empat</td><td>28 Maret 2023</td><td>28 Maret 2023</td></tr>
+              <tr><td>295</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4932&EventName=HIJRA+HAMBALI+ZAINUL" target="_blank" rel="noreferrer">HIJRA HAMBALI ZAINUL</a></td><td>Kursi Empat</td><td>27 Maret 2023</td><td>27 Maret 2023</td></tr>
+              <tr><td>296</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4931&EventName=HIJRA+BENI+ZAINUL" target="_blank" rel="noreferrer">HIJRA BENI ZAINUL</a></td><td>Kursi Empat</td><td>27 Maret 2023</td><td>27 Maret 2023</td></tr>
+              <tr><td>297</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4930&EventName=%7cBONUS%7c+HERRY+WAHYUDIN+ENJANG" target="_blank" rel="noreferrer">|BONUS| HERRY WAHYUDIN ENJANG</a></td><td>Kursi Empat</td><td>27 Maret 2023</td><td>27 Maret 2023</td></tr>
+              <tr><td>298</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4928&EventName=ELVIS+HENDRATNO+AMAT" target="_blank" rel="noreferrer">ELVIS HENDRATNO AMAT</a></td><td>Kursi Empat</td><td>27 Maret 2023</td><td>27 Maret 2023</td></tr>
+              <tr><td>299</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4912&EventName=HERRY+WAHYUDIN+ENJANG" target="_blank" rel="noreferrer">HERRY WAHYUDIN ENJANG</a></td><td>Kursi Empat</td><td>26 Maret 2023</td><td>26 Maret 2023</td></tr>
+              <tr><td>300</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4909&EventName=HERRY+SUYAT+FAJAR" target="_blank" rel="noreferrer">HERRY SUYAT FAJAR</a></td><td>Kursi Empat</td><td>26 Maret 2023</td><td>26 Maret 2023</td></tr>
+              <tr><td>301</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4907&EventName=WAHYUDIN+HERRY+ENJANG" target="_blank" rel="noreferrer">WAHYUDIN HERRY ENJANG</a></td><td>Kursi Empat</td><td>25 Maret 2023</td><td>25 Maret 2023</td></tr>
+              <tr><td>302</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4904&EventName=%7cBONUS%7c+HERRY+SYAIFUL+ENJANG" target="_blank" rel="noreferrer">|BONUS| HERRY SYAIFUL ENJANG</a></td><td>Kursi Empat</td><td>25 Maret 2023</td><td>25 Maret 2023</td></tr>
+              <tr><td>303</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4898&EventName=HERRY+TITO+HIJRA" target="_blank" rel="noreferrer">HERRY TITO HIJRA</a></td><td>Kursi Empat</td><td>24 Maret 2023</td><td>24 Maret 2023</td></tr>
+              <tr><td>304</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4895&EventName=%7cBONUS%7c+WAHYUDIN+EDIE+HERRY" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN EDIE HERRY</a></td><td>Kursi Empat</td><td>24 Maret 2023</td><td>24 Maret 2023</td></tr>
+              <tr><td>305</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4894&EventName=WAHYUDIN+SUTIKNO+HERRY" target="_blank" rel="noreferrer">WAHYUDIN SUTIKNO HERRY</a></td><td>Kursi Empat</td><td>24 Maret 2023</td><td>24 Maret 2023</td></tr>
+              <tr><td>306</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4891&EventName=WAHYUDIN+EDIE+DENI" target="_blank" rel="noreferrer">WAHYUDIN EDIE DENI</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>307</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4890&EventName=WAHYUDIN+EDIE+BAMBANG" target="_blank" rel="noreferrer">WAHYUDIN EDIE BAMBANG</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>308</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4889&EventName=%7cBONUS%7c+BAY+ADI+WAHYUDIN" target="_blank" rel="noreferrer">|BONUS| BAY ADI WAHYUDIN</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>309</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4888&EventName=%7cBONUS%7c+ALI+ENDRI+ZAINUL" target="_blank" rel="noreferrer">|BONUS| ALI ENDRI ZAINUL</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>310</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4887&EventName=WAHYUDIN+EDIE+HERRY" target="_blank" rel="noreferrer">WAHYUDIN EDIE HERRY</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>311</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4885&EventName=%7cBONUS%7c+ADI+ENJANG+WARTONO" target="_blank" rel="noreferrer">|BONUS| ADI ENJANG WARTONO</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>312</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4884&EventName=%7cBONUS%7c+HERRY+FAJAR+BAMBANG" target="_blank" rel="noreferrer">|BONUS| HERRY FAJAR BAMBANG</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>313</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4882&EventName=%7cBONUS%7c+ENJANG+RUDIANA+BAY" target="_blank" rel="noreferrer">|BONUS| ENJANG RUDIANA BAY</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>314</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4879&EventName=WAHYUDIN+IWAN+EDIE" target="_blank" rel="noreferrer">WAHYUDIN IWAN EDIE</a></td><td>Kursi Empat</td><td>23 Maret 2023</td><td>23 Maret 2023</td></tr>
+              <tr><td>315</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4878&EventName=%7cBONUS%7c+ALI+SUYAT+ADE" target="_blank" rel="noreferrer">|BONUS| ALI SUYAT ADE</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>316</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4877&EventName=ADI+WAHYUDIN+AHMAD" target="_blank" rel="noreferrer">ADI WAHYUDIN AHMAD</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>317</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4875&EventName=WAHYUDIN+ENJANG+AHMAD" target="_blank" rel="noreferrer">WAHYUDIN ENJANG AHMAD</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>318</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4873&EventName=%7cBONUS%7c+ENJANG+AHMAD+ABDUL" target="_blank" rel="noreferrer">|BONUS| ENJANG AHMAD ABDUL</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>319</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4872&EventName=BAY+WAHYUDIN+WARTONO" target="_blank" rel="noreferrer">BAY WAHYUDIN WARTONO</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>320</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4871&EventName=SUYAT+FAJAR+ADE" target="_blank" rel="noreferrer">SUYAT FAJAR ADE</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>321</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4870&EventName=HERRY+SUYAT+FAJAR" target="_blank" rel="noreferrer">HERRY SUYAT FAJAR</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>322</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4867&EventName=WAHYUDIN+AHMAD+ABDUL" target="_blank" rel="noreferrer">WAHYUDIN AHMAD ABDUL</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>323</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4866&EventName=SUYAT+HIJRA+BAMBANG" target="_blank" rel="noreferrer">SUYAT HIJRA BAMBANG</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>324</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4865&EventName=AHMAD+EDIE+ENJANG" target="_blank" rel="noreferrer">AHMAD EDIE ENJANG</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>325</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4863&EventName=%7cBONUS%7c+SUYAT+FAJAR+ADE" target="_blank" rel="noreferrer">|BONUS| SUYAT FAJAR ADE</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>326</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4862&EventName=WAHYUDIN+GANDA+ABDUL" target="_blank" rel="noreferrer">WAHYUDIN GANDA ABDUL</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>327</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4861&EventName=HERRY+FAJAR+BAY" target="_blank" rel="noreferrer">HERRY FAJAR BAY</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>328</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4860&EventName=WAHYUDIN+HIJRA+WARTONO" target="_blank" rel="noreferrer">WAHYUDIN HIJRA WARTONO</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>329</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4859&EventName=%7cBONUS%7c+HERRY+FAJAR+GANDA" target="_blank" rel="noreferrer">|BONUS| HERRY FAJAR GANDA</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>330</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4858&EventName=ENJANG+IWAN+WARTONO" target="_blank" rel="noreferrer">ENJANG IWAN WARTONO</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>331</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4856&EventName=%7cBONUS%7c+ADI+HERRY+BAY" target="_blank" rel="noreferrer">|BONUS| ADI HERRY BAY</a></td><td>Kursi Empat</td><td>22 Maret 2023</td><td>22 Maret 2023</td></tr>
+              <tr><td>332</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4855&EventName=%7cBONUS%7c+ENJANG+WAHYUDIN+AHMAD" target="_blank" rel="noreferrer">|BONUS| ENJANG WAHYUDIN AHMAD</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>333</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4854&EventName=WAHYUDIN+HIJRA+ENJANG" target="_blank" rel="noreferrer">WAHYUDIN HIJRA ENJANG</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>334</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4853&EventName=WAHYUDIN+RUDIANA+ABDUL" target="_blank" rel="noreferrer">WAHYUDIN RUDIANA ABDUL</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>335</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4852&EventName=HIJRA+FERNAL+RYAN" target="_blank" rel="noreferrer">HIJRA FERNAL RYAN</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>336</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4849&EventName=ADI+FAJAR+RUDIANA" target="_blank" rel="noreferrer">ADI FAJAR RUDIANA</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>337</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4848&EventName=%7cBONUS%7c+BAY+IWAN+ALINA" target="_blank" rel="noreferrer">|BONUS| BAY IWAN ALINA</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>338</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4847&EventName=ADI+GANDA+HERRY" target="_blank" rel="noreferrer">ADI GANDA HERRY</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>339</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4846&EventName=HERRY+ADI+GANDA" target="_blank" rel="noreferrer">HERRY ADI GANDA</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>340</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4843&EventName=AHMAD+GANDA+BAY" target="_blank" rel="noreferrer">AHMAD GANDA BAY</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>341</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4839&EventName=%7cBONUS%7c+WAHYUDIN+GANDA+HERRY" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN GANDA HERRY</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>342</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4838&EventName=WAHYUDIN+GANDA+AHMAD" target="_blank" rel="noreferrer">WAHYUDIN GANDA AHMAD</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>343</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4837&EventName=%7cBONUS%7c+ENJANG+AHMAD+SERGIO" target="_blank" rel="noreferrer">|BONUS| ENJANG AHMAD SERGIO</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>344</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4835&EventName=%7cBONUS%7c+ENJANG+WAHYUDIN+HERRY" target="_blank" rel="noreferrer">|BONUS| ENJANG WAHYUDIN HERRY</a></td><td>Kursi Empat</td><td>21 Maret 2023</td><td>21 Maret 2023</td></tr>
+              <tr><td>345</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4834&EventName=%7cBONUS%7c+ENJANG+GANDA+RUDIANA" target="_blank" rel="noreferrer">|BONUS| ENJANG GANDA RUDIANA</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>346</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4833&EventName=FERNAL+MUHAMMAD+SUYAT" target="_blank" rel="noreferrer">FERNAL MUHAMMAD SUYAT</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>347</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4832&EventName=%7cBONUS%7c+HERRY+AHMAD+ABDUL" target="_blank" rel="noreferrer">|BONUS| HERRY AHMAD ABDUL</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>348</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4830&EventName=ENJANG+IWAN+SERGIO" target="_blank" rel="noreferrer">ENJANG IWAN SERGIO</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>349</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4827&EventName=HERRY+SUYAT+BAMBANG" target="_blank" rel="noreferrer">HERRY SUYAT BAMBANG</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>350</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4826&EventName=FAJAR+BONA+SERGIO" target="_blank" rel="noreferrer">FAJAR BONA SERGIO</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>351</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4825&EventName=%7cBONUS%7c+ENJANG+GANDA+HERRY" target="_blank" rel="noreferrer">|BONUS| ENJANG GANDA HERRY</a></td><td>Kursi Empat</td><td>20 Maret 2023</td><td>20 Maret 2023</td></tr>
+              <tr><td>352</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4823&EventName=ENJANG+GANDA+RUDIANA" target="_blank" rel="noreferrer">ENJANG GANDA RUDIANA</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>353</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4822&EventName=%7cBONUS%7c+HERRY+FAJAR+BAMBANG" target="_blank" rel="noreferrer">|BONUS| HERRY FAJAR BAMBANG</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>354</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4821&EventName=%7cBONUS%7c+ADI+GANDA+ENJANG" target="_blank" rel="noreferrer">|BONUS| ADI GANDA ENJANG</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>355</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4820&EventName=%7cBONUS%7c+FERNAL+MAJID+FAJAR" target="_blank" rel="noreferrer">|BONUS| FERNAL MAJID FAJAR</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>356</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4818&EventName=FERNAL+JHONNY+YOTI" target="_blank" rel="noreferrer">FERNAL JHONNY YOTI</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>357</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4817&EventName=FAJAR+ZAINUL+DJONI" target="_blank" rel="noreferrer">FAJAR ZAINUL DJONI</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>358</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4815&EventName=%7cBONUS%7c+ENDRI+FERNAL+SUYAT" target="_blank" rel="noreferrer">|BONUS| ENDRI FERNAL SUYAT</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>359</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4813&EventName=WAHYUDIN+FAJAR+HERRY" target="_blank" rel="noreferrer">WAHYUDIN FAJAR HERRY</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>360</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4812&EventName=WAHYUDIN+HERRY+ENJANG" target="_blank" rel="noreferrer">WAHYUDIN HERRY ENJANG</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>361</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4811&EventName=%7cBONUS%7c+WAHYUDIN+IWAN+GANDA" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN IWAN GANDA</a></td><td>Kursi Empat</td><td>19 Maret 2023</td><td>19 Maret 2023</td></tr>
+              <tr><td>362</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4809&EventName=BAY+WARTONO+YANTO" target="_blank" rel="noreferrer">BAY WARTONO YANTO</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>363</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4808&EventName=BAY+ENJANG+WARTONO" target="_blank" rel="noreferrer">BAY ENJANG WARTONO</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>364</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4807&EventName=HERRY+HIJRA+WAHYUDIN" target="_blank" rel="noreferrer">HERRY HIJRA WAHYUDIN</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>365</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4805&EventName=%7cBONUS%7c+FAJAR+WAHYUDIN+EDIE" target="_blank" rel="noreferrer">|BONUS| FAJAR WAHYUDIN EDIE</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>366</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4804&EventName=BAY+SUYAT+IWAN" target="_blank" rel="noreferrer">BAY SUYAT IWAN</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>367</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4802&EventName=WAHYUDIN+SURYANTO+EDIE" target="_blank" rel="noreferrer">WAHYUDIN SURYANTO EDIE</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>368</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4800&EventName=JENI+FAJAR+HERRY" target="_blank" rel="noreferrer">JENI FAJAR HERRY</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>369</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4798&EventName=WARTONO+ENJANG+BAY" target="_blank" rel="noreferrer">WARTONO ENJANG BAY</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>370</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4797&EventName=WAHYUDIN+GANDA+HERRY" target="_blank" rel="noreferrer">WAHYUDIN GANDA HERRY</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>371</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4796&EventName=HERRY+ENJANG+WARTONO" target="_blank" rel="noreferrer">HERRY ENJANG WARTONO</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>372</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4794&EventName=ADI+WAHYUDIN+HERRY" target="_blank" rel="noreferrer">ADI WAHYUDIN HERRY</a></td><td>Kursi Empat</td><td>18 Maret 2023</td><td>18 Maret 2023</td></tr>
+              <tr><td>373</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4793&EventName=WAHYUDIN+GANDA+RUDIANA" target="_blank" rel="noreferrer">WAHYUDIN GANDA RUDIANA</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>374</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4792&EventName=WAHYUDIN+HIJRA+SURYANTO" target="_blank" rel="noreferrer">WAHYUDIN HIJRA SURYANTO</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>375</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4791&EventName=WAHYUDIN+ADI+HERRY" target="_blank" rel="noreferrer">WAHYUDIN ADI HERRY</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>376</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4789&EventName=%7cBONUS%7c+SUYAT+ENDRI+FAJAR" target="_blank" rel="noreferrer">|BONUS| SUYAT ENDRI FAJAR</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>377</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4788&EventName=%7cBONUS%7c+SUYAT+FERNAL+ZAINUL" target="_blank" rel="noreferrer">|BONUS| SUYAT FERNAL ZAINUL</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>378</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4786&EventName=WAHYUDIN+EDIE+ENJANG" target="_blank" rel="noreferrer">WAHYUDIN EDIE ENJANG</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>379</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4785&EventName=SUYAT+MUJI+WARTONO" target="_blank" rel="noreferrer">SUYAT MUJI WARTONO</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>380</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4783&EventName=%7cBONUS%7c+HIJRA+SUYAT+FAJAR" target="_blank" rel="noreferrer">|BONUS| HIJRA SUYAT FAJAR</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>381</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4782&EventName=WARTONO+FAJAR+EDIE" target="_blank" rel="noreferrer">WARTONO FAJAR EDIE</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>382</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4780&EventName=HERRY+GANDA+ENJANG" target="_blank" rel="noreferrer">HERRY GANDA ENJANG</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>383</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4779&EventName=%7cBONUS%7c+WAHYUDIN+EDIE+ENJANG" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN EDIE ENJANG</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>384</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4778&EventName=FAJAR+TITO+JENI" target="_blank" rel="noreferrer">FAJAR TITO JENI</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>385</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4777&EventName=%7cBONUS%7c+WAHYUDIN+EDIE+GANDA" target="_blank" rel="noreferrer">|BONUS| WAHYUDIN EDIE GANDA</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>386</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4776&EventName=HERRY+TITO+FAJAR" target="_blank" rel="noreferrer">HERRY TITO FAJAR</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>387</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4775&EventName=WAHYUDIN+ADI+SURYANTO" target="_blank" rel="noreferrer">WAHYUDIN ADI SURYANTO</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>388</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4773&EventName=ADI+JENI+WAHYUDIN" target="_blank" rel="noreferrer">ADI JENI WAHYUDIN</a></td><td>Kursi Empat</td><td>17 Maret 2023</td><td>17 Maret 2023</td></tr>
+              <tr><td>389</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4772&EventName=ADE+ABDILLAH+ABDUL" target="_blank" rel="noreferrer">ADE ABDILLAH ABDUL</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>390</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4771&EventName=BAY+ANDRIAS+HERRY" target="_blank" rel="noreferrer">BAY ANDRIAS HERRY</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>391</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4769&EventName=BAY+JENI+WAHYUDIN" target="_blank" rel="noreferrer">BAY JENI WAHYUDIN</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>392</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4768&EventName=%7cBONUS%7c+JENI+WAHYUDIN+WARTONO" target="_blank" rel="noreferrer">|BONUS| JENI WAHYUDIN WARTONO</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>393</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4765&EventName=%7cBONUS%7c+HERRY+HIJRA+FAJAR" target="_blank" rel="noreferrer">|BONUS| HERRY HIJRA FAJAR</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>394</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4763&EventName=BAY+HERRY+BAMBANG" target="_blank" rel="noreferrer">BAY HERRY BAMBANG</a></td><td>Kursi Empat</td><td>16 Maret 2023</td><td>16 Maret 2023</td></tr>
+              <tr><td>395</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4761&EventName=AHMAD+ENJANG+BAMBANG" target="_blank" rel="noreferrer">AHMAD ENJANG BAMBANG</a></td><td>Kursi Empat</td><td>15 Maret 2023</td><td>15 Maret 2023</td></tr>
+              <tr><td>396</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4760&EventName=%7cBONUS%7c+JENI+GANDA+HERRY" target="_blank" rel="noreferrer">|BONUS| JENI GANDA HERRY</a></td><td>Kursi Empat</td><td>15 Maret 2023</td><td>15 Maret 2023</td></tr>
+              <tr><td>397</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4759&EventName=GANDA+ABDUL+JATI" target="_blank" rel="noreferrer">GANDA ABDUL JATI</a></td><td>Kursi Empat</td><td>15 Maret 2023</td><td>15 Maret 2023</td></tr>
+              <tr><td>398</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4758&EventName=%7cBONUS%7c+HERRY+ENJANG+RUDIANA" target="_blank" rel="noreferrer">|BONUS| HERRY ENJANG RUDIANA</a></td><td>Kursi Empat</td><td>15 Maret 2023</td><td>15 Maret 2023</td></tr>
+              <tr><td>399</td><td><a href="https://ligacatur.com/quadstandings?TournamentID=4756&EventName=FAJAR+WAHYUDIN+HERRY" target="_blank" rel="noreferrer">FAJAR WAHYUDIN HERRY</a></td><td>Kursi Empat</td><td>15 Maret 2023</td><td>15 Maret 2023</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Keterangan: Kategori Utama adalah liga utama yang dimainkan mingguan oleh anggota. Ketegori Kursi Empat adalah turnamen mini yang diikuti oleh empat pemain. Ketegori Langsung adalah turnamen langsung dengan ronde terjadwal. Untuk detail selengkapnya bisa dilihat di halaman <a href="https://ligacatur.com/faq" target="_blank" rel="noreferrer">tanya jawab</a>.</p>
       </PageArtikel>
     </HalamanIsi>
   );
