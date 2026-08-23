@@ -69,7 +69,7 @@ function Isian({
         <span className="text-xs leading-5 text-slate-500">{catatan}</span>
       )}
       {galat && (
-        <span id={idGalat} className="text-xs leading-5 text-red-600">
+        <span id={idGalat} role="alert" className="text-xs leading-5 text-red-600">
           {galat}
         </span>
       )}
