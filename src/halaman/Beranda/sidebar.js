@@ -28,11 +28,6 @@ export const MENU_BERANDA = [
     href: "/beranda/ebook-panduan",
   },
   {
-    id: "konten-tiktok",
-    label: "Teka-Teki & Tips",
-    href: "/beranda/teka-teki-tips",
-  },
-  {
     id: "hubungi-admin",
     label: "Hubungi Admin",
     href: "/beranda/hubungi-admin",
@@ -69,7 +64,6 @@ export const BERANDA_BERIKUT = {
   turnamen: { to: "/beranda/daftar-juara", title: "Daftar Juara" },
   "daftar-juara": { to: "/beranda/peringkat", title: "Peringkat" },
   peringkat: { to: "/beranda/ebook-panduan", title: "E-Book & Panduan" },
-  "ebook-catur": { to: "/beranda/teka-teki-tips", title: "Teka-Teki & Tips" },
-  "konten-tiktok": { to: "/beranda/hubungi-admin", title: "Hubungi Admin" },
+  "ebook-catur": { to: "/beranda/hubungi-admin", title: "Hubungi Admin" },
   "hubungi-admin": { to: "/beranda/turnamen", title: "Informasi Jadwal Turnamen Catur" },
 };

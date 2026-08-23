@@ -25,7 +25,6 @@ export default function Footer() {
       id: "tools",
       title: t("footer.tools"),
       links: [
-        { title: t("footer.papanInteraktif"), href: "/papan-interaktif" },
         { title: t("footer.pendaftaranAnggota"), href: "/pendaftaran-anggota" },
         { title: t("footer.kodeEtik"), href: "/keberlanjutan/kode-etik-komunitas" },
         { title: t("footer.keterbukaanInformasi"), href: "/media-dan-informasi" },
@@ -37,10 +36,9 @@ export default function Footer() {
       id: "program",
       title: t("footer.programCatur"),
       links: [
-        { title: t("nav.kelasPelatihan"), href: "/program-kami/kelas-dan-pelatihan" },
-        { title: t("nav.coachingClinic"), href: "/program-kami/coaching-clinic" },
-        { title: t("nav.simultanBlindfold"), href: "/program-kami/simultan-dan-blindfold" },
-        { title: t("nav.sekolahCatur"), href: "/program-kami/sekolah-catur" },
+        { title: t("nav.caraBermainCatur"), href: "/program-kami/sekolah-catur/cara-bermain-catur" },
+        { title: t("nav.tekaTeki"), href: "/program-kami/teka-teki" },
+        { title: t("nav.pembukaan"), href: "/program-kami/pembukaan" },
         { title: t("nav.turnamen"), href: "/turnamen" },
       ],
     },
