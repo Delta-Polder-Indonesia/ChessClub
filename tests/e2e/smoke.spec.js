@@ -47,6 +47,30 @@ async function tiruApiPengurus(page) {
   });
 }
 
+async function tiruApiTurnamen(page) {
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    const turnamen = {
+      id: "turnamen-uji", nama: "Turnamen Uji Bulanan", jenis: "bulanan", status: "pendaftaran",
+      jumlahPeserta: 4, kuota: 32, mulai: "2026-10-20 19:00", tutupDaftar: "2026-10-19 18:00",
+      tempo: "10+0", ronde: 5, tempat: "Chess.com", hadiah: "Sertifikat", deskripsi: "Turnamen untuk pengujian browser.",
+    };
+    if (path === "/api/csrf-token") return json({ token: "csrf-turnamen" });
+    if (path === "/api/turnamen" && request.method() === "GET") return json([turnamen]);
+    if (path === "/api/turnamen/turnamen-uji" && request.method() === "GET") {
+      return json({ ...turnamen, klasemen: [{ username: "pecaturuji", panggilan: "Pecatur Uji", peringkat: 1, main: 3, poin: 3 }] });
+    }
+    if (path === "/api/turnamen/turnamen-uji/daftar" && request.method() === "POST") {
+      const body = request.postDataJSON();
+      if (body.username === "nonanggota") return json({ pesan: "Lengkapi data anggota terlebih dahulu.", harusDaftarAnggota: true }, 403);
+      return json({ status: "menunggu" }, 201);
+    }
+    return json({});
+  });
+}
+
 test("navigasi publik dan pencarian dapat digunakan", async ({ page }) => {
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/");
@@ -82,6 +106,34 @@ test("perpindahan ke bahasa Inggris memuat terjemahan", async ({ page, isMobile 
   await page.getByRole("button", { name: "Pilih bahasa" }).click();
   await expect(page.getByRole("link", { name: "About Us" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  periksaGalat();
+});
+
+test("turnamen menampilkan klasemen dan menerima pengajuan anggota", async ({ page }) => {
+  await tiruApiTurnamen(page);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/turnamen/turnamen-bulanan");
+  await expect(page.getByRole("heading", { name: "Turnamen Uji Bulanan" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Lihat klasemen" }).click();
+  await expect(page.getByText("Pecatur Uji")).toBeVisible();
+
+  await page.getByRole("button", { name: "Daftar sebagai peserta" }).click();
+  await page.getByRole("textbox", { name: "Username Chess.com" }).fill("pecaturuji");
+  await page.getByRole("button", { name: "Kirim pengajuan" }).click();
+  await expect(page.getByText("Pengajuan terkirim dan sedang menunggu persetujuan pengurus.")).toBeVisible();
+  periksaGalat();
+});
+
+test("turnamen mengarahkan non-anggota ke pendaftaran", async ({ page }) => {
+  await tiruApiTurnamen(page);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/turnamen/turnamen-bulanan");
+  await page.getByRole("button", { name: "Daftar sebagai peserta" }).click();
+  await page.getByRole("textbox", { name: "Username Chess.com" }).fill("nonanggota");
+  await page.getByRole("button", { name: "Kirim pengajuan" }).click();
+  await expect(page.getByText("Lengkapi data anggota terlebih dahulu.")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Daftar menjadi anggota" })).toHaveAttribute("href", "/pendaftaran-anggota");
   periksaGalat();
 });
 
