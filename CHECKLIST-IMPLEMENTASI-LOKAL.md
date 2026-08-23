@@ -62,7 +62,7 @@ Periksa dan ganti data contoh berikut sebelum publikasi bila belum sesuai:
 | `src/components/Footer.jsx` | Email dan alamat singkat footer. |
 | `index.html` | Canonical URL, Open Graph URL/gambar, JSON-LD Organization. |
 | `public/robots.txt` dan `public/sitemap.xml` | Domain canonical bila memakai domain sendiri. |
-| `deploy/github-workflows/*.yml.md` | Template workflow; setelah merge, salin/ubah ekstensi menjadi `.github/workflows/*.yml` dari komputer lokal. |
+| `.github/workflows/*.yml` | Workflow aktif (deploy, quality, health); perubahan butuh akun GitHub dengan izin `workflows`. |
 
 ### Data aplikasi
 
@@ -105,7 +105,7 @@ tar xzf /var/backups/kci/kci-data-TANGGAL.tar.gz -C /tmp/kci-restore
 
 5. Simpan pepper secara terpisah dan aman. Backup tanpa pepper tidak cukup untuk pemulihan penuh sistem identitas.
 
-Template systemd untuk service dan timer backup tersedia di `deploy/systemd/`.
+Template systemd untuk service dan timer backup tersedia di `.github/systemd/`.
 
 ## 6. Pemeriksaan sebelum rilis
 

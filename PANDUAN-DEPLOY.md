@@ -102,12 +102,12 @@ sudo systemctl status kci-api
 ```
 
 > Template yang lebih ketat (service hardening + backup timer) tersedia di
-> `deploy/systemd/`. Salin `kci-api.env.example` sebagai `/etc/kci/kci-api.env`,
+> `.github/systemd/`. Salin `kci-api.env.example` sebagai `/etc/kci/kci-api.env`,
 > isi nilai asli, lalu batasi izinnya (`chmod 640`, pemilik `root:kci`). Setelah
 > menyesuaikan path, pasang semua unit dengan:
 >
 > ```bash
-> sudo cp deploy/systemd/kci-*.service deploy/systemd/kci-*.timer /etc/systemd/system/
+> sudo cp .github/systemd/kci-*.service .github/systemd/kci-*.timer /etc/systemd/system/
 > sudo systemctl daemon-reload
 > sudo systemctl enable --now kci-api.service kci-backup.timer
 > systemctl list-timers kci-backup.timer
@@ -159,10 +159,10 @@ ada masalah CORS sama sekali.
 ### Bila frontend tetap di GitHub Pages
 
 GitHub Pages tidak mendukung proxy, jadi frontend harus memanggil backend
-secara langsung. Template workflow deploy (`deploy/github-workflows/deploy.yml.md`)
+secara langsung. Workflow deploy (`.github/workflows/deploy.yml`)
 menyetel `VITE_API_DASAR` otomatis — bawaan `https://kci-api.onrender.com`.
-Aktifkan template tersebut sebagai `.github/workflows/deploy.yml` dari komputer
-lokal setelah merge (lihat `deploy/github-workflows/README.md`).
+Perubahan pada workflow membutuhkan akun/koneksi GitHub dengan izin
+`workflows` (workflow scope) agar push diterima.
 Untuk alamat backend yang berbeda, atur repository variable `KCI_API_URL`
 di GitHub (Settings → Secrets and variables → Actions → Variables); nilai
 itu dipakai menggantikan bawaan.
@@ -291,9 +291,8 @@ Endpoint ringan `GET /api/kesehatan` dapat diuji secara manual:
 KCI_API_URL=https://api-domain-anda.example npm run operasi:kesehatan
 ```
 
-Template `deploy/github-workflows/health.yml.md` menjalankannya setiap 6 jam
-dan dapat dijalankan manual dari tab **Actions** setelah Anda menyalinnya ke
-`.github/workflows/health.yml` dari komputer lokal. Atur repository variable
+Workflow `.github/workflows/health.yml` menjalankannya setiap 6 jam
+dan dapat dijalankan manual dari tab **Actions**. Atur repository variable
 `KCI_API_URL` di GitHub agar workflow aktif. GitHub akan menandai workflow
 merah bila API timeout, mengembalikan HTTP gagal, atau status selain `sehat`.
 
