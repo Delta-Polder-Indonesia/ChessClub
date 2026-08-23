@@ -7,9 +7,25 @@ function pantauGalatHalaman(page) {
   return () => expect(galat, galat.join("\n")).toEqual([]);
 }
 
+/**
+ * Hanya panggilan backend sungguhan yang boleh dicegat.
+ *
+ * PENTING: jangan memakai glob "**\/api/**". Saat pengujian berjalan di atas
+ * server dev Vite, modul sumber aplikasi juga disajikan lewat URL — misalnya
+ * /src/lib/api/index.js — dan glob itu ikut mencegatnya lalu membalasnya
+ * dengan JSON. Modul gagal dimuat, halaman jadi kosong, dan semua pemeriksaan
+ * "element(s) not found". Pencocokan berbasis pathname di bawah ini hanya
+ * mengenai /api/... yang sesungguhnya.
+ */
+const JALUR_API = (url) => url.pathname.startsWith("/api/");
+
+/** Formulir pendaftaran anggota (halaman juga memuat form pencarian header). */
+const formPendaftaran = (page) =>
+  page.locator("form").filter({ has: page.locator('input[name="username"]') });
+
 /** Backend tiruan untuk memverifikasi alur browser tanpa data produksi. */
 async function tiruApiPublik(page, onRequest = () => {}) {
-  await page.route("**/api/**", async (route) => {
+  await page.route(JALUR_API, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     onRequest({ path, method: request.method(), body: request.postDataJSON?.() });
@@ -25,7 +41,7 @@ async function tiruApiPublik(page, onRequest = () => {}) {
 }
 
 async function tiruApiPengurus(page) {
-  await page.route("**/api/**", async (route) => {
+  await page.route(JALUR_API, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
@@ -48,7 +64,7 @@ async function tiruApiPengurus(page) {
 }
 
 async function tiruApiTurnamen(page) {
-  await page.route("**/api/**", async (route) => {
+  await page.route(JALUR_API, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
@@ -80,7 +96,12 @@ test("navigasi publik dan pencarian dapat digunakan", async ({ page }) => {
   const input = page.getByRole("textbox", { name: "cari" });
   await expect(input).toBeVisible();
   await input.fill("turnamen");
-  await page.getByRole("link", { name: "Turnamen", exact: true }).click();
+  // Tautan "Turnamen" juga ada di header dan footer; batasi ke hasil overlay
+  // pencarian supaya locator tidak ambigu (strict mode violation).
+  await page
+    .locator("#overlay-pencarian")
+    .getByRole("link", { name: "Turnamen", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/turnamen$/);
   await expect(page.getByRole("heading", { name: "Turnamen", exact: true })).toBeVisible();
   periksaGalat();
@@ -106,7 +127,15 @@ test("panduan catur memuat bab awal dan bab lain secara progresif", async ({ pag
   await expect(page.getByRole("heading", { name: "Cara Bermain Catur", exact: true })).toBeVisible();
 
   // Bab selain bab pertama sengaja tidak dimuat sampai pembaca memintanya.
-  const muatBab = page.getByRole("button", { name: "Muat bab ini" }).first();
+  // Kunci pemeriksaan pada SATU bab: `.first()` selalu dihitung ulang, jadi
+  // setelah bab ini dimuat tombol bab berikutnya akan menjadi yang pertama
+  // dan pemeriksaan "tersembunyi" tidak akan pernah terpenuhi.
+  const seksiBab = page
+    .locator("section")
+    .filter({ has: page.getByRole("button", { name: "Muat bab ini" }) })
+    .first();
+  const idBab = await seksiBab.getAttribute("id");
+  const muatBab = page.locator(`section#${idBab}`).getByRole("button", { name: "Muat bab ini" });
   await expect(muatBab).toBeVisible();
   await muatBab.click();
   await expect(muatBab).toBeHidden();
@@ -182,8 +211,11 @@ test("form pendaftaran menampilkan validasi lokal sebelum mengirim", async ({ pa
   await tiruApiPublik(page);
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pendaftaran-anggota");
-  await page.locator("form").getByRole("button", { name: "Daftar Anggota" }).click();
-  await expect(page.getByRole("alert")).toContainText("Periksa kembali isian");
+  // Label tombol kirim adalah "Daftar" (lihat pendaftaran.daftar di i18n).
+  await formPendaftaran(page).getByRole("button", { name: "Daftar", exact: true }).click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "Periksa kembali isian" })
+  ).toBeVisible();
   await expect(page.locator('input[name="username"]')).toHaveAttribute("aria-invalid", "true");
   periksaGalat();
 });
@@ -202,7 +234,7 @@ test("form pendaftaran mengirim data sah dan berpindah ke keanggotaan", async ({
   await page.locator('input[name="hp"]').fill("081234567890");
   await page.locator('input[name="email"]').fill("uji@example.test");
   await page.locator('input[name="setuju"]').check();
-  await page.locator("form").getByRole("button", { name: "Daftar Anggota" }).click();
+  await formPendaftaran(page).getByRole("button", { name: "Daftar", exact: true }).click();
 
   await expect(page).toHaveURL(/struktur-grup-catur.*keanggotaan/);
   const pendaftaran = requests.find((request) => request.path === "/api/anggota" && request.method === "POST");
