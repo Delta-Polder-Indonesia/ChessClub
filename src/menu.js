@@ -52,31 +52,21 @@ export const MENU_UTAMA = [
     file: "ProgramKami.jsx",
     children: [
       {
-        title: "nav.kelasPelatihan",
-        path: "/program-kami/kelas-dan-pelatihan",
-        file: "KelasDanPelatihan.jsx",
+        title: "nav.caraBermainCatur",
+        path: "/program-kami/sekolah-catur/cara-bermain-catur",
+        file: "CaraBermainCatur.jsx",
       },
       {
-        title: "nav.coachingClinic",
-        path: "/program-kami/coaching-clinic",
-        file: "CoachingClinic.jsx",
+        title: "nav.tekaTeki",
+        path: "/program-kami/teka-teki",
+        folder: "ProgramKami",
+        file: "TekaTekiKonten.jsx",
       },
       {
-        title: "nav.simultanBlindfold",
-        path: "/program-kami/simultan-dan-blindfold",
-        file: "SimultanDanBlindfold.jsx",
-      },
-      {
-        title: "nav.sekolahCatur",
-        path: "/program-kami/sekolah-catur",
-        file: "SekolahCatur.jsx",
-        children: [
-          {
-            title: "nav.caraBermainCatur",
-            path: "/program-kami/sekolah-catur/cara-bermain-catur",
-            file: "CaraBermainCatur.jsx",
-          },
-        ],
+        title: "nav.pembukaan",
+        path: "/program-kami/pembukaan",
+        folder: "ProgramKami",
+        file: "Pembukaan.jsx",
       },
     ],
   },

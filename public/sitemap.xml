@@ -17,19 +17,11 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/kelas-dan-pelatihan</loc>
+    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/teka-teki</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/coaching-clinic</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/simultan-dan-blindfold</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/sekolah-catur</loc>
+    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/pembukaan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
@@ -38,6 +30,10 @@
   </url>
   <url>
     <loc>https://delta-polder-indonesia.github.io/ChessClub/teka-teki</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://delta-polder-indonesia.github.io/ChessClub/papan-interaktif</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
@@ -122,10 +118,6 @@
   </url>
   <url>
     <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/ebook-panduan</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/teka-teki-tips</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
