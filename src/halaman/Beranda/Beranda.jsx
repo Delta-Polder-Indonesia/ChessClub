@@ -1,6 +1,10 @@
 /**
- * Halaman Beranda / Turnamen — versi bersih, mirip ligacatur.com/tournament#history
- * Tanpa markup AI, hanya HTML sederhana + sedikit upgrade tampilan.
+ * Halaman: Informasi Jadwal Turnamen Catur (item pertama sidebar Beranda).
+ *
+ * Menampilkan rangkuman dua hal yang dikelola pengurus di dashboard:
+ *   - seluruh jadwal turnamen yang dipublikasikan (semua status),
+ *   - pengumuman resmi terbaru.
+ * Detail dan klasemen tetap di halaman turnamen masing-masing.
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -15,17 +19,8 @@ import LencanaStatus from "../../components/LencanaStatus.jsx";
 
 function formatTanggal(nilai) {
   if (!nilai) return "—";
-  const d = parseWaktuKomunitas(nilai);
-  if (!d) return nilai;
-  return d.toLocaleDateString("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
-
-function formatTanggalShort(nilai) {
-  if (!nilai) return "—";
+  // Jam turnamen disimpan tanpa zona waktu; parse eksplisit sebagai
+  // Asia/Jakarta agar tidak bergeser di zona browser pengunjung.
   const d = parseWaktuKomunitas(nilai);
   if (!d) return nilai;
   return d.toLocaleDateString("id-ID", {
@@ -66,232 +61,73 @@ export default function Beranda() {
 
   return (
     <BagianBeranda id="turnamen" title="Informasi Jadwal Turnamen Catur">
-      {/* Navigasi cepat ala ligacatur - dibuat sederhana */}
-      <div className="mb-8 flex flex-wrap gap-2 text-sm">
-        <Link to="/pendaftaran-anggota" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-          Mendaftar Anggota
-        </Link>
-        <Link to="/beranda/peringkat" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-          Liga Utama
-        </Link>
-        <Link to="/papan-interaktif" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-          Turnamen Langsung
-        </Link>
-        <Link to="/turnamen/liga-musiman" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-          Kursi Empat
-        </Link>
-        <a href="#history" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-          Hasil Sebelumnya
-        </a>
-      </div>
-
-      {/* Bagian utama - persis seperti ligacatur */}
-      <h3>Turnamen Liga Catur Ketujuh</h3>
-      <p>
-        Turnamen berlangsung dari tanggal <strong>31 Agustus 2022</strong> sampai tanggal{" "}
-        <strong>14 September 2022</strong> (ditutup jam 23:59:59 WIB). Permainan bisa dimainkan di
-        Lichess / Chess.com kapan saja selama turnamen ketika anda punya waktu luang. Silahkan diunduh
-        aplikasi di Lichess maupun Chess.com baik versi website maupun mobile dan mencoba segera bermain.
-        Bergabung dengan WA Grup kami wajib. Sangat sulit untuk berkoordinasi tanpa bergabung di grup.
+      <p className="ql-align-justify">
+        Berikut rangkuman jadwal seluruh turnamen yang dikelola komunitas dan
+        pengumuman resmi terbaru. Rincian lengkap, peserta, dan klasemen ada di
+        halaman turnamen masing-masing.
       </p>
 
-      <h4>Berapa kali harus main?</h4>
-      <p>
-        Tergantung jumlah peserta. Kami bisa melakukan sistem swiss atau round robin. Waktu main bebas
-        (ini yang sedikit membedakan dengan turnamen online), setting waktu juga bebas. Silahkan gabung
-        saja ke grup WA kami.
-      </p>
-
-      <h4>Apa syarat bermain?</h4>
-      <p>
-        Anda bisa bermain catur dari awal sampai selesai. Mendaftar menjadi anggota Liga Catur, dan
-        mendaftar Turnamen jika masih terbuka. Anda juga diwajibkan bergabung di grup WA kami. Syarat
-        penting adalah <strong>anda tidak curang</strong>. Menggunakan engine adalah tindakan buruk dan
-        kami dengan keras melarangnya. Jika akun Lichess/Chess.com anda terkena pelanggaran, maka anda
-        akan kami keluarkan dari grup dan dilarang bergabung kembali.
-      </p>
-
-      <h4>Verifikasi pemain?</h4>
-      <p>
-        Saat ini dengan bergabung di grup kami sudah cukup. Anda sudah memberi kami nomor telepon. Ke
-        depannya bisa saja kami membutuhkan tatap muka di Zoom dan memperlihatkan kartu identitas.
-      </p>
-
-      <h4>Cara bermain?</h4>
-      <p>
-        Ketika anda sudah mendapatkan lawan sesuai pilihan sistem, anda diminta untuk bermain melawan
-        pemain tersebut kapan saja selama turnamen. Tekan link &quot;Papan Komunikasi&quot; di halaman
-        Lawan dan Skor. Setelah komunikasi dengan lawan, kedua pemain harus online sesuai waktu luang
-        mereka. Pemain yang pegang Putih wajib membuat papan dan melangkah pertama. Ketika Hitam sudah
-        juga melangkah pertama, maka papan permainan sudah resmi dan harus dihitung hasilnya. Masih bisa
-        dibatalkan jika salah setting atau Hitam sedang tidak online. Setelah permainan selesai, anda bisa
-        membantu Ambil Skor atau kami secara periodik akan merekap hasilnya.
-      </p>
-
-      <h4>Cara menghitung skor?</h4>
-      <p>
-        Menang 1, remis 1/2, dan kalah 0. Jika papan tidak dimainkan, maka kedua pemain mendapat skor 0.
-        Kedepannya kami mencoba bermacam-macam variasi penghitungan. Bisa klub lawan klub, bisa kelompok
-        umur tertentu.
-      </p>
-
-      <h4>Pertandingan Kursi Empat</h4>
-      <p>
-        Kursi empat terjemahan quad adalah pertandingan yang hanya melibatkan 4 pemain. Pemain A lawan B,
-        C lawan D, A lawan C, B lawan D, A lawan D, dan B lawan C. Warna diatur dan diacak. Pemain
-        bermain 3 ronde pada hari tersebut dan menyelesaikannya. Untuk hadiahnya, silahkan tanya kepada
-        admin sebelum membuat kursi empat apakah ada hadiahnya.
-      </p>
-
-      <h4>Kemenangan Berturut</h4>
-      <p>Belum ada untuk Kemenangan Berturut (winning streak).</p>
-
-      <h4>Hadiah Turnamen</h4>
-      <p>
-        Pada akhir turnamen, pemain-pemain dengan skor paling tinggi akan mendapat hadiah. Jika ada skor
-        yang sama, maka hadiah dibagi rata. Hadiah akan ditransfer ke rekening pemain lewat online banking
-        dengan biaya transfer ditanggung pemenang.
-      </p>
-
-      <h4>Rating dan peringkat</h4>
-      <p>
-        Setiap permainan akan mempengaruhi rating/peringkat pemain. Kami menggunakan penghitungan ELO
-        Rating. Rating awal 1000. Jika anda punya FIDE rating yang sudah mapan atau USCF rating yang sudah
-        mapan, kami bisa mengkonversinya ke rating Liga Catur. Peringkat bukan nilai yang dihitung untuk
-        hadiah turnamen ini.
-      </p>
-
-      <h4>Grup WA (WhatsApp) Liga Catur</h4>
-      <p>
-        Untuk memudahkan berkomunikasi kami menggunakan WhatsApp. Silahkan bergabung dalam grup kami.{" "}
-        <a href="https://www.chess.com/club/blunder-skuad" target="_blank" rel="noreferrer">
-          Grup WA KCI
-        </a>
-        .
-      </p>
-
-      <h4>Sponsor</h4>
-      <p>
-        Kami masih berkembang dan membutuhkan sponsor. Jika komunitas, lembaga, atau perusahaan anda ingin
-        mengadakan turnamen online, kami dengan senang hati memfasilitasi. Sistem yang kami pakai
-        berpengalaman menjalankan turnamen dengan ratusan peserta.
-      </p>
-
-      <h4>Wasit Turnamen</h4>
-      <p>
-        Walau tidak ada wasit resmi dalam turnamen, kami mempunyai beberapa pemain yang menjadi wasit untuk
-        memutuskan jika ada perselisihan dan kita selesaikan secara kekeluargaan.
-      </p>
-
-      {/* Hasil Tournamen - tabel persis ligacatur */}
-      <h3 id="history">Hasil Tournamen</h3>
-      {gagal ? (
-        <p>Jadwal sedang tidak dapat dimuat.</p>
-      ) : turnamen === null ? (
-        <p>Memuat jadwal...</p>
-      ) : turnamen.length ? (
-        <div className="overflow-auto">
-          <table className="tabel-kci">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nama Turnamen</th>
-                <th>Kategori</th>
-                <th>Tanggal Mulai</th>
-                <th>Tanggal Berakhir</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...turnamen]
-                .sort((a, b) => {
-                  const da = parseWaktuKomunitas(a.mulai)?.getTime() || 0;
-                  const db = parseWaktuKomunitas(b.mulai)?.getTime() || 0;
-                  return db - da;
-                })
-                .map((t, i) => {
-                  const label = jenis[t.jenis]?.label || t.jenis;
-                  const slug = jenis[t.jenis]?.slug;
-                  const href = slug ? `/turnamen/${slug}` : "";
-                  return (
-                    <tr key={t.id}>
-                      <td>{i + 1}</td>
-                      <td>
-                        {href ? (
-                          <Link to={href} className="font-medium text-[#0B2F9F]">
-                            {t.nama}
-                          </Link>
-                        ) : t.tautan ? (
-                          <a
-                            href={t.tautan}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-medium text-[#0B2F9F]"
-                          >
-                            {t.nama}
-                          </a>
-                        ) : (
-                          <span className="font-medium">{t.nama}</span>
-                        )}{" "}
-                        <span className="ml-2">
-                          <LencanaStatus status={t.status} />
-                        </span>
-                      </td>
-                      <td>{label}</td>
-                      <td>{formatTanggalShort(t.mulai)}</td>
-                      <td>{formatTanggalShort(t.selesai || t.mulai)}</td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <p>Belum ada hasil turnamen.</p>
-      )}
-
-      {/* Rangkuman Jadwal - tetap pakai data asli */}
       <h3>Rangkuman Jadwal Turnamen</h3>
       {gagal ? (
-        <p>Jadwal tidak dapat dimuat.</p>
+        <p>Jadwal sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
       ) : turnamen === null ? (
-        <p>Memuat jadwal...</p>
+        <p>Memuat jadwal…</p>
       ) : turnamen.length ? (
-        <div className="overflow-auto">
-          <table className="tabel-kci">
+        <div className="overflow-auto max-h-[760px]">
+          <table className="tabel-kci tabel-peringkat">
             <thead>
               <tr>
-                <th>TURNAMEN</th>
-                <th>JENIS</th>
-                <th>STATUS</th>
-                <th>MULAI</th>
-                <th>TUTUP DAFTAR</th>
-                <th>TEMPO</th>
-                <th>TEMPAT</th>
+                <th className="kol-turnamen">TURNAMEN</th>
+                <th className="kol-jenis">JENIS</th>
+                <th className="kol-status">STATUS</th>
+                <th className="kol-mulai">MULAI</th>
+                <th className="kol-tutup">TUTUP DAFTAR</th>
+                <th className="kol-tempo">TEMPO</th>
+                <th className="kol-tempat">TEMPAT</th>
               </tr>
             </thead>
             <tbody>
-              {turnamen.map((t) => {
+              {turnamen.map((t, index) => {
                 const j = jenis[t.jenis] || {};
                 const href = j.slug ? `/turnamen/${j.slug}` : "";
                 return (
-                  <tr key={t.id}>
-                    <td>
-                      {href ? (
-                        <Link to={href} className="font-medium text-[#0B2F9F]">
+                  <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                    <td className="kol-turnamen">
+                      {t.tautan ? (
+                        <a
+                          href={t.tautan}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="font-medium text-primary hover:underline"
+                          title="Buka turnamen"
+                        >
+                          {t.nama} <span aria-hidden="true">↗</span>
+                        </a>
+                      ) : href ? (
+                        <Link
+                          to={href}
+                          className="font-medium text-primary hover:underline"
+                        >
                           {t.nama}
                         </Link>
                       ) : (
-                        <span className="font-medium">{t.nama}</span>
+                        <span className="font-medium text-slate-900">{t.nama}</span>
                       )}
                     </td>
-                    <td>{j.label || t.jenis}</td>
-                    <td>
+                    <td className="kol-jenis">
+                      {j.label || t.jenis}
+                    </td>
+                    <td className="kol-status">
                       <LencanaStatus status={t.status} />
                     </td>
-                    <td>{formatTanggal(t.mulai)}</td>
-                    <td>{formatTanggal(t.tutupDaftar)}</td>
-                    <td>{t.tempo || "—"}</td>
-                    <td>{t.tempat || "—"}</td>
+                    <td className="kol-mulai">
+                      {formatTanggal(t.mulai)}
+                    </td>
+                    <td className="kol-tutup">
+                      {formatTanggal(t.tutupDaftar)}
+                    </td>
+                    <td className="kol-tempo">{t.tempo || "—"}</td>
+                    <td className="kol-tempat">{t.tempat || "—"}</td>
                   </tr>
                 );
               })}
@@ -299,23 +135,32 @@ export default function Beranda() {
           </table>
         </div>
       ) : (
-        <p>Belum ada jadwal.</p>
+        <p>Belum ada jadwal turnamen yang dipublikasikan.</p>
       )}
 
       <h3>Rangkuman Pengumuman</h3>
       {gagal ? (
-        <p>Pengumuman tidak dapat dimuat.</p>
+        <p>
+          Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.
+        </p>
       ) : pengumuman === null ? (
-        <p>Memuat pengumuman...</p>
+        <p>Memuat pengumuman…</p>
       ) : pengumuman.length ? (
         <div>
           {pengumuman.map((p) => (
-            <article key={p.id} className="border-b border-slate-200 py-3">
-              <div className="flex justify-between gap-2">
-                <h4 className="text-sm font-semibold">{p.judul}</h4>
-                <span className="text-xs text-slate-500">{p.tanggal}</span>
+            <article
+              key={p.id}
+              className="border-b border-slate-200 py-3"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <h4 className="text-sm font-semibold text-slate-900">{p.judul}</h4>
+                <span className="text-xs uppercase tracking-wide text-slate-500">
+                  {p.tanggal}
+                </span>
               </div>
-              <p className="mt-1 text-sm text-slate-600">{p.isi}</p>
+              <p className="mb-0! mt-1 text-sm leading-6 text-slate-600">
+                {p.isi}
+              </p>
             </article>
           ))}
         </div>
