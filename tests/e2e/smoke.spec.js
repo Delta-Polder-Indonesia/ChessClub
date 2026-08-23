@@ -253,7 +253,9 @@ test("form Hubungi Kami mengirim pesan setelah persetujuan", async ({ page }) =>
   await page.getByLabel("Subjek Pesan").fill("Pertanyaan fitur");
   await page.getByLabel("Isi Pesan").fill("Mohon informasi kegiatan berikutnya.");
   await page.locator('input[name="agreement"]').check();
-  await page.getByRole("button", { name: "Kirim Pesan" }).click();
+  // Pada viewport mobile ada tombol navigasi seksi berlabel sama; ambil
+  // tombol kirim yang berada di dalam seksi formulirnya.
+  await page.locator("#hubungi-kami").getByRole("button", { name: "Kirim Pesan" }).click();
 
   await expect(page.getByText("Pesan Anda berhasil dikirim!")).toBeVisible();
   const pesan = requests.find((request) => request.path === "/api/pesan" && request.method === "POST");
