@@ -159,8 +159,10 @@ ada masalah CORS sama sekali.
 ### Bila frontend tetap di GitHub Pages
 
 GitHub Pages tidak mendukung proxy, jadi frontend harus memanggil backend
-secara langsung. Workflow deploy (`.github/workflows/deploy.yml`) **sudah
-menyetel `VITE_API_DASAR` otomatis** — bawaan `https://kci-api.onrender.com`.
+secara langsung. Template workflow deploy (`deploy/github-workflows/deploy.yml.md`)
+menyetel `VITE_API_DASAR` otomatis — bawaan `https://kci-api.onrender.com`.
+Aktifkan template tersebut sebagai `.github/workflows/deploy.yml` dari komputer
+lokal setelah merge (lihat `deploy/github-workflows/README.md`).
 Untuk alamat backend yang berbeda, atur repository variable `KCI_API_URL`
 di GitHub (Settings → Secrets and variables → Actions → Variables); nilai
 itu dipakai menggantikan bawaan.
@@ -289,8 +291,9 @@ Endpoint ringan `GET /api/kesehatan` dapat diuji secara manual:
 KCI_API_URL=https://api-domain-anda.example npm run operasi:kesehatan
 ```
 
-Workflow `.github/workflows/health.yml` menjalankannya setiap 6 jam dan dapat
-dijalankan manual dari tab **Actions**. Atur repository variable
+Template `deploy/github-workflows/health.yml.md` menjalankannya setiap 6 jam
+dan dapat dijalankan manual dari tab **Actions** setelah Anda menyalinnya ke
+`.github/workflows/health.yml` dari komputer lokal. Atur repository variable
 `KCI_API_URL` di GitHub agar workflow aktif. GitHub akan menandai workflow
 merah bila API timeout, mengembalikan HTTP gagal, atau status selain `sehat`.
 
