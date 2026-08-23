@@ -13,7 +13,7 @@ import {
   ambilTurnamenPublik,
   ambilPengumumanPublik,
   jenisTurnamen,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
 import LencanaStatus from "../../components/LencanaStatus.jsx";
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiPengurus, jenisTurnamen } from "../../lib/chessAnggota.js";
+import { apiPengurus, jenisTurnamen } from "../../lib/api/index.js";
 import { Tombol, Modal } from "./ui.jsx";
 import { Lencana } from "./PanelTurnamen/bagian.jsx";
 import FormulirTurnamen from "./PanelTurnamen/Formulir.jsx";

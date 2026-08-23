@@ -8,7 +8,7 @@ import {
 } from "../../components/CorporatePage.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
-import { kirimPesan } from "../../lib/chessAnggota.js";
+import { kirimPesan } from "../../lib/api/index.js";
 
 const SIDEBAR = [
   { id: "sekretariat", label: "Sekretariat", active: true },

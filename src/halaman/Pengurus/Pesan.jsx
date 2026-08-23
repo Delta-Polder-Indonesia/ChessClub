@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiPengurus } from "../../lib/chessAnggota.js";
+import { apiPengurus } from "../../lib/api/index.js";
 import { Tombol, Modal } from "./ui.jsx";
 
 export default function PanelPesan({
