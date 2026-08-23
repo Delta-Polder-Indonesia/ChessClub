@@ -113,6 +113,7 @@ export function untukPublik(t) {
     hadiah: t.hadiah,
     tempat: t.tempat,
     tautan: t.tautan,
+    juara: t.juara || null,
     jumlahPeserta: (t.peserta || []).length,
     peserta: (t.peserta || []).map((p) => ({
       username: p.username,
@@ -123,6 +124,27 @@ export function untukPublik(t) {
     })),
     klasemen: hitungKlasemen(t),
     dibuatPada: t.dibuatPada,
+  };
+}
+
+export async function rincianUntukPengurus(idAtauSlug) {
+  const t = await ambilTurnamen(idAtauSlug);
+  const anggota = await repoAnggota.baca();
+  const eloPerUsername = new Map(anggota.map((a) => [a.username, a.elo]));
+  const dasar = untukPublik(t);
+  return {
+    ...dasar,
+    klasemenTim: klasemenTim(t),
+    hasil: t.hasil || [],
+    pengajuan: t.pengajuan || [],
+    peserta: dasar.peserta.map((p) => ({
+      ...p,
+      rating: eloPerUsername.get(p.username) ?? null,
+    })),
+    klasemen: dasar.klasemen.map((k) => ({
+      ...k,
+      rating: eloPerUsername.get(k.username) ?? null,
+    })),
   };
 }
 
@@ -259,7 +281,14 @@ export async function ambilTurnamen(idAtauSlug) {
 function validasiTurnamen(data, { baru = false } = {}) {
   const galat = {};
   if (baru) {
-    if (!JENIS[data.jenis]) galat.jenis = "Jenis turnamen tidak dikenal.";
+    if (!JENIS[data.jenis]) {
+      // Kategori tulisan bebas tetap diterima agar hasil turnamen ad-hoc
+      // (mis. "Turnamen Sekolah") bisa diarsipkan lewat panel Juara.
+      const bebas = String(data.jenis || "").trim();
+      if (!bebas) galat.jenis = "Kategori wajib dipilih atau ditulis.";
+      else if (bebas.length > 60)
+        galat.jenis = "Kategori terlalu panjang (maksimal 60 karakter).";
+    }
   }
   if (data.nama !== undefined) {
     const nama = String(data.nama || "").trim();
@@ -296,6 +325,9 @@ function validasiTurnamen(data, { baru = false } = {}) {
       galat.tautan = "Tautan turnamen harus berupa URL HTTPS lengkap.";
     }
   }
+  if (data.juara !== undefined && String(data.juara || "").trim().length > 100) {
+    galat.juara = "Nama juara terlalu panjang (maksimal 100 karakter).";
+  }
   return galat;
 }
 
@@ -305,7 +337,16 @@ export async function buatTurnamen(data) {
     throw new GalatAplikasi(400, "Periksa kembali isian turnamen.", { galat });
   }
 
-  const sifat = JENIS[data.jenis];
+  const baku = Boolean(JENIS[data.jenis]);
+  const sifat = JENIS[data.jenis] || {
+    sistem: "swiss",
+    rondeBawaan: 0,
+    tempoBawaan: "15+10",
+  };
+  // Kategori resmi memakai kunci bawaan; kategori bebas disimpan apa adanya
+  // agar tampil rapi, sementara ID memakai versi slug agar aman di URL.
+  const jenis = baku ? data.jenis : String(data.jenis).trim();
+  const jenisId = baku ? data.jenis : bikinSlug(data.jenis) || "lainnya";
   const nama = String(data.nama).trim();
 
   return repoTurnamen.ubah(async (semua) => {
@@ -313,8 +354,8 @@ export async function buatTurnamen(data) {
     if (semua.some((t) => t.slug === slug)) slug = `${slug}-${semua.length + 1}`;
 
     const baru = {
-      id: buatId(data.jenis),
-      jenis: data.jenis,
+      id: buatId(jenisId),
+      jenis,
       nama,
       slug,
       status: data.status || "draf",
@@ -330,6 +371,7 @@ export async function buatTurnamen(data) {
       hadiah: String(data.hadiah || "").trim(),
       tempat: String(data.tempat || "Daring — Chess.com").trim(),
       tautan: String(data.tautan || "").trim(),
+      juara: String(data.juara || "").trim() || null,
       peserta: [],
       hasil: [],
       dibuatPada: kiniIso(),
@@ -347,6 +389,7 @@ export async function ubahTurnamen(id, perubahan) {
   const bolehUbah = [
     "nama", "status", "deskripsi", "mulai", "selesai", "tutupDaftar",
     "tempo", "sistem", "ronde", "kuota", "biaya", "hadiah", "tempat", "tautan",
+    "juara",
   ];
   return repoTurnamen.ubah(async (semua) => {
     const i = semua.findIndex((t) => t.id === id);
@@ -357,6 +400,9 @@ export async function ubahTurnamen(id, perubahan) {
     }
     if (perubahan.tautan !== undefined) {
       ubah.tautan = String(perubahan.tautan || "").trim();
+    }
+    if (perubahan.juara !== undefined) {
+      ubah.juara = String(perubahan.juara || "").trim() || null;
     }
     if (perubahan.kuota !== undefined) {
       ubah.kuota = perubahan.kuota ? Number(perubahan.kuota) : null;
@@ -570,6 +616,22 @@ export async function daftarkanPeserta(id, { username, tim }) {
   // Keanggotaan, bukan hanya siapa yang sudah mengisi formulir lokal.
   const rekamKlub = anggotaKlub.find((a) => a.username === uname);
 
+  let profil;
+  try {
+    profil = await ambilProfil(uname, { pakaiCache: false });
+  } catch (e) {
+    if (e?.sementara) {
+      throw new GalatAplikasi(
+        503,
+        "Chess.com sedang tidak bisa dihubungi. Coba lagi sebentar."
+      );
+    }
+    throw new GalatAplikasi(
+      404,
+      `Akun Chess.com "${uname}" tidak ditemukan. Periksa ejaan username.`
+    );
+  }
+
   return repoTurnamen.ubah(async (semua) => {
     const i = semua.findIndex((t) => t.id === id);
     if (i === -1) throw new GalatAplikasi(404, "Turnamen tidak ditemukan.");
@@ -596,9 +658,9 @@ export async function daftarkanPeserta(id, { username, tim }) {
 
     const peserta = {
       username: uname,
-      panggilan: rekamLokal?.panggilan || uname,
+      panggilan: rekamLokal?.panggilan || profil.data.name || uname,
       anggota: Boolean(rekamKlub),
-      tim: JENIS[t.jenis].beregu ? String(tim || "").trim() || null : null,
+      tim: String(tim || "").trim() || null,
       daftarPada: kiniIso(),
     };
     t.peserta = [...(t.peserta || []), peserta];

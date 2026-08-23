@@ -5,11 +5,11 @@
  */
 
 export const LABEL_STATUS = {
-  draf: { teks: "Draf", kelas: "bg-slate-100 text-slate-700" },
-  pendaftaran: { teks: "Pendaftaran", kelas: "bg-blue-50 text-blue-700" },
-  berlangsung: { teks: "Berlangsung", kelas: "bg-amber-50 text-amber-800" },
-  selesai: { teks: "Selesai", kelas: "bg-emerald-50 text-emerald-700" },
-  batal: { teks: "Batal", kelas: "bg-red-50 text-red-700" },
+  draf: { teks: "Draf", kelas: "text-slate-600" },
+  pendaftaran: { teks: "Pendaftaran", kelas: "text-slate-600" },
+  berlangsung: { teks: "Berlangsung", kelas: "text-slate-600" },
+  selesai: { teks: "Selesai", kelas: "text-slate-600" },
+  batal: { teks: "Batal", kelas: "text-slate-600" },
 };
 
 export function Lencana({ status }) {

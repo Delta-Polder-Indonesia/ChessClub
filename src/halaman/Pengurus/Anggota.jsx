@@ -73,100 +73,91 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
           akun dari klub Chess.com.
         </p>
 
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
-          <div className="max-h-[500px] overflow-y-auto">
-            <table className="w-full min-w-[700px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 sticky top-0">
-                <tr>
-                  <th className="px-3 py-2 font-semibold w-12">#</th>
-                  <th className="px-3 py-2 font-semibold">Profil</th>
-                  <th className="px-3 py-2 font-semibold">Kota</th>
-                  <th className="px-3 py-2 font-semibold">Elo</th>
-                  <th className="px-3 py-2 font-semibold">Verifikasi</th>
-                  <th className="px-3 py-2 font-semibold">Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {anggota.map((a, index) => (
-                  <tr key={a.username} className="border-t border-slate-100 hover:bg-slate-50/50">
-                    <td className="px-3 py-2 text-slate-500 font-medium">
-                      {index + 1}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex items-center gap-3">
-                        <Avatar username={a.username} />
-                        <div className="min-w-0">
-                          <a
-                            href={a.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-medium text-primary hover:underline flex items-center gap-1.5"
-                          >
-                            {a.username}
-                            {a.alasanStatus && <LencanaBan />}
-                          </a>
-                          {a.panggilan && a.panggilan !== a.username && (
-                            <p className="text-xs text-slate-500 truncate">{a.panggilan}</p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-3 py-2 text-slate-700">
-                      {a.kota || "—"}
-                    </td>
-                    <td className="px-3 py-2 text-slate-700">
-                      {a.elo ? `${a.elo} ${a.kontrol || ""}` : "—"}
-                    </td>
-                    <td className="px-3 py-2">
-                      {a.terverifikasi ? (
-                        <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          terverifikasi
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">belum</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-2">
-                      <div className="flex gap-1.5">
-                        <Tombol
-                          anak="Kontak"
-                          kecil
-                          onClick={() => lihatKontak(a.username)}
-                          disabled={sibuk === `kontak-${a.username}`}
-                        />
-                        {a.diblokirKomunitas || a.alasanStatus ? (
-                          <Tombol
-                            anak="Diblokir"
-                            kecil
-                            jenis="bahaya"
-                            disabled
-                          />
-                        ) : (
-                          <Tombol
-                            anak="Blokir"
-                            jenis="bahaya"
-                            kecil
-                            onClick={() => setTargetBlokir(a.username)}
-                            disabled={sibuk === `blokir-${a.username}`}
-                          />
+        <div className="max-h-[500px] overflow-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Profil</th>
+                <th>Kota</th>
+                <th>Elo</th>
+                <th>Verifikasi</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {anggota.map((a, index) => (
+                <tr key={a.username}>
+                  <td className="font-medium text-slate-500">{index + 1}</td>
+                  <td>
+                    <div className="flex items-center gap-3">
+                      <Avatar username={a.username} />
+                      <div className="min-w-0">
+                        <a
+                          href={a.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-medium text-primary hover:underline flex items-center gap-1.5"
+                        >
+                          {a.username}
+                          {a.alasanStatus && <LencanaBan />}
+                        </a>
+                        {a.panggilan && a.panggilan !== a.username && (
+                          <p className="text-xs text-slate-500 truncate">{a.panggilan}</p>
                         )}
                       </div>
-                    </td>
-                  </tr>
-                ))}
-                {!anggota.length && (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-3 py-6 text-center text-slate-500"
-                    >
-                      Belum ada anggota dari roster klub.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </td>
+                  <td className="text-slate-700">{a.kota || "—"}</td>
+                  <td className="text-slate-700">
+                    {a.elo ? `${a.elo} ${a.kontrol || ""}` : "—"}
+                  </td>
+                  <td>
+                    {a.terverifikasi ? (
+                      <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-xs font-semibold text-emerald-700">
+                        terverifikasi
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400">belum</span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="flex gap-1.5">
+                      <Tombol
+                        anak="Kontak"
+                        kecil
+                        onClick={() => lihatKontak(a.username)}
+                        disabled={sibuk === `kontak-${a.username}`}
+                      />
+                      {a.diblokirKomunitas || a.alasanStatus ? (
+                        <Tombol
+                          anak="Diblokir"
+                          kecil
+                          jenis="bahaya"
+                          disabled
+                        />
+                      ) : (
+                        <Tombol
+                          anak="Blokir"
+                          jenis="bahaya"
+                          kecil
+                          onClick={() => setTargetBlokir(a.username)}
+                          disabled={sibuk === `blokir-${a.username}`}
+                        />
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {!anggota.length && (
+                <tr>
+                  <td colSpan={6} className="py-6 text-center text-slate-500">
+                    Belum ada anggota dari roster klub.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </section>
 

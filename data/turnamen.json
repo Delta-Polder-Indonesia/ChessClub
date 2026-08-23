@@ -41,23 +41,107 @@
     "tempat": "Daring — Chess.com",
     "tautan": "https://www.chess.com/live",
     "peserta": [
-      { "username": "fajarramadhan", "panggilan": "Fajar Ramadhan", "anggota": true, "daftarPada": "2026-07-10T10:00:00.000Z" },
-      { "username": "bimasaputra", "panggilan": "Bima Saputra", "anggota": true, "daftarPada": "2026-07-11T09:15:00.000Z" },
-      { "username": "diahayu", "panggilan": "Diah Ayu", "anggota": true, "daftarPada": "2026-07-12T14:40:00.000Z" },
-      { "username": "ranggapratama", "panggilan": "Rangga Pratama", "anggota": true, "daftarPada": "2026-07-13T08:05:00.000Z" },
-      { "username": "intanpermata", "panggilan": "Intan Permata", "anggota": true, "daftarPada": "2026-07-14T11:30:00.000Z" },
-      { "username": "yogapratama", "panggilan": "Yoga Pratama", "anggota": true, "daftarPada": "2026-07-15T19:20:00.000Z" }
+      {
+        "username": "fajarramadhan",
+        "panggilan": "Fajar Ramadhan",
+        "anggota": true,
+        "daftarPada": "2026-07-10T10:00:00.000Z"
+      },
+      {
+        "username": "bimasaputra",
+        "panggilan": "Bima Saputra",
+        "anggota": true,
+        "daftarPada": "2026-07-11T09:15:00.000Z"
+      },
+      {
+        "username": "diahayu",
+        "panggilan": "Diah Ayu",
+        "anggota": true,
+        "daftarPada": "2026-07-12T14:40:00.000Z"
+      },
+      {
+        "username": "ranggapratama",
+        "panggilan": "Rangga Pratama",
+        "anggota": true,
+        "daftarPada": "2026-07-13T08:05:00.000Z"
+      },
+      {
+        "username": "intanpermata",
+        "panggilan": "Intan Permata",
+        "anggota": true,
+        "daftarPada": "2026-07-14T11:30:00.000Z"
+      },
+      {
+        "username": "yogapratama",
+        "panggilan": "Yoga Pratama",
+        "anggota": true,
+        "daftarPada": "2026-07-15T19:20:00.000Z"
+      }
     ],
     "hasil": [
-      { "ronde": 1, "putih": "fajarramadhan", "hitam": "bimasaputra", "skor": "1-0", "dicatatPada": "2026-07-26T06:10:00.000Z" },
-      { "ronde": 1, "putih": "diahayu", "hitam": "ranggapratama", "skor": "0.5-0.5", "dicatatPada": "2026-07-26T06:12:00.000Z" },
-      { "ronde": 1, "putih": "intanpermata", "hitam": "yogapratama", "skor": "0-1", "dicatatPada": "2026-07-26T06:15:00.000Z" },
-      { "ronde": 2, "putih": "bimasaputra", "hitam": "diahayu", "skor": "0-1", "dicatatPada": "2026-07-26T07:05:00.000Z" },
-      { "ronde": 2, "putih": "ranggapratama", "hitam": "intanpermata", "skor": "1-0", "dicatatPada": "2026-07-26T07:08:00.000Z" },
-      { "ronde": 2, "putih": "yogapratama", "hitam": "fajarramadhan", "skor": "0.5-0.5", "dicatatPada": "2026-07-26T07:11:00.000Z" },
-      { "ronde": 3, "putih": "fajarramadhan", "hitam": "diahayu", "skor": "1-0", "dicatatPada": "2026-07-26T08:00:00.000Z" },
-      { "ronde": 3, "putih": "bimasaputra", "hitam": "intanpermata", "skor": "1-0", "dicatatPada": "2026-07-26T08:03:00.000Z" },
-      { "ronde": 3, "putih": "ranggapratama", "hitam": "yogapratama", "skor": "0-1", "dicatatPada": "2026-07-26T08:06:00.000Z" }
+      {
+        "ronde": 1,
+        "putih": "fajarramadhan",
+        "hitam": "bimasaputra",
+        "skor": "1-0",
+        "dicatatPada": "2026-07-26T06:10:00.000Z"
+      },
+      {
+        "ronde": 1,
+        "putih": "diahayu",
+        "hitam": "ranggapratama",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-07-26T06:12:00.000Z"
+      },
+      {
+        "ronde": 1,
+        "putih": "intanpermata",
+        "hitam": "yogapratama",
+        "skor": "0-1",
+        "dicatatPada": "2026-07-26T06:15:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "bimasaputra",
+        "hitam": "diahayu",
+        "skor": "0-1",
+        "dicatatPada": "2026-07-26T07:05:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "ranggapratama",
+        "hitam": "intanpermata",
+        "skor": "1-0",
+        "dicatatPada": "2026-07-26T07:08:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "yogapratama",
+        "hitam": "fajarramadhan",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-07-26T07:11:00.000Z"
+      },
+      {
+        "ronde": 3,
+        "putih": "fajarramadhan",
+        "hitam": "diahayu",
+        "skor": "1-0",
+        "dicatatPada": "2026-07-26T08:00:00.000Z"
+      },
+      {
+        "ronde": 3,
+        "putih": "bimasaputra",
+        "hitam": "intanpermata",
+        "skor": "1-0",
+        "dicatatPada": "2026-07-26T08:03:00.000Z"
+      },
+      {
+        "ronde": 3,
+        "putih": "ranggapratama",
+        "hitam": "yogapratama",
+        "skor": "0-1",
+        "dicatatPada": "2026-07-26T08:06:00.000Z"
+      }
     ],
     "dibuatPada": "2026-07-01T02:00:00.000Z",
     "diubahPada": "2026-07-26T08:30:00.000Z"
@@ -104,26 +188,128 @@
     "tempat": "Daring — Chess.com",
     "tautan": "https://www.chess.com/live",
     "peserta": [
-      { "username": "fajarramadhan", "panggilan": "Fajar Ramadhan", "anggota": true, "daftarPada": "2026-06-01T10:00:00.000Z" },
-      { "username": "bimasaputra", "panggilan": "Bima Saputra", "anggota": true, "daftarPada": "2026-06-02T09:00:00.000Z" },
-      { "username": "diahayu", "panggilan": "Diah Ayu", "anggota": true, "daftarPada": "2026-06-03T14:00:00.000Z" },
-      { "username": "ranggapratama", "panggilan": "Rangga Pratama", "anggota": true, "daftarPada": "2026-06-05T08:00:00.000Z" },
-      { "username": "intanpermata", "panggilan": "Intan Permata", "anggota": true, "daftarPada": "2026-06-08T11:00:00.000Z" },
-      { "username": "yogapratama", "panggilan": "Yoga Pratama", "anggota": true, "daftarPada": "2026-06-10T19:00:00.000Z" }
+      {
+        "username": "fajarramadhan",
+        "panggilan": "Fajar Ramadhan",
+        "anggota": true,
+        "daftarPada": "2026-06-01T10:00:00.000Z"
+      },
+      {
+        "username": "bimasaputra",
+        "panggilan": "Bima Saputra",
+        "anggota": true,
+        "daftarPada": "2026-06-02T09:00:00.000Z"
+      },
+      {
+        "username": "diahayu",
+        "panggilan": "Diah Ayu",
+        "anggota": true,
+        "daftarPada": "2026-06-03T14:00:00.000Z"
+      },
+      {
+        "username": "ranggapratama",
+        "panggilan": "Rangga Pratama",
+        "anggota": true,
+        "daftarPada": "2026-06-05T08:00:00.000Z"
+      },
+      {
+        "username": "intanpermata",
+        "panggilan": "Intan Permata",
+        "anggota": true,
+        "daftarPada": "2026-06-08T11:00:00.000Z"
+      },
+      {
+        "username": "yogapratama",
+        "panggilan": "Yoga Pratama",
+        "anggota": true,
+        "daftarPada": "2026-06-10T19:00:00.000Z"
+      }
     ],
     "hasil": [
-      { "ronde": 1, "putih": "fajarramadhan", "hitam": "bimasaputra", "skor": "1-0", "dicatatPada": "2026-06-05T12:00:00.000Z" },
-      { "ronde": 1, "putih": "diahayu", "hitam": "ranggapratama", "skor": "0.5-0.5", "dicatatPada": "2026-06-06T12:00:00.000Z" },
-      { "ronde": 2, "putih": "intanpermata", "hitam": "yogapratama", "skor": "0-1", "dicatatPada": "2026-06-12T12:00:00.000Z" },
-      { "ronde": 2, "putih": "bimasaputra", "hitam": "diahayu", "skor": "0-1", "dicatatPada": "2026-06-13T12:00:00.000Z" },
-      { "ronde": 3, "putih": "ranggapratama", "hitam": "intanpermata", "skor": "1-0", "dicatatPada": "2026-06-19T12:00:00.000Z" },
-      { "ronde": 3, "putih": "yogapratama", "hitam": "fajarramadhan", "skor": "0.5-0.5", "dicatatPada": "2026-06-20T12:00:00.000Z" },
-      { "ronde": 4, "putih": "fajarramadhan", "hitam": "diahayu", "skor": "1-0", "dicatatPada": "2026-06-26T12:00:00.000Z" },
-      { "ronde": 4, "putih": "bimasaputra", "hitam": "intanpermata", "skor": "1-0", "dicatatPada": "2026-06-27T12:00:00.000Z" },
-      { "ronde": 5, "putih": "ranggapratama", "hitam": "yogapratama", "skor": "0-1", "dicatatPada": "2026-07-03T12:00:00.000Z" },
-      { "ronde": 5, "putih": "fajarramadhan", "hitam": "intanpermata", "skor": "1-0", "dicatatPada": "2026-07-04T12:00:00.000Z" },
-      { "ronde": 6, "putih": "diahayu", "hitam": "yogapratama", "skor": "0.5-0.5", "dicatatPada": "2026-07-10T12:00:00.000Z" },
-      { "ronde": 6, "putih": "bimasaputra", "hitam": "ranggapratama", "skor": "0-1", "dicatatPada": "2026-07-11T12:00:00.000Z" }
+      {
+        "ronde": 1,
+        "putih": "fajarramadhan",
+        "hitam": "bimasaputra",
+        "skor": "1-0",
+        "dicatatPada": "2026-06-05T12:00:00.000Z"
+      },
+      {
+        "ronde": 1,
+        "putih": "diahayu",
+        "hitam": "ranggapratama",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-06-06T12:00:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "intanpermata",
+        "hitam": "yogapratama",
+        "skor": "0-1",
+        "dicatatPada": "2026-06-12T12:00:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "bimasaputra",
+        "hitam": "diahayu",
+        "skor": "0-1",
+        "dicatatPada": "2026-06-13T12:00:00.000Z"
+      },
+      {
+        "ronde": 3,
+        "putih": "ranggapratama",
+        "hitam": "intanpermata",
+        "skor": "1-0",
+        "dicatatPada": "2026-06-19T12:00:00.000Z"
+      },
+      {
+        "ronde": 3,
+        "putih": "yogapratama",
+        "hitam": "fajarramadhan",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-06-20T12:00:00.000Z"
+      },
+      {
+        "ronde": 4,
+        "putih": "fajarramadhan",
+        "hitam": "diahayu",
+        "skor": "1-0",
+        "dicatatPada": "2026-06-26T12:00:00.000Z"
+      },
+      {
+        "ronde": 4,
+        "putih": "bimasaputra",
+        "hitam": "intanpermata",
+        "skor": "1-0",
+        "dicatatPada": "2026-06-27T12:00:00.000Z"
+      },
+      {
+        "ronde": 5,
+        "putih": "ranggapratama",
+        "hitam": "yogapratama",
+        "skor": "0-1",
+        "dicatatPada": "2026-07-03T12:00:00.000Z"
+      },
+      {
+        "ronde": 5,
+        "putih": "fajarramadhan",
+        "hitam": "intanpermata",
+        "skor": "1-0",
+        "dicatatPada": "2026-07-04T12:00:00.000Z"
+      },
+      {
+        "ronde": 6,
+        "putih": "diahayu",
+        "hitam": "yogapratama",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-07-10T12:00:00.000Z"
+      },
+      {
+        "ronde": 6,
+        "putih": "bimasaputra",
+        "hitam": "ranggapratama",
+        "skor": "0-1",
+        "dicatatPada": "2026-07-11T12:00:00.000Z"
+      }
     ],
     "dibuatPada": "2026-05-20T02:00:00.000Z",
     "diubahPada": "2026-07-12T13:00:00.000Z"
@@ -147,17 +333,66 @@
     "tempat": "Daring — Chess.com",
     "tautan": "https://www.chess.com/live",
     "peserta": [
-      { "username": "fajarramadhan", "panggilan": "Fajar Ramadhan", "anggota": true, "daftarPada": "2026-08-01T10:00:00.000Z" },
-      { "username": "diahayu", "panggilan": "Diah Ayu", "anggota": true, "daftarPada": "2026-08-02T10:00:00.000Z" },
-      { "username": "yogapratama", "panggilan": "Yoga Pratama", "anggota": true, "daftarPada": "2026-08-03T10:00:00.000Z" },
-      { "username": "andimulya", "panggilan": "Andi Mulya", "anggota": false, "daftarPada": "2026-08-04T10:00:00.000Z" },
-      { "username": "dewisari", "panggilan": "Dewi Sari", "anggota": false, "daftarPada": "2026-08-05T10:00:00.000Z" }
+      {
+        "username": "fajarramadhan",
+        "panggilan": "Fajar Ramadhan",
+        "anggota": true,
+        "daftarPada": "2026-08-01T10:00:00.000Z"
+      },
+      {
+        "username": "diahayu",
+        "panggilan": "Diah Ayu",
+        "anggota": true,
+        "daftarPada": "2026-08-02T10:00:00.000Z"
+      },
+      {
+        "username": "yogapratama",
+        "panggilan": "Yoga Pratama",
+        "anggota": true,
+        "daftarPada": "2026-08-03T10:00:00.000Z"
+      },
+      {
+        "username": "andimulya",
+        "panggilan": "Andi Mulya",
+        "anggota": false,
+        "daftarPada": "2026-08-04T10:00:00.000Z"
+      },
+      {
+        "username": "dewisari",
+        "panggilan": "Dewi Sari",
+        "anggota": false,
+        "daftarPada": "2026-08-05T10:00:00.000Z"
+      }
     ],
     "hasil": [
-      { "ronde": 1, "putih": "fajarramadhan", "hitam": "andimulya", "skor": "1-0", "dicatatPada": "2026-08-15T02:10:00.000Z" },
-      { "ronde": 1, "putih": "dewisari", "hitam": "diahayu", "skor": "0-1", "dicatatPada": "2026-08-15T02:12:00.000Z" },
-      { "ronde": 2, "putih": "yogapratama", "hitam": "dewisari", "skor": "1-0", "dicatatPada": "2026-08-15T03:20:00.000Z" },
-      { "ronde": 2, "putih": "diahayu", "hitam": "fajarramadhan", "skor": "0.5-0.5", "dicatatPada": "2026-08-15T03:22:00.000Z" }
+      {
+        "ronde": 1,
+        "putih": "fajarramadhan",
+        "hitam": "andimulya",
+        "skor": "1-0",
+        "dicatatPada": "2026-08-15T02:10:00.000Z"
+      },
+      {
+        "ronde": 1,
+        "putih": "dewisari",
+        "hitam": "diahayu",
+        "skor": "0-1",
+        "dicatatPada": "2026-08-15T02:12:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "yogapratama",
+        "hitam": "dewisari",
+        "skor": "1-0",
+        "dicatatPada": "2026-08-15T03:20:00.000Z"
+      },
+      {
+        "ronde": 2,
+        "putih": "diahayu",
+        "hitam": "fajarramadhan",
+        "skor": "0.5-0.5",
+        "dicatatPada": "2026-08-15T03:22:00.000Z"
+      }
     ],
     "dibuatPada": "2026-07-15T02:00:00.000Z",
     "diubahPada": "2026-08-15T04:00:00.000Z"
@@ -167,7 +402,7 @@
     "jenis": "antar-komunitas",
     "nama": "Liga Antar Komunitas 2026",
     "slug": "liga-antar-komunitas-2026",
-    "status": "pendaftaran",
+    "status": "selesai",
     "deskripsi": "Kompetisi beregu antar komunitas catur se-Indonesia. Setiap tim menurunkan lima pemain.",
     "mulai": "2026-09-05 19:00",
     "selesai": "2026-11-28 21:00",
@@ -181,14 +416,44 @@
     "tempat": "Daring — Chess.com",
     "tautan": "https://www.chess.com/live",
     "peserta": [
-      { "username": "fajarramadhan", "panggilan": "Fajar Ramadhan", "anggota": true, "tim": "KCI Medan", "daftarPada": "2026-08-05T10:00:00.000Z" },
-      { "username": "diahayu", "panggilan": "Diah Ayu", "anggota": true, "tim": "KCI Medan", "daftarPada": "2026-08-05T10:05:00.000Z" },
-      { "username": "yogapratama", "panggilan": "Yoga Pratama", "anggota": true, "tim": "KCI Medan", "daftarPada": "2026-08-05T10:10:00.000Z" },
-      { "username": "andimulya", "panggilan": "Andi Mulya", "anggota": false, "tim": "PCB Jakarta", "daftarPada": "2026-08-06T10:00:00.000Z" },
-      { "username": "dewisari", "panggilan": "Dewi Sari", "anggota": false, "tim": "PCB Jakarta", "daftarPada": "2026-08-06T10:05:00.000Z" }
+      {
+        "username": "fajarramadhan",
+        "panggilan": "Fajar Ramadhan",
+        "anggota": true,
+        "tim": "KCI Medan",
+        "daftarPada": "2026-08-05T10:00:00.000Z"
+      },
+      {
+        "username": "diahayu",
+        "panggilan": "Diah Ayu",
+        "anggota": true,
+        "tim": "KCI Medan",
+        "daftarPada": "2026-08-05T10:05:00.000Z"
+      },
+      {
+        "username": "yogapratama",
+        "panggilan": "Yoga Pratama",
+        "anggota": true,
+        "tim": "KCI Medan",
+        "daftarPada": "2026-08-05T10:10:00.000Z"
+      },
+      {
+        "username": "andimulya",
+        "panggilan": "Andi Mulya",
+        "anggota": false,
+        "tim": "PCB Jakarta",
+        "daftarPada": "2026-08-06T10:00:00.000Z"
+      },
+      {
+        "username": "dewisari",
+        "panggilan": "Dewi Sari",
+        "anggota": false,
+        "tim": "PCB Jakarta",
+        "daftarPada": "2026-08-06T10:05:00.000Z"
+      }
     ],
     "hasil": [],
     "dibuatPada": "2026-08-01T02:00:00.000Z",
-    "diubahPada": "2026-08-17T05:00:00.000Z"
+    "diubahPada": "2026-08-23T18:37:33.611Z"
   }
 ]
