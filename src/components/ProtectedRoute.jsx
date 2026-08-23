@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiPengurus, tokenPengurus } from "../lib/chessAnggota.js";
+import { apiPengurus, tokenPengurus } from "../lib/api/index.js";
 import { LoadingSpinner } from "./Loading.jsx";
 import Gerbang from "../halaman/Pengurus/Gerbang.jsx";
 

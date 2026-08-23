@@ -19,7 +19,7 @@
  * rating pemain dan mengurutkannya menurut rating menurun.
  */
 import { useEffect, useState } from "react";
-import { ambilDaftarAnggota } from "./chessAnggota.js";
+import { ambilDaftarAnggota } from "./api/index.js";
 
 /** Berapa lama hasil dianggap masih segar (ms). */
 const TTL = 5 * 60 * 1000;

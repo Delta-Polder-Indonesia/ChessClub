@@ -3,7 +3,7 @@ import {
   apiPengurus,
   tokenPengurus,
   adminPengguna,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 
 /**
  * Gerbang masuk dashboard pengurus.

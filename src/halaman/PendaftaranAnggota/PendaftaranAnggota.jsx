@@ -8,7 +8,7 @@ import {
   formatHp,
   kategoriUmur,
   hitungUmur,
-} from "../../lib/chessAnggota.js";
+} from "../../lib/api/index.js";
 import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { hariIniLokal } from "../../lib/waktu.js";
