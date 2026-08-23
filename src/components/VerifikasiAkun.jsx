@@ -5,7 +5,7 @@ import {
   mulaiLoginChess,
   mintaKodeProfil,
   periksaKodeProfil,
-} from "../lib/chessAnggota.js";
+} from "../lib/api/index.js";
 
 /**
  * Pembuktian kepemilikan akun Chess.com.

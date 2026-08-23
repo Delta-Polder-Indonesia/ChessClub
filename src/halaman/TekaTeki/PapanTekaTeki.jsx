@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ChessPiece } from "../Beranda/ChessPieceSvg.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 

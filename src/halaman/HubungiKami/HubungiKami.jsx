@@ -8,7 +8,7 @@ import {
 } from "../../components/CorporatePage.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
-import { kirimPesan } from "../../lib/chessAnggota.js";
+import { kirimPesan } from "../../lib/api/index.js";
 
 const SIDEBAR = [
   { id: "sekretariat", label: "Sekretariat", active: true },
@@ -63,7 +63,7 @@ export default function HubungiKami() {
 
       <CorporateSection id="hubungi-kami" title="Kirim Pesan" className="pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0">
         {terkirim ? (
-          <div className="border border-green-200 bg-green-50 rounded-lg p-5 text-green-800">
+          <div role="status" aria-live="polite" className="border border-green-200 bg-green-50 rounded-lg p-5 text-green-800">
             <p className="font-semibold mb-1">Pesan Anda berhasil dikirim!</p>
             <p>
               Terima kasih telah menghubungi Komunitas Catur Indonesia. Tim kami akan
@@ -106,24 +106,38 @@ export default function HubungiKami() {
             }}
           >
             {galat && (
-              <div className="border border-red-300 bg-red-50 rounded-lg p-4 text-red-800">
+              <div id="galat-form-kontak" role="alert" className="border border-red-300 bg-red-50 rounded-lg p-4 text-red-800">
                 <p className="font-semibold">Gagal mengirim pesan</p>
                 <p className="text-sm">{galat}</p>
               </div>
             )}
             <div className="w-full flex flex-col md:flex-row items-start gap-4">
-              <input required name="nama" placeholder="Nama Lengkap" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
-              <input name="telepon" placeholder="Nomor Telepon (Opsional)" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border border-slate-200 rounded-md" />
+              <div className="w-full">
+                <label htmlFor="kontak-nama" className="sr-only">Nama Lengkap</label>
+                <input id="kontak-nama" required name="nama" autoComplete="name" placeholder="Nama Lengkap" aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
+              </div>
+              <div className="w-full">
+                <label htmlFor="kontak-telepon" className="sr-only">Nomor Telepon (Opsional)</label>
+                <input id="kontak-telepon" name="telepon" type="tel" autoComplete="tel" placeholder="Nomor Telepon (Opsional)" aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border border-slate-200 rounded-md" />
+              </div>
             </div>
             <div className="w-full flex flex-col md:flex-row items-start gap-4">
-              <input name="organisasi" placeholder="Nama Organisasi / Klub" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
-              <input required type="email" name="email" placeholder="Alamat Email" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
+              <div className="w-full">
+                <label htmlFor="kontak-organisasi" className="sr-only">Nama Organisasi atau Klub</label>
+                <input id="kontak-organisasi" name="organisasi" autoComplete="organization" placeholder="Nama Organisasi / Klub" aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
+              </div>
+              <div className="w-full">
+                <label htmlFor="kontak-email" className="sr-only">Alamat Email</label>
+                <input id="kontak-email" required type="email" name="email" autoComplete="email" placeholder="Alamat Email" aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
+              </div>
             </div>
             <div className="w-full">
-              <input name="subjek" placeholder="Subjek Pesan" className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
+              <label htmlFor="kontak-subjek" className="sr-only">Subjek Pesan</label>
+              <input id="kontak-subjek" name="subjek" placeholder="Subjek Pesan" aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200" />
             </div>
             <div className="w-full">
-              <textarea required name="pesan" rows={6} placeholder="Ketik pesan Anda di sini..." className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200 resize-y" />
+              <label htmlFor="kontak-pesan" className="sr-only">Isi Pesan</label>
+              <textarea id="kontak-pesan" required name="pesan" rows={6} placeholder="Ketik pesan Anda di sini..." aria-describedby={galat ? "galat-form-kontak" : undefined} className="w-full px-4 py-3 placeholder:text-slate-400 ring-primary border rounded-md border-slate-200 resize-y" />
             </div>
 
             <div className="space-y-4 mb-4">

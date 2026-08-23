@@ -5,7 +5,7 @@ import Hero from "../../components/Hero.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
 import { SettingsIcon, ShuffleIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece, DAFTAR_SET } from "../Beranda/ChessPieceSvg.jsx";
+import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";

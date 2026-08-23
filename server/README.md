@@ -85,6 +85,7 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_TOKEN_ADMIN` | produksi | Token endpoint pengurus, min. 24 karakter |
 | `KCI_ASAL_DIIZINKAN` | disarankan | Origin yang boleh memanggil API, dipisah koma |
 | `PORT` | tidak | Bawaan `8787` |
+| `KCI_LOG_PERMINTAAN` | disarankan | `1` = log JSON ringkas per request (ID, method, path, status, durasi; tanpa body/token/IP) |
 | `KCI_DIR_DATA` | tidak | Lokasi berkas data, bawaan `./data` |
 | `KCI_BATAS_DAFTAR` | tidak | Maks. pendaftaran per IP per 15 menit (bawaan 5) |
 | `KCI_BATAS_UMUM` | tidak | Maks. permintaan umum per IP per 15 menit |
