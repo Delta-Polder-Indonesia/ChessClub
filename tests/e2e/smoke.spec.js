@@ -216,10 +216,10 @@ test("form Hubungi Kami mengirim pesan setelah persetujuan", async ({ page }) =>
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/hubungi-kami");
 
-  await page.locator('input[name="nama"]').fill("Pengunjung Uji");
-  await page.locator('input[name="email"]').fill("pengunjung@example.test");
-  await page.locator('input[name="subjek"]').fill("Pertanyaan fitur");
-  await page.locator('textarea[name="pesan"]').fill("Mohon informasi kegiatan berikutnya.");
+  await page.getByLabel("Nama Lengkap").fill("Pengunjung Uji");
+  await page.getByLabel("Alamat Email").fill("pengunjung@example.test");
+  await page.getByLabel("Subjek Pesan").fill("Pertanyaan fitur");
+  await page.getByLabel("Isi Pesan").fill("Mohon informasi kegiatan berikutnya.");
   await page.locator('input[name="agreement"]').check();
   await page.getByRole("button", { name: "Kirim Pesan" }).click();
 
