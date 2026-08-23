@@ -649,7 +649,7 @@ export const ID = {
   tekaTeki: {
     judul: "Teka-teki Catur",
     deskripsi:
-      "Latih naluri taktismu dengan 4.462 soal skakmat dari buku László Polgár. Temukan skakmat dalam 1, 2, atau 3 langkah — ada petunjuk bila kamu buntu.",
+      "Latih naluri taktismu dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess. Temukan skakmat dalam 1, 2, atau 3 langkah — ada petunjuk bila kamu buntu.",
     memuat: "Memuat teka-teki…",
     gagalMuat:
       "Gagal memuat data teka-teki. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
@@ -696,7 +696,7 @@ export const ID = {
     posisiTersimpan: "Posisi tersimpan: soal #{n}",
     ingatNonaktif: "Posisi tidak disimpan.",
     sumber:
-      'Soal diambil dari buku "Chess: 5,334 Problems, Combinations, and Games" karya <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2024)</a>.',
+      'Soal diambil dari basis data puzzle Lichess (partai nyata, lisensi CC0 domain publik), hasil karya <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2026)</a>.',
     selanjutnyaJudul: "Pelajari Cara Bermain Catur",
   },
   papan: {

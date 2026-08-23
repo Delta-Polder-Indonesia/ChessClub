@@ -24,6 +24,55 @@ const KUNCI_SUSAH = {
   "Mate in Three": "sulit",
 };
 
+/**
+ * Pita rating untuk selector Level, mengikuti level NACCL (1–5).
+ * Rating diambil dari rating puzzle Lichess tiap soal.
+ */
+const PITA_LEVEL = {
+  1: (r) => r < 1000,
+  2: (r) => r >= 1000 && r < 1250,
+  3: (r) => r >= 1250 && r < 1550,
+  4: (r) => r >= 1550 && r < 1900,
+  5: (r) => r >= 1900,
+};
+
+/** Selector Tema: grup ala NACCL, hanya tema yang benar-benar ada di data. */
+const DAFTAR_TEMA = [
+  {
+    grup: "Pola Skakmat",
+    isi: [
+      ["backRankMate", "Skakmat punggung"],
+      ["smotheredMate", "Skakmat sempit"],
+      ["promotion", "Promosi"],
+    ],
+  },
+  {
+    grup: "Motif Taktik",
+    isi: [
+      ["sacrifice", "Pengorbanan"],
+      ["attraction", "Attraksi (umpan)"],
+      ["deflection", "Defleksi"],
+      ["pin", "Pengikat (pin)"],
+      ["fork", "Tusukan (fork)"],
+      ["discoveredAttack", "Serangan terbuka"],
+      ["doubleCheck", "Skak ganda"],
+      ["hangingPiece", "Bidak menggantung"],
+      ["exposedKing", "Raja terekspos"],
+    ],
+  },
+  {
+    grup: "Karakteristik",
+    isi: [
+      ["endgame", "Endgame"],
+      ["middlegame", "Middlegame"],
+      ["opening", "Pembukaan"],
+      ["master", "Partai master"],
+      ["kingsideAttack", "Serangan sayap raja"],
+      ["queensideAttack", "Serangan sayap menteri"],
+    ],
+  },
+];
+
 /** Pilihan warna papan (nilai + kunci terjemahan), mengikuti halaman papan interaktif. */
 const PILIHAN_WARNA_PAPAN = [
   ["blue", "papan.warnaBiru"],
@@ -141,6 +190,9 @@ export default function TekaTeki() {
   const [syzygyGagal, setSyzygyGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
   const [filterTipe, setFilterTipe] = useState("semua");
+  const [filterLevel, setFilterLevel] = useState("semua");
+  const [filterTema, setFilterTema] = useState("semua");
+  const [filterGiliran, setFilterGiliran] = useState("semua");
 
   const [fen, setFen] = useState("");
   const [sisa, setSisa] = useState([]);
@@ -178,9 +230,15 @@ export default function TekaTeki() {
 
   const soal = useMemo(() => {
     if (!semuaSoal) return null;
-    if (filterTipe === "semua") return semuaSoal;
-    return semuaSoal.filter((m) => m.type === filterTipe);
-  }, [semuaSoal, filterTipe]);
+    let hasil = semuaSoal;
+    if (filterTipe !== "semua") hasil = hasil.filter((m) => m.type === filterTipe);
+    if (filterLevel !== "semua")
+      hasil = hasil.filter((m) => PITA_LEVEL[filterLevel](m.rating ?? 0));
+    if (filterTema !== "semua")
+      hasil = hasil.filter((m) => (m.tema || "").split(" ").includes(filterTema));
+    if (filterGiliran !== "semua") hasil = hasil.filter((m) => m.first === filterGiliran);
+    return hasil;
+  }, [semuaSoal, filterTipe, filterLevel, filterTema, filterGiliran]);
 
   const masalah = soal?.[indeks];
   const langkahPenuh = masalah ? masalah.moves.split(";") : [];
@@ -240,7 +298,7 @@ export default function TekaTeki() {
     setParams({ id: String(soal[safeIdx].problemid) }, { replace: true });
     simpanPosisi(soal[safeIdx].problemid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterTipe]);
+  }, [filterTipe, filterLevel, filterTema, filterGiliran]);
 
   useEffect(() => {
     document.title = `${t("tekaTeki.judul")} | ${t("common.namaKomunitas")}`;
@@ -726,10 +784,20 @@ export default function TekaTeki() {
             </p>
           ) : !masalah ? (
             <div className="mx-auto max-w-[560px]">
-              <p className="mb-6 text-sm text-slate-500">
-                {t("tekaTeki.memuat")}
-              </p>
-              <KerangkaTekaTeki />
+              {semuaSoal ? (
+                <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
+                  Tidak ada soal yang cocok dengan kombinasi Level, Langkah,
+                  Tema, dan Giliran saat ini. Longgarkan salah satu saringan di
+                  Pengaturan.
+                </p>
+              ) : (
+                <>
+                  <p className="mb-6 text-sm text-slate-500">
+                    {t("tekaTeki.memuat")}
+                  </p>
+                  <KerangkaTekaTeki />
+                </>
+              )}
             </div>
           ) : (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
@@ -949,41 +1017,26 @@ export default function TekaTeki() {
                         </p>
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between gap-3">
-                            <label className="text-xs font-semibold text-slate-500">Level</label>
+                            <label htmlFor="saring-level" className="text-xs font-semibold text-slate-500">Level</label>
                             <select
-                              value={
-                                filterTipe === "Mate in One"
-                                  ? "mudah"
-                                  : filterTipe === "Mate in Two"
-                                    ? "menengah"
-                                    : filterTipe === "Mate in Three"
-                                      ? "sulit"
-                                      : "semua"
-                              }
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                setFilterTipe(
-                                  v === "mudah"
-                                    ? "Mate in One"
-                                    : v === "menengah"
-                                      ? "Mate in Two"
-                                      : v === "sulit"
-                                        ? "Mate in Three"
-                                        : "semua"
-                                );
-                              }}
-                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              id="saring-level"
+                              value={filterLevel}
+                              onChange={(e) => setFilterLevel(e.target.value)}
+                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
-                              <option value="semua">Semua</option>
-                              <option value="mudah">Mudah</option>
-                              <option value="menengah">Menengah</option>
-                              <option value="sulit">Sulit</option>
+                              <option value="semua">Semua level</option>
+                              <option value="1">1 · Sangat mudah</option>
+                              <option value="2">2 · Mudah</option>
+                              <option value="3">3 · Normal</option>
+                              <option value="4">4 · Sulit</option>
+                              <option value="5">5 · Sangat sulit</option>
                             </select>
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label className="text-xs font-semibold text-slate-500">Langkah</label>
+                            <label htmlFor="saring-langkah" className="text-xs font-semibold text-slate-500">Langkah</label>
                             <select
+                              id="saring-langkah"
                               value={
                                 filterTipe === "Mate in One"
                                   ? "1"
@@ -1005,12 +1058,47 @@ export default function TekaTeki() {
                                         : "semua"
                                 );
                               }}
-                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
                               <option value="semua">Semua</option>
                               <option value="1">1 Langkah</option>
                               <option value="2">2 Langkah</option>
                               <option value="3">3 Langkah</option>
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <label htmlFor="saring-tema" className="text-xs font-semibold text-slate-500">Tema</label>
+                            <select
+                              id="saring-tema"
+                              value={filterTema}
+                              onChange={(e) => setFilterTema(e.target.value)}
+                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              <option value="semua">Semua tema</option>
+                              {DAFTAR_TEMA.map((g) => (
+                                <optgroup key={g.grup} label={g.grup}>
+                                  {g.isi.map(([nilai, nama]) => (
+                                    <option key={nilai} value={nilai}>
+                                      {nama}
+                                    </option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="flex items-center justify-between gap-3">
+                            <label htmlFor="saring-giliran" className="text-xs font-semibold text-slate-500">Giliran</label>
+                            <select
+                              id="saring-giliran"
+                              value={filterGiliran}
+                              onChange={(e) => setFilterGiliran(e.target.value)}
+                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                            >
+                              <option value="semua">Semua (acak)</option>
+                              <option value="White to Move">Hanya putih</option>
+                              <option value="Black to Move">Hanya hitam</option>
                             </select>
                           </div>
 
