@@ -648,7 +648,7 @@ export const EN = {
   tekaTeki: {
     judul: "Chess Puzzles",
     deskripsi:
-      "Train your tactical instinct with 4,462 checkmate puzzles from László Polgár's book. Find checkmate in 1, 2, or 3 moves — hints are available when you get stuck.",
+      "Train your tactical instinct with 5,486 checkmate puzzles from real games in the Lichess puzzle database. Find checkmate in 1, 2, or 3 moves — hints are available when you get stuck.",
     memuat: "Loading puzzles…",
     gagalMuat:
       "Failed to load the puzzle data. Check your internet connection, then reload this page.",
@@ -695,7 +695,7 @@ export const EN = {
     posisiTersimpan: "Saved position: puzzle #{n}",
     ingatNonaktif: "Position is not being saved.",
     sumber:
-      'Puzzles come from "Chess: 5,334 Problems, Combinations, and Games" by <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2024)</a>.',
+      'Puzzles come from the Lichess puzzle database (real games, CC0 public domain), curated by <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2026)</a>.',
     selanjutnyaJudul: "Learn How to Play Chess",
   },
   papan: {

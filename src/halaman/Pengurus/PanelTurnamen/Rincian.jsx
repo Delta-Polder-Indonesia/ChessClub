@@ -535,7 +535,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
                     .filter((p) => !p.dianulir)
                     .map((p) => (
                       <option key={p.username} value={p.username}>
-                        {p.panggilan}
+                        {p.panggilan || p.username}
                       </option>
                     ))}
                 </select>
