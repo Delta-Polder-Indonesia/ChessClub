@@ -6,10 +6,9 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ID, EN } from "./terjemahan.js";
+import { ID } from "./terjemahan.id.js";
 
 const SIMPAN = "kci-bahasa";
-const KAMUS = { id: ID, en: EN };
 
 const KonteksI18n = createContext(null);
 
@@ -23,6 +22,22 @@ export function I18nProvider({ children }) {
     }
     return "id";
   });
+  const [kamusEn, setKamusEn] = useState(null);
+
+  // Kamus Inggris cukup besar dan tidak diperlukan bagi mayoritas pengunjung.
+  // Saat bahasa EN dipilih/tersimpan, browser mengambil chunk ini sekali lalu
+  // menyimpannya pada state untuk perpindahan bahasa berikutnya.
+  useEffect(() => {
+    if (bahasa !== "en" || kamusEn) return undefined;
+    let aktif = true;
+    import("./terjemahan.en.js")
+      .then((modul) => {
+        if (aktif) setKamusEn(modul.EN);
+      })
+      // Bila koneksi putus, teks Indonesia tetap menjadi fallback yang aman.
+      .catch(() => {});
+    return () => { aktif = false; };
+  }, [bahasa, kamusEn]);
 
   useEffect(() => {
     document.documentElement.lang = bahasa;
@@ -37,14 +52,14 @@ export function I18nProvider({ children }) {
     (kunci, ganti = {}) => {
       let teks = kunci
         .split(".")
-        .reduce((o, k) => (o ? o[k] : undefined), KAMUS[bahasa]);
+        .reduce((o, k) => (o ? o[k] : undefined), bahasa === "en" ? (kamusEn || ID) : ID);
       teks = teks ?? kunci;
       for (const [k, v] of Object.entries(ganti)) {
         teks = teks.replaceAll(`{${k}}`, v);
       }
       return teks;
     },
-    [bahasa]
+    [bahasa, kamusEn]
   );
 
   const nilai = useMemo(() => ({ bahasa, setBahasa, t }), [bahasa, t]);

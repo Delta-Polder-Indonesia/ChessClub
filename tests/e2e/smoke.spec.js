@@ -35,6 +35,16 @@ test("panduan catur memuat bab awal dan bab lain secara progresif", async ({ pag
   periksaGalat();
 });
 
+test("perpindahan ke bahasa Inggris memuat terjemahan", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Tombol bahasa berada pada navigasi desktop.");
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Pilih bahasa" }).click();
+  await expect(page.getByRole("link", { name: "About Us" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  periksaGalat();
+});
+
 test("menu mobile membuka tautan pendaftaran", async ({ page, isMobile }) => {
   test.skip(!isMobile, "Khusus viewport mobile.");
   const periksaGalat = pantauGalatHalaman(page);
