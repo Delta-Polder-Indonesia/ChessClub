@@ -25,6 +25,9 @@ jobs:
     # pindah alamat; bawaan mengikuti PANDUAN-DEPLOY.md.
     env:
       VITE_API_DASAR: ${{ vars.KCI_API_URL || 'https://kci-api.onrender.com' }}
+      # Samakan dengan KCI_CHESS_KLUB di backend bila klub Chess.com berubah.
+      # Repository variable ini opsional; nilai bawaan adalah klub saat ini.
+      VITE_CHESS_KLUB: ${{ vars.KCI_CHESS_KLUB || 'blunder-skuad' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
