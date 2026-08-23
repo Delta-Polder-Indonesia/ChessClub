@@ -104,35 +104,37 @@ export default function Footer() {
                     </span>
                   </button>
                 </li>
-                <div
-                  className={`flex flex-col gap-2 md:flex ${
-                    openSection === col.id ? "flex" : "hidden"
+                <li
+                  className={`md:block ${
+                    openSection === col.id ? "block" : "hidden"
                   }`}
                 >
-                  {col.links.map((link) => (
-                    <li key={link.title}>
-                      {link.href.startsWith("/") ? (
-                        <Link
-                          to={link.href}
-                          className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
-                          title={link.title}
-                          aria-label={link.title}
-                        >
-                          {link.title}
-                        </Link>
-                      ) : (
-                        <a
-                          href={link.href}
-                          className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
-                          title={link.title}
-                          aria-label={link.title}
-                        >
-                          {link.title}
-                        </a>
-                      )}
-                    </li>
-                  ))}
-                </div>
+                  <ul className="flex flex-col gap-2">
+                    {col.links.map((link) => (
+                      <li key={link.title}>
+                        {link.href.startsWith("/") ? (
+                          <Link
+                            to={link.href}
+                            className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
+                            title={link.title}
+                            aria-label={link.title}
+                          >
+                            {link.title}
+                          </Link>
+                        ) : (
+                          <a
+                            href={link.href}
+                            className="text-grey-800 text-xs 2xl:text-sm hover:text-grey-800/80 hover:underline font-normal"
+                            title={link.title}
+                            aria-label={link.title}
+                          >
+                            {link.title}
+                          </a>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </li>
               </ul>
             </div>
           ))}

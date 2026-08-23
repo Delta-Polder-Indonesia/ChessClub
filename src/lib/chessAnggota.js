@@ -48,9 +48,20 @@ export class GalatApi extends Error {
 
 export const GalatPendaftaran = GalatApi;
 
-const API_KLUB_CHESS =
-  "https://api.chess.com/pub/club/blunder-skuad/members";
-const URL_KLUB_CHESS = "https://www.chess.com/club/blunder-skuad";
+/**
+ * Konfigurasi cadangan roster yang aman untuk frontend statis. Nilai ini
+ * sengaja dapat disamakan dengan KCI_CHESS_KLUB di backend lewat
+ * VITE_CHESS_KLUB saat build. Hanya slug Chess.com yang diterima agar URL
+ * fallback tidak dapat diarahkan ke host lain oleh konfigurasi yang keliru.
+ */
+const slugKlubPublik = String(import.meta.env?.VITE_CHESS_KLUB || "blunder-skuad")
+  .trim()
+  .toLowerCase();
+const KLUB_CHESS = /^[a-z0-9][a-z0-9-]{0,99}$/.test(slugKlubPublik)
+  ? slugKlubPublik
+  : "blunder-skuad";
+const API_KLUB_CHESS = `https://api.chess.com/pub/club/${KLUB_CHESS}/members`;
+const URL_KLUB_CHESS = `https://www.chess.com/club/${KLUB_CHESS}`;
 
 /**
  * Cadangan untuk deployment frontend statis (mis. GitHub Pages).
@@ -81,7 +92,7 @@ async function ambilRosterPublikChess() {
           ? new Date(joined * 1000).toISOString()
           : null,
         url: `https://www.chess.com/member/${username.toLowerCase()}`,
-        klubChess: "blunder-skuad",
+        klubChess: KLUB_CHESS,
         urlKlub: URL_KLUB_CHESS,
         sumberAnggota: "chesscom-klub",
         // Tanpa backend kita hanya mengetahui roster Chess.com, bukan apakah
