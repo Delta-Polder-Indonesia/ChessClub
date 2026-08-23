@@ -24,6 +24,29 @@ async function tiruApiPublik(page, onRequest = () => {}) {
   });
 }
 
+async function tiruApiPengurus(page) {
+  await page.route("**/api/**", async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    const token = request.headers()["x-token-admin"];
+
+    if (path === "/api/csrf-token") return json({ token: "csrf-pengurus" });
+    if (path === "/api/pengurus/ringkasan") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      return json({
+        anggota: 12, anggotaTerdata: 4, daftarHitam: 0, otomatis: 0, pengurus: 0,
+        pesan: { total: 0, belumDibaca: 0 },
+        turnamen: { total: 0, berlangsung: 0, pendaftaran: 0 },
+        konten: { berita: 0, pengumuman: 0 }, verifikasi: { mode: "opsional", oauthAktif: false },
+      });
+    }
+    if (path === "/api/pengurus/pesan") return json([]);
+    if (path === "/api/anggota" || path === "/api/daftar-hitam") return json([]);
+    return json({});
+  });
+}
+
 test("navigasi publik dan pencarian dapat digunakan", async ({ page }) => {
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/");
@@ -59,6 +82,33 @@ test("perpindahan ke bahasa Inggris memuat terjemahan", async ({ page, isMobile 
   await page.getByRole("button", { name: "Pilih bahasa" }).click();
   await expect(page.getByRole("link", { name: "About Us" })).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  periksaGalat();
+});
+
+test("dashboard pengurus menolak token tidak sah", async ({ page }) => {
+  await tiruApiPengurus(page);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/pengurus");
+  await expect(page.getByRole("heading", { name: "Dashboard Pengurus" })).toBeVisible();
+  await page.locator('input[autocomplete="username"]').fill("pengurusuji");
+  await page.locator('input[type="password"]').fill("token-salah");
+  await page.getByRole("button", { name: "Masuk" }).click();
+  await expect(page.getByText("Token pengurus tidak dikenali.")).toBeVisible();
+  periksaGalat();
+});
+
+test("dashboard pengurus memverifikasi token dan logout dengan aman", async ({ page }) => {
+  await tiruApiPengurus(page);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/pengurus");
+  await page.locator('input[autocomplete="username"]').fill("pengurusuji");
+  await page.locator('input[type="password"]').fill("token-uji");
+  await page.getByRole("button", { name: "Masuk" }).click();
+
+  await expect(page.getByText("12", { exact: true })).toBeVisible();
+  await page.getByTitle("Masuk sebagai pengurusuji").click();
+  await page.getByRole("button", { name: "Keluar" }).click();
+  await expect(page.locator('input[autocomplete="username"]')).toBeVisible();
   periksaGalat();
 });
 
