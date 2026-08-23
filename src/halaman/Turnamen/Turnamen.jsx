@@ -51,31 +51,39 @@ export default function Turnamen() {
       next={{ to: "/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
     >
       <PageArtikel title="Turnamen Liga Catur">
-        <div className="mb-6 flex flex-wrap gap-2 text-sm">
-          <Link to="/pendaftaran-anggota" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-            Mendaftar Anggota
-          </Link>
-          <Link to="/beranda/peringkat" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-            Liga Utama
-          </Link>
-          <Link to="/papan-interaktif" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-            Turnamen Langsung
-          </Link>
-          <Link to="/turnamen/liga-musiman" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-            Kursi Empat
-          </Link>
-          <a href="#history" className="border border-slate-200 px-3 py-1.5 hover:bg-slate-50">
-            Hasil Sebelumnya
-          </a>
-        </div>
+        <p>
+          Turnamen adalah cara komunitas mengukur progres latihan. Semua event memakai kode etik fair play,
+          dan hasilnya dicatat di papan peringkat internal.
+        </p>
 
         <p>
-          Turnamen Liga Catur adalah wadah utama kompetisi komunitas. Sistem kami terinspirasi dari{" "}
+          <strong>Jenis turnamen di KCI:</strong>
+        </p>
+        <ol>
+          <li>
+            <Link to="/turnamen/turnamen-bulanan">Turnamen Bulanan</Link>: Swiss lima ronde setiap bulan
+            untuk semua kekuatan.
+          </li>
+          <li>
+            <Link to="/turnamen/liga-musiman">Liga Musiman</Link>: tiga musim setahun dengan klasemen yang
+            berjalan.
+          </li>
+          <li>
+            <Link to="/turnamen/turnamen-terbuka">Turnamen Terbuka</Link>: event terbuka, termasuk yang
+            dilaporkan ke sistem rating bila syarat terpenuhi.
+          </li>
+          <li>
+            <Link to="/turnamen/liga-antar-komunitas">Liga Antar Komunitas</Link>: pertandingan
+            persahabatan dan liga antar klub.
+          </li>
+        </ol>
+
+        <p>
+          Sistem turnamen kami terinspirasi dari{" "}
           <a href="https://ligacatur.com/tournament#history" target="_blank" rel="noreferrer">
             ligacatur.com/tournament#history
           </a>{" "}
-          — periode turnamen fleksibel, bisa dimainkan di Lichess / Chess.com kapan saja selama turnamen
-          ketika anda punya waktu luang.
+          — periode fleksibel, bisa dimainkan di Lichess / Chess.com kapan saja selama turnamen.
         </p>
 
         <h3>Turnamen Liga Catur Ketujuh</h3>
@@ -244,27 +252,6 @@ export default function Turnamen() {
         ) : (
           <p>Belum ada hasil turnamen.</p>
         )}
-
-        <p className="mt-6">
-          <strong>Jenis turnamen di KCI:</strong>
-        </p>
-        <ol>
-          <li>
-            <Link to="/turnamen/turnamen-bulanan">{t("nav.turnamenBulanan")}</Link>:{" "}
-            {t("turnamen.l1")}
-          </li>
-          <li>
-            <Link to="/turnamen/liga-musiman">{t("nav.ligaMusiman")}</Link>: {t("turnamen.l2")}
-          </li>
-          <li>
-            <Link to="/turnamen/turnamen-terbuka">{t("nav.turnamenTerbuka")}</Link>:{" "}
-            {t("turnamen.l3")}
-          </li>
-          <li>
-            <Link to="/turnamen/liga-antar-komunitas">{t("nav.ligaAntarKomunitas")}</Link>:{" "}
-            {t("turnamen.l4")}
-          </li>
-        </ol>
       </PageArtikel>
     </HalamanIsi>
   );
