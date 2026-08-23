@@ -87,6 +87,45 @@ async function tiruApiTurnamen(page) {
   });
 }
 
+/**
+ * Jaring pengaman global: cegat seluruh permintaan /api/... agar tidak ada
+ * yang lolos ke proxy Vite (backend localhost:8787 tidak berjalan di CI).
+ *
+ * Playwright menjalankan handler rute dengan urutan LIFO (terbalik dari
+ * pendaftaran), sehingga handler di beforeEach ini bertindak sebagai cadangan
+ * dan dievaluasi paling akhir. Mock spesifik yang dipasang di dalam badan tes
+ * (tiruApiPublik dkk.) akan tetap menang karena didaftarkan belakangan.
+ */
+test.beforeEach(async ({ page }) => {
+  await page.route(JALUR_API, async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const json = (body, status = 200) =>
+      route.fulfill({
+        status,
+        contentType: "application/json",
+        body: JSON.stringify(body),
+      });
+
+    if (path === "/api/csrf-token") return json({ token: "csrf-uji" });
+    if (path === "/api/auth/cara") return json({ oauth: false, kodeProfil: true, mode: "opsional" });
+    if (
+      path === "/api/anggota" ||
+      path === "/api/daftar-hitam" ||
+      path === "/api/turnamen" ||
+      path === "/api/berita" ||
+      path === "/api/pengumuman" ||
+      path === "/api/pengurus/pesan" ||
+      path === "/api/pengurus/berita" ||
+      path === "/api/pengurus/pengumuman" ||
+      path === "/api/pengurus/turnamen"
+    ) {
+      return json([]);
+    }
+    return json({});
+  });
+});
+
 test("navigasi publik dan pencarian dapat digunakan", async ({ page }) => {
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/");
