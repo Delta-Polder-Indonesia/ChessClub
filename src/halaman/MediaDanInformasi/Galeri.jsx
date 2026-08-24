@@ -11,8 +11,8 @@ export default function Galeri() {
       parentPath="/media-dan-informasi"
       description={t("galeri.deskripsi")}
       next={{
-        to: "/media-dan-informasi/buletin-bulanan",
-        judul: t("galeri.nextJudul"),
+        to: "/keberlanjutan",
+        judul: t("nav.keberlanjutan"),
       }}
     >
       <PageArtikel title={t("galeri.artikel")}>

@@ -30,11 +30,13 @@ export default function Gerbang({ onMasuk }) {
     setSibuk(true);
     setGalat("");
     // Simpan identitas lebih dulu agar header X-Admin-User terisi pada
-    // panggilan verifikasi /ringkasan.
+    // panggilan verifikasi. Endpoint /verifikasi dipilih karena tidak
+    // memanggil Chess.com — gerbang tetap bisa dimasuki saat API
+    // Chess.com sedang tidak terjangkau.
     adminPengguna.simpan(namaBersih);
     tokenPengurus.simpan(token.trim());
     try {
-      await apiPengurus("/ringkasan");
+      await apiPengurus("/verifikasi");
       onMasuk(namaBersih);
     } catch (err) {
       tokenPengurus.hapus();

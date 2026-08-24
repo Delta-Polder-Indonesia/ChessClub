@@ -41,7 +41,6 @@ src/halaman/
 │   ├── BeritaKomunitas.jsx
 │   ├── Pengumuman.jsx
 │   ├── Galeri.jsx
-│   └── BuletinBulanan.jsx
 │
 ├── Keberlanjutan/                             ← menu utama: Keberlanjutan
 │   ├── Keberlanjutan.jsx
@@ -54,8 +53,6 @@ src/halaman/
 │   ├── DaftarJuara.jsx
 │   ├── Peringkat.jsx                          ← /beranda/peringkat
 │   ├── EbookPanduan.jsx
-│   ├── TekaTekiTips.jsx
-│   ├── HubungiAdmin.jsx
 │   ├── TataLetakBeranda.jsx
 │   └── sidebar.js
 │

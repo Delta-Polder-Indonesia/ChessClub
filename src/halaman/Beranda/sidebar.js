@@ -27,11 +27,6 @@ export const MENU_BERANDA = [
     label: "E-Book & Panduan",
     href: "/beranda/ebook-panduan",
   },
-  {
-    id: "hubungi-admin",
-    label: "Hubungi Admin",
-    href: "/beranda/hubungi-admin",
-  },
 ];
 
 /**
@@ -64,6 +59,5 @@ export const BERANDA_BERIKUT = {
   turnamen: { to: "/beranda/daftar-juara", title: "Daftar Juara" },
   "daftar-juara": { to: "/beranda/peringkat", title: "Peringkat" },
   peringkat: { to: "/beranda/ebook-panduan", title: "E-Book & Panduan" },
-  "ebook-catur": { to: "/beranda/hubungi-admin", title: "Hubungi Admin" },
-  "hubungi-admin": { to: "/beranda/turnamen", title: "Informasi Jadwal Turnamen Catur" },
+  "ebook-catur": { to: "/beranda/turnamen", title: "Informasi Jadwal Turnamen Catur" },
 };

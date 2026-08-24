@@ -1,16 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
-
-const NAMA_BIDAK = {
-  p: "bidak",
-  n: "kuda",
-  b: "gajah",
-  r: "benteng",
-  q: "menteri",
-  k: "raja",
-};
 
 /**
  * Warna tanda bantu — mengikuti referensi chess.com.
@@ -223,6 +215,7 @@ export default function PapanTekaTeki({
   onTandaPetak,
   onTandaPanah,
 }) {
+  const { t } = useI18n();
   const peta = petaBidak(fen);
   const petak = daftarPetak(orientasi);
   const giliran = fen.split(" ")[1] || "w";
@@ -531,11 +524,22 @@ export default function PapanTekaTeki({
               key={sq}
               type="button"
               data-petak={sq}
-              aria-label={`petak ${sq}${
-                bidak
-                  ? `, ${NAMA_BIDAK[bidak.toLowerCase()]} ${bidak === bidak.toUpperCase() ? "putih" : "hitam"}`
-                  : ", kosong"
-              }`}
+              aria-label={t(
+                bidak ? "tekaTeki.ariaPetakBidak" : "tekaTeki.ariaPetakKosong",
+                {
+                  sq,
+                  bidak: bidak
+                    ? t(`tekaTeki.namaBidak.${bidak.toLowerCase()}`)
+                    : "",
+                  warna: bidak
+                    ? t(
+                        bidak === bidak.toUpperCase()
+                          ? "tekaTeki.warnaPutih"
+                          : "tekaTeki.warnaHitam"
+                      )
+                    : "",
+                }
+              )}
               onPointerDown={(e) => padaTekan(e, sq)}
               onClick={() => padaKlikPetak(sq)}
               style={{

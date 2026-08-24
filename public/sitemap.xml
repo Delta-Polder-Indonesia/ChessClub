@@ -73,10 +73,6 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/media-dan-informasi/buletin-bulanan</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
     <loc>https://delta-polder-indonesia.github.io/ChessClub/pendaftaran-anggota</loc>
     <changefreq>weekly</changefreq>
   </url>
@@ -118,10 +114,6 @@
   </url>
   <url>
     <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/ebook-panduan</loc>
-    <changefreq>weekly</changefreq>
-  </url>
-  <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/hubungi-admin</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>

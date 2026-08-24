@@ -119,11 +119,6 @@ export const MENU_UTAMA = [
         path: "/media-dan-informasi/galeri",
         file: "Galeri.jsx",
       },
-      {
-        title: "nav.buletinBulanan",
-        path: "/media-dan-informasi/buletin-bulanan",
-        file: "BuletinBulanan.jsx",
-      },
     ],
   },
   {

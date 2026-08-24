@@ -43,9 +43,16 @@ export function Bidang({ label, ...sisa }) {
   );
 }
 
-export function Avatar({ username }) {
+export function Avatar({ username, foto }) {
   const [gagal, setGagal] = useState(false);
-  if (gagal) {
+  /**
+   * Sumber foto diambil dari field `foto` data anggota (URL avatar resmi
+   * yang diberikan API Chess.com). Pola tebakan
+   * images.chesscom.com/uploads/user/{username}.jpg tidak didokumentasikan
+   * Chess.com dan hampir selalu 404 — setiap render hanya membuang
+   * permintaan sebelum akhirnya jatuh ke inisial.
+   */
+  if (!foto || gagal) {
     return (
       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center shrink-0 text-primary font-bold text-sm">
         {username.charAt(0).toUpperCase()}
@@ -54,7 +61,7 @@ export function Avatar({ username }) {
   }
   return (
     <img
-      src={`https://images.chesscom.com/uploads/user/${username}.jpg`}
+      src={foto}
       alt={username}
       loading="lazy"
       referrerPolicy="no-referrer"
