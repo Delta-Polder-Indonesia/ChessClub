@@ -3,7 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import Hero from "../../components/Hero.jsx";
 import { PageSelanjutnya } from "../../components/PageBagian.jsx";
-import { SettingsIcon, ShuffleIcon } from "../../components/icons.jsx";
+import { SettingsIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
@@ -804,8 +804,56 @@ export default function TekaTeki() {
               )}
             </div>
           ) : (
+            <>
+            <div className="mb-3">
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                <h2 className="m-0 text-base font-bold text-slate-950 md:text-lg">
+                  {t("tekaTeki.soal", {
+                    n: masalah.problemid,
+                    total: soal.length,
+                  })}
+                </h2>
+                {pesan?.jenis === "selesai" && (
+                  <span className="text-sm font-bold text-slate-800">
+                    {pesan.teks}
+                  </span>
+                )}
+                {sudahPecah && !pesan && (
+                  <span className="text-sm font-semibold text-emerald-700">
+                    {t("tekaTeki.sudahTerpecahkan")}
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span
+                  aria-hidden="true"
+                  className={`inline-block h-3 w-3 shrink-0 rounded-full ${
+                    masalah.first === "White to Move"
+                      ? "bg-white ring-1 ring-slate-400"
+                      : "bg-slate-800"
+                  }`}
+                />
+                <span className="text-[11px] font-semibold text-slate-600">
+                  {t(
+                    masalah.first === "White to Move"
+                      ? "tekaTeki.giliranPutih"
+                      : "tekaTeki.giliranHitam"
+                  )}
+                </span>
+                <span className="rounded px-2 py-0.5 text-[11px] font-semibold text-primary">
+                  {t(`tekaTeki.${KUNCI_TIPE[masalah.type]}`)}
+                </span>
+                <span className="rounded px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                  {t(`tekaTeki.${KUNCI_SUSAH[masalah.type]}`)}
+                </span>
+                <span className="text-[11px] font-medium text-slate-600">
+                  {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
+                </span>
+              </div>
+            </div>
+
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-              <div className="mx-auto w-full max-w-[520px] shrink-0 lg:mx-0">
+              <div className="mx-auto w-full max-w-[480px] shrink-0 lg:mx-0">
                 <div className="relative">
                   <PapanTekaTeki
                     fen={fen}
@@ -879,342 +927,204 @@ export default function TekaTeki() {
                     </div>
                   )}
                 </div>
-
-                {/* Tombol navigasi di bawah papan catur */}
-                <div className="relative mt-3 border-t border-[#d8d8d8] pt-3">
-                  <div className="flex flex-nowrap items-center justify-start gap-1.5 overflow-x-auto sm:justify-center">
-                    <button
-                      type="button"
-                      onClick={pilihAcak}
-                      title={t("tekaTeki.acak")}
-                      aria-label={t("tekaTeki.acak")}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                    >
-                      <ShuffleIcon />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={keAwalLangkah}
-                      disabled={komputer || posisiLangkah <= 0}
-                      title={t("papan.keAwal")}
-                      aria-label={t("papan.keAwal")}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      |&lt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={mundurLangkah}
-                      disabled={komputer || posisiLangkah <= 0}
-                      title={t("papan.mundur")}
-                      aria-label={t("papan.mundur")}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      &lt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOtomatis((v) => !v)}
-                      title={
-                        otomatis
-                          ? t("tekaTeki.otomatisMatikan")
-                          : t("tekaTeki.otomatisNyalakan")
-                      }
-                      aria-label={
-                        otomatis
-                          ? t("tekaTeki.otomatisMatikan")
-                          : t("tekaTeki.otomatisNyalakan")
-                      }
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                    >
-                      {otomatis ? "⏸" : "▶"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={majuLangkah}
-                      disabled={komputer || posisiLangkah >= langkahPenuh.length}
-                      title={t("papan.maju")}
-                      aria-label={t("papan.maju")}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      &gt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={keAkhirLangkah}
-                      disabled={komputer || posisiLangkah >= langkahPenuh.length}
-                      title={t("papan.keAkhir")}
-                      aria-label={t("papan.keAkhir")}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                    >
-                      &gt;|
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title={t("papan.flip")}
-                      aria-label={t("papan.flip")}
-                    >
-                      Flip
-                    </button>
-                    <button
-                      type="button"
-                      onClick={tampilPetunjuk}
-                      disabled={selesai || !sisa.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title={t("tekaTeki.petunjuk")}
-                      aria-label={t("tekaTeki.petunjuk")}
-                    >
-                      💡
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBukaPengaturan((v) => !v)}
-                      title={t("tekaTeki.pengaturan")}
-                      aria-label={t("tekaTeki.pengaturan")}
-                      aria-expanded={bukaPengaturan}
-                      className={`border border-[#b8b8b8] px-2 py-1.5 text-xs font-semibold text-[#333] transition ${
-                        bukaPengaturan
-                          ? "bg-[#e9e9e9]"
-                          : "bg-[#f7f7f7] hover:bg-[#e9e9e9]"
-                      }`}
-                    >
-                      <SettingsIcon />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => pindahSoal(indeks + 1)}
-                      title={
-                        selesai
-                          ? t("tekaTeki.selanjutnya")
-                          : t("tekaTeki.lewati")
-                      }
-                      aria-label={
-                        selesai
-                          ? t("tekaTeki.selanjutnya")
-                          : t("tekaTeki.lewati")
-                      }
-                      className="shrink-0 whitespace-nowrap border border-[#b8b8b8] bg-white px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                    >
-                      {selesai
-                        ? t("tekaTeki.selanjutnya")
-                        : t("tekaTeki.lewati")}
-                    </button>
-                  </div>
-
-                  {bukaPengaturan && (
-                    <>
-                      <div
-                        aria-hidden="true"
-                        className="fixed inset-0 z-40"
-                        onClick={() => setBukaPengaturan(false)}
-                      />
-                      <div
-                        role="dialog"
-                        aria-modal="false"
-                        aria-label={t("tekaTeki.pengaturan")}
-                        className="absolute bottom-full left-1/2 z-50 mb-2 w-64 max-w-[90vw] -translate-x-1/2 rounded-lg bg-white p-4 shadow-xl ring-1 ring-black/10"
-                      >
-                        <p className="mb-3 text-sm font-bold text-slate-800">
-                          {t("tekaTeki.pengaturan")}
-                        </p>
-                        <div className="flex flex-col gap-3">
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-level" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLevel")}</label>
-                            <select
-                              id="saring-level"
-                              value={filterLevel}
-                              onChange={(e) => setFilterLevel(e.target.value)}
-                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              <option value="semua">{t("tekaTeki.semuaLevel")}</option>
-                              <option value="1">1 · {t("tekaTeki.sangatMudah")}</option>
-                              <option value="2">2 · {t("tekaTeki.mudah")}</option>
-                              <option value="3">3 · {t("tekaTeki.normal")}</option>
-                              <option value="4">4 · {t("tekaTeki.sulit")}</option>
-                              <option value="5">5 · {t("tekaTeki.sangatSulit")}</option>
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-langkah" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLangkah")}</label>
-                            <select
-                              id="saring-langkah"
-                              value={
-                                filterTipe === "Mate in One"
-                                  ? "1"
-                                  : filterTipe === "Mate in Two"
-                                    ? "2"
-                                    : filterTipe === "Mate in Three"
-                                      ? "3"
-                                      : "semua"
-                              }
-                              onChange={(e) => {
-                                const v = e.target.value;
-                                setFilterTipe(
-                                  v === "1"
-                                    ? "Mate in One"
-                                    : v === "2"
-                                      ? "Mate in Two"
-                                      : v === "3"
-                                        ? "Mate in Three"
-                                        : "semua"
-                                );
-                              }}
-                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              <option value="semua">{t("tekaTeki.semua")}</option>
-                              <option value="1">{t("tekaTeki.langkahSatu")}</option>
-                              <option value="2">{t("tekaTeki.langkahDua")}</option>
-                              <option value="3">{t("tekaTeki.langkahTiga")}</option>
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-tema" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelTema")}</label>
-                            <select
-                              id="saring-tema"
-                              value={filterTema}
-                              onChange={(e) => setFilterTema(e.target.value)}
-                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              <option value="semua">{t("tekaTeki.semuaTema")}</option>
-                              {DAFTAR_TEMA.map((g) => (
-                                <optgroup key={g.grup} label={t(g.grup)}>
-                                  {g.isi.map(([nilai, kunci]) => (
-                                    <option key={nilai} value={nilai}>
-                                      {t(kunci)}
-                                    </option>
-                                  ))}
-                                </optgroup>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-giliran" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelGiliran")}</label>
-                            <select
-                              id="saring-giliran"
-                              value={filterGiliran}
-                              onChange={(e) => setFilterGiliran(e.target.value)}
-                              className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              <option value="semua">{t("tekaTeki.semuaGiliran")}</option>
-                              <option value="White to Move">{t("tekaTeki.hanyaPutih")}</option>
-                              <option value="Black to Move">{t("tekaTeki.hanyaHitam")}</option>
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="pilih-set-bidak" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelBidak")}</label>
-                            <select
-                              id="pilih-set-bidak"
-                              value={setBidak}
-                              onChange={(e) => setSetBidak(e.target.value)}
-                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              {DAFTAR_SET.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.nama}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">{t("papan.warnaPapan")}</label>
-                            <select
-                              id="warna-papan"
-                              value={warnaPapan}
-                              onChange={(e) => setWarnaPapan(e.target.value)}
-                              className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                            >
-                              {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => (
-                                <option key={nilai} value={nilai}>
-                                  {t(kunci)}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="m-0 text-base font-bold text-slate-950 md:text-lg">
-                    {t("tekaTeki.soal", {
-                      n: masalah.problemid,
-                      total: soal.length,
-                    })}
-                  </h2>
-                  <div className="flex items-center gap-2">
-                    <span
-                      aria-hidden="true"
-                      className={`inline-block h-3 w-3 rounded-full ${
-                        masalah.first === "White to Move"
-                          ? "bg-white ring-1 ring-slate-400"
-                          : "bg-slate-800"
-                      }`}
-                    />
-                    <span className="text-xs font-semibold text-slate-600">
-                      {t(
-                        masalah.first === "White to Move"
-                          ? "tekaTeki.giliranPutih"
-                          : "tekaTeki.giliranHitam"
-                      )}
-                    </span>
-                    <span className="rounded px-2.5 py-0.5 text-xs font-semibold text-primary">
-                      {t(`tekaTeki.${KUNCI_TIPE[masalah.type]}`)}
-                    </span>
-                    <span className="rounded px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                      {t(`tekaTeki.${KUNCI_SUSAH[masalah.type]}`)}
-                    </span>
-                  </div>
-                </div>
-
-                {pesan?.jenis === "benar" && (
-                  <div aria-live="polite" className="mt-4">
-                    <p className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                      {pesan.teks}
-                    </p>
-                  </div>
-                )}
-
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <form onSubmit={bukaNomor} className="flex items-center gap-2">
-                    <input
-                      id="nomor-soal"
-                      type="number"
-                      min={1}
-                      max={soal.length}
-                      value={nomorSoal}
-                      onChange={(e) => setNomorSoal(e.target.value)}
-                      placeholder={`1–${soal.length}`}
-                      className="w-24 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    />
-                    <button
-                      type="submit"
-                      className="shrink-0 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
-                    >
-                      {t("tekaTeki.buka")}
-                    </button>
+                <div className="mt-0 flex flex-wrap items-center gap-3">
+                  <form onSubmit={bukaNomor} className="flex flex-col gap-1">
+                    <label htmlFor="nomor-soal" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelSoal")}</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="nomor-soal"
+                        type="number"
+                        min={1}
+                        max={soal.length}
+                        value={nomorSoal}
+                        onChange={(e) => setNomorSoal(e.target.value)}
+                        placeholder={`1–${soal.length}`}
+                        className="w-24 min-w-0 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                      <button
+                        type="submit"
+                        className="shrink-0 rounded-md border border-slate-300 bg-white px-4 py-1.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      >
+                        {t("tekaTeki.buka")}
+                      </button>
+                    </div>
                   </form>
 
-                  {pesan?.jenis === "salah" ? (
+                  {/* Tombol navigasi — sejajar dengan input soal */}
+                  <div className="relative self-end">
+                    <div className="flex flex-wrap items-center justify-start gap-1.5">
+                      <button
+                        type="button"
+                        onClick={keAwalLangkah}
+                        disabled={komputer || posisiLangkah <= 0}
+                        title={t("papan.keAwal")}
+                        aria-label={t("papan.keAwal")}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        |&lt;
+                      </button>
+                      <button
+                        type="button"
+                        onClick={mundurLangkah}
+                        disabled={komputer || posisiLangkah <= 0}
+                        title={t("papan.mundur")}
+                        aria-label={t("papan.mundur")}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        &lt;
+                      </button>
+                      <button
+                        type="button"
+                        onClick={majuLangkah}
+                        disabled={!selesai || komputer || posisiLangkah >= langkahPenuh.length}
+                        title={t("papan.maju")}
+                        aria-label={t("papan.maju")}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        &gt;
+                      </button>
+                      <button
+                        type="button"
+                        onClick={keAkhirLangkah}
+                        disabled={!selesai || komputer || posisiLangkah >= langkahPenuh.length}
+                        title={t("papan.keAkhir")}
+                        aria-label={t("papan.keAkhir")}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        &gt;|
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                        title={t("papan.flip")}
+                        aria-label={t("papan.flip")}
+                      >
+                        Flip
+                      </button>
+                      <button
+                        type="button"
+                        onClick={tampilPetunjuk}
+                        disabled={selesai || !sisa.length}
+                        className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
+                        title={t("tekaTeki.petunjuk")}
+                        aria-label={t("tekaTeki.petunjuk")}
+                      >
+                        💡
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setBukaPengaturan((v) => !v)}
+                        title={t("tekaTeki.pengaturan")}
+                        aria-label={t("tekaTeki.pengaturan")}
+                        aria-expanded={bukaPengaturan}
+                        className={`border border-[#b8b8b8] px-2 py-1.5 text-xs font-semibold text-[#333] transition ${
+                          bukaPengaturan
+                            ? "bg-[#e9e9e9]"
+                            : "bg-[#f7f7f7] hover:bg-[#e9e9e9]"
+                        }`}
+                      >
+                        <SettingsIcon />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => pindahSoal(indeks + 1)}
+                        title={
+                          selesai
+                            ? t("tekaTeki.selanjutnya")
+                            : t("tekaTeki.lewati")
+                        }
+                        aria-label={
+                          selesai
+                            ? t("tekaTeki.selanjutnya")
+                            : t("tekaTeki.lewati")
+                        }
+                        className="shrink-0 whitespace-nowrap border border-[#b8b8b8] bg-white px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
+                      >
+                        {selesai
+                          ? t("tekaTeki.selanjutnya")
+                          : t("tekaTeki.lewati")}
+                      </button>
+                    </div>
+
+                    {bukaPengaturan && (
+                      <>
+                        <div
+                          aria-hidden="true"
+                          className="fixed inset-0 z-40"
+                          onClick={() => setBukaPengaturan(false)}
+                        />
+                        <div
+                          role="dialog"
+                          aria-modal="false"
+                          aria-label={t("tekaTeki.pengaturan")}
+                          className="absolute bottom-full left-1/2 z-50 mb-2 w-64 max-w-[90vw] -translate-x-1/2 rounded-lg bg-white p-4 shadow-xl ring-1 ring-black/10"
+                        >
+                          <p className="mb-3 text-sm font-bold text-slate-800">
+                            {t("tekaTeki.pengaturan")}
+                          </p>
+                          <div className="flex flex-col gap-3">
+                            <button
+                              type="button"
+                              onClick={pilihAcak}
+                              title={t("tekaTeki.acak")}
+                              className="flex w-full cursor-pointer items-center justify-between gap-2 text-left"
+                            >
+                              <span className="text-xs text-slate-700">
+                                {t("tekaTeki.acak")}
+                              </span>
+                              <span
+                                aria-hidden="true"
+                                className="h-4 w-4 shrink-0 rounded-sm border border-slate-400 bg-white"
+                              />
+                            </button>
+
+                            <div className="flex items-center justify-between gap-3">
+                              <label htmlFor="pilih-set-bidak" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelBidak")}</label>
+                              <select
+                                id="pilih-set-bidak"
+                                value={setBidak}
+                                onChange={(e) => setSetBidak(e.target.value)}
+                                className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              >
+                                {DAFTAR_SET.map((s) => (
+                                  <option key={s.id} value={s.id}>
+                                    {s.nama}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="flex items-center justify-between gap-3">
+                              <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">{t("papan.warnaPapan")}</label>
+                              <select
+                                id="warna-papan"
+                                value={warnaPapan}
+                                onChange={(e) => setWarnaPapan(e.target.value)}
+                                className="w-32 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                              >
+                                {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => (
+                                  <option key={nilai} value={nilai}>
+                                    {t(kunci)}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {pesan?.jenis === "salah" && (
                     <p
                       role="status"
                       className="text-sm font-semibold text-red-600"
                     >
                       {pesan.teks}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-500">
-                      {t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
                     </p>
                   )}
 
@@ -1224,6 +1134,110 @@ export default function TekaTeki() {
                     </p>
                   )}
                 </div>
+
+                {/* Filter soal: level, langkah, tema, giliran */}
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <label htmlFor="saring-level" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLevel")}</label>
+                    <select
+                      id="saring-level"
+                      value={filterLevel}
+                      onChange={(e) => setFilterLevel(e.target.value)}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="semua">{t("tekaTeki.semuaLevel")}</option>
+                      <option value="1">1 · {t("tekaTeki.sangatMudah")}</option>
+                      <option value="2">2 · {t("tekaTeki.mudah")}</option>
+                      <option value="3">3 · {t("tekaTeki.normal")}</option>
+                      <option value="4">4 · {t("tekaTeki.sulit")}</option>
+                      <option value="5">5 · {t("tekaTeki.sangatSulit")}</option>
+                    </select>
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <label htmlFor="saring-langkah" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLangkah")}</label>
+                    <select
+                      id="saring-langkah"
+                      value={
+                        filterTipe === "Mate in One"
+                          ? "1"
+                          : filterTipe === "Mate in Two"
+                            ? "2"
+                            : filterTipe === "Mate in Three"
+                              ? "3"
+                              : "semua"
+                      }
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        setFilterTipe(
+                          v === "1"
+                            ? "Mate in One"
+                            : v === "2"
+                              ? "Mate in Two"
+                              : v === "3"
+                                ? "Mate in Three"
+                                : "semua"
+                        );
+                      }}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="semua">{t("tekaTeki.semua")}</option>
+                      <option value="1">{t("tekaTeki.langkahSatu")}</option>
+                      <option value="2">{t("tekaTeki.langkahDua")}</option>
+                      <option value="3">{t("tekaTeki.langkahTiga")}</option>
+                    </select>
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <label htmlFor="saring-tema" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelTema")}</label>
+                    <select
+                      id="saring-tema"
+                      value={filterTema}
+                      onChange={(e) => setFilterTema(e.target.value)}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="semua">{t("tekaTeki.semuaTema")}</option>
+                      {DAFTAR_TEMA.map((g) => (
+                        <optgroup key={g.grup} label={t(g.grup)}>
+                          {g.isi.map(([nilai, kunci]) => (
+                            <option key={nilai} value={nilai}>
+                              {t(kunci)}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <label htmlFor="saring-giliran" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelGiliran")}</label>
+                    <select
+                      id="saring-giliran"
+                      value={filterGiliran}
+                      onChange={(e) => setFilterGiliran(e.target.value)}
+                      className="w-full rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="semua">{t("tekaTeki.semuaGiliran")}</option>
+                      <option value="White to Move">{t("tekaTeki.hanyaPutih")}</option>
+                      <option value="Black to Move">{t("tekaTeki.hanyaHitam")}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <label
+                  htmlFor="kci-lanjut-otomatis"
+                  className="mt-3 inline-flex cursor-pointer select-none items-center gap-1.5 text-[13px] text-[#555]"
+                >
+                  <input
+                    id="kci-lanjut-otomatis"
+                    type="checkbox"
+                    checked={otomatis}
+                    onChange={() => setOtomatis((v) => !v)}
+                  />
+                  <span>
+                    Automatically load the next puzzle after each attempt
+                  </span>
+                </label>
 
                 {/* Syzygy Tablebase */}
                 <div className="mt-6 border-t border-slate-200 pt-4">
@@ -1266,7 +1280,7 @@ export default function TekaTeki() {
                       </div>
 
                       {Array.isArray(syzygy.moves) && syzygy.moves.length > 0 && (
-                        <ul className="mt-2 max-h-72 divide-y divide-slate-100 overflow-y-auto pr-1">
+                        <ul className="mt-2 max-h-[196px] divide-y divide-slate-100 overflow-y-auto pr-1">
                           {syzygy.moves.map((m) => (
                             <li
                               key={m.san}
@@ -1296,19 +1310,9 @@ export default function TekaTeki() {
                   )}
                 </div>
 
-                {pesan?.jenis === "selesai" && (
-                  <p className="mt-2 text-sm font-bold text-slate-800">
-                    {pesan.teks}
-                  </p>
-                )}
-
-                {sudahPecah && !pesan && (
-                  <p className="mt-2 text-sm font-semibold text-emerald-700">
-                    {t("tekaTeki.sudahTerpecahkan")}
-                  </p>
-                )}
               </div>
             </div>
+            </>
           )}
         </div>
 
