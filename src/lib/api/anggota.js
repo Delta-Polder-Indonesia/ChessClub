@@ -110,13 +110,6 @@ export async function daftarDenganChessCom(data) {
   return hasil;
 }
 
-/** Jalankan pemindaian fair play (aksi pengurus). */
-export async function pindaiFairPlay() {
-  const csrfToken = await ambilCsrfToken();
-  const res = await fetch(urlApi("/api/pengurus/pindai"), {
-    method: "POST",
-    headers: { "X-CSRF-Token": csrfToken },
-  });
-  if (!res.ok) throw new Error("Pemindaian gagal.");
-  return res.json();
-}
+/* Catatan: pemindaian fair play (POST /api/pengurus/pindai) membutuhkan
+ * header token admin; satu-satunya jalur yang benar adalah apiPengurus()
+ * dari panel Anggota — jangan mengatur permintaan mentah di sini. */

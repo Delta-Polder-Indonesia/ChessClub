@@ -1053,14 +1053,17 @@ export default function Dashboard() {
             <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
           ) : tab === "juara" ? (
             <PanelJuara beriTahu={beriTahu} />
-          ) : (
+          ) : tab === "turnamen" ? (
             <PanelTurnamen
               beriTahu={beriTahu}
               anggota={anggota}
               muatUlang={muatUlang}
               saatBukaRincian={setJudulRincian}
             />
-          )}
+          ) : null}
+          {/* null di atas: nilai tab tak dikenal jangan diam-diam merender
+              panel paling berat — saat MENU_SIDEBAR nanti diperluas,
+              tab barunya harus dipetakan eksplisit di sini. */}
         </main>
       </div>
     </div>

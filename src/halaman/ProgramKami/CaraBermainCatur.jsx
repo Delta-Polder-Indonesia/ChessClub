@@ -138,9 +138,9 @@ export function IsiPanduan({ panduan }) {
             <h2 className="mt-2 border-b-2 border-slate-200 pb-4 text-2xl font-bold text-slate-950 md:text-3xl">{labelBab[bab.id]}</h2>
             {daftar ? daftar.map((bagian) => <BlokBagian key={bagian.id} bagian={bagian} />) : (
               <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-5">
-                <p className="text-sm leading-6 text-slate-600">Bab ini dimuat saat Anda membukanya agar halaman tetap cepat.</p>
+                <p className="text-sm leading-6 text-slate-600">{t("caraBermain.babMalas")}</p>
                 <button type="button" onClick={() => void bukaBab(bab.id)} disabled={memuat} className="mt-4 rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-wait disabled:opacity-60">
-                  {memuat ? "Memuat bab…" : "Muat bab ini"}
+                  {memuat ? t("caraBermain.memuatBab") : t("caraBermain.muatBab")}
                 </button>
               </div>
             )}

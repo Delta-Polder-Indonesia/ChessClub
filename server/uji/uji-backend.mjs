@@ -437,6 +437,16 @@ console.log("\nKeamanan endpoint pengurus");
     cek("token salah -> 401", salah.status === 401, `dapat ${salah.status}`);
     const benar = await panggil("GET", "/api/pengurus/ringkasan");
     cek("token benar -> 200", benar.status === 200, `dapat ${benar.status}`);
+
+    // Endpoint verifikasi token yang ringan — dipakai ProtectedRoute/Gerbang
+    // agar login dashboard tidak ikut gagal saat api.chess.com padam.
+    ipSaatIni = ipBaru();
+    const tanpaV = await fetch(DASAR + "/api/pengurus/verifikasi", {
+      headers: { "X-Forwarded-For": ipSaatIni },
+    });
+    cek("verifikasi: tanpa token -> 401", tanpaV.status === 401, `dapat ${tanpaV.status}`);
+    const benarV = await panggil("GET", "/api/pengurus/verifikasi");
+    cek("verifikasi: token benar -> 200 {ok:true}", benarV.status === 200 && benarV.data?.ok === true, `dapat ${benarV.status}`);
   } else {
     cek("mode pengembangan: admin terbuka", tanpa.status === 200);
     console.log("      (jalankan ulang dengan KCI_TOKEN_ADMIN untuk uji autentikasi)");

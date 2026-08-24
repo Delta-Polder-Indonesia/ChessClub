@@ -1,39 +1,20 @@
-import { Link } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
+import TabelHasilTurnamen from "../../components/TabelHasilTurnamen.jsx";
 
-/** Ringkasan jalur resmi untuk melihat hasil kompetisi komunitas. */
+/**
+ * Tab Beranda "Daftar Juara".
+ *
+ * Isinya adalah tabel hasil turnamen yang sama persis dengan yang tampil di
+ * bawah halaman /turnamen (komponen TabelHasilTurnamen): turnamen berstatus
+ * selesai atau yang sudah diberi nama juara oleh pengurus lewat dashboard
+ * (tab "Juara Turnamen"). Karena komponen yang sama dipakai di dua halaman,
+ * data dan aturan penyaringannya tidak mungkin berbeda satu sama lain, dan
+ * setiap pembaruan di dashboard otomatis tampil di keduanya.
+ */
 export default function DaftarJuara() {
   return (
     <BagianBeranda id="daftar-juara" title="Daftar Juara">
-      <p>
-        Rekam jejak juara dan klasemen selalu mengikuti data turnamen yang
-        dipublikasikan oleh pengurus. Setiap hasil dapat dilihat langsung pada
-        turnamen terkait agar peserta memperoleh sumber informasi yang sama.
-      </p>
-      <div className="mt-7 grid gap-4 sm:grid-cols-2">
-        <Link
-          to="/turnamen"
-          className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          <span className="block text-base font-bold text-slate-900 group-hover:text-primary">
-            Hasil & klasemen turnamen
-          </span>
-          <span className="mt-1 block text-sm leading-relaxed text-slate-600">
-            Lihat turnamen yang berlangsung, selesai, serta klasemen resminya.
-          </span>
-        </Link>
-        <Link
-          to="/beranda/peringkat"
-          className="group rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-        >
-          <span className="block text-base font-bold text-slate-900 group-hover:text-primary">
-            Peringkat anggota
-          </span>
-          <span className="mt-1 block text-sm leading-relaxed text-slate-600">
-            Bandingkan rating anggota dari data Chess.com yang tersedia.
-          </span>
-        </Link>
-      </div>
+      <TabelHasilTurnamen />
     </BagianBeranda>
   );
 }
