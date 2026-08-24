@@ -48,6 +48,12 @@ async function tiruApiPengurus(page) {
     const token = request.headers()["x-token-admin"];
 
     if (path === "/api/csrf-token") return json({ token: "csrf-pengurus" });
+    // Gerbang & ProtectedRoute memverifikasi token lewat endpoint ringan ini
+    // (bukan /ringkasan) — tiru kontraknya: 401 bila token salah, ok bila sah.
+    if (path === "/api/pengurus/verifikasi") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      return json({ ok: true });
+    }
     if (path === "/api/pengurus/ringkasan") {
       if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
       return json({
