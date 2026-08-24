@@ -27,7 +27,6 @@ export const RUTE_PUBLIK = [
   "/media-dan-informasi/berita-komunitas",
   "/media-dan-informasi/pengumuman",
   "/media-dan-informasi/galeri",
-  "/media-dan-informasi/buletin-bulanan",
   "/pendaftaran-anggota",
   "/keberlanjutan",
   "/keberlanjutan/syarat-dan-ketentuan",
@@ -39,7 +38,6 @@ export const RUTE_PUBLIK = [
   "/beranda/daftar-juara",
   "/beranda/peringkat",
   "/beranda/ebook-panduan",
-  "/beranda/hubungi-admin",
   "/karir",
 ];
 

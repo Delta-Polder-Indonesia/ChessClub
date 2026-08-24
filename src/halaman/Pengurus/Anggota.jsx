@@ -91,7 +91,7 @@ export default function PanelAnggota({ anggota, muatUlang, beriTahu }) {
                   <td className="font-medium text-slate-500">{index + 1}</td>
                   <td>
                     <div className="flex items-center gap-3">
-                      <Avatar username={a.username} />
+                      <Avatar username={a.username} foto={a.foto} />
                       <div className="min-w-0">
                         <a
                           href={a.url}

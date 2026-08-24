@@ -34,7 +34,6 @@ const MediaDanInformasi = lazy(() => import("./halaman/MediaDanInformasi/MediaDa
 const BeritaKomunitas = lazy(() => import("./halaman/MediaDanInformasi/BeritaKomunitas.jsx"));
 const Pengumuman = lazy(() => import("./halaman/MediaDanInformasi/Pengumuman.jsx"));
 const Galeri = lazy(() => import("./halaman/MediaDanInformasi/Galeri.jsx"));
-const BuletinBulanan = lazy(() => import("./halaman/MediaDanInformasi/BuletinBulanan.jsx"));
 const DetailKonten = lazy(() => import("./halaman/MediaDanInformasi/DetailKonten.jsx"));
 const DetailBerita = () => <DetailKonten jenis="berita" />;
 const DetailPengumuman = () => <DetailKonten jenis="pengumuman" />;
@@ -57,7 +56,6 @@ const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
 const Peringkat = lazy(() => import("./halaman/Beranda/Peringkat.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/Beranda/EbookPanduan.jsx"));
-const HubungiAdmin = lazy(() => import("./halaman/Beranda/HubungiAdmin.jsx"));
 
 // Lain-lain
 const HubungiKami = lazy(() => import("./halaman/HubungiKami/HubungiKami.jsx"));
@@ -77,7 +75,6 @@ const RUTE_BERANDA = [
   ["/beranda/daftar-juara", DaftarJuara],
   ["/beranda/peringkat", Peringkat],
   ["/beranda/ebook-panduan", EbookPanduan],
-  ["/beranda/hubungi-admin", HubungiAdmin],
 ];
 
 /** Rute konten utama: [path, Komponen].
@@ -106,7 +103,6 @@ const RUTE_HALAMAN = [
   ["/media-dan-informasi/pengumuman", Pengumuman],
   ["/media-dan-informasi/pengumuman/:id", DetailPengumuman],
   ["/media-dan-informasi/galeri", Galeri],
-  ["/media-dan-informasi/buletin-bulanan", BuletinBulanan],
 
   // Keanggotaan hanya dirender sebagai tab di Struktur Grup Catur.
   ["/pendaftaran-anggota", PendaftaranAnggota],
@@ -156,7 +152,14 @@ const RUTE_REDIRECT = new Map([
   ["/beranda/gabung-anggota", "/beranda/peringkat"],
   ["/pengadaan/ebook-panduan", "/beranda/ebook-panduan"],
   ["/pengadaan/teka-teki-tips", "/program-kami/teka-teki"],
-  ["/pengadaan/hubungi-admin", "/beranda/hubungi-admin"],
+
+  // Tab Beranda "Hubungi Admin" dihapus — alamat lamanya (dan alias
+  // /pengadaan-nya) diarahkan ke halaman Hubungi Kami, bukan 404.
+  ["/beranda/hubungi-admin", "/hubungi-kami"],
+  ["/pengadaan/hubungi-admin", "/hubungi-kami"],
+
+  // Halaman "Buletin Bulanan" dihapus — tautan lamanya kembali ke induk.
+  ["/media-dan-informasi/buletin-bulanan", "/media-dan-informasi"],
 ]);
 
 /* ---------------------------------------------------------------- app */

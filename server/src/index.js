@@ -262,6 +262,18 @@ router.get("/api/pengurus/ringkasan", async (req) => {
   };
 });
 
+/**
+ * Pemeriksaan token yang RINGAN: tidak memanggil Chess.com sama sekali.
+ * Dipakai ProtectedRoute dan Gerbang untuk membuktikan token — bila
+ * api.chess.com sedang padam, dashboard sempat lolos masuk dan kendala
+ * hanya muncul di panel yang memang butuh roster (Anggota/ringkasan),
+ * bukan mengunci seluruh gerbang login.
+ */
+router.get("/api/pengurus/verifikasi", async (req) => {
+  pastikanAdmin(req);
+  return { status: 200, isi: { ok: true } };
+});
+
 router.post("/api/pengurus/pindai", async (req) => {
   pastikanAdmin(req);
   return { status: 200, isi: await pindaiFairPlay() };
@@ -526,12 +538,6 @@ router.post("/api/pengurus/pesan/:id/hapus", async (req, param) => {
   pastikanAdmin(req);
   await hapusPesan(param.id);
   return { status: 200, isi: { pesan: "Pesan dihapus." } };
-});
-
-/** Ringkasan pesan untuk dashboard. */
-router.get("/api/pengurus/ringkasan-pesan", async (req) => {
-  pastikanAdmin(req);
-  return { status: 200, isi: await ringkasanPesan() };
 });
 
 /* -------------------------------------------------------------- penangan */

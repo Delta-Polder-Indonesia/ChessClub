@@ -66,14 +66,31 @@ function OpeningBookBoardComponent() {
   );
 }
 
+/** Kalimat info Ruy Lopez dengan sisipan notasi ber-format pada penanda {x} dan {label}. */
+function KalimatInfo({ t }) {
+  const [pra, sisa = ""] = t("bukuPembukaan.infoTeks").split("{x}");
+  const [tengah, akhir = ""] = sisa.split("{label}");
+  return (
+    <>
+      {pra}
+      <span className="font-mono font-semibold">
+        1. e4 e5 2. Nf3 Nc6 3. Bb5
+      </span>
+      {tengah}
+      <span className="font-semibold text-gray-800">Ruy Lopez (C70)</span>
+      {akhir}
+    </>
+  );
+}
+
 /**
  * Halaman konten Pembukaan — bagian kedua dari dua.
  * Memaparkan cara buku pembukaan bekerja (nama + kode ECO otomatis)
  * sebelum anggota masuk ke papan interaktif di /papan-interaktif.
- * Demo visual mengikuti markup aslinya di tab Beranda (bahasa Indonesia).
+ * Demo visual mengikuti markup aslinya di tab Beranda — kini dwibahasa (ID/EN).
  */
 export default function Pembukaan() {
-  const { t, bahasa } = useI18n();
+  const { t } = useI18n();
   return (
     <HalamanIsi
       title={t("bukuPembukaan.judul")}
@@ -83,28 +100,16 @@ export default function Pembukaan() {
       next={{ to: "/papan-interaktif", judul: t("papan.judul") }}
     >
       <PageArtikel title={t("bukuPembukaan.artikel")}>
-        {bahasa === "en" && (
-          <p className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            {t("bukuPembukaan.kontenHanyaId")}
-          </p>
-        )}
         <div className="flex w-full flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
           {/* Kolom Kiri: Teks & Tombol */}
           <div className="mb-6 w-full md:mb-0 md:w-2/5">
-            <p>
-              Mainkan langkah di papan bebas dan buku pembukaan akan langsung
-              mengenali nama pembukaan beserta kode ECO-nya — mulai dari Ruy
-              Lopez, Sicilian Najdorf, hingga Queen's Gambit.
-            </p>
-            <p>
-              Lengkap dengan saran langkah berikutnya dan katalog 3.810 jalur
-              pembukaan dari data lichess (lisensi CC0).
-            </p>
+            <p>{t("bukuPembukaan.paragraf1")}</p>
+            <p>{t("bukuPembukaan.paragraf2")}</p>
             <Link
               to="/papan-interaktif"
               className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base no-underline"
             >
-              Buka Opening Book
+              {t("bukuPembukaan.buka")}
             </Link>
           </div>
 
@@ -114,7 +119,7 @@ export default function Pembukaan() {
               <div className="flex items-center">
                 <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#0b2f9f]" />
                 <p className="font-semibold text-sm sm:text-base text-gray-800 m-0!">
-                  Buku Pembukaan
+                  {t("bukuPembukaan.demoJudul")}
                 </p>
               </div>
               <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
@@ -122,7 +127,7 @@ export default function Pembukaan() {
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
-              Nama pembukaan muncul otomatis saat posisinya dikenali
+              {t("bukuPembukaan.demoTantangan")}
             </p>
 
             <div className="flex flex-col gap-4 md:flex-row items-center md:items-start">
@@ -140,19 +145,11 @@ export default function Pembukaan() {
                     Ruy Lopez
                   </h4>
                   <p className="mb-3 text-[11px] leading-relaxed text-gray-600 m-0!">
-                    Setelah{" "}
-                    <span className="font-mono font-semibold">
-                      1. e4 e5 2. Nf3 Nc6 3. Bb5
-                    </span>
-                    , buku pembukaan langsung mengenali posisi ini sebagai{" "}
-                    <span className="font-semibold text-gray-800">
-                      Ruy Lopez (C70)
-                    </span>
-                    .
+                    <KalimatInfo t={t} />
                   </p>
 
                   <p className="mb-2 text-[11px] font-semibold text-gray-700">
-                    Langkah berikutnya
+                    {t("papan.langkahBerikutnya")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
                     {["Ba4", "Bxc6", "a6", "Nf6", "d6", "f5"].map((m) => (

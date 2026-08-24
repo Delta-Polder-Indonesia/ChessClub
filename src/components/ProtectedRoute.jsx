@@ -7,7 +7,10 @@ import Gerbang from "../halaman/Pengurus/Gerbang.jsx";
  * Pelindung rute pengurus.
  *
  * Menebak URL /pengurus secara manual tidak lagi cukup: sebelum anak dirender,
- * token di sessionStorage DIVERIFIKASI ULANG ke server (/api/pengurus/ringkasan).
+ * token di sessionStorage DIVERIFIKASI ULANG ke server lewat endpoint ringan
+ * /api/pengurus/verifikasi (sengaja BUKAN /ringkasan supaya login tidak ikut
+ * gagal saat api.chess.com padam — data panel dimuat terpisah setelah
+ * dashboard terbuka).
  * Token kosong, kedaluwarsa, atau palsu (mis. disuntikkan lewat DevTools)
  * langsung dibuang dan pengguna diarahkan ke gerbang login.
  *
@@ -28,7 +31,7 @@ export default function ProtectedRoute({ children }) {
     setStatus("memeriksa");
     try {
       // Validasi sisi server — sumber kebenaran satu-satunya.
-      await apiPengurus("/ringkasan");
+      await apiPengurus("/verifikasi");
       setStatus("terverifikasi");
     } catch (err) {
       if (err.status === 401 || err.status === 403) {
