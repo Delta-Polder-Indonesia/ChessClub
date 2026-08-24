@@ -1,434 +1,451 @@
-import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
-/* ---------------------------------------------------------- tautan
- * Template tautan grup WhatsApp. Belum ada kode grup aslinya, jadi
- * ditandai "GANTI_KODE_GRUP". Cukup ganti satu baris di bawah ini
- * dengan tautan undangan grup Anda, mis.
- *   "https://chat.whatsapp.com/AbCd1234EfGh"
- */
-const LINK_GRUP_WA = "https://chat.whatsapp.com/GANTI_KODE_GRUP";
-
 /**
- * Daftar pertanyaan & jawaban.
- *
- * Konten diadaptasi dari dokumen anggota. Tautan eksternal memakai rel
- * noreferrer/noopener agar aman.
+ * Daftar pertanyaan & jawaban Blunder Skuad.
  */
 const DAFTAR_TANYA = [
   {
-    t: "Apa itu Komunitas Catur Indonesia?",
+    t: "Apa itu Blunder Skuad?",
     j: (
       <p>
-        Komunitas Catur Indonesia adalah tempat bermain catur bagi masyarakat
-        Indonesia baik yang sudah master maupun yang bermain secara kasual dan
-        amatiran. Kami merangkul semua pemain dari semua tingkat kemampuan.
-        Prinsip kami, setiap pemain pasti ada kelompoknya di mana mereka bisa
-        bermain secara seimbang dan menjadikan permainan catur sebagai hiburan
-        semata.
+        Blunder Skuad adalah komunitas catur yang dibentuk sebagai wadah bagi
+        para penggemar catur dari berbagai tingkat kemampuan — mulai dari pemain
+        kasual yang baru mengenal permainan ini hingga mereka yang telah memiliki
+        pengalaman kompetitif. Prinsip dasar kami sederhana: setiap pemain, apa
+        pun tingkat kemampuannya, memiliki tempat di mana ia dapat menemukan
+        lawan main yang seimbang, belajar secara berkelanjutan, dan menjadikan
+        catur sebagai sumber hiburan sekaligus pengembangan diri. Kami bukan
+        entitas komersial, melainkan komunitas yang dikelola secara kolektif oleh
+        anggotanya, dengan pengurus yang bertugas memastikan ekosistem ini tetap
+        kondusif bagi semua pihak.
       </p>
     ),
   },
   {
-    t: "Bagaimana cara bermain di Komunitas Catur Indonesia?",
+    t: "Bagaimana cara bergabung dengan Blunder Skuad?",
     j: (
       <p>
-        Kami menggunakan 3 komponen situs.{" "}
-        <a
-          href="https://www.chess.com"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          Chess.com
-        </a>{" "}
-        tempat bermain,{" "}
-        <Link to="/turnamen" className="text-primary">
-          LigaCatur.com
-        </Link>{" "}
-        tempat pengaturan tim, nilai dan skor, serta{" "}
-        <a
-          href={LINK_GRUP_WA}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          WhatsApp
-        </a>{" "}
-        group tempat berkomunikasi dan bersosialisasi.
+        Proses keanggotaan terdiri dari beberapa langkah yang dirancang untuk
+        memastikan kesesuaian antara ekspektasi calon anggota dan nilai-nilai
+        komunitas. Pertama, calon anggota diharapkan untuk mengisi formulir
+        pendaftaran yang tersedia di saluran resmi kami. Kedua, setelah
+        pendaftaran diterima, calon anggota akan melalui proses orientasi singkat
+        yang menjelaskan aturan main, kode etik, dan mekanisme kegiatan
+        komunitas. Ketiga, setelah orientasi selesai, anggota baru akan diberikan
+        akses ke grup komunikasi resmi komunitas, yang menjadi pusat koordinasi
+        untuk seluruh kegiatan, diskusi, dan pengumuman turnamen.
       </p>
     ),
   },
   {
-    t: "Apa itu situs Chess.com?",
+    t: "Di platform mana Blunder Skuad bermain?",
     j: (
       <p>
-        Chess.com adalah tempat bermain catur secara online. Anda bisa membuat
-        akun secara gratis, bermain lewat komputer maupun handphone Anda kapan
-        pun Anda main. Syarat memiliki akun di Chess.com cukup email address dan{" "}
-        <strong className="text-red-600">tidak melakukan kecurangan</strong>.
+        Blunder Skuad tidak mengunci anggotanya pada satu platform tunggal.
+        Kami menggunakan berbagai platform catur daring yang umum tersedia,
+        seperti Chess.com, Lichess, atau platform lainnya, tergantung pada
+        kesepakatan bersama untuk setiap kegiatan tertentu. Fleksibilitas ini
+        dimaksudkan untuk mengakomodasi preferensi individu anggota, selama
+        platform yang dipilih memiliki mekanisme permainan adil yang memadai.
+        Untuk setiap turnamen atau liga, pengurus akan mengumumkan platform resmi
+        yang digunakan, dan anggota diharapkan untuk mematuhi keputusan tersebut.
       </p>
     ),
   },
   {
-    t: "Apa itu kecurangan dalam bermain catur (terutama online)?",
+    t: "Apa itu kecurangan dalam bermain catur daring, dan bagaimana Blunder Skuad menyikapinya?",
     j: (
       <p>
-        Secara kalimat sederhana, bermainlah apa adanya. Anda, pikiran Anda dan
-        tanpa bantuan orang lain (joki) maupun bantuan mesin catur (engine/jin).
-        Syarat main tidak curang ini perlu digarisbawahi secara tegas karena
-        bermain online bisa dilakukan dari mana saja. Tanpa kejujuran dan
-        sportivitas, permainan online catur akan rusak dengan sendirinya. Mari
-        kita jaga kejujuran dan sportivitas bermain.
+        Secara esensial, kecurangan adalah setiap bentuk bantuan eksternal yang
+        diterima pemain selama pertandingan berlangsung, baik itu berupa mesin
+        analisis catur (<em>engine</em>), konsultasi dengan pihak ketiga (
+        <em>joki</em>), maupun akses ke database bukaan dalam format yang tidak
+        diizinkan oleh aturan turnamen. Blunder Skuad menggarisbawahi bahwa
+        integritas permainan adalah fondasi yang tidak dapat ditawar. Tanpa
+        kejujuran dan sportivitas dari setiap individu, ekosistem kompetitif
+        daring akan runtuh dengan sendirinya. Kami menerapkan kebijakan{" "}
+        <em>zero tolerance</em> terhadap kecurangan dalam segala bentuknya.
       </p>
     ),
   },
   {
-    t: "Bagaimana kecurangan bisa ketahuan?",
+    t: "Bagaimana kecurangan bisa terdeteksi?",
     j: (
       <p>
-        Kecurangan dalam bermain catur online tidak bisa dibersihkan 100%,
-        tetapi Chess.com dengan algoritmanya setiap saat akan melakukan
-        pemeriksaan terhadap akun dan semua permainan yang dimainkan. Itu
-        adalah tugas Chess.com sebagai tempat bermain. Jika akun seorang pemain
-        ditutup karena melanggar kebijakan fair play atau biasa disebut
-        &quot;plat merah&quot; (
-        <a
-          href="https://www.chess.com/member/adit_tiwari_3103"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          contoh lihat di sini
-        </a>
-        ) maka pemain tersebut sudah dinyatakan melakukan kecurangan oleh pihak
-        Chess.com. Kami Komunitas Catur Indonesia melarang pemain yang kena plat
-        merah untuk bermain (bermain kembali) dalam Komunitas Catur Indonesia
-        selama-lamanya.
+        Meskipun tidak ada sistem yang sempurna, platform-platform yang kami
+        gunakan telah dilengkapi dengan algoritme deteksi otomatis yang
+        menganalisis pola permainan, konsistensi waktu pemikiran, dan tingkat
+        akurasi langkah untuk mengidentifikasi aktivitas yang mencurigakan.
+        Selain deteksi otomatis, Blunder Skuad juga memiliki mekanisme pengawasan
+        internal, termasuk peninjauan manual terhadap permainan-pertandingan yang
+        dianggap tidak wajar. Apabila seorang anggota terbukti melakukan
+        kecurangan, baik melalui deteksi platform maupun bukti yang diajukan oleh
+        anggota lain, maka sanksi akan diberikan sesuai dengan tingkat keparahan
+        pelanggaran, yang dapat berupa peringatan, suspensi sementara, atau
+        pencabutan keanggotaan permanen.
       </p>
     ),
   },
   {
-    t: "Jika kena plat merah, kan tinggal ganti akun?",
+    t: "Apakah saya bisa bergabung kembali jika pernah terkena sanksi karena kecurangan?",
     j: (
       <p>
-        Dalam Komunitas Catur Indonesia, identitas pemain tercatat dalam
-        database kami. Nama, email, nomor telepon, dan lokasi. Pemain yang sudah
-        kena plat merah tidak akan bisa bermain kembali dalam Komunitas Catur
-        Indonesia sebelum akunnya kembali normal. Ada kemungkinan akun kembali
-        normal dengan menghubungi pihak Chess.com.
+        Kebijakan Blunder Skuad mengenai pelanggaran permainan adil bersifat
+        tegas. Anggota yang telah terbukti melakukan kecurangan dan dikenai
+        sanksi pencabutan keanggotaan tidak akan dapat bergabung kembali dalam
+        komunitas ini, kecuali jika terdapat bukti baru yang secara substantif
+        membatalkan dugaan pelanggaran sebelumnya. Keputusan ini diambil untuk
+        menjaga kepercayaan kolektif di antara anggota, karena komunitas yang
+        sehat hanya dapat berdiri di atas fondasi kejujuran yang tidak boleh
+        dikompromikan.
       </p>
     ),
   },
   {
-    t: "Bagaimana cara bergabung di Komunitas Catur Indonesia?",
+    t: "Apakah saya boleh memiliki lebih dari satu akun dalam komunitas?",
     j: (
       <p>
-        Yang pertama Anda harus punya akun di Chess.com, yang kedua cukup
-        kunjungi halaman{" "}
-        <Link to="/beranda/peringkat" className="text-primary">
-          DAFTAR
-        </Link>
-        , yang ketiga bergabunglah dalam{" "}
-        <a
-          href={LINK_GRUP_WA}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          WA Group kami
-        </a>
-        .
+        Blunder Skuad menerapkan prinsip <em>satu identitas, satu akun</em>.
+        Setiap anggota hanya diperbolehkan untuk mendaftarkan satu akun resmi
+        yang terhubung dengan identitasnya dalam sistem komunitas. Akun kedua
+        hanya dapat dipertimbangkan untuk tujuan pelatihan khusus dan wajib
+        mendapatkan persetujuan tertulis dari pengurus sebelumnya. Duplikasi akun
+        tanpa izin, terutama yang dimaksudkan untuk menghindari sanksi atau
+        memanipulasi hasil pertandingan, merupakan pelanggaran serius yang akan
+        dikenai sanksi administratif.
       </p>
     ),
   },
   {
-    t: "Jenis turnamen di Komunitas Catur Indonesia apa saja?",
+    t: "Jenis turnamen apa saja yang diselenggarakan oleh Blunder Skuad?",
     j: (
       <p>
-        Saat ini kami memiliki banyak sekali jenis turnamen. Liga Utama, Kursi
-        Empat, Turnamen Langsung, Master Chess, Rolasan, Zidjian, Marroha, Arena
-        Puputan, Baratayuda, Dwi Tarung, Silaturahmi Zoom, Liga Chessmen,
-        Bendino. Ibarat Komunitas Catur Indonesia adalah restoran, kami memiliki
-        banyak menu masakan dan setiap masakan akan memiliki rasa tersendiri.
-        Silakan memilih yang Anda suka.
+        Blunder Skuad menyelenggarakan beragam format turnamen untuk
+        mengakomodasi preferensi dan jadwal yang berbeda-beda di kalangan
+        anggota. Format yang tersedia meliputi, namun tidak terbatas pada:
+        turnamen <em>round robin</em> dengan jadwal fleksibel, turnamen{" "}
+        <em>swiss system</em> dengan ronde tetap, turnamen <em>arena</em> dengan
+        sifat masal dan dinamis, serta pertandingan tim antar kelompok anggota.
+        Selain itu, kami juga mengadakan sesi latihan bersama, analisis permainan
+        kolektif, dan pertemuan virtual untuk mempererat ikatan sosial
+        antaranggota. Setiap format dirancang untuk memberikan pengalaman
+        berbeda, sehingga anggota dapat memilih kegiatan yang paling sesuai
+        dengan gaya bermain dan ketersediaan waktunya.
       </p>
     ),
   },
   {
-    t: "Banyak sekali turnamen, apa waktu kita tidak habis hanya untuk bermain catur?",
+    t: "Dengan banyaknya jadwal turnamen, bagaimana saya mengatur waktu?",
     j: (
       <p>
-        Saran untuk semua: keluarga, pekerjaan, kewajiban agama dan mengendarai
-        kendaraan lebih utama dibandingkan bermain catur/online. Luangkanlah
-        waktu dengan bijaksana. Jika jadwal turnamen berbenturan dengan jadwal
-        rutinitas Anda, kami biasanya memberikan alternatifnya, dan bukan
-        menggesernya karena catur online di Indonesia memiliki 3 zona waktu.
+        Kami sangat menekankan bahwa catur, meskipun menyenangkan, tetaplah
+        sebuah aktivitas rekreasi dan pengembangan diri yang harus diprioritaskan
+        setelah kewajiban utama. Keluarga, pekerjaan, kewajiban agama, dan
+        keselamatan dalam beraktivitas harus selalu didahulukan. Blunder Skuad
+        merancang jadwal turnamen dengan mempertimbangkan keragaman zona waktu
+        dan rutinitas anggota, serta menyediakan alternatif format bagi mereka
+        yang tidak dapat mengikuti jadwal tetap. Kami menganjurkan setiap anggota
+        untuk memilih kegiatan secara selektif dan mengelola waktu dengan
+        bijaksana, alih-alih berpartisipasi dalam setiap turnamen yang tersedia.
       </p>
     ),
   },
   {
-    t: "Apa itu turnamen Liga Utama?",
+    t: "Apa itu turnamen Round Robin di Blunder Skuad?",
     j: (
       <p>
-        Liga Utama adalah turnamen mingguan yang dimainkan oleh anggota kami.
-        Pairing yang dilakukan adalah round robin. Rentang waktu pertandingan
-        biasanya 1–2 minggu; pemain boleh memainkan papannya kapan saja selama
-        waktu luang mereka. Hasil akan dicatat oleh sistem dan pemain dengan
-        skor terbanyak adalah pemenangnya.
+        Turnamen <em>round robin</em> adalah format di mana setiap peserta
+        bertanding melawan seluruh peserta lainnya dalam satu siklus. Di
+        Blunder Skuad, turnamen ini biasanya dijadwalkan dengan rentang waktu
+        satu hingga dua minggu, di mana pemain dapat mengatur jadwal
+        pertandingannya masing-masing sesuai kesepakatan dengan lawan. Hasil
+        pertandingan dicatat dalam sistem internal komunitas, dan pemenang
+        ditentukan berdasarkan akumulasi skor tertinggi di akhir siklus. Format
+        ini ideal bagi anggota yang menginginkan pengalaman kompetitif yang
+        mendalam namun tetap fleksibel dalam hal waktu.
       </p>
     ),
   },
   {
-    t: "Apa itu turnamen Kursi Empat?",
+    t: "Apa itu turnamen format kecil atau mini tournament?",
     j: (
       <p>
-        Kursi Empat adalah turnamen kecil yang diikuti hanya empat pemain.
-        Prosesnya anggota di{" "}
-        <a
-          href={LINK_GRUP_WA}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          WA Group
-        </a>{" "}
-        posting ingin main Kursi Empat, dan jika dibalas pemain lain dan
-        terkumpul empat pemain, mereka bisa langsung melakukan turnamen Kursi
-        Empat. Pairing dibuat, ronde dan papan dimainkan, selesai.
+        Selain turnamen besar, Blunder Skuad juga memfasilitasi turnamen mini
+        yang diikuti oleh jumlah peserta terbatas, misalnya empat hingga delapan
+        pemain. Turnamen ini biasanya dimulai dari inisiatif anggota di grup
+        komunikasi; ketika jumlah peserta yang berminat telah terkumpul, mereka
+        dapat langsung mengatur pairing dan memainkan turnamen tersebut.
+        Prosesnya cepat dan tidak memerlukan birokrasi panjang, sehingga cocok
+        bagi anggota yang ingin bermain secara spontan tanpa menunggu jadwal
+        turnamen resmi komunitas.
       </p>
     ),
   },
   {
-    t: "Apa itu Turnamen Langsung?",
+    t: "Apa itu turnamen dengan jadwal ronde tetap?",
     j: (
       <p>
-        Turnamen Langsung adalah turnamen yang jadwal rondenya sudah pasti.
-        Proses turnamen ini adalah pemain mendaftar, pemain siap pada jadwal
-        ronde yang sudah ditentukan, memainkan papan, selesai. Menang atau
-        kalah, pemain akan bermain ronde berikutnya sampai semua ronde
-        dimainkan.
+        Turnamen dengan jadwal ronde tetap adalah format di mana waktu
+        pertandingan untuk setiap ronde telah ditentukan sebelumnya oleh panitia
+        penyelenggara. Peserta yang mendaftar wajib hadir pada jadwal yang telah
+        ditetapkan, memainkan papannya sesuai pairing, dan melanjutkan ke ronde
+        berikutnya apa pun hasil pertandingan sebelumnya. Format ini menuntut
+        komitmen waktu yang lebih tinggi dari peserta, namun menawarkan
+        intensitas kompetitif dan ritme turnamen yang lebih terstruktur
+        dibandingkan dengan format fleksibel.
       </p>
     ),
   },
   {
-    t: "Komunitas Catur Indonesia punya rating sendiri?",
+    t: "Apakah Blunder Skuad memiliki sistem rating internal?",
     j: (
       <p>
-        Benar. Kami mengembangkan sistem untuk mengkalkulasi rating peringkat
-        pemain dalam Komunitas Catur Indonesia. Jika Anda bergabung dalam
-        Komunitas Catur Indonesia dan sudah memiliki rating OTB
-        (over-the-board / offline), silakan memberitahu kami untuk mengubah
-        rating awal di sistem kami. Untuk pemain yang memiliki rating di US
-        Chess, konversi langsung tanpa penghitungan. Untuk pemain yang memiliki
-        rating di FIDE, kami menggunakan{" "}
-        <a
-          href="http://www.glicko.net/ratings/rating.system.pdf"
-          target="_blank"
-          rel="noreferrer noopener"
-          className="text-primary"
-        >
-          kalkulasi ini
-        </a>
-        . Untuk konversi dari rating Chess.com, kami belum melakukannya.
-        Kedepannya akan kami konversi dengan syarat-syarat tertentu yang harus
-        dipenuhi, misalnya umur akun, nama akun, total permainan yang sudah
-        dimainkan, dan sebagainya.
+        Ya. Blunder Skuad mengembangkan dan memelihara sistem rating internal
+        yang mencerminkan performa anggota dalam kegiatan komunitas. Sistem ini
+        berfungsi sebagai alat <em>pairing</em> untuk memastikan pertandingan
+        yang seimbang, serta sebagai indikator perkembangan kemampuan anggota
+        dari waktu ke waktu. Bagi anggota yang memiliki rating resmi dari
+        federasi catur nasional atau internasional, rating tersebut dapat
+        dijadikan acuan untuk penentuan rating awal dalam sistem kami. Namun,
+        rating internal Blunder Skuad bersifat independen dan hanya mencerminkan
+        hasil pertandingan yang tercatat dalam ekosistem komunitas ini.
       </p>
     ),
   },
   {
-    t: "Apa itu verifikasi?",
+    t: "Apa itu sistem verifikasi di Blunder Skuad?",
     j: (
       <p>
-        Komunitas Catur Indonesia menerapkan sistem verifikasi. Setelah
-        mendaftar Anda bisa chat dengan admin, dan akun Anda akan kami tandai
-        dengan centang biru. Kami mempunyai kebijakan 1 identitas, 1 akun, 1
-        verifikasi, 1 klub, 1 provinsi. Setiap pemain hanya bisa mempunyai 1
-        identitas yang kita verifikasi menggunakan nomor telepon (WhatsApp), 1
-        akun Chess.com, dan hanya 1 akun Chess.com yang kami verifikasi untuk
-        bisa bermain dalam Komunitas Catur Indonesia. Setiap akun hanya berhak
-        masuk ke dalam 1 klub terdaftar. Setiap pemain hanya bermain dalam 1 tim
-        provinsi sesuai dengan KTP/SIM atau surat Gubernur.
+        Untuk menjaga integritas komunitas, Blunder Skuad menerapkan sistem
+        verifikasi sederhana. Setelah mendaftar, anggota baru akan melalui proses
+        verifikasi identitas yang dilakukan oleh pengurus, yang mencakup
+        konfirmasi nama, kontak, dan akun platform catur yang didaftarkan.
+        Anggota yang telah terverifikasi akan mendapatkan tanda khusus dalam
+        sistem komunitas. Kebijakan kami menegaskan bahwa setiap individu hanya
+        dapat memiliki satu identitas terverifikasi dan satu akun resmi dalam
+        komunitas. Verifikasi ini bertujuan untuk mencegah duplikasi akun,
+        penipuan identitas, dan memastikan bahwa setiap anggota dapat
+        dipertanggungjawabkan atas aktivitasnya.
       </p>
     ),
   },
   {
-    t: "Hadiah lewat balance, apa itu?",
+    t: "Bagaimana sistem hadiah di Blunder Skuad?",
     j: (
       <p>
-        Hadiah sebagian besar kami menggunakan istilah balance. Kita tidak bisa
-        setiap kali hadiah yang kadang nominalnya relatif kecil, kemudian kita
-        harus transfer. Bayangkan kalau hadiah &quot;permen&quot; Rp3.000 lalu
-        kita harus transfer, bagaimana caranya? Untuk itu, kita menggunakan
-        sistem balance, atau neraca hadiah. Setiap hadiah yang masuk kita catat
-        dengan rapi dan anggota bisa mencairkan kalau nominalnya sudah $5 atau
-        lebih, dan ini menghemat waktu kita semua. Jika memang harus mencairkan
-        di bawah $5 maka akan dikenai biaya administrasi.
+        Sistem hadiah di Blunder Skuad dirancang dengan mempertimbangkan
+        efisiensi administrasi dan kenyamanan anggota. Untuk hadiah dengan
+        nominal kecil, kami menggunakan sistem <em>balance</em> atau pencatatan
+        neraca internal, di mana setiap kemenangan atau hadiah yang diperoleh
+        oleh anggota dicatat secara rapi dalam sistem komunitas. Anggota dapat
+        mencairkan saldo balance-nya ketika telah mencapai ambang batas nominal
+        tertentu yang telah ditetapkan. Pendekatan ini mengurangi frekuensi
+        transaksi kecil yang tidak efisien, sambil tetap memastikan bahwa setiap
+        anggota menerima haknya secara transparan.
       </p>
     ),
   },
   {
-    t: "Apa itu Klub? Apa itu Tim?",
+    t: "Apa perbedaan antara Klub dan Tim dalam konteks Blunder Skuad?",
     j: (
       <p>
-        Komunitas Catur Indonesia membedakan istilah Klub dan Tim. Komunitas
-        Catur Indonesia bukan Klub. Kami justru mewadahi klub-klub catur di
-        Indonesia dalam sistem kami. Kami memiliki banyak klub catur yang sudah
-        terdaftar dalam naungan Komunitas Catur Indonesia. Jika ingin
-        mendaftarkan klub Anda, hubungi admin. Apa beda Klub dan Tim? Seperti di
-        dalam dunia sepakbola: Klub adalah organisasi yang lebih bersifat tetap,
-        sedangkan Tim adalah tim dalam sebuah pertandingan atau turnamen. Bisa
-        jadi sebuah tim bermain dengan anggota yang berbeda klub, jika
-        regulasinya memperbolehkan.
+        Blunder Skuad membedakan istilah <em>klub</em> dan <em>tim</em> untuk
+        kejelasan administrasi. Sebuah <em>klub</em> adalah entitas yang bersifat
+        permanen atau semi-permanen, memiliki anggota tetap, dan beroperasi
+        sebagai satuan organisasi dalam komunitas. Sementara itu, <em>tim</em>{" "}
+        adalah formasi sementara yang dibentuk untuk tujuan kompetisi atau
+        turnamen tertentu. Dalam sebuah turnamen, bisa saja terbentuk tim yang
+        anggotanya berasal dari klub yang berbeda, tergantung pada regulasi
+        turnamen yang berlaku. Blunder Skuad sendiri berfungsi sebagai payung
+        komunitas yang dapat menampung berbagai klub di bawah naungannya, atau
+        beroperasi sebagai tim tunggal dalam kompetisi eksternal.
       </p>
     ),
   },
   {
-    t: "Apa itu Rolasan?",
+    t: "Apa itu turnamen dengan pairing berbasis rating?",
     j: (
       <p>
-        Rolasan adalah salah satu seri turnamen di Komunitas Catur Indonesia.
-        &quot;Rolas&quot; yang artinya dalam bahasa Jawa 12 menunjuk ke jam yang
-        biasanya dipakai untuk turnamen. Pairing 1-2 kita gunakan dalam turnamen
-        ini. Apa itu? Pemain hanya dipasangkan melawan pemain-pemain yang
-        ratingnya dekat saja. Semacam virtual group/section sebenarnya.
+        Beberapa turnamen di Blunder Skuad menerapkan sistem pairing di mana
+        peserta hanya dipertemukan dengan lawan yang memiliki rating dalam
+        rentang tertentu. Pendekatan ini menciptakan <em>virtual group</em>{" "}
+        atau seksi kompetisi internal, di mana pemain pemula tidak langsung
+        berhadapan dengan pemain berpengalaman dalam tahap awal. Tujuannya adalah
+        untuk memberikan pengalaman kompetitif yang adil dan mencegah frustrasi
+        pada peserta yang masih dalam proses pengembangan kemampuan.
       </p>
     ),
   },
   {
-    t: "Apa itu Zidjian?",
+    t: "Apa itu turnamen dengan format Swiss?",
     j: (
       <p>
-        Zidjian adalah salah satu seri turnamen di Komunitas Catur Indonesia.
-        Sedikit membedakan dengan Rolas, Zidjian diambil dari kata siji/hiji/satu
-        dan untuk Jumat/Sabtu turnamen ini ada di jam 1. Pairing swiss normal
-        dan tidak mempertemukan pemain dalam satu tim/klub.
+        Turnamen <em>Swiss system</em> adalah format di mana peserta tidak
+        bertemu semua peserta lainnya, melainkan hanya sejumlah ronde tertentu.
+        Pada setiap ronde, pairing ditentukan berdasarkan akumulasi skor
+        sementara, sehingga pemain dengan skor serupa akan saling bertemu.
+        Format ini efisien untuk turnamen dengan jumlah peserta besar karena
+        tidak memerlukan jumlah ronde sebanyak format <em>round robin</em>. Di
+        Blunder Skuad, turnamen <em>Swiss</em> sering kali dilengkapi dengan
+        aturan tambahan, seperti larangan mempertemukan anggota dari klub atau
+        tim yang sama pada ronde-ronde awal.
       </p>
     ),
   },
   {
-    t: "Apa itu Baratayuda?",
+    t: "Apa itu turnamen format pertarungan tim?",
     j: (
       <p>
-        Baratayuda adalah salah satu seri turnamen di Komunitas Catur Indonesia.
-        Battle of 2 teams! Hanya tim pemenang yang mendapat hadiah. Turnamen ini
-        memasang 2 nama di awal pertandingan. Misalnya Baratayuda Bakmi vs
-        Nasgor, Baratayuda Mawar vs Melati, Baratayuda Batman vs Superman,
-        Baratayuda Ronaldo vs Messi, dan sebagainya. Pemain sebelum masuk harus
-        memilih 1 tim. Anggota dilarang melakukan kampanye di ruang publik
-        (dilarang menyatakan pilihannya di ruang publik/GWA), tetapi boleh
-        japri ke teman-teman dekat. Setelah pemain masuk, maka dia akan bermain
-        dalam tim tersebut, dan sesama anggota tim tidak akan saling melawan.
+        Turnamen pertarungan tim adalah format di mana dua kelompok pemain
+        saling berhadapan dalam serangkaian pertandingan individual. Sebelum
+        turnamen dimulai, nama atau tema untuk kedua tim akan ditentukan, dan
+        anggota komunitas dapat memilih untuk bergabung dengan salah satu tim.
+        Setelah pembagian tim selesai, anggota dalam satu tim tidak akan saling
+        bertemu dalam pairing; mereka akan bertanding melawan anggota tim lawan.
+        Hadiah biasanya diberikan kepada tim pemenang secara kolektif. Untuk
+        menjaga sportivitas, anggota dilarang melakukan kampanye pemilihan tim
+        secara berlebihan di ruang publik komunitas.
       </p>
     ),
   },
   {
-    t: "Apa itu Marroha?",
+    t: "Apa itu turnamen dengan kontrol waktu klasik?",
     j: (
       <p>
-        Marroha adalah salah satu seri turnamen di Komunitas Catur Indonesia.
-        Marroha dalam bahasa Batak berarti berpikir. Ada 2 jadwal Marroha, kita
-        sebut Marroha Klasik dan Marroha Malam. Kata &quot;klasik&quot; dalam
-        istilah catur digunakan untuk pertandingan yang menyediakan kontrol waktu
-        relatif lama. Kata &quot;malam&quot; artinya jelas, bahwa jadwalnya
-        larut malam. Tujuan ajang ini ditujukan untuk pemain yang ingin main
-        menikmati catur, dan pemain yang ingin berpikir dalam. Santai tapi
-        serius.
+        Blunder Skuad juga mengadakan turnamen dengan kontrol waktu yang lebih
+        panjang, yang dalam terminologi catur dikenal sebagai format{" "}
+        <em>klasik</em>. Turnamen ini dirancang bagi anggota yang ingin menikmati
+        permainan catur dengan kedalaman analisis yang lebih besar, tanpa
+        tekanan waktu yang mendesak seperti dalam format <em>blitz</em> atau{" "}
+        <em>bullet</em>. Kami menyediakan jadwal yang beragam untuk format ini,
+        termasuk sesi yang diadakan pada waktu-waktu tertentu untuk mengakomodasi
+        anggota yang memiliki preferensi waktu bermain yang berbeda. Suasana
+        turnamen klasik di Blunder Skuad cenderung lebih santai namun tetap
+        serius, sesuai dengan esensi catur sebagai permainan strategis yang
+        mendalam.
       </p>
     ),
   },
   {
-    t: "Apa itu Arena Puputan?",
+    t: "Apa itu turnamen format Arena?",
     j: (
       <p>
-        Arena Puputan adalah salah satu seri turnamen di Komunitas Catur
-        Indonesia. Kata puputan sendiri diambil dari Bali, yang artinya adalah
-        pertempuran sampai darah penghabisan. Salah satu puputan dalam sejarah
-        Bali adalah pertempuran Margarana yang dikomandoi oleh I Gusti Ngurah
-        Rai. Arena adalah salah satu jenis turnamen di Chess.com yang sifatnya
-        masal, boleh berserk (menggunakan separuh waktu), boleh streak (menang
-        terus dapat nilai lebih), dan ada jenis Arena yang sifatnya Team Battle.
+        Turnamen <em>arena</em> adalah format kompetisi massal di mana peserta
+        dapat bergabung dan keluar kapan saja selama periode turnamen
+        berlangsung. Setiap kemenangan memberikan poin, dan kemenangan beruntun
+        memberikan bonus poin tambahan. Di beberapa platform, format ini juga
+        memungkinkan fitur <em>berserk</em>, di mana pemain dapat mengurangi
+        waktunya sendiri untuk mendapatkan poin ekstra. Blunder Skuad mengadakan
+        turnamen <em>arena</em> secara berkala sebagai ajang yang meriah dan
+        inklusif, di mana anggota dapat mengikuti sebanyak atau sesedikit
+        pertandingan sesuai dengan waktu luang mereka.
       </p>
     ),
   },
   {
-    t: "Apa itu Silaturahmi Zoom?",
+    t: "Apakah Blunder Skuad mengadakan pertemuan virtual atau daring?",
     j: (
       <p>
-        Silaturahmi Zoom adalah salah satu seri turnamen di Komunitas Catur
-        Indonesia dengan menggunakan Zoom (ruang virtual dan kamera) dengan
-        tujuan agar anggota bisa lebih akrab dengan fasilitas visual yang
-        disediakan.
+        Ya. Selain aktivitas bermain, Blunder Skuad secara rutin mengadakan
+        sesi pertemuan virtual melalui platform konferensi video. Sesi ini
+        bertujuan untuk mempererat ikatan sosial antaranggota, karena kami
+        meyakini bahwa komunitas yang kuat dibangun tidak hanya melalui
+        interaksi kompetitif, tetapi juga melalui komunikasi langsung dan
+        pengenalan antarindividu. Dalam sesi virtual ini, anggota dapat saling
+        berbincang, mengenal wajah satu sama lain, serta berdiskusi tentang
+        strategi catur atau topik umum lainnya dalam suasana yang lebih santai.
       </p>
     ),
   },
   {
-    t: "Apa itu Liga Antar Provinsi?",
+    t: "Apa itu Liga di Blunder Skuad?",
     j: (
       <p>
-        Liga adalah rangkaian turnamen beruntun dengan mengakumulasikan nilai
-        pemain/tim setiap turnamen, dan mengambil juara dalam rangkaian
-        tersebut. Liga Antar Provinsi adalah liga di mana pemain akan mewakili
-        provinsinya untuk bermain, dan di akhir liga kita mengadakan final untuk
-        mencari provinsi juara.
+        Liga adalah rangkaian turnamen beruntun yang diadakan dalam periode
+        tertentu, di mana nilai atau skor dari setiap turnamen diakumulasikan
+        untuk menentukan peringkat akhir. Blunder Skuad menyelenggarakan
+        berbagai jenis liga, termasuk liga individu, liga antarklub, dan liga
+        tematik lainnya. Di akhir siklus liga, biasanya diadakan babak final atau
+        penentuan juara untuk memberikan kesempatan bagi peserta teratas untuk
+        bersaing dalam format yang lebih intens. Liga dirancang untuk memberikan
+        kompetisi jangka panjang yang mengukur konsistensi performa, bukan hanya
+        keberhasilan dalam satu turnamen tunggal.
       </p>
     ),
   },
   {
-    t: "Apa itu Liga Antar Klub?",
+    t: "Apakah Blunder Skuad memiliki liga antar klub?",
     j: (
       <p>
-        Liga Antar Klub adalah liga di mana pemain akan mewakili klubnya untuk
-        bermain, dan di akhir liga kita mengadakan final untuk mencari juara
-        klub.
+        Ya. Bagi komunitas atau klub catur yang telah terdaftar di bawah naungan
+        Blunder Skuad, kami menyediakan format liga antarklub di mana pemain
+        mewakili klubnya masing-masing untuk bersaing. Sistem ini memungkinkan
+        klub-klub untuk mengukur kekuatan kolektifnya, membangun rivalitas
+        sehat, dan menciptakan identitas kompetitif yang lebih dalam di antara
+        anggotanya. Liga antarklub menjadi salah satu ajang paling dinanti dalam
+        kalender kegiatan komunitas kami.
       </p>
     ),
   },
   {
-    t: "Apa itu Liga Antar Perusahaan?",
+    t: "Apakah Blunder Skuad merencanakan liga untuk kalangan khusus?",
     j: (
       <p>
-        Liga Antar Perusahaan adalah liga di mana pemain akan mewakili
-        perusahaannya untuk bermain, dan di akhir liga kita mengadakan final
-        untuk mencari juara perusahaan. Liga ini masih dalam taraf rancangan.
+        Blunder Skuad secara aktif mengembangkan format-format liga yang
+        ditujukan untuk segmen anggota tertentu, seperti liga antarperusahaan,
+        liga antarinstitusi pendidikan, atau liga berbasis tema lainnya.
+        Beberapa format ini masih dalam tahap perancangan dan akan diluncurkan
+        ketika kondisi administratif serta jumlah partisipan telah memadai. Kami
+        selalu terbuka terhadap masukan dan inisiatif dari anggota untuk
+        mengembangkan format kompetisi baru yang relevan dengan minat kolektif.
       </p>
     ),
   },
   {
-    t: "Apa itu Liga Antar Mahasiswa dan Pelajar?",
+    t: "Apakah Blunder Skuad menyelenggarakan turnamen tatap muka atau darat?",
     j: (
       <p>
-        Liga Antar Mahasiswa dan Pelajar adalah liga di mana pemain akan mewakili
-        sekolahnya untuk bermain, dan di akhir liga kita mengadakan final untuk
-        mencari juaranya. Liga ini masih dalam taraf rancangan.
+        Meskipun aktivitas utama Blunder Skuad berbasis daring, kami memiliki
+        aspirasi untuk aktif juga dalam ekosistem catur tatap muka.
+        Penyelenggaraan turnamen darat memerlukan kerja sama dengan mitra lokal,
+        venue yang memadai, serta koordinasi logistik yang lebih kompleks.
+        Sistem data dan rating internal yang kami miliki dirancang sedemikian
+        rupa sehingga dapat mendukung integrasi hasil turnamen darat ke dalam
+        catatan komunitas. Kami mengundang anggota yang memiliki jaringan lokal
+        atau sumber daya untuk berkolaborasi dalam mewujudkan turnamen tatap
+        muka di bawah bendera Blunder Skuad.
       </p>
     ),
   },
   {
-    t: "Apakah Komunitas Catur Indonesia memiliki turnamen darat?",
+    t: "Apakah saya boleh mendaftar dengan dua akun?",
     j: (
       <p>
-        Komunitas Catur Indonesia berencana ingin aktif juga di darat. Kami
-        tidak bisa sendiri dan membutuhkan mitra lokal di darat. Sistem kami
-        sangat bisa mendukung turnamen darat. Dengan data yang terintegrasi,
-        rating yang aktual, sistem pendaftaran yang mudah, sistem pairing yang
-        cocok, serta sistem liga/tim/klub yang tertata, Komunitas Catur Indonesia
-        siap menjadi mitra turnamen-turnamen darat.
+        Tidak. Blunder Skuad hanya mengakui satu akun per identitas. Setiap
+        anggota diharapkan untuk menjaga keutuhan akun resminya dengan baik.
+        Duplikasi akun, terutama yang dimaksudkan untuk menghindari sanksi,
+        memanipulasi hasil pertandingan, atau mengelabui sistem pairing,
+        merupakan pelanggaran yang tidak akan ditolerir. Anggota yang akunnya
+        terkena sanksi permanen dari komunitas karena pelanggaran kebijakan
+        permainan adil tidak akan dapat mendaftar kembali menggunakan identitas
+        atau akun baru.
       </p>
     ),
   },
   {
-    t: "Apakah boleh mendaftar Komunitas Catur Indonesia dengan dua akun?",
+    t: "Bagaimana jika saya memiliki pertanyaan atau masalah yang tidak tercakup dalam FAQ ini?",
     j: (
       <p>
-        KCI hanya mengakui satu akun, satu identitas. Jagalah baik-baik akun
-        tersebut. KCI tidak mendukung duplikasi akun dan duplikasi identitas.
-        Jika pemain terkena plat merah dan naik banding di Chess.com ditolak,
-        mohon maaf pemain tersebut sudah tidak bisa bermain dalam turnamen online
-        Komunitas Catur Indonesia. Jika KCI menyelenggarakan turnamen darat,
-        pemain tersebut boleh bermain.
+        Blunder Skuad menyadari bahwa tidak semua situasi dapat diantisipasi
+        dalam dokumen ini. Oleh karena itu, kami menyediakan saluran komunikasi
+        resmi yang dapat diakses oleh seluruh anggota untuk mengajukan
+        pertanyaan, melaporkan masalah, atau memberikan masukan. Pengurus
+        komunitas berkomitmen untuk merespons setiap komunikasi dalam batas
+        waktu yang wajar, sesuai dengan prosedur operasional yang berlaku. Kami
+        menganjurkan anggota untuk tidak ragu menghubungi pengurus apabila
+        terdapat kebingungan atau kebutuhan klarifikasi terkait kebijakan
+        komunitas.
       </p>
     ),
   },
@@ -455,6 +472,21 @@ export default function PertanyaanUmum() {
             </li>
           ))}
         </ol>
+
+        <p>
+          <em>
+            Dokumen ini disusun sebagai panduan praktis bagi seluruh anggota
+            Blunder Skuad. Pertanyaan-pertanyaan di atas mencakup aspek-aspek
+            fundamental yang sering menjadi pertanyaan bagi anggota baru maupun
+            anggota yang telah lama bergabung.
+          </em>
+        </p>
+
+        <p>
+          <strong>Blunder Skuad</strong>
+          <br />
+          <em>Komunitas Catur untuk Semua</em>
+        </p>
       </PageArtikel>
     </HalamanIsi>
   );
