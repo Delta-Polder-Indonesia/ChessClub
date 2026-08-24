@@ -39,36 +39,36 @@ const PITA_LEVEL = {
 /** Selector Tema: grup ala NACCL, hanya tema yang benar-benar ada di data. */
 const DAFTAR_TEMA = [
   {
-    grup: "Pola Skakmat",
+    grup: "tekaTeki.temaGrupSkakmat",
     isi: [
-      ["backRankMate", "Skakmat punggung"],
-      ["smotheredMate", "Skakmat sempit"],
-      ["promotion", "Promosi"],
+      ["backRankMate", "tekaTeki.tema.backRankMate"],
+      ["smotheredMate", "tekaTeki.tema.smotheredMate"],
+      ["promotion", "tekaTeki.tema.promotion"],
     ],
   },
   {
-    grup: "Motif Taktik",
+    grup: "tekaTeki.temaGrupTaktik",
     isi: [
-      ["sacrifice", "Pengorbanan"],
-      ["attraction", "Attraksi (umpan)"],
-      ["deflection", "Defleksi"],
-      ["pin", "Pengikat (pin)"],
-      ["fork", "Tusukan (fork)"],
-      ["discoveredAttack", "Serangan terbuka"],
-      ["doubleCheck", "Skak ganda"],
-      ["hangingPiece", "Bidak menggantung"],
-      ["exposedKing", "Raja terekspos"],
+      ["sacrifice", "tekaTeki.tema.sacrifice"],
+      ["attraction", "tekaTeki.tema.attraction"],
+      ["deflection", "tekaTeki.tema.deflection"],
+      ["pin", "tekaTeki.tema.pin"],
+      ["fork", "tekaTeki.tema.fork"],
+      ["discoveredAttack", "tekaTeki.tema.discoveredAttack"],
+      ["doubleCheck", "tekaTeki.tema.doubleCheck"],
+      ["hangingPiece", "tekaTeki.tema.hangingPiece"],
+      ["exposedKing", "tekaTeki.tema.exposedKing"],
     ],
   },
   {
-    grup: "Karakteristik",
+    grup: "tekaTeki.temaGrupKarakteristik",
     isi: [
-      ["endgame", "Endgame"],
-      ["middlegame", "Middlegame"],
-      ["opening", "Pembukaan"],
-      ["master", "Partai master"],
-      ["kingsideAttack", "Serangan sayap raja"],
-      ["queensideAttack", "Serangan sayap menteri"],
+      ["endgame", "tekaTeki.tema.endgame"],
+      ["middlegame", "tekaTeki.tema.middlegame"],
+      ["opening", "tekaTeki.tema.opening"],
+      ["master", "tekaTeki.tema.master"],
+      ["kingsideAttack", "tekaTeki.tema.kingsideAttack"],
+      ["queensideAttack", "tekaTeki.tema.queensideAttack"],
     ],
   },
 ];
@@ -88,14 +88,14 @@ const PILIHAN_WARNA_PAPAN = [
   ["metal", "papan.warnaMetal"],
 ];
 
-/** Label & warna kategori hasil tablebase Syzygy (dari sisi yang giliran). */
-const PETA_KATEGORI_SYZYGY = {
-  win: { teks: "Menang", kelas: "bg-emerald-100 text-emerald-800" },
-  "cursed-win": { teks: "Menang terkutuk", kelas: "bg-lime-100 text-lime-800" },
-  draw: { teks: "Seri", kelas: "bg-slate-200 text-slate-700" },
-  "blessed-loss": { teks: "Kalah berkat", kelas: "bg-amber-100 text-amber-800" },
-  loss: { teks: "Kalah", kelas: "bg-red-100 text-red-800" },
-  unknown: { teks: "Tidak diketahui", kelas: "bg-slate-100 text-slate-600" },
+/** Warna chip kategori hasil tablebase Syzygy; labelnya lewat t("tekaTeki.syzygyKat.*"). */
+const PETA_KELAS_SYZYGY = {
+  win: "bg-emerald-100 text-emerald-800",
+  "cursed-win": "bg-lime-100 text-lime-800",
+  draw: "bg-slate-200 text-slate-700",
+  "blessed-loss": "bg-amber-100 text-amber-800",
+  loss: "bg-red-100 text-red-800",
+  unknown: "bg-slate-100 text-slate-600",
 };
 
 function parseLangkah(teks) {
@@ -768,6 +768,12 @@ export default function TekaTeki() {
 
   const sudahPecah = masalah ? terpecahkan.has(masalah.problemid) : false;
 
+  /** Label dwibahasa kategori Syzygy — mentah bila kategori di luar kamus. */
+  function teksKategoriSyzygy(kat) {
+    const hasil = t(`tekaTeki.syzygyKat.${kat}`);
+    return hasil === `tekaTeki.syzygyKat.${kat}` ? kat : hasil;
+  }
+
   return (
     <>
       <Hero
@@ -786,9 +792,7 @@ export default function TekaTeki() {
             <div className="mx-auto max-w-[560px]">
               {semuaSoal ? (
                 <p className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-800">
-                  Tidak ada soal yang cocok dengan kombinasi Level, Langkah,
-                  Tema, dan Giliran saat ini. Longgarkan salah satu saringan di
-                  Pengaturan.
+                  {t("tekaTeki.tidakAdaSoal")}
                 </p>
               ) : (
                 <>
@@ -913,13 +917,13 @@ export default function TekaTeki() {
                       onClick={() => setOtomatis((v) => !v)}
                       title={
                         otomatis
-                          ? "Nonaktifkan next otomatis"
-                          : "Aktifkan next otomatis"
+                          ? t("tekaTeki.otomatisMatikan")
+                          : t("tekaTeki.otomatisNyalakan")
                       }
                       aria-label={
                         otomatis
-                          ? "Nonaktifkan next otomatis"
-                          : "Aktifkan next otomatis"
+                          ? t("tekaTeki.otomatisMatikan")
+                          : t("tekaTeki.otomatisNyalakan")
                       }
                       className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
                     >
@@ -967,8 +971,8 @@ export default function TekaTeki() {
                     <button
                       type="button"
                       onClick={() => setBukaPengaturan((v) => !v)}
-                      title="Pengaturan"
-                      aria-label="Pengaturan"
+                      title={t("tekaTeki.pengaturan")}
+                      aria-label={t("tekaTeki.pengaturan")}
                       aria-expanded={bukaPengaturan}
                       className={`border border-[#b8b8b8] px-2 py-1.5 text-xs font-semibold text-[#333] transition ${
                         bukaPengaturan
@@ -1009,32 +1013,32 @@ export default function TekaTeki() {
                       <div
                         role="dialog"
                         aria-modal="false"
-                        aria-label="Pengaturan"
+                        aria-label={t("tekaTeki.pengaturan")}
                         className="absolute bottom-full left-1/2 z-50 mb-2 w-64 max-w-[90vw] -translate-x-1/2 rounded-lg bg-white p-4 shadow-xl ring-1 ring-black/10"
                       >
                         <p className="mb-3 text-sm font-bold text-slate-800">
-                          Pengaturan
+                          {t("tekaTeki.pengaturan")}
                         </p>
                         <div className="flex flex-col gap-3">
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-level" className="text-xs font-semibold text-slate-500">Level</label>
+                            <label htmlFor="saring-level" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLevel")}</label>
                             <select
                               id="saring-level"
                               value={filterLevel}
                               onChange={(e) => setFilterLevel(e.target.value)}
                               className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
-                              <option value="semua">Semua level</option>
-                              <option value="1">1 · Sangat mudah</option>
-                              <option value="2">2 · Mudah</option>
-                              <option value="3">3 · Normal</option>
-                              <option value="4">4 · Sulit</option>
-                              <option value="5">5 · Sangat sulit</option>
+                              <option value="semua">{t("tekaTeki.semuaLevel")}</option>
+                              <option value="1">1 · {t("tekaTeki.sangatMudah")}</option>
+                              <option value="2">2 · {t("tekaTeki.mudah")}</option>
+                              <option value="3">3 · {t("tekaTeki.normal")}</option>
+                              <option value="4">4 · {t("tekaTeki.sulit")}</option>
+                              <option value="5">5 · {t("tekaTeki.sangatSulit")}</option>
                             </select>
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-langkah" className="text-xs font-semibold text-slate-500">Langkah</label>
+                            <label htmlFor="saring-langkah" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelLangkah")}</label>
                             <select
                               id="saring-langkah"
                               value={
@@ -1060,27 +1064,27 @@ export default function TekaTeki() {
                               }}
                               className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
-                              <option value="semua">Semua</option>
-                              <option value="1">1 Langkah</option>
-                              <option value="2">2 Langkah</option>
-                              <option value="3">3 Langkah</option>
+                              <option value="semua">{t("tekaTeki.semua")}</option>
+                              <option value="1">{t("tekaTeki.langkahSatu")}</option>
+                              <option value="2">{t("tekaTeki.langkahDua")}</option>
+                              <option value="3">{t("tekaTeki.langkahTiga")}</option>
                             </select>
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-tema" className="text-xs font-semibold text-slate-500">Tema</label>
+                            <label htmlFor="saring-tema" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelTema")}</label>
                             <select
                               id="saring-tema"
                               value={filterTema}
                               onChange={(e) => setFilterTema(e.target.value)}
                               className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
-                              <option value="semua">Semua tema</option>
+                              <option value="semua">{t("tekaTeki.semuaTema")}</option>
                               {DAFTAR_TEMA.map((g) => (
-                                <optgroup key={g.grup} label={g.grup}>
-                                  {g.isi.map(([nilai, nama]) => (
+                                <optgroup key={g.grup} label={t(g.grup)}>
+                                  {g.isi.map(([nilai, kunci]) => (
                                     <option key={nilai} value={nilai}>
-                                      {nama}
+                                      {t(kunci)}
                                     </option>
                                   ))}
                                 </optgroup>
@@ -1089,21 +1093,21 @@ export default function TekaTeki() {
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="saring-giliran" className="text-xs font-semibold text-slate-500">Giliran</label>
+                            <label htmlFor="saring-giliran" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelGiliran")}</label>
                             <select
                               id="saring-giliran"
                               value={filterGiliran}
                               onChange={(e) => setFilterGiliran(e.target.value)}
                               className="w-36 shrink-0 rounded-md border border-slate-300 bg-white px-2 py-1.5 text-sm text-slate-800 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                             >
-                              <option value="semua">Semua (acak)</option>
-                              <option value="White to Move">Hanya putih</option>
-                              <option value="Black to Move">Hanya hitam</option>
+                              <option value="semua">{t("tekaTeki.semuaGiliran")}</option>
+                              <option value="White to Move">{t("tekaTeki.hanyaPutih")}</option>
+                              <option value="Black to Move">{t("tekaTeki.hanyaHitam")}</option>
                             </select>
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="pilih-set-bidak" className="text-xs font-semibold text-slate-500">Bidak</label>
+                            <label htmlFor="pilih-set-bidak" className="text-xs font-semibold text-slate-500">{t("tekaTeki.labelBidak")}</label>
                             <select
                               id="pilih-set-bidak"
                               value={setBidak}
@@ -1119,7 +1123,7 @@ export default function TekaTeki() {
                           </div>
 
                           <div className="flex items-center justify-between gap-3">
-                            <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">Warna Papan</label>
+                            <label htmlFor="warna-papan" className="text-xs font-semibold text-slate-500">{t("papan.warnaPapan")}</label>
                             <select
                               id="warna-papan"
                               value={warnaPapan}
@@ -1225,26 +1229,25 @@ export default function TekaTeki() {
                 <div className="mt-6 border-t border-slate-200 pt-4">
                   <div className="mb-3 flex items-center justify-between">
                     <h3 className="text-sm font-bold text-slate-800">Syzygy Tablebase</h3>
-                    <span className="text-xs text-slate-500">Powered by Lichess</span>
+                    <span className="text-xs text-slate-500">{t("tekaTeki.syzygyDidukung")}</span>
                   </div>
 
                   {!fen ? null : syzygyGagal ? (
                     <p className="text-sm text-amber-700">
-                      Posisi ini tidak bisa dianalisis tablebase (maksimal 7 bidak).
+                      {t("tekaTeki.syzygyGagal")}
                     </p>
                   ) : !syzygy ? (
-                    <p className="text-sm text-slate-500">Menganalisis posisi…</p>
+                    <p className="text-sm text-slate-500">{t("tekaTeki.syzygyMenganalisis")}</p>
                   ) : (
                     <>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <span
                           className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                            PETA_KATEGORI_SYZYGY[syzygy.category]?.kelas ||
+                            PETA_KELAS_SYZYGY[syzygy.category] ||
                             "bg-slate-100 text-slate-600"
                           }`}
                         >
-                          {PETA_KATEGORI_SYZYGY[syzygy.category]?.teks ||
-                            syzygy.category}
+                          {teksKategoriSyzygy(syzygy.category)}
                         </span>
                         <span className="text-xs text-slate-600">
                           DTZ: {syzygy.dtz ?? "-"}
@@ -1258,7 +1261,7 @@ export default function TekaTeki() {
                           rel="noopener noreferrer"
                           className="ml-auto text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
                         >
-                          Detail di Lichess ↗
+                          {t("tekaTeki.syzygyDetail")}
                         </a>
                       </div>
 
@@ -1274,12 +1277,11 @@ export default function TekaTeki() {
                               </span>
                               <span
                                 className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                                  PETA_KATEGORI_SYZYGY[m.category]?.kelas ||
+                                  PETA_KELAS_SYZYGY[m.category] ||
                                   "bg-slate-100 text-slate-600"
                                 }`}
                               >
-                                {PETA_KATEGORI_SYZYGY[m.category]?.teks ||
-                                  m.category}
+                                {teksKategoriSyzygy(m.category)}
                                 {typeof m.dtz === "number" ? ` · DTZ ${m.dtz}` : ""}
                               </span>
                             </li>
@@ -1288,7 +1290,7 @@ export default function TekaTeki() {
                       )}
 
                       <p className="mt-2 text-[11px] leading-4 text-slate-500">
-                        Hasil optimal dari sisi yang giliran sekarang.
+                        {t("tekaTeki.syzygyCatatan")}
                       </p>
                     </>
                   )}

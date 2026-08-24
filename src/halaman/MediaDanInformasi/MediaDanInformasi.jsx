@@ -27,12 +27,6 @@ export default function MediaDanInformasi() {
             <Link to="/media-dan-informasi/galeri">{t("nav.galeri")}</Link>:{" "}
             {t("media.l2")}
           </li>
-          <li className="ql-align-justify">
-            <Link to="/media-dan-informasi/buletin-bulanan">
-              {t("nav.buletinBulanan")}
-            </Link>
-            : {t("media.l3")}
-          </li>
         </ol>
       </PageArtikel>
     </HalamanIsi>

@@ -146,7 +146,25 @@ function ChessBoardComponent() {
   );
 }
 
+/**
+ * Menyisipkan notasi langkah (mis. Bxe2/Bxf6) berwarna ke kalimat terjemahan.
+ * Template memakai penanda {x}; bila penanda tidak ada, teks tampil utuh.
+ */
+function KalimatDenganLangkah({ template, langkah, warna }) {
+  const [pra, pasca = ""] = template.split("{x}");
+  return (
+    <>
+      {pra}
+      <span className="font-mono font-semibold" style={{ color: warna }}>
+        {langkah}
+      </span>
+      {pasca}
+    </>
+  );
+}
+
 function MovesByRatingChartComponent() {
+  const { t } = useI18n();
   return (
     <div
       id="analysis-moves-by-rating"
@@ -155,7 +173,7 @@ function MovesByRatingChartComponent() {
       {/* Legend & Title */}
       <div className="flex flex-wrap items-center justify-between gap-1 p-2">
         <span className="text-xs font-semibold text-gray-700">
-          Langkah Berdasarkan Rating
+          {t("tipsTekaTeki.grafikJudul")}
         </span>
         <div className="flex items-center gap-2 text-[10px]">
           <span className="font-semibold" style={{ color: "rgb(252, 187, 161)" }}>
@@ -233,7 +251,7 @@ function MovesByRatingChartComponent() {
             fontWeight="600"
             textAnchor="middle"
           >
-            Probabilitas Maia
+            {t("tipsTekaTeki.grafikSumbuY")}
           </text>
 
           {/* X-Axis Ticks */}
@@ -305,10 +323,10 @@ function MovesByRatingChartComponent() {
  * Halaman konten Teka-teki — bagian pertama dari dua.
  * Memaparkan cara teka-teki bekerja (data langkah berdasarkan rating,
  * analisis posisi) sebelum anggota masuk ke papan taktik di /teka-teki.
- * Demo visual mengikuti markup aslinya di tab Beranda (bahasa Indonesia).
+ * Demo visual mengikuti markup aslinya di tab Beranda — kini dwibahasa (ID/EN).
  */
 export default function TekaTekiKonten() {
-  const { t, bahasa } = useI18n();
+  const { t } = useI18n();
   return (
     <HalamanIsi
       title={t("tipsTekaTeki.judul")}
@@ -318,30 +336,16 @@ export default function TekaTekiKonten() {
       next={{ to: "/teka-teki", judul: t("tekaTeki.judul") }}
     >
       <PageArtikel title={t("tipsTekaTeki.artikel")}>
-        {bahasa === "en" && (
-          <p className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            {t("tipsTekaTeki.kontenHanyaId")}
-          </p>
-        )}
         <div className="flex w-full flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
           {/* Kolom Kiri: Teks & Tombol */}
           <div className="mb-6 w-full md:mb-0 md:w-2/5">
-            <p>
-              Maia menyusun teka-teki berdasarkan pemahamannya tentang cara
-              jutaan pemain meningkatkan kemampuan. Dengan teka-teki Maia, kamu
-              dapat mengukur kemampuanmu, fokus pada kelemahan pemahamanmu, dan
-              mengubah ide-ide yang sulit ditemukan menjadi kebiasaan.
-            </p>
-            <p>
-              Setiap teka-teki dilengkapi data yang menunjukkan bagaimana
-              pemain dengan rating berbeda menyikapi posisi tersebut, sehingga
-              latihanmu lebih terarah dan efektif.
-            </p>
+            <p>{t("tipsTekaTeki.paragraf1")}</p>
+            <p>{t("tipsTekaTeki.paragraf2")}</p>
             <Link
               to="/teka-teki"
               className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base no-underline"
             >
-              Mulai Teka-teki
+              {t("tipsTekaTeki.mulai")}
             </Link>
           </div>
 
@@ -352,17 +356,17 @@ export default function TekaTekiKonten() {
               <div className="flex items-center">
                 <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#fe7f6d]" />
                 <p className="font-semibold text-sm sm:text-base text-gray-800 m-0!">
-                  Teka-teki Taktis
+                  {t("tipsTekaTeki.demoJudul")}
                 </p>
               </div>
               <div className="flex gap-2">
                 <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
-                  Menengah
+                  {t("tipsTekaTeki.demoLevel")}
                 </span>
               </div>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
-              Temukan langkah terbaik dalam posisi taktis ini
+              {t("tipsTekaTeki.demoTantangan")}
             </p>
 
             {/* Isi: 2 Sub-Kolom (Kiri Papan Catur, Kanan Grafik & Analisis) */}
@@ -384,33 +388,26 @@ export default function TekaTekiKonten() {
                 {/* Kotak Analisis Posisi */}
                 <div className="overflow-hidden rounded p-3 text-xs">
                   <h4 className="mb-2 text-sm font-semibold text-gray-800 m-0!">
-                    Analisis Posisi
+                    {t("tipsTekaTeki.analisisJudul")}
                   </h4>
                   <p className="mb-3 text-[11px] leading-relaxed text-gray-600 m-0!">
-                    Waspada, posisi ini sangat berbahaya! Sangat mudah
-                    terjebak dengan kesalahan yang menggiurkan seperti{" "}
-                    <span
-                      className="font-mono font-semibold"
-                      style={{ color: "rgb(252, 187, 161)" }}
-                    >
-                      Bxe2
-                    </span>
-                    . Hanya{" "}
-                    <span
-                      className="font-mono font-semibold"
-                      style={{ color: "rgb(35, 139, 69)" }}
-                    >
-                      Bxf6
-                    </span>{" "}
-                    yang memberikan keunggulan, dan sulit ditemukan oleh pemain
-                    manusia.
+                    <KalimatDenganLangkah
+                      template={t("tipsTekaTeki.analisisBag1")}
+                      langkah="Bxe2"
+                      warna="rgb(252, 187, 161)"
+                    />{" "}
+                    <KalimatDenganLangkah
+                      template={t("tipsTekaTeki.analisisBag2")}
+                      langkah="Bxf6"
+                      warna="rgb(35, 139, 69)"
+                    />
                   </p>
 
                   <div className="flex flex-col gap-1.5 2xl:flex-row pt-2 text-[11px]">
                     <div className="flex items-center justify-between sm:justify-start gap-2">
                       <div className="flex items-center">
                         <span className="mr-1.5 h-2 w-2 rounded-full bg-[#238b45]" />
-                        <span className="text-gray-600">Langkah Terbaik</span>
+                        <span className="text-gray-600">{t("tipsTekaTeki.langkahTerbaik")}</span>
                       </div>
                       <span
                         className="font-mono font-semibold"
@@ -423,7 +420,7 @@ export default function TekaTekiKonten() {
                     <div className="flex items-center justify-between sm:justify-start gap-2">
                       <div className="flex items-center">
                         <span className="mr-1.5 h-2 w-2 rounded-full bg-[#fcbba1]" />
-                        <span className="text-gray-600">Kesalahan Umum</span>
+                        <span className="text-gray-600">{t("tipsTekaTeki.kesalahanUmum")}</span>
                       </div>
                       <span
                         className="font-mono font-semibold"
@@ -436,7 +433,7 @@ export default function TekaTekiKonten() {
                     <div className="flex items-center justify-between sm:justify-start gap-2">
                       <div className="flex items-center">
                         <span className="mr-1.5 h-2 w-2 rounded-full bg-[#cb181d]" />
-                        <span className="text-gray-600">Kesalahan Lain</span>
+                        <span className="text-gray-600">{t("tipsTekaTeki.kesalahanLain")}</span>
                       </div>
                       <span
                         className="font-mono font-semibold"
