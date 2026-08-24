@@ -367,13 +367,7 @@ export const EN = {
   syarat: {
     judul: "Terms & Conditions",
     deskripsi:
-      "Administrative requirements for Indonesia Chess Community membership.",
-    artikel: "Key Provisions",
-    l1: "Be at least 10 years old, or accompanied by a parent if younger.",
-    l2: "Provide accurate data on the registration form.",
-    l3: "Agree to the Community Code of Ethics.",
-    l4: "Membership is reviewed if there is no activity for 18 months.",
-    l5: "The community reserves the right to reject or revoke membership in the event of serious violations of the code of ethics.",
+      "Operational guidelines and membership terms of the Blunder Skuad chess community.",
     nextJudul: "Community Code of Ethics",
   },
   kodeEtik: {
@@ -386,31 +380,14 @@ export const EN = {
   pertanyaan: {
     judul: "Frequently Asked Questions",
     deskripsi:
-      "Short answers about fees, age, location, and how to start competing.",
+      "A practical guide to membership, playing platforms, tournament formats, and Blunder Skuad community policies.",
     artikel: "Frequently Asked Questions",
-    q1a: "Is there a mandatory fee?",
-    q1b: "There is no mandatory monthly fee. Some events charge an administrative fee. Active members receive a discount.",
-    q2a: "Can children join?",
-    q2b: "Yes. Under 10 years old requires a parent or teacher companion at offline activities.",
-    q3a: "I live outside Medan, can I join?",
-    q3b: "Yes. Online classes and online tournaments are open to all of Indonesia. Regional chapters will follow based on interest.",
-    q4a: "How do I register?",
-    q4b: "First join the BLUNDER SKUAD club on Chess.com. Your name is automatically added to the member list when Chess.com refreshes its roster (up to about 12 hours); the Member Registration form is for verification and additional administration.",
-    q5a: "How do I join my first tournament?",
-    q5b: "Register as a member, then join the Monthly Tournament. Beginners are still accepted; groups can be separated by strength.",
     nextJudul: "Contact Us",
   },
   turnamen: {
     judul: "Tournaments",
     deskripsi:
       "Community competition calendar: monthly, seasonal league, open, and inter-community.",
-    artikel: "Competition Platform",
-    p1: "Tournaments are how the community measures training progress. All events follow the fair play code of ethics, and results are recorded on the internal leaderboard.",
-    p2: "The community competition calendar consists of:",
-    l1: "a five-round Swiss tournament every month for all strengths.",
-    l2: "three seasons a year with a running standings table.",
-    l3: "open events, including those reported to the rating system when requirements are met.",
-    l4: "friendly matches and inter-club leagues.",
     nextJudul: "Monthly Tournament",
   },
   turnamenBulanan: {
@@ -637,12 +614,6 @@ export const EN = {
     judul: "Sustainability",
     deskripsi: "Rules, values, and commitments that keep the community healthy.",
     artikel: "Community Foundation",
-    l1a: "Terms & Conditions",
-    l1b: " — general terms applicable to all members.",
-    l2a: "Community Code of Ethics",
-    l2b: " — behavior norms upheld together.",
-    l3a: "Frequently Asked Questions",
-    l3b: " — answers to commonly asked questions.",
     nextJudul: "Terms & Conditions",
   },
   tekaTeki: {

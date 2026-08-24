@@ -367,13 +367,8 @@ export const ID = {
   },
   syarat: {
     judul: "Syarat & Ketentuan",
-    deskripsi: "Ketentuan administratif keanggotaan Komunitas Catur Indonesia.",
-    artikel: "Ketentuan utama",
-    l1: "Berusia sekurang-kurangnya 10 tahun, atau didampingi orang tua bila lebih muda.",
-    l2: "Mengisi data yang benar pada formulir pendaftaran.",
-    l3: "Menyetujui Kode Etik Komunitas.",
-    l4: "Keanggotaan ditinjau ulang bila tidak ada aktivitas selama 18 bulan.",
-    l5: "Komunitas berhak menolak atau mencabut keanggotaan jika terjadi pelanggaran berat terhadap kode etik.",
+    deskripsi:
+      "Pedoman operasional dan ketentuan keanggotaan komunitas catur Blunder Skuad.",
     nextJudul: "Kode Etik Komunitas",
   },
   kodeEtik: {
@@ -386,31 +381,14 @@ export const ID = {
   pertanyaan: {
     judul: "Pertanyaan Umum",
     deskripsi:
-      "Jawaban singkat soal biaya, usia, domisili, dan cara mulai bertanding.",
+      "Panduan praktis keanggotaan, platform bermain, format turnamen, dan kebijakan komunitas Blunder Skuad.",
     artikel: "Pertanyaan yang Sering Diajukan",
-    q1a: "Apakah ada iuran wajib?",
-    q1b: "Tidak ada iuran bulanan wajib. Beberapa event memungut biaya administrasi. Anggota aktif mendapat potongan.",
-    q2a: "Apakah anak-anak boleh gabung?",
-    q2b: "Boleh. Di bawah 10 tahun perlu pendamping orang tua atau guru pada kegiatan luring.",
-    q3a: "Saya tinggal di luar Medan, bisa?",
-    q3b: "Bisa. Kelas daring dan turnamen daring terbuka untuk seluruh Indonesia. Chapter daerah menyusul sesuai minat.",
-    q4a: "Bagaimana cara daftar?",
-    q4b: "Bergabunglah terlebih dahulu ke klub BLUNDER SKUAD di Chess.com. Nama akan masuk otomatis ke daftar anggota saat roster Chess.com diperbarui (maksimal sekitar 12 jam); formulir Pendaftaran Anggota dipakai untuk verifikasi dan administrasi tambahan.",
-    q5a: "Bagaimana ikut turnamen pertama?",
-    q5b: "Daftar sebagai anggota, lalu ikuti Turnamen Bulanan. Pemula tetap diterima; grup dapat dipisah berdasarkan kekuatan.",
     nextJudul: "Hubungi Kami",
   },
   turnamen: {
     judul: "Turnamen",
     deskripsi:
       "Kalender pertandingan komunitas: bulanan, liga musiman, terbuka, dan antar komunitas.",
-    artikel: "Wadah Bertanding",
-    p1: "Turnamen adalah cara komunitas mengukur progres latihan. Semua event memakai kode etik fair play, dan hasilnya dicatat di papan peringkat internal.",
-    p2: "Kalender pertandingan komunitas terdiri atas:",
-    l1: "Swiss lima ronde setiap bulan untuk semua kekuatan.",
-    l2: "tiga musim setahun dengan klasemen yang berjalan.",
-    l3: "event terbuka, termasuk yang dilaporkan ke sistem rating bila syarat terpenuhi.",
-    l4: "pertandingan persahabatan dan liga antar klub.",
     nextJudul: "Turnamen Bulanan",
   },
   turnamenBulanan: {
@@ -638,12 +616,6 @@ export const ID = {
     judul: "Keberlanjutan",
     deskripsi: "Aturan, nilai, dan komitmen yang menjaga komunitas tetap sehat.",
     artikel: "Landasan Komunitas",
-    l1a: "Syarat & Ketentuan",
-    l1b: " — ketentuan umum yang berlaku bagi seluruh anggota.",
-    l2a: "Kode Etik Komunitas",
-    l2b: " — norma perilaku yang dijunjung bersama.",
-    l3a: "Pertanyaan Umum",
-    l3b: " — jawaban atas pertanyaan yang sering diajukan.",
     nextJudul: "Syarat & Ketentuan",
   },
   tekaTeki: {
