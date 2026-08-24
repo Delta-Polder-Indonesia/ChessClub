@@ -19,13 +19,12 @@ import { useI18n } from "../lib/i18n.jsx";
  */
 
 const SPONSORS = [
-  // Contoh:
-  // { name: "Chess.com", src: "/images/sponsors/chess.png", href: "https://www.chess.com/" },
+  //{ name: "Chess.com", src: "/images/chesscomlogo.webp", href: "https://www.chess.com/" },
 ];
 
 const SOCIAL_LINKS = [
+  { name: "Chess.com", href: "https://www.chess.com/club/blunder-skuad", img: "/images/chesscomlogo.webp" },
   // Contoh:
-  // { name: "Chess.com", href: "https://www.chess.com/", icon: "chess" },
   // { name: "LinkedIn", href: "https://www.linkedin.com/", icon: "linkedin" },
 ];
 
@@ -62,7 +61,7 @@ export default function Footer() {
                     src={s.src}
                     alt={s.name}
                     title={s.name}
-                    className="h-12 md:h-14 w-auto object-contain"
+                    className="h-8 md:h-10 w-auto object-contain"
                     loading="lazy"
                   />
                 );
@@ -96,7 +95,7 @@ export default function Footer() {
         {SOCIAL_LINKS.length > 0 && (
           <nav
             aria-label="Media sosial"
-            className="flex items-center justify-center gap-5"
+            className="flex items-center justify-center gap-5 -mb-4 md:-mb-6"
           >
             {SOCIAL_LINKS.map((s) => (
               <a
@@ -106,9 +105,18 @@ export default function Footer() {
                 rel="noreferrer noopener"
                 title={s.name}
                 aria-label={s.name}
-                className="inline-flex items-center justify-center w-9 h-9 rounded-full text-slate-700 hover:text-[#0B2F9F] transition-colors"
+                className="inline-flex items-center justify-center min-w-12 h-12 rounded-full text-slate-700 hover:text-[#0B2F9F] transition-colors"
               >
-                <SocialIcon name={s.icon} />
+                {s.img ? (
+                  <img
+                    src={s.img}
+                    alt=""
+                    className="h-11 md:h-9 w-auto object-contain"
+                    loading="lazy"
+                  />
+                ) : (
+                  <SocialIcon name={s.icon} />
+                )}
               </a>
             ))}
           </nav>
@@ -120,7 +128,13 @@ export default function Footer() {
           className="w-full flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm"
         >
           {bottomLinks.map((link, i) => (
-            <span key={link.href + i} className="inline-flex items-center">
+            <span
+              key={link.href + i}
+              className={
+                "inline-flex items-center" +
+                (i > 0 ? " border-l border-slate-300 pl-6" : "")
+              }
+            >
               {link.href.startsWith("/") ? (
                 <Link
                   to={link.href}
