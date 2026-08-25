@@ -242,6 +242,7 @@ export async function daftarAnggota() {
       return {
         ...hasil,
         diblokirKomunitas: true,
+        sumberLarangan: larangan.sumber || (hasil.alasanStatus === "fair_play_violations" ? "otomatis" : "pengurus"),
         alasanStatus: larangan.alasan || hasil.alasanStatus || null,
         peringatan:
           larangan.keterangan ||
@@ -703,7 +704,7 @@ export async function kontakAnggota(username) {
 export async function ringkasan() {
   const [anggotaLokal, anggotaKlub, hitam] = await Promise.all([
     repoAnggota.baca(),
-    daftarAnggotaKlub(),
+    daftarAnggotaKlub().catch(() => []),
     repoHitam.baca(),
   ]);
   return {

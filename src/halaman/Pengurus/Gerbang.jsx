@@ -30,13 +30,16 @@ export default function Gerbang({ onMasuk }) {
     setSibuk(true);
     setGalat("");
     // Simpan identitas lebih dulu agar header X-Admin-User terisi pada
-    // panggilan verifikasi. Endpoint /verifikasi dipilih karena tidak
-    // memanggil Chess.com — gerbang tetap bisa dimasuki saat API
-    // Chess.com sedang tidak terjangkau.
+    // panggilan login masuk. Endpoint /masuk memverifikasi token dan
+    // mencatat riwayat masuk pengurus (username Chess.com, hari, tanggal,
+    // waktu, dan alamat IP).
     adminPengguna.simpan(namaBersih);
     tokenPengurus.simpan(token.trim());
     try {
-      await apiPengurus("/verifikasi");
+      await apiPengurus("/masuk", {
+        metode: "POST",
+        bodi: { username: namaBersih },
+      });
       onMasuk(namaBersih);
     } catch (err) {
       tokenPengurus.hapus();
