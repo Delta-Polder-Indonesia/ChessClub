@@ -296,26 +296,35 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   return (
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-1.5">
-          <Tombol
-            anak="Semua"
-            kecil
-            jenis={saring === "" ? "utama" : "biasa"}
+        <div className="flex flex-wrap">
+          <button
+            type="button"
             onClick={() => setSaring("")}
-          />
+            className={`-mb-px px-4 py-2.5 text-sm font-medium ${
+              saring === ""
+                ? "border-b-2 border-slate-900 text-slate-900"
+                : "text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            Semua
+          </button>
           {Object.entries(STATUS).map(([k, v]) => (
-            <Tombol
+            <button
               key={k}
-              anak={v.teks}
-              kecil
-              jenis={saring === k ? "utama" : "biasa"}
+              type="button"
               onClick={() => setSaring(k)}
-            />
+              className={`-mb-px px-4 py-2.5 text-sm font-medium ${
+                saring === k
+                  ? "border-b-2 border-slate-900 text-slate-900"
+                  : "text-slate-500 hover:text-slate-700"
+              }`}
+            >
+              {v.teks}
+            </button>
           ))}
         </div>
         <Tombol
           anak={formulir ? "Tutup formulir" : `+ ${konfig.label} baru`}
-          jenis="utama"
           onClick={() => setFormulir((f) => (f ? null : { item: null }))}
         />
       </div>
@@ -376,7 +385,6 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
                       <Tombol
                         anak="Hapus"
                         kecil
-                        jenis="bahaya"
                         onClick={() => hapus(x)}
                       />
                     </div>

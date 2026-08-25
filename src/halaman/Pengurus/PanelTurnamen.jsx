@@ -113,7 +113,6 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
         </select>
         <Tombol
           anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}
-          jenis="utama"
           onClick={() => setBuatBaru((b) => !b)}
         />
       </div>

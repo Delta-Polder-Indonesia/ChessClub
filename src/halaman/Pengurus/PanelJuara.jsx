@@ -368,7 +368,6 @@ export default function PanelJuara({ beriTahu }) {
             )}
             <Tombol
               anak={sibukBaru ? "…" : "Simpan"}
-              jenis="utama"
               kecil
               disabled={sibukBaru || !baru.nama.trim()}
               onClick={simpanBaru}

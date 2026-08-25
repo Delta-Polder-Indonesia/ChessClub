@@ -133,208 +133,107 @@ export default function PanelAnggota({
   ]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">
-              {klub ? `Anggota ${klub}` : "Daftar Anggota"} ({anggota.length})
-            </h2>
-            {anggotaTerblokir.length > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-0.5 text-xs font-bold text-red-800">
-                <span className="h-2 w-2 rounded-full bg-red-600 animate-pulse" />
-                {anggotaTerblokir.length} Terkena Ban
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Daftar seluruh anggota dari roster klub Chess.com. Pemindaian
-            otomatis memeriksa integritas akun dan mendeteksi pelanggaran fair
-            play.
+          <h2 className="text-lg font-semibold text-slate-900">
+            {klub ? `Anggota ${klub}` : "Daftar Anggota"}
+          </h2>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {anggota.length} anggota terdaftar dari roster klub Chess.com
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Tombol
-            anak={sibuk === "pindai" ? "Memindai Roster…" : "🔍 Pindai Fair Play"}
-            onClick={pindai}
-            disabled={sibuk === "pindai"}
-            jenis="utama"
-          />
         </div>
       </div>
 
-      {/* ── Banner Alert jika ada anggota kena Ban ─────────── */}
+      {/* ── Banner Alert ────────────────────────────────────── */}
       {anggotaTerblokir.length > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50/90 p-4">
-          <svg
-            className="mt-0.5 h-5 w-5 shrink-0 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
+        <div className="flex items-center gap-3 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm">
+          <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <div className="flex-1 text-sm text-red-900">
-            <p className="font-bold">
-              Perhatian: {anggotaTerblokir.length} Akun di Roster Terdeteksi Terkena Ban!
-            </p>
-            <p className="mt-0.5 text-xs text-red-800">
-              Akun:{" "}
-              {anggotaTerblokir
-                .map((a) => `@${a.username}`)
-                .slice(0, 5)
-                .join(", ")}
-              {anggotaTerblokir.length > 5 ? " dan lainnya…" : "."} Akun ini
-              otomatis dibatasi dari seluruh turnamen komunitas.
-            </p>
-          </div>
-          {filterStatus !== "terblokir" && (
-            <button
-              type="button"
-              onClick={() => setFilterStatus("terblokir")}
-              className="rounded-full bg-red-200 px-3 py-1 text-xs font-bold text-red-900 hover:bg-red-300 shrink-0"
-            >
-              Filter Akun Terban Saja →
-            </button>
-          )}
+          <p className="flex-1 text-red-800">
+            <span className="font-semibold">{anggotaTerblokir.length} akun</span> di roster terdeteksi terkena ban.
+            {filterStatus !== "terblokir" && (
+              <button
+                type="button"
+                onClick={() => setFilterStatus("terblokir")}
+                className="ml-2 font-semibold text-red-900 underline underline-offset-2 hover:text-red-700"
+              >
+                Lihat →
+              </button>
+            )}
+          </p>
         </div>
       )}
 
-      {/* ── Filter Tab Tombol Cepat ────────────────────────── */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        <button
-          type="button"
-          onClick={() => setFilterStatus("semua")}
-          className={`rounded-lg border p-3 text-left transition-all ${
-            filterStatus === "semua"
-              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Semua Anggota
-          </p>
-          <p className="mt-1 text-xl font-bold text-slate-900">{anggota.length}</p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterStatus("aktif")}
-          className={`rounded-lg border p-3 text-left transition-all ${
-            filterStatus === "aktif"
-              ? "border-emerald-500 bg-emerald-50/50 ring-2 ring-emerald-500/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
-            Anggota Aktif
-          </p>
-          <p className="mt-1 text-xl font-bold text-emerald-700">
-            {anggotaAktif.length}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterStatus("terblokir")}
-          className={`rounded-lg border p-3 text-left transition-all ${
-            filterStatus === "terblokir"
-              ? "border-red-500 bg-red-50 ring-2 ring-red-500/20"
-              : anggotaTerblokir.length > 0
-                ? "border-red-200 bg-red-50/30 hover:bg-red-50/60"
-                : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-red-700 flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-red-500" />
-            Terkena Ban
-          </p>
-          <p className="mt-1 text-xl font-bold text-red-700">
-            {anggotaTerblokir.length}
-          </p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterStatus("terverifikasi")}
-          className={`rounded-lg border p-3 text-left transition-all ${
-            filterStatus === "terverifikasi"
-              ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-500/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-blue-700">
-            Terverifikasi
-          </p>
-          <p className="mt-1 text-xl font-bold text-blue-700">
-            {anggotaTerverifikasi.length}
-          </p>
-        </button>
-      </div>
-
-      {/* ── Pencarian ──────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 bg-white p-4">
-        <div className="flex-1 min-w-[200px]">
+      {/* ── Filter Tabs + Pencarian ──────────────────────────── */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-xs ml-2">
+          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
           <input
             type="text"
             value={cari}
             onChange={(e) => setCari(e.target.value)}
-            placeholder="Cari nama anggota, username Chess.com, atau kota…"
-            className="w-full rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-primary"
+            placeholder="Cari nama, username, atau kota…"
+            className="w-full border-0 border-b border-slate-300 bg-transparent pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
           />
         </div>
-        {(cari || filterStatus !== "semua") && (
-          <button
-            type="button"
-            onClick={() => {
-              setCari("");
-              setFilterStatus("semua");
-            }}
-            className="rounded px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100"
-          >
-            Reset Filter
-          </button>
-        )}
+        <div className="flex items-center gap-1">
+          {[
+            { kunci: "semua", label: "Semua", jumlah: anggota.length },
+            { kunci: "aktif", label: "Aktif", jumlah: anggotaAktif.length },
+            { kunci: "terverifikasi", label: "Terverifikasi", jumlah: anggotaTerverifikasi.length },
+            { kunci: "terblokir", label: "Terblokir", jumlah: anggotaTerblokir.length },
+          ].map((tab) => (
+            <button
+              key={tab.kunci}
+              type="button"
+              onClick={() => setFilterStatus(tab.kunci)}
+              className={`
+                -mb-px px-4 py-2.5 text-sm font-medium transition-colors
+                ${filterStatus === tab.kunci
+                  ? "border-b-2 border-slate-900 text-slate-900"
+                  : "text-slate-500 hover:text-slate-700"
+                }
+              `}
+            >
+              {tab.label}
+              <span className={`ml-1.5 text-xs ${filterStatus === tab.kunci ? "text-slate-600" : "text-slate-400"}`}>
+                {tab.jumlah}
+              </span>
+            </button>
+          ))}
+          <Tombol
+            anak={sibuk === "pindai" ? "Memindai…" : "Pindai Fair Play"}
+            onClick={pindai}
+            kecil
+            disabled={sibuk === "pindai"}
+          />
+        </div>
       </div>
 
-      {/* ── Tabel Anggota ──────────────────────────────────── */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-600">
-            Menampilkan {anggotaTersaring.length} dari {anggota.length} Anggota
-          </p>
-          {filterStatus !== "semua" && (
-            <button
-              type="button"
-              onClick={() => setFilterStatus("semua")}
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Tampilkan Semua Anggota
-            </button>
-          )}
-        </div>
+      {/* ── Tabel ───────────────────────────────────────────── */}
+      <div>
+        <p className="text-xs text-slate-500 mb-1">
+          Menampilkan <span className="font-medium text-slate-700">{anggotaTersaring.length}</span> dari {anggota.length} anggota
+        </p>
 
-        <div className="max-h-[520px] overflow-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50/80 text-xs font-semibold uppercase tracking-wider text-slate-500 sticky top-0">
+        <div className="max-h-[480px] overflow-y-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-4 py-2.5 text-center w-12">#</th>
-                <th className="px-4 py-2.5">Profil Anggota</th>
-                <th className="px-4 py-2.5">Kota</th>
-                <th className="px-4 py-2.5">Elo Rating</th>
-                <th className="px-4 py-2.5">Status Akun</th>
-                <th className="px-4 py-2.5 text-right">Aksi</th>
+                <th style={{ width: 40 }}>#</th>
+                <th>Anggota</th>
+                <th>Kota</th>
+                <th>Rating</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {anggotaTersaring.map((a, index) => {
                 const kenaBan =
                   a.diblokirKomunitas ||
@@ -342,100 +241,90 @@ export default function PanelAnggota({
                   (a.statusChess && a.statusChess.includes("closed"));
 
                 return (
-                  <tr
-                    key={a.username}
-                    className={`transition-colors ${
-                      kenaBan
-                        ? "bg-red-50/40 hover:bg-red-50/80"
-                        : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-center text-xs font-medium text-slate-400">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-3">
+                  <tr key={a.username} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                    <td>{index + 1}</td>
+                    <td>
                       <div className="flex items-center gap-3">
                         <Avatar username={a.username} foto={a.foto} />
                         <div className="min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
+                          <div className="flex items-center gap-1.5">
                             <a
                               href={a.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="font-bold text-primary hover:underline"
                             >
                               @{a.username}
                             </a>
                             {kenaBan && <LencanaBan />}
                           </div>
-                          <p className="text-xs text-slate-600 truncate">
+                          <p className="text-sm text-slate-500 truncate">
                             {a.nama || a.panggilan || "—"}
                           </p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-700">{a.kota || "—"}</td>
-                    <td className="px-4 py-3 whitespace-nowrap text-slate-800">
+                    <td>{a.kota || "—"}</td>
+                    <td>
                       {a.elo ? (
-                        <span className="font-semibold font-mono">
-                          {a.elo}{" "}
-                          <span className="text-xs font-normal text-slate-500">
-                            {a.kontrol || ""}
-                          </span>
+                        <span className="elo-pilih">
+                          {a.elo}
+                          {a.kontrol && (
+                            <span className="ml-1 text-sm text-slate-400">{a.kontrol}</span>
+                          )}
                         </span>
                       ) : (
                         "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td>
                       {kenaBan ? (
                         <div>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-bold text-red-800">
-                            <span className="h-1.5 w-1.5 rounded-full bg-red-600" />
-                            {a.alasanStatus === "fair_play_violations"
-                              ? "Ban Fair Play"
-                              : "Terblokir"}
+                          <span className="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+                            {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
                           </span>
                           {a.peringatan && (
-                            <p
-                              className="mt-0.5 text-[11px] text-red-700 max-w-xs truncate"
-                              title={a.peringatan}
-                            >
+                            <p className="mt-0.5 text-xs text-red-600 max-w-[200px] truncate" title={a.peringatan}>
                               {a.peringatan}
                             </p>
                           )}
                         </div>
                       ) : a.terverifikasi ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                           Terverifikasi
                         </span>
                       ) : (
-                        <span className="rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
-                          Belum Verifikasi
-                        </span>
+                        "—"
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <div className="flex justify-end gap-1.5">
-                        <Tombol
-                          anak="Kontak"
-                          kecil
+                    <td>
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          title="Lihat kontak"
                           onClick={() => lihatKontak(a.username)}
                           disabled={sibuk === `kontak-${a.username}`}
-                        />
+                          className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
+                        >
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                            <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
+                        </button>
                         {kenaBan ? (
-                          <span className="inline-block rounded-full bg-red-50 border border-red-200 px-3 py-1 text-xs font-semibold text-red-700">
+                          <span className="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
                             Dilarang
                           </span>
                         ) : (
-                          <Tombol
-                            anak="Blokir"
-                            jenis="bahaya"
-                            kecil
+                          <button
+                            type="button"
+                            title="Blokir akun"
                             onClick={() => setTargetBlokir(a.username)}
                             disabled={sibuk === `blokir-${a.username}`}
-                          />
+                            className="rounded p-1.5 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
+                          >
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                              <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                            </svg>
+                          </button>
                         )}
                       </div>
                     </td>
@@ -444,9 +333,9 @@ export default function PanelAnggota({
               })}
               {!anggotaTersaring.length && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <td colSpan={6} className="text-center text-slate-500" style={{ padding: "40px 0" }}>
                     {cari || filterStatus !== "semua"
-                      ? "Tidak ada anggota yang cocok dengan kriteria filter."
+                      ? "Tidak ada anggota yang cocok dengan filter."
                       : "Belum ada anggota dari roster klub."}
                   </td>
                 </tr>
@@ -459,7 +348,7 @@ export default function PanelAnggota({
       {/* ── Modal Blokir Manual ────────────────────────────── */}
       <Modal
         terbuka={Boolean(targetBlokir)}
-        judul={`Blokir Akun @${targetBlokir || ""}?`}
+        judul={`Blokir @${targetBlokir || ""}?`}
         labelKonfirmasi="Blokir"
         jenisKonfirmasi="bahaya"
         butuhInput
@@ -470,14 +359,13 @@ export default function PanelAnggota({
         onBatal={() => setTargetBlokir(null)}
         onKonfirmasi={konfirmasiBlokir}
       >
-        Tindakan ini akan memasukkan <strong>@{targetBlokir}</strong> ke daftar
-        larangan komunitas.
+        Masukkan <strong>@{targetBlokir}</strong> ke daftar larangan komunitas.
       </Modal>
 
       {/* ── Modal Detail Kontak ────────────────────────────── */}
       {kontak && (
         <section
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setKontak(null)}
@@ -486,12 +374,25 @@ export default function PanelAnggota({
             className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-bold text-slate-900">
-              Kontak @{kontak.username}
-            </h3>
-            <p className="mt-1 text-xs text-slate-500">
-              Data pribadi ini hanya dapat diakses oleh pengurus komunitas.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">
+                  Kontak @{kontak.username}
+                </h3>
+                <p className="mt-0.5 text-xs text-slate-500">
+                  Data pribadi — untuk pengurus saja.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setKontak(null)}
+                className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              >
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <dl className="mt-4 space-y-2 text-sm">
               {[
                 ["Nama lengkap", kontak.data.namaLengkap],
@@ -504,7 +405,7 @@ export default function PanelAnggota({
                 ["Klub", kontak.data.klub],
               ].map(([label, nilai]) =>
                 nilai ? (
-                  <div key={label} className="flex justify-between gap-4">
+                  <div key={label} className="flex justify-between gap-4 py-1 border-b border-slate-100 last:border-0">
                     <dt className="text-slate-500">{label}</dt>
                     <dd className="text-right font-medium text-slate-900 break-all">
                       {nilai}

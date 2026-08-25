@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal, Avatar } from "./ui.jsx";
+import { Tombol, Modal, Avatar } from "./ui.jsx";
 
 export default function PanelLarangan({
   hitam = [],
@@ -51,7 +51,6 @@ export default function PanelLarangan({
     }
   };
 
-  /* Hitungan sumber larangan */
   const jumlahOtomatis = useMemo(
     () => hitam.filter((h) => h.sumber === "otomatis").length,
     [hitam]
@@ -61,18 +60,15 @@ export default function PanelLarangan({
     [hitam]
   );
 
-  /* Penyaringan data */
   const dataTersaring = useMemo(() => {
     let hasil = [...hitam];
 
-    // Filter sumber (semua / otomatis / pengurus)
     if (filterSumber === "otomatis") {
       hasil = hasil.filter((h) => h.sumber === "otomatis");
     } else if (filterSumber === "pengurus") {
       hasil = hasil.filter((h) => h.sumber === "pengurus");
     }
 
-    // Filter pencarian teks
     const q = cariAkun.trim().toLowerCase();
     if (q) {
       hasil = hasil.filter(
@@ -83,7 +79,6 @@ export default function PanelLarangan({
       );
     }
 
-    // Urutkan dari yang paling baru diblokir
     hasil.sort(
       (a, b) =>
         new Date(b.diblokirPada || 0).getTime() -
@@ -110,308 +105,182 @@ export default function PanelLarangan({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="border-b border-slate-200 pb-5">
         <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold text-slate-900">
-              Daftar Larangan ({hitam.length})
-            </h2>
-            {jumlahOtomatis > 0 && (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-0.5 text-xs font-bold text-amber-800">
-                <span className="h-2 w-2 rounded-full bg-amber-500" />
-                {jumlahOtomatis} Ban Otomatis Fair Play
-              </span>
-            )}
-          </div>
-          <p className="mt-1 text-sm text-slate-600">
-            Daftar akun yang dilarang mengikuti kegiatan komunitas dan turnamen,
-            baik karena pelanggaran fair play Chess.com maupun keputusan pengurus.
+          <h2 className="text-lg font-semibold text-slate-900">Daftar Larangan</h2>
+          <p className="mt-0.5 text-sm text-slate-500">
+            {hitam.length} akun dilarang mengikuti kegiatan komunitas dan turnamen
           </p>
         </div>
       </div>
 
-      {/* ── Banner Informasi Ban Otomatis ──────────────────── */}
+      {/* ── Banner Alert ────────────────────────────────────── */}
       {jumlahOtomatis > 0 && (
-        <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50/80 p-4">
-          <svg
-            className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-            />
+        <div className="flex items-center gap-3 rounded border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+          <svg className="h-4 w-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <div className="flex-1 text-sm text-amber-900">
-            <p className="font-semibold">
-              Terdeteksi {jumlahOtomatis} akun terkena ban otomatis dari Chess.com
-            </p>
-            <p className="mt-0.5 text-xs text-amber-800">
-              Sistem secara otomatis memindahkan akun yang ditutup karena
-              pelanggaran fair play ke daftar ini saat pemindaian berkala.
-            </p>
-          </div>
-          {filterSumber !== "otomatis" && (
-            <button
-              type="button"
-              onClick={() => setFilterSumber("otomatis")}
-              className="rounded-full bg-amber-200 px-3 py-1 text-xs font-bold text-amber-900 hover:bg-amber-300"
-            >
-              Filter Otomatis Saja →
-            </button>
-          )}
+          <p className="flex-1 text-amber-800">
+            <span className="font-semibold">{jumlahOtomatis} akun</span> terdeteksi terkena ban otomatis dari Chess.com.
+            {filterSumber !== "otomatis" && (
+              <button
+                type="button"
+                onClick={() => setFilterSumber("otomatis")}
+                className="ml-2 font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
+              >
+                Lihat →
+              </button>
+            )}
+          </p>
         </div>
       )}
 
-      {/* ── Ringkasan Mini Tab ─────────────────────────────── */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <button
-          type="button"
-          onClick={() => setFilterSumber("semua")}
-          className={`rounded-lg border p-4 text-left transition-all ${
-            filterSumber === "semua"
-              ? "border-primary bg-primary/5 ring-2 ring-primary/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-            Semua Larangan
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
-            {hitam.length}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Total akun dilarang</p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterSumber("otomatis")}
-          className={`rounded-lg border p-4 text-left transition-all ${
-            filterSumber === "otomatis"
-              ? "border-amber-500 bg-amber-50/50 ring-2 ring-amber-500/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
-            <span className="h-2 w-2 rounded-full bg-amber-500" />
-            Ban Otomatis Fair Play
-          </p>
-          <p className="mt-1 text-2xl font-bold text-amber-700">
-            {jumlahOtomatis}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Deteksi sistem Chess.com</p>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setFilterSumber("pengurus")}
-          className={`rounded-lg border p-4 text-left transition-all ${
-            filterSumber === "pengurus"
-              ? "border-indigo-500 bg-indigo-50/50 ring-2 ring-indigo-500/20"
-              : "border-slate-200 bg-white hover:bg-slate-50"
-          }`}
-        >
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-600">
-            Manual Pengurus
-          </p>
-          <p className="mt-1 text-2xl font-bold text-slate-900">
-            {jumlahPengurus}
-          </p>
-          <p className="mt-0.5 text-xs text-slate-500">Keputusan manual pengurus</p>
-        </button>
-      </div>
-
-      {/* ── Pencarian & Cek Nomor HP ───────────────────────── */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Filter & Cari Akun */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
-            Cari Akun Terlarang
-          </h3>
-          <div className="flex gap-2">
+      {/* ── Filter Tabs + Pencarian + Cek HP ──────────────────── */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 ml-2">
+          <div className="relative">
+            <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
             <input
               type="text"
               value={cariAkun}
               onChange={(e) => setCariAkun(e.target.value)}
               placeholder="Cari username atau alasan…"
-              className="flex-1 rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-primary"
+              className="w-52 border-0 border-b border-slate-300 bg-transparent pl-9 pr-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
             />
-            {cariAkun && (
-              <button
-                type="button"
-                onClick={() => setCariAkun("")}
-                className="rounded px-2.5 py-1.5 text-xs text-slate-500 hover:bg-slate-100"
-              >
-                Hapus
-              </button>
-            )}
           </div>
-        </div>
-
-        {/* Cek Nomor HP */}
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-600">
-            Cek Nomor HP di Daftar Hitam
-          </h3>
-          <form onSubmit={cekNomor} className="flex flex-wrap items-center gap-2">
+          <div className="h-4 w-px bg-slate-300" />
+          <form className="flex items-center gap-2" onSubmit={(e) => e.preventDefault()}>
             <input
               type="text"
               value={cariNomor}
               onChange={(e) => setCariNomor(e.target.value)}
-              placeholder="0812-3456-7890"
-              className="flex-1 min-w-[180px] rounded border border-slate-300 px-3 py-1.5 text-sm outline-none focus:border-primary"
+              placeholder="Cek nomor HP: 0812-3456-7890"
+              className="w-52 border-0 border-b border-slate-300 bg-transparent px-3 py-2 text-sm outline-none placeholder:text-slate-400 focus:border-slate-600"
             />
-            <Tombol anak="Periksa" onClick={cekNomor} kecil />
+            <Tombol
+              anak="Periksa"
+              onClick={cekNomor}
+              kecil
+              disabled={!cariNomor.trim()}
+            />
           </form>
           {hasilNomor && (
-            <div className="mt-2">
-              <span
-                className={`inline-block rounded px-2.5 py-1 text-xs font-semibold ${
-                  hasilNomor.diblokir
-                    ? "bg-red-50 text-red-800 border border-red-200"
-                    : "bg-emerald-50 text-emerald-800 border border-emerald-200"
-                }`}
-              >
-                {hasilNomor.diblokir
-                  ? `⚠️ Nomor DIBLOKIR — cocok dengan @${hasilNomor.username} (${hasilNomor.cocokPada})`
-                  : "✓ Aman, tidak ada di daftar larangan"}
-              </span>
-            </div>
+            <span className={`text-xs font-medium ${hasilNomor.diblokir ? "text-red-600" : "text-emerald-600"}`}>
+              {hasilNomor.diblokir
+                ? `Diblokir — cocok dengan @${hasilNomor.username}`
+                : "Aman"}
+            </span>
           )}
+        </div>
+        <div className="flex items-center gap-1">
+          {[
+            { kunci: "semua", label: "Semua", jumlah: hitam.length },
+            { kunci: "otomatis", label: "Otomatis", jumlah: jumlahOtomatis },
+            { kunci: "pengurus", label: "Pengurus", jumlah: jumlahPengurus },
+          ].map((tab) => (
+            <button
+              key={tab.kunci}
+              type="button"
+              onClick={() => setFilterSumber(tab.kunci)}
+              className={`
+                -mb-px px-4 py-2.5 text-sm font-medium transition-colors
+                ${filterSumber === tab.kunci
+                  ? "border-b-2 border-slate-900 text-slate-900"
+                  : "text-slate-500 hover:text-slate-700"
+                }
+              `}
+            >
+              {tab.label}
+              <span className={`ml-1.5 text-xs ${filterSumber === tab.kunci ? "text-slate-600" : "text-slate-400"}`}>
+                {tab.jumlah}
+              </span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* ── Tabel Daftar Larangan ──────────────────────────── */}
-      <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <div className="flex flex-wrap items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3 gap-2">
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
-              Menampilkan {dataTersaring.length} dari {hitam.length} Akun
-            </span>
-            {filterSumber !== "semua" && (
-              <span className="rounded bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">
-                Filter: {filterSumber === "otomatis" ? "Ban Otomatis" : "Manual"}
-              </span>
-            )}
-          </div>
-          {filterSumber !== "semua" && (
-            <button
-              type="button"
-              onClick={() => setFilterSumber("semua")}
-              className="text-xs font-semibold text-primary hover:underline"
-            >
-              Tampilkan Semua Larangan
-            </button>
-          )}
-        </div>
+      {/* ── Tabel ───────────────────────────────────────────── */}
+      <div>
+        <p className="text-xs text-slate-500 mb-1">
+          Menampilkan <span className="font-medium text-slate-700">{dataTersaring.length}</span> dari {hitam.length} akun
+        </p>
 
-        <div className="max-h-[500px] overflow-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50/50 text-xs font-semibold uppercase tracking-wider text-slate-500 sticky top-0">
+        <div className="max-h-[480px] overflow-y-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-4 py-2.5 text-center w-12">#</th>
-                <th className="px-4 py-2.5">Akun Chess.com</th>
-                <th className="px-4 py-2.5">Alasan Larangan</th>
-                <th className="px-4 py-2.5">Sumber Deteksi</th>
-                <th className="px-4 py-2.5">Tanggal Blokir</th>
-                <th className="px-4 py-2.5 text-right">Aksi</th>
+                <th style={{ width: 40 }}>#</th>
+                <th>Akun</th>
+                <th>Alasan</th>
+                <th>Sumber</th>
+                <th>Tanggal Blokir</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {dataTersaring.map((h, index) => {
                 const isOtomatis = h.sumber === "otomatis";
                 return (
-                  <tr
-                    key={h.username}
-                    className={`transition-colors ${
-                      isOtomatis
-                        ? "bg-amber-50/30 hover:bg-amber-50/60"
-                        : "hover:bg-slate-50"
-                    }`}
-                  >
-                    <td className="px-4 py-3 text-center text-xs font-medium text-slate-400">
-                      {index + 1}
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2.5">
+                  <tr key={h.username} className={index % 2 === 1 ? "bg-slate-50" : ""}>
+                    <td>{index + 1}</td>
+                    <td>
+                      <div className="flex items-center gap-3">
                         <Avatar username={h.username} />
-                        <div>
-                          <a
-                            href={`https://www.chess.com/member/${encodeURIComponent(
-                              h.username
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-bold text-slate-900 hover:text-primary hover:underline"
-                            title={`Buka profil @${h.username} di Chess.com`}
-                          >
-                            @{h.username}
-                          </a>
-                        </div>
+                        <a
+                          href={`https://www.chess.com/member/${encodeURIComponent(h.username)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          @{h.username}
+                        </a>
                       </div>
                     </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`inline-flex items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold ${
-                          h.alasan === "fair_play_violations"
-                            ? "bg-red-50 text-red-800 border border-red-200"
-                            : "bg-slate-100 text-slate-800 border border-slate-200"
-                        }`}
-                      >
-                        {h.alasan === "fair_play_violations" && (
-                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
-                        )}
-                        {h.alasan === "fair_play_violations"
-                          ? "Pelanggaran Fair Play"
-                          : "Keputusan Pengurus"}
+                    <td>
+                      <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${
+                        h.alasan === "fair_play_violations"
+                          ? "bg-red-600 text-white"
+                          : "bg-slate-200 text-slate-700"
+                      }`}>
+                        {h.alasan === "fair_play_violations" ? "Fair Play" : "Keputusan Pengurus"}
                       </span>
                       {h.keterangan && (
-                        <p
-                          className="mt-1 max-w-md text-xs text-slate-600 truncate"
-                          title={h.keterangan}
-                        >
+                        <p className="mt-0.5 text-sm text-slate-500 max-w-[240px] truncate" title={h.keterangan}>
                           {h.keterangan}
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
-                          isOtomatis
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-slate-100 text-slate-700"
-                        }`}
-                      >
-                        {isOtomatis ? "🤖 Otomatis Scan" : "👤 Pengurus"}
+                    <td>
+                      <span className={isOtomatis ? "text-amber-700" : "text-slate-600"}>
+                        {isOtomatis ? "Otomatis" : "Pengurus"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
-                      {formatTanggal(h.diblokirPada)}
-                    </td>
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
-                      <Tombol
-                        anak="Cabut"
-                        kecil
+                    <td>{formatTanggal(h.diblokirPada)}</td>
+                    <td>
+                      <button
+                        type="button"
+                        title="Cabut larangan"
                         onClick={() => setTargetBuka(h.username)}
                         disabled={sibuk === `buka-${h.username}`}
-                      />
+                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
+                      >
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+                          <path d="M9 14l6-6M5.586 15H21m-6.414-6.414A3 3 0 1112.828 9H15a3 3 0 110 6h-2.172" />
+                        </svg>
+                      </button>
                     </td>
                   </tr>
                 );
               })}
               {!dataTersaring.length && (
                 <tr>
-                  <td colSpan={6} className="py-12 text-center text-slate-500">
+                  <td colSpan={6} className="text-center text-slate-500" style={{ padding: "40px 0" }}>
                     {cariAkun || filterSumber !== "semua"
-                      ? "Tidak ada akun terlarang yang cocok dengan kriteria filter."
-                      : "Daftar larangan komunitas masih kosong."}
+                      ? "Tidak ada akun yang cocok dengan filter."
+                      : "Daftar larangan masih kosong."}
                   </td>
                 </tr>
               )}
@@ -431,7 +300,7 @@ export default function PanelLarangan({
         onKonfirmasi={konfirmasiBuka}
       >
         Pengguna ini akan dapat kembali mendaftar dan mengikuti kegiatan
-        komunitas. Tindakan pencabutan larangan ini tetap dicatat di jejak audit.
+        komunitas. Pencabutan tetap dicatat di jejak audit.
       </Modal>
     </div>
   );
