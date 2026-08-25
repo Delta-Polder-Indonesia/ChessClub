@@ -5,8 +5,9 @@
  * sama dengan yang dipakai situs, agar sisi server dan sisi klien tidak
  * pernah berbeda perilaku.
  */
+import path from "node:path";
 import { konfigurasi } from "./konfigurasi.js";
-import { buatRepo, tambahBaris } from "./simpanan.js";
+import { buatRepo, tambahBaris, bacaJson, tulisJson } from "./simpanan.js";
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
 import { pakaiTiket } from "./oauth.js";
@@ -716,6 +717,38 @@ export async function ringkasan() {
     // Catatan: sidikPepper() sengaja TIDAK dikirim ke klien. Ia hanya
     // dipakai server untuk mendeteksi perubahan pepper antar-berkas.
   };
+}
+
+/**
+ * Pindai fair play secara otomatis — hanya jika sudah lebih dari 6 jam
+ * sejak pemindaian terakhir. Mengembalikan hasil scan bila dijalankan,
+ * atau null bila belum waktunya.
+ */
+export async function pindaiFairPlayOtomatis() {
+  const berkasMeta = path.join(konfigurasi.dirData, "terakhir-pindai.json");
+  let meta = {};
+  try {
+    meta = await bacaJson(berkasMeta, {});
+  } catch {
+    /* pertama kali — belum ada berkas */
+  }
+
+  const ENAM_JAM = 6 * 60 * 60 * 1000;
+  const terakhir = meta.waktu ? new Date(meta.waktu).getTime() : 0;
+  if (Date.now() - terakhir < ENAM_JAM) {
+    return null; // belum waktunya
+  }
+
+  const hasil = await pindaiFairPlay();
+
+  // Catat kapan terakhir kali scan dijalankan.
+  await tulisJson(berkasMeta, {
+    waktu: new Date().toISOString(),
+    diperiksa: hasil.diperiksa,
+    diblokir: hasil.diblokir.length,
+  });
+
+  return hasil;
 }
 
 export { repoAnggota, repoHitam, repoKontak };

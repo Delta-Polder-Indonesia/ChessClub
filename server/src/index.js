@@ -70,6 +70,7 @@ import {
   blokirAnggota,
   bukaBlokir,
   pindaiFairPlay,
+  pindaiFairPlayOtomatis,
   cekNomor,
   kontakAnggota,
   ringkasan,
@@ -277,6 +278,16 @@ router.get("/api/pengurus/verifikasi", async (req) => {
 router.post("/api/pengurus/pindai", async (req) => {
   pastikanAdmin(req);
   return { status: 200, isi: await pindaiFairPlay() };
+});
+
+/** Pindai otomatis — hanya jika sudah >6 jam sejak scan terakhir. */
+router.get("/api/pengurus/pindai-otomatis", async (req) => {
+  pastikanAdmin(req);
+  const hasil = await pindaiFairPlayOtomatis();
+  return {
+    status: 200,
+    isi: { dijalankan: Boolean(hasil), ...(hasil || {}) },
+  };
 });
 
 router.post("/api/pengurus/blokir", async (req) => {

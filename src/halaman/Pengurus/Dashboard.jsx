@@ -735,6 +735,36 @@ export default function Dashboard() {
   }, [tanganiGalat]);
 
   /**
+   * Pindai fair play otomatis — dijalankan sekali saat dashboard dimuat.
+   * Hanya aktif jika sudah >6 jam sejak scan terakhir. Bila ada pemain
+   * baru yang diblokir, muat ulang data daftar hitam.
+   */
+  useEffect(() => {
+    let hidup = true;
+    apiPengurus("/pindai-otomatis")
+      .then((hasil) => {
+        if (!hidup || !hasil?.dijalankan) return;
+        // Ada yang baru diblokir — segarkan daftar hitam & ringkasan.
+        Promise.all([ambilDaftarHitam(), apiPengurus("/ringkasan")])
+          .then(([h, r]) => {
+            if (!hidup) return;
+            const baru = h.length - hitam.length;
+            setHitam(h);
+            setRingkas(r);
+            if (baru > 0) {
+              beriTahu(
+                `${baru} akun baru terdeteksi melanggar fair play dan otomatis diblokir.`,
+                "peringatan"
+              );
+            }
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
+    return () => { hidup = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /**
    * Segarkan kartu ringkasan SAJA — dipakai oleh panel ringan (Pesan,
    * Konten) yang perubahannya tidak memengaruhi daftar anggota maupun
    * daftar larangan. Menghindari memanggil endpoint roster Chess.com
