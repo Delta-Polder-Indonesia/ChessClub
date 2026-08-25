@@ -31,3 +31,4 @@ data/rahasia/
 # Pesan dari form "Hubungi Kami" berisi nama/email/telepon publik.
 # Server membuatnya sendiri saat pertama ditulis; jangan ikut commit.
 data/pesan.json
+data/riwayat-masuk.json

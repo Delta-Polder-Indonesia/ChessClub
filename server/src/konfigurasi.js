@@ -74,6 +74,9 @@ export const konfigurasi = {
   get berkasJejak() {
     return path.join(this.dirData, "rahasia", "jejak-audit.jsonl");
   },
+  get berkasRiwayatMasuk() {
+    return path.join(this.dirData, "riwayat-masuk.json");
+  },
 
   /**
    * Login dengan akun Chess.com (OAuth 2.0).
