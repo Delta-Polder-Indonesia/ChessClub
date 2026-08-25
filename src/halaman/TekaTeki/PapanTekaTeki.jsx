@@ -159,6 +159,7 @@ function titikPanahKuda(s, t) {
     p(L2 - JARAK_AWAL, L1 - SETENGAH_KEPALA),
     p(L2 - JARAK_AWAL, L1 - SETENGAH_BATANG),
     p(SETENGAH_BATANG, L1 - SETENGAH_BATANG),
+    p(SETENGAH_BATANG, JARAK_AWAL),
   ];
 }
 
@@ -683,13 +684,6 @@ export default function PapanTekaTeki({
             <ChessPiece piece={peta[seret.from]} set={setBidak} className="h-full w-full" />
           </div>
         </div>
-      )}
-
-      {membeku && (
-        <div
-          className="absolute inset-0 z-40 flex items-center justify-center bg-black/10 backdrop-blur-[1px]"
-          aria-hidden="true"
-        />
       )}
     </div>
   );
