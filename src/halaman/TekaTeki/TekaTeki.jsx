@@ -7,6 +7,8 @@ import { SettingsIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
+import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import PanelEngine from "../../components/PanelEngine.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -227,6 +229,36 @@ export default function TekaTeki() {
 
   const timerSalah = useRef(null);
   const timerOtomatis = useRef(null);
+
+  // Analisis Stockfish (opsional) — mengikuti posisi teka-teki saat ini.
+  const {
+    engineNyala,
+    statusEngine,
+    kecepatanEngine,
+    setKecepatanEngine,
+    hasilEngine,
+    permainanSelesai,
+    panahMesin,
+    nyalakanEngine,
+    matikanEngine,
+  } = gunakanEngineCatur(fen);
+
+  /** Mainkan saran engine pada teka-teki — tetap divalidasi aturan soal:
+      kalau sarannya bukan jawaban yang diharapkan, dihitung salah. */
+  function mainkanSaranEngine(san) {
+    if (!masalah || komputer || selesai || !sisa.length || !fen) return;
+    const game = new Chess(fen);
+    let pindah = null;
+    try {
+      pindah = game.move(san);
+    } catch {
+      pindah = null;
+    }
+    if (!pindah) return;
+    setTerpilih(null);
+    setSasaran([]);
+    cobaLangkah(pindah.from, pindah.to, pindah.promotion);
+  }
 
   const soal = useMemo(() => {
     if (!semuaSoal) return null;
@@ -864,6 +896,7 @@ export default function TekaTeki() {
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
+                    panahMesin={panahMesin}
                     terkunci={komputer || selesai || !!promosi}
                     membeku={komputer}
                      setBidak={setBidak}
@@ -1238,6 +1271,22 @@ export default function TekaTeki() {
                     Automatically load the next puzzle after each attempt
                   </span>
                 </label>
+
+                {/* Analisis Engine (Stockfish di peramban) */}
+                <PanelEngine
+                  nyala={engineNyala}
+                  status={statusEngine}
+                  hasil={hasilEngine}
+                  fen={fen}
+                  kecepatan={kecepatanEngine}
+                  setKecepatan={setKecepatanEngine}
+                  permainanSelesai={permainanSelesai}
+                  onNyalakan={nyalakanEngine}
+                  onMatikan={matikanEngine}
+                  onMainkan={mainkanSaranEngine}
+                  kunciDeskripsi="tekaTeki.engineDeskripsi"
+                  t={t}
+                />
 
                 {/* Syzygy Tablebase */}
                 <div className="mt-6 border-t border-slate-200 pt-4">
