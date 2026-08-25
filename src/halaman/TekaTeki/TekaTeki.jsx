@@ -161,7 +161,7 @@ function bacaWarnaPapan() {
       return simpan;
     }
   } catch {}
-  return "hijau";
+  return "green";
 }
 
 function bacaOtomatis() {
@@ -338,6 +338,9 @@ export default function TekaTeki() {
 
   useEffect(() => {
     if (!fen) return;
+    // Jangan tampilkan hasil atau status gagal dari posisi sebelumnya.
+    setSyzygy(null);
+    setSyzygyGagal(false);
     let aktif = true;
     const timer = window.setTimeout(() => {
       fetch(
@@ -348,7 +351,10 @@ export default function TekaTeki() {
           return respon.json();
         })
         .then((data) => {
-          if (aktif) setSyzygy(data);
+          if (aktif) {
+            setSyzygy(data);
+            setSyzygyGagal(false);
+          }
         })
         .catch(() => {
           if (aktif) {
@@ -422,6 +428,8 @@ export default function TekaTeki() {
       const total = soal.length;
       const idx = ((indeksBaru % total) + total) % total;
       const m = soal[idx];
+      // Timer dari soal sebelumnya tidak boleh menimpa navigasi manual.
+      window.clearTimeout(timerOtomatis.current);
       setIndeks(idx);
       terapkanSoal(m);
       setParams({ id: String(m.problemid) }, { replace: true });
@@ -503,7 +511,15 @@ export default function TekaTeki() {
       }
     } catch {}
 
-    if (butuhPromosi && !promo) {
+    // Jangan buka dialog promosi untuk drop yang tidak legal.
+    let langkahLegal = false;
+    try {
+      langkahLegal = new Chess(fen)
+        .moves({ square: from, verbose: true })
+        .some((langkah) => langkah.to === to);
+    } catch {}
+
+    if (butuhPromosi && langkahLegal && !promo) {
       setPromosi({ from, to, warna: warnaPromosi });
       setTerpilih(null);
       setSasaran([]);
@@ -517,9 +533,14 @@ export default function TekaTeki() {
         const g = terapkan(fen, { from, to, promo });
         if (g.isCheckmate()) lanjut = g;
       } catch {}
-    } else if (from === diharapkan.from && to === diharapkan.to) {
+    } else if (
+      from === diharapkan.from &&
+      to === diharapkan.to &&
+      // Untuk promosi di tengah varian, bidak harus sama dengan solusi.
+      (!diharapkan.promo || promo === diharapkan.promo)
+    ) {
       try {
-        lanjut = terapkan(fen, { from, to, promo: promo || diharapkan.promo });
+        lanjut = terapkan(fen, { from, to, promo: diharapkan.promo });
       } catch {}
     }
 
@@ -600,13 +621,16 @@ export default function TekaTeki() {
         setFen(g.fen());
         setJalurFen((l) => [...l, g.fen()]);
         setLangkahAkhir({ from: diharapkan.from, to: diharapkan.to });
-      } catch {}
-      setSisa((s) => s.slice(1));
-      setKomputer(false);
-      setPesan(null);
+        setSisa((s) => s.slice(1));
+        setKomputer(false);
+        setPesan(null);
+      } catch {
+        // Posisi dan barisan harus selalu tetap sinkron bila data tak dapat diterapkan.
+        terapkanSoal(masalah);
+      }
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [komputer, fen, sisa, selesai]);
+  }, [komputer, fen, sisa, selesai, masalah, terapkanSoal]);
 
   function tampilPetunjuk() {
     if (!sisa.length || selesai) return;
@@ -640,7 +664,6 @@ export default function TekaTeki() {
     setFen(jalurFen[baru]);
     setSisa(langkahPenuh.slice(baru));
     setJalurFen((l) => l.slice(0, baru + 1));
-    setSelesai(false);
     setKomputer(false);
     tutupBantu();
     if (baru >= 1) {
@@ -841,7 +864,7 @@ export default function TekaTeki() {
               <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                 <h2 className="m-0 text-base font-bold text-slate-950 md:text-lg">
                   {t("tekaTeki.soal", {
-                    n: masalah.problemid,
+                    n: indeks + 1,
                     total: soal.length,
                   })}
                 </h2>
@@ -1012,7 +1035,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={majuLangkah}
-                        disabled={!selesai || komputer || posisiLangkah >= langkahPenuh.length}
+                        disabled={komputer || posisiLangkah >= langkahPenuh.length}
                         title={t("papan.maju")}
                         aria-label={t("papan.maju")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
@@ -1022,7 +1045,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={keAkhirLangkah}
-                        disabled={!selesai || komputer || posisiLangkah >= langkahPenuh.length}
+                        disabled={komputer || posisiLangkah >= langkahPenuh.length}
                         title={t("papan.keAkhir")}
                         aria-label={t("papan.keAkhir")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
@@ -1036,7 +1059,7 @@ export default function TekaTeki() {
                         title={t("papan.flip")}
                         aria-label={t("papan.flip")}
                       >
-                        Flip
+                        {t("papan.flip")}
                       </button>
                       <button
                         type="button"
@@ -1268,7 +1291,7 @@ export default function TekaTeki() {
                     onChange={() => setOtomatis((v) => !v)}
                   />
                   <span>
-                    Automatically load the next puzzle after each attempt
+                    {t("tekaTeki.lanjutOtomatis")}
                   </span>
                 </label>
 
@@ -1291,7 +1314,7 @@ export default function TekaTeki() {
                 {/* Syzygy Tablebase */}
                 <div className="mt-6 border-t border-slate-200 pt-4">
                   <div className="mb-3 flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-slate-800">Syzygy Tablebase</h3>
+                    <h3 className="text-sm font-bold text-slate-800">{t("tekaTeki.syzygyJudul")}</h3>
                     <span className="text-xs text-slate-500">{t("tekaTeki.syzygyDidukung")}</span>
                   </div>
 

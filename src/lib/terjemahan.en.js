@@ -508,7 +508,7 @@ export const EN = {
     paragraf1:
       "Play moves on the free board and the opening book instantly recognizes the opening name along with its ECO code — from the Ruy Lopez and the Sicilian Najdorf to the Queen's Gambit.",
     paragraf2:
-      "Complete with suggested next moves and a catalog of 3,810 opening lines from lichess data (CC0 license).",
+      "Complete with suggested next moves and a catalog of more than 3,300 opening names from lichess data (CC0 license).",
     buka: "Open the Opening Book",
     demoJudul: "Opening Book",
     demoTantangan: "The opening name appears automatically once the position is recognized",
@@ -755,6 +755,8 @@ export const EN = {
     semuaGiliran: "All",
     hanyaPutih: "White only",
     hanyaHitam: "Black only",
+    lanjutOtomatis: "Automatically load the next puzzle after each attempt",
+    syzygyJudul: "Syzygy Tablebase",
     syzygyDidukung: "Powered by Lichess",
     engineDeskripsi:
       "Heads-up: turning on Stockfish reveals the evaluation and the best move for this position — it may spoil the puzzle. Best used to dissect the position after you've tried it yourself.",
