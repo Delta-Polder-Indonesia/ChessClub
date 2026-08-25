@@ -447,6 +447,33 @@ console.log("\nKeamanan endpoint pengurus");
     cek("verifikasi: tanpa token -> 401", tanpaV.status === 401, `dapat ${tanpaV.status}`);
     const benarV = await panggil("GET", "/api/pengurus/verifikasi");
     cek("verifikasi: token benar -> 200 {ok:true}", benarV.status === 200 && benarV.data?.ok === true, `dapat ${benarV.status}`);
+
+    // Riwayat masuk pengurus
+    ipSaatIni = ipBaru();
+    const loginPengurus = await panggil("POST", "/api/pengurus/masuk", {
+      username: "magnuscarlsen",
+    });
+    cek("catat riwayat masuk: token benar -> 200", loginPengurus.status === 200 && loginPengurus.data?.ok === true, `dapat ${loginPengurus.status}`);
+    cek("catat riwayat masuk: menyertakan username ternormalisasi", loginPengurus.data?.entri?.username === "magnuscarlsen");
+    cek("catat riwayat masuk: menyertakan waktu ISO", Boolean(loginPengurus.data?.entri?.waktu));
+    const entriId = loginPengurus.data?.entri?.id;
+
+    const daftarMasuk = await panggil("GET", "/api/pengurus/riwayat-masuk");
+    cek("ambil riwayat masuk -> 200", daftarMasuk.status === 200 && Array.isArray(daftarMasuk.data));
+    cek("riwayat memuat entri login terbaru", daftarMasuk.data?.some((r) => r.id === entriId && r.username === "magnuscarlsen"));
+
+    const ringkasSesudahMasuk = await panggil("GET", "/api/pengurus/ringkasan");
+    cek("ringkasan memuat statistik riwayat masuk", typeof ringkasSesudahMasuk.data?.riwayatMasuk?.total === "number" && ringkasSesudahMasuk.data?.riwayatMasuk?.total >= 1);
+
+    const hapusSatu = await panggil("POST", "/api/pengurus/riwayat-masuk/hapus", {
+      id: entriId,
+    });
+    cek("hapus satu entri riwayat masuk -> 200", hapusSatu.status === 200);
+
+    const bersihkanSemua = await panggil("POST", "/api/pengurus/riwayat-masuk/bersihkan");
+    cek("bersihkan semua riwayat masuk -> 200", bersihkanSemua.status === 200);
+    const daftarSetelahBersih = await panggil("GET", "/api/pengurus/riwayat-masuk");
+    cek("riwayat masuk kosong setelah dibersihkan", daftarSetelahBersih.data?.length === 0);
   } else {
     cek("mode pengembangan: admin terbuka", tanpa.status === 200);
     console.log("      (jalankan ulang dengan KCI_TOKEN_ADMIN untuk uji autentikasi)");
