@@ -435,8 +435,41 @@ export const ID = {
     deskripsi:
       "Program pembinaan Komunitas Catur Indonesia: dari kelas rutin, sesi pelatihan, hingga panduan belajar catur.",
     artikel: "Sekilas Program",
-    p1: "Komunitas Catur Indonesia menjalankan program pembinaan bagi pecatur dari berbagai usia dan tingkat kemampuan. Kegiatan dilakukan secara rutin, baik di sekretariat Medan maupun secara daring melalui klub BLUNDER SKUAD di Chess.com, sehingga anggota dari seluruh Indonesia dapat mengikuti.",
-    p2: "Program yang berjalan antara lain kelas dan pelatihan berjenjang dari pemula hingga mahir, sesi coaching clinic bersama pelatih dan pecatur bergelar, pertunjukan simultan dan catur buta pada hari-hari besar komunitas, serta program sekolah catur melalui kemitraan dengan sekolah. Jadwal, pendaftaran, dan perubahan ketentuan selalu diumumkan melalui halaman Pengumuman dan kanal anggota; informasi resmi hanya keluar melalui kanal tersebut dan surel info@komunitascatur.or.id.",
+    p1: "Komunitas Catur Indonesia menghadirkan rangkaian program pembinaan yang dirancang agar setiap anggota memiliki jalur berkembang yang jelas — dari yang baru mengenal papan hingga yang mengejar gelar. Seluruh kegiatan berlangsung rutin, baik secara luring di sekretariat Medan maupun daring melalui klub BLUNDER SKUAD di Chess.com, sehingga anggota di kota mana pun tetap dapat ikut serta.",
+    p2: "Keenam program di bawah ini saling melengkapi: dimulai dari kelas berjenjang untuk membangun dasar, pendampingan personal, pembinaan usia dini, sarana belajar mandiri, hingga ajang unjuk kebolehan dan latihan taktik. Jadwal, pendaftaran, dan perubahan ketentuan selalu diumumkan melalui halaman Pengumuman dan kanal anggota; informasi resmi hanya berasal dari kanal tersebut dan surel info@komunitascatur.or.id.",
+    programJudul: "Program Unggulan",
+    kartu: {
+      kelas: {
+        judul: "Kelas & Pelatihan Berjenjang",
+        deskripsi:
+          "Setiap pecatur memulai dari bidak terkecil. Kelas berjenjang memandu anggota dari pengenalan gerak bidak, dasar pembukaan, hingga pola akhir permainan — menyesuaikan tingkat kemampuan masing-masing.",
+      },
+      clinic: {
+        judul: "Coaching Clinic",
+        deskripsi:
+          "Bimbingan intensif bersama pelatih dan pecatur bergelar. Partai anggota dibedah satu per satu untuk menemukan kelemahan, memperbaiki cara berpikir, dan melompatkan kekuatan bermain ke tingkat berikutnya.",
+      },
+      sekolah: {
+        judul: "Sekolah Catur",
+        deskripsi:
+          "Kemitraan dengan sekolah untuk mengenalkan catur sejak dini sebagai sarana melatih fokus, kesabaran, dan cara berpikir strategis. Kurikulum disusun ramah anak namun tetap terarah.",
+      },
+      panduan: {
+        judul: "Panduan Belajar Mandiri",
+        deskripsi:
+          "Fondasi yang kokoh dapat dipelajari kapan saja. Halaman Cara Bermain Catur menyajikan panduan runtut dari pengenalan bidak hingga pola latihan tingkat lanjut.",
+      },
+      simultan: {
+        judul: "Simultan & Catur Buta",
+        deskripsi:
+          "Puncak unjuk kebolehan para pecatur andalan. Pertunjukan simultan dan catur buta digelar pada hari-hari besar komunitas untuk menguji ketangguhan sekaligus menghibur anggota.",
+      },
+      tekaTeki: {
+        judul: "Teka-teki Taktik",
+        deskripsi:
+          "Ribuan soal skakmat siap mengasah naluri taktik harian. Latihan singkat yang konsisten jauh lebih membangun daripada teori panjang tanpa praktik.",
+      },
+    },
     h1: "Panduan dan Latihan Mandiri",
     p3a: "Bagi anggota yang ingin belajar atau mengulang dasar-dasar permainan, situs ini menyediakan halaman",
     p3b: "sebagai panduan runtut dari pengenalan bidak hingga pola latihan tingkat lanjut, serta halaman",

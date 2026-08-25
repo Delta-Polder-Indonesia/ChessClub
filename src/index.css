@@ -977,3 +977,69 @@ section[id] {
     width: 100%;
   }
 }
+
+/* Program Unggulan (Sekilas Program) — kisi 6 program berikon bidak.
+   Susunan meniru bagian "Goals" situs rujukan: ikon + judul + deskripsi,
+   tersusun 3 kolom di layar lebar, 2 kolom di tablet, 1 kolom di ponsel.
+   Tanpa kartu/background — ikon bidak tampil polos di atas latar halaman. */
+.program-unggulan {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px 28px;
+  margin: 4px 0 12px;
+}
+
+@media (min-width: 768px) {
+  .program-unggulan {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px 36px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .program-unggulan {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.program-kartu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.program-ikon {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  height: 56px;
+}
+
+.program-ikon img {
+  display: block;
+  height: 52px;
+  width: auto;
+}
+
+.program-kartu-isi {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.program-kartu h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+.program-kartu p {
+  margin: 0;
+  color: #475569;
+  font-size: 14px;
+  line-height: 24px;
+  text-align: left;
+}
