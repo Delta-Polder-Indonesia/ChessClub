@@ -77,7 +77,7 @@ function KalimatInfo({ t }) {
         1. e4 e5 2. Nf3 Nc6 3. Bb5
       </span>
       {tengah}
-      <span className="font-semibold text-gray-800">Ruy Lopez (C70)</span>
+      <span className="font-semibold text-gray-800">Ruy Lopez (C60)</span>
       {akhir}
     </>
   );
@@ -123,7 +123,7 @@ export default function Pembukaan() {
                 </p>
               </div>
               <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
-                C70
+                C60
               </span>
             </div>
             <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
@@ -152,7 +152,7 @@ export default function Pembukaan() {
                     {t("papan.langkahBerikutnya")}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
-                    {["Ba4", "Bxc6", "a6", "Nf6", "d6", "f5"].map((m) => (
+                    {["a6", "Nf6", "d6", "f5"].map((m) => (
                       <span
                         key={m}
                         className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 font-mono text-[11px] text-gray-700"
