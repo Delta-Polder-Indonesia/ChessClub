@@ -434,8 +434,41 @@ export const EN = {
     deskripsi:
       "Development programs of the Indonesia Chess Community: from regular classes and training sessions to the chess learning guide.",
     artikel: "Program Overview",
-    p1: "The Indonesia Chess Community runs development programs for players of all ages and levels. Activities are held regularly, both at the Medan secretariat and online through the BLUNDER SKUAD club on Chess.com, so members from across Indonesia can take part.",
-    p2: "The programs in operation include tiered classes and training from beginner to advanced, coaching clinic sessions with coaches and titled players, simultaneous and blindfold exhibitions on the community's major days, and a chess school program through partnerships with schools. Schedules, registrations, and changes to the terms are always announced on the Announcements page and in the member channel; official information is released only through those channels and the email info@komunitascatur.or.id.",
+    p1: "The Indonesia Chess Community offers a range of development programs designed so that every member has a clear path to grow — from those just learning the board to those chasing titles. All activities run regularly, both offline at the Medan secretariat and online through the BLUNDER SKUAD club on Chess.com, so members in any city can take part.",
+    p2: "The six programs below complement one another: starting with tiered classes to build the fundamentals, personal mentoring, early-age coaching, self-study resources, and finally a stage to show one's skill and sharpen tactics. Schedules, registrations, and changes to the terms are always announced on the Announcements page and in the member channel; official information comes only from those channels and the email info@komunitascatur.or.id.",
+    programJudul: "Featured Programs",
+    kartu: {
+      kelas: {
+        judul: "Tiered Classes & Training",
+        deskripsi:
+          "Every player starts with the smallest piece. Tiered classes guide members from learning how the pieces move, the basics of openings, to endgame patterns — adapted to each player's level.",
+      },
+      clinic: {
+        judul: "Coaching Clinic",
+        deskripsi:
+          "Intensive mentoring with coaches and titled players. Members' games are analyzed one by one to find weaknesses, sharpen thinking, and leap to the next level of strength.",
+      },
+      sekolah: {
+        judul: "Chess School",
+        deskripsi:
+          "Partnerships with schools to introduce chess early as a way to train focus, patience, and strategic thinking. The curriculum is child-friendly yet structured.",
+      },
+      panduan: {
+        judul: "Self-Study Guide",
+        deskripsi:
+          "A solid foundation you can learn anytime. The How to Play Chess page offers a step-by-step guide from the pieces to advanced training patterns.",
+      },
+      simultan: {
+        judul: "Simultaneous & Blindfold",
+        deskripsi:
+          "The showcase of our best players. Simultaneous and blindfold exhibitions are held on the community's major days to test their strength while entertaining members.",
+      },
+      tekaTeki: {
+        judul: "Tactics Puzzles",
+        deskripsi:
+          "Thousands of checkmate puzzles to sharpen your daily tactical instincts. Short, consistent practice builds far more than long theory without application.",
+      },
+    },
     h1: "Self-Study Guide and Practice",
     p3a: "For members who want to learn or revisit the fundamentals, the site provides the",
     p3b: "page as a complete guide from the pieces to advanced training routines, and the",
