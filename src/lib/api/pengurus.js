@@ -171,3 +171,44 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
   return data;
 }
 
+/* -------------------------------------------------------- riwayat masuk */
+
+/**
+ * Catat aksi login masuk admin ke server.
+ * @param {string} username - Akun Chess.com
+ */
+export async function catatMasukPengurus(username) {
+  return apiPengurus("/masuk", {
+    metode: "POST",
+    bodi: { username },
+  });
+}
+
+/**
+ * Ambil daftar riwayat masuk pengurus.
+ */
+export async function ambilRiwayatMasuk() {
+  return apiPengurus("/riwayat-masuk");
+}
+
+/**
+ * Hapus satu catatan riwayat masuk berdasarkan ID.
+ * @param {string} id
+ */
+export async function hapusRiwayatMasuk(id) {
+  return apiPengurus("/riwayat-masuk/hapus", {
+    metode: "POST",
+    bodi: { id },
+  });
+}
+
+/**
+ * Bersihkan seluruh riwayat masuk pengurus.
+ */
+export async function bersihkanRiwayatMasuk() {
+  return apiPengurus("/riwayat-masuk/bersihkan", {
+    metode: "POST",
+  });
+}
+
+
