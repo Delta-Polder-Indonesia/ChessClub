@@ -807,7 +807,7 @@ export const ID = {
     gagalMuat:
       "Gagal memuat data pembukaan. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
     setBidak: "Set Bidak",
-    flip: "Balik Papan",
+    flip: "Balik",
     undo: "Undo",
     reset: "Reset",
     salinPgn: "Salin PGN",

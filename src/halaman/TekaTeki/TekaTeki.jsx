@@ -243,6 +243,17 @@ export default function TekaTeki() {
     matikanEngine,
   } = gunakanEngineCatur(fen);
 
+  // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
+  // agar bar evaluasi tidak goyang. Bar tampil selama engine menyala dan
+  // hanya hilang saat engine dimatikan.
+  const [hasilTertahan, setHasilTertahan] = useState(null);
+  useEffect(() => {
+    if (hasilEngine) setHasilTertahan(hasilEngine);
+  }, [hasilEngine]);
+  useEffect(() => {
+    if (!engineNyala) setHasilTertahan(null);
+  }, [engineNyala]);
+
   /** Mainkan saran engine pada teka-teki — tetap divalidasi aturan soal:
       kalau sarannya bukan jawaban yang diharapkan, dihitung salah. */
   function mainkanSaranEngine(san) {
@@ -461,16 +472,17 @@ export default function TekaTeki() {
   }
 
   function klikPetak(petak) {
-    if (!masalah || !fen || komputer) return;
     // Klik sisa setelah drag-drop atau klik-kanan-batal tidak boleh jadi langkah.
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
       return;
     }
-
+    // Bersihkan panah/tanda lebih dulu — termasuk saat mengklik bidak
+    // atau saat giliran komputer, agar panah selalu bisa dihapus.
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
       hapusSemuaTanda();
     }
+    if (!masalah || !fen || komputer) return;
 
     if (!selesai && terpilih && sasaran.includes(petak)) {
       cobaLangkah(terpilih, petak);
@@ -952,7 +964,28 @@ export default function TekaTeki() {
 
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
               <div className="mx-auto w-full max-w-[480px] shrink-0 lg:mx-0">
-                <div className="relative">
+                <div className="flex items-stretch gap-1.5">
+                  <div
+                    className={`flex w-3.5 shrink-0 flex-col justify-end overflow-hidden rounded-sm border ${
+                      engineNyala
+                        ? "visible border-[#aaa] bg-[#414141]"
+                        : "invisible border-transparent bg-transparent"
+                    }`}
+                    role="img"
+                    aria-label={
+                      hasilTertahan
+                        ? `${t("papan.engineSkor")} ${hasilTertahan.teksSkor}`
+                        : undefined
+                    }
+                  >
+                    <div
+                      className="w-full bg-[#f4f4f4] transition-[height] duration-300"
+                      style={{
+                        height: `${(hasilTertahan ? hasilTertahan.poinPutih : 0.5) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="relative min-w-0 flex-1">
                   <PapanTekaTeki
                     fen={fen}
                     orientasi={orientasi}
@@ -1025,7 +1058,25 @@ export default function TekaTeki() {
                       </div>
                     </div>
                   )}
+                  </div>
                 </div>
+
+                {/* Analisis Engine (Stockfish di peramban) */}
+                <PanelEngine
+                  nyala={engineNyala}
+                  status={statusEngine}
+                  hasil={hasilEngine}
+                  fen={fen}
+                  kecepatan={kecepatanEngine}
+                  setKecepatan={setKecepatanEngine}
+                  permainanSelesai={permainanSelesai}
+                  onNyalakan={nyalakanEngine}
+                  onMatikan={matikanEngine}
+                  onMainkan={mainkanSaranEngine}
+                  kunciDeskripsi="tekaTeki.engineDeskripsi"
+                  tanpaBilah
+                  t={t}
+                />
               </div>
 
               <div className="min-w-0 flex-1">
@@ -1337,22 +1388,6 @@ export default function TekaTeki() {
                     {t("tekaTeki.lanjutOtomatis")}
                   </span>
                 </label>
-
-                {/* Analisis Engine (Stockfish di peramban) */}
-                <PanelEngine
-                  nyala={engineNyala}
-                  status={statusEngine}
-                  hasil={hasilEngine}
-                  fen={fen}
-                  kecepatan={kecepatanEngine}
-                  setKecepatan={setKecepatanEngine}
-                  permainanSelesai={permainanSelesai}
-                  onNyalakan={nyalakanEngine}
-                  onMatikan={matikanEngine}
-                  onMainkan={mainkanSaranEngine}
-                  kunciDeskripsi="tekaTeki.engineDeskripsi"
-                  t={t}
-                />
 
                 {/* Syzygy Tablebase */}
                 <div className="mt-6 border-t border-slate-200 pt-4">

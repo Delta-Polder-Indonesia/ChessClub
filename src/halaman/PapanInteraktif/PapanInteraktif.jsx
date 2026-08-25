@@ -242,6 +242,16 @@ export default function PapanInteraktif() {
     matikanEngine,
   } = gunakanEngineCatur(fen);
 
+  // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
+  // agar bar evaluasi tidak hilang dan papan tidak goyang.
+  const [hasilTertahan, setHasilTertahan] = useState(null);
+  useEffect(() => {
+    if (hasilEngine) setHasilTertahan(hasilEngine);
+  }, [hasilEngine]);
+  useEffect(() => {
+    if (!engineNyala) setHasilTertahan(null);
+  }, [engineNyala]);
+
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
@@ -385,14 +395,15 @@ export default function PapanInteraktif() {
   }
 
   function klikPetak(petak) {
-    if (!fen || promosi) return;
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
       return;
     }
+    // Bersihkan panah/tanda lebih dulu — termasuk saat mengklik bidak.
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
       setTanda({ panah: [], petak: {} });
     }
+    if (!fen || promosi) return;
     if (terpilih && sasaran.includes(petak)) {
       cobaLangkah(terpilih, petak);
       return;
@@ -710,9 +721,29 @@ export default function PapanInteraktif() {
             </div>
           ) : (
             <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-              <div className="mx-auto w-full max-w-[500px] shrink-0 lg:mx-0">
-                <div className="p-1">
-                  <div className="relative">
+              <div className="mx-auto w-full max-w-[480px] shrink-0 lg:mx-0">
+                <div className="flex items-stretch gap-1.5">
+                  <div
+                    className={`flex w-3.5 shrink-0 flex-col justify-end overflow-hidden rounded-sm border ${
+                      engineNyala
+                        ? "visible border-[#aaa] bg-[#414141]"
+                        : "invisible border-transparent bg-transparent"
+                    }`}
+                    role="img"
+                    aria-label={
+                      hasilTertahan
+                        ? `${t("papan.engineSkor")} ${hasilTertahan.teksSkor}`
+                        : undefined
+                    }
+                  >
+                    <div
+                      className="w-full bg-[#f4f4f4] transition-[height] duration-300"
+                      style={{
+                        height: `${(hasilTertahan ? hasilTertahan.poinPutih : 0.5) * 100}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="relative min-w-0 flex-1">
                   <PapanTekaTeki
                     fen={fen}
                     orientasi={orientasi}
@@ -1119,6 +1150,7 @@ export default function PapanInteraktif() {
                     onNyalakan={nyalakanEngine}
                     onMatikan={matikanEngine}
                     onMainkan={mainkanSan}
+                    tanpaBilah
                     t={t}
                   />
 

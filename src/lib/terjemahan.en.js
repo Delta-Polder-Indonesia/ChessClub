@@ -805,7 +805,7 @@ export const EN = {
     gagalMuat:
       "Failed to load the opening data. Check your internet connection, then reload this page.",
     setBidak: "Piece Set",
-    flip: "Flip Board",
+    flip: "Flip",
     undo: "Undo",
     reset: "Reset",
     salinPgn: "Copy PGN",

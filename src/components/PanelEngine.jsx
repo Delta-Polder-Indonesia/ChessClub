@@ -50,6 +50,7 @@ export default function PanelEngine({
   onMainkan,
   t,
   kunciDeskripsi = "papan.engineDeskripsi",
+  tanpaBilah = false,
 }) {
   const tombol =
     "border border-[#b8b8b8] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40";
@@ -115,14 +116,18 @@ export default function PanelEngine({
         <p className="text-xs leading-5 text-slate-500">{t("papan.engineSelesai")}</p>
       ) : hasil ? (
         <div className="flex flex-col gap-2.5">
-          {/* Bilah evaluasi: porsi Putih vs Hitam ala Lichess. */}
-          <div
-            className="flex h-3 w-full overflow-hidden border border-[#aaa] bg-[#414141]"
-            role="img"
-            aria-label={`${t("papan.engineSkor")} ${hasil.teksSkor}`}
-          >
-            <span style={{ width: `${hasil.poinPutih * 100}%` }} className="bg-[#f4f4f4]" />
-          </div>
+          {!tanpaBilah && (
+            <>
+              {/* Bilah evaluasi: porsi Putih vs Hitam ala Lichess. */}
+              <div
+                className="flex h-3 w-full overflow-hidden border border-[#aaa] bg-[#414141]"
+                role="img"
+                aria-label={`${t("papan.engineSkor")} ${hasil.teksSkor}`}
+              >
+                <span style={{ width: `${hasil.poinPutih * 100}%` }} className="bg-[#f4f4f4]" />
+              </div>
+            </>
+          )}
 
           <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
             <span>
