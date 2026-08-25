@@ -64,12 +64,15 @@ function daftarPetak(orientasi) {
   return petak;
 }
 
-/** Pusat petak dalam satuan viewBox 100×100 sesuai orientasi papan. */
+/** Pusat petak dalam satuan viewBox 100×100 sesuai orientasi papan.
+ *  Saat terbalik, grid CSS membalik lajur ([h..a]) — sumbu-x ikut dicerminkan
+ *  agar panah SVG jatuh tepat di petak yang sama dengan gridnya. */
 function pusatPetak(petak, orientasi) {
   const kolom = FILE.indexOf(petak[0]);
   const baris = Number(petak[1]);
+  const kolomLayar = orientasi === "w" ? kolom : 7 - kolom;
   return {
-    x: (kolom + 0.5) * 12.5,
+    x: (kolomLayar + 0.5) * 12.5,
     y: (orientasi === "w" ? 8 - baris + 0.5 : baris - 0.5) * 12.5,
   };
 }
