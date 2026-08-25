@@ -509,7 +509,7 @@ export const ID = {
     paragraf1:
       "Mainkan langkah di papan bebas dan buku pembukaan akan langsung mengenali nama pembukaan beserta kode ECO-nya — mulai dari Ruy Lopez, Sicilian Najdorf, hingga Queen's Gambit.",
     paragraf2:
-      "Lengkap dengan saran langkah berikutnya dan katalog 3.810 jalur pembukaan dari data lichess (lisensi CC0).",
+      "Lengkap dengan saran langkah berikutnya dan katalog lebih dari 3.300 nama pembukaan dari data lichess (lisensi CC0).",
     buka: "Buka Opening Book",
     demoJudul: "Buku Pembukaan",
     demoTantangan: "Nama pembukaan muncul otomatis saat posisinya dikenali",
@@ -757,6 +757,8 @@ export const ID = {
     semuaGiliran: "Semua",
     hanyaPutih: "Hanya putih",
     hanyaHitam: "Hanya hitam",
+    lanjutOtomatis: "Muat teka-teki berikutnya secara otomatis setelah setiap percobaan",
+    syzygyJudul: "Tablebase Syzygy",
     syzygyDidukung: "Didukung oleh Lichess",
     engineDeskripsi:
       "Perhatian: menyalakan Stockfish menampilkan evaluasi dan langkah terbaik posisi ini — bisa membocorkan jawaban teka-teki. Paling pas untuk membedah posisi setelah Anda mencoba sendiri.",
