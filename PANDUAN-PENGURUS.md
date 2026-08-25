@@ -95,9 +95,14 @@ Isi dashboard:
 
 | Bagian | Fungsi |
 | ------ | ------ |
-| Kartu ringkasan | Jumlah anggota roster klub, larangan, turnamen, mode verifikasi |
-| Tab **Anggota & Larangan** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, tabel larangan dengan tombol **Cabut**, cek nomor HP, dan **Pindai ban fair play** |
-| Tab **Turnamen** | Buat & kelola keempat jenis turnamen |
+| Kartu ringkasan | Jumlah anggota roster klub, larangan, turnamen, riwayat masuk, pesan, dan mode verifikasi |
+| Tab **Anggota** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, cek nomor HP, dan **Pindai ban fair play** |
+| Tab **Daftar Larangan** | Tabel larangan dengan tombol **Cabut** dan cek nomor HP |
+| Tab **Riwayat Masuk** | Jejak log aktivitas login siapa saja yang masuk ke dashboard pengurus (akun Chess.com, hari, tanggal, bulan, tahun, jam, dan IP) |
+| Tab **Pesan Masuk** | Pesan yang dikirim pengunjung melalui form Hubungi Kami |
+| Tab **Turnamen** | Buat & kelola turnamen, pendaftaran, dan hasil pertandingan |
+| Tab **Juara Turnamen** | Kelola daftar pemenang dan juara turnamen |
+| Tab **Berita & Pengumuman** | Publikasi konten komunitas |
 
 Semua yang bisa dilakukan lewat terminal (bagian 6) juga bisa dilakukan di
 sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.

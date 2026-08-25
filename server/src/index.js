@@ -89,6 +89,13 @@ import {
   hapusPesan,
   ringkasanPesan,
 } from "./pesan.js";
+import {
+  catatRiwayatMasuk,
+  daftarRiwayatMasuk,
+  hapusRiwayatMasuk,
+  bersihkanRiwayatMasuk,
+  ringkasanRiwayatMasuk,
+} from "./riwayat-masuk.js";
 
 const mulaiPada = Date.now();
 const router = buatRouter();
@@ -253,6 +260,7 @@ router.get("/api/pengurus/ringkasan", async (req) => {
       turnamen: await ringkasanTurnamen(),
       konten: await ringkasanKonten(),
       pesan: await ringkasanPesan(),
+      riwayatMasuk: await ringkasanRiwayatMasuk(),
       verifikasi: {
         mode: konfigurasi.wajibVerifikasi,
         oauthAktif: oauthAktif(),
@@ -261,6 +269,48 @@ router.get("/api/pengurus/ringkasan", async (req) => {
       },
     },
   };
+});
+
+/**
+ * Catat aksi login / masuk ke dashboard pengurus.
+ * Dipanggil oleh Gerbang saat pengguna memasukkan username Chess.com & token.
+ */
+router.post("/api/pengurus/masuk", async (req, _param, konteks) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  const username = bodi.username || konteks.pengguna || "pengurus";
+  const userAgent = req.headers["user-agent"] || "";
+  const entri = await catatRiwayatMasuk({
+    username,
+    ip: konteks.ip,
+    userAgent,
+    catatan: bodi.catatan,
+  });
+  return { status: 200, isi: { ok: true, entri } };
+});
+
+/** Ambil seluruh data riwayat login pengurus. */
+router.get("/api/pengurus/riwayat-masuk", async (req) => {
+  pastikanAdmin(req);
+  return { status: 200, isi: await daftarRiwayatMasuk() };
+});
+
+/** Hapus satu entri riwayat masuk. */
+router.post("/api/pengurus/riwayat-masuk/hapus", async (req) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  if (!bodi.id) {
+    throw new GalatAplikasi(400, "ID riwayat harus disertakan.");
+  }
+  await hapusRiwayatMasuk(bodi.id);
+  return { status: 200, isi: { pesan: "Riwayat masuk dihapus." } };
+});
+
+/** Bersihkan semua riwayat login pengurus. */
+router.post("/api/pengurus/riwayat-masuk/bersihkan", async (req) => {
+  pastikanAdmin(req);
+  await bersihkanRiwayatMasuk();
+  return { status: 200, isi: { pesan: "Semua riwayat masuk dibersihkan." } };
 });
 
 /**
