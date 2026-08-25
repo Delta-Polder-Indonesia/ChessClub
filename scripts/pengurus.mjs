@@ -263,6 +263,31 @@ function tampilkan() {
   }
 }
 
+function riwayatMasuk() {
+  const RIWAYAT = path.resolve("data/riwayat-masuk.json");
+  const data = baca(RIWAYAT, []);
+  if (!data.length) return console.log("Riwayat masuk pengurus kosong.");
+  console.log(`Riwayat Masuk Pengurus (${data.length} sesi):\n`);
+  for (const r of data) {
+    const d = new Date(r.waktu);
+    const waktuTeks = !Number.isNaN(d.getTime())
+      ? new Intl.DateTimeFormat("id-ID", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          timeZone: "Asia/Jakarta",
+        }).format(d) + " WIB"
+      : r.waktu;
+    console.log(
+      `  @${(r.username || "pengurus").padEnd(20)} | ${waktuTeks} | IP: ${r.ip || "127.0.0.1"}`
+    );
+  }
+}
+
 /* ---------------------------------------------------------------- utama */
 
 const [perintah, ...arg] = process.argv.slice(2);
@@ -282,8 +307,11 @@ switch (perintah) {
   case "daftar-hitam":
     tampilkan();
     break;
+  case "riwayat":
+    riwayatMasuk();
+    break;
   default:
     console.log(
-      "Perintah: pindai | blokir <username> \"alasan\" | buka <username> | cek <hp> | daftar-hitam"
+      "Perintah: pindai | blokir <username> \"alasan\" | buka <username> | cek <hp> | daftar-hitam | riwayat"
     );
 }
