@@ -202,6 +202,7 @@ export default function PapanTekaTeki({
   kesalahan = null,
   langkahAkhir = null,
   tanda = { panah: [], petak: {} },
+  panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
   terkunci = false,
   membeku = false,
   setBidak = "merida",
@@ -629,6 +630,17 @@ export default function PapanTekaTeki({
         viewBox="0 0 100 100"
         aria-hidden="true"
       >
+        {/* Saran langkah engine — lapisan sendiri agar tidak tercampur
+            dengan panah/tanda buatan pengguna (klik tidak menghapusnya). */}
+        {panahMesin && panahMesin.to !== panahMesin.from && (
+          <polygon
+            className="arrow"
+            points={titikKePoints(titikPanah(panahMesin.from, panahMesin.to, orientasi))}
+            fill={WARNA_PANAH[panahMesin.warna] || WARNA_PANAH.biru}
+            style={{ opacity: 0.8 }}
+          />
+        )}
+
         {tanda.panah.map((p, i) => (
           <polygon
             key={`${p.from}-${p.to}-${i}`}

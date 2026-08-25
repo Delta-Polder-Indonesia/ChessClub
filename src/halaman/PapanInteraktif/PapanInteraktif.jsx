@@ -4,6 +4,8 @@ import Hero from "../../components/Hero.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import PanelEngine from "../../components/PanelEngine.jsx";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -31,6 +33,11 @@ const PILIHAN_WARNA_PAPAN = [
   ["marble-green", "papan.warnaMarmerHijau"],
   ["metal", "papan.warnaMetal"],
 ];
+
+/* ------------------------------------------------- analisis Stockfish */
+// Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
+// lihat src/lib/gunakanEngineCatur.js dan src/components/PanelEngine.jsx.
+
 
 /** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
 function fenDariLangkah(daftarSan) {
@@ -221,6 +228,19 @@ export default function PapanInteraktif() {
   const [fenTersalin, setFenTersalin] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
+
+  // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan).
+  const {
+    engineNyala,
+    statusEngine,
+    kecepatanEngine,
+    setKecepatanEngine,
+    hasilEngine,
+    permainanSelesai,
+    panahMesin,
+    nyalakanEngine,
+    matikanEngine,
+  } = gunakanEngineCatur(fen);
 
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
@@ -701,6 +721,7 @@ export default function PapanInteraktif() {
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
+                    panahMesin={panahMesin}
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
@@ -1086,6 +1107,20 @@ export default function PapanInteraktif() {
                       {t("papan.diLuarBuku")}
                     </p>
                   )}
+
+                  <PanelEngine
+                    nyala={engineNyala}
+                    status={statusEngine}
+                    hasil={hasilEngine}
+                    fen={fen}
+                    kecepatan={kecepatanEngine}
+                    setKecepatan={setKecepatanEngine}
+                    permainanSelesai={permainanSelesai}
+                    onNyalakan={nyalakanEngine}
+                    onMatikan={matikanEngine}
+                    onMainkan={mainkanSan}
+                    t={t}
+                  />
 
                   {infoPembukaan.saran.length > 0 && (
                     <div className="mt-5 border-t border-[#d8d8d8] pt-4">
