@@ -758,6 +758,8 @@ export const ID = {
     hanyaPutih: "Hanya putih",
     hanyaHitam: "Hanya hitam",
     syzygyDidukung: "Didukung oleh Lichess",
+    engineDeskripsi:
+      "Perhatian: menyalakan Stockfish menampilkan evaluasi dan langkah terbaik posisi ini — bisa membocorkan jawaban teka-teki. Paling pas untuk membedah posisi setelah Anda mencoba sendiri.",
     syzygyGagal:
       "Posisi ini tidak bisa dianalisis tablebase (maksimal 7 bidak).",
     syzygyMenganalisis: "Menganalisis posisi…",

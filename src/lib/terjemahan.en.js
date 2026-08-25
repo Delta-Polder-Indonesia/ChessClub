@@ -756,6 +756,8 @@ export const EN = {
     hanyaPutih: "White only",
     hanyaHitam: "Black only",
     syzygyDidukung: "Powered by Lichess",
+    engineDeskripsi:
+      "Heads-up: turning on Stockfish reveals the evaluation and the best move for this position — it may spoil the puzzle. Best used to dissect the position after you've tried it yourself.",
     syzygyGagal:
       "This position cannot be analyzed by the tablebase (maximum 7 pieces).",
     syzygyMenganalisis: "Analyzing position…",
