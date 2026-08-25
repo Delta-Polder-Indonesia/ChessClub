@@ -54,6 +54,13 @@ async function tiruApiPengurus(page) {
       if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
       return json({ ok: true });
     }
+    // Gerbang memverifikasi token lewat /masuk (POST), bukan /verifikasi.
+    // Tanpa tiruan ini, permintaan lolos ke cadangan global dan dijawab
+    // 200 {} sehingga token salah dianggap berhasil masuk.
+    if (path === "/api/pengurus/masuk" && request.method() === "POST") {
+      if (token !== "token-uji") return json({ pesan: "Token pengurus tidak valid." }, 401);
+      return json({ ok: true });
+    }
     if (path === "/api/pengurus/ringkasan") {
       if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
       return json({
