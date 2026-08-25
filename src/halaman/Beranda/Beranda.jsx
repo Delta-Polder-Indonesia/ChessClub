@@ -14,8 +14,9 @@ import {
   ambilPengumumanPublik,
   jenisTurnamen,
 } from "../../lib/api/index.js";
+import { useI18n } from "../../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import LencanaStatus from "../../components/LencanaStatus.jsx";
+import { TEKS_STATUS } from "../../components/LencanaStatus.jsx";
 
 function formatTanggal(nilai) {
   if (!nilai) return "—";
@@ -35,6 +36,7 @@ export default function Beranda() {
   const [jenis, setJenis] = useState({});
   const [pengumuman, setPengumuman] = useState(null);
   const [gagal, setGagal] = useState(false);
+  const { bahasa } = useI18n();
 
   useEffect(() => {
     let hidup = true;
@@ -118,7 +120,9 @@ export default function Beranda() {
                       {j.label || t.jenis}
                     </td>
                     <td className="kol-status">
-                      <LencanaStatus status={t.status} />
+                      <span className="text-xs font-semibold text-slate-900">
+                        {(TEKS_STATUS[bahasa] || TEKS_STATUS.id)[t.status] || t.status}
+                      </span>
                     </td>
                     <td className="kol-mulai">
                       {formatTanggal(t.mulai)}
