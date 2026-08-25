@@ -649,10 +649,39 @@ export default function TekaTeki() {
     setPromosi(null);
   }
 
-  /** |< — kembali ke posisi awal soal. */
+  function tutupBantuTanpaPesan() {
+    setTerpilih(null);
+    setSasaran([]);
+    setPetunjuk(null);
+    setKesalahan(null);
+    setPromosi(null);
+  }
+
+  /** |< — kembali ke posisi awal soal.
+   *  Jika puzzle sudah selesai (cekmat), pertahankan status selesai
+   *  agar tombol maju tetap bisa dipakai untuk review solusi.
+   */
   function keAwalLangkah() {
-    if (!masalah || komputer) return;
-    terapkanSoal(masalah);
+    if (!masalah || komputer || promosi) return;
+    if (selesai) {
+      // Mode review setelah cekmat: reset papan tapi jangan hapus status selesai
+      setFen(masalah.fen);
+      setSisa(masalah.moves.split(";"));
+      setJalurFen([masalah.fen]);
+      setOrientasi(masalah.first === "Black to Move" ? "b" : "w");
+      setTerpilih(null);
+      setSasaran([]);
+      setPetunjuk(null);
+      setKesalahan(null);
+      setLangkahAkhir(null);
+      setKomputer(false);
+      setTanda({ panah: [], petak: {} });
+      setSedangSeret(false);
+      setPromosi(null);
+      // pesan dibiarkan hilang, tapi selesai tetap true → sudahPecah tetap tampil
+    } else {
+      terapkanSoal(masalah);
+    }
   }
 
   /** < — mundur satu langkah. */
@@ -665,7 +694,13 @@ export default function TekaTeki() {
     setSisa(langkahPenuh.slice(baru));
     setJalurFen((l) => l.slice(0, baru + 1));
     setKomputer(false);
-    tutupBantu();
+    // Saat review setelah cekmat, jangan hapus pesan selesai secara agresif;
+    // cukup bersihkan bantuan visual agar navigasi tetap terasa review.
+    if (selesai) {
+      tutupBantuTanpaPesan();
+    } else {
+      tutupBantu();
+    }
     if (baru >= 1) {
       const p = parseLangkah(langkahPenuh[baru - 1]);
       setLangkahAkhir({ from: p.from, to: p.to });
@@ -674,9 +709,14 @@ export default function TekaTeki() {
     }
   }
 
-  /** > — maju satu langkah mengikuti jalur solusi. */
+  /** > — maju satu langkah mengikuti jalur solusi.
+   *  Tombol ini dimatikan sebelum cekmat agar user tidak bisa
+   *  melihat solusi dengan mudah. Hanya aktif setelah selesai.
+   */
   function majuLangkah() {
     if (!langkahPenuh.length || komputer || promosi) return;
+    // Cegah maju sebelum cekmat — sesuai permintaan: tombol maju mati sebelum cekmate
+    if (!selesai) return;
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
     if (posisi >= langkahPenuh.length) return;
     const d = parseLangkah(langkahPenuh[posisi]);
@@ -687,15 +727,18 @@ export default function TekaTeki() {
       setSisa(langkahPenuh.slice(posisi + 1));
       setJalurFen((l) => [...l.slice(0, posisi), fenBaru]);
       setLangkahAkhir({ from: d.from, to: d.to });
-      setSelesai(false);
+      // Pertahankan status selesai = true agar tombol maju tetap aktif untuk review
       setKomputer(false);
-      tutupBantu();
+      tutupBantuTanpaPesan();
     } catch {}
   }
 
-  /** >| — maju sampai posisi akhir solusi. */
+  /** >| — maju sampai posisi akhir solusi.
+   *  Sama seperti maju, hanya aktif setelah cekmat.
+   */
   function keAkhirLangkah() {
     if (!langkahPenuh.length || komputer || promosi) return;
+    if (!selesai) return;
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
     if (posisi >= langkahPenuh.length) return;
     let game;
@@ -726,9 +769,9 @@ export default function TekaTeki() {
     setSisa([]);
     setJalurFen((l) => [...l.slice(0, posisi), ...fens]);
     setLangkahAkhir(akhir);
-    setSelesai(false);
+    // Pertahankan selesai
     setKomputer(false);
-    tutupBantu();
+    tutupBantuTanpaPesan();
   }
 
   function catatTerpecahkan(id) {
@@ -1015,7 +1058,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={keAwalLangkah}
-                        disabled={komputer || posisiLangkah <= 0}
+                        disabled={komputer || !!promosi || posisiLangkah <= 0}
                         title={t("papan.keAwal")}
                         aria-label={t("papan.keAwal")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
@@ -1025,7 +1068,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={mundurLangkah}
-                        disabled={komputer || posisiLangkah <= 0}
+                        disabled={komputer || !!promosi || posisiLangkah <= 0}
                         title={t("papan.mundur")}
                         aria-label={t("papan.mundur")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
@@ -1035,7 +1078,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={majuLangkah}
-                        disabled={komputer || posisiLangkah >= langkahPenuh.length}
+                        disabled={komputer || !!promosi || !selesai || posisiLangkah >= langkahPenuh.length}
                         title={t("papan.maju")}
                         aria-label={t("papan.maju")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
@@ -1045,7 +1088,7 @@ export default function TekaTeki() {
                       <button
                         type="button"
                         onClick={keAkhirLangkah}
-                        disabled={komputer || posisiLangkah >= langkahPenuh.length}
+                        disabled={komputer || !!promosi || !selesai || posisiLangkah >= langkahPenuh.length}
                         title={t("papan.keAkhir")}
                         aria-label={t("papan.keAkhir")}
                         className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
