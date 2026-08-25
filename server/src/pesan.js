@@ -118,6 +118,17 @@ export async function hapusPesan(id) {
 }
 
 /**
+ * Hapus beberapa pesan sekaligus berdasarkan array id.
+ */
+export async function hapusBanyak(ids) {
+  const set = new Set(ids);
+  await repoPesan.ubah((pesan) => ({
+    data: pesan.filter((p) => !set.has(p.id)),
+    hasil: null,
+  }));
+}
+
+/**
  * Ambil ringkasan pesan (jumlah belum dibaca).
  */
 export async function ringkasanPesan() {

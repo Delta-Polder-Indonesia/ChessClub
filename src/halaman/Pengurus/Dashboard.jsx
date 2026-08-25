@@ -13,7 +13,7 @@ import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
 import PanelAnggota from "./Anggota.jsx";
 import PanelLarangan from "./Larangan.jsx";
 import PanelPesan from "./Pesan.jsx";
-import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
+import Pengaturan from "./Pengaturan.jsx";
 import { Tombol, Kartu } from "./ui.jsx";
 
 /* ========================================================
@@ -40,11 +40,6 @@ const MENU_SIDEBAR = [
     kunci: "pesan",
     label: "Pesan Masuk",
     icon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
-  },
-  {
-    kunci: "riwayat-masuk",
-    label: "Riwayat Masuk",
-    icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
   },
   {
     kunci: "turnamen",
@@ -364,6 +359,7 @@ function DropdownProfil({
   onTutup,
   onMuatUlang,
   onKeluar,
+  onBukaPengaturan,
   memuat,
 }) {
   return (
@@ -409,6 +405,14 @@ function DropdownProfil({
           onMuatUlang();
         }}
         disabled={memuat}
+      />
+      <ItemDropdown
+        icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+        label="Pengaturan"
+        onClick={() => {
+          onTutup();
+          onBukaPengaturan();
+        }}
       />
       <ItemDropdown
         icon="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
@@ -545,16 +549,6 @@ function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }) {
           warna={belumBaca ? "merah" : "slate"}
         />
         <Kartu
-          label="Riwayat Masuk"
-          nilai={ringkas.riwayatMasuk?.total ?? 0}
-          catatan={
-            ringkas.riwayatMasuk?.terakhir
-              ? `@${ringkas.riwayatMasuk.terakhir.username}`
-              : "Belum ada sesi"
-          }
-          warna="biru"
-        />
-        <Kartu
           label="Turnamen"
           nilai={ringkas.turnamen?.total ?? 0}
           catatan={`${ringkas.turnamen?.berlangsung ?? 0} berlangsung`}
@@ -592,14 +586,6 @@ function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }) {
               teks: `${belumBaca} belum dibaca`,
               ikon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
               sorot: belumBaca > 0,
-            },
-            {
-              kunci: "riwayat-masuk",
-              judul: "Riwayat masuk",
-              teks: ringkas.riwayatMasuk?.terakhir?.username
-                ? `Login: @${ringkas.riwayatMasuk.terakhir.username}`
-                : `${ringkas.riwayatMasuk?.total ?? 0} sesi tercatat`,
-              ikon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
             },
             {
               kunci: "turnamen",
@@ -776,117 +762,6 @@ function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }) {
           </div>
         )}
       </section>
-
-      {/* Daftar riwayat masuk pengurus terbaru */}
-      <section>
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-sm font-bold text-slate-900">
-            Aktivitas masuk pengurus terbaru
-          </h2>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
-            <span className="inline-flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              {ringkas.riwayatMasuk?.total ?? 0} total sesi tercatat
-            </span>
-            <button
-              type="button"
-              onClick={() => onBuka("riwayat-masuk")}
-              className="font-semibold text-primary hover:underline"
-            >
-              Lihat seluruh riwayat masuk →
-            </button>
-          </div>
-        </div>
-
-        {(ringkas.riwayatMasuk?.terbaru || []).length === 0 ? (
-          <div className="rounded-lg border border-dashed border-slate-200 bg-white p-6 text-center">
-            <p className="text-sm text-slate-500">
-              Belum ada riwayat masuk pengurus yang tercatat. Sesi login akan
-              otomatis muncul setelah pengurus masuk dari gerbang login.
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
-            <table className="w-full min-w-[640px] text-sm">
-              <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
-                <tr>
-                  <th className="px-3 py-2 font-semibold">#</th>
-                  <th className="px-3 py-2 font-semibold">Akun Chess.com</th>
-                  <th className="px-3 py-2 font-semibold">Hari & Tanggal</th>
-                  <th className="px-3 py-2 font-semibold">Jam / Waktu</th>
-                  <th className="px-3 py-2 font-semibold">Alamat IP</th>
-                  <th className="px-3 py-2 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(ringkas.riwayatMasuk?.terbaru || []).map((r, i) => {
-                  const d = new Date(r.waktu);
-                  const valid = !Number.isNaN(d.getTime());
-                  const hari = valid
-                    ? new Intl.DateTimeFormat("id-ID", {
-                        weekday: "long",
-                        timeZone: "Asia/Jakarta",
-                      }).format(d)
-                    : "—";
-                  const tgl = valid
-                    ? new Intl.DateTimeFormat("id-ID", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                        timeZone: "Asia/Jakarta",
-                      }).format(d)
-                    : "—";
-                  const jam = valid
-                    ? new Intl.DateTimeFormat("id-ID", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        second: "2-digit",
-                        hour12: false,
-                        timeZone: "Asia/Jakarta",
-                      }).format(d) + " WIB"
-                    : "—";
-                  return (
-                    <tr key={r.id || i} className="border-t border-slate-100">
-                      <td className="px-3 py-2 text-slate-500 font-medium">
-                        {i + 1}
-                      </td>
-                      <td className="px-3 py-2 font-semibold text-slate-900">
-                        <a
-                          href={`https://www.chess.com/member/${encodeURIComponent(
-                            r.username
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          {r.username}
-                        </a>
-                      </td>
-                      <td className="px-3 py-2 text-slate-700">
-                        <span className="font-medium">{hari}</span>, {tgl}
-                      </td>
-                      <td className="px-3 py-2 text-xs font-mono text-slate-600">
-                        {jam}
-                      </td>
-                      <td className="px-3 py-2 text-xs text-slate-500">
-                        <code className="rounded bg-slate-100 px-1 py-0.5">
-                          {r.ip || "127.0.0.1"}
-                        </code>
-                      </td>
-                      <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                          Masuk
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
@@ -907,6 +782,7 @@ export default function Dashboard() {
   const [memuat, setMemuat] = useState(true);
   const [kabar, setKabar] = useState(null);
   const [menuProfile, setMenuProfile] = useState(false);
+  const [tabPengaturan, setTabPengaturan] = useState(false);
   const [sidebarTerbuka, setSidebarTerbuka] = useState(true);
   const [judulRincian, setJudulRincian] = useState(null);
   const [menuNotif, setMenuNotif] = useState(false);
@@ -1151,6 +1027,14 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* ── Halaman Pengaturan (Full Layar) ────────────────── */}
+      {tabPengaturan ? (
+        <Pengaturan
+          onKembali={() => setTabPengaturan(false)}
+          beriTahu={beriTahu}
+        />
+      ) : (
+      <>
       {/* ── Header ─────────────────────────────────────────── */}
       <header className="bg-white border-b border-slate-200 px-6 py-0">
         <div className="flex items-center justify-between">
@@ -1257,6 +1141,7 @@ export default function Dashboard() {
                 onTutup={() => setMenuProfile(false)}
                 onMuatUlang={muatUlang}
                 onKeluar={keluar}
+                onBukaPengaturan={() => setTabPengaturan(true)}
                 memuat={memuat}
               />
             </div>
@@ -1324,8 +1209,6 @@ export default function Dashboard() {
               pesanTerpilihId={bukaPesanId}
               onPesanTerbuka={() => setBukaPesanId(null)}
             />
-          ) : tab === "riwayat-masuk" ? (
-            <PanelRiwayatMasuk beriTahu={beriTahu} />
           ) : tab === "berita" ? (
             <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />
           ) : tab === "pengumuman" ? (
@@ -1345,6 +1228,9 @@ export default function Dashboard() {
               tab barunya harus dipetakan eksplisit di sini. */}
         </main>
       </div>
+
+      </>
+      )}
     </div>
   );
 }

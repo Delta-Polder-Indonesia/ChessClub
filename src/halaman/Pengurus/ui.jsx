@@ -21,7 +21,7 @@ export function Tombol({ anak, onClick, jenis = "biasa", kecil, className, ...si
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-full border border-solid font-semibold transition-colors ${gaya} ${
+      className={`rounded-full border border-solid font-semibold ${gaya} ${
         kecil ? "px-3 py-1 text-xs" : "px-4 py-2 text-xs"
       } ${className || ""}`}
       {...sisa}

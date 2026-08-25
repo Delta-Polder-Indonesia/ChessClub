@@ -87,6 +87,7 @@ import {
   tandaiDibaca,
   tandaiSemuaDibaca,
   hapusPesan,
+  hapusBanyak,
   ringkasanPesan,
 } from "./pesan.js";
 import {
@@ -592,6 +593,17 @@ router.post("/api/pengurus/pesan/:id/baca", async (req, param) => {
   pastikanAdmin(req);
   await tandaiDibaca(param.id);
   return { status: 200, isi: { pesan: "Pesan ditandai sudah dibaca." } };
+});
+
+/** Hapus beberapa pesan sekaligus. */
+router.post("/api/pengurus/pesan/hapus-banyak", async (req) => {
+  pastikanAdmin(req);
+  const { ids } = req.bodi || {};
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return { status: 400, isi: { pesan: "Tidak ada pesan dipilih." } };
+  }
+  await hapusBanyak(ids);
+  return { status: 200, isi: { pesan: `${ids.length} pesan dihapus.` } };
 });
 
 /** Hapus pesan. */
