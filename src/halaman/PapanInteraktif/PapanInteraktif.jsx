@@ -4,6 +4,7 @@ import Hero from "../../components/Hero.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import { EngineCatur } from "../../lib/engineCatur.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -31,6 +32,97 @@ const PILIHAN_WARNA_PAPAN = [
   ["marble-green", "papan.warnaMarmerHijau"],
   ["metal", "papan.warnaMetal"],
 ];
+
+/* ------------------------------------------------- analisis Stockfish */
+
+/** Pilihan durasi analisis (milidetik) + kunci terjemahannya. */
+const PILIHAN_KECEPATAN = [
+  [300, "papan.engineCepat"],
+  [800, "papan.engineSeimbang"],
+  [2000, "papan.engineDalam"],
+];
+
+/**
+ * Probabilitas menang Putih dari skor centipawn — kurva logistik ala Lichess.
+ * +100 cp ≈ 64%, +300 cp ≈ 85%, −50 cp ≈ 43%, dst.
+ */
+function probMenangPutih(cp) {
+  const persen = 50 + 50 * (2 / (1 + Math.exp(-0.00368208 * cp)) - 1);
+  return Math.min(100, Math.max(0, persen)) / 100;
+}
+
+/** Deret langkah UCI ("e2e4", "e7e8q", …) → deret SAN pada posisi `fen`. */
+function sanDariUci(fen, daftarUci) {
+  const game = new Chess(fen);
+  const san = [];
+  for (const u of daftarUci) {
+    let pindah = null;
+    try {
+      pindah = game.move({
+        from: u.slice(0, 2),
+        to: u.slice(2, 4),
+        promotion: u.length > 4 ? u[4] : undefined,
+      });
+    } catch {
+      pindah = null;
+    }
+    if (!pindah) break;
+    san.push(pindah.san);
+  }
+  return san;
+}
+
+/**
+ * Deret SAN → teks bernomor yang benar walau barisan dimulai dari giliran
+ * Hitam, mis. "1… e5 2. Nf3 Nc6" (susunPgn biasa menganggap selalu Putih).
+ */
+function barisanSan(fen, daftarSan) {
+  const game = new Chess(fen);
+  let nomor = game.moveNumber();
+  const putihJalan = game.turn() === "w";
+  const bagian = [];
+  daftarSan.forEach((san, i) => {
+    if (i === 0 && !putihJalan) {
+      bagian.push(`${nomor}… ${san}`);
+    } else if ((i + (putihJalan ? 0 : 1)) % 2 === 0) {
+      bagian.push(`${nomor}. ${san}`);
+    } else {
+      bagian.push(san);
+    }
+    if ((i + (putihJalan ? 1 : 0)) % 2 === 1) nomor += 1;
+  });
+  return bagian.join(" ");
+}
+
+/**
+ * Ubah keluaran "info" UCI menjadi bentuk siap tampil. Skor UCI selalu
+ * relatif terhadap pihak yang melangkah — di sini dinormalisasi menjadi
+ * sudut pandang Putih agar konsisten dengan bilah evaluasi.
+ */
+function susunHasilEngine(info, fen, giliran) {
+  const arah = giliran === "w" ? 1 : -1;
+  let teksSkor;
+  let cpPutih;
+  let matePutih = null;
+  if (info.mate !== null) {
+    matePutih = info.mate * arah;
+    cpPutih = matePutih > 0 ? 10000 : -10000;
+    teksSkor = `${matePutih > 0 ? "+" : "-"}M${Math.abs(matePutih)}`;
+  } else {
+    cpPutih = Math.round(info.cp * arah);
+    teksSkor = `${cpPutih >= 0 ? "+" : "-"}${(Math.abs(cpPutih) / 100).toFixed(2)}`;
+  }
+  return {
+    teksSkor,
+    cpPutih,
+    matePutih,
+    poinPutih: probMenangPutih(cpPutih),
+    pvSan: sanDariUci(fen, info.pv),
+    pvUci: info.pv,
+    kedalaman: info.kedalaman,
+  };
+}
+
 
 /** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
 function fenDariLangkah(daftarSan) {
@@ -222,9 +314,17 @@ export default function PapanInteraktif() {
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
 
+  // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan).
+  const [engineNyala, setEngineNyala] = useState(false);
+  const [statusEngine, setStatusEngine] = useState("mati"); // mati | memuat | siap | gagal
+  const [kecepatanEngine, setKecepatanEngine] = useState(800); // movetime (ms)
+  const [hasilEngine, setHasilEngine] = useState(null);
+
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
+  const engineRef = useRef(null); // instance EngineCatur (dibuat saat dipakai)
+  const fenRef = useRef(fen); // penjaga agar balasan engine usang diabaikan
 
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
@@ -265,6 +365,103 @@ export default function PapanInteraktif() {
     },
     []
   );
+
+  /* ---------------------------------------------- analisis Stockfish */
+  // Satu-satunya penggerak: posisi (fen), tombol nyala, dan durasi analisis.
+  // Pemuatan worker (±7 MB, sekali saja) ditangani EngineCatur.mulai().
+  useEffect(() => {
+    fenRef.current = fen;
+    if (!engineNyala) return undefined;
+
+    // Posisi akhir (skakmat/remis) tidak perlu dianalisis.
+    let selesai = false;
+    try {
+      selesai = new Chess(fen).isGameOver();
+    } catch {
+      selesai = false;
+    }
+    if (selesai) {
+      engineRef.current?.setop();
+      setHasilEngine(null);
+      return undefined;
+    }
+
+    const giliran = fen.split(" ")[1] === "b" ? "b" : "w";
+    const engine = (engineRef.current ||= new EngineCatur());
+
+    const minta = () => {
+      // Posisi berganti → hapus panah lama agar tidak menyesatkan sebelum
+      // balasan pertama engine tiba.
+      setHasilEngine(null);
+      engine.analisis(fen, {
+        movetime: kecepatanEngine,
+        padaInfo: (info) => {
+          if (fenRef.current !== fen) return;
+          setHasilEngine(susunHasilEngine(info, fen, giliran));
+        },
+        padaSelesai: (uci) => {
+          if (fenRef.current !== fen) return;
+          setHasilEngine((lama) => (lama ? { ...lama, bestUci: uci } : lama));
+        },
+      });
+    };
+
+    let hidup = true;
+    engine
+      .mulai()
+      .then(() => {
+        if (!hidup) return;
+        setStatusEngine("siap");
+        minta();
+      })
+      .catch(() => {
+        if (hidup) setStatusEngine("gagal");
+      });
+
+    return () => {
+      hidup = false;
+      engine.setop();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [engineNyala, fen, kecepatanEngine]);
+
+  // Worker dibuang sepenuhnya saat halaman ditutup.
+  useEffect(
+    () => () => {
+      engineRef.current?.tamat();
+      engineRef.current = null;
+    },
+    []
+  );
+
+  /** Apakah posisi saat ini sudah selesai (untuk pesan di panel engine). */
+  const permainanSelesai = useMemo(() => {
+    try {
+      return new Chess(fen).isGameOver();
+    } catch {
+      return false;
+    }
+  }, [fen]);
+
+  /** Panah saran engine (biru) — terpisah dari tanda buatan pengguna. */
+  const panahMesin = useMemo(() => {
+    if (!engineNyala || !hasilEngine) return null;
+    const u = hasilEngine.bestUci || hasilEngine.pvUci?.[0];
+    if (!u || u.length < 4) return null;
+    return { from: u.slice(0, 2), to: u.slice(2, 4), warna: "biru" };
+  }, [engineNyala, hasilEngine]);
+
+  function nyalakanEngine() {
+    setEngineNyala(true);
+    setStatusEngine((s) => (s === "siap" ? s : "memuat"));
+  }
+
+  function matikanEngine() {
+    setEngineNyala(false);
+    setStatusEngine("mati");
+    setHasilEngine(null);
+    engineRef.current?.setop();
+  }
 
   /* ------------------------------------------------ pembukaan saat ini */
   const infoPembukaan = useMemo(() => {
@@ -701,6 +898,7 @@ export default function PapanInteraktif() {
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
+                    panahMesin={panahMesin}
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
@@ -1087,6 +1285,20 @@ export default function PapanInteraktif() {
                     </p>
                   )}
 
+                  <PanelEngine
+                    nyala={engineNyala}
+                    status={statusEngine}
+                    hasil={hasilEngine}
+                    fen={fen}
+                    kecepatan={kecepatanEngine}
+                    setKecepatan={setKecepatanEngine}
+                    permainanSelesai={permainanSelesai}
+                    onNyalakan={nyalakanEngine}
+                    onMatikan={matikanEngine}
+                    onMainkan={mainkanSan}
+                    t={t}
+                  />
+
                   {infoPembukaan.saran.length > 0 && (
                     <div className="mt-5 border-t border-[#d8d8d8] pt-4">
                       <div className="mb-2 flex items-center justify-between">
@@ -1161,6 +1373,158 @@ function HasilBar({ stat, bahasa }) {
     </div>
     <div className="mt-1 whitespace-nowrap text-[10px] text-[#555]">{formatPersen(putih, bahasa)}% / {formatPersen(seri, bahasa)}% / {formatPersen(hitam, bahasa)}%</div>
   </>;
+}
+
+/**
+ * Panel "Analisis Engine" — Stockfish berjalan di peramban pengguna.
+ * Dimatikan secara bawaan; worker (±7 MB) baru diunduh saat pertama
+ * dinyalakan supaya kunjungan biasa tidak menanggung bebannya.
+ */
+function PanelEngine({
+  nyala,
+  status,
+  hasil,
+  fen,
+  kecepatan,
+  setKecepatan,
+  permainanSelesai,
+  onNyalakan,
+  onMatikan,
+  onMainkan,
+  t,
+}) {
+  const tombol =
+    "border border-[#b8b8b8] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40";
+
+  return (
+    <div className="mt-5 border-t border-[#d8d8d8] pt-4">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm font-bold text-[#333]">
+          {t("papan.engine")} <span className="ml-1 font-normal text-[#999]">Stockfish 18</span>
+        </p>
+        <div className="flex items-center gap-1.5">
+          {nyala && (
+            <select
+              value={kecepatan}
+              onChange={(e) => setKecepatan(Number(e.target.value))}
+              aria-label={t("papan.engineKedalaman")}
+              title={t("papan.engineKedalaman")}
+              className="border border-[#b8b8b8] bg-white px-1.5 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]"
+            >
+              {PILIHAN_KECEPATAN.map(([ms, kunci]) => (
+                <option key={ms} value={ms}>
+                  {t(kunci)}
+                </option>
+              ))}
+            </select>
+          )}
+          <button
+            type="button"
+            onClick={nyala ? onMatikan : onNyalakan}
+            className={`${tombol} ${nyala ? "bg-[#f0f0f0]" : "bg-[#3977b9] text-white hover:bg-[#2d639c]"}`}
+          >
+            {nyala ? t("papan.engineMatikan") : t("papan.engineNyalakan")}
+          </button>
+        </div>
+      </div>
+
+      {!nyala ? (
+        <p className="text-xs leading-5 text-[#666]">{t("papan.engineDeskripsi")}</p>
+      ) : status === "memuat" ? (
+        <p className="flex items-center gap-2 text-xs leading-5 text-[#666]">
+          <span
+            aria-hidden="true"
+            className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#3977b9] border-t-transparent"
+          />
+          {t("papan.engineMemuat")}
+        </p>
+      ) : status === "gagal" ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs leading-5 text-red-700">{t("papan.engineGagal")}</p>
+          <button
+            type="button"
+            onClick={() => {
+              onMatikan();
+              onNyalakan();
+            }}
+            className={`${tombol} bg-[#f7f7f7]`}
+          >
+            {t("papan.engineCobaLagi")}
+          </button>
+        </div>
+      ) : permainanSelesai ? (
+        <p className="text-xs leading-5 text-[#666]">{t("papan.engineSelesai")}</p>
+      ) : hasil ? (
+        <div className="flex flex-col gap-2.5">
+          {/* Bilah evaluasi: porsi Putih vs Hitam ala Lichess. */}
+          <div
+            className="flex h-3 w-full overflow-hidden border border-[#aaa] bg-[#414141]"
+            role="img"
+            aria-label={`${t("papan.engineSkor")} ${hasil.teksSkor}`}
+          >
+            <span style={{ width: `${hasil.poinPutih * 100}%` }} className="bg-[#f4f4f4]" />
+          </div>
+
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
+            <span>
+              {t("papan.engineSkor")}{" "}
+              <span
+                className={
+                  hasil.cpPutih >= 0
+                    ? "font-bold text-slate-900"
+                    : "font-bold text-slate-500"
+                }
+              >
+                {hasil.teksSkor}
+              </span>
+            </span>
+            <span>
+              {t("papan.engineKedalamanN", { n: hasil.kedalaman })}
+              {hasil.matePutih !== null && (
+                <span className="ml-1 font-semibold text-slate-700">
+                  ({t("papan.engineMate")})
+                </span>
+              )}
+            </span>
+          </div>
+
+          {hasil.pvSan.length > 0 && (
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                {t("papan.engineBarisan")}
+              </p>
+              <p className="mt-0.5 text-xs leading-5 text-[#333]">
+                {barisanSan(fen, hasil.pvSan)}
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2">
+            {hasil.pvSan.length > 0 && (
+              <button
+                type="button"
+                onClick={() => onMainkan(hasil.pvSan[0])}
+                className={`${tombol} bg-[#f7f7f7]`}
+              >
+                {t("papan.engineMainkan")} ({hasil.pvSan[0]})
+              </button>
+            )}
+            <span className="text-[10px] leading-4 text-[#888]">
+              {t("papan.enginePanah")}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="flex items-center gap-2 text-xs leading-5 text-[#666]">
+          <span
+            aria-hidden="true"
+            className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#3977b9] border-t-transparent"
+          />
+          {t("papan.engineMenganalisis")}
+        </p>
+      )}
+    </div>
+  );
 }
 
 
