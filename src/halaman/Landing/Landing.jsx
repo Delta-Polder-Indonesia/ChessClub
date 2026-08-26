@@ -11,7 +11,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
-import { ambilBeritaPublik, ambilPengumumanPublik } from "../../lib/api/index.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 
 function formatTanggal(nilai, bahasa) {
