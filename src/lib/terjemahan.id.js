@@ -894,5 +894,53 @@ export const ID = {
     p2: "beranda",
     p3: ".",
   },
+  landing: {
+    heroEyebrow: "Komunitas Catur Indonesia",
+    heroJudul: "Wadah Bermain, Belajar, dan Bertumbuh Bagi Pecatur Indonesia",
+    heroDeskripsi:
+      "Menghimpun pecatur dari berbagai daerah melalui turnamen rutin, kelas pembinaan, dan ekosistem catur digital sejak 2015.",
+    heroCtaUtama: "Daftar Jadi Anggota",
+    heroCtaSekunder: "Lihat Jadwal Turnamen",
+    aksesJudul: "Akses Cepat",
+    aksesTentang: "Tentang Kami",
+    aksesTentangDesk: "Sejarah, visi misi, dan struktur organisasi.",
+    aksesProgram: "Program Kami",
+    aksesProgramDesk: "Kelas, coaching clinic, dan sekolah catur.",
+    aksesTurnamen: "Turnamen",
+    aksesTurnamenDesk: "Jadwal bulanan, liga musiman, dan liga antar komunitas.",
+    aksesMedia: "Media & Informasi",
+    aksesMediaDesk: "Berita komunitas, pengumuman, dan galeri kegiatan.",
+    sorotanJudul: "Sorotan Kegiatan",
+    sorotanDeskripsi:
+      "Rangkaian kegiatan yang menopang pembinaan dan prestasi catur komunitas.",
+    sorotan1Judul: "Turnamen Rutin Setiap Bulan",
+    sorotan1Isi:
+      "Turnamen Bulanan, Liga Musiman, dan Liga Antar Komunitas menjaga jam terbang bertanding anggota tetap tinggi sepanjang tahun.",
+    sorotan2Judul: "Pembinaan Berjenjang",
+    sorotan2Isi:
+      "Kelas dasar, coaching clinic bersama pelatih tamu, dan sekolah catur untuk pelajar membangun fondasi taktik dan strategi.",
+    sorotan3Judul: "Media & Dokumentasi Terbuka",
+    sorotan3Isi:
+      "Berita, pengumuman, dan galeri kegiatan dipublikasikan berkala agar anggota dan masyarakat mengikuti perkembangan komunitas.",
+    beritaJudul: "Berita & Pengumuman Terkini",
+    beritaDeskripsi: "Kabar terbaru seputar kegiatan dan keputusan komunitas.",
+    beritaLihatSemua: "Lihat semua berita",
+    pengumumanLihatSemua: "Lihat semua pengumuman",
+    beritaKosong: "Belum ada berita yang dipublikasikan.",
+    pengumumanKosong: "Belum ada pengumuman yang dipublikasikan.",
+    statistikJudul: "Komunitas Dalam Angka",
+    statistik1Angka: "10+",
+    statistik1Label: "Tahun Berkiprah",
+    statistik2Angka: "5",
+    statistik2Label: "Divisi Fungsional",
+    statistik3Angka: "3x",
+    statistik3Label: "Musim Liga per Tahun",
+    statistik4Angka: "2015",
+    statistik4Label: "Tahun Berdiri",
+    ajakanJudul: "Siap Bergabung dengan Komunitas Catur Indonesia?",
+    ajakanDeskripsi:
+      "Lengkapi data diri Anda dan mulai ikuti turnamen, kelas, serta kegiatan komunitas.",
+    ajakanTombol: "Daftar Sekarang",
+  },
 };
 
