@@ -71,15 +71,19 @@ function jalurNormal(path) {
   return p;
 }
 
-/** Unduh chunk untuk satu jalur rute (aman dipanggil berulang). */
+/** Unduh chunk untuk satu jalur rute (aman dipanggil berulang).
+ *  Mengembalikan promise unduhan supaya pemanggil bisa mengantrekan
+ *  prefetch berikutnya SETELAH yang ini selesai (tidak berebut bandwidth). */
 export function prefetchRute(path) {
   const jalur = jalurNormal(path);
-  if (!jalur) return;
+  if (!jalur) return null;
   const muat = PEMUAT_RUTE.get(jalur);
-  if (!muat || sudah.has(jalur)) return;
+  if (!muat || sudah.has(jalur)) return null;
   sudah.add(jalur);
   // Gagal (mis. sedang offline) tidak fatal — biarkan bisa dicoba lagi.
-  muat().catch(() => sudah.delete(jalur));
+  const janji = muat();
+  janji.catch(() => sudah.delete(jalur));
+  return janji;
 }
 
 let berjalan = false;

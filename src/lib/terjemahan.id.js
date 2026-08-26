@@ -15,6 +15,7 @@ export const ID = {
     alamat: "Address",
     surel: "Email",
     pilihBahasa: "Pilih bahasa",
+    memuat: "Memuat…",
   },
   nav: {
     tentangKami: "Tentang Kami",

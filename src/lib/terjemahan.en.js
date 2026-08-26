@@ -12,6 +12,7 @@ export const EN = {
     alamat: "Address",
     surel: "Email",
     pilihBahasa: "Choose language",
+    memuat: "Loading…",
   },
   nav: {
     tentangKami: "About Us",
