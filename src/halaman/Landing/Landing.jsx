@@ -1,11 +1,12 @@
 /**
  * Landing page (Beranda utama).
  *
- * Struktur halaman terinspirasi pola umum situs korporat — hero besar,
- * akses cepat, sorotan kegiatan, berita terkini, statistik, dan ajakan
- * bergabung — tetapi seluruh markup, komponen, dan konten di berkas ini
- * ditulis dari nol khusus untuk Komunitas Catur Indonesia. Tidak ada
- * kode maupun teks yang disalin dari situs pihak lain.
+ * Struktur halaman terinspirasi pola umum situs korporat — hero carousel
+ * tonggak sejarah, sorotan kegiatan, sekilas komunitas, keberlanjutan,
+ * karusel kartu program + e-book, dan ajakan bergabung — tetapi seluruh
+ * markup, komponen, dan konten di berkas ini ditulis dari nol khusus
+ * untuk Komunitas Catur Indonesia. Tidak ada kode maupun teks yang
+ * disalin dari situs pihak lain.
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -13,61 +14,19 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 
-function formatTanggal(nilai, bahasa) {
-  if (!nilai) return "";
-  const d = new Date(`${nilai}T00:00:00Z`);
-  if (Number.isNaN(d.getTime())) return nilai;
-  return new Intl.DateTimeFormat(bahasa === "en" ? "en-US" : "id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  }).format(d);
-}
-
 const SLIDE_DURATION = 7000;
 
-/** Hero carousel — mirip Tonggak Bersejarah: slide full-width gambar + overlay gelap + teks putih + progress bar. */
+/** Hero carousel — slide full-width gambar + overlay gelap + navigasi garis progress. */
 function LandingHero({ t }) {
   const [index, setIndex] = useState(0);
 
   const SLIDES = [
-    {
-      img: gambar("/images/tonggak-2015.jpg"),
-      label: "2015 - 2016",
-      title: t("tonggak.t1"),
-      paragraphs: [t("tonggak.p1a"), t("tonggak.p1b")],
-    },
-    {
-      img: gambar("/images/tonggak-2016.jpg"),
-      label: "2016 - 2017",
-      title: t("tonggak.t2"),
-      paragraphs: [t("tonggak.p2a"), t("tonggak.p2b")],
-    },
-    {
-      img: gambar("/images/tonggak-2018.jpg"),
-      label: "2018 - 2019",
-      title: t("tonggak.t3"),
-      paragraphs: [t("tonggak.p3a"), t("tonggak.p3b")],
-    },
-    {
-      img: gambar("/images/tonggak-2020.jpg"),
-      label: "2020 - 2021",
-      title: t("tonggak.t4"),
-      paragraphs: [t("tonggak.p4a"), t("tonggak.p4b")],
-    },
-    {
-      img: gambar("/images/tonggak-2022.jpg"),
-      label: "2022 - 2023",
-      title: t("tonggak.t5"),
-      paragraphs: [t("tonggak.p5a"), t("tonggak.p5b")],
-    },
-    {
-      img: gambar("/images/tonggak-2024.jpg"),
-      label: "2024 - 2025",
-      title: t("tonggak.t6"),
-      paragraphs: [t("tonggak.p6a"), t("tonggak.p6b")],
-    },
+    { img: gambar("/images/tonggak-2015.jpg"), label: "2015 - 2016" },
+    { img: gambar("/images/tonggak-2016.jpg"), label: "2016 - 2017" },
+    { img: gambar("/images/tonggak-2018.jpg"), label: "2018 - 2019" },
+    { img: gambar("/images/tonggak-2020.jpg"), label: "2020 - 2021" },
+    { img: gambar("/images/tonggak-2022.jpg"), label: "2022 - 2023" },
+    { img: gambar("/images/tonggak-2024.jpg"), label: "2024 - 2025" },
   ];
 
   useEffect(() => {
@@ -77,8 +36,18 @@ function LandingHero({ t }) {
     return () => window.clearTimeout(timer);
   }, [index, SLIDES.length]);
 
+  // Pra-unduh gambar slide BERIKUTNYA. Tanpa ini, peralihan slide pertama
+  // kali sempat memperlihatkan latar gelap kosong karena gambar slide
+  // baru baru mulai dimuat tepat saat crossfade berlangsung.
+  useEffect(() => {
+    const berikut = SLIDES[(index + 1) % SLIDES.length];
+    const pra = new window.Image();
+    pra.decoding = "async";
+    pra.src = berikut.img;
+  }, [index]);
+
   return (
-    <section className="w-full relative bg-transparent pb-20 md:pb-20 xl:pb-20 overflow-hidden">
+    <section className="w-full relative bg-transparent pb-20 overflow-hidden">
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
@@ -89,7 +58,7 @@ function LandingHero({ t }) {
             style={{ zIndex: i === index ? 1 : 0 }}
             aria-hidden={i !== index}
           >
-            <div className="w-full relative h-full min-h-[650px] bg-[#021624]">
+            <div className="w-full relative h-full min-h-[650px] bg-hero">
               {i === index && (
                 <img
                   src={slide.img}
@@ -108,7 +77,7 @@ function LandingHero({ t }) {
       </div>
 
       {/* Navigasi garis progress — di bawah gambar */}
-      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 carousel-pagination px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
@@ -132,7 +101,7 @@ function LandingHero({ t }) {
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-[red] opacity-100" : "opacity-10"
+                    active ? "text-red-600 opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -146,7 +115,7 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute left-0 bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                className="bullet-progress absolute left-0 bottom-[-3px] border-b-[3px] border-red-600 pointer-events-none"
                 style={
                   active
                     ? {
@@ -183,7 +152,7 @@ function SorotanKegiatan({ t }) {
     },
   ];
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pt-4 md:pb-20 overflow-hidden">
+    <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
           <h2 className="font-semibold text-2xl md:text-3xl text-black">
@@ -213,8 +182,7 @@ function SorotanKegiatan({ t }) {
   );
 }
 
-/** Dua kolom: berita komunitas terbaru & pengumuman terbaru. */
-/** Baris statistik ringkas komunitas. */
+/** Foto e-book untuk karusel kartu — bergantian mengikuti kartu aktif. */
 const KARTU_GAMBAR = [
   { img: gambar("/images/tonggak-2024.webp") },
   { img: gambar("/images/tonggak-2022.webp") },
@@ -222,7 +190,7 @@ const KARTU_GAMBAR = [
   { img: gambar("/images/tonggak-2018.webp") },
 ];
 
-function CardGambar({ index }) {
+function CardGambar({ index, t }) {
   const imgIndex = ((index % KARTU_GAMBAR.length) + KARTU_GAMBAR.length) % KARTU_GAMBAR.length;
   return (
     <div className="relative w-full aspect-[4/3] md:h-[600px] overflow-hidden order-1">
@@ -242,22 +210,43 @@ function CardGambar({ index }) {
       ))}
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3">
-        <h2 className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">Perpustakaan</h2>
-        <h3 className="text-white font-bold text-3xl md:text-4xl mb-4">E-BOOK CATUR</h3>
+        <p className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
+          {t("landing.pustakaLabel")}
+        </p>
+        <h2 className="text-white font-bold text-3xl md:text-4xl mb-4 uppercase">
+          {t("landing.pustakaJudul")}
+        </h2>
         <p className="text-white/90 text-sm md:text-base max-w-2xl leading-6">
-          Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.
+          {t("landing.pustakaDesk")}
         </p>
       </div>
     </div>
   );
 }
 
-function CardCarousel({ index, setIndex }) {
+/** Karusel kartu program — kartu adalah tautan nyata ke halamannya. */
+function CardCarousel({ index, setIndex, t }) {
   const kartu = [
-    { judul: "Program Sekolah Catur", desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan." },
-    { judul: "Turnamen Berkala", desk: "Ikuti kompetisi catur rutin yang kami adakan untuk mengasah kemampuan dan sportivitas." },
-    { judul: "Komunitas dan Relasi", desk: "Bergabung dengan jaringan pecatur dari berbagai daerah di seluruh Indonesia." },
-    { judul: "Panduan Bermain Catur", desk: "Pelajari strategi, taktik, dan tips bermain catur dari dasar hingga tingkat lanjut." },
+    {
+      to: "/program-kami",
+      judul: t("landing.kartu1Judul"),
+      desk: t("landing.kartu1Desk"),
+    },
+    {
+      to: "/turnamen",
+      judul: t("landing.kartu2Judul"),
+      desk: t("landing.kartu2Desk"),
+    },
+    {
+      to: "/tentang-kami/struktur-grup-catur",
+      judul: t("landing.kartu3Judul"),
+      desk: t("landing.kartu3Desk"),
+    },
+    {
+      to: "/program-kami/sekolah-catur/cara-bermain-catur",
+      judul: t("landing.kartu4Judul"),
+      desk: t("landing.kartu4Desk"),
+    },
   ];
   const n = kartu.length;
   const tripled = [...kartu, ...kartu, ...kartu];
@@ -265,19 +254,38 @@ function CardCarousel({ index, setIndex }) {
   const [noAnim, setNoAnim] = useState(false);
   const CARD_W = 310;
 
+  // Karusel tak berujung: salinan tengah, dari mid sampai dua kali mid,
+  // yang tampil. Setelah transisi selesai, bila index keluar dari rentang
+  // itu, lompat diam-diam ke posisi yang SETARA (kartu yang sama, index
+  // digeser mid) tanpa animasi. Rumus index digeser mid — bukan selalu
+  // kembali ke mid seperti versi lama — memastikan klik cepat yang
+  // melewati batas tetap mendarat pada kartu yang sama; versi lama
+  // melompat ke kartu salah.
   const handleEnd = (e) => {
     if (e.propertyName !== "transform") return;
-    if (index >= mid * 2 || index <= 0) {
+    if (index >= mid * 2) {
       setNoAnim(true);
-      setIndex(mid);
+      setIndex(index - mid);
+    } else if (index < mid) {
+      setNoAnim(true);
+      setIndex(index + mid);
     }
   };
 
   useEffect(() => {
-    if (noAnim) {
-      const id = requestAnimationFrame(() => setNoAnim(false));
-      return () => cancelAnimationFrame(id);
-    }
+    if (!noAnim) return undefined;
+    // DUA requestAnimationFrame: frame pertama menjamin lompatan tanpa
+    // animasi sempat DIGAMBAR dulu sebelum kelas transisi dipasang lagi.
+    // Dengan satu frame saja kedua pembaruan bisa menyatu dalam satu
+    // paint, sehingga lompatan malah tampak sebagai geseran mundur.
+    let id2 = 0;
+    const id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setNoAnim(false));
+    });
+    return () => {
+      cancelAnimationFrame(id1);
+      if (id2) cancelAnimationFrame(id2);
+    };
   }, [noAnim]);
 
   return (
@@ -292,8 +300,10 @@ function CardCarousel({ index, setIndex }) {
             const isActive = i === index;
             const isLast = i === index + 2;
             return (
-              <div
+              <Link
                 key={`${k.judul}-${i}`}
+                to={k.to}
+                title={k.judul}
                 className={`flex-none w-[290px] h-[360px] p-8 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer transition-all ${
                   isActive
                     ? "bg-primary text-white"
@@ -312,7 +322,7 @@ function CardCarousel({ index, setIndex }) {
                 <div className="block mt-auto ml-auto">
                   <ArrowRightIcon className={`size-6 -rotate-45 transition-colors ${isActive ? "text-white" : "text-slate-600 group-hover:text-white"}`} />
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
@@ -320,7 +330,7 @@ function CardCarousel({ index, setIndex }) {
       <div className="flex justify-end gap-2 mt-4 items-center pr-8">
         <button
           type="button"
-          aria-label="Sebelumnya"
+          aria-label={t("landing.sebelumnya")}
           onClick={() => setIndex((i) => i - 1)}
           className="w-12 h-12 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
         >
@@ -328,7 +338,7 @@ function CardCarousel({ index, setIndex }) {
         </button>
         <button
           type="button"
-          aria-label="Selanjutnya"
+          aria-label={t("landing.selanjutnya")}
           onClick={() => setIndex((i) => i + 1)}
           className="w-12 h-12 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
         >
@@ -339,13 +349,13 @@ function CardCarousel({ index, setIndex }) {
   );
 }
 
-function BagianGambarKartu() {
+function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(4);
   return (
     <section className="w-full bg-[#f8fafc] relative py-16 md:py-20 overflow-hidden">
       <div className="flex flex-col md:grid md:grid-cols-2 gap-6 items-center relative">
-        <CardGambar index={index} />
-        <CardCarousel index={index} setIndex={setIndex} />
+        <CardGambar index={index} t={t} />
+        <CardCarousel index={index} setIndex={setIndex} t={t} />
       </div>
     </section>
   );
@@ -373,7 +383,7 @@ function AjakanBergabung({ t }) {
 }
 
 export default function Landing() {
-  const { t, bahasa } = useI18n();
+  const { t } = useI18n();
 
   useEffect(() => {
     document.title = t("common.namaKomunitas");
@@ -381,6 +391,9 @@ export default function Landing() {
 
   return (
     <div className="w-full overflow-x-hidden">
+      {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
+          disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
+      <h1 className="sr-only">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
       <SorotanKegiatan t={t} />
       <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
@@ -395,40 +408,46 @@ export default function Landing() {
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-3">
-          <h2 className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">SEKILAS BLUNDER SKUAD</h2>
-          <h3 className="text-white font-bold text-3xl md:text-4xl mb-4">Tentang Kami</h3>
+          <p className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
+            {t("landing.sekilasLabel")}
+          </p>
+          <h2 className="text-white font-bold text-3xl md:text-4xl mb-4">
+            {t("nav.tentangKami")}
+          </h2>
           <p className="text-white/90 text-sm md:text-base max-w-2xl leading-6">
-            Lebih dari satu tahun menyediakan tempat untuk seluruh penjuru negri dan sejumlah wilayah di indonesia
+            {t("landing.sekilasDesk")}
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
             <Link
               to="/tentang-kami"
               className="inline-flex items-center gap-2 border border-white text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
             >
-              Selengkapnya
+              {t("common.selengkapnya")}
               <ArrowRightIcon className="size-4 -rotate-45" />
             </Link>
             <Link
               to="/tentang-kami/struktur-grup-catur"
               className="inline-flex items-center gap-2 border border-white text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
             >
-              Ketua dan Pengurus
+              {t("landing.ketuaPengurus")}
               <ArrowRightIcon className="size-4 -rotate-45" />
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 md:pb-12 xl:pb-16 pt-12 md:pt-12 xl:pt-24 overflow-hidden">
+      <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-24 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full">
-            <p className="text-primary font-semibold text-xs md:text-xs">KEBERLANJUTAN</p>
+            <p className="text-primary font-semibold text-xs uppercase">
+              {t("nav.keberlanjutan")}
+            </p>
           </div>
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-semibold text-3xl md:text-3xl">Keberlanjutan</h2>
+              <h2 className="font-semibold text-3xl">{t("nav.keberlanjutan")}</h2>
               <p className="text-justify text-slate-600 leading-relaxed">
-                Komunitas Catur Indonesia berkomitmen membangun ekosistem catur yang berkelanjutan melalui pendidikan, pembinaan bakat, dan penguatan jejaring pecatur di seluruh Indonesia. Kami percaya bahwa konsistensi dalam program dan kebersamaan adalah kunci kemajuan catur nasional.
+                {t("landing.keberlanjutanDesk")}
               </p>
             </div>
             <div className="flex">
@@ -436,7 +455,7 @@ export default function Landing() {
                 to="/keberlanjutan"
                 className="text-sm h-12 px-4 md:px-6 gap-2 hover:gap-4 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full"
               >
-                <span className="order-1">Selengkapnya</span>
+                <span className="order-1">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />
               </Link>
             </div>
@@ -444,7 +463,7 @@ export default function Landing() {
         </div>
       </section>
 
-      <BagianGambarKartu />
+      <BagianGambarKartu t={t} />
 
       <AjakanBergabung t={t} />
     </div>
