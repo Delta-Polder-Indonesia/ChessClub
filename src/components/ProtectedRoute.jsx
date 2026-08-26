@@ -62,7 +62,7 @@ export default function ProtectedRoute({ children }) {
 
   if (status === "galat") {
     return (
-      <div className="mx-auto flex min-h-[70vh] max-w-md flex-col items-center justify-center px-6 text-center">
+      <div className="mx-auto flex min-h-screen max-w-md flex-col items-center justify-center bg-white px-6 text-center">
         <h1 className="text-lg font-bold text-slate-900">
           Tidak dapat menghubungi server
         </h1>
