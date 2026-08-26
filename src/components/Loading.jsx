@@ -1,3 +1,5 @@
+import { useLayoutEffect } from "react";
+
 /** Loading spinner sederhana. */
 export function LoadingSpinner({ label = "Memuat…", className = "" }) {
   return (
@@ -9,27 +11,73 @@ export function LoadingSpinner({ label = "Memuat…", className = "" }) {
 }
 
 /**
- * Placeholder Suspense seukuran hero — memakai foto laman Beranda (halaman
- * pertama yang dimuat pengunjung) agar gambar terbesar tetap terlihat saat
- * chunk halaman masih diunduh.
+ * Buang #boot-hero (gambar pramuat dari index.html).
+ *
+ * Komponen ini dipasang DI DALAM <Suspense> sebagai saudara <Outlet />,
+ * sehingga efeknya baru berjalan SETELAH konten halaman pertama
+ * benar-benar ter-render — bukan begitu kerangka React siap. Dengan begitu
+ * foto boot tetap terlihat selama chunk halaman pertama masih diunduh,
+ * lalu dibuang pada frame yang sama ketika halaman asli mulai digambar
+ * (useLayoutEffect berjalan sebelum paint — tidak ada dua gambar yang
+ * tampak bertumpuk).
  */
-export function HeroFallback() {
+export function BersihkanBootHero() {
+  useLayoutEffect(() => {
+    document.getElementById("boot-hero")?.remove();
+  }, []);
+  return null;
+}
+
+/**
+ * Placeholder Suspense untuk area konten halaman (dipakai PageLayout).
+ *
+ * Dua keadaan:
+ *  1. Muat awal — #boot-hero dari index.html masih ada: area ini dibuat
+ *     transparan dan setinggi hero supaya foto boot TETAP terlihat di
+ *     belakangnya. Tidak ada layar putih, tidak ada gambar lain yang
+ *     menyala-nyala bergantian.
+ *  2. Navigasi antar halaman — boot sudah dibuang: tampilkan spinner kecil
+ *     di tengah area konten. Header & footer tetap terpasang, sehingga
+ *     tidak ada lagi "seluruh halaman tertimpa foto Beranda" seperti
+ *     perilaku fallback lama (HeroFallback) yang mengganti seluruh layar.
+ */
+export function PlaceholderHalaman() {
+  const bootMasihAda =
+    typeof document !== "undefined" &&
+    document.getElementById("boot-hero") !== null;
+
+  if (bootMasihAda) {
+    return <div aria-hidden="true" className="h-[650px] w-full" />;
+  }
+
   return (
-    <section
-      className="relative w-full h-[400px] lg:h-[500px] bg-hero overflow-hidden"
-      aria-hidden="true"
-    >
-      <img
-        src={`${import.meta.env.BASE_URL}images/sekilas-828.webp`}
-        srcSet={`${import.meta.env.BASE_URL}images/sekilas-828.webp 828w, ${import.meta.env.BASE_URL}images/sekilas.webp 1280w`}
-        sizes="100vw"
-        alt=""
-        width={828}
-        height={462}
-        fetchpriority="high"
-        decoding="async"
-        className="w-full h-full object-cover"
-      />
-    </section>
+    <div className="flex min-h-[420px] w-full items-center justify-center px-6 py-16">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-slate-200 border-t-primary" />
+        <span className="text-sm text-slate-500">Menyiapkan halaman…</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Placeholder kecil untuk isi tab Beranda — hero dan sidebar tetap
+ * terpasang, hanya artikel di bawah foto yang menunggu chunk tab.
+ */
+export function PlaceholderArtikel() {
+  return (
+    <div className="flex w-full items-center justify-center py-16">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-primary" />
+      <span className="sr-only">Memuat…</span>
+    </div>
+  );
+}
+
+/** Placeholder layar penuh untuk rute tanpa kerangka publik (Dashboard). */
+export function PlaceholderLayarPenuh() {
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      <LoadingSpinner label="Menyiapkan dashboard…" />
+    </div>
   );
 }

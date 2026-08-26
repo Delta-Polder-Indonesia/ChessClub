@@ -7,12 +7,14 @@
  *
  * Setiap tab tetap berkas terpisah dan dirender lewat <Outlet />.
  */
-import { useEffect, useRef } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import {
   CorporatePage,
   CorporateSection,
 } from "../../components/CorporatePage.jsx";
+import { PlaceholderArtikel } from "../../components/Loading.jsx";
+import { gulirKeAtasInstan } from "../../lib/gulir.js";
 import {
   sidebarBeranda,
   BERANDA_BERIKUT,
@@ -41,10 +43,11 @@ export default function TataLetakBeranda() {
     const sebelum = idSebelumnya.current;
     idSebelumnya.current = id;
 
-    // Beranda utama ("/" atau "/beranda", dibuka lewat menu "Beranda" di
-    // atas): foto hero tetap terlihat di atas — jangan gulir ke artikel.
+    // Beranda utama ("/beranda", dibuka lewat menu "Beranda" di atas): foto
+    // hero tetap terlihat di atas — jangan gulir ke artikel. Gulirannya
+    // dibuat instan agar tidak "meluncur" pelan saat pindah halaman.
     if (jalurBerandaUtama(pathname)) {
-      window.scrollTo(0, 0);
+      gulirKeAtasInstan();
       return undefined;
     }
 
@@ -80,7 +83,14 @@ export default function TataLetakBeranda() {
       sidebar={sidebarBeranda(id)}
       next={next}
     >
-      <Outlet />
+      {/* Suspense di sekitar Outlet menjaga janji tata letak ini: hero,
+          sidebar, dan menu mobile TIDAK dibongkar saat pindah tab —
+          hanya artikel di bawah foto yang menunggu chunk tab dimuat.
+          (Dulu Suspense tunggal di App.jsx mengganti semuanya dengan foto
+          hero, sehingga pindah tab terasa seperti halaman baru timpa.) */}
+      <Suspense fallback={<PlaceholderArtikel />}>
+        <Outlet />
+      </Suspense>
     </CorporatePage>
   );
 }

@@ -48,17 +48,22 @@
     <link
       rel="preload"
       as="image"
-      href="/images/landing-hero-828.webp"
+      href="/images/tonggak-2015-828.webp"
       type="image/webp"
       fetchpriority="high"
-      imagesrcset="/images/landing-hero-828.webp 828w, /images/landing-hero.webp 1280w"
+      imagesrcset="/images/tonggak-2015-828.webp 828w, /images/tonggak-2015.webp 1280w"
       imagesizes="100vw"
     />
     <style>
+      /* Gambar boot = slide PERTAMA hero Landing (tonggak-2015) dengan
+         tinggi yang sama (650px). Dengan begitu saat React menggantinya
+         dengan hero asli, pengguna tidak melihat gambar berganti-ganti.
+         Dibuang oleh komponen BersihkanBootHero begitu konten halaman
+         pertama benar-benar ter-render. */
       #boot-hero {
         position: absolute;
         inset: 0 0 auto 0;
-        height: 400px;
+        height: 650px;
         background: #021624;
         overflow: hidden;
         z-index: 0;
@@ -68,11 +73,6 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-      }
-      @media (min-width: 1024px) {
-        #boot-hero {
-          height: 500px;
-        }
       }
       #root {
         position: relative;
@@ -84,8 +84,8 @@
     <div id="root"></div>
     <div id="boot-hero" aria-hidden="true">
       <img
-        src="/images/landing-hero-828.webp"
-        srcset="/images/landing-hero-828.webp 828w, /images/landing-hero.webp 1280w"
+        src="/images/tonggak-2015-828.webp"
+        srcset="/images/tonggak-2015-828.webp 828w, /images/tonggak-2015.webp 1280w"
         sizes="100vw"
         alt=""
         width="828"

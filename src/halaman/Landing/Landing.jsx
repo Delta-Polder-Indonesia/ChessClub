@@ -98,7 +98,7 @@ function LandingHero({ t }) {
                   width={1280}
                   height={714}
                   decoding="async"
-                  loading="lazy"
+                  fetchpriority="high"
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}

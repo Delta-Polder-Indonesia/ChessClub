@@ -3,8 +3,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
-import { HeroFallback } from "./components/Loading.jsx";
+import { BersihkanBootHero, PlaceholderLayarPenuh } from "./components/Loading.jsx";
 import TataLetakBeranda from "./halaman/Beranda/TataLetakBeranda.jsx";
+import { mulaiPrefetchRute } from "./lib/prefetch.js";
 
 /* ------------------------------------------------------- code splitting
  * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
@@ -170,50 +171,61 @@ const RUTE_REDIRECT = new Map([
 
 export default function App() {
   useEffect(() => {
-    document.getElementById("boot-hero")?.remove();
+    // Prefetch chunk rute (hover/fokus + saat jaringan nganggur) supaya
+    // pindah halaman tidak perlu menunggu unduhan lagi — transisi instan.
+    mulaiPrefetchRute();
   }, []);
 
+  /* CATATAN SUSPENSE: JANGAN membungkus <Routes> dengan satu <Suspense>
+   * besar. Dulu fallback-nya (foto hero Beranda) mengganti SELURUH layar —
+   * header, footer, layout — setiap kali pindah halaman, sehingga halaman
+   * tampak saling menimpah dan seperti "mentok di Beranda dulu baru
+   * masuk". Batas Suspense yang benar ada DI DALAM kerangka:
+   *   - PageLayout      → header/footer tetap terpasang (lihat PageLayout.jsx)
+   *   - TataLetakBeranda→ hero+sidebar tetap terpasang saat pindah tab
+   *   - Dashboard       → punya batasnya sendiri di bawah (tanpa kerangka publik) */
   return (
     <>
       <ScrollToTop />
-      <Suspense fallback={<HeroFallback />}>
-        <Routes>
-          <Route element={<PageLayout />}>
-            <Route element={<TataLetakBeranda />}>
-              {RUTE_BERANDA.map(([jalur, Komponen]) => (
-                <Route key={jalur} path={jalur} element={<Komponen />} />
-              ))}
-            </Route>
-
-            {RUTE_HALAMAN.map(([jalur, Komponen]) => (
+      <Routes>
+        <Route element={<PageLayout />}>
+          <Route element={<TataLetakBeranda />}>
+            {RUTE_BERANDA.map(([jalur, Komponen]) => (
               <Route key={jalur} path={jalur} element={<Komponen />} />
             ))}
-
-            {[...RUTE_REDIRECT].map(([dari, ke]) => (
-              <Route
-                key={dari}
-                path={dari}
-                element={<Navigate to={ke} replace />}
-              />
-            ))}
-
-            <Route path="*" element={<TidakDitemukan />} />
           </Route>
 
-          {/* Dashboard pengurus berdiri sendiri: tanpa navbar & footer publik,
-              sengaja tidak ditautkan dari menu mana pun, dan dijaga
-              ProtectedRoute — token diverifikasi ke server sebelum halaman
-              dirender, sehingga menebak URL saja tidak membuka apa pun. */}
-          <Route
-            path="/pengurus"
-            element={
-              <ProtectedRoute>
+          {RUTE_HALAMAN.map(([jalur, Komponen]) => (
+            <Route key={jalur} path={jalur} element={<Komponen />} />
+          ))}
+
+          {[...RUTE_REDIRECT].map(([dari, ke]) => (
+            <Route
+              key={dari}
+              path={dari}
+              element={<Navigate to={ke} replace />}
+            />
+          ))}
+
+          <Route path="*" element={<TidakDitemukan />} />
+        </Route>
+
+        {/* Dashboard pengurus berdiri sendiri: tanpa navbar & footer publik,
+            sengaja tidak ditautkan dari menu mana pun, dan dijaga
+            ProtectedRoute — token diverifikasi ke server sebelum halaman
+            dirender, sehingga menebak URL saja tidak membuka apa pun. */}
+        <Route
+          path="/pengurus"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<PlaceholderLayarPenuh />}>
+                <BersihkanBootHero />
                 <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
-      </Suspense>
+              </Suspense>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </>
   );
 }
