@@ -79,7 +79,7 @@ function LandingHero({ t }) {
   }, [index, SLIDES.length]);
 
   return (
-    <section className="w-full relative bg-transparent pb-24 md:pb-24 xl:pb-24 overflow-hidden">
+    <section className="w-full relative bg-transparent pb-20 md:pb-20 xl:pb-20 overflow-hidden">
       <div className="w-full relative h-full min-h-[650px] overflow-hidden">
         {SLIDES.map((slide, i) => (
           <div
