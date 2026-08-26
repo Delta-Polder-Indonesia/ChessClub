@@ -30,14 +30,14 @@ export const MENU_BERANDA = [
 ];
 
 /**
- * True bila path adalah halaman utama Beranda ("/" atau "/beranda") — halaman
+ * True bila path adalah halaman utama Beranda ("/beranda") — halaman
  * tempat foto hero tampil di atas, sebelum tab-tab isi di bawahnya.
  */
 export function jalurBerandaUtama(path) {
-  return path === "/" || path === "/beranda";
+  return path === "/beranda";
 }
 
-/** True bila path termasuk keluarga halaman Beranda (termasuk beranda di "/"). */
+/** True bila path termasuk keluarga halaman Beranda. */
 export function jalurBeranda(path) {
   return jalurBerandaUtama(path) || path.startsWith("/beranda/");
 }
