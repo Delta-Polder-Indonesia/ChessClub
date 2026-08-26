@@ -203,7 +203,11 @@ test("perpindahan ke bahasa Inggris memuat terjemahan", async ({ page, isMobile 
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/");
   await page.getByRole("button", { name: "Pilih bahasa" }).click();
-  await expect(page.getByRole("link", { name: "About Us" })).toBeVisible();
+  // "About Us" juga muncul sebagai kartu "Akses Cepat" di landing page;
+  // batasi ke tautan menu header agar locator tidak ambigu.
+  await expect(
+    page.locator("header").getByRole("link", { name: "About Us", exact: true })
+  ).toBeVisible();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   periksaGalat();
 });
