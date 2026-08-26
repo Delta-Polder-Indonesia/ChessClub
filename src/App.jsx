@@ -51,6 +51,9 @@ const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 // Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0).
 const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanInteraktif.jsx"));
 
+// Landing (Beranda utama "/") — hero, akses cepat, sorotan, berita terkini.
+const Landing = lazy(() => import("./halaman/Landing/Landing.jsx"));
+
 // Area Beranda — satu berkas per item sidebar.
 const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
@@ -69,7 +72,6 @@ const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
 
 /** Rute area Beranda — satu layout (hero + sidebar) untuk semua tab. */
 const RUTE_BERANDA = [
-  ["/", Beranda],
   ["/beranda", Beranda],
   ["/beranda/turnamen", Beranda],
   ["/beranda/daftar-juara", DaftarJuara],
@@ -78,8 +80,10 @@ const RUTE_BERANDA = [
 ];
 
 /** Rute konten utama: [path, Komponen].
- *  "/" adalah Beranda — halaman pertama yang dilihat pengunjung. */
+ *  "/" adalah halaman Landing — halaman pertama yang dilihat pengunjung. */
 const RUTE_HALAMAN = [
+  ["/", Landing],
+
   ["/tentang-kami", TentangKami],
   ["/tentang-kami/struktur-grup-catur", StrukturGrupCatur],
 
