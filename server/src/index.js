@@ -598,7 +598,8 @@ router.post("/api/pengurus/pesan/:id/baca", async (req, param) => {
 /** Hapus beberapa pesan sekaligus. */
 router.post("/api/pengurus/pesan/hapus-banyak", async (req) => {
   pastikanAdmin(req);
-  const { ids } = req.bodi || {};
+  const bodi = await bacaBodi(req);
+  const { ids } = bodi || {};
   if (!Array.isArray(ids) || ids.length === 0) {
     return { status: 400, isi: { pesan: "Tidak ada pesan dipilih." } };
   }

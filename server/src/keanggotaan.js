@@ -469,23 +469,36 @@ export async function daftarkan(body, konteks = {}) {
   });
 
   /* 6. Data pribadi disimpan terpisah dari berkas publik */
-  await repoKontak.ubah(async (kontak) => ({
-    data: {
-      ...kontak,
-      [uname]: {
-        namaLengkap: bersih.namaLengkap,
-        panggilan: bersih.panggilan,
-        hp: bersih.hp,
-        dana: bersih.dana || null,
-        email: bersih.email || null,
-        kota: bersih.kota,
-        tanggalLahir: bersih.tanggalLahir,
-        klub: bersih.klub || null,
-        dicatatPada: new Date().toISOString(),
+  try {
+    await repoKontak.ubah(async (kontak) => ({
+      data: {
+        ...kontak,
+        [uname]: {
+          namaLengkap: bersih.namaLengkap,
+          panggilan: bersih.panggilan,
+          hp: bersih.hp,
+          dana: bersih.dana || null,
+          email: bersih.email || null,
+          kota: bersih.kota,
+          tanggalLahir: bersih.tanggalLahir,
+          klub: bersih.klub || null,
+          dicatatPada: new Date().toISOString(),
+        },
       },
-    },
-    hasil: null,
-  }));
+      hasil: null,
+    }));
+  } catch (e) {
+    // Kontak adalah bagian dari pendaftaran. Bila gagal menulisnya, batalkan
+    // entri anggota yang baru saja ditambahkan agar tidak ada anggota tanpa
+    // data pribadi (tidak bisa dihubungi pengurus).
+    await repoAnggota
+      .ubah((daftar) => ({
+        data: daftar.filter((a) => a.username !== uname),
+        hasil: null,
+      }))
+      .catch(() => {});
+    throw e;
+  }
 
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
   // Hapus cache Chess.com agar data baru diambil pada request berikutnya

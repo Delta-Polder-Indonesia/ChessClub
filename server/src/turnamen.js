@@ -18,7 +18,13 @@ import { ambilProfil } from "./chess.js";
 import { daftarAnggotaKlub } from "./klub.js";
 import { evaluasiStatusChess, cariDiDaftarHitam } from "./identitas-server.js";
 import { normalisasiUsername } from "../../src/lib/identitas.js";
-import { GalatAplikasi, repoAnggota, repoHitam, blokir } from "./keanggotaan.js";
+import {
+  GalatAplikasi,
+  repoAnggota,
+  repoHitam,
+  blokir,
+  lengkapiAnggota,
+} from "./keanggotaan.js";
 
 const repoTurnamen = buatRepo(
   `${konfigurasi.dirData}/turnamen.json`,
@@ -130,8 +136,22 @@ export function untukPublik(t) {
 export async function rincianUntukPengurus(idAtauSlug) {
   const t = await ambilTurnamen(idAtauSlug);
   const anggota = await repoAnggota.baca();
-  const eloPerUsername = new Map(anggota.map((a) => [a.username, a.elo]));
   const dasar = untukPublik(t);
+
+  // Entri lokal tidak menyimpan rating — angkanya harus diambil dari profil
+  // Chess.com (dan memakai cache agar dashboard tidak membanjiri API).
+  const eloPerUsername = new Map();
+  await Promise.all(
+    dasar.peserta.map(async (p) => {
+      const lokal = anggota.find((a) => a.username === p.username);
+      const hasil = await lengkapiAnggota(
+        { ...p, panggilan: lokal?.panggilan || p.panggilan || p.username },
+        { cacheDetik: konfigurasi.chess.klub.profilCacheDetik }
+      );
+      eloPerUsername.set(p.username, hasil.elo ?? null);
+    })
+  );
+
   return {
     ...dasar,
     klasemenTim: klasemenTim(t),

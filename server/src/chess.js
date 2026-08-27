@@ -28,14 +28,16 @@ async function kunciKonkurensi() {
     aktif++;
     return;
   }
+  // Tunggu giliran. "Tiket" dipindahkan oleh lepasKonkurensi tanpa
+  // menurunkan aktif lebih dulu, sehingga tidak ada celah bagi pemanggil
+  // baru untuk menyelinap dan menaikkan hitungan melebihi KONKURENSI_MAKS.
   await new Promise((resolve) => antrean.push(resolve));
-  aktif++;
 }
 
 function lepasKonkurensi() {
-  aktif--;
   const berikutnya = antrean.shift();
   if (berikutnya) berikutnya();
+  else aktif--;
 }
 
 function dariCache(kunci) {

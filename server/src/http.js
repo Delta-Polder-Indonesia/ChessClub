@@ -374,9 +374,15 @@ export function buatRouter() {
         const cocok = r.regex.exec(jalur);
         if (!cocok) continue;
         const param = {};
-        r.nama.forEach((n, i) => {
-          param[n] = decodeURIComponent(cocok[i + 1]);
-        });
+        try {
+          r.nama.forEach((n, i) => {
+            param[n] = decodeURIComponent(cocok[i + 1]);
+          });
+        } catch {
+          // Encoding persen tidak valid -> bukan rute yang sah; coba rute lain
+          // supaya server membalas 404, bukan 500.
+          continue;
+        }
         return { ...r, param };
       }
       return null;

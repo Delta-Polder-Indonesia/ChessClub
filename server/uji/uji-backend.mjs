@@ -678,6 +678,12 @@ console.log("\nPersetujuan peserta turnamen");
         sesudah.data?.pengajuan?.[0]?.status === "diterima",
       JSON.stringify(sesudah.data)
     );
+    cek(
+      "rincian pengurus menyertakan rating peserta",
+      typeof sesudah.data?.peserta?.find((p) => p.username === "gothamchess")
+        ?.rating === "number",
+      JSON.stringify(sesudah.data?.peserta)
+    );
 
     ipSaatIni = ipBaru();
     const belumLengkap = await panggil("POST", `/api/turnamen/${id}/daftar`, {
@@ -920,6 +926,18 @@ console.log("\nValidasi pesan publik");
     pesan: "halo pengurus",
   });
   cek("pesan sah -> 201", pesanSah.status === 201, `dapat ${pesanSah.status}`);
+
+  // Endpoint hapus-banyak sebelumnya selalu gagal karena membaca req.bodi
+  // (tidak pernah diisi). Pastikan kontraknya berfungsi benar.
+  ipSaatIni = ipBaru();
+  const hapusTanpaId = await panggil("POST", "/api/pengurus/pesan/hapus-banyak", {});
+  cek("hapus banyak tanpa id -> 400", hapusTanpaId.status === 400, `dapat ${hapusTanpaId.status}`);
+
+  ipSaatIni = ipBaru();
+  const hapusBanyak = await panggil("POST", "/api/pengurus/pesan/hapus-banyak", {
+    ids: [pesanSah.data?.id].filter(Boolean),
+  });
+  cek("hapus banyak pesan -> 200", hapusBanyak.status === 200, `dapat ${hapusBanyak.status}: ${JSON.stringify(hapusBanyak.data)}`);
   ipSaatIni = ipBaru();
 }
 

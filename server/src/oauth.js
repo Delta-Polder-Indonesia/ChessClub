@@ -125,8 +125,11 @@ export async function verifikasiIdToken(idToken, { clientId } = {}) {
   }
 
   const kunci = await ambilKunciPublik();
-  const cocok = kunci.find((k) => k.kid === kepala.kid) || kunci[0];
-  if (!cocok) throw new Error("Kunci publik tidak ditemukan.");
+  // Wajib mencocokkan `kid` dari token. Jangan pernah "fallback" ke kunci
+  // pertama: token dengan kid tak dikenal harus ditolak, karena kunci yang
+  // salah hanya akan membuat verifikasi tanda tangan kebetulan/loyo.
+  const cocok = kunci.find((k) => k.kid === kepala.kid);
+  if (!cocok) throw new Error("Kunci publik token tidak dikenal.");
 
   const publik = crypto.createPublicKey({ key: cocok, format: "jwk" });
   const sah = crypto.verify(
@@ -136,6 +139,13 @@ export async function verifikasiIdToken(idToken, { clientId } = {}) {
     Buffer.from(tandaB64, "base64url")
   );
   if (!sah) throw new Error("Tanda tangan id_token tidak sah.");
+
+  // Issuer harus dikenal bila id_token menyertakannya. Ini mencegah token
+  // dari penyedia lain yang kebetulan tanda tangannya lolos dipakai di sini.
+  const issuer = String(muatan.iss || "").replace(/\/+$/, "");
+  if (issuer && issuer !== OAUTH_DASAR) {
+    throw new Error(`Issuer id_token tidak dikenal: ${issuer}`);
+  }
 
   const kini = Math.floor(Date.now() / 1000);
   if (muatan.exp && kini > muatan.exp) throw new Error("id_token kedaluwarsa.");
