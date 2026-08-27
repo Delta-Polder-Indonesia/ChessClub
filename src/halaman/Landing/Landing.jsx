@@ -368,6 +368,44 @@ function BagianGambarKartu({ t }) {
   );
 }
 
+/** Harapan dan terima kasih — foto perwakilan komunitas di kiri, artikel di kanan. */
+function HarapanTerimaKasih({ t }) {
+  return (
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl grid grid-cols-1 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] gap-10 lg:gap-16 items-center">
+        <div className="order-1 flex justify-center">
+          <img
+            src={gambar("/images/harapan-terima-kasih.jpg")}
+            alt=""
+            width={836}
+            height={1120}
+            loading="lazy"
+            decoding="async"
+            className="w-full max-w-[300px] md:max-w-[380px] lg:max-w-[400px] h-auto object-contain"
+          />
+        </div>
+        <div className="order-2 flex flex-col gap-4">
+          <h2 className="font-semibold text-2xl md:text-3xl text-black">
+            {t("landing.harapanJudul")}
+          </h2>
+          <p className="text-sm md:text-base text-slate-600 leading-7">
+            {t("landing.harapanP1")}
+          </p>
+          <p className="text-sm md:text-base text-slate-600 leading-7">
+            {t("landing.harapanP2")}
+          </p>
+          <p className="text-sm md:text-base text-slate-600 leading-7">
+            {t("landing.harapanP3")}
+          </p>
+          <p className="mt-2 text-sm md:text-base font-semibold text-slate-900">
+            {t("landing.harapanTtd")}
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** Ajakan bergabung — penutup halaman. */
 function AjakanBergabung({ t }) {
   return (
@@ -471,6 +509,8 @@ export default function Landing() {
       </section>
 
       <BagianGambarKartu t={t} />
+
+      <HarapanTerimaKasih t={t} />
 
       <AjakanBergabung t={t} />
     </div>
