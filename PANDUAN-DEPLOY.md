@@ -10,6 +10,13 @@ Situs ini kini terdiri dari **dua bagian** yang berjalan terpisah:
 > **Penting:** GitHub Pages hanya bisa menyajikan berkas statis — ia tidak
 > dapat menjalankan backend. Backend harus di-hosting terpisah.
 
+> 🟢 **Jalur yang direkomendasikan untuk produksi:** **Vercel** (frontend) +
+> **Render.com Starter + persistent disk** (backend). Panduan langkah demi
+> langkah yang ringkas ada di
+> [`PANDUAN-DEPLOY-VERCEL-RENDER.md`](./PANDUAN-DEPLOY-VERCEL-RENDER.md).
+> Render **Free** tidak mendukung persistent disk sehingga data pembahasan
+> seluruhnya dapat hilang — untuk komunitas nyata gunakan **Starter**.
+
 ---
 
 ## 1. Siapkan rahasia
