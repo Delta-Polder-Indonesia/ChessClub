@@ -918,13 +918,20 @@ export const ID = {
     keberlanjutanDesk:
       "Komunitas Catur Indonesia berkomitmen membangun ekosistem catur yang berkelanjutan melalui pendidikan, pembinaan bakat, dan penguatan jejaring pecatur di seluruh Indonesia. Kami percaya bahwa konsistensi dalam program dan kebersamaan adalah kunci kemajuan catur nasional.",
     harapanJudul: "Harapan dan Terima Kasih",
+    harapanPembuka:
+      "Kepada seluruh anggota, pecatur, dan sahabat komunitas yang kami hormati dan banggakan,",
     harapanP1:
-      "Komunitas Catur Indonesia hadir dari keyakinan sederhana: setiap orang yang duduk di depan papan catur membawa potensi untuk bertumbuh. Dari pemula yang baru mengenal pergerakan bidak hingga pecatur berpengalaman yang rutin menempuh turnamen, kami ingin memastikan tidak ada yang berjalan sendirian.",
+      "Bertepatan dengan perjalanan komunitas yang terus bertumbuh, kami menyampaikan terima kasih atas kontribusi dan dedikasi yang telah diberikan dalam membangun ekosistem catur nasional — bergotong-royong menghadirkan turnamen rutin, kelas pembinaan, dan ruang bertumbuh bagi pecatur dari berbagai daerah.",
     harapanP2:
-      "Kepada seluruh anggota, pengurus, relawan, dan mitra yang telah memberikan waktu, tenaga, dan dukungan — terima kasih. Setiap turnamen yang berjalan lancar, setiap kelas yang penuh semangat, dan setiap langkah kecil kemajuan anggota adalah buah kerja sama kita bersama.",
+      "Terima kasih kami sampaikan pula kepada seluruh anggota dan masyarakat atas dukungannya kepada komunitas. Kami ada untuk kebermanfaatan bersama. Kami akan terus berkomitmen menghadirkan wadah bermain, belajar, dan bertumbuh bagi pecatur di seluruh Indonesia.",
     harapanP3:
-      "Ke depan, semoga komunitas ini semakin terbuka dan semakin jauh menjangkau pecatur di berbagai daerah — terus menjadi rumah bagi siapa pun yang ingin bermain, belajar, dan bertumbuh bersama catur.",
-    harapanTtd: "Salam hangat, Pengurus Komunitas Catur Indonesia",
+      "Terima kasih juga kami ucapkan kepada seluruh mitra dan komunitas catur lain yang telah berkolaborasi menggelar kompetisi serta ikut berperan memajukan catur tanah air.",
+    harapanTutup1: "Terima kasih.",
+    harapanTutup2: "Komunitas Catur Indonesia,",
+    harapanTutup3: "Bermain, Belajar, dan Bertumbuh Bersama",
+    harapanNama: "Tim Pengurus Blunder Skuad",
+    harapanJabatan: "Komunitas Catur Indonesia",
+    harapanAltFoto: "Ilustrasi perwakilan pengurus Komunitas Catur Indonesia",
     sorotanJudul: "Sorotan Kegiatan",
     sorotanDeskripsi:
       "Rangkaian kegiatan yang menopang pembinaan dan prestasi catur komunitas.",

@@ -915,13 +915,20 @@ export const EN = {
     keberlanjutanDesk:
       "Indonesia Chess Community is committed to building a sustainable chess ecosystem through education, talent development, and a stronger network of players across Indonesia. We believe that consistency in programs and togetherness are the keys to advancing national chess.",
     harapanJudul: "Hope and Gratitude",
+    harapanPembuka:
+      "To all members, chess players, and friends of the community whom we respect and are proud of,",
     harapanP1:
-      "Indonesia Chess Community was born from a simple belief: everyone who sits in front of a chess board carries the potential to grow. From beginners just learning how the pieces move to experienced players competing in regular tournaments, we want to make sure no one walks the journey alone.",
+      "As the community continues to grow, we would like to express our gratitude for the contributions and dedication given to building the national chess ecosystem — working hand in hand to bring regular tournaments, coaching classes, and room to grow for chess players from many regions.",
     harapanP2:
-      "To all members, committees, volunteers, and partners who have given their time, energy, and support — thank you. Every tournament that runs smoothly, every class full of enthusiasm, and every small step of progress by our members is the fruit of working together.",
+      "Our thanks also go to all members and the wider public for their support of the community. We exist for the benefit of many, and we remain committed to providing a place to play, learn, and grow for chess players across Indonesia.",
     harapanP3:
-      "Going forward, may this community grow ever more open and reach chess players in more regions — remaining a home for anyone who wants to play, learn, and grow together with chess.",
-    harapanTtd: "Warm regards, The Committee of Indonesia Chess Community",
+      "We also thank all partners and fellow chess communities who have collaborated with us in running competitions and taking part in advancing Indonesian chess.",
+    harapanTutup1: "Thank you.",
+    harapanTutup2: "Indonesia Chess Community,",
+    harapanTutup3: "Play, Learn, and Grow Together",
+    harapanNama: "The Blunder Skuad Committee",
+    harapanJabatan: "Indonesia Chess Community",
+    harapanAltFoto: "Illustration of a representative of Indonesia Chess Community",
     sorotanJudul: "Activity Highlights",
     sorotanDeskripsi:
       "A series of activities that support the community's chess development and achievements.",

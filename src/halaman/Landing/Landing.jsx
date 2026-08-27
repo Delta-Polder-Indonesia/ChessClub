@@ -368,38 +368,61 @@ function BagianGambarKartu({ t }) {
   );
 }
 
-/** Harapan dan terima kasih — foto perwakilan komunitas di kiri, artikel di kanan. */
+/** Harapan dan terima kasih — pola "pesan pimpinan" halaman korporat:
+ *  foto di kiri (diklik untuk membuka ukuran penuh), artikel rata
+ *  kiri-kanan di kanan, ditutup blok nama dan jabatan pengurus. */
 function HarapanTerimaKasih({ t }) {
+  const foto = gambar("/images/harapan-terima-kasih.jpg");
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl grid grid-cols-1 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] gap-10 lg:gap-16 items-center">
-        <div className="order-1 flex justify-center">
-          <img
-            src={gambar("/images/harapan-terima-kasih.jpg")}
-            alt=""
-            width={836}
-            height={1120}
-            loading="lazy"
-            decoding="async"
-            className="w-full max-w-[300px] md:max-w-[380px] lg:max-w-[400px] h-auto object-contain"
-          />
+    <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-24 pt-12 xl:pt-24">
+      <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
+        {/* Kolom foto */}
+        <div className="w-full relative bg-transparent">
+          <div className="relative w-full mx-auto grid place-items-center lg:min-h-[560px]">
+            <div className="flex justify-center items-center">
+              <a href={foto} target="_blank" rel="noopener noreferrer" className="block">
+                <img
+                  src={foto}
+                  alt={t("landing.harapanAltFoto")}
+                  title={t("landing.harapanAltFoto")}
+                  draggable="false"
+                  decoding="async"
+                  loading="lazy"
+                  width={500}
+                  height={700}
+                  className="w-full max-w-[500px] h-auto rounded-xl object-cover object-center"
+                />
+              </a>
+            </div>
+          </div>
         </div>
-        <div className="order-2 flex flex-col gap-4">
-          <h2 className="font-semibold text-2xl md:text-3xl text-black">
-            {t("landing.harapanJudul")}
-          </h2>
-          <p className="text-sm md:text-base text-slate-600 leading-7">
-            {t("landing.harapanP1")}
-          </p>
-          <p className="text-sm md:text-base text-slate-600 leading-7">
-            {t("landing.harapanP2")}
-          </p>
-          <p className="text-sm md:text-base text-slate-600 leading-7">
-            {t("landing.harapanP3")}
-          </p>
-          <p className="mt-2 text-sm md:text-base font-semibold text-slate-900">
-            {t("landing.harapanTtd")}
-          </p>
+
+        {/* Kolom artikel */}
+        <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
+          <div className="relative w-full mx-auto flex flex-col gap-y-6">
+            <h2 className="focus:outline-none focus:ring-0 text-black font-semibold text-2xl md:text-3xl">
+              {t("landing.harapanJudul")}
+            </h2>
+            <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
+              <div className="relative z-[1] prose-kci max-w-none">
+                <p>{t("landing.harapanPembuka")}</p>
+                <p>{t("landing.harapanP1")}</p>
+                <p>{t("landing.harapanP2")}</p>
+                <p>{t("landing.harapanP3")}</p>
+                <p>{t("landing.harapanTutup1")}</p>
+                <p>{t("landing.harapanTutup2")}</p>
+                <p>{t("landing.harapanTutup3")}</p>
+              </div>
+            </div>
+            <div className="w-full relative bg-transparent">
+              <p className="font-bold text-lg md:text-xl text-black">
+                {t("landing.harapanNama")}
+              </p>
+              <p className="mt-1 text-sm md:text-base text-slate-600">
+                {t("landing.harapanJabatan")}
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </section>
