@@ -938,12 +938,12 @@ export const ID = {
     sorotan1Judul: "Turnamen Rutin Setiap Bulan",
     sorotan1Isi:
       "Turnamen Bulanan, Liga Musiman, dan Liga Antar Komunitas menjaga jam terbang bertanding anggota tetap tinggi sepanjang tahun.",
-    sorotan2Judul: "Pembinaan Berjenjang",
+    sorotan2Judul: "Teka-teki Catur",
     sorotan2Isi:
-      "Kelas dasar, coaching clinic bersama pelatih tamu, dan sekolah catur untuk pelajar membangun fondasi taktik dan strategi.",
-    sorotan3Judul: "Media & Dokumentasi Terbuka",
+      "Latihan teka-teki catur (puzzle) mengasah kalkulasi, taktik, dan kejelian membaca posisi untuk setiap pecatur.",
+    sorotan3Judul: "Penjelajah Pembukaan",
     sorotan3Isi:
-      "Berita, pengumuman, dan galeri kegiatan dipublikasikan berkala agar anggota dan masyarakat mengikuti perkembangan komunitas.",
+      "Jelajahi pustaka pembukaan catur interaktif — telusuri variasi pembukaan per langkah dan pelajari rencana lawan.",
     ajakanJudul: "Siap Bergabung dengan Komunitas Catur Indonesia?",
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulai ikuti turnamen, kelas, serta kegiatan komunitas.",

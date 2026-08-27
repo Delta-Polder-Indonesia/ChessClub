@@ -935,12 +935,12 @@ export const EN = {
     sorotan1Judul: "Regular Monthly Tournaments",
     sorotan1Isi:
       "Monthly Tournaments, Seasonal League, and Inter-Community League keep members' competitive flying hours high throughout the year.",
-    sorotan2Judul: "Tiered Coaching",
+    sorotan2Judul: "Chess Puzzles",
     sorotan2Isi:
-      "Basic classes, coaching clinics with guest trainers, and chess schools for students build a foundation in tactics and strategy.",
-    sorotan3Judul: "Open Media & Documentation",
+      "Regular chess puzzle practice sharpens calculation, tactics, and the ability to read positions for every player.",
+    sorotan3Judul: "Opening Explorer",
     sorotan3Isi:
-      "News, announcements, and activity galleries are published regularly so members and the public can follow the community's progress.",
+      "Explore an interactive chess opening library — browse opening variations move by move and learn opponent plans.",
     ajakanJudul: "Ready to Join the Indonesia Chess Community?",
     ajakanDeskripsi:
       "Complete your personal data and start joining tournaments, classes, and community activities.",

@@ -13,6 +13,11 @@ export const MENU_BERANDA = [
     href: "/beranda/turnamen",
   },
   {
+    id: "pengumuman",
+    label: "Rangkuman Pengumuman",
+    href: "/beranda/rangkuman-pengumuman",
+  },
+  {
     id: "daftar-juara",
     label: "Daftar Juara",
     href: "/beranda/daftar-juara",
@@ -56,7 +61,8 @@ export function sidebarBeranda(aktif) {
 
 /** Urutan tombol "Selanjutnya". */
 export const BERANDA_BERIKUT = {
-  turnamen: { to: "/beranda/daftar-juara", title: "Daftar Juara" },
+  turnamen: { to: "/beranda/rangkuman-pengumuman", title: "Rangkuman Pengumuman" },
+  pengumuman: { to: "/beranda/daftar-juara", title: "Daftar Juara" },
   "daftar-juara": { to: "/beranda/peringkat", title: "Peringkat" },
   peringkat: { to: "/beranda/ebook-panduan", title: "E-Book & Panduan" },
   "ebook-catur": { to: "/beranda/turnamen", title: "Informasi Jadwal Turnamen Catur" },

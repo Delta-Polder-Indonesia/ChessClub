@@ -58,6 +58,7 @@ const Landing = lazy(() => import("./halaman/Landing/Landing.jsx"));
 // Area Beranda — satu berkas per item sidebar.
 const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
+const RangkumanPengumuman = lazy(() => import("./halaman/Beranda/RangkumanPengumuman.jsx"));
 const Peringkat = lazy(() => import("./halaman/Beranda/Peringkat.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/Beranda/EbookPanduan.jsx"));
 
@@ -75,6 +76,7 @@ const Dashboard = lazy(() => import("./halaman/Pengurus/Dashboard.jsx"));
 const RUTE_BERANDA = [
   ["/beranda", Beranda],
   ["/beranda/turnamen", Beranda],
+  ["/beranda/rangkuman-pengumuman", RangkumanPengumuman],
   ["/beranda/daftar-juara", DaftarJuara],
   ["/beranda/peringkat", Peringkat],
   ["/beranda/ebook-panduan", EbookPanduan],

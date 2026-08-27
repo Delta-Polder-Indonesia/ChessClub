@@ -5,8 +5,8 @@ Folder ini berisi file PDF yang ditampilkan di halaman `/beranda/ebook-panduan`.
 ## Cara menambah e-book baru
 
 1. Taruh file PDF di folder ini, misal `nama-file.pdf`
-2. Buka `src/halaman/Beranda/EbookPanduan.jsx`
-3. Tambah entri baru di array `DAFTAR_EBOOK`:
+2. Buka `src/halaman/Beranda/ebook-data.js`
+3. Tambah entri baru di array `DAFTAR_EBOOK`.
 
 ```js
 {
@@ -23,5 +23,6 @@ Folder ini berisi file PDF yang ditampilkan di halaman `/beranda/ebook-panduan`.
 ```
 
 4. Jika `tersedia: false`, tombol Baca & Unduh otomatis nonaktif (untuk dokumen yang segera hadir).
+5. Agar sampul tampil tanpa ikon PDF pengganti, taruh gambar di `public/images/E-Books/` lalu daftarkan id buku di object `COVER` (file yang sama, `src/halaman/Beranda/ebook-data.js`).
 
 File di folder ini otomatis bisa diakses via `/ebooks/nama-file.pdf` karena berada di `public/`.

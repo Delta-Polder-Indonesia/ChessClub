@@ -13,6 +13,15 @@ export function gambar(jalur) {
 }
 
 /**
+ * Alamat berkas publik dari folder `public/` (mis. PDF e-book) dengan base
+ * yang benar. Berbeda dari gambar(): tidak mengubah ekstensi JPG/PNG ke WebP.
+ */
+export function berkasPublik(jalur) {
+  const bersih = String(jalur || "").replace(/^\//, "");
+  return `${import.meta.env.BASE_URL}${bersih}`;
+}
+
+/**
  * srcset hero: 828w untuk layar PSI mobile, 1280w untuk desktop.
  * Menerima jalur relatif ("/images/x.jpg") atau URL lengkap hasil gambar().
  */

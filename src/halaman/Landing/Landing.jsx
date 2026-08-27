@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
+import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 
 const SLIDE_DURATION = 7000;
@@ -136,16 +137,19 @@ function LandingHero({ t }) {
 function SorotanKegiatan({ t }) {
   const sorotan = [
     {
+      to: "/turnamen",
       img: gambar("/images/landing-sorotan-turnamen.jpg"),
       judul: t("landing.sorotan1Judul"),
       isi: t("landing.sorotan1Isi"),
     },
     {
+      to: "/program-kami/teka-teki",
       img: gambar("/images/landing-sorotan-program.jpg"),
       judul: t("landing.sorotan2Judul"),
       isi: t("landing.sorotan2Isi"),
     },
     {
+      to: "/program-kami/pembukaan",
       img: gambar("/images/landing-sorotan-media.jpg"),
       judul: t("landing.sorotan3Judul"),
       isi: t("landing.sorotan3Isi"),
@@ -161,8 +165,8 @@ function SorotanKegiatan({ t }) {
           <p className="mt-3 text-slate-600">{t("landing.sorotanDeskripsi")}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {sorotan.map((s) => (
-            <article key={s.judul} className="flex flex-col gap-4">
+          {sorotan.map((s) => {
+            const gambar = (
               <img
                 src={s.img}
                 alt={s.judul}
@@ -172,28 +176,43 @@ function SorotanKegiatan({ t }) {
                 loading="lazy"
                 decoding="async"
               />
-              <h3 className="font-semibold text-lg text-slate-900">{s.judul}</h3>
-              <p className="text-sm text-slate-600 leading-6">{s.isi}</p>
-            </article>
-          ))}
+            );
+            const teks = (
+              <>
+                <h3 className="font-semibold text-lg text-slate-900">{s.judul}</h3>
+                <p className="text-sm text-slate-600 leading-6">{s.isi}</p>
+              </>
+            );
+            return (
+              <article key={s.judul} className="flex flex-col gap-4">
+                {gambar}
+                {s.to ? (
+                  <Link to={s.to} className="group flex cursor-pointer flex-col gap-4">
+                    {teks}
+                  </Link>
+                ) : (
+                  <div className="flex flex-col gap-4">{teks}</div>
+                )}
+              </article>
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
 
-/** Foto e-book untuk karusel kartu — bergantian mengikuti kartu aktif. */
-const KARTU_GAMBAR = [
-  { img: gambar("/images/tonggak-2024.webp") },
-  { img: gambar("/images/tonggak-2022.webp") },
-  { img: gambar("/images/tonggak-2020.webp") },
-  { img: gambar("/images/tonggak-2018.webp") },
-];
+/** Sampul e-book untuk karusel kartu — bergantian mengikuti kartu aktif. */
+const KARTU_GAMBAR = DAFTAR_EBOOK.map((b) => ({
+  id: b.id,
+  judul: b.judul,
+  img: gambar(COVER[b.id]),
+}));
 
 function CardGambar({ index, t }) {
   const imgIndex = ((index % KARTU_GAMBAR.length) + KARTU_GAMBAR.length) % KARTU_GAMBAR.length;
   return (
-    <div className="relative w-full aspect-[4/3] md:h-[600px] overflow-hidden order-1">
+    <div className="relative w-full aspect-[3/2] md:h-[520px] overflow-hidden order-1">
       {KARTU_GAMBAR.map((g, i) => (
         <img
           key={i}
@@ -201,7 +220,7 @@ function CardGambar({ index, t }) {
           alt=""
           width={1280}
           height={714}
-          className={`absolute inset-0 w-full h-full object-cover object-top shadow-lg transition-opacity duration-500 ${
+          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
             i === imgIndex ? "opacity-100" : "opacity-0"
           }`}
           loading="lazy"
@@ -226,33 +245,16 @@ function CardGambar({ index, t }) {
 
 /** Karusel kartu program — kartu adalah tautan nyata ke halamannya. */
 function CardCarousel({ index, setIndex, t }) {
-  const kartu = [
-    {
-      to: "/program-kami",
-      judul: t("landing.kartu1Judul"),
-      desk: t("landing.kartu1Desk"),
-    },
-    {
-      to: "/turnamen",
-      judul: t("landing.kartu2Judul"),
-      desk: t("landing.kartu2Desk"),
-    },
-    {
-      to: "/tentang-kami/struktur-grup-catur",
-      judul: t("landing.kartu3Judul"),
-      desk: t("landing.kartu3Desk"),
-    },
-    {
-      to: "/program-kami/sekolah-catur/cara-bermain-catur",
-      judul: t("landing.kartu4Judul"),
-      desk: t("landing.kartu4Desk"),
-    },
-  ];
+  const kartu = DAFTAR_EBOOK.map((b) => ({
+    to: `/beranda/ebook-panduan?buku=${b.id}`,
+    judul: b.judul,
+    desk: b.kategori,
+  }));
   const n = kartu.length;
   const tripled = [...kartu, ...kartu, ...kartu];
   const mid = n;
   const [noAnim, setNoAnim] = useState(false);
-  const CARD_W = 310;
+  const CARD_W = 270;
 
   // Karusel tak berujung: salinan tengah, dari mid sampai dua kali mid,
   // yang tampil. Setelah transisi selesai, bila index keluar dari rentang
@@ -290,7 +292,7 @@ function CardCarousel({ index, setIndex, t }) {
 
   return (
     <div className="w-full md:w-auto px-6 md:px-0 md:absolute md:left-[30%] lg:left-[40%] md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 order-2 -mt-56 md:-mt-0 py-10 md:py-0 overflow-hidden">
-      <div className="overflow-hidden max-w-full" style={{ maxWidth: `${3 * CARD_W - 20}px` }}>
+      <div className="overflow-hidden max-w-full" style={{ maxWidth: `${3 * CARD_W}px` }}>
         <div
           className={`flex gap-5 ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
           style={{ transform: `translateX(-${index * CARD_W}px)` }}
@@ -298,7 +300,6 @@ function CardCarousel({ index, setIndex, t }) {
         >
           {tripled.map((k, i) => {
             const isActive = i === index;
-            const isLast = i === index + 2;
             // Saat lompatan reset (noAnim), kartu aktif biru "pindah" ke
             // elemen DOM lain. Bila kartu masih membawa kelas transisi,
             // perpindahan putih → biru terANIMASI ±150 ms dan tampak
@@ -311,15 +312,13 @@ function CardCarousel({ index, setIndex, t }) {
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
-                className={`flex-none w-[290px] h-[360px] p-8 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
+                className={`flex-none w-[250px] h-[300px] p-6 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
                   isActive
                     ? "bg-primary text-white"
-                    : isLast
-                      ? "bg-white text-slate-900 blur-[1px] opacity-70"
-                      : "bg-white text-slate-900 hover:bg-primary group"
+                    : "bg-white text-slate-900 hover:bg-primary group"
                 }`}
               >
-                <h3 className={`text-2xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
+                <h3 className={`text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
                 <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-red-600 group-hover:bg-white"} ${transisiWarna}`} />
@@ -339,7 +338,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.sebelumnya")}
           onClick={() => setIndex((i) => i - 1)}
-          className="w-12 h-12 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
         >
           <ArrowRightIcon className="size-6 text-slate-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
@@ -347,7 +346,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.selanjutnya")}
           onClick={() => setIndex((i) => i + 1)}
-          className="w-12 h-12 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
         >
           <ArrowRightIcon className="size-6 text-slate-600 group-hover:text-white transition-colors" />
         </button>
@@ -359,7 +358,7 @@ function CardCarousel({ index, setIndex, t }) {
 function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(4);
   return (
-    <section className="w-full bg-[#f8fafc] relative py-16 md:py-20 overflow-hidden">
+    <section className="w-full bg-[#f8fafc] relative py-14 md:py-16 overflow-hidden">
       <div className="flex flex-col md:grid md:grid-cols-2 gap-6 items-center relative">
         <CardGambar index={index} t={t} />
         <CardCarousel index={index} setIndex={setIndex} t={t} />

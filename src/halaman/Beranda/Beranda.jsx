@@ -1,17 +1,15 @@
 /**
  * Halaman: Informasi Jadwal Turnamen Catur (item pertama sidebar Beranda).
  *
- * Menampilkan rangkuman dua hal yang dikelola pengurus di dashboard:
- *   - seluruh jadwal turnamen yang dipublikasikan (semua status),
- *   - pengumuman resmi terbaru.
- * Detail dan klasemen tetap di halaman turnamen masing-masing.
+ * Menampilkan seluruh jadwal turnamen yang dipublikasikan (semua status).
+ * Detail dan klasemen tetap di halaman turnamen masing-masing. Rangkuman
+ * pengumuman kini dipindah ke halaman terpisah (RangkumanPengumuman).
  */
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
 import {
   ambilTurnamenPublik,
-  ambilPengumumanPublik,
   jenisTurnamen,
 } from "../../lib/api/index.js";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -34,7 +32,6 @@ function formatTanggal(nilai) {
 export default function Beranda() {
   const [turnamen, setTurnamen] = useState(null);
   const [jenis, setJenis] = useState({});
-  const [pengumuman, setPengumuman] = useState(null);
   const [gagal, setGagal] = useState(false);
   const { bahasa } = useI18n();
 
@@ -45,13 +42,11 @@ export default function Beranda() {
       jenisTurnamen()
         .then((j) => j.jenis || {})
         .catch(() => ({})),
-      ambilPengumumanPublik(),
     ])
-      .then(([t, j, p]) => {
+      .then(([t, j]) => {
         if (!hidup) return;
         setTurnamen(t);
         setJenis(j);
-        setPengumuman(p);
       })
       .catch(() => {
         if (hidup) setGagal(true);
@@ -64,9 +59,8 @@ export default function Beranda() {
   return (
     <BagianBeranda id="turnamen" title="Informasi Jadwal Turnamen Catur">
       <p className="ql-align-justify">
-        Berikut rangkuman jadwal seluruh turnamen yang dikelola komunitas dan
-        pengumuman resmi terbaru. Rincian lengkap, peserta, dan klasemen ada di
-        halaman turnamen masing-masing.
+        Berikut rangkuman jadwal seluruh turnamen yang dikelola komunitas.
+        Rincian lengkap, peserta, dan klasemen ada di halaman turnamen masing-masing.
       </p>
 
       <h3>Rangkuman Jadwal Turnamen</h3>
@@ -140,36 +134,6 @@ export default function Beranda() {
         </div>
       ) : (
         <p>Belum ada jadwal turnamen yang dipublikasikan.</p>
-      )}
-
-      <h3>Rangkuman Pengumuman</h3>
-      {gagal ? (
-        <p>
-          Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.
-        </p>
-      ) : pengumuman === null ? (
-        <p>Memuat pengumuman…</p>
-      ) : pengumuman.length ? (
-        <div>
-          {pengumuman.map((p) => (
-            <article
-              key={p.id}
-              className="border-b border-slate-200 py-3"
-            >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h4 className="text-sm font-semibold text-slate-900">{p.judul}</h4>
-                <span className="text-xs uppercase tracking-wide text-slate-500">
-                  {p.tanggal}
-                </span>
-              </div>
-              <p className="mb-0! mt-1 text-sm leading-6 text-slate-600">
-                {p.isi}
-              </p>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <p>Belum ada pengumuman.</p>
       )}
     </BagianBeranda>
   );
