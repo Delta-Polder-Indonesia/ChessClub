@@ -24,10 +24,11 @@ Browser ──> Vercel (frontend statis, gratis) ──/api/*──> Render.com 
 > butuh data yang **awet**, sehingga Render **Starter** (satu-satunya tier
 > murah ber-disk) adalah pilihan yang tepat. Lihat `PANDUAN-DEPLOY.md`.
 
-Kode sudah disiapkan di repo:
-- `vercel.json` — build Vite + proxy `/api/*` ke backend (sudah ada).
+File yang sudah disiapkan di repo:
+- `vercel.json` — build Vite + proxy `/api/*` ke backend.
 - `.vercelignore` — mengabaikan `server/`, `scripts/`, `tests/`, `.github/`,
   `data/` saat unggah ke Vercel (frontend statis saja).
+- `render.yaml` — blueprint Render.com (service + persistent disk + env vars).
 
 ---
 
@@ -48,6 +49,31 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 ---
 
 ## 2. Deploy backend ke Render.com
+
+> **Dua cara**: (A) **Blueprint `render.yaml`** — satu klik, konfigurasi sudah
+> terdokumentasi di repo; (B) **Web Service manual** — isi lewat dashboard.
+> Keduanya menghasilkan service yang sama. Pilih salah satu.
+
+### Cara A — Blueprint `render.yaml` (disarankan, otomatis)
+
+`render.yaml` sudah disiapkan di repo dan berisi service `kci-api`, plan
+**Starter**, **persistent disk** di `/var/data` (1 GB), perintah mulai
+`node server/src/index.js`, health-check `/api/kesehatan`, dan deklarasi
+`KCI_PEPPER`, `KCI_TOKEN_ADMIN`, `KCI_ASAL_DIIZINKAN` dengan `sync: false`.
+
+1. Buka [render.com](https://render.com) → **New** → **Blueprint**.
+2. Pilih repositori ini → biarkan Render membaca `render.yaml`.
+3. Saat diminta, isi nilai untuk variabel ber-`sync: false`:
+   - `KCI_PEPPER` → hasil generate di langkah 1.
+   - `KCI_TOKEN_ADMIN` → hasil generate di langkah 1.
+   - `KCI_ASAL_DIIZINKAN` → `https://<nama-proyek>.vercel.app` *(domain Vercel-mu)*.
+4. Klik **Apply** → Render membuat service, disk, dan env vars otomatis.
+
+> Semua nilai `sync: false` hanya diminta saat **pembuatan pertama**. Saat
+> update Blueprint berikutnya Render mengabaikannya — tambahkan/revisi nilai
+> rahasia secara manual lewat dashboard bila perlu.
+
+### Cara B — Web Service manual
 
 1. Buka [render.com](https://render.com) → **New** → **Web Service**.
 2. **Sambungkan** repositori GitHub ini (pilih branch produksi, mis. `main`).

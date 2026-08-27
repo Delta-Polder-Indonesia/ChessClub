@@ -65,7 +65,11 @@ Kombinasi paling seimbang untuk produksi:
 - **Frontend** → **Vercel** (gratis, CDN global)
 - **Backend** → **Render.com Starter + Persistent Disk** (data persisten)
 
-Konfigurasi `vercel.json` dan `.vercelignore` sudah disertakan di repo.
+File yang disertakan untuk deploy:
+- `vercel.json` — build Vite + proxy `/api/*` ke backend.
+- `.vercelignore` — mengecualikan bagian non-frontend saat unggah ke Vercel.
+- `render.yaml` — blueprint Render.com (service + persistent disk + env vars).
+
 Ikuti panduan langkah-demi-langkah di
 [`PANDUAN-DEPLOY-VERCEL-RENDER.md`](./PANDUAN-DEPLOY-VERCEL-RENDER.md)
 untuk penyiapan env var, disk, dan verifikasi. Panduan lengkap semua opsi
