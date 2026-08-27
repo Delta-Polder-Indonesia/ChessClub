@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { jalurBeranda, jalurBerandaUtama } from "../halaman/Beranda/sidebar.js";
+import { gulirKeAtasInstan } from "../lib/gulir.js";
 
 export default function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -18,18 +19,32 @@ export default function ScrollToTop() {
         // Hash malformed (mis. "/#%zz") — jangan biarkan aplikasi crash.
         id = hash.slice(1);
       }
+      // Halaman tujuan dimuat malas: saat efek ini berjalan, chunk-nya
+      // bisa saja belum selesai diunduh sehingga elemen #id belum ada.
+      // Coba ulang beberapa frame sampai elemennya muncul (pola yang sama
+      // dengan TataLetakBeranda) — tanpa ini, tautan seperti
+      // "/tentang-kami#visi-misi" diam-diam gagal menggulir.
+      let coba = 0;
+      let frame = 0;
       const go = () => {
         const el = document.getElementById(id);
-        if (el) el.scrollIntoView({ behavior: "smooth" });
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth" });
+          return;
+        }
+        if (coba++ < 90) frame = window.requestAnimationFrame(go);
       };
-      const t = setTimeout(go, 80);
-      return () => clearTimeout(t);
+      frame = window.requestAnimationFrame(go);
+      return () => {
+        if (frame) window.cancelAnimationFrame(frame);
+        coba = 999;
+      };
     }
 
-    // Halaman utama Beranda ("/" atau "/beranda"): selalu tampilkan foto
+    // Halaman utama Beranda ("/beranda"): selalu tampilkan foto
     // hero di atas — termasuk saat menekan menu Beranda dari tab lain.
     if (jalurBerandaUtama(pathname)) {
-      window.scrollTo(0, 0);
+      gulirKeAtasInstan();
       return undefined;
     }
 
@@ -39,7 +54,7 @@ export default function ScrollToTop() {
       return undefined;
     }
 
-    window.scrollTo(0, 0);
+    gulirKeAtasInstan();
     return undefined;
   }, [pathname, hash]);
 
