@@ -917,6 +917,14 @@ export const ID = {
     selanjutnya: "Selanjutnya",
     keberlanjutanDesk:
       "Komunitas Catur Indonesia berkomitmen membangun ekosistem catur yang berkelanjutan melalui pendidikan, pembinaan bakat, dan penguatan jejaring pecatur di seluruh Indonesia. Kami percaya bahwa konsistensi dalam program dan kebersamaan adalah kunci kemajuan catur nasional.",
+    harapanJudul: "Harapan dan Terima Kasih",
+    harapanP1:
+      "Komunitas Catur Indonesia hadir dari keyakinan sederhana: setiap orang yang duduk di depan papan catur membawa potensi untuk bertumbuh. Dari pemula yang baru mengenal pergerakan bidak hingga pecatur berpengalaman yang rutin menempuh turnamen, kami ingin memastikan tidak ada yang berjalan sendirian.",
+    harapanP2:
+      "Kepada seluruh anggota, pengurus, relawan, dan mitra yang telah memberikan waktu, tenaga, dan dukungan — terima kasih. Setiap turnamen yang berjalan lancar, setiap kelas yang penuh semangat, dan setiap langkah kecil kemajuan anggota adalah buah kerja sama kita bersama.",
+    harapanP3:
+      "Ke depan, semoga komunitas ini semakin terbuka dan semakin jauh menjangkau pecatur di berbagai daerah — terus menjadi rumah bagi siapa pun yang ingin bermain, belajar, dan bertumbuh bersama catur.",
+    harapanTtd: "Salam hangat, Pengurus Komunitas Catur Indonesia",
     sorotanJudul: "Sorotan Kegiatan",
     sorotanDeskripsi:
       "Rangkaian kegiatan yang menopang pembinaan dan prestasi catur komunitas.",
