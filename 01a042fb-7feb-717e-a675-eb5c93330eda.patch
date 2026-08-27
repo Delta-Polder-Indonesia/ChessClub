@@ -1,0 +1,569 @@
+diff --git a/public/images/E-BOOK/cover-101-prinsip-dasar.webp b/public/images/E-BOOK/cover-101-prinsip-dasar.webp
+new file mode 100644
+index 0000000..2d9b5f6
+Binary files /dev/null and b/public/images/E-BOOK/cover-101-prinsip-dasar.webp differ
+diff --git a/public/images/E-BOOK/cover-caro-kann-defense.webp b/public/images/E-BOOK/cover-caro-kann-defense.webp
+new file mode 100644
+index 0000000..6f31541
+Binary files /dev/null and b/public/images/E-BOOK/cover-caro-kann-defense.webp differ
+diff --git a/public/images/E-BOOK/cover-mastering-chess-middle-game.webp b/public/images/E-BOOK/cover-mastering-chess-middle-game.webp
+new file mode 100644
+index 0000000..147ba79
+Binary files /dev/null and b/public/images/E-BOOK/cover-mastering-chess-middle-game.webp differ
+diff --git a/public/images/E-BOOK/cover-practical-chess-exercises.webp b/public/images/E-BOOK/cover-practical-chess-exercises.webp
+new file mode 100644
+index 0000000..a2e1044
+Binary files /dev/null and b/public/images/E-BOOK/cover-practical-chess-exercises.webp differ
+diff --git a/public/images/E-BOOK/cover-problem-catur-288.webp b/public/images/E-BOOK/cover-problem-catur-288.webp
+new file mode 100644
+index 0000000..943f92c
+Binary files /dev/null and b/public/images/E-BOOK/cover-problem-catur-288.webp differ
+diff --git a/public/images/E-BOOK/cover-ruy-lopez-anti-berlin.webp b/public/images/E-BOOK/cover-ruy-lopez-anti-berlin.webp
+new file mode 100644
+index 0000000..f4b36b3
+Binary files /dev/null and b/public/images/E-BOOK/cover-ruy-lopez-anti-berlin.webp differ
+diff --git a/public/images/E-BOOK/cover-sicilian-defense.webp b/public/images/E-BOOK/cover-sicilian-defense.webp
+new file mode 100644
+index 0000000..ec5bbc5
+Binary files /dev/null and b/public/images/E-BOOK/cover-sicilian-defense.webp differ
+diff --git a/public/images/E-BOOK/cover-win-london-system.webp b/public/images/E-BOOK/cover-win-london-system.webp
+new file mode 100644
+index 0000000..b598d00
+Binary files /dev/null and b/public/images/E-BOOK/cover-win-london-system.webp differ
+diff --git a/public/images/E-BOOK/cover_6a747c4f4540a.webp b/public/images/E-BOOK/cover_6a747c4f4540a.webp
+deleted file mode 100644
+index 7043f24..0000000
+Binary files a/public/images/E-BOOK/cover_6a747c4f4540a.webp and /dev/null differ
+diff --git a/public/images/E-BOOK/cover_6a78f8cfbde21.webp b/public/images/E-BOOK/cover_6a78f8cfbde21.webp
+index 35f3d8e..a76fc7c 100644
+Binary files a/public/images/E-BOOK/cover_6a78f8cfbde21.webp and b/public/images/E-BOOK/cover_6a78f8cfbde21.webp differ
+diff --git a/public/images/E-BOOK/cover_6a7908e29c7a3.webp b/public/images/E-BOOK/cover_6a7908e29c7a3.webp
+index c593b45..e355a8d 100644
+Binary files a/public/images/E-BOOK/cover_6a7908e29c7a3.webp and b/public/images/E-BOOK/cover_6a7908e29c7a3.webp differ
+diff --git a/public/images/E-BOOK/cover_6a7909a91d321.webp b/public/images/E-BOOK/cover_6a7909a91d321.webp
+index 4f314c0..e5f9e51 100644
+Binary files a/public/images/E-BOOK/cover_6a7909a91d321.webp and b/public/images/E-BOOK/cover_6a7909a91d321.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790acc54608.webp b/public/images/E-BOOK/cover_6a790acc54608.webp
+index bead422..f6cbc43 100644
+Binary files a/public/images/E-BOOK/cover_6a790acc54608.webp and b/public/images/E-BOOK/cover_6a790acc54608.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790b84c8bda.webp b/public/images/E-BOOK/cover_6a790b84c8bda.webp
+index 0b83137..4305865 100644
+Binary files a/public/images/E-BOOK/cover_6a790b84c8bda.webp and b/public/images/E-BOOK/cover_6a790b84c8bda.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790c0eeb69b.webp b/public/images/E-BOOK/cover_6a790c0eeb69b.webp
+index 54e730d..4c9dd43 100644
+Binary files a/public/images/E-BOOK/cover_6a790c0eeb69b.webp and b/public/images/E-BOOK/cover_6a790c0eeb69b.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790cdddb621.webp b/public/images/E-BOOK/cover_6a790cdddb621.webp
+index 749dcf6..f658826 100644
+Binary files a/public/images/E-BOOK/cover_6a790cdddb621.webp and b/public/images/E-BOOK/cover_6a790cdddb621.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790d7c40863.webp b/public/images/E-BOOK/cover_6a790d7c40863.webp
+index c4805c6..dca490b 100644
+Binary files a/public/images/E-BOOK/cover_6a790d7c40863.webp and b/public/images/E-BOOK/cover_6a790d7c40863.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790e7531e8e.webp b/public/images/E-BOOK/cover_6a790e7531e8e.webp
+index 4aac840..5d9dfe6 100644
+Binary files a/public/images/E-BOOK/cover_6a790e7531e8e.webp and b/public/images/E-BOOK/cover_6a790e7531e8e.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790f2db969a.webp b/public/images/E-BOOK/cover_6a790f2db969a.webp
+index 69c19f6..5fbf121 100644
+Binary files a/public/images/E-BOOK/cover_6a790f2db969a.webp and b/public/images/E-BOOK/cover_6a790f2db969a.webp differ
+diff --git a/public/images/E-BOOK/cover_6a790fc6c60d4.webp b/public/images/E-BOOK/cover_6a790fc6c60d4.webp
+index fd0b9a3..ef4865d 100644
+Binary files a/public/images/E-BOOK/cover_6a790fc6c60d4.webp and b/public/images/E-BOOK/cover_6a790fc6c60d4.webp differ
+diff --git a/public/images/E-BOOK/cover_6a79105f61ca2.webp b/public/images/E-BOOK/cover_6a79105f61ca2.webp
+index 3b8cbed..ff192c2 100644
+Binary files a/public/images/E-BOOK/cover_6a79105f61ca2.webp and b/public/images/E-BOOK/cover_6a79105f61ca2.webp differ
+diff --git a/public/images/E-BOOK/cover_6a79a20d03fe1.webp b/public/images/E-BOOK/cover_6a79a20d03fe1.webp
+deleted file mode 100644
+index 4bbfdf6..0000000
+Binary files a/public/images/E-BOOK/cover_6a79a20d03fe1.webp and /dev/null differ
+diff --git a/public/images/E-BOOK/cover_6a7a782fd243f.webp b/public/images/E-BOOK/cover_6a7a782fd243f.webp
+index 096c126..68c6fe8 100644
+Binary files a/public/images/E-BOOK/cover_6a7a782fd243f.webp and b/public/images/E-BOOK/cover_6a7a782fd243f.webp differ
+diff --git a/public/images/E-BOOK/cover_6a7a78bc6909e.webp b/public/images/E-BOOK/cover_6a7a78bc6909e.webp
+index eeb01ac..2e54b2b 100644
+Binary files a/public/images/E-BOOK/cover_6a7a78bc6909e.webp and b/public/images/E-BOOK/cover_6a7a78bc6909e.webp differ
+diff --git a/public/images/E-BOOK/cover_6a7a79edab10c.webp b/public/images/E-BOOK/cover_6a7a79edab10c.webp
+index a0e88f5..8320244 100644
+Binary files a/public/images/E-BOOK/cover_6a7a79edab10c.webp and b/public/images/E-BOOK/cover_6a7a79edab10c.webp differ
+diff --git a/public/images/E-BOOK/cover_6a7a7a8e4c93f.webp b/public/images/E-BOOK/cover_6a7a7a8e4c93f.webp
+index 9d89d08..6ff2bef 100644
+Binary files a/public/images/E-BOOK/cover_6a7a7a8e4c93f.webp and b/public/images/E-BOOK/cover_6a7a7a8e4c93f.webp differ
+diff --git a/src/halaman/Beranda/EbookPanduan.jsx b/src/halaman/Beranda/EbookPanduan.jsx
+index 9a6c3d8..d6da934 100644
+--- a/src/halaman/Beranda/EbookPanduan.jsx
++++ b/src/halaman/Beranda/EbookPanduan.jsx
+@@ -1,4 +1,5 @@
+ import { useEffect, useMemo, useState } from "react";
++import { useSearchParams } from "react-router-dom";
+ import { BagianBeranda } from "./TataLetakBeranda.jsx";
+ import { CloseIcon } from "../../components/icons.jsx";
+ 
+@@ -17,81 +18,327 @@ import { CloseIcon } from "../../components/icons.jsx";
+  * Tidak perlu ubah komponen lain.
+  */
+ 
+-const DAFTAR_EBOOK = [
++export const DAFTAR_EBOOK = [
+   {
+-    id: "panduan-dasar",
+-    judul: "Panduan Dasar Bermain Catur",
++    id: "101-prinsip-dasar-bermain-catur",
++    judul: "101 Prinsip Dasar Bermain Catur",
+     deskripsi:
+-      "Pengenalan papan, gerakan bidak, notasi aljabar, dan aturan khusus seperti rokade, en passant, dan promosi.",
+-    file: "/ebooks/panduan-dasar-catur.pdf",
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/101%20Prinsip%20Dasar%20Bermain%20Catur.pdf",
+     kategori: "Dasar",
+-    ukuran: "0,9 MB",
+-    halaman: "12 hal",
+-    tahun: "2024",
++    ukuran: "2,0 MB",
++    halaman: "-",
++    tahun: "-",
+     tersedia: true,
+   },
+   {
+-    id: "aturan-fide",
+-    judul: "Aturan Resmi FIDE 2024 - Ringkasan",
++    id: "basic-italian-a-grammar-and",
++    judul: "BASIC ITALIAN A GRAMMAR AND",
+     deskripsi:
+-      "Ringkasan aturan permainan, penggunaan jam catur, ketentuan remis, dan regulasi turnamen resmi.",
+-    file: "/ebooks/aturan-fide.pdf",
+-    kategori: "Regulasi",
+-    ukuran: "0,9 MB",
+-    halaman: "10 hal",
+-    tahun: "2024",
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/BASIC%20ITALIAN%20A%20GRAMMAR%20AND.pdf",
++    kategori: "Dasar",
++    ukuran: "4,4 MB",
++    halaman: "-",
++    tahun: "-",
+     tersedia: true,
+   },
+   {
+-    id: "pembukaan",
+-    judul: "Prinsip & Ide Pembukaan",
++    id: "carokann-gambit-system-eng",
++    judul: "carokann gambit system (eng)",
+     deskripsi:
+-      "Prinsip kontrol pusat, pengembangan perwira, keamanan raja, serta contoh ide pembukaan populer yang praktis.",
+-    file: "/ebooks/pembukaan.pdf",
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/carokann%20gambit%20system%20%28eng%29.pdf",
+     kategori: "Strategi",
+-    ukuran: "0,8 MB",
+-    halaman: "8 hal",
+-    tahun: "2024",
++    ukuran: "34,6 MB",
++    halaman: "-",
++    tahun: "-",
+     tersedia: true,
+   },
+   {
+-    id: "taktik",
+-    judul: "Taktik Dasar & Menengah",
++    id: "chess-opening-fundamentals-igor-smirnov-650",
++    judul: "chess-opening-fundamentals-igor-smirnov-650",
+     deskripsi:
+-      "Materi garpu, pin, tusuk sate, serangan ganda, dan latihan perhitungan variasi untuk mengasah ketajaman.",
+-    file: "/ebooks/taktik-strategi.pdf",
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/chess-opening-fundamentals-igor-smirnov-650.pdf",
++    kategori: "Dasar",
++    ukuran: "1,6 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "chess-tactics-for-students-id",
++    judul: "chess-tactics-for-students (id)",
++    deskripsi:
++      "Latihan taktik, kombinasi, dan penyelesaian catur.",
++    file: "/ebooks/chess-tactics-for-students%20%28id%29.pdf",
+     kategori: "Taktik",
+-    ukuran: "0,8 MB",
+-    halaman: "8 hal",
+-    tahun: "2024",
++    ukuran: "19,2 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "dokumen-dari-syahrialm-indo",
++    judul: "Dokumen dari SyahrialM (Indo)",
++    deskripsi:
++      "Dokumen panduan catur.",
++    file: "/ebooks/Dokumen%20dari%20SyahrialM%20%28Indo%29.pdf",
++    kategori: "Umum",
++    ukuran: "19,8 MB",
++    halaman: "-",
++    tahun: "-",
+     tersedia: true,
+   },
+   {
+-    id: "peraturan-komunitas",
+-    judul: "Peraturan Komunitas BLUNDER SKUAD",
++    id: "gp-thinking-inside-the-box-indonesia",
++    judul: "GP Thinking Inside the Box (Indonesia)",
+     deskripsi:
+-      "Tata tertib anggota, kode etik komunitas, hak dan kewajiban, serta mekanisme sanksi pelanggaran.",
+-    file: "/ebooks/peraturan-komunitas.pdf",
+-    kategori: "Regulasi",
+-    ukuran: "0,8 MB",
+-    halaman: "6 hal",
+-    tahun: "2024",
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/GP%20Thinking%20Inside%20the%20Box%20%28Indonesia%29.pdf",
++    kategori: "Strategi",
++    ukuran: "40,4 MB",
++    halaman: "-",
++    tahun: "-",
+     tersedia: true,
+   },
+   {
+-    id: "materi-lanjutan",
+-    judul: "Materi Lanjutan - Endgame & Strategi",
++    id: "jeremy-silman-silmans-complete-endgame-course_-from-beginner-to-master-siles",
++    judul: "Jeremy Silman - Silman's Complete Endgame Course_ From Beginner To Master-Siles",
+     deskripsi:
+-      "Konsep endgame dasar, struktur pion, evaluasi posisi, dan rencana permainan untuk tingkat lanjut.",
+-    file: "/ebooks/materi-lanjutan.pdf",
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Jeremy%20Silman%20-%20Silman%27s%20Complete%20Endgame%20Course_%20From%20Beginner%20To%20Master-Siles.pdf",
+     kategori: "Strategi",
+-    ukuran: "-",
++    ukuran: "39,9 MB",
+     halaman: "-",
+-    tahun: "2025",
+-    tersedia: false,
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "learning-chess-step-1",
++    judul: "Learning chess Step 1",
++    deskripsi:
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/Learning%20chess%20Step%201.pdf",
++    kategori: "Dasar",
++    ukuran: "3,3 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "learning-chess-step-2",
++    judul: "Learning chess Step 2",
++    deskripsi:
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/Learning%20chess%20Step%202.pdf",
++    kategori: "Dasar",
++    ukuran: "5,1 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "learning-chess-step-3",
++    judul: "Learning chess Step 3",
++    deskripsi:
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/Learning%20chess%20Step%203.pdf",
++    kategori: "Dasar",
++    ukuran: "11,5 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "learning-chess-step-4",
++    judul: "Learning chess Step 4",
++    deskripsi:
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/Learning%20chess%20Step%204.pdf",
++    kategori: "Dasar",
++    ukuran: "5,0 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "learning-chess-step-5",
++    judul: "Learning chess Step 5",
++    deskripsi:
++      "Materi dasar-dasar bermain catur untuk pemula.",
++    file: "/ebooks/Learning%20chess%20Step%205.pdf",
++    kategori: "Dasar",
++    ukuran: "15,6 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "mastering-chess-middl-game",
++    judul: "Mastering Chess middl game",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Mastering%20Chess%20middl%20game.pdf",
++    kategori: "Strategi",
++    ukuran: "7,7 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "mastering-middle-game-indo",
++    judul: "Mastering middle game (indo)",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Mastering%20middle%20game%20%28indo%29.pdf",
++    kategori: "Strategi",
++    ukuran: "13,7 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "mengapa-anda-kalah-dalam-bermain-catur",
++    judul: "mengapa anda kalah dalam bermain catur",
++    deskripsi:
++      "Dokumen panduan catur.",
++    file: "/ebooks/mengapa%20anda%20kalah%20dalam%20bermain%20catur.pdf",
++    kategori: "Umum",
++    ukuran: "8,5 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "pembukaan-gambit-menteri",
++    judul: "Pembukaan Gambit Menteri",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Pembukaan%20Gambit%20Menteri.pdf",
++    kategori: "Strategi",
++    ukuran: "7,2 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "play-the-london-system-cyrus-lakdawala",
++    judul: "Play the London System (Cyrus Lakdawala)",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Play%20the%20London%20System%20%28Cyrus%20Lakdawala%29.pdf",
++    kategori: "Strategi",
++    ukuran: "30,5 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "practical-chess-exercises-600-lessos",
++    judul: "Practical Chess Exercises 600 Lessos",
++    deskripsi:
++      "Latihan taktik, kombinasi, dan penyelesaian catur.",
++    file: "/ebooks/Practical%20Chess%20Exercises%20600%20Lessos.pdf",
++    kategori: "Taktik",
++    ukuran: "6,2 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "problem-catur-288",
++    judul: "Problem Catur 288",
++    deskripsi:
++      "Latihan taktik, kombinasi, dan penyelesaian catur.",
++    file: "/ebooks/Problem%20Catur%20288.pdf",
++    kategori: "Taktik",
++    ukuran: "12,1 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "ruy-lopez_anti-berlin-id",
++    judul: "Ruy Lopez_Anti Berlin (id)",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Ruy%20Lopez_Anti%20Berlin%20%28id%29.pdf",
++    kategori: "Strategi",
++    ukuran: "71,7 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "sicilian-defense",
++    judul: "Sicilian Defense",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Sicilian%20Defense.pdf",
++    kategori: "Strategi",
++    ukuran: "7,7 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "the-caro-kann-defense-eng",
++    judul: "the-caro-kann-defense (eng)",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/the-caro-kann-defense%20%28eng%29.pdf",
++    kategori: "Strategi",
++    ukuran: "10,5 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
++  },
++  {
++    id: "win-with-the-london-system",
++    judul: "Win with the London System",
++    deskripsi:
++      "Materi strategi, pembukaan, dan rencana permainan catur.",
++    file: "/ebooks/Win%20with%20the%20London%20System.pdf",
++    kategori: "Strategi",
++    ukuran: "15,0 MB",
++    halaman: "-",
++    tahun: "-",
++    tersedia: true,
+   },
+ ];
+ 
++// Pemetaan cover gambar -> buku. Key = id entri di DAFTAR_EBOOK,
++// value = path file di public/images/E-BOOK/.
++// Diisi sementara (urutan file); koreksi bila ada yang tidak cocok.
++export const COVER = {
++      "101-prinsip-dasar-bermain-catur": "/images/E-BOOK/cover-101-prinsip-dasar.webp",
++    "basic-italian-a-grammar-and": "/images/E-BOOK/cover_6a78f8cfbde21.webp",
++    "carokann-gambit-system-eng": "/images/E-BOOK/cover_6a7908e29c7a3.webp",
++    "chess-opening-fundamentals-igor-smirnov-650": "/images/E-BOOK/cover_6a7909a91d321.webp",
++    "chess-tactics-for-students-id": "/images/E-BOOK/cover_6a790acc54608.webp",
++    "dokumen-dari-syahrialm-indo": "/images/E-BOOK/cover_6a790b84c8bda.webp",
++    "gp-thinking-inside-the-box-indonesia": "/images/E-BOOK/cover_6a790c0eeb69b.webp",
++    "jeremy-silman-silmans-complete-endgame-course_-from-beginner-to-master-siles": "/images/E-BOOK/cover_6a790cdddb621.webp",
++    "learning-chess-step-1": "/images/E-BOOK/cover_6a790d7c40863.webp",
++    "learning-chess-step-2": "/images/E-BOOK/cover_6a790e7531e8e.webp",
++    "learning-chess-step-3": "/images/E-BOOK/cover_6a790f2db969a.webp",
++    "learning-chess-step-4": "/images/E-BOOK/cover_6a790fc6c60d4.webp",
++    "learning-chess-step-5": "/images/E-BOOK/cover_6a79105f61ca2.webp",
++    "mastering-chess-middl-game": "/images/E-BOOK/cover-mastering-chess-middle-game.webp",
++    "mastering-middle-game-indo": "/images/E-BOOK/cover_6a7a782fd243f.webp",
++    "mengapa-anda-kalah-dalam-bermain-catur": "/images/E-BOOK/cover_6a7a78bc6909e.webp",
++    "pembukaan-gambit-menteri": "/images/E-BOOK/cover_6a7a79edab10c.webp",
++    "play-the-london-system-cyrus-lakdawala": "/images/E-BOOK/cover_6a7a7a8e4c93f.webp",
++  "practical-chess-exercises-600-lessos": "/images/E-BOOK/cover-practical-chess-exercises.webp",
++  "problem-catur-288": "/images/E-BOOK/cover-problem-catur-288.webp",
++  "ruy-lopez_anti-berlin-id": "/images/E-BOOK/cover-ruy-lopez-anti-berlin.webp",
++  "sicilian-defense": "/images/E-BOOK/cover-sicilian-defense.webp",
++  "the-caro-kann-defense-eng": "/images/E-BOOK/cover-caro-kann-defense.webp",
++  "win-with-the-london-system": "/images/E-BOOK/cover-win-london-system.webp",
++};
++
+ function PdfIcon() {
+   return (
+     <svg
+@@ -135,6 +382,8 @@ function IkonUnduh() {
+ export default function EbookPanduan() {
+   const [pdfAktif, setPdfAktif] = useState(null);
+   const [kategoriAktif, setKategoriAktif] = useState("Semua");
++  const [disorot, setDisorot] = useState(null);
++  const [searchParams] = useSearchParams();
+ 
+   const kategoriList = useMemo(() => {
+     const set = new Set(DAFTAR_EBOOK.map((b) => b.kategori));
+@@ -162,6 +411,22 @@ export default function EbookPanduan() {
+     }
+   }, [pdfAktif]);
+ 
++  // Bila dibuka dari laman lain dengan ?buku=<id>, gulir ke kartu e-book
++  // terkait dan sorot sebentar agar pengguna tahu posisinya.
++  useEffect(() => {
++    const id = searchParams.get("buku");
++    if (!id) return;
++    const timer = window.setTimeout(() => {
++      const el = document.getElementById(id);
++      if (el) {
++        el.scrollIntoView({ behavior: "smooth", block: "center" });
++        setDisorot(id);
++        window.setTimeout(() => setDisorot(null), 2600);
++      }
++    }, 120);
++    return () => window.clearTimeout(timer);
++  }, [searchParams]);
++
+   return (
+     <BagianBeranda id="ebook-catur" title="E-Book & Panduan">
+       <div className="max-w-[720px]">
+@@ -201,10 +466,24 @@ export default function EbookPanduan() {
+         {daftarTampil.map((buku) => (
+           <div
+             key={buku.id}
+-            className="flex gap-4 rounded-lg border border-[#E2E8F0] bg-white p-4"
++            id={buku.id}
++            className={`flex gap-4 rounded-lg border bg-white p-4 ${
++              disorot === buku.id
++                ? "border-[#0B2F9F] ring-4 ring-[#0B2F9F]/30"
++                : "border-[#E2E8F0]"
++            }`}
+           >
+             <div className="hidden sm:block">
+-              <PdfIcon />
++              {COVER[buku.id] ? (
++                <img
++                  src={COVER[buku.id]}
++                  alt={buku.judul}
++                  className="h-14 w-10 rounded object-cover shadow-sm ring-1 ring-slate-200"
++                  loading="lazy"
++                />
++              ) : (
++                <PdfIcon />
++              )}
+             </div>
+             <div className="flex min-w-0 flex-1 flex-col">
+               <div className="flex items-start justify-between gap-3">
+diff --git a/src/halaman/Landing/Landing.jsx b/src/halaman/Landing/Landing.jsx
+index 9c4b27d..2519f76 100644
+--- a/src/halaman/Landing/Landing.jsx
++++ b/src/halaman/Landing/Landing.jsx
+@@ -184,10 +184,30 @@ function SorotanKegiatan({ t }) {
+ 
+ /** Foto e-book untuk karusel kartu — bergantian mengikuti kartu aktif. */
+ const KARTU_GAMBAR = [
+-  { img: gambar("/images/tonggak-2024.webp") },
+-  { img: gambar("/images/tonggak-2022.webp") },
+-  { img: gambar("/images/tonggak-2020.webp") },
+-  { img: gambar("/images/tonggak-2018.webp") },
++  { img: gambar("/images/E-BOOK/cover-101-prinsip-dasar.webp") },
++  { img: gambar("/images/E-BOOK/cover-caro-kann-defense.webp") },
++  { img: gambar("/images/E-BOOK/cover-mastering-chess-middle-game.webp") },
++  { img: gambar("/images/E-BOOK/cover-practical-chess-exercises.webp") },
++  { img: gambar("/images/E-BOOK/cover-problem-catur-288.webp") },
++  { img: gambar("/images/E-BOOK/cover-ruy-lopez-anti-berlin.webp") },
++  { img: gambar("/images/E-BOOK/cover-sicilian-defense.webp") },
++  { img: gambar("/images/E-BOOK/cover-win-london-system.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a78f8cfbde21.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7908e29c7a3.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7909a91d321.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790acc54608.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790b84c8bda.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790c0eeb69b.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790cdddb621.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790d7c40863.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790e7531e8e.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790f2db969a.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a790fc6c60d4.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a79105f61ca2.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7a782fd243f.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7a78bc6909e.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7a79edab10c.webp") },
++  { img: gambar("/images/E-BOOK/cover_6a7a7a8e4c93f.webp") },
+ ];
+ 
+ function CardGambar({ index, t }) {
