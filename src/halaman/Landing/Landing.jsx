@@ -299,12 +299,19 @@ function CardCarousel({ index, setIndex, t }) {
           {tripled.map((k, i) => {
             const isActive = i === index;
             const isLast = i === index + 2;
+            // Saat lompatan reset (noAnim), kartu aktif biru "pindah" ke
+            // elemen DOM lain. Bila kartu masih membawa kelas transisi,
+            // perpindahan putih → biru terANIMASI ±150 ms dan tampak
+            // sebagai kedipan putih. Karena itu SEMUA transisi (kartu,
+            // teks, garis, ikon) dilepas selama frame lompatan.
+            const transisi = noAnim ? "" : "transition-all";
+            const transisiWarna = noAnim ? "" : "transition-colors";
             return (
               <Link
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
-                className={`flex-none w-[290px] h-[360px] p-8 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer transition-all ${
+                className={`flex-none w-[290px] h-[360px] p-8 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
                   isActive
                     ? "bg-primary text-white"
                     : isLast
@@ -312,15 +319,15 @@ function CardCarousel({ index, setIndex, t }) {
                       : "bg-white text-slate-900 hover:bg-primary group"
                 }`}
               >
-                <h3 className={`text-2xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} transition-colors`}>
+                <h3 className={`text-2xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
-                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-red-600 group-hover:bg-white"} transition-colors`} />
-                <p className={`text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} transition-colors`}>
+                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-red-600 group-hover:bg-white"} ${transisiWarna}`} />
+                <p className={`text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
                   {k.desk}
                 </p>
                 <div className="block mt-auto ml-auto">
-                  <ArrowRightIcon className={`size-6 -rotate-45 transition-colors ${isActive ? "text-white" : "text-slate-600 group-hover:text-white"}`} />
+                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-white" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`} />
                 </div>
               </Link>
             );
