@@ -1,0 +1,75 @@
+# Blueprint Render.com untuk backend KCI (Komunitas Catur Indonesia).
+#
+# Render membaca file ini saat kamu membuat "Blueprint" baru di dashboard
+# (New -> Blueprint) atau saat deploy dari git. File ini mendokumentasikan
+# konfigurasi backend yang sebenarnya (service, disk persisten, env vars),
+# sehingga tidak perlu diatur manual satu-per-satu di dashboard.
+#
+# PENTING:
+#   - Sebutan "secret" TIDAK boleh di-hardcode di file ini. Nilai rahasia
+#     (KCI_PEPPER, KCI_TOKEN_ADMIN) dideklarasikan dengan `sync: false` —
+#     Render akan MEMINTA nilainya saat pertama kali membuat Blueprint.
+#   - KCI_ASAL_DIIZINKAN juga `sync: false` karena bergantung pada domain
+#     Vercel kamu (mis. https://nama-proyek.vercel.app). Isikan nilai ini
+#     saat diminta Render.
+#
+# Lihat panduan lengkap: PANDUAN-DEPLOY-VERCEL-RENDER.md
+
+services:
+  - type: web
+    name: kci-api
+    runtime: node
+    # HANYA Starter yang mendukung persistent disk. Free tier TIDAK punya
+    # disk, sehingga data data/*.json akan hilang saat service tidur/restart.
+    plan: starter
+    region: singapore
+    healthCheckPath: /api/kesehatan
+    # Build command dikosongkan — backend ini "no dependencies", cukup node.
+    buildCommand: ""
+    # Start server langsung dari server/src/index.js (Node, tanpa build).
+    startCommand: node server/src/index.js
+    # Auto-deploy saat commit ke branch produksi (mis. main).
+    autoDeploy: true
+    # Atur penyimpanan data PERSISTEN. Tanpa ini data anggota/turnamen/kontak
+    # hilang pada restart. Mount harus sejalan dengan KCI_DIR_DATA=/var/data.
+    disk:
+      name: kci-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      # --- Nilai non-rahasia, aman ditulis di sini ---
+      - key: NODE_ENV
+        value: production
+      - key: KCI_DIR_DATA
+        value: /var/data
+      - key: KCI_CHESS_KLUB
+        value: blunder-skuad
+      - key: KCI_CHESS_KLUB_CACHE
+        value: "43200"
+      # Render menaruh satu reverse proxy di depan aplikasi, jadi IP klien
+      # dibaca dari X-Forwarded-For (untuk rate limit). Jangan ubah ke 0.
+      - key: KCI_JUMLAH_PROXY
+        value: "1"
+      - key: KCI_LOG_PERMINTAAN
+        value: "1"
+
+      # --- Nilai yang HARUS diisi lewat dashboard (jangan hardcode) ---
+      # Kata rahasia hashing identitas (min. 16 karakter).
+      - key: KCI_PEPPER
+        sync: false
+      # Token endpoint pengurus (min. 24 karakter).
+      - key: KCI_TOKEN_ADMIN
+        sync: false
+      # Origin frontend yang boleh memanggil API.
+      #   https://<nama-proyek>.vercel.app  (dan domain kustom bila ada)
+      - key: KCI_ASAL_DIIZINKAN
+        sync: false
+
+      # --- Opsional: verifikasi akun via OAuth Chess.com ---
+      # Isi bila ingin mengaktifkan login OAuth penuh; kosong = jalur kode.
+      # - key: KCI_CHESS_CLIENT_ID
+      #   sync: false
+      # - key: KCI_CHESS_CLIENT_SECRET
+      #   sync: false
+      # - key: KCI_CHESS_REDIRECT_URI
+      #   sync: false

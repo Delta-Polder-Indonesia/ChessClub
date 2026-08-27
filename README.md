@@ -58,6 +58,24 @@ konten, dan pesan — detail lengkap ada di `server/README.md` dan
 backend harus dicapai langsung lewat `VITE_API_DASAR` — sudah diatur
 otomatis oleh workflow deploy.
 
+### Jalur deploy yang disarankan
+
+Kombinasi paling seimbang untuk produksi:
+
+- **Frontend** → **Vercel** (gratis, CDN global)
+- **Backend** → **Render.com Starter + Persistent Disk** (data persisten)
+
+File yang disertakan untuk deploy:
+- `vercel.json` — build Vite + proxy `/api/*` ke backend.
+- `.vercelignore` — mengecualikan bagian non-frontend saat unggah ke Vercel.
+- `render.yaml` — blueprint Render.com (service + persistent disk + env vars).
+
+Ikuti panduan langkah-demi-langkah di
+[`PANDUAN-DEPLOY-VERCEL-RENDER.md`](./PANDUAN-DEPLOY-VERCEL-RENDER.md)
+untuk penyiapan env var, disk, dan verifikasi. Panduan lengkap semua opsi
+hosting (Render, Netlify, Vercel, GitHub Pages, VPS) ada di
+[`PANDUAN-DEPLOY.md`](./PANDUAN-DEPLOY.md).
+
 ## Fitur
 
 - **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keberlanjutan. Keanggotaan hanya tampil sebagai tab di dalam Struktur Grup Catur pada menu Tentang Kami.

@@ -10,6 +10,13 @@ Situs ini kini terdiri dari **dua bagian** yang berjalan terpisah:
 > **Penting:** GitHub Pages hanya bisa menyajikan berkas statis — ia tidak
 > dapat menjalankan backend. Backend harus di-hosting terpisah.
 
+> 🟢 **Jalur yang direkomendasikan untuk produksi:** **Vercel** (frontend) +
+> **Render.com Starter + persistent disk** (backend). Panduan langkah demi
+> langkah yang ringkas ada di
+> [`PANDUAN-DEPLOY-VERCEL-RENDER.md`](./PANDUAN-DEPLOY-VERCEL-RENDER.md).
+> Render **Free** tidak mendukung persistent disk sehingga data pembahasan
+> seluruhnya dapat hilang — untuk komunitas nyata gunakan **Starter**.
+
 ---
 
 ## 1. Siapkan rahasia
@@ -155,6 +162,58 @@ Buat `netlify.toml` di akar proyek:
 
 Cara ini paling rapi: browser tetap memanggil domain yang sama, jadi tidak
 ada masalah CORS sama sekali.
+
+#### Khusus Vercel — `vercel.json`
+
+Vercel memakai berkas `vercel.json` di akar proyek (sudah disertakan di repo):
+
+```json
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "installCommand": "npm ci",
+  "buildCommand": "VITE_BASE_PUBLIC=/ npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://kci-api.onrender.com/api/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+Yang perlu diperhatikan:
+
+- **`VITE_BASE_PUBLIC=/`**: tanpa ini, `vite.config.js` akan memakai dasar
+  `/ChessClub/` (untuk GitHub Pages) saat `NODE_ENV=production`, sehingga aset
+  gagal termuat di Vercel.
+- **Proxy `/api`**: frontend selalu memakai URL relatif `/api/…`; rewrite
+  pertama meneruskannya ke backend (Render) secara server-side, jadi tidak
+  ada masalah CORS. Ganti `https://kci-api.onrender.com` bila backend pindah.
+  Jaga agar rewrite ini **diletakkan sebelum** rewrite SPA `/(.*)`.
+- **Rewrite SPA `/(.*)`**: memastikan rute frontend yang tidak punya berkas
+  statis (mis. panel `/pengurus`) tetap mengembalikan `index.html` dengan
+  status 200. Rute yang sudah dibangkitkan statis tetap dilayani langsung.
+- **Jangan setel `VITE_API_DASAR`** di Vercel — biarkan kosong agar panggilan
+  tetap relatif `/api/…` dan lewat proxy. Bila diisi, proxy di atas harus
+  dihapus.
+- **Tambahkan domain Vercel ke `KCI_ASAL_DIIZINKAN`** di backend (Render).
+  Meski API diproksi, header `Origin` dari browser tetap domain Vercel dan
+  diperiksa server.
+- **Environtment variable** (Settings → Environment Variables) di project
+  Vercel: tidak wajib untuk frontend. Vercel tidak membaca `.env`; semua
+  `KCI_*` adalah urusan backend (Render), bukan Vercel.
+- **Ukuran**: `public/engines/` berisi berkas mesin catur (Stockfish) yang
+  besar (ratusan MB). Jika deploy melebihi batas kuota Hobby, kurangi varian
+  mesin atau pindahkan ke penyimpanan eksternal (mis. CDN), lalu gunakan
+  `VITE_*`/URL dinamis.
+- **URL kanonikal/OG**: `index.html` meng-hardcode alamat
+  `https://delta-polder-indonesia.github.io/ChessClub/` untuk `canonical`,
+  `og:url`, dan JSON-LD. Untuk SEO yang benar di domain Vercel, ganti alamat
+  tersebut (mis. lewat substitusi `%VITE_*%` di HTML) sesuai domain Vercel.
+
+Untuk menghubungkan repositori: **Vercel → Add New → Project → Import Git
+Repository**, pilih root proyek. Biarkan framework terdeteksi **Vite**
+(atau tetapkan `framework: "vite"`), build `npm run build`, dan output `dist`.
 
 ### Bila frontend tetap di GitHub Pages
 

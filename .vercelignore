@@ -1,0 +1,37 @@
+# Berkas yang TIDAK perlu diunggah ke Vercel.
+# Frontend statis di-build dari src/, public/, dan package.json saja.
+# Backend (server/) berjalan terpisah (Render/VPS) dan TIDAK di-deploy ke Vercel.
+
+# Dependensi & hasil build (Vercel membangunnnya sendiri)
+node_modules/
+dist/
+.vercel/
+
+# Backend & skrip/uji — dijalankan terpisah (lihat PANDUAN-DEPLOY.md)
+server/
+scripts/
+tests/
+playwright.config.js
+playwright-report/
+test-results/
+
+# Berkas CI / sistem
+.github/
+
+# Berkas data backend (ditulis oleh server, bukan frontend statis)
+data/
+
+# Dokumen & catatan pengembangan
+*.md
+doc/
+puzzel.md
+prompt.md
+.env
+.env.*
+!.env.contoh
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
