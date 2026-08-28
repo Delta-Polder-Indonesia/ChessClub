@@ -48,6 +48,14 @@ Situs dioptimasi agar Lighthouse mobile/desktop menuju 100 pada keempat kategori
 
 Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
 
+## Deploy
+
+| Skema | Panduan | Keterangan |
+| ----- | ------- | ---------- |
+| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Rp 0, backend jalan sebagai Serverless Function (`api/[...jalur].js`) |
+| Vercel (frontend) + Render (backend ber-disk) | `PANDUAN-DEPLOY-VERCEL-RENDER.md` | Untuk data produksi yang harus awet |
+| Lainnya (GitHub Pages, Netlify, VPS) | `PANDUAN-DEPLOY.md` | |
+
 ## Backend (keanggotaan, verifikasi, turnamen)
 
 Situs terdiri dari **dua bagian**: frontend statis (repo ini) dan backend

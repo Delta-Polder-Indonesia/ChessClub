@@ -10,6 +10,9 @@ import { fileURLToPath } from "node:url";
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const AKAR = path.resolve(DIR, "../..");
 
+/** Vercel menyuntikkan variabel VERCEL otomatis di Serverless Function. */
+const DI_VERCEL = Boolean(process.env.VERCEL);
+
 const angka = (v, bawaan) => {
   const n = Number(v);
   return Number.isFinite(n) && n > 0 ? n : bawaan;
@@ -48,8 +51,15 @@ export const konfigurasi = {
    * - N: N proxy tepercaya. Hitung N entri dari kanan.
    *
    * Jangan naikkan nilai ini tanpa benar-benar ada proxy di depan.
+   *
+   * Di Vercel Serverless Function, socket SELALU berada di belakang
+   * proxy Vercel (remoteAddress = alamat internal), dan Vercel menulis
+   * IP klien asli ke X-Forwarded-For. Bawaan otomatis menjadi 1 di sana.
    */
-  jumlahProxyTepercaya: angka(process.env.KCI_JUMLAH_PROXY, 0),
+  jumlahProxyTepercaya: angka(
+    process.env.KCI_JUMLAH_PROXY,
+    DI_VERCEL ? 1 : 0
+  ),
 
   /** Kata rahasia untuk hashing identitas. Wajib di produksi. */
   pepper: process.env.KCI_PEPPER || "",
@@ -60,8 +70,12 @@ export const konfigurasi = {
   /** Asal (origin) yang boleh memanggil API. Kosong = izinkan semua. */
   asalDiizinkan: daftar(process.env.KCI_ASAL_DIIZINKAN),
 
-  /** Lokasi berkas data. */
-  dirData: process.env.KCI_DIR_DATA || path.join(AKAR, "data"),
+  /** Lokasi berkas data.
+   * Di Vercel hanya /tmp yang dapat ditulis (filesystem lain read-only),
+   * jadi bila KCI_DIR_DATA tidak diatur bawaannya otomatis /tmp/kci-data.
+   * CATATAN: /tmp bersifat sementara per instance function — untuk data
+   * yang harus awet, gunakan disk persisten (Render Starter) atau DB. */
+  dirData: process.env.KCI_DIR_DATA || (DI_VERCEL ? "/tmp/kci-data" : path.join(AKAR, "data")),
   get berkasAnggota() {
     return path.join(this.dirData, "anggota.json");
   },
