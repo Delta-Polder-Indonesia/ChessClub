@@ -1,27 +1,28 @@
-# Blueprint Render.com untuk backend KCI (Komunitas Catur Indonesia).
+# Blueprint Render.com GRATIS untuk backend KCI (Komunitas Catur Indonesia).
 #
-# Render membaca file ini saat kamu membuat "Blueprint" baru di dashboard
-# (New -> Blueprint) atau saat deploy dari git. File ini mendokumentasikan
-# konfigurasi backend yang sebenarnya (service, disk persisten, env vars),
-# sehingga tidak perlu diatur manual satu-per-satu di dashboard.
+# File ini sengaja memakai plan `free` supaya Blueprint dapat dipakai untuk
+# uji coba tanpa Persistent Disk dan tanpa paket Starter. Render membaca file
+# ini saat membuat "Blueprint" baru dari dashboard.
 #
 # PENTING:
+#   - Free tier memakai penyimpanan sementara. Data JSON dapat kembali ke
+#     keadaan awal setelah restart/deploy. Jangan gunakan untuk data produksi.
 #   - Sebutan "secret" TIDAK boleh di-hardcode di file ini. Nilai rahasia
 #     (KCI_PEPPER, KCI_TOKEN_ADMIN) dideklarasikan dengan `sync: false` —
 #     Render akan MEMINTA nilainya saat pertama kali membuat Blueprint.
 #   - KCI_ASAL_DIIZINKAN juga `sync: false` karena bergantung pada domain
-#     Vercel kamu (mis. https://nama-proyek.vercel.app). Isikan nilai ini
-#     saat diminta Render.
+#     Vercel kamu. Isikan domain Vercel saat diminta Render.
 #
+# Untuk produksi, upgrade service ke Starter dan tambahkan Persistent Disk.
 # Lihat panduan lengkap: PANDUAN-DEPLOY-VERCEL-RENDER.md
 
 services:
   - type: web
     name: kci-api
     runtime: node
-    # HANYA Starter yang mendukung persistent disk. Free tier TIDAK punya
-    # disk, sehingga data data/*.json akan hilang saat service tidur/restart.
-    plan: starter
+    # Free cukup untuk pengujian dan tidak memerlukan kartu kredit.
+    # Penyimpanan bersifat ephemeral: data akan hilang saat restart/deploy.
+    plan: free
     region: singapore
     healthCheckPath: /api/kesehatan
     # Build command dikosongkan — backend ini "no dependencies", cukup node.
@@ -30,18 +31,14 @@ services:
     startCommand: node server/src/index.js
     # Auto-deploy saat commit ke branch produksi (mis. main).
     autoDeploy: true
-    # Atur penyimpanan data PERSISTEN. Tanpa ini data anggota/turnamen/kontak
-    # hilang pada restart. Mount harus sejalan dengan KCI_DIR_DATA=/var/data.
-    disk:
-      name: kci-data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       # --- Nilai non-rahasia, aman ditulis di sini ---
       - key: NODE_ENV
         value: production
+      # Free tier tidak memiliki disk persisten. /tmp dapat ditulis, tetapi
+      # seluruh data akan hilang ketika instance dimulai ulang.
       - key: KCI_DIR_DATA
-        value: /var/data
+        value: /tmp/kci-data
       - key: KCI_CHESS_KLUB
         value: blunder-skuad
       - key: KCI_CHESS_KLUB_CACHE
