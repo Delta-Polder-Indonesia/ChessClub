@@ -97,9 +97,24 @@ import {
   bersihkanRiwayatMasuk,
   ringkasanRiwayatMasuk,
 } from "./riwayat-masuk.js";
+import {
+  muatAdminFileKeKonfigurasi,
+  bacaAdminFile,
+  tulisAdminFile,
+  bacaAdminsFile,
+  tulisAdminsFile,
+  tambahAdmin,
+  hapusAdmin,
+  ubahAdmin,
+} from "./admin-file.js";
+import { samaAman, pastikanMaster, peranPengurus, dapatkanAdminDariRequest } from "./http.js";
 
 const mulaiPada = Date.now();
 const router = buatRouter();
+
+// Muat file admin.json bila ada (override env)
+muatAdminFileKeKonfigurasi().catch(() => {});
+
 
 /* ------------------------------------------------------------ rute publik */
 
@@ -250,6 +265,122 @@ router.get("/api/auth/tiket/:nilai", async (_req, param) => {
   return { status: 200, isi: data };
 });
 
+/**
+ * Login sederhana untuk dashboard pengurus — metode umum username + password.
+ * Bawaan: admin / admin123 (ubah via KCI_ADMIN_USER / KCI_ADMIN_PASSWORD).
+ * Tetap kompatibel dengan KCI_TOKEN_ADMIN lama sebagai password alternatif.
+ *
+ * POST /api/auth/login  { username, password }
+ * -> { token, username }
+ */
+router.post(
+  "/api/auth/login",
+  async (req, _param, konteks) => {
+    const ip = konteks.ip;
+    const kunciBrute = statusKunciAdmin(ip);
+    if (kunciBrute.terkunci) {
+      throw new GalatAplikasi(
+        429,
+        "Terlalu banyak percobaan login yang gagal. Coba lagi dalam " + kunciBrute.cobaLagiDetik + " detik."
+      );
+    }
+
+    await muatAdminFileKeKonfigurasi().catch(() => {});
+
+    const bodi = await bacaBodi(req);
+    const usernameRaw = String(bodi.username || "").trim().toLowerCase();
+    const passwordRaw = String(bodi.password || "");
+
+    if (!usernameRaw || !passwordRaw) {
+      catatPercobaanAdmin(ip, false);
+      throw new GalatAplikasi(400, "Username dan password wajib diisi.");
+    }
+
+    const tokenAdmin = konfigurasi.tokenAdmin || "";
+    let adminDitemukan = null;
+    let usernameCocok = false;
+    let passwordCocok = false;
+
+    // cari di daftar admins (master & pengurus)
+    if (Array.isArray(konfigurasi.admins)) {
+      adminDitemukan = konfigurasi.admins.find((a) => a.username === usernameRaw);
+      if (adminDitemukan) {
+        usernameCocok = true;
+        try {
+          if (samaAman(passwordRaw, adminDitemukan.password)) passwordCocok = true;
+        } catch {
+          if (passwordRaw === adminDitemukan.password) passwordCocok = true;
+        }
+      }
+    }
+
+    // fallback ke master tunggal & token lama bila belum cocok
+    if (!usernameCocok || !passwordCocok) {
+      const adminUser = konfigurasi.admin?.username || "admin";
+      const adminPass = konfigurasi.admin?.password || "admin123";
+      try {
+        if (!usernameCocok && samaAman(usernameRaw, adminUser)) {
+          usernameCocok = true;
+          adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
+        }
+        if (!passwordCocok && samaAman(passwordRaw, adminPass)) {
+          passwordCocok = true;
+          if (!adminDitemukan) adminDitemukan = { username: usernameRaw, password: adminPass, role: "master" };
+        }
+        if (tokenAdmin && samaAman(passwordRaw, tokenAdmin)) {
+          passwordCocok = true;
+          if (usernameRaw.length >= 3) usernameCocok = true;
+          if (!adminDitemukan) adminDitemukan = { username: usernameRaw, password: tokenAdmin, role: "master" };
+        }
+      } catch {
+        const adminUser = konfigurasi.admin?.username || "admin";
+        const adminPass = konfigurasi.admin?.password || "admin123";
+        if (usernameRaw === adminUser) {
+          usernameCocok = true;
+          adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
+        }
+        if (passwordRaw === adminPass || (tokenAdmin && passwordRaw === tokenAdmin)) {
+          passwordCocok = true;
+        }
+        if (tokenAdmin && passwordRaw === tokenAdmin && usernameRaw.length >= 3) {
+          usernameCocok = true;
+        }
+      }
+    }
+
+    if (!usernameCocok || !passwordCocok) {
+      catatPercobaanAdmin(ip, false);
+      throw new GalatAplikasi(401, "Username atau password salah.");
+    }
+
+    catatPercobaanAdmin(ip, true);
+    const tokenBalik = adminDitemukan?.password || konfigurasi.admin.password;
+    const usernameCatat = adminDitemukan?.username || usernameRaw;
+    const roleBalik = adminDitemukan?.role || "master";
+
+    const userAgent = req.headers["user-agent"] || "";
+    try {
+      await catatRiwayatMasuk({
+        username: usernameCatat,
+        ip,
+        userAgent,
+        catatan: "login-" + roleBalik,
+      });
+    } catch {}
+
+    return {
+      status: 200,
+      isi: {
+        ok: true,
+        token: tokenBalik,
+        username: usernameCatat,
+        role: roleBalik,
+      },
+    };
+  },
+  { batas: 20 }
+);
+
 /* ---------------------------------------------------------- rute pengurus */
 
 router.get("/api/pengurus/ringkasan", async (req) => {
@@ -292,13 +423,13 @@ router.post("/api/pengurus/masuk", async (req, _param, konteks) => {
 
 /** Ambil seluruh data riwayat login pengurus. */
 router.get("/api/pengurus/riwayat-masuk", async (req) => {
-  pastikanAdmin(req);
+  pastikanMaster(req);
   return { status: 200, isi: await daftarRiwayatMasuk() };
 });
 
 /** Hapus satu entri riwayat masuk. */
 router.post("/api/pengurus/riwayat-masuk/hapus", async (req) => {
-  pastikanAdmin(req);
+  pastikanMaster(req);
   const bodi = await bacaBodi(req);
   if (!bodi.id) {
     throw new GalatAplikasi(400, "ID riwayat harus disertakan.");
@@ -309,21 +440,146 @@ router.post("/api/pengurus/riwayat-masuk/hapus", async (req) => {
 
 /** Bersihkan semua riwayat login pengurus. */
 router.post("/api/pengurus/riwayat-masuk/bersihkan", async (req) => {
-  pastikanAdmin(req);
+  pastikanMaster(req);
   await bersihkanRiwayatMasuk();
   return { status: 200, isi: { pesan: "Semua riwayat masuk dibersihkan." } };
 });
 
+
+/** Ganti password admin lewat dashboard (umum). */
+router.post("/api/pengurus/ganti-password", async (req) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  const passLama = String(bodi.passwordLama || "");
+  const passBaru = String(bodi.passwordBaru || "");
+  const userBaru = String(bodi.usernameBaru || "").trim().toLowerCase() || konfigurasi.admin.username;
+
+  if (!passLama || !passBaru) {
+    throw new GalatAplikasi(400, "Password lama dan baru wajib diisi.");
+  }
+  if (passBaru.length < 6) {
+    throw new GalatAplikasi(400, "Password baru minimal 6 karakter.");
+  }
+  if (!/^[a-z0-9_-]{3,25}$/.test(userBaru)) {
+    throw new GalatAplikasi(400, "Username baru tidak valid (3-25 karakter).");
+  }
+
+  // verifikasi password lama cocok dengan yang aktif
+  const aktif = konfigurasi.admin.password;
+  const tokenAdmin = konfigurasi.tokenAdmin || "";
+  let cocok = false;
+  try {
+    if (samaAman(passLama, aktif)) cocok = true;
+    if (tokenAdmin && samaAman(passLama, tokenAdmin)) cocok = true;
+  } catch {
+    cocok = passLama === aktif || (tokenAdmin && passLama === tokenAdmin);
+  }
+  if (!cocok) {
+    throw new GalatAplikasi(401, "Password lama salah.");
+  }
+
+  await tulisAdminFile({ username: userBaru, password: passBaru });
+  konfigurasi.admin.username = userBaru;
+  konfigurasi.admin.password = passBaru;
+
+  return {
+    status: 200,
+    isi: { ok: true, username: userBaru, pesan: "Password berhasil diganti. Login ulang dengan password baru." },
+  };
+});
+
+/** Ambil kredensial admin saat ini (tanpa password) untuk ditampilkan di pengaturan. */
+router.get("/api/pengurus/admin-info", async (req) => {
+  pastikanAdmin(req);
+  const file = await bacaAdminFile().catch(() => null);
+  const admin = dapatkanAdminDariRequest(req);
+  return {
+    status: 200,
+    isi: {
+      username: admin?.username || konfigurasi.admin.username,
+      role: admin?.role || peranPengurus(req) || "master",
+      adaFile: Boolean(file),
+      sumber: file ? "file" : "env/bawaan",
+    },
+  };
+});
+
+
+/** Daftar semua admin (master only) */
+router.get("/api/pengurus/admins", async (req) => {
+  pastikanMaster(req);
+  const admins = await bacaAdminsFile() || konfigurasi.admins || [];
+  // jangan kirim password asli, hanya info
+  return {
+    status: 200,
+    isi: admins.map((a) => ({
+      username: a.username,
+      role: a.role,
+      dibuatPada: a.dibuatPada,
+      diubahPada: a.diubahPada,
+    })),
+  };
+});
+
+/** Tambah admin pengurus baru (master only) */
+router.post("/api/pengurus/admins/tambah", async (req) => {
+  pastikanMaster(req);
+  const bodi = await bacaBodi(req);
+  const username = String(bodi.username || "").trim().toLowerCase();
+  const password = String(bodi.password || "");
+  const role = String(bodi.role || "pengurus").trim().toLowerCase();
+  if (!username || !password) throw new GalatAplikasi(400, "Username dan password wajib diisi.");
+  const hasil = await tambahAdmin({ username, password, role });
+  return {
+    status: 201,
+    isi: {
+      pesan: `Admin "${username}" dengan role "${role}" berhasil ditambahkan.`,
+      admins: hasil.map((a) => ({ username: a.username, role: a.role, dibuatPada: a.dibuatPada, diubahPada: a.diubahPada })),
+    },
+  };
+});
+
+/** Hapus admin (master only) */
+router.post("/api/pengurus/admins/hapus", async (req) => {
+  pastikanMaster(req);
+  const bodi = await bacaBodi(req);
+  const username = String(bodi.username || "").trim().toLowerCase();
+  if (!username) throw new GalatAplikasi(400, "Username wajib diisi.");
+  const hasil = await hapusAdmin(username);
+  return {
+    status: 200,
+    isi: {
+      pesan: `Admin "${username}" dihapus.`,
+      admins: hasil.map((a) => ({ username: a.username, role: a.role })),
+    },
+  };
+});
+
+/** Ubah admin (password / role) — master only */
+router.post("/api/pengurus/admins/ubah", async (req) => {
+  pastikanMaster(req);
+  const bodi = await bacaBodi(req);
+  const username = String(bodi.username || "").trim().toLowerCase();
+  const password = bodi.password ? String(bodi.password) : undefined;
+  const role = bodi.role ? String(bodi.role).trim().toLowerCase() : undefined;
+  if (!username) throw new GalatAplikasi(400, "Username wajib diisi.");
+  const hasil = await ubahAdmin(username, { password, role });
+  return {
+    status: 200,
+    isi: {
+      pesan: `Admin "${username}" diperbarui.`,
+      admins: hasil.map((a) => ({ username: a.username, role: a.role })),
+    },
+  };
+});
+
 /**
- * Pemeriksaan token yang RINGAN: tidak memanggil Chess.com sama sekali.
- * Dipakai ProtectedRoute dan Gerbang untuk membuktikan token — bila
- * api.chess.com sedang padam, dashboard sempat lolos masuk dan kendala
- * hanya muncul di panel yang memang butuh roster (Anggota/ringkasan),
- * bukan mengunci seluruh gerbang login.
+ * Pemeriksaan token yang RINGAN — sekarang juga kembalikan role
  */
 router.get("/api/pengurus/verifikasi", async (req) => {
   pastikanAdmin(req);
-  return { status: 200, isi: { ok: true } };
+  const admin = dapatkanAdminDariRequest(req);
+  return { status: 200, isi: { ok: true, username: admin?.username || "", role: admin?.role || peranPengurus(req) || "pengurus" } };
 });
 
 router.post("/api/pengurus/pindai", async (req) => {
@@ -633,8 +889,13 @@ async function tangani(req, res) {
     return kirimJson(res, 404, { pesan: "Endpoint tidak ditemukan." });
   }
 
-  // Validasi CSRF untuk request POST
-  if (metode === "POST") {
+  // Validasi CSRF untuk request POST.
+  // Login admin (/api/auth/login) dikecualikan agar flow sederhana — tetap
+  // dilindungi rate-limit & brute-force. Endpoint publik lain tetap wajib CSRF
+  // seperti sebelumnya (frontend sudah mengirimnya).
+  const bebasCsrf = jalur === "/api/auth/login";
+
+  if (metode === "POST" && !bebasCsrf) {
     const csrfToken = req.headers["x-csrf-token"];
     if (!validasiCsrfToken(csrfToken)) {
       return kirimJson(res, 403, { pesan: "Token CSRF tidak valid." });
@@ -747,6 +1008,13 @@ if (!konfigurasi.pepper) {
   console.warn(
     "[kci] KCI_PEPPER belum diatur — memakai pepper pengembangan.\n" +
       '      Untuk produksi: export KCI_PEPPER="kalimat-acak-panjang"'
+  );
+}
+
+if (konfigurasi.admin?.password === "admin123") {
+  console.warn(
+    "[kci] KCI_ADMIN_PASSWORD masih bawaan admin123 — segera ganti di produksi!\n" +
+      '      Setel: export KCI_ADMIN_PASSWORD="password-baru-yang-kuat"'
   );
 }
 

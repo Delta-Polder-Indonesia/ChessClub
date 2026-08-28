@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { apiPengurus, tokenPengurus } from "../lib/api/index.js";
+import { apiPengurus, tokenPengurus, adminPengguna, peranPengurus } from "../lib/api/index.js";
 import { LoadingSpinner } from "./Loading.jsx";
 import Gerbang from "../halaman/Pengurus/Gerbang.jsx";
 
@@ -30,8 +30,10 @@ export default function ProtectedRoute({ children }) {
     }
     setStatus("memeriksa");
     try {
-      // Validasi sisi server — sumber kebenaran satu-satunya.
-      await apiPengurus("/verifikasi");
+      // Validasi sisi server — sumber kebenaran satu-satunya, juga ambil role.
+      const data = await apiPengurus("/verifikasi");
+      if (data?.role) peranPengurus.simpan(data.role);
+      if (data?.username) adminPengguna.simpan(data.username);
       setStatus("terverifikasi");
     } catch (err) {
       if (err.status === 401 || err.status === 403) {

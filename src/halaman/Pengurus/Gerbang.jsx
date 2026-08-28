@@ -1,22 +1,26 @@
 import { useState } from "react";
 import {
-  apiPengurus,
+  loginAdmin,
   tokenPengurus,
   adminPengguna,
+  peranPengurus,
 } from "../../lib/api/index.js";
 
 /**
- * Gerbang masuk dashboard pengurus.
+ * Gerbang masuk dashboard pengurus — metode umum.
  *
- * Meminta username Chess.com (identitas siapa yang masuk, untuk jejak
- * audit) DAN token pengurus. Token diverifikasi ke server; username
- * ikut dikirim pada setiap aksi agar server tahu siapa yang melakukannya.
+ * Sekarang pakai username + password sederhana:
+ *   bawaan: admin / admin123
+ *   ubah via env KCI_ADMIN_USER / KCI_ADMIN_PASSWORD di server.
+ *
+ * Kompatibel dengan token lama: bila password diisi token lama, tetap bisa masuk.
  */
 export default function Gerbang({ onMasuk }) {
-  const [nama, setNama] = useState(adminPengguna.ambil());
-  const [token, setToken] = useState("");
+  const [nama, setNama] = useState(adminPengguna.ambil() || "admin");
+  const [sandi, setSandi] = useState("");
   const [galat, setGalat] = useState("");
   const [sibuk, setSibuk] = useState(false);
+  const [lihat, setLihat] = useState(false);
 
   const namaBersih = nama.trim().toLowerCase();
   const namaValid = /^[a-z0-9_-]{3,25}$/.test(namaBersih);
@@ -24,31 +28,30 @@ export default function Gerbang({ onMasuk }) {
   const masuk = async (e) => {
     e.preventDefault();
     if (!namaValid) {
-      setGalat("Masukkan username Chess.com yang valid (3–25 karakter).");
+      setGalat("Masukkan username yang valid (3–25 karakter, huruf/angka/_/-).");
+      return;
+    }
+    if (!sandi) {
+      setGalat("Masukkan password.");
       return;
     }
     setSibuk(true);
     setGalat("");
-    // Simpan identitas lebih dulu agar header X-Admin-User terisi pada
-    // panggilan login masuk. Endpoint /masuk memverifikasi token dan
-    // mencatat riwayat masuk pengurus (username Chess.com, hari, tanggal,
-    // waktu, dan alamat IP).
-    adminPengguna.simpan(namaBersih);
-    tokenPengurus.simpan(token.trim());
     try {
-      await apiPengurus("/masuk", {
-        metode: "POST",
-        bodi: { username: namaBersih },
-      });
-      onMasuk(namaBersih);
+      const hasil = await loginAdmin(namaBersih, sandi);
+      // Simpan token, identitas, dan peran untuk semua request /api/pengurus/*
+      tokenPengurus.simpan(hasil.token);
+      adminPengguna.simpan(hasil.username || namaBersih);
+      peranPengurus.simpan(hasil.role || "pengurus");
+      onMasuk(hasil.username || namaBersih);
     } catch (err) {
       tokenPengurus.hapus();
-      adminPengguna.hapus();
+      // jangan hapus username agar mudah koreksi password
       setGalat(
         err.status === 401
-          ? "Token pengurus tidak dikenali."
+          ? "Username atau password salah. Bawaan: admin / admin123"
           : err.status === 429
-            ? "Terlalu banyak percobaan. Tunggu beberapa saat."
+            ? "Terlalu banyak percobaan gagal. Tunggu beberapa saat."
             : err.message || "Gagal masuk."
       );
     } finally {
@@ -60,16 +63,22 @@ export default function Gerbang({ onMasuk }) {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-6">
       <form
         onSubmit={masuk}
-        className="w-full rounded-lg border border-slate-200 bg-white p-6"
+        className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
       >
         <h1 className="text-xl font-bold text-slate-900">Dashboard Pengurus</h1>
         <p className="mt-1 text-sm leading-6 text-slate-600">
-          Masukkan username Chess.com dan token pengurus untuk mengelola
-          keanggotaan, daftar larangan, dan turnamen.
+          Masuk dengan username dan password pengurus untuk mengelola keanggotaan,
+          daftar larangan, dan turnamen.
         </p>
 
+        <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">
+          <strong>Bawaan:</strong> <code className="font-mono">admin / admin123</code>
+          <br />
+          Ganti password lewat env <code className="font-mono">KCI_ADMIN_PASSWORD</code> di server.
+        </div>
+
         <label className="mt-5 flex flex-col gap-1.5 text-sm text-slate-700">
-          Nama akun Chess.com
+          Username
           <input
             type="text"
             value={nama}
@@ -77,24 +86,31 @@ export default function Gerbang({ onMasuk }) {
             autoComplete="username"
             autoCapitalize="none"
             spellCheck="false"
-            placeholder="contoh: magnuscarlsen"
-            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+            placeholder="admin"
+            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
           />
-          <span className="text-xs text-slate-500">
-            Untuk identifikasi & jejak audit — bukan kata sandi.
-          </span>
         </label>
 
         <label className="mt-4 flex flex-col gap-1.5 text-sm text-slate-700">
-          Token pengurus
-          <input
-            type="password"
-            value={token}
-            onChange={(e) => setToken(e.target.value)}
-            autoComplete="off"
-            placeholder="tempel token di sini"
-            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-          />
+          Password
+          <div className="flex gap-2">
+            <input
+              type={lihat ? "text" : "password"}
+              value={sandi}
+              onChange={(e) => setSandi(e.target.value)}
+              autoComplete="current-password"
+              placeholder="admin123"
+              className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="button"
+              onClick={() => setLihat((v) => !v)}
+              className="rounded border border-slate-300 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50"
+              tabIndex={-1}
+            >
+              {lihat ? "Sembunyi" : "Lihat"}
+            </button>
+          </div>
         </label>
 
         {galat && (
@@ -105,13 +121,14 @@ export default function Gerbang({ onMasuk }) {
 
         <button
           type="submit"
-          disabled={sibuk || !token.trim() || !namaValid}
-          className="mt-5 w-full rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-white disabled:opacity-40"
+          disabled={sibuk || !sandi || !namaValid}
+          className="mt-5 w-full rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
         >
           {sibuk ? "Memeriksa…" : "Masuk"}
         </button>
         <p className="mt-4 text-xs leading-5 text-slate-500">
-          Identitas dan token tersimpan hanya selama tab ini terbuka.
+          Login tersimpan hanya selama tab ini terbuka. Tekan Keluar setelah selesai
+          bila memakai komputer bersama.
         </p>
       </form>
     </div>

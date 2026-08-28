@@ -5,6 +5,7 @@ import { GalatApi, urlApi } from "./core.js";
 /** Token pengurus disimpan di sessionStorage — hilang saat tab ditutup. */
 const KUNCI_TOKEN = "kci-token-pengurus";
 const KUNCI_PENGGUNA = "kci-pengguna-pengurus";
+const KUNCI_PERAN = "kci-peran-pengurus";
 
 export const tokenPengurus = {
   ambil: () => {
@@ -57,6 +58,36 @@ export const adminPengguna = {
       sessionStorage.removeItem(KUNCI_PENGGUNA);
     } catch {
       /* abaikan */
+    }
+  },
+};
+
+export const peranPengurus = {
+  ambil: () => {
+    try {
+      return sessionStorage.getItem(KUNCI_PERAN) || "";
+    } catch {
+      return "";
+    }
+  },
+  simpan: (role) => {
+    const v = String(role || "").trim().toLowerCase();
+    try {
+      if (v) sessionStorage.setItem(KUNCI_PERAN, v);
+      else sessionStorage.removeItem(KUNCI_PERAN);
+    } catch {}
+  },
+  hapus: () => {
+    try {
+      sessionStorage.removeItem(KUNCI_PERAN);
+    } catch {}
+  },
+  isMaster: () => {
+    try {
+      const r = sessionStorage.getItem(KUNCI_PERAN) || "";
+      return r === "master";
+    } catch {
+      return false;
     }
   },
 };
@@ -171,6 +202,29 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
   return data;
 }
 
+/* -------------------------------------------------------- login umum */
+
+ /**
+ * Login sederhana: username + password -> token.
+ * Bawaan: admin / admin123 (ubah via KCI_ADMIN_USER / KCI_ADMIN_PASSWORD).
+ * Endpoint publik POST /api/auth/login — tidak butuh CSRF wajib, tapi
+ * tetap dilindungi rate-limit & brute-force di server.
+ */
+export async function loginAdmin(username, password) {
+  const res = await fetch(urlApi("/api/auth/login"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new GalatApi(data.pesan || `Gagal login (${res.status}).`, {
+      status: res.status,
+    });
+  }
+  return data;
+}
+
 /* -------------------------------------------------------- riwayat masuk */
 
 /**
@@ -208,6 +262,48 @@ export async function hapusRiwayatMasuk(id) {
 export async function bersihkanRiwayatMasuk() {
   return apiPengurus("/riwayat-masuk/bersihkan", {
     metode: "POST",
+  });
+}
+
+/**
+ * Ambil info admin saat ini (tanpa password).
+ */
+export async function infoAdmin() {
+  return apiPengurus("/admin-info");
+}
+
+/**
+ * Ganti password admin lewat dashboard.
+ */
+export async function gantiPasswordAdmin({ passwordLama, passwordBaru, usernameBaru }) {
+  return apiPengurus("/ganti-password", {
+    metode: "POST",
+    bodi: { passwordLama, passwordBaru, usernameBaru },
+  });
+}
+
+export async function daftarAdmins() {
+  return apiPengurus("/admins");
+}
+
+export async function tambahAdminBaru({ username, password, role }) {
+  return apiPengurus("/admins/tambah", {
+    metode: "POST",
+    bodi: { username, password, role },
+  });
+}
+
+export async function hapusAdmin(username) {
+  return apiPengurus("/admins/hapus", {
+    metode: "POST",
+    bodi: { username },
+  });
+}
+
+export async function ubahAdmin({ username, password, role }) {
+  return apiPengurus("/admins/ubah", {
+    metode: "POST",
+    bodi: { username, password, role },
   });
 }
 

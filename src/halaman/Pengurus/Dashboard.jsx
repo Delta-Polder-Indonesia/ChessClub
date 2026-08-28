@@ -4,6 +4,7 @@ import {
   apiPengurus,
   tokenPengurus,
   adminPengguna,
+  peranPengurus,
   ambilDaftarAnggota,
   ambilDaftarHitam,
 } from "../../lib/api/index.js";
@@ -356,12 +357,14 @@ function ItemDropdown({
 function DropdownProfil({
   terbuka,
   pengguna,
+  peran,
   onTutup,
   onMuatUlang,
   onKeluar,
   onBukaPengaturan,
   memuat,
 }) {
+  const isMaster = (peran || "").toLowerCase() === "master";
   return (
     <div
       className={`
@@ -380,7 +383,7 @@ function DropdownProfil({
         <p className="text-xs uppercase tracking-wide text-slate-500">
           Masuk sebagai
         </p>
-        <p className="truncate text-sm font-semibold text-slate-900">
+        <p className="truncate text-sm font-semibold text-slate-900 flex items-center gap-2">
           {pengguna ? (
             <a
               href={`https://www.chess.com/member/${encodeURIComponent(pengguna)}`}
@@ -394,7 +397,11 @@ function DropdownProfil({
           ) : (
             "Pengurus"
           )}
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+            {isMaster ? "MASTER" : "PENGURUS"}
+          </span>
         </p>
+        <p className="mt-1 text-[11px] text-slate-500">{isMaster ? "Akses penuh + Pengaturan" : "Akses pengurus (tanpa Pengaturan)"}</p>
       </div>
 
       <ItemDropdown
@@ -406,14 +413,16 @@ function DropdownProfil({
         }}
         disabled={memuat}
       />
-      <ItemDropdown
-        icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-        label="Pengaturan"
-        onClick={() => {
-          onTutup();
-          onBukaPengaturan();
-        }}
-      />
+      {isMaster && (
+        <ItemDropdown
+          icon="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+          label="Pengaturan (Master)"
+          onClick={() => {
+            onTutup();
+            onBukaPengaturan();
+          }}
+        />
+      )}
       <ItemDropdown
         icon="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
         label="Keluar"
@@ -773,6 +782,8 @@ function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const [pengguna] = useState(() => adminPengguna.ambil());
+  const [peran] = useState(() => peranPengurus.ambil());
+  const isMaster = (peran || "").toLowerCase() === "master";
   const [tab, setTab] = useState("dashboard");
   const [filterLarangan, setFilterLarangan] = useState("semua");
   const [filterAnggota, setFilterAnggota] = useState("semua");
@@ -820,7 +831,12 @@ export default function Dashboard() {
       if (e?.status === 401) {
         tokenPengurus.hapus();
         adminPengguna.hapus();
+        peranPengurus.hapus();
         navigate(0);
+        return;
+      }
+      if (e?.status === 403) {
+        beriTahu(e?.message || "Akses ditolak: hanya Master Admin.", "galat");
         return;
       }
       beriTahu(e?.message || "Terjadi kesalahan.", "galat");
@@ -1022,17 +1038,36 @@ export default function Dashboard() {
   const keluar = () => {
     tokenPengurus.hapus();
     adminPengguna.hapus();
+    peranPengurus.hapus();
     navigate(0);
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* ── Halaman Pengaturan (Full Layar) ────────────────── */}
+      {/* ── Halaman Pengaturan (Full Layar) — hanya Master ────────────────── */}
       {tabPengaturan ? (
-        <Pengaturan
-          onKembali={() => setTabPengaturan(false)}
-          beriTahu={beriTahu}
-        />
+        isMaster ? (
+          <Pengaturan
+            onKembali={() => setTabPengaturan(false)}
+            beriTahu={beriTahu}
+          />
+        ) : (
+          <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6 text-center">
+            <div className="rounded-lg border border-red-200 bg-white p-8 max-w-md">
+              <h2 className="text-lg font-bold text-slate-900">Akses Ditolak</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                Halaman Pengaturan hanya bisa diakses oleh <strong>Master Admin</strong>. Akun kamu saat ini adalah <strong>Admin Pengurus</strong> yang tidak memiliki akses ke pengaturan, tambah admin, dan riwayat masuk.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTabPengaturan(false)}
+                className="mt-5 rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800"
+              >
+                Kembali ke Dashboard
+              </button>
+            </div>
+          </div>
+        )
       ) : (
       <>
       {/* ── Header ─────────────────────────────────────────── */}
@@ -1123,14 +1158,17 @@ export default function Dashboard() {
                 title={pengguna ? `Masuk sebagai ${pengguna}` : ""}
               >
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-medium text-slate-900 leading-tight">
+                  <p className="text-sm font-medium text-slate-900 leading-tight flex items-center justify-end gap-2">
                     {pengguna || "Pengurus"}
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+                      {isMaster ? "MASTER" : "PENGURUS"}
+                    </span>
                   </p>
                   <p className="text-xs text-slate-500">
-                    Pengurus komunitas
+                    {isMaster ? "Master Admin" : "Admin Pengurus"}
                   </p>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-primary flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase">
+                <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase ${isMaster ? "bg-amber-600" : "bg-primary"}`}>
                   {(pengguna || "?").charAt(0)}
                 </div>
               </button>
@@ -1138,6 +1176,7 @@ export default function Dashboard() {
               <DropdownProfil
                 terbuka={menuProfile}
                 pengguna={pengguna}
+                peran={peran}
                 onTutup={() => setMenuProfile(false)}
                 onMuatUlang={muatUlang}
                 onKeluar={keluar}
