@@ -250,6 +250,101 @@ router.get("/api/auth/tiket/:nilai", async (_req, param) => {
   return { status: 200, isi: data };
 });
 
+/**
+ * Login sederhana untuk dashboard pengurus — metode umum username + password.
+ * Bawaan: admin / admin123 (ubah via KCI_ADMIN_USER / KCI_ADMIN_PASSWORD).
+ * Tetap kompatibel dengan KCI_TOKEN_ADMIN lama sebagai password alternatif.
+ *
+ * POST /api/auth/login  { username, password }
+ * -> { token, username }
+ */
+router.post(
+  "/api/auth/login",
+  async (req, _param, konteks) => {
+    const ip = konteks.ip;
+    const kunciBrute = statusKunciAdmin(ip);
+    if (kunciBrute.terkunci) {
+      throw new GalatAplikasi(
+        429,
+        `Terlalu banyak percobaan login yang gagal. Coba lagi dalam ${kunciBrute.cobaLagiDetik} detik.`
+      );
+    }
+
+    const bodi = await bacaBodi(req);
+    const usernameRaw = String(bodi.username || "").trim().toLowerCase();
+    const passwordRaw = String(bodi.password || "");
+
+    if (!usernameRaw || !passwordRaw) {
+      catatPercobaanAdmin(ip, false);
+      throw new GalatAplikasi(400, "Username dan password wajib diisi.");
+    }
+
+    // Kredensial yang sah: admin.username + admin.password, atau tokenAdmin sebagai password
+    const adminUser = konfigurasi.admin?.username || "admin";
+    const adminPass = konfigurasi.admin?.password || "admin123";
+    const tokenAdmin = konfigurasi.tokenAdmin || "";
+
+    // username harus cocok (admin) — tapi bila tokenAdmin dipakai sebagai login lama,
+    // kita izinkan username apa pun yang valid selama password == tokenAdmin (kompatibilitas)
+    let usernameCocok = false;
+    let passwordCocok = false;
+
+    try {
+      const { samaAman } = await import("./http.js");
+      if (samaAman(usernameRaw, adminUser)) usernameCocok = true;
+      if (samaAman(passwordRaw, adminPass)) passwordCocok = true;
+      // kompatibilitas: token lama masih bisa dipakai sebagai password
+      if (tokenAdmin && samaAman(passwordRaw, tokenAdmin)) {
+        passwordCocok = true;
+        // bila login pakai token lama, username lama tetap dianggap cocok bila diisi
+        if (usernameRaw.length >= 3) usernameCocok = true;
+      }
+    } catch {
+      // fallback perbandingan biasa bila import gagal
+      usernameCocok = usernameRaw === adminUser;
+      passwordCocok = passwordRaw === adminPass || (tokenAdmin && passwordRaw === tokenAdmin);
+      if (tokenAdmin && passwordRaw === tokenAdmin && usernameRaw.length >= 3) {
+        usernameCocok = true;
+      }
+    }
+
+    if (!usernameCocok || !passwordCocok) {
+      catatPercobaanAdmin(ip, false);
+      throw new GalatAplikasi(401, "Username atau password salah.");
+    }
+
+    catatPercobaanAdmin(ip, true);
+
+    // Token yang dikembalikan adalah password admin (atau tokenAdmin bila itu yang dipakai)
+    // — token ini yang akan dikirim di header X-Token-Admin untuk semua /api/pengurus/*
+    const tokenBalik = tokenAdmin && passwordRaw === tokenAdmin ? tokenAdmin : adminPass;
+
+    // Catat riwayat masuk
+    const userAgent = req.headers["user-agent"] || "";
+    const usernameCatat = usernameCocok ? usernameRaw : adminUser;
+    try {
+      await catatRiwayatMasuk({
+        username: usernameCatat,
+        ip,
+        userAgent,
+        catatan: "login-admin-sederhana",
+      });
+    } catch {
+      /* abaikan bila gagal catat */
+    }
+
+    return {
+      status: 200,
+      isi: {
+        ok: true,
+        token: tokenBalik,
+        username: usernameCatat,
+      },
+    };
+  },
+  { batas: 20 }
+);
+
 /* ---------------------------------------------------------- rute pengurus */
 
 router.get("/api/pengurus/ringkasan", async (req) => {
@@ -633,8 +728,13 @@ async function tangani(req, res) {
     return kirimJson(res, 404, { pesan: "Endpoint tidak ditemukan." });
   }
 
-  // Validasi CSRF untuk request POST
-  if (metode === "POST") {
+  // Validasi CSRF untuk request POST.
+  // Login admin (/api/auth/login) dikecualikan agar flow sederhana — tetap
+  // dilindungi rate-limit & brute-force. Endpoint publik lain tetap wajib CSRF
+  // seperti sebelumnya (frontend sudah mengirimnya).
+  const bebasCsrf = jalur === "/api/auth/login";
+
+  if (metode === "POST" && !bebasCsrf) {
     const csrfToken = req.headers["x-csrf-token"];
     if (!validasiCsrfToken(csrfToken)) {
       return kirimJson(res, 403, { pesan: "Token CSRF tidak valid." });
@@ -747,6 +847,13 @@ if (!konfigurasi.pepper) {
   console.warn(
     "[kci] KCI_PEPPER belum diatur — memakai pepper pengembangan.\n" +
       '      Untuk produksi: export KCI_PEPPER="kalimat-acak-panjang"'
+  );
+}
+
+if (konfigurasi.admin?.password === "admin123") {
+  console.warn(
+    "[kci] KCI_ADMIN_PASSWORD masih bawaan admin123 — segera ganti di produksi!\n" +
+      '      Setel: export KCI_ADMIN_PASSWORD="password-baru-yang-kuat"'
   );
 }
 

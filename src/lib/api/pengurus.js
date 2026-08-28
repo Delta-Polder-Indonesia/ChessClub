@@ -171,6 +171,29 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
   return data;
 }
 
+/* -------------------------------------------------------- login umum */
+
+ /**
+ * Login sederhana: username + password -> token.
+ * Bawaan: admin / admin123 (ubah via KCI_ADMIN_USER / KCI_ADMIN_PASSWORD).
+ * Endpoint publik POST /api/auth/login — tidak butuh CSRF wajib, tapi
+ * tetap dilindungi rate-limit & brute-force di server.
+ */
+export async function loginAdmin(username, password) {
+  const res = await fetch(urlApi("/api/auth/login"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new GalatApi(data.pesan || `Gagal login (${res.status}).`, {
+      status: res.status,
+    });
+  }
+  return data;
+}
+
 /* -------------------------------------------------------- riwayat masuk */
 
 /**

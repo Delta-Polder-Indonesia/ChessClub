@@ -279,35 +279,45 @@ export function validasiCsrfToken(token) {
  * Menggunakan hashing terlebih dahulu agar panjang string tidak bocor,
  * lalu membandingkan hash-nya dengan timingSafeEqual.
  */
-function samaAman(a, b) {
+export function samaAman(a, b) {
   const ha = crypto.createHash("sha256").update(String(a)).digest();
   const hb = crypto.createHash("sha256").update(String(b)).digest();
   if (ha.length !== hb.length) return false;
   return crypto.timingSafeEqual(ha, hb);
 }
 
+/** Daftar token yang dianggap sah untuk endpoint pengurus. */
+function daftarTokenSah() {
+  const daftar = [];
+  if (konfigurasi.tokenAdmin) daftar.push(konfigurasi.tokenAdmin);
+  if (konfigurasi.admin?.password) daftar.push(konfigurasi.admin.password);
+  return daftar;
+}
+
 /**
  * Pastikan permintaan membawa token pengurus.
  * Token dibaca dari header `X-Token-Admin` atau `Authorization: Bearer …`.
  *
- * Ketika `KCI_TOKEN_ADMIN` tidak diatur, endpoint hanya terbuka untuk
+ * Mendukung dua metode:
+ *  - Metode lama: KCI_TOKEN_ADMIN (token panjang)
+ *  - Metode baru umum: KCI_ADMIN_PASSWORD (bawaan admin123)
+ *
+ * Ketika keduanya tidak diatur, endpoint hanya terbuka untuk
  * koneksi dari loopback (127.0.0.1/::1) — itupun hanya di luar produksi.
- * Ini mencegah bencana: server tanpa token tidak sengaja ter-expose ke
- * jaringan publik hanya karena lupa menyetel NODE_ENV.
  */
 export function pastikanAdmin(req) {
-  const token = konfigurasi.tokenAdmin;
+  const tokenSah = daftarTokenSah();
 
-  if (!token) {
+  if (!tokenSah.length) {
     if (konfigurasi.produksi) {
-      const e = new Error("Endpoint pengurus dinonaktifkan: KCI_TOKEN_ADMIN belum diatur.");
+      const e = new Error("Endpoint pengurus dinonaktifkan: KCI_TOKEN_ADMIN / KCI_ADMIN_PASSWORD belum diatur.");
       e.status = 503;
       throw e;
     }
     if (!dariLokal(req)) {
       const e = new Error(
         "Token pengurus belum diatur. Akses dari luar loopback ditolak. " +
-        "Setel KCI_TOKEN_ADMIN atau jalankan dari server itu sendiri."
+        "Setel KCI_TOKEN_ADMIN atau KCI_ADMIN_PASSWORD atau jalankan dari server itu sendiri."
       );
       e.status = 503;
       throw e;
@@ -322,7 +332,14 @@ export function pastikanAdmin(req) {
     : "";
   const diberikan = dariHeader || dariBearer;
 
-  if (!diberikan || !samaAman(diberikan, token)) {
+  if (!diberikan) {
+    const e = new Error("Token pengurus tidak valid.");
+    e.status = 401;
+    throw e;
+  }
+
+  const cocok = tokenSah.some((t) => samaAman(diberikan, t));
+  if (!cocok) {
     const e = new Error("Token pengurus tidak valid.");
     e.status = 401;
     throw e;
