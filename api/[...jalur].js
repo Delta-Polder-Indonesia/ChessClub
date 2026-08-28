@@ -7,13 +7,15 @@
  * server/src/index.js — tidak ada duplikasi, tidak ada perubahan perilaku
  * antara mode "node server/src/index.js" (Render/VPS) dan mode serverless.
  *
- * Variabel lingkungan WAJIB (Vercel → Settings → Environment Variables):
- *   KCI_PEPPER          — min. 16 karakter (hashing identitas)
- *   KCI_TOKEN_ADMIN     — min. 24 karakter (endpoint pengurus)
+ * Variabel lingkungan penting (Vercel → Settings → Environment Variables):
+ *   KCI_PEPPER          — min. 16 karakter (hashing identitas; wajib)
+ *   KCI_ADMIN_USER      — username dashboard /pengurus (mis. admin)
+ *   KCI_ADMIN_PASSWORD  — password kuat dashboard /pengurus
  *   KCI_ASAL_DIIZINKAN  — domain frontend, mis. https://kci.vercel.app
+ *   KCI_TOKEN_ADMIN     — opsional; token legacy sebagai password alternatif
  *
  * Vercel otomatis menyetel NODE_ENV=production di function, sehingga server
- * MENOLAK jalan bila dua variabel rahasia pertama kosong (perilaku fail-closed
+ * MENOLAK jalan bila konfigurasi produksi penting kosong (perilaku fail-closed
  * yang disengaja — lihat server/src/konfigurasi.js).
  */
 import fsp from "node:fs/promises";

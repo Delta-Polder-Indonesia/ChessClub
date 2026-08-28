@@ -53,7 +53,7 @@ function PanelKelolaAdmin({ beriTahu }) {
       const data = await daftarAdmins();
       setAdmins(Array.isArray(data) ? data : []);
     } catch (e) {
-      beriTahu?.(e.message || "Gagal memuat daftar admin.", "error");
+      beriTahu?.(e.message || "Gagal memuat daftar admin.", "galat");
     } finally {
       setLoading(false);
     }
@@ -66,7 +66,7 @@ function PanelKelolaAdmin({ beriTahu }) {
   const tambah = async (e) => {
     e.preventDefault();
     if (!form.username || !form.password) {
-      beriTahu?.("Username dan password wajib diisi.", "error");
+      beriTahu?.("Username dan password wajib diisi.", "galat");
       return;
     }
     setSibuk(true);
@@ -76,7 +76,7 @@ function PanelKelolaAdmin({ beriTahu }) {
       setForm({ username: "", password: "", role: "pengurus" });
       await muat();
     } catch (err) {
-      beriTahu?.(err.message || "Gagal tambah admin.", "error");
+      beriTahu?.(err.message || "Gagal tambah admin.", "galat");
     } finally {
       setSibuk(false);
     }
@@ -89,7 +89,7 @@ function PanelKelolaAdmin({ beriTahu }) {
       beriTahu?.(res.pesan || "Admin dihapus.", "sukses");
       await muat();
     } catch (err) {
-      beriTahu?.(err.message || "Gagal hapus admin.", "error");
+      beriTahu?.(err.message || "Gagal hapus admin.", "galat");
     }
   };
 
@@ -104,7 +104,7 @@ function PanelKelolaAdmin({ beriTahu }) {
       setEditData({ password: "", role: "pengurus" });
       await muat();
     } catch (err) {
-      beriTahu?.(err.message || "Gagal ubah admin.", "error");
+      beriTahu?.(err.message || "Gagal ubah admin.", "galat");
     }
   };
 
@@ -302,11 +302,11 @@ function PanelAkun({ beriTahu }) {
   const simpan = async (e) => {
     e.preventDefault();
     if (passBaru !== passKonf) {
-      beriTahu?.("Konfirmasi password tidak cocok.", "error");
+      beriTahu?.("Konfirmasi password tidak cocok.", "galat");
       return;
     }
     if (passBaru.length < 6) {
-      beriTahu?.("Password baru minimal 6 karakter.", "error");
+      beriTahu?.("Password baru minimal 6 karakter.", "galat");
       return;
     }
     setSibuk(true);
@@ -325,7 +325,7 @@ function PanelAkun({ beriTahu }) {
       const baru = await infoAdmin().catch(() => null);
       if (baru) setInfo(baru);
     } catch (err) {
-      beriTahu?.(err.message || "Gagal ganti password.", "error");
+      beriTahu?.(err.message || "Gagal ganti password.", "galat");
     } finally {
       setSibuk(false);
     }
@@ -358,8 +358,11 @@ function PanelAkun({ beriTahu }) {
           </div>
         </div>
         <p className="mt-3 text-[11px] leading-5 text-slate-500">
-          Bawaan: <code className="font-mono">admin / admin123</code> sebagai Master. Ganti di sini agar tersimpan di{" "}
-          <code className="font-mono">data/rahasia/admins.json</code> (tidak masuk Git) dan langsung aktif.
+          Bawaan lokal: <code className="font-mono">admin / admin123</code> sebagai Master.
+          Perubahan di sini tersimpan di <code className="font-mono">data/rahasia/admins.json</code>{" "}
+          (tidak masuk Git) dan langsung aktif. Pada FULL VERCEL, berkas runtime berada di{" "}
+          <code className="font-mono">/tmp</code> sehingga bisa hilang saat redeploy/cold start; untuk permanen ubah env{" "}
+          <code className="font-mono">KCI_ADMIN_PASSWORD</code> lalu redeploy.
         </p>
       </div>
 

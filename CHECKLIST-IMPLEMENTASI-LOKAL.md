@@ -37,7 +37,9 @@ Isi nilai berikut untuk backend produksi/staging:
 | --- | :---: | --- |
 | `NODE_ENV` | Ya | `production` |
 | `KCI_PEPPER` | Ya | Acak minimal 16 karakter; buat dengan perintah pada `.env.contoh`. **Jangan diganti setelah ada data.** |
-| `KCI_TOKEN_ADMIN` | Ya | Acak minimal 24 karakter; hanya untuk pengurus. |
+| `KCI_ADMIN_USER` | Ya | Username dashboard `/pengurus`, mis. `admin`. |
+| `KCI_ADMIN_PASSWORD` | Ya | Password kuat dashboard `/pengurus`; jangan pakai `admin123` di publik. |
+| `KCI_TOKEN_ADMIN` | Opsional | Token legacy minimal 24 karakter bila masih dipakai sebagai password alternatif. |
 | `KCI_ASAL_DIIZINKAN` | Ya | Origin frontend persis, mis. `https://domain-anda.id,https://delta-polder-indonesia.github.io` |
 | `KCI_JUMLAH_PROXY` | Ya | `1` di belakang Nginx/Render satu proxy; `0` bila server langsung. |
 | `KCI_DIR_DATA` | Ya | Direktori persisten di luar repository, mis. `/var/lib/kci`. |
@@ -124,7 +126,7 @@ Daftar keputusan rilis:
 - [ ] Pendaftaran anggota, Hubungi Kami, turnamen, dan dashboard diuji manual pada domain produksi.
 - [ ] Backup harian aktif dan satu restore test sudah dilakukan.
 - [ ] Origin CORS hanya berisi domain yang benar.
-- [ ] Token pengurus tidak dibagikan di grup/chat dan diganti jika pernah terekspos.
+- [ ] Password/token pengurus tidak dibagikan di grup/chat dan diganti jika pernah terekspos.
 
 ## 7. Rutinitas operasional
 
@@ -134,6 +136,6 @@ Daftar keputusan rilis:
 | Sebelum turnamen | Jalankan pemindaian fair-play dari dashboard. |
 | Mingguan | Tinjau pesan masuk, pengajuan peserta, dan konten publik. |
 | Bulanan | Uji restore backup; periksa log server dan kapasitas disk. |
-| Saat pergantian pengurus | Rotasi `KCI_TOKEN_ADMIN`; jangan rotasi pepper tanpa rencana migrasi data. |
+| Saat pergantian pengurus | Rotasi `KCI_ADMIN_PASSWORD` dan/atau `KCI_TOKEN_ADMIN` legacy; jangan rotasi pepper tanpa rencana migrasi data. |
 
 Lihat `PANDUAN-DEPLOY.md` untuk instruksi host Render/VPS secara lengkap.

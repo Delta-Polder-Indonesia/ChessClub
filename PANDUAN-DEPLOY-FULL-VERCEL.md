@@ -1,210 +1,233 @@
 # Panduan FULL VERCEL — Frontend + Backend Aktif dalam Satu Proyek
 
-> Backend TIDAK perlu Render lagi. Seluruh aplikasi (frontend React + backend
-> Node) berjalan dalam **satu proyek Vercel**:
+> Backend tidak perlu Render untuk mode ini. Seluruh aplikasi berjalan dalam
+> **satu proyek Vercel**:
 >
-> ```
+> ```text
 > Browser ──> Vercel
->              ├── /            → frontend statis (dist/, gratis)
+>              ├── /            → frontend React statis (dist/)
 >              └── /api/*       → Serverless Function api/[...jalur].js
->                                 (menjalankan server/src/index.js apa adanya)
+>                                 (menjalankan server/src/index.js)
 > ```
-
-Backend **tidak diubah perilakunya** — mode `node server/src/index.js`
-(Render/VPS/lokal) tetap berfungsi persis seperti sebelumnya. Yang ditambahkan
-hanya titik masuk serverless:
-
-| Berkas baru/diubah            | Fungsi                                                        |
-| ----------------------------- | ------------------------------------------------------------- |
-| `api/[...jalur].js`           | Serverless Function — meneruskan semua `/api/*` ke router     |
-| `server/src/index.js`         | Ekspor `tangani`; `listen()` dilewati saat `VERCEL` terdeteksi |
-| `server/src/konfigurasi.js`   | Bawaan cerdas di Vercel: data → `/tmp/kci-data`, proxy → 1    |
-| `vercel.json`                 | `/api/*` dilayani function lokal (bukan proxy ke Render)      |
-| `.vercelignore`               | `server/` ikut diunggah (dibutuhkan function)                 |
+>
+> **Dashboard pengurus ada di `/pengurus`** dan login memakai
+> **username + password**, bukan alamat `/dashboard-pengurus`.
 
 ---
 
-## 1. Siapkan rahasia (jalankan sekali, simpan baik-baik)
+## 1. Siapkan rahasia login dan hashing
+
+Jalankan sekali di terminal lokal, lalu simpan hasilnya di password manager.
+Jangan pernah menaruh nilai asli di Git.
 
 ```bash
-# Pepper — untuk hashing identitas (min. 16 karakter)
+# Pepper — untuk hashing identitas anggota (minimal 16 karakter)
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-# Token pengurus (min. 24 karakter)
+# Password pengurus/master yang kuat
+node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"
+
+# Opsional: token legacy pengurus (masih didukung sebagai password alternatif)
 node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 ```
 
-> ⚠️ **Pepper tidak boleh diganti** setelah ada data. Kehilangan pepper =
-> daftar hitam tidak bisa dipakai lagi. Simpan di password manager,
-> **jangan pernah** di-commit ke Git.
+> **Penting:** `KCI_PEPPER` tidak boleh diganti setelah ada data anggota/
+> larangan. Jika pepper berubah, hash identitas lama tidak cocok lagi.
 
 ---
 
 ## 2. Deploy ke Vercel
 
-### Cara A — lewat dashboard (disarankan)
+### Cara A — lewat dashboard Vercel (disarankan)
 
 1. Buka [vercel.com](https://vercel.com) → **Add New… → Project** → pilih
    repositori GitHub `ChessClub`.
-2. Framework Preset terdeteksi otomatis: **Vite** (dari `vercel.json`).
-   Build Command, Output Directory, dan routing `/api/*` sudah benar —
-   **tidak perlu mengubah apa pun** di langkah Configure Project.
-3. Sebelum menekan **Deploy**, buka **Environment Variables** dan isi:
+2. Framework Preset akan terbaca sebagai **Vite**. Konfigurasi sudah ada di
+   `vercel.json`:
+   - `buildCommand`: `VITE_BASE_PUBLIC=/ npm run build`
+   - `outputDirectory`: `dist`
+   - `/api/*`: dilayani oleh `api/[...jalur].js`
+3. Sebelum menekan **Deploy**, isi **Settings → Environment Variables**:
 
-   | Key                  | Nilai                              | Wajib?        |
-   | -------------------- | ---------------------------------- | ------------- |
-   | `KCI_PEPPER`         | hasil generate langkah 1           | **WAJIB**     |
-   | `KCI_TOKEN_ADMIN`    | hasil generate langkah 1           | **WAJIB**     |
-   | `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` | **WAJIB**     |
-   | `KCI_LOG_PERMINTAAN` | `1`                                | disarankan    |
-   | `KCI_CHESS_KLUB`     | `blunder-skuad`                    | bawaan sudah benar |
+   | Key | Nilai | Wajib? | Catatan |
+   | --- | ----- | ------ | ------- |
+   | `KCI_PEPPER` | hasil generate langkah 1 | **WAJIB** | Minimal 16 karakter, jangan diganti setelah ada data |
+   | `KCI_ADMIN_USER` | `admin` atau username pilihan | disarankan | Username login dashboard `/pengurus` |
+   | `KCI_ADMIN_PASSWORD` | password kuat langkah 1 | **WAJIB** | Server produksi menolak bawaan `admin123` |
+   | `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` | **WAJIB** | Tambahkan domain kustom juga bila ada, pisahkan koma, tanpa trailing slash |
+   | `KCI_TOKEN_ADMIN` | token legacy langkah 1 | opsional | Hanya bila ingin kompatibilitas token lama |
+   | `KCI_LOG_PERMINTAAN` | `1` | disarankan | Log ringkas tanpa body/token/IP |
+   | `KCI_CHESS_KLUB` | `blunder-skuad` | opsional | Bawaan sudah benar |
 
-   > Tanpa `KCI_PEPPER` / `KCI_TOKEN_ADMIN`, function **menolak menyala**
-   (Vercel otomatis menyetel `NODE_ENV=production`). Ini fail-closed yang
-   disengaja — lihat bagian Troubleshooting.
+   Untuk domain kustom, contoh:
 
-4. Tekan **Deploy** → tunggu build selesai.
+   ```text
+   KCI_ASAL_DIIZINKAN=https://nama-proyek.vercel.app,https://komunitasmu.id
+   ```
 
-### Cara B — lewat CLI
+   **Jangan isi `VITE_API_DASAR` untuk FULL VERCEL.** Biarkan kosong/tidak ada
+   agar frontend memanggil `/api/...` di domain Vercel yang sama. Jika variabel
+   ini masih berisi URL Render lama, dashboard akan mencoba login ke backend
+   lama dan bisa gagal.
+
+4. Tekan **Deploy** dan tunggu selesai. Jika mengubah Environment Variables
+   setelah deploy pertama, buka tab **Deployments** → pilih deployment terbaru
+   → **Redeploy**.
+
+### Cara B — lewat Vercel CLI
 
 ```bash
 npm i -g vercel
 vercel login
-vercel link                 # hubungkan folder ini ke proyek Vercel
+vercel link
+
 vercel env add KCI_PEPPER production
+vercel env add KCI_ADMIN_USER production
+vercel env add KCI_ADMIN_PASSWORD production
+vercel env add KCI_ASAL_DIIZINKAN production
+# Opsional legacy:
 vercel env add KCI_TOKEN_ADMIN production
-vercel env add KCI_ASAL_DIIZINKAN production    # isi: https://<proyek>.vercel.app
+
 vercel --prod
 ```
 
-> Vercel juga otomatis men-deploy ulang setiap push ke `main`
-> (Git integration aktif secara bawaan).
-
 ---
 
-## 3. Verifikasi backend AKTIF
+## 3. Verifikasi backend dan login pengurus
 
-Setelah deploy, uji langsung (ganti `kci.vercel.app` dengan domain-mu):
+Ganti domain di bawah dengan domain Vercel milikmu.
 
 ```bash
-# 1) Kesehatan — harus balas {"status":"sehat",...}
-curl https://kci.vercel.app/api/kesehatan
+DOMAIN=https://nama-proyek.vercel.app
+ADMIN_USER=admin
+ADMIN_PASSWORD='isi-password-KCI_ADMIN_PASSWORD'
 
-# 2) CSRF — harus balas {"token":"..."}
-curl https://kci.vercel.app/api/csrf-token
+# 1) Backend hidup — harus balas {"status":"sehat",...}
+curl "$DOMAIN/api/kesehatan"
 
-# 3) Endpoint pengurus terlindungi — harus balas 401 (BUKAN 404)
+# 2) CSRF tersedia — harus balas {"token":"..."}
+curl "$DOMAIN/api/csrf-token"
+
+# 3) Endpoint pengurus terkunci — harus 401, bukan 404
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -H "X-Token-Admin: salah" https://kci.vercel.app/api/pengurus/ringkasan
+  "$DOMAIN/api/pengurus/verifikasi"
 
-# 4) Frontend menyala di alamat yang sama
-curl -s -o /dev/null -w "%{http_code}\n" https://kci.vercel.app/
+# 4) Login dashboard — harus 200 dan memuat {"ok":true,...}
+curl -s -X POST "$DOMAIN/api/auth/login" \
+  -H "Content-Type: application/json" \
+  --data "{\"username\":\"$ADMIN_USER\",\"password\":\"$ADMIN_PASSWORD\"}"
+
+# 5) Token hasil login/password dapat membuka endpoint pengurus — harus 200
+curl -s "$DOMAIN/api/pengurus/verifikasi" \
+  -H "X-Admin-User: $ADMIN_USER" \
+  -H "X-Token-Admin: $ADMIN_PASSWORD"
 ```
 
-Kalau (1) `sehat`, (2) ada token, (3) `401`, dan (4) `200` →
-**backend aktif dan frontend hidup dalam satu domain**. ✅
+Jika langkah 1–5 sesuai, buka:
 
-Dashboard pengurus: masuk dengan `KCI_TOKEN_ADMIN` di halaman
-`/dashboard-pengurus` situs yang sama.
+```text
+https://nama-proyek.vercel.app/pengurus
+```
+
+Masuk dengan:
+
+```text
+Username: nilai KCI_ADMIN_USER
+Password: nilai KCI_ADMIN_PASSWORD
+```
+
+Akun pertama adalah **Master Admin**. Setelah masuk, Master dapat membuka menu
+profil kanan atas → **Pengaturan** untuk menambah Admin Pengurus, tetapi baca
+catatan persistensi Vercel di bawah sebelum dipakai produksi.
 
 ---
 
-## 4. Login OAuth Chess.com (opsional)
+## 4. Catatan khusus dashboard pengurus di Vercel
 
-Bila client_id Chess.com sudah disetujui, tambahkan env vars:
+1. **Alamat benar:** `/pengurus`. Alamat lama `/dashboard-pengurus` tidak
+   dipakai.
+2. **Login utama:** `KCI_ADMIN_USER` + `KCI_ADMIN_PASSWORD`.
+3. **Token lama:** `KCI_TOKEN_ADMIN` masih diterima sebagai password alternatif
+   untuk kompatibilitas, tetapi tidak wajib bila password admin sudah kuat.
+4. **Perubahan admin lewat dashboard tidak permanen di FULL VERCEL.** Vercel
+   hanya mengizinkan penulisan runtime ke `/tmp`. Jadi ganti password/tambah
+   admin dari menu Pengaturan dapat hilang saat cold start/redeploy. Untuk
+   kredensial permanen di FULL VERCEL, ubah Environment Variables Vercel lalu
+   redeploy. Untuk data tulis yang benar-benar awet, gunakan Render +
+   Persistent Disk atau database eksternal.
+5. **Session login tersimpan di tab browser saja** (`sessionStorage`). Jika tab
+   ditutup, pengurus perlu login ulang.
 
-| Key                     | Nilai                                                  |
-| ----------------------- | ------------------------------------------------------ |
-| `KCI_CHESS_CLIENT_ID`   | dari Chess.com                                         |
-| `KCI_CHESS_CLIENT_SECRET` | dari Chess.com (opsional, PKCE tetap jalan)          |
+---
+
+## 5. Login OAuth Chess.com (opsional untuk verifikasi anggota)
+
+Jika client_id Chess.com sudah disetujui, tambahkan env vars berikut:
+
+| Key | Nilai |
+| --- | ----- |
+| `KCI_CHESS_CLIENT_ID` | dari Chess.com |
+| `KCI_CHESS_CLIENT_SECRET` | dari Chess.com, jika tersedia |
 | `KCI_CHESS_REDIRECT_URI` | `https://<nama-proyek>.vercel.app/api/auth/chess/kembali` |
 
-Callback OAuth kini berada di **domain Vercel yang sama** — daftarkan URI
-tersebut persis di formulir Chess.com. Tanpa OAuth, jalur cadangan
-(kode `KCI-XXXXXX` di kolom Location profil Chess.com) tetap berfungsi.
+Daftarkan redirect URI itu persis sama di Chess.com. Tanpa OAuth, jalur
+cadangan kode profil (`KCI-XXXXXX` di kolom Location profil Chess.com) tetap
+berfungsi.
 
 ---
 
-## 5. Batasan serverless (baca sebelum dipakai produksi)
+## 6. Batasan serverless FULL VERCEL
 
-Backend berjalan sebagai Serverless Function — ada 3 konsekuensi yang perlu
-diketahui, semuanya setara dengan Render Free:
-
-1. **Data: benih dari Git permanen, tulisan runtime sementara.** Berkas
-   data (`anggota.json`, `turnamen.json`, `berita.json`, `pengumuman.json`,
-   `daftar-hitam.json`) ikut ter-bundle dari folder `data/` di repo. Setiap
-   function mulai, berkas-berkas itu **disalin sebagai data benih** ke
-   `/tmp/kci-data` (bawaan `KCI_DIR_DATA`), sehingga apa yang di-commit ke
-   Git **selalu muncul permanen** di Vercel.
-
-   Alur memperbarui data permanen: **ubah di lokal → commit & push ke GitHub
-   → Vercel deploy ulang → data muncul.** (Tidak perlu mengatur apa pun;
-   `includeFiles` di `vercel.json` + logika benih di `api/[...jalur].js`
-   yang menangani.)
-
-   Catatan: data/berkas yang **dibuat langsung di situs Vercel** (mis.
-   pendaftaran/pesan baru) ditulis ke `/tmp` dan tetap **hilang** saat
-   instance dingin atau redeploy — lalu kembali ke kondisi benih dari Git.
-   Untuk data yang benar-benar awet ditulis dari aplikasi, gunakan Render
-   **Starter + Persistent Disk** (lihat `PANDUAN-DEPLOY-VERCEL-RENDER.md`)
-   atau DB eksternal (Turso/Supabase/Neon). Data pribadi (`data/rahasia/`,
-   `pesan.json`, `riwayat-masuk.json`) tidak pernah ikut ter-bundle.
-
-2. **State dalam memori per instance.** Token CSRF, tiket verifikasi, sesi
-   OAuth, dan hitungan rate-limit hidup di memori. Frontend sudah punya
-   pemulihan otomatis (403 CSRF → ambil token baru → ulang sekali), jadi
-   pengguna normal tidak terdampak. Hanya saja:
-
-   > ⚠️ **OAuth 2.0 Chess.com** bisa gagal sesekali di serverless (state PKCE
-   > disimpan di memori instance yang memulai login; callback kadang mendarat
-   > di instance lain). Jalur kode profil tidak terdampak. Bila OAuth wajib
-   > stabil → pakai Render/VPS.
-
-3. **Cold start.** Permintaan pertama setelah lama tidur butuh 1–3 detik.
-   Sinkronisasi roster anggota pertama (`/api/anggota`) bisa memakan waktu
-   lebih lama; setelahnya di-cache.
-
-Rate-limit per IP tetap bekerja: di Vercel, bawaan `KCI_JUMLAH_PROXY=1`
-dipakai otomatis sehingga IP klien dibaca dari `X-Forwarded-For`.
+1. **Data seed dari Git permanen, tulisan runtime sementara.** Berkas
+   `data/*.json` yang di-commit ikut dibundle dan disalin ke `/tmp/kci-data`
+   saat function cold start. Data yang dibuat langsung dari situs Vercel
+   (pesan, riwayat masuk, perubahan konten/admin) dapat hilang saat instance
+   dingin atau redeploy.
+2. **State memori per instance.** CSRF token, tiket verifikasi, sesi OAuth,
+   dan rate-limit hidup di memori function. Frontend sudah otomatis mengambil
+   CSRF baru saat token lama ditolak.
+3. **OAuth Chess.com bisa kurang stabil di serverless.** State PKCE disimpan di
+   memori instance yang memulai login; callback kadang mendarat di instance
+   lain. Jika OAuth wajib stabil, gunakan backend persistent (Render/VPS).
+4. **Cold start.** Request pertama setelah lama tidak dipakai bisa butuh 1–3
+   detik; sinkronisasi roster Chess.com pertama bisa lebih lama.
 
 ---
 
-## 6. Kembali ke mode Vercel (frontend) + Render (backend)
+## 7. Troubleshooting akses dashboard pengurus
 
-Tidak suka serverless? Cukup kembalikan rewrite di `vercel.json` ke backend
-Render (dan hapus folder `api/` bila mau):
-
-```json
-"rewrites": [
-  { "source": "/api/:path*", "destination": "https://kci-api.onrender.com/api/:path*" },
-  { "source": "/(.*)", "destination": "/index.html" }
-]
-```
-
----
-
-## 7. Troubleshooting
-
-| Gejala | Sebab | Solusi |
-| ------ | ----- | ------ |
-| `500 FUNCTION_INVOCATION_FAILED` di semua `/api/*` | `KCI_PEPPER`/`KCI_TOKEN_ADMIN` kosong/terlalu pendek (server menolak menyala di mode produksi) | Isi env vars di Vercel → Settings → Environment Variables, lalu **Redeploy** |
-| `403 {"pesan":"Asal permintaan tidak diizinkan."}` saat POST | Domain frontend belum terdaftar di `KCI_ASAL_DIIZINKAN` | Tambahkan `https://<proyek>.vercel.app` (dan domain kustom) dipisah koma |
-| `{"pesan":"Token CSRF tidak valid."}` sesekali | Instance function berganti (state memori hilang) | Normal di serverless — frontend otomatis mengulang sekali; biarkan |
-| `429 Terlalu banyak permintaan` | Rate limit per IP kena (bawaan 100 req/15 mnt/IP) | Tunggu; naikkan `KCI_BATAS_UMUM` bila perlu |
-| `/api/anggota` lama balas | Sinkronisasi roster pertama ke Chess.com | Tunggu (maxDuration function 60 detik); kunjungan berikutnya cepat (cache) |
-| `502 …Chess.com sedang tidak dapat dihubungi` | API Chess.com padam/diblokir | Coba lagi nanti; bukan galat konfigurasi |
-| Function log: `Konfigurasi produksi belum lengkap` | Env vars belum lengkap | Lengkap sesuai pesan di log Vercel → Deployments → Runtime Logs |
+| Gejala | Sebab paling umum | Solusi |
+| ------ | ----------------- | ------ |
+| Membuka `/dashboard-pengurus` gagal/404 | Alamat lama | Gunakan `https://domainmu/pengurus` |
+| Login 401 “Username atau password salah” | `KCI_ADMIN_USER`/`KCI_ADMIN_PASSWORD` salah, belum redeploy, atau env dipasang di environment yang salah | Cek env Production di Vercel, pastikan tanpa spasi tambahan, lalu **Redeploy** |
+| Semua `/api/*` balas `500 FUNCTION_INVOCATION_FAILED` | Env produksi belum lengkap, terutama `KCI_PEPPER`, `KCI_ADMIN_PASSWORD`, atau `KCI_ASAL_DIIZINKAN` | Buka Vercel → Deployments → Runtime Logs, lengkapi env sesuai pesan log, redeploy |
+| POST/login balas `403 {"pesan":"Asal permintaan tidak diizinkan."}` | Domain tidak ada di `KCI_ASAL_DIIZINKAN` | Tambahkan domain Vercel dan domain kustom, tanpa trailing slash, pisah koma |
+| Frontend hidup tetapi dashboard selalu gagal login | `VITE_API_DASAR` masih menunjuk backend lama | Hapus/kosongkan `VITE_API_DASAR` di Vercel untuk FULL VERCEL, redeploy |
+| Setelah ganti password di dashboard, beberapa waktu kemudian balik ke password lama | Perubahan tersimpan di `/tmp` serverless | Ubah `KCI_ADMIN_PASSWORD` di Environment Variables Vercel, lalu redeploy |
+| `Token CSRF tidak valid` sesekali | Instance function berganti | Normal di serverless; frontend akan ambil CSRF baru dan ulangi request |
+| `/api/anggota` lama balas | Sinkronisasi roster Chess.com pertama | Tunggu sampai 60 detik; request berikutnya memakai cache |
+| `502 ... Chess.com sedang tidak dapat dihubungi` | API Chess.com sedang bermasalah | Coba lagi nanti; bukan galat login pengurus |
 
 ---
 
-## 8. Ringkasan biaya
+## 8. Jika butuh data produksi awet
+
+FULL VERCEL cocok untuk uji coba dan situs kecil. Jika data dashboard (pesan,
+riwayat, admin tambahan, perubahan konten) harus awet tanpa commit ulang,
+pakai salah satu opsi berikut:
+
+- **Vercel frontend + Render Starter + Persistent Disk** — lihat
+  `PANDUAN-DEPLOY-VERCEL-RENDER.md`.
+- **Database eksternal** seperti Supabase/Neon/Turso — perlu adaptasi layer
+  penyimpanan.
+- **VPS** dengan `KCI_DIR_DATA` di disk permanen.
+
+---
+
+## 9. Ringkasan biaya
 
 | Bagian | Tempat | Biaya |
 | ------ | ------ | ----- |
-| Frontend (React → `dist/`) | Vercel Hobby | **Rp 0** |
-| Backend (`api/[...jalur].js` serverless) | Vercel Hobby | **Rp 0** (dalam kuota Hobby) |
-| **Total** | | **Rp 0** untuk uji coba |
-
-Batasan Hobby: 100 GB-bandwidth/bulan dan eksekusi function terbatas.
-Untuk klub dengan trafik kecil–menengah ini umumnya cukup; monitor di
-tab Usage dashboard Vercel.
+| Frontend (`dist/`) | Vercel Hobby | Rp 0 dalam kuota Hobby |
+| Backend (`api/[...jalur].js`) | Vercel Serverless Function | Rp 0 dalam kuota Hobby |
+| Total uji coba | | Rp 0 |

@@ -64,7 +64,7 @@ export const konfigurasi = {
   /** Kata rahasia untuk hashing identitas. Wajib di produksi. */
   pepper: process.env.KCI_PEPPER || "",
 
-  /** Token admin untuk endpoint pengurus. Wajib di produksi. */
+  /** Token admin legacy untuk endpoint pengurus. Opsional; masih diterima sebagai password alternatif. */
   tokenAdmin: process.env.KCI_TOKEN_ADMIN || "",
 
   /** Login sederhana untuk dashboard pengurus (umum: username + password).
@@ -188,26 +188,22 @@ export function periksaProduksi() {
         "Tanpa itu, hash identitas dapat ditebak."
     );
   }
-  // Token admin lama ATAU password admin baru harus memadai di produksi
-  const tokenOk = konfigurasi.tokenAdmin && konfigurasi.tokenAdmin.length >= 24;
-  const passOk = konfigurasi.admin?.password && konfigurasi.admin.password.length >= 6 && konfigurasi.admin.password !== "admin123";
-  const passAda = konfigurasi.admin?.password && konfigurasi.admin.password.length >= 6;
+  // Password dashboard wajib diganti di produksi. KCI_TOKEN_ADMIN tetap
+  // boleh diisi sebagai kompatibilitas legacy, tetapi tidak boleh menjadi
+  // alasan membiarkan akun publik admin/admin123 tetap aktif.
+  const passOk =
+    konfigurasi.admin?.password &&
+    konfigurasi.admin.password.length >= 6 &&
+    konfigurasi.admin.password !== "admin123";
 
-  if (!tokenOk && !passOk) {
-    // Bila masih pakai bawaan admin123, beri peringatan keras tapi jangan blokir total
-    // agar pengguna baru bisa coba dulu; bila sama sekali kosong, blokir.
-    if (!passAda && !tokenOk) {
-      masalah.push(
-        "KCI_ADMIN_PASSWORD atau KCI_TOKEN_ADMIN wajib diisi di produksi. " +
-          "Bawaan admin/admin123 tidak aman untuk publik. Setel password kuat minimal 6 karakter."
-      );
-    }
+  if (!passOk) {
+    masalah.push(
+      "KCI_ADMIN_PASSWORD wajib diisi dengan password kuat (minimal 6 karakter) di produksi. " +
+        "Bawaan admin/admin123 hanya untuk lokal/demo."
+    );
   }
-  // Jika masih pakai admin123 di produksi, tampilkan warning di log, bukan fatal,
-  // tapi kita tetap catat sebagai masalah agar pengelola sadar (bisa di-override dengan token kuat).
-  if (!tokenOk && konfigurasi.admin?.password === "admin123") {
-    // tidak fatal bila asalDiizinkan belum diisi? Tapi bila produksi, kita warning lewat console, bukan push ke masalah fatal?
-    // Untuk fleksibilitas permintaan user, kita tidak jadikan fatal — hanya log warning di index.js.
+  if (konfigurasi.tokenAdmin && konfigurasi.tokenAdmin.length < 24) {
+    masalah.push("KCI_TOKEN_ADMIN legacy harus minimal 24 karakter bila diisi.");
   }
   if (!konfigurasi.asalDiizinkan.length) {
     masalah.push(

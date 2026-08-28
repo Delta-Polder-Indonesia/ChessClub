@@ -48,22 +48,20 @@ async function tiruApiPengurus(page) {
     const token = request.headers()["x-token-admin"];
 
     if (path === "/api/csrf-token") return json({ token: "csrf-pengurus" });
+    // Gerbang masuk memakai endpoint publik username + password, lalu
+    // menyimpan token yang dikembalikan untuk semua request /api/pengurus/*.
+    if (path === "/api/auth/login" && request.method() === "POST") {
+      const body = request.postDataJSON();
+      if (body.username !== "pengurusuji" || body.password !== "password-uji") {
+        return json({ pesan: "Username atau password salah." }, 401);
+      }
+      return json({ ok: true, token: "token-uji", username: "pengurusuji", role: "master" });
+    }
     // ProtectedRoute memverifikasi token lewat endpoint ringan ini
     // (bukan /ringkasan) — tiru kontraknya: 401 bila token salah, ok bila sah.
     if (path === "/api/pengurus/verifikasi") {
       if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
-      return json({ ok: true });
-    }
-    // Gerbang masuk memverifikasi token SEKALIGUS mencatat riwayat masuk lewat
-    // POST /masuk (lihat Gerbang.jsx & server). Tanpa tiruan ini, catch-all di
-    // bawah membalas 200 sehingga token salah tampak berhasil masuk dan pesan
-    // "Token pengurus tidak dikenali." tidak pernah muncul.
-    if (path === "/api/pengurus/masuk" && request.method() === "POST") {
-      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
-      return json({
-        ok: true,
-        entri: { id: "masuk-uji", username: "pengurusuji", waktu: "2026-08-25T00:00:00.000Z" },
-      });
+      return json({ ok: true, username: "pengurusuji", role: "master" });
     }
     if (path === "/api/pengurus/ringkasan") {
       if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
@@ -240,24 +238,24 @@ test("turnamen mengarahkan non-anggota ke pendaftaran", async ({ page }) => {
   periksaGalat();
 });
 
-test("dashboard pengurus menolak token tidak sah", async ({ page }) => {
+test("dashboard pengurus menolak password tidak sah", async ({ page }) => {
   await tiruApiPengurus(page);
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pengurus");
   await expect(page.getByRole("heading", { name: "Dashboard Pengurus" })).toBeVisible();
   await page.locator('input[autocomplete="username"]').fill("pengurusuji");
-  await page.locator('input[type="password"]').fill("token-salah");
+  await page.locator('input[type="password"]').fill("password-salah");
   await page.getByRole("button", { name: "Masuk" }).click();
-  await expect(page.getByText("Token pengurus tidak dikenali.")).toBeVisible();
+  await expect(page.getByText(/Username atau password salah/)).toBeVisible();
   periksaGalat();
 });
 
-test("dashboard pengurus memverifikasi token dan logout dengan aman", async ({ page }) => {
+test("dashboard pengurus memverifikasi login dan logout dengan aman", async ({ page }) => {
   await tiruApiPengurus(page);
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pengurus");
   await page.locator('input[autocomplete="username"]').fill("pengurusuji");
-  await page.locator('input[type="password"]').fill("token-uji");
+  await page.locator('input[type="password"]').fill("password-uji");
   await page.getByRole("button", { name: "Masuk" }).click();
 
   await expect(page.getByText("12", { exact: true })).toBeVisible();

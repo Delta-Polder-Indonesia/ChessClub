@@ -85,11 +85,24 @@ npm run dev
 Buka **`/pengurus`** di peramban — misalnya
 `https://komunitascatur.or.id/pengurus`. Halaman ini sengaja **tidak
 ditautkan dari menu mana pun**; hanya yang tahu alamatnya yang bisa
-membukanya, dan tetap harus memasukkan token.
+membukanya, dan tetap harus login.
 
-1. Tempelkan `KCI_TOKEN_ADMIN` pada kotak "Token pengurus", tekan **Masuk**.
-2. Token disimpan di `sessionStorage` — hilang begitu tab ditutup. Di
-   komputer bersama, tekan **Keluar** setelah selesai.
+1. Masuk dengan **username + password pengurus**.
+   - Lokal/demo bawaan: `admin / admin123`.
+   - Produksi: isi `KCI_ADMIN_USER` dan `KCI_ADMIN_PASSWORD` di server/Vercel,
+     lalu redeploy. Jangan pakai `admin123` di situs publik.
+   - `KCI_TOKEN_ADMIN` lama masih didukung sebagai password alternatif bila
+     memang diisi, tetapi bukan lagi cara utama.
+2. Sesi disimpan di `sessionStorage` — hilang begitu tab ditutup. Di komputer
+   bersama, tekan **Keluar** setelah selesai.
+3. Akun dengan role **Master Admin** dapat membuka menu profil kanan atas →
+   **Pengaturan** untuk mengelola admin lain. Role **Admin Pengurus** hanya
+   dapat mengelola anggota, turnamen, pesan, berita, dan pengumuman.
+
+> Catatan FULL VERCEL: perubahan admin/password dari menu Pengaturan ditulis
+> ke `/tmp` serverless dan bisa hilang saat cold start/redeploy. Untuk
+> kredensial permanen di Vercel, ubah Environment Variables
+> `KCI_ADMIN_USER`/`KCI_ADMIN_PASSWORD`, lalu redeploy.
 
 Isi dashboard:
 

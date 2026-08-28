@@ -8,8 +8,9 @@
 #   - Free tier memakai penyimpanan sementara. Data JSON dapat kembali ke
 #     keadaan awal setelah restart/deploy. Jangan gunakan untuk data produksi.
 #   - Sebutan "secret" TIDAK boleh di-hardcode di file ini. Nilai rahasia
-#     (KCI_PEPPER, KCI_TOKEN_ADMIN) dideklarasikan dengan `sync: false` —
+#     (KCI_PEPPER, KCI_ADMIN_PASSWORD) dideklarasikan dengan `sync: false` —
 #     Render akan MEMINTA nilainya saat pertama kali membuat Blueprint.
+#   - KCI_TOKEN_ADMIN lama bersifat opsional sebagai password alternatif.
 #   - KCI_ASAL_DIIZINKAN juga `sync: false` karena bergantung pada domain
 #     Vercel kamu. Isikan domain Vercel saat diminta Render.
 #
@@ -54,9 +55,15 @@ services:
       # Kata rahasia hashing identitas (min. 16 karakter).
       - key: KCI_PEPPER
         sync: false
-      # Token endpoint pengurus (min. 24 karakter).
-      - key: KCI_TOKEN_ADMIN
+      # Login dashboard pengurus (/pengurus).
+      - key: KCI_ADMIN_USER
+        value: admin
+      # Password dashboard pengurus. Ganti dari bawaan admin123.
+      - key: KCI_ADMIN_PASSWORD
         sync: false
+      # Token endpoint pengurus lama (opsional; bisa dibuka manual bila perlu).
+      # - key: KCI_TOKEN_ADMIN
+      #   sync: false
       # Origin frontend yang boleh memanggil API.
       #   https://<nama-proyek>.vercel.app  (dan domain kustom bila ada)
       - key: KCI_ASAL_DIIZINKAN
