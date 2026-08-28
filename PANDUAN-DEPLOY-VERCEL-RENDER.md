@@ -1,16 +1,12 @@
-# Panduan Cepat — Deploy Vercel (Frontend) + Render.com Starter (Backend)
+# Panduan Cepat — Deploy Vercel (Frontend) + Render Free/Starter (Backend)
 
-> Ini jalur yang **direkomendasikan** untuk proyek Komunitas Catur Indonesia.
-> Kombinasi paling seimbang: frontend secepat mungkin di Vercel (gratis) dan
-> backend ber-**data persisten** di Render.com **Starter + Persistent Disk**.
+> Untuk uji coba, gunakan Vercel (frontend gratis) + Render **Free** (backend).
+> Untuk produksi dengan data yang awet, upgrade backend ke **Starter + Persistent
+> Disk** setelah pengujian selesai.
 > **Nol perubahan kode** di `server/` — backend jalan apa adanya.
 
-> ⚠️ **Strategi aman untuk kamu (uji gratis dulu, baru bayar):** Render punya
-> **Free tier tanpa kartu kredit**. Pakai itu dulu untuk memastikan situs + API
-> benar-benar berjalan. Hanya *jika sudah terbukti jalan* baru lompat ke
-> **Starter + disk** untuk produksi. Lihat bagian **"Uji coba gratis (Free tier)"**
-> di bawah. Free tier **tanpa disk** jadi data tidak persisten — itu tidak
-> masalah untuk uji coba.
+> ⚠️ Render Free tidak memiliki Persistent Disk. Data JSON dapat hilang saat
+> instance restart/deploy, sehingga paket ini hanya untuk demo dan pengujian.
 
 ---
 
@@ -35,7 +31,7 @@ File yang sudah disiapkan di repo:
 - `vercel.json` — build Vite + proxy `/api/*` ke backend.
 - `.vercelignore` — mengabaikan `server/`, `scripts/`, `tests/`, `.github/`,
   `data/` saat unggah ke Vercel (frontend statis saja).
-- `render.yaml` — blueprint Render.com (service + persistent disk + env vars).
+- `render.yaml` — blueprint Render.com Free untuk pengujian (tanpa disk + env vars).
 
 ---
 
@@ -91,7 +87,7 @@ Langkah uji coba gratis:
    | `KCI_PEPPER` | hasil generate di langkah 1 (≥16 karakter) |
    | `KCI_TOKEN_ADMIN` | hasil generate di langkah 1 (≥24 karakter) |
    | `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` *(domain Vercel-mu)* |
-   | `KCI_DIR_DATA` | `/var/data` *(boleh; tetap ephemeral di free)* |
+   | `KCI_DIR_DATA` | `/tmp/kci-data` *(ephemeral di free)* |
    | `KCI_CHESS_KLUB` | `blunder-skuad` |
 
    > Server menganggap mode **produksi** bila `NODE_ENV=production` ATAU
@@ -114,9 +110,9 @@ Render untuk kedua fase.
 ### Cara A — Blueprint `render.yaml` (disarankan, otomatis)
 
 `render.yaml` sudah disiapkan di repo dan berisi service `kci-api`, plan
-**Starter**, **persistent disk** di `/var/data` (1 GB), perintah mulai
-`node server/src/index.js`, health-check `/api/kesehatan`, dan deklarasi
-`KCI_PEPPER`, `KCI_TOKEN_ADMIN`, `KCI_ASAL_DIIZINKAN` dengan `sync: false`.
+**Free**, tanpa Persistent Disk, perintah mulai `node server/src/index.js`,
+health-check `/api/kesehatan`, dan deklarasi `KCI_PEPPER`, `KCI_TOKEN_ADMIN`,
+`KCI_ASAL_DIIZINKAN` dengan `sync: false`.
 
 1. Buka [render.com](https://render.com) → **New** → **Blueprint**.
 2. Pilih repositori ini → biarkan Render membaca `render.yaml`.
@@ -124,7 +120,11 @@ Render untuk kedua fase.
    - `KCI_PEPPER` → hasil generate di langkah 1.
    - `KCI_TOKEN_ADMIN` → hasil generate di langkah 1.
    - `KCI_ASAL_DIIZINKAN` → `https://<nama-proyek>.vercel.app` *(domain Vercel-mu)*.
-4. Klik **Apply** → Render membuat service, disk, dan env vars otomatis.
+4. Klik **Apply** → Render membuat service Free dan env vars otomatis.
+5. Setelah selesai, buka `https://kci-api.onrender.com/api/kesehatan`.
+
+> Jika ingin data permanen, upgrade service ini ke Starter dan ubah
+> `KCI_DIR_DATA` menjadi `/var/data`, lalu tambahkan Persistent Disk.
 
 > Semua nilai `sync: false` hanya diminta saat **pembuatan pertama**. Saat
 > update Blueprint berikutnya Render mengabaikannya — tambahkan/revisi nilai
