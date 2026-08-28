@@ -9,6 +9,23 @@ Data API Chess.com. **Tanpa dependensi eksternal** — cukup Node.js 20+.
 node server/src/index.js
 ```
 
+### Jalankan di Vercel (Serverless Function) — FULL VERCEL
+
+Backend juga bisa berjalan **tanpa server** sebagai Vercel Serverless
+Function lewat `api/[...jalur].js`. Kode rute tidak berubah: bila variabel
+lingkungan `VERCEL` terdeteksi (disuntikkan Vercel otomatis), modul ini
+tidak membuka port dan hanya mengekspor `tangani(req, res)`.
+
+Bawaan yang otomatis berlaku di Vercel:
+
+| Nilai                  | Bawaan lokal            | Bawaan di Vercel    |
+| ---------------------- | ----------------------- | ------------------- |
+| `KCI_DIR_DATA`         | `<repo>/data`           | `/tmp/kci-data`     |
+| `KCI_JUMLAH_PROXY`     | `0`                     | `1` (di belakang proxy Vercel) |
+
+Langkah deploy lengkap (env vars wajib, verifikasi, batasan serverless):
+lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` di akar repo.
+
 ## Endpoint
 
 ### Publik

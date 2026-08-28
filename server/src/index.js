@@ -750,51 +750,65 @@ if (!konfigurasi.pepper) {
   );
 }
 
-const server = http.createServer((req, res) => {
-  const mulai = performance.now();
-  const requestId = randomUUID();
-  req.kciRequestId = requestId;
-  res.setHeader("X-Request-Id", requestId);
+/**
+ * Deteksi lingkungan Vercel (Serverless Function).
+ *
+ * Di serverless TIDAK ADA port untuk didengarkan — Vercel memanggil
+ * handler per permintaan. Maka di sana modul ini hanya mengekspor
+ * `tangani` (lihat api/[...jalur].js) tanpa membuat server HTTP.
+ * Vercel menyuntikkan variabel VERCEL otomatis di semua deployment-nya.
+ */
+const diVercel = Boolean(process.env.VERCEL);
 
-  // Log terstruktur sengaja tidak memuat query string, body, token, atau IP.
-  // Aktifkan dengan KCI_LOG_PERMINTAAN=1 bila journal/log collector tersedia.
-  res.on("finish", () => {
-    if (!konfigurasi.logPermintaan) return;
-    const jalur = (req.url || "/").split("?")[0];
-    console.log(JSON.stringify({
-      event: "http_request",
-      requestId,
-      method: req.method || "GET",
-      path: jalur,
-      status: res.statusCode,
-      durationMs: Math.round(performance.now() - mulai),
-    }));
+let server = null;
+
+if (!diVercel) {
+  server = http.createServer((req, res) => {
+    const mulai = performance.now();
+    const requestId = randomUUID();
+    req.kciRequestId = requestId;
+    res.setHeader("X-Request-Id", requestId);
+
+    // Log terstruktur sengaja tidak memuat query string, body, token, atau IP.
+    // Aktifkan dengan KCI_LOG_PERMINTAAN=1 bila journal/log collector tersedia.
+    res.on("finish", () => {
+      if (!konfigurasi.logPermintaan) return;
+      const jalur = (req.url || "/").split("?")[0];
+      console.log(JSON.stringify({
+        event: "http_request",
+        requestId,
+        method: req.method || "GET",
+        path: jalur,
+        status: res.statusCode,
+        durationMs: Math.round(performance.now() - mulai),
+      }));
+    });
+
+    tangani(req, res).catch((e) => {
+      console.error(`[kci] galat fatal id=${requestId}:`, e);
+      if (!res.headersSent) kirimJson(res, 500, { pesan: "Kesalahan server." });
+    });
   });
 
-  tangani(req, res).catch((e) => {
-    console.error(`[kci] galat fatal id=${requestId}:`, e);
-    if (!res.headersSent) kirimJson(res, 500, { pesan: "Kesalahan server." });
+  server.listen(konfigurasi.port, konfigurasi.host, () => {
+    console.log(
+      `[kci] Backend berjalan di http://${konfigurasi.host}:${konfigurasi.port}` +
+        ` (${konfigurasi.lingkungan})`
+    );
+    console.log(`[kci] Data: ${konfigurasi.dirData}`);
+    if (konfigurasi.asalDiizinkan.length) {
+      console.log(`[kci] Asal diizinkan: ${konfigurasi.asalDiizinkan.join(", ")}`);
+    }
   });
-});
 
-server.listen(konfigurasi.port, konfigurasi.host, () => {
-  console.log(
-    `[kci] Backend berjalan di http://${konfigurasi.host}:${konfigurasi.port}` +
-      ` (${konfigurasi.lingkungan})`
-  );
-  console.log(`[kci] Data: ${konfigurasi.dirData}`);
-  if (konfigurasi.asalDiizinkan.length) {
-    console.log(`[kci] Asal diizinkan: ${konfigurasi.asalDiizinkan.join(", ")}`);
+  /* Matikan dengan rapi agar penulisan berkas tidak terputus di tengah. */
+  for (const sinyal of ["SIGINT", "SIGTERM"]) {
+    process.on(sinyal, () => {
+      console.log(`\n[kci] ${sinyal} diterima, menutup server…`);
+      server.close(() => process.exit(0));
+      setTimeout(() => process.exit(0), 5000).unref();
+    });
   }
-});
-
-/* Matikan dengan rapi agar penulisan berkas tidak terputus di tengah. */
-for (const sinyal of ["SIGINT", "SIGTERM"]) {
-  process.on(sinyal, () => {
-    console.log(`\n[kci] ${sinyal} diterima, menutup server…`);
-    server.close(() => process.exit(0));
-    setTimeout(() => process.exit(0), 5000).unref();
-  });
 }
 
-export { server };
+export { server, tangani };

@@ -1,5 +1,11 @@
 # Panduan Cepat — Deploy Vercel (Frontend) + Render Free/Starter (Backend)
 
+> **Alternative FULL VERCEL (Rp 0, tanpa Render):** repo ini kini mendukung
+> backend berjalan sebagai Serverless Function di proyek Vercel yang sama —
+> frontend dan backend aktif dalam satu domain. Lihat
+> **`PANDUAN-DEPLOY-FULL-VERCEL.md`**. Panduan di bawah tetap valid bila kamu
+> lebih memilih backend dengan disk persisten (data produksi yang awet).
+
 > Untuk uji coba, gunakan Vercel (frontend gratis) + Render **Free** (backend).
 > Untuk produksi dengan data yang awet, upgrade backend ke **Starter + Persistent
 > Disk** setelah pengujian selesai.

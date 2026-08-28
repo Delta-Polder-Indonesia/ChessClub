@@ -1,14 +1,14 @@
 # Berkas yang TIDAK perlu diunggah ke Vercel.
-# Frontend statis di-build dari src/, public/, dan package.json saja.
-# Backend (server/) berjalan terpisah (Render/VPS) dan TIDAK di-deploy ke Vercel.
+# FULL VERCEL: frontend statis di-build dari src/ + public/, dan backend
+# berjalan sebagai Serverless Function dari api/[...jalur].js yang
+# mengimpor server/src/index.js. Karena itu server/ TIDAK boleh diabaikan.
 
-# Dependensi & hasil build (Vercel membangunnnya sendiri)
+# Dependensi & hasil build (Vercel membangunnya sendiri)
 node_modules/
 dist/
 .vercel/
 
-# Backend & skrip/uji — dijalankan terpisah (lihat PANDUAN-DEPLOY.md)
-server/
+# Skrip & uji — tidak dipakai frontend maupun function
 scripts/
 tests/
 playwright.config.js
@@ -18,7 +18,8 @@ test-results/
 # Berkas CI / sistem
 .github/
 
-# Berkas data backend (ditulis oleh server, bukan frontend statis)
+# Berkas data backend (ditulis server saat berjalan; di Vercel data disimpan
+# di /tmp/kci-data, bukan di bundle deployment)
 # Pola diawali "/" agar HANYA folder data di root yang diabaikan,
 # bukan src/data/ yang berisi data panduan frontend.
 /data/
