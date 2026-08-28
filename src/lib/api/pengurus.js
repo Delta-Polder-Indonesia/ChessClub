@@ -234,4 +234,21 @@ export async function bersihkanRiwayatMasuk() {
   });
 }
 
+/**
+ * Ambil info admin saat ini (tanpa password).
+ */
+export async function infoAdmin() {
+  return apiPengurus("/admin-info");
+}
+
+/**
+ * Ganti password admin lewat dashboard.
+ */
+export async function gantiPasswordAdmin({ passwordLama, passwordBaru, usernameBaru }) {
+  return apiPengurus("/ganti-password", {
+    metode: "POST",
+    bodi: { passwordLama, passwordBaru, usernameBaru },
+  });
+}
+
 

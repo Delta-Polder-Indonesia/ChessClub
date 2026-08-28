@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
+import { infoAdmin, gantiPasswordAdmin, tokenPengurus, adminPengguna } from "../../lib/api/index.js";
 
 const MENU_PENGATURAN = [
+  {
+    kunci: "akun",
+    label: "Akun & Password",
+    icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+  },
   {
     kunci: "riwayat-masuk",
     label: "Riwayat Masuk",
     icon: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
-  },
-  {
-    kunci: "akun",
-    label: "Akun & Profil",
-    icon: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
   },
   {
     kunci: "umum",
@@ -19,8 +20,166 @@ const MENU_PENGATURAN = [
   },
 ];
 
+function PanelAkun({ beriTahu }) {
+  const [info, setInfo] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState(adminPengguna.ambil() || "admin");
+  const [passLama, setPassLama] = useState("");
+  const [passBaru, setPassBaru] = useState("");
+  const [passKonf, setPassKonf] = useState("");
+  const [sibuk, setSibuk] = useState(false);
+  const [lihat, setLihat] = useState(false);
+
+  useEffect(() => {
+    infoAdmin()
+      .then((d) => {
+        setInfo(d);
+        if (d.username) setUsername(d.username);
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  const simpan = async (e) => {
+    e.preventDefault();
+    if (passBaru !== passKonf) {
+      beriTahu?.("Konfirmasi password tidak cocok.", "error");
+      return;
+    }
+    if (passBaru.length < 6) {
+      beriTahu?.("Password baru minimal 6 karakter.", "error");
+      return;
+    }
+    setSibuk(true);
+    try {
+      const res = await gantiPasswordAdmin({
+        passwordLama: passLama,
+        passwordBaru: passBaru,
+        usernameBaru: username.trim().toLowerCase(),
+      });
+      // update token di sessionStorage agar tetap login dengan password baru
+      tokenPengurus.simpan(passBaru);
+      adminPengguna.simpan(res.username || username);
+      beriTahu?.(res.pesan || "Password berhasil diganti.", "sukses");
+      setPassLama("");
+      setPassBaru("");
+      setPassKonf("");
+      const baru = await infoAdmin().catch(() => null);
+      if (baru) setInfo(baru);
+    } catch (err) {
+      beriTahu?.(err.message || "Gagal ganti password.", "error");
+    } finally {
+      setSibuk(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="text-sm text-slate-500">Memuat info akun...</div>;
+  }
+
+  return (
+    <div className="max-w-xl space-y-6">
+      <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <h3 className="text-sm font-bold text-slate-900">Akun Saat Ini</h3>
+        <div className="mt-3 space-y-2 text-sm">
+          <div className="flex justify-between">
+            <span className="text-slate-500">Username</span>
+            <span className="font-mono font-bold text-slate-900">{info?.username || username}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">Sumber</span>
+            <span className="text-slate-700">{info?.sumber === "file" ? "File (sudah diganti via dashboard)" : "Env / bawaan (admin/admin123)"}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-slate-500">File ada</span>
+            <span className="text-slate-700">{info?.adaFile ? "Ya" : "Belum (masih pakai bawaan)"}</span>
+          </div>
+        </div>
+        <p className="mt-3 text-[11px] leading-5 text-slate-500">
+          Bawaan: <code className="font-mono">admin / admin123</code>. Ganti di sini agar tersimpan di{" "}
+          <code className="font-mono">data/rahasia/admin.json</code> (tidak masuk Git) dan langsung aktif tanpa restart.
+        </p>
+      </div>
+
+      <form onSubmit={simpan} className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
+        <h3 className="text-sm font-bold text-slate-900">Ganti Username & Password</h3>
+
+        <label className="flex flex-col gap-1.5 text-sm text-slate-700">
+          Username baru
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+            placeholder="admin"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1.5 text-sm text-slate-700">
+          Password lama (verifikasi)
+          <input
+            type={lihat ? "text" : "password"}
+            value={passLama}
+            onChange={(e) => setPassLama(e.target.value)}
+            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+            placeholder="admin123"
+            required
+          />
+        </label>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
+            Password baru
+            <input
+              type={lihat ? "text" : "password"}
+              value={passBaru}
+              onChange={(e) => setPassBaru(e.target.value)}
+              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+              placeholder="minimal 6 karakter"
+              required
+            />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
+            Konfirmasi password baru
+            <input
+              type={lihat ? "text" : "password"}
+              value={passKonf}
+              onChange={(e) => setPassKonf(e.target.value)}
+              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+              placeholder="ulang password baru"
+              required
+            />
+          </label>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setLihat((v) => !v)}
+            className="text-xs text-slate-600 hover:text-slate-900"
+          >
+            {lihat ? "Sembunyikan password" : "Lihat password"}
+          </button>
+          <button
+            type="submit"
+            disabled={sibuk}
+            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
+          >
+            {sibuk ? "Menyimpan..." : "Simpan Password Baru"}
+          </button>
+        </div>
+      </form>
+
+      <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">
+        Tips: Setelah ganti, kamu akan tetap login dengan token baru. Untuk login berikutnya pakai password baru. File tersimpan di{" "}
+        <code className="font-mono">data/rahasia/admin.json</code>. Hapus file itu untuk kembali ke bawaan env.
+      </div>
+    </div>
+  );
+}
+
 export default function Pengaturan({ onKembali, beriTahu }) {
-  const [bagian, setBagian] = useState("riwayat-masuk");
+  const [bagian, setBagian] = useState("akun");
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -92,11 +251,7 @@ export default function Pengaturan({ onKembali, beriTahu }) {
           )}
 
           {bagian === "akun" && (
-            <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
-              <p className="text-sm text-slate-500">
-                Pengaturan akun & profil akan segera tersedia.
-              </p>
-            </div>
+            <PanelAkun beriTahu={beriTahu} />
           )}
 
           {bagian === "umum" && (

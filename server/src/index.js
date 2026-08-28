@@ -97,9 +97,19 @@ import {
   bersihkanRiwayatMasuk,
   ringkasanRiwayatMasuk,
 } from "./riwayat-masuk.js";
+import {
+  muatAdminFileKeKonfigurasi,
+  bacaAdminFile,
+  tulisAdminFile,
+} from "./admin-file.js";
+import { samaAman } from "./http.js";
 
 const mulaiPada = Date.now();
 const router = buatRouter();
+
+// Muat file admin.json bila ada (override env)
+muatAdminFileKeKonfigurasi().catch(() => {});
+
 
 /* ------------------------------------------------------------ rute publik */
 
@@ -266,9 +276,11 @@ router.post(
     if (kunciBrute.terkunci) {
       throw new GalatAplikasi(
         429,
-        `Terlalu banyak percobaan login yang gagal. Coba lagi dalam ${kunciBrute.cobaLagiDetik} detik.`
+        "Terlalu banyak percobaan login yang gagal. Coba lagi dalam " + kunciBrute.cobaLagiDetik + " detik."
       );
     }
+
+    await muatAdminFileKeKonfigurasi().catch(() => {});
 
     const bodi = await bacaBodi(req);
     const usernameRaw = String(bodi.username || "").trim().toLowerCase();
@@ -279,28 +291,21 @@ router.post(
       throw new GalatAplikasi(400, "Username dan password wajib diisi.");
     }
 
-    // Kredensial yang sah: admin.username + admin.password, atau tokenAdmin sebagai password
     const adminUser = konfigurasi.admin?.username || "admin";
     const adminPass = konfigurasi.admin?.password || "admin123";
     const tokenAdmin = konfigurasi.tokenAdmin || "";
 
-    // username harus cocok (admin) — tapi bila tokenAdmin dipakai sebagai login lama,
-    // kita izinkan username apa pun yang valid selama password == tokenAdmin (kompatibilitas)
     let usernameCocok = false;
     let passwordCocok = false;
 
     try {
-      const { samaAman } = await import("./http.js");
       if (samaAman(usernameRaw, adminUser)) usernameCocok = true;
       if (samaAman(passwordRaw, adminPass)) passwordCocok = true;
-      // kompatibilitas: token lama masih bisa dipakai sebagai password
       if (tokenAdmin && samaAman(passwordRaw, tokenAdmin)) {
         passwordCocok = true;
-        // bila login pakai token lama, username lama tetap dianggap cocok bila diisi
         if (usernameRaw.length >= 3) usernameCocok = true;
       }
     } catch {
-      // fallback perbandingan biasa bila import gagal
       usernameCocok = usernameRaw === adminUser;
       passwordCocok = passwordRaw === adminPass || (tokenAdmin && passwordRaw === tokenAdmin);
       if (tokenAdmin && passwordRaw === tokenAdmin && usernameRaw.length >= 3) {
@@ -314,12 +319,8 @@ router.post(
     }
 
     catatPercobaanAdmin(ip, true);
-
-    // Token yang dikembalikan adalah password admin (atau tokenAdmin bila itu yang dipakai)
-    // — token ini yang akan dikirim di header X-Token-Admin untuk semua /api/pengurus/*
     const tokenBalik = tokenAdmin && passwordRaw === tokenAdmin ? tokenAdmin : adminPass;
 
-    // Catat riwayat masuk
     const userAgent = req.headers["user-agent"] || "";
     const usernameCatat = usernameCocok ? usernameRaw : adminUser;
     try {
@@ -329,9 +330,7 @@ router.post(
         userAgent,
         catatan: "login-admin-sederhana",
       });
-    } catch {
-      /* abaikan bila gagal catat */
-    }
+    } catch {}
 
     return {
       status: 200,
@@ -407,6 +406,63 @@ router.post("/api/pengurus/riwayat-masuk/bersihkan", async (req) => {
   pastikanAdmin(req);
   await bersihkanRiwayatMasuk();
   return { status: 200, isi: { pesan: "Semua riwayat masuk dibersihkan." } };
+});
+
+
+/** Ganti password admin lewat dashboard (umum). */
+router.post("/api/pengurus/ganti-password", async (req) => {
+  pastikanAdmin(req);
+  const bodi = await bacaBodi(req);
+  const passLama = String(bodi.passwordLama || "");
+  const passBaru = String(bodi.passwordBaru || "");
+  const userBaru = String(bodi.usernameBaru || "").trim().toLowerCase() || konfigurasi.admin.username;
+
+  if (!passLama || !passBaru) {
+    throw new GalatAplikasi(400, "Password lama dan baru wajib diisi.");
+  }
+  if (passBaru.length < 6) {
+    throw new GalatAplikasi(400, "Password baru minimal 6 karakter.");
+  }
+  if (!/^[a-z0-9_-]{3,25}$/.test(userBaru)) {
+    throw new GalatAplikasi(400, "Username baru tidak valid (3-25 karakter).");
+  }
+
+  // verifikasi password lama cocok dengan yang aktif
+  const aktif = konfigurasi.admin.password;
+  const tokenAdmin = konfigurasi.tokenAdmin || "";
+  let cocok = false;
+  try {
+    if (samaAman(passLama, aktif)) cocok = true;
+    if (tokenAdmin && samaAman(passLama, tokenAdmin)) cocok = true;
+  } catch {
+    cocok = passLama === aktif || (tokenAdmin && passLama === tokenAdmin);
+  }
+  if (!cocok) {
+    throw new GalatAplikasi(401, "Password lama salah.");
+  }
+
+  await tulisAdminFile({ username: userBaru, password: passBaru });
+  konfigurasi.admin.username = userBaru;
+  konfigurasi.admin.password = passBaru;
+
+  return {
+    status: 200,
+    isi: { ok: true, username: userBaru, pesan: "Password berhasil diganti. Login ulang dengan password baru." },
+  };
+});
+
+/** Ambil kredensial admin saat ini (tanpa password) untuk ditampilkan di pengaturan. */
+router.get("/api/pengurus/admin-info", async (req) => {
+  pastikanAdmin(req);
+  const file = await bacaAdminFile().catch(() => null);
+  return {
+    status: 200,
+    isi: {
+      username: konfigurasi.admin.username,
+      adaFile: Boolean(file),
+      sumber: file ? "file" : "env/bawaan",
+    },
+  };
 });
 
 /**
