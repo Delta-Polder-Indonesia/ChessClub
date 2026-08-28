@@ -3,6 +3,7 @@ import {
   loginAdmin,
   tokenPengurus,
   adminPengguna,
+  peranPengurus,
 } from "../../lib/api/index.js";
 
 /**
@@ -38,9 +39,10 @@ export default function Gerbang({ onMasuk }) {
     setGalat("");
     try {
       const hasil = await loginAdmin(namaBersih, sandi);
-      // Simpan token & identitas untuk semua request /api/pengurus/*
+      // Simpan token, identitas, dan peran untuk semua request /api/pengurus/*
       tokenPengurus.simpan(hasil.token);
       adminPengguna.simpan(hasil.username || namaBersih);
+      peranPengurus.simpan(hasil.role || "pengurus");
       onMasuk(hasil.username || namaBersih);
     } catch (err) {
       tokenPengurus.hapus();

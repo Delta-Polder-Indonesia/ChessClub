@@ -75,6 +75,9 @@ export const konfigurasi = {
     password: process.env.KCI_ADMIN_PASSWORD || "admin123",
   },
 
+  /** Daftar admin dengan role (master / pengurus). Diisi dari file admins.json saat startup. */
+  admins: [],
+
   /** Asal (origin) yang boleh memanggil API. Kosong = izinkan semua. */
   asalDiizinkan: daftar(process.env.KCI_ASAL_DIIZINKAN),
 

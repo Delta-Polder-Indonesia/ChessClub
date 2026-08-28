@@ -5,6 +5,7 @@ import { GalatApi, urlApi } from "./core.js";
 /** Token pengurus disimpan di sessionStorage — hilang saat tab ditutup. */
 const KUNCI_TOKEN = "kci-token-pengurus";
 const KUNCI_PENGGUNA = "kci-pengguna-pengurus";
+const KUNCI_PERAN = "kci-peran-pengurus";
 
 export const tokenPengurus = {
   ambil: () => {
@@ -57,6 +58,36 @@ export const adminPengguna = {
       sessionStorage.removeItem(KUNCI_PENGGUNA);
     } catch {
       /* abaikan */
+    }
+  },
+};
+
+export const peranPengurus = {
+  ambil: () => {
+    try {
+      return sessionStorage.getItem(KUNCI_PERAN) || "";
+    } catch {
+      return "";
+    }
+  },
+  simpan: (role) => {
+    const v = String(role || "").trim().toLowerCase();
+    try {
+      if (v) sessionStorage.setItem(KUNCI_PERAN, v);
+      else sessionStorage.removeItem(KUNCI_PERAN);
+    } catch {}
+  },
+  hapus: () => {
+    try {
+      sessionStorage.removeItem(KUNCI_PERAN);
+    } catch {}
+  },
+  isMaster: () => {
+    try {
+      const r = sessionStorage.getItem(KUNCI_PERAN) || "";
+      return r === "master";
+    } catch {
+      return false;
     }
   },
 };
@@ -248,6 +279,31 @@ export async function gantiPasswordAdmin({ passwordLama, passwordBaru, usernameB
   return apiPengurus("/ganti-password", {
     metode: "POST",
     bodi: { passwordLama, passwordBaru, usernameBaru },
+  });
+}
+
+export async function daftarAdmins() {
+  return apiPengurus("/admins");
+}
+
+export async function tambahAdminBaru({ username, password, role }) {
+  return apiPengurus("/admins/tambah", {
+    metode: "POST",
+    bodi: { username, password, role },
+  });
+}
+
+export async function hapusAdmin(username) {
+  return apiPengurus("/admins/hapus", {
+    metode: "POST",
+    bodi: { username },
+  });
+}
+
+export async function ubahAdmin({ username, password, role }) {
+  return apiPengurus("/admins/ubah", {
+    metode: "POST",
+    bodi: { username, password, role },
   });
 }
 

@@ -291,7 +291,67 @@ function daftarTokenSah() {
   const daftar = [];
   if (konfigurasi.tokenAdmin) daftar.push(konfigurasi.tokenAdmin);
   if (konfigurasi.admin?.password) daftar.push(konfigurasi.admin.password);
-  return daftar;
+  // semua admin dari file
+  if (Array.isArray(konfigurasi.admins)) {
+    for (const a of konfigurasi.admins) {
+      if (a?.password) daftar.push(a.password);
+    }
+  }
+  return [...new Set(daftar)];
+}
+
+/**
+ * Dapatkan admin dari request berdasarkan username + token.
+ * Mengembalikan { username, role, password } atau null.
+ */
+export function dapatkanAdminDariRequest(req) {
+  const dariHeader = req.headers["x-token-admin"];
+  const otorisasi = req.headers.authorization || "";
+  const dariBearer = otorisasi.startsWith("Bearer ") ? otorisasi.slice(7) : "";
+  const token = dariHeader || dariBearer || "";
+  const username = identitasPengurus(req);
+
+  if (!token) return null;
+
+  // 1. cek tokenAdmin lama sebagai master fallback
+  if (konfigurasi.tokenAdmin && samaAman(token, konfigurasi.tokenAdmin)) {
+    return { username: username || "admin", role: "master", password: token };
+  }
+
+  // 2. cek di daftar admins (dari file)
+  if (Array.isArray(konfigurasi.admins)) {
+    for (const a of konfigurasi.admins) {
+      if (!a?.password) continue;
+      // jika username cocok, cek passwordnya spesifik
+      if (username && a.username === username) {
+        if (samaAman(token, a.password)) return a;
+      }
+    }
+    // jika tidak ada username atau username tidak cocok, cek token cocok dengan salah satu admin (kompatibilitas lama)
+    for (const a of konfigurasi.admins) {
+      if (a?.password && samaAman(token, a.password)) {
+        // jika username header kosong, pakai username dari admin yang cocok
+        // jika username header ada tapi beda, tetap izinkan bila token cocok? Untuk keamanan, izinkan bila username kosong atau sama
+        if (!username || a.username === username) return a;
+        // bila username beda tapi token cocok dengan admin lain, tetap kembalikan admin yang tokennya cocok (untuk kasus login pakai token lama)
+        // tapi kita tetap kembalikan a
+        return a;
+      }
+    }
+  }
+
+  // 3. cek konfigurasi.admin tunggal
+  if (konfigurasi.admin?.password && samaAman(token, konfigurasi.admin.password)) {
+    const role = konfigurasi.admins?.find((a) => a.username === konfigurasi.admin.username)?.role || "master";
+    return { username: konfigurasi.admin.username, password: konfigurasi.admin.password, role };
+  }
+
+  return null;
+}
+
+export function peranPengurus(req) {
+  const admin = dapatkanAdminDariRequest(req);
+  return admin?.role || "";
 }
 
 /**
@@ -300,7 +360,7 @@ function daftarTokenSah() {
  *
  * Mendukung dua metode:
  *  - Metode lama: KCI_TOKEN_ADMIN (token panjang)
- *  - Metode baru umum: KCI_ADMIN_PASSWORD (bawaan admin123)
+ *  - Metode baru umum: KCI_ADMIN_PASSWORD (bawaan admin123) + multi-admin file
  *
  * Ketika keduanya tidak diatur, endpoint hanya terbuka untuk
  * koneksi dari loopback (127.0.0.1/::1) — itupun hanya di luar produksi.
@@ -342,6 +402,22 @@ export function pastikanAdmin(req) {
   if (!cocok) {
     const e = new Error("Token pengurus tidak valid.");
     e.status = 401;
+    throw e;
+  }
+}
+
+/**
+ * Pastikan yang login adalah master admin.
+ * Dipakai untuk endpoint pengaturan sensitif.
+ */
+export function pastikanMaster(req) {
+  pastikanAdmin(req);
+  const role = peranPengurus(req);
+  // jika role kosong (mis. tokenAdmin lama tanpa username), anggap master untuk kompatibilitas
+  if (!role) return;
+  if (role !== "master") {
+    const e = new Error("Akses ditolak: hanya Master Admin yang boleh mengakses pengaturan.");
+    e.status = 403;
     throw e;
   }
 }
