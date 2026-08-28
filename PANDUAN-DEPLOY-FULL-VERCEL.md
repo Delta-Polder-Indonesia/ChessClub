@@ -130,12 +130,25 @@ tersebut persis di formulir Chess.com. Tanpa OAuth, jalur cadangan
 Backend berjalan sebagai Serverless Function — ada 3 konsekuensi yang perlu
 diketahui, semuanya setara dengan Render Free:
 
-1. **Data sementara.** Berkas data (`anggota.json`, `daftar-hitam.json`,
-   `turnamen.json`, pesan, berita) disimpan di `/tmp/kci-data` yang hidup
-   hanya selama instance function hangat. Data **bisa hilang** saat instance
-   dingin kembali. Cocok untuk demo/uji coba; untuk data permanen gunakan
-   Render **Starter + Persistent Disk** (lihat
-   `PANDUAN-DEPLOY-VERCEL-RENDER.md`) atau DB eksternal (Turso/Supabase/Neon).
+1. **Data: benih dari Git permanen, tulisan runtime sementara.** Berkas
+   data (`anggota.json`, `turnamen.json`, `berita.json`, `pengumuman.json`,
+   `daftar-hitam.json`) ikut ter-bundle dari folder `data/` di repo. Setiap
+   function mulai, berkas-berkas itu **disalin sebagai data benih** ke
+   `/tmp/kci-data` (bawaan `KCI_DIR_DATA`), sehingga apa yang di-commit ke
+   Git **selalu muncul permanen** di Vercel.
+
+   Alur memperbarui data permanen: **ubah di lokal → commit & push ke GitHub
+   → Vercel deploy ulang → data muncul.** (Tidak perlu mengatur apa pun;
+   `includeFiles` di `vercel.json` + logika benih di `api/[...jalur].js`
+   yang menangani.)
+
+   Catatan: data/berkas yang **dibuat langsung di situs Vercel** (mis.
+   pendaftaran/pesan baru) ditulis ke `/tmp` dan tetap **hilang** saat
+   instance dingin atau redeploy — lalu kembali ke kondisi benih dari Git.
+   Untuk data yang benar-benar awet ditulis dari aplikasi, gunakan Render
+   **Starter + Persistent Disk** (lihat `PANDUAN-DEPLOY-VERCEL-RENDER.md`)
+   atau DB eksternal (Turso/Supabase/Neon). Data pribadi (`data/rahasia/`,
+   `pesan.json`, `riwayat-masuk.json`) tidak pernah ikut ter-bundle.
 
 2. **State dalam memori per instance.** Token CSRF, tiket verifikasi, sesi
    OAuth, dan hitungan rate-limit hidup di memori. Frontend sudah punya
