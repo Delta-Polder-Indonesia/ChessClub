@@ -5,6 +5,13 @@
 > backend ber-**data persisten** di Render.com **Starter + Persistent Disk**.
 > **Nol perubahan kode** di `server/` — backend jalan apa adanya.
 
+> ⚠️ **Strategi aman untuk kamu (uji gratis dulu, baru bayar):** Render punya
+> **Free tier tanpa kartu kredit**. Pakai itu dulu untuk memastikan situs + API
+> benar-benar berjalan. Hanya *jika sudah terbukti jalan* baru lompat ke
+> **Starter + disk** untuk produksi. Lihat bagian **"Uji coba gratis (Free tier)"**
+> di bawah. Free tier **tanpa disk** jadi data tidak persisten — itu tidak
+> masalah untuk uji coba.
+
 ---
 
 ## Ringkasan arsitektur & biaya
@@ -53,6 +60,56 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 > **Dua cara**: (A) **Blueprint `render.yaml`** — satu klik, konfigurasi sudah
 > terdokumentasi di repo; (B) **Web Service manual** — isi lewat dashboard.
 > Keduanya menghasilkan service yang sama. Pilih salah satu.
+
+### 2.0 — Uji coba GRATIS dulu (Free tier, tanpa kartu kredit) — DISARANKAN
+
+Render memiliki **Free tier**: kamu bisa membuat web service **$0/bulan**
+tanpa memasukkan kartu kredit. Gunakan ini untuk membuktikan bahwa situs dan
+API **benar-benar berjalan** sebelum memutuskan membayar Starter.
+
+> **Ingat:** Free tier **TIDAK punya persistent disk** → data `data/*.json`
+> hilang saat service tidur/restart, dan service **tidur setelah 15 menit**
+> tanpa trafik (cold start 30–60 detik saat dibuka lagi). Untuk **uji coba**
+> itu tidak masalah. Data hanya jadi benar-benar awet setelah naik ke
+> **Starter + disk**.
+
+Langkah uji coba gratis:
+
+1. **Render → New → Web Service** → sambungkan repositori ini.
+2. Isi:
+   - **Runtime**: `Node`
+   - **Build Command**: *(kosongkan)*
+   - **Start Command**: `node server/src/index.js`
+   - **Instance Type**: **Free** ← pilih ini ($0, tidak ada kartu)
+3. **JANGAN tambahkan disk** (Free tidak mendukung).
+4. Tambahkan Environment Variables (penting — tanpa ini server **menolak start**
+   dalam mode produksi):
+
+   | Key | Value |
+   | --- | ----- |
+   | `NODE_ENV` | `production` |
+   | `KCI_PEPPER` | hasil generate di langkah 1 (≥16 karakter) |
+   | `KCI_TOKEN_ADMIN` | hasil generate di langkah 1 (≥24 karakter) |
+   | `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` *(domain Vercel-mu)* |
+   | `KCI_DIR_DATA` | `/var/data` *(boleh; tetap ephemeral di free)* |
+   | `KCI_CHESS_KLUB` | `blunder-skuad` |
+
+   > Server menganggap mode **produksi** bila `NODE_ENV=production` ATAU
+   > `KCI_ASAL_DIIZINKAN` diisi. Dalam mode itu ia **menolak start** bila
+   > `KCI_PEPPER`/`KCI_TOKEN_ADMIN` kosong. Ini perilaku yang disengaja
+   > (mencegah pepper pengembangan ter-publish), bukan bug.
+
+5. **Deploy** → tunggu selesai. Catat URL (mis. `https://kci-api.onrender.com`).
+6. **Verifikasi** dengan `curl` (lihat bagian 4 di bawah). Kalau `kesehatan`
+   mengembalikan `{"status":"sehat",...}` dan endpoint pengurus balas `401`,
+   berarti backend **berjalan** — silakan lanjut bayar Starter.
+7. Bila sudah yakin, **upgrade ke Starter + pasang disk** (lihat Cara B),
+   lalu tambahkan data produksi.
+
+Untuk kenyamanan menguji tanpa harus mengetik env setiap kali, kamu juga bisa
+mengeset variabel pada **Web Service manually** seperti di atas, atau membuat
+Blueprint terpisah ber-`plan: free` (tanpa `disk`) bila ingin memakai satu akun
+Render untuk kedua fase.
 
 ### Cara A — Blueprint `render.yaml` (disarankan, otomatis)
 
