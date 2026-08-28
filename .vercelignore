@@ -18,11 +18,19 @@ test-results/
 # Berkas CI / sistem
 .github/
 
-# Berkas data backend (ditulis server saat berjalan; di Vercel data disimpan
-# di /tmp/kci-data, bukan di bundle deployment)
-# Pola diawali "/" agar HANYA folder data di root yang diabaikan,
-# bukan src/data/ yang berisi data panduan frontend.
-/data/
+# Berkas data backend.
+# data/*.json (anggota, turnamen, berita, pengumuman, dll) justru IKUT
+# di-deploy: ia menjadi "data benih" yang disalin ke /tmp/kci-data saat
+# function mulai (lihat api/[...jalur].js), sehingga data yang di-commit ke
+# Git tampil permanen di Vercel.
+# Pola diawali "/" agar hanya menyentuh folder data di root, bukan
+# src/data/ yang berisi data panduan frontend.
+#
+# Yang TETAP diabaikan: data pribadi & hasil tulis saat runtime (tidak
+# pernah di-commit; lihat .gitignore) - jangan sampai terbawa ke deployment.
+/data/rahasia/
+/data/pesan.json
+/data/riwayat-masuk.json
 
 # Dokumen & catatan pengembangan
 *.md

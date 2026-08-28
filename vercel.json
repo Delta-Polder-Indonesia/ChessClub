@@ -4,6 +4,12 @@
   "installCommand": "npm ci",
   "buildCommand": "VITE_BASE_PUBLIC=/ npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 60,
+      "includeFiles": "data/*.json"
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!api/).*)",
