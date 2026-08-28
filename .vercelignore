@@ -19,7 +19,9 @@ test-results/
 .github/
 
 # Berkas data backend (ditulis oleh server, bukan frontend statis)
-data/
+# Pola diawali "/" agar HANYA folder data di root yang diabaikan,
+# bukan src/data/ yang berisi data panduan frontend.
+/data/
 
 # Dokumen & catatan pengembangan
 *.md
