@@ -27,7 +27,10 @@ Jalankan sekali, lalu **simpan hasilnya baik-baik**:
 # Pepper — untuk hashing identitas
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
-# Token pengurus
+# Password pengurus/master untuk dashboard /pengurus
+node -e "console.log(require('crypto').randomBytes(18).toString('base64url'))"
+
+# Opsional: token pengurus legacy (password alternatif)
 node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
 ```
 
@@ -54,8 +57,10 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    | --- | ----- |
    | `NODE_ENV` | `production` |
    | `KCI_PEPPER` | hasil generate di atas |
-   | `KCI_TOKEN_ADMIN` | hasil generate di atas |
-   | `KCI_ASAL_DIIZINKAN` | `https://delta-polder-indonesia.github.io` |
+   | `KCI_ADMIN_USER` | `admin` *(atau username pilihan)* |
+   | `KCI_ADMIN_PASSWORD` | password pengurus dari langkah 1 |
+   | `KCI_TOKEN_ADMIN` | opsional; token legacy bila masih diperlukan |
+   | `KCI_ASAL_DIIZINKAN` | `https://delta-polder-indonesia.github.io` *(tanpa trailing slash)* |
    | `KCI_JUMLAH_PROXY` | `1` (lihat catatan di bawah) |
    | `KCI_CHESS_KLUB` | `blunder-skuad` |
    | `KCI_DIR_DATA` | `/var/data` |
@@ -90,7 +95,10 @@ Restart=always
 Environment=NODE_ENV=production
 Environment=PORT=8787
 Environment=KCI_PEPPER=isi-pepper-di-sini
-Environment=KCI_TOKEN_ADMIN=isi-token-di-sini
+Environment=KCI_ADMIN_USER=admin
+Environment=KCI_ADMIN_PASSWORD=isi-password-kuat-di-sini
+# Opsional legacy:
+# Environment=KCI_TOKEN_ADMIN=isi-token-di-sini
 Environment=KCI_CHESS_KLUB=blunder-skuad
 Environment=KCI_ASAL_DIIZINKAN=https://catur.example.id
 # Data (anggota, larangan, kontak, pesan, jejak audit) ditulis DI LUAR
@@ -252,12 +260,19 @@ curl $API/api/anggota
 # 3. Endpoint pengurus TERKUNCI? (harus 401)
 curl -o /dev/null -w "%{http_code}\n" $API/api/pengurus/ringkasan
 
-# 4. Dengan token benar (harus 200)
-curl -H "X-Token-Admin: TOKEN_ANDA" $API/api/pengurus/ringkasan
+# 4. Login pengurus (harus 200 dan memuat {"ok":true,...})
+curl -X POST -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"PASSWORD_KCI_ADMIN_PASSWORD"}' \
+  $API/api/auth/login
+
+# 5. Dengan password/token benar (harus 200)
+curl -H "X-Admin-User: admin" \
+  -H "X-Token-Admin: PASSWORD_KCI_ADMIN_PASSWORD" \
+  $API/api/pengurus/ringkasan
 ```
 
-Poin 3 wajib menghasilkan **401**. Bila menghasilkan 200, berarti
-`KCI_TOKEN_ADMIN` belum terpasang — segera perbaiki.
+Poin 3 wajib menghasilkan **401**. Bila menghasilkan 200 tanpa header admin,
+berarti endpoint pengurus terbuka tanpa kredensial — segera perbaiki.
 
 ---
 
@@ -268,21 +283,22 @@ Semua request POST juga butuh token CSRF — ambil sekali dari
 
 ```bash
 API=https://kci-api.onrender.com
-TOKEN=token-anda
+ADMIN_USER=admin
+TOKEN=PASSWORD_KCI_ADMIN_PASSWORD   # atau KCI_TOKEN_ADMIN legacy bila dipakai
 CSRF=$(curl -s $API/api/csrf-token | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).token))")
 
 # Pindai ban fair play — jalankan sebelum tiap turnamen
-curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+curl -X POST -H "X-Admin-User: $ADMIN_USER" -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
   $API/api/pengurus/pindai
 
 # Blokir pemain
-curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+curl -X POST -H "X-Admin-User: $ADMIN_USER" -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
   -H "Content-Type: application/json" \
   -d '{"username":"namauser","keterangan":"Terbukti memakai engine."}' \
   $API/api/pengurus/blokir
 
 # Cek nomor HP sebelum menerima pemain
-curl -X POST -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
+curl -X POST -H "X-Admin-User: $ADMIN_USER" -H "X-Token-Admin: $TOKEN" -H "X-CSRF-Token: $CSRF" \
   -H "Content-Type: application/json" \
   -d '{"hp":"0812-3456-7890"}' $API/api/pengurus/cek-nomor
 ```

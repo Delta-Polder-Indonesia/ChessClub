@@ -63,12 +63,18 @@ lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` di akar repo.
 | POST | `/api/auth/kode/periksa` | Cek kode di kolom Location profil |
 | GET | `/api/auth/tiket/:nilai` | Status tiket verifikasi |
 
-### Pengurus — butuh token
+### Pengurus — butuh login/token
 
-Sertakan header `X-Token-Admin: <token>` atau `Authorization: Bearer <token>`.
+Dashboard `/pengurus` login lewat `POST /api/auth/login` dengan
+`KCI_ADMIN_USER` + `KCI_ADMIN_PASSWORD`. Setelah login, klien menyertakan
+header `X-Token-Admin: <token>` dan `X-Admin-User: <username>` untuk endpoint
+pengurus. `KCI_TOKEN_ADMIN` lama masih didukung sebagai token/password
+alternatif.
 
 | Metode | Jalur | Keterangan |
 | ------ | ----- | ---------- |
+| POST | `/api/auth/login` | Login dashboard `{username, password}` → `{token, username, role}` |
+| GET | `/api/pengurus/verifikasi` | Verifikasi token ringan untuk membuka dashboard |
 | GET | `/api/pengurus/ringkasan` | Jumlah anggota & daftar hitam |
 | POST | `/api/pengurus/pindai` | Pindai ban fair play ke Chess.com |
 | POST | `/api/pengurus/blokir` | `{username, keterangan}` |
@@ -99,8 +105,10 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | Nama | Wajib | Keterangan |
 | ---- | ----- | ---------- |
 | `KCI_PEPPER` | produksi | Kata rahasia hashing identitas, min. 16 karakter |
-| `KCI_TOKEN_ADMIN` | produksi | Token endpoint pengurus, min. 24 karakter |
-| `KCI_ASAL_DIIZINKAN` | disarankan | Origin yang boleh memanggil API, dipisah koma |
+| `KCI_ADMIN_USER` | disarankan | Username login dashboard pengurus; bawaan `admin` |
+| `KCI_ADMIN_PASSWORD` | produksi | Password login dashboard pengurus; ganti dari bawaan `admin123` |
+| `KCI_TOKEN_ADMIN` | opsional | Token legacy endpoint pengurus, min. 24 karakter bila dipakai |
+| `KCI_ASAL_DIIZINKAN` | produksi | Origin yang boleh memanggil API, dipisah koma tanpa trailing slash |
 | `PORT` | tidak | Bawaan `8787` |
 | `KCI_LOG_PERMINTAAN` | disarankan | `1` = log JSON ringkas per request (ID, method, path, status, durasi; tanpa body/token/IP) |
 | `KCI_DIR_DATA` | tidak | Lokasi berkas data, bawaan `./data` |
@@ -116,10 +124,11 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_CHESS_REDIRECT_URI` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |
 | `KCI_TUJUAN_SETELAH_LOGIN` | tidak | Halaman tujuan setelah login selesai (bawaan `/pendaftaran-anggota`) |
 
-Server **menolak untuk start** bila dianggap mode produksi — yaitu saat
-`NODE_ENV=production` ATAU `KCI_ASAL_DIIZINKAN` diisi — dan `KCI_PEPPER`
-atau `KCI_TOKEN_ADMIN` belum diatur. Ini mencegah server ter-publish dengan
-pepper/token pengembangan yang ada di source code.
+Server dianggap mode produksi bila `NODE_ENV=production` ATAU
+`KCI_ASAL_DIIZINKAN` diisi. Dalam mode itu server menolak start bila
+`KCI_PEPPER`, `KCI_ADMIN_PASSWORD` kuat, atau origin produksi belum lengkap.
+`KCI_TOKEN_ADMIN` hanya diperlukan bila masih memakai token legacy sebagai
+password alternatif.
 
 ## Struktur
 
@@ -158,7 +167,7 @@ API Chess.com secara lokal.
 node scripts/uji-identitas.mjs          # unit: normalisasi & daftar hitam
 node scripts/uji-i18n.mjs               # paritas kamus terjemahan ID/EN
 node scripts/uji-rute.mjs               # rute publik App.jsx ⇄ plugins/performa.js
-node server/uji/uji-backend.mjs         # integrasi HTTP menyeluruh (55 cek)
+node server/uji/uji-backend.mjs         # integrasi HTTP menyeluruh (100+ cek)
 node server/uji/uji-verifikasi.mjs      # OAuth/PKCE/JWT + jalur kode profil (30 cek)
 ```
 

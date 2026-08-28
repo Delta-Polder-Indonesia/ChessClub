@@ -7,7 +7,8 @@
  * Variabel lingkungan penting:
  *   PORT                 port dengar (bawaan 8787)
  *   KCI_PEPPER           kata rahasia hashing identitas  (WAJIB di produksi)
- *   KCI_TOKEN_ADMIN      token endpoint pengurus         (WAJIB di produksi)
+ *   KCI_ADMIN_PASSWORD   password dashboard pengurus     (WAJIB diganti di produksi)
+ *   KCI_TOKEN_ADMIN      token legacy pengurus           (opsional)
  *   KCI_ASAL_DIIZINKAN   daftar origin dipisah koma
  */
 import http from "node:http";
@@ -295,68 +296,61 @@ router.post(
       catatPercobaanAdmin(ip, false);
       throw new GalatAplikasi(400, "Username dan password wajib diisi.");
     }
+    if (!/^[a-z0-9_-]{3,25}$/.test(usernameRaw)) {
+      catatPercobaanAdmin(ip, false);
+      throw new GalatAplikasi(400, "Username tidak valid (3-25 karakter, huruf/angka/_/-).");
+    }
+
+    const cocokAman = (a, b) => {
+      if (!b) return false;
+      try {
+        return samaAman(a, b);
+      } catch {
+        return String(a) === String(b);
+      }
+    };
 
     const tokenAdmin = konfigurasi.tokenAdmin || "";
     let adminDitemukan = null;
-    let usernameCocok = false;
-    let passwordCocok = false;
+    let tokenBalik = "";
 
-    // cari di daftar admins (master & pengurus)
+    // 1) Login normal: username harus cocok dengan password admin terkait.
+    //    Jangan menerima password admin A dengan header username admin B;
+    //    ini menjaga role/audit tetap sesuai akun yang benar-benar dipakai.
     if (Array.isArray(konfigurasi.admins)) {
-      adminDitemukan = konfigurasi.admins.find((a) => a.username === usernameRaw);
-      if (adminDitemukan) {
-        usernameCocok = true;
-        try {
-          if (samaAman(passwordRaw, adminDitemukan.password)) passwordCocok = true;
-        } catch {
-          if (passwordRaw === adminDitemukan.password) passwordCocok = true;
-        }
+      const admin = konfigurasi.admins.find((a) => a.username === usernameRaw);
+      if (admin && cocokAman(passwordRaw, admin.password)) {
+        adminDitemukan = admin;
+        tokenBalik = admin.password;
       }
     }
 
-    // fallback ke master tunggal & token lama bila belum cocok
-    if (!usernameCocok || !passwordCocok) {
+    // 2) Kompatibilitas master tunggal dari env KCI_ADMIN_USER/PASSWORD.
+    if (!adminDitemukan) {
       const adminUser = konfigurasi.admin?.username || "admin";
       const adminPass = konfigurasi.admin?.password || "admin123";
-      try {
-        if (!usernameCocok && samaAman(usernameRaw, adminUser)) {
-          usernameCocok = true;
-          adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
-        }
-        if (!passwordCocok && samaAman(passwordRaw, adminPass)) {
-          passwordCocok = true;
-          if (!adminDitemukan) adminDitemukan = { username: usernameRaw, password: adminPass, role: "master" };
-        }
-        if (tokenAdmin && samaAman(passwordRaw, tokenAdmin)) {
-          passwordCocok = true;
-          if (usernameRaw.length >= 3) usernameCocok = true;
-          if (!adminDitemukan) adminDitemukan = { username: usernameRaw, password: tokenAdmin, role: "master" };
-        }
-      } catch {
-        const adminUser = konfigurasi.admin?.username || "admin";
-        const adminPass = konfigurasi.admin?.password || "admin123";
-        if (usernameRaw === adminUser) {
-          usernameCocok = true;
-          adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
-        }
-        if (passwordRaw === adminPass || (tokenAdmin && passwordRaw === tokenAdmin)) {
-          passwordCocok = true;
-        }
-        if (tokenAdmin && passwordRaw === tokenAdmin && usernameRaw.length >= 3) {
-          usernameCocok = true;
-        }
+      if (cocokAman(usernameRaw, adminUser) && cocokAman(passwordRaw, adminPass)) {
+        adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
+        tokenBalik = adminPass;
       }
     }
 
-    if (!usernameCocok || !passwordCocok) {
+    // 3) Token lama tetap didukung sebagai password master alternatif.
+    //    Token yang dikembalikan harus token yang dipakai, bukan password
+    //    master dari env, supaya tidak membocorkan kredensial lain.
+    if (!adminDitemukan && tokenAdmin && cocokAman(passwordRaw, tokenAdmin)) {
+      adminDitemukan = { username: usernameRaw, password: tokenAdmin, role: "master" };
+      tokenBalik = tokenAdmin;
+    }
+
+    if (!adminDitemukan) {
       catatPercobaanAdmin(ip, false);
       throw new GalatAplikasi(401, "Username atau password salah.");
     }
 
     catatPercobaanAdmin(ip, true);
-    const tokenBalik = adminDitemukan?.password || konfigurasi.admin.password;
-    const usernameCatat = adminDitemukan?.username || usernameRaw;
-    const roleBalik = adminDitemukan?.role || "master";
+    const usernameCatat = adminDitemukan.username || usernameRaw;
+    const roleBalik = adminDitemukan.role || "master";
 
     const userAgent = req.headers["user-agent"] || "";
     try {

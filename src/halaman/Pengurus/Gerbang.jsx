@@ -49,7 +49,7 @@ export default function Gerbang({ onMasuk }) {
       // jangan hapus username agar mudah koreksi password
       setGalat(
         err.status === 401
-          ? "Username atau password salah. Bawaan: admin / admin123"
+          ? "Username atau password salah. Cek KCI_ADMIN_USER / KCI_ADMIN_PASSWORD di Vercel atau server."
           : err.status === 429
             ? "Terlalu banyak percobaan gagal. Tunggu beberapa saat."
             : err.message || "Gagal masuk."
@@ -72,9 +72,9 @@ export default function Gerbang({ onMasuk }) {
         </p>
 
         <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">
-          <strong>Bawaan:</strong> <code className="font-mono">admin / admin123</code>
-          <br />
-          Ganti password lewat env <code className="font-mono">KCI_ADMIN_PASSWORD</code> di server.
+          Instalasi lokal baru memakai <code className="font-mono">admin / admin123</code>.
+          Untuk situs publik, ganti lewat env <code className="font-mono">KCI_ADMIN_USER</code> dan{" "}
+          <code className="font-mono">KCI_ADMIN_PASSWORD</code> di Vercel/server lalu redeploy.
         </div>
 
         <label className="mt-5 flex flex-col gap-1.5 text-sm text-slate-700">

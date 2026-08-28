@@ -90,6 +90,8 @@ process.on("SIGINT", () => {
 
 let DASAR = process.env.KCI_DASAR || "http://localhost:8787";
 let TOKEN = process.env.KCI_TOKEN_ADMIN || "";
+const ADMIN_USER_UJI = process.env.KCI_ADMIN_USER || "admin";
+const ADMIN_PASSWORD_UJI = process.env.KCI_ADMIN_PASSWORD || (process.env.KCI_DASAR ? "" : "admin123");
 let csrfToken = "";
 /** IP klien yang "terlihat" server — diganti-ganti agar kuota laju pisah. */
 let ipSaatIni = "10.10.0.1";
@@ -447,6 +449,50 @@ console.log("\nKeamanan endpoint pengurus");
     cek("verifikasi: tanpa token -> 401", tanpaV.status === 401, `dapat ${tanpaV.status}`);
     const benarV = await panggil("GET", "/api/pengurus/verifikasi");
     cek("verifikasi: token benar -> 200 {ok:true}", benarV.status === 200 && benarV.data?.ok === true, `dapat ${benarV.status}`);
+
+    // Login dashboard username + password (dipakai halaman /pengurus).
+    if (ADMIN_PASSWORD_UJI) {
+      ipSaatIni = ipBaru();
+      const loginSalah = await fetch(DASAR + "/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Forwarded-For": ipSaatIni,
+        },
+        body: JSON.stringify({ username: ADMIN_USER_UJI, password: "password-salah-uji" }),
+      });
+      cek("login dashboard: password salah -> 401", loginSalah.status === 401, `dapat ${loginSalah.status}`);
+
+      ipSaatIni = ipBaru();
+      const loginBenarRes = await fetch(DASAR + "/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Forwarded-For": ipSaatIni,
+        },
+        body: JSON.stringify({ username: ADMIN_USER_UJI, password: ADMIN_PASSWORD_UJI }),
+      });
+      const loginBenar = await loginBenarRes.json().catch(() => ({}));
+      cek(
+        "login dashboard: username/password benar -> 200",
+        loginBenarRes.status === 200 && loginBenar?.ok === true && loginBenar?.token,
+        `dapat ${loginBenarRes.status}`
+      );
+      const verifikasiTokenLogin = await fetch(DASAR + "/api/pengurus/verifikasi", {
+        headers: {
+          "X-Admin-User": loginBenar.username || ADMIN_USER_UJI,
+          "X-Token-Admin": loginBenar.token || "",
+          "X-Forwarded-For": ipSaatIni,
+        },
+      });
+      cek(
+        "token hasil login dashboard membuka endpoint pengurus",
+        verifikasiTokenLogin.status === 200,
+        `dapat ${verifikasiTokenLogin.status}`
+      );
+    } else {
+      console.log("  ~ login dashboard username/password dilewati (KCI_ADMIN_PASSWORD tidak tersedia)");
+    }
 
     // Riwayat masuk pengurus
     ipSaatIni = ipBaru();
