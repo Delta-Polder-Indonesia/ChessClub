@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": false,
+    "noEmit": true,
+    "checkJs": true,
+    "allowJs": true
+  },
+  "include": ["src/**/*", "server/src/**/*"],
+  "exclude": ["node_modules", "dist", "public/engines"]
+}

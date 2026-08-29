@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRightIcon, ChevronDownIcon, MenuIcon } from "./icons.jsx";
 import Hero from "./Hero.jsx";
 import MetaHalaman from "./MetaHalaman.jsx";
+import { BreadcrumbJsonLd } from "./JsonLd.jsx";
 import { useI18n } from "../lib/i18n.jsx";
 
 /**
@@ -34,6 +35,7 @@ export function CorporatePage({
   return (
     <>
       <MetaHalaman title={title} description={description} />
+      <BreadcrumbJsonLd items={crumbs} />
       <Hero
         title={title}
         description={null}

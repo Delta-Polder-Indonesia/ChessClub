@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { ArticleJsonLd } from "../../components/JsonLd.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import {
   ambilBeritaPublik,
@@ -80,6 +81,14 @@ export default function DetailKonten({ jenis }) {
       next={next}
     >
       <PageArtikel title={item?.judul || judulHalaman}>
+        {item && jenis === "berita" && (
+          <ArticleJsonLd
+            title={item.judul}
+            description={item.ringkasan || item.judul}
+            datePublished={item.tanggal}
+            image={item.gambar || undefined}
+          />
+        )}
         {galat && <p className="text-sm text-red-600">{galat}</p>}
         {!item && !galat && (
           <p className="text-sm text-slate-500">Memuat…</p>
