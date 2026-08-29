@@ -56,7 +56,10 @@ export function basisRouter() {
 function kunciManifest(jalur) {
   const mentah = String(jalur || "").split(/[?#]/)[0];
   const basis = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
-  const tanpaBasis = basis && mentah.startsWith(`${basis}/`) ? mentah.slice(basis.length) : mentah;
+  const tanpaBasis =
+    basis && mentah.startsWith(`${basis}/`)
+      ? mentah.slice(basis.length)
+      : mentah;
   const bersih = tanpaBasis.startsWith("/") ? tanpaBasis : `/${tanpaBasis}`;
   return bersih.replace(/\.(jpe?g|png)$/i, ".webp");
 }
@@ -75,7 +78,8 @@ function kunciManifest(jalur) {
  * @returns {{src: string, srcSet?: string, sizes?: string, width?: number, height?: number}}
  */
 export function sumberGambar(jalur, opsi = {}) {
-  const catatan = UKUR_GAMBAR[kunciManifest(jalur)];
+  const kunci = kunciManifest(jalur);
+  const catatan = UKUR_GAMBAR[kunci];
   const penuh = gambar(jalur);
   if (!catatan) return { src: penuh };
 
