@@ -47,12 +47,24 @@ export default function Gerbang({ onMasuk }) {
     } catch (err) {
       tokenPengurus.hapus();
       // jangan hapus username agar mudah koreksi password
+      //
+      // fetch melempar TypeError bila respons diblokir CORS atau server tidak
+      // terjangkau — body 403 kiriman server tidak bisa dibaca browser, jadi
+      // pesan galatnya harus menjelaskan sendiri kemungkinan penyebabnya.
+      const terblokir =
+        !err?.status &&
+        (err instanceof TypeError || err?.name === "TypeError");
       setGalat(
         err.status === 401
           ? "Username atau password salah. Cek KCI_ADMIN_USER / KCI_ADMIN_PASSWORD di Vercel atau server."
           : err.status === 429
             ? "Terlalu banyak percobaan gagal. Tunggu beberapa saat."
-            : err.message || "Gagal masuk."
+            : terblokir
+              ? "Permintaan login tidak sampai ke server (diblokir browser). " +
+                "Penyebab paling umum: domain ini belum terdaftar di env " +
+                "KCI_ASAL_DIIZINKAN, atau VITE_API_DASAR masih menunjuk backend lain. " +
+                "Perbaiki env-nya lalu Redeploy."
+              : err.message || "Gagal masuk."
       );
     } finally {
       setSibuk(false);

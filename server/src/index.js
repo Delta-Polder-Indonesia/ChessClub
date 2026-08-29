@@ -888,7 +888,13 @@ async function tangani(req, res) {
   const metode = req.method || "GET";
 
   if (!pasangCors(req, res)) {
-    return kirimJson(res, 403, { pesan: "Asal permintaan tidak diizinkan." });
+    const asal = String(req.headers.origin || "");
+    return kirimJson(res, 403, {
+      pesan:
+        `Asal permintaan tidak diizinkan${asal ? ` (${asal})` : ""}. ` +
+        "Tambahkan domain ini ke env KCI_ASAL_DIIZINKAN " +
+        "(beberapa domain dipisah koma, tanpa garis miring di akhir), lalu Redeploy.",
+    });
   }
   if (metode === "OPTIONS") {
     res.writeHead(204);
@@ -1019,6 +1025,16 @@ if (!konfigurasi.pepper) {
   console.warn(
     "[kci] KCI_PEPPER belum diatur — memakai pepper pengembangan.\n" +
       '      Untuk produksi: export KCI_PEPPER="kalimat-acak-panjang"'
+  );
+}
+
+if (
+  process.env.KCI_ADMIN_PASSWORD &&
+  process.env.KCI_ADMIN_PASSWORD !== konfigurasi.admin.password
+) {
+  console.warn(
+    "[kci] KCI_ADMIN_PASSWORD mengandung spasi/baris baru di ujung — otomatis dibersihkan.\n" +
+      "      Rapikan juga nilainya di dashboard (Vercel/Render) agar tidak membingungkan."
   );
 }
 
