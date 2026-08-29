@@ -440,6 +440,24 @@ console.log("\nKeamanan endpoint pengurus");
     const benar = await panggil("GET", "/api/pengurus/ringkasan");
     cek("token benar -> 200", benar.status === 200, `dapat ${benar.status}`);
 
+    // Akar /api/pengurus (tanpa subpath) sebelumnya 404; sekarang alias ringkasan.
+    ipSaatIni = ipBaru();
+    const tanpaAkar = await fetch(DASAR + "/api/pengurus", {
+      headers: { "X-Forwarded-For": ipSaatIni },
+    });
+    cek("akar /api/pengurus tanpa token -> 401", tanpaAkar.status === 401, `dapat ${tanpaAkar.status}`);
+    const akar = await panggil("GET", "/api/pengurus");
+    cek(
+      "akar /api/pengurus token benar -> 200 ringkasan",
+      akar.status === 200 &&
+        akar.data?.ok === true &&
+        typeof akar.data?.anggota === "number" &&
+        Boolean(akar.data?.role),
+      `dapat ${akar.status}: ${JSON.stringify(akar.data)?.slice(0, 180)}`
+    );
+    const akarSlash = await panggil("GET", "/api/pengurus/");
+    cek("akar /api/pengurus/ (trailing slash) -> 200", akarSlash.status === 200, `dapat ${akarSlash.status}`);
+
     // Endpoint verifikasi token yang ringan — dipakai ProtectedRoute/Gerbang
     // agar login dashboard tidak ikut gagal saat api.chess.com padam.
     ipSaatIni = ipBaru();
