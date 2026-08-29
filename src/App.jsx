@@ -173,8 +173,9 @@ const RUTE_REDIRECT = new Map([
 
 export default function App() {
   useEffect(() => {
-    // Prefetch chunk rute (hover/fokus + saat jaringan nganggur) supaya
-    // pindah halaman tidak perlu menunggu unduhan lagi — transisi instan.
+    // Prefetch chunk rute: hover/fokus langsung, rute yang tautannya terlihat
+    // menyusul di waktu luang — pindah halaman tanpa menunggu unduhan, tanpa
+    // mengunduh seluruh situs saat halaman pertama masih dimuat.
     mulaiPrefetchRute();
   }, []);
 

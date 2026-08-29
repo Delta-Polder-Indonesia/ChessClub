@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../lib/i18n.jsx";
-import { gambar } from "../lib/asets.js";
+import { sumberHero } from "../lib/asets.js";
 
 const SLIDE_DURATION = 7000;
 
@@ -15,37 +15,37 @@ export default function Tonggak() {
 
   const SLIDES = [
     {
-      img: gambar("/images/tonggak-2015.jpg"),
+      sumber: sumberHero("/images/tonggak-2015.jpg"),
       label: "2015 - 2016",
       title: t("tonggak.t1"),
       paragraphs: [t("tonggak.p1a"), t("tonggak.p1b")],
     },
     {
-      img: gambar("/images/tonggak-2016.jpg"),
+      sumber: sumberHero("/images/tonggak-2016.jpg"),
       label: "2016 - 2017",
       title: t("tonggak.t2"),
       paragraphs: [t("tonggak.p2a"), t("tonggak.p2b")],
     },
     {
-      img: gambar("/images/tonggak-2018.jpg"),
+      sumber: sumberHero("/images/tonggak-2018.jpg"),
       label: "2018 - 2019",
       title: t("tonggak.t3"),
       paragraphs: [t("tonggak.p3a"), t("tonggak.p3b")],
     },
     {
-      img: gambar("/images/tonggak-2020.jpg"),
+      sumber: sumberHero("/images/tonggak-2020.jpg"),
       label: "2020 - 2021",
       title: t("tonggak.t4"),
       paragraphs: [t("tonggak.p4a"), t("tonggak.p4b")],
     },
     {
-      img: gambar("/images/tonggak-2022.jpg"),
+      sumber: sumberHero("/images/tonggak-2022.jpg"),
       label: "2022 - 2023",
       title: t("tonggak.t5"),
       paragraphs: [t("tonggak.p5a"), t("tonggak.p5b")],
     },
     {
-      img: gambar("/images/tonggak-2024.jpg"),
+      sumber: sumberHero("/images/tonggak-2024.jpg"),
       label: "2024 - 2025",
       title: t("tonggak.t6"),
       paragraphs: [t("tonggak.p6a"), t("tonggak.p6b")],
@@ -89,7 +89,7 @@ export default function Tonggak() {
               <div className="w-full relative h-full min-h-[600px] bg-[#021624]">
                 {i === index && (
                   <img
-                    src={slide.img}
+                    {...slide.sumber}
                     alt=""
                     width={1280}
                     height={714}
@@ -167,13 +167,13 @@ export default function Tonggak() {
                 </div>
                 <div
                   key={active ? `progress-${index}` : undefined}
-                  className="bullet-progress absolute left-0 bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                  className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
                   style={
                     active
                       ? {
                           animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
                         }
-                      : { width: "0%" }
+                      : { transform: "scaleX(0)" }
                   }
                 />
               </div>

@@ -33,12 +33,31 @@ const BASE_PUBLIC =
   process.env.VITE_BASE_PUBLIC ||
   (process.env.NODE_ENV === "production" ? "/ChessClub/" : "/");
 
-/** Alamat situs produksi — untuk canonical URL dan OG tags. */
-const SITE_URL =
-  process.env.VITE_SITE_URL ||
-  (process.env.NODE_ENV === "production"
+/**
+ * Alamat situs produksi — dasar canonical, og:url, sitemap.xml, robots.txt
+ * dan llms.txt.
+ *
+ * Nilai ini dulu HARUS disetel manual, sehingga deploy Vercel tanpa
+ * VITE_SITE_URL mengirim `<link rel="canonical">` ke GitHub Pages: mesin
+ * pencari menganggap salinan Vercel sebagai duplikat dan tidak mengindeksnya.
+ * Kini alamat diambil otomatis dari variabel lingkungan Vercel
+ * (VERCEL_PROJECT_PRODUCTION_URL untuk deploy produksi, VERCEL_URL untuk
+ * pratinjau), dan VITE_SITE_URL tetap menang bila disetel eksplisit.
+ */
+function alamatSitus() {
+  const nyaris =
+    process.env.VITE_SITE_URL ||
+    (process.env.VERCEL
+      ? process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
+      : "");
+  const baku = (alamat) => (alamat.endsWith("/") ? alamat : `${alamat}/`);
+  if (nyaris) return baku(nyaris.startsWith("http") ? nyaris : `https://${nyaris}`);
+  return process.env.NODE_ENV === "production"
     ? "https://delta-polder-indonesia.github.io/ChessClub/"
-    : "http://localhost:5173");
+    : "http://localhost:5173/";
+}
+
+const SITE_URL = alamatSitus();
 
 export default defineConfig({
   base: BASE_PUBLIC,
@@ -98,10 +117,12 @@ export default defineConfig({
       transformIndexHtml(html) {
         return html.replace(/%%SITE_URL%%/g, SITE_URL);
       },
-      // Ganti %%SITE_URL%% di file public yang di-copy ke dist.
+      // Ganti %%SITE_URL%% di file public yang di-copy ke dist. llms.txt ikut
+      // karena tautan untuk agen/crawler harus menunjuk host yang benar-benar
+      // dipakai, bukan default GitHub Pages.
       closeBundle() {
         const outDir = resolve(__dirname, "dist");
-        for (const name of ["sitemap.xml", "robots.txt"]) {
+        for (const name of ["sitemap.xml", "robots.txt", "llms.txt"]) {
           try {
             const filePath = resolve(outDir, name);
             let content = readFileSync(filePath, "utf8");

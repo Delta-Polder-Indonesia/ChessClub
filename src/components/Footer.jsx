@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useI18n } from "../lib/i18n.jsx";
+import { sumberGambar } from "../lib/asets.js";
 
 /**
  * Footer bergaya NACCL (nacorporatechess.com).
@@ -108,8 +109,11 @@ export default function Footer() {
                 className="inline-flex items-center justify-center min-w-12 h-12 rounded-full text-slate-700 hover:text-[#0B2F9F] transition-colors"
               >
                 {s.img ? (
+                  // Dimensi eksplisit + varian 520w: berkas aslinya 1000×304
+                  // (31 KiB) untuk boks setinggi 44px — audit "image elements
+                  // do not have explicit width and height" di PageSpeed.
                   <img
-                    src={s.img}
+                    {...sumberGambar(s.img, { sizes: "150px" })}
                     alt=""
                     className="h-11 md:h-9 w-auto object-contain"
                     loading="lazy"

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
-import { gambar, berkasPublik } from "../../lib/asets.js";
+import { berkasPublik, sumberGambar } from "../../lib/asets.js";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "./ebook-data.js";
 
 /**
@@ -93,12 +93,13 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
           <div className="relative h-full w-full overflow-hidden rounded-lg [transform:translateZ(1px)]">
             {COVER[buku.id] ? (
               <img
-                src={gambar(COVER[buku.id])}
+                {...sumberGambar(COVER[buku.id], {
+                  // Kisi 2 / 3 / 5 kolom → lebar kartu ± 48vw, 33vw, 20vw.
+                  sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 48vw",
+                })}
                 alt={`Sampul ${buku.judul}`}
                 loading="lazy"
                 decoding="async"
-                width="100%"
-                height="100%"
                 className="h-full w-full object-cover"
               />
             ) : (

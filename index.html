@@ -2,16 +2,28 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      CSP dasar untuk host statis yang tidak bisa mengirim header (GitHub
+      Pages). Di Vercel kebijakan yang sama — ditambah frame-ancestors,
+      X-Content-Type-Options, Referrer-Policy, COOP dan Permissions-Policy —
+      dikirim sebagai HTTP header lewat vercel.json, karena beberapa direktif
+      (frame-ancestors, report-uri) diabaikan browser bila hanya ada di
+      <meta>; Lighthouse mencatatnya sebagai galat konsol.
+      'wasm-unsafe-eval' diperlukan agar Stockfish (WebAssembly) di halaman
+      Papan Interaktif tetap boleh dijalankan.
+    -->
     <meta
       http-equiv="Content-Security-Policy"
       content="
         default-src 'self';
-        script-src 'self';
+        script-src 'self' 'wasm-unsafe-eval';
         style-src 'self' 'unsafe-inline';
-        img-src 'self' data: https:;
-        connect-src 'self' https://api.chess.com;
-        font-src 'self';
-        frame-ancestors 'none';
+        img-src 'self' data: blob: https:;
+        font-src 'self' data:;
+        connect-src 'self' https://api.chess.com https://tablebase.lichess.ovh https://va.vercel-scripts.com;
+        worker-src 'self' blob:;
+        frame-src 'self';
+        object-src 'none';
         base-uri 'self';
         form-action 'self';
       "

@@ -8,10 +8,10 @@
  * untuk Komunitas Catur Indonesia. Tidak ada kode maupun teks yang
  * disalin dari situs pihak lain.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar } from "../../lib/asets.js";
+import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
@@ -22,13 +22,17 @@ const SLIDE_DURATION = 7000;
 function LandingHero({ t }) {
   const [index, setIndex] = useState(0);
 
+  /* Gambar hero = elemen LCP halaman. sumberHero() memberi 828w untuk ponsel
+     (berkas yang sama dengan <link rel=preload> + <div id=boot-hero> di
+     index.html, jadi tidak ada gambar yang diunduh dua kali) dan 1280w untuk
+     layar lebar. */
   const SLIDES = [
-    { img: gambar("/images/tonggak-2015.jpg"), label: "2015 - 2016" },
-    { img: gambar("/images/tonggak-2016.jpg"), label: "2016 - 2017" },
-    { img: gambar("/images/tonggak-2018.jpg"), label: "2018 - 2019" },
-    { img: gambar("/images/tonggak-2020.jpg"), label: "2020 - 2021" },
-    { img: gambar("/images/tonggak-2022.jpg"), label: "2022 - 2023" },
-    { img: gambar("/images/tonggak-2024.jpg"), label: "2024 - 2025" },
+    { label: "2015 - 2016", sumber: sumberHero("/images/tonggak-2015.jpg") },
+    { label: "2016 - 2017", sumber: sumberHero("/images/tonggak-2016.jpg") },
+    { label: "2018 - 2019", sumber: sumberHero("/images/tonggak-2018.jpg") },
+    { label: "2020 - 2021", sumber: sumberHero("/images/tonggak-2020.jpg") },
+    { label: "2022 - 2023", sumber: sumberHero("/images/tonggak-2022.jpg") },
+    { label: "2024 - 2025", sumber: sumberHero("/images/tonggak-2024.jpg") },
   ];
 
   useEffect(() => {
@@ -45,7 +49,7 @@ function LandingHero({ t }) {
     const berikut = SLIDES[(index + 1) % SLIDES.length];
     const pra = new window.Image();
     pra.decoding = "async";
-    pra.src = berikut.img;
+    pra.src = berikut.sumber.src;
   }, [index]);
 
   return (
@@ -63,7 +67,7 @@ function LandingHero({ t }) {
             <div className="w-full relative h-full min-h-[650px] bg-hero">
               {i === index && (
                 <img
-                  src={slide.img}
+                  {...slide.sumber}
                   alt=""
                   width={1280}
                   height={714}
@@ -117,13 +121,13 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute left-0 bottom-[-3px] border-b-[3px] border-red-600 pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-red-600 pointer-events-none"
                 style={
                   active
                     ? {
                         animation: `progressbar ${SLIDE_DURATION}ms linear forwards`,
                       }
-                    : { width: "0%" }
+                    : { transform: "scaleX(0)" }
                 }
               />
             </div>
@@ -139,19 +143,27 @@ function SorotanKegiatan({ t }) {
   const sorotan = [
     {
       to: "/turnamen",
-      img: gambar("/images/landing-sorotan-turnamen.jpg"),
+      // Grid 3 kolom di layar sedang (± 340px per kartu), satu kolom full-width
+      // di ponsel; varian 640w dari manifest menutupi keduanya.
+      sumber: sumberGambar("/images/landing-sorotan-turnamen.jpg", {
+        sizes: "(min-width: 768px) 33vw, 100vw",
+      }),
       judul: t("landing.sorotan1Judul"),
       isi: t("landing.sorotan1Isi"),
     },
     {
       to: "/program-kami/teka-teki",
-      img: gambar("/images/landing-sorotan-program.jpg"),
+      sumber: sumberGambar("/images/landing-sorotan-program.jpg", {
+        sizes: "(min-width: 768px) 33vw, 100vw",
+      }),
       judul: t("landing.sorotan2Judul"),
       isi: t("landing.sorotan2Isi"),
     },
     {
       to: "/program-kami/pembukaan",
-      img: gambar("/images/landing-sorotan-media.jpg"),
+      sumber: sumberGambar("/images/landing-sorotan-media.jpg", {
+        sizes: "(min-width: 768px) 33vw, 100vw",
+      }),
       judul: t("landing.sorotan3Judul"),
       isi: t("landing.sorotan3Isi"),
     },
@@ -169,10 +181,8 @@ function SorotanKegiatan({ t }) {
           {sorotan.map((s) => {
             const gambar = (
               <img
-                src={s.img}
+                {...s.sumber}
                 alt={s.judul}
-                width={960}
-                height={640}
                 className="w-full aspect-[3/2] object-cover rounded-xl"
                 loading="lazy"
                 decoding="async"
@@ -208,24 +218,63 @@ const KARTU_GAMBAR = DAFTAR_EBOOK.map((b) => ({
   id: b.id,
   judul: b.judul,
   img: gambar(COVER[b.id]),
+  // `sizes` dipakai browser untuk memilih kandidat: di ponsel sampul ini
+  // hanya selebar kolom (± 88vw), di layar sedang dibatasi tinggi boks
+  // 520px → ± 420px. Keduanya tertutup oleh varian 640w dari manifest, jadi
+  // ponsel tidak lagi menarik berkas 1024px.
+  sumber: sumberGambar(COVER[b.id], { sizes: "(min-width: 768px) 420px, 88vw" }),
 }));
 
 function CardGambar({ index, t }) {
-  const imgIndex = ((index % KARTU_GAMBAR.length) + KARTU_GAMBAR.length) % KARTU_GAMBAR.length;
+  const total = KARTU_GAMBAR.length;
+  const aktif = ((index % total) + total) % total;
+
+  /* Dulu: ke-24 sampul dipasang sekaligus sebagai lapisan opacity-0 supaya
+     crossfade-nya mulus. Efeknya, setiap kunjungan ponsel mengunduh seluruh
+     rak e-book (± 1,1 MB) hanya untuk menampilkan satu gambar — itulah byte
+     terbesar yang PageSpeed keluhkan di Beranda.
+     Sekarang yang ada di DOM maksimal dua lapisan: sampul aktif dan sampul
+     sebelumnya selama transisi berlangsung. Lapisan lama dilepas saat gambar
+     baru selesai didekode (atau setelah 1,2 s), jadi tidak pernah ada kedip
+     kotak kosong. */
+  const [lama, setLama] = useState(null);
+  const terakhir = useRef(aktif);
+
+  useEffect(() => {
+    if (terakhir.current === aktif) return undefined;
+    const dari = terakhir.current;
+    terakhir.current = aktif;
+    setLama(dari);
+    const batas = window.setTimeout(() => setLama(null), 1200);
+    return () => window.clearTimeout(batas);
+  }, [aktif]);
+
+  // Hangatkan dua sampul tetangga (maju & mundur) seperti pada LandingHero,
+  // supaya menekan panah tidak perlu menunggu unduhan. Lewat pramuatGambar()
+  // yang diunduh adalah kandidat srcSet — bukan berkas aslinya yang 80 KiB.
+  useEffect(() => {
+    for (const i of [(aktif + 1) % total, (aktif - 1 + total) % total]) {
+      pramuatGambar(KARTU_GAMBAR[i].sumber);
+    }
+  }, [aktif, total]);
+
+  const bertumpuk = lama !== null;
+  const lapisan = bertumpuk ? [lama, aktif] : [aktif];
+
   return (
     <div className="relative w-full aspect-[3/2] md:h-[520px] overflow-hidden order-1">
-      {KARTU_GAMBAR.map((g, i) => (
+      {lapisan.map((i) => (
         <img
-          key={i}
-          src={g.img}
+          key={KARTU_GAMBAR[i].id}
+          {...KARTU_GAMBAR[i].sumber}
           alt=""
-          width={1280}
-          height={714}
-          className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ${
-            i === imgIndex ? "opacity-100" : "opacity-0"
-          }`}
-          loading="lazy"
+          draggable="false"
           decoding="async"
+          onLoad={i === aktif ? () => setLama(null) : undefined}
+          onError={i === aktif ? () => setLama(null) : undefined}
+          className={`absolute inset-0 w-full h-full object-contain ${
+            i === aktif && bertumpuk ? "sampul-masuk" : ""
+          }`}
         />
       ))}
       <div className="absolute inset-0 bg-black/40" />
@@ -373,6 +422,10 @@ function BagianGambarKartu({ t }) {
  *  kiri-kanan di kanan, ditutup blok nama dan jabatan pengurus. */
 function HarapanTerimaKasih({ t }) {
   const foto = gambar("/images/harapan-terima-kasih.jpg");
+  // Kotak foto maximal 500px; tautan "buka ukuran penuh" tetap ke berkas asli.
+  const sumberFoto = sumberGambar("/images/harapan-terima-kasih.jpg", {
+    sizes: "(min-width: 1024px) 42vw, 92vw",
+  });
   return (
     <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-24 pt-12 xl:pt-24">
       <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
@@ -382,14 +435,12 @@ function HarapanTerimaKasih({ t }) {
             <div className="flex justify-center items-center">
               <a href={foto} target="_blank" rel="noopener noreferrer" className="block">
                 <img
-                  src={foto}
+                  {...sumberFoto}
                   alt={t("landing.harapanAltFoto")}
                   title={t("landing.harapanAltFoto")}
                   draggable="false"
                   decoding="async"
                   loading="lazy"
-                  width={500}
-                  height={700}
                   className="w-full max-w-[500px] h-auto rounded-xl object-cover object-center"
                 />
               </a>
@@ -470,10 +521,8 @@ export default function Landing() {
       <SorotanKegiatan t={t} />
       <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
         <img
-          src={gambar("/images/sekilas.webp")}
+          {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
           alt=""
-          width={1280}
-          height={540}
           className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
           decoding="async"
@@ -492,6 +541,10 @@ export default function Landing() {
           <div className="flex flex-wrap gap-4 mt-8">
             <Link
               to="/tentang-kami"
+              // Label "Selengkapnya" dipakai lebih dari satu tautan di halaman
+              // ini; tanpa konteks, pembaca layar (dan audit
+              // identical-links-same-purpose) tidak bisa membedakan tujuannya.
+              aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
               className="inline-flex items-center gap-2 border border-white text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
             >
               {t("common.selengkapnya")}
@@ -525,6 +578,7 @@ export default function Landing() {
             <div className="flex">
               <Link
                 to="/keberlanjutan"
+                aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
                 className="text-sm h-12 px-4 md:px-6 gap-2 hover:gap-4 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full"
               >
                 <span className="order-1">{t("common.selengkapnya")}</span>
