@@ -12,6 +12,7 @@ export const ID = {
     namaKomunitas: "Komunitas Catur Indonesia",
     selanjutnya: "Selanjutnya",
     selengkapnya: "Selengkapnya",
+    tutup: "Tutup",
     daftarAnggota: "Daftar Anggota",
     alamat: "Address",
     surel: "Email",
@@ -476,6 +477,66 @@ export const ID = {
     p3a: "Bagi anggota yang ingin belajar atau mengulang dasar-dasar permainan, situs ini menyediakan halaman",
     p3b: "sebagai panduan runtut dari pengenalan bidak hingga pola latihan tingkat lanjut, serta halaman",
     p3c: "dengan 4.462 soal skakmat untuk latihan taktik harian.",
+  },
+  bermainCatur: {
+    judul: "Bermain Catur Online",
+    slogan: "Belajar, Bermain, dan Bertumbuh Bersama",
+    p1: "Catur memadukan strategi klasik dengan kebiasaan berpikir modern. Di sini, setiap orang — dari yang baru mengenal papan hingga pecatur berpengalaman — dapat bermain dan berkembang pada kecepatannya sendiri.",
+    p2: "Tentukan tingkat kemampuan Anda untuk langsung memulai, atau telusuri program pembinaan komunitas. Seluruhnya gratis bagi anggota.",
+    mainkan: "Mainkan sekarang",
+    daftar: "Mendaftar",
+    popupJudul: "Bermain Catur Online",
+    popupTanya: "Berapa tingkat kemampuan catur Anda?",
+    popupBantuan:
+      "Pilih satu tingkat untuk mulai. Progres Anda tercatat otomatis setelah menjadi anggota.",
+    tingkatBaruJudul: "Baru dalam Catur",
+    tingkatBaruIsi:
+      "Langkah demi langkah mengenal papan, gerak bidak, dan aturan main.",
+    tingkatPemulaJudul: "Pemula",
+    tingkatPemulaIsi:
+      "Soal taktik ringan untuk membangun kebiasaan berpikir aman dan teliti.",
+    tingkatMenengahJudul: "Intermediat",
+    tingkatMenengahIsi:
+      "Latihan pembukaan dan taktik menengah untuk menyusun rencana yang lebih rapi.",
+    tingkatMahirJudul: "Canggih",
+    tingkatMahirIsi:
+      "Papan analisis dan soal lanjutan untuk mengasah kalkulasi hingga akhir permainan.",
+    f1Judul: "Mengapa bermain catur bersama Komunitas Catur Indonesia?",
+    f1P:
+      "Komunitas bukan sekadar tempat bertanding, melainkan ruang saling belajar dan bertumbuh. Beberapa hal yang bisa Anda dapatkan di sini:",
+    f1Item1Judul: "Catur gratis untuk semua usia",
+    f1Item1Isi:
+      "bermain dan belajar tanpa biaya, dari anak-anak hingga orang tua.",
+    f1Item2Judul: "Latihan yang menyesuaikan kemampuan",
+    f1Item2Isi:
+      "kelas berjenjang dan coaching clinic mengikuti tingkat tiap peserta.",
+    f1Item3Judul: "Menjadi pecatur yang lebih tangguh",
+    f1Item3Isi:
+      "partai, analisis, dan umpan balik menumbuhkan kebiasaan berpikir kritis.",
+    f1Item4Judul: "Strategi yang dibangun langkah demi langkah",
+    f1Item4Isi:
+      "dari pengenalan gerak bidak hingga pola akhir permainan yang mendalam.",
+    f1Item5Judul: "Bermain daring melawan anggota atau mesin",
+    f1Item5Isi:
+      "ajang latih ringan tersedia setiap hari di klub dan papan komunitas.",
+    f2Judul: "Mengasah keterampilan dan pola pikir strategis",
+    f2P: "Setiap partai melatih kemampuan membaca posisi, menyusun rencana, dan mengambil keputusan. Latihan rutin dan bertahap menumbuhkan keterampilan itu pelan-pelan — dari cara berpikir sederhana menjadi strategi yang semakin dalam.",
+    f3Judul: "Teknologi untuk latihan yang personal",
+    f3P: "Papan interaktif dan bank soal di situs ini menghadirkan latihan yang dapat disesuaikan dengan kebutuhan Anda. Umpan balik dari mesin membantu memahami setiap kesalahan dan memperbaiki langkah berikutnya.",
+    f4Judul: "Bersama membangun kebersamaan",
+    f4P1:
+      "Dengan bergabung, Anda menjadi bagian dari jaringan pecatur di berbagai kota. Berbagi strategi, saling mengingatkan jadwal, dan bersaing secara sehat mempererat komunitas.",
+    f4P2:
+      "Komunitas juga membuka ruang kolaborasi dengan sekolah dan klub lain agar catur semakin dikenal dan mudah diakses publik.",
+    f5Judul: "Catur untuk kehidupan sehari-hari",
+    f5P: "Kebiasaan berpikir panjang yang dilatih di papan — kesabaran, analisis, dan pengambilan keputusan — berguna juga di luar permainan. Banyak anggota merasakan manfaatnya saat menghadapi persoalan di pekerjaan maupun sekolah.",
+    f6Judul: "Ruang untuk bertumbuh bersama",
+    f6P1:
+      "Kami menyediakan jalur yang jelas untuk berkembang: mulai dari barisan bawah, naik ke liga yang lebih tinggi, hingga tampil dalam ajang yang lebih besar.",
+    f6P2:
+      "Program pelatihan, turnamen, dan ruang berbagi terus diperbarui agar komunitas tetap hidup dan memberi manfaat bagi setiap anggotanya.",
+    f6P3:
+      "Mulailah hari ini dan lihat sejauh mana perjalanan catur Anda membawa Anda.",
   },
   tipsTekaTeki: {
     judul: "Teka-teki & Tips",

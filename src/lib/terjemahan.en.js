@@ -9,6 +9,7 @@ export const EN = {
     namaKomunitas: "Indonesia Chess Community",
     selanjutnya: "Next",
     selengkapnya: "Learn More",
+    tutup: "Close",
     daftarAnggota: "Register as Member",
     alamat: "Address",
     surel: "Email",
@@ -475,6 +476,64 @@ export const EN = {
     p3a: "For members who want to learn or revisit the fundamentals, the site provides the",
     p3b: "page as a complete guide from the pieces to advanced training routines, and the",
     p3c: "page with 4,462 checkmate puzzles for daily tactics practice.",
+  },
+  bermainCatur: {
+    judul: "Play Chess Online",
+    slogan: "Learn, Play, and Grow Together",
+    p1: "Chess combines classic strategy with modern thinking habits. Here, everyone — from players who are new to the board to experienced ones — can play and grow at their own pace.",
+    p2: "Pick your skill level to start right away, or explore the community's coaching programs. Everything is free for members.",
+    mainkan: "Play now",
+    daftar: "Register",
+    popupJudul: "Play Chess Online",
+    popupTanya: "What is your chess skill level?",
+    popupBantuan:
+      "Pick one level to begin. Your progress is automatically recorded once you become a member.",
+    tingkatBaruJudul: "New to Chess",
+    tingkatBaruIsi:
+      "A step-by-step introduction to the board, piece moves, and the rules.",
+    tingkatPemulaJudul: "Beginner",
+    tingkatPemulaIsi:
+      "Light tactics puzzles to build safe, careful thinking habits.",
+    tingkatMenengahJudul: "Intermediate",
+    tingkatMenengahIsi:
+      "Opening and middle-game practice to build neater plans.",
+    tingkatMahirJudul: "Advanced",
+    tingkatMahirIsi:
+      "Analysis board and high-level puzzles to sharpen calculation through the endgame.",
+    f1Judul: "Why play chess with the Indonesia Chess Community?",
+    f1P:
+      "A community is more than a place to compete — it is a space to learn and grow together. Here is what you can expect:",
+    f1Item1Judul: "Free chess for all ages",
+    f1Item1Isi: "play and learn without charge, from children to seniors.",
+    f1Item2Judul: "Practice that adapts to your level",
+    f1Item2Isi:
+      "tiered classes and coaching clinics follow each player's skill.",
+    f1Item3Judul: "Become a stronger player",
+    f1Item3Isi:
+      "games, analysis, and feedback build critical thinking habits.",
+    f1Item4Judul: "Strategy built step by step",
+    f1Item4Isi:
+      "from piece moves to deep endgame patterns, all the way up.",
+    f1Item5Judul: "Play online against members or the engine",
+    f1Item5Isi:
+      "light practice games are available every day in the club and on the community board.",
+    f2Judul: "Sharpen skills and strategic thinking",
+    f2P: "Every game trains your ability to read a position, build a plan, and make decisions. Regular, gradual practice grows those skills quietly — from simple thinking into ever-deeper strategy.",
+    f3Judul: "Technology for personal practice",
+    f3P: "The interactive board and puzzle bank on this site bring training that adapts to your needs. Feedback from the engine helps you understand every mistake and improve the next move.",
+    f4Judul: "Building community together",
+    f4P1:
+      "By joining, you become part of a network of players across many cities. Sharing strategies, reminding each other of schedules, and competing healthily bring the community closer.",
+    f4P2:
+      "The community also opens room to collaborate with schools and other clubs so chess becomes better known and easier for everyone to access.",
+    f5Judul: "Chess for everyday life",
+    f5P: "The habits trained on the board — patience, analysis, and decision-making — are useful beyond the game. Many members feel the benefit when facing challenges at work or school.",
+    f6Judul: "A space to grow together",
+    f6P1:
+      "We provide a clear path to improve: start at the bottom, rise to a higher league, and compete on ever-bigger stages.",
+    f6P2:
+      "Training programs, tournaments, and shared spaces are constantly renewed so the community stays alive and useful for every member.",
+    f6P3: "Start today and see how far your chess journey takes you.",
   },
   tipsTekaTeki: {
     judul: "Chess Puzzles & Tips",
