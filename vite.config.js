@@ -1,7 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { readFileSync, writeFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { performaHalaman } from "./plugins/performa.js";
+
+const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 
 /**
  * Panggilan /api/* diteruskan ke backend (server/src/index.js).
@@ -27,6 +32,13 @@ const TARGET_API = process.env.KCI_API_URL || "http://localhost:8787";
 const BASE_PUBLIC =
   process.env.VITE_BASE_PUBLIC ||
   (process.env.NODE_ENV === "production" ? "/ChessClub/" : "/");
+
+/** Alamat situs produksi — untuk canonical URL dan OG tags. */
+const SITE_URL =
+  process.env.VITE_SITE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://delta-polder-indonesia.github.io/ChessClub/"
+    : "http://localhost:5173");
 
 export default defineConfig({
   base: BASE_PUBLIC,
@@ -81,6 +93,27 @@ export default defineConfig({
     react(),
     tailwindcss(),
     performaHalaman(),
+    {
+      name: "inject-site-url",
+      transformIndexHtml(html) {
+        return html.replace(/%%SITE_URL%%/g, SITE_URL);
+      },
+      // Ganti %%SITE_URL%% di file public yang di-copy ke dist.
+      closeBundle() {
+        const outDir = resolve(__dirname, "dist");
+        for (const name of ["sitemap.xml", "robots.txt"]) {
+          try {
+            const filePath = resolve(outDir, name);
+            let content = readFileSync(filePath, "utf8");
+            if (content.includes("%%SITE_URL%%")) {
+              writeFileSync(filePath, content.replace(/%%SITE_URL%%/g, SITE_URL), "utf8");
+            }
+          } catch {
+            /* file tidak ada — lewati */
+          }
+        }
+      },
+    },
     {
       name: "alihkan-akar-preview",
       configurePreviewServer(server) {

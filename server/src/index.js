@@ -27,6 +27,8 @@ import {
   buatRouter,
   buatCsrfToken,
   validasiCsrfToken,
+  terbitkanJwt,
+  cocokkanPassword,
 } from "./http.js";
 import {
   oauthAktif,
@@ -306,27 +308,16 @@ router.post(
       throw new GalatAplikasi(400, "Username tidak valid (3-25 karakter, huruf/angka/_/-).");
     }
 
-    const cocokAman = (a, b) => {
-      if (!b) return false;
-      try {
-        return samaAman(a, b);
-      } catch {
-        return String(a) === String(b);
-      }
-    };
-
     const tokenAdmin = konfigurasi.tokenAdmin || "";
     let adminDitemukan = null;
-    let tokenBalik = "";
 
     // 1) Login normal: username harus cocok dengan password admin terkait.
     //    Jangan menerima password admin A dengan header username admin B;
     //    ini menjaga role/audit tetap sesuai akun yang benar-benar dipakai.
     if (Array.isArray(konfigurasi.admins)) {
       const admin = konfigurasi.admins.find((a) => a.username === usernameRaw);
-      if (admin && cocokAman(passwordRaw, admin.password)) {
+      if (admin && await cocokkanPassword(passwordRaw, admin.password)) {
         adminDitemukan = admin;
-        tokenBalik = admin.password;
       }
     }
 
@@ -334,18 +325,14 @@ router.post(
     if (!adminDitemukan) {
       const adminUser = konfigurasi.admin?.username || "admin";
       const adminPass = konfigurasi.admin?.password || "admin123";
-      if (cocokAman(usernameRaw, adminUser) && cocokAman(passwordRaw, adminPass)) {
-        adminDitemukan = { username: adminUser, password: adminPass, role: "master" };
-        tokenBalik = adminPass;
+      if (usernameRaw === adminUser && await cocokkanPassword(passwordRaw, adminPass)) {
+        adminDitemukan = { username: adminUser, role: "master" };
       }
     }
 
     // 3) Token lama tetap didukung sebagai password master alternatif.
-    //    Token yang dikembalikan harus token yang dipakai, bukan password
-    //    master dari env, supaya tidak membocorkan kredensial lain.
-    if (!adminDitemukan && tokenAdmin && cocokAman(passwordRaw, tokenAdmin)) {
-      adminDitemukan = { username: usernameRaw, password: tokenAdmin, role: "master" };
-      tokenBalik = tokenAdmin;
+    if (!adminDitemukan && tokenAdmin && await cocokkanPassword(passwordRaw, tokenAdmin)) {
+      adminDitemukan = { username: usernameRaw, role: "master" };
     }
 
     if (!adminDitemukan) {
@@ -356,6 +343,9 @@ router.post(
     catatPercobaanAdmin(ip, true);
     const usernameCatat = adminDitemukan.username || usernameRaw;
     const roleBalik = adminDitemukan.role || "master";
+
+    // Terbitkan JWT (bukan password asli!) — berlaku 24 jam.
+    const tokenBalik = terbitkanJwt(usernameCatat, roleBalik);
 
     const userAgent = req.headers["user-agent"] || "";
     try {
@@ -475,13 +465,13 @@ router.post("/api/pengurus/ganti-password", async (req) => {
     throw new GalatAplikasi(400, "Username baru tidak valid (3-25 karakter).");
   }
 
-  // verifikasi password lama cocok dengan yang aktif
+  // verifikasi password lama cocok dengan yang aktif (support bcrypt & plaintext)
   const aktif = konfigurasi.admin.password;
   const tokenAdmin = konfigurasi.tokenAdmin || "";
   let cocok = false;
   try {
-    if (samaAman(passLama, aktif)) cocok = true;
-    if (tokenAdmin && samaAman(passLama, tokenAdmin)) cocok = true;
+    cocok = await cocokkanPassword(passLama, aktif);
+    if (!cocok && tokenAdmin) cocok = await cocokkanPassword(passLama, tokenAdmin);
   } catch {
     cocok = passLama === aktif || (tokenAdmin && passLama === tokenAdmin);
   }
@@ -490,8 +480,8 @@ router.post("/api/pengurus/ganti-password", async (req) => {
   }
 
   await tulisAdminFile({ username: userBaru, password: passBaru });
+  // konfigurasi.admin.password sudah di-hash oleh tulisAdminFile
   konfigurasi.admin.username = userBaru;
-  konfigurasi.admin.password = passBaru;
 
   return {
     status: 200,

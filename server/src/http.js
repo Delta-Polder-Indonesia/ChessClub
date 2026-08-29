@@ -4,6 +4,8 @@
  * server bisa dijalankan hanya dengan Node.
  */
 import crypto from "node:crypto";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { konfigurasi } from "./konfigurasi.js";
 import { normalisasiUsername } from "../../src/lib/identitas.js";
 
@@ -272,6 +274,53 @@ export function validasiCsrfToken(token) {
   return true;
 }
 
+/* ---------------------------------------------------- JWT helpers */
+
+/**
+ * Rahasia untuk menandatangani JWT.
+ * Diambil dari konfigurasi; bila kosong di pengembangan, dipakai nilai
+ * bawaan agar server tetap bisa jalan lokal tanpa mengatur env.
+ */
+function jwtSecret() {
+  return konfigurasi.jwtSecret || "kci-jwt-pengembangan-jangan-diproduksi";
+}
+
+/** Apakah token tampak seperti JWT (tiga segmen dipisah titik)? */
+function isJwt(token) {
+  return typeof token === "string" && token.split(".").length === 3;
+}
+
+/** Verifikasi JWT dan kembalikan payload, atau null bila tidak sah. */
+function verifyJwt(token) {
+  try {
+    return jwt.verify(token, jwtSecret(), {
+      algorithms: ["HS256"],
+      issuer: "kci-server",
+    });
+  } catch {
+    return null;
+  }
+}
+
+/** Terbitkan JWT untuk admin. */
+export function terbitkanJwt(username, role = "pengurus") {
+  return jwt.sign(
+    { sub: username, role, typ: "admin" },
+    jwtSecret(),
+    { algorithm: "HS256", expiresIn: "24h", issuer: "kci-server" }
+  );
+}
+
+/** Bandingkan plaintext dengan hash bcrypt. */
+export async function cocokkanPassword(plain, hash) {
+  // Bila hash bukan format bcrypt (bentuk $2b$...), bandingkan langsung
+  // (kompatibilitas dengan password plaintext lama).
+  if (!hash || !hash.startsWith("$2")) {
+    return samaAman(String(plain), String(hash));
+  }
+  return bcrypt.compare(String(plain), hash);
+}
+
 /* ------------------------------------------------------------- keamanan */
 
 /**
@@ -313,12 +362,22 @@ export function dapatkanAdminDariRequest(req) {
 
   if (!token) return null;
 
-  // 1. cek tokenAdmin lama sebagai master fallback
+  // 1) Coba sebagai JWT terlebih dahulu — tidak perlu lookup file.
+  const muatan = verifyJwt(token);
+  if (muatan && muatan.typ === "admin") {
+    return {
+      username: muatan.sub || username || "admin",
+      role: muatan.role || "pengurus",
+      password: "",
+    };
+  }
+
+  // 2) Kompatibilitas legacy: cek tokenAdmin lama sebagai master fallback
   if (konfigurasi.tokenAdmin && samaAman(token, konfigurasi.tokenAdmin)) {
     return { username: username || "admin", role: "master", password: token };
   }
 
-  // 2. cek di daftar admins (dari file)
+  // 3) cek di daftar admins (dari file)
   if (Array.isArray(konfigurasi.admins)) {
     for (const a of konfigurasi.admins) {
       if (!a?.password) continue;
@@ -327,20 +386,16 @@ export function dapatkanAdminDariRequest(req) {
         if (samaAman(token, a.password)) return a;
       }
     }
-    // jika tidak ada username atau username tidak cocok, cek token cocok dengan salah satu admin (kompatibilitas lama)
+    // jika tidak ada username atau username tidak cocok, cek token cocok dengan salah satu admin
     for (const a of konfigurasi.admins) {
       if (a?.password && samaAman(token, a.password)) {
-        // jika username header kosong, pakai username dari admin yang cocok
-        // jika username header ada tapi beda, tetap izinkan bila token cocok? Untuk keamanan, izinkan bila username kosong atau sama
         if (!username || a.username === username) return a;
-        // bila username beda tapi token cocok dengan admin lain, tetap kembalikan admin yang tokennya cocok (untuk kasus login pakai token lama)
-        // tapi kita tetap kembalikan a
         return a;
       }
     }
   }
 
-  // 3. cek konfigurasi.admin tunggal
+  // 4) cek konfigurasi.admin tunggal
   if (konfigurasi.admin?.password && samaAman(token, konfigurasi.admin.password)) {
     const role = konfigurasi.admins?.find((a) => a.username === konfigurasi.admin.username)?.role || "master";
     return { username: konfigurasi.admin.username, password: konfigurasi.admin.password, role };
@@ -366,25 +421,6 @@ export function peranPengurus(req) {
  * koneksi dari loopback (127.0.0.1/::1) — itupun hanya di luar produksi.
  */
 export function pastikanAdmin(req) {
-  const tokenSah = daftarTokenSah();
-
-  if (!tokenSah.length) {
-    if (konfigurasi.produksi) {
-      const e = new Error("Endpoint pengurus dinonaktifkan: KCI_TOKEN_ADMIN / KCI_ADMIN_PASSWORD belum diatur.");
-      e.status = 503;
-      throw e;
-    }
-    if (!dariLokal(req)) {
-      const e = new Error(
-        "Token pengurus belum diatur. Akses dari luar loopback ditolak. " +
-        "Setel KCI_TOKEN_ADMIN atau KCI_ADMIN_PASSWORD atau jalankan dari server itu sendiri."
-      );
-      e.status = 503;
-      throw e;
-    }
-    return; // pengembangan lokal tanpa token
-  }
-
   const dariHeader = req.headers["x-token-admin"];
   const otorisasi = req.headers.authorization || "";
   const dariBearer = otorisasi.startsWith("Bearer ")
@@ -393,6 +429,37 @@ export function pastikanAdmin(req) {
   const diberikan = dariHeader || dariBearer;
 
   if (!diberikan) {
+    const tokenSah = daftarTokenSah();
+    if (!tokenSah.length) {
+      if (konfigurasi.produksi) {
+        const e = new Error("Endpoint pengurus dinonaktifkan: KCI_TOKEN_ADMIN / KCI_ADMIN_PASSWORD belum diatur.");
+        e.status = 503;
+        throw e;
+      }
+      if (!dariLokal(req)) {
+        const e = new Error(
+          "Token pengurus belum diatur. Akses dari luar loopback ditolak. " +
+          "Setel KCI_TOKEN_ADMIN atau KCI_ADMIN_PASSWORD atau jalankan dari server itu sendiri."
+        );
+        e.status = 503;
+        throw e;
+      }
+      return; // pengembangan lokal tanpa token
+    }
+    const e = new Error("Token pengurus tidak valid.");
+    e.status = 401;
+    throw e;
+  }
+
+  // 1) Coba verifikasi sebagai JWT terlebih dahulu.
+  const muatan = verifyJwt(diberikan);
+  if (muatan && muatan.typ === "admin") {
+    return; // JWT sah — izinkan.
+  }
+
+  // 2) Bukan JWT — coba kompatibilitas legacy (password/token mentah).
+  const tokenSah = daftarTokenSah();
+  if (!tokenSah.length) {
     const e = new Error("Token pengurus tidak valid.");
     e.status = 401;
     throw e;

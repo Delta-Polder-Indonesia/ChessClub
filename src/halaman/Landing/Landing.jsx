@@ -14,6 +14,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
+import MetaHalaman from "../../components/MetaHalaman.jsx";
 
 const SLIDE_DURATION = 7000;
 
@@ -458,6 +459,10 @@ export default function Landing() {
 
   return (
     <div className="w-full overflow-x-hidden">
+      <MetaHalaman
+        title={t("common.namaKomunitas")}
+        description="Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
+      />
       {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
       <h1 className="sr-only">{t("common.namaKomunitas")}</h1>

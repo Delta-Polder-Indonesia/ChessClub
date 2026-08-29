@@ -3,6 +3,7 @@ import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import {
   infoAdmin,
   gantiPasswordAdmin,
+  loginAdmin,
   tokenPengurus,
   adminPengguna,
   peranPengurus,
@@ -316,8 +317,11 @@ function PanelAkun({ beriTahu }) {
         passwordBaru: passBaru,
         usernameBaru: username.trim().toLowerCase(),
       });
-      tokenPengurus.simpan(passBaru);
-      adminPengguna.simpan(res.username || username);
+      // Login ulang dengan password baru untuk mendapatkan JWT baru.
+      const loginBaru = await loginAdmin(res.username || username.trim().toLowerCase(), passBaru);
+      tokenPengurus.simpan(loginBaru.token);
+      adminPengguna.simpan(loginBaru.username || username);
+      peranPengurus.simpan(loginBaru.role || "master");
       beriTahu?.(res.pesan || "Password berhasil diganti.", "sukses");
       setPassLama("");
       setPassBaru("");

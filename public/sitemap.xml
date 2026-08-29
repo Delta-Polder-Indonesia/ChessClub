@@ -1,123 +1,123 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/</loc>
+    <loc>%%SITE_URL%%</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/tentang-kami</loc>
+    <loc>%%SITE_URL%%tentang-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/tentang-kami/struktur-grup-catur</loc>
+    <loc>%%SITE_URL%%tentang-kami/struktur-grup-catur</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami</loc>
+    <loc>%%SITE_URL%%program-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/teka-teki</loc>
+    <loc>%%SITE_URL%%program-kami/teka-teki</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/pembukaan</loc>
+    <loc>%%SITE_URL%%program-kami/pembukaan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/program-kami/sekolah-catur/cara-bermain-catur</loc>
+    <loc>%%SITE_URL%%program-kami/sekolah-catur/cara-bermain-catur</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/teka-teki</loc>
+    <loc>%%SITE_URL%%teka-teki</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/papan-interaktif</loc>
+    <loc>%%SITE_URL%%papan-interaktif</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/turnamen</loc>
+    <loc>%%SITE_URL%%turnamen</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/turnamen/turnamen-bulanan</loc>
+    <loc>%%SITE_URL%%turnamen/turnamen-bulanan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/turnamen/liga-musiman</loc>
+    <loc>%%SITE_URL%%turnamen/liga-musiman</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/turnamen/turnamen-terbuka</loc>
+    <loc>%%SITE_URL%%turnamen/turnamen-terbuka</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/turnamen/liga-antar-komunitas</loc>
+    <loc>%%SITE_URL%%turnamen/liga-antar-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/media-dan-informasi</loc>
+    <loc>%%SITE_URL%%media-dan-informasi</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/media-dan-informasi/berita-komunitas</loc>
+    <loc>%%SITE_URL%%media-dan-informasi/berita-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/media-dan-informasi/pengumuman</loc>
+    <loc>%%SITE_URL%%media-dan-informasi/pengumuman</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/media-dan-informasi/galeri</loc>
+    <loc>%%SITE_URL%%media-dan-informasi/galeri</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/pendaftaran-anggota</loc>
+    <loc>%%SITE_URL%%pendaftaran-anggota</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/keberlanjutan</loc>
+    <loc>%%SITE_URL%%keberlanjutan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/keberlanjutan/syarat-dan-ketentuan</loc>
+    <loc>%%SITE_URL%%keberlanjutan/syarat-dan-ketentuan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/keberlanjutan/kode-etik-komunitas</loc>
+    <loc>%%SITE_URL%%keberlanjutan/kode-etik-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/keberlanjutan/pertanyaan-umum</loc>
+    <loc>%%SITE_URL%%keberlanjutan/pertanyaan-umum</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/hubungi-kami</loc>
+    <loc>%%SITE_URL%%hubungi-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda</loc>
+    <loc>%%SITE_URL%%beranda</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/turnamen</loc>
+    <loc>%%SITE_URL%%beranda/turnamen</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/daftar-juara</loc>
+    <loc>%%SITE_URL%%beranda/daftar-juara</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/peringkat</loc>
+    <loc>%%SITE_URL%%beranda/peringkat</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/beranda/ebook-panduan</loc>
+    <loc>%%SITE_URL%%beranda/ebook-panduan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://delta-polder-indonesia.github.io/ChessClub/karir</loc>
+    <loc>%%SITE_URL%%karir</loc>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>
