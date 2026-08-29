@@ -1,0 +1,60 @@
+# Komunitas Catur Indonesia
+
+> Komunitas catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi
+> pecatur. Laman ini menyajikan jadwal turnamen, peringkat anggota, kelas
+> pelatihan, bank soal teka-teki, buku pembukaan, dan arsip e-book panduan.
+> Situs bersifat statis (React + Vite, deployed di Vercel) dan tidak
+> memerlukan login untuk membaca seluruh kontennya.
+
+Kontak: info@komunitascatur.or.id · Klub Chess.com:
+[Blunder Skuad](https://www.chess.com/club/blunder-skuad)
+
+## Halaman utama
+
+- [Beranda](%%SITE_URL%%): hero tonggak sejarah, sorotan kegiatan, program, dan ajakan bergabung.
+- [Tentang Kami](%%SITE_URL%%tentang-kami): sejarah, visi-misi, dan nilai komunitas.
+- [Struktur Grup Catur](%%SITE_URL%%tentang-kami/struktur-grup-catur): susunan pengurus, kelompok, dan jalur keanggotaan.
+- [Program Kami](%%SITE_URL%%program-kami): kelas pelatihan, teka-teki, buku pembukaan, dan sekolah catur.
+- [Cara Bermain Catur](%%SITE_URL%%program-kami/sekolah-catur/cara-bermain-catur): materi sekolah catur dari aturan dasar sampai endgame.
+- [Teka-Teki](%%SITE_URL%%teka-teki): bank soal skakmat interaktif dengan papan yang bisa digerakkan.
+- [Papan Interaktif](%%SITE_URL%%papan-interaktif): papan bebas, explorer buku pembukaan, dan analisis engine Stockfish (WebAssembly).
+
+## Turnamen & peringkat
+
+- [Turnamen](%%SITE_URL%%turnamen): ringkasan seluruh format turnamen komunitas.
+- [Turnamen Bulanan](%%SITE_URL%%turnamen/turnamen-bulanan)
+- [Liga Musiman](%%SITE_URL%%turnamen/liga-musiman)
+- [Turnamen Terbuka](%%SITE_URL%%turnamen/turnamen-terbuka)
+- [Liga Antar Komunitas](%%SITE_URL%%turnamen/liga-antar-komunitas)
+- [Daftar Juara](%%SITE_URL%%beranda/daftar-juara)
+- [Peringkat Anggota](%%SITE_URL%%beranda/peringkat)
+
+## Berita & media
+
+- [Media dan Informasi](%%SITE_URL%%media-dan-informasi)
+- [Berita Komunitas](%%SITE_URL%%media-dan-informasi/berita-komunitas)
+- [Pengumuman](%%SITE_URL%%media-dan-informasi/pengumuman)
+- [Galeri](%%SITE_URL%%media-dan-informasi/galeri)
+- [E-Book & Panduan](%%SITE_URL%%beranda/ebook-panduan): arsip PDF panduan catur yang bisa dibaca atau diunduh.
+
+## Keanggotaan & aturan
+
+- [Pendaftaran Anggota](%%SITE_URL%%pendaftaran-anggota)
+- [Keberlanjutan](%%SITE_URL%%keberlanjutan)
+- [Syarat dan Ketentuan](%%SITE_URL%%keberlanjutan/syarat-dan-ketentuan)
+- [Kode Etik Komunitas](%%SITE_URL%%keberlanjutan/kode-etik-komunitas)
+- [Pertanyaan Umum](%%SITE_URL%%keberlanjutan/pertanyaan-umum)
+- [Karir](%%SITE_URL%%karir)
+- [Hubungi Kami](%%SITE_URL%%hubungi-kami)
+
+## Data & API
+
+- [Data anggota (JSON)](%%SITE_URL%%api/anggota): daftar anggota aktif beserta rating.
+- [Jadwal turnamen (JSON)](%%SITE_URL%%api/turnamen)
+- [Berita (JSON)](%%SITE_URL%%api/berita)
+- [Pengumuman (JSON)](%%SITE_URL%%api/pengumuman)
+- [Peta situs](%%SITE_URL%%sitemap.xml)
+
+Bahasa antarmuka: Bahasa Indonesia (bawaan) dan
+[English](%%SITE_URL%%). Kode sumber:
+[Delta-Polder-Indonesia/ChessClub](https://github.com/Delta-Polder-Indonesia/ChessClub).

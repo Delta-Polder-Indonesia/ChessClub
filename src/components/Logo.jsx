@@ -3,7 +3,7 @@
  * variant "light" = kuda putih + wordmark putih (header di atas hero)
  * variant "dark"  = kuda navy + wordmark gelap (header scroll, footer, drawer)
  */
-import { gambar } from "../lib/asets.js";
+import { sumberGambar } from "../lib/asets.js";
 
 const SIZES = {
   sm: 40,
@@ -20,14 +20,18 @@ export default function Logo({
 }) {
   const px = SIZES[size] || SIZES.md;
   const light = variant === "light";
-  const src = light
-    ? gambar("/images/logo-mark-light.png")
-    : gambar("/images/logo-mark-dark.png");
+  const jalur = light ? "/images/logo-mark-light.png" : "/images/logo-mark-dark.png";
+  // Mark aslinya 336×336 (± 14 KiB) untuk boks 52–91 px saja. Varian 200w
+  // dari manifest cukup untuk retina, jadi header tidak mengunduh gambar
+  // empat kali lebih besar dari kotak yang menampilkannya.
+  const sumber = sumberGambar(jalur, { sizes: `${px * 2}px` });
 
   return (
     <span className={`flex items-center gap-3 select-none ${className}`}>
       <img
-        src={src}
+        src={sumber.src}
+        srcSet={sumber.srcSet}
+        sizes={sumber.sizes}
         alt=""
         width={px}
         height={px}

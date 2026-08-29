@@ -66,8 +66,8 @@ export default function RangkumanPengumuman() {
                 <div className="flex">
                   <Link
                     to={`/media-dan-informasi/pengumuman/${p.id}`}
-                    title={t("common.selengkapnya")}
-                    aria-label={t("common.selengkapnya")}
+                    title={`${t("common.selengkapnya")}: ${p.judul}`}
+                    aria-label={`${t("common.selengkapnya")}: ${p.judul}`}
                     className="text-sm h-12 px-4 md:px-6 gap-2 hover:gap-4 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-solid border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full flex-row"
                   >
                     <span className="order-1">{t("common.selengkapnya")}</span>

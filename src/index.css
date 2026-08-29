@@ -968,14 +968,49 @@ section[id] {
   background: #f8fafc;
 }
 
-/* Progress bar carousel Tonggak Sejarah — mengisi seperti loading bar */
+/* Progress bar carousel Tonggak Sejarah — mengisi seperti loading bar.
+
+   Garisnya dibentangkan lewat left/right (bukan `width` yang dianimasikan):
+   animasi `width` menghitung ulang layout tiap frame, yang ditandai
+   Lighthouse sebagai "Avoid non-composited animations" dan bikin garis ikut
+   menggeser tetangganya. scaleX() hanya menyentuh kompositor. */
+.bullet-progress {
+  left: 0;
+  right: 0;
+  transform-origin: left center;
+  will-change: transform;
+}
+
 @keyframes progressbar {
   from {
-    width: 0%;
+    transform: scaleX(0);
   }
   to {
-    width: 100%;
+    transform: scaleX(1);
   }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bullet-progress {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* Sampul e-book yang baru aktif memudar di atas sampul sebelumnya. Tanpa
+   animasi ini karusel harus menyimpan SEMUA sampul di DOM (± 1,1 MB gambar)
+   hanya supaya perpindahan tidak berkedip. */
+@keyframes sampulMasuk {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sampul-masuk {
+  animation: sampulMasuk 500ms ease-out both;
 }
 
 /* Program Unggulan (Sekilas Program) — kisi 6 program berikon bidak.
