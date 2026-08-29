@@ -17,6 +17,7 @@
     "operasi:kesehatan": "node scripts/cek-kesehatan.mjs"
   },
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "chess.js": "^1.4.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
