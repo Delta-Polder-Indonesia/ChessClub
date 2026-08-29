@@ -27,6 +27,17 @@ const daftar = (v) =>
 /** URL-ID klub Chess.com hanya boleh berupa slug, bukan URL penuh. */
 const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
 
+/**
+ * Bersihkan nilai rahasia yang ditempel dari dashboard (Vercel/Render).
+ *
+ * Menyalin-tempel di kolom Environment Variable sangat sering menyisakan
+ * spasi atau baris baru di ujung nilai. Bila dibiarkan, password "terlihat"
+ * sudah benar di dashboard tetapi setiap login ditolak 401 tanpa petunjuk
+ * apa pun. Nilai dikembalikan apa adanya bila memang tidak punya spasi di
+ * ujung, sehingga password yang benar-benar ber-spasi tetap utuh di tengah.
+ */
+const rahasia = (v) => String(v ?? "").trim();
+
 export const konfigurasi = {
   lingkungan: process.env.NODE_ENV || "development",
   produksi: process.env.NODE_ENV === "production",
@@ -65,14 +76,14 @@ export const konfigurasi = {
   pepper: process.env.KCI_PEPPER || "",
 
   /** Token admin legacy untuk endpoint pengurus. Opsional; masih diterima sebagai password alternatif. */
-  tokenAdmin: process.env.KCI_TOKEN_ADMIN || "",
+  tokenAdmin: rahasia(process.env.KCI_TOKEN_ADMIN),
 
   /** Login sederhana untuk dashboard pengurus (umum: username + password).
    *  Bawaan: admin / admin123 — ubah lewat env KCI_ADMIN_USER / KCI_ADMIN_PASSWORD
    *  di produksi. Tetap kompatibel dengan KCI_TOKEN_ADMIN lama. */
   admin: {
     username: (process.env.KCI_ADMIN_USER || "admin").trim().toLowerCase(),
-    password: process.env.KCI_ADMIN_PASSWORD || "admin123",
+    password: rahasia(process.env.KCI_ADMIN_PASSWORD) || "admin123",
   },
 
   /** Daftar admin dengan role (master / pengurus). Diisi dari file admins.json saat startup. */
