@@ -14,7 +14,7 @@
  *      punya varian responsif — kalau ada, jalankan skrip optimumkan.
  */
 import { execFileSync } from "node:child_process";
-import { TARGET, bangunRencana, namaVarian } from "./optimumkan-gambar.mjs";
+import { bangunRencana, berkasTarget, namaVarian } from "./optimumkan-gambar.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,9 +25,6 @@ const MANIFEST = path.join(AKAR, "src", "data", "ukur-gambar.js");
 
 /** Gambar sebesar ini (± 3× tampilan sampul e-book) harus punya varian. */
 const BATAS_KECIL = 28 * 1024;
-
-/** Gambar yang masuk daftar TARGET skrip optimumkan-gambar. */
-let TARGET_SET = new Set();
 
 function muat() {
   if (!existsSync(MANIFEST)) return null;
@@ -71,7 +68,9 @@ function webPAsli(dirRelatif) {
 
 function utama() {
   const galat = [];
-  //TARGET
+  // Gambar yang masuk daftar TARGET skrip optimumkan-gambar — satu sumber
+  // aturan, jadi uji ini tidak bisa berbeda pendapat dengan generatornya.
+  const TARGET_SET = new Set(berkasTarget().map((j) => `/${j}`));
 
   const peta = muat();
   if (!peta) {
