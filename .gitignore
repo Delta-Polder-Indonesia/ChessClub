@@ -5,6 +5,7 @@ node_modules/
 dist/
 
 # Logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -23,10 +24,18 @@ Thumbs.db
 # Env files
 .env
 .env.*
+.env.local
+server/.env
 # ...kecuali templatenya, yang memang harus ikut repo
 !.env.contoh
-# Data pribadi anggota (nama asli, HP/WA, DANA) — JANGAN pernah di-commit
+
+# Kredensial admin (bila ada salinan di akar repo — yang sah ada di data/rahasia/)
+admin.json
+admins.json
+
+# Data pribadi anggota (nama asli, HP/WA, DANA) + jejak audit — JANGAN pernah di-commit
 data/rahasia/
+data/rahasia/**
 
 # Pesan dari form "Hubungi Kami" berisi nama/email/telepon publik.
 # Server membuatnya sendiri saat pertama ditulis; jangan ikut commit.

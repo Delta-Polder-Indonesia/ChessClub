@@ -20,11 +20,15 @@ Bawaan yang otomatis berlaku di Vercel:
 
 | Nilai                  | Bawaan lokal            | Bawaan di Vercel    |
 | ---------------------- | ----------------------- | ------------------- |
-| `KCI_DIR_DATA`         | `<repo>/data`           | `/tmp/kci-data`     |
+| `KCI_DIR_DATA`         | `<repo>/data`           | `/tmp/kci-data` (**ephemeral**) |
 | `KCI_JUMLAH_PROXY`     | `0`                     | `1` (di belakang proxy Vercel) |
 
 Langkah deploy lengkap (env vars wajib, verifikasi, batasan serverless):
-lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` di akar repo.
+lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` dan `VERCEL-LIMITATIONS.md` di akar repo.
+
+**Data persistent:** `/tmp/kci-data` di Vercel **tidak** bertahan antar
+invocation. Untuk anggota, turnamen, pesan, dan admin yang harus awet,
+pasang Postgres (`DATABASE-MIGRATION.md`) atau disk Render.
 
 ## Endpoint
 
@@ -135,17 +139,26 @@ password alternatif.
 
 ```
 server/src/
-  index.js             HTTP server, rute, penanganan galat
+  index.js             startup, ekspor tangani (Vercel) / listen
+  server.js            createServer, graceful shutdown
+  rute.js              definisi seluruh rute /api dan /api/v1
+  permintaan.js        CORS, CSRF, rate-limit, penanganan galat
+  jalur-api.js         alias /api/v1 → /api
+  skema.js             kontrak Zod
+  audit.js             jejak audit JSONL
   konfigurasi.js       env var + validasi produksi
-  http.js              CORS, rate limit, auth, router
+  http.js              CORS, gzip, rate limit, auth, router
   simpanan.js          tulis atomik + antrean anti-balapan
   chess.js             klien Chess.com (cache, retry, timeout)
   keanggotaan.js       logika bisnis
   identitas-server.js  hashing identitas ber-pepper
   oauth.js             OAuth 2.0 + OIDC Chess.com (PKCE S256, JWKS)
   verifikasi-profil.js jalur cadangan kode KCI-XXXXXX di kolom Location
-  turnamen.js          mesin turnamen untuk keempat jenis
+  turnamen.js          API mesin turnamen
+  turnamen/            jenis, klasemen (cache turnamen selesai)
 ```
+
+Prefiks `/api/v1/*` dipetakan ke rute `/api/*` yang sama (`API_VERSIONING.md`).
 
 Berkas data (`KCI_DIR_DATA`, bawaan `./data`):
 

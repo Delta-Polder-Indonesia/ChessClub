@@ -19,6 +19,7 @@ import Sidebar from "./Sidebar.jsx";
 import DropdownNotifikasi from "./DropdownNotifikasi.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
+import PanelAudit from "./Audit.jsx";
 
 /* ========================================================
    HALAMAN UTAMA: Dashboard
@@ -341,6 +342,7 @@ export default function Dashboard() {
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "juara" && <PanelJuara beriTahu={beriTahu} />}
           {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} anggota={anggota} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
+          {tab === "audit" && <PanelAudit beriTahu={beriTahu} />}
         </main>
       </div>
       </>

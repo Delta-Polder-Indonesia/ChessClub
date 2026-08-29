@@ -7,7 +7,9 @@
  */
 import path from "node:path";
 import { konfigurasi } from "./konfigurasi.js";
-import { buatRepo, tambahBaris, bacaJson, tulisJson } from "./simpanan.js";
+import { buatRepo, bacaJson, tulisJson } from "./simpanan.js";
+import { catatJejak } from "./audit.js";
+export { catatJejak };
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
 import { pakaiTiket } from "./oauth.js";
@@ -41,20 +43,6 @@ export class GalatAplikasi extends Error {
     this.name = "GalatAplikasi";
     this.status = status;
     this.tambahan = tambahan;
-  }
-}
-
-/* --------------------------------------------------------------- audit */
-
-export async function catatJejak(peristiwa, rincian) {
-  try {
-    await tambahBaris(konfigurasi.berkasJejak, {
-      waktu: new Date().toISOString(),
-      peristiwa,
-      ...rincian,
-    });
-  } catch {
-    /* jejak audit tidak boleh menggagalkan permintaan utama */
   }
 }
 

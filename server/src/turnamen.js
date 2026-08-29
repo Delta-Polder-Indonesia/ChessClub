@@ -25,60 +25,15 @@ import {
   blokir,
   lengkapiAnggota,
 } from "./keanggotaan.js";
+import { JENIS, STATUS, SKOR_SAH } from "./turnamen/jenis.js";
+import { hitungKlasemen, klasemenTim, buangCacheKlasemen } from "./turnamen/klasemen.js";
+
+export { JENIS, STATUS, SKOR_SAH, hitungKlasemen, klasemenTim, buangCacheKlasemen };
 
 const repoTurnamen = buatRepo(
   `${konfigurasi.dirData}/turnamen.json`,
   []
 );
-
-/* ------------------------------------------------------------- jenis */
-
-/** Sifat bawaan tiap jenis turnamen. */
-export const JENIS = {
-  bulanan: {
-    label: "Turnamen Bulanan",
-    slug: "turnamen-bulanan",
-    sistem: "swiss",
-    rondeBawaan: 5,
-    tempoBawaan: "15+10",
-    bolehNonAnggota: false,
-    beregu: false,
-    klasemenBerjalan: false,
-  },
-  musiman: {
-    label: "Liga Musiman",
-    slug: "liga-musiman",
-    sistem: "liga",
-    rondeBawaan: 0, // berjalan terus
-    tempoBawaan: "15+10",
-    bolehNonAnggota: false,
-    beregu: false,
-    klasemenBerjalan: true,
-    minPartai: 6,
-  },
-  terbuka: {
-    label: "Turnamen Terbuka",
-    slug: "turnamen-terbuka",
-    sistem: "swiss",
-    rondeBawaan: 7,
-    tempoBawaan: "25+10",
-    bolehNonAnggota: true,
-    beregu: false,
-    klasemenBerjalan: false,
-  },
-  "antar-komunitas": {
-    label: "Liga Antar Komunitas",
-    slug: "liga-antar-komunitas",
-    sistem: "beregu",
-    rondeBawaan: 0,
-    tempoBawaan: "15+10",
-    bolehNonAnggota: true,
-    beregu: true,
-    klasemenBerjalan: true,
-  },
-};
-
-export const STATUS = ["draf", "pendaftaran", "berlangsung", "selesai", "batal"];
 
 /* ------------------------------------------------------------ bantuan */
 
@@ -166,119 +121,6 @@ export async function rincianUntukPengurus(idAtauSlug) {
       rating: eloPerUsername.get(k.username) ?? null,
     })),
   };
-}
-
-/* --------------------------------------------------------- klasemen */
-
-/**
- * Hitung klasemen dari daftar hasil partai.
- * Tie-break: 1) poin, 2) Sonneborn-Berger, 3) pertemuan langsung, 4) menang.
- */
-export function hitungKlasemen(t) {
-  const peserta = (t.peserta || []).filter((p) => !p.dianulir);
-  if (!peserta.length) return [];
-
-  const meja = new Map();
-  for (const p of peserta) {
-    meja.set(p.username, {
-      username: p.username,
-      panggilan: p.panggilan || p.username,
-      tim: p.tim || null,
-      main: 0,
-      menang: 0,
-      remis: 0,
-      kalah: 0,
-      poin: 0,
-      sb: 0,
-      lawan: [],
-    });
-  }
-
-  const hasilSah = (t.hasil || []).filter(
-    (h) => meja.has(h.putih) && meja.has(h.hitam)
-  );
-
-  for (const h of hasilSah) {
-    const p = meja.get(h.putih);
-    const hi = meja.get(h.hitam);
-    p.main += 1;
-    hi.main += 1;
-    p.lawan.push(h.hitam);
-    hi.lawan.push(h.putih);
-
-    if (h.skor === "1-0") {
-      p.menang += 1;
-      p.poin += 1;
-      hi.kalah += 1;
-    } else if (h.skor === "0-1") {
-      hi.menang += 1;
-      hi.poin += 1;
-      p.kalah += 1;
-    } else {
-      p.remis += 1;
-      hi.remis += 1;
-      p.poin += 0.5;
-      hi.poin += 0.5;
-    }
-  }
-
-  // Sonneborn-Berger: jumlah poin lawan yang dikalahkan + separuh poin lawan remis.
-  for (const baris of meja.values()) {
-    let sb = 0;
-    for (const h of hasilSah) {
-      if (h.putih === baris.username) {
-        const l = meja.get(h.hitam);
-        if (h.skor === "1-0") sb += l.poin;
-        else if (h.skor === "0.5-0.5") sb += l.poin / 2;
-      } else if (h.hitam === baris.username) {
-        const l = meja.get(h.putih);
-        if (h.skor === "0-1") sb += l.poin;
-        else if (h.skor === "0.5-0.5") sb += l.poin / 2;
-      }
-    }
-    baris.sb = Math.round(sb * 100) / 100;
-  }
-
-  const daftar = [...meja.values()];
-  const minPartai = JENIS[t.jenis]?.minPartai ?? 0;
-
-  daftar.sort((a, b) => {
-    // Yang belum memenuhi minimal partai turun ke bawah (liga musiman).
-    if (minPartai) {
-      const aKurang = a.main < minPartai;
-      const bKurang = b.main < minPartai;
-      if (aKurang !== bKurang) return aKurang ? 1 : -1;
-    }
-    if (b.poin !== a.poin) return b.poin - a.poin;
-    if (b.sb !== a.sb) return b.sb - a.sb;
-    if (b.menang !== a.menang) return b.menang - a.menang;
-    return a.panggilan.localeCompare(b.panggilan);
-  });
-
-  return daftar.map((b, i) => ({
-    peringkat: i + 1,
-    ...b,
-    resmi: minPartai ? b.main >= minPartai : true,
-    lawan: undefined,
-  }));
-}
-
-/** Klasemen beregu — menjumlahkan poin pemain per tim. */
-export function klasemenTim(t) {
-  if (!JENIS[t.jenis]?.beregu) return [];
-  const perorangan = hitungKlasemen(t);
-  const tim = new Map();
-  for (const p of perorangan) {
-    if (!p.tim) continue;
-    const data = tim.get(p.tim) || { tim: p.tim, poin: 0, pemain: 0, main: 0 };
-    data.poin += p.poin;
-    data.pemain += 1;
-    data.main += p.main;
-    tim.set(p.tim, data);
-  }
-  return [...tim.values()]
-    .sort((a, b) => b.poin - a.poin)
-    .map((x, i) => ({ peringkat: i + 1, ...x }));
 }
 
 /* ------------------------------------------------------------ CRUD */
@@ -714,8 +556,6 @@ export async function keluarkanPeserta(id, username) {
 }
 
 /* ----------------------------------------------------------- hasil */
-
-const SKOR_SAH = ["1-0", "0-1", "0.5-0.5"];
 
 export async function catatHasil(id, { ronde, putih, hitam, skor }) {
   const p = normalisasiUsername(putih);
