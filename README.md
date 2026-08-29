@@ -52,7 +52,7 @@ Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpee
 
 | Skema | Panduan | Keterangan |
 | ----- | ------- | ---------- |
-| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Rp 0, backend jalan sebagai Serverless Function (`api/[...jalur].js`) |
+| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Rp 0, backend jalan sebagai Serverless Function (`api/[...jalur].js`). `/tmp` tidak persisten — baca `VERCEL-LIMITATIONS.md` dan `DEPLOYMENT-CHECKLIST.md`. |
 | Vercel (frontend) + Render (backend ber-disk) | `PANDUAN-DEPLOY-VERCEL-RENDER.md` | Untuk data produksi yang harus awet |
 | Lainnya (GitHub Pages, Netlify, VPS) | `PANDUAN-DEPLOY.md` | |
 

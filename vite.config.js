@@ -34,8 +34,14 @@ export default defineConfig({
   build: {
     modulePreload: { polyfill: false },
     cssCodeSplit: false,
-    sourcemap: true,  // <-- Ditambahkan untuk mengaktifkan source map
-    minify: false,    // <-- Ditambahkan agar koordinat kolom terbaca akurat
+    // Source map tetap di produksi agar stack trace di browser/Sentry
+    // bisa dilacak ke sumber asli. Ukuran .map tidak dilayani ke klien
+    // kecuali diunggah terpisah — bundle JS-nya yang di-minify.
+    sourcemap: true,
+    // esbuild adalah minify bawaan Vite: turun ~30–50% vs minify:false
+    // tanpa mengubah perilaku runtime. Jangan matikan di produksi hanya
+    // demi keterbacaan; pakai source map untuk debug.
+    minify: "esbuild",
   },
   server: {
     host: true,

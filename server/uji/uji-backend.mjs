@@ -226,6 +226,10 @@ console.log("\nKesehatan & rute dasar");
   const csrf = await panggil("GET", "/api/csrf-token");
   cek("GET /api/csrf-token -> 200", csrf.status === 200);
   cek("menerbitkan token", Boolean(csrf.data?.token));
+
+  const v1 = await panggil("GET", "/api/v1/kesehatan");
+  cek("GET /api/v1/kesehatan -> 200 (alias versi)", v1.status === 200 && v1.data?.status === "sehat");
+  cek("kesehatan mencantumkan versiApi", r.data?.versiApi === "v1");
 }
 
 /* ------------------------------------------------------------- validasi */

@@ -4,6 +4,7 @@
  * server bisa dijalankan hanya dengan Node.
  */
 import crypto from "node:crypto";
+import zlib from "node:zlib";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { konfigurasi } from "./konfigurasi.js";
@@ -11,21 +12,33 @@ import { normalisasiUsername } from "../../src/lib/identitas.js";
 
 /* -------------------------------------------------------------- jawaban */
 
-export function kirimJson(res, status, isi) {
+/**
+ * Kirim JSON. Opsi:
+ *   req    — jika Accept-Encoding: gzip dan body > 1 KiB, kompres
+ *   cache  — nilai Cache-Control (bawaan no-store)
+ */
+export function kirimJson(res, status, isi, opsi = {}) {
   const teks = JSON.stringify(isi);
-  res.writeHead(status, {
+  const headers = {
     "Content-Type": "application/json; charset=utf-8",
-    "Content-Length": Buffer.byteLength(teks),
-    "Cache-Control": "no-store",
+    "Cache-Control": opsi.cache || "no-store",
     "X-Content-Type-Options": "nosniff",
-    // CSP ketat untuk respons JSON: tidak ada skrip, tidak ada embedding.
-    // Aplikasi sebenarnya dilayani oleh frontend (Vite/Nginx) yang
-    // harus memasang CSP-nya sendiri.
     "Content-Security-Policy":
       "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
     "Referrer-Policy": "no-referrer",
-  });
-  res.end(teks);
+  };
+
+  let badan = teks;
+  const terima = String(opsi.req?.headers?.["accept-encoding"] || "");
+  if (teks.length > 1024 && /\bgzip\b/i.test(terima)) {
+    badan = zlib.gzipSync(teks);
+    headers["Content-Encoding"] = "gzip";
+    const varyLama = res.getHeader("Vary");
+    headers.Vary = varyLama ? `${varyLama}, Accept-Encoding` : "Accept-Encoding";
+  }
+  headers["Content-Length"] = Buffer.byteLength(badan);
+  res.writeHead(status, headers);
+  res.end(badan);
 }
 
 /* ------------------------------------------------------------------ CORS */

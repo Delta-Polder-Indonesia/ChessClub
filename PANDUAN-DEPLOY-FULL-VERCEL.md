@@ -191,6 +191,18 @@ berfungsi.
 
 ## 6. Batasan serverless FULL VERCEL
 
+> **PENTING: Vercel Serverless `/tmp` tidak persistent!**
+>
+> `KCI_DIR_DATA` bawaan di Vercel adalah `/tmp/kci-data`. Isinya hilang
+> setelah cold start, instance baru, atau redeploy. Ini **blocker** jika
+> FULL VERCEL dipakai sebagai backend produksi dengan data tulis.
+>
+> Solusi A: Render + Persistent Disk untuk backend (`PANDUAN-DEPLOY-VERCEL-RENDER.md`)
+> Solusi B: Vercel KV (Redis) untuk sesi/cache
+> Solusi C: PostgreSQL (Neon/Railway) — `DATABASE-MIGRATION.md`
+>
+> Rincian: `VERCEL-LIMITATIONS.md`.
+
 1. **Data seed dari Git permanen, tulisan runtime sementara.** Berkas
    `data/*.json` yang di-commit ikut dibundle dan disalin ke `/tmp/kci-data`
    saat function cold start. Data yang dibuat langsung dari situs Vercel
