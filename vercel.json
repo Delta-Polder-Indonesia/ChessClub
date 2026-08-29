@@ -4,7 +4,17 @@
   "installCommand": "npm ci",
   "buildCommand": "VITE_BASE_PUBLIC=/ npm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/[...jalur].js": {
+      "includeFiles": "data/*.json",
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/api/[...jalur]"
+    },
     {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
