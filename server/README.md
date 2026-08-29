@@ -74,6 +74,7 @@ alternatif.
 | Metode | Jalur | Keterangan |
 | ------ | ----- | ---------- |
 | POST | `/api/auth/login` | Login dashboard `{username, password}` → `{token, username, role}` |
+| GET | `/api/pengurus` | Ringkasan dashboard + identitas login (alias `/ringkasan`) |
 | GET | `/api/pengurus/verifikasi` | Verifikasi token ringan untuk membuka dashboard |
 | GET | `/api/pengurus/ringkasan` | Jumlah anggota & daftar hitam |
 | POST | `/api/pengurus/pindai` | Pindai ban fair play ke Chess.com |

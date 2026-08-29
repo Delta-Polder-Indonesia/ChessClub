@@ -113,6 +113,11 @@ import { samaAman, pastikanMaster, peranPengurus, dapatkanAdminDariRequest } fro
 const mulaiPada = Date.now();
 const router = buatRouter();
 
+/** Semua rute pengurus, termasuk akar GET /api/pengurus (tanpa subpath). */
+function adalahJalurPengurus(jalur) {
+  return jalur === "/api/pengurus" || jalur.startsWith("/api/pengurus/");
+}
+
 // Muat file admin.json bila ada (override env)
 muatAdminFileKeKonfigurasi().catch(() => {});
 
@@ -377,11 +382,20 @@ router.post(
 
 /* ---------------------------------------------------------- rute pengurus */
 
-router.get("/api/pengurus/ringkasan", async (req) => {
+/**
+ * Ringkasan dashboard pengurus.
+ * GET /api/pengurus dan GET /api/pengurus/ringkasan memakai handler yang sama
+ * supaya curl ke akar /api/pengurus tidak 404 setelah token terverifikasi.
+ */
+async function isiDashboardPengurus(req) {
   pastikanAdmin(req);
+  const admin = dapatkanAdminDariRequest(req);
   return {
     status: 200,
     isi: {
+      ok: true,
+      username: admin?.username || "",
+      role: admin?.role || peranPengurus(req) || "pengurus",
       ...(await ringkasan()),
       turnamen: await ringkasanTurnamen(),
       konten: await ringkasanKonten(),
@@ -395,7 +409,10 @@ router.get("/api/pengurus/ringkasan", async (req) => {
       },
     },
   };
-});
+}
+
+router.get("/api/pengurus", isiDashboardPengurus);
+router.get("/api/pengurus/ringkasan", isiDashboardPengurus);
 
 /**
  * Catat aksi login / masuk ke dashboard pengurus.
@@ -914,7 +931,7 @@ async function tangani(req, res) {
   // autentikasi beberapa kali diblokir lebih awal, sebelum sampai ke
   // handler. Pencatatan gagal/sukses dilakukan setelah handler
   // berjalan, agar satu permintaan yang berhasil tidak dihitung gagal.
-  if (jalur.startsWith("/api/pengurus/")) {
+  if (adalahJalurPengurus(jalur)) {
     const kunci = statusKunciAdmin(ip);
     if (kunci.terkunci) {
       res.setHeader("Retry-After", String(kunci.cobaLagiDetik));
@@ -931,7 +948,7 @@ async function tangani(req, res) {
 
   try {
     const hasil = await rute.penangan(req, rute.param, konteks);
-    if (jalur.startsWith("/api/pengurus/")) {
+    if (adalahJalurPengurus(jalur)) {
       // Handler selesai tanpa melempar → autentikasi berhasil. Reset
       // hitungan gagal untuk IP ini.
       catatPercobaanAdmin(ip, true);

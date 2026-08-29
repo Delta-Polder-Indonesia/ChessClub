@@ -121,6 +121,10 @@ curl -s -X POST "$DOMAIN/api/auth/login" \
 curl -s "$DOMAIN/api/pengurus/verifikasi" \
   -H "X-Admin-User: $ADMIN_USER" \
   -H "X-Token-Admin: $ADMIN_PASSWORD"
+
+# 6) Ringkasan dashboard (akar /api/pengurus, bukan 404)
+curl -s "$DOMAIN/api/pengurus" \
+  -H "Authorization: Bearer $ADMIN_PASSWORD"
 ```
 
 Jika langkah 1–5 sesuai, buka:
