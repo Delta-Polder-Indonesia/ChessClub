@@ -78,6 +78,9 @@ export const konfigurasi = {
   /** Token admin legacy untuk endpoint pengurus. Opsional; masih diterima sebagai password alternatif. */
   tokenAdmin: rahasia(process.env.KCI_TOKEN_ADMIN),
 
+  /** Rahasia untuk menandatangani JWT. Wajib di produksi. */
+  jwtSecret: process.env.KCI_JWT_SECRET || "",
+
   /** Login sederhana untuk dashboard pengurus (umum: username + password).
    *  Bawaan: admin / admin123 — ubah lewat env KCI_ADMIN_USER / KCI_ADMIN_PASSWORD
    *  di produksi. Tetap kompatibel dengan KCI_TOKEN_ADMIN lama. */
@@ -215,6 +218,12 @@ export function periksaProduksi() {
   }
   if (konfigurasi.tokenAdmin && konfigurasi.tokenAdmin.length < 24) {
     masalah.push("KCI_TOKEN_ADMIN legacy harus minimal 24 karakter bila diisi.");
+  }
+  if (!konfigurasi.jwtSecret || konfigurasi.jwtSecret.length < 24) {
+    masalah.push(
+      "KCI_JWT_SECRET wajib diisi minimal 24 karakter di produksi. " +
+        "Tanpa itu, JWT tidak bisa ditandatangani dengan aman."
+    );
   }
   if (!konfigurasi.asalDiizinkan.length) {
     masalah.push(

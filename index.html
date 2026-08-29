@@ -2,6 +2,20 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https:;
+        connect-src 'self' https://api.chess.com;
+        font-src 'self';
+        frame-ancestors 'none';
+        base-uri 'self';
+        form-action 'self';
+      "
+    />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -12,7 +26,7 @@
       name="description"
       content="Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
     />
-    <link rel="canonical" href="https://delta-polder-indonesia.github.io/ChessClub/" />
+    <link rel="canonical" href="%%SITE_URL%%" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Komunitas Catur Indonesia" />
     <meta property="og:title" content="Beranda | Komunitas Catur Indonesia" />
@@ -20,7 +34,7 @@
       property="og:description"
       content="Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
     />
-    <meta property="og:url" content="https://delta-polder-indonesia.github.io/ChessClub/" />
+    <meta property="og:url" content="%%SITE_URL%%" />
     <meta property="og:image" content="https://delta-polder-indonesia.github.io/ChessClub/images/landing-hero-828.webp" />
     <meta property="og:locale" content="id_ID" />
     <meta property="og:locale:alternate" content="en_US" />

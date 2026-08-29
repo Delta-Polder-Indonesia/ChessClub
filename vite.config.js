@@ -28,6 +28,13 @@ const BASE_PUBLIC =
   process.env.VITE_BASE_PUBLIC ||
   (process.env.NODE_ENV === "production" ? "/ChessClub/" : "/");
 
+/** Alamat situs produksi — untuk canonical URL dan OG tags. */
+const SITE_URL =
+  process.env.VITE_SITE_URL ||
+  (process.env.NODE_ENV === "production"
+    ? "https://delta-polder-indonesia.github.io/ChessClub/"
+    : "http://localhost:5173");
+
 export default defineConfig({
   base: BASE_PUBLIC,
   build: {
@@ -81,6 +88,12 @@ export default defineConfig({
     react(),
     tailwindcss(),
     performaHalaman(),
+    {
+      name: "inject-site-url",
+      transformIndexHtml(html) {
+        return html.replace(/%%SITE_URL%%/g, SITE_URL);
+      },
+    },
     {
       name: "alihkan-akar-preview",
       configurePreviewServer(server) {

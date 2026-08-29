@@ -1,6 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import App from "./App.jsx";
 import { I18nProvider } from "./lib/i18n.jsx";
 import { basisRouter } from "./lib/asets.js";
@@ -13,6 +14,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <BrowserRouter basename={basisRouter()}>
         <I18nProvider>
           <App />
+          <SpeedInsights />
         </I18nProvider>
       </BrowserRouter>
     </ErrorBoundary>
