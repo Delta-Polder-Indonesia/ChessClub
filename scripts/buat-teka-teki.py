@@ -28,6 +28,7 @@ Catatan penyaringan (kualitas ala liga NACCL):
 
 import json
 import re
+import subprocess
 import sys
 
 import chess
@@ -148,6 +149,10 @@ def main() -> None:
     tujuan = "public/data/teka-teki.json"
     with open(tujuan, "w") as f:
         json.dump(keluaran, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+
+    # Rapikan nama pembukaan agar konsisten dengan opening explorer.
+    subprocess.run(["node", "scripts/standarkan-nama-teka-teki.mjs"], check=True)
 
     dari_tipe = {}
     dari_giliran = {"White to Move": 0, "Black to Move": 0}

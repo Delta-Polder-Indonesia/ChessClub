@@ -1,30 +1,23 @@
 /**
- * Artikel Wikipedia untuk sebuah pembukaan catur.
+ * Referensi pembukaan untuk Penjelajah Pembukaan.
  *
- * Nama pembukaan dari buku Lichess (mis. "Sicilian Defense: Najdorf
- * Variation") dicari di Wikipedia bahasa Inggris lewat Action API dengan
- * generator=search + prop=extracts sehingga ringkasan artikelnya ikut
- * terambil sekali jalan. Pencarian mentah saja tidak cukup karena judul
- * Wikipedia memakai ejaan Inggris ("Sicilian Defence", "Caro–Kann
- * Defence"), terkadang nama artikelnya sama sekali berbeda
- * ("King's Pawn Game: Wayward Queen Attack" → artikel "Danvers
- * Opening"), dan ada kalanya nama pembukaan punya judul persis yang diarahkan
- * Wikipedia ke artikel keluarga ("King's Knight Opening" → "Open Game").
- * Karena itu dua jalur dipakai: (1) penyelesaian judul persis yang mengikuti
- * redirect — paling akurat untuk nama yang tak punya artikel sendiri; (2)
- * pencarian dengan beberapa kandidat yang dinilai kecocokannya dengan nama
- * pembukaan (bagian keluarga dan bagian variasi setelah titik dua). Hasil
- * yang jelas bukan artikel catur (mis. video game "King's Knight") dibuang
- * lebih dulu.
+ * Catatan: file ini tetap bernama `artikelWikipedia.js` agar jejak impor lama
+ * tidak perlu diubah banyak, tetapi sumber artikelnya sekarang memakai
+ * Wikibooks "Chess Opening Theory" sesuai kebutuhan halaman.
  *
- * Saat UI berbahasa Indonesia dan artikel yang terpilih punya versi
- * Indonesia (langlinks), ringkasan diambil dari id.wikipedia.org; kalau
- * tidak ada, dipakai versi Inggris. Hasil disimpan di cache sesi agar
- * bolak-balik langkah tidak memukul API berulang kali.
+ * Strategi pengambilan artikel:
+ * 1) utamakan subhalaman Wikibooks yang persis mengikuti urutan langkah SAN
+ *    saat ini, mis. `Chess Opening Theory/1. e4/1...c5/2. Nf3`;
+ * 2) bila subhalaman terdalam belum ada, naik ke induk terdekat;
+ * 3) bila konteks langkah tidak tersedia / tidak cocok, jatuh ke pencarian
+ *    judul berdasarkan nama pembukaan di dalam buku yang sama.
+ *
+ * Hasil dicache per bahasa UI + konteks langkah agar undo/redo atau bolak-balik
+ * variasi tidak memukul API berulang kali.
  */
 
-const API_EN = "https://en.wikipedia.org/w/api.php";
-const API_ID = "https://id.wikipedia.org/w/api.php";
+const API_EN = "https://en.wikibooks.org/w/api.php";
+const JUDUL_AKAR = "Chess Opening Theory";
 
 /**
  * Terjemahan otomatis en → id lewat endpoint publik Google Translate
@@ -37,10 +30,16 @@ const PENERJEMAH =
 /** Batas aman panjang teks yang diterjemahkan per artikel. */
 const BATAS_TERJEMAH = 2800;
 
-/** Skor minimum agar sebuah kandidat dianggap artikel yang tepat. */
+/** Skor minimum agar hasil pencarian dianggap cukup relevan. */
 const AMBANG_KECOCOKAN = 0.9;
 
-/** Cache sesi: "bahasa|nama pembukaan" → artikel (atau null bila tak ada). */
+/** Alias nama yang sering berbeda antara buku Lichess dan Wikibooks. */
+const ALIAS_NAMA_PEMBUKAAN = new Map([
+  ["King's Pawn Game", ["King's Pawn Opening", "King's Pawn opening"]],
+  ["Queen's Pawn Game", ["Queen's Pawn Opening", "Queen's Pawn opening"]],
+]);
+
+/** Cache sesi: "bahasa|konteks" → artikel (atau null bila tak ada). */
 const CACHE = new Map();
 
 /** Pecah teks menjadi kata-kata pembanding (huruf kecil, tanpa tanda baca,
@@ -79,10 +78,9 @@ function rasioKena(kumpulan, kata) {
 }
 
 /**
- * Nilai kecocokan satu halaman Wikipedia dengan nama pembukaan.
+ * Nilai kecocokan satu halaman dengan nama pembukaan.
  * Variasi (bagian setelah ":") diberi bobot terbesar — artikel keluarga
- * yang lebih umum ("Open Game") tidak boleh mengalahkan artikel variasi
- * yang persis ("Danvers Opening") meskipun kata keluarganya cocok.
+ * yang terlalu umum tidak boleh mengalahkan variasi spesifik.
  */
 export function skorKandidat(halaman, bagian) {
   const judul = new Set(tokenKata(halaman.title));
@@ -93,42 +91,44 @@ export function skorKandidat(halaman, bagian) {
   const variasiDiIsi = rasioKena(isi, variasi);
   const keluargaDiIsi = rasioKena(isi, keluarga);
   return (
-    3 * variasiDiJudul +
-    2.4 * variasiDiIsi +
-    1.5 * keluargaDiJudul +
-    0.4 * keluargaDiIsi
+    3 * variasiDiIsi +
+    2 * keluargaDiIsi +
+    1.2 * variasiDiJudul +
+    0.8 * keluargaDiJudul
   );
 }
 
 /**
- * Pola kata yang menandai sebuah artikel benar-benar membahas catur —
- * dipakai untuk membuang hasil pencarian yang kebetulan namanya mirip
- * tetapi topiknya di luar catur (mis. video game "King's Knight").
- * Istilah seperti "king"/"queen"/"knight" sengaja tak dipakai karena bisa
- * muncul pada nama di luar catur ("King's Knight" adalah judul game);
- * kata-kata di bawah ini nyaris tidak ditemui di artikel semacam itu.
+ * Pola kata yang menandai bahwa ringkasan memang membahas catur/pembukaan,
+ * bukan halaman Wikibooks acak yang kebetulan namanya mirip.
  */
 const POLA_CATUR =
-  /\b(chess|pawn|bishop|rook|gambit|castl(?:e|ing)?|checkmate|Sicilian|Najdorf)\b/i;
+  /\b(chess|opening|defen[cs]e|gambit|pawn|bishop|rook|knight|queen|king|castle|fianchetto|centre|center|checkmate|tempo|lichess|e4|d4|c4|nf3)\b/i;
 
 /** Benarkah halaman ini (ringkasan intro-nya) membahas catur? */
 export function adalahArtikelCatur(halaman) {
+  if (adalahJudulDalamBuku(halaman?.title)) {
+    return String(halaman?.extract || "").trim().length > 0;
+  }
   return POLA_CATUR.test(String(halaman?.extract || ""));
 }
 
-/** Pilih halaman terbaik dari hasil pencarian (null bila tak ada yang
- *  melampaui ambang kecocokan). Halaman yang jelas bukan artikel catur
- *  (mis. permainan video) dibuang lebih dulu. Urutan relevansi pencarian
- *  jadi pemecah seri bila skor sama. */
+function adalahJudulDalamBuku(judul) {
+  return judul === JUDUL_AKAR || String(judul || "").startsWith(`${JUDUL_AKAR}/`);
+}
+
+/** Pilih halaman terbaik dari hasil pencarian (null bila tak ada yang cukup
+ *  relevan). Hanya halaman di dalam buku "Chess Opening Theory" yang dihitung. */
 export function pilihKandidat(daftarHalaman, nama) {
   const bagian = pecahNamaPembukaan(nama);
-  const kandidat = [...daftarHalaman].sort(
-    (a, b) => (a.index ?? 99) - (b.index ?? 99)
-  );
+  const kandidat = [...daftarHalaman]
+    .filter((halaman) => adalahJudulDalamBuku(halaman?.title))
+    .sort((a, b) => (a.index ?? 99) - (b.index ?? 99));
+
   let terbaik = null;
   let skorTerbaik = 0;
   for (const halaman of kandidat) {
-    if (!adalahArtikelCatur(halaman)) continue; // buang artikel non-catur
+    if (!adalahArtikelCatur(halaman)) continue;
     const skor = skorKandidat(halaman, bagian);
     if (skor > skorTerbaik) {
       skorTerbaik = skor;
@@ -177,7 +177,71 @@ export async function terjemahkanKeIndonesia(teks, sinyal) {
   return hasil.join("\n");
 }
 
-/** URL pencarian artikel + ringkasan + tautan bahasa + gambar mini. */
+/** Normalisasi masukan lama (string) dan baru (objek konteks). */
+function normalkanKonteks(input) {
+  if (typeof input === "string") {
+    return {
+      nama: String(input).trim() || null,
+      langkahSan: [],
+    };
+  }
+  const nama = String(input?.nama || "").trim() || null;
+  const langkahSan = Array.isArray(input?.langkahSan)
+    ? input.langkahSan.map((san) => String(san || "").trim()).filter(Boolean)
+    : [];
+  return { nama, langkahSan };
+}
+
+/** Format segmen judul Wikibooks dari langkah SAN ke-i. */
+export function segmenJudulWikibooks(san, indeks) {
+  const langkah = String(san || "").trim().replace(/\s+/g, " ");
+  const nomor = Math.floor(indeks / 2) + 1;
+  return indeks % 2 === 0 ? `${nomor}. ${langkah}` : `${nomor}...${langkah}`;
+}
+
+/** Daftar kandidat judul halaman berdasarkan riwayat SAN, dari terdalam ke akar. */
+export function daftarJudulWikibooks(langkahSan = []) {
+  const segmen = langkahSan.map((san, i) => segmenJudulWikibooks(san, i));
+  const hasil = [];
+  for (let i = segmen.length; i >= 1; i -= 1) {
+    hasil.push(`${JUDUL_AKAR}/${segmen.slice(0, i).join("/")}`);
+  }
+  hasil.push(JUDUL_AKAR);
+  return hasil;
+}
+
+function kunciCache(konteks, bahasaUi) {
+  const langkah = konteks.langkahSan.join(" ");
+  const penanda = langkah ? `langkah:${langkah}` : `nama:${konteks.nama || ""}`;
+  return `${bahasaUi}|${penanda}`;
+}
+
+/** Nama alternatif untuk fallback pencarian di Wikibooks. */
+export function daftarNamaAlternatifPembukaan(nama) {
+  const asal = String(nama || "").trim();
+  if (!asal) return [];
+
+  const hasil = [asal];
+  const tambah = (nilai) => {
+    const bersih = String(nilai || "").trim();
+    if (bersih && !hasil.includes(bersih)) hasil.push(bersih);
+  };
+
+  for (const [lama, daftar] of ALIAS_NAMA_PEMBUKAAN) {
+    if (asal === lama) {
+      for (const alias of daftar) tambah(alias);
+      continue;
+    }
+    if (asal.startsWith(`${lama}:`)) {
+      const sisa = asal.slice(lama.length);
+      for (const alias of daftar) tambah(`${alias}${sisa}`);
+    }
+  }
+
+  return hasil;
+}
+
+/** URL pencarian artikel + ringkasan + tautan + gambar mini. */
 function susunUrlCari(nama) {
   const param = new URLSearchParams({
     action: "query",
@@ -185,14 +249,13 @@ function susunUrlCari(nama) {
     origin: "*",
     generator: "search",
     gsrsearch: nama,
-    gsrlimit: "6",
-    prop: "extracts|info|langlinks|pageimages",
+    gsrlimit: "8",
+    gsrnamespace: "0",
+    prop: "extracts|info|pageimages",
     inprop: "url",
     exintro: "1",
     explaintext: "1",
     exlimit: "max",
-    lllang: "id",
-    lllimit: "1",
     piprops: "thumbnail",
     pithumbsize: "256",
     pilimit: "max",
@@ -200,8 +263,8 @@ function susunUrlCari(nama) {
   return `${API_EN}?${param.toString()}`;
 }
 
-/** URL ringkasan satu judul artikel pada wiki bahasa tertentu. */
-function susunUrlRingkasan(judul, api) {
+/** URL ringkasan satu judul artikel pada Wikibooks bahasa Inggris. */
+function susunUrlJudul(judul, introSaja = true) {
   const param = new URLSearchParams({
     action: "query",
     format: "json",
@@ -209,138 +272,143 @@ function susunUrlRingkasan(judul, api) {
     titles: judul,
     prop: "extracts|info|pageimages",
     inprop: "url",
-    exintro: "1",
-    explaintext: "1",
     redirects: "1",
+    explaintext: "1",
     piprops: "thumbnail",
     pithumbsize: "256",
   });
-  return `${api}?${param.toString()}`;
+  if (introSaja) param.set("exintro", "1");
+  return `${API_EN}?${param.toString()}`;
 }
 
-/** URL penyelesaian satu judul persis (mengikuti redirect) pada wiki
- *  bahasa tertentu — termasuk langlinks & gambar mini agar hasilnya bisa
- *  langsung dipakai seperti hasil pencarian. */
-function susunUrlJudul(judul, api) {
-  const param = new URLSearchParams({
-    action: "query",
-    format: "json",
-    origin: "*",
-    titles: judul,
-    prop: "extracts|info|langlinks|pageimages",
-    inprop: "url",
-    exintro: "1",
-    explaintext: "1",
-    redirects: "1",
-    lllang: "id",
-    lllimit: "1",
-    piprops: "thumbnail",
-    pithumbsize: "256",
-  });
-  return `${api}?${param.toString()}`;
-}
-
-/**
- * Ambil halaman hasil penyelesaian judul persis, mengikuti redirect.
- * Banyak nama pembukaan yang tidak punya artikel sendiri justru diarahkan
- * Wikipedia ke artikel keluarga yang tepat — mis. "King's Knight Opening"
- * → "Open Game". Ini satu-satunya cara mencocokkan nama-nama seperti itu
- * (pencarian mentah salah menjawab karena judulnya kebetulan mirip dengan
- * hal lain). Mengembalikan halaman (null bila judul tidak ada / buang).
- */
+/** Ambil satu halaman persis dari Wikibooks. */
 async function ambilViaJudul(judul, sinyal) {
-  const data = await ambilJson(susunUrlJudul(judul, API_EN), sinyal);
-  const halaman = Object.values(data?.query?.pages || {});
-  return halaman.find((p) => p.missing === undefined && p.extract) || null;
+  const bacaHalaman = async (introSaja) => {
+    const data = await ambilJson(susunUrlJudul(judul, introSaja), sinyal);
+    const halaman = Object.values(data?.query?.pages || {});
+    return (
+      halaman.find(
+        (p) => p.missing === undefined && adalahJudulDalamBuku(p.title)
+      ) || null
+    );
+  };
+
+  const ringkas = await bacaHalaman(true);
+  if (ringkas?.extract?.trim()) return ringkas;
+
+  // Beberapa halaman Wikibooks hampir tak punya lead paragraph sebelum
+  // heading pertama (mis. halaman akar variasi tertentu). Jika intro kosong,
+  // coba lagi tanpa `exintro` agar isi bagian utama tetap bisa ditampilkan.
+  const penuh = await bacaHalaman(false);
+  return penuh && penuh.extract ? penuh : ringkas;
+}
+
+function encodeJudulUntukUrl(judul) {
+  return String(judul || "")
+    .split("/")
+    .map((bagian) => encodeURIComponent(bagian.replace(/ /g, "_")))
+    .join("/");
+}
+
+function rapikanSegmenJudul(segmen) {
+  return String(segmen || "")
+    .replace(/^Chess Opening Theory\/?/, "")
+    .replace(/^\s+|\s+$/g, "")
+    .replace(/^(\d+)\.\.\.(\S)/, "$1... $2")
+    .replace(/^(\d+\.)(\S)/, "$1 $2");
 }
 
 /** Susun objek artikel dari satu halaman hasil API. */
-function artikelDariHalaman(nama, halaman, bahasa) {
-  const basis =
-    bahasa === "id"
-      ? "https://id.wikipedia.org/wiki/"
-      : "https://en.wikipedia.org/wiki/";
+function artikelDariHalaman(konteks, halaman, bahasa) {
   return {
-    nama,
-    judul: halaman.title,
+    nama: konteks.nama || rapikanSegmenJudul(halaman.title.split("/").at(-1)),
+    judul:
+      konteks.nama ||
+      (halaman.title === JUDUL_AKAR
+        ? JUDUL_AKAR
+        : rapikanSegmenJudul(halaman.title.split("/").at(-1))),
     ringkasan: halaman.extract || "",
     url:
       halaman.fullurl ||
-      `${basis}${encodeURIComponent(String(halaman.title).replace(/ /g, "_"))}`,
+      `https://en.wikibooks.org/wiki/${encodeJudulUntukUrl(halaman.title)}`,
     bahasa,
     gambar: halaman.thumbnail?.source || null,
     terjemahanOtomatis: false,
   };
 }
 
-/** Hasil cache untuk nama+bahasa (undefined bila belum pernah diambil). */
-export function lihatArtikelTercache(nama, bahasaUi) {
-  const kunci = `${bahasaUi}|${nama}`;
+/** Hasil cache untuk konteks+bahasa (undefined bila belum pernah diambil). */
+export function lihatArtikelTercache(input, bahasaUi) {
+  const konteks = normalkanKonteks(input);
+  const kunci = kunciCache(konteks, bahasaUi);
   return CACHE.has(kunci) ? CACHE.get(kunci) : undefined;
 }
 
 /**
- * Ambil artikel Wikipedia untuk sebuah nama pembukaan.
+ * Ambil artikel referensi pembukaan dari Wikibooks.
+ *
+ * `input` bisa berupa string nama pembukaan (kompatibilitas lama) atau objek:
+ *   { nama: string | null, langkahSan: string[] }
  *
  * Mengembalikan { nama, judul, ringkasan, url, bahasa, gambar } atau null
- * bila tidak ada artikel yang cocok. Galat jaringan tidak disimpan ke
- * cache sehingga permintaan berikutnya bisa mencoba lagi.
+ * bila tidak ada artikel yang cocok. Galat jaringan tidak disimpan ke cache
+ * sehingga permintaan berikutnya bisa mencoba lagi.
  */
-export async function ambilArtikelPembukaan(nama, bahasaUi = "id", sinyal) {
-  const kunci = `${bahasaUi}|${nama}`;
+export async function ambilArtikelPembukaan(input, bahasaUi = "id", sinyal) {
+  const konteks = normalkanKonteks(input);
+  const kunci = kunciCache(konteks, bahasaUi);
   if (CACHE.has(kunci)) return CACHE.get(kunci);
 
   let hasil = null;
   try {
-    // 1) Judul persis (ikut redirect) lebih akurat untuk nama tanpa artikel
-    //    sendiri tapi diarahkan Wikipedia ke artikel keluarga — mis.
-    //    "King's Knight Opening" → "Open Game". Kalau gagal / bukan catur,
-    //    jatuh ke pencarian di bawah.
     let terbaik = null;
-    try {
-      const dariJudul = await ambilViaJudul(nama, sinyal);
-      if (dariJudul && adalahArtikelCatur(dariJudul)) terbaik = dariJudul;
-    } catch (galat) {
-      if (galat?.name === "AbortError") throw galat;
-      /* jaringan/variasi: lanjut ke pencarian */
+
+    // 1) Coba subhalaman Wikibooks sesuai urutan langkah saat ini.
+    if (konteks.langkahSan.length) {
+      const daftarJudul = daftarJudulWikibooks(konteks.langkahSan);
+      for (const judul of daftarJudul) {
+        try {
+          const halaman = await ambilViaJudul(judul, sinyal);
+          if (!halaman || !adalahArtikelCatur(halaman)) continue;
+          terbaik = halaman;
+          break;
+        } catch (galat) {
+          if (galat?.name === "AbortError") throw galat;
+          /* jaringan/halaman tertentu: lanjut ke kandidat berikutnya */
+        }
+      }
+    }
+
+    // 2) Fallback: cari menurut nama pembukaan di dalam buku yang sama.
+    //    Beberapa keluarga nama di buku Lichess memakai istilah "Game",
+    //    sedangkan Wikibooks menuliskannya sebagai "opening".
+    if (!terbaik && konteks.nama) {
+      for (const kueri of daftarNamaAlternatifPembukaan(konteks.nama)) {
+        const data = await ambilJson(susunUrlCari(kueri), sinyal);
+        const halaman = Object.values(data?.query?.pages || {});
+        terbaik = pilihKandidat(halaman, kueri);
+        if (terbaik) break;
+      }
     }
 
     if (!terbaik) {
-      const data = await ambilJson(susunUrlCari(nama), sinyal);
-      const halaman = Object.values(data?.query?.pages || {});
-      terbaik = pilihKandidat(halaman, nama);
-      if (!terbaik) {
-        CACHE.set(kunci, null);
-        return null;
-      }
-    }
-    hasil = artikelDariHalaman(nama, terbaik, "en");
-
-    // UI Indonesia → pakai versi Indonesia bila tersedia…
-    const judulId = terbaik.langlinks?.[0]?.["*"];
-    if (bahasaUi === "id" && judulId) {
-      try {
-        const dataId = await ambilJson(susunUrlRingkasan(judulId, API_ID), sinyal);
-        const hal = Object.values(dataId?.query?.pages || {})[0];
-        if (hal && hal.missing === undefined && hal.extract) {
-          const versiId = artikelDariHalaman(nama, hal, "id");
-          hasil = { ...versiId, gambar: versiId.gambar || hasil.gambar };
-        }
-      } catch (galat) {
-        if (galat?.name === "AbortError") throw galat;
-        /* versi Indonesia gagal diambil — coba terjemahan otomatis */
-      }
+      CACHE.set(kunci, null);
+      return null;
     }
 
-    // …jika tidak ada, terjemahkan ringkasan Inggris secara otomatis.
+    hasil = artikelDariHalaman(konteks, terbaik, "en");
+
+    // UI Indonesia → terjemahkan otomatis bila ada ringkasan Inggris.
     // Kegagalan menerjemahkan tidak fatal: artikel Inggris tetap tampil.
-    if (bahasaUi === "id" && hasil.bahasa === "en" && hasil.ringkasan) {
+    if (bahasaUi === "id" && hasil.ringkasan) {
       try {
-        const terjemahan = await terjemahkanKeIndonesia(
-          hasil.ringkasan,
-          sinyal
-        );
-        hasil = { ...hasil, ringkasan: terjemahan, bahasa: "id", terjemahanOtomatis: true };
+        const terjemahan = await terjemahkanKeIndonesia(hasil.ringkasan, sinyal);
+        hasil = {
+          ...hasil,
+          ringkasan: terjemahan,
+          bahasa: "id",
+          terjemahanOtomatis: true,
+        };
       } catch (galat) {
         if (galat?.name === "AbortError") throw galat;
         /* biarkan versi Inggris tampil */
