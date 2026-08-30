@@ -245,16 +245,16 @@ export default function EbookPanduan() {
         className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16 pt-10 md:pt-12 xl:pt-16"
       >
         <div className="relative w-full mx-auto max-w-[1280px] flex flex-col">
-          <div className="prose-kci mb-10">
+<div className="prose-kci mb-10">
             <h3>Tentang E-Book & Panduan</h3>
-            <p>
+            <p className="text-justify">
               Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
               terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
               taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
               dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
               memperdalam pemahaman strateginya.
             </p>
-            <p>
+            <p className="text-justify">
               Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
               aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
               yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
