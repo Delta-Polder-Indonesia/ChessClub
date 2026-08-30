@@ -3,16 +3,13 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 
 /**
- * Halaman Program Kami.
+ * Bilik teks + gambar background.
  *
- * Diagram halaman mengikuti pola umum landing sebuah permainan — hero
- * gelap, lalu bilik teks dan gambar yang diselang-selingkan antara terang
- * dan gelap — tetapi seluruh markah, komponen, dan teks ditulis dari nol
- * untuk Komunitas Catur Indonesia. Foto di setiap bilik hanyalah penempat
- * sementara yang siap diganti.
+ * - `min-h-[420px]` menjaga tinggi minimum agar gambar tidak terpotong
+ *   saat teks sedikit.
+ * - Saat teks banyak, section membesar secara alami (wajar).
+ * - Gambar selalu `object-cover` penuh setinggi section.
  */
-
-/** Bilik teks + gambar; `gelap` mengatur latar, `drawKiri` posisi foto. */
 function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = false }) {
   const overlay =
     drawKiri && gelap
@@ -25,13 +22,13 @@ function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = f
 
   return (
     <section
-      className={`relative w-full overflow-hidden ${
+      className={`relative w-full min-h-[420px] overflow-hidden ${
         gelap ? "bg-hero" : "bg-white"
       }`}
     >
-      {/* Foto nempel kiri/kanan, setinggi section, biar nyatu atas-bawah. */}
+      {/* Gambar background — selalu penuh setinggi section */}
       <div
-        className={`absolute top-0 h-full w-full lg:w-1/2 ${
+        className={`absolute inset-y-0 w-full md:w-1/2 ${
           drawKiri ? "left-0" : "right-0"
         }`}
       >
@@ -43,11 +40,11 @@ function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = f
           loading="lazy"
           className="h-full w-full object-cover object-center"
         />
-        {/* Overlay biar foto nyatu ke background */}
         {!tanpaOverlay && <div className={`absolute inset-0 ${overlay}`} />}
       </div>
 
-      <div className="relative z-10 mx-auto max-w-[1080px] xl:max-w-7xl px-6 md:px-8 xl:px-0 py-8 md:py-16">
+      {/* Konten teks */}
+      <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 xl:px-0 py-12 md:py-16">
         <div
           className={`flex w-full flex-col items-center gap-8 md:gap-0 ${
             drawKiri ? "md:flex-row-reverse" : "md:flex-row"
@@ -56,20 +53,21 @@ function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = f
           <div className="w-full md:w-1/2 flex flex-col gap-y-4">
             <h2
               className={`font-semibold text-2xl md:text-3xl ${
-                gelap ? "text-white" : "text-black"
+                gelap ? "text-white" : "text-slate-900"
               }`}
             >
               {judul}
             </h2>
             <div
-              className={`flex flex-col gap-y-3 leading-7 ${
+              className={`flex flex-col gap-y-4 leading-7 ${
                 gelap ? "text-white/70" : "text-slate-600"
               }`}
             >
               {children}
             </div>
           </div>
-          {/* Kolom kosong biar balance (foto ada di background). */}
+
+          {/* Kolom penyeimbang */}
           <div className="hidden md:block md:w-1/2" />
         </div>
       </div>
@@ -77,17 +75,15 @@ function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = f
   );
 }
 
-/** Konten utama — hero gelap + bilik selang-seling seperti diagram prompt. */
 function Triptych({ t }) {
   const strong = (gelap) =>
     `font-semibold ${gelap ? "text-white" : "text-slate-900"}`;
 
   return (
     <>
-      {/* Hero gelap — teks di kiri, foto nempel kanan sebagai background. */}
-      <section className="relative w-full bg-hero text-white overflow-hidden">
-        {/* Foto nempel kanan, setinggi section, biar nyatu atas-bawah. */}
-        <div className="absolute top-0 right-0 h-full w-full lg:w-1/2">
+      {/* ═══ Hero — gelap, gambar kanan ═══ */}
+      <section className="relative w-full min-h-[420px] bg-hero text-white overflow-hidden">
+        <div className="absolute inset-y-0 right-0 w-full md:w-1/2">
           <img
             src={gambar("/images/hero-about.webp")}
             alt=""
@@ -96,13 +92,11 @@ function Triptych({ t }) {
             loading="lazy"
             className="h-full w-full object-cover object-center"
           />
-          {/* Overlay biar foto nyatu ke background */}
           <div className="absolute inset-0 bg-[linear-gradient(90deg,_#021624_0%,_rgba(2,22,36,0.6)_30%,_rgba(2,22,36,0.2)_100%)]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-[1080px] xl:max-w-7xl px-6 md:px-8 xl:px-0 py-8 md:py-16">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 md:px-8 xl:px-0 py-12 md:py-16">
           <div className="flex w-full flex-col items-center gap-8 md:flex-row">
-            {/* Text */}
             <div className="w-full md:w-1/2 flex flex-col gap-y-4">
               <h2 className="font-bold text-3xl md:text-5xl leading-tight">
                 {t("bermainCatur.judul")}
@@ -110,20 +104,19 @@ function Triptych({ t }) {
               <h3 className="text-lg md:text-xl text-white/80 font-medium">
                 {t("bermainCatur.slogan")}
               </h3>
-              <p className="text-white/70 leading-7 max-w-2xl">
+              <p className="text-white/70 leading-7">
                 {t("bermainCatur.p1")}
               </p>
-              <p className="text-white/70 leading-7 max-w-2xl">
+              <p className="text-white/70 leading-7">
                 {t("bermainCatur.p2")}
               </p>
             </div>
-            {/* Kolom kosong biar balance (foto ada di background kanan). */}
             <div className="hidden md:block md:w-1/2" />
           </div>
         </div>
       </section>
 
-      {/* Bilik 1 — terang, gambar kiri, daftar butir. */}
+      {/* ═══ Bilik 1 — terang, gambar kiri, daftar butir ═══ */}
       <Bilik
         gelap={false}
         drawKiri
@@ -143,7 +136,7 @@ function Triptych({ t }) {
         </ul>
       </Bilik>
 
-      {/* Bilik 2 — gelap, gambar kanan. */}
+      {/* ═══ Bilik 2 — gelap, gambar kanan ═══ */}
       <Bilik
         gelap
         drawKiri={false}
@@ -153,7 +146,7 @@ function Triptych({ t }) {
         <p>{t("bermainCatur.f2P")}</p>
       </Bilik>
 
-      {/* Bilik 3 — terang, gambar kiri. */}
+      {/* ═══ Bilik 3 — terang, gambar kiri ═══ */}
       <Bilik
         gelap={false}
         drawKiri
@@ -163,7 +156,7 @@ function Triptych({ t }) {
         <p>{t("bermainCatur.f3P")}</p>
       </Bilik>
 
-      {/* Bilik 4 — terang, gambar kanan, tanpa efek putih. */}
+      {/* ═══ Bilik 4 — terang, gambar kanan, tanpa overlay ═══ */}
       <Bilik
         gelap={false}
         drawKiri={false}
@@ -175,7 +168,7 @@ function Triptych({ t }) {
         <p>{t("bermainCatur.f4P2")}</p>
       </Bilik>
 
-      {/* Bilik 5 — gelap, gambar kiri. */}
+      {/* ═══ Bilik 5 — gelap, gambar kiri ═══ */}
       <Bilik
         gelap
         drawKiri
@@ -185,7 +178,7 @@ function Triptych({ t }) {
         <p>{t("bermainCatur.f5P")}</p>
       </Bilik>
 
-      {/* Bilik 6 — terang, gambar kanan. */}
+      {/* ═══ Bilik 6 — terang, gambar kanan ═══ */}
       <Bilik
         gelap={false}
         drawKiri={false}
@@ -194,7 +187,7 @@ function Triptych({ t }) {
       >
         <p>{t("bermainCatur.f6P1")}</p>
         <p>{t("bermainCatur.f6P2")}</p>
-        <p className={`font-semibold ${strong(false)}`}>
+        <p className={strong(false)}>
           {t("bermainCatur.f6P3")}
         </p>
       </Bilik>
