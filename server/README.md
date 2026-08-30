@@ -122,6 +122,10 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `SUPABASE_URL` | untuk data awet | `https://<proyek>.supabase.co` — mengaktifkan penyimpanan `kci_storage` |
 | `SUPABASE_SERVICE_ROLE_KEY` | untuk data awet | Kunci service role (melewati RLS) untuk baca & tulis |
 | `SUPABASE_ANON_KEY` | opsional | Dipakai hanya bila service role kosong; butuh kebijakan RLS |
+
+Status integrasi ditampilkan di `GET /api/kesehatan` (objek `supabase`;
+`terpasang` = env terisi, `siap` = tabel `kci_storage` dapat diakses). Verifikasi
+menyeluruh: `npm run uji:supabase`.
 | `KCI_BATAS_DAFTAR` | tidak | Maks. pendaftaran per IP per 15 menit (bawaan 5) |
 | `KCI_BATAS_UMUM` | tidak | Maks. permintaan umum per IP per 15 menit |
 | `KCI_CHESS_DASAR` | **jangan di produksi** | Ganti alamat API Chess.com — hanya untuk uji tiruan lokal |

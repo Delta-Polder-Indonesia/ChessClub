@@ -135,6 +135,28 @@ export async function tulisJsonSupabase(berkas, isi) {
   if (error) throw error;
 }
 
+/** Hapus satu kunci (dipakai pembersihan data uji). */
+export async function hapusJsonSupabase(berkas) {
+  const kunci = kunciRelatif(berkas);
+  const client = dapatkanKlien();
+  const { error } = await client.from(TABEL).delete().eq("id", kunci);
+  if (error) throw error;
+}
+
+/**
+ * Ringkasan status integrasi untuk endpoint /api/kesehatan:
+ *   terpasang — variabel env Supabase sudah diisi?
+ *   siap      — tabel kci_storage dapat diakses?
+ */
+export async function kesehatanSupabase() {
+  const terpasang = supabaseTerpasang();
+  if (!terpasang) {
+    return { terpasang: false, siap: false, tabel: TABEL };
+  }
+  const siap = await supabaseSiap();
+  return { terpasang, siap, tabel: TABEL };
+}
+
 export async function tambahBarisSupabase(berkas, objek) {
   const kunci = kunciRelatif(berkas);
   const client = dapatkanKlien();

@@ -297,6 +297,35 @@ Data publik awal (anggota, turnamen, berita, pengumuman) yang di-commit ke Git
 otomatis di-seed ke database saat pertama kali dibaca, jadi situs tetap tampil
 normal.
 
+### Memastikan integrasi benar-benar aktif
+
+Cek **endpoint publik** di browser:
+
+```
+https://<nama-proyek>.vercel.app/api/kesehatan
+```
+
+Ia memuat objek `supabase`. Yang Anda harapkan adalah **keduanya `true`**:
+
+```json
+"supabase": { "terpasang": true, "siap": true, "tabel": "kci_storage" }
+```
+
+- `"terpasang": false` → variabel env Supabase belum terisi atau belum
+  ter-deploy; isi env lalu redeploy.
+- `"terpasang": true, "siap": false` → variabel OK tetapi **tabel
+  `kci_storage` belum dibuat**; jalankan `db/supabase-schema.sql`.
+
+Verifikasi sekali dengan skrip uji (jalankan di mesin yang dapat mengakses
+Supabase, mis. dari Vercel CLI atau lokal dengan env `.env`):
+
+```bash
+npm run uji:supabase
+```
+
+Jika keluar `Integrasi Supabase AMAN digunakan — data akan tersimpan permanen`,
+berarti tulisan benarbenar masuk PostgreSQL.
+
 > **Catatan keamanan:** gunakan `SUPABASE_SERVICE_ROLE_KEY` untuk backend
 > (melewati Row Level Security). Jangan menaruh anon key di frontend — data
 > `kci_storage` berisi kontak pribadi & admin.

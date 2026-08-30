@@ -95,6 +95,7 @@ import {
 import { logAudit, bacaJejakAudit } from "./audit.js";
 import { FilterAuditSchema } from "./skema.js";
 import { VERSI_API_KANONIK } from "./jalur-api.js";
+import { kesehatanSupabase } from "./storage-supabase.js";
 
 const CACHE_PUBLIK = "public, max-age=60";
 const CACHE_ANGGOTA = "public, max-age=300";
@@ -110,6 +111,9 @@ export function daftarkanRute(router, { mulaiPada }) {
       hidupDetik: Math.round((Date.now() - mulaiPada) / 1000),
       waktu: new Date().toISOString(),
       versiApi: VERSI_API_KANONIK,
+      // Status integrasi Supabase (terpasang & siap). Menunjukkan apakah data
+      // benar-benar akan TERSIMPAN di PostgreSQL atau masih jatuh ke /tmp.
+      supabase: await kesehatanSupabase(),
     },
   }));
 
