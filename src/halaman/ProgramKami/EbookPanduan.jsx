@@ -5,6 +5,7 @@ import { CloseIcon } from "../../components/icons.jsx";
 import { berkasPublik, sumberGambar } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
+import FiturEbook from "./FiturEbook.jsx";
 
 /**
  * Halaman E-Book & Panduan (di bawah menu Program Kami)
@@ -244,6 +245,21 @@ export default function EbookPanduan() {
         className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16 pt-10 md:pt-12 xl:pt-16"
       >
         <div className="relative w-full mx-auto max-w-[1280px] flex flex-col">
+          <div className="prose-kci mb-10">
+            <h3>Tentang E-Book & Panduan</h3>
+            <p>
+              Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
+              terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
+              taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
+              dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
+              memperdalam pemahaman strateginya.
+            </p>
+            <p>
+              Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
+              aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
+              yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-4">
             <div className="overflow-x-auto">
               <div role="tablist" aria-label="Filter kategori e-book" className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
@@ -289,23 +305,9 @@ export default function EbookPanduan() {
               />
             ))}
           </div>
-    
-          <div className="prose-kci mt-10">
-            <h3>Tentang E-Book & Panduan</h3>
-            <p>
-              Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
-              terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
-              taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
-              dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
-              memperdalam pemahaman strateginya.
-            </p>
-            <p>
-              Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
-              aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
-              yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
-            </p>
-          </div>
-    
+
+          <FiturEbook />
+
           {pdfAktif && (
             <div className="fixed inset-0 z-[80] flex flex-col bg-black/60 backdrop-blur-sm">
               <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
