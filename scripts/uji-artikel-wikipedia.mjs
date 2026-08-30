@@ -15,6 +15,7 @@ import {
   tokenKata,
   pecahNamaPembukaan,
   pilihKandidat,
+  adalahArtikelCatur,
   ambilArtikelPembukaan,
 } from "../src/lib/artikelWikipedia.js";
 
@@ -180,6 +181,32 @@ console.log("pilihKandidat — kasus respons API nyata:");
   cek("nama tak dikenal → null", terbaik === null);
 }
 
+console.log("adalahArtikelCatur — buang hasil non-catur:");
+
+/* 6 — artikel video game yang namanya mirip harus dibuang, bukan diambil. */
+{
+  const videoGame = {
+    index: 1,
+    title: "King's Knight",
+    extract:
+      "King's Knight is a scrolling shooter video game developed and published by Square for the Nintendo Entertainment System and MSX. The game was released in Japan on September 18, 1986.",
+  };
+  const chessArtikel = {
+    index: 2,
+    title: "Open Game",
+    extract:
+      "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5.",
+  };
+  cek("artikel catur terdeteksi", adalahArtikelCatur(chessArtikel) === true);
+  cek("video game ditolak", adalahArtikelCatur(videoGame) === false);
+
+  const terbaik = pilihKandidat([videoGame, chessArtikel], "King's Knight Opening");
+  cek(
+    "video game tidak dipilih untuk King's Knight Opening",
+    terbaik?.title !== "King's Knight"
+  );
+}
+
 /* ------------------------------------------------------------------ */
 console.log("alur ambilArtikelPembukaan — dengan fetch stub:");
 
@@ -244,12 +271,40 @@ const STUB = {
       },
     },
   },
+  // Penyelesaian judul persis (ikuti redirect): "King's Knight Opening"
+  // tidak punya artikel sendiri — Wikipedia mengarahkannya ke "Open Game".
+  "enJudul|King's Knight Opening": {
+    pages: {
+      6: {
+        index: 1,
+        ...EN_HALAMAN(
+          "Open Game",
+          "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5. Among the most important and frequently played Open Games are the Ruy Lopez, the Italian Game, and Petrov's Defense."
+        ),
+      },
+    },
+  },
 };
 
 globalThis.fetch = async (url, opsi = {}) => {
   const u = new URL(String(url));
   permintaanStub.push(u.hostname + u.search);
   if (u.hostname === "en.wikipedia.org") {
+    const judul = u.searchParams.get("titles");
+    if (judul) {
+      const kunci = `enJudul|${judul}`;
+      if (!STUB[kunci]) {
+        // Judul tidak ada / tidak redirect → kembalikan halaman "missing"
+        // sehingga alur jatuh ke pencarian.
+        return {
+          ok: true,
+          json: async () => ({
+            query: { pages: { "-1": { title: judul, missing: "" } } },
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ query: STUB[kunci] }) };
+    }
     const kunci = `en|${u.searchParams.get("gsrsearch")}`;
     if (!STUB[kunci]) throw new Error(`stub tak mengenal ${kunci}`);
     return { ok: true, json: async () => ({ query: STUB[kunci] }) };
@@ -314,6 +369,16 @@ globalThis.fetch = async (url, opsi = {}) => {
     "UI en tanpa panggilan penerjemah",
     permintaanStub.every((p) => !p.startsWith("translate.googleapis.com"))
   );
+
+  // f — nama yang tidak punya artikel sendiri tapi diarahkan Wikipedia ke
+  // artikel keluarga (redirect) → artikel catur yang tepat, bukan video game.
+  const f = await ambilArtikelPembukaan("King's Knight Opening", "en");
+  cek(
+    "King's Knight Opening → Open Game (lewat redirect)",
+    f?.judul === "Open Game"
+  );
+  cek("judul bukan video game King's Knight", f?.judul !== "King's Knight");
+  cek("ringkasan tentang catur", (f?.ringkasan || "").includes("chess"));
 }
 
 if (gagal) {

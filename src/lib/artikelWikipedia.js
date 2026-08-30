@@ -6,11 +6,16 @@
  * generator=search + prop=extracts sehingga ringkasan artikelnya ikut
  * terambil sekali jalan. Pencarian mentah saja tidak cukup karena judul
  * Wikipedia memakai ejaan Inggris ("Sicilian Defence", "Caro–Kann
- * Defence") dan terkadang nama artikelnya sama sekali berbeda
+ * Defence"), terkadang nama artikelnya sama sekali berbeda
  * ("King's Pawn Game: Wayward Queen Attack" → artikel "Danvers
- * Opening"). Karena itu beberapa kandidat dikumpulkan lalu dinilai
- * kecocokannya dengan nama pembukaan (bagian keluarga dan bagian variasi
- * setelah titik dua).
+ * Opening"), dan ada kalanya nama pembukaan punya judul persis yang diarahkan
+ * Wikipedia ke artikel keluarga ("King's Knight Opening" → "Open Game").
+ * Karena itu dua jalur dipakai: (1) penyelesaian judul persis yang mengikuti
+ * redirect — paling akurat untuk nama yang tak punya artikel sendiri; (2)
+ * pencarian dengan beberapa kandidat yang dinilai kecocokannya dengan nama
+ * pembukaan (bagian keluarga dan bagian variasi setelah titik dua). Hasil
+ * yang jelas bukan artikel catur (mis. video game "King's Knight") dibuang
+ * lebih dulu.
  *
  * Saat UI berbahasa Indonesia dan artikel yang terpilih punya versi
  * Indonesia (langlinks), ringkasan diambil dari id.wikipedia.org; kalau
@@ -95,9 +100,26 @@ export function skorKandidat(halaman, bagian) {
   );
 }
 
+/**
+ * Pola kata yang menandai sebuah artikel benar-benar membahas catur —
+ * dipakai untuk membuang hasil pencarian yang kebetulan namanya mirip
+ * tetapi topiknya di luar catur (mis. video game "King's Knight").
+ * Istilah seperti "king"/"queen"/"knight" sengaja tak dipakai karena bisa
+ * muncul pada nama di luar catur ("King's Knight" adalah judul game);
+ * kata-kata di bawah ini nyaris tidak ditemui di artikel semacam itu.
+ */
+const POLA_CATUR =
+  /\b(chess|pawn|bishop|rook|gambit|castl(?:e|ing)?|checkmate|Sicilian|Najdorf)\b/i;
+
+/** Benarkah halaman ini (ringkasan intro-nya) membahas catur? */
+export function adalahArtikelCatur(halaman) {
+  return POLA_CATUR.test(String(halaman?.extract || ""));
+}
+
 /** Pilih halaman terbaik dari hasil pencarian (null bila tak ada yang
- *  melampaui ambang kecocokan). Urutan relevansi pencarian jadi pemecah
- *  seri bila skor sama. */
+ *  melampaui ambang kecocokan). Halaman yang jelas bukan artikel catur
+ *  (mis. permainan video) dibuang lebih dulu. Urutan relevansi pencarian
+ *  jadi pemecah seri bila skor sama. */
 export function pilihKandidat(daftarHalaman, nama) {
   const bagian = pecahNamaPembukaan(nama);
   const kandidat = [...daftarHalaman].sort(
@@ -106,6 +128,7 @@ export function pilihKandidat(daftarHalaman, nama) {
   let terbaik = null;
   let skorTerbaik = 0;
   for (const halaman of kandidat) {
+    if (!adalahArtikelCatur(halaman)) continue; // buang artikel non-catur
     const skor = skorKandidat(halaman, bagian);
     if (skor > skorTerbaik) {
       skorTerbaik = skor;
@@ -195,6 +218,42 @@ function susunUrlRingkasan(judul, api) {
   return `${api}?${param.toString()}`;
 }
 
+/** URL penyelesaian satu judul persis (mengikuti redirect) pada wiki
+ *  bahasa tertentu — termasuk langlinks & gambar mini agar hasilnya bisa
+ *  langsung dipakai seperti hasil pencarian. */
+function susunUrlJudul(judul, api) {
+  const param = new URLSearchParams({
+    action: "query",
+    format: "json",
+    origin: "*",
+    titles: judul,
+    prop: "extracts|info|langlinks|pageimages",
+    inprop: "url",
+    exintro: "1",
+    explaintext: "1",
+    redirects: "1",
+    lllang: "id",
+    lllimit: "1",
+    piprops: "thumbnail",
+    pithumbsize: "256",
+  });
+  return `${api}?${param.toString()}`;
+}
+
+/**
+ * Ambil halaman hasil penyelesaian judul persis, mengikuti redirect.
+ * Banyak nama pembukaan yang tidak punya artikel sendiri justru diarahkan
+ * Wikipedia ke artikel keluarga yang tepat — mis. "King's Knight Opening"
+ * → "Open Game". Ini satu-satunya cara mencocokkan nama-nama seperti itu
+ * (pencarian mentah salah menjawab karena judulnya kebetulan mirip dengan
+ * hal lain). Mengembalikan halaman (null bila judul tidak ada / buang).
+ */
+async function ambilViaJudul(judul, sinyal) {
+  const data = await ambilJson(susunUrlJudul(judul, API_EN), sinyal);
+  const halaman = Object.values(data?.query?.pages || {});
+  return halaman.find((p) => p.missing === undefined && p.extract) || null;
+}
+
 /** Susun objek artikel dari satu halaman hasil API. */
 function artikelDariHalaman(nama, halaman, bahasa) {
   const basis =
@@ -233,12 +292,27 @@ export async function ambilArtikelPembukaan(nama, bahasaUi = "id", sinyal) {
 
   let hasil = null;
   try {
-    const data = await ambilJson(susunUrlCari(nama), sinyal);
-    const halaman = Object.values(data?.query?.pages || {});
-    const terbaik = pilihKandidat(halaman, nama);
+    // 1) Judul persis (ikut redirect) lebih akurat untuk nama tanpa artikel
+    //    sendiri tapi diarahkan Wikipedia ke artikel keluarga — mis.
+    //    "King's Knight Opening" → "Open Game". Kalau gagal / bukan catur,
+    //    jatuh ke pencarian di bawah.
+    let terbaik = null;
+    try {
+      const dariJudul = await ambilViaJudul(nama, sinyal);
+      if (dariJudul && adalahArtikelCatur(dariJudul)) terbaik = dariJudul;
+    } catch (galat) {
+      if (galat?.name === "AbortError") throw galat;
+      /* jaringan/variasi: lanjut ke pencarian */
+    }
+
     if (!terbaik) {
-      CACHE.set(kunci, null);
-      return null;
+      const data = await ambilJson(susunUrlCari(nama), sinyal);
+      const halaman = Object.values(data?.query?.pages || {});
+      terbaik = pilihKandidat(halaman, nama);
+      if (!terbaik) {
+        CACHE.set(kunci, null);
+        return null;
+      }
     }
     hasil = artikelDariHalaman(nama, terbaik, "en");
 
