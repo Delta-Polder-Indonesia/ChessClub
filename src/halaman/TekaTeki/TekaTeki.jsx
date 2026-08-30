@@ -9,6 +9,7 @@ import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import PanelEngine from "../../components/PanelEngine.jsx";
+import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -303,8 +304,13 @@ export default function TekaTeki() {
       })
       .then((data) => {
         if (!aktif) return;
-        const daftar = data.problems || [];
-        if (!daftar.length) throw new Error("data kosong");
+        const daftarMentah = data.problems || [];
+        if (!daftarMentah.length) throw new Error("data kosong");
+        const daftar = daftarMentah.map((item) =>
+          item?.pembukaan
+            ? { ...item, pembukaan: standarkanNamaPembukaan(item.pembukaan) }
+            : item
+        );
         const idParam = Number(params.get("id"));
         let awal;
         if (idParam >= 1 && idParam <= daftar.length) {

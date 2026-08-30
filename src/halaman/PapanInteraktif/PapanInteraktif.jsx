@@ -10,6 +10,10 @@ import {
   ambilArtikelPembukaan,
   lihatArtikelTercache,
 } from "../../lib/artikelWikipedia.js";
+import {
+  normalkanPohonPembukaan,
+  standarkanNamaPembukaan,
+} from "../../lib/namaPembukaan.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -107,7 +111,7 @@ function pohonDariDaftar(daftar) {
   const akar = {};
   for (const entri of daftar) {
     const eco = entri.eco || entri.code || "?";
-    const nama = entri.opening || entri.name;
+    const nama = standarkanNamaPembukaan(entri.opening || entri.name);
     const langkah = String(entri.moves || entri.uci || "")
       .trim()
       .split(/\s+/)
@@ -233,7 +237,7 @@ export default function PapanInteraktif() {
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
 
-  // Artikel Wikipedia tentang pembukaan aktif — berganti mengikuti nama.
+  // Artikel Wikibooks tentang pembukaan aktif — berganti mengikuti langkah.
   const [artikelPembukaan, setArtikelPembukaan] = useState(null);
   const batalArtikelRef = useRef(null);
 
@@ -280,8 +284,9 @@ export default function PapanInteraktif() {
           setPohon(pohonDariDaftar(data));
           setMode("koordinat");
         } else {
-          setPohon(data);
-          setMode(modeDariPohon(data));
+          const pohonBaku = normalkanPohonPembukaan(data);
+          setPohon(pohonBaku);
+          setMode(modeDariPohon(pohonBaku));
         }
       })
       .catch(() => {
@@ -387,11 +392,10 @@ export default function PapanInteraktif() {
     return { kelompok: urut, rata, idDari };
   }, [katalog]);
 
-  /* ------------------------------------------- artikel Wikipedia pembukaan */
-  // Nama pembukaan berubah (langkah baru / muat jalur / ganti bahasa) →
-  // artikel di bawahnya ikut berganti. Hasil tersimpan di cache sesi
-  // (lihat src/lib/artikelWikipedia.js) sehingga bolak-balik langkah
-  // tidak memukul API berulang kali.
+  /* ------------------------------------------- artikel Wikibooks pembukaan */
+  // Nama pembukaan atau jalur langkah berubah → referensi di bawahnya ikut
+  // berganti. Hasil tersimpan di cache sesi (lihat src/lib/artikelWikipedia.js)
+  // sehingga bolak-balik langkah tidak memukul API berulang kali.
   const namaArtikel = infoPembukaan.nama ? infoPembukaan.nama[0][1] : null;
   useEffect(() => {
     batalArtikelRef.current?.abort();
@@ -399,37 +403,41 @@ export default function PapanInteraktif() {
       setArtikelPembukaan(null);
       return undefined;
     }
-    const tercache = lihatArtikelTercache(namaArtikel, bahasa);
+
+    const konteksArtikel = { nama: namaArtikel, langkahSan: riwayat };
+    const identitasArtikel = `${namaArtikel}|${riwayat.join(" ")}`;
+    const tercache = lihatArtikelTercache(konteksArtikel, bahasa);
     if (tercache !== undefined) {
       setArtikelPembukaan({
         status: tercache ? "siap" : "kosong",
         data: tercache || null,
-        untuk: namaArtikel,
+        untuk: identitasArtikel,
       });
     } else {
-      setArtikelPembukaan({ status: "memuat", data: null, untuk: namaArtikel });
+      setArtikelPembukaan({ status: "memuat", data: null, untuk: identitasArtikel });
     }
+
     // Tunda sebentar agar deretan langkah cepat tidak memicu permintaan
-    // beruntun ke API Wikipedia.
+    // beruntun ke API Wikibooks.
     const pengaturWaktu = window.setTimeout(() => {
       const kontrol = new AbortController();
       batalArtikelRef.current = kontrol;
-      ambilArtikelPembukaan(namaArtikel, bahasa, kontrol.signal)
+      ambilArtikelPembukaan(konteksArtikel, bahasa, kontrol.signal)
         .then((hasil) =>
           setArtikelPembukaan((kini) =>
-            kini && kini.untuk === namaArtikel
+            kini && kini.untuk === identitasArtikel
               ? {
                   status: hasil ? "siap" : "kosong",
                   data: hasil || null,
-                  untuk: namaArtikel,
+                  untuk: identitasArtikel,
                 }
               : kini
           )
         )
         .catch(() =>
           setArtikelPembukaan((kini) =>
-            kini && kini.untuk === namaArtikel
-              ? { status: "gagal", data: null, untuk: namaArtikel }
+            kini && kini.untuk === identitasArtikel
+              ? { status: "gagal", data: null, untuk: identitasArtikel }
               : kini
           )
         );
@@ -438,7 +446,7 @@ export default function PapanInteraktif() {
       window.clearTimeout(pengaturWaktu);
       batalArtikelRef.current?.abort();
     };
-  }, [namaArtikel, bahasa]);
+  }, [namaArtikel, bahasa, riwayat]);
 
   /* ------------------------------------------------------ gerakan bidak */
   function pilihPetak(petak) {
@@ -1269,8 +1277,8 @@ function ParagrafArtikel({ teks, penuh }) {
 }
 
 /**
- * Kartu "Tentang Pembukaan Ini" — artikel Wikipedia (sejarah, ciri khas,
- * dsb.) yang berganti otomatis mengikuti nama pembukaan aktif di papan.
+ * Kartu "Tentang Pembukaan Ini" — ringkasan dari Wikibooks Chess Opening
+ * Theory yang berganti otomatis mengikuti pembukaan aktif di papan.
  */
 function KartuArtikelPembukaan({ nama, artikel, t }) {
   const [penuh, setPenuh] = useState(false);
@@ -1319,7 +1327,7 @@ function KartuArtikelPembukaan({ nama, artikel, t }) {
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
             <span className="text-[10px] text-slate-400">
-              Wikipedia · {data.bahasa.toUpperCase()} · CC BY-SA
+              Wikibooks · {data.bahasa.toUpperCase()} · CC BY-SA
               {data.terjemahanOtomatis &&
                 ` · ${t("papan.artikelOtomatis")}`}
             </span>

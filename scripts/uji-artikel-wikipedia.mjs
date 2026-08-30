@@ -1,13 +1,8 @@
 /**
- * Uji logika pemilihan artikel Wikipedia untuk pembukaan (tanpa jaringan).
+ * Uji logika referensi pembukaan berbasis Wikibooks (tanpa jaringan).
  *
- * Fixture di bawah adalah cuplikan respons nyata dari Action API
- * en.wikipedia.org (generator=search + prop=extracts). Uji ini memastikan
- * kandidat yang tepat terpilih untuk kasus yang rawan meleset:
- *  - ejaan Inggris ("Sicilian Defense" → artikel "Sicilian Defence"),
- *  - nama artikel yang berbeda ("Wayward Queen Attack" → "Danvers Opening"),
- *  - variasi vs artikel keluarga yang lebih umum ("Open Game"),
- *  - nama yang tidak punya artikel → null.
+ * Meski nama berkas historisnya masih `uji-artikel-wikipedia.mjs`, sumber yang
+ * diuji sekarang adalah Wikibooks "Chess Opening Theory".
  *
  * Jalankan: node scripts/uji-artikel-wikipedia.mjs  (keluar 1 bila gagal)
  */
@@ -16,6 +11,9 @@ import {
   pecahNamaPembukaan,
   pilihKandidat,
   adalahArtikelCatur,
+  segmenJudulWikibooks,
+  daftarJudulWikibooks,
+  daftarNamaAlternatifPembukaan,
   ambilArtikelPembukaan,
 } from "../src/lib/artikelWikipedia.js";
 
@@ -56,230 +54,188 @@ console.log("pecahNamaPembukaan — keluarga vs variasi:");
   );
 }
 
-console.log("pilihKandidat — kasus respons API nyata:");
+console.log("judul Wikibooks — jalur langkah SAN:");
+cek(
+  "segmen langkah putih benar",
+  segmenJudulWikibooks("e4", 0) === "1. e4"
+);
+cek(
+  "segmen langkah hitam benar",
+  segmenJudulWikibooks("c5", 1) === "1...c5"
+);
+cek(
+  "judul terdalam lalu turun ke induk",
+  JSON.stringify(daftarJudulWikibooks(["e4", "c5", "Nf3"])) ===
+    JSON.stringify([
+      "Chess Opening Theory/1. e4/1...c5/2. Nf3",
+      "Chess Opening Theory/1. e4/1...c5",
+      "Chess Opening Theory/1. e4",
+      "Chess Opening Theory",
+    ])
+);
 
-/* 1 — nama persis ada artikelnya; artikel umum "Open Game" jadi penggoda. */
+console.log("alias nama pembukaan — beda istilah Lichess vs Wikibooks:");
+cek(
+  "King's Pawn Game ikut mencoba King's Pawn opening",
+  JSON.stringify(daftarNamaAlternatifPembukaan("King's Pawn Game")) ===
+    JSON.stringify([
+      "King's Pawn Game",
+      "King's Pawn Opening",
+      "King's Pawn opening",
+    ])
+);
+cek(
+  "Queen's Pawn Game ikut mencoba Queen's Pawn opening",
+  JSON.stringify(daftarNamaAlternatifPembukaan("Queen's Pawn Game")) ===
+    JSON.stringify([
+      "Queen's Pawn Game",
+      "Queen's Pawn Opening",
+      "Queen's Pawn opening",
+    ])
+);
+
+console.log("pilihKandidat — hanya halaman Chess Opening Theory yang relevan:");
 {
   const terbaik = pilihKandidat(
     [
       {
         index: 1,
-        title: "King's Pawn Game",
+        title: "Chess Opening Theory/1. e4/1...c6",
         extract:
-          "The King's Pawn Game is any chess opening starting with the move: 1. e4. It is the most popular opening move in chess, followed by 1.d4, the Queen's Pawn Game.",
+          "1...c6 is the Caro-Kann defence, a solid chess opening against 1. e4.",
       },
       {
         index: 2,
-        title: "Open Game",
-        extract:
-          "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5. Other responses to 1.e4 are termed Semi-Open Games.",
-      },
-    ],
-    "King's Pawn Game"
-  );
-  cek("King's Pawn Game → artikelnya sendiri", terbaik?.title === "King's Pawn Game");
-}
-
-/* 2 — ejaan Amerika vs Inggris + kandidat tak relevan. */
-{
-  const terbaik = pilihKandidat(
-    [
-      {
-        index: 1,
-        title: "Caro–Kann Defence",
-        extract:
-          "The Caro–Kann Defence is a chess opening beginning with the moves: 1. e4 c6. Black prepares to contest the centre with 2...d5. It is a common defence against 1.e4.",
-      },
-      {
-        index: 2,
-        title: "List of chess gambits",
-        extract:
-          "This is a list of chess openings that are gambits. The gambits are organized into sections by the parent chess opening.",
+        title: "Cookbook/Cake",
+        extract: "A cake is a sweet baked dessert.",
       },
       {
         index: 3,
-        title: "Scandinavian Defense",
+        title: "Chess Opening Theory/1. e4/1...c5",
         extract:
-          "The Scandinavian Defense (or Center Counter Defense, or Center Counter Game) is a chess opening beginning with the moves: 1. e4 d5.",
+          "1...c5 is the Sicilian defence, a sharp chess opening against 1. e4.",
       },
     ],
     "Caro-Kann Defense"
   );
-  cek("Caro-Kann Defense → Caro–Kann Defence", terbaik?.title === "Caro–Kann Defence");
-}
-
-/* 3 — artikel variasi bernama lain: judul tak cocok, tetapi isinya
-       menyebut "Wayward Queen Attack" sebagai alias. */
-{
-  const terbaik = pilihKandidat(
-    [
-      {
-        index: 1,
-        title: "Open Game",
-        extract:
-          "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5.",
-      },
-      {
-        index: 2,
-        title: "Danvers Opening",
-        extract:
-          "The Danvers Opening is an unorthodox chess opening characterized by the moves: 1. e4 e5 2. Qh5. It is also known as the Kentucky Opening, Queen's Attack, Queen's Excursion, Wayward Queen Attack, Patzer Opening, and Parham Attack.",
-      },
-      {
-        index: 3,
-        title: "Sicilian Defence",
-        extract:
-          "The Sicilian Defence is a chess opening that begins with the following moves: 1. e4 c5.",
-      },
-    ],
-    "King's Pawn Game: Wayward Queen Attack"
-  );
   cek(
-    "King's Pawn Game: Wayward Queen Attack → Danvers Opening",
-    terbaik?.title === "Danvers Opening"
+    "Caro-Kann Defense → halaman Caro-Kann di Wikibooks",
+    terbaik?.title === "Chess Opening Theory/1. e4/1...c6"
   );
-}
-
-/* 4 — artikel variasi spesifik harus menang atas artikel keluarga. */
-{
-  const terbaik = pilihKandidat(
-    [
-      {
-        index: 1,
-        title: "Sicilian Defence, Najdorf Variation",
-        extract:
-          "The Najdorf Variation is a variation of the Sicilian Defence that begins with the moves: 1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6.",
-      },
-      {
-        index: 2,
-        title: "Sicilian Defence",
-        extract:
-          "The Sicilian Defence is a chess opening that begins with the following moves: 1. e4 c5. The earliest recorded notes on the Sicilian Defence date back to the late 16th century.",
-      },
-    ],
-    "Sicilian Defense: Najdorf Variation"
-  );
-  cek(
-    "Sicilian Defense: Najdorf Variation → artikel variasinya",
-    terbaik?.title === "Sicilian Defence, Najdorf Variation"
-  );
-}
-
-/* 5 — nama tanpa artikel relevan → null (bukan artikel acak). */
-{
-  const terbaik = pilihKandidat(
-    [
-      {
-        index: 1,
-        title: "Sicilian Defence",
-        extract:
-          "The Sicilian Defence is a chess opening that begins with the following moves: 1. e4 c5.",
-      },
-    ],
-    "Ular Kabung Serpent Attack"
-  );
-  cek("nama tak dikenal → null", terbaik === null);
 }
 
 console.log("adalahArtikelCatur — buang hasil non-catur:");
-
-/* 6 — artikel video game yang namanya mirip harus dibuang, bukan diambil. */
 {
-  const videoGame = {
-    index: 1,
-    title: "King's Knight",
-    extract:
-      "King's Knight is a scrolling shooter video game developed and published by Square for the Nintendo Entertainment System and MSX. The game was released in Japan on September 18, 1986.",
-  };
   const chessArtikel = {
-    index: 2,
-    title: "Open Game",
+    title: "Chess Opening Theory/1. e4/1...e5",
     extract:
-      "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5.",
+      "1...e5 is a chess opening response that contests the centre and develops the bishop.",
+  };
+  const bukanCatur = {
+    title: "Cookbook/Cake",
+    extract: "Cake batter is baked until golden brown.",
   };
   cek("artikel catur terdeteksi", adalahArtikelCatur(chessArtikel) === true);
-  cek("video game ditolak", adalahArtikelCatur(videoGame) === false);
-
-  const terbaik = pilihKandidat([videoGame, chessArtikel], "King's Knight Opening");
-  cek(
-    "video game tidak dipilih untuk King's Knight Opening",
-    terbaik?.title !== "King's Knight"
-  );
+  cek("halaman non-catur ditolak", adalahArtikelCatur(bukanCatur) === false);
 }
 
-/* ------------------------------------------------------------------ */
 console.log("alur ambilArtikelPembukaan — dengan fetch stub:");
 
 const permintaanStub = [];
 
-const EN_HALAMAN = (judul, isi, ekstra = {}) => ({
+const HALAMAN_WIKI = (judul, isi, ekstra = {}) => ({
   title: judul,
   extract: isi,
-  fullurl: `https://en.wikipedia.org/wiki/${judul.replace(/ /g, "_")}`,
+  fullurl: `https://en.wikibooks.org/wiki/${judul
+    .split("/")
+    .map((bagian) => encodeURIComponent(bagian.replace(/ /g, "_")))
+    .join("/")}`,
   ...ekstra,
 });
 
 const STUB = {
-  "en|Sicilian Defense": {
+  "judul|Chess Opening Theory/1. e4/1...c5": {
     pages: {
-      1: {
-        index: 1,
-        ...EN_HALAMAN(
-          "Sicilian Defence",
-          "The Sicilian Defence is a chess opening that begins with the following moves:\n\n1. e4 c5",
-          { langlinks: [{ lang: "id", "*": "Pertahanan Sisilia" }] }
-        ),
-      },
+      1: HALAMAN_WIKI(
+        "Chess Opening Theory/1. e4/1...c5",
+        "1...c5 is the Sicilian defence, a counter-attacking chess opening. White often continues with 2. Nf3 to reach the Open Sicilian.",
+        {
+          thumbnail: { source: "https://upload.wikimedia.org/example/sicilian.png" },
+        }
+      ),
     },
   },
-  "id|Pertahanan Sisilia": {
+  "judulIntroKosong|Chess Opening Theory/1. e4": {
     pages: {
-      2: {
-        title: "Pertahanan Sisilia",
-        extract:
-          "Pertahanan Sisilia adalah pembukaan catur yang dimulai dengan gerakan berikut:\n\n1. e4 c5",
-        fullurl: "https://id.wikipedia.org/wiki/Pertahanan_Sisilia",
-      },
+      11: HALAMAN_WIKI("Chess Opening Theory/1. e4", ""),
     },
   },
-  "en|King's Pawn Game": {
+  "judulPenuh|Chess Opening Theory/1. e4": {
     pages: {
-      3: {
-        index: 1,
-        ...EN_HALAMAN(
-          "King's Pawn Game",
-          "The King's Pawn Game is any chess opening starting with the move:\n\n1. e4\nIt is the most popular opening move in chess."
-        ),
-      },
+      12: HALAMAN_WIKI(
+        "Chess Opening Theory/1. e4",
+        "1. e4, advancing the king's pawn, is the most popular first move in chess and leads to the King's Pawn opening."
+      ),
+    },
+  },
+  "judul|Chess Opening Theory/1. e4/1...e5/2. Nf3/2...Nc6": {
+    pages: {
+      2: HALAMAN_WIKI(
+        "Chess Opening Theory/1. e4/1...e5/2. Nf3/2...Nc6",
+        "2...Nc6 is the normal variation. It defends e5, develops a piece, and prepares the main roads to the Ruy Lopez and the Italian Game."
+      ),
+    },
+  },
+  "judul|Chess Opening Theory/1. e4/1...e5/2. Nf3": {
+    pages: {
+      3: HALAMAN_WIKI(
+        "Chess Opening Theory/1. e4/1...e5/2. Nf3",
+        "2. Nf3 attacks e5 and is the king's knight opening.",
+      ),
+    },
+  },
+  "cari|Caro-Kann Defense": {
+    pages: {
       4: {
-        index: 2,
-        ...EN_HALAMAN(
-          "Open Game",
-          "Open Game is a generic term for a family of chess openings beginning with the moves 1. e4 e5."
+        index: 1,
+        ...HALAMAN_WIKI(
+          "Chess Opening Theory/1. e4/1...c6",
+          "1...c6 is the Caro-Kann defence, a solid chess opening that prepares ...d5 against White's centre."
         ),
       },
-    },
-  },
-  "en|Scotch Game": {
-    pages: {
       5: {
+        index: 2,
+        ...HALAMAN_WIKI(
+          "Chess Opening Theory/1. e4/1...c5",
+          "1...c5 is the Sicilian defence, a sharp chess opening with asymmetrical play."
+        ),
+      },
+      6: {
+        index: 3,
+        title: "Cookbook/Cake",
+        extract: "Cake is a sweet dessert.",
+        fullurl: "https://en.wikibooks.org/wiki/Cookbook/Cake",
+      },
+    },
+  },
+  "cari|Scotch Game": {
+    pages: {
+      7: {
         index: 1,
-        ...EN_HALAMAN(
-          "Scotch Game",
-          "The Scotch Game is a chess opening strategy.\n\n1. e4 e5 2. Nf3 Nc6 3. d4"
+        ...HALAMAN_WIKI(
+          "Chess Opening Theory/1. e4/1...e5/2. Nf3/2...Nc6/3. d4",
+          "The Scotch Game is an open chess opening. White strikes in the centre immediately with 3. d4."
         ),
       },
     },
   },
-  // Penyelesaian judul persis (ikuti redirect): "King's Knight Opening"
-  // tidak punya artikel sendiri — Wikipedia mengarahkannya ke "Open Game".
-  "enJudul|King's Knight Opening": {
+  "cari|King's Pawn opening": {
     pages: {
-      6: {
+      8: {
         index: 1,
-        ...EN_HALAMAN(
-          "Open Game",
-          "Open Game (or Double King's Pawn Opening) is a generic term for a family of chess openings beginning with the moves: 1. e4 e5. Among the most important and frequently played Open Games are the Ruy Lopez, the Italian Game, and Petrov's Defense."
+        ...HALAMAN_WIKI(
+          "Chess Opening Theory/1. e4",
+          "1. e4, advancing the king's pawn, is the most popular first move in chess and leads to the King's Pawn opening."
         ),
       },
     },
@@ -289,13 +245,18 @@ const STUB = {
 globalThis.fetch = async (url, opsi = {}) => {
   const u = new URL(String(url));
   permintaanStub.push(u.hostname + u.search);
-  if (u.hostname === "en.wikipedia.org") {
+
+  if (u.hostname === "en.wikibooks.org") {
     const judul = u.searchParams.get("titles");
     if (judul) {
-      const kunci = `enJudul|${judul}`;
+      if (judul === "Chess Opening Theory/1. e4") {
+        const kunci = u.searchParams.has("exintro")
+          ? "judulIntroKosong|Chess Opening Theory/1. e4"
+          : "judulPenuh|Chess Opening Theory/1. e4";
+        return { ok: true, json: async () => ({ query: STUB[kunci] }) };
+      }
+      const kunci = `judul|${judul}`;
       if (!STUB[kunci]) {
-        // Judul tidak ada / tidak redirect → kembalikan halaman "missing"
-        // sehingga alur jatuh ke pencarian.
         return {
           ok: true,
           json: async () => ({
@@ -305,84 +266,124 @@ globalThis.fetch = async (url, opsi = {}) => {
       }
       return { ok: true, json: async () => ({ query: STUB[kunci] }) };
     }
-    const kunci = `en|${u.searchParams.get("gsrsearch")}`;
-    if (!STUB[kunci]) throw new Error(`stub tak mengenal ${kunci}`);
+
+    const kunci = `cari|${u.searchParams.get("gsrsearch")}`;
+    if (!STUB[kunci]) {
+      return { ok: true, json: async () => ({ query: { pages: {} } }) };
+    }
     return { ok: true, json: async () => ({ query: STUB[kunci] }) };
   }
-  if (u.hostname === "id.wikipedia.org") {
-    const kunci = `id|${u.searchParams.get("titles")}`;
-    if (!STUB[kunci]) throw new Error(`stub tak mengenal ${kunci}`);
-    return { ok: true, json: async () => ({ query: STUB[kunci] }) };
-  }
+
   if (u.hostname === "translate.googleapis.com") {
-    const q = new URLSearchParams(opsi.body || "").get("q") ?? u.searchParams.get("q");
-    // Skenario gagal: penerjemah menolak teks "Scotch Game".
+    const q =
+      new URLSearchParams(opsi.body || "").get("q") ?? u.searchParams.get("q");
     if (String(q).includes("Scotch Game")) throw new Error("penerjemah padam");
     return {
       ok: true,
       json: async () => [[[`ID·${q}`, q]], null, "en"],
     };
   }
+
   throw new Error(`stub tak mengenal ${u.hostname}`);
 };
 
 {
-  // a — artikel Indonesia asli via langlinks; penerjemah tidak dipanggil.
-  const a = await ambilArtikelPembukaan("Sicilian Defense", "id");
-  cek("versi asli Indonesia dipakai", a?.judul === "Pertahanan Sisilia");
-  cek("bukan terjemahan otomatis", a?.terjemahanOtomatis === false);
-  const kePenerjemah = permintaanStub.filter((p) =>
-    p.startsWith("translate.googleapis.com")
-  ).length;
-  cek("penerjemah tidak dipanggil", kePenerjemah === 0);
-
-  // b — tanpa versi Indonesia → terjemahan otomatis.
-  const b = await ambilArtikelPembukaan("King's Pawn Game", "id");
+  // a — jalur langkah persis dipakai; versi Indonesia berasal dari terjemahan otomatis.
+  const a = await ambilArtikelPembukaan(
+    { nama: "Sicilian Defense", langkahSan: ["e4", "c5"] },
+    "id"
+  );
+  cek("judul tetap memakai nama pembukaan aktif", a?.judul === "Sicilian Defense");
+  cek(
+    "url mengarah ke halaman Wikibooks sesuai langkah",
+    (a?.url || "").includes("Chess_Opening_Theory/1._e4/1...c5")
+  );
   cek(
     "ringkasan berhasil diterjemahkan",
-    (b?.ringkasan || "").split("\n").every((p) => p.startsWith("ID·"))
+    (a?.ringkasan || "").split("\n").every((p) => p.startsWith("ID·"))
   );
-  cek("bahasa berubah jadi id", b?.bahasa === "id");
-  cek("ditandai terjemahanOtomatis", b?.terjemahanOtomatis === true);
-  cek(
-    "url sumber tetap artikel Inggris",
-    (b?.url || "").startsWith("https://en.wikipedia.org/wiki/")
-  );
+  cek("ditandai terjemahanOtomatis", a?.terjemahanOtomatis === true);
 
-  // c — penerjemah gagal → artikel Inggris tetap tampil.
-  const c = await ambilArtikelPembukaan("Scotch Game", "id");
-  cek("fallback ke bahasa Inggris", c?.bahasa === "en");
-  cek("tanpa tanda terjemahan otomatis", c?.terjemahanOtomatis === false);
-  cek("ringkasan Inggris utuh", (c?.ringkasan || "").startsWith("The Scotch Game"));
-
-  // d — cache: panggilan ulang tidak memicu fetch baru.
-  const jumlah = permintaanStub.length;
-  const d = await ambilArtikelPembukaan("King's Pawn Game", "id");
-  cek("hasil cache sama", d?.bahasa === "id" && d?.terjemahanOtomatis === true);
-  cek("tanpa permintaan jaringan baru", permintaanStub.length === jumlah);
-
-  // e — UI Inggris tidak menyentuh penerjemah sama sekali.
+  // b — halaman terdalam hilang → jatuh ke induk terdekat yang tersedia.
   permintaanStub.length = 0;
-  const e = await ambilArtikelPembukaan("King's Pawn Game", "en");
-  cek("UI en → artikel en", e?.bahasa === "en");
+  const b = await ambilArtikelPembukaan(
+    {
+      nama: "Ruy Lopez",
+      langkahSan: ["e4", "e5", "Nf3", "Nc6", "Bb5"],
+    },
+    "en"
+  );
+  cek("fallback ke bahasa Inggris untuk UI en", b?.bahasa === "en");
   cek(
-    "UI en tanpa panggilan penerjemah",
-    permintaanStub.every((p) => !p.startsWith("translate.googleapis.com"))
+    "fallback ke induk 2...Nc6 saat 3.Bb5 belum ada",
+    (b?.url || "").includes("Chess_Opening_Theory/1._e4/1...e5/2._Nf3/2...Nc6")
+  );
+  cek(
+    "judul tetap mengikuti nama pembukaan aktif",
+    b?.judul === "Ruy Lopez"
+  );
+  cek(
+    "permintaan pertama memang mencoba halaman terdalam",
+    permintaanStub[0]?.includes("titles=Chess+Opening+Theory%2F1.+e4%2F1...e5%2F2.+Nf3%2F2...Nc6%2F3.+Bb5")
   );
 
-  // f — nama yang tidak punya artikel sendiri tapi diarahkan Wikipedia ke
-  // artikel keluarga (redirect) → artikel catur yang tepat, bukan video game.
-  const f = await ambilArtikelPembukaan("King's Knight Opening", "en");
+  // c — tanpa konteks langkah, sistem jatuh ke pencarian nama di Wikibooks.
+  const c = await ambilArtikelPembukaan("Caro-Kann Defense", "en");
   cek(
-    "King's Knight Opening → Open Game (lewat redirect)",
-    f?.judul === "Open Game"
+    "pencarian nama menemukan Caro-Kann yang tepat",
+    (c?.url || "").includes("Chess_Opening_Theory/1._e4/1...c6")
   );
-  cek("judul bukan video game King's Knight", f?.judul !== "King's Knight");
-  cek("ringkasan tentang catur", (f?.ringkasan || "").includes("chess"));
+
+  // d — penerjemah gagal → artikel Inggris tetap tampil.
+  const d = await ambilArtikelPembukaan("Scotch Game", "id");
+  cek("fallback ke bahasa Inggris", d?.bahasa === "en");
+  cek("tanpa tanda terjemahan otomatis", d?.terjemahanOtomatis === false);
+  cek(
+    "ringkasan Inggris utuh",
+    (d?.ringkasan || "").startsWith("The Scotch Game")
+  );
+
+  // e — halaman judul kadang intro-nya kosong; sistem harus retry tanpa exintro.
+  permintaanStub.length = 0;
+  const e = await ambilArtikelPembukaan(
+    { nama: "King's Pawn Game", langkahSan: ["e4"] },
+    "en"
+  );
+  cek(
+    "1.e4 tetap dapat ringkasan walau intro judul kosong",
+    (e?.ringkasan || "").includes("king's pawn")
+  );
+  cek(
+    "retry tanpa exintro benar-benar terjadi",
+    permintaanStub.some(
+      (p) => p.includes("titles=Chess+Opening+Theory%2F1.+e4") && !p.includes("exintro=1")
+    )
+  );
+
+  // f — nama Lichess memakai "Game", tetapi Wikibooks punya "opening".
+  permintaanStub.length = 0;
+  const f = await ambilArtikelPembukaan("King's Pawn Game", "en");
+  cek(
+    "fallback nama King's Pawn Game → King's Pawn opening",
+    (f?.url || "").includes("Chess_Opening_Theory/1._e4")
+  );
+  cek(
+    "kueri alternatif benar-benar dicoba",
+    permintaanStub.some((p) => p.includes("gsrsearch=King%27s+Pawn+opening"))
+  );
+
+  // g — cache: panggilan ulang tidak memicu fetch baru.
+  const jumlah = permintaanStub.length;
+  const g = await ambilArtikelPembukaan(
+    { nama: "Sicilian Defense", langkahSan: ["e4", "c5"] },
+    "id"
+  );
+  cek("hasil cache sama", g?.bahasa === "id" && g?.terjemahanOtomatis === true);
+  cek("tanpa permintaan jaringan baru", permintaanStub.length === jumlah);
 }
 
 if (gagal) {
   console.error(`\n${gagal} pemeriksaan gagal.`);
   process.exit(1);
 }
-console.log("\nSemua pemeriksaan artikel Wikipedia lulus.");
+console.log("\nSemua pemeriksaan referensi Wikibooks lulus.");
