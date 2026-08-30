@@ -997,20 +997,49 @@ section[id] {
   }
 }
 
-/* Sampul e-book yang baru aktif memudar di atas sampul sebelumnya. Tanpa
-   animasi ini karusel harus menyimpan SEMUA sampul di DOM (± 1,1 MB gambar)
-   hanya supaya perpindahan tidak berkedip. */
+/* Sampul e-book yang baru aktif bergeser menggantikan sampul sebelumnya.
+   Tanpa animasi ini karusel harus menyimpan SEMUA sampul di DOM (± 1,1 MB
+   gambar) hanya supaya perpindahan tidak berkedip.
+
+   Efek = sapuan: sampul LAMA hanya luluh di tempat (tidak ikut bergeser,
+   supaya tidak tampak "dobel"), sementara sampul BARU menyapu masuk dari
+   kanan. Sapuan dibuat buram segera (opacity 1 sejak 30% progress), jadi
+   yang baru menutupi yang lama tanpa meninggalkan celah transparan.
+
+   PENTING: lapisan lama JANGAN dihapus lewat onLoad — onLoad bisa meletus
+   sebelum animasi 550ms selesai (gambar di cache), dan mencabut kelas
+   animasi di tengah jalan membuat gambar "menyentak"/blink. Cukup timer
+   1200ms di komponen. */
 @keyframes sampulMasuk {
-  from {
+  0% {
     opacity: 0;
+    transform: translateX(100%);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sampulKeluar {
+  from {
+    opacity: 1;
   }
   to {
-    opacity: 1;
+    opacity: 0;
   }
 }
 
 .sampul-masuk {
-  animation: sampulMasuk 500ms ease-out both;
+  animation: sampulMasuk 550ms cubic-bezier(0.33, 0.85, 0.4, 1) both;
+  will-change: transform;
+}
+
+.sampul-keluar {
+  animation: sampulKeluar 550ms ease-in-out both;
 }
 
 /* Program Unggulan (Sekilas Program) — kisi 6 program berikon bidak.

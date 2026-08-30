@@ -132,12 +132,14 @@ function paksaCsrfBaru() {
 
 /**
  * Berapa milidetik harus menunggu sebelum mengulang permintaan yang
- * dibalas 429? Menghormati header Retry-After (detik) bila ada.
+ * dibalas 429? Menghormati header Retry-After (detik) bila ada, tapi
+ * dibatasi maksimal 5 detik agar antarmuka tidak terasa "macet loading"
+ * berlama-lama saat ember rate-limit sedang penuh.
  */
 function tungguRateLimit(res) {
   const retryAfter = Number(res.headers.get("retry-after"));
   if (Number.isFinite(retryAfter) && retryAfter > 0) {
-    return Math.min(retryAfter, 60) * 1000;
+    return Math.min(retryAfter, 5) * 1000;
   }
   // Default 5 detik bila server tidak memberi tahu.
   return 5000;

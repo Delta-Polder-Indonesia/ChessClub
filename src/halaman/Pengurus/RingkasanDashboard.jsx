@@ -81,7 +81,7 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
       )}
 
       {/* Kartu ringkasan */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-6 gap-3">
         <Kartu label="Anggota" nilai={ringkas.anggota} warna="biru" />
         <div onClick={() => onBuka("larangan", banOtomatis.length ? "otomatis" : "semua")}
           className="cursor-pointer transition-transform active:scale-95" title="Klik untuk membuka daftar larangan">
@@ -105,7 +105,7 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
       {/* Aksi cepat */}
       <section>
         <h2 className="mb-3 text-sm font-bold text-slate-900">Aksi cepat</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="ml-16.25 grid grid-cols-3 gap-3">
           {[
             { kunci: "pesan", judul: "Pesan masuk", teks: `${belumBaca} belum dibaca`,
               ikon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
@@ -120,15 +120,16 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
           ].map((aksi) => (
             <button key={aksi.kunci} type="button"
               onClick={() => onBuka(aksi.kunci, aksi.filter || "semua")}
-              className={`flex items-start gap-3 rounded-lg border bg-white p-4 text-left transition-colors hover:border-primary hover:bg-slate-50 ${aksi.sorot ? "border-amber-300" : "border-slate-200"}`}>
-              <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${aksi.sorot ? "bg-amber-50 text-amber-700" : "bg-primary/10 text-primary"}`}>
+              className="group flex h-full w-full gap-3 text-left">
+              <span className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${aksi.sorot ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary"}`}>
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={aksi.ikon} />
                 </svg>
               </span>
-              <span className="min-w-0">
+              <span className="flex min-w-0 flex-col">
                 <span className="block text-sm font-semibold text-slate-900">{aksi.judul}</span>
                 <span className="block text-xs text-slate-500">{aksi.teks}</span>
+                <span className="mt-auto block w-24 border-b border-slate-300 pt-2"></span>
               </span>
             </button>
           ))}

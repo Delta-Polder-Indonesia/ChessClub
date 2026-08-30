@@ -219,66 +219,85 @@ const KARTU_GAMBAR = DAFTAR_EBOOK.map((b) => ({
   judul: b.judul,
   img: gambar(COVER[b.id]),
   // `sizes` dipakai browser untuk memilih kandidat: di ponsel sampul ini
-  // hanya selebar kolom (± 88vw), di layar sedang dibatasi tinggi boks
-  // 520px → ± 420px. Keduanya tertutup oleh varian 640w dari manifest, jadi
-  // ponsel tidak lagi menarik berkas 1024px.
-  sumber: sumberGambar(COVER[b.id], { sizes: "(min-width: 768px) 420px, 88vw" }),
+  // selebar kotak potret (± 288px), di layar sedang dibatasi max-w 400px.
+  // Keduanya tertutup oleh varian 640w dari manifest, jadi ponsel tidak lagi
+  // menarik berkas 1024px.
+  sumber: sumberGambar(COVER[b.id], { sizes: "(min-width: 768px) 340px, 240px" }),
 }));
 
 function CardGambar({ index, t }) {
   const total = KARTU_GAMBAR.length;
   const aktif = ((index % total) + total) % total;
 
-  /* Dulu: ke-24 sampul dipasang sekaligus sebagai lapisan opacity-0 supaya
-     crossfade-nya mulus. Efeknya, setiap kunjungan ponsel mengunduh seluruh
-     rak e-book (± 1,1 MB) hanya untuk menampilkan satu gambar — itulah byte
-     terbesar yang PageSpeed keluhkan di Beranda.
-     Sekarang yang ada di DOM maksimal dua lapisan: sampul aktif dan sampul
-     sebelumnya selama transisi berlangsung. Lapisan lama dilepas saat gambar
-     baru selesai didekode (atau setelah 1,2 s), jadi tidak pernah ada kedip
-     kotak kosong. */
-  const [lama, setLama] = useState(null);
-  const terakhir = useRef(aktif);
+  // Double-buffer state management
+  const [currentImg, setCurrentImg] = useState(aktif);
+  const [nextImg, setNextImg] = useState(null);
+  const [animating, setAnimating] = useState(false);
 
+  // Deteksi perubahan indeks aktif dari karusel
   useEffect(() => {
-    if (terakhir.current === aktif) return undefined;
-    const dari = terakhir.current;
-    terakhir.current = aktif;
-    setLama(dari);
-    const batas = window.setTimeout(() => setLama(null), 1200);
-    return () => window.clearTimeout(batas);
-  }, [aktif]);
-
-  // Hangatkan dua sampul tetangga (maju & mundur) seperti pada LandingHero,
-  // supaya menekan panah tidak perlu menunggu unduhan. Lewat pramuatGambar()
-  // yang diunduh adalah kandidat srcSet — bukan berkas aslinya yang 80 KiB.
-  useEffect(() => {
-    for (const i of [(aktif + 1) % total, (aktif - 1 + total) % total]) {
-      pramuatGambar(KARTU_GAMBAR[i].sumber);
+    if (aktif !== currentImg) {
+      setNextImg(aktif);
+      setAnimating(false); // Jangan animasi dulu sebelum gambar baru benar-benar di-load browser
     }
+  }, [aktif, currentImg]);
+
+  // Hangatkan dua sampul tetangga (maju & mundur) di latar belakang
+  useEffect(() => {
+    const berikut = (aktif + 1) % total;
+    const sebelum = (aktif - 1 + total) % total;
+    pramuatGambar(KARTU_GAMBAR[berikut].sumber);
+    pramuatGambar(KARTU_GAMBAR[sebelum].sumber);
   }, [aktif, total]);
 
-  const bertumpuk = lama !== null;
-  const lapisan = bertumpuk ? [lama, aktif] : [aktif];
+  // Handler ketika gambar baru pada transition-layer telah sepenuhnya dimuat browser
+  const handleImageLoad = () => {
+    setAnimating(true); // Mulai transisi fade-in
+  };
+
+  // Handler ketika transisi css selesai
+  const handleTransitionEnd = () => {
+    if (animating && nextImg !== null) {
+      setCurrentImg(nextImg); // Jadikan gambar baru sebagai gambar dasar (base)
+      setNextImg(null); // Kosongkan lapisan transisi
+      setAnimating(false); // Reset status animasi
+    }
+  };
 
   return (
-    <div className="relative w-full aspect-[3/2] md:h-[520px] overflow-hidden order-1">
-      {lapisan.map((i) => (
+    <div className="relative w-full max-w-60 md:max-w-72 lg:max-w-80 xl:max-w-[340px] mx-auto aspect-[2/3] overflow-hidden order-1 bg-black">
+      {/* LAPISAN DASAR: Selalu stabil dan terlihat di bawah */}
+      <img
+        key={`base-${KARTU_GAMBAR[currentImg].id}`}
+        {...KARTU_GAMBAR[currentImg].sumber}
+        alt=""
+        draggable="false"
+        decoding="async"
+        className="absolute inset-0 w-full h-full object-cover object-center"
+        style={{ opacity: 1 }}
+      />
+
+      {/* LAPISAN TRANSISI: Muncul di atas lapisan dasar hanya saat memuat gambar baru */}
+      {nextImg !== null && (
         <img
-          key={KARTU_GAMBAR[i].id}
-          {...KARTU_GAMBAR[i].sumber}
+          key={`next-${KARTU_GAMBAR[nextImg].id}`}
+          {...KARTU_GAMBAR[nextImg].sumber}
           alt=""
           draggable="false"
           decoding="async"
-          onLoad={i === aktif ? () => setLama(null) : undefined}
-          onError={i === aktif ? () => setLama(null) : undefined}
-          className={`absolute inset-0 w-full h-full object-contain ${
-            i === aktif && bertumpuk ? "sampul-masuk" : ""
-          }`}
+          onLoad={handleImageLoad}
+          onError={handleImageLoad} // Fail-safe jika terjadi error, agar transisi tidak macet
+          onTransitionEnd={handleTransitionEnd}
+          className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-500 ease-in-out"
+          style={{
+            opacity: animating ? 1 : 0,
+            pointerEvents: "none",
+          }}
         />
-      ))}
-      <div className="absolute inset-0 bg-black/40" />
-      <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3">
+      )}
+
+      <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3 z-10 pointer-events-none">
         <p className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
           {t("landing.pustakaLabel")}
         </p>
@@ -341,7 +360,7 @@ function CardCarousel({ index, setIndex, t }) {
   }, [noAnim]);
 
   return (
-    <div className="w-full md:w-auto px-6 md:px-0 md:absolute md:left-[30%] lg:left-[40%] md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 order-2 -mt-56 md:-mt-0 py-10 md:py-0 overflow-hidden">
+    <div className="w-full md:w-auto px-6 md:px-0 md:absolute md:left-[24%] lg:left-[32%] md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 order-2 -mt-56 md:-mt-0 py-10 md:py-0 overflow-hidden">
       <div className="overflow-hidden max-w-full" style={{ maxWidth: `${3 * CARD_W}px` }}>
         <div
           className={`flex gap-5 ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
@@ -383,7 +402,7 @@ function CardCarousel({ index, setIndex, t }) {
           })}
         </div>
       </div>
-      <div className="flex justify-end gap-2 mt-4 items-center pr-8">
+      <div className="flex justify-end gap-2 mt-4 items-center pr-8 max-w-[810px]">
         <button
           type="button"
           aria-label={t("landing.sebelumnya")}

@@ -4,21 +4,11 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal, Avatar } from "./ui.jsx";
+import { Tombol, Modal, Avatar } from "./ui.jsx";
 
 /* ========================================================
    UTILITAS FORMAT WAKTU & PERANGKAT
    ======================================================== */
-
-const HARI_WARNA = {
-  Senin: "bg-blue-50 text-blue-700 border-blue-200",
-  Selasa: "bg-indigo-50 text-indigo-700 border-indigo-200",
-  Rabu: "bg-violet-50 text-violet-700 border-violet-200",
-  Kamis: "bg-purple-50 text-purple-700 border-purple-200",
-  Jumat: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Sabtu: "bg-amber-50 text-amber-700 border-amber-200",
-  Minggu: "bg-rose-50 text-rose-700 border-rose-200",
-};
 
 function formatWaktuLengkap(iso) {
   if (!iso) {
@@ -248,7 +238,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             <h2 className="text-xl font-bold text-slate-900">
               Riwayat Masuk Pengurus
             </h2>
-            <span className="rounded-full bg-primary/10 px-3 py-0.5 text-xs font-bold text-primary">
+            <span className="text-xs font-semibold text-slate-600">
               {riwayat.length} Catatan
             </span>
           </div>
@@ -278,7 +268,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
 
       {/* ── Statistik Kartu ───────────────────────────────── */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="border-b border-slate-300 pb-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Total Sesi Masuk
           </p>
@@ -288,7 +278,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="mt-0.5 text-xs text-slate-500">Sepanjang riwayat</p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="border-b border-slate-300 pb-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Akun Pengurus
           </p>
@@ -298,7 +288,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="mt-0.5 text-xs text-slate-500">Akun Chess.com unik</p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="border-b border-slate-300 pb-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Hari Ini
           </p>
@@ -308,7 +298,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="mt-0.5 text-xs text-slate-500">Aktivitas masuk hari ini</p>
         </div>
 
-        <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="border-b border-slate-300 pb-4 text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
             Masuk Terakhir
           </p>
@@ -324,22 +314,24 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
       </div>
 
       {/* ── Filter & Pencarian ─────────────────────────────── */}
-      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-slate-200 bg-white p-4">
-        <div className="min-w-[200px] flex-1">
-          <Bidang
-            label="Cari Akun Chess.com atau IP"
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          Cari Akun/IP:
+          <input
+            type="text"
             value={cari}
             onChange={(e) => setCari(e.target.value)}
-            placeholder="contoh: magnuscarlsen atau 127.0.0.1"
+            placeholder="contoh: magnuscarlsen atau IP"
+            className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
           />
-        </div>
+        </label>
 
-        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
-          Akun Pengurus
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          Akun Pengurus:
           <select
             value={filterAkun}
             onChange={(e) => setFilterAkun(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
           >
             <option value="semua">Semua Akun ({akunUnik.length})</option>
             {akunUnik.map((u) => (
@@ -350,12 +342,12 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           </select>
         </label>
 
-        <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
-          Rentang Waktu
+        <label className="flex items-center gap-2 text-sm text-slate-700">
+          Rentang Waktu:
           <select
             value={filterWaktu}
             onChange={(e) => setFilterWaktu(e.target.value)}
-            className="rounded border border-slate-300 bg-white px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
           >
             <option value="semua">Semua Waktu</option>
             <option value="hari-ini">Hari Ini</option>
@@ -418,41 +410,35 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white shadow-xs">
-          <table className="w-full min-w-[780px] text-left text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="overflow-auto">
+          <table className="tabel-kci tabel-peringkat">
+            <thead>
               <tr>
-                <th className="px-4 py-3 text-center w-12">#</th>
-                <th className="px-4 py-3">Akun Chess.com</th>
-                <th className="px-4 py-3">Hari</th>
-                <th className="px-4 py-3">Tanggal, Bulan, Tahun</th>
-                <th className="px-4 py-3">Jam / Waktu</th>
-                <th className="px-4 py-3">Alamat IP</th>
-                <th className="px-4 py-3">Perangkat</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Aksi</th>
+                <th style={{ textAlign: "center" }}>#</th>
+                <th>Akun Chess.com</th>
+                <th>Hari</th>
+                <th>Tanggal, Bulan, Tahun</th>
+                <th>Jam / Waktu</th>
+                <th>Alamat IP</th>
+                <th>Perangkat</th>
+                <th>Status</th>
+                <th>Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {hasilTersaring.map((item, idx) => {
                 const waktu = formatWaktuLengkap(item.waktu);
-                const warnaHari =
-                  HARI_WARNA[waktu.hari] ||
-                  "bg-slate-100 text-slate-700 border-slate-200";
                 const perangkat = ringkasPerangkat(item.userAgent);
 
                 return (
-                  <tr
-                    key={item.id || idx}
-                    className="transition-colors hover:bg-slate-50/80"
-                  >
+                  <tr key={item.id || idx}>
                     {/* Nomor Urut */}
-                    <td className="px-4 py-3 text-center text-xs font-medium text-slate-400">
+                    <td className="text-center text-xs font-medium text-slate-400">
                       {idx + 1}
                     </td>
 
                     {/* Akun Chess.com */}
-                    <td className="px-4 py-3">
+                    <td>
                       <div className="flex items-center gap-2.5">
                         <Avatar username={item.username || "pengurus"} />
                         <div>
@@ -475,16 +461,12 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
                     </td>
 
                     {/* Hari */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span
-                        className={`inline-block rounded border px-2 py-0.5 text-xs font-semibold ${warnaHari}`}
-                      >
-                        {waktu.hari}
-                      </span>
+                    <td className="whitespace-nowrap text-slate-700">
+                      {waktu.hari}
                     </td>
 
                     {/* Tanggal, Bulan, Tahun */}
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       <p className="font-semibold text-slate-800">
                         {waktu.tanggalBulan}
                       </p>
@@ -492,7 +474,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
                     </td>
 
                     {/* Jam / Waktu */}
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       <p className="font-mono text-xs font-semibold text-slate-900">
                         {waktu.jam}
                       </p>
@@ -502,30 +484,29 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
                     </td>
 
                     {/* Alamat IP */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs text-slate-700">
+                    <td className="whitespace-nowrap">
+                      <code className="text-xs text-slate-700">
                         {item.ip || "127.0.0.1"}
                       </code>
                     </td>
 
                     {/* Perangkat */}
                     <td
-                      className="px-4 py-3 text-xs text-slate-600 max-w-[160px] truncate"
+                      className="text-xs text-slate-600 max-w-[160px] truncate"
                       title={item.userAgent || perangkat}
                     >
                       {perangkat}
                     </td>
 
                     {/* Status */}
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-700">
-                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                    <td className="whitespace-nowrap">
+                      <span className="text-xs font-medium text-slate-700">
                         Masuk
                       </span>
                     </td>
 
                     {/* Aksi */}
-                    <td className="px-4 py-3 text-right whitespace-nowrap">
+                    <td className="whitespace-nowrap">
                       <Tombol
                         anak="Hapus"
                         kecil

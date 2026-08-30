@@ -228,12 +228,15 @@ export function Kartu({ label, nilai, catatan, warna = "slate" }) {
     biru: "text-primary",
   }[warna];
   return (
-    <div className="rounded-lg border border-slate-200 bg-white px-4 py-3">
-      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+    <div className="flex h-full flex-col pb-3 text-center">
+      <p className={`text-2xl font-bold ${warnaTeks}`}>{nilai}</p>
+      <p className="mt-0.5 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
         {label}
       </p>
-      <p className={`mt-1 text-2xl font-bold ${warnaTeks}`}>{nilai}</p>
       {catatan && <p className="mt-0.5 text-xs text-slate-500">{catatan}</p>}
+      <div className="mx-auto mt-auto w-24 pt-2">
+        <div className="border-b border-slate-300"></div>
+      </div>
     </div>
   );
 }

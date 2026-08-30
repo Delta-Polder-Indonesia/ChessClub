@@ -5,6 +5,7 @@ import {
   adminPengguna,
   peranPengurus,
 } from "../../lib/api/index.js";
+import Logo from "../../components/Logo.jsx";
 
 /**
  * Gerbang masuk dashboard pengurus — metode umum.
@@ -75,58 +76,59 @@ export default function Gerbang({ onMasuk }) {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-6">
       <form
         onSubmit={masuk}
-        className="w-full rounded-lg border border-slate-200 bg-white p-6 shadow-sm"
+        className="mt-10 w-full rounded-xl border border-slate-200 bg-white p-8 shadow-sm"
       >
-        <h1 className="text-xl font-bold text-slate-900">Dashboard Pengurus</h1>
-        <p className="mt-1 text-sm leading-6 text-slate-600">
-          Masuk dengan username dan password pengurus untuk mengelola keanggotaan,
-          daftar larangan, dan turnamen.
-        </p>
-
-        <div className="mt-5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-5 text-amber-800">
-          Instalasi lokal baru memakai <code className="font-mono">admin / admin123</code>.
-          Untuk situs publik, ganti lewat env <code className="font-mono">KCI_ADMIN_USER</code> dan{" "}
-          <code className="font-mono">KCI_ADMIN_PASSWORD</code> di Vercel/server lalu redeploy.
+        <div className="flex justify-center">
+          <Logo variant="dark" size="md" />
         </div>
 
-        <label className="mt-5 flex flex-col gap-1.5 text-sm text-slate-700">
-          Username
-          <input
-            type="text"
-            value={nama}
-            onChange={(e) => setNama(e.target.value)}
-            autoComplete="username"
-            autoCapitalize="none"
-            spellCheck="false"
-            placeholder="admin"
-            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-          />
-        </label>
+        <div className="mt-6 text-center">
+          <h1 className="text-xl font-bold text-slate-900">Masuk Dashboard Pengurus</h1>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Masuk untuk mengelola keanggotaan, daftar larangan, dan turnamen.
+          </p>
+        </div>
 
-        <label className="mt-4 flex flex-col gap-1.5 text-sm text-slate-700">
-          Password
-          <div className="flex gap-2">
-            <input
-              type={lihat ? "text" : "password"}
-              value={sandi}
-              onChange={(e) => setSandi(e.target.value)}
-              autoComplete="current-password"
-              placeholder="admin123"
-              className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary"
-            />
-            <button
-              type="button"
-              onClick={() => setLihat((v) => !v)}
-              className="rounded border border-slate-300 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50"
-              tabIndex={-1}
-            >
-              {lihat ? "Sembunyi" : "Lihat"}
-            </button>
-          </div>
+        <label htmlFor="gerbang-user" className="mt-6 block text-sm font-semibold text-slate-700">
+          Username
         </label>
+        <input
+          id="gerbang-user"
+          type="text"
+          value={nama}
+          onChange={(e) => setNama(e.target.value)}
+          autoComplete="username"
+          autoCapitalize="none"
+          spellCheck="false"
+          placeholder="admin"
+          className="mt-1 w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm outline-none focus:border-primary"
+        />
+
+        <label htmlFor="gerbang-sandi" className="mt-5 block text-sm font-semibold text-slate-700">
+          Password
+        </label>
+        <div className="mt-1 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+          <input
+            id="gerbang-sandi"
+            type={lihat ? "text" : "password"}
+            value={sandi}
+            onChange={(e) => setSandi(e.target.value)}
+            autoComplete="current-password"
+            placeholder="admin123"
+            className="w-full border-0 bg-transparent py-2 text-sm outline-none"
+          />
+          <button
+            type="button"
+            onClick={() => setLihat((v) => !v)}
+            tabIndex={-1}
+            className="shrink-0 text-xs font-semibold text-slate-500 hover:text-primary"
+          >
+            {lihat ? "Sembunyi" : "Lihat"}
+          </button>
+        </div>
 
         {galat && (
-          <p className="mt-3 rounded border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-800">
+          <p className="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800">
             {galat}
           </p>
         )}
@@ -134,13 +136,13 @@ export default function Gerbang({ onMasuk }) {
         <button
           type="submit"
           disabled={sibuk || !sandi || !namaValid}
-          className="mt-5 w-full rounded-full bg-primary px-4 py-2.5 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
+          className="mt-6 w-full rounded-full bg-primary py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-40"
         >
           {sibuk ? "Memeriksa…" : "Masuk"}
         </button>
-        <p className="mt-4 text-xs leading-5 text-slate-500">
-          Login tersimpan hanya selama tab ini terbuka. Tekan Keluar setelah selesai
-          bila memakai komputer bersama.
+
+        <p className="mt-4 text-center text-xs leading-5 text-slate-400">
+          Login tersimpan hanya selama tab terbuka. Silakan Keluar bila memakai komputer bersama.
         </p>
       </form>
     </div>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
+import PanelAudit from "./Audit.jsx";
+import { Tombol } from "./ui.jsx";
 import {
   infoAdmin,
   gantiPasswordAdmin,
@@ -33,6 +35,12 @@ const MENU_PENGATURAN = [
     masterOnly: true,
   },
   {
+    kunci: "jejak-audit",
+    label: "Jejak Audit",
+    icon: "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z",
+    masterOnly: true,
+  },
+  {
     kunci: "umum",
     label: "Pengaturan Umum",
     icon: "M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z",
@@ -43,6 +51,7 @@ const MENU_PENGATURAN = [
 function PanelKelolaAdmin({ beriTahu }) {
   const [admins, setAdmins] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [galat, setGalat] = useState("");
   const [form, setForm] = useState({ username: "", password: "", role: "pengurus" });
   const [sibuk, setSibuk] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // username yang sedang diedit
@@ -50,11 +59,13 @@ function PanelKelolaAdmin({ beriTahu }) {
 
   const muat = async () => {
     setLoading(true);
+    setGalat("");
     try {
       const data = await daftarAdmins();
       setAdmins(Array.isArray(data) ? data : []);
     } catch (e) {
-      beriTahu?.(e.message || "Gagal memuat daftar admin.", "galat");
+      setGalat(e?.message || "Gagal memuat daftar admin.");
+      beriTahu?.(e?.message || "Gagal memuat daftar admin.", "galat");
     } finally {
       setLoading(false);
     }
@@ -115,21 +126,39 @@ function PanelKelolaAdmin({ beriTahu }) {
   if (loading) return <div className="text-sm text-slate-500">Memuat daftar admin...</div>;
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="max-w-6xl space-y-6">
+      {galat && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-sm font-medium text-red-800">
+            <span className="font-bold">Gagal memuat daftar admin.</span>{" "}
+            {galat}
+          </p>
+          <button
+            type="button"
+            onClick={muat}
+            className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
+          >
+            Coba Lagi
+          </button>
+        </div>
+      )}
+      <div>
         <h3 className="text-sm font-bold text-slate-900">Ringkasan Admin</h3>
-        <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-          <div className="rounded bg-slate-50 p-3">
+        <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="pb-3">
             <div className="text-lg font-bold text-slate-900">{admins.length}</div>
             <div className="text-xs text-slate-500">Total Admin</div>
+            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
           </div>
-          <div className="rounded bg-amber-50 p-3">
-            <div className="text-lg font-bold text-amber-800">{masterCount}</div>
-            <div className="text-xs text-amber-700">Master Admin</div>
+          <div className="pb-3">
+            <div className="text-lg font-bold text-slate-900">{masterCount}</div>
+            <div className="text-xs text-slate-500">Master Admin</div>
+            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
           </div>
-          <div className="rounded bg-blue-50 p-3">
-            <div className="text-lg font-bold text-blue-800">{pengurusCount}</div>
-            <div className="text-xs text-blue-700">Admin Pengurus</div>
+          <div className="pb-3">
+            <div className="text-lg font-bold text-slate-900">{pengurusCount}</div>
+            <div className="text-xs text-slate-500">Admin Pengurus</div>
+            <div className="mx-auto mt-2 w-24 border-b border-slate-300"></div>
           </div>
         </div>
         <p className="mt-3 text-[11px] leading-5 text-slate-500">
@@ -137,50 +166,96 @@ function PanelKelolaAdmin({ beriTahu }) {
         </p>
       </div>
 
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
+      <form onSubmit={tambah} className="space-y-4">
+        <h3 className="text-sm font-bold text-slate-900">Tambah Admin Baru</h3>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            Username:
+            <input
+              type="text"
+              value={form.username}
+              onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
+              placeholder="contoh: pengurus1"
+              className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              required
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            Password:
+            <input
+              type="text"
+              value={form.password}
+              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              placeholder="minimal 6 karakter"
+              className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              required
+            />
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            Role:
+            <select
+              value={form.role}
+              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+              className="w-40 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+            >
+              <option value="pengurus">Admin Pengurus</option>
+              <option value="master">Master Admin</option>
+            </select>
+          </label>
+          <button
+            type="submit"
+            disabled={sibuk}
+            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
+          >
+            {sibuk ? "Menambahkan..." : "Tambah Admin"}
+          </button>
+        </div>
+        <p className="text-[11px] leading-5 text-slate-500">
+          Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
+        </p>
+      </form>
+
+      <div>
         <h3 className="text-sm font-bold text-slate-900">Daftar Admin</h3>
-        <div className="mt-3 overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
-            <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+        <div className="overflow-auto">
+          <table className="tabel-kci tabel-peringkat" style={{ tableLayout: "fixed" }}>
+            <thead>
               <tr>
-                <th className="px-3 py-2">Username</th>
-                <th className="px-3 py-2">Role</th>
-                <th className="px-3 py-2">Dibuat</th>
-                <th className="px-3 py-2 text-right">Aksi</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Dibuat</th>
+                <th>Aksi</th>
               </tr>
             </thead>
             <tbody>
               {admins.map((a) => (
-                <tr key={a.username} className="border-t border-slate-100">
-                  <td className="px-3 py-2 font-mono font-bold text-slate-900">@{a.username}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${a.role === "master" ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
+                <tr key={a.username}>
+                  <td className="font-mono">@{a.username}</td>
+                  <td>
+                    <span className="text-xs font-semibold text-slate-700">
                       {a.role === "master" ? "MASTER" : "PENGURUS"}
                     </span>
                   </td>
-                  <td className="px-3 py-2 text-xs text-slate-500">
-                    {a.dibuatPada ? new Date(a.dibuatPada).toLocaleDateString("id-ID") : "-"}
+                  <td className="text-slate-600">
+                    {a.dibuatPada ? new Date(a.dibuatPada).toLocaleDateString("id-ID") : "—"}
                   </td>
-                  <td className="px-3 py-2 text-right">
-                    <div className="flex justify-end gap-1">
-                      <button
-                        type="button"
+                  <td>
+                    <div className="flex gap-1.5">
+                      <Tombol
+                        anak="Ubah"
+                        kecil
                         onClick={() => {
                           setEditTarget(a.username);
                           setEditData({ password: "", role: a.role });
                         }}
-                        className="rounded border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        type="button"
+                      />
+                      <Tombol
+                        anak="Hapus"
+                        kecil
+                        jenis="bahaya"
                         onClick={() => hapus(a.username)}
-                        className="rounded border border-red-200 bg-red-50 px-2 py-1 text-xs text-red-700 hover:bg-red-100"
                         disabled={admins.length <= 1}
-                      >
-                        Hapus
-                      </button>
+                      />
                     </div>
                     {editTarget === a.username && (
                       <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-left space-y-2">
@@ -201,81 +276,25 @@ function PanelKelolaAdmin({ beriTahu }) {
                           <option value="master">Master Admin</option>
                         </select>
                         <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => simpanEdit(a.username)}
-                            className="rounded bg-primary px-3 py-1 text-xs font-bold text-white"
-                          >
-                            Simpan
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setEditTarget(null)}
-                            className="rounded border border-slate-300 px-3 py-1 text-xs"
-                          >
-                            Batal
-                          </button>
+                          <Tombol anak="Simpan" kecil jenis="utama" onClick={() => simpanEdit(a.username)} />
+                          <Tombol anak="Batal" kecil onClick={() => setEditTarget(null)} />
                         </div>
                       </div>
                     )}
                   </td>
                 </tr>
               ))}
+              {!admins.length && (
+                <tr>
+                  <td colSpan={4} className="py-8 text-center text-slate-500">
+                    Belum ada admin. Tambahkan lewat form di atas.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
-
-      <form onSubmit={tambah} className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
-        <h3 className="text-sm font-bold text-slate-900">Tambah Admin Baru</h3>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-            Username
-            <input
-              type="text"
-              value={form.username}
-              onChange={(e) => setForm((f) => ({ ...f, username: e.target.value }))}
-              placeholder="contoh: pengurus1"
-              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-            Password
-            <input
-              type="text"
-              value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              placeholder="minimal 6 karakter"
-              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-              required
-            />
-          </label>
-          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-            Role
-            <select
-              value={form.role}
-              onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
-              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-            >
-              <option value="pengurus">Admin Pengurus</option>
-              <option value="master">Master Admin</option>
-            </select>
-          </label>
-        </div>
-        <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={sibuk}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
-          >
-            {sibuk ? "Menambahkan..." : "Tambah Admin"}
-          </button>
-        </div>
-        <p className="text-[11px] leading-5 text-slate-500">
-          Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
-        </p>
-      </form>
     </div>
   );
 }
@@ -342,8 +361,9 @@ function PanelAkun({ beriTahu }) {
   const isMaster = (info?.role || "").toLowerCase() === "master";
 
   return (
-    <div className="max-w-xl space-y-6">
-      <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div className="max-w-6xl space-y-8">
+      <div className="flex flex-col md:flex-row items-start gap-6">
+        <div className="w-80 shrink-0 rounded-lg border border-slate-200 bg-white p-5">
         <h3 className="text-sm font-bold text-slate-900">Akun Saat Ini (Master)</h3>
         <div className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between">
@@ -352,7 +372,7 @@ function PanelAkun({ beriTahu }) {
           </div>
           <div className="flex justify-between">
             <span className="text-slate-500">Role</span>
-            <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${isMaster ? "bg-amber-100 text-amber-800" : "bg-blue-100 text-blue-800"}`}>
+            <span className="text-xs font-semibold text-slate-700">
               {isMaster ? "MASTER ADMIN" : "ADMIN PENGURUS"}
             </span>
           </div>
@@ -361,7 +381,8 @@ function PanelAkun({ beriTahu }) {
             <span className="text-slate-700">{info?.sumber === "file" ? "File admins.json" : "Env / bawaan"}</span>
           </div>
         </div>
-        <p className="mt-3 text-[11px] leading-5 text-slate-500">
+      </div>
+        <p className="text-[11px] leading-5 text-slate-500 md:mt-3">
           Bawaan lokal: <code className="font-mono">admin / admin123</code> sebagai Master.
           Perubahan di sini tersimpan di <code className="font-mono">data/rahasia/admins.json</code>{" "}
           (tidak masuk Git) dan langsung aktif. Pada FULL VERCEL, berkas runtime berada di{" "}
@@ -370,58 +391,59 @@ function PanelAkun({ beriTahu }) {
         </p>
       </div>
 
-      <form onSubmit={simpan} className="rounded-lg border border-slate-200 bg-white p-5 space-y-4">
+      <form onSubmit={simpan} className="space-y-4">
         <h3 className="text-sm font-bold text-slate-900">Ganti Username & Password Sendiri</h3>
 
-        <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-          Username baru
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="admin"
-          />
-        </label>
+        <div className="space-y-4 max-w-xl">
+          <label className="flex items-center gap-3 text-sm text-slate-700">
+            <span className="w-40 shrink-0">Username:</span>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              placeholder="admin"
+            />
+          </label>
 
-        <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-          Password lama (verifikasi)
-          <input
-            type={lihat ? "text" : "password"}
-            value={passLama}
-            onChange={(e) => setPassLama(e.target.value)}
-            className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
-            placeholder="admin123"
-            required
-          />
-        </label>
+          <label className="flex items-center gap-3 text-sm text-slate-700">
+            <span className="w-40 shrink-0">Password lama:</span>
+            <input
+              type={lihat ? "text" : "password"}
+              value={passLama}
+              onChange={(e) => setPassLama(e.target.value)}
+              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
+              placeholder="admin123"
+              required
+            />
+          </label>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-            Password baru
+          <label className="flex items-center gap-3 text-sm text-slate-700">
+            <span className="w-40 shrink-0">Password baru:</span>
             <input
               type={lihat ? "text" : "password"}
               value={passBaru}
               onChange={(e) => setPassBaru(e.target.value)}
-              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
               placeholder="minimal 6 karakter"
               required
             />
           </label>
-          <label className="flex flex-col gap-1.5 text-sm text-slate-700">
-            Konfirmasi password baru
+
+          <label className="flex items-center gap-3 text-sm text-slate-700">
+            <span className="w-40 shrink-0">Konfirmasi:</span>
             <input
               type={lihat ? "text" : "password"}
               value={passKonf}
               onChange={(e) => setPassKonf(e.target.value)}
-              className="rounded border border-slate-300 px-3 py-2 text-sm outline-none focus:border-primary"
+              className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
               placeholder="ulang password baru"
               required
             />
           </label>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between max-w-xl">
           <button
             type="button"
             onClick={() => setLihat((v) => !v)}
@@ -432,7 +454,7 @@ function PanelAkun({ beriTahu }) {
           <button
             type="submit"
             disabled={sibuk}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40"
+            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
           >
             {sibuk ? "Menyimpan..." : "Simpan Password Baru"}
           </button>
@@ -474,7 +496,7 @@ export default function Pengaturan({ onKembali, beriTahu }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-white flex flex-col">
       <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
           <button
@@ -488,7 +510,7 @@ export default function Pengaturan({ onKembali, beriTahu }) {
             Kembali
           </button>
           <h1 className="text-lg font-bold text-slate-900">Pengaturan (Master Admin)</h1>
-          <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-800">MASTER ONLY</span>
+          <span className="ml-2 text-xs font-semibold text-slate-600">MASTER ONLY</span>
         </div>
       </header>
 
@@ -523,6 +545,7 @@ export default function Pengaturan({ onKembali, beriTahu }) {
         <main className="flex-1 p-6 overflow-y-auto min-w-0">
           {bagian === "kelola-admin" && <PanelKelolaAdmin beriTahu={beriTahu} />}
           {bagian === "riwayat-masuk" && <PanelRiwayatMasuk beriTahu={beriTahu} />}
+          {bagian === "jejak-audit" && <PanelAudit beriTahu={beriTahu} />}
           {bagian === "akun" && <PanelAkun beriTahu={beriTahu} />}
           {bagian === "umum" && (
             <div className="rounded-lg border border-dashed border-slate-300 bg-white p-12 text-center">
