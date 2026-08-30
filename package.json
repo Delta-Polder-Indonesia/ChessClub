@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "uji": "npm run uji:rute && npm run uji:i18n && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema",
+    "uji": "npm run uji:rute && npm run uji:i18n && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema && node scripts/uji-ebook.mjs",
     "uji:skema": "node server/uji/uji-skema.mjs",
     "operasi:backup-s3": "node scripts/backup-s3.mjs",
     "uji:rute": "node scripts/uji-rute.mjs",

@@ -2,6 +2,27 @@
 
 Folder ini berisi file PDF yang ditampilkan di halaman `/program-kami/ebook-panduan`.
 
+## Penting: berkas ini disimpan lewat Git LFS
+
+Seluruh PDF di folder ini dilacak Git LFS (lihat `.gitattributes`). Di repositori,
+yang tersimpan hanya *pointer* kecil (132 byte) — isi aslinya diunduh dari server
+LFS GitHub saat checkout dengan Git LFS aktif.
+
+- **Klon lokal** (perlu `git-lfs` terpasang sekali):
+  ```bash
+  git lfs install
+  git clone https://github.com/Delta-Polder-Indonesia/ChessClub.git
+  # atau di klon yang sudah ada:
+  git lfs pull
+  ```
+  Cek hasilnya: `head -c 4 "public/ebooks/Sicilian Defense.pdf"` harus mencetak `%PDF`.
+- **Deploy GitHub Pages**: workflow `.github/workflows/deploy.yml` sudah memakai
+  `actions/checkout` dengan `lfs: true` dan memverifikasi `dist/ebooks/*.pdf`
+  berisi PDF asli sebelum menerbitkan situs. Tanpa `lfs: true`, situs akan
+  menyajikan pointer teks sebagai pengganti PDF — tombol Baca/Unduh rusak.
+- **Menambah e-book baru**: letakkan PDF asli di folder ini lalu `git add` seperti
+  biasa (Git LFS otomatis menangani). Jangan commit *pointer* hasil klon tanpa LFS.
+
 ## Cara menambah e-book baru
 
 1. Taruh file PDF di folder ini, misal `nama-file.pdf`
