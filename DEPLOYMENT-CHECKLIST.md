@@ -64,7 +64,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - [ ] `VITE_API_DASAR` **kosong** (frontend memanggil `/api` di domain yang sama).
 - [ ] Baca [VERCEL-LIMITATIONS.md](./VERCEL-LIMITATIONS.md): `/tmp` **ephemeral**.
   Data JSON runtime (pesan, admin baru, hasil turnamen) **akan hilang** setelah cold start.
-- [ ] Untuk data awet: Render + Persistent Disk, Vercel KV, atau PostgreSQL.
+- [ ] **Agar data awet:** jalankan `db/supabase-schema.sql` di Supabase, isi
+  `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di Vercel, redeploy. Alternatif:
+  Render + Persistent Disk, Vercel KV, atau PostgreSQL relasional penuh.
 
 ### Render (backend + disk)
 

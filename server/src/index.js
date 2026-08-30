@@ -58,6 +58,19 @@ if (konfigurasi.admin?.password === "admin123") {
   );
 }
 
+if (konfigurasi.supabase.url) {
+  console.log(
+    "[kci] Penyimpanan Supabase dikonfigurasi — data akan TERSIMPAN di tabel " +
+      "kci_storage (pastikan db/supabase-schema.sql sudah dijalankan)."
+  );
+} else {
+  console.warn(
+    "[kci] Supabase belum dikonfigurasi — data Vercel disimpan di /tmp yang " +
+      "sementara (hilang saat cold start/redeploy). " +
+      "Set SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY agar data awet."
+  );
+}
+
 /**
  * Di serverless TIDAK ADA port untuk didengarkan — Vercel memanggil
  * handler per permintaan. Maka di sana modul ini hanya mengekspor

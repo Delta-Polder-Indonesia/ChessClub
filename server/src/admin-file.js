@@ -10,10 +10,10 @@
  * - Jika ada file lama data/rahasia/admin.json (single object), akan dimigrasi jadi master.
  * - Jika tidak ada file, bawaan dari env KCI_ADMIN_USER/PASSWORD sebagai master.
  */
-import fs from "node:fs/promises";
 import path from "node:path";
 import bcrypt from "bcryptjs";
 import { konfigurasi } from "./konfigurasi.js";
+import { bacaJson, tulisJson } from "./simpanan.js";
 
 /** Hash password bila belum di-hash (idempoten). */
 async function hashJikaPerlu(password) {
@@ -50,8 +50,7 @@ function normalisasiAdmin(a) {
 export async function bacaAdminsFile() {
   // coba file baru
   try {
-    const teks = await fs.readFile(berkasAdmins(), "utf8");
-    const data = JSON.parse(teks);
+    const data = await bacaJson(berkasAdmins(), null);
     const list = Array.isArray(data?.admins) ? data.admins : Array.isArray(data) ? data : [];
     const hasil = list.map(normalisasiAdmin).filter(Boolean);
     if (hasil.length) return hasil;
@@ -59,8 +58,7 @@ export async function bacaAdminsFile() {
 
   // coba file lama single
   try {
-    const teks = await fs.readFile(berkasAdminLama(), "utf8");
-    const data = JSON.parse(teks);
+    const data = await bacaJson(berkasAdminLama(), null);
     const single = normalisasiAdmin(data);
     if (single) {
       // migrasi: jadikan master
@@ -74,8 +72,6 @@ export async function bacaAdminsFile() {
 
 export async function tulisAdminsFile(admins) {
   const berkas = berkasAdmins();
-  const dir = path.dirname(berkas);
-  await fs.mkdir(dir, { recursive: true });
   // Hash password sebelum menulis — idempoten (hash yang sudah di-hash tidak di-hash ulang).
   const belumHash = [];
   const list = (admins || []).map(normalisasiAdmin).filter(Boolean);
@@ -99,7 +95,7 @@ export async function tulisAdminsFile(admins) {
     admins: list,
     diubahPada: new Date().toISOString(),
   };
-  await fs.writeFile(berkas, JSON.stringify(data, null, 2) + "\n", "utf8");
+  await tulisJson(berkas, data);
   // update konfigurasi in-memory
   konfigurasi.admins = list;
   // master pertama jadi konfigurasi.admin untuk kompatibilitas lama

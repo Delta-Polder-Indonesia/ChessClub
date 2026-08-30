@@ -1,5 +1,12 @@
 # Jalur migrasi JSON → PostgreSQL
 
+> **Jalur cepat (tidak perlu mengubah skema):** aplikasi sudah mendukung
+> penyimpanan key-value `kci_storage` di Supabase. Jalankan
+> `db/supabase-schema.sql`, isi `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+> di Vercel, redeploy. Lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` Bagian 9.
+> Bagian di bawah ini menggambarkan migrasi ke skema relasional penuh bagi
+> yang ingin tabel per-entitas.
+
 Penyimpanan sekarang adalah berkas JSON atomik (`server/src/simpanan.js`).
 Cocok sampai ribuan anggota. Pertimbangkan pindah ke PostgreSQL ketika:
 

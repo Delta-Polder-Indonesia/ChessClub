@@ -18,6 +18,7 @@
     "gambar:optimum": "node scripts/optimumkan-gambar.mjs",
     "uji:backend": "node server/uji/uji-backend.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
+    "uji:supabase": "node scripts/uji-supabase.mjs",
     "uji:e2e": "playwright test",
     "operasi:backup": "node scripts/backup-data.mjs",
     "operasi:kesehatan": "node scripts/cek-kesehatan.mjs",
@@ -25,6 +26,7 @@
     "operasi:standarkan-teka-teki": "node scripts/standarkan-nama-teka-teki.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.112.4",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "chess.js": "^1.4.0",
