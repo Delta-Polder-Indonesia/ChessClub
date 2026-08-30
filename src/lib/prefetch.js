@@ -30,6 +30,7 @@ const PEMUAT_RUTE = new Map([
   ["/program-kami/teka-teki", () => import("../halaman/ProgramKami/TekaTekiKonten.jsx")],
   ["/program-kami/pembukaan", () => import("../halaman/ProgramKami/Pembukaan.jsx")],
   ["/program-kami/sekolah-catur/cara-bermain-catur", () => import("../halaman/ProgramKami/CaraBermainCatur.jsx")],
+  ["/program-kami/ebook-panduan", () => import("../halaman/ProgramKami/EbookPanduan.jsx")],
   ["/teka-teki", () => import("../halaman/TekaTeki/TekaTeki.jsx")],
   ["/papan-interaktif", () => import("../halaman/PapanInteraktif/PapanInteraktif.jsx")],
   ["/turnamen", () => import("../halaman/Turnamen/Turnamen.jsx")],
@@ -52,7 +53,6 @@ const PEMUAT_RUTE = new Map([
   ["/beranda/turnamen", () => import("../halaman/Beranda/Beranda.jsx")],
   ["/beranda/daftar-juara", () => import("../halaman/Beranda/DaftarJuara.jsx")],
   ["/beranda/peringkat", () => import("../halaman/Beranda/Peringkat.jsx")],
-  ["/beranda/ebook-panduan", () => import("../halaman/Beranda/EbookPanduan.jsx")],
 ]);
 
 /** Rute dengan parameter dinamis (/:id) — dicocokkan dengan pola. */

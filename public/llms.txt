@@ -18,6 +18,7 @@ Kontak: info@komunitascatur.or.id · Klub Chess.com:
 - [Cara Bermain Catur](%%SITE_URL%%program-kami/sekolah-catur/cara-bermain-catur): materi sekolah catur dari aturan dasar sampai endgame.
 - [Teka-Teki](%%SITE_URL%%teka-teki): bank soal skakmat interaktif dengan papan yang bisa digerakkan.
 - [Papan Interaktif](%%SITE_URL%%papan-interaktif): papan bebas, explorer buku pembukaan, dan analisis engine Stockfish (WebAssembly).
+- [E-Book & Panduan](%%SITE_URL%%program-kami/ebook-panduan): arsip PDF panduan catur yang bisa dibaca atau diunduh.
 
 ## Turnamen & peringkat
 
@@ -35,7 +36,6 @@ Kontak: info@komunitascatur.or.id · Klub Chess.com:
 - [Berita Komunitas](%%SITE_URL%%media-dan-informasi/berita-komunitas)
 - [Pengumuman](%%SITE_URL%%media-dan-informasi/pengumuman)
 - [Galeri](%%SITE_URL%%media-dan-informasi/galeri)
-- [E-Book & Panduan](%%SITE_URL%%beranda/ebook-panduan): arsip PDF panduan catur yang bisa dibaca atau diunduh.
 
 ## Keanggotaan & aturan
 

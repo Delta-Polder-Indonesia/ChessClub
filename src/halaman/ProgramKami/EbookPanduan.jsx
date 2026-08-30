@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { BagianBeranda } from "./TataLetakBeranda.jsx";
+import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
 import { berkasPublik, sumberGambar } from "../../lib/asets.js";
-import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "./ebook-data.js";
+import { useI18n } from "../../lib/i18n.jsx";
+import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
 
 /**
- * Halaman E-Book & Panduan
+ * Halaman E-Book & Panduan (di bawah menu Program Kami)
  *
  * Konsep:
  * - Daftar file PDF yang ada di /public/ebooks/
@@ -160,6 +161,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
 }
 
 export default function EbookPanduan() {
+  const { t } = useI18n();
   const [pdfAktif, setPdfAktif] = useState(null);
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [disorot, setDisorot] = useState(null);
@@ -231,127 +233,139 @@ export default function EbookPanduan() {
   }, [searchParams, kategoriList]);
 
   return (
-    <BagianBeranda id="ebook-catur" title="E-Book & Panduan">
-      <div className="mt-8 flex flex-wrap items-center gap-4">
-        <div className="overflow-x-auto">
-          <div role="tablist" aria-label="Filter kategori e-book" className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
-            {kategoriList.map((k) => {
-              const aktif = k === kategoriAktif;
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  role="tab"
-                  id={`tab-${k}`}
-                  aria-selected={aktif}
-                  onClick={() => setKategoriAktif(k)}
-                  className={
-                    aktif
-                      ? "flex whitespace-nowrap rounded-full bg-[#0B2F9F] px-4 py-2 text-sm text-white transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
-                      : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-black transition-all duration-300 hover:bg-slate-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
-                  }
-                >
-                  {k}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <span className="ml-auto whitespace-nowrap text-[12px] text-slate-500">{daftarTampil.length} dokumen</span>
-      </div>
-
-      <div
-        id="katalog-ebook"
-        role="tabpanel"
-        aria-labelledby={`tab-${kategoriAktif}`}
-        className="mt-6 grid scroll-mt-10 grid-cols-2 gap-x-2 gap-y-4 md:grid-cols-3 md:gap-x-4 md:gap-y-4 lg:grid-cols-5 lg:gap-x-4 lg:gap-y-4"
+    <HalamanIsi
+      title="E-Book & Panduan"
+      parent={t("nav.programKami")}
+      parentPath="/program-kami"
+      description="Pusat literasi resmi komunitas: kumpulan e-book dan panduan catur dalam format PDF yang bisa dibaca langsung di browser atau diunduh."
+    >
+      <section
+        id="ebook-panduan"
+        className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16 pt-10 md:pt-12 xl:pt-16"
       >
-        {daftarTampil.map((buku) => (
-          <KartuEbook
-            key={buku.id}
-            buku={buku}
-            disorot={disorot === buku.id}
-            terbalik={kartuBalik.has(buku.id)}
-            padaBalik={() => toggleBalik(buku.id)}
-            padaBaca={() => buku.tersedia && setPdfAktif(buku)}
-          />
-        ))}
-      </div>
-
-      <div className="mt-10">
-        <h3 className="text-[15px] font-bold text-slate-900">Tentang E-Book & Panduan</h3>
-        <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
-          Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
-          terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
-          taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
-          dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
-          memperdalam pemahaman strateginya.
-        </p>
-        <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
-          Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
-          aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
-          yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
-        </p>
-      </div>
-
-      {pdfAktif && (
-        <div className="fixed inset-0 z-[80] flex flex-col bg-black/60 backdrop-blur-sm">
-          <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="hidden sm:inline-flex rounded bg-[#F15642]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#F15642] ring-1 ring-[#F15642]/20">
-                  PDF
-                </span>
-                <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
+        <div className="relative w-full mx-auto max-w-[1280px] flex flex-col">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="overflow-x-auto">
+              <div role="tablist" aria-label="Filter kategori e-book" className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
+                {kategoriList.map((k) => {
+                  const aktif = k === kategoriAktif;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      role="tab"
+                      id={`tab-${k}`}
+                      aria-selected={aktif}
+                      onClick={() => setKategoriAktif(k)}
+                      className={
+                        aktif
+                          ? "flex whitespace-nowrap rounded-full bg-[#0B2F9F] px-4 py-2 text-sm text-white transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
+                          : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-black transition-all duration-300 hover:bg-slate-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
+                      }
+                    >
+                      {k}
+                    </button>
+                  );
+                })}
               </div>
-              <p className="mt-0.5 hidden text-[11px] text-slate-500 md:block">
-                {pdfAktif.kategori} • {pdfAktif.ukuran} • {pdfAktif.halaman}
-              </p>
             </div>
-
-            <div className="flex items-center gap-2">
-              <a
-                href={berkasPublik(pdfAktif.file)}
-                download
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                <IkonUnduh />
-                <span className="hidden sm:inline">Unduh</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => setPdfAktif(null)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                aria-label="Tutup"
-              >
-                <CloseIcon className="h-4 w-4" />
-              </button>
-            </div>
+            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-500">{daftarTampil.length} dokumen</span>
           </div>
-
-          <div className="flex flex-1 flex-col bg-[#525659] p-2 md:p-4">
-            <div className="mx-auto flex w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md bg-white shadow-xl">
-              <iframe
-                title={pdfAktif.judul}
-                src={berkasPublik(pdfAktif.file)}
-                className="h-full w-full flex-1 border-0"
+    
+          <div
+            id="katalog-ebook"
+            role="tabpanel"
+            aria-labelledby={`tab-${kategoriAktif}`}
+            className="mt-6 grid scroll-mt-10 grid-cols-2 gap-x-2 gap-y-4 md:grid-cols-3 md:gap-x-4 md:gap-y-4 lg:grid-cols-5 lg:gap-x-4 lg:gap-y-4"
+          >
+            {daftarTampil.map((buku) => (
+              <KartuEbook
+                key={buku.id}
+                buku={buku}
+                disorot={disorot === buku.id}
+                terbalik={kartuBalik.has(buku.id)}
+                padaBalik={() => toggleBalik(buku.id)}
+                padaBaca={() => buku.tersedia && setPdfAktif(buku)}
               />
-            </div>
-            <div className="mx-auto mt-3 flex w-full max-w-[1024px] items-center justify-between text-[11px] text-white/70">
-              <span>
-                Jika PDF tidak tampil,{" "}
-                <a href={berkasPublik(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
-                  buka di tab baru
-                </a>{" "}
-                atau unduh.
-              </span>
-              <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
-                Tutup (Esc)
-              </button>
-            </div>
+            ))}
           </div>
+    
+          <div className="mt-10">
+            <h3 className="text-[15px] font-bold text-slate-900">Tentang E-Book & Panduan</h3>
+            <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
+              Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
+              terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
+              taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
+              dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
+              memperdalam pemahaman strateginya.
+            </p>
+            <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
+              Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
+              aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
+              yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
+            </p>
+          </div>
+    
+          {pdfAktif && (
+            <div className="fixed inset-0 z-[80] flex flex-col bg-black/60 backdrop-blur-sm">
+              <div className="flex h-[56px] shrink-0 items-center justify-between border-b border-slate-200 bg-white px-4 md:px-6">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline-flex rounded bg-[#F15642]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#F15642] ring-1 ring-[#F15642]/20">
+                      PDF
+                    </span>
+                    <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
+                  </div>
+                  <p className="mt-0.5 hidden text-[11px] text-slate-500 md:block">
+                    {pdfAktif.kategori} • {pdfAktif.ukuran} • {pdfAktif.halaman}
+                  </p>
+                </div>
+    
+                <div className="flex items-center gap-2">
+                  <a
+                    href={berkasPublik(pdfAktif.file)}
+                    download
+                    className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
+                  >
+                    <IkonUnduh />
+                    <span className="hidden sm:inline">Unduh</span>
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setPdfAktif(null)}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                    aria-label="Tutup"
+                  >
+                    <CloseIcon className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+    
+              <div className="flex flex-1 flex-col bg-[#525659] p-2 md:p-4">
+                <div className="mx-auto flex w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md bg-white shadow-xl">
+                  <iframe
+                    title={pdfAktif.judul}
+                    src={berkasPublik(pdfAktif.file)}
+                    className="h-full w-full flex-1 border-0"
+                  />
+                </div>
+                <div className="mx-auto mt-3 flex w-full max-w-[1024px] items-center justify-between text-[11px] text-white/70">
+                  <span>
+                    Jika PDF tidak tampil,{" "}
+                    <a href={berkasPublik(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
+                      buka di tab baru
+                    </a>{" "}
+                    atau unduh.
+                  </span>
+                  <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
+                    Tutup (Esc)
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </BagianBeranda>
+      </section>
+    </HalamanIsi>
   );
 }

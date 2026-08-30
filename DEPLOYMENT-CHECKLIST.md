@@ -42,6 +42,18 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   Cek: `git check-ignore -v .env.local data/rahasia/kontak.json`
 - [ ] `*.log` tidak ikut commit.
 
+## 2b. E-book PDF (Git LFS)
+
+- [ ] Checkout deploy memakai `lfs: true` (sudah ada di `deploy.yml` — jangan
+      dihapus). Tanpa itu `dist/ebooks/*.pdf` hanya berisi pointer LFS 132 byte.
+- [ ] PDF lokal bukan pointer kosong.
+      Cek: `head -c 4 public/ebooks/*.pdf` → semua diawali `%PDF`.
+      Kalau pointer: `git lfs pull` (butuh `git-lfs` terpasang).
+- [ ] Objek LFS masih tersedia di GitHub (kuota LFS gratis: 1 GB penyimpanan,
+      1 GB bandwidth/bulan; total PDF ± 394 MB).
+- [ ] `npm run uji` lolos — di dalamnya `scripts/uji-ebook.mjs` memeriksa
+      konsistensi entri `ebook-data.js` ↔ berkas di `public/ebooks/`.
+
 ---
 
 ## 3. Khusus platform

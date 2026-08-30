@@ -315,7 +315,7 @@ function CardGambar({ index, t }) {
 /** Karusel kartu program — kartu adalah tautan nyata ke halamannya. */
 function CardCarousel({ index, setIndex, t }) {
   const kartu = DAFTAR_EBOOK.map((b) => ({
-    to: `/beranda/ebook-panduan?buku=${b.id}`,
+    to: `/program-kami/ebook-panduan?buku=${b.id}`,
     judul: b.judul,
     desk: b.kategori,
   }));

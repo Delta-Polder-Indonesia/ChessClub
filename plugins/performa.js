@@ -38,8 +38,8 @@ export const RUTE_PUBLIK = [
   "/beranda/rangkuman-pengumuman",
   "/beranda/daftar-juara",
   "/beranda/peringkat",
-  "/beranda/ebook-panduan",
   "/karir",
+  "/program-kami/ebook-panduan",
 ];
 
 function lepasRegex(teks) {
