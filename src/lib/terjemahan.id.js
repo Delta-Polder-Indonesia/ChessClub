@@ -36,6 +36,7 @@ export const ID = {
     caraBermainCatur: "Cara Bermain Catur",
     tekaTeki: "Teka-teki Catur",
     pembukaan: "Pembukaan",
+    eBookPanduan: "E-Book & Panduan",
     turnamenBulanan: "Turnamen Bulanan",
     ligaMusiman: "Liga Musiman",
     turnamenTerbuka: "Turnamen Terbuka",

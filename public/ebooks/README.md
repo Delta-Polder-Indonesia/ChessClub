@@ -1,6 +1,6 @@
 # E-Book & Panduan
 
-Folder ini berisi file PDF yang ditampilkan di halaman `/beranda/ebook-panduan`.
+Folder ini berisi file PDF yang ditampilkan di halaman `/program-kami/ebook-panduan`.
 
 ## Cara menambah e-book baru
 

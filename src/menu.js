@@ -68,6 +68,12 @@ export const MENU_UTAMA = [
         folder: "ProgramKami",
         file: "Pembukaan.jsx",
       },
+      {
+        title: "nav.eBookPanduan",
+        path: "/program-kami/ebook-panduan",
+        folder: "ProgramKami",
+        file: "EbookPanduan.jsx",
+      },
     ],
   },
   {

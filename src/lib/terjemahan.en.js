@@ -33,6 +33,7 @@ export const EN = {
     caraBermainCatur: "How to Play Chess",
     tekaTeki: "Chess Puzzles",
     pembukaan: "Openings",
+    eBookPanduan: "E-Books & Guides",
     turnamenBulanan: "Monthly Tournament",
     ligaMusiman: "Seasonal League",
     turnamenTerbuka: "Open Tournament",

@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -22,6 +22,7 @@ const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
 const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const CaraBermainCatur = lazy(() => import("./halaman/ProgramKami/CaraBermainCatur.jsx"));
+const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
 // Turnamen
 const Turnamen = lazy(() => import("./halaman/Turnamen/Turnamen.jsx"));
@@ -60,7 +61,6 @@ const Beranda = lazy(() => import("./halaman/Beranda/Beranda.jsx"));
 const DaftarJuara = lazy(() => import("./halaman/Beranda/DaftarJuara.jsx"));
 const RangkumanPengumuman = lazy(() => import("./halaman/Beranda/RangkumanPengumuman.jsx"));
 const Peringkat = lazy(() => import("./halaman/Beranda/Peringkat.jsx"));
-const EbookPanduan = lazy(() => import("./halaman/Beranda/EbookPanduan.jsx"));
 
 // Lain-lain
 const HubungiKami = lazy(() => import("./halaman/HubungiKami/HubungiKami.jsx"));
@@ -79,7 +79,6 @@ const RUTE_BERANDA = [
   ["/beranda/rangkuman-pengumuman", RangkumanPengumuman],
   ["/beranda/daftar-juara", DaftarJuara],
   ["/beranda/peringkat", Peringkat],
-  ["/beranda/ebook-panduan", EbookPanduan],
 ];
 
 /** Rute konten utama: [path, Komponen].
@@ -94,6 +93,7 @@ const RUTE_HALAMAN = [
   ["/program-kami/teka-teki", TekaTekiKonten],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
+  ["/program-kami/ebook-panduan", EbookPanduan],
 
   ["/teka-teki", TekaTeki],
   ["/papan-interaktif", PapanInteraktif],
@@ -157,7 +157,10 @@ const RUTE_REDIRECT = new Map([
   ["/pengadaan/daftar-juara", "/beranda/daftar-juara"],
   ["/pengadaan/gabung-anggota", "/beranda/peringkat"],
   ["/beranda/gabung-anggota", "/beranda/peringkat"],
-  ["/pengadaan/ebook-panduan", "/beranda/ebook-panduan"],
+  ["/pengadaan/ebook-panduan", "/program-kami/ebook-panduan"],
+
+  // Tab Beranda "E-Book & Panduan" pindah menjadi halaman Program Kami.
+  ["/beranda/ebook-panduan", "/program-kami/ebook-panduan"],
   ["/pengadaan/teka-teki-tips", "/program-kami/teka-teki"],
 
   // Tab Beranda "Hubungi Admin" dihapus — alamat lamanya (dan alias
@@ -170,6 +173,19 @@ const RUTE_REDIRECT = new Map([
 ]);
 
 /* ---------------------------------------------------------------- app */
+
+/**
+ * Redirect yang tetap membawa query string dari alamat lama (mis. tautan
+ * lama ke e-book dengan ?buku=<id>). Tanpa ini, tandanya hilang saat
+ * Navigate — kartu yang dimaksud tidak lagi otomatis disorot.
+ */
+function RedirectPertahankanQuery({ ke }) {
+  const { search } = useLocation();
+  const [tanpaHash, hash = ""] = ke.split("#");
+  return (
+    <Navigate to={`${tanpaHash}${search}${hash ? `#${hash}` : ""}`} replace />
+  );
+}
 
 export default function App() {
   useEffect(() => {
@@ -206,7 +222,7 @@ export default function App() {
             <Route
               key={dari}
               path={dari}
-              element={<Navigate to={ke} replace />}
+              element={<RedirectPertahankanQuery ke={ke} />}
             />
           ))}
 
