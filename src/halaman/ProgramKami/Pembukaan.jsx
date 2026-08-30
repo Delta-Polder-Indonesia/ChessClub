@@ -25,72 +25,179 @@ function MiniOpeningBoard({ variant = 0 }) {
   const pieces = OPENING_BOARD_PIECES.map((row) => row.slice());
   if (variant % 3 === 1) pieces[4][4] = "";
   if (variant % 3 === 2) pieces[5][5] = "";
-  return <div className="aspect-square w-full overflow-hidden rounded-[2px] border border-[#d5c4ae]/40 bg-[#d8c3a5] opacity-90">
-    <div className="grid h-full w-full grid-cols-8 grid-rows-8">
-      {RANKS.map((rank, rIdx) => FILES.map((file, fIdx) => {
-        const piece = pieces[rIdx][fIdx] || "";
-        return <div key={`${file}${rank}`} className="flex items-center justify-center" style={{ backgroundColor: (rIdx + fIdx) % 2 === 0 ? "#ead6b8" : "#b9a98d" }}>
-          {piece && <div className="h-[92%] w-[92%]"><ChessPiece piece={piece} /></div>}
-        </div>;
-      }))}
-    </div>
-  </div>;
-}
 
-function OpeningBookBoardComponent() {
   return (
-    <div className="relative aspect-square w-full max-w-[520px] overflow-hidden bg-transparent">
-      <div className="absolute left-0 top-0 grid w-[58%] grid-cols-6 gap-1 opacity-75">
-        {Array.from({ length: 36 }, (_, i) => <MiniOpeningBoard key={i} variant={i} />)}
-      </div>
-      <div className="absolute bottom-0 right-0 z-10 aspect-square w-[78%] overflow-hidden bg-[#d8c3a5]">
-        <div className="grid h-full w-full grid-cols-8 grid-rows-8">
-          {RANKS.map((rank, rIdx) => FILES.map((file, fIdx) => {
-            const squareName = `${file}${rank}`;
-            const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
-            const highlighted = OPENING_HIGHLIGHT.has(squareName);
-            return <div key={squareName} className="relative flex items-center justify-center" style={{ backgroundColor: (rIdx + fIdx) % 2 === 0 ? "#ead6b8" : "#b9a98d" }}>
-              {highlighted && <span className="absolute inset-0 bg-[#c56555]/30" />}
-              {rIdx === 7 && <span className="absolute bottom-0.5 right-1 text-[8px] font-bold text-slate-700/70">{file}</span>}
-              {fIdx === 0 && <span className="absolute left-1 top-0.5 text-[8px] font-bold text-slate-700/70">{rank}</span>}
-              {piece && <div className="relative z-10 h-[88%] w-[88%] drop-shadow-[0_2px_2px_rgba(0,0,0,.25)]"><ChessPiece piece={piece} /></div>}
-            </div>;
-          }))}
-        </div>
-        <svg className="pointer-events-none absolute inset-0 z-20 h-full w-full" viewBox="0 0 100 100" aria-hidden="true">
-          <defs><marker id="opening-arrow-professional" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#bf5f52" /></marker></defs>
-          <line x1="68.75" y1="93.75" x2="18.75" y2="43.75" stroke="#bf5f52" strokeWidth="1.4" markerEnd="url(#opening-arrow-professional)" opacity=".8" />
-        </svg>
+    <div className="aspect-square w-full overflow-hidden border border-slate-300/60 bg-[#f0d9b5]">
+      <div className="grid h-full w-full grid-cols-8 grid-rows-8">
+        {RANKS.map((rank, rIdx) =>
+          FILES.map((file, fIdx) => {
+            const piece = pieces[rIdx][fIdx] || "";
+            return (
+              <div
+                key={`${file}${rank}`}
+                className="flex items-center justify-center"
+                style={{
+                  backgroundColor: (rIdx + fIdx) % 2 === 0 ? "#f0d9b5" : "#b58863",
+                }}
+              >
+                {piece && (
+                  <div className="h-[90%] w-[92%]">
+                    <ChessPiece piece={piece} />
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
 }
 
-/** Kalimat info Ruy Lopez dengan sisipan notasi ber-format pada penanda {x} dan {label}. */
+function OpeningBookBoardComponent() {
+  return (
+    <div className="w-full max-w-[380px] mx-auto lg:ml-auto lg:mr-0 flex flex-col">
+      {/* Header Nama Opening & Kode ECO */}
+      <div className="flex items-center gap-3 pb-1.5 text-[11px] font-mono text-slate-600">
+        <span className="font-bold text-slate-900 uppercase tracking-wider">
+          Ruy Lopez
+        </span>
+        <span className="font-bold px-1.5 py-0.5 text-[10px] text-black">
+          C60
+        </span>
+      </div>
+
+      {/* Frame Visual Papan Catur Utama & Mini Board Stack */}
+      <div className="relative aspect-square w-full overflow-hidden">
+        {/* Layer Mini Boards (Latar Belakang Eksplorasi) */}
+        <div className="absolute left-0 top-0 grid w-[58%] grid-cols-6 gap-0.5 opacity-40 pointer-events-none">
+          {Array.from({ length: 36 }, (_, i) => (
+            <MiniOpeningBoard key={i} variant={i} />
+          ))}
+        </div>
+
+        {/* Papan Catur Utama (Overlapping) */}
+        <div className="absolute bottom-0 right-0 z-10 aspect-square w-[80%] border-l border-t border-slate-400 bg-[#f0d9b5]">
+          <div className="grid h-full w-full grid-cols-8 grid-rows-8">
+            {RANKS.map((rank, rIdx) =>
+              FILES.map((file, fIdx) => {
+                const squareName = `${file}${rank}`;
+                const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
+                const highlighted = OPENING_HIGHLIGHT.has(squareName);
+
+                return (
+                  <div
+                    key={squareName}
+                    className="relative flex items-center justify-center"
+                    style={{
+                      backgroundColor:
+                        (rIdx + fIdx) % 2 === 0 ? "#f0d9b5" : "#b58863",
+                    }}
+                  >
+                    {/* Highlight Langkah Bb5 */}
+                    {highlighted && (
+                      <span className="absolute inset-0 bg-red-700/25 pointer-events-none" />
+                    )}
+
+                    {/* Koordinat File */}
+                    {rIdx === 7 && (
+                      <span
+                        className="absolute bottom-0.5 right-1 text-[8px] font-bold uppercase leading-none"
+                        style={{
+                          color: (rIdx + fIdx) % 2 === 0 ? "#b58863" : "#f0d9b5",
+                        }}
+                      >
+                        {file}
+                      </span>
+                    )}
+
+                    {/* Koordinat Rank */}
+                    {fIdx === 0 && (
+                      <span
+                        className="absolute left-1 top-0.5 text-[8px] font-bold leading-none"
+                        style={{
+                          color: (rIdx + fIdx) % 2 === 0 ? "#b58863" : "#f0d9b5",
+                        }}
+                      >
+                        {rank}
+                      </span>
+                    )}
+
+                    {/* Bidak Catur */}
+                    {piece && (
+                      <div className="relative z-10 h-[86%] w-[86%] pointer-events-none">
+                        <ChessPiece piece={piece} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Panah Langkah Bf1 -> b5 */}
+          <svg
+            className="pointer-events-none absolute inset-0 z-20 h-full w-full"
+            viewBox="0 0 100 100"
+            aria-hidden="true"
+          >
+            <defs>
+              <marker
+                id="opening-arrow-professional"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="4"
+                markerHeight="4"
+                orient="auto"
+              >
+                <path d="M0 0L10 5L0 10Z" fill="#b91c1c" />
+              </marker>
+            </defs>
+            <line
+              x1="68.75"
+              y1="93.75"
+              x2="18.75"
+              y2="43.75"
+              stroke="#b91c1c"
+              strokeWidth="1.6"
+              strokeLinecap="square"
+              markerEnd="url(#opening-arrow-professional)"
+            />
+          </svg>
+        </div>
+      </div>
+
+      {/* Footer Status Pembukaan */}
+      <div className="mt-1.5 w-full py-1.5 px-3 text-center text-xs font-semibold uppercase tracking-wider text-black">
+        Posisi Kunci: 3. Bb5
+      </div>
+    </div>
+  );
+}
+
+/** Kalimat info Ruy Lopez dengan sisipan notasi ber-format. */
 function KalimatInfo({ t }) {
   const [pra, sisa = ""] = t("bukuPembukaan.infoTeks").split("{x}");
   const [tengah, akhir = ""] = sisa.split("{label}");
   return (
     <>
       {pra}
-      <span className="font-mono font-semibold">
+      <span className="font-mono font-bold px-1.5 py-[1px] text-xs border border-slate-200 text-black mx-1">
         1. e4 e5 2. Nf3 Nc6 3. Bb5
       </span>
       {tengah}
-      <span className="font-semibold text-gray-800">Ruy Lopez (C60)</span>
+      <span className="font-bold text-black underline decoration-slate-300">
+        Ruy Lopez (C60)
+      </span>
       {akhir}
     </>
   );
 }
 
-/**
- * Halaman konten Pembukaan — bagian kedua dari dua.
- * Memaparkan cara buku pembukaan bekerja (nama + kode ECO otomatis)
- * sebelum anggota masuk ke papan interaktif di /papan-interaktif.
- * Demo visual mengikuti markup aslinya di tab Beranda — kini dwibahasa (ID/EN).
- */
 export default function Pembukaan() {
   const { t } = useI18n();
+
   return (
     <HalamanIsi
       title={t("bukuPembukaan.judul")}
@@ -100,69 +207,127 @@ export default function Pembukaan() {
       next={{ to: "/papan-interaktif", judul: t("papan.judul") }}
     >
       <PageArtikel title={t("bukuPembukaan.artikel")}>
-        <div className="flex w-full flex-col md:flex-row md:items-start md:gap-8 lg:gap-12">
-          {/* Kolom Kiri: Teks & Tombol */}
-          <div className="mb-6 w-full md:mb-0 md:w-2/5">
-            <p>{t("bukuPembukaan.paragraf1")}</p>
-            <p>{t("bukuPembukaan.paragraf2")}</p>
+        {/* HERO GRID SECTION: 2 Kolom Sejajar (Corporate Flat) */}
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 pb-10 lg:grid-cols-12 lg:items-start">
+          
+          {/* KOLOM KIRI (6/12): Deskripsi & CTA */}
+          <div className="flex flex-col justify-between lg:col-span-6">
+            <div>
+              <p className="m-0 mb-4 text-[15px] leading-relaxed text-slate-700">
+                {t("bukuPembukaan.paragraf1")}
+              </p>
+              <p className="m-0 mb-6 text-[15px] leading-relaxed text-slate-700">
+                {t("bukuPembukaan.paragraf2")}
+              </p>
+            </div>
+
             <Link
               to="/papan-interaktif"
-              className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-transparent px-6 py-3 font-medium text-gray-700 transition duration-200 hover:border-gray-500 hover:bg-gray-50 hover:text-gray-900 text-sm md:text-base no-underline"
+              className="inline-flex w-fit items-center justify-center gap-2.5 rounded-none border border-slate-900 bg-slate-950 px-6 py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-slate-800 no-underline"
+              style={{ textDecoration: "none" }}
             >
-              {t("bukuPembukaan.buka")}
+              <span>{t("bukuPembukaan.buka")}</span>
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="square"
+                  strokeWidth="2.5"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
             </Link>
           </div>
 
-          {/* Kolom Kanan: Papan & Info Pembukaan */}
-          <div className="relative w-full md:w-3/5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center">
-                <div className="mr-2 h-2.5 w-2.5 rounded-full bg-[#0b2f9f]" />
-                <p className="font-semibold text-sm sm:text-base text-gray-800 m-0!">
-                  {t("bukuPembukaan.demoJudul")}
-                </p>
-              </div>
-              <span className="rounded bg-gray-100 px-2.5 py-0.5 text-xs text-gray-600 font-medium">
-                C60
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-gray-500 mb-3 m-0!">
-              {t("bukuPembukaan.demoTantangan")}
-            </p>
+          {/* KOLOM KANAN (6/12): Demo Papan Catur Pembukaan */}
+          <div className="flex flex-col items-center lg:col-span-6 lg:items-end">
+            <OpeningBookBoardComponent />
+          </div>
+        </div>
 
-            <div className="flex flex-col gap-4 md:flex-row items-center md:items-start">
-              {/* Sub-Kolom 1: Papan Catur (md:w-1/2) */}
-              <div className="flex w-full justify-center md:w-1/2">
-                <div className="w-full max-w-[304px] flex flex-col overflow-hidden rounded p-1">
-                  <OpeningBookBoardComponent />
-                </div>
-              </div>
-
-              {/* Sub-Kolom 2: Info Pembukaan (md:w-1/2) */}
-              <div className="flex w-full flex-col md:w-1/2 gap-3">
-                <div className="overflow-hidden rounded p-3 text-xs">
-                  <h4 className="mb-2 text-sm font-semibold text-gray-800 m-0!">
-                    Ruy Lopez
+        {/* SECTION BOTTOM: Teori & Kandidat Langkah Berikutnya */}
+        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
+          
+          {/* KANAN INFORMASI (12/12 - Full Width Container untuk Teori) */}
+          <div className="lg:col-span-12">
+            <div className="flex flex-col gap-4 p-5">
+              
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 bg-slate-900" />
+                  <h4 className="m-0 text-xs font-bold uppercase tracking-wider text-black">
+                    {t("bukuPembukaan.demoJudul")}
                   </h4>
-                  <p className="mb-3 text-[11px] leading-relaxed text-gray-600 m-0!">
-                    <KalimatInfo t={t} />
-                  </p>
+                </div>
+                <span className="text-[11px] font-mono text-black">
+                  {t("bukuPembukaan.demoTantangan")}
+                </span>
+              </div>
 
-                  <p className="mb-2 text-[11px] font-semibold text-gray-700">
-                    {t("papan.langkahBerikutnya")}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["a6", "Nf6", "d6", "f5"].map((m) => (
-                      <span
-                        key={m}
-                        className="rounded border border-gray-200 bg-gray-50 px-2 py-0.5 font-mono text-[11px] text-gray-700"
-                      >
-                        {m}
+              {/* Deskripsi Teori Notasi */}
+              <p className="m-0 text-xs sm:text-sm leading-relaxed text-black">
+                <KalimatInfo t={t} />
+              </p>
+
+              {/* Kandidat Langkah Berikutnya (Main Continuation Moves) */}
+              <div className="mt-2 border-t border-slate-200 pt-3">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-black mb-2">
+                  {t("papan.langkahBerikutnya")}
+                </span>
+                
+                <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
+                  {[
+                    { move: "a6", note: "Morphy Defense (Utama)" },
+                    { move: "Nf6", note: "Berlin Defense" },
+                    { move: "d6", note: "Steinitz Defense" },
+                    { move: "f5", note: "Schliemann Gambit" },
+                  ].map((item) => (
+                    <div
+                      key={item.move}
+                      className="flex items-center gap-2 border-b border-slate-300 py-1.5"
+                    >
+                      <span className="font-mono text-xs font-bold text-black">
+                        3... {item.move}
                       </span>
-                    ))}
-                  </div>
+                      <span className="text-[10px] text-black pl-2">
+                        {item.note}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* SEJARAH RUY LOPEZ */}
+        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
+          <div className="lg:col-span-12">
+            <div className="flex flex-col gap-4">
+              <h3>Sejarah</h3>
+              <p>
+                Ruy Lopez dinamai menurut Ruy López de Segura, seorang pendeta Spanyol abad ke-16 yang secara
+                sistematis mempelajari pembukaan ini dan pembukaan lainnya dalam buku catur setebal 150 halaman,
+                Libro del Axedrez, yang ditulis pada tahun 1561. Lopez menganjurkan 3.Bb5 sebagai langkah yang lebih
+                unggul daripada 3.Bc4, dan berpendapat bahwa Hitam harus memainkan 2...d6 (Pertahanan Philidor) untuk
+                menghindarinya. Meskipun menyandang namanya, pembukaan khusus ini termasuk dalam manuskrip Göttingen,
+                yang berasal dari sekitar tahun 1490. Ruy Lopez tidak mendapatkan popularitas luas hingga pertengahan
+                abad ke-19, ketika ahli teori Finlandia-Rusia Carl Jaenisch menerbitkan artikel terperinci tentang
+                1.e4 e5 dalam edisi Desember 1847 dari Le Palamède, majalah catur pertama di dunia. Versi ringkasnya
+                muncul di Chess Player's Chronicle pada tahun 1848, diikuti oleh artikel tambahan di publikasi yang
+                sama pada tahun 1849.
+              </p>
+              <p>
+                Ruy Lopez telah lama dianggap sebagai pembukaan terpenting di antara Permainan Terbuka pada tingkat
+                master. Hampir setiap pemain telah menggunakannya pada suatu titik dalam karier mereka, seringkali
+                dengan kedua warna. Karena kesulitan bagi Hitam dalam mencapai kesetaraan, julukan umum untuk pembukaan
+                ini adalah "Penyiksaan Spanyol".
+              </p>
             </div>
           </div>
         </div>

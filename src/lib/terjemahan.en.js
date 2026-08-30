@@ -540,17 +540,17 @@ export const EN = {
     judul: "Chess Puzzles & Tips",
     deskripsi:
       "A look at the puzzles: moves-by-rating data and position analysis, before you enter the tactics board.",
-    artikel: "Train With Maia as Your Coach",
+    artikel: "Chess Puzzle Training",
     paragraf1:
       "Maia builds its puzzles from an understanding of how millions of players improve. With Maia puzzles, you can measure your skill, focus on the gaps in your understanding, and turn hard-to-find ideas into habits.",
     paragraf2:
       "Every puzzle comes with data showing how players of different ratings respond to the position, so your training stays focused and effective.",
-    mulai: "Start Puzzling",
+    mulai: "Start Your Training Session",
     demoJudul: "Tactical Puzzle",
     demoLevel: "Intermediate",
     demoTantangan: "Find the best move in this tactical position",
     grafikJudul: "Moves by Rating",
-    grafikSumbuY: "Maia Probability",
+    grafikSumbuY: "Bintang Toba Probability",
     analisisJudul: "Position Analysis",
     analisisBag1:
       "Careful — this position is very dangerous! It is easy to fall for tempting mistakes like {x}.",

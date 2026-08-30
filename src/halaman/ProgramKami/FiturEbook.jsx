@@ -41,7 +41,7 @@ export default function FiturEbook() {
 <div key={f.judul} className="flex flex-col items-center gap-4 text-center">
             {f.ikon}
             <h3 className="m-0 text-lg font-semibold text-black">{f.judul}</h3>
-          <p className="m-0 max-w-[320px] text-[15px] leading-6 text-slate-600">{f.isi}</p>
+          <p className="m-0 max-w-[320px] text-justify text-[15px] leading-6 text-slate-600">{f.isi}</p>
         </div>
       ))}
     </div>

@@ -543,17 +543,17 @@ export const ID = {
     judul: "Teka-teki & Tips",
     deskripsi:
       "Sekilas tentang teka-teki: data langkah berdasarkan rating dan analisis posisi, sebelum masuk ke papan taktik.",
-    artikel: "Latih Dirimu dengan Maia sebagai Pelatihmu",
+    artikel: "Latihan Teka-teki",
     paragraf1:
       "Maia menyusun teka-teki berdasarkan pemahamannya tentang cara jutaan pemain meningkatkan kemampuan. Dengan teka-teki Maia, kamu dapat mengukur kemampuanmu, fokus pada kelemahan pemahamanmu, dan mengubah ide-ide yang sulit ditemukan menjadi kebiasaan.",
     paragraf2:
       "Setiap teka-teki dilengkapi data yang menunjukkan bagaimana pemain dengan rating berbeda menyikapi posisi tersebut, sehingga latihanmu lebih terarah dan efektif.",
-    mulai: "Mulai Teka-teki",
+    mulai: "Mulailah Sesi Latihan Anda",
     demoJudul: "Teka-teki Taktis",
     demoLevel: "Menengah",
     demoTantangan: "Temukan langkah terbaik dalam posisi taktis ini",
     grafikJudul: "Langkah Berdasarkan Rating",
-    grafikSumbuY: "Probabilitas Maia",
+    grafikSumbuY: "Probabilitas Bintang Toba",
     analisisJudul: "Analisis Posisi",
     analisisBag1:
       "Waspada, posisi ini sangat berbahaya! Sangat mudah terjebak dengan kesalahan yang menggiurkan seperti {x}.",
