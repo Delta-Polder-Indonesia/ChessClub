@@ -6,6 +6,10 @@ import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import PanelEngine from "../../components/PanelEngine.jsx";
+import {
+  ambilArtikelPembukaan,
+  lihatArtikelTercache,
+} from "../../lib/artikelWikipedia.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -229,6 +233,10 @@ export default function PapanInteraktif() {
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
 
+  // Artikel Wikipedia tentang pembukaan aktif — berganti mengikuti nama.
+  const [artikelPembukaan, setArtikelPembukaan] = useState(null);
+  const batalArtikelRef = useRef(null);
+
   // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan).
   const {
     engineNyala,
@@ -378,6 +386,59 @@ export default function PapanInteraktif() {
     }
     return { kelompok: urut, rata, idDari };
   }, [katalog]);
+
+  /* ------------------------------------------- artikel Wikipedia pembukaan */
+  // Nama pembukaan berubah (langkah baru / muat jalur / ganti bahasa) →
+  // artikel di bawahnya ikut berganti. Hasil tersimpan di cache sesi
+  // (lihat src/lib/artikelWikipedia.js) sehingga bolak-balik langkah
+  // tidak memukul API berulang kali.
+  const namaArtikel = infoPembukaan.nama ? infoPembukaan.nama[0][1] : null;
+  useEffect(() => {
+    batalArtikelRef.current?.abort();
+    if (!namaArtikel) {
+      setArtikelPembukaan(null);
+      return undefined;
+    }
+    const tercache = lihatArtikelTercache(namaArtikel, bahasa);
+    if (tercache !== undefined) {
+      setArtikelPembukaan({
+        status: tercache ? "siap" : "kosong",
+        data: tercache || null,
+        untuk: namaArtikel,
+      });
+    } else {
+      setArtikelPembukaan({ status: "memuat", data: null, untuk: namaArtikel });
+    }
+    // Tunda sebentar agar deretan langkah cepat tidak memicu permintaan
+    // beruntun ke API Wikipedia.
+    const pengaturWaktu = window.setTimeout(() => {
+      const kontrol = new AbortController();
+      batalArtikelRef.current = kontrol;
+      ambilArtikelPembukaan(namaArtikel, bahasa, kontrol.signal)
+        .then((hasil) =>
+          setArtikelPembukaan((kini) =>
+            kini && kini.untuk === namaArtikel
+              ? {
+                  status: hasil ? "siap" : "kosong",
+                  data: hasil || null,
+                  untuk: namaArtikel,
+                }
+              : kini
+          )
+        )
+        .catch(() =>
+          setArtikelPembukaan((kini) =>
+            kini && kini.untuk === namaArtikel
+              ? { status: "gagal", data: null, untuk: namaArtikel }
+              : kini
+          )
+        );
+    }, 300);
+    return () => {
+      window.clearTimeout(pengaturWaktu);
+      batalArtikelRef.current?.abort();
+    };
+  }, [namaArtikel, bahasa]);
 
   /* ------------------------------------------------------ gerakan bidak */
   function pilihPetak(petak) {
@@ -1124,6 +1185,12 @@ export default function PapanInteraktif() {
                           )}
                         </div>
                       )}
+
+                      <KartuArtikelPembukaan
+                        nama={namaUtama[1]}
+                        artikel={artikelPembukaan}
+                        t={t}
+                      />
                     </div>
                   ) : (
                     <p className="mt-1.5 text-sm font-medium text-slate-600">
@@ -1179,6 +1246,112 @@ export default function PapanInteraktif() {
         </div>
       </main>
     </>
+  );
+}
+
+/** Paragraf ringkasan artikel; hanya dua paragraf pertama yang tampil
+ *  sebelum pengguna menekan tombol "selengkapnya". */
+function ParagrafArtikel({ teks, penuh }) {
+  const paragraf = useMemo(
+    () => String(teks || "").split(/\n+/).filter((p) => p.trim()),
+    [teks]
+  );
+  const tampil = penuh ? paragraf : paragraf.slice(0, 2);
+  return (
+    <>
+      {tampil.map((p, i) => (
+        <p key={i} className="m-0 mb-1.5 text-xs leading-5 text-[#555] last:mb-0">
+          {p}
+        </p>
+      ))}
+    </>
+  );
+}
+
+/**
+ * Kartu "Tentang Pembukaan Ini" — artikel Wikipedia (sejarah, ciri khas,
+ * dsb.) yang berganti otomatis mengikuti nama pembukaan aktif di papan.
+ */
+function KartuArtikelPembukaan({ nama, artikel, t }) {
+  const [penuh, setPenuh] = useState(false);
+  useEffect(() => {
+    setPenuh(false);
+  }, [nama]);
+
+  if (!artikel) return null;
+  const data = artikel.data;
+  const jumlahParagraf = data
+    ? String(data.ringkasan || "").split(/\n+/).filter((p) => p.trim()).length
+    : 0;
+
+  return (
+    <div className="mt-3 border-t border-[#d8d8d8] pt-3">
+      <p className="m-0 text-xs font-semibold uppercase tracking-wide text-slate-400">
+        {t("papan.artikelJudul")}
+      </p>
+
+      {artikel.status === "memuat" ? (
+        <div
+          className="mt-2 animate-pulse"
+          role="status"
+          aria-label={t("papan.artikelMemuat")}
+        >
+          <div className="h-3 w-2/5 rounded bg-slate-200" />
+          <div className="mt-2 h-3 w-full rounded bg-slate-200" />
+          <div className="mt-1.5 h-3 w-11/12 rounded bg-slate-200" />
+          <div className="mt-1.5 h-3 w-3/5 rounded bg-slate-200" />
+        </div>
+      ) : artikel.status === "siap" && data ? (
+        <div className="mt-2">
+          <p className="m-0 text-sm font-bold text-[#333]">{data.judul}</p>
+          <div className="mt-1.5 flex items-start gap-3">
+            {data.gambar && (
+              <img
+                src={data.gambar}
+                alt=""
+                loading="lazy"
+                className="h-[72px] w-[72px] shrink-0 border border-[#d8d8d8] bg-white object-cover"
+              />
+            )}
+            <div className="min-w-0">
+              <ParagrafArtikel teks={data.ringkasan} penuh={penuh} />
+            </div>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] text-slate-400">
+              Wikipedia · {data.bahasa.toUpperCase()} · CC BY-SA
+              {data.terjemahanOtomatis &&
+                ` · ${t("papan.artikelOtomatis")}`}
+            </span>
+            <span className="flex items-center gap-3">
+              {jumlahParagraf > 2 && (
+                <button
+                  type="button"
+                  onClick={() => setPenuh((v) => !v)}
+                  className="text-xs font-semibold text-[#1d5f9e] hover:underline"
+                >
+                  {penuh
+                    ? t("papan.artikelRingkas")
+                    : t("papan.artikelSelengkapnya")}
+                </button>
+              )}
+              <a
+                href={data.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-bold text-[#1d5f9e] hover:underline"
+              >
+                {t("papan.artikelBaca")} ↗
+              </a>
+            </span>
+          </div>
+        </div>
+      ) : (
+        <p className="m-0 mt-1.5 text-xs text-slate-500">
+          {t("papan.artikelKosong")}
+        </p>
+      )}
+    </div>
   );
 }
 
