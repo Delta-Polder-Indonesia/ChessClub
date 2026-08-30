@@ -290,16 +290,16 @@ export default function EbookPanduan() {
             ))}
           </div>
     
-          <div className="mt-10">
-            <h3 className="text-[15px] font-bold text-slate-900">Tentang E-Book & Panduan</h3>
-            <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
+          <div className="prose-kci mt-10">
+            <h3>Tentang E-Book & Panduan</h3>
+            <p>
               Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
               terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
               taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
               dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
               memperdalam pemahaman strateginya.
             </p>
-            <p className="mt-3 max-w-[720px] text-[13px] leading-6 text-slate-600">
+            <p>
               Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
               aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
               yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
