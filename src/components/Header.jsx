@@ -62,19 +62,44 @@ function useFokusDialog(terbuka, onTutup, pemicu) {
   return dialogRef;
 }
 
-function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
+function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false }) {
   const { t } = useI18n();
   const aktif = menuAktif(item.path, pathname);
   const judul = t(item.title);
   const [subBuka, setSubBuka] = useState({});
+  const [terbuka, setTerbuka] = useState(false);
   const toggleSub = (key) =>
     setSubBuka((s) => ({ ...s, [key]: !s[key] }));
+
+  // Menutup submenu saat halaman digulir agar tidak menyangkut di header.
+  useEffect(() => {
+    if (!terbuka) return undefined;
+    const onScroll = () => setTerbuka(false);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [terbuka]);
+
+  const tutupSemua = () => {
+    setTerbuka(false);
+    setSubBuka({});
+  };
+
   return (
-    <li className="relative group h-10 flex items-center">
+    <li
+      className="relative group h-10 flex items-center"
+      onMouseEnter={() => item.children && setTerbuka(true)}
+      onMouseLeave={() => setTerbuka(false)}
+    >
       <Link
         to={item.path}
         title={judul}
-        onClick={onNavigate}
+        aria-haspopup={item.children ? "menu" : undefined}
+        aria-expanded={item.children ? terbuka : undefined}
+        onFocus={() => item.children && setTerbuka(true)}
+        onClick={() => {
+          onNavigate();
+          if (item.children) tutupSemua();
+        }}
         className={`flex items-center gap-1 transition-colors duration-200 ${
           scrolled
             ? aktif
@@ -87,7 +112,15 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
         {item.children && <ChevronDownIcon className="size-4 opacity-80" />}
       </Link>
       {item.children && (
-        <ul className="opacity-0 pointer-events-none absolute w-[288px] top-10 rounded-lg flex flex-col group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto transition-all duration-200 ease-in-out left-0 py-4 bg-white shadow-xl">
+        <ul
+className={`absolute w-[260px] top-10 rounded-lg flex flex-col py-4 bg-white shadow-xl transition-all duration-200 ease-in-out ${
+          kanan ? "right-0" : "left-0"
+        } ${
+          terbuka
+            ? "opacity-100 pointer-events-auto"
+            : "opacity-0 pointer-events-none"
+        }`}
+        >
           {item.children.map((child) => (
             <li
               key={child.title}
@@ -97,7 +130,10 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
                 <Link
                   to={child.path}
                   title={t(child.title)}
-                  onClick={onNavigate}
+                  onClick={() => {
+                    onNavigate();
+                    tutupSemua();
+                  }}
                   className="flex-1 w-full text-inherit hover:text-inherit font-normal text-sm"
                 >
                   {t(child.title)}
@@ -130,7 +166,10 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname }) {
                       <Link
                         to={subchild.path}
                         title={t(subchild.title)}
-                        onClick={onNavigate}
+                        onClick={() => {
+                          onNavigate();
+                          tutupSemua();
+                        }}
                         className="block pl-10 py-2 border-0 border-l-4 border-solid border-white hover:border-primary text-inherit hover:text-inherit font-normal text-sm transition-all duration-200"
                       >
                         {t(subchild.title)}
@@ -483,13 +522,14 @@ export default function Header() {
               {/* Nav utama */}
               <nav className="relative bg-transparent min-h-[48px] hidden lg:block">
                 <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 font-semibold">
-                  {MENU_UTAMA.map((item) => (
+                  {MENU_UTAMA.map((item, idx) => (
                     <NavItemDesktop
                       key={item.title}
                       item={item}
                       onNavigate={handleNavigate}
                       scrolled={scrolled}
                       pathname={pathname}
+                      kanan={idx >= MENU_UTAMA.length - 1}
                     />
                   ))}
                 </ul>
