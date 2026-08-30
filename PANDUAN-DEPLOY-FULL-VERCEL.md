@@ -162,12 +162,14 @@ catatan persistensi Vercel di bawah sebelum dipakai produksi.
 2. **Login utama:** `KCI_ADMIN_USER` + `KCI_ADMIN_PASSWORD`.
 3. **Token lama:** `KCI_TOKEN_ADMIN` masih diterima sebagai password alternatif
    untuk kompatibilitas, tetapi tidak wajib bila password admin sudah kuat.
-4. **Perubahan admin lewat dashboard tidak permanen di FULL VERCEL.** Vercel
-   hanya mengizinkan penulisan runtime ke `/tmp`. Jadi ganti password/tambah
-   admin dari menu Pengaturan dapat hilang saat cold start/redeploy. Untuk
-   kredensial permanen di FULL VERCEL, ubah Environment Variables Vercel lalu
-   redeploy. Untuk data tulis yang benar-benar awet, gunakan Render +
-   Persistent Disk atau database eksternal.
+4. **Perubahan admin lewat dashboard tidak permanen di FULL VERCEL** *jika
+   Supabase belum diaktifkan.* Vercel hanya mengizinkan penulisan runtime ke
+   `/tmp`. Jadi ganti password/tambah admin dari menu Pengaturan dapat hilang
+   saat cold start/redeploy. Untuk kredensial permanen di FULL VERCEL:
+   - matikan Supabase, **ubah `KCI_ADMIN_PASSWORD`/`KCI_TOKEN_ADMIN` di
+     Environment Variables Vercel lalu redeploy**; atau
+   - **aktifkan Supabase (Bagian 9)** sehingga perubahan admin ikut tersimpan
+     di `kci_storage` dan awet.
 5. **Session login tersimpan di tab browser saja** (`sessionStorage`). Jika tab
    ditutup, pengurus perlu login ulang.
 
@@ -195,19 +197,24 @@ berfungsi.
 >
 > `KCI_DIR_DATA` bawaan di Vercel adalah `/tmp/kci-data`. Isinya hilang
 > setelah cold start, instance baru, atau redeploy. Ini **blocker** jika
-> FULL VERCEL dipakai sebagai backend produksi dengan data tulis.
+> FULL VERCEL dipakai sebagai backend produksi dengan data tulis — **kecuali**
+> Supabase diaktifkan (Bagian 9). Dengan Supabase, seluruh data tulis masuk
+> ke PostgreSQL dan awet.
 >
-> Solusi A: Render + Persistent Disk untuk backend (`PANDUAN-DEPLOY-VERCEL-RENDER.md`)
-> Solusi B: Vercel KV (Redis) untuk sesi/cache
-> Solusi C: PostgreSQL (Neon/Railway) — `DATABASE-MIGRATION.md`
+> Solusi A (disarankan): Supabase bawaan — `db/supabase-schema.sql` + env
+> `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` (Bagian 9).
+> Solusi B: Render + Persistent Disk untuk backend (`PANDUAN-DEPLOY-VERCEL-RENDER.md`)
+> Solusi C: Vercel KV (Redis) untuk sesi/cache
+> Solusi D: PostgreSQL relasional penuh (Neon/Railway) — `DATABASE-MIGRATION.md`
 >
 > Rincian: `VERCEL-LIMITATIONS.md`.
 
-1. **Data seed dari Git permanen, tulisan runtime sementara.** Berkas
-   `data/*.json` yang di-commit ikut dibundle dan disalin ke `/tmp/kci-data`
-   saat function cold start. Data yang dibuat langsung dari situs Vercel
-   (pesan, riwayat masuk, perubahan konten/admin) dapat hilang saat instance
-   dingin atau redeploy.
+1. **Data seed dari Git tetap permanen; tulisan runtime awet bila Supabase
+   aktif.** Berkas `data/*.json` yang di-commit ikut dibundle; saat Supabase
+   aktif dan baris belum ada, isinya otomatis di-seed ke `kci_storage` sehingga
+   data publik tetap tampil. Tanpa Supabase, tulisan runtime (pesan, riwayat
+   masuk, perubahan konten/admin) disimpan di `/tmp` dan dapat hilang saat
+   instance dingin atau redeploy.
 2. **State memori per instance.** CSRF token, tiket verifikasi, sesi OAuth,
    dan rate-limit hidup di memori function. Frontend sudah otomatis mengambil
    CSRF baru saat token lama ditolak.
@@ -252,22 +259,67 @@ dihitung ulang sebagai byte "tidak ter-cache" oleh PageSpeed).
 | POST/login balas `403 {"pesan":"Asal permintaan tidak diizinkan."}`                 | Domain tidak ada di `KCI_ASAL_DIIZINKAN`                                                                 | Tambahkan domain Vercel dan domain kustom, tanpa trailing slash, pisah koma       |
 | Frontend hidup tetapi dashboard selalu gagal login                                  | `VITE_API_DASAR` masih menunjuk backend lama                                                             | Hapus/kosongkan `VITE_API_DASAR` di Vercel untuk FULL VERCEL, redeploy            |
 | Setelah ganti password di dashboard, beberapa waktu kemudian balik ke password lama | Perubahan tersimpan di `/tmp` serverless                                                                 | Ubah `KCI_ADMIN_PASSWORD` di Environment Variables Vercel, lalu redeploy          |
+| Data (pendaftaran, turnamen, pesan) tidak tersimpan / hilang setelah redeploy        | Backend menulis ke `/tmp` yang ephemeral; Supabase belum diaktifkan                                        | Aktifkan Supabase (lihat **Bagian 9**), lalu redeploy                            |
 | `Token CSRF tidak valid` sesekali                                                   | Instance function berganti                                                                               | Normal di serverless; frontend akan ambil CSRF baru dan ulangi request            |
 | `/api/anggota` lama balas                                                           | Sinkronisasi roster Chess.com pertama                                                                    | Tunggu sampai 60 detik; request berikutnya memakai cache                          |
 | `502 ... Chess.com sedang tidak dapat dihubungi`                                    | API Chess.com sedang bermasalah                                                                          | Coba lagi nanti; bukan galat login pengurus                                       |
 
 ---
 
-## 9. Jika butuh data produksi awet
+## 9. Membuat data produksi AWET dengan Supabase (disarankan)
 
-FULL VERCEL cocok untuk uji coba dan situs kecil. Jika data dashboard (pesan,
-riwayat, admin tambahan, perubahan konten) harus awet tanpa commit ulang,
-pakai salah satu opsi berikut:
+FULL VERCEL memakai Serverless Function yang **menulis data ke `/tmp`** —
+direktori itu **hilang** setiap cold start / redeploy. Itulah penyebab
+“data tidak tersimpan”: pendaftaran anggota, hasil turnamen, pesan, admin
+tambahan, dan jejak audit lenyap.
+
+Aplikasi ini sekarang **mendukung Supabase langsung**. Dengan mengaktifkannya,
+seluruh data runtime disimpan ke PostgreSQL sehingga **benar-benar awet**
+tanpa perlu Render/VPS. Caranya:
+
+1. **Buat tabel.** Buka [Supabase](https://supabase.com) → proyekmu →
+   **SQL Editor** → **New query**, tempel isi berkas `db/supabase-schema.sql`,
+   lalu **Run**. Ini membuat tabel `kci_storage`.
+2. **Set Environment Variables** di Vercel (**Settings → Environment
+   Variables**). Bila proyek Vercel sudah terhubung lewat integrasi Supabase
+   di Vercel Marketplace, `SUPABASE_URL` dan `SUPABASE_SERVICE_ROLE_KEY`
+   sudah otomatis ada — cukup pastikan keduanya terisi.
+   | Key                        | Nilai (`<proyek>` = id proyek Supabase)  |
+   | -------------------------- | ----------------------------------------- |
+   | `SUPABASE_URL`             | `https://<proyek>.supabase.co`            |
+   | `SUPABASE_SERVICE_ROLE_KEY`| kunci **service role** (jangan anon key)  |
+3. **Redeploy** proyek Vercel (Deployments → Deployment terbaru → **Redeploy**).
+4. Periksa log: harus muncul
+   `Penyimpanan Supabase dikonfigurasi — data akan TERSIMPAN`.
+
+Setelah itu semua data ditulis ke PostgreSQL dan bertahan terhadap redeploy.
+Data publik awal (anggota, turnamen, berita, pengumuman) yang di-commit ke Git
+otomatis di-seed ke database saat pertama kali dibaca, jadi situs tetap tampil
+normal.
+
+> **Catatan keamanan:** gunakan `SUPABASE_SERVICE_ROLE_KEY` untuk backend
+> (melewati Row Level Security). Jangan menaruh anon key di frontend — data
+> `kci_storage` berisi kontak pribadi & admin.
+
+### Menguji bahwa data tersimpan
+
+Setelah mengaktifkan, daftarkan satu anggota baru di situs, lalu di Supabase
+jalankan:
+
+```sql
+select id, length(data) as ukuran, updated_at from public.kci_storage
+order by updated_at desc limit 10;
+```
+
+Harus ada baris `anggota.json` (dan `rahasia/kontak.json`) yang terbarui.
+
+---
+
+Jika **tidak** memakai Supabase, dan tetap ingin data awet, pakai salah satu
+opsi berikut:
 
 - **Vercel frontend + Render Starter + Persistent Disk** — lihat
   `PANDUAN-DEPLOY-VERCEL-RENDER.md`.
-- **Database eksternal** seperti Supabase/Neon/Turso — perlu adaptasi layer
-  penyimpanan.
 - **VPS** dengan `KCI_DIR_DATA` di disk permanen.
 
 ---

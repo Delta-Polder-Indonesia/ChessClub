@@ -29,16 +29,27 @@ saat function dingin — itu satu-satunya data yang “awet” di FULL VERCEL.
 
 ## Jalur migrasi (pilih satu)
 
-**A. Vercel frontend + Render backend + Persistent Disk** (disarankan)
+**A. Supabase bawaan (paling mudah untuk FULL VERCEL).** Aplikasi sudah punya
+lapisan penyimpanan `kci_storage` (key-value per-berkas) yang menulis ke
+PostgreSQL bila env `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` diisi.
+Cukup jalankan `db/supabase-schema.sql` dan redeploy — lihat
+`PANDUAN-DEPLOY-FULL-VERCEL.md` Bagian 9. Data dashboard, pesan, turnamen,
+admin, dan jejak audit menjadi awet.
+
+**B. Vercel frontend + Render backend + Persistent Disk**
 lihat `PANDUAN-DEPLOY-VERCEL-RENDER.md`.
 
-**B. Vercel KV (Redis)** untuk sesi, rate-limit, dan cache; data anggota
+**C. Vercel KV (Redis)** untuk sesi, rate-limit, dan cache; data anggota
 tetap butuh store terpisah.
 
-**C. PostgreSQL** (Neon, Railway, Supabase) — lihat `DATABASE-MIGRATION.md`.
+**D. PostgreSQL relasional penuh** (Neon, Railway, Supabase) dengan tabel
+per-entitas — lihat `DATABASE-MIGRATION.md`. Ini migrasi yang lebih besar;
+untuk kebutuhan saat ini, opsi **A** sudah memadai.
 
-Jangan deploy FULL VERCEL sebagai satu-satunya backend jika dashboard
-pengurus, pesan, atau hasil turnamen harus bertahan antar-hari.
+> Keterbatasan yang tersisa: operasi baca-ubah-tulis tetap memakai antrean
+> *per-instance*, sehingga dua instance menulis ke kunci yang sama pada
+> detik yang sama berisiko saling menimpa (sama seperti desain berkas-nya).
+> Ini dampaknya kecil untuk situs komunitas ber-volume rendah.
 
 ---
 

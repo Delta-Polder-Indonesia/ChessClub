@@ -98,9 +98,46 @@ export const konfigurasi = {
   /** Lokasi berkas data.
    * Di Vercel hanya /tmp yang dapat ditulis (filesystem lain read-only),
    * jadi bila KCI_DIR_DATA tidak diatur bawaannya otomatis /tmp/kci-data.
-   * CATATAN: /tmp bersifat sementara per instance function — untuk data
-   * yang harus awet, gunakan disk persisten (Render Starter) atau DB. */
+   * CATATAN: tanpa database eksternal, /tmp bersifat sementara per instance
+   * function — untuk data yang harus awet gunakan Supabase (lihat bawah). */
   dirData: process.env.KCI_DIR_DATA || (DI_VERCEL ? "/tmp/kci-data" : path.join(AKAR, "data")),
+
+  /** Direktori "benih" yang ikut ter-bundle saat deploy — sumber data publik
+   * yang di-commit ke Git. Saat Supabase aktif dan baris belum ada, nilai ini
+   * dipakai mengisi tabel agar data publik tetap tampil. TIDAK pernah ditulis
+   * di sini (read-only pada Serverless Function). */
+  dirSeed: process.env.KCI_DIR_SEED || path.join(AKAR, "data"),
+
+  /**
+   * Supabase (PostgreSQL) untuk penyimpanan yang AWET pada FULL VERCEL.
+   *
+   * Vercel → Settings → Environment Variables (format hasil integrasi
+   * Marketplace Supabase otomatis tersedia):
+   *   SUPABASE_URL                — https://<proyek>.supabase.co
+   *   SUPABASE_SERVICE_ROLE_KEY   — kunci service role (melompati RLS, dipakai
+   *                                 untuk baca & tulis dari backend)
+   *   SUPABASE_ANON_KEY           — (opsional) hanya dipakai bila service role
+   *                                 kosong; tetap memerlukan kebijakan RLS.
+   *
+   * Bila keduanya diisi, backend menyimpan seluruh data runtime (anggota,
+   * turnamen, berita, pesan, admins, jejak audit, dst.) ke tabel
+   * `kci_storage` sehingga bertahan terhadap cold start / redeploy.
+   */
+  supabase: {
+    url:
+      process.env.SUPABASE_URL ||
+      process.env.KCI_SUPABASE_URL ||
+      "",
+    serviceRole:
+      process.env.SUPABASE_SERVICE_ROLE_KEY ||
+      process.env.KCI_SUPABASE_SERVICE_ROLE_KEY ||
+      "",
+    anon:
+      process.env.SUPABASE_ANON_KEY ||
+      process.env.KCI_SUPABASE_ANON_KEY ||
+      "",
+  },
+
   get berkasAnggota() {
     return path.join(this.dirData, "anggota.json");
   },

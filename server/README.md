@@ -27,8 +27,10 @@ Langkah deploy lengkap (env vars wajib, verifikasi, batasan serverless):
 lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` dan `VERCEL-LIMITATIONS.md` di akar repo.
 
 **Data persistent:** `/tmp/kci-data` di Vercel **tidak** bertahan antar
-invocation. Untuk anggota, turnamen, pesan, dan admin yang harus awet,
-pasang Postgres (`DATABASE-MIGRATION.md`) atau disk Render.
+invocation. Agar anggota, turnamen, pesan, dan admin awet, aktifkan
+**Supabase** (jalankan `db/supabase-schema.sql`, isi `SUPABASE_URL` +
+`SUPABASE_SERVICE_ROLE_KEY`; lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` Bagian 9),
+atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / disk Render.
 
 ## Endpoint
 
@@ -117,6 +119,9 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `PORT` | tidak | Bawaan `8787` |
 | `KCI_LOG_PERMINTAAN` | disarankan | `1` = log JSON ringkas per request (ID, method, path, status, durasi; tanpa body/token/IP) |
 | `KCI_DIR_DATA` | tidak | Lokasi berkas data, bawaan `./data` |
+| `SUPABASE_URL` | untuk data awet | `https://<proyek>.supabase.co` — mengaktifkan penyimpanan `kci_storage` |
+| `SUPABASE_SERVICE_ROLE_KEY` | untuk data awet | Kunci service role (melewati RLS) untuk baca & tulis |
+| `SUPABASE_ANON_KEY` | opsional | Dipakai hanya bila service role kosong; butuh kebijakan RLS |
 | `KCI_BATAS_DAFTAR` | tidak | Maks. pendaftaran per IP per 15 menit (bawaan 5) |
 | `KCI_BATAS_UMUM` | tidak | Maks. permintaan umum per IP per 15 menit |
 | `KCI_CHESS_DASAR` | **jangan di produksi** | Ganti alamat API Chess.com — hanya untuk uji tiruan lokal |
@@ -149,6 +154,7 @@ server/src/
   konfigurasi.js       env var + validasi produksi
   http.js              CORS, gzip, rate limit, auth, router
   simpanan.js          tulis atomik + antrean anti-balapan
+  storage-supabase.js  penyimpanan persisten ke tabel kci_storage (Supabase)
   chess.js             klien Chess.com (cache, retry, timeout)
   keanggotaan.js       logika bisnis
   identitas-server.js  hashing identitas ber-pepper

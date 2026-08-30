@@ -1,7 +1,10 @@
 /**
- * Lapisan penyimpanan berbasis berkas JSON.
+ * Lapisan penyimpanan data.
  *
- * Dua hal yang membuat ini aman dipakai server:
+ * Bila Supabase dikonfigurasi (dan tabel `kci_storage` sudah dibuat), seluruh
+ * baca/tulis data diarahkan ke PostgreSQL sehingga data AWET terhadap cold
+ * start / redeploy Vercel. Tanpa itu, modul ini memakai berkas JSON (lokal
+ * atau /tmp) dengan dua jaminan:
  *
  * 1. TULIS ATOMIK — data ditulis ke berkas sementara lalu di-rename.
  *    Rename bersifat atomik di POSIX, jadi berkas tidak pernah setengah
@@ -14,6 +17,12 @@
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
+import {
+  supabaseSiap,
+  bacaJsonSupabase,
+  tulisJsonSupabase,
+  tambahBarisSupabase,
+} from "./storage-supabase.js";
 
 /* ----------------------------------------------------------- antrean */
 
@@ -43,6 +52,15 @@ export function bacaJsonSync(berkas, bawaan) {
 }
 
 export async function bacaJson(berkas, bawaan) {
+  if (await supabaseSiap()) {
+    try {
+      return await bacaJsonSupabase(berkas, bawaan);
+    } catch (e) {
+      throw new Error(
+        `Gagal membaca ${path.basename(berkas)} dari Supabase: ${e?.message || e}`
+      );
+    }
+  }
   try {
     const isi = await fsp.readFile(berkas, "utf8");
     return isi.trim() ? JSON.parse(isi) : bawaan;
@@ -52,8 +70,12 @@ export async function bacaJson(berkas, bawaan) {
   }
 }
 
-/** Tulis JSON secara atomik (tulis sementara -> fsync -> rename). */
+/** Tulis JSON secara atomik (tulis sementara -> fsync -> rename), atau ke Supabase. */
 export async function tulisJson(berkas, isi) {
+  if (await supabaseSiap()) {
+    await tulisJsonSupabase(berkas, isi);
+    return;
+  }
   await fsp.mkdir(path.dirname(berkas), { recursive: true });
   const sementara = `${berkas}.${process.pid}.${Date.now()}.tmp`;
   const teks = JSON.stringify(isi, null, 2) + "\n";
@@ -69,8 +91,12 @@ export async function tulisJson(berkas, isi) {
   await fsp.rename(sementara, berkas);
 }
 
-/** Tambahkan satu baris ke berkas JSONL (untuk jejak audit). */
+/** Tambahkan satu baris ke berkas JSONL (untuk jejak audit), atau ke Supabase. */
 export async function tambahBaris(berkas, objek) {
+  if (await supabaseSiap()) {
+    await tambahBarisSupabase(berkas, objek);
+    return;
+  }
   await fsp.mkdir(path.dirname(berkas), { recursive: true });
   await fsp.appendFile(berkas, JSON.stringify(objek) + "\n", "utf8");
 }
