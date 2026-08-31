@@ -530,8 +530,8 @@ export default function Landing() {
   return (
     <div className="w-full overflow-x-hidden">
       <MetaHalaman
-        title={t("common.namaKomunitas")}
-        description="Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
+        title={t("common.judulBeranda")}
+        description="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
       />
       {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
