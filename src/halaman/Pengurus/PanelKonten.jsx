@@ -360,6 +360,8 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
                       <img
                         src={x.gambar}
                         alt=""
+                        width={64}
+                        height={40}
                         className="h-10 w-16 object-cover"
                       />
                     ) : (

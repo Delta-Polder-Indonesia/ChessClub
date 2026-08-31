@@ -18,11 +18,11 @@ export default function Turnamen() {
       next={{ to: "/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
     >
       <PageArtikel title="Turnamen Komunitas">
-        <h3><img src={gambar("/images/Turnamen/daftar.png")} alt="" style={{display:"inline",height:60,marginRight:6}}/><Link to="/pendaftaran-anggota">Pendaftaran Anggota</Link></h3>
-        <h3><img src={gambar("/images/Turnamen/skor.png")} alt="" style={{display:"inline",height:60,marginRight:6}}/><Link to="/turnamen/turnamen-bulanan">Turnamen Bulanan</Link></h3>
-        <h3><img src={gambar("/images/Turnamen/live.png")} alt="" style={{display:"inline",height:60,marginRight:6}}/><Link to="/turnamen/turnamen-terbuka">Turnamen Terbuka</Link></h3>
-        <h3><img src={gambar("/images/Turnamen/chairs.png")} alt="" style={{display:"inline",height:60,marginRight:6}}/><Link to="/turnamen/liga-antar-komunitas">Liga Antar Komunitas</Link></h3>
-        <h3><img src={gambar("/images/Turnamen/hasil.png")} alt="" style={{display:"inline",height:60,marginRight:6}}/><Link to="/turnamen/liga-musiman">Liga Musiman</Link></h3>
+        <h3><img src={gambar("/images/Turnamen/daftar.png")} alt="" width="60" height="60" style={{display:"inline",height:60,width:60,marginRight:6}}/><Link to="/pendaftaran-anggota">Pendaftaran Anggota</Link></h3>
+        <h3><img src={gambar("/images/Turnamen/skor.png")} alt="" width="60" height="60" style={{display:"inline",height:60,width:60,marginRight:6}}/><Link to="/turnamen/turnamen-bulanan">Turnamen Bulanan</Link></h3>
+        <h3><img src={gambar("/images/Turnamen/live.png")} alt="" width="60" height="60" style={{display:"inline",height:60,width:60,marginRight:6}}/><Link to="/turnamen/turnamen-terbuka">Turnamen Terbuka</Link></h3>
+        <h3><img src={gambar("/images/Turnamen/chairs.png")} alt="" width="60" height="60" style={{display:"inline",height:60,width:60,marginRight:6}}/><Link to="/turnamen/liga-antar-komunitas">Liga Antar Komunitas</Link></h3>
+        <h3><img src={gambar("/images/Turnamen/hasil.png")} alt="" width="60" height="60" style={{display:"inline",height:60,width:60,marginRight:6}}/><Link to="/turnamen/liga-musiman">Liga Musiman</Link></h3>
 
         <p>
           Turnamen bukan sekadar ajang mencari pemenang; dalam konteks komunitas

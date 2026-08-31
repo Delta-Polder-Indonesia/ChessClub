@@ -63,6 +63,8 @@ export function Avatar({ username, foto }) {
     <img
       src={foto}
       alt={username}
+      width={36}
+      height={36}
       loading="lazy"
       referrerPolicy="no-referrer"
       className="h-9 w-9 rounded-full object-cover bg-slate-200 shrink-0"

@@ -1317,6 +1317,8 @@ function KartuArtikelPembukaan({ nama, artikel, t }) {
               <img
                 src={data.gambar}
                 alt=""
+                width={72}
+                height={72}
                 loading="lazy"
                 className="h-[72px] w-[72px] shrink-0 border border-[#d8d8d8] bg-white object-cover"
               />
