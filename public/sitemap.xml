@@ -105,6 +105,10 @@
     <changefreq>weekly</changefreq>
   </url>
   <url>
+    <loc>%%SITE_URL%%beranda/rangkuman-pengumuman</loc>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
     <loc>%%SITE_URL%%beranda/daftar-juara</loc>
     <changefreq>weekly</changefreq>
   </url>
