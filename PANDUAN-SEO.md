@@ -13,6 +13,7 @@ deskripsi yang jelas — bukan cuma link mentah.
 | `meta description` | "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur…" | Cuplikan abu-abu di bawah judul |
 | `meta keywords` | blunder skuad, catur, komunitas catur, turnamen catur, belajar catur, sekolah catur, teka-teki, skakmat, pembukaan, e-book, Stockfish, dll. | Mesin pencari lain & katalog isi |
 | `meta robots` | `index, follow` | Izin eksplisit di-crawl Google |
+| `meta google-site-verification` | `bWdpNEop…ULP0` | Bukti kepemilikan untuk Google Search Console |
 | `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero-828.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
@@ -37,11 +38,15 @@ Sekali saja, ikuti langkah ini:
 2. Klik **Add property** → pilih **URL prefix** → isi
    `https://chess-club-weld.vercel.app` (tanpa slash akhir).
 3. Verifikasi dengan metode **HTML tag**: Search Console memberi tag
-   `<meta name="google-site-verification" content="…">`. Taruh tag itu di
-   bagian `<head>` `index.html` (setelah tag viewport), commit, lalu deploy
-   ulang di Vercel. Klik **Verify**.
+   `<meta name="google-site-verification" content="…">`.
+   **Tag ini sudah terpasang** di `<head>` `index.html` (tepat setelah
+   tag viewport), sehingga ia ikut tersalin ke `404.html` dan ke setiap
+   salinan rute yang dibuat `plugins/performa.js`. Sisa langkah di sisi
+   Google: buka Search Console → **Verify**.
    (Alternatif: metode **DNS TXT** — tambahkan record TXT di provider
    domain; lebih rapi karena tidak perlu commit ke repo.)
+   Bila property lain (mis. domain kustom) memberi token berbeda,
+   tambahkan satu baris `<meta>` lagi — jangan menimpa token yang ada.
 4. Setelah terverifikasi: menu **Sitemaps** → ketik
    `https://chess-club-weld.vercel.app/sitemap.xml` → **Submit**.
 5. Menu **URL Inspection** → tempel URL beranda → **Request indexing**.
