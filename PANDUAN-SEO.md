@@ -1,17 +1,17 @@
 # Panduan SEO — Agar Situs Muncul di Pencarian Google
 
-Tujuan: ketika seseorang mengetik **"komunitas catur Indonesia"**, **"catur"**,
-**"turnamen catur"**, atau **"belajar catur"** di Google, hasil pencarian
-menampilkan situs kami dengan judul dan deskripsi yang jelas — bukan cuma
-link mentah.
+Tujuan: ketika seseorang mengetik **"blunder skuad"**, **"komunitas catur
+Indonesia"**, **"catur"**, **"turnamen catur"**, atau **"belajar catur"**
+di Google, hasil pencarian menampilkan situs kami dengan judul dan
+deskripsi yang jelas — bukan cuma link mentah.
 
 ## 1. Yang sudah terpasang di situs (`index.html`)
 
 | Elemen | Isi | Kegunaan |
 | --- | --- | --- |
 | `<title>` | `Beranda \| Komunitas Catur Indonesia` | Judul biru di hasil Google |
-| `meta description` | "Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur…" | Cuplikan abu-abu di bawah judul |
-| `meta keywords` | catur, komunitas catur, turnamen catur, belajar catur, sekolah catur, teka-teki, skakmat, pembukaan, e-book, Stockfish, dll. | Mesin pencari lain & katalog isi |
+| `meta description` | "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur…" | Cuplikan abu-abu di bawah judul |
+| `meta keywords` | blunder skuad, catur, komunitas catur, turnamen catur, belajar catur, sekolah catur, teka-teki, skakmat, pembukaan, e-book, Stockfish, dll. | Mesin pencari lain & katalog isi |
 | `meta robots` | `index, follow` | Izin eksplisit di-crawl Google |
 | `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero-828.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
@@ -77,10 +77,12 @@ peringatan merah, perbaiki sesuai pesannya.
 Hasil Google akan tampil kira-kira:
 
 ```
-Komunitas Catur Indonesia
-chess-club-weld.vercel.app
 Beranda | Komunitas Catur Indonesia
-Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi
-pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan,
-dan kabar komunitas terbaru.
+chess-club-weld.vercel.app
+Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan
+bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas
+pelatihan, dan kabar komunitas terbaru.
 ```
+
+Catatan: ejaan resmi nama klub adalah **"Blunder Skuad"** (bukan
+"Blunder Sekuad"), sesuai klub Chess.com `chess.com/club/blunder-skuad`.

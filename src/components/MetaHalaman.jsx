@@ -23,7 +23,7 @@ export default function MetaHalaman({ title, description }) {
 
   const deskripsi =
     description ||
-    "Komunitas Catur Indonesia — wadah bermain, belajar, dan bertumbuh bagi pecatur.";
+    "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur.";
 
   return (
     <Helmet>
