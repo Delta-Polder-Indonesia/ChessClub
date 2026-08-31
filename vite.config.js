@@ -42,6 +42,30 @@ export default defineConfig({
     // tanpa mengubah perilaku runtime. Jangan matikan di produksi hanya
     // demi keterbacaan; pakai source map untuk debug.
     minify: "esbuild",
+    // Target browser modern → output lebih kecil (esbuild downlevel)
+    target: "es2020",
+    // Hapus console.log/debug/info di produksi → bundle lebih kecil
+    // dan main thread tidak terbebani logging.
+    esbuild: {
+      drop: ["debugger"],
+      pure: ["console.log", "console.debug", "console.info"],
+    },
+    rollupOptions: {
+      output: {
+        // Pisahkan vendor library ke chunk terpisah supaya browser
+        // meng-cache React, react-router, dan lib lain secara independen
+        // dari kode aplikasi yang sering berubah.
+        manualChunks: {
+          "vendor-react": [
+            "react",
+            "react-dom",
+            "react-dom/client",
+            "react-router",
+            "react-router-dom",
+          ],
+        },
+      },
+    },
   },
   server: {
     host: true,
