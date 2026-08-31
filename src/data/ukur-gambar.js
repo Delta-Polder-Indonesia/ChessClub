@@ -16,15 +16,15 @@
  */
 export const UKUR = {
   "/images/chesscomlogo.webp": [
-    332,
-    101,
+    1000,
+    304,
     [
       150
     ]
   ],
   "/images/logo-mark-light.webp": [
-    104,
-    104,
+    336,
+    336,
     [
       52
     ]
