@@ -2,16 +2,21 @@ import { Suspense, lazy, useEffect } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { BersihkanBootHero, PlaceholderLayarPenuh } from "./components/Loading.jsx";
-import TataLetakBeranda from "./halaman/Beranda/TataLetakBeranda.jsx";
 import { mulaiPrefetchRute } from "./lib/prefetch.js";
 
 /* ------------------------------------------------------- code splitting
  * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
  * chunk terpisah — bundel awal hanya berisi kerangka layout + router.
  * Halaman berat (Dashboard, Galeri, CaraBermainCatur) paling diuntungkan:
- * kodenya baru diunduh saat rutenya benar-benar dikunjungi. */
+ * kodenya baru diunduh saat rutenya benar-benar dikunjungi.
+ *
+ * TataLetakBeranda dan ProtectedRoute juga sengaja lazy. Keduanya hanya
+ * diperlukan pada area /beranda dan /pengurus; bila di-import eager, kode
+ * sidebar/API dashboard ikut masuk ke JavaScript landing dan muncul sebagai
+ * JavaScript yang tidak digunakan di PageSpeed. */
+const TataLetakBeranda = lazy(() => import("./halaman/Beranda/TataLetakBeranda.jsx"));
+const ProtectedRoute = lazy(() => import("./components/ProtectedRoute.jsx"));
 
 // Tentang Kami
 const TentangKami = lazy(() => import("./halaman/TentangKami/TentangKami.jsx"));
@@ -236,12 +241,14 @@ export default function App() {
         <Route
           path="/pengurus"
           element={
-            <ProtectedRoute>
-              <Suspense fallback={<PlaceholderLayarPenuh />}>
-                <BersihkanBootHero />
-                <Dashboard />
-              </Suspense>
-            </ProtectedRoute>
+            <Suspense fallback={<PlaceholderLayarPenuh />}>
+              <ProtectedRoute>
+                <Suspense fallback={<PlaceholderLayarPenuh />}>
+                  <BersihkanBootHero />
+                  <Dashboard />
+                </Suspense>
+              </ProtectedRoute>
+            </Suspense>
           }
         />
       </Routes>
