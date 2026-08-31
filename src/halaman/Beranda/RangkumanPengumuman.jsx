@@ -34,31 +34,35 @@ export default function RangkumanPengumuman() {
 
   return (
     <BagianBeranda id="pengumuman" title="Rangkuman Pengumuman">
-      <p className="ql-align-justify">
+      {/* Diperkecil ke text-sm & warna slate-600 agar lebih elegan */}
+      <p className="ql-align-justify text-sm text-slate-600 leading-relaxed">
         Berikut rangkuman pengumuman resmi komunitas. Klik "Selengkapnya"
         untuk membuka isi pengumuman secara penuh.
       </p>
 
       {gagal ? (
-        <p>Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
+        <p className="text-sm text-red-600 mt-4">Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
       ) : pengumuman === null ? (
-        <p>Memuat pengumuman…</p>
+        <p className="text-sm text-slate-500 mt-4 italic">Memuat pengumuman…</p>
       ) : pengumuman.length ? (
         <div className="mt-6 flex flex-col gap-y-8 md:gap-y-10">
           {pengumuman.map((p) => (
             <div key={p.id} className="w-full border-b border-slate-200 pb-8">
               <div className="w-full">
-                <p className="m-0 text-primary font-semibold text-xs md:text-xs uppercase">
+                {/* Ditambahkan tracking-wider agar label tanggal tampak rapi */}
+                <p className="m-0 text-primary font-bold text-xs uppercase tracking-wider">
                   {p.tanggal}
                 </p>
               </div>
               <div className="mt-2 w-full grid lg:grid-cols-[82%_18%] gap-x-10 md:gap-x-10 lg:gap-x-10 gap-y-6 md:gap-y-8 lg:justify-stretch lg:items-start">
                 <div className="grid lg:grid-cols-[1fr_1fr] lg:max-w-[960px] xl:max-w-[1280px] gap-x-10 md:gap-x-10 lg:gap-x-10 gap-y-4 md:gap-y-6 lg:items-start">
-                  <h2 className="focus:outline-none focus:ring-0 font-semibold text-3xl md:text-3xl">
+                  {/* Diubah dari text-3xl ke text-base md:text-lg (ukuran standar akademik) */}
+                  <h3 className="focus:outline-none focus:ring-0 font-semibold text-base md:text-lg text-slate-900 leading-snug">
                     {p.judul}
-                  </h2>
+                  </h3>
                   <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
-                    <div className="relative z-1 prose max-w-none text-block normal normal text-justify normal 1/1">
+                    {/* Diubah ke text-sm, text-slate-600, dan leading-relaxed */}
+                    <div className="relative z-1 prose prose-sm max-w-none text-justify text-sm text-slate-600 leading-relaxed">
                       <p>{p.isi}</p>
                     </div>
                   </div>
@@ -68,10 +72,16 @@ export default function RangkumanPengumuman() {
                     to={`/media-dan-informasi/pengumuman/${p.id}`}
                     title={`${t("common.selengkapnya")}: ${p.judul}`}
                     aria-label={`${t("common.selengkapnya")}: ${p.judul}`}
-                    className="text-sm h-12 px-4 md:px-6 gap-2 hover:gap-4 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-solid border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full flex-row"
+                    /* 
+                      - Diubah dari text-sm ke text-xs
+                      - Tinggi tombol dikurangi dari h-12 ke h-9
+                      - Padding horizontal dikurangi dari px-6 ke px-4
+                    */
+                    className="text-xs h-9 px-4 gap-1.5 hover:gap-3 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-solid border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full flex-row"
                   >
                     <span className="order-1">{t("common.selengkapnya")}</span>
-                    <ArrowRightIcon className="order-2 size-6" />
+                    {/* Ukuran ikon panah diperkecil dari size-6 ke size-4 */}
+                    <ArrowRightIcon className="order-2 size-4" />
                   </Link>
                 </div>
               </div>
@@ -79,7 +89,7 @@ export default function RangkumanPengumuman() {
           ))}
         </div>
       ) : (
-        <p>Belum ada pengumuman.</p>
+        <p className="text-sm text-slate-500 mt-4 italic">Belum ada pengumuman.</p>
       )}
     </BagianBeranda>
   );
