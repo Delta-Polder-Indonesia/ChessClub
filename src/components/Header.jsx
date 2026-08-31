@@ -476,10 +476,13 @@ export default function Header() {
             scrolled ? "py-3" : "py-6"
           }`}
         >
+          {/* Tanpa aria-label: nama akses harus SELALU memuat teks yang
+              terlihat (WCAG 2.5.3 / label-content-name-mismatch di
+              Lighthouse). Teks "KOMUNITAS CATUR INDONESIA" dari Logo.jsx
+              sudah menjadi nama akses elemen ini secara otomatis. */}
           <Link
             to="/"
             title="Logo Komunitas Catur Indonesia"
-            aria-label="Logo Komunitas Catur Indonesia"
             className="flex-none flex items-center gap-4 md:gap-6"
           >
             <Logo variant={scrolled ? "dark" : "light"} priority />
