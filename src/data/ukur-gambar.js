@@ -14,6 +14,21 @@
  * Lebar yang sudah dicoba tetapi sengaja TIDAK dibuatkan variannya karena
  * berkas aslinya sudah lebih ramping daripada hasil kompresi ulang.
  */
-export const UKUR = {};
+export const UKUR = {
+  "/images/chesscomlogo.webp": [
+    332,
+    101,
+    [
+      150
+    ]
+  ],
+  "/images/logo-mark-light.webp": [
+    104,
+    104,
+    [
+      52
+    ]
+  ]
+};
 
 export const DILEWATI = {};

@@ -56,12 +56,19 @@ export const MANIFEST = path.join(AKAR, "src", "data", "ukur-gambar.js");
 // sengaja kosong: skrip cukup menyinkronkan manifest (UKUR/DILEWATI jadi
 // kosong) dan uji-gambar tidak lagi menagih varian.
 //
+// Logo mark & logo partner tampil kecil (52 px / ±150 px) tetapi berkas
+// sumbernya jauh lebih besar dari kebutuhan tampilan. Dua gambar ini dipecah
+// jadi varian sintetis agar browser 1x mengunduh ukuran yang pas lewat
+// srcSet + sizes, sementara berkas sumber tetap melayani retina (2x).
 // Kalau suatu saat ada gambar BARU yang berat dan ingin dipecah lagi jadi
 // varian responsif, tambahkan entrinya di sini (mis.
 //   { jalur: "images/foto-baru.webp", varian: [640, 828], kualitas: 78 }
 // ), pasang ImageMagick dengan dukungan WebP, lalu jalankan:
 //   node scripts/optimumkan-gambar.mjs
-export const TARGET = [];
+export const TARGET = [
+  { jalur: "images/logo-mark-light.webp", varian: [52], kualitas: 78 },
+  { jalur: "images/chesscomlogo.webp", varian: [150], kualitas: 78 },
+];
 
 /* -------------------------------------------------------------- util WebP */
 
