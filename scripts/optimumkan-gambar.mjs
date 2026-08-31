@@ -50,53 +50,18 @@ export const MANIFEST = path.join(AKAR, "src", "data", "ukur-gambar.js");
  *   kualitas   kualitas WebP awal; diturunkan otomatis bila hasilnya masih
  *              tidak lebih ringan dari aslinya
  */
-export const TARGET = [
-  // Sampul e-book. Di karusel Landing & kisi EbookPanduan lebarnya tampil
-  // ≤ ~640 px (dan di Landing sebagian besar tertutup overlay gelap), padahal
-  // aslinya 1024×1536 ± 80 KiB — dan Beranda pernah mengunduh SEMUA sampul
-  // sekaligus (± 1,1 MB) hanya untuk menampilkan satunya.
-  // Kisi EbookPanduan cuma ± 260 px per kartu, jadi ada varian 320w juga.
-  {
-    jalur: "images/E-Books",
-    pola: /^cover/i,
-    varian: [320, 640],
-    kualitas: 72,
-  },
-
-  // Tiga kartu sorotan Landing: 960×640 untuk kolom grid ≤ 637 px.
-  {
-    jalur: "images/landing-sorotan-turnamen.webp",
-    varian: [640],
-    kualitas: 78,
-  },
-  { jalur: "images/landing-sorotan-program.webp", varian: [640], kualitas: 78 },
-  { jalur: "images/landing-sorotan-media.webp", varian: [640], kualitas: 78 },
-
-  // Foto "harapan & terima kasih": 836×1120, tampil maksimal 500 px.
-  { jalur: "images/harapan-terima-kasih.webp", varian: [640], kualitas: 78 },
-
-  // Logo mitra di footer: 1000×304 untuk boks h-11 (± 253×77 CSS px).
-  { jalur: "images/chesscomlogo.webp", varian: [520], kualitas: 84 },
-
-  // Mark logo header/footer: 336×336 untuk boks 52×52 (± 91 px di layar hidpi).
-  { jalur: "images/logo-mark-light.webp", varian: [200], kualitas: 84 },
-  { jalur: "images/logo-mark-dark.webp", varian: [200], kualitas: 84 },
-
-  // Foto dengan varian -828 warisan lama: cukup didaftarkan supaya
-  // sumberGambar() boleh memakainya. Kalau varian lamanya ternyata tidak
-  // lebih ringan dari aslinya (pernah terjadi di sekilas-828.webp), skrip ini
-  // membuatnya ulang dengan kualitas yang wajar.
-  { jalur: "images/sekilas.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tata-nilai.webp", varian: [], kualitas: 70 },
-  { jalur: "images/hero-about.webp", varian: [], kualitas: 70 },
-  { jalur: "images/landing-hero.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2015.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2016.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2018.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2020.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2022.webp", varian: [], kualitas: 70 },
-  { jalur: "images/tonggak-2024.webp", varian: [], kualitas: 70 },
-];
+// Sejak pembersihan gambar ganda, setiap gambar di public/images hanya
+// disimpan SATU berkas (varian terkecil hasil optimasi yang dijadikan nama
+// dasar). Tidak ada lagi varian responsif (-320/-640/-828/…), jadi daftar ini
+// sengaja kosong: skrip cukup menyinkronkan manifest (UKUR/DILEWATI jadi
+// kosong) dan uji-gambar tidak lagi menagih varian.
+//
+// Kalau suatu saat ada gambar BARU yang berat dan ingin dipecah lagi jadi
+// varian responsif, tambahkan entrinya di sini (mis.
+//   { jalur: "images/foto-baru.webp", varian: [640, 828], kualitas: 78 }
+// ), pasang ImageMagick dengan dukungan WebP, lalu jalankan:
+//   node scripts/optimumkan-gambar.mjs
+export const TARGET = [];
 
 /* -------------------------------------------------------------- util WebP */
 

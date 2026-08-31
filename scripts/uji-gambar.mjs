@@ -152,8 +152,11 @@ async function periksaHelper(peta) {
   }
 
   const hero = mod.sumberHero("/images/tonggak-2015.jpg");
-  if (!/-828\.webp$/.test(hero.src) || !ada(hero.src)) {
-    hasil.push(salah(`hero menunjuk ${hero.src}, bukan varian 828w yang ada`));
+  if (hero.srcSet || hero.sizes) {
+    hasil.push(salah("hero tak boleh menjanjikan srcSet (varian sudah tidak ada)"));
+  }
+  if (hero.src !== "/images/tonggak-2015.webp" || !ada(hero.src)) {
+    hasil.push(salah(`hero menunjuk ${hero.src}, bukan berkas yang ada`));
   }
   return hasil;
 }

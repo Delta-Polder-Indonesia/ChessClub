@@ -16,7 +16,7 @@ deskripsi yang jelas — bukan cuma link mentah.
 | `meta google-site-verification` | `bWdpNEop…ULP0` | Bukti kepemilikan (metode **HTML tag**) untuk Google Search Console |
 | `google800ae0ab9c9d6db7.html` | `google-site-verification: google800ae0ab9c9d6db7.html` | Bukti kepemilikan (metode **upload berkas HTML**) untuk Google Search Console |
 | `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
-| Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero-828.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
+| Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
 | `robots.txt` + `sitemap.xml` | 31 URL halaman | Peta situs agar Google tahu semua halaman |
 
