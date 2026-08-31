@@ -77,7 +77,7 @@ peringatan merah, perbaiki sesuai pesannya.
 Hasil Google akan tampil kira-kira:
 
 ```
-Beranda | Komunitas Catur Indonesia
+Blunder Skuad | Komunitas Catur Indonesia
 chess-club-weld.vercel.app
 Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan
 bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas

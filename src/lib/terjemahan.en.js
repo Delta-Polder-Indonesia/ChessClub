@@ -7,6 +7,7 @@ export const EN = {
     bahasaIndonesia: "Bahasa Indonesia",
     english: "English",
     namaKomunitas: "Indonesia Chess Community",
+    judulBeranda: "Blunder Skuad | Komunitas Catur Indonesia",
     selanjutnya: "Next",
     selengkapnya: "Learn More",
     tutup: "Close",

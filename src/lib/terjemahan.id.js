@@ -10,6 +10,7 @@ export const ID = {
     bahasaIndonesia: "Bahasa Indonesia",
     english: "English",
     namaKomunitas: "Komunitas Catur Indonesia",
+    judulBeranda: "Blunder Skuad | Komunitas Catur Indonesia",
     selanjutnya: "Selanjutnya",
     selengkapnya: "Selengkapnya",
     tutup: "Tutup",
