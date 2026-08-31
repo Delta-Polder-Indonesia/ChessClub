@@ -16,6 +16,7 @@
     "uji:i18n": "node scripts/uji-i18n.mjs",
     "uji:gambar": "node scripts/uji-gambar.mjs",
     "gambar:optimum": "node scripts/optimumkan-gambar.mjs",
+    "gambar:kualitas": "node scripts/naikkan-kualitas-gambar.mjs",
     "uji:backend": "node server/uji/uji-backend.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
     "uji:supabase": "node scripts/uji-supabase.mjs",
@@ -41,6 +42,7 @@
     "@playwright/test": "^1.62.1",
     "@tailwindcss/vite": "^4.0.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "sharp": "^0.35.4",
     "source-map-explorer": "^2.5.3",
     "tailwindcss": "^4.0.0",
     "vite": "^6.0.5"
