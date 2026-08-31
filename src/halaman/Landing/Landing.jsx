@@ -455,6 +455,8 @@ function HarapanTerimaKasih({ t }) {
               <a href={foto} target="_blank" rel="noopener noreferrer" className="block">
                 <img
                   {...sumberFoto}
+                  width="409"
+                  height="548"
                   alt={t("landing.harapanAltFoto")}
                   title={t("landing.harapanAltFoto")}
                   draggable="false"
