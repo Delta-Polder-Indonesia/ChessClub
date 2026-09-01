@@ -213,6 +213,11 @@ function siapkanGlobal(window) {
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.localStorage = window.localStorage;
+  // Node >= 21 sudah punya `navigator` global, Node 20 belum. react-dom
+  // membacanya saat modulnya dimuat, jadi tanpa baris ini uji ini lulus di
+  // mesin pengembang (Node 22+) tapi mati di CI Node 20 dengan
+  // "ReferenceError: navigator is not defined". Pakai milik jsdom.
+  if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.AudioContext = AudioContextPalsu;
