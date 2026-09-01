@@ -200,6 +200,7 @@ export const EN = {
     sumber: "Member source:",
     sumberCatatan: "The public Chess.com roster refreshes at most every 12 hours.",
     memuat: "Loading data from Chess.com…",
+    menyegarkan: "Refreshing the member list from Chess.com…",
     kosongKlub: "No members could be read from the Chess.com club yet.",
     aktivitasKlub: "Club activity",
     aktivitas: {

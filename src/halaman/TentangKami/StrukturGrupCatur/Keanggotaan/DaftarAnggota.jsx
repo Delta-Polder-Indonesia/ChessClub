@@ -340,7 +340,10 @@ export default function DaftarAnggota() {
   const [dipilih, setDipilih] = useState(null);
 
   // Satu pintu: sumber data yang sama dengan halaman Peringkat.
-  const { anggota, status, pesan } = useAnggota();
+  const { anggota, status, pesan, menyegarkan } = useAnggota();
+  // Data dari kunjungan sebelumnya sudah bisa ditampilkan sementara versi
+  // terbaru diambil di latar belakang.
+  const adaData = anggota.length > 0;
   const sumberKlub = anggota.find(
     (a) => a.sumberAnggota === "chesscom-klub" && a.urlKlub
   );
@@ -383,7 +386,7 @@ export default function DaftarAnggota() {
         </div>
       </div>
 
-      {status === "siap" && jumlahBelumLengkap > 0 && (
+      {adaData && jumlahBelumLengkap > 0 && (
         <div className="not-prose mb-7 border-y border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-slate-700">
           <p className="font-semibold text-slate-900">
             <span className="mr-2 inline-flex h-5 w-5 items-center justify-center rounded-full border border-amber-400 text-xs font-bold text-amber-800">
@@ -403,10 +406,13 @@ export default function DaftarAnggota() {
 
       {status === "memuat" && <p>{t("keanggotaan.memuat")}</p>}
       {status === "gagal" && <p>{pesan}</p>}
-      {status === "siap" && anggota.length === 0 && (
-        <p>{t("keanggotaan.kosongKlub")}</p>
+      {menyegarkan && adaData && (
+        <p className="mb-3 text-xs text-slate-500">
+          {t("keanggotaan.menyegarkan")}
+        </p>
       )}
-      {status === "siap" && anggota.length > 0 && (
+      {status === "siap" && !adaData && <p>{t("keanggotaan.kosongKlub")}</p>}
+      {adaData && (
         <TabelAnggota
           baris={tampil}
           lihatProfil={setDipilih}

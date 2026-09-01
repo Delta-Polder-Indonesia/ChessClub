@@ -52,6 +52,8 @@ import {
 import {
   GalatAplikasi,
   daftarAnggota,
+  rosterAnggota,
+  segarkanRoster,
   daftarHitamPublik,
   daftarkan,
   blokirAnggota,
@@ -98,7 +100,9 @@ import { VERSI_API_KANONIK } from "./jalur-api.js";
 import { kesehatanSupabase } from "./storage-supabase.js";
 
 const CACHE_PUBLIK = "public, max-age=60";
-const CACHE_ANGGOTA = "public, max-age=300";
+const CACHE_ANGGOTA = "public, max-age=300, stale-while-revalidate=86400";
+/** Snapshot tua tetap boleh dipakai, tetapi jangan disimpan lama di CDN. */
+const CACHE_ANGGOTA_USANG = "public, max-age=0, stale-while-revalidate=86400";
 
 export function daftarkanRute(router, { mulaiPada }) {
   /* ------------------------------------------------------------ rute publik */
@@ -124,11 +128,33 @@ export function daftarkanRute(router, { mulaiPada }) {
     { batas: 60 }
   );
 
-  router.get("/api/anggota", async () => ({
-    status: 200,
-    isi: await daftarAnggota(),
-    cache: CACHE_ANGGOTA,
-  }));
+  /*
+   * Daftar anggota dijawab dari snapshot backend sehingga halaman terisi
+   * SEKETIKA; bila snapshot sudah tua, penyegaran dari Chess.com berjalan di
+   * latar belakang (stale-while-revalidate).
+   */
+  router.get("/api/anggota", async (req) => {
+    const { anggota, diperbaruiPada, segar } = await rosterAnggota();
+    return {
+      status: 200,
+      isi: anggota,
+      cache: segar ? CACHE_ANGGOTA : CACHE_ANGGOTA_USANG,
+      kepala: {
+        "X-Roster-Diperbarui": diperbaruiPada || "",
+        "X-Roster-Segar": segar ? "1" : "0",
+      },
+    };
+  });
+
+  /** Metadata snapshot roster — dipakai klien untuk tahu perlu memuat ulang. */
+  router.get("/api/anggota/status", async () => {
+    const { anggota, diperbaruiPada, segar } = await rosterAnggota();
+    return {
+      status: 200,
+      isi: { jumlah: anggota.length, diperbaruiPada, segar },
+      cache: "no-store",
+    };
+  });
 
   router.get("/api/daftar-hitam", async () => ({
     status: 200,
@@ -565,6 +591,13 @@ export function daftarkanRute(router, { mulaiPada }) {
     pastikanAdmin(req);
     const admin = dapatkanAdminDariRequest(req);
     return { status: 200, isi: { ok: true, username: admin?.username || "", role: admin?.role || peranPengurus(req) || "pengurus" } };
+  });
+
+  /** Paksa susun ulang snapshot roster anggota dari Chess.com. */
+  router.post("/api/pengurus/segarkan-roster", async (req) => {
+    await pastikanAdmin(req);
+    const anggota = await segarkanRoster();
+    return { status: 200, isi: { jumlah: anggota.length, diperbaruiPada: new Date().toISOString() } };
   });
 
   router.post("/api/pengurus/pindai", async (req) => {

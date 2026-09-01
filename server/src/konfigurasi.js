@@ -144,6 +144,15 @@ export const konfigurasi = {
   get berkasHitam() {
     return path.join(this.dirData, "daftar-hitam.json");
   },
+  /**
+   * Snapshot roster anggota yang sudah diperkaya (nama, foto, rating).
+   * Berkas inilah yang membuat halaman anggota tampil SEKETIKA saat situs
+   * dibuka: server menjawab dari snapshot, lalu menyegarkannya di latar
+   * belakang dari Chess.com.
+   */
+  get berkasRosterAnggota() {
+    return path.join(this.dirData, "roster-anggota.json");
+  },
   get berkasKontak() {
     return path.join(this.dirData, "rahasia", "kontak.json");
   },
@@ -202,6 +211,16 @@ export const konfigurasi = {
       profilCacheDetik: angka(
         process.env.KCI_CHESS_KLUB_PROFILE_CACHE,
         60 * 60
+      ),
+      /**
+       * Umur snapshot roster (data/roster-anggota.json) yang masih dianggap
+       * segar. Bila lebih tua dari ini, snapshot TETAP dikirim lebih dulu
+       * agar halaman tidak kosong, sementara penyegaran dari Chess.com
+       * berjalan di latar belakang.
+       */
+      snapshotSegarDetik: angka(
+        process.env.KCI_CHESS_KLUB_SNAPSHOT_SEGAR,
+        15 * 60
       ),
     },
   },

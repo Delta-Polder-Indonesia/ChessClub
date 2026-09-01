@@ -41,3 +41,6 @@ data/rahasia/**
 # Server membuatnya sendiri saat pertama ditulis; jangan ikut commit.
 data/pesan.json
 data/riwayat-masuk.json
+
+# Snapshot roster anggota (dibuat otomatis oleh server dari Chess.com)
+data/roster-anggota.json

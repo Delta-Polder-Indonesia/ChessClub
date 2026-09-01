@@ -82,6 +82,20 @@ let server = null;
 if (!diVercel) {
   server = buatServerHttp(tangani);
   mulaiServer(server);
+
+  // Panaskan snapshot roster saat server hidup, supaya pengunjung pertama
+  // pun langsung melihat daftar anggota tanpa menunggu Chess.com.
+  import("./keanggotaan.js")
+    .then(({ rosterAnggota }) => rosterAnggota())
+    .then(({ anggota, diperbaruiPada }) => {
+      console.log(
+        `[kci] snapshot roster siap: ${anggota.length} anggota` +
+          (diperbaruiPada ? ` (diperbarui ${diperbaruiPada})` : "")
+      );
+    })
+    .catch((e) => {
+      console.warn(`[kci] snapshot roster belum siap: ${e?.message || e}`);
+    });
 }
 
 export { server, tangani };

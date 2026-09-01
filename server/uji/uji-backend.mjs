@@ -223,6 +223,21 @@ console.log("\nKesehatan & rute dasar");
     !JSON.stringify(anggota.data).includes("identitas")
   );
 
+  const statusRoster = await panggil("GET", "/api/anggota/status");
+  cek(
+    "GET /api/anggota/status melaporkan snapshot",
+    statusRoster.status === 200 &&
+      statusRoster.data?.jumlah === 3 &&
+      Boolean(statusRoster.data?.diperbaruiPada),
+    JSON.stringify(statusRoster.data)
+  );
+
+  const rosterUlang = await panggil("GET", "/api/anggota");
+  cek(
+    "permintaan kedua dijawab dari snapshot backend",
+    rosterUlang.status === 200 && rosterUlang.data?.length === 3
+  );
+
   const csrf = await panggil("GET", "/api/csrf-token");
   cek("GET /api/csrf-token -> 200", csrf.status === 200);
   cek("menerbitkan token", Boolean(csrf.data?.token));

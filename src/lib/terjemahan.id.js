@@ -202,6 +202,7 @@ export const ID = {
     sumber: "Sumber anggota:",
     sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
     memuat: "Memuat data dari Chess.com…",
+    menyegarkan: "Menyegarkan daftar anggota dari Chess.com…",
     kosongKlub: "Belum ada anggota yang terbaca dari klub Chess.com.",
     aktivitasKlub: "Aktivitas klub",
     aktivitas: {

@@ -16,6 +16,7 @@ import { normalisasiUsername } from "../../src/lib/identitas.js";
  * Kirim JSON. Opsi:
  *   req    — jika Accept-Encoding: gzip dan body > 1 KiB, kompres
  *   cache  — nilai Cache-Control (bawaan no-store)
+ *   kepala — header tambahan (mis. metadata snapshot roster)
  */
 export function kirimJson(res, status, isi, opsi = {}) {
   const teks = JSON.stringify(isi);
@@ -26,6 +27,7 @@ export function kirimJson(res, status, isi, opsi = {}) {
     "Content-Security-Policy":
       "default-src 'none'; frame-ancestors 'none'; base-uri 'none'",
     "Referrer-Policy": "no-referrer",
+    ...(opsi.kepala || {}),
   };
 
   let badan = teks;
@@ -64,7 +66,7 @@ export function pasangCors(req, res) {
   );
   res.setHeader("Access-Control-Max-Age", "86400");
   // Browser frontend dapat menyertakan ID ini saat melaporkan kegagalan.
-  res.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After, X-RateLimit-Remaining");
+  res.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After, X-RateLimit-Remaining, X-Roster-Diperbarui, X-Roster-Segar");
   return true;
 }
 

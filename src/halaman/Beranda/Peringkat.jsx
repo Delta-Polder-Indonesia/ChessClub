@@ -122,7 +122,8 @@ function BarisPeringkat({ a, kontrol }) {
 
 export default function Peringkat() {
   // Sumber data identik dengan tab Keanggotaan.
-  const { anggota, status, pesan, muatUlang } = useAnggota();
+  const { anggota, status, pesan, menyegarkan, muatUlang } = useAnggota();
+  const adaData = anggota.length > 0;
 
   const [cari, setCari] = useState("");
   const [tingkat, setTingkat] = useState("semua");
@@ -242,8 +243,13 @@ export default function Peringkat() {
 
       {status === "memuat" && <p>Memuat data anggota…</p>}
       {status === "gagal" && <p>{pesan}</p>}
+      {menyegarkan && adaData && (
+        <p className="mb-3 text-xs text-slate-500">
+          Menyegarkan data pemain dari Chess.com…
+        </p>
+      )}
 
-      {status === "siap" && anggota.length === 0 && (
+      {status === "siap" && !adaData && (
         <p>
           Belum ada anggota yang terbaca dari{" "}
           <a
@@ -258,11 +264,11 @@ export default function Peringkat() {
         </p>
       )}
 
-      {status === "siap" && anggota.length > 0 && hasil.length === 0 && (
+      {adaData && hasil.length === 0 && (
         <p>Tidak ada pemain yang cocok dengan pencarian ini.</p>
       )}
 
-      {status === "siap" && hasil.length > 0 && (
+      {adaData && hasil.length > 0 && (
         <div className="overflow-auto max-h-[760px]">
           <table className="tabel-kci tabel-peringkat">
             <thead>

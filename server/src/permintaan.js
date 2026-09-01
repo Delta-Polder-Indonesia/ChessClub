@@ -108,7 +108,11 @@ export function buatTangani(router) {
         });
         return res.end(hasil.html);
       }
-      kirimJson(res, hasil.status, hasil.isi, { req, cache: hasil.cache });
+      kirimJson(res, hasil.status, hasil.isi, {
+        req,
+        cache: hasil.cache,
+        kepala: hasil.kepala,
+      });
     } catch (e) {
       if ((jalur.startsWith("/api/pengurus/") || jalur === "/api/pengurus") && e?.status === 401) {
         catatPercobaanAdmin(ip, false);

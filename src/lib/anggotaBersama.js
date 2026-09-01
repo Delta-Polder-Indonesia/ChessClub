@@ -24,6 +24,20 @@ import { ambilDaftarAnggota } from "./api/index.js";
 /** Berapa lama hasil dianggap masih segar (ms). */
 const TTL = 5 * 60 * 1000;
 
+/**
+ * TAMPIL SEKETIKA, SEGARKAN DI LATAR BELAKANG
+ * -------------------------------------------
+ * Backend sudah menyimpan snapshot roster, jadi GET /api/anggota cepat.
+ * Di sisi browser kita menambah satu lapis lagi: hasil terakhir disimpan di
+ * localStorage. Saat situs dibuka kembali, daftar lama LANGSUNG tampil
+ * (tidak ada layar kosong "memuat"), sementara permintaan ke server berjalan
+ * di latar belakang. Begitu data baru tiba, tabel diperbarui sendiri —
+ * termasuk anggota yang baru bergabung atau keluar dari klub.
+ */
+const KUNCI_SIMPANAN = "kci.anggota.v1";
+/** Simpanan lokal yang lebih tua dari ini dibuang (dianggap tidak relevan). */
+const UMUR_SIMPANAN_MAKS = 7 * 24 * 60 * 60 * 1000;
+
 let cache = null; // { waktu, data }
 let sedangJalan = null; // Promise yang sedang berjalan (dedupe)
 const pendengar = new Set();
@@ -31,6 +45,53 @@ const pendengar = new Set();
 /** Beri tahu semua komponen yang sedang memakai data ini. */
 function siarkan() {
   for (const fn of pendengar) fn();
+}
+
+/* ----------------------------------------------------- simpanan browser */
+
+function bacaSimpanan() {
+  try {
+    const mentah = globalThis.localStorage?.getItem(KUNCI_SIMPANAN);
+    if (!mentah) return null;
+    const isi = JSON.parse(mentah);
+    if (!Array.isArray(isi?.data) || !isi.data.length) return null;
+    const waktu = Number(isi.waktu) || 0;
+    if (!waktu || Date.now() - waktu > UMUR_SIMPANAN_MAKS) return null;
+    return { waktu, data: isi.data };
+  } catch {
+    // localStorage bisa tidak tersedia (mode privat, kuota penuh, SSR).
+    return null;
+  }
+}
+
+function tulisSimpanan(data) {
+  try {
+    globalThis.localStorage?.setItem(
+      KUNCI_SIMPANAN,
+      JSON.stringify({ waktu: Date.now(), data })
+    );
+  } catch {
+    /* menyimpan cache bukan hal kritis */
+  }
+}
+
+/** Isi cache memori dari simpanan browser (sekali, saat modul dimuat). */
+function pulihkanCache() {
+  if (cache) return cache;
+  const tersimpan = bacaSimpanan();
+  if (tersimpan) {
+    // Ditandai kedaluwarsa agar kunjungan baru tetap memicu penyegaran,
+    // tetapi datanya sudah bisa ditampilkan sekarang juga.
+    cache = { waktu: 0, data: tersimpan.data, dariSimpanan: true };
+  }
+  return cache;
+}
+
+pulihkanCache();
+
+/** Data terakhir yang diketahui (mungkin dari kunjungan sebelumnya). */
+export function anggotaTersimpan() {
+  return cache?.data || [];
 }
 
 /**
@@ -48,7 +109,13 @@ export function muatAnggota({ paksa = false } = {}) {
   sedangJalan = ambilDaftarAnggota()
     .then((data) => {
       const bersih = Array.isArray(data) ? data : [];
+      // Jawaban kosong tidak boleh menghapus daftar yang sudah tampil —
+      // itu hampir selalu berarti sumbernya sedang bermasalah.
+      if (!bersih.length && cache?.data?.length) {
+        return cache.data;
+      }
       cache = { waktu: Date.now(), data: bersih };
+      tulisSimpanan(bersih);
       siarkan();
       return bersih;
     })
@@ -61,35 +128,62 @@ export function muatAnggota({ paksa = false } = {}) {
 
 /** Kosongkan cache — dipanggil setelah ada pendaftaran anggota baru. */
 export function segarkanAnggota() {
-  cache = null;
   return muatAnggota({ paksa: true });
 }
 
 /**
  * Hook React: satu pintu untuk komponen.
- * @returns {{anggota: Array, status: "memuat"|"siap"|"gagal", pesan: string, muatUlang: Function}}
+ *
+ * Status yang mungkin:
+ *   "memuat"      — belum ada data sama sekali (kunjungan pertama).
+ *   "siap"        — data tampil.
+ *   "menyegarkan" — data lama sudah tampil, versi terbaru sedang diambil.
+ *   "gagal"       — tidak ada data dan pengambilan gagal.
+ *
+ * @returns {{anggota: Array, status: string, pesan: string,
+ *            menyegarkan: boolean, diperbaruiPada: number|null,
+ *            muatUlang: Function}}
  */
 export function useAnggota() {
   const [anggota, setAnggota] = useState(() => cache?.data || []);
-  const [status, setStatus] = useState(() => (cache ? "siap" : "memuat"));
+  const [status, setStatus] = useState(() =>
+    cache?.data?.length ? (cache.waktu ? "siap" : "menyegarkan") : "memuat"
+  );
+  const [diperbaruiPada, setDiperbaruiPada] = useState(
+    () => cache?.waktu || null
+  );
   const [pesan, setPesan] = useState("");
 
   useEffect(() => {
     let hidup = true;
 
     const sinkron = () => {
-      if (hidup && cache) setAnggota(cache.data);
+      if (hidup && cache) {
+        setAnggota(cache.data);
+        setDiperbaruiPada(cache.waktu || null);
+      }
     };
     pendengar.add(sinkron);
+
+    // Data dari kunjungan sebelumnya sudah tampil; permintaan berikut ini
+    // hanya menyegarkan (mendeteksi anggota baru / yang keluar dari klub).
+    if (cache?.data?.length) setStatus("menyegarkan");
 
     muatAnggota()
       .then((data) => {
         if (!hidup) return;
         setAnggota(data);
+        setDiperbaruiPada(cache?.waktu || Date.now());
         setStatus("siap");
       })
       .catch((err) => {
         if (!hidup) return;
+        // Bila daftar lama masih ada, jangan tampilkan layar galat —
+        // cukup pertahankan yang tampil.
+        if (cache?.data?.length) {
+          setStatus("siap");
+          return;
+        }
         setPesan(err.message || "Gagal memuat daftar anggota.");
         setStatus("gagal");
       });
@@ -101,19 +195,31 @@ export function useAnggota() {
   }, []);
 
   const muatUlang = () => {
-    setStatus("memuat");
+    setStatus(anggota.length ? "menyegarkan" : "memuat");
     return segarkanAnggota()
       .then((data) => {
         setAnggota(data);
+        setDiperbaruiPada(cache?.waktu || Date.now());
         setStatus("siap");
       })
       .catch((err) => {
+        if (cache?.data?.length) {
+          setStatus("siap");
+          return;
+        }
         setPesan(err.message || "Gagal memuat daftar anggota.");
         setStatus("gagal");
       });
   };
 
-  return { anggota, status, pesan, muatUlang };
+  return {
+    anggota,
+    status,
+    pesan,
+    menyegarkan: status === "menyegarkan",
+    diperbaruiPada,
+    muatUlang,
+  };
 }
 
 /* ------------------------------------------------------ turunan bersama */
