@@ -58,6 +58,9 @@ const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 // Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0).
 const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanInteraktif.jsx"));
 
+// Analisis partai (port Brilliant-Chess) — engine memakai EngineCatur lokal.
+const Analisa = lazy(() => import("./halaman/Analisa/Analisa.jsx"));
+
 // Landing (Beranda utama "/") — hero, akses cepat, sorotan, berita terkini.
 const Landing = lazy(() => import("./halaman/Landing/Landing.jsx"));
 
@@ -98,6 +101,7 @@ const RUTE_HALAMAN = [
   ["/program-kami/teka-teki", TekaTekiKonten],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
+  ["/program-kami/analisa", Analisa],
   ["/program-kami/ebook-panduan", EbookPanduan],
 
   ["/teka-teki", TekaTeki],

@@ -1091,3 +1091,88 @@ section[id] {
   line-height: 24px;
   text-align: left;
 }
+
+/* =====================================================================
+ * Fitur Analisa (port Brilliant-Chess, MIT © 2025 Delo)
+ * ---------------------------------------------------------------------
+ * Halaman /program-kami/analisa memakai bahasa visual sendiri: warna,
+ * sudut, dan breakpoint-nya datang dari komponen yang dipindah. Agarp
+ * utilitas itu tetap tersedia, tokennya dideklarasikan di sini sebagai
+ * `@theme inline` — artinya kelas seperti `bg-backgroundBoxBoxHover`
+ * menghasilkan `background-color: var(--analisa-backgroundBoxBoxHover)`
+ * alih-alihan menyalin nilainya. Berkat itu seluruh papan bisa digelapkan
+ * atau ditukar temanya cukup dengan mengubah variabel di `.analisa-root`
+ * (lihat src/halaman/Analisa/analisa.css), dan tidak ada satu pun nilai
+ * ini yang bocor ke halaman lain.
+ * ===================================================================== */
+
+@theme {
+  /* Breakpoint warisan upstream; `vertical` = papan berdampingan,
+     `navTop` = navigasi pindah ke atas, `reduceSummary` = ringkasan dipadatkan. */
+  --breakpoint-navTop: 516px;
+  --breakpoint-vertical: 1100px;
+  --breakpoint-reduceNav: 1280px;
+  --breakpoint-notFullDate: 1468px;
+  --breakpoint-reduceSummary: 1669px;
+}
+
+@theme inline {
+  --color-background: var(--analisa-background);
+  --color-foreground: var(--analisa-foreground);
+  --color-foregroundHighlighted: var(--analisa-foregroundHighlighted);
+  --color-foregroundGrey: var(--analisa-foregroundGrey);
+  --color-foregroundBlack: var(--analisa-foregroundBlack);
+  --color-foregroundBlackDark: var(--analisa-foregroundBlackDark);
+  --color-placeholder: var(--analisa-placeholder);
+
+  --color-backgroundBox: var(--analisa-backgroundBox);
+  --color-backgroundBoxDarker: var(--analisa-backgroundBoxDarker);
+  --color-backgroundBoxHover: var(--analisa-backgroundBoxHover);
+  --color-backgroundBoxBox: var(--analisa-backgroundBoxBox);
+  --color-backgroundBoxBoxDisabled: var(--analisa-backgroundBoxBoxDisabled);
+  --color-backgroundBoxBoxHover: var(--analisa-backgroundBoxBoxHover);
+  --color-backgroundBoxBoxHighlighted: var(--analisa-backgroundBoxBoxHighlighted);
+  --color-backgroundBoxBoxHighlightedHover: var(--analisa-backgroundBoxBoxHighlightedHover);
+  --color-backgroundWhiteClock: var(--analisa-backgroundWhiteClock);
+  --color-backgroundBlackClock: var(--analisa-backgroundBlackClock);
+
+  --color-foregroundProfileWhite: var(--analisa-foregroundProfileWhite);
+  --color-foregroundProfileBlack: var(--analisa-foregroundProfileBlack);
+  --color-backgroundProfileWhite: var(--analisa-backgroundProfileWhite);
+  --color-backgroundProfileBlack: var(--analisa-backgroundProfileBlack);
+
+  --color-evaluationBarWhite: var(--analisa-evaluationBarWhite);
+  --color-evaluationBarBlack: var(--analisa-evaluationBarBlack);
+
+  --color-border: var(--analisa-border);
+  --color-borderHighlighted: var(--analisa-borderHighlighted);
+
+  --color-blackBoard: var(--analisa-blackBoard);
+  --color-whiteBoard: var(--analisa-whiteBoard);
+
+  --color-highlightBrilliant: var(--analisa-highlightBrilliant);
+  --color-highlightGreat: var(--analisa-highlightGreat);
+  --color-highlightBest: var(--analisa-highlightBest);
+  --color-highlightExcellent: var(--analisa-highlightExcellent);
+  --color-highlightGood: var(--analisa-highlightGood);
+  --color-highlightBook: var(--analisa-highlightBook);
+  --color-highlightInaccuracy: var(--analisa-highlightInaccuracy);
+  --color-highlightMistake: var(--analisa-highlightMistake);
+  --color-highlightMiss: var(--analisa-highlightMiss);
+  --color-highlightBlunder: var(--analisa-highlightBlunder);
+
+  --color-normalArrow: var(--analisa-normalArrow);
+  --color-bestArrow: var(--analisa-bestArrow);
+  --color-badArrow: var(--analisa-badArrow);
+
+  --color-winGreen: var(--analisa-winGreen);
+  --color-lossRed: var(--analisa-lossRed);
+
+  --color-error: var(--analisa-error);
+  --color-warning: var(--analisa-warning);
+
+  --radius-borderRoundness: var(--analisa-borderRoundness);
+  --radius-borderExtraRoundness: var(--analisa-borderExtraRoundness);
+
+  --shadow-shadowBoxBoxHighlighted: 0 0 8px var(--analisa-backgroundBoxBoxHighlightedHover);
+}

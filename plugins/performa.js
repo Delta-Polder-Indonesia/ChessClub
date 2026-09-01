@@ -14,6 +14,7 @@ export const RUTE_PUBLIK = [
   "/tentang-kami/struktur-grup-catur",
   "/program-kami",
   "/program-kami/teka-teki",
+  "/program-kami/analisa",
   "/program-kami/pembukaan",
   "/program-kami/sekolah-catur/cara-bermain-catur",
   "/teka-teki",
