@@ -11,6 +11,10 @@
  * Halaman ini juga yang memegang tinggi area kerja: papan port mengukur
  * kontainer induknya, sementara tinggi itu sendiri harus dikurangi header
  * situs. Lihat wadahRef + effect di bawah.
+ *
+ * Kerangka dalam mengikuti upstream: bilah navigasi kiri (Nav — logo,
+ * Pengaturan, Source Code, Atribusi) sebagai saudara <main>, dan panel
+ * Pengaturannya berupa dropdown yang menempel di kanan bilah itu.
  */
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -24,7 +28,7 @@ import Game from "./komponen/game/game.jsx";
 import BoardMenu from "./komponen/boardMenu/boardMenu.jsx";
 import Menu from "./komponen/menu/menu.jsx";
 import GameButtons from "./komponen/menu/analysis/gameButtons.jsx";
-import PanelSamping from "./PanelSamping.jsx";
+import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
 /** Tinggi minimum area analisis supaya papan tetap bisa dipakai. */
@@ -88,28 +92,40 @@ export default function Analisa() {
                 <span aria-hidden="true">🔒</span>
                 {t("analisa.privasi")}
               </p>
-              <main
-                ref={wadahRef}
+              {/*
+                Area kerja = kerangka ala upstream: bilah navigasi kiri
+                (logo, Pengaturan, Source Code, Atribusi) berdampingan dengan
+                papan + panel. Tema gelap & variabel CSS dipasang di div ini
+                (.analisa-root) supaya ikut mengcover bilah navigasi;
+                pengukuran tinggi/lebar papan tetap membaca <main> di
+                bawahnya — lebarnya otomatis dikurangi bilah navigasi.
+              */}
+              <div
                 style={{ height: tinggi || undefined }}
-                className="analisa-root relative w-full overflow-y-auto overflow-x-hidden rounded-xl select-none"
+                className="analisa-root relative flex w-full select-none flex-col overflow-x-hidden rounded-xl navTop:flex-row"
               >
                 <PageErrors />
-                <AnalyzeContextProvider>
-                  <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:gap-2 vertical:overflow-visible vertical:p-4">
-                    <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
-                      <Game wadah={wadahRef} />
-                      <BoardMenu />
-                      <div className="bg-backgroundBox flex-row justify-center rounded-borderRoundness w-full navTop:hidden flex h-12">
-                        <div className="max-w-[500px] w-full flex flex-row justify-center scale-75">
-                          <GameButtons />
+                <Nav />
+                <main
+                  ref={wadahRef}
+                  className="relative h-full w-full overflow-y-auto overflow-x-hidden"
+                >
+                  <AnalyzeContextProvider>
+                    <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:gap-2 vertical:overflow-visible vertical:p-4">
+                      <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
+                        <Game wadah={wadahRef} />
+                        <BoardMenu />
+                        <div className="bg-backgroundBox flex-row justify-center rounded-borderRoundness w-full navTop:hidden flex h-12">
+                          <div className="max-w-[500px] w-full flex flex-row justify-center scale-75">
+                            <GameButtons />
+                          </div>
                         </div>
                       </div>
+                      <Menu />
                     </div>
-                    <Menu />
-                  </div>
-                  <PanelSamping />
-                </AnalyzeContextProvider>
-              </main>
+                  </AnalyzeContextProvider>
+                </main>
+              </div>
             </div>
             <p className="mx-auto mt-3 max-w-[1500px] px-4 text-xs leading-5 text-slate-500 md:px-8">
               {t("analisa.petunjuk")}

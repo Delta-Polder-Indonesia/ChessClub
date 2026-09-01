@@ -17,6 +17,7 @@ berikutnya.
 | --- | --- | --- |
 | Papan, bidak, panah, sorot, animasi | port | `komponen/game/board.jsx` |
 | Tata letak papan + panel + menu | port (disesuaikan) | `komponen/game/game.jsx`, `komponen/menu/**` |
+| Bilah navigasi kiri (logo, Pengaturan, Source Code, Atribusi) | port | `komponen/nav/nav.jsx` |
 | Penilaian langkah, komentar, akurasi, sacrifice/forced | port | `mesin/penilaian.js` |
 | Ringkasan (grafik, fase, rating pemain) | port | `komponen/menu/analysis/summary/**` |
 | Pengambilan partai Chess.com/Lichess | port + teks kamus | `komponen/menu/analyze/select*.jsx` |
@@ -32,6 +33,16 @@ satu instance `EngineAnalisis` (bungkus `EngineCatur`) dipakai bersama seluruh
 halaman, diarahkan `position fen …` lalu `go depth …`, dan dibaca lewat
 `infoTerakhir`/bestmove yang dijanjikan `EngineCatur`. Build engine diambil dari
 `public/engines/` milik situs ini — default `stockfish-18-lite-single`.
+
+Bilah navigasi kiri (`komponen/nav/nav.jsx`) adalah port `nav.tsx` upstream:
+logo + wordmark di atas, tombol Pengaturan yang membuka dropdown tema/panah/
+rating di sisi kanan bilah, dan tautan Source Code + Atribusi yang menunjuk ke
+repo upstream (sekalian atribusi MIT). Panel pengaturan versi lama
+(`PanelSamping.jsx`) sudah dihapus sejak Nav ini dipasang — tombol gear di
+BoardMenu tetap membuka dropdown yang sama lewat `boardMenuSettingsRef`.
+Dua kelas disesuaikan dari upstream (`navTop:h-screen`→`navTop:h-full`,
+`w-screen`→`w-full`) karena di sini bilah tinggal di dalam area kerja yang
+diukur, bukan menempel ke `body`.
 
 ## Konvensi penting
 

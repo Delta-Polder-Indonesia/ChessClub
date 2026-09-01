@@ -1104,6 +1104,11 @@ export const ID = {
       jeda: "Jeda",
     },
     papan: { balik: "Balik papan", pengaturan: "Pengaturan", promosi: "Pilih bidak promosi" },
+    nav: {
+      pengaturan: "Pengaturan",
+      kodeSumber: "Kode Sumber",
+      atribusi: "Atribusi",
+    },
     pemain: { putih: "Putih", hitam: "Hitam", anonim: "Tanpa nama" },
     waktu: { jam: "{n} jam", menit: "{n} menit", hari: "{n} hari" },
     langkah: {

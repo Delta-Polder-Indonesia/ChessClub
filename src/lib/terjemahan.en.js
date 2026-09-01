@@ -1094,6 +1094,11 @@ export const EN = {
       jeda: "Pause",
     },
     papan: { balik: "Flip board", pengaturan: "Settings", promosi: "Choose promotion piece" },
+    nav: {
+      pengaturan: "Settings",
+      kodeSumber: "Source Code",
+      atribusi: "Attributions",
+    },
     pemain: { putih: "White", hitam: "Black", anonim: "Unknown" },
     waktu: { jam: "{n} hours", menit: "{n} min", hari: "{n} days" },
     langkah: {
