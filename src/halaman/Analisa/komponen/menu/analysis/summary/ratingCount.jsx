@@ -36,7 +36,10 @@ function RatingCount(props) {
       newCounter[color][rating] = newCounter[color][rating] + 1 || 1;
     });
     setCounter(newCounter);
-  }, []);
+    // `moves` wajib jadi dependensi: dengan array kosong, perincian
+    // penilaian tetap memakai angka partai PERTAMA yang pernah dianalisis
+    // dan tidak pernah diperbarui untuk partai berikutnya.
+  }, [moves]);
   return <div className="w-[85%] flex flex-col gap-3 justify-center reduceSummary:pr-[35px] pr-[26px]">
             {ratings.map((rating) => {
     const titleRating = t(`analisa.penilaian.${rating}`);

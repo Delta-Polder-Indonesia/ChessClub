@@ -304,7 +304,19 @@ function Board(props) {
   const guideSize = squareSize / 4;
   const leftSize = guideSize / 4.5;
   const rightSize = guideSize / 2.5;
-  const chess = new Chess(fen);
+  /*
+   * `fen` bisa undefined (belum ada partai) atau tidak sah (posisi dari PGN
+   * rusak). `new Chess(fen)` melempar dan — karena Board dirender di jalur
+   * utama halaman — melempar seluruh halaman Analisa ke layar putih.
+   * Posisi awal dipakai sebagai cadangan agar papan tetap tampil.
+   */
+  const chess = (() => {
+    try {
+      return new Chess(fen);
+    } catch {
+      return new Chess();
+    }
+  })();
   const board = chess.board();
   if (!white) flipBoard(board);
   const whiteMoving = !(chess.turn() === "w");
@@ -314,7 +326,16 @@ function Board(props) {
   const filteredHighlightStyle = filterHighlightStyle(HIGHLIGHT_COLORS);
   const highlightColor = highlightByRating ? filteredHighlightStyle[moveRating2]?.color || boardThemes[boardTheme].highlight : boardThemes[boardTheme].highlight;
   const highlightRating = filteredHighlightStyle[moveRating2]?.rating;
-  const soundChessInstance = forward ? chess : new Chess(nextFen);
+  // Sama seperti `chess` di atas: nextFen bisa kosong di langkah terakhir.
+  const soundChessInstance = forward
+    ? chess
+    : (() => {
+        try {
+          return new Chess(nextFen);
+        } catch {
+          return chess;
+        }
+      })();
   const soundCaptureInstance = forward ? capture : nextCapture;
   const soundCastleInstance = forward ? castle : nextCastle;
   const selfTurn = !(soundChessInstance.turn() === "w" ? white : !white);

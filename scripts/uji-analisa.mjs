@@ -345,5 +345,126 @@ await uji("EngineAnalisis memakai engine lokal, bukan berkas upstream", () => {
   mesin.hancurkan();
 });
 
+/* ------------------------------------------------------------------
+ * Ketahanan EngineCatur (regresi).
+ *
+ * Semua kasus di bawah pernah membuat halaman Analisa menggantung di layar
+ * "menganalisa…" selamanya, karena janji `cari()` tidak pernah beresolusi
+ * ketika worker mati / pencarian digantikan / engine dihentikan.
+ * ------------------------------------------------------------------ */
+
+/** Worker palsu yang bisa disuruh diam (tidak pernah membalas "bestmove"). */
+function workerBisu() {
+  const dikirim = [];
+  class WorkerPalsu {
+    constructor() {
+      WorkerPalsu.terakhir = this;
+      this.onmessage = null;
+      this.onerror = null;
+    }
+
+    postMessage(perintah) {
+      dikirim.push(String(perintah));
+      if (String(perintah) === "isready") {
+        setTimeout(() => this.onmessage?.({ data: "readyok" }), 0);
+      }
+    }
+
+    terminate() {}
+  }
+  return { WorkerPalsu, dikirim };
+}
+
+async function denganWorker(WorkerPalsu, jalan) {
+  const asli = globalThis.Worker;
+  globalThis.Worker = WorkerPalsu;
+  try {
+    return await jalan();
+  } finally {
+    globalThis.Worker = asli;
+  }
+}
+
+await uji("worker yang mati menolak pencarian, bukan menggantung", async () => {
+  const { WorkerPalsu } = workerBisu();
+  await denganWorker(WorkerPalsu, async () => {
+    const engine = new EngineCatur({ url: "/engines/x/x.js" });
+    await engine.mulai();
+    const pencarian = engine.cari({ fen: "start", kedalaman: 5 });
+    // engine tiba-tiba mati di tengah pencarian
+    WorkerPalsu.terakhir.onerror?.({ message: "worker meledak" });
+    await assert.rejects(pencarian, /meledak|berhenti|dihentikan/);
+  });
+});
+
+await uji("tamat() melepas pencarian yang sedang menunggu", async () => {
+  const { WorkerPalsu } = workerBisu();
+  await denganWorker(WorkerPalsu, async () => {
+    const engine = new EngineCatur({ url: "/engines/x/x.js" });
+    await engine.mulai();
+    const pencarian = engine.cari({ fen: "start", kedalaman: 5 });
+    engine.tamat();
+    await assert.rejects(pencarian, /dihentikan|berhenti/);
+  });
+});
+
+await uji("permintaan yang digantikan tidak menggantung", async () => {
+  const { WorkerPalsu } = workerBisu();
+  await denganWorker(WorkerPalsu, async () => {
+    const engine = new EngineCatur({ url: "/engines/x/x.js" });
+    await engine.mulai();
+    engine.cari({ fen: "a", kedalaman: 5 }).catch(() => {});
+    const kedua = engine.cari({ fen: "b", kedalaman: 5 });
+    const ketiga = engine.cari({ fen: "c", kedalaman: 5 });
+    // "kedua" hanya sempat mengantre lalu ditimpa "ketiga"
+    await assert.rejects(kedua, /digantikan/);
+    engine.tamat();
+    await assert.rejects(ketiga, /dibatalkan|dihentikan|berhenti/);
+  });
+});
+
+await uji("pemuatan yang gagal boleh dicoba lagi", async () => {
+  let percobaan = 0;
+  class WorkerGagalSekali {
+    constructor() {
+      percobaan++;
+      this.onmessage = null;
+      this.onerror = null;
+      if (percobaan === 1) setTimeout(() => this.onerror?.({ message: "jaringan putus" }), 0);
+    }
+
+    postMessage(perintah) {
+      if (percobaan > 1 && String(perintah) === "isready") {
+        setTimeout(() => this.onmessage?.({ data: "readyok" }), 0);
+      }
+    }
+
+    terminate() {}
+  }
+  await denganWorker(WorkerGagalSekali, async () => {
+    const engine = new EngineCatur({ url: "/engines/x/x.js" });
+    await assert.rejects(engine.mulai(), /jaringan putus/);
+    // Percobaan kedua HARUS memuat ulang, bukan mengembalikan janji tertolak.
+    await engine.mulai();
+    assert.equal(engine.siap, true);
+    engine.tamat();
+  });
+});
+
+await uji("kegagalan engine bukan pembatalan: parsePosition melempar", async () => {
+  const mesinRusak = {
+    async cari() {
+      throw new Error("worker engine gagal");
+    },
+    setop() {},
+    gameBaru() {},
+  };
+  const chess = new Chess();
+  await assert.rejects(
+    () => parsePosition(mesinRusak, chess, 8, null, undefined),
+    (e) => e?.kunci === "mesin"
+  );
+});
+
 console.log(`\n${lulus} pemeriksaan lulus, ${gagal} gagal.`);
 if (gagal) process.exit(1);

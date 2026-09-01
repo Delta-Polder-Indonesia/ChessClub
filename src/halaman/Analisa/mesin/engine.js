@@ -27,6 +27,8 @@ const HURUF_PAPAN = "abcdefgh".split("");
 export const GALAT_BATAL = "canceled";
 export const GALAT_PGN = "pgn";
 export const GALAT_FEN = "fen";
+/** Engine mati / worker gagal di tengah analisis (bukan pembatalan pengguna). */
+export const GALAT_MESIN = "mesin";
 
 export function galat(pesan) {
   const e = new Error(pesan);
@@ -205,9 +207,17 @@ export async function parsePosition(mesin, chess, depth, sinyal, handleAbort) {
   let hasil;
   try {
     hasil = await mesin.cari(fen, { kedalaman: depth, sinyal });
-  } catch {
-    handleAbort?.();
-    hasil = { staticEval: [], bestMove: undefined, bestMoveCoronation: undefined };
+  } catch (e) {
+    // Pembatalan oleh pengguna → serahkan ke handleAbort (menghentikan
+    // seluruh alur). Kegagalan engine yang sesungguhnya TIDAK boleh
+    // menyamar jadi "canceled": kalau ditelan di sini, halaman kembali ke
+    // formulir tanpa pesan apa pun dan tampak seperti tombolnya mati.
+    if (sinyal?.aborted || e?.kunci === GALAT_BATAL) {
+      handleAbort?.();
+      hasil = { staticEval: [], bestMove: undefined, bestMoveCoronation: undefined };
+    } else {
+      throw galat(GALAT_MESIN);
+    }
   }
 
   const { staticEval, bestMove, bestMoveCoronation } = hasil;
@@ -253,11 +263,17 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
 
     try {
       ({ staticEval, bestMove, bestMoveCoronation } = await mesin.cari(fen, { kedalaman: depth, sinyal }));
-    } catch {
-      handleAbort?.();
-      bestMove = undefined;
-      bestMoveCoronation = undefined;
-      staticEval = [];
+    } catch (e) {
+      // Lihat catatan yang sama di parsePosition: hanya pembatalan yang
+      // boleh ditelan, kegagalan engine harus terlihat oleh pengguna.
+      if (sinyal?.aborted || e?.kunci === GALAT_BATAL) {
+        handleAbort?.();
+        bestMove = undefined;
+        bestMoveCoronation = undefined;
+        staticEval = [];
+      } else {
+        throw galat(GALAT_MESIN);
+      }
     }
 
     if (sinyal?.aborted) handleAbort?.();

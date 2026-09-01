@@ -35,8 +35,16 @@ function isEndMiddlegame(position2) {
   if (whitePieces <= 1 || blackPieces <= 1) return true;
 }
 function avg(arr) {
+  // Tanpa penjagaan ini, daftar kosong menghasilkan 0/0 = NaN dan panel
+  // ringkasan menampilkan "NaN" alih-alih angka akurasi.
+  if (!arr?.length) return NaN;
   const sum = arr.reduce((acc, cur) => acc + cur, 0);
   return sum / arr.length;
+}
+
+/** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
+function formatAkurasi(nilai) {
+  return Number.isFinite(nilai) ? nilai.toFixed(1) : "-";
 }
 function pushAccuracyPhase(arr, value, phase, color) {
   arr[phase][color].push(value);
@@ -53,7 +61,13 @@ function PlayersAccuracy(props) {
     const accuraciesPhases = { opening: { w: [], b: [] }, middlegame: { w: [], b: [] }, endgame: { w: [], b: [] } };
     let currentPhase = "opening";
     for (const move2 of moves) {
-      const board = new Chess(move2.fen).board();
+      if (!move2) continue;
+      let board;
+      try {
+        board = new Chess(move2.fen).board();
+      } catch {
+        continue;
+      }
       const color = move2.color === "w" ? "b" : "w";
       const rating = move2.moveRating;
       let moveAccuracy = NaN;
@@ -120,8 +134,8 @@ function PlayersAccuracy(props) {
             <div className="flex flex-row w-full justify-between items-center">
                 <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.akurasi")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
-                    <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{accuracy.w.toFixed(1)}</RatingBox>
-                    <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0}>{accuracy.b.toFixed(1)}</RatingBox>
+                    <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{formatAkurasi(accuracy.w)}</RatingBox>
+                    <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0}>{formatAkurasi(accuracy.b)}</RatingBox>
                 </div>
             </div>
         </div>;

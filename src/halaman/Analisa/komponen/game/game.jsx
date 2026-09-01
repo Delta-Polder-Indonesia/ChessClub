@@ -49,8 +49,13 @@ function getArrows(arrows, moveNumber, customLine) {
   return customLine.arrows[customLine.moveNumber];
 }
 function getCustomResult(move2) {
-  if (!move2) return "";
-  const chess = new Chess(move2.fen);
+  if (!move2?.fen) return "";
+  let chess;
+  try {
+    chess = new Chess(move2.fen);
+  } catch {
+    return "";
+  }
   const color = move2.color;
   if (chess.isCheckmate()) return color === WHITE ? "0-1" : "1-0";
   if (chess.isDraw()) return "1/2-1/2";
@@ -253,7 +258,9 @@ function Game({ wadah }) {
           e.preventDefault();
           if (now - lastPressed < minPressInterval) return;
           const tab2 = tabRef.current;
-          if (pageState === "analyze") {
+          // pageStateRef, bukan pageState: efek ini hanya dipasang sekali
+          // sehingga `pageState` di sini selamanya bernilai render pertama.
+          if (pageStateRef.current === "analyze") {
             if (tab2 === "summary") setTab("moves");
             else if (tab2 === "moves") setTab("summary");
           }
@@ -261,7 +268,10 @@ function Game({ wadah }) {
       }
     }
     document.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    // Dulu dilepas dari `window` padahal dipasang di `document`, sehingga
+    // pendengar menumpuk setiap kali halaman dibuka ulang dan tombol panah
+    // memicu beberapa langkah sekaligus.
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
   async function handlePGN(pgn, depth2) {
     setPageState("loading");
@@ -297,6 +307,9 @@ function Game({ wadah }) {
           break;
         case "canceled":
           setAnalyzeController(new AbortController());
+          break;
+        case "mesin":
+          pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
           break;
         default:
           pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
@@ -367,6 +380,11 @@ function Game({ wadah }) {
         case "canceled":
           setAnalyzeController(new AbortController());
           break;
+        case "mesin":
+          pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
+          break;
+        default:
+          pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
       }
       setPageState("default");
       return;
@@ -504,24 +522,54 @@ function Game({ wadah }) {
     setCustomLine((prev) => ({ moveNumber: prev.moveNumber + 1, moves: [...prev.moves.slice(0, prev.moveNumber + 1), unanalyzedMove], arrows: sliceCustomArrows(prev.arrows, prev.moveNumber + 1) }));
     setAnalyzingMove(true);
     if (data.format === "fen") setPageState("analyzeCustom");
-    const move3 = await new Promise(async (resolve, reject) => {
+    /*
+     * Analisis langkah manual. Semua jalur keluar HARUS melepas
+     * `analyzingMove`: kalau tidak, papan terkunci selamanya (tombol dan
+     * tombol panah semuanya memeriksa bendera ini) dan pengguna harus
+     * memuat ulang halaman. Karena itu pembersihannya ada di `finally`,
+     * bukan setelah `await`.
+     */
+    let move3;
+    try {
       const signal = analyzeController.signal;
-      function handleAbort() {
-        reject(new Error("canceled"));
-        signal.removeEventListener("abort", handleAbort);
+      const mesin = ambilMesin() ?? (await siapkan().catch(() => null));
+      if (mesin && !signal.aborted) {
+        const chess2 = new Chess(previousFen);
+        const move4 = chess2.move(movement);
+        move3 = await parseMove(
+          mesin,
+          depth,
+          move4,
+          chess2,
+          previousStaticEvals,
+          previousBestMoveSan,
+          previousSacrifice,
+          openings2 ?? {},
+          () => {
+            throw new Error("canceled");
+          },
+          signal
+        );
       }
-      const mesin = ambilMesin() ?? await siapkan().catch(() => null);
-      if (!mesin) {
-        resolve(void 0);
-        return;
+    } catch (e) {
+      // Batal (tombol Batal / ganti engine) bukan galat yang perlu
+      // ditampilkan; sisanya dilaporkan supaya tidak hilang diam-diam.
+      const kunci = e?.kunci ?? e?.message;
+      if (kunci !== "canceled" && kunci !== "pencarian dibatalkan" && kunci !== "permintaan digantikan") {
+        pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
       }
-      const chess2 = new Chess(previousFen);
-      const move4 = chess2.move(movement);
-      const analyzedMovement = await parseMove(mesin, depth, move4, chess2, previousStaticEvals, previousBestMoveSan, previousSacrifice, openings2 ?? {}, handleAbort, signal);
-      resolve(analyzedMovement);
-    });
-    setAnimation(false);
-    setAnalyzingMove(false);
+      move3 = undefined;
+    } finally {
+      setAnimation(false);
+      setAnalyzingMove(false);
+    }
+
+    /*
+     * Bila analisis gagal/dibatalkan, langkahnya tetap ada di papan sebagai
+     * langkah "belum dinilai" — menyisipkan `undefined` ke dalam daftar akan
+     * merobohkan render (getMoves membaca `.movement` dari elemen ini).
+     */
+    if (!move3) return;
     setCustomLine((prev) => ({ ...prev, moveNumber: prev.moveNumber, moves: [...prev.moves.slice(0, prev.moveNumber), move3] }));
   }
   function formatTime(seconds) {

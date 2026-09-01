@@ -7,6 +7,7 @@ import PieceSVG from "../svg/piece.jsx";
 import SoundMax from "../svg/soundMax.jsx";
 import SoundMute from "../svg/sound-mute.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { bacaTeks, tulis } from "../../penyimpanan.js";
 function Moves() {
   const { t } = useI18n();
   const [animateMovesMoved, setAnimateMovesMoved] = useState(false);
@@ -21,51 +22,51 @@ function Moves() {
     }, 2e3);
   }, []);
   useEffect(() => {
-    const showLegalMoves2 = localStorage.getItem("kci-analisa-showLegalMoves");
+    const showLegalMoves2 = bacaTeks("showLegalMoves");
     if (!showLegalMoves2) return;
     const numberShowLegalMoves = Number(showLegalMoves2);
     if (!isNaN(numberShowLegalMoves)) {
       setShowLegalMoves(Boolean(numberShowLegalMoves));
     } else {
-      localStorage.setItem("kci-analisa-showLegalMoves", "1");
+      tulis("showLegalMoves", "1");
       setShowLegalMoves(true);
     }
   }, []);
   function toggleShowLegalMoves() {
     const newShowLegalMoves = !showLegalMoves;
-    localStorage.setItem("kci-analisa-showLegalMoves", String(Number(newShowLegalMoves)));
+    tulis("showLegalMoves", String(Number(newShowLegalMoves)));
     setShowLegalMoves(newShowLegalMoves);
   }
   useEffect(() => {
-    const animateMoves2 = localStorage.getItem("kci-analisa-animateMoves");
+    const animateMoves2 = bacaTeks("animateMoves");
     if (!animateMoves2) return;
     const numberAnimateMoves = Number(animateMoves2);
     if (!isNaN(numberAnimateMoves)) {
       setAnimateMoves(Boolean(numberAnimateMoves));
     } else {
-      localStorage.setItem("kci-analisa-animateMoves", "1");
+      tulis("animateMoves", "1");
       setAnimateMoves(true);
     }
   }, []);
   function toggleAnimateMoves() {
     const newAnimateMoves = !animateMoves;
-    localStorage.setItem("kci-analisa-animateMoves", String(Number(newAnimateMoves)));
+    tulis("animateMoves", String(Number(newAnimateMoves)));
     setAnimateMoves(newAnimateMoves);
   }
   useEffect(() => {
-    const boardSounds2 = localStorage.getItem("kci-analisa-boardSounds");
+    const boardSounds2 = bacaTeks("boardSounds");
     if (!boardSounds2) return;
     const numberBoardSounds = Number(boardSounds2);
     if (!isNaN(numberBoardSounds)) {
       setBoardSounds(Boolean(numberBoardSounds));
     } else {
-      localStorage.setItem("kci-analisa-boardSounds", "1");
+      tulis("boardSounds", "1");
       setBoardSounds(true);
     }
   }, []);
   function toggleBoardSounds() {
     const newBoardSounds = !boardSounds;
-    localStorage.setItem("kci-analisa-boardSounds", String(Number(newBoardSounds)));
+    tulis("boardSounds", String(Number(newBoardSounds)));
     setBoardSounds(newBoardSounds);
   }
   return <div>

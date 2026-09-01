@@ -49,7 +49,21 @@ halaman, diarahkan `position fen …` lalu `go depth …`, dan dibaca lewat
 - **Kedalaman analisis**: 10/13/16/20, bawaan 13. Build engine situs ini
   single-thread, jadi angka upstream (15/18/21) terlalu lambat.
 - **Kunci penyimpanan lokal** selalu berawalan `kci-analisa-*`
-  (`boardTheme`, `usedRatings`, `depth`, `engine`, `chesscom`, `lichessorg`).
+  (`boardTheme`, `usedRatings`, `kedalaman`, `engine`, `format`, `chesscom`,
+  `lichessorg`). Aksesnya WAJIB lewat `penyimpanan.js` — `localStorage`
+  melempar (bukan sekadar mengembalikan null) di mode penyamaran Safari dan
+  saat cookie diblokir, dan pemanggilan langsung di dalam komponen pernah
+  merobohkan seluruh halaman. Awalannya ditambahkan oleh helper, jadi kode
+  pemanggil hanya menyebut nama pendeknya (`tulis("kedalaman", 13)`).
+- **Kegagalan engine bukan pembatalan.** `mesin/engine.js` melempar
+  `GALAT_MESIN` bila worker mati di tengah analisis; hanya `AbortSignal`
+  pengguna yang boleh ditelan sebagai `GALAT_BATAL`. Menelan keduanya membuat
+  halaman kembali ke formulir tanpa pesan apa pun — persis seperti tombol
+  yang tidak berfungsi.
+- **Setiap jalur keluar `analyzeMove` harus melepas `analyzingMove`** (pakai
+  `finally`). Bendera itu mengunci papan dan seluruh tombol navigasi; bila
+  tertinggal `true`, satu-satunya jalan keluar bagi pengguna adalah memuat
+  ulang halaman.
 - **Ukuran papan** dihitung dari `wadahRef` milik halaman (`Analisa.jsx`), bukan
   `window.innerHeight`; halaman menetapkan tingginya sendiri sebesar sisa layar
   di bawah header situs, dan `Game` mengukur wadah itu lewat `ResizeObserver`.
@@ -81,13 +95,23 @@ halaman, diarahkan `position fen …` lalu `go depth …`, dan dibaca lewat
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
   diblokir kebijakan CORS/privasi peramban — karena itu ada peringatan
   "mungkin dibatasi" di bawah tabel, persis seperti upstream.
+- **CSP wajib mengizinkan kedua platform.** `connect-src` di `index.html`
+  DAN `vercel.json` harus memuat `https://api.chess.com` serta
+  `https://lichess.org`. Keduanya harus diubah bersamaan: yang di `<meta>`
+  dipakai host statis, yang di `vercel.json` dikirim sebagai header dan
+  menang di produksi. Sempat hanya Chess.com yang terdaftar, sehingga fitur
+  Lichess selalu gagal di produksi walau berjalan normal di `npm run dev`.
 - Engine pertama kali diunduh saat diperlukan (7 MB, sekali, lalu dicache);
   saat mesin belum siap, statusnya terlihat di panel muat dan di pengaturan.
 
 ## Periksa sendiri
 
+`jsdom` + `esbuild` sekarang ada di `devDependencies`. Sebelumnya tidak, dan
+`uji-analisa-ui.mjs` melewatkan dirinya sendiri (keluar 0) di mesin yang belum
+memasangnya — sehingga uji UI tampak "lulus" padahal tidak pernah berjalan.
+
 ```bash
-node scripts/uji-analisa.mjs        # 22 pemeriksaan kontrak engine + penilaian
+node scripts/uji-analisa.mjs        # kontrak engine + penilaian + ketahanan worker
 node scripts/uji-analisa-ui.mjs     # render halaman di jsdom + engine UCI palsu
 npm run uji:i18n                    # kunci analisa.* harus ada di ID dan EN
 node scripts/generasi-buku-analisa.mjs   # bangun ulang tabel buku pembukaan

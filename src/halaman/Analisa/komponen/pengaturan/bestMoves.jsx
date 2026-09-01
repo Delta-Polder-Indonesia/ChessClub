@@ -6,6 +6,7 @@ import { Arrow } from "../game/board.jsx";
 import PieceSVG from "../svg/piece.jsx";
 import { QUEEN, WHITE } from "chess.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { bacaTeks, tulis } from "../../penyimpanan.js";
 function BestMoves() {
   const { t } = useI18n();
   const configContext = useContext(ConfigContext);
@@ -13,35 +14,35 @@ function BestMoves() {
   const [showArrows, setShowArrows] = configContext.showArrows;
   const [arrowAfterMove, setArrowAfterMove] = configContext.arrowAfterMove;
   useEffect(() => {
-    const showArrows2 = localStorage.getItem("kci-analisa-showArrows");
+    const showArrows2 = bacaTeks("showArrows");
     if (!showArrows2) return;
     const numberShowArrows = Number(showArrows2);
     if (!isNaN(numberShowArrows)) {
       setShowArrows(Boolean(numberShowArrows));
     } else {
-      localStorage.setItem("kci-analisa-showArrows", "1");
+      tulis("showArrows", "1");
       setShowArrows(true);
     }
   }, []);
   function toggleShowArrows() {
     const newShowArrows = !showArrows;
-    localStorage.setItem("kci-analisa-showArrows", String(Number(newShowArrows)));
+    tulis("showArrows", String(Number(newShowArrows)));
     setShowArrows(newShowArrows);
   }
   useEffect(() => {
-    const arrowAfterMove2 = localStorage.getItem("kci-analisa-arrowAfterMove");
+    const arrowAfterMove2 = bacaTeks("arrowAfterMove");
     if (!arrowAfterMove2) return;
     const numberArrowAfterMove = Number(arrowAfterMove2);
     if (!isNaN(numberArrowAfterMove)) {
       setArrowAfterMove(Boolean(numberArrowAfterMove));
     } else {
-      localStorage.setItem("kci-analisa-arrowAfterMove", "1");
+      tulis("arrowAfterMove", "1");
       setArrowAfterMove(true);
     }
   }, []);
   function toggleArrowAfterMove() {
     const newArrowAfterMove = !arrowAfterMove;
-    localStorage.setItem("kci-analisa-arrowAfterMove", String(Number(newArrowAfterMove)));
+    tulis("arrowAfterMove", String(Number(newArrowAfterMove)));
     setArrowAfterMove(newArrowAfterMove);
   }
   return <section>
