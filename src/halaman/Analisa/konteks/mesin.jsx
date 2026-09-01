@@ -19,21 +19,12 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState } f
 import { ENGINE_BAKU } from "../../../lib/engineCatur.js";
 import { EngineAnalisis } from "../mesin/engine.js";
 import { wasmSupported } from "../mesin/cekWasm.js";
-
-const KUNCI_ENGINE = "kci-analisa-engine";
-
-function bacaPenyimpanan(kunci, bawaan) {
-  try {
-    return localStorage.getItem(kunci) ?? bawaan;
-  } catch {
-    return bawaan;
-  }
-}
+import { bacaTeks, tulis } from "../penyimpanan.js";
 
 export const KonteksMesin = createContext(null);
 
 export function MesinProvider({ children }) {
-  const [idEngine, setIdEngineState] = useState(() => bacaPenyimpanan(KUNCI_ENGINE, ENGINE_BAKU));
+  const [idEngine, setIdEngineState] = useState(() => bacaTeks("engine", ENGINE_BAKU));
   const [didukung] = useState(() => (typeof window === "undefined" ? true : wasmSupported()));
   const [status, setStatus] = useState("mati"); // mati | memuat | siap | gagal
   const [galat, setGalat] = useState("");
@@ -65,11 +56,7 @@ export function MesinProvider({ children }) {
   const gantiEngine = useCallback(
     (id) => {
       setIdEngineState(id);
-      try {
-        localStorage.setItem(KUNCI_ENGINE, id);
-      } catch {
-        /* mode pribadi: pilihan tidak tersimpan, tidak fatal */
-      }
+      tulis("engine", id);
       setStatus("mati");
       setGalat("");
       buat(id); // worker lama dibuang, yang baru dibuat di sini

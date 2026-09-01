@@ -48,6 +48,35 @@ import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 import Analisa from "./src/halaman/Analisa/Analisa.jsx";
+import ConfigContextProvider from "./src/halaman/Analisa/konteks/config.jsx";
+import ErrorsContextProvider from "./src/halaman/Analisa/konteks/errors.jsx";
+import AnalyzeContextProvider from "./src/halaman/Analisa/konteks/analyze.jsx";
+import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
+import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
+
+/**
+ * Render pemilih partai satu platform. Dipakai uji regresi: komponen ini
+ * pernah melempar ReferenceError ("platform is not defined") sehingga
+ * seluruh halaman mati begitu pengguna menekan "Daftar partai".
+ */
+export function mountPemilih(el, platform) {
+  const Pemilih = platform === "lichessOrg" ? SelectLichessOrgGame : SelectChessComGame;
+  return createRoot(el).render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/program-kami/analisa"]}>
+        <I18nProvider>
+          <ConfigContextProvider>
+            <ErrorsContextProvider>
+              <AnalyzeContextProvider>
+                <Pemilih username="contoh" depth={10} stopSelecting={() => {}} />
+              </AnalyzeContextProvider>
+            </ErrorsContextProvider>
+          </ConfigContextProvider>
+        </I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
+  );
+}
 
 export function mount(el) {
   return createRoot(el).render(
@@ -184,6 +213,11 @@ function siapkanGlobal(window) {
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.localStorage = window.localStorage;
+  // Node >= 21 sudah punya `navigator` global, Node 20 belum. react-dom
+  // membacanya saat modulnya dimuat, jadi tanpa baris ini uji ini lulus di
+  // mesin pengembang (Node 22+) tapi mati di CI Node 20 dengan
+  // "ReferenceError: navigator is not defined". Pakai milik jsdom.
+  if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.AudioContext = AudioContextPalsu;
@@ -333,6 +367,54 @@ for (let i = 0; i < 3; i++) {
   await tunggu(60);
 }
 uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".analisa-root"));
+
+/* --- regresi: pemilih partai Chess.com/Lichess pernah crash ---
+ * Komponen pemilih merender t("analisa.partai.judul", { platform }) padahal
+ * variabel `platform` tidak pernah dideklarasikan (yang ada konstanta
+ * PLATFORM). Begitu daftar bulan tampil, ReferenceError menjatuhkan seluruh
+ * halaman. Di sini kedua pemilih dirender dengan API platform di-stub agar
+ * daftar bulannya benar-benar sampai ke tahap render.
+ */
+{
+  const galatSebelum = pesanGalat.length;
+
+  // Balasan minimal supaya daftar bulan terisi tanpa jaringan.
+  const fetchAsli = dom.window.fetch;
+  dom.window.fetch = (url) => {
+    const u = String(url);
+    if (u.includes("api.chess.com")) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ archives: ["https://api.chess.com/pub/player/contoh/games/2026/01"] }),
+        text: () => Promise.resolve(""),
+      });
+    }
+    if (u.includes("lichess.org")) {
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ createdAt: Date.UTC(2026, 0, 1) }),
+        text: () => Promise.resolve(""),
+      });
+    }
+    return fetchAsli(url);
+  };
+
+  for (const platform of ["chessCom", "lichessOrg"]) {
+    const wadah = domSiap.createElement("div");
+    domSiap.body.appendChild(wadah);
+    modul.mountPemilih(wadah, platform);
+    await tunggu(500);
+  }
+  dom.window.fetch = fetchAsli;
+
+  const galatBaru = pesanGalat.slice(galatSebelum).join("\n");
+  uji(
+    "pemilih partai Chess.com/Lichess ter-render tanpa ReferenceError",
+    !/platform is not defined|ReferenceError/.test(galatBaru)
+  );
+}
 
 const fatal = pesanGalat.filter((p) => /ReferenceError|TypeError|is not a function|not defined|Minified React error/.test(p) && !/jaringan|tidak tersedia di uji/.test(p));
 uji("tidak ada galat render", fatal.length === 0);

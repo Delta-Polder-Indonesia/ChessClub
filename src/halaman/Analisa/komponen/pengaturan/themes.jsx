@@ -2,6 +2,7 @@
 import { ConfigContext } from "../../konteks/config.jsx";
 import { useContext, useEffect } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { bacaTeks, tulis } from "../../penyimpanan.js";
 const boardThemes = [
   { kunci: "hijau", label: "Green", black: "#779556", white: "#ebecd0", highlight: "#ffff33" },
   { kunci: "cokelat", label: "Brown", black: "#b58863", white: "#f0d9b5", highlight: "#ffff33" },
@@ -16,17 +17,17 @@ function Themes() {
   const configContext = useContext(ConfigContext);
   const [boardTheme, setBoardTheme] = configContext.boardTheme;
   useEffect(() => {
-    const boardTheme2 = Number(localStorage.getItem("kci-analisa-boardTheme"));
+    const boardTheme2 = Number(bacaTeks("boardTheme"));
     if (boardThemes[boardTheme2] != null) {
       setBoardTheme(boardTheme2);
     } else {
-      localStorage.setItem("kci-analisa-boardTheme", "0");
+      tulis("boardTheme", "0");
       setBoardTheme(0);
     }
   }, []);
   function changeBoardTheme(boardThemeIndex) {
     setBoardTheme(boardThemeIndex);
-    localStorage.setItem("kci-analisa-boardTheme", String(boardThemeIndex));
+    tulis("boardTheme", String(boardThemeIndex));
   }
   return <section>
             <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.pengaturan.temaPapan")}</h1>

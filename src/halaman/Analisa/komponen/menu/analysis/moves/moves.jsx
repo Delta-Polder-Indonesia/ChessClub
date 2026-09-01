@@ -42,9 +42,13 @@ function Moves(props) {
   const gameChartRef = useRef(null);
   const firstMoveBlack = moves[1]?.color === WHITE;
   function getTurns() {
-    const realMoves = moves.slice(1);
+    // `moves` bisa berisi entri kosong saat analisis langkah manual masih
+    // berjalan (lihat analyzeMove) — saring dulu supaya `.san` tidak dibaca
+    // dari undefined dan panel langkah tidak runtuh.
+    const realMoves = moves.slice(1).filter(Boolean);
     const turns = [];
     let i = 0;
+    if (!realMoves.length) return turns;
     if (firstMoveBlack) {
       turns.push([1, void 0, realMoves[0].san ?? ""]);
       i += 1;
@@ -122,7 +126,7 @@ function Moves(props) {
     if (!move3) return <div key={`${i}-${j}`} className="w-1/2" />;
     const currentMoveNumber = i * 2 + j + (firstMoveBlack ? 0 : 1);
     const isSelected = moveNumber === currentMoveNumber;
-    const rating = moves[currentMoveNumber].moveRating;
+    const rating = moves[currentMoveNumber]?.moveRating;
     const prevRating = moves[currentMoveNumber - 1]?.moveRating;
     const nextRating = moves[currentMoveNumber + 1]?.moveRating;
     const shownRating = getRating(currentMoveNumber, rating, prevRating, nextRating, lastBookMove);

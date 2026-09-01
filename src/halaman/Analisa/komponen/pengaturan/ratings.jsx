@@ -7,6 +7,7 @@ import { boardThemes } from "./themes.jsx";
 import { QUEEN, WHITE } from "chess.js";
 import PieceSVG from "../svg/piece.jsx";
 import RatingSVG from "../svg/rating.jsx";
+import { bacaTeks, tulis } from "../../penyimpanan.js";
 const ratings = [
   "brilliant",
   "great",
@@ -46,30 +47,30 @@ function Ratings() {
   const [boardTheme] = configContext.boardTheme;
   const [highlightByRating, setHighlightByRating] = configContext.highlightByRating;
   useEffect(() => {
-    const serializedUsedRatings = localStorage.getItem("kci-analisa-usedRatings");
+    const serializedUsedRatings = bacaTeks("usedRatings");
     if (!serializedUsedRatings) return;
     try {
       const usedRatings3 = unserializeRatings(serializedUsedRatings);
       setUsedRatings(usedRatings3);
     } catch {
-      localStorage.setItem("kci-analisa-usedRatings", serializeRatings(defaultUsedRatings));
+      tulis("usedRatings", serializeRatings(defaultUsedRatings));
       setUsedRatings(defaultUsedRatings);
     }
   }, []);
   useEffect(() => {
-    const highlightByRating2 = localStorage.getItem("kci-analisa-highlightByRating");
+    const highlightByRating2 = bacaTeks("highlightByRating");
     if (!highlightByRating2) return;
     const numberHighlightByRating = Number(highlightByRating2);
     if (!isNaN(numberHighlightByRating)) {
       setHighlightByRating(Boolean(numberHighlightByRating));
     } else {
-      localStorage.setItem("kci-analisa-highlightByRating", "1");
+      tulis("highlightByRating", "1");
       setHighlightByRating(true);
     }
   }, []);
   function toggleHighlightByRating() {
     const newHighlightByRating = !highlightByRating;
-    localStorage.setItem("kci-analisa-highlightByRating", String(Number(newHighlightByRating)));
+    tulis("highlightByRating", String(Number(newHighlightByRating)));
     setHighlightByRating(newHighlightByRating);
   }
   return <section>
@@ -100,7 +101,7 @@ function Ratings() {
         [rating]: !usedRatings2[rating]
       };
       setUsedRatings(newUsedRatings);
-      localStorage.setItem("kci-analisa-usedRatings", serializeRatings(newUsedRatings));
+      tulis("usedRatings", serializeRatings(newUsedRatings));
     }
     return <button onClick={toggleRating} type="button" key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
                         <RatingSVG rating={rating} size={35} className="w-[40px] h-[40px] flex justify-center items-center" />

@@ -4,6 +4,7 @@ import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import Arrow from "../../svg/arrow.jsx";
 import Image from "../../Gambar.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { bacaAngka, bacaTeks, tulis } from "../../../penyimpanan.js";
 
 const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
 
@@ -29,27 +30,12 @@ export const KEDALAMAN = [
   { kunci: "maksimal", ikon: null, ply: 20 },
 ];
 
-const KUNCI_FORMAT = "kci-analisa-format";
-const KUNCI_KEDALAMAN = "kci-analisa-kedalaman";
+/* Kunci penyimpanan (awalan "kci-analisa-" ditambahkan oleh penyimpanan.js). */
+const KUNCI_FORMAT = "format";
+const KUNCI_KEDALAMAN = "kedalaman";
 
-function baca(kunci, bawaan) {
-  try {
-    const mentah = localStorage.getItem(kunci);
-    if (mentah === null || mentah === "") return bawaan;
-    const nilai = Number(mentah);
-    return Number.isFinite(nilai) && nilai >= 0 ? nilai : bawaan;
-  } catch {
-    return bawaan;
-  }
-}
-
-function simpan(kunci, nilai) {
-  try {
-    localStorage.setItem(kunci, String(nilai));
-  } catch {
-    /* mode pribadi — pilihan tidak tersimpan, tidak fatal */
-  }
-}
+const baca = bacaAngka;
+const simpan = tulis;
 
 export default function Form({ setData, selectGame, depth, selected }) {
   const { t } = useI18n();
@@ -76,10 +62,17 @@ export default function Form({ setData, selectGame, depth, selected }) {
     if (indeks >= 0 && indeks !== selectedIndex) select(indeks);
   }, [data?.format, selectedIndex, select]);
 
-  /* Pulihkan pilihan sebelumnya. */
+  /*
+   * Pulihkan pilihan sebelumnya — HANYA bila memang ada nilai tersimpan.
+   * Versi lama selalu memanggil setKedalaman(), sehingga pilihan yang baru
+   * saja diubah pengguna di panel Pengaturan langsung ditimpa kembali ke
+   * nilai bawaan begitu tab "Analisis baru" dirender ulang.
+   */
   useEffect(() => {
-    const tersimpan = KEDALAMAN.find((k) => k.ply === baca(KUNCI_KEDALAMAN, KEDALAMAN[1].ply));
-    setKedalaman(tersimpan ? tersimpan.ply : KEDALAMAN[1].ply);
+    const tersimpan = baca(KUNCI_KEDALAMAN, null);
+    if (tersimpan === null) return;
+    const cocok = KEDALAMAN.find((k) => k.ply === tersimpan);
+    if (cocok) setKedalaman(cocok.ply);
   }, [setKedalaman]);
 
   useEffect(() => {
@@ -94,7 +87,7 @@ export default function Form({ setData, selectGame, depth, selected }) {
       return;
     }
     try {
-      setValue(localStorage.getItem(`kci-analisa-${format.kunci === "chessCom" ? "chesscom" : "lichessorg"}`) ?? "");
+      setValue(bacaTeks(format.kunci === "chessCom" ? "chesscom" : "lichessorg", "") ?? "");
     } catch {
       setValue("");
     }
@@ -105,14 +98,7 @@ export default function Form({ setData, selectGame, depth, selected }) {
     const nilai = value.trim();
 
     if (platform) {
-      try {
-        localStorage.setItem(
-          `kci-analisa-${format.kunci === "chessCom" ? "chesscom" : "lichessorg"}`,
-          nilai
-        );
-      } catch {
-        /* diabaikan */
-      }
+      tulis(format.kunci === "chessCom" ? "chesscom" : "lichessorg", nilai);
       if (!nilai) return;
       selectGame(nilai, format.kunci === "chessCom" ? "chessCom" : "lichessOrg");
       return;

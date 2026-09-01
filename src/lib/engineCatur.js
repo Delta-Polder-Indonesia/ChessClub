@@ -96,12 +96,11 @@ export class EngineCatur {
    */
   mulai() {
     if (this.janjiSiap) return this.janjiSiap;
-    this.janjiSiap = new Promise((selesai, gagal) => {
+    const janji = new Promise((selesai, gagal) => {
       let worker;
       try {
         worker = new Worker(this.url);
       } catch (galat) {
-        this.janjiSiap = null;
         gagal(galat);
         return;
       }
@@ -109,10 +108,16 @@ export class EngineCatur {
       this.penyelesaiSiap = { selesai, gagal };
       worker.onmessage = (e) => this.terima(String(e.data));
       worker.onerror = (galat) => {
-        if (!this.penyelesaiSiap) return;
-        this.penyelesaiSiap.gagal(new Error(galat?.message || "worker engine gagal"));
+        // Worker mati: bukan hanya pemuatan yang gagal — pencarian yang
+        // sedang menunggu juga tidak akan pernah menerima "bestmove".
+        // Keduanya harus dibereskan, kalau tidak halaman menggantung di
+        // layar "menganalisa…" selamanya.
+        const pesan = new Error(galat?.message || "worker engine gagal");
+        const penyelesai = this.penyelesaiSiap;
         this.penyelesaiSiap = null;
+        this.gagalkanPencarian(pesan);
         this.tamat();
+        if (penyelesai) penyelesai.gagal(pesan);
       };
       // Perintah awal — engine menampungnya sendiri sampai siap.
       this.kirim("uci");
@@ -121,7 +126,31 @@ export class EngineCatur {
       this.kirim("setoption name Ponder value false");
       this.kirim("isready");
     });
-    return this.janjiSiap;
+    // Kegagalan tidak boleh "lengket": tanpa ini, `janjiSiap` yang sudah
+    // ditolak akan dikembalikan selamanya sehingga tombol "Coba lagi" di
+    // panel pengaturan tidak pernah bisa memuat ulang engine.
+    const dijaga = janji.catch((galat) => {
+      if (this.janjiSiap === dijaga) this.janjiSiap = null;
+      throw galat;
+    });
+    this.janjiSiap = dijaga;
+    return dijaga;
+  }
+
+  /**
+   * Batalkan pencarian yang menunggu karena engine mati/di-terminate.
+   * Tanpa ini janji `cari()` tidak pernah selesai dan pemanggil (analisis
+   * partai) berhenti di tengah jalan tanpa pesan apa pun.
+   */
+  gagalkanPencarian(galat) {
+    const selesai = this.padaSelesai;
+    const tertunda = this.terakhir;
+    this.padaInfo = null;
+    this.padaSelesai = null;
+    this.terakhir = null;
+    this.sedangCari = false;
+    if (selesai) selesai("", null, galat ?? new Error("engine berhenti"));
+    if (tertunda?.padaSelesai) tertunda.padaSelesai("", null, galat ?? new Error("engine berhenti"));
   }
 
   kirim(perintah) {
@@ -186,7 +215,15 @@ export class EngineCatur {
   analisis(fen, { movetime = 800, kedalaman = null, padaInfo, padaSelesai }) {
     const permintaan = { fen, movetime, kedalaman, padaInfo, padaSelesai };
     if (this.sedangCari) {
+      // Permintaan lama yang belum sempat jalan digantikan — pemanggilnya
+      // harus diberi tahu, kalau tidak janji `cari()` miliknya menggantung
+      // selamanya (ini yang membuat analisis berhenti diam-diam saat
+      // pengguna mengetuk beberapa langkah dengan cepat).
+      const digantikan = this.terakhir;
       this.terakhir = permintaan;
+      if (digantikan?.padaSelesai) {
+        digantikan.padaSelesai("", null, new Error("permintaan digantikan"));
+      }
       this.kirim("stop");
     } else {
       this.jalankan(permintaan);
@@ -202,11 +239,14 @@ export class EngineCatur {
    * @returns {Promise<{uci: string, info: object|null}>}
    */
   cari({ fen, kedalaman = 12, movetime = null }) {
-    return new Promise((selesai) => {
+    return new Promise((selesai, gagal) => {
       this.analisis(fen, {
         kedalaman,
         movetime,
-        padaSelesai: (uci, info) => selesai({ uci, info: info ?? null }),
+        padaSelesai: (uci, info, galat) => {
+          if (galat) gagal(galat);
+          else selesai({ uci, info: info ?? null });
+        },
       });
     });
   }
@@ -234,13 +274,18 @@ export class EngineCatur {
 
   /** Hentikan pencarian aktif tanpa menjadwalkan permintaan baru. */
   setop() {
+    const tertunda = this.terakhir;
     this.terakhir = null;
+    if (tertunda?.padaSelesai) tertunda.padaSelesai("", null, new Error("pencarian dibatalkan"));
     if (this.sedangCari) this.kirim("stop");
   }
 
   /** Buang worker sepenuhnya (dipakai saat komponen dilepas). */
   tamat() {
     this.setop();
+    // Lepaskan penunggu SEBELUM worker dibuang, kalau tidak `cari()` yang
+    // sedang berjalan tidak akan pernah beresolusi.
+    this.gagalkanPencarian(new Error("engine dihentikan"));
     if (this.worker) {
       this.worker.terminate();
       this.worker.onmessage = null;

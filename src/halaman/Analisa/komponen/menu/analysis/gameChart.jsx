@@ -17,17 +17,23 @@ function GameChart(props) {
   const [hoveredMove, setHoveredMove] = useState(NaN);
   const [importantMoves, setImportantMoves] = useState([]);
   const [size, setSize] = useState({ width: 400, height: 96 });
-  const totalMoves = moves.length - 1;
+  // Analisis satu posisi (alur FEN) hanya punya 1 entri → totalMoves 0 →
+  // pembagian nol → seluruh koordinat NaN dan <path> tidak sah. Minimal 1.
+  const totalMoves = Math.max(1, moves.length - 1);
   const hoveredMoveX = getMoveX(hoveredMove, totalMoves) * size.width;
   const moveNumberX = getMoveX(moveNumber, totalMoves) * size.width;
   useEffect(() => {
+    // `container` datang dari `menuRef.current` induk dan pada render
+    // pertama masih null — tanpa penjagaan ini grafik melempar TypeError
+    // dan menjatuhkan seluruh panel Ringkasan/Langkah.
     function setRealSize() {
-      setSize({ width: container.offsetWidth * 0.85, height: 96 });
+      const lebar = container?.offsetWidth;
+      setSize({ width: lebar ? lebar * 0.85 : 400, height: 96 });
     }
     setRealSize();
     window.addEventListener("resize", setRealSize);
     return () => window.removeEventListener("resize", setRealSize);
-  }, []);
+  }, [container]);
   useEffect(() => {
     const newImportantMoves = moves.map((move2, i) => {
       const rating = move2.moveRating;
@@ -82,7 +88,11 @@ function GameChart(props) {
   }
   const upperFirstLetter = (str) => str[0]?.toUpperCase() + str.substring(1);
   const lastBookMove = getLastBookMove(moves);
-  const strokeColor = moves[moveNumber].moveRating !== "forced" ? `highlight${upperFirstLetter(moves[moveNumber].moveRating ?? "")}` : "foregroundGrey";
+  // `moves[moveNumber]` bisa undefined sesaat setelah partai baru dimuat
+  // (moveNumber masih menunjuk indeks partai lama) — jangan dereference.
+  const penilaianAktif = moves[moveNumber]?.moveRating;
+  const strokeColor =
+    penilaianAktif && penilaianAktif !== "forced" ? `highlight${upperFirstLetter(penilaianAktif)}` : "foregroundGrey";
   return <svg onClick={changeMoveNumber} onMouseMove={hoverMove} onMouseLeave={() => setHoveredMove(NaN)} width={size.width} height={size.height} className="bg-evaluationBarBlack rounded-borderRoundness">
             <path
     fill="#ffffff"

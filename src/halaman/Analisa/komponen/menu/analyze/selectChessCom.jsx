@@ -209,7 +209,7 @@ function SelectChessComGame(props) {
     })();
   }, [username]);
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? "flex flex-col justify-center flex-grow" : ""}`}>
-            <h1 style={{ display: loading ? "none" : "" }} className="text-2xl py-4 px-8 sticky text-foreground"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-backgroundBoxBoxHighlightedHover text-3xl font-bold">{username}</a> &middot; {t("analisa.partai.judul", { platform })}</h1>
+            <h1 style={{ display: loading ? "none" : "" }} className="text-2xl py-4 px-8 sticky text-foreground"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-backgroundBoxBoxHighlightedHover text-3xl font-bold">{username}</a> &middot; {t("analisa.partai.judul", { platform: PLATFORM })}</h1>
             <hr style={{ display: loading ? "none" : "" }} className="border-border" />
             <div className="flex flex-col w-full">
                 {loading ? <Loading whatIsLoading={t("analisa.tab.pilihPartai")} abort={stopSelecting} /> : null}

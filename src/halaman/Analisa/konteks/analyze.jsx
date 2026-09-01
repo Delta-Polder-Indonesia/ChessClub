@@ -1,6 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { createContext, useState, useRef, useEffect } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
+import { bacaAngka } from "../penyimpanan.js";
 const abortControllerInstance = new AbortController();
 const AnalyzeContext = createContext({
   data: [{ format: "fen", string: "" }, () => {
@@ -73,13 +74,15 @@ function AnalyzeContextProvider(props) {
   const [customLine, setCustomLine] = useState({ moveNumber: -1, moves: [], arrows: {} });
   const [returnedToNormalGame, setReturnedToNormalGame] = useState(null);
   const [analyzingMove, setAnalyzingMove] = useState(false);
+  /*
+   * Kedalaman tersimpan. Kuncinya HARUS "kci-analisa-kedalaman" — sama
+   * dengan yang ditulis form.jsx dan panel pengaturan. Sebelumnya di sini
+   * dibaca kunci "kci-analisa-depth" yang tidak pernah ditulis siapa pun,
+   * jadi pilihan pengguna selalu kembali ke 13 setiap kali halaman dibuka.
+   */
   const [depth, setDepth] = useState(() => {
-    try {
-      const tersimpan = Number(localStorage.getItem("kci-analisa-depth"));
-      return Number.isFinite(tersimpan) && tersimpan >= 1 ? tersimpan : 13;
-    } catch {
-      return 13;
-    }
+    const tersimpan = bacaAngka("kedalaman", 13);
+    return tersimpan >= 1 ? tersimpan : 13;
   });
   const moveNumberRef = useRef(moveNumber);
   const customLineRef = useRef(customLine);

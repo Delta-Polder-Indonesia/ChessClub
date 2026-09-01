@@ -6,7 +6,7 @@ import { gunakanMesin } from "../../konteks/mesin.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import { KEDALAMAN } from "../menu/analyze/form.jsx";
 
-const KUNCI_KEDALAMAN = "kci-analisa-kedalaman";
+import { tulis } from "../../penyimpanan.js";
 
 /**
  * Pilihan engine + kedalaman analisis.
@@ -39,11 +39,7 @@ function PengaturanMesin() {
 
   function pilihKedalaman(ply) {
     setDepth(ply);
-    try {
-      localStorage.setItem(KUNCI_KEDALAMAN, String(ply));
-    } catch {
-      /* mode pribadi: pilihan tidak tersimpan, tidak fatal */
-    }
+    tulis("kedalaman", ply);
   }
 
   return (
