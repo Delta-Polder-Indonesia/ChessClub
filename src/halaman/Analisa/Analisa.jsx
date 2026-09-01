@@ -13,8 +13,8 @@
  * situs. Lihat wadahRef + effect di bawah.
  */
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
+import Hero from "../../components/Hero.jsx";
 import ConfigContextProvider from "./konteks/config.jsx";
 import ErrorsContextProvider from "./konteks/errors.jsx";
 import AnalyzeContextProvider from "./konteks/analyze.jsx";
@@ -29,19 +29,6 @@ import "./analisa.css";
 
 /** Tinggi minimum area analisis supaya papan tetap bisa dipakai. */
 const TINGGI_MIN = 640;
-
-function Remah() {
-  const { t } = useI18n();
-  return (
-    <nav aria-label={t("analisa.remah")} className="flex flex-row flex-wrap items-center gap-1 text-xs font-bold text-slate-500 md:text-sm">
-      <Link to="/" className="hover:text-primary hover:underline">{t("common.home")}</Link>
-      <span aria-hidden="true">/</span>
-      <Link to="/program-kami" className="hover:text-primary hover:underline">{t("nav.programKami")}</Link>
-      <span aria-hidden="true">/</span>
-      <span aria-current="page">{t("nav.analisa")}</span>
-    </nav>
-  );
-}
 
 export default function Analisa() {
   const { t, bahasa } = useI18n();
@@ -79,22 +66,28 @@ export default function Analisa() {
     };
   }, []);
 
+  const crumbs = [
+    { label: t("common.home"), to: "/" },
+    { label: t("nav.programKami"), to: "/program-kami" },
+    { label: t("nav.analisa") },
+  ];
+
   return (
     <div className="bg-[#f5f5f5] pb-10">
-      <div className="mx-auto w-full max-w-[1500px] px-4 pb-3 pt-5 md:px-8 md:pt-6">
-        <Remah />
-        <h1 className="mt-2 text-2xl font-bold text-[#0f172a] md:text-3xl">{t("analisa.judul")}</h1>
-        <p className="mt-1 max-w-[70ch] text-sm leading-6 text-[#475569] md:text-base">{t("analisa.tagline")}</p>
-        <p className="mt-2 inline-flex flex-row items-center gap-2 rounded-md bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 md:text-sm">
-          <span aria-hidden="true">🔒</span>
-          {t("analisa.privasi")}
-        </p>
-      </div>
+      <Hero
+        title={t("analisa.judul")}
+        description={t("analisa.tagline")}
+        crumbs={crumbs}
+      />
 
       <ConfigContextProvider>
         <ErrorsContextProvider>
           <MesinProvider>
             <div className="mx-auto w-full max-w-[1500px] px-2 md:px-4">
+              <p className="mx-auto mb-3 mt-4 inline-flex flex-row items-center gap-2 rounded-md bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 md:text-sm">
+                <span aria-hidden="true">🔒</span>
+                {t("analisa.privasi")}
+              </p>
               <main
                 ref={wadahRef}
                 style={{ height: tinggi || undefined }}
