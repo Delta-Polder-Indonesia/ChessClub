@@ -61,6 +61,14 @@ function getCustomResult(move2) {
   if (chess.isDraw()) return "1/2-1/2";
   return "";
 }
+
+/** Nama aman untuk bilah pemain, termasuk saat metadata belum lengkap. */
+function formatPlayerLabel(player, fallbackName) {
+  const name = String(player?.name ?? "").trim() || String(fallbackName ?? "");
+  const elo = String(player?.elo ?? "").trim();
+  return elo && elo !== "NOELO" ? `${name} (${elo})` : name;
+}
+
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
   const [gameHeight, setGameHeight] = useState(850);
@@ -601,6 +609,10 @@ function Game({ wadah }) {
     if (restSeconds) return `${toTwoDigits(minutes)}:${toTwoDigits(restSeconds)}`;
     return noTime;
   }
+  const playerLabels = [
+    formatPlayerLabel(players?.[0], t("analisa.pemain.putih")),
+    formatPlayerLabel(players?.[1], t("analisa.pemain.hitam")),
+  ];
   return <div className="flex flex-col gap-[6px]">
         <div ref={gameRef} tabIndex={0} style={{ gap }} className="h-full flex navTop:flex-row flex-col outline-none">
             <div style={{ [isNavTop ? "width" : "height"]: gameHeight }} className="flex navTop:flex-row flex-col items-center">
@@ -608,7 +620,7 @@ function Game({ wadah }) {
             </div>
             <div ref={componentRef} style={{ gap }} className="h-full flex flex-col justify-start">
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
-                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white}>{`${players[white ? 1 : 0].name} ${players[white ? 1 : 0].elo !== "NOELO" ? `(${players[white ? 1 : 0].elo})` : ""}`}</Name>
+                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white}>{playerLabels[white ? 1 : 0]}</Name>
                     <Clock white={!white} colorMoving={game[moveNumber]?.color}>{formatTime(time)}</Clock>
                 </div>
                 <Board
@@ -644,7 +656,7 @@ function Game({ wadah }) {
     bestMoveSan={move2?.bestMoveSan}
   />
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
-                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white}>{`${players[white ? 0 : 1].name} ${players[white ? 0 : 1].elo !== "NOELO" ? `(${players[white ? 0 : 1].elo})` : ""}`}</Name>
+                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white}>{playerLabels[white ? 0 : 1]}</Name>
                     <Clock white={white} colorMoving={game[moveNumber]?.color}>{formatTime(time)}</Clock>
                 </div>
             </div>
@@ -658,5 +670,6 @@ function Game({ wadah }) {
 }
 export {
   Game as default,
+  formatPlayerLabel,
   getMoves
 };
