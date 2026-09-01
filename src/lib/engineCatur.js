@@ -13,7 +13,52 @@
  * lalu dijalankan berurutan begitu "uciok"/"readyok" terbit.
  */
 
-const URL_ENGINE = `${import.meta.env.BASE_URL}engines/stockfish-18-lite-single/stockfish-18-lite-single.js`;
+/**
+ * Dasar folder aset. Vite mengganti ekspresi `import.meta.env` saat build;
+ * di Node (skrip uji `scripts/uji-analisa.mjs`) nilainya tidak ada, sehingga
+ * dijaga dengan `typeof` agar modul ini tetap bisa diimpor tanpa peramban.
+ */
+function dasarAset() {
+  return typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.BASE_URL : "/";
+}
+
+const URL_ENGINE = `${dasarAset()}engines/stockfish-18-lite-single/stockfish-18-lite-single.js`;
+
+/**
+ * Engine lokal yang tersedia di `public/engines/` — dipakai halaman Analisa
+ * untuk memilih kekuatan analisis (semuanya build "single" = satu utas,
+ * jadi tidak butuh header COOP/COEP dan aman lewat GitHub Pages).
+ */
+export const DAFTAR_ENGINE = [
+  {
+    id: "stockfish-18-lite",
+    label: "Stockfish 18 Lite",
+    url: `${dasarAset()}engines/stockfish-18-lite-single/stockfish-18-lite-single.js`,
+    saran: true,
+  },
+  {
+    id: "stockfish-17-lite",
+    label: "Stockfish 17 Lite",
+    url: `${dasarAset()}engines/stockfish-17-lite-single/stockfish-17-lite-single.js`,
+  },
+  {
+    id: "stockfish-18",
+    label: "Stockfish 18 (NNUE penuh)",
+    url: `${dasarAset()}engines/stockfish-18-single/stockfish-18-single.js`,
+  },
+  {
+    id: "stockfish-17",
+    label: "Stockfish 17 (NNUE penuh)",
+    url: `${dasarAset()}engines/stockfish-17-single/stockfish-17-single.js`,
+  },
+];
+
+export const ENGINE_BAKU = DAFTAR_ENGINE.find((e) => e.saran)?.id ?? DAFTAR_ENGINE[0].id;
+
+/** Cari konfigurasi engine berdasarkan id (fallback ke bawaan). */
+export function cariEngine(id) {
+  return DAFTAR_ENGINE.find((e) => e.id === id) ?? DAFTAR_ENGINE.find((e) => e.id === ENGINE_BAKU);
+}
 
 /** Ambil bilangan dari potongan baris UCI, mis. "depth 17" → 17. */
 function angkaUci(baris, kunci) {
@@ -22,7 +67,16 @@ function angkaUci(baris, kunci) {
 }
 
 export class EngineCatur {
-  constructor() {
+  /**
+   * @param {{url?: string, hash?: number, threads?: number}} [opsi]
+   *   `url`  — URL skrip worker engine (default: Stockfish 18 Lite lokal),
+   *   `hash` — ukuran tabel hash dalam MB (naikkan untuk analisis partai),
+   *   `threads` — jumlah utas; build lokal di repo ini satu utas.
+   */
+  constructor({ url = URL_ENGINE, hash = 16, threads = 1 } = {}) {
+    this.url = url;
+    this.hash = hash;
+    this.threads = threads;
     this.worker = null;
     this.siap = false;
     this.janjiSiap = null;
@@ -31,6 +85,7 @@ export class EngineCatur {
     this.padaSelesai = null; // callback bestmove pencarian yang sedang berjalan
     this.sedangCari = false;
     this.terakhir = null; // permintaan terbaru yang menunggu pencarian lama selesai
+    this.infoTerakhir = null; // baris "info" berskor terakhir dari pencarian aktif
   }
 
   /**
@@ -44,7 +99,7 @@ export class EngineCatur {
     this.janjiSiap = new Promise((selesai, gagal) => {
       let worker;
       try {
-        worker = new Worker(URL_ENGINE);
+        worker = new Worker(this.url);
       } catch (galat) {
         this.janjiSiap = null;
         gagal(galat);
@@ -61,7 +116,9 @@ export class EngineCatur {
       };
       // Perintah awal — engine menampungnya sendiri sampai siap.
       this.kirim("uci");
-      this.kirim("setoption name Hash value 16");
+      this.kirim(`setoption name Hash value ${this.hash}`);
+      this.kirim(`setoption name Threads value ${this.threads}`);
+      this.kirim("setoption name Ponder value false");
       this.kirim("isready");
     });
     return this.janjiSiap;
@@ -84,19 +141,21 @@ export class EngineCatur {
     }
 
     if (baris.startsWith("info ")) {
-      // Hanya baris berguna: punya skor dan barisan langkah (pv).
-      if (!this.padaInfo || !baris.includes(" pv ")) return;
-      if (baris.includes(" lowerbound ") || baris.includes(" upperbound ")) return;
+      const adaBatas = baris.includes(" lowerbound ") || baris.includes(" upperbound ");
       const cp = angkaUci(baris, "cp");
       const mate = angkaUci(baris, "mate");
       if (cp === null && mate === null) return;
-      const pv = (baris.split(" pv ")[1] || "").trim().split(/\s+/);
-      this.padaInfo({
-        kedalaman: angkaUci(baris, "depth") ?? 0,
-        cp,
-        mate,
-        pv: pv.slice(0, 14),
-      });
+      const pv = (baris.split(" pv ")[1] || "")
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .slice(0, 14);
+      const info = { kedalaman: angkaUci(baris, "depth") ?? 0, cp, mate, pv, adaBatas };
+      // Skor terakhir dipakai fitur Analisa (lihat `cari`). Baris dengan batas
+      // lower/upperbound hanya dipakai bila belum ada baris PV yang bersih.
+      if (!adaBatas || !this.infoTerakhir) this.infoTerakhir = info;
+      // Hanya baris berguna untuk panah: punya langkah pv dan bukan batas.
+      if (this.padaInfo && !adaBatas && pv.length) this.padaInfo(info);
       return;
     }
 
@@ -104,9 +163,10 @@ export class EngineCatur {
       const uci = (baris.split(/\s+/)[1] || "").trim();
       this.sedangCari = false;
       const selesai = this.padaSelesai;
+      const info = this.infoTerakhir;
       this.padaInfo = null;
       this.padaSelesai = null;
-      if (selesai) selesai(uci);
+      if (selesai) selesai(uci, info);
       // Bila ada permintaan yang lebih baru menunggu, jalankan sekarang.
       if (this.terakhir) {
         const baru = this.terakhir;
@@ -123,8 +183,8 @@ export class EngineCatur {
    * pencarian). Permintaan yang datang berikutnya selalu menggantikan yang
    * sebelumnya sehingga hanya analisis terbaru yang ditampilkan.
    */
-  analisis(fen, { movetime = 800, padaInfo, padaSelesai }) {
-    const permintaan = { fen, movetime, padaInfo, padaSelesai };
+  analisis(fen, { movetime = 800, kedalaman = null, padaInfo, padaSelesai }) {
+    const permintaan = { fen, movetime, kedalaman, padaInfo, padaSelesai };
     if (this.sedangCari) {
       this.terakhir = permintaan;
       this.kirim("stop");
@@ -133,12 +193,43 @@ export class EngineCatur {
     }
   }
 
-  jalankan({ fen, movetime, padaInfo, padaSelesai }) {
+  /**
+   * Satu pencarian, satu janji (promise) — bentuk yang dipakai fitur Analisa
+   * saat menelusuri seluruh partai langkah demi langkah. Beresolusi begitu
+   * engine menerbitkan "bestmove"; hasilnya ikut membawa baris "info"
+   * terakhir sehingga pemanggil tidak perlu memantau pesan worker sendiri.
+   *
+   * @returns {Promise<{uci: string, info: object|null}>}
+   */
+  cari({ fen, kedalaman = 12, movetime = null }) {
+    return new Promise((selesai) => {
+      this.analisis(fen, {
+        kedalaman,
+        movetime,
+        padaSelesai: (uci, info) => selesai({ uci, info: info ?? null }),
+      });
+    });
+  }
+
+  jalankan({ fen, movetime, kedalaman, padaInfo, padaSelesai }) {
     this.padaInfo = padaInfo;
     this.padaSelesai = padaSelesai;
     this.sedangCari = true;
+    this.infoTerakhir = null;
     this.kirim(`position fen ${fen}`);
-    this.kirim(`go movetime ${movetime}`);
+    // Batas boleh lebih dari satu: engine berhenti pada batas pertama
+    // yang tercapai (mis. depth 12 atau movetime 4000 ms).
+    const batas = [];
+    if (kedalaman) batas.push(`depth ${kedalaman}`);
+    if (movetime) batas.push(`movetime ${movetime}`);
+    this.kirim(`go ${batas.length ? batas.join(" ") : `movetime ${movetime || 800}`}`);
+  }
+
+  /** Buang tabel hash — panggil saat memulai analisis partai yang baru. */
+  gameBaru() {
+    this.setop();
+    this.kirim("ucinewgame");
+    this.kirim("isready");
   }
 
   /** Hentikan pencarian aktif tanpa menjadwalkan permintaan baru. */
@@ -163,5 +254,6 @@ export class EngineCatur {
     this.padaSelesai = null;
     this.sedangCari = false;
     this.terakhir = null;
+    this.infoTerakhir = null;
   }
 }

@@ -1,0 +1,155 @@
+/*
+ * Gaya fitur Analisa (port Brilliant-Chess, MIT © 2025 Delo).
+ *
+ * upstream menaruh semua variabel warnanya di `:root` + `body`, yang di situs
+ * ini akan mengubah seluruh tampilan. Semuanya ditaruh di dalam `.analisa-root`
+ * sehingga hanya halaman /program-kami/analisa yang terpengaruh. Token
+ * warna Tailwind yang menunjuk ke variabel ini didefinisikan di
+ * `@theme inline` pada src/index.css — kombinasi itulah yang membuat
+ * utilitas seperti `bg-backgroundBoxBoxHover` otomatis ikut tema aktif.
+ */
+
+.analisa-root {
+  --analisa-background: #302e2b;
+  --analisa-foreground: #dedede;
+
+  --analisa-foregroundHighlighted: #ffffff;
+  --analisa-foregroundGrey: #939291;
+  --analisa-foregroundBlack: #505050;
+  --analisa-foregroundBlackDark: #363636;
+
+  --analisa-placeholder: #9e9d9c;
+
+  --analisa-backgroundBox: #00000033;
+  --analisa-backgroundBoxDarker: #121212;
+  --analisa-backgroundBoxHover: #00000024;
+  --analisa-backgroundBoxBox: #ffffff1a;
+  --analisa-backgroundBoxBoxDisabled: #00000024;
+  --analisa-backgroundBoxBoxHover: #ffffff29;
+  --analisa-backgroundBoxBoxHighlighted: #81b64c;
+  --analisa-backgroundBoxBoxHighlightedHover: #8bc550;
+  --analisa-backgroundWhiteClock: #f6f6f6;
+  --analisa-backgroundBlackClock: #1e1d1c;
+
+  --analisa-foregroundProfileWhite: #ffffff;
+  --analisa-foregroundProfileBlack: #1d1c1a;
+  --analisa-backgroundProfileWhite: #dbd9d6;
+  --analisa-backgroundProfileBlack: #474542;
+
+  --analisa-evaluationBarWhite: #ffffff;
+  --analisa-evaluationBarBlack: #403d39;
+
+  --analisa-border: #5d5d5d;
+  --analisa-borderHighlighted: #949494;
+
+  --analisa-blackBoard: #779556;
+  --analisa-whiteBoard: #ebecd0;
+
+  --analisa-highlightBrilliant: #26c2a3;
+  --analisa-highlightGreat: #749bbf;
+  --analisa-highlightBest: #81b64c;
+  --analisa-highlightExcellent: #81b64c;
+  --analisa-highlightGood: #95b776;
+  --analisa-highlightBook: #d5a47d;
+  --analisa-highlightInaccuracy: #f7c631;
+  --analisa-highlightMistake: #ffa459;
+  --analisa-highlightMiss: #ff7769;
+  --analisa-highlightBlunder: #fa412d;
+
+  --analisa-normalArrow: #ffaa00;
+  --analisa-bestArrow: #9fcf3f;
+  --analisa-badArrow: #eb6150;
+
+  --analisa-winGreen: #81b64c;
+  --analisa-lossRed: #fa412d;
+
+  --analisa-error: #fa412d;
+  --analisa-warning: #b8860b;
+
+  --analisa-borderRoundness: 0.25rem;
+  --analisa-borderExtraRoundness: 0.5rem;
+
+  /* dipakai inline oleh komponen port lewat style={{ ... }} */
+  --foreground: var(--analisa-foreground);
+  --foregroundBlackDark: var(--analisa-foregroundBlackDark);
+  --foregroundHighlighted: var(--analisa-foregroundHighlighted);
+  --evaluationBarWhite: var(--analisa-evaluationBarWhite);
+  --evaluationBarBlack: var(--analisa-evaluationBarBlack);
+  --background: var(--analisa-background);
+  --backgroundBox: var(--analisa-backgroundBox);
+  --borderRoundness: var(--analisa-borderRoundness);
+  --borderExtraRoundness: var(--analisa-borderExtraRoundness);
+  --bestMoveArrow: var(--analisa-bestArrow);
+  --normalMoveArrow: var(--analisa-normalArrow);
+  --badMoveArrow: var(--analisa-badArrow);
+  --highlightBest: var(--analisa-highlightBest);
+  --highlightBrilliant: var(--analisa-highlightBrilliant);
+  --highlightGreat: var(--analisa-highlightGreat);
+  --highlightExcellent: var(--analisa-highlightExcellent);
+  --highlightGood: var(--analisa-highlightGood);
+  --highlightBook: var(--analisa-highlightBook);
+  --highlightInaccuracy: var(--analisa-highlightInaccuracy);
+  --highlightMistake: var(--analisa-highlightMistake);
+  --highlightMiss: var(--analisa-highlightMiss);
+  --highlightBlunder: var(--analisa-highlightBlunder);
+  --whiteBoard: var(--analisa-whiteBoard);
+  --border: var(--analisa-border);
+  --placeholder: var(--analisa-placeholder);
+  --error: var(--analisa-error);
+  --warning: var(--analisa-warning);
+  /* upstream lupa mendefinisikan ini: pratinjau pengaturan panah jadi kosong */
+  --highlightBoard: #ffff33;
+  --blackBoard: var(--analisa-blackBoard);
+  --backgroundBoxBoxHighlighted: var(--analisa-backgroundBoxBoxHighlighted);
+  --backgroundBoxBoxHighlightedHover: var(--analisa-backgroundBoxBoxHighlightedHover);
+  --scrollbarColor: #494949;
+  --scrollbarSize: 8px;
+
+  color: var(--analisa-foreground);
+  background: var(--analisa-background);
+}
+
+/* Warna papan dari tema terpilih (board.jsx menulis variabel ini langsung). */
+.analisa-root {
+  scrollbar-width: var(--scrollbarSize);
+  scrollbar-color: var(--scrollbarColor) transparent;
+}
+
+.analisa-root *,
+.analisa-root *::before,
+.analisa-root *::after {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbarColor) transparent;
+}
+
+.analisa-root ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.analisa-root ::-webkit-scrollbar-thumb {
+  background: var(--scrollbarColor);
+  border-radius: 8px;
+}
+
+.analisa-root ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Bidak & papan: upstream mengandalkan global `img { -webkit-user-drag }`. */
+.analisa-root img,
+.analisa-root svg {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+
+.analisa-root input,
+.analisa-root textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* Panel evaluasi berputar (0..100) memakai transform, bukan layout. */
+.analisa-root .analisa-tanpa-animasi * {
+  transition: none !important;
+}

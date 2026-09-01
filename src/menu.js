@@ -63,6 +63,12 @@ export const MENU_UTAMA = [
         file: "TekaTekiKonten.jsx",
       },
       {
+        title: "nav.analisa",
+        path: "/program-kami/analisa",
+        folder: "Analisa",
+        file: "Analisa.jsx",
+      },
+      {
         title: "nav.pembukaan",
         path: "/program-kami/pembukaan",
         folder: "ProgramKami",
