@@ -50,7 +50,9 @@ import { I18nProvider } from "./src/lib/i18n.jsx";
 import Analisa from "./src/halaman/Analisa/Analisa.jsx";
 import ConfigContextProvider from "./src/halaman/Analisa/konteks/config.jsx";
 import ErrorsContextProvider from "./src/halaman/Analisa/konteks/errors.jsx";
-import AnalyzeContextProvider from "./src/halaman/Analisa/konteks/analyze.jsx";
+import AnalyzeContextProvider, { AnalyzeContext, normalisasiPemain } from "./src/halaman/Analisa/konteks/analyze.jsx";
+import { MesinProvider } from "./src/halaman/Analisa/konteks/mesin.jsx";
+import Game, { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/game.jsx";
 import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
 
@@ -77,6 +79,39 @@ export function mountPemilih(el, platform) {
     </HelmetProvider>
   );
 }
+
+function GameDenganPemainKosong() {
+  const nilaiBawaan = React.useContext(AnalyzeContext);
+  const nilai = {
+    ...nilaiBawaan,
+    pageState: ["default", () => {}],
+    players: [[], () => {}],
+  };
+  return (
+    <AnalyzeContext.Provider value={nilai}>
+      <Game />
+    </AnalyzeContext.Provider>
+  );
+}
+
+/** Regresi untuk state pemain kosong yang dahulu merobohkan render Game. */
+export function mountGameDenganPemainKosong(el) {
+  const root = createRoot(el);
+  root.render(
+    <I18nProvider>
+      <ConfigContextProvider>
+        <ErrorsContextProvider>
+          <MesinProvider>
+            <GameDenganPemainKosong />
+          </MesinProvider>
+        </ErrorsContextProvider>
+      </ConfigContextProvider>
+    </I18nProvider>
+  );
+  return root;
+}
+
+export { formatPlayerLabel, normalisasiPemain };
 
 export function mount(el) {
   return createRoot(el).render(
@@ -291,6 +326,35 @@ uji("janji privasi tampil", awal.includes("tidak dikirim ke server"));
 uji("papan ter-render (svg bidak)", domSiap.querySelectorAll(".analisa-root svg").length > 20);
 uji("formulir analisis tersedia", !!domSiap.querySelector("textarea"));
 uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hitam"));
+
+/* --- regresi: metadata/state pemain kosong tidak boleh merobohkan Game --- */
+{
+  const pemain = modul.normalisasiPemain([undefined], ["Putih", "Hitam"]);
+  uji(
+    "konteks melengkapi kedua pemain yang hilang",
+    pemain.length === 2 && pemain[0].name === "Putih" && pemain[1].name === "Hitam"
+  );
+  uji(
+    "label pemain mengabaikan metadata kosong",
+    modul.formatPlayerLabel(undefined, "Hitam") === "Hitam" &&
+      modul.formatPlayerLabel({ name: "Andini", elo: "NOELO" }, "Putih") === "Andini"
+  );
+
+  const galatSebelum = pesanGalat.length;
+  const wadah = domSiap.createElement("div");
+  domSiap.body.appendChild(wadah);
+  const root = modul.mountGameDenganPemainKosong(wadah);
+  await tunggu(250);
+  const teksPemain = wadah.textContent ?? "";
+  const galatPemain = pesanGalat.slice(galatSebelum).join("\n");
+  uji(
+    "Game ter-render dengan pemain kosong tanpa TypeError",
+    teksPemain.includes("Putih") && teksPemain.includes("Hitam") &&
+      !/Cannot read properties of undefined.*name/.test(galatPemain)
+  );
+  root.unmount();
+  wadah.remove();
+}
 
 /* --- alur: tempel PGN lalu kirim --- */
 const kotak = domSiap.querySelector("textarea");

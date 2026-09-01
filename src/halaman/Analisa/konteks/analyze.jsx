@@ -1,7 +1,30 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { createContext, useState, useRef, useEffect } from "react";
+import { createContext, useState, useRef, useEffect, useMemo } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { bacaAngka } from "../penyimpanan.js";
+
+const PEMAIN_KOSONG = Object.freeze([
+  Object.freeze({ name: "", elo: "NOELO" }),
+  Object.freeze({ name: "", elo: "NOELO" }),
+]);
+
+/**
+ * Kontrak konteks selalu menyediakan pemain putih dan hitam. State lama yang
+ * dipertahankan Vite Fast Refresh, atau metadata eksternal yang tidak lengkap,
+ * tidak boleh membuat komponen papan membaca `.name` dari `undefined`.
+ */
+function normalisasiPemain(players, namaBawaan = ["", ""]) {
+  const daftar = Array.isArray(players) ? players : [];
+  return [0, 1].map((index) => {
+    const pemain = daftar[index] && typeof daftar[index] === "object" ? daftar[index] : {};
+    return {
+      ...pemain,
+      name: String(pemain.name ?? "").trim() || namaBawaan?.[index] || "",
+      elo: pemain.elo ?? "NOELO",
+    };
+  });
+}
+
 const abortControllerInstance = new AbortController();
 const AnalyzeContext = createContext({
   data: [{ format: "fen", string: "" }, () => {
@@ -10,7 +33,7 @@ const AnalyzeContext = createContext({
   }],
   game: [[], () => {
   }],
-  players: [[], () => {
+  players: [PEMAIN_KOSONG, () => {
   }],
   moveNumber: [0, () => {
   }],
@@ -60,6 +83,10 @@ function AnalyzeContextProvider(props) {
     { name: t("analisa.pemain.putih"), elo: "?" },
     { name: t("analisa.pemain.hitam"), elo: "?" },
   ]);
+  const playersAman = useMemo(
+    () => normalisasiPemain(players, [t("analisa.pemain.putih"), t("analisa.pemain.hitam")]),
+    [players, t]
+  );
   const [moveNumber, setMoveNumber] = useState(0);
   const [forward, setForward] = useState(true);
   const [animation, setAnimation] = useState(true);
@@ -161,11 +188,12 @@ function AnalyzeContextProvider(props) {
       setPlaying(false);
     }
   };
-  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [players, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], depth: [depth, setDepth], gameController }}>
+  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], depth: [depth, setDepth], gameController }}>
             {props.children}
         </AnalyzeContext.Provider>;
 }
 export {
   AnalyzeContext,
-  AnalyzeContextProvider as default
+  AnalyzeContextProvider as default,
+  normalisasiPemain
 };
