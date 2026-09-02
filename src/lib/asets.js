@@ -4,6 +4,7 @@
  * `npm run uji:gambar` memastikan isinya tidak ketinggalan.
  */
 import { UKUR as UKUR_GAMBAR } from "../data/ukur-gambar.js";
+import { EBOOK_BASE } from "../data/ebook-storage.js";
 
 /**
  * Alamat aset publik (gambar, favicon, dll).
@@ -26,6 +27,26 @@ export function gambar(jalur) {
 export function berkasPublik(jalur) {
   const bersih = String(jalur || "").replace(/^\//, "");
   return `${import.meta.env.BASE_URL}${bersih}`;
+}
+
+/**
+ * Alamat e-book PDF: pakai object storage bila `EBOOK_BASE` sudah diatur
+ * (lihat src/data/ebook-storage.js), selain itu jatuh ke berkas lokal
+ * public/ebooks/*.pdf (mode Git LFS lama).
+ *
+ * Nama berkas diambil dari segmen terakhir `jalur` dan sudah berformat
+ * URL-encoded (sesuai nilai `file:` di ebook-data.js), sehingga cocok
+ * langsung disambung ke basis URL storage.
+ *
+ * @param {string} jalur  "/ebooks/Nama%20File.pdf"
+ * @param {{unduh?: boolean}} [opsi] `unduh: true` menambah `?download`
+ *        supaya Supabase mengirim Content-Disposition: attachment.
+ */
+export function urlEbook(jalur, opsi = {}) {
+  if (!EBOOK_BASE) return berkasPublik(jalur);
+  const nama = String(jalur || "").replace(/^\//, "").split("/").pop();
+  const dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
+  return opsi.unduh ? `${dasar}?download` : dasar;
 }
 
 /**
