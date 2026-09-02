@@ -167,6 +167,82 @@ export function waktuDariPgn(headers) {
   return Number.isFinite(angka) ? angka : 0;
 }
 
+/**
+ * Uraikan tag [%clk H:MM:SS] atau [%clk MM:SS] menjadi detik.
+ */
+export function parseClockString(str) {
+  if (!str) return null;
+  const match = str.match(/\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/i);
+  if (!match) return null;
+  const parts = match[1].split(":").map(Number);
+  if (parts.some(Number.isNaN)) return null;
+  if (parts.length === 3) {
+    const [h, m, s] = parts;
+    return Math.round(h * 3600 + m * 60 + s);
+  }
+  if (parts.length === 2) {
+    const [m, s] = parts;
+    return Math.round(m * 60 + s);
+  }
+  return null;
+}
+
+/**
+ * Ekstrak sisa waktu jam (detik) untuk Putih & Hitam pada setiap posisi/langkah partai.
+ */
+export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0) {
+  const mapKomentar = new Map();
+  try {
+    const daftarKomentar = typeof chess.getComments === "function" ? chess.getComments() : [];
+    for (const item of daftarKomentar) {
+      if (item.fen && item.comment) {
+        const clk = parseClockString(item.comment);
+        if (clk !== null) {
+          mapKomentar.set(item.fen, clk);
+        }
+      }
+    }
+  } catch {}
+
+  const sequentialClocks = [];
+  const regexClk = /\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/gi;
+  let match;
+  while ((match = regexClk.exec(rawPgn)) !== null) {
+    const parts = match[1].split(":").map(Number);
+    let sec = null;
+    if (parts.length === 3) sec = Math.round(parts[0] * 3600 + parts[1] * 60 + parts[2]);
+    else if (parts.length === 2) sec = Math.round(parts[0] * 60 + parts[1]);
+    if (sec !== null) sequentialClocks.push(sec);
+  }
+
+  let curWhite = waktuDasar || (sequentialClocks[0] ?? null);
+  let curBlack = waktuDasar || (sequentialClocks[1] ?? curWhite);
+
+  const hasil = [{ white: curWhite, black: curBlack }];
+
+  for (let i = 0; i < riwayat.length; i++) {
+    const m = riwayat[i];
+    let clk = null;
+    if (sequentialClocks.length === riwayat.length) {
+      clk = sequentialClocks[i];
+    } else if (mapKomentar.has(m.after)) {
+      clk = mapKomentar.get(m.after);
+    } else if (i < sequentialClocks.length) {
+      clk = sequentialClocks[i];
+    }
+
+    if (m.color === "w") {
+      if (clk !== null) curWhite = clk;
+    } else {
+      if (clk !== null) curBlack = clk;
+    }
+
+    hasil.push({ white: curWhite, black: curBlack });
+  }
+
+  return hasil;
+}
+
 function getResult(headers, pgn) {
   if (headers.Result && headers.Result !== "*") return headers.Result;
   const akhir = pgn.trim().split(/\s+/).pop() ?? "";
@@ -337,6 +413,8 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     result: getResult(headers, pgn),
   };
 
+  const daftarClock = ekstrakDaftarClock(chess, rawPgn, riwayat, metadata.time);
+
   const hentikan = () => mesin.setop();
   if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });
 
@@ -357,7 +435,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     // pertama punya pembanding.
     const chessAwal = new Chess(riwayat[0].before);
     const awal = await parsePosition(mesin, chessAwal, depth, sinyal, gagalkan);
-    moves.push(awal);
+    moves.push({ ...awal, clock: daftarClock[0] ?? { white: metadata.time || null, black: metadata.time || null } });
     previousStaticEvals = awal.previousStaticEvals;
     previousBestMoveSan = awal.bestMoveSan;
 
@@ -381,7 +459,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
 
       if (sinyal?.aborted) throw galat(GALAT_BATAL);
 
-      moves.push(dianalisis);
+      moves.push({ ...dianalisis, clock: daftarClock[i + 1] ?? moves[moves.length - 1]?.clock });
       previousStaticEvals = dianalisis.previousStaticEvals;
       previousBestMoveSan = dianalisis.bestMoveSan;
       previousSacrifice = dianalisis.sacrifice ?? false;
