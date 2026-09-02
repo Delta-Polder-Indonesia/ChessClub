@@ -87,7 +87,7 @@ function Moves() {
                                 </div>;
   })}
                     </div>
-                    <span className="font-bold text-lg">{t("analisa.pengaturan.langkahLegal")}</span>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.langkahLegal")}</span>
                     <div style={{ backgroundColor: "var(--foreground)", display: showLegalMoves ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
                 </button>
                 <button onClick={toggleAnimateMoves} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
@@ -105,7 +105,7 @@ function Moves() {
                                 </div>;
   })}
                     </div>
-                    <span className="font-bold text-lg">{t("analisa.pengaturan.animasi")}</span>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.animasi")}</span>
                     <div style={{ backgroundColor: "var(--foreground)", display: animateMoves ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
                 </button>
                 <button onClick={toggleBoardSounds} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
@@ -113,7 +113,7 @@ function Moves() {
                         <SoundMax display={boardSounds} size={35} />
                         <SoundMute display={!boardSounds} size={35} />
                     </div>
-                    <span className="font-bold text-lg">{t("analisa.pengaturan.suara")}</span>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.suara")}</span>
                     <div style={{ backgroundColor: "var(--foreground)", display: boardSounds ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
                 </button>
             </section>

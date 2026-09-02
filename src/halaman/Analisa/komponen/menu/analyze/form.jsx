@@ -147,7 +147,7 @@ export default function Form({ setData, selectGame, depth, selected }) {
         ref={inputRef}
         placeholder={penunjuk}
         aria-label={penunjuk}
-        className="w-[85%] px-2 py-[13px] flex items-center transition-colors text-xl font-bold rounded-borderRoundness border-border hover:border-borderHighlighted focus:border-borderHighlighted border-solid border-[1px] bg-backgroundBoxBox outline-none placeholder:text-placeholder placeholder:font-normal resize-none"
+        className="w-[85%] px-2 py-[13px] flex items-center transition-colors text-xl font-bold rounded-borderRoundness border-border hover:border-borderHighlighted focus:border-borderHighlighted border-solid border-[1px] bg-backgroundBoxBox outline-none placeholder:text-sm placeholder:text-placeholder placeholder:font-normal resize-none"
       />
       <p className="w-[85%] text-xs text-foregroundGrey -mt-2">
         {t(platform ? "analisa.form.hint" : format.kunci === "pgn" ? "analisa.form.contohPgn" : "analisa.form.contohFen")}

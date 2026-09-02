@@ -90,7 +90,7 @@ function Ratings() {
                             </div>;
   })}
                 </div>
-                <span className="font-bold text-lg">{t("analisa.pengaturan.sorotLabel")}</span>
+                <span className="font-bold text-sm">{t("analisa.pengaturan.sorotLabel")}</span>
                 <div style={{ backgroundColor: "var(--foreground)", display: highlightByRating ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
             </button>
             {ratings.map((rating, i) => {
@@ -105,7 +105,7 @@ function Ratings() {
     }
     return <button onClick={toggleRating} type="button" key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
                         <RatingSVG rating={rating} size={35} className="w-[40px] h-[40px] flex justify-center items-center" />
-                        <span className="font-bold text-lg">{capitalizeFirst(rating)}</span>
+                        <span className="font-bold text-sm">{capitalizeFirst(rating)}</span>
                         <div style={{ backgroundColor: color, display: usedRatings2[rating] ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
                     </button>;
   })}

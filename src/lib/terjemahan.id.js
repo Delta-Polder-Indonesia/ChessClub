@@ -1066,7 +1066,7 @@ export const ID = {
         "Engine pada situs ini berjalan pada satu utas, jadi kedalaman tinggi memakan waktu menit untuk partai panjang.",
     },
     mesin: {
-      judul: "Engine catur",
+      judul: "Ulasan Game",
       petunjuk: "Engine diambil dari berkas lokal situs dan berjalan sepenuhnya di perangkat Anda.",
     },
     tab: {

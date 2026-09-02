@@ -28,7 +28,7 @@ import Settings from "../pengaturan/settings.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
 /** Repo upstream pemilik desain UI ini (atribusi MIT). */
-export const URL_REPO = "https://github.com/wdeloo/Brilliant-Chess";
+export const URL_REPO = "https://delta-polder-indonesia.github.io/BintangToba/";
 
 export default function Nav() {
   const { t } = useI18n();
@@ -91,12 +91,12 @@ export default function Nav() {
         <div ref={topLinksRef} className="flex navTop:flex-col flex-row">
           <Link draggable={false} onMouseEnter={() => setOpenedMenu(null)} to="/" className="flex flex-row gap-1 font-extrabold text-xl navTop:p-3 p-1.5 transition-colors hover:bg-backgroundBoxHover hover:text-foregroundHighlighted">
             <Gambar draggable={false} height={30} width={30} alt="logo" src={`${import.meta.env.BASE_URL}images/analisa/logo.svg`} className="navTop:mt-[-2px]" />
-            <div className="h-fit w-fit navTop:block hidden">Brilliant<span className="text-sm font-light">Chess</span></div>
+            <div className="h-fit w-fit navTop:block hidden">Blunder<span className="text-sm font-light">Skuad</span></div>
           </Link>
           {topLinks.map((link, i) => {
             return (
-              <button onClick={link?.click} onMouseEnter={link?.hover} onMouseLeave={link?.unHover} type="button" key={i} className="text-lg outline-none font-bold navTop:px-3 navTop:py-2 p-1.5 hover:bg-backgroundBoxHover hover:text-foregroundHighlighted transition-colors flex flex-row gap-2">
-                <Gambar draggable={false} height={30} width={30} alt={link.label} src={link.icon} className="transition-colors" />
+              <button onClick={link?.click} onMouseEnter={link?.hover} onMouseLeave={link?.unHover} type="button" key={i} className="text-sm outline-none font-bold navTop:px-3 navTop:py-2 p-1.5 hover:bg-backgroundBoxHover hover:text-foregroundHighlighted transition-colors flex flex-row gap-2">
+                <Gambar draggable={false} height={18} width={18} alt={link.label} src={link.icon} className="transition-colors" />
                 <div className="h-fit w-fit navTop:block hidden">{link.label}</div>
               </button>
             );

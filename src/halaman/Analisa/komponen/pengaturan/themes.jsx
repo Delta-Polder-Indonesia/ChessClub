@@ -41,7 +41,7 @@ function Themes() {
       return <div key={i2} style={{ backgroundColor: squareColor }} className="h-5 w-5" />;
     })}
                         </div>
-                        <span className="font-bold text-lg">{t(`analisa.tema.${theme.kunci}`)}</span>
+                        <span className="font-bold text-sm">{t(`analisa.tema.${theme.kunci}`)}</span>
                         <div style={{ backgroundColor: theme.black, display: boardTheme === i ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
                     </button>;
   })}

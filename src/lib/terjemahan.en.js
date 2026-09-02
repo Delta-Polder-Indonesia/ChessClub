@@ -1057,7 +1057,7 @@ export const EN = {
         "The engine on this site runs on a single thread, so high depth costs minutes on long games.",
     },
     mesin: {
-      judul: "Chess engine",
+      judul: "Game Review",
       petunjuk: "Engines are served from this site's own files and run entirely on your device.",
     },
     tab: {
