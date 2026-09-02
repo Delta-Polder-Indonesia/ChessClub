@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
-import { berkasPublik, sumberGambar } from "../../lib/asets.js";
+import { sumberGambar, urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
 import FiturEbook from "./FiturEbook.jsx";
@@ -141,7 +141,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
                   <IkonBaca /> Baca
                 </button>
                 <a
-                  href={berkasPublik(buku.file)}
+                  href={urlEbook(buku.file, { unduh: true })}
                   download
                   onClick={(e) => e.stopPropagation()}
                   className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
@@ -325,7 +325,7 @@ export default function EbookPanduan() {
     
                 <div className="flex items-center gap-2">
                   <a
-                    href={berkasPublik(pdfAktif.file)}
+                    href={urlEbook(pdfAktif.file, { unduh: true })}
                     download
                     className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                   >
@@ -347,14 +347,14 @@ export default function EbookPanduan() {
                 <div className="mx-auto flex w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md bg-white shadow-xl">
                   <iframe
                     title={pdfAktif.judul}
-                    src={berkasPublik(pdfAktif.file)}
+                    src={urlEbook(pdfAktif.file)}
                     className="h-full w-full flex-1 border-0"
                   />
                 </div>
                 <div className="mx-auto mt-3 flex w-full max-w-[1024px] items-center justify-between text-[11px] text-white/70">
                   <span>
                     Jika PDF tidak tampil,{" "}
-                    <a href={berkasPublik(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
+                    <a href={urlEbook(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
                       buka di tab baru
                     </a>{" "}
                     atau unduh.

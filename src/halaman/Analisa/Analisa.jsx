@@ -135,9 +135,10 @@ export default function Analisa() {
                 </main>
               </div>
             </div>
-            <p className="mx-auto mt-3 max-w-[1500px] px-4 text-xs leading-5 text-slate-500 md:px-8">
-              {t("analisa.petunjuk")}
-            </p>
+            <div className="mx-auto mt-3 max-w-[1500px] px-4 text-xs leading-5 text-slate-500 md:px-8">
+              <p>{t("analisa.petunjuk")}</p>
+              <p className="mt-1">{t("analisa.privasi")}</p>
+            </div>
           </MesinProvider>
         </ErrorsContextProvider>
       </ConfigContextProvider>

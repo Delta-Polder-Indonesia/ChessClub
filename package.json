@@ -25,6 +25,7 @@
     "uji:backend": "node server/uji/uji-backend.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
     "uji:supabase": "node scripts/uji-supabase.mjs",
+    "ebook:unggah": "node scripts/unggah-ebook.mjs",
     "uji:e2e": "playwright test",
     "operasi:backup": "node scripts/backup-data.mjs",
     "operasi:kesehatan": "node scripts/cek-kesehatan.mjs",
