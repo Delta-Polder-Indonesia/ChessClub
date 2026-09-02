@@ -75,7 +75,7 @@ function Menu() {
     setUsername({ platform: "chessCom", username: "" });
   }
   const tabs = [
-    { label: t(pageState === "analyze" || pageState === "analyzeCustom" ? "analisa.tab.analisaBaru" : "analisa.tab.analisa"), state: "analyze", icon: (className) => <Lens class={className} size={20} />, show: true, onClick: () => {
+    { label: "Laporan Analisa", state: "analyze", icon: (className) => <Lens class={className} size={20} />, show: true, onClick: () => {
       if (pageState === "analyze" || pageState === "analyzeCustom") setData({ format: "fen", string: "" });
       if (tab === "selectGame") stopSelecting();
     } },
@@ -94,7 +94,7 @@ function Menu() {
     return <button role="tab" key={i} onClick={() => {
       setTab(t.state);
       t.onClick();
-    }} className={`w-full flex flex-col gap-1 group items-center py-2 text-sm outline-none ${isSelected ? "text-foreground" : "bg-backgroundBoxBoxDisabled text-foregroundGrey cursor-pointer transition-colors hover:text-foregroundHighlighted"}`}>{t.icon(isSelected ? "fill-foreground" : "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted")}{t.label}</button>;
+    }} className={`w-full flex flex-row gap-2 group items-center justify-center py-2 text-sm outline-none ${isSelected ? "text-foreground" : "bg-backgroundBoxBoxDisabled text-foregroundGrey cursor-pointer transition-colors hover:text-foregroundHighlighted"}`}>{t.icon(isSelected ? "fill-foreground" : "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted")}{t.label}</button>;
   })}
             </menu>
             <div className="overflow-y-auto h-full flex flex-col">

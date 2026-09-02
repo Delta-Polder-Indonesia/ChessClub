@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import Arrow from "../../svg/arrow.jsx";
 import Image from "../../Gambar.jsx";
+import Lens from "../../svg/lens.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { bacaAngka, bacaTeks, tulis } from "../../../penyimpanan.js";
 
@@ -208,11 +209,13 @@ export default function Form({ setData, selectGame, depth, selected }) {
           <p className="text-xs text-foregroundGrey">{t("analisa.kedalaman.petunjuk")}</p>
         </div>
       </div>
-      <input
+      <button
         type="submit"
-        className="w-[85%] h-16 cursor-pointer rounded-borderExtraRoundness text-2xl bg-backgroundBoxBoxHighlighted hover:bg-backgroundBoxBoxHighlightedHover transition-all font-extrabold hover:shadow-shadowBoxBoxHighlighted"
-        value={platform ? t("analisa.form.daftarPartai") : t("analisa.form.analisa")}
-      />
+        aria-label={platform ? t("analisa.form.daftarPartai") : t("analisa.form.analisa")}
+        className="w-[85%] h-16 cursor-pointer rounded-borderExtraRoundness bg-backgroundBoxBoxHighlighted hover:bg-backgroundBoxBoxHighlightedHover transition-all font-extrabold hover:shadow-shadowBoxBoxHighlighted flex items-center justify-center"
+      >
+        <Lens class="fill-foregroundBlackDark" size={32} />
+      </button>
     </form>
   );
 }

@@ -21,7 +21,7 @@ export const ID = {
     memuat: "Memuat…",
   },
   nav: {
-    analisa: "Analisis partai",
+    analisa: "Analisis permainan",
     tentangKami: "Tentang Kami",
     programKami: "Program Kami",
     turnamen: "Turnamen",
@@ -1028,19 +1028,19 @@ export const ID = {
      jadi panjangnya harus sama dengan JUMLAH_VARIAN di mesin/penilaian.js. */
   analisa: {
     remah: "Remah navigasi",
-    judul: "Analisis Partai",
-    tagline: "Bedah setiap langkah partai Anda dengan Stockfish lokal",
+    judul: "Analisis Permainan",
+    tagline: "Bedah setiap langkah permainan Anda dengan Stockfish lokal",
     deskripsi:
-      "Tempel PGN dari Chess.com atau Lichess, ambil daftar partai lewat nama pengguna, atau mulai dari satu posisi FEN. Setiap langkah diberi label — brilian, terbaik, layak, keliru, blunder — disertai saran engine, grafik evaluasi, dan ringkasan akurasi kedua pemain.",
-    privasi: "Seluruh analisis berjalan di peramban Anda — partai tidak dikirim ke server mana pun.",
+      "Tempel PGN dari Chess.com atau Lichess, ambil daftar permainan lewat nama pengguna, atau mulai dari satu posisi FEN. Setiap langkah diberi label — brilian, terbaik, layak, keliru, blunder — disertai saran engine, grafik evaluasi, dan ringkasan akurasi kedua pemain.",
+    privasi: "Seluruh analisis berjalan di peramban Anda — permainan tidak dikirim ke server mana pun.",
     basisDataJudul: "Basis Data Pembukaan Catur",
     basisDataIsi:
       "Masukkan langkah pembukaan pada papan catur di bawah ini untuk melihat nama pembukaan catur tersebut dan mendapatkan statistik dari permainan Grandmaster manusia untuk setiap langkah. Basis data kami berisi sekitar 26 juta langkah dari permainan Grandmaster catur terbaru dan memberi Anda gambaran tentang apa pun yang telah dimainkan oleh pemain catur manusia yang kuat.",
     petunjuk:
       "Pintasan papan: kiri/kanan untuk mundur/maju, atas/bawah ke langkah pertama/terakhir, spasi untuk memutar otomatis, Tab untuk berpindah panel.",
-    metaJudul: "Analisis Partai Catur Gratis",
+    metaJudul: "Analisis Permainan Catur Gratis",
     metaDeskripsi:
-      "Analisis PGN dan FEN gratis dengan engine Stockfish lokal: label per langkah, grafik evaluasi, akurasi pemain, dan papan latihan. Partai Anda tidak pernah diunggah.",
+      "Analisis PGN dan FEN gratis dengan engine Stockfish lokal: label per langkah, grafik evaluasi, akurasi pemain, dan papan latihan. Permainan Anda tidak pernah diunggah.",
     bukaAplikasi: "Buka alat analisis",
     status: {
       judul: "Engine",
@@ -1063,26 +1063,26 @@ export const ID = {
       dalam: "Dalam",
       maksimal: "Maksimal",
       petunjuk:
-        "Engine pada situs ini berjalan pada satu utas, jadi kedalaman tinggi memakan waktu menit untuk partai panjang.",
+        "Engine pada situs ini berjalan pada satu utas, jadi kedalaman tinggi memakan waktu menit untuk permainan panjang.",
     },
     mesin: {
       judul: "Ulasan Game",
       petunjuk: "Engine diambil dari berkas lokal situs dan berjalan sepenuhnya di perangkat Anda.",
     },
     tab: {
-      analisa: "Analisis partai",
-      analisaBaru: "Analisis partai baru",
-      pilihPartai: "Pilih partai",
+      analisa: "Analisis permainan",
+      analisaBaru: "Analisis permainan baru",
+      pilihPartai: "Pilih permainan",
       ringkasan: "Ringkasan",
       langkah: "Langkah",
     },
     form: {
       judul: "Format permainan",
       tipe: "Tipe analisis",
-      tempelPgn: "Tempel kode PGN partai Anda di sini",
+      tempelPgn: "Tempel kode PGN permainan Anda di sini",
       tempelFen: "Tempel posisi FEN di sini (kosongkan untuk papan bebas)",
       namaPengguna: "Masukkan nama pengguna {platform} Anda",
-      daftarPartai: "Daftar partai",
+      daftarPartai: "Daftar permainan",
       analisa: "Analisis",
       hint:
         "PGN boleh mengandung komentar, variasi dalam tanda kurung, dan kontrol waktu. FEN cukup satu baris.",
@@ -1092,7 +1092,7 @@ export const ID = {
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
     muat: {
       menganalisa: "Menganalisis",
-      menganalisaPartai: "Menganalisis partai",
+      menganalisaPartai: "Menganalisis permainan",
       menyiapkanEngine: "Menyiapkan engine",
       membatalkan: "Membatalkan",
       dibatalkan: "Analisis dibatalkan",
@@ -1122,7 +1122,7 @@ export const ID = {
       jumlah: "{n} langkah dianalisis",
     },
     ringkasan: {
-      judul: "Ringkasan partai",
+      judul: "Ringkasan permainan",
       pemain: "Pemain",
       akurasi: "Akurasi",
       pembukaan: "Pembukaan",
@@ -1134,11 +1134,11 @@ export const ID = {
       material: "Keunggulan material",
       cukupLangkah: "Belum cukup langkah untuk menilai fase ini.",
       akurasiFase: "{fase}: akurasi {angka}%",
-      ratingPartai: "Rating partai",
+      ratingPartai: "Rating permainan",
 
     },
     grafik: {
-      judul: "Keunggulan Putih sepanjang partai",
+      judul: "Keunggulan Putih sepanjang permainan",
       sumbu: "eval",
       petunjuk: "Klik bagian grafik untuk melompat ke langkah tersebut.",
       buku: "Langkah buku",
@@ -1196,7 +1196,7 @@ export const ID = {
         "Posisi Anda memburuk tajam setelah langkah ini.",
         "Kesalahan serius yang merusak pertahanan Anda.",
       ],
-      mate: ["Skakmat — selalu menyenangkan.", "Skakmat adalah tujuan akhir setiap partai.", "Langkah penutup yang menentukan."],
+      mate: ["Skakmat — selalu menyenangkan.", "Skakmat adalah tujuan akhir setiap permainan.", "Langkah penutup yang menentukan."],
       mateIn: [
         "Langkah yang memaksa skakmat segera tiba.",
         "Presisi yang menjamin skakmat dalam waktu dekat.",
@@ -1245,22 +1245,22 @@ export const ID = {
     },
     komentarPartai: {
       menang: [
-        "{menang} mengklaim kemenangan setelah partai yang ketat. Mari kita bedah kekhilafan {kalah} dan langkah penentu {menang}.",
+        "{menang} mengklaim kemenangan setelah permainan yang ketat. Mari kita bedah kekhilafan {kalah} dan langkah penentu {menang}.",
         "Performa solid {menang} mengamankan kemenangan. Kita lihat bagaimana {kalah} seharusnya bertahan.",
-        "{menang} unggul lewat permainan strategis. Mari tinjau momen yang menentukan jalannya partai bagi {kalah}.",
+        "{menang} unggul lewat permainan strategis. Mari tinjau momen yang menentukan jalannya permainan bagi {kalah}.",
         "{menang} memanfaatkan kesempatan penting untuk menang. Kita analisis di mana {kalah} bisa bermain lebih baik.",
       ],
       seri: [
-        "Tidak ada pihak yang berhasil menembus, dan partai berakhir seri. Mari kita cari kesempatan yang terlewat di kedua sisi.",
-        "Partai mengendur menjadi seri setelah saling tekan. Mari tinjau keputusan-keputusan pentingnya.",
+        "Tidak ada pihak yang berhasil menembus, dan permainan berakhir seri. Mari kita cari kesempatan yang terlewat di kedua sisi.",
+        "Permainan mengendur menjadi seri setelah saling tekan. Mari tinjau keputusan-keputusan pentingnya.",
         "Pertarungan {menang} melawan {kalah} berakhir seri. Kita analisis apa yang bisa dilakukan berbeda.",
         "Seri setelah pertarungan dinamis dengan peluang bagi kedua pihak. Mari break down momen kuncinya.",
       ],
       netral: [
-        "Partai ketat antara {menang} dan {kalah}. Mari analisis momen-momen yang menentukan hasilnya.",
-        "Partai seimbang penuh perhitungan antara {menang} dan {kalah}. Kita bedah langkah dan keputusannya.",
-        "Partai yang kompleks dan menarik. Mari telaah rencana yang dijalankan {menang} dan {kalah}.",
-        "Kedua pemain menampilkan permainan kuat. Mari tinjau titik balik yang menentukan partai ini.",
+        "Permainan ketat antara {menang} dan {kalah}. Mari analisis momen-momen yang menentukan hasilnya.",
+        "Permainan seimbang penuh perhitungan antara {menang} dan {kalah}. Kita bedah langkah dan keputusannya.",
+        "Permainan yang kompleks dan menarik. Mari telaah rencana yang dijalankan {menang} dan {kalah}.",
+        "Kedua pemain menampilkan permainan kuat. Mari tinjau titik balik yang menentukan permainan ini.",
       ],
     },
     formatLabel: {
@@ -1269,10 +1269,10 @@ export const ID = {
       adalah: "{label}",
     },
     partai: {
-      judul: "Partai {platform}",
-      memuat: "Mengambil daftar partai",
+      judul: "Permainan {platform}",
+      memuat: "Mengambil daftar permainan",
       batal: "Batal",
-      tidakAda: "Tidak ada partai pada bulan ini.",
+      tidakAda: "Tidak ada permainan pada bulan ini.",
       mengambilApi: "Mengambil data dari server",
       pemain: "Pemain",
       hasil: "Hasil",
@@ -1289,12 +1289,12 @@ export const ID = {
       kontrolWaktu: "Kontrol waktu",
       bulan: "Bulan",
       tahun: "Tahun",
-      pilihPartai: "Pilih salah satu partai untuk dianalisis.",
+      pilihPartai: "Pilih salah satu permainan untuk dianalisis.",
       rated: "bersaing",
       kasual: "santai",
       ambilLagi: "Muat ulang",
       kembali: "Kembali ke formulir",
-      galatJaringan: "Gagal mengambil daftar partai",
+      galatJaringan: "Gagal mengambil daftar permainan",
       galatJaringanIsi: "Periksa koneksi internet Anda lalu coba lagi.",
       galatPengguna: "Pengguna tidak ditemukan",
       galatPenggunaIsi: "Periksa ejaan nama pengguna atau koneksi internet Anda.",
@@ -1352,4 +1352,3 @@ export const ID = {
   },
 
 };
-
