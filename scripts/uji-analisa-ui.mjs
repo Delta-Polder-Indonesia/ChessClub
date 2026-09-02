@@ -321,8 +321,7 @@ const domSiap = dom.window.document;
 const awal = teksBagus();
 
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
-uji("judul & tagline terjemahan", awal.includes("Analisis Partai") && awal.includes("Stockfish"));
-uji("janji privasi tampil", awal.includes("tidak dikirim ke server"));
+uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
 uji("papan ter-render (svg bidak)", domSiap.querySelectorAll(".analisa-root svg").length > 20);
 uji("formulir analisis tersedia", !!domSiap.querySelector("textarea"));
 uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hitam"));

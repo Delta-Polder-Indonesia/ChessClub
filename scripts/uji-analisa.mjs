@@ -18,6 +18,8 @@ import {
   formatSquare,
   getCastle,
   moveToSan,
+  parseClockString,
+  ekstrakDaftarClock,
   parseMove,
   parsePGN,
   parsePosition,
@@ -124,6 +126,33 @@ await uji("kontrol waktu PGN → detik", () => {
   assert.equal(waktuDariPgn({ TimeControl: "10:60" }), 0); // format tak dikenal → tanpa jam
 });
 
+await uji("parseClockString membaca format tag %clk", () => {
+  assert.equal(parseClockString("{ [%clk 0:02:59.9] }"), 180);
+  assert.equal(parseClockString("{ [%clk 0:05:00] }"), 300);
+  assert.equal(parseClockString("{ [%clk 1:30:00] }"), 5400);
+  assert.equal(parseClockString("{ [%clk 0:00:04.2] }"), 4);
+  assert.equal(parseClockString("{ [%clk 0:15] }"), 15);
+  assert.equal(parseClockString("tanpa tag"), null);
+});
+
+await uji("ekstrakDaftarClock melacak sisa waktu Putih & Hitam per langkah", () => {
+  const pgnClock = [
+    '[TimeControl "180+2"]',
+    "",
+    "1. e4 { [%clk 0:02:59] } 1... e5 { [%clk 0:02:58] } 2. Nf3 { [%clk 0:02:55] } 2... Nc6 { [%clk 0:02:54] }",
+  ].join("\n");
+  const c = new Chess();
+  c.loadPgn(pgnClock);
+  const r = c.history({ verbose: true });
+  const clocks = ekstrakDaftarClock(c, pgnClock, r, 180);
+  assert.equal(clocks.length, 5);
+  assert.deepEqual(clocks[0], { white: 180, black: 180 }); // posisi awal
+  assert.deepEqual(clocks[1], { white: 179, black: 180 }); // setelah 1. e4
+  assert.deepEqual(clocks[2], { white: 179, black: 178 }); // setelah 1... e5
+  assert.deepEqual(clocks[3], { white: 175, black: 178 }); // setelah 2. Nf3
+  assert.deepEqual(clocks[4], { white: 175, black: 174 }); // setelah 2... Nc6
+});
+
 /* ---------------------------------------------------------------- engine */
 
 console.log("Analisa — integrasi engine (engine tiruan)");
@@ -201,6 +230,25 @@ await uji("parsePGN: satu entri posisi + satu entri per langkah", async () => {
   assert.equal(moves[0].moveRating, undefined, "entri posisi memang tidak diberi label");
   assert.ok(moves.slice(1).every((m) => m.moveRating), "semua langkah punya label");
   assert.ok(mesin.kedalaman.every((d) => d === 10), "kedalaman diteruskan ke engine");
+});
+
+await uji("parsePGN dengan tag clock menghasilkan waktu per langkah", async () => {
+  const pgn = [
+    '[Event "?"]',
+    '[White "Andi"]',
+    '[Black "Budi"]',
+    '[TimeControl "180+2"]',
+    "",
+    "1. e4 {[%clk 0:02:59]} 1... e5 {[%clk 0:02:58]} 2. Nf3 {[%clk 0:02:55]} 2... Nc6 {[%clk 0:02:54]} 1-0",
+  ].join("\n");
+  const mesin = engineTiruan();
+  const { moves } = await parsePGN(mesin, pgn, 8, {}, () => {}, null);
+  assert.equal(moves.length, 5);
+  assert.deepEqual(moves[0].clock, { white: 180, black: 180 });
+  assert.deepEqual(moves[1].clock, { white: 179, black: 180 });
+  assert.deepEqual(moves[2].clock, { white: 179, black: 178 });
+  assert.deepEqual(moves[3].clock, { white: 175, black: 178 });
+  assert.deepEqual(moves[4].clock, { white: 175, black: 174 });
 });
 
 await uji("parsePGN menolak PGN rusak / tanpa langkah", async () => {

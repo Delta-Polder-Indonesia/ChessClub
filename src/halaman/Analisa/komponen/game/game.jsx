@@ -353,7 +353,8 @@ function Game({ wadah }) {
             color: chess2.turn(),
             bestMove: [formatSquare(bestMove.from), formatSquare(bestMove.to)],
             bestMoveSan: bestMove.san,
-            previousStaticEvals: [["cp", "-30"]]
+            previousStaticEvals: [["cp", "-30"]],
+            clock: { white: null, black: null },
           };
           setGame([move5]);
           setPageState("default");
@@ -401,7 +402,7 @@ function Game({ wadah }) {
       setPageState("default");
       return;
     }
-    setGame([move3]);
+    setGame([{ ...move3, clock: { white: null, black: null } }]);
     setPageState("analyzeCustom");
   }
   useEffect(() => {
@@ -524,7 +525,8 @@ function Game({ wadah }) {
       color: invertColor(unanalyzedMoveObj.color),
       capture: unanalyzedMoveObj.captured,
       castle: getCastle(unanalyzedMoveObj.san),
-      san: unanalyzedMoveObj.san
+      san: unanalyzedMoveObj.san,
+      clock: move2?.clock ?? { white: time || null, black: time || null },
     };
     setAnimation(animation2);
     setForward(true);
@@ -579,41 +581,35 @@ function Game({ wadah }) {
      * merobohkan render (getMoves membaca `.movement` dari elemen ini).
      */
     if (!move3) return;
-    setCustomLine((prev) => ({ ...prev, moveNumber: prev.moveNumber, moves: [...prev.moves.slice(0, prev.moveNumber), move3] }));
+    setCustomLine((prev) => ({ ...prev, moveNumber: prev.moveNumber, moves: [...prev.moves.slice(0, prev.moveNumber), { ...move3, clock: unanalyzedMove.clock }] }));
   }
   function formatTime(seconds) {
     const noTime = "--:--";
-    const toTwoDigits = (num) => {
-      return String(num).padStart(2, "0");
-    };
-    const getMinutes = (seconds2) => {
-      return [Math.floor(seconds2 / 60), seconds2 % 60];
-    };
-    const getHours = (minutes2) => {
-      return Math.ceil(minutes2 / 60);
-    };
-    const getDays = (hours) => {
-      return Math.ceil(hours / 24);
-    };
-    const [minutes, restSeconds] = getMinutes(seconds);
-    if (minutes) {
-      const hours = getHours(minutes);
-      if (hours > 2) {
-        const days = getDays(hours);
-        if (days > 2) {
-          return t("analisa.waktu.hari", { n: days });
-        }
-        return t("analisa.waktu.jam", { n: hours });
+    if (seconds === null || seconds === undefined || Number.isNaN(Number(seconds))) return noTime;
+    const sec = Math.max(0, Math.round(Number(seconds)));
+    const toTwoDigits = (num) => String(num).padStart(2, "0");
+    const totalMinutes = Math.floor(sec / 60);
+    const restSeconds = sec % 60;
+
+    if (totalMinutes >= 60) {
+      const hours = Math.floor(sec / 3600);
+      const mins = Math.floor((sec % 3600) / 60);
+      if (hours >= 24) {
+        const days = Math.floor(hours / 24);
+        return t("analisa.waktu.hari", { n: days });
       }
-      return `${toTwoDigits(minutes)}:${toTwoDigits(restSeconds)}`;
+      return `${hours}:${toTwoDigits(mins)}:${toTwoDigits(restSeconds)}`;
     }
-    if (restSeconds) return `${toTwoDigits(minutes)}:${toTwoDigits(restSeconds)}`;
-    return noTime;
+
+    return `${toTwoDigits(totalMinutes)}:${toTwoDigits(restSeconds)}`;
   }
   const playerLabels = [
     formatPlayerLabel(players?.[0], t("analisa.pemain.putih")),
     formatPlayerLabel(players?.[1], t("analisa.pemain.hitam")),
   ];
+  const currentWhiteTime = move2?.clock?.white !== undefined ? move2.clock.white : (time || null);
+  const currentBlackTime = move2?.clock?.black !== undefined ? move2.clock.black : (time || null);
+
   return <div className="flex flex-col gap-[6px]">
         <div ref={gameRef} tabIndex={0} style={{ gap }} className="h-full flex navTop:flex-row flex-col outline-none">
             <div style={{ [isNavTop ? "width" : "height"]: gameHeight }} className="flex navTop:flex-row flex-col items-center">
@@ -622,7 +618,7 @@ function Game({ wadah }) {
             <div ref={componentRef} style={{ gap }} className="h-full flex flex-col justify-start">
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
                     <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white}>{playerLabels[white ? 1 : 0]}</Name>
-                    <Clock white={!white} colorMoving={game[moveNumber]?.color}>{formatTime(time)}</Clock>
+                    <Clock white={!white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentBlackTime : currentWhiteTime)}</Clock>
                 </div>
                 <Board
     setPlaying={setPlaying}
@@ -658,7 +654,7 @@ function Game({ wadah }) {
   />
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
                     <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white}>{playerLabels[white ? 0 : 1]}</Name>
-                    <Clock white={white} colorMoving={game[moveNumber]?.color}>{formatTime(time)}</Clock>
+                    <Clock white={white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentWhiteTime : currentBlackTime)}</Clock>
                 </div>
             </div>
         </div>
