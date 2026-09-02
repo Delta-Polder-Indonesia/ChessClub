@@ -18,7 +18,6 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
-import Hero from "../../components/Hero.jsx";
 import ConfigContextProvider from "./konteks/config.jsx";
 import ErrorsContextProvider from "./konteks/errors.jsx";
 import AnalyzeContextProvider from "./konteks/analyze.jsx";
@@ -31,15 +30,6 @@ import GameButtons from "./komponen/menu/analysis/gameButtons.jsx";
 import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
-/** Tinggi minimum area analisis supaya papan tetap bisa dipakai. */
-const TINGGI_MIN = 560;
-
-/**
- * Tinggi maksimum area analisis. Membatasi papan supaya tidak melebar
- * memenuhi layar tapi tetap lebar ke kiri-kanan.
- */
-const TINGGI_MAKS = 760;
-
 export default function Analisa() {
   const { t, bahasa } = useI18n();
   const wadahRef = useRef(null);
@@ -50,19 +40,13 @@ export default function Analisa() {
   }, [t, bahasa]);
 
   /*
-   * Area kerja = sisa tinggi layar di bawah header situs. `getBoundingClientRect`
-   * dipakai alih-alih `100dvh - konstanta` karena tinggi hero/announcement bar
-   * bisa berubah; pengukuran diulang lagi setelah font muat supaya tidak ada
-   * lompatan layout pada kunjungan pertama.
+   * Area kerja = seluruh tinggi layar (header & footer situs disembunyikan
+   * di halaman ini, lihat PageLayout). Dihitung via `window.innerHeight`
+   * dan diulang setelah font muat supaya tidak ada lompatan layout.
    */
   useEffect(() => {
-    const el = wadahRef.current;
-    if (!el) return undefined;
-
     function ukur() {
-      const atas = el.getBoundingClientRect().top;
-      const tersedia = Math.round(window.innerHeight - atas);
-      setTinggi(Math.min(Math.max(TINGGI_MIN, tersedia), TINGGI_MAKS));
+      setTinggi(Math.round(window.innerHeight));
     }
 
     ukur();
@@ -76,41 +60,23 @@ export default function Analisa() {
     };
   }, []);
 
-  const crumbs = [
-    { label: t("common.home"), to: "/" },
-    { label: t("nav.programKami"), to: "/program-kami" },
-    { label: t("nav.analisa") },
-  ];
-
   return (
-    <div className="bg-[#f5f5f5] pb-10">
-      <Hero
-        title={t("analisa.judul")}
-        description={t("analisa.tagline")}
-        crumbs={crumbs}
-      />
-
+    <div className="h-screen w-full overflow-hidden">
       <ConfigContextProvider>
         <ErrorsContextProvider>
           <MesinProvider>
-            <div className="mx-auto w-full max-w-[1500px] px-2 md:px-4">
-              <div className="mx-auto mb-3 mt-4 max-w-[1024px] px-1 md:px-2">
-                <div className="prose-kci max-w-none">
-                  <h2>{t("analisa.basisDataJudul")}</h2>
-                  <p className="mb-0">{t("analisa.basisDataIsi")}</p>
-                </div>
-              </div>
+            <div className="h-full w-full">
               {/*
                 Area kerja = kerangka ala upstream: bilah navigasi kiri
-                (logo, Pengaturan, Source Code, Atribusi) berdampingan dengan
-                papan + panel. Tema gelap & variabel CSS dipasang di div ini
+                (logo, Source Code, Atribusi) berdampingan dengan papan.
+                Tema gelap & variabel CSS dipasang di div ini
                 (.analisa-root) supaya ikut mengcover bilah navigasi;
                 pengukuran tinggi/lebar papan tetap membaca <main> di
                 bawahnya — lebarnya otomatis dikurangi bilah navigasi.
               */}
               <div
                 style={{ height: tinggi || undefined }}
-                className="analisa-root relative flex w-full select-none flex-col overflow-x-hidden rounded-xl navTop:flex-row"
+                className="analisa-root relative flex w-full select-none flex-col overflow-hidden rounded-none navTop:flex-row"
               >
                 <PageErrors />
                 <Nav />
@@ -134,10 +100,6 @@ export default function Analisa() {
                   </AnalyzeContextProvider>
                 </main>
               </div>
-            </div>
-            <div className="mx-auto mt-3 max-w-[1500px] px-4 text-xs leading-5 text-slate-500 md:px-8">
-              <p>{t("analisa.petunjuk")}</p>
-              <p className="mt-1">{t("analisa.privasi")}</p>
             </div>
           </MesinProvider>
         </ErrorsContextProvider>

@@ -52,7 +52,7 @@ function PengaturanMesin() {
         </p>
       )}
       <ul className="flex flex-col">
-        {DAFTAR_ENGINE.map((engine) => (
+        {[DAFTAR_ENGINE.find((e) => e.saran) ?? DAFTAR_ENGINE[0]].map((engine) => (
           <li key={engine.id}>
             <button
               type="button"

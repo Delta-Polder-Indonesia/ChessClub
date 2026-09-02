@@ -1,8 +1,14 @@
 import { Suspense } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
+
+/** Halaman yang tampil tanpa header & footer situs agar kontennya full-screen. */
+const TANPA_KERANGKA = new Set([
+  "/program-kami/analisa",
+  "/program-kami/atribusi",
+]);
 
 /**
  * Kerangka semua halaman publik.
@@ -16,9 +22,11 @@ import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
  * konten yang menampilkan placeholder; navigasi terasa mulus.
  */
 export default function PageLayout() {
+  const { pathname } = useLocation();
+  const tanpaKerangka = TANPA_KERANGKA.has(pathname);
   return (
     <>
-      <Header />
+      {tanpaKerangka ? null : <Header />}
       <main className="page min-h-screen">
         <Suspense fallback={<PlaceholderHalaman />}>
           {/* BersihkanBootHero dipasang di dalam Suspense agar gambar boot
@@ -28,7 +36,7 @@ export default function PageLayout() {
           <Outlet />
         </Suspense>
       </main>
-      <Footer />
+      {tanpaKerangka ? null : <Footer />}
     </>
   );
 }

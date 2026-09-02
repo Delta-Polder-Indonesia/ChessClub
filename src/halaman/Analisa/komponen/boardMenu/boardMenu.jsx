@@ -6,8 +6,12 @@ import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import Image from "../Gambar.jsx";
 import { useContext } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
-import { DAFTAR_ENGINE } from "../../../../lib/engineCatur.js";
-import { gunakanMesin } from "../../konteks/mesin.jsx";
+import Themes from "../pengaturan/themes.jsx";
+import Ratings from "../pengaturan/ratings.jsx";
+import Moves from "../pengaturan/moves.jsx";
+import BestMoves from "../pengaturan/bestMoves.jsx";
+
+const TAB_PENGATURAN = ["temaPapan", "penilaian", "langkah", "langkahTerbaik"];
 
 function BoardMenu() {
   const { t } = useI18n();
@@ -15,17 +19,8 @@ function BoardMenu() {
   const setWhite = analyzeContext.white[1];
   const setAnimation = analyzeContext.animation[1];
   const [bukaMesin, setBukaMesin] = useState(false);
+  const [tabAktif, setTabAktif] = useState(0);
   const wadahRef = useRef(null);
-
-  const { gantiEngine } = gunakanMesin();
-  const [depth, setDepth] = analyzeContext.depth;
-  const [idEngine, setIdEngineState] = useState(() => {
-    try {
-      return localStorage.getItem("kci-analisa-engine") || "stockfish-18-lite";
-    } catch {
-      return "stockfish-18-lite";
-    }
-  });
 
   useEffect(() => {
     function handleClick(e) {
@@ -38,18 +33,6 @@ function BoardMenu() {
   function flipBoard() {
     setAnimation(false);
     setWhite((prev) => !prev);
-  }
-
-  function engineAktif() {
-    return DAFTAR_ENGINE.find((e) => e.id === idEngine) ?? DAFTAR_ENGINE[0];
-  }
-
-  function pilihEngine(id) {
-    setIdEngineState(id);
-    try {
-      localStorage.setItem("kci-analisa-engine", id);
-    } catch {}
-    gantiEngine(id);
   }
 
   return <div ref={wadahRef} className="relative flex h-full flex-col justify-between">
@@ -72,17 +55,30 @@ function BoardMenu() {
                           </button>
                         </header>
 
+                        <menu className="flex flex-row border-b border-backgroundBoxBoxHighlighted select-none">
+                          {TAB_PENGATURAN.map((kunci, i) => (
+                            <button
+                              role="tab"
+                              key={kunci}
+                              type="button"
+                              aria-selected={tabAktif === i}
+                              onClick={() => setTabAktif(i)}
+                              className={`flex-1 py-2 text-xs font-bold outline-none transition-colors ${
+                                tabAktif === i
+                                  ? "text-foreground border-b-2 border-foregroundHighlighted"
+                                  : "text-foregroundGrey hover:text-foregroundHighlighted"
+                              }`}
+                            >
+                              {t(`analisa.pengaturan.${kunci}`)}
+                            </button>
+                          ))}
+                        </menu>
+
                         <div className="p-5 select-text">
-                          <EngineTab
-                            engineAktif={engineAktif()}
-                            engineId={idEngine}
-                            pilihEngine={pilihEngine}
-                            depth={depth}
-                            pilihKedalaman={(ply) => {
-                              setDepth(ply);
-                              try { localStorage.setItem("kci-analisa-kedalaman", ply); } catch {}
-                            }}
-                          />
+                          {tabAktif === 0 ? <Themes /> : null}
+                          {tabAktif === 1 ? <Ratings /> : null}
+                          {tabAktif === 2 ? <Moves /> : null}
+                          {tabAktif === 3 ? <BestMoves /> : null}
                         </div>
                       </div>
                     ) : null}
@@ -93,62 +89,6 @@ function BoardMenu() {
 
             </div>
         </div>;
-}
-
-function EngineTab({ engineAktif, engineId, pilihEngine, depth, pilihKedalaman }) {
-  const [engineNyala, setEngineNyala] = useState(true);
-  return (
-    <div className="p-5">
-      {/* Game Review */}
-      <header className="settings-engine-header text-base font-bold text-foreground">Game Review</header>
-      <ul className="mt-3">
-        <SettingRow label="Chess Engine">
-          <span className="text-sm font-semibold text-foregroundHighlighted">{engineAktif.label}</span>
-          <button
-            type="button"
-            onClick={() => setEngineNyala((v) => !v)}
-            className={`relative w-9 h-5 rounded-full transition-colors ${engineNyala ? "bg-green-500" : "bg-backgroundBoxBoxHighlighted"}`}
-            aria-pressed={engineNyala}
-          >
-            <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${engineNyala ? "left-[18px]" : "left-0.5"}`} />
-          </button>
-        </SettingRow>        <SettingRow label="Depth">
-          <select
-            className="cc-select text-sm bg-backgroundBoxBox rounded px-2 py-1 border border-backgroundBoxBoxHighlighted outline-none text-foreground"
-            value={depth}
-            onChange={(e) => pilihKedalaman(Number(e.target.value))}
-          >
-            {[7, 9, 11, 13, 15].map((d) => (
-              <option key={d} value={d}>Kedalaman&nbsp;{d}</option>
-            ))}
-          </select>
-        </SettingRow>
-      </ul>
-
-      <ul className="m-0">
-        <SettingRow label="Chess Engine">
-          <select
-            className="cc-select text-sm bg-backgroundBoxBox rounded px-2 py-1 border border-backgroundBoxBoxHighlighted outline-none text-foreground"
-            value={engineId}
-            onChange={(e) => pilihEngine(e.target.value)}
-          >
-            {DAFTAR_ENGINE.map((e) => (
-              <option key={e.id} value={e.id}>{e.label}</option>
-            ))}
-          </select>
-        </SettingRow>
-      </ul>
-    </div>
-  );
-}
-
-function SettingRow({ label, children }) {
-  return (
-    <li className="flex items-center justify-between py-2.5">
-      <label className="text-sm text-foregroundGrey">{label}</label>
-      <span className="flex items-center gap-1">{children}</span>
-    </li>
-  );
 }
 
 export { BoardMenu as default };
