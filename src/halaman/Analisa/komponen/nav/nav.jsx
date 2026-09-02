@@ -2,8 +2,9 @@
  * Port dari Brilliant-Chess (MIT, © 2025 Delo) — src/components/nav/nav.tsx.
  *
  * Bilah navigasi kiri ala aplikasi upstream: logo + wordmark di atas,
- * tombol Pengaturan di bawahnya, lalu tautan Source Code / Attributions
- * di dasar bilah. Panel Pengaturan itu sendiri adalah dropdown yang
+ * tombol Pengaturan di bawahnya, lalu tautan Source Code (repo upstream)
+ * dan Atribusi (halaman situs sendiri — /program-kami/atribusi) di dasar
+ * bilah. Panel Pengaturan itu sendiri adalah dropdown yang
  * menempel di sisi kanan bilah ini (`navTop:left-full top-0`) — persis
  * seperti upstream — jadi PanelSamping versi lama tidak diperlukan lagi.
  *
@@ -13,8 +14,9 @@
  *  - `w-screen`         → `w-full`         (mode ponsel: selebar wadah,
  *    bukan selebar jendela, supaya tidak meluber keluar kontainer halaman)
  *
- * Tautan bawah sengaja menunjuk ke repo upstream: sekaligus jadi atribusi
- * MIT port UI ini. Logo/wordmark juga dipertahankan sama seperti aslinya.
+ * Tautan Source Code sengaja menunjuk ke repo upstream: sekaligus jadi
+ * atribusi MIT port UI ini. Logo/wordmark juga dipertahankan sama seperti
+ * aslinya.
  */
 import { useContext, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
@@ -54,7 +56,7 @@ export default function Nav() {
     },
     {
       label: t("analisa.nav.atribusi"),
-      href: `${URL_REPO}/blob/main/ATTRIBUTIONS`,
+      to: "/program-kami/atribusi",
       icon: (props) => <Lisensi class={props.className} />,
     },
   ];
@@ -84,28 +86,34 @@ export default function Nav() {
   }, []);
 
   return (
-    <nav className="flex flex-col navTop:h-full navTop:w-max w-full relative">
+    <nav className="flex flex-col navTop:h-full navTop:w-max navTop:shrink-0 w-full relative">
       <div className="navTop:pt-1 navTop:pb-6 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
         <div ref={topLinksRef} className="flex navTop:flex-col flex-row">
           <Link draggable={false} onMouseEnter={() => setOpenedMenu(null)} to="/" className="flex flex-row gap-1 font-extrabold text-xl navTop:p-3 p-1.5 transition-colors hover:bg-backgroundBoxHover hover:text-foregroundHighlighted">
             <Gambar draggable={false} height={30} width={30} alt="logo" src={`${import.meta.env.BASE_URL}images/analisa/logo.svg`} className="navTop:mt-[-2px]" />
-            <div className="h-fit w-fit reduceNav:block hidden">Brilliant<span className="text-sm font-light">Chess</span></div>
+            <div className="h-fit w-fit navTop:block hidden">Brilliant<span className="text-sm font-light">Chess</span></div>
           </Link>
           {topLinks.map((link, i) => {
             return (
               <button onClick={link?.click} onMouseEnter={link?.hover} onMouseLeave={link?.unHover} type="button" key={i} className="text-lg outline-none font-bold navTop:px-3 navTop:py-2 p-1.5 hover:bg-backgroundBoxHover hover:text-foregroundHighlighted transition-colors flex flex-row gap-2">
                 <Gambar draggable={false} height={30} width={30} alt={link.label} src={link.icon} className="transition-colors" />
-                <div className="h-fit w-fit reduceNav:block hidden">{link.label}</div>
+                <div className="h-fit w-fit navTop:block hidden">{link.label}</div>
               </button>
             );
           })}
         </div>
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
           {botLinks.map((link, i) => {
-            return (
-              <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} className="flex flex-row gap-2 h-full navTop:h-fit reduceNav:px-3 reduceNav:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors">
+            const kelas = "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors";
+            return link.to ? (
+              <Link draggable={false} key={i} to={link.to} onMouseEnter={() => setOpenedMenu(null)} className={kelas}>
                 {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                <span className="reduceNav:block hidden">{link.label}</span>
+                <span className="navTop:block hidden">{link.label}</span>
+              </Link>
+            ) : (
+              <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} className={kelas}>
+                {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                <span className="navTop:block hidden">{link.label}</span>
               </a>
             );
           })}

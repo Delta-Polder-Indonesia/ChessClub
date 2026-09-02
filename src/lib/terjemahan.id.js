@@ -1033,6 +1033,9 @@ export const ID = {
     deskripsi:
       "Tempel PGN dari Chess.com atau Lichess, ambil daftar partai lewat nama pengguna, atau mulai dari satu posisi FEN. Setiap langkah diberi label — brilian, terbaik, layak, keliru, blunder — disertai saran engine, grafik evaluasi, dan ringkasan akurasi kedua pemain.",
     privasi: "Seluruh analisis berjalan di peramban Anda — partai tidak dikirim ke server mana pun.",
+    basisDataJudul: "Basis Data Pembukaan Catur",
+    basisDataIsi:
+      "Masukkan langkah pembukaan pada papan catur di bawah ini untuk melihat nama pembukaan catur tersebut dan mendapatkan statistik dari permainan Grandmaster manusia untuk setiap langkah. Basis data kami berisi sekitar 26 juta langkah dari permainan Grandmaster catur terbaru dan memberi Anda gambaran tentang apa pun yang telah dimainkan oleh pemain catur manusia yang kuat.",
     petunjuk:
       "Pintasan papan: kiri/kanan untuk mundur/maju, atas/bawah ke langkah pertama/terakhir, spasi untuk memutar otomatis, Tab untuk berpindah panel.",
     metaJudul: "Analisis Partai Catur Gratis",

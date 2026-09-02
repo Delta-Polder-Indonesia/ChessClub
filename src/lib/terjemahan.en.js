@@ -1024,6 +1024,9 @@ export const EN = {
     deskripsi:
       "Paste a PGN from Chess.com or Lichess, pull your game list by username, or start from a single FEN. Every move is labelled — brilliant, best, good, inaccuracy, blunder — with the engine's suggestion, an evaluation chart, and an accuracy summary for both players.",
     privasi: "All analysis runs in your browser — your games are never sent to a server.",
+    basisDataJudul: "Chess Openings Database",
+    basisDataIsi:
+      "Enter an opening move on the board below to see its name and get statistics from human Grandmaster games for every move. Our database contains about 26 million moves from the latest chess Grandmaster games, giving you an idea of anything strong human chess players have played.",
     petunjuk:
       "Board shortcuts: left/right steps through the game, up/down jump to the first and last move, space plays automatically, Tab switches panel.",
     metaJudul: "Free Chess Game Analysis",

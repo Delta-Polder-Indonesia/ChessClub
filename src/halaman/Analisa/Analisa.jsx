@@ -32,7 +32,13 @@ import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
 /** Tinggi minimum area analisis supaya papan tetap bisa dipakai. */
-const TINGGI_MIN = 640;
+const TINGGI_MIN = 560;
+
+/**
+ * Tinggi maksimum area analisis. Membatasi papan supaya tidak melebar
+ * memenuhi layar tapi tetap lebar ke kiri-kanan.
+ */
+const TINGGI_MAKS = 760;
 
 export default function Analisa() {
   const { t, bahasa } = useI18n();
@@ -56,7 +62,7 @@ export default function Analisa() {
     function ukur() {
       const atas = el.getBoundingClientRect().top;
       const tersedia = Math.round(window.innerHeight - atas);
-      setTinggi(Math.max(TINGGI_MIN, tersedia));
+      setTinggi(Math.min(Math.max(TINGGI_MIN, tersedia), TINGGI_MAKS));
     }
 
     ukur();
@@ -88,10 +94,12 @@ export default function Analisa() {
         <ErrorsContextProvider>
           <MesinProvider>
             <div className="mx-auto w-full max-w-[1500px] px-2 md:px-4">
-              <p className="mx-auto mb-3 mt-4 inline-flex flex-row items-center gap-2 rounded-md bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 md:text-sm">
-                <span aria-hidden="true">🔒</span>
-                {t("analisa.privasi")}
-              </p>
+              <div className="mx-auto mb-3 mt-4 max-w-[1024px] px-1 md:px-2">
+                <div className="prose-kci max-w-none">
+                  <h2>{t("analisa.basisDataJudul")}</h2>
+                  <p className="mb-0">{t("analisa.basisDataIsi")}</p>
+                </div>
+              </div>
               {/*
                 Area kerja = kerangka ala upstream: bilah navigasi kiri
                 (logo, Pengaturan, Source Code, Atribusi) berdampingan dengan
@@ -111,7 +119,7 @@ export default function Analisa() {
                   className="relative h-full w-full overflow-y-auto overflow-x-hidden"
                 >
                   <AnalyzeContextProvider>
-                    <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:gap-2 vertical:overflow-visible vertical:p-4">
+                    <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:justify-start vertical:gap-2 vertical:overflow-visible vertical:p-4">
                       <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
                         <Game wadah={wadahRef} />
                         <BoardMenu />

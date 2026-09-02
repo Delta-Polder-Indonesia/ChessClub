@@ -86,7 +86,7 @@ function Menu() {
     { label: t("analisa.tab.langkah"), state: "moves", icon: (className) => <BoardIcon class={className} size={20} />, show: pageState === "analyze" || pageState === "analyzeCustom", onClick: () => {
     } }
   ];
-  return <div ref={menuRef} className="vertical:h-full w-full max-w-[500px] pb-8 vertical:pb-0 vertical:min-h-0 min-h-[600px] select-text bg-backgroundBox rounded-borderRoundness flex-grow vertical:max-w-[500px] vertical:min-w-[400px] flex flex-col gap-4 overflow-hidden">
+  return <div ref={menuRef} className="vertical:h-full w-full max-w-[600px] pb-8 vertical:pb-0 vertical:min-h-0 min-h-[600px] select-text bg-backgroundBox rounded-borderRoundness flex-grow vertical:max-w-[600px] vertical:min-w-[400px] flex flex-col gap-4 overflow-hidden">
             <menu className="flex flex-row relative select-none">
                 {tabs.map((t, i) => {
     if (!t.show) return;

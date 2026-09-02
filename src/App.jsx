@@ -61,6 +61,9 @@ const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanIntera
 // Analisis partai (port Brilliant-Chess) — engine memakai EngineCatur lokal.
 const Analisa = lazy(() => import("./halaman/Analisa/Analisa.jsx"));
 
+// Atribusi & lisensi Analisa — halaman utuh (bukan popup panel pengaturan).
+const Atribusi = lazy(() => import("./halaman/Atribusi/Atribusi.jsx"));
+
 // Landing (Beranda utama "/") — hero, akses cepat, sorotan, berita terkini.
 const Landing = lazy(() => import("./halaman/Landing/Landing.jsx"));
 
@@ -102,6 +105,7 @@ const RUTE_HALAMAN = [
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
   ["/program-kami/analisa", Analisa],
+  ["/program-kami/atribusi", Atribusi],
   ["/program-kami/ebook-panduan", EbookPanduan],
 
   ["/teka-teki", TekaTeki],

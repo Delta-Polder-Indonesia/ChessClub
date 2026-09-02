@@ -439,7 +439,7 @@ function Game({ wadah }) {
       const componentHeight = Math.min(tinggi, component?.offsetHeight ?? tinggi);
       const gapHeight = newGap;
       const evalWidth = 36;
-      const menuWidth = 400;
+      const menuWidth = 480;
       const boardMenuWidth = 17;
       const gapWidth = 8;
       const paddingWidth = 16;
@@ -504,7 +504,8 @@ function Game({ wadah }) {
     setCaptured(newCaptured);
   }, [moveNumber, customLine.moveNumber]);
   function roundBoardSize(boardSize2) {
-    return Math.round(boardSize2 / 8) * 8;
+    // Papan boleh melebar sampai batas ini (kelipatan 8) supaya tetap rapi.
+    return Math.min(1000, Math.round(boardSize2 / 8) * 8);
   }
   function sliceCustomArrows(arrows2, moveNumber2) {
     const newArrows = {};
