@@ -69,8 +69,15 @@ function formatPlayerLabel(player, fallbackName) {
   return elo && elo !== "NOELO" ? `${name} (${elo})` : name;
 }
 
+/**
+ * Ukuran maksimum papan (px). Papan dibiarkan mengisi ruang yang tersedia,
+ * tetapi tidak boleh membesar tanpa batas di monitor lebar/tinggi — papan
+ * raksasa justru membuat baris raja lawan terpotong di luar layar.
+ */
+const UKURAN_MAKS_PAPAN = 600;
+
 function Game({ wadah }) {
-  const [boardSize, setBoardSize] = useState(750);
+  const [boardSize, setBoardSize] = useState(UKURAN_MAKS_PAPAN);
   const [gameHeight, setGameHeight] = useState(850);
   const [captured, setCaptured] = useState({ white: [], black: [] });
   const [arrows, setArrows] = useState({ 0: [] });
@@ -504,7 +511,7 @@ function Game({ wadah }) {
     setCaptured(newCaptured);
   }, [moveNumber, customLine.moveNumber]);
   function roundBoardSize(boardSize2) {
-    return Math.round(boardSize2 / 8) * 8;
+    return Math.min(Math.round(boardSize2 / 8) * 8, UKURAN_MAKS_PAPAN);
   }
   function sliceCustomArrows(arrows2, moveNumber2) {
     const newArrows = {};

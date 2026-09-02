@@ -210,7 +210,7 @@ export default function Form({ setData, selectGame, depth, selected }) {
       </div>
       <input
         type="submit"
-        className="w-[85%] h-16 cursor-pointer rounded-borderExtraRoundness text-2xl bg-backgroundBoxBoxHighlighted hover:bg-backgroundBoxBoxHighlightedHover transition-all font-extrabold hover:shadow-shadowBoxBoxHighlighted"
+        className="w-[85%] h-16 cursor-pointer rounded-borderExtraRoundness text-2xl bg-backgroundBoxBoxHighlighted text-white hover:bg-backgroundBoxBoxHighlightedHover transition-all font-extrabold hover:shadow-shadowBoxBoxHighlighted"
         value={platform ? t("analisa.form.daftarPartai") : t("analisa.form.analisa")}
       />
     </form>

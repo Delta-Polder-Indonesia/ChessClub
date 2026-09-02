@@ -112,7 +112,7 @@ function Menu() {
                 {pageState === "analyzeCustom" && tab === "moves" ? <Moves container={menuRef.current} moves={[game[0], ...customLine.moves]} overallGameComment={overallGameComment} moveNumber={customLine.moveNumber + 1} setMoveNumber={(moveNumber2) => setCustomLine((prev) => ({ ...prev, moveNumber: moveNumber2 - 1 }))} analyzingMove={analyzingMove} setAnimation={setAnimation} setForward={setForward} customLine={customLine} returnedToNormalGame={returnedToNormalGame} /> : ""}
             </div>
             {pageState === "analyze" || pageState === "analyzeCustom" ? <div className="flex-col gap-1 pb-1 items-center hidden vertical:flex">
-                    <hr className="border-neutral-600 w-[85%]" />
+                    <hr className="border-slate-200 w-[85%]" />
                     <GameButtons />
                 </div> : ""}
         </div>;

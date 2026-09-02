@@ -29,7 +29,7 @@ function PageError(props) {
       duration: 50
     });
   }, [newErrorKey]);
-  return <div ref={errorRef} data-errorkey={errorKey2} style={{ opacity: hided ? 0 : 100, backgroundColor: type === "error" ? "var(--error)" : type === "warning" ? "var(--warning)" : "" }} className="p-3 text-xl select-text z-[999] text-foregroundHighlighted font-bold rounded-borderRoundness hover:scale-105 will-change-transform transition-all max-w-96">
+  return <div ref={errorRef} data-errorkey={errorKey2} style={{ opacity: hided ? 0 : 100, backgroundColor: type === "error" ? "var(--error)" : type === "warning" ? "var(--warning)" : "" }} className="p-3 text-xl select-text z-[999] text-white font-bold rounded-borderRoundness hover:scale-105 will-change-transform transition-all max-w-96">
             {title}
             <div style={{ display: description ? "" : "none" }} className="text-base opacity-85 mt-2">
                 {description}

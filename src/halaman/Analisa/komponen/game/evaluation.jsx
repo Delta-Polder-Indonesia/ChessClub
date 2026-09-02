@@ -25,8 +25,8 @@ function Evaluation(props) {
   return <div style={{ [navTop ? "width" : "height"]: size }} className={`vertical:w-9 navTop:w-7 h-7 bg-evaluationBarBlack overflow-hidden flex navTop:flex-col flex-row relative ${white ? "navTop:justify-end justify-start" : "navTop:justify-start justify-end"}`}>
             <div style={{ [navTop ? "width" : "height"]: `${percent}%`, transition: "height 1.5s", willChange: "height" }} className="w-full bg-evaluationBarWhite" />
             <div className="absolute h-full flex navTop:flex-col flex-row-reverse items-center justify-between w-full vertical:py-2 navTop:py-1 navTop:px-0 px-1 vertical:text-xs navTop:text-[9px] text-[11px] font-bold">
-                <div style={{ opacity: !winning ? 100 : 0 }} className={`${white ? "text-foreground" : "text-background"}`}>{displayAdvantage}</div>
-                <div style={{ opacity: winning ? 100 : 0 }} className={`${!white ? "text-foreground" : "text-background"}`}>{displayAdvantage}</div>
+                <div style={{ opacity: !winning ? 100 : 0 }} className={`${white ? "text-white" : "text-slate-900"}`}>{displayAdvantage}</div>
+                <div style={{ opacity: winning ? 100 : 0 }} className={`${!white ? "text-white" : "text-slate-900"}`}>{displayAdvantage}</div>
             </div>
         </div>;
 }

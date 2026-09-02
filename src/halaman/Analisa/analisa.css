@@ -10,61 +10,64 @@
  */
 
 .analisa-root {
-  --analisa-background: #302e2b;
-  --analisa-foreground: #dedede;
+  /* Latar putih & teks hitam — identitas korporat (monokrom). */
+  --analisa-background: #ffffff;
+  --analisa-foreground: #1f2937;
 
-  --analisa-foregroundHighlighted: #ffffff;
-  --analisa-foregroundGrey: #939291;
-  --analisa-foregroundBlack: #505050;
-  --analisa-foregroundBlackDark: #363636;
+  --analisa-foregroundHighlighted: #000000;
+  --analisa-foregroundGrey: #64748b;
+  --analisa-foregroundBlack: #1f2937;
+  --analisa-foregroundBlackDark: #111827;
 
-  --analisa-placeholder: #9e9d9c;
+  --analisa-placeholder: #94a3b8;
 
-  --analisa-backgroundBox: #00000033;
-  --analisa-backgroundBoxDarker: #121212;
-  --analisa-backgroundBoxHover: #00000024;
-  --analisa-backgroundBoxBox: #ffffff1a;
-  --analisa-backgroundBoxBoxDisabled: #00000024;
-  --analisa-backgroundBoxBoxHover: #ffffff29;
-  --analisa-backgroundBoxBoxHighlighted: #81b64c;
-  --analisa-backgroundBoxBoxHighlightedHover: #8bc550;
-  --analisa-backgroundWhiteClock: #f6f6f6;
-  --analisa-backgroundBlackClock: #1e1d1c;
+  --analisa-backgroundBox: #f8fafc;
+  --analisa-backgroundBoxDarker: #ffffff;
+  --analisa-backgroundBoxHover: #eef2f6;
+  --analisa-backgroundBoxBox: #ffffff;
+  --analisa-backgroundBoxBoxDisabled: #f1f5f9;
+  --analisa-backgroundBoxBoxHover: #e2e8f0;
+  --analisa-backgroundBoxBoxHighlighted: #111827;
+  --analisa-backgroundBoxBoxHighlightedHover: #000000;
+  --analisa-backgroundWhiteClock: #f8fafc;
+  --analisa-backgroundBlackClock: #111827;
 
-  --analisa-foregroundProfileWhite: #ffffff;
-  --analisa-foregroundProfileBlack: #1d1c1a;
-  --analisa-backgroundProfileWhite: #dbd9d6;
-  --analisa-backgroundProfileBlack: #474542;
+  --analisa-foregroundProfileWhite: #1f2937;
+  --analisa-foregroundProfileBlack: #ffffff;
+  --analisa-backgroundProfileWhite: #e5e7eb;
+  --analisa-backgroundProfileBlack: #1f2937;
 
   --analisa-evaluationBarWhite: #ffffff;
-  --analisa-evaluationBarBlack: #403d39;
+  --analisa-evaluationBarBlack: #111827;
 
-  --analisa-border: #5d5d5d;
-  --analisa-borderHighlighted: #949494;
+  --analisa-border: #cbd5e1;
+  --analisa-borderHighlighted: #64748b;
 
   --analisa-blackBoard: #779556;
   --analisa-whiteBoard: #ebecd0;
 
-  --analisa-highlightBrilliant: #26c2a3;
-  --analisa-highlightGreat: #749bbf;
-  --analisa-highlightBest: #81b64c;
-  --analisa-highlightExcellent: #81b64c;
-  --analisa-highlightGood: #95b776;
-  --analisa-highlightBook: #d5a47d;
-  --analisa-highlightInaccuracy: #f7c631;
-  --analisa-highlightMistake: #ffa459;
-  --analisa-highlightMiss: #ff7769;
-  --analisa-highlightBlunder: #fa412d;
+  /* Label kualitas langkah — dipertahankan (fitur), tapi digelapkan
+     agar tetap terbaca di atas latar putih. */
+  --analisa-highlightBrilliant: #0f766e;
+  --analisa-highlightGreat: #1d4ed8;
+  --analisa-highlightBest: #15803d;
+  --analisa-highlightExcellent: #16a34a;
+  --analisa-highlightGood: #4d7c0f;
+  --analisa-highlightBook: #9a3412;
+  --analisa-highlightInaccuracy: #a16207;
+  --analisa-highlightMistake: #c2410c;
+  --analisa-highlightMiss: #e11d48;
+  --analisa-highlightBlunder: #b91c1c;
 
-  --analisa-normalArrow: #ffaa00;
-  --analisa-bestArrow: #9fcf3f;
-  --analisa-badArrow: #eb6150;
+  --analisa-normalArrow: #f59e0b;
+  --analisa-bestArrow: #22c55e;
+  --analisa-badArrow: #ef4444;
 
-  --analisa-winGreen: #81b64c;
-  --analisa-lossRed: #fa412d;
+  --analisa-winGreen: #15803d;
+  --analisa-lossRed: #b91c1c;
 
-  --analisa-error: #fa412d;
-  --analisa-warning: #b8860b;
+  --analisa-error: #dc2626;
+  --analisa-warning: #b45309;
 
   --analisa-borderRoundness: 0.25rem;
   --analisa-borderExtraRoundness: 0.5rem;
@@ -102,7 +105,7 @@
   --blackBoard: var(--analisa-blackBoard);
   --backgroundBoxBoxHighlighted: var(--analisa-backgroundBoxBoxHighlighted);
   --backgroundBoxBoxHighlightedHover: var(--analisa-backgroundBoxBoxHighlightedHover);
-  --scrollbarColor: #494949;
+  --scrollbarColor: #94a3b8;
   --scrollbarSize: 8px;
 
   color: var(--analisa-foreground);

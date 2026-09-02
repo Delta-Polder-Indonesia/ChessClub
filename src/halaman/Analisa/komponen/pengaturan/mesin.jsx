@@ -57,7 +57,7 @@ function PengaturanMesin() {
             <button
               type="button"
               onClick={() => pilihEngine(engine.id)}
-              className={`flex flex-row gap-2 items-center justify-between w-full relative p-2 transition-colors hover:bg-black hover:text-foregroundHighlighted ${idEngine === engine.id ? "text-foregroundHighlighted" : "text-foreground"}`}
+              className={`flex flex-row gap-2 items-center justify-between w-full relative p-2 transition-colors hover:bg-backgroundBoxHover hover:text-foregroundHighlighted ${idEngine === engine.id ? "text-foregroundHighlighted" : "text-foreground"}`}
             >
               <span className="font-bold text-sm text-left">
                 {engine.label}

@@ -39,7 +39,7 @@ function Loading(props) {
             <div className="text-lg font-bold text-foregroundGrey px-5 pb-5 w-full">
                 {status === "memuat" ? t("analisa.status.memuat") : `${t("analisa.muat.menganalisa")}${ellipsis}`}
             </div>
-            <hr className="border-neutral-600" />
+            <hr className="border-slate-200" />
             <div className="flex-grow flex flex-col justify-center items-center relative">
                 <div className="w-[70%] bg-backgroundBox relative overflow-hidden rounded-borderExtraRoundness text-lg text-foregroundGrey flex flex-col gap-14 pb-4 pt-14 items-center">
                     <div className="w-36 flex flex-col items-center gap-4">

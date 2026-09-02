@@ -1174,5 +1174,5 @@ section[id] {
   --radius-borderRoundness: var(--analisa-borderRoundness);
   --radius-borderExtraRoundness: var(--analisa-borderExtraRoundness);
 
-  --shadow-shadowBoxBoxHighlighted: 0 0 8px var(--analisa-backgroundBoxBoxHighlightedHover);
+  --shadow-shadowBoxBoxHighlighted: 0 4px 14px rgba(17, 24, 39, 0.18);
 }

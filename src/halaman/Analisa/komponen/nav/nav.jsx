@@ -89,7 +89,7 @@ export default function Nav() {
         <div ref={topLinksRef} className="flex navTop:flex-col flex-row">
           <Link draggable={false} onMouseEnter={() => setOpenedMenu(null)} to="/" className="flex flex-row gap-1 font-extrabold text-xl navTop:p-3 p-1.5 transition-colors hover:bg-backgroundBoxHover hover:text-foregroundHighlighted">
             <Gambar draggable={false} height={30} width={30} alt="logo" src={`${import.meta.env.BASE_URL}images/analisa/logo.svg`} className="navTop:mt-[-2px]" />
-            <div className="h-fit w-fit reduceNav:block hidden">Brilliant<span className="text-sm font-light">Chess</span></div>
+            <div className="h-fit w-fit reduceNav:block hidden">Chess<span className="text-sm font-light">Club</span></div>
           </Link>
           {topLinks.map((link, i) => {
             return (
@@ -111,7 +111,7 @@ export default function Nav() {
           })}
         </div>
       </div>
-      <div ref={menuRef} style={{ display: openedMenu ? "" : "none" }} className="navTop:h-full h-fit max-h-[calc(100vh-42px)] navTop:max-h-full z-[500] p-2 bg-backgroundBoxDarker absolute navTop:left-full top-full navTop:top-0 select-none navTop:w-fit w-fit min-w-[300px] overflow-y-auto">
+      <div ref={menuRef} style={{ display: openedMenu ? "" : "none" }} className="navTop:h-full h-fit max-h-[calc(100vh-42px)] navTop:max-h-full z-[500] p-2 bg-backgroundBoxDarker absolute navTop:left-full top-full navTop:top-0 select-none navTop:w-fit w-fit min-w-[300px] overflow-y-auto border border-slate-200 rounded-borderRoundness shadow-lg">
         <Settings hidden={openedMenu !== "settings"} />
       </div>
     </nav>

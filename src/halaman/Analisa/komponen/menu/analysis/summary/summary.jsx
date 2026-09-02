@@ -24,9 +24,9 @@ function Summary(props) {
   return <div ref={componentRef} className="flex flex-col gap-3 items-center">
             <GameChart setMoveNumber={setMoveNumber} moves={moves} container={container} moveNumber={moveNumber} setAnimation={setAnimation} setForward={setForward} />
             <PlayersAccuracy reducedSummary={reducedSummary} setAccuracyPhases={setAccuracyPhases} accuracy={[accuracy, setAccuracy]} players={players2} moves={moves} />
-            <hr className="border-neutral-600 w-[85%]" />
+            <hr className="border-slate-200 w-[85%]" />
             <RatingCount moves={moves} />
-            <hr className="border-neutral-600 w-[85%]" />
+            <hr className="border-slate-200 w-[85%]" />
             <GameRating reducedSummary={reducedSummary} accuracy={accuracy} accuracyPhases={accuracyPhases2} />
         </div>;
 }

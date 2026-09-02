@@ -55,7 +55,7 @@ function FormatEval({ evaluation, white, smaller, best }) {
         padding: smaller ? "2px" : "",
         width: smaller ? "46px" : "",
         backgroundColor: karakter === "-" ? "var(--evaluationBarBlack)" : "var(--evaluationBarWhite)",
-        color: karakter === "-" ? "var(--foreground)" : "var(--foregroundBlack)",
+        color: karakter === "-" ? "#ffffff" : "#1f2937",
         filter: karakter === "-" ? "" : "brightness(0.9)",
       }}
       className="rounded-borderRoundness py-1 font-extrabold w-[61px] text-center"
@@ -75,7 +75,7 @@ function Comments({ comment, commentKey, commentIndex, rating, moveSan, evaluati
   if (!komentar || !rating || !moveSan) {
     return (
       <div
-        className="bg-white w-[85%] rounded-borderExtraRoundness p-4 font-bold text-lg text-foregroundBlack"
+        className="bg-backgroundBoxBox w-[85%] rounded-borderExtraRoundness p-4 font-bold text-lg text-foregroundBlack"
         dangerouslySetInnerHTML={{ __html: overallGameComment ?? "" }}
       />
     );
@@ -85,7 +85,7 @@ function Comments({ comment, commentKey, commentIndex, rating, moveSan, evaluati
   const format = FORMAT_LABEL[rating] ?? "adalah";
 
   return (
-    <div style={{ backgroundColor: "#ffffff" }} className="h-44 w-[85%] p-4 rounded-borderExtraRoundness text-foregroundBlack text-lg font-bold flex flex-col gap-1">
+    <div className="h-44 w-[85%] p-4 rounded-borderExtraRoundness bg-backgroundBoxBox border border-slate-200 text-foregroundBlack text-lg font-bold flex flex-col gap-1">
       <div className="flex flex-row justify-between items-center">
         <div className="flex flex-row items-center gap-2">
           <RatingSVG draggable rating={rating} size={32} />

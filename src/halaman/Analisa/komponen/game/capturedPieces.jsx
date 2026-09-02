@@ -15,7 +15,9 @@ function CapturedPieces(props) {
   return <div className="flex flex-row h-full items-end vertical:gap-2 gap-1">
             <div className="w-fit h-full flex flex-row ml-[-3px]">
                 {Object.entries(groupedPieces).sort((a, b) => PIECES_ORDER.indexOf(a[0]) - PIECES_ORDER.indexOf(b[0])).map(([piece, count], i) => {
-    const outlineColor = "var(--border)";
+    // Garis tepi bidak tertangkap. Di tema terang, `--border` terlalu pucat
+    // untuk memisahkan bidak putih dari latar putih, jadi pakai abu lebih gelap.
+    const outlineColor = "#64748b";
     const smallSize = window.innerWidth < maxVertical ? 8 : 15;
     const mediumSize = window.innerWidth < maxVertical ? 10 : 17;
     const bigSize = window.innerWidth < maxVertical ? 12 : 19;

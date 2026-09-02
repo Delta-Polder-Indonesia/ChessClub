@@ -31,8 +31,13 @@ import GameButtons from "./komponen/menu/analysis/gameButtons.jsx";
 import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
-/** Tinggi minimum area analisis supaya papan tetap bisa dipakai. */
-const TINGGI_MIN = 640;
+/**
+ * Tinggi minimum area analisis supaya papan tetap bisa dipakai.
+ * Sengaja diturunkan dari 640 → 480 agar area kerja tidak memaksa halaman
+ * meluber ke bawah lipatan: pada layar yang lebih pendek, papan tetap
+ * muat satu layar penuh tanpa harus menggulir untuk melihat baris raja lawan.
+ */
+const TINGGI_MIN = 480;
 
 export default function Analisa() {
   const { t, bahasa } = useI18n();
@@ -77,32 +82,33 @@ export default function Analisa() {
   ];
 
   return (
-    <div className="bg-[#f5f5f5] pb-10">
+    <div className="bg-white pb-10">
       <Hero
         title={t("analisa.judul")}
         description={t("analisa.tagline")}
         crumbs={crumbs}
+        compact
       />
 
       <ConfigContextProvider>
         <ErrorsContextProvider>
           <MesinProvider>
             <div className="mx-auto w-full max-w-[1500px] px-2 md:px-4">
-              <p className="mx-auto mb-3 mt-4 inline-flex flex-row items-center gap-2 rounded-md bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800 md:text-sm">
+              <p className="mx-auto mb-3 mt-4 inline-flex flex-row items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-600 md:text-sm">
                 <span aria-hidden="true">🔒</span>
                 {t("analisa.privasi")}
               </p>
               {/*
                 Area kerja = kerangka ala upstream: bilah navigasi kiri
                 (logo, Pengaturan, Source Code, Atribusi) berdampingan dengan
-                papan + panel. Tema gelap & variabel CSS dipasang di div ini
+                papan + panel. Tema & variabel CSS dipasang di div ini
                 (.analisa-root) supaya ikut mengcover bilah navigasi;
                 pengukuran tinggi/lebar papan tetap membaca <main> di
                 bawahnya — lebarnya otomatis dikurangi bilah navigasi.
               */}
               <div
                 style={{ height: tinggi || undefined }}
-                className="analisa-root relative flex w-full select-none flex-col overflow-x-hidden rounded-xl navTop:flex-row"
+                className="analisa-root relative flex w-full select-none flex-col overflow-x-hidden rounded-xl border border-slate-200 navTop:flex-row"
               >
                 <PageErrors />
                 <Nav />

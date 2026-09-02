@@ -75,7 +75,7 @@ function Ratings() {
   }
   return <section>
             <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.pengaturan.penilaian")}</h1>
-            <button onClick={toggleHighlightByRating} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
+            <button onClick={toggleHighlightByRating} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-backgroundBoxHover transition-colors w-full relative p-2">
                 <div className="grid grid-cols-2 w-fit">
                     {Array.from({ length: 4 }).map((_, i) => {
     const isEvenCol = i % 2 === 0;
@@ -103,7 +103,7 @@ function Ratings() {
       setUsedRatings(newUsedRatings);
       tulis("usedRatings", serializeRatings(newUsedRatings));
     }
-    return <button onClick={toggleRating} type="button" key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
+    return <button onClick={toggleRating} type="button" key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-backgroundBoxHover transition-colors w-full relative p-2">
                         <RatingSVG rating={rating} size={35} className="w-[40px] h-[40px] flex justify-center items-center" />
                         <span className="font-bold text-lg">{capitalizeFirst(rating)}</span>
                         <div style={{ backgroundColor: color, display: usedRatings2[rating] ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
