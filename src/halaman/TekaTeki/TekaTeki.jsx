@@ -19,11 +19,21 @@ const KUNCI_TIPE = {
   "Mate in Two": "skakmat2",
   "Mate in Three": "skakmat3",
 };
-const KUNCI_SUSAH = {
-  "Mate in One": "mudah",
-  "Mate in Two": "menengah",
-  "Mate in Three": "sulit",
+/** Label level (1–5) sesuai pita rating NACCL, sama dengan pilihan selector Level. */
+const NAMA_LEVEL = {
+  1: "Sangat Mudah",
+  2: "Mudah",
+  3: "Normal",
+  4: "Sulit",
+  5: "Sangat Sulit",
 };
+function bandLevel(rating) {
+  if (rating < 1000) return 1;
+  if (rating < 1250) return 2;
+  if (rating < 1550) return 3;
+  if (rating < 1900) return 4;
+  return 5;
+}
 
 /**
  * Pita rating untuk selector Level, mengikuti level NACCL (1–5).
@@ -91,12 +101,12 @@ const PILIHAN_WARNA_PAPAN = [
 
 /** Warna chip kategori hasil tablebase Syzygy; labelnya lewat t("tekaTeki.syzygyKat.*"). */
 const PETA_KELAS_SYZYGY = {
-  win: "bg-emerald-100 text-emerald-800",
-  "cursed-win": "bg-lime-100 text-lime-800",
-  draw: "bg-slate-200 text-slate-700",
-  "blessed-loss": "bg-amber-100 text-amber-800",
-  loss: "bg-red-100 text-red-800",
-  unknown: "bg-slate-100 text-slate-600",
+  win: "text-emerald-300",
+  "cursed-win": "text-lime-300",
+  draw: "text-slate-300",
+  "blessed-loss": "text-amber-300",
+  loss: "text-red-300",
+  unknown: "text-gray-400",
 };
 
 function parseLangkah(teks) {
@@ -1071,8 +1081,13 @@ export default function TekaTeki() {
               syzygyDetail={t("tekaTeki.syzygyDetail")}
               syzygyCatatan={t("tekaTeki.syzygyCatatan")}
               teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
-              teksTingkat={masalah ? t(`tekaTeki.${KUNCI_SUSAH[masalah.type]}`) : ""}
+              teksTingkat={masalah ? NAMA_LEVEL[bandLevel(masalah.rating ?? 0)] : ""}
               eloSoal={masalah ? masalah.rating : 1500}
+              namaHitam={masalah ? masalah.pemainHitam : ""}
+              eloHitam={masalah ? masalah.eloHitam : 0}
+              namaPutih={masalah ? masalah.pemainPutih : ""}
+              eloPutih={masalah ? masalah.eloPutih : 0}
+              teksPembukaan={masalah ? masalah.pembukaan : ""}
               teksTerpecahkan={t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
               teksCekmat={pesan?.jenis === "selesai" ? pesan.teks : ""}
               teksSudah={!pesan && sudahPecah ? t("tekaTeki.sudahTerpecahkan") : ""}
@@ -1182,7 +1197,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500 }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1225,11 +1240,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
                   <option value="semua">Semua Level</option>
-                  <option value="1">1 · Sangat Mudah</option>
-                  <option value="2">2 · Mudah</option>
-                  <option value="3">3 · Normal</option>
-                  <option value="4">4 · Sulit</option>
-                  <option value="5">5 · Sangat Sulit</option>
+                  <option value="1">Sangat Mudah</option>
+                  <option value="2">Mudah</option>
+                  <option value="3">Normal</option>
+                  <option value="4">Sulit</option>
+                  <option value="5">Sangat Sulit</option>
                 </select>
               </div>
 
@@ -1368,12 +1383,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   </div>
                   <div className="flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-2">
-                      {teksTingkat ? (
-                        <span className="text-sm font-bold text-[#fffaec] truncate">{teksTingkat}</span>
+                      {namaHitam ? (
+                        <span className="text-sm font-bold text-[#fffaec] truncate">{namaHitam}</span>
                       ) : (
                         <span className="text-sm font-bold text-[#fffaec] truncate">Hitam</span>
                       )}
-                      <span className="text-xs text-gray-500 font-medium">({eloSoal})</span>
+                      {eloHitam > 0 && (
+                        <span className="text-xs text-gray-500 font-medium">({eloHitam})</span>
+                      )}
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       <span className="text-[11px] text-gray-400 font-medium truncate">
@@ -1382,9 +1399,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     </div>
                   </div>
                 </div>
-                {/* Clock Hitam */}
-                <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#1e1d1c] text-[#999] text-lg font-mono font-bold shadow-inner border border-[#312e2b]">
-                  5:00
+                {/* Level soal: label di samping kiri kotak */}
+                <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">Level Soal</span>
+                  <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#1e1d1c] text-sm font-bold shadow-inner border border-[#312e2b]">
+                    {teksTingkat ? (
+                      <span className="text-[#fffaec] truncate">{teksTingkat}</span>
+                    ) : (
+                      <span className="text-[#999]">Hitam</span>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -1512,8 +1536,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   </div>
                   <div className="flex flex-col justify-center min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-[#fffaec] truncate">BlunderSkuad</span>
-                      <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+                      {namaPutih ? (
+                        <span className="text-sm font-bold text-[#fffaec] truncate">{namaPutih}</span>
+                      ) : (
+                        <span className="text-sm font-bold text-[#fffaec] truncate">Putih</span>
+                      )}
+                      {eloPutih > 0 && (
+                        <span className="text-xs text-gray-500 font-medium">({eloPutih})</span>
+                      )}
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       {teksTerpecahkan && (
@@ -1522,9 +1552,12 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     </div>
                   </div>
                 </div>
-                {/* Clock Putih — active */}
-                <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
-                  5:00
+                {/* Rating soal: label di samping kiri kotak */}
+                <div className="flex flex-row items-center gap-2 flex-shrink-0">
+                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">Rating Soal</span>
+                  <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
+                    {eloSoal}
+                  </div>
                 </div>
               </div>
             </div>
@@ -1691,16 +1724,22 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           )}
 
-          {/* Header sejajar: giliran (kiri) + jenis soal (kanan) */}
+          {/* Baris: giliran */}
           <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
-            {/* Kiri: giliran */}
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
               <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
               <span className={giliran === "putih" ? "text-white" : "text-gray-500"}>{giliran === "putih" ? "Putih" : "Hitam"}</span>
               <span className="text-gray-600">melangkah</span>
             </div>
-
           </div>
+
+          {/* Baris baru: pembukaan */}
+          {teksPembukaan && (
+            <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#1e1c18] flex items-baseline gap-2 min-w-0">
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex-shrink-0">Pembukaan</span>
+              <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
+            </div>
+          )}
 
           {/* Syzygy — salinan kata-kata dari bagian atas TekaTeki, warna tema gelap */}
           <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">
@@ -1711,10 +1750,10 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <span
-                className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                className={`inline-block text-xs font-semibold ${
                   syzygy && PETA_KELAS_SYZYGY
-                    ? PETA_KELAS_SYZYGY[syzygy.category] || "bg-[#2c2926] text-gray-400"
-                    : "bg-[#2c2926] text-gray-400"
+                    ? PETA_KELAS_SYZYGY[syzygy.category] || "text-gray-400"
+                    : "text-gray-400"
                 }`}
               >
                 {syzygy && teksKategoriSyzygy ? teksKategoriSyzygy(syzygy.category) : "—"}
@@ -1741,8 +1780,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                       {m.san}
                     </span>
                     <span
-                      className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-                        PETA_KELAS_SYZYGY && (PETA_KELAS_SYZYGY[m.category] || "bg-[#2c2926] text-gray-400")
+                      className={`shrink-0 text-[10px] font-semibold ${
+                        PETA_KELAS_SYZYGY && (PETA_KELAS_SYZYGY[m.category] || "text-gray-400")
                       }`}
                     >
                       {teksKategoriSyzygy ? teksKategoriSyzygy(m.category) : m.category}
