@@ -1595,11 +1595,6 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   )}
                 </div>
               </div>
-              {teksSalah && (
-                <p role="status" className="text-center text-sm font-semibold text-red-400">
-                  {teksSalah}
-                </p>
-              )}
               </div>
 
               {/* ─── PROFIL PEMAIN PUTIH (BAWAH) ─── */}
@@ -1796,13 +1791,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
           </div>
 
           {/* Nomor soal + status (di bawah teks soal) */}
-          {(teksSoal || teksCekmat || teksSudah) && (
+          {(teksSoal || teksCekmat || teksSudah || teksSalah) && (
             <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#262421] flex flex-col gap-1">
               <div className="flex flex-wrap items-center gap-x-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
                 {teksSoal && <span className="text-[13px] font-bold text-white">{teksSoal}</span>}
                 {teksCekmat && <span className="text-[13px] font-bold text-gray-300">{teksCekmat}</span>}
                 {teksSudah && <span className="text-xs font-semibold text-emerald-300">{teksSudah}</span>}
+                {teksSalah && <span className="text-[13px] font-bold text-red-400">{teksSalah}</span>}
               </div>
             </div>
           )}

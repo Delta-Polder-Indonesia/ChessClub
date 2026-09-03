@@ -570,16 +570,6 @@ export default function PapanTekaTeki({
         seret ? "cursor-grabbing" : ""
       }`}
     >
-      {/* Animasi goyang saat langkah salah. */}
-      <style>{`
-        @keyframes kci-goyang {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-4px); }
-          75% { transform: translateX(4px); }
-        }
-        .kci-goyang { animation: kci-goyang 0.16s ease-in-out 3; }
-      `}</style>
-
       <div className="grid grid-cols-8 grid-rows-8 w-full h-full">
         {petak.map((sq, i) => {
           const baris = Math.floor(i / 8);
@@ -645,7 +635,7 @@ export default function PapanTekaTeki({
               )}
               {jadiSalah && (
                 <span
-                  className="kci-goyang absolute inset-0"
+                  className="absolute inset-0"
                   style={{ backgroundColor: "rgba(216, 60, 60, 0.55)" }}
                   aria-hidden="true"
                 />
