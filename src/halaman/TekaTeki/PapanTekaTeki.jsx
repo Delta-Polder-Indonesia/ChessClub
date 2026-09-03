@@ -226,7 +226,10 @@ export default function PapanTekaTeki({
   const giliran = fen.split(" ")[1] || "w";
 
   const akar = useRef(null);
-  const ukuran = useRef(0);
+  // Geometri papan dalam koordinat viewport (kiri/atas/lebar petak).
+  // Dibaca ulang saat seret dimulai & selama bergerak supaya bidak hantu
+  // selalu menempel kursor walau halaman di-scroll/di-zoom di tengah seretan.
+  const geometri = useRef({ kiri: 0, atas: 0, kotak: 0 });
 
   // Keadaan gerakan seret bidak.
   const seretRef = useRef(null); // { dari, x0, y0, pindah, pointerId }
@@ -317,9 +320,22 @@ export default function PapanTekaTeki({
     };
   }, []);
 
+  /** Baca ulang posisi & ukuran papan dari DOM (koordinat viewport). */
+  function bacaGeometri() {
+    const rect = akar.current?.getBoundingClientRect();
+    if (rect && rect.width > 0) {
+      geometri.current = {
+        kiri: rect.left,
+        atas: rect.top,
+        kotak: rect.width / 8,
+      };
+    }
+    return geometri.current;
+  }
+
   function mulaiSeret(e, petakAwal) {
     if (e.pointerType !== "touch") e.preventDefault();
-    ukuran.current = akar.current?.getBoundingClientRect().width || 0;
+    const { kiri, atas } = bacaGeometri();
     seretRef.current = {
       dari: petakAwal,
       x0: e.clientX,
@@ -327,7 +343,10 @@ export default function PapanTekaTeki({
       pindah: false,
       pointerId: e.pointerId,
     };
-    setSeret({ from: petakAwal, x: e.clientX, y: e.clientY });
+    // Simpan posisi RELATIF terhadap papan (bukan viewport) supaya tidak
+    // terpengaruh transform CSS pada elemen leluhur (mis. lg:translate-x-4
+    // pada tata letak) yang menggeser acuan position:fixed.
+    setSeret({ from: petakAwal, x: e.clientX - kiri, y: e.clientY - atas });
     try {
       akar.current?.setPointerCapture(e.pointerId);
     } catch {
@@ -380,7 +399,12 @@ export default function PapanTekaTeki({
         e.clientY - seretRef.current.y0
       );
       if (jarak > 5) seretRef.current.pindah = true;
-      setSeret((s) => (s ? { ...s, x: e.clientX, y: e.clientY } : s));
+      // Geometri dibaca ulang tiap gerakan agar tetap akurat walau
+      // halaman bergeser (scroll/zoom/resize) selama bidak diseret.
+      const { kiri, atas } = bacaGeometri();
+      const x = e.clientX - kiri;
+      const y = e.clientY - atas;
+      setSeret((s) => (s ? { ...s, x, y } : s));
     }
     if (kananRef.current) {
       const kini = cariPetak(e.clientX, e.clientY);
@@ -449,7 +473,7 @@ export default function PapanTekaTeki({
 
   /* -------------------------------------------------------------- tampilan */
 
-  const ukuranKotak = ukuran.current ? ukuran.current / 8 : 0;
+  const ukuranKotak = geometri.current.kotak || 0;
   const TEMA_PAPAN = {
     blue: { terang: "#d7e5f0", gelap: "#4f82a8" },
     brown: { terang: "#ead2ad", gelap: "#9b6847" },
@@ -668,10 +692,13 @@ export default function PapanTekaTeki({
         )}
       </svg>
 
-      {/* Bidak hantu yang mengikuti kursor saat diseret. */}
-      {seret && peta[seret.from] && (
+      {/* Bidak hantu yang mengikuti kursor saat diseret — diposisikan
+          ABSOLUT relatif terhadap papan (bukan fixed/viewport) supaya
+          posisinya tepat di bawah kursor walau ada transform CSS
+          pada elemen leluhur. */}
+      {seret && peta[seret.from] && ukuranKotak > 0 && (
         <div
-          className="pointer-events-none fixed z-[70]"
+          className="pointer-events-none absolute z-[70]"
           style={{
             left: seret.x - ukuranKotak / 2,
             top: seret.y - ukuranKotak / 2,
