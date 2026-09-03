@@ -10,6 +10,7 @@ import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
+import { petakRajaTermat } from "../../lib/skakmat.js";
 import License from "../Analisa/komponen/svg/license.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
@@ -341,6 +342,17 @@ export default function TekaTeki() {
     }
     return { petak: langkah.to, rating };
   }, [jalurFen]);
+
+  /**
+   * Lencana skakmat — petak raja LAWAN yang termat pada posisi yang sedang
+   * ditampilkan. Hanya terisi bila posisi itu benar-benar skakmat, jadi
+   * gambarnya muncul tepat saat langkah terakhir menutup permainan (dan tetap
+   * tampil saat mode review / navigasi langkah setelah cekmat).
+   */
+  const ikonSkakmat = useMemo(() => {
+    const petak = petakRajaTermat(fen);
+    return petak ? { petak } : null;
+  }, [fen]);
 
   /** Mainkan saran engine pada teka-teki — tetap divalidasi aturan soal:
       kalau sarannya bukan jawaban yang diharapkan, dihitung salah. */
@@ -993,6 +1005,8 @@ export default function TekaTeki() {
         ikonLangkah={
           kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
         }
+        ikonSkakmat={ikonSkakmat}
+        ikonSkakmat={kesalahan ? null : ikonSkakmat}
         terkunci={komputer || selesai || !!promosi}
         membeku={komputer}
         setBidak={setBidak}
