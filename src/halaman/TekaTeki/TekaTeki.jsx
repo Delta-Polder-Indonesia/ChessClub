@@ -1005,7 +1005,6 @@ export default function TekaTeki() {
         ikonLangkah={
           kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
         }
-        ikonSkakmat={ikonSkakmat}
         ikonSkakmat={kesalahan ? null : ikonSkakmat}
         terkunci={komputer || selesai || !!promosi}
         membeku={komputer}

@@ -91,6 +91,7 @@ import { HelmetProvider } from "react-helmet-async";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
+import PapanInteraktif from "./src/halaman/PapanInteraktif/PapanInteraktif.jsx";
 
 /** Papan saja — dipakai untuk memeriksa posisi lencana di dalam petak. */
 export function mountPapan(el, { fen, orientasi = "w", ikonLangkah = null, ikonSkakmat = null }) {
@@ -117,6 +118,21 @@ export function mountTekaTeki(el, id) {
       <MemoryRouter initialEntries={[\`/teka-teki?id=\${id}\`]}>
         <I18nProvider>
           <TekaTeki />
+        </I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
+  );
+  return root;
+}
+
+/** Halaman papan interaktif penuh — lencana skakmat harus sama dengan teka-teki. */
+export function mountPapanInteraktif(el) {
+  const root = createRoot(el);
+  root.render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/program-kami/papan-interaktif"]}>
+        <I18nProvider>
+          <PapanInteraktif />
         </I18nProvider>
       </MemoryRouter>
     </HelmetProvider>
@@ -324,6 +340,40 @@ uji(
   "soal tercatat terpecahkan (langkah mat diterima)",
   /terpecahkan|Terpecahkan|Skakmat/i.test(wadahHalaman.textContent.replace(/\s+/g, " "))
 );
+
+/* ------------------------------- 4. alur papan interaktif (sama spt teka-teki) */
+
+console.log("\nalur halaman PapanInteraktif (Fool's Mate):");
+const wadahInteraktif = domSiap.createElement("div");
+domSiap.body.appendChild(wadahInteraktif);
+modul.mountPapanInteraktif(wadahInteraktif);
+await tunggu(1500); // tunggu pohon pembukaan dimuat (board baru render setelah pohon siap)
+
+function klikInteraktif(petak) {
+  const el = wadahInteraktif.querySelector(`[data-petak="${petak}"]`);
+  if (el) el.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+}
+
+uji("papan interaktif ter-render (64 petak)", wadahInteraktif.querySelectorAll("[data-petak]").length === 64);
+uji("interaktif: belum ada lencana di awal", lencanaSkakmat(wadahInteraktif).length === 0);
+
+// Fool's Mate: 1. f3 e5 2. g4 Qh4#
+const langkahFool = [["f2", "f3"], ["e7", "e5"], ["g2", "g4"], ["d8", "h4"]];
+for (const [asal, tujuan] of langkahFool) {
+  klikInteraktif(asal);
+  await tunggu(150);
+  klikInteraktif(tujuan);
+  await tunggu(200);
+}
+await tunggu(400);
+
+const lencanaInt = lencanaSkakmat(wadahInteraktif);
+uji("interaktif: lencana skakmat muncul setelah Qh4#", lencanaInt.length === 1);
+uji(
+  "interaktif: lencana di atas raja yang termat (e1)",
+  lencanaInt[0]?.closest('[data-petak="e1"]') !== null
+);
+wadahInteraktif.remove();
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
 uji("tidak ada galat render React", galatRender.length === 0);
