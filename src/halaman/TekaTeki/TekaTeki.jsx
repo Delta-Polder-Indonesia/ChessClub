@@ -1996,7 +1996,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   )}
                 </svg>
                 <span className={`text-xs font-semibold ${nilaiOtomatis ? "text-[#81b64c]" : "text-white"}`}>
-                  {nilaiOtomatis ? "Pause" : "Play"}
+                  {nilaiOtomatis ? "Pause" : "Auto Next"}
                 </span>
               </button>
               <button
@@ -2015,12 +2015,12 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               <button
                 type="button"
                 onClick={onLewati}
-                title="Lewati"
-                aria-label="Lewati"
+                title={teksCekmat ? "Next" : "Lewati"}
+                aria-label={teksCekmat ? "Next" : "Lewati"}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <ArrowRightIcon className="w-5 h-5" />
-                <span>Lewati</span>
+                <span>{teksCekmat ? "Next" : "Lewati"}</span>
               </button>
             </div>
           </div>
