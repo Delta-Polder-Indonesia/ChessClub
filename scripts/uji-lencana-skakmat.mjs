@@ -340,6 +340,13 @@ uji(
   "soal tercatat terpecahkan (langkah mat diterima)",
   /terpecahkan|Terpecahkan|Skakmat/i.test(wadahHalaman.textContent.replace(/\s+/g, " "))
 );
+const ikonLangkahHalaman = [...wadahHalaman.querySelectorAll("[title]")].filter((e) =>
+  /Langkah terbaik|Satu-satunya langkah|Langkah buku/.test(e.getAttribute("title"))
+);
+uji(
+  "ikon klasifikasi langkah (best/forced/book) tetap muncul setelah solved",
+  ikonLangkahHalaman.length === 1 && ikonLangkahHalaman[0].closest('[data-petak="d1"]') !== null
+);
 
 /* ------------------------------- 4. alur papan interaktif (sama spt teka-teki) */
 
@@ -357,23 +364,42 @@ function klikInteraktif(petak) {
 uji("papan interaktif ter-render (64 petak)", wadahInteraktif.querySelectorAll("[data-petak]").length === 64);
 uji("interaktif: belum ada lencana di awal", lencanaSkakmat(wadahInteraktif).length === 0);
 
-// Fool's Mate: 1. f3 e5 2. g4 Qh4#
+// Ikon buku: 1. e4 masih di jalur buku pembukaan.
+klikInteraktif("e2");
+await tunggu(150);
+klikInteraktif("e4");
+await tunggu(400);
+uji(
+  "interaktif: ikon buku muncul pada langkah pembukaan (1. e4)",
+  wadahInteraktif.querySelector('[title="Langkah buku (pembukaan)"]') !== null
+);
+wadahInteraktif.remove();
+
+// Fool's Mate pada papan baru: 1. f3 e5 2. g4 Qh4#
+const wadahFool = domSiap.createElement("div");
+domSiap.body.appendChild(wadahFool);
+modul.mountPapanInteraktif(wadahFool);
+await tunggu(800);
+const klikFool = (petak) => {
+  const el = wadahFool.querySelector(`[data-petak="${petak}"]`);
+  if (el) el.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+};
 const langkahFool = [["f2", "f3"], ["e7", "e5"], ["g2", "g4"], ["d8", "h4"]];
 for (const [asal, tujuan] of langkahFool) {
-  klikInteraktif(asal);
+  klikFool(asal);
   await tunggu(150);
-  klikInteraktif(tujuan);
+  klikFool(tujuan);
   await tunggu(200);
 }
 await tunggu(400);
 
-const lencanaInt = lencanaSkakmat(wadahInteraktif);
+const lencanaInt = lencanaSkakmat(wadahFool);
 uji("interaktif: lencana skakmat muncul setelah Qh4#", lencanaInt.length === 1);
 uji(
   "interaktif: lencana di atas raja yang termat (e1)",
-  lencanaInt[0]?.closest('[data-petak="e1"]') !== null
+  lencanaInt.length === 1 && lencanaInt[0].closest('[data-petak="e1"]') !== null
 );
-wadahInteraktif.remove();
+wadahFool.remove();
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
 uji("tidak ada galat render React", galatRender.length === 0);
