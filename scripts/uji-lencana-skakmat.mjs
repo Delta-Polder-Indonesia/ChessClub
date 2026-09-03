@@ -4,7 +4,8 @@
  * Mengapa perlu: papan menampilkan ikon klasifikasi langkah (brilian/terbaik/
  * blunder, …) di pojok petak tujuan, tetapi sampai sekarang tidak ada tanda
  * apa pun di atas raja lawan yang termat. Lencana skakmat baru
- * (`ikonSkakmat` + `SkakmatSVG`) gampang lepas saat papan di-refactor, jadi
+ * (`ikonSkakmat`, memakai ikon "defeat" dari set hasil Analisa) gampang lepas
+ * saat papan di-refactor, jadi
  * uji ini menguncinya dari dua sisi:
  *   1. logika `petakRajaTermat` (chess.js) — posisi skakmat/seri/bukan;
  *   2. render sungguhan `PapanTekaTeki` di jsdom — lencana harus nempel di
@@ -250,8 +251,9 @@ console.log("\nrender PapanTekaTeki:");
     lencana[0]?.closest('[data-petak="g1"]') !== null
   );
   uji(
-    "lencana punya glif svg (bukan kotak kosong)",
-    !!lencana[0]?.querySelector("svg ellipse") && lencana[0].querySelectorAll("svg path, svg rect").length >= 6
+    "lencana memakai ikon hasil Analisa (defeat, merah) — bukan kotak kosong",
+    (lencana[0]?.innerHTML || "").includes("e02828") &&
+      lencana[0].querySelectorAll("svg path, svg rect").length >= 3
   );
   wadah.remove();
 }

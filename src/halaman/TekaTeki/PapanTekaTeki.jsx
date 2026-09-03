@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
-import SkakmatSVG from "../Analisa/komponen/svg/skakmat.jsx";
+import ResultSVG from "../Analisa/komponen/svg/result.jsx";
 
 /** Label keterangan (tooltip) lencana skakmat di atas raja yang termat. */
 const LABEL_IKON_SKAKMAT = "Skakmat — raja lawan tidak punya langkah lagi";
@@ -718,18 +718,22 @@ export default function PapanTekaTeki({
                 />
               )}
 
-              {/* Lencana skakmat — raja tumbang di pojok kanan-atas petak raja
-                  lawan yang baru saja termat. Posisi & ukuran sama dengan ikon
-                  klasifikasi langkah agar serasi; petak raja tidak pernah sama
-                  dengan petak tujuan langkah, jadi keduanya tak pernah tabrakan. */}
+              {/* Lencana skakmat — ikon "defeat" (raja tumbang) dari set hasil
+                  Analisa, diputar -90° persis seperti board.jsx menandai raja
+                  yang kalah. Dipasang di pojok kanan-atas petak raja lawan yang
+                  baru saja termat; posisi & ukuran sama dengan ikon klasifikasi
+                  langkah agar serasi. Petak raja tidak pernah sama dengan petak
+                  tujuan langkah, jadi keduanya tak pernah tabrakan. */}
               {ikonSkakmat && ikonSkakmat.petak === sq && (
-                <SkakmatSVG
+                <ResultSVG
+                  result="defeat"
                   size="100%"
                   title={LABEL_IKON_SKAKMAT}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",
                     right: kolom === 7 ? "2%" : "-8%",
+                    transform: "rotate(-90deg)",
                   }}
                 />
               )}
