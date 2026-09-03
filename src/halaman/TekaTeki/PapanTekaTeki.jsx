@@ -1,6 +1,22 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
+
+/** Label keterangan (tooltip) ikon klasifikasi langkah — gaya chess.com/lichess. */
+const LABEL_IKON_LANGKAH = {
+  brilliant: "Langkah brilian",
+  great: "Langkah hebat",
+  best: "Langkah terbaik",
+  excellent: "Langkah sangat baik",
+  good: "Langkah baik",
+  book: "Langkah buku (pembukaan)",
+  inaccuracy: "Ketidaktepatan",
+  mistake: "Kesalahan",
+  miss: "Kesempatan terlewat",
+  blunder: "Blunder (langkah salah)",
+  forced: "Satu-satunya langkah",
+};
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
@@ -207,6 +223,7 @@ export default function PapanTekaTeki({
   langkahAkhir = null,
   tanda = { panah: [], petak: {} },
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
+  ikonLangkah = null, // { petak, rating } — ikon klasifikasi langkah di pojok petak (book/best/blunder, …)
   terkunci = false,
   membeku = false,
   setBidak = "merida",
@@ -233,7 +250,17 @@ export default function PapanTekaTeki({
 
   // Keadaan gerakan seret bidak.
   const seretRef = useRef(null); // { dari, x0, y0, pindah, pointerId }
-  const [seret, setSeret] = useState(null); // { from, x, y } → bidak hantu
+  // `seret` hanya dipakai untuk MEMASANG/MELEPAS bidak hantu — posisinya
+  // TIDAK lewat state React. Update posisi via state tiap pointermove
+  // me-render ulang seluruh 64 petak sehingga bidak tertinggal dari kursor
+  // (terasa seperti delay/lag); posisi kini digeser langsung di DOM (lihat
+  // posisikanHantu) memakai transformasi GPU yang berjalan sinkron dengan
+  // gerak kursor.
+  const [seret, setSeret] = useState(null); // { from } → bidak hantu terpasang
+  const hantuRef = useRef(null);
+  // Posisi kursor yang datang sebelum elemen hantu sempat terpasang —
+  // langsung dipakai begitu elemen dirender (efek di bawah).
+  const posisiTertahanRef = useRef(null);
   const abaikanKlikRef = useRef(false);
   const baruBatalRef = useRef(false);
   const onBatalSeretRef = useRef(onBatalSeret);
@@ -333,9 +360,32 @@ export default function PapanTekaTeki({
     return geometri.current;
   }
 
+  /**
+   * Geser bidak hantu LANGSUNG di DOM (tanpa React state) agar pusat bidak
+   * selalu menempel tepat di titik kursor — tidak ada jeda render sehingga
+   * bidak tidak pernah tertinggal saat diseret cepat.
+   */
+  function posisikanHantu(clientX, clientY) {
+    posisiTertahanRef.current = { x: clientX, y: clientY };
+    const el = hantuRef.current;
+    if (!el) return;
+    const { kiri, atas, kotak } = geometri.current;
+    el.style.transform = `translate3d(${clientX - kiri - kotak / 2}px, ${
+      clientY - atas - kotak / 2
+    }px, 0)`;
+  }
+
+  // Begitu elemen hantu terpasang, langsung tempelkan ke posisi kursor
+  // tertahan agar tidak ada satu frame pun bidak tampak di titik awal.
+  useEffect(() => {
+    if (seret && posisiTertahanRef.current) {
+      posisikanHantu(posisiTertahanRef.current.x, posisiTertahanRef.current.y);
+    }
+  }, [seret]);
+
   function mulaiSeret(e, petakAwal) {
     if (e.pointerType !== "touch") e.preventDefault();
-    const { kiri, atas } = bacaGeometri();
+    bacaGeometri();
     seretRef.current = {
       dari: petakAwal,
       x0: e.clientX,
@@ -343,10 +393,13 @@ export default function PapanTekaTeki({
       pindah: false,
       pointerId: e.pointerId,
     };
-    // Simpan posisi RELATIF terhadap papan (bukan viewport) supaya tidak
-    // terpengaruh transform CSS pada elemen leluhur (mis. lg:translate-x-4
-    // pada tata letak) yang menggeser acuan position:fixed.
-    setSeret({ from: petakAwal, x: e.clientX - kiri, y: e.clientY - atas });
+    // Pasang bidak hantu. Posisi relatif papan dihitung di posisikanHantu —
+    // tahan terhadap transform CSS pada elemen leluhur (mis. lg:translate-x-4
+    // pada tata letak) karena hantu diposisikan absolut di dalam papan.
+    setSeret({ from: petakAwal });
+    // Frame berikutnya elemen hantu sudah terpasang: tempelkan ke kursor
+    // sebelum browser sempat mengecat posisi awal (tanpa kedip/lompatan).
+    requestAnimationFrame(() => posisikanHantu(e.clientX, e.clientY));
     try {
       akar.current?.setPointerCapture(e.pointerId);
     } catch {
@@ -401,10 +454,10 @@ export default function PapanTekaTeki({
       if (jarak > 5) seretRef.current.pindah = true;
       // Geometri dibaca ulang tiap gerakan agar tetap akurat walau
       // halaman bergeser (scroll/zoom/resize) selama bidak diseret.
-      const { kiri, atas } = bacaGeometri();
-      const x = e.clientX - kiri;
-      const y = e.clientY - atas;
-      setSeret((s) => (s ? { ...s, x, y } : s));
+      // Posisi hantu digeser LANGSUNG di DOM — tanpa setState, tanpa
+      // render ulang — jadi bidak mengikuti kursor tanpa delay.
+      bacaGeometri();
+      posisikanHantu(e.clientX, e.clientY);
     }
     if (kananRef.current) {
       const kini = cariPetak(e.clientX, e.clientY);
@@ -473,7 +526,6 @@ export default function PapanTekaTeki({
 
   /* -------------------------------------------------------------- tampilan */
 
-  const ukuranKotak = geometri.current.kotak || 0;
   const TEMA_PAPAN = {
     blue: { terang: "#d7e5f0", gelap: "#4f82a8" },
     brown: { terang: "#ead2ad", gelap: "#9b6847" },
@@ -647,6 +699,25 @@ export default function PapanTekaTeki({
               {jadiSasaran && bidak && (
                 <span className="absolute inset-[3%] z-10 rounded-full border-4 border-black/30" aria-hidden="true" />
               )}
+
+              {/* Ikon klasifikasi langkah (book/best/forced/blunder, …) di
+                  pojok kanan-atas petak tujuan — meniru vladimirshefer/
+                  chess-analysis: bundar ~50% petak, menjorok sedikit ke luar
+                  sudut. Tetap berada di dalam papan (overflow-hidden), jadi
+                  pada petak tepi (baris atas / kolom kanan layar) digeser
+                  ke dalam agar tidak terpotong. */}
+              {ikonLangkah && ikonLangkah.petak === sq && (
+                <RatingSVG
+                  rating={ikonLangkah.rating}
+                  size="100%"
+                  title={LABEL_IKON_LANGKAH[ikonLangkah.rating] || ikonLangkah.rating}
+                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+                  style={{
+                    top: baris === 0 ? "2%" : "-8%",
+                    right: kolom === 7 ? "2%" : "-8%",
+                  }}
+                />
+              )}
             </button>
           );
         })}
@@ -694,17 +765,15 @@ export default function PapanTekaTeki({
 
       {/* Bidak hantu yang mengikuti kursor saat diseret — diposisikan
           ABSOLUT relatif terhadap papan (bukan fixed/viewport) supaya
-          posisinya tepat di bawah kursor walau ada transform CSS
-          pada elemen leluhur. */}
-      {seret && peta[seret.from] && ukuranKotak > 0 && (
+          tepat di bawah kursor walau ada transform CSS pada elemen leluhur.
+          Ukuran memakai persentase papan (1/8 petak); posisi diatur
+          LANGSUNG lewat `transform` pada ref-nya (lihat posisikanHantu)
+          sehingga tidak ada re-render React saat kursor bergerak. */}
+      {seret && peta[seret.from] && (
         <div
-          className="pointer-events-none absolute z-[70]"
-          style={{
-            left: seret.x - ukuranKotak / 2,
-            top: seret.y - ukuranKotak / 2,
-            width: ukuranKotak,
-            height: ukuranKotak,
-          }}
+          ref={hantuRef}
+          className="pointer-events-none absolute left-0 top-0 z-[70] will-change-transform"
+          style={{ width: "12.5%", height: "12.5%" }}
           aria-hidden="true"
         >
           <div className="h-full w-full scale-110 drop-shadow-2xl">

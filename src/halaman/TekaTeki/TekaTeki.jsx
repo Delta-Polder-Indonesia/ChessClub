@@ -8,6 +8,8 @@ import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
+import { isForced } from "../Analisa/mesin/penilaian.js";
+import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
 import License from "../Analisa/komponen/svg/license.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
@@ -263,6 +265,82 @@ export default function TekaTeki() {
   useEffect(() => {
     if (!engineNyala) setHasilTertahan(null);
   }, [engineNyala]);
+
+  // Tabel "langkah buku" (buku pembukaan) yang sama dengan halaman Analisa.
+  // Dimuat sekali saat halaman dibuka; ikon "book" baru bisa muncul setelah
+  // tabel siap — tanpa memblokir teka-teki.
+  const bukuSiap = useRef(false);
+  const [, paksaHitungUlang] = useState(0);
+  useEffect(() => {
+    let aktif = true;
+    cariNamaPembukaan()
+      .then((cari) => {
+        if (aktif && typeof cari === "function") {
+          bukuSiap.current = cari;
+          paksaHitungUlang((n) => n + 1);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      aktif = false;
+    };
+  }, []);
+
+  /**
+   * Klasifikasi langkah TERAKHIR pada posisi papan saat ini, untuk ikon di
+   * pojok petak tujuan (ala chess.com / lichess, mengikuti port Brilliant-
+   * Chess di repo ini):
+   *   - "book"   → langkah pembukaan yang tercatat di buku,
+   *   - "forced" → satu-satunya langkah legal pada posisi itu,
+   *   - "best"   → langkah solusi teka-teki lainnya.
+   * `jalurFen[i]` = posisi SETELAH langkah ke-i, jadi langkah ke-i dimulai
+   * dari `jalurFen[i-1]`; buku dicek pada posisi setelah langkah.
+   */
+  const ikonLangkahAkhir = useMemo(() => {
+    if (!jalurFen || jalurFen.length < 2) return null;
+    const i = jalurFen.length - 1;
+    const fenSebelum = jalurFen[i - 1];
+    const fenSesudah = jalurFen[i];
+    if (!fenSebelum || !fenSesudah) return null;
+
+    let langkah = null;
+    try {
+      const g = new Chess(fenSebelum);
+      const daftar = g.moves({ verbose: true });
+      langkah =
+        daftar.find((m) => m.after === fenSesudah) ||
+        daftar.find((m) => {
+          try {
+            const uji = new Chess(fenSebelum);
+            return uji.move(m.san)?.fen() === fenSesudah;
+          } catch {
+            return false;
+          }
+        }) ||
+        null;
+    } catch {
+      return null;
+    }
+    if (!langkah) return null;
+
+    let rating = "best";
+    let namaBuku = null;
+    try {
+      namaBuku = bukuSiap.current?.(fenSesudah) || null;
+    } catch {
+      namaBuku = null;
+    }
+    if (namaBuku) {
+      rating = "book";
+    } else {
+      try {
+        if (isForced({ before: fenSebelum })) rating = "forced";
+      } catch {
+        /* abaikan — tetap "best" */
+      }
+    }
+    return { petak: langkah.to, rating };
+  }, [jalurFen]);
 
   /** Mainkan saran engine pada teka-teki — tetap divalidasi aturan soal:
       kalau sarannya bukan jawaban yang diharapkan, dihitung salah. */
@@ -912,6 +990,9 @@ export default function TekaTeki() {
         langkahAkhir={langkahAkhir}
         tanda={tanda}
         panahMesin={panahMesin}
+        ikonLangkah={
+          kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
+        }
         terkunci={komputer || selesai || !!promosi}
         membeku={komputer}
         setBidak={setBidak}
