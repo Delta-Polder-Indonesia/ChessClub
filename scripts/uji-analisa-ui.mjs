@@ -395,10 +395,17 @@ if (tabLangkah) {
 }
 
 /* --- alur kedua: analisis posisi FEN --- */
-const tabBaru = [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => /Analisis/.test(b.textContent ?? ""));
+/*
+ * Tab "Analisis" yang lama sudah diganti tab "Laporan Analisa". Peran
+ * "mulai analisis baru" kini dipegang tab itu: saat halaman sedang
+ * menganalisis, klik tab "Laporan Analisa" memanggil
+ * `setData({ format: "fen", string: "" })` sehingga halaman kembali ke
+ * form kosong. Uji ini mengikuti alur pengguna yang sama.
+ */
+const tabBaru = [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => /Laporan Analisa/.test(b.textContent ?? ""));
 uji("tab analisis baru ada", !!tabBaru);
 if (tabBaru) tabBaru.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-await tunggu(200);
+await tunggu(400);
 const pemilihFormat = [...domSiap.querySelectorAll("button")].find((b) => /Chess\.com|Lichess\.org|PGN|FEN/i.test(b.textContent ?? ""));
 uji("tombol pilihan format ada", !!pemilihFormat);
 if (pemilihFormat) {
