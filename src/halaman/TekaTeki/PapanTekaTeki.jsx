@@ -2,6 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
+import ResultSVG from "../Analisa/komponen/svg/result.jsx";
+
+/** Label keterangan (tooltip) lencana skakmat di atas raja yang termat. */
+const LABEL_IKON_SKAKMAT = "Skakmat — raja lawan tidak punya langkah lagi";
 
 /** Label keterangan (tooltip) ikon klasifikasi langkah — gaya chess.com/lichess. */
 const LABEL_IKON_LANGKAH = {
@@ -212,6 +216,10 @@ function titikKePoints(titik) {
  *  - Klik kanan pada petak yang sudah bertanda = hapus SEMUA tanda & panah.
  *  - Klik kiri pada petak kosong (tanpa aksi permainan) = hapus SEMUA tanda.
  *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
+ *
+ * Lencana di pojok petak:
+ *  - `ikonLangkah` → klasifikasi langkah terakhir (brilian/terbaik/blunder, …).
+ *  - `ikonSkakmat` → raja tumbang di atas raja lawan yang termat.
  */
 export default function PapanTekaTeki({
   fen,
@@ -224,6 +232,7 @@ export default function PapanTekaTeki({
   tanda = { panah: [], petak: {} },
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
   ikonLangkah = null, // { petak, rating } — ikon klasifikasi langkah di pojok petak (book/best/blunder, …)
+  ikonSkakmat = null, // { petak } — lencana skakmat di atas raja lawan yang termat
   terkunci = false,
   membeku = false,
   setBidak = "merida",
@@ -705,6 +714,26 @@ export default function PapanTekaTeki({
                   style={{
                     top: baris === 0 ? "2%" : "-8%",
                     right: kolom === 7 ? "2%" : "-8%",
+                  }}
+                />
+              )}
+
+              {/* Lencana skakmat — ikon "defeat" (raja tumbang) dari set hasil
+                  Analisa, diputar -90° persis seperti board.jsx menandai raja
+                  yang kalah. Dipasang di pojok kanan-atas petak raja lawan yang
+                  baru saja termat; posisi & ukuran sama dengan ikon klasifikasi
+                  langkah agar serasi. Petak raja tidak pernah sama dengan petak
+                  tujuan langkah, jadi keduanya tak pernah tabrakan. */}
+              {ikonSkakmat && ikonSkakmat.petak === sq && (
+                <ResultSVG
+                  result="defeat"
+                  size="100%"
+                  title={LABEL_IKON_SKAKMAT}
+                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+                  style={{
+                    top: baris === 0 ? "2%" : "-8%",
+                    right: kolom === 7 ? "2%" : "-8%",
+                    transform: "rotate(-90deg)",
                   }}
                 />
               )}

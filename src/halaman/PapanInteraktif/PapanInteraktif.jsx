@@ -15,6 +15,7 @@ import {
   standarkanNamaPembukaan,
 } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
+import { petakRajaTermat } from "../../lib/skakmat.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -785,8 +786,9 @@ export default function PapanInteraktif() {
    *   - "best"        → engine menyala & langkah = saran terbaiknya,
    *   - "forced"      → satu-satunya langkah legal,
    *   - engine        → best / miss / blunder / mistake / inaccuracy / good,
-   *   - skakmat/tak ada langkah sebelumnya → tanpa ikon.
+   *   - skakmat/tak ada langkah sebelumnya → tanpa ikon klasifikasi.
    * Tanpa engine dan di luar buku, langkah biasa tidak diberi ikon.
+   * (Skakmat punya lencana sendiri di atas raja lawan — lihat `ikonSkakmat`.)
    */
   const ikonLangkahAkhir = useMemo(() => {
     if (!riwayat.length) return null;
@@ -870,6 +872,15 @@ export default function PapanInteraktif() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [riwayat, fen, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
 
+  /**
+   * Lencana skakmat — petak raja yang termat pada posisi yang sedang
+   * ditampilkan. Kosong (tanpa lencana) selama permainan belum berakhir.
+   */
+  const ikonSkakmat = useMemo(() => {
+    const petak = petakRajaTermat(fen);
+    return petak ? { petak } : null;
+  }, [fen]);
+
   /* ------------------------------------------------------------ tampilan */
   const crumbs = [
     { label: t("common.home"), to: "/" },
@@ -938,6 +949,7 @@ export default function PapanInteraktif() {
                     tanda={tanda}
                     panahMesin={panahMesin}
                     ikonLangkah={ikonLangkahAkhir}
+                    ikonSkakmat={ikonSkakmat}
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
