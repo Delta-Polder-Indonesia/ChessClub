@@ -8,6 +8,7 @@ import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
+import License from "../Analisa/komponen/svg/license.jsx";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -1349,8 +1350,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             <div className="pt-3 flex justify-center text-gray-500 text-xs border-t border-[#312e2b]">
               <Link
                 to="/program-kami/atribusi"
-                className="hover:text-white transition"
+                className="flex items-center gap-1.5 hover:text-white transition"
               >
+                <License size={14} class="fill-current" />
                 Lisensi & Atribusi
               </Link>
             </div>

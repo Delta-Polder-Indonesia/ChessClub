@@ -1339,6 +1339,7 @@ export const ID = {
       judul: "Atribusi & lisensi",
       pendahuluan:
         "Tampilan dan logika penilaian halaman ini dipindah dari Brilliant-Chess (MIT, © 2025 Delo). Engine catur, muat worker, dan seluruh komunikasi UCI memakai implementasi lokal situs ini.",
+      judulDaftar: "Atribusi dan Lisensi",
       bidak: "Gambar bidak",
       bidakOleh: "Dibuat oleh Cburnett, lisensi CC-BY-SA-3.0.",
       pembukaan: "Buku pembukaan",

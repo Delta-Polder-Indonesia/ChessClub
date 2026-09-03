@@ -1333,6 +1333,7 @@ export const EN = {
       judul: "Attributions & license",
       pendahuluan:
         "The layout and rating logic of this page were ported from Brilliant-Chess (MIT, © 2025 Delo). The chess engine, worker loading, and all UCI communication use this site's own implementation.",
+      judulDaftar: "Attributions and License",
       bidak: "Chess pieces",
       bidakOleh: "Created by Cburnett, licensed CC-BY-SA-3.0.",
       pembukaan: "Opening book",

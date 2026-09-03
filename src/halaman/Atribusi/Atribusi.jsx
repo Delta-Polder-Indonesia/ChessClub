@@ -6,6 +6,7 @@
  */
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import License from "../Analisa/komponen/svg/license.jsx";
 import PieceSVG from "../Analisa/komponen/svg/piece.jsx";
 import { KING, QUEEN, WHITE } from "chess.js";
 
@@ -131,6 +132,13 @@ export default function Atribusi() {
     >
       <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
         <div className="relative w-full mx-auto max-w-[1280px]">
+          <div className="flex flex-col items-center gap-4 text-center">
+            <License size={44} class="fill-black" />
+            <h2 className="text-3xl md:text-4xl font-bold text-black">
+              {t("analisa.atribusi.judulDaftar")}
+            </h2>
+          </div>
+          <div className="w-full border-t-2 border-black mb-10 md:mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
             {kartu.map((k) => (
               <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
