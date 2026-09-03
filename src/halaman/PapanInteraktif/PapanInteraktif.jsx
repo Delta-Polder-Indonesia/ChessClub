@@ -14,6 +14,7 @@ import {
   normalkanPohonPembukaan,
   standarkanNamaPembukaan,
 } from "../../lib/namaPembukaan.js";
+import { isForced } from "../Analisa/mesin/penilaian.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -267,6 +268,27 @@ export default function PapanInteraktif() {
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
+
+  // Snapshot hasil engine per-FEN: tiap posisi yang dianalisis menyimpan
+  // nilai eval paling akurat-nya, sehingga langkah yang baru dimainkan bisa
+  // dinilai (best/blunder/…) dengan membandingkan posisi SEBELUM langkah
+  // (eval & saran best engine sudah ada) dengan posisi SESUDAHNYA — tidak
+  // menunggu eval posisi baru yang belum tentu siap saat ikon dihitung.
+  const snapshotEvalRef = useRef(new Map());
+  useEffect(() => {
+    if (!engineNyala || !hasilEngine || !fen) return;
+    const isiLama = snapshotEvalRef.current.get(fen);
+    // bestUci hanya ada pada hasil final → selalu simpan; hasil sementara
+    // disimpan bila belum ada snapshot (supaya ikon cepat muncul saat
+    // navigasi undo/redo), lalu ditimpa hasil final yang lebih akurat.
+    if (hasilEngine.bestUci || !isiLama) {
+      snapshotEvalRef.current.set(fen, {
+        cpPutih: hasilEngine.cpPutih,
+        matePutih: hasilEngine.matePutih,
+        bestSan: hasilEngine.pvSan?.[0] || null,
+      });
+    }
+  }, [engineNyala, hasilEngine, fen]);
 
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
@@ -755,6 +777,99 @@ export default function PapanInteraktif() {
     setTanda({ panah: [], petak: {} });
   }
 
+  /* ------------------------------------------ ikon klasifikasi langkah */
+  /**
+   * Ikon kualitas langkah TERAKHIR pada posisi saat ini, di pojok petak
+   * tujuan (sama seperti teka-teki / chess.com / lichess). Urutan prioritas:
+   *   - "book"        → langkah di buku pembukaan (data pohon sudah dimuat),
+   *   - "best"        → engine menyala & langkah = saran terbaiknya,
+   *   - "forced"      → satu-satunya langkah legal,
+   *   - engine        → best / miss / blunder / mistake / inaccuracy / good,
+   *   - skakmat/tak ada langkah sebelumnya → tanpa ikon.
+   * Tanpa engine dan di luar buku, langkah biasa tidak diberi ikon.
+   */
+  const ikonLangkahAkhir = useMemo(() => {
+    if (!riwayat.length) return null;
+    const sanTerakhir = riwayat[riwayat.length - 1];
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+
+    let game;
+    let pindah = null;
+    try {
+      game = new Chess(fenSebelum);
+      pindah = game.move(sanTerakhir);
+    } catch {
+      return null;
+    }
+    if (!pindah) return null;
+    const kePetak = pindah.to;
+
+    // Buku pembukaan — pohon di atas sudah menelusuri setiap langkah:
+    // cocok === true berarti posisi saat ini masih di jalur buku.
+    if (infoPembukaan.cocok && infoPembukaan.nama) {
+      return { petak: kePetak, rating: "book" };
+    }
+
+    // Satu-satunya langkah legal (mis. raja wajib pindah atau blok skak).
+    try {
+      if (isForced({ before: fenSebelum })) {
+        return { petak: kePetak, rating: "forced" };
+      }
+    } catch {
+      /* abaikan */
+    }
+
+    // Penilaian butuh engine yang menyala.
+    if (!engineNyala) return null;
+
+    const sebelum = snapshotEvalRef.current.get(fenSebelum);
+    const sesudah = snapshotEvalRef.current.get(fen);
+    if (!sebelum) return null; // eval posisi sebelumnya belum siap
+
+    // best — sama dengan saran utama engine.
+    if (sebelum.bestSan && sebelum.bestSan === sanTerakhir) {
+      return { petak: kePetak, rating: "best" };
+    }
+
+    const sudutPindah = pindah.color === "w" ? 1 : -1;
+    const mateSebelum = sebelum.matePutih !== null ? sebelum.matePutih : null;
+    const mateSesudah = sesudah?.matePutih;
+    const nilaiSebelum =
+      mateSebelum !== null
+        ? Math.sign(mateSebelum) * 10000
+        : sebelum.cpPutih ?? 0;
+    const nilaiSesudah =
+      mateSesudah !== null && mateSesudah !== undefined
+        ? Math.sign(mateSesudah) * 10000
+        : sesudah?.cpPutih;
+
+    // miss — melewatkan skakmat yang bisa langsung diberikan.
+    if (mateSebelum !== null && mateSebelum * sudutPindah > 0) {
+      const dikasih =
+        mateSesudah !== null && mateSesudah !== undefined
+          ? mateSesudah * sudutPindah < 0
+          : false;
+      if (!dikasih) return { petak: kePetak, rating: "miss" };
+    }
+
+    // blunder — menyerahkan skakmat ke lawan, atau kerugian ≥ 4 pion.
+    if (mateSesudah !== null && mateSesudah !== undefined) {
+      if (mateSesudah * sudutPindah < 0) {
+        return { petak: kePetak, rating: "blunder" };
+      }
+    }
+    if (nilaiSesudah === undefined || nilaiSesudah === null) return null;
+    const rugiPion = ((nilaiSebelum - nilaiSesudah) * sudutPindah) / 100;
+    if (rugiPion >= 4) return { petak: kePetak, rating: "blunder" };
+    if (rugiPion >= 1.2) return { petak: kePetak, rating: "mistake" };
+    if (rugiPion >= 0.8) return { petak: kePetak, rating: "inaccuracy" };
+    if (rugiPion >= 0.4) return { petak: kePetak, rating: "good" };
+    return { petak: kePetak, rating: "excellent" };
+    // hasilTertahan/hasilEngine jadi dependensi agar ikon terbarui begitu
+    // snapshot eval posisi tersedia.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riwayat, fen, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
+
   /* ------------------------------------------------------------ tampilan */
   const crumbs = [
     { label: t("common.home"), to: "/" },
@@ -822,6 +937,7 @@ export default function PapanInteraktif() {
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
                     panahMesin={panahMesin}
+                    ikonLangkah={ikonLangkahAkhir}
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
