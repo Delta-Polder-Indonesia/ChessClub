@@ -1,127 +1,127 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>%%SITE_URL%%</loc>
+    <loc>https://chess-club-weld.vercel.app/</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%tentang-kami</loc>
+    <loc>https://chess-club-weld.vercel.app/tentang-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%tentang-kami/struktur-grup-catur</loc>
+    <loc>https://chess-club-weld.vercel.app/tentang-kami/struktur-grup-catur</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%program-kami</loc>
+    <loc>https://chess-club-weld.vercel.app/program-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%program-kami/teka-teki</loc>
+    <loc>https://chess-club-weld.vercel.app/program-kami/teka-teki</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%program-kami/pembukaan</loc>
+    <loc>https://chess-club-weld.vercel.app/program-kami/pembukaan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%program-kami/sekolah-catur/cara-bermain-catur</loc>
+    <loc>https://chess-club-weld.vercel.app/program-kami/sekolah-catur/cara-bermain-catur</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%teka-teki</loc>
+    <loc>https://chess-club-weld.vercel.app/teka-teki</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%papan-interaktif</loc>
+    <loc>https://chess-club-weld.vercel.app/papan-interaktif</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%turnamen</loc>
+    <loc>https://chess-club-weld.vercel.app/turnamen</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%turnamen/turnamen-bulanan</loc>
+    <loc>https://chess-club-weld.vercel.app/turnamen/turnamen-bulanan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%turnamen/liga-musiman</loc>
+    <loc>https://chess-club-weld.vercel.app/turnamen/liga-musiman</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%turnamen/turnamen-terbuka</loc>
+    <loc>https://chess-club-weld.vercel.app/turnamen/turnamen-terbuka</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%turnamen/liga-antar-komunitas</loc>
+    <loc>https://chess-club-weld.vercel.app/turnamen/liga-antar-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%media-dan-informasi</loc>
+    <loc>https://chess-club-weld.vercel.app/media-dan-informasi</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%media-dan-informasi/berita-komunitas</loc>
+    <loc>https://chess-club-weld.vercel.app/media-dan-informasi/berita-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%media-dan-informasi/pengumuman</loc>
+    <loc>https://chess-club-weld.vercel.app/media-dan-informasi/pengumuman</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%media-dan-informasi/galeri</loc>
+    <loc>https://chess-club-weld.vercel.app/media-dan-informasi/galeri</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%pendaftaran-anggota</loc>
+    <loc>https://chess-club-weld.vercel.app/pendaftaran-anggota</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%keberlanjutan</loc>
+    <loc>https://chess-club-weld.vercel.app/keberlanjutan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%keberlanjutan/syarat-dan-ketentuan</loc>
+    <loc>https://chess-club-weld.vercel.app/keberlanjutan/syarat-dan-ketentuan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%keberlanjutan/kode-etik-komunitas</loc>
+    <loc>https://chess-club-weld.vercel.app/keberlanjutan/kode-etik-komunitas</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%keberlanjutan/pertanyaan-umum</loc>
+    <loc>https://chess-club-weld.vercel.app/keberlanjutan/pertanyaan-umum</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%hubungi-kami</loc>
+    <loc>https://chess-club-weld.vercel.app/hubungi-kami</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%beranda</loc>
+    <loc>https://chess-club-weld.vercel.app/beranda</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%beranda/turnamen</loc>
+    <loc>https://chess-club-weld.vercel.app/beranda/turnamen</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%beranda/rangkuman-pengumuman</loc>
+    <loc>https://chess-club-weld.vercel.app/beranda/rangkuman-pengumuman</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%beranda/daftar-juara</loc>
+    <loc>https://chess-club-weld.vercel.app/beranda/daftar-juara</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%beranda/peringkat</loc>
+    <loc>https://chess-club-weld.vercel.app/beranda/peringkat</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%program-kami/ebook-panduan</loc>
+    <loc>https://chess-club-weld.vercel.app/program-kami/ebook-panduan</loc>
     <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>%%SITE_URL%%karir</loc>
+    <loc>https://chess-club-weld.vercel.app/karir</loc>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>
