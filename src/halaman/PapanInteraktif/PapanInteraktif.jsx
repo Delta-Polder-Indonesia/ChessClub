@@ -332,10 +332,17 @@ export default function PapanInteraktif() {
     if (hasilEngine) setHasilTertahan(hasilEngine);
   }, [hasilEngine]);
   useEffect(() => {
-    if (!engineNyala) setHasilTertahan(null);
+    if (!engineNyala) {
+      setHasilTertahan(null);
+      snapshotEvalRef.current.clear();
+    }
   }, [engineNyala]);
 
-  const abaikanKlikRef = useRef(false);
+  // Catatan: klik yang menyusul sebuah seretan (drag) sudah ditelan di dalam
+  // PapanTekaTeki lewat `abaikanKlikRef`-nya sendiri. Dulu halaman ini punya
+  // penanda kedua, tetapi penanda itu tidak pernah dibersihkan karena event
+  // `click`-nya lebih dulu dihentikan (`stopPropagation`) oleh PapanTekaTeki —
+  // akibatnya satu klik berikutnya ikut hilang. Cukup satu penanda, di papan.
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
 
@@ -351,6 +358,12 @@ export default function PapanInteraktif() {
     // bestUci hanya ada pada hasil final → selalu simpan; hasil sementara
     // disimpan bila belum ada snapshot (supaya ikon cepat muncul saat
     // navigasi undo/redo), lalu ditimpa hasil final yang lebih akurat.
+    // Jangan biarkan peta tumbuh tanpa batas pada sesi analisis panjang:
+    // buang entri terlama bila sudah melewati batas wajar.
+    if (snapshotEvalRef.current.size > 500) {
+      const palingTua = snapshotEvalRef.current.keys().next().value;
+      snapshotEvalRef.current.delete(palingTua);
+    }
     if (hasilEngine.bestUci || !isiLama) {
       snapshotEvalRef.current.set(fen, {
         cpPutih: hasilEngine.cpPutih,
@@ -429,24 +442,6 @@ export default function PapanInteraktif() {
     }
     return { nama: namaTerdalam, saran, cocok };
   }, [pohon, jalur, fen, mode]);
-
-  /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
-  const statTampil = useMemo(() => {
-    const tuple = infoPembukaan.nama
-      ? infoPembukaan.nama.find(([, , s]) => s && typeof s.games === "number") ||
-        null
-      : null;
-    const s = tuple ? tuple[2] : null;
-    if (!s) return null;
-    const pecahan = (v) => (typeof v === "number" ? v : null);
-    return {
-      games: s.games,
-      rating: pecahan(s.rating),
-      putih: pecahan(s.whiteWin),
-      seri: pecahan(s.draw),
-      hitam: pecahan(s.blackWin),
-    };
-  }, [infoPembukaan.nama]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
@@ -562,10 +557,6 @@ export default function PapanInteraktif() {
   }
 
   function klikPetak(petak) {
-    if (abaikanKlikRef.current) {
-      abaikanKlikRef.current = false;
-      return;
-    }
     // Bersihkan panah/tanda lebih dulu — termasuk saat mengklik bidak.
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
       setTanda({ panah: [], petak: {} });
@@ -681,7 +672,6 @@ export default function PapanInteraktif() {
       const game = new Chess(fen);
       const bidak = game.get(petak);
       if (bidak && bidak.color === game.turn()) {
-        abaikanKlikRef.current = false;
         pilihPetak(petak);
       }
     },
@@ -693,7 +683,6 @@ export default function PapanInteraktif() {
     (from, to) => {
       if (!fen || promosi) return;
       if (!to || from === to) return;
-      abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -701,7 +690,6 @@ export default function PapanInteraktif() {
   );
 
   const batalkanSeret = useCallback(() => {
-    abaikanKlikRef.current = true;
     setTerpilih(null);
     setSasaran([]);
   }, []);
@@ -1043,14 +1031,6 @@ export default function PapanInteraktif() {
 
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
-  const jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
-
-  let giliranKini = "w";
-  try {
-    giliranKini = new Chess(fen).turn();
-  } catch {
-    /* abaikan */
-  }
 
   return (
     <div className="flex flex-col min-h-screen lg:h-screen overflow-hidden bg-[#262421] text-gray-200 font-sans select-none">

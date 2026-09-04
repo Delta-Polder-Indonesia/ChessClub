@@ -442,6 +442,11 @@ export default function PapanTekaTeki({
     }
     if (e.button !== 0 || terkunci) return;
     baruBatalRef.current = false;
+    // Penanda "klik ini milik seretan" disetel ulang di awal setiap gerakan
+    // baru. Tanpa ini, seretan yang berakhir di luar jendela (browser tidak
+    // pernah mengirim event `click` penutup) meninggalkan penanda menyala dan
+    // klik berikutnya hilang.
+    abaikanKlikRef.current = false;
     const bidak = peta[petakAwal];
     const warnaBidak = bidak ? (bidak === bidak.toUpperCase() ? "w" : "b") : null;
     if (bidak && warnaBidak === giliran) {
