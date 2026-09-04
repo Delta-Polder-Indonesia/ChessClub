@@ -106,6 +106,18 @@ diukur, bukan menempel ke `body`.
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
   diblokir kebijakan CORS/privasi peramban — kalau itu terjadi muncul
   peringatan galat di panel pemilih.
+- Bilah kiri (`komponen/nav/nav.jsx`) kini punya tombol **Akun** dan
+  **Impor permainan** ala en-croissant, masing-masing membuka popup
+  (`komponen/nav/Popup.jsx`, `popupAkun.jsx`, `popupImpor.jsx`). Popup
+  Akun = pilih situs (Chess.com/Lichess) + nama pengguna → langsung muat
+  seluruh partai. Popup Impor = PGN / Online / FEN; Online menerima tautan
+  partai: Lichess lewat `lichess.org/game/export/{id}`, Chess.com lewat
+  callback publik yang moveList-nya berformat TCN (diterjemahkan ke SAN
+  memakai chess.js). Karena popup ini memicu konteks data, `AnalyzeContextProvider`
+  kini membungkus seluruh `.analisa-root` (termasuk Nav) dan state "akun"
+  dipindah dari Menu ke konteks (`akun`). CSP harus mengizinkan
+  `https://www.chess.com` selain `https://api.chess.com`.
+
 - Form sumber partai (`komponen/menu/analyze/form.jsx`) mengikuti gaya
   "Import game"/"Add account" en-croissant: kartu pilihan **Akun / PGN /
   FEN** dengan tepi aksen; akun memakai kartu logo Chess.com & Lichess

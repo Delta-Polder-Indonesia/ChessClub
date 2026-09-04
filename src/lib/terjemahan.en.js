@@ -1089,7 +1089,32 @@ export const EN = {
       hintFen: "One line only. Leave empty to start from an empty board.",
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
-    muat: {
+
+    akun: {
+      judul: "Add account",
+      isi: "Pick a website and type a username. All of their game archives will load into a single table.",
+      situs: "Website",
+      nama: "Username",
+      wajib: "A username is required.",
+      tambah: "Add & load games",
+      batal: "Cancel",
+      riwayat: "Previously used names",
+    },
+    impor: {
+      judul: "Import game",
+      tipe: "Import type",
+      pgn: "Paste PGN",
+      fen: "Paste FEN",
+      online: "Online",
+      onlineLabel: "Game link",
+      onlinePlaceholder: "https://www.chess.com/game/live/…  or  https://lichess.org/…",
+      onlineBantu: "Paste a Chess.com or Lichess game link; its PGN is fetched and analyzed automatically.",
+      ambil: "Fetch & analyze",
+      analisa: "Analyze",
+      memuat: "Fetching PGN…",
+      galatTautan: "Unrecognized link. Use a Chess.com or Lichess game link.",
+      galatAmbil: "Could not fetch the PGN from that link. Check your connection or paste the PGN directly.",
+    },    muat: {
       menganalisa: "Analyzing",
       menganalisaPartai: "Analyzing game",
       menyiapkanEngine: "Preparing engine",
@@ -1108,6 +1133,8 @@ export const EN = {
     papan: { balik: "Flip board", pengaturan: "Settings", promosi: "Choose promotion piece" },
     nav: {
       pengaturan: "Settings",
+      akun: "Accounts",
+      impor: "Import game",
       kodeSumber: "Source Code",
       atribusi: "Attributions",
     },

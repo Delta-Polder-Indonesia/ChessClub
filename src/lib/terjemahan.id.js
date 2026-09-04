@@ -1099,7 +1099,32 @@ export const ID = {
       hintFen: "Cukup satu baris. Kosongkan untuk memulai dari papan kosong.",
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
-    muat: {
+
+    akun: {
+      judul: "Tambah akun",
+      isi: "Pilih situs lalu masukkan nama pengguna. Seluruh arsip partainya akan dimuat dalam satu tabel.",
+      situs: "Situs",
+      nama: "Nama pengguna",
+      wajib: "Nama pengguna wajib diisi.",
+      tambah: "Tambahkan & muat partai",
+      batal: "Batal",
+      riwayat: "Nama yang pernah dipakai",
+    },
+    impor: {
+      judul: "Impor permainan",
+      tipe: "Tipe impor",
+      pgn: "Tempel PGN",
+      fen: "Tempel FEN",
+      online: "Online",
+      onlineLabel: "Tautan permainan",
+      onlinePlaceholder: "https://www.chess.com/game/live/…  atau  https://lichess.org/…",
+      onlineBantu: "Tempel tautan partai Chess.com atau Lichess; PGN-nya diambil otomatis lalu dianalisis.",
+      ambil: "Ambil & analisis",
+      analisa: "Analisis",
+      memuat: "Mengambil PGN…",
+      galatTautan: "Tautan tidak dikenali. Gunakan tautan partai Chess.com atau Lichess.",
+      galatAmbil: "Gagal mengambil PGN dari tautan itu. Periksa koneksi atau salin PGN-nya langsung.",
+    },    muat: {
       menganalisa: "Menganalisis",
       menganalisaPartai: "Menganalisis permainan",
       menyiapkanEngine: "Menyiapkan engine",
@@ -1118,6 +1143,8 @@ export const ID = {
     papan: { balik: "Balik papan", pengaturan: "Pengaturan", promosi: "Pilih bidak promosi" },
     nav: {
       pengaturan: "Pengaturan",
+      akun: "Akun",
+      impor: "Impor permainan",
       kodeSumber: "Kode Sumber",
       atribusi: "Atribusi",
     },

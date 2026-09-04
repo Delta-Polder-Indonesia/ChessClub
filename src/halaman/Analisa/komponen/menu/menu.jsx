@@ -16,10 +16,10 @@ import getOverallGameComment from "./analysis/moves/overallGameComment.jsx";
 import SelectLichessOrgGame from "./analyze/selectLichessOrg.jsx";
 function Menu() {
   const { t } = useI18n();
-  const [username, setUsername] = useState({ platform: "chessCom", username: "" });
   const [selected, select] = useState(0);
   const [overallGameComment, setOverallGameComment] = useState("");
   const analyzeContext = useContext(AnalyzeContext);
+  const [username, setUsername] = analyzeContext.akun;
   const [tab, setTab] = analyzeContext.tab;
   const [pageState] = analyzeContext.pageState;
   const [data, setData] = analyzeContext.data;
@@ -72,7 +72,7 @@ function Menu() {
     setOverallGameComment(getOverallGameComment(playerNames, result, t));
   }, [players, result, t]);
   function stopSelecting() {
-    setUsername({ platform: "chessCom", username: "" });
+    setUsername({ platform: "", username: "" });
   }
   const tabs = [
     { label: "Laporan Analisa", state: "analyze", icon: (className) => <Lens class={className} size={20} />, show: true, onClick: () => {
