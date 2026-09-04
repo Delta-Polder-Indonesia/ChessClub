@@ -51,16 +51,63 @@ export default function PanelEngine({
   t,
   kunciDeskripsi = "papan.engineDeskripsi",
   tanpaBilah = false,
+  tanpaTombol = false,
+  tanpaJudul = false,
+  tanpaDeskripsi = false,
+  tanpaGaris = false,
+  gelap = false,
 }) {
-  const tombol =
-    "border border-[#b8b8b8] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40";
+  const tombol = gelap
+    ? "border border-[#363431] bg-[#2c2926] px-3 py-1.5 text-xs font-semibold text-gray-300 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+    : "border border-[#b8b8b8] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40";
+
+  const g = gelap
+    ? {
+        panel: "mt-6 border-t border-[#312e2b] pt-4",
+        judul: "text-sm font-bold text-white",
+        sub: "ml-1 font-normal text-gray-500",
+        muted: "text-xs leading-5 text-gray-400",
+        metaRow: "text-xs text-gray-400",
+        label: "text-[11px] font-semibold uppercase tracking-wide text-gray-500",
+        pv: "mt-0.5 text-xs leading-5 text-gray-200",
+        meta: "text-[10px] leading-4 text-gray-500",
+        nilaiPos: "font-bold text-white",
+        nilaiNeg: "font-bold text-gray-400",
+        mate: "ml-1 font-semibold text-gray-300",
+        pilih: "border border-[#363431] bg-[#262421] px-1.5 py-1.5 text-xs text-gray-200 outline-none focus:border-[#81b64c]",
+        nyalaBg: "bg-[#363431] text-gray-200",
+        matiBg: "bg-[#81b64c] text-white hover:bg-[#a3d168]",
+        gagal: "text-xs leading-5 text-red-400",
+        isiTombol: "bg-[#363431]",
+        spinner: "border-[#81b64c]",
+      }
+    : {
+        panel: "mt-6 border-t border-slate-200 pt-4",
+        judul: "text-sm font-bold text-slate-800",
+        sub: "ml-1 font-normal text-[#999]",
+        muted: "text-xs leading-5 text-slate-500",
+        metaRow: "text-xs text-slate-600",
+        label: "text-[11px] font-semibold uppercase tracking-wide text-slate-400",
+        pv: "mt-0.5 text-xs leading-5 text-slate-800",
+        meta: "text-[10px] leading-4 text-slate-400",
+        nilaiPos: "font-bold text-slate-900",
+        nilaiNeg: "font-bold text-slate-500",
+        mate: "ml-1 font-semibold text-slate-700",
+        pilih: "border border-[#b8b8b8] bg-white px-1.5 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]",
+        nyalaBg: "bg-[#f0f0f0]",
+        matiBg: "bg-[#3977b9] text-white hover:bg-[#2d639c]",
+        gagal: "text-xs leading-5 text-red-700",
+        isiTombol: "bg-[#f7f7f7]",
+        spinner: "border-[#3977b9]",
+      };
 
   return (
-    <div className="mt-6 border-t border-slate-200 pt-4">
+    <div className={tanpaGaris ? "" : g.panel}>
+      {!tanpaJudul && (
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-bold text-slate-800">
+        <p className={g.judul}>
           {t("papan.engine")}{" "}
-          <span className="ml-1 font-normal text-[#999]">Stockfish 18</span>
+          <span className={g.sub}>Stockfish 18</span>
         </p>
         <div className="flex items-center gap-1.5">
           {nyala && (
@@ -69,7 +116,7 @@ export default function PanelEngine({
               onChange={(e) => setKecepatan(Number(e.target.value))}
               aria-label={t("papan.engineKedalaman")}
               title={t("papan.engineKedalaman")}
-              className="border border-[#b8b8b8] bg-white px-1.5 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]"
+              className={g.pilih}
             >
               {PILIHAN_KECEPATAN.map(([ms, kunci]) => (
                 <option key={ms} value={ms}>
@@ -78,42 +125,45 @@ export default function PanelEngine({
               ))}
             </select>
           )}
-          <button
-            type="button"
-            onClick={nyala ? onMatikan : onNyalakan}
-            className={`${tombol} ${nyala ? "bg-[#f0f0f0]" : "bg-[#3977b9] text-white hover:bg-[#2d639c]"}`}
-          >
-            {nyala ? t("papan.engineMatikan") : t("papan.engineNyalakan")}
-          </button>
+          {!tanpaTombol && (
+            <button
+              type="button"
+              onClick={nyala ? onMatikan : onNyalakan}
+              className={`${tombol} ${nyala ? g.nyalaBg : g.matiBg}`}
+            >
+              {nyala ? t("papan.engineMatikan") : t("papan.engineNyalakan")}
+            </button>
+          )}
         </div>
       </div>
+      )}
 
       {!nyala ? (
-        <p className="text-xs leading-5 text-slate-500">{t(kunciDeskripsi)}</p>
+        !tanpaDeskripsi && <p className={g.muted}>{t(kunciDeskripsi)}</p>
       ) : status === "memuat" ? (
-        <p className="flex items-center gap-2 text-xs leading-5 text-slate-500">
+        <p className={`flex items-center gap-2 ${g.muted}`}>
           <span
             aria-hidden="true"
-            className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#3977b9] border-t-transparent"
+            className={`inline-block h-3 w-3 animate-spin rounded-full border-2 ${g.spinner} border-t-transparent`}
           />
           {t("papan.engineMemuat")}
         </p>
       ) : status === "gagal" ? (
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-xs leading-5 text-red-700">{t("papan.engineGagal")}</p>
+          <p className={g.gagal}>{t("papan.engineGagal")}</p>
           <button
             type="button"
             onClick={() => {
               onMatikan();
               onNyalakan();
             }}
-            className={`${tombol} bg-[#f7f7f7]`}
+            className={`${tombol} ${g.isiTombol}`}
           >
             {t("papan.engineCobaLagi")}
           </button>
         </div>
       ) : permainanSelesai ? (
-        <p className="text-xs leading-5 text-slate-500">{t("papan.engineSelesai")}</p>
+        <p className={g.muted}>{t("papan.engineSelesai")}</p>
       ) : hasil ? (
         <div className="flex flex-col gap-2.5">
           {!tanpaBilah && (
@@ -129,60 +179,28 @@ export default function PanelEngine({
             </>
           )}
 
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
-            <span>
-              {t("papan.engineSkor")}{" "}
-              <span
-                className={
-                  hasil.cpPutih >= 0
-                    ? "font-bold text-slate-900"
-                    : "font-bold text-slate-500"
-                }
-              >
-                {hasil.teksSkor}
-              </span>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+            {/* Kotak angka evaluasi. */}
+            <span
+              className={`shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1 text-sm leading-none ${
+                hasil.cpPutih >= 0 ? g.nilaiPos : g.nilaiNeg
+              }`}
+            >
+              {hasil.teksSkor}
             </span>
-            <span>
-              {t("papan.engineKedalamanN", { n: hasil.kedalaman })}
-              {hasil.matePutih !== null && (
-                <span className="ml-1 font-semibold text-slate-700">
-                  ({t("papan.engineMate")})
-                </span>
-              )}
-            </span>
-          </div>
-
-          {hasil.pvSan.length > 0 && (
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
-                {t("papan.engineBarisan")}
-              </p>
-              <p className="mt-0.5 text-xs leading-5 text-slate-800">
+            {/* PV — di luar kotak, sejajar horizontal. */}
+            {hasil.pvSan.length > 0 && (
+              <p className={`min-w-0 flex-1 ${g.pv}`}>
                 {barisanSan(fen, hasil.pvSan)}
               </p>
-            </div>
-          )}
-
-          <div className="flex flex-wrap items-center gap-2">
-            {hasil.pvSan.length > 0 && onMainkan && (
-              <button
-                type="button"
-                onClick={() => onMainkan(hasil.pvSan[0])}
-                className={`${tombol} bg-[#f7f7f7]`}
-              >
-                {t("papan.engineMainkan")} ({hasil.pvSan[0]})
-              </button>
             )}
-            <span className="text-[10px] leading-4 text-slate-400">
-              {t("papan.enginePanah")}
-            </span>
           </div>
         </div>
       ) : (
-        <p className="flex items-center gap-2 text-xs leading-5 text-slate-500">
+        <p className={`flex items-center gap-2 ${g.muted}`}>
           <span
             aria-hidden="true"
-            className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[#3977b9] border-t-transparent"
+            className={`inline-block h-3 w-3 animate-spin rounded-full border-2 ${g.spinner} border-t-transparent`}
           />
           {t("papan.engineMenganalisis")}
         </p>

@@ -55,7 +55,7 @@ const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum
 // Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 
-// Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0).
+// Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0) — layout full layar.
 const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanInteraktif.jsx"));
 
 // Analisis partai (port Brilliant-Chess) — engine memakai EngineCatur lokal.

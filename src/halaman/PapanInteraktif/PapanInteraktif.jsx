@@ -1,6 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import Hero from "../../components/Hero.jsx";
+import { Link } from "react-router-dom";
+import {
+  Bookmark,
+  Plus,
+  RotateCw,
+  Share2,
+} from "lucide-react";
+import License from "../Analisa/komponen/svg/license.jsx";
+import Profile from "../Analisa/komponen/svg/profile.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
@@ -27,6 +35,64 @@ const KUCI_NAMA_PROMOSI = {
   b: "tekaTeki.promosiGajah",
   n: "tekaTeki.promosiKuda",
 };
+
+/** Tab panel kanan — urutan & label (ikon digambar lokal, tanpa pustaka ikon). */
+const TAB_PANEL = [
+  { id: "analisa", label: "Analisa" },
+  { id: "books", label: "Books" },
+  { id: "explorer", label: "Explorer" },
+  { id: "games", label: "Games" },
+];
+
+/** Ikon kecil gaya stroke untuk tab panel kanan (mengikuti gaya icons.jsx). */
+function IkonTab({ nama, className = "h-4 w-4" }) {
+  const umum = {
+    width: 16,
+    height: 16,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    className,
+    "aria-hidden": true,
+  };
+  if (nama === "analisa") {
+    return (
+      <svg {...umum}>
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6" y1="20" x2="6" y2="14" />
+      </svg>
+    );
+  }
+  if (nama === "books") {
+    return (
+      <svg {...umum}>
+        <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z" />
+        <path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" />
+      </svg>
+    );
+  }
+  if (nama === "explorer") {
+    return (
+      <svg {...umum}>
+        <circle cx="12" cy="12" r="9" />
+        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" />
+      </svg>
+    );
+  }
+  return (
+    <svg {...umum}>
+      <line x1="6" y1="11" x2="10" y2="11" />
+      <line x1="8" y1="9" x2="8" y2="13" />
+      <line x1="15" y1="12" x2="15.01" y2="12" />
+      <line x1="18" y1="10" x2="18.01" y2="10" />
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+    </svg>
+  );
+}
 
 
 /** Pilihan warna papan (nilai + kunci terjemahan), mengikuti opsi pengaturan. */
@@ -205,8 +271,8 @@ function formatPersen(pecahan, bahasa) {
 function Kerangka() {
   return (
     <div aria-hidden="true" className="animate-pulse">
-      <div className="h-40 rounded-lg bg-slate-200" />
-      <div className="mt-4 h-4 w-56 rounded bg-slate-200" />
+      <div className="h-40 rounded-lg bg-[#312e2b]" />
+      <div className="mt-4 h-4 w-56 rounded bg-[#312e2b]" />
     </div>
   );
 }
@@ -238,6 +304,9 @@ export default function PapanInteraktif() {
   const [fenTersalin, setFenTersalin] = useState(false);
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
+  // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
+  const [tabPanel, setTabPanel] = useState("analisa");
+  const [tampilPgn, setTampilPgn] = useState(false); // dialog Review (input PGN/FEN)
 
   // Artikel Wikibooks tentang pembukaan aktif — berganti mengikuti langkah.
   const [artikelPembukaan, setArtikelPembukaan] = useState(null);
@@ -381,6 +450,9 @@ export default function PapanInteraktif() {
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
+  // Bidak yang ditangkap tiap sisi (ikon di baris pemain), dihitung dari riwayat.
+  const tangkapan = useMemo(() => susunTangkapan(riwayat), [riwayat]);
+
   /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
       menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
       "Caro-Kann Defense" → semua varian Caro-Kann). */
@@ -420,9 +492,12 @@ export default function PapanInteraktif() {
   // berganti. Hasil tersimpan di cache sesi (lihat src/lib/artikelWikipedia.js)
   // sehingga bolak-balik langkah tidak memukul API berulang kali.
   const namaArtikel = infoPembukaan.nama ? infoPembukaan.nama[0][1] : null;
+  // Artikel hanya dimuat saat tab Explorer terbuka — jika tab lain aktif,
+  // permintaan dibatalkan dan hasil lama dibersihkan agar tidak memakai
+  // jaringan terus-menerus saat tidak dilihat.
   useEffect(() => {
     batalArtikelRef.current?.abort();
-    if (!namaArtikel) {
+    if (tabPanel !== "explorer" || !namaArtikel) {
       setArtikelPembukaan(null);
       return undefined;
     }
@@ -469,7 +544,7 @@ export default function PapanInteraktif() {
       window.clearTimeout(pengaturWaktu);
       batalArtikelRef.current?.abort();
     };
-  }, [namaArtikel, bahasa, riwayat]);
+  }, [namaArtikel, bahasa, riwayat, tabPanel]);
 
   /* ------------------------------------------------------ gerakan bidak */
   function pilihPetak(petak) {
@@ -728,6 +803,91 @@ export default function PapanInteraktif() {
     setPromosi(null);
   }
 
+  /** Lompat ke langkah ke-`ply` (jumlah langkah dari posisi awal). */
+  function keLangkah(ply) {
+    if (ply < 0 || ply > riwayatLengkap.length) return;
+    const baru = riwayatLengkap.slice(0, ply);
+    setRiwayat(baru);
+    setJalur(() => {
+      const game = new Chess();
+      const jalurBaru = [];
+      for (const san of baru) {
+        try {
+          const pindah = game.move(san);
+          if (pindah) jalurBaru.push(kuciDariPindahan(pindah, mode));
+        } catch {
+          break;
+        }
+      }
+      return jalurBaru;
+    });
+    setFen(fenDariLangkah(baru));
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahAkhir(null);
+    setPromosi(null);
+  }
+
+  /** Terapkan teks PGN atau FEN dari dialog Review ke papan (otomatis dideteksi). */
+  function terapkanTeks(teks) {
+    const isi = String(teks || "").trim();
+    if (!isi) return false;
+    const ruas = isi.split(/\s+/);
+    // FEN: ruas pertama memuat "/" dan teks punya ≥6 ruas.
+    if (ruas[0] && ruas[0].includes("/") && ruas.length >= 6) {
+      try {
+        new Chess(isi);
+      } catch {
+        return false;
+      }
+      setRiwayat([]);
+      setRiwayatLengkap([]);
+      setJalur([]);
+      setFen(new Chess(isi).fen());
+      setPilihan(-1);
+      setOrientasi("w");
+      setTerpilih(null);
+      setSasaran([]);
+      setLangkahAkhir(null);
+      setPromosi(null);
+      setTanda({ panah: [], petak: {} });
+      return true;
+    }
+    // Selain itu: anggap PGN.
+    const daftar = sanDariPgn(isi);
+    if (!daftar.length) return false;
+    const coba = new Chess();
+    for (const raw of daftar) {
+      let pindah = null;
+      try {
+        pindah = coba.move(raw.replace(/[!?]+$/, ""));
+      } catch {
+        pindah = null;
+      }
+      if (!pindah) return false;
+    }
+    const sanAman = [];
+    const jalurBaru = [];
+    const main = new Chess();
+    for (const raw of daftar) {
+      const pindah = main.move(raw.replace(/[!?]+$/, ""));
+      sanAman.push(pindah.san);
+      jalurBaru.push(kuciDariPindahan(pindah, mode));
+    }
+    setRiwayat(sanAman);
+    setRiwayatLengkap(sanAman);
+    setJalur(jalurBaru);
+    setFen(main.fen());
+    setPilihan(-1);
+    setOrientasi("w");
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahAkhir(null);
+    setPromosi(null);
+    setTanda({ panah: [], petak: {} });
+    return true;
+  }
+
   function salinPgn() {
     if (!riwayat.length) return;
     const teks = susunPgn(riwayat);
@@ -882,62 +1042,156 @@ export default function PapanInteraktif() {
   }, [fen]);
 
   /* ------------------------------------------------------------ tampilan */
-  const crumbs = [
-    { label: t("common.home"), to: "/" },
-    { label: t("papan.remah") },
-  ];
-
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
   const jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
 
-  return (
-    <>
-      <Hero
-        title={t("papan.judul")}
-        description={t("papan.deskripsi")}
-        crumbs={crumbs}
-      />
+  let giliranKini = "w";
+  try {
+    giliranKini = new Chess(fen).turn();
+  } catch {
+    /* abaikan */
+  }
 
-      <main className="bg-[#f5f5f5] px-4 py-8 md:px-8 md:py-12">
-        <div className="mx-auto max-w-[1180px]">
-          <section className="p-4 md:p-6">
-            <div className="mb-5 border-b border-[#d8d8d8] pb-4">
-              <h2 className="text-xl font-bold text-[#333]">{t("papan.penjelajah")}</h2>
-              <p className="mt-1 text-sm leading-6 text-[#555]">{t("papan.penjelajahDeskripsi")}</p>
+  return (
+    <div className="flex flex-col min-h-screen lg:h-screen overflow-hidden bg-[#262421] text-gray-200 font-sans select-none">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0">
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* SIDEBAR KIRI                                           */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <aside className="w-full lg:w-[220px] bg-[#1e1c18] flex flex-col justify-between py-4 border-r border-b lg:border-b-0 border-[#312e2b] flex-shrink-0 overflow-y-auto">
+          <div>
+            {/* Brand */}
+            <div className="px-5 pb-4 mb-5 flex items-center border-b border-[#312e2b]">
+              <span className="font-bold text-[22px] tracking-tight text-white leading-none">
+                Blunder<span className="text-[#81b64c]">Skuad</span>
+              </span>
             </div>
+
+          </div>
+
+          {/* Kaki sidebar */}
+          <div className="px-4 pt-3 flex justify-center text-gray-500 text-xs border-t border-[#312e2b]">
+            <Link
+              to="/program-kami/atribusi"
+              className="flex items-center gap-1.5 hover:text-white transition"
+            >
+              <License size={14} class="fill-current" />
+              Lisensi & Atribusi
+            </Link>
+          </div>
+        </aside>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* AREA UTAMA                                            */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <main className="flex-1 flex items-center justify-center bg-[#262421] min-w-0 overflow-hidden">
+          <div className="flex h-full w-full max-w-[1280px] min-h-0 flex-col px-4 py-6 md:px-8">
           {gagal ? (
-            <p className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <p className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
               {t("papan.gagalMuat")}
             </p>
           ) : !pohon ? (
             <div className="mx-auto max-w-[560px]">
-              <p className="mb-6 text-sm text-slate-500">{t("papan.memuat")}</p>
+              <p className="mb-6 text-sm text-slate-400">{t("papan.memuat")}</p>
               <Kerangka />
             </div>
           ) : (
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-              <div className="mx-auto w-full max-w-[480px] shrink-0 lg:mx-0">
-                <div className="flex items-stretch gap-1.5">
-                  <div
-                    className={`flex w-3.5 shrink-0 flex-col justify-end overflow-hidden rounded-sm border ${
-                      engineNyala
-                        ? "visible border-[#aaa] bg-[#414141]"
-                        : "invisible border-transparent bg-transparent"
-                    }`}
-                    role="img"
-                    aria-label={
-                      hasilTertahan
-                        ? `${t("papan.engineSkor")} ${hasilTertahan.teksSkor}`
-                        : undefined
-                    }
-                  >
-                    <div
-                      className="w-full bg-[#f4f4f4] transition-[height] duration-300"
-                      style={{
-                        height: `${(hasilTertahan ? hasilTertahan.poinPutih : 0.5) * 100}%`,
-                      }}
-                    />
+            <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-3">
+              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0">
+                {/* ─── PROFIL HITAM (ATAS) ─── */}
+                <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mb-2">
+                  <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
+                    <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#474542] rounded-md shadow-md overflow-hidden">
+                      <Profile height={32} width={32} class="fill-[#1d1c1a]" />
+                    </div>
+                    <div className="flex flex-col justify-center min-w-0">
+                      <span className="text-sm font-bold text-[#fffaec] truncate">Hitam</span>
+                      <div className="flex min-h-[15px] items-center overflow-hidden">
+                        <TangkapanBidak daftar={tangkapan.olehHitam} set={setBidak} />
+                      </div>
+                    </div>
                   </div>
+                </div>
+
+                <div className="flex flex-col justify-center">
+                <div className="flex items-stretch gap-1.5">
+                  {(() => {
+                    // Bar evaluasi ala LayoutTekaTeki: skor tampil di dalam bar,
+                    // hanya sisi yang menang yang terlihat.
+                    const { teksSkor = "", cpPutih = 0, matePutih = null } =
+                      hasilTertahan || {};
+                    const advantageAmount =
+                      matePutih !== null ? Number(matePutih) : Number(cpPutih);
+                    const OLD_PERCENTS = [-400, 400];
+                    const NEW_PERCENTS = [5, 95];
+                    const rawPercent =
+                      ((advantageAmount - OLD_PERCENTS[0]) *
+                        (NEW_PERCENTS[1] - NEW_PERCENTS[0])) /
+                        (OLD_PERCENTS[1] - OLD_PERCENTS[0]) +
+                      NEW_PERCENTS[0];
+                    let percent;
+                    if (matePutih !== null) {
+                      percent =
+                        advantageAmount > 0
+                          ? 100
+                          : advantageAmount < 0
+                            ? 0
+                            : 50;
+                    } else {
+                      percent = Math.min(
+                        Math.max(rawPercent, NEW_PERCENTS[0]),
+                        NEW_PERCENTS[1]
+                      );
+                    }
+                    const white = orientasi === "w";
+                    const winning = white ? percent >= 50 : percent <= 50;
+                    let displayAdvantage;
+                    if (matePutih !== null) {
+                      displayAdvantage =
+                        advantageAmount !== 0
+                          ? "M" + Math.abs(advantageAmount)
+                          : white
+                            ? "1-0"
+                            : "0-1";
+                    } else {
+                      displayAdvantage = teksSkor || "";
+                    }
+                    return (
+                      <div
+                        className={`relative flex h-full w-9 shrink-0 flex-col overflow-hidden rounded-sm bg-[#403d39] ${white ? "justify-start" : "justify-end"}`}
+                        role="img"
+                        aria-label={
+                          hasilTertahan
+                            ? `${t("papan.engineSkor")} ${displayAdvantage}`
+                            : undefined
+                        }
+                      >
+                        <div
+                          className="w-full bg-[#ffffff]"
+                          style={{
+                            height: `${percent}%`,
+                            transition: "height 1.5s",
+                            willChange: "height",
+                          }}
+                        />
+                        <div className="absolute inset-0 flex w-full flex-col items-center justify-between py-1.5 text-[11px] font-bold">
+                          <div
+                            style={{ opacity: !winning ? 100 : 0 }}
+                            className={white ? "text-[#dedede]" : "text-[#262421]"}
+                          >
+                            {displayAdvantage}
+                          </div>
+                          <div
+                            style={{ opacity: winning ? 100 : 0 }}
+                            className={!white ? "text-[#dedede]" : "text-[#262421]"}
+                          >
+                            {displayAdvantage}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   <div className="relative min-w-0 flex-1">
                   <PapanTekaTeki
                     fen={fen}
@@ -1012,120 +1266,37 @@ export default function PapanInteraktif() {
                   )}
                   </div>
                 </div>
+                </div>
 
-                <div className="mt-3 border-t border-[#d8d8d8] pt-3">
-                  {/* Tombol navigasi utama */}
-                  <div className="flex flex-wrap items-center justify-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={keAwal}
-                      disabled={!riwayat.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title={t("papan.keAwal")}
-                      aria-label={t("papan.keAwal")}
-                    >
-                      |&lt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={undo}
-                      disabled={!riwayat.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title={t("papan.mundur")}
-                      aria-label={t("papan.mundur")}
-                    >
-                      &lt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={redo}
-                      disabled={riwayat.length >= riwayatLengkap.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title={t("papan.maju")}
-                      aria-label={t("papan.maju")}
-                    >
-                      &gt;
-                    </button>
-                    <button
-                      type="button"
-                      onClick={keAkhir}
-                      disabled={riwayat.length >= riwayatLengkap.length}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                      title={t("papan.keAkhir")}
-                      aria-label={t("papan.keAkhir")}
-                    >
-                      &gt;|
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title={t("papan.flip")}
-                      aria-label={t("papan.flip")}
-                    >
-                      {t("papan.flip")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTampilSetting(!tampilSetting)}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-2 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title={t("papan.pengaturan")}
-                      aria-label={t("papan.pengaturan")}
-                    >
-                      ⚙️
-                    </button>
-                    <button
-                      type="button"
-                      onClick={reset}
-                      className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                      title={t("papan.resetPapan")}
-                    >
-                      {t("papan.reset")}
-                    </button>
-                    <select
-                      value={pilihan}
-                      onChange={(e) => {
-                        const id = Number(e.target.value);
-                        setPilihan(id);
-                        const item = daftarPilih.rata[id];
-                        if (item) muatJalur(item.entri);
-                      }}
-                      aria-label={t("papan.pilihPembukaan")}
-                      className="max-w-[120px] border border-[#b8b8b8] bg-white px-2 py-1.5 text-xs text-[#333] outline-none focus:border-[#3977b9]"
-                      title={t("papan.pilihPembukaan")}
-                    >
-                      <option value={-1}>{t("papan.pilihPembukaan")}</option>
-                      {daftarPilih.kelompok.map((g) => (
-                        <optgroup key={g.nama} label={g.nama}>
-                          {g.daftar.map((entri) => (
-                            <option
-                              key={daftarPilih.idDari.get(entri)}
-                              value={daftarPilih.idDari.get(entri)}
-                            >
-                              {entri.nama}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
+                {/* ─── PROFIL PUTIH (BAWAH) ─── */}
+                <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mt-3">
+                  <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
+                    <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#dbd9d6] rounded-md shadow-md overflow-hidden">
+                      <Profile height={32} width={32} class="fill-[#ffffff]" />
+                    </div>
+                    <div className="flex flex-col justify-center min-w-0">
+                      <span className="text-sm font-bold text-[#fffaec] truncate">Putih</span>
+                      <div className="flex min-h-[15px] items-center overflow-hidden">
+                        <TangkapanBidak daftar={tangkapan.olehPutih} set={setBidak} />
+                      </div>
+                    </div>
                   </div>
+                </div>
 
-                  {/* Popup pengaturan */}
+                {/* Popup pengaturan */}
                   {tampilSetting && (
                     <div
                       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
                       onClick={() => setTampilSetting(false)}
-                    >
-                      <div
-                        className="w-full max-w-sm rounded-lg bg-white p-5"
+                    ><div className="w-full max-w-sm rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
                         onClick={(e) => e.stopPropagation()}
                       >
                         <div className="mb-4 flex items-center justify-between">
-                          <h3 className="text-lg font-bold text-[#333]">{t("papan.pengaturanPapan")}</h3>
+                          <h3 className="text-lg font-bold text-white">{t("papan.pengaturanPapan")}</h3>
                           <button
                             type="button"
                             onClick={() => setTampilSetting(false)}
-                            className="text-slate-400 transition hover:text-slate-600"
+                            className="text-gray-400 transition hover:text-gray-200"
                             title={t("papan.tutup")}
                             aria-label={t("papan.tutup")}
                           >
@@ -1134,13 +1305,13 @@ export default function PapanInteraktif() {
                         </div>
                         <div className="flex flex-col gap-4">
                           <div className="flex flex-col gap-1">
-                            <label className="text-sm font-semibold text-slate-600">
+                            <label className="text-sm font-semibold text-gray-400">
                               {t("papan.setBidak")}
                             </label>
                             <select
                               value={setBidak}
                               onChange={(e) => setSetBidak(e.target.value)}
-                              className="border border-[#bcbcbc] bg-white px-3 py-2 text-sm text-[#333] outline-none focus:border-[#3977b9]"
+                              className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                             >
                               {DAFTAR_SET.map((s) => (
                                 <option key={s.id} value={s.id}>
@@ -1150,12 +1321,12 @@ export default function PapanInteraktif() {
                             </select>
                           </div>
                           <div className="flex flex-col gap-1">
-                            <label htmlFor="warna-papan" className="text-sm font-semibold text-slate-600">{t("papan.warnaPapan")}</label>
+                            <label htmlFor="warna-papan" className="text-sm font-semibold text-gray-400">{t("papan.warnaPapan")}</label>
                             <select
                               id="warna-papan"
                               value={warnaPapan}
                               onChange={(e) => setWarnaPapan(e.target.value)}
-                              className="border border-[#bcbcbc] bg-white px-3 py-2 text-sm text-[#333] outline-none focus:border-[#3977b9]"
+                              className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                             >
                               {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
                             </select>
@@ -1165,7 +1336,7 @@ export default function PapanInteraktif() {
                           <button
                             type="button"
                             onClick={() => setTampilSetting(false)}
-                            className="rounded border border-[#3977b9] bg-[#3977b9] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#2d5f8f]"
+                            className="rounded-md border border-[#81b64c] bg-[#81b64c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a3d168]"
                           >
                             {t("papan.tutup")}
                           </button>
@@ -1173,175 +1344,171 @@ export default function PapanInteraktif() {
                       </div>
                     </div>
                   )}
+              </div>
 
-                  {/* Input FEN */}
-                  <div className="mt-3 border-t border-[#d8d8d8] pt-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-slate-500">{t("papan.posisiFen")}</label>
-                      <div className="flex gap-1.5">
-                        <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
-                          <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
-                            {fen}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={salinFen}
-                          className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9]"
-                        >
-                          {fenTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Daftar langkah (PGN) */}
-                  <div className="mt-3 border-t border-[#d8d8d8] pt-3">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-semibold text-slate-500">{t("papan.daftarLangkahPgn")}</label>
-                      <div className="flex gap-1.5">
-                        <div className="flex-1 min-w-0 overflow-x-auto border border-[#bcbcbc] bg-white px-2 py-1.5">
-                          <span className="font-mono text-[11px] text-[#333] whitespace-nowrap">
-                            {riwayat.length ? susunPgn(riwayat) : t("papan.posisiAwal")}
-                          </span>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={salinPgn}
-                          disabled={!riwayat.length}
-                          className="border border-[#b8b8b8] bg-[#f7f7f7] px-3 py-1.5 text-xs font-semibold text-[#333] transition hover:bg-[#e9e9e9] disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {pgnTersalin ? t("papan.tersalinSingkat") : t("papan.salin")}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+              {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki */}
+              <div className="flex flex-col items-center gap-2 pt-14 lg:-ml-3">
+                <button
+                  type="button"
+                  onClick={() => setTampilSetting(!tampilSetting)}
+                  aria-expanded={tampilSetting}
+                  className={`p-2 rounded-md transition ${
+                    tampilSetting
+                      ? "text-white bg-[#312e2b]"
+                      : "text-gray-500 hover:text-white hover:bg-[#312e2b]"
+                  }`}
+                  aria-label={t("papan.pengaturan")}
+                  title={t("papan.pengaturan")}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
+                    <path d="M502.325,307.303l-39.006-30.805c-6.215-4.908-9.665-12.429-9.668-20.348c0-0.084,0-0.168,0-0.252
+                      c-0.014-7.936,3.44-15.478,9.667-20.396l39.007-30.806c8.933-7.055,12.093-19.185,7.737-29.701l-17.134-41.366
+                      c-4.356-10.516-15.167-16.86-26.472-15.532l-49.366,5.8c-7.881,0.926-15.656-1.966-21.258-7.586
+                      c-0.059-0.06-0.118-0.119-0.177-0.178c-5.597-5.602-8.476-13.36-7.552-21.225l5.799-49.363
+                      c1.328-11.305-5.015-22.116-15.531-26.472L337.004,1.939c-10.516-4.356-22.646-1.196-29.701,7.736l-30.805,39.005
+                      c-4.908,6.215-12.43,9.665-20.349,9.668c-0.084,0-0.168,0-0.252,0c-7.935,0.014-15.477-3.44-20.395-9.667L204.697,9.675
+                      c-7.055-8.933-19.185-12.092-29.702-7.736L133.63,19.072c-10.516,4.356-16.86,15.167-15.532,26.473l5.799,49.366
+                      c0.926,7.881-1.964,15.656-7.585,21.257c-0.059,0.059-0.118,0.118-0.178,0.178c-5.602,5.598-13.36,8.477-21.226,7.552
+                      l-49.363-5.799c-11.305-1.328-22.116,5.015-26.472,15.531L1.939,174.996c-4.356,10.516-1.196,22.646,7.736,29.701l39.006,30.805
+                      c6.215,4.908,9.665,12.429,9.668,20.348c0,0.084,0,0.167,0,0.251c0.014,7.935-3.44,15.477-9.667,20.395L9.675,307.303
+                      c-8.933,7.055-12.092,19.185-7.736,29.701l17.134,41.365c4.356,10.516,15.168,16.86,26.472,15.532l49.366-5.799
+                      c7.882-0.926,15.656,1.965,21.258,7.586c0.059,0.059,0.118,0.119,0.178,0.178c5.597,5.603,8.476,13.36,7.552,21.226l-5.799,49.364
+                      c-1.328,11.305,5.015,22.116,15.532,26.472l41.366,17.134c10.516,4.356,22.646,1.196,29.701-7.736l30.804-39.005
+                      c4.908-6.215,12.43-9.665,20.348-9.669c0.084,0,0.168,0,0.251,0c7.936-0.014,15.478,3.44,20.396,9.667l30.806,39.007
+                      c7.055,8.933,19.185,12.093,29.701,7.736l41.366-17.134c10.516-4.356,16.86-15.168,15.532-26.472l-5.8-49.366
+                      c-0.926-7.881,1.965-15.656,7.586-21.257c0.059-0.059,0.119-0.119,0.178-0.178c5.602-5.597,13.36-8.476,21.225-7.552l49.364,5.799
+                      c11.305,1.328,22.117-5.015,26.472-15.531l17.134-41.365C514.418,326.488,511.258,314.358,502.325,307.303z M281.292,329.698
+                      c-39.68,16.436-85.172-2.407-101.607-42.087c-16.436-39.68,2.407-85.171,42.087-101.608c39.68-16.436,85.172,2.407,101.608,42.088
+                      C339.815,267.771,320.972,313.262,281.292,329.698z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setOrientasi((o) => (o === "w" ? "b" : "w"))}
+                  className="p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#312e2b] transition"
+                  aria-label={t("papan.flip")}
+                  title={t("papan.flip")}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
+                    <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
+                    <path d="m 98.524909,2.2132354 -51.679643,0 16.781593,19.2622766 15.635776,0 V 84.077908 H 60.00036 L 88.893772,117.78689 117.78718,84.077908 H 98.524909 Z" />
+                  </svg>
+                </button>
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                    {t("papan.pembukaan")}
-                  </p>
-                  {namaUtama ? (
-                    <div className="mt-1.5">
-                      <p className="text-lg font-bold text-slate-900">
-                        {namaUtama[1]}
-                      </p>
-                      <div className="mt-1 flex items-center gap-2">
-                        <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
-                          {namaUtama[0]}
-                        </span>
-                        {jumlahNama > 1 && (
-                          <span
-                            title={infoPembukaan.nama.map((n) => n[1]).join(" • ")}
-                            className="text-xs text-slate-500"
-                          >
-                            +{jumlahNama - 1} {t("papan.variasi")}
-                          </span>
-                        )}
-                      </div>
-
-                      {statTampil && (
-                        <div className="mt-3 border-t border-slate-200 pt-3">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                            {t("papan.statistik")}
-                          </p>
-
-                          <div className="mt-1.5 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-slate-600">
-                            <span>
-                              <span className="font-bold text-slate-800">
-                                {formatAngka(statTampil.games, bahasa)}
-                              </span>{" "}
-                              {t("papan.partai")}
-                            </span>
-                            {typeof statTampil.rating === "number" && (
-                              <span>
-                                {t("papan.ratingRata")}{" "}
-                                <span className="font-bold text-slate-800">
-                                  {formatAngka(statTampil.rating, bahasa)}
-                                </span>
-                              </span>
-                            )}
-                          </div>
-
-                          {(statTampil.putih !== null ||
-                            statTampil.hitam !== null) && (
-                            <>
-                              <div
-                                className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-slate-200"
-                                role="img"
-                                aria-label={t("papan.statistik")}
-                              >
-                                {statTampil.putih !== null && (
-                                  <div
-                                    style={{ width: `${statTampil.putih * 100}%` }}
-                                    className="bg-slate-800"
-                                  />
-                                )}
-                                {statTampil.seri !== null && (
-                                  <div
-                                    style={{ width: `${statTampil.seri * 100}%` }}
-                                    className="bg-slate-400"
-                                  />
-                                )}
-                                {statTampil.hitam !== null && (
-                                  <div
-                                    style={{ width: `${statTampil.hitam * 100}%` }}
-                                    className="bg-slate-500"
-                                  />
-                                )}
-                              </div>
-
-                              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
-                                {statTampil.putih !== null && (
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-800" />
-                                    {t("papan.menangPutih")}{" "}
-                                    {formatPersen(statTampil.putih, bahasa)}%
-                                  </span>
-                                )}
-                                {statTampil.seri !== null && (
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-400" />
-                                    {t("papan.seri")}{" "}
-                                    {formatPersen(statTampil.seri, bahasa)}%
-                                  </span>
-                                )}
-                                {statTampil.hitam !== null && (
-                                  <span className="flex items-center gap-1.5">
-                                    <span className="inline-block h-2 w-2 shrink-0 rounded-full bg-slate-500" />
-                                    {t("papan.menangHitam")}{" "}
-                                    {formatPersen(statTampil.hitam, bahasa)}%
-                                  </span>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      )}
-
+                {/* Panel kanan — satu kolom utuh ala LayoutTekaTeki: tinggi tetap di lg supaya
+                    kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
+                <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
+                {/* Header Tab Navigasi — pola panel kanan Chess.com (referensi prompt.md) */}
+                <div className="flex flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18]">
+                  {TAB_PANEL.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setTabPanel(tab.id)}
+                      className={`flex-1 py-3 flex items-center justify-center gap-2 text-xs font-bold border-b-2 transition-all ${
+                        tabPanel === tab.id
+                          ? "border-[#81b64c] text-white bg-[#262421]"
+                          : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#262421]"
+                      }`}
+                    >
+                      <IkonTab nama={tab.id} />
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                  {tabPanel === "books" ? (
+                    <BukuPembukaan
+                      kelompok={daftarPilih.kelompok}
+                      idDari={daftarPilih.idDari}
+                      terpilihId={pilihan}
+                      onPilih={(entri, id) => {
+                        setPilihan(id);
+                        muatJalur(entri);
+                      }}
+                      t={t}
+                    />
+                  ) : tabPanel === "explorer" ? (
+                    namaUtama ? (
                       <KartuArtikelPembukaan
-                        nama={namaUtama[1]}
                         artikel={artikelPembukaan}
                         t={t}
                       />
-                    </div>
+                    ) : (
+                      <p className="mt-1.5 text-sm font-medium text-gray-400">
+                        {t("papan.petunjukAwal")}
+                      </p>
+                    )
+                  ) : tabPanel === "games" ? (
+                    infoPembukaan.saran.length > 0 ? (
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
+                          <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
+                        </div>
+                        <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
+                      </div>
+                    ) : (
+                      <p className="mt-1.5 text-sm font-medium text-gray-400">
+                        {infoPembukaan.cocok
+                          ? t("papan.petunjukAwal")
+                          : t("papan.diLuarBuku")}
+                      </p>
+                    )
                   ) : (
-                    <p className="mt-1.5 text-sm font-medium text-slate-600">
-                      {infoPembukaan.cocok && !riwayat.length
-                        ? t("papan.petunjukAwal")
-                        : t("papan.belumAdaNama")}
-                    </p>
-                  )}
+                    <>
+                      {/* Toggle nyala/mati engine — pola baris "Analysis" di prompt.md */}
+                      <div className="mb-3 flex items-center justify-between border-b border-[#312e2b] pb-3">
+                        <button
+                          type="button"
+                          id="sampel-toggle-engine"
+                          role="switch"
+                          aria-checked={engineNyala}
+                          onClick={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
+                          className={`flex h-5 w-9 items-center rounded-full border transition ${
+                            engineNyala
+                              ? "border-[#81b64c] bg-[#81b64c]"
+                              : "border-[#363431] bg-[#363431]"
+                          }`}
+                          aria-label={t("papan.engine")}
+                          title={t("papan.engine")}
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                              engineNyala ? "translate-x-4" : "translate-x-0.5"
+                            }`}
+                          />
+                        </button>
+                        <p className="pl-3 text-sm font-bold leading-none text-white">
+                          {t("papan.engine")}{" "}
+                          <span className="ml-1 font-normal text-gray-500">Stockfish 18</span>
+                        </p>
+                      </div>
 
-                  {!infoPembukaan.cocok && (
-                    <p className="mt-2 text-xs font-semibold text-amber-700">
-                      {t("papan.diLuarBuku")}
-                    </p>
-                  )}
+                      {/* Status posisi: "Posisi awal" → hanya nama buku saat melangkah */}
+                      <div className="mt-3 flex min-w-0 items-center border-b border-[#312e2b] pb-3">
+                        {riwayat.length === 0 ? (
+                          <p className="truncate text-sm font-semibold text-gray-400">
+                            {t("papan.posisiAwal")}
+                          </p>
+                        ) : infoPembukaan.cocok && namaUtama ? (
+                          <p
+                            className="truncate text-sm font-bold text-white"
+                            title={namaUtama[1]}
+                          >
+                            {namaUtama[1]}
+                          </p>
+                        ) : (
+                          <p className="truncate text-xs font-semibold text-amber-300">
+                            {t("papan.diLuarBuku")}
+                          </p>
+                        )}
+                      </div>
 
+                  {engineNyala && (
+                  <div className="mt-3 border-b border-[#312e2b] pb-3">
                   <PanelEngine
                     nyala={engineNyala}
                     status={statusEngine}
@@ -1354,75 +1521,186 @@ export default function PapanInteraktif() {
                     onMatikan={matikanEngine}
                     onMainkan={mainkanSan}
                     tanpaBilah
+                    tanpaJudul
+                    tanpaDeskripsi
+                    tanpaGaris
+                    gelap
                     t={t}
                   />
-
-                  {infoPembukaan.saran.length > 0 && (
-                    <div className="mt-5 border-t border-[#d8d8d8] pt-4">
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-sm font-bold text-[#333]">{t("papan.daftarLangkah")}</p>
-                        <span className="text-xs text-[#666]">{t("papan.basisData")}</span>
-                      </div>
-                      <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
-                    </div>
+                  </div>
                   )}
+
+                      <DaftarRiwayat
+                        langkah={riwayatLengkap}
+                        aktifPly={riwayat.length - 1}
+                        onPilih={keLangkah}
+                      />
+
+                    </>
+                  )}
+                </div>
+
+                {/* Panel Kontrol Bawah Navigasi — menyatu di dasar panel ala LayoutTekaTeki */}
+                <div className="mt-auto flex-shrink-0 space-y-3 rounded-b-lg border-t border-[#312e2b] bg-[#1e1c18] p-3">
+                  <div className="flex items-center gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1">
+                    <button
+                      type="button"
+                      onClick={keAwal}
+                      disabled={!riwayat.length}
+                      title={t("papan.keAwal")}
+                      aria-label={t("papan.keAwal")}
+                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                    >
+                      ⏮
+                    </button>
+                    <button
+                      type="button"
+                      onClick={undo}
+                      disabled={!riwayat.length}
+                      title={t("papan.mundur")}
+                      aria-label={t("papan.mundur")}
+                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      type="button"
+                      onClick={redo}
+                      disabled={riwayat.length >= riwayatLengkap.length}
+                      title={t("papan.maju")}
+                      aria-label={t("papan.maju")}
+                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                    >
+                      ▶
+                    </button>
+                    <button
+                      type="button"
+                      onClick={keAkhir}
+                      disabled={riwayat.length >= riwayatLengkap.length}
+                      title={t("papan.keAkhir")}
+                      aria-label={t("papan.keAkhir")}
+                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                    >
+                      ⏭
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
+                    <button
+                      type="button"
+                      onClick={reset}
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                    >
+                      <Plus className="h-4 w-4 text-gray-400" />
+                      <span>New</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={salinPgn}
+                      disabled={!riwayat.length}
+                      title={t("papan.daftarLangkahPgn")}
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <Bookmark className="h-4 w-4 text-gray-400" />
+                      <span>{pgnTersalin ? t("papan.tersalinSingkat") : "Save"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setTampilPgn(true)}
+                      title="Input PGN / FEN"
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                    >
+                      <RotateCw className="h-4 w-4 text-gray-400" />
+                      <span>Review</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+                    >
+                      <Share2 className="h-4 w-4 text-gray-400" />
+                      <span>Share</span>
+                    </button>
+                  </div>
+                </div>
                 </div>
               </div>
             </div>
           )}
-
-          {/* Sumber data di tengah halaman */}
-          <div className="mt-8 text-center">
-            <p 
-              className="text-xs leading-6 text-slate-400"
-              dangerouslySetInnerHTML={{ __html: t("papan.sumber") }}
-            />
-          </div>
-          </section>
         </div>
       </main>
-    </>
+      </div>
+
+      {tampilPgn && (
+        <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} />
+      )}
+    </div>
   );
 }
 
-/** Paragraf ringkasan artikel; hanya dua paragraf pertama yang tampil
- *  sebelum pengguna menekan tombol "selengkapnya". */
-function ParagrafArtikel({ teks, penuh }) {
-  const paragraf = useMemo(
-    () => String(teks || "").split(/\n+/).filter((p) => p.trim()),
-    [teks]
-  );
-  const tampil = penuh ? paragraf : paragraf.slice(0, 2);
-  return (
-    <>
-      {tampil.map((p, i) => (
-        <p key={i} className="m-0 mb-1.5 text-xs leading-5 text-[#555] last:mb-0">
-          {p}
-        </p>
-      ))}
-    </>
-  );
+/** Buang sisa markup wiki (pranala [[…]], templat {{…}}, tanda petik '''…''',
+ *  tag HTML) dari sebaris teks agar terbaca seperti artikel biasa. */
+function bersihTeksArtikel(teks) {
+  return String(teks || "")
+    .replace(/<!--[\s\S]*?-->/g, "")
+    .replace(/<ref[^>]*\/?>/gi, "")
+    .replace(/<\/ref>/gi, "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
+    .replace(/\{\{[^{}]*\}\}/g, "")
+    .replace(/'{2,}/g, "")
+    .replace(/^\s*[:*#;]+/, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .replace(/([.,;:!?])(?=[.,;:!?])/g, "$1")
+    .trim();
+}
+
+/** Pecah ringkasan Wikibooks menjadi blok tersusun: baris `== judul ==` /
+ *  `=== subjudul ===` menjadi judul bagian, sisanya paragraf isi. */
+function susunBlokArtikel(teks) {
+  const blok = [];
+  for (const mentah of String(teks || "").split(/\r?\n/)) {
+    const baris = bersihTeksArtikel(mentah);
+    if (!baris) continue;
+    const judul = /^(={2,6})\s*(.*?)\s*\1$/.exec(baris);
+    if (judul) {
+      const isi = bersihTeksArtikel(judul[2]);
+      if (isi) {
+        blok.push({
+          jenis: judul[1].length === 2 ? "judul" : "subjudul",
+          teks: isi,
+        });
+      }
+      continue;
+    }
+    // Buang penanda judul yang tersisa di tengah baris (artefak
+    // terjemahan), mis. "==3. d4==", agar jadi teks biasa.
+    blok.push({ jenis: "paragraf", teks: baris.replace(/={2,}/g, "") });
+  }
+  return blok;
 }
 
 /**
  * Kartu "Tentang Pembukaan Ini" — ringkasan dari Wikibooks Chess Opening
  * Theory yang berganti otomatis mengikuti pembukaan aktif di papan.
+ * Seluruh paragraf ringkasan ditampilkan langsung (tanpa tombol
+ * "selengkapnya"); artikelnya sendiri baru dimuat saat tab Explorer terbuka.
  */
-function KartuArtikelPembukaan({ nama, artikel, t }) {
-  const [penuh, setPenuh] = useState(false);
-  useEffect(() => {
-    setPenuh(false);
-  }, [nama]);
+function KartuArtikelPembukaan({ artikel, t }) {
+  const blok = useMemo(
+    () =>
+      artikel && artikel.data
+        ? susunBlokArtikel(artikel.data.ringkasan)
+        : [],
+    [artikel]
+  );
 
   if (!artikel) return null;
   const data = artikel.data;
-  const jumlahParagraf = data
-    ? String(data.ringkasan || "").split(/\n+/).filter((p) => p.trim()).length
-    : 0;
 
   return (
-    <div className="mt-3 border-t border-[#d8d8d8] pt-3">
-      <p className="m-0 text-xs font-semibold uppercase tracking-wide text-slate-400">
+    <div className="mt-3 border-t border-[#312e2b] pt-3">
+      <p className="m-0 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
         {t("papan.artikelJudul")}
       </p>
 
@@ -1432,14 +1710,14 @@ function KartuArtikelPembukaan({ nama, artikel, t }) {
           role="status"
           aria-label={t("papan.artikelMemuat")}
         >
-          <div className="h-3 w-2/5 rounded bg-slate-200" />
-          <div className="mt-2 h-3 w-full rounded bg-slate-200" />
-          <div className="mt-1.5 h-3 w-11/12 rounded bg-slate-200" />
-          <div className="mt-1.5 h-3 w-3/5 rounded bg-slate-200" />
+          <div className="h-3 w-2/5 rounded bg-[#312e2b]" />
+          <div className="mt-2 h-3 w-full rounded bg-[#312e2b]" />
+          <div className="mt-1.5 h-3 w-11/12 rounded bg-[#312e2b]" />
+          <div className="mt-1.5 h-3 w-3/5 rounded bg-[#312e2b]" />
         </div>
       ) : artikel.status === "siap" && data ? (
         <div className="mt-2">
-          <p className="m-0 text-sm font-bold text-[#333]">{data.judul}</p>
+          <p className="m-0 text-sm font-bold text-white">{data.judul}</p>
           <div className="mt-1.5 flex items-start gap-3">
             {data.gambar && (
               <img
@@ -1448,44 +1726,51 @@ function KartuArtikelPembukaan({ nama, artikel, t }) {
                 width={72}
                 height={72}
                 loading="lazy"
-                className="h-[72px] w-[72px] shrink-0 border border-[#d8d8d8] bg-white object-cover"
+                className="h-[72px] w-[72px] shrink-0 border border-[#363431] bg-[#262421] object-cover"
               />
             )}
             <div className="min-w-0">
-              <ParagrafArtikel teks={data.ringkasan} penuh={penuh} />
+              {blok.map((b, i) =>
+                b.jenis === "judul" ? (
+                  <p
+                    key={i}
+                    className="m-0 mb-1 mt-2.5 text-[13px] font-bold leading-snug text-gray-100 first:mt-0"
+                  >
+                    {b.teks}
+                  </p>
+                ) : b.jenis === "subjudul" ? (
+                  <p
+                    key={i}
+                    className="m-0 mb-1 mt-2 text-xs font-semibold leading-snug text-gray-200"
+                  >
+                    {b.teks}
+                  </p>
+                ) : (
+                  <p key={i} className="m-0 mb-1.5 text-xs leading-5 text-gray-400">
+                    {b.teks}
+                  </p>
+                )
+              )}
             </div>
           </div>
           <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-gray-500">
               Wikibooks · {data.bahasa.toUpperCase()} · CC BY-SA
               {data.terjemahanOtomatis &&
                 ` · ${t("papan.artikelOtomatis")}`}
             </span>
-            <span className="flex items-center gap-3">
-              {jumlahParagraf > 2 && (
-                <button
-                  type="button"
-                  onClick={() => setPenuh((v) => !v)}
-                  className="text-xs font-semibold text-[#1d5f9e] hover:underline"
-                >
-                  {penuh
-                    ? t("papan.artikelRingkas")
-                    : t("papan.artikelSelengkapnya")}
-                </button>
-              )}
-              <a
-                href={data.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs font-bold text-[#1d5f9e] hover:underline"
-              >
-                {t("papan.artikelBaca")} ↗
-              </a>
-            </span>
+            <a
+              href={data.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-bold text-[#a3d168] hover:underline"
+            >
+              {t("papan.artikelBaca")} ↗
+            </a>
           </div>
         </div>
       ) : (
-        <p className="m-0 mt-1.5 text-xs text-slate-500">
+        <p className="m-0 mt-1.5 text-xs text-gray-400">
           {t("papan.artikelKosong")}
         </p>
       )}
@@ -1493,31 +1778,310 @@ function KartuArtikelPembukaan({ nama, artikel, t }) {
   );
 }
 
+/**
+ * Tab "Books": katalog pembukaan sebagai daftar berkelompok (bukan <select>).
+ * Kotak pencarian menyaring nama atau kode ECO; klik baris memuat jalurnya.
+ */
+function BukuPembukaan({ kelompok, idDari, terpilihId, onPilih, t }) {
+  const [cari, setCari] = useState("");
+  const kataKunci = cari.trim().toLowerCase();
+
+  const cocok = (entri) =>
+    !kataKunci ||
+    entri.nama.toLowerCase().includes(kataKunci) ||
+    String(entri.eco || "").toLowerCase().includes(kataKunci);
+
+  const hasil = useMemo(
+    () =>
+      kelompok
+        .map((g) => ({ nama: g.nama, daftar: g.daftar.filter(cocok) }))
+        .filter((g) => g.daftar.length > 0),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [kelompok, kataKunci]
+  );
+
+  const jumlahTotal = kelompok.reduce((n, g) => n + g.daftar.length, 0);
+  const jumlahHasil = hasil.reduce((n, g) => n + g.daftar.length, 0);
+
+  return (
+    <div className="flex flex-col">
+      <input
+        type="search"
+        value={cari}
+        onChange={(e) => setCari(e.target.value)}
+        placeholder={t("papan.cariPembukaan")}
+        aria-label={t("papan.cariPembukaan")}
+        className="w-full rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition placeholder:text-gray-500 focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
+      />
+
+      <p className="mt-2 text-[11px] text-gray-500">
+        {t("papan.menampilkan", { n: jumlahHasil, total: jumlahTotal })}
+      </p>
+
+      {hasil.length === 0 ? (
+        <p className="px-3 py-8 text-center text-xs text-gray-500">
+          {kataKunci
+            ? t("papan.tidakAdaHasil", { q: cari.trim() })
+            : t("papan.petunjukAwal")}
+        </p>
+      ) : (
+        <div className="mt-1 pr-1">
+          {hasil.map((g) => (
+            <div key={g.nama}>
+              <p className="sticky top-0 z-10 border-y border-[#312e2b] bg-[#262421] px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                {g.nama}
+              </p>
+              <ul>
+                {g.daftar.map((entri) => {
+                  const id = idDari.get(entri);
+                  const aktif = id === terpilihId;
+                  return (
+                    <li key={id}>
+                      <button
+                        type="button"
+                        onClick={() => onPilih(entri, id)}
+                        aria-current={aktif ? "true" : undefined}
+                        className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition ${
+                          aktif
+                            ? "bg-[#363431] text-white"
+                            : "text-gray-300 hover:bg-[#2c2926]"
+                        }`}
+                      >
+                        <span
+                          className={`shrink-0 rounded px-1.5 py-0.5 font-bold tabular-nums ${
+                            aktif
+                              ? "bg-[#81b64c] text-[#1e1c18]"
+                              : "bg-[#81b64c]/15 text-[#a3d168]"
+                          }`}
+                        >
+                          {entri.eco}
+                        </span>
+                        <span className="min-w-0 truncate" title={entri.nama}>
+                          {entri.nama}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Daftar langkah (move log) — baris nomor + langkah Putih/Hitam yang bisa
+ * diklik untuk melompat ke posisi tersebut (pola "Move Log" di prompt.md).
+ * Langkah masa depan (setelah undo) dibuat redup sampai dipilih lagi.
+ */
+function DaftarRiwayat({ langkah, aktifPly, onPilih }) {
+  if (!langkah.length) return null;
+  const baris = [];
+  for (let i = 0; i < langkah.length; i += 2) {
+    const hitam = i + 1 < langkah.length ? langkah[i + 1] : null;
+    baris.push({ nomor: i / 2 + 1, putihI: i, putih: langkah[i], hitamI: i + 1, hitam });
+  }
+  const kelas = (ply) => {
+    if (ply === aktifPly) return "bg-[#363431] text-white";
+    if (ply > aktifPly) return "text-gray-600 hover:bg-[#2c2926] hover:text-gray-300";
+    return "text-gray-300 hover:bg-[#2c2926] hover:text-white";
+  };
+  return (
+    <div className="mt-3 space-y-0.5">
+      {baris.map((b) => (
+        <div
+          key={b.nomor}
+          className="flex items-center gap-2 rounded px-1 py-0.5 transition hover:bg-[#2c2926]"
+        >
+          <span className="w-6 shrink-0 text-right text-xs text-gray-500">{b.nomor}.</span>
+          <button
+            type="button"
+            onClick={() => onPilih(b.putihI + 1)}
+            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${kelas(
+              b.putihI
+            )}`}
+          >
+            {b.putih}
+          </button>
+          <button
+            type="button"
+            onClick={() => onPilih(b.hitamI + 1)}
+            disabled={b.hitam === null}
+            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${
+              b.hitam === null
+                ? "cursor-default text-gray-600"
+                : kelas(b.hitamI)
+            }`}
+          >
+            {b.hitam ?? "…"}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+const NILAI_BIDAK = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
+
+/**
+ * Hitung bidak yang ditangkap tiap sisi dari riwayat SAN. "olehPutih" berisi
+ * bidak Hitam yang ditangkap Putih (tampil di baris Putih), "olehHitam"
+ * sebaliknya. Hasil diurutkan dari bidak paling berharga, dengan jumlah per jenis.
+ */
+function susunTangkapan(daftarSan) {
+  const kantongPutih = {}; // bidak hitam yang ditangkap Putih
+  const kantongHitam = {}; // bidak putih yang ditangkap Hitam
+  const game = new Chess();
+  for (const san of daftarSan) {
+    let pindah;
+    try {
+      pindah = game.move(san);
+    } catch {
+      break;
+    }
+    if (!pindah || !pindah.captured) continue;
+    const kantong = pindah.color === "w" ? kantongPutih : kantongHitam;
+    kantong[pindah.captured] = (kantong[pindah.captured] || 0) + 1;
+  }
+  const rapikan = (kantong, warnaTampil) =>
+    Object.entries(kantong)
+      .sort((a, b) => NILAI_BIDAK[b[0]] - NILAI_BIDAK[a[0]])
+      .map(([jenis, jumlah]) => ({
+        huruf: warnaTampil === "w" ? jenis.toUpperCase() : jenis,
+        jumlah,
+      }));
+  return {
+    olehPutih: rapikan(kantongPutih, "b"),
+    olehHitam: rapikan(kantongHitam, "w"),
+  };
+}
+
+/** Ikon bidak yang ditangkap: satu ikon per jenis + pengali bila lebih dari satu. */
+function TangkapanBidak({ daftar, set }) {
+  if (!daftar || daftar.length === 0) return null;
+  return (
+    <span className="flex items-center gap-1.5">
+      {daftar.map(({ huruf, jumlah }) => (
+        <span key={huruf} className="flex shrink-0 items-center">
+          <ChessPiece piece={huruf} set={set} className="h-4 w-4 opacity-80" />
+          {jumlah > 1 && (
+            <span className="ml-0.5 text-[10px] font-semibold leading-none text-gray-500">
+              {jumlah}×
+            </span>
+          )}
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Ambil daftar SAN dari teks PGN (abaikan nomor langkah, komentar, hasil akhir). */
+function sanDariPgn(pgn) {
+  const dibersihkan = String(pgn || "")
+    .replace(/^\[[^\n]*\]/gm, " ")
+    .replace(/\{[^}]*\}/g, " ")
+    .replace(/\([^)]*\)/g, " ")
+    .replace(/\b\d+\.(\.\.)?/g, " ")
+    .replace(/\b(1-0|0-1|1\/2-1\/2|½-½|\*)\b/g, " ");
+  return dibersihkan.split(/\s+/).filter(Boolean);
+}
+
+/** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
+function MasukanPgn({ onTerapkan, onTutup }) {
+  const [teks, setTeks] = useState("");
+  const [galat, setGalat] = useState(false);
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onTutup}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Input PGN / FEN"
+        className="w-full max-w-md rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-base font-bold text-white">Input PGN / FEN</h3>
+          <button
+            type="button"
+            onClick={onTutup}
+            aria-label="Tutup"
+            className="text-gray-400 transition hover:text-gray-200"
+          >
+            ✕
+          </button>
+        </div>
+        <textarea
+          value={teks}
+          onChange={(e) => {
+            setTeks(e.target.value);
+            setGalat(false);
+          }}
+          rows={7}
+          spellCheck={false}
+          placeholder="1. e4 e5 2. Nf3 Nc6 3. Bb5 … (atau tempel FEN)"
+          className="w-full resize-y rounded-md border border-[#363431] bg-[#262421] p-3 font-mono text-xs leading-5 text-gray-200 outline-none transition placeholder:text-gray-600 focus:border-[#81b64c]"
+        />
+        {galat && (
+          <p className="mt-2 text-xs font-medium text-red-400">
+            PGN/FEN tidak dapat dimuat — periksa kembali isinya.
+          </p>
+        )}
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onTutup}
+            className="rounded-md border border-[#363431] bg-[#2c2926] px-4 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#363431] hover:text-white"
+          >
+            Batal
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (onTerapkan(teks)) onTutup();
+              else setGalat(true);
+            }}
+            disabled={!teks.trim()}
+            className="rounded-md bg-[#81b64c] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#a3d168] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Muat
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[510px] border-collapse text-left text-xs text-[#333]">
-        <thead className="bg-[#e8e8e8] text-[#333]">
+      <table className="w-full min-w-[510px] border-collapse text-left text-xs text-gray-300">
+        <thead className="bg-[#2c2926] text-gray-200">
           <tr>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomLangkah")}</th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomJumlah")}</th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.kolomPersen")}<br /><span className="font-normal">{t("papan.kolomPutihSeriHitam")}</span></th>
-            <th className="border-b border-[#cfcfcf] px-3 py-2 font-bold">{t("papan.pembukaan")}</th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomLangkah")}</th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomJumlah")}</th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomPersen")}<br /><span className="font-normal">{t("papan.kolomPutihSeriHitam")}</span></th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.pembukaan")}</th>
           </tr>
         </thead>
         <tbody>
           {langkah.map((item) => {
             const stat = item.stat;
             return (
-              <tr key={item.k} className="border-b border-[#e1e1e1] last:border-b-0 hover:bg-[#f7f7f7]">
+              <tr key={item.k} className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]">
                 <td className="px-3 py-2 align-top">
-                  <button type="button" onClick={() => onPilih(item.san)} className="font-bold text-[#1d5f9e] hover:underline">{item.san}</button>
+                  <button type="button" onClick={() => onPilih(item.san)} className="font-bold text-[#a3d168] hover:underline">{item.san}</button>
                 </td>
                 <td className="px-3 py-2 align-top tabular-nums">{stat ? formatAngka(stat.games, bahasa) : "—"}</td>
                 <td className="min-w-[145px] px-3 py-2 align-top">
                   {stat ? <HasilBar stat={stat} bahasa={bahasa} /> : "—"}
                 </td>
-                <td className="px-3 py-2 align-top text-[#666]">{item.nama || "—"}</td>
+                <td className="px-3 py-2 align-top text-gray-400">{item.nama || "—"}</td>
               </tr>
             );
           })}
@@ -1532,12 +2096,12 @@ function HasilBar({ stat, bahasa }) {
   const seri = stat.draw ?? 0;
   const hitam = stat.blackWin ?? 0;
   return <>
-    <div className="flex h-2 w-full overflow-hidden border border-[#aaa] bg-white">
-      <span style={{ width: `${putih * 100}%` }} className="bg-[#f4f4f4]" />
-      <span style={{ width: `${seri * 100}%` }} className="bg-[#aaa]" />
-      <span style={{ width: `${hitam * 100}%` }} className="bg-[#414141]" />
+    <div className="flex h-2 w-full overflow-hidden border border-[#555] bg-[#1e1d1c]">
+      <span style={{ width: `${putih * 100}%` }} className="bg-[#e8e6e3]" />
+      <span style={{ width: `${seri * 100}%` }} className="bg-[#8a8a8a]" />
+      <span style={{ width: `${hitam * 100}%` }} className="bg-[#57534e]" />
     </div>
-    <div className="mt-1 whitespace-nowrap text-[10px] text-[#555]">{formatPersen(putih, bahasa)}% / {formatPersen(seri, bahasa)}% / {formatPersen(hitam, bahasa)}%</div>
+    <div className="mt-1 whitespace-nowrap text-[10px] text-gray-400">{formatPersen(putih, bahasa)}% / {formatPersen(seri, bahasa)}% / {formatPersen(hitam, bahasa)}%</div>
   </>;
 }
 

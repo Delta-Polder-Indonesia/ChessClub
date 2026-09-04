@@ -9,6 +9,7 @@ const TANPA_KERANGKA = new Set([
   "/program-kami/analisa",
   "/program-kami/atribusi",
   "/teka-teki",
+  "/papan-interaktif",
 ]);
 
 /**
