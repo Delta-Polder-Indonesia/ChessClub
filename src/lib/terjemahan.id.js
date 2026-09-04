@@ -1100,6 +1100,11 @@ export const ID = {
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
 
+    panel: {
+      kosongJudul: "Belum ada data permainan",
+      kosongIsi: "Gunakan tombol Akun di bilah kiri untuk memuat seluruh partai dari Chess.com/Lichess, atau Impor permainan dari PGN, FEN, maupun tautan partai.",
+      atau: "atau",
+    },
     akun: {
       judul: "Tambah akun",
       isi: "Pilih situs lalu masukkan nama pengguna. Seluruh arsip partainya akan dimuat dalam satu tabel.",
@@ -1368,6 +1373,7 @@ export const ID = {
       animasi: "Animasi langkah",
       suara: "Suara papan",
       sorotLabel: "Sorot kotak sesuai label",
+      mesin: "Mesin",
       petunjuk: "Pengaturan ini disimpan di peramban Anda, tidak disinkronkan ke akun.",
       tutup: "Tutup pengaturan",
     },

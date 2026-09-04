@@ -116,7 +116,10 @@ function SelectLichessOrgGame(props) {
     })();
   }, [username]);
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? " flex flex-col justify-center flex-grow" : ""}`}>
-            <h1 style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky text-lg text-foreground"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
+            <div style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">
+              <h1 className="text-lg text-foreground min-w-0"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
+              <button type="button" onClick={stopSelecting} title={t("analisa.partai.kembali")} aria-label={t("analisa.partai.kembali")} className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+            </div>
             <hr style={{ display: loading ? "none" : "" }} className="border-border" />
             <div className="flex flex-col w-full">
                 {loading ? <Loading whatIsLoading={t("analisa.tab.pilihPartai")} abort={stopSelecting} /> : null}

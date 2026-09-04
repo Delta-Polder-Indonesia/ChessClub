@@ -1090,6 +1090,11 @@ export const EN = {
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
 
+    panel: {
+      kosongJudul: "No games loaded yet",
+      kosongIsi: "Use the Accounts button on the left bar to load every game from Chess.com/Lichess, or import a game from PGN, FEN, or a game link.",
+      atau: "or",
+    },
     akun: {
       judul: "Add account",
       isi: "Pick a website and type a username. All of their game archives will load into a single table.",
@@ -1362,6 +1367,7 @@ export const EN = {
       animasi: "Animate moves",
       suara: "Board sounds",
       sorotLabel: "Highlight by rating",
+      mesin: "Engine",
       petunjuk: "These settings are stored in your browser only, not synced to an account.",
       tutup: "Close settings",
     },

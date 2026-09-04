@@ -118,12 +118,13 @@ diukur, bukan menempel ke `body`.
   dipindah dari Menu ke konteks (`akun`). CSP harus mengizinkan
   `https://www.chess.com` selain `https://api.chess.com`.
 
-- Form sumber partai (`komponen/menu/analyze/form.jsx`) mengikuti gaya
-  "Import game"/"Add account" en-croissant: kartu pilihan **Akun / PGN /
-  FEN** dengan tepi aksen; akun memakai kartu logo Chess.com & Lichess
-  plus nama pengguna dengan saran riwayat (localStorage `kci-analisa-
-  riwayat-*`); FEN divalidasi inline sebelum dikirim. Kedalaman analisis
-  tetap ada di bawah dan dipakai panel Pengaturan.
+- Pemilihan sumber PGN/FEN via form di panel samping SUDAH DIHAPUS
+  (`komponen/menu/analyze/form.jsx` dibuang). Panel samping sekarang hanya
+  etalase data: ajakan awal, tabel partai akun, atau Ringkasan/Langkah hasil
+  analisis. Semua cara memasukkan partai lewat popup Akun / Impor di bilah
+  kiri (lihat butir sebelumnya), dan **kedalaman analisis dipindah ke panel
+  Pengaturan** (roda gigi BoardMenu → tab "Mesin", `komponen/pengaturan/
+  mesin.jsx`); daftar kedalaman tersimpan di `komponen/../konstanta.js`.
 
 - Pemilih Chess.com TIDAK membuka bulan satu per satu: semua arsip bulan
   diambil otomatis (antrean 4 permintaan + progres + batal) lalu disajikan

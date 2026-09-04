@@ -323,7 +323,7 @@ const awal = teksBagus();
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
 uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
 uji("papan ter-render (svg bidak)", domSiap.querySelectorAll(".analisa-root svg").length > 20);
-uji("formulir analisis tersedia", !!domSiap.querySelector("textarea"));
+uji("panel awal menampilkan ajakan tanpa form lama", /Belum ada data permainan/.test(awal));
 uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hitam"));
 
 /* --- regresi: metadata/state pemain kosong tidak boleh merobohkan Game --- */
@@ -355,16 +355,25 @@ uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hi
   wadah.remove();
 }
 
-/* --- alur: tempel PGN lalu kirim --- */
-const kotak = domSiap.querySelector("textarea");
+/* --- alur: impor PGN lewat popup Impor di bilah kiri --- */
+const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 const pengeset = Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, "value").set;
-pengeset.call(kotak, PGN_UJI);
-kotak.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
-await tunggu(300);
+const bukaImpor = async () => {
+  klik(domSiap.querySelector('[data-uji="nav-impor"]'));
+  await tunggu(250);
+  return !!domSiap.querySelector('[data-uji="popup"]');
+};
+uji("popup Impor terbuka", await bukaImpor());
+const kotakPgn = domSiap.querySelector('[data-uji="impor-pgn"]');
+uji("area tempel PGN tersedia", !!kotakPgn);
+if (kotakPgn) {
+  pengeset.call(kotakPgn, PGN_UJI);
+  kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(200);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  await tunggu(1900);
+}
 
-const formulir = kotak.closest("form");
-formulir.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-await tunggu(1600);
 
 const setelahKirim = teksBagus();
 uji("PGN diterima (tanpa galat parse)", !setelahKirim.includes("PGN tidak terbaca"));
@@ -394,45 +403,29 @@ if (tabLangkah) {
   uji("saran engine tampil", /langkah terbaik/.test(langkah));
 }
 
-/* --- alur kedua: analisis posisi FEN --- */
-/*
- * Tab "Analisis" yang lama sudah diganti tab "Laporan Analisa". Peran
- * "mulai analisis baru" kini dipegang tab itu: saat halaman sedang
- * menganalisis, klik tab "Laporan Analisa" memanggil
- * `setData({ format: "fen", string: "" })` sehingga halaman kembali ke
- * form kosong. Uji ini mengikuti alur pengguna yang sama.
- */
-const tabBaru = [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => /Laporan Analisa/.test(b.textContent ?? ""));
-uji("tab analisis baru ada", !!tabBaru);
-if (tabBaru) tabBaru.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-await tunggu(400);
-const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-const kategoriAkun = domSiap.querySelector('[data-uji="kategori-akun"]');
-const kategoriPgn = domSiap.querySelector('[data-uji="kategori-pgn"]');
-const kategoriFen = domSiap.querySelector('[data-uji="kategori-fen"]');
-uji(
-  "pilihan sumber Akun/PGN/FEN tampil",
-  !!kategoriAkun && !!kategoriPgn && !!kategoriFen
-);
-if (kategoriFen) {
-  // pindah ke mode FEN lalu isi & kirim
-  klik(kategoriFen);
-  await tunggu(120);
-  const kotakFen = domSiap.querySelector('[data-uji="isi-fen"]');
-  uji("isi FEN tersedia", !!kotakFen);
-  if (kotakFen) {
-    pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
-    kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
-    await tunggu(200);
-    kotakFen.closest("form").dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-    await tunggu(1400);
-    const fen = teksBagus();
-    uji("FEN diterima (tanpa galat parse)", !fen.includes("FEN tidak terbaca"));
-    uji("mode analisis posisi aktif", /Langkah|Ringkasan/.test(fen));
+/* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
+{
+  uji("popup Impor terbuka (untuk FEN)", await bukaImpor());
+  const kartuFen = [...domSiap.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "FEN");
+  uji("kartu FEN tersedia di popup", !!kartuFen);
+  if (kartuFen) {
+    klik(kartuFen);
+    await tunggu(150);
+    const kotakFen = domSiap.querySelector('[data-uji="impor-fen"]');
+    uji("isi FEN tersedia", !!kotakFen);
+    if (kotakFen) {
+      pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
+      kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+      await tunggu(150);
+      klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+      await tunggu(1800);
+      const fen = teksBagus();
+      uji("FEN diterima (tanpa galat parse)", !fen.includes("FEN tidak terbaca"));
+      uji("mode analisis posisi aktif", /Langkah|Ringkasan/.test(fen));
+    }
   }
 }
 
-/* --- navigasi papan lewat papan ketik --- */
 const tabLangkah2 = tab(/Langkah/);
 if (tabLangkah2) tabLangkah2.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 await tunggu(200);

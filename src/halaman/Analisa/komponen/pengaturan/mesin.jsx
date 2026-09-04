@@ -4,7 +4,7 @@ import { useI18n } from "../../../../lib/i18n.jsx";
 import { DAFTAR_ENGINE, cariEngine } from "../../../../lib/engineCatur.js";
 import { gunakanMesin } from "../../konteks/mesin.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
-import { KEDALAMAN } from "../menu/analyze/form.jsx";
+import { KEDALAMAN } from "../../konstanta.js";
 
 import { tulis } from "../../penyimpanan.js";
 
@@ -44,7 +44,7 @@ function PengaturanMesin() {
 
   return (
     <section>
-      <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.mesin.judul")}</h1>
+      <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.pengaturan.mesin")}</h1>
       <p className="px-3 py-2 text-xs text-foregroundGrey">{t("analisa.mesin.petunjuk")}</p>
       {didukung ? null : (
         <p className="mx-3 mb-2 rounded-borderRoundness bg-backgroundBoxBox p-2 text-sm text-foregroundGrey">

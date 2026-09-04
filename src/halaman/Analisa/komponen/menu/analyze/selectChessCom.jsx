@@ -433,7 +433,10 @@ function SelectChessComGame(props) {
     : "";
 
   return <div className="overflow-y-auto flex flex-col flex-grow">
-            <h1 className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 text-lg text-foreground"><a target="_blank" rel="noreferrer" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
+            <div className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">
+              <h1 className="text-lg text-foreground min-w-0"><a target="_blank" rel="noreferrer" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
+              <button type="button" onClick={stopSelecting} title={t("analisa.partai.kembali")} aria-label={t("analisa.partai.kembali")} data-uji="tutup-tabel" className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">✕</button>
+            </div>
             <hr className="border-border" />
             {memuat ? <Loading whatIsLoading={t("analisa.tab.pilihPartai")} abort={stopSelecting} progres={progresTeks} /> : null}
             {galatInline ? <GalatInline judul={galatInline.judul} isi={galatInline.isi} onMuatUlang={muatUlang} onKembali={stopSelecting} /> : null}
