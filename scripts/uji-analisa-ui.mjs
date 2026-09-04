@@ -55,6 +55,9 @@ import { MesinProvider } from "./src/halaman/Analisa/konteks/mesin.jsx";
 import Game, { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/game.jsx";
 import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
+import * as basisData from "./src/halaman/Analisa/basisData.js";
+
+export { basisData };
 
 /**
  * Render pemilih partai satu platform. Dipakai uji regresi: komponen ini
@@ -527,12 +530,13 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   );
 }
 
-/* --- popup Akun & Impor (gaya en-croissant) di bilah kiri --- */
+/* --- popup Akun, Database & Impor (gaya en-croissant) di bilah kiri --- */
 {
   const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
   const navAkun = domSiap.querySelector('[data-uji="nav-akun"]');
+  const navDatabase = domSiap.querySelector('[data-uji="nav-database"]');
   const navImpor = domSiap.querySelector('[data-uji="nav-impor"]');
-  uji("bilah kiri punya tombol Akun & Impor", !!navAkun && !!navImpor);
+  uji("bilah kiri punya tombol Akun, Database, & Impor", !!navAkun && !!navDatabase && !!navImpor);
 
   klik(navAkun);
   await tunggu(250);
@@ -544,6 +548,15 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   klik(domSiap.querySelector('[data-uji="popup-tutup"]'));
   await tunggu(200);
   uji("popup Akun tertutup", !domSiap.querySelector('[data-uji="popup"]'));
+
+  klik(navDatabase);
+  await tunggu(250);
+  uji("popup Database terbuka", !!domSiap.querySelector('[data-uji="popup"]'));
+  const teksDb = teksBagus();
+  uji("popup Database menampilkan judul & kolom pencarian", /Basis Data|Database/.test(teksDb));
+  klik(domSiap.querySelector('[data-uji="popup-tutup"]'));
+  await tunggu(200);
+  uji("popup Database tertutup", !domSiap.querySelector('[data-uji="popup"]'));
 
   klik(navImpor);
   await tunggu(250);
@@ -579,6 +592,37 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       "impor Online (Lichess) langsung menganalisis partai",
       /Ringkasan/.test(setelahImpor) && /Andini/.test(setelahImpor) && !domSiap.querySelector('[data-uji="popup"]')
     );
+  }
+}
+
+/* --- uji fungsi unit basis data (IndexedDB/fallback) --- */
+{
+  const { basisData } = modul;
+  if (basisData) {
+    const pgnPemain = '[Event "Kelas Catur"]\n[White "PemainA"]\n[Black "PemainB"]\n[Result "1-0"]\n\n1. e4 e5 2. Nf3 Nc6 1-0';
+    const hasilSimpan = await basisData.simpanBanyakPartai([
+      {
+        pgn: pgnPemain,
+        whiteName: "PemainA",
+        blackName: "PemainB",
+        whiteElo: 1500,
+        blackElo: 1450,
+        result: "white",
+        timestamp: 1725500000000,
+        timeClass: "blitz",
+      },
+    ], { platform: "chessCom", username: "pemaina" });
+
+    uji("basisData: simpanBanyakPartai berhasil", hasilSimpan?.tersimpan > 0);
+
+    const hasilAmbil = await basisData.ambilDaftarPartai({ platform: "chessCom", username: "pemaina" });
+    uji("basisData: ambilDaftarPartai mengembalikan partai tersimpan", hasilAmbil?.partai?.length > 0 && hasilAmbil.partai[0].whiteName === "PemainA");
+
+    const st = await basisData.hitungStatistikBasisData();
+    uji("basisData: hitungStatistikBasisData akurat", st?.totalPartai >= 1);
+
+    const pgnTeks = await basisData.eksporPgnKoleksi({ platform: "chessCom", username: "pemaina" });
+    uji("basisData: eksporPgnKoleksi memuat PGN lengkap", pgnTeks.includes("PemainA") && pgnTeks.includes("1. e4"));
   }
 }
 

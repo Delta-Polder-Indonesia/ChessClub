@@ -23,8 +23,10 @@ import Gambar from "../Gambar.jsx";
 import GitHub from "../svg/github.jsx";
 import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
+import Database from "../svg/database.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import PopupAkun from "./popupAkun.jsx";
+import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
@@ -45,7 +47,7 @@ function IkonImpor({ className }) {
 
 export default function Nav() {
   const { t } = useI18n();
-  const [terbuka, setTerbuka] = useState(null); // null | "akun" | "impor"
+  const [terbuka, setTerbuka] = useState(null); // null | "akun" | "database" | "impor"
   const analyzeContext = useContext(AnalyzeContext);
   const setAkun = analyzeContext.akun[1];
   const setData = analyzeContext.data[1];
@@ -68,6 +70,11 @@ export default function Nav() {
       label: t("analisa.nav.akun"),
       icon: (props) => <Profile width={18} height={18} class={props.className} />,
       kunci: "akun",
+    },
+    {
+      label: t("analisa.nav.database"),
+      icon: (props) => <Database width={18} height={18} class={props.className} />,
+      kunci: "database",
     },
     {
       label: t("analisa.nav.impor"),
@@ -139,6 +146,13 @@ export default function Nav() {
       </div>
       {terbuka === "akun" ? (
         <PopupAkun onTutup={() => setTerbuka(null)} onTambah={tambahAkun} />
+      ) : null}
+      {terbuka === "database" ? (
+        <PopupDatabase
+          onTutup={() => setTerbuka(null)}
+          onAnalisa={imporPartai}
+          onBukaAkun={() => setTerbuka("akun")}
+        />
       ) : null}
       {terbuka === "impor" ? (
         <PopupImpor onTutup={() => setTerbuka(null)} onImpor={imporPartai} />
