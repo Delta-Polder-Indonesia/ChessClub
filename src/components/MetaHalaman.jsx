@@ -2,7 +2,7 @@ import { Helmet } from "react-helmet-async";
 import { useI18n } from "../lib/i18n.jsx";
 
 /**
- * Atur meta tag per halaman — judul, deskripsi, OG tags.
+ * Atur meta tag per halaman — judul, deskripsi, canonical, OG tags.
  *
  * Pakai:
  *   <MetaHalaman
@@ -25,10 +25,16 @@ export default function MetaHalaman({ title, description }) {
     description ||
     "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur.";
 
+  // Canonical selalu mengikuti URL publik yang sedang dibuka.
+  // Buang query string dan hash agar canonical tetap bersih.
+  const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
+
   return (
     <Helmet>
       <title>{judulLengkap}</title>
       <meta name="description" content={deskripsi} />
+      <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={judulLengkap} />
       <meta property="og:description" content={deskripsi} />
       <meta name="twitter:title" content={judulLengkap} />
