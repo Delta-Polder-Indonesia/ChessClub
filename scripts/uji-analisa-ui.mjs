@@ -406,17 +406,21 @@ const tabBaru = [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => 
 uji("tab analisis baru ada", !!tabBaru);
 if (tabBaru) tabBaru.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 await tunggu(400);
-const pemilihFormat = [...domSiap.querySelectorAll("button")].find((b) => /Chess\.com|Lichess\.org|PGN|FEN/i.test(b.textContent ?? ""));
-uji("tombol pilihan format ada", !!pemilihFormat);
-if (pemilihFormat) {
-  pemilihFormat.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+const kategoriAkun = domSiap.querySelector('[data-uji="kategori-akun"]');
+const kategoriPgn = domSiap.querySelector('[data-uji="kategori-pgn"]');
+const kategoriFen = domSiap.querySelector('[data-uji="kategori-fen"]');
+uji(
+  "pilihan sumber Akun/PGN/FEN tampil",
+  !!kategoriAkun && !!kategoriPgn && !!kategoriFen
+);
+if (kategoriFen) {
+  // pindah ke mode FEN lalu isi & kirim
+  klik(kategoriFen);
   await tunggu(120);
-  const opsiFen = [...domSiap.querySelectorAll("button")].find((b) => /^FEN/i.test((b.textContent ?? "").trim()));
-  uji("opsi FEN tersedia", !!opsiFen);
-  if (opsiFen) {
-    opsiFen.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-    await tunggu(120);
-    const kotakFen = domSiap.querySelector("textarea");
+  const kotakFen = domSiap.querySelector('[data-uji="isi-fen"]');
+  uji("isi FEN tersedia", !!kotakFen);
+  if (kotakFen) {
     pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
     kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
     await tunggu(200);

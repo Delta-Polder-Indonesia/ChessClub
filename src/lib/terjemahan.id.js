@@ -1088,6 +1088,15 @@ export const ID = {
         "PGN boleh mengandung komentar, variasi dalam tanda kurung, dan kontrol waktu. FEN cukup satu baris.",
       contohPgn: "Contoh: 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0",
       contohFen: "Contoh: rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+
+      dariAkun: "Dari akun",
+      dariAkunIsi: "Muat semua permainan dari Chess.com atau Lichess lewat nama pengguna.",
+      situs: "Situs",
+      namaPenggunaLabel: "Nama pengguna",
+      wajibNama: "Nama pengguna wajib diisi.",
+      hintAkun: "Nama publik tanpa spasi. Setelah dipilih, seluruh arsip partai akan dimuat dalam satu tabel.",
+      hintPgn: "Tempel notasi PGN; komentar dan variasi dalam tanda kurung diperbolehkan.",
+      hintFen: "Cukup satu baris. Kosongkan untuk memulai dari papan kosong.",
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
     muat: {

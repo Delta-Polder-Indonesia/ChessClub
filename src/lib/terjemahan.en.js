@@ -1078,6 +1078,15 @@ export const EN = {
       hint: "PGN may contain comments, bracketed variations, and clock settings. A FEN is a single line.",
       contohPgn: "Example: 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6 1-0",
       contohFen: "Example: rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
+
+      dariAkun: "From account",
+      dariAkunIsi: "Load every game from Chess.com or Lichess using a username.",
+      situs: "Website",
+      namaPenggunaLabel: "Username",
+      wajibNama: "A username is required.",
+      hintAkun: "Public name without spaces. Once selected, all game archives load into a single table.",
+      hintPgn: "Paste the PGN notation; comments and variations in parentheses are allowed.",
+      hintFen: "One line only. Leave empty to start from an empty board.",
     },
     format: { chessCom: "Chess.com", lichessOrg: "Lichess.org", pgn: "PGN", fen: "FEN" },
     muat: {

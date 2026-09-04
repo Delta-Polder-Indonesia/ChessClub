@@ -106,6 +106,13 @@ diukur, bukan menempel ke `body`.
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
   diblokir kebijakan CORS/privasi peramban — kalau itu terjadi muncul
   peringatan galat di panel pemilih.
+- Form sumber partai (`komponen/menu/analyze/form.jsx`) mengikuti gaya
+  "Import game"/"Add account" en-croissant: kartu pilihan **Akun / PGN /
+  FEN** dengan tepi aksen; akun memakai kartu logo Chess.com & Lichess
+  plus nama pengguna dengan saran riwayat (localStorage `kci-analisa-
+  riwayat-*`); FEN divalidasi inline sebelum dikirim. Kedalaman analisis
+  tetap ada di bawah dan dipakai panel Pengaturan.
+
 - Pemilih Chess.com TIDAK membuka bulan satu per satu: semua arsip bulan
   diambil otomatis (antrean 4 permintaan + progres + batal) lalu disajikan
   sebagai satu tabel terperinci yang bisa dicari, diurutkan (Pemain, Hasil,

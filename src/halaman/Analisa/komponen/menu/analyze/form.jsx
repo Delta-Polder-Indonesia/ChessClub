@@ -1,11 +1,24 @@
-/* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useContext, useEffect, useRef, useState } from "react";
-import { AnalyzeContext } from "../../../konteks/analyze.jsx";
-import Arrow from "../../svg/arrow.jsx";
+/*
+ * Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa
+ * cek README.
+ *
+ * Penyesuaian lokal (gaya en-croissant, sesuai permintaan pengguna):
+ *  - Pemilih sumber disusun seperti modal "Import game" en-croissant: satu
+ *    baris kartu pilihan (Akun / PGN / FEN) dengan tepi aksen saat aktif;
+ *    isinya berganti di bawahnya. Untuk Akun, pemilihan situs memakai kartu
+ *    logo Chess.com & Lichess seperti modal "Add account" en-croissant,
+ *    lengkap dengan nama pengguna + saran riwayat + validasi.
+ *  - PGN memakai area tempel besar; FEN memakai kotak satu baris dengan
+ *    galat validasi inline (merah) sebelum dikirim ke engine, meniru
+ *    perilaku TextInput FEN en-croissant.
+ *  - Kedalaman analisis tetap tersedia (dipakai panel Pengaturan juga).
+ */
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "../../Gambar.jsx";
 import Lens from "../../svg/lens.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { bacaAngka, bacaTeks, tulis } from "../../../penyimpanan.js";
+import { Chess } from "chess.js";
 
 const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
 
@@ -32,43 +45,88 @@ export const KEDALAMAN = [
 ];
 
 /* Kunci penyimpanan (awalan "kci-analisa-" ditambahkan oleh penyimpanan.js). */
-const KUNCI_FORMAT = "format";
+const KUNCI_SUMBER = "sumber";
+const KUNCI_SUMBER_PLATFORM = "sumber-platform";
 const KUNCI_KEDALAMAN = "kedalaman";
+const AWALAN_RIWAYAT = "riwayat-";
+const MAKS_RIWAYAT = 8;
+
+/** Kategori sumber. "akun" punya sub-pilihan situs (Chess.com/Lichess). */
+const SUMBER = [
+  { kunci: "akun", ikon: "formats" },
+  { kunci: "pgn", ikon: "pgn" },
+  { kunci: "fen", ikon: "json" },
+];
+/** Situs untuk kategori "akun" — urutan sama dengan FORMATS[0..1]. */
+const PLATFORM = [
+  { kunci: "chessCom", ikon: "chesscom", indeks: 0 },
+  { kunci: "lichessOrg", ikon: "lichess", indeks: 1 },
+];
 
 const baca = bacaAngka;
 const simpan = tulis;
 
-export default function Form({ setData, selectGame, depth, selected }) {
+/** Baca daftar nama pengguna yang pernah dipakai untuk satu situs. */
+function bacaRiwayat(awalan) {
+  const mentah = bacaTeks(AWALAN_RIWAYAT + awalan, "");
+  return (mentah ?? "").split("\n").map((x) => x.trim()).filter(Boolean);
+}
+/** Simpan nama pengguna terbaru di urutan teratas (maks MAKS_RIWAYAT). */
+function simpanRiwayat(awalan, nama) {
+  const lama = bacaRiwayat(awalan).filter((x) => x.toLowerCase() !== nama.toLowerCase());
+  simpan(AWALAN_RIWAYAT + awalan, [nama, ...lama].slice(0, MAKS_RIWAYAT).join("\n"));
+}
+
+/**
+ * Kartu pilihan ala GenericCard en-croissant: kotak dengan tepi 2px;
+ * saat dipilih tepinya memakai aksen hijau situs ini (+ hover ringan).
+ */
+function KartuPilih({ aktif, onClick, dataUji, children, className = "" }) {
+  return (
+    <button
+      type="button"
+      data-uji={dataUji}
+      aria-pressed={aktif}
+      onClick={onClick}
+      className={`flex flex-col items-center justify-center gap-1.5 rounded-borderRoundness border-2 px-2 py-3 text-sm font-bold transition-colors cursor-pointer select-none ${aktif
+        ? "border-backgroundBoxBoxHighlighted bg-backgroundBoxBox text-foreground"
+        : "border-border bg-backgroundBoxBox text-foregroundGrey hover:border-borderHighlighted hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"} ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function Form({ setData, selectGame, depth, selected: _selected }) {
   const { t } = useI18n();
-  const [isSelecting, setSelecting] = useState(false);
-  const [value, setValue] = useState("");
-  const [selectedIndex, select] = selected;
+  const [sumber, setSumber] = useState(() => {
+    const tersimpan = bacaTeks(KUNCI_SUMBER, null);
+    return SUMBER.some((s) => s.kunci === tersimpan) ? tersimpan : "pgn";
+  });
+  const [platformKunci, setPlatformKunci] = useState(() => {
+    const tersimpan = bacaTeks(KUNCI_SUMBER_PLATFORM, null);
+    return PLATFORM.some((p) => p.kunci === tersimpan) ? tersimpan : "chessCom";
+  });
   const [kedalaman, setKedalaman] = depth;
 
+  const [namaAkun, setNamaAkun] = useState("");
+  const [pgn, setPgn] = useState("");
+  const [fen, setFen] = useState("");
+  const [galatNama, setGalatNama] = useState(null);
+  const [galatFen, setGalatFen] = useState(null);
+
   const formRef = useRef(null);
-  const inputRef = useRef(null);
+  const inputAkunRef = useRef(null);
   const shiftPressed = useRef(false);
 
-  const { data } = useContext(AnalyzeContext);
-  const format = FORMATS[selectedIndex] ?? FORMATS[2];
-  const platform = format.jenis === "platform";
+  const platform = PLATFORM.find((p) => p.kunci === platformKunci) ?? PLATFORM[0];
+  const situs = platform.ikon;
+  const riwayat = useMemo(
+    () => bacaRiwayat(platformKunci === "chessCom" ? "chesscom" : "lichessorg"),
+    [platformKunci]
+  );
 
-  /*
-   * Tombol tab "analisis baru" menulis ulang data konteks (format fen, kotak
-   * kosong) tanpa melewati pemilih ini. Tanpa penjajaran, pemilih masih
-   * menunjuk PGN padahal yang terkirim FEN.
-   */
-  useEffect(() => {
-    const indeks = FORMATS.findIndex((f) => f.kunci.toLowerCase() === data?.format);
-    if (indeks >= 0 && indeks !== selectedIndex) select(indeks);
-  }, [data?.format, selectedIndex, select]);
-
-  /*
-   * Pulihkan pilihan sebelumnya — HANYA bila memang ada nilai tersimpan.
-   * Versi lama selalu memanggil setKedalaman(), sehingga pilihan yang baru
-   * saja diubah pengguna di panel Pengaturan langsung ditimpa kembali ke
-   * nilai bawaan begitu tab "Analisis baru" dirender ulang.
-   */
+  /* Pulihkan kedalaman tersimpan — HANYA bila memang ada nilai tersimpan. */
   useEffect(() => {
     const tersimpan = baca(KUNCI_KEDALAMAN, null);
     if (tersimpan === null) return;
@@ -76,43 +134,28 @@ export default function Form({ setData, selectGame, depth, selected }) {
     if (cocok) setKedalaman(cocok.ply);
   }, [setKedalaman]);
 
+  /* Saat situs akun berganti, isi nama dengan nama terakhir untuk situs itu. */
   useEffect(() => {
-    const indeks = baca(KUNCI_FORMAT, 2);
-    if (FORMATS[indeks]) select(indeks);
-  }, [select]);
-
-  /* Untuk platform: isi kotak dengan nama pengguna terakhir. */
-  useEffect(() => {
-    if (!platform) {
-      setValue("");
-      return;
-    }
+    if (sumber !== "akun") return;
     try {
-      setValue(bacaTeks(format.kunci === "chessCom" ? "chesscom" : "lichessorg", "") ?? "");
+      const tersimpan = bacaTeks(platformKunci === "chessCom" ? "chesscom" : "lichessorg", "") ?? "";
+      setNamaAkun(tersimpan);
+      setGalatNama(null);
     } catch {
-      setValue("");
+      setNamaAkun("");
     }
-  }, [selectedIndex, format.kunci, platform]);
+  }, [sumber, platformKunci]);
 
-  function kirim(kejadian) {
-    kejadian.preventDefault();
-    const nilai = value.trim();
-
-    if (platform) {
-      tulis(format.kunci === "chessCom" ? "chesscom" : "lichessorg", nilai);
-      if (!nilai) return;
-      selectGame(nilai, format.kunci === "chessCom" ? "chessCom" : "lichessOrg");
-      return;
-    }
-
-    setData({ format: format.kunci.toLowerCase(), string: nilai });
+  function gantiSumber(kunci) {
+    setSumber(kunci);
+    setGalatNama(null);
+    setGalatFen(null);
+    simpan(KUNCI_SUMBER, kunci);
   }
 
-  function gantiFormat(i) {
-    select(i);
-    setSelecting(false);
-    simpan(KUNCI_FORMAT, i);
-    inputRef.current?.focus();
+  function gantiSitus(kunci) {
+    setPlatformKunci(kunci);
+    simpan(KUNCI_SUMBER_PLATFORM, kunci);
   }
 
   function gantiKedalaman(ply) {
@@ -120,10 +163,47 @@ export default function Form({ setData, selectGame, depth, selected }) {
     simpan(KUNCI_KEDALAMAN, ply);
   }
 
+  function kirimAkun(kejadian) {
+    kejadian?.preventDefault();
+    const nilai = namaAkun.trim();
+    if (!nilai) {
+      setGalatNama(t("analisa.form.wajibNama"));
+      inputAkunRef.current?.focus();
+      return;
+    }
+    const awalan = platformKunci === "chessCom" ? "chesscom" : "lichessorg";
+    tulis(awalan, nilai);
+    simpanRiwayat(awalan, nilai);
+    selectGame(nilai, platformKunci);
+  }
+
+  function kirimTempel(kejadian, kunci) {
+    kejadian?.preventDefault();
+    if (kunci === "pgn") {
+      setData({ format: "pgn", string: pgn });
+      return;
+    }
+    const nilaiFen = fen.trim();
+    if (nilaiFen) {
+      try {
+        // eslint-disable-next-line no-new
+        new Chess(nilaiFen);
+      } catch {
+        setGalatFen(t("analisa.galat.fenJudul"));
+        return;
+      }
+    }
+    setGalatFen(null);
+    setData({ format: "fen", string: nilaiFen });
+  }
+
   function onKeyDown(e) {
     if (e.key === "Enter" && !shiftPressed.current) {
-      e.preventDefault();
-      formRef.current?.requestSubmit();
+      // PGN bebas memakai Enter untuk baris baru; akun & FEN kirim langsung.
+      if (sumber === "akun" || sumber === "fen") {
+        e.preventDefault();
+        e.currentTarget.form?.requestSubmit();
+      }
     }
     if (e.key === "Shift") shiftPressed.current = true;
   }
@@ -132,90 +212,219 @@ export default function Form({ setData, selectGame, depth, selected }) {
     if (e.key === "Shift") shiftPressed.current = false;
   }
 
-  const penunjuk = platform
-    ? t("analisa.form.namaPengguna", { platform: t(`analisa.format.${format.kunci}`) })
-    : t(format.kunci === "pgn" ? "analisa.form.tempelPgn" : "analisa.form.tempelFen");
+  const ikonKategori = (kunci) => {
+    if (kunci === "akun") {
+      return (
+        <span className="flex flex-row items-center gap-1">
+          <Image alt="" src={ASET("chesscom")} width={22} height={22} />
+          <Image alt="" src={ASET("lichess")} width={22} height={22} />
+        </span>
+      );
+    }
+    const ikon = SUMBER.find((s) => s.kunci === kunci)?.ikon;
+    return ikon ? <Image alt="" src={ASET(ikon)} width={26} height={26} /> : null;
+  };
+  const labelKategori = (kunci) => t(kunci === "akun" ? "analisa.form.dariAkun" : `analisa.format.${kunci}`);
 
   return (
-    <form ref={formRef} onSubmit={kirim} className="flex flex-col items-center gap-4">
-      <textarea
-        spellCheck={false}
-        rows={1}
-        value={value}
-        onKeyDown={onKeyDown}
-        onKeyUp={onKeyUp}
-        onChange={(e) => setValue(e?.currentTarget.value)}
-        ref={inputRef}
-        placeholder={penunjuk}
-        aria-label={penunjuk}
-        className="w-[85%] px-2 py-[13px] flex items-center transition-colors text-xl font-bold rounded-borderRoundness border-border hover:border-borderHighlighted focus:border-borderHighlighted border-solid border-[1px] bg-backgroundBoxBox outline-none placeholder:text-sm placeholder:text-placeholder placeholder:font-normal resize-none"
-      />
-      <p className="w-[85%] text-xs text-foregroundGrey -mt-2">
-        {t(platform ? "analisa.form.hint" : format.kunci === "pgn" ? "analisa.form.contohPgn" : "analisa.form.contohFen")}
-      </p>
-      <div className="w-[85%] flex flex-col gap-2">
-        <button
-          type="button"
-          className="flex flex-row gap-1 items-center justify-center w-full h-14 rounded-borderRoundness text-xl bg-backgroundBoxBox hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted transition-colors font-bold relative"
-          onClick={(e) => {
-            e.preventDefault();
-            setSelecting((prev) => !prev);
-          }}
-        >
-          <Image draggable={false} alt="" src={ASET(format.ikon)} width={28} height={28} />
-          {t(`analisa.format.${format.kunci}`)}
-          <div className={`absolute h-full right-6 top-0 flex flex-row items-center ${isSelecting ? "" : "rotate-180"}`}>
-            <Arrow class="fill-foregroundGrey" />
-          </div>
-        </button>
-        <div className="flex flex-col gap-2" style={{ display: isSelecting ? "" : "none" }}>
-          <h6 className="mt-2 font-bold flex flex-row gap-1">
-            <Image alt="" src={ASET("formats")} width={18} height={18} />
-            {t("analisa.form.judul")}
-          </h6>
-          <ul className="grid grid-cols-2 gap-3">
-            {FORMATS.map((f, i) => (
-              <li key={f.kunci}>
-                <button
-                  type="button"
-                  onClick={() => gantiFormat(i)}
-                  className={`flex flex-row items-center justify-center gap-1 h-12 w-full hover:text-foregroundHighlighted rounded-borderRoundness text-md bg-backgroundBoxBox hover:bg-backgroundBoxBoxHover transition-colors font-bold border-backgroundBoxBoxHighlighted ${selectedIndex === i ? "border-[2px]" : ""}`}
-                >
-                  <Image draggable={false} alt="" src={ASET(f.ikon)} width={150} height={0} className="h-6 w-fit" />
-                  {t(`analisa.format.${f.kunci}`)}
-                </button>
-              </li>
-            ))}
-          </ul>
-          <h6 className="mt-2 font-bold flex flex-row gap-2">
-            <Image alt="" src={ASET("type")} width={20} height={0} />
+    <div className="flex flex-col items-center gap-4">
+      {/* Baris kartu sumber — gaya modal Import en-croissant */}
+      <div className="w-[88%]">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+          {t("analisa.form.judul")}
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {SUMBER.map((s) => (
+            <KartuPilih
+              key={s.kunci}
+              aktif={sumber === s.kunci}
+              onClick={() => gantiSumber(s.kunci)}
+              dataUji={`kategori-${s.kunci}`}
+            >
+              {ikonKategori(s.kunci)}
+              <span>{labelKategori(s.kunci)}</span>
+            </KartuPilih>
+          ))}
+        </div>
+        {sumber === "akun" ? (
+          <p className="mt-1.5 text-center text-[11px] leading-4 text-foregroundGrey">
+            {t("analisa.form.dariAkunIsi")}
+          </p>
+        ) : (
+          <p className="mt-1.5 text-center text-[11px] leading-4 text-foregroundGrey">
+            {t(sumber === "pgn" ? "analisa.form.hintPgn" : "analisa.form.hintFen")}
+          </p>
+        )}
+      </div>
+
+      {/* Isian — berganti sesuai sumber */}
+      <div className="w-[88%] rounded-borderRoundness border border-border bg-backgroundBoxDarker p-3.5">
+        {sumber === "akun" ? (
+          <form ref={formRef} onSubmit={kirimAkun} className="flex flex-col gap-3">
+            <div>
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                {t("analisa.form.situs")}
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {PLATFORM.map((p) => (
+                  <KartuPilih
+                    key={p.kunci}
+                    aktif={platformKunci === p.kunci}
+                    onClick={() => gantiSitus(p.kunci)}
+                    dataUji={`pilih-${p.kunci === "chessCom" ? "chesscom" : "lichess"}`}
+                    className="!py-2.5"
+                  >
+                    <Image alt="" src={ASET(p.ikon)} width={26} height={26} />
+                    <span className="text-[13px]">{t(`analisa.format.${p.kunci}`)}</span>
+                  </KartuPilih>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                {t("analisa.form.namaPenggunaLabel")}
+              </p>
+              <input
+                ref={inputAkunRef}
+                type="text"
+                autoComplete="off"
+                list={`daftar-${situs}`}
+                value={namaAkun}
+                onChange={(e) => {
+                  setNamaAkun(e.currentTarget.value);
+                  if (galatNama) setGalatNama(null);
+                }}
+                onKeyDown={onKeyDown}
+                onKeyUp={onKeyUp}
+                data-uji="nama-akun"
+                placeholder={t("analisa.form.namaPengguna", { platform: t(`analisa.format.${platformKunci}`) })}
+                aria-label={t("analisa.form.namaPenggunaLabel")}
+                className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+              />
+              <datalist id={`daftar-${situs}`}>
+                {riwayat.map((nama) => (
+                  <option key={nama} value={nama} />
+                ))}
+              </datalist>
+              {galatNama ? (
+                <p data-uji="galat-akun" className="mt-1.5 text-xs text-lossRed">{galatNama}</p>
+              ) : null}
+              <p className="mt-1.5 text-[11px] leading-4 text-foregroundGrey">
+                {t("analisa.form.hintAkun")}
+              </p>
+            </div>
+
+            <button
+              type="submit"
+              data-uji="tombol-akun"
+              aria-label={t("analisa.form.daftarPartai")}
+              className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-borderExtraRoundness bg-backgroundBoxBoxHighlighted font-extrabold text-foregroundBlackDark transition-all hover:bg-backgroundBoxBoxHighlightedHover hover:shadow-shadowBoxBoxHighlighted"
+            >
+              <Lens class="fill-foregroundBlackDark" size={20} />
+              {t("analisa.form.daftarPartai")}
+            </button>
+          </form>
+        ) : sumber === "pgn" ? (
+          <form
+            onSubmit={(e) => kirimTempel(e, "pgn")}
+            className="flex flex-col gap-3"
+          >
+            <label className="text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+              {t("analisa.format.pgn")}
+            </label>
+            <textarea
+              spellCheck={false}
+              rows={8}
+              value={pgn}
+              onChange={(e) => setPgn(e.currentTarget.value)}
+              data-uji="isi-pgn"
+              placeholder={t("analisa.form.tempelPgn")}
+              aria-label={t("analisa.format.pgn")}
+              className="resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            />
+            <p className="text-[11px] leading-4 text-foregroundGrey">
+              {t("analisa.form.contohPgn")}
+            </p>
+            <button
+              type="submit"
+              data-uji="tombol-analisis"
+              aria-label={t("analisa.form.analisa")}
+              className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-borderExtraRoundness bg-backgroundBoxBoxHighlighted font-extrabold text-foregroundBlackDark transition-all hover:bg-backgroundBoxBoxHighlightedHover hover:shadow-shadowBoxBoxHighlighted"
+            >
+              <Lens class="fill-foregroundBlackDark" size={20} />
+              {t("analisa.form.analisa")}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={(e) => kirimTempel(e, "fen")} className="flex flex-col gap-3">
+            <label className="text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+              {t("analisa.format.fen")}
+            </label>
+            <textarea
+              spellCheck={false}
+              rows={2}
+              value={fen}
+              onChange={(e) => {
+                setFen(e.currentTarget.value);
+                if (galatFen) setGalatFen(null);
+              }}
+              onKeyDown={onKeyDown}
+              data-uji="isi-fen"
+              placeholder={t("analisa.form.tempelFen")}
+              aria-label={t("analisa.format.fen")}
+              className="resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            />
+            {galatFen ? (
+              <p data-uji="galat-fen" className="text-xs text-lossRed">{galatFen}</p>
+            ) : (
+              <p className="text-[11px] leading-4 text-foregroundGrey">
+                {t("analisa.form.contohFen")}
+              </p>
+            )}
+            <button
+              type="submit"
+              data-uji="tombol-analisis"
+              aria-label={t("analisa.form.analisa")}
+              className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-borderExtraRoundness bg-backgroundBoxBoxHighlighted font-extrabold text-foregroundBlackDark transition-all hover:bg-backgroundBoxBoxHighlightedHover hover:shadow-shadowBoxBoxHighlighted"
+            >
+              <Lens class="fill-foregroundBlackDark" size={20} />
+              {t("analisa.form.analisa")}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Kedalaman analisis — tetap dipakai panel Pengaturan juga */}
+      <div className="w-[88%]">
+        <div className="flex flex-col gap-2">
+          <p className="mb-0.5 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
             {t("analisa.kedalaman.judul")}
-          </h6>
-          <ul className="grid grid-cols-4 gap-3">
+          </p>
+          <ul className="grid grid-cols-4 gap-2">
             {KEDALAMAN.map((k) => (
               <li key={k.kunci}>
                 <button
                   title={`${t("analisa.kedalaman.judul")}: ${k.ply}`}
                   type="button"
                   onClick={() => gantiKedalaman(k.ply)}
-                  className={`flex flex-row items-center justify-center gap-1 h-10 w-full hover:text-foregroundHighlighted rounded-borderRoundness text-md bg-backgroundBoxBox hover:bg-backgroundBoxBoxHover transition-colors font-bold border-backgroundBoxBoxHighlighted ${kedalaman === k.ply ? "border-[2px]" : ""}`}
+                  aria-pressed={kedalaman === k.ply}
+                  data-uji={`kedalaman-${k.kunci}`}
+                  className={`flex h-9 w-full cursor-pointer flex-row items-center justify-center gap-1 rounded-borderRoundness text-xs font-bold transition-colors ${kedalaman === k.ply
+                    ? "border-[2px] border-backgroundBoxBoxHighlighted bg-backgroundBoxBox text-foreground"
+                    : "border border-border bg-backgroundBoxBox text-foregroundGrey hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"}`}
                 >
-                  {k.ikon ? <Image draggable={false} alt="" src={ASET(k.ikon)} width={150} height={0} className="h-5 w-fit" /> : null}
+                  {k.ikon ? (
+                    <Image draggable={false} alt="" src={ASET(k.ikon)} width={80} height={0} className="h-4 w-fit" />
+                  ) : null}
                   {t(`analisa.kedalaman.${k.kunci}`)}
                 </button>
               </li>
             ))}
           </ul>
-          <p className="text-xs text-foregroundGrey">{t("analisa.kedalaman.petunjuk")}</p>
+          <p className="text-[11px] leading-4 text-foregroundGrey">{t("analisa.kedalaman.petunjuk")}</p>
         </div>
       </div>
-      <button
-        type="submit"
-        aria-label={platform ? t("analisa.form.daftarPartai") : t("analisa.form.analisa")}
-        className="w-[85%] h-16 cursor-pointer rounded-borderExtraRoundness bg-backgroundBoxBoxHighlighted hover:bg-backgroundBoxBoxHighlightedHover transition-all font-extrabold hover:shadow-shadowBoxBoxHighlighted flex items-center justify-center"
-      >
-        <Lens class="fill-foregroundBlackDark" size={32} />
-      </button>
-    </form>
+    </div>
   );
 }
