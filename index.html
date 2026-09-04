@@ -7,8 +7,8 @@
       Pages). Di Vercel kebijakan yang sama — ditambah frame-ancestors,
       X-Content-Type-Options, Referrer-Policy, COOP dan Permissions-Policy —
       dikirim sebagai HTTP header lewat vercel.json, karena beberapa direktif
-      (frame-ancestors, report-uri) diabaikan browser bila hanya ada di
-      <meta>; Lighthouse mencatatnya sebagai galat konsol.
+      (frame-ancestors, report-uri) diabaikan browser bila hanya di <meta>;
+      Lighthouse mencatatnya sebagai galat konsol.
       'wasm-unsafe-eval' diperlukan agar Stockfish (WebAssembly) di halaman
       Papan Interaktif tetap boleh dijalankan.
     -->
@@ -33,14 +33,7 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!--
-      Verifikasi kepemilikan situs di Google Search Console (metode
-      "HTML tag"). Google membaca tag ini saat tombol Verify ditekan dan
-      saat memverifikasi ulang berkala. Tag ini tidak memengaruhi tampilan
-      maupun peringkat. Bila kelak ada property lain (mis. domain kustom)
-      yang diverifikasi dengan token berbeda, TAMBAH satu baris <meta>
-      lagi — jangan menimpa token yang sudah ada.
-    -->
+    <!-- Verifikasi kepemilikan situs di Google Search Console (metode HTML tag). -->
     <meta
       name="google-site-verification"
       content="bWdpNEopAePye9xQpJOl2H5MoAxcrjClcESsm44ULP0"
@@ -50,12 +43,6 @@
       name="description"
       content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
     />
-    <!--
-      Kata kunci (SEO). Catatan: Google mengabaikan tag ini untuk
-      pemeringkatan — yang tampil di hasil pencarian Google adalah <title>
-      dan meta description di atas. Tag ini tetap berguna untuk mesin
-      pencarian lain, agregator, dan dokumenasi isi situs.
-    -->
     <meta
       name="keywords"
       content="blunder skuad, Blunder Skuad, catur, komunitas catur, komunitas catur Indonesia, klub catur, turnamen catur, jadwal turnamen catur, belajar catur, sekolah catur, teka-teki catur, skakmat, pembukaan catur, e-book catur, papan catur interaktif, Stockfish, komunitas chess, chess Indonesia, Indonesian chess community"
@@ -63,7 +50,7 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://chess-club-weld.vercel.app/" />
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Komunitas Catur Indonesia" />
+    <meta property="og:site_name" content="Blunder Skuad" />
     <meta property="og:title" content="Blunder Skuad | Komunitas Catur Indonesia" />
     <meta
       property="og:description"
@@ -86,8 +73,8 @@
       {
         "@context": "https://schema.org",
         "@type": "Organization",
-        "name": "Komunitas Catur Indonesia",
-        "alternateName": "Blunder Skuad",
+        "name": "Blunder Skuad",
+        "alternateName": "Komunitas Catur Indonesia",
         "url": "https://chess-club-weld.vercel.app/",
         "logo": "https://chess-club-weld.vercel.app/images/logo-mark-dark.webp",
         "email": "info@komunitascatur.or.id",
@@ -101,7 +88,8 @@
       {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        "name": "Komunitas Catur Indonesia",
+        "name": "Blunder Skuad",
+        "alternateName": "Komunitas Catur Indonesia",
         "url": "https://chess-club-weld.vercel.app/",
         "inLanguage": ["id", "en"],
         "description": "Wadah bermain, belajar, dan bertumbuh bagi pecatur: jadwal turnamen, peringkat anggota, kelas pelatihan, teka-teki, buku pembukaan, dan e-book catur."
@@ -115,11 +103,6 @@
       fetchpriority="high"
     />
     <style>
-      /* Gambar boot = slide PERTAMA hero Landing (tonggak-2015) dengan
-         tinggi yang sama (650px). Dengan begitu saat React menggantinya
-         dengan hero asli, pengguna tidak melihat gambar berganti-ganti.
-         Dibuang oleh komponen BersihkanBootHero begitu konten halaman
-         pertama benar-benar ter-render. */
       #boot-hero {
         position: absolute;
         inset: 0 0 auto 0;
