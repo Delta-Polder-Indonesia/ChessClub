@@ -45,36 +45,36 @@ function getRatingPhase(accuracy) {
 }
 function RatingIcon({ titleText, ratingPhase, t }) {
   const { rating, accuracy } = ratingPhase;
-  if (!rating || !accuracy) return <span className="text-xl" title={t("analisa.ringkasan.cukupLangkah")}>-</span>;
-  return <RatingSVG draggable rating={rating} size={30} title={t("analisa.ringkasan.akurasiFase", { fase: titleText, angka: accuracy })} />;
+  if (!rating || !accuracy) return <span className="text-sm text-foregroundGrey" title={t("analisa.ringkasan.cukupLangkah")}>-</span>;
+  return <RatingSVG draggable rating={rating} size={18} title={t("analisa.ringkasan.akurasiFase", { fase: titleText, angka: accuracy })} />;
 }
 function GameRating(props) {
   const { accuracy, accuracyPhases, reducedSummary } = props;
   const { t } = useI18n();
   return <div className="w-[85%] flex flex-col items-end gap-3">
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.ratingPartai")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.ratingPartai")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] reduceSummary:min-w-[262px] min-w-[160px] w-[160px] justify-between">
                     <RatingBox fontSize={reducedSummary ? 18 : void 0} width={reducedSummary ? 64 : void 0} paddingY={reducedSummary ? 4 : void 0} white>{topElo(getRating(accuracy.w))}</RatingBox>
                     <RatingBox fontSize={reducedSummary ? 18 : void 0} width={reducedSummary ? 64 : void 0} paddingY={reducedSummary ? 4 : void 0}>{topElo(getRating(accuracy.b))}</RatingBox>
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.pembukaan")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.pembukaan")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.opening.w)} titleText={t("analisa.ringkasan.pembukaan")} /></div>
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.opening.b)} titleText={t("analisa.ringkasan.pembukaan")} /></div>
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.menengah")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.menengah")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.middlegame.w)} titleText={t("analisa.ringkasan.menengah")} /></div>
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.middlegame.b)} titleText={t("analisa.ringkasan.menengah")} /></div>
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.akhir")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akhir")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.endgame.w)} titleText={t("analisa.ringkasan.akhir")} /></div>
                     <div className="reduceSummary:w-20 w-16 flex items-center justify-center select-none"><RatingIcon t={t} ratingPhase={getRatingPhase(accuracyPhases.endgame.b)} titleText={t("analisa.ringkasan.akhir")} /></div>

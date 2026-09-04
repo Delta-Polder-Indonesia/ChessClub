@@ -116,12 +116,12 @@ function PlayersAccuracy(props) {
     setAccuracyPhases(accuraciesPhases);
   }, [moves]);
   return <div className="w-[85%] flex flex-col items-end gap-3">
-            <div className="reduceSummary:w-[262px] w-[160px] flex flex-row justify-between font-extrabold">
+            <div className="reduceSummary:w-[262px] w-[160px] flex flex-row justify-between font-semibold text-sm">
                 <div className="reduceSummary:w-20 w-16 flex flex-row justify-center whitespace-nowrap overflow-visible"><span>{players2[0].name}</span></div>
                 <div className="reduceSummary:w-20 w-16 flex flex-row justify-center whitespace-nowrap overflow-visible"><span>{players2[1].name}</span></div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.pemain")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.pemain")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end bg-backgroundProfileWhite rounded-borderRoundness">
                         <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileWhite" />
@@ -132,7 +132,7 @@ function PlayersAccuracy(props) {
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{t("analisa.ringkasan.akurasi")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akurasi")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{formatAkurasi(accuracy.w)}</RatingBox>
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0}>{formatAkurasi(accuracy.b)}</RatingBox>

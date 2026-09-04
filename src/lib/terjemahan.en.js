@@ -1272,6 +1272,8 @@ export const EN = {
       hasil: "Result",
       tanggal: "Date",
       hari: "Day",
+      cari: "Search players…",
+      tidakCocok: "No games match your search.",
       kelas: {
         bullet: "Bullet",
         blitz: "Blitz",

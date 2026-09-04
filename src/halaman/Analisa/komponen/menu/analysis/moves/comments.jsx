@@ -75,7 +75,7 @@ function Comments({ comment, commentKey, commentIndex, rating, moveSan, evaluati
   if (!komentar || !rating || !moveSan) {
     return (
       <div
-        className="bg-white w-[85%] rounded-borderExtraRoundness p-4 font-bold text-lg text-foregroundBlack"
+        className="bg-white w-[85%] rounded-borderExtraRoundness p-3.5 text-sm font-semibold text-foregroundBlack leading-6"
         dangerouslySetInnerHTML={{ __html: overallGameComment ?? "" }}
       />
     );
@@ -85,17 +85,19 @@ function Comments({ comment, commentKey, commentIndex, rating, moveSan, evaluati
   const format = FORMAT_LABEL[rating] ?? "adalah";
 
   return (
-    <div style={{ backgroundColor: "#ffffff" }} className="h-44 w-[85%] p-4 rounded-borderExtraRoundness text-foregroundBlack text-lg font-bold flex flex-col gap-1">
-      <div className="flex flex-row justify-between items-center">
-        <div className="flex flex-row items-center gap-2">
-          <RatingSVG draggable rating={rating} size={32} />
-          <span>
+    <div style={{ backgroundColor: "#ffffff" }} className="w-[85%] min-h-24 p-3.5 rounded-borderExtraRoundness text-foregroundBlack text-sm font-semibold flex flex-col gap-1.5">
+      <div className="flex flex-row justify-between items-center gap-3">
+        <div className="flex flex-row items-center gap-2 min-w-0">
+          <RatingSVG draggable rating={rating} size={22} />
+          <span className="truncate">
             {moveSan} {t(`analisa.formatLabel.${format}`, { label })}
           </span>
         </div>
-        <FormatEval evaluation={evaluation} white={white} />
+        <div className="shrink-0">
+          <FormatEval evaluation={evaluation} white={white} />
+        </div>
       </div>
-      <div>{komentar}</div>
+      <div className="leading-5 text-foregroundBlack">{komentar}</div>
     </div>
   );
 }

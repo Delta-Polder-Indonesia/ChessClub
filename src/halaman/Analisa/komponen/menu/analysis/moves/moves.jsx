@@ -112,16 +112,16 @@ function Moves(props) {
                 <Comments comment={analyzingMove ? previousMove?.comment : move2?.comment} commentKey={analyzingMove ? previousMove?.commentKey : move2?.commentKey} commentIndex={analyzingMove ? previousMove?.commentIndex : move2?.commentIndex} rating={analyzingMove ? previousMove?.moveRating : move2?.moveRating} moveSan={analyzingMove ? previousMove?.san : move2?.san} evaluation={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={analyzingMove ? previousMove?.color === WHITE : move2?.color === WHITE} overallGameComment={overallGameComment} />
             </div>
             <div style={{ display: previousMove ? "" : "none" }} className="bg-backgroundBoxDarker w-full">
-                <div className="w-[85%] font-extrabold text-highlightBest mx-auto flex flex-row items-center gap-2 py-2">
+                <div className="w-[85%] text-sm font-semibold text-highlightBest mx-auto flex flex-row items-center gap-2 py-1.5">
                     <FormatEval best smaller evaluation={previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={(previousMove?.color ?? WHITE) === WHITE} />
-                    <RatingSVG rating="best" size={22} />
+                    <RatingSVG rating="best" size={18} />
                     {previousMove?.bestMoveSan} {t("analisa.langkah.palingBaik")}
                 </div>
             </div>
             <ul style={{ height: movesHeight || "100%" }} ref={moveListRef} className="gap-y-1 overflow-y-auto overflow-x-hidden w-[85%] select-none flex flex-col">
                 {getTurns().map((turn, i) => <li key={i} className="flex flex-row text-foregroundGrey items-center w-full">
-                        <span className="font-bold w-[33px]">{turn[0]}.</span>
-                        <div className="flex flex-row text-lg font-extrabold flex-grow">
+                        <span className="font-bold w-8 text-[13px]">{turn[0]}.</span>
+                        <div className="flex flex-row text-sm font-bold flex-grow">
                             {turn.slice(1).map((move3, j) => {
     if (!move3) return <div key={`${i}-${j}`} className="w-1/2" />;
     const currentMoveNumber = i * 2 + j + (firstMoveBlack ? 0 : 1);
@@ -132,8 +132,8 @@ function Moves(props) {
     const shownRating = getRating(currentMoveNumber, rating, prevRating, nextRating, lastBookMove);
     const fgColorClass = shownRating ? shownRating.textClass : isSelected ? "text-foregroundHighlighted" : "";
     return <div key={`${i}-${j}`} className="w-1/2 flex flex-row gap-1 items-center">
-                                        <button type="button" onClick={() => handleMoveClick(currentMoveNumber)} className="w-[22px] outline-none">{shownRating ? <RatingSVG draggable rating={shownRating.rating} size={22} /> : null}</button>
-                                        <button type="button" onClick={() => handleMoveClick(currentMoveNumber)} className={`rounded-borderRoundness outline-none border-b-2 text-left px-2 w-fit ${isSelected ? "bg-backgroundBoxBox border-backgroundBoxBoxHover" : "border-transparent"} ${fgColorClass}`}>{move3}</button>
+                                        <button type="button" onClick={() => handleMoveClick(currentMoveNumber)} className="w-[18px] outline-none">{shownRating ? <RatingSVG draggable rating={shownRating.rating} size={18} /> : null}</button>
+                                        <button type="button" onClick={() => handleMoveClick(currentMoveNumber)} className={`rounded-borderRoundness outline-none border-b-2 text-left px-1.5 w-fit ${isSelected ? "bg-backgroundBoxBox border-backgroundBoxBoxHover" : "border-transparent"} ${fgColorClass}`}>{move3}</button>
                                     </div>;
   })}
                         </div>

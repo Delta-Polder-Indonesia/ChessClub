@@ -1278,6 +1278,8 @@ export const ID = {
       hasil: "Hasil",
       tanggal: "Tanggal",
       hari: "Tgl",
+      cari: "Cari pemain…",
+      tidakCocok: "Tidak ada permainan yang cocok dengan pencarian.",
       kelas: {
         bullet: "Bullet",
         blitz: "Blitz",

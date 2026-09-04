@@ -64,7 +64,7 @@ function Games(props) {
     })();
   }, []);
   if (gamesInfo.length === 0 && !loading) {
-    return <div className="text-center font-bold text-2xl my-4">{t("analisa.partai.tidakAda")}</div>;
+    return <div className="text-center text-sm text-foregroundGrey py-8">{t("analisa.partai.tidakAda")}</div>;
   }
   return <GamesUI gamesInfo={gamesInfo} loading={loading} username={username} depth={depth} setData={setData} />;
 }
@@ -114,13 +114,13 @@ function SelectLichessOrgGame(props) {
     })();
   }, [username]);
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? " flex flex-col justify-center flex-grow" : ""}`}>
-            <h1 style={{ display: loading ? "none" : "" }} className="text-2xl py-4 px-8 sticky text-foreground"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-3xl font-bold">{username}</a> &middot; {t("analisa.partai.judul", { platform: PLATFORM })}</h1>
+            <h1 style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky text-lg text-foreground"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
             <hr style={{ display: loading ? "none" : "" }} className="border-border" />
             <div className="flex flex-col w-full">
                 {loading ? <Loading whatIsLoading={t("analisa.tab.pilihPartai")} abort={stopSelecting} /> : null}
                 {dates.map((date, i) => {
     return <div key={i}>
-                            <button onClick={() => toggleSelected(i)} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(NaN)} type="button" className={`${hovered === i || selected === i ? "text-foregroundHighlighted" : "text-foregroundGrey"} hover:bg-backgroundBoxHover w-full tracking-wide transition-colors text-2xl px-8 py-4 flex flex-row justify-between items-center`}>
+                            <button onClick={() => toggleSelected(i)} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(NaN)} type="button" className={`${hovered === i || selected === i ? "text-foregroundHighlighted" : "text-foregroundGrey"} hover:bg-backgroundBoxHover w-full transition-colors text-sm px-8 py-2.5 flex flex-row justify-between items-center`}>
                                 <span><b>{date.year}</b> {getMonthName(date.month, locale)}</span>
                                 <div style={{ opacity: hovered === i || selected === i ? "100" : "0", transform: `rotate(${selected !== i ? "180deg" : "0"})` }} className="transition-opacity"><Arrow class="fill-foregroundHighlighted" /></div>
                             </button>

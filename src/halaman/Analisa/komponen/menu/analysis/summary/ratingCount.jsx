@@ -44,11 +44,11 @@ function RatingCount(props) {
             {ratings.map((rating) => {
     const titleRating = t(`analisa.penilaian.${rating}`);
     return <div key={rating} className="flex flex-row items-center justify-between">
-                        <span className="font-bold text-foregroundGrey reduceSummary:text-lg text-base">{titleRating}</span>
-                        <div className="flex flex-row text-xl font-extrabold w-fit">
-                            <span className={`reduceSummary:w-[81px] w-[40px] text-left text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.w[rating] ?? 0}</span>
-                            <RatingSVG draggable className="select-none" rating={rating} size={30} />
-                            <span className={`reduceSummary:w-[81px] w-[40px] text-right text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.b[rating] ?? 0}</span>
+                        <span className="text-sm font-semibold text-foregroundGrey">{titleRating}</span>
+                        <div className="flex flex-row text-sm font-bold w-fit items-center">
+                            <span className={`reduceSummary:w-[72px] w-[36px] text-left text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.w[rating] ?? 0}</span>
+                            <RatingSVG draggable className="select-none" rating={rating} size={18} />
+                            <span className={`reduceSummary:w-[72px] w-[36px] text-right text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.b[rating] ?? 0}</span>
                         </div>
                     </div>;
   })}
