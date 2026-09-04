@@ -63,6 +63,8 @@ const AnalyzeContext = createContext({
   }],
   analyzingMove: [false, () => {
   }],
+  akun: [{ platform: "chessCom", username: "" }, () => {
+  }],
   depth: [13, () => {
   }],
   gameController: { back: () => {
@@ -107,6 +109,7 @@ function AnalyzeContextProvider(props) {
    * dibaca kunci "kci-analisa-depth" yang tidak pernah ditulis siapa pun,
    * jadi pilihan pengguna selalu kembali ke 13 setiap kali halaman dibuka.
    */
+  const [akun, setAkun] = useState({ platform: "chessCom", username: "" });
   const [depth, setDepth] = useState(() => {
     const tersimpan = bacaAngka("kedalaman", 13);
     return tersimpan >= 1 ? tersimpan : 13;
@@ -188,7 +191,7 @@ function AnalyzeContextProvider(props) {
       setPlaying(false);
     }
   };
-  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], depth: [depth, setDepth], gameController }}>
+  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], gameController }}>
             {props.children}
         </AnalyzeContext.Provider>;
 }

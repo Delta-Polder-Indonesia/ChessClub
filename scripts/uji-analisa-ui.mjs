@@ -323,7 +323,7 @@ const awal = teksBagus();
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
 uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
 uji("papan ter-render (svg bidak)", domSiap.querySelectorAll(".analisa-root svg").length > 20);
-uji("formulir analisis tersedia", !!domSiap.querySelector("textarea"));
+uji("panel awal menampilkan ajakan tanpa form lama", /Belum ada data permainan/.test(awal));
 uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hitam"));
 
 /* --- regresi: metadata/state pemain kosong tidak boleh merobohkan Game --- */
@@ -355,16 +355,25 @@ uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hi
   wadah.remove();
 }
 
-/* --- alur: tempel PGN lalu kirim --- */
-const kotak = domSiap.querySelector("textarea");
+/* --- alur: impor PGN lewat popup Impor di bilah kiri --- */
+const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 const pengeset = Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, "value").set;
-pengeset.call(kotak, PGN_UJI);
-kotak.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
-await tunggu(300);
+const bukaImpor = async () => {
+  klik(domSiap.querySelector('[data-uji="nav-impor"]'));
+  await tunggu(250);
+  return !!domSiap.querySelector('[data-uji="popup"]');
+};
+uji("popup Impor terbuka", await bukaImpor());
+const kotakPgn = domSiap.querySelector('[data-uji="impor-pgn"]');
+uji("area tempel PGN tersedia", !!kotakPgn);
+if (kotakPgn) {
+  pengeset.call(kotakPgn, PGN_UJI);
+  kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(200);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  await tunggu(1900);
+}
 
-const formulir = kotak.closest("form");
-formulir.dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-await tunggu(1600);
 
 const setelahKirim = teksBagus();
 uji("PGN diterima (tanpa galat parse)", !setelahKirim.includes("PGN tidak terbaca"));
@@ -394,41 +403,29 @@ if (tabLangkah) {
   uji("saran engine tampil", /langkah terbaik/.test(langkah));
 }
 
-/* --- alur kedua: analisis posisi FEN --- */
-/*
- * Tab "Analisis" yang lama sudah diganti tab "Laporan Analisa". Peran
- * "mulai analisis baru" kini dipegang tab itu: saat halaman sedang
- * menganalisis, klik tab "Laporan Analisa" memanggil
- * `setData({ format: "fen", string: "" })` sehingga halaman kembali ke
- * form kosong. Uji ini mengikuti alur pengguna yang sama.
- */
-const tabBaru = [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => /Laporan Analisa/.test(b.textContent ?? ""));
-uji("tab analisis baru ada", !!tabBaru);
-if (tabBaru) tabBaru.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-await tunggu(400);
-const pemilihFormat = [...domSiap.querySelectorAll("button")].find((b) => /Chess\.com|Lichess\.org|PGN|FEN/i.test(b.textContent ?? ""));
-uji("tombol pilihan format ada", !!pemilihFormat);
-if (pemilihFormat) {
-  pemilihFormat.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-  await tunggu(120);
-  const opsiFen = [...domSiap.querySelectorAll("button")].find((b) => /^FEN/i.test((b.textContent ?? "").trim()));
-  uji("opsi FEN tersedia", !!opsiFen);
-  if (opsiFen) {
-    opsiFen.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-    await tunggu(120);
-    const kotakFen = domSiap.querySelector("textarea");
-    pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
-    kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
-    await tunggu(200);
-    kotakFen.closest("form").dispatchEvent(new dom.window.Event("submit", { bubbles: true, cancelable: true }));
-    await tunggu(1400);
-    const fen = teksBagus();
-    uji("FEN diterima (tanpa galat parse)", !fen.includes("FEN tidak terbaca"));
-    uji("mode analisis posisi aktif", /Langkah|Ringkasan/.test(fen));
+/* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
+{
+  uji("popup Impor terbuka (untuk FEN)", await bukaImpor());
+  const kartuFen = [...domSiap.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "FEN");
+  uji("kartu FEN tersedia di popup", !!kartuFen);
+  if (kartuFen) {
+    klik(kartuFen);
+    await tunggu(150);
+    const kotakFen = domSiap.querySelector('[data-uji="impor-fen"]');
+    uji("isi FEN tersedia", !!kotakFen);
+    if (kotakFen) {
+      pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
+      kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+      await tunggu(150);
+      klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+      await tunggu(1800);
+      const fen = teksBagus();
+      uji("FEN diterima (tanpa galat parse)", !fen.includes("FEN tidak terbaca"));
+      uji("mode analisis posisi aktif", /Langkah|Ringkasan/.test(fen));
+    }
   }
 }
 
-/* --- navigasi papan lewat papan ketik --- */
 const tabLangkah2 = tab(/Langkah/);
 if (tabLangkah2) tabLangkah2.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 await tunggu(200);
@@ -448,15 +445,43 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 {
   const galatSebelum = pesanGalat.length;
 
-  // Balasan minimal supaya daftar bulan terisi tanpa jaringan.
-  const fetchAsli = dom.window.fetch;
-  dom.window.fetch = (url) => {
+  // Komponen memanggil fetch global (bukan window.fetch), jadi keduanya
+  // harus di-stub agar deterministik tanpa jaringan.
+  const fetchAsli = globalThis.fetch;
+  const fetchPalsu = (url) => {
     const u = String(url);
     if (u.includes("api.chess.com")) {
+      if (u.includes("/games/archives")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ archives: ["https://api.chess.com/pub/player/contoh/games/2026/01"] }),
+          text: () => Promise.resolve(""),
+        });
+      }
+      // Satu arsip bulan berisi dua partai: cukup untuk menguji render baris
+      // tabel agregat (nama pemain, tanggal, jumlah langkah) tanpa jaringan.
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ archives: ["https://api.chess.com/pub/player/contoh/games/2026/01"] }),
+        json: () => Promise.resolve({
+          games: [
+            {
+              pgn: PGN_UJI,
+              time_class: "blitz",
+              end_time: 1767225600,
+              white: { username: "contoh", rating: 1420, result: "win" },
+              black: { username: "lawanuji", rating: 1380, result: "checkmated" },
+            },
+            {
+              pgn: PGN_UJI,
+              time_class: "rapid",
+              end_time: 1767312000,
+              white: { username: "putihuji", rating: 1500, result: "win" },
+              black: { username: "contoh", rating: 1420, result: "checkmated" },
+            },
+          ],
+        }),
         text: () => Promise.resolve(""),
       });
     }
@@ -470,20 +495,91 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     }
     return fetchAsli(url);
   };
+  dom.window.fetch = fetchPalsu;
+  globalThis.fetch = fetchPalsu;
 
+  const teksPemilih = {};
   for (const platform of ["chessCom", "lichessOrg"]) {
     const wadah = domSiap.createElement("div");
     domSiap.body.appendChild(wadah);
     modul.mountPemilih(wadah, platform);
     await tunggu(500);
+    teksPemilih[platform] = (wadah.textContent ?? "").replace(/\s+/g, " ");
   }
   dom.window.fetch = fetchAsli;
+  globalThis.fetch = fetchAsli;
+  uji(
+    "tabel agregat Chess.com memuat baris partai dari arsip bulan",
+    teksPemilih.chessCom?.includes("lawanuji") &&
+      teksPemilih.chessCom?.includes("putihuji") &&
+      teksPemilih.chessCom?.includes("contoh") &&
+      !/Tidak ada permainan/.test(teksPemilih.chessCom ?? "")
+  );
+  uji(
+    "pemilih Lichess tetap memuat daftar bulan",
+    /2026/.test(teksPemilih.lichessOrg ?? "")
+  );
 
   const galatBaru = pesanGalat.slice(galatSebelum).join("\n");
   uji(
     "pemilih partai Chess.com/Lichess ter-render tanpa ReferenceError",
     !/platform is not defined|ReferenceError/.test(galatBaru)
   );
+}
+
+/* --- popup Akun & Impor (gaya en-croissant) di bilah kiri --- */
+{
+  const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  const navAkun = domSiap.querySelector('[data-uji="nav-akun"]');
+  const navImpor = domSiap.querySelector('[data-uji="nav-impor"]');
+  uji("bilah kiri punya tombol Akun & Impor", !!navAkun && !!navImpor);
+
+  klik(navAkun);
+  await tunggu(250);
+  uji(
+    "popup Akun menampilkan dua kartu situs",
+    domSiap.querySelectorAll('[data-uji="kartu-situs"]').length === 2 &&
+      domSiap.querySelector('[data-uji="nama-akun"]')
+  );
+  klik(domSiap.querySelector('[data-uji="popup-tutup"]'));
+  await tunggu(200);
+  uji("popup Akun tertutup", !domSiap.querySelector('[data-uji="popup"]'));
+
+  klik(navImpor);
+  await tunggu(250);
+  const labelTipe = [...domSiap.querySelectorAll("button")]
+    .map((b) => (b.textContent ?? "").trim())
+    .filter((x) => ["PGN", "Online", "FEN"].includes(x));
+  uji("popup Impor memuat PGN/Online/FEN", labelTipe.length >= 3);
+  const kartuOnline = [...domSiap.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Online");
+  klik(kartuOnline);
+  await tunggu(150);
+  const kotakOnline = domSiap.querySelector('[data-uji="impor-online"]');
+  uji("isian tautan Online tersedia", !!kotakOnline);
+
+  if (kotakOnline) {
+    // stub: ekspor Lichess mengembalikan PGN contoh
+    const fetchAsli2 = globalThis.fetch;
+    globalThis.fetch = (url, opts) => {
+      const u = String(url);
+      if (u.includes("lichess.org/game/export")) {
+        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(PGN_UJI) });
+      }
+      return fetchAsli2(url, opts);
+    };
+    const pengesetInput = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value").set;
+    pengesetInput.call(kotakOnline, "https://lichess.org/abcdefgh");
+    kotakOnline.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+    await tunggu(120);
+    klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+    await tunggu(2000);
+    globalThis.fetch = fetchAsli2;
+    const setelahImpor = teksBagus();
+    uji(
+      "impor Online (Lichess) langsung menganalisis partai",
+      /Ringkasan/.test(setelahImpor) && /Andini/.test(setelahImpor) && !domSiap.querySelector('[data-uji="popup"]')
+    );
+  }
 }
 
 const fatal = pesanGalat.filter((p) => /ReferenceError|TypeError|is not a function|not defined|Minified React error/.test(p) && !/jaringan|tidak tersedia di uji/.test(p));

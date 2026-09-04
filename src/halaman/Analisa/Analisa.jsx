@@ -78,13 +78,13 @@ export default function Analisa() {
                 style={{ height: tinggi || undefined }}
                 className="analisa-root relative flex w-full select-none flex-col overflow-hidden rounded-none navTop:flex-row"
               >
-                <PageErrors />
-                <Nav />
-                <main
-                  ref={wadahRef}
-                  className="relative h-full w-full overflow-y-auto overflow-x-hidden"
-                >
-                  <AnalyzeContextProvider>
+                <AnalyzeContextProvider>
+                  <PageErrors />
+                  <Nav />
+                  <main
+                    ref={wadahRef}
+                    className="relative h-full w-full overflow-y-auto overflow-x-hidden"
+                  >
                     <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:justify-start vertical:gap-2 vertical:overflow-visible vertical:p-4">
                       <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
                         <Game wadah={wadahRef} />
@@ -97,8 +97,8 @@ export default function Analisa() {
                       </div>
                       <Menu />
                     </div>
-                  </AnalyzeContextProvider>
-                </main>
+                  </main>
+                </AnalyzeContextProvider>
               </div>
             </div>
           </MesinProvider>

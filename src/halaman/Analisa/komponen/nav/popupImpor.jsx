@@ -1,0 +1,295 @@
+/*
+ * Popup "Impor permainan" — meniru modal Import en-croissant:
+ * tiga kartu pilihan (PGN | Online | FEN). "Online" menerima tautan partai
+ * Chess.com atau Lichess, lalu PGN-nya diambil otomatis.
+ *
+ * Chess.com memakai endpoint callback publik yang mengembalikan moveList
+ * berformat TCN (kode 2 karakter per langkah, spesifikasi publik Chess.com)
+ * + pgnHeaders; langkah-langkahnya diterjemahkan ke SAN lewat chess.js.
+ * Lichess memakai endpoint ekspor publik yang mengembalikan teks PGN.
+ */
+import { useState } from "react";
+import { Chess } from "chess.js";
+import Popup from "./Popup.jsx";
+import { useI18n } from "../../../../lib/i18n.jsx";
+
+const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
+
+const TIPE = [
+  { kunci: "pgn", ikon: "pgn" },
+  { kunci: "online", ikon: "formats" },
+  { kunci: "fen", ikon: "json" },
+];
+
+/* --- format TCN Chess.com (spesifikasi publik) --- */
+const KODE_TCN =
+  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!?{~}(^)[_]@#$,./&-*++=";
+const HURUF_PROMOSI = "qnrbkp";
+
+function langkahDariTcn(kode) {
+  if (!kode || kode.length !== 2) return null;
+  const a = KODE_TCN.indexOf(kode[0]);
+  let b = KODE_TCN.indexOf(kode[1]);
+  if (a < 0 || b < 0) return null;
+  let promosi;
+  if (b > 63) {
+    promosi = HURUF_PROMOSI[Math.floor((b - 64) / 3)];
+    if (!promosi) return null;
+    b = a + (a < 16 ? -8 : 8) + (((b - 1) % 3) - 1);
+  }
+  const bujur = (i) => "abcdefgh"[i % 8];
+  const lintang = (i) => Math.floor(i / 8) + 1;
+  return { from: bujur(a) + lintang(a), to: bujur(b) + lintang(b), promotion: promosi };
+}
+
+function susunPgnDariTcn(kepala, moveList) {
+  const urutan = ["Event", "Site", "Date", "Round", "White", "Black", "Result"];
+  const baris = [];
+  const sudah = new Set();
+
+  const buatHeader = (k, v) => `[${k} "${String(v).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
+  for (const k of urutan) {
+    if (kepala[k] !== undefined && kepala[k] !== "") {
+      baris.push(buatHeader(k, kepala[k]));
+      sudah.add(k);
+    }
+  }
+  for (const k of Object.keys(kepala).sort()) {
+    if (!sudah.has(k) && kepala[k] !== undefined && kepala[k] !== "") {
+      baris.push(buatHeader(k, kepala[k]));
+    }
+  }
+  if (!sudah.has("Event")) baris.unshift(buatHeader("Event", "Chess.com game"));
+  if (!sudah.has("Site")) baris.push(buatHeader("Site", "https://www.chess.com"));
+
+  const catur = new Chess();
+  const sans = [];
+  const kode2 = String(moveList ?? "");
+  for (let i = 0; i < kode2.length; i += 2) {
+    const tujuan = langkahDariTcn(kode2.slice(i, i + 2));
+    if (!tujuan) throw new Error("tcn");
+    const hasil = catur.move(tujuan);
+    if (!hasil) throw new Error("tcn");
+    sans.push(hasil.san);
+  }
+  // beri nomor langkah supaya bisa dibaca parser PGN mana pun
+  const bernomor = [];
+  let nomor = 1;
+  sans.forEach((san, i) => {
+    if (i % 2 === 0) bernomor.push(`${nomor++}.`);
+    bernomor.push(san);
+  });
+  const hasilTag = kepala.Result && kepala.Result !== "*" ? ` ${kepala.Result}` : "";
+  return `${baris.join("\n")}\n\n${bernomor.join(" ")}${hasilTag}\n`;
+}
+
+function ekstrakIdLichess(tautan) {
+  try {
+    const jalur = new URL(tautan).pathname.split("/").filter(Boolean);
+    const diabaikan = new Set(["game", "embed", "export", "white", "black", "training"]);
+    const segmen = jalur.find((s) => !diabaikan.has(s) && /^[A-Za-z0-9]{8,}$/.test(s));
+    return segmen ? segmen.slice(0, 8) : null;
+  } catch {
+    return null;
+  }
+}
+
+function ekstrakChessCom(tautan) {
+  const cocok = tautan.match(/chess\.com\/game\/(?:(live|daily|master)\/)?(\d+)/i);
+  if (!cocok) return null;
+  return { tipe: (cocok[1] || "live").toLowerCase(), id: cocok[2] };
+}
+
+async function ambilPgn(tautan) {
+  const alamat = tautan.trim();
+  if (/lichess\.org\//i.test(alamat)) {
+    const id = ekstrakIdLichess(alamat);
+    if (!id) throw new Error("bentuk");
+    const jawaban = await fetch(`https://lichess.org/game/export/${id}`, {
+      headers: { Accept: "text/plain" },
+    });
+    if (!jawaban.ok) throw new Error("jaringan");
+    return await jawaban.text();
+  }
+  if (/chess\.com/i.test(alamat)) {
+    const info = ekstrakChessCom(alamat);
+    if (!info) throw new Error("bentuk");
+    const jawaban = await fetch(`https://www.chess.com/callback/${info.tipe}/game/${info.id}`);
+    if (!jawaban.ok) throw new Error("jaringan");
+    const isi = await jawaban.json();
+    if (!isi?.game) throw new Error("bentuk");
+    return susunPgnDariTcn(isi.game.pgnHeaders ?? {}, isi.game.moveList ?? "");
+  }
+  throw new Error("bentuk");
+}
+
+function KartuTipe({ aktif, ikon, label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={aktif}
+      className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-borderRoundness border-2 px-2 py-2.5 transition-colors ${aktif
+        ? "border-backgroundBoxBoxHighlighted bg-backgroundBoxBox text-foreground"
+        : "border-border bg-backgroundBoxBox text-foregroundGrey hover:border-borderHighlighted hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"}`}
+    >
+      <GambarIkon ikon={ikon} />
+      <span className="text-[13px] font-bold">{label}</span>
+    </button>
+  );
+}
+
+function GambarIkon({ ikon }) {
+  if (ikon === "online") {
+    return (
+      <svg viewBox="0 0 24 24" className="h-6 w-6 fill-foregroundGrey" aria-hidden="true">
+        <path d="M3.9 12c0-1.7 1-3.2 2.5-3.9L4.6 6C2.4 7.2 1 9.4 1 12s1.4 4.8 3.6 6l1.8-2.1C4.9 15.2 3.9 13.7 3.9 12zm5.6-6.2c-.5.2-.6.8-.4 1.3L12 19.9c.2.5.7.7 1.2.5l.6-.2c.5-.2.6-.8.4-1.3L11.7 5.6c-.2-.5-.7-.7-1.2-.5l-.6.2zm7.3 1L15 8.9c1.5.7 2.5 2.2 2.5 3.9s-1 3.2-2.5 3.9l1.8 2.1c2.2-1.2 3.6-3.4 3.6-6s-1.4-4.8-3.6-6z" />
+      </svg>
+    );
+  }
+  return <img alt="" src={ASET(ikon)} width={26} height={26} />;
+}
+
+export default function PopupImpor({ onTutup, onImpor }) {
+  const { t } = useI18n();
+  const [tipe, setTipe] = useState("pgn");
+  const [pgn, setPgn] = useState("");
+  const [tautan, setTautan] = useState("");
+  const [fen, setFen] = useState("");
+  const [galat, setGalat] = useState(null);
+  const [memuat, setMemuat] = useState(false);
+
+  async function kirim() {
+    setGalat(null);
+    if (tipe === "pgn") {
+      if (!pgn.trim()) return;
+      onImpor({ format: "pgn", string: pgn });
+      return;
+    }
+    if (tipe === "fen") {
+      if (!fen.trim()) return;
+      onImpor({ format: "fen", string: fen });
+      return;
+    }
+    if (!tautan.trim()) return;
+    setMemuat(true);
+    try {
+      const pgn2 = await ambilPgn(tautan);
+      if (!pgn2 || !pgn2.trim()) throw new Error("kosong");
+      onImpor({ format: "pgn", string: pgn2 });
+    } catch (e) {
+      const bentuk = e?.message === "bentuk";
+      setGalat(t(bentuk ? "analisa.impor.galatTautan" : "analisa.impor.galatAmbil"));
+
+      setMemuat(false);
+    }
+  }
+
+  const kosong =
+    (tipe === "pgn" && !pgn.trim()) ||
+    (tipe === "online" && !tautan.trim()) ||
+    (tipe === "fen" && !fen.trim());
+
+  const labelTombol = t(tipe === "online" ? "analisa.impor.ambil" : "analisa.impor.analisa");
+
+  return (
+    <Popup
+      judul={t("analisa.impor.judul")}
+      subjudul={t("analisa.impor.tipe")}
+      onTutup={onTutup}
+    >
+      <div className="grid grid-cols-3 gap-2">
+        {TIPE.map((ti) => (
+          <KartuTipe
+            key={ti.kunci}
+            aktif={tipe === ti.kunci}
+            ikon={ti.ikon}
+            label={ti.kunci === "online" ? t("analisa.impor.online") : ti.kunci.toUpperCase()}
+            onClick={() => {
+              setTipe(ti.kunci);
+              setGalat(null);
+            }}
+          />
+        ))}
+      </div>
+
+      {tipe === "pgn" ? (
+        <div className="mt-4">
+          <textarea
+            spellCheck={false}
+            rows={8}
+            value={pgn}
+            onChange={(e) => setPgn(e.currentTarget.value)}
+            data-uji="impor-pgn"
+            placeholder={t("analisa.form.tempelPgn")}
+            aria-label="PGN"
+            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+          />
+        </div>
+      ) : tipe === "online" ? (
+        <div className="mt-4">
+          <input
+            type="url"
+            value={tautan}
+            onChange={(e) => setTautan(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !kosong && !memuat) {
+                e.preventDefault();
+                kirim();
+              }
+            }}
+            data-uji="impor-online"
+            placeholder={t("analisa.impor.onlinePlaceholder")}
+            aria-label={t("analisa.impor.onlineLabel")}
+            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+          />
+          <p className="mt-1.5 text-[11px] leading-4 text-foregroundGrey">
+            {t("analisa.impor.onlineBantu")}
+          </p>
+        </div>
+      ) : (
+        <div className="mt-4">
+          <textarea
+            spellCheck={false}
+            rows={2}
+            value={fen}
+            onChange={(e) => setFen(e.currentTarget.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                if (!kosong && !memuat) kirim();
+              }
+            }}
+            data-uji="impor-fen"
+            placeholder={t("analisa.form.tempelFen")}
+            aria-label="FEN"
+            className="w-full resize-none rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 font-mono text-xs leading-5 text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+          />
+        </div>
+      )}
+
+      {galat ? (
+        <p data-uji="galat-impor" className="mt-2 text-xs text-lossRed">{galat}</p>
+      ) : null}
+
+      <div className="mt-5 flex flex-row justify-end gap-2">
+        <button
+          type="button"
+          onClick={onTutup}
+          className="cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-3.5 py-2 text-sm text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
+        >
+          {t("analisa.akun.batal")}
+        </button>
+        <button
+          type="button"
+          data-uji="kirim-impor"
+          disabled={kosong || memuat}
+          onClick={kirim}
+          className="cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-default disabled:opacity-40"
+        >
+          {memuat ? t("analisa.impor.memuat") : labelTombol}
+        </button>
+      </div>
+    </Popup>
+  );
+}

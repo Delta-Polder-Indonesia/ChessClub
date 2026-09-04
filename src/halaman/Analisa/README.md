@@ -104,8 +104,34 @@ diukur, bukan menempel ke `body`.
   server kami. Nama pemain dari PGN hanya dipakai untuk menampilkan teks
   pembuka (di-escape lebih dulu).
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
-  diblokir kebijakan CORS/privasi peramban — karena itu ada peringatan
-  "mungkin dibatasi" di bawah tabel, persis seperti upstream.
+  diblokir kebijakan CORS/privasi peramban — kalau itu terjadi muncul
+  peringatan galat di panel pemilih.
+- Bilah kiri (`komponen/nav/nav.jsx`) kini punya tombol **Akun** dan
+  **Impor permainan** ala en-croissant, masing-masing membuka popup
+  (`komponen/nav/Popup.jsx`, `popupAkun.jsx`, `popupImpor.jsx`). Popup
+  Akun = pilih situs (Chess.com/Lichess) + nama pengguna → langsung muat
+  seluruh partai. Popup Impor = PGN / Online / FEN; Online menerima tautan
+  partai: Lichess lewat `lichess.org/game/export/{id}`, Chess.com lewat
+  callback publik yang moveList-nya berformat TCN (diterjemahkan ke SAN
+  memakai chess.js). Karena popup ini memicu konteks data, `AnalyzeContextProvider`
+  kini membungkus seluruh `.analisa-root` (termasuk Nav) dan state "akun"
+  dipindah dari Menu ke konteks (`akun`). CSP harus mengizinkan
+  `https://www.chess.com` selain `https://api.chess.com`.
+
+- Pemilihan sumber PGN/FEN via form di panel samping SUDAH DIHAPUS
+  (`komponen/menu/analyze/form.jsx` dibuang). Panel samping sekarang hanya
+  etalase data: ajakan awal, tabel partai akun, atau Ringkasan/Langkah hasil
+  analisis. Semua cara memasukkan partai lewat popup Akun / Impor di bilah
+  kiri (lihat butir sebelumnya), dan **kedalaman analisis dipindah ke panel
+  Pengaturan** (roda gigi BoardMenu → tab "Mesin", `komponen/pengaturan/
+  mesin.jsx`); daftar kedalaman tersimpan di `komponen/../konstanta.js`.
+
+- Pemilih Chess.com TIDAK membuka bulan satu per satu: semua arsip bulan
+  diambil otomatis (antrean 4 permintaan + progres + batal) lalu disajikan
+  sebagai satu tabel terperinci yang bisa dicari, diurutkan (Pemain, Hasil,
+  Tanggal, Langkah), dan dihalaman 100 baris. Klik baris untuk langsung
+  menganalisis PGN-nya — sama seperti sebelumnya. Pemilih Lichess tetap
+  per bulan dan memakai komponen tabel yang sama.
 - **CSP wajib mengizinkan kedua platform.** `connect-src` di `index.html`
   DAN `vercel.json` harus memuat `https://api.chess.com` serta
   `https://lichess.org`. Keduanya harus diubah bersamaan: yang di `<meta>`

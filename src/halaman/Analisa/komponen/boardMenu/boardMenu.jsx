@@ -10,8 +10,9 @@ import Themes from "../pengaturan/themes.jsx";
 import Ratings from "../pengaturan/ratings.jsx";
 import Moves from "../pengaturan/moves.jsx";
 import BestMoves from "../pengaturan/bestMoves.jsx";
+import PengaturanMesin from "../pengaturan/mesin.jsx";
 
-const TAB_PENGATURAN = ["temaPapan", "penilaian", "langkah", "langkahTerbaik"];
+const TAB_PENGATURAN = ["temaPapan", "penilaian", "langkah", "langkahTerbaik", "mesin"];
 
 function BoardMenu() {
   const { t } = useI18n();
@@ -79,6 +80,7 @@ function BoardMenu() {
                           {tabAktif === 1 ? <Ratings /> : null}
                           {tabAktif === 2 ? <Moves /> : null}
                           {tabAktif === 3 ? <BestMoves /> : null}
+                          {tabAktif === 4 ? <PengaturanMesin /> : null}
                         </div>
                       </div>
                     ) : null}
