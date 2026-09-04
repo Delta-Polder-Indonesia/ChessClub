@@ -1,6 +1,8 @@
 import { Helmet } from "react-helmet-async";
 import { useI18n } from "../lib/i18n.jsx";
 
+const NAMA_BRAND = "Blunder Skuad";
+
 /**
  * BreadcrumbList JSON-LD — membantu Google memahami hierarki navigasi.
  * Dipasang di setiap halaman yang punya breadcrumb.
@@ -8,7 +10,6 @@ import { useI18n } from "../lib/i18n.jsx";
 export function BreadcrumbJsonLd({ items }) {
   if (!items?.length) return null;
   const { t } = useI18n();
-  const namaKomunitas = t("common.namaKomunitas") || "Komunitas Catur Indonesia";
 
   const itemList = items.map((item, i) => ({
     "@type": "ListItem",
@@ -32,11 +33,9 @@ export function BreadcrumbJsonLd({ items }) {
 
 /**
  * Article JSON-LD untuk halaman berita.
+ * Brand utama publisher/author: Blunder Skuad.
  */
 export function ArticleJsonLd({ title, description, datePublished, image }) {
-  const { t } = useI18n();
-  const namaKomunitas = t("common.namaKomunitas") || "Komunitas Catur Indonesia";
-
   return (
     <Helmet>
       <script type="application/ld+json">
@@ -47,8 +46,8 @@ export function ArticleJsonLd({ title, description, datePublished, image }) {
           description: description || "",
           datePublished: datePublished || undefined,
           image: image || undefined,
-          author: { "@type": "Organization", name: namaKomunitas },
-          publisher: { "@type": "Organization", name: namaKomunitas },
+          author: { "@type": "Organization", name: NAMA_BRAND },
+          publisher: { "@type": "Organization", name: NAMA_BRAND },
         })}
       </script>
     </Helmet>
