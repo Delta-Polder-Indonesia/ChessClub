@@ -100,8 +100,7 @@ export default function Nav() {
             <Gambar draggable={false} height={30} width={30} alt="logo" src={`${import.meta.env.BASE_URL}images/analisa/logo.svg`} className="navTop:mt-[-2px]" />
             <div className="h-fit w-fit navTop:block hidden">Blunder<span className="text-sm font-light">Skuad</span></div>
           </Link>
-        </div>
-        <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
+          <hr className="border-border mx-2 my-1 navTop:block hidden" />
           <div className="flex navTop:flex-col flex-row">
             {menuPop.map((item) => (
               <button
@@ -117,8 +116,9 @@ export default function Nav() {
                 <span className="navTop:block hidden">{item.label}</span>
               </button>
             ))}
-            <hr className="mx-2 my-1 border-border navTop:block hidden" />
           </div>
+        </div>
+        <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
           <div className="flex navTop:flex-col flex-row">
             {botLinks.map((link, i) => {
               const kelas = "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors";
