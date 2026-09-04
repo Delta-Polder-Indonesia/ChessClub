@@ -4,18 +4,12 @@ import { useI18n } from "../lib/i18n.jsx";
 /**
  * Atur meta tag per halaman — judul, deskripsi, canonical, OG tags.
  *
- * Pakai:
- *   <MetaHalaman
- *     title="Turnamen"
- *     description="Jadwal turnamen catur bulanan dan liga musiman."
- *   />
- *
- * Bila `title` hanya bagian judul, ia otomatis digabung dengan
- * nama komunitas. Bila `title` sudah lengkap (ada "|"), tidak digabung.
+ * Identitas brand utama situs adalah Blunder Skuad.
+ * "Komunitas Catur Indonesia" dipakai sebagai descriptor, bukan nama brand utama.
  */
 export default function MetaHalaman({ title, description }) {
   const { t } = useI18n();
-  const namaKomunitas = t("common.namaKomunitas") || "Komunitas Catur Indonesia";
+  const namaKomunitas = "Blunder Skuad";
 
   // Bila title sudah mengandung "|", anggap sudah lengkap.
   const judulLengkap =
