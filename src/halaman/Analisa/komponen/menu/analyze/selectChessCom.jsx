@@ -16,8 +16,10 @@ import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { pushPageError } from "../../errors/pageErrors.jsx";
 import { Chess } from "chess.js";
 import Files from "../../svg/files.jsx";
+import Database from "../../svg/database.jsx";
 import { ErrorsContext } from "../../../konteks/errors.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { ambilDaftarPartai, simpanBanyakPartai } from "../../../basisData.js";
 /** Kunci pesan galat (lihat kamus analisa.partai.*) — dipakai juga oleh halaman Lichess. */
 const GAMES_ERROR = ["analisa.partai.galatJaringan", "analisa.partai.galatJaringanIsi"];
 const USER_ERROR = ["analisa.partai.galatPengguna", "analisa.partai.galatPenggunaIsi"];
@@ -28,6 +30,16 @@ const PLAYER_URL = "https://www.chess.com/member/";
 const BARIS_PER_HALAMAN = 100;
 /** Berapa banyak arsip bulan yang diambil bersamaan (batas wajar untuk API publik). */
 const ANTREAN_ARSIP = 4;
+
+function IkonRefresh({ className = "h-3.5 w-3.5" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+    </svg>
+  );
+}
 
 /** Nama bulan lewat Intl: mengikuti bahasa antarmuka, jadi tidak perlu tabel manual. */
 function getMonthName(month, locale = "id") {
@@ -334,6 +346,7 @@ function SelectChessComGame(props) {
   const { username, depth, stopSelecting } = props;
   const [fase, setFase] = useState("muatArsip"); // muatArsip | siap | galatPengguna | galatBatas | galatJaringan
   const [gamesInfo, setGamesInfo] = useState([]);
+  const [sumberDb, setSumberDb] = useState(false);
   const [gagal, setGagal] = useState(0);
   const [progres, setProgres] = useState(null); // { selesai, total, bulan }
   const [coba, setCoba] = useState(0);
@@ -343,15 +356,34 @@ function SelectChessComGame(props) {
   const setData = analyzeContext.data[1];
   const sinyalRef = useRef(null);
 
+  // Muat instan dari basis data lokal jika ada
   useEffect(() => {
+    let dibatalkan = false;
+    ambilDaftarPartai({ platform: "chessCom", username })
+      .then((dbData) => {
+        if (!dibatalkan && dbData?.partai?.length > 0) {
+          setGamesInfo((lama) => (lama.length === 0 ? dbData.partai : lama));
+          setSumberDb(true);
+          setFase((f) => (f === "muatArsip" ? "siap" : f));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      dibatalkan = true;
+    };
+  }, [username]);
+
+  useEffect(() => {
+    let dibatalkan = false;
     const sinyal = new AbortController();
     sinyalRef.current = sinyal;
+
     (async () => {
       try {
-        setFase("muatArsip");
+        setFase((f) => (gamesInfo.length > 0 ? f : "muatArsip"));
         setGagal(0);
-        setGamesInfo([]);
         setProgres(null);
+
         const res = await fetch(`https://api.chess.com/pub/player/${username}/games/archives`, { signal: sinyal.signal });
         if (!res.ok) throw Object.assign(new Error(String(res.status)), { status: res.status });
         const json = await res.json();
@@ -362,21 +394,23 @@ function SelectChessComGame(props) {
           return { tahun, bulan, url: alamat };
         });
         if (arsip.length === 0) {
-          setFase("siap");
+          if (!dibatalkan) setFase("siap");
           return;
         }
-        setProgres({ selesai: 0, total: arsip.length, bulan: "" });
+        if (!dibatalkan) setProgres({ selesai: 0, total: arsip.length, bulan: "" });
         const semua = [];
         let gagalArsip = 0;
         for (let i = 0; i < arsip.length; i += ANTREAN_ARSIP) {
           const potongan = arsip.slice(i, i + ANTREAN_ARSIP);
           const hasil = await Promise.all(potongan.map(async (arsipBulan, j) => {
             const nomor = Math.min(i + j + 1, arsip.length);
-            setProgres({
-              selesai: nomor,
-              total: arsip.length,
-              bulan: `${getMonthName(Number(arsipBulan.bulan), locale)} ${arsipBulan.tahun}`,
-            });
+            if (!dibatalkan) {
+              setProgres({
+                selesai: nomor,
+                total: arsip.length,
+                bulan: `${getMonthName(Number(arsipBulan.bulan), locale)} ${arsipBulan.tahun}`,
+              });
+            }
             try {
               const jawaban = await fetch(arsipBulan.url, { signal: sinyal.signal });
               if (!jawaban.ok) throw new Error(String(jawaban.status));
@@ -393,32 +427,58 @@ function SelectChessComGame(props) {
         }
         semua.sort((a, b) => b.timestamp - a.timestamp);
         if (semua.length === 0 && gagalArsip > 0) {
-          setFase("galatJaringan");
-          await pushPageError(setErrors, t(GAMES_ERROR[0]), t(GAMES_ERROR[1]));
+          if (!dibatalkan) {
+            setFase("galatJaringan");
+            await pushPageError(setErrors, t(GAMES_ERROR[0]), t(GAMES_ERROR[1]));
+          }
           return;
         }
-        setGagal(gagalArsip);
-        setGamesInfo(semua);
-        setFase("siap");
+
+        // Simpan seluruh partai ke basis data lokal (IndexedDB)
+        if (semua.length > 0) {
+          simpanBanyakPartai(semua, { platform: "chessCom", username }).catch(() => {});
+        }
+
+        if (!dibatalkan) {
+          setGagal(gagalArsip);
+          setGamesInfo(semua);
+          setSumberDb(false);
+          setFase("siap");
+        }
       } catch (galat) {
         if (galat?.name === "AbortError") return;
         const status = Number(galat?.status ?? galat?.message);
         if (status === 404) {
-          setFase("galatPengguna");
-          await pushPageError(setErrors, t(USER_ERROR[0]), t(USER_ERROR[1]));
+          if (!dibatalkan) {
+            setFase("galatPengguna");
+            await pushPageError(setErrors, t(USER_ERROR[0]), t(USER_ERROR[1]));
+          }
         } else if (status === 429 || status === 403) {
-          setFase("galatBatas");
-          await pushPageError(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
+          if (!dibatalkan) {
+            setFase("galatBatas");
+            await pushPageError(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
+          }
         } else {
-          setFase("galatJaringan");
-          await pushPageError(setErrors, t(GAMES_ERROR[0]), t(GAMES_ERROR[1]));
+          if (!dibatalkan) {
+            // Jika sudah ada data dari DB yang tampil, jangan hancurkan tampilan
+            if (gamesInfo.length === 0) {
+              setFase("galatJaringan");
+              await pushPageError(setErrors, t(GAMES_ERROR[0]), t(GAMES_ERROR[1]));
+            }
+          }
         }
       }
     })();
-    return () => sinyal.abort();
+    return () => {
+      dibatalkan = true;
+      sinyal.abort();
+    };
   }, [username, coba, t, locale, setErrors]);
 
-  const muatUlang = () => setCoba((n) => n + 1);
+  const muatUlang = () => {
+    setPaksaFetch(true);
+    setCoba((n) => n + 1);
+  };
   const tombolMuatUlang = t("analisa.partai.ambilLagi");
   const tombolKembali = t("analisa.partai.kembali");
 
@@ -448,6 +508,22 @@ function SelectChessComGame(props) {
                     </div>
                 </div> : null}
             {fase === "siap" && gamesInfo.length > 0 ? <>
+                {sumberDb ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2 px-8 py-2 text-xs bg-backgroundBoxBox/60 border-b border-border">
+                    <span className="flex items-center gap-1.5 font-medium text-foregroundHighlighted">
+                      <Database width={14} height={14} className="fill-foregroundHighlighted shrink-0" />
+                      <span>{t("analisa.basisData.dimuatDariDb", { jumlah: gamesInfo.length })}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={muatUlang}
+                      className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1 text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
+                    >
+                      <IkonRefresh className="h-3.5 w-3.5 shrink-0" />
+                      <span>{t("analisa.basisData.tarikUlang")}</span>
+                    </button>
+                  </div>
+                ) : null}
                 {gagal > 0 ? <div className="flex flex-wrap items-center gap-2 px-8 pt-2 text-xs text-foregroundGrey">
                     <span>{t("analisa.partai.arsipGagal", { jumlah: gagal })}</span>
                     <button type="button" onClick={muatUlang} className="underline hover:text-foregroundHighlighted transition-colors">{tombolMuatUlang}</button>

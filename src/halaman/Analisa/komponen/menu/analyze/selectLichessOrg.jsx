@@ -7,6 +7,7 @@ import { Chess } from "chess.js";
 import { API_BLOCKING_ERROR, GAMES_ERROR, GamesUI, getMonthName, Loading, USER_ERROR } from "./selectChessCom.jsx";
 import { ErrorsContext } from "../../../konteks/errors.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
+import { simpanBanyakPartai } from "../../../basisData.js";
 const PLAYER_URL = "https://lichess.org/@/";
 const PLATFORM = "Lichess.org";
 function Games(props) {
@@ -56,6 +57,9 @@ function Games(props) {
         });
         setLoading(false);
         setGamesInfo(newGamesInfo);
+        if (newGamesInfo.length > 0) {
+          simpanBanyakPartai(newGamesInfo, { platform: "lichessOrg", username }).catch(() => {});
+        }
       } catch {
         setLoading(false);
         setGamesInfo([]);

@@ -12,6 +12,7 @@ import { useState } from "react";
 import { Chess } from "chess.js";
 import Popup from "./Popup.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { imporPgnKeBasisData } from "../../basisData.js";
 
 const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
 
@@ -163,6 +164,7 @@ export default function PopupImpor({ onTutup, onImpor }) {
     setGalat(null);
     if (tipe === "pgn") {
       if (!pgn.trim()) return;
+      imporPgnKeBasisData(pgn).catch(() => {});
       onImpor({ format: "pgn", string: pgn });
       return;
     }
@@ -176,6 +178,7 @@ export default function PopupImpor({ onTutup, onImpor }) {
     try {
       const pgn2 = await ambilPgn(tautan);
       if (!pgn2 || !pgn2.trim()) throw new Error("kosong");
+      imporPgnKeBasisData(pgn2).catch(() => {});
       onImpor({ format: "pgn", string: pgn2 });
     } catch (e) {
       const bentuk = e?.message === "bentuk";
