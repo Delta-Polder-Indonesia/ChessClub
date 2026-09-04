@@ -47,6 +47,8 @@ function Games(props) {
           try {
             const chess = new Chess();
             chess.loadPgn(gameInfo.pgn);
+            // jumlah langkah (ply) dipakai kolom "Langkah" pada tabel partai
+            gameInfo.plyCount = chess.history().length;
           } catch {
             return false;
           }

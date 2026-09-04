@@ -448,15 +448,43 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 {
   const galatSebelum = pesanGalat.length;
 
-  // Balasan minimal supaya daftar bulan terisi tanpa jaringan.
-  const fetchAsli = dom.window.fetch;
-  dom.window.fetch = (url) => {
+  // Komponen memanggil fetch global (bukan window.fetch), jadi keduanya
+  // harus di-stub agar deterministik tanpa jaringan.
+  const fetchAsli = globalThis.fetch;
+  const fetchPalsu = (url) => {
     const u = String(url);
     if (u.includes("api.chess.com")) {
+      if (u.includes("/games/archives")) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: () => Promise.resolve({ archives: ["https://api.chess.com/pub/player/contoh/games/2026/01"] }),
+          text: () => Promise.resolve(""),
+        });
+      }
+      // Satu arsip bulan berisi dua partai: cukup untuk menguji render baris
+      // tabel agregat (nama pemain, tanggal, jumlah langkah) tanpa jaringan.
       return Promise.resolve({
         ok: true,
         status: 200,
-        json: () => Promise.resolve({ archives: ["https://api.chess.com/pub/player/contoh/games/2026/01"] }),
+        json: () => Promise.resolve({
+          games: [
+            {
+              pgn: PGN_UJI,
+              time_class: "blitz",
+              end_time: 1767225600,
+              white: { username: "contoh", rating: 1420, result: "win" },
+              black: { username: "lawanuji", rating: 1380, result: "checkmated" },
+            },
+            {
+              pgn: PGN_UJI,
+              time_class: "rapid",
+              end_time: 1767312000,
+              white: { username: "putihuji", rating: 1500, result: "win" },
+              black: { username: "contoh", rating: 1420, result: "checkmated" },
+            },
+          ],
+        }),
         text: () => Promise.resolve(""),
       });
     }
@@ -470,14 +498,30 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     }
     return fetchAsli(url);
   };
+  dom.window.fetch = fetchPalsu;
+  globalThis.fetch = fetchPalsu;
 
+  const teksPemilih = {};
   for (const platform of ["chessCom", "lichessOrg"]) {
     const wadah = domSiap.createElement("div");
     domSiap.body.appendChild(wadah);
     modul.mountPemilih(wadah, platform);
     await tunggu(500);
+    teksPemilih[platform] = (wadah.textContent ?? "").replace(/\s+/g, " ");
   }
   dom.window.fetch = fetchAsli;
+  globalThis.fetch = fetchAsli;
+  uji(
+    "tabel agregat Chess.com memuat baris partai dari arsip bulan",
+    teksPemilih.chessCom?.includes("lawanuji") &&
+      teksPemilih.chessCom?.includes("putihuji") &&
+      teksPemilih.chessCom?.includes("contoh") &&
+      !/Tidak ada permainan/.test(teksPemilih.chessCom ?? "")
+  );
+  uji(
+    "pemilih Lichess tetap memuat daftar bulan",
+    /2026/.test(teksPemilih.lichessOrg ?? "")
+  );
 
   const galatBaru = pesanGalat.slice(galatSebelum).join("\n");
   uji(

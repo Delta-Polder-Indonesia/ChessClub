@@ -104,8 +104,14 @@ diukur, bukan menempel ke `body`.
   server kami. Nama pemain dari PGN hanya dipakai untuk menampilkan teks
   pembuka (di-escape lebih dulu).
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
-  diblokir kebijakan CORS/privasi peramban — karena itu ada peringatan
-  "mungkin dibatasi" di bawah tabel, persis seperti upstream.
+  diblokir kebijakan CORS/privasi peramban — kalau itu terjadi muncul
+  peringatan galat di panel pemilih.
+- Pemilih Chess.com TIDAK membuka bulan satu per satu: semua arsip bulan
+  diambil otomatis (antrean 4 permintaan + progres + batal) lalu disajikan
+  sebagai satu tabel terperinci yang bisa dicari, diurutkan (Pemain, Hasil,
+  Tanggal, Langkah), dan dihalaman 100 baris. Klik baris untuk langsung
+  menganalisis PGN-nya — sama seperti sebelumnya. Pemilih Lichess tetap
+  per bulan dan memakai komponen tabel yang sama.
 - **CSP wajib mengizinkan kedua platform.** `connect-src` di `index.html`
   DAN `vercel.json` harus memuat `https://api.chess.com` serta
   `https://lichess.org`. Keduanya harus diubah bersamaan: yang di `<meta>`
