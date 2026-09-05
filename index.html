@@ -22,7 +22,7 @@
         font-src 'self' data:;
         connect-src 'self' https://api.chess.com https://www.chess.com https://lichess.org https://tablebase.lichess.ovh https://va.vercel-scripts.com https://*.wikipedia.org https://*.wikibooks.org https://translate.googleapis.com;
         worker-src 'self' blob:;
-        frame-src 'self' https://*.supabase.co https://media.githubusercontent.com;
+        frame-src 'self' https://*.supabase.co https://media.githubusercontent.com https://docs.google.com;
         object-src 'none';
         base-uri 'self';
         form-action 'self';
@@ -39,23 +39,14 @@
       content="bWdpNEopAePye9xQpJOl2H5MoAxcrjClcESsm44ULP0"
     />
     <title>Blunder Skuad | Komunitas Catur Indonesia</title>
-    <meta
-      name="description"
-      content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
-    />
-    <meta
-      name="keywords"
-      content="blunder skuad, Blunder Skuad, catur, komunitas catur, komunitas catur Indonesia, klub catur, turnamen catur, jadwal turnamen catur, belajar catur, sekolah catur, teka-teki catur, skakmat, pembukaan catur, e-book catur, papan catur interaktif, Stockfish, komunitas chess, chess Indonesia, Indonesian chess community"
-    />
+    <meta name="description" content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru." />
+    <meta name="keywords" content="blunder skuad, Blunder Skuad, catur, komunitas catur, komunitas catur Indonesia, klub catur, turnamen catur, jadwal turnamen catur, belajar catur, sekolah catur, teka-teki catur, skakmat, pembukaan catur, e-book catur, papan catur interaktif, Stockfish, komunitas chess, chess Indonesia, Indonesian chess community" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://chess-club-weld.vercel.app/" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Blunder Skuad" />
     <meta property="og:title" content="Blunder Skuad | Komunitas Catur Indonesia" />
-    <meta
-      property="og:description"
-      content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
-    />
+    <meta property="og:description" content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru." />
     <meta property="og:url" content="https://chess-club-weld.vercel.app/" />
     <meta property="og:image" content="https://chess-club-weld.vercel.app/images/landing-hero.webp" />
     <meta property="og:image:width" content="828" />
@@ -64,10 +55,7 @@
     <meta property="og:locale:alternate" content="en_US" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Blunder Skuad | Komunitas Catur Indonesia" />
-    <meta
-      name="twitter:description"
-      content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur."
-    />
+    <meta name="twitter:description" content="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur." />
     <meta name="twitter:image" content="https://chess-club-weld.vercel.app/images/landing-hero.webp" />
     <script type="application/ld+json">
       {
@@ -79,9 +67,7 @@
         "logo": "https://chess-club-weld.vercel.app/images/logo-mark-dark.webp",
         "email": "info@komunitascatur.or.id",
         "description": "Blunder Skuad — komunitas catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur.",
-        "sameAs": [
-          "https://www.chess.com/club/blunder-skuad"
-        ]
+        "sameAs": ["https://www.chess.com/club/blunder-skuad"]
       }
     </script>
     <script type="application/ld+json">
@@ -95,45 +81,17 @@
         "description": "Wadah bermain, belajar, dan bertumbuh bagi pecatur: jadwal turnamen, peringkat anggota, kelas pelatihan, teka-teki, buku pembukaan, dan e-book catur."
       }
     </script>
-    <link
-      rel="preload"
-      as="image"
-      href="/images/tonggak-2015.webp"
-      type="image/webp"
-      fetchpriority="high"
-    />
+    <link rel="preload" as="image" href="/images/tonggak-2015.webp" type="image/webp" fetchpriority="high" />
     <style>
-      #boot-hero {
-        position: absolute;
-        inset: 0 0 auto 0;
-        height: 650px;
-        background: #021624;
-        overflow: hidden;
-        z-index: 0;
-        pointer-events: none;
-      }
-      #boot-hero img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-      #root {
-        position: relative;
-        z-index: 1;
-      }
+      #boot-hero { position: absolute; inset: 0 0 auto 0; height: 650px; background: #021624; overflow: hidden; z-index: 0; pointer-events: none; }
+      #boot-hero img { width: 100%; height: 100%; object-fit: cover; }
+      #root { position: relative; z-index: 1; }
     </style>
   </head>
   <body>
     <div id="root"></div>
     <div id="boot-hero" aria-hidden="true">
-      <img
-        src="/images/tonggak-2015.webp"
-        alt=""
-        width="828"
-        height="462"
-        fetchpriority="high"
-        decoding="async"
-      />
+      <img src="/images/tonggak-2015.webp" alt="" width="828" height="462" fetchpriority="high" decoding="async" />
     </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
