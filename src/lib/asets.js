@@ -34,11 +34,11 @@ export function berkasPublik(jalur) {
  *
  * Prioritas:
  * 1. EBOOK_BASE jika object storage sudah dikonfigurasi.
- * 2. Git LFS media endpoint GitHub sebagai sumber PDF sementara.
+ * 2. Proxy same-origin untuk preview jika masih memakai Git LFS.
  *
- * Penting: mode preview dibungkus Google Docs Viewer agar header
- * Content-Disposition dari GitHub LFS tidak memaksa browser mengunduh PDF.
- * Mode unduh tetap mengarah langsung ke file PDF dan diberi parameter download.
+ * Preview TIDAK lagi diarahkan ke Google Docs Viewer. Proxy Vercel
+ * mengembalikan PDF dengan Content-Disposition: inline sehingga iframe
+ * browser dapat merender PDF tanpa memicu download.
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
  * @param {{unduh?: boolean}} [opsi] `unduh: true` = download langsung.
@@ -51,8 +51,6 @@ export function urlEbook(jalur, opsi = {}) {
   if (EBOOK_BASE) {
     dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
   } else {
-    // File PDF di public/ebooks saat ini masih memakai Git LFS. Endpoint
-    // media.githubusercontent.com mengembalikan blob PDF aslinya, bukan pointer LFS.
     const githubMediaBase =
       "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
     dasar = `${githubMediaBase}/${nama}`;
@@ -60,9 +58,9 @@ export function urlEbook(jalur, opsi = {}) {
 
   if (opsi.unduh) return `${dasar}?download=1`;
 
-  // Google Docs Viewer menangani PDF sebagai viewer inline. Ini memisahkan
-  // perilaku "Baca" dari perilaku download milik endpoint file asli.
-  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(dasar)}`;
+  // Preview selalu same-origin agar header attachment dari GitHub LFS tidak
+  // memaksa browser mengunduh PDF ketika dipasang pada iframe.
+  return `/api/ebook-preview?file=${encodeURIComponent(nama)}`;
 }
 
 /**
