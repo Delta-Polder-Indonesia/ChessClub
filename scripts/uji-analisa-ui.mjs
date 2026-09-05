@@ -438,6 +438,30 @@ if (tabLangkah) {
   uji("Bermain tanpa popup tidak mereset analisis", bukti(lagi));
 }
 
+/* --- tombol "Baru": mengosongkan papan, tapi minta konfirmasi dulu ---
+ * Pasangan dari tombol Bermain. Karena aksinya merusak (analisis dibuang),
+ * klik pertama hanya bertanya; hanya klik kedua yang benar-benar mereset.
+ */
+{
+  const sebelum = teksBagus();
+  const masihAda = () => /Ringkasan/.test(teksBagus()) && !/Belum ada data permainan/.test(teksBagus());
+  uji("prasyarat: analisis aktif sebelum tombol Baru", /Ringkasan/.test(sebelum));
+
+  klik(domSiap.querySelector('[data-uji="nav-baru"]'));
+  await tunggu(250);
+  uji("klik pertama tombol Baru belum menghapus analisis", masihAda());
+  uji(
+    "klik pertama tombol Baru meminta konfirmasi",
+    /Yakin/.test(domSiap.querySelector('[data-uji="nav-baru"]')?.textContent ?? "")
+  );
+
+  klik(domSiap.querySelector('[data-uji="nav-baru"]'));
+  await tunggu(400);
+  const sesudah = teksBagus();
+  uji("klik kedua tombol Baru mengosongkan papan", /Belum ada data permainan/.test(sesudah));
+  uji("halaman tetap hidup setelah reset", !!domSiap.querySelector(".analisa-root"));
+}
+
 /* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
 {
   uji("popup Impor terbuka (untuk FEN)", await bukaImpor());

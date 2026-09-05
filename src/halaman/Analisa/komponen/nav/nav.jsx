@@ -49,6 +49,18 @@ function IkonImpor({ className }) {
   );
 }
 
+/** Ikon "Baru" — papan kosong dengan tanda plus (monokrom, ikut fill). */
+function IkonBaru({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden="true">
+      <path
+        className={className}
+        d="M4 3h10a1 1 0 0 1 0 2H5v14h14v-9a1 1 0 0 1 2 0v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm14 0a1 1 0 0 1 1 1v2h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0V8h-2a1 1 0 0 1 0-2h2V4a1 1 0 0 1 1-1z"
+      />
+    </svg>
+  );
+}
+
 export default function Nav() {
   const { t } = useI18n();
   const [terbuka, setTerbuka] = useState(null); // null | "akun" | "database" | "impor"
@@ -58,6 +70,13 @@ export default function Nav() {
   const [pageState, setPageState] = analyzeContext.pageState;
   const setPlaying = analyzeContext.playing[1];
   const [game] = analyzeContext.game;
+
+  // Konfirmasi dua langkah untuk tombol "Baru": klik pertama bertanya,
+  // klik kedua benar-benar mengosongkan papan. Mencegah analisis panjang
+  // hilang hanya karena salah tekan.
+  const [konfirmasiBaru, setKonfirmasiBaru] = useState(false);
+  const timerKonfirmasi = useRef(null);
+  useEffect(() => () => window.clearTimeout(timerKonfirmasi.current), []);
 
   const navRef = useRef(null);
   const [lebarNav, setLebarNav] = useState(0);
@@ -107,6 +126,11 @@ const menuPop = [
       />
     ),
     kunci: "play",
+  },
+  {
+    label: t("analisa.nav.baru"),
+    icon: (props) => <IkonBaru className={props.className} />,
+    kunci: "baru",
   },
   {
     label: t("analisa.nav.akun"),
@@ -163,7 +187,25 @@ const menuPop = [
     pageState === "analyzeCustom" ||
     pageState === "loading";
 
+  /** Kosongkan papan untuk analisis baru (dengan konfirmasi bila ada isinya). */
+  function mulaiBaru() {
+    setTerbuka(null);
+    if (adaAnalisa && !konfirmasiBaru) {
+      setKonfirmasiBaru(true);
+      window.clearTimeout(timerKonfirmasi.current);
+      timerKonfirmasi.current = window.setTimeout(() => setKonfirmasiBaru(false), 4000);
+      return;
+    }
+    window.clearTimeout(timerKonfirmasi.current);
+    setKonfirmasiBaru(false);
+    setData({ format: "fen", string: "" });
+    setAkun({ platform: "", username: "" });
+    setPlaying(false);
+    setPageState("default");
+  }
+
   function kePapan() {
+    setKonfirmasiBaru(false);
     if (terbuka) {
       setTerbuka(null);
       return;
@@ -190,8 +232,24 @@ const menuPop = [
               // Saat popup terbuka, "Bermain" adalah jalan keluarnya —
               // ditonjolkan supaya terlihat sebagai tombol kembali ke papan.
               const jalanKeluar = item.kunci === "play" && Boolean(terbuka);
+              // "Baru" menunggu konfirmasi bila ada analisis yang akan hilang.
+              const menungguKonfirmasi = item.kunci === "baru" && konfirmasiBaru;
+              const label = menungguKonfirmasi ? t("analisa.nav.baruKonfirmasi") : item.label;
               const keterangan =
-                item.kunci === "play" ? t("analisa.nav.playKeterangan") : item.label;
+                item.kunci === "play"
+                  ? t("analisa.nav.playKeterangan")
+                  : item.kunci === "baru"
+                    ? t("analisa.nav.baruKeterangan")
+                    : item.label;
+              const aksi =
+                item.kunci === "play"
+                  ? kePapan
+                  : item.kunci === "baru"
+                    ? mulaiBaru
+                    : () => {
+                        setKonfirmasiBaru(false);
+                        setTerbuka(item.kunci);
+                      };
               return (
               <button
                 key={item.kunci}
@@ -199,13 +257,13 @@ const menuPop = [
                 data-uji={`nav-${item.kunci}`}
                 title={keterangan}
                 aria-label={keterangan}
-                onClick={() =>
-                  item.kunci === "play" ? kePapan() : setTerbuka(item.kunci)
-                }
-                className={`${kelasTombol}${jalanKeluar ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}`}
+                onClick={aksi}
+                className={`${kelasTombol}${jalanKeluar ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}${
+                  menungguKonfirmasi ? " bg-backgroundBoxHover text-lossRed" : ""
+                }`}
               >
                 {item.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                <span className="navTop:block hidden">{item.label}</span>
+                <span className="navTop:block hidden">{label}</span>
               </button>
               );
             })}
