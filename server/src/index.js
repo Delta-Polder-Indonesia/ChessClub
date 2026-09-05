@@ -35,8 +35,9 @@ daftarkanRute(router, { mulaiPada });
 
 // Hardening rute tanpa mematahkan klien lama:
 // - endpoint verifikasi tiket tidak lagi mengungkap isi tiket lewat URL;
-// - aksi pindai otomatis tidak boleh dipicu lewat GET. Klien lama yang masih
-//   GET akan mendapat 405, sedangkan POST memakai handler yang sama.
+// - pemindaian otomatis tidak boleh dipicu oleh GET biasa/link/prefetch.
+//   Klien resmi yang lama masih GET wajib menyertakan header khusus, yang
+//   menyebabkan browser meminta CORS preflight dan mencegah CSRF sederhana.
 const cariRuteAsli = router.cari.bind(router);
 router.cari = (metode, jalur) => {
   if (jalur.startsWith("/api/auth/tiket/")) {
@@ -54,13 +55,29 @@ router.cari = (metode, jalur) => {
 
   if (jalur === "/api/pengurus/pindai-otomatis") {
     if (metode === "GET") {
+      const ruteLegacy = cariRuteAsli("GET", jalur);
       return {
-        param: {},
-        opsi: {},
-        penangan: async () => ({
-          status: 405,
-          isi: { pesan: "Metode GET dinonaktifkan. Gunakan POST untuk menjalankan pemindaian." },
-        }),
+        param: ruteLegacy?.param || {},
+        opsi: ruteLegacy?.opsi || {},
+        penangan: async (req, ...args) => {
+          const headerAksi = String(req.headers["x-kci-action"] || "");
+          if (headerAksi !== "auto-scan") {
+            return {
+              status: 405,
+              isi: {
+                pesan:
+                  "Metode GET dinonaktifkan. Gunakan POST atau request resmi " +
+                  "dengan header X-KCI-Action: auto-scan.",
+              },
+            };
+          }
+          return ruteLegacy?.penangan
+            ? ruteLegacy.penangan(req, ...args)
+            : {
+                status: 405,
+                isi: { pesan: "Metode tidak didukung." },
+              };
+        },
       };
     }
     if (metode === "POST") {
