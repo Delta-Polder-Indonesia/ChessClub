@@ -30,23 +30,37 @@ export function berkasPublik(jalur) {
 }
 
 /**
- * Alamat e-book PDF: pakai object storage bila `EBOOK_BASE` sudah diatur
- * (lihat src/data/ebook-storage.js), selain itu jatuh ke berkas lokal
- * public/ebooks/*.pdf (mode Git LFS lama).
+ * Alamat e-book PDF.
  *
- * Nama berkas diambil dari segmen terakhir `jalur` dan sudah berformat
- * URL-encoded (sesuai nilai `file:` di ebook-data.js), sehingga cocok
- * langsung disambung ke basis URL storage.
+ * Prioritas:
+ * 1. EBOOK_BASE jika object storage sudah dikonfigurasi.
+ * 2. Git LFS media endpoint GitHub sebagai fallback untuk PDF yang masih
+ *    tersimpan sebagai pointer LFS di repository.
  *
- * @param {string} jalur  "/ebooks/Nama%20File.pdf"
+ * Fallback GitHub sengaja dipakai agar PDF lama tetap dapat dibaca di Vercel
+ * tanpa mengirim file pointer LFS ke browser. Setelah object storage aktif,
+ * cukup isi EBOOK_BASE dan seluruh PDF otomatis pindah ke storage tersebut.
+ *
+ * @param {string} jalur "/ebooks/Nama%20File.pdf"
  * @param {{unduh?: boolean}} [opsi] `unduh: true` menambah `?download`
- *        supaya Supabase mengirim Content-Disposition: attachment.
+ *        untuk provider storage yang mendukung parameter tersebut.
  */
 export function urlEbook(jalur, opsi = {}) {
-  if (!EBOOK_BASE) return berkasPublik(jalur);
-  const nama = String(jalur || "").replace(/^\//, "").split("/").pop();
-  const dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
-  return opsi.unduh ? `${dasar}?download` : dasar;
+  const mentah = String(jalur || "").replace(/^\//, "");
+  const nama = mentah.split("/").pop() || "";
+
+  if (EBOOK_BASE) {
+    const dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
+    return opsi.unduh ? `${dasar}?download` : dasar;
+  }
+
+  // File PDF di public/ebooks saat ini masih memakai Git LFS. Endpoint
+  // `media.githubusercontent.com` mengembalikan blob PDF aslinya, bukan
+  // pointer LFS, sehingga browser PDF viewer dapat membacanya.
+  const githubMediaBase =
+    "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
+  const dasar = `${githubMediaBase}/${nama}`;
+  return opsi.unduh ? `${dasar}?download=1` : dasar;
 }
 
 /**
@@ -107,7 +121,7 @@ export function sumberGambar(jalur, opsi = {}) {
 
   const [lebar, tinggi, varian = []] = catatan;
   const kandidat = varian
-    .filter((l) => l < lebar) // varian yang lebih lebar dari aslinya tak pernah dipakai
+    .filter((l) => l < lebar)
     .map((l) => `${gambar(kunci.replace(/\.webp$/i, `-${l}.webp`))} ${l}w`);
   kandidat.push(`${penuh} ${lebar}w`);
 
@@ -122,20 +136,12 @@ export function sumberGambar(jalur, opsi = {}) {
 
 /**
  * Hangatkan satu gambar (hasil sumberGambar) di latar belakang.
- *
- * srcSet + sizes ikut dipasang supaya yang diunduh kandidat yang AKAN dipakai
- * browser — bukan berkas penuh 80 KiB yang belum tentu ditampilkan. Ini yang
- * dipakai karusel Landing untuk menyiapkan sampul sebelah tanpa menggeruk
- * kuota pengunjung ponsel.
  */
 export function pramuatGambar(sumber) {
   if (typeof window === "undefined" || !sumber?.src) return null;
   const img = new window.Image();
   img.decoding = "async";
   if (sumber.srcSet) {
-    // Hanya srcSet + sizes: browser memilih kandidat yang sama seperti saat
-    // gambar ini benar-benar tampil (varian kecil), tanpa ikut menarik berkas
-    // aslinya yang bisa 4× lebih besar.
     img.srcset = sumber.srcSet;
     img.sizes = sumber.sizes;
   } else {
