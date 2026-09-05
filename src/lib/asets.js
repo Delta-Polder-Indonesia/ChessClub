@@ -34,33 +34,35 @@ export function berkasPublik(jalur) {
  *
  * Prioritas:
  * 1. EBOOK_BASE jika object storage sudah dikonfigurasi.
- * 2. Git LFS media endpoint GitHub sebagai fallback untuk PDF yang masih
- *    tersimpan sebagai pointer LFS di repository.
+ * 2. Git LFS media endpoint GitHub sebagai sumber PDF sementara.
  *
- * Fallback GitHub sengaja dipakai agar PDF lama tetap dapat dibaca di Vercel
- * tanpa mengirim file pointer LFS ke browser. Setelah object storage aktif,
- * cukup isi EBOOK_BASE dan seluruh PDF otomatis pindah ke storage tersebut.
+ * Penting: mode preview dibungkus Google Docs Viewer agar header
+ * Content-Disposition dari GitHub LFS tidak memaksa browser mengunduh PDF.
+ * Mode unduh tetap mengarah langsung ke file PDF dan diberi parameter download.
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
- * @param {{unduh?: boolean}} [opsi] `unduh: true` menambah `?download`
- *        untuk provider storage yang mendukung parameter tersebut.
+ * @param {{unduh?: boolean}} [opsi] `unduh: true` = download langsung.
  */
 export function urlEbook(jalur, opsi = {}) {
   const mentah = String(jalur || "").replace(/^\//, "");
   const nama = mentah.split("/").pop() || "";
 
+  let dasar;
   if (EBOOK_BASE) {
-    const dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
-    return opsi.unduh ? `${dasar}?download` : dasar;
+    dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
+  } else {
+    // File PDF di public/ebooks saat ini masih memakai Git LFS. Endpoint
+    // media.githubusercontent.com mengembalikan blob PDF aslinya, bukan pointer LFS.
+    const githubMediaBase =
+      "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
+    dasar = `${githubMediaBase}/${nama}`;
   }
 
-  // File PDF di public/ebooks saat ini masih memakai Git LFS. Endpoint
-  // `media.githubusercontent.com` mengembalikan blob PDF aslinya, bukan
-  // pointer LFS, sehingga browser PDF viewer dapat membacanya.
-  const githubMediaBase =
-    "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
-  const dasar = `${githubMediaBase}/${nama}`;
-  return opsi.unduh ? `${dasar}?download=1` : dasar;
+  if (opsi.unduh) return `${dasar}?download=1`;
+
+  // Google Docs Viewer menangani PDF sebagai viewer inline. Ini memisahkan
+  // perilaku "Baca" dari perilaku download milik endpoint file asli.
+  return `https://docs.google.com/gview?embedded=1&url=${encodeURIComponent(dasar)}`;
 }
 
 /**
