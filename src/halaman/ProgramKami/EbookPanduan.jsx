@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
-import { sumberGambar, urlEbook } from "../../lib/asets.js";
+import PembacaPdf from "../../components/PembacaPdf.jsx";
+import { sumberEbook, sumberGambar, urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
 import FiturEbook from "./FiturEbook.jsx";
@@ -13,7 +14,10 @@ import FiturEbook from "./FiturEbook.jsx";
  * Konsep:
  * - Daftar file PDF yang ada di /public/ebooks/
  * - Gambar sampul (cover) di /public/images/E-Books/
- * - Klik "Baca" -> buka modal viewer (iframe) bisa baca langsung
+ * - Klik "Baca" (ikon mata) -> buka modal pembaca PDF bawaan situs
+ *   (src/components/PembacaPdf.jsx, berbasis pdf.js). Halaman digambar ke
+ *   <canvas> sehingga dokumen benar-benar TAMPIL, termasuk di ponsel yang
+ *   penampil PDF bawaannya justru mengunduh berkas.
  * - Klik "Unduh" -> download file
  * - Dibuka dari laman lain dengan ?buku=<id> -> otomatis gulir & sorot kartu
  * - Dibuka dengan ?kategori=<label> -> pasang filter & gulir ke katalog
@@ -164,6 +168,9 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
 export default function EbookPanduan() {
   const { t } = useI18n();
   const [pdfAktif, setPdfAktif] = useState(null);
+  // Jumlah halaman sebenarnya baru diketahui setelah PDF terbuka; data statis
+  // di ebook-data.js sering hanya berisi "-".
+  const [halamanPdf, setHalamanPdf] = useState(0);
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [disorot, setDisorot] = useState(null);
   const [searchParams] = useSearchParams();
@@ -301,7 +308,11 @@ export default function EbookPanduan() {
                 disorot={disorot === buku.id}
                 terbalik={kartuBalik.has(buku.id)}
                 padaBalik={() => toggleBalik(buku.id)}
-                padaBaca={() => buku.tersedia && setPdfAktif(buku)}
+                padaBaca={() => {
+                  if (!buku.tersedia) return;
+                  setHalamanPdf(0);
+                  setPdfAktif(buku);
+                }}
               />
             ))}
           </div>
@@ -319,7 +330,8 @@ export default function EbookPanduan() {
                     <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
                   </div>
                   <p className="mt-0.5 hidden text-[11px] text-slate-500 md:block">
-                    {pdfAktif.kategori} • {pdfAktif.ukuran} • {pdfAktif.halaman}
+                    {pdfAktif.kategori} • {pdfAktif.ukuran} •{" "}
+                    {halamanPdf ? `${halamanPdf} halaman` : pdfAktif.halaman}
                   </p>
                 </div>
     
@@ -343,21 +355,22 @@ export default function EbookPanduan() {
                 </div>
               </div>
     
-              <div className="flex flex-1 flex-col bg-[#525659] p-2 md:p-4">
-                <div className="mx-auto flex w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md bg-white shadow-xl">
-                  <iframe
-                    title={pdfAktif.judul}
-                    src={urlEbook(pdfAktif.file)}
-                    className="h-full w-full flex-1 border-0"
+              <div className="flex min-h-0 flex-1 flex-col bg-[#525659] p-2 md:p-4">
+                <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md shadow-xl">
+                  <PembacaPdf
+                    sumber={sumberEbook(pdfAktif.file)}
+                    judul={pdfAktif.judul}
+                    urlUnduh={urlEbook(pdfAktif.file, { unduh: true })}
+                    padaSiap={setHalamanPdf}
                   />
                 </div>
-                <div className="mx-auto mt-3 flex w-full max-w-[1024px] items-center justify-between text-[11px] text-white/70">
+                <div className="mx-auto mt-3 flex w-full max-w-[1024px] flex-wrap items-center justify-between gap-2 text-[11px] text-white/70">
                   <span>
-                    Jika PDF tidak tampil,{" "}
+                    Gunakan tombol panah ← → untuk berpindah halaman, atau{" "}
                     <a href={urlEbook(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
                       buka di tab baru
-                    </a>{" "}
-                    atau unduh.
+                    </a>
+                    .
                   </span>
                   <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
                     Tutup (Esc)

@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { performaHalaman } from "./plugins/performa.js";
+import { pratinjauEbook } from "./plugins/ebook-preview.js";
+import { asetPdfjs } from "./plugins/pdfjs-aset.js";
 
 const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 
@@ -128,6 +130,11 @@ export default defineConfig({
     react(),
     tailwindcss(),
     performaHalaman(),
+    // Pratinjau e-book: /api/ebook-preview harus dilayani lokal (bukan
+    // diteruskan ke backend Node), persis seperti function di Vercel.
+    pratinjauEbook({ akar: __dirname }),
+    // cMaps & font standar pdf.js disajikan dari /vendor/pdfjs/.
+    asetPdfjs({ akar: __dirname }),
     {
       name: "inject-site-url",
       transformIndexHtml(html) {

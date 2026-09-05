@@ -22,6 +22,9 @@ LFS GitHub saat checkout dengan Git LFS aktif.
   menyajikan pointer teks sebagai pengganti PDF — tombol Baca/Unduh rusak.
 - **Menambah e-book baru**: letakkan PDF asli di folder ini lalu `git add` seperti
   biasa (Git LFS otomatis menangani). Jangan commit *pointer* hasil klon tanpa LFS.
+- **Ingin lepas dari LFS** (PDF disimpan sebagai berkas Git biasa):
+  `bash scripts/keluar-dari-lfs.sh --periksa` lalu tanpa `--periksa`.
+  Baca untung-ruginya di `PANDUAN-EBOOK-STORAGE.md`.
 
 ## Cara menambah e-book baru
 
@@ -47,3 +50,15 @@ LFS GitHub saat checkout dengan Git LFS aktif.
 5. Agar sampul tampil tanpa ikon PDF pengganti, taruh gambar di `public/images/E-Books/` lalu daftarkan id buku di object `COVER` (file yang sama, `src/halaman/Beranda/ebook-data.js`).
 
 File di folder ini otomatis bisa diakses via `/ebooks/nama-file.pdf` karena berada di `public/`.
+
+## Bagaimana tombol "Baca" mengambil berkasnya
+
+Situs tidak membaca `/ebooks/*.pdf` secara langsung, melainkan lewat proxy
+`/api/ebook-preview?file=<nama>.pdf` (`api/ebook-preview.js` di Vercel,
+`plugins/ebook-preview.js` saat `npm run dev`). Proxy mencoba beberapa sumber
+berurutan — object storage (`EBOOK_BASE`) → berkas statis hasil build →
+isi Git LFS di GitHub Media — dan hanya memakai sumber yang benar-benar
+diawali `%PDF`, lalu mengirimnya dengan `Content-Disposition: inline`.
+
+Jadi kalau di lokal berkas masih berupa pointer LFS, tombol **Baca** tetap
+bekerja selama ada koneksi ke GitHub. Untuk membaca offline: `git lfs pull`.
