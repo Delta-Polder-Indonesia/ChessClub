@@ -1101,7 +1101,7 @@ export const EN = {
       situs: "Website",
       nama: "Username",
       wajib: "A username is required.",
-      tambah: "Add & load games",
+      tambah: "Add",
       batal: "Cancel",
       riwayat: "Previously used names",
     },
@@ -1192,6 +1192,7 @@ export const EN = {
     papan: { balik: "Flip board", pengaturan: "Settings", promosi: "Choose promotion piece" },
     nav: {
       pengaturan: "Settings",
+      play: "Play",
       akun: "Accounts",
       database: "Database",
       impor: "Import game",
@@ -1448,6 +1449,15 @@ export const EN = {
       engineOleh: "stockfish.js distribution (GPL-3.0) — served from this site's /engines folder.",
       kode: "Ported source",
       kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
+      desain: "Page layout",
+      desainOleh:
+        "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository, licensed MIT.",
+      logo: "Site logos",
+      logoOleh:
+        "Trademarks of their respective owners (Chess.com, LLC and lichess.org); used here only to identify accounts via links to the official sites.",
+      sosialJudul: "Copyright infringement",
+      sosialDeskripsi:
+        "We respect the intellectual property rights of others. If you believe your work has been used on our site without permission, please contact our team via the links below. Include proof of ownership and links to the content in question.",
       tutup: "Close",
     },
   },

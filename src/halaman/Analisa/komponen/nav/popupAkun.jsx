@@ -6,18 +6,20 @@
 import { useMemo, useRef, useState } from "react";
 import Popup from "./Popup.jsx";
 import Gambar from "../Gambar.jsx";
+import LichessLogo from "../svg/LichessLogo.jsx";
+import ChessComLogo from "../svg/ChessComLogo.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { bacaTeks, tulis } from "../../penyimpanan.js";
 
 const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
 
 const SITUS = [
-  { kunci: "chessCom", ikon: "chesscom", awalan: "chesscom" },
-  { kunci: "lichessOrg", ikon: "lichess", awalan: "lichessorg" },
+  { kunci: "chessCom", ikon: "chesscom", awalan: "chesscom", logo: ChessComLogo, tanpaLabel: true, logoClass: "h-[38px] w-auto fill-current" },
+  { kunci: "lichessOrg", ikon: "lichess", awalan: "lichessorg", logo: LichessLogo, tanpaLabel: true, logoClass: "h-[30px] w-auto fill-current" },
 ];
 const MAKS_RIWAYAT = 8;
 
-function KartuSitus({ aktif, ikon, label, onClick }) {
+function KartuSitus({ aktif, logo: Logo, ikon, label, tanpaLabel, logoClass, onClick }) {
   return (
     <button
       type="button"
@@ -28,13 +30,17 @@ function KartuSitus({ aktif, ikon, label, onClick }) {
         ? "border-backgroundBoxBoxHighlighted bg-backgroundBoxBox text-foreground"
         : "border-border bg-backgroundBoxBox text-foregroundGrey hover:border-borderHighlighted hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"}`}
     >
-      <Gambar alt="" src={ASET(ikon)} width={30} height={30} />
-      <span className="text-[13px] font-bold">{label}</span>
+      {Logo ? (
+        <Logo className={logoClass ?? "h-[30px] w-[30px] fill-current"} />
+      ) : (
+        <Gambar alt="" src={ASET(ikon)} width={30} height={30} />
+      )}
+      {tanpaLabel ? null : <span className="text-[13px] font-bold">{label}</span>}
     </button>
   );
 }
 
-export default function PopupAkun({ onTutup, onTambah }) {
+export default function PopupAkun({ onTutup, onTambah, lebarKiri = 0 }) {
   const { t } = useI18n();
   const [kunci, setKunci] = useState("chessCom");
   const [nama, setNama] = useState("");
@@ -65,6 +71,9 @@ export default function PopupAkun({ onTutup, onTambah }) {
       judul={t("analisa.akun.judul")}
       subjudul={t("analisa.akun.isi")}
       onTutup={onTutup}
+      fullLayar
+      lebarKiri={lebarKiri}
+      className="max-w-none"
     >
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
         {t("analisa.akun.situs")}
@@ -75,6 +84,9 @@ export default function PopupAkun({ onTutup, onTambah }) {
             key={s.kunci}
             aktif={kunci === s.kunci}
             ikon={s.ikon}
+            logo={s.logo}
+            tanpaLabel={s.tanpaLabel}
+            logoClass={s.logoClass}
             label={t(`analisa.format.${s.kunci}`)}
             onClick={() => {
               setKunci(s.kunci);
@@ -119,13 +131,6 @@ export default function PopupAkun({ onTutup, onTambah }) {
       {galat ? <p className="mt-1.5 text-xs text-lossRed">{galat}</p> : null}
 
       <div className="mt-5 flex flex-row justify-end gap-2">
-        <button
-          type="button"
-          onClick={onTutup}
-          className="cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-3.5 py-2 text-sm text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
-        >
-          {t("analisa.akun.batal")}
-        </button>
         <button
           type="button"
           data-uji="tambah-akun"

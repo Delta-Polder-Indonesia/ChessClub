@@ -11,15 +11,15 @@
 import { useState } from "react";
 import { Chess } from "chess.js";
 import Popup from "./Popup.jsx";
+import ChessComLogo from "../svg/ChessComLogo.jsx";
+import LichessLogo from "../svg/LichessLogo.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { imporPgnKeBasisData } from "../../basisData.js";
 
-const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
-
 const TIPE = [
   { kunci: "pgn", ikon: "pgn" },
-  { kunci: "online", ikon: "formats" },
-  { kunci: "fen", ikon: "json" },
+  { kunci: "online", ikon: "online" },
+  { kunci: "fen", ikon: "fen" },
 ];
 
 /* --- format TCN Chess.com (spesifikasi publik) --- */
@@ -124,7 +124,7 @@ async function ambilPgn(tautan) {
   throw new Error("bentuk");
 }
 
-function KartuTipe({ aktif, ikon, label, onClick }) {
+function KartuTipe({ aktif, ikon, label, tanpaLabel, onClick }) {
   return (
     <button
       type="button"
@@ -135,23 +135,45 @@ function KartuTipe({ aktif, ikon, label, onClick }) {
         : "border-border bg-backgroundBoxBox text-foregroundGrey hover:border-borderHighlighted hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"}`}
     >
       <GambarIkon ikon={ikon} />
-      <span className="text-[13px] font-bold">{label}</span>
+      {tanpaLabel ? null : <span className="text-[13px] font-bold">{label}</span>}
     </button>
   );
 }
 
 function GambarIkon({ ikon }) {
-  if (ikon === "online") {
+  if (ikon === "pgn") {
     return (
-      <svg viewBox="0 0 24 24" className="h-6 w-6 fill-foregroundGrey" aria-hidden="true">
-        <path d="M3.9 12c0-1.7 1-3.2 2.5-3.9L4.6 6C2.4 7.2 1 9.4 1 12s1.4 4.8 3.6 6l1.8-2.1C4.9 15.2 3.9 13.7 3.9 12zm5.6-6.2c-.5.2-.6.8-.4 1.3L12 19.9c.2.5.7.7 1.2.5l.6-.2c.5-.2.6-.8.4-1.3L11.7 5.6c-.2-.5-.7-.7-1.2-.5l-.6.2zm7.3 1L15 8.9c1.5.7 2.5 2.2 2.5 3.9s-1 3.2-2.5 3.9l1.8 2.1c2.2-1.2 3.6-3.4 3.6-6s-1.4-4.8-3.6-6z" />
+      <svg viewBox="0 0 16 16" className="h-6 w-6 fill-current" aria-hidden="true">
+        <path d="M8.01005 0.858582L6.01005 14.8586L7.98995 15.1414L9.98995 1.14142L8.01005 0.858582ZM12.5 11.5L11.0858 10.0858L13.1716 8L11.0858 5.91422L12.5 4.5L16 8L12.5 11.5ZM2.82843 8L4.91421 10.0858L3.5 11.5L0 8L3.5 4.5L4.91421 5.91422L2.82843 8Z" />
       </svg>
     );
   }
-  return <img alt="" src={ASET(ikon)} width={26} height={26} />;
+  if (ikon === "online") {
+    return (
+      <div className="flex items-center gap-1.5">
+        <ChessComLogo className="h-[20px] w-auto fill-current" />
+        <span className="h-4 w-px bg-border" />
+        <LichessLogo className="h-[20px] w-auto fill-current" />
+      </div>
+    );
+  }
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-6 w-6"
+      aria-hidden="true"
+    >
+      <path d="M18.5708 20C19.8328 20 20.8568 18.977 20.8568 17.714V13.143L21.9998 12L20.8568 10.857V6.286C20.8568 5.023 19.8338 4 18.5708 4M5.429 4C4.166 4 3.143 5.023 3.143 6.286V10.857L2 12L3.143 13.143V17.714C3.143 18.977 4.166 20 5.429 20M7.5 12H7.51M12 12H12.01M16.5 12H16.51M8 12C8 12.2761 7.77614 12.5 7.5 12.5C7.22386 12.5 7 12.2761 7 12C7 11.7239 7.22386 11.5 7.5 11.5C7.77614 11.5 8 11.7239 8 12ZM12.5 12C12.5 12.2761 12.2761 12.5 12 12.5C11.7239 12.5 11.5 12.2761 11.5 12C11.5 11.7239 11.7239 11.5 12 11.5C12.2761 11.5 12.5 11.7239 12.5 12ZM17 12C17 12.2761 16.7761 12.5 16.5 12.5C16.2239 12.5 16 12.2761 16 12C16 11.7239 16.2239 11.5 16.5 11.5C16.7761 11.5 17 11.7239 17 12Z" />
+    </svg>
+  );
 }
 
-export default function PopupImpor({ onTutup, onImpor }) {
+export default function PopupImpor({ onTutup, onImpor, lebarKiri = 0 }) {
   const { t } = useI18n();
   const [tipe, setTipe] = useState("pgn");
   const [pgn, setPgn] = useState("");
@@ -200,6 +222,9 @@ export default function PopupImpor({ onTutup, onImpor }) {
       judul={t("analisa.impor.judul")}
       subjudul={t("analisa.impor.tipe")}
       onTutup={onTutup}
+      fullLayar
+      lebarKiri={lebarKiri}
+      className="max-w-none"
     >
       <div className="grid grid-cols-3 gap-2">
         {TIPE.map((ti) => (
@@ -207,6 +232,7 @@ export default function PopupImpor({ onTutup, onImpor }) {
             key={ti.kunci}
             aktif={tipe === ti.kunci}
             ikon={ti.ikon}
+            tanpaLabel={ti.kunci === "online"}
             label={ti.kunci === "online" ? t("analisa.impor.online") : ti.kunci.toUpperCase()}
             onClick={() => {
               setTipe(ti.kunci);

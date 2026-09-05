@@ -24,7 +24,7 @@ const SPONSORS = [
 ];
 
 const SOCIAL_LINKS = [
-  { name: "Chess.com", href: "https://www.chess.com/club/blunder-skuad", img: "/images/chesscomlogo.webp" },
+  { name: "Chess.com", href: "https://www.chess.com/club/blunder-skuad", img: "/images/logo.svg" },
   // Contoh:
   // { name: "LinkedIn", href: "https://www.linkedin.com/", icon: "linkedin" },
 ];

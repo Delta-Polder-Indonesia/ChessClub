@@ -17,6 +17,9 @@ import { pushPageError } from "../../errors/pageErrors.jsx";
 import { Chess } from "chess.js";
 import Files from "../../svg/files.jsx";
 import Database from "../../svg/database.jsx";
+import SquareFillEqual from "../../svg/square-fill-equal.jsx";
+import SquareFillMinus from "../../svg/square-fill-minus.jsx";
+import SquareFillPlus from "../../svg/square-fill-plus.jsx";
 import { ErrorsContext } from "../../../konteks/errors.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { ambilDaftarPartai, simpanBanyakPartai } from "../../../basisData.js";
@@ -284,8 +287,8 @@ function GamesUI(props) {
                                     <td className="py-2 px-3">
                                         <div className="flex flex-row items-center gap-2">
                                             <div className="flex w-4 flex-col text-foregroundGrey font-semibold text-[11px] leading-4"><span>{whiteWon ? 1 : blackWon ? 0 : <>&#189;</>}</span><span>{blackWon ? 1 : whiteWon ? 0 : <>&#189;</>}</span></div>
-                                            <div style={{ mixBlendMode: "screen" }} className={`flex h-5 w-5 items-center justify-center rounded-sm text-xs font-bold text-black ${isWin ? "bg-winGreen" : isLoss ? "bg-lossRed" : "bg-foregroundGrey"}`}><div className="w-fit h-fit ml-px">{isWin ? "+" : isLoss ? "-" : "="}</div></div>
-                                        </div>
+{isWin ? <SquareFillPlus className="h-5 w-5 shrink-0 text-winGreen" /> : isLoss ? <SquareFillMinus className="h-5 w-5 shrink-0 text-lossRed" /> : <SquareFillEqual className="h-5 w-5 shrink-0 text-foregroundGrey" />}
+                                          </div>
                                     </td>
                                     <td className="py-2 px-3 whitespace-nowrap text-[13px]">{formatTanggal(timestamp, locale)}</td>
                                     <td className="py-2 pl-3 pr-8 text-right whitespace-nowrap text-[13px] text-foreground font-semibold tabular-nums">{plyCount ?? ""}</td>

@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
  * Vite membuat chunk terpisah untuk setiap SVG, sehingga pengguna hanya
  * mengunduh 12 aset dari gaya bidak yang dipilih—bukan seluruh 13 set.
  */
-const PEMUAT_ASET = import.meta.glob("../../asets/*/*.svg", {
+const PEMUAT_ASET = import.meta.glob("../../asets/*/*.{svg,png}", {
   query: "?url",
   import: "default",
 });
@@ -25,6 +25,7 @@ export const DAFTAR_SET = [
   { id: "merida", nama: "Merida" },
   { id: "staunty", nama: "Staunty" },
   { id: "tatiana", nama: "Tatiana" },
+  { id: "chesscom", nama: "Chess.com" },
 ];
 
 const NAMA_BIDAK = {
@@ -40,7 +41,10 @@ const KODE_CHESSNUT = {
 const cacheSet = new Map();
 
 function jalurAset(set, piece) {
-  const kode = set === "bidak" ? KODE_CHESSNUT[piece] : KODE_ASET[piece];
+  if (set === "bidak") return `../../asets/bidak/${KODE_CHESSNUT[piece]}.svg`;
+  if (set === "chesscom")
+    return `../../asets/ChessCom/${KODE_ASET[piece].toLowerCase()}.png`;
+  const kode = KODE_ASET[piece];
   return kode ? `../../asets/${set}/${kode}.svg` : null;
 }
 

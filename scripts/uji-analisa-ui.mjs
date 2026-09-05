@@ -545,7 +545,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     domSiap.querySelectorAll('[data-uji="kartu-situs"]').length === 2 &&
       domSiap.querySelector('[data-uji="nama-akun"]')
   );
-  klik(domSiap.querySelector('[data-uji="popup-tutup"]'));
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
   uji("popup Akun tertutup", !domSiap.querySelector('[data-uji="popup"]'));
 
@@ -554,7 +554,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   uji("popup Database terbuka", !!domSiap.querySelector('[data-uji="popup"]'));
   const teksDb = teksBagus();
   uji("popup Database menampilkan judul & kolom pencarian", /Basis Data|Database/.test(teksDb));
-  klik(domSiap.querySelector('[data-uji="popup-tutup"]'));
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
   uji("popup Database tertutup", !domSiap.querySelector('[data-uji="popup"]'));
 

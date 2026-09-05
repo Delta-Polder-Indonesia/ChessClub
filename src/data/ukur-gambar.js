@@ -15,13 +15,6 @@
  * berkas aslinya sudah lebih ramping daripada hasil kompresi ulang.
  */
 export const UKUR = {
-  "/images/chesscomlogo.webp": [
-    1000,
-    304,
-    [
-      150
-    ]
-  ],
   "/images/logo-mark-light.webp": [
     336,
     336,

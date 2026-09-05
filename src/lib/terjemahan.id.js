@@ -1111,7 +1111,7 @@ export const ID = {
       situs: "Situs",
       nama: "Nama pengguna",
       wajib: "Nama pengguna wajib diisi.",
-      tambah: "Tambahkan & muat partai",
+      tambah: "Tambahkan",
       batal: "Batal",
       riwayat: "Nama yang pernah dipakai",
     },
@@ -1202,6 +1202,7 @@ export const ID = {
     papan: { balik: "Balik papan", pengaturan: "Pengaturan", promosi: "Pilih bidak promosi" },
     nav: {
       pengaturan: "Pengaturan",
+      play: "Bermain",
       akun: "Akun",
       database: "Database",
       impor: "Impor permainan",
@@ -1454,6 +1455,15 @@ export const ID = {
       engineOleh: "Distribusi stockfish.js (GPL-3.0) — berkas dijalankan dari folder /engines situs ini.",
       kode: "Berkas yang dipindah",
       kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
+      desain: "Tata letak halaman",
+      desainOleh:
+        "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini, lisensi MIT.",
+      logo: "Logo situs",
+      logoOleh:
+        "Merek dagang milik pemiliknya (Chess.com, LLC dan lichess.org); dipakai hanya untuk identifikasi lewat tautan situs resmi.",
+      sosialJudul: "Pelanggaran hak cipta",
+      sosialDeskripsi:
+        "Kami menghormati hak kekayaan intelektual orang lain. Jika Anda merasa karya Anda digunakan di situs kami tanpa izin, silakan hubungi tim kami melalui tautan di bawah ini. Sertakan bukti kepemilikan dan tautan konten yang bermasalah.",
       tutup: "Tutup",
     },
   },

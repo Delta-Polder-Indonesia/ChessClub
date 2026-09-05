@@ -7,7 +7,6 @@ import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
 /** Halaman yang tampil tanpa header & footer situs agar kontennya full-screen. */
 const TANPA_KERANGKA = new Set([
   "/program-kami/analisa",
-  "/program-kami/atribusi",
   "/teka-teki",
   "/papan-interaktif",
 ]);

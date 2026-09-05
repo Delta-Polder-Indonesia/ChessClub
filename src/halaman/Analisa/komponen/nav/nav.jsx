@@ -17,9 +17,9 @@
  * atribusi MIT port UI ini. Logo/wordmark juga dipertahankan sama seperti
  * aslinya.
  */
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import Gambar from "../Gambar.jsx";
+
 import GitHub from "../svg/github.jsx";
 import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
@@ -29,9 +29,13 @@ import PopupAkun from "./popupAkun.jsx";
 import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { berkasPublik } from "../../../../lib/asets.js";
 
 /** Repo upstream pemilik desain UI ini (atribusi MIT). */
 export const URL_REPO = "https://delta-polder-indonesia.github.io/BintangToba/";
+
+/** Batas minimal lebar layar saat Nav jadi bilah kiri (lihat --breakpoint-navTop). */
+const LEBAR_NAV_TOP = 516;
 
 /** Ikon impor sederhana (monokrom, ikut warna kelas fill). */
 function IkonImpor({ className }) {
@@ -51,6 +55,29 @@ export default function Nav() {
   const analyzeContext = useContext(AnalyzeContext);
   const setAkun = analyzeContext.akun[1];
   const setData = analyzeContext.data[1];
+  const setPageState = analyzeContext.pageState[1];
+  const setPlaying = analyzeContext.playing[1];
+
+  const navRef = useRef(null);
+  const [lebarNav, setLebarNav] = useState(0);
+
+  // Lebar bilah kiri dipakai popup Database full layar supaya sisinya
+  // "mentok" mengikuti navbar, bukan mereka mengikuti tepi layar.
+  useEffect(() => {
+    const el = navRef.current;
+    if (!el) return;
+    function ukur() {
+      setLebarNav(window.innerWidth >= LEBAR_NAV_TOP ? el.offsetWidth : 0);
+    }
+    ukur();
+    const ro = new ResizeObserver(ukur);
+    ro.observe(el);
+    window.addEventListener("resize", ukur);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", ukur);
+    };
+  }, []);
 
   const botLinks = [
     {
@@ -65,12 +92,26 @@ export default function Nav() {
     },
   ];
 
-  const menuPop = [
-    {
-      label: t("analisa.nav.akun"),
-      icon: (props) => <Profile width={18} height={18} class={props.className} />,
-      kunci: "akun",
-    },
+const menuPop = [
+  {
+    label: t("analisa.nav.play"),
+    icon: () => (
+      <img
+        src={berkasPublik("/images/color-icon/play-white.svg")}
+        alt=""
+        draggable="false"
+        loading="lazy"
+        decoding="async"
+        className="h-[18px] w-[18px] shrink-0"
+      />
+    ),
+    kunci: "play",
+  },
+  {
+    label: t("analisa.nav.akun"),
+    icon: (props) => <Profile width={18} height={18} class={props.className} />,
+    kunci: "akun",
+  },
     {
       label: t("analisa.nav.database"),
       icon: (props) => <Database width={18} height={18} class={props.className} />,
@@ -99,13 +140,23 @@ export default function Nav() {
     setData(data);
   }
 
+  /** Kembali ke tampilan utama Analisa: papan awal kosong + panel ajakan. */
+  function keHalamanUtama() {
+    setTerbuka(null);
+    setData({ format: "fen", string: "" });
+    setAkun({ platform: "", username: "" });
+    setPlaying(false);
+    setPageState("default");
+  }
+
   return (
-    <nav className="flex flex-col navTop:h-full navTop:w-max navTop:shrink-0 w-full relative">
+    <nav ref={navRef} className="flex flex-col navTop:h-full navTop:w-max navTop:shrink-0 w-full relative">
       <div className="navTop:pt-1 navTop:pb-6 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
         <div className="flex navTop:flex-col flex-row">
-          <Link draggable={false} to="/" className="flex flex-row gap-1 font-extrabold text-xl navTop:p-3 p-1.5 transition-colors hover:bg-backgroundBoxHover hover:text-foregroundHighlighted">
-            <Gambar draggable={false} height={30} width={30} alt="logo" src={`${import.meta.env.BASE_URL}images/analisa/logo.svg`} className="navTop:mt-[-2px]" />
-            <div className="h-fit w-fit navTop:block hidden">Blunder<span className="text-sm font-light">Skuad</span></div>
+          <Link draggable={false} to="/" className="flex flex-row items-center gap-1 navTop:py-2.5 navTop:px-3 p-1.5 transition-colors hover:bg-backgroundBoxHover">
+            <span className="navTop:block hidden leading-none font-bold text-[22px] tracking-tight text-foreground">
+              Blunder<span className="text-backgroundBoxBoxHighlighted">Skuad</span>
+            </span>
           </Link>
           <hr className="border-border mx-2 my-1 navTop:block hidden" />
           <div className="flex navTop:flex-col flex-row">
@@ -116,7 +167,11 @@ export default function Nav() {
                 data-uji={`nav-${item.kunci}`}
                 title={item.label}
                 aria-label={item.label}
-                onClick={() => setTerbuka(item.kunci)}
+                onClick={() =>
+                  item.kunci === "play"
+                    ? keHalamanUtama()
+                    : setTerbuka(item.kunci)
+                }
                 className={kelasTombol}
               >
                 {item.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
@@ -145,17 +200,18 @@ export default function Nav() {
         </div>
       </div>
       {terbuka === "akun" ? (
-        <PopupAkun onTutup={() => setTerbuka(null)} onTambah={tambahAkun} />
+        <PopupAkun onTutup={() => setTerbuka(null)} onTambah={tambahAkun} lebarKiri={lebarNav} />
       ) : null}
       {terbuka === "database" ? (
         <PopupDatabase
           onTutup={() => setTerbuka(null)}
           onAnalisa={imporPartai}
           onBukaAkun={() => setTerbuka("akun")}
+          lebarKiri={lebarNav}
         />
       ) : null}
       {terbuka === "impor" ? (
-        <PopupImpor onTutup={() => setTerbuka(null)} onImpor={imporPartai} />
+        <PopupImpor onTutup={() => setTerbuka(null)} onImpor={imporPartai} lebarKiri={lebarNav} />
       ) : null}
     </nav>
   );
