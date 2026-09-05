@@ -58,17 +58,17 @@ async function jalankan() {
     "admin123 ditolak di produksi"
   );
 
-  const passwordPendek = await muat({
+  const passwordTerlaluPendek = await muat({
     NODE_ENV: "production",
     KCI_ASAL_DIIZINKAN: "https://contoh.invalid",
     KCI_PEPPER: "pepper-aman-minimal-16",
     KCI_ADMIN_USER: "admin",
-    KCI_ADMIN_PASSWORD: "1234567890",
+    KCI_ADMIN_PASSWORD: "12345",
     KCI_JWT_SECRET: "jwt-secret-aman-minimal-24-karakter",
   });
   cek(
-    passwordPendek.some((m) => /KCI_ADMIN_PASSWORD/.test(m)),
-    "password admin 10 karakter ditolak"
+    passwordTerlaluPendek.some((m) => /KCI_ADMIN_PASSWORD/.test(m)),
+    "password admin 5 karakter ditolak"
   );
 
   const passwordKuat = await muat({
