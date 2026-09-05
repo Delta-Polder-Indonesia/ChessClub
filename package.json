@@ -25,6 +25,7 @@
     "gambar:kualitas": "node scripts/naikkan-kualitas-gambar.mjs",
     "uji:backend": "node server/uji/uji-backend.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
+    "uji:konfigurasi-keamanan": "node server/uji/uji-konfigurasi-keamanan.mjs",
     "uji:supabase": "node scripts/uji-supabase.mjs",
     "ebook:unggah": "node scripts/unggah-ebook.mjs",
     "uji:e2e": "playwright test",
