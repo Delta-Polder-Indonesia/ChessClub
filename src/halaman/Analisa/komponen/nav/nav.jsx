@@ -55,8 +55,9 @@ export default function Nav() {
   const analyzeContext = useContext(AnalyzeContext);
   const setAkun = analyzeContext.akun[1];
   const setData = analyzeContext.data[1];
-  const setPageState = analyzeContext.pageState[1];
+  const [pageState, setPageState] = analyzeContext.pageState;
   const setPlaying = analyzeContext.playing[1];
+  const [game] = analyzeContext.game;
 
   const navRef = useRef(null);
   const [lebarNav, setLebarNav] = useState(0);
@@ -140,9 +141,34 @@ const menuPop = [
     setData(data);
   }
 
-  /** Kembali ke tampilan utama Analisa: papan awal kosong + panel ajakan. */
-  function keHalamanUtama() {
-    setTerbuka(null);
+  /**
+   * Tombol "Bermain" = kembali ke papan, BUKAN tombol reset.
+   *
+   * Dulu tombol ini selalu mengosongkan `data`, `akun`, dan `pageState`,
+   * sehingga menekannya sesudah mereview partai membuang seluruh hasil
+   * analisis dan papan kembali ke keadaan awal. Sekarang urutannya:
+   *
+   *  1. Ada popup terbuka  → cukup tutup popup. Analisis yang sedang
+   *     direview tetap utuh — inilah gunanya: keluar dari popup Database
+   *     tanpa harus mencari tombol tutup.
+   *  2. Tidak ada popup, tapi ada partai yang sedang/sudah dianalisis →
+   *     tidak melakukan apa pun; papannya memang sudah tampil.
+   *  3. Tidak ada popup dan belum ada analisis (mis. masih melihat daftar
+   *     partai sebuah akun) → bersihkan pilihan itu supaya kembali ke papan
+   *     awal. Tidak ada analisis yang hilang karena memang belum ada.
+   */
+  const adaAnalisa =
+    game.length > 0 ||
+    pageState === "analyze" ||
+    pageState === "analyzeCustom" ||
+    pageState === "loading";
+
+  function kePapan() {
+    if (terbuka) {
+      setTerbuka(null);
+      return;
+    }
+    if (adaAnalisa) return;
     setData({ format: "fen", string: "" });
     setAkun({ platform: "", username: "" });
     setPlaying(false);
@@ -160,24 +186,29 @@ const menuPop = [
           </Link>
           <hr className="border-border mx-2 my-1 navTop:block hidden" />
           <div className="flex navTop:flex-col flex-row">
-            {menuPop.map((item) => (
+            {menuPop.map((item) => {
+              // Saat popup terbuka, "Bermain" adalah jalan keluarnya —
+              // ditonjolkan supaya terlihat sebagai tombol kembali ke papan.
+              const jalanKeluar = item.kunci === "play" && Boolean(terbuka);
+              const keterangan =
+                item.kunci === "play" ? t("analisa.nav.playKeterangan") : item.label;
+              return (
               <button
                 key={item.kunci}
                 type="button"
                 data-uji={`nav-${item.kunci}`}
-                title={item.label}
-                aria-label={item.label}
+                title={keterangan}
+                aria-label={keterangan}
                 onClick={() =>
-                  item.kunci === "play"
-                    ? keHalamanUtama()
-                    : setTerbuka(item.kunci)
+                  item.kunci === "play" ? kePapan() : setTerbuka(item.kunci)
                 }
-                className={kelasTombol}
+                className={`${kelasTombol}${jalanKeluar ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}`}
               >
                 {item.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
                 <span className="navTop:block hidden">{item.label}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">

@@ -1206,6 +1206,7 @@ export const ID = {
     nav: {
       pengaturan: "Pengaturan",
       play: "Bermain",
+      playKeterangan: "Kembali ke papan analisis",
       akun: "Akun",
       database: "Database",
       impor: "Impor permainan",

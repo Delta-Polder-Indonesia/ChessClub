@@ -1196,6 +1196,7 @@ export const EN = {
     nav: {
       pengaturan: "Settings",
       play: "Play",
+      playKeterangan: "Back to the analysis board",
       akun: "Accounts",
       database: "Database",
       impor: "Import game",

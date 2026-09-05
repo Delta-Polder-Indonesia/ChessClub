@@ -405,6 +405,39 @@ if (tabLangkah) {
   uji("saran engine tampil", /langkah terbaik/.test(langkah));
 }
 
+/* --- regresi: tombol "Bermain" tidak boleh membuang analisis ---
+ * Tombol Bermain di bilah kiri dimaksudkan sebagai jalan keluar cepat dari
+ * popup (Database/Impor/Akun) kembali ke papan. Versi pertamanya memanggil
+ * reset penuh (data, akun, pageState), sehingga menekannya sesudah mereview
+ * partai membuang seluruh hasil analisis. Di sini: buka popup Database saat
+ * analisis aktif, tekan Bermain, lalu pastikan popup tertutup DAN analisisnya
+ * masih ada.
+ */
+{
+  const sebelum = teksBagus();
+  const bukti = (teks) =>
+    /Ringkasan/.test(teks) && /Andini/.test(teks) && !/Belum ada data permainan/.test(teks);
+  uji("prasyarat: partai PGN sedang dianalisis", bukti(sebelum));
+
+  klik(domSiap.querySelector('[data-uji="nav-database"]'));
+  await tunggu(300);
+  uji("popup Database terbuka", !!domSiap.querySelector('[data-uji="popup"]'));
+
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
+  await tunggu(350);
+  const sesudah = teksBagus();
+
+  uji("tombol Bermain menutup popup", !domSiap.querySelector('[data-uji="popup"]'));
+  uji("tombol Bermain mempertahankan analisis yang sedang direview", bukti(sesudah));
+  uji("papan tetap utuh setelah tombol Bermain", !!domSiap.querySelector(".analisa-root"));
+
+  // Tanpa popup terbuka, Bermain tidak boleh diam-diam mereset analisis.
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
+  await tunggu(300);
+  const lagi = teksBagus();
+  uji("Bermain tanpa popup tidak mereset analisis", bukti(lagi));
+}
+
 /* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
 {
   uji("popup Impor terbuka (untuk FEN)", await bukaImpor());
