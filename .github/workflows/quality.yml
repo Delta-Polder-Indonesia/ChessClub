@@ -27,7 +27,7 @@ jobs:
         run: npm ci
 
       - name: Run logic and backend tests
-        run: npm run uji && npm run uji:backend && npm run uji:verifikasi
+        run: npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan
 
       - name: Build production bundle
         run: npm run build
