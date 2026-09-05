@@ -30,37 +30,54 @@ export function berkasPublik(jalur) {
 }
 
 /**
- * Alamat e-book PDF.
+ * Alamat e-book PDF (pratinjau atau unduhan).
  *
- * Prioritas:
- * 1. EBOOK_BASE jika object storage sudah dikonfigurasi.
- * 2. Proxy same-origin untuk preview jika masih memakai Git LFS.
- *
- * Preview TIDAK lagi diarahkan ke Google Docs Viewer. Proxy Vercel
- * mengembalikan PDF dengan Content-Disposition: inline sehingga iframe
- * browser dapat merender PDF tanpa memicu download.
+ * SELALU same-origin (`/api/ebook-preview`). Endpoint itulah yang memilih
+ * sumber sebenarnya — object storage bila `EBOOK_BASE` diisi, berkas statis
+ * `/ebooks/…` hasil build, atau isi Git LFS di GitHub Media — lalu
+ * mengembalikannya dengan `Content-Disposition: inline` supaya browser
+ * MENAMPILKAN PDF, bukan mengunduhnya.
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
- * @param {{unduh?: boolean}} [opsi] `unduh: true` = download langsung.
+ * @param {{unduh?: boolean}} [opsi] `unduh: true` = paksa unduhan (attachment).
  */
 export function urlEbook(jalur, opsi = {}) {
-  const mentah = String(jalur || "").replace(/^\//, "");
-  const nama = mentah.split("/").pop() || "";
+  const nama = namaEbook(jalur);
+  const dasar = `${import.meta.env.BASE_URL}api/ebook-preview?file=${encodeURIComponent(nama)}`;
+  return opsi.unduh ? `${dasar}&unduh=1` : dasar;
+}
 
-  let dasar;
-  if (EBOOK_BASE) {
-    dasar = `${EBOOK_BASE.replace(/\/+$/, "")}/${nama}`;
-  } else {
-    const githubMediaBase =
-      "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
-    dasar = `${githubMediaBase}/${nama}`;
+/** Nama berkas polos dari entri e-book ("/ebooks/A%20B.pdf" → "A B.pdf"). */
+function namaEbook(jalur) {
+  const mentah = String(jalur || "").split(/[?#]/)[0];
+  let bersih = mentah;
+  try {
+    bersih = decodeURIComponent(mentah);
+  } catch {
+    /* biarkan apa adanya */
   }
+  return bersih.split("/").pop() || "";
+}
 
-  if (opsi.unduh) return `${dasar}?download=1`;
-
-  // Preview selalu same-origin agar header attachment dari GitHub LFS tidak
-  // memaksa browser mengunduh PDF ketika dipasang pada iframe.
-  return `/api/ebook-preview?file=${encodeURIComponent(nama)}`;
+/**
+ * Daftar URL PDF yang boleh dicoba pembaca di browser, urut prioritas.
+ *
+ * Situs ini dapat berjalan di beberapa tempat: Vercel (punya /api), GitHub
+ * Pages (tanpa /api, tetapi PDF asli ikut ter-deploy lewat Git LFS), atau
+ * object storage. Pembaca mencoba satu per satu sampai ada yang benar-benar
+ * memuat, jadi tombol "Baca" tidak lagi bergantung pada satu sumber saja.
+ */
+export function sumberEbook(jalur) {
+  const nama = namaEbook(jalur);
+  const daftar = [urlEbook(jalur), berkasPublik(`/ebooks/${encodeURIComponent(nama)}`)];
+  if (EBOOK_BASE) {
+    daftar.push(`${EBOOK_BASE.replace(/\/+$/, "")}/${encodeURIComponent(nama)}`);
+  }
+  daftar.push(
+    "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks/" +
+      encodeURIComponent(nama)
+  );
+  return [...new Set(daftar)];
 }
 
 /**

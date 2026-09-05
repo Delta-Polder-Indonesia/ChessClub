@@ -50,9 +50,25 @@ diunggah).
 | --- | --- |
 | `scripts/unggah-ebook.mjs` | Mengunggah `public/ebooks/*.pdf` ke bucket Supabase `ebooks`. |
 | `src/data/ebook-storage.js` | Menyimpan `EBOOK_BASE` (basis URL storage). Kosong = mode lama (lokal/LFS). |
-| `src/lib/asets.js` → `urlEbook()` | Mengembalikan URL storage bila `EBOOK_BASE` terisi; selain itu URL lokal. |
-| `src/halaman/ProgramKami/EbookPanduan.jsx` | Memakai `urlEbook()` untuk iframe Baca, tombol Unduh, dan "buka di tab baru". |
-| `index.html` + `vercel.json` | CSP `frame-src` ditambah `https://*.supabase.co` agar iframe Baca diizinkan. |
+| `src/lib/asets.js` → `urlEbook()` | Selalu menunjuk proxy same-origin `/api/ebook-preview`; endpoint itu yang memilih sumber sebenarnya. |
+| `src/lib/asets.js` → `sumberEbook()` | Daftar URL cadangan (proxy → berkas statis → storage → GitHub Media) untuk pembaca di browser. |
+| `api/ebook-preview.js` | Memilih sumber yang benar-benar berisi PDF (cek `%PDF`), lalu menyajikannya `inline` + dukung `Range`. |
+| `plugins/ebook-preview.js` | Menyediakan endpoint yang sama saat `npm run dev` / `npm run preview`. |
+| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dipakai tombol **Baca** (ikon mata). |
+| `plugins/pdfjs-aset.js` | Menyajikan/menyalin cMaps & font standar pdf.js ke `/vendor/pdfjs/`. |
+| `index.html` + `vercel.json` | CSP `connect-src` ditambah `media.githubusercontent.com` & `*.supabase.co` agar sumber cadangan boleh diambil pdf.js. |
+
+## Kenapa tombol "Baca" tidak lagi mengunduh berkas
+
+Dulu pratinjau memakai `<iframe src="…pdf">`. Cara itu bergantung pada
+penampil PDF bawaan browser — dan penampil itu **tidak ada** di Chrome/Firefox
+Android maupun peramban dalam aplikasi, sehingga berkas justru terunduh. Kini
+halaman digambar sendiri oleh pdf.js ke `<canvas>`, lengkap dengan navigasi
+halaman dan zoom, jadi perilakunya sama di semua perangkat.
+
+Sisi server pun tidak lagi menganggap satu sumber selalu benar: pointer Git LFS
+(132 byte teks) otomatis dilewati dan diganti isi asli dari GitHub Media atau
+object storage.
 
 ## Bila memakai penyedia lain (R2 / S3 / B2)
 

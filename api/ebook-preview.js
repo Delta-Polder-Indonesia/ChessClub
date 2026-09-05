@@ -1,68 +1,156 @@
 /**
- * Proxy preview PDF e-book.
+ * Proxy pratinjau (dan unduhan) PDF e-book.
  *
- * GitHub LFS dapat mengirim Content-Disposition: attachment. Browser lalu
- * mengunduh PDF walaupun URL dipasang sebagai iframe. Endpoint ini mengambil
- * blob PDF dari GitHub Media lalu mengembalikannya sebagai `inline` dari
- * origin situs sendiri, sehingga tombol Baca benar-benar membuka viewer.
+ * Masalah yang diselesaikan:
+ *   1. PDF di `public/ebooks/` dilacak Git LFS. Bila checkout deploy tidak
+ *      menarik LFS, berkas statis yang tersaji hanya *pointer* teks 132 byte
+ *      sehingga pratinjau kosong.
+ *   2. GitHub Media mengirim `Content-Disposition: attachment`, sehingga
+ *      browser MENGUNDUH berkas alih-alih menampilkannya.
+ *
+ * Endpoint ini memilih sumber PDF yang benar-benar berisi PDF (dicek lewat
+ * magic bytes `%PDF`), lalu menyajikannya dari origin situs sendiri sebagai
+ * `inline` (atau `attachment` bila `?unduh=1`). Permintaan `Range` diteruskan
+ * apa adanya supaya pembaca PDF dapat memuat per bagian.
+ *
+ * Contoh:
+ *   /api/ebook-preview?file=Problem%20Catur%20288.pdf
+ *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&unduh=1
  */
-import { DAFTAR_EBOOK } from "../src/halaman/Beranda/ebook-data.js";
+import { Readable } from "node:stream";
+import {
+  MAGIC_PDF,
+  cariEbookTerdaftar,
+  namaBerkasEbook,
+  sumberEbookServer,
+} from "../src/data/ebook-sumber.js";
 
-const GITHUB_MEDIA_BASE =
-  "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
+/** Berkas terbesar ±35 MB; beri ruang waktu bagi instance dingin. */
+export const config = { maxDuration: 60 };
 
-function namaFileDariPath(jalur) {
+/** Ingatan sumber yang terbukti valid selama instance masih hangat. */
+const sumberTerpilih = new Map();
+
+/** Origin situs ini (dipakai untuk mencoba berkas statis /ebooks/…). */
+function asalSitus(req) {
+  const host = String(req.headers["x-forwarded-host"] || req.headers.host || "").split(",")[0].trim();
+  if (!host) return "";
+  const proto = String(req.headers["x-forwarded-proto"] || "https").split(",")[0].trim();
+  return `${proto}://${host}`;
+}
+
+/** Benarkah URL ini mengembalikan PDF? Hanya 4 byte pertama yang dibaca. */
+async function berisiPdf(url) {
+  const pembatal = new AbortController();
   try {
-    return decodeURIComponent(String(jalur || "")).split("/").pop() || "";
+    const jawaban = await fetch(url, {
+      headers: { Range: "bytes=0-3", Accept: "application/pdf,*/*" },
+      redirect: "follow",
+      signal: pembatal.signal,
+    });
+    if (!jawaban.ok || !jawaban.body) return false;
+    const pembaca = jawaban.body.getReader();
+    const { value } = await pembaca.read();
+    return Buffer.from(value || []).subarray(0, 4).toString("latin1") === MAGIC_PDF;
   } catch {
-    return "";
+    return false;
+  } finally {
+    // Putuskan koneksi bila server mengabaikan header Range (kirim berkas penuh).
+    try {
+      pembatal.abort();
+    } catch {
+      /* abaikan */
+    }
   }
 }
 
+/** Pilih sumber pertama yang benar-benar berisi PDF. */
+async function pilihSumber(nama, asal) {
+  const tersimpan = sumberTerpilih.get(nama);
+  if (tersimpan) return tersimpan;
+
+  for (const kandidat of sumberEbookServer(nama, { asal })) {
+    // eslint-disable-next-line no-await-in-loop -- sengaja berurutan: sumber tercepat dulu.
+    if (await berisiPdf(kandidat)) {
+      sumberTerpilih.set(nama, kandidat);
+      return kandidat;
+    }
+  }
+  return "";
+}
+
 export default async function handler(req, res) {
-  const nama = namaFileDariPath(req.query?.file);
+  const nama = namaBerkasEbook(req.query?.file);
+  const buku = cariEbookTerdaftar(nama);
 
-  // Hanya izinkan file yang memang terdaftar sebagai e-book.
-  const buku = DAFTAR_EBOOK.find((item) => {
-    const terdaftar = namaFileDariPath(item.file);
-    return terdaftar === nama && item.tersedia;
-  });
-
-  if (!buku || !nama.toLowerCase().endsWith(".pdf")) {
+  if (!buku) {
     res.status(404).json({ error: "E-book tidak ditemukan." });
     return;
   }
 
-  const sumber = `${GITHUB_MEDIA_BASE}/${encodeURIComponent(nama)}`;
+  if (req.method && !["GET", "HEAD"].includes(req.method)) {
+    res.setHeader("Allow", "GET, HEAD");
+    res.status(405).json({ error: "Metode tidak didukung." });
+    return;
+  }
+
+  const unduh = ["1", "true", "ya"].includes(String(req.query?.unduh || "").toLowerCase());
+  const namaAman = nama.replace(/[\r\n\\"]/g, "_");
 
   try {
-    const upstream = await fetch(sumber, {
-      headers: { Accept: "application/pdf" },
-      redirect: "follow",
-    });
+    const sumber = await pilihSumber(nama, asalSitus(req));
+    if (!sumber) {
+      res.status(502).json({
+        error:
+          "Berkas PDF tidak tersedia di sumber mana pun. Pastikan Git LFS ikut " +
+          "diunduh saat build, atau atur EBOOK_BASE ke object storage.",
+      });
+      return;
+    }
 
-    if (!upstream.ok) {
+    const kepala = { Accept: "application/pdf,*/*" };
+    if (req.headers.range) kepala.Range = req.headers.range;
+
+    const hulu = await fetch(sumber, { headers: kepala, redirect: "follow" });
+    if (!hulu.ok) {
+      sumberTerpilih.delete(nama);
       res.status(502).json({ error: "Sumber PDF tidak dapat diakses." });
       return;
     }
 
-    const tipe = upstream.headers.get("content-type") || "application/pdf";
-    if (!tipe.toLowerCase().includes("pdf")) {
-      res.status(502).json({ error: "Sumber bukan PDF yang valid." });
+    res.statusCode = hulu.status === 206 ? 206 : 200;
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `${unduh ? "attachment" : "inline"}; filename="${namaAman}"`
+    );
+    res.setHeader("Accept-Ranges", "bytes");
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+
+    const panjang = hulu.headers.get("content-length");
+    if (panjang) res.setHeader("Content-Length", panjang);
+    const rentang = hulu.headers.get("content-range");
+    if (rentang) res.setHeader("Content-Range", rentang);
+
+    if (req.method === "HEAD" || !hulu.body) {
+      res.end();
       return;
     }
 
-    const buffer = Buffer.from(await upstream.arrayBuffer());
-    const namaAman = nama.replace(/[\r\n\\\"]/g, "_");
-
-    res.setHeader("Content-Type", "application/pdf");
-    res.setHeader("Content-Disposition", `inline; filename="${namaAman}"`);
-    res.setHeader("Content-Length", String(buffer.length));
-    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.status(200).send(buffer);
+    await new Promise((selesai, gagal) => {
+      const aliran = Readable.fromWeb(hulu.body);
+      aliran.on("error", gagal);
+      res.on("close", () => aliran.destroy());
+      aliran.pipe(res).on("finish", selesai).on("error", gagal);
+    });
   } catch (error) {
-    console.error("[ebook-preview] gagal mengambil PDF:", error?.message || error);
-    res.status(502).json({ error: "Gagal memuat dokumen PDF." });
+    sumberTerpilih.delete(nama);
+    console.error("[ebook-preview] gagal memuat PDF:", error?.message || error);
+    if (!res.headersSent) {
+      res.status(502).json({ error: "Gagal memuat dokumen PDF." });
+    } else {
+      res.end();
+    }
   }
 }
