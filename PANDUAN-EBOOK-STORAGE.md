@@ -90,3 +90,54 @@ Kemudian:
 
 Kosongkan `EBOOK_BASE` di `src/data/ebook-storage.js` (jadikan `""`), lalu
 build ulang — situs otomatis kembali membaca `public/ebooks/*.pdf`.
+
+## Pilihan lain: keluar dari Git LFS (PDF disimpan biasa di repo)
+
+Kalau Anda ingin PDF asli benar-benar ada di repositori — supaya Vercel
+menyajikannya langsung dari `dist/ebooks/` tanpa kuota LFS — pakai skrip:
+
+```bash
+bash scripts/keluar-dari-lfs.sh --periksa   # cek dulu, tidak mengubah apa pun
+bash scripts/keluar-dari-lfs.sh             # migrasi + commit
+git push origin <nama-branch-anda>
+```
+
+Yang dilakukan skrip:
+
+1. `git lfs pull` — memastikan isi asli ada di mesin Anda (bukan pointer).
+2. Memverifikasi setiap berkas diawali `%PDF` dan **< 100 MB** (GitHub menolak
+   berkas ≥ 100 MB, dan memberi peringatan mulai 50 MB).
+3. Menghapus baris `*.pdf filter=lfs …` dari `.gitattributes`.
+4. `git add --renormalize` — commit berikutnya menyimpan PDF sebagai blob Git
+   biasa. **Riwayat lama tidak ditulis ulang**, jadi tidak perlu force push.
+
+Kondisi koleksi saat ini: **24 berkas, ±394 MB**, terbesar
+`Ruy Lopez_Anti Berlin (id).pdf` ±72 MB (aman, tapi kena peringatan >50 MB).
+
+Konsekuensi yang perlu disadari:
+
+- Ukuran `.git` bertambah ±400 MB dan **tidak bisa dikecilkan** tanpa menulis
+  ulang riwayat; setiap kali satu PDF diganti, salinan penuhnya tersimpan lagi.
+- `git clone` (termasuk clone yang dilakukan Vercel/GitHub Actions setiap
+  deploy) ikut mengunduh semua berkas itu → build lebih lambat.
+- GitHub Pages punya batas lunak 1 GB per situs; 394 MB PDF memakan sebagian
+  besar jatah itu.
+
+Karena itu, sebelum migrasi sebaiknya kompres dulu:
+
+```bash
+gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook \
+   -dNOPAUSE -dQUIET -dBATCH \
+   -sOutputFile="keluar.pdf" "masuk.pdf"
+```
+
+### Ringkasan tiga opsi
+
+| Opsi | Repo tetap ringan | Butuh layanan luar | Kuota LFS terpakai | Cocok bila |
+| --- | --- | --- | --- | --- |
+| Object storage (`npm run ebook:unggah`) | ✅ | Supabase/R2/S3 | ❌ | koleksi terus bertambah besar |
+| PDF biasa di Git (`scripts/keluar-dari-lfs.sh`) | ❌ (+394 MB) | ❌ | ❌ | ingin semuanya di satu repo |
+| Tetap Git LFS | ✅ | ❌ | ✅ 1 GiB/bulan | jumlah pembaca masih kecil |
+
+Apa pun pilihannya, tombol **Baca** tetap bekerja: proxy `/api/ebook-preview`
+otomatis memilih sumber yang benar-benar berisi PDF.

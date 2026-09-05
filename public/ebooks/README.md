@@ -22,6 +22,9 @@ LFS GitHub saat checkout dengan Git LFS aktif.
   menyajikan pointer teks sebagai pengganti PDF — tombol Baca/Unduh rusak.
 - **Menambah e-book baru**: letakkan PDF asli di folder ini lalu `git add` seperti
   biasa (Git LFS otomatis menangani). Jangan commit *pointer* hasil klon tanpa LFS.
+- **Ingin lepas dari LFS** (PDF disimpan sebagai berkas Git biasa):
+  `bash scripts/keluar-dari-lfs.sh --periksa` lalu tanpa `--periksa`.
+  Baca untung-ruginya di `PANDUAN-EBOOK-STORAGE.md`.
 
 ## Cara menambah e-book baru
 
