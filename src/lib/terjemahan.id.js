@@ -873,6 +873,9 @@ export const ID = {
     memuat: "Memuat buku pembukaan…",
     gagalMuat:
       "Gagal memuat data pembukaan. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
+    suara: "Suara papan",
+    suaraNyala: "Suara aktif — klik untuk mematikan",
+    suaraMati: "Suara mati — klik untuk menghidupkan",
     setBidak: "Set Bidak",
     flip: "Balik",
     undo: "Undo",
@@ -1458,6 +1461,9 @@ export const ID = {
       desain: "Tata letak halaman",
       desainOleh:
         "Pola layout Program Kami (judul besar + kartu grid) mengikuti prompt.md pada repositori ini, lisensi MIT.",
+      suara: "Suara papan",
+      suaraOleh:
+        "Berkas MP3 di /SoundChess berasal dari set suara papan Chess.com, LLC. Hak cipta tetap pada pemiliknya; dipakai apa adanya untuk kebutuhan latihan komunitas, tanpa modifikasi dan tanpa klaim kepemilikan.",
       logo: "Logo situs",
       logoOleh:
         "Merek dagang milik pemiliknya (Chess.com, LLC dan lichess.org); dipakai hanya untuk identifikasi lewat tautan situs resmi.",

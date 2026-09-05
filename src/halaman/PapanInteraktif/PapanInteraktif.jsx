@@ -6,6 +6,8 @@ import {
   Plus,
   RotateCw,
   Share2,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import License from "../Analisa/komponen/svg/license.jsx";
 import Profile from "../Analisa/komponen/svg/profile.jsx";
@@ -24,6 +26,7 @@ import {
 } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { petakRajaTermat } from "../../lib/skakmat.js";
+import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -335,6 +338,15 @@ export default function PapanInteraktif() {
     if (!engineNyala) setHasilTertahan(null);
   }, [engineNyala]);
 
+  // Suara papan (berkas MP3 di public/SoundChess) — sakelarnya dibagi dengan
+  // halaman Teka-Teki lewat localStorage.
+  const {
+    nyala: suaraNyala,
+    setNyala: setSuaraNyala,
+    mainkan: bunyikan,
+    mainkanLangkah: bunyikanLangkah,
+  } = gunakanSuara();
+
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
   const timerSalin = useRef(null);
@@ -608,6 +620,7 @@ export default function PapanInteraktif() {
 
     if (!pindah) {
       window.clearTimeout(timerSalah.current);
+      bunyikan(SUARA.ilegal);
       setKesalahan({ from, to });
       setTerpilih(null);
       setSasaran([]);
@@ -615,6 +628,7 @@ export default function PapanInteraktif() {
       return;
     }
 
+    bunyikanLangkah(pindah, game);
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
     setRiwayatLengkap((lama) => [...lama, pindah.san]);
@@ -635,6 +649,7 @@ export default function PapanInteraktif() {
     } catch {
       return;
     }
+    bunyikanLangkah(pindah, game);
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
     setRiwayatLengkap((lama) => [...lama, pindah.san]);
@@ -725,6 +740,7 @@ export default function PapanInteraktif() {
 
   /* ------------------------------------------------------ kontrol papan */
   function reset() {
+    bunyikan(SUARA.mulai);
     setFen(FEN_AWAL);
     setRiwayat([]);
     setRiwayatLengkap([]);
@@ -753,6 +769,7 @@ export default function PapanInteraktif() {
 
   function undo() {
     if (!riwayat.length) return;
+    bunyikan(SUARA.klik);
     const baru = riwayat.slice(0, -1);
     setRiwayat(baru);
     setJalur((lama) => lama.slice(0, -1));
@@ -773,6 +790,7 @@ export default function PapanInteraktif() {
     } catch {
       return;
     }
+    bunyikanLangkah(pindah, game);
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
     setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
@@ -1320,6 +1338,17 @@ export default function PapanInteraktif() {
                               ))}
                             </select>
                           </div>
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-sm font-semibold text-gray-400">
+                              {t("papan.suara")}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={suaraNyala}
+                              onChange={(e) => setSuaraNyala(e.target.checked)}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
                           <div className="flex flex-col gap-1">
                             <label htmlFor="warna-papan" className="text-sm font-semibold text-gray-400">{t("papan.warnaPapan")}</label>
                             <select
@@ -1381,6 +1410,28 @@ export default function PapanInteraktif() {
                       c-39.68,16.436-85.172-2.407-101.607-42.087c-16.436-39.68,2.407-85.171,42.087-101.608c39.68-16.436,85.172,2.407,101.608,42.088
                       C339.815,267.771,320.972,313.262,281.292,329.698z" />
                   </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Bunyikan saat dinyalakan supaya pengguna langsung dengar contohnya.
+                    if (!suaraNyala) mainkanSuara(SUARA.klik);
+                    setSuaraNyala((n) => !n);
+                  }}
+                  aria-pressed={suaraNyala}
+                  className={`p-2 rounded-md transition ${
+                    suaraNyala
+                      ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
+                      : "text-[#b33430] hover:bg-[#312e2b]"
+                  }`}
+                  aria-label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                  title={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
+                >
+                  {suaraNyala ? (
+                    <Volume2 className="w-5 h-5" />
+                  ) : (
+                    <VolumeX className="w-5 h-5" />
+                  )}
                 </button>
                 <button
                   type="button"

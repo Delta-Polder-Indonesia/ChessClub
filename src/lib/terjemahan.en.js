@@ -869,6 +869,9 @@ export const EN = {
     memuat: "Loading opening book…",
     gagalMuat:
       "Failed to load the opening data. Check your internet connection, then reload this page.",
+    suara: "Board sounds",
+    suaraNyala: "Sound on — click to mute",
+    suaraMati: "Sound off — click to unmute",
     setBidak: "Piece Set",
     flip: "Flip",
     undo: "Undo",
@@ -1452,6 +1455,9 @@ export const EN = {
       desain: "Page layout",
       desainOleh:
         "The Program Kami layout pattern (large heading + card grid) follows prompt.md from this repository, licensed MIT.",
+      suara: "Board sounds",
+      suaraOleh:
+        "The MP3 files under /SoundChess come from the Chess.com, LLC board sound set. Copyright remains with its owner; they are used as-is for community practice, unmodified and with no claim of ownership.",
       logo: "Site logos",
       logoOleh:
         "Trademarks of their respective owners (Chess.com, LLC and lichess.org); used here only to identify accounts via links to the official sites.",

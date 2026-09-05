@@ -12,6 +12,7 @@ import { isForced } from "../Analisa/mesin/penilaian.js";
 import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
 import { petakRajaTermat } from "../../lib/skakmat.js";
 import License from "../Analisa/komponen/svg/license.jsx";
+import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -232,6 +233,15 @@ export default function TekaTeki() {
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
   const [bukaPengaturan, setBukaPengaturan] = useState(false);
+
+  // Suara papan (MP3 di public/SoundChess) — sakelarnya dibagi dengan
+  // halaman Papan Interaktif lewat localStorage.
+  const {
+    nyala: suaraNyala,
+    setNyala: setSuaraNyala,
+    mainkan: bunyikan,
+    mainkanLangkah: bunyikanLangkah,
+  } = gunakanSuara();
 
   // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
@@ -663,6 +673,9 @@ export default function TekaTeki() {
 
     if (!lanjut) {
       window.clearTimeout(timerSalah.current);
+      // Langkah tidak legal berbunyi lain dari jawaban keliru, supaya pemain
+      // tahu bedanya "tidak boleh" dan "boleh tapi bukan solusinya".
+      bunyikan(langkahLegal ? SUARA.tekaTekiSalah : SUARA.ilegal);
       setPesan({ jenis: "salah", teks: t("tekaTeki.salah") });
       setKesalahan({ from, to });
       setTerpilih(null);
@@ -672,6 +685,8 @@ export default function TekaTeki() {
     }
 
     const sisaBaru = sisa.slice(1);
+    // `lanjut` sudah berisi langkah pemain; ambil detailnya untuk memilih bunyi.
+    const langkahPemain = lanjut.history({ verbose: true }).slice(-1)[0];
     setFen(lanjut.fen());
     setJalurFen((l) => [...l, lanjut.fen()]);
     setSisa(sisaBaru);
@@ -682,6 +697,9 @@ export default function TekaTeki() {
     setKesalahan(null);
 
     if (sisaBaru.length === 0) {
+      // Teka-teki tuntas: bunyi langkah penutup dulu, lalu fanfar kemenangan.
+      bunyikanLangkah(langkahPemain, lanjut);
+      window.setTimeout(() => bunyikan(SUARA.tekaTekiTuntas), 220);
       setSelesai(true);
       setPesan({ jenis: "selesai", teks: t("tekaTeki.terpecahkan") });
       catatTerpecahkan(masalah.problemid);
@@ -692,6 +710,8 @@ export default function TekaTeki() {
         }, 1200);
       }
     } else {
+      bunyikanLangkah(langkahPemain, lanjut);
+      window.setTimeout(() => bunyikan(SUARA.tekaTekiBenar), 150);
       setPesan({ jenis: "benar", teks: t("tekaTeki.benar") });
       setKomputer(true);
     }
@@ -735,6 +755,9 @@ export default function TekaTeki() {
       const diharapkan = parseLangkah(sisa[0]);
       try {
         const g = terapkan(fen, diharapkan);
+        bunyikanLangkah(g.history({ verbose: true }).slice(-1)[0], g, {
+          lawan: true,
+        });
         setFen(g.fen());
         setJalurFen((l) => [...l, g.fen()]);
         setLangkahAkhir({ from: diharapkan.from, to: diharapkan.to });
@@ -747,7 +770,7 @@ export default function TekaTeki() {
       }
     }, 700);
     return () => window.clearTimeout(timer);
-  }, [komputer, fen, sisa, selesai, masalah, terapkanSoal]);
+  }, [komputer, fen, sisa, selesai, masalah, terapkanSoal, bunyikanLangkah]);
 
   function tampilPetunjuk() {
     if (!sisa.length || selesai) return;
@@ -1192,6 +1215,8 @@ export default function TekaTeki() {
               pilihanWarnaPapan={PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => [nilai, t(kunci)])}
               nilaiWarnaPapan={warnaPapan}
               onGantiWarnaPapan={setWarnaPapan}
+              nilaiSuara={suaraNyala}
+              onGantiSuara={setSuaraNyala}
               onAcak={pilihAcak}
               onPertama={() => pindahSoal(0)}
               onLewati={() => pindahSoal(indeks + 1)}
@@ -1292,7 +1317,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1728,6 +1753,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                             </select>
                           </div>
                         )}
+                        {onGantiSuara && (
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-xs font-semibold text-gray-400">
+                              Suara papan
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={nilaiSuara}
+                              onChange={(e) => onGantiSuara(e.target.checked)}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
+                        )}
                         {pilihanWarnaPapan.length > 0 && onGantiWarnaPapan && (
                           <div className="flex items-center justify-between gap-3">
                             <label
@@ -1755,6 +1793,40 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   </>
                 )}
               </div>
+
+              {onGantiSuara && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Bunyikan saat dinyalakan supaya terdengar contohnya.
+                    if (!nilaiSuara) mainkanSuara(SUARA.klik);
+                    onGantiSuara(!nilaiSuara);
+                  }}
+                  aria-pressed={nilaiSuara}
+                  className={`p-2 rounded-md transition ${
+                    nilaiSuara
+                      ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
+                      : "text-[#b33430] hover:bg-[#312e2b]"
+                  }`}
+                  aria-label={nilaiSuara ? "Matikan suara papan" : "Hidupkan suara papan"}
+                  title={nilaiSuara ? "Matikan suara papan" : "Hidupkan suara papan"}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 5 6 9H2v6h4l5 4z" />
+                    {nilaiSuara ? (
+                      <>
+                        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                      </>
+                    ) : (
+                      <>
+                        <line x1="22" y1="9" x2="16" y2="15" />
+                        <line x1="16" y1="9" x2="22" y2="15" />
+                      </>
+                    )}
+                  </svg>
+                </button>
+              )}
 
               <button
                 type="button"
