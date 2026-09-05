@@ -26,7 +26,7 @@ export const tokenPengurus = {
     try {
       sessionStorage.removeItem(KUNCI_TOKEN);
     } catch {
-      /* abaikan */
+      /* mode privat browser */
     }
   },
 };
@@ -165,6 +165,12 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
       "X-Admin-User": adminPengguna.ambil(),
     };
     if (bodi) headers["Content-Type"] = "application/json";
+    // Scan otomatis adalah aksi administratif lama yang masih memakai GET.
+    // Header custom membuat browser melakukan CORS preflight sehingga
+    // link/prefetch GET biasa tidak dapat menjalankannya secara CSRF.
+    if (metode === "GET" && jalur === "/pindai-otomatis") {
+      headers["X-KCI-Action"] = "auto-scan";
+    }
     if (metode === "POST") {
       headers["X-CSRF-Token"] = csrfSegar || (await ambilCsrfToken());
     }
@@ -206,9 +212,9 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
 
 /* -------------------------------------------------------- login umum */
 
- /**
+/**
  * Login sederhana: username + password -> token.
- * Bawaan: admin / admin123 (ubah via KCI_ADMIN_USER / KCI_ADMIN_PASSWORD).
+ * Password produksi diatur melalui KCI_ADMIN_USER / KCI_ADMIN_PASSWORD.
  * Endpoint publik POST /api/auth/login — tidak butuh CSRF wajib, tapi
  * tetap dilindungi rate-limit & brute-force di server.
  */
@@ -308,5 +314,3 @@ export async function ubahAdmin({ username, password, role }) {
     bodi: { username, password, role },
   });
 }
-
-
