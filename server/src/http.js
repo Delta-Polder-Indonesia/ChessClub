@@ -293,11 +293,16 @@ export function validasiCsrfToken(token) {
 
 /**
  * Rahasia untuk menandatangani JWT.
- * Diambil dari konfigurasi; bila kosong di pengembangan, dipakai nilai
- * bawaan agar server tetap bisa jalan lokal tanpa mengatur env.
+ * Wajib berasal dari konfigurasi; tidak ada fallback secret statis.
+ * Konfigurasi pengembangan menyediakan secret acak per proses, sedangkan
+ * produksi wajib menyediakan KCI_JWT_SECRET melalui environment.
  */
 function jwtSecret() {
-  return konfigurasi.jwtSecret || "kci-jwt-pengembangan-jangan-diproduksi";
+  const secret = konfigurasi.jwtSecret;
+  if (!secret) {
+    throw new Error("KCI_JWT_SECRET belum dikonfigurasi; operasi JWT dihentikan.");
+  }
+  return secret;
 }
 
 /** Apakah token tampak seperti JWT (tiga segmen dipisah titik)? */
