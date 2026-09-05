@@ -15,11 +15,26 @@ import bcrypt from "bcryptjs";
 import { konfigurasi } from "./konfigurasi.js";
 import { bacaJson, tulisJson } from "./simpanan.js";
 
+const PANJANG_PASSWORD_MIN = 12;
+
+/** Tolak password baru yang terlalu lemah sebelum disimpan. */
+function pastikanPasswordKuat(password) {
+  const p = String(password || "");
+  if (p.length < PANJANG_PASSWORD_MIN) {
+    throw new Error(`Password minimal ${PANJANG_PASSWORD_MIN} karakter.`);
+  }
+  if (p === "admin123") {
+    throw new Error("Password bawaan admin123 tidak diizinkan.");
+  }
+  return p;
+}
+
 /** Hash password bila belum di-hash (idempoten). */
-async function hashJikaPerlu(password) {
+async function hashJikaPerlu(password, { validasi = false } = {}) {
   const p = String(password || "");
   // Sudah format bcrypt → kembalikan apa adanya.
   if (p.startsWith("$2a$") || p.startsWith("$2b$")) return p;
+  if (validasi) pastikanPasswordKuat(p);
   return bcrypt.hash(p, 12);
 }
 
@@ -83,7 +98,7 @@ export async function tulisAdminsFile(admins) {
   if (belumHash.length) {
     await Promise.all(
       belumHash.map(async (a) => {
-        a.password = await bcrypt.hash(a.password, 12);
+        a.password = await hashJikaPerlu(a.password, { validasi: true });
       })
     );
   }
@@ -124,7 +139,7 @@ export async function tulisAdminFile({ username, password }) {
     admins = [
       {
         username: String(username || "").trim().toLowerCase(),
-        password: await hashJikaPerlu(password),
+        password: await hashJikaPerlu(password, { validasi: true }),
         role: "master",
         dibuatPada: new Date().toISOString(),
         diubahPada: new Date().toISOString(),
@@ -135,7 +150,7 @@ export async function tulisAdminFile({ username, password }) {
     const u = String(username || "").trim().toLowerCase();
     const idx = admins.findIndex((a) => a.username === u);
     if (idx >= 0) {
-      admins[idx].password = password ? await hashJikaPerlu(password) : admins[idx].password;
+      admins[idx].password = password ? await hashJikaPerlu(password, { validasi: true }) : admins[idx].password;
       admins[idx].role = "master";
       admins[idx].diubahPada = new Date().toISOString();
     } else {
@@ -143,12 +158,12 @@ export async function tulisAdminFile({ username, password }) {
       const masterIdx = admins.findIndex((a) => a.role === "master");
       if (masterIdx >= 0) {
         admins[masterIdx].username = u;
-        admins[masterIdx].password = password ? await hashJikaPerlu(password) : admins[masterIdx].password;
+        admins[masterIdx].password = password ? await hashJikaPerlu(password, { validasi: true }) : admins[masterIdx].password;
         admins[masterIdx].diubahPada = new Date().toISOString();
       } else {
         admins.unshift({
           username: u,
-          password: await hashJikaPerlu(password),
+          password: await hashJikaPerlu(password, { validasi: true }),
           role: "master",
           dibuatPada: new Date().toISOString(),
           diubahPada: new Date().toISOString(),
@@ -166,7 +181,7 @@ export async function muatAdminFileKeKonfigurasi() {
     // Hash password yang belum di-hash (idempoten).
     for (const a of admins) {
       if (a.password && !a.password.startsWith("$2")) {
-        a.password = await bcrypt.hash(a.password, 12);
+        a.password = await hashJikaPerlu(a.password);
       }
     }
     konfigurasi.admins = admins;
@@ -179,6 +194,8 @@ export async function muatAdminFileKeKonfigurasi() {
     return admins;
   }
   // tidak ada file -> buat bawaan master dari env
+  // Bawaan lokal boleh tetap lemah untuk kompatibilitas demo, tetapi tidak
+  // pernah lolos pemeriksaan produksi pada startup.
   const hashed = await hashJikaPerlu(konfigurasi.admin.password);
   const bawaan = {
     username: konfigurasi.admin.username,
@@ -195,16 +212,15 @@ export async function muatAdminFileKeKonfigurasi() {
 // CRUD untuk master
 export async function tambahAdmin({ username, password, role = "pengurus" }) {
   const u = String(username || "").trim().toLowerCase();
-  const p = String(password || "");
+  const p = pastikanPasswordKuat(password);
   const r = role === "master" ? "master" : "pengurus";
   if (!/^[a-z0-9_-]{3,25}$/.test(u)) throw new Error("Username tidak valid (3-25 karakter).");
-  if (p.length < 6) throw new Error("Password minimal 6 karakter.");
   let admins = await bacaAdminsFile();
   if (!admins) admins = await muatAdminFileKeKonfigurasi();
   if (admins.some((a) => a.username === u)) throw new Error(`Username "${u}" sudah ada.`);
   admins.push({
     username: u,
-    password: await hashJikaPerlu(p),
+    password: await hashJikaPerlu(p, { validasi: true }),
     role: r,
     dibuatPada: new Date().toISOString(),
     diubahPada: new Date().toISOString(),
@@ -235,8 +251,8 @@ export async function ubahAdmin(username, { password, role }) {
   const idx = admins.findIndex((a) => a.username === u);
   if (idx < 0) throw new Error(`Admin "${u}" tidak ditemukan.`);
   if (password) {
-    if (String(password).length < 6) throw new Error("Password minimal 6 karakter.");
-    admins[idx].password = await hashJikaPerlu(password);
+    const p = pastikanPasswordKuat(password);
+    admins[idx].password = await hashJikaPerlu(p, { validasi: true });
   }
   if (role) {
     const r = role === "master" ? "master" : "pengurus";
