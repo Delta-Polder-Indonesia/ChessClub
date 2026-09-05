@@ -7,7 +7,7 @@
  * Variabel lingkungan penting:
  *   PORT                 port dengar (bawaan 8787)
  *   KCI_PEPPER           kata rahasia hashing identitas  (WAJIB di produksi)
- *   KCI_ADMIN_PASSWORD   password dashboard pengurus     (WAJIB diganti di produksi)
+ *   KCI_ADMIN_PASSWORD   password dashboard pengurus     (WAJIB di produksi)
  *   KCI_TOKEN_ADMIN      token legacy pengurus           (opsional)
  *   KCI_ASAL_DIIZINKAN   daftar origin dipisah koma
  *   KCI_JWT_SECRET       rahasia tanda tangan JWT        (WAJIB di produksi)
@@ -22,14 +22,34 @@ import { buatServerHttp, mulaiServer } from "./server.js";
 const mulaiPada = Date.now();
 const router = buatRouter();
 
-muatAdminFileKeKonfigurasi().catch(() => {});
+// Wajib selesai sebelum server menerima permintaan. Tanpa await, password
+// env dapat tertimpa hash file admin sebelum pemeriksaan produksi berjalan.
+try {
+  await muatAdminFileKeKonfigurasi();
+} catch (e) {
+  console.error(`[kci] gagal memuat kredensial admin: ${e?.message || e}`);
+  process.exit(1);
+}
+
 daftarkanRute(router, { mulaiPada });
 const tangani = buatTangani(router);
 
 const masalah = periksaProduksi();
+
+// Pemeriksaan ini sengaja memakai ENV mentah, bukan konfigurasi.admin.password
+// yang sudah berubah menjadi bcrypt hash oleh pemuatan admins.json.
+if (konfigurasi.produksi) {
+  const passwordEnv = String(process.env.KCI_ADMIN_PASSWORD || "").trim();
+  if (!passwordEnv || passwordEnv.length < 12 || passwordEnv === "admin123") {
+    masalah.push(
+      "KCI_ADMIN_PASSWORD wajib diisi dengan password produksi minimal 12 karakter dan bukan password bawaan."
+    );
+  }
+}
+
 if (masalah.length) {
   console.error("\n[kci] Konfigurasi produksi belum lengkap:\n");
-  for (const m of masalah) console.error(`  - ${m}`);
+  for (const m of [...new Set(masalah)]) console.error(`  - ${m}`);
   console.error("");
   process.exit(1);
 }
@@ -43,18 +63,11 @@ if (!konfigurasi.pepper) {
 
 if (
   process.env.KCI_ADMIN_PASSWORD &&
-  process.env.KCI_ADMIN_PASSWORD !== konfigurasi.admin.password
+  process.env.KCI_ADMIN_PASSWORD.trim() !== process.env.KCI_ADMIN_PASSWORD
 ) {
   console.warn(
     "[kci] KCI_ADMIN_PASSWORD mengandung spasi/baris baru di ujung — otomatis dibersihkan.\n" +
       "      Rapikan juga nilainya di dashboard (Vercel/Render) agar tidak membingungkan."
-  );
-}
-
-if (konfigurasi.admin?.password === "admin123") {
-  console.warn(
-    "[kci] KCI_ADMIN_PASSWORD masih bawaan admin123 — segera ganti di produksi!\n" +
-      '      Setel: export KCI_ADMIN_PASSWORD="password-baru-yang-kuat"'
   );
 }
 
