@@ -1,42 +1,72 @@
-/* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { BISHOP, BLACK, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
-import { maxVertical } from "../../konstanta.js";
-import SimplePieceSVG from "../svg/simplePiece.jsx";
+/* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README.
+ *
+ * Penyesuaian lokal: ikon bidak yang dimakan memakai set gambar Chess.com
+ * (`src/asets/ChessCom`) lewat komponen `ChessPiece`, menggantikan SVG garis. */
+
+import React, { useMemo } from "react";
+import { BISHOP, KNIGHT, PAWN, QUEEN, ROOK } from "chess.js";
+import { ChessPiece } from "../../../../components/chess/ChessPiece.jsx";
+
 const PIECES_ORDER = [PAWN, BISHOP, KNIGHT, ROOK, QUEEN];
-function formatAdvantage(advantage) {
+
+function formatAdvantage(advantage = 0) {
   return advantage > 0 ? `+${advantage}` : "";
 }
-function CapturedPieces(props) {
-  const { white, pieces, advantage } = props;
-  const groupedPieces = pieces.reduce((acc, piece) => {
-    acc[piece] = acc[piece] ? acc[piece] + 1 : 1;
-    return acc;
-  }, {});
-  return <div className="flex flex-row h-full items-end vertical:gap-2 gap-1">
-            <div className="w-fit h-full flex flex-row ml-[-3px]">
-                {Object.entries(groupedPieces).sort((a, b) => PIECES_ORDER.indexOf(a[0]) - PIECES_ORDER.indexOf(b[0])).map(([piece, count], i) => {
-    const outlineColor = "var(--border)";
-    const smallSize = window.innerWidth < maxVertical ? 8 : 15;
-    const mediumSize = window.innerWidth < maxVertical ? 10 : 17;
-    const bigSize = window.innerWidth < maxVertical ? 12 : 19;
-    return <div className="mb-[1px] flex flex-row items-end" key={i}>
-                            {Array.from({ length: count }).map((_, i2) => {
-      return <SimplePieceSVG
-        key={i2}
-        piece={piece}
-        color={white ? WHITE : BLACK}
-        size={piece === PAWN ? smallSize : piece === ROOK || piece === KNIGHT || piece === BISHOP ? mediumSize : bigSize}
-        className={`${piece === PAWN ? "mx-[2px]" : piece === ROOK || piece === KNIGHT || piece === BISHOP ? "mx-[1px]" : ""} ${i2 !== 0 ? "vertical:ml-[-10px] ml-[-7px]" : ""}`}
-        draggable
-        style={{ filter: `drop-shadow(1px 0 0 ${outlineColor}) drop-shadow(-1px 0 0 ${outlineColor}) drop-shadow(0 1px 0 ${outlineColor}) drop-shadow(0 -1px 0 ${outlineColor})` }}
-      />;
-    })}
-                        </div>;
-  })}
-            </div>
-            <span className="text-foregroundGrey h-fit font-light text-[8px] vertical:text-[17px]">{white ? formatAdvantage(advantage) : formatAdvantage(-advantage)}</span>
-        </div>;
+
+export default function CapturedPieces({ white = false, pieces = [], advantage = 0 }) {
+  // Kelompokkan dan urutkan bidak berdasarkan urutan nilai catur
+  const sortedGroupedPieces = useMemo(() => {
+    const counts = pieces.reduce((acc, piece) => {
+      const normalized = piece.toLowerCase();
+      acc[normalized] = (acc[normalized] || 0) + 1;
+      return acc;
+    }, {});
+
+    return Object.entries(counts).sort(
+      ([a], [b]) => PIECES_ORDER.indexOf(a) - PIECES_ORDER.indexOf(b)
+    );
+  }, [pieces]);
+
+  const displayAdvantage = white ? advantage : -advantage;
+  const advantageText = formatAdvantage(displayAdvantage);
+
+  return (
+    <div className="flex flex-row h-full items-end gap-1 vertical:gap-1.5">
+      <div className="flex flex-row h-full w-fit -ml-[3px]">
+        {sortedGroupedPieces.map(([piece, count]) => (
+          <div key={piece} className="mb-[1px] flex flex-row items-end">
+            {Array.from({ length: count }, (_, idx) => {
+              const isFirst = idx === 0;
+              const pieceChar = white ? piece.toUpperCase() : piece.toLowerCase();
+
+              const marginX =
+                piece === PAWN
+                  ? "mx-[2px]"
+                  : [ROOK, KNIGHT, BISHOP].includes(piece)
+                  ? "mx-[1px]"
+                  : "";
+
+              const overlapClass = !isFirst ? "-ml-[7px] vertical:-ml-[10px]" : "";
+
+              return (
+                <ChessPiece
+                  key={`${piece}-${idx}`}
+                  piece={pieceChar}
+                  set="chesscom"
+                  className={`w-[10px] h-[10px] vertical:w-[17px] vertical:h-[17px] ${marginX} ${overlapClass}`}
+                />
+              );
+            })}
+          </div>
+        ))}
+      </div>
+
+      {/* Ukuran angka disamakan proporsinya dengan bidak */}
+      {advantageText && (
+        <span className="text-foregroundGrey font-medium text-[9px] vertical:text-[12px] leading-none mb-[1px] select-none">
+          {advantageText}
+        </span>
+      )}
+    </div>
+  );
 }
-export {
-  CapturedPieces as default
-};

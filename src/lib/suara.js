@@ -40,6 +40,7 @@ export const SUARA = {
   remis: "game-draw",
   klik: "click",
   notifikasi: "notify",
+  tesSuara: "soundcheck",
   tekaTekiBenar: "puzzle-correct",
   tekaTekiSalah: "puzzle-wrong",
   tekaTekiTuntas: "lesson-pass",

@@ -32,3 +32,38 @@ export function petakRajaTermat(fen) {
   }
   return null;
 }
+
+/**
+ * Petak raja PEMENANG pada posisi `fen`, atau `null` bila posisi itu bukan
+ * skakmat. Pemenang adalah sisi yang TIDAK sedang giliran bergerak (mereka
+ * baru saja memberi skakmat; raja pemenang dipasangi mahkota hijau).
+ *
+ * Dipakai papan teka-teki untuk memasang lencana mahkota pemenang, serasi
+ * dengan halaman Analisa (ikon `victory` di atas raja pemenang).
+ *
+ * @param {string} fen posisi papan
+ * @returns {string|null} petak raja (mis. "e1") atau null
+ */
+export function petakRajaPemenang(fen) {
+  if (!fen) return null;
+  let game;
+  try {
+    game = new Chess(fen);
+  } catch {
+    return null;
+  }
+  try {
+    if (!game.isCheckmate()) return null;
+    const pemenang = game.turn() === "w" ? "b" : "w";
+    for (const baris of game.board()) {
+      for (const kotak of baris) {
+        if (kotak && kotak.type === "k" && kotak.color === pemenang) {
+          return kotak.square;
+        }
+      }
+    }
+  } catch {
+    /* posisi tak terbaca — anggap bukan skakmat */
+  }
+  return null;
+}

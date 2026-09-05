@@ -25,7 +25,7 @@ import {
   standarkanNamaPembukaan,
 } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
-import { petakRajaTermat } from "../../lib/skakmat.js";
+import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -769,7 +769,19 @@ export default function PapanInteraktif() {
 
   function undo() {
     if (!riwayat.length) return;
-    bunyikan(SUARA.klik);
+    // Bunyi langkah yang sedang dikembalikan — persis seperti Analisa:
+    // makan/rokade/skak/langkah, bukan bunyi klik acak.
+    let pindah = null;
+    let game = null;
+    try {
+      const ulang = new Chess();
+      for (const san of riwayat) {
+        pindah = ulang.move(san);
+      }
+      game = ulang;
+    } catch {}
+    if (pindah && game) bunyikanLangkah(pindah, game);
+    else bunyikan(SUARA.klik);
     const baru = riwayat.slice(0, -1);
     setRiwayat(baru);
     setJalur((lama) => lama.slice(0, -1));
@@ -845,6 +857,59 @@ export default function PapanInteraktif() {
     setLangkahAkhir(null);
     setPromosi(null);
   }
+
+  /* ------------------------------------------------- pintasan keyboard */
+  // Navigasi langkah dengan tombol panah — persis seperti Analisa:
+  //   ← mundur, → maju, ↑ ke awal, ↓ ke akhir.
+  // Memakai ref agar penekanan tombol selalu memakai fungsi/keadaan terbaru
+  // tanpa perlu memasang-ulang pendengar tiap render.
+  const kunciNavigasiRef = useRef({});
+  kunciNavigasiRef.current = {
+    mundur: undo,
+    maju: redo,
+    keAwal,
+    keAkhir,
+    adaJalur: !!riwayatLengkap?.length,
+    blokir: !!promosi,
+  };
+  useEffect(() => {
+    let terakhirDitekan = 0;
+    function saatKeydown(e) {
+      if (!kunciNavigasiRef.current.adaJalur) return;
+      if (kunciNavigasiRef.current.blokir) return;
+      const el = e.target;
+      const tipeFokus = ["text", "number", "password", "email", "search", "tel", "url"];
+      if (el.tagName === "INPUT" && tipeFokus.includes(el.getAttribute("type") ?? "")) return;
+      if (el.tagName === "TEXTAREA") return;
+      if (el.tagName === "SELECT") return;
+      const kini = Date.now();
+      if (kini - terakhirDitekan < 25) return;
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          kunciNavigasiRef.current.mundur?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          kunciNavigasiRef.current.maju?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          kunciNavigasiRef.current.keAwal?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          kunciNavigasiRef.current.keAkhir?.();
+          terakhirDitekan = kini;
+          break;
+      }
+    }
+    document.addEventListener("keydown", saatKeydown);
+    return () => document.removeEventListener("keydown", saatKeydown);
+  }, []);
 
   /** Terapkan teks PGN atau FEN dari dialog Review ke papan (otomatis dideteksi). */
   function terapkanTeks(teks) {
@@ -1059,6 +1124,13 @@ export default function PapanInteraktif() {
     return petak ? { petak } : null;
   }, [fen]);
 
+  /** Mahkota hijau (ikon victory ala Analisa) di atas raja PEMENANG saat
+   *  posisi sedang ditampilkan adalah skakmat. */
+  const ikonMahkota = useMemo(() => {
+    const petak = petakRajaPemenang(fen);
+    return petak ? { petak } : null;
+  }, [fen]);
+
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
   const jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
@@ -1222,6 +1294,7 @@ export default function PapanInteraktif() {
                     panahMesin={panahMesin}
                     ikonLangkah={ikonLangkahAkhir}
                     ikonSkakmat={ikonSkakmat}
+                    ikonMahkota={ikonMahkota}
                     terkunci={!!promosi}
                     membeku={false}
                     setBidak={setBidak}
@@ -1415,7 +1488,7 @@ export default function PapanInteraktif() {
                   type="button"
                   onClick={() => {
                     // Bunyikan saat dinyalakan supaya pengguna langsung dengar contohnya.
-                    if (!suaraNyala) mainkanSuara(SUARA.klik);
+                    if (!suaraNyala) mainkanSuara(SUARA.tesSuara);
                     setSuaraNyala((n) => !n);
                   }}
                   aria-pressed={suaraNyala}

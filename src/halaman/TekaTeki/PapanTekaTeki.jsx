@@ -233,6 +233,7 @@ export default function PapanTekaTeki({
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
   ikonLangkah = null, // { petak, rating } — ikon klasifikasi langkah di pojok petak (book/best/blunder, …)
   ikonSkakmat = null, // { petak } — lencana skakmat di atas raja lawan yang termat
+  ikonMahkota = null, // { petak } — mahkota hijau (victory) di atas raja pemenang
   terkunci = false,
   membeku = false,
   setBidak = "merida",
@@ -710,6 +711,24 @@ export default function PapanTekaTeki({
                   rating={ikonLangkah.rating}
                   size="100%"
                   title={LABEL_IKON_LANGKAH[ikonLangkah.rating] || ikonLangkah.rating}
+                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+                  style={{
+                    top: baris === 0 ? "2%" : "-8%",
+                    right: kolom === 7 ? "2%" : "-8%",
+                  }}
+                />
+              )}
+
+              {/* Lencana mahkota hijau — ikon "victory" (lingkaran hijau +
+                  mahkota putih) dari set hasil Analisa, dipasang di pojok
+                  kanan-atas petak raja PEMENANG saat posisi skakmat; posisi &
+                  ukuran sama dengan ikon klasifikasi langkah agar serasi.
+                  Tanpa rotasi, persis seperti board.jsx menandai pemenang. */}
+              {ikonMahkota && ikonMahkota.petak === sq && (
+                <ResultSVG
+                  result="victory"
+                  size="100%"
+                  title={LABEL_IKON_SKAKMAT}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",

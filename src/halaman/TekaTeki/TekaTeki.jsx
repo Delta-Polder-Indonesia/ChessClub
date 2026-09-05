@@ -10,7 +10,7 @@ import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
-import { petakRajaTermat } from "../../lib/skakmat.js";
+import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import License from "../Analisa/komponen/svg/license.jsx";
 import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 
@@ -364,6 +364,13 @@ export default function TekaTeki() {
     return petak ? { petak } : null;
   }, [fen]);
 
+  /** Mahkota hijau (ikon victory ala Analisa) di atas raja PEMENANG saat
+   *  posisi sedang ditampilkan adalah skakmat. */
+  const ikonMahkota = useMemo(() => {
+    const petak = petakRajaPemenang(fen);
+    return petak ? { petak } : null;
+  }, [fen]);
+
   /** Mainkan saran engine pada teka-teki — tetap divalidasi aturan soal:
       kalau sarannya bukan jawaban yang diharapkan, dihitung salah. */
   function mainkanSaranEngine(san) {
@@ -560,8 +567,9 @@ export default function TekaTeki() {
       terapkanSoal(m);
       setParams({ id: String(m.problemid) }, { replace: true });
       simpanPosisi(m.problemid);
+      bunyikan(SUARA.mulai);
     },
-    [soal, terapkanSoal, setParams, simpanPosisi]
+    [soal, terapkanSoal, setParams, simpanPosisi, bunyikan]
   );
 
   const pilihAcak = () =>
@@ -707,7 +715,7 @@ export default function TekaTeki() {
         window.clearTimeout(timerOtomatis.current);
         timerOtomatis.current = window.setTimeout(() => {
           pindahSoal(indeks + 1);
-        }, 1200);
+        }, 3000);
       }
     } else {
       bunyikanLangkah(langkahPemain, lanjut);
@@ -830,6 +838,13 @@ export default function TekaTeki() {
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
     if (posisi <= 0) return;
     const baru = posisi - 1;
+    // Bunyi langkah yang sedang dikembalikan (mode review) — persis seperti
+    // Analisa: makan/rokade/skak/langkah.
+    try {
+      const d = parseLangkah(langkahPenuh[baru]);
+      const g = terapkan(jalurFen[baru], d);
+      bunyikanLangkah(g.history({ verbose: true }).slice(-1)[0], g);
+    } catch {}
     setFen(jalurFen[baru]);
     setSisa(langkahPenuh.slice(baru));
     setJalurFen((l) => l.slice(0, baru + 1));
@@ -863,6 +878,7 @@ export default function TekaTeki() {
     try {
       const g = terapkan(fen, d);
       const fenBaru = g.fen();
+      bunyikanLangkah(g.history({ verbose: true }).slice(-1)[0], g);
       setFen(fenBaru);
       setSisa(langkahPenuh.slice(posisi + 1));
       setJalurFen((l) => [...l.slice(0, posisi), fenBaru]);
@@ -913,6 +929,59 @@ export default function TekaTeki() {
     setKomputer(false);
     tutupBantuTanpaPesan();
   }
+
+  /* ------------------------------------------------- pintasan keyboard */
+  // Navigasi langkah dengan tombol panah — persis seperti Analisa:
+  //   ← mundur, → maju, ↑ ke awal, ↓ ke akhir.
+  // Memakai ref agar penekanan tombol selalu memakai fungsi/keadaan terbaru
+  // tanpa perlu memasang-ulang pendengar tiap render.
+  const kunciNavigasiRef = useRef({});
+  kunciNavigasiRef.current = {
+    mundur: mundurLangkah,
+    maju: majuLangkah,
+    keAwal: keAwalLangkah,
+    keAkhir: keAkhirLangkah,
+    adaSoal: !!langkahPenuh?.length,
+    blokir: !!promosi || !!bukaPengaturan,
+  };
+  useEffect(() => {
+    let terakhirDitekan = 0;
+    function saatKeydown(e) {
+      if (!kunciNavigasiRef.current.adaSoal) return;
+      if (kunciNavigasiRef.current.blokir) return;
+      const el = e.target;
+      const tipeFokus = ["text", "number", "password", "email", "search", "tel", "url"];
+      if (el.tagName === "INPUT" && tipeFokus.includes(el.getAttribute("type") ?? "")) return;
+      if (el.tagName === "TEXTAREA") return;
+      if (el.tagName === "SELECT") return;
+      const kini = Date.now();
+      if (kini - terakhirDitekan < 25) return;
+      switch (e.key) {
+        case "ArrowLeft":
+          e.preventDefault();
+          kunciNavigasiRef.current.mundur?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          kunciNavigasiRef.current.maju?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowUp":
+          e.preventDefault();
+          kunciNavigasiRef.current.keAwal?.();
+          terakhirDitekan = kini;
+          break;
+        case "ArrowDown":
+          e.preventDefault();
+          kunciNavigasiRef.current.keAkhir?.();
+          terakhirDitekan = kini;
+          break;
+      }
+    }
+    document.addEventListener("keydown", saatKeydown);
+    return () => document.removeEventListener("keydown", saatKeydown);
+  }, []);
 
   function catatTerpecahkan(id) {
     setTerpecahkan((lama) => {
@@ -1029,6 +1098,7 @@ export default function TekaTeki() {
           kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
         }
         ikonSkakmat={kesalahan ? null : ikonSkakmat}
+        ikonMahkota={kesalahan ? null : ikonMahkota}
         terkunci={komputer || selesai || !!promosi}
         membeku={komputer}
         setBidak={setBidak}
@@ -1799,7 +1869,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   type="button"
                   onClick={() => {
                     // Bunyikan saat dinyalakan supaya terdengar contohnya.
-                    if (!nilaiSuara) mainkanSuara(SUARA.klik);
+                    if (!nilaiSuara) mainkanSuara(SUARA.tesSuara);
                     onGantiSuara(!nilaiSuara);
                   }}
                   aria-pressed={nilaiSuara}
