@@ -16,7 +16,15 @@
 import { Chess } from "chess.js";
 
 const NAMA_DB = "kci_catur_database_v1";
-const VERSI_DB = 1;
+/*
+ * Versi 2 menambah indeks gabungan berakhiran `timestamp`
+ * (`platformWaktu`, `usernameWaktu`, `kombinasiWaktu`). Tanpa indeks itu,
+ * mengambil "halaman ke-N" berarti membaca SELURUH isi store lebih dulu —
+ * ribuan partai berikut teks PGN-nya — lalu membuang 99% hasilnya. Dengan
+ * indeks ini kursor bisa langsung melompat ke offset halaman dan hanya
+ * membaca sebanyak baris yang ditampilkan.
+ */
+const VERSI_DB = 2;
 const STORE_PARTAI = "partai";
 const STORE_KOLEKSI = "koleksi";
 const AWALAN_STORAGE = "kci-analisa-db-";
@@ -79,13 +87,27 @@ function bukaDB() {
       req.onblocked = () => resolve(null);
       req.onupgradeneeded = (e) => {
         const db = e.target.result;
+        let sPartai;
         if (!db.objectStoreNames.contains(STORE_PARTAI)) {
-          const sPartai = db.createObjectStore(STORE_PARTAI, { keyPath: "id" });
-          sPartai.createIndex("platform", "platform", { unique: false });
-          sPartai.createIndex("username", "username", { unique: false });
-          sPartai.createIndex("kombinasi", ["platform", "username"], { unique: false });
-          sPartai.createIndex("timestamp", "timestamp", { unique: false });
+          sPartai = db.createObjectStore(STORE_PARTAI, { keyPath: "id" });
+        } else {
+          // Store sudah ada (peningkatan versi): ambil dari transaksi upgrade.
+          sPartai = e.target.transaction.objectStore(STORE_PARTAI);
         }
+        const pastikanIndeks = (nama, jalur) => {
+          if (!sPartai.indexNames.contains(nama)) {
+            sPartai.createIndex(nama, jalur, { unique: false });
+          }
+        };
+        pastikanIndeks("platform", "platform");
+        pastikanIndeks("username", "username");
+        pastikanIndeks("kombinasi", ["platform", "username"]);
+        pastikanIndeks("timestamp", "timestamp");
+        // Indeks berurut waktu — dipakai paginasi kursor.
+        pastikanIndeks("platformWaktu", ["platform", "timestamp"]);
+        pastikanIndeks("usernameWaktu", ["username", "timestamp"]);
+        pastikanIndeks("kombinasiWaktu", ["platform", "username", "timestamp"]);
+        pastikanIndeks("koleksiWaktu", ["koleksiId", "timestamp"]);
         if (!db.objectStoreNames.contains(STORE_KOLEKSI)) {
           db.createObjectStore(STORE_KOLEKSI, { keyPath: "id" });
         }
@@ -259,117 +281,316 @@ export async function ambilSemuaKoleksi() {
   });
 }
 
+/* ── Lapisan kueri: paginasi berbasis kursor ───────────────────────── */
+
 /**
- * Ambil daftar partai dengan opsi penyaringan, pencarian, dan pengurutan.
+ * Pilih indeks paling sempit yang tersedia untuk kombinasi filter pemilik,
+ * lengkap dengan rentang kuncinya. Semua indeks di sini berakhiran
+ * `timestamp` sehingga kursornya sudah urut waktu — tidak perlu memuat
+ * seluruh partai hanya untuk mengurutkannya.
  */
-export async function ambilDaftarPartai(opsi = {}) {
-  const {
-    koleksiId = "",
-    platform = "",
-    username = "",
-    cari = "",
-    hasil = "", // "white" | "black" | "draw" | "win" | "loss"
-    timeClass = "", // "blitz" | "rapid" | "bullet" | "classical"
-    urut = "tanggal", // "tanggal" | "pemain" | "langkah" | "hasil"
-    arah = "desc",
-    limit = 0,
-    offset = 0,
-  } = opsi;
-
-  const db = await bukaDB();
-  let semua = [];
-
-  if (!db) {
-    semua = Array.from(memoriPartai.values());
-    if (platform) {
-      semua = semua.filter((p) => p.platform?.toLowerCase() === platform.toLowerCase());
+function pilihIndeks(store, platform, username, koleksiId) {
+  const punya = (nama) => {
+    try {
+      return store.indexNames.contains(nama);
+    } catch {
+      return false;
     }
-    if (username) {
-      semua = semua.filter((p) => p.username?.toLowerCase() === username.toLowerCase());
-    }
-  } else {
-    semua = await new Promise((resolve) => {
-      try {
-        const tx = db.transaction([STORE_PARTAI], "readonly");
-        const store = tx.objectStore(STORE_PARTAI);
-        let req;
-        if (platform && username) {
-          req = store.index("kombinasi").getAll(IDBKeyRange.only([platform, username]));
-        } else if (platform) {
-          req = store.index("platform").getAll(IDBKeyRange.only(platform));
-        } else if (username) {
-          req = store.index("username").getAll(IDBKeyRange.only(username));
-        } else {
-          req = store.getAll();
-        }
-        req.onsuccess = () => resolve(Array.isArray(req.result) ? req.result : []);
-        req.onerror = () => resolve([]);
-      } catch {
-        resolve([]);
-      }
-    });
+  };
+  const BAWAH = -Infinity;
+  const ATAS = Infinity;
+
+  /*
+   * Koleksi didahulukan. Selain paling sering dipakai (pengguna memilih satu
+   * akun di panel Database), ini juga menutup bug lama: `koleksiId` disimpan
+   * dengan username huruf kecil, sedangkan field `username` menyimpan ejaan
+   * asli. Mencocokkan lewat indeks [platform, username] karena itu meleset
+   * untuk akun ber-huruf besar dan tabelnya tampak kosong.
+   */
+  if (koleksiId && punya("koleksiWaktu")) {
+    return {
+      sumber: store.index("koleksiWaktu"),
+      rentang: IDBKeyRange.bound([koleksiId, BAWAH], [koleksiId, ATAS]),
+      urutWaktu: true,
+      pemilikTerpenuhi: true,
+    };
   }
 
-  // Filter koleksiId jika ada
-  if (koleksiId) {
-    semua = semua.filter((p) => p.koleksiId === koleksiId);
+  if (platform && username && punya("kombinasiWaktu")) {
+    return {
+      sumber: store.index("kombinasiWaktu"),
+      rentang: IDBKeyRange.bound([platform, username, BAWAH], [platform, username, ATAS]),
+      urutWaktu: true,
+      pemilikTerpenuhi: false,
+    };
+  }
+  if (platform && !username && punya("platformWaktu")) {
+    return {
+      sumber: store.index("platformWaktu"),
+      rentang: IDBKeyRange.bound([platform, BAWAH], [platform, ATAS]),
+      urutWaktu: true,
+      pemilikTerpenuhi: false,
+    };
+  }
+  if (username && !platform && punya("usernameWaktu")) {
+    return {
+      sumber: store.index("usernameWaktu"),
+      rentang: IDBKeyRange.bound([username, BAWAH], [username, ATAS]),
+      urutWaktu: true,
+      pemilikTerpenuhi: false,
+    };
+  }
+  if (!platform && !username && punya("timestamp")) {
+    return { sumber: store.index("timestamp"), rentang: null, urutWaktu: true, pemilikTerpenuhi: false };
   }
 
-  // Filter pencarian
-  if (cari && cari.trim()) {
-    const kata = cari.trim().toLowerCase();
-    semua = semua.filter(
-      (p) =>
+  /* Basis data lama (belum punya indeks gabungan berwaktu): tetap jalan,
+     hanya tanpa keuntungan lompat-offset. */
+  if (platform && username && punya("kombinasi")) {
+    return { sumber: store.index("kombinasi"), rentang: IDBKeyRange.only([platform, username]), urutWaktu: false, pemilikTerpenuhi: false };
+  }
+  if (platform && punya("platform")) {
+    return { sumber: store.index("platform"), rentang: IDBKeyRange.only(platform), urutWaktu: false, pemilikTerpenuhi: false };
+  }
+  if (username && punya("username")) {
+    return { sumber: store.index("username"), rentang: IDBKeyRange.only(username), urutWaktu: false, pemilikTerpenuhi: false };
+  }
+  return { sumber: store, rentang: null, urutWaktu: false, pemilikTerpenuhi: false };
+}
+
+/** Buang teks PGN dari satu baris daftar (tabel hanya butuh metadatanya). */
+function tanpaTeksPgn(partai) {
+  if (!partai || typeof partai !== "object") return partai;
+  const { pgn, ...sisa } = partai;
+  return sisa;
+}
+
+/**
+ * Penyaring sisi klien untuk hal-hal yang tidak bisa dilayani indeks:
+ * koleksi, kata kunci, hasil, dan kelas waktu.
+ */
+function buatPenyaring({ koleksiId, cari, hasil, timeClass, username }) {
+  const kata = cari && cari.trim() ? cari.trim().toLowerCase() : "";
+  const kelas = timeClass && timeClass !== "all" ? timeClass.toLowerCase() : "";
+  const nama = (username || "").toLowerCase();
+
+  return (p) => {
+    if (!p) return false;
+    if (koleksiId && p.koleksiId !== koleksiId) return false;
+    if (kata) {
+      const cocok =
         p.whiteName?.toLowerCase().includes(kata) ||
         p.blackName?.toLowerCase().includes(kata) ||
-        p.pgn?.toLowerCase().includes(kata)
-    );
-  }
-
-  // Filter hasil
-  if (hasil) {
-    if (hasil === "white" || hasil === "black" || hasil === "draw") {
-      semua = semua.filter((p) => p.result === hasil);
-    } else if (hasil === "win" && username) {
-      semua = semua.filter(
-        (p) =>
-          (p.result === "white" && p.whiteName.toLowerCase() === username.toLowerCase()) ||
-          (p.result === "black" && p.blackName.toLowerCase() === username.toLowerCase())
-      );
-    } else if (hasil === "loss" && username) {
-      semua = semua.filter(
-        (p) =>
-          (p.result === "white" && p.whiteName.toLowerCase() !== username.toLowerCase()) ||
-          (p.result === "black" && p.blackName.toLowerCase() !== username.toLowerCase())
-      );
+        p.pgn?.toLowerCase().includes(kata);
+      if (!cocok) return false;
     }
-  }
+    if (hasil) {
+      if (hasil === "white" || hasil === "black" || hasil === "draw") {
+        if (p.result !== hasil) return false;
+      } else if (hasil === "win" && nama) {
+        const menang =
+          (p.result === "white" && p.whiteName?.toLowerCase() === nama) ||
+          (p.result === "black" && p.blackName?.toLowerCase() === nama);
+        if (!menang) return false;
+      } else if (hasil === "loss" && nama) {
+        const kalah =
+          (p.result === "white" && p.whiteName?.toLowerCase() !== nama) ||
+          (p.result === "black" && p.blackName?.toLowerCase() !== nama);
+        if (!kalah) return false;
+      }
+    }
+    if (kelas && p.timeClass?.toLowerCase() !== kelas) return false;
+    return true;
+  };
+}
 
-  // Filter timeClass
-  if (timeClass && timeClass !== "all") {
-    semua = semua.filter((p) => p.timeClass?.toLowerCase() === timeClass.toLowerCase());
-  }
-
-  // Pengurutan
+function bandingkan(urut, arah) {
   const pengali = arah === "asc" ? 1 : -1;
-  semua.sort((a, b) => {
-    if (urut === "tanggal") return (a.timestamp - b.timestamp) * pengali;
+  return (a, b) => {
     if (urut === "langkah") return ((a.plyCount ?? 0) - (b.plyCount ?? 0)) * pengali;
     if (urut === "pemain") {
       const cmp = (a.whiteName || "").localeCompare(b.whiteName || "");
       return (cmp || (a.blackName || "").localeCompare(b.blackName || "")) * pengali;
     }
     if (urut === "hasil") {
-      const val = (r) => (r === "white" ? 1 : r === "black" ? -1 : 0);
-      return (val(a.result) - val(b.result)) * pengali;
+      const nilai = (r) => (r === "white" ? 1 : r === "black" ? -1 : 0);
+      return (nilai(a.result) - nilai(b.result)) * pengali;
     }
     return (a.timestamp - b.timestamp) * pengali;
+  };
+}
+
+/** Jalankan kursor pada indeks terpilih; `pada(nilai)` boleh mengembalikan "stop". */
+function telusuriKursor(sumber, rentang, arah, pada) {
+  return new Promise((selesai) => {
+    try {
+      const req = sumber.openCursor(rentang, arah);
+      req.onsuccess = (e) => {
+        const kursor = e.target.result;
+        if (!kursor) {
+          selesai(true);
+          return;
+        }
+        const hasil = pada(kursor);
+        if (hasil === "stop") {
+          selesai(true);
+          return;
+        }
+        if (hasil === "lanjut" || hasil === undefined) kursor.continue();
+      };
+      req.onerror = () => selesai(false);
+    } catch {
+      selesai(false);
+    }
+  });
+}
+
+function hitungCepat(sumber, rentang) {
+  return new Promise((selesai) => {
+    try {
+      const req = sumber.count(rentang);
+      req.onsuccess = () => selesai(req.result || 0);
+      req.onerror = () => selesai(0);
+    } catch {
+      selesai(0);
+    }
+  });
+}
+
+/**
+ * Ambil daftar partai dengan opsi penyaringan, pencarian, dan pengurutan.
+ *
+ * PENTING — hanya satu halaman yang dibaca dari IndexedDB.
+ * Sebelumnya fungsi ini memanggil `store.getAll()`: seluruh partai (berikut
+ * teks PGN masing-masing, ribuan baris) dimuat ke memori setiap kali tabel
+ * berpindah halaman, lalu dipotong dengan `slice`. Sekarang:
+ *
+ *  - tanpa filter & urut tanggal → jumlah total diambil lewat `count()`,
+ *    lalu kursor `advance(offset)` melompat langsung ke halaman yang diminta
+ *    dan hanya membaca `limit` rekaman;
+ *  - dengan filter → kursor tetap menelusuri (perlu untuk menghitung total),
+ *    tetapi hanya baris di jendela halaman yang disimpan, sisanya dibuang;
+ *  - `sertakanPgn: false` membuang teks PGN dari hasil — tabel hanya perlu
+ *    metadata, dan PGN penuh diambil sesuai kebutuhan lewat `ambilPartai(id)`.
+ *
+ * @param {object} opsi
+ * @param {boolean} [opsi.sertakanPgn=true] sertakan teks PGN pada tiap baris.
+ * @returns {Promise<{partai: object[], total: number}>}
+ */
+export async function ambilDaftarPartai(opsi = {}) {
+  const {
+    koleksiId = "",
+    platform = "",
+    username = "",
+    cari = "", // cocokkan nama pemain atau isi PGN
+    hasil = "", // "white" | "black" | "draw" | "win" | "loss"
+    timeClass = "", // "blitz" | "rapid" | "bullet" | "classical"
+    urut = "tanggal", // "tanggal" | "pemain" | "langkah" | "hasil"
+    arah = "desc",
+    limit = 0,
+    offset = 0,
+    sertakanPgn = true,
+  } = opsi;
+
+  const saringDasar = buatPenyaring({ koleksiId, cari, hasil, timeClass, username });
+  const rapikan = (p) => (sertakanPgn ? p : tanpaTeksPgn(p));
+  const db = await bukaDB();
+
+  /* --- Cadangan memori (IndexedDB diblokir / lingkungan uji) --- */
+  if (!db) {
+    let semua = Array.from(memoriPartai.values());
+    if (platform) semua = semua.filter((p) => p.platform?.toLowerCase() === platform.toLowerCase());
+    if (username) semua = semua.filter((p) => p.username?.toLowerCase() === username.toLowerCase());
+    semua = semua.filter(saringDasar);
+    semua.sort(bandingkan(urut, arah));
+    const total2 = semua.length;
+    const potong = limit > 0 ? semua.slice(offset, offset + limit) : semua;
+    return { partai: potong.map(rapikan), total: total2 };
+  }
+
+  let store;
+  try {
+    store = db.transaction([STORE_PARTAI], "readonly").objectStore(STORE_PARTAI);
+  } catch {
+    return { partai: [], total: 0 };
+  }
+
+  const { sumber, rentang, urutWaktu, pemilikTerpenuhi } = pilihIndeks(
+    store,
+    platform,
+    username,
+    koleksiId
+  );
+  // Bila indeksnya sudah dibatasi pada satu koleksi, penyaring koleksi tidak
+  // perlu dijalankan lagi — dan itulah yang membuka jalur cepat.
+  const saring = pemilikTerpenuhi
+    ? buatPenyaring({ koleksiId: "", cari, hasil, timeClass, username })
+    : saringDasar;
+  const adaSaringan = Boolean((koleksiId && !pemilikTerpenuhi) || cari || hasil || timeClass);
+  const arahKursor = arah === "asc" ? "next" : "prev";
+  const bisaLompat = urutWaktu && !adaSaringan && urut === "tanggal";
+
+  /* --- Jalur cepat: langsung lompat ke halaman yang diminta --- */
+  if (bisaLompat) {
+    const total = await hitungCepat(sumber, rentang);
+    if (limit <= 0) {
+      // Pemanggil memang meminta semuanya (mis. ekspor PGN).
+      const semua = [];
+      await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+        semua.push(rapikan(kursor.value));
+      });
+      return { partai: semua, total };
+    }
+    if (offset >= total) return { partai: [], total };
+
+    const baris = [];
+    let sudahLompat = offset <= 0;
+    await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+      if (!sudahLompat) {
+        sudahLompat = true;
+        kursor.advance(offset); // lompati offset tanpa membaca isinya
+        return "tunggu";
+      }
+      baris.push(rapikan(kursor.value));
+      return baris.length >= limit ? "stop" : "lanjut";
+    });
+    return { partai: baris, total };
+  }
+
+  /* --- Jalur bersaring: telusuri, tapi simpan seperlunya saja --- */
+  const perluUrutUlang = urut !== "tanggal" || !urutWaktu;
+  const kumpulan = [];
+  const jendela = [];
+  let cocok = 0;
+
+  await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+    const nilai = kursor.value;
+    if (!saring(nilai)) return "lanjut";
+    if (perluUrutUlang) {
+      // Perlu semua yang cocok untuk diurutkan — tapi tanpa teks PGN,
+      // jadi memorinya tetap kecil meski partainya ribuan.
+      kumpulan.push(tanpaTeksPgn(nilai));
+      cocok++;
+      return "lanjut";
+    }
+    if (cocok >= offset && (limit <= 0 || jendela.length < limit)) {
+      jendela.push(rapikan(nilai));
+    }
+    cocok++;
+    return "lanjut";
   });
 
-  const total = semua.length;
-  const partai = limit > 0 ? semua.slice(offset, offset + limit) : semua;
+  if (!perluUrutUlang) return { partai: jendela, total: cocok };
 
-  return { partai, total };
+  kumpulan.sort(bandingkan(urut, arah));
+  const potong = limit > 0 ? kumpulan.slice(offset, offset + limit) : kumpulan;
+  if (!sertakanPgn) return { partai: potong, total: kumpulan.length };
+
+  // Hanya baris yang benar-benar tampil yang PGN-nya diambil kembali.
+  const lengkap = await Promise.all(
+    potong.map(async (p) => (p.pgn ? p : (await ambilPartai(p.id)) || p))
+  );
+  return { partai: lengkap, total: kumpulan.length };
 }
 
 /**
@@ -488,28 +709,49 @@ export async function bersihkanBasisData() {
 
 /**
  * Hitung ringkasan statistik basis data (total partai, koleksi, menang, kalah, seri).
+ *
+ * Dihitung sambil menelusuri kursor: tidak ada larik besar yang dibangun dan
+ * teks PGN tidak pernah ikut ditumpuk di memori. Dulu fungsi ini memanggil
+ * `ambilDaftarPartai()` tanpa limit — artinya seluruh basis data dimuat hanya
+ * untuk menjumlahkan menang/kalah setiap kali panel Database dibuka.
  */
 export async function hitungStatistikBasisData() {
-  const { partai } = await ambilDaftarPartai();
   let putihMenang = 0;
   let hitamMenang = 0;
   let seri = 0;
+  let totalPartai = 0;
   const platformCounts = { chessCom: 0, lichessOrg: 0, impor: 0 };
 
-  for (const p of partai) {
+  const tally = (p) => {
+    totalPartai++;
     if (p.result === "white") putihMenang++;
     else if (p.result === "black") hitamMenang++;
     else seri++;
-
     const plat = p.platform || "chessCom";
-    if (platformCounts[plat] !== undefined) platformCounts[plat]++;
-    else platformCounts[plat] = (platformCounts[plat] || 0) + 1;
+    platformCounts[plat] = (platformCounts[plat] || 0) + 1;
+  };
+
+  const db = await bukaDB();
+  if (!db) {
+    for (const p of memoriPartai.values()) tally(p);
+  } else {
+    let store;
+    try {
+      store = db.transaction([STORE_PARTAI], "readonly").objectStore(STORE_PARTAI);
+    } catch {
+      store = null;
+    }
+    if (store) {
+      await telusuriKursor(store, null, "next", (kursor) => {
+        tally(kursor.value);
+      });
+    }
   }
 
   const koleksi = await ambilSemuaKoleksi();
 
   return {
-    totalPartai: partai.length,
+    totalPartai,
     totalKoleksi: koleksi.length,
     putihMenang,
     hitamMenang,

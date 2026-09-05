@@ -49,14 +49,34 @@ function IkonImpor({ className }) {
   );
 }
 
+/** Ikon "Baru" — papan kosong dengan tanda plus (monokrom, ikut fill). */
+function IkonBaru({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden="true">
+      <path
+        className={className}
+        d="M4 3h10a1 1 0 0 1 0 2H5v14h14v-9a1 1 0 0 1 2 0v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm14 0a1 1 0 0 1 1 1v2h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0V8h-2a1 1 0 0 1 0-2h2V4a1 1 0 0 1 1-1z"
+      />
+    </svg>
+  );
+}
+
 export default function Nav() {
   const { t } = useI18n();
   const [terbuka, setTerbuka] = useState(null); // null | "akun" | "database" | "impor"
   const analyzeContext = useContext(AnalyzeContext);
   const setAkun = analyzeContext.akun[1];
   const setData = analyzeContext.data[1];
-  const setPageState = analyzeContext.pageState[1];
+  const [pageState, setPageState] = analyzeContext.pageState;
   const setPlaying = analyzeContext.playing[1];
+  const [game] = analyzeContext.game;
+
+  // Konfirmasi dua langkah untuk tombol "Baru": klik pertama bertanya,
+  // klik kedua benar-benar mengosongkan papan. Mencegah analisis panjang
+  // hilang hanya karena salah tekan.
+  const [konfirmasiBaru, setKonfirmasiBaru] = useState(false);
+  const timerKonfirmasi = useRef(null);
+  useEffect(() => () => window.clearTimeout(timerKonfirmasi.current), []);
 
   const navRef = useRef(null);
   const [lebarNav, setLebarNav] = useState(0);
@@ -108,6 +128,11 @@ const menuPop = [
     kunci: "play",
   },
   {
+    label: t("analisa.nav.baru"),
+    icon: (props) => <IkonBaru className={props.className} />,
+    kunci: "baru",
+  },
+  {
     label: t("analisa.nav.akun"),
     icon: (props) => <Profile width={18} height={18} class={props.className} />,
     kunci: "akun",
@@ -140,9 +165,52 @@ const menuPop = [
     setData(data);
   }
 
-  /** Kembali ke tampilan utama Analisa: papan awal kosong + panel ajakan. */
-  function keHalamanUtama() {
+  /**
+   * Tombol "Bermain" = kembali ke papan, BUKAN tombol reset.
+   *
+   * Dulu tombol ini selalu mengosongkan `data`, `akun`, dan `pageState`,
+   * sehingga menekannya sesudah mereview partai membuang seluruh hasil
+   * analisis dan papan kembali ke keadaan awal. Sekarang urutannya:
+   *
+   *  1. Ada popup terbuka  → cukup tutup popup. Analisis yang sedang
+   *     direview tetap utuh — inilah gunanya: keluar dari popup Database
+   *     tanpa harus mencari tombol tutup.
+   *  2. Tidak ada popup, tapi ada partai yang sedang/sudah dianalisis →
+   *     tidak melakukan apa pun; papannya memang sudah tampil.
+   *  3. Tidak ada popup dan belum ada analisis (mis. masih melihat daftar
+   *     partai sebuah akun) → bersihkan pilihan itu supaya kembali ke papan
+   *     awal. Tidak ada analisis yang hilang karena memang belum ada.
+   */
+  const adaAnalisa =
+    game.length > 0 ||
+    pageState === "analyze" ||
+    pageState === "analyzeCustom" ||
+    pageState === "loading";
+
+  /** Kosongkan papan untuk analisis baru (dengan konfirmasi bila ada isinya). */
+  function mulaiBaru() {
     setTerbuka(null);
+    if (adaAnalisa && !konfirmasiBaru) {
+      setKonfirmasiBaru(true);
+      window.clearTimeout(timerKonfirmasi.current);
+      timerKonfirmasi.current = window.setTimeout(() => setKonfirmasiBaru(false), 4000);
+      return;
+    }
+    window.clearTimeout(timerKonfirmasi.current);
+    setKonfirmasiBaru(false);
+    setData({ format: "fen", string: "" });
+    setAkun({ platform: "", username: "" });
+    setPlaying(false);
+    setPageState("default");
+  }
+
+  function kePapan() {
+    setKonfirmasiBaru(false);
+    if (terbuka) {
+      setTerbuka(null);
+      return;
+    }
+    if (adaAnalisa) return;
     setData({ format: "fen", string: "" });
     setAkun({ platform: "", username: "" });
     setPlaying(false);
@@ -160,24 +228,45 @@ const menuPop = [
           </Link>
           <hr className="border-border mx-2 my-1 navTop:block hidden" />
           <div className="flex navTop:flex-col flex-row">
-            {menuPop.map((item) => (
+            {menuPop.map((item) => {
+              // Saat popup terbuka, "Bermain" adalah jalan keluarnya —
+              // ditonjolkan supaya terlihat sebagai tombol kembali ke papan.
+              const jalanKeluar = item.kunci === "play" && Boolean(terbuka);
+              // "Baru" menunggu konfirmasi bila ada analisis yang akan hilang.
+              const menungguKonfirmasi = item.kunci === "baru" && konfirmasiBaru;
+              const label = menungguKonfirmasi ? t("analisa.nav.baruKonfirmasi") : item.label;
+              const keterangan =
+                item.kunci === "play"
+                  ? t("analisa.nav.playKeterangan")
+                  : item.kunci === "baru"
+                    ? t("analisa.nav.baruKeterangan")
+                    : item.label;
+              const aksi =
+                item.kunci === "play"
+                  ? kePapan
+                  : item.kunci === "baru"
+                    ? mulaiBaru
+                    : () => {
+                        setKonfirmasiBaru(false);
+                        setTerbuka(item.kunci);
+                      };
+              return (
               <button
                 key={item.kunci}
                 type="button"
                 data-uji={`nav-${item.kunci}`}
-                title={item.label}
-                aria-label={item.label}
-                onClick={() =>
-                  item.kunci === "play"
-                    ? keHalamanUtama()
-                    : setTerbuka(item.kunci)
-                }
-                className={kelasTombol}
+                title={keterangan}
+                aria-label={keterangan}
+                onClick={aksi}
+                className={`${kelasTombol}${jalanKeluar ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}${
+                  menungguKonfirmasi ? " bg-backgroundBoxHover text-lossRed" : ""
+                }`}
               >
                 {item.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                <span className="navTop:block hidden">{item.label}</span>
+                <span className="navTop:block hidden">{label}</span>
               </button>
-            ))}
+              );
+            })}
           </div>
         </div>
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">

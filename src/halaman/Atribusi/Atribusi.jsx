@@ -172,6 +172,18 @@ export default function Atribusi() {
       ),
     },
     {
+      judul: t("analisa.atribusi.suara"),
+      ikon: null,
+      isi: (
+        <>
+          <li>{t("analisa.atribusi.suaraOleh")}</li>
+          <li>
+            <Tautan href="https://www.chess.com/">Chess.com</Tautan>
+          </li>
+        </>
+      ),
+    },
+    {
       judul: t("analisa.atribusi.logo"),
       ikon: null,
       isi: (

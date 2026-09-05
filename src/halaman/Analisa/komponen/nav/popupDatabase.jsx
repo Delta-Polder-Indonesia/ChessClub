@@ -14,6 +14,7 @@ import SquareFillPlus from "../svg/square-fill-plus.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import {
   ambilDaftarPartai,
+  ambilPartai,
   ambilSemuaKoleksi,
   bersihkanBasisData,
   eksporPgnKoleksi,
@@ -524,6 +525,9 @@ export default function PopupDatabase({
         arah: urut.arah,
         limit: BARIS_PER_HALAMAN,
         offset: (hal - 1) * BARIS_PER_HALAMAN,
+        // Tabel hanya butuh metadata. Teks PGN (bagian terberat tiap rekaman)
+        // baru diambil untuk satu partai saat ditekan Analisa / Salin.
+        sertakanPgn: false,
       });
 
       setDaftarPartai(hasil.partai || []);
@@ -557,17 +561,37 @@ export default function PopupDatabase({
     setTimeout(() => setNotifikasi(null), 3000);
   }
 
-  function tanganiAnalisa(game) {
-    if (!game?.pgn) return;
-    onAnalisa({ format: "pgn", string: game.pgn });
+  /** Ambil teks PGN satu partai (baris tabel sengaja tidak membawanya). */
+  async function pgnPartai(game) {
+    if (game?.pgn) return game.pgn;
+    if (!game?.id) return "";
+    try {
+      const penuh = await ambilPartai(game.id);
+      return penuh?.pgn || "";
+    } catch {
+      return "";
+    }
+  }
+
+  async function tanganiAnalisa(game) {
+    const pgn = await pgnPartai(game);
+    if (!pgn) {
+      tampilkanNotif(t("analisa.basisData.pgnTidakAda"));
+      return;
+    }
+    onAnalisa({ format: "pgn", string: pgn });
     onTutup();
   }
 
   async function tanganiSalinPgn(game) {
-    if (!game?.pgn) return;
+    const pgn = await pgnPartai(game);
+    if (!pgn) {
+      tampilkanNotif(t("analisa.basisData.pgnTidakAda"));
+      return;
+    }
     try {
       if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(game.pgn);
+        await navigator.clipboard.writeText(pgn);
       }
       setSalinSuksesId(game.id);
       tampilkanNotif(t("analisa.basisData.pgnDisalin"));

@@ -23,7 +23,7 @@ berikutnya.
 | Pengambilan partai Chess.com/Lichess | port + teks kamus | `komponen/menu/analyze/select*.jsx` |
 | **Worker Stockfish, `hardwareConcurrency`, `public/engine/*`** | **dibuang** | — |
 | **Komunikasi UCI** | **engine ChessClub** | `mesin/engine.js` → `src/lib/engineCatur.js` |
-| Suara papan (berkas `.mp3` Lichess, AGPL) | diganti sintesis Web Audio | `komponen/suaraPapan.js` |
+| Suara papan (berkas `.mp3` Lichess, AGPL) | diganti MP3 `public/SoundChess` | `komponen/suaraPapan.js` → `src/lib/suara.js` |
 | `howler` | tidak dipakai lagi | — |
 
 `mesin/engine.js` mempertahankan bentuk fungsi upstream (`parsePGN`,
@@ -95,8 +95,11 @@ diukur, bukan menempel ke `body`.
   `/* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */`
   menandai berkas hasil port. Ringkasan teks atribusi juga ditampilkan di panel
   pengaturan (`komponen/atribusi.jsx`).
-- Berkas suara `.mp3` Lichess (AGPL-3.0) sengaja **tidak** disalin; suara papan
-  sekarang disintesis (`komponen/suaraPapan.js`).
+- Berkas suara `.mp3` Lichess (AGPL-3.0) sengaja **tidak** disalin. Suara papan
+  memakai set MP3 di `public/SoundChess/standard/` (asal: set suara Chess.com,
+  hak cipta pemiliknya) lewat modul bersama `src/lib/suara.js`;
+  `komponen/suaraPapan.js` kini hanya pembungkus tipis ber-API mirip Howl.
+  Atribusinya tampil di halaman Atribusi.
 
 ## Pengaturan & keterbatasan yang diketahui
 
