@@ -4,6 +4,7 @@
  * Semua nilai punya bawaan yang aman untuk pengembangan lokal, tetapi
  * beberapa WAJIB diisi di produksi (lihat `periksaProduksi`).
  */
+import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -12,6 +13,9 @@ const AKAR = path.resolve(DIR, "../..");
 
 /** Vercel menyuntikkan variabel VERCEL otomatis di Serverless Function. */
 const DI_VERCEL = Boolean(process.env.VERCEL);
+const LINGKUNGAN = process.env.NODE_ENV || "development";
+const PRODUKSI = LINGKUNGAN === "production";
+const JWT_SECRET_PENGEMBANGAN = crypto.randomBytes(32).toString("hex");
 
 const angka = (v, bawaan) => {
   const n = Number(v);
@@ -39,8 +43,8 @@ const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
 const rahasia = (v) => String(v ?? "").trim();
 
 export const konfigurasi = {
-  lingkungan: process.env.NODE_ENV || "development",
-  produksi: process.env.NODE_ENV === "production",
+  lingkungan: LINGKUNGAN,
+  produksi: PRODUKSI,
 
   port: angka(process.env.PORT, 8787),
   host: process.env.HOST || "0.0.0.0",
@@ -79,11 +83,12 @@ export const konfigurasi = {
   tokenAdmin: rahasia(process.env.KCI_TOKEN_ADMIN),
 
   /** Rahasia untuk menandatangani JWT. Wajib di produksi. */
-  jwtSecret: process.env.KCI_JWT_SECRET || "",
+  jwtSecret: rahasia(process.env.KCI_JWT_SECRET) ||
+    (PRODUKSI ? "" : JWT_SECRET_PENGEMBANGAN),
 
   /** Login sederhana untuk dashboard pengurus (umum: username + password).
-   *  Bawaan: admin / admin123 — ubah lewat env KCI_ADMIN_USER / KCI_ADMIN_PASSWORD
-   *  di produksi. Tetap kompatibel dengan KCI_TOKEN_ADMIN lama. */
+   *  Bawaan admin / admin123 dipertahankan hanya untuk pengembangan lokal.
+   *  Produksi wajib mengisi KCI_ADMIN_USER / KCI_ADMIN_PASSWORD. */
   admin: {
     username: (process.env.KCI_ADMIN_USER || "admin").trim().toLowerCase(),
     password: rahasia(process.env.KCI_ADMIN_PASSWORD) || "admin123",
