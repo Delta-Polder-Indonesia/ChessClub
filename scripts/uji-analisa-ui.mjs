@@ -377,7 +377,6 @@ if (kotakPgn) {
   await tunggu(1900);
 }
 
-
 const setelahKirim = teksBagus();
 uji("PGN diterima (tanpa galat parse)", !setelahKirim.includes("PGN tidak terbaca"));
 uji("engine siap dipakai", !setelahKirim.includes("Engine gagal dimuat"));
@@ -560,11 +559,12 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 
   klik(navImpor);
   await tunggu(250);
-  const labelTipe = [...domSiap.querySelectorAll("button")]
-    .map((b) => (b.textContent ?? "").trim())
-    .filter((x) => ["PGN", "Online", "FEN"].includes(x));
-  uji("popup Impor memuat PGN/Online/FEN", labelTipe.length >= 3);
-  const kartuOnline = [...domSiap.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "Online");
+  // Jangan mengandalkan textContent tombol untuk memilih tipe: bahasa dapat
+  // berubah dan ikon/branding Online bisa menambah teks anak. Kontrak UI yang
+  // stabil adalah tiga toggle button dengan aria-pressed.
+  const kartuTipe = [...domSiap.querySelectorAll('button[aria-pressed]')];
+  uji("popup Impor memuat PGN/Online/FEN", kartuTipe.length >= 3);
+  const kartuOnline = kartuTipe[1];
   klik(kartuOnline);
   await tunggu(150);
   const kotakOnline = domSiap.querySelector('[data-uji="impor-online"]');
