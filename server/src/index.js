@@ -32,6 +32,46 @@ try {
 }
 
 daftarkanRute(router, { mulaiPada });
+
+// Hardening rute tanpa mematahkan klien lama:
+// - endpoint verifikasi tiket tidak lagi mengungkap isi tiket lewat URL;
+// - aksi pindai otomatis tidak boleh dipicu lewat GET. Klien lama yang masih
+//   GET akan mendapat 405, sedangkan POST memakai handler yang sama.
+const cariRuteAsli = router.cari.bind(router);
+router.cari = (metode, jalur) => {
+  if (jalur.startsWith("/api/auth/tiket/")) {
+    if (metode === "GET") {
+      return {
+        param: {},
+        opsi: { batas: 60 },
+        penangan: async () => ({
+          status: 410,
+          isi: { pesan: "Endpoint pemeriksaan tiket melalui URL sudah dinonaktifkan." },
+        }),
+      };
+    }
+  }
+
+  if (jalur === "/api/pengurus/pindai-otomatis") {
+    if (metode === "GET") {
+      return {
+        param: {},
+        opsi: {},
+        penangan: async () => ({
+          status: 405,
+          isi: { pesan: "Metode GET dinonaktifkan. Gunakan POST untuk menjalankan pemindaian." },
+        }),
+      };
+    }
+    if (metode === "POST") {
+      const ruteLegacy = cariRuteAsli("GET", jalur);
+      if (ruteLegacy) return ruteLegacy;
+    }
+  }
+
+  return cariRuteAsli(metode, jalur);
+};
+
 const tangani = buatTangani(router);
 
 const masalah = periksaProduksi();
