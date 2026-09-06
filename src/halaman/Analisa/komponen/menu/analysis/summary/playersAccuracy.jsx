@@ -2,6 +2,7 @@
 import Profile from "../../../svg/profile.jsx";
 import { useEffect } from "react";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
+import { useKartuPemain } from "../../../../../../lib/pemainCatur.js";
 import RatingBox from "./ratingBox.jsx";
 import { Chess } from "chess.js";
 function isEndOpening(position2) {
@@ -56,6 +57,9 @@ function PlayersAccuracy(props) {
   const { t } = useI18n();
   const { players: players2, setAccuracyPhases, moves } = props;
   const [accuracy, setAccuracy] = props.accuracy;
+  // Foto profil pemain (avatar) dari API publik chess.com; fallback ikon profil.
+  const kartuPutih = useKartuPemain(players2?.[0]?.name);
+  const kartuHitam = useKartuPemain(players2?.[1]?.name);
   useEffect(() => {
     const accuracies = { w: [], b: [] };
     const accuraciesPhases = { opening: { w: [], b: [] }, middlegame: { w: [], b: [] }, endgame: { w: [], b: [] } };
@@ -123,11 +127,19 @@ function PlayersAccuracy(props) {
             <div className="flex flex-row w-full justify-between items-center">
                 <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.pemain")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
-                    <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end bg-backgroundProfileWhite rounded-borderRoundness">
-                        <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileWhite" />
+                    <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end overflow-hidden bg-backgroundProfileWhite rounded-borderRoundness">
+                        {kartuPutih?.avatar ? (
+                          <img className="h-full w-full object-cover" src={kartuPutih.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                        ) : (
+                          <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileWhite" />
+                        )}
                     </div>
-                    <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end bg-backgroundProfileBlack rounded-borderRoundness">
-                        <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileBlack" />
+                    <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end overflow-hidden bg-backgroundProfileBlack rounded-borderRoundness">
+                        {kartuHitam?.avatar ? (
+                          <img className="h-full w-full object-cover" src={kartuHitam.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                        ) : (
+                          <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileBlack" />
+                        )}
                     </div>
                 </div>
             </div>

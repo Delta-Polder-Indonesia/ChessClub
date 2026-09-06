@@ -5,6 +5,7 @@ import { useI18n } from "../../../../lib/i18n.jsx";
 import Loading from "./loading/loading.jsx";
 import GameButtons from "./analysis/gameButtons.jsx";
 import SelectChessComGame from "./analyze/selectChessCom.jsx";
+import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import Star from "../svg/star.jsx";
 import BoardIcon from "../svg/boardIcon.jsx";
 import Summary from "./analysis/summary/summary.jsx";
@@ -46,6 +47,13 @@ function Menu() {
   const sedangMemilih = pageState === "default" && Boolean(username?.username);
   const memuatPartai = pageState === "loading";
   const kosong = pageState === "default" && !username?.username;
+  // Akun baru dipilih → tampilkan dashboard statistik dulu; pengguna bisa
+  // berpindah ke tabel partai untuk memilih & menganalisis.
+  const [tampilanAkun, setTampilanAkun] = useState("statistik");
+  useEffect(() => {
+    // Identitas akun berubah → selalu mulai dari dashboard statistik.
+    setTampilanAkun("statistik");
+  }, [username?.username, username?.platform]);
 
   /* Saat masuk mode analisis, buka tab Ringkasan lebih dulu. */
   useEffect(() => {
@@ -106,11 +114,32 @@ function Menu() {
           <Moves container={menuRef.current} moves={[game[0], ...customLine.moves]} overallGameComment={overallGameComment} moveNumber={customLine.moveNumber + 1} setMoveNumber={(moveNumber2) => setCustomLine((prev) => ({ ...prev, moveNumber: moveNumber2 - 1 }))} analyzingMove={analyzingMove} setAnimation={setAnimation} setForward={setForward} customLine={customLine} returnedToNormalGame={returnedToNormalGame} />
         ) : ""}
 
-        {sedangMemilih && username.platform === "chessCom" && username.username ? (
-          <SelectChessComGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
-        ) : ""}
-        {sedangMemilih && username.platform === "lichessOrg" && username.username ? (
-          <SelectLichessOrgGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
+        {sedangMemilih && username.username ? (
+          <>
+            <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-1 mx-3 mt-1">
+              <button
+                type="button"
+                onClick={() => setTampilanAkun("statistik")}
+                className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "statistik" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
+              >
+                {t("analisa.statistik.judul")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTampilanAkun("tabel")}
+                className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "tabel" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
+              >
+                {t("analisa.tab.pilihPartai")}
+              </button>
+            </div>
+            {tampilanAkun === "statistik" ? (
+              <DashboardAkun platform={username.platform} username={username.username} onBukaTabel={() => setTampilanAkun("tabel")} />
+            ) : username.platform === "chessCom" ? (
+              <SelectChessComGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
+            ) : (
+              <SelectLichessOrgGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
+            )}
+          </>
         ) : ""}
 
         {kosong ? (

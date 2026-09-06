@@ -144,6 +144,31 @@ diukur, bukan menempel ke `body`.
 - Engine pertama kali diunduh saat diperlukan (7 MB, sekali, lalu dicache);
   saat mesin belum siap, statusnya terlihat di panel muat dan di pengaturan.
 
+## Aset pemain & daftar partai yang ringan
+
+- **Daftar partai tidak mem-parse PGN.** Jumlah langkah (ply) pada tabel
+  partai dihitung dengan `src/lib/pgnRingan.js` (`hitungPlyPgn`) dari teks
+  PGN tanpa menyusun ulang papan. Sebelumnya tiap partai lewat
+  `new Chess().loadPgn()` pada seluruh akun — itulah penyebab pemuatan
+  Chess.com/Lichess terasa berat. PGN tetap di-parse penuh saat sebuah
+  partai **dibuka** untuk dianalisis (wajar & wajib).
+- **Kartu profil pemain.** Avatar, gelar, bendera, dan rating
+  Bullet/Blitz/Rapid diambil dari API publik chess.com via
+  `src/lib/pemainCatur.js` (`ambilKartuPemain` + `useKartuPemain`), dengan
+  cache Map + `localStorage`. Ditampilkan di samping papan (`name.jsx`) dan
+  pada kotak pemain di Ringkasan (`playersAccuracy.jsx`). Pemanggilan hanya
+  aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
+- **Dashboard statistik akun** (gaya en-croissant). Setelah akun dipilih,
+  panel menampilkan kartu akun (avatar + rating Bullet/Blitz/Rapid + jumlah
+  partai + pembaruan terakhir) dan tiga tab: **Ringkasan** (total, W/D/L,
+  partai per tahun), **Peringkat** (grafik riwayat rating + rentang
+  7 hari/30 hari/90 hari/1 tahun/selamanya), dan **Pembukaan** (daftar
+  pembukaan + W/D/L per warna). Data dibaca dari `basisData` (IndexedDB);
+  bila belum ada, ditarik dari API chess.com lewat
+  `akun/muatPartaiAkun.js` lalu disimpan. Statistik dihitung di
+  `akun/statsAkun.js` (murni). Pengguna bisa berpindah ke tabel partai
+  untuk memilih & menganalisis lewat toggle di panel.
+
 ## Periksa sendiri
 
 `jsdom` + `esbuild` sekarang ada di `devDependencies`. Sebelumnya tidak, dan
