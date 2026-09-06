@@ -941,6 +941,30 @@ section[id] {
   animation: sampulKeluar 550ms ease-in-out both;
 }
 
+/* Komentator Papan Interaktif — gelembung komentar "muncul" ringan setiap
+   kalimat berganti (kunci elemen di-reset di komponen). Sengaja singkat dan
+   tanpa memindahkan tata letak: cukup memberi kesan komentator merespons. */
+@keyframes komentatorMuncul {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.komentator-gelembung {
+  animation: komentatorMuncul 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .komentator-gelembung {
+    animation: none;
+  }
+}
+
 /* Program Unggulan (Sekilas Program) — kisi 6 program berikon bidak.
    Susunan meniru bagian "Goals" situs rujukan: ikon + judul + deskripsi,
    tersusun 3 kolom di layar lebar, 2 kolom di tablet, 1 kolom di ponsel.
