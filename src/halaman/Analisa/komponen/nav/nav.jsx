@@ -26,6 +26,7 @@ import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import PopupAkun from "./popupAkun.jsx";
+import { tambahKeDaftar } from "../../akun/daftarAkun.js";
 import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -153,8 +154,10 @@ const menuPop = [
     "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer";
 
   function tambahAkun(platform, nama) {
-    // Kembali ke keadaan formulir dulu, lalu tampilkan tabel partai akun itu.
+    // Kembali ke keadaan formulir dulu, lalu tampilkan statistik akun itu.
+    // Akun juga dicatat ke daftar (kolom kiri layar akun) agar selalu tampil.
     setData({ format: "fen", string: "" });
+    tambahKeDaftar({ platform, username: nama });
     setAkun({ platform, username: nama });
     setTerbuka(null);
   }

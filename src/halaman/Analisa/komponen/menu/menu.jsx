@@ -6,6 +6,8 @@ import Loading from "./loading/loading.jsx";
 import GameButtons from "./analysis/gameButtons.jsx";
 import SelectChessComGame from "./analyze/selectChessCom.jsx";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
+import DaftarAkun from "../../akun/DaftarAkun.jsx";
+import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
 import Star from "../svg/star.jsx";
 import BoardIcon from "../svg/boardIcon.jsx";
 import Summary from "./analysis/summary/summary.jsx";
@@ -54,6 +56,46 @@ function Menu() {
     // Identitas akun berubah → selalu mulai dari dashboard statistik.
     setTampilanAkun("statistik");
   }, [username?.username, username?.platform]);
+
+  // Daftar akun yang pernah dipakai (kolom kiri layar akun) — disimpan di
+  // localStorage via penyimpanan.js sehingga tetap ada setelah reload.
+  const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
+  const [muatUlang, setMuatUlang] = useState(0);
+
+  useEffect(() => {
+    // Saat identitas akun berubah (mis. lewat popup "Akun" di Nav yang juga
+    // menyimpan ke daftar), baca ulang daftar agar kolom kiri selalu sinkron.
+    const list = bacaDaftarAkun();
+    if (username?.username) {
+      const ada =
+        list.some(
+          (a) =>
+            a.platform === username.platform &&
+            String(a.username || "").toLowerCase() === String(username.username || "").toLowerCase(),
+        );
+      if (!ada) tambahKeDaftar({ platform: username.platform, username: username.username });
+    }
+    setDaftar(bacaDaftarAkun());
+  }, [username?.username, username?.platform]);
+
+  function tambahAkunHandler(platform, nama) {
+    const list = tambahKeDaftar({ platform, username: nama });
+    setDaftar(list);
+    setAkun({ platform, username: nama });
+    setTampilanAkun("statistik");
+  }
+
+  function hapusAkunHandler(platform, nama) {
+    const list = hapusDariDaftar(platform, nama);
+    setDaftar(list);
+    if (
+      String(username?.username || "").toLowerCase() === String(nama || "").toLowerCase() &&
+      username?.platform === platform
+    ) {
+      const berikut = list[0];
+      setAkun(berikut ? { platform: berikut.platform, username: berikut.username } : { platform: "", username: "" });
+    }
+  }
 
   /* Saat masuk mode analisis, buka tab Ringkasan lebih dulu. */
   useEffect(() => {
@@ -115,31 +157,52 @@ function Menu() {
         ) : ""}
 
         {sedangMemilih && username.username ? (
-          <>
-            <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-1 mx-3 mt-1">
-              <button
-                type="button"
-                onClick={() => setTampilanAkun("statistik")}
-                className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "statistik" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
-              >
-                {t("analisa.statistik.judul")}
-              </button>
-              <button
-                type="button"
-                onClick={() => setTampilanAkun("tabel")}
-                className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "tabel" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
-              >
-                {t("analisa.tab.pilihPartai")}
-              </button>
+          <div className="flex w-full flex-col gap-3 min-h-0 navTop:h-full navTop:flex-row">
+            {/* Kolom kiri: daftar akun + tombol tambah akun */}
+            <div className="w-full overflow-hidden navTop:w-[230px] navTop:shrink-0 navTop:min-h-0">
+              <DaftarAkun
+                daftar={daftar}
+                aktif={username}
+                onPilih={(p, u) => {
+                  setDaftar(tambahKeDaftar({ platform: p, username: u }));
+                  setAkun({ platform: p, username: u });
+                  setTampilanAkun("statistik");
+                }}
+                onHapus={hapusAkunHandler}
+                onTambah={tambahAkunHandler}
+                onRefresh={() => setMuatUlang((x) => x + 1)}
+              />
             </div>
-            {tampilanAkun === "statistik" ? (
-              <DashboardAkun platform={username.platform} username={username.username} onBukaTabel={() => setTampilanAkun("tabel")} />
-            ) : username.platform === "chessCom" ? (
-              <SelectChessComGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
-            ) : (
-              <SelectLichessOrgGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
-            )}
-          </>
+
+            {/* Kolom kanan: statistik / tabel partai */}
+            <div className="flex min-h-0 flex-1 flex-col gap-2">
+              <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-1">
+                <button
+                  type="button"
+                  onClick={() => setTampilanAkun("statistik")}
+                  className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "statistik" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
+                >
+                  {t("analisa.statistik.judul")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTampilanAkun("tabel")}
+                  className={`flex-1 cursor-pointer rounded-borderRoundness px-2 py-1.5 text-sm font-bold transition-colors ${tampilanAkun === "tabel" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark" : "text-foregroundGrey hover:text-foregroundHighlighted"}`}
+                >
+                  {t("analisa.tab.pilihPartai")}
+                </button>
+              </div>
+              {tampilanAkun === "statistik" ? (
+                <div className="min-h-0 flex-1">
+                  <DashboardAkun platform={username.platform} username={username.username} muatUlang={muatUlang} onBukaTabel={() => setTampilanAkun("tabel")} />
+                </div>
+              ) : username.platform === "chessCom" ? (
+                <SelectChessComGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
+              ) : (
+                <SelectLichessOrgGame stopSelecting={stopSelecting} username={username.username} depth={analyzeContext.depth[0]} />
+              )}
+            </div>
+          </div>
         ) : ""}
 
         {kosong ? (

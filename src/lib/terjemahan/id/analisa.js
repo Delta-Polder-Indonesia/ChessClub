@@ -91,6 +91,10 @@ export const analisa = {
       tambah: "Tambahkan",
       batal: "Batal",
       riwayat: "Nama yang pernah dipakai",
+      daftar: "Daftar akun",
+      tambahBaru: "Tambahkan akun",
+      kosongJudul: "Belum ada akun",
+      kosongIsi: "Tambahkan akun Chess.com atau Lichess lalu pilih dari kolom ini untuk melihat statistik dan menganalisis partai.",
     },
     statistik: {
       judul: "Statistik Akun",

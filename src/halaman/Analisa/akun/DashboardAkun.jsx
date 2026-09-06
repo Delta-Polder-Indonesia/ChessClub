@@ -1,27 +1,21 @@
 /*
- * Dashboard akun pemain — meniru tata letak & rasa En Croissant
- * (github.com/franciscoBSalgueiro/en-croissant): kartu akun di sisi kiri,
- * kartu pemain di sisi kanan dengan tab Overview / Ratings / Openings,
- * selector berlabel "Website" & "Time control", hasil W/D/L sebagai bar
- * tersegmen berpersen, grafik batang (overview) & area (ratings) biru,
- * dan kolom Putih/Hitam untuk pembukaan.
+ * Panel statistik pemain (kolom kanan layar akun) — meniru PersonalCard.tsx
+ * pada En Croissant: nama pemain besar di tengah, tab bergaris
+ * Overview / Ratings / Openings, selector berlabel "Website" & "Time
+ * control", hasil W/D/L sebagai bar tersegmen berpersen, grafik batang
+ * (overview) & area (ratings) biru, dan kolom Putih/Hitam untuk pembukaan.
+ * Kartu akun (avatar/rating/games) berada di komponen terpisah (KartuAkun)
+ * pada kolom kiri; komponen ini hanya menampilkan statistik.
  */
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { AnalyzeContext } from "../konteks/analyze.jsx";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
-import { useKartuPemain } from "../../../lib/pemainCatur.js";
 import { ambilDaftarPartai } from "../basisData.js";
 import { muatPartaiChessCom } from "./muatPartaiAkun.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
-import Profile from "../komponen/svg/profile.jsx";
 import Database from "../komponen/svg/database.jsx";
 
 /** Biru khas chart En Croissant (mantine blue-filled). */
 const BIRU = "#4a9dd9";
-
-function formatRating(x) {
-  return x == null ? "—" : String(x);
-}
 
 /** Bar W/D/L tersegmen ala En Croissant (hijau/abu/merah) + label % bila cukup lebar. */
 function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
@@ -175,10 +169,8 @@ function MuatNegara({ isi, tombol, onKlik }) {
   );
 }
 
-export default function DashboardAkun({ platform, username, onBukaTabel }) {
+export default function DashboardAkun({ platform, username, muatUlang = 0, onBukaTabel }) {
   const { t } = useI18n();
-  const analyzeContext = useContext(AnalyzeContext);
-  const setAkun = analyzeContext.akun[1];
   const [tab, setTab] = useState("overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
@@ -186,10 +178,7 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
   const [games, setGames] = useState(null); // null = memuat
   const [galat, setGalat] = useState(false);
   const [memuatLagi, setMemuatLagi] = useState(false);
-  const [lastUpdate, setLastUpdate] = useState(null);
   const user = String(username || "").trim();
-
-  const kartu = useKartuPemain(user, !!user);
 
   const muatData = useCallback(async (paksa = false) => {
     setMemuatLagi(paksa);
@@ -205,8 +194,6 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
       if (daftar.length === 0 && platform !== "chessCom") {
         daftar = (await ambilDaftarPartai({ platform, username: user, limit: 0, sertakanPgn: true }))?.partai || [];
       }
-      const ts = daftar.reduce((m, p) => Math.max(m, Number(p.timestamp) || 0), 0);
-      setLastUpdate(ts);
       setGames(daftar);
     } catch (e) {
       setGames([]);
@@ -218,7 +205,7 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
 
   useEffect(() => {
     if (user) muatData();
-  }, [user, muatData]);
+  }, [user, muatData, muatUlang]);
 
   useEffect(() => setSitus(platform), [platform]);
 
@@ -242,73 +229,18 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
 
   const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => games?.some((p) => p.timeClass === k));
 
-  const tanggalUpdate = (ts) => {
-    if (!ts) return "—";
-    try {
-      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(ts));
-    } catch {
-      return new Date(ts).toLocaleDateString();
-    }
-  };
-
   const tabKunci = [
     { k: "overview", label: t("analisa.statistik.overview") },
     { k: "ratings", label: t("analisa.statistik.ratings") },
     { k: "openings", label: t("analisa.statistik.openings") },
   ];
 
-  const totalGames = games?.length ?? 0;
   const totalPutih = openings?.putih.reduce((s, e) => s + e.jumlah, 0) || 0;
   const totalHitam = openings?.hitam.reduce((s, e) => s + e.jumlah, 0) || 0;
 
   return (
-    <div className="flex h-full w-full flex-col gap-3 p-1">
-      {/* ===== Kartu akun (kiri) ===== */}
-      <div className="flex flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <span className={`grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-md ${platform === "chessCom" ? "bg-backgroundProfileWhite" : "bg-backgroundProfileBlack"}`}>
-            {kartu?.avatar ? (
-              <img className="h-full w-full object-cover" src={kartu.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
-            ) : (
-              <Profile width={20} height={20} class={platform === "chessCom" ? "fill-foregroundProfileWhite" : "fill-foregroundProfileBlack"} />
-            )}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-          <div className="flex items-center gap-1">
-            <button type="button" onClick={() => muatData(true)} title={t("analisa.statistik.tarik")} className="grid h-7 w-7 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">
-              <RefreshIkon />
-            </button>
-            <button type="button" onClick={onBukaTabel} title={t("analisa.statistik.bukaTabel")} className="grid h-7 w-7 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted">
-              <Database width={15} height={15} class="fill-foregroundGrey" />
-            </button>
-            <button type="button" onClick={() => setAkun({ platform: "", username: "" })} title={t("analisa.akun.batal")} className="grid h-7 w-7 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed">
-              <TrashIkon />
-            </button>
-          </div>
-        </div>
-
-        <div className="px-4 py-3">
-          {["bullet", "blitz", "rapid"].map((k) => (
-            <div key={k} className="flex items-center justify-between py-1">
-              <span className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{k}</span>
-              <span className="text-sm font-bold tabular-nums text-foreground">{formatRating(kartu?.ratings?.[k])}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="px-4 pb-4">
-          <div className="flex items-center justify-between pb-1">
-            <span className="text-xs text-foregroundGrey">{t("analisa.statistik.games")}</span>
-            <span className="text-xs font-bold tabular-nums text-foreground">{totalGames} / {totalGames}</span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-backgroundBoxBox">
-            <div className="h-full rounded-full" style={{ width: totalGames ? "100%" : "0%", backgroundColor: BIRU }} />
-          </div>
-          <div className="pt-1.5 text-xs text-foregroundGrey">{t("analisa.statistik.terakhir")} {tanggalUpdate(lastUpdate)}</div>
-        </div>
-      </div>
-
-      {/* ===== Kartu pemain (kanan) ===== */}
+    <div className="flex h-full w-full flex-col p-1">
+      {/* ===== Panel statistik pemain ===== */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
         {/* Nama pemain + tombol info */}
         <div className="relative px-4 pt-4">
@@ -417,21 +349,5 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function RefreshIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-      <path fill="currentColor" d="M12 4a8 8 0 0 1 7.6 5.4l1.5-.6A10 10 0 0 0 12 2v2zm7.9 5.4-1.5.6a8 8 0 0 1 .6 4.2l1.9.4A10 10 0 0 0 19.9 9.4zM12 20a8 8 0 0 1-7.6-5.4l-1.5.6A10 10 0 0 0 12 22v-2zM4.1 14.6l1.5-.6A8 8 0 0 1 5 9.8l-1.9-.4A10 10 0 0 0 4.1 14.6zM12 8v4l3 2-1 1.5L10 13V8h2z" />
-    </svg>
-  );
-}
-
-function TrashIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-      <path fill="currentColor" d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z" />
-    </svg>
   );
 }

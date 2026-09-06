@@ -80,6 +80,15 @@ export async function ambilKartuPemain(username) {
   }
 
   const kodeNegara = profil.country ? profil.country.split("/").pop() : null;
+  // Total partai = jumlah menang + kalah + seri seluruh kelas waktu (untuk
+  // menampilkan "Games terunduh / total" pada kartu akun seperti En Croissant).
+  const totalGame = ["chess_bullet", "chess_blitz", "chess_rapid", "chess_classical"].reduce(
+    (s, k) => {
+      const c = statistik?.[k]?.record;
+      return s + (c ? (c.win + c.loss + c.draw) : 0);
+    },
+    0,
+  );
   const kartu = {
     username,
     exists: true,
@@ -88,6 +97,7 @@ export async function ambilKartuPemain(username) {
     avatar: profil.avatar || null,
     flag: benderaNegara(kodeNegara),
     url: profil.url || `https://www.chess.com/member/${username}`,
+    total: totalGame || null,
     ratings: {
       bullet: statistik?.chess_bullet?.last?.rating ?? null,
       blitz: statistik?.chess_blitz?.last?.rating ?? null,

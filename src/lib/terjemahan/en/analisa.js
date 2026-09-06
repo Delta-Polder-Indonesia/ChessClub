@@ -90,6 +90,10 @@ export const analisa = {
       tambah: "Add",
       batal: "Cancel",
       riwayat: "Previously used names",
+      daftar: "Accounts",
+      tambahBaru: "Add account",
+      kosongJudul: "No accounts yet",
+      kosongIsi: "Add a Chess.com or Lichess account, then pick it from this list to view its stats and analyze games.",
     },
     statistik: {
       judul: "Account Stats",
