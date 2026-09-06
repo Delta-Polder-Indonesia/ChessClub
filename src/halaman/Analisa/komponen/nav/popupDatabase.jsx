@@ -18,6 +18,7 @@ import {
   ambilSemuaKoleksi,
   bersihkanBasisData,
   eksporPgnKoleksi,
+  gabungkanPemain,
   hapusKoleksi,
   hapusPartai,
   hitungStatistikBasisData,
@@ -807,6 +808,38 @@ export default function PopupDatabase({
     tampilkanNotif(`${hapus} partai kosong dihapus.`);
   }
 
+  /** Gabungkan dua pemain dalam koleksi terpilih (namaA → namaB). */
+  async function tanganiGabungPemain() {
+    const a = mergeA.trim();
+    const b = mergeB.trim();
+    if (!koleksiTerpilih || !a || !b) {
+      tampilkanNotif(t("analisa.basisData.mergePerluNama"));
+      return;
+    }
+    if (a.toLowerCase() === b.toLowerCase()) {
+      tampilkanNotif(t("analisa.basisData.mergeSama"));
+      return;
+    }
+    if (
+      !window.confirm(
+        t("analisa.basisData.konfirmasiGabungPemain", { asal: a, tujuan: b }),
+      )
+    )
+      return;
+    const hasil = await gabungkanPemain(koleksiTerpilih, a, b);
+    if (hasil.diubah > 0) {
+      await muatMetadata();
+      await muatPartai();
+    }
+    setMergeA("");
+    setMergeB("");
+    tampilkanNotif(
+      hasil.diubah > 0
+        ? t("analisa.basisData.gabungSukses", { jumlah: hasil.diubah, nama: hasil.nama })
+        : t("analisa.basisData.gabungTidakAda"),
+    );
+  }
+
   async function tanganiSimpanImporPgn() {
     if (!teksPgn.trim()) return;
     setProsesImpor(true);
@@ -1078,9 +1111,10 @@ export default function PopupDatabase({
                             />
                             <button
                               type="button"
-                              disabled
-                              title={t("analisa.basisData.mergeSegera")}
-                              className="cursor-not-allowed rounded-borderRoundness bg-backgroundBoxBoxHighlighted/40 px-3.5 py-2 text-sm font-bold text-foregroundBlackDark opacity-60"
+                              onClick={tanganiGabungPemain}
+                              disabled={!mergeA.trim() || !mergeB.trim()}
+                              title={t("analisa.basisData.mergePlayers")}
+                              className="rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-backgroundBoxBoxHighlighted cursor-pointer"
                             >
                               {t("analisa.basisData.merge")} →
                             </button>

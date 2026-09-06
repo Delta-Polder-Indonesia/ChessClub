@@ -199,7 +199,13 @@ export const analisa = {
       player1: "Pemain 1",
       player2: "Pemain 2",
       merge: "Gabung",
-      mergeSegera: "Segera hadir",
+      mergePerluNama: "Isi kedua nama pemain untuk menggabungkan.",
+      mergeSama: "Nama pemain tidak boleh sama.",
+      konfirmasiGabungPemain:
+        "Ganti semua kemunculan \"{asal}\" menjadi \"{tujuan}\" pada koleksi ini? Tindakan ini tidak dapat dibatalkan.",
+      gabungSukses: "{jumlah} partai diperbarui menjadi pemain \"{nama}\".",
+      gabungTidakAda:
+        "Tidak ada partai yang perlu digabungkan — pastikan nama pemain sesuai dengan yang tersimpan.",
       batchDelete: "Hapus Massal",
       batchDeleteDesc: "Tindakan ini menghapus partai dari database secara permanen dan tidak dapat dibatalkan.",
       removeDuplicates: "Hapus Duplikat",
@@ -508,6 +514,13 @@ export const analisa = {
       logo: "Logo situs",
       logoOleh:
         "Merek dagang milik pemiliknya (Chess.com, LLC dan lichess.org); dipakai hanya untuk identifikasi lewat tautan situs resmi.",
+      teknologi: "Teknologi & Infrastruktur",
+      teknologiOleh:
+        "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",
+      lisensiProyek: "Lisensi Proyek",
+      lisensiProyekOleh:
+        "Kode sumber proyek ini dirilis di bawah lisensi MIT — bebas digunakan, dimodifikasi, dan didistribusikan dengan menyertakan pemberitahuan hak cipta & teks lisensi. Aset pihak ketiga (ikon, pembukaan, engine, suara) tetap tunduk pada lisensinya masing-masing.",
+      lisensiCek: "Lihat berkas LICENSE",
       sosialJudul: "Pelanggaran hak cipta",
       sosialDeskripsi:
         "Kami menghormati hak kekayaan intelektual orang lain. Jika Anda merasa karya Anda digunakan di situs kami tanpa izin, silakan hubungi tim kami melalui tautan di bawah ini. Sertakan bukti kepemilikan dan tautan konten yang bermasalah.",

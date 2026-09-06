@@ -198,7 +198,13 @@ export const analisa = {
       player1: "Player 1",
       player2: "Player 2",
       merge: "Merge",
-      mergeSegera: "Coming soon",
+      mergePerluNama: "Fill in both player names to merge them.",
+      mergeSama: "Player names must be different.",
+      konfirmasiGabungPemain:
+        "Replace every occurrence of \"{asal}\" with \"{tujuan}\" in this database? This action cannot be undone.",
+      gabungSukses: "{jumlah} games updated to player \"{nama}\".",
+      gabungTidakAda:
+        "No games needed merging — make sure the player name matches what is stored.",
       batchDelete: "Batch Delete",
       batchDeleteDesc: "These actions will irreversibly remove games from the database. Use with caution.",
       removeDuplicates: "Remove Duplicates",
@@ -511,6 +517,13 @@ export const analisa = {
       logo: "Site logos",
       logoOleh:
         "Trademarks of their respective owners (Chess.com, LLC and lichess.org); used here only to identify accounts via links to the official sites.",
+      teknologi: "Technology & Infrastructure",
+      teknologiOleh:
+        "This project is built and run using the following services and libraries. Thanks to each team for their work.",
+      lisensiProyek: "Project License",
+      lisensiProyekOleh:
+        "This project's source code is released under the MIT license — free to use, modify, and distribute provided the copyright notice and license text are included. Third-party assets (icons, openings, engine, sounds) remain under their own licenses.",
+      lisensiCek: "See the LICENSE file",
       sosialJudul: "Copyright infringement",
       sosialDeskripsi:
         "We respect the intellectual property rights of others. If you believe your work has been used on our site without permission, please contact our team via the links below. Include proof of ownership and links to the content in question.",

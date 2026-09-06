@@ -19,6 +19,21 @@ const IKON_SOSIAL = [
   { nama: "YouTube", src: "/images/color-icon/logo-youtube.svg", href: "https://www.youtube.com/" },
 ];
 
+/** Teknologi & layanan tempat proyek ini dibangun dan dijalankan. */
+const TEKNOLOGI = [
+  { nama: "GitHub", href: "https://github.com/" },
+  { nama: "Vercel", href: "https://vercel.com/" },
+  { nama: "Supabase", href: "https://supabase.com/" },
+  { nama: "Render", href: "https://render.com/" },
+  { nama: "React", href: "https://react.dev/" },
+  { nama: "Vite", href: "https://vitejs.dev/" },
+  { nama: "Tailwind CSS", href: "https://tailwindcss.com/" },
+  { nama: "Stockfish", href: "https://stockfishchess.org/" },
+  { nama: "chess.js", href: "https://github.com/jhlywa/chess.js" },
+  { nama: "Arena AI", href: "https://arena.ai/" },
+  { nama: "OpenCode", href: "https://opencode.ai/" },
+];
+
 function Tautan({ href, children }) {
   return (
     <a
@@ -201,6 +216,47 @@ export default function Atribusi() {
         </>
       ),
     },
+    {
+      judul: t("analisa.atribusi.teknologi"),
+      ikon: null,
+      isi: (
+        <>
+          <li>{t("analisa.atribusi.teknologiOleh")}</li>
+          <li className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs">
+            {TEKNOLOGI.map((k) => (
+              <span key={k.nama} className="inline-flex items-center gap-1">
+                <Tautan href={k.href}>{k.nama}</Tautan>
+                <span className="text-slate-300">·</span>
+              </span>
+            ))}
+          </li>
+          <li className="text-xs text-slate-500">
+            Diarsiteki & kolaborasi via{" "}
+            <Tautan href="https://arena.ai/">Arena AI</Tautan> menggunakan{" "}
+            <Tautan href="https://opencode.ai/">OpenCode</Tautan>.
+          </li>
+        </>
+      ),
+    },
+    {
+      judul: t("analisa.atribusi.lisensiProyek"),
+      ikon: null,
+      isi: (
+        <>
+          <li>{t("analisa.atribusi.lisensiProyekOleh")}</li>
+          <li>
+            <a
+              target="_blank"
+              rel="noreferrer noopener"
+              className="font-bold text-primary hover:underline"
+              href="https://github.com/Delta-Polder-Indonesia/ChessClub/blob/main/LICENSE"
+            >
+              {t("analisa.atribusi.lisensiCek")}
+            </a>
+          </li>
+        </>
+      ),
+    },
   ];
 
   return (
@@ -225,6 +281,18 @@ export default function Atribusi() {
               <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
             ))}
           </div>
+          <div className="mt-10 w-full rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+            <div className="mx-auto flex w-fit flex-col items-center gap-3">
+              <License size={36} class="fill-slate-900" />
+              <p className="max-w-[720px] text-xs md:text-sm leading-5 text-slate-600">
+                {t("analisa.atribusi.lisensiProyekOleh")}
+              </p>
+              <code className="rounded-md bg-white border border-slate-200 px-3 py-1.5 text-[11px] font-mono text-slate-700">
+                © 2025-2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
+              </code>
+            </div>
+          </div>
+
           <div className="w-full border-t border-slate-200 mt-14 md:mt-16 pt-10 md:pt-12 flex flex-col items-center gap-6 text-center">
             <h3 className="text-xl md:text-2xl font-bold text-slate-900">
               {t("analisa.atribusi.sosialJudul")}
