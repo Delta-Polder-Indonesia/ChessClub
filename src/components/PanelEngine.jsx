@@ -179,7 +179,7 @@ export default function PanelEngine({
             </>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+          <div className="flex flex-nowrap items-center gap-x-2.5 gap-y-1.5 overflow-hidden">
             {/* Kotak angka evaluasi. */}
             <span
               className={`shrink-0 rounded-md border border-[#363431] bg-[#262421] px-2 py-1 text-sm leading-none ${
@@ -190,7 +190,10 @@ export default function PanelEngine({
             </span>
             {/* PV — di luar kotak, sejajar horizontal. */}
             {hasil.pvSan.length > 0 && (
-              <p className={`min-w-0 flex-1 ${g.pv}`}>
+              <p
+                className={`min-w-0 flex-1 truncate ${g.pv}`}
+                title={barisanSan(fen, hasil.pvSan)}
+              >
                 {barisanSan(fen, hasil.pvSan)}
               </p>
             )}

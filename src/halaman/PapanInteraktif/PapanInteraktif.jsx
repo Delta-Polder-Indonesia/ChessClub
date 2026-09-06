@@ -328,6 +328,8 @@ export default function PapanInteraktif() {
     hasilEngine,
     permainanSelesai,
     panahMesin,
+    tampilPanahMesin,
+    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = gunakanEngineCatur(fen);
@@ -1324,7 +1326,7 @@ export default function PapanInteraktif() {
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
-                    panahMesin={panahMesin}
+                    panahMesin={tampilPanahMesin ? panahMesin : null}
                     ikonLangkah={ikonLangkahAkhir}
                     ikonSkakmat={ikonSkakmat}
                     ikonMahkota={ikonMahkota}
@@ -1452,6 +1454,18 @@ export default function PapanInteraktif() {
                               type="checkbox"
                               checked={suaraNyala}
                               onChange={(e) => setSuaraNyala(e.target.checked)}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-sm font-semibold text-gray-400">
+                              {t("papan.enginePanahToggle")}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={tampilPanahMesin}
+                              onChange={(e) => setTampilPanahMesin(e.target.checked)}
+                              aria-label={t("papan.enginePanahToggle")}
                               className="h-4 w-4 accent-[#81b64c]"
                             />
                           </label>
@@ -1663,9 +1677,27 @@ export default function PapanInteraktif() {
                         </p>
                       </div>
 
-                      {/* Status posisi: "Posisi awal" → hanya nama buku saat melangkah */}
-                      <div className="mt-3 flex min-w-0 items-center border-b border-[#312e2b] pb-3">
-                        {riwayat.length === 0 ? (
+                      {/* Status posisi: komentator menggantikan nama pembukaan saat aktif. */}
+                      <div className="mt-3 min-w-0 border-b border-[#312e2b] pb-3">
+                        {preferensiKomentator.nyala ? (
+                          <KartuKomentator
+                            fakta={faktaKomentator}
+                            rating={ikonLangkahAkhir?.rating || null}
+                            evalSesudah={dataKomentator.evalSesudah}
+                            namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
+                            saranTerbaik={dataKomentator.saranTerbaik}
+                            engineNyala={engineNyala}
+                            engineMenilai={dataKomentator.engineMenilai}
+                            posisiAwal={riwayat.length === 0}
+                            nyala={preferensiKomentator.nyala}
+                            setNyala={preferensiKomentator.setNyala}
+                            gaya={preferensiKomentator.gaya}
+                            setGaya={preferensiKomentator.setGaya}
+                            t={t}
+                            className="w-full min-w-0"
+                            sembunyikanKontrol
+                          />
+                        ) : riwayat.length === 0 ? (
                           <p className="truncate text-sm font-semibold text-gray-400">
                             {t("papan.posisiAwal")}
                           </p>
@@ -1705,24 +1737,6 @@ export default function PapanInteraktif() {
                   />
                   </div>
                   )}
-
-                      {/* Komentator langsung — teks tetap tampil di bawah panel */}
-                      <KartuKomentator
-                        fakta={faktaKomentator}
-                        rating={ikonLangkahAkhir?.rating || null}
-                        evalSesudah={dataKomentator.evalSesudah}
-                        namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
-                        saranTerbaik={dataKomentator.saranTerbaik}
-                        engineNyala={engineNyala}
-                        engineMenilai={dataKomentator.engineMenilai}
-                        posisiAwal={riwayat.length === 0}
-                        nyala={preferensiKomentator.nyala}
-                        setNyala={preferensiKomentator.setNyala}
-                        gaya={preferensiKomentator.gaya}
-                        setGaya={preferensiKomentator.setGaya}
-                        t={t}
-                        sembunyikanKontrol
-                      />
 
                       <DaftarRiwayat
                         langkah={riwayatLengkap}

@@ -288,6 +288,8 @@ export default function TekaTeki() {
     hasilEngine,
     permainanSelesai,
     panahMesin,
+    tampilPanahMesin,
+    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = gunakanEngineCatur(fen);
@@ -1209,7 +1211,7 @@ export default function TekaTeki() {
         kesalahan={kesalahan}
         langkahAkhir={langkahAkhir}
         tanda={tanda}
-        panahMesin={panahMesin}
+        panahMesin={tampilPanahMesin ? panahMesin : null}
         ikonLangkah={
           kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
         }
@@ -1392,6 +1394,7 @@ export default function TekaTeki() {
               namaPutih={masalah ? masalah.pemainPutih : ""}
               eloPutih={masalah ? masalah.eloPutih : 0}
               teksPembukaan={masalah ? masalah.pembukaan : ""}
+              komentatorNyala={preferensiKomentator.nyala}
               teksTerpecahkan={t("tekaTeki.totalTerpecahkan", { n: terpecahkan.size })}
               teksCekmat={pesan?.jenis === "selesai" ? pesan.teks : ""}
               teksSudah={!pesan && sudahPecah ? t("tekaTeki.sudahTerpecahkan") : ""}
@@ -1410,6 +1413,9 @@ export default function TekaTeki() {
               onGantiOtomatis={(v) => setOtomatis(v)}
               engineNyala={engineNyala}
               onGantiEngine={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
+              tampilPanahMesin={tampilPanahMesin}
+              onGantiPanahMesin={setTampilPanahMesin}
+              teksPanahMesin={t("papan.enginePanahToggle")}
               nilaiLevel={filterLevel}
               onGantiLevel={setFilterLevel}
               nilaiLangkah={
@@ -1517,7 +1523,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "Panah saran engine", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1966,6 +1972,20 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                             />
                           </label>
                         )}
+                        {onGantiPanahMesin && (
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-xs font-semibold text-gray-400">
+                              {teksPanahMesin}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={tampilPanahMesin}
+                              onChange={(e) => onGantiPanahMesin(e.target.checked)}
+                              aria-label={teksPanahMesin}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
+                        )}
                         {kartuKomentator && (
                           <div className="border-t border-[#312e2b] pt-3">
                             {kartuKomentator}
@@ -2102,16 +2122,21 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           </div>
 
-          {/* Baris baru: pembukaan */}
-          {teksPembukaan && (
-            <div className="flex-shrink-0 px-4 py-2 border-b border-[#312e2b] bg-[#1e1c18] flex items-baseline gap-2 min-w-0">
+          {/* Komentator menggantikan nama opening book saat diaktifkan. */}
+          {komentatorNyala && kartuKomentator ? (
+            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2">
+              {React.cloneElement(kartuKomentator, {
+                hanyaKontrol: false,
+                sembunyikanKontrol: true,
+                className: "w-full min-w-0",
+              })}
+            </div>
+          ) : teksPembukaan ? (
+            <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
               <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex-shrink-0">Pembukaan</span>
               <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
             </div>
-          )}
-
-          {/* Komentator langsung — komentar per tahap soal (mulai/benar/salah/selesai) */}
-          {kartuKomentator && React.cloneElement(kartuKomentator, { hanyaKontrol: false, sembunyikanKontrol: true })}
+          ) : null}
 
           {/* Syzygy — salinan kata-kata dari bagian atas TekaTeki, warna tema gelap */}
           <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">

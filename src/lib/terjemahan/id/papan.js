@@ -102,6 +102,7 @@ export const papan = {
     engineMainkan: "Mainkan",
     engineSelesai: "Posisi sudah selesai (skakmat/seri) — tidak ada yang perlu dianalisis.",
     enginePanah: "Panah biru di papan = saran langkah engine.",
+    enginePanahToggle: "Tampilkan panah saran engine",
     warnaMetal: "Metal",
     komentator: komentatorPapan,
     sumber:
