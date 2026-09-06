@@ -26,8 +26,7 @@ src/halaman/
 │   ├── KelasDanPelatihan.jsx
 │   ├── CoachingClinic.jsx
 │   ├── SimultanDanBlindfold.jsx
-│   ├── SekolahCatur.jsx
-│   └── CaraBermainCatur.jsx
+│   └── SekolahCatur.jsx
 │
 ├── Turnamen/                                  ← menu utama: Turnamen
 │   ├── Turnamen.jsx

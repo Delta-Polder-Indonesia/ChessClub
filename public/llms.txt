@@ -14,8 +14,7 @@ Kontak: info@komunitascatur.or.id · Klub Chess.com:
 - [Beranda](%%SITE_URL%%): hero tonggak sejarah, sorotan kegiatan, program, dan ajakan bergabung.
 - [Tentang Kami](%%SITE_URL%%tentang-kami): sejarah, visi-misi, dan nilai komunitas.
 - [Struktur Grup Catur](%%SITE_URL%%tentang-kami/struktur-grup-catur): susunan pengurus, kelompok, dan jalur keanggotaan.
-- [Program Kami](%%SITE_URL%%program-kami): kelas pelatihan, teka-teki, buku pembukaan, dan sekolah catur.
-- [Cara Bermain Catur](%%SITE_URL%%program-kami/sekolah-catur/cara-bermain-catur): materi sekolah catur dari aturan dasar sampai endgame.
+- [Program Kami](%%SITE_URL%%program-kami): kelas pelatihan, teka-teki, buku pembukaan, dan e-book panduan.
 - [Teka-Teki](%%SITE_URL%%teka-teki): bank soal skakmat interaktif dengan papan yang bisa digerakkan.
 - [Papan Interaktif](%%SITE_URL%%papan-interaktif): papan bebas, explorer buku pembukaan, dan analisis engine Stockfish (WebAssembly).
 - [E-Book & Panduan](%%SITE_URL%%program-kami/ebook-panduan): arsip PDF panduan catur yang bisa dibaca atau diunduh.

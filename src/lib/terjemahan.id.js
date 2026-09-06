@@ -35,7 +35,6 @@ export const ID = {
     strukturGrupCatur: "Struktur Grup Catur",
     pengurus: "Pengurus",
     strukturOrganisasiCatur: "Struktur Organisasi Catur",
-    caraBermainCatur: "Cara Bermain Catur",
     tekaTeki: "Teka-teki Catur",
     pembukaan: "Pembukaan",
     eBookPanduan: "E-Book & Panduan",
@@ -464,7 +463,7 @@ export const ID = {
       panduan: {
         judul: "Panduan Belajar Mandiri",
         deskripsi:
-          "Fondasi yang kokoh dapat dipelajari kapan saja. Halaman Cara Bermain Catur menyajikan panduan runtut dari pengenalan bidak hingga pola latihan tingkat lanjut.",
+          "Fondasi yang kokoh dapat dipelajari kapan saja. Koleksi E-Book & Panduan menyajikan materi runtut dari pengenalan bidak hingga pola latihan tingkat lanjut.",
       },
       simultan: {
         judul: "Simultan & Catur Buta",
@@ -586,32 +585,6 @@ export const ID = {
       "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
   },
 
-  caraBermain: {
-    judul: "Cara Bermain Catur",
-    deskripsi:
-      "Panduan lengkap mengenal bidak, aturan dasar, taktik, strategi, pembukaan, endgame, hingga pola latihan untuk menembus rating master.",
-    lead:
-      "Panduan ini disusun bertahap: mulai dari pengenalan bidak dan aturan dasar, kemudian taktik, strategi, pembukaan, endgame, dan pola latihan untuk terus menaikkan rating.",
-    labelArtikel: "Panduan Lengkap",
-    daftarIsi: "Daftar Isi",
-    bab: "Bab",
-    gagalMuat:
-      "Gagal memuat panduan. Periksa koneksi internet Anda, lalu muat ulang halaman ini.",
-    kontenHanyaId:
-      "Konten panduan ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
-    babBidak: "Bidak & Nilainya",
-    babDasar: "Aturan & Dasar Permainan",
-    babPemula: "Level Pemula",
-    babMenengah: "Level Menengah",
-    babStrategi: "Strategi & Posisi",
-    babLanjut: "Level Lanjut",
-    babMaster: "Level Master",
-    babPenutup: "Penutup",
-    babMalas:
-      "Bab ini dimuat saat Anda membukanya agar halaman tetap cepat.",
-    memuatBab: "Memuat bab…",
-    muatBab: "Muat bab ini",
-  },
   media: {
     judul: "Media & Informasi",
     deskripsi:
@@ -860,7 +833,7 @@ export const ID = {
     ingatNonaktif: "Posisi tidak disimpan.",
     sumber:
       'Soal diambil dari basis data puzzle Lichess (partai nyata, lisensi CC0 domain publik), hasil karya <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2026)</a>.',
-    selanjutnyaJudul: "Pelajari Cara Bermain Catur",
+    selanjutnyaJudul: "Jelajahi E-Book & Panduan",
   },
   papan: {
     judul: "Penjelajah Pembukaan Catur",

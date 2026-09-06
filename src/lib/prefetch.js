@@ -29,7 +29,6 @@ const PEMUAT_RUTE = new Map([
   ["/program-kami", () => import("../halaman/ProgramKami/ProgramKami.jsx")],
   ["/program-kami/teka-teki", () => import("../halaman/ProgramKami/TekaTekiKonten.jsx")],
   ["/program-kami/pembukaan", () => import("../halaman/ProgramKami/Pembukaan.jsx")],
-  ["/program-kami/sekolah-catur/cara-bermain-catur", () => import("../halaman/ProgramKami/CaraBermainCatur.jsx")],
   ["/program-kami/ebook-panduan", () => import("../halaman/ProgramKami/EbookPanduan.jsx")],
   ["/teka-teki", () => import("../halaman/TekaTeki/TekaTeki.jsx")],
   ["/papan-interaktif", () => import("../halaman/PapanInteraktif/PapanInteraktif.jsx")],

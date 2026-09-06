@@ -32,7 +32,6 @@ export const EN = {
     strukturGrupCatur: "Chess Group Structure",
     pengurus: "Board",
     strukturOrganisasiCatur: "Organization Structure",
-    caraBermainCatur: "How to Play Chess",
     tekaTeki: "Chess Puzzles",
     pembukaan: "Openings",
     eBookPanduan: "E-Books & Guides",
@@ -463,7 +462,7 @@ export const EN = {
       panduan: {
         judul: "Self-Study Guide",
         deskripsi:
-          "A solid foundation you can learn anytime. The How to Play Chess page offers a step-by-step guide from the pieces to advanced training patterns.",
+          "A solid foundation you can learn anytime. The E-Book & Guides collection offers step-by-step material from the pieces to advanced training patterns.",
       },
       simultan: {
         judul: "Simultaneous & Blindfold",
@@ -583,32 +582,6 @@ export const EN = {
       "The example content below is only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
   },
 
-  caraBermain: {
-    judul: "How to Play Chess",
-    deskripsi:
-      "A complete guide to the pieces, basic rules, tactics, strategy, openings, endgames, and training routines for reaching master-level rating.",
-    lead:
-      "This guide is arranged step by step: from the pieces and basic rules, through tactics, strategy, openings, and endgames, to training routines for steadily improving your rating.",
-    labelArtikel: "Complete Guide",
-    daftarIsi: "Table of Contents",
-    bab: "Chapter",
-    gagalMuat:
-      "Failed to load the guide. Check your internet connection, then reload this page.",
-    kontenHanyaId:
-      "This guide is currently only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
-    babBidak: "Pieces & Their Values",
-    babDasar: "Rules & Fundamentals",
-    babPemula: "Beginner Level",
-    babMenengah: "Intermediate Level",
-    babStrategi: "Strategy & Positional Play",
-    babLanjut: "Advanced Level",
-    babMaster: "Master Level",
-    babPenutup: "Closing",
-    babMalas:
-      "This chapter loads when you open it to keep the page fast.",
-    memuatBab: "Loading chapter…",
-    muatBab: "Load this chapter",
-  },
   media: {
     judul: "Media & Information",
     deskripsi:
@@ -856,7 +829,7 @@ export const EN = {
     ingatNonaktif: "Position is not being saved.",
     sumber:
       'Puzzles come from the Lichess puzzle database (real games, CC0 public domain), curated by <a href="https://delta-polder-indonesia.github.io/BintangToba/index.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 underline">Bintang Toba (2026)</a>.',
-    selanjutnyaJudul: "Learn How to Play Chess",
+    selanjutnyaJudul: "Explore E-Books & Guides",
   },
   papan: {
     judul: "Chess Opening Explorer",
