@@ -11,6 +11,7 @@ import { Chess, WHITE } from "chess.js";
 import { pushPageWarning, pushPageError } from "../errors/pageErrors.jsx";
 import { gunakanMesin } from "../../konteks/mesin.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { useKartuPemain } from "../../../../lib/pemainCatur.js";
 import { ErrorsContext } from "../../konteks/errors.jsx";
 import { maxVertical, navTop } from "../../konstanta.js";
 import { ConfigContext } from "../../konteks/config.jsx";
@@ -607,6 +608,15 @@ function Game({ wadah }) {
     formatPlayerLabel(players?.[0], t("analisa.pemain.putih")),
     formatPlayerLabel(players?.[1], t("analisa.pemain.hitam")),
   ];
+  // Kartu profil (avatar, gelar, bendera) untuk kedua pemain — diambil dari
+  // API publik chess.com (lihat lib/pemainCatur.js). Fallback: ikon profil.
+  // Hanya aktif saat partai benar-benar dimuat (menghemat request ke API).
+  const partaiDimuat = pageState === "analyze" || pageState === "analyzeCustom";
+  const kartu0 = useKartuPemain(players?.[0]?.name, partaiDimuat);
+  const kartu1 = useKartuPemain(players?.[1]?.name, partaiDimuat);
+  const avatarPemain = [kartu0?.avatar, kartu1?.avatar];
+  const titlePemain = [kartu0?.title, kartu1?.title];
+  const flagPemain = [kartu0?.flag, kartu1?.flag];
   const currentWhiteTime = move2?.clock?.white !== undefined ? move2.clock.white : (time || null);
   const currentBlackTime = move2?.clock?.black !== undefined ? move2.clock.black : (time || null);
 
@@ -617,7 +627,7 @@ function Game({ wadah }) {
             </div>
             <div ref={componentRef} style={{ gap }} className="h-full flex flex-col justify-start">
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
-                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white}>{playerLabels[white ? 1 : 0]}</Name>
+                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "black" : "white"]} white={!white} avatar={avatarPemain[white ? 1 : 0]} title={titlePemain[white ? 1 : 0]} flag={flagPemain[white ? 1 : 0]}>{playerLabels[white ? 1 : 0]}</Name>
                     <Clock white={!white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentBlackTime : currentWhiteTime)}</Clock>
                 </div>
                 <Board
@@ -653,7 +663,7 @@ function Game({ wadah }) {
     bestMoveSan={move2?.bestMoveSan}
   />
                 <div style={{ width: boardSize }} className="flex flex-row justify-between">
-                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white}>{playerLabels[white ? 0 : 1]}</Name>
+                    <Name materialAdvantage={materialAdvantage} captured={captured[white ? "white" : "black"]} white={white} avatar={avatarPemain[white ? 0 : 1]} title={titlePemain[white ? 0 : 1]} flag={flagPemain[white ? 0 : 1]}>{playerLabels[white ? 0 : 1]}</Name>
                     <Clock white={white} colorMoving={move2?.color ?? game[moveNumber]?.color}>{formatTime(white ? currentWhiteTime : currentBlackTime)}</Clock>
                 </div>
             </div>

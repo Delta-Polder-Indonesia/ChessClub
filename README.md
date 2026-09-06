@@ -84,6 +84,30 @@ untuk penyiapan env var, disk, dan verifikasi. Panduan lengkap semua opsi
 hosting (Render, Netlify, Vercel, GitHub Pages, VPS) ada di
 [`PANDUAN-DEPLOY.md`](./PANDUAN-DEPLOY.md).
 
+## Kredit, Teknologi & Lisensi
+
+Proyek ini dibangun dan dijalankan di atas layanan serta pustaka sumber terbuka berikut:
+
+| Teknologi / Layanan | Kegunaan |
+| ------------------- | -------- |
+| **GitHub** | Repositori, CI/CD (Actions), dokumentasi |
+| **Vercel** | Hosting frontend + Serverless Function + Speed Insights |
+| **Supabase** | Opsional — autentikasi & penyimpanan data awet bagi backend |
+| **Render** | Opsional — backend Node ber-disk untuk data produksi persisten |
+| **React + Vite + Tailwind CSS v4** | Kerangka antarmuka |
+| **Stockfish (stockfish.js)** | Engine analisis catur (GPL-3.0) |
+| **chess.js** | Logika & parsing PGN |
+| **Arena AI** | Platform agen AI yang membantu pengembangan & kolaborasi kode |
+| **OpenCode** | Editor / agen AI yang dipakai saat menulis dan meninjau kode |
+
+Atribusi aset pihak ketiga (gambar bidak, buku pembukaan, engine, suara papan, logo)
+selengkapnya di halaman **"Atribusi & lisensi"** pada aplikasi
+(`/program-kami/atribusi`).
+
+**Lisensi:** Kode sumber proyek ini dirilis di bawah lisensi **MIT** — lihat
+berkas [`LICENSE`](./LICENSE). © 2025-2026 Delta-Polder-Indonesia (Bintang Toba).
+Kode yang dipindah/adaptasi dari proyek lain tetap tunduk pada lisensinya masing-masing.
+
 ## Fitur
 
 - **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keberlanjutan. Keanggotaan hanya tampil sebagai tab di dalam Struktur Grup Catur pada menu Tentang Kami.

@@ -3,7 +3,7 @@ import { useContext, useEffect, useState } from "react";
 import Arrow from "../../svg/arrow.jsx";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { pushPageError, pushPageWarning } from "../../errors/pageErrors.jsx";
-import { Chess } from "chess.js";
+import { hitungPlyPgn } from "../../../../../lib/pgnRingan.js";
 import { API_BLOCKING_ERROR, GAMES_ERROR, GamesUI, getMonthName, Loading, USER_ERROR } from "./selectChessCom.jsx";
 import { ErrorsContext } from "../../../konteks/errors.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
@@ -45,14 +45,12 @@ function Games(props) {
           const timeClass = json.speed;
           return { whiteElo, whiteName, blackElo, blackName, result, timestamp, pgn, timeClass };
         }).filter((gameInfo) => {
-          try {
-            const chess = new Chess();
-            chess.loadPgn(gameInfo.pgn);
-            // jumlah langkah (ply) dipakai kolom "Langkah" pada tabel partai
-            gameInfo.plyCount = chess.history().length;
-          } catch {
-            return false;
-          }
+          // Jumlah langkah dihitung ringan dari teks PGN (tanpa simulasi
+          // papan). Dulu memakai `new Chess().loadPgn()` per partai — berat.
+          if (typeof gameInfo.pgn !== "string" || !gameInfo.pgn) return false;
+          const ply = hitungPlyPgn(gameInfo.pgn);
+          if (Number.isNaN(ply) || ply <= 0) return false;
+          gameInfo.plyCount = ply;
           return true;
         });
         setLoading(false);

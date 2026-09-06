@@ -14,7 +14,7 @@
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { pushPageError } from "../../errors/pageErrors.jsx";
-import { Chess } from "chess.js";
+import { hitungPlyPgn } from "../../../../../lib/pgnRingan.js";
 import Files from "../../svg/files.jsx";
 import Database from "../../svg/database.jsx";
 import SquareFillEqual from "../../svg/square-fill-equal.jsx";
@@ -121,14 +121,14 @@ function SimpleLoading(props) {
 function olahPartaiChessCom(game) {
   const pgn = typeof game?.pgn === "string" ? game.pgn : "";
   if (!pgn) return null;
-  let plyCount = 0;
-  try {
-    const catur = new Chess();
-    catur.loadPgn(pgn);
-    plyCount = catur.history().length;
-  } catch {
-    return null; // PGN tidak sah: jangan tampilkan baris yang tidak bisa dianalisis.
-  }
+  /*
+   * Jumlah langkah dihitung RINGAN dari teks PGN (lihat lib/pgnRingan.js).
+   * Dulu memakai `new Chess().loadPgn(pgn)` untuk SETIAP partai pada seluruh
+   * akun — menyusun ulang seluruh papan untuk ribuan partai hanya untuk
+   * angka di kolom "Langkah". Itu penyebab pemuatan terasa berat.
+   */
+  let plyCount = hitungPlyPgn(pgn);
+  if (Number.isNaN(plyCount) || plyCount <= 0) return null;
   const putih = game.white ?? {};
   const hitam = game.black ?? {};
   let hasil = "draw";

@@ -26,6 +26,7 @@ import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import PopupAkun from "./popupAkun.jsx";
+import { bacaDaftarAkun, tambahKeDaftar } from "../../akun/daftarAkun.js";
 import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -153,8 +154,10 @@ const menuPop = [
     "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer";
 
   function tambahAkun(platform, nama) {
-    // Kembali ke keadaan formulir dulu, lalu tampilkan tabel partai akun itu.
+    // Kembali ke keadaan formulir dulu, lalu tampilkan statistik akun itu.
+    // Akun juga dicatat ke daftar (kolom kiri layar akun) agar selalu tampil.
     setData({ format: "fen", string: "" });
+    tambahKeDaftar({ platform, username: nama });
     setAkun({ platform, username: nama });
     setTerbuka(null);
   }
@@ -163,6 +166,34 @@ const menuPop = [
     setTerbuka(null);
     // Diteruskan ke Game lewat AnalyzeContext.data → langsung dianalisis.
     setData(data);
+  }
+
+  /**
+   * Menu "Akun" — membuka LAYAR AKUN (daftar + statistik dua kolom) bila sudah
+   * ada akun tersimpan, bukan selalu modal "Tambah akun". Ini meniru perilaku
+   * menu Accounts pada En Croissant (halaman /accounts yang persisten): sekali
+   * akun didaftarkan & datanya ditarik, kembali ke "Akun" tetap menampilkan
+   * daftar + statistik yang sama — tidak reset ke formulir tambah.
+   */
+  function bukaAkun() {
+    setKonfirmasiBaru(false);
+    const daftar = bacaDaftarAkun();
+    const aktif = analyzeContext.akun[0];
+    if (daftar.length === 0 && !aktif?.username) {
+      // Belum ada akun sama sekali → modal tambah akun (keadaan awal).
+      setTerbuka("akun");
+      return;
+    }
+    // Ada akun tersimpan → tampilkan layar akun; pilih akun pertama bila belum
+    // ada yang aktif, sehingga statistiknya langsung tampil.
+    setTerbuka(null);
+    setData({ format: "fen", string: "" });
+    if (!aktif?.username) {
+      const pertama = daftar[0] || aktif;
+      setAkun({ platform: pertama.platform, username: pertama.username });
+    }
+    setPlaying(false);
+    setPageState("default");
   }
 
   /**
@@ -246,10 +277,12 @@ const menuPop = [
                   ? kePapan
                   : item.kunci === "baru"
                     ? mulaiBaru
-                    : () => {
-                        setKonfirmasiBaru(false);
-                        setTerbuka(item.kunci);
-                      };
+                    : item.kunci === "akun"
+                      ? bukaAkun
+                      : () => {
+                          setKonfirmasiBaru(false);
+                          setTerbuka(item.kunci);
+                        };
               return (
               <button
                 key={item.kunci}
@@ -295,7 +328,7 @@ const menuPop = [
         <PopupDatabase
           onTutup={() => setTerbuka(null)}
           onAnalisa={imporPartai}
-          onBukaAkun={() => setTerbuka("akun")}
+          onBukaAkun={bukaAkun}
           lebarKiri={lebarNav}
         />
       ) : null}
