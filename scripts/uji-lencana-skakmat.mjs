@@ -356,14 +356,37 @@ uji(
   /SKAKMAT|Skakmat|Mat!/.test(teksKomentator(wadahHalaman)) &&
     !/\{[a-z]+\}|\{\{/.test(teksKomentator(wadahHalaman))
 );
-// Sakelar gaya: klik "Formal" → kalimat berganti register & tersimpan.
+/** Klik sungguhan (React mendengar klik yang menggelembung, sama seperti pengguna). */
+function klik(el) {
+  el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+}
+
+// Sakelar gaya komentator tidak lagi duduk di badan kartu: kontrolnya pindah ke
+// popup "Pengaturan" di samping papan. Jadi alurnya = buka popup → klik "Formal"
+// → kalimat komentator berganti register & preferensi tersimpan.
 {
-  const tombolFormal = wadahHalaman.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]');
+  const tombolPengaturan = wadahHalaman.querySelector('button[aria-label="Pengaturan"]');
+  klik(tombolPengaturan);
+  await tunggu(150);
+
+  const popup = wadahHalaman.querySelector('div[role="dialog"][aria-label="Pengaturan"]');
+  const radioGaya = (akar) =>
+    [...(akar ?? wadahHalaman).querySelectorAll('section[aria-label="Komentator"] [role="radio"]')];
+  uji(
+    "kontrol komentator ada di dalam popup Pengaturan (santai + formal)",
+    !!popup && radioGaya(popup).length === 2
+  );
+  uji(
+    "kartu komentator di panel kanan tidak lagi memuat kontrol",
+    radioGaya().every((r) => popup?.contains(r))
+  );
+
+  const tombolFormal = popup?.querySelector(
+    'section[aria-label="Komentator"] [role="radio"][aria-checked="false"]'
+  );
   const sebelum = teksKomentator(wadahHalaman);
-  if (tombolFormal) {
-    tombolFormal.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
-    await tunggu(150);
-  }
+  klik(tombolFormal);
+  await tunggu(150);
   uji(
     "komentator: ganti gaya mengubah kalimat & menyimpan preferensi",
     !!tombolFormal &&
@@ -371,8 +394,11 @@ uji(
       dom.window.localStorage.getItem("kci-komentator-gaya") === "formal"
   );
   // kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan
-  const tombolSantai = wadahHalaman.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]');
-  tombolSantai?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+  klik(
+    popup?.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]')
+  );
+  await tunggu(100);
+  klik(wadahHalaman.querySelector('button[aria-label="Pengaturan"]')); // tutup popup
   await tunggu(100);
 }
 const ikonLangkahHalaman = [...wadahHalaman.querySelectorAll("[title]")].filter((e) =>
