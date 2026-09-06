@@ -51,3 +51,7 @@ SKILL.md
 
 # Folder kerja sementara agen/skrip lokal (PNG mentah, skrip uji sekali pakai)
 .cache/
+
+# Laporan Lighthouse / audit — jangan masuk repo
+*.report.html
+laporan-lighthouse*.html
