@@ -101,6 +101,7 @@ export const papan = {
     engineMainkan: "Play",
     engineSelesai: "The game is over (checkmate/draw) — nothing left to analyze.",
     enginePanah: "The blue arrow on the board is the engine's suggestion.",
+    enginePanahToggle: "Show engine suggestion arrow",
     warnaMetal: "Metal",
     komentator: komentatorPapan,
     sumber:

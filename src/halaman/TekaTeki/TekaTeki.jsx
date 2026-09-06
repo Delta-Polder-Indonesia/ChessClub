@@ -288,6 +288,8 @@ export default function TekaTeki() {
     hasilEngine,
     permainanSelesai,
     panahMesin,
+    tampilPanahMesin,
+    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = gunakanEngineCatur(fen);
@@ -1209,7 +1211,7 @@ export default function TekaTeki() {
         kesalahan={kesalahan}
         langkahAkhir={langkahAkhir}
         tanda={tanda}
-        panahMesin={panahMesin}
+        panahMesin={tampilPanahMesin ? panahMesin : null}
         ikonLangkah={
           kesalahan ? { petak: kesalahan.to, rating: "blunder" } : ikonLangkahAkhir
         }
@@ -1410,6 +1412,9 @@ export default function TekaTeki() {
               onGantiOtomatis={(v) => setOtomatis(v)}
               engineNyala={engineNyala}
               onGantiEngine={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
+              tampilPanahMesin={tampilPanahMesin}
+              onGantiPanahMesin={setTampilPanahMesin}
+              teksPanahMesin={t("papan.enginePanahToggle")}
               nilaiLevel={filterLevel}
               onGantiLevel={setFilterLevel}
               nilaiLangkah={
@@ -1517,7 +1522,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "Panah saran engine", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1962,6 +1967,20 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                               type="checkbox"
                               checked={nilaiSuara}
                               onChange={(e) => onGantiSuara(e.target.checked)}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
+                        )}
+                        {onGantiPanahMesin && (
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-xs font-semibold text-gray-400">
+                              {teksPanahMesin}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={tampilPanahMesin}
+                              onChange={(e) => onGantiPanahMesin(e.target.checked)}
+                              aria-label={teksPanahMesin}
                               className="h-4 w-4 accent-[#81b64c]"
                             />
                           </label>

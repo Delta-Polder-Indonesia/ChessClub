@@ -328,6 +328,8 @@ export default function PapanInteraktif() {
     hasilEngine,
     permainanSelesai,
     panahMesin,
+    tampilPanahMesin,
+    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   } = gunakanEngineCatur(fen);
@@ -1324,7 +1326,7 @@ export default function PapanInteraktif() {
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
-                    panahMesin={panahMesin}
+                    panahMesin={tampilPanahMesin ? panahMesin : null}
                     ikonLangkah={ikonLangkahAkhir}
                     ikonSkakmat={ikonSkakmat}
                     ikonMahkota={ikonMahkota}
@@ -1452,6 +1454,18 @@ export default function PapanInteraktif() {
                               type="checkbox"
                               checked={suaraNyala}
                               onChange={(e) => setSuaraNyala(e.target.checked)}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-sm font-semibold text-gray-400">
+                              {t("papan.enginePanahToggle")}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={tampilPanahMesin}
+                              onChange={(e) => setTampilPanahMesin(e.target.checked)}
+                              aria-label={t("papan.enginePanahToggle")}
                               className="h-4 w-4 accent-[#81b64c]"
                             />
                           </label>

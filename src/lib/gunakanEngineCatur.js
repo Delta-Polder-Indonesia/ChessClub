@@ -2,6 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { EngineCatur } from "./engineCatur.js";
 
+const KUNCI_TAMPILAN_PANAH_MESIN = "chessclub.tampilanPanahMesin";
+
+/** Preferensi panah dibagi oleh Papan Interaktif dan Teka-Teki. */
+function bacaTampilanPanahMesin() {
+  try {
+    return globalThis.localStorage?.getItem(KUNCI_TAMPILAN_PANAH_MESIN) !== "0";
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Probabilitas menang Putih dari skor centipawn — kurva logistik ala Lichess.
  * +100 cp ≈ 64%, +300 cp ≈ 85%, −50 cp ≈ 43%, dst.
@@ -77,6 +88,18 @@ export function gunakanEngineCatur(fen) {
   const [statusEngine, setStatusEngine] = useState("mati"); // mati | memuat | siap | gagal
   const [kecepatanEngine, setKecepatanEngine] = useState(800); // movetime (ms)
   const [hasilEngine, setHasilEngine] = useState(null);
+  const [tampilPanahMesin, setTampilPanahMesin] = useState(bacaTampilanPanahMesin);
+
+  useEffect(() => {
+    try {
+      globalThis.localStorage?.setItem(
+        KUNCI_TAMPILAN_PANAH_MESIN,
+        tampilPanahMesin ? "1" : "0"
+      );
+    } catch {
+      /* localStorage tidak tersedia atau penuh — preferensi tetap berlaku sesi ini. */
+    }
+  }, [tampilPanahMesin]);
 
   const engineRef = useRef(null);
   const fenRef = useRef(fen);
@@ -186,6 +209,8 @@ export function gunakanEngineCatur(fen) {
     hasilEngine,
     permainanSelesai,
     panahMesin,
+    tampilPanahMesin,
+    setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
   };
