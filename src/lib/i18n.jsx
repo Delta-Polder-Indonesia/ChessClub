@@ -6,7 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ID } from "./terjemahan.id.js";
+import { ID } from "./terjemahan/id/index.js";
 
 const SIMPAN = "kci-bahasa";
 
@@ -30,7 +30,7 @@ export function I18nProvider({ children }) {
   useEffect(() => {
     if (bahasa !== "en" || kamusEn) return undefined;
     let aktif = true;
-    import("./terjemahan.en.js")
+    import("./terjemahan/en/index.js")
       .then((modul) => {
         if (aktif) setKamusEn(modul.EN);
       })

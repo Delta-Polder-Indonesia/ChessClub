@@ -1,6 +1,7 @@
 /**
- * Compatibility facade for Node validation tools. The browser imports ID
- * directly and loads EN only when the visitor changes language.
+ * Facade untuk alat validasi Node (mis. `node scripts/uji-i18n.mjs`).
+ * Aplikasi di browser mengimpor ID dari `./terjemahan/id/index.js` dan memuat
+ * kamus EN secara lazy dari `./terjemahan/en/index.js`.
  */
-export { ID } from "./terjemahan.id.js";
-export { EN } from "./terjemahan.en.js";
+export { ID } from "./terjemahan/id/index.js";
+export { EN } from "./terjemahan/en/index.js";
