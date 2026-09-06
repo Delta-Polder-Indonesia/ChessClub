@@ -741,6 +741,154 @@ export const EN = {
     benar: "Nice! Correct move.",
     terpecahkan: "Checkmate.",
     sudahTerpecahkan: "Already solved",
+    komentator: {
+      santai: {
+        mulaiSatu: [
+          "New puzzle! {pihak} to move and mate in one. Find the finishing blow!",
+          "Mate in one. {pihak} to play — one move locks {lawan}'s king. Spot it?",
+        ],
+        mulai: [
+          "New puzzle: {pihak} to move, mate in {n}. Deep breath — look for forcing moves first.",
+          "Mate in {n}. {pihak} to play — it usually starts with a check or a sacrifice. Go!",
+          "{pihak} to move, {n} moves to mate. Watch {lawan}'s king: where are its escape squares?",
+        ],
+        mulaiSudah: [
+          "You've solved this one before — remember the key?",
+        ],
+        benar: [
+          "Correct! Now wait for {lawan}'s reply.",
+          "Yes, that's it! Keep going, {lawan} will answer.",
+          "Right! {lawan} is forced to respond — let's see the reply.",
+        ],
+        lawan: [
+          "{lawan} replies. Your move again — {sisa} to go.",
+          "{lawan}'s reply. Come on, {sisa} more move(s) to mate!",
+        ],
+        lawanTerakhir: [
+          "{lawan} replies. Now the finishing blow — find the mate!",
+          "One move left. {lawan}'s king is on the ropes!",
+        ],
+        salah: [
+          "Not quite. Look for a truly forcing move — {lawan} must have no way out.",
+          "Hmm, not that one. Try checking every check first.",
+          "Nope. Remember, the solution has to force matters; quiet moves give {lawan} time.",
+        ],
+        salahSkak: [
+          "Check, but {lawan}'s king still has {jalan} escape(s). Find a sharper check.",
+          "Right idea — check! — but this one can still be parried. Another check?",
+        ],
+        salahTangkap: [
+          "Taking the {korban} is tempting, but that's not the goal. Go for {lawan}'s king!",
+          "Material isn't everything here — we're after checkmate, not a {korban}.",
+        ],
+        salahTerakhir: [
+          "This is the last move: it must be mate, not just check.",
+          "The final move has to be mate. Re-check every escape square.",
+        ],
+        ilegal: [
+          "That move isn't allowed — maybe your king is in check or the piece is pinned.",
+          "That's not legal. Check again: is {pihak}'s king safe after it?",
+        ],
+        petunjuk: [
+          "Hint: the piece to move is the {bidak} on {dari}. Where should it go?",
+          "Look at the {bidak} on {dari} — that's the key.",
+        ],
+        pengorbanan: [
+          "Sacrifice! The {bidak} on {petak} is offered on purpose — take it and {lawan}'s king opens up.",
+          "Whoa, the {bidak} is sacrificed on {petak}. Bold — and it's the key!",
+        ],
+        selesai: [
+          "CHECKMATE! Puzzle solved — great job!",
+          "Mate! {lawan}'s king has no escape. Solved!",
+          "That's it — checkmate! Clean work.",
+        ],
+        selesaiTema: [
+          "The pattern: {tema}. File it away — it comes up a lot.",
+          "This puzzle's theme: {tema}. Once you know it, you'll spot it fast!",
+        ],
+        tinjau: [
+          "Move {nomor} of the solution. See why {lawan} has no choice.",
+          "Reviewing the solution — move {nomor}. Watch the escape squares get closed one by one.",
+        ],
+        engineMat: [
+          "The engine sees mate in {mat} too.",
+          "Engine confirms: mate in {mat}.",
+        ],
+      },
+      formal: {
+        mulaiSatu: [
+          "New puzzle: {pihak} to move and mate in one.",
+          "Mate in one. {pihak} to play.",
+        ],
+        mulai: [
+          "New puzzle: {pihak} to move, mate in {n}. Begin with forcing moves.",
+          "Mate in {n}. {pihak} to play; note {lawan}'s king's escape squares.",
+          "{pihak} to move, {n} moves to checkmate.",
+        ],
+        mulaiSudah: [
+          "You have solved this puzzle before.",
+        ],
+        benar: [
+          "Correct. Awaiting {lawan}'s reply.",
+          "The right move; {lawan} will respond.",
+          "Correct. {lawan} is forced to respond.",
+        ],
+        lawan: [
+          "{lawan} replies. {sisa} move(s) remaining.",
+          "{lawan}'s reply. Your move; {sisa} more to mate.",
+        ],
+        lawanTerakhir: [
+          "{lawan} replies. The next move must be checkmate.",
+          "One move remains: find the checkmate.",
+        ],
+        salah: [
+          "Incorrect. The solution must be forcing; {lawan} may have no defence.",
+          "Not the solution. Review all available checks.",
+          "Incorrect. A quiet move gives {lawan} time to defend.",
+        ],
+        salahSkak: [
+          "Check, but {lawan}'s king still has {jalan} reply(ies). A more forcing check is required.",
+          "The direction is right — check — but it can still be parried.",
+        ],
+        salahTangkap: [
+          "Capturing the {korban} is tempting, but the objective is checkmate.",
+          "Material gain is not the aim here; focus on {lawan}'s king.",
+        ],
+        salahTerakhir: [
+          "The final move must deliver checkmate, not merely check.",
+          "The closing move must be mate. Re-examine the king's escape squares.",
+        ],
+        ilegal: [
+          "Illegal move — the king is likely in check or the piece is pinned.",
+          "That move is not permitted. Ensure {pihak}'s king is safe afterwards.",
+        ],
+        petunjuk: [
+          "Hint: move the {bidak} from {dari}.",
+          "The key piece is the {bidak} on {dari}.",
+        ],
+        pengorbanan: [
+          "A sacrifice: the {bidak} on {petak} is offered to expose {lawan}'s king.",
+          "The {bidak} is sacrificed on {petak} — the key move of the combination.",
+        ],
+        selesai: [
+          "Checkmate. Puzzle solved.",
+          "Checkmate — {lawan}'s king has no escape.",
+          "Solved by checkmate.",
+        ],
+        selesaiTema: [
+          "Pattern used: {tema}.",
+          "This puzzle's theme: {tema}.",
+        ],
+        tinjau: [
+          "Solution review — move {nomor}.",
+          "Move {nomor} of the solution; note how {lawan}'s options are restricted.",
+        ],
+        engineMat: [
+          "The engine confirms mate in {mat}.",
+          "Engine evaluation: mate in {mat}.",
+        ],
+      },
+    },
     totalTerpecahkan: "Solved: {n}",
     langsungKe: "Jump to Puzzle",
     buka: "Open",

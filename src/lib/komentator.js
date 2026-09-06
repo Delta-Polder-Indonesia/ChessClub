@@ -182,18 +182,70 @@ export function faktaLangkah(fenSebelum, san) {
     lawanMenggantung: [],
     sendiriMenggantung: [],
     jumlahLegalLawan: 0,
+    // Bidak yang baru bergerak bisa langsung ditangkap lawan (legal) —
+    // bahan deteksi pengorbanan bersama nilai bidak yang dipertaruhkan.
+    bisaDirebut: false,
   };
 
   if (!fakta.skakmat && !fakta.remis) {
     fakta.lawanMenggantung = bidakMenggantung(fenSesudah, lawan);
     fakta.sendiriMenggantung = bidakMenggantung(fenSesudah, warna);
     try {
-      fakta.jumlahLegalLawan = game.moves().length;
+      const balasan = game.moves({ verbose: true });
+      fakta.jumlahLegalLawan = balasan.length;
+      fakta.bisaDirebut = balasan.some((m) => m.to === pindah.to && m.captured);
     } catch {
       fakta.jumlahLegalLawan = 0;
     }
   }
   return fakta;
+}
+
+/**
+ * Apakah langkah ini pengorbanan: bidak yang bergerak bisa langsung direbut
+ * dan nilai yang dipertaruhkan (dikurangi hasil tangkapan) ≥ 2 pion.
+ * Deteksi materiil sederhana — cukup untuk kalimat komentar.
+ */
+export function adalahPengorbanan(fakta) {
+  if (!fakta || !fakta.bisaDirebut || fakta.skakmat) return false;
+  const diberikan = NILAI_BIDAK[fakta.bidak] - (fakta.tangkap ? NILAI_BIDAK[fakta.tangkap] : 0);
+  return diberikan >= 2;
+}
+
+/**
+ * Peristiwa utama sebuah langkah untuk kalimat pembuka (dipakai komentator
+ * papan interaktif DAN teka-teki): promosi, rokade, en passant, tangkapan.
+ * Mengembalikan null bila langkah tidak punya peristiwa semacam itu.
+ */
+function peristiwaUtama(fakta) {
+  if (fakta.promosi) {
+    return { kunci: "promosi", n: 2, ganti: { bidak: `{{bidak:${fakta.promosi}}}` } };
+  }
+  if (fakta.rokade) {
+    return { kunci: fakta.rokade === "pendek" ? "rokadePendek" : "rokadePanjang", n: 2, ganti: {} };
+  }
+  if (fakta.enPassant) return { kunci: "enPassant", n: 2, ganti: {} };
+  if (fakta.tangkap) {
+    const korban = `{{bidak:${fakta.tangkap}}}`;
+    const untung = NILAI_BIDAK[fakta.tangkap] - NILAI_BIDAK[fakta.bidak];
+    if (fakta.tangkap === "q") return { kunci: "tangkapMenteri", n: 2, ganti: { korban } };
+    if (untung >= 2) return { kunci: "tangkapUntung", n: 2, ganti: { korban } };
+    return { kunci: "tangkap", n: 3, ganti: { korban } };
+  }
+  return null;
+}
+
+/** Placeholder umum yang selalu tersedia untuk kalimat tentang satu langkah. */
+function gantiDasar(fakta) {
+  const pihak = fakta.warna === "w" ? "putih" : "hitam";
+  const lawan = fakta.warna === "w" ? "hitam" : "putih";
+  return {
+    san: fakta.san,
+    pihak: `{{pihak:${pihak}}}`,
+    lawan: `{{pihak:${lawan}}}`,
+    petak: fakta.ke,
+    bidak: `{{bidak:${fakta.bidak}}}`,
+  };
 }
 
 /** Nomor ply (setengah langkah) dari FEN — untuk benih varian kalimat. */
@@ -252,15 +304,7 @@ export function susunKomentar({
   const benih = `${fakta.san}@${fakta.ply}`;
   const daftar = [];
   const dasar = `papan.komentator.${g}`;
-  const pihak = fakta.warna === "w" ? "putih" : "hitam";
-  const lawan = fakta.warna === "w" ? "hitam" : "putih";
-  const gantiUmum = {
-    san: fakta.san,
-    pihak: `{{pihak:${pihak}}}`,
-    lawan: `{{pihak:${lawan}}}`,
-    petak: fakta.ke,
-    bidak: `{{bidak:${fakta.bidak}}}`,
-  };
+  const gantiUmum = gantiDasar(fakta);
   // prioritas: makin kecil makin penting — dipakai saat memangkas komentar
   // yang kepanjangan (lihat MAKS_SEGMEN di bawah).
   const tambah = (kunci, jumlahVarian, ganti = {}, prioritas = 3) => {
@@ -286,18 +330,9 @@ export function susunKomentar({
   }
 
   /* ---- 2. Kalimat pembuka: peristiwa utama langkah ini. ---- */
-  if (fakta.promosi) {
-    tambah("promosi", 2, { bidak: `{{bidak:${fakta.promosi}}}` }, 1);
-  } else if (fakta.rokade) {
-    tambah(fakta.rokade === "pendek" ? "rokadePendek" : "rokadePanjang", 2, {}, 1);
-  } else if (fakta.enPassant) {
-    tambah("enPassant", 2, {}, 1);
-  } else if (fakta.tangkap) {
-    const korban = `{{bidak:${fakta.tangkap}}}`;
-    const untung = NILAI_BIDAK[fakta.tangkap] - NILAI_BIDAK[fakta.bidak];
-    if (fakta.tangkap === "q") tambah("tangkapMenteri", 2, { korban }, 1);
-    else if (untung >= 2) tambah("tangkapUntung", 2, { korban }, 1);
-    else tambah("tangkap", 3, { korban }, 1);
+  const utama = peristiwaUtama(fakta);
+  if (utama) {
+    tambah(utama.kunci, utama.n, utama.ganti, 1);
   } else if (rating === "book" && namaPembukaan) {
     tambah("buku", 3, { pembukaan: namaPembukaan }, 1);
   } else if (fakta.skak) {
@@ -383,6 +418,195 @@ export function susunKomentar({
   return pangkas(daftar);
 }
 
+/**
+ * Tema teka-teki (kunci lichess) yang punya nama di kamus `tekaTeki.tema.*`
+ * dan layak disebut setelah soal terpecahkan — tanpa tema generik
+ * (mate, mateIn2, short, endgame, …) yang tidak menjelaskan polanya.
+ */
+export const TEMA_DISEBUT = [
+  "backRankMate",
+  "smotheredMate",
+  "promotion",
+  "sacrifice",
+  "attraction",
+  "deflection",
+  "pin",
+  "fork",
+  "discoveredAttack",
+  "doubleCheck",
+  "hangingPiece",
+  "exposedKing",
+  "kingsideAttack",
+  "queensideAttack",
+];
+
+/**
+ * Susun daftar kunci kalimat komentator untuk halaman TEKA-TEKI.
+ *
+ * Berbeda dari papan bebas, di sini konteksnya jelas: pemain harus
+ * menemukan skakmat dalam N langkah, jadi komentar mengikuti TAHAP soal —
+ * bukan sekadar mendeskripsikan langkah:
+ *
+ *  - "mulai"    : soal baru (pihak, jumlah langkah, pernah dipecahkan)
+ *  - "benar"    : langkah pemain tepat, belum selesai (fakta + sisa langkah)
+ *  - "lawan"    : balasan komputer (fakta + ajakan lanjut)
+ *  - "salah"    : percobaan keliru — dianalisis kenapa (skak tapi lolos,
+ *                 tergoda material, langkah terakhir harus mat, dsb.)
+ *  - "ilegal"   : percobaan tidak legal
+ *  - "petunjuk" : pemain minta petunjuk (bidak + petak asal)
+ *  - "selesai"  : skakmat — plus nama pola/tema bila dikenal
+ *  - "tinjau"   : navigasi solusi setelah selesai
+ *
+ * Kalimat fakta langkah (tangkapan/promosi/skak) dipinjam dari kamus papan
+ * (`papan.komentator.*`); kalimat khusus soal dari `tekaTeki.komentator.*`.
+ *
+ * @param {object} p
+ * @param {string} p.tahap
+ * @param {string} [p.gaya]
+ * @param {object|null} [p.fakta]  hasil faktaLangkah() langkah terkait
+ * @param {"w"|"b"} p.giliran      pihak yang memecahkan soal
+ * @param {number} [p.jumlahLangkah] N pada "mat dalam N"
+ * @param {number} [p.sisa]        langkah pemain yang tersisa setelah ini
+ * @param {number} [p.nomor]       nomor langkah (untuk tinjau)
+ * @param {boolean} [p.sudahPecah] soal pernah dipecahkan
+ * @param {boolean} [p.legal]      untuk "salah": percobaan legal atau bukan
+ * @param {string[]} [p.tema]      kunci tema lichess soal ini
+ * @param {string[]} [p.temaDikenal] tema yang punya terjemahan (filter)
+ * @param {{from:string,to:string,bidak?:string}|null} [p.petunjuk]
+ * @param {{matePutih:number|null}|null} [p.evalEngine]
+ * @param {string|number} [p.benih] pembeda varian (mis. problemid)
+ * @returns {Array<{kunci: string, ganti?: object}>}
+ */
+export function susunKomentarTekaTeki({
+  tahap,
+  gaya = "santai",
+  fakta = null,
+  giliran = "w",
+  jumlahLangkah = 1,
+  sisa = 0,
+  nomor = 0,
+  sudahPecah = false,
+  legal = true,
+  tema = [],
+  temaDikenal = TEMA_DISEBUT,
+  petunjuk = null,
+  evalEngine = null,
+  benih = "",
+}) {
+  const g = GAYA_KOMENTATOR.includes(gaya) ? gaya : "santai";
+  const daftar = [];
+  const pihak = giliran === "w" ? "putih" : "hitam";
+  const lawan = giliran === "w" ? "hitam" : "putih";
+  const gantiSoal = {
+    pihak: `{{pihak:${pihak}}}`,
+    lawan: `{{pihak:${lawan}}}`,
+    n: String(jumlahLangkah),
+    sisa: String(sisa),
+    nomor: String(nomor),
+    san: fakta?.san || "",
+  };
+  const benihDasar = `${benih}#${tahap}#${fakta?.san || ""}#${fakta?.ply || 0}`;
+  const tambahSoal = (kunci, jumlahVarian, ganti = {}, prioritas = 3) => {
+    daftar.push({
+      kunci: `tekaTeki.komentator.${g}.${kunci}.${indeksVarian(benihDasar + kunci, jumlahVarian)}`,
+      ganti: { ...gantiSoal, ...ganti },
+      prioritas,
+    });
+  };
+  // Kalimat fakta dari kamus papan — placeholder-nya dari sudut pelangkah.
+  const tambahPapan = (kunci, jumlahVarian, ganti = {}, prioritas = 3) => {
+    daftar.push({
+      kunci: `papan.komentator.${g}.${kunci}.${indeksVarian(benihDasar + kunci, jumlahVarian)}`,
+      ganti: { ...(fakta ? gantiDasar(fakta) : gantiSoal), ...ganti },
+      prioritas,
+    });
+  };
+  const pembukaFakta = () => {
+    // Saat skakmat, kalimat "selesai" sudah cukup — kalimat tangkapan
+    // ("partai ini bisa selesai cepat") justru janggal setelah mat.
+    if (!fakta || fakta.skakmat) return;
+    if (adalahPengorbanan(fakta)) {
+      tambahSoal("pengorbanan", 2, { bidak: `{{bidak:${fakta.bidak}}}`, petak: fakta.ke }, 1);
+      if (fakta.skak) tambahPapan("skakTambahan", 2, {}, 4);
+      return;
+    }
+    const utama = peristiwaUtama(fakta);
+    if (utama) {
+      tambahPapan(utama.kunci, utama.n, utama.ganti, 1);
+      if (fakta.skak && !fakta.skakmat) tambahPapan("skakTambahan", 2, {}, 4);
+    } else if (fakta.skak && !fakta.skakmat) {
+      tambahPapan("skak", 3, {}, 1);
+    }
+  };
+  const catatanEngine = () => {
+    const mate = evalEngine?.matePutih;
+    if (mate === null || mate === undefined || mate === 0) return;
+    tambahSoal("engineMat", 2, { mat: String(Math.abs(mate)) }, 5);
+  };
+
+  switch (tahap) {
+    case "mulai": {
+      if (jumlahLangkah <= 1) tambahSoal("mulaiSatu", 2, {}, 1);
+      else tambahSoal("mulai", 3, {}, 1);
+      if (sudahPecah) tambahSoal("mulaiSudah", 1, {}, 2);
+      catatanEngine();
+      break;
+    }
+    case "benar": {
+      pembukaFakta();
+      tambahSoal("benar", 3, {}, 1);
+      catatanEngine();
+      break;
+    }
+    case "lawan": {
+      pembukaFakta();
+      if (sisa <= 1) tambahSoal("lawanTerakhir", 2, {}, 1);
+      else tambahSoal("lawan", 2, {}, 1);
+      catatanEngine();
+      break;
+    }
+    case "salah": {
+      if (!legal || !fakta) {
+        tambahSoal("ilegal", 2, {}, 1);
+        break;
+      }
+      if (fakta.skak) {
+        tambahSoal("salahSkak", 2, { jalan: String(fakta.jumlahLegalLawan) }, 1);
+      } else if (fakta.tangkap && NILAI_BIDAK[fakta.tangkap] >= 3) {
+        tambahSoal("salahTangkap", 2, { korban: `{{bidak:${fakta.tangkap}}}` }, 1);
+      } else {
+        tambahSoal("salah", 3, {}, 1);
+      }
+      if (sisa <= 1) tambahSoal("salahTerakhir", 2, {}, 2);
+      break;
+    }
+    case "ilegal": {
+      tambahSoal("ilegal", 2, {}, 1);
+      break;
+    }
+    case "petunjuk": {
+      const bidak = petunjuk?.bidak ? `{{bidak:${petunjuk.bidak}}}` : `{{bidak:p}}`;
+      tambahSoal("petunjuk", 2, { bidak, dari: petunjuk?.from || "" }, 1);
+      break;
+    }
+    case "selesai": {
+      pembukaFakta();
+      tambahSoal("selesai", 3, {}, 0);
+      const dikenal = (tema || []).find((k) => temaDikenal.includes(k));
+      if (dikenal) tambahSoal("selesaiTema", 2, { tema: `{{tema:${dikenal}}}` }, 2);
+      break;
+    }
+    case "tinjau": {
+      pembukaFakta();
+      tambahSoal("tinjau", 2, {}, 2);
+      break;
+    }
+    default:
+      break;
+  }
+  return pangkas(daftar);
+}
+
 /** Batas jumlah kalimat per komentar — lebih dari ini terasa cerewet. */
 const MAKS_SEGMEN = 4;
 
@@ -414,7 +638,8 @@ function pangkas(daftar) {
 export function isiNamaBidak(teks, t) {
   return String(teks)
     .replace(/\{\{pihak:(putih|hitam)\}\}/g, (_, p) => t(`papan.komentator.pihak.${p}`))
-    .replace(/\{\{bidak:([pnbrqk])\}\}/g, (_, b) => t(`papan.komentator.bidak.${b}`));
+    .replace(/\{\{bidak:([pnbrqk])\}\}/g, (_, b) => t(`papan.komentator.bidak.${b}`))
+    .replace(/\{\{tema:([A-Za-z0-9]+)\}\}/g, (_, k) => t(`tekaTeki.tema.${k}`));
 }
 
 /**

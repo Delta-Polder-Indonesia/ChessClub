@@ -745,6 +745,154 @@ export const ID = {
     benar: "Bagus! Langkah tepat.",
     terpecahkan: "Checkmate.",
     sudahTerpecahkan: "Sudah pernah kamu pecahkan",
+    komentator: {
+      santai: {
+        mulaiSatu: [
+          "Soal baru! {pihak} jalan dan langsung skakmat dalam satu langkah. Cari pukulan penutupnya!",
+          "Mat dalam satu. {pihak} melangkah — ada satu langkah yang mengunci raja {lawan}. Ketemu?",
+        ],
+        mulai: [
+          "Soal baru: {pihak} melangkah, skakmat dalam {n} langkah. Tarik napas, cari langkah paksa dulu.",
+          "Mat dalam {n}. Giliran {pihak} — biasanya dimulai dari skak atau pengorbanan. Coba!",
+          "{pihak} jalan, {n} langkah menuju mat. Perhatikan raja {lawan}: petak pelariannya di mana?",
+        ],
+        mulaiSudah: [
+          "Kamu sudah pernah memecahkan yang ini — masih ingat kuncinya?",
+        ],
+        benar: [
+          "Tepat! Sekarang tunggu balasan {lawan}.",
+          "Yes, itu dia! Lanjut, {lawan} akan menjawab.",
+          "Betul! {lawan} terpaksa merespons — kita lihat jawabannya.",
+        ],
+        lawan: [
+          "{lawan} membalas. Giliranmu lagi — tinggal {sisa} langkah lagi.",
+          "Balasan {lawan}. Ayo, sisa {sisa} langkah lagi sampai mat!",
+        ],
+        lawanTerakhir: [
+          "{lawan} membalas. Sekarang pukulan penutup — cari skakmatnya!",
+          "Tinggal satu langkah lagi. Raja {lawan} sudah di ujung tanduk!",
+        ],
+        salah: [
+          "Belum tepat. Cari langkah yang benar-benar memaksa — {lawan} tidak boleh punya jalan keluar.",
+          "Hmm, bukan itu. Coba lihat semua skak yang mungkin dulu.",
+          "Belum. Ingat, solusinya harus memaksa; langkah tenang biasanya kasih {lawan} waktu.",
+        ],
+        salahSkak: [
+          "Skak, tapi raja {lawan} masih punya {jalan} jalan lolos. Cari skak yang lebih menggigit.",
+          "Idenya sudah benar — skak! — tapi ini masih bisa ditangkis. Ada skak lain?",
+        ],
+        salahTangkap: [
+          "Makan {korban}-nya menggoda, tapi bukan itu tujuannya. Fokus ke raja {lawan}!",
+          "Material bukan segalanya di sini — yang dicari skakmat, bukan {korban}.",
+        ],
+        salahTerakhir: [
+          "Ini langkah terakhir: harus langsung skakmat, bukan sekadar skak.",
+          "Langkah penutup wajib mat. Periksa lagi semua petak pelarian raja.",
+        ],
+        ilegal: [
+          "Langkah itu tidak boleh — mungkin rajamu sedang diskak atau bidaknya terpaku.",
+          "Itu tidak legal. Cek lagi: apakah raja {pihak} aman setelah langkah itu?",
+        ],
+        petunjuk: [
+          "Petunjuk: bidak yang harus bergerak adalah {bidak} di {dari}. Ke mana dia harus pergi?",
+          "Lihat {bidak} di {dari} — di situlah kuncinya.",
+        ],
+        pengorbanan: [
+          "Pengorbanan! {bidak} di {petak} sengaja diumpankan — kalau diambil, raja {lawan} terbuka.",
+          "Wah, {bidak} dikorbankan di {petak}. Berani, dan itu memang kuncinya!",
+        ],
+        selesai: [
+          "SKAKMAT! Soal terpecahkan — bagus banget!",
+          "Mat! Raja {lawan} tidak punya jalan keluar. Terpecahkan!",
+          "Itu dia — skakmat! Kerja rapi.",
+        ],
+        selesaiTema: [
+          "Polanya: {tema}. Simpan di memori, ini sering muncul lagi.",
+          "Tema soal ini: {tema}. Sekali kenal, seterusnya cepat terlihat!",
+        ],
+        tinjau: [
+          "Langkah {nomor} dari solusi. Lihat kenapa {lawan} tidak punya pilihan.",
+          "Meninjau solusi — langkah {nomor}. Perhatikan bagaimana pelarian raja ditutup satu per satu.",
+        ],
+        engineMat: [
+          "Engine juga melihat mat dalam {mat}.",
+          "Konfirmasi engine: mat dalam {mat}.",
+        ],
+      },
+      formal: {
+        mulaiSatu: [
+          "Soal baru: {pihak} melangkah dan memberi skakmat dalam satu langkah.",
+          "Mat dalam satu langkah. {pihak} yang bergerak.",
+        ],
+        mulai: [
+          "Soal baru: {pihak} melangkah, skakmat dalam {n} langkah. Mulailah dari langkah yang memaksa.",
+          "Mat dalam {n}. Giliran {pihak}; perhatikan petak pelarian raja {lawan}.",
+          "{pihak} melangkah, {n} langkah menuju skakmat.",
+        ],
+        mulaiSudah: [
+          "Soal ini sudah pernah Anda pecahkan.",
+        ],
+        benar: [
+          "Tepat. Menunggu balasan {lawan}.",
+          "Langkah yang benar; {lawan} akan menjawab.",
+          "Benar. {lawan} dipaksa merespons.",
+        ],
+        lawan: [
+          "{lawan} membalas. Tersisa {sisa} langkah.",
+          "Balasan {lawan}. Giliran Anda; {sisa} langkah lagi menuju mat.",
+        ],
+        lawanTerakhir: [
+          "{lawan} membalas. Langkah berikutnya harus skakmat.",
+          "Tersisa satu langkah: temukan skakmatnya.",
+        ],
+        salah: [
+          "Belum tepat. Solusi harus memaksa; {lawan} tidak boleh memiliki pertahanan.",
+          "Bukan langkah solusi. Tinjau seluruh skak yang tersedia.",
+          "Belum tepat. Langkah tenang memberi {lawan} waktu untuk bertahan.",
+        ],
+        salahSkak: [
+          "Skak, namun raja {lawan} masih memiliki {jalan} balasan. Diperlukan skak yang lebih memaksa.",
+          "Arahnya benar — skak — tetapi masih dapat ditangkis.",
+        ],
+        salahTangkap: [
+          "Menangkap {korban} menggoda, tetapi tujuan soal adalah skakmat.",
+          "Keuntungan material bukan sasaran di sini; fokus pada raja {lawan}.",
+        ],
+        salahTerakhir: [
+          "Langkah terakhir harus langsung skakmat, bukan sekadar skak.",
+          "Langkah penutup wajib mat. Periksa kembali petak pelarian raja.",
+        ],
+        ilegal: [
+          "Langkah tidak legal — kemungkinan raja sedang diskak atau bidak terpaku.",
+          "Langkah itu tidak diizinkan. Pastikan raja {pihak} aman setelahnya.",
+        ],
+        petunjuk: [
+          "Petunjuk: gerakkan {bidak} dari {dari}.",
+          "Bidak kunci adalah {bidak} di {dari}.",
+        ],
+        pengorbanan: [
+          "Pengorbanan: {bidak} di {petak} ditawarkan untuk membuka raja {lawan}.",
+          "{bidak} dikorbankan di {petak} — langkah kunci kombinasi ini.",
+        ],
+        selesai: [
+          "Skakmat. Soal terpecahkan.",
+          "Skakmat — raja {lawan} tidak memiliki jalan keluar.",
+          "Terpecahkan dengan skakmat.",
+        ],
+        selesaiTema: [
+          "Pola yang digunakan: {tema}.",
+          "Tema soal ini: {tema}.",
+        ],
+        tinjau: [
+          "Tinjauan solusi — langkah {nomor}.",
+          "Langkah {nomor} dari solusi; perhatikan bagaimana pilihan {lawan} dibatasi.",
+        ],
+        engineMat: [
+          "Engine mengonfirmasi mat dalam {mat}.",
+          "Evaluasi engine: mat dalam {mat}.",
+        ],
+      },
+    },
     totalTerpecahkan: "Terpecahkan: {n}",
     langsungKe: "Langsung ke Soal",
     buka: "Buka",

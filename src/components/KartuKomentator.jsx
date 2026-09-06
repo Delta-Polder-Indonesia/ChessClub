@@ -60,6 +60,11 @@ export function gunakanPreferensiKomentator() {
 
 /**
  * @param {object} p
+ * @param {Array<{kunci:string, ganti?:object}>|null} [p.segmen]
+ *        Daftar kunci kalimat yang SUDAH disusun pemanggil (mis. halaman
+ *        Teka-Teki lewat susunKomentarTekaTeki). Bila diberikan, `fakta` &
+ *        opsi engine di bawah diabaikan — kartu hanya menerjemahkan.
+ * @param {string|null} [p.ikon]         paksa ikon rating tertentu (mode segmen)
  * @param {object|null} p.fakta          hasil faktaLangkah() untuk langkah terakhir
  * @param {string|null} p.rating         label penilaian (book/best/blunder/…)
  * @param {object|null} p.evalSesudah    { cpPutih, matePutih } posisi saat ini
@@ -75,7 +80,9 @@ export function gunakanPreferensiKomentator() {
  * @param {(k: string, ganti?: object) => string} p.t
  */
 export default function KartuKomentator({
-  fakta,
+  segmen = null,
+  ikon = null,
+  fakta = null,
   rating = null,
   evalSesudah = null,
   namaPembukaan = null,
@@ -88,22 +95,27 @@ export default function KartuKomentator({
   gaya,
   setGaya,
   t,
+  className = "mt-3 border-b border-[#312e2b] pb-3",
 }) {
   const kalimat = useMemo(() => {
-    if (!nyala || !fakta) return "";
-    const daftar = susunKomentar({
-      fakta,
-      gaya,
-      rating,
-      evalSesudah,
-      namaPembukaan,
-      saranTerbaik,
-      engineNyala,
-    });
+    if (!nyala) return "";
+    const daftar =
+      segmen ||
+      (fakta
+        ? susunKomentar({
+            fakta,
+            gaya,
+            rating,
+            evalSesudah,
+            namaPembukaan,
+            saranTerbaik,
+            engineNyala,
+          })
+        : []);
     return rapikanKalimat(
       daftar.map(({ kunci, ganti }) => isiNamaBidak(t(kunci, ganti), t)).join(" ")
     );
-  }, [nyala, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, t]);
+  }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, t]);
 
   // Animasi "muncul" ringan tiap kalimat berganti — cukup memberi kesan hidup
   // tanpa memindahkan tata letak.
@@ -112,14 +124,10 @@ export default function KartuKomentator({
     setKunciAnimasi((k) => k + 1);
   }, [kalimat]);
 
-  const ikonRating =
-    rating && !["forced"].includes(rating) ? rating : null;
+  const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
 
   return (
-    <section
-      aria-label={t("papan.komentator.judul")}
-      className="mt-3 border-b border-[#312e2b] pb-3"
-    >
+    <section aria-label={t("papan.komentator.judul")} className={className}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <button

@@ -17,6 +17,7 @@
 import { Chess } from "chess.js";
 import { ID, EN } from "../src/lib/terjemahan.js";
 import {
+  adalahPengorbanan,
   bidakMenggantung,
   faktaLangkah,
   indeksVarian,
@@ -24,7 +25,9 @@ import {
   kategoriKeunggulan,
   rapikanKalimat,
   susunKomentar,
+  susunKomentarTekaTeki,
   GAYA_KOMENTATOR,
+  TEMA_DISEBUT,
 } from "../src/lib/komentator.js";
 
 let gagal = 0;
@@ -425,6 +428,154 @@ console.log("4) Varian deterministik & tersebar");
   ok(sebaran.size === 4, `40 benih menyebar ke 4 varian: ${[...sebaran].join(",")}`);
 }
 
+/* ------------------------------------------------ 5. komentator teka-teki */
+console.log("5) Komentator teka-teki (tahap soal)");
+{
+  // Soal #1 dari public/data/teka-teki.json: mat dalam 3, Putih jalan,
+  // Qxc8+ (menteri makan benteng lalu dikorbankan) Bxc8 Rxc8+ Qd8 Rxd8#.
+  const FEN_SOAL = "2r3k1/pb3ppp/1p2pq2/1P6/2Q1PP2/6P1/P5BP/2R3K1 w - - 1 25";
+  const tema = ["backRankMate", "endgame", "long", "mate", "mateIn3"];
+  const dasar = { giliran: "w", jumlahLangkah: 3, tema, benih: 1 };
+
+  // Cakupan: semua tahap × gaya × ID/EN tanpa placeholder tersisa / kunci bocor.
+  // Mainkan solusi asli soal (koordinat "c4-c8;b7-c8;c1-c8;f6-d8;c8-d8")
+  // lewat chess.js agar setiap FEN antara berasal dari mesin, bukan tebakan.
+  const solusi = ["c4-c8", "b7-c8", "c1-c8", "f6-d8", "c8-d8"];
+  const gSolusi = new Chess(FEN_SOAL);
+  const fenLangkah = []; // fen SEBELUM langkah ke-i
+  const faktaSolusi = [];
+  for (const teks of solusi) {
+    const sebelum = gSolusi.fen();
+    const m = gSolusi.move({ from: teks.slice(0, 2), to: teks.slice(3, 5) });
+    fenLangkah.push(sebelum);
+    faktaSolusi.push(faktaDasar(sebelum, m.san));
+  }
+  const [fQc8, fBxc8, fRxc8, , fRxd8] = faktaSolusi;
+  // Qxc8+: menteri (9) makan benteng (5) lalu bisa direbut gajah → yang
+  // dipertaruhkan 9-5 = 4 ≥ 2 → pengorbanan (deflection klasik).
+  ok(fQc8.san === "Qxc8+" && fQc8.skak && fQc8.tangkap === "r" && fQc8.bisaDirebut && adalahPengorbanan(fQc8), `Qxc8+ terdeteksi sebagai pengorbanan menteri yang memberi skak (${fQc8.san})`);
+  ok(fRxc8.san === "Rxc8+" && fRxc8.tangkap === "b", `Rxc8+ menangkap gajah (${fRxc8.san})`);
+  ok(fRxd8.san === "Rxd8#" && fRxd8.skakmat, `Rxd8# adalah skakmat (${fRxd8.san})`);
+  // Untuk jalur "salah": percobaan keliru pada soal mat-dalam-1 buatan.
+  //  - FEN_M1A: solusi Qd8#; Ra8+ hanya skak (gajah b7 menutup a8) → salahSkak.
+  //  - FEN_M1B: solusi Qd8# tidak ada karena kuda d5 memblok; Qxd5 makan kuda
+  //    tanpa skak → salahTangkap.
+  const FEN_M1A = "6k1/1b3ppp/8/8/8/3Q4/5PPP/R5K1 w - - 0 1";
+  const FEN_M1B = "6k1/1b3ppp/8/3n4/8/3Q4/5PPP/R5K1 w - - 0 1";
+  const fSalahSkak = faktaDasar(FEN_M1A, "Ra8+");
+  ok(fSalahSkak.skak && !fSalahSkak.skakmat, "Ra8+ = skak non-mat");
+  const fSalahTangkap = faktaDasar(FEN_M1B, "Qxd5");
+  ok(fSalahTangkap.tangkap === "n" && !fSalahTangkap.skak, "Qxd5 = makan kuda tanpa skak");
+  const skenarioTT = [
+    ["mulai", {}],
+    ["mulai", { jumlahLangkah: 1 }],
+    ["mulai", { sudahPecah: true }],
+    ["benar", { fakta: fQc8, sisa: 2 }],
+    ["lawan", { fakta: fBxc8, sisa: 2 }],
+    ["lawan", { fakta: fRxc8, sisa: 1 }],
+    ["salah", { fakta: fSalahSkak, sisa: 3 }],
+    ["salah", { fakta: fSalahTangkap, sisa: 3 }],
+    ["salah", { fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 1 }],
+    ["salah", { legal: false, fakta: null }],
+    ["ilegal", {}],
+    ["petunjuk", { petunjuk: { from: "c4", to: "c8", bidak: "q" } }],
+    ["selesai", { fakta: fRxd8 }],
+    ["selesai", { fakta: fRxd8, tema: ["mate", "short"] }],
+    ["tinjau", { fakta: fQc8, nomor: 1 }],
+    ["benar", { fakta: fQc8, sisa: 2, evalEngine: { matePutih: 3 } }],
+  ];
+  const kunciTT = new Set();
+  for (const [tahap, opsi] of skenarioTT) {
+    for (const gaya of GAYA_KOMENTATOR) {
+      const d = susunKomentarTekaTeki({ tahap, gaya, ...dasar, ...opsi });
+      ok(d.length >= 1 && d.length <= 4, `${tahap}/${gaya}: 1–4 segmen (dapat ${d.length})`);
+      d.forEach(({ kunci }) => kunciTT.add(kunci));
+      for (const t of [tId, tEn]) {
+        const teks = render(t, d);
+        ok(!polaSisa.test(teks), `TT placeholder tersisa (${tahap}/${gaya}): "${teks}"`);
+        ok(!/komentator\./.test(teks), `TT kunci mentah bocor (${tahap}/${gaya}): "${teks}"`);
+      }
+    }
+  }
+  for (const k of kunciTT) {
+    ok(typeof ambil(ID, k) === "string", `ID kunci TT hilang: ${k}`);
+    ok(typeof ambil(EN, k) === "string", `EN kunci TT hilang: ${k}`);
+  }
+  // Setiap kunci tekaTeki.komentator di kamus punya varian ≥ yang diminta mesin.
+  const dimintaTT = new Map();
+  for (const m of sumber.matchAll(/tambahSoal\(\s*"([A-Za-z]+)"\s*,\s*(\d+)/g)) {
+    dimintaTT.set(m[1], Math.max(dimintaTT.get(m[1]) ?? 0, Number(m[2])));
+  }
+  ok(dimintaTT.size >= 15, `peristiwa teka-teki terdeteksi dari sumber: ${dimintaTT.size} (harap ≥ 15)`);
+  for (const [nama, n] of dimintaTT) {
+    for (const gaya of GAYA_KOMENTATOR) {
+      for (const [label, kamus] of [["ID", ID], ["EN", EN]]) {
+        const larik = ambil(kamus, `tekaTeki.komentator.${gaya}.${nama}`);
+        ok(Array.isArray(larik) && larik.length >= n, `${label} tekaTeki.komentator.${gaya}.${nama}: butuh ≥${n} varian, ada ${Array.isArray(larik) ? larik.length : "tidak ada"}`);
+      }
+    }
+  }
+  // Placeholder kamus teka-teki harus dikenal.
+  const bolehTT = new Set([...bolehPlaceholder, "n", "sisa", "nomor", "jalan", "dari", "tema"]);
+  for (const [label, kamus] of [["ID", ID], ["EN", EN]]) {
+    for (const gaya of GAYA_KOMENTATOR) {
+      const blok = ambil(kamus, `tekaTeki.komentator.${gaya}`);
+      for (const [nama, larik] of Object.entries(blok)) {
+        for (const s of larik) {
+          for (const m of s.matchAll(/\{([a-zA-Z]+)\}/g)) {
+            ok(bolehTT.has(m[1]), `${label} tekaTeki ${gaya}.${nama}: placeholder tak dikenal {${m[1]}}`);
+          }
+        }
+      }
+    }
+  }
+  // Semua TEMA_DISEBUT punya terjemahan.
+  for (const k of TEMA_DISEBUT) {
+    ok(typeof ambil(ID, `tekaTeki.tema.${k}`) === "string" && typeof ambil(EN, `tekaTeki.tema.${k}`) === "string", `tema ${k} punya terjemahan ID & EN`);
+  }
+
+  // Perilaku per tahap.
+  const punyaTT = (d, nama) => d.some(({ kunci }) => kunci.includes(`.${nama}.`));
+  let d = susunKomentarTekaTeki({ tahap: "mulai", ...dasar });
+  ok(punyaTT(d, "mulai") && /3/.test(render(tId, d)) && /Putih/.test(render(tId, d)), `mulai menyebut Putih & 3 langkah: "${render(tId, d)}"`);
+  d = susunKomentarTekaTeki({ tahap: "mulai", ...dasar, jumlahLangkah: 1 });
+  ok(punyaTT(d, "mulaiSatu"), "mat dalam 1 → kalimat mulaiSatu");
+  d = susunKomentarTekaTeki({ tahap: "mulai", ...dasar, sudahPecah: true });
+  ok(punyaTT(d, "mulaiSudah"), "sudah pernah dipecahkan → disebut");
+  d = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2 });
+  ok(punyaTT(d, "pengorbanan") && punyaTT(d, "benar"), `benar + pengorbanan: ${d.map((x) => x.kunci.split(".")[3]).join("+")}`);
+  ok(/menteri/.test(render(tId, d)) && /c8/.test(render(tId, d)), `teks pengorbanan menyebut menteri c8: "${render(tId, d)}"`);
+  d = susunKomentarTekaTeki({ tahap: "lawan", ...dasar, fakta: fRxc8, sisa: 1 });
+  ok(punyaTT(d, "lawanTerakhir"), "balasan lawan sebelum langkah penutup → lawanTerakhir");
+  d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: fSalahSkak, sisa: 3 });
+  ok(punyaTT(d, "salahSkak") && /skak/i.test(render(tId, d)), `salah tapi skak → salahSkak: "${render(tId, d)}"`);
+  // Varian pertama salahSkak menyebut jumlah jalan lolos — pastikan terisi angka.
+  ok(/\d+ jalan/.test(tId("tekaTeki.komentator.santai.salahSkak.0", { jalan: "3", lawan: "Hitam" })), "placeholder {jalan} terisi pada varian ber-angka");
+  d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: fSalahTangkap, sisa: 3 });
+  ok(punyaTT(d, "salahTangkap") && /kuda/.test(render(tId, d)), `salah karena tergoda makan kuda: "${render(tId, d)}"`);
+  d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, fakta: faktaDasar(FEN_SOAL, "Kf1"), sisa: 1 });
+  ok(punyaTT(d, "salah") && punyaTT(d, "salahTerakhir"), "salah pada langkah terakhir → pengingat harus mat");
+  d = susunKomentarTekaTeki({ tahap: "salah", ...dasar, legal: false });
+  ok(punyaTT(d, "ilegal") && d.length === 1, "tidak legal → hanya kalimat ilegal");
+  d = susunKomentarTekaTeki({ tahap: "petunjuk", ...dasar, petunjuk: { from: "c4", to: "c8", bidak: "q" } });
+  ok(/menteri/.test(render(tId, d)) && /c4/.test(render(tId, d)), `petunjuk menyebut menteri di c4: "${render(tId, d)}"`);
+  d = susunKomentarTekaTeki({ tahap: "selesai", ...dasar, fakta: fRxd8 });
+  ok(punyaTT(d, "selesai") && punyaTT(d, "selesaiTema"), "selesai + tema dikenal");
+  ok(/Skakmat punggung/.test(render(tId, d)) && /Back-rank|back rank|Back rank/i.test(render(tEn, d)), `nama tema diterjemahkan: ID "${render(tId, d)}" | EN "${render(tEn, d)}"`);
+  ok(!punyaTT(d, "tangkap"), "kalimat tangkapan tidak ikut pada skakmat (pembuka fakta dilewati saat mat)");
+  d = susunKomentarTekaTeki({ tahap: "selesai", ...dasar, fakta: fRxd8, tema: ["mate", "short"] });
+  ok(!punyaTT(d, "selesaiTema"), "tema generik tidak disebut");
+  d = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2, evalEngine: { matePutih: 3 } });
+  ok(punyaTT(d, "engineMat") && /3/.test(render(tId, d)), "engine mate → catatan engineMat");
+  d = susunKomentarTekaTeki({ tahap: "tinjau", ...dasar, fakta: fQc8, nomor: 1 });
+  ok(punyaTT(d, "tinjau") && /1/.test(render(tId, d)), "tinjau menyebut nomor langkah");
+  // Deterministik
+  const d1 = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2 });
+  const d2 = susunKomentarTekaTeki({ tahap: "benar", ...dasar, fakta: fQc8, sisa: 2 });
+  ok(JSON.stringify(d1) === JSON.stringify(d2), "kalimat teka-teki deterministik");
+  console.log(`   ${kunciTT.size} kunci teka-teki dihasilkan, ${dimintaTT.size} peristiwa diperiksa.`);
+}
+
 /* -------------------------------------------------------------- contoh */
 console.log("\nContoh keluaran (ID/santai → formal, EN/santai):");
 {
@@ -444,6 +595,24 @@ console.log("\nContoh keluaran (ID/santai → formal, EN/santai):");
     console.log(`    ID santai : ${render(tId, susunKomentar({ fakta: f, gaya: "santai", ...opsi }))}`);
     console.log(`    ID formal : ${render(tId, susunKomentar({ fakta: f, gaya: "formal", ...opsi }))}`);
     console.log(`    EN santai : ${render(tEn, susunKomentar({ fakta: f, gaya: "santai", ...opsi }))}`);
+  }
+}
+
+console.log("\nContoh keluaran teka-teki (soal #1, mat dalam 3):");
+{
+  const FEN_SOAL = "2r3k1/pb3ppp/1p2pq2/1P6/2Q1PP2/6P1/P5BP/2R3K1 w - - 1 25";
+  const dasar = { giliran: "w", jumlahLangkah: 3, tema: ["backRankMate", "mateIn3"], benih: 1 };
+  const contoh = [
+    ["mulai", {}],
+    ["salah", { fakta: faktaDasar("6k1/1b3ppp/8/3n4/8/3Q4/5PPP/R5K1 w - - 0 1", "Qxd5"), sisa: 3 }],
+    ["benar", { fakta: faktaDasar(FEN_SOAL, "Qxc8+"), sisa: 2 }],
+    ["selesai", { fakta: (() => { const g = new Chess(FEN_SOAL); for (const t of ["c4-c8", "b7-c8", "c1-c8", "f6-d8"]) g.move({ from: t.slice(0, 2), to: t.slice(3, 5) }); return faktaDasar(g.fen(), "Rxd8#"); })() }],
+  ];
+  for (const [tahap, opsi] of contoh) {
+    console.log(`  [${tahap}]`);
+    console.log(`    ID santai : ${render(tId, susunKomentarTekaTeki({ tahap, gaya: "santai", ...dasar, ...opsi }))}`);
+    console.log(`    ID formal : ${render(tId, susunKomentarTekaTeki({ tahap, gaya: "formal", ...dasar, ...opsi }))}`);
+    console.log(`    EN santai : ${render(tEn, susunKomentarTekaTeki({ tahap, gaya: "santai", ...dasar, ...opsi }))}`);
   }
 }
 

@@ -319,6 +319,17 @@ await tunggu(1200);
 uji("papan teka-teki ter-render", wadahHalaman.querySelectorAll("[data-petak]").length === 64);
 uji("belum ada lencana sebelum langkah mat", lencanaSkakmat(wadahHalaman).length === 0);
 
+/** Teks kartu komentator (section aria-label="Komentator"). */
+const teksKomentator = (wadah) =>
+  (wadah.querySelector('section[aria-label="Komentator"] [aria-live]')?.textContent || "")
+    .replace(/\s+/g, " ")
+    .trim();
+uji(
+  "komentator teka-teki menyapa soal baru (mat dalam 1, Hitam jalan)",
+  /Mat dalam satu|satu langkah/i.test(teksKomentator(wadahHalaman)) &&
+    /Hitam/.test(teksKomentator(wadahHalaman))
+);
+
 /** Klik satu petak (alur klik-pilih → klik-tujuan, sama seperti pengguna). */
 function klikPetak(petak) {
   const el = wadahHalaman.querySelector(`[data-petak="${petak}"]`);
@@ -340,6 +351,30 @@ uji(
   "soal tercatat terpecahkan (langkah mat diterima)",
   /terpecahkan|Terpecahkan|Skakmat/i.test(wadahHalaman.textContent.replace(/\s+/g, " "))
 );
+uji(
+  "komentator teka-teki merayakan skakmat",
+  /SKAKMAT|Skakmat|Mat!/.test(teksKomentator(wadahHalaman)) &&
+    !/\{[a-z]+\}|\{\{/.test(teksKomentator(wadahHalaman))
+);
+// Sakelar gaya: klik "Formal" → kalimat berganti register & tersimpan.
+{
+  const tombolFormal = wadahHalaman.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]');
+  const sebelum = teksKomentator(wadahHalaman);
+  if (tombolFormal) {
+    tombolFormal.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+    await tunggu(150);
+  }
+  uji(
+    "komentator: ganti gaya mengubah kalimat & menyimpan preferensi",
+    !!tombolFormal &&
+      teksKomentator(wadahHalaman) !== sebelum &&
+      dom.window.localStorage.getItem("kci-komentator-gaya") === "formal"
+  );
+  // kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan
+  const tombolSantai = wadahHalaman.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]');
+  tombolSantai?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
+  await tunggu(100);
+}
 const ikonLangkahHalaman = [...wadahHalaman.querySelectorAll("[title]")].filter((e) =>
   /Langkah terbaik|Satu-satunya langkah|Langkah buku/.test(e.getAttribute("title"))
 );
@@ -395,6 +430,13 @@ await tunggu(400);
 
 const lencanaInt = lencanaSkakmat(wadahFool);
 uji("interaktif: lencana skakmat muncul setelah Qh4#", lencanaInt.length === 1);
+{
+  const teks = teksKomentator(wadahFool);
+  uji(
+    "interaktif: komentator mengomentari skakmat Fool's Mate (Hitam menang)",
+    /Skakmat|SKAKMAT|MAT/.test(teks) && /Hitam/.test(teks) && !/\{[a-z]+\}|\{\{/.test(teks)
+  );
+}
 uji(
   "interaktif: lencana di atas raja yang termat (e1)",
   lencanaInt.length === 1 && lencanaInt[0].closest('[data-petak="e1"]') !== null
