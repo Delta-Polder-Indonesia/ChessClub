@@ -231,6 +231,41 @@ function IkonSort({ aktif, arah }) {
   );
 }
 
+/* ── Utilitas Statistik Koleksi & Format Ukuran ───────────────────── */
+
+/** Format byte → "220 KB" / "7.36 MB" (gaya kartu En Croissant). */
+function formatUkuran(byte) {
+  const b = Number(byte) || 0;
+  if (b <= 0) return "—";
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(b < 1024 * 10 ? 0 : 0)} KB`;
+  if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+  return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+}
+
+/**
+ * Statistik satu koleksi untuk panel "Data" & kartu kiri: jumlah partai,
+ * banyak pemain unik, banyak event unik (dari header `[Event]`), dan ukuran
+ * total PGN (byte). Dipanggil sekali per koleksi lalu di-cache di `statMap`.
+ */
+async function hitungStatistikKoleksi(koleksiId) {
+  const hasil = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: true });
+  const partai = hasil?.partai || [];
+  const pemain = new Set();
+  const event = new Set();
+  let ukuran = 0;
+  for (const p of partai) {
+    pemain.add(p.whiteName);
+    pemain.add(p.blackName);
+    const cocok = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
+    if (cocok) event.add(cocok[1]);
+    ukuran += (p.pgn || "").length;
+  }
+  // Hapus entri kosong agar player/event tak terhitung sebagai nama kosong.
+  pemain.delete("");
+  return { jumlah: partai.length, pemain: pemain.size, event: event.size, ukuran };
+}
+
 /* ── Komponen Baris Skeleton ───────────────────────────────────────── */
 
 function BarisSkeleton() {
@@ -467,6 +502,7 @@ export default function PopupDatabase({
   const [koleksiList, setKoleksiList] = useState([]);
   const [koleksiTerpilih, setKoleksiTerpilih] = useState("");
   const [cari, setCari] = useState("");
+  const [cariKoleksi, setCariKoleksi] = useState("");
   const [filterHasil, setFilterHasil] = useState("");
   const [filterWaktu, setFilterWaktu] = useState("");
   const [urut, setUrut] = useState({ kolom: "tanggal", arah: "desc" });
@@ -484,9 +520,22 @@ export default function PopupDatabase({
   const [salinSuksesId, setSalinSuksesId] = useState(null);
   const [notifikasi, setNotifikasi] = useState(null);
 
+  // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
+  const [mode, setMode] = useState("data");
+  // Statistik per koleksi (jumlah/pemain/event/ukuran) — di-cache di sini.
+  const [statMap, setStatMap] = useState({});
+  const [mergeA, setMergeA] = useState("");
+  const [mergeB, setMergeB] = useState("");
+
   /* Turunan */
   const totalHal = Math.max(1, Math.ceil(totalPartai / BARIS_PER_HALAMAN));
   const aktifHal = Math.min(hal, totalHal);
+  const stat = koleksiTerpilih ? statMap[koleksiTerpilih] || null : null;
+  const koleksi = koleksiList.find((k) => k.id === koleksiTerpilih) || null;
+  // Koleksi yang tampil di kolom kiri, difilter oleh kotak pencarian koleksi.
+  const daftarKoleksi = cariKoleksi
+    ? koleksiList.filter((k) => (k.label || "").toLowerCase().includes(cariKoleksi.toLowerCase()))
+    : koleksiList;
 
   /* ── Pemuat Data ───────────────────────────────────────────────── */
 
@@ -553,6 +602,32 @@ export default function PopupDatabase({
   useEffect(() => {
     muatPartai();
   }, [koleksiTerpilih, cari, filterHasil, filterWaktu, urut, hal]);
+
+  // Bila belum ada koleksi yang dipilih, pilih koleksi pertama otomatis.
+  useEffect(() => {
+    if (!koleksiTerpilih && koleksiList.length > 0) {
+      setKoleksiTerpilih(koleksiList[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [koleksiList]);
+
+  // Hitung statistik (jumlah/pemain/event/ukuran) untuk semua koleksi sekaligus,
+  // lalu cache di `statMap` untuk kartu kiri & panel "Data".
+  useEffect(() => {
+    (async () => {
+      const map = {};
+      await Promise.all(
+        koleksiList.map(async (k) => {
+          try {
+            map[k.id] = await hitungStatistikKoleksi(k.id);
+          } catch {
+            map[k.id] = null;
+          }
+        }),
+      );
+      setStatMap(map);
+    })();
+  }, [koleksiList]);
 
   /* ── Aksi / Handler ────────────────────────────────────────────── */
 
@@ -687,6 +762,51 @@ export default function PopupDatabase({
     tampilkanNotif("Seluruh basis data telah dikosongkan.");
   }
 
+  /** Hapus partai duplikat (sidik jari sama) dalam koleksi terpilih. */
+  async function tanganiHapusDuplikat() {
+    if (!koleksiTerpilih) return;
+    if (!window.confirm(t("analisa.basisData.konfirmasiHapusDuplikat"))) return;
+    const hasil = await ambilDaftarPartai({ koleksiId: koleksiTerpilih, limit: 0, sertakanPgn: true });
+    const partai = hasil?.partai || [];
+    const terlihat = new Set();
+    let hapus = 0;
+    for (const p of partai) {
+      const sidik = `${p.whiteName}|${p.blackName}|${p.timestamp}|${p.result}|${p.pgn}`;
+      if (terlihat.has(sidik)) {
+        await hapusPartai(p.id);
+        hapus++;
+      } else {
+        terlihat.add(sidik);
+      }
+    }
+    if (hapus > 0) {
+      await muatMetadata();
+      await muatPartai();
+    }
+    tampilkanNotif(`${hapus} partai duplikat dihapus.`);
+  }
+
+  /** Hapus partai tanpa PGN / tanpa langkah dalam koleksi terpilih. */
+  async function tanganiHapusKosong() {
+    if (!koleksiTerpilih) return;
+    if (!window.confirm(t("analisa.basisData.konfirmasiHapusKosong"))) return;
+    const hasil = await ambilDaftarPartai({ koleksiId: koleksiTerpilih, limit: 0, sertakanPgn: true });
+    const partai = hasil?.partai || [];
+    let hapus = 0;
+    for (const p of partai) {
+      const kosong = !p.pgn || String(p.pgn).trim() === "" || !(p.plyCount > 0);
+      if (kosong) {
+        await hapusPartai(p.id);
+        hapus++;
+      }
+    }
+    if (hapus > 0) {
+      await muatMetadata();
+      await muatPartai();
+    }
+    tampilkanNotif(`${hapus} partai kosong dihapus.`);
+  }
+
   async function tanganiSimpanImporPgn() {
     if (!teksPgn.trim()) return;
     setProsesImpor(true);
@@ -754,6 +874,7 @@ export default function PopupDatabase({
       }
       headerKanan={null}
     >
+      <div className="flex flex-1 min-h-0 flex-col gap-3">
       {/* ── Toast Notifikasi ────────────────────────────────────── */}
       {notifikasi && (
         <div className="mb-3 flex items-center justify-between rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2 text-xs font-semibold text-foregroundBlackDark transition-all">
@@ -771,6 +892,272 @@ export default function PopupDatabase({
         </div>
       )}
 
+        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
+          {/* ── Kolom Kiri: daftar profil / koleksi ───────────────── */}
+          <div className="flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0">
+            {/* Pencarian koleksi */}
+            <div className="relative">
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
+                <IkonSearch className="h-4 w-4" />
+              </div>
+              <input
+                type="search"
+                value={cariKoleksi}
+                onChange={(e) => setCariKoleksi(e.target.value)}
+                placeholder={t("analisa.basisData.cariKoleksi")}
+                aria-label={t("analisa.basisData.cariKoleksi")}
+                className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+              />
+            </div>
+
+            {koleksiList.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-borderRoundness border border-border bg-backgroundBox p-6 text-center">
+                <Database width={32} height={32} className="fill-foregroundGrey/30" />
+                <p className="font-bold text-foreground">{t("analisa.basisData.belumAdaKoleksi")}</p>
+                <p className="max-w-[220px] text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.kosongIsi")}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onTutup();
+                    onBukaAkun?.();
+                  }}
+                  className="cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover"
+                >
+                  {t("analisa.akun.tambahBaru")}
+                </button>
+              </div>
+            ) : daftarKoleksi.length === 0 ? (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-borderRoundness border border-border bg-backgroundBox p-6 text-center">
+                <IkonSearch className="h-6 w-6 text-foregroundGrey/50" />
+                <p className="text-sm text-foregroundGrey">{t("analisa.partai.tidakCocok")}</p>
+              </div>
+            ) : (
+              <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1">
+                {daftarKoleksi.map((k) => {
+                  const aktif = k.id === koleksiTerpilih;
+                  const st = statMap[k.id];
+                  return (
+                    <div
+                      key={k.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => {
+                        setKoleksiTerpilih(k.id);
+                        setMode("data");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setKoleksiTerpilih(k.id);
+                          setMode("data");
+                        }
+                      }}
+                      aria-pressed={aktif}
+                      className={`flex cursor-pointer flex-col gap-2.5 rounded-[0.4rem] border p-3.5 transition-colors ${
+                        aktif
+                          ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] bg-backgroundBox ring-1 ring-[var(--analisa-backgroundBoxBoxHighlighted)]"
+                          : "border-border bg-backgroundBox hover:border-borderHighlighted"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Database
+                          width={16}
+                          height={16}
+                          className={`shrink-0 ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}`}
+                        />
+                        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{k.label}</span>
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="16"
+                          height="16"
+                          aria-hidden="true"
+                          className={`shrink-0 ${aktif ? "text-[#f5a623]" : "text-foregroundGrey/40"}`}
+                        >
+                          <path
+                            fill="currentColor"
+                            d="M12 2l2.9 6.26 6.86.6-5.2 4.5 1.55 6.7L12 17.1 5.89 20.6l1.55-6.7-5.2-4.5 6.86-.6z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
+                            {t("analisa.basisData.dataGames")}
+                          </div>
+                          <div className="text-base font-bold tabular-nums text-foreground">
+                            {st?.jumlah ?? k.jumlahPartai ?? "…"}
+                          </div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">
+                            {t("analisa.basisData.storage")}
+                          </div>
+                          <div className="text-base font-bold tabular-nums text-foreground">
+                            {st ? formatUkuran(st.ukuran) : "…"}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                onTutup();
+                onBukaAkun?.();
+              }}
+              title={t("analisa.akun.tambahBaru")}
+              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
+            >
+              <IkonPlus className="h-4 w-4" />
+              <span>{t("analisa.akun.tambahBaru")}</span>
+            </button>
+          </div>
+
+          {/* ── Kolom Kanan: Data / Tabel ─────────────────────────── */}
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+            {mode === "data" ? (
+              <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
+                {koleksi ? (
+                  <>
+                    <label className="flex w-fit items-center gap-2 text-sm text-foreground">
+                      <input
+                        type="checkbox"
+                        defaultChecked
+                        disabled
+                        className="h-3.5 w-3.5 rounded border-border bg-backgroundBoxBox accent-[#4a9dd9]"
+                      />
+                      {t("analisa.basisData.indexed")}
+                    </label>
+
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.data")}</div>
+                      <div className="mt-2 grid grid-cols-3 gap-3">
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataGames")}</div>
+                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.jumlah ?? "…"}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataPlayers")}</div>
+                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.pemain ?? "…"}</div>
+                        </div>
+                        <div>
+                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataEvents")}</div>
+                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.event ?? "…"}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setMode("tabel")}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2.5 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
+                    >
+                      <span>{t("analisa.basisData.explore")}</span>
+                      <span aria-hidden="true">→</span>
+                    </button>
+
+                    <hr className="border-border" />
+
+                    <div>
+                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.advanced")}</div>
+                      <div className="mt-3 flex flex-col gap-4">
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.mergePlayers")}</p>
+                          <p className="mt-1 text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.mergePlayersDesc")}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <input
+                              type="text"
+                              value={mergeA}
+                              onChange={(e) => setMergeA(e.target.value)}
+                              placeholder={t("analisa.basisData.player1")}
+                              className="min-w-0 flex-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey focus:border-[#4a9dd9]"
+                            />
+                            <button
+                              type="button"
+                              disabled
+                              title={t("analisa.basisData.mergeSegera")}
+                              className="cursor-not-allowed rounded-borderRoundness bg-backgroundBoxBoxHighlighted/40 px-3.5 py-2 text-sm font-bold text-foregroundBlackDark opacity-60"
+                            >
+                              {t("analisa.basisData.merge")} →
+                            </button>
+                            <input
+                              type="text"
+                              value={mergeB}
+                              onChange={(e) => setMergeB(e.target.value)}
+                              placeholder={t("analisa.basisData.player2")}
+                              className="min-w-0 flex-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey focus:border-[#4a9dd9]"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.batchDelete")}</p>
+                          <p className="mt-1 text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.batchDeleteDesc")}</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={tanganiHapusDuplikat}
+                              className="rounded-borderRoundness bg-[#4a9dd9] px-3.5 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 cursor-pointer"
+                            >
+                              {t("analisa.basisData.removeDuplicates")}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={tanganiHapusKosong}
+                              className="rounded-borderRoundness bg-[#4a9dd9] px-3.5 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 cursor-pointer"
+                            >
+                              {t("analisa.basisData.removeEmpty")}
+                            </button>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.aksi")}</p>
+                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                            <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
+                              <IkonDownload className="h-3.5 w-3.5 shrink-0" />
+                              <span>{t("analisa.basisData.eksporPgn")}</span>
+                            </button>
+                            <button type="button" onClick={() => setModalImpor(true)} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
+                              <IkonPlus className="h-3.5 w-3.5 shrink-0" />
+                              <span>{t("analisa.basisData.imporPgn")}</span>
+                            </button>
+                            <button type="button" onClick={tanganiHapusKoleksi} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
+                              <IkonTrash className="h-3.5 w-3.5 shrink-0" />
+                              <span>{t("analisa.basisData.hapusKoleksi")}</span>
+                            </button>
+                            {!koleksiTerpilih && totalPartai > 0 ? (
+                              <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
+                                <IkonTrash className="h-3.5 w-3.5 shrink-0" />
+                                <span>{t("analisa.basisData.hapusSemua")}</span>
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
+                    <Database width={32} height={32} className="fill-foregroundGrey/30" />
+                    <p className="font-bold text-foreground">{t("analisa.basisData.belumAdaKoleksi")}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setMode("data")}
+                  className="inline-flex w-fit items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
+                >
+                  <span aria-hidden="true">←</span>
+                  {t("analisa.basisData.kembaliKeData")}
+                </button>
       {/* ── Bilah Kontrol / Filter ──────────────────────────────── */}
       <div className="flex flex-col gap-2.5 pb-2.5 shrink-0">
         {/* Baris 1: Koleksi + Filter + Aksi Global */}
@@ -1041,6 +1428,11 @@ export default function PopupDatabase({
             </div>
           </div>
         ) : null}
+      </div>
+              </>
+            )}
+          </div>
+        </div>
       </div>
     </Popup>
   );
