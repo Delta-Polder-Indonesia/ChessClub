@@ -26,7 +26,7 @@ import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import PopupAkun from "./popupAkun.jsx";
-import { tambahKeDaftar } from "../../akun/daftarAkun.js";
+import { bacaDaftarAkun, tambahKeDaftar } from "../../akun/daftarAkun.js";
 import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -169,6 +169,34 @@ const menuPop = [
   }
 
   /**
+   * Menu "Akun" — membuka LAYAR AKUN (daftar + statistik dua kolom) bila sudah
+   * ada akun tersimpan, bukan selalu modal "Tambah akun". Ini meniru perilaku
+   * menu Accounts pada En Croissant (halaman /accounts yang persisten): sekali
+   * akun didaftarkan & datanya ditarik, kembali ke "Akun" tetap menampilkan
+   * daftar + statistik yang sama — tidak reset ke formulir tambah.
+   */
+  function bukaAkun() {
+    setKonfirmasiBaru(false);
+    const daftar = bacaDaftarAkun();
+    const aktif = analyzeContext.akun[0];
+    if (daftar.length === 0 && !aktif?.username) {
+      // Belum ada akun sama sekali → modal tambah akun (keadaan awal).
+      setTerbuka("akun");
+      return;
+    }
+    // Ada akun tersimpan → tampilkan layar akun; pilih akun pertama bila belum
+    // ada yang aktif, sehingga statistiknya langsung tampil.
+    setTerbuka(null);
+    setData({ format: "fen", string: "" });
+    if (!aktif?.username) {
+      const pertama = daftar[0] || aktif;
+      setAkun({ platform: pertama.platform, username: pertama.username });
+    }
+    setPlaying(false);
+    setPageState("default");
+  }
+
+  /**
    * Tombol "Bermain" = kembali ke papan, BUKAN tombol reset.
    *
    * Dulu tombol ini selalu mengosongkan `data`, `akun`, dan `pageState`,
@@ -249,10 +277,12 @@ const menuPop = [
                   ? kePapan
                   : item.kunci === "baru"
                     ? mulaiBaru
-                    : () => {
-                        setKonfirmasiBaru(false);
-                        setTerbuka(item.kunci);
-                      };
+                    : item.kunci === "akun"
+                      ? bukaAkun
+                      : () => {
+                          setKonfirmasiBaru(false);
+                          setTerbuka(item.kunci);
+                        };
               return (
               <button
                 key={item.kunci}
@@ -298,7 +328,7 @@ const menuPop = [
         <PopupDatabase
           onTutup={() => setTerbuka(null)}
           onAnalisa={imporPartai}
-          onBukaAkun={() => setTerbuka("akun")}
+          onBukaAkun={bukaAkun}
           lebarKiri={lebarNav}
         />
       ) : null}
