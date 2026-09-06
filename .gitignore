@@ -44,3 +44,7 @@ data/riwayat-masuk.json
 
 # Snapshot roster anggota (dibuat otomatis oleh server dari Chess.com)
 data/roster-anggota.json
+
+# tidak bagian dari projeck. hanya utuk ai dan develover saja
+.opencode
+SKILL.md

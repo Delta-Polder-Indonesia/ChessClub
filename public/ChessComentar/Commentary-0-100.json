@@ -1,0 +1,502 @@
+[
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 1 | Move: f3 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, here we go! White starts with f3, okay, a bit unusual. Black has a slight advantage early on."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 2 | Move: e5 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn! e5. That's a direct challenge in the center. Black is playing aggressively from the start, and now Black has a solid lead."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 3 | Move: g4 | CurrentPlayer: White | Phase: Opening | Classification: Blunder move | MateThreat: Mate in 1 | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, white just played g4... Oh man, that's a blunder! White just hung a pawn. Black's going to be loving this! Black has a huge lead now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 4 | Move: Qh4# | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: q | MoveType: capture | Check: Yes | Checkmate: Yes | GameOver: Yes | GameOverReason: Checkmate | Winner: Black",
+    "output": "Oh wow! Black just played Qh4 checkmate! Game Over! Black wins!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 1 | Move: Nf3 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, here we go! White starts with knight to f3. Solid developing move, controlling some central squares. White is slightly better right now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 2 | Move: c5 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn! Solid move, opening up the c-file. White still has a slight edge, but this is a good way for Black to challenge the center."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 3 | Move: d4 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White grabs the center with d4, a good solid opening. Black takes the pawn, and now we're seeing a bit of a Queen's Gambit type of thing, even though white didn't play c4. White's a little bit worse now, but it's still early days."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 4 | Move: d6 | CurrentPlayer: Black | Phase: Opening | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just took that pawn! White's got a bit of an advantage right now, about a pawn and a quarter. Not the best trade for Black, but let's see what happens next."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 5 | Move: dxc5 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White just took that pawn! Nice, developing a piece while grabbing some space. White's got a solid advantage now, about a pawn and a quarter. Good stuff!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 6 | Move: e5 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn.  Solid, solid stuff. White's got a bit of an edge now, looks like."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 7 | Move: cxd6 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, White takes with the pawn! Capturing that pawn on d6. Solid move, opening up the position a bit more. White is looking good here, slightly better."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 8 | Move: Bxd6 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just snatched that pawn! Black's Bishop takes the pawn on D6, a good capture. White's advantage is still there, but Black is definitely getting active. Looks like Black is trying to trade pieces."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 9 | Move: e3 | CurrentPlayer: White | Phase: Opening | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white played e3. Hmmm, that's a little passive, a bit of a mistake in this position. Black gets to recapture the pawn. White is still slightly better, but the advantage has shrunk a bit."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 10 | Move: Nc6 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black's knight captures the knight! Alright, black takes the knight, nice trade. White is still looking a bit better here, but black is definitely making it a game!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 11 | Move: Bb5 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white slides their bishop over to b5, taking that black bishop. A nice capture! White's looking a little better here, they have a small advantage."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 12 | Move: Ne7 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black's moving that knight to e7, taking White's knight. White's slightly better right now, but Black's grabbing material."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 13 | Move: O-O | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: K | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White castles kingside. Solid move, getting the king to safety! They're playing it safe, good strategy. White still has a slight edge."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 14 | Move: O-O | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: k | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black castles kingside, safe and sound... White still has a slight edge, it looks like. Black is probably aiming to get the pieces active now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 15 | Move: h3 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White plays h3. That's a bit odd, capturing that pawn on h3. Doesn't seem to do much except... well, it opens the h-file slightly, I guess. White still has the advantage."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 16 | Move: Bd7 | CurrentPlayer: Black | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just played Bd7. Hmm, they just captured a pawn with the bishop. White's got a big lead, but Black seems to be trying to muddy the waters. That's a blunder, though, White's definitely got the upper hand now!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 17 | Move: Nc3 | CurrentPlayer: White | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White just blundered with Nc3! Wow, a knight capture. White really messed up. White's advantage just dropped big time! This changes the whole game. Black's got some breathing room now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 18 | Move: a6 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes a pawn, solidifying that side of the board. White still has the edge, but Black is making sure things don't get too easy. Good move!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 19 | Move: Bd3 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White recaptures! Bishop takes Bishop. Solid move, developing the bishop to a good square. White's looking a bit better now, a pawn up."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 20 | Move: Nb4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just played Nb4, taking that knight! Interesting. White's got a pawn advantage right now, but Black's getting active."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 21 | Move: Bxh7+ | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: Yes | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Oh, white's going for it! Bishop takes on H7, check! Black's king is in trouble now. White's looking good, up a pawn and now attacking the king, nice one."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 22 | Move: Kxh7 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: k | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, Black takes the pawn on h7! Going for the attack, I see. White's got a decent lead, but Black's not backing down. Let's see how this plays out."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 23 | Move: Qxd6 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White takes the Queen! Snatching up the black Queen with their own. White's up a bit of material now, so things are looking good for them."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 24 | Move: e4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just blundered, taking that pawn! That's a big mistake. White's position is looking much better now. White has a clear advantage, over four pawns up! Black really should have played Ng5+ there."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 25 | Move: Ng5+ | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: Yes | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White's going for it! Knight to g5, and that's a check! White's really cranking up the pressure. Black's King is in trouble now, this is where things get spicy. White is clearly ahead."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 26 | Move: Kg8 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: k | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black moves the King... heading back to safety, trying to get away from the action. White is still looking strong, with a clear advantage."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 27 | Move: Qxb4 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white snatches the queen! Wow, that's a trade. White now with a solid advantage. Let's see how black responds to this."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 28 | Move: Bb5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes back the bishop on b5! White's getting a pretty solid advantage here, pushing Black around the board. This recapture... well, it's not helping Black's position, that's for sure. White still has a clear edge."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 29 | Move: Nxb5 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, White takes the knight! Good trade, solidifies White's control in the center. White's definitely got the upper hand here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 30 | Move: axb5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black grabs that pawn! That's a good trade, opening up the a-file a bit. White still seems to have the edge, though."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 31 | Move: Qxe4 | CurrentPlayer: White | Phase: Endgame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "White snatches the queen! Big exchange. That's gotta be winning for White, they're up a whole queen now. The evaluation barely budged, it is still around a 5-pawn advantage. White is definitely in control."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 32 | Move: Nc6 | CurrentPlayer: Black | Phase: Endgame | Classification: Blunder move | MateThreat: Mate in 1 | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Whoa, black just blundered big time! That knight capture just walked right into a checkmate threat. White's got the queen pointed right at the king, and it's looking grim for black. White's winning by a mile now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 33 | Move: Qh7# | CurrentPlayer: White | Phase: Endgame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: Yes | Checkmate: Yes | GameOver: Yes | GameOverReason: Checkmate | Winner: White",
+    "output": "Oh, wow! White just took the Queen! And... CHECKMATE! Qh7, boom! Game Over! White wins!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 1 | Move: e4 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, here we go! White opens with e4 – classic! Taking control of the center, always a good start. White has a small edge right now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 2 | Move: e5 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn! Opens things up in the center, that's the idea. White's got a slight edge, but it's early days."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 3 | Move: Bc4 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, White's just played Bc4! Snatching up that Black bishop. White's got a slight edge right now. This looks like a decent move, keeping things open."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 4 | Move: Nc6 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black's bringing out the knight to c6. Nice developing move! Trying to control the center. White still has a slight edge here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 5 | Move: c3 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white plays c3. They're capturing a pawn there. Hmm, the evaluation says black is slightly better now, but the game is just getting started. Let's see where this goes!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 6 | Move: Nf6 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black recaptures the knight. Solid move. Black's got a slight edge here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 7 | Move: Qf3 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White takes the Queen! That's pretty aggressive. Black's looking better now, up almost a pawn. Let's see how this develops."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 8 | Move: Bc5 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn with the Bishop! Nice, that opens up a diagonal. Black's developing nicely, putting some pressure on the center. Black is looking slightly better now, with a small advantage."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 9 | Move: g4 | CurrentPlayer: White | Phase: Opening | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White plays g4. Oh wow, that's… a bit strange. White just pushed a pawn forward and took a pawn. Black is clearly better."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 10 | Move: d6 | CurrentPlayer: Black | Phase: Opening | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes with the pawn! Wow, that was a blunder. Black really gave away a pawn there, but the position is still complex. Black seems to be pressing their advantage."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 11 | Move: g5 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white plays g5! They're really going for it, trying to open up that kingside. Black just had to take it. The position has shifted, but it looks Black's still a bit better."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 12 | Move: Bg4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn on b4 with the bishop. Hmm, a bit of a blunder here, giving White a stronger game. White's looking a bit better now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 13 | Move: Qg3 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White just took the Queen! That was a bit risky, but they went for it. Black's even now. Let's see how this plays out."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 14 | Move: Nxe4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the knight! Seems like they're trying to open things up a bit. White still has a slight edge, though. Let's see how this develops."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 15 | Move: Qxg4 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white takes the queen! That's a good trade, white is now slightly better."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 16 | Move: Nxf2 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the knight! A bit of a trade there, seems like a good move. White still has a slight edge, but Black is definitely fighting back."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 17 | Move: Qg2 | CurrentPlayer: White | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Oh no, White just blundered! Taking the Queen with the Queen? That's got to hurt. Black has a big advantage now, a clear two and a half pawn lead."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 18 | Move: Nxh1 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the rook! Nice exchange, white's gonna have a tough time now. Black's got a good position here, looks like."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 19 | Move: Qxh1 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Oh wow, white just took the rook with the queen! That's... a bit surprising. Black's got a clear advantage now, up by a good bit. White might be regretting that one. Let's see how black capitalizes on this!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 20 | Move: Qxg5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the Queen! Solid capture, gaining material. Black's really solidifying their advantage now. The evaluation clearly shows Black is doing well here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 21 | Move: Nf3 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White recaptures with the knight. It's a good recapture, solidifying the position. Black still has a clear advantage though, according to the evaluation. Let's see how this plays out."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 22 | Move: Qe7 | CurrentPlayer: Black | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black recaptures the queen! Not the best recapture though, a mistake apparently. Black's definitely got a solid advantage now, seems like white's position is crumbling a bit."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 23 | Move: d3 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white just played d3. Oh! White took a pawn. Black has a solid lead here. The position has opened up a bit, good for the black side."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 24 | Move: O-O | CurrentPlayer: Black | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: k | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black castles kingside, finally getting the king to safety. Wait, that was a mistake? Looks like black just gave up the rook. Black is clearly in the lead with a 2.42-pawn advantage. Let's see how this plays out."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 25 | Move: Qg1 | CurrentPlayer: White | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: Q | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White takes back the queen, but... whoa! That's a major blunder. Black is practically winning now! The evaluation just plummeted. White really missed something there."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 26 | Move: Bxg1 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black just took the bishop! Solid capture, trading a bishop for a rook - that's good stuff. Black's definitely got the upper hand now, seven-plus pawns up, wow."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 27 | Move: Nxg1 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, White grabs the knight. A capture! Black's definitely got the advantage right now, over seven pawns up, so White needs to find a way to turn things around."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 28 | Move: Na5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black with a knight taking a knight! Solid move, grabbing that piece. Black's really piling on the pressure, and it looks like Black's got a pretty big lead now!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 29 | Move: Bd2 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White played Bishop to D2... hmm, that Bishop's just hanging out now. Black has a big advantage right now, almost eight pawns! White really blundered there, dropping almost a whole pawn of evaluation with this move. Seems like Black might be able to pounce with the knight. Let's see what happens!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 30 | Move: Nxc4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes that knight! Snapping it up. Black's got a solid advantage now, over eight pawns up. Seems like White's position is really starting to crumble here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 31 | Move: dxc4 | CurrentPlayer: White | Phase: Endgame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White takes the pawn. Seems like they're trying to open up the position a bit, see what they can get. Black is still looking really strong, though. The evaluation is still heavily in Black's favor."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 1 | Move: e4 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, White starts with the King's pawn, a classic! e4, good opening. White's already got a little edge, just setting the stage here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 2 | Move: e5 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black grabs the center with that pawn! Good solid move, challenging White right away. White still has a slight edge according to our friend, the computer, but Black is playing aggressively."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 3 | Move: Nf3 | CurrentPlayer: White | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White's developing a knight, a solid opening move. Getting that knight to a good square early is always a good plan. White's got a slight edge now, according to the evaluations."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 4 | Move: Nc6 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black responds with knight to C6, a solid developing move. Black's knight now controls some central squares. White still has a slight advantage, it seems."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 5 | Move: Bb5 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White plays Bb5! Snapping off that Bishop. Solid move, trying to put pressure early. White's got a slight edge now, according to the numbers."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 6 | Move: Bc5 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black snatches a pawn! Bishop to C5. Solid move, Black's developing nicely and putting pressure on that pawn. White's got a slight edge still, but Black is definitely in the game."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 7 | Move: O-O | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: K | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White castles! Solid move to get the king safe. White's up a little bit, just a slight edge now. Looks like a good, safe position."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 8 | Move: d6 | CurrentPlayer: Black | Phase: Opening | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn!  That's d6, a nice pawn capture. White still has a small edge, but Black's definitely stirring things up here. Let's see what White does next."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 9 | Move: h3 | CurrentPlayer: White | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white played h3. Just protecting that g4 square. White still has a small edge."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 10 | Move: Bd7 | CurrentPlayer: Black | Phase: Opening | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes back the bishop with their Bishop. Solid recapture, developing a piece and trading. White still seems to have a slight edge, but Black is developing nicely."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 11 | Move: c3 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White plays c3, capturing that pawn! Solid move. White's looking to control the center here. Looks good. Evaluation is slightly better for White now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 12 | Move: a6 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn! That's solid, controlling more space on the queenside. White's still got a small edge though, but Black is definitely making their presence felt."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 13 | Move: Ba4 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White's moving their Bishop, taking that Black Bishop! Smart move, getting rid of a piece and putting the Bishop on a nice diagonal. White's got a small edge now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 14 | Move: b5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes a pawn! Black's trying to open up that b-file now. White still has a slight edge here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 15 | Move: Bc2 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: B | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white recaptures the bishop, solid move! White's up a pawn, but black has some activity. The position is a little more open now. White's slowly building a slight edge."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 16 | Move: Nf6 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black recaptures with the knight. Solid move! White still has a slight edge, but Black is consolidating."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 17 | Move: Re1 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: R | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White slides the rook over to e1...grabbing that open file! That's a good idea, putting some pressure on Black's king-side. White's looking pretty good here, up a bit."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 18 | Move: h6 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes a pawn! That's a good trade. Looks like Black's trying to open up that h-file. White still has a slight edge though."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 19 | Move: d4 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white just played d4, taking that pawn. Solid move. White's got a slight edge here."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 20 | Move: Bb6 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Black snags a pawn, putting that bishop on b6. Looks like they're trying to control the center a bit more. White still has a slight edge, but Black is making things interesting!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 21 | Move: d5 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White played d5. A mistake, apparently! They just took that pawn. Black is looking better now, up by almost a pawn."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 22 | Move: Na5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: n | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black captures the knight! That's gotta be good, Black's position seems to be getting better. Black's up a bit now, huh."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 23 | Move: Nbd2 | CurrentPlayer: White | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white's moving the knight. Nbd2. Hmm, okay, recapturing the knight, makes sense. Black still has a slight edge, but white's consolidating. Let's see what happens!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 24 | Move: g5 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black's turn. And they take that pawn! Nice, opening up that g-file. Black's still got the edge, but white's hanging in there."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 25 | Move: b3 | CurrentPlayer: White | Phase: Middlegame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White plays b3. Hmm, that's a bit of a misstep, giving Black a slight advantage. White just took a pawn there. Black seems to be in a better spot right now."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 26 | Move: g4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Good move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes the pawn! Looks like they want to open up the g-file. Black is still comfortably ahead with this capture, the advantage has slightly decreased, but they are still in the lead. Let's see how White responds."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 27 | Move: hxg4 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: P | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White takes the pawn on g4! Solid capture, opening up the h-file a bit. Black's advantage is still there, but White is trying to create some space."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 28 | Move: Bxg4 | CurrentPlayer: Black | Phase: Middlegame | Classification: Blunder move | MateThreat: No immediate mate threat detected | Captured: b | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, black takes the pawn! Hmm, a blunder, says the computer. White's got a bit of an edge now. Black really should've kept that knight safe, it seems."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 29 | Move: Nf1 | CurrentPlayer: White | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, White just traded the knight. Now, White has a slight edge. Let's see what happens next."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 30 | Move: Rg8 | CurrentPlayer: Black | Phase: Middlegame | Classification: Excellent move | MateThreat: No immediate mate threat detected | Captured: r | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Alright, Black just played Rg8, taking the rook! Black's trying to simplify things, trading off pieces. White still has a slight edge here, but Black is definitely making it harder to press that advantage. The position has certainly opened up a bit with that exchange."
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 31 | Move: Ng3 | CurrentPlayer: White | Phase: Endgame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: N | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, white's knight goes to g3... Hmm, that's a bit of a blunder. The knight was doing ok where it was. Black is now slightly better. Let's see where this goes!"
+  },
+  {
+    "instruction": "Provide real-time chess commentary. Be concise and casual. Mention checks, mistakes, and who is winning.",
+    "input": "MoveNumber: 32 | Move: h5 | CurrentPlayer: Black | Phase: Endgame | Classification: Mistake move | MateThreat: No immediate mate threat detected | Captured: p | MoveType: capture | Check: No | Checkmate: No | GameOver: No | GameOverReason: Game continues | Winner: None",
+    "output": "Okay, Black takes a pawn! ... Hmm, interesting. That h-pawn is pushing. White's still got the advantage though, by a little bit."
+  }
+]
