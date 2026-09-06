@@ -8,7 +8,7 @@ import { mulaiPrefetchRute } from "./lib/prefetch.js";
 /* ------------------------------------------------------- code splitting
  * Semua halaman dimuat malas (React.lazy) sehingga setiap rute menjadi
  * chunk terpisah — bundel awal hanya berisi kerangka layout + router.
- * Halaman berat (Dashboard, Galeri, CaraBermainCatur) paling diuntungkan:
+ * Halaman berat (Dashboard, Galeri, Analisa) paling diuntungkan:
  * kodenya baru diunduh saat rutenya benar-benar dikunjungi.
  *
  * TataLetakBeranda dan ProtectedRoute juga sengaja lazy. Keduanya hanya
@@ -26,7 +26,6 @@ const StrukturGrupCatur = lazy(() => import("./halaman/TentangKami/StrukturGrupC
 const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
 const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
-const CaraBermainCatur = lazy(() => import("./halaman/ProgramKami/CaraBermainCatur.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
 // Turnamen
@@ -103,7 +102,6 @@ const RUTE_HALAMAN = [
   ["/program-kami", ProgramKami],
   ["/program-kami/teka-teki", TekaTekiKonten],
   ["/program-kami/pembukaan", Pembukaan],
-  ["/program-kami/sekolah-catur/cara-bermain-catur", CaraBermainCatur],
   ["/program-kami/analisa", Analisa],
   ["/program-kami/atribusi", Atribusi],
   ["/program-kami/ebook-panduan", EbookPanduan],
@@ -148,7 +146,8 @@ const RUTE_REDIRECT = new Map([
   ["/program-kami/kelas-dan-pelatihan", "/program-kami"],
   ["/program-kami/coaching-clinic", "/program-kami"],
   ["/program-kami/simultan-dan-blindfold", "/program-kami"],
-  ["/program-kami/sekolah-catur", "/program-kami/sekolah-catur/cara-bermain-catur"],
+  ["/program-kami/sekolah-catur", "/program-kami"],
+  ["/program-kami/sekolah-catur/cara-bermain-catur", "/program-kami"],
 
   // Tab Beranda "Teka-Teki & Tips" pindah menjadi halaman Program Kami.
   ["/beranda/teka-teki-tips", "/program-kami/teka-teki"],

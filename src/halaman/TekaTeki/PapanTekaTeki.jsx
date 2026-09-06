@@ -6,6 +6,10 @@ import ResultSVG from "../Analisa/komponen/svg/result.jsx";
 
 /** Label keterangan (tooltip) lencana skakmat di atas raja yang termat. */
 const LABEL_IKON_SKAKMAT = "Skakmat — raja lawan tidak punya langkah lagi";
+/** Label keterangan (tooltip) mahkota di atas raja PEMENANG (tidak diawali
+ *  "Skakmat" agar berbeda dari lencana raja yang kalah — uji lencana
+ *  menghitung keduanya secara terpisah). */
+const LABEL_IKON_MAHKOTA = "Menang — raja pemenang";
 
 /** Label keterangan (tooltip) ikon klasifikasi langkah — gaya chess.com/lichess. */
 const LABEL_IKON_LANGKAH = {
@@ -728,7 +732,7 @@ export default function PapanTekaTeki({
                 <ResultSVG
                   result="victory"
                   size="100%"
-                  title={LABEL_IKON_SKAKMAT}
+                  title={LABEL_IKON_MAHKOTA}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",

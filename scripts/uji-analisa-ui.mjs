@@ -146,9 +146,15 @@ await build({
   platform: "browser",
   outfile: berkasBundel,
   loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl" },
+  // `import.meta.glob` hanya ada di Vite (dipakai ChessPiece — sejak panel
+  // bidak tertangkap Analisa memakai set gambar Chess.com — untuk memuat aset
+  // bidak). Di luar Vite diganti fungsi kosong: bidak tidak tergambar, tetapi
+  // seluruh UI yang diuji tetap ter-render. Pola sama dengan uji-lencana-skakmat.
+  banner: { js: "function __globPalsu() { return {}; }" },
   define: {
     "process.env.NODE_ENV": '"development"',
     "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+    "import.meta.glob": "__globPalsu",
   },
   logLevel: "error",
 });

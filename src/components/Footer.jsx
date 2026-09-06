@@ -38,7 +38,7 @@ export default function Footer() {
     { title: t("footer.pendaftaranAnggota"), href: "/pendaftaran-anggota" },
     { title: t("footer.beritaKomunitas"), href: "/media-dan-informasi/berita-komunitas" },
     { title: t("footer.pengumumanLink"), href: "/media-dan-informasi/pengumuman" },
-    { title: t("footer.programCatur"), href: "/program-kami/sekolah-catur/cara-bermain-catur" },
+    { title: t("footer.programCatur"), href: "/program-kami" },
     { title: t("nav.turnamen"), href: "/turnamen" },
   ];
 

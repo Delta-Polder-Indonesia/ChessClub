@@ -203,8 +203,8 @@ export default function ProgramKami() {
       title={t("program.judul")}
       description={t("program.deskripsi")}
       next={{
-        to: "/program-kami/sekolah-catur/cara-bermain-catur",
-        judul: t("nav.caraBermainCatur"),
+        to: "/program-kami/teka-teki",
+        judul: t("nav.tekaTeki"),
       }}
     >
       <Triptych t={t} />

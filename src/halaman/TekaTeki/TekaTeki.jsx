@@ -13,6 +13,10 @@ import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
 import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import License from "../Analisa/komponen/svg/license.jsx";
 import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
+import KartuKomentator, {
+  gunakanPreferensiKomentator,
+} from "../../components/KartuKomentator.jsx";
+import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -142,6 +146,20 @@ function terapkan(fen, { from, to, promo }) {
   return game;
 }
 
+/**
+ * Fakta langkah (untuk komentator) dari koordinat asal/tujuan. Mengembalikan
+ * null bila langkah tidak legal pada posisi itu.
+ */
+function faktaDariKoordinat(fen, from, to, promo) {
+  try {
+    const g = terapkan(fen, { from, to, promo });
+    const san = g.history({ verbose: true }).slice(-1)[0]?.san;
+    return san ? faktaLangkah(fen, san) : null;
+  } catch {
+    return null;
+  }
+}
+
 function bacaTerpecahkan() {
   try {
     const simpan = JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]");
@@ -220,6 +238,14 @@ export default function TekaTeki() {
   const [jalurFen, setJalurFen] = useState([]);
   const [orientasi, setOrientasi] = useState("w");
   const [pesan, setPesan] = useState(null);
+  /**
+   * Komentator langsung — konteks tahap terakhir (mulai/benar/lawan/salah/
+   * petunjuk/selesai/tinjau) beserta fakta langkah terkait. Kalimatnya
+   * disusun ulang tiap render dari kamus, jadi ganti bahasa/gaya langsung
+   * ikut tanpa menyimpan teks jadi.
+   */
+  const [komentar, setKomentar] = useState(null);
+  const preferensiKomentator = gunakanPreferensiKomentator();
   const [komputer, setKomputer] = useState(false);
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
@@ -553,6 +579,7 @@ export default function TekaTeki() {
     setPromosi(null);
     setSyzygy(null);
     setSyzygyGagal(false);
+    setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
   }, []);
 
   const pindahSoal = useCallback(
@@ -685,6 +712,13 @@ export default function TekaTeki() {
       // tahu bedanya "tidak boleh" dan "boleh tapi bukan solusinya".
       bunyikan(langkahLegal ? SUARA.tekaTekiSalah : SUARA.ilegal);
       setPesan({ jenis: "salah", teks: t("tekaTeki.salah") });
+      setKomentar({
+        tahap: "salah",
+        legal: langkahLegal,
+        fakta: langkahLegal ? faktaDariKoordinat(fen, from, to, promo) : null,
+        sisa: Math.ceil(sisa.length / 2), // langkah pemain yang masih harus ditemukan
+        fen,
+      });
       setKesalahan({ from, to });
       setTerpilih(null);
       setSasaran([]);
@@ -710,6 +744,7 @@ export default function TekaTeki() {
       window.setTimeout(() => bunyikan(SUARA.tekaTekiTuntas), 220);
       setSelesai(true);
       setPesan({ jenis: "selesai", teks: t("tekaTeki.terpecahkan") });
+      setKomentar({ tahap: "selesai", fakta: faktaLangkah(fen, langkahPemain.san), fen: lanjut.fen() });
       catatTerpecahkan(masalah.problemid);
       if (otomatis) {
         window.clearTimeout(timerOtomatis.current);
@@ -721,6 +756,12 @@ export default function TekaTeki() {
       bunyikanLangkah(langkahPemain, lanjut);
       window.setTimeout(() => bunyikan(SUARA.tekaTekiBenar), 150);
       setPesan({ jenis: "benar", teks: t("tekaTeki.benar") });
+      setKomentar({
+        tahap: "benar",
+        fakta: faktaLangkah(fen, langkahPemain.san),
+        sisa: Math.ceil(sisaBaru.length / 2), // langkah pemain tersisa setelah ini
+        fen: lanjut.fen(),
+      });
       setKomputer(true);
     }
   }
@@ -772,6 +813,14 @@ export default function TekaTeki() {
         setSisa((s) => s.slice(1));
         setKomputer(false);
         setPesan(null);
+        setKomentar({
+          tahap: "lawan",
+          fakta: faktaLangkah(fen, g.history({ verbose: true }).slice(-1)[0].san),
+          // sisa langkah PEMAIN setelah balasan ini: sisa[0] adalah balasan
+          // komputer, berikutnya bergantian pemain/komputer.
+          sisa: Math.ceil((sisa.length - 1) / 2),
+          fen: g.fen(),
+        });
       } catch {
         // Posisi dan barisan harus selalu tetap sinkron bila data tak dapat diterapkan.
         terapkanSoal(masalah);
@@ -784,6 +833,11 @@ export default function TekaTeki() {
     if (!sisa.length || selesai) return;
     const d = parseLangkah(sisa[0]);
     setPetunjuk({ from: d.from, to: d.to });
+    let bidak = null;
+    try {
+      bidak = new Chess(fen).get(d.from)?.type || null;
+    } catch {}
+    setKomentar({ tahap: "petunjuk", petunjuk: { ...d, bidak }, fen });
   }
 
   /* --------------------------------------------- navigasi langkah (|< < > >|) */
@@ -826,6 +880,7 @@ export default function TekaTeki() {
       setTanda({ panah: [], petak: {} });
       setSedangSeret(false);
       setPromosi(null);
+      setKomentar({ tahap: "mulai", fakta: null, fen: masalah.fen });
       // pesan dibiarkan hilang, tapi selesai tetap true → sudahPecah tetap tampil
     } else {
       terapkanSoal(masalah);
@@ -859,8 +914,17 @@ export default function TekaTeki() {
     if (baru >= 1) {
       const p = parseLangkah(langkahPenuh[baru - 1]);
       setLangkahAkhir({ from: p.from, to: p.to });
+      if (selesai) {
+        setKomentar({
+          tahap: "tinjau",
+          fakta: faktaDariKoordinat(jalurFen[baru - 1], p.from, p.to, p.promo),
+          nomor: baru,
+          fen: jalurFen[baru],
+        });
+      }
     } else {
       setLangkahAkhir(null);
+      setKomentar({ tahap: "mulai", fakta: null, fen: jalurFen[0] });
     }
   }
 
@@ -886,6 +950,12 @@ export default function TekaTeki() {
       // Pertahankan status selesai = true agar tombol maju tetap aktif untuk review
       setKomputer(false);
       tutupBantuTanpaPesan();
+      setKomentar({
+        tahap: posisi + 1 >= langkahPenuh.length ? "selesai" : "tinjau",
+        fakta: faktaLangkah(fen, g.history({ verbose: true }).slice(-1)[0].san),
+        nomor: posisi + 1,
+        fen: fenBaru,
+      });
     } catch {}
   }
 
@@ -928,6 +998,14 @@ export default function TekaTeki() {
     // Pertahankan selesai
     setKomputer(false);
     tutupBantuTanpaPesan();
+    const fenSebelumAkhir =
+      fens.length >= 2 ? fens[fens.length - 2] : posisi > 0 ? jalurFen[posisi] : fen;
+    setKomentar({
+      tahap: "selesai",
+      fakta: akhir ? faktaDariKoordinat(fenSebelumAkhir, akhir.from, akhir.to, parseLangkah(langkahPenuh[langkahPenuh.length - 1]).promo) : null,
+      nomor: langkahPenuh.length,
+      fen: fens[fens.length - 1],
+    });
   }
 
   /* ------------------------------------------------- pintasan keyboard */
@@ -1074,6 +1152,44 @@ export default function TekaTeki() {
   ];
 
   const sudahPecah = masalah ? terpecahkan.has(masalah.problemid) : false;
+
+  /**
+   * Segmen kalimat komentator untuk konteks terakhir. Dipisah dari state
+   * `komentar` (yang hanya menyimpan tahap + fakta) supaya pergantian
+   * bahasa/gaya langsung tercermin tanpa menyimpan teks jadi.
+   */
+  const segmenKomentar = useMemo(() => {
+    if (!komentar || !masalah) return null;
+    const giliranSoal = masalah.first === "Black to Move" ? "b" : "w";
+    const jumlahLangkahSoal = Math.ceil(langkahPenuh.length / 2);
+    const evalEngine =
+      engineNyala && hasilTertahan && komentar.fen === fen
+        ? { matePutih: hasilTertahan.matePutih ?? null }
+        : null;
+    return susunKomentarTekaTeki({
+      tahap: komentar.tahap,
+      gaya: preferensiKomentator.gaya,
+      fakta: komentar.fakta || null,
+      giliran: giliranSoal,
+      jumlahLangkah: jumlahLangkahSoal,
+      sisa: komentar.sisa !== undefined ? komentar.sisa : Math.ceil(sisa.length / 2),
+      nomor: komentar.nomor || 0,
+      sudahPecah,
+      legal: komentar.legal !== false,
+      tema: masalah.tema ? String(masalah.tema).split(/\s+/) : [],
+      petunjuk: komentar.petunjuk || null,
+      evalEngine,
+      benih: masalah.problemid,
+    });
+  }, [komentar, masalah, langkahPenuh.length, sisa.length, sudahPecah, preferensiKomentator.gaya, engineNyala, hasilTertahan, fen]);
+  const ikonKomentar =
+    komentar?.tahap === "selesai"
+      ? "best"
+      : komentar?.tahap === "salah" && komentar.legal !== false
+        ? "blunder"
+        : komentar?.tahap === "benar" || komentar?.tahap === "tinjau"
+          ? "best"
+          : null;
 
   /** Label dwibahasa kategori Syzygy — mentah bila kategori di luar kamus. */
   function teksKategoriSyzygy(kat) {
@@ -1331,6 +1447,19 @@ export default function TekaTeki() {
               bisaHint={!selesai && sisa.length > 0}
               onHint={tampilPetunjuk}
               teksSalah={pesan?.jenis === "salah" ? pesan.teks : ""}
+              kartuKomentator={
+                <KartuKomentator
+                  segmen={segmenKomentar}
+                  ikon={ikonKomentar}
+                  posisiAwal={false}
+                  nyala={preferensiKomentator.nyala}
+                  setNyala={preferensiKomentator.setNyala}
+                  gaya={preferensiKomentator.gaya}
+                  setGaya={preferensiKomentator.setGaya}
+                  t={t}
+                  className="border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2.5"
+                />
+              }
               kecepatanEngine={kecepatanEngine}
               onGantiKecepatan={(ms) => setKecepatanEngine(Number(ms))}
               opsiKecepatan={PILIHAN_KECEPATAN.map(([ms, kunci]) => [ms, t(kunci)])}
@@ -1387,7 +1516,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "" }) {
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1974,6 +2103,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
             </div>
           )}
+
+          {/* Komentator langsung — komentar per tahap soal (mulai/benar/salah/selesai) */}
+          {kartuKomentator}
 
           {/* Syzygy — salinan kata-kata dari bagian atas TekaTeki, warna tema gelap */}
           <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">

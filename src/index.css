@@ -652,91 +652,6 @@ section[id] {
   }
 }
 
-/* Panduan catur — kelas kustom dokumen asli.
-   Warna hijau dokumen lama diganti hitam/abu korporat agar seragam dengan
-   halaman lain. Catatan: hijau papan catur (#769656) berada di dalam <svg>
-   dan sengaja TIDAK diubah. */
-.text-chess-green {
-  color: #111827;
-}
-
-.section-number {
-  background-color: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #e2e8f0;
-  padding: 2px 10px;
-  border-radius: 4px;
-  font-weight: 600;
-  display: inline-block;
-}
-
-/* Tipografi isi panduan — mengikuti gaya artikel korporat (.prose-kci):
-   16px / 28px, #374151. Hanya teks; papan catur & notasi tidak disentuh. */
-.panduan-kci .text-content h3,
-.panduan-kci h3.text-chess-green {
-  font-size: 18px;
-  line-height: 28px;
-  font-weight: 600;
-  text-transform: none;
-  color: #111827;
-  letter-spacing: 0;
-}
-
-.panduan-kci .text-content p,
-.panduan-kci .text-content li {
-  font-size: 16px;
-  line-height: 28px;
-  color: #374151;
-}
-
-.panduan-kci .text-content strong {
-  font-weight: 600;
-  color: #111827;
-}
-
-.content-row {
-  overflow: hidden;
-}
-
-.content-row::after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-.board-panel {
-  width: 220px;
-  height: 220px;
-  position: relative;
-}
-
-.table-panel {
-  width: auto;
-  min-width: 200px;
-  max-width: 260px;
-  height: auto;
-}
-
-.text-content {
-  min-width: 0;
-}
-
-@media (max-width: 640px) {
-  .board-panel {
-    float: none !important;
-    margin: 0 auto 1rem !important;
-    width: 190px;
-    height: 190px;
-  }
-
-  .table-panel {
-    float: none !important;
-    margin: 0 0 1rem !important;
-    width: 100%;
-    max-width: none;
-  }
-}
-
 /* Tabel daftar anggota — sederhana, dokumen korporat */
 .tabel-kci {
   width: 100%;
@@ -1024,6 +939,30 @@ section[id] {
 
 .sampul-keluar {
   animation: sampulKeluar 550ms ease-in-out both;
+}
+
+/* Komentator Papan Interaktif — gelembung komentar "muncul" ringan setiap
+   kalimat berganti (kunci elemen di-reset di komponen). Sengaja singkat dan
+   tanpa memindahkan tata letak: cukup memberi kesan komentator merespons. */
+@keyframes komentatorMuncul {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.komentator-gelembung {
+  animation: komentatorMuncul 260ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .komentator-gelembung {
+    animation: none;
+  }
 }
 
 /* Program Unggulan (Sekilas Program) — kisi 6 program berikon bidak.

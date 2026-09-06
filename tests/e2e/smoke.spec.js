@@ -175,27 +175,6 @@ test("overlay pencarian dapat ditutup dengan Escape dan mengembalikan fokus", as
   periksaGalat();
 });
 
-test("panduan catur memuat bab awal dan bab lain secara progresif", async ({ page }) => {
-  const periksaGalat = pantauGalatHalaman(page);
-  await page.goto("/program-kami/sekolah-catur/cara-bermain-catur");
-  await expect(page.getByRole("heading", { name: "Cara Bermain Catur", exact: true })).toBeVisible();
-
-  // Bab selain bab pertama sengaja tidak dimuat sampai pembaca memintanya.
-  // Kunci pemeriksaan pada SATU bab: `.first()` selalu dihitung ulang, jadi
-  // setelah bab ini dimuat tombol bab berikutnya akan menjadi yang pertama
-  // dan pemeriksaan "tersembunyi" tidak akan pernah terpenuhi.
-  const seksiBab = page
-    .locator("section")
-    .filter({ has: page.getByRole("button", { name: "Muat bab ini" }) })
-    .first();
-  const idBab = await seksiBab.getAttribute("id");
-  const muatBab = page.locator(`section#${idBab}`).getByRole("button", { name: "Muat bab ini" });
-  await expect(muatBab).toBeVisible();
-  await muatBab.click();
-  await expect(muatBab).toBeHidden();
-  periksaGalat();
-});
-
 test("perpindahan ke bahasa Inggris memuat terjemahan", async ({ page, isMobile }) => {
   test.skip(isMobile, "Tombol bahasa berada pada navigasi desktop.");
   const periksaGalat = pantauGalatHalaman(page);

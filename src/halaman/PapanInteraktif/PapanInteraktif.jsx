@@ -27,6 +27,10 @@ import {
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
+import KartuKomentator, {
+  gunakanPreferensiKomentator,
+} from "../../components/KartuKomentator.jsx";
+import { faktaLangkah } from "../../lib/komentator.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -1116,6 +1120,35 @@ export default function PapanInteraktif() {
   }, [riwayat, fen, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
 
   /**
+   * Komentator langsung — bahan mentah untuk KartuKomentator di tab analisa.
+   * Fakta papan (skak/tangkapan/rokade/bidak menggantung) dihitung dari
+   * chess.js dan selalu tersedia; penilaian + skor hanya ikut bila engine
+   * menyala (memakai rating `ikonLangkahAkhir` dan snapshot eval yang sama
+   * dengan ikon di petak, sehingga komentar & ikon selalu sejalan).
+   */
+  const preferensiKomentator = gunakanPreferensiKomentator();
+  const faktaKomentator = useMemo(() => {
+    if (!riwayat.length) return null;
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    return faktaLangkah(fenSebelum, riwayat[riwayat.length - 1]);
+  }, [riwayat]);
+  const dataKomentator = useMemo(() => {
+    if (!riwayat.length) {
+      return { evalSesudah: null, saranTerbaik: null, engineMenilai: false };
+    }
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const sebelum = engineNyala ? snapshotEvalRef.current.get(fenSebelum) : null;
+    const sesudah = engineNyala ? snapshotEvalRef.current.get(fen) : null;
+    return {
+      evalSesudah: sesudah ? { cpPutih: sesudah.cpPutih, matePutih: sesudah.matePutih } : null,
+      saranTerbaik: sebelum?.bestSan || null,
+      engineMenilai: engineNyala && !sesudah,
+    };
+    // hasilTertahan memicu hitung ulang begitu snapshot eval posisi tersedia.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riwayat, fen, engineNyala, hasilTertahan]);
+
+  /**
    * Lencana skakmat — petak raja yang termat pada posisi yang sedang
    * ditampilkan. Kosong (tanpa lencana) selama permainan belum berakhir.
    */
@@ -1653,6 +1686,23 @@ export default function PapanInteraktif() {
                   />
                   </div>
                   )}
+
+                      {/* Komentator langsung — kalimat untuk langkah yang sedang ditampilkan */}
+                      <KartuKomentator
+                        fakta={faktaKomentator}
+                        rating={ikonLangkahAkhir?.rating || null}
+                        evalSesudah={dataKomentator.evalSesudah}
+                        namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
+                        saranTerbaik={dataKomentator.saranTerbaik}
+                        engineNyala={engineNyala}
+                        engineMenilai={dataKomentator.engineMenilai}
+                        posisiAwal={riwayat.length === 0}
+                        nyala={preferensiKomentator.nyala}
+                        setNyala={preferensiKomentator.setNyala}
+                        gaya={preferensiKomentator.gaya}
+                        setGaya={preferensiKomentator.setGaya}
+                        t={t}
+                      />
 
                       <DaftarRiwayat
                         langkah={riwayatLengkap}

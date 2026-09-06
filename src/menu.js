@@ -52,11 +52,6 @@ export const MENU_UTAMA = [
     file: "ProgramKami.jsx",
     children: [
       {
-        title: "nav.caraBermainCatur",
-        path: "/program-kami/sekolah-catur/cara-bermain-catur",
-        file: "CaraBermainCatur.jsx",
-      },
-      {
         title: "nav.tekaTeki",
         path: "/program-kami/teka-teki",
         folder: "ProgramKami",

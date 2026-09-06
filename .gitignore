@@ -48,3 +48,6 @@ data/roster-anggota.json
 # tidak bagian dari projeck. hanya utuk ai dan develover saja
 .opencode
 SKILL.md
+
+# Folder kerja sementara agen/skrip lokal (PNG mentah, skrip uji sekali pakai)
+.cache/
