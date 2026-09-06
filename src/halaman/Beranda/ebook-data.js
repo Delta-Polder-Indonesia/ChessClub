@@ -31,6 +31,28 @@ export const DAFTAR_EBOOK = [
     tersedia: true,
   },
   {
+    id: "chess-rulebook",
+    judul: "Basic Rules of Chess",
+    deskripsi: "Ringkasan padat aturan dasar catur: papan, gerak tiap bidak, rokade, en passant, promosi, skak, dan skakmat.",
+    file: "/ebooks/Chess%20rulebook.pdf",
+    kategori: "Dasar",
+    ukuran: "0,1 MB",
+    halaman: "5 hal",
+    tahun: "-",
+    tersedia: true,
+  },
+  {
+    id: "chess-the-complete-guide-to-chess",
+    judul: "Chess: The Complete Guide — Tactics, Openings & Strategies",
+    deskripsi: "Panduan lengkap Logan Donovan: dari aturan dasar hingga taktik, pembukaan, dan strategi untuk naik level.",
+    file: "/ebooks/Chess_%20The%20Complete%20Guide%20To%20Chess%20-%20Master_%20Chess%20Tactics%20Chess%20Openings%20and%20Chess%20Strategies.pdf",
+    kategori: "Strategi",
+    ukuran: "2,9 MB",
+    halaman: "144 hal",
+    tahun: "2015",
+    tersedia: true,
+  },
+  {
     id: "carokann-gambit-system-eng",
     judul: "carokann gambit system (eng)",
     deskripsi: "Materi strategi, pembukaan, dan rencana permainan catur.",
@@ -86,6 +108,17 @@ export const DAFTAR_EBOOK = [
     tersedia: true,
   },
   {
+    id: "how-to-play-chess",
+    judul: "How to Play Chess",
+    deskripsi: "Buku pengantar ramah anak dari Scholastic Chess Ireland: mengenal papan, bidak, notasi aljabar, dan cara bermain.",
+    file: "/ebooks/How%20to%20play%20Chess.pdf",
+    kategori: "Dasar",
+    ukuran: "0,8 MB",
+    halaman: "22 hal",
+    tahun: "2004",
+    tersedia: true,
+  },
+  {
     id: "jeremy-silman-silmans-complete-endgame-course_-from-beginner-to-master-siles",
     judul: "Jeremy Silman - Silman's Complete Endgame Course_ From Beginner To Master-Siles",
     deskripsi: "Materi strategi, pembukaan, dan rencana permainan catur.",
@@ -94,6 +127,17 @@ export const DAFTAR_EBOOK = [
     ukuran: "39,9 MB",
     halaman: "-",
     tahun: "-",
+    tersedia: true,
+  },
+  {
+    id: "fide-laws-of-chess",
+    judul: "FIDE Laws of Chess",
+    deskripsi: "Peraturan resmi catur FIDE (berlaku 1 Juli 2009): aturan permainan dasar, aturan kompetisi, dan lampiran.",
+    file: "/ebooks/LawsOfChess.pdf",
+    kategori: "Regulasi",
+    ukuran: "0,3 MB",
+    halaman: "25 hal",
+    tahun: "2009",
     tersedia: true,
   },
   {
@@ -229,6 +273,17 @@ export const DAFTAR_EBOOK = [
     tersedia: true,
   },
   {
+    id: "the-rules-of-chess",
+    judul: "The Rules of Chess",
+    deskripsi: "Materi Chess4Life yang bergambar dan mudah diikuti: aturan permainan, gerak bidak, dan aturan khusus untuk pemula.",
+    file: "/ebooks/RulesChess.pdf",
+    kategori: "Regulasi",
+    ukuran: "14,4 MB",
+    halaman: "20 hal",
+    tahun: "2021",
+    tersedia: true,
+  },
+  {
     id: "ruy-lopez_anti-berlin-id",
     judul: "Ruy Lopez_Anti Berlin (id)",
     deskripsi: "Materi strategi, pembukaan, dan rencana permainan catur.",
@@ -279,12 +334,16 @@ export const DAFTAR_EBOOK = [
 export const COVER = {
   "101-prinsip-dasar-bermain-catur": "/images/E-Books/cover-101-prinsip-dasar.webp",
   "basic-italian-a-grammar-and": "/images/E-Books/cover_6a78f8cfbde21.webp",
+  "chess-rulebook": "/images/E-Books/cover-basic-rules-of-chess.webp",
+  "chess-the-complete-guide-to-chess": "/images/E-Books/cover-complete-guide-to-chess.webp",
   "carokann-gambit-system-eng": "/images/E-Books/cover_6a7908e29c7a3.webp",
   "chess-opening-fundamentals-igor-smirnov-650": "/images/E-Books/cover_6a7909a91d321.webp",
   "chess-tactics-for-students-id": "/images/E-Books/cover_6a790acc54608.webp",
   "dokumen-dari-syahrialm-indo": "/images/E-Books/cover_6a790b84c8bda.webp",
   "gp-thinking-inside-the-box-indonesia": "/images/E-Books/cover_6a790c0eeb69b.webp",
+  "how-to-play-chess": "/images/E-Books/cover-how-to-play-chess.webp",
   "jeremy-silman-silmans-complete-endgame-course_-from-beginner-to-master-siles": "/images/E-Books/cover_6a790cdddb621.webp",
+  "fide-laws-of-chess": "/images/E-Books/cover-fide-laws-of-chess.webp",
   "learning-chess-step-1": "/images/E-Books/cover_6a790d7c40863.webp",
   "learning-chess-step-2": "/images/E-Books/cover_6a790e7531e8e.webp",
   "learning-chess-step-3": "/images/E-Books/cover_6a790f2db969a.webp",
@@ -297,6 +356,7 @@ export const COVER = {
   "play-the-london-system-cyrus-lakdawala": "/images/E-Books/cover_6a7a7a8e4c93f.webp",
   "practical-chess-exercises-600-lessos": "/images/E-Books/cover-practical-chess-exercises.webp",
   "problem-catur-288": "/images/E-Books/cover-problem-catur-288.webp",
+  "the-rules-of-chess": "/images/E-Books/cover-rules-of-chess.webp",
   "ruy-lopez_anti-berlin-id": "/images/E-Books/cover-ruy-lopez-anti-berlin.webp",
   "sicilian-defense": "/images/E-Books/cover-sicilian-defense.webp",
   "the-caro-kann-defense-eng": "/images/E-Books/cover-caro-kann-defense.webp",
@@ -304,7 +364,7 @@ export const COVER = {
 };
 
 // Urutan barisan kategori pada filter Beranda.
-export const KATEGORI_URUTAN = ["Dasar", "Opening", "Strategi", "Taktik", "Endgame", "Umum"];
+export const KATEGORI_URUTAN = ["Dasar", "Regulasi", "Opening", "Strategi", "Taktik", "Endgame", "Umum"];
 
 // Daftar kategori yang muncul pada filter, mengikuti KATEGORI_URUTAN lalu
 // menyusul kategori lain (bila ada) sesuai urutan kemunculannya pada data.
