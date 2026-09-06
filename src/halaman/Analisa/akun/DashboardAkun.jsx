@@ -128,9 +128,8 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
   const { t } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
   const setAkun = analyzeContext.akun[1];
-  const errorsContext = useContext(ErrorsContext);
   const [tab, setTab] = useState("overview");
-  const [situs, setSitus] = useState("chessCom");
+  const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
   const [games, setGames] = useState(null); // null = memuat
@@ -149,8 +148,12 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
     try {
       let daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       if (daftar.length === 0 && platform === "chessCom") {
-        daftar = await muatPartaiChessCom(user);
-        daftar = daftar || [];
+        // Belum ada di basis data: tarik dari API, lalu BACA ULANG dari basis
+        // data. Mengembalikan daftar mentah dari muatPartaiChessCom tidak aman
+        // — objek itu belum ternormalisasi (tanpa field `platform`), sehingga
+        // filter situs di bawah akan mengosongkan dashboard.
+        await muatPartaiChessCom(user);
+        daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       }
       if (daftar.length === 0 && platform !== "chessCom") {
         // Lichess: baca dari basis data; jika belum ada, tampilkan ajakan.
@@ -175,6 +178,9 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
     if (user) muatData();
   }, [user, muatData]);
 
+  // Saat akun (platform) berganti, ikutkan filter situs ke platform akun itu.
+  useEffect(() => setSitus(platform), [platform]);
+
   // Saat berpindah ke tab Openings, muat ulang dengan PGN (header pembukaan).
   useEffect(() => {
     if (tab === "openings" && games && user) {
@@ -187,11 +193,17 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
+  // Filter situs: akun bersifat satu platform, tetapi dropdown tetap dibuat
+  // agar perilakunya jujur (memilih situs lain akan menampilkan kosong).
+  const filteredGames = useMemo(
+    () => (games ? games.filter((p) => p.platform === situs) : games),
+    [games, situs]
+  );
   const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", waktu }), [rentang, waktu, tab]);
 
-  const overview = useMemo(() => (games ? ringkasanOverview(games, user, opsi) : null), [games, user, opsi]);
-  const ratings = useMemo(() => (games ? riwayatRating(games, user, { rentang }) : null), [games, user, rentang]);
-  const openings = useMemo(() => (games ? rekapPembukaan(games, user, opsi) : null), [games, user, opsi]);
+  const overview = useMemo(() => (filteredGames ? ringkasanOverview(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
+  const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, { rentang }) : null), [filteredGames, user, rentang]);
+  const openings = useMemo(() => (filteredGames ? rekapPembukaan(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
 
   const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => {
     if (!games) return false;
@@ -284,7 +296,7 @@ export default function DashboardAkun({ platform, username, onBukaTabel }) {
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex flex-col gap-1 text-[11px] font-bold text-foregroundGrey">
             {t("analisa.statistik.situs")}
-            <select value={platform === "chessCom" ? "chessCom" : "lichessOrg"} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
+            <select value={situs} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
               <option value="chessCom">Chess.com</option>
               <option value="lichessOrg">Lichess.org</option>
             </select>
