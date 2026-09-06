@@ -96,6 +96,8 @@ export default function KartuKomentator({
   setGaya,
   t,
   className = "mt-3 border-b border-[#312e2b] pb-3",
+  hanyaKontrol = false,
+  sembunyikanKontrol = false,
 }) {
   const kalimat = useMemo(() => {
     if (!nyala) return "";
@@ -128,7 +130,7 @@ export default function KartuKomentator({
 
   return (
     <section aria-label={t("papan.komentator.judul")} className={className}>
-      <div className="flex items-center justify-between gap-2">
+      {!sembunyikanKontrol && <div className="flex items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -175,9 +177,9 @@ export default function KartuKomentator({
             ))}
           </div>
         )}
-      </div>
+      </div>}
 
-      {nyala && (
+      {!hanyaKontrol && nyala && (
         <div
           key={kunciAnimasi}
           className="komentator-gelembung mt-3 flex items-start gap-2.5 rounded-lg border border-[#312e2b] bg-[#262421] px-3 py-2.5"

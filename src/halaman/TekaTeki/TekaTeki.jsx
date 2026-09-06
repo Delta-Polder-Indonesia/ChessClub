@@ -1457,7 +1457,8 @@ export default function TekaTeki() {
                   gaya={preferensiKomentator.gaya}
                   setGaya={preferensiKomentator.setGaya}
                   t={t}
-                  className="border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2.5"
+                  className=""
+                  hanyaKontrol
                 />
               }
               kecepatanEngine={kecepatanEngine}
@@ -1965,6 +1966,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                             />
                           </label>
                         )}
+                        {kartuKomentator && (
+                          <div className="border-t border-[#312e2b] pt-3">
+                            {kartuKomentator}
+                          </div>
+                        )}
                         {pilihanWarnaPapan.length > 0 && onGantiWarnaPapan && (
                           <div className="flex items-center justify-between gap-3">
                             <label
@@ -2105,7 +2111,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
           )}
 
           {/* Komentator langsung — komentar per tahap soal (mulai/benar/salah/selesai) */}
-          {kartuKomentator}
+          {kartuKomentator && React.cloneElement(kartuKomentator, { hanyaKontrol: false, sembunyikanKontrol: true })}
 
           {/* Syzygy — salinan kata-kata dari bagian atas TekaTeki, warna tema gelap */}
           <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">

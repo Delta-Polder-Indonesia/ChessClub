@@ -1466,6 +1466,25 @@ export default function PapanInteraktif() {
                               {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
                             </select>
                           </div>
+                          <div className="border-t border-[#312e2b] pt-3">
+                            <KartuKomentator
+                              fakta={faktaKomentator}
+                              rating={ikonLangkahAkhir?.rating || null}
+                              evalSesudah={dataKomentator.evalSesudah}
+                              namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
+                              saranTerbaik={dataKomentator.saranTerbaik}
+                              engineNyala={engineNyala}
+                              engineMenilai={dataKomentator.engineMenilai}
+                              posisiAwal={riwayat.length === 0}
+                              nyala={preferensiKomentator.nyala}
+                              setNyala={preferensiKomentator.setNyala}
+                              gaya={preferensiKomentator.gaya}
+                              setGaya={preferensiKomentator.setGaya}
+                              t={t}
+                              className=""
+                              hanyaKontrol
+                            />
+                          </div>
                         </div>
                         <div className="mt-5 flex justify-end">
                           <button
@@ -1687,7 +1706,7 @@ export default function PapanInteraktif() {
                   </div>
                   )}
 
-                      {/* Komentator langsung — kalimat untuk langkah yang sedang ditampilkan */}
+                      {/* Komentator langsung — teks tetap tampil di bawah panel */}
                       <KartuKomentator
                         fakta={faktaKomentator}
                         rating={ikonLangkahAkhir?.rating || null}
@@ -1702,6 +1721,7 @@ export default function PapanInteraktif() {
                         gaya={preferensiKomentator.gaya}
                         setGaya={preferensiKomentator.setGaya}
                         t={t}
+                        sembunyikanKontrol
                       />
 
                       <DaftarRiwayat
