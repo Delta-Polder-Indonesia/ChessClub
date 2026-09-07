@@ -1,18 +1,22 @@
 /*
- * Popup "Tambah akun" — meniru modal Add account en-croissant:
- * dua kartu pilihan situs (Lichess / Chess.com) lalu kolom nama pengguna.
- * Selalu dialog kecil di tengah layar (bukan full layar) — baik dibuka
- * dari tombol "Akun" di bilah kiri maupun dari tombol "+ Tambahkan akun"
- * di daftar akun. Full layar hanya untuk layar akun itu sendiri (lihat
- * popupAkunLayar.jsx) dan popup Database/Impor.
+ * Formulir "Tambah akun" — dua kartu pilihan situs (Chess.com / Lichess)
+ * lalu kolom nama pengguna, ditutup tombol simpan.
+ *
+ * Dahulu isi formulir ini hidup di dalam modal `popupAkun.jsx`. Karena menu
+ * navigasi Analisa tidak lagi memakai popup, formulirnya dipisah dari
+ * kerangkanya supaya bisa tampil SEJAJAR (inline) di dalam layar Akun —
+ * baik saat daftar akun masih kosong maupun saat pengguna menekan
+ * "+ Tambahkan akun".
+ *
+ * Nama yang pernah dipakai disimpan ke penyimpanan lokal per platform dan
+ * ditawarkan lagi lewat <datalist> (maksimal MAKS_RIWAYAT nama terakhir).
  */
 import { useMemo, useRef, useState } from "react";
-import Popup from "./Popup.jsx";
-import Gambar from "../Gambar.jsx";
-import LichessLogo from "../svg/LichessLogo.jsx";
-import ChessComLogo from "../svg/ChessComLogo.jsx";
-import { useI18n } from "../../../../lib/i18n.jsx";
-import { bacaTeks, tulis } from "../../penyimpanan.js";
+import Gambar from "../komponen/Gambar.jsx";
+import LichessLogo from "../komponen/svg/LichessLogo.jsx";
+import ChessComLogo from "../komponen/svg/ChessComLogo.jsx";
+import { useI18n } from "../../../lib/i18n.jsx";
+import { bacaTeks, tulis } from "../penyimpanan.js";
 
 const ASET = (nama) => `${import.meta.env.BASE_URL}images/analisa/${nama}.svg`;
 
@@ -43,7 +47,14 @@ function KartuSitus({ aktif, logo: Logo, ikon, label, tanpaLabel, logoClass, onC
   );
 }
 
-export default function PopupAkun({ onTutup, onTambah }) {
+/**
+ * @param {object}   props
+ * @param {Function} props.onTambah  Dipanggil dengan (kunciSitus, nama) setelah validasi lolos.
+ * @param {Function} [props.onBatal] Bila diberikan, menampilkan tombol "Batal".
+ * @param {string}   [props.judul]   Judul di atas formulir.
+ * @param {string}   [props.subjudul] Keterangan di bawah judul.
+ */
+export default function FormulirAkun({ onTambah, onBatal, judul, subjudul }) {
   const { t } = useI18n();
   const [kunci, setKunci] = useState("chessCom");
   const [nama, setNama] = useState("");
@@ -70,12 +81,11 @@ export default function PopupAkun({ onTutup, onTambah }) {
   }
 
   return (
-    <Popup
-      judul={t("analisa.akun.judul")}
-      subjudul={t("analisa.akun.isi")}
-      onTutup={onTutup}
-    >
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+    <div className="flex w-full flex-col">
+      {judul ? <p className="text-sm font-extrabold text-foreground">{judul}</p> : null}
+      {subjudul ? <p className="mt-0.5 text-xs leading-4 text-foregroundGrey">{subjudul}</p> : null}
+
+      <p className="mb-2 mt-4 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
         {t("analisa.akun.situs")}
       </p>
       <div className="grid grid-cols-2 gap-2">
@@ -103,7 +113,7 @@ export default function PopupAkun({ onTutup, onTambah }) {
         ref={inputRef}
         type="text"
         autoComplete="off"
-        list="nav-akun-riwayat"
+        list="analisa-akun-riwayat"
         value={nama}
         onChange={(e) => {
           setNama(e.currentTarget.value);
@@ -120,7 +130,7 @@ export default function PopupAkun({ onTutup, onTambah }) {
         aria-label={t("analisa.akun.nama")}
         className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
       />
-      <datalist id="nav-akun-riwayat">
+      <datalist id="analisa-akun-riwayat">
         {riwayat.map((namaLama) => (
           <option key={namaLama} value={namaLama} />
         ))}
@@ -131,6 +141,15 @@ export default function PopupAkun({ onTutup, onTambah }) {
       {galat ? <p className="mt-1.5 text-xs text-lossRed">{galat}</p> : null}
 
       <div className="mt-5 flex flex-row justify-end gap-2">
+        {onBatal ? (
+          <button
+            type="button"
+            onClick={onBatal}
+            className="cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-3.5 py-2 text-sm text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
+          >
+            {t("analisa.akun.batal")}
+          </button>
+        ) : null}
         <button
           type="button"
           data-uji="tambah-akun"
@@ -140,6 +159,6 @@ export default function PopupAkun({ onTutup, onTambah }) {
           {t("analisa.akun.tambah")}
         </button>
       </div>
-    </Popup>
+    </div>
   );
 }

@@ -1,12 +1,12 @@
 /*
- * Popup / Panel "Basis Data Permainan" (Database) — arsitektur terinspirasi
+ * Layar "Basis Data Permainan" (Database) — arsitektur terinspirasi
  * dari sistem manajemen database en-croissant (https://github.com/franciscoBSalgueiro/en-croissant).
  *
  * Menggunakan SVG icons konsisten tanpa emoji, tipografi terstruktur,
  * dan integrasi langsung ke IndexedDB peramban.
  */
 import { useEffect, useRef, useState } from "react";
-import Popup from "./Popup.jsx";
+import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
 import SquareFillMinus from "../svg/square-fill-minus.jsx";
@@ -40,14 +40,14 @@ const BIRU = "#4a9dd9";
  * Cache sesi ringkasan Database: daftar koleksi + statistik seluruh basis +
  * statistik per koleksi. Disimpan bersama `revisi` basis data — setiap tulis
  * (unduh akun di menu Akun, impor, hapus, gabung, bersihkan) menaikkan revisi,
- * jadi cache ini otomatis basi saat data benar-benar berubah. Membuka popup
- * lagi tanpa perubahan tidak perlu memindai ulang IndexedDB.
+ * jadi cache ini otomatis basi saat data benar-benar berubah. Membuka layar
+ * ini lagi tanpa perubahan tidak perlu memindai ulang IndexedDB.
  */
 let cacheRingkasan = null;
 
 /*
  * Cache rekap tab Pemain & Event — key = koleksiId ("" = semua koleksi),
- * value = { revisi, daftar }. Bertahan lintas buka-tutup popup dalam sesi
+ * value = { revisi, daftar }. Bertahan lintas buka-tutup layar dalam sesi
  * yang sama; revisi basis yang naik otomatis membuatnya basi.
  */
 const rekapPemainCache = new Map();
@@ -536,11 +536,10 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
 
 /* ── Komponen Utama ────────────────────────────────────────────────── */
 
-export default function PopupDatabase({
+export default function LayarDatabase({
   onTutup,
   onAnalisa,
   onBukaAkun,
-  lebarKiri = 0,
 }) {
   const { t, bahasa: locale } = useI18n();
 
@@ -593,13 +592,13 @@ export default function PopupDatabase({
   /* ── Pemuat Data ───────────────────────────────────────────────── */
 
   // Penjaga request basi: pemicu yang beruntun (ketikan kotak cari, ganti
-  // koleksi, buka-tutup popup) tidak boleh membuat hasil lama menimpa yang
+  // koleksi, ganti layar) tidak boleh membuat hasil lama menimpa yang
   // lebih baru.
   const tokenPartai = useRef(0);
   const tokenMetadata = useRef(0);
 
   // Penggabungan pembacaan ringkasan yang beruntun: bila pemuatan metadata
-  // masih berjalan (mis. popup dibuka-ulang saat scan pertama belum kelar),
+  // masih berjalan (mis. layar dibuka ulang saat scan pertama belum selesai),
   // panggilan kedua menunggu hasil yang sama — tidak memindai basis dua kali.
   const janjiRingkasan = useRef(null);
 
@@ -636,7 +635,7 @@ export default function PopupDatabase({
       // Statistik per koleksi (jumlah/pemain/event/ukuran) dihitung dari
       // metadata ringan (lihat hitungStatistikKoleksiRingan di basisData.js)
       // — versi lama membaca teks PGN penuh SETIAP koleksi, sehingga membuka
-      // popup Database berulang kali menumpuk ribuan teks PGN di memori.
+      // layar Database berulang kali menumpuk ribuan teks PGN di memori.
       // Dilakukan berurutan agar puncak memorinya kecil.
       const map = {};
       for (const k of semuaKoleksi) {
@@ -734,7 +733,7 @@ export default function PopupDatabase({
 
   /*
    * Rekap pemain & event — dihitung lazily (hanya saat tab-nya dibuka) dan
-   * di-cache per (koleksi, revisi basis) di LEVEL MODUL: layar popup dilepas
+   * di-cache per (koleksi, revisi basis) di LEVEL MODUL: layar ini dilepas
    * setiap pindah menu Akun ↔ Database, jadi cache useRef ikut hilang dan
    * memindai ulang basis tiap kali. Keduanya cukup membaca METADATA (field
    * `event` sudah diuraikan dari header [Event] saat partai disimpan) — teks
@@ -861,7 +860,7 @@ export default function PopupDatabase({
         }
 
         // Basis lama: satu kali tarik PGN untuk koleksi ini lalu cache —
-        // tidak diulang tiap buka popup.
+        // tidak diulang tiap kali layar ini dibuka.
         if (butuhPgn) {
           const lengkap = await ambilDaftarPartai({
             koleksiId: koleksiTerpilih || undefined,
@@ -1185,7 +1184,7 @@ export default function PopupDatabase({
             ]}
           />
 
-          {/* Filter Waktu — sejajar kanan agar tidak meluber keluar popup */}
+          {/* Filter Waktu — sejajar kanan agar tidak meluber keluar panel */}
           <DropdownPilih
             ariaLabel={t("analisa.basisData.filterWaktu")}
             nilai={filterWaktu}
@@ -1204,7 +1203,7 @@ export default function PopupDatabase({
     ) : null;
 
   return (
-    <Popup
+    <PanelLayar
       judul={
         mode === "tabel" ? (
           <span className="flex min-w-0 items-center gap-3">
@@ -1227,10 +1226,6 @@ export default function PopupDatabase({
           t("analisa.basisData.judul")
         )
       }
-      onTutup={onTutup}
-      fullLayar
-      lebarKiri={lebarKiri}
-      className="max-w-none"
       bawahJudul={
         mode === "data" && stats && stats.totalPartai > 0 ? (
           <div className="flex flex-wrap items-center gap-2.5 text-xs text-foregroundGrey">
@@ -1309,10 +1304,7 @@ export default function PopupDatabase({
                 <p className="max-w-[220px] text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.kosongIsi")}</p>
                 <button
                   type="button"
-                  onClick={() => {
-                    onTutup();
-                    onBukaAkun?.();
-                  }}
+                  onClick={() => onBukaAkun?.()}
                   className="cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover"
                 >
                   {t("analisa.akun.tambahBaru")}
@@ -1668,10 +1660,7 @@ export default function PopupDatabase({
               {onBukaAkun && !cari && !filterHasil && !filterWaktu ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    onTutup();
-                    onBukaAkun();
-                  }}
+                  onClick={() => onBukaAkun()}
                   className="pointer-events-auto mt-2 inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
                 >
                   <span>{t("analisa.basisData.bukaAkun")}</span>
@@ -1684,7 +1673,7 @@ export default function PopupDatabase({
 
       {/* ── Navigasi Paginasi ───────────────────────────────────── */}
       {/* Nempel langsung di bawah kotak tabel (tanpa mt-auto) — jaraknya
-          cukup dari gap-3 kolom induk, tidak ada lompatan ke dasar popup. */}
+          cukup dari gap-3 kolom induk, tidak ada lompatan ke dasar panel. */}
       <div className="shrink-0">
         {totalHal > 1 ? (
           <div className="flex items-center justify-between gap-2 text-xs">
@@ -1872,6 +1861,6 @@ export default function PopupDatabase({
           </div>
         </div>
       </div>
-    </Popup>
+    </PanelLayar>
   );
 }

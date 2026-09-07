@@ -1,20 +1,42 @@
 /*
  * Kolom kiri layar akun — meniru komponen Accounts pada En Croissant:
  * menampilkan daftar kartu akun (KartuAkun) untuk setiap pemain yang sudah
- * didaftarkan, puis tombol "Tambahkan akun". Bila belum ada akun, tampilkan
- * ajakan kosong dengan tombol tambah (gaya EmptyAccounts). Tombol tambah
- * membuka modal PopupAkun yang sudah ada.
+ * didaftarkan, lalu tombol "Tambahkan akun". Bila belum ada akun, tampilkan
+ * ajakan kosong dengan tombol tambah (gaya EmptyAccounts).
+ *
+ * Tombol tambah TIDAK lagi membuka modal. Formulirnya (FormulirAkun) tampil
+ * sejajar di dalam kolom ini, menggantikan daftar sementara, lalu daftar
+ * kembali setelah akun tersimpan. Ini sejalan dengan keputusan halaman:
+ * tidak ada lagi popup di fitur Analisa.
  */
 import { useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import KartuAkun from "./KartuAkun.jsx";
-import PopupAkun from "../komponen/nav/popupAkun.jsx";
+import FormulirAkun from "./FormulirAkun.jsx";
 import Profile from "../komponen/svg/profile.jsx";
 
 export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, onRefresh }) {
   const { t } = useI18n();
   const [buka, setBuka] = useState(false);
   const list = daftar || [];
+
+  // Sedang menambah akun: formulir mengambil alih seluruh kolom, jadi tidak
+  // ada tumpukan kartu yang mengganggu saat pengguna mengetik nama.
+  if (buka) {
+    return (
+      <div className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
+        <FormulirAkun
+          judul={t("analisa.akun.judul")}
+          subjudul={t("analisa.akun.isi")}
+          onBatal={() => setBuka(false)}
+          onTambah={(platform, nama) => {
+            onTambah(platform, nama);
+            setBuka(false);
+          }}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full w-full flex-col gap-3 overflow-hidden">
@@ -66,16 +88,6 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, 
           </button>
         </>
       )}
-
-      {buka ? (
-        <PopupAkun
-          onTutup={() => setBuka(false)}
-          onTambah={(platform, nama) => {
-            onTambah(platform, nama);
-            setBuka(false);
-          }}
-        />
-      ) : null}
     </div>
   );
 }

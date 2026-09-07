@@ -13,26 +13,27 @@
  * situs. Lihat wadahRef + effect di bawah.
  *
  * Kerangka dalam mengikuti upstream: bilah navigasi kiri (Nav — logo,
- * Pengaturan, Source Code, Atribusi) sebagai saudara <main>, dan panel
- * Pengaturannya berupa dropdown yang menempel di kanan bilah itu.
+ * Pengaturan, Source Code, Atribusi) sebagai saudara area kerja.
+ *
+ * Area kerja itu sendiri kini meniru halaman Pengurus: bilah kiri memilih
+ * LAYAR (papan / akun / basis data / impor) dan isinya berganti di tempat,
+ * tanpa popup. Papan catur tidak pernah dilepas — lihat
+ * komponen/areaKerja.jsx. Pengukuran tinggi/lebar papan tetap membaca
+ * <main> di dalam AreaKerja, jadi `wadahRef` sudah pindah ke sana.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import ConfigContextProvider from "./konteks/config.jsx";
 import ErrorsContextProvider from "./konteks/errors.jsx";
 import AnalyzeContextProvider from "./konteks/analyze.jsx";
 import { MesinProvider } from "./konteks/mesin.jsx";
 import PageErrors from "./komponen/errors/pageErrors.jsx";
-import Game from "./komponen/game/game.jsx";
-import BoardMenu from "./komponen/boardMenu/boardMenu.jsx";
-import Menu from "./komponen/menu/menu.jsx";
-import GameButtons from "./komponen/menu/analysis/gameButtons.jsx";
+import AreaKerja from "./komponen/areaKerja.jsx";
 import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
 export default function Analisa() {
   const { t, bahasa } = useI18n();
-  const wadahRef = useRef(null);
   const [tinggi, setTinggi] = useState(0);
 
   useEffect(() => {
@@ -81,23 +82,7 @@ export default function Analisa() {
                 <AnalyzeContextProvider>
                   <PageErrors />
                   <Nav />
-                  <main
-                    ref={wadahRef}
-                    className="relative h-full w-full overflow-y-auto overflow-x-hidden"
-                  >
-                    <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:justify-start vertical:gap-2 vertical:overflow-visible vertical:p-4">
-                      <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
-                        <Game wadah={wadahRef} />
-                        <BoardMenu />
-                        <div className="bg-backgroundBox flex-row justify-center rounded-borderRoundness w-full navTop:hidden flex h-12">
-                          <div className="max-w-[500px] w-full flex flex-row justify-center scale-75">
-                            <GameButtons />
-                          </div>
-                        </div>
-                      </div>
-                      <Menu />
-                    </div>
-                  </main>
+                  <AreaKerja />
                 </AnalyzeContextProvider>
               </div>
             </div>

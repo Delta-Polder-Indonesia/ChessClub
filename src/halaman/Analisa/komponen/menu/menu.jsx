@@ -16,8 +16,9 @@ import Files from "../svg/files.jsx";
  * Panel samping hanyalah "etalase data":
  *  - saat belum ada apa-apa: ajakan memakai tombol Akun / Impor di bilah kiri;
  *  - saat partai dimuat lewat Akun/Impor: Ringkasan / Langkah hasil analisis.
- * Layar akun (daftar + statistik + tabel partai) bukan lagi bagian panel ini —
- * ia popup full layar dari tombol "Akun" di Nav (lihat popupAkunLayar.jsx).
+ * Layar akun (daftar + statistik) bukan lagi bagian panel ini — ia salah satu
+ * layar area kerja yang dipilih dari tombol "Akun" di Nav (lihat
+ * komponen/nav/layarAkun.jsx dan komponen/areaKerja.jsx).
  * Tidak ada lagi form "Laporan Analisa" di panel ini — kedalaman analisis
  * dipindah ke Pengaturan (tombol roda gigi BoardMenu).
  */
