@@ -334,89 +334,6 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
   );
 }
 
-/**
- * Kartu rekap satu pemain untuk tab Pemain — bukan tabel, melainkan kartu
- * bergaya daftar unduhan akun: nama pemain di atas, pasangan kotak
- * hitam|putih di bawahnya, lalu ELO terakhir + jumlah partai di bawah nama.
- * Tanpa kotak statistik di samping nama (hasil sudah tercatat di tabel
- * partai). Ditekan untuk membuka beberapa partai terakhirnya.
- */
-function PemainCard({ pemain, locale, t }) {
-  const [terbuka, setTerbuka] = useState(false);
-
-  return (
-    <div className="border border-border rounded-borderRoundness bg-backgroundBox">
-      <button
-        type="button"
-        onClick={() => setTerbuka((v) => !v)}
-        aria-expanded={terbuka}
-        className="w-full px-3.5 py-3 text-left cursor-pointer transition-colors hover:bg-backgroundBoxHover"
-      >
-        <div className="truncate text-sm font-semibold text-foreground">
-          {pemain.nama}
-        </div>
-
-        {/* hitam|putih di bawah nama — gaya kartu unduhan akun */}
-        <div className="mt-1.5 flex shrink-0 -space-x-1">
-          <span className="h-3 w-3 rounded-sm bg-evaluationBarBlack" />
-          <span className="h-3 w-3 rounded-sm border border-border bg-evaluationBarWhite" />
-        </div>
-
-        {/* ELO di bawah nama */}
-        <div className="mt-1.5 flex items-baseline gap-2 text-xs text-foregroundGrey">
-          <span className="font-mono text-foreground">
-            {pemain.elo > 0 ? pemain.elo : "—"}
-          </span>
-          <span>·</span>
-          <span className="tabular-nums">
-            {pemain.main} {t("analisa.basisData.jumlahMain")}
-          </span>
-        </div>
-        <div className="mt-0.5 text-xs text-foregroundGrey/75">
-          {t("analisa.basisData.terakhirMain")}: {formatTanggal(pemain.terakhir, locale) || "—"}
-        </div>
-      </button>
-
-      {terbuka ? (
-        <ul className="space-y-1 border-t border-border/50 px-3.5 py-2">
-          {pemain.partai.slice(0, 5).map((s) => {
-            const menangSaya =
-              (s.sisi === "putih" && s.result === "white") ||
-              (s.sisi === "hitam" && s.result === "black");
-            const seriSaya = s.result !== "white" && s.result !== "black";
-            return (
-              <li key={s.id} className="flex items-center gap-2 text-xs">
-                <span className="truncate text-foregroundGrey">
-                  {t("analisa.basisData.ringkasPartai", {
-                    hitam: s.blackName || "Hitam",
-                    putih: s.whiteName || "Putih",
-                    elo: s.elo > 0 ? `(${s.elo})` : "",
-                  })}
-                </span>
-                <span
-                  className={`ml-auto shrink-0 font-semibold ${
-                    menangSaya
-                      ? "text-winGreen"
-                      : seriSaya
-                        ? "text-foregroundGrey"
-                        : "text-lossRed"
-                  }`}
-                >
-                  {menangSaya
-                    ? t("analisa.basisData.menang")
-                    : seriSaya
-                      ? t("analisa.basisData.seri")
-                      : t("analisa.basisData.kalah")}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </div>
-  );
-}
-
 /* ── Utilitas Statistik Koleksi & Format Ukuran ───────────────────── */
 
 /** Format byte → "220 KB" / "7.36 MB" (gaya kartu En Croissant). */
@@ -459,13 +376,9 @@ function BarisSkeleton() {
     <tr className="h-[56px] border-b border-border/50">
       {/* Pemain — struktur sama persis dengan BarisPartai */}
       <td className="py-2 pl-4 pr-2 w-[38%] min-w-44 overflow-hidden">
-        <div className="flex h-5 flex-row items-center gap-1.5 text-[13px] leading-5">
-          <span className="h-3 w-3 shrink-0 rounded-sm bg-evaluationBarWhite" />
-          <span className="h-2.5 w-24 rounded-sm bg-foregroundGrey/15" />
-        </div>
-        <div className="flex h-5 flex-row items-center gap-1.5 text-[13px] leading-5">
-          <span className="h-3 w-3 shrink-0 rounded-sm bg-evaluationBarBlack" />
+        <div className="grid h-5 grid-cols-2 items-center gap-x-2 text-[13px] leading-5">
           <span className="h-2.5 w-20 rounded-sm bg-foregroundGrey/15" />
+          <span className="h-2.5 w-24 rounded-sm bg-foregroundGrey/15" />
         </div>
       </td>
 
@@ -477,12 +390,9 @@ function BarisSkeleton() {
         </div>
       </td>
 
-      {/* Event / Situs */}
+      {/* Event */}
       <td className="py-2 px-2 whitespace-nowrap">
-        <div className="space-y-1.5">
-          <span className="block h-2.5 w-28 rounded-sm bg-foregroundGrey/15" />
-          <span className="block h-2 w-16 rounded-sm bg-foregroundGrey/10" />
-        </div>
+        <span className="block h-2.5 w-28 rounded-sm bg-foregroundGrey/15" />
       </td>
 
       {/* Tanggal */}
@@ -498,6 +408,11 @@ function BarisSkeleton() {
         <span className="ml-auto block h-2.5 w-5 rounded-sm bg-foregroundGrey/15" />
       </td>
 
+      {/* Situs */}
+      <td className="py-2 px-2 whitespace-nowrap">
+        <span className="block h-2.5 w-12 rounded-sm bg-foregroundGrey/10" />
+      </td>
+
     </tr>
   );
 }
@@ -511,6 +426,10 @@ function HeaderTabel({ urut, ubahUrut, t }) {
       label: t("analisa.basisData.pemain"),
       align: "text-left",
       padding: "py-2 pl-4 pr-2",
+      subKolom: [
+        { label: t("analisa.basisData.putih"), kiri: true },
+        { label: t("analisa.basisData.hitam"), kiri: false },
+      ],
     },
     {
       kunci: "hasil",
@@ -520,7 +439,7 @@ function HeaderTabel({ urut, ubahUrut, t }) {
     },
     {
       kunci: "eventSitus",
-      label: t("analisa.basisData.eventSitus"),
+      label: "Event",
       align: "text-left",
       padding: "py-2 px-2",
       tanpaSort: true,
@@ -534,8 +453,15 @@ function HeaderTabel({ urut, ubahUrut, t }) {
     {
       kunci: "langkah",
       label: t("analisa.basisData.langkah"),
-      align: "text-right",
+      align: "text-center",
       padding: "py-2 px-2",
+    },
+    {
+      kunci: "situs",
+      label: "Situs",
+      align: "text-left",
+      padding: "py-2 px-2",
+      tanpaSort: true,
     },
   ];
 
@@ -547,7 +473,23 @@ function HeaderTabel({ urut, ubahUrut, t }) {
             key={k.kunci}
             className={`${k.padding} ${k.align} text-xs font-semibold uppercase tracking-wide text-foregroundGrey`}
           >
-            {k.tanpaSort ? (
+            {k.subKolom ? (
+              <div className="grid grid-cols-2 gap-x-2">
+                {k.subKolom.map((sub) => (
+                  <button
+                    key={sub.label}
+                    type="button"
+                    onClick={() => ubahUrut(k.kunci)}
+                    className={`inline-flex items-center cursor-pointer transition-colors hover:text-foregroundHighlighted justify-start`}
+                  >
+                    {sub.label}
+                    {!sub.kiri && (
+                      <IkonSort aktif={urut.kolom === k.kunci} arah={urut.arah} />
+                    )}
+                  </button>
+                ))}
+              </div>
+            ) : k.tanpaSort ? (
               k.label
             ) : (
               <button
@@ -577,27 +519,21 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
       onClick={() => tanganiAnalisa(game)}
       className={`cursor-pointer select-none border-b border-border/50 transition-colors hover:bg-backgroundBoxHover group ${TINGGI_BARIS}`}
     >
-      {/* Pemain */}
+      {/* Pemain — putih di kiri, hitam di kanan, nama di atas ELO di bawah */}
       <td className="py-2 pl-4 pr-2 w-[38%] min-w-44 overflow-hidden">
-        <div className="flex flex-row items-center gap-1.5 text-[13px] leading-5">
-          <div
-            className={`h-3 min-h-3 w-3 min-w-3 shrink-0 rounded-sm bg-evaluationBarWhite ${
-              whiteWon ? "border-2 border-winGreen" : ""
-            }`}
-          />
-          <span className="truncate font-medium">
-            {game.whiteName || "Putih"}
-          </span>
-        </div>
-        <div className="flex flex-row items-center gap-1.5 text-[13px] leading-5">
-          <div
-            className={`h-3 w-3 shrink-0 rounded-sm bg-evaluationBarBlack ${
-              blackWon ? "border-2 border-winGreen" : ""
-            }`}
-          />
-          <span className="truncate font-medium">
-            {game.blackName || "Hitam"}
-          </span>
+        <div className="grid grid-cols-2 items-center gap-x-2 text-[13px] leading-5">
+          <div className="min-w-0">
+            <div className="truncate font-medium">{game.whiteName || "Putih"}</div>
+            <div className="truncate text-[10px] tabular-nums text-foregroundGrey">
+              {game.whiteElo || ""}
+            </div>
+          </div>
+          <div className="min-w-0">
+            <div className="truncate font-medium">{game.blackName || "Hitam"}</div>
+            <div className="truncate text-[10px] tabular-nums text-foregroundGrey">
+              {game.blackElo || ""}
+            </div>
+          </div>
         </div>
       </td>
 
@@ -617,14 +553,9 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
         </div>
       </td>
 
-      {/* Event / Situs — menggantikan kolom Aksi; aksi utama (Analisa) tetap
-          ada lewat klik pada baris. Header metadata diangkat ke kolom DB
-          sehingga baris tetap ringan tanpa memuat PGN. */}
+      {/* Event */}
       <td className="px-2 py-2 whitespace-nowrap text-xs text-foregroundGrey">
         <div className="truncate">{game.event || "—"}</div>
-        <div className="truncate text-[10px] uppercase tracking-wider text-foregroundGrey/75">
-          {game.site || game.url || ""}
-        </div>
       </td>
 
       {/* Tanggal */}
@@ -636,8 +567,13 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
       </td>
 
       {/* Langkah */}
-      <td className="py-2 px-2 text-right whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
+      <td className="py-2 px-2 text-center whitespace-nowrap text-xs font-semibold tabular-nums text-foreground">
         {game.plyCount ?? "-"}
+      </td>
+
+      {/* Situs */}
+      <td className="py-2 px-2 whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75">
+        {game.site || game.url || ""}
       </td>
 
     </tr>
@@ -1638,11 +1574,12 @@ export default function PopupDatabase({
       <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
         <table className="w-full min-w-[760px] table-fixed border-collapse text-sm">
           <colgroup>
-            <col style={{ width: "38%" }} />
-            <col style={{ width: "14%" }} />
-            <col style={{ width: "22%" }} />
-            <col style={{ width: "18%" }} />
-            <col style={{ width: "8%" }} />
+            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "17%" }} />
           </colgroup>
 
           <HeaderTabel urut={urut} ubahUrut={ubahUrut} t={t} />
@@ -1751,10 +1688,64 @@ export default function PopupDatabase({
               {t("analisa.partai.tidakAda")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {rekapPemain.map((e) => (
-                <PemainCard key={e.nama} pemain={e} locale={locale} t={t} />
-              ))}
+            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
+              <table className="w-full min-w-[560px] table-fixed border-collapse text-sm">
+                <colgroup>
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "30%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "15%" }} />
+                  <col style={{ width: "15%" }} />
+                </colgroup>
+                <thead className="sticky top-0 bg-backgroundBox border-b border-border z-10 select-none">
+                  <tr>
+                    <th className="py-2 pl-4 pr-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">ID</th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.pemain")}
+                    </th>
+                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.seri")}
+                    </th>
+                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.menang")}
+                    </th>
+                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.kalah")}
+                    </th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.tanggal")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rekapPemain.map((e, i) => (
+                    <tr
+                      key={e.nama}
+                      className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
+                    >
+                      <td className="py-2 pl-4 pr-2 whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
+                        {i + 1}
+                      </td>
+                      <td className="py-2 px-2 truncate text-[13px] font-medium text-foreground">
+                        {e.nama}
+                      </td>
+                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
+                        {e.seri}
+                      </td>
+                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-winGreen">
+                        {e.menang}
+                      </td>
+                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-lossRed">
+                        {e.kalah}
+                      </td>
+                      <td className="py-2 px-2 whitespace-nowrap text-xs text-foregroundGrey">
+                        {formatTanggal(e.terakhir, locale) || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
@@ -1765,26 +1756,50 @@ export default function PopupDatabase({
               {t("analisa.partai.tidakAda")}
             </div>
           ) : (
-            <div className="grid grid-cols-1 content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
-              {rekapEvent.map((e) => (
-                <div
-                  key={e.nama}
-                  className="rounded-borderRoundness border border-border bg-backgroundBox px-3.5 py-3"
-                >
-                  <div className="truncate text-sm font-semibold text-foreground">
-                    {e.nama}
-                  </div>
-                  <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-xs text-foregroundGrey">
-                    <span className="tabular-nums">
-                      {e.jumlah} {t("analisa.basisData.dataGames")}
-                    </span>
-                    <span>·</span>
-                    <span>
-                      {t("analisa.basisData.terakhirMain")}: {formatTanggal(e.terakhir, locale) || "—"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
+              <table className="w-full min-w-[480px] table-fixed border-collapse text-sm">
+                <colgroup>
+                  <col style={{ width: "10%" }} />
+                  <col style={{ width: "45%" }} />
+                  <col style={{ width: "20%" }} />
+                  <col style={{ width: "25%" }} />
+                </colgroup>
+                <thead className="sticky top-0 bg-backgroundBox border-b border-border z-10 select-none">
+                  <tr>
+                    <th className="py-2 pl-4 pr-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">ID</th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      Event
+                    </th>
+                    <th className="py-2 px-2 text-center text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.dataGames")}
+                    </th>
+                    <th className="py-2 px-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
+                      {t("analisa.basisData.terakhirMain")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rekapEvent.map((e, i) => (
+                    <tr
+                      key={e.nama}
+                      className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
+                    >
+                      <td className="py-2 pl-4 pr-2 whitespace-nowrap text-xs tabular-nums text-foregroundGrey">
+                        {i + 1}
+                      </td>
+                      <td className="py-2 px-2 truncate text-[13px] font-medium text-foreground">
+                        {e.nama}
+                      </td>
+                      <td className="py-2 px-2 text-center whitespace-nowrap text-xs tabular-nums text-foreground">
+                        {e.jumlah}
+                      </td>
+                      <td className="py-2 px-2 whitespace-nowrap text-xs text-foregroundGrey">
+                        {formatTanggal(e.terakhir, locale) || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </div>
