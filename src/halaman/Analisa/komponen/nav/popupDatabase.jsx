@@ -23,6 +23,7 @@ import {
   hapusKoleksi,
   hapusPartai,
   hitungStatistikBasisData,
+  hitungStatistikKoleksiRingan,
   imporPgnKeBasisData,
 } from "../../basisData.js";
 
@@ -36,6 +37,14 @@ import {
  * lagi tanpa perubahan tidak perlu memindai ulang IndexedDB.
  */
 let cacheRingkasan = null;
+
+/*
+ * Cache rekap tab Pemain & Event — key = koleksiId ("" = semua koleksi),
+ * value = { revisi, daftar }. Bertahan lintas buka-tutup popup dalam sesi
+ * yang sama; revisi basis yang naik otomatis membuatnya basi.
+ */
+const rekapPemainCache = new Map();
+const rekapEventCache = new Map();
 
 const BARIS_PER_HALAMAN = 50;
 const JUMLAH_BARIS_SKELETON = 7;
@@ -346,29 +355,6 @@ function formatUkuran(byte) {
   return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 
-/**
- * Statistik satu koleksi untuk panel "Data" & kartu kiri: jumlah partai,
- * banyak pemain unik, banyak event unik (dari header `[Event]`), dan ukuran
- * total PGN (byte). Dipanggil sekali per koleksi lalu di-cache di `statMap`.
- */
-async function hitungStatistikKoleksi(koleksiId) {
-  const hasil = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: true });
-  const partai = hasil?.partai || [];
-  const pemain = new Set();
-  const event = new Set();
-  let ukuran = 0;
-  for (const p of partai) {
-    pemain.add(p.whiteName);
-    pemain.add(p.blackName);
-    const cocok = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
-    if (cocok) event.add(cocok[1]);
-    ukuran += (p.pgn || "").length;
-  }
-  // Hapus entri kosong agar player/event tak terhitung sebagai nama kosong.
-  pemain.delete("");
-  return { jumlah: partai.length, pemain: pemain.size, event: event.size, ukuran };
-}
-
 /* ── Komponen Baris Skeleton ───────────────────────────────────────── */
 
 function BarisSkeleton() {
@@ -636,43 +622,80 @@ export default function PopupDatabase({
 
   /* ── Pemuat Data ───────────────────────────────────────────────── */
 
+  // Penjaga request basi: pemicu yang beruntun (ketikan kotak cari, ganti
+  // koleksi, buka-tutup popup) tidak boleh membuat hasil lama menimpa yang
+  // lebih baru.
+  const tokenPartai = useRef(0);
+  const tokenMetadata = useRef(0);
+
+  // Penggabungan pembacaan ringkasan yang beruntun: bila pemuatan metadata
+  // masih berjalan (mis. popup dibuka-ulang saat scan pertama belum kelar),
+  // panggilan kedua menunggu hasil yang sama — tidak memindai basis dua kali.
+  const janjiRingkasan = useRef(null);
+
   async function muatMetadata() {
+    const token = ++tokenMetadata.current;
     const revisi = bacaRevisiBasis();
     if (cacheRingkasan?.revisi === revisi) {
-      setKoleksiList(cacheRingkasan.koleksi);
-      setStats(cacheRingkasan.stats);
-      setStatMap(cacheRingkasan.statMap);
+      if (token === tokenMetadata.current) {
+        setKoleksiList(cacheRingkasan.koleksi);
+        setStats(cacheRingkasan.stats);
+        setStatMap(cacheRingkasan.statMap);
+      }
       return;
     }
-    try {
+    // Pembacaan yang sama sedang berjalan → ikut menunggu, jangan dobel.
+    if (janjiRingkasan.current) {
+      try {
+        await janjiRingkasan.current;
+      } catch {
+        /* abaikan */
+      }
+      if (token === tokenMetadata.current && cacheRingkasan?.revisi === bacaRevisiBasis()) {
+        setKoleksiList(cacheRingkasan.koleksi);
+        setStats(cacheRingkasan.stats);
+        setStatMap(cacheRingkasan.statMap);
+      }
+      return;
+    }
+    const pekerjaan = (async () => {
       const [semuaKoleksi, st] = await Promise.all([
         ambilSemuaKoleksi(),
         hitungStatistikBasisData(),
       ]);
-      // Statistik per koleksi (jumlah/pemain/event/ukuran) adalah bagian
-      // termahal — ia membaca PGN tiap partai — jadi dihitung sekaligus di
-      // sini dan ikut di-cache, bukan di efek terpisah yang mengulang tiap
-      // kali daftar koleksi berubah.
+      // Statistik per koleksi (jumlah/pemain/event/ukuran) dihitung dari
+      // metadata ringan (lihat hitungStatistikKoleksiRingan di basisData.js)
+      // — versi lama membaca teks PGN penuh SETIAP koleksi, sehingga membuka
+      // popup Database berulang kali menumpuk ribuan teks PGN di memori.
+      // Dilakukan berurutan agar puncak memorinya kecil.
       const map = {};
-      await Promise.all(
-        semuaKoleksi.map(async (k) => {
-          try {
-            map[k.id] = await hitungStatistikKoleksi(k.id);
-          } catch {
-            map[k.id] = null;
-          }
-        }),
-      );
-      cacheRingkasan = { revisi, koleksi: semuaKoleksi, stats: st, statMap: map };
-      setKoleksiList(semuaKoleksi);
-      setStats(st);
-      setStatMap(map);
+      for (const k of semuaKoleksi) {
+        try {
+          map[k.id] = await hitungStatistikKoleksiRingan(k.id);
+        } catch {
+          map[k.id] = null;
+        }
+      }
+      return { revisi, koleksi: semuaKoleksi, stats: st, statMap: map };
+    })();
+    janjiRingkasan.current = pekerjaan;
+    try {
+      const ringkasan = await pekerjaan;
+      cacheRingkasan = ringkasan;
+      if (token === tokenMetadata.current) {
+        setKoleksiList(ringkasan.koleksi);
+        setStats(ringkasan.stats);
+        setStatMap(ringkasan.statMap);
+      }
     } catch {
       /* abaikan */
+    } finally {
+      janjiRingkasan.current = null;
     }
   }
 
   async function muatPartai() {
+    const token = ++tokenPartai.current;
     setMemuat(true);
     try {
       let plat = "";
@@ -687,7 +710,7 @@ export default function PopupDatabase({
         koleksiId: koleksiTerpilih || undefined,
         platform: plat || undefined,
         username: user || undefined,
-        cari,
+        cari: cariDebounce,
         hasil: filterHasil || undefined,
         timeClass: filterWaktu || undefined,
         urut: urut.kolom,
@@ -699,13 +722,16 @@ export default function PopupDatabase({
         sertakanPgn: false,
       });
 
+      if (token !== tokenPartai.current) return; // ada pemicu yang lebih baru
       setDaftarPartai(hasil.partai || []);
       setTotalPartai(hasil.total || 0);
     } catch {
-      setDaftarPartai([]);
-      setTotalPartai(0);
+      if (token === tokenPartai.current) {
+        setDaftarPartai([]);
+        setTotalPartai(0);
+      }
     } finally {
-      setMemuat(false);
+      if (token === tokenPartai.current) setMemuat(false);
     }
   }
 
@@ -713,30 +739,44 @@ export default function PopupDatabase({
 
   useEffect(() => {
     muatMetadata();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     setHal(1);
   }, [koleksiTerpilih, cari, filterHasil, filterWaktu, urut]);
 
+  // Kotak cari di-debounce: tanpa ini setiap ketikan memicu penelusuran
+  // kursor baru ke IndexedDB (dan membuka transaksi baru) — mengetik cepat
+  // beberapa kata menumpuk belasan kueri paralel.
+  const tundaCari = useRef(null);
+  const [cariDebounce, setCariDebounce] = useState(cari);
+  useEffect(() => {
+    window.clearTimeout(tundaCari.current);
+    tundaCari.current = window.setTimeout(() => setCariDebounce(cari), 300);
+    return () => window.clearTimeout(tundaCari.current);
+  }, [cari]);
+
   useEffect(() => {
     muatPartai();
-  }, [koleksiTerpilih, cari, filterHasil, filterWaktu, urut, hal]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [koleksiTerpilih, cariDebounce, filterHasil, filterWaktu, urut, hal]);
 
   /*
    * Rekap pemain & event — dihitung lazily (hanya saat tab-nya dibuka) dan
-   * di-cache per (koleksi, revisi basis) agar berpindah tab tidak memindai
-   * ulang. Tab Pemain cukup membaca metadata (tanpa PGN); tab Event butuh
-   * header [Event] dari teks PGN — sama mahalnya dengan statistik koleksi
-   * yang sudah ada, dan hasilnya ikut cache revisi.
+   * di-cache per (koleksi, revisi basis) di LEVEL MODUL: layar popup dilepas
+   * setiap pindah menu Akun ↔ Database, jadi cache useRef ikut hilang dan
+   * memindai ulang basis tiap kali. Keduanya cukup membaca METADATA (field
+   * `event` sudah diuraikan dari header [Event] saat partai disimpan) — teks
+   * PGN tidak pernah ditarik ke sini.
    */
-  const rekapPemainCache = useRef({ revisi: -1, koleksi: null, daftar: [] });
   useEffect(() => {
     if (tampilan !== "pemain") return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
-    const cache = rekapPemainCache.current;
-    if (cache.koleksi === koleksiTerpilih && cache.revisi === revisi) {
+    const kunciCache = koleksiTerpilih || "";
+    const cache = rekapPemainCache.get(kunciCache);
+    if (cache && cache.revisi === revisi) {
       setRekapPemain(cache.daftar);
       return undefined;
     }
@@ -799,7 +839,7 @@ export default function PopupDatabase({
         const daftar = Array.from(peta.values()).sort(
           (a, b) => b.main - a.main || a.nama.localeCompare(b.nama),
         );
-        rekapPemainCache.current = { revisi, koleksi: koleksiTerpilih, daftar };
+        rekapPemainCache.set(kunciCache, { revisi, daftar });
         if (hidup) setRekapPemain(daftar);
       } catch {
         if (hidup) setRekapPemain([]);
@@ -810,39 +850,71 @@ export default function PopupDatabase({
     };
   }, [tampilan, koleksiTerpilih]);
 
-  const rekapEventCache = useRef({ revisi: -1, koleksi: null, daftar: [] });
   useEffect(() => {
     if (tampilan !== "event") return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
-    const cache = rekapEventCache.current;
-    if (cache.koleksi === koleksiTerpilih && cache.revisi === revisi) {
+    const kunciCache = koleksiTerpilih || "";
+    const cache = rekapEventCache.get(kunciCache);
+    if (cache && cache.revisi === revisi) {
       setRekapEvent(cache.daftar);
       return undefined;
     }
     (async () => {
       try {
+        // Metadata saja: field `event` sudah diuraikan dari header [Event]
+        // saat partai disimpan (normalisasiDataPartai), jadi tidak perlu
+        // menarik teks PGN penuh ribuan partai ke memori.
         const hasil = await ambilDaftarPartai({
           koleksiId: koleksiTerpilih || undefined,
           limit: 0,
           urut: "tanggal",
           arah: "desc",
-          sertakanPgn: true, // header [Event] hanya ada di teks PGN
+          sertakanPgn: false,
         });
         const peta = new Map();
+        let butuhPgn = false;
         for (const p of hasil?.partai || []) {
-          const m = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
-          // PGN tanpa header [Event] dikelompokkan sebagai baris "—".
-          const nama = m?.[1]?.trim() || "—";
+          // Partai warisan tanpa event teruraikan → perlu fallback baca PGN.
+          const nama = p.event?.trim() || "—";
+          if (nama === "—") butuhPgn = true;
           const e = peta.get(nama) || { nama, jumlah: 0, terakhir: 0 };
           e.jumlah += 1;
           if ((p.timestamp || 0) > e.terakhir) e.terakhir = p.timestamp || 0;
           peta.set(nama, e);
         }
+
+        // Basis lama: satu kali tarik PGN untuk koleksi ini lalu cache —
+        // tidak diulang tiap buka popup.
+        if (butuhPgn) {
+          const lengkap = await ambilDaftarPartai({
+            koleksiId: koleksiTerpilih || undefined,
+            limit: 0,
+            urut: "tanggal",
+            arah: "desc",
+            sertakanPgn: true,
+          });
+          const petaPenuh = new Map();
+          for (const p of lengkap?.partai || []) {
+            const m = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
+            const nama = m?.[1]?.trim() || p.event?.trim() || "—";
+            const e = petaPenuh.get(nama) || { nama, jumlah: 0, terakhir: 0 };
+            e.jumlah += 1;
+            if ((p.timestamp || 0) > e.terakhir) e.terakhir = p.timestamp || 0;
+            petaPenuh.set(nama, e);
+          }
+          const daftarPenuh = Array.from(petaPenuh.values()).sort(
+            (a, b) => b.jumlah - a.jumlah || a.nama.localeCompare(b.nama),
+          );
+          rekapEventCache.set(kunciCache, { revisi, daftar: daftarPenuh });
+          if (hidup) setRekapEvent(daftarPenuh);
+          return;
+        }
+
         const daftar = Array.from(peta.values()).sort(
           (a, b) => b.jumlah - a.jumlah || a.nama.localeCompare(b.nama),
         );
-        rekapEventCache.current = { revisi, koleksi: koleksiTerpilih, daftar };
+        rekapEventCache.set(kunciCache, { revisi, daftar });
         if (hidup) setRekapEvent(daftar);
       } catch {
         if (hidup) setRekapEvent([]);

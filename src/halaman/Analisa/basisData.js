@@ -90,14 +90,34 @@ function simpanFallbackKeStorage() {
   }
 }
 
-/** Buka koneksi IndexedDB dengan penanganan galat aman. */
+/*
+ * Koneksi IndexedDB dipakai ULANG (singleton), bukan dibuka ulang di setiap
+ * kueri. Versi lama memanggil `indexedDB.open()` ~10 tempat tanpa pernah
+ * `db.close()`: pindah-pindah menu Akun ↔ Database berkali-kali membuka
+ * popup baru → ratusan koneksi hidup menumpuk di peramban, transaksi saling
+ * mengunci, dan memori tab membengkak sampai halaman macet/crash. Satu
+ * koneksi singleton aman dipakai banyak transaksi secara paralel.
+ */
+let koneksiDB = null;
+let janjiKoneksi = null;
+
+/** Buka (atau ambil kembali) koneksi IndexedDB dengan penanganan galat aman. */
 function bukaDB() {
   if (!punyaIndexedDB()) return Promise.resolve(null);
-  return new Promise((resolve) => {
+  if (koneksiDB) return Promise.resolve(koneksiDB);
+  if (janjiKoneksi) return janjiKoneksi;
+
+  janjiKoneksi = new Promise((resolve) => {
     try {
       const req = window.indexedDB.open(NAMA_DB, VERSI_DB);
-      req.onerror = () => resolve(null);
-      req.onblocked = () => resolve(null);
+      req.onerror = () => {
+        janjiKoneksi = null;
+        resolve(null);
+      };
+      req.onblocked = () => {
+        janjiKoneksi = null;
+        resolve(null);
+      };
       req.onupgradeneeded = (e) => {
         const db = e.target.result;
         let sPartai;
@@ -125,11 +145,33 @@ function bukaDB() {
           db.createObjectStore(STORE_KOLEKSI, { keyPath: "id" });
         }
       };
-      req.onsuccess = (e) => resolve(e.target.result);
+      req.onsuccess = (e) => {
+        const db = e.target.result;
+        // Bila tab lain menutup/menaikkan versi basis, buang koneksi mati
+        // ini supaya panggilan berikutnya membuka ulang, bukan menggantung.
+        db.onversionchange = () => {
+          try {
+            db.close();
+          } catch {
+            /* abaikan */
+          }
+          koneksiDB = null;
+          janjiKoneksi = null;
+        };
+        db.onclose = () => {
+          koneksiDB = null;
+          janjiKoneksi = null;
+        };
+        koneksiDB = db;
+        janjiKoneksi = null;
+        resolve(db);
+      };
     } catch {
+      janjiKoneksi = null;
       resolve(null);
     }
   });
+  return janjiKoneksi;
 }
 
 /** Buat ID deterministik untuk satu partai agar tidak terjadi duplikasi. */
@@ -204,7 +246,106 @@ export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
     event,
     site,
     plyCount,
+    // Panjang teks PGN disimpan sebagai metadata: panel Database bisa
+    // menampilkan ukuran penyimpanan koleksi tanpa membuka teks PGN penuh
+    // ribuan partai (yang dulu menumpuk di memori tiap popup dibuka).
+    ukuranPgn: typeof pgn === "string" ? pgn.length : 0,
     disimpanPada: p.disimpanPada || Date.now(),
+  };
+}
+
+/*
+ * Cache statistik per koleksi (jumlah/pemain/event/ukuran). Diisi sekali per
+ * koleksi per revisi — dan karena metadatanya kini membawa `event` +
+ * `ukuranPgn`, isinya bisa dihitung dari metadata ringan (sertakanPgn:false),
+ * bukan menarik seluruh teks PGN koleksi ke memori setiap popup Database
+ * dibuka. Setiap tulis (unduh/impor/hapus/gabung) menaikkan `revisiBasis`,
+ * jadi entri otomatis basi saat data benar-benar berubah.
+ */
+const cacheStatistikKoleksi = new Map();
+
+/**
+ * Statistik satu koleksi: jumlah partai, pemain unik, event unik, dan ukuran
+ * total PGN (byte karakter). Jalur normal membaca METADATA SAJA.
+ *
+ * Kompatibilitas basis lama: bila koleksi berisi rekaman warisan yang belum
+ * punya `ukuranPgn` (dibuat sebelum field ini ada), satu kali penelusuran
+ * penuh dengan PGN dilakukan untuk mengisi ukuran & event; hasilnya di-cache
+ * sampai revisi berikutnya. Instalasi baru tidak pernah menyentuh teks PGN di sini.
+ */
+export async function hitungStatistikKoleksiRingan(koleksiId) {
+  if (!koleksiId) return { jumlah: 0, pemain: 0, event: 0, ukuran: 0 };
+  const tersimpan = cacheStatistikKoleksi.get(koleksiId);
+  if (tersimpan && tersimpan.revisi === revisiBasis) {
+    return {
+      jumlah: tersimpan.jumlah,
+      pemain: tersimpan.pemain,
+      event: tersimpan.event,
+      ukuran: tersimpan.ukuran,
+    };
+  }
+
+  const hasil = await ambilDaftarPartai({
+    koleksiId,
+    limit: 0,
+    sertakanPgn: false,
+  });
+  const partai = hasil?.partai || [];
+
+  const pemain = new Set();
+  const eventSet = new Set();
+  let ukuran = 0;
+  let adaWarisan = false;
+
+  for (const p of partai) {
+    pemain.add(p.whiteName);
+    pemain.add(p.blackName);
+    if (p.event) eventSet.add(p.event);
+    if (typeof p.ukuranPgn === "number" && p.ukuranPgn > 0) {
+      ukuran += p.ukuranPgn;
+    } else {
+      adaWarisan = true;
+    }
+  }
+
+  /*
+   * Rekaman warisan tidak menyimpan panjang PGN maupun event teruraikan —
+   * tarik teks PGN sekali untuk koleksi ini, lalu cache hasilnya agar
+   * pembukaan popup berikutnya tidak mengulang.
+   */
+  if (adaWarisan) {
+    const lengkap = await ambilDaftarPartai({
+      koleksiId,
+      limit: 0,
+      sertakanPgn: true,
+    });
+    const semua = lengkap?.partai || [];
+    ukuran = 0;
+    const eventPenuh = new Set();
+    for (const p of semua) {
+      ukuran += (p.pgn || "").length;
+      const m = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
+      if (m && m[1]) eventPenuh.add(m[1]);
+      else if (p.event) eventPenuh.add(p.event);
+    }
+    for (const e of eventPenuh) eventSet.add(e);
+  }
+
+  pemain.delete("");
+
+  const statistik = {
+    jumlah: partai.length,
+    pemain: pemain.size,
+    event: eventSet.size,
+    ukuran,
+    revisi: revisiBasis,
+  };
+  cacheStatistikKoleksi.set(koleksiId, statistik);
+  return {
+    jumlah: statistik.jumlah,
+    pemain: statistik.pemain,
+    event: statistik.event,
+    ukuran: statistik.ukuran,
   };
 }
 
