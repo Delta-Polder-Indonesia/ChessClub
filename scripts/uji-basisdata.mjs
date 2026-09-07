@@ -62,6 +62,14 @@ function uji(nama, kondisi, catatan = "") {
 
 const hitung = { getAll: 0, getAllPartai: 0, openCursor: 0, advance: 0, lanjut: 0 };
 
+/* Hitung pembukaan koneksi IndexedDB — basisData.js memakai koneksi singleton. */
+let hitungOpenDB = 0;
+const openAsli = window.indexedDB.open.bind(window.indexedDB);
+window.indexedDB.open = (...args) => {
+  hitungOpenDB++;
+  return openAsli(...args);
+};
+
 /** Nama store yang sedang diakses (indeks pun menunjuk store induknya). */
 const namaStore = (ini) => {
   try {
@@ -312,6 +320,107 @@ uji(
   hitung.getAllPartai === 0,
   `getAll partai ${hitung.getAllPartai}×`
 );
+
+/* ── koneksi singleton: tidak buka koneksi baru tiap kueri ───────────── */
+
+console.log("\nKoneksi IndexedDB");
+// Ke 27 kueri di atas seluruhnya memakai SATU koneksi yang dipakai ulang.
+// Versi lama memanggil indexedDB.open() di setiap fungsi tanpa pernah
+// menutupnya → pindah-pindah menu Akun/Database menumpuk ratusan koneksi.
+uji(
+  "seluruh kueri berbagi satu koneksi (indexedDB.open hanya sekali)",
+  hitungOpenDB === 1,
+  `indexedDB.open dipanggil ${hitungOpenDB}×`
+);
+
+/* ── statistik koleksi ringan: tanpa teks PGN ───────────────────────── */
+
+console.log("\nStatistik koleksi ringan");
+resetHitung();
+const statKoleksi = await basisData.hitungStatistikKoleksiRingan("chessCom:pemainuji");
+uji(
+  "statistik koleksi mengembalikan jumlah/pemain/event/ukuran",
+  statKoleksi.jumlah === TOTAL && statKoleksi.ukuran > 0 && statKoleksi.pemain > 0,
+  `jumlah=${statKoleksi.jumlah} ukuran=${statKoleksi.ukuran}`
+);
+uji(
+  "statistik koleksi tidak membaca teks PGN (getAll partai 0)",
+  hitung.getAllPartai === 0,
+  `getAll partai ${hitung.getAllPartai}×`
+);
+resetHitung();
+await basisData.hitungStatistikKoleksiRingan("chessCom:pemainuji");
+uji(
+  "panggilan kedua memakai cache (tanpa kursor baru)",
+  hitung.openCursor === 0,
+  `openCursor ${hitung.openCursor}×`
+);
+
+/* ── pengaman unduhan akun: dedup in-flight & jeda kegagalan ─────────── */
+
+console.log("\nPengaman unduhan chess.com");
+{
+  const muatModul = await import("../src/halaman/Analisa/akun/muatPartaiAkun.js");
+
+  let panggilArsip = 0;
+  globalThis.fetch = async (url) => {
+    const alamat = String(url);
+    if (alamat.endsWith("/games/archives")) {
+      panggilArsip++;
+      return { ok: true, json: async () => ({ archives: [] }) };
+    }
+    return { ok: true, json: async () => ({ games: [] }) };
+  };
+
+  // Dua panggilan paralel untuk akun sama → satu unduhan, satu fetch arsip.
+  const [satu, dua] = await Promise.all([
+    muatModul.muatPartaiChessCom("UjiDedup"),
+    muatModul.muatPartaiChessCom("ujidedup"),
+  ]);
+  uji(
+    "unduhan paralel akun sama digabung (hanya satu fetch arsip)",
+    panggilArsip === 1 && Array.isArray(satu) && Array.isArray(dua),
+    `fetch arsip ${panggilArsip}×`
+  );
+
+  // Unduhan gagal (404) → percobaan otomatis berikutnya dalam jeda diblok.
+  panggilArsip = 0;
+  globalThis.fetch = async (url) => {
+    if (String(url).endsWith("/games/archives")) panggilArsip++;
+    return { ok: false, status: 404, json: async () => ({}), text: async () => "" };
+  };
+  let galatPertama = null;
+  try {
+    await muatModul.muatPartaiChessCom("zzz-uji-gagal-1");
+  } catch (e) {
+    galatPertama = e;
+  }
+  let kenaJeda = false;
+  try {
+    await muatModul.muatPartaiChessCom("ZZZ-UJI-GAGAL-1");
+  } catch (e) {
+    kenaJeda = Boolean(e?.cooldown);
+  }
+  uji(
+    "kegagalan pertama melempar galat, percobaan berikutnya kena jeda (cooldown)",
+    galatPertama && kenaJeda && panggilArsip === 1,
+    `fetch=${panggilArsip} cooldown=${kenaJeda}`
+  );
+
+  // paksa:true menerobos jeda.
+  panggilArsip = 0;
+  let galatPaksa = null;
+  try {
+    await muatModul.muatPartaiChessCom("zzz-uji-gagal-1", { paksa: true });
+  } catch (e) {
+    galatPaksa = e;
+  }
+  uji(
+    "tombol tarik paksa (paksa:true) menerobos jeda kegagalan",
+    galatPaksa && !galatPaksa.cooldown && panggilArsip === 1,
+    `fetch=${panggilArsip}`
+  );
+}
 
 console.log(`\n${lulus} pemeriksaan lulus, ${gagal} gagal.`);
 process.exit(gagal ? 1 : 0);

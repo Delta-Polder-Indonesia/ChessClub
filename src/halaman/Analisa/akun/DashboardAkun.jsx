@@ -7,7 +7,7 @@
  * Kartu akun (avatar/rating/games) berada di komponen terpisah (KartuAkun)
  * pada kolom kiri; komponen ini hanya menampilkan statistik.
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { muatPartaiChessCom } from "./muatPartaiAkun.js";
@@ -188,12 +188,21 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
   // Nilai awal dari cache sesi bila ada: kembali ke menu Akun dalam sesi yang
   // sama langsung menampilkan statistik, tanpa kilatan "Memuat…" dulu.
   const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
+  // `games` selalu METADATA saja (tanpa teks PGN) — inilah yang di-cache dan
+  // dipakai tab Overview & Ratings. Teks PGN penuh hanya ditarik ke state
+  // terpisah (`gamesPgn`) saat tab Pembukaan benar-benar dibuka, dan dibuang
+  // lagi saat pindah tab / akun supaya tidak menumpuk di memori.
   const [games, setGames] = useState(() => cachePartai.get(koleksiIdAwal)?.daftar ?? null); // null = memuat
+  const [gamesPgn, setGamesPgn] = useState(null); // null = PGN belum dimuat
   const [galat, setGalat] = useState(false);
   const [memuatLagi, setMemuatLagi] = useState(false);
   const user = String(username || "").trim();
+  // Penjaga request basi: pindah akun / buka-tutup popup tidak boleh membuat
+  // hasil unduhan lama menimpa hasil yang lebih baru.
+  const tokenMuat = useRef(0);
 
   const muatData = useCallback(async (paksa = false) => {
+    const token = ++tokenMuat.current;
     setMemuatLagi(paksa);
     const koleksiId = `${platform}:${user.toLowerCase()}`;
     // Data sesi masih ada & basis tak berubah → tampilkan langsung tanpa
@@ -202,26 +211,34 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
     if (!paksa && entri && entri.revisi === bacaRevisiBasis()) {
       setGames(entri.daftar);
       setGalat(false);
+      setMemuatLagi(false);
       return;
     }
     setGames(null);
+    setGamesPgn(null);
     setGalat(false);
     try {
       let daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       if (daftar.length === 0 && platform === "chessCom") {
-        await muatPartaiChessCom(user);
+        // `paksa` diteruskan: tombol "Tarik data" / ↻ melewati jeda kegagalan
+        // dan unduhan yang sedang berjalan; pembukaan popup biasa tidak.
+        await muatPartaiChessCom(user, { paksa: paksa });
+        if (token !== tokenMuat.current) return; // akun/popup sudah berganti
         daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       }
       if (daftar.length === 0 && platform !== "chessCom") {
-        daftar = (await ambilDaftarPartai({ platform, username: user, limit: 0, sertakanPgn: true }))?.partai || [];
+        daftar = (await ambilDaftarPartai({ platform, username: user, limit: 0, sertakanPgn: false }))?.partai || [];
       }
+      if (token !== tokenMuat.current) return;
+      // Cache hanya menyimpan metadata — teks PGN tidak ikut ditahan sesi.
       if (daftar.length > 0) cachePartai.set(koleksiId, { revisi: bacaRevisiBasis(), daftar });
       setGames(daftar);
     } catch (e) {
+      if (token !== tokenMuat.current) return;
       setGames([]);
       setGalat(true);
     } finally {
-      setMemuatLagi(false);
+      if (token === tokenMuat.current) setMemuatLagi(false);
     }
   }, [platform, user]);
 
@@ -232,18 +249,40 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
 
   useEffect(() => setSitus(platform), [platform]);
 
+  // Pindah akun → buang teks PGN tab Pembukaan yang lama.
   useEffect(() => {
-    if (tab === "openings" && games && user) {
-      (async () => {
-        const koleksiId = `${platform}:${user.toLowerCase()}`;
-        const denganPgn = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: true });
-        if (denganPgn.partai?.length) setGames(denganPgn.partai);
-      })().catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+    setGamesPgn(null);
+  }, [platform, user]);
 
-  const filteredGames = useMemo(() => (games ? games.filter((p) => p.platform === situs) : games), [games, situs]);
+  // Tab Pembukaan butuh teks PGN (nama pembukaan ada di header PGN). Tarik
+  // HANYA saat tab ini dibuka untuk akun yang aktif, dan buang lagi saat
+  // keluar tab — dulu effect ini hanya bergantung pada `tab`, sehingga pindah
+  // akun saat berada di tab Pembukaan menimpa data akun baru dengan PGN akun
+  // lama, dan daftar ber-PGN ikut masuk ke cache sesi (memori membengkak).
+  useEffect(() => {
+    if (tab !== "openings" || !user) {
+      setGamesPgn(null);
+      return undefined;
+    }
+    let hidup = true;
+    setGamesPgn(null);
+    (async () => {
+      const koleksiId = `${platform}:${user.toLowerCase()}`;
+      try {
+        const denganPgn = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: true });
+        if (hidup) setGamesPgn(denganPgn.partai?.length ? denganPgn.partai : []);
+      } catch {
+        if (hidup) setGamesPgn([]);
+      }
+    })();
+    return () => {
+      hidup = false;
+    };
+  }, [tab, platform, user]);
+
+  // Overview & Ratings memakai metadata; tab Pembukaan memakai data ber-PGN.
+  const gamesEfektif = tab === "openings" ? gamesPgn : games;
+  const filteredGames = useMemo(() => (gamesEfektif ? gamesEfektif.filter((p) => p.platform === situs) : gamesEfektif), [gamesEfektif, situs]);
   /*
    * statsAkun.js membaca kunci `timeClass` (bukan `waktu`); dulu kuncinya
    * salah nama sehingga filter Bullet/Blitz/Rapid di tab Overview &
@@ -334,7 +373,7 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
           {galat && !games ? (
             <MuatNegara isi={t("analisa.statistik.akunTidakDitemukan")} tombol={t("analisa.statistik.tarik")} onKlik={() => muatData(true)} />
-          ) : games == null ? (
+          ) : games == null || (tab === "openings" && gamesPgn == null) ? (
             <MuatNegara isi={memuatLagi ? t("analisa.statistik.tarikData") : t("analisa.statistik.memuat")} />
           ) : games.length === 0 ? (
             <MuatNegara isi={t("analisa.statistik.belumAdaData")} tombol={t("analisa.statistik.tarik")} onKlik={() => muatData(true)} />
