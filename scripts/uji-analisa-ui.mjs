@@ -367,12 +367,13 @@ uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hi
 /* --- alur: impor PGN lewat popup Impor di bilah kiri --- */
 const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
 const pengeset = Object.getOwnPropertyDescriptor(dom.window.HTMLTextAreaElement.prototype, "value").set;
+const layarAktif = () => domSiap.querySelector("[data-layar]")?.getAttribute("data-layar") ?? null;
 const bukaImpor = async () => {
   klik(domSiap.querySelector('[data-uji="nav-impor"]'));
   await tunggu(250);
-  return !!domSiap.querySelector('[data-uji="popup"]');
+  return layarAktif() === "impor";
 };
-uji("popup Impor terbuka", await bukaImpor());
+uji("layar Impor menggantikan papan (tanpa popup)", await bukaImpor());
 const kotakPgn = domSiap.querySelector('[data-uji="impor-pgn"]');
 uji("area tempel PGN tersedia", !!kotakPgn);
 if (kotakPgn) {
@@ -411,6 +412,35 @@ if (tabLangkah) {
   uji("saran engine tampil", /langkah terbaik/.test(langkah));
 }
 
+/* --- regresi: layar Akun/Basis Data/Impor harus tetap bisa dibuka SETELAH
+ * partai dimuat. `layarAkun.jsx` dulu memantau `data` dan langsung memanggil
+ * onTutup() saat komponen dipasang; karena `data.format` masih "pgn" sesudah
+ * pengguna menganalisis partai, layar Akun memantul balik ke papan dan
+ * mustahil dibuka. Dulu tertutupi karena membuka menu Akun selalu
+ * mengosongkan `data` lebih dulu — itu sudah tidak dilakukan lagi.
+ */
+{
+  const bukti = () => /Ringkasan/.test(teksBagus()) && /Andini/.test(teksBagus());
+  uji("prasyarat: partai PGN sedang dianalisis saat layar dibuka", bukti());
+
+  for (const [tombol, layar] of [
+    ["nav-akun", "akun"],
+    ["nav-database", "database"],
+    ["nav-impor", "impor"],
+  ]) {
+    klik(domSiap.querySelector(`[data-uji="${tombol}"]`));
+    await tunggu(280);
+    uji(`layar ${layar} tetap terbuka walau partai PGN sudah dimuat`, layarAktif() === layar);
+  }
+
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
+  await tunggu(250);
+  uji(
+    "kembali ke papan setelah membuka ketiga layar, analisis utuh",
+    !domSiap.querySelector("[data-layar]") && bukti()
+  );
+}
+
 /* --- regresi: tombol "Bermain" tidak boleh membuang analisis ---
  * Tombol Bermain di bilah kiri dimaksudkan sebagai jalan keluar cepat dari
  * popup (Database/Impor/Akun) kembali ke papan. Versi pertamanya memanggil
@@ -427,21 +457,48 @@ if (tabLangkah) {
 
   klik(domSiap.querySelector('[data-uji="nav-database"]'));
   await tunggu(300);
-  uji("popup Database terbuka", !!domSiap.querySelector('[data-uji="popup"]'));
+  uji("layar Basis Data menggantikan papan", !!domSiap.querySelector('[data-layar="database"]'));
+  uji(
+    "papan disembunyikan (invisible), bukan dibongkar",
+    /invisible/.test(domSiap.querySelector("main")?.className ?? "") &&
+      !!domSiap.querySelector("main [data-uji], main svg")
+  );
 
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(350);
   const sesudah = teksBagus();
 
-  uji("tombol Bermain menutup popup", !domSiap.querySelector('[data-uji="popup"]'));
+  uji("tombol Bermain mengembalikan papan", !domSiap.querySelector("[data-layar]"));
   uji("tombol Bermain mempertahankan analisis yang sedang direview", bukti(sesudah));
   uji("papan tetap utuh setelah tombol Bermain", !!domSiap.querySelector(".analisa-root"));
 
-  // Tanpa popup terbuka, Bermain tidak boleh diam-diam mereset analisis.
+  // Sudah berada di papan: Bermain tidak boleh diam-diam mereset analisis.
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(300);
   const lagi = teksBagus();
-  uji("Bermain tanpa popup tidak mereset analisis", bukti(lagi));
+  uji("Bermain di layar papan tidak mereset analisis", bukti(lagi));
+
+  /*
+   * Regresi inti: papan tidak boleh dianalisis ulang setiap kali pengguna
+   * bolak-balik layar. Dulu kalau papan ikut dibongkar, useEffect([data])
+   * di game.jsx menjalankan handlePGN() lagi dari nol — buang waktu CPU
+   * dan buang panah yang sudah digambar.
+   */
+  const teksSebelum = teksBagus();
+  for (const tombol of ["nav-database", "nav-play", "nav-impor", "nav-play"]) {
+    klik(domSiap.querySelector(`[data-uji="${tombol}"]`));
+    await tunggu(220);
+  }
+  const teksSesudah = teksBagus();
+  uji(
+    "bolak-balik layar tidak memicu analisis ulang",
+    /Andini/.test(teksSesudah) && /Bagas/.test(teksSesudah) && /Ringkasan/.test(teksSesudah)
+  );
+  uji(
+    "bolak-balik layar tidak mengubah hasil analisis",
+    (teksSesudah.match(/Brilian|Blunder/g) || []).length ===
+      (teksSebelum.match(/Brilian|Blunder/g) || []).length
+  );
 }
 
 /* --- tombol "Baru": mengosongkan papan, tapi minta konfirmasi dulu ---
@@ -470,9 +527,9 @@ if (tabLangkah) {
 
 /* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
 {
-  uji("popup Impor terbuka (untuk FEN)", await bukaImpor());
+  uji("layar Impor terbuka (untuk FEN)", await bukaImpor());
   const kartuFen = [...domSiap.querySelectorAll("button")].find((b) => (b.textContent ?? "").trim() === "FEN");
-  uji("kartu FEN tersedia di popup", !!kartuFen);
+  uji("kartu FEN tersedia di layar Impor", !!kartuFen);
   if (kartuFen) {
     klik(kartuFen);
     await tunggu(150);
@@ -592,7 +649,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   );
 }
 
-/* --- popup Akun, Database & Impor (gaya en-croissant) di bilah kiri --- */
+/* --- layar Akun, Database & Impor menggantikan area kerja (tanpa popup) --- */
 {
   const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
   const navAkun = domSiap.querySelector('[data-uji="nav-akun"]');
@@ -602,23 +659,32 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 
   klik(navAkun);
   await tunggu(250);
+  uji("layar Akun tampil, bukan popup", !!domSiap.querySelector('[data-layar="akun"]'));
+  uji("tidak ada lagi modal di halaman", !domSiap.querySelector('[data-uji="popup"]'));
+
+  // Formulir tambah akun kini SEJAJAR di dalam layar Akun. Belum ada akun
+  // tersimpan, jadi yang tampil dulu tombol ajakan di keadaan kosong.
+  klik(domSiap.querySelector('[data-uji="tambah-akun-kosong"]'));
+  await tunggu(200);
   uji(
-    "popup Akun menampilkan dua kartu situs",
+    "formulir tambah akun tampil sejajar (dua kartu situs + isian nama)",
     domSiap.querySelectorAll('[data-uji="kartu-situs"]').length === 2 &&
-      domSiap.querySelector('[data-uji="nama-akun"]')
+      !!domSiap.querySelector('[data-uji="nama-akun"]') &&
+      !domSiap.querySelector('[data-uji="popup"]')
   );
+
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
-  uji("popup Akun tertutup", !domSiap.querySelector('[data-uji="popup"]'));
+  uji("layar Akun digantikan papan", !domSiap.querySelector("[data-layar]"));
 
   klik(navDatabase);
   await tunggu(250);
-  uji("popup Database terbuka", !!domSiap.querySelector('[data-uji="popup"]'));
+  uji("layar Basis Data tampil, bukan popup", !!domSiap.querySelector('[data-layar="database"]'));
   const teksDb = teksBagus();
-  uji("popup Database menampilkan judul & kolom pencarian", /Basis Data|Database/.test(teksDb));
+  uji("layar Basis Data menampilkan judul & kolom pencarian", /Basis Data|Database/.test(teksDb));
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
-  uji("popup Database tertutup", !domSiap.querySelector('[data-uji="popup"]'));
+  uji("layar Basis Data digantikan papan", !domSiap.querySelector("[data-layar]"));
 
   klik(navImpor);
   await tunggu(250);
@@ -626,7 +692,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   // berubah dan ikon/branding Online bisa menambah teks anak. Kontrak UI yang
   // stabil adalah tiga toggle button dengan aria-pressed.
   const kartuTipe = [...domSiap.querySelectorAll('button[aria-pressed]')];
-  uji("popup Impor memuat PGN/Online/FEN", kartuTipe.length >= 3);
+  uji("layar Impor memuat PGN/Online/FEN", kartuTipe.length >= 3);
   const kartuOnline = kartuTipe[1];
   klik(kartuOnline);
   await tunggu(150);
@@ -653,7 +719,10 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     const setelahImpor = teksBagus();
     uji(
       "impor Online (Lichess) langsung menganalisis partai",
-      /Ringkasan/.test(setelahImpor) && /Andini/.test(setelahImpor) && !domSiap.querySelector('[data-uji="popup"]')
+      /Ringkasan/.test(setelahImpor) &&
+      /Andini/.test(setelahImpor) &&
+      // impor sukses = papan langsung mengambil alih area kerja
+      !domSiap.querySelector("[data-layar]")
     );
   }
 }

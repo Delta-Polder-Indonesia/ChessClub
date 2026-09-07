@@ -4,7 +4,7 @@ import Board, { gameStartSound } from "./board.jsx";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
-import { AnalyzeContext } from "../../konteks/analyze.jsx";
+import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
 import { formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
 import { cariNamaPembukaan } from "../../mesin/buku.js";
 import { Chess, WHITE } from "chess.js";
@@ -101,6 +101,7 @@ function Game({ wadah }) {
   const [returnedToNormalGame] = analyzeContext.returnedToNormalGame;
   const [analyzingMove, setAnalyzingMove] = analyzeContext.analyzingMove;
   const [depth] = analyzeContext.depth;
+  const [tampilan] = analyzeContext.tampilan;
   const setMaterialAdvantage = analyzeContext.materialAdvantage[1];
   const gameController = analyzeContext.gameController;
   const setErrors = errorsContext.errors[1];
@@ -114,6 +115,7 @@ function Game({ wadah }) {
   const dragRef = useRef(drag2);
   const analyzingMoveRef = useRef(analyzingMove);
   const pageStateRef = useRef(pageState);
+  const tampilanRef = useRef(tampilan);
   const { previousMove, move: move2, nextMove } = getMoves(game, moveNumber, customLine, returnedToNormalGame);
   const shownResult = customLine.moveNumber < 0 ? result2 : getCustomResult(move2);
   useEffect(() => {
@@ -125,6 +127,9 @@ function Game({ wadah }) {
   useEffect(() => {
     pageStateRef.current = pageState;
   }, [pageState]);
+  useEffect(() => {
+    tampilanRef.current = tampilan;
+  }, [tampilan]);
   // Label "langkah buku": tabel nama pembukaan milik situs ini sendiri
   // (dibangun oleh scripts/generasi-buku-analisa.mjs). Bentuknya fungsi
   // pencarian (fen) => nama, bukan peta mentah, agar penghitung langkah di
@@ -213,8 +218,18 @@ function Game({ wadah }) {
   useEffect(() => {
     let lastPressed = 0;
     function handleKeyDown(e) {
-      // Tombol panah/spasi adalah pintasan pemutar partai. Kalau belum ada
-      // partai termuat, biarkan peramban menggulirkan halaman seperti biasa.
+      /*
+       * Pintasan pemutar partai hanya berlaku saat papan yang tampil.
+       * Papan tidak pernah dilepas saat layar berganti (lihat areaKerja.jsx)
+       * — jadi tanpa penjaga ini, mengetik di layar Basis Data atau menekan
+       * panah untuk menggulir tabel partai akan menggerakkan papan di
+       * baliknya. `tampilanRef`, bukan `tampilan`: efek ini dipasang
+       * sekali, sehingga pembacaan langsung akan selamanya berisi nilai
+       * render pertama.
+       */
+      if (tampilanRef.current !== TAMPILAN_ANALISA.BERMAIN) return;
+      // Kalau belum ada partai termuat, biarkan peramban menggulirkan
+      // halaman seperti biasa.
       if (pageStateRef.current === "default") return;
       const element = e.target;
       const focusableInputTypes = ["text", "number", "password", "email", "search", "tel", "url"];

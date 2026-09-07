@@ -3,6 +3,18 @@ import { createContext, useState, useRef, useEffect, useMemo } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { bacaAngka } from "../penyimpanan.js";
 
+/**
+ * Layar area kerja Analisa. "bermain" = papan + panel ringkasan/langkah;
+ * sisanya menutupi area kerja dengan layar itu. Daftar ini juga dipakai
+ * bilah navigasi untuk menandai menu yang sedang aktif.
+ */
+export const TAMPILAN_ANALISA = Object.freeze({
+  BERMAIN: "bermain",
+  AKUN: "akun",
+  BASIS_DATA: "database",
+  IMPOR: "impor",
+});
+
 const PEMAIN_KOSONG = Object.freeze([
   Object.freeze({ name: "", elo: "NOELO" }),
   Object.freeze({ name: "", elo: "NOELO" }),
@@ -67,6 +79,14 @@ const AnalyzeContext = createContext({
   }],
   depth: [13, () => {
   }],
+  /*
+   * Layar yang sedang tampil di area kerja. Nilainya salah satu dari
+   * TAMPILAN_ANALISA. Papan catur TIDAK pernah dilepas — hanya ditutupi
+   * lapisan lain — sehingga analisis yang sedang berjalan dan panah yang
+   * sudah digambar tetap utuh saat pengguna berpindah layar.
+   */
+  tampilan: ["bermain", () => {
+  }],
   gameController: { back: () => {
   }, forward: () => {
   }, last: () => {
@@ -110,6 +130,7 @@ function AnalyzeContextProvider(props) {
    * jadi pilihan pengguna selalu kembali ke 13 setiap kali halaman dibuka.
    */
   const [akun, setAkun] = useState({ platform: "chessCom", username: "" });
+  const [tampilan, setTampilan] = useState(TAMPILAN_ANALISA.BERMAIN);
   const [depth, setDepth] = useState(() => {
     const tersimpan = bacaAngka("kedalaman", 13);
     return tersimpan >= 1 ? tersimpan : 13;
@@ -191,7 +212,7 @@ function AnalyzeContextProvider(props) {
       setPlaying(false);
     }
   };
-  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], gameController }}>
+  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], tampilan: [tampilan, setTampilan], gameController }}>
             {props.children}
         </AnalyzeContext.Provider>;
 }

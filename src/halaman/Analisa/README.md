@@ -109,23 +109,39 @@ diukur, bukan menempel ke `body`.
 - Daftar partai Chess.com diambil langsung dari `api.chess.com` dan bisa
   diblokir kebijakan CORS/privasi peramban — kalau itu terjadi muncul
   peringatan galat di panel pemilih.
-- Bilah kiri (`komponen/nav/nav.jsx`) kini punya tombol **Akun** dan
-  **Impor permainan** ala en-croissant, masing-masing membuka popup
-  (`komponen/nav/Popup.jsx`, `popupAkun.jsx`, `popupImpor.jsx`). Popup
-  Akun = pilih situs (Chess.com/Lichess) + nama pengguna → langsung muat
-  seluruh partai. Popup Impor = PGN / Online / FEN; Online menerima tautan
-  partai: Lichess lewat `lichess.org/game/export/{id}`, Chess.com lewat
-  callback publik yang moveList-nya berformat TCN (diterjemahkan ke SAN
-  memakai chess.js). Karena popup ini memicu konteks data, `AnalyzeContextProvider`
-  kini membungkus seluruh `.analisa-root` (termasuk Nav) dan state "akun"
-  dipindah dari Menu ke konteks (`akun`). CSP harus mengizinkan
-  `https://www.chess.com` selain `https://api.chess.com`.
+- Bilah kiri (`komponen/nav/nav.jsx`) memilih LAYAR area kerja — **Bermain**
+  (papan), **Baru** (kosongkan papan), **Akun**, **Basis Data**, **Impor**.
+  Tidak ada popup sama sekali: polanya sama dengan halaman Pengurus
+  (`src/halaman/Pengurus/Dashboard.jsx`), yaitu bilah samping menyetel satu
+  state (`tampilan` di `AnalyzeContext`) dan `komponen/areaKerja.jsx`
+  merender layar yang dipilih di dalam area kerja.
+  Layar Akun = daftar akun (Chess.com/Lichess) + statistik; formulir
+  "Tambah akun" tampil sejajar di dalam layar itu
+  (`akun/FormulirAkun.jsx`). Layar Impor = PGN / Online / FEN; Online
+  menerima tautan partai: Lichess lewat `lichess.org/game/export/{id}`,
+  Chess.com lewat callback publik yang moveList-nya berformat TCN
+  (diterjemahkan ke SAN memakai chess.js). Layar Basis Data =
+  `komponen/nav/layarDatabase.jsx`.
+  Karena menu ini memicu konteks data, `AnalyzeContextProvider` membungkus
+  seluruh `.analisa-root` (termasuk Nav) dan state "akun" hidup di konteks.
+  CSP harus mengizinkan `https://www.chess.com` selain
+  `https://api.chess.com`.
+- **Papan catur tidak pernah dilepas saat layar berganti.** `areaKerja.jsx`
+  menutupi `<main>` dengan lapisan `absolute inset-0` dan menyembunyikan
+  papan memakai `invisible` (`visibility:hidden`), BUKAN `hidden`
+  (`display:none`). Alasan: (1) `visibility:hidden` tetap punya kotak ukur,
+  jadi `updateBoardSize()` di `game.jsx` tidak perlu menghitung ulang;
+  (2) komponen `Game` tidak dibongkar, sehingga `useEffect([data])` tidak
+  menjalankan `handlePGN()` ulang — setiap bolak-balik layar tidak
+  menganalisis ulang partai dari nol dan panah yang digambar pengguna
+  tidak hilang. Pintasan papan digate lewat `tampilanRef` di `game.jsx`
+  supaya tombol panah di layar lain tidak menggerakkan papan.
 
 - Pemilihan sumber PGN/FEN via form di panel samping SUDAH DIHAPUS
   (`komponen/menu/analyze/form.jsx` dibuang). Panel samping sekarang hanya
   etalase data: ajakan awal, tabel partai akun, atau Ringkasan/Langkah hasil
-  analisis. Semua cara memasukkan partai lewat popup Akun / Impor di bilah
-  kiri (lihat butir sebelumnya), dan **kedalaman analisis dipindah ke panel
+  analisis. Semua cara memasukkan partai lewat layar Akun / Impor / Basis Data
+  di bilah kiri (lihat butir sebelumnya), dan **kedalaman analisis dipindah ke panel
   Pengaturan** (roda gigi BoardMenu → tab "Mesin", `komponen/pengaturan/
   mesin.jsx`); daftar kedalaman tersimpan di `komponen/../konstanta.js`.
 

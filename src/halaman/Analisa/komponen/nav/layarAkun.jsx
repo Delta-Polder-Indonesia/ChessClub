@@ -1,41 +1,46 @@
 /*
- * Popup "Layar Akun" — layar daftar akun + statistik + tabel partai dalam
- * popup full layar, ukurannya sama dengan PopupDatabase (menutupi seluruh
- * area kerja di samping bilah Nav). Sebelumnya layar ini tampil di dalam
- * panel kanan (Menu) selebar kolom itu; sekarang dibuka dari tombol "Akun"
- * di Nav dan punya ruang seluas database.
+ * Layar "Akun" — daftar akun + statistik, menempati seluruh area kerja di
+ * samping bilah Nav (ruang yang sama dengan layar Basis Data). Dulu layar ini
+ * berupa popup full layar yang dibuka dari tombol "Akun"; kini ia salah satu
+ * layar area kerja, dipilih dari bilah navigasi seperti tab di halaman
+ * Pengurus.
  *
  * Struktur dua kolom: kiri = daftar akun (DaftarAkun), kanan = dashboard
  * statistik (DashboardAkun). Tabel partai tidak lagi tersedia di sini karena
- * sudah ada di Basis Data (popupDatabase).
+ * sudah ada di Basis Data (layarDatabase).
  */
 import { useContext, useEffect, useState } from "react";
-import Popup from "./Popup.jsx";
+import PanelLayar from "./PanelLayar.jsx";
 import DaftarAkun from "../../akun/DaftarAkun.jsx";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 
-export default function PopupAkunLayar({ onTutup, lebarKiri = 0 }) {
+export default function LayarAkun({ onTutup }) {
   const analyzeContext = useContext(AnalyzeContext);
   const [username, setUsername] = analyzeContext.akun;
-  const [data] = analyzeContext.data;
   const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
   const [muatUlang, setMuatUlang] = useState(0);
 
   /*
-   * Klik baris partai di tabel → AnalyzeContext.data berubah jadi
-   * { format: "pgn" } dan Game mulai menganalisis. Popup harus menutup
-   * diri supaya analisisnya terlihat di papan. Dipantau lewat `data`
-   * (bukan pageState) karena membuka popup ikut mengosongkan data dulu —
-   * pageState sempat "loading" sesaat, tapi data pgn hanya muncul saat
-   * pengguna benar-benar memilih partai.
+   * Dulu ada efek di sini: "bila `data` berisi PGN, panggil onTutup()" —
+   * waktu itu layar Akun masih punya tabel partai, jadi memilih partai dari
+   * dalam layar ini harus mengembalikan pengguna ke papan.
+   *
+   * Efek itu sekarang berbahaya sekaligus mubazir. Berbahaya karena ia
+   * berjalan saat komponen DIPASANG: begitu pengguna sudah memuat partai
+   * PGN lalu menekan menu "Akun", `data.format` masih "pgn", efeknya
+   * langsung memanggil onTutup() dan layar Akun memantul kembali ke papan
+   * — layar itu jadi mustahil dibuka. Mubazir karena tabel partai sudah
+   * pindah ke layar Basis Data: tidak ada lagi jalan dari dalam layar ini
+   * untuk mengubah `data`.
+   *
+   * Yang mengembalikan pengguna ke papan kini eksplisit: `muatPartai()` di
+   * areaKerja.jsx (dipanggil layar Basis Data / Impor setelah partai
+   * dipilih), dan `onTutup()` di bawah untuk kasus akun terakhir dihapus.
    */
-  useEffect(() => {
-    if (data.format === "pgn" && data.string) onTutup();
-  }, [data, onTutup]);
 
-  // Sinkronkan daftar dengan akun yang dipilih lewat popup Akun di Nav.
+  // Sinkronkan daftar dengan akun yang dipilih dari luar layar ini.
   useEffect(() => {
     const list = bacaDaftarAkun();
     if (username?.username) {
@@ -75,12 +80,7 @@ export default function PopupAkunLayar({ onTutup, lebarKiri = 0 }) {
   }
 
   return (
-    <Popup
-      onTutup={onTutup}
-      fullLayar
-      lebarKiri={lebarKiri}
-      className="max-w-none"
-    >
+    <PanelLayar>
       <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
         {/* Kolom kiri: daftar akun + tombol tambah */}
         <div className="flex w-full shrink-0 flex-col gap-3 lg:w-1/2 lg:min-h-0">
@@ -108,6 +108,6 @@ export default function PopupAkunLayar({ onTutup, lebarKiri = 0 }) {
           </div>
         </div>
       </div>
-    </Popup>
+    </PanelLayar>
   );
 }

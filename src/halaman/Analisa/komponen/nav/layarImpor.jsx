@@ -1,7 +1,7 @@
 /*
- * Popup "Impor permainan" — meniru modal Import en-croissant:
- * tiga kartu pilihan (PGN | Online | FEN). "Online" menerima tautan partai
- * Chess.com atau Lichess, lalu PGN-nya diambil otomatis.
+ * Layar "Impor permainan" — meniru modal Import en-croissant, kini tanpa
+ * modal: tiga kartu pilihan (PGN | Online | FEN). "Online" menerima tautan
+ * partai Chess.com atau Lichess, lalu PGN-nya diambil otomatis.
  *
  * Chess.com memakai endpoint callback publik yang mengembalikan moveList
  * berformat TCN (kode 2 karakter per langkah, spesifikasi publik Chess.com)
@@ -10,7 +10,7 @@
  */
 import { useState } from "react";
 import { Chess } from "chess.js";
-import Popup from "./Popup.jsx";
+import PanelLayar from "./PanelLayar.jsx";
 import ChessComLogo from "../svg/ChessComLogo.jsx";
 import LichessLogo from "../svg/LichessLogo.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -173,7 +173,7 @@ function GambarIkon({ ikon }) {
   );
 }
 
-export default function PopupImpor({ onTutup, onImpor, lebarKiri = 0 }) {
+export default function LayarImpor({ onTutup, onImpor }) {
   const { t } = useI18n();
   const [tipe, setTipe] = useState("pgn");
   const [pgn, setPgn] = useState("");
@@ -217,13 +217,10 @@ export default function PopupImpor({ onTutup, onImpor, lebarKiri = 0 }) {
   const labelTombol = t(tipe === "online" ? "analisa.impor.ambil" : "analisa.impor.analisa");
 
   return (
-    <Popup
+    <PanelLayar
       judul={t("analisa.impor.judul")}
       subjudul={t("analisa.impor.tipe")}
-      onTutup={onTutup}
-      fullLayar
-      lebarKiri={lebarKiri}
-      className="max-w-none"
+      lebarMaks="max-w-[720px]"
     >
       <div className="grid grid-cols-3 gap-2">
         {TIPE.map((ti) => (
@@ -318,6 +315,6 @@ export default function PopupImpor({ onTutup, onImpor, lebarKiri = 0 }) {
           {memuat ? t("analisa.impor.memuat") : labelTombol}
         </button>
       </div>
-    </Popup>
+    </PanelLayar>
   );
 }
