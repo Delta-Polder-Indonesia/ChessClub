@@ -10,6 +10,9 @@ import { useI18n } from "../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../lib/pemainCatur.js";
 import { ambilDaftarPartai } from "../basisData.js";
 import Profile from "../komponen/svg/profile.jsx";
+import Trash from "../komponen/svg/trash.jsx";
+import Download from "../komponen/svg/download.jsx";
+import Refresh from "../komponen/svg/refresh.jsx";
 import LichessLogo from "../komponen/svg/LichessLogo.jsx";
 import ChessComLogo from "../komponen/svg/ChessComLogo.jsx";
 
@@ -21,22 +24,6 @@ function formatRating(x) {
 
 function Logo({ platform, className }) {
   return platform === "lichessOrg" ? <LichessLogo className={className} /> : <ChessComLogo className={className} />;
-}
-
-function RefreshIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-      <path fill="currentColor" d="M12 4a8 8 0 0 1 7.6 5.4l1.5-.6A10 10 0 0 0 12 2v2zm7.9 5.4-1.5.6a8 8 0 0 1 .6 4.2l1.9.4A10 10 0 0 0 19.9 9.4zM12 20a8 8 0 0 1-7.6-5.4l-1.5.6A10 10 0 0 0 12 22v-2zM4.1 14.6l1.5-.6A8 8 0 0 1 5 9.8l-1.9-.4A10 10 0 0 0 4.1 14.6zM12 8v4l3 2-1 1.5L10 13V8h2z" />
-    </svg>
-  );
-}
-
-function TrashIkon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
-      <path fill="currentColor" d="M6 7h12l-1 14H7L6 7zm3-3h6l1 2H8l1-2z" />
-    </svg>
-  );
 }
 
 export default function KartuAkun({ platform, username, aktif = false, onPilih, onHapus, onRefresh }) {
@@ -106,19 +93,29 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-        <Logo platform={platform} className="h-[16px] w-[16px] shrink-0 fill-current text-foregroundGrey" />
+        <Logo platform={platform} className="h-[50px] w-[50px] shrink-0 fill-current text-foregroundGrey" />
         <div className="flex items-center gap-1">
+          <button
+            type="button"
+            title={t("analisa.statistik.refresh")}
+            onClick={(e) => {
+              e.stopPropagation();
+              setToken((x) => x + 1);
+            }}
+            className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
+          >
+            <Refresh className="h-[15px] w-[15px]" />
+          </button>
           <button
             type="button"
             title={t("analisa.statistik.tarik")}
             onClick={(e) => {
               e.stopPropagation();
-              setToken((x) => x + 1);
               onRefresh?.();
             }}
             className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
           >
-            <RefreshIkon />
+            <Download className="h-[15px] w-[15px]" />
           </button>
           <button
             type="button"
@@ -129,7 +126,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
             }}
             className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-lossRed"
           >
-            <TrashIkon />
+            <Trash className="h-[15px] w-[15px]" />
           </button>
         </div>
       </div>

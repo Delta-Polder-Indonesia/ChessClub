@@ -11,6 +11,10 @@ import Database from "../svg/database.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
 import SquareFillMinus from "../svg/square-fill-minus.jsx";
 import SquareFillPlus from "../svg/square-fill-plus.jsx";
+import Trash from "../svg/trash.jsx";
+import Download from "../svg/download.jsx";
+import Back from "../svg/back.jsx";
+import DualRingSpinner from "../loading/DualRingSpinner.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import {
   ambilDaftarPartai,
@@ -28,6 +32,9 @@ import {
 } from "../../basisData.js";
 
 /* ── Konstanta ─────────────────────────────────────────────────────── */
+
+/** Biru aksen (mantine blue) — dipakai spinner loading tab Pemain & Event. */
+const BIRU = "#4a9dd9";
 
 /*
  * Cache sesi ringkasan Database: daftar koleksi + statistik seluruh basis +
@@ -74,25 +81,6 @@ function daftarHalaman(aktif, total) {
 
 /* ── SVG Ikon Internal ─────────────────────────────────────────────── */
 
-function IkonDownload({ className = "h-3.5 w-3.5" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  );
-}
-
 function IkonPlus({ className = "h-3.5 w-3.5" }) {
   return (
     <svg
@@ -107,26 +95,6 @@ function IkonPlus({ className = "h-3.5 w-3.5" }) {
     >
       <line x1="12" y1="5" x2="12" y2="19" />
       <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
-
-function IkonTrash({ className = "h-3.5 w-3.5" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <line x1="10" y1="11" x2="10" y2="17" />
-      <line x1="14" y1="11" x2="14" y2="17" />
     </svg>
   );
 }
@@ -609,6 +577,8 @@ export default function PopupDatabase({
   const [tampilan, setTampilan] = useState("partai");
   const [rekapPemain, setRekapPemain] = useState([]);
   const [rekapEvent, setRekapEvent] = useState([]);
+  const [memuatPemain, setMemuatPemain] = useState(false);
+  const [memuatEvent, setMemuatEvent] = useState(false);
 
   /* Turunan */
   const totalHal = Math.max(1, Math.ceil(totalPartai / BARIS_PER_HALAMAN));
@@ -778,9 +748,11 @@ export default function PopupDatabase({
     const cache = rekapPemainCache.get(kunciCache);
     if (cache && cache.revisi === revisi) {
       setRekapPemain(cache.daftar);
+      setMemuatPemain(false);
       return undefined;
     }
     (async () => {
+      setMemuatPemain(true);
       try {
         const hasil = await ambilDaftarPartai({
           koleksiId: koleksiTerpilih || undefined,
@@ -843,6 +815,8 @@ export default function PopupDatabase({
         if (hidup) setRekapPemain(daftar);
       } catch {
         if (hidup) setRekapPemain([]);
+      } finally {
+        if (hidup) setMemuatPemain(false);
       }
     })();
     return () => {
@@ -858,9 +832,11 @@ export default function PopupDatabase({
     const cache = rekapEventCache.get(kunciCache);
     if (cache && cache.revisi === revisi) {
       setRekapEvent(cache.daftar);
+      setMemuatEvent(false);
       return undefined;
     }
     (async () => {
+      setMemuatEvent(true);
       try {
         // Metadata saja: field `event` sudah diuraikan dari header [Event]
         // saat partai disimpan (normalisasiDataPartai), jadi tidak perlu
@@ -908,6 +884,7 @@ export default function PopupDatabase({
           );
           rekapEventCache.set(kunciCache, { revisi, daftar: daftarPenuh });
           if (hidup) setRekapEvent(daftarPenuh);
+          if (hidup) setMemuatEvent(false);
           return;
         }
 
@@ -918,6 +895,8 @@ export default function PopupDatabase({
         if (hidup) setRekapEvent(daftar);
       } catch {
         if (hidup) setRekapEvent([]);
+      } finally {
+        if (hidup) setMemuatEvent(false);
       }
     })();
     return () => {
@@ -1228,18 +1207,20 @@ export default function PopupDatabase({
     <Popup
       judul={
         mode === "tabel" ? (
-          <span className="flex min-w-0 items-center gap-2">
+          <span className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setMode("data")}
               title={t("analisa.basisData.kembaliKeData")}
               aria-label={t("analisa.basisData.kembaliKeData")}
-              className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
+              className="flex h-8 shrink-0 cursor-pointer items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted px-1"
             >
-              ←
+              <Back className="h-6 w-10" />
             </button>
-            <span className="min-w-0 truncate">
-              {koleksi?.label || t("analisa.basisData.judul")}
+            <span className="min-w-0 truncate text-base font-extrabold text-foreground">
+              {koleksi && koleksi.username
+                ? `${koleksi.username} ${koleksi.platform === "chessCom" ? "Chess.com" : koleksi.platform === "lichessOrg" ? "Lichess.org" : koleksi.platform}`
+                : koleksi?.label || t("analisa.basisData.judul")}
             </span>
           </span>
         ) : (
@@ -1519,7 +1500,7 @@ export default function PopupDatabase({
                           <p className="text-sm font-bold text-foreground">{t("analisa.basisData.aksi")}</p>
                           <div className="mt-2 flex flex-wrap items-center gap-1.5">
                             <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
-                              <IkonDownload className="h-3.5 w-3.5 shrink-0" />
+                              <Download className="h-3.5 w-3.5 shrink-0" />
                               <span>{t("analisa.basisData.eksporPgn")}</span>
                             </button>
                             <button type="button" onClick={() => setModalImpor(true)} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
@@ -1527,12 +1508,12 @@ export default function PopupDatabase({
                               <span>{t("analisa.basisData.imporPgn")}</span>
                             </button>
                             <button type="button" onClick={tanganiHapusKoleksi} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                              <IkonTrash className="h-3.5 w-3.5 shrink-0" />
+                              <Trash className="h-3.5 w-3.5 shrink-0" />
                               <span>{t("analisa.basisData.hapusKoleksi")}</span>
                             </button>
                             {!koleksiTerpilih && totalPartai > 0 ? (
                               <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                                <IkonTrash className="h-3.5 w-3.5 shrink-0" />
+                                <Trash className="h-3.5 w-3.5 shrink-0" />
                                 <span>{t("analisa.basisData.hapusSemua")}</span>
                               </button>
                             ) : null}
@@ -1755,7 +1736,12 @@ export default function PopupDatabase({
         </>
       ) : tampilan === "pemain" ? (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {rekapPemain.length === 0 ? (
+          {memuatPemain ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <DualRingSpinner color={BIRU} />
+              <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
+            </div>
+          ) : rekapPemain.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
               {t("analisa.partai.tidakAda")}
             </div>
@@ -1823,7 +1809,12 @@ export default function PopupDatabase({
         </div>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {rekapEvent.length === 0 ? (
+          {memuatEvent ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <DualRingSpinner color={BIRU} />
+              <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
+            </div>
+          ) : rekapEvent.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
               {t("analisa.partai.tidakAda")}
             </div>

@@ -13,6 +13,7 @@ import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { muatPartaiChessCom } from "./muatPartaiAkun.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
 import Database from "../komponen/svg/database.jsx";
+import DualRingSpinner from "../komponen/loading/DualRingSpinner.jsx";
 
 /** Biru khas chart En Croissant (mantine blue-filled). */
 const BIRU = "#4a9dd9";
@@ -162,9 +163,13 @@ function BarisPembukaan({ e, totalWarna }) {
 function MuatNegara({ isi, tombol, onKlik }) {
   return (
     <div className="flex flex-col items-center gap-4 py-14 text-center">
-      <div className="grid h-16 w-16 place-items-center rounded-full bg-backgroundBoxBoxHighlighted/20">
-        <Database width={30} height={30} class="fill-backgroundBoxBoxHighlighted" />
-      </div>
+      {tombol ? (
+        <div className="grid h-16 w-16 place-items-center rounded-full bg-backgroundBoxBoxHighlighted/20">
+          <Database width={30} height={30} class="fill-backgroundBoxBoxHighlighted" />
+        </div>
+      ) : (
+        <DualRingSpinner color={BIRU} />
+      )}
       <span className="max-w-xs text-sm text-foregroundGrey">{isi}</span>
       {tombol ? (
         <button
@@ -219,10 +224,11 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
     setGalat(false);
     try {
       let daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
-      if (daftar.length === 0 && platform === "chessCom") {
-        // `paksa` diteruskan: tombol "Tarik data" / ↻ melewati jeda kegagalan
-        // dan unduhan yang sedang berjalan; pembukaan popup biasa tidak.
-        await muatPartaiChessCom(user, { paksa: paksa });
+      // Unduhan hanya terjadi bila tombol "Tarik data" dipencet (`paksa`),
+      // tidak saat popup dibuka / pindah menu. Kalau belum ada data, dashboard
+      // menampilkan state kosong dengan tombol tarik manual.
+      if (daftar.length === 0 && platform === "chessCom" && paksa) {
+        await muatPartaiChessCom(user, { paksa: true });
         if (token !== tokenMuat.current) return; // akun/popup sudah berganti
         daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       }

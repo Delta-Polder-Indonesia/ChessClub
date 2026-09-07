@@ -2,6 +2,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import Lens from "../../svg/lens.jsx";
 import LoadingBar from "./loadingBar.jsx";
+import DualRingSpinner from "../../loading/DualRingSpinner.jsx";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { gunakanMesin } from "../../../konteks/mesin.jsx";
 import { useI18n } from "../../../../../lib/i18n.jsx";
@@ -45,7 +46,11 @@ function Loading(props) {
                     <div className="w-36 flex flex-col items-center gap-4">
                         <Lens class="animate-[pulse_1.25s_cubic-bezier(0.4,_0,_0.6,_1)_infinite;] scale-x-[-1] fill-backgroundBoxBoxHighlighted" size={60} />
                         <span className="text-xl text-foreground font-bold">{format.toUpperCase()}</span>
-                        <span className="w-full">{t("analisa.muat.menganalisaPartai")}{ellipsis}</span>
+                        <DualRingSpinner color="#4a9dd9" />
+                        <span className="flex w-full items-baseline justify-center whitespace-nowrap">
+                            <span>{t("analisa.muat.menganalisaPartai")}</span>
+                            <span className="inline-block w-7 text-left">{ellipsis}</span>
+                        </span>
                     </div>
                     <button onClick={cancel} className="hover:text-foreground transition-colors" type="button">{t("analisa.muat.batal")}</button>
                     <LoadingBar progress={progress} transitionTime={100} />
