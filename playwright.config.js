@@ -6,7 +6,14 @@ import { defineConfig, devices } from "@playwright/test";
  */
 export default defineConfig({
   testDir: "./tests/e2e",
-  timeout: 30_000,
+  // Di atas server dev Vite, halaman pertama yang dimuat dalam satu sesi ikut
+  // menanggung kompilasi graph modul secara menyeluruh (Vite meng-compile
+  // setiap modul hanya saat pertama diminta). navigasi `goto` pertama itulah
+  // yang paling lambat — pada mesin dingin bisa melewati 30 detik — sedangkan
+  // muatan berikutnya sudah memakai cache dan selesai dalam hitungan detik.
+  // Timeout dijaga agak longgar supaya `uji:e2e` tidak gagal semu karena
+  // "cold start" dev server di tes yang pertama kali membuka halaman.
+  timeout: 60_000,
   expect: { timeout: 8_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
@@ -25,6 +32,9 @@ export default defineConfig({
     command: "npm run dev -- --host 127.0.0.1 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
-    timeout: 30_000,
+    // Di luar CI server dev perlu boot dari nol; beri kelonggaran agar
+    // "cold start" Vite (terutama instal node_modules dan pre-bundle deps)
+    // tidak keburu timeout sebelum server siap melayani.
+    timeout: 60_000,
   },
 });
