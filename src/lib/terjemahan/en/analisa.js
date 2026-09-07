@@ -183,7 +183,7 @@ export const analisa = {
       detail: "Game Details",
       tanggal: "Date",
       langkah: "Moves",
-      pemain: "Black  White",
+      pemain: "Players",
       hitam: "Black",
       putih: "White",
       hasilTabel: "Result",

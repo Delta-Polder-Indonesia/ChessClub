@@ -8,7 +8,7 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../lib/pemainCatur.js";
-import { ambilDaftarPartai } from "../basisData.js";
+import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import Profile from "../komponen/svg/profile.jsx";
 import Trash from "../komponen/svg/trash.jsx";
 import Download from "../komponen/svg/download.jsx";
@@ -17,6 +17,19 @@ import LichessLogo from "../komponen/svg/LichessLogo.jsx";
 import ChessComLogo from "../komponen/svg/ChessComLogo.jsx";
 
 const BIRU = "#4a9dd9";
+
+/* Cache sesi hasil pembacaan basis data per koleksi (kunci `${platform}:${user}`),
+ * supaya kartu tidak memulai dari 0 saat di-mount ulang (ganti tab menu) —
+ * pembacaan basis tetap memakai revisi untuk membuang entri basi.
+ * `cacheTotal` menyimpan `total` dari kartu profil agar penyebut bar
+ * "Games terunduh / total" tidak melompat ke 0 saat kartu dirender ulang. */
+const cacheInfo = new Map();
+const cacheTotal = new Map();
+
+function cacheValid(peta, koleksiId) {
+  const e = peta.get(koleksiId);
+  return e && e.revisi === bacaRevisiBasis() ? e : null;
+}
 
 function formatRating(x) {
   return x == null ? "—" : String(x);
@@ -31,7 +44,11 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
   const user = String(username || "").trim();
   const koleksiId = `${platform}:${user.toLowerCase()}`;
   const kartu = useKartuPemain(user, !!user);
-  const [info, setInfo] = useState({ games: 0, lastUpdate: null, galat: false });
+  const [info, setInfo] = useState(() => {
+    const e = cacheValid(cacheInfo, koleksiId);
+    return e ? { games: e.games, lastUpdate: e.lastUpdate, galat: false } : { games: 0, lastUpdate: null, galat: false };
+  });
+  const [totalTersimpan, setTotalTersimpan] = useState(() => cacheValid(cacheTotal, koleksiId)?.total ?? 0);
   const [token, setToken] = useState(0);
 
   useEffect(() => {
@@ -41,7 +58,11 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
         const db = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false });
         const daftar = db?.partai || [];
         const ts = daftar.reduce((m, p) => Math.max(m, Number(p.timestamp) || 0), 0);
-        if (hidup) setInfo({ games: db?.total ?? daftar.length, lastUpdate: ts, galat: false });
+        if (hidup) {
+          const games = db?.total ?? daftar.length;
+          cacheInfo.set(koleksiId, { games, lastUpdate: ts, galat: false, revisi: bacaRevisiBasis() });
+          setInfo({ games, lastUpdate: ts, galat: false });
+        }
       } catch {
         if (hidup) setInfo({ games: 0, lastUpdate: null, galat: true });
       }
@@ -51,7 +72,15 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
     };
   }, [koleksiId, token]);
 
-  const total = kartu?.total ?? 0;
+  // Simpan `total` (dari kartu profil) ke cache modul supaya penyebut bar
+  // tidak kembali ke 0 sesaat saat kartu di-mount ulang.
+  useEffect(() => {
+    if (kartu?.total == null) return;
+    cacheTotal.set(koleksiId, { total: kartu.total, revisi: bacaRevisiBasis() });
+    setTotalTersimpan((x) => (x === kartu.total ? x : kartu.total));
+  }, [kartu?.total, koleksiId]);
+
+  const total = kartu?.total ?? totalTersimpan;
   const terunduh = info.games;
   const efektif = Math.max(total, terunduh);
   const persen = efektif ? (terunduh / efektif) * 100 : 0;

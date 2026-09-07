@@ -184,7 +184,7 @@ export const analisa = {
       detail: "Detail Partai",
       tanggal: "Tanggal",
       langkah: "Langkah",
-      pemain: "Hitam  Putih",
+      pemain: "Pemain",
       hitam: "Hitam",
       putih: "Putih",
       hasilTabel: "Hasil",

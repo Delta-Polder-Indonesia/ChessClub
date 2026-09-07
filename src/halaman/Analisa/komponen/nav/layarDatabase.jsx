@@ -46,6 +46,15 @@ const BIRU = "#4a9dd9";
 let cacheRingkasan = null;
 
 /*
+ * Pilihan yang bertahan saat layar dilepas: mode panel kanan ("data"/"tabel")
+ * dan tab tabel ("partai"/"pemain"/"event"). Layar di-unmount begitu pindah
+ * menu (mis. ke Bermain), jadi disimpan di sini agar kembali ke Database
+ * tetap menampilkan tabel yang sedang dibuka — bukan ringkasan awal.
+ */
+let modeTersimpan = "data";
+let tampilanTersimpan = "partai";
+
+/*
  * Cache rekap tab Pemain & Event — key = koleksiId ("" = semua koleksi),
  * value = { revisi, daftar }. Bertahan lintas buka-tutup layar dalam sesi
  * yang sama; revisi basis yang naik otomatis membuatnya basi.
@@ -53,8 +62,17 @@ let cacheRingkasan = null;
 const rekapPemainCache = new Map();
 const rekapEventCache = new Map();
 
+/*
+ * Cache sesi halaman terakhir tabel Partai: satu entri { kunci, revisi,
+ * total, daftar } untuk kueri yang paling baru dijalankan. Kunci mencakup
+ * koleksi + cari + filter + urut + halaman. Tabel Partai selalu di-refetch
+ * setiap layar dibuka ulang; dengan cache ini kembali ke Database tidak lagi
+ * menarik ulang data yang sudah pernah dilihat selama revisi basis masih sama.
+ */
+let cacheTabelPartai = null;
+
 const BARIS_PER_HALAMAN = 50;
-const JUMLAH_BARIS_SKELETON = 7;
+const JUMLAH_BARIS_SKELETON = 7; // jumlah baris skeleton
 const TINGGI_BARIS = "h-[56px]"; // tinggi konsisten per baris
 const LEBAR_JENDELA_HALAMAN = 5; // jumlah tombol nomor halaman yang tampil
 
@@ -566,18 +584,26 @@ export default function LayarDatabase({
   const [notifikasi, setNotifikasi] = useState(null);
 
   // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
-  const [mode, setMode] = useState("data");
+  const [mode, setMode] = useState(modeTersimpan);
   // Statistik per koleksi (jumlah/pemain/event/ukuran) — di-cache di sini.
   const [statMap, setStatMap] = useState({});
   const [mergeA, setMergeA] = useState("");
   const [mergeB, setMergeB] = useState("");
 
   /* Tab tampilan mode tabel: "partai" (default) | "pemain" | "event". */
-  const [tampilan, setTampilan] = useState("partai");
+  const [tampilan, setTampilan] = useState(tampilanTersimpan);
   const [rekapPemain, setRekapPemain] = useState([]);
   const [rekapEvent, setRekapEvent] = useState([]);
   const [memuatPemain, setMemuatPemain] = useState(false);
   const [memuatEvent, setMemuatEvent] = useState(false);
+
+  /* Simpan pilihan mode & tab agar bertahan saat layar dilepas lalu dibuka lagi. */
+  useEffect(() => {
+    modeTersimpan = mode;
+  }, [mode]);
+  useEffect(() => {
+    tampilanTersimpan = tampilan;
+  }, [tampilan]);
 
   /* Turunan */
   const totalHal = Math.max(1, Math.ceil(totalPartai / BARIS_PER_HALAMAN));
@@ -588,6 +614,16 @@ export default function LayarDatabase({
   const daftarKoleksi = cariKoleksi
     ? koleksiList.filter((k) => (k.label || "").toLowerCase().includes(cariKoleksi.toLowerCase()))
     : koleksiList;
+
+  // Penyaringan rekap Pemain & Event di memori (data sudah dimuat penuh):
+  // kotak cari yang sama ikut menyaring kedua tab itu, tanpa tarik ulang.
+  const cariBawah = cari.toLowerCase();
+  const daftarPemainTampil = cariBawah
+    ? rekapPemain.filter((e) => (e.nama || "").toLowerCase().includes(cariBawah))
+    : rekapPemain;
+  const daftarEventTampil = cariBawah
+    ? rekapEvent.filter((e) => (e.nama || "").toLowerCase().includes(cariBawah))
+    : rekapEvent;
 
   /* ── Pemuat Data ───────────────────────────────────────────────── */
 
@@ -665,6 +701,27 @@ export default function LayarDatabase({
 
   async function muatPartai() {
     const token = ++tokenPartai.current;
+    const revisi = bacaRevisiBasis();
+    const kunci = JSON.stringify([
+      koleksiTerpilih,
+      cariDebounce,
+      filterHasil,
+      filterWaktu,
+      urut,
+      hal,
+    ]);
+    // Koleksi pertama belum terpilih otomatis (daftar koleksi masih dimuat):
+    // skip dulu — effect ini akan berjalan ulang setelah auto-pilih.
+    if (!koleksiTerpilih && koleksiList.length > 0) return;
+    const tersimpan = cacheTabelPartai;
+    if (tersimpan && tersimpan.kunci === kunci && tersimpan.revisi === revisi) {
+      if (token === tokenPartai.current) {
+        setDaftarPartai(tersimpan.daftar);
+        setTotalPartai(tersimpan.total);
+        setMemuat(false);
+      }
+      return;
+    }
     setMemuat(true);
     try {
       let plat = "";
@@ -692,6 +749,7 @@ export default function LayarDatabase({
       });
 
       if (token !== tokenPartai.current) return; // ada pemicu yang lebih baru
+      cacheTabelPartai = { kunci, revisi, total: hasil.total || 0, daftar: hasil.partai || [] };
       setDaftarPartai(hasil.partai || []);
       setTotalPartai(hasil.total || 0);
     } catch {
@@ -741,6 +799,9 @@ export default function LayarDatabase({
    */
   useEffect(() => {
     if (tampilan !== "pemain") return undefined;
+    // Koleksi pertama belum terpilih otomatis: tunggu auto-pilih, effect ini
+    // akan berjalan ulang begitu koleksi pertama siap.
+    if (!koleksiTerpilih && koleksiList.length > 0) return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
     const kunciCache = koleksiTerpilih || "";
@@ -825,6 +886,8 @@ export default function LayarDatabase({
 
   useEffect(() => {
     if (tampilan !== "event") return undefined;
+    // Lihat catatan guard di effect tab Pemain.
+    if (!koleksiTerpilih && koleksiList.length > 0) return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
     const kunciCache = koleksiTerpilih || "";
@@ -1216,7 +1279,7 @@ export default function LayarDatabase({
             >
               <Back className="h-6 w-10" />
             </button>
-            <span className="min-w-0 truncate text-base font-extrabold text-foreground">
+            <span className="min-w-0 truncate text-2xl leading-8 font-extrabold text-foreground">
               {koleksi && koleksi.username
                 ? `${koleksi.username} ${koleksi.platform === "chessCom" ? "Chess.com" : koleksi.platform === "lichessOrg" ? "Lichess.org" : koleksi.platform}`
                 : koleksi?.label || t("analisa.basisData.judul")}
@@ -1552,23 +1615,22 @@ export default function LayarDatabase({
           ))}
         </div>
 
-        {/* Pencarian diperkecil — hanya berlaku untuk tab Partai (isinya
-            menyaring nama pemain & isi PGN, bukan daftar pemain/event). */}
-        {tampilan === "partai" ? (
-          <div className="relative w-56">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
-              <IkonSearch className="h-4 w-4" />
-            </div>
-            <input
-              type="search"
-              value={cari}
-              onChange={(e) => setCari(e.target.value)}
-              placeholder={t("analisa.basisData.cariPlaceholder")}
-              aria-label={t("analisa.basisData.cariPlaceholder")}
-              className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
-            />
+        {/* Pencarian berlaku untuk semua tab: tab Partai menyaring nama
+            pemain/event/isi PGN via basis, tab Pemain & Event menyaring
+            rekap yang sudah dimuat secara langsung. */}
+        <div className="relative w-56">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
+            <IkonSearch className="h-4 w-4" />
           </div>
-        ) : null}
+          <input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder={t("analisa.basisData.cariPlaceholder")}
+            aria-label={t("analisa.basisData.cariPlaceholder")}
+            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+          />
+        </div>
       </div>
 
       {/* ── Modal Impor PGN ─────────────────────────────────────── */}
@@ -1730,9 +1792,9 @@ export default function LayarDatabase({
               <DualRingSpinner color={BIRU} />
               <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
             </div>
-          ) : rekapPemain.length === 0 ? (
+          ) : daftarPemainTampil.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
-              {t("analisa.partai.tidakAda")}
+              {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
             </div>
           ) : (
             <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
@@ -1766,7 +1828,7 @@ export default function LayarDatabase({
                   </tr>
                 </thead>
                 <tbody>
-                  {rekapPemain.map((e, i) => (
+                  {daftarPemainTampil.map((e, i) => (
                     <tr
                       key={e.nama}
                       className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
@@ -1803,9 +1865,9 @@ export default function LayarDatabase({
               <DualRingSpinner color={BIRU} />
               <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
             </div>
-          ) : rekapEvent.length === 0 ? (
+          ) : daftarEventTampil.length === 0 ? (
             <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
-              {t("analisa.partai.tidakAda")}
+              {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
             </div>
           ) : (
             <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
@@ -1831,7 +1893,7 @@ export default function LayarDatabase({
                   </tr>
                 </thead>
                 <tbody>
-                  {rekapEvent.map((e, i) => (
+                  {daftarEventTampil.map((e, i) => (
                     <tr
                       key={e.nama}
                       className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
