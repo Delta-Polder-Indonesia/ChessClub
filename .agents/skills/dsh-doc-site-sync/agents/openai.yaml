@@ -2,3 +2,6 @@ interface:
   display_name: "DSH Documentation Site Sync"
   short_description: "Publish repository docs through the DSH website manifest"
   default_prompt: "Use $dsh-doc-site-sync to publish or update a DeepSeek Harness documentation page on the website."
+
+policy:
+  allow_implicit_invocation: false
