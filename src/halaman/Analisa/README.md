@@ -197,3 +197,45 @@ node scripts/uji-analisa-ui.mjs     # render halaman di jsdom + engine UCI palsu
 npm run uji:i18n                    # kunci analisa.* harus ada di ID dan EN
 node scripts/generasi-buku-analisa.mjs   # bangun ulang tabel buku pembukaan
 ```
+
+## Catatan perbaikan (polish layar Database & Akun)
+
+Perbaikan dilakukan bertahap per sesi; daftar ini mencatat perubahan dan
+alasannya supaya tidak di-"rapikan" ulang secara tak sengaja.
+
+1. **Satu pintu masuk tarik data = tombol "Tarik data"**. Partai hanya
+   diunduh lewat `muatPartaiChessCom` dengan `paksa: true`, satu-satunya dari
+   `DashboardAkun.muatData` (dipanggil tombol Tarik / refresh manual). Tidak ada
+   tarik otomatis saat layar dibuka. Setelah ditarik sekali, semua halaman
+   membaca data yang sama dari `basisData` (IndexedDB) — tanpa refresh ulang.
+2. **Bar "Games terunduh / total" tidak reset saat ganti layar.** `KartuAkun`
+   menyimpan hasil baca basis + `total` (dari kartu profil) di cache sesi
+   level modul (`cacheInfo`, `cacheTotal`, kunci `koleksiId`) yang divalidasi
+   `bacaRevisiBasis()`; state di-init sinkron dari cache (pola sama dengan
+   `cachePartai` di `DashboardAkun`). Sebelumnya tiap kartu di-mount ulang
+   dimulai dari `{ games: 0 }` sehingga bar tampak "menarik ulang" setiap pindah
+   menu.
+3. **Mode & tab Database bertahan lintas navigasi.** State `mode` dan
+   `tampilan` disimpan di variabel modul `layarDatabase.jsx`
+   (`modeTersimpan`, `tampilanTersimpan`) dan di-init sinkron dari situ, jadi
+   keluar-lalu-kembali ke layar Database tidak kembali ke tampilan awal.
+4. **Tabel & rekap tidak ditarik ulang bila tidak berubah.** `cacheTabelPartai`
+   adalah cache sesi kueri tabel Partai (kunci = koleksi + cari + filter +
+   urut + halaman, plus cek revisi). Guard tambahan mencegah fetch transisi
+   saat `koleksiTerpilih === ""` tetapi daftar koleksi masih dimuat (di
+   `muatPartai` dan effect rekap Pemain/Event).
+5. **Kotak pencarian hadir di semua tab.** Di tab Pemain & Event, pencarian
+   menyaring hasil langsung di memori (`daftarPemainTampil`/
+   `daftarEventTampil` dari `cari` mentah); pesan kosong memakai `tidakCocok`
+   bila ada kata kunci, selain itu `tidakAda`.
+6. **Label koleksi tanpa penanda tengah.** Format label di `simpanKoleksi`
+   (`basisData.js`) kini `${username} ${nama Platform}` (mis. `trian
+   Chess.com`) tanpa titik penanda; kolom "Pemain" memakai terjemahan
+   `basisData.pemain` ("Pemain"/"Players"), bukan "Hitam Putih"/"Black White".
+7. **Ukuran judul header Database menyesuaikan.** Teks nama + brand memakai
+   `text-2xl leading-8` agar seukuran tombol Back (`h-8`).
+8. **Daftar perubahan lain yang ikut di-commit:** ikon `svg/{back,refresh,
+   download,trash,impor,pion}.jsx`, spinner pemuatan (DualRing) di panel
+   dashboard/engine dan tab Pemain/Event, refresh manual, dan kunci
+   terjemahan `basisData.cariPlaceholder`, `partai.tidakCocok`,
+   `partai.tidakAda`, `basisData.memuatData`.
