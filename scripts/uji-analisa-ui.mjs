@@ -412,6 +412,35 @@ if (tabLangkah) {
   uji("saran engine tampil", /langkah terbaik/.test(langkah));
 }
 
+/* --- regresi: layar Akun/Basis Data/Impor harus tetap bisa dibuka SETELAH
+ * partai dimuat. `layarAkun.jsx` dulu memantau `data` dan langsung memanggil
+ * onTutup() saat komponen dipasang; karena `data.format` masih "pgn" sesudah
+ * pengguna menganalisis partai, layar Akun memantul balik ke papan dan
+ * mustahil dibuka. Dulu tertutupi karena membuka menu Akun selalu
+ * mengosongkan `data` lebih dulu — itu sudah tidak dilakukan lagi.
+ */
+{
+  const bukti = () => /Ringkasan/.test(teksBagus()) && /Andini/.test(teksBagus());
+  uji("prasyarat: partai PGN sedang dianalisis saat layar dibuka", bukti());
+
+  for (const [tombol, layar] of [
+    ["nav-akun", "akun"],
+    ["nav-database", "database"],
+    ["nav-impor", "impor"],
+  ]) {
+    klik(domSiap.querySelector(`[data-uji="${tombol}"]`));
+    await tunggu(280);
+    uji(`layar ${layar} tetap terbuka walau partai PGN sudah dimuat`, layarAktif() === layar);
+  }
+
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
+  await tunggu(250);
+  uji(
+    "kembali ke papan setelah membuka ketiga layar, analisis utuh",
+    !domSiap.querySelector("[data-layar]") && bukti()
+  );
+}
+
 /* --- regresi: tombol "Bermain" tidak boleh membuang analisis ---
  * Tombol Bermain di bilah kiri dimaksudkan sebagai jalan keluar cepat dari
  * popup (Database/Impor/Akun) kembali ke papan. Versi pertamanya memanggil

@@ -19,20 +19,26 @@ import { AnalyzeContext } from "../../konteks/analyze.jsx";
 export default function LayarAkun({ onTutup }) {
   const analyzeContext = useContext(AnalyzeContext);
   const [username, setUsername] = analyzeContext.akun;
-  const [data] = analyzeContext.data;
   const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
   const [muatUlang, setMuatUlang] = useState(0);
 
   /*
-   * Klik kartu akun lalu pilih partai → AnalyzeContext.data berubah jadi
-   * { format: "pgn" } dan Game mulai menganalisis. Layar ini harus minggir
-   * (kembali ke papan) supaya analisisnya terlihat. Dipantau lewat `data`
-   * (bukan pageState) karena data pgn hanya muncul saat pengguna
-   * benar-benar memilih partai.
+   * Dulu ada efek di sini: "bila `data` berisi PGN, panggil onTutup()" —
+   * waktu itu layar Akun masih punya tabel partai, jadi memilih partai dari
+   * dalam layar ini harus mengembalikan pengguna ke papan.
+   *
+   * Efek itu sekarang berbahaya sekaligus mubazir. Berbahaya karena ia
+   * berjalan saat komponen DIPASANG: begitu pengguna sudah memuat partai
+   * PGN lalu menekan menu "Akun", `data.format` masih "pgn", efeknya
+   * langsung memanggil onTutup() dan layar Akun memantul kembali ke papan
+   * — layar itu jadi mustahil dibuka. Mubazir karena tabel partai sudah
+   * pindah ke layar Basis Data: tidak ada lagi jalan dari dalam layar ini
+   * untuk mengubah `data`.
+   *
+   * Yang mengembalikan pengguna ke papan kini eksplisit: `muatPartai()` di
+   * areaKerja.jsx (dipanggil layar Basis Data / Impor setelah partai
+   * dipilih), dan `onTutup()` di bawah untuk kasus akun terakhir dihapus.
    */
-  useEffect(() => {
-    if (data.format === "pgn" && data.string) onTutup();
-  }, [data, onTutup]);
 
   // Sinkronkan daftar dengan akun yang dipilih dari luar layar ini.
   useEffect(() => {

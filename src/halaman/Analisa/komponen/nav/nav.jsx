@@ -232,7 +232,7 @@ export default function Nav() {
                   data-uji={`nav-${item.kunci}`}
                   title={keterangan}
                   aria-label={keterangan}
-                  aria-current={aktif ? "page" : undefined}
+                  aria-current={aktif ? "true" : undefined}
                   onClick={aksi}
                   className={`${kelasTombol}${aktif ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}${
                     menungguKonfirmasi ? " bg-backgroundBoxHover text-lossRed" : ""
