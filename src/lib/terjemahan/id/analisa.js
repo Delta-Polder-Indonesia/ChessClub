@@ -95,6 +95,8 @@ export const analisa = {
       tambahBaru: "Tambahkan akun",
       kosongJudul: "Belum ada akun",
       kosongIsi: "Tambahkan akun Chess.com atau Lichess lalu pilih dari kolom ini untuk melihat statistik dan menganalisis partai.",
+      layarJudul: "Akun",
+      layarIsi: "Kelola akun, lihat statistik, dan pilih partai untuk dianalisis.",
     },
     statistik: {
       judul: "Statistik Akun",
@@ -133,7 +135,6 @@ export const analisa = {
     },
     basisData: {
       judul: "Basis Data Permainan",
-      subjudul: "Kelola, cari, dan analisa semua partai yang tersimpan lokal tanpa perlu mengambil ulang dari API.",
       semuaKoleksi: "Semua Koleksi",
       semuaPlatform: "Semua Platform",
       koleksi: "Koleksi / Akun",
@@ -172,6 +173,11 @@ export const analisa = {
       kalah: "Kalah",
       seri: "Seri",
       semuaWaktu: "Semua Waktu",
+      jumlahMain: "Main",
+      terakhirMain: "Terakhir Main",
+      eventSitus: "Event / Situs",
+      situs: "Situs",
+      ringkasPartai: "{hitam} vs {putih} {elo}",
       cariPlaceholder: "Cari nama pemain, event, atau PGN…",
       cariKoleksi: "Cari akun / koleksi…",
       detail: "Detail Partai",

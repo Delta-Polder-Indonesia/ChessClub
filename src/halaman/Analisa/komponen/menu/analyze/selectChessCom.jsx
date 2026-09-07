@@ -359,23 +359,6 @@ function SelectChessComGame(props) {
   const setData = analyzeContext.data[1];
   const sinyalRef = useRef(null);
 
-  // Muat instan dari basis data lokal jika ada
-  useEffect(() => {
-    let dibatalkan = false;
-    ambilDaftarPartai({ platform: "chessCom", username })
-      .then((dbData) => {
-        if (!dibatalkan && dbData?.partai?.length > 0) {
-          setGamesInfo((lama) => (lama.length === 0 ? dbData.partai : lama));
-          setSumberDb(true);
-          setFase((f) => (f === "muatArsip" ? "siap" : f));
-        }
-      })
-      .catch(() => {});
-    return () => {
-      dibatalkan = true;
-    };
-  }, [username]);
-
   useEffect(() => {
     let dibatalkan = false;
     const sinyal = new AbortController();
@@ -383,7 +366,20 @@ function SelectChessComGame(props) {
 
     (async () => {
       try {
-        setFase((f) => (gamesInfo.length > 0 ? f : "muatArsip"));
+        // Pakai partai dari basis lokal bila sudah ada: instan dan tanpa
+        // unduhan ulang. Tarik dari api.chess.com hanya bila database kosong
+        // atau pengguna menekan "Tarik ulang" (coba > 0).
+        const dbData = await ambilDaftarPartai({ platform: "chessCom", username });
+        if (dibatalkan) return;
+        const adaLokal = dbData?.partai?.length > 0;
+        if (adaLokal && coba === 0) {
+          setGamesInfo(dbData.partai);
+          setSumberDb(true);
+          setFase("siap");
+          return;
+        }
+        // Database kosong (atau diminta tarik ulang) → unduh dari API.
+        setFase((f) => (adaLokal ? f : "muatArsip"));
         setGagal(0);
         setProgres(null);
 
@@ -479,7 +475,6 @@ function SelectChessComGame(props) {
   }, [username, coba, t, locale, setErrors]);
 
   const muatUlang = () => {
-    setPaksaFetch(true);
     setCoba((n) => n + 1);
   };
   const tombolMuatUlang = t("analisa.partai.ambilLagi");

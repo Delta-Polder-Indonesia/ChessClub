@@ -1,7 +1,10 @@
 /*
  * Popup "Tambah akun" — meniru modal Add account en-croissant:
  * dua kartu pilihan situs (Lichess / Chess.com) lalu kolom nama pengguna.
- * Setelah disimpan, Nav memuat seluruh partai akun itu dalam satu tabel.
+ * Selalu dialog kecil di tengah layar (bukan full layar) — baik dibuka
+ * dari tombol "Akun" di bilah kiri maupun dari tombol "+ Tambahkan akun"
+ * di daftar akun. Full layar hanya untuk layar akun itu sendiri (lihat
+ * popupAkunLayar.jsx) dan popup Database/Impor.
  */
 import { useMemo, useRef, useState } from "react";
 import Popup from "./Popup.jsx";
@@ -40,7 +43,7 @@ function KartuSitus({ aktif, logo: Logo, ikon, label, tanpaLabel, logoClass, onC
   );
 }
 
-export default function PopupAkun({ onTutup, onTambah, lebarKiri = 0 }) {
+export default function PopupAkun({ onTutup, onTambah }) {
   const { t } = useI18n();
   const [kunci, setKunci] = useState("chessCom");
   const [nama, setNama] = useState("");
@@ -71,9 +74,6 @@ export default function PopupAkun({ onTutup, onTambah, lebarKiri = 0 }) {
       judul={t("analisa.akun.judul")}
       subjudul={t("analisa.akun.isi")}
       onTutup={onTutup}
-      fullLayar
-      lebarKiri={lebarKiri}
-      className="max-w-none"
     >
       <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
         {t("analisa.akun.situs")}

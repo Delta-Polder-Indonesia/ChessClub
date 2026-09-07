@@ -18,8 +18,14 @@ function Summary(props) {
       });
     });
     const component = componentRef.current;
-    if (!component) return;
+    if (!component) {
+      observer.disconnect();
+      return;
+    }
     observer.observe(component);
+    // Observer wajib dilepas: Summary terpasang/lepas tiap ganti tab,
+    // tanpa disconnect() observer menumpuk memantau node yang sudah lepas.
+    return () => observer.disconnect();
   }, []);
   return <div ref={componentRef} className="flex flex-col gap-3 items-center">
             <GameChart setMoveNumber={setMoveNumber} moves={moves} container={container} moveNumber={moveNumber} setAnimation={setAnimation} setForward={setForward} />

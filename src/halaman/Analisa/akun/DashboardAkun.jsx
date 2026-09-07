@@ -9,13 +9,23 @@
  */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
-import { ambilDaftarPartai } from "../basisData.js";
+import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { muatPartaiChessCom } from "./muatPartaiAkun.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
 import Database from "../komponen/svg/database.jsx";
 
 /** Biru khas chart En Croissant (mantine blue-filled). */
 const BIRU = "#4a9dd9";
+
+/*
+ * Cache per sesi: koleksiId → { revisi, daftar } partai yang sudah dimuat.
+ * Layar akun dilepas setiap pindah menu (Akun → Database → Akun), sehingga
+ * tanpa cache statistik selalu memindai ulang basis lokal dan menampilkan
+ * "Memuat…" lagi padahal datanya tidak berubah. Revisi basis ikut disimpan:
+ * bila ada tulis (unduh baru, hapus partai di Database, dst.) revisi berubah
+ * dan cache otomatis dianggap basi. Refresh tombol ↻ juga memaksa baca ulang.
+ */
+const cachePartai = new Map();
 
 /** Bar W/D/L tersegmen ala En Croissant (hijau/abu/merah) + label % bila cukup lebar. */
 function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
@@ -51,15 +61,15 @@ function GrafikTahunan({ data }) {
   const max = Math.max(1, ...data.map((x) => x.jumlah));
   return (
     <div className="relative">
-      <svg viewBox="0 0 560 210" className="h-48 w-full">
+      <svg viewBox="0 0 560 210" preserveAspectRatio="none" className="h-48 w-full">
         {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-          const y = 200 - f * 180;
+          const y = 200 - f * 200;
           return <line key={f} x1={0} y1={y} x2={560} y2={y} stroke="var(--analisa-foregroundGrey)" strokeOpacity="0.2" strokeDasharray="3 3" />;
         })}
         {bars.map((x, i) => {
           const bw = bars.length ? (560 / bars.length) * 0.7 : 40;
           const cx = bars.length === 1 ? 280 : (i + 0.5) * (560 / bars.length);
-          const h = (x.jumlah / max) * 160;
+          const h = (x.jumlah / max) * 200;
           return (
             <rect
               key={x.tahun}
@@ -169,22 +179,33 @@ function MuatNegara({ isi, tombol, onKlik }) {
   );
 }
 
-export default function DashboardAkun({ platform, username, muatUlang = 0, onBukaTabel }) {
+export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
   const { t } = useI18n();
   const [tab, setTab] = useState("overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
-  const [games, setGames] = useState(null); // null = memuat
+  // Nilai awal dari cache sesi bila ada: kembali ke menu Akun dalam sesi yang
+  // sama langsung menampilkan statistik, tanpa kilatan "Memuat…" dulu.
+  const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
+  const [games, setGames] = useState(() => cachePartai.get(koleksiIdAwal)?.daftar ?? null); // null = memuat
   const [galat, setGalat] = useState(false);
   const [memuatLagi, setMemuatLagi] = useState(false);
   const user = String(username || "").trim();
 
   const muatData = useCallback(async (paksa = false) => {
     setMemuatLagi(paksa);
+    const koleksiId = `${platform}:${user.toLowerCase()}`;
+    // Data sesi masih ada & basis tak berubah → tampilkan langsung tanpa
+    // memindai ulang basis lokal.
+    const entri = cachePartai.get(koleksiId);
+    if (!paksa && entri && entri.revisi === bacaRevisiBasis()) {
+      setGames(entri.daftar);
+      setGalat(false);
+      return;
+    }
     setGames(null);
     setGalat(false);
-    const koleksiId = `${platform}:${user.toLowerCase()}`;
     try {
       let daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       if (daftar.length === 0 && platform === "chessCom") {
@@ -194,6 +215,7 @@ export default function DashboardAkun({ platform, username, muatUlang = 0, onBuk
       if (daftar.length === 0 && platform !== "chessCom") {
         daftar = (await ambilDaftarPartai({ platform, username: user, limit: 0, sertakanPgn: true }))?.partai || [];
       }
+      if (daftar.length > 0) cachePartai.set(koleksiId, { revisi: bacaRevisiBasis(), daftar });
       setGames(daftar);
     } catch (e) {
       setGames([]);
@@ -203,8 +225,9 @@ export default function DashboardAkun({ platform, username, muatUlang = 0, onBuk
     }
   }, [platform, user]);
 
+  // `muatUlang` bertambah → paksa baca ulang (tombol ↻ di kartu akun).
   useEffect(() => {
-    if (user) muatData();
+    if (user) muatData(muatUlang > 0);
   }, [user, muatData, muatUlang]);
 
   useEffect(() => setSitus(platform), [platform]);
@@ -221,7 +244,12 @@ export default function DashboardAkun({ platform, username, muatUlang = 0, onBuk
   }, [tab]);
 
   const filteredGames = useMemo(() => (games ? games.filter((p) => p.platform === situs) : games), [games, situs]);
-  const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", waktu }), [rentang, waktu, tab]);
+  /*
+   * statsAkun.js membaca kunci `timeClass` (bukan `waktu`); dulu kuncinya
+   * salah nama sehingga filter Bullet/Blitz/Rapid di tab Overview &
+   * Pembukaan diam-diam diabaikan.
+   */
+  const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }), [rentang, waktu, tab]);
 
   const overview = useMemo(() => (filteredGames ? ringkasanOverview(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
   const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, { rentang }) : null), [filteredGames, user, rentang]);
@@ -311,14 +339,14 @@ export default function DashboardAkun({ platform, username, muatUlang = 0, onBuk
           ) : games.length === 0 ? (
             <MuatNegara isi={t("analisa.statistik.belumAdaData")} tombol={t("analisa.statistik.tarik")} onKlik={() => muatData(true)} />
           ) : tab === "overview" && overview ? (
-            <div className="flex flex-col gap-3">
+            <div className="flex min-h-full flex-col gap-3">
               <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>
               {overview.total > 0 ? (
-                <>
-                  <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" />
-                  <GrafikTahunan data={overview.tahunan} />
-                </>
+                <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" />
               ) : null}
+              <div className="mt-auto">
+                <GrafikTahunan data={overview.tahunan} />
+              </div>
             </div>
           ) : tab === "ratings" && ratings ? (
             <div className="flex flex-col gap-3">

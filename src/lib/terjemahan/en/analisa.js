@@ -94,6 +94,8 @@ export const analisa = {
       tambahBaru: "Add account",
       kosongJudul: "No accounts yet",
       kosongIsi: "Add a Chess.com or Lichess account, then pick it from this list to view its stats and analyze games.",
+      layarJudul: "Accounts",
+      layarIsi: "Manage accounts, view stats, and pick a game to analyze.",
     },
     statistik: {
       judul: "Account Stats",
@@ -132,7 +134,6 @@ export const analisa = {
     },
     basisData: {
       judul: "Game Database",
-      subjudul: "Manage, search, and analyze all locally stored games without having to re-fetch from the API.",
       semuaKoleksi: "All Collections",
       semuaPlatform: "All Platforms",
       koleksi: "Collection / Account",
@@ -171,6 +172,11 @@ export const analisa = {
       kalah: "Loss",
       seri: "Draw",
       semuaWaktu: "All Speeds",
+      jumlahMain: "Games",
+      terakhirMain: "Last Played",
+      eventSitus: "Event / Site",
+      situs: "Site",
+      ringkasPartai: "{hitam} vs {putih} {elo}",
       cariPlaceholder: "Search player name, event, or PGN…",
       cariKoleksi: "Search accounts / databases…",
       detail: "Game Details",

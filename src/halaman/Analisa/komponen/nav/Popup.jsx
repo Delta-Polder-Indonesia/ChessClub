@@ -34,15 +34,17 @@ export default function Popup({ judul, subjudul, onTutup, children, className = 
         aria-modal="true"
         className={`${kelasKartu} ${className}`}
       >
-        <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-3.5 shrink-0">
-          <div>
-            <p className="text-base font-extrabold text-foreground">{judul}</p>
-            {bawahJudul ? <div className="mt-1.5">{bawahJudul}</div> : subjudul ? <p className="mt-0.5 text-xs leading-4 text-foregroundGrey">{subjudul}</p> : null}
+        {judul || subjudul || bawahJudul || headerKanan ? (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5 shrink-0">
+            <div className="min-w-0">
+              <p className="text-base font-extrabold text-foreground">{judul}</p>
+              {bawahJudul ? <div className="mt-1.5">{bawahJudul}</div> : subjudul ? <p className="mt-0.5 text-xs leading-4 text-foregroundGrey">{subjudul}</p> : null}
+            </div>
+            {headerKanan ? (
+              <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">{headerKanan}</div>
+            ) : null}
           </div>
-          {headerKanan ? (
-            <div className="shrink-0 pt-0.5">{headerKanan}</div>
-          ) : null}
-        </div>
+        ) : null}
         <div className={`min-h-0 px-5 py-4 ${fullLayar ? "flex-1 flex flex-col" : "overflow-y-auto max-h-[75vh]"}`}>{children}</div>
       </div>
     </div>

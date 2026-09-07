@@ -40,7 +40,7 @@ function TrashIkon() {
 }
 
 export default function KartuAkun({ platform, username, aktif = false, onPilih, onHapus, onRefresh }) {
-  const { t } = useI18n();
+  const { t, bahasa: locale } = useI18n();
   const user = String(username || "").trim();
   const koleksiId = `${platform}:${user.toLowerCase()}`;
   const kartu = useKartuPemain(user, !!user);
@@ -72,7 +72,8 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
   const tanggal = (ts) => {
     if (!ts) return "—";
     try {
-      return new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(ts));
+      // Ikuti bahasa antarmuka, bukan locale yang di-hardcode.
+      return new Intl.DateTimeFormat(locale, { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(ts));
     } catch {
       return new Date(ts).toLocaleDateString();
     }

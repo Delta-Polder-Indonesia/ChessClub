@@ -37,21 +37,22 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, 
         </div>
       ) : (
         <>
-          <div className="flex items-center justify-between px-3 pt-1">
-            <span className="text-sm font-bold text-foreground">{t("analisa.akun.daftar")}</span>
-            <span className="text-xs text-foregroundGrey">{list.length}</span>
+          <div className="px-3 pt-1">
+            <p className="text-sm font-bold text-foreground">{t("analisa.akun.daftar")}</p>
+            <div className="mt-2 w-full border-b border-border" />
           </div>
-          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-1">
+          <div className="flex min-h-0 flex-1 flex-wrap content-start justify-start gap-3 overflow-y-auto pb-1">
             {list.map((a) => (
-              <KartuAkun
-                key={`${a.platform}:${a.username}`}
-                platform={a.platform}
-                username={a.username}
-                aktif={aktif?.platform === a.platform && String(aktif?.username || "").toLowerCase() === String(a.username || "").toLowerCase()}
-                onPilih={() => onPilih(a.platform, a.username)}
-                onHapus={() => onHapus(a.platform, a.username)}
-                onRefresh={() => onRefresh?.(a.platform, a.username)}
-              />
+              <div key={`${a.platform}:${a.username}`} className="min-w-0 w-full max-w-[300px]">
+                <KartuAkun
+                  platform={a.platform}
+                  username={a.username}
+                  aktif={aktif?.platform === a.platform && String(aktif?.username || "").toLowerCase() === String(a.username || "").toLowerCase()}
+                  onPilih={() => onPilih(a.platform, a.username)}
+                  onHapus={() => onHapus(a.platform, a.username)}
+                  onRefresh={() => onRefresh?.(a.platform, a.username)}
+                />
+              </div>
             ))}
           </div>
           <button
@@ -68,7 +69,6 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, 
 
       {buka ? (
         <PopupAkun
-          lebarKiri={0}
           onTutup={() => setBuka(false)}
           onTambah={(platform, nama) => {
             onTambah(platform, nama);

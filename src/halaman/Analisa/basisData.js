@@ -33,6 +33,19 @@ const AWALAN_STORAGE = "kci-analisa-db-";
 const memoriPartai = new Map();
 const memoriKoleksi = new Map();
 
+/*
+ * Revisi basis data: naik setiap ada tulis (simpan/hapus/gabung/bersihkan).
+ * Komponen yang men-cache ringkasan yang mahal (mis. statistik panel
+ * Database) memakai ini untuk tahu kapan cache-nya basi, tanpa harus
+ * memindai ulang seluruh basis untuk memeriksa.
+ */
+let revisiBasis = 0;
+
+/** Baca revisi tulis saat ini — pembanding validitas cache sesi. */
+export function bacaRevisiBasis() {
+  return revisiBasis;
+}
+
 function punyaIndexedDB() {
   try {
     return typeof window !== "undefined" && Boolean(window.indexedDB);
@@ -159,6 +172,11 @@ export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
   const wElo = Number(p.whiteElo ?? p.white?.rating) || 0;
   const bElo = Number(p.blackElo ?? p.black?.rating) || 0;
 
+  // Header [Event]/[Site] diangkat ke metadata: tabel Database bisa
+  // menampilkan kolom Event/Site tanpa harus memuat teks PGN.
+  const event = String(p.event || /\[Event\s+"([^"]*)"\]/.exec(pgn)?.[1] || "").trim();
+  const site = String(p.site || /\[Site\s+"([^"]*)"\]/.exec(pgn)?.[1] || "").trim();
+
   let hasil = p.result;
   if (!hasil) {
     if (p.white?.result === "win") hasil = "white";
@@ -183,6 +201,8 @@ export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
     result: hasil,
     timestamp,
     timeClass: p.timeClass || p.time_class || "unknown",
+    event,
+    site,
     plyCount,
     disimpanPada: p.disimpanPada || Date.now(),
   };
@@ -200,6 +220,7 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
   const user = username.trim();
   const koleksiId = `${plat}:${user.toLowerCase()}`;
   const daftarNormal = daftarPartai.map((p) => normalisasiDataPartai(p, plat, user)).filter((p) => p.pgn);
+  if (daftarNormal.length > 0) revisiBasis++;
 
   const db = await bukaDB();
   if (!db) {
@@ -619,6 +640,7 @@ export async function ambilPartai(id) {
  */
 export async function hapusPartai(id) {
   if (!id) return false;
+  revisiBasis++;
   const db = await bukaDB();
   if (!db) {
     const partai = memoriPartai.get(id);
@@ -648,6 +670,7 @@ export async function hapusPartai(id) {
  */
 export async function hapusKoleksi(koleksiId) {
   if (!koleksiId) return false;
+  revisiBasis++;
   const db = await bukaDB();
   if (!db) {
     memoriKoleksi.delete(koleksiId);
@@ -698,6 +721,7 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
   const asli = String(namaAsliRaw || "").trim();
   const tujuan = String(namaTujuanRaw || "").trim();
   if (!koleksiId || !asli || !tujuan) return { diubah: 0, nama: "" };
+  revisiBasis++;
 
   const cocokNama = (nama) => String(nama || "").trim().toLowerCase() === asli.toLowerCase();
 
@@ -775,6 +799,7 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
  * Kosongkan seluruh basis data (semua partai & koleksi).
  */
 export async function bersihkanBasisData() {
+  revisiBasis++;
   const db = await bukaDB();
   if (!db) {
     memoriPartai.clear();

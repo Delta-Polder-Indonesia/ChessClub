@@ -68,7 +68,6 @@ export function ringkasanOverview(games, username, { rentang = "all", timeClass 
   let w = 0;
   let d = 0;
   let l = 0;
-  const total = 0;
 
   let cocok = 0;
   for (const p of games) {

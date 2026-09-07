@@ -17,9 +17,13 @@ function Moves() {
   const [animateMoves, setAnimateMoves] = configContext.animateMoves;
   const [boardSounds, setBoardSounds] = configContext.boardSounds;
   useEffect(() => {
-    setInterval(() => {
+    // Tab "Langkah" terpasang baru setiap kali panel pengaturan dibuka;
+    // tanpa clearInterval() interval menumpuk dan terus berjalan
+    // setelah komponen lepas.
+    const interval = setInterval(() => {
       setAnimateMovesMoved((prev) => !prev);
     }, 2e3);
+    return () => clearInterval(interval);
   }, []);
   useEffect(() => {
     const showLegalMoves2 = bacaTeks("showLegalMoves");

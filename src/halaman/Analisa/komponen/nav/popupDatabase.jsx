@@ -5,7 +5,7 @@
  * Menggunakan SVG icons konsisten tanpa emoji, tipografi terstruktur,
  * dan integrasi langsung ke IndexedDB peramban.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Popup from "./Popup.jsx";
 import Database from "../svg/database.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
@@ -16,6 +16,7 @@ import {
   ambilDaftarPartai,
   ambilPartai,
   ambilSemuaKoleksi,
+  bacaRevisiBasis,
   bersihkanBasisData,
   eksporPgnKoleksi,
   gabungkanPemain,
@@ -26,6 +27,15 @@ import {
 } from "../../basisData.js";
 
 /* ── Konstanta ─────────────────────────────────────────────────────── */
+
+/*
+ * Cache sesi ringkasan Database: daftar koleksi + statistik seluruh basis +
+ * statistik per koleksi. Disimpan bersama `revisi` basis data — setiap tulis
+ * (unduh akun di menu Akun, impor, hapus, gabung, bersihkan) menaikkan revisi,
+ * jadi cache ini otomatis basi saat data benar-benar berubah. Membuka popup
+ * lagi tanpa perubahan tidak perlu memindai ulang IndexedDB.
+ */
+let cacheRingkasan = null;
 
 const BARIS_PER_HALAMAN = 50;
 const JUMLAH_BARIS_SKELETON = 7;
@@ -232,6 +242,181 @@ function IkonSort({ aktif, arah }) {
   );
 }
 
+/* ── Dropdown Custom ─────────────────────────────────────────────── */
+
+/*
+ * Dropdown pilihan untuk toolbar. Pengganti <select> native: dropdown
+ * bawaan peramban digambar oleh OS dan warna sorotannya (biru) tidak bisa
+ * diganti CSS — makanya "gantung" sendiri. Panel ini milik kita sendiri:
+ * latar hitam-abu (#2a2a2a) dan sorotan/item terpilih warna HITAM.
+ */
+function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
+  const [terbuka, setTerbuka] = useState(false);
+  const wadahRef = useRef(null);
+
+  useEffect(() => {
+    if (!terbuka) return undefined;
+    function klikLuar(e) {
+      if (!wadahRef.current?.contains(e.target)) setTerbuka(false);
+    }
+    function tekanEsc(e) {
+      if (e.key === "Escape") setTerbuka(false);
+    }
+    document.addEventListener("mousedown", klikLuar);
+    document.addEventListener("keydown", tekanEsc);
+    return () => {
+      document.removeEventListener("mousedown", klikLuar);
+      document.removeEventListener("keydown", tekanEsc);
+    };
+  }, [terbuka]);
+
+  const aktif = opsi.find((o) => o.nilai === nilai) ?? opsi[0];
+
+  return (
+    <div ref={wadahRef} className="relative">
+      <button
+        type="button"
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={terbuka}
+        onClick={() => setTerbuka((b) => !b)}
+        className="flex cursor-pointer items-center justify-between gap-2 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted"
+      >
+        <span className="max-w-[220px] truncate">{aktif?.label ?? ""}</span>
+        <svg
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`shrink-0 text-foregroundGrey transition-transform ${terbuka ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {terbuka ? (
+        <ul
+          role="listbox"
+          className={`absolute top-full z-[1200] mt-1 w-max min-w-full max-w-[320px] overflow-y-auto rounded-borderRoundness border border-border bg-[#2a2a2a] py-1 shadow-2xl ${
+            sejajar === "kanan" ? "right-0" : "left-0"
+          }`}
+        >
+          {opsi.map((o) => {
+            const dipilih = o.nilai === nilai;
+            return (
+              <li key={o.nilai || "_default"}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={dipilih}
+                  onClick={() => {
+                    onPilih(o.nilai);
+                    setTerbuka(false);
+                  }}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-3 whitespace-nowrap px-3 py-1.5 text-left text-xs transition-colors hover:bg-black hover:text-white ${
+                    dipilih ? "bg-black font-semibold text-white" : "text-foreground"
+                  }`}
+                >
+                  <span className="truncate">{o.label}</span>
+                  {dipilih ? <IkonCheck className="h-3 w-3 shrink-0 text-foregroundHighlighted" /> : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Kartu rekap satu pemain untuk tab Pemain — bukan tabel, melainkan kartu
+ * bergaya daftar unduhan akun: nama pemain di atas, pasangan kotak
+ * hitam|putih di bawahnya, lalu ELO terakhir + jumlah partai di bawah nama.
+ * Tanpa kotak statistik di samping nama (hasil sudah tercatat di tabel
+ * partai). Ditekan untuk membuka beberapa partai terakhirnya.
+ */
+function PemainCard({ pemain, locale, t }) {
+  const [terbuka, setTerbuka] = useState(false);
+
+  return (
+    <div className="border border-border rounded-borderRoundness bg-backgroundBox">
+      <button
+        type="button"
+        onClick={() => setTerbuka((v) => !v)}
+        aria-expanded={terbuka}
+        className="w-full px-3.5 py-3 text-left cursor-pointer transition-colors hover:bg-backgroundBoxHover"
+      >
+        <div className="truncate text-sm font-semibold text-foreground">
+          {pemain.nama}
+        </div>
+
+        {/* hitam|putih di bawah nama — gaya kartu unduhan akun */}
+        <div className="mt-1.5 flex shrink-0 -space-x-1">
+          <span className="h-3 w-3 rounded-sm bg-evaluationBarBlack" />
+          <span className="h-3 w-3 rounded-sm border border-border bg-evaluationBarWhite" />
+        </div>
+
+        {/* ELO di bawah nama */}
+        <div className="mt-1.5 flex items-baseline gap-2 text-xs text-foregroundGrey">
+          <span className="font-mono text-foreground">
+            {pemain.elo > 0 ? pemain.elo : "—"}
+          </span>
+          <span>·</span>
+          <span className="tabular-nums">
+            {pemain.main} {t("analisa.basisData.jumlahMain")}
+          </span>
+        </div>
+        <div className="mt-0.5 text-xs text-foregroundGrey/75">
+          {t("analisa.basisData.terakhirMain")}: {formatTanggal(pemain.terakhir, locale) || "—"}
+        </div>
+      </button>
+
+      {terbuka ? (
+        <ul className="space-y-1 border-t border-border/50 px-3.5 py-2">
+          {pemain.partai.slice(0, 5).map((s) => {
+            const menangSaya =
+              (s.sisi === "putih" && s.result === "white") ||
+              (s.sisi === "hitam" && s.result === "black");
+            const seriSaya = s.result !== "white" && s.result !== "black";
+            return (
+              <li key={s.id} className="flex items-center gap-2 text-xs">
+                <span className="truncate text-foregroundGrey">
+                  {t("analisa.basisData.ringkasPartai", {
+                    hitam: s.blackName || "Hitam",
+                    putih: s.whiteName || "Putih",
+                    elo: s.elo > 0 ? `(${s.elo})` : "",
+                  })}
+                </span>
+                <span
+                  className={`ml-auto shrink-0 font-semibold ${
+                    menangSaya
+                      ? "text-winGreen"
+                      : seriSaya
+                        ? "text-foregroundGrey"
+                        : "text-lossRed"
+                  }`}
+                >
+                  {menangSaya
+                    ? t("analisa.basisData.menang")
+                    : seriSaya
+                      ? t("analisa.basisData.seri")
+                      : t("analisa.basisData.kalah")}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
 /* ── Utilitas Statistik Koleksi & Format Ukuran ───────────────────── */
 
 /** Format byte → "220 KB" / "7.36 MB" (gaya kartu En Croissant). */
@@ -239,7 +424,7 @@ function formatUkuran(byte) {
   const b = Number(byte) || 0;
   if (b <= 0) return "—";
   if (b < 1024) return `${b} B`;
-  if (b < 1024 * 1024) return `${(b / 1024).toFixed(b < 1024 * 10 ? 0 : 0)} KB`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(b < 1024 * 10 ? 0 : 1)} KB`;
   if (b < 1024 * 1024 * 1024) return `${(b / (1024 * 1024)).toFixed(2)} MB`;
   return `${(b / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
@@ -277,12 +462,10 @@ function BarisSkeleton() {
         <div className="flex h-5 flex-row items-center gap-1.5 text-[13px] leading-5">
           <span className="h-3 w-3 shrink-0 rounded-sm bg-evaluationBarWhite" />
           <span className="h-2.5 w-24 rounded-sm bg-foregroundGrey/15" />
-          <span className="h-2.5 w-8 rounded-sm bg-foregroundGrey/10" />
         </div>
         <div className="flex h-5 flex-row items-center gap-1.5 text-[13px] leading-5">
           <span className="h-3 w-3 shrink-0 rounded-sm bg-evaluationBarBlack" />
           <span className="h-2.5 w-20 rounded-sm bg-foregroundGrey/15" />
-          <span className="h-2.5 w-8 rounded-sm bg-foregroundGrey/10" />
         </div>
       </td>
 
@@ -291,6 +474,14 @@ function BarisSkeleton() {
         <div className="flex h-5 items-center gap-1.5">
           <span className="h-2.5 w-9 rounded-sm bg-foregroundGrey/15" />
           <span className="h-3.5 w-3.5 rounded-sm bg-foregroundGrey/10" />
+        </div>
+      </td>
+
+      {/* Event / Situs */}
+      <td className="py-2 px-2 whitespace-nowrap">
+        <div className="space-y-1.5">
+          <span className="block h-2.5 w-28 rounded-sm bg-foregroundGrey/15" />
+          <span className="block h-2 w-16 rounded-sm bg-foregroundGrey/10" />
         </div>
       </td>
 
@@ -307,14 +498,6 @@ function BarisSkeleton() {
         <span className="ml-auto block h-2.5 w-5 rounded-sm bg-foregroundGrey/15" />
       </td>
 
-      {/* Aksi — tombol senyap seperti baris biasa */}
-      <td className="py-2 pl-2 pr-4 text-right whitespace-nowrap">
-        <div className="flex items-center justify-end gap-1.5">
-          <span className="h-6 w-[110px] rounded bg-backgroundBoxBox" />
-          <span className="h-6 w-6 rounded border border-border bg-backgroundBoxBox" />
-          <span className="h-6 w-6 rounded border border-border bg-backgroundBoxBox" />
-        </div>
-      </td>
     </tr>
   );
 }
@@ -334,6 +517,13 @@ function HeaderTabel({ urut, ubahUrut, t }) {
       label: t("analisa.basisData.hasilTabel"),
       align: "text-left",
       padding: "py-2 px-2",
+    },
+    {
+      kunci: "eventSitus",
+      label: t("analisa.basisData.eventSitus"),
+      align: "text-left",
+      padding: "py-2 px-2",
+      tanpaSort: true,
     },
     {
       kunci: "tanggal",
@@ -357,19 +547,20 @@ function HeaderTabel({ urut, ubahUrut, t }) {
             key={k.kunci}
             className={`${k.padding} ${k.align} text-xs font-semibold uppercase tracking-wide text-foregroundGrey`}
           >
-            <button
-              type="button"
-              onClick={() => ubahUrut(k.kunci)}
-              className="inline-flex items-center hover:text-foregroundHighlighted transition-colors cursor-pointer"
-            >
-              {k.label}
-              <IkonSort aktif={urut.kolom === k.kunci} arah={urut.arah} />
-            </button>
+            {k.tanpaSort ? (
+              k.label
+            ) : (
+              <button
+                type="button"
+                onClick={() => ubahUrut(k.kunci)}
+                className="inline-flex items-center hover:text-foregroundHighlighted transition-colors cursor-pointer"
+              >
+                {k.label}
+                <IkonSort aktif={urut.kolom === k.kunci} arah={urut.arah} />
+              </button>
+            )}
           </th>
         ))}
-        <th className="py-2 pl-2 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-foregroundGrey">
-          {t("analisa.basisData.aksi")}
-        </th>
       </tr>
     </thead>
   );
@@ -377,12 +568,9 @@ function HeaderTabel({ urut, ubahUrut, t }) {
 
 /* ── Komponen Baris Data Partai ─────────────────────────────────────── */
 
-function BarisPartai({ game, locale, salinSuksesId, tanganiAnalisa, tanganiSalinPgn, tanganiHapusPartai, t }) {
+function BarisPartai({ game, locale, tanganiAnalisa }) {
   const whiteWon = game.result === "white";
   const blackWon = game.result === "black";
-  const eloPutih = Number(game.whiteElo) > 0 ? `(${game.whiteElo})` : "";
-  const eloHitam = Number(game.blackElo) > 0 ? `(${game.blackElo})` : "";
-  const isCopied = salinSuksesId === game.id;
 
   return (
     <tr
@@ -400,9 +588,6 @@ function BarisPartai({ game, locale, salinSuksesId, tanganiAnalisa, tanganiSalin
           <span className="truncate font-medium">
             {game.whiteName || "Putih"}
           </span>
-          <span className="text-foregroundGrey text-[11px] font-mono">
-            {eloPutih}
-          </span>
         </div>
         <div className="flex flex-row items-center gap-1.5 text-[13px] leading-5">
           <div
@@ -412,9 +597,6 @@ function BarisPartai({ game, locale, salinSuksesId, tanganiAnalisa, tanganiSalin
           />
           <span className="truncate font-medium">
             {game.blackName || "Hitam"}
-          </span>
-          <span className="text-foregroundGrey text-[11px] font-mono">
-            {eloHitam}
           </span>
         </div>
       </td>
@@ -435,6 +617,16 @@ function BarisPartai({ game, locale, salinSuksesId, tanganiAnalisa, tanganiSalin
         </div>
       </td>
 
+      {/* Event / Situs — menggantikan kolom Aksi; aksi utama (Analisa) tetap
+          ada lewat klik pada baris. Header metadata diangkat ke kolom DB
+          sehingga baris tetap ringan tanpa memuat PGN. */}
+      <td className="px-2 py-2 whitespace-nowrap text-xs text-foregroundGrey">
+        <div className="truncate">{game.event || "—"}</div>
+        <div className="truncate text-[10px] uppercase tracking-wider text-foregroundGrey/75">
+          {game.site || game.url || ""}
+        </div>
+      </td>
+
       {/* Tanggal */}
       <td className="py-2 px-2 whitespace-nowrap text-xs text-foregroundGrey">
         <div>{formatTanggal(game.timestamp, locale)}</div>
@@ -448,43 +640,6 @@ function BarisPartai({ game, locale, salinSuksesId, tanganiAnalisa, tanganiSalin
         {game.plyCount ?? "-"}
       </td>
 
-      {/* Aksi */}
-      <td className="py-2 pl-2 pr-4 text-right whitespace-nowrap">
-        <div
-          className="flex items-center justify-end gap-1.5"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            type="button"
-            onClick={() => tanganiAnalisa(game)}
-            title={t("analisa.basisData.analisaSekarang")}
-            className="inline-flex items-center gap-1 rounded bg-backgroundBoxBoxHighlighted px-2.5 py-1 text-[11px] font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
-          >
-            <IkonPlay className="h-2.5 w-2.5 fill-foregroundBlackDark shrink-0" />
-            <span>{t("analisa.basisData.analisaSekarang")}</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => tanganiSalinPgn(game)}
-            title={t("analisa.basisData.salinPgn")}
-            className="inline-flex items-center justify-center h-6 w-6 rounded border border-border bg-backgroundBoxBox text-foregroundGrey transition-colors hover:text-foregroundHighlighted hover:border-borderHighlighted cursor-pointer"
-          >
-            {isCopied ? (
-              <IkonCheck className="h-3 w-3 text-winGreen" />
-            ) : (
-              <IkonCopy className="h-3 w-3" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={(e) => tanganiHapusPartai(e, game)}
-            title={t("analisa.basisData.hapusPartai")}
-            className="inline-flex items-center justify-center h-6 w-6 rounded border border-border bg-backgroundBoxBox text-lossRed transition-colors hover:bg-backgroundBoxBoxHover hover:border-lossRed/50 cursor-pointer"
-          >
-            <IkonTrash className="h-3 w-3" />
-          </button>
-        </div>
-      </td>
     </tr>
   );
 }
@@ -528,6 +683,11 @@ export default function PopupDatabase({
   const [mergeA, setMergeA] = useState("");
   const [mergeB, setMergeB] = useState("");
 
+  /* Tab tampilan mode tabel: "partai" (default) | "pemain" | "event". */
+  const [tampilan, setTampilan] = useState("partai");
+  const [rekapPemain, setRekapPemain] = useState([]);
+  const [rekapEvent, setRekapEvent] = useState([]);
+
   /* Turunan */
   const totalHal = Math.max(1, Math.ceil(totalPartai / BARIS_PER_HALAMAN));
   const aktifHal = Math.min(hal, totalHal);
@@ -541,13 +701,36 @@ export default function PopupDatabase({
   /* ── Pemuat Data ───────────────────────────────────────────────── */
 
   async function muatMetadata() {
+    const revisi = bacaRevisiBasis();
+    if (cacheRingkasan?.revisi === revisi) {
+      setKoleksiList(cacheRingkasan.koleksi);
+      setStats(cacheRingkasan.stats);
+      setStatMap(cacheRingkasan.statMap);
+      return;
+    }
     try {
       const [semuaKoleksi, st] = await Promise.all([
         ambilSemuaKoleksi(),
         hitungStatistikBasisData(),
       ]);
+      // Statistik per koleksi (jumlah/pemain/event/ukuran) adalah bagian
+      // termahal — ia membaca PGN tiap partai — jadi dihitung sekaligus di
+      // sini dan ikut di-cache, bukan di efek terpisah yang mengulang tiap
+      // kali daftar koleksi berubah.
+      const map = {};
+      await Promise.all(
+        semuaKoleksi.map(async (k) => {
+          try {
+            map[k.id] = await hitungStatistikKoleksi(k.id);
+          } catch {
+            map[k.id] = null;
+          }
+        }),
+      );
+      cacheRingkasan = { revisi, koleksi: semuaKoleksi, stats: st, statMap: map };
       setKoleksiList(semuaKoleksi);
       setStats(st);
+      setStatMap(map);
     } catch {
       /* abaikan */
     }
@@ -604,30 +787,142 @@ export default function PopupDatabase({
     muatPartai();
   }, [koleksiTerpilih, cari, filterHasil, filterWaktu, urut, hal]);
 
+  /*
+   * Rekap pemain & event — dihitung lazily (hanya saat tab-nya dibuka) dan
+   * di-cache per (koleksi, revisi basis) agar berpindah tab tidak memindai
+   * ulang. Tab Pemain cukup membaca metadata (tanpa PGN); tab Event butuh
+   * header [Event] dari teks PGN — sama mahalnya dengan statistik koleksi
+   * yang sudah ada, dan hasilnya ikut cache revisi.
+   */
+  const rekapPemainCache = useRef({ revisi: -1, koleksi: null, daftar: [] });
+  useEffect(() => {
+    if (tampilan !== "pemain") return undefined;
+    let hidup = true;
+    const revisi = bacaRevisiBasis();
+    const cache = rekapPemainCache.current;
+    if (cache.koleksi === koleksiTerpilih && cache.revisi === revisi) {
+      setRekapPemain(cache.daftar);
+      return undefined;
+    }
+    (async () => {
+      try {
+        const hasil = await ambilDaftarPartai({
+          koleksiId: koleksiTerpilih || undefined,
+          limit: 0,
+          urut: "tanggal",
+          arah: "desc",
+          sertakanPgn: false, // metadata saja — murah
+        });
+        const peta = new Map();
+        const tambah = (nama, hasilMain, ts, p, sisi) => {
+          if (!nama) return;
+          const e =
+            peta.get(nama) ||
+            {
+              nama,
+              main: 0,
+              menang: 0,
+              seri: 0,
+              kalah: 0,
+              terakhir: 0,
+              putih: 0,
+              hitam: 0,
+              elo: 0,
+              partai: [],
+            };
+          e.main += 1;
+          e[hasilMain] += 1;
+          e[sisi] += 1;
+          if (ts > e.terakhir) e.terakhir = ts;
+          const elo = Number(sisi === "putih" ? p.whiteElo : p.blackElo) || 0;
+          if (ts >= e.terakhir && elo > 0) e.elo = elo;
+          // Metadata ringan per partai — untuk baris rincian kartu (tanpa PGN).
+          e.partai.push({
+            id: p.id,
+            whiteName: p.whiteName,
+            blackName: p.blackName,
+            elo,
+            result: p.result,
+            sisi,
+          });
+          peta.set(nama, e);
+        };
+        for (const p of hasil?.partai || []) {
+          const ts = p.timestamp || 0;
+          if (p.result === "white") {
+            tambah(p.whiteName, "menang", ts, p, "putih");
+            tambah(p.blackName, "kalah", ts, p, "hitam");
+          } else if (p.result === "black") {
+            tambah(p.whiteName, "kalah", ts, p, "putih");
+            tambah(p.blackName, "menang", ts, p, "hitam");
+          } else {
+            tambah(p.whiteName, "seri", ts, p, "putih");
+            tambah(p.blackName, "seri", ts, p, "hitam");
+          }
+        }
+        const daftar = Array.from(peta.values()).sort(
+          (a, b) => b.main - a.main || a.nama.localeCompare(b.nama),
+        );
+        rekapPemainCache.current = { revisi, koleksi: koleksiTerpilih, daftar };
+        if (hidup) setRekapPemain(daftar);
+      } catch {
+        if (hidup) setRekapPemain([]);
+      }
+    })();
+    return () => {
+      hidup = false;
+    };
+  }, [tampilan, koleksiTerpilih]);
+
+  const rekapEventCache = useRef({ revisi: -1, koleksi: null, daftar: [] });
+  useEffect(() => {
+    if (tampilan !== "event") return undefined;
+    let hidup = true;
+    const revisi = bacaRevisiBasis();
+    const cache = rekapEventCache.current;
+    if (cache.koleksi === koleksiTerpilih && cache.revisi === revisi) {
+      setRekapEvent(cache.daftar);
+      return undefined;
+    }
+    (async () => {
+      try {
+        const hasil = await ambilDaftarPartai({
+          koleksiId: koleksiTerpilih || undefined,
+          limit: 0,
+          urut: "tanggal",
+          arah: "desc",
+          sertakanPgn: true, // header [Event] hanya ada di teks PGN
+        });
+        const peta = new Map();
+        for (const p of hasil?.partai || []) {
+          const m = /\[Event\s+"([^"]*)"\]/.exec(p.pgn || "");
+          // PGN tanpa header [Event] dikelompokkan sebagai baris "—".
+          const nama = m?.[1]?.trim() || "—";
+          const e = peta.get(nama) || { nama, jumlah: 0, terakhir: 0 };
+          e.jumlah += 1;
+          if ((p.timestamp || 0) > e.terakhir) e.terakhir = p.timestamp || 0;
+          peta.set(nama, e);
+        }
+        const daftar = Array.from(peta.values()).sort(
+          (a, b) => b.jumlah - a.jumlah || a.nama.localeCompare(b.nama),
+        );
+        rekapEventCache.current = { revisi, koleksi: koleksiTerpilih, daftar };
+        if (hidup) setRekapEvent(daftar);
+      } catch {
+        if (hidup) setRekapEvent([]);
+      }
+    })();
+    return () => {
+      hidup = false;
+    };
+  }, [tampilan, koleksiTerpilih]);
+
   // Bila belum ada koleksi yang dipilih, pilih koleksi pertama otomatis.
   useEffect(() => {
     if (!koleksiTerpilih && koleksiList.length > 0) {
       setKoleksiTerpilih(koleksiList[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [koleksiList]);
-
-  // Hitung statistik (jumlah/pemain/event/ukuran) untuk semua koleksi sekaligus,
-  // lalu cache di `statMap` untuk kartu kiri & panel "Data".
-  useEffect(() => {
-    (async () => {
-      const map = {};
-      await Promise.all(
-        koleksiList.map(async (k) => {
-          try {
-            map[k.id] = await hitungStatistikKoleksi(k.id);
-          } catch {
-            map[k.id] = null;
-          }
-        }),
-      );
-      setStatMap(map);
-    })();
   }, [koleksiList]);
 
   /* ── Aksi / Handler ────────────────────────────────────────────── */
@@ -869,15 +1164,86 @@ export default function PopupDatabase({
 
   /* ── Render ────────────────────────────────────────────────────── */
 
+  const toolbarTabel =
+    mode === "tabel" ? (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2 min-w-0 flex-grow">
+          {/* Pemilih Koleksi */}
+          <DropdownPilih
+            ariaLabel={t("analisa.basisData.koleksi")}
+            nilai={koleksiTerpilih}
+            onPilih={setKoleksiTerpilih}
+            opsi={[
+              {
+                nilai: "",
+                label: `${t("analisa.basisData.semuaKoleksi")} (${stats?.totalPartai || 0})`,
+              },
+              ...koleksiList.map((k) => ({
+                nilai: k.id,
+                label: `${k.label} (${k.jumlahPartai})`,
+              })),
+            ]}
+          />
+
+          {/* Filter Hasil */}
+          <DropdownPilih
+            ariaLabel={t("analisa.basisData.filterHasil")}
+            nilai={filterHasil}
+            onPilih={setFilterHasil}
+            opsi={[
+              { nilai: "", label: t("analisa.basisData.semuaHasil") },
+              { nilai: "white", label: `${t("analisa.basisData.menang")} Putih` },
+              { nilai: "black", label: `${t("analisa.basisData.menang")} Hitam` },
+              { nilai: "draw", label: t("analisa.basisData.seri") },
+            ]}
+          />
+
+          {/* Filter Waktu — sejajar kanan agar tidak meluber keluar popup */}
+          <DropdownPilih
+            ariaLabel={t("analisa.basisData.filterWaktu")}
+            nilai={filterWaktu}
+            onPilih={setFilterWaktu}
+            sejajar="kanan"
+            opsi={[
+              { nilai: "", label: t("analisa.basisData.semuaWaktu") },
+              { nilai: "blitz", label: "Blitz" },
+              { nilai: "rapid", label: "Rapid" },
+              { nilai: "bullet", label: "Bullet" },
+              { nilai: "classical", label: "Klasik" },
+            ]}
+          />
+        </div>
+      </div>
+    ) : null;
+
   return (
     <Popup
-      judul={t("analisa.basisData.judul")}
+      judul={
+        mode === "tabel" ? (
+          <span className="flex min-w-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setMode("data")}
+              title={t("analisa.basisData.kembaliKeData")}
+              aria-label={t("analisa.basisData.kembaliKeData")}
+              className="grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
+            >
+              ←
+            </button>
+            <span className="min-w-0 truncate">
+              {koleksi?.label || t("analisa.basisData.judul")}
+            </span>
+          </span>
+        ) : (
+          t("analisa.basisData.judul")
+        )
+      }
       onTutup={onTutup}
       fullLayar
       lebarKiri={lebarKiri}
       className="max-w-none"
       bawahJudul={
-        stats && stats.totalPartai > 0 ? (
+        mode === "data" && stats && stats.totalPartai > 0 ? (
           <div className="flex flex-wrap items-center gap-2.5 text-xs text-foregroundGrey">
             <span className="font-bold text-foreground flex items-center gap-1.5">
               <Database
@@ -905,7 +1271,7 @@ export default function PopupDatabase({
           </div>
         ) : null
       }
-      headerKanan={null}
+      headerKanan={toolbarTabel}
     >
       <div className="flex flex-1 min-h-0 flex-col gap-3">
       {/* ── Toast Notifikasi ────────────────────────────────────── */}
@@ -926,8 +1292,12 @@ export default function PopupDatabase({
       )}
 
         <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
-          {/* ── Kolom Kiri: daftar profil / koleksi ───────────────── */}
-          <div className="flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0">
+          {/* ── Kolom Kiri: daftar profil / koleksi (sembunyi dalam mode tabel biar tabel full layar) ── */}
+          <div
+            className={`flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0 ${
+              mode === "tabel" ? "hidden" : ""
+            }`}
+          >
             {/* Pencarian koleksi */}
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
@@ -1036,19 +1406,7 @@ export default function PopupDatabase({
               </div>
             )}
 
-            <button
-              type="button"
-              onClick={() => {
-                onTutup();
-                onBukaAkun?.();
-              }}
-              title={t("analisa.akun.tambahBaru")}
-              className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
-            >
-              <IkonPlus className="h-4 w-4" />
-              <span>{t("analisa.akun.tambahBaru")}</span>
-            </button>
-          </div>
+            </div>
 
           {/* ── Kolom Kanan: Data / Tabel ─────────────────────────── */}
           <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
@@ -1184,131 +1542,52 @@ export default function PopupDatabase({
               </div>
             ) : (
               <>
-                <button
-                  type="button"
-                  onClick={() => setMode("data")}
-                  className="inline-flex w-fit items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
-                >
-                  <span aria-hidden="true">←</span>
-                  {t("analisa.basisData.kembaliKeData")}
-                </button>
-      {/* ── Bilah Kontrol / Filter ──────────────────────────────── */}
-      <div className="flex flex-col gap-2.5 pb-2.5 shrink-0">
-        {/* Baris 1: Koleksi + Filter + Aksi Global */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2 min-w-0 flex-grow">
-            {/* Pemilih Koleksi */}
-            <select
-              value={koleksiTerpilih}
-              onChange={(e) => setKoleksiTerpilih(e.target.value)}
-              aria-label={t("analisa.basisData.koleksi")}
-              className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs font-semibold text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted cursor-pointer"
-            >
-              <option value="">
-                {t("analisa.basisData.semuaKoleksi")} (
-                {stats?.totalPartai || 0})
-              </option>
-              {koleksiList.map((k) => (
-                <option key={k.id} value={k.id}>
-                  {k.label} ({k.jumlahPartai})
-                </option>
-              ))}
-            </select>
-
-            {/* Filter Hasil */}
-            <select
-              value={filterHasil}
-              onChange={(e) => setFilterHasil(e.target.value)}
-              aria-label={t("analisa.basisData.filterHasil")}
-              className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted cursor-pointer"
-            >
-              <option value="">
-                {t("analisa.basisData.semuaHasil")}
-              </option>
-              <option value="white">
-                {t("analisa.basisData.menang")} Putih
-              </option>
-              <option value="black">
-                {t("analisa.basisData.menang")} Hitam
-              </option>
-              <option value="draw">{t("analisa.basisData.seri")}</option>
-            </select>
-
-            {/* Filter Waktu */}
-            <select
-              value={filterWaktu}
-              onChange={(e) => setFilterWaktu(e.target.value)}
-              aria-label={t("analisa.basisData.filterWaktu")}
-              className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted cursor-pointer"
-            >
-              <option value="">
-                {t("analisa.basisData.semuaWaktu")}
-              </option>
-              <option value="blitz">Blitz</option>
-              <option value="rapid">Rapid</option>
-              <option value="bullet">Bullet</option>
-              <option value="classical">Klasik</option>
-            </select>
-          </div>
-
-          {/* Tombol Aksi Global */}
-          <div className="flex flex-wrap items-center gap-1.5">
+      {/* Toolbar tabel: tab tampilan (Partai/Pemain/Event) + pencarian kecil */}
+      <div className="flex flex-wrap items-center gap-2 pb-2.5 shrink-0">
+        <div
+          role="tablist"
+          aria-label={t("analisa.basisData.judul")}
+          className="flex shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-0.5"
+        >
+          {[
+            { k: "partai", label: t("analisa.basisData.dataGames") },
+            { k: "pemain", label: t("analisa.basisData.dataPlayers") },
+            { k: "event", label: t("analisa.basisData.dataEvents") },
+          ].map((tab) => (
             <button
+              key={tab.k}
               type="button"
-              onClick={tanganiEksporPgn}
-              title={t("analisa.basisData.eksporPgn")}
-              className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
+              role="tab"
+              aria-selected={tampilan === tab.k}
+              onClick={() => setTampilan(tab.k)}
+              className={`cursor-pointer rounded-borderRoundness px-3 py-1 text-xs font-bold transition-colors ${
+                tampilan === tab.k
+                  ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark"
+                  : "text-foregroundGrey hover:text-foregroundHighlighted"
+              }`}
             >
-              <IkonDownload className="h-3.5 w-3.5 shrink-0" />
-              <span>{t("analisa.basisData.eksporPgn")}</span>
+              {tab.label}
             </button>
-            <button
-              type="button"
-              onClick={() => setModalImpor(true)}
-              title={t("analisa.basisData.imporPgn")}
-              className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
-            >
-              <IkonPlus className="h-3.5 w-3.5 shrink-0" />
-              <span>{t("analisa.basisData.imporPgn")}</span>
-            </button>
-            {koleksiTerpilih ? (
-              <button
-                type="button"
-                onClick={tanganiHapusKoleksi}
-                title={t("analisa.basisData.hapusKoleksi")}
-                className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer"
-              >
-                <IkonTrash className="h-3.5 w-3.5 shrink-0" />
-                <span>{t("analisa.basisData.hapusKoleksi")}</span>
-              </button>
-            ) : totalPartai > 0 ? (
-              <button
-                type="button"
-                onClick={tanganiKosongkanSemua}
-                title={t("analisa.basisData.hapusSemua")}
-                className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer"
-              >
-                <IkonTrash className="h-3.5 w-3.5 shrink-0" />
-                <span>{t("analisa.basisData.hapusSemua")}</span>
-              </button>
-            ) : null}
-          </div>
+          ))}
         </div>
 
-        {/* Baris 2: Kolom Pencarian */}
-        <div className="relative">
-          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
-            <IkonSearch className="h-4 w-4" />
+        {/* Pencarian diperkecil — hanya berlaku untuk tab Partai (isinya
+            menyaring nama pemain & isi PGN, bukan daftar pemain/event). */}
+        {tampilan === "partai" ? (
+          <div className="relative w-56">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
+              <IkonSearch className="h-4 w-4" />
+            </div>
+            <input
+              type="search"
+              value={cari}
+              onChange={(e) => setCari(e.target.value)}
+              placeholder={t("analisa.basisData.cariPlaceholder")}
+              aria-label={t("analisa.basisData.cariPlaceholder")}
+              className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+            />
           </div>
-          <input
-            type="search"
-            value={cari}
-            onChange={(e) => setCari(e.target.value)}
-            placeholder={t("analisa.basisData.cariPlaceholder")}
-            aria-label={t("analisa.basisData.cariPlaceholder")}
-            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
-          />
-        </div>
+        ) : null}
       </div>
 
       {/* ── Modal Impor PGN ─────────────────────────────────────── */}
@@ -1349,15 +1628,21 @@ export default function PopupDatabase({
         </div>
       )}
 
+      {tampilan === "partai" ? (
+        <>
       {/* ── Tabel Permainan ─────────────────────────────────────── */}
-      <div className="relative w-full flex-1 min-h-0 overflow-y-scroll overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
+      {/* Tanpa flex-1: kotak mengikuti jumlah baris — kalau barisnya sedikit,
+          paginasi langsung nempel di bawah tabel (tidak ada ruang kosong
+          jauh di tengah). Kalau barisnya banyak, kotak menyusut sampai
+          tinggi layar lalu scroll, jadi ruangnya tetap terpakai penuh. */}
+      <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
         <table className="w-full min-w-[760px] table-fixed border-collapse text-sm">
           <colgroup>
             <col style={{ width: "38%" }} />
             <col style={{ width: "14%" }} />
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "10%" }} />
             <col style={{ width: "22%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "8%" }} />
           </colgroup>
 
           <HeaderTabel urut={urut} ubahUrut={ubahUrut} t={t} />
@@ -1372,11 +1657,7 @@ export default function PopupDatabase({
                     key={game.id || i}
                     game={game}
                     locale={locale}
-                    salinSuksesId={salinSuksesId}
                     tanganiAnalisa={tanganiAnalisa}
-                    tanganiSalinPgn={tanganiSalinPgn}
-                    tanganiHapusPartai={tanganiHapusPartai}
-                    t={t}
                   />
                 ))}
           </tbody>
@@ -1412,7 +1693,9 @@ export default function PopupDatabase({
       </div>
 
       {/* ── Navigasi Paginasi ───────────────────────────────────── */}
-      <div className="mt-auto min-h-[32px] shrink-0 pt-3">
+      {/* Nempel langsung di bawah kotak tabel (tanpa mt-auto) — jaraknya
+          cukup dari gap-3 kolom induk, tidak ada lompatan ke dasar popup. */}
+      <div className="shrink-0">
         {totalHal > 1 ? (
           <div className="flex items-center justify-between gap-2 text-xs">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -1422,9 +1705,6 @@ export default function PopupDatabase({
                   total: totalHal,
                 })}{" "}
                 ({totalPartai} partai)
-              </span>
-              <span className="text-foregroundGrey">
-                {t("analisa.basisData.subjudul")}
               </span>
             </div>
 <div className="flex items-center gap-2">
@@ -1463,6 +1743,52 @@ export default function PopupDatabase({
           </div>
         ) : null}
       </div>
+        </>
+      ) : tampilan === "pemain" ? (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {rekapPemain.length === 0 ? (
+            <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
+              {t("analisa.partai.tidakAda")}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {rekapPemain.map((e) => (
+                <PemainCard key={e.nama} pemain={e} locale={locale} t={t} />
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          {rekapEvent.length === 0 ? (
+            <div className="px-3 py-10 text-center text-sm text-foregroundGrey">
+              {t("analisa.partai.tidakAda")}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {rekapEvent.map((e) => (
+                <div
+                  key={e.nama}
+                  className="rounded-borderRoundness border border-border bg-backgroundBox px-3.5 py-3"
+                >
+                  <div className="truncate text-sm font-semibold text-foreground">
+                    {e.nama}
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-baseline gap-x-2 text-xs text-foregroundGrey">
+                    <span className="tabular-nums">
+                      {e.jumlah} {t("analisa.basisData.dataGames")}
+                    </span>
+                    <span>·</span>
+                    <span>
+                      {t("analisa.basisData.terakhirMain")}: {formatTanggal(e.terakhir, locale) || "—"}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
               </>
             )}
           </div>

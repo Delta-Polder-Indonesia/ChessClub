@@ -26,6 +26,7 @@ import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import PopupAkun from "./popupAkun.jsx";
+import PopupAkunLayar from "./popupAkunLayar.jsx";
 import { bacaDaftarAkun, tambahKeDaftar } from "../../akun/daftarAkun.js";
 import PopupDatabase from "./popupDatabase.jsx";
 import PopupImpor from "./popupImpor.jsx";
@@ -154,12 +155,14 @@ const menuPop = [
     "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer";
 
   function tambahAkun(platform, nama) {
-    // Kembali ke keadaan formulir dulu, lalu tampilkan statistik akun itu.
-    // Akun juga dicatat ke daftar (kolom kiri layar akun) agar selalu tampil.
+    // Kembali ke keadaan papan dulu, lalu buka layar akun full layar (sama
+    // seperti popup Database) supaya statistik akun barunya langsung tampil.
     setData({ format: "fen", string: "" });
     tambahKeDaftar({ platform, username: nama });
     setAkun({ platform, username: nama });
-    setTerbuka(null);
+    setPlaying(false);
+    setPageState("default");
+    setTerbuka("akunLayar");
   }
 
   function imporPartai(data) {
@@ -169,11 +172,12 @@ const menuPop = [
   }
 
   /**
-   * Menu "Akun" — membuka LAYAR AKUN (daftar + statistik dua kolom) bila sudah
-   * ada akun tersimpan, bukan selalu modal "Tambah akun". Ini meniru perilaku
-   * menu Accounts pada En Croissant (halaman /accounts yang persisten): sekali
-   * akun didaftarkan & datanya ditarik, kembali ke "Akun" tetap menampilkan
-   * daftar + statistik yang sama — tidak reset ke formulir tambah.
+   * Menu "Akun" — membuka LAYAR AKUN (daftar + statistik dua kolom) dalam
+   * popup FULL LAYAR seukuran popup Database, bukan modal "Tambah akun".
+   * Ini meniru perilaku menu Accounts pada En Croissant (halaman /accounts
+   * yang persisten): sekali akun didaftarkan & datanya ditarik, kembali ke
+   * "Akun" tetap menampilkan daftar + statistik yang sama — tidak reset ke
+   * formulir tambah.
    */
   function bukaAkun() {
     setKonfirmasiBaru(false);
@@ -184,9 +188,8 @@ const menuPop = [
       setTerbuka("akun");
       return;
     }
-    // Ada akun tersimpan → tampilkan layar akun; pilih akun pertama bila belum
-    // ada yang aktif, sehingga statistiknya langsung tampil.
-    setTerbuka(null);
+    // Ada akun tersimpan → kembali ke keadaan papan dulu, pilih akun pertama
+    // bila belum ada yang aktif, lalu buka layar akun full layar.
     setData({ format: "fen", string: "" });
     if (!aktif?.username) {
       const pertama = daftar[0] || aktif;
@@ -194,6 +197,7 @@ const menuPop = [
     }
     setPlaying(false);
     setPageState("default");
+    setTerbuka("akunLayar");
   }
 
   /**
@@ -322,7 +326,10 @@ const menuPop = [
         </div>
       </div>
       {terbuka === "akun" ? (
-        <PopupAkun onTutup={() => setTerbuka(null)} onTambah={tambahAkun} lebarKiri={lebarNav} />
+        <PopupAkun onTutup={() => setTerbuka(null)} onTambah={tambahAkun} />
+      ) : null}
+      {terbuka === "akunLayar" ? (
+        <PopupAkunLayar onTutup={() => setTerbuka(null)} lebarKiri={lebarNav} />
       ) : null}
       {terbuka === "database" ? (
         <PopupDatabase
