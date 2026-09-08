@@ -53,6 +53,28 @@ Deletion, irreversible data changes, history rewriting, mass replacement, and ch
 
 A task is complete only when the requested change is implemented and the relevant validation has been run or its limitation is clearly reported.
 
+## Protokol pikir-dulu (wajib sebelum setiap aksi)
+
+1. **Pahami** — rumuskan tujuan dalam satu kalimat; temukan berkas yang tepat dengan mencari, bukan menebak.
+2. **Baca sebelum menulis** — buka setiap berkas yang akan diubah (beserta pemanggil/ujiannya) sebelum menyunting.
+   Dilarang mengedit berdasarkan asumsi tentang isi berkas.
+3. **Rencanakan** — untuk perubahan non-trivial, sampaikan rencana 2–4 kalimat (berkas, pendekatan, cara verifikasi)
+   sebelum mengeksekusi. Keraguan yang mengubah cakupan → tanya dulu (lihat "Analysis before action").
+4. **Eksekusi terkecil** — diff seminimal mungkin yang memenuhi permintaan; tanpa perbaikan ikutan di luar cakupan.
+5. **Verifikasi** — jalankan pemeriksaan minimum yang relevan (lihat skill `kci-pengujian`); jangan klaim berhasil
+   tanpa bukti (perintah yang dijalankan dan hasilnya).
+6. **Laporkan faktual** — apa yang berubah, apa yang diverifikasi, apa yang tersisa. Tanpa basa-basi,
+   tanpa pujian diri, tanpa janji berlebih.
+
+## Gaya keluaran (anti "AI slop")
+
+- **Tanpa emoji** — di kode, UI/copy halaman, commit message, maupun dokumen. Emoji bukan bagian desain KCI.
+- Setiap kalimat membawa informasi; tanpa kalimat pengisi ("Great question!", "Semoga membantu!", pujian kosong).
+- UI mengikuti bahasa desain di skill `kci-frontend`: flat, satu aksen, border tipis, copy faktual —
+  bukan gradien, glow, atau kartu berlebihan.
+- Ketidakpastian dinyatakan eksplisit ("belum diverifikasi", "perlu konfirmasi") — jangan mengarang fakta,
+  versi, atau nama berkas.
+
 ## Skill proyek (SKILL.md)
 
 Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/skills/`
