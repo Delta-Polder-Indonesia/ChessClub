@@ -81,6 +81,10 @@ import {
   hapusKodeEbook,
   tebusUnduhanEbook,
   daftarUnduhanEbook,
+  mintaKodeEbook,
+  daftarMintaEbook,
+  terbitkanKodeDariMinta,
+  tolakMintaEbook,
 } from "./ebook.js";
 import {
   kirimPesan,
@@ -962,6 +966,17 @@ export function daftarkanRute(router, { mulaiPada }) {
     { batas: 12 }
   );
 
+  // Ajukan kode akses dari popup unduh (publik). Kuota lebih ketat karena
+  // ini pintu masuk spam — sama seperti formulir pesan.
+  router.post(
+    "/api/ebook/minta",
+    async (req) => {
+      const bodi = await bacaBodi(req);
+      return { status: 201, isi: await mintaKodeEbook(bodi) };
+    },
+    { batas: 5 }
+  );
+
   router.get("/api/pengurus/ebook/kode", async (req) => {
     pastikanAdmin(req);
     return { status: 200, isi: await daftarKodeEbook() };
@@ -992,5 +1007,31 @@ export function daftarkanRute(router, { mulaiPada }) {
   router.get("/api/pengurus/ebook/unduhan", async (req) => {
     pastikanAdmin(req);
     return { status: 200, isi: await daftarUnduhanEbook() };
+  });
+
+  router.get("/api/pengurus/ebook/minta", async (req) => {
+    pastikanAdmin(req);
+    return { status: 200, isi: await daftarMintaEbook() };
+  });
+
+  // Setujui permintaan -> kode 1 jam langsung terbit atas nama pengaju.
+  router.post("/api/pengurus/ebook/minta/:id/terbitkan", async (req, param) => {
+    pastikanAdmin(req);
+    const kode = await terbitkanKodeDariMinta(param.id);
+    await logAudit("ebook-kode-buat", {
+      resourceId: `${kode.panggilan}:${kode.kode}`,
+      status: "success",
+    });
+    return { status: 201, isi: kode };
+  });
+
+  router.post("/api/pengurus/ebook/minta/:id/tolak", async (req, param) => {
+    pastikanAdmin(req);
+    const hasil = await tolakMintaEbook(param.id);
+    await logAudit("ebook-minta-tolak", {
+      resourceId: param.id,
+      status: "success",
+    });
+    return { status: 200, isi: hasil };
   });
 }

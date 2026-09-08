@@ -20,6 +20,7 @@ import { GalatAplikasi } from "./keanggotaan.js";
 
 const repoKode = buatRepo(`${konfigurasi.dirData}/kode-ebook.json`, []);
 const repoUnduhan = buatRepo(`${konfigurasi.dirData}/unduhan-ebook.json`, []);
+const repoMinta = buatRepo(`${konfigurasi.dirData}/minta-ebook.json`, []);
 
 /** Masa berlaku kode — tetap 1 jam sesuai kebijakan perpustakaan. */
 const UMUR_KODE_MS = 60 * 60 * 1000;
@@ -27,6 +28,8 @@ const UMUR_KODE_MS = 60 * 60 * 1000;
 const UMUR_SIMPAN_KODE_MS = 7 * 24 * 60 * 60 * 1000;
 /** Jejak unduhan disimpan maksimal sebanyak ini. */
 const MAKS_UNDUHAN = 1000;
+/** Daftar permintaan kode dipangkas ke sebanyak ini (terbaru dipakai). */
+const MAKS_MINTA = 500;
 
 const BATAS = {
   nama: 80,
@@ -93,6 +96,130 @@ export async function buatKodeEbook({ panggilan, catatan } = {}) {
     hasil: baru,
   }));
   return baru;
+}
+
+/* ------------------------------------------------- permintaan kode */
+
+/**
+ * Pengunjung mengajukan kode lewat popup unduh: nama asli + akun Chess.com.
+ * Satu akun hanya boleh punya SATU permintaan yang sedang menunggu, agar
+ * admin tidak dibanjiri pengajuan ganda dari orang yang sama.
+ */
+export async function mintaKodeEbook({ nama, akunChess, bukuId, judul } = {}) {
+  const namaBersih = String(nama || "").trim();
+  if (!namaBersih) {
+    throw new GalatAplikasi(400, "Nama asli wajib diisi.");
+  }
+  if (namaBersih.length > BATAS.nama) {
+    throw new GalatAplikasi(400, `Nama maksimal ${BATAS.nama} karakter.`);
+  }
+  const akun = String(akunChess || "").trim().toLowerCase();
+  if (!AKUN_RE.test(akun)) {
+    throw new GalatAplikasi(
+      400,
+      "Akun Chess.com tidak valid (3-25 karakter: huruf, angka, _ atau -)."
+    );
+  }
+
+  const baru = {
+    id: idBaru(),
+    waktu: new Date().toISOString(),
+    nama: namaBersih,
+    akunChess: akun,
+    bukuId: String(bukuId || "").trim().slice(0, BATAS.bukuId) || null,
+    judul: String(judul || "").trim().slice(0, BATAS.judul) || null,
+    status: "menunggu",
+    kode: null,
+    diputus: null,
+  };
+
+  await repoMinta.ubah((semua) => {
+    if (semua.some((m) => m.status === "menunggu" && m.akunChess === akun)) {
+      throw new GalatAplikasi(
+        409,
+        "Permintaanmu sudah tercatat dan sedang menunggu pengurus. Tunggu kode dikirimkan, jangan mengirim ulang."
+      );
+    }
+    return {
+      data: [baru, ...semua].slice(0, MAKS_MINTA),
+      hasil: baru,
+    };
+  });
+  return baru;
+}
+
+/** Daftar permintaan untuk dashboard pengurus (terbaru di depan). */
+export async function daftarMintaEbook() {
+  return repoMinta.baca();
+}
+
+/**
+ * Setujui permintaan: terbitkan kode 1 jam atas nama pengaju.
+ * Nama pengaju dipakai sebagai panggilan pada kode, sehingga di tabel
+ * kode maupun jejak unduhan admin tetap mengenali orangnya.
+ */
+export async function terbitkanKodeDariMinta(id) {
+  let kodeBaru = null;
+  await repoMinta.ubah((semua) => {
+    const indeks = semua.findIndex((m) => m.id === id);
+    if (indeks < 0) {
+      throw new GalatAplikasi(404, "Permintaan tidak ditemukan.");
+    }
+    const target = semua[indeks];
+    if (target.status !== "menunggu") {
+      throw new GalatAplikasi(
+        409,
+        `Permintaan ini sudah diproses (status: ${target.status}).`
+      );
+    }
+    const kini = new Date().toISOString();
+    kodeBaru = {
+      kode: bikinKode(),
+      panggilan: target.nama,
+      catatan: `permintaan @${target.akunChess}`,
+      dibuat: kini,
+      kedaluwarsa: new Date(Date.now() + UMUR_KODE_MS).toISOString(),
+      terakhirDipakai: null,
+      jumlahUnduhan: 0,
+    };
+    const sisa = [...semua];
+    sisa[indeks] = {
+      ...target,
+      status: "diterbitkan",
+      kode: kodeBaru.kode,
+      diputus: kini,
+    };
+    return { data: sisa, hasil: kodeBaru };
+  });
+
+  await repoKode.ubah((semua) => ({
+    data: [kodeBaru, ...basmi(semua, Date.now())],
+    hasil: kodeBaru,
+  }));
+  return kodeBaru;
+}
+
+/** Tolak permintaan — mis. pengaju bukan anggota atau nama tidak jelas. */
+export async function tolakMintaEbook(id) {
+  let hasil = null;
+  await repoMinta.ubah((semua) => {
+    const indeks = semua.findIndex((m) => m.id === id);
+    if (indeks < 0) {
+      throw new GalatAplikasi(404, "Permintaan tidak ditemukan.");
+    }
+    if (semua[indeks].status !== "menunggu") {
+      throw new GalatAplikasi(409, "Permintaan ini sudah diproses.");
+    }
+    const sisa = [...semua];
+    sisa[indeks] = {
+      ...semua[indeks],
+      status: "ditolak",
+      diputus: new Date().toISOString(),
+    };
+    hasil = sisa[indeks];
+    return { data: sisa, hasil };
+  });
+  return hasil;
 }
 
 /** Daftar kode untuk dashboard pengurus (terbaru di depan). */

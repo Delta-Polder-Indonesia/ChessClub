@@ -16,9 +16,15 @@ import path from "node:path";
 process.env.KCI_DIR_DATA = fs.mkdtempSync(path.join(os.tmpdir(), "kci-ebook-"));
 
 const tanda = `uji-${Date.now()}-${Math.random()}`;
-const { buatKodeEbook, tebusUnduhanEbook, daftarKodeEbook } = await import(
-  `../src/ebook.js?${tanda}`
-);
+const {
+  buatKodeEbook,
+  tebusUnduhanEbook,
+  daftarKodeEbook,
+  mintaKodeEbook,
+  daftarMintaEbook,
+  terbitkanKodeDariMinta,
+  tolakMintaEbook,
+} = await import(`../src/ebook.js?${tanda}`);
 
 let lulus = 0;
 let gagal = 0;
@@ -85,6 +91,46 @@ cek(
   "kode lewat 7 hari terbasmi otomatis",
   sesudahBasmi.length === 1 && sesudahBasmi[0].panggilan === "Citra",
   JSON.stringify(sesudahBasmi.map((k) => k.panggilan))
+);
+
+// Alur permintaan kode dari pengunjung.
+await mintaKodeEbook({
+  nama: "Budi Santoso",
+  akunChess: "BudiChess99",
+  bukuId: "sicilian-defense",
+  judul: "Sicilian Defense",
+});
+const daftarMinta = await daftarMintaEbook();
+cek("permintaan tercatat menunggu", daftarMinta[0]?.status === "menunggu" && daftarMinta[0]?.akunChess === "budichess99");
+
+cek(
+  "permintaan ganda akun yang sama ditolak 409",
+  await harapGagal(
+    mintaKodeEbook({ nama: "Budi lagi", akunChess: "budichess99" }),
+    409
+  )
+);
+
+const kodeMinta = await terbitkanKodeDariMinta(daftarMinta[0].id);
+cek("setujui permintaan menerbitkan kode", /^EBK-[A-Z2-9]{8}$/.test(kodeMinta?.kode || ""));
+cek("kode permintaan berumur 1 jam", Math.abs(new Date(kodeMinta.kedaluwarsa) - new Date(kodeMinta.dibuat) - 3600_000) < 5000);
+cek("kode permintaan masuk daftar kode", (await daftarKodeEbook()).some((k) => k.kode === kodeMinta.kode && k.panggilan === "Budi Santoso"));
+cek(
+  "permintaan yang sudah diproses tak bisa disetujui ulang",
+  await harapGagal(terbitkanKodeDariMinta(daftarMinta[0].id), 409)
+);
+
+await mintaKodeEbook({ nama: "Citra Dewi", akunChess: "citrachess" });
+const daftarMintaDua = await daftarMintaEbook();
+const ditolak = await tolakMintaEbook(daftarMintaDua[0].id);
+cek("tolak permintaan mengubah status", ditolak?.status === "ditolak");
+cek(
+  "permintaan yang sudah ditolak tak bisa ditolak ulang",
+  await harapGagal(tolakMintaEbook(daftarMintaDua[0].id), 409)
+);
+cek(
+  "permintaan tak dikenal -> 404 saat disetujui",
+  await harapGagal(terbitkanKodeDariMinta("tidak-ada"), 404)
 );
 
 // Validasi masukan.

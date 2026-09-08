@@ -33,6 +33,8 @@ function sisaMenit(isoKedaluwarsa, kini) {
 export default function PanelEbook({ beriTahu }) {
   const [kode, setKode] = useState([]);
   const [unduhan, setUnduhan] = useState([]);
+  const [minta, setMinta] = useState([]);
+  const [cariMinta, setCariMinta] = useState("");
   const [memuat, setMemuat] = useState(true);
   const [panggilan, setPanggilan] = useState("");
   const [catatan, setCatatan] = useState("");
@@ -44,12 +46,14 @@ export default function PanelEbook({ beriTahu }) {
   const muat = useCallback(async () => {
     setMemuat(true);
     try {
-      const [daftarKode, jejak] = await Promise.all([
+      const [daftarKode, jejak, pengajuan] = await Promise.all([
         apiPengurus("/ebook/kode"),
         apiPengurus("/ebook/unduhan"),
+        apiPengurus("/ebook/minta"),
       ]);
       setKode(Array.isArray(daftarKode) ? daftarKode : []);
       setUnduhan(Array.isArray(jejak) ? jejak : []);
+      setMinta(Array.isArray(pengajuan) ? pengajuan : []);
     } catch (e) {
       beriTahu(e.message, "galat");
     } finally {
@@ -110,6 +114,35 @@ export default function PanelEbook({ beriTahu }) {
     }
   }
 
+  async function setujui(m) {
+    setSibuk(true);
+    try {
+      const kodeHasil = await apiPengurus(`/ebook/minta/${m.id}/terbitkan`, {
+        metode: "POST",
+      });
+      setKodeBaru(kodeHasil);
+      beriTahu(`Kode ${kodeHasil.kode} terbit untuk ${kodeHasil.panggilan} — sampaikan lewat WA/grup.`);
+      await muat();
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    } finally {
+      setSibuk(false);
+    }
+  }
+
+  async function tolak(m) {
+    setSibuk(true);
+    try {
+      await apiPengurus(`/ebook/minta/${m.id}/tolak`, { metode: "POST" });
+      beriTahu(`Permintaan ${m.nama} ditolak.`);
+      await muat();
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    } finally {
+      setSibuk(false);
+    }
+  }
+
   function salin(kodeTeks) {
     navigator.clipboard?.writeText(kodeTeks).then(
       () => beriTahu(`Kode ${kodeTeks} disalin.`),
@@ -125,8 +158,9 @@ export default function PanelEbook({ beriTahu }) {
       <div className="border-b border-slate-200 pb-5">
         <h2 className="text-lg font-semibold text-slate-900">Kode E-Book</h2>
         <p className="mt-0.5 text-sm text-slate-500">
-          Gerbang unduh e-book model perpustakaan: {aktif.length} kode aktif,{" "}
-          {unduhan.length} unduhan tercatat
+          Gerbang unduh e-book model perpustakaan: {minta.filter((m) => m.status === "menunggu").length}{" "}
+          permintaan menunggu, {aktif.length} kode aktif, {unduhan.length}{" "}
+          unduhan tercatat
         </p>
       </div>
 
@@ -181,6 +215,119 @@ export default function PanelEbook({ beriTahu }) {
           <Tombol kecil onClick={() => setKodeBaru(null)}>Tutup</Tombol>
         </div>
       )}
+
+      {/* ── Permintaan kode ────────────────────────────────── */}
+      <div className="rounded border border-slate-200 bg-white">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 px-4 py-3">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">Permintaan kode</h3>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Orang yang mengajukan lewat popup unduh. Cari namanya, lalu
+              terbitkan kodenya dan kirimkan lewat WA/grup.
+            </p>
+          </div>
+          <input
+            type="search"
+            value={cariMinta}
+            onChange={(e) => setCariMinta(e.target.value)}
+            placeholder="Cari nama / akun…"
+            aria-label="Cari permintaan"
+            className="w-56 rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          />
+        </div>
+        {!memuat && minta.length === 0 ? (
+          <p className="px-4 py-8 text-center text-sm text-slate-500">
+            Belum ada permintaan kode.
+          </p>
+        ) : (
+          <div className="overflow-auto">
+            <table className="tabel-kci">
+              <thead>
+                <tr>
+                  <th>Waktu</th>
+                  <th>Nama asli</th>
+                  <th>Akun Chess.com</th>
+                  <th>Ingin mengunduh</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {minta
+                  .filter((m) => {
+                    const kunci = cariMinta.trim().toLowerCase();
+                    if (!kunci) return true;
+                    return (
+                      m.nama?.toLowerCase().includes(kunci) ||
+                      m.akunChess?.toLowerCase().includes(kunci)
+                    );
+                  })
+                  .map((m, i) => (
+                    <tr key={m.id || i} className={i % 2 === 1 ? "bg-slate-50" : ""}>
+                      <td className="whitespace-nowrap text-xs">{formatWaktu(m.waktu)}</td>
+                      <td className="font-medium text-slate-900">{m.nama}</td>
+                      <td>
+                        <a
+                          href={`https://www.chess.com/member/${encodeURIComponent(m.akunChess || "")}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          @{m.akunChess}
+                        </a>
+                      </td>
+                      <td className="max-w-[200px] truncate text-xs text-slate-500" title={m.judul || ""}>
+                        {m.judul || "—"}
+                      </td>
+                      <td>
+                        {m.status === "menunggu" ? (
+                          <span className="inline-flex rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                            Menunggu
+                          </span>
+                        ) : m.status === "diterbitkan" ? (
+                          <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                            Diterbitkan
+                            <span className="font-mono font-bold">{m.kode}</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                            Ditolak
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {m.status === "menunggu" ? (
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              disabled={sibuk}
+                              onClick={() => setujui(m)}
+                              className="text-xs font-semibold text-emerald-700 hover:underline disabled:opacity-40"
+                            >
+                              Terbitkan kode
+                            </button>
+                            <button
+                              type="button"
+                              disabled={sibuk}
+                              onClick={() => tolak(m)}
+                              className="text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
+                            >
+                              Tolak
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-xs text-slate-400">
+                            {formatWaktu(m.diputus)}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       {/* ── Tabel kode ─────────────────────────────────────── */}
       <div className="rounded border border-slate-200 bg-white">

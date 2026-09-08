@@ -43,3 +43,43 @@ export async function tebusUnduhanEbook(data) {
   }
   return hasil;
 }
+
+/**
+ * Ajukan permintaan kode akses ke pengurus (publik).
+ * Pengurus melihat pengajuannya di dashboard lalu menerbitkan kode yang
+ * dikirimkan lewat jalur lain (mis. grup WhatsApp).
+ */
+export async function ajukanMintaEbook(data) {
+  const kirim = async (csrfToken) => {
+    const res = await fetch(urlApi("/api/ebook/minta"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      body: JSON.stringify(data),
+    });
+    const hasil = await res.json().catch(() => ({}));
+    return { res, hasil };
+  };
+
+  let csrfToken = await ambilCsrfToken();
+  let { res, hasil } = await kirim(csrfToken);
+
+  if (res.status === 403 && /csrf/i.test(hasil.pesan || "")) {
+    try {
+      sessionStorage.removeItem("kci-csrf-token");
+      csrfToken = await ambilCsrfToken();
+      ({ res, hasil } = await kirim(csrfToken));
+    } catch {
+      /* token baru gagal diambil, lanjut ke cek res di bawah */
+    }
+  }
+
+  if (!res.ok) {
+    throw new GalatApi(hasil.pesan || "Permintaan tidak bisa dikirim.", {
+      status: res.status,
+    });
+  }
+  return hasil;
+}

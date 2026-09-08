@@ -1098,6 +1098,69 @@ console.log("\nValidasi pesan publik");
   const hapusAsing = await panggil("POST", "/api/pengurus/ebook/kode/hapus", { kode: "EBK-ZZZZZZZZ" });
   cek("cabut kode tak dikenal -> 404", hapusAsing.status === 404, `dapat ${hapusAsing.status}`);
 
+  // -- alur permintaan kode dari pengunjung --
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const ajukan = await panggil("POST", "/api/ebook/minta", {
+    nama: "Budi Santoso",
+    akunChess: "BudiChess99",
+    bukuId: "sicilian-defense",
+    judul: "Sicilian Defense",
+  });
+  cek("ajukan permintaan kode -> 201", ajukan.status === 201, `dapat ${ajukan.status}: ${JSON.stringify(ajukan.data)}`);
+  cek("permintaan berstatus menunggu", ajukan.data?.status === "menunggu");
+
+  const ajukanGanda = await panggil("POST", "/api/ebook/minta", {
+    nama: "Budi Santoso", akunChess: "budichess99", bukuId: "x", judul: "y",
+  });
+  cek("permintaan ganda saat menunggu -> 409", ajukanGanda.status === 409, `dapat ${ajukanGanda.status}`);
+
+  const ajukanKosong = await panggil("POST", "/api/ebook/minta", { nama: "", akunChess: "budi" });
+  cek("permintaan tanpa nama -> 400", ajukanKosong.status === 400, `dapat ${ajukanKosong.status}`);
+
+  const daftarMinta = await panggil("GET", "/api/pengurus/ebook/minta");
+  const pengajuan = Array.isArray(daftarMinta.data)
+    ? daftarMinta.data.find((m) => m.akunChess === "budichess99")
+    : null;
+  cek("permintaan tampak di daftar pengurus", pengajuan?.status === "menunggu" && pengajuan.judul === "Sicilian Defense", JSON.stringify(pengajuan));
+
+  const terbitkanDariMinta = await panggil("POST", `/api/pengurus/ebook/minta/${pengajuan?.id}/terbitkan`);
+  cek("setujui permintaan -> kode terbit 201", terbitkanDariMinta.status === 201 && /^EBK-[A-Z2-9]{8}$/.test(terbitkanDariMinta.data?.kode || ""), `dapat ${terbitkanDariMinta.status}`);
+  cek("kode permintaan memakai nama pengaju", terbitkanDariMinta.data?.panggilan === "Budi Santoso", JSON.stringify(terbitkanDariMinta.data));
+  cek("kode permintaan berumur 1 jam", Math.abs(new Date(terbitkanDariMinta.data?.kedaluwarsa) - new Date(terbitkanDariMinta.data?.dibuat) - 3600_000) < 5000);
+
+  const terbitkanUlang = await panggil("POST", `/api/pengurus/ebook/minta/${pengajuan?.id}/terbitkan`);
+  cek("setujui permintaan yang sudah diproses -> 409", terbitkanUlang.status === 409, `dapat ${terbitkanUlang.status}`);
+
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const tebusDariMinta = await panggil("POST", "/api/ebook/tebus", {
+    kode: terbitkanDariMinta.data?.kode,
+    nama: "Budi Santoso",
+    akunChess: "budichess99",
+    bukuId: "sicilian-defense",
+    judul: "Sicilian Defense",
+  });
+  cek("kode dari permintaan bisa ditebus -> 201", tebusDariMinta.status === 201, `dapat ${tebusDariMinta.status}`);
+
+  // Permintaan kedua dari akun lain, lalu ditolak.
+  const ajukanDua = await panggil("POST", "/api/ebook/minta", {
+    nama: "Citra Dewi", akunChess: "CitraChess", bukuId: "x", judul: "y",
+  });
+  cek("permintaan kedua -> 201", ajukanDua.status === 201, `dapat ${ajukanDua.status}`);
+  const tolak = await panggil("POST", `/api/pengurus/ebook/minta/${ajukanDua.data?.id}/tolak`);
+  cek("tolak permintaan -> 200", tolak.status === 200 && tolak.data?.status === "ditolak", `dapat ${tolak.status}`);
+  const tolakUlang = await panggil("POST", `/api/pengurus/ebook/minta/${ajukanDua.data?.id}/tolak`);
+  cek("tolak permintaan yang sudah diproses -> 409", tolakUlang.status === 409, `dapat ${tolakUlang.status}`);
+
+  // Setelah permintaan selesai, akun yang sama boleh mengajukan lagi.
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const ajukanLagi = await panggil("POST", "/api/ebook/minta", {
+    nama: "Budi Santoso", akunChess: "budichess99", bukuId: "x", judul: "y",
+  });
+  cek("ajukan ulang setelah diproses -> 201", ajukanLagi.status === 201, `dapat ${ajukanLagi.status}`);
+
   ipSaatIni = ipBaru();
 }
 
