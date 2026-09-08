@@ -37,6 +37,8 @@ export const nav = {
     pengurus: "Board",
     strukturOrganisasiCatur: "Organization Structure",
     tekaTeki: "Chess Puzzles",
+    tekaTekiRush: "Puzzle Rush",
+    quizCatur: "Chess Quiz",
     pembukaan: "Openings",
     eBookPanduan: "E-Books & Guides",
     turnamenBulanan: "Monthly Tournament",

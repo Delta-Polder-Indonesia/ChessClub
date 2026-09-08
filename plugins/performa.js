@@ -18,6 +18,8 @@ export const RUTE_PUBLIK = [
   "/program-kami/atribusi",
   "/program-kami/pembukaan",
   "/teka-teki",
+  "/teka-teki-rush",
+  "/quiz-catur",
   "/papan-interaktif",
   "/turnamen",
   "/turnamen/turnamen-bulanan",

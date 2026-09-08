@@ -58,6 +58,18 @@ export const MENU_UTAMA = [
         file: "TekaTekiKonten.jsx",
       },
       {
+        title: "nav.tekaTekiRush",
+        path: "/teka-teki-rush",
+        folder: "TekaTekiRush",
+        file: "TekaTekiRush.jsx",
+      },
+      {
+        title: "nav.quizCatur",
+        path: "/quiz-catur",
+        folder: "QuizCatur",
+        file: "QuizCatur.jsx",
+      },
+      {
         title: "nav.analisa",
         path: "/program-kami/analisa",
         folder: "Analisa",

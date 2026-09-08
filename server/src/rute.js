@@ -70,6 +70,12 @@ import {
   ringkasanKonten,
 } from "./konten.js";
 import {
+  bacaSemuaRekor,
+  susunPeringkat,
+  catatRekorRush,
+  anggotaTerdafatar,
+} from "./rekor-rush.js";
+import {
   kirimPesan,
   daftarPesan,
   tandaiDibaca,
@@ -99,6 +105,8 @@ import { FilterAuditSchema } from "./skema.js";
 import { VERSI_API_KANONIK } from "./jalur-api.js";
 import { kesehatanSupabase } from "./storage-supabase.js";
 
+// Kirim skor Rush dibatasi lebih ketat daripada batas umum (anti-spam).
+const BATAS_REKOR_RUSH = 30;
 const CACHE_PUBLIK = "public, max-age=60";
 const CACHE_ANGGOTA = "public, max-age=300, stale-while-revalidate=86400";
 /** Snapshot tua tetap boleh dipakai, tetapi jangan disimpan lama di CDN. */
@@ -170,6 +178,56 @@ export function daftarkanRute(router, { mulaiPada }) {
       return { status: 201, isi: anggota };
     },
     { batas: konfigurasi.batas.maksDaftar }
+  );
+
+  /* --------------------------------------------- papan peringkat Rush */
+  /** Peringkat "Rush Teka-teki" untuk satu durasi (bawaan 5 menit). */
+  router.get("/api/rekor-rush", async (req) => {
+    const url = new URL(req.url || "", "http://x");
+    const durasi = Number(url.searchParams.get("durasi") || 5);
+    const daftar = await bacaSemuaRekor();
+    return {
+      status: 200,
+      isi: { durasi, peringkat: susunPeringkat(daftar, durasi) },
+      cache: "no-store",
+    };
+  });
+
+  /**
+   * Catat skor Rush — hanya untuk username anggota klub yang terdaftar.
+   * CSRF dipastikan otomatis untuk semua POST (lihat permintaan.js).
+   */
+  router.post(
+    "/api/rekor-rush",
+    async (req) => {
+      const bodi = await bacaBodi(req);
+      const username = bodi?.username;
+      const skor = Number(bodi?.skor);
+      const durasiMenit = Number(bodi?.durasiMenit);
+      const anggota = await anggotaTerdafatar(username);
+      if (!anggota) {
+        return {
+          status: 403,
+          isi: {
+            pesan:
+              "Hanya anggota klub terdaftar yang bisa mencatat skor Rush.",
+          },
+        };
+      }
+      if (!Number.isFinite(skor) || skor < 0) {
+        return { status: 400, isi: { pesan: "Skor tidak sah." } };
+      }
+      if (durasiMenit !== 3 && durasiMenit !== 5) {
+        return { status: 400, isi: { pesan: "Durasi harus 3 atau 5 menit." } };
+      }
+      const { hasil, peringkat } = await catatRekorRush({
+        username,
+        skor,
+        durasiMenit,
+      });
+      return { status: hasil.baru ? 201 : 200, isi: { hasil, peringkat } };
+    },
+    { batas: BATAS_REKOR_RUSH }
   );
 
   /* ------------------------------------------------- verifikasi akun Chess.com */
