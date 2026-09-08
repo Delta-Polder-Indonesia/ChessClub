@@ -84,6 +84,14 @@ import {
 } from "./tekaTeki.js";
 
 import {
+  tekaTekiRush,
+} from "./tekaTekiRush.js";
+
+import {
+  quiz,
+} from "./quiz.js";
+
+import {
   papan,
 } from "./papan.js";
 
@@ -134,6 +142,8 @@ export const ID = {
   strukturOrganisasiCatur,
   landing,
   tekaTeki,
+  tekaTekiRush,
+  quiz,
   papan,
   analisa,
 };

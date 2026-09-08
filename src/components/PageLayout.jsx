@@ -8,6 +8,8 @@ import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
 const TANPA_KERANGKA = new Set([
   "/program-kami/analisa",
   "/teka-teki",
+  "/teka-teki-rush",
+  "/quiz-catur",
   "/papan-interaktif",
 ]);
 

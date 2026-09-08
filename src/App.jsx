@@ -54,6 +54,12 @@ const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum
 // Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 
+// Rush Teka-teki (mode berjangka ala PuzzleDash) — memakai data & papan yang sama.
+const TekaTekiRush = lazy(() => import("./halaman/TekaTekiRush/TekaTekiRush.jsx"));
+
+// Kuis Catur — pilihan ganda trivia, soal di halaman/QuizCatur/daftar.js.
+const QuizCatur = lazy(() => import("./halaman/QuizCatur/QuizCatur.jsx"));
+
 // Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0) — layout full layar.
 const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanInteraktif.jsx"));
 
@@ -107,6 +113,8 @@ const RUTE_HALAMAN = [
   ["/program-kami/ebook-panduan", EbookPanduan],
 
   ["/teka-teki", TekaTeki],
+  ["/teka-teki-rush", TekaTekiRush],
+  ["/quiz-catur", QuizCatur],
   ["/papan-interaktif", PapanInteraktif],
 
   ["/turnamen", Turnamen],

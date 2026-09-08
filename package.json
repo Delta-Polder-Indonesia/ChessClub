@@ -12,6 +12,8 @@
     "preview": "vite preview",
     "uji": "npm run uji:rute && npm run uji:i18n && npm run uji:komentator && npm run uji:analisa && npm run uji:analisa-ui && npm run uji:suara && npm run uji:basisdata && npm run uji:lencana-skakmat && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema && node scripts/uji-ebook.mjs && node scripts/uji-ebook-pembaca.mjs && node scripts/uji-nama-pembukaan.mjs && node scripts/uji-artikel-wikipedia.mjs",
     "uji:skema": "node server/uji/uji-skema.mjs",
+    "uji:rekor-rush": "node server/uji/uji-rekor-rush.mjs",
+    "uji:quiz": "node scripts/uji-quiz.mjs",
     "uji:ebook": "node scripts/uji-ebook.mjs && node scripts/uji-ebook-pembaca.mjs",
     "uji:artikel": "node scripts/uji-artikel-wikipedia.mjs",
     "uji:nama-pembukaan": "node scripts/uji-nama-pembukaan.mjs",
