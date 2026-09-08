@@ -29,7 +29,7 @@
     "uji:basisdata": "node scripts/uji-basisdata.mjs",
     "gambar:optimum": "node scripts/optimumkan-gambar.mjs",
     "gambar:kualitas": "node scripts/naikkan-kualitas-gambar.mjs",
-    "uji:backend": "node server/uji/uji-backend.mjs",
+    "uji:backend": "node server/uji/uji-backend.mjs && node server/uji/uji-ebook.mjs",
     "uji:verifikasi": "node server/uji/uji-verifikasi.mjs",
     "uji:konfigurasi-keamanan": "node server/uji/uji-konfigurasi-keamanan.mjs",
     "uji:supabase": "node scripts/uji-supabase.mjs",

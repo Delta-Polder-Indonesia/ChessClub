@@ -7,6 +7,7 @@ import { sumberEbook, sumberGambar, urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
 import FiturEbook from "./FiturEbook.jsx";
+import ModalUnduhEbook from "./ModalUnduhEbook.jsx";
 
 /**
  * Halaman E-Book & Panduan (di bawah menu Program Kami)
@@ -72,7 +73,7 @@ function IkonUnduh() {
  * + judul berlapis gradasi, sisi belakang = info & tombol aksi. Flip lewat
  * hover/fokus di desktop dan lewat klik/ketuk di perangkat sentuh.
  */
-function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
+function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh }) {
   return (
     <article
       id={buku.id}
@@ -144,14 +145,16 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
                 >
                   <IkonBaca /> Baca
                 </button>
-                <a
-                  href={urlEbook(buku.file, { unduh: true })}
-                  download
-                  onClick={(e) => e.stopPropagation()}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    padaUnduh();
+                  }}
                   className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
                 >
                   <IkonUnduh /> Unduh
-                </a>
+                </button>
               </div>
             ) : (
               <span className="rounded border border-dashed border-slate-300 px-3 py-1.5 text-[11px] font-medium text-slate-400">
@@ -168,6 +171,8 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca }) {
 export default function EbookPanduan() {
   const { t } = useI18n();
   const [pdfAktif, setPdfAktif] = useState(null);
+  // Buku yang sedang melewati gerbang unduh (popup kode akses).
+  const [unduhan, setUnduhan] = useState(null);
   // Jumlah halaman sebenarnya baru diketahui setelah PDF terbuka; data statis
   // di ebook-data.js sering hanya berisi "-".
   const [halamanPdf, setHalamanPdf] = useState(0);
@@ -195,13 +200,14 @@ export default function EbookPanduan() {
     return DAFTAR_EBOOK.filter((b) => b.kategori === kategoriAktif);
   }, [kategoriAktif]);
 
-  // Kunci body scroll saat modal terbuka
+  // Kunci body scroll saat modal terbuka. Esc menutup lapisan paling atas
+  // lebih dulu: popup unduh, baru pembaca PDF.
   useEffect(() => {
-    if (pdfAktif) {
+    if (pdfAktif || unduhan) {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       const onEsc = (e) => {
-        if (e.key === "Escape") setPdfAktif(null);
+        if (e.key === "Escape" && !unduhan) setPdfAktif(null);
       };
       window.addEventListener("keydown", onEsc);
       return () => {
@@ -209,7 +215,7 @@ export default function EbookPanduan() {
         window.removeEventListener("keydown", onEsc);
       };
     }
-  }, [pdfAktif]);
+  }, [pdfAktif, unduhan]);
 
   // Bila dibuka dari laman lain dengan ?buku=<id>, gulir ke kartu e-book
   // terkait dan sorot sebentar agar pengguna tahu posisinya.
@@ -313,6 +319,7 @@ export default function EbookPanduan() {
                   setHalamanPdf(0);
                   setPdfAktif(buku);
                 }}
+                padaUnduh={() => setUnduhan(buku)}
               />
             ))}
           </div>
@@ -336,14 +343,14 @@ export default function EbookPanduan() {
                 </div>
     
                 <div className="flex items-center gap-2">
-                  <a
-                    href={urlEbook(pdfAktif.file, { unduh: true })}
-                    download
+                  <button
+                    type="button"
+                    onClick={() => setUnduhan(pdfAktif)}
                     className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     <IkonUnduh />
                     <span className="hidden sm:inline">Unduh</span>
-                  </a>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setPdfAktif(null)}
@@ -378,6 +385,10 @@ export default function EbookPanduan() {
                 </div>
               </div>
             </div>
+          )}
+
+          {unduhan && (
+            <ModalUnduhEbook buku={unduhan} onTutup={() => setUnduhan(null)} />
           )}
         </div>
       </section>

@@ -22,4 +22,5 @@ export * from "./pengurus.js";
 export * from "./turnamen.js";
 export * from "./konten.js";
 export * from "./pesan.js";
+export * from "./ebook.js";
 export * from "./rekorRush.js";
