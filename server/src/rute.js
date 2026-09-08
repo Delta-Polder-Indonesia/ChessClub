@@ -76,6 +76,13 @@ import {
   anggotaTerdafatar,
 } from "./rekor-rush.js";
 import {
+  buatKodeEbook,
+  daftarKodeEbook,
+  hapusKodeEbook,
+  tebusUnduhanEbook,
+  daftarUnduhanEbook,
+} from "./ebook.js";
+import {
   kirimPesan,
   daftarPesan,
   tandaiDibaca,
@@ -940,5 +947,50 @@ export function daftarkanRute(router, { mulaiPada }) {
     pastikanAdmin(req);
     await hapusPesan(param.id);
     return { status: 200, isi: { pesan: "Pesan dihapus." } };
+  });
+
+  /* ------------------------------------------------------- e-book */
+
+  // Tebus kode akses untuk membuka unduhan e-book. Publik, tapi dibatasi
+  // lajunya karena isi kode bisa ditebak bruteforce bila tanpa batas.
+  router.post(
+    "/api/ebook/tebus",
+    async (req) => {
+      const bodi = await bacaBodi(req);
+      return { status: 201, isi: await tebusUnduhanEbook(bodi) };
+    },
+    { batas: 12 }
+  );
+
+  router.get("/api/pengurus/ebook/kode", async (req) => {
+    pastikanAdmin(req);
+    return { status: 200, isi: await daftarKodeEbook() };
+  });
+
+  router.post("/api/pengurus/ebook/kode", async (req) => {
+    pastikanAdmin(req);
+    const bodi = await bacaBodi(req);
+    const kode = await buatKodeEbook(bodi);
+    await logAudit("ebook-kode-buat", {
+      resourceId: `${kode.panggilan}:${kode.kode}`,
+      status: "success",
+    });
+    return { status: 201, isi: kode };
+  });
+
+  router.post("/api/pengurus/ebook/kode/hapus", async (req) => {
+    pastikanAdmin(req);
+    const bodi = await bacaBodi(req);
+    await hapusKodeEbook(bodi?.kode);
+    await logAudit("ebook-kode-hapus", {
+      resourceId: String(bodi?.kode || ""),
+      status: "success",
+    });
+    return { status: 200, isi: { pesan: "Kode akses dihapus." } };
+  });
+
+  router.get("/api/pengurus/ebook/unduhan", async (req) => {
+    pastikanAdmin(req);
+    return { status: 200, isi: await daftarUnduhanEbook() };
   });
 }

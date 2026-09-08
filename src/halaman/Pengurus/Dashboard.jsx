@@ -10,6 +10,7 @@ import {
 } from "../../lib/api/index.js";
 import PanelTurnamen from "./PanelTurnamen.jsx";
 import PanelJuara from "./PanelJuara.jsx";
+import PanelEbook from "./PanelEbook.jsx";
 import { PanelBerita, PanelPengumuman } from "./PanelKonten.jsx";
 import PanelAnggota from "./Anggota.jsx";
 import PanelLarangan from "./Larangan.jsx";
@@ -340,6 +341,7 @@ export default function Dashboard() {
           {tab === "berita" && <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "juara" && <PanelJuara beriTahu={beriTahu} />}
+          {tab === "ebook" && <PanelEbook beriTahu={beriTahu} />}
           {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} anggota={anggota} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
         </main>
       </div>

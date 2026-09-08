@@ -1024,6 +1024,83 @@ console.log("\nValidasi pesan publik");
   ipSaatIni = ipBaru();
 }
 
+
+/* ------------------------------------------------------------- e-book */
+{
+  console.log("\n-- E-book: gerbang unduh model perpustakaan --");
+
+  // Tebus kode yang tidak dikenal -> 404 dengan pesan jelas.
+  ipSaatIni = ipBaru();
+  const tebusAsing = await panggil("POST", "/api/ebook/tebus", {
+    kode: "EBK-XXXXXXXX",
+    nama: "Budi Santoso",
+    akunChess: "budichess99",
+    bukuId: "sicilian-defense",
+    judul: "Sicilian Defense",
+  });
+  cek("tebus kode tak dikenal -> 404", tebusAsing.status === 404, `dapat ${tebusAsing.status}`);
+
+  // Pengurus menerbitkan kode atas nama panggilan.
+  const terbit = await panggil("POST", "/api/pengurus/ebook/kode", { panggilan: "Budi", catatan: "uji integrasi" });
+  cek("terbitkan kode e-book -> 201", terbit.status === 201, `dapat ${terbit.status}: ${JSON.stringify(terbit.data)}`);
+  const kodeUji = terbit.data?.kode || "";
+  cek("kode berformat EBK-XXXXXXXX", /^EBK-[A-Z2-9]{8}$/.test(kodeUji), `kode: ${kodeUji}`);
+
+  const umurMs = new Date(terbit.data?.kedaluwarsa).getTime() - new Date(terbit.data?.dibuat).getTime();
+  cek("masa berlaku 1 jam", Math.abs(umurMs - 3600_000) < 5000, `umur ${umurMs} ms`);
+
+  // Data tebus yang tidak lengkap ditolak.
+  ipSaatIni = ipBaru();
+  const tebusKosong = await panggil("POST", "/api/ebook/tebus", { kode: kodeUji, nama: "", akunChess: "budi" });
+  cek("tebus tanpa nama -> 400", tebusKosong.status === 400, `dapat ${tebusKosong.status}`);
+
+  const akunBuruk = await panggil("POST", "/api/ebook/tebus", {
+    kode: kodeUji, nama: "Budi", akunChess: "a", bukuId: "x", judul: "y",
+  });
+  cek("tebus akun chess.com tidak valid -> 400", akunBuruk.status === 400, `dapat ${akunBuruk.status}`);
+
+  // Tebus sah -> 201 dan panggilan ikut dari kode.
+  ipSaatIni = ipBaru();
+  const tebus = await panggil("POST", "/api/ebook/tebus", {
+    kode: kodeUji.toLowerCase(),
+    nama: "Budi Santoso",
+    akunChess: "BudiChess99",
+    bukuId: "sicilian-defense",
+    judul: "Sicilian Defense",
+  });
+  cek("tebus kode sah -> 201", tebus.status === 201, `dapat ${tebus.status}: ${JSON.stringify(tebus.data)}`);
+  cek("catatan tebus membawa panggilan peminjam", tebus.data?.panggilan === "Budi");
+  cek("akun chess.com dinormalisasi huruf kecil", tebus.data?.akunChess === "budichess99");
+
+  // Jejak unduhan terbaca oleh pengurus.
+  const jejak = await panggil("GET", "/api/pengurus/ebook/unduhan");
+  cek("jejak unduhan tercatat", jejak.status === 200 && Array.isArray(jejak.data) && jejak.data.some((u) => u.kode === kodeUji && u.nama === "Budi Santoso"), `dapat ${jejak.status}`);
+
+  // Kuota pemakaian kode tercatat pada daftar kode.
+  const daftarKode = await panggil("GET", "/api/pengurus/ebook/kode");
+  const entriKode = Array.isArray(daftarKode.data) ? daftarKode.data.find((k) => k.kode === kodeUji) : null;
+  cek("daftar kode memuat pemakaian", entriKode?.jumlahUnduhan === 1 && entriKode.panggilan === "Budi", JSON.stringify(entriKode));
+
+  // Endpoint pengurus menolak token salah.
+  const tokenSalah = await panggil("GET", "/api/pengurus/ebook/kode", null, { "X-Token-Admin": "bukan-token" });
+  cek("daftar kode dengan token salah -> 401", tokenSalah.status === 401, `dapat ${tokenSalah.status}`);
+
+  // Kode yang dicabut tak bisa ditebus lagi.
+  const cabut = await panggil("POST", "/api/pengurus/ebook/kode/hapus", { kode: kodeUji });
+  cek("cabut kode -> 200", cabut.status === 200, `dapat ${cabut.status}`);
+  ipSaatIni = ipBaru();
+  const tebusMatu = await panggil("POST", "/api/ebook/tebus", {
+    kode: kodeUji, nama: "Budi Santoso", akunChess: "budichess99", bukuId: "x", judul: "y",
+  });
+  cek("tebus kode yang dicabut -> 404", tebusMatu.status === 404, `dapat ${tebusMatu.status}`);
+
+  // Hapus kode yang tidak ada -> 404.
+  const hapusAsing = await panggil("POST", "/api/pengurus/ebook/kode/hapus", { kode: "EBK-ZZZZZZZZ" });
+  cek("cabut kode tak dikenal -> 404", hapusAsing.status === 404, `dapat ${hapusAsing.status}`);
+
+  ipSaatIni = ipBaru();
+}
+
 /* ------------------------------------------------------------ ringkasan */
 console.log(`\n${"=".repeat(52)}`);
 console.log(`  ${lulus} lulus, ${gagal} gagal, ${dilewati} dilewati`);
