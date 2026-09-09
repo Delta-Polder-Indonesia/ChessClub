@@ -12,20 +12,16 @@ const __dirname = resolve(fileURLToPath(import.meta.url), "..");
 
 const TARGET_API = process.env.KCI_API_URL || "http://localhost:8787";
 
-const BASE_PUBLIC =
-  process.env.VITE_BASE_PUBLIC ||
-  (process.env.NODE_ENV === "production" ? "/ChessClub/" : "/");
+const BASE_PUBLIC = process.env.VITE_BASE_PUBLIC || "/";
 
 function alamatSitus() {
   const nyaris =
     process.env.VITE_SITE_URL ||
-    (process.env.VERCEL
-      ? process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL
-      : "");
+    (process.env.VERCEL ? process.env.VERCEL_PROJECT_PRODUCTION_URL : "");
   const baku = (alamat) => (alamat.endsWith("/") ? alamat : `${alamat}/`);
   if (nyaris) return baku(nyaris.startsWith("http") ? nyaris : `https://${nyaris}`);
   return process.env.NODE_ENV === "production"
-    ? "https://delta-polder-indonesia.github.io/ChessClub/"
+    ? "https://chess-club-weld.vercel.app/"
     : "http://localhost:5173/";
 }
 
@@ -33,6 +29,9 @@ const SITE_URL = alamatSitus();
 
 export default defineConfig({
   base: BASE_PUBLIC,
+  define: {
+    "import.meta.env.VITE_SITE_URL": JSON.stringify(SITE_URL),
+  },
   // Pre-bundle SEMUA dependensi runtime sejak server dev start. Tanpa ini,
   // dependensi yang baru pertama kali ditemukan (mis. dari rute/komponen
   // yang dimuat lazy) membuat Vite meng-optimasi ulang dependensi DI TENGAH
@@ -129,7 +128,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    performaHalaman(),
+    performaHalaman({ siteUrl: SITE_URL }),
     // Pratinjau e-book: /api/ebook-preview harus dilayani lokal (bukan
     // diteruskan ke backend Node), persis seperti function di Vercel.
     pratinjauEbook({ akar: __dirname }),

@@ -30,7 +30,7 @@ lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` dan `VERCEL-LIMITATIONS.md` di akar repo.
 invocation. Agar anggota, turnamen, pesan, dan admin awet, aktifkan
 **Supabase** (jalankan `db/supabase-schema.sql`, isi `SUPABASE_URL` +
 `SUPABASE_SERVICE_ROLE_KEY`; lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` Bagian 9),
-atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / disk Render.
+atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / storage eksternal.
 
 ## Endpoint
 
@@ -196,4 +196,4 @@ node server/uji/uji-verifikasi.mjs      # OAuth/PKCE/JWT + jalur kode profil (30
 ```
 
 Untuk menguji terhadap server yang sudah berjalan (mis. staging), tempelkan
-lewat `KCI_DASAR`, mis. `KCI_DASAR=https://kci-api.onrender.com node server/uji/uji-backend.mjs`.
+lewat `KCI_DASAR`, mis. `KCI_DASAR=https://chess-club-weld.vercel.app node server/uji/uji-backend.mjs`.

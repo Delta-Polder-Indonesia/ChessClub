@@ -1,7 +1,6 @@
 # Panduan FULL VERCEL — Frontend + Backend Aktif dalam Satu Proyek
 
-> Backend tidak perlu Render untuk mode ini. Seluruh aplikasi berjalan dalam
-> **satu proyek Vercel**:
+> Seluruh aplikasi berjalan dalam **satu proyek Vercel**:
 >
 > ```text
 > Browser ──> Vercel
@@ -54,7 +53,7 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    | `KCI_PEPPER`         | hasil generate langkah 1           | **WAJIB**  | Minimal 16 karakter, jangan diganti setelah ada data                       |
    | `KCI_ADMIN_USER`     | `admin` atau username pilihan      | disarankan | Username login dashboard `/pengurus`                                       |
    | `KCI_ADMIN_PASSWORD` | password kuat langkah 1            | **WAJIB**  | Server produksi menolak bawaan `admin123`                                  |
-   | `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` | **WAJIB**  | Tambahkan domain kustom juga bila ada, pisahkan koma, tanpa trailing slash |
+   | `KCI_ASAL_DIIZINKAN` | `https://chess-club-weld.vercel.app` | **WAJIB**  | Tambahkan domain kustom juga bila ada, pisahkan koma, tanpa trailing slash |
    | `KCI_TOKEN_ADMIN`    | token legacy langkah 1             | opsional   | Hanya bila ingin kompatibilitas token lama                                 |
    | `KCI_LOG_PERMINTAAN` | `1`                                | disarankan | Log ringkas tanpa body/token/IP                                            |
    | `KCI_CHESS_KLUB`     | `blunder-skuad`                    | opsional   | Bawaan sudah benar                                                         |
@@ -62,22 +61,19 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    Untuk domain kustom, contoh:
 
    ```text
-   KCI_ASAL_DIIZINKAN=https://nama-proyek.vercel.app,https://komunitasmu.id
+   KCI_ASAL_DIIZINKAN=https://chess-club-weld.vercel.app,https://komunitasmu.id
    ```
 
-   > **Alamat kanonik (SEO).** `MetaHalaman`, `sitemap.xml`, `robots.txt`, dan
+   > **Alamat kanonikal (SEO).** `MetaHalaman`, `sitemap.xml`, `robots.txt`, dan
    > `llms.txt` memakai satu alamat situs. Build mencarinya berurutan:
-   > `VITE_SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` → `VERCEL_URL` →
-   > default `https://delta-polder-indonesia.github.io/ChessClub/`. Di Vercel
-   > dua variabel pertama sudah diisi sendiri, jadi tidak perlu diatur; kalau
-   > suatu saat memakai domain kustom, set `VITE_SITE_URL=https://komunitasmu.id`
-   > supaya canonical tidak menunjuk host lama. Tanpa itu Lighthouse SEO
-   > menandai deploy Vercel sebagai duplikat GitHub Pages.
+   > `VITE_SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` →
+   > default `https://chess-club-weld.vercel.app/`. Set `VITE_SITE_URL` secara
+   > eksplisit bila domain Vercel kustom digunakan.
 
    **Jangan isi `VITE_API_DASAR` untuk FULL VERCEL.** Biarkan kosong/tidak ada
    agar frontend memanggil `/api/...` di domain Vercel yang sama. Jika variabel
-   ini masih berisi URL Render lama, dashboard akan mencoba login ke backend
-   lama dan bisa gagal.
+   ini masih berisi URL backend lama, dashboard akan mencoba login ke endpoint
+   yang tidak lagi dipakai dan bisa gagal.
 
 4. Tekan **Deploy** dan tunggu selesai. Jika mengubah Environment Variables
    setelah deploy pertama, buka tab **Deployments** → pilih deployment terbaru
@@ -107,7 +103,7 @@ vercel --prod
 Ganti domain di bawah dengan domain Vercel milikmu.
 
 ```bash
-DOMAIN=https://nama-proyek.vercel.app
+DOMAIN=https://chess-club-weld.vercel.app
 ADMIN_USER=admin
 ADMIN_PASSWORD='isi-password-KCI_ADMIN_PASSWORD'
 
@@ -139,7 +135,7 @@ curl -s "$DOMAIN/api/pengurus" \
 Jika langkah 1–5 sesuai, buka:
 
 ```text
-https://nama-proyek.vercel.app/pengurus
+https://chess-club-weld.vercel.app/pengurus
 ```
 
 Masuk dengan:
@@ -183,7 +179,7 @@ Jika client_id Chess.com sudah disetujui, tambahkan env vars berikut:
 | ------------------------- | --------------------------------------------------------- |
 | `KCI_CHESS_CLIENT_ID`     | dari Chess.com                                            |
 | `KCI_CHESS_CLIENT_SECRET` | dari Chess.com, jika tersedia                             |
-| `KCI_CHESS_REDIRECT_URI`  | `https://<nama-proyek>.vercel.app/api/auth/chess/kembali` |
+| `KCI_CHESS_REDIRECT_URI`  | `https://chess-club-weld.vercel.app/api/auth/chess/kembali` |
 
 Daftarkan redirect URI itu persis sama di Chess.com. Tanpa OAuth, jalur
 cadangan kode profil (`KCI-XXXXXX` di kolom Location profil Chess.com) tetap
@@ -201,11 +197,10 @@ berfungsi.
 > Supabase diaktifkan (Bagian 9). Dengan Supabase, seluruh data tulis masuk
 > ke PostgreSQL dan awet.
 >
-> Solusi A (disarankan): Supabase bawaan — `db/supabase-schema.sql` + env
+> Solusi utama: Supabase bawaan — `db/supabase-schema.sql` + env
 > `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY` (Bagian 9).
-> Solusi B: Render + Persistent Disk untuk backend (`PANDUAN-DEPLOY-VERCEL-RENDER.md`)
-> Solusi C: Vercel KV (Redis) untuk sesi/cache
-> Solusi D: PostgreSQL relasional penuh (Neon/Railway) — `DATABASE-MIGRATION.md`
+> Untuk cache atau migrasi data, gunakan layanan storage yang kompatibel tanpa
+> memindahkan deployment aplikasi dari Vercel.
 >
 > Rincian: `VERCEL-LIMITATIONS.md`.
 
@@ -220,7 +215,8 @@ berfungsi.
    CSRF baru saat token lama ditolak.
 3. **OAuth Chess.com bisa kurang stabil di serverless.** State PKCE disimpan di
    memori instance yang memulai login; callback kadang mendarat di instance
-   lain. Jika OAuth wajib stabil, gunakan backend persistent (Render/VPS).
+   lain. Jika alur ini tidak stabil, gunakan jalur kode profil yang tidak
+   bergantung pada sesi lintas instance.
 4. **Cold start.** Request pertama setelah lama tidak dipakai bisa butuh 1–3
    detik; sinkronisasi roster Chess.com pertama bisa lebih lama.
 
@@ -275,7 +271,7 @@ tambahan, dan jejak audit lenyap.
 
 Aplikasi ini sekarang **mendukung Supabase langsung**. Dengan mengaktifkannya,
 seluruh data runtime disimpan ke PostgreSQL sehingga **benar-benar awet**
-tanpa perlu Render/VPS. Caranya:
+di deployment Vercel. Caranya:
 
 1. **Buat tabel.** Buka [Supabase](https://supabase.com) → proyekmu →
    **SQL Editor** → **New query**, tempel isi berkas `db/supabase-schema.sql`,
@@ -302,7 +298,7 @@ normal.
 Cek **endpoint publik** di browser:
 
 ```
-https://<nama-proyek>.vercel.app/api/kesehatan
+https://chess-club-weld.vercel.app/api/kesehatan
 ```
 
 Ia memuat objek `supabase`. Yang Anda harapkan adalah **keduanya `true`**:
@@ -344,12 +340,8 @@ Harus ada baris `anggota.json` (dan `rahasia/kontak.json`) yang terbarui.
 
 ---
 
-Jika **tidak** memakai Supabase, dan tetap ingin data awet, pakai salah satu
-opsi berikut:
-
-- **Vercel frontend + Render Starter + Persistent Disk** — lihat
-  `PANDUAN-DEPLOY-VERCEL-RENDER.md`.
-- **VPS** dengan `KCI_DIR_DATA` di disk permanen.
+Jika data production harus awet, aktifkan Supabase sebelum menerima
+pendaftaran atau perubahan data dari pengguna.
 
 ---
 

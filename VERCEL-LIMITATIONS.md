@@ -36,13 +36,10 @@ Cukup jalankan `db/supabase-schema.sql` dan redeploy — lihat
 `PANDUAN-DEPLOY-FULL-VERCEL.md` Bagian 9. Data dashboard, pesan, turnamen,
 admin, dan jejak audit menjadi awet.
 
-**B. Vercel frontend + Render backend + Persistent Disk**
-lihat `PANDUAN-DEPLOY-VERCEL-RENDER.md`.
-
-**C. Vercel KV (Redis)** untuk sesi, rate-limit, dan cache; data anggota
+**B. Vercel KV (Redis)** untuk sesi, rate-limit, dan cache; data anggota
 tetap butuh store terpisah.
 
-**D. PostgreSQL relasional penuh** (Neon, Railway, Supabase) dengan tabel
+**C. PostgreSQL relasional penuh** (Neon, Railway, Supabase) dengan tabel
 per-entitas — lihat `DATABASE-MIGRATION.md`. Ini migrasi yang lebih besar;
 untuk kebutuhan saat ini, opsi **A** sudah memadai.
 

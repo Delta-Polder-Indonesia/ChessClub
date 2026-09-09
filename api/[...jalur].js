@@ -5,7 +5,8 @@
  * /api/* diteruskan ke handler ini (mis. /api/kesehatan, /api/anggota,
  * /api/pengurus/turnamen/abc/ubah). Logika rute tetap 100% milik
  * server/src/index.js — tidak ada duplikasi, tidak ada perubahan perilaku
- * antara mode "node server/src/index.js" (Render/VPS) dan mode serverless.
+ * antara mode "node server/src/index.js" (pengembangan lokal) dan mode
+ * serverless production.
  *
  * Variabel lingkungan penting (Vercel → Settings → Environment Variables):
  *   KCI_PEPPER          — min. 16 karakter (hashing identitas; wajib)
@@ -41,8 +42,7 @@ export const config = { maxDuration: 60 };
  *
  * Alur permanen: ubah data di lokal → commit & push ke GitHub → Vercel
  * deploy ulang → data benih baru muncul. (Data yang dibuat langsung di
- * situs Vercel tetap sementara; untuk awet sepenuhnya gunakan disk
- * persisten Render atau DB eksternal.)
+ * situs Vercel tetap sementara; untuk awet sepenuhnya gunakan DB eksternal.)
  */
 const DIR_API = path.dirname(fileURLToPath(import.meta.url));
 const DIR_BENIH = path.resolve(DIR_API, "..", "data");

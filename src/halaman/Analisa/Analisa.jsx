@@ -23,6 +23,8 @@
  */
 import { useEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
+import MetaHalaman from "../../components/MetaHalaman.jsx";
+import { gambar } from "../../lib/asets.js";
 import ConfigContextProvider from "./konteks/config.jsx";
 import ErrorsContextProvider from "./konteks/errors.jsx";
 import AnalyzeContextProvider from "./konteks/analyze.jsx";
@@ -33,12 +35,8 @@ import Nav from "./komponen/nav/nav.jsx";
 import "./analisa.css";
 
 export default function Analisa() {
-  const { t, bahasa } = useI18n();
+  const { t } = useI18n();
   const [tinggi, setTinggi] = useState(0);
-
-  useEffect(() => {
-    document.title = `${t("analisa.metaJudul")} | ${t("common.namaKomunitas")}`;
-  }, [t, bahasa]);
 
   /*
    * Area kerja = seluruh tinggi layar (header & footer situs disembunyikan
@@ -63,6 +61,14 @@ export default function Analisa() {
 
   return (
     <div className="h-screen w-full overflow-hidden">
+      <MetaHalaman
+        title={t("analisa.metaJudul")}
+        description={t("analisa.metaDeskripsi")}
+        robots="noindex, follow"
+        image={gambar("/images/PapanAnalysa.webp")}
+        imageWidth={1600}
+        imageHeight={1200}
+      />
       <ConfigContextProvider>
         <ErrorsContextProvider>
           <MesinProvider>

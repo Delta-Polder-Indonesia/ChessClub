@@ -7,7 +7,7 @@
  *   2. Setiap berkas PDF adalah PDF asli (diawali %PDF) ATAU pointer Git LFS
  *      yang formatnya sah (baris version + oid sha256 64-hex + size > 0).
  *      Pointer LFS sah bila repo dikloning tanpa git-lfs — isi aslinya
- *      diunduh otomatis oleh deploy (GitHub Pages via `lfs: true`).
+ *      tersedia di checkout atau object storage sebelum build Vercel.
  *   3. Tidak ada berkas PDF yatim (di public/ebooks tapi tidak dirujuk).
  *
  * Jalan offline; tidak perlu akses jaringan. Sertakan dalam `npm run uji`.

@@ -100,7 +100,7 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | `kci-frontend` | mengubah `src/`, `index.html`, `vite.config.js`, atau `public/` |
 | `kci-backend` | mengubah `server/`, `api/`, `db/`, atau alur data/auth backend |
 | `kci-pengujian` | menyelesaikan perubahan apa pun, menambah uji, atau menyelidiki CI merah |
-| `kci-deploy` | mengubah `vercel.json`, `render.yaml`, workflow deploy, atau env var |
+| `kci-deploy` | mengubah `vercel.json`, workflow CI, atau env var Vercel |
 
 Catatan: panduan proyek lain (Better Auth, DSH/DeepSeek Harness) sudah dihapus dari repo.
 Jangan mengikuti dokumen lama yang menyebut SvelteKit, Better Auth, MongoDB, atau OpenRouter —

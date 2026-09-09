@@ -157,7 +157,7 @@ console.log(`\n✓ ${BERKAS_STORAGE} diperbarui dengan:`);
 console.log(`    ${basis}`);
 console.log("\nLangkah selanjutnya:");
 console.log("  1. Commit perubahan (khususnya src/data/ebook-storage.js), lalu push.");
-console.log("  2. Redeploy Vercel (dan/atau GitHub Pages).");
+console.log("  2. Redeploy Vercel.");
 console.log("  3. Buka halaman E-Book & Panduan → klik Baca untuk memastikan PDF tampil.");
 console.log("\nCatatan: CSP frame-src di index.html & vercel.json sudah mengizinkan");
 console.log("https://*.supabase.co. Bila Anda memakai penyedia lain, tambahkan origin-nya di sana.");

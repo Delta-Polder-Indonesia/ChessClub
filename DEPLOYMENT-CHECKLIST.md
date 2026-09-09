@@ -4,7 +4,6 @@ Gunakan daftar ini **sebelum** setiap rilis produksi. Jangan deploy jika ada
 butir wajib yang belum dicentang. Panduan lengkap:
 
 - [PANDUAN-DEPLOY-FULL-VERCEL.md](./PANDUAN-DEPLOY-FULL-VERCEL.md)
-- [PANDUAN-DEPLOY-VERCEL-RENDER.md](./PANDUAN-DEPLOY-VERCEL-RENDER.md)
 - [VERCEL-LIMITATIONS.md](./VERCEL-LIMITATIONS.md)
 - [server/README.md](./server/README.md)
 
@@ -23,7 +22,7 @@ butir wajib yang belum dicentang. Panduan lengkap:
 | `KCI_CHESS_CLIENT_SECRET` | jika OAuth | Rahasia aplikasi Chess.com. |
 | `KCI_CHESS_REDIRECT_URI` | jika OAuth | Harus persis sama dengan yang didaftarkan. |
 | `KCI_TOKEN_ADMIN` | opsional | Token legacy; bila diisi minimal 24 karakter. |
-| `KCI_JUMLAH_PROXY` | hati-hati | `1` di belakang Vercel/Render. Salah nilai → IP bisa di-spoof lewat `X-Forwarded-For`. |
+| `KCI_JUMLAH_PROXY` | hati-hati | `1` di Serverless Function Vercel. Salah nilai → IP bisa di-spoof lewat `X-Forwarded-For`. |
 
 Generate rahasia:
 
@@ -35,7 +34,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 2. Keamanan berkas
 
-- [ ] Izin folder `data/rahasia/` = `0700` (hanya owner) di VPS/Render.
+- [ ] Data sensitif hanya disimpan melalui storage production yang dikonfigurasi di Vercel.
 - [ ] `admin.json` / `data/rahasia/admins.json` **tidak** ada di Git.
   Cek: `git log --all -- data/rahasia/admin.json`
 - [ ] Berkas `.env`, `.env.local`, `server/.env` **tidak** ada di Git.
@@ -44,13 +43,12 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 2b. E-book PDF (Git LFS)
 
-- [ ] Checkout deploy memakai `lfs: true` (sudah ada di `deploy.yml` — jangan
-      dihapus). Tanpa itu `dist/ebooks/*.pdf` hanya berisi pointer LFS 132 byte.
-- [ ] PDF lokal bukan pointer kosong.
+- [ ] Untuk koleksi PDF besar, gunakan Supabase Storage sesuai
+      `PANDUAN-EBOOK-STORAGE.md`; jangan mengandalkan checkout LFS saat build Vercel.
+- [ ] PDF lokal bukan pointer kosong sebelum menjalankan migrasi storage.
       Cek: `head -c 4 public/ebooks/*.pdf` → semua diawali `%PDF`.
       Kalau pointer: `git lfs pull` (butuh `git-lfs` terpasang).
-- [ ] Objek LFS masih tersedia di GitHub (kuota LFS gratis: 1 GB penyimpanan,
-      1 GB bandwidth/bulan; total PDF ± 394 MB).
+- [ ] Objek LFS masih tersedia di GitHub bila migrasi storage belum dilakukan.
 - [ ] `npm run uji` lolos — di dalamnya `scripts/uji-ebook.mjs` memeriksa
       konsistensi entri `ebook-data.js` ↔ berkas di `public/ebooks/`.
 
@@ -65,18 +63,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - [ ] Baca [VERCEL-LIMITATIONS.md](./VERCEL-LIMITATIONS.md): `/tmp` **ephemeral**.
   Data JSON runtime (pesan, admin baru, hasil turnamen) **akan hilang** setelah cold start.
 - [ ] **Agar data awet:** jalankan `db/supabase-schema.sql` di Supabase, isi
-  `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di Vercel, redeploy. Alternatif:
-  Render + Persistent Disk, Vercel KV, atau PostgreSQL relasional penuh.
-
-### Render (backend + disk)
-
-- [ ] Persistent Disk terpasang dan `KCI_DIR_DATA` menunjuk ke mount itu.
-- [ ] Health check `GET /api/kesehatan` di Blueprint.
-
-### GitHub Pages
-
-- [ ] Artefak `dist/` bersih; backend **tidak** jalan di Pages.
-- [ ] `VITE_API_DASAR` menunjuk ke backend Render/VPS.
+  `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` di Vercel, lalu redeploy.
 
 ---
 

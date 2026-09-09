@@ -1,14 +1,19 @@
 import { Helmet } from "react-helmet-async";
-import { useI18n } from "../lib/i18n.jsx";
 
 /**
- * Atur meta tag per halaman — judul, deskripsi, canonical, OG tags.
+ * Atur meta tag per halaman — judul, deskripsi, canonical, OG tags, dan robots.
  *
  * Identitas brand utama situs adalah Blunder Skuad.
  * "Komunitas Catur Indonesia" dipakai sebagai descriptor, bukan nama brand utama.
  */
-export default function MetaHalaman({ title, description }) {
-  const { t } = useI18n();
+export default function MetaHalaman({
+  title,
+  description,
+  robots = "index, follow",
+  image = "/images/landing-hero.webp",
+  imageWidth = 828,
+  imageHeight = 462,
+}) {
   const namaKomunitas = "Blunder Skuad";
 
   // Bila title sudah mengandung "|", anggap sudah lengkap.
@@ -19,20 +24,31 @@ export default function MetaHalaman({ title, description }) {
     description ||
     "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur.";
 
-  // Canonical selalu mengikuti URL publik yang sedang dibuka.
-  // Buang query string dan hash agar canonical tetap bersih.
-  const canonicalUrl = `${window.location.origin}${window.location.pathname}`;
+  // Pakai URL situs produksi bila tersedia; fallback ke origin saat lokal.
+  // Pathname dipakai tanpa query string dan hash agar canonical tetap bersih.
+  const situs = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/+$/, "");
+  const canonicalUrl = `${situs}${window.location.pathname || "/"}`;
+  const gambarUrl = /^https?:\/\//i.test(image)
+    ? image
+    : `${situs}${String(image).startsWith("/") ? image : `/${image}`}`;
 
   return (
     <Helmet>
       <title>{judulLengkap}</title>
       <meta name="description" content={deskripsi} />
+      <meta name="robots" content={robots} />
       <link rel="canonical" href={canonicalUrl} />
+      <meta property="og:type" content="website" />
       <meta property="og:url" content={canonicalUrl} />
       <meta property="og:title" content={judulLengkap} />
       <meta property="og:description" content={deskripsi} />
+      <meta property="og:image" content={gambarUrl} />
+      <meta property="og:image:width" content={String(imageWidth)} />
+      <meta property="og:image:height" content={String(imageHeight)} />
+      <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={judulLengkap} />
       <meta name="twitter:description" content={deskripsi} />
+      <meta name="twitter:image" content={gambarUrl} />
     </Helmet>
   );
 }

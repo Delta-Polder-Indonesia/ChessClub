@@ -159,6 +159,8 @@ export const analisaLanding = {
     judul: "Analisis Permainan",
     deskripsi:
       "Sebelum masuk ke papan, kenali cara kerja analisis: setiap langkah dinilai Stockfish — brilian, terbaik, unggul, layak, keliru, kesalahan, hingga blunder — disertai saran engine dan ringkasan akurasi.",
+    metaDeskripsi:
+      "Analisis PGN dan FEN dengan Stockfish lokal: label langkah, grafik evaluasi, akurasi pemain, dan saran engine. Data permainan tetap di perangkat Anda.",
     artikel: "Analisis Permainan",
     p1Judul: "Membedah Setiap Langkah, Mempelajari yang Terbaik",
     p1: "Analisis permainan pada hakikatnya adalah seni mengubah deretan notasi bisu menjadi pelajaran taktis yang hidup dan berharga. Melalui integrasi mesin catur modern seperti Stockfish yang beroperasi penuh langsung di peramban Anda, setiap manuver di atas papan kini dapat dinilai secara instan. Fitur ini memungkinkan Anda untuk mengidentifikasi spektrum kualitas langkah secara seketika, mulai dari eksekusi yang paling presisi, kekeliruan minor, hingga blunder fatal yang mengubah jalannya laga.",

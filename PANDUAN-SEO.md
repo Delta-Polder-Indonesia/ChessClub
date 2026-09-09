@@ -45,23 +45,14 @@ Sekali saja, ikuti langkah ini:
    | **HTML tag** | `<meta name="google-site-verification" content="bWdpNEop…ULP0">` di `<head>` `index.html` (setelah tag viewport) | Halaman beranda situs. Karena `plugins/performa.js` menyalin `index.html` ke `404.html` dan ke setiap rute, tag ini ada di 62 berkas HTML hasil build |
    | **Upload berkas HTML** | `public/google800ae0ab9c9d6db7.html` berisi satu baris `google-site-verification: google800ae0ab9c9d6db7.html` | URL `…/google800ae0ab9c9d6db7.html` persis seperti yang ditulis wizard. Isi & nama berkas **tidak boleh diubah** (Google menolak bila berbeda); hanya newline di akhir yang diizinkan |
 
-   Catatan per host, karena keduanya memasang situs di path berbeda:
+   Deployment production resmi adalah **Vercel** (`https://chess-club-weld.vercel.app`,
+   `VITE_BASE_PUBLIC=/`). Berkas verifikasi berada di akar domain dan rewrite
+   SPA `"/((?!api/).*)"` tidak menimpanya karena Vercel memeriksa berkas statis
+   lebih dulu.
 
-   - **Vercel** (`https://chess-club-weld.vercel.app`, `VITE_BASE_PUBLIC=/`):
-     berkas ada di akar domain → cocok untuk metode upload berkas. Rewrite
-     SPA `"/((?!api/).*)"` di `vercel.json` tidak menimpanya, karena Vercel
-     memeriksa berkas statis lebih dulu sebelum menerapkan rewrite.
-   - **GitHub Pages** (`https://delta-polder-indonesia.github.io/ChessClub/`):
-     berkas ikut ter-deploy, tapi berada di `…/ChessClub/google800ae0ab9c9d6db7.html`,
-     yaitu path prefix — bukan akar `github.io`. Pakai metode **HTML tag**
-     untuk property ini (atau daftarkan property dengan URL prefix
-     `https://delta-polder-indonesia.github.io/ChessClub/` agar alamat
-     berkasnya cocok dengan yang diminta wizard).
-
-   Bila kelak ada property lain (mis. domain kustom) dengan token berbeda,
-   **tambahkan** satu baris `<meta>` lagi — jangan menimpa token yang ada.
-   (Alternatif lain: metode **DNS TXT** di provider domain, lebih rapi
-   karena tidak perlu commit ke repo.)
+   Bila kelak memakai domain kustom dengan token berbeda, **tambahkan** satu
+   baris `<meta>` lagi — jangan menimpa token yang ada. Alternatif lain adalah
+   metode **DNS TXT** di provider domain.
 4. Setelah terverifikasi: menu **Sitemaps** → ketik
    `https://chess-club-weld.vercel.app/sitemap.xml` → **Submit**.
    Lihat penjelasan lengkap di bagian 2a.

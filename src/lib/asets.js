@@ -10,7 +10,7 @@ import { EBOOK_BASE } from "../data/ebook-storage.js";
  * Alamat aset publik (gambar, favicon, dll).
  *
  * Vite mengganti import.meta.env.BASE_URL sesuai `base` pada vite.config.js
- * (mis. "/ChessClub/" di GitHub Pages). Foto JPG/PNG otomatis diarahkan ke
+ * (mis. "/" di Vercel). Foto JPG/PNG otomatis diarahkan ke
  * WebP hasil kompresi agar LCP/FCP tidak terbebani berkas 100–300 KiB.
  */
 export function gambar(jalur) {
@@ -62,10 +62,9 @@ function namaEbook(jalur) {
 /**
  * Daftar URL PDF yang boleh dicoba pembaca di browser, urut prioritas.
  *
- * Situs ini dapat berjalan di beberapa tempat: Vercel (punya /api), GitHub
- * Pages (tanpa /api, tetapi PDF asli ikut ter-deploy lewat Git LFS), atau
- * object storage. Pembaca mencoba satu per satu sampai ada yang benar-benar
- * memuat, jadi tombol "Baca" tidak lagi bergantung pada satu sumber saja.
+ * Situs production berjalan di Vercel (punya /api). Pembaca mencoba proxy
+ * Vercel, berkas statis, dan object storage sampai menemukan PDF asli, jadi
+ * tombol "Baca" tidak bergantung pada satu sumber saja.
  */
 export function sumberEbook(jalur) {
   const nama = namaEbook(jalur);

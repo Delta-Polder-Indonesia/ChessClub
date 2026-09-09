@@ -1,5 +1,5 @@
 /**
- * HTTP server mandiri (Render / VPS / pengembangan lokal).
+ * HTTP server mandiri untuk pengembangan lokal dan utilitas pengujian.
  * Di Vercel, modul ini tidak dipanggil — function memakai `tangani` langsung.
  */
 import http from "node:http";

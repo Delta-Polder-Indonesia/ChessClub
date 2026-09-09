@@ -38,7 +38,7 @@ diunggah).
    git commit -m "e-book: layani PDF dari Supabase Storage"
    git push
    ```
-   Lalu **Redeploy** di Vercel (dan GitHub Pages bila dipakai).
+   Lalu **Redeploy** di Vercel.
 
 4. **Cek**: buka halaman *Program Kami → E-Book & Panduan* → klik **Baca**.
    PDF seharusnya tampil di pratinjau, dan **Unduh** menambahkan `?download`
@@ -120,8 +120,8 @@ Konsekuensi yang perlu disadari:
   ulang riwayat; setiap kali satu PDF diganti, salinan penuhnya tersimpan lagi.
 - `git clone` (termasuk clone yang dilakukan Vercel/GitHub Actions setiap
   deploy) ikut mengunduh semua berkas itu → build lebih lambat.
-- GitHub Pages punya batas lunak 1 GB per situs; 394 MB PDF memakan sebagian
-  besar jatah itu.
+- Deployment Vercel tetap perlu memperhitungkan ukuran checkout dan waktu build;
+  object storage menghindari pengiriman ulang koleksi PDF besar setiap deploy.
 
 Karena itu, sebelum migrasi sebaiknya kompres dulu:
 

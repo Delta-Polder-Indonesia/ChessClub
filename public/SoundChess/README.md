@@ -27,7 +27,7 @@ mainkanLangkah(pindah, game);       // bunyi otomatis dari hasil chess.js move
 Aturan penting:
 
 - Jangan menulis `/SoundChess/...` langsung. Alamatnya dibentuk lewat
-  `berkasPublik()` supaya benar di GitHub Pages (base URL bukan `/`).
+  `berkasPublik()` supaya mengikuti base URL Vercel.
 - Pemutaran memakai Web Audio (`decodeAudioData` → `AudioBufferSourceNode`),
   dengan cadangan `HTMLAudioElement`. Bunyi pertama baru terdengar setelah ada
   interaksi pengguna — itu kebijakan autoplay peramban, bukan bug.

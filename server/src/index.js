@@ -124,7 +124,7 @@ if (
 ) {
   console.warn(
     "[kci] KCI_ADMIN_PASSWORD mengandung spasi/baris baru di ujung — otomatis dibersihkan.\n" +
-      "      Rapikan juga nilainya di dashboard (Vercel/Render) agar tidak membingungkan."
+      "      Rapikan juga nilainya di dashboard Vercel agar tidak membingungkan."
   );
 }
 

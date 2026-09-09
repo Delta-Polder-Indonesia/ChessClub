@@ -8,7 +8,7 @@
 Dashboard ada di:
 
 ```text
-https://<nama-proyek>.vercel.app/pengurus
+https://chess-club-weld.vercel.app/pengurus
 ```
 
 Login memakai:
@@ -30,7 +30,7 @@ Isi di **Vercel → Project → Settings → Environment Variables**:
 | `KCI_PEPPER` | rahasia hashing, minimal 16 karakter |
 | `KCI_ADMIN_USER` | contoh: `admin` |
 | `KCI_ADMIN_PASSWORD` | password kuat, bukan `admin123` |
-| `KCI_ASAL_DIIZINKAN` | `https://<nama-proyek>.vercel.app` tanpa trailing slash |
+| `KCI_ASAL_DIIZINKAN` | `https://chess-club-weld.vercel.app` tanpa trailing slash |
 
 Opsional: `KCI_TOKEN_ADMIN` bila masih ingin memakai token lama sebagai password
 alternatif.
@@ -43,5 +43,5 @@ API di domain yang sama (`/api/...`).
 1. Buka tab **Deployments** di Vercel.
 2. Pilih deployment terbaru.
 3. Klik **Redeploy**.
-4. Tes `https://<nama-proyek>.vercel.app/api/kesehatan`.
-5. Buka `https://<nama-proyek>.vercel.app/pengurus` dan login.
+4. Tes `https://chess-club-weld.vercel.app/api/kesehatan`.
+5. Buka `https://chess-club-weld.vercel.app/pengurus` dan login.

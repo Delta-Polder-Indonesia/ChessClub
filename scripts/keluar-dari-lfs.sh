@@ -130,6 +130,6 @@ cat <<'PESAN'
     curl -s  "https://<domain-anda>/ebooks/Problem%20Catur%20288.pdf" | head -c 4   # harus %PDF
 
   Opsional (setelah semua aman):
-    - hapus 'lfs: true' di deploy.yml & quality.yml,
+    - verifikasi build Vercel mengambil berkas PDF asli,
     - jalankan 'git lfs uninstall' bila tidak memakai LFS untuk apa pun lagi.
 PESAN

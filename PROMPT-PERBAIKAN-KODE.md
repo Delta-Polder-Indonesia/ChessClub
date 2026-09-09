@@ -78,8 +78,8 @@ File harus berisi:
 
 3. ✅ Deployment Platform Specific
    - Vercel: env vars via dashboard, not code
-   - Render: persistent disk configured
-   - GitHub Pages: build artifact clean
+   - Supabase: storage production configured
+   - Vercel: build artifact clean
 
 4. ✅ Post-Deployment Tests
    - Run: npm run uji:backend terhadap staging
@@ -93,7 +93,6 @@ File harus berisi:
 
 Tambahkan link ke:
 - PANDUAN-DEPLOY-FULL-VERCEL.md
-- PANDUAN-DEPLOY-VERCEL-RENDER.md
 - server/README.md
 
 Expected result:
@@ -119,9 +118,9 @@ Solusi dokumentasi:
    ```
    ⚠️ PENTING: Vercel Serverless /tmp tidak persistent!
    
-   Solusi A: Gunakan Render + Persistent Disk untuk backend
-   Solusi B: Implement Vercel KV (Redis) untuk data storage
-   Solusi C: Gunakan PostgreSQL dengan Railway/Heroku
+   Solusi A: Aktifkan Supabase untuk storage production
+   Solusi B: Implement Vercel KV (Redis) untuk sesi, rate-limit, dan cache
+   Solusi C: Gunakan PostgreSQL relasional yang kompatibel
    ```
 
 2. Tambah note di server/README.md:
@@ -585,8 +584,7 @@ Implementation:
 
 3. Schedule via:
    - GitHub Actions: daily scheduled workflow
-   - Render: cron job di background
-   - Vercel: external service (AWS Lambda)
+   - Vercel: external scheduler bila backup terjadwal diperlukan
 
 4. Recovery process:
    - Download dari S3

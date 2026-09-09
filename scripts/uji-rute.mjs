@@ -1,6 +1,6 @@
 /**
  * Pastikan daftar rute di plugins/performa.js selaras dengan App.jsx
- * supaya setiap halaman publik mendapat HTML 200 di GitHub Pages.
+ * supaya setiap halaman publik mendapat HTML route-specific di Vercel.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -10,7 +10,7 @@ const app = await readFile(path.resolve("src/App.jsx"), "utf8");
 const diApp = [...app.matchAll(/\["(\/[^"]*)",\s*\w+\]/g)].map((m) => m[1]);
 // Rute dinamis (mis. "/media-dan-informasi/berita/:id") tidak bisa
 // dipra-render menjadi berkas HTML statis — penanganannya diserahkan
-// ke 404.html (fallback SPA GitHub Pages). Jangan diuji di sini.
+// ke fallback SPA Vercel. Jangan diuji di sini.
 const publikApp = diApp.filter((r) => r !== "/" && !r.includes(":"));
 const kurang = publikApp.filter((r) => !RUTE_PUBLIK.includes(r));
 const lebih = RUTE_PUBLIK.filter((r) => !publikApp.includes(r));
