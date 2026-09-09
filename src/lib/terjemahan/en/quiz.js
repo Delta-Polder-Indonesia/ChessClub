@@ -47,8 +47,12 @@ export const quiz = {
     kategori: {
         peraturan: "Rules",
         bidak: "Pieces",
-        skakmat: "Checkmate & Tactics",
+        skakmat: "Checkmate Patterns",
+        taktik: "Tactics",
         pembukaan: "Openings",
+        strategi: "Strategy",
+        endgame: "Endgame",
+        notasi: "Chess Notation",
         sejarah: "History",
         umum: "General",
     },
