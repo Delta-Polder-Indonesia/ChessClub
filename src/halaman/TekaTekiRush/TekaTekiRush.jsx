@@ -12,6 +12,11 @@ import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
 import { ambilPeringkatRush, kirimSkorRush } from "../../lib/api/rekorRush.js";
+import { muatAnggota, anggotaTersimpan } from "../../lib/anggotaBersama.js";
+import { berkasPublik } from "../../lib/asets.js";
+import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
+import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
+import License from "../Analisa/komponen/svg/license.jsx";
 
 const KUNCI_USERNAME = "kci-rush-username";
 
@@ -24,6 +29,9 @@ const KUNCI_WARNA = "kci-teka-teki-warna-papan";
 
 const DURASI = [3, 5];
 const NYAWA_AWAL = 3;
+
+/** Mode latihan bebas: waktu tidak berjalan sehingga tidak berakhir karena waktu. */
+const BEBAS_WAKTU = true;
 
 /** Seluruh pilihan warna papan + kunci label (sama dgn halaman Teka-Teki). */
 const PILIHAN_WARNA = [
@@ -285,6 +293,10 @@ export default function TekaTekiRush() {
 
   // Papan peringkat online.
   const [usernameForm, setUsernameForm] = useState(bacaUsername);
+  const [rosterUsernames, setRosterUsernames] = useState(() =>
+    anggotaTersimpan().map((a) => a.username)
+  );
+  const [cobaMulai, setCobaMulai] = useState(false);
   const [segarRekor, setSegarRekor] = useState(0);
   const [simpanStatus, setSimpanStatus] = useState("idle"); // idle|kirim|ok|galat
   const [simpanPesan, setSimpanPesan] = useState("");
@@ -344,6 +356,22 @@ export default function TekaTekiRush() {
     document.title = `${t("tekaTekiRush.judul")} | ${t("common.namaKomunitas")}`;
   }, [t]);
 
+  /* ------------------------------------------------------- roster anggota */
+  useEffect(() => {
+    let hidup = true;
+    muatAnggota()
+      .then((data) => {
+        if (!hidup) return;
+        setRosterUsernames((data || []).map((a) => a.username));
+      })
+      .catch(() => {
+        /* abaikan; pakai cache bila ada */
+      });
+    return () => {
+      hidup = false;
+    };
+  }, []);
+
   /* ---------------------------------------------------------- pembersihan */
   useEffect(
     () => () => {
@@ -351,18 +379,6 @@ export default function TekaTekiRush() {
       window.clearTimeout(delayRef.current);
     },
     []
-  );
-
-  /** Kunci frase akhir berdasarkan skor (gaya PuzzleDash). */
-  const teksCapaian = useCallback(
-    (n) => {
-      if (n < 5) return t("tekaTekiRush.capaiSatu");
-      if (n < 10) return t("tekaTekiRush.capaiLima");
-      if (n < 20) return t("tekaTekiRush.capaiSepuluh");
-      if (n < 30) return t("tekaTekiRush.capaiDuaPuluh");
-      return t("tekaTekiRush.capaiTigaPuluh");
-    },
-    [t]
   );
 
   /** Akhiri permainan sekali saja. */
@@ -467,7 +483,7 @@ export default function TekaTekiRush() {
 
   /* ----------------------------------------------------------- penghitung */
   useEffect(() => {
-    if (fase !== "main") return undefined;
+    if (fase !== "main" || BEBAS_WAKTU) return undefined;
     const id = window.setInterval(() => {
       setSisaWaktu((prev) => (prev <= 1 ? 0 : prev - 1));
     }, 1000);
@@ -475,7 +491,7 @@ export default function TekaTekiRush() {
   }, [fase]);
 
   useEffect(() => {
-    if (fase === "main" && sisaWaktu <= 0) akhiri("waktu");
+    if (fase === "main" && !BEBAS_WAKTU && sisaWaktu <= 0) akhiri("waktu");
   }, [sisaWaktu, fase, akhiri]);
 
   /* --------------------------------------- balasan otomatis si lawan */
@@ -715,6 +731,8 @@ export default function TekaTekiRush() {
   /* -------------------------------------------------------------- turunan */
   const giliranPemain =
     orientasi === "b" ? t("tekaTekiRush.hitam") : t("tekaTekiRush.putih");
+  const pasifWarna =
+    orientasi === "b" ? t("tekaTekiRush.putih") : t("tekaTekiRush.hitam");
   const warnaLow = sisaWaktu <= 30 && sisaWaktu > 0;
 
   const linkLichess = (f) =>
@@ -727,12 +745,6 @@ export default function TekaTekiRush() {
         : t("tekaTekiRush.hasilWaktu"),
     [berakhirKarena, t]
   );
-
-  const benarJumlah = riwayat.filter((r) => r.benar).length;
-  const salahJumlah = riwayat.length - benarJumlah;
-
-  const skorTerbaikMenit =
-    durasiMenit === 3 ? t("tekaTekiRush.durasi3") : t("tekaTekiRush.durasi5");
 
   /* ====================================================== elemen kerangka */
 
@@ -786,90 +798,34 @@ export default function TekaTekiRush() {
     }
   }, [usernameForm, skor, durasiMenit, t, mainkan]);
 
-  // Judul & tombol kembali (konsisten dgn halaman Analisa / Papan).
-  const kepala = (
-    <header className="flex h-14 shrink-0 items-center justify-between border-b border-[#312e2b] bg-[#1e1c18] px-3 sm:px-4">
-      {fase === "pilih" ? (
-        <Link
-          to="/program-kami/teka-teki"
-          className="flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white"
-          title={t("tekaTekiRush.kembali")}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M19 12H5M11 18l-6-6 6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="hidden sm:inline">{t("tekaTekiRush.kembali")}</span>
-          <span className="sm:hidden">{t("tekaTekiRush.kembaliSingkat")}</span>
-        </Link>
-      ) : (
-        <button
-          type="button"
-          onClick={keMenu}
-          className="flex items-center gap-2 text-sm font-medium text-slate-300 transition hover:text-white"
-          title={t("tekaTekiRush.kembaliKeMulai")}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path
-              d="M19 12H5M11 18l-6-6 6-6"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span className="hidden sm:inline">{t("tekaTekiRush.kembaliKeMulai")}</span>
-          <span className="sm:hidden">{t("tekaTekiRush.kembaliSingkat")}</span>
-        </button>
-      )}
-
-      <div className="flex items-center gap-2">
-        <span className="hidden text-[13px] font-semibold text-slate-200 md:inline">
-          Blunder<span className="text-[#81b64c]">Skuad</span>
-        </span>
-        <span className="rounded-md border border-[#81b64c]/40 bg-[#81b64c]/10 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#b8dc8e]">
-          {t("tekaTekiRush.judul")}
-        </span>
-        {tersegel && (
-          <span
-            title={t("tekaTekiRush.skorDisegel")}
-            className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400"
-          >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2" />
-              <path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" />
-            </svg>
-          </span>
-        )}
-      </div>
-    </header>
-  );
-
   // NAV KIRI: pengaturan papan + rekor + aksi sesi.
   const navKiri = (
     <aside className="flex w-full shrink-0 flex-col justify-between border-b border-r-0 border-[#312e2b] bg-[#1e1c18] lg:w-[236px] lg:border-b-0 lg:border-r">
       <div>
         <div className="border-b border-[#312e2b] px-4 py-4">
-          <MikroLabel>{t("tekaTekiRush.pengaturan")}</MikroLabel>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-[22px] font-bold leading-none text-white">
+              Blunder<span className="text-[#81b64c]">Skuad</span>
+            </span>
+            {tersegel && (
+              <span
+                title={t("tekaTekiRush.skorDisegel")}
+                className="flex items-center gap-1 text-[10px] font-semibold text-emerald-400"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" strokeWidth="2" />
+                  <path d="M8 11V7a4 4 0 018 0v4" stroke="currentColor" strokeWidth="2" />
+                </svg>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {fase === "main" ? (
+          <PapanPeringkat durasi={durasiMenit} segar={segarRekor} />
+        ) : (
+          <div className="border-b border-[#312e2b] px-4 py-4">
+            <MikroLabel>{t("tekaTekiRush.pengaturan")}</MikroLabel>
 
           {/* Set bidak */}
           <label htmlFor="rush-set" className="mt-3 block">
@@ -915,8 +871,9 @@ export default function TekaTekiRush() {
             />
           </div>
         </div>
+      )}
 
-        {/* Rekor */}
+      {/* Rekor */}
         <div className="px-4 py-4">
           <MikroLabel>{t("tekaTekiRush.rekorTinggi")}</MikroLabel>
           <div className="mt-2 flex items-baseline gap-1">
@@ -930,18 +887,30 @@ export default function TekaTekiRush() {
         </div>
       </div>
 
-      {/* Aksi saat bermain */}
-      {fase === "main" && (
+      {/* Aksi saat bermain + Lisensi & Atribusi */}
+      <div>
+        {fase === "main" && (
+          <div className="px-4 pt-3 pb-2">
+            <button
+              type="button"
+              onClick={() => akhiri("waktu")}
+              className="w-full rounded-md border border-[#312e2b] bg-[#262421] py-2 text-sm font-semibold text-slate-300 transition hover:border-red-500/60 hover:text-red-300"
+            >
+              {t("tekaTekiRush.sesiBerhenti")}
+            </button>
+          </div>
+        )}
+
         <div className="border-t border-[#312e2b] px-4 py-3">
-          <button
-            type="button"
-            onClick={() => akhiri("waktu")}
-            className="w-full rounded-md border border-[#312e2b] bg-[#262421] py-2 text-sm font-semibold text-slate-300 transition hover:border-red-500/60 hover:text-red-300"
+          <Link
+            to="/program-kami/atribusi"
+            className="flex items-center justify-center gap-1.5 text-xs text-slate-500 transition hover:text-white"
           >
-            {t("tekaTekiRush.sesiBerhenti")}
-          </button>
+            <License size={14} class="fill-current" />
+            {t("tekaTekiRush.lisensiAtribusi")}
+          </Link>
         </div>
-      )}
+      </div>
     </aside>
   );
 
@@ -952,79 +921,38 @@ export default function TekaTekiRush() {
     </main>
   );
 
-  // Panel kanan: riwayat soal (main/selesai) atau panduan (pilih).
+  // Panel kanan: kerangka kosong (isi akan diisi ulang).
   const kananRiwayat = (
     <aside className="flex w-full shrink-0 flex-col border-t border-[#312e2b] bg-[#211f1c] lg:w-[360px] lg:border-l lg:border-t-0">
-      <PapanPeringkat durasi={durasiMenit} segar={segarRekor} />
-      <div className="shrink-0 border-b border-[#312e2b] px-4 py-3">
-        <div className="flex items-baseline justify-between">
-          <MikroLabel>{t("tekaTekiRush.soalDitemui")}</MikroLabel>
-          <span className="text-[11px] tabular-nums text-slate-400">
-            {riwayat.length}
-          </span>
-        </div>
+      <div className="flex items-center justify-between px-4 py-3">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
+          {t("tekaTekiRush.skor")}
+        </span>
+        <span className="text-xl font-black tabular-nums text-[#81b64c]">
+          {skor}
+        </span>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        {riwayat.length === 0 ? (
-          <p className="px-1 py-6 text-center text-sm text-slate-500">
-            {t("tekaTekiRush.belumAdaSoal")}
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-1.5">
-            {riwayat.map((r, i) => (
-              <li key={i}>
-                <a
-                  href={linkLichess(r.fen)}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={t("tekaTekiRush.analisaLichess")}
-                  className="flex items-center gap-2 rounded-md border border-[#312e2b] bg-[#262421] px-3 py-2 text-sm transition hover:border-slate-500"
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`h-2.5 w-2.5 shrink-0 rounded-full ${
-                      r.benar ? "bg-[#81b64c]" : "bg-red-500"
-                    }`}
-                  />
-                  <span className="w-5 text-[11px] font-bold uppercase text-slate-500">
-                    {r.warna[0]}
-                  </span>
-                  <span className="text-slate-300">#{riwayat.length - i}</span>
-                  <span className="ml-auto font-semibold tabular-nums text-slate-400">
-                    {r.rating}
-                  </span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="mt-4 grid grid-cols-5 gap-0.5 px-4 pb-4">
+        {riwayat.map((r, i) => (
+          <div key={i} className="flex flex-col items-center gap-1">
+            <span className="text-[10px] font-semibold tabular-nums text-slate-500">
+              {i + 1}
+            </span>
+            <span className="flex h-9 w-full items-center justify-center">
+              <img
+                src={r.benar ? CeklisHijau : CeklisMerah}
+                alt=""
+                className="h-6 w-6"
+              />
+            </span>
+          </div>
+        ))}
       </div>
     </aside>
   );
 
   const kananMulai = (
-    <aside className="flex w-full shrink-0 flex-col border-t border-[#312e2b] bg-[#211f1c] lg:w-[360px] lg:border-l lg:border-t-0">
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <MikroLabel>{t("tekaTekiRush.caraMainJudul")}</MikroLabel>
-        <ol className="mt-3 space-y-3">
-          {["aturan1", "aturan2", "aturan3", "aturan4"].map((k, i) => (
-            <li key={k} className="flex gap-3">
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#81b64c]/15 text-xs font-bold text-[#b8dc8e]">
-                {i + 1}
-              </span>
-              <p className="text-sm leading-relaxed text-slate-300">{t(`tekaTekiRush.${k}`)}</p>
-            </li>
-          ))}
-        </ol>
-
-        <div className="mt-6 rounded-md border border-[#312e2b] bg-[#262421] p-3">
-          <MikroLabel>{t("tekaTekiRush.rekorTinggi")}</MikroLabel>
-          <div className="mt-1 text-2xl font-black tabular-nums text-[#fffaec]">
-            {terbaik}
-          </div>
-        </div>
-      </div>
-    </aside>
+    <aside className="flex w-full shrink-0 flex-col border-t border-[#312e2b] bg-[#211f1c] lg:w-[360px] lg:border-l lg:border-t-0"></aside>
   );
 
   /* ============================================================= layar */
@@ -1053,11 +981,11 @@ export default function TekaTekiRush() {
       <div className="flex flex-1 items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#81b64c]/15 text-[#81b64c]">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                <path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z" />
-              </svg>
-            </div>
+            <img
+              src={berkasPublik("/images/color-icon/puzzle-piece.svg")}
+              alt=""
+              className="h-12 w-12"
+            />
             <div>
               <h1 className="text-2xl font-extrabold text-white">
                 {t("tekaTekiRush.judul")}
@@ -1066,42 +994,64 @@ export default function TekaTekiRush() {
             </div>
           </div>
 
+          <input
+            type="text"
+            value={usernameForm}
+            onChange={(e) => setUsernameForm(e.target.value)}
+            placeholder={t("tekaTekiRush.usernamePlaceholder")}
+            className={`mt-8 w-full border-0 border-b-2 bg-transparent px-1 py-2 text-left text-base text-white outline-none transition-colors duration-200 placeholder:text-slate-500 ${
+              cobaMulai && !usernameForm.trim()
+                ? "border-red-400"
+                : "border-[#9b9b9b] focus:border-[#81b64c]"
+            }`}
+          />
+          {cobaMulai && !usernameForm.trim() && (
+            <p className="mt-2 text-xs text-red-400">{t("tekaTekiRush.usernameKosong")}</p>
+          )}
+
           <p className="mt-8 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">
             {t("tekaTekiRush.durasiLabel")}
           </p>
-          <div className="mt-2 grid grid-cols-2 gap-3">
+          <div className="mt-3 flex gap-3">
             {DURASI.map((menit) => {
               const aktif = durasiMenit === menit;
               return (
-                <button
+                <label
                   key={menit}
-                  type="button"
-                  onClick={() => setDurasiMenit(menit)}
-                  aria-pressed={aktif}
-                  className={`rounded-lg border px-4 py-4 text-left transition ${
+                  className={`flex-1 cursor-pointer rounded-md border-2 px-4 py-3 text-center text-2xl font-extrabold tabular-nums transition ${
                     aktif
-                      ? "border-[#81b64c] bg-[#81b64c]/10"
-                      : "border-[#312e2b] bg-[#1e1c18] hover:border-slate-600"
+                      ? "border-[#81b64c] text-[#b8dc8e]"
+                      : "border-[#363236] text-slate-300 hover:border-slate-500"
                   }`}
                 >
-                  <span
-                    className={`block text-3xl font-black tabular-nums leading-none ${
-                      aktif ? "text-[#b8dc8e]" : "text-slate-200"
-                    }`}
-                  >
-                    {menit}
-                  </span>
-                  <span className="mt-1 block text-xs font-medium uppercase tracking-wider text-slate-400">
+                  <input
+                    type="radio"
+                    name="durasiRush"
+                    value={menit}
+                    checked={aktif}
+                    onChange={() => setDurasiMenit(menit)}
+                    className="sr-only"
+                  />
+                  {menit}
+                  <span className="block text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
                     {t("tekaTekiRush.menitSingkat")}
                   </span>
-                </button>
+                </label>
               );
             })}
           </div>
 
           <button
             type="button"
-            onClick={() => mulai(durasiMenit)}
+            onClick={() => {
+              if (!usernameForm.trim()) {
+                setCobaMulai(true);
+                return;
+              }
+              setTimeout(() => {
+                mulai(durasiMenit);
+              }, 700);
+            }}
             className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#92c45f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c]/60"
           >
             {t("tekaTekiRush.mulai")}
@@ -1112,7 +1062,6 @@ export default function TekaTekiRush() {
 
     return (
       <div className="flex min-h-screen flex-col bg-[#262421] text-gray-200 font-sans select-none lg:h-screen lg:overflow-hidden">
-        {kepala}
         <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
           {navKiri}
           {panelTengah(tengah)}
@@ -1132,9 +1081,10 @@ export default function TekaTekiRush() {
           </p>
           <div className="mt-4 text-7xl font-black leading-none tabular-nums text-[#fffaec]">
             {skor}
+            <span className="text-2xl font-bold text-slate-400">/{riwayat.length}</span>
           </div>
-          <p className="mt-3 text-base font-semibold text-[#81b64c]">
-            {teksCapaian(skor)}
+          <p className="mt-3 text-2xl font-bold text-slate-400">
+            {durasiMenit} {t("tekaTekiRush.menitSingkat")}
           </p>
           {rekorBaru && (
             <p className="mt-3 inline-block rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1 text-sm font-bold text-amber-300">
@@ -1142,39 +1092,21 @@ export default function TekaTekiRush() {
             </p>
           )}
 
-          <div className="mt-6 grid grid-cols-3 gap-2">
-            <div className="rounded-lg border border-[#312e2b] bg-[#1e1c18] p-3">
-              <MikroLabel>{t("tekaTekiRush.skor")}</MikroLabel>
-              <p className="mt-1 text-xl font-bold text-white">{skor}</p>
-            </div>
-            <div className="rounded-lg border border-[#312e2b] bg-[#1e1c18] p-3">
-              <MikroLabel>{t("tekaTekiRush.benarLabel")}</MikroLabel>
-              <p className="mt-1 text-xl font-bold text-[#81b64c]">{benarJumlah}</p>
-            </div>
-            <div className="rounded-lg border border-[#312e2b] bg-[#1e1c18] p-3">
-              <MikroLabel>{t("tekaTekiRush.salahLabel")}</MikroLabel>
-              <p className="mt-1 text-xl font-bold text-red-400">{salahJumlah}</p>
-            </div>
-          </div>
-
           <button
             type="button"
             onClick={() => mulai(durasiMenit)}
-            className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#92c45f]"
+            className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#a3d168]"
           >
             {t("tekaTekiRush.mainLagi")}
-          </button>
-          <p className="mt-3 text-xs text-slate-500">
-            {t("tekaTekiRush.skorTerbaik", { n: terbaik })} · {skorTerbaikMenit}
-          </p>
+</button>
 
           {/* Simpan skor ke papan peringkat online */}
           {skor >= 1 && (
-            <div className="mt-6 rounded-lg border border-[#312e2b] bg-[#1e1c18] p-4 text-left">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            <div className="mt-6 text-left">
+              <MikroLabel>
                 {t("tekaTekiRush.simpanSkor")} · {durasiMenit}′
-              </p>
-              <div className="mt-3 flex gap-2">
+              </MikroLabel>
+              <div className="mt-3 flex items-end gap-2">
                 <input
                   type="text"
                   value={usernameForm}
@@ -1182,13 +1114,40 @@ export default function TekaTekiRush() {
                   placeholder={t("tekaTekiRush.usernameAnda")}
                   autoComplete="username"
                   disabled={simpanStatus === "kirim"}
-                  className="min-w-0 flex-1 rounded-md border border-slate-600 bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c]"
+                  className="min-w-0 flex-1 border-0 border-b-2 bg-transparent px-1 py-2 text-sm text-white outline-none transition-colors duration-200 placeholder:text-slate-500 disabled:opacity-60 focus:border-[#81b64c]"
                 />
+                {usernameForm.trim() &&
+                  (rosterUsernames.some(
+                    (u) =>
+                      u && u.toLowerCase() === usernameForm.trim().toLowerCase()
+                  ) ? (
+                    <svg
+                      viewBox="0 0 256 256"
+                      className="mb-2 h-5 w-5 shrink-0 text-[#81b64c]"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M128 20a108 108 0 1 0 108 108A108.12 108.12 0 0 0 128 20m0 192a84 84 0 1 1 84-84 84.095 84.095 0 0 1-84 84m37.515-128.456-56 56-18.971-18.971a12 12 0 0 0-16.97 16.97l27.456 27.456a12 12 0 0 0 16.97 0l64.485-64.485a12 12 0 0 0-16.97-16.97"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      viewBox="0 0 256 256"
+                      className="mb-2 h-5 w-5 shrink-0 text-[#e05b47]"
+                      aria-hidden="true"
+                    >
+                      <path
+                        fill="currentColor"
+                        d="M128 20a108 108 0 1 0 108 108A108.12 108.12 0 0 0 128 20m0 192a84 84 0 1 1 84-84 84.095 84.095 0 0 1-84 84m40.485-107.515L144.971 128l23.514 23.515a12 12 0 0 1-16.97 16.97L128 144.971l-23.515 23.514a12 12 0 0 1-16.97-16.97L111.029 128l-23.514-23.515a12 12 0 0 1 16.97-16.97L128 111.029l23.515-23.514a12 12 0 0 1 16.97 16.97"
+                      />
+                    </svg>
+                  ))}
                 <button
                   type="button"
                   onClick={simpanSkorOnline}
                   disabled={simpanStatus === "kirim"}
-                  className="shrink-0 rounded-md bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#92c45f] disabled:opacity-60"
+                  className="shrink-0 rounded-md bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#a3d168] disabled:opacity-60"
                 >
                   {t("tekaTekiRush.simpanSkor")}
                 </button>
@@ -1213,7 +1172,6 @@ export default function TekaTekiRush() {
 
     return (
       <div className="flex min-h-screen flex-col bg-[#262421] text-gray-200 font-sans select-none lg:h-screen lg:overflow-hidden">
-        {kepala}
         <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
           {navKiri}
           {panelTengah(tengah)}
@@ -1226,120 +1184,176 @@ export default function TekaTekiRush() {
   /* ------------------------------- FASE MAIN (bermain) ----------------- */
   const tengahMain = (
     <>
-      {/* Bilah skor-waktu-nyawa */}
-      <div className="flex shrink-0 items-stretch gap-2 px-3 pt-3 sm:px-4 sm:gap-3">
-        <div className="flex min-w-[70px] flex-col items-center justify-center rounded-md border border-[#312e2b] bg-[#1e1c18] px-2 py-1.5">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-            {t("tekaTekiRush.skor")}
-          </span>
-          <span className="text-2xl font-black tabular-nums leading-tight text-[#81b64c]">
-            {skor}
-          </span>
-        </div>
-        <div className="flex flex-1 flex-col items-center justify-center rounded-md border border-[#312e2b] bg-[#1e1c18] px-2 py-1.5">
-          <div className="flex items-center gap-1.5">
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                aria-hidden="true"
-                className={`h-2 w-2 rounded-full ${
-                  i < nyawa ? "bg-red-500" : "bg-[#312e2b]"
-                }`}
-              />
-            ))}
-          </div>
-          <span className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">
-            {t("tekaTekiRush.nyawa")}
-          </span>
-        </div>
-        <div
-          className={`flex min-w-[86px] flex-col items-center justify-center rounded-md border px-2 py-1.5 ${
-            warnaLow
-              ? "border-red-500/50 bg-red-500/10"
-              : "border-[#312e2b] bg-[#1e1c18]"
-          }`}
-        >
-          <span
-            className={`text-[10px] font-semibold uppercase tracking-[0.12em] ${
-              warnaLow ? "text-red-300" : "text-slate-500"
-            }`}
-          >
-            {t("tekaTekiRush.waktu")}
-          </span>
-          <span
-            className={`text-xl font-bold tabular-nums leading-tight ${
-              warnaLow ? "text-red-300" : "text-[#fffaec]"
-            }`}
-          >
-            {formatWaktu(sisaWaktu)}
-          </span>
-        </div>
-      </div>
-
-      {/* Profil: giliran + level soal */}
-      <div className="flex shrink-0 items-center justify-between px-3 pt-3 sm:px-4">
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden="true"
-            className={`inline-block h-4 w-4 rounded-full border ${
-              orientasi === "b"
-                ? "border-slate-500 bg-slate-900"
-                : "border-slate-500 bg-slate-100"
-            }`}
-          />
-          <span className="text-sm font-semibold text-slate-200">
-            {t("tekaTekiRush.melangkah", { warna: giliranPemain })}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 rounded-md border border-[#312e2b] bg-[#1e1c18] px-2.5 py-1 text-[11px] font-semibold text-slate-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#81b64c]" />
-          {t("tekaTekiRush.kesulitan", { n: targetRating })}
-        </div>
-      </div>
-
-      {/* Papan */}
-      <div className="relative flex min-h-0 flex-1 items-center justify-center p-3">
-        <div
-          className="relative overflow-hidden rounded-md shadow-2xl ring-1 ring-black/20"
-          style={{ width: "min(100%, calc(100vh - 250px))" }}
-        >
-          <PapanTekaTeki
-            fen={fen}
-            orientasi={orientasi}
-            terpilih={terpilih}
-            sasaran={sasaran}
-            kesalahan={kesalahan}
-            langkahAkhir={langkahAkhir}
-            tanda={{ panah: [], petak: {} }}
-            terkunci={terkunci}
-            membeku={komputer}
-            setBidak={setBidak}
-            tema={warnaPapan}
-            onKlik={klikPetak}
-            onPilih={pilihPetak}
-            onMulaiSeret={mulaiSeret}
-            onSelesaiSeret={selesaiSeret}
-          />
-
-          {/* Umpan balik benar/salah */}
-          {flash && (
-            <div
-              key={`${soal?.problemid}-${flash.jenis}-${skor}`}
-              className="pointer-events-none absolute inset-x-0 top-4 z-20 flex justify-center"
-            >
-              <span
-                className={`rounded-full px-4 py-1.5 text-sm font-extrabold shadow-lg ${
-                  flash.jenis === "benar"
-                    ? "bg-[#81b64c] text-[#1e1c18]"
-                    : "bg-red-500 text-white"
+      {/* Profil pemain + papan (mengikuti pola LayoutTekaTeki) */}
+      <div className="flex min-h-0 flex-1 items-center justify-center overflow-hidden p-6">
+        <div className="flex w-full max-w-[720px] lg:max-w-[calc(100vh_-_120px)] flex-col justify-between gap-3">
+          {/* PROFIL PEMAIN ATAS (pihak yang menunggu giliran) */}
+          <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
+              <div
+                className={`h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end rounded-md shadow-md overflow-hidden ${
+                  pasifWarna === "Putih" ? "bg-[#dbd9d6]" : "bg-[#474542]"
                 }`}
               >
-                {flash.jenis === "benar"
-                  ? t("tekaTekiRush.skakmat")
-                  : t("tekaTekiRush.salah")}
+                <svg className="scale-x-[1.15]" height="32" width="32" viewBox="0 0 512 512">
+                  <path
+                    className={
+                      pasifWarna === "Putih" ? "fill-[#ffffff]" : "fill-[#1d1c1a]"
+                    }
+                    d="M359.51,367.614c-19.106-7.148-40.877-18.276-40.877-32.676c0-9.533,0-21.444,0-37.782
+                    c6.996-19.393,17.51-20.781,22.768-50.546c12.254-4.379,19.258-11.384,28.009-42.026c6.574-23.064-3.112-29.254-9.382-30.905
+                    c0.128-1.229,0.256-2.466,0.359-3.917c2.369-34.543,22.425-137.078-47.012-149.332c-18.38-14.296-30.043-20.774-69.437-18.38
+                    C219.001,2.042,200.046,7.547,173.632,0c-35.245,29.565-25.561,126.66-20.63,173.504c-6.199,1.388-16.889,7.148-10.052,31.08
+                    c8.744,30.641,15.748,37.646,28.001,42.026c5.258,29.765,21.252,39.322,22.417,50.546c0,16.338,0,28.248,0,37.782
+                    c0,14.4-23.494,26.55-40.877,32.676C119.058,379.397,25.911,414.275,34.073,512h443.856
+                    C486.09,414.275,392.712,380.035,359.51,367.614z"
+                  />
+                </svg>
+              </div>
+              <div className="flex flex-col justify-center min-w-0">
+                <span className="text-sm font-bold text-[#fffaec] truncate">{pasifWarna}</span>
+                <span className="text-[11px] text-gray-400 font-medium truncate">
+                  {t("tekaTekiRush.menungguGiliran")}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-row items-center flex-shrink-0 mr-[52px]">
+              <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
+                {formatWaktu(sisaWaktu)}
+              </div>
+            </div>
+          </div>
+
+          {/* TENGAH: PAPAN (mengisi sisa tinggi) */}
+          <div className="flex min-h-0 flex-1 flex-row items-stretch justify-center gap-3">
+            <div className="relative flex-1 aspect-square overflow-hidden rounded-md shadow-2xl ring-1 ring-black/20">
+                <PapanTekaTeki
+                  fen={fen}
+                  orientasi={orientasi}
+                  terpilih={terpilih}
+                  sasaran={sasaran}
+                  kesalahan={kesalahan}
+                  langkahAkhir={langkahAkhir}
+                  tanda={{ panah: [], petak: {} }}
+                  terkunci={terkunci}
+                  membeku={komputer}
+                  setBidak={setBidak}
+                  tema={warnaPapan}
+                  onKlik={klikPetak}
+                  onPilih={pilihPetak}
+                  onMulaiSeret={mulaiSeret}
+                  onSelesaiSeret={selesaiSeret}
+                />
+
+                {/* Umpan balik benar/salah */}
+                {flash && (
+                  <div
+                    key={`${soal?.problemid}-${flash.jenis}-${skor}`}
+                    className="pointer-events-none absolute inset-x-0 top-4 z-20 flex justify-center"
+                  >
+                    <span
+                      className={`rounded-full px-4 py-1.5 text-sm font-extrabold shadow-lg ${
+                        flash.jenis === "benar"
+                          ? "bg-[#81b64c] text-[#1e1c18]"
+                          : "bg-red-500 text-white"
+                      }`}
+                    >
+                      {flash.jenis === "benar"
+                        ? t("tekaTekiRush.skakmat")
+                        : t("tekaTekiRush.salah")}
+                    </span>
+                  </div>
+                )}
+            </div>
+
+            {/* Penanda arah papan: atas lawan, bawah pemain */}
+            <div className="flex flex-col items-center justify-center gap-3">
+              <span className="relative flex h-10 w-10 items-center justify-center">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 512 512"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={pasifWarna === "Putih" ? "fill-[#ffffff]" : "fill-[#1d1c1a]"}
+                  aria-hidden="true"
+                >
+                  <path d="M96 448q-14 0-23-9t-9-23V96q0-14 9-23t23-9h320q14 0 23 9t9 23v320q0 14-9 23t-23 9zm304-48V112H112v288z" />
+                </svg>
+              </span>
+              <span className="relative flex h-10 w-10 items-center justify-center">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 512 512"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={giliranPemain === "Putih" ? "fill-[#ffffff]" : "fill-[#1d1c1a]"}
+                  aria-hidden="true"
+                >
+                  <path d="M96 448q-14 0-23-9t-9-23V96q0-14 9-23t23-9h320q14 0 23 9t9 23v320q0 14-9 23t-23 9zm304-48V112H112v288z" />
+                </svg>
               </span>
             </div>
-          )}
+          </div>
+
+          {/* PROFIL PEMAIN BAWAH (giliran aktif) */}
+          <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
+              <div
+                className={`h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end rounded-md shadow-md overflow-hidden ${
+                  giliranPemain === "Putih" ? "bg-[#dbd9d6]" : "bg-[#474542]"
+                }`}
+              >
+                <svg className="scale-x-[1.15]" height="32" width="32" viewBox="0 0 512 512">
+                  <path
+                    className={
+                      giliranPemain === "Putih" ? "fill-[#ffffff]" : "fill-[#1d1c1a]"
+                    }
+                    d="M359.51,367.614c-19.106-7.148-40.877-18.276-40.877-32.676c0-9.533,0-21.444,0-37.782
+                    c6.996-19.393,17.51-20.781,22.768-50.546c12.254-4.379,19.258-11.384,28.009-42.026c6.574-23.064-3.112-29.254-9.382-30.905
+                    c0.128-1.229,0.256-2.466,0.359-3.917c2.369-34.543,22.425-137.078-47.012-149.332c-18.38-14.296-30.043-20.774-69.437-18.38
+                    C219.001,2.042,200.046,7.547,173.632,0c-35.245,29.565-25.561,126.66-20.63,173.504c-6.199,1.388-16.889,7.148-10.052,31.08
+                    c8.744,30.641,15.748,37.646,28.001,42.026c5.258,29.765,21.252,39.322,22.417,50.546c0,16.338,0,28.248,0,37.782
+                    c0,14.4-23.494,26.55-40.877,32.676C119.058,379.397,25.911,414.275,34.073,512h443.856
+                    C486.09,414.275,392.712,380.035,359.51,367.614z"
+                  />
+                </svg>
+              </div>
+              <div className="flex flex-col justify-center min-w-0">
+                <span className="text-sm font-bold text-[#fffaec] truncate">{giliranPemain}</span>
+                <span className="text-[11px] font-bold text-gray-500">
+                  {t("tekaTekiRush.melangkah", { warna: giliranPemain })}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-row items-center gap-2 flex-shrink-0 mr-[52px]">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="relative flex h-10 w-10 items-center justify-center">
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 512 512"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={i >= nyawa ? "fill-[#e05b47]" : "fill-[#3a3633]"}
+                    aria-hidden="true"
+                  >
+                    <path d="M96 448q-14 0-23-9t-9-23V96q0-14 9-23t23-9h320q14 0 23 9t9 23v320q0 14-9 23t-23 9zm304-48V112H112v288z" />
+                  </svg>
+                  {i >= nyawa && (
+                    <svg
+                      className="absolute h-5 w-5 text-red-500"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                    >
+                      <path d="M6 6l12 12M18 6L6 18" />
+                    </svg>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Modal promosi */}
@@ -1396,7 +1410,6 @@ export default function TekaTekiRush() {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#262421] text-gray-200 font-sans select-none lg:h-screen lg:overflow-hidden">
-      {kepala}
       <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
         {navKiri}
         {panelTengah(tengahMain)}

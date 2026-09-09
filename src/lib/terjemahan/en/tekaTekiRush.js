@@ -27,6 +27,8 @@ export const tekaTekiRush = {
     durasi5: "5 minutes",
     menitSingkat: "min",
     mulai: "Start Rush",
+    usernamePlaceholder: "Your Chess.com username",
+    usernameKosong: "Username cannot be empty.",
 
     caraMainJudul: "How to play",
     aturan1:
@@ -47,6 +49,10 @@ export const tekaTekiRush = {
     hitam: "Black",
     melangkah: "{warna} to move",
     cariSkakmat: "Find the mating move…",
+    menungguGiliran: "Waiting for turn",
+    levelLabel: "Puzzle level",
+    kesulitanSingkat: "~{n}",
+    ratingLabel: "Puzzle rating",
     benar: "Correct!",
     salah: "Wrong!",
     skakmat: "Checkmate!",
@@ -68,6 +74,7 @@ export const tekaTekiRush = {
     sesiRekor: "Best run this session",
     baru: "NEW",
     sesiBerhenti: "End session",
+    lisensiAtribusi: "License & Attribution",
     soalDitemui: "Puzzles you faced",
     belumAdaSoal: "Solve your first puzzle to start filling this panel.",
 
