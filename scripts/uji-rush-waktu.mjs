@@ -4,13 +4,16 @@
  * Mengapa perlu: `BEBAS_WAKTU` sempat dinyalakan saat modif markup dan lupa
  * dimatikan — penghitung 3/5 menit berhenti berjalan dan sesi tidak pernah
  * berakhir karena waktu. Uji ini mengunci perilaku yang benar dari sisi
- * pengguna:
+ * pengguna, mengikuti PuzzleDash asli (github.com/sggts04/PuzzleDash):
  *   1. setelah "Mulai Rush", tampilan waktu berjalan turun (03:00 → 02:59 …);
- *   2. saat waktu habis, sesi berakhir dan layar hasil menampilkan
+ *   2. sisa ≤ 30 detik → timer berubah merah + bunyi peringatan sekali
+ *      (di aslinya: timer merah + LowTime.mp3);
+ *   3. saat waktu habis, sesi berakhir dan layar hasil menampilkan
  *      "Waktu habis" (pemain "di-kick" dari papan, sesuai desain).
  *
- * Interval dipercepat lewat pembungkus setInterval agar 3 menit selesai dalam
- * hitungan detik, tanpa mengubah logika komponen.
+ * Penghitung komponen berbasis tenggat absolut (Date.now), jadi uji
+ * mempercepat WAKTU (stub Date.now berjalan ±20×) alih-alih mempercepat
+ * interval — 3 menit selesai ±9 detik nyata, tanpa mengubah logika komponen.
  *
  * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
@@ -46,13 +49,16 @@ function uji(nama, kondisi) {
     console.log(`  ✗ ${nama}`);
   }
 }
+
+/** Date.now asli — dipakai batas waktu uji agar tak terpengaruh stub. */
+const kiniAsli = Date.now.bind(Date);
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
 /** Polling sampai kondisi terpenuhi (anti gagal-palsu di mesin lambat). */
 async function tungguHingga(kondisi, batasMs = 15000, jedaMs = 25) {
-  const mulai = Date.now();
+  const mulai = kiniAsli();
   while (!kondisi()) {
-    if (Date.now() - mulai > batasMs) return false;
+    if (kiniAsli() - mulai > batasMs) return false;
     await tunggu(jedaMs);
   }
   return true;
@@ -127,8 +133,16 @@ class WorkerPalsu {
   removeEventListener() {}
   terminate() {}
 }
+
+/** Audio palsu pencatat alamat — tanpa AudioContext, modul suara memakai
+ *  jalur cadangan `new Audio(alamat)` sehingga bunyi yang diputar bisa
+ *  diperiksa dari alamatnya. */
+const audioDiputar = [];
 class AudioPalsu {
-  constructor() {}
+  constructor(src) {
+    this.src = String(src);
+    audioDiputar.push(this.src);
+  }
   load() {}
   play() {
     return Promise.resolve();
@@ -146,27 +160,7 @@ function siapkanGlobal(window) {
   window.IntersectionObserver = PengamatPalsu;
   window.Worker = WorkerPalsu;
   window.Audio = AudioPalsu;
-  window.AudioContext = class {
-    constructor() {
-      this.currentTime = 0;
-      this.state = "running";
-    }
-    createBuffer() {
-      return { getChannelData: () => new Float32Array(0) };
-    }
-    createBufferSource() {
-      return { connect() {}, start() {}, stop() {} };
-    }
-    createGain() {
-      return { connect() {}, gain: { value: 1, setValueAtTime() {} } };
-    }
-    decodeAudioData() {
-      return Promise.resolve({ duration: 0 });
-    }
-    resume() {
-      return Promise.resolve();
-    }
-  };
+  // Tanpa AudioContext → modul suara jatuh ke jalur `new Audio` (tercatat).
   window.matchMedia =
     window.matchMedia ??
     ((media) => ({ matches: false, media, addEventListener() {}, removeEventListener() {} }));
@@ -175,12 +169,6 @@ function siapkanGlobal(window) {
   window.HTMLMediaElement.prototype.pause = () => {};
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
 
-  // Percepat penghitung: interval 1000 ms dijalankan tiap 15 ms sehingga
-  // 3 menit (180 detik) selesai ±3 detik. Logika komponen tidak diubah.
-  const setIntervalAsli = window.setInterval.bind(window);
-  window.setInterval = (fn, jeda, ...sisa) =>
-    setIntervalAsli(fn, jeda >= 1000 ? 15 : jeda, ...sisa);
-
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.localStorage = window.localStorage;
@@ -188,6 +176,7 @@ function siapkanGlobal(window) {
   globalThis.ResizeObserver = PengamatPalsu;
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.Worker = WorkerPalsu;
+  globalThis.Audio = AudioPalsu;
   for (const nama of [
     "HTMLElement",
     "HTMLInputElement",
@@ -266,9 +255,11 @@ const papanMuncul = await tungguHingga(
 );
 uji("sesi berjalan: papan 64 petak tampil", papanMuncul);
 
-/** Teks penghitung mundur (elemen font-mono "MM:SS"). */
+/** Elemen penghitung mundur (font-mono "MM:SS"). */
+const elWaktu = () =>
+  [...dok.querySelectorAll(".font-mono")].find((e) => /^\d{2}:\d{2}$/.test(e.textContent.trim()));
 const bacaWaktu = () => {
-  const el = [...dok.querySelectorAll(".font-mono")].find((e) => /^\d{2}:\d{2}$/.test(e.textContent.trim()));
+  const el = elWaktu();
   return el ? el.textContent.trim() : null;
 };
 const detik = (teks) => {
@@ -277,28 +268,62 @@ const detik = (teks) => {
   return m * 60 + d;
 };
 
-uji("waktu awal 03:00 (durasi 3 menit)", bacaWaktu() === "03:00");
-
-// Penghitung harus TURUN — dulu (BEBAS_WAKTU=true) angkanya beku di 03:00.
-await tungguHingga(() => {
-  const s = detik(bacaWaktu());
-  return s !== null && s < 180;
-}, 5000);
-const detikSekarang = detik(bacaWaktu());
-uji("penghitung mundur berjalan (turun dari 03:00)", detikSekarang !== null && detikSekarang < 180);
-
-// Waktu habis → sesi berakhir & layar hasil menyebut "Waktu habis".
-// (interval dipercepat: 180 detik ≈ 3 detik nyata; beri margin.)
-const selesai = await tungguHingga(
-  () => /Waktu habis/i.test(wadah.textContent || ""),
-  30000
-);
-uji("sesi berakhir karena waktu (layar hasil \"Waktu habis\")", selesai);
 uji(
-  "papan tidak lagi aktif setelah waktu habis (kembali ke menu/hasil)",
-  wadah.querySelectorAll("[data-petak]").length === 0 ||
-    /Waktu habis/i.test(wadah.textContent || "")
+  "waktu awal 03:00 (durasi 3 menit)",
+  bacaWaktu() === "03:00" || bacaWaktu() === "02:59"
 );
+
+/* Percepat berjalannya waktu ±20× — penghitung komponen berbasis tenggat
+ * absolut (Date.now), jadi yang dipercepat jamnya, bukan intervalnya.
+ * 3 menit (180 dtk) selesai ±9 detik nyata. */
+const FAKTOR = 20;
+let offsetWaktu = 0;
+const setIntervalAsli = globalThis.setInterval.bind(globalThis);
+const penggerakWaktu = setIntervalAsli(() => {
+  offsetWaktu += 1000 * (FAKTOR - 1);
+}, 1000);
+Date.now = () => kiniAsli() + offsetWaktu;
+
+let merahTerlihat = false;
+let bunyiPeringatan = false;
+try {
+  // Penghitung harus TURUN — dulu (BEBAS_WAKTU=true) angkanya beku di 03:00.
+  await tungguHingga(() => {
+    const s = detik(bacaWaktu());
+    return s !== null && s < 179;
+  }, 5000);
+  uji("penghitung mundur berjalan (turun dari 03:00)", (() => {
+    const s = detik(bacaWaktu());
+    return s !== null && s < 179;
+  })());
+
+  // Sisa ≤ 30 dtk → timer merah (warnaLow) + bunyi peringatan sekali.
+  merahTerlihat = await tungguHingga(
+    () => !!elWaktu() && /red-/.test(elWaktu().className),
+    15000
+  );
+  uji("timer berubah merah saat sisa ≤ 30 detik", merahTerlihat);
+  bunyiPeringatan = await tungguHingga(
+    () => audioDiputar.some((s) => s.includes("tenseconds")),
+    5000
+  );
+  uji("bunyi peringatan waktu menipis diputar", bunyiPeringatan);
+
+  // Waktu habis → sesi berakhir & layar hasil menyebut "Waktu habis".
+  const selesai = await tungguHingga(
+    () => /Waktu habis/i.test(wadah.textContent || ""),
+    30000
+  );
+  uji('sesi berakhir karena waktu (layar hasil "Waktu habis")', selesai);
+  uji(
+    "papan tidak lagi aktif setelah waktu habis (kembali ke menu/hasil)",
+    wadah.querySelectorAll("[data-petak]").length === 0 ||
+      /Waktu habis/i.test(wadah.textContent || "")
+  );
+} finally {
+  Date.now = kiniAsli;
+  clearInterval(penggerakWaktu);
+}
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
 uji("tidak ada galat render React", galatRender.length === 0);

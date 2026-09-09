@@ -45,6 +45,7 @@ export const SUARA = {
   tekaTekiSalah: "puzzle-wrong",
   tekaTekiTuntas: "lesson-pass",
   prestasi: "achievement",
+  waktuSedikit: "tenseconds",
 };
 
 /** Bunyi yang dipanaskan lebih dulu supaya langkah pertama tidak telat. */
