@@ -43,46 +43,33 @@ Situs dioptimasi agar Lighthouse mobile/desktop menuju 100 pada keempat kategori
 - Font Plus Jakarta Sans di-host sendiri (tanpa `fonts.googleapis.com`)
 - Foto dikompresi WebP + `srcset`; logo 14 KiB (sebelumnya ~100 KiB)
 - Gambar LCP (`hero-about`) di-preload dan dilukis dari HTML awal (`#boot-hero`)
-- CSS di-inline; setiap rute publik punya `index.html` agar GitHub Pages mengembalikan HTTP 200
-- `BrowserRouter` memakai `basename` `/ChessClub/` supaya homepage tidak jatuh ke 404
+- CSS di-inline; rute publik dibangkitkan dengan metadata route-specific untuk deep link Vercel
+- `BrowserRouter` memakai base `/` sesuai deployment Vercel
 
-Setelah merge ke `main`, GitHub Actions akan men-deploy. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
+Setelah merge ke `main`, GitHub Actions menjalankan quality check; integrasi
+Vercel menerbitkan deployment production. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
 
 ## Deploy
 
 | Skema | Panduan | Keterangan |
 | ----- | ------- | ---------- |
-| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Rp 0, backend jalan sebagai Serverless Function (`api/[...jalur].js`). `/tmp` tidak persisten, tetapi dapat diaktifkan **Supabase** agar data awet (Bagian 9) — baca `VERCEL-LIMITATIONS.md` dan `DEPLOYMENT-CHECKLIST.md`. |
-| Vercel (frontend) + Render (backend ber-disk) | `PANDUAN-DEPLOY-VERCEL-RENDER.md` | Untuk data produksi yang harus awet |
-| Lainnya (GitHub Pages, Netlify, VPS) | `PANDUAN-DEPLOY.md` | |
+| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Jalur deployment production resmi. Backend berjalan sebagai Serverless Function (`api/[...jalur].js`); aktifkan **Supabase** agar data awet. Baca `VERCEL-LIMITATIONS.md` dan `DEPLOYMENT-CHECKLIST.md`. |
 
 ## Backend (keanggotaan, verifikasi, turnamen)
 
-Situs terdiri dari **dua bagian**: frontend statis (repo ini) dan backend
-Node tanpa dependensi di `server/` (`node server/src/index.js`). Backend
-menyediakan API `/api/*` untuk anggota, verifikasi Chess.com, turnamen,
-konten, dan pesan — detail lengkap ada di `server/README.md` dan
-`PANDUAN-DEPLOY.md`. Saat frontend di-deploy ke GitHub Pages (tanpa proxy),
-backend harus dicapai langsung lewat `VITE_API_DASAR` — sudah diatur
-otomatis oleh workflow deploy.
+Frontend dan backend production berjalan dalam satu proyek Vercel. Frontend
+memanggil API relatif melalui `/api/*`; Serverless Function
+`api/[...jalur].js` meneruskan request ke kode di `server/`. Detail lengkap ada
+di `server/README.md` dan `PANDUAN-DEPLOY-FULL-VERCEL.md`.
 
-### Jalur deploy yang disarankan
-
-Kombinasi paling seimbang untuk produksi:
-
-- **Frontend** → **Vercel** (gratis, CDN global)
-- **Backend** → **Render.com Starter + Persistent Disk** (data persisten)
-
-File yang disertakan untuk deploy:
-- `vercel.json` — build Vite + proxy `/api/*` ke backend.
+File utama deployment:
+- `vercel.json` — build Vite, rewrite SPA, dan routing `/api/*`.
 - `.vercelignore` — mengecualikan bagian non-frontend saat unggah ke Vercel.
-- `render.yaml` — blueprint Render.com (service + persistent disk + env vars).
+- `api/[...jalur].js` — entry point Serverless Function.
 
 Ikuti panduan langkah-demi-langkah di
-[`PANDUAN-DEPLOY-VERCEL-RENDER.md`](./PANDUAN-DEPLOY-VERCEL-RENDER.md)
-untuk penyiapan env var, disk, dan verifikasi. Panduan lengkap semua opsi
-hosting (Render, Netlify, Vercel, GitHub Pages, VPS) ada di
-[`PANDUAN-DEPLOY.md`](./PANDUAN-DEPLOY.md).
+[`PANDUAN-DEPLOY-FULL-VERCEL.md`](./PANDUAN-DEPLOY-FULL-VERCEL.md) untuk
+penyiapan environment, Supabase, dan verifikasi production.
 
 ## Kredit, Teknologi & Lisensi
 
@@ -93,7 +80,6 @@ Proyek ini dibangun dan dijalankan di atas layanan serta pustaka sumber terbuka 
 | **GitHub** | Repositori, CI/CD (Actions), dokumentasi |
 | **Vercel** | Hosting frontend + Serverless Function + Speed Insights |
 | **Supabase** | Opsional — autentikasi & penyimpanan data awet bagi backend |
-| **Render** | Opsional — backend Node ber-disk untuk data produksi persisten |
 | **React + Vite + Tailwind CSS v4** | Kerangka antarmuka |
 | **Stockfish (stockfish.js)** | Engine analisis catur (GPL-3.0) |
 | **chess.js** | Logika & parsing PGN |

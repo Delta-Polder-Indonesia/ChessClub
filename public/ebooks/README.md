@@ -16,10 +16,9 @@ LFS GitHub saat checkout dengan Git LFS aktif.
   git lfs pull
   ```
   Cek hasilnya: `head -c 4 "public/ebooks/Sicilian Defense.pdf"` harus mencetak `%PDF`.
-- **Deploy GitHub Pages**: workflow `.github/workflows/deploy.yml` sudah memakai
-  `actions/checkout` dengan `lfs: true` dan memverifikasi `dist/ebooks/*.pdf`
-  berisi PDF asli sebelum menerbitkan situs. Tanpa `lfs: true`, situs akan
-  menyajikan pointer teks sebagai pengganti PDF — tombol Baca/Unduh rusak.
+- **Deploy Vercel**: build memakai sumber PDF yang tersedia di checkout atau
+  object storage. Untuk koleksi besar, gunakan Supabase Storage sesuai
+  `PANDUAN-EBOOK-STORAGE.md` agar deployment tidak bergantung pada pointer LFS.
 - **Menambah e-book baru**: letakkan PDF asli di folder ini lalu `git add` seperti
   biasa (Git LFS otomatis menangani). Jangan commit *pointer* hasil klon tanpa LFS.
 - **Ingin lepas dari LFS** (PDF disimpan sebagai berkas Git biasa):

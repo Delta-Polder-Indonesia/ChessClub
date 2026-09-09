@@ -41,7 +41,7 @@ lewat saluran tidak terenkripsi.
 - **Autentikasi pengurus:** JWT HS256 (24 jam) + kompatibilitas token/password legacy.
 - **Otorisasi:** peran `master` / `pengurus`.
 - **Identitas anggota:** hash ber-pepper (`KCI_PEPPER`) + bcrypt untuk password admin.
-- **Transport:** HTTPS wajib di produksi (Vercel/Render menyediakan TLS).
+- **Transport:** HTTPS wajib di produksi (Vercel menyediakan TLS).
 
 ## Checklist rutin
 

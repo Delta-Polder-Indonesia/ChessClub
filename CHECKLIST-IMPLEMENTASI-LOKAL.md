@@ -40,14 +40,14 @@ Isi nilai berikut untuk backend produksi/staging:
 | `KCI_ADMIN_USER` | Ya | Username dashboard `/pengurus`, mis. `admin`. |
 | `KCI_ADMIN_PASSWORD` | Ya | Password kuat dashboard `/pengurus`; jangan pakai `admin123` di publik. |
 | `KCI_TOKEN_ADMIN` | Opsional | Token legacy minimal 24 karakter bila masih dipakai sebagai password alternatif. |
-| `KCI_ASAL_DIIZINKAN` | Ya | Origin frontend persis, mis. `https://domain-anda.id,https://delta-polder-indonesia.github.io` |
-| `KCI_JUMLAH_PROXY` | Ya | `1` di belakang Nginx/Render satu proxy; `0` bila server langsung. |
-| `KCI_DIR_DATA` | Ya | Direktori persisten di luar repository, mis. `/var/lib/kci`. |
+| `KCI_ASAL_DIIZINKAN` | Ya | Origin frontend Vercel persis, mis. `https://chess-club-weld.vercel.app` |
+| `KCI_JUMLAH_PROXY` | Ya | `1` di Serverless Function Vercel; `0` saat lokal. |
+| `KCI_DIR_DATA` | Lokal saja | Direktori data di luar repository; Vercel memakai `/tmp`, jadi production gunakan Supabase. |
 | `KCI_CHESS_KLUB` | Ya | Slug klub Chess.com, mis. `blunder-skuad`. |
-| `KCI_DIR_BACKUP` | Untuk backup | Lokasi privat di luar repo, mis. `/var/backups/kci`. |
-| `KCI_RETENSI_BACKUP` | Disarankan | Jumlah arsip terakhir, mis. `14`. |
+| `KCI_DIR_BACKUP` | Lokal saja | Lokasi privat di luar repo untuk backup lokal. |
+| `KCI_RETENSI_BACKUP` | Lokal saja | Jumlah arsip terakhir, mis. `14`. |
 | `KCI_LOG_PERMINTAAN` | Disarankan | `1` untuk log JSON ringkas tanpa body/token/IP. |
-| `VITE_API_DASAR` | GH Pages | URL backend tanpa trailing slash, mis. `https://api.domain-anda.id`. |
+| `VITE_API_DASAR` | Vercel | Kosongkan untuk memakai rewrite `/api` same-origin. |
 | `VITE_CHESS_KLUB` | Disarankan | Samakan dengan `KCI_CHESS_KLUB`. |
 
 OAuth Chess.com opsional. Isi `KCI_CHESS_CLIENT_ID`, `KCI_CHESS_CLIENT_SECRET`, dan `KCI_CHESS_REDIRECT_URI` hanya setelah aplikasi OAuth disetujui Chess.com.
@@ -64,7 +64,7 @@ Periksa dan ganti data contoh berikut sebelum publikasi bila belum sesuai:
 | `src/components/Footer.jsx` | Email dan alamat singkat footer. |
 | `index.html` | Canonical URL, Open Graph URL/gambar, JSON-LD Organization. |
 | `public/robots.txt` dan `public/sitemap.xml` | Domain canonical bila memakai domain sendiri. |
-| `.github/workflows/*.yml` | Workflow aktif (deploy, quality, health); perubahan butuh akun GitHub dengan izin `workflows`. |
+| `.github/workflows/*.yml` | Workflow CI quality dan health; deployment production dikelola Vercel. |
 
 ### Data aplikasi
 
@@ -79,40 +79,38 @@ Di **Settings → Secrets and variables → Actions → Variables**, set:
 
 | Variable | Fungsi |
 | --- | --- |
-| `KCI_API_URL` | URL backend untuk build GitHub Pages dan health check. |
+| `KCI_API_URL` | `https://chess-club-weld.vercel.app` untuk health check production. |
 | `KCI_CHESS_KLUB` | Slug klub frontend (opsional; default `blunder-skuad`). |
 
 Setelah `KCI_API_URL` tersedia, workflow health check berjalan setiap 6 jam. Pastikan endpoint berikut dapat diakses publik:
 
 ```text
-GET https://api.domain-anda.id/api/kesehatan
+GET https://chess-club-weld.vercel.app/api/kesehatan
 ```
 
 ## 5. Data persisten dan backup
 
-1. Pastikan `$KCI_DIR_DATA` berada pada disk persisten.
-2. Pastikan `$KCI_DIR_BACKUP` berada di luar repository dan hanya bisa dibaca user service.
-3. Jalankan backup manual pertama:
+Untuk production Vercel, jalankan `db/supabase-schema.sql`, isi
+`SUPABASE_URL` dan `SUPABASE_SERVICE_ROLE_KEY` di Vercel, lalu redeploy.
+Baca `PANDUAN-DEPLOY-FULL-VERCEL.md`; `/tmp` tidak boleh dianggap sebagai
+storage persisten.
+
+Untuk pengembangan lokal atau service mandiri, bila backup file diperlukan:
 
 ```bash
 KCI_DIR_DATA=/var/lib/kci KCI_DIR_BACKUP=/var/backups/kci npm run operasi:backup
-```
-
-4. Uji restore ke folder sementara—jangan menimpa server produksi:
-
-```bash
 mkdir /tmp/kci-restore
 tar xzf /var/backups/kci/kci-data-TANGGAL.tar.gz -C /tmp/kci-restore
 ```
 
-5. Simpan pepper secara terpisah dan aman. Backup tanpa pepper tidak cukup untuk pemulihan penuh sistem identitas.
-
-Template systemd untuk service dan timer backup tersedia di `.github/systemd/`.
+Simpan pepper secara terpisah dan aman. Backup tanpa pepper tidak cukup untuk
+pemulihan penuh sistem identitas. Template systemd untuk service dan timer
+backup lokal tersedia di `.github/systemd/`.
 
 ## 6. Pemeriksaan sebelum rilis
 
 ```bash
-API=https://api.domain-anda.id
+API=https://chess-club-weld.vercel.app
 curl "$API/api/kesehatan"
 curl -o /dev/null -w "%{http_code}\n" "$API/api/pengurus/ringkasan" # wajib 401
 KCI_API_URL="$API" npm run operasi:kesehatan
@@ -138,4 +136,4 @@ Daftar keputusan rilis:
 | Bulanan | Uji restore backup; periksa log server dan kapasitas disk. |
 | Saat pergantian pengurus | Rotasi `KCI_ADMIN_PASSWORD` dan/atau `KCI_TOKEN_ADMIN` legacy; jangan rotasi pepper tanpa rencana migrasi data. |
 
-Lihat `PANDUAN-DEPLOY.md` untuk instruksi host Render/VPS secara lengkap.
+Lihat `PANDUAN-DEPLOY-FULL-VERCEL.md` untuk instruksi deployment production.

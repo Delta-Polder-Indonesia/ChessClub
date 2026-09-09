@@ -3,7 +3,7 @@
  *
  * Engine diambil dari folder publik `public/engines/stockfish-18-lite-single`
  * (build "single" = satu utas, sehingga tidak membutuhkan header
- * COOP/COEP dan aman disajikan lewat GitHub Pages). Loader bawaan engine
+ * COOP/COEP dan aman disajikan lewat Vercel). Loader bawaan engine
  * otomatis mencari file `.wasm` di folder yang sama dengan skrip worker,
  * jadi cukup satu URL:
  *   `${BASE_URL}engines/stockfish-18-lite-single/stockfish-18-lite-single.js`
@@ -27,7 +27,7 @@ const URL_ENGINE = `${dasarAset()}engines/stockfish-18-lite-single/stockfish-18-
 /**
  * Engine lokal yang tersedia di `public/engines/` — dipakai halaman Analisa
  * untuk memilih kekuatan analisis (semuanya build "single" = satu utas,
- * jadi tidak butuh header COOP/COEP dan aman lewat GitHub Pages).
+ * jadi tidak butuh header COOP/COEP dan aman lewat Vercel).
  */
 export const DAFTAR_ENGINE = [
   {

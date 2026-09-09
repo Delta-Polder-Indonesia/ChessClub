@@ -24,7 +24,6 @@ const TEKNOLOGI = [
   { nama: "GitHub", href: "https://github.com/" },
   { nama: "Vercel", href: "https://vercel.com/" },
   { nama: "Supabase", href: "https://supabase.com/" },
-  { nama: "Render", href: "https://render.com/" },
   { nama: "React", href: "https://react.dev/" },
   { nama: "Vite", href: "https://vitejs.dev/" },
   { nama: "Tailwind CSS", href: "https://tailwindcss.com/" },

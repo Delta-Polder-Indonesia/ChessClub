@@ -32,7 +32,7 @@ const daftar = (v) =>
 const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
 
 /**
- * Bersihkan nilai rahasia yang ditempel dari dashboard (Vercel/Render).
+ * Bersihkan nilai rahasia yang ditempel dari dashboard deployment.
  *
  * Menyalin-tempel di kolom Environment Variable sangat sering menyisakan
  * spasi atau baris baru di ujung nilai. Bila dibiarkan, password "terlihat"
@@ -55,7 +55,7 @@ export const konfigurasi = {
 
   /**
    * Jumlah proxy tepercaya di DEPAN server (mis. Cloudflare, Nginx,
-   * Render, Load Balancer). Header X-Forwarded-For hanya dihormati
+   * Load Balancer). Header X-Forwarded-For hanya dihormati
    * bila nilai ini > 0.
    *
    * - 0 (bawaan): server terhubung langsung ke klien. X-Forwarded-For
@@ -289,7 +289,7 @@ export function periksaProduksi() {
   if (!konfigurasi.asalDiizinkan.length) {
     masalah.push(
       "KCI_ASAL_DIIZINKAN sebaiknya diisi di produksi, mis. " +
-        "https://delta-polder-indonesia.github.io"
+        "https://chess-club-weld.vercel.app"
     );
   }
   if (!/^[a-z0-9][a-z0-9-]{0,99}$/.test(konfigurasi.chess.klub.slug)) {

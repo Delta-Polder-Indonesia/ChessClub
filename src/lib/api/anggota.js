@@ -17,7 +17,7 @@ const API_KLUB_CHESS = `https://api.chess.com/pub/club/${KLUB_CHESS}/members`;
 const URL_KLUB_CHESS = `https://www.chess.com/club/${KLUB_CHESS}`;
 
 /**
- * Cadangan untuk deployment frontend statis (mis. GitHub Pages).
+ * Cadangan untuk development atau deployment frontend statis.
  * Endpoint klub Chess.com sudah berupa data publik dan mendukung CORS, jadi
  * browser dapat mengambil roster tanpa backend. Data rinci seperti rating
  * tetap berasal dari backend saat tersedia; cadangan ini memastikan nama,

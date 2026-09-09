@@ -142,7 +142,7 @@ export function CorporateSidebar({ title, items }) {
  *
  * - href diawali "/" → rute internal (mis. "/beranda/daftar-juara"):
  *   memakai <Link> React Router agar berpindah halaman TANPA refresh
- *   (SPA). Basename router (mis. "/ChessClub/") ditangani otomatis.
+ *   (SPA). Base router Vercel ("/") ditangani otomatis.
  * - selain itu (jangkar "#id" dalam halaman, atau URL penuh) → <a>
  *   biasa, sehingga scroll ke bagian/halaman yang dituju tetap jalan.
  */

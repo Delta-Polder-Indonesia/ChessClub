@@ -157,6 +157,8 @@ export const analisaLanding = {
     judul: "Game Analysis",
     deskripsi:
       "Before you open the board, learn how analysis works: every move is scored by Stockfish — brilliant, best, excellent, good, inaccuracy, mistake, blunder — with the engine's suggestion and an accuracy summary.",
+    metaDeskripsi:
+      "Analyze PGN and FEN games with local Stockfish: move labels, evaluation chart, player accuracy, and engine suggestions. Your game data stays on your device.",
     artikel: "Game Analysis",
     p1Judul: "Dissecting Every Move, Learning the Best One",
     p1: "At its core, game analysis is the art of turning a silent sequence of moves into a living, valuable tactical lesson. Through modern chess engine integration such as Stockfish running fully in your browser, every maneuver on the board can now be scored instantly. This feature lets you identify the full spectrum of move quality at a glance — from the most precise execution, minor inaccuracies, to the fatal blunder that changes the course of the game.",

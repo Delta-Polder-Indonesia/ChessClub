@@ -89,5 +89,5 @@ Hash identitas (`identitas`, `sidikPepper`) tetap di kolom terpisah yang
 
 ## Hosting
 
-Neon, Supabase, Railway, atau Postgres di Render. Set `DATABASE_URL` di env;
+Neon, Supabase, atau Railway. Set `DATABASE_URL` di env;
 jangan commit kredensial.

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRightIcon } from "./icons.jsx";
 import Hero from "./Hero.jsx";
@@ -12,6 +11,11 @@ export function HalamanIsi({
   parent,
   parentPath,
   description,
+  metaDescription,
+  image,
+  imageWidth,
+  imageHeight,
+  robots,
   next,
   submenu,
   children,
@@ -23,13 +27,16 @@ export function HalamanIsi({
     { label: title },
   ].filter(Boolean);
 
-  useEffect(() => {
-    document.title = `${title} | ${t("common.namaKomunitas")}`;
-  }, [title, t]);
-
   return (
     <>
-      <MetaHalaman title={title} description={description} />
+      <MetaHalaman
+        title={title}
+        description={metaDescription || description}
+        image={image}
+        imageWidth={imageWidth}
+        imageHeight={imageHeight}
+        robots={robots}
+      />
       <BreadcrumbJsonLd items={crumbs} />
       <Hero title={title} description={description} crumbs={crumbs} />
       {submenu}

@@ -3,8 +3,8 @@
  *
  * Mengapa perlu: bunyi papan gampang rusak diam-diam — berkas MP3 terhapus
  * saat rapi-rapi folder, nama bunyi salah ketik, atau alamatnya ditulis
- * langsung `/SoundChess/...` sehingga pecah di GitHub Pages (base URL bukan
- * "/"). Tidak ada yang gagal saat build; yang terjadi cuma papan jadi bisu.
+ * langsung `/SoundChess/...` sehingga gagal ketika base URL deployment berubah.
+ * Tidak ada yang gagal saat build; yang terjadi cuma papan jadi bisu.
  *
  * Yang diperiksa:
  *  1. Setiap nama di peta `SUARA` punya berkas MP3-nya.

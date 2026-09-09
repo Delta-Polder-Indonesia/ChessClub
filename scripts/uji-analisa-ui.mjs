@@ -119,7 +119,7 @@ export { formatPlayerLabel, normalisasiPemain };
 export function mount(el) {
   return createRoot(el).render(
     <HelmetProvider>
-      <MemoryRouter initialEntries={["/program-kami/analisa"]}>
+      <MemoryRouter initialEntries={["/program-kami/analisa/papan"]}>
         <I18nProvider>
           <Analisa />
         </I18nProvider>
@@ -247,6 +247,8 @@ function siapkanGlobal(window) {
   window.webkitAudioContext = AudioContextPalsu;
   window.Worker = WorkerPalsu;
   window.matchMedia = window.matchMedia ?? ((media) => ({ matches: false, media, addEventListener() {}, removeEventListener() {} }));
+  window.requestAnimationFrame = window.requestAnimationFrame ?? ((callback) => setTimeout(() => callback(Date.now()), 0));
+  window.cancelAnimationFrame = window.cancelAnimationFrame ?? ((id) => clearTimeout(id));
   window.scrollTo = () => {};
   window.Element.prototype.scrollIntoView = function scrollIntoView() {};
   window.HTMLElement.prototype.scrollTo = function scrollTo() {};
@@ -266,6 +268,8 @@ function siapkanGlobal(window) {
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.AudioContext = AudioContextPalsu;
   globalThis.Worker = WorkerPalsu;
+  globalThis.requestAnimationFrame = window.requestAnimationFrame;
+  globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
   for (const nama of ["HTMLElement", "HTMLInputElement", "HTMLTextAreaElement", "Element", "Node", "Event", "MouseEvent", "KeyboardEvent", "CustomEvent"]) {
     if (window[nama]) globalThis[nama] = window[nama];
   }
@@ -292,7 +296,7 @@ function pasangFetch(window) {
 /* ------------------------------------------------------------------- jalankan */
 
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
-  url: "https://uji.test/program-kami/analisa",
+  url: "https://uji.test/program-kami/analisa/papan",
   pretendToBeVisual: true,
 });
 siapkanGlobal(dom.window);
@@ -331,6 +335,10 @@ const awal = teksBagus();
 
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
 uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
+uji("papan memakai noindex, follow", domSiap.querySelector('meta[name="robots"]')?.content === "noindex, follow");
+uji("canonical papan memakai pathname papan", domSiap.querySelector('link[rel="canonical"]')?.href === "https://uji.test/program-kami/analisa/papan");
+uji("Open Graph papan memakai gambar Analisa", domSiap.querySelector('meta[property="og:image"]')?.content.endsWith("/images/PapanAnalysa.webp"));
+uji("Twitter Card papan memakai kartu gambar besar", domSiap.querySelector('meta[name="twitter:card"]')?.content === "summary_large_image");
 uji("papan ter-render (svg bidak)", domSiap.querySelectorAll(".analisa-root svg").length > 20);
 uji("panel awal menampilkan ajakan tanpa form lama", /Belum ada data permainan/.test(awal));
 uji("nama pemain bawaan terjemahan", awal.includes("Putih") || awal.includes("Hitam"));
