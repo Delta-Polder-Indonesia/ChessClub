@@ -73,6 +73,21 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 - Nilai yang sudah terpasang: primary `#0B2F9F`, hero `#021624`, teks artikel `#374151`, footer `#F8FAFC`,
   H2 30px semibold, H1 hero putih 38px bold — konsisten dengan token di atas; jangan dicampur gaya lain.
 
+## Design System Reference — obrigatório para komponen baru
+
+Untuk **setiap komponen UI baru** atau perubahan yang secara langsung membentuk gaya visual sebuah komponen, baca dan ikuti:
+[`references/Design-System-Reference.md`](references/Design-System-Reference.md).
+
+Dokumen tersebut adalah referensi visual khusus untuk gaya **Academic Journal / Formal Monochrome UI** dan menjadi sumber aturan detail untuk tipografi, palet monokrom, border, spacing, tabel, kartu, maklumat, langkah, tombol, ikon, modal, dan checklist visual.
+
+Aturan penerapannya:
+
+1. **Baca `Design-System-Reference.md` sebelum membuat komponen baru.** Jangan menebak gaya dari ingatan.
+2. **Jangan melakukan restyling massal pada komponen existing hanya karena referensi ini dibaca.** Perubahan existing tetap harus sesuai permintaan pengguna.
+3. Jika referensi visual dan kode existing berbeda, **pertahankan UI existing** kecuali pengguna meminta perubahan visual; gunakan referensi sebagai standar untuk komponen baru.
+4. Untuk halaman/komponen baru, gabungkan aturan struktur dari `standar-markup.md` dengan aturan visual dari `Design-System-Reference.md`.
+5. `Design-System-Reference.md` tidak memberikan izin untuk menambah fitur, mengubah perilaku, atau melakukan refactor di luar permintaan pengguna.
+
 ## Standar markup halaman (WAJIB sebelum membuat/porting halaman)
 
 Sebelum menulis satu baris JSX untuk halaman baru atau porting, baca
