@@ -18,12 +18,6 @@
  *       pertama, 1 = kedua, dst.). Bila ragu, jalankan `npm run uji:quiz`.
  *     - Panjang `pilihan` minimal 2 dan konsisten antar soal (disarankan 4).
  *     - Nama kategori harus ada di `DAFTAR_KATEGORI` supaya bisa difilter.
- *
- *  Menambah kategori baru:
- *     1) Tambahkan id di array `DAFTAR_KATEGORI` (mis. "taktik").
- *     2) Tambahkan label terjemahannya di:
- *           src/lib/terjemahan/id/quiz.js  →  quiz.kategori.taktik
- *           src/lib/terjemahan/en/quiz.js  →  quiz.kategori.taktik
  * ============================================================================
  */
 
@@ -311,8 +305,8 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "taktik",
-    soal: "Taktik yang memaksa lawan memindahkan bidak penjaga sehingga target di belakangnya menjadi rentan disebut?",
-    pilihan: ["Deflection", "Fork", "Opposition", "Development"],
+    soal: "Taktik ketika sebuah bidak mengancam dua target sekaligus, salah satunya dapat berupa raja, disebut?",
+    pilihan: ["Double attack", "Fork", "Opposition", "Fortress"],
     kunci: 0,
   },
   {
@@ -329,30 +323,12 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "taktik",
-    soal: "Taktik ketika satu bidak menyerang raja dan pada saat yang sama membuka serangan terhadap target lain disebut?",
+    soal: "Taktik yang memanfaatkan serangan terhadap dua target berbeda sehingga lawan sulit mempertahankan keduanya disebut?",
     pilihan: ["Double attack", "Quiet move", "Opposition", "Fortress"],
     kunci: 0,
   },
 
   /* -------------------------------------------------------- pembukaan */
-  {
-    kategori: "pembukaan",
-    soal: "Pembukaan 'Sicilian Defence' dimulai dengan langkah?",
-    pilihan: ["1.e4 e5", "1.e4 c5", "1.d4 d5", "1.c4 e5"],
-    kunci: 1,
-  },
-  {
-    kategori: "pembukaan",
-    soal: "Pembukaan 'Ruy Lopez' dimulai 1.e4 e5 2.Kf3 Kc6 lalu langkah ketiga Putih biasanya?",
-    pilihan: ["3.Gb5", "3.Gc4", "3.d4", "3.Kc3"],
-    kunci: 0,
-  },
-  {
-    kategori: "pembukaan",
-    soal: "'Italian Game' dimulai 1.e4 e5 2.Kf3 Kc6 3.?",
-    pilihan: ["3.Gc4", "3.Gb5", "3.d3", "3.c3"],
-    kunci: 0,
-  },
   {
     kategori: "pembukaan",
     soal: "Manakah respons Hitam yang merupakan pilihan utama terhadap 1.e4 dan dikenal sebagai Sicilian Defence?",
@@ -361,8 +337,8 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "pembukaan",
-    soal: "Pembukaan yang dimulai 1.d4 d5 2.c4 disebut?",
-    pilihan: ["Queen's Gambit", "King's Gambit", "Reti", "English Opening"],
+    soal: "Pembukaan Queen's Gambit dimulai dengan?",
+    pilihan: ["1.d4 d5 2.c4", "1.e4 e5 2.f4", "1.c4 e5", "1.Kf3 d5"],
     kunci: 0,
   },
   {
@@ -393,6 +369,24 @@ export const SOAL_CATUR = [
     kategori: "pembukaan",
     soal: "Prinsip pembukaan yang umum dianjurkan adalah?",
     pilihan: ["Kembangkan bidak, kuasai pusat, dan amankan raja", "Gerakkan menteri berkali-kali", "Majukan semua pion sayap", "Jangan pernah melakukan rokade"],
+    kunci: 0,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "Italian Game dimulai dengan urutan langkah?",
+    pilihan: ["1.e4 e5 2.Nf3 Nc6 3.Bc4", "1.d4 d5 2.c4", "1.c4 e5 2.Nc3", "1.Nf3 d5 2.g3"],
+    kunci: 0,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "Ruy Lopez juga dikenal sebagai pembukaan apa?",
+    pilihan: ["Spanish Game", "Italian Game", "English Opening", "French Defence"],
+    kunci: 0,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "Pertahanan Scandinavian dimulai ketika Hitam merespons 1.e4 dengan?",
+    pilihan: ["1...d5", "1...c5", "1...e6", "1...Nc6"],
     kunci: 0,
   },
 
@@ -597,13 +591,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "sejarah",
-    soal: "Berapa jumlah bidak di atas papan ketika partai baru dimulai (kedua pemain)?",
-    pilihan: ["16", "24", "32", "64"],
-    kunci: 2,
-  },
-  {
-    kategori: "sejarah",
-    soal: "Organisasi pecatur dunia yang menyelenggarakan kejuaraan dunia adalah?",
+    soal: "Organisasi catur dunia yang menaungi federasi nasional adalah?",
     pilihan: ["FIDE", "USCF", "AFC", "WCC"],
     kunci: 0,
   },
@@ -631,30 +619,30 @@ export const SOAL_CATUR = [
     pilihan: ["Boris Spassky", "Anatoly Karpov", "Tigran Petrosian", "Viktor Korchnoi"],
     kunci: 0,
   },
+  {
+    kategori: "sejarah",
+    soal: "Kejuaraan dunia catur 1972 antara Fischer dan Spassky sering dijuluki apa?",
+    pilihan: ["Match of the Century", "Game of Thrones", "Battle of Queens", "Chess Renaissance"],
+    kunci: 0,
+  },
 
   /* ------------------------------------------------------------- umum */
   {
     kategori: "umum",
-    soal: "Dalam jam catur, istilah untuk kehabisan waktu hingga kalah adalah?",
-    pilihan: ["Flag fall", "Castle", "Blunder", "En prise"],
+    soal: "Apa nama format permainan catur yang menggunakan papan dan bidak fisik secara langsung?",
+    pilihan: ["Catur over-the-board (OTB)", "Catur korespondensi", "Catur simultan", "Catur blindfold"],
     kunci: 0,
   },
   {
     kategori: "umum",
-    soal: "Sebuah langkah yang sangat buruk dan biasanya membuat posisi langsung kalah disebut?",
-    pilihan: ["Brilliancy", "Blunder", "Novelty", "Prepared line"],
-    kunci: 1,
-  },
-  {
-    kategori: "umum",
-    soal: "Jenis kontrol waktu yang memberi waktu singkat tiap langkah (misal 3 menit + 2 detik/langkah) dikenal sebagai?",
-    pilihan: ["Blitz", "Korespondensi", "Rapid klasik", "Sesuai keinginan"],
+    soal: "Istilah untuk pemain yang bermain tanpa melihat papan secara langsung adalah?",
+    pilihan: ["Blindfold chess", "Bullet chess", "Rapid chess", "Puzzle rush"],
     kunci: 0,
   },
   {
     kategori: "umum",
-    soal: "Bila seorang pemain mempromosikan pion bukan menjadi menteri (mis. kuda), istilahnya?",
-    pilihan: ["Underpromotion", "Overpromotion", "Intermezzo", "Zwischenzug"],
+    soal: "Apa yang dimaksud dengan underpromotion?",
+    pilihan: ["Promosi pion menjadi kuda, gajah, atau benteng, bukan menteri", "Promosi menjadi dua menteri", "Memajukan pion satu petak", "Mengorbankan pion"],
     kunci: 0,
   },
   {
@@ -666,13 +654,19 @@ export const SOAL_CATUR = [
   {
     kategori: "umum",
     soal: "Kontrol waktu 10 menit tanpa increment umumnya dikategorikan sebagai?",
-    pilihan: ["Rapid", "Blitz", "Bullet", "Korespondensi"],
+    pilihan: ["Blitz", "Rapid", "Bullet", "Korespondensi"],
     kunci: 0,
   },
   {
     kategori: "umum",
     soal: "Istilah 'tempo' dalam catur paling dekat berarti?",
     pilihan: ["Satu unit waktu atau kesempatan langkah yang dapat dimanfaatkan", "Nilai menteri", "Warna petak", "Jumlah pion"],
+    kunci: 0,
+  },
+  {
+    kategori: "umum",
+    soal: "Apa yang biasanya dimaksud dengan blunder dalam catur?",
+    pilihan: ["Kesalahan besar yang dapat menyebabkan kerugian material atau posisi", "Langkah pembukaan wajib", "Jenis rokade", "Promosi pion"],
     kunci: 0,
   },
 ];
