@@ -80,7 +80,17 @@ Untuk **setiap komponen UI baru** atau perubahan yang secara langsung membentuk 
 
 Dokumen tersebut adalah referensi visual khusus untuk gaya **Academic Journal / Formal Monochrome UI** dan menjadi sumber aturan detail untuk tipografi, palet monokrom, border, spacing, tabel, kartu, maklumat, langkah, tombol, ikon, modal, dan checklist visual.
 
-Aturan penerapannya:
+### Prioritas aturan visual
+
+Agar tidak terjadi konflik antara brand KCI dan referensi visual baru, gunakan urutan berikut:
+
+1. **Perubahan existing:** pertahankan desain, token, warna, layout, dan perilaku existing. Jangan merombak hanya karena Design System Reference dibaca.
+2. **Perubahan visual existing yang diminta pengguna:** ikuti permintaan pengguna dan gunakan Design System Reference sebagai panduan, tanpa memperluas scope.
+3. **Komponen/halaman baru:** gunakan Design System Reference sebagai standar visual utama, lalu selaraskan dengan identitas KCI yang tidak bertentangan.
+4. **Jika aturan bertentangan:** jangan menebak dan jangan memilih aturan yang membuka perubahan lebih luas. Pertahankan existing untuk bagian yang sudah ada; untuk bagian baru, gunakan referensi baru dan pilih token KCI hanya jika tidak bertentangan secara visual.
+5. **Tidak ada perubahan massal otomatis:** membaca referensi bukan izin untuk restyling seluruh situs, mengganti palet existing, atau melakukan refactor.
+
+### Aturan penerapan
 
 1. **Baca `Design-System-Reference.md` sebelum membuat komponen baru.** Jangan menebak gaya dari ingatan.
 2. **Jangan melakukan restyling massal pada komponen existing hanya karena referensi ini dibaca.** Perubahan existing tetap harus sesuai permintaan pengguna.
