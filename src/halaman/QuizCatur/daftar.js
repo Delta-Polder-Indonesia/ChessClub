@@ -31,9 +31,13 @@ export const DAFTAR_KATEGORI = [
   { id: "peraturan", urutan: 0 },
   { id: "bidak", urutan: 1 },
   { id: "skakmat", urutan: 2 },
-  { id: "pembukaan", urutan: 3 },
-  { id: "sejarah", urutan: 4 },
-  { id: "umum", urutan: 5 },
+  { id: "taktik", urutan: 3 },
+  { id: "pembukaan", urutan: 4 },
+  { id: "strategi", urutan: 5 },
+  { id: "endgame", urutan: 6 },
+  { id: "notasi", urutan: 7 },
+  { id: "sejarah", urutan: 8 },
+  { id: "umum", urutan: 9 },
 ];
 
 export const SOAL_CATUR = [
@@ -182,12 +186,6 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "skakmat",
-    soal: "Istilah taktik saat satu bidak menyerang dua atau lebih bidak lawan sekaligus adalah?",
-    pilihan: ["Pinning", "Fork", "Skewer", "Discovered attack"],
-    kunci: 1,
-  },
-  {
-    kategori: "skakmat",
     soal: "Kombinasi dua benteng untuk menggeser raja lawan ke tepi papan hingga skakmat dikenal sebagai?",
     pilihan: ["Tangga benteng", "Jepitan kuda", "Pengorbanan gajah", "Rokade ganda"],
     kunci: 0,
@@ -197,6 +195,38 @@ export const SOAL_CATUR = [
     soal: "Dalam notasi catur, lambang '#' di akhir langkah berarti?",
     pilihan: ["Skak", "Skakmat", "Promosi", "Remis"],
     kunci: 1,
+  },
+
+  /* ------------------------------------------------------------ taktik */
+  {
+    kategori: "taktik",
+    soal: "Istilah taktik saat satu bidak menyerang dua atau lebih bidak lawan sekaligus adalah?",
+    pilihan: ["Pinning", "Fork", "Skewer", "Discovered attack"],
+    kunci: 1,
+  },
+  {
+    kategori: "taktik",
+    soal: "Taktik ketika sebuah bidak menyerang bidak bernilai tinggi di belakang bidak yang lebih rendah disebut?",
+    pilihan: ["Fork", "Skewer", "Pin", "Zugzwang"],
+    kunci: 1,
+  },
+  {
+    kategori: "taktik",
+    soal: "Apa yang disebut pin ketika sebuah bidak tidak bebas bergerak karena di belakangnya ada bidak yang lebih penting?",
+    pilihan: ["Pinned piece", "Passed pawn", "Outpost", "Opposition"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Serangan yang muncul setelah sebuah bidak menyingkir dan membuka garis serangan bidak lain disebut?",
+    pilihan: ["Discovered attack", "Skewer", "Fork", "Promotion"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Taktik mengorbankan bidak untuk menghilangkan atau memaksa penjaga suatu bidak target disebut?",
+    pilihan: ["Deflection", "Castling", "Opposition", "Development"],
+    kunci: 0,
   },
 
   /* -------------------------------------------------------- pembukaan */
@@ -229,6 +259,137 @@ export const SOAL_CATUR = [
     soal: "Pembukaan yang dimulai 1.d4 d5 2.c4 disebut?",
     pilihan: ["Queen's Gambit", "King's Gambit", "Reti", "English Opening"],
     kunci: 0,
+  },
+
+  /* ----------------------------------------------------------- strategi */
+  {
+    kategori: "strategi",
+    soal: "Apa tujuan utama menguasai petak pusat pada fase awal permainan?",
+    pilihan: [
+      "Membuat raja langsung aman tanpa rokade",
+      "Memberi ruang dan meningkatkan aktivitas bidak",
+      "Menghindari semua pertukaran",
+      "Memaksa lawan memajukan pion tepi",
+    ],
+    kunci: 1,
+  },
+  {
+    kategori: "strategi",
+    soal: "Petak kuat yang sulit diusir oleh pion lawan dan dapat menjadi tempat ideal bagi kuda disebut?",
+    pilihan: ["Outpost", "Back rank", "Zugzwang", "File tertutup"],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Apa keuntungan memiliki open file untuk benteng?",
+    pilihan: [
+      "Benteng mendapat jalur terbuka untuk menekan posisi lawan",
+      "Benteng tidak bisa diserang",
+      "Benteng berubah menjadi menteri",
+      "Raja otomatis terlindungi",
+    ],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Istilah 'bad bishop' biasanya merujuk pada gajah yang?",
+    pilihan: [
+      "Terhalang oleh pion sendiri sehingga ruang geraknya terbatas",
+      "Berada di warna petak yang sama dengan raja lawan",
+      "Selalu bernilai kurang dari dua pion",
+      "Tidak boleh bergerak diagonal",
+    ],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Mengapa keselamatan raja menjadi prioritas penting dalam middlegame?",
+    pilihan: [
+      "Raja adalah bidak dengan nilai materi tertinggi",
+      "Raja yang terbuka dapat menjadi sasaran serangan langsung",
+      "Raja harus selalu berada di tengah papan",
+      "Raja tidak boleh bergerak setelah rokade",
+    ],
+    kunci: 1,
+  },
+
+  /* ------------------------------------------------------------ endgame */
+  {
+    kategori: "endgame",
+    soal: "Dalam endgame pion dan raja, apa yang dimaksud opposition?",
+    pilihan: [
+      "Kedua raja saling berhadapan dengan jarak satu petak",
+      "Kedua raja berada di sudut papan",
+      "Satu raja menyerang menteri lawan",
+      "Dua benteng berada pada file yang sama",
+    ],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Pion yang tidak memiliki pion lawan di depannya maupun di file sebelah yang dapat menghentikan lajunya disebut?",
+    pilihan: ["Passed pawn", "Isolated king", "Pinned pawn", "Back rank pawn"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Dalam banyak endgame, raja menjadi semakin aktif karena?",
+    pilihan: [
+      "Raja boleh meninggalkan aturan skak",
+      "Jumlah bidak berkurang sehingga ancaman terhadap raja biasanya lebih sedikit",
+      "Raja berubah menjadi benteng",
+      "Raja mendapat langkah tambahan setiap giliran",
+    ],
+    kunci: 1,
+  },
+  {
+    kategori: "endgame",
+    soal: "Teknik dasar kemenangan endgame benteng yang terkenal dengan posisi benteng di baris keenam dan raja di depan pion disebut?",
+    pilihan: ["Lucena", "Philidor", "Sicilian", "Boden"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Pertahanan Philidor dalam endgame benteng terutama bertujuan untuk?",
+    pilihan: [
+      "Mencegah raja lawan maju ke baris keenam/ketiga dan membantu mempertahankan remis",
+      "Menukar benteng sendiri dengan pion",
+      "Memaksa promosi pion sendiri",
+      "Memenangkan menteri dalam tiga langkah",
+    ],
+    kunci: 0,
+  },
+
+  /* ------------------------------------------------------------- notasi */
+  {
+    kategori: "notasi",
+    soal: "Dalam notasi aljabar, huruf 'N' biasanya mewakili bidak apa?",
+    pilihan: ["Kuda", "Benteng", "Gajah", "Menteri"],
+    kunci: 0,
+  },
+  {
+    kategori: "notasi",
+    soal: "Apa arti 'x' dalam notasi langkah catur seperti Bxe5?",
+    pilihan: ["Skak", "Menangkap bidak", "Promosi", "Rokade"],
+    kunci: 1,
+  },
+  {
+    kategori: "notasi",
+    soal: "Apa arti 'O-O' dalam notasi catur?",
+    pilihan: ["Rokade pendek", "Rokade panjang", "Skak", "Remis"],
+    kunci: 0,
+  },
+  {
+    kategori: "notasi",
+    soal: "Dalam notasi SAN, tanda '+' di akhir langkah menunjukkan?",
+    pilihan: ["Skak", "Skakmat", "Promosi", "Menangkap raja"],
+    kunci: 0,
+  },
+  {
+    kategori: "notasi",
+    soal: "Apa arti 'O-O-O'?",
+    pilihan: ["Rokade pendek", "Rokade panjang", "Skak ganda", "Promosi"],
+    kunci: 1,
   },
 
   /* ---------------------------------------------------------- sejarah */
