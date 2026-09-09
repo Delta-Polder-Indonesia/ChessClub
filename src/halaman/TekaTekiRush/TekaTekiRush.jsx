@@ -30,8 +30,10 @@ const KUNCI_WARNA = "kci-teka-teki-warna-papan";
 const DURASI = [3, 5];
 const NYAWA_AWAL = 3;
 
-/** Mode latihan bebas: waktu tidak berjalan sehingga tidak berakhir karena waktu. */
-const BEBAS_WAKTU = true;
+/** Mode latihan bebas (khusus dev): waktu tidak berjalan sehingga tidak
+ *  berakhir karena waktu. Harus `false` di produksi — penghitung 3/5 menit
+ *  adalah bagian dari permainan. */
+const BEBAS_WAKTU = false;
 
 /** Seluruh pilihan warna papan + kunci label (sama dgn halaman Teka-Teki). */
 const PILIHAN_WARNA = [
@@ -308,6 +310,13 @@ export default function TekaTekiRush() {
   const terbaikAwalRef = useRef(0);
   const timerRef = useRef(null);
   const delayRef = useRef(null);
+  // Tenggat sesi dalam milidetik absolut (meniru `puzzleEndDateTime`
+  // PuzzleDash asli): sisa waktu selalu dihitung ulang dari jam nyata,
+  // bukan didekremen — berapa pun interval tertunda (tab di latar belakang,
+  // mesin sibuk), penghitung tetap akurat dan tidak bisa "melambat".
+  const berakhirPadaRef = useRef(0);
+  // Bunyi peringatan "waktu menipis" cukup sekali per sesi.
+  const sudahPeringatanRef = useRef(false);
 
   const terkunci = komputer || transisi || !!promo || fase !== "main";
 
@@ -465,6 +474,8 @@ export default function TekaTekiRush() {
       skorRef.current = 0;
       setDurasiMenit(menit);
       setSisaWaktu(menit * 60);
+      berakhirPadaRef.current = Date.now() + menit * 60_000;
+      sudahPeringatanRef.current = false;
       setNyawa(NYAWA_AWAL);
       setSkor(0);
       setRiwayat([]);
@@ -484,15 +495,28 @@ export default function TekaTekiRush() {
   /* ----------------------------------------------------------- penghitung */
   useEffect(() => {
     if (fase !== "main" || BEBAS_WAKTU) return undefined;
-    const id = window.setInterval(() => {
-      setSisaWaktu((prev) => (prev <= 1 ? 0 : prev - 1));
-    }, 1000);
+    const detikSisa = () =>
+      Math.max(0, Math.ceil((berakhirPadaRef.current - Date.now()) / 1000));
+    setSisaWaktu(detikSisa());
+    // 250 ms (bukan 1 dtk) supaya tampilan langsung benar saat kembali dari
+    // tab yang dibekukan browser; nilai sama = React tanpa render ulang.
+    const id = window.setInterval(() => setSisaWaktu(detikSisa()), 250);
     return () => window.clearInterval(id);
   }, [fase]);
 
   useEffect(() => {
     if (fase === "main" && !BEBAS_WAKTU && sisaWaktu <= 0) akhiri("waktu");
   }, [sisaWaktu, fase, akhiri]);
+
+  /* Peringatan waktu menipis (sisa ≤ 30 dtk): bunyi sekali — pasangan dari
+   * timer merah (warnaLow). Meniru PuzzleDash asli yang membunyikan
+   * LowTime.mp3 tepat saat 30 detik tersisa. */
+  useEffect(() => {
+    if (fase !== "main" || BEBAS_WAKTU) return;
+    if (sisaWaktu > 30 || sisaWaktu <= 0 || sudahPeringatanRef.current) return;
+    sudahPeringatanRef.current = true;
+    mainkan(SUARA.waktuSedikit);
+  }, [sisaWaktu, fase, mainkan]);
 
   /* --------------------------------------- balasan otomatis si lawan */
   useEffect(() => {
@@ -1218,7 +1242,13 @@ export default function TekaTekiRush() {
               </div>
             </div>
             <div className="flex flex-row items-center flex-shrink-0 mr-[52px]">
-              <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
+              <div
+                className={`flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md text-lg font-mono font-bold shadow border ${
+                  warnaLow
+                    ? "border-red-500/80 bg-[#2a1113] text-[#ff7676] ring-2 ring-red-500/30"
+                    : "border-[#81b64c] bg-[#f0f0f0] text-[#1e1d1c] ring-2 ring-[#81b64c]/40"
+                }`}
+              >
                 {formatWaktu(sisaWaktu)}
               </div>
             </div>

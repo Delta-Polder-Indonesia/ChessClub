@@ -243,6 +243,36 @@ console.error = (...args) => {
 const modul = require(berkasBundel);
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
+/**
+ * Tunggu hingga `kondisi()` terpenuhi — polling, bukan jeda tetap.
+ * Mengapa: papan interaktif baru render setelah `data/buku-pembukaan.json`
+ * (±4,6 MB) selesai dibaca, diparse, dan disusun jadi pohon. Di mesin lambat
+ * (baca disk dingin + pemindaian antivirus) tahap ini bisa melebihi jeda tetap
+ * lama (1500 ms) sehingga uji gagal palsu; polling membuat uji cepat di mesin
+ * cepat dan tetap sabar di mesin lambat. Batas waktu balik `false` supaya uji
+ * berikutnya gagal dengan pesan yang jelas, bukan menggantung tanpa akhir.
+ */
+async function tungguHingga(kondisi, batasMs = 15000, jedaMs = 25) {
+  const mulai = Date.now();
+  while (!kondisi()) {
+    if (Date.now() - mulai > batasMs) return false;
+    await tunggu(jedaMs);
+  }
+  return true;
+}
+
+/**
+ * Setelah klik petak asal: tunggu petak tujuan ditandai sebagai sasaran
+ * langkah legal (titik/cincin `rounded-full` dari prop `sasaran`) — baru klik
+ * tujuan. Menunggu overlay seleksi saja tidak cukup spesifik: penanda langkah
+ * terakhir juga memakai span `absolute inset-0` dengan warna berbeda.
+ */
+const tungguSasaran = (wadah, tujuan) =>
+  tungguHingga(
+    () => wadah.querySelector(`[data-petak="${tujuan}"] span.rounded-full`) !== null,
+    5000
+  );
+
 /** Semua lencana skakmat yang ter-render di dalam wadah. */
 function lencanaSkakmat(wadah) {
   return [...wadah.querySelectorAll('[title^="Skakmat"]')];
@@ -314,7 +344,8 @@ console.log("\nrender PapanTekaTeki:");
 console.log("\nalur halaman TekaTeki (soal Mate in One, id=6):");
 const wadahHalaman = domSiap.getElementById("root");
 modul.mountTekaTeki(wadahHalaman, 6);
-await tunggu(1200);
+// Tunggu data soal termuat & papan ter-render — polling, bukan jeda tetap.
+await tungguHingga(() => wadahHalaman.querySelectorAll("[data-petak]").length === 64);
 
 uji("papan teka-teki ter-render", wadahHalaman.querySelectorAll("[data-petak]").length === 64);
 uji("belum ada lencana sebelum langkah mat", lencanaSkakmat(wadahHalaman).length === 0);
@@ -337,9 +368,15 @@ function klikPetak(petak) {
 }
 
 klikPetak("d8"); // pilih benteng hitam
-await tunggu(200);
+await tungguSasaran(wadahHalaman, "d1");
 klikPetak("d1"); // Rd1#
-await tunggu(600);
+// Tunggu lencana skakmat & ucapan komentator selesai re-render setelah mat.
+await tungguHingga(
+  () =>
+    lencanaSkakmat(wadahHalaman).length === 1 &&
+    /SKAKMAT|Skakmat|Mat!/.test(teksKomentator(wadahHalaman)),
+  5000
+);
 
 const lencanaAkhir = lencanaSkakmat(wadahHalaman);
 uji("lencana skakmat muncul setelah langkah mat", lencanaAkhir.length === 1);
@@ -415,7 +452,10 @@ console.log("\nalur halaman PapanInteraktif (Fool's Mate):");
 const wadahInteraktif = domSiap.createElement("div");
 domSiap.body.appendChild(wadahInteraktif);
 modul.mountPapanInteraktif(wadahInteraktif);
-await tunggu(1500); // tunggu pohon pembukaan dimuat (board baru render setelah pohon siap)
+// Tunggu papan benar-benar ter-render (pohon pembukaan 4,6 MB sudah siap) —
+// polling dengan batas longgar, bukan jeda tetap, agar tidak gagal palsu di
+// mesin lambat (baca disk dingin / antivirus) maupun lambat jaringan uji.
+await tungguHingga(() => wadahInteraktif.querySelectorAll("[data-petak]").length === 64);
 
 function klikInteraktif(petak) {
   const el = wadahInteraktif.querySelector(`[data-petak="${petak}"]`);
@@ -427,9 +467,12 @@ uji("interaktif: belum ada lencana di awal", lencanaSkakmat(wadahInteraktif).len
 
 // Ikon buku: 1. e4 masih di jalur buku pembukaan.
 klikInteraktif("e2");
-await tunggu(150);
+await tungguSasaran(wadahInteraktif, "e4");
 klikInteraktif("e4");
-await tunggu(400);
+await tungguHingga(
+  () => wadahInteraktif.querySelector('[title="Langkah buku (pembukaan)"]') !== null,
+  5000
+);
 uji(
   "interaktif: ikon buku muncul pada langkah pembukaan (1. e4)",
   wadahInteraktif.querySelector('[title="Langkah buku (pembukaan)"]') !== null
@@ -440,7 +483,7 @@ wadahInteraktif.remove();
 const wadahFool = domSiap.createElement("div");
 domSiap.body.appendChild(wadahFool);
 modul.mountPapanInteraktif(wadahFool);
-await tunggu(800);
+await tungguHingga(() => wadahFool.querySelectorAll("[data-petak]").length === 64);
 const klikFool = (petak) => {
   const el = wadahFool.querySelector(`[data-petak="${petak}"]`);
   if (el) el.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true, button: 0 }));
@@ -448,11 +491,12 @@ const klikFool = (petak) => {
 const langkahFool = [["f2", "f3"], ["e7", "e5"], ["g2", "g4"], ["d8", "h4"]];
 for (const [asal, tujuan] of langkahFool) {
   klikFool(asal);
-  await tunggu(150);
+  await tungguSasaran(wadahFool, tujuan);
   klikFool(tujuan);
   await tunggu(200);
 }
-await tunggu(400);
+// Tunggu lencana skakmat & komentator selesai re-render setelah langkah mat.
+await tungguHingga(() => lencanaSkakmat(wadahFool).length === 1, 5000);
 
 const lencanaInt = lencanaSkakmat(wadahFool);
 uji("interaktif: lencana skakmat muncul setelah Qh4#", lencanaInt.length === 1);
