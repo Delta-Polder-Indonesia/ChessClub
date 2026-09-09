@@ -56,7 +56,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "peraturan",
-    soal: "Istilah apa untuk keadaan ketika raja terancam dan tidak ada cara menyelamatkannya?",
+    soal: "Istilah apa untuk keadaan ketika raja sedang diskak dan tidak ada cara legal untuk menyelamatkannya?",
     pilihan: ["Skak", "Skakmat", "Pat", "Remis"],
     kunci: 1,
   },
@@ -76,7 +76,7 @@ export const SOAL_CATUR = [
     soal: "Ketika pion mencapai baris terakhir lawan, pemain wajib melakukan apa?",
     pilihan: [
       "Menghentikan pion itu di petaknya",
-      "Mempromosikannya menjadi bidak lain (biasanya menteri)",
+      "Mempromosikannya menjadi menteri, benteng, gajah, atau kuda",
       "Menarik pion itu ke belakang",
       "Menukarnya dengan pion lawan",
     ],
@@ -90,25 +90,25 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "peraturan",
-    soal: "Rokade boleh dilakukan bila raja dan benteng belum pernah bergerak. Mana syarat TAMBAHAN yang benar?",
+    soal: "Rokade boleh dilakukan bila raja dan benteng belum pernah bergerak. Mana syarat tambahan yang benar?",
     pilihan: [
-      "Petak antara harus kosong dan raja tidak dalam keadaan skak",
-      "Raja boleh berada dalam skak asalkan bentengnya bebas",
+      "Petak antara harus kosong, dan raja tidak sedang diskak serta tidak melewati atau berakhir di petak yang diserang",
+      "Raja boleh sedang diskak asalkan bentengnya bebas",
       "Petak tujuan raja boleh sedang diserang bidak lawan",
-      "Bidak antara boleh menyerang petak yang dilalui raja",
+      "Bidak antara boleh tetap berada di antara raja dan benteng",
     ],
     kunci: 0,
   },
   {
     kategori: "peraturan",
-    soal: "Berapa langkah berturut-turut tanpa bidak dimakan dan tanpa gerakan pion yang membuat partai boleh dinyatakan remis?",
+    soal: "Berapa banyak langkah oleh masing-masing pemain tanpa gerakan pion atau penangkapan yang menjadi dasar klaim remis menurut aturan 50 langkah?",
     pilihan: ["10", "25", "50", "75"],
     kunci: 2,
   },
   {
     kategori: "peraturan",
     soal: "Apakah raja boleh ditangkap seperti bidak biasa?",
-    pilihan: ["Ya, pada giliran lawan", "Tidak, permainan berakhir saat raja terkena skakmat", "Hanya di endgame", "Hanya jika kedua pemain setuju"],
+    pilihan: ["Ya, pada giliran lawan", "Tidak, permainan berakhir saat posisi skakmat tercapai", "Hanya di endgame", "Hanya jika kedua pemain setuju"],
     kunci: 1,
   },
   {
@@ -125,7 +125,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "peraturan",
-    soal: "Dalam rokade panjang, raja berpindah menuju file apa?",
+    soal: "Dalam rokade panjang, raja berpindah dari file e menuju file apa?",
     pilihan: ["b", "c", "d", "f"],
     kunci: 1,
   },
@@ -145,13 +145,13 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "bidak",
-    soal: "Bidak yang nilainya paling tinggi adalah?",
+    soal: "Di antara bidak berikut, mana yang biasanya memiliki nilai materi paling tinggi?",
     pilihan: ["Raja", "Menteri", "Benteng", "Kuda"],
     kunci: 1,
   },
   {
     kategori: "bidak",
-    soal: "Gajah berjalan ke arah mana?",
+    soal: "Gajah bergerak ke arah mana?",
     pilihan: ["Lurus horizontal dan vertikal", "Diagonal sejauh bebas", "Berbentuk huruf L", "Satu petak ke segala arah"],
     kunci: 1,
   },
@@ -181,8 +181,8 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "bidak",
-    soal: "Kuda paling kuat berada di petak mana pada papan catur?",
-    pilihan: ["Sudut papan", "Tepi papan", "Tengah papan", "Baris ke-2"],
+    soal: "Secara umum, kuda lebih efektif berada di mana?",
+    pilihan: ["Di sudut papan", "Di tepi papan", "Di atau dekat pusat papan", "Selalu di baris terakhir"],
     kunci: 2,
   },
   {
@@ -219,8 +219,8 @@ export const SOAL_CATUR = [
   /* ---------------------------------------------------------- skakmat */
   {
     kategori: "skakmat",
-    soal: "Skakmat tercepat yang bisa terjadi disebut 'Fool's Mate'. Terjadi dalam berapa langkah?",
-    pilihan: ["1 langkah", "2 langkah", "3 langkah", "4 langkah"],
+    soal: "Skakmat tercepat yang dikenal sebagai Fool's Mate terjadi setelah berapa langkah?",
+    pilihan: ["1 langkah Putih", "2 langkah Hitam", "3 langkah Putih", "4 langkah Hitam"],
     kunci: 1,
   },
   {
@@ -299,7 +299,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "taktik",
-    soal: "Taktik mengorbankan bidak untuk menghilangkan atau memaksa penjaga suatu bidak target disebut?",
+    soal: "Taktik yang memaksa bidak penjaga meninggalkan tugasnya sehingga target menjadi lebih rentan disebut?",
     pilihan: ["Deflection", "Castling", "Opposition", "Development"],
     kunci: 0,
   },
@@ -355,8 +355,8 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "pembukaan",
-    soal: "Jawaban Hitam yang paling populer menghadapi 1.e4 pada tingkat tinggi adalah?",
-    pilihan: ["Sicilian Defence", "Skandinavia", "Car-Kann", "Alekhine"],
+    soal: "Manakah respons Hitam yang merupakan pilihan utama terhadap 1.e4 dan dikenal sebagai Sicilian Defence?",
+    pilihan: ["1...c5", "1...e5", "1...c6", "1...d6"],
     kunci: 0,
   },
   {
@@ -380,18 +380,18 @@ export const SOAL_CATUR = [
   {
     kategori: "pembukaan",
     soal: "King's Gambit dimulai dengan?",
-    pilihan: ["1.e4 e5 2.f4", "1.d4 d5 2.c4", "1.c4 e5", "1.Nf3 d5"],
+    pilihan: ["1.e4 e5 2.f4", "1.d4 d5 2.c4", "1.c4 e5", "1.Kf3 d5"],
     kunci: 0,
   },
   {
     kategori: "pembukaan",
     soal: "English Opening biasanya dimulai dengan langkah Putih?",
-    pilihan: ["1.e4", "1.d4", "1.c4", "1.Nf3"],
+    pilihan: ["1.e4", "1.d4", "1.c4", "1.Kf3"],
     kunci: 2,
   },
   {
     kategori: "pembukaan",
-    soal: "Opening principle yang umum dianjurkan adalah?",
+    soal: "Prinsip pembukaan yang umum dianjurkan adalah?",
     pilihan: ["Kembangkan bidak, kuasai pusat, dan amankan raja", "Gerakkan menteri berkali-kali", "Majukan semua pion sayap", "Jangan pernah melakukan rokade"],
     kunci: 0,
   },
@@ -467,7 +467,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "endgame",
-    soal: "Pion yang tidak memiliki pion lawan di depannya maupun di file sebelah yang dapat menghentikan lajunya disebut?",
+    soal: "Pion yang tidak dapat dihentikan oleh pion lawan di file yang sama maupun file yang berdekatan disebut?",
     pilihan: ["Passed pawn", "Isolated king", "Pinned pawn", "Back rank pawn"],
     kunci: 0,
   },
@@ -479,14 +479,14 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "endgame",
-    soal: "Teknik dasar kemenangan endgame benteng yang terkenal dengan posisi benteng di baris keenam dan raja di depan pion disebut?",
+    soal: "Teknik dasar kemenangan endgame benteng yang terkenal dengan posisi benteng membantu raja mengeluarkan pion dari posisi tertentu disebut?",
     pilihan: ["Lucena", "Philidor", "Sicilian", "Boden"],
     kunci: 0,
   },
   {
     kategori: "endgame",
     soal: "Pertahanan Philidor dalam endgame benteng terutama bertujuan untuk?",
-    pilihan: ["Mencegah raja lawan maju ke baris keenam/ketiga dan membantu mempertahankan remis", "Menukar benteng sendiri dengan pion", "Memaksa promosi pion sendiri", "Memenangkan menteri dalam tiga langkah"],
+    pilihan: ["Mencegah raja lawan maju terlalu jauh dan membantu mempertahankan remis", "Menukar benteng sendiri dengan pion", "Memaksa promosi pion sendiri", "Memenangkan menteri dalam tiga langkah"],
     kunci: 0,
   },
   {
@@ -515,7 +515,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "endgame",
-    soal: "Apa yang biasanya terjadi jika kedua pemain hanya memiliki raja tanpa bidak lain?",
+    soal: "Apa hasil partai jika kedua pemain hanya memiliki raja tanpa bidak lain?",
     pilihan: ["Remis", "Putih menang", "Hitam menang", "Permainan dilanjutkan tanpa batas"],
     kunci: 0,
   },
@@ -585,14 +585,14 @@ export const SOAL_CATUR = [
   /* ---------------------------------------------------------- sejarah */
   {
     kategori: "sejarah",
-    soal: "Catur modern dipercaya berasal dari negara mana?",
-    pilihan: ["India", "Cina", "Persia", "Rusia"],
+    soal: "Permainan yang sering dianggap sebagai salah satu leluhur langsung catur berkembang di wilayah mana?",
+    pilihan: ["India", "Rusia", "Spanyol", "Amerika Serikat"],
     kunci: 0,
   },
   {
     kategori: "sejarah",
-    soal: "Istilah 'checkmate' dalam bahasa Indonesia, konon berasal dari bahasa Persia 'shah mat' yang berarti?",
-    pilihan: ["Raja telah mati / raja terperangkap", "Putih menang", "Seri", "Waktu habis"],
+    soal: "Istilah 'checkmate' berkaitan dengan ungkapan Persia 'shah mat'. Makna yang sering diberikan untuk ungkapan tersebut adalah?",
+    pilihan: ["Raja telah dikalahkan atau tidak berdaya", "Putih menang", "Seri", "Waktu habis"],
     kunci: 0,
   },
   {
