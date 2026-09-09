@@ -9,11 +9,23 @@ Skills provide guidance; they do not grant permission to change scope, rewrite u
 
 1. Understand the user's exact request.
 2. Inspect the relevant existing code, configuration, and tests before editing.
-3. State the intended scope and plan when the change is non-trivial.
-4. Change only what is necessary to satisfy the request.
-5. Preserve existing features, APIs, UI behavior, data flow, and working code unless the user explicitly asks for a change.
-6. Validate the changed area with the smallest relevant checks.
-7. Report exactly what changed, what was verified, and any remaining issue.
+3. Classify the requested change by scope and risk before editing.
+4. For medium, large, or risky changes, state the intended scope and plan and wait for explicit user approval before editing.
+5. Change only what is necessary to satisfy the request.
+6. Preserve existing features, APIs, UI behavior, data flow, and working code unless the user explicitly asks for a change.
+7. Validate the changed area with the smallest relevant checks.
+8. Report exactly what changed, what was verified, and any remaining issue.
+
+## Scope and approval gate
+
+- The agent may analyze, inspect, search, diagnose, and propose changes without waiting for approval.
+- A clear, local, low-risk change may proceed after the relevant files and behavior have been inspected.
+- A medium-scope change requires a short plan and explicit user approval before editing. Examples include changes across several files, meaningful behavior changes, or changes that affect an existing feature beyond a local fix.
+- A large or risky change requires explicit approval before editing. Examples include architecture changes, database/schema changes, API contract changes, dependency changes, file deletion, history rewriting, mass replacement, or changes that may affect unrelated features.
+- When approval is required, the agent must stop after presenting the plan. It must not begin editing, committing, pushing, or merging until the user approves.
+- Discovering an unrelated issue does not authorize fixing it. Report it separately unless the user expands the scope.
+- If the requested scope is unclear and different interpretations would change behavior or affected files, ask before editing.
+- Approval for one task does not automatically authorize additional improvements discovered during implementation.
 
 ## Scope control
 
@@ -22,12 +34,14 @@ Skills provide guidance; they do not grant permission to change scope, rewrite u
 - Do not add dependencies, files, abstractions, or features unless they are required by the user's request or explicitly approved.
 - Do not replace working implementations with a preferred alternative without user approval.
 - Prefer minimal, targeted diffs over broad rewrites.
+- Do not change existing features or behavior merely to make code cleaner, more modern, or more consistent unless that change is requested.
 
 ## Analysis before action
 
 - Do not edit blindly.
 - First identify the relevant files and understand their current behavior.
 - For bug fixes, identify the likely cause and verify it against the code before changing it.
+- For multi-file changes, identify each file that will be changed and its purpose before editing.
 - If the request is ambiguous in a way that could change scope or behavior, ask before making that change. Otherwise proceed with the narrowest reasonable interpretation.
 
 ## Skill invocation
@@ -59,7 +73,8 @@ A task is complete only when the requested change is implemented and the relevan
 2. **Baca sebelum menulis** — buka setiap berkas yang akan diubah (beserta pemanggil/ujiannya) sebelum menyunting.
    Dilarang mengedit berdasarkan asumsi tentang isi berkas.
 3. **Rencanakan** — untuk perubahan non-trivial, sampaikan rencana 2–4 kalimat (berkas, pendekatan, cara verifikasi)
-   sebelum mengeksekusi. Keraguan yang mengubah cakupan → tanya dulu (lihat "Analysis before action").
+   sebelum mengeksekusi. Jika perubahan masuk kategori medium, besar, atau berisiko, tunggu persetujuan eksplisit pengguna
+   sebelum menyunting. Keraguan yang mengubah cakupan → tanya dulu (lihat "Analysis before action").
 4. **Eksekusi terkecil** — diff seminimal mungkin yang memenuhi permintaan; tanpa perbaikan ikutan di luar cakupan.
 5. **Verifikasi** — jalankan pemeriksaan minimum yang relevan (lihat skill `kci-pengujian`); jangan klaim berhasil
    tanpa bukti (perintah yang dijalankan dan hasilnya).

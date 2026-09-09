@@ -110,3 +110,23 @@ ke pengguna — bukan class ad-hoc di JSX.
 - Tanpa ikon/emoji dekoratif di luar pola daftar tautan `h3` ber-ikon yang sudah ada.
 - Setiap bagian halaman harus punya padanan di halaman existing bila ragu —
   bila tidak ada padanannya, tanyakan ke pengguna sebelum menciptakan pola baru.
+
+## Referensi visual dan contoh komponen
+
+Setelah menemukan kerangka halaman yang tepat, baca juga:
+
+- `references/standar-visual.md` — aturan warna, typography, spacing, tombol, form, tabel, responsive, motion, dan anti-AI-slop.
+- `references/contoh-komponen.md` — katalog implementasi existing yang harus dibuka sebelum meniru komponen.
+
+Urutan kerja agent untuk pekerjaan frontend:
+
+**ATURAN → REFERENSI → IMPLEMENTASI**
+
+1. Baca `AGENTS.md` dan `kci-frontend/SKILL.md`.
+2. Tentukan halaman/komponen existing yang paling dekat.
+3. Baca `standar-markup.md`.
+4. Baca `standar-visual.md` dan `contoh-komponen.md` bila perubahan menyentuh UI.
+5. Buka source code contoh yang dirujuk dan bandingkan dengan halaman target.
+6. Buat perubahan sekecil mungkin sesuai pola existing.
+
+Jika pengguna meminta UI dibuat lebih `berwibawa` atau `tidak seperti AI slop`, jangan menafsirkan permintaan itu sebagai izin menambah gradient, glassmorphism, shadow, pill, animasi, atau tren visual lain. Gunakan definisi visual KCI dan implementasi existing sebagai baseline.
