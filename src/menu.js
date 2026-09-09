@@ -72,8 +72,8 @@ export const MENU_UTAMA = [
       {
         title: "nav.analisa",
         path: "/program-kami/analisa",
-        folder: "Analisa",
-        file: "Analisa.jsx",
+        folder: "ProgramKami",
+        file: "AnalisaLanding.jsx",
       },
       {
         title: "nav.pembukaan",

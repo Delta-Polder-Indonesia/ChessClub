@@ -46,6 +46,7 @@ import {
   bermainCatur,
   tipsTekaTeki,
   bukuPembukaan,
+  analisaLanding,
 } from "./program.js";
 
 import {
@@ -125,6 +126,7 @@ export const ID = {
   bermainCatur,
   tipsTekaTeki,
   bukuPembukaan,
+  analisaLanding,
   turnamen,
   turnamenBulanan,
   ligaMusiman,

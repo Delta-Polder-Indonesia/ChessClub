@@ -40,12 +40,20 @@ export function HalamanIsi({
 }
 
 /** Blok artikel — markup identik Sekilas / Visi Misi. */
-export function PageArtikel({ title, lead, children }) {
+export function PageArtikel({ title, lead, children, lebar = false, judulAkademik = false }) {
   return (
-    <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16 pt-12 md:pt-12 xl:pt-24">
-      <div className="relative w-full mx-auto md:max-w-[1024px] flex flex-col gap-y-6 md:gap-y-8 lg:gap-y-10">
+<section
+        className={`w-full relative bg-transparent pb-12 md:pb-12 xl:pb-16 pt-12 md:pt-12 xl:pt-24 ${
+          lebar ? "px-6 md:px-10 xl:px-16" : "pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40"
+        }`}
+      >
+        <div
+          className={`relative w-full mx-auto flex flex-col gap-y-6 md:gap-y-8 lg:gap-y-10 ${
+            lebar ? "max-w-[1400px]" : "md:max-w-[1024px]"
+          }`}
+        >
         {title && (
-          <h2 className="focus:outline-none focus:ring-0 font-semibold text-2xl md:text-3xl text-black">
+          <h2 className={`focus:outline-none focus:ring-0 text-black ${judulAkademik ? "text-3xl font-black tracking-tight uppercase md:text-4xl" : "font-semibold text-2xl md:text-3xl"}`}>
             {title}
           </h2>
         )}

@@ -154,3 +154,66 @@ export const bukuPembukaan = {
     kontenHanyaId:
       "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
   }
+
+export const analisaLanding = {
+    judul: "Analisis Permainan",
+    deskripsi:
+      "Sebelum masuk ke papan, kenali cara kerja analisis: setiap langkah dinilai Stockfish — brilian, terbaik, unggul, layak, keliru, kesalahan, hingga blunder — disertai saran engine dan ringkasan akurasi.",
+    artikel: "Analisis Permainan",
+    p1Judul: "Membedah Setiap Langkah, Mempelajari yang Terbaik",
+    p1: "Analisis permainan pada hakikatnya adalah seni mengubah deretan notasi bisu menjadi pelajaran taktis yang hidup dan berharga. Melalui integrasi mesin catur modern seperti Stockfish yang beroperasi penuh langsung di peramban Anda, setiap manuver di atas papan kini dapat dinilai secara instan. Fitur ini memungkinkan Anda untuk mengidentifikasi spektrum kualitas langkah secara seketika, mulai dari eksekusi yang paling presisi, kekeliruan minor, hingga blunder fatal yang mengubah jalannya laga.",
+    p1b: "Proses evaluasi ini tidak hanya berhenti pada deteksi kesalahan, tetapi juga menyajikan rekomendasi variasi langkah terbaik serta memperlihatkan kapan momentum atau inisiatif permainan mulai berpindah tangan. Lebih jauh lagi, tingkat akurasi dan konsistensi Anda dapat diukur secara objektif melalui metrik centipawn loss dan label evaluasi visual yang tersemat langsung di atas papan catur. Dengan memahami alasan di balik setiap langkah yang kurang tepat serta melihat kelanjutan alternatif yang disarankan mesin, Anda dapat merekonstruksi pemahaman taktis dan mengasah ketajaman kalkulasi untuk laga-laga berikutnya.",
+    p2: "Kemudahan integrasi data memberikan keleluasaan penuh bagi Anda untuk memulai evaluasi dari berbagai sumber. Anda dapat menyalin notasi PGN dari platform seperti Chess.com maupun Lichess, mengimpor riwayat pertandingan secara otomatis hanya dengan memasukkan nama pengguna, atau memulai eksplorasi taktis dari satu posisi FEN yang spesifik. Di balik fleksibilitas tersebut, aspek privasi dan efisiensi tetap menjadi prioritas mutlak. Seluruh proses kalkulasi catur ini dijalankan secara lokal langsung di dalam peramban Anda, memastikan bahwa setiap data langkah dan rekaman permainan Anda tidak pernah dikirimkan ke peladen mana pun, melainkan sepenuhnya diproses secara aman di perangkat pribadi Anda.",
+    mulai: "Buka Papan Analisis",
+    demoJudul: "Papan Analisis",
+    demoTantangan: "Evaluasi engine mengikuti setiap langkah yang dimainkan",
+    demoFooter: "Label kualitas langkah: terbaik, keliru, hingga blunder",
+    fitur1Judul: "Deteksi Blunder",
+    fitur1Isi:
+      "Identifikasi langsung langkah-langkah yang mengubah jalannya permainan, lengkap dengan bukti mengapa langkah tersebut keliru.",
+    fitur2Judul: "Saran Langkah Mesin",
+    fitur2Isi:
+      "Alternatif terbaik dari engine untuk setiap langkah, sehingga Anda melihat balasan paling tajam dan mengapa langkah Anda kurang presisi.",
+    fitur3Judul: "Estimasi Kekuatan",
+    fitur3Isi:
+      "Kekuatan dan akurasi permainan diukur lewat centipawn loss serta label kualitas setiap langkah dari Brilian hingga Blunder.",
+    belajarLabel: "Sumber Belajar",
+    belajarJudul: "Menguasai Analisis Permainan",
+    pgnJudul: "Apa itu File PGN?",
+    pgnIsi:
+      "Portable Game Notation (PGN) adalah format teks standar untuk mencatat permainan catur — mudah dibaca manusia dan mudah diurai program. Sebuah PGN berisi tag (pemain, tanggal, hasil) yang diikuti notasi langkah aljabar. Dengan format ini, partai dapat diarsipkan, dibagikan, dan dianalisis lintas platform tanpa kehilangan satu langkah pun.",
+    mesinJudul: "Peningkatan Berbasis Mesin",
+    mesinIsi:
+      "Mengintegrasikan Stockfish ke rutinitas belajar mengubah PGN sederhana menjadi alat belajar yang kuat. Dengan membandingkan setiap langkah terhadap evaluasi engine, Anda mengenali pola taktis yang terlewat, memahami evaluasi masing-masing pembukaan, dan menemukan pertahanan presisi di akhir permainan — seperti memiliki pelatih grandmaster yang meninjau setiap partai.",
+    gradeJudul: "Mengenal Bahasa Analisis Catur: Dari Langkah Brilian hingga Blunder",
+    gradeP:
+      "Pernahkah Anda selesai bermain catur, lalu membuka analisis mesin (engine) dan melihat simbol-simbol aneh seperti !! , ?, atau ?? di samping langkah Anda? Bagi pemain baru, ini bisa membingungkan. Namun, simbol-simbol ini sebenarnya adalah bahasa universal untuk menilai kualitas langkah berdasarkan perhitungan objektif mesin. Memahami istilah ini bukan sekadar soal ego, melainkan cara terbaik untuk belajar di mana letak kesalahan atau keindahan dalam permainan Anda. Berikut adalah penjelasan objektif dan mudah dimengerti mengenai tingkatan langkah dalam analisis catur modern.",
+    gradeBrilian: "Brilian",
+    gradeBrilianKet:
+      "Ini adalah tingkatan tertinggi yang jarang terjadi. Langkah brilian bukan sekadar langkah terbaik, melainkan sebuah pengorbanan materi (seperti mengorbankan Pion, Kuda, atau bahkan Menteri) yang tidak terlihat jelas oleh pemain biasa. Kuncinya ada pada dua hal: pengorbanan dan kejutan. Mesin catur menandainya dengan !! karena langkah tersebut mengorbankan materi untuk mendapatkan keuntungan posisi atau serangan yang hanya bisa dibuktikan melalui perhitungan yang sangat mendalam. Jika Anda menemukan langkah ini dalam analisis, artinya Anda telah melihat sesuatu yang tersembunyi di balik logika permukaan.",
+    gradeTerbaik: "Terbaik",
+    gradeTerbaikKet:
+      "Ditandai dengan simbol ! atau sering kali tanpa simbol khusus (hanya dianggap sebagai langkah utama), ini adalah pilihan yang direkomendasikan oleh engine. Secara teknis, langkah ini memiliki kehilangan centipawn (satuan kecil keunggulan) sebesar nol atau mendekati nol. Ini adalah langkah yang mempertahankan keunggulan posisi Anda sepenuhnya. Dalam analisis, ini adalah standar yang harus dicapai jika Anda ingin bermain sempurna. Tidak ada kesalahan di sini, hanya presisi.",
+    gradeUnggul: "Unggul",
+    gradeUnggulKet:
+      "Langkah 'Unggul' adalah langkah yang sangat kuat, namun secara teknis sedikit di bawah langkah 'Terbaik'. Mesin mungkin mendeteksi bahwa ada satu langkah lain yang sedikit lebih presisi, mungkin hanya berbeda beberapa centipawn. Bagi manusia, perbedaan antara 'Terbaik' dan 'Unggul' sering kali tidak terasa di papan catur. Langkah ini masih sangat baik, tidak merusak posisi, dan sering kali merupakan pilihan praktis yang aman dalam permainan nyata.",
+    gradeLayak: "Layak",
+    gradeLayakKet:
+      "Ketika analisis menyebutkan langkah Anda 'Layak', artinya langkah tersebut tidak salah, tetapi ada jalan lain yang lebih kuat. Anda tidak langsung kehilangan keunggulan, tetapi Anda melewatkan kesempatan untuk menekan lawan lebih keras. Ini adalah zona 'aman' bagi pemain amatir. Langkah layak tidak akan menghancurkan permainan Anda seketika, tetapi jika terus-menerus hanya bermain 'layak' melawan lawan yang bermain 'terbaik', Anda akan perlahan-lahan terdesak karena akumulasi keunggulan kecil yang hilang.",
+    gradeKeliru: "Keliru",
+    gradeKeliruKet:
+      "Di sinilah peringatan mulai muncul. Langkah 'Keliru' adalah langkah yang mulai mengikis keunggulan Anda. Mungkin Anda sebelumnya unggul, tapi setelah langkah ini, keunggulan itu menipis. Secara objektif, langkah ini bukan bencana, tetapi itu adalah peluang yang terlewatkan untuk mempertahankan tekanan. Lawan yang teliti bisa memanfaatkan langkah keliru untuk menyamakan kedudukan atau bahkan mengambil alih inisiatif.",
+    gradeKesalahan: "Kesalahan",
+    gradeKesalahanKet:
+      "Ditandai dengan simbol ?, ini adalah titik balik yang nyata. 'Kesalahan' terjadi ketika keunggulan berpindah tangan. Jika Anda sebelumnya unggul, langkah ini bisa membuat posisi menjadi seimbang, atau bahkan membuat Anda tertinggal. Berbeda dengan langkah keliru yang hanya mengikis, kesalahan menyebabkan perubahan evaluasi yang signifikan. Mesin catur akan menunjukkan grafik evaluasi yang turun drastis pada langkah ini. Ini adalah momen di mana Anda harus berhenti sejenak dan memeriksa kembali mengapa langkah tersebut buruk.",
+    gradeBlunder: "Blunder",
+    gradeBlunderKet:
+      "Simbol ?? menandakan bencana. Blunder adalah kesalahan besar yang membuang keunggulan secara drastis, sering kali berakibat pada kehilangan materi besar (seperti kehilangan Menteri tanpa kompensasi) atau langsung terkena skakmat. Blunder biasanya terjadi karena kurang perhitungan atau oversight (tidak melihat ancaman lawan). Dalam analisis, blunder adalah hal pertama yang harus Anda perbaiki. Satu blunder bisa menghancurkan permainan yang sudah dibangun dengan baik selama 30 langkah sebelumnya.",
+    gradePenutupJudul: "Mengapa Memahami Ini Penting?",
+    gradePenutupP:
+      "Memahami hasil evaluasi mesin catur pada dasarnya adalah tentang mengubah sudut pandang kita terhadap proses belajar. Jangan pernah memosisikan analisis mesin sebagai hakim yang menghukum kesalahan Anda, melainkan pandanglah ia sebagai seorang guru yang objektif. Mesin tidak memiliki emosi atau kepedulian terhadap perasaan Anda; ia murni menyajikan kalkulasi matematis dan variasi langkah yang paling logis di atas papan.",
+    gradePenutupKompas:
+      "Pola evaluasi yang dihasilkan mesin dapat menjadi kompas berharga untuk pengembangan diri. Ketika Anda mulai sering mendapatkan label Brilian, jadikan itu sebagai pendorong untuk terus mengasah intuisi taktis dan keberanian dalam mengeksekusi pengorbanan. Sebaliknya, jika permainan Anda masih kerap didominasi oleh langkah yang dinilai Layak atau Keliru, hal tersebut menandakan bahwa Anda perlu melatih kesabaran untuk berpikir lebih dalam demi menemukan opsi yang lebih tajam. Sementara itu, bagi Anda yang masih sering melakukan Blunder, prioritas utamanya adalah melatih kewaspadaan dasar serta memeriksa kembali setiap potensi ancaman lawan sebelum memutuskan untuk melangkah.",
+    gradeTujuan:
+      "Pada akhirnya, tujuan sejati dari analisis ini bukanlah untuk mencapai seratus persen langkah Terbaik—sebuah standar absolut yang bahkan tidak mampu diraih oleh para juara dunia sekalipun. Sasaran yang lebih realistis dan esensial adalah meminimalkan frekuensi Kesalahan dan Blunder, sembari secara konsisten meningkatkan kepekaan untuk menemukan langkah-langkah Unggul dan Brilian. Dengan menguasai bahasa analisis ini, setiap pertempuran yang Anda lalui di atas papan catur, baik berujung pada kemenangan gemilang maupun kekalahan telak, akan selalu bertransformasi menjadi bahan pelajaran yang tak ternilai harganya.",
+  }

@@ -8,7 +8,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad adalah komunitas catur yang dibentuk sebagai wadah bagi
         para penggemar catur dari berbagai tingkat kemampuan — mulai dari pemain
         kasual yang baru mengenal permainan ini hingga mereka yang telah memiliki
@@ -25,7 +25,7 @@ const DAFTAR_TANYA = [
   {
     t: "Bagaimana cara bergabung dengan Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Proses keanggotaan terdiri dari beberapa langkah yang dirancang untuk
         memastikan kesesuaian antara ekspektasi calon anggota dan nilai-nilai
         komunitas. Pertama, calon anggota diharapkan untuk mengisi formulir
@@ -41,7 +41,7 @@ const DAFTAR_TANYA = [
   {
     t: "Di platform mana Blunder Skuad bermain?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad tidak mengunci anggotanya pada satu platform tunggal.
         Kami menggunakan berbagai platform catur daring yang umum tersedia,
         seperti Chess.com, Lichess, atau platform lainnya, tergantung pada
@@ -56,23 +56,23 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu kecurangan dalam bermain catur daring, dan bagaimana Blunder Skuad menyikapinya?",
     j: (
-      <p>
+      <p className="m-0">
         Secara esensial, kecurangan adalah setiap bentuk bantuan eksternal yang
         diterima pemain selama pertandingan berlangsung, baik itu berupa mesin
-        analisis catur (<em>engine</em>), konsultasi dengan pihak ketiga (
-        <em>joki</em>), maupun akses ke database bukaan dalam format yang tidak
+        analisis catur (<em className="italic font-semibold">engine</em>), konsultasi dengan pihak ketiga (
+        <em className="italic font-semibold">joki</em>), maupun akses ke database bukaan dalam format yang tidak
         diizinkan oleh aturan turnamen. Blunder Skuad menggarisbawahi bahwa
         integritas permainan adalah fondasi yang tidak dapat ditawar. Tanpa
         kejujuran dan sportivitas dari setiap individu, ekosistem kompetitif
         daring akan runtuh dengan sendirinya. Kami menerapkan kebijakan{" "}
-        <em>zero tolerance</em> terhadap kecurangan dalam segala bentuknya.
+        <em className="italic font-semibold">zero tolerance</em> terhadap kecurangan dalam segala bentuknya.
       </p>
     ),
   },
   {
     t: "Bagaimana kecurangan bisa terdeteksi?",
     j: (
-      <p>
+      <p className="m-0">
         Meskipun tidak ada sistem yang sempurna, platform-platform yang kami
         gunakan telah dilengkapi dengan algoritme deteksi otomatis yang
         menganalisis pola permainan, konsistensi waktu pemikiran, dan tingkat
@@ -90,7 +90,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah saya bisa bergabung kembali jika pernah terkena sanksi karena kecurangan?",
     j: (
-      <p>
+      <p className="m-0">
         Kebijakan Blunder Skuad mengenai pelanggaran permainan adil bersifat
         tegas. Anggota yang telah terbukti melakukan kecurangan dan dikenai
         sanksi pencabutan keanggotaan tidak akan dapat bergabung kembali dalam
@@ -105,8 +105,8 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah saya boleh memiliki lebih dari satu akun dalam komunitas?",
     j: (
-      <p>
-        Blunder Skuad menerapkan prinsip <em>satu identitas, satu akun</em>.
+      <p className="m-0">
+        Blunder Skuad menerapkan prinsip <em className="italic font-semibold">satu identitas, satu akun</em>.
         Setiap anggota hanya diperbolehkan untuk mendaftarkan satu akun resmi
         yang terhubung dengan identitasnya dalam sistem komunitas. Akun kedua
         hanya dapat dipertimbangkan untuk tujuan pelatihan khusus dan wajib
@@ -120,12 +120,12 @@ const DAFTAR_TANYA = [
   {
     t: "Jenis turnamen apa saja yang diselenggarakan oleh Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad menyelenggarakan beragam format turnamen untuk
         mengakomodasi preferensi dan jadwal yang berbeda-beda di kalangan
         anggota. Format yang tersedia meliputi, namun tidak terbatas pada:
-        turnamen <em>round robin</em> dengan jadwal fleksibel, turnamen{" "}
-        <em>swiss system</em> dengan ronde tetap, turnamen <em>arena</em> dengan
+        turnamen <em className="italic font-semibold">round robin</em> dengan jadwal fleksibel, turnamen{" "}
+        <em className="italic font-semibold">swiss system</em> dengan ronde tetap, turnamen <em className="italic font-semibold">arena</em> dengan
         sifat masal dan dinamis, serta pertandingan tim antar kelompok anggota.
         Selain itu, kami juga mengadakan sesi latihan bersama, analisis permainan
         kolektif, dan pertemuan virtual untuk mempererat ikatan sosial
@@ -138,7 +138,7 @@ const DAFTAR_TANYA = [
   {
     t: "Dengan banyaknya jadwal turnamen, bagaimana saya mengatur waktu?",
     j: (
-      <p>
+      <p className="m-0">
         Kami sangat menekankan bahwa catur, meskipun menyenangkan, tetaplah
         sebuah aktivitas rekreasi dan pengembangan diri yang harus diprioritaskan
         setelah kewajiban utama. Keluarga, pekerjaan, kewajiban agama, dan
@@ -154,8 +154,8 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen Round Robin di Blunder Skuad?",
     j: (
-      <p>
-        Turnamen <em>round robin</em> adalah format di mana setiap peserta
+      <p className="m-0">
+        Turnamen <em className="italic font-semibold">round robin</em> adalah format di mana setiap peserta
         bertanding melawan seluruh peserta lainnya dalam satu siklus. Di
         Blunder Skuad, turnamen ini biasanya dijadwalkan dengan rentang waktu
         satu hingga dua minggu, di mana pemain dapat mengatur jadwal
@@ -170,7 +170,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen format kecil atau mini tournament?",
     j: (
-      <p>
+      <p className="m-0">
         Selain turnamen besar, Blunder Skuad juga memfasilitasi turnamen mini
         yang diikuti oleh jumlah peserta terbatas, misalnya empat hingga delapan
         pemain. Turnamen ini biasanya dimulai dari inisiatif anggota di grup
@@ -185,7 +185,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen dengan jadwal ronde tetap?",
     j: (
-      <p>
+      <p className="m-0">
         Turnamen dengan jadwal ronde tetap adalah format di mana waktu
         pertandingan untuk setiap ronde telah ditentukan sebelumnya oleh panitia
         penyelenggara. Peserta yang mendaftar wajib hadir pada jadwal yang telah
@@ -200,10 +200,10 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah Blunder Skuad memiliki sistem rating internal?",
     j: (
-      <p>
+      <p className="m-0">
         Ya. Blunder Skuad mengembangkan dan memelihara sistem rating internal
         yang mencerminkan performa anggota dalam kegiatan komunitas. Sistem ini
-        berfungsi sebagai alat <em>pairing</em> untuk memastikan pertandingan
+        berfungsi sebagai alat <em className="italic font-semibold">pairing</em> untuk memastikan pertandingan
         yang seimbang, serta sebagai indikator perkembangan kemampuan anggota
         dari waktu ke waktu. Bagi anggota yang memiliki rating resmi dari
         federasi catur nasional atau internasional, rating tersebut dapat
@@ -216,7 +216,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu sistem verifikasi di Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Untuk menjaga integritas komunitas, Blunder Skuad menerapkan sistem
         verifikasi sederhana. Setelah mendaftar, anggota baru akan melalui proses
         verifikasi identitas yang dilakukan oleh pengurus, yang mencakup
@@ -233,10 +233,10 @@ const DAFTAR_TANYA = [
   {
     t: "Bagaimana sistem hadiah di Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Sistem hadiah di Blunder Skuad dirancang dengan mempertimbangkan
         efisiensi administrasi dan kenyamanan anggota. Untuk hadiah dengan
-        nominal kecil, kami menggunakan sistem <em>balance</em> atau pencatatan
+        nominal kecil, kami menggunakan sistem <em className="italic font-semibold">balance</em> atau pencatatan
         neraca internal, di mana setiap kemenangan atau hadiah yang diperoleh
         oleh anggota dicatat secara rapi dalam sistem komunitas. Anggota dapat
         mencairkan saldo balance-nya ketika telah mencapai ambang batas nominal
@@ -249,11 +249,11 @@ const DAFTAR_TANYA = [
   {
     t: "Apa perbedaan antara Klub dan Tim dalam konteks Blunder Skuad?",
     j: (
-      <p>
-        Blunder Skuad membedakan istilah <em>klub</em> dan <em>tim</em> untuk
-        kejelasan administrasi. Sebuah <em>klub</em> adalah entitas yang bersifat
+      <p className="m-0">
+        Blunder Skuad membedakan istilah <em className="italic font-semibold">klub</em> dan <em className="italic font-semibold">tim</em> untuk
+        kejelasan administrasi. Sebuah <em className="italic font-semibold">klub</em> adalah entitas yang bersifat
         permanen atau semi-permanen, memiliki anggota tetap, dan beroperasi
-        sebagai satuan organisasi dalam komunitas. Sementara itu, <em>tim</em>{" "}
+        sebagai satuan organisasi dalam komunitas. Sementara itu, <em className="italic font-semibold">tim</em>{" "}
         adalah formasi sementara yang dibentuk untuk tujuan kompetisi atau
         turnamen tertentu. Dalam sebuah turnamen, bisa saja terbentuk tim yang
         anggotanya berasal dari klub yang berbeda, tergantung pada regulasi
@@ -266,10 +266,10 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen dengan pairing berbasis rating?",
     j: (
-      <p>
+      <p className="m-0">
         Beberapa turnamen di Blunder Skuad menerapkan sistem pairing di mana
         peserta hanya dipertemukan dengan lawan yang memiliki rating dalam
-        rentang tertentu. Pendekatan ini menciptakan <em>virtual group</em>{" "}
+        rentang tertentu. Pendekatan ini menciptakan <em className="italic font-semibold">virtual group</em>{" "}
         atau seksi kompetisi internal, di mana pemain pemula tidak langsung
         berhadapan dengan pemain berpengalaman dalam tahap awal. Tujuannya adalah
         untuk memberikan pengalaman kompetitif yang adil dan mencegah frustrasi
@@ -280,14 +280,14 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen dengan format Swiss?",
     j: (
-      <p>
-        Turnamen <em>Swiss system</em> adalah format di mana peserta tidak
+      <p className="m-0">
+        Turnamen <em className="italic font-semibold">Swiss system</em> adalah format di mana peserta tidak
         bertemu semua peserta lainnya, melainkan hanya sejumlah ronde tertentu.
         Pada setiap ronde, pairing ditentukan berdasarkan akumulasi skor
         sementara, sehingga pemain dengan skor serupa akan saling bertemu.
         Format ini efisien untuk turnamen dengan jumlah peserta besar karena
-        tidak memerlukan jumlah ronde sebanyak format <em>round robin</em>. Di
-        Blunder Skuad, turnamen <em>Swiss</em> sering kali dilengkapi dengan
+        tidak memerlukan jumlah ronde sebanyak format <em className="italic font-semibold">round robin</em>. Di
+        Blunder Skuad, turnamen <em className="italic font-semibold">Swiss</em> sering kali dilengkapi dengan
         aturan tambahan, seperti larangan mempertemukan anggota dari klub atau
         tim yang sama pada ronde-ronde awal.
       </p>
@@ -296,7 +296,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen format pertarungan tim?",
     j: (
-      <p>
+      <p className="m-0">
         Turnamen pertarungan tim adalah format di mana dua kelompok pemain
         saling berhadapan dalam serangkaian pertandingan individual. Sebelum
         turnamen dimulai, nama atau tema untuk kedua tim akan ditentukan, dan
@@ -312,13 +312,13 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen dengan kontrol waktu klasik?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad juga mengadakan turnamen dengan kontrol waktu yang lebih
         panjang, yang dalam terminologi catur dikenal sebagai format{" "}
-        <em>klasik</em>. Turnamen ini dirancang bagi anggota yang ingin menikmati
+        <em className="italic font-semibold">klasik</em>. Turnamen ini dirancang bagi anggota yang ingin menikmati
         permainan catur dengan kedalaman analisis yang lebih besar, tanpa
-        tekanan waktu yang mendesak seperti dalam format <em>blitz</em> atau{" "}
-        <em>bullet</em>. Kami menyediakan jadwal yang beragam untuk format ini,
+        tekanan waktu yang mendesak seperti dalam format <em className="italic font-semibold">blitz</em> atau{" "}
+        <em className="italic font-semibold">bullet</em>. Kami menyediakan jadwal yang beragam untuk format ini,
         termasuk sesi yang diadakan pada waktu-waktu tertentu untuk mengakomodasi
         anggota yang memiliki preferensi waktu bermain yang berbeda. Suasana
         turnamen klasik di Blunder Skuad cenderung lebih santai namun tetap
@@ -330,14 +330,14 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu turnamen format Arena?",
     j: (
-      <p>
-        Turnamen <em>arena</em> adalah format kompetisi massal di mana peserta
+      <p className="m-0">
+        Turnamen <em className="italic font-semibold">arena</em> adalah format kompetisi massal di mana peserta
         dapat bergabung dan keluar kapan saja selama periode turnamen
         berlangsung. Setiap kemenangan memberikan poin, dan kemenangan beruntun
         memberikan bonus poin tambahan. Di beberapa platform, format ini juga
-        memungkinkan fitur <em>berserk</em>, di mana pemain dapat mengurangi
+        memungkinkan fitur <em className="italic font-semibold">berserk</em>, di mana pemain dapat mengurangi
         waktunya sendiri untuk mendapatkan poin ekstra. Blunder Skuad mengadakan
-        turnamen <em>arena</em> secara berkala sebagai ajang yang meriah dan
+        turnamen <em className="italic font-semibold">arena</em> secara berkala sebagai ajang yang meriah dan
         inklusif, di mana anggota dapat mengikuti sebanyak atau sesedikit
         pertandingan sesuai dengan waktu luang mereka.
       </p>
@@ -346,7 +346,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah Blunder Skuad mengadakan pertemuan virtual atau daring?",
     j: (
-      <p>
+      <p className="m-0">
         Ya. Selain aktivitas bermain, Blunder Skuad secara rutin mengadakan
         sesi pertemuan virtual melalui platform konferensi video. Sesi ini
         bertujuan untuk mempererat ikatan sosial antaranggota, karena kami
@@ -361,7 +361,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apa itu Liga di Blunder Skuad?",
     j: (
-      <p>
+      <p className="m-0">
         Liga adalah rangkaian turnamen beruntun yang diadakan dalam periode
         tertentu, di mana nilai atau skor dari setiap turnamen diakumulasikan
         untuk menentukan peringkat akhir. Blunder Skuad menyelenggarakan
@@ -377,7 +377,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah Blunder Skuad memiliki liga antar klub?",
     j: (
-      <p>
+      <p className="m-0">
         Ya. Bagi komunitas atau klub catur yang telah terdaftar di bawah naungan
         Blunder Skuad, kami menyediakan format liga antarklub di mana pemain
         mewakili klubnya masing-masing untuk bersaing. Sistem ini memungkinkan
@@ -391,7 +391,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah Blunder Skuad merencanakan liga untuk kalangan khusus?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad secara aktif mengembangkan format-format liga yang
         ditujukan untuk segmen anggota tertentu, seperti liga antarperusahaan,
         liga antarinstitusi pendidikan, atau liga berbasis tema lainnya.
@@ -405,7 +405,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah Blunder Skuad menyelenggarakan turnamen tatap muka atau darat?",
     j: (
-      <p>
+      <p className="m-0">
         Meskipun aktivitas utama Blunder Skuad berbasis daring, kami memiliki
         aspirasi untuk aktif juga dalam ekosistem catur tatap muka.
         Penyelenggaraan turnamen darat memerlukan kerja sama dengan mitra lokal,
@@ -421,7 +421,7 @@ const DAFTAR_TANYA = [
   {
     t: "Apakah saya boleh mendaftar dengan dua akun?",
     j: (
-      <p>
+      <p className="m-0">
         Tidak. Blunder Skuad hanya mengakui satu akun per identitas. Setiap
         anggota diharapkan untuk menjaga keutuhan akun resminya dengan baik.
         Duplikasi akun, terutama yang dimaksudkan untuk menghindari sanksi,
@@ -436,7 +436,7 @@ const DAFTAR_TANYA = [
   {
     t: "Bagaimana jika saya memiliki pertanyaan atau masalah yang tidak tercakup dalam FAQ ini?",
     j: (
-      <p>
+      <p className="m-0">
         Blunder Skuad menyadari bahwa tidak semua situasi dapat diantisipasi
         dalam dokumen ini. Oleh karena itu, kami menyediakan saluran komunikasi
         resmi yang dapat diakses oleh seluruh anggota untuk mengajukan
@@ -453,6 +453,7 @@ const DAFTAR_TANYA = [
 
 export default function PertanyaanUmum() {
   const { t } = useI18n();
+
   return (
     <HalamanIsi
       title={t("pertanyaan.judul")}
@@ -461,32 +462,66 @@ export default function PertanyaanUmum() {
       description={t("pertanyaan.deskripsi")}
       next={{ to: "/hubungi-kami", judul: t("pertanyaan.nextJudul") }}
     >
-      <PageArtikel title={t("pertanyaan.artikel")}>
-        <ol className="space-y-6 list-none!">
-          {DAFTAR_TANYA.map((item, index) => (
-            <li key={index} className="ql-align-justify">
-              <p className="font-semibold mb-1">
-                {index + 1}. {item.t}
+      <PageArtikel lebar>
+        {/* ═══ Header Editorial / Koran ═══ */}
+        <section className="-mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
+          <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
+            <div className="relative mb-6 border-b-4 border-double border-gray-900 pb-3 text-center">
+              <p className="mb-1 font-sans text-xs font-bold tracking-widest text-gray-900 uppercase">
+                {t("pertanyaan.judul")}
               </p>
-              <div className="prose-kci max-w-none">{item.j}</div>
-            </li>
-          ))}
-        </ol>
+              <h1 className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">
+                {t("pertanyaan.artikel")}
+              </h1>
+              <p className="m-0 text-sm text-gray-900 italic">
+                {t("pertanyaan.deskripsi")}
+              </p>
+            </div>
+          </div>
+        </section>
 
-        <p>
-          <em>
-            Dokumen ini disusun sebagai panduan praktis bagi seluruh anggota
-            Blunder Skuad. Pertanyaan-pertanyaan di atas mencakup aspek-aspek
-            fundamental yang sering menjadi pertanyaan bagi anggota baru maupun
-            anggota yang telah lama bergabung.
-          </em>
-        </p>
+        {/* ═══ Konten Pertanyaan & Jawaban ═══ */}
+        <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-sm leading-relaxed text-justify text-gray-800">
+          <ol className="m-0 p-0 flex flex-col gap-y-5 list-none">
+            {DAFTAR_TANYA.map((item, index) => (
+              <li key={index} className="flex flex-col gap-y-1">
+                <h2 className="m-0 font-sans text-sm font-black tracking-tight text-gray-900 uppercase">
+                  {index + 1}. {item.t}
+                </h2>
+                <div className="text-gray-800">
+                  {index === 0 ? (
+                    <div className="first-letter:float-left first-letter:mr-3 first-letter:text-4xl first-letter:font-black first-letter:leading-none first-letter:text-gray-900">
+                      {item.j}
+                    </div>
+                  ) : (
+                    item.j
+                  )}
+                </div>
+                {index < DAFTAR_TANYA.length - 1 && (
+                  <hr className="mt-4 border-t border-gray-300" />
+                )}
+              </li>
+            ))}
+          </ol>
 
-        <p>
-          <strong>Blunder Skuad</strong>
-          <br />
-          <em>Komunitas Catur untuk Semua</em>
-        </p>
+          {/* ═══ Footer Note / Penutup Editorial ═══ */}
+          <div className="mt-6 border-t-2 border-b-2 border-gray-900 p-4 text-center">
+            <p className="m-0 font-serif text-sm leading-relaxed text-gray-900 italic">
+              Dokumen ini disusun sebagai panduan praktis bagi seluruh anggota
+              Blunder Skuad. Pertanyaan-pertanyaan di atas mencakup aspek-aspek
+              fundamental yang sering menjadi pertanyaan bagi anggota baru maupun
+              anggota yang telah lama bergabung.
+            </p>
+            <div className="mt-4 pt-3 border-t border-gray-300">
+              <strong className="block font-sans text-xs font-black tracking-widest uppercase text-gray-900">
+                Blunder Skuad
+              </strong>
+              <span className="block font-serif text-xs italic text-gray-700 mt-0.5">
+                Komunitas Catur untuk Semua
+              </span>
+            </div>
+          </div>
+        </div>
       </PageArtikel>
     </HalamanIsi>
   );

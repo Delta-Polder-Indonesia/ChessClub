@@ -152,3 +152,66 @@ export const bukuPembukaan = {
     kontenHanyaId:
       "The example content below is only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
   }
+
+export const analisaLanding = {
+    judul: "Game Analysis",
+    deskripsi:
+      "Before you open the board, learn how analysis works: every move is scored by Stockfish — brilliant, best, excellent, good, inaccuracy, mistake, blunder — with the engine's suggestion and an accuracy summary.",
+    artikel: "Game Analysis",
+    p1Judul: "Dissecting Every Move, Learning the Best One",
+    p1: "At its core, game analysis is the art of turning a silent sequence of moves into a living, valuable tactical lesson. Through modern chess engine integration such as Stockfish running fully in your browser, every maneuver on the board can now be scored instantly. This feature lets you identify the full spectrum of move quality at a glance — from the most precise execution, minor inaccuracies, to the fatal blunder that changes the course of the game.",
+    p1b: "This evaluation process does not stop at detecting mistakes; it also presents recommended variations and shows when the momentum or initiative of the game begins to shift hands. Furthermore, your level of accuracy and consistency can be measured objectively through the centipawn loss metric and visual evaluation labels placed directly on the chessboard. By understanding the reasoning behind each suboptimal move and seeing the alternative continuation the engine suggests, you can reconstruct your tactical understanding and sharpen your calculation skills for future games.",
+    p2: "Data integration makes it easy for you to start an evaluation from many sources. You can copy PGN notation from platforms such as Chess.com or Lichess, automatically import your game history just by entering a username, or begin a tactical exploration from a specific FEN position. Behind that flexibility, privacy and efficiency remain an absolute priority. All of this chess calculation runs locally, directly in your browser, ensuring that every move and game record of yours is never sent to any server, but fully processed safely on your own device.",
+    mulai: "Open the Analysis Board",
+    demoJudul: "Analysis Board",
+    demoTantangan: "The engine's evaluation follows every move played",
+    demoFooter: "Move quality tags: best, inaccuracy, blunder, and more",
+    fitur1Judul: "Blunder Detection",
+    fitur1Isi:
+      "Instantly identify game-changing moves, complete with the refutation that proves why the move was wrong.",
+    fitur2Judul: "Engine Move Suggestions",
+    fitur2Isi:
+      "The engine's best alternative for every move, so you see the sharpest reply and why your move was less precise.",
+    fitur3Judul: "Strength Estimation",
+    fitur3Isi:
+      "Your playing strength and accuracy measured through centipawn loss and the grade given to every move.",
+    belajarLabel: "Learning Resources",
+    belajarJudul: "Mastering Game Analysis",
+    pgnJudul: "What is a PGN File?",
+    pgnIsi:
+      "Portable Game Notation (PGN) is the standard plain-text format for recording chess games — easy to read for humans and easy to parse for programs. A PGN contains tags (players, date, result) followed by the moves in algebraic notation. That format lets you archive, share, and analyze games across platforms without losing a single move.",
+    mesinJudul: "Engine-Led Improvement",
+    mesinIsi:
+      "Adding Stockfish to your study routine turns a plain PGN into a powerful learning tool. By comparing each move with the engine's evaluation, you recognize tactical patterns you missed, understand how each opening is assessed, and find precise defensive resources in the endgame — like having a grandmaster coach review every game.",
+    gradeJudul: "Understanding Chess Analysis: From Brilliant Moves to Blunders",
+    gradeP:
+      "Have you ever finished a chess game, opened the engine analysis, and seen strange symbols like !! , ?, or ?? next to your moves? For new players this can be confusing. Yet these symbols are actually a universal language for judging move quality based on the engine's objective calculation. Understanding these terms is not just about ego — it is the best way to learn where the mistakes or the brilliance in your play lie. Here is an objective, easy-to-understand explanation of the move grades in modern chess analysis.",
+    gradeBrilian: "Brilliant",
+    gradeBrilianKet:
+      "This is the highest and rarest grade. A brilliant move is not merely the best move — it is a material sacrifice (such as a Pawn, Knight, or even the Queen) that is not obvious to the average player. The key lies in two things: sacrifice and surprise. The chess engine marks it with !! because the move gives up material to gain a positional or attacking advantage that can only be proven through very deep calculation. If you find this move in your analysis, it means you have seen something hidden beneath the surface logic.",
+    gradeTerbaik: "Best",
+    gradeTerbaikKet:
+      "Marked with the symbol ! or often with no special symbol (simply regarded as a main move), this is the engine's recommended choice. Technically, it loses zero or nearly zero centipawns (small units of advantage). It is a move that fully preserves your positional advantage. In analysis, this is the standard to reach if you want to play perfectly. There is no mistake here, only precision.",
+    gradeUnggul: "Excellent",
+    gradeUnggulKet:
+      "An 'Excellent' move is a very strong move that is technically just below a 'Best' move. The engine may detect that another move was slightly more precise, maybe only a few centipawns apart. For humans, the difference between 'Best' and 'Excellent' is often unnoticeable on the board. This move is still very good, does not damage the position, and is often the safe, practical choice in a real game.",
+    gradeLayak: "Good",
+    gradeLayakKet:
+      "When the analysis calls your move 'Good', it means the move is not wrong, but there is a stronger path. You do not immediately lose your advantage, but you miss an opportunity to press the opponent harder. This is the 'safe' zone for amateur players. A good move will not ruin your game right away, but if you keep playing only 'good' moves against an opponent playing 'best' moves, you will slowly be pushed back by the accumulation of small lost advantages.",
+    gradeKeliru: "Inaccuracy",
+    gradeKeliruKet:
+      "This is where the warnings begin. An 'Inaccuracy' is a move that starts to erode your advantage. You may have been better before, but after this move the advantage thins. Objectively, this move is not a disaster, but it is a missed chance to keep the pressure. A careful opponent can use an inaccuracy to equalize the position or even seize the initiative.",
+    gradeKesalahan: "Mistake",
+    gradeKesalahanKet:
+      "Marked with the symbol ?, this is a real turning point. A 'Mistake' happens when the advantage changes hands. If you were better before, this move can make the position equal, or even leave you behind. Unlike an inaccuracy, which only erodes, a mistake causes a significant change in evaluation. The chess engine will show an evaluation graph that drops sharply on this move. This is the moment to stop for a while and re-examine why the move was bad.",
+    gradeBlunder: "Blunder",
+    gradeBlunderKet:
+      "The symbol ?? signals disaster. A blunder is a major mistake that throws away your advantage dramatically, often resulting in losing major material (such as the Queen without compensation) or being checkmated right away. Blunders usually happen from a lack of calculation or an oversight (not seeing the opponent's threat). In analysis, a blunder is the first thing you should fix. A single blunder can destroy a game carefully built over the previous 30 moves.",
+    gradePenutupJudul: "Why Understanding This Matters",
+    gradePenutupP:
+      "Understanding engine evaluation is basically about shifting how we view the learning process. Never treat the engine as a judge that punishes your mistakes; instead, see it as an objective teacher. The engine has no emotions and does not care about your feelings; it purely presents mathematical calculations and the most logical variations on the board.",
+    gradePenutupKompas:
+      "The evaluation patterns the engine produces can be a valuable compass for self-improvement. When you start frequently getting the Brilliant label, use that as a push to keep sharpening your tactical intuition and courage in executing sacrifices. Conversely, if your games are still often dominated by moves rated Good or Inaccuracy, that signals you need to train patience to think deeper in order to find sharper options. Meanwhile, if you still often make Blunders, your top priority is to sharpen basic alertness and recheck every potential threat from your opponent before deciding to move.",
+    gradeTujuan:
+      "Ultimately, the true goal of this analysis is not to achieve one hundred percent Best moves—an absolute standard that even world champions cannot reach. A more realistic and essential target is to minimize the frequency of Mistakes and Blunders while consistently sharpening your feel for Excellent and Brilliant moves. By mastering this analysis language, every battle you fight over the chessboard, whether it ends in a glorious win or a crushing defeat, will always turn into a priceless lesson.",
+  }
