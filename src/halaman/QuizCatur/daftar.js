@@ -105,6 +105,36 @@ export const SOAL_CATUR = [
     pilihan: ["10", "25", "50", "75"],
     kunci: 2,
   },
+  {
+    kategori: "peraturan",
+    soal: "Apakah raja boleh ditangkap seperti bidak biasa?",
+    pilihan: ["Ya, pada giliran lawan", "Tidak, permainan berakhir saat raja terkena skakmat", "Hanya di endgame", "Hanya jika kedua pemain setuju"],
+    kunci: 1,
+  },
+  {
+    kategori: "peraturan",
+    soal: "Jika seorang pemain tidak memiliki langkah legal tetapi rajanya tidak sedang diskak, posisi tersebut disebut?",
+    pilihan: ["Skakmat", "Pat", "Fork", "Rokade"],
+    kunci: 1,
+  },
+  {
+    kategori: "peraturan",
+    soal: "Berapa petak yang dapat ditempuh pion dari posisi awalnya jika memilih langkah dua petak?",
+    pilihan: ["1", "2", "3", "4"],
+    kunci: 1,
+  },
+  {
+    kategori: "peraturan",
+    soal: "Dalam rokade panjang, raja berpindah menuju file apa?",
+    pilihan: ["b", "c", "d", "f"],
+    kunci: 1,
+  },
+  {
+    kategori: "peraturan",
+    soal: "Apakah dua raja boleh berdiri bersebelahan tanpa dipisahkan petak?",
+    pilihan: ["Boleh", "Tidak boleh", "Boleh hanya di endgame", "Boleh jika salah satu sedang skak"],
+    kunci: 1,
+  },
 
   /* ------------------------------------------------------------- bidak */
   {
@@ -122,23 +152,13 @@ export const SOAL_CATUR = [
   {
     kategori: "bidak",
     soal: "Gajah berjalan ke arah mana?",
-    pilihan: [
-      "Lurus horizontal dan vertikal",
-      "Diagonal sejauh bebas",
-      "Berbentuk huruf L",
-      "Satu petak ke segala arah",
-    ],
+    pilihan: ["Lurus horizontal dan vertikal", "Diagonal sejauh bebas", "Berbentuk huruf L", "Satu petak ke segala arah"],
     kunci: 1,
   },
   {
     kategori: "bidak",
     soal: "Benteng bergerak ke arah mana?",
-    pilihan: [
-      "Lurus horizontal atau vertikal",
-      "Diagonal sejauh bebas",
-      "Berbentuk huruf L",
-      "Dua petak ke depan lalu satu ke samping",
-    ],
+    pilihan: ["Lurus horizontal atau vertikal", "Diagonal sejauh bebas", "Berbentuk huruf L", "Dua petak ke depan lalu satu ke samping"],
     kunci: 0,
   },
   {
@@ -150,12 +170,7 @@ export const SOAL_CATUR = [
   {
     kategori: "bidak",
     soal: "Menteri (ratu) menggabungkan gerakan bidak mana saja?",
-    pilihan: [
-      "Benteng dan gajah",
-      "Kuda dan benteng",
-      "Pion dan raja",
-      "Hanya gajah",
-    ],
+    pilihan: ["Benteng dan gajah", "Kuda dan benteng", "Pion dan raja", "Hanya gajah"],
     kunci: 0,
   },
   {
@@ -169,6 +184,36 @@ export const SOAL_CATUR = [
     soal: "Kuda paling kuat berada di petak mana pada papan catur?",
     pilihan: ["Sudut papan", "Tepi papan", "Tengah papan", "Baris ke-2"],
     kunci: 2,
+  },
+  {
+    kategori: "bidak",
+    soal: "Berapa nilai perkiraan sebuah benteng dalam sistem nilai bidak klasik?",
+    pilihan: ["3", "5", "7", "9"],
+    kunci: 1,
+  },
+  {
+    kategori: "bidak",
+    soal: "Berapa nilai perkiraan sebuah gajah dalam sistem nilai bidak klasik?",
+    pilihan: ["1", "3", "5", "8"],
+    kunci: 1,
+  },
+  {
+    kategori: "bidak",
+    soal: "Berapa banyak gajah yang dimiliki setiap pemain saat posisi awal?",
+    pilihan: ["1", "2", "3", "4"],
+    kunci: 1,
+  },
+  {
+    kategori: "bidak",
+    soal: "Bidak apa yang bergerak satu petak ke segala arah dan sangat penting untuk keselamatan posisi?",
+    pilihan: ["Raja", "Kuda", "Benteng", "Pion"],
+    kunci: 0,
+  },
+  {
+    kategori: "bidak",
+    soal: "Pion putih pada posisi awal berada di baris berapa?",
+    pilihan: ["1", "2", "7", "8"],
+    kunci: 1,
   },
 
   /* ---------------------------------------------------------- skakmat */
@@ -195,6 +240,36 @@ export const SOAL_CATUR = [
     soal: "Dalam notasi catur, lambang '#' di akhir langkah berarti?",
     pilihan: ["Skak", "Skakmat", "Promosi", "Remis"],
     kunci: 1,
+  },
+  {
+    kategori: "skakmat",
+    soal: "Skakmat ketika raja terjebak oleh bidak-bidaknya sendiri dan diserang kuda dikenal sebagai?",
+    pilihan: ["Smothered Mate", "Back Rank Mate", "Opera Mate", "Arabian Mate"],
+    kunci: 0,
+  },
+  {
+    kategori: "skakmat",
+    soal: "Skakmat yang memanfaatkan pion sendiri di baris belakang untuk membatasi raja disebut?",
+    pilihan: ["Back Rank Mate", "Fool's Mate", "Boden's Mate", "Legal's Mate"],
+    kunci: 0,
+  },
+  {
+    kategori: "skakmat",
+    soal: "Apa syarat utama agar sebuah posisi benar-benar disebut skakmat?",
+    pilihan: ["Raja sedang diskak dan tidak memiliki langkah legal untuk lolos", "Menteri sudah hilang", "Pemain kehabisan waktu", "Kedua raja berada di tengah"],
+    kunci: 0,
+  },
+  {
+    kategori: "skakmat",
+    soal: "Skakmat yang menggunakan dua gajah pada diagonal yang saling bersilangan dikenal sebagai?",
+    pilihan: ["Boden's Mate", "Smothered Mate", "Back Rank Mate", "Fool's Mate"],
+    kunci: 0,
+  },
+  {
+    kategori: "skakmat",
+    soal: "Dalam pola skakmat, mengapa raja yang memiliki sedikit ruang gerak lebih mudah dimatikan?",
+    pilihan: ["Karena pilihan petak aman untuk melarikan diri lebih sedikit", "Karena raja kehilangan hak rokade", "Karena raja menjadi lebih lambat", "Karena raja tidak boleh menangkap"],
+    kunci: 0,
   },
 
   /* ------------------------------------------------------------ taktik */
@@ -226,6 +301,36 @@ export const SOAL_CATUR = [
     kategori: "taktik",
     soal: "Taktik mengorbankan bidak untuk menghilangkan atau memaksa penjaga suatu bidak target disebut?",
     pilihan: ["Deflection", "Castling", "Opposition", "Development"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Apa yang dimaksud dengan discovered check?",
+    pilihan: ["Skak yang terbuka setelah bidak lain menyingkir", "Skak yang dilakukan raja", "Skak tanpa menteri", "Skak setelah promosi saja"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Taktik yang memaksa lawan memindahkan bidak penjaga sehingga target di belakangnya menjadi rentan disebut?",
+    pilihan: ["Deflection", "Fork", "Opposition", "Development"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Apa tujuan utama zwischenzug atau intermezzo?",
+    pilihan: ["Menyisipkan langkah kuat sebelum menjalankan pertukaran yang tampak wajib", "Memaksa rokade", "Menukar semua pion", "Mengakhiri partai dengan remis"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Sacrifice dalam taktik catur berarti?",
+    pilihan: ["Sengaja memberikan materi untuk memperoleh kompensasi atau keuntungan", "Memindahkan raja dua petak", "Menghindari semua pertukaran", "Mengulang posisi"],
+    kunci: 0,
+  },
+  {
+    kategori: "taktik",
+    soal: "Taktik ketika satu bidak menyerang raja dan pada saat yang sama membuka serangan terhadap target lain disebut?",
+    pilihan: ["Double attack", "Quiet move", "Opposition", "Fortress"],
     kunci: 0,
   },
 
@@ -260,17 +365,42 @@ export const SOAL_CATUR = [
     pilihan: ["Queen's Gambit", "King's Gambit", "Reti", "English Opening"],
     kunci: 0,
   },
+  {
+    kategori: "pembukaan",
+    soal: "Pembukaan Caro-Kann dimulai dari respons Hitam terhadap 1.e4 dengan?",
+    pilihan: ["1...c5", "1...c6", "1...e6", "1...d5"],
+    kunci: 1,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "French Defence dimulai dengan langkah Hitam?",
+    pilihan: ["1...e5", "1...c5", "1...e6", "1...c6"],
+    kunci: 2,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "King's Gambit dimulai dengan?",
+    pilihan: ["1.e4 e5 2.f4", "1.d4 d5 2.c4", "1.c4 e5", "1.Nf3 d5"],
+    kunci: 0,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "English Opening biasanya dimulai dengan langkah Putih?",
+    pilihan: ["1.e4", "1.d4", "1.c4", "1.Nf3"],
+    kunci: 2,
+  },
+  {
+    kategori: "pembukaan",
+    soal: "Opening principle yang umum dianjurkan adalah?",
+    pilihan: ["Kembangkan bidak, kuasai pusat, dan amankan raja", "Gerakkan menteri berkali-kali", "Majukan semua pion sayap", "Jangan pernah melakukan rokade"],
+    kunci: 0,
+  },
 
   /* ----------------------------------------------------------- strategi */
   {
     kategori: "strategi",
     soal: "Apa tujuan utama menguasai petak pusat pada fase awal permainan?",
-    pilihan: [
-      "Membuat raja langsung aman tanpa rokade",
-      "Memberi ruang dan meningkatkan aktivitas bidak",
-      "Menghindari semua pertukaran",
-      "Memaksa lawan memajukan pion tepi",
-    ],
+    pilihan: ["Membuat raja langsung aman tanpa rokade", "Memberi ruang dan meningkatkan aktivitas bidak", "Menghindari semua pertukaran", "Memaksa lawan memajukan pion tepi"],
     kunci: 1,
   },
   {
@@ -282,47 +412,57 @@ export const SOAL_CATUR = [
   {
     kategori: "strategi",
     soal: "Apa keuntungan memiliki open file untuk benteng?",
-    pilihan: [
-      "Benteng mendapat jalur terbuka untuk menekan posisi lawan",
-      "Benteng tidak bisa diserang",
-      "Benteng berubah menjadi menteri",
-      "Raja otomatis terlindungi",
-    ],
+    pilihan: ["Benteng mendapat jalur terbuka untuk menekan posisi lawan", "Benteng tidak bisa diserang", "Benteng berubah menjadi menteri", "Raja otomatis terlindungi"],
     kunci: 0,
   },
   {
     kategori: "strategi",
     soal: "Istilah 'bad bishop' biasanya merujuk pada gajah yang?",
-    pilihan: [
-      "Terhalang oleh pion sendiri sehingga ruang geraknya terbatas",
-      "Berada di warna petak yang sama dengan raja lawan",
-      "Selalu bernilai kurang dari dua pion",
-      "Tidak boleh bergerak diagonal",
-    ],
+    pilihan: ["Terhalang oleh pion sendiri sehingga ruang geraknya terbatas", "Berada di warna petak yang sama dengan raja lawan", "Selalu bernilai kurang dari dua pion", "Tidak boleh bergerak diagonal"],
     kunci: 0,
   },
   {
     kategori: "strategi",
     soal: "Mengapa keselamatan raja menjadi prioritas penting dalam middlegame?",
-    pilihan: [
-      "Raja adalah bidak dengan nilai materi tertinggi",
-      "Raja yang terbuka dapat menjadi sasaran serangan langsung",
-      "Raja harus selalu berada di tengah papan",
-      "Raja tidak boleh bergerak setelah rokade",
-    ],
+    pilihan: ["Raja adalah bidak dengan nilai materi tertinggi", "Raja yang terbuka dapat menjadi sasaran serangan langsung", "Raja harus selalu berada di tengah papan", "Raja tidak boleh bergerak setelah rokade"],
     kunci: 1,
+  },
+  {
+    kategori: "strategi",
+    soal: "Apa yang dimaksud dengan pawn structure?",
+    pilihan: ["Susunan pion yang memengaruhi kekuatan dan kelemahan posisi", "Jumlah waktu pada jam catur", "Urutan pertukaran menteri", "Susunan bidak di luar papan"],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Apa yang dimaksud dengan isolated pawn?",
+    pilihan: ["Pion yang tidak memiliki pion kawan di file sebelah", "Pion yang sudah dipromosikan", "Pion yang sedang diskak", "Pion yang berada di baris terakhir"],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Mengapa dua benteng yang terhubung biasanya dianggap menguntungkan?",
+    pilihan: ["Mereka saling melindungi dan dapat bekerja sama di sepanjang baris", "Mereka tidak bisa ditangkap", "Mereka otomatis menjadi menteri", "Mereka dapat melompati bidak"],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Apa yang dimaksud dengan piece activity?",
+    pilihan: ["Seberapa aktif dan efektif bidak menguasai petak serta menyerang target", "Jumlah bidak yang dimiliki", "Jumlah langkah yang sudah dimainkan", "Kecepatan jam catur"],
+    kunci: 0,
+  },
+  {
+    kategori: "strategi",
+    soal: "Kapan pertukaran menteri sering masuk akal secara strategis?",
+    pilihan: ["Ketika pertukaran mengurangi serangan lawan atau menguntungkan endgame", "Selalu pada langkah pertama", "Hanya ketika menteri berada di d1", "Tidak pernah"],
+    kunci: 0,
   },
 
   /* ------------------------------------------------------------ endgame */
   {
     kategori: "endgame",
     soal: "Dalam endgame pion dan raja, apa yang dimaksud opposition?",
-    pilihan: [
-      "Kedua raja saling berhadapan dengan jarak satu petak",
-      "Kedua raja berada di sudut papan",
-      "Satu raja menyerang menteri lawan",
-      "Dua benteng berada pada file yang sama",
-    ],
+    pilihan: ["Kedua raja saling berhadapan dengan jarak satu petak", "Kedua raja berada di sudut papan", "Satu raja menyerang menteri lawan", "Dua benteng berada pada file yang sama"],
     kunci: 0,
   },
   {
@@ -334,12 +474,7 @@ export const SOAL_CATUR = [
   {
     kategori: "endgame",
     soal: "Dalam banyak endgame, raja menjadi semakin aktif karena?",
-    pilihan: [
-      "Raja boleh meninggalkan aturan skak",
-      "Jumlah bidak berkurang sehingga ancaman terhadap raja biasanya lebih sedikit",
-      "Raja berubah menjadi benteng",
-      "Raja mendapat langkah tambahan setiap giliran",
-    ],
+    pilihan: ["Raja boleh meninggalkan aturan skak", "Jumlah bidak berkurang sehingga ancaman terhadap raja biasanya lebih sedikit", "Raja berubah menjadi benteng", "Raja mendapat langkah tambahan setiap giliran"],
     kunci: 1,
   },
   {
@@ -351,12 +486,37 @@ export const SOAL_CATUR = [
   {
     kategori: "endgame",
     soal: "Pertahanan Philidor dalam endgame benteng terutama bertujuan untuk?",
-    pilihan: [
-      "Mencegah raja lawan maju ke baris keenam/ketiga dan membantu mempertahankan remis",
-      "Menukar benteng sendiri dengan pion",
-      "Memaksa promosi pion sendiri",
-      "Memenangkan menteri dalam tiga langkah",
-    ],
+    pilihan: ["Mencegah raja lawan maju ke baris keenam/ketiga dan membantu mempertahankan remis", "Menukar benteng sendiri dengan pion", "Memaksa promosi pion sendiri", "Memenangkan menteri dalam tiga langkah"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Apa yang dimaksud dengan rule of the square dalam endgame pion?",
+    pilihan: ["Cara memperkirakan apakah raja dapat mengejar pion sebelum promosi", "Aturan untuk memilih warna papan", "Teknik memaksa rokade", "Cara menghitung nilai menteri"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Dalam endgame pion, mengapa raja aktif sering menjadi faktor penentu?",
+    pilihan: ["Raja dapat membantu mendorong pion dan menghalangi raja lawan", "Raja berubah menjadi menteri", "Raja boleh melompati pion", "Raja tidak bisa diskak"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Apa tujuan utama mengawal passed pawn menuju promosi?",
+    pilihan: ["Membuat pion mencapai baris terakhir tanpa dapat dihentikan", "Menukar pion dengan raja", "Mengembalikan pion ke posisi awal", "Menghilangkan hak rokade"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Endgame king and queen versus king pada umumnya dimenangkan dengan?",
+    pilihan: ["Menggunakan menteri dan raja bersama untuk membatasi raja lawan", "Mengorbankan menteri langsung", "Menghindari raja sendiri", "Memajukan pion h"],
+    kunci: 0,
+  },
+  {
+    kategori: "endgame",
+    soal: "Apa yang biasanya terjadi jika kedua pemain hanya memiliki raja tanpa bidak lain?",
+    pilihan: ["Remis", "Putih menang", "Hitam menang", "Permainan dilanjutkan tanpa batas"],
     kunci: 0,
   },
 
@@ -391,6 +551,36 @@ export const SOAL_CATUR = [
     pilihan: ["Rokade pendek", "Rokade panjang", "Skak ganda", "Promosi"],
     kunci: 1,
   },
+  {
+    kategori: "notasi",
+    soal: "Dalam notasi aljabar, huruf 'R' mewakili bidak apa?",
+    pilihan: ["Raja", "Benteng", "Menteri", "Kuda"],
+    kunci: 1,
+  },
+  {
+    kategori: "notasi",
+    soal: "Dalam notasi aljabar bahasa Inggris, huruf 'B' mewakili?",
+    pilihan: ["Benteng", "Gajah", "Kuda", "Pion"],
+    kunci: 1,
+  },
+  {
+    kategori: "notasi",
+    soal: "Bagaimana biasanya langkah pion ditulis dalam notasi aljabar jika tidak menangkap?",
+    pilihan: ["Hanya tujuan petaknya, misalnya e4", "Selalu diawali P", "Selalu diawali p", "Dengan huruf N"],
+    kunci: 0,
+  },
+  {
+    kategori: "notasi",
+    soal: "Dalam notasi catur, tanda '=' yang diikuti huruf seperti '=Q' biasanya menunjukkan?",
+    pilihan: ["Promosi pion menjadi menteri", "Remis", "Skak", "Pertukaran menteri"],
+    kunci: 0,
+  },
+  {
+    kategori: "notasi",
+    soal: "Apa arti tanda '!' yang sering ditambahkan dalam anotasi partai catur?",
+    pilihan: ["Langkah bagus atau kuat", "Langkah ilegal", "Skakmat", "Remis otomatis"],
+    kunci: 0,
+  },
 
   /* ---------------------------------------------------------- sejarah */
   {
@@ -402,12 +592,7 @@ export const SOAL_CATUR = [
   {
     kategori: "sejarah",
     soal: "Istilah 'checkmate' dalam bahasa Indonesia, konon berasal dari bahasa Persia 'shah mat' yang berarti?",
-    pilihan: [
-      "Raja telah mati / raja terperangkap",
-      "Putih menang",
-      "Seri",
-      "Waktu habis",
-    ],
+    pilihan: ["Raja telah mati / raja terperangkap", "Putih menang", "Seri", "Waktu habis"],
     kunci: 0,
   },
   {
@@ -420,6 +605,30 @@ export const SOAL_CATUR = [
     kategori: "sejarah",
     soal: "Organisasi pecatur dunia yang menyelenggarakan kejuaraan dunia adalah?",
     pilihan: ["FIDE", "USCF", "AFC", "WCC"],
+    kunci: 0,
+  },
+  {
+    kategori: "sejarah",
+    soal: "Apa nama permainan India kuno yang sering dianggap sebagai salah satu leluhur catur?",
+    pilihan: ["Chaturanga", "Senet", "Go", "Shogi"],
+    kunci: 0,
+  },
+  {
+    kategori: "sejarah",
+    soal: "Siapa yang menjadi juara dunia catur pertama yang diakui secara umum pada 1886?",
+    pilihan: ["Wilhelm Steinitz", "Emanuel Lasker", "José Raúl Capablanca", "Alexander Alekhine"],
+    kunci: 0,
+  },
+  {
+    kategori: "sejarah",
+    soal: "Siapa juara dunia yang terkenal dengan gaya permainan posisional dan menjadi juara dunia pada 1921 setelah mengalahkan Lasker?",
+    pilihan: ["José Raúl Capablanca", "Bobby Fischer", "Garry Kasparov", "Mikhail Tal"],
+    kunci: 0,
+  },
+  {
+    kategori: "sejarah",
+    soal: "Bobby Fischer menjadi juara dunia pada 1972 setelah mengalahkan siapa?",
+    pilihan: ["Boris Spassky", "Anatoly Karpov", "Tigran Petrosian", "Viktor Korchnoi"],
     kunci: 0,
   },
 
@@ -446,6 +655,24 @@ export const SOAL_CATUR = [
     kategori: "umum",
     soal: "Bila seorang pemain mempromosikan pion bukan menjadi menteri (mis. kuda), istilahnya?",
     pilihan: ["Underpromotion", "Overpromotion", "Intermezzo", "Zwischenzug"],
+    kunci: 0,
+  },
+  {
+    kategori: "umum",
+    soal: "Istilah 'en prise' berarti sebuah bidak?",
+    pilihan: ["Sedang berada dalam posisi dapat ditangkap", "Sudah dipromosikan", "Sedang melakukan rokade", "Tidak dapat bergerak"],
+    kunci: 0,
+  },
+  {
+    kategori: "umum",
+    soal: "Kontrol waktu 10 menit tanpa increment umumnya dikategorikan sebagai?",
+    pilihan: ["Rapid", "Blitz", "Bullet", "Korespondensi"],
+    kunci: 0,
+  },
+  {
+    kategori: "umum",
+    soal: "Istilah 'tempo' dalam catur paling dekat berarti?",
+    pilihan: ["Satu unit waktu atau kesempatan langkah yang dapat dimanfaatkan", "Nilai menteri", "Warna petak", "Jumlah pion"],
     kunci: 0,
   },
 ];
