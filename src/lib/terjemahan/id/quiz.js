@@ -47,8 +47,12 @@ export const quiz = {
     kategori: {
         peraturan: "Peraturan",
         bidak: "Bidak",
-        skakmat: "Skakmat & Taktik",
+        skakmat: "Pola Skakmat",
+        taktik: "Taktik",
         pembukaan: "Pembukaan",
+        strategi: "Strategi",
+        endgame: "Endgame",
+        notasi: "Notasi Catur",
         sejarah: "Sejarah",
         umum: "Umum",
     },
