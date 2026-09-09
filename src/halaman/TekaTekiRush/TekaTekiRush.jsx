@@ -30,8 +30,10 @@ const KUNCI_WARNA = "kci-teka-teki-warna-papan";
 const DURASI = [3, 5];
 const NYAWA_AWAL = 3;
 
-/** Mode latihan bebas: waktu tidak berjalan sehingga tidak berakhir karena waktu. */
-const BEBAS_WAKTU = true;
+/** Mode latihan bebas (khusus dev): waktu tidak berjalan sehingga tidak
+ *  berakhir karena waktu. Harus `false` di produksi — penghitung 3/5 menit
+ *  adalah bagian dari permainan. */
+const BEBAS_WAKTU = false;
 
 /** Seluruh pilihan warna papan + kunci label (sama dgn halaman Teka-Teki). */
 const PILIHAN_WARNA = [
