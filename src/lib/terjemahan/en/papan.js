@@ -5,7 +5,6 @@
 
 import { komentatorPapan } from "./komentator.js";
 import "../../komentatorPengaya.js";
-import "../../komentatorPengayaPlaceholder.js";
 
 export const papan = {
     judul: "Chess Opening Explorer",
@@ -67,6 +66,15 @@ export const papan = {
     salin: "Copy",
     tersalinSingkat: "Copied",
     tutup: "Close",
+    baru: "New",
+    simpan: "Save",
+    tinjau: "Review",
+    berbagi: "Share",
+    inputPgnFen: "PGN / FEN input",
+    tabAnalisa: "Analysis",
+    tabBuku: "Books",
+    tabPenjelajah: "Explorer",
+    tabPartai: "Games",
     daftarLangkah: "Moves List",
     basisData: "Opening Explorer Database",
     kolomLangkah: "Next Move",

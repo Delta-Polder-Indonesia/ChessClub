@@ -11,6 +11,8 @@
  *     rokade, en passant, promosi, tangkapan menteri, pat, bidak
  *     menggantung, buku pembukaan, penilaian engine, ajakan engine.
  *  4. Varian kalimat deterministik (langkah sama → kalimat sama).
+ *  5. Jumlah varian ID dan EN sama persis untuk setiap kategori komentator.
+ *     (Menangkap varian yang ditambahkan hanya untuk satu bahasa.)
  *
  * Jalankan: node scripts/uji-komentator.mjs  (keluar 1 bila ada kegagalan)
  */
@@ -613,6 +615,31 @@ console.log("\nContoh keluaran teka-teki (soal #1, mat dalam 3):");
     console.log(`    ID santai : ${render(tId, susunKomentarTekaTeki({ tahap, gaya: "santai", ...dasar, ...opsi }))}`);
     console.log(`    ID formal : ${render(tId, susunKomentarTekaTeki({ tahap, gaya: "formal", ...dasar, ...opsi }))}`);
     console.log(`    EN santai : ${render(tEn, susunKomentarTekaTeki({ tahap, gaya: "santai", ...dasar, ...opsi }))}`);
+  }
+}
+
+/* ------------------- 6. paritas jumlah varian ID <=> EN (penjaga regresi) */
+// Varian baru biasanya masuk lewat src/lib/komentatorPengaya.js dan mesin
+// memilihnya dengan hash langkah. uji-i18n meratakan array menjadi kunci .0,
+// .1, … lalu menuntut ID dan EN persis sama, jadi menambah varian untuk satu
+// bahasa saja membuat `npm run uji` (dan CI) berhenti di situ. Pemeriksaan ini
+// menyebut kategori yang bocor, bukan cuma kunci indeksnya.
+console.log("\n6) Paritas jumlah varian ID = EN per kategori");
+for (const [nama, blokId, blokEn] of [
+  ["papan.komentator", ambil(ID, "papan.komentator"), ambil(EN, "papan.komentator")],
+  ["tekaTeki.komentator", ambil(ID, "tekaTeki.komentator"), ambil(EN, "tekaTeki.komentator")],
+]) {
+  for (const gaya of GAYA_KOMENTATOR) {
+    const kId = (blokId && blokId[gaya]) || {};
+    const kEn = (blokEn && blokEn[gaya]) || {};
+    for (const kategori of new Set([...Object.keys(kId), ...Object.keys(kEn)])) {
+      const jId = Array.isArray(kId[kategori]) ? kId[kategori].length : -1;
+      const jEn = Array.isArray(kEn[kategori]) ? kEn[kategori].length : -1;
+      ok(
+        jId === jEn,
+        `${nama}.${gaya}.${kategori}: jumlah varian ID (${jId}) berbeda dari EN (${jEn}) — lengkapi kedua bahasa`
+      );
+    }
   }
 }
 
