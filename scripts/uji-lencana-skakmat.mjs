@@ -410,8 +410,8 @@ function klik(el) {
   const radioGaya = (akar) =>
     [...(akar ?? wadahHalaman).querySelectorAll('section[aria-label="Komentator"] [role="radio"]')];
   uji(
-    "kontrol komentator ada di dalam popup Pengaturan (santai + formal)",
-    !!popup && radioGaya(popup).length === 2
+    "kontrol komentator ada di dalam popup Pengaturan (santai + formal + Gen Z)",
+    !!popup && radioGaya(popup).length === 3
   );
   uji(
     "kartu komentator di panel kanan tidak lagi memuat kontrol",

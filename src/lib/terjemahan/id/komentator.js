@@ -13,6 +13,7 @@ export const komentatorPapan = {
   gayaLabel: "Gaya",
   gayaSantai: "Santai",
   gayaFormal: "Formal",
+  gayaGenZ: "Gen Z",
   menunggu: "Silakan melangkah — komentar muncul di sini.",
   posisiAwal: "Papan siap. Putih jalan duluan; mari kita lihat rencananya.",
   menilai: "Menilai langkah…",
@@ -179,6 +180,167 @@ export const komentatorPapan = {
       "Nyalakan engine di atas kalau mau komentar lengkap dengan skor dan penilaian.",
     ],
   },
+  genZ: {
+    biasa: [
+      "{pihak} pilih {san}. Masih kalem, belum waktunya bikin konten.",
+      "{san} dari {pihak}. Oke, rencananya mulai kelihatan.",
+      "{bidak} mendarat di {petak}. Aman dulu, drama belakangan.",
+      "{pihak} main {san}. Posisi lagi dimasak, jangan buru-buru.",
+    ],
+    buku: [
+      "{san} masih masuk teori {pembukaan}. PR pembukaannya dikerjain.",
+      "Ini {pembukaan}, dan {pihak} masih hafal jalur lewat {san}.",
+      "{san} masih sesuai buku {pembukaan}. Belum improvisasi liar.",
+    ],
+    tangkap: [
+      "{pihak} ambil {korban} di {petak}. Ada yang kehilangan barang.",
+      "{san}, {korban} langsung diamankan. {lawan} punya balasan enggak nih?",
+      "{korban} di {petak} kena angkut. Transaksi material resmi dibuka.",
+    ],
+    tangkapUntung: [
+      "{pihak} tukar murah buat {korban} di {petak}. Cuan materialnya nyata.",
+      "{san} panen {korban}. Gratis begini susah ditolak.",
+    ],
+    tangkapMenteri: [
+      "Menteri {lawan} jatuh di {petak}. Itu bukan selip kecil, itu bencana.",
+      "{pihak} ambil menteri di {petak}. Posisi {lawan} langsung butuh mukjizat.",
+    ],
+    skak: [
+      "{san} kasih skak. Raja {lawan} diminta pindah sekarang juga.",
+      "Skak dari {pihak}. Agenda {lawan} terpaksa dibatalkan.",
+      "Raja {lawan} kena skak. Tidak bisa pura-pura enggak lihat.",
+    ],
+    skakTambahan: [
+      "Bonus skak juga. Raja {lawan} ikut kena repot.",
+      "Sekalian skak. Satu langkah, dua masalah buat {lawan}.",
+    ],
+    skakSatuJalan: [
+      "Cuma satu balasan legal. Pilihan menunya tipis banget.",
+    ],
+    rokadePendek: [
+      "{pihak} rokade pendek. Raja aman, benteng ikut kerja.",
+      "Rokade pendek. Raja {pihak} akhirnya pakai sabuk pengaman.",
+    ],
+    rokadePanjang: [
+      "{pihak} rokade panjang. Niat menyerangnya mulai terang.",
+      "Raja {pihak} pindah ke sayap menteri. Posisi bakal makin panas.",
+    ],
+    enPassant: [
+      "En passant! Aturan langka akhirnya dapat jam tayang.",
+      "{san} lewat en passant. Legal kok, meski kelihatan mencurigakan.",
+    ],
+    promosi: [
+      "Pion {pihak} promosi jadi {bidak} di {petak}. Naik jabatan tanpa masa percobaan.",
+      "{bidak} baru lahir di {petak}. Pion {pihak} sukses sampai garis akhir.",
+    ],
+    lawanMenggantung: [
+      "{bidak} {lawan} di {petak} menggantung. Gratisan sedang tersedia.",
+      "Cek {petak}. {bidak} {lawan} dijaga pakai doa doang.",
+    ],
+    sendiriMenggantung: [
+      "{bidak} {pihak} di {petak} sekarang menggantung. Sedekah material terdeteksi.",
+      "Waduh, {bidak} di {petak} ditinggal. {lawan} pasti sudah melirik.",
+    ],
+    paksa: [
+      "Cuma itu langkah legal. Bukan pilihan, lebih mirip perintah.",
+      "{san} terpaksa dimainkan. Menu lainnya sedang tutup.",
+    ],
+    nilaiBrilian: [
+      "Brilian! {san} kelihatan nekat, ternyata hitungannya bersih.",
+      "{san} itu pengorbanan kelas atas. Engine ikut respek.",
+      "Langkah brilian. Papan tadi tenang, sekarang jadi highlight.",
+    ],
+    nilaiHebat: [
+      "Langkah hebat! {pihak} nemu jawaban yang enggak gampang.",
+      "{san} tepat sasaran. Momen sulitnya lolos tanpa lecet.",
+      "Bagus banget. {pihak} menghukum posisi ini dengan akurat.",
+    ],
+    nilaiTerbaik: [
+      "{san} pilihan terbaik. Engine tidak punya catatan.",
+      "Akurat banget. {pihak} memilih nomor satu di posisi ini.",
+      "Langkah terbaik ditemukan. Bersih, lanjut.",
+    ],
+    nilaiUnggul: [
+      "Langkah kuat. Bukan nomor satu, tapi bedanya tipis banget.",
+      "{san} menjaga posisi tetap enak dimainkan.",
+      "Pilihan bagus. Engine cuma punya saran kecil.",
+    ],
+    nilaiLayak: [
+      "{san} masih oke. Ada yang lebih tajam, tapi posisi aman.",
+      "Layak dimainkan. Tidak istimewa, tidak bikin panik.",
+      "Cukup solid, walau engine melihat pilihan yang lebih niat.",
+    ],
+    nilaiKeliru: [
+      "Sedikit meleset. {lawan} dapat ruang bernapas gratis.",
+      "{san} kurang presisi. Belum parah, tapi engine mengernyit.",
+      "Keunggulan {pihak} menipis sedikit. Alarmnya baru bunyi pelan.",
+    ],
+    nilaiKesalahan: [
+      "Itu kesalahan. {lawan} baru saja dikasih akses masuk.",
+      "{san} bikin posisi {pihak} berat. Plot twist yang tidak diminta.",
+      "Momentum pindah ke {lawan}. Langkah tadi mahal juga.",
+    ],
+    nilaiKelewat: [
+      "Peluang besar kelewat. Taktiknya lewat depan mata.",
+      "{pihak} punya pukulan kuat, tapi tidak diambil. Sayang banget.",
+      "Kesempatannya hilang. Engine pasti sedang menunjuk layar.",
+    ],
+    nilaiBlunder: [
+      "Blunder. {san} bikin evaluasi jatuh dari tangga.",
+      "Aduh, {lawan} baru dapat hadiah besar.",
+      "{san} itu blunder serius. Posisi {pihak} langsung masuk mode sulit.",
+    ],
+    lebihKuat: [
+      "Yang lebih galak sebenarnya {saran}.",
+      "Engine maunya {saran}. Yang tadi kurang menggigit.",
+    ],
+    seimbang: [
+      "Posisi masih imbang. Belum ada yang boleh sombong.",
+      "Evaluasi nyaris nol. Partainya masih milik siapa saja.",
+      "Masih setara. Dramanya belum pilih kubu.",
+    ],
+    unggulTipis: [
+      "{unggul} unggul tipis sekitar {nilai} pion. Belum aman buat flexing.",
+      "Posisi condong sedikit ke {unggul}, nilainya +{nilai}.",
+    ],
+    unggulJelas: [
+      "{unggul} unggul jelas sekitar {nilai} pion. Tekanannya mulai terasa.",
+      "Nilai +{nilai} buat {unggul}. Ini sudah bukan sekadar feeling.",
+    ],
+    unggulMenang: [
+      "{unggul} unggul {nilai} pion. Tinggal jangan bikin konten blunder.",
+      "Posisi {unggul} sudah menang besar. Eksekusinya jangan goyah.",
+    ],
+    unggulMat: [
+      "{unggul} punya mat dalam {mat}. Tinggal ikuti jalurnya.",
+      "Mat dalam {mat} buat {unggul}. Raja lawan sudah kehabisan episode.",
+    ],
+    skakmat: [
+      "Skakmat! {pihak} menutup partai dengan bersih.",
+      "{san} dan selesai. Raja {lawan} resmi tidak punya jalan.",
+      "Mat! {pihak} menang, {lawan} bisa review dulu.",
+    ],
+    pat: [
+      "Pat! Unggul belum tentu menang kalau rajanya dikunci begini.",
+      "Tidak ada langkah legal dan bukan skak. Remis, plot twist terakhir.",
+    ],
+    remis: [
+      "Remis. Tidak ada pemenang, ego aman bareng-bareng.",
+      "Poin dibagi. Partainya sepakat berhenti di tengah.",
+    ],
+    remisUlang: [
+      "Posisi terulang tiga kali. Remis karena papan kena replay.",
+      "Tiga kali posisi yang sama, jadi partainya resmi remis.",
+    ],
+    remisMaterial: [
+      "Materialnya tidak cukup buat mat. Remis tanpa debat.",
+      "Tidak ada amunisi untuk skakmat. Poin dibagi.",
+    ],
+    ajakEngine: [
+      "Nyalakan engine kalau mau tahu langkah tadi masak atau malah gosong.",
+      "Butuh penilaian jujur? Aktifkan engine, biar angkanya bicara.",
+    ],
+  } ,
   formal: {
     biasa: [
       "{pihak} melanjutkan dengan {san}.",
@@ -490,19 +652,78 @@ export const komentatorTekaTeki = {
       "Evaluasi engine: mat dalam {mat}.",
     ],
 
+  },
   genZ: {
-    biasa: [
-      "{pihak} main {san}. Oke, kita lihat ke arahnya.",
-      "{san} dari {pihak} - tenang dulu, belum ada yang meledak.",
-      "{pihak} geser {bidak} ke {petak}. Langkah pengembangan yang wajar.",
-      "Oke, {san}. {pihak} lagi nyusun barisan dulu nih.",
+    mulaiSatu: [
+      "Soal baru, mat satu buat {pihak}. Jangan overthinking, tinggal cari penutupnya.",
+      "{pihak} jalan dan mat dalam satu. Raja {lawan} sudah hampir logout.",
     ],
-    buku: [
-      "{san} - masih di jalur buku: {pembukaan}. Teori-nya hafal, mantap!",
-      "Oke, masih wilayah teori. {pihak} main sesuai teori dengan {san}.",
-      "{san}, klasik. Kita masih di {pembukaan}.",
+    mulai: [
+      "{pihak} punya mat dalam {n}. Cari langkah yang paling memaksa dulu.",
+      "Mat dalam {n} buat {pihak}. Cek, tangkap, ancam, mulai dari sana.",
+      "Giliran {pihak}, targetnya mat dalam {n}. Raja {lawan} jangan dikasih napas.",
     ],
-  },
-  },
+    mulaiSudah: [
+      "Soal ini pernah kamu pecahkan. Coba buktikan memorinya masih online.",
+    ],
+    benar: [
+      "Benar! Sekarang tunggu balasan {lawan}.",
+      "Nah, itu langkahnya. {lawan} terpaksa menjawab.",
+      "Tepat. {lawan} masuk jalur yang sudah disiapkan.",
+    ],
+    lawan: [
+      "{lawan} membalas. Tinggal {sisa} langkah lagi.",
+      "Balasan {lawan} masuk. Sisa {sisa} langkah menuju mat.",
+    ],
+    lawanTerakhir: [
+      "{lawan} sudah membalas. Sekarang cari pukulan matnya.",
+      "Satu langkah lagi. Jangan cuma skak, tutup partainya.",
+    ],
+    salah: [
+      "Belum tepat. {lawan} masih punya jalan keluar.",
+      "Bukan itu. Cek semua langkah paksa dulu.",
+      "Langkahnya kasih {lawan} terlalu banyak waktu. Coba lagi.",
+    ],
+    salahSkak: [
+      "Memang skak, tapi {lawan} masih punya {jalan} jalan keluar.",
+      "Skaknya belum cukup galak. Raja {lawan} masih bisa kabur.",
+    ],
+    salahTangkap: [
+      "{korban} memang menggoda, tapi targetnya raja {lawan}.",
+      "Material nanti dulu. Menunya skakmat, bukan ambil {korban}.",
+    ],
+    salahTerakhir: [
+      "Ini langkah terakhir. Harus mat, bukan sekadar bikin raja pindah.",
+      "Penutupnya wajib skakmat. Cek lagi petak kaburnya.",
+    ],
+    ilegal: [
+      "Langkah itu ilegal. Rajamu mungkin masih terancam.",
+      "Tidak bisa dimainkan. Pastikan raja {pihak} tetap aman.",
+    ],
+    petunjuk: [
+      "Gerakkan {bidak} dari {dari}. Sisanya coba kamu temukan.",
+      "Kuncinya ada pada {bidak} di {dari}.",
+    ],
+    pengorbanan: [
+      "{bidak} di {petak} sengaja dikorbankan. Umpannya bukan kaleng-kaleng.",
+      "Pengorbanan di {petak}! Kalau {lawan} ambil, rajanya malah terbuka.",
+    ],
+    selesai: [
+      "Skakmat! Soalnya beres, rapi juga.",
+      "Mat! Raja {lawan} resmi kehabisan petak.",
+      "Selesai dengan skakmat. Clean.",
+    ],
+    selesaiTema: [
+      "Temanya {tema}. Simpan polanya, nanti muncul lagi.",
+      "Itu pola {tema}. Sekarang harusnya makin gampang dikenali.",
+    ],
+    tinjau: [
+      "Ini langkah {nomor} dari solusi. Perhatikan pilihan {lawan} yang dipangkas.",
+      "Review langkah {nomor}. Jalur kabur raja ditutup satu-satu.",
+    ],
+    engineMat: [
+      "Engine juga melihat mat dalam {mat}. Validasi diterima.",
+      "Konfirmasi engine, mat dalam {mat}.",
+    ],
+  } ,
 };
-

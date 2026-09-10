@@ -13,6 +13,7 @@ export const komentatorPapan = {
   gayaLabel: "Style",
   gayaSantai: "Casual",
   gayaFormal: "Formal",
+  gayaGenZ: "Gen Z",
   menunggu: "Make a move — commentary appears here.",
   posisiAwal: "Board is set. White moves first; let's see the plan.",
   menilai: "Assessing the move…",
@@ -179,6 +180,167 @@ export const komentatorPapan = {
       "Switch the engine on above for full commentary with scores and ratings.",
     ],
   },
+  genZ: {
+    biasa: [
+      "{pihak} goes with {san}. Still calm, no clip-worthy chaos yet.",
+      "{san} from {pihak}. Okay, the plan is starting to show.",
+      "The {bidak} lands on {petak}. Safety first, drama later.",
+      "{pihak} plays {san}. Let the position cook for a minute.",
+    ],
+    buku: [
+      "{san} is still {pembukaan} theory. Someone did the homework.",
+      "This is the {pembukaan}, and {pihak} remembers the route with {san}.",
+      "{san} stays in the {pembukaan} book. No wild improv yet.",
+    ],
+    tangkap: [
+      "{pihak} takes the {korban} on {petak}. Someone lost their stuff.",
+      "{san}, and the {korban} is gone. Does {lawan} have a reply?",
+      "The {korban} on {petak} gets collected. Material business is open.",
+    ],
+    tangkapUntung: [
+      "{pihak} trades up for the {korban} on {petak}. Actual material profit.",
+      "{san} wins the {korban}. Free stuff is hard to decline.",
+    ],
+    tangkapMenteri: [
+      "{lawan} loses the queen on {petak}. That is not a tiny slip, that is a disaster.",
+      "{pihak} takes the queen on {petak}. {lawan} may need a miracle now.",
+    ],
+    skak: [
+      "{san} gives check. {lawan} needs to move the king right now.",
+      "Check from {pihak}. {lawan} has to cancel every other plan.",
+      "{lawan} is in check. Pretending not to see it is not an option.",
+    ],
+    skakTambahan: [
+      "It comes with check too. More trouble for {lawan}.",
+      "Check included. One move, two problems for {lawan}.",
+    ],
+    skakSatuJalan: [
+      "Only one legal reply. That menu is painfully short.",
+    ],
+    rokadePendek: [
+      "{pihak} castles kingside. Safe king, active rook, good deal.",
+      "Kingside castle. The {pihak} king finally puts on a seat belt.",
+    ],
+    rokadePanjang: [
+      "{pihak} castles queenside. The attacking intent is obvious now.",
+      "The {pihak} king heads queenside. This position is about to heat up.",
+    ],
+    enPassant: [
+      "En passant! The rare rule finally gets screen time.",
+      "{san} en passant. It is legal, even if it looks suspicious.",
+    ],
+    promosi: [
+      "The {pihak} pawn promotes to a {bidak} on {petak}. Instant promotion at work.",
+      "A new {bidak} appears on {petak}. The {pihak} pawn made it all the way.",
+    ],
+    lawanMenggantung: [
+      "The {lawan} {bidak} on {petak} is hanging. Freebie detected.",
+      "Look at {petak}. That {lawan} {bidak} is protected by good vibes only.",
+    ],
+    sendiriMenggantung: [
+      "The {pihak} {bidak} on {petak} is hanging now. Material donation detected.",
+      "Uh-oh, the {bidak} on {petak} was left behind. {lawan} definitely noticed.",
+    ],
+    paksa: [
+      "That is the only legal move. Less of a choice, more of an order.",
+      "{san} is forced. Every other option is closed.",
+    ],
+    nilaiBrilian: [
+      "Brilliant! {san} looks reckless, but the calculation is clean.",
+      "{san} is a top-tier sacrifice. Even the engine respects it.",
+      "Brilliant move. The board went from quiet to highlight reel.",
+    ],
+    nilaiHebat: [
+      "Great move! {pihak} found the answer that was easy to miss.",
+      "{san} hits the mark. Tough moment, clean decision.",
+      "Seriously good. {pihak} punished the position accurately.",
+    ],
+    nilaiTerbaik: [
+      "{san} is best. The engine has no notes.",
+      "Super accurate. {pihak} picked the top move here.",
+      "Best move found. Clean, carry on.",
+    ],
+    nilaiUnggul: [
+      "Strong move. Not number one, but the gap is tiny.",
+      "{san} keeps the position healthy and easy to play.",
+      "Good choice. The engine only has a minor suggestion.",
+    ],
+    nilaiLayak: [
+      "{san} is fine. Something sharper existed, but the position is safe.",
+      "Playable. Not special, not panic material.",
+      "Solid enough, though the engine found a more ambitious choice.",
+    ],
+    nilaiKeliru: [
+      "A slight miss. {lawan} gets some free breathing room.",
+      "{san} is imprecise. Not awful, but the engine raised an eyebrow.",
+      "The {pihak} edge shrinks a little. The alarm is only whispering.",
+    ],
+    nilaiKesalahan: [
+      "That is a mistake. {lawan} just got an open invitation.",
+      "{san} makes life hard for {pihak}. An unwanted plot twist.",
+      "Momentum shifts to {lawan}. That move was expensive.",
+    ],
+    nilaiKelewat: [
+      "Big chance missed. The tactic walked right past.",
+      "{pihak} had a strong shot but skipped it. That hurts.",
+      "The chance is gone. The engine is probably pointing at the screen.",
+    ],
+    nilaiBlunder: [
+      "Blunder. {san} sends the evaluation down the stairs.",
+      "Ouch, {lawan} just received a huge gift.",
+      "{san} is a serious blunder. {pihak} enters hard mode instantly.",
+    ],
+    lebihKuat: [
+      "{saran} was the tougher move.",
+      "The engine wanted {saran}. The move played lacked bite.",
+    ],
+    seimbang: [
+      "Still equal. Nobody gets to brag yet.",
+      "The evaluation is near zero. This game belongs to anyone.",
+      "Dead even. The drama has not picked a side.",
+    ],
+    unggulTipis: [
+      "{unggul} is slightly better by about {nilai} pawns. Too early to flex.",
+      "A small +{nilai} edge for {unggul}.",
+    ],
+    unggulJelas: [
+      "{unggul} has a clear edge of about {nilai} pawns. The pressure is real.",
+      "It is +{nilai} for {unggul}. More than just a feeling now.",
+    ],
+    unggulMenang: [
+      "{unggul} is up {nilai} pawns. Just avoid making blunder content.",
+      "{unggul} has a winning position. Keep the finish steady.",
+    ],
+    unggulMat: [
+      "{unggul} has mate in {mat}. Just follow the route.",
+      "Mate in {mat} for {unggul}. The other king is out of episodes.",
+    ],
+    skakmat: [
+      "Checkmate! {pihak} closes it out cleanly.",
+      "{san}, and that is it. The {lawan} king has nowhere to go.",
+      "Mate! {pihak} wins, {lawan} gets a review session.",
+    ],
+    pat: [
+      "Stalemate! A winning edge means nothing if the king gets boxed in like this.",
+      "No legal move and no check. Draw, with one last plot twist.",
+    ],
+    remis: [
+      "Draw. No winner, everyone keeps a little pride.",
+      "Points shared. The game calls it right down the middle.",
+    ],
+    remisUlang: [
+      "The position appeared three times. Draw by board replay.",
+      "Same position three times, so the game is officially drawn.",
+    ],
+    remisMaterial: [
+      "Not enough material to mate. Draw, no debate.",
+      "There is no checkmating ammo left. Points shared.",
+    ],
+    ajakEngine: [
+      "Turn on the engine to see whether that move cooked or got cooked.",
+      "Want an honest rating? Enable the engine and let the numbers talk.",
+    ],
+  } ,
   formal: {
     biasa: [
       "{pihak} continues with {san}.",
@@ -490,19 +652,78 @@ export const komentatorTekaTeki = {
       "Engine evaluation: mate in {mat}.",
     ],
 
+  },
   genZ: {
-    biasa: [
-      "{pihak} plays {san}. Oke, let's see where this goes.",
-      "{san} from {pihak} - calm for now, nothing's exploded yet.",
-      "{pihak} slides the {bidak} to {petak}. Sensible development.",
-      "Alright, {san}. {pihak} is lining up the troops.",
+    mulaiSatu: [
+      "New puzzle, mate in one for {pihak}. Do not overthink the finish.",
+      "{pihak} to move and mate in one. The {lawan} king is nearly logged out.",
     ],
-    buku: [
-      "{san} - still in the book: {pembukaan}. Theory well memorised!",
-      "This is the {pembukaan}. {pihak} follows theory with {san}.",
-      "{san}, a classic. We're still in the {pembukaan}.",
+    mulai: [
+      "{pihak} has mate in {n}. Start with the most forcing move.",
+      "Mate in {n} for {pihak}. Checks, captures, threats, start there.",
+      "{pihak} to move, mate in {n}. Give the {lawan} king no air.",
     ],
-  },
-  },
+    mulaiSudah: [
+      "You solved this one before. Time to see if the memory is still online.",
+    ],
+    benar: [
+      "Correct! Now wait for {lawan} to reply.",
+      "That is the move. {lawan} is forced to answer.",
+      "Exactly. {lawan} enters the route you prepared.",
+    ],
+    lawan: [
+      "{lawan} replies. Only {sisa} moves left.",
+      "Reply from {lawan}. {sisa} moves remain until mate.",
+    ],
+    lawanTerakhir: [
+      "{lawan} replied. Now find the mating blow.",
+      "One move left. Do not just check, end the game.",
+    ],
+    salah: [
+      "Not quite. {lawan} still has an escape.",
+      "Not that one. Check every forcing move first.",
+      "That gives {lawan} too much time. Try again.",
+    ],
+    salahSkak: [
+      "It is check, but {lawan} still has {jalan} escape route(s).",
+      "That check lacks bite. The {lawan} king can still run.",
+    ],
+    salahTangkap: [
+      "The {korban} is tempting, but the target is the {lawan} king.",
+      "Material can wait. The assignment is mate, not winning the {korban}.",
+    ],
+    salahTerakhir: [
+      "This is the last move. It must mate, not just move the king.",
+      "The finish must be checkmate. Check the escape squares again.",
+    ],
+    ilegal: [
+      "That move is illegal. Your king may still be under threat.",
+      "Cannot play that. Make sure the {pihak} king stays safe.",
+    ],
+    petunjuk: [
+      "Move the {bidak} from {dari}. You can find the rest.",
+      "The key is the {bidak} on {dari}.",
+    ],
+    pengorbanan: [
+      "The {bidak} on {petak} is deliberately sacrificed. Serious bait.",
+      "Sacrifice on {petak}! If {lawan} takes it, the king opens up.",
+    ],
+    selesai: [
+      "Checkmate! Puzzle done, and pretty clean too.",
+      "Mate! The {lawan} king is officially out of squares.",
+      "Finished with checkmate. Clean.",
+    ],
+    selesaiTema: [
+      "The theme is {tema}. Save that pattern for next time.",
+      "That was a {tema} pattern. It should be easier to spot now.",
+    ],
+    tinjau: [
+      "This is move {nomor} of the solution. Watch {lawan} lose options.",
+      "Reviewing move {nomor}. The king’s exits close one by one.",
+    ],
+    engineMat: [
+      "The engine also sees mate in {mat}. Validation received.",
+      "Engine confirms mate in {mat}.",
+    ],
+  } ,
 };
-
