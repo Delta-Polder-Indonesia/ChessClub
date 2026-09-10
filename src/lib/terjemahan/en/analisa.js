@@ -527,7 +527,7 @@ export const analisa = {
       logo: "Site logos",
       logoOleh:
         "Trademarks of their respective owners (Chess.com, LLC and lichess.org); used here only to identify accounts via links to the official sites.",
-      teknologi: "Technology & Infrastructure",
+      teknologi: "Technology",
       teknologiOleh:
         "This project is built and run using the following services and libraries. Thanks to each team for their work.",
       lisensiProyek: "Project License",
@@ -537,6 +537,9 @@ export const analisa = {
       sosialJudul: "Copyright infringement",
       sosialDeskripsi:
         "We respect the intellectual property rights of others. If you believe your work has been used on our site without permission, please contact our team via the links below. Include proof of ownership and links to the content in question.",
+      sanggahanJudul: "Disclaimer",
+      sanggahan:
+        "This site is not affiliated with or endorsed by Chess.com, LLC or lichess.org. All trademarks, logos, and third-party assets mentioned on this page are attributions only; their copyright and ownership remain with their respective owners, and their use here is unmodified and without any claim of ownership.",
       tutup: "Close",
     },
   }

@@ -1,0 +1,5 @@
+;!function(){try { var e="undefined"!=typeof globalThis?globalThis:"undefined"!=typeof global?global:"undefined"!=typeof window?window:"undefined"!=typeof self?self:{},n=(new e.Error).stack;n&&((e._debugIds|| (e._debugIds={}))[n]="df9c570e-2f42-4c51-a463-b9ec03686236")}catch(e){}}();
+(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,184899,i=>{"use strict";var s=i.i(4671307),e=i.i(75383),t=i.i(5087825),n=i.i(9167024),d=i.i(5629224);i.s(["DisabledButton",0,function(){let{size:i,type:l}=arguments.length>0&&void 0!==arguments[0]?arguments[0]:{};return(0,s.jsxs)(n.f,{children:[(0,s.jsx)(t.f,{disabled:!0,size:i,suffix:(0,s.jsx)(d.f,{}),variant:l,children:"Add Drain"}),(0,s.jsx)(e.f,{className:"min-w-[300px]"})]})}])}]);
+
+//# debugId=df9c570e-2f42-4c51-a463-b9ec03686236
+//# sourceMappingURL=1-_s8kc41ct8k.js.map

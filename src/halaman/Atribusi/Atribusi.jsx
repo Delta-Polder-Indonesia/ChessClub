@@ -1,8 +1,8 @@
 /*
- * Halaman "Atribusi & lisensi" — atribusi fitur Analisa yang dulu menjadi
- * popup panel pengaturan, kini halaman utuh mengikuti tata letak contoh
- * prompt.md (judul besar + kartu grid berdampingan), dengan palet terang
- * korporat situs ini. Tautan memakai <a> biasa — link sheet/eksternal.
+ * Halaman "Atribusi & lisensi" — atribusi fitur Analisa, ditata dengan markup
+ * editorial koran (label kecil uppercase, judul font-black ber-border double,
+ * serif, rata kiri-kanan) mengikuti pola Keberlanjutan. Tata letak grid kartu
+ * dipertahankan. Tautan memakai <a> biasa — link sheet/eksternal.
  */
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -48,12 +48,12 @@ function Tautan({ href, children }) {
 
 function Kartu({ judul, ikon, isi }) {
   return (
-    <section className="bg-white border border-slate-200 rounded-xl p-6 w-full flex flex-col items-center">
-      <h2 className="text-2xl font-bold text-slate-900 flex flex-row items-center mx-auto mb-8 w-fit gap-2">
+    <section className="bg-white border border-gray-400 rounded p-6 w-full flex flex-col items-center">
+      <h2 className="text-base font-sans font-bold tracking-widest uppercase text-gray-900 flex flex-row items-center justify-center w-fit mx-auto mb-5 gap-2 border-b border-gray-900 pb-1.5">
         {ikon}
         {judul}
       </h2>
-      <ul className="text-sm sm:text-base flex flex-col items-center gap-2 text-center">
+      <ul className="font-serif text-base leading-relaxed text-justify flex flex-col items-center gap-2 text-center text-gray-800">
         {isi}
       </ul>
     </section>
@@ -190,6 +190,16 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
+          <li>
+            <img
+              src={berkasPublik("/images/color-icon/today.svg")}
+              alt=""
+              draggable="false"
+              decoding="async"
+              loading="lazy"
+              className="h-14 w-auto"
+            />
+          </li>
           <li>{t("analisa.atribusi.suaraOleh")}</li>
           <li>
             <Tautan href="https://www.chess.com/">Chess.com</Tautan>
@@ -204,7 +214,7 @@ export default function Atribusi() {
         <>
           <li className="flex flex-row items-center gap-3">
             <ChessComLogo className="h-[26px] w-auto fill-current" />
-            <span className="h-6 w-px bg-slate-300" />
+            <span className="h-6 w-px bg-gray-400" />
             <LichessLogo className="h-[20px] w-auto fill-current" />
           </li>
           <li>{t("analisa.atribusi.logoOleh")}</li>
@@ -220,16 +230,26 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
+          <li>
+            <img
+              src={berkasPublik("/images/color-icon/reactjs-ar21.svg")}
+              alt=""
+              draggable="false"
+              decoding="async"
+              loading="lazy"
+              className="h-14 w-auto"
+            />
+          </li>
           <li>{t("analisa.atribusi.teknologiOleh")}</li>
-          <li className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs">
+          <li className="flex flex-row flex-wrap items-center justify-center gap-x-2 gap-y-1 text-base">
             {TEKNOLOGI.map((k) => (
               <span key={k.nama} className="inline-flex items-center gap-1">
                 <Tautan href={k.href}>{k.nama}</Tautan>
-                <span className="text-slate-300">·</span>
+                <span className="text-gray-400">·</span>
               </span>
             ))}
           </li>
-          <li className="text-xs text-slate-500">
+          <li className="text-sm text-gray-500">
             Diarsiteki & kolaborasi via{" "}
             <Tautan href="https://arena.ai/">Arena AI</Tautan> menggunakan{" "}
             <Tautan href="https://opencode.ai/">OpenCode</Tautan>.
@@ -269,34 +289,42 @@ export default function Atribusi() {
       <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
         <div className="relative w-full mx-auto max-w-[1280px]">
           <div className="flex flex-col items-center gap-4 text-center">
-            <License size={44} class="fill-slate-900" />
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
-              {t("analisa.atribusi.judulDaftar")}
-            </h2>
+            <License size={44} class="fill-gray-900" />
+            <div className="w-full border-b-4 border-double border-gray-900 pb-4">
+              <p className="mb-1 font-sans text-sm font-bold tracking-widest text-gray-900 uppercase">
+                {t("analisa.atribusi.judul")}
+              </p>
+              <h2 className="mb-2 text-3xl md:text-4xl leading-none font-black tracking-tight text-gray-900 uppercase">
+                {t("analisa.atribusi.judulDaftar")}
+              </h2>
+              <p className="m-0 mx-auto max-w-[720px] text-base text-gray-900 italic">
+                {t("analisa.atribusi.pendahuluan")}
+              </p>
+            </div>
           </div>
-          <div className="w-full border-t-2 border-slate-300 mb-10 md:mb-12" />
+          <div className="w-full border-t border-gray-400 mb-10 md:mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
             {kartu.map((k) => (
               <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
             ))}
           </div>
-          <div className="mt-10 w-full rounded-xl border border-slate-200 bg-slate-50 p-6 text-center">
+          <div className="mt-10 w-full px-6 py-8 text-center">
             <div className="mx-auto flex w-fit flex-col items-center gap-3">
-              <License size={36} class="fill-slate-900" />
-              <p className="max-w-[720px] text-xs md:text-sm leading-5 text-slate-600">
+              <License size={36} class="fill-gray-900" />
+              <p className="max-w-[720px] font-serif text-base leading-6 text-justify text-gray-900 italic">
                 {t("analisa.atribusi.lisensiProyekOleh")}
               </p>
-              <code className="rounded-md bg-white border border-slate-200 px-3 py-1.5 text-[11px] font-mono text-slate-700">
+              <code className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-mono text-gray-700">
                 © 2025-2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
               </code>
             </div>
           </div>
 
-          <div className="w-full border-t border-slate-200 mt-14 md:mt-16 pt-10 md:pt-12 flex flex-col items-center gap-6 text-center">
-            <h3 className="text-xl md:text-2xl font-bold text-slate-900">
+          <div className="w-full mt-14 md:mt-16 pt-10 md:pt-12 flex flex-col items-center gap-6 text-center">
+            <h3 className="pb-1 text-base sm:text-lg font-sans font-black tracking-tight uppercase text-gray-900 border-b border-gray-900">
               {t("analisa.atribusi.sosialJudul")}
             </h3>
-            <p className="max-w-[640px] text-sm md:text-base text-slate-600">
+            <p className="max-w-[640px] font-serif text-base leading-relaxed text-justify text-gray-800">
               {t("analisa.atribusi.sosialDeskripsi")}
             </p>
             <div className="flex flex-row items-center justify-center gap-5">
@@ -320,6 +348,14 @@ export default function Atribusi() {
                   />
                 </a>
               ))}
+            </div>
+            <div className="mt-2 w-full border border-gray-950 p-5 flex flex-col items-center gap-3">
+              <h4 className="font-sans text-base font-bold tracking-wide text-gray-900 uppercase">
+                {t("analisa.atribusi.sanggahanJudul")}
+              </h4>
+              <p className="mx-auto max-w-[720px] font-serif text-base leading-relaxed text-justify text-gray-900 italic">
+                {t("analisa.atribusi.sanggahan")}
+              </p>
             </div>
           </div>
         </div>

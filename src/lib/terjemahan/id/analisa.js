@@ -524,7 +524,7 @@ export const analisa = {
       logo: "Logo situs",
       logoOleh:
         "Merek dagang milik pemiliknya (Chess.com, LLC dan lichess.org); dipakai hanya untuk identifikasi lewat tautan situs resmi.",
-      teknologi: "Teknologi & Infrastruktur",
+      teknologi: "Teknologi",
       teknologiOleh:
         "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",
       lisensiProyek: "Lisensi Proyek",
@@ -534,6 +534,9 @@ export const analisa = {
       sosialJudul: "Pelanggaran hak cipta",
       sosialDeskripsi:
         "Kami menghormati hak kekayaan intelektual orang lain. Jika Anda merasa karya Anda digunakan di situs kami tanpa izin, silakan hubungi tim kami melalui tautan di bawah ini. Sertakan bukti kepemilikan dan tautan konten yang bermasalah.",
+      sanggahanJudul: "Sanggahan",
+      sanggahan:
+        "Situs ini tidak berafiliasi dengan atau didukung oleh Chess.com, LLC maupun lichess.org. Seluruh merek dagang, logo, dan aset pihak ketiga yang disebutkan pada halaman ini hanyalah atribusi; hak cipta dan kepemilikannya tetap pada pemilik masing-masing, dan penggunaannya di sini tanpa modifikasi serta tanpa klaim kepemilikan.",
       tutup: "Tutup",
     },
   }
