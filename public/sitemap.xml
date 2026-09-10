@@ -2,138 +2,172 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>%%SITE_URL%%</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%tentang-kami</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%tentang-kami/struktur-grup-catur</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami/teka-teki</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami/analisa</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami/atribusi</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami/pembukaan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%teka-teki</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%teka-teki-rush</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%quiz-catur</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%papan-interaktif</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%turnamen</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%turnamen/turnamen-bulanan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%turnamen/liga-musiman</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%turnamen/turnamen-terbuka</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%turnamen/liga-antar-komunitas</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%media-dan-informasi</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%media-dan-informasi/berita-komunitas</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%media-dan-informasi/pengumuman</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%media-dan-informasi/galeri</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%pendaftaran-anggota</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%keberlanjutan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%keberlanjutan/syarat-dan-ketentuan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%keberlanjutan/kode-etik-komunitas</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%keberlanjutan/pertanyaan-umum</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%hubungi-kami</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%beranda</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%beranda/turnamen</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%beranda/rangkuman-pengumuman</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%beranda/daftar-juara</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%beranda/peringkat</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%program-kami/ebook-panduan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
   <url>
     <loc>%%SITE_URL%%karir</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
   </url>
 </urlset>

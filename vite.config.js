@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -26,6 +27,26 @@ function alamatSitus() {
 }
 
 const SITE_URL = alamatSitus();
+
+/**
+ * Tanggal (YYYY-MM-DD) perubahan terakhir pada berkas yang memengaruhi isi
+ * halaman — dipakai sebagai <lastmod> sitemap. Fallback ke tanggal build bila
+ * git tidak tersedia (deployment Vercel tidak menyertakan .git).
+ */
+function tanggalPerubahanKonten() {
+  const hariIni = new Date().toISOString().slice(0, 10);
+  try {
+    const keluaran = execSync(
+      "git log -1 --date=format:%Y-%m-%d --format=%cd -- src public index.html",
+      { cwd: __dirname, stdio: ["ignore", "pipe", "ignore"] },
+    )
+      .toString()
+      .trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(keluaran) ? keluaran : hariIni;
+  } catch {
+    return hariIni;
+  }
+}
 
 export default defineConfig({
   base: BASE_PUBLIC,
@@ -141,13 +162,17 @@ export default defineConfig({
       },
       closeBundle() {
         const outDir = resolve(__dirname, "dist");
+        // <lastmod> sitemap diisi tanggal perubahan konten terakhir, bukan
+        // tanggal build: Google mengabaikan (dan bisa menghukum) sitemap yang
+        // seluruh lastmod-nya berganti di setiap deploy. Tanpa .git (build
+        // Vercel tidak menyertainya) → pakai tanggal hari itu.
+        const tanggal = tanggalPerubahanKonten();
         for (const name of ["sitemap.xml", "robots.txt", "llms.txt"]) {
           try {
             const filePath = resolve(outDir, name);
             let content = readFileSync(filePath, "utf8");
-            if (content.includes("%%SITE_URL%%")) {
-              writeFileSync(filePath, content.replace(/%%SITE_URL%%/g, SITE_URL), "utf8");
-            }
+            content = content.replace(/%%SITE_URL%%/g, SITE_URL).replace(/%%LASTMOD%%/g, tanggal);
+            writeFileSync(filePath, content, "utf8");
           } catch {
             /* file tidak ada — lewati */
           }

@@ -18,16 +18,20 @@ deskripsi yang jelas — bukan cuma link mentah.
 | `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
-| `robots.txt` + `sitemap.xml` | 31 URL halaman | Peta situs agar Google tahu semua halaman |
+| `robots.txt` + `sitemap.xml` | 34 URL halaman, tiap entri berisi `<lastmod>` | Peta situs agar Google tahu semua halaman |
 
 Catatan jujur: **Google mengabaikan tag `keywords`** untuk pemeringkatan.
 Yang membuat hasil pencarian "terlihat" adalah `<title>` + `meta description`
 di atas. Tag keywords tetap dipertahankan untuk mesin pencari lain
 (Bing, Yandex) dan dokumentasi isi situs.
 
-Setiap halaman dalam (Tentang Kami, Turnamen, Teka-Teki, dll.) sudah
-menggunakan komponen `MetaHalaman` sehingga judul & deskripsinya
-berbeda-beda per halaman — bagus untuk ranking kata kunci tiap topik.
+Setiap halaman dalam (Tentang Kami, Turnamen, Teka-Teki, dll.) memakai
+`MetaHalaman` sehingga judul & deskripsinya berbeda-beda per halaman — bagus
+untuk ranking kata kunci tiap topik. `MetaHalaman` baru bekerja **setelah
+JavaScript dijalankan**. Google membaca HTML mentahnya lebih dulu, jadi tabel
+`META_RUTE` di `plugins/performa.js` menulis judul, deskripsi, kanonikal, dan
+tag Open Graph yang sama ke dalam HTML setiap rute. Menambah halaman baru =
+menambah satu entri di `META_RUTE`; kalau lupa, `npm run uji:seo` gagal.
 
 ## 2. Mendaftarkan situs ke Google (WAJIB — ini langkah yang menentukan)
 
@@ -42,7 +46,7 @@ Sekali saja, ikuti langkah ini:
 
    | Metode | Yang dipasang | Di mana Google mencarinya |
    | --- | --- | --- |
-   | **HTML tag** | `<meta name="google-site-verification" content="bWdpNEop…ULP0">` di `<head>` `index.html` (setelah tag viewport) | Halaman beranda situs. Karena `plugins/performa.js` menyalin `index.html` ke `404.html` dan ke setiap rute, tag ini ada di 62 berkas HTML hasil build |
+   | **HTML tag** | `<meta name="google-site-verification" content="bWdpNEop…ULP0">` di `<head>` `index.html` (setelah tag viewport) | Halaman beranda situs. Karena `plugins/performa.js` menyalin `index.html` ke `404.html` dan ke dua salinan setiap rute (`<rute>.html` dan `<rute>/index.html`), tag ini ada di 70 berkas HTML hasil build |
    | **Upload berkas HTML** | `public/google800ae0ab9c9d6db7.html` berisi satu baris `google-site-verification: google800ae0ab9c9d6db7.html` | URL `…/google800ae0ab9c9d6db7.html` persis seperti yang ditulis wizard. Isi & nama berkas **tidak boleh diubah** (Google menolak bila berbeda); hanya newline di akhir yang diizinkan |
 
    Deployment production resmi adalah **Vercel** (`https://chess-club-weld.vercel.app`,
@@ -90,10 +94,15 @@ Langkahnya:
    Skrip cek cepat agar keduanya tidak melenceng:
 
    ```bash
-   node -e 'import("./plugins/performa.js").then(({RUTE_PUBLIK})=>{const fs=require("fs");const sm=fs.readFileSync("public/sitemap.xml","utf8");const locs=[...sm.matchAll(/<loc>%%SITE_URL%%([^<]*)<\/loc>/g)].map(m=>"/"+m[1]).filter(p=>p!=="/");const r=RUTE_PUBLIK.slice().sort(),l=locs.slice().sort();console.log("rute:",r.length,"sitemap:",l.length);console.log("kurang di sitemap:",r.filter(x=>!l.includes(x)));console.log("lebih di sitemap:",l.filter(x=>!r.includes(x)));})'
+   npm run uji:seo
    ```
 
-   Output yang benar: `rute: 30 sitemap: 30` dan kedua daftar kosong.
+   Uji itu memeriksa sitemap ↔ `RUTE_PUBLIK` ↔ `META_RUTE`, `<lastmod>`,
+   `robots.txt`, dan kedua metode verifikasi Search Console sekaligus.
+   Output yang benar: `OK — 34 rute publik punya metadata sendiri, 34 URL
+   sitemap selaras, robots.txt & verifikasi Search Console utuh.`
+   Rute `noindex` (mis. `/program-kami/analisa/papan`) memang tidak boleh
+   muncul di sitemap.
 
 Setelah itu Google biasanya mulai mengindeks dalam **beberapa hari hingga
 2–3 minggu**. Pantau menu **Coverage** di Search Console; jika muncul
@@ -115,8 +124,11 @@ peringatan merah, perbaiki sesuai pesannya.
 
 1. Setel environment variable di Vercel (Settings → Environment
    Variables): `VITE_SITE_URL=https://komunitascatur.or.id` lalu Redeploy.
-   (Variabel ini dipakai oleh `vite.config.js` untuk canonical, og:url,
-   sitemap, robots.txt, dan JSON-LD. Contoh ada di `.env.contoh`.)
+   (Variabel ini dipakai `vite.config.js` untuk canonical, og:url, og:image,
+   sitemap, robots.txt, dan llms.txt — canonical/og di `index.html` ditulis
+   ulang saat build oleh `metadataRute`. Contoh ada di `.env.contoh`.)
+   Yang masih alamat absolut di `index.html`: blok JSON-LD `Organization` dan
+   `WebSite` — ganti manual bila pindah domain.
 2. Di Search Console, tambah property domain baru + verifikasi,
    submit sitemap-nya.
 3. (Opsional) buat redirect 301 dari domain lama di Vercel.
@@ -135,3 +147,45 @@ pelatihan, dan kabar komunitas terbaru.
 
 Catatan: ejaan resmi nama klub adalah **"Blunder Skuad"** (bukan
 "Blunder Sekuad"), sesuai klub Chess.com `chess.com/club/blunder-skuad`.
+
+## 6. Bila Search Console melaporkan "tidak terindeks"
+
+Diagnosis 10 September 2026, sebelum perbaikan: `site:chess-club-weld.vercel.app`
+menghasilkan **0 halaman**, padahal `robots.txt`, `sitemap.xml`, `meta robots`,
+dan kedua metode verifikasi sudah benar di production. Penyebabnya bukan
+blokir-memblokir, tapi HTML yang dikirim:
+
+| Gejala di Search Console | Penyebab di repo | Yang diubah |
+| --- | --- | --- |
+| "Duplikat — kanonikal tidak dipilih pengguna", "Dirayapi - saat ini tidak diindeks" | `plugins/performa.js` hanya menukar metadata untuk 2 rute (`/program-kami/analisa*`). 32 rute lainnya menyalin `<title>`, deskripsi, dan `rel=canonical` beranda → 34 URL sitemap dibaca Google sebagai satu halaman | tabel `META_RUTE` kini berisi semua rute (+ beranda); `metadataRute()` menulis judul, deskripsi, kanonikal, `og:*`, `twitter:*`, dan `robots` ke setiap berkas HTML hasil build |
+| "Terdeteksi - saat ini tidak diindeks" | `<body>` hanya berisi `<div id="root">`; seluruh isi muncul setelah React render | belum diubah. Langkah berikutnya: praserender isi halaman ke HTML (`react-dom/server`) — perubahan build, perlu persetujuan |
+| Soft 404: URL tak dikenal dibalas 200 | rewrite SPA `"/((?!api/).*)"` → `/index.html`; `404.html` tidak dipakai Vercel | halaman 404 sekarang `noindex, follow`. Status 404 asli butuh Vercel Middleware (`middleware.js`) — belum dipasang karena tidak bisa diverifikasi tanpa deployment |
+| Sitemap tanpa tanggal perubahan | tidak ada `<lastmod>` | setiap `<url>` berisi `<lastmod>%%LASTMOD%%</lastmod>`; `vite.config.js` mengisinya dengan tanggal commit terakhir yang menyentuh `src/`, `public/`, `index.html` (fallback: tanggal build) |
+| Judul halaman tidak konsisten (`\| Blunder Skuad` vs `\| Komunitas Catur Indonesia`) | `MetaHalaman` dan `CorporatePage` memakai akhiran berbeda | tidak disatuhkan (mengubah copy situs). `META_RUTE` mengikuti akhiran yang sama dengan yang dipasang runtime agar HTML mentah dan hasil render tidak bertentangan |
+
+### Cek hasil perbaikan tanpa Search Console
+
+```bash
+# 1. Kanonikal tiap rute harus alamat rute itu sendiri, bukan "/"
+curl -s https://chess-club-weld.vercel.app/tentang-kami | grep -o '<link rel="canonical"[^>]*>'
+
+# 2. ETag rute tidak boleh sama dengan ETag beranda — sama berarti HTML identik
+curl -sI https://chess-club-weld.vercel.app/tentang-kami | grep -i etag
+curl -sI https://chess-club-weld.vercel.app/ | grep -i etag
+
+# 3. Kunci aturan di atas agar tidak melenceng lagi
+npm run uji:seo
+```
+
+Sebelum perbaikan, `/tentang-kami` dan `/` berbagi ETag yang sama
+(`e4dade6…`); hanya `/program-kami/analisa` yang berbeda (`8ed110d…`).
+Setelah deploy, seluruh rute harus berbeda dari beranda.
+
+Lalu di Search Console: **URL Inspection** → *Request indexing* untuk beranda
+dan 5 halaman utama, pantau **Pages → Alasan** beberapa hari berikutnya.
+"Dirayapi - saat ini tidak diindeks" untuk halaman tipis (Galeri, Atribusi)
+itu normal dan tidak perlu dipaksakan.
+
+Batas yang jujur: `*.vercel.app` adalah host bersama, dan Google memberikan
+jadwal crawl lebih rendah di sana. Peringkat yang stabil praktis baru tercapai
+setelah domain kustom (bagian 4).
