@@ -1533,8 +1533,10 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "Panah saran engine", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
   const { t } = useI18n();
+  // Default prop sengaja kosong: teksnya selalu dari kamus.
+  const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1986,13 +1988,13 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                         {onGantiPanahMesin && (
                           <label className="flex cursor-pointer items-center justify-between gap-3">
                             <span className="text-xs font-semibold text-gray-400">
-                              {teksPanahMesin}
+                              {labelPanahMesin}
                             </span>
                             <input
                               type="checkbox"
                               checked={tampilPanahMesin}
                               onChange={(e) => onGantiPanahMesin(e.target.checked)}
-                              aria-label={teksPanahMesin}
+                              aria-label={labelPanahMesin}
                               className="h-4 w-4 accent-[#81b64c]"
                             />
                           </label>
