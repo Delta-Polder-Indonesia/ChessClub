@@ -5,6 +5,7 @@
 
 import { komentatorPapan } from "./komentator.js";
 import "../../komentatorPengaya.js";
+import "../../komentatorPengayaPlaceholder.js";
 
 export const papan = {
     judul: "Chess Opening Explorer",
