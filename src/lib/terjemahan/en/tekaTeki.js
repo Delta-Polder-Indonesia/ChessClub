@@ -97,7 +97,8 @@ export const tekaTeki = {
     semuaGiliran: "All",
     hanyaPutih: "White only",
     hanyaHitam: "Black only",
-    lanjutOtomatis: "Automatically load the next puzzle after each attempt",
+    lanjutOtomatisDeskripsi:
+      "Automatically load the next puzzle after each attempt",
     syzygyJudul: "Syzygy Tablebase",
     syzygyDidukung: "Powered by Lichess",
     engineDeskripsi:

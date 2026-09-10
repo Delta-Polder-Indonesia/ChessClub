@@ -17,6 +17,7 @@ const TAMBAHAN_ID = {
       "{pihak} pilih {san}. Pelan-pelan, semua bidak belum perlu ikut campur.",
       "Langkah {san}. Kelihatannya sederhana, tapi biasanya ada rencana di belakangnya.",
       "{pihak} lanjut dengan {san}. Belum panas, masih pemanasan.",
+      "{san} membuat posisi tetap berjalan tanpa memaksa siapa pun.",
     ],
     buku: [
       "Masih teori {pembukaan}. {san} belum keluar dari jalur yang dikenal.",

@@ -97,7 +97,8 @@ export const tekaTeki = {
     semuaGiliran: "Semua",
     hanyaPutih: "Hanya putih",
     hanyaHitam: "Hanya hitam",
-    lanjutOtomatis: "Muat teka-teki berikutnya secara otomatis setelah setiap percobaan",
+    lanjutOtomatisDeskripsi:
+      "Muat teka-teki berikutnya secara otomatis setelah setiap percobaan",
     syzygyJudul: "Tablebase Syzygy",
     syzygyDidukung: "Didukung oleh Lichess",
     engineDeskripsi:
