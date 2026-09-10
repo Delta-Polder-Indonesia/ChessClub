@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Modal } from "./ui.jsx";
+import { Tombol, Modal, KotakGalatMuat } from "./ui.jsx";
 
 /** Waktu singkat id-ID, cth. "8 Sep 2026, 14.05". */
 function formatWaktu(iso) {
@@ -36,6 +36,7 @@ export default function PanelEbook({ beriTahu }) {
   const [minta, setMinta] = useState([]);
   const [cariMinta, setCariMinta] = useState("");
   const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(false);
   const [panggilan, setPanggilan] = useState("");
   const [catatan, setCatatan] = useState("");
   const [sibuk, setSibuk] = useState(false);
@@ -45,6 +46,7 @@ export default function PanelEbook({ beriTahu }) {
 
   const muat = useCallback(async () => {
     setMemuat(true);
+    setGalat(false);
     try {
       const [daftarKode, jejak, pengajuan] = await Promise.all([
         apiPengurus("/ebook/kode"),
@@ -56,6 +58,7 @@ export default function PanelEbook({ beriTahu }) {
       setMinta(Array.isArray(pengajuan) ? pengajuan : []);
     } catch (e) {
       beriTahu(e.message, "galat");
+      setGalat(true);
     } finally {
       setMemuat(false);
     }
@@ -195,6 +198,13 @@ export default function PanelEbook({ beriTahu }) {
           {sibuk ? "Menerbitkan…" : "Terbitkan kode (1 jam)"}
         </Tombol>
       </form>
+
+      {galat && !memuat && (
+        <KotakGalatMuat
+          pesan="Data e-book gagal dimuat. Periksa koneksi lalu coba lagi."
+          onCobaLagi={muat}
+        />
+      )}
 
       {kodeBaru && (
         <div className="flex flex-wrap items-center gap-3 rounded border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">

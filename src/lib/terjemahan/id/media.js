@@ -13,12 +13,16 @@ export const media = {
     l1: "laporan kegiatan, wawancara, dan liputan turnamen.",
     l2: "foto kegiatan sekretariat, kelas, dan pertandingan.",
     nextJudul: "Berita Komunitas",
+    tidakDitemukan: "Konten tidak ditemukan.",
   }
 
 export const berita = {
     judul: "Berita Komunitas",
     deskripsi: "Liputan kegiatan, hasil pertandingan, dan cerita anggota.",
     artikel: "Terbaru",
+    memuat: "Memuat berita…",
+    gagal: "Berita sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.",
+    kosong: "Belum ada berita komunitas.",
     n1a: "12 Agustus 2026 — Turnamen Bulanan Agustus diikuti 64 pecatur.",
     n1b: "Rekor peserta baru untuk event internal. Grup A dimenangkan pecatur junior dari chapter Medan.",
     n2a: "28 Juli 2026 — Coaching clinic struktur pion bersama pelatih tamu.",
@@ -32,6 +36,9 @@ export const pengumuman = {
     deskripsi:
       "Pemberitahuan resmi: jadwal, pendaftaran, dan perubahan ketentuan.",
     artikel: "Berlaku saat ini",
+    memuat: "Memuat pengumuman…",
+    gagal: "Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.",
+    kosong: "Belum ada pengumuman.",
     p1a: "Pendaftaran Turnamen Bulanan September",
     p1b: " dibuka hingga 31 Agustus 2026 pukul 21.00 WIB.",
     p2a: "Libur sekretariat",

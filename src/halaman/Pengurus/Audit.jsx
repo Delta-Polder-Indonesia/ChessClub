@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
+import { KotakGalatMuat } from "./ui.jsx";
 
 const BULAN = [
   "Januari",
@@ -35,6 +36,7 @@ function unduhCsv(baris) {
 export default function PanelAudit({ beriTahu }) {
   const [data, setData] = useState([]);
   const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(false);
   const [aksi, setAksi] = useState("");
   const [username, setUsername] = useState("");
   const [hari, setHari] = useState("");
@@ -42,6 +44,7 @@ export default function PanelAudit({ beriTahu }) {
 
   const muat = useCallback(async () => {
     setMemuat(true);
+    setGalat(false);
     try {
       const q = new URLSearchParams();
       if (aksi.trim()) q.set("aksi", aksi.trim());
@@ -52,6 +55,7 @@ export default function PanelAudit({ beriTahu }) {
       setData(Array.isArray(isi) ? isi : []);
     } catch (e) {
       beriTahu?.(e?.message || "Gagal memuat jejak audit.", "galat");
+      setGalat(true);
     } finally {
       setMemuat(false);
     }
@@ -142,6 +146,11 @@ export default function PanelAudit({ beriTahu }) {
       </div>
       {memuat ? (
         <p className="text-sm text-slate-500">Memuat jejak audit…</p>
+      ) : galat ? (
+        <KotakGalatMuat
+          pesan="Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."
+          onCobaLagi={muat}
+        />
       ) : !tampil.length ? (
         <p className="text-sm text-slate-500">Belum ada jejak (90 hari terakhir).</p>
       ) : (

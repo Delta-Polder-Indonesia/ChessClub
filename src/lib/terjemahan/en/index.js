@@ -18,6 +18,7 @@ import {
 import {
   hero,
   sticky,
+  beranda,
 } from "./beranda.js";
 
 import {
@@ -46,6 +47,8 @@ import {
   bermainCatur,
   tipsTekaTeki,
   bukuPembukaan,
+  pembacaPdf,
+  unduhEbook,
   analisaLanding,
 } from "./program.js";
 
@@ -110,6 +113,7 @@ export const EN = {
   t404,
   hero,
   sticky,
+  beranda,
   sekilas,
   tonggak,
   visimisi,
@@ -126,6 +130,8 @@ export const EN = {
   bermainCatur,
   tipsTekaTeki,
   bukuPembukaan,
+  pembacaPdf,
+  unduhEbook,
   analisaLanding,
   turnamen,
   turnamenBulanan,

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
 import { urlEbook } from "../../lib/asets.js";
+import { useI18n } from "../../lib/i18n.jsx";
 
 function IkonTutup() {
   return (
@@ -38,6 +39,7 @@ function IkonKirim() {
  *     unduhan tercatat (siapa, akunnya, buku apa) dan PDF dikirim.
  */
 export default function ModalUnduhEbook({ buku, onTutup }) {
+  const { t } = useI18n();
   const [tab, setTab] = useState("minta");
   const [nama, setNama] = useState("");
   const [akun, setAkun] = useState("");
@@ -73,7 +75,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim()) {
-      setGalat("Lengkapi nama asli dan akun Chess.com.");
+      setGalat(t("unduhEbook.lengkapiMinta"));
       return;
     }
 
@@ -87,7 +89,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
       });
       setMintaTerkirim(true);
     } catch (e2) {
-      setGalat(e2.message || "Permintaan tidak bisa dikirim. Coba lagi.");
+      setGalat(e2.message || t("unduhEbook.galatMinta"));
     } finally {
       setSibuk(false);
     }
@@ -99,7 +101,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim() || !kode.trim()) {
-      setGalat("Lengkapi nama, akun Chess.com, dan kode akses.");
+      setGalat(t("unduhEbook.lengkapiKode"));
       return;
     }
 
@@ -122,7 +124,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
       taut.click();
       taut.remove();
     } catch (e2) {
-      setGalat(e2.message || "Kode tidak bisa ditebus. Coba lagi.");
+      setGalat(e2.message || t("unduhEbook.galatTebus"));
     } finally {
       setSibuk(false);
     }
@@ -149,14 +151,14 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
           <div className="min-w-0">
             <h2 id="judul-unduh-ebook" className="m-0 text-[15px] font-bold text-slate-900">
-              Unduh e-book
+              {t("unduhEbook.judul")}
             </h2>
             <p className="m-0 mt-0.5 truncate text-[12px] text-slate-500">{buku.judul}</p>
           </div>
           <button
             type="button"
             onClick={onTutup}
-            aria-label="Tutup"
+            aria-label={t("unduhEbook.tutup")}
             className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
           >
             <IkonTutup />
@@ -166,7 +168,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         {tercatat ? (
           <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
             <IkonCentang />
-            <p className="m-0 text-[14px] font-bold text-slate-900">Unduhan dimulai.</p>
+            <p className="m-0 text-[14px] font-bold text-slate-900">{t("unduhEbook.tercatatJudul")}</p>
             <p className="m-0 text-[12px] leading-5 text-slate-600">
               Tercatat di buku kunjungan: <strong>{tercatat.nama}</strong> ({" "}
               {tercatat.akunChess} ) mengunduh “{tercatat.judul}”.
@@ -176,21 +178,21 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               download
               className="inline-flex items-center gap-1.5 rounded-md bg-[#0B2F9F] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#0a2a8e]"
             >
-              Unduh lagi bila tidak berjalan
+              {t("unduhEbook.unduhLagi")}
             </a>
             <button
               type="button"
               onClick={onTutup}
               className="rounded-md px-3 py-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900"
             >
-              Tutup
+              {t("unduhEbook.tutup")}
             </button>
           </div>
         ) : mintaTerkirim ? (
           <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
             <IkonCentang />
             <p className="m-0 text-[14px] font-bold text-slate-900">
-              Permintaan terkirim ke pengurus.
+              {t("unduhEbook.mintaJudul")}
             </p>
             <p className="m-0 text-[12px] leading-5 text-slate-600">
               Tunggu kode akses dikirimkan oleh pengurus (mis. lewat grup
@@ -202,7 +204,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               onClick={onTutup}
               className="mt-1 rounded-md bg-[#0B2F9F] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#0a2a8e]"
             >
-              Mengerti
+              {t("unduhEbook.mengerti")}
             </button>
           </div>
         ) : (
@@ -296,7 +298,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   className="mt-1 inline-flex items-center justify-center gap-2 rounded-md bg-[#0B2F9F] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#0a2a8e] disabled:opacity-50"
                 >
                   <IkonKirim />
-                  {sibuk ? "Mengirim…" : "Kirim permintaan ke pengurus"}
+                  {sibuk ? t("unduhEbook.mengirim") : t("unduhEbook.kirimPermintaan")}
                 </button>
               </form>
             ) : (
@@ -374,7 +376,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   disabled={sibuk}
                   className="mt-1 inline-flex items-center justify-center rounded-md bg-[#0B2F9F] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#0a2a8e] disabled:opacity-50"
                 >
-                  {sibuk ? "Memeriksa kode…" : "Mulai unduh"}
+                  {sibuk ? t("unduhEbook.memeriksa") : t("unduhEbook.mulaiUnduh")}
                 </button>
               </form>
             )}

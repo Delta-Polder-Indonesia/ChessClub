@@ -11,6 +11,13 @@ export const hubungi = {
     jam: "Offline visiting hours: Saturday 9:00 AM–4:00 PM WIB, except on holidays announced on the Announcements page.",
     kirimPesan: "Send a Message",
     terkirim: "Message sent. We reply on business days.",
+    terkirimJudul: "Your message was sent successfully!",
+    terkirimIsi:
+      "Thank you for contacting the Indonesia Chess Community. Our team will respond to your message via the email you provided.",
+    tulisLagi: "Write another message",
+    galatJudul: "Failed to send message",
+    galatKirim: "Failed to send the message. Please try again.",
+    mengirim: "Sending...",
     nama: "Name",
     surel: "Email",
     pesan: "Message",

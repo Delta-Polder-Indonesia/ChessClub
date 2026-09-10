@@ -220,6 +220,8 @@ export default function TekaTeki() {
 
   const [semuaSoal, setSemuaSoal] = useState(null);
   const [gagal, setGagal] = useState(false);
+  // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
+  const [percobaan, setPercobaan] = useState(0);
   const [syzygy, setSyzygy] = useState(null);
   const [syzygyGagal, setSyzygyGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
@@ -441,6 +443,7 @@ export default function TekaTeki() {
 
   useEffect(() => {
     let aktif = true;
+    setGagal(false);
     fetch(`${import.meta.env.BASE_URL}data/teka-teki.json`)
       .then((respon) => {
         if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
@@ -479,7 +482,7 @@ export default function TekaTeki() {
       aktif = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [percobaan]);
 
   useEffect(() => {
     if (!soal?.length) return;
@@ -1357,10 +1360,17 @@ export default function TekaTeki() {
   return (
     <>
       {gagal ? (
-        <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#262421] px-6 py-10">
           <p className="max-w-md rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm leading-6 text-red-300">
             {t("tekaTeki.gagalMuat")}
           </p>
+          <button
+            type="button"
+            onClick={() => setPercobaan((n) => n + 1)}
+            className="rounded-full border border-red-800 px-5 py-2 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/60"
+          >
+            {t("common.cobaLagi")}
+          </button>
         </div>
       ) : !masalah ? (
         <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">

@@ -46,6 +46,9 @@ const KATA = {
     poin: "Poin",
     belumMain: "Belum ada partai yang dicatat.",
     belumResmi: "belum memenuhi minimal partai",
+    memuatKlasemen: "Memuat klasemen…",
+    gagalKlasemen:
+      "Klasemen sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.",
     daftar: "Daftar jadi anggota untuk ikut",
     bukaTurnamen: "Buka turnamen",
     tombolDaftar: "Daftar sebagai peserta",
@@ -81,6 +84,9 @@ const KATA = {
     poin: "Points",
     belumMain: "No games recorded yet.",
     belumResmi: "minimum games not met",
+    memuatKlasemen: "Loading standings…",
+    gagalKlasemen:
+      "Standings cannot be loaded right now. Please try again shortly.",
     daftar: "Join as a member to play",
     bukaTurnamen: "Open tournament",
     tombolDaftar: "Register as participant",
@@ -107,21 +113,38 @@ function tanggal(nilai, bahasa) {
 }
 
 function Klasemen({ id, k }) {
+  const { t } = useI18n();
   const [data, setData] = useState(null);
   const [gagal, setGagal] = useState(false);
+  // Tombol "Coba lagi" mengulang permintaan klasemen yang gagal.
+  const [percobaan, setPercobaan] = useState(0);
 
   useEffect(() => {
     let hidup = true;
+    setData(null);
+    setGagal(false);
     ambilSatuTurnamen(id)
       .then((d) => hidup && setData(d))
       .catch(() => hidup && setGagal(true));
     return () => {
       hidup = false;
     };
-  }, [id]);
+  }, [id, percobaan]);
 
-  if (gagal) return <p className="py-3 text-sm text-slate-500">{k.gagal}</p>;
-  if (!data) return <p className="py-3 text-sm text-slate-500">{k.memuat}</p>;
+  if (gagal)
+    return (
+      <div className="py-3">
+        <p className="text-sm text-slate-500">{k.gagalKlasemen}</p>
+        <button
+          type="button"
+          onClick={() => setPercobaan((n) => n + 1)}
+          className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+        >
+          {t("common.cobaLagi")}
+        </button>
+      </div>
+    );
+  if (!data) return <p className="py-3 text-sm text-slate-500">{k.memuatKlasemen}</p>;
   if (!data.klasemen?.length)
     return <p className="py-3 text-sm text-slate-500">{k.belumMain}</p>;
 
@@ -360,10 +383,12 @@ function KartuTurnamen({ t, k, bahasa }) {
 }
 
 export default function DaftarTurnamen({ jenis }) {
-  const { bahasa } = useI18n();
+  const { bahasa, t } = useI18n();
   const k = KATA[bahasa] || KATA.id;
   const [daftar, setDaftar] = useState(null);
   const [gagal, setGagal] = useState(false);
+  // Tombol "Coba lagi" mengulang permintaan jadwal yang gagal.
+  const [percobaan, setPercobaan] = useState(0);
 
   useEffect(() => {
     let hidup = true;
@@ -375,7 +400,7 @@ export default function DaftarTurnamen({ jenis }) {
     return () => {
       hidup = false;
     };
-  }, [jenis]);
+  }, [jenis, percobaan]);
 
   // Padding & lebar maksimum disamakan dengan PageArtikel agar blok jadwal
   // sejajar dengan artikel di atasnya, bukan menempel ke tepi layar.
@@ -387,9 +412,16 @@ export default function DaftarTurnamen({ jenis }) {
         </h2>
 
         {gagal ? (
-          <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-            {k.gagal}
-          </p>
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+            <p>{k.gagal}</p>
+            <button
+              type="button"
+              onClick={() => setPercobaan((n) => n + 1)}
+              className="mt-2 font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              {t("common.cobaLagi")}
+            </button>
+          </div>
         ) : daftar === null ? (
           <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
             {k.memuat}

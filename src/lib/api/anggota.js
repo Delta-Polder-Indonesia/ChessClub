@@ -1,5 +1,5 @@
 import { ambilCsrfToken } from "./pengurus.js";
-import { GalatPendaftaran, urlApi } from "./core.js";
+import { GalatPendaftaran, fetchApi, urlApi } from "./core.js";
 
 /**
  * Konfigurasi cadangan roster yang aman untuk frontend statis. Nilai ini
@@ -91,7 +91,7 @@ export async function ambilDaftarHitam() {
  */
 export async function daftarDenganChessCom(data) {
   const csrfToken = await ambilCsrfToken();
-  const res = await fetch(urlApi("/api/anggota"), {
+  const res = await fetchApi("/api/anggota", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

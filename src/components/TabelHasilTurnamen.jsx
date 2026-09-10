@@ -70,13 +70,17 @@ function tanggal(nilai, bahasa) {
 }
 
 export default function TabelHasilTurnamen() {
-  const { bahasa } = useI18n();
+  const { bahasa, t } = useI18n();
   const k = KATA[bahasa] || KATA.id;
   const [daftar, setDaftar] = useState(null);
   const [gagal, setGagal] = useState(false);
+  // Tombol "Coba lagi" mengulang permintaan yang gagal tanpa memuat ulang halaman.
+  const [percobaan, setPercobaan] = useState(0);
 
   useEffect(() => {
     let hidup = true;
+    setDaftar(null);
+    setGagal(false);
     ambilTurnamenPublik()
       .then((semua) => {
         if (!hidup) return;
@@ -95,13 +99,20 @@ export default function TabelHasilTurnamen() {
     return () => {
       hidup = false;
     };
-  }, []);
+  }, [percobaan]);
 
   if (gagal)
     return (
-      <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-        {k.gagal}
-      </p>
+      <div className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+        <p>{k.gagal}</p>
+        <button
+          type="button"
+          onClick={() => setPercobaan((n) => n + 1)}
+          className="mt-2 font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+        >
+          {t("common.cobaLagi")}
+        </button>
+      </div>
     );
 
   if (daftar === null)

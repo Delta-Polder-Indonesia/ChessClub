@@ -37,6 +37,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BagianBeranda } from "./TataLetakBeranda.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import {
   useAnggota,
@@ -122,7 +123,8 @@ function BarisPeringkat({ a, kontrol }) {
 
 export default function Peringkat() {
   // Sumber data identik dengan tab Keanggotaan.
-  const { anggota, status, pesan, menyegarkan, muatUlang } = useAnggota();
+  const { anggota, status, menyegarkan, muatUlang } = useAnggota();
+  const { t } = useI18n();
   const adaData = anggota.length > 0;
 
   const [cari, setCari] = useState("");
@@ -229,29 +231,29 @@ export default function Peringkat() {
 
         <div className="flex flex-row items-center gap-4 pb-1 ml-auto whitespace-nowrap">
           <p className="text-sm text-slate-500 shrink-0">
-            {hasil.length} pemain
+            {t("beranda.peringkatJumlah", { jumlah: hasil.length })}
           </p>
           <button
             type="button"
             onClick={muatUlang}
             className="text-sm text-primary underline underline-offset-2 shrink-0"
           >
-            Muat ulang
+            {t("beranda.muatUlang")}
           </button>
         </div>
       </div>
 
-      {status === "memuat" && <p>Memuat data anggota…</p>}
-      {status === "gagal" && <p>{pesan}</p>}
+      {status === "memuat" && <p>{t("beranda.peringkatMemuat")}</p>}
+      {status === "gagal" && <p>{t("beranda.peringkatGagal")}</p>}
       {menyegarkan && adaData && (
         <p className="mb-3 text-xs text-slate-500">
-          Menyegarkan data pemain dari Chess.com…
+          {t("beranda.peringkatMenyegarkan")}
         </p>
       )}
 
       {status === "siap" && !adaData && (
         <p>
-          Belum ada anggota yang terbaca dari{" "}
+          {t("beranda.peringkatKosong1")}{" "}
           <a
             href={URL_KLUB}
             target="_blank"
@@ -260,7 +262,7 @@ export default function Peringkat() {
           >
             klub BLUNDER SKUAD
           </a>
-          .
+          {t("beranda.peringkatKosong2")}
         </p>
       )}
 

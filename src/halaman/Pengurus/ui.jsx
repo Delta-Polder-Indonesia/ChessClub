@@ -43,6 +43,30 @@ export function Bidang({ label, ...sisa }) {
   );
 }
 
+/**
+ * Kotak galat muat data panel: pesan yang TETAP TAMPIL sampai berhasil,
+ * plus tombol coba lagi. Tanpa ini, kegagalan muat hanya menghasilkan toast
+ * 8 detik lalu tabel kosong dibaca sebagai "belum ada data" (menyesatkan).
+ */
+export function KotakGalatMuat({ pesan, onCobaLagi, className = "" }) {
+  return (
+    <div
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 ${className}`}
+    >
+      <p className="text-sm font-medium text-red-800">{pesan}</p>
+      {onCobaLagi && (
+        <Tombol
+          jenis="bahaya"
+          onClick={onCobaLagi}
+          className="shrink-0 bg-white hover:bg-red-100"
+        >
+          Coba Lagi
+        </Tombol>
+      )}
+    </div>
+  );
+}
+
 export function Avatar({ username, foto }) {
   const [gagal, setGagal] = useState(false);
   /**

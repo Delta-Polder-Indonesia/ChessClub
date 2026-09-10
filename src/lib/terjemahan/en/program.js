@@ -153,6 +153,44 @@ export const bukuPembukaan = {
       "The example content below is only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
   }
 
+/** States of the PDF reader (src/components/PembacaPdf.jsx). */
+export const pembacaPdf = {
+    memuat: "Loading document",
+    persen: " — {progres}%",
+    dokumen: "Document",
+    galatJudul: "Document failed to load",
+    galatPustaka: "The PDF reader library failed to load. Check your connection and try again.",
+    galatSumber:
+      "The document could not be loaded from any source. Download the file or try again later.",
+    bukaTabBaru: "Open in a new tab",
+    unduh: "Download PDF",
+    halamanSebelumnya: "Previous page",
+    halamanBerikutnya: "Next page",
+    nomorHalaman: "Page number",
+    perbesar: "Zoom in",
+    perkecil: "Zoom out",
+    sesuaikanLebar: "Fit width",
+    kanvas: "{judul} — page {halaman} of {jumlah}",
+  }
+
+/** States of the e-book download gate popup (ModalUnduhEbook.jsx). */
+export const unduhEbook = {
+    judul: "Download e-book",
+    mulaiUnduh: "Start download",
+    mengirim: "Sending…",
+    memeriksa: "Checking code…",
+    kirimPermintaan: "Send request to staff",
+    lengkapiMinta: "Fill in your real name and Chess.com account.",
+    lengkapiKode: "Fill in your name, Chess.com account, and access code.",    galatTebus: "The code could not be redeemed. Try again.",
+    galatMinta: "The request could not be sent. Try again.",
+
+    tercatatJudul: "Download started.",
+    unduhLagi: "Download again if nothing happens",
+    mintaJudul: "Request sent to staff.",
+    mengerti: "Got it",
+    tutup: "Close",
+  }
+
 export const analisaLanding = {
     judul: "Game Analysis",
     deskripsi:

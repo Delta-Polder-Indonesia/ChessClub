@@ -64,17 +64,14 @@ export default function HubungiKami() {
       <CorporateSection id="hubungi-kami" title="Kirim Pesan" className="pb-10 md:pb-10 xl:pb-10 pt-6 md:pt-8 xl:pt-0">
         {terkirim ? (
           <div role="status" aria-live="polite" className="border border-green-200 bg-green-50 rounded-lg p-5 text-green-800">
-            <p className="font-semibold mb-1">Pesan Anda berhasil dikirim!</p>
-            <p>
-              Terima kasih telah menghubungi Komunitas Catur Indonesia. Tim kami akan
-              segera merespons pesan Anda melalui email yang Anda berikan.
-            </p>
+            <p className="font-semibold mb-1">{t("hubungi.terkirimJudul")}</p>
+            <p>{t("hubungi.terkirimIsi")}</p>
             <button
               type="button"
               onClick={() => setTerkirim(false)}
               className="mt-4 text-sm font-semibold text-primary hover:underline"
             >
-              Tulis pesan lain
+              {t("hubungi.tulisLagi")}
             </button>
           </div>
         ) : (
@@ -99,7 +96,7 @@ export default function HubungiKami() {
 
                 setTerkirim(true);
               } catch (err) {
-                setGalat(err.message || "Gagal mengirim pesan. Silakan coba lagi.");
+                setGalat(err.message || t("hubungi.galatKirim"));
               } finally {
                 setSedangMengirim(false);
               }
@@ -107,7 +104,7 @@ export default function HubungiKami() {
           >
             {galat && (
               <div id="galat-form-kontak" role="alert" className="border border-red-300 bg-red-50 rounded-lg p-4 text-red-800">
-                <p className="font-semibold">Gagal mengirim pesan</p>
+                <p className="font-semibold">{t("hubungi.galatJudul")}</p>
                 <p className="text-sm">{galat}</p>
               </div>
             )}
@@ -172,7 +169,7 @@ export default function HubungiKami() {
               disabled={sedangMengirim}
               className="self-start text-sm font-semibold rounded-full px-6 py-3 border border-solid border-primary bg-primary text-white hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {sedangMengirim ? "Mengirim..." : "Kirim Pesan"}
+              {sedangMengirim ? t("hubungi.mengirim") : t("hubungi.kirimPesan")}
             </button>
           </form>
         )}

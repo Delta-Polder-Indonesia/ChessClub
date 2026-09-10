@@ -15,10 +15,14 @@ import { ArrowRightIcon } from "../../components/icons.jsx";
 export default function RangkumanPengumuman() {
   const [pengumuman, setPengumuman] = useState(null);
   const [gagal, setGagal] = useState(false);
+  // Tombol "Coba lagi" mengulang permintaan yang gagal tanpa memuat ulang halaman.
+  const [percobaan, setPercobaan] = useState(0);
   const { t } = useI18n();
 
   useEffect(() => {
     let hidup = true;
+    setPengumuman(null);
+    setGagal(false);
     ambilPengumumanPublik()
       .then((p) => {
         if (!hidup) return;
@@ -30,7 +34,7 @@ export default function RangkumanPengumuman() {
     return () => {
       hidup = false;
     };
-  }, []);
+  }, [percobaan]);
 
   return (
     <BagianBeranda id="pengumuman" title="Rangkuman Pengumuman">
@@ -41,9 +45,18 @@ export default function RangkumanPengumuman() {
       </p>
 
       {gagal ? (
-        <p className="text-sm text-red-600 mt-4">Pengumuman sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
+        <div className="mt-4">
+          <p className="text-sm text-red-600">{t("beranda.rangkumanGagal")}</p>
+          <button
+            type="button"
+            onClick={() => setPercobaan((n) => n + 1)}
+            className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+          >
+            {t("common.cobaLagi")}
+          </button>
+        </div>
       ) : pengumuman === null ? (
-        <p className="text-sm text-slate-500 mt-4 italic">Memuat pengumuman…</p>
+        <p className="text-sm text-slate-500 mt-4 italic">{t("beranda.rangkumanMemuat")}</p>
       ) : pengumuman.length ? (
         <div className="mt-6 flex flex-col gap-y-8 md:gap-y-10">
           {pengumuman.map((p) => (
@@ -89,7 +102,7 @@ export default function RangkumanPengumuman() {
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-500 mt-4 italic">Belum ada pengumuman.</p>
+        <p className="text-sm text-slate-500 mt-4 italic">{t("beranda.rangkumanKosong")}</p>
       )}
     </BagianBeranda>
   );

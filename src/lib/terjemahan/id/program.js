@@ -1,6 +1,6 @@
 /**
  * Kamus Indonesia (ID) · kelompok program — halaman Program Kami (program, bermain catur, tips teka-teki, buku pembukaan).
- * Kunci dalam berkas: program, bermainCatur, tipsTekaTeki, bukuPembukaan.
+ * Kunci dalam berkas: program, bermainCatur, tipsTekaTeki, bukuPembukaan, pembacaPdf, unduhEbook.
  */
 
 export const program = {
@@ -153,6 +153,44 @@ export const bukuPembukaan = {
       "Setelah {x}, buku pembukaan langsung mengenali posisi ini sebagai {label}.",
     kontenHanyaId:
       "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
+  }
+
+/** Keadaan pembaca PDF (komponen src/components/PembacaPdf.jsx). */
+export const pembacaPdf = {
+    memuat: "Memuat dokumen",
+    persen: " — {progres}%",
+    dokumen: "Dokumen",
+    galatJudul: "Dokumen gagal dimuat",
+    galatPustaka: "Pustaka pembaca PDF gagal dimuat. Periksa koneksi lalu coba lagi.",
+    galatSumber:
+      "Dokumen tidak dapat dimuat dari sumber mana pun. Coba unduh berkasnya atau buka lagi nanti.",
+    bukaTabBaru: "Buka di tab baru",
+    unduh: "Unduh PDF",
+    halamanSebelumnya: "Halaman sebelumnya",
+    halamanBerikutnya: "Halaman berikutnya",
+    nomorHalaman: "Nomor halaman",
+    perbesar: "Perbesar",
+    perkecil: "Perkecil",
+    sesuaikanLebar: "Sesuaikan lebar",
+    kanvas: "{judul} — halaman {halaman} dari {jumlah}",
+  }
+
+/** Keadaan popup gerbang unduh e-book (ModalUnduhEbook.jsx). */
+export const unduhEbook = {
+    judul: "Unduh e-book",
+    mulaiUnduh: "Mulai unduh",
+    mengirim: "Mengirim…",
+    memeriksa: "Memeriksa kode…",
+    kirimPermintaan: "Kirim permintaan ke pengurus",
+    lengkapiMinta: "Lengkapi nama asli dan akun Chess.com.",
+    lengkapiKode: "Lengkapi nama, akun Chess.com, dan kode akses.",    galatTebus: "Kode tidak bisa ditebus. Coba lagi.",
+    galatMinta: "Permintaan tidak bisa dikirim. Coba lagi.",
+
+    tercatatJudul: "Unduhan dimulai.",
+    unduhLagi: "Unduh lagi bila tidak berjalan",
+    mintaJudul: "Permintaan terkirim ke pengurus.",
+    mengerti: "Mengerti",
+    tutup: "Tutup",
   }
 
 export const analisaLanding = {
