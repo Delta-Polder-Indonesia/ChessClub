@@ -4,6 +4,7 @@
  */
 
 import { komentatorPapan } from "./komentator.js";
+import "../../komentatorPengaya.js";
 
 export const papan = {
     judul: "Chess Opening Explorer",
@@ -15,7 +16,7 @@ export const papan = {
       "A free chess board for analyzing and studying openings. Play moves and the opening name with its ECO code appears automatically.",
     memuat: "Loading opening book…",
     gagalMuat:
-      "Failed to load the opening data. Check your internet connection, then reload this page.",
+      "Failed to load the opening data. Check your internet connection, then reload the page.",
     suara: "Board sounds",
     suaraNyala: "Sound on — click to mute",
     suaraMati: "Sound off — click to unmute",
