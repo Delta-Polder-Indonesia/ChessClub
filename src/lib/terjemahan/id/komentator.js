@@ -489,6 +489,20 @@ export const komentatorTekaTeki = {
       "Engine mengonfirmasi mat dalam {mat}.",
       "Evaluasi engine: mat dalam {mat}.",
     ],
+
+  genZ: {
+    biasa: [
+      "{pihak} main {san}. Oke, kita lihat ke arahnya.",
+      "{san} dari {pihak} - tenang dulu, belum ada yang meledak.",
+      "{pihak} geser {bidak} ke {petak}. Langkah pengembangan yang wajar.",
+      "Oke, {san}. {pihak} lagi nyusun barisan dulu nih.",
+    ],
+    buku: [
+      "{san} - masih di jalur buku: {pembukaan}. Teori-nya hafal, mantap!",
+      "Oke, masih wilayah teori. {pihak} main sesuai teori dengan {san}.",
+      "{san}, klasik. Kita masih di {pembukaan}.",
+    ],
+  },
   },
 };
 

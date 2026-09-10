@@ -41,7 +41,7 @@ const PETA_RATING = {
 };
 
 /** Gaya bahasa yang tersedia; disimpan di localStorage lewat kunci di bawah. */
-export const GAYA_KOMENTATOR = ["santai", "formal"];
+export const GAYA_KOMENTATOR = ["santai", "formal", "genZ"];
 export const KUNCI_GAYA = "kci-komentator-gaya";
 export const KUNCI_NYALA = "kci-komentator-nyala";
 

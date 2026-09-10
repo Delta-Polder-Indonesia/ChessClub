@@ -172,8 +172,8 @@ export default function KartuKomentator({
                   gaya === g ? "bg-[#81b64c] text-white" : "text-gray-400 hover:text-white"
                 }`}
               >
-                {t(g === "santai" ? "papan.komentator.gayaSantai" : "papan.komentator.gayaFormal")}
-              </button>
+                      {t(`papan.komentator.gaya${g.charAt(0).toUpperCase() + g.slice(1)`)}
+              
             ))}
           </div>
         )}

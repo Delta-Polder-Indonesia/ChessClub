@@ -489,6 +489,20 @@ export const komentatorTekaTeki = {
       "The engine confirms mate in {mat}.",
       "Engine evaluation: mate in {mat}.",
     ],
+
+  genZ: {
+    biasa: [
+      "{pihak} plays {san}. Oke, let's see where this goes.",
+      "{san} from {pihak} - calm for now, nothing's exploded yet.",
+      "{pihak} slides the {bidak} to {petak}. Sensible development.",
+      "Alright, {san}. {pihak} is lining up the troops.",
+    ],
+    buku: [
+      "{san} - still in the book: {pembukaan}. Theory well memorised!",
+      "This is the {pembukaan}. {pihak} follows theory with {san}.",
+      "{san}, a classic. We're still in the {pembukaan}.",
+    ],
+  },
   },
 };
 
