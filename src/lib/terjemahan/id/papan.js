@@ -4,6 +4,7 @@
  */
 
 import { komentatorPapan } from "./komentator.js";
+import "../../komentatorPengaya.js";
 
 export const papan = {
     judul: "Penjelajah Pembukaan Catur",
@@ -66,6 +67,15 @@ export const papan = {
     salin: "Salin",
     tersalinSingkat: "Tersalin",
     tutup: "Tutup",
+    baru: "Baru",
+    simpan: "Simpan",
+    tinjau: "Tinjau",
+    berbagi: "Bagikan",
+    inputPgnFen: "Input PGN / FEN",
+    tabAnalisa: "Analisa",
+    tabBuku: "Buku",
+    tabPenjelajah: "Penjelajah",
+    tabPartai: "Partai",
     daftarLangkah: "Daftar Langkah",
     basisData: "Basis Data Penjelajah Pembukaan",
     kolomLangkah: "Langkah Berikutnya",

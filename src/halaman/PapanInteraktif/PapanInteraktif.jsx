@@ -45,10 +45,10 @@ const KUCI_NAMA_PROMOSI = {
 
 /** Tab panel kanan — urutan & label (ikon digambar lokal, tanpa pustaka ikon). */
 const TAB_PANEL = [
-  { id: "analisa", label: "Analisa" },
-  { id: "books", label: "Books" },
-  { id: "explorer", label: "Explorer" },
-  { id: "games", label: "Games" },
+  { id: "analisa", labelKey: "papan.tabAnalisa" },
+  { id: "books", labelKey: "papan.tabBuku" },
+  { id: "explorer", labelKey: "papan.tabPenjelajah" },
+  { id: "games", labelKey: "papan.tabPartai" },
 ];
 
 /** Ikon kecil gaya stroke untuk tab panel kanan (mengikuti gaya icons.jsx). */
@@ -1613,7 +1613,7 @@ export default function PapanInteraktif() {
                       }`}
                     >
                       <IkonTab nama={tab.id} />
-                      {tab.label}
+                      {t(tab.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -1809,7 +1809,7 @@ export default function PapanInteraktif() {
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
                     >
                       <Plus className="h-4 w-4 text-gray-400" />
-                      <span>New</span>
+                      <span>{t("papan.baru")}</span>
                     </button>
                     <button
                       type="button"
@@ -1819,23 +1819,23 @@ export default function PapanInteraktif() {
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       <Bookmark className="h-4 w-4 text-gray-400" />
-                      <span>{pgnTersalin ? t("papan.tersalinSingkat") : "Save"}</span>
+                      <span>{pgnTersalin ? t("papan.tersalinSingkat") : t("papan.simpan")}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setTampilPgn(true)}
-                      title="Input PGN / FEN"
+                      title={t("papan.inputPgnFen")}
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
                     >
                       <RotateCw className="h-4 w-4 text-gray-400" />
-                      <span>Review</span>
+                      <span>{t("papan.tinjau")}</span>
                     </button>
                     <button
                       type="button"
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
                     >
                       <Share2 className="h-4 w-4 text-gray-400" />
-                      <span>Share</span>
+                      <span>{t("papan.berbagi")}</span>
                     </button>
                   </div>
                 </div>
@@ -1848,7 +1848,7 @@ export default function PapanInteraktif() {
       </div>
 
       {tampilPgn && (
-        <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} />
+        <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} t={t} />
       )}
     </div>
   );
@@ -2207,7 +2207,7 @@ function sanDariPgn(pgn) {
 }
 
 /** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
-function MasukanPgn({ onTerapkan, onTutup }) {
+function MasukanPgn({ onTerapkan, onTutup, t }) {
   const [teks, setTeks] = useState("");
   const [galat, setGalat] = useState(false);
   return (
@@ -2218,16 +2218,16 @@ function MasukanPgn({ onTerapkan, onTutup }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Input PGN / FEN"
+        aria-label={t("papan.inputPgnFen")}
         className="w-full max-w-md rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">Input PGN / FEN</h3>
+          <h3 className="text-base font-bold text-white">{t("papan.inputPgnFen")}</h3>
           <button
             type="button"
             onClick={onTutup}
-            aria-label="Tutup"
+            aria-label={t("papan.tutup")}
             className="text-gray-400 transition hover:text-gray-200"
           >
             ✕
