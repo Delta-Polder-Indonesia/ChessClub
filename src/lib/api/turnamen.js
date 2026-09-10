@@ -1,9 +1,9 @@
-import { GalatPendaftaran, urlApi } from "./core.js";
+import { GalatPendaftaran, fetchApi } from "./core.js";
 import { ambilCsrfToken } from "./pengurus.js";
 
 /** Daftar jenis turnamen & status yang dikenal server. */
 export async function jenisTurnamen() {
-  const res = await fetch(urlApi("/api/turnamen/jenis"));
+  const res = await fetchApi("/api/turnamen/jenis");
   if (!res.ok) throw new Error("Gagal memuat jenis turnamen.");
   return res.json();
 }
@@ -11,7 +11,7 @@ export async function jenisTurnamen() {
 /** Turnamen publik, boleh disaring per jenis. */
 export async function ambilTurnamenPublik(jenis) {
   const q = jenis ? `?jenis=${encodeURIComponent(jenis)}` : "";
-  const res = await fetch(urlApi(`/api/turnamen${q}`));
+  const res = await fetchApi(`/api/turnamen${q}`);
   if (!res.ok) throw new Error("Gagal memuat turnamen.");
   return res.json();
 }
@@ -19,7 +19,7 @@ export async function ambilTurnamenPublik(jenis) {
 /** Ajukan diri sebagai peserta; pengurus akan menerima atau menolak. */
 export async function ajukanPesertaTurnamen(id, username) {
   const csrfToken = await ambilCsrfToken();
-  const res = await fetch(urlApi(`/api/turnamen/${encodeURIComponent(id)}/daftar`), {
+  const res = await fetchApi(`/api/turnamen/${encodeURIComponent(id)}/daftar`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -41,7 +41,7 @@ export async function ajukanPesertaTurnamen(id, username) {
 
 /** Satu turnamen beserta klasemen. */
 export async function ambilSatuTurnamen(id) {
-  const res = await fetch(urlApi(`/api/turnamen/${encodeURIComponent(id)}`));
+  const res = await fetchApi(`/api/turnamen/${encodeURIComponent(id)}`);
   if (!res.ok) throw new Error("Turnamen tidak ditemukan.");
   return res.json();
 }

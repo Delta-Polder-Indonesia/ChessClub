@@ -1,4 +1,4 @@
-import { GalatApi, urlApi } from "./core.js";
+import { GalatApi, fetchApi } from "./core.js";
 import { ambilCsrfToken } from "./pengurus.js";
 
 /* --------------------------------------------------------------- e-book */
@@ -11,7 +11,7 @@ import { ambilCsrfToken } from "./pengurus.js";
  */
 export async function tebusUnduhanEbook(data) {
   const kirim = async (csrfToken) => {
-    const res = await fetch(urlApi("/api/ebook/tebus"), {
+    const res = await fetchApi("/api/ebook/tebus", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -51,7 +51,7 @@ export async function tebusUnduhanEbook(data) {
  */
 export async function ajukanMintaEbook(data) {
   const kirim = async (csrfToken) => {
-    const res = await fetch(urlApi("/api/ebook/minta"), {
+    const res = await fetchApi("/api/ebook/minta", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

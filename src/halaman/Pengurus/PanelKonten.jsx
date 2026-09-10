@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Tombol, Bidang, Modal } from "./ui.jsx";
+import { Tombol, Bidang, Modal, KotakGalatMuat } from "./ui.jsx";
 
 /**
  * Pengelolaan konten komunitas (berita & pengumuman).
@@ -239,16 +239,19 @@ function FormulirKonten({ konfig, item, onSimpan, onBatal }) {
 function PanelKonten({ konfig, beriTahu, muatUlang }) {
   const [daftar, setDaftar] = useState([]);
   const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(false);
   const [formulir, setFormulir] = useState(null); // null | {item:null} | {item}
   const [saring, setSaring] = useState("");
   const [targetHapus, setTargetHapus] = useState(null);
 
   const muat = useCallback(async () => {
     setMemuat(true);
+    setGalat(false);
     try {
       setDaftar(await apiPengurus(`/${konfig.jalur}`));
     } catch (e) {
       beriTahu(e.message, "galat");
+      setGalat(true);
     } finally {
       setMemuat(false);
     }
@@ -340,6 +343,11 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
 
       {memuat ? (
         <p className="py-8 text-center text-sm text-slate-500">Memuat…</p>
+      ) : galat ? (
+        <KotakGalatMuat
+          pesan={`${konfig.label} gagal dimuat. Periksa koneksi lalu coba lagi.`}
+          onCobaLagi={muat}
+        />
       ) : (
         <div className="overflow-auto">
           <table className="tabel-kci tabel-peringkat">

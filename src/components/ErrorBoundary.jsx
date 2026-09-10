@@ -61,13 +61,24 @@ export default class ErrorBoundary extends Component {
               Bila masalah ini terus berulang, hubungi kami lewat halaman
               Hubungi Kami.
             </p>
-            <button
-              type="button"
-              onClick={this.handleReset}
-              className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
-            >
-              Coba Lagi
-            </button>
+            {/* Error render hampir selalu berulang pada rute yang sama, maka
+                "coba lagi" harus benar-benar memuat ulang halaman — sekadar
+                reset state hanya melempar error yang sama lagi. */}
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => window.location.reload()}
+                className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+              >
+                Muat Ulang Halaman
+              </button>
+              <a
+                href="/"
+                className="rounded-full border border-slate-300 px-6 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:border-primary hover:text-primary"
+              >
+                Kembali ke Beranda
+              </a>
+            </div>
           </div>
         </div>
       );

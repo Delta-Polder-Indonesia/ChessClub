@@ -1213,9 +1213,18 @@ export default function PapanInteraktif() {
         <main className="flex-1 flex items-center justify-center bg-[#262421] min-w-0 overflow-hidden">
           <div className="flex h-full w-full max-w-[1280px] min-h-0 flex-col px-4 py-6 md:px-8">
           {gagal ? (
-            <p className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
-              {t("papan.gagalMuat")}
-            </p>
+            <div className="flex flex-col items-start gap-3">
+              <p className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+                {t("papan.gagalMuat")}
+              </p>
+              <button
+                type="button"
+                onClick={() => setPercobaan((n) => n + 1)}
+                className="rounded-full border border-red-800 px-5 py-2 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/60"
+              >
+                {t("common.cobaLagi")}
+              </button>
+            </div>
           ) : !pohon ? (
             <div className="mx-auto max-w-[560px]">
               <p className="mb-6 text-sm text-slate-400">{t("papan.memuat")}</p>

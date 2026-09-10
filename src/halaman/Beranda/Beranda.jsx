@@ -33,10 +33,14 @@ export default function Beranda() {
   const [turnamen, setTurnamen] = useState(null);
   const [jenis, setJenis] = useState({});
   const [gagal, setGagal] = useState(false);
-  const { bahasa } = useI18n();
+  // Tombol "Coba lagi" mengulang permintaan yang gagal tanpa memuat ulang halaman.
+  const [percobaan, setPercobaan] = useState(0);
+  const { bahasa, t } = useI18n();
 
   useEffect(() => {
     let hidup = true;
+    setTurnamen(null);
+    setGagal(false);
     Promise.all([
       ambilTurnamenPublik(),
       jenisTurnamen()
@@ -54,7 +58,7 @@ export default function Beranda() {
     return () => {
       hidup = false;
     };
-  }, []);
+  }, [percobaan]);
 
   return (
     <BagianBeranda id="turnamen" title="Informasi Jadwal Turnamen Catur">
@@ -65,9 +69,18 @@ export default function Beranda() {
 
       <h3>Rangkuman Jadwal Turnamen</h3>
       {gagal ? (
-        <p>Jadwal sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.</p>
+        <div>
+          <p>{t("beranda.jadwalGagal")}</p>
+          <button
+            type="button"
+            onClick={() => setPercobaan((n) => n + 1)}
+            className="text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+          >
+            {t("common.cobaLagi")}
+          </button>
+        </div>
       ) : turnamen === null ? (
-        <p>Memuat jadwal…</p>
+        <p>{t("beranda.jadwalMemuat")}</p>
       ) : turnamen.length ? (
         <div className="overflow-auto max-h-[760px]">
           <table className="tabel-kci tabel-peringkat">
@@ -133,7 +146,7 @@ export default function Beranda() {
           </table>
         </div>
       ) : (
-        <p>Belum ada jadwal turnamen yang dipublikasikan.</p>
+        <p>{t("beranda.jadwalKosong")}</p>
       )}
     </BagianBeranda>
   );

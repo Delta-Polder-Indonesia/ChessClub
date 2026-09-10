@@ -37,6 +37,9 @@ export default function Dashboard() {
   const [anggota, setAnggota] = useState([]);
   const [hitam, setHitam] = useState([]);
   const [memuat, setMemuat] = useState(true);
+  // Muat awal gagal total → tampilkan kotak galat + tombol coba lagi,
+  // bukan area konten kosong yang hanya ditemani toast 8 detik.
+  const [galatMuat, setGalatMuat] = useState(false);
   const [kabar, setKabar] = useState(null);
   const [menuProfile, setMenuProfile] = useState(false);
   const [tabPengaturan, setTabPengaturan] = useState(false);
@@ -86,6 +89,7 @@ export default function Dashboard() {
 
   const muatUlang = useCallback(async () => {
     setMemuat(true);
+    setGalatMuat(false);
     try {
       const [r, a, h] = await Promise.all([
         apiPengurus("/ringkasan"),
@@ -97,6 +101,9 @@ export default function Dashboard() {
       setHitam(h);
     } catch (e) {
       tanganiGalat(e);
+      // 401/403 sudah ditangani tanganiGalat (keluar/toast); kegagalan lain
+      // pada muat awal perlu kotak galat permanen yang bisa dicoba lagi.
+      if (e?.status !== 401 && e?.status !== 403) setGalatMuat(true);
     } finally {
       setMemuat(false);
     }
@@ -330,8 +337,21 @@ export default function Dashboard() {
           {tab === "dashboard" && (
             memuat && !ringkas ? (
               <p className="py-10 text-center text-sm text-slate-500">Memuat…</p>
+            ) : ringkas ? (
+              <RingkasanDashboard ringkas={ringkas} belumBaca={ringkas.pesan?.belumDibaca ?? 0} onBuka={bukaTab} hitam={hitam} />
             ) : (
-              ringkas && <RingkasanDashboard ringkas={ringkas} belumBaca={ringkas.pesan?.belumDibaca ?? 0} onBuka={bukaTab} hitam={hitam} />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+                <p className="text-sm font-medium text-red-800">
+                  Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.
+                </p>
+                <button
+                  type="button"
+                  onClick={muatUlang}
+                  className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
+                >
+                  Coba Lagi
+                </button>
+              </div>
             )
           )}
 

@@ -1,4 +1,4 @@
-import { GalatApi, urlApi } from "./core.js";
+import { GalatApi, fetchApi, urlApi } from "./core.js";
 
 /* ------------------------------------------------------------- pengurus */
 
@@ -174,7 +174,11 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
     if (metode === "POST") {
       headers["X-CSRF-Token"] = csrfSegar || (await ambilCsrfToken());
     }
-    const res = await fetch(urlApi(`/api/pengurus${jalur}`), {
+    // fetchApi mengganti kegagalan jaringan (TypeError "Failed to fetch")
+    // dengan pesan ramah supaya toast galat dashboard tidak menampilkan
+    // teks teknis browser. loginAdmin sengaja TIDAK dibungkus — deteksi
+    // CORS di Gerbang memerlukan TypeError yang asli.
+    const res = await fetchApi(`/api/pengurus${jalur}`, {
       method: metode,
       headers,
       body: bodi ? JSON.stringify(bodi) : undefined,

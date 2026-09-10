@@ -315,3 +315,139 @@ test("menu mobile membuka tautan pendaftaran", async ({ page, isMobile }) => {
   await expect(page).toHaveURL(/\/pendaftaran-anggota$/);
   periksaGalat();
 });
+
+/* ------------------------------------------------ keadaan galat & pulih -- */
+
+/**
+ * Tiga uji injeksi kegagalan di bawah ini menjaga regresi audit
+ * loading/error state: pesan galat yang ramah + tombol coba lagi yang
+ * benar-benar memulihkan tampilan TANPA memuat ulang halaman.
+ *
+ * Flag `berikutnyaGagal` (bukan penghitung) dipakai karena server dev Vite
+ * menjalankan React StrictMode yang dapat menggandakan permintaan awal —
+ * jumlah pastinya bukan kontrak yang diuji di sini.
+ */
+test("galat memuat berita menampilkan pesan dan tombol coba lagi", async ({ page }) => {
+  let beritaGagal = true;
+  await page.route(JALUR_API, async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const json = (body, status = 200) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (path === "/api/berita") {
+      if (beritaGagal) return json({}, 500);
+      return json([
+        {
+          id: "berita-uji",
+          judul: "Berita Uji Pemulihan",
+          tanggal: "2026-09-01",
+          ringkasan: "Ringkasan berita uji.",
+          isi: "Isi berita uji.",
+        },
+      ]);
+    }
+    return route.fallback();
+  });
+
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/media-dan-informasi/berita-komunitas");
+
+  await expect(
+    page.getByText("Berita sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.")
+  ).toBeVisible();
+
+  beritaGagal = false;
+  await page.getByRole("button", { name: "Coba lagi" }).click();
+  await expect(page.getByRole("link", { name: "Berita Uji Pemulihan" })).toBeVisible();
+  periksaGalat();
+});
+
+test("galat memuat peringkat anggota bisa dimuat ulang", async ({ page }) => {
+  let anggotaGagal = true;
+  await page.route(JALUR_API, async (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const json = (body, status = 200) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    if (path === "/api/anggota") {
+      if (anggotaGagal) return json({}, 500);
+      return json([
+        {
+          username: "pecaturuji",
+          nama: "Pecatur Uji",
+          elo: 1500,
+          ratings: { Rapid: { elo: 1500, win: 2, draw: 1, loss: 0 } },
+          foto: null,
+        },
+      ]);
+    }
+    return route.fallback();
+  });
+  // Cadangan roster publik Chess.com juga harus dipalsukan gagal — tanpa ini
+  // browser mengirim permintaan sungguhan keluar dari lingkungan uji.
+  await page.route(/api\.chess\.com\/pub\//, (route) =>
+    route.fulfill({ status: 503, contentType: "application/json", body: "{}" })
+  );
+
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/beranda/peringkat");
+
+  await expect(
+    page.getByText("Data anggota sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.")
+  ).toBeVisible();
+
+  anggotaGagal = false;
+  await page.getByRole("button", { name: "Muat ulang" }).click();
+  await expect(page.getByText("1 pemain")).toBeVisible();
+  await expect(page.getByRole("link", { name: "pecaturuji" })).toBeVisible();
+  periksaGalat();
+});
+
+test("galat memuat ringkasan dashboard bisa dicoba lagi", async ({ page }) => {
+  let ringkasanGagal = true;
+  await page.route(JALUR_API, async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const json = (body, status = 200) =>
+      route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    const token = request.headers()["x-token-admin"];
+
+    if (path === "/api/csrf-token") return json({ token: "csrf-pengurus" });
+    if (path === "/api/auth/login" && request.method() === "POST") {
+      return json({ ok: true, token: "token-uji", username: "pengurusuji", role: "master" });
+    }
+    if (path === "/api/pengurus/verifikasi") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      return json({ ok: true, username: "pengurusuji", role: "master" });
+    }
+    if (path === "/api/pengurus/ringkasan") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      if (ringkasanGagal) return json({ pesan: "Server sedang sibuk." }, 500);
+      return json({
+        anggota: 12, anggotaTerdata: 4, daftarHitam: 0, otomatis: 0, pengurus: 0,
+        pesan: { total: 0, belumDibaca: 0 },
+        turnamen: { total: 0, berlangsung: 0, pendaftaran: 0 },
+        konten: { berita: 0, pengumuman: 0 }, verifikasi: { mode: "opsional", oauthAktif: false },
+      });
+    }
+    if (path === "/api/pengurus/pesan") return json([]);
+    if (path === "/api/anggota" || path === "/api/daftar-hitam") return json([]);
+    return json({});
+  });
+
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/pengurus");
+  await page.locator('input[autocomplete="username"]').fill("pengurusuji");
+  await page.locator('input[type="password"]').fill("password-uji");
+  await page.getByRole("button", { name: "Masuk" }).click();
+
+  await expect(
+    page.getByText("Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.")
+  ).toBeVisible();
+
+  ringkasanGagal = false;
+  await page.getByRole("button", { name: "Coba Lagi" }).click();
+  await expect(
+    page.getByText("Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.")
+  ).toBeHidden();
+  await expect(page.getByText("12", { exact: true })).toBeVisible();
+  periksaGalat();
+});

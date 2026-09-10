@@ -11,6 +11,13 @@ export const hubungi = {
     jam: "Jam kunjung luring: Sabtu 09.00–16.00 WIB, kecuali pada tanggal libur yang diumumkan melalui halaman Pengumuman.",
     kirimPesan: "Kirim Pesan",
     terkirim: "Pesan terkirim. Kami membalas pada hari kerja.",
+    terkirimJudul: "Pesan Anda berhasil dikirim!",
+    terkirimIsi:
+      "Terima kasih telah menghubungi Komunitas Catur Indonesia. Tim kami akan segera merespons pesan Anda melalui email yang Anda berikan.",
+    tulisLagi: "Tulis pesan lain",
+    galatJudul: "Gagal mengirim pesan",
+    galatKirim: "Gagal mengirim pesan. Silakan coba lagi.",
+    mengirim: "Mengirim...",
     nama: "Nama",
     surel: "Surel",
     pesan: "Pesan",

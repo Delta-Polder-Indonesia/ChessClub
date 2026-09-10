@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal } from "./ui.jsx";
+import { Modal, KotakGalatMuat } from "./ui.jsx";
 
 function waktuPesan(iso) {
   if (!iso) return "";
@@ -31,6 +31,7 @@ export default function PanelPesan({
 }) {
   const [pesan, setPesan] = useState([]);
   const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(false);
   const [pesanTerpilih, setPesanTerpilih] = useState(null);
   const [sibuk, setSibuk] = useState("");
   const [targetHapus, setTargetHapus] = useState(null);
@@ -50,11 +51,13 @@ export default function PanelPesan({
 
   const muatPesan = useCallback(async () => {
     setMemuat(true);
+    setGalat(false);
     try {
       const data = await apiPengurus("/pesan");
       setPesan(data);
     } catch (e) {
       beriTahu(e.message, "galat");
+      setGalat(true);
     } finally {
       setMemuat(false);
     }
@@ -247,6 +250,11 @@ export default function PanelPesan({
 
       {memuat ? (
         <p className="py-10 text-center text-sm text-slate-500">Memuat pesan…</p>
+      ) : galat ? (
+        <KotakGalatMuat
+          pesan="Pesan masuk gagal dimuat. Periksa koneksi lalu coba lagi."
+          onCobaLagi={muatPesan}
+        />
       ) : pesan.length === 0 ? (
         <div className="border border-dashed border-slate-200 bg-white p-10 text-center">
           <p className="text-sm text-slate-500">Belum ada pesan masuk.</p>

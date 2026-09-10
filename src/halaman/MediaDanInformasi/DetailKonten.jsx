@@ -32,7 +32,10 @@ export default function DetailKonten({ jenis }) {
   const { id } = useParams();
   const { t, bahasa } = useI18n();
   const [item, setItem] = useState(null);
-  const [galat, setGalat] = useState("");
+  const [galat, setGalat] = useState(false); // konten tidak ditemukan
+  const [gagal, setGagal] = useState(false); // permintaan ke server gagal
+  // Tombol "Coba lagi" mengulang permintaan yang gagal tanpa memuat ulang halaman.
+  const [percobaan, setPercobaan] = useState(0);
 
   const judulHalaman =
     jenis === "berita" ? t("nav.beritaKomunitas") : t("nav.pengumuman");
@@ -45,27 +48,26 @@ export default function DetailKonten({ jenis }) {
 
   useEffect(() => {
     let batal = false;
+    setItem(null);
+    setGalat(false);
+    setGagal(false);
     ambil()
       .then((daftar) => {
         if (batal) return;
         const ketemu = (daftar || []).find((x) => x.id === id);
         if (!ketemu) {
-          setGalat(
-            bahasa === "en"
-              ? "Article not found."
-              : "Konten tidak ditemukan."
-          );
+          setGalat(true);
           return;
         }
         setItem(ketemu);
       })
-      .catch((e) => {
-        if (!batal) setGalat(e.message);
+      .catch(() => {
+        if (!batal) setGagal(true);
       });
     return () => {
       batal = true;
     };
-  }, [id, bahasa, ambil]);
+  }, [id, ambil, percobaan]);
 
   const next =
     jenis === "berita"
@@ -89,9 +91,23 @@ export default function DetailKonten({ jenis }) {
             image={item.gambar || undefined}
           />
         )}
-        {galat && <p className="text-sm text-red-600">{galat}</p>}
-        {!item && !galat && (
-          <p className="text-sm text-slate-500">Memuat…</p>
+        {gagal && (
+          <div>
+            <p className="text-sm text-red-600">
+              {jenis === "berita" ? t("berita.gagal") : t("pengumuman.gagal")}
+            </p>
+            <button
+              type="button"
+              onClick={() => setPercobaan((n) => n + 1)}
+              className="mt-2 text-sm font-semibold text-primary underline underline-offset-2 hover:text-primary/80"
+            >
+              {t("common.cobaLagi")}
+            </button>
+          </div>
+        )}
+        {galat && <p className="text-sm text-red-600">{t("media.tidakDitemukan")}</p>}
+        {!item && !galat && !gagal && (
+          <p className="text-sm text-slate-500">{t("common.memuat")}</p>
         )}
         {item && (
           <article className="space-y-6">

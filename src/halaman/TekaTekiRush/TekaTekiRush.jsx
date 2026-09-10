@@ -263,6 +263,8 @@ export default function TekaTekiRush() {
   const semuaSoalRef = useRef([]);
   const [gagalMuat, setGagalMuat] = useState(false);
   const [siap, setSiap] = useState(false);
+  // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
+  const [percobaan, setPercobaan] = useState(0);
 
   // Fase layar.
   const [fase, setFase] = useState("pilih");
@@ -339,6 +341,8 @@ export default function TekaTekiRush() {
   /* --------------------------------------------------- muat data teka-teki */
   useEffect(() => {
     let aktif = true;
+    setGagalMuat(false);
+    setSiap(false);
     fetch(`${import.meta.env.BASE_URL}data/teka-teki.json`)
       .then((respon) => {
         if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
@@ -358,7 +362,7 @@ export default function TekaTekiRush() {
     return () => {
       aktif = false;
     };
-  }, []);
+  }, [percobaan]);
 
   /* ------------------------------------------------------- judul halaman */
   useEffect(() => {
@@ -983,10 +987,17 @@ export default function TekaTekiRush() {
 
   if (gagalMuat) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#262421] px-6 py-10">
         <p className="max-w-md rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm leading-6 text-red-300">
           {t("tekaTekiRush.gagalMuat")}
         </p>
+        <button
+          type="button"
+          onClick={() => setPercobaan((n) => n + 1)}
+          className="rounded-full border border-red-800 px-5 py-2 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/60"
+        >
+          {t("common.cobaLagi")}
+        </button>
       </div>
     );
   }

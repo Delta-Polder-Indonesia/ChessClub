@@ -310,10 +310,15 @@ if (!ada("jsdom") || !ada("esbuild")) {
 import React from "react";
 import { createRoot } from "react-dom/client";
 import PembacaPdf from "./src/components/PembacaPdf.jsx";
+import { I18nProvider } from "./src/lib/i18n.jsx";
 
 export function mount(el, props) {
   const root = createRoot(el);
-  root.render(<PembacaPdf {...props} />);
+  root.render(
+    <I18nProvider>
+      <PembacaPdf {...props} />
+    </I18nProvider>
+  );
   return root;
 }
 `;

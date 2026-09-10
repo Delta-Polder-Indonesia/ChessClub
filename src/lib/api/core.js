@@ -14,5 +14,28 @@ export class GalatApi extends Error {
   }
 }
 
+/**
+ * Pesan baku untuk permintaan yang tidak pernah sampai ke server (offline,
+ * CORS, DNS). fetch() asli melempar TypeError berbahasa Inggris ("Failed to
+ * fetch") — tanpa pembungkus ini pesan teknis tersebut tampil mentah di
+ * layar pengunjung.
+ */
+export const PESAN_JARINGAN =
+  "Koneksi ke server gagal. Periksa internet Anda lalu coba lagi.";
+
+/**
+ * fetch() ke jalur API dengan jaminan pesan ramah: hanya kegagalan
+ * TRANSPORT (sebelum ada respons) yang diganti PESAN_JARINGAN. Galat HTTP
+ * (4xx/5xx) tetap dikembalikan sebagai respons agar pemanggil bisa membaca
+ * pesan server dan statusnya.
+ */
+export async function fetchApi(jalur, opsi = {}) {
+  try {
+    return await fetch(urlApi(jalur), opsi);
+  } catch {
+    throw new GalatApi(PESAN_JARINGAN, { status: 0 });
+  }
+}
+
 /** Historical alias retained for registration screens. */
 export const GalatPendaftaran = GalatApi;

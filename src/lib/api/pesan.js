@@ -1,4 +1,4 @@
-import { GalatApi, urlApi } from "./core.js";
+import { GalatApi, fetchApi } from "./core.js";
 import { ambilCsrfToken } from "./pengurus.js";
 
 /* --------------------------------------------------------------- pesan */
@@ -13,7 +13,7 @@ import { ambilCsrfToken } from "./pengurus.js";
  */
 export async function kirimPesan(data) {
   const kirim = async (csrfToken) => {
-    const res = await fetch(urlApi("/api/pesan"), {
+    const res = await fetchApi("/api/pesan", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

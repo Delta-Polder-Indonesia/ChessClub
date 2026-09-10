@@ -19,6 +19,7 @@ export const common = {
     surel: "Email",
     pilihBahasa: "Pilih bahasa",
     memuat: "Memuat…",
+    cobaLagi: "Coba lagi",
   }
 
 export const nav = {

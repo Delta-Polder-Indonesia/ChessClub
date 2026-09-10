@@ -4,7 +4,7 @@ import {
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
-import { Tombol, Modal, Avatar } from "./ui.jsx";
+import { Tombol, Modal, Avatar, KotakGalatMuat } from "./ui.jsx";
 
 /* ========================================================
    UTILITAS FORMAT WAKTU & PERANGKAT
@@ -112,6 +112,7 @@ function ringkasPerangkat(ua) {
 export default function PanelRiwayatMasuk({ beriTahu }) {
   const [riwayat, setRiwayat] = useState([]);
   const [memuat, setMemuat] = useState(true);
+  const [galat, setGalat] = useState(false);
   const [cari, setCari] = useState("");
   const [filterWaktu, setFilterWaktu] = useState("semua");
   const [filterAkun, setFilterAkun] = useState("semua");
@@ -121,11 +122,13 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
 
   const muatData = useCallback(async () => {
     setMemuat(true);
+    setGalat(false);
     try {
       const data = await ambilRiwayatMasuk();
       setRiwayat(Array.isArray(data) ? data : []);
     } catch (e) {
       beriTahu?.(e.message || "Gagal memuat riwayat masuk.", "galat");
+      setGalat(true);
     } finally {
       setMemuat(false);
     }
@@ -376,6 +379,11 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         <div className="rounded-lg border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
           Memuat catatan riwayat masuk…
         </div>
+      ) : galat ? (
+        <KotakGalatMuat
+          pesan="Riwayat masuk gagal dimuat. Periksa koneksi lalu coba lagi."
+          onCobaLagi={muatData}
+        />
       ) : riwayat.length === 0 ? (
         <div className="rounded-lg border border-dashed border-slate-200 bg-white p-12 text-center">
           <svg

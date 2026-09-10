@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { berkasPublik } from "../lib/asets.js";
+import { useI18n } from "../lib/i18n.jsx";
 
 /**
  * Pembaca PDF bawaan situs (berbasis pdf.js).
@@ -55,6 +56,7 @@ function IkonSesudah() {
 }
 
 export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
+  const { t } = useI18n();
   const daftarSumber = useMemo(
     () => (Array.isArray(sumber) ? sumber.filter(Boolean) : [sumber].filter(Boolean)),
     [sumber]
@@ -92,7 +94,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
       } catch {
         if (!batal) {
           setStatus("galat");
-          setPesan("Pustaka pembaca PDF gagal dimuat. Periksa koneksi lalu coba lagi.");
+          setPesan(t("pembacaPdf.galatPustaka"));
         }
         return;
       }
@@ -134,9 +136,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
 
       if (!batal) {
         setStatus("galat");
-        setPesan(
-          "Dokumen tidak dapat dimuat dari sumber mana pun. Coba unduh berkasnya atau buka lagi nanti."
-        );
+        setPesan(t("pembacaPdf.galatSumber"));
         if (galat.length) console.warn("[pembaca-pdf] semua sumber gagal:\n" + galat.join("\n"));
       }
     }
@@ -276,27 +276,30 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
           <div className="flex h-full min-h-[240px] flex-col items-center justify-center gap-3 text-white/80">
             <span className="h-8 w-8 animate-spin rounded-full border-2 border-white/30 border-t-white" />
             <p className="m-0 text-[12px]">
-              Memuat dokumen{progres ? ` — ${progres}%` : "…"}
+              {t("pembacaPdf.memuat")}
+              {progres ? t("pembacaPdf.persen", { progres }) : "…"}
             </p>
           </div>
         )}
 
         {status === "galat" && (
           <div className="mx-auto flex h-full min-h-[240px] max-w-[420px] flex-col items-center justify-center gap-3 text-center text-white/85">
-            <p className="m-0 text-[13px] font-semibold">Dokumen gagal dimuat</p>
+            <p className="m-0 text-[13px] font-semibold">
+              {t("pembacaPdf.galatJudul")}
+            </p>
             <p className="m-0 text-[12px] text-white/70">{pesan}</p>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <button type="button" onClick={() => setPercobaan((n) => n + 1)} className={tombolAlat}>
-                Coba lagi
+                {t("common.cobaLagi")}
               </button>
               {daftarSumber[0] && (
                 <a href={daftarSumber[0]} target="_blank" rel="noreferrer noopener" className={tombolAlat}>
-                  Buka di tab baru
+                  {t("pembacaPdf.bukaTabBaru")}
                 </a>
               )}
               {urlUnduh && (
                 <a href={urlUnduh} download className={tombolAlat}>
-                  Unduh PDF
+                  {t("pembacaPdf.unduh")}
                 </a>
               )}
             </div>
@@ -308,7 +311,11 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
             <canvas
               ref={kanvasRef}
               className="max-w-none rounded-sm bg-white shadow-lg"
-              aria-label={`${judul || "Dokumen"} — halaman ${halaman} dari ${jumlah}`}
+              aria-label={t("pembacaPdf.kanvas", {
+                judul: judul || t("pembacaPdf.dokumen"),
+                halaman,
+                jumlah,
+              })}
               role="img"
             />
           </div>
@@ -324,7 +331,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
               className={tombolAlat}
               onClick={() => keHalaman(halaman - 1)}
               disabled={halaman <= 1}
-              aria-label="Halaman sebelumnya"
+              aria-label={t("pembacaPdf.halamanSebelumnya")}
             >
               <IkonSebelum />
             </button>
@@ -336,7 +343,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
                 value={halaman}
                 onChange={(e) => keHalaman(e.target.value)}
                 className="h-8 w-14 rounded-md border border-white/20 bg-white/10 px-2 text-center text-[12px] text-white outline-none focus:border-white/50"
-                aria-label="Nomor halaman"
+                aria-label={t("pembacaPdf.nomorHalaman")}
               />
               <span>/ {jumlah}</span>
             </label>
@@ -345,7 +352,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
               className={tombolAlat}
               onClick={() => keHalaman(halaman + 1)}
               disabled={halaman >= jumlah}
-              aria-label="Halaman berikutnya"
+              aria-label={t("pembacaPdf.halamanBerikutnya")}
             >
               <IkonSesudah />
             </button>
@@ -357,11 +364,11 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
               className={tombolAlat}
               onClick={() => setZoom((z) => Math.max(ZOOM_MIN, Math.round((z - LANGKAH_ZOOM) * 100) / 100))}
               disabled={zoom <= ZOOM_MIN}
-              aria-label="Perkecil"
+              aria-label={t("pembacaPdf.perkecil")}
             >
               −
             </button>
-            <button type="button" className={tombolAlat} onClick={() => setZoom(1)} aria-label="Sesuaikan lebar">
+            <button type="button" className={tombolAlat} onClick={() => setZoom(1)} aria-label={t("pembacaPdf.sesuaikanLebar")}>
               {Math.round(zoom * 100)}%
             </button>
             <button
@@ -369,7 +376,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
               className={tombolAlat}
               onClick={() => setZoom((z) => Math.min(ZOOM_MAKS, Math.round((z + LANGKAH_ZOOM) * 100) / 100))}
               disabled={zoom >= ZOOM_MAKS}
-              aria-label="Perbesar"
+              aria-label={t("pembacaPdf.perbesar")}
             >
               +
             </button>

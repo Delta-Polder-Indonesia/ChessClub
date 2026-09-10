@@ -13,12 +13,16 @@ export const media = {
     l1: "activity reports, interviews, and tournament coverage.",
     l2: "photos of secretariat, class, and match activities.",
     nextJudul: "Community News",
+    tidakDitemukan: "Content not found.",
   }
 
 export const berita = {
     judul: "Community News",
     deskripsi: "Coverage of activities, match results, and member stories.",
     artikel: "Latest",
+    memuat: "Loading news…",
+    gagal: "News cannot be loaded right now. Please try again shortly.",
+    kosong: "No community news yet.",
     n1a: "August 12, 2026 — August Monthly Tournament followed by 64 players.",
     n1b: "A new participation record for an internal event. Group A was won by a junior player from the Medan chapter.",
     n2a: "July 28, 2026 — Pawn structure coaching clinic with a guest coach.",
@@ -32,6 +36,9 @@ export const pengumuman = {
     deskripsi:
       "Official notices: schedules, registration, and changes to terms.",
     artikel: "Currently in Effect",
+    memuat: "Loading announcements…",
+    gagal: "Announcements cannot be loaded right now. Please try again shortly.",
+    kosong: "No announcements yet.",
     p1a: "Registration for the September Monthly Tournament",
     p1b: " is open until August 31, 2026 at 9:00 PM WIB.",
     p2a: "Secretariat holiday",
