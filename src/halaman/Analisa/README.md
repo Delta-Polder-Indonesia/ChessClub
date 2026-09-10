@@ -1,5 +1,9 @@
 # Halaman Analisis Partai (`/program-kami/analisa`)
 
+> **STATUS: DIBEKUKAN (v1) sejak 2026-09-10** — lihat bagian
+> [Bekukan fitur Analisa v1](#bekukan-fitur-analisa-v1-2026-09-10) di bawah
+> sebelum mengubah halaman ini.
+
 Alat analisis partai berbasis web: tempel PGN, ambil daftar partai dari
 Chess.com/Lichess lewat nama pengguna, atau mulai dari satu posisi FEN. Setiap
 langkah diberi label (brilian, terbaik, layak, keliru, blunder, …), disertai
@@ -239,3 +243,54 @@ alasannya supaya tidak di-"rapikan" ulang secara tak sengaja.
    dashboard/engine dan tab Pemain/Event, refresh manual, dan kunci
    terjemahan `basisData.cariPlaceholder`, `partai.tidakCocok`,
    `partai.tidakAda`, `basisData.memuatData`.
+
+## Bekukan fitur Analisa v1 (2026-09-10)
+
+Sejak commit bertag **`analisa-v1-frozen`**, fitur Analisa dibekukan sebagai
+**v1 stabil**: impor/pemindaian PGN, analisis per langkah (label, komentar,
+top line, variasi manual), navigasi langkah, hasil analisa (Ringkasan: grafik
+evaluasi, jumlah label, akurasi, rating, fase, komentar partai), dan tata
+letak papan mobile/tablet/desktop dianggap selesai.
+
+Aturan saat beku:
+
+- Perubahan pada halaman ini **wajib** menjalankan
+  `npm run uji:analisa-menyeluruh` (bagian dari `npm run uji`) dan tidak boleh
+  memregresikan perilaku yang direkam suite di bawah.
+- Suite berikut adalah **uji regresi hidup** perilaku v1 — bila perilaku
+  memang sengaja diubah, ekspektasi di berkasnya diperbarui dalam perubahan
+  yang sama (jangan dilewati/dimatikan).
+
+| Suite | Cakupan | Pemeriksaan |
+| --- | --- | --- |
+| `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang poin | 45 |
+| `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
+| `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
+| `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
+| `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
+| `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
+| `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
+
+Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
+polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan
+`scripts/loader-jsx.mjs` (transform JSX via esbuild + shim
+`import.meta.glob` untuk Node).
+
+Perbaikan yang masuk bersamaan dengan pembekuan (perilaku berubah dibanding
+build sebelumnya — dicatat agar tidak dianggap regresi):
+
+1. **Seret bidak batal oleh event-nya sendiri** (`komponen/game/board.jsx`).
+   Listener `mousedown` di `document` didaftarkan di tengah perambatan event
+   yang sama yang memulai drag, sehingga `pieceDragCancel` langsung membatalkannya
+   — membuat variasi manual (seret bidak ke kotak) tidak pernah mungkin.
+   Perbaikan: `pieceDragCancel` mengabaikan `e.nativeEvent` milik event
+   pemulainya; klik berikutnya di mana pun tetap membatalkan drag.
+2. **Analisis selalu membuka tab "Langkah"** (`komponen/menu/menu.jsx`).
+   Efek "loncat ke langkah → tab Langkah" (dependensi `[moveNumber,
+   pageState]`, dideklarasikan belakangan) ikut berjalan di commit masuk
+   "analyze" dan menimpa efek "buka Ringkasan lebih dulu". Perbaikan: efek
+   loncat hanya merespons perubahan langkah saat SUDAH berada di mode
+   analisis, sehingga panel kembali terbuka di Ringkasan.
+3. **`bersihkanPgn`** (`mesin/engine.js`): komentar `%` yang tidak di awal
+   baris (dan komentar `{…}` di mana pun) kini dibuang dengan benar tanpa
+   merusak teks header yang dikutip.

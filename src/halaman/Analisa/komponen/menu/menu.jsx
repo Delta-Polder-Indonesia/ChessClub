@@ -51,8 +51,16 @@ function Menu() {
   }, [pageState, setTab]);
 
   /* Melompat ke langkah tertentu (dari grafik/dll) → tampilkan tab Langkah. */
+  const pageStateSebelumnya = useRef(pageState);
   useEffect(() => {
-    if (pageState !== "analyze") return;
+    const sudahMenganalisis = pageStateSebelumnya.current === "analyze";
+    pageStateSebelumnya.current = pageState;
+    // Saat PERTAMA masuk "analyze", commit yang sama menjalankan efek di atas
+    // (buka Ringkasan) DAN efek ini (pageState ikut jadi dependensi) — tanpa
+    // penjagaan ini efek yang lebih akhir menang dan tab Ringkasan tidak
+    // sempat terlihat. Efek ini hanya boleh merespons lompatan langkah yang
+    // terjadi SAAT SUDAH berada di mode analisis.
+    if (pageState !== "analyze" || !sudahMenganalisis) return;
     setTab("moves");
   }, [moveNumber, pageState, setTab]);
 
