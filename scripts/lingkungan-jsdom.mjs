@@ -24,6 +24,19 @@ pasang("localStorage", dom.window.localStorage);
 pasang("HTMLElement", dom.window.HTMLElement);
 pasang("Element", dom.window.Element);
 pasang("Node", dom.window.Node);
+// jsdom tidak menyediakan ResizeObserver (digunakan Summary dkk.). Polyfill
+// no-op: cukup agar efek komponen tidak melempar; perilaku responsif layar
+// kecil diuji lewat ukuran window, bukan lewat observer.
+class ResizeObserverPolyfill {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+pasang("ResizeObserver", ResizeObserverPolyfill);
+dom.window.ResizeObserver = ResizeObserverPolyfill;
+// jsdom tidak mengimplementasikan Element.prototype.scrollTo (digunakan
+// daftar langkah Moves untuk meluncur ke langkah aktif). Polyfill no-op.
+dom.window.Element.prototype.scrollTo = function scrollTo() {};
 // Wajib agar React act() tidak memperingatkan di lingkungan non-CI.
 pasang("IS_REACT_ACT_ENVIRONMENT", true);
 

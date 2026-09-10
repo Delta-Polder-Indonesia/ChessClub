@@ -212,7 +212,13 @@ function Piece(props) {
       document.removeEventListener("mouseup", pieceDragStop);
       document.body.style.cursor = "";
     }
-    function pieceDragCancel() {
+    function pieceDragCancel(e2) {
+      // Event mousedown yang MEMULAI drag ini ikut merambat sampai `document`
+      // (listener baru didaftarkan di tengah perambatan) — abaikan agar drag
+      // tidak langsung dibatalkan oleh event-nya sendiri. Perbandingan
+      // memakai nativeEvent karena React memanggil handler dengan event
+      // sintetis. Pembatalan yang benar terjadi pada klik berikutnya.
+      if (e2 === e.nativeEvent) return;
       setMovement({ x: 0, y: 0 });
       setDrag({ is: false, id: "" });
       cleanUp();
