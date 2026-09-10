@@ -251,11 +251,20 @@ function getResult(headers, pgn) {
 
 /** Buang komentar `{…}` dan kolom `%` yang kadang membuat parser menolak. */
 function bersihkanPgn(pgn) {
-  return pgn
-    .replace(/^\s*%.*$/gm, "")
+  // Komentar "%" bisa muncul di MANA PUN dalam baris (bukan hanya di awal),
+  // jadi hapus dari "%" sampai akhir baris — kecuali di dalam tanda kutip
+  // header (mis. [Event "100% menang"]) yang dilindungi dulu.
+  const kutip = [];
+  const dilindungi = pgn.replace(/"[^"]*"/g, (s) => {
+    kutip.push(s);
+    return `\u0000${kutip.length - 1}\u0000`;
+  });
+  const hasil = dilindungi
+    .replace(/%[^\n]*/g, " ")
     .replace(/\{[^{}]*\}/gs, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
+  return hasil.replace(/\u0000(\d+)\u0000/g, (_, i) => kutip[Number(i)]);
 }
 
 /** Muat PGN; kalau mentahnya ditolak, coba lagi versi yang sudah dibersihkan. */
