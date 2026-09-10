@@ -1534,6 +1534,7 @@ const OPSI_TEMA_BAWAAN = [
 ];
 
 function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "Panah saran engine", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+  const { t } = useI18n();
   const papanStatic = papanSampel();
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
@@ -1568,46 +1569,46 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             {/* Filter Controls */}
             <div className="px-5 pt-2 space-y-4">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="wadah-level" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Level</label>
+                <label htmlFor="wadah-level" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelLevel")}</label>
                 <select
                   id="wadah-level"
                   value={nilaiLevel}
                   onChange={(e) => onGantiLevel && onGantiLevel(e.target.value)}
                   className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
-                  <option value="semua">Semua Level</option>
-                  <option value="1">Sangat Mudah</option>
-                  <option value="2">Mudah</option>
-                  <option value="3">Normal</option>
-                  <option value="4">Sulit</option>
-                  <option value="5">Sangat Sulit</option>
+                  <option value="semua">{t("tekaTeki.semuaLevel")}</option>
+                  <option value="1">{t("tekaTeki.sangatMudah")}</option>
+                  <option value="2">{t("tekaTeki.mudah")}</option>
+                  <option value="3">{t("tekaTeki.normal")}</option>
+                  <option value="4">{t("tekaTeki.sulit")}</option>
+                  <option value="5">{t("tekaTeki.sangatSulit")}</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="wadah-langkah" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Langkah</label>
+                <label htmlFor="wadah-langkah" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelLangkah")}</label>
                 <select
                   id="wadah-langkah"
                   value={nilaiLangkah}
                   onChange={(e) => onGantiLangkah && onGantiLangkah(e.target.value)}
                   className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
-                  <option value="semua">Semua</option>
-                  <option value="1">1 Langkah</option>
-                  <option value="2">2 Langkah</option>
-                  <option value="3">3 Langkah</option>
+                  <option value="semua">{t("tekaTeki.semua")}</option>
+                  <option value="1">{t("tekaTeki.langkahSatu")}</option>
+                  <option value="2">{t("tekaTeki.langkahDua")}</option>
+                  <option value="3">{t("tekaTeki.langkahTiga")}</option>
                 </select>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="wadah-tema" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Tema</label>
+                <label htmlFor="wadah-tema" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelTema")}</label>
                 <select
                   id="wadah-tema"
                   value={nilaiTema}
                   onChange={(e) => onGantiTema && onGantiTema(e.target.value)}
                   className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
-                  <option value="semua">Semua Tema</option>
+                  <option value="semua">{t("tekaTeki.semuaTema")}</option>
                   {daftarTema.map((g) => (
                     <optgroup key={g.grup} label={g.grup}>
                       {g.isi.map(([nilai, label]) => (
@@ -1621,16 +1622,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="wadah-giliran" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Giliran</label>
+                <label htmlFor="wadah-giliran" className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelGiliran")}</label>
                 <select
                   id="wadah-giliran"
                   value={nilaiGiliran}
                   onChange={(e) => onGantiGiliran && onGantiGiliran(e.target.value)}
                   className="w-full rounded-md border border-slate-600 bg-[#262421] px-2.5 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                 >
-                  <option value="semua">Semua Giliran</option>
-                  <option value="White to Move">Hanya Putih</option>
-                  <option value="Black to Move">Hanya Hitam</option>
+                  <option value="semua">{t("tekaTeki.semuaGiliran")}</option>
+                  <option value="White to Move">{t("tekaTeki.hanyaPutih")}</option>
+                  <option value="Black to Move">{t("tekaTeki.hanyaHitam")}</option>
                 </select>
               </div>
             </div>
@@ -1646,7 +1647,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               }}
             >
               <div className="relative px-1">
-                <p className="mb-1.5 px-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Soal</p>
+                <p className="mb-1.5 px-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{t("tekaTeki.labelSoal")}</p>
                 <input
                   type="number"
                   min={1}
@@ -1665,14 +1666,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="submit"
                 className="w-full bg-[#81b64c] hover:bg-[#a3d168] text-white font-bold py-2.5 px-3 rounded-md text-sm transition shadow-lg shadow-[#81b64c]/20 cursor-pointer"
               >
-                Buka
+                {t("tekaTeki.buka")}
               </button>
             </form>
             <button
               type="button"
               onClick={onHint}
               disabled={!bisaHint}
-              title="Petunjuk"
+              title={t("tekaTeki.petunjuk")}
               className="w-full bg-[#363431] hover:bg-[#45423e] text-white font-semibold py-2.5 px-3 rounded-md text-sm transition flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#363431]"
             >
               <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1723,7 +1724,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                       {namaHitam ? (
                         <span className="text-sm font-bold text-[#fffaec] truncate">{namaHitam}</span>
                       ) : (
-                        <span className="text-sm font-bold text-[#fffaec] truncate">Hitam</span>
+                        <span className="text-sm font-bold text-[#fffaec] truncate">{t("tekaTeki.sisiHitam")}</span>
                       )}
                       {eloHitam > 0 && (
                         <span className="text-xs text-gray-500 font-medium">({eloHitam})</span>
@@ -1731,19 +1732,19 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       <span className="text-[11px] text-gray-400 font-medium truncate">
-                        Skak dalam {jumlahLangkah} langkah
+                        {t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
                       </span>
                     </div>
                   </div>
                 </div>
                 {/* Level soal: label di samping kiri kotak */}
                 <div className="flex flex-row items-center gap-2 flex-shrink-0">
-                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">Level Soal</span>
+                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">{t("tekaTeki.levelSoal")}</span>
                   <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#1e1d1c] text-sm font-bold shadow-inner border border-[#312e2b]">
                     {teksTingkat ? (
                       <span className="text-[#fffaec] truncate">{teksTingkat}</span>
                     ) : (
-                      <span className="text-[#999]">Hitam</span>
+                      <span className="text-[#999]">—</span>
                     )}
                   </div>
                 </div>
@@ -1871,7 +1872,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                       {namaPutih ? (
                         <span className="text-sm font-bold text-[#fffaec] truncate">{namaPutih}</span>
                       ) : (
-                        <span className="text-sm font-bold text-[#fffaec] truncate">Putih</span>
+                        <span className="text-sm font-bold text-[#fffaec] truncate">{t("tekaTeki.sisiPutih")}</span>
                       )}
                       {eloPutih > 0 && (
                         <span className="text-xs text-gray-500 font-medium">({eloPutih})</span>
@@ -1886,7 +1887,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 </div>
                 {/* Rating soal: label di samping kiri kotak */}
                 <div className="flex flex-row items-center gap-2 flex-shrink-0">
-                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">Rating Soal</span>
+                  <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">{t("tekaTeki.ratingSoal")}</span>
                   <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
                     {eloSoal}
                   </div>
@@ -1906,8 +1907,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                       ? "text-white bg-[#312e2b]"
                       : "text-gray-500 hover:text-white hover:bg-[#312e2b]"
                   }`}
-                  aria-label="Pengaturan"
-                  title="Pengaturan"
+                  aria-label={t("tekaTeki.pengaturan")}
+                  title={t("tekaTeki.pengaturan")}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 512 512" fill="currentColor">
                     <path d="M502.325,307.303l-39.006-30.805c-6.215-4.908-9.665-12.429-9.668-20.348c0-0.084,0-0.168,0-0.252
@@ -1942,7 +1943,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     <div
                       role="dialog"
                       aria-modal="false"
-                      aria-label="Pengaturan"
+                      aria-label={t("tekaTeki.pengaturan")}
                       className="absolute right-full top-0 z-50 mr-3 w-64 max-w-[90vw] rounded-lg border border-[#312e2b] bg-[#1e1c18] p-4 shadow-xl ring-1 ring-black/50"
                     >
                       <p className="mb-3 text-sm font-bold text-white">Pengaturan</p>
@@ -2043,8 +2044,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                       ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
                       : "text-[#b33430] hover:bg-[#312e2b]"
                   }`}
-                  aria-label={nilaiSuara ? "Matikan suara papan" : "Hidupkan suara papan"}
-                  title={nilaiSuara ? "Matikan suara papan" : "Hidupkan suara papan"}
+                  aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
+                  title={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M11 5 6 9H2v6h4l5 4z" />
@@ -2067,8 +2068,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={onFlip}
                 className="p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#312e2b] transition"
-                aria-label="Balik papan"
-                title="Balik papan"
+                aria-label={t("tekaTeki.balikPapan")}
+                title={t("tekaTeki.balikPapan")}
               >
                 <svg className="w-5 h-5" viewBox="0 0 120 120" fill="currentColor">
                   <path d="M 21.475246,117.78677 H 73.154894 L 56.373294,98.524495 H 40.73752 V 35.922099 H 59.999794 L 31.106383,2.2131167 2.2129751,35.922099 H 21.475246 Z" />
@@ -2143,7 +2144,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
             </div>
           ) : teksPembukaan ? (
             <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex-shrink-0">Pembukaan</span>
+              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
               <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
             </div>
           ) : null}
@@ -2205,7 +2206,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
           {engineNyala && (
             <div className="flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18] px-3 py-2 space-y-2">
               <div className="flex items-center justify-between gap-3">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">Kecepatan mesin</span>
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">{t("tekaTeki.kecepatanMesin")}</span>
                 <select
                   value={kecepatanEngine}
                   onChange={(e) => onGantiKecepatan && onGantiKecepatan(Number(e.target.value))}
@@ -2237,8 +2238,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={onKeAwal}
                 disabled={!bisaMundur}
-                title="Ke awal"
-                aria-label="Ke awal"
+                title={t("papan.keAwal")}
+                aria-label={t("papan.keAwal")}
                 className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
                 ⏮
@@ -2247,8 +2248,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={onMundur}
                 disabled={!bisaMundur}
-                title="Mundur satu langkah"
-                aria-label="Mundur satu langkah"
+                title={t("tekaTeki.mundurSatu")}
+                aria-label={t("tekaTeki.mundurSatu")}
                 className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
                 ◀
@@ -2257,8 +2258,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={onMaju}
                 disabled={!bisaMaju}
-                title="Maju satu langkah"
-                aria-label="Maju satu langkah"
+                title={t("tekaTeki.majuSatu")}
+                aria-label={t("tekaTeki.majuSatu")}
                 className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
                 ▶
@@ -2267,8 +2268,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={onKeAkhir}
                 disabled={!bisaMaju}
-                title="Ke akhir"
-                aria-label="Ke akhir"
+                title={t("papan.keAkhir")}
+                aria-label={t("papan.keAkhir")}
                 className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
                 ⏭
@@ -2280,21 +2281,21 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               <button
                 type="button"
                 onClick={onPertama}
-                title="Soal pertama (nomor 1)"
-                aria-label="Soal pertama (nomor 1)"
+                title={t("tekaTeki.soalPertama")}
+                aria-label={t("tekaTeki.soalPertama")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
-                <span>New</span>
+                <span>{t("tekaTeki.baru")}</span>
               </button>
               <button
                 type="button"
                 onClick={() => onGantiEngine && onGantiEngine()}
                 aria-pressed={engineNyala}
-                aria-label="Engine"
-                title="Engine (analisis mesin)"
+                aria-label={t("papan.engine")}
+                title={t("papan.engine")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -2312,8 +2313,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                 type="button"
                 onClick={() => onGantiOtomatis && onGantiOtomatis(!nilaiOtomatis)}
                 aria-pressed={nilaiOtomatis}
-                aria-label={nilaiOtomatis ? "Pause" : "Play"}
-                title="Lanjut otomatis"
+                aria-label={nilaiOtomatis ? t("tekaTeki.otomatisMatikan") : t("tekaTeki.otomatisNyalakan")}
+                title={t("tekaTeki.lanjutOtomatis")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <svg className="w-5 h-5 text-gray-400" viewBox="0 0 24 24" fill="currentColor" stroke="none">
@@ -2324,31 +2325,31 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                   )}
                 </svg>
                 <span className={`text-xs font-semibold ${nilaiOtomatis ? "text-[#81b64c]" : "text-white"}`}>
-                  {nilaiOtomatis ? "Pause" : "Auto Next"}
+                  {nilaiOtomatis ? t("tekaTeki.jeda") : t("tekaTeki.autoLanjut")}
                 </span>
               </button>
               <button
                 type="button"
                 onClick={onAcak}
-                title="Soal acak"
-                aria-label="Soal acak"
+                title={t("tekaTeki.soalAcak")}
+                aria-label={t("tekaTeki.soalAcak")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 4v6h-6" />
                   <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                 </svg>
-                <span>Acak</span>
+                <span>{t("tekaTeki.acak")}</span>
               </button>
               <button
                 type="button"
                 onClick={onLewati}
-                title={teksCekmat ? "Next" : "Lewati"}
-                aria-label={teksCekmat ? "Next" : "Lewati"}
+                title={teksCekmat ? t("tekaTeki.selanjutnya") : t("tekaTeki.lewati")}
+                aria-label={teksCekmat ? t("tekaTeki.selanjutnya") : t("tekaTeki.lewati")}
                 className="flex flex-col items-center gap-1.5 p-2.5 bg-[#262421] hover:bg-[#312e2b] hover:text-white rounded-lg transition border border-[#312e2b] cursor-pointer"
               >
                 <ArrowRightIcon className="w-5 h-5" />
-                <span>{teksCekmat ? "Next" : "Lewati"}</span>
+                <span>{teksCekmat ? t("tekaTeki.selanjutnya") : t("tekaTeki.lewati")}</span>
               </button>
             </div>
           </div>

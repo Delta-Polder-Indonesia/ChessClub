@@ -77,8 +77,10 @@ function teksKamus(kunci) {
 export const META_RUTE = {
   "/": {
     judulKey: "common.judulBeranda",
+    // 157 karakter — lebih panjang dari ini dipotong di cuplikan Google
+    // (dipangkas dari 182; meta description index.html ikut disamakan).
     deskripsi:
-      "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru.",
+      "Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Turnamen, peringkat anggota, kelas pelatihan, kabar komunitas.",
     gambar: "/images/landing-hero.webp",
     gambarUkuran: "828",
     gambarTinggi: "462",

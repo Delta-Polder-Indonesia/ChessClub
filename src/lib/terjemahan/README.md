@@ -35,6 +35,14 @@ src/lib/terjemahan/
 > `komentatorPapan` adalah isi kunci `papan.komentator.*`, dan `komentatorTekaTeki`
 > adalah isi `tekaTeki.komentator.*`; kedua file itu tinggal mengimpornya.
 
+> **Menambah varian kalimat?** Varian tambahan ada di `src/lib/komentatorPengaya.js`
+> (`TAMBAHAN_ID` dan `TAMBAHAN_EN`) yang menambah pilihan ke kategori yang sudah ada.
+> Isi **kedua objek berpasangan**: `npm run uji:i18n` dan `npm run uji:komentator`
+> menolak bila jumlah varian ID dan EN berbeda untuk satu kategori. Placeholder
+> memakai nama kunci kamus (`{pihak}`, `{san}`, `{lawan}`, `{petak}`, `{bidak}`,
+> `{korban}`, `{pembukaan}`, `{unggul}`, `{nilai}`, `{mat}`, `{saran}`) di kedua
+> bahasa — jangan memakai nama Inggris seperti `{side}`; tidak ada tahap normalisasi lagi.
+
 Setiap kelompok berkas memakai nama kunci top-level yang sama dengan nama
 `export const`-nya. `index.js` tinggal menggabungkannya:
 
