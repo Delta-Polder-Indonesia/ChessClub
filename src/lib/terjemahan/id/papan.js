@@ -4,6 +4,7 @@
  */
 
 import { komentatorPapan } from "./komentator.js";
+import "../../komentatorPengaya.js";
 
 export const papan = {
     judul: "Penjelajah Pembukaan Catur",
