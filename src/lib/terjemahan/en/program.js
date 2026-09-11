@@ -181,7 +181,8 @@ export const unduhEbook = {
     memeriksa: "Checking code…",
     kirimPermintaan: "Send request",
     lengkapiMinta: "Fill in your real name and Chess.com account.",
-    lengkapiKode: "",    galatTebus: "The code could not be redeemed. Try again.",
+    lengkapiKode: "Fill in your real name, Chess.com account, and download code.",
+    galatTebus: "The code could not be redeemed. Try again.",
     galatMinta: "The request could not be sent. Try again.",
 
     tercatatJudul: "Download started.",

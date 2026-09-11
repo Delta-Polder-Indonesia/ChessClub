@@ -101,6 +101,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim()) {
+      setGalat(t("unduhEbook.lengkapiMinta"));
       setSalah(true);
       return;
     }
@@ -129,6 +130,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim() || !kode.trim()) {
+      setGalat(t("unduhEbook.lengkapiKode"));
       setSalah(true);
       return;
     }
