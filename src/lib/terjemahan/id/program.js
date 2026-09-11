@@ -183,7 +183,8 @@ export const unduhEbook = {
     memeriksa: "Memeriksa kode…",
     kirimPermintaan: "Kirim permintaan",
     lengkapiMinta: "Lengkapi nama asli dan akun Chess.com.",
-    lengkapiKode: "",    galatTebus: "Kode tidak bisa ditebus. Coba lagi.",
+    lengkapiKode: "Lengkapi nama asli, akun Chess.com, dan kode unduhan.",
+    galatTebus: "Kode tidak bisa ditebus. Coba lagi.",
     galatMinta: "Permintaan tidak bisa dikirim. Coba lagi.",
 
     tercatatJudul: "Unduhan dimulai.",

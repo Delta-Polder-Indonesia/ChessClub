@@ -80,6 +80,10 @@ export default defineConfig({
       "react-helmet-async",
       "chess.js",
       "@vercel/speed-insights/react",
+      // Dipakai komponen UI neobrutalism (src/components/ui + components/tools);
+      // ikut di-pre-bundle agar tidak memicu optimasi ulang di tengah sesi.
+      "@radix-ui/react-accordion",
+      "recharts",
     ],
   },
   build: {
