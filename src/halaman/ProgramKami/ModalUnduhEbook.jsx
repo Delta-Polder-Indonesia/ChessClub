@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Button } from "../../components/ui/button.jsx";
+import { Button } from "@/components/ui/button.jsx";
 import {
   Card,
   CardContent,
@@ -7,10 +7,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card.jsx";
-import { Input } from "../../components/ui/input.jsx";
-import { Label } from "../../components/ui/label.jsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs.jsx";
+} from "@/components/ui/card.jsx";
+import { Input } from "@/components/ui/input.jsx";
+import { Label } from "@/components/ui/label.jsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.jsx";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
 import { urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
