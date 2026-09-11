@@ -1,4 +1,12 @@
-import { headerKolom, formatWaktu, tautanAkun } from "./bantuan.jsx";
+import { formatWaktu, tautanAkun } from "./bantuan.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table.jsx";
 
 /**
  * Halaman "Jejak unduhan": siapa yang mengunduh, memakai kode siapa, buku apa.
@@ -24,36 +32,36 @@ export default function EbookUnduhan({ unduhan }) {
         </p>
       ) : (
         <div className="overflow-auto">
-          <table className="tabel-kci tabel-tebal" aria-describedby="jejak-unduhan-judul">
-            <thead>
-              <tr>
-                {headerKolom("Waktu")}
-                {headerKolom("Nama asli")}
-                {headerKolom("Akun Chess.com")}
-                {headerKolom("Kode")}
-                {headerKolom("Buku")}
-              </tr>
-            </thead>
-            <tbody>
-              {unduhan.map((u, i) => (
-                <tr key={u.id || i} className={i % 2 === 1 ? "bg-slate-50" : ""}>
-                  <td className="whitespace-nowrap text-xs">{formatWaktu(u.waktu)}</td>
-                  <td className="font-medium text-slate-900">{u.nama}</td>
-                  <td>{tautanAkun(u.akunChess)}</td>
-                  <td className="whitespace-nowrap text-xs">
+          <Table aria-describedby="jejak-unduhan-judul">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Waktu</TableHead>
+                <TableHead>Nama asli</TableHead>
+                <TableHead>Akun Chess.com</TableHead>
+                <TableHead>Kode</TableHead>
+                <TableHead>Buku</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {unduhan.map((u) => (
+                <TableRow key={u.id || u.waktu}>
+                  <TableCell className="whitespace-nowrap text-xs">{formatWaktu(u.waktu)}</TableCell>
+                  <TableCell className="font-medium text-slate-900">{u.nama}</TableCell>
+                  <TableCell>{tautanAkun(u.akunChess)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">
                     <span className="font-mono">{u.kode}</span>
                     <span className="ml-1 text-slate-500">({u.panggilan})</span>
-                  </td>
-                  <td
+                  </TableCell>
+                  <TableCell
                     className="max-w-[280px] truncate text-xs"
                     title={u.judul || ""}
                   >
                     {u.judul || "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>

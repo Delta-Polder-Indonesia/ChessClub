@@ -39,8 +39,3 @@ export function tautanAkun(akun) {
     </a>
   );
 }
-
-/** Kolom header tabel sederhana yang dipakai seluruh tabel e-book. */
-export function headerKolom(teks) {
-  return <th scope="col">{teks}</th>;
-}

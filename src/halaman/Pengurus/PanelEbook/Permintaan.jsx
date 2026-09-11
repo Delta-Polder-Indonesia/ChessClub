@@ -1,4 +1,12 @@
-import { headerKolom, formatWaktu, tautanAkun } from "./bantuan.jsx";
+import { formatWaktu, tautanAkun } from "./bantuan.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table.jsx";
 
 /**
  * Halaman "Permintaan kode": pengajuan dari popup unduh yang belum diputus.
@@ -45,27 +53,27 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
         </p>
       ) : (
         <div className="overflow-auto">
-          <table className="tabel-kci tabel-tebal" aria-describedby="permintaan-kode-judul">
-            <thead>
-              <tr>
-                {headerKolom("Waktu")}
-                {headerKolom("Nama asli")}
-                {headerKolom("Akun Chess.com")}
-                {headerKolom("Ingin mengunduh")}
-                {headerKolom("Status")}
-                {headerKolom("Aksi")}
-              </tr>
-            </thead>
-            <tbody>
-              {tersaring.map((m, i) => (
-                <tr key={m.id || i} className={i % 2 === 1 ? "bg-slate-50" : ""}>
-                  <td className="whitespace-nowrap text-xs">{formatWaktu(m.waktu)}</td>
-                  <td className="font-medium text-slate-900">{m.nama}</td>
-                  <td>{tautanAkun(m.akunChess)}</td>
-                  <td className="max-w-[200px] truncate text-xs text-slate-500" title={m.judul || ""}>
+          <Table aria-describedby="permintaan-kode-judul">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Waktu</TableHead>
+                <TableHead>Nama asli</TableHead>
+                <TableHead>Akun Chess.com</TableHead>
+                <TableHead>Ingin mengunduh</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-32">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tersaring.map((m) => (
+                <TableRow key={m.id || m.waktu}>
+                  <TableCell className="whitespace-nowrap text-xs">{formatWaktu(m.waktu)}</TableCell>
+                  <TableCell className="font-medium text-slate-900">{m.nama}</TableCell>
+                  <TableCell>{tautanAkun(m.akunChess)}</TableCell>
+                  <TableCell className="max-w-[200px] truncate text-xs text-slate-500" title={m.judul || ""}>
                     {m.judul || "—"}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {m.status === "menunggu" ? (
                       <span className="inline-flex rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                         Menunggu
@@ -80,8 +88,8 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
                         Ditolak
                       </span>
                     )}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {m.status === "menunggu" ? (
                       <div className="flex items-center gap-2">
                         <button
@@ -106,11 +114,11 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
                         {formatWaktu(m.diputus)}
                       </span>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>

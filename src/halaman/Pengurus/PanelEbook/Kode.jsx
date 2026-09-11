@@ -1,4 +1,12 @@
-import { headerKolom, formatWaktu, sisaMenit } from "./bantuan.jsx";
+import { formatWaktu, sisaMenit } from "./bantuan.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../../components/ui/table.jsx";
 import { Tombol } from "../ui.jsx";
 
 /**
@@ -29,29 +37,29 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
         </p>
       ) : (
         <div className="overflow-auto">
-          <table className="tabel-kci tabel-tebal" aria-describedby="daftar-kode-judul">
-            <thead>
-              <tr>
-                {headerKolom("Panggilan")}
-                {headerKolom("Kode")}
-                {headerKolom("Status")}
-                {headerKolom("Diterbitkan")}
-                {headerKolom("Kedaluwarsa")}
-                {headerKolom("Unduhan")}
-                {headerKolom("Catatan")}
-                {headerKolom("Aksi")}
-              </tr>
-            </thead>
-            <tbody>
-              {kode.map((k, i) => (
-                <tr key={k.kode} className={i % 2 === 1 ? "bg-slate-50" : ""}>
-                  <td className="font-medium text-slate-900">{k.panggilan}</td>
-                  <td>
+          <Table aria-describedby="daftar-kode-judul">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Panggilan</TableHead>
+                <TableHead>Kode</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Diterbitkan</TableHead>
+                <TableHead>Kedaluwarsa</TableHead>
+                <TableHead className="text-center">Unduhan</TableHead>
+                <TableHead>Catatan</TableHead>
+                <TableHead className="w-24">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {kode.map((k) => (
+                <TableRow key={k.kode}>
+                  <TableCell className="font-medium text-slate-900">{k.panggilan}</TableCell>
+                  <TableCell>
                     <span className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-bold tracking-wide text-slate-800">
                       {k.kode}
                     </span>
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     {k.kadaluarsa ? (
                       <span className="inline-flex rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
                         Kedaluwarsa
@@ -64,14 +72,14 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                         Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt
                       </span>
                     )}
-                  </td>
-                  <td className="whitespace-nowrap text-xs">{formatWaktu(k.dibuat)}</td>
-                  <td className="whitespace-nowrap text-xs">{formatWaktu(k.kedaluwarsa)}</td>
-                  <td className="text-center text-xs">{k.jumlahUnduhan || 0}×</td>
-                  <td className="max-w-[180px] truncate text-xs text-slate-500" title={k.catatan || ""}>
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{formatWaktu(k.dibuat)}</TableCell>
+                  <TableCell className="whitespace-nowrap text-xs">{formatWaktu(k.kedaluwarsa)}</TableCell>
+                  <TableCell className="text-center text-xs">{k.jumlahUnduhan || 0}×</TableCell>
+                  <TableCell className="max-w-[180px] truncate text-xs text-slate-500" title={k.catatan || ""}>
                     {k.catatan || "—"}
-                  </td>
-                  <td>
+                  </TableCell>
+                  <TableCell>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -90,11 +98,11 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                         Hapus
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </section>
