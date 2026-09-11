@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
 import { Tombol, Avatar, Modal, MenuAksi } from "./ui.jsx";
@@ -58,6 +58,16 @@ export default function PanelAnggota({
       const data = await apiPengurus(`/kontak/${username}`);
       setKontak({ username, data });
     });
+
+  // Tutup modal kontak dengan Escape (paritas dengan komponen Modal).
+  useEffect(() => {
+    if (!kontak) return;
+    const onEsc = (e) => {
+      if (e.key === "Escape") setKontak(null);
+    };
+    document.addEventListener("keydown", onEsc);
+    return () => document.removeEventListener("keydown", onEsc);
+  }, [kontak]);
 
   const pindai = () =>
     jalankan("pindai", async () => {
@@ -144,7 +154,7 @@ export default function PanelAnggota({
   return (
     <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b border-slate-200 pb-5">
+      <div className="border-b-2 border-slate-200 pb-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
             {klub ? `Anggota ${klub}` : "Daftar Anggota"}
@@ -157,7 +167,7 @@ export default function PanelAnggota({
 
       {/* ── Banner Alert ────────────────────────────────────── */}
       {anggotaTerblokir.length > 0 && (
-        <div className="flex items-center gap-3 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm">
+        <div className="flex items-center gap-3 rounded-md border-2 border-red-200 bg-red-50 px-4 py-3 text-sm">
           <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
