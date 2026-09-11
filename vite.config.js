@@ -61,6 +61,11 @@ export default defineConfig({
   // Cannot read properties of null (reading 'useState')". Dengan
   // menyertakannya sejak awal, optimasi ulang di tengah sesi tidak terjadi.
   resolve: {
+    alias: {
+      // Menyamakan alias Vite dengan jsconfig agar impor seperti
+      // `@/components/ui/button` juga bekerja di dev dan production build.
+      "@": resolve(__dirname, "src"),
+    },
     dedupe: ["react", "react-dom", "react-router", "react-router-dom"],
   },
   optimizeDeps: {
