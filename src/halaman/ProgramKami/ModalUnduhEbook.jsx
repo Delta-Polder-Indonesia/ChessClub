@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from "react";
+import { Button } from "../../components/ui/button.jsx";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card.jsx";
+import { Input } from "../../components/ui/input.jsx";
+import { Label } from "../../components/ui/label.jsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs.jsx";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
 import { urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 
 function IkonTutup() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
@@ -13,7 +25,7 @@ function IkonTutup() {
 
 function IkonCentang() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle cx="12" cy="12" r="10" stroke="#16a34a" strokeWidth="1.6" />
       <path d="M8 12.5L11 15.5L16 9.5" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
@@ -28,15 +40,35 @@ function IkonKirim() {
   );
 }
 
+function IkonUnduh() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M12 3V15M12 15L8 11M12 15L16 11M3 17V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function Field({ label, htmlFor, children }) {
+  return (
+    <div className="grid gap-2">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </div>
+  );
+}
+
 /**
  * Popup gerbang unduh e-book — model perpustakaan.
  *
- * Dua tab sesuai alurnya:
+ * Markup panel ini mengikuti pola shadcn/ui Tabs + Card: setiap alur punya
+ * tab yang jelas, isi formulir memakai Label/Input, dan aksi utama memakai
+ * Button. Komponennya lokal agar tidak perlu menambah dependensi UI baru.
+ *
+ * Dua alurnya:
  *   - "Ajukan kode": pengunjung yang belum punya kode mengirim permintaan
- *     (nama asli + akun Chess.com) ke pengurus. Pengurus menyetujuinya di
- *     dashboard, lalu mengirimkan kode lewat jalur lain (mis. grup WA).
+ *     (nama asli + akun Chess.com) ke pengurus.
  *   - "Sudah punya kode": peminjam memasukkan kode dari pengurus; bila sah,
- *     unduhan tercatat (siapa, akunnya, buku apa) dan PDF dikirim.
+ *     unduhan tercatat dan PDF dikirim ke browser.
  */
 export default function ModalUnduhEbook({ buku, onTutup }) {
   const { t } = useI18n();
@@ -137,252 +169,212 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center sm:p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onTutup();
       }}
     >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="judul-unduh-ebook"
-        className="w-full max-w-md rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
-      >
-        <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-5 py-4">
-          <div className="min-w-0">
-            <h2 id="judul-unduh-ebook" className="m-0 text-[15px] font-bold text-slate-900">
-              {t("unduhEbook.judul")}
-            </h2>
-            <p className="m-0 mt-0.5 truncate text-[12px] text-slate-500">{buku.judul}</p>
-          </div>
-          <button
-            type="button"
-            onClick={onTutup}
-            aria-label={t("unduhEbook.tutup")}
-            className="inline-flex h-8 w-8 flex-none items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          >
-            <IkonTutup />
-          </button>
-        </div>
-
-        {tercatat ? (
-          <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
-            <IkonCentang />
-            <p className="m-0 text-[14px] font-bold text-slate-900">{t("unduhEbook.tercatatJudul")}</p>
-            <p className="m-0 text-[12px] leading-5 text-slate-600">
-              Tercatat di buku kunjungan: <strong>{tercatat.nama}</strong> ({" "}
-              {tercatat.akunChess} ) mengunduh “{tercatat.judul}”.
-            </p>
-            <a
-              href={urlEbook(buku.file, { unduh: true })}
-              download
-              className="inline-flex items-center gap-1.5 rounded-md bg-[#0B2F9F] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#0a2a8e]"
-            >
-              {t("unduhEbook.unduhLagi")}
-            </a>
-            <button
-              type="button"
-              onClick={onTutup}
-              className="rounded-md px-3 py-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900"
-            >
-              {t("unduhEbook.tutup")}
-            </button>
-          </div>
-        ) : mintaTerkirim ? (
-          <div className="flex flex-col items-center gap-3 px-6 py-8 text-center">
-            <IkonCentang />
-            <p className="m-0 text-[14px] font-bold text-slate-900">
-              {t("unduhEbook.mintaJudul")}
-            </p>
-            <p className="m-0 text-[12px] leading-5 text-slate-600">
-              Tunggu kode akses dikirimkan oleh pengurus (mis. lewat grup
-              WhatsApp). Setelah kodenya diterima, buka popup ini lagi lalu
-              pilih <strong>“Sudah punya kode”</strong> untuk mulai mengunduh.
-            </p>
-            <button
-              type="button"
-              onClick={onTutup}
-              className="mt-1 rounded-md bg-[#0B2F9F] px-4 py-2 text-[12px] font-semibold text-white hover:bg-[#0a2a8e]"
-            >
-              {t("unduhEbook.mengerti")}
-            </button>
-          </div>
-        ) : (
-          <div className="px-5 pb-5 pt-4">
-            {/* Pemilih tab — gaya pil, seperti filter kategori di katalog. */}
-            <div
-              role="tablist"
-              aria-label="Cara mendapatkan kode akses"
-              className="mb-4 flex w-full items-center gap-1 rounded-full bg-slate-200 p-1"
-            >
-              {[
-                ["minta", "Belum punya kode"],
-                ["kode", "Sudah punya kode"],
-              ].map(([nilai, label]) => (
-                <button
-                  key={nilai}
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === nilai}
-                  onClick={() => pilihTab(nilai)}
-                  className={
-                    tab === nilai
-                      ? "w-1/2 rounded-full bg-[#0B2F9F] px-3 py-1.5 text-[12px] font-semibold text-white"
-                      : "w-1/2 rounded-full px-3 py-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900"
-                  }
-                >
-                  {label}
-                </button>
-              ))}
+      <Tabs value={tab} onValueChange={pilihTab} className="w-full max-w-[480px]">
+        <Card
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="judul-unduh-ebook"
+          className="overflow-hidden shadow-2xl"
+        >
+          <CardHeader className="flex-row items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/80 p-5">
+            <div className="min-w-0">
+              <CardTitle as="h2" id="judul-unduh-ebook" className="text-[17px] text-slate-900">
+                {t("unduhEbook.judul")}
+              </CardTitle>
+              <CardDescription className="mt-1 truncate text-[12px] text-slate-500">
+                {buku.judul}
+              </CardDescription>
             </div>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onTutup}
+              aria-label={t("unduhEbook.tutup")}
+              className="h-9 w-9 flex-none"
+            >
+              <IkonTutup />
+            </Button>
+          </CardHeader>
 
-            {galat && (
-              <p role="alert" className="m-0 mb-4 rounded-md bg-red-50 px-3 py-2 text-[12px] font-medium text-red-700">
-                {galat}
-              </p>
-            )}
-
-            {tab === "minta" ? (
-              <form className="flex flex-col gap-4" onSubmit={kirimPermintaan} noValidate>
-                <p className="m-0 text-[12px] leading-5 text-slate-600">
-                  Permintaanmu diteruskan ke pengurus. Setelah disetujui, kode
-                  akses dikirimkan ke kamu (lewat grup WA atau jalur lain) dan
-                  berlaku 1 jam.
-                </p>
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="unduh-nama" className="text-[12px] font-semibold text-slate-700">
-                    Nama asli
-                  </label>
-                  <input
-                    ref={namaRef}
-                    id="unduh-nama"
-                    name="nama"
-                    type="text"
-                    autoComplete="name"
-                    maxLength={80}
-                    placeholder="cth. Budi Santoso"
-                    value={nama}
-                    onChange={(e) => {
-                      setNama(e.target.value);
-                      bersihkanGalat();
-                    }}
-                    className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none focus:border-[#0B2F9F] focus:ring-2 focus:ring-[#0B2F9F]/20"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="unduh-akun" className="text-[12px] font-semibold text-slate-700">
-                    Akun Chess.com
-                  </label>
-                  <input
-                    id="unduh-akun"
-                    name="akunChess"
-                    type="text"
-                    autoComplete="off"
-                    spellCheck="false"
-                    maxLength={25}
-                    placeholder="cth. budichess99"
-                    value={akun}
-                    onChange={(e) => {
-                      setAkun(e.target.value);
-                      bersihkanGalat();
-                    }}
-                    className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none focus:border-[#0B2F9F] focus:ring-2 focus:ring-[#0B2F9F]/20"
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={sibuk}
-                  className="mt-1 inline-flex items-center justify-center gap-2 rounded-md bg-[#0B2F9F] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#0a2a8e] disabled:opacity-50"
+          {tercatat ? (
+            <>
+              <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                <IkonCentang />
+                <CardTitle as="h3" className="text-[15px] text-slate-900">
+                  {t("unduhEbook.tercatatJudul")}
+                </CardTitle>
+                <CardDescription className="text-[12px] leading-5 text-slate-600">
+                  Tercatat di buku kunjungan: <strong>{tercatat.nama}</strong>{" "}
+                  ({tercatat.akunChess}) mengunduh “{tercatat.judul}”.
+                </CardDescription>
+              </CardContent>
+              <CardFooter className="flex-col gap-2 p-6 pt-0">
+                <a
+                  href={urlEbook(buku.file, { unduh: true })}
+                  download
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#0B2F9F] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0a2a8e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
                 >
-                  <IkonKirim />
-                  {sibuk ? t("unduhEbook.mengirim") : t("unduhEbook.kirimPermintaan")}
-                </button>
-              </form>
-            ) : (
-              <form className="flex flex-col gap-4" onSubmit={tebusDanUnduh} noValidate>
-                <p className="m-0 text-[12px] leading-5 text-slate-600">
-                  Masukkan kode dari pengurus. Setiap unduhan tercatat seperti
-                  buku kunjungan perpustakaan.
+                  <IkonUnduh />
+                  {t("unduhEbook.unduhLagi")}
+                </a>
+                <Button variant="ghost" onClick={onTutup} className="w-full">
+                  {t("unduhEbook.tutup")}
+                </Button>
+              </CardFooter>
+            </>
+          ) : mintaTerkirim ? (
+            <>
+              <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                <IkonCentang />
+                <CardTitle as="h3" className="text-[15px] text-slate-900">
+                  {t("unduhEbook.mintaJudul")}
+                </CardTitle>
+                <CardDescription className="text-[12px] leading-5 text-slate-600">
+                  Tunggu kode akses dikirimkan oleh pengurus, misalnya lewat grup
+                  WhatsApp. Setelah kodenya diterima, buka popup ini lagi lalu
+                  pilih <strong>“Sudah punya kode”</strong> untuk mulai mengunduh.
+                </CardDescription>
+              </CardContent>
+              <CardFooter className="p-6 pt-0">
+                <Button onClick={onTutup} className="w-full">
+                  {t("unduhEbook.mengerti")}
+                </Button>
+              </CardFooter>
+            </>
+          ) : (
+            <CardContent className="p-5 pt-5">
+              {galat && (
+                <p role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] font-medium leading-5 text-red-700">
+                  {galat}
                 </p>
+              )}
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="unduh-nama" className="text-[12px] font-semibold text-slate-700">
-                    Nama asli
-                  </label>
-                  <input
-                    ref={namaRef}
-                    id="unduh-nama"
-                    name="nama"
-                    type="text"
-                    autoComplete="name"
-                    maxLength={80}
-                    placeholder="cth. Budi Santoso"
-                    value={nama}
-                    onChange={(e) => {
-                      setNama(e.target.value);
-                      bersihkanGalat();
-                    }}
-                    className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none focus:border-[#0B2F9F] focus:ring-2 focus:ring-[#0B2F9F]/20"
-                  />
-                </div>
+              <TabsList aria-label="Cara mendapatkan kode akses" className="grid h-auto w-full grid-cols-2">
+                <TabsTrigger value="minta">Belum punya kode</TabsTrigger>
+                <TabsTrigger value="kode">Sudah punya kode</TabsTrigger>
+              </TabsList>
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="unduh-akun" className="text-[12px] font-semibold text-slate-700">
-                    Akun Chess.com
-                  </label>
-                  <input
-                    id="unduh-akun"
-                    name="akunChess"
-                    type="text"
-                    autoComplete="off"
-                    spellCheck="false"
-                    maxLength={25}
-                    placeholder="cth. budichess99"
-                    value={akun}
-                    onChange={(e) => {
-                      setAkun(e.target.value);
-                      bersihkanGalat();
-                    }}
-                    className="rounded-md border border-slate-300 px-3 py-2 text-[13px] outline-none focus:border-[#0B2F9F] focus:ring-2 focus:ring-[#0B2F9F]/20"
-                  />
-                </div>
+              <TabsContent value="minta" className="mt-5">
+                <form className="grid gap-5" onSubmit={kirimPermintaan} noValidate>
+                  <p className="m-0 text-[12px] leading-5 text-slate-600">
+                    Permintaanmu diteruskan ke pengurus. Setelah disetujui, kode
+                    akses dikirimkan kepadamu dan berlaku 1 jam.
+                  </p>
 
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="unduh-kode" className="text-[12px] font-semibold text-slate-700">
-                    Kode akses
-                  </label>
-                  <input
-                    id="unduh-kode"
-                    name="kode"
-                    type="text"
-                    autoComplete="off"
-                    spellCheck="false"
-                    maxLength={12}
-                    placeholder="cth. EBK-7F3K2M9Q"
-                    value={kode}
-                    onChange={(e) => {
-                      setKode(e.target.value.toUpperCase());
-                      bersihkanGalat();
-                    }}
-                    className="rounded-md border border-slate-300 px-3 py-2 font-mono text-[13px] tracking-wide outline-none focus:border-[#0B2F9F] focus:ring-2 focus:ring-[#0B2F9F]/20"
-                  />
-                </div>
+                  <Field label="Nama asli" htmlFor="unduh-nama">
+                    <Input
+                      ref={namaRef}
+                      id="unduh-nama"
+                      name="nama"
+                      autoComplete="name"
+                      maxLength={80}
+                      placeholder="cth. Budi Santoso"
+                      value={nama}
+                      onChange={(e) => {
+                        setNama(e.target.value);
+                        bersihkanGalat();
+                      }}
+                    />
+                  </Field>
 
-                <button
-                  type="submit"
-                  disabled={sibuk}
-                  className="mt-1 inline-flex items-center justify-center rounded-md bg-[#0B2F9F] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#0a2a8e] disabled:opacity-50"
-                >
-                  {sibuk ? t("unduhEbook.memeriksa") : t("unduhEbook.mulaiUnduh")}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
-      </div>
+                  <Field label="Akun Chess.com" htmlFor="unduh-akun">
+                    <Input
+                      id="unduh-akun"
+                      name="akunChess"
+                      autoComplete="off"
+                      spellCheck="false"
+                      maxLength={25}
+                      placeholder="cth. budichess99"
+                      value={akun}
+                      onChange={(e) => {
+                        setAkun(e.target.value);
+                        bersihkanGalat();
+                      }}
+                    />
+                  </Field>
+
+                  <CardFooter className="p-0 pt-1">
+                    <Button type="submit" disabled={sibuk} className="w-full">
+                      <IkonKirim />
+                      {sibuk ? t("unduhEbook.mengirim") : t("unduhEbook.kirimPermintaan")}
+                    </Button>
+                  </CardFooter>
+                </form>
+              </TabsContent>
+
+              <TabsContent value="kode" className="mt-5">
+                <form className="grid gap-5" onSubmit={tebusDanUnduh} noValidate>
+                  <p className="m-0 text-[12px] leading-5 text-slate-600">
+                    Masukkan kode dari pengurus. Setiap unduhan tercatat seperti
+                    buku kunjungan perpustakaan.
+                  </p>
+
+                  <Field label="Nama asli" htmlFor="unduh-nama">
+                    <Input
+                      ref={namaRef}
+                      id="unduh-nama"
+                      name="nama"
+                      autoComplete="name"
+                      maxLength={80}
+                      placeholder="cth. Budi Santoso"
+                      value={nama}
+                      onChange={(e) => {
+                        setNama(e.target.value);
+                        bersihkanGalat();
+                      }}
+                    />
+                  </Field>
+
+                  <Field label="Akun Chess.com" htmlFor="unduh-akun">
+                    <Input
+                      id="unduh-akun"
+                      name="akunChess"
+                      autoComplete="off"
+                      spellCheck="false"
+                      maxLength={25}
+                      placeholder="cth. budichess99"
+                      value={akun}
+                      onChange={(e) => {
+                        setAkun(e.target.value);
+                        bersihkanGalat();
+                      }}
+                    />
+                  </Field>
+
+                  <Field label="Kode akses" htmlFor="unduh-kode">
+                    <Input
+                      id="unduh-kode"
+                      name="kode"
+                      autoComplete="off"
+                      spellCheck="false"
+                      maxLength={12}
+                      placeholder="cth. EBK-7F3K2M9Q"
+                      value={kode}
+                      onChange={(e) => {
+                        setKode(e.target.value.toUpperCase());
+                        bersihkanGalat();
+                      }}
+                      className="font-mono tracking-wide"
+                    />
+                  </Field>
+
+                  <CardFooter className="p-0 pt-1">
+                    <Button type="submit" disabled={sibuk} className="w-full">
+                      <IkonUnduh />
+                      {sibuk ? t("unduhEbook.memeriksa") : t("unduhEbook.mulaiUnduh")}
+                    </Button>
+                  </CardFooter>
+                </form>
+              </TabsContent>
+            </CardContent>
+          )}
+        </Card>
+      </Tabs>
     </div>
   );
 }
