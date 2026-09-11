@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 import { ambilTurnamenPublik } from "../lib/api/index.js";
 import { useI18n } from "../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../lib/waktu.js";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./ui/table.jsx";
 
 /**
  * Tabel "Hasil Turnamen" untuk halaman publik /turnamen.
@@ -131,24 +139,24 @@ export default function TabelHasilTurnamen() {
 
   return (
     <div className="overflow-auto">
-      <table className="tabel-kci tabel-peringkat">
-        <thead>
-          <tr>
-            <th>{k.nomor}</th>
-            <th>{k.nama}</th>
-            <th>{k.kategori}</th>
-            <th>{k.juara}</th>
-            <th>{k.mulai}</th>
-            <th>{k.selesai}</th>
-          </tr>
-        </thead>
-        <tbody>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-10">{k.nomor}</TableHead>
+            <TableHead>{k.nama}</TableHead>
+            <TableHead>{k.kategori}</TableHead>
+            <TableHead>{k.juara}</TableHead>
+            <TableHead>{k.mulai}</TableHead>
+            <TableHead>{k.selesai}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           {daftar.map((t, index) => (
-            <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-              <td>{index + 1}</td>
-              <td>{t.nama}</td>
-              <td>{(LABEL_JENIS[bahasa] || LABEL_JENIS.id)[t.jenis] || t.jenis}</td>
-              <td>
+            <TableRow key={t.id}>
+              <TableCell>{index + 1}</TableCell>
+              <TableCell>{t.nama}</TableCell>
+              <TableCell>{(LABEL_JENIS[bahasa] || LABEL_JENIS.id)[t.jenis] || t.jenis}</TableCell>
+              <TableCell>
                 {t.juara ? (
                   <a
                     href={`https://www.chess.com/member/${encodeURIComponent(
@@ -162,13 +170,13 @@ export default function TabelHasilTurnamen() {
                 ) : (
                   <span className="text-slate-400">{k.belumAda}</span>
                 )}
-              </td>
-              <td>{tanggal(t.mulai, bahasa)}</td>
-              <td>{tanggal(t.selesai, bahasa)}</td>
-            </tr>
+              </TableCell>
+              <TableCell>{tanggal(t.mulai, bahasa)}</TableCell>
+              <TableCell>{tanggal(t.selesai, bahasa)}</TableCell>
+            </TableRow>
           ))}
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   );
 }

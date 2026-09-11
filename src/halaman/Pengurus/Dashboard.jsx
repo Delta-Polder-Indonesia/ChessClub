@@ -44,6 +44,7 @@ export default function Dashboard() {
   const [menuProfile, setMenuProfile] = useState(false);
   const [tabPengaturan, setTabPengaturan] = useState(false);
   const [sidebarTerbuka, setSidebarTerbuka] = useState(true);
+  const [halamanEbook, setHalamanEbook] = useState("terbit");
   const [judulRincian, setJudulRincian] = useState(null);
   const [menuNotif, setMenuNotif] = useState(false);
   const [notif, setNotif] = useState([]);
@@ -238,7 +239,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="h-screen flex flex-col overflow-hidden bg-white">
       {/* ── Halaman Pengaturan (Full Layar) — hanya Master ── */}
       {tabPengaturan ? (
         isMaster ? (
@@ -261,7 +262,7 @@ export default function Dashboard() {
       ) : (
       <>
       {/* ── Header ── */}
-      <header className="bg-white border-b border-slate-200 px-6 py-0">
+      <header className="bg-white border-b border-slate-200 px-6 py-0 shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarTerbuka((s) => !s)}
@@ -322,10 +323,10 @@ export default function Dashboard() {
       </header>
 
       {/* ── Body ── */}
-      <div className="flex">
-        <Sidebar tab={tab} setTab={setTab} terbuka={sidebarTerbuka} />
+      <div className="flex flex-1 min-h-0">
+        <Sidebar tab={tab} setTab={setTab} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} />
 
-        <main className="flex-1 p-6 md:p-8 min-w-0 overflow-x-hidden">
+        <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {kabar && (
             <p className={`mb-4 rounded-md border px-4 py-2.5 text-sm ${
               kabar.jenis === "galat" ? "border-red-300 bg-red-50 text-red-800"
@@ -361,7 +362,7 @@ export default function Dashboard() {
           {tab === "berita" && <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "juara" && <PanelJuara beriTahu={beriTahu} />}
-          {tab === "ebook" && <PanelEbook beriTahu={beriTahu} />}
+          {tab === "ebook" && <PanelEbook beriTahu={beriTahu} halaman={halamanEbook} onGantiHalaman={setHalamanEbook} />}
           {tab === "turnamen" && <PanelTurnamen beriTahu={beriTahu} anggota={anggota} muatUlang={muatUlang} saatBukaRincian={setJudulRincian} />}
         </main>
       </div>

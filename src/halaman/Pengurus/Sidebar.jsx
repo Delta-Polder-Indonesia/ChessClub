@@ -8,6 +8,8 @@
  *   - label margin-left    → 0 ↔ 12px
  */
 
+import { useState } from "react";
+
 export const MENU_SIDEBAR = [
   {
     kunci: "dashboard",
@@ -53,14 +55,22 @@ export const MENU_SIDEBAR = [
     kunci: "ebook",
     label: "Kode E-Book",
     icon: "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
+    anak: [
+      { kunci: "terbit", label: "Kode E-Book" },
+      { kunci: "minta", label: "Permintaan kode" },
+      { kunci: "kode", label: "Daftar kode akses" },
+      { kunci: "unduhan", label: "Jejak unduhan" },
+    ],
   },
   ];
 
-export default function Sidebar({ tab, setTab, terbuka }) {
+export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbook }) {
+  const [bukaSub, setBukaSub] = useState({});
+
   return (
     <aside
       className={`
-        bg-white border-r border-slate-200 min-h-screen
+        bg-white border-r border-slate-200 h-full
         flex flex-col shrink-0 overflow-hidden
         will-change-[width]
         transition-[width] duration-300
@@ -68,57 +78,117 @@ export default function Sidebar({ tab, setTab, terbuka }) {
         ${terbuka ? "w-64" : "w-[52px]"}
       `}
     >
-      <nav className="flex-1 py-3 space-y-1">
-        {MENU_SIDEBAR.map(({ kunci, label, icon }) => {
+      <nav className="flex-1 py-3 space-y-1 overflow-y-auto">
+        {MENU_SIDEBAR.map(({ kunci, label, icon, anak }) => {
           const aktif = tab === kunci;
-          return (
-            <button
-              key={kunci}
-              type="button"
-              onClick={() => setTab(kunci)}
-              title={terbuka ? undefined : label}
-              className={`
-                w-full text-sm font-medium
-                flex items-center
-                py-2.5 pl-4 pr-3
-                transition-colors duration-150
-                ${aktif
-                  ? "bg-primary text-white"
-                  : "text-slate-700 hover:bg-slate-100"
-                }
-              `}
-            >
-              <svg
-                className="w-5 h-5 shrink-0"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d={icon}
-                />
-              </svg>
+          const punyaAnak = Array.isArray(anak) && anak.length > 0;
+          const buka = !!bukaSub[kunci];
 
-              <span
+          return (
+            <div key={kunci}>
+              <button
+                type="button"
+                onClick={() => {
+                  if (punyaAnak && terbuka) {
+                    setBukaSub((b) => ({ ...b, [kunci]: !buka }));
+                  } else {
+                    setTab(kunci);
+                  }
+                }}
+                title={terbuka ? undefined : label}
+                aria-expanded={punyaAnak && terbuka ? buka : undefined}
                 className={`
-                  overflow-hidden whitespace-nowrap
-                  transform-gpu
-                  transition-[max-width,opacity,margin]
-                  duration-300
-                  ease-[cubic-bezier(0.22,1,0.36,1)]
-                  ${terbuka
-                    ? "ml-3 max-w-[180px] opacity-100"
-                    : "ml-0 max-w-0 opacity-0"
+                  w-full text-sm font-medium
+                  flex items-center
+                  py-2.5 pl-4 pr-3
+                  transition-colors duration-150
+                  ${aktif
+                    ? "bg-primary text-white"
+                    : "text-slate-700 hover:bg-slate-100"
                   }
                 `}
               >
-                {label}
-              </span>
-            </button>
+                <svg
+                  className="w-5 h-5 shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d={icon}
+                  />
+                </svg>
+
+                <span
+                  className={`
+                    overflow-hidden whitespace-nowrap
+                    transform-gpu
+                    transition-[max-width,opacity,margin]
+                    duration-300
+                    ease-[cubic-bezier(0.22,1,0.36,1)]
+                    ${terbuka
+                      ? "ml-3 max-w-[180px] opacity-100"
+                      : "ml-0 max-w-0 opacity-0"
+                    }
+                  `}
+                >
+                  {label}
+                </span>
+
+                {punyaAnak && terbuka && (
+                  <svg
+                    className={`
+                      w-4 h-4 ml-auto shrink-0
+                      transition-transform duration-200
+                      ${buka ? "rotate-90" : ""}
+                    `}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
+                  </svg>
+                )}
+              </button>
+
+              {punyaAnak && terbuka && buka && (
+                <ul className="mt-0.5 mb-1 ml-[23px] border-l-2 border-slate-200 pl-2 space-y-0.5">
+                  {anak.map((sub) => {
+                    const subAktif = tab === kunci && halamanEbook === sub.kunci;
+                    return (
+                      <li key={sub.kunci}>
+                        <button
+                          type="button"
+                          onClick={() => onPilihEbook?.(sub.kunci)}
+                          className={`
+                            w-full text-sm rounded-sm
+                            flex items-center
+                            py-1.5 pl-2 pr-2
+                            transition-colors duration-150
+                            ${subAktif
+                              ? "bg-primary text-white font-medium"
+                              : "text-slate-600 hover:bg-slate-100"
+                            }
+                          `}
+                        >
+                          {sub.label}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
           );
         })}
       </nav>

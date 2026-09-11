@@ -1,6 +1,14 @@
 import { useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { Tombol, Modal, Avatar } from "./ui.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
 
 export default function PanelLarangan({
   hitam = [],
@@ -210,24 +218,24 @@ export default function PanelLarangan({
         </p>
 
         <div className="max-h-[480px] overflow-y-auto">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th style={{ width: 40 }}>#</th>
-                <th>Akun</th>
-                <th>Alasan</th>
-                <th>Sumber</th>
-                <th>Tanggal Blokir</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>Akun</TableHead>
+                <TableHead>Alasan</TableHead>
+                <TableHead>Sumber</TableHead>
+                <TableHead>Tanggal Blokir</TableHead>
+                <TableHead className="w-24">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {dataTersaring.map((h, index) => {
                 const isOtomatis = h.sumber === "otomatis";
                 return (
-                  <tr key={h.username} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-                    <td>{index + 1}</td>
-                    <td>
+                  <TableRow key={h.username}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar username={h.username} />
                         <a
@@ -238,8 +246,8 @@ export default function PanelLarangan({
                           @{h.username}
                         </a>
                       </div>
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${
                         h.alasan === "fair_play_violations"
                           ? "bg-red-600 text-white"
@@ -252,14 +260,14 @@ export default function PanelLarangan({
                           {h.keterangan}
                         </p>
                       )}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <span className={isOtomatis ? "text-amber-700" : "text-slate-600"}>
                         {isOtomatis ? "Otomatis" : "Pengurus"}
                       </span>
-                    </td>
-                    <td>{formatTanggal(h.diblokirPada)}</td>
-                    <td>
+                    </TableCell>
+                    <TableCell>{formatTanggal(h.diblokirPada)}</TableCell>
+                    <TableCell className="w-24">
                       <button
                         type="button"
                         title="Cabut larangan"
@@ -271,21 +279,21 @@ export default function PanelLarangan({
                           <path d="M9 14l6-6M5.586 15H21m-6.414-6.414A3 3 0 1112.828 9H15a3 3 0 110 6h-2.172" />
                         </svg>
                       </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 );
               })}
               {!dataTersaring.length && (
-                <tr>
-                  <td colSpan={6} className="text-center text-slate-500" style={{ padding: "40px 0" }}>
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-slate-500">
                     {cariAkun || filterSumber !== "semua"
                       ? "Tidak ada akun yang cocok dengan filter."
                       : "Daftar larangan masih kosong."}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 

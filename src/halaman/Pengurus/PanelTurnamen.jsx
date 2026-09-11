@@ -1,6 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus, jenisTurnamen } from "../../lib/api/index.js";
-import { Tombol, Modal } from "./ui.jsx";
+import { Tombol, Modal, MenuAksi } from "./ui.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
 import { Lencana } from "./PanelTurnamen/bagian.jsx";
 import FormulirTurnamen from "./PanelTurnamen/Formulir.jsx";
 import RincianTurnamen from "./PanelTurnamen/Rincian.jsx";
@@ -11,7 +19,7 @@ import { parseWaktuKomunitas } from "../../lib/waktu.js";
  *
  * Fitur mengikuti versi lama (saring jenis, formulir lengkap, rincian),
  * tetapi markup tabelnya disamakan dengan panel Juara Turnamen:
- * tabel-kci/tabel-peringkat, baris belang, dan aksi berbasis ikon.
+ * komponen Table (garis tebal) dan aksi berbasis ikon.
  */
 export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) {
   const [jenis, setJenis] = useState({});
@@ -135,23 +143,23 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
         </p>
       ) : (
         <div className="overflow-auto">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Nama Turnamen</th>
-                <th>Kategori</th>
-                <th>Status</th>
-                <th>Tanggal Mulai</th>
-                <th>Peserta</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>#</TableHead>
+                <TableHead>Nama Turnamen</TableHead>
+                <TableHead>Kategori</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Tanggal Mulai</TableHead>
+                <TableHead>Peserta</TableHead>
+                <TableHead className="w-24">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {tampil.map((t, index) => (
-                <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-                  <td>{index + 1}</td>
-                  <td>
+                <TableRow key={t.id}>
+                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>
                     <button
                       type="button"
                       onClick={() => bukaRincian(t)}
@@ -164,40 +172,26 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                         {t.jumlahPengajuan} pengajuan
                       </span>
                     )}
-                  </td>
-                  <td>{jenis[t.jenis]?.label || t.jenis}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{jenis[t.jenis]?.label || t.jenis}</TableCell>
+                  <TableCell>
                     <Lencana status={t.status} />
-                  </td>
-                  <td>{tanggal(t.mulai)}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell>{tanggal(t.mulai)}</TableCell>
+                  <TableCell>
                     {t.jumlahPeserta}
                     {t.kuota ? ` / ${t.kuota}` : ""}
-                  </td>
-                  <td>
-                    <div className="flex gap-1">
-                      <button
-                        type="button"
-                        title="Kelola"
-                        onClick={() => bukaRincian(t)}
-                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary"
-                      >
-                        <IkonPensil />
-                      </button>
-                      <button
-                        type="button"
-                        title="Hapus"
-                        onClick={() => setTargetHapus(t)}
-                        className="rounded p-1.5 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                      >
-                        <IkonSampah />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell className="w-24">
+                    <MenuAksi
+                      onUbah={() => bukaRincian(t)}
+                      onHapus={() => setTargetHapus(t)}
+                    />
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
 

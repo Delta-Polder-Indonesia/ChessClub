@@ -49,6 +49,14 @@ import {
   KONTROL,
 } from "../../lib/anggotaBersama.js";
 import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
 
 /** Pilihan kontrol waktu GLOBAL untuk seluruh tabel ("all" = All Games). */
 const OPSI_KONTROL = [
@@ -68,9 +76,11 @@ function BarisPeringkat({ a, kontrol }) {
   const tampilkan = !bermasalah && aktif;
 
   return (
-    <tr>
-      <td className="kol-no">{a.no ?? ""}</td>
-      <td className="kol-profile">
+    <TableRow>
+      <TableCell className="w-12 text-right text-slate-500 tabular-nums">
+        {a.no ?? ""}
+      </TableCell>
+      <TableCell className="w-14">
         {a.foto ? (
           <img
             src={a.foto}
@@ -78,46 +88,49 @@ function BarisPeringkat({ a, kontrol }) {
             width="40"
             height="40"
             loading="lazy"
-            className="foto-anggota"
+            className="foto-anggota outline-2 outline-black"
           />
         ) : (
-          <span className="foto-anggota foto-anggota-kosong">
+          <span className="foto-anggota flex h-10 w-10 items-center justify-center bg-white text-sm font-bold text-black outline-2 outline-black">
             {(a.nama || a.username || "?").slice(0, 1).toUpperCase()}
           </span>
         )}
-      </td>
-      <td className="kol-nama">
+      </TableCell>
+      <TableCell className="whitespace-nowrap font-medium text-slate-900">
         {namaTampil(a).toUpperCase()}
         {a.terverifikasi && <CentangBiru />}
         {kenaBan(a) && <LencanaBan />}
-      </td>
-      <td className="kol-rating">
+      </TableCell>
+      <TableCell className="w-24 text-center font-bold text-slate-900 tabular-nums">
         {aktif?.elo === null || aktif?.elo === undefined ? "" : aktif.elo}
-      </td>
-      <td className="kol-wdl">
+      </TableCell>
+      <TableCell className="w-28 whitespace-nowrap text-center">
         {tampilkan ? (
-          <span className="rekap-wdl">
+          <span className="text-xs text-slate-500 tabular-nums">
             {aktif.win} / {aktif.draw} / {aktif.loss}
           </span>
         ) : (
           ""
         )}
-      </td>
-      <td className="kol-total">{tampilkan ? aktif.total : ""}</td>
-      <td className="kol-akun">
+      </TableCell>
+      <TableCell className="w-32 text-center font-semibold text-slate-900 tabular-nums">
+        {tampilkan ? aktif.total : ""}
+      </TableCell>
+      <TableCell className="whitespace-nowrap">
         {a.username ? (
           <a
             href={a.url || `https://chess.com/member/${a.username}`}
             target="_blank"
             rel="noreferrer noopener"
+            className="text-primary hover:underline"
           >
             {a.username}
           </a>
         ) : (
           ""
         )}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }
 
@@ -272,24 +285,24 @@ export default function Peringkat() {
 
       {adaData && hasil.length > 0 && (
         <div className="overflow-auto max-h-[760px]">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th className="kol-no">#</th>
-                <th className="kol-profile">PROFILE</th>
-                <th className="kol-nama">NAMA</th>
-                <th className="kol-rating">RATING</th>
-                <th className="kol-wdl">W/D/L</th>
-                <th className="kol-total">GAME HISTORY</th>
-                <th className="kol-akun">CHESS.COM</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="min-w-[880px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-12 text-right">#</TableHead>
+                <TableHead className="w-14">Profile</TableHead>
+                <TableHead>Nama</TableHead>
+                <TableHead className="w-24 text-center">Rating</TableHead>
+                <TableHead className="w-28 text-center">W/D/L</TableHead>
+                <TableHead className="w-32 text-center">Game History</TableHead>
+                <TableHead>Chess.com</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {hasil.map((a) => (
                 <BarisPeringkat key={a.username} a={a} kontrol={kontrol} />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </BagianBeranda>

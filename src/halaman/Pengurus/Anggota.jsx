@@ -1,7 +1,16 @@
 import { useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { LencanaBan } from "../../components/Lencana.jsx";
-import { Tombol, Avatar, Modal } from "./ui.jsx";
+import { Tombol, Avatar, Modal, MenuAksi } from "./ui.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
+import { Mail, Ban } from "lucide-react";
 
 export default function PanelAnggota({
   anggota = [],
@@ -222,18 +231,18 @@ export default function PanelAnggota({
         </p>
 
         <div className="max-h-[480px] overflow-y-auto">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th style={{ width: 40 }}>#</th>
-                <th>Anggota</th>
-                <th>Kota</th>
-                <th>Rating</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10">#</TableHead>
+                <TableHead>Anggota</TableHead>
+                <TableHead>Kota</TableHead>
+                <TableHead>Rating</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-24">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {anggotaTersaring.map((a, index) => {
                 const kenaBan =
                   a.diblokirKomunitas ||
@@ -241,9 +250,9 @@ export default function PanelAnggota({
                   (a.statusChess && a.statusChess.includes("closed"));
 
                 return (
-                  <tr key={a.username} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-                    <td>{index + 1}</td>
-                    <td>
+                  <TableRow key={a.username}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar username={a.username} foto={a.foto} />
                         <div className="min-w-0">
@@ -262,9 +271,9 @@ export default function PanelAnggota({
                           </p>
                         </div>
                       </div>
-                    </td>
-                    <td>{a.kota || "—"}</td>
-                    <td>
+                    </TableCell>
+                    <TableCell>{a.kota || "—"}</TableCell>
+                    <TableCell>
                       {a.elo ? (
                         <span className="elo-pilih">
                           {a.elo}
@@ -275,8 +284,8 @@ export default function PanelAnggota({
                       ) : (
                         "—"
                       )}
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {kenaBan ? (
                         <div>
                           <span className="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
@@ -295,53 +304,47 @@ export default function PanelAnggota({
                       ) : (
                         "—"
                       )}
-                    </td>
-                    <td>
-                      <div className="flex gap-1">
-                        <button
-                          type="button"
-                          title="Lihat kontak"
-                          onClick={() => lihatKontak(a.username)}
-                          disabled={sibuk === `kontak-${a.username}`}
-                          className="rounded p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-primary disabled:opacity-40"
-                        >
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                            <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                        {kenaBan ? (
-                          <span className="inline-flex items-center gap-1 rounded bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
-                            Dilarang
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            title="Blokir akun"
-                            onClick={() => setTargetBlokir(a.username)}
-                            disabled={sibuk === `blokir-${a.username}`}
-                            className="rounded p-1.5 text-slate-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-40"
-                          >
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
-                              <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                            </svg>
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell className="w-24">
+                      <MenuAksi
+                        aksi={[
+                          {
+                            label: "Lihat kontak",
+                            Ikon: Mail,
+                            onClick: () => lihatKontak(a.username),
+                            disabled: sibuk === `kontak-${a.username}`,
+                          },
+                          kenaBan
+                            ? {
+                                label: "Dilarang",
+                                Ikon: Ban,
+                                onClick: () => {},
+                                disabled: true,
+                              }
+                            : {
+                                label: "Blokir akun",
+                                Ikon: Ban,
+                                onClick: () => setTargetBlokir(a.username),
+                                disabled: sibuk === `blokir-${a.username}`,
+                                bahaya: true,
+                              },
+                        ]}
+                      />
+                    </TableCell>
+                  </TableRow>
                 );
               })}
               {!anggotaTersaring.length && (
-                <tr>
-                  <td colSpan={6} className="text-center text-slate-500" style={{ padding: "40px 0" }}>
+                <TableRow>
+                  <TableCell colSpan={6} className="py-10 text-center text-slate-500">
                     {cari || filterStatus !== "semua"
                       ? "Tidak ada anggota yang cocok dengan filter."
                       : "Belum ada anggota dari roster klub."}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       </div>
 

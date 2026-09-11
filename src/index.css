@@ -715,6 +715,16 @@ section[id] {
   padding-top: 2px;
   padding-bottom: 2px;
 }
+/* Garis tebal untuk panel pengurus (tabel-kci di halaman publik tetap tipis). */
+.tabel-kci.tabel-tebal {
+  border: 2px solid #e2e8f0;
+}
+.tabel-kci.tabel-tebal th {
+  border-bottom: 2px solid #e2e8f0;
+}
+.tabel-kci.tabel-tebal td {
+  border-bottom: 2px solid #e2e8f0;
+}
 .tabel-kci a {
   text-decoration: underline;
 }

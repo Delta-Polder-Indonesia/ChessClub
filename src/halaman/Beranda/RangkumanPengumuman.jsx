@@ -60,7 +60,7 @@ export default function RangkumanPengumuman() {
       ) : pengumuman.length ? (
         <div className="mt-6 flex flex-col gap-y-8 md:gap-y-10">
           {pengumuman.map((p) => (
-            <div key={p.id} className="w-full border-b border-slate-200 pb-8">
+            <div key={p.id} className="w-full border-b-2 border-slate-200 pb-8">
               <div className="w-full">
                 {/* Ditambahkan tracking-wider agar label tanggal tampak rapi */}
                 <p className="m-0 text-primary font-bold text-xs uppercase tracking-wider">

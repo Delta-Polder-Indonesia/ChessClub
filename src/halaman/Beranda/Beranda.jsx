@@ -15,6 +15,14 @@ import {
 import { useI18n } from "../../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
 import { TEKS_STATUS } from "../../components/LencanaStatus.jsx";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
 
 function formatTanggal(nilai) {
   if (!nilai) return "—";
@@ -83,25 +91,25 @@ export default function Beranda() {
         <p>{t("beranda.jadwalMemuat")}</p>
       ) : turnamen.length ? (
         <div className="overflow-auto max-h-[760px]">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th className="kol-turnamen">TURNAMEN</th>
-                <th className="kol-jenis">JENIS</th>
-                <th className="kol-status">STATUS</th>
-                <th className="kol-mulai">MULAI</th>
-                <th className="kol-tutup">TUTUP DAFTAR</th>
-                <th className="kol-tempo">TEMPO</th>
-                <th className="kol-tempat">TEMPAT</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table className="min-w-[880px]">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Turnamen</TableHead>
+                <TableHead>Jenis</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Mulai</TableHead>
+                <TableHead>Tutup Daftar</TableHead>
+                <TableHead>Tempo</TableHead>
+                <TableHead>Tempat</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {turnamen.map((t, index) => {
                 const j = jenis[t.jenis] || {};
                 const href = j.slug ? `/turnamen/${j.slug}` : "";
                 return (
-                  <tr key={t.id} className={index % 2 === 1 ? "bg-slate-50" : ""}>
-                    <td className="kol-turnamen">
+                  <TableRow key={t.id}>
+                    <TableCell>
                       {t.tautan ? (
                         <a
                           href={t.tautan}
@@ -122,28 +130,28 @@ export default function Beranda() {
                       ) : (
                         <span className="font-medium text-slate-900">{t.nama}</span>
                       )}
-                    </td>
-                    <td className="kol-jenis">
+                    </TableCell>
+                    <TableCell>
                       {j.label || t.jenis}
-                    </td>
-                    <td className="kol-status">
+                    </TableCell>
+                    <TableCell>
                       <span className="text-xs font-semibold text-slate-900">
                         {(TEKS_STATUS[bahasa] || TEKS_STATUS.id)[t.status] || t.status}
                       </span>
-                    </td>
-                    <td className="kol-mulai">
+                    </TableCell>
+                    <TableCell>
                       {formatTanggal(t.mulai)}
-                    </td>
-                    <td className="kol-tutup">
+                    </TableCell>
+                    <TableCell>
                       {formatTanggal(t.tutupDaftar)}
-                    </td>
-                    <td className="kol-tempo">{t.tempo || "—"}</td>
-                    <td className="kol-tempat">{t.tempat || "—"}</td>
-                  </tr>
+                    </TableCell>
+                    <TableCell>{t.tempo || "—"}</TableCell>
+                    <TableCell>{t.tempat || "—"}</TableCell>
+                  </TableRow>
                 );
               })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       ) : (
         <p>{t("beranda.jadwalKosong")}</p>
