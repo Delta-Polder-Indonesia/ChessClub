@@ -133,3 +133,7 @@ jangan mengarang struktur baru.**
 
 - Minimum: `npm run uji:rute && npm run uji:i18n` lalu `npm run build` harus lulus.
 - Menyentuh halaman analisa/engine → tambah `npm run uji:analisa-ui`.
+
+## Radix UI dan markup interaktif
+
+Saat mengubah Tabs, Card, Button, Label, Input, popup, atau komponen UI di `src/components/ui/`, baca panduan root [`RADIX-UI.md`](../../../RADIX-UI.md). Panduan tersebut menjelaskan wrapper Radix yang tersedia, alias `@`, `cn()`, kontrak controlled Tabs, aksesibilitas popup, diagnosis error, dan checklist verifikasi untuk AI/Opencode.

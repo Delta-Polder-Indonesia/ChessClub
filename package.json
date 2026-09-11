@@ -45,10 +45,14 @@
     "operasi:standarkan-teka-teki": "node scripts/standarkan-nama-teka-teki.mjs"
   },
   "dependencies": {
+    "@radix-ui/react-label": "^2.1.15",
+    "@radix-ui/react-tabs": "^1.1.21",
     "@supabase/supabase-js": "^2.112.4",
     "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "chess.js": "^1.4.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.39.0",
     "pdfjs-dist": "^4.10.38",
@@ -56,6 +60,7 @@
     "react-dom": "^18.3.1",
     "react-helmet-async": "^3.0.0",
     "react-router-dom": "^7.18.2",
+    "tailwind-merge": "^3.6.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {
