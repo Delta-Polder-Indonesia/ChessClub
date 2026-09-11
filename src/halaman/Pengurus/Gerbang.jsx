@@ -121,9 +121,33 @@ export default function Gerbang({ onMasuk }) {
             type="button"
             onClick={() => setLihat((v) => !v)}
             tabIndex={-1}
-            className="shrink-0 text-xs font-semibold text-slate-500 hover:text-primary"
+            aria-label={lihat ? "Sembunyikan password" : "Lihat password"}
+            className="shrink-0 text-slate-500 hover:text-primary"
           >
-            {lihat ? "Sembunyi" : "Lihat"}
+            {lihat ? (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+              </svg>
+            ) : (
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path
+                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                />
+                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
+                <path d="M4 4L20 20M4 20L20 4" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
+              </svg>
+            )}
           </button>
         </div>
 

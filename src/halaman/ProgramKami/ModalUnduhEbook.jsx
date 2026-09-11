@@ -12,13 +12,13 @@ import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs.jsx";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
-import { urlEbook } from "../../lib/asets.js";
+import { urlEbook, berkasPublik } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 
 function IkonTutup() {
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="square" />
     </svg>
   );
 }
@@ -26,8 +26,8 @@ function IkonTutup() {
 function IkonCentang() {
   return (
     <svg width="42" height="42" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" stroke="#16a34a" strokeWidth="1.6" />
-      <path d="M8 12.5L11 15.5L16 9.5" stroke="#16a34a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="10" fill="#22c55e" stroke="#000000" strokeWidth="2" />
+      <path d="M8 12.5L11 15.5L16 9.5" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="square" strokeLinejoin="miter" />
     </svg>
   );
 }
@@ -35,7 +35,7 @@ function IkonCentang() {
 function IkonKirim() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" />
     </svg>
   );
 }
@@ -43,15 +43,17 @@ function IkonKirim() {
 function IkonUnduh() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M12 3V15M12 15L8 11M12 15L16 11M3 17V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M12 3V15M12 15L8 11M12 15L16 11M3 17V19C3 19.55 3.45 20 4 20H20C20.55 20 21 19.55 21 19V17" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" />
     </svg>
   );
 }
 
 function Field({ label, htmlFor, children }) {
   return (
-    <div className="grid gap-2">
-      <Label htmlFor={htmlFor}>{label}</Label>
+    <div className="grid gap-1.5">
+      <Label htmlFor={htmlFor} className="font-bold text-black uppercase text-[11px] tracking-wider">
+        {label}
+      </Label>
       {children}
     </div>
   );
@@ -59,16 +61,6 @@ function Field({ label, htmlFor, children }) {
 
 /**
  * Popup gerbang unduh e-book — model perpustakaan.
- *
- * Markup panel ini mengikuti pola shadcn/ui Tabs + Card: setiap alur punya
- * tab yang jelas, isi formulir memakai Label/Input, dan aksi utama memakai
- * Button. Komponennya lokal agar tidak perlu menambah dependensi UI baru.
- *
- * Dua alurnya:
- *   - "Ajukan kode": pengunjung yang belum punya kode mengirim permintaan
- *     (nama asli + akun Chess.com) ke pengurus.
- *   - "Sudah punya kode": peminjam memasukkan kode dari pengurus; bila sah,
- *     unduhan tercatat dan PDF dikirim ke browser.
  */
 export default function ModalUnduhEbook({ buku, onTutup }) {
   const { t } = useI18n();
@@ -80,6 +72,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
   const [galat, setGalat] = useState("");
   const [tercatat, setTercatat] = useState(null);
   const [mintaTerkirim, setMintaTerkirim] = useState(false);
+  const [salah, setSalah] = useState(false);
   const namaRef = useRef(null);
 
   useEffect(() => {
@@ -99,6 +92,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
 
   function bersihkanGalat() {
     if (galat) setGalat("");
+    setSalah(false);
   }
 
   async function kirimPermintaan(e) {
@@ -107,9 +101,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim()) {
-      setGalat(t("unduhEbook.lengkapiMinta"));
+      setSalah(true);
       return;
     }
+    setSalah(false);
 
     setSibuk(true);
     try {
@@ -122,6 +117,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
       setMintaTerkirim(true);
     } catch (e2) {
       setGalat(e2.message || t("unduhEbook.galatMinta"));
+      setSalah(true);
     } finally {
       setSibuk(false);
     }
@@ -133,9 +129,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (!nama.trim() || !akun.trim() || !kode.trim()) {
-      setGalat(t("unduhEbook.lengkapiKode"));
+      setSalah(true);
       return;
     }
+    setSalah(false);
 
     setSibuk(true);
     try {
@@ -157,6 +154,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
       taut.remove();
     } catch (e2) {
       setGalat(e2.message || t("unduhEbook.galatTebus"));
+      setSalah(true);
     } finally {
       setSibuk(false);
     }
@@ -169,7 +167,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
 
   return (
     <div
-      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/60 p-4 backdrop-blur-sm sm:p-6"
+      className="fixed inset-0 z-[90] flex items-center justify-center overflow-y-auto bg-black/70 p-4 sm:p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onTutup();
       }}
@@ -179,23 +177,31 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="judul-unduh-ebook"
-          className="overflow-hidden shadow-2xl"
+          className="rounded-lg border-2 border-black bg-white shadow-none"
         >
-          <CardHeader className="flex-row items-start justify-between gap-4 border-b border-slate-200 bg-slate-50/80 p-5">
-            <div className="min-w-0">
-              <CardTitle as="h2" id="judul-unduh-ebook" className="text-[17px] text-slate-900">
-                {t("unduhEbook.judul")}
-              </CardTitle>
-              <CardDescription className="mt-1 truncate text-[12px] text-slate-500">
-                {buku.judul}
-              </CardDescription>
+          <CardHeader className="flex-row items-center justify-between gap-4 border-b-2 border-black p-5 shadow-none">
+            <div className="flex min-w-0 items-center gap-2">
+              <img
+                src={berkasPublik("/images/color-icon/book-open-aqua.svg")}
+                alt=""
+                aria-hidden="true"
+                className="h-10 w-10 flex-none"
+              />
+              <div className="min-w-0">
+                <CardTitle as="h2" id="judul-unduh-ebook" className="text-lg font-black uppercase text-black">
+                  {t("unduhEbook.judul")}
+                </CardTitle>
+                <CardDescription className="mt-0.5 truncate text-xs font-semibold text-black">
+                  {buku.judul}
+                </CardDescription>
+              </div>
             </div>
             <Button
               variant="outline"
               size="icon"
               onClick={onTutup}
               aria-label={t("unduhEbook.tutup")}
-              className="h-9 w-9 flex-none"
+              className="h-9 w-9 flex-none rounded-lg border-2 border-black bg-white text-black shadow-none transition-none hover:border-black hover:bg-white hover:text-black"
             >
               <IkonTutup />
             </Button>
@@ -205,11 +211,11 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <>
               <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
                 <IkonCentang />
-                <CardTitle as="h3" className="text-[15px] text-slate-900">
+                <CardTitle as="h3" className="text-base font-black text-black">
                   {t("unduhEbook.tercatatJudul")}
                 </CardTitle>
-                <CardDescription className="text-[12px] leading-5 text-slate-600">
-                  Tercatat di buku kunjungan: <strong>{tercatat.nama}</strong>{" "}
+                <CardDescription className="text-xs leading-5 text-black">
+                  Tercatat di buku kunjungan: <strong className="px-1 border border-black">{tercatat.nama}</strong>{" "}
                   ({tercatat.akunChess}) mengunduh “{tercatat.judul}”.
                 </CardDescription>
               </CardContent>
@@ -217,12 +223,16 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                 <a
                   href={urlEbook(buku.file, { unduh: true })}
                   download
-                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-md bg-[#0B2F9F] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#0a2a8e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
+                  className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-black px-4 text-sm font-bold text-black shadow-none transition-none"
                 >
                   <IkonUnduh />
                   {t("unduhEbook.unduhLagi")}
                 </a>
-                <Button variant="ghost" onClick={onTutup} className="w-full">
+                <Button
+                  variant="ghost"
+                  onClick={onTutup}
+                  className="w-full rounded-lg border-2 border-black bg-white font-bold text-black shadow-none transition-none hover:bg-white hover:text-black"
+                >
                   {t("unduhEbook.tutup")}
                 </Button>
               </CardFooter>
@@ -231,17 +241,20 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <>
               <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
                 <IkonCentang />
-                <CardTitle as="h3" className="text-[15px] text-slate-900">
+                <CardTitle as="h3" className="text-base font-black text-black">
                   {t("unduhEbook.mintaJudul")}
                 </CardTitle>
-                <CardDescription className="text-[12px] leading-5 text-slate-600">
+                <CardDescription className="text-xs leading-5 text-black">
                   Tunggu kode akses dikirimkan oleh pengurus, misalnya lewat grup
                   WhatsApp. Setelah kodenya diterima, buka popup ini lagi lalu
-                  pilih <strong>“Sudah punya kode”</strong> untuk mulai mengunduh.
+                  pilih <strong className="px-1 border border-black">“Sudah punya kode”</strong> untuk mulai mengunduh.
                 </CardDescription>
               </CardContent>
               <CardFooter className="p-6 pt-0">
-                <Button onClick={onTutup} className="w-full">
+                <Button
+                  onClick={onTutup}
+                  className="w-full rounded-lg border-2 border-black bg-transparent font-bold text-black shadow-none transition-none hover:bg-transparent"
+                >
                   {t("unduhEbook.mengerti")}
                 </Button>
               </CardFooter>
@@ -249,23 +262,28 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           ) : (
             <CardContent className="p-5 pt-5">
               {galat && (
-                <p role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2.5 text-[12px] font-medium leading-5 text-red-700">
+                <p role="alert" className="mb-4 rounded-lg border-2 border-black p-3 text-xs font-bold text-black shadow-none">
                   {galat}
                 </p>
               )}
 
-              <TabsList aria-label="Cara mendapatkan kode akses" className="grid h-auto w-full grid-cols-2">
-                <TabsTrigger value="minta">Belum punya kode</TabsTrigger>
-                <TabsTrigger value="kode">Sudah punya kode</TabsTrigger>
+              <TabsList aria-label="Cara mendapatkan kode akses" className="grid h-auto w-full grid-cols-2 rounded-lg border-2 border-black bg-transparent p-1 shadow-none">
+                <TabsTrigger
+                  value="minta"
+                  className="rounded-lg border border-transparent font-bold text-xs shadow-none data-[state=active]:border-black data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-none"
+                >
+                  Belum punya kode
+                </TabsTrigger>
+                <TabsTrigger
+                  value="kode"
+                  className="rounded-lg border border-transparent font-bold text-xs shadow-none data-[state=active]:border-black data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:shadow-none"
+                >
+                  Sudah punya kode
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="minta" className="mt-5">
-                <form className="grid gap-5" onSubmit={kirimPermintaan} noValidate>
-                  <p className="m-0 text-[12px] leading-5 text-slate-600">
-                    Permintaanmu diteruskan ke pengurus. Setelah disetujui, kode
-                    akses dikirimkan kepadamu dan berlaku 1 jam.
-                  </p>
-
+                <form className="grid gap-4" onSubmit={kirimPermintaan} noValidate>
                   <Field label="Nama asli" htmlFor="unduh-nama">
                     <Input
                       ref={namaRef}
@@ -279,6 +297,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setNama(e.target.value);
                         bersihkanGalat();
                       }}
+                      className="rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black"
                     />
                   </Field>
 
@@ -295,11 +314,16 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setAkun(e.target.value);
                         bersihkanGalat();
                       }}
+                      className="rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black"
                     />
                   </Field>
 
-                  <CardFooter className="p-0 pt-1">
-                    <Button type="submit" disabled={sibuk} className="w-full">
+                  <CardFooter className="p-0 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={sibuk}
+                      className={`w-full gap-2 rounded-lg border-2 border-black bg-transparent font-bold shadow-none transition-none hover:bg-transparent ${salah ? "text-red-600" : "text-black"}`}
+                    >
                       <IkonKirim />
                       {sibuk ? t("unduhEbook.mengirim") : t("unduhEbook.kirimPermintaan")}
                     </Button>
@@ -308,12 +332,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               </TabsContent>
 
               <TabsContent value="kode" className="mt-5">
-                <form className="grid gap-5" onSubmit={tebusDanUnduh} noValidate>
-                  <p className="m-0 text-[12px] leading-5 text-slate-600">
-                    Masukkan kode dari pengurus. Setiap unduhan tercatat seperti
-                    buku kunjungan perpustakaan.
-                  </p>
-
+                <form className="grid gap-4" onSubmit={tebusDanUnduh} noValidate>
                   <Field label="Nama asli" htmlFor="unduh-nama">
                     <Input
                       ref={namaRef}
@@ -327,6 +346,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setNama(e.target.value);
                         bersihkanGalat();
                       }}
+                      className="rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black"
                     />
                   </Field>
 
@@ -343,6 +363,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setAkun(e.target.value);
                         bersihkanGalat();
                       }}
+                      className="rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black"
                     />
                   </Field>
 
@@ -359,12 +380,16 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setKode(e.target.value.toUpperCase());
                         bersihkanGalat();
                       }}
-                      className="font-mono tracking-wide"
+                      className="rounded-lg border-2 border-black bg-white text-xs font-mono font-bold tracking-wider shadow-none focus-visible:ring-0 focus-visible:border-black"
                     />
                   </Field>
 
-                  <CardFooter className="p-0 pt-1">
-                    <Button type="submit" disabled={sibuk} className="w-full">
+                  <CardFooter className="p-0 pt-2">
+                    <Button
+                      type="submit"
+                      disabled={sibuk}
+                      className={`w-full gap-2 rounded-lg border-2 border-black bg-transparent font-bold shadow-none transition-none hover:bg-transparent ${salah ? "text-red-600" : "text-black"}`}
+                    >
                       <IkonUnduh />
                       {sibuk ? t("unduhEbook.memeriksa") : t("unduhEbook.mulaiUnduh")}
                     </Button>
