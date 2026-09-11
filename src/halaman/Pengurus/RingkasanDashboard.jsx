@@ -105,7 +105,7 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
       {/* Aksi cepat */}
       <section>
         <h2 className="mb-3 text-sm font-bold text-slate-900">Aksi cepat</h2>
-        <div className="ml-16.25 grid grid-cols-3 gap-3">
+        <div className="ml-16 grid grid-cols-3 gap-3">
           {[
             { kunci: "pesan", judul: "Pesan masuk", teks: `${belumBaca} belum dibaca`,
               ikon: "M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z",
