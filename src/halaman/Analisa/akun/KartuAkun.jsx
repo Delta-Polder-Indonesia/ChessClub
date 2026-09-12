@@ -4,6 +4,10 @@
  * muat ulang/hapus), baris statistik Bullet/Blitz/Rapid, lalu bar "Games
  * terunduh / total" + progress + "Pembaruan terakhir". Kartu dapat di-klik
  * untuk memilih akun yang statistiknya ditampilkan di kanan.
+ *
+ * UPDATE: tombol "Tarik data" (Download) dihapus dari daftar akun sesuai
+ * permintaan — daftar akun hanya menampilkan info profile. Tarik data
+ * dipindah ke layar Database dengan filter periode.
  */
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
@@ -11,7 +15,6 @@ import { useKartuPemain } from "../../../lib/pemainCatur.js";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import Profile from "../komponen/svg/profile.jsx";
 import Trash from "../komponen/svg/trash.jsx";
-import Download from "../komponen/svg/download.jsx";
 import Refresh from "../komponen/svg/refresh.jsx";
 import LichessLogo from "../komponen/svg/LichessLogo.jsx";
 import ChessComLogo from "../komponen/svg/ChessComLogo.jsx";
@@ -39,7 +42,7 @@ function Logo({ platform, className }) {
   return platform === "lichessOrg" ? <LichessLogo className={className} /> : <ChessComLogo className={className} />;
 }
 
-export default function KartuAkun({ platform, username, aktif = false, onPilih, onHapus, onRefresh }) {
+export default function KartuAkun({ platform, username, aktif = false, onPilih, onHapus }) {
   const { t, bahasa: locale } = useI18n();
   const user = String(username || "").trim();
   const koleksiId = `${platform}:${user.toLowerCase()}`;
@@ -88,7 +91,6 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
   const tanggal = (ts) => {
     if (!ts) return "—";
     try {
-      // Ikuti bahasa antarmuka, bukan locale yang di-hardcode.
       return new Intl.DateTimeFormat(locale, { day: "numeric", month: "numeric", year: "numeric" }).format(new Date(ts));
     } catch {
       return new Date(ts).toLocaleDateString();
@@ -112,8 +114,8 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
         aktif ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] ring-1 ring-[var(--analisa-backgroundBoxBoxHighlighted)]" : "border-border hover:border-borderHighlighted"
       }`}
     >
-      {/* Header: logo situs + nama + aksi */}
-      <div className="flex items-center gap-3 border-b border-border px-3 py-2.5">
+      {/* Header: logo situs + nama + aksi (hanya refresh lokal + hapus, tanpa tarik) */}
+      <div className="flex items-center gap-2 sm:gap-3 border-b border-border px-2.5 sm:px-3 py-2 sm:py-2.5">
         <span className={`grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-md ${platform === "chessCom" ? "bg-backgroundProfileWhite" : "bg-backgroundProfileBlack"}`}>
           {kartu?.avatar ? (
             <img className="h-full w-full object-cover" src={kartu.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
@@ -122,7 +124,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-        <Logo platform={platform} className="h-[50px] w-[50px] shrink-0 fill-current text-foregroundGrey" />
+        <Logo platform={platform} className="h-[32px] w-[32px] sm:h-[50px] sm:w-[50px] shrink-0 fill-current text-foregroundGrey" />
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -134,17 +136,6 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
             className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
           >
             <Refresh className="h-[15px] w-[15px]" />
-          </button>
-          <button
-            type="button"
-            title={t("analisa.statistik.tarik")}
-            onClick={(e) => {
-              e.stopPropagation();
-              onRefresh?.();
-            }}
-            className="grid h-6 w-6 cursor-pointer place-items-center rounded-borderRoundness text-foregroundGrey transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted"
-          >
-            <Download className="h-[15px] w-[15px]" />
           </button>
           <button
             type="button"

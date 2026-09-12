@@ -1,20 +1,15 @@
 /**
- * Pengambilan seluruh partai sebuah akun dari API publik chess.com, lalu
- * menyimpannya ke basis data lokal (basisData). Dipakai dashboard akun.
+ * Pengambilan partai sebuah akun dari API publik chess.com, lalu
+ * menyimpannya ke basis data lokal (basisData).
  *
- * Sama seperti pemilih partai, tetapi tanpa komponen UI — hasilnya hanya
- * data. Progres dilaporkan lewat `onProgress`; pembatalan lewat `signal`.
+ * Mendukung filter periode (mingguan/bulanan/tahunan/semua) untuk mencegah
+ * browser stag saat akun punya 1jt partai.
  *
  * Pengaman unduhan:
  *  - `sedangMengunduh` — satu akun yang sama hanya boleh satu unduhan dalam
- *    satu waktu. Layar Akun dilepas dan dipasang lagi setiap pindah menu
- *    (Akun → Database → Akun); tanpa ini, menutup-buka popup saat unduhan
- *    panjang berjalan menembakkan unduhan PARALEL kedua (dan ketiga, …)
- *    untuk arsip yang sama → puluhan fetch beruntun + penumpukan teks PGN
- *    di memori sampai tab macet.
- *  - `kegagalanTerakhir` — bila unduhan gagal (jaringan/404/kuota), jangan
- *    tembak ulang otomatis dalam jeda singkat hanya karena popup dibuka
- *    lagi; pengguna bisa memaksa lewat tombol "Tarik data" (`paksa: true`).
+ *    satu waktu.
+ *  - `kegagalanTerakhir` — bila unduhan gagal, jangan tembak ulang otomatis
+ *    dalam jeda singkat.
  */
 import { hitungPlyPgn } from "../../../lib/pgnRingan.js";
 import { simpanBanyakPartai } from "../basisData.js";
@@ -24,6 +19,38 @@ const JEDE_GAGAL_MS = 60_000;
 
 const sedangMengunduh = new Map(); // username(huruf kecil) → Promise
 const kegagalanTerakhir = new Map(); // username(huruf kecil) → timestamp
+
+/* Periode filter untuk tarik data — mencegah 1jt partai langsung diunduh */
+export const PERIODE_TARIK_MS = {
+  mingguan: 7 * 24 * 3600 * 1000,
+  bulanan: 31 * 24 * 3600 * 1000,
+  tahunan: 366 * 24 * 3600 * 1000,
+  semua: Infinity,
+  // alias dari UI Database lama
+  "7d": 7 * 24 * 3600 * 1000,
+  "30d": 30 * 24 * 3600 * 1000,
+  "90d": 90 * 24 * 3600 * 1000,
+  "1y": 365 * 24 * 3600 * 1000,
+  all: Infinity,
+};
+
+function cutoffDariPeriode(periode) {
+  const key = String(periode || "semua").toLowerCase();
+  const ms = PERIODE_TARIK_MS[key] ?? PERIODE_TARIK_MS.semua;
+  if (!Number.isFinite(ms)) return 0; // semua = 0 artinya tidak ada cutoff
+  return Date.now() - ms;
+}
+
+/* Cek apakah arsip bulan/tahun masih relevan dengan cutoff */
+function arsipRelevan(tahunStr, bulanStr, cutoffMs) {
+  if (!cutoffMs) return true; // semua
+  const t = Number(tahunStr);
+  const b = Number(bulanStr);
+  if (!Number.isFinite(t) || !Number.isFinite(b)) return true;
+  // akhir bulan arsip: new Date(t, b, 0) -> b 1-12, day 0 = last day of month b
+  const akhirBulan = new Date(t, b, 0).getTime();
+  return akhirBulan >= cutoffMs;
+}
 
 /** Ubah satu objek partai mentah chess.com → baris metadata basisData. */
 function olahPartaiChessCom(game) {
@@ -49,28 +76,20 @@ function olahPartaiChessCom(game) {
 }
 
 /**
- * Ambil seluruh partai akun chess.com dan simpan ke basisData.
+ * Ambil partai akun chess.com dan simpan ke basisData, dengan filter periode.
  *
  * @param {object} [opsi]
- * @param {boolean} [opsi.paksa=false] abaikan jeda kegagalan & unduhan
- *   berjalan (dipakai tombol "Tarik data" / refresh manual).
- * @returns {Promise<object[]>} daftar partai (metadata) urut tanggal terbaru.
+ * @param {boolean} [opsi.paksa=false] abaikan jeda kegagalan & unduhan berjalan
+ * @param {string} [opsi.periode="semua"] "mingguan" | "bulanan" | "tahunan" | "semua"
+ * @returns {Promise<object[]>} daftar partai urut terbaru
  */
-export async function muatPartaiChessCom(username, { onProgress, signal, paksa = false } = {}) {
+export async function muatPartaiChessCom(username, { onProgress, signal, paksa = false, periode = "semua" } = {}) {
   const user = String(username || "").trim();
   const kunci = user.toLowerCase();
 
-  // Unduhan yang sama masih berjalan (mis. popup ditutup-lalu-dibuka saat
-  // menarik arsip) → ikut menunggu hasilnya, bukan memulai unduhan baru.
-  // Pengecualian: unduhan yang sedang berjalan DIPAKSA (tombol "Tarik
-  // data") — biarkan pemanggil memulai unduhan baru.
   const berjalan = sedangMengunduh.get(kunci);
   if (berjalan && !paksa) return berjalan.janji;
 
-  // Baru saja gagal: jangan tembak ulang otomatis saat popup dibuka lagi.
-  // Dicek SEBELUM membuat unduhan baru, tetapi jeda baru baru dicatat
-  // setelah unduhan benar-benar selesai gagal — supaya beberapa pemicu
-  // paralel saat jaringan mati tidak saling menghitung sebagai percobaan.
   if (!paksa) {
     const gagalPada = kegagalanTerakhir.get(kunci) || 0;
     if (gagalPada && Date.now() - gagalPada < JEDE_GAGAL_MS) {
@@ -78,7 +97,7 @@ export async function muatPartaiChessCom(username, { onProgress, signal, paksa =
     }
   }
 
-  const janji = muatPartaiChessComInti(user, { onProgress, signal });
+  const janji = muatPartaiChessComInti(user, { onProgress, signal, periode });
   const entri = { janji };
   sedangMengunduh.set(kunci, entri);
   try {
@@ -93,16 +112,23 @@ export async function muatPartaiChessCom(username, { onProgress, signal, paksa =
   }
 }
 
-async function muatPartaiChessComInti(user, { onProgress, signal } = {}) {
+async function muatPartaiChessComInti(user, { onProgress, signal, periode = "semua" } = {}) {
+  const cutoffMs = cutoffDariPeriode(periode);
+
   const res = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(user.toLowerCase())}/games/archives`, { signal });
   if (!res.ok) throw Object.assign(new Error(String(res.status)), { status: res.status });
   const json = await res.json();
-  const arsip = (Array.isArray(json?.archives) ? json.archives : [])
+  let arsip = (Array.isArray(json?.archives) ? json.archives : [])
     .map((alamat) => {
       const pecahan = alamat.split("/");
       return { tahun: pecahan.at(-2), bulan: pecahan.at(-1), url: alamat };
     })
     .toReversed();
+
+  // Filter arsip berdasarkan periode — ini yang mencegah 1jt partai langsung diunduh
+  if (cutoffMs) {
+    arsip = arsip.filter((a) => arsipRelevan(a.tahun, a.bulan, cutoffMs));
+  }
 
   const semua = [];
   for (let i = 0; i < arsip.length; i += ANTREAN_ARSIP) {
@@ -114,7 +140,12 @@ async function muatPartaiChessComInti(user, { onProgress, signal } = {}) {
           const jawaban = await fetch(bulan.url, { signal });
           if (!jawaban.ok) return [];
           const isi = await jawaban.json();
-          return (Array.isArray(isi?.games) ? isi.games : []).map(olahPartaiChessCom).filter(Boolean);
+          let daftar = (Array.isArray(isi?.games) ? isi.games : []).map(olahPartaiChessCom).filter(Boolean);
+          // Filter per game juga, untuk kasus bulan yang sebagian di luar periode
+          if (cutoffMs) {
+            daftar = daftar.filter((g) => (g.timestamp || 0) >= cutoffMs);
+          }
+          return daftar;
         } catch (e) {
           if (e?.name === "AbortError") throw e;
           return [];
