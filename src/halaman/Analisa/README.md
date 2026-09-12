@@ -48,6 +48,15 @@ Dua kelas disesuaikan dari upstream (`navTop:h-screen`→`navTop:h-full`,
 `w-screen`→`w-full`) karena di sini bilah tinggal di dalam area kerja yang
 diukur, bukan menempel ke `body`.
 
+Tata letak tombol burger (bilah menciut) mengikuti blok sidebar contoh di
+`src/components/ui/sidebar.jsx`, tanpa memindahkan bilah ini ke komponen itu:
+lajur menciut 3rem (`w-12`) dengan bantalan 8px, setiap tombol — termasuk
+burger — menjadi kotak 2rem (`w-8 h-8`) yang bantalannya tetap 8px, sehingga
+ikon duduk tepat di tengah lajur dan tidak bergeser saat bilah dibuka/ditutup.
+Yang menyusut hanya lebar tombol, gap, label menu, dan wordmark `BlunderSkuad`
+(keduanya max-width + opacity); `title`/`aria-label` tetap jadi pengganti
+tooltip saat label hilang.
+
 ## Konvensi penting
 
 - **Skor engine** (`staticEval`) selalu sudut pandang putih relatif terhadap

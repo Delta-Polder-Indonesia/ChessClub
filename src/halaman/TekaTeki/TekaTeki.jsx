@@ -1233,6 +1233,7 @@ export default function TekaTeki() {
         onJatuh={cobaLangkah}
         onTandaPetak={tandaPetak}
         onTandaPanah={tandaPanah}
+        onHapusTanda={hapusSemuaTanda}
       />
       {promosi && (
         <div
