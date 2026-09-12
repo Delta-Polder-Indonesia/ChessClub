@@ -1,35 +1,20 @@
 /*
- * Panel statistik pemain (kolom kanan layar akun) — meniru PersonalCard.tsx
- * pada En Croissant: nama pemain besar di tengah, tab bergaris
- * Overview / Ratings / Openings, selector berlabel "Website" & "Time
- * control", hasil W/D/L sebagai bar tersegmen berpersen, grafik batang
- * (overview) & area (ratings) biru, dan kolom Putih/Hitam untuk pembukaan.
- * Kartu akun (avatar/rating/games) berada di komponen terpisah (KartuAkun)
- * pada kolom kiri; komponen ini hanya menampilkan statistik.
+ * Panel statistik pemain (kolom kanan layar akun) — hanya info profile.
+ * UPDATE: tombol tarik data dihapus — tarik data dipindah ke Database
+ * dengan filter periode (mingguan/bulanan/tahunan/semua).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
-import { muatPartaiChessCom } from "./muatPartaiAkun.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
 import Database from "../komponen/svg/database.jsx";
 import DualRingSpinner from "../komponen/loading/DualRingSpinner.jsx";
 
-/** Biru khas chart En Croissant (mantine blue-filled). */
 const BIRU = "#4a9dd9";
 
-/*
- * Cache per sesi: koleksiId → { revisi, daftar } partai yang sudah dimuat.
- * Layar akun dilepas setiap pindah menu (Akun → Database → Akun), sehingga
- * tanpa cache statistik selalu memindai ulang basis lokal dan menampilkan
- * "Memuat…" lagi padahal datanya tidak berubah. Revisi basis ikut disimpan:
- * bila ada tulis (unduh baru, hapus partai di Database, dst.) revisi berubah
- * dan cache otomatis dianggap basi. Refresh tombol ↻ juga memaksa baca ulang.
- */
 const cachePartai = new Map();
 
-/** Bar W/D/L tersegmen ala En Croissant (hijau/abu/merah) + label % bila cukup lebar. */
 function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
   const total = w + d + l || 1;
   const seg = (nilai, warna) => {
@@ -56,7 +41,6 @@ function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
   );
 }
 
-/** Grafik batang partai per tahun (Overview), bisa diklik untuk zoom tahun. */
 function GrafikTahunan({ data }) {
   const [tahun, setTahun] = useState(null);
   const bars = tahun ? data.filter((x) => x.tahun === tahun) : data;
@@ -98,8 +82,7 @@ function GrafikTahunan({ data }) {
   );
 }
 
-/** Grafik area riwayat rating (Ratings) menggunakan Recharts bergaya interaktif (seperti prompt.md). */
-function GrafikRiwayat({ poin, min, max }) {
+function GrafikRiwayat({ poin }) {
   if (!poin || poin.length < 2) {
     return <div className="grid h-48 place-items-center text-sm text-foregroundGrey">—</div>;
   }
@@ -155,21 +138,13 @@ function GrafikRiwayat({ poin, min, max }) {
             );
           }}
         />
-        <Area
-          type="monotone"
-          dataKey="rating"
-          stroke={BIRU}
-          strokeWidth={2.5}
-          fillOpacity={1}
-          fill="url(#colorRating)"
-        />
+        <Area type="monotone" dataKey="rating" stroke={BIRU} strokeWidth={2.5} fillOpacity={1} fill="url(#colorRating)" />
       </AreaChart>
     </div>
   );
 }
 
-/** Baris pembukaan ala En Croissant: nama + % + bar hasil. */
-function BarisPembukaan({ e, totalWarna }) {
+function BarisPembukaan({ e }) {
   return (
     <div className="flex flex-col gap-2 px-1 py-3">
       <div className="flex items-center justify-between gap-2 text-[13px]">
@@ -181,111 +156,70 @@ function BarisPembukaan({ e, totalWarna }) {
   );
 }
 
-function MuatNegara({ isi, tombol, onKlik }) {
+function MuatNegara({ isi }) {
   return (
     <div className="flex flex-col items-center gap-4 py-14 text-center">
-      {tombol ? (
-        <div className="grid h-16 w-16 place-items-center rounded-full bg-backgroundBoxBoxHighlighted/20">
-          <Database width={30} height={30} class="fill-backgroundBoxBoxHighlighted" />
-        </div>
-      ) : (
-        <DualRingSpinner color={BIRU} />
-      )}
+      <DualRingSpinner color={BIRU} />
       <span className="max-w-xs text-sm text-foregroundGrey">{isi}</span>
-      {tombol ? (
-        <button
-          type="button"
-          onClick={onKlik}
-          className="cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover"
-        >
-          {tombol}
-        </button>
-      ) : null}
     </div>
   );
 }
 
-export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
+function KosongState({ isi, sub }) {
+  return (
+    <div className="flex flex-col items-center gap-4 py-14 text-center">
+      <div className="grid h-16 w-16 place-items-center rounded-full bg-backgroundBoxBoxHighlighted/20">
+        <Database width={30} height={30} class="fill-backgroundBoxBoxHighlighted" />
+      </div>
+      <span className="max-w-xs text-sm font-bold text-foreground">{isi}</span>
+      {sub ? <span className="max-w-xs text-xs leading-4 text-foregroundGrey">{sub}</span> : null}
+    </div>
+  );
+}
+
+export default function DashboardAkun({ platform, username }) {
   const { t } = useI18n();
   const [tab, setTab] = useState("overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
-  // Nilai awal dari cache sesi bila ada: kembali ke menu Akun dalam sesi yang
-  // sama langsung menampilkan statistik, tanpa kilatan "Memuat…" dulu.
   const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
-  // `games` selalu METADATA saja (tanpa teks PGN) — inilah yang di-cache dan
-  // dipakai tab Overview & Ratings. Teks PGN penuh hanya ditarik ke state
-  // terpisah (`gamesPgn`) saat tab Pembukaan benar-benar dibuka, dan dibuang
-  // lagi saat pindah tab / akun supaya tidak menumpuk di memori.
-  const [games, setGames] = useState(() => cachePartai.get(koleksiIdAwal)?.daftar ?? null); // null = memuat
-  const [gamesPgn, setGamesPgn] = useState(null); // null = PGN belum dimuat
-  const [galat, setGalat] = useState(false);
-  const [memuatLagi, setMemuatLagi] = useState(false);
+  const [games, setGames] = useState(() => cachePartai.get(koleksiIdAwal)?.daftar ?? null);
+  const [gamesPgn, setGamesPgn] = useState(null);
   const user = String(username || "").trim();
-  // Penjaga request basi: pindah akun / buka-tutup popup tidak boleh membuat
-  // hasil unduhan lama menimpa hasil yang lebih baru.
   const tokenMuat = useRef(0);
 
-  const muatData = useCallback(async (paksa = false) => {
+  const muatData = useCallback(async () => {
     const token = ++tokenMuat.current;
-    setMemuatLagi(paksa);
     const koleksiId = `${platform}:${user.toLowerCase()}`;
-    // Data sesi masih ada & basis tak berubah → tampilkan langsung tanpa
-    // memindai ulang basis lokal.
     const entri = cachePartai.get(koleksiId);
-    if (!paksa && entri && entri.revisi === bacaRevisiBasis()) {
+    if (entri && entri.revisi === bacaRevisiBasis()) {
       setGames(entri.daftar);
-      setGalat(false);
-      setMemuatLagi(false);
       return;
     }
     setGames(null);
     setGamesPgn(null);
-    setGalat(false);
     try {
-      let daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
-      // Unduhan hanya terjadi bila tombol "Tarik data" dipencet (`paksa`),
-      // tidak saat popup dibuka / pindah menu. Kalau belum ada data, dashboard
-      // menampilkan state kosong dengan tombol tarik manual.
-      if (daftar.length === 0 && platform === "chessCom" && paksa) {
-        await muatPartaiChessCom(user, { paksa: true });
-        if (token !== tokenMuat.current) return; // akun/popup sudah berganti
-        daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
-      }
-      if (daftar.length === 0 && platform !== "chessCom") {
-        daftar = (await ambilDaftarPartai({ platform, username: user, limit: 0, sertakanPgn: false }))?.partai || [];
-      }
+      const daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
       if (token !== tokenMuat.current) return;
-      // Cache hanya menyimpan metadata — teks PGN tidak ikut ditahan sesi.
       if (daftar.length > 0) cachePartai.set(koleksiId, { revisi: bacaRevisiBasis(), daftar });
       setGames(daftar);
-    } catch (e) {
+    } catch {
       if (token !== tokenMuat.current) return;
       setGames([]);
-      setGalat(true);
-    } finally {
-      if (token === tokenMuat.current) setMemuatLagi(false);
     }
   }, [platform, user]);
 
-  // `muatUlang` bertambah → paksa baca ulang (tombol ↻ di kartu akun).
   useEffect(() => {
-    if (user) muatData(muatUlang > 0);
-  }, [user, muatData, muatUlang]);
+    if (user) muatData();
+  }, [user, muatData]);
 
   useEffect(() => setSitus(platform), [platform]);
 
-  // Pindah akun → buang teks PGN tab Pembukaan yang lama.
   useEffect(() => {
     setGamesPgn(null);
   }, [platform, user]);
 
-  // Tab Pembukaan butuh teks PGN (nama pembukaan ada di header PGN). Tarik
-  // HANYA saat tab ini dibuka untuk akun yang aktif, dan buang lagi saat
-  // keluar tab — dulu effect ini hanya bergantung pada `tab`, sehingga pindah
-  // akun saat berada di tab Pembukaan menimpa data akun baru dengan PGN akun
-  // lama, dan daftar ber-PGN ikut masuk ke cache sesi (memori membengkak).
   useEffect(() => {
     if (tab !== "openings" || !user) {
       setGamesPgn(null);
@@ -307,14 +241,8 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
     };
   }, [tab, platform, user]);
 
-  // Overview & Ratings memakai metadata; tab Pembukaan memakai data ber-PGN.
   const gamesEfektif = tab === "openings" ? gamesPgn : games;
   const filteredGames = useMemo(() => (gamesEfektif ? gamesEfektif.filter((p) => p.platform === situs) : gamesEfektif), [gamesEfektif, situs]);
-  /*
-   * statsAkun.js membaca kunci `timeClass` (bukan `waktu`); dulu kuncinya
-   * salah nama sehingga filter Bullet/Blitz/Rapid di tab Overview &
-   * Pembukaan diam-diam diabaikan.
-   */
   const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }), [rentang, waktu, tab]);
 
   const overview = useMemo(() => (filteredGames ? ringkasanOverview(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
@@ -332,17 +260,24 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
   const totalPutih = openings?.putih.reduce((s, e) => s + e.jumlah, 0) || 0;
   const totalHitam = openings?.hitam.reduce((s, e) => s + e.jumlah, 0) || 0;
 
+  if (!user) {
+    return (
+      <div className="flex h-full w-full flex-col p-1">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
+          <KosongState isi={t("analisa.akun.kosongJudul")} sub={t("analisa.akun.kosongIsi")} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full w-full flex-col p-1">
-      {/* ===== Panel statistik pemain ===== */}
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
-        {/* Nama pemain + tombol info */}
         <div className="relative px-4 pt-4">
           <span className="block text-center text-xl font-bold text-foreground">{user}</span>
           <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
         </div>
 
-        {/* Tab bergaris ala Mantine outline */}
         <div className="flex border-b border-border px-4 pt-2">
           {tabKunci.map((x) => (
             <button
@@ -358,7 +293,6 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
           ))}
         </div>
 
-        {/* Filter situs & waktu */}
         <div className="flex flex-wrap items-end gap-2 px-4 pt-3">
           <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
             {t("analisa.statistik.situs")}
@@ -378,7 +312,6 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
           </label>
         </div>
 
-        {/* Rentang tanggal (hanya tab Ratings) */}
         {tab === "ratings" ? (
           <div className="flex items-center justify-center gap-1 px-4 pt-3">
             {["7d", "30d", "90d", "1y", "all"].map((r) => (
@@ -396,20 +329,15 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
           </div>
         ) : null}
 
-        {/* Isi tab */}
         <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          {galat && !games ? (
-            <MuatNegara isi={t("analisa.statistik.akunTidakDitemukan")} tombol={t("analisa.statistik.tarik")} onKlik={() => muatData(true)} />
-          ) : games == null || (tab === "openings" && gamesPgn == null) ? (
-            <MuatNegara isi={memuatLagi ? t("analisa.statistik.tarikData") : t("analisa.statistik.memuat")} />
+          {games == null || (tab === "openings" && gamesPgn == null) ? (
+            <MuatNegara isi={t("analisa.statistik.memuat")} />
           ) : games.length === 0 ? (
-            <MuatNegara isi={t("analisa.statistik.belumAdaData")} tombol={t("analisa.statistik.tarik")} onKlik={() => muatData(true)} />
+            <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
           ) : tab === "overview" && overview ? (
             <div className="flex min-h-full flex-col gap-3">
               <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>
-              {overview.total > 0 ? (
-                <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" />
-              ) : null}
+              {overview.total > 0 ? <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" /> : null}
               <div className="mt-auto">
                 <GrafikTahunan data={overview.tahunan} />
               </div>

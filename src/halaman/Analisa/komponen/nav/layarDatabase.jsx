@@ -37,6 +37,7 @@ import {
   hitungStatistikKoleksiRingan,
   imporPgnKeBasisData,
 } from "../../basisData.js";
+import { muatPartaiChessCom } from "../../akun/muatPartaiAkun.js";
 
 /* ── Konstanta ─────────────────────────────────────────────────────── */
 
@@ -1003,6 +1004,11 @@ export default function LayarDatabase({
   const [memuatPemain, setMemuatPemain] = useState(false);
   const [memuatEvent, setMemuatEvent] = useState(false);
 
+  /* ── State Tarik Data dengan filter periode (minggu/bulan/tahun) ── */
+  const [tarikPeriode, setTarikPeriode] = useState("bulanan");
+  const [sedangTarik, setSedangTarik] = useState(false);
+  const [progresTarik, setProgresTarik] = useState({ current: 0, total: 0, bulan: null });
+
   /* Simpan pilihan mode & tab agar bertahan saat layar dilepas lalu dibuka lagi. */
   useEffect(() => {
     modeTersimpan = mode;
@@ -1531,6 +1537,45 @@ export default function LayarDatabase({
     }
   }
 
+  /* ── Tarik data dengan filter periode ── */
+  async function tanganiTarikData() {
+    if (!koleksi) {
+      tampilkanNotif("Pilih koleksi dulu.");
+      return;
+    }
+    if (koleksi.platform !== "chessCom") {
+      tampilkanNotif("Tarik data filter baru tersedia untuk Chess.com saja.");
+      return;
+    }
+    if (sedangTarik) return;
+    setSedangTarik(true);
+    setProgresTarik({ current: 0, total: 0, bulan: null });
+    try {
+      const username = koleksi.username;
+      const hasil = await muatPartaiChessCom(username, {
+        periode: tarikPeriode,
+        paksa: true,
+        onProgress: (cur, tot, bulan) => {
+          setProgresTarik({ current: cur, total: tot, bulan });
+        },
+      });
+      // refresh cache ringkasan
+      cacheRingkasan = null;
+      await muatMetadata();
+      await muatPartai();
+      tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${tarikPeriode}).`);
+    } catch (e) {
+      if (e?.cooldown) {
+        tampilkanNotif("Terlalu sering, coba lagi 1 menit.");
+      } else {
+        tampilkanNotif(`Gagal tarik: ${e?.message || "unknown"}`);
+      }
+    } finally {
+      setSedangTarik(false);
+      setProgresTarik({ current: 0, total: 0, bulan: null });
+    }
+  }
+
   function ubahUrut(kolom) {
     setUrut((lama) =>
       lama.kolom === kolom
@@ -1800,6 +1845,44 @@ export default function LayarDatabase({
                       t={t}
                       locale={locale}
                     />
+
+                    {/* ── Panel Tarik Data dengan Filter Periode ── */}
+                    <div className="shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">Tarik Data</div>
+                        <span className="text-[10px] text-foregroundGrey/70">Filter: minggu / bulan / tahun agar tidak stag 1jt game</span>
+                      </div>
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <DropdownPilih
+                          ariaLabel="Periode tarik"
+                          nilai={tarikPeriode}
+                          onPilih={setTarikPeriode}
+                          opsi={[
+                            { nilai: "mingguan", label: "Mingguan (7 hari)" },
+                            { nilai: "bulanan", label: "Bulanan (31 hari)" },
+                            { nilai: "tahunan", label: "Tahunan (366 hari)" },
+                            { nilai: "semua", label: "Semua (hati-hati 1jt)" },
+                          ]}
+                        />
+                        <button
+                          type="button"
+                          disabled={sedangTarik || !koleksi}
+                          onClick={tanganiTarikData}
+                          className="inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+                        >
+                          {sedangTarik ? <DualRingSpinner color="#000" /> : <Download className="h-3.5 w-3.5 shrink-0" />}
+                          <span>{sedangTarik ? "Menarik..." : "Tarik Data"}</span>
+                        </button>
+                        {sedangTarik && progresTarik.total > 0 ? (
+                          <span className="text-[11px] text-foregroundGrey">
+                            {progresTarik.current}/{progresTarik.total} {progresTarik.bulan ? `${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
+                          </span>
+                        ) : null}
+                      </div>
+                      {tarikPeriode === "semua" ? (
+                        <p className="mt-2 text-[11px] leading-4 text-lossRed/80">⚠️ Semua = unduh seluruh arsip. Jika akun punya 1jt partai, browser bisa stag. Gunakan Mingguan/Bulanan dulu.</p>
+                      ) : null}
+                    </div>
 
                     <hr className="shrink-0 border-border" />
 

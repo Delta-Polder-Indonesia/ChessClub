@@ -418,6 +418,86 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
 }
 
 /**
+ * Pastikan sebuah koleksi akun ada di basis (meski belum ada partai).
+ * Dipakai saat user mendaftar akun baru — agar langsung muncul di Database
+ * tanpa harus tarik data dulu.
+ */
+export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
+  const plat = String(platform || "").trim();
+  const user = String(username || "").trim();
+  if (!plat || !user) return null;
+  const koleksiId = `${plat}:${user.toLowerCase()}`;
+  const label = user
+    ? `${user} ${plat === "chessCom" ? "Chess.com" : plat === "lichessOrg" ? "Lichess.org" : plat}`
+    : plat;
+
+  const db = await bukaDB();
+  if (!db) {
+    if (!memoriKoleksi.has(koleksiId)) {
+      revisiBasis++;
+      memoriKoleksi.set(koleksiId, {
+        id: koleksiId,
+        platform: plat,
+        username: user,
+        label,
+        jumlahPartai: 0,
+        terakhirDisinkronkan: Date.now(),
+        dibuatPada: Date.now(),
+      });
+      simpanFallbackKeStorage();
+    }
+    return memoriKoleksi.get(koleksiId) || null;
+  }
+
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction([STORE_KOLEKSI], "readwrite");
+      const store = tx.objectStore(STORE_KOLEKSI);
+      const reqGet = store.get(koleksiId);
+      reqGet.onsuccess = () => {
+        const ada = reqGet.result;
+        if (ada) {
+          resolve(ada);
+          return;
+        }
+        revisiBasis++;
+        const baru = {
+          id: koleksiId,
+          platform: plat,
+          username: user,
+          label,
+          jumlahPartai: 0,
+          terakhirDisinkronkan: Date.now(),
+          dibuatPada: Date.now(),
+        };
+        store.put(baru);
+        tx.oncomplete = () => resolve(baru);
+        tx.onerror = () => resolve(baru);
+      };
+      reqGet.onerror = () => {
+        revisiBasis++;
+        const baru = {
+          id: koleksiId,
+          platform: plat,
+          username: user,
+          label,
+          jumlahPartai: 0,
+          terakhirDisinkronkan: Date.now(),
+          dibuatPada: Date.now(),
+        };
+        try {
+          store.put(baru);
+        } catch {}
+        resolve(baru);
+      };
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+
+/**
  * Ambil daftar semua koleksi / akun yang tersimpan di basis data.
  */
 export async function ambilSemuaKoleksi() {

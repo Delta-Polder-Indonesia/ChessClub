@@ -1,13 +1,8 @@
 /*
- * Kolom kiri layar akun — meniru komponen Accounts pada En Croissant:
- * menampilkan daftar kartu akun (KartuAkun) untuk setiap pemain yang sudah
- * didaftarkan, lalu tombol "Tambahkan akun". Bila belum ada akun, tampilkan
- * ajakan kosong dengan tombol tambah (gaya EmptyAccounts).
+ * Kolom kiri layar akun — menampilkan daftar kartu akun (KartuAkun)
+ * untuk setiap pemain yang sudah didaftarkan, lalu tombol "Tambahkan akun".
  *
- * Tombol tambah TIDAK lagi membuka modal. Formulirnya (FormulirAkun) tampil
- * sejajar di dalam kolom ini, menggantikan daftar sementara, lalu daftar
- * kembali setelah akun tersimpan. Ini sejalan dengan keputusan halaman:
- * tidak ada lagi popup di fitur Analisa.
+ * UPDATE: tombol tarik data dihapus dari daftar akun — hanya info profile.
  */
 import { useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
@@ -15,13 +10,11 @@ import KartuAkun from "./KartuAkun.jsx";
 import FormulirAkun from "./FormulirAkun.jsx";
 import Profile from "../komponen/svg/profile.jsx";
 
-export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, onRefresh }) {
+export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah }) {
   const { t } = useI18n();
   const [buka, setBuka] = useState(false);
   const list = daftar || [];
 
-  // Sedang menambah akun: formulir mengambil alih seluruh kolom, jadi tidak
-  // ada tumpukan kartu yang mengganggu saat pengguna mengetik nama.
   if (buka) {
     return (
       <div className="flex h-full w-full flex-col gap-3 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
@@ -41,7 +34,6 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, 
   return (
     <div className="flex h-full w-full flex-col gap-3 overflow-hidden">
       {list.length === 0 ? (
-        /* Keadaan kosong — sama seperti EmptyAccounts en-croissant */
         <div className="flex h-full flex-col items-center justify-center gap-4 px-4 py-8 text-center">
           <div className="grid h-16 w-16 place-items-center rounded-full bg-backgroundBoxBoxHighlighted/20">
             <Profile width={30} height={30} class="fill-backgroundBoxBoxHighlighted" />
@@ -72,7 +64,6 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah, 
                   aktif={aktif?.platform === a.platform && String(aktif?.username || "").toLowerCase() === String(a.username || "").toLowerCase()}
                   onPilih={() => onPilih(a.platform, a.username)}
                   onHapus={() => onHapus(a.platform, a.username)}
-                  onRefresh={() => onRefresh?.(a.platform, a.username)}
                 />
               </div>
             ))}
