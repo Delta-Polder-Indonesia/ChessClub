@@ -579,6 +579,11 @@ export default function PapanInteraktif() {
     }
   }
 
+  /** Hapus semua tanda bantu pengguna (panah + mark petak) — satu pintu. */
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
+  }
+
   function klikPetak(petak) {
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
@@ -586,7 +591,7 @@ export default function PapanInteraktif() {
     }
     // Bersihkan panah/tanda lebih dulu — termasuk saat mengklik bidak.
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
-      setTanda({ panah: [], petak: {} });
+      hapusSemuaTanda();
     }
     if (!fen || promosi) return;
     if (terpilih && sasaran.includes(petak)) {
@@ -1350,6 +1355,7 @@ export default function PapanInteraktif() {
                     onJatuh={cobaLangkah}
                     onTandaPetak={tandaPetak}
                     onTandaPanah={tandaPanah}
+                    onHapusTanda={hapusSemuaTanda}
                   />
 
                   {promosi && (

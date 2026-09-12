@@ -218,7 +218,13 @@ function titikKePoints(titik) {
  *  - Tahan klik kanan lalu seret = gambar panah oranye (lurus; siku untuk
  *    langkah kuda).
  *  - Klik kanan pada petak yang sudah bertanda = hapus SEMUA tanda & panah.
- *  - Klik kiri pada petak kosong (tanpa aksi permainan) = hapus SEMUA tanda.
+ *  - Klik kiri di mana pun pada papan = hapus SEMUA tanda & panah — termasuk
+ *    saat yang ditekan bidak sendiri. Ini mengikuti Analisa
+ *    (`komponen/game/board.jsx`: `cleanArrows()` pada mousedown), dan
+ *    memang harus di `pointerdown`, bukan di `click`: menekan bidak sendiri
+ *    memulai seret + `setPointerCapture` pada elemen papan, sehingga event
+ *    `click` tidak lagi mendarat di tombol petaknya dan penghapusan lewat
+ *    `onClick` (jalur lama) tidak pernah berjalan.
  *  - Shift/Ctrl/Alt saat menandai memilih warna merah/hijau/biru.
  *
  * Lencana di pojok petak:
@@ -250,6 +256,7 @@ export default function PapanTekaTeki({
   onBatalSeret,
   onTandaPetak,
   onTandaPanah,
+  onHapusTanda,
 }) {
   const { t } = useI18n();
   const peta = petaBidak(fen);
@@ -445,7 +452,21 @@ export default function PapanTekaTeki({
       }
       return;
     }
-    if (e.button !== 0 || terkunci) return;
+    if (e.button !== 0) return;
+    /*
+     * Klik kiri di mana pun menghapus tanda & panah pengguna — perilaku yang
+     * sama dengan Analisa (`cleanArrows()` pada mousedown). Diletakkan SEBELUM
+     * penjagaan `terkunci` supaya tanda tetap bisa dibersihkan saat giliran
+     * komputer, soal sudah selesai, atau pemilih promosi terbuka.
+     *
+     * Tidak boleh dipindahkan ke `onClick` petak: menekan bidak sendiri
+     * memulai seret + `setPointerCapture` pada elemen papan, sehingga event
+     * `click` tidak mendarat di tombol petak dan `onKlik` (tempat induk
+     * membersihkan tanda) tidak pernah dipanggil — itulah sebabnya dulu hanya
+     * petak kosong/bidak lawan yang bisa menghapus gambar.
+     */
+    onHapusTanda?.();
+    if (terkunci) return;
     baruBatalRef.current = false;
     const bidak = peta[petakAwal];
     const warnaBidak = bidak ? (bidak === bidak.toUpperCase() ? "w" : "b") : null;
