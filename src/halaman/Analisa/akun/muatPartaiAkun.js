@@ -81,9 +81,10 @@ function olahPartaiChessCom(game) {
  * @param {object} [opsi]
  * @param {boolean} [opsi.paksa=false] abaikan jeda kegagalan & unduhan berjalan
  * @param {string} [opsi.periode="semua"] "mingguan" | "bulanan" | "tahunan" | "semua"
+ * @param {string} [opsi.tanggal] "YYYY-MM-DD" — hanya partai di hari itu yang diambil
  * @returns {Promise<object[]>} daftar partai urut terbaru
  */
-export async function muatPartaiChessCom(username, { onProgress, signal, paksa = false, periode = "semua" } = {}) {
+export async function muatPartaiChessCom(username, { onProgress, signal, paksa = false, periode = "semua", tanggal } = {}) {
   const user = String(username || "").trim();
   const kunci = user.toLowerCase();
 
@@ -97,7 +98,7 @@ export async function muatPartaiChessCom(username, { onProgress, signal, paksa =
     }
   }
 
-  const janji = muatPartaiChessComInti(user, { onProgress, signal, periode });
+  const janji = muatPartaiChessComInti(user, { onProgress, signal, periode, tanggal });
   const entri = { janji };
   sedangMengunduh.set(kunci, entri);
   try {
@@ -112,8 +113,14 @@ export async function muatPartaiChessCom(username, { onProgress, signal, paksa =
   }
 }
 
-async function muatPartaiChessComInti(user, { onProgress, signal, periode = "semua" } = {}) {
+async function muatPartaiChessComInti(user, { onProgress, signal, periode = "semua", tanggal } = {}) {
   const cutoffMs = cutoffDariPeriode(periode);
+  // Mode satu hari ("Kustom"): hanya arsip bulan itu, per partai startOfDay ≤ ts < endOfDay
+  const kunciBulan = typeof tanggal === "string" && /^\d{4}-\d{2}-\d{2}$/.test(tanggal)
+    ? tanggal.slice(0, 7).replace("-", "/")
+    : "";
+  const mulaiHari = kunciBulan ? new Date(`${tanggal}T00:00:00`).getTime() : 0;
+  const akhirHari = kunciBulan ? mulaiHari + 24 * 3600 * 1000 : 0;
 
   const res = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(user.toLowerCase())}/games/archives`, { signal });
   if (!res.ok) throw Object.assign(new Error(String(res.status)), { status: res.status });
@@ -126,7 +133,9 @@ async function muatPartaiChessComInti(user, { onProgress, signal, periode = "sem
     .toReversed();
 
   // Filter arsip berdasarkan periode — ini yang mencegah 1jt partai langsung diunduh
-  if (cutoffMs) {
+  if (kunciBulan) {
+    arsip = arsip.filter((a) => `${a.tahun}/${a.bulan}` === kunciBulan);
+  } else if (cutoffMs) {
     arsip = arsip.filter((a) => arsipRelevan(a.tahun, a.bulan, cutoffMs));
   }
 
@@ -141,8 +150,13 @@ async function muatPartaiChessComInti(user, { onProgress, signal, periode = "sem
           if (!jawaban.ok) return [];
           const isi = await jawaban.json();
           let daftar = (Array.isArray(isi?.games) ? isi.games : []).map(olahPartaiChessCom).filter(Boolean);
-          // Filter per game juga, untuk kasus bulan yang sebagian di luar periode
-          if (cutoffMs) {
+          // Filter per game juga, untuk kasus bulan yang sebagian di luar periode/hari target
+          if (kunciBulan) {
+            daftar = daftar.filter((g) => {
+              const ts = g.timestamp || 0;
+              return ts >= mulaiHari && ts < akhirHari;
+            });
+          } else if (cutoffMs) {
             daftar = daftar.filter((g) => (g.timestamp || 0) >= cutoffMs);
           }
           return daftar;

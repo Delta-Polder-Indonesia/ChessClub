@@ -82,6 +82,7 @@ export default function Nav() {
   // klik kedua benar-benar mengosongkan papan. Mencegah analisis panjang
   // hilang hanya karena salah tekan.
   const [konfirmasiBaru, setKonfirmasiBaru] = useState(false);
+  const [navTerbuka, setNavTerbuka] = useState(true);
   const timerKonfirmasi = useRef(null);
   useEffect(() => () => window.clearTimeout(timerKonfirmasi.current), []);
 
@@ -149,6 +150,14 @@ export default function Nav() {
     "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer";
 
   /**
+   * Label menu yang bisa menciut (max-width/opacity) saat bilah ditutup —
+   * persis perilaku sidebar Pengurus: ikon diam, label menyusut.
+   */
+  const kelasLabelNav = `overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block ${
+    navTerbuka ? "navTop:max-w-[140px] navTop:opacity-100" : "navTop:max-w-0 navTop:opacity-0"
+  }`;
+
+  /**
    * Tombol "Bermain" = memilih layar papan. Ia TIDAK lagi mengosongkan
    * `data`, `akun`, dan `pageState`: karena papan tidak pernah dilepas,
    * berpindah layar tidak boleh membuang analisis yang sedang direview.
@@ -193,9 +202,21 @@ export default function Nav() {
   }
 
   return (
-    <nav className="flex flex-col navTop:h-full navTop:w-max navTop:shrink-0 w-full relative">
+    <nav className={`flex flex-col navTop:h-full w-full relative ${navTerbuka ? "navTop:w-[210px]" : "navTop:w-[52px]"} navTop:shrink-0 navTop:transition-[width] navTop:duration-300 navTop:ease-[cubic-bezier(0.22,1,0.36,1)]`}>
       <div className="navTop:pt-1 navTop:pb-6 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
         <div className="flex navTop:flex-col flex-row">
+          <button
+            type="button"
+            data-uji="nav-tutup"
+            onClick={() => setNavTerbuka((t) => !t)}
+            title={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
+            aria-label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
+            className="hidden navTop:flex navTop:shrink-0 navTop:items-center navTop:justify-center navTop:h-9 navTop:px-3 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer"
+          >
+            <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
           <Link draggable={false} to="/" className="flex flex-row items-center gap-1 navTop:py-2.5 navTop:px-3 p-1.5 transition-colors hover:bg-backgroundBoxHover">
             <span className="navTop:block hidden leading-none font-bold text-[22px] tracking-tight text-foreground">
               Blunder<span className="text-backgroundBoxBoxHighlighted">Skuad</span>
@@ -239,7 +260,7 @@ export default function Nav() {
                   }`}
                 >
                   {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
-                  <span className="navTop:block hidden">{label}</span>
+                  <span className={kelasLabelNav}>{label}</span>
                 </button>
               );
             })}
@@ -252,12 +273,12 @@ export default function Nav() {
               return link.to ? (
                 <Link draggable={false} key={i} to={link.to} className={kelas}>
                   {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                  <span className="navTop:block hidden">{link.label}</span>
+                  <span className={kelasLabelNav}>{link.label}</span>
                 </Link>
               ) : (
                 <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} className={kelas}>
                   {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
-                  <span className="navTop:block hidden">{link.label}</span>
+                  <span className={kelasLabelNav}>{link.label}</span>
                 </a>
               );
             })}

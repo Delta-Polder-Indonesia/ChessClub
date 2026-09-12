@@ -23,6 +23,16 @@ import Trash from "../svg/trash.jsx";
 import Download from "../svg/download.jsx";
 import Back from "../svg/back.jsx";
 import DualRingSpinner from "../loading/DualRingSpinner.jsx";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../../../../components/ui/alert-dialog.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import {
   ambilDaftarPartai,
@@ -35,7 +45,6 @@ import {
   hapusPartai,
   hitungStatistikBasisData,
   hitungStatistikKoleksiRingan,
-  imporPgnKeBasisData,
 } from "../../basisData.js";
 import { muatPartaiChessCom } from "../../akun/muatPartaiAkun.js";
 
@@ -99,6 +108,12 @@ function formatTanggal(timestamp, locale = "id") {
   }
 }
 
+function formatTanggalKustom(tgl) {
+  const b = String(tgl || "").split("-");
+  if (b.length !== 3) return tgl;
+  return `${Number(b[2])}/${Number(b[1])}/${b[0]}`;
+}
+
 function daftarHalaman(aktif, total) {
   return Array.from({ length: LEBAR_JENDELA_HALAMAN }, (_, i) => aktif + i).filter(
     (hlm) => hlm <= total,
@@ -106,24 +121,6 @@ function daftarHalaman(aktif, total) {
 }
 
 /* ── SVG Ikon Internal ─────────────────────────────────────────────── */
-
-function IkonPlus({ className = "h-3.5 w-3.5" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
 
 function IkonCopy({ className = "h-3.5 w-3.5" }) {
   return (
@@ -253,7 +250,7 @@ function IkonSort({ aktif, arah }) {
  * diganti CSS — makanya "gantung" sendiri. Panel ini milik kita sendiri:
  * latar hitam-abu (#2a2a2a) dan sorotan/item terpilih warna HITAM.
  */
-function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
+function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri", keAtas = false, labelKhusus, kontenAtas }) {
   const [terbuka, setTerbuka] = useState(false);
   const wadahRef = useRef(null);
 
@@ -274,6 +271,7 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
   }, [terbuka]);
 
   const aktif = opsi.find((o) => o.nilai === nilai) ?? opsi[0];
+  const labelTampil = labelKhusus !== undefined ? labelKhusus : (aktif?.label ?? "");
 
   return (
     <div ref={wadahRef} className="relative">
@@ -285,7 +283,7 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
         onClick={() => setTerbuka((b) => !b)}
         className="flex cursor-pointer items-center justify-between gap-2 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted"
       >
-        <span className="max-w-[220px] truncate">{aktif?.label ?? ""}</span>
+        <span className="max-w-[220px] truncate">{labelTampil}</span>
         <svg
           width="10"
           height="10"
@@ -303,12 +301,15 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
       </button>
 
       {terbuka ? (
-        <ul
-          role="listbox"
-          className={`absolute top-full z-[1200] mt-1 w-max min-w-full max-w-[320px] overflow-y-auto rounded-borderRoundness border border-border bg-[#2a2a2a] py-1 shadow-2xl ${
+        <div
+          className={`absolute z-[1200] w-max min-w-full max-w-[320px] rounded-borderRoundness border border-border bg-[#2a2a2a] shadow-2xl ${
+            keAtas ? "bottom-full mb-1" : "top-full mt-1"
+          } ${
             sejajar === "kanan" ? "right-0" : "left-0"
           }`}
         >
+          {kontenAtas ? <div className="border-b border-border p-2">{kontenAtas}</div> : null}
+          <ul role="listbox" className="py-1">
           {opsi.map((o) => {
             const dipilih = o.nilai === nilai;
             return (
@@ -331,7 +332,8 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri" }) {
               </li>
             );
           })}
-        </ul>
+          </ul>
+        </div>
       ) : null}
     </div>
   );
@@ -987,12 +989,10 @@ export default function LayarDatabase({
   const [stats, setStats] = useState(null);
   const [memuat, setMemuat] = useState(true);
 
-  const [modalImpor, setModalImpor] = useState(false);
-  const [teksPgn, setTeksPgn] = useState("");
-  const [prosesImpor, setProsesImpor] = useState(false);
-
   const [salinSuksesId, setSalinSuksesId] = useState(null);
   const [notifikasi, setNotifikasi] = useState(null);
+  const [dialogTarikBesar, setDialogTarikBesar] = useState(false);
+  const [dialogEksporKosong, setDialogEksporKosong] = useState(false);
 
   // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
   const [mode, setMode] = useState(modeTersimpan);
@@ -1008,6 +1008,7 @@ export default function LayarDatabase({
 
   /* ── State Tarik Data dengan filter periode (minggu/bulan/tahun) ── */
   const [tarikPeriode, setTarikPeriode] = useState("bulanan");
+  const [kustomTanggal, setKustomTanggal] = useState("");
   const [sedangTarik, setSedangTarik] = useState(false);
   const [progresTarik, setProgresTarik] = useState({ current: 0, total: 0, bulan: null });
 
@@ -1434,18 +1435,19 @@ export default function LayarDatabase({
     }
   }
 
-  async function tanganiEksporPgn() {
+  async function tanganiEksporPgn(id) {
     try {
+      const koleksiId = id ?? koleksiTerpilih;
       let plat = "";
       let user = "";
-      if (koleksiTerpilih) {
-        const [p, ...rest] = koleksiTerpilih.split(":");
+      if (koleksiId) {
+        const [p, ...rest] = koleksiId.split(":");
         plat = p;
         user = rest.join(":");
       }
 
       const pgnString = await eksporPgnKoleksi({
-        koleksiId: koleksiTerpilih || undefined,
+        koleksiId: koleksiId || undefined,
         platform: plat || undefined,
         username: user || undefined,
         cari,
@@ -1454,7 +1456,7 @@ export default function LayarDatabase({
       });
 
       if (!pgnString) {
-        tampilkanNotif("Tidak ada partai untuk diekspor.");
+        setDialogEksporKosong(true);
         return;
       }
 
@@ -1464,8 +1466,8 @@ export default function LayarDatabase({
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       const namaFile = `kci-catur-${
-        koleksiTerpilih
-          ? koleksiTerpilih.replace(":", "-")
+        koleksiId
+          ? koleksiId.replace(":", "-")
           : "semua"
       }-${Date.now()}.pgn`;
       a.href = url;
@@ -1489,10 +1491,11 @@ export default function LayarDatabase({
     tampilkanNotif("Partai berhasil dihapus dari basis data.");
   }
 
-  async function tanganiHapusKoleksi() {
-    if (!koleksiTerpilih) return;
-    const kol = koleksiList.find((k) => k.id === koleksiTerpilih);
-    const label = kol?.label || koleksiTerpilih;
+  async function tanganiHapusKoleksi(id) {
+    const koleksiId = id ?? koleksiTerpilih;
+    if (!koleksiId) return;
+    const kol = koleksiList.find((k) => k.id === koleksiId);
+    const label = kol?.label || koleksiId;
     const jlh = kol?.jumlahPartai || totalPartai;
     if (
       !window.confirm(
@@ -1504,8 +1507,8 @@ export default function LayarDatabase({
     )
       return;
 
-    await hapusKoleksi(koleksiTerpilih);
-    setKoleksiTerpilih("");
+    await hapusKoleksi(koleksiId);
+    setKoleksiTerpilih((lama) => (lama === koleksiId ? "" : lama));
     await muatMetadata();
     await muatPartai();
     tampilkanNotif(`Koleksi ${label} berhasil dihapus.`);
@@ -1520,25 +1523,6 @@ export default function LayarDatabase({
     tampilkanNotif("Seluruh basis data telah dikosongkan.");
   }
 
-  async function tanganiSimpanImporPgn() {
-    if (!teksPgn.trim()) return;
-    setProsesImpor(true);
-    try {
-      const res = await imporPgnKeBasisData(teksPgn);
-      setModalImpor(false);
-      setTeksPgn("");
-      await muatMetadata();
-      await muatPartai();
-      tampilkanNotif(
-        t("analisa.basisData.imporSukses", { jumlah: res.tersimpan || 1 }),
-      );
-    } catch {
-      tampilkanNotif("Gagal mengimpor PGN. Periksa format PGN Anda.");
-    } finally {
-      setProsesImpor(false);
-    }
-  }
-
   /* ── Tarik data dengan filter periode ── */
   async function tanganiTarikData() {
     if (!koleksi) {
@@ -1550,12 +1534,22 @@ export default function LayarDatabase({
       return;
     }
     if (sedangTarik) return;
+    if (!kustomTanggal && (tarikPeriode === "tahunan" || tarikPeriode === "semua")) {
+      setDialogTarikBesar(true);
+      return;
+    }
+    await mulaiTarikData();
+  }
+
+  async function mulaiTarikData() {
+    if (!koleksi || sedangTarik) return;
     setSedangTarik(true);
     setProgresTarik({ current: 0, total: 0, bulan: null });
     try {
       const username = koleksi.username;
       const hasil = await muatPartaiChessCom(username, {
         periode: tarikPeriode,
+        tanggal: kustomTanggal || undefined,
         paksa: true,
         onProgress: (cur, tot, bulan) => {
           setProgresTarik({ current: cur, total: tot, bulan });
@@ -1565,7 +1559,7 @@ export default function LayarDatabase({
       cacheRingkasan = null;
       await muatMetadata();
       await muatPartai();
-      tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${tarikPeriode}).`);
+      tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
     } catch (e) {
       if (e?.cooldown) {
         tampilkanNotif("Terlalu sering, coba lagi 1 menit.");
@@ -1819,6 +1813,36 @@ export default function LayarDatabase({
                           </div>
                         </div>
                       </div>
+
+                      {/* Aksi per kartu — stopPropagation agar tidak ikut memilih koleksi */}
+                      <div
+                        className="flex items-center gap-2"
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            tanganiEksporPgn(k.id);
+                          }}
+                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-[10px] font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer"
+                        >
+                          <Download className="h-3 w-3 shrink-0" />
+                          <span>{t("analisa.basisData.eksporPgn")}</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            tanganiHapusKoleksi(k.id);
+                          }}
+                          className="inline-flex flex-1 items-center justify-center gap-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-[10px] font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer"
+                        >
+                          <Trash className="h-3 w-3 shrink-0" />
+                          <span>{t("analisa.basisData.hapusKoleksi")}</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -1833,15 +1857,6 @@ export default function LayarDatabase({
               <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
                 {koleksi ? (
                   <>
-                    <button
-                      type="button"
-                      onClick={() => setMode("tabel")}
-                      className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2.5 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
-                    >
-                      <span>{t("analisa.basisData.explore")}</span>
-                      <span aria-hidden="true">→</span>
-                    </button>
-
                     <TabelRingkasan
                       koleksiId={koleksiTerpilih}
                       t={t}
@@ -1858,12 +1873,29 @@ export default function LayarDatabase({
                         <DropdownPilih
                           ariaLabel="Periode tarik"
                           nilai={tarikPeriode}
-                          onPilih={setTarikPeriode}
+                          onPilih={(nilai) => {
+                            setTarikPeriode(nilai);
+                            setKustomTanggal("");
+                          }}
+                          keAtas
+                          labelKhusus={kustomTanggal ? formatTanggalKustom(kustomTanggal) : undefined}
+                          kontenAtas={
+                            <label className="flex flex-col gap-1">
+                              <span className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">Cari tanggal</span>
+                              <input
+                                type="date"
+                                value={kustomTanggal}
+                                onChange={(e) => setKustomTanggal(e.target.value)}
+                                aria-label="Cari tanggal"
+                                className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted [color-scheme:dark]"
+                              />
+                            </label>
+                          }
                           opsi={[
                             { nilai: "mingguan", label: "Mingguan (7 hari)" },
                             { nilai: "bulanan", label: "Bulanan (31 hari)" },
                             { nilai: "tahunan", label: "Tahunan (366 hari)" },
-                            { nilai: "semua", label: "Semua (hati-hati 1jt)" },
+                            { nilai: "semua", label: "Semua" },
                           ]}
                         />
                         <button
@@ -1880,37 +1912,32 @@ export default function LayarDatabase({
                             {progresTarik.current}/{progresTarik.total} {progresTarik.bulan ? `${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
                           </span>
                         ) : null}
-                      </div>
-                      {tarikPeriode === "semua" ? (
-                        <p className="mt-2 text-[11px] leading-4 text-lossRed/80">⚠️ Semua = unduh seluruh arsip. Jika akun punya 1jt partai, browser bisa stag. Gunakan Mingguan/Bulanan dulu.</p>
-                      ) : null}
-                    </div>
-
-                    <hr className="shrink-0 border-border" />
-
-                    <div className="shrink-0">
-                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.aksi")}</div>
-                      <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5">
-                        <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
-                          <Download className="h-3.5 w-3.5 shrink-0" />
-                          <span>{t("analisa.basisData.eksporPgn")}</span>
+                        <button
+                          type="button"
+                          onClick={() => setMode("tabel")}
+                          className="inline-flex items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer sm:ml-auto"
+                        >
+                          <span>{t("analisa.basisData.explore")}</span>
+                          <span aria-hidden="true">→</span>
                         </button>
-                        <button type="button" onClick={() => setModalImpor(true)} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
-                          <IkonPlus className="h-3.5 w-3.5 shrink-0" />
-                          <span>{t("analisa.basisData.imporPgn")}</span>
-                        </button>
-                        <button type="button" onClick={tanganiHapusKoleksi} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                          <Trash className="h-3.5 w-3.5 shrink-0" />
-                          <span>{t("analisa.basisData.hapusKoleksi")}</span>
-                        </button>
-                        {!koleksiTerpilih && totalPartai > 0 ? (
-                          <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                            <Trash className="h-3.5 w-3.5 shrink-0" />
-                            <span>{t("analisa.basisData.hapusSemua")}</span>
-                          </button>
-                        ) : null}
                       </div>
                     </div>
+
+                    {!koleksiTerpilih && totalPartai > 0 ? (
+                      <>
+                        <hr className="shrink-0 border-border" />
+
+                        <div className="shrink-0">
+                          <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.aksi")}</div>
+                          <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5">
+                            <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
+                              <Trash className="h-3.5 w-3.5 shrink-0" />
+                              <span>{t("analisa.basisData.hapusSemua")}</span>
+                            </button>
+                          </div>
+                        </div>
+                      </>
+                    ) : null}
                   </>
                 ) : (
                   <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
@@ -1967,44 +1994,6 @@ export default function LayarDatabase({
           />
         </div>
       </div>
-
-      {/* ── Modal Impor PGN ─────────────────────────────────────── */}
-      {modalImpor && (
-        <div className="mb-4 flex flex-col gap-2.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3.5 animate-fadeIn">
-          <p className="text-xs font-bold text-foreground">
-            {t("analisa.basisData.imporPgnJudul")}
-          </p>
-          <textarea
-            rows={5}
-            value={teksPgn}
-            onChange={(e) => setTeksPgn(e.target.value)}
-            placeholder={t("analisa.form.tempelPgn")}
-            className="w-full resize-y rounded-borderRoundness border border-border bg-backgroundBox p-2 font-mono text-xs text-foreground outline-none"
-          />
-          <div className="flex justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                setModalImpor(false);
-                setTeksPgn("");
-              }}
-              className="rounded-borderRoundness border border-border bg-backgroundBox px-3 py-1 text-xs text-foregroundGrey hover:text-foreground cursor-pointer"
-            >
-              {t("analisa.basisData.imporPgnBatal")}
-            </button>
-            <button
-              type="button"
-              disabled={!teksPgn.trim() || prosesImpor}
-              onClick={tanganiSimpanImporPgn}
-              className="rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover disabled:opacity-40 cursor-pointer"
-            >
-              {prosesImpor
-                ? t("analisa.impor.memuat")
-                : t("analisa.basisData.imporPgnSimpan")}
-            </button>
-          </div>
-        </div>
-      )}
 
       {tampilan === "partai" ? (
         <>
@@ -2255,9 +2244,50 @@ export default function LayarDatabase({
       )}
               </>
             )}
-          </div>
-        </div>
+</div>
       </div>
+      </div>
+
+      {/* ── Peringatan unduhan partai dalam jumlah besar ── */}
+<AlertDialog open={dialogTarikBesar} onOpenChange={setDialogTarikBesar}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {tarikPeriode === "semua"
+                ? "Unduhan seluruh arsip"
+                : "Unduhan partai satu tahun"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Unduhan ini memuat ribuan partai sekaligus dan bisa membuat browser
+              kewalahan. Sebaiknya gunakan periode Mingguan, Bulanan, atau pilih
+              satu tanggal untuk menarik sebagian data saja.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={mulaiTarikData}>
+              Lanjut Unduh
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={dialogEksporKosong} onOpenChange={setDialogEksporKosong}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Tidak ada partai untuk diekspor
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Tarik data terlebih dahulu di bagian bawah untuk mendapatkan data
+              pemain yang kamu cari.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Mengerti</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </PanelLayar>
   );
 }
