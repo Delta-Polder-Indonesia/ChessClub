@@ -1,6 +1,6 @@
 import { forwardRef } from "react";
 import { cva } from "class-variance-authority";
-import { cn } from "@/lib/utils.js";
+import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F] disabled:pointer-events-none disabled:opacity-50",

@@ -5,7 +5,15 @@
  * Menggunakan SVG icons konsisten tanpa emoji, tipografi terstruktur,
  * dan integrasi langsung ke IndexedDB peramban.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { flexRender } from "@tanstack/react-table";
+import {
+  useLegacyTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+} from "@tanstack/react-table/legacy";
+import { ArrowUpDown, ChevronDown } from "lucide-react";
 import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
@@ -23,7 +31,6 @@ import {
   bacaRevisiBasis,
   bersihkanBasisData,
   eksporPgnKoleksi,
-  gabungkanPemain,
   hapusKoleksi,
   hapusPartai,
   hitungStatistikBasisData,
@@ -552,6 +559,407 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
   );
 }
 
+/* ── Tabel Ringkasan (mode "data") ──────────────────────────────────── */
+
+/* Varian tampilan ringkas: hanya sebagian partai terbaru koleksi yang
+ * dimuat (tanpa teks PGN) lalu difilter di memori. Internal paginasi
+ * memakai @tanstack/react-table — tidak menarik seluruh baris sekaligus. */
+const BATAS_MUAT_RINGKAS = 400;
+const PERIODE_MUNDUR = [
+  { nilai: "mingguan", hari: 7 },
+  { nilai: "bulanan", hari: 31 },
+  { nilai: "tahunan", hari: 366 },
+  { nilai: "semua", hari: 0 },
+];
+
+function HeaderKolom({ kolom, t }) {
+  const label = flexRender(kolom.column.columnDef.header, kolom.getContext());
+  if (!kolom.column.getCanSort()) return label;
+  return (
+    <button
+      type="button"
+      onClick={kolom.column.getToggleSortingHandler()}
+      className="inline-flex cursor-pointer items-center gap-1 transition-colors hover:text-foregroundHighlighted"
+    >
+      {label}
+      <ArrowUpDown
+        className={`h-3 w-3 ${
+          kolom.column.getIsSorted() ? "text-foregroundHighlighted" : "text-foregroundGrey"
+        }`}
+        aria-hidden="true"
+      />
+    </button>
+  );
+}
+
+function MenuKolom({ t, nilai, onPilih }) {
+  const [terbuka, setTerbuka] = useState(false);
+  const wadahRef = useRef(null);
+
+  useEffect(() => {
+    if (!terbuka) return undefined;
+    function klikLuar(e) {
+      if (!wadahRef.current?.contains(e.target)) setTerbuka(false);
+    }
+    function tekanEsc(e) {
+      if (e.key === "Escape") setTerbuka(false);
+    }
+    document.addEventListener("mousedown", klikLuar);
+    document.addEventListener("keydown", tekanEsc);
+    return () => {
+      document.removeEventListener("mousedown", klikLuar);
+      document.removeEventListener("keydown", tekanEsc);
+    };
+  }, [terbuka]);
+
+  const opsi = [
+    { nilai: "mingguan", label: t("analisa.basisData.periodeMingguan") },
+    { nilai: "bulanan", label: t("analisa.basisData.periodeBulanan") },
+    { nilai: "tahunan", label: t("analisa.basisData.periodeTahunan") },
+    { nilai: "semua", label: t("analisa.basisData.periodeSemua") },
+  ];
+
+  return (
+    <div ref={wadahRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={terbuka}
+        onClick={() => setTerbuka((b) => !b)}
+        className="flex cursor-pointer items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted"
+      >
+        {t("analisa.basisData.kolom")}
+        <ChevronDown
+          className={`h-3 w-3 shrink-0 text-foregroundGrey transition-transform ${terbuka ? "rotate-180" : ""}`}
+          aria-hidden="true"
+        />
+      </button>
+
+      {terbuka ? (
+        <ul
+          role="listbox"
+          aria-label={t("analisa.basisData.kolom")}
+          className="absolute right-0 top-full z-[1200] mt-1 w-max min-w-[140px] overflow-hidden rounded-borderRoundness border border-border bg-[#2a2a2a] py-1 shadow-2xl"
+        >
+          {opsi.map((o) => {
+            const dipilih = o.nilai === nilai;
+            return (
+              <li key={o.nilai}>
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={dipilih}
+                  onClick={() => {
+                    onPilih(o.nilai);
+                    setTerbuka(false);
+                  }}
+                  className={`flex w-full cursor-pointer items-center justify-between gap-3 whitespace-nowrap px-3 py-1.5 text-left text-xs transition-colors hover:bg-black hover:text-white ${
+                    dipilih ? "bg-black font-semibold text-white" : "text-foreground"
+                  }`}
+                >
+                  <span>{o.label}</span>
+                  {dipilih ? (
+                    <IkonCheck className="h-3 w-3 shrink-0 text-foregroundHighlighted" />
+                  ) : null}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
+
+function TabelRingkasan({ koleksiId, t, locale }) {
+  /* null = masih memuat; [] = sudah dimuat tapi kosong */
+  const [daftar, setDaftar] = useState(null);
+  const [periode, setPeriode] = useState("semua");
+  const [cari, setCari] = useState("");
+  const [sorting, setSorting] = useState([]);
+
+  useEffect(() => {
+    let hidup = true;
+    if (!koleksiId) {
+      setDaftar([]);
+      return undefined;
+    }
+    setDaftar(null);
+    (async () => {
+      try {
+        const hasil = await ambilDaftarPartai({
+          koleksiId,
+          limit: BATAS_MUAT_RINGKAS,
+          sertakanPgn: false,
+          urut: "tanggal",
+          arah: "desc",
+        });
+        if (hidup) setDaftar(hasil?.partai || []);
+      } catch {
+        if (hidup) setDaftar([]);
+      }
+    })();
+    return () => {
+      hidup = false;
+    };
+  }, [koleksiId]);
+
+  const dataTampil = useMemo(() => {
+    const g = daftar || [];
+    const p = PERIODE_MUNDUR.find((x) => x.nilai === periode);
+    const batas = p?.hari ? Date.now() - p.hari * 86400000 : 0;
+    const q = cari.trim().toLowerCase();
+    return g.filter((baris) => {
+      if (batas > 0 && baris.timestamp && baris.timestamp < batas) return false;
+      if (!q) return true;
+      const teks = `${baris.whiteName || ""} ${baris.blackName || ""} ${
+        baris.event || ""
+      } ${baris.site || ""}`.toLowerCase();
+      return teks.includes(q);
+    });
+  }, [daftar, periode, cari]);
+
+  const kolom = useMemo(
+    () => [
+      {
+        id: "nomor",
+        header: "#",
+        enableSorting: false,
+        cell: (info) => info.row.index + 1,
+      },
+      {
+        accessorKey: "whiteName",
+        header: t("analisa.basisData.putih"),
+        cell: (info) => (
+          <div className="min-w-0">
+            <div className="truncate font-medium">{info.row.original.whiteName || "—"}</div>
+            <div className="truncate text-[10px] tabular-nums text-foregroundGrey">
+              {info.row.original.whiteElo || ""}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "blackName",
+        header: t("analisa.basisData.hitam"),
+        cell: (info) => (
+          <div className="min-w-0">
+            <div className="truncate font-medium">{info.row.original.blackName || "—"}</div>
+            <div className="truncate text-[10px] tabular-nums text-foregroundGrey">
+              {info.row.original.blackElo || ""}
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "hasil",
+        header: t("analisa.basisData.hasilTabel"),
+        enableSorting: false,
+        cell: (info) => {
+          const g = info.row.original;
+          const whiteWon = g.result === "white";
+          const blackWon = g.result === "black";
+          return (
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-xs font-semibold text-foregroundGrey">
+                {whiteWon ? "1 - 0" : blackWon ? "0 - 1" : "½ - ½"}
+              </span>
+              {whiteWon ? (
+                <SquareFillPlus className="h-3.5 w-3.5 shrink-0 text-winGreen" />
+              ) : blackWon ? (
+                <SquareFillMinus className="h-3.5 w-3.5 shrink-0 text-lossRed" />
+              ) : (
+                <SquareFillEqual className="h-3.5 w-3.5 shrink-0 text-foregroundGrey" />
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "event",
+        header: t("analisa.basisData.event"),
+        enableSorting: false,
+        cell: (info) => (
+          <div className="truncate whitespace-nowrap text-xs text-foregroundGrey">
+            {info.row.original.event || "—"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "timestamp",
+        header: t("analisa.basisData.tanggal"),
+        cell: (info) => (
+          <div className="whitespace-nowrap">
+            <div className="text-xs text-foregroundGrey">
+              {formatTanggal(info.row.original.timestamp, locale)}
+            </div>
+            <div className="font-mono text-[10px] uppercase tracking-wider text-foregroundGrey/75">
+              {info.row.original.timeClass || ""}
+            </div>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "plyCount",
+        header: t("analisa.basisData.langkah"),
+        cell: (info) => (
+          <div className="text-center text-xs font-semibold tabular-nums text-foreground">
+            {info.row.original.plyCount ?? "-"}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "site",
+        header: t("analisa.basisData.situs"),
+        enableSorting: false,
+        cell: (info) => (
+          <div className="truncate whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75">
+            {info.row.original.site || info.row.original.url || ""}
+          </div>
+        ),
+      },
+    ],
+    [t, locale],
+  );
+
+  const tabel = useLegacyTable({
+    data: dataTampil,
+    columns: kolom,
+    state: { sorting },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 10 } },
+  });
+
+  const aktifHal = tabel.getState().pagination.pageIndex + 1;
+  const totalHal = tabel.getPageCount();
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-3">
+      {/* Toolbar: pencarian + filter periode pada tombol Kolom */}
+      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
+        <div className="relative w-56">
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
+            <IkonSearch className="h-4 w-4" />
+          </div>
+          <input
+            type="search"
+            value={cari}
+            onChange={(e) => setCari(e.target.value)}
+            placeholder={t("analisa.basisData.cariPlaceholder")}
+            aria-label={t("analisa.basisData.cariPlaceholder")}
+            className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox pl-9 pr-3 py-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey hover:border-borderHighlighted focus:border-borderHighlighted"
+          />
+        </div>
+        <MenuKolom t={t} nilai={periode} onPilih={setPeriode} />
+      </div>
+
+      {daftar === null ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 py-10 text-center">
+          <DualRingSpinner color={BIRU} />
+          <p className="text-sm text-foregroundGrey">{t("analisa.basisData.memuatData")}</p>
+        </div>
+      ) : dataTampil.length === 0 ? (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 text-center">
+          <Database width={32} height={32} className="fill-foregroundGrey/30" />
+          <p className="font-bold text-foreground">
+            {daftar.length === 0
+              ? t("analisa.basisData.kosongJudul")
+              : t("analisa.partai.tidakCocok")}
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="relative min-h-0 w-full flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
+            <table className="w-full min-w-[820px] table-fixed border-collapse text-sm">
+              <colgroup>
+                <col style={{ width: "5%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "9%" }} />
+                <col style={{ width: "16%" }} />
+                <col style={{ width: "14%" }} />
+                <col style={{ width: "8%" }} />
+                <col style={{ width: "20%" }} />
+              </colgroup>
+              <thead className="sticky top-0 z-10 select-none border-b border-border bg-backgroundBox">
+                <tr>
+                  {tabel.getHeaderGroups()[0].headers.map((h) => (
+                    <th
+                      key={h.id}
+                      className="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey"
+                    >
+                      <HeaderKolom kolom={h} t={t} />
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {tabel.getRowModel().rows.map((r) => (
+                  <tr
+                    key={r.id}
+                    className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
+                  >
+                    {r.getVisibleCells().map((c) => (
+                      <td
+                        key={c.id}
+                        className={`px-2 py-2 align-middle ${
+                          c.column.id === "nomor"
+                            ? "whitespace-nowrap text-xs tabular-nums text-foregroundGrey"
+                            : c.column.id === "langkah"
+                              ? "text-right"
+                              : ""
+                        }`}
+                      >
+                        {flexRender(c.column.columnDef.cell, c.getContext())}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Paginasi ringkas */}
+          <div className="flex shrink-0 items-center justify-between gap-2 text-xs">
+            <span className="text-foregroundGrey">
+              {t("analisa.basisData.baris", {
+                jumlah: tabel.getRowCount(),
+                total: dataTampil.length,
+              })}
+            </span>
+            <div className="flex items-center gap-2">
+              {totalHal > 1 ? (
+                <span className="text-foregroundGrey">
+                  {t("analisa.basisData.halaman", { aktif: aktifHal, total: totalHal })}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                disabled={!tabel.getCanPreviousPage()}
+                onClick={() => tabel.previousPage()}
+                className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1 text-xs text-foreground transition-colors hover:bg-backgroundBoxBoxHover disabled:opacity-40 disabled:hover:bg-backgroundBoxBox cursor-pointer disabled:cursor-not-allowed"
+              >
+                {t("analisa.basisData.sebelumnya")}
+              </button>
+              <button
+                type="button"
+                disabled={!tabel.getCanNextPage()}
+                onClick={() => tabel.nextPage()}
+                className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1 text-xs text-foreground transition-colors hover:bg-backgroundBoxBoxHover disabled:opacity-40 disabled:hover:bg-backgroundBoxBox cursor-pointer disabled:cursor-not-allowed"
+              >
+                {t("analisa.basisData.berikutnya")}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 /* ── Komponen Utama ────────────────────────────────────────────────── */
 
 export default function LayarDatabase({
@@ -587,8 +995,6 @@ export default function LayarDatabase({
   const [mode, setMode] = useState(modeTersimpan);
   // Statistik per koleksi (jumlah/pemain/event/ukuran) — di-cache di sini.
   const [statMap, setStatMap] = useState({});
-  const [mergeA, setMergeA] = useState("");
-  const [mergeB, setMergeB] = useState("");
 
   /* Tab tampilan mode tabel: "partai" (default) | "pemain" | "event". */
   const [tampilan, setTampilan] = useState(tampilanTersimpan);
@@ -608,7 +1014,6 @@ export default function LayarDatabase({
   /* Turunan */
   const totalHal = Math.max(1, Math.ceil(totalPartai / BARIS_PER_HALAMAN));
   const aktifHal = Math.min(hal, totalHal);
-  const stat = koleksiTerpilih ? statMap[koleksiTerpilih] || null : null;
   const koleksi = koleksiList.find((k) => k.id === koleksiTerpilih) || null;
   // Koleksi yang tampil di kolom kiri, difilter oleh kotak pencarian koleksi.
   const daftarKoleksi = cariKoleksi
@@ -1107,83 +1512,6 @@ export default function LayarDatabase({
     tampilkanNotif("Seluruh basis data telah dikosongkan.");
   }
 
-  /** Hapus partai duplikat (sidik jari sama) dalam koleksi terpilih. */
-  async function tanganiHapusDuplikat() {
-    if (!koleksiTerpilih) return;
-    if (!window.confirm(t("analisa.basisData.konfirmasiHapusDuplikat"))) return;
-    const hasil = await ambilDaftarPartai({ koleksiId: koleksiTerpilih, limit: 0, sertakanPgn: true });
-    const partai = hasil?.partai || [];
-    const terlihat = new Set();
-    let hapus = 0;
-    for (const p of partai) {
-      const sidik = `${p.whiteName}|${p.blackName}|${p.timestamp}|${p.result}|${p.pgn}`;
-      if (terlihat.has(sidik)) {
-        await hapusPartai(p.id);
-        hapus++;
-      } else {
-        terlihat.add(sidik);
-      }
-    }
-    if (hapus > 0) {
-      await muatMetadata();
-      await muatPartai();
-    }
-    tampilkanNotif(`${hapus} partai duplikat dihapus.`);
-  }
-
-  /** Hapus partai tanpa PGN / tanpa langkah dalam koleksi terpilih. */
-  async function tanganiHapusKosong() {
-    if (!koleksiTerpilih) return;
-    if (!window.confirm(t("analisa.basisData.konfirmasiHapusKosong"))) return;
-    const hasil = await ambilDaftarPartai({ koleksiId: koleksiTerpilih, limit: 0, sertakanPgn: true });
-    const partai = hasil?.partai || [];
-    let hapus = 0;
-    for (const p of partai) {
-      const kosong = !p.pgn || String(p.pgn).trim() === "" || !(p.plyCount > 0);
-      if (kosong) {
-        await hapusPartai(p.id);
-        hapus++;
-      }
-    }
-    if (hapus > 0) {
-      await muatMetadata();
-      await muatPartai();
-    }
-    tampilkanNotif(`${hapus} partai kosong dihapus.`);
-  }
-
-  /** Gabungkan dua pemain dalam koleksi terpilih (namaA → namaB). */
-  async function tanganiGabungPemain() {
-    const a = mergeA.trim();
-    const b = mergeB.trim();
-    if (!koleksiTerpilih || !a || !b) {
-      tampilkanNotif(t("analisa.basisData.mergePerluNama"));
-      return;
-    }
-    if (a.toLowerCase() === b.toLowerCase()) {
-      tampilkanNotif(t("analisa.basisData.mergeSama"));
-      return;
-    }
-    if (
-      !window.confirm(
-        t("analisa.basisData.konfirmasiGabungPemain", { asal: a, tujuan: b }),
-      )
-    )
-      return;
-    const hasil = await gabungkanPemain(koleksiTerpilih, a, b);
-    if (hasil.diubah > 0) {
-      await muatMetadata();
-      await muatPartai();
-    }
-    setMergeA("");
-    setMergeB("");
-    tampilkanNotif(
-      hasil.diubah > 0
-        ? t("analisa.basisData.gabungSukses", { jumlah: hasil.diubah, nama: hasil.nama })
-        : t("analisa.basisData.gabungTidakAda"),
-    );
-  }
-
   async function tanganiSimpanImporPgn() {
     if (!teksPgn.trim()) return;
     setProsesImpor(true);
@@ -1458,122 +1786,44 @@ export default function LayarDatabase({
               <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
                 {koleksi ? (
                   <>
-                    <label className="flex w-fit items-center gap-2 text-sm text-foreground">
-                      <input
-                        type="checkbox"
-                        defaultChecked
-                        disabled
-                        className="h-3.5 w-3.5 rounded border-border bg-backgroundBoxBox accent-[#4a9dd9]"
-                      />
-                      {t("analisa.basisData.indexed")}
-                    </label>
-
-                    <div>
-                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.data")}</div>
-                      <div className="mt-2 grid grid-cols-3 gap-3">
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataGames")}</div>
-                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.jumlah ?? "…"}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataPlayers")}</div>
-                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.pemain ?? "…"}</div>
-                        </div>
-                        <div>
-                          <div className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.dataEvents")}</div>
-                          <div className="text-xl font-bold tabular-nums text-foreground">{stat?.event ?? "…"}</div>
-                        </div>
-                      </div>
-                    </div>
-
                     <button
                       type="button"
                       onClick={() => setMode("tabel")}
-                      className="inline-flex w-full items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2.5 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
+                      className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2.5 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
                     >
                       <span>{t("analisa.basisData.explore")}</span>
                       <span aria-hidden="true">→</span>
                     </button>
 
-                    <hr className="border-border" />
+                    <TabelRingkasan
+                      koleksiId={koleksiTerpilih}
+                      t={t}
+                      locale={locale}
+                    />
 
-                    <div>
-                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.advanced")}</div>
-                      <div className="mt-3 flex flex-col gap-4">
-                        <div>
-                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.mergePlayers")}</p>
-                          <p className="mt-1 text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.mergePlayersDesc")}</p>
-                          <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <input
-                              type="text"
-                              value={mergeA}
-                              onChange={(e) => setMergeA(e.target.value)}
-                              placeholder={t("analisa.basisData.player1")}
-                              className="min-w-0 flex-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey focus:border-[#4a9dd9]"
-                            />
-                            <button
-                              type="button"
-                              onClick={tanganiGabungPemain}
-                              disabled={!mergeA.trim() || !mergeB.trim()}
-                              title={t("analisa.basisData.mergePlayers")}
-                              className="rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-backgroundBoxBoxHighlighted cursor-pointer"
-                            >
-                              {t("analisa.basisData.merge")} →
-                            </button>
-                            <input
-                              type="text"
-                              value={mergeB}
-                              onChange={(e) => setMergeB(e.target.value)}
-                              placeholder={t("analisa.basisData.player2")}
-                              className="min-w-0 flex-1 rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-foregroundGrey focus:border-[#4a9dd9]"
-                            />
-                          </div>
-                        </div>
+                    <hr className="shrink-0 border-border" />
 
-                        <div>
-                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.batchDelete")}</p>
-                          <p className="mt-1 text-xs leading-5 text-foregroundGrey">{t("analisa.basisData.batchDeleteDesc")}</p>
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={tanganiHapusDuplikat}
-                              className="rounded-borderRoundness bg-[#4a9dd9] px-3.5 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 cursor-pointer"
-                            >
-                              {t("analisa.basisData.removeDuplicates")}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={tanganiHapusKosong}
-                              className="rounded-borderRoundness bg-[#4a9dd9] px-3.5 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90 cursor-pointer"
-                            >
-                              {t("analisa.basisData.removeEmpty")}
-                            </button>
-                          </div>
-                        </div>
-
-                        <div>
-                          <p className="text-sm font-bold text-foreground">{t("analisa.basisData.aksi")}</p>
-                          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                            <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
-                              <Download className="h-3.5 w-3.5 shrink-0" />
-                              <span>{t("analisa.basisData.eksporPgn")}</span>
-                            </button>
-                            <button type="button" onClick={() => setModalImpor(true)} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
-                              <IkonPlus className="h-3.5 w-3.5 shrink-0" />
-                              <span>{t("analisa.basisData.imporPgn")}</span>
-                            </button>
-                            <button type="button" onClick={tanganiHapusKoleksi} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                              <Trash className="h-3.5 w-3.5 shrink-0" />
-                              <span>{t("analisa.basisData.hapusKoleksi")}</span>
-                            </button>
-                            {!koleksiTerpilih && totalPartai > 0 ? (
-                              <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
-                                <Trash className="h-3.5 w-3.5 shrink-0" />
-                                <span>{t("analisa.basisData.hapusSemua")}</span>
-                              </button>
-                            ) : null}
-                          </div>
-                        </div>
+                    <div className="shrink-0">
+                      <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.aksi")}</div>
+                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                        <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
+                          <Download className="h-3.5 w-3.5 shrink-0" />
+                          <span>{t("analisa.basisData.eksporPgn")}</span>
+                        </button>
+                        <button type="button" onClick={() => setModalImpor(true)} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
+                          <IkonPlus className="h-3.5 w-3.5 shrink-0" />
+                          <span>{t("analisa.basisData.imporPgn")}</span>
+                        </button>
+                        <button type="button" onClick={tanganiHapusKoleksi} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
+                          <Trash className="h-3.5 w-3.5 shrink-0" />
+                          <span>{t("analisa.basisData.hapusKoleksi")}</span>
+                        </button>
+                        {!koleksiTerpilih && totalPartai > 0 ? (
+                          <button type="button" onClick={tanganiKosongkanSemua} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-lossRed transition-colors hover:bg-backgroundBoxBoxHover cursor-pointer">
+                            <Trash className="h-3.5 w-3.5 shrink-0" />
+                            <span>{t("analisa.basisData.hapusSemua")}</span>
+                          </button>
+                        ) : null}
                       </div>
                     </div>
                   </>
