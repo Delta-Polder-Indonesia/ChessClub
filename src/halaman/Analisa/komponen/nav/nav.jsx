@@ -28,6 +28,22 @@
  * Tautan Source Code sengaja menunjuk ke repo upstream: sekaligus jadi
  * atribusi MIT port UI ini. Logo/wordmark juga dipertahankan sama seperti
  * aslinya.
+ *
+ * TATA LETAK BURGER (bilah menciut) disamakan dengan blok sidebar contoh
+ * (`src/components/ui/sidebar.jsx` + contoh prompt.md), tanpa memindahkan
+ * bilah ini ke komponen itu:
+ *  - lebar menciut 3rem (`w-12`), sama dengan `--sidebar-width-icon` di
+ *    komponen sidebar;
+ *  - setiap tombol menu (dan burger) menjadi kotak 2rem (`w-8 h-8`) dengan
+ *    bantalan 8px yang TETAP di kedua keadaan (pola `group-data-
+ *    [collapsible=icon]:size-8 p-2` di komponen sidebar), sehingga ikon
+ *    duduk tepat di tengah lajur dan tidak bergeser saat burger ditekan —
+ *    yang menyusut hanya lebar tombol, gap, dan labelnya (max-width +
+ *    opacity);
+ *  - burger duduk di baris kepala bersama wordmark; saat bilah menciut,
+ *    wordmark ikut menyusut habis sehingga tidak ada teks terpotong dan
+ *    burger tinggal sendiri di tengah lajur;
+ *  - `title`/`aria-label` tiap tombol sudah menjadi pengganti tooltip.
  */
 import { useContext, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -146,14 +162,27 @@ export default function Nav() {
     },
   ];
 
-  const kelasTombol =
-    "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer";
+  /**
+   * Kelas tombol menu.
+   *
+   * Mode ponsel (di bawah `navTop`): bilah mendatar, tombol melebar rata
+   * tanpa label (`h-full`, label memang `hidden` di lebar ini).
+   *
+   * Mode bilah tegak: lebar mengikuti bilah (`navTop:w-full`), dan saat
+   * bilah menciut lebarnya dipatok kotak 2rem dengan bantalan 8px yang
+   * tetap. Karena lajur menciut jadi 3rem (8 + 32 + 8), ikon jatuh tepat di
+   * tengah lajur dan tidak bergeser saat burger ditekan — yang berubah
+   * hanya lebar tombol, gap, dan labelnya.
+   */
+  const kelasTombol = `flex flex-row gap-2 h-full navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer ${
+    navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
+  }`;
 
   /**
    * Label menu yang bisa menciut (max-width/opacity) saat bilah ditutup —
    * persis perilaku sidebar Pengurus: ikon diam, label menyusut.
    */
-  const kelasLabelNav = `overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block ${
+  const kelasLabelNav = `overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block text-sm ${
     navTerbuka ? "navTop:max-w-[140px] navTop:opacity-100" : "navTop:max-w-0 navTop:opacity-0"
   }`;
 
@@ -202,27 +231,49 @@ export default function Nav() {
   }
 
   return (
-    <nav className={`flex flex-col navTop:h-full w-full relative ${navTerbuka ? "navTop:w-[210px]" : "navTop:w-[52px]"} navTop:shrink-0 navTop:transition-[width] navTop:duration-300 navTop:ease-[cubic-bezier(0.22,1,0.36,1)]`}>
-      <div className="navTop:pt-1 navTop:pb-6 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
+    <nav className={`flex flex-col navTop:h-full w-full relative ${navTerbuka ? "navTop:w-[210px]" : "navTop:w-12"} navTop:shrink-0 navTop:transition-[width] navTop:duration-300 navTop:ease-[cubic-bezier(0.22,1,0.36,1)]`}>
+      {/* `navTop:px-2` = bantalan 8px lajur: 3rem rail = 8 + 2rem + 8
+          (sama dengan bantalan SidebarContent + SidebarMenuButton di
+          `components/ui/sidebar.jsx`). */}
+      <div className="navTop:pt-1 navTop:pb-6 navTop:px-2 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
         <div className="flex navTop:flex-col flex-row">
-          <button
-            type="button"
-            data-uji="nav-tutup"
-            onClick={() => setNavTerbuka((t) => !t)}
-            title={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
-            aria-label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
-            className="hidden navTop:flex navTop:shrink-0 navTop:items-center navTop:justify-center navTop:h-9 navTop:px-3 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer"
-          >
-            <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
-          <Link draggable={false} to="/" className="flex flex-row items-center gap-1 navTop:py-2.5 navTop:px-3 p-1.5 transition-colors hover:bg-backgroundBoxHover">
-            <span className="navTop:block hidden leading-none font-bold text-[22px] tracking-tight text-foreground">
-              Blunder<span className="text-backgroundBoxBoxHighlighted">Skuad</span>
-            </span>
-          </Link>
-          <hr className="border-border mx-2 my-1 navTop:block hidden" />
+          {/*
+            Baris kepala: burger + wordmark. Burger hanya ada di bilah tegak
+            (di mode ponsel bilahnya sudah mendatar, tidak ada yang bisa
+            dibuka-tutup); wordmark mengekor di sebelahnya dan menyusut
+            habis saat bilah menciut, jadi tidak ada teks terpotong.
+          */}
+          <div className="flex flex-row items-center gap-1 navTop:w-full navTop:py-1">
+            <button
+              type="button"
+              data-uji="nav-tutup"
+              onClick={() => setNavTerbuka((t) => !t)}
+              title={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
+              aria-label={navTerbuka ? t("analisa.nav.tutupBilah") : t("analisa.nav.bukaBilah")}
+              aria-expanded={navTerbuka}
+              className="hidden navTop:flex navTop:shrink-0 items-center justify-center w-8 h-8 navTop:px-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer"
+            >
+              <svg className="h-[18px] w-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <Link
+              draggable={false}
+              to="/"
+              className={`min-w-0 flex-row items-center navTop:py-1 p-1.5 transition-colors hover:bg-backgroundBoxHover ${
+                navTerbuka ? "flex" : "navTop:hidden"
+              }`}
+            >
+              <span
+                className={`hidden navTop:block leading-none font-bold text-[22px] tracking-tight text-foreground overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                  navTerbuka ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0"
+                }`}
+              >
+                Blunder<span className="text-backgroundBoxBoxHighlighted">Skuad</span>
+              </span>
+            </Link>
+          </div>
+          <hr className="border-border mx-2 navTop:mx-0 my-1 navTop:block hidden" />
           <div className="flex navTop:flex-col flex-row">
             {menu.map((item) => {
               // Layar yang sedang tampil ditandai di bilah, persis seperti
@@ -269,7 +320,11 @@ export default function Nav() {
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
           <div className="flex navTop:flex-col flex-row">
             {botLinks.map((link, i) => {
-              const kelas = "flex flex-row gap-2 h-full navTop:h-fit navTop:px-3 navTop:justify-start justify-center items-center navTop:py-2 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors";
+              // Kelas yang sama dengan tombol menu: kotak 2rem saat bilah
+              // menciut, melebar penuh saat terbuka.
+              const kelas = `flex flex-row gap-2 h-full navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors ${
+                navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
+              }`;
               return link.to ? (
                 <Link draggable={false} key={i} to={link.to} className={kelas}>
                   {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
