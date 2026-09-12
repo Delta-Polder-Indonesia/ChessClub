@@ -152,7 +152,7 @@ export default function Gerbang({ onMasuk }) {
         </div>
 
         {galat && (
-          <p className="mt-4 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs leading-5 text-red-800">
+          <p className="mt-4 rounded-md border border-red-300 bg-white px-3 py-2 text-xs leading-5 text-red-800">
             {galat}
           </p>
         )}

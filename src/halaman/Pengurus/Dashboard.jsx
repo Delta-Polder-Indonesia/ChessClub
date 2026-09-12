@@ -124,7 +124,7 @@ export default function Dashboard() {
             setRingkas(r);
             if (hasil.diblokir?.length > 0) {
               beriTahu(
-                `⚠️ Peringatan Fair Play: ${hasil.diblokir.length} akun terdeteksi melanggar dan otomatis diblokir (${hasil.diblokir.map((u) => `@${u}`).join(", ")}).`,
+                `Peringatan fair play: ${hasil.diblokir.length} akun terdeteksi melanggar dan otomatis diblokir (${hasil.diblokir.map((u) => `@${u}`).join(", ")}).`,
                 "peringatan"
               );
             }
@@ -286,7 +286,7 @@ export default function Dashboard() {
                     d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                 </svg>
                 {ringkas?.pesan?.belumDibaca > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-red-500 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-1 bg-slate-900 rounded-full text-white text-[10px] font-bold flex items-center justify-center">
                     {ringkas.pesan.belumDibaca > 99 ? "99+" : ringkas.pesan.belumDibaca}
                   </span>
                 )}
@@ -304,13 +304,13 @@ export default function Dashboard() {
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-medium text-slate-900 leading-tight flex items-center justify-end gap-2">
                     {pengguna || "Pengurus"}
-                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+                    <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}>
                       {isMaster ? "MASTER" : "PENGURUS"}
                     </span>
                   </p>
                   <p className="text-xs text-slate-500">{isMaster ? "Master Admin" : "Admin Pengurus"}</p>
                 </div>
-                <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase ${isMaster ? "bg-amber-600" : "bg-primary"}`}>
+                <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase ${isMaster ? "bg-slate-900" : "bg-primary"}`}>
                   {(pengguna || "?").charAt(0)}
                 </div>
               </button>
@@ -328,10 +328,10 @@ export default function Dashboard() {
 
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {kabar && (
-            <p className={`mb-4 rounded-md border px-4 py-2.5 text-sm ${
-              kabar.jenis === "galat" ? "border-red-300 bg-red-50 text-red-800"
-              : kabar.jenis === "peringatan" ? "border-amber-300 bg-amber-50 text-amber-900"
-              : "border-emerald-300 bg-emerald-50 text-emerald-800"
+            <p className={`mb-4 rounded-md border bg-white px-4 py-2.5 text-sm ${
+              kabar.jenis === "galat" ? "border-red-300 text-red-800"
+              : kabar.jenis === "peringatan" ? "border-amber-300 text-amber-900"
+              : "border-emerald-300 text-emerald-800"
             }`}>{kabar.teks}</p>
           )}
 
@@ -341,14 +341,14 @@ export default function Dashboard() {
             ) : ringkas ? (
               <RingkasanDashboard ringkas={ringkas} belumBaca={ringkas.pesan?.belumDibaca ?? 0} onBuka={bukaTab} hitam={hitam} />
             ) : (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3">
                 <p className="text-sm font-medium text-red-800">
                   Ringkasan dashboard gagal dimuat. Periksa koneksi lalu coba lagi.
                 </p>
                 <button
                   type="button"
                   onClick={muatUlang}
-                  className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
+                  className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-slate-50"
                 >
                   Coba Lagi
                 </button>

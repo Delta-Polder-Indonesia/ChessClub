@@ -90,16 +90,29 @@ export async function ambilDaftarHitam() {
  *                        tanggalLahir, email, klub, setuju
  */
 export async function daftarDenganChessCom(data) {
-  const csrfToken = await ambilCsrfToken();
-  const res = await fetchApi("/api/anggota", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-CSRF-Token": csrfToken,
-    },
-    body: JSON.stringify(data),
-  });
-  const hasil = await res.json().catch(() => ({}));
+  const kirim = async (csrfToken) => {
+    const res = await fetchApi("/api/anggota", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      body: JSON.stringify(data),
+    });
+    return { res, hasil: await res.json().catch(() => ({})) };
+  };
+
+  // Bila `sessionStorage` masih menyimpan token lama setelah server restart,
+  // token di memori server berbeda -> 403 CSRF. Ambil token baru dan ulangi
+  // sekali, sejalan dengan modul lain (pesan/ebook).
+  let csrfToken = await ambilCsrfToken();
+  let { res, hasil } = await kirim(csrfToken);
+  if (res.status === 403 && /csrf/i.test(hasil.pesan || "")) {
+    sessionStorage.removeItem("kci-csrf-token");
+    csrfToken = await ambilCsrfToken();
+    ({ res, hasil } = await kirim(csrfToken));
+  }
+
   if (!res.ok) {
     throw new GalatPendaftaran(hasil.pesan || "Pendaftaran gagal.", {
       galat: hasil.galat,

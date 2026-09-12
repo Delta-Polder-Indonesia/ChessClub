@@ -56,7 +56,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
   return (
     <form
       onSubmit={kirim}
-      className="mb-6 rounded-lg border border-slate-200 bg-white p-4"
+      className="mb-6 rounded-lg border-2 border-slate-200 bg-white p-4"
     >
       <h3 className="mb-3 text-sm font-bold text-slate-900">Turnamen Baru</h3>
 
@@ -66,7 +66,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
           <select
             value={data.jenis}
             onChange={(e) => ubah("jenis", e.target.value)}
-            className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+            className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
           >
             {kunciJenis.map((k) => (
               <option key={k} value={k}>
@@ -153,7 +153,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
           value={data.deskripsi}
           onChange={(e) => ubah("deskripsi", e.target.value)}
           placeholder="Format, peraturan khusus, atau info tambahan untuk peserta…"
-          className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+          className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
         />
       </label>
 
@@ -190,7 +190,7 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
         <button
           type="submit"
           disabled={sibuk || !data.nama.trim()}
-          className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
+          className="rounded-md bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-40"
         >
           {sibuk ? "Menyimpan…" : "Simpan"}
         </button>

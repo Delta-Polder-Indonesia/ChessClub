@@ -2,6 +2,7 @@
  * Kartu-kartu ringkasan + tabel ban otomatis — tampil di tab Dashboard.
  */
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { Kartu } from "./ui.jsx";
 
 const LABEL_MODE_VERIFIKASI = {
@@ -51,14 +52,14 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
     <div className="space-y-6">
       {/* Banner Peringatan */}
       {banOtomatis.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-amber-300 bg-amber-50/90 p-4 shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white p-4">
           <div className="flex items-start gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-200 text-amber-900 font-bold text-lg">⚠️</span>
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" aria-hidden="true" />
             <div>
-              <p className="text-sm font-bold text-amber-950">
-                Peringatan Fair Play: {banOtomatis.length} Akun Anggota Terdeteksi Terkena Ban!
+              <p className="text-sm font-bold text-slate-900">
+                Peringatan fair play: {banOtomatis.length} akun anggota terdeteksi kena ban
               </p>
-              <p className="mt-0.5 text-xs text-amber-800">
+              <p className="mt-0.5 text-xs text-slate-600">
                 Akun yang terdeteksi sistem Chess.com:{" "}
                 <span className="font-semibold">
                   {banOtomatis.map((h) => `@${h.username}`).slice(0, 5).join(", ")}
@@ -69,11 +70,11 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button type="button" onClick={() => onBuka("larangan", "otomatis")}
-              className="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-bold text-white hover:bg-amber-700 transition-colors shadow-xs">
+              className="rounded-md bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-800 transition-colors">
               Filter di Daftar Larangan →
             </button>
             <button type="button" onClick={() => onBuka("anggota", "terblokir")}
-              className="rounded-full border border-amber-300 bg-white px-4 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors">
+              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
               Filter di Roster Anggota
             </button>
           </div>
@@ -121,7 +122,7 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
             <button key={aksi.kunci} type="button"
               onClick={() => onBuka(aksi.kunci, aksi.filter || "semua")}
               className="group flex h-full w-full gap-3 text-left">
-              <span className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${aksi.sorot ? "bg-amber-100 text-amber-700" : "bg-primary/10 text-primary"}`}>
+              <span className={`mt-1 flex h-10 w-10 shrink-0 items-center justify-center ${aksi.sorot ? "text-amber-700" : "text-primary"}`}>
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={aksi.ikon} />
                 </svg>
@@ -141,8 +142,8 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <h2 className="text-sm font-bold text-slate-900">Pemain terblokir otomatis (Fair Play)</h2>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
               {banOtomatis.length} akun
             </span>
           </div>
@@ -187,7 +188,7 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
                 </thead>
                 <tbody>
                   {banOtomatisTersaring.map((h, i) => (
-                    <tr key={h.username} className="border-t border-slate-100 hover:bg-amber-50/30 transition-colors">
+                    <tr key={h.username} className="border-t border-slate-100 hover:bg-slate-50 transition-colors">
                       <td className="px-3 py-2 text-slate-500 font-medium">{i + 1}</td>
                       <td className="px-3 py-2">
                         <a href={`https://www.chess.com/member/${encodeURIComponent(h.username)}`}
@@ -195,8 +196,8 @@ export default function RingkasanDashboard({ ringkas, belumBaca, onBuka, hitam }
                           className="font-bold text-primary hover:underline">@{h.username}</a>
                       </td>
                       <td className="px-3 py-2">
-                        <span className="inline-flex items-center gap-1.5 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-semibold text-amber-800">
-                          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+                        <span className="inline-flex items-center gap-1.5 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
+                          <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
                           {labelAlasan[h.alasan] || h.alasan || "—"}
                         </span>
                         {h.keterangan && (

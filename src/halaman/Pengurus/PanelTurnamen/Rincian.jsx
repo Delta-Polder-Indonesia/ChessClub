@@ -293,7 +293,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
           ditutup, username terlarang, serta identitas yang cocok dengan daftar larangan.
         </p>
         <div className="overflow-auto">
-          <table className="tabel-kci tabel-peringkat">
+          <table className="tabel-kci tabel-peringkat tabel-tebal">
             <thead>
               <tr>
                 <th>Player</th>
@@ -414,7 +414,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
             />
           </form>
           <div className="overflow-auto">
-            <table className="tabel-kci tabel-peringkat">
+            <table className="tabel-kci tabel-peringkat tabel-tebal">
               <thead>
                 <tr>
                   <th>#</th>
@@ -553,7 +553,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
 
           {Boolean(t.hasil?.length) && (
             <div className="max-h-60 overflow-y-auto">
-              <table className="tabel-kci tabel-peringkat">
+              <table className="tabel-kci tabel-peringkat tabel-tebal">
                 <thead>
                   <tr>
                     <th>#</th>
@@ -632,7 +632,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
             <section>
               <h4 className="mb-2 text-sm font-bold text-slate-900">Klasemen</h4>
           <div className="overflow-auto">
-            <table className="tabel-kci tabel-peringkat">
+            <table className="tabel-kci tabel-peringkat tabel-tebal">
               <thead>
                 <tr>
                   <th>#</th>
@@ -675,7 +675,7 @@ export default function RincianTurnamen({ id, jenis, beriTahu, onTutup, onBeruba
 
           {Boolean(t.klasemenTim?.length) && (
             <div className="mt-3 overflow-auto">
-              <table className="tabel-kci tabel-peringkat">
+              <table className="tabel-kci tabel-peringkat tabel-tebal">
                 <thead>
                   <tr>
                     <th>#</th>

@@ -8,6 +8,7 @@
  * pada kolom kiri; komponen ini hanya menampilkan statistik.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { muatPartaiChessCom } from "./muatPartaiAkun.js";
@@ -97,53 +98,73 @@ function GrafikTahunan({ data }) {
   );
 }
 
-/** Grafik area riwayat rating (Ratings) biru dengan gradasi. */
+/** Grafik area riwayat rating (Ratings) menggunakan Recharts bergaya interaktif (seperti prompt.md). */
 function GrafikRiwayat({ poin, min, max }) {
-  const W = 560;
-  const H = 220;
-  const pad = 10;
-  const n = poin.length;
-  if (n < 2) {
+  if (!poin || poin.length < 2) {
     return <div className="grid h-48 place-items-center text-sm text-foregroundGrey">—</div>;
   }
-  const kisaran = max - min || 1;
-  const pos = (i) => {
-    const p = poin[i];
-    const x = pad + (i / (n - 1)) * (W - pad * 2);
-    const y = H - pad - ((p.rating - min) / kisaran) * (H - pad * 2);
-    return [x, y];
-  };
-  const garis = poin.map((_, i) => pos(i).map((v) => Math.round(v)).join(",")).join(" ");
-  const area = `${pad},${H - pad} ${garis} ${W - pad},${H - pad}`;
+
+  const dataChart = poin.map((p) => ({
+    tanggal: p.ts ? new Date(p.ts).toISOString().split("T")[0] : "",
+    rating: p.rating,
+    oppRating: p.oppRating,
+    outcome: p.outcome,
+    oppName: p.oppName,
+  }));
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full">
-      <defs>
-        <linearGradient id="gradRating" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={BIRU} stopOpacity="0.35" />
-          <stop offset="100%" stopColor={BIRU} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-        const y = H - pad - f * (H - pad * 2);
-        return (
-          <line
-            key={f}
-            x1={pad}
-            y1={y}
-            x2={W - pad}
-            y2={y}
-            stroke="var(--analisa-foregroundGrey)"
-            strokeOpacity="0.18"
-            strokeDasharray="3 3"
-          />
-        );
-      })}
-      <polygon points={area} fill="url(#gradRating)" />
-      <polyline points={garis} fill="none" stroke={BIRU} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-      {poin.length === 1 ? null : (
-        <circle cx={pos(n - 1)[0]} cy={pos(n - 1)[1]} r="4" fill={BIRU} />
-      )}
-    </svg>
+    <div className="mt-4 h-48 w-full">
+      <AreaChart
+        accessibilityLayer
+        data={dataChart}
+        margin={{ top: 10, right: 12, left: 0, bottom: 0 }}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <defs>
+          <linearGradient id="colorRating" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={BIRU} stopOpacity={0.4} />
+            <stop offset="95%" stopColor={BIRU} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.2} />
+        <XAxis
+          dataKey="tanggal"
+          tickLine={false}
+          axisLine={false}
+          tickMargin={8}
+          minTickGap={32}
+          tickFormatter={(value) => {
+            if (!value) return "";
+            const d = new Date(value);
+            return isNaN(d.getTime()) ? value : d.toLocaleDateString("id-ID", { month: "short", day: "numeric" });
+          }}
+          stroke="currentColor"
+          className="text-xs text-foregroundGrey"
+        />
+        <Tooltip
+          content={({ active, payload, label }) => {
+            if (!active || !payload || !payload.length) return null;
+            const item = payload[0].payload;
+            return (
+              <div className="rounded-lg border-2 border-black bg-white p-2.5 text-xs text-black shadow-[4px_4px_0px_0px_#000]">
+                <div className="font-bold">{label}</div>
+                <div>Rating: <span className="font-semibold">{item.rating}</span></div>
+                {item.oppName && <div>Lawan: {item.oppName} ({item.oppRating})</div>}
+                <div>Hasil: <span className="uppercase font-bold">{item.outcome}</span></div>
+              </div>
+            );
+          }}
+        />
+        <Area
+          type="monotone"
+          dataKey="rating"
+          stroke={BIRU}
+          strokeWidth={2.5}
+          fillOpacity={1}
+          fill="url(#colorRating)"
+        />
+      </AreaChart>
+    </div>
   );
 }
 
@@ -394,17 +415,19 @@ export default function DashboardAkun({ platform, username, muatUlang = 0 }) {
               </div>
             </div>
           ) : tab === "ratings" && ratings ? (
-            <div className="flex flex-col gap-3">
-              <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
+            <div className="flex flex-col gap-6 pt-2">
+              <div className="text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
               {ratings.total > 0 ? (
-                <>
+                <div className="flex flex-col gap-4">
                   <BarHasil w={ratings.poin.filter((p) => p.outcome === "win").length} d={ratings.poin.filter((p) => p.outcome === "draw").length} l={ratings.poin.filter((p) => p.outcome === "loss").length} tinggi="2rem" />
-                  <GrafikRiwayat poin={ratings.poin} min={ratings.min} max={ratings.max} />
-                  <div className="flex items-center justify-between text-xs text-foregroundGrey">
+                  <div className="mt-10">
+                    <GrafikRiwayat poin={ratings.poin} min={ratings.min} max={ratings.max} />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-foregroundGrey pt-2">
                     <span>{t("analisa.statistik.rendah")}: {ratings.min}</span>
                     <span>{t("analisa.statistik.tinggi")}: {ratings.max}</span>
                   </div>
-                </>
+                </div>
               ) : null}
             </div>
           ) : tab === "openings" && openings ? (

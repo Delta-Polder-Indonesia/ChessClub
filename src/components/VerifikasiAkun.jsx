@@ -6,6 +6,16 @@ import {
   mintaKodeProfil,
   periksaKodeProfil,
 } from "../lib/api/index.js";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog.jsx";
 
 /**
  * Pembuktian kepemilikan akun Chess.com.
@@ -29,6 +39,8 @@ export default function VerifikasiAkun({
   const [kode, setKode] = useState("");
   const [pesan, setPesan] = useState("");
   const [sibuk, setSibuk] = useState(false);
+  const [bukaKosong, setBukaKosong] = useState(false);
+  const [hasilVerifikasi, setHasilVerifikasi] = useState(null);
 
   useEffect(() => {
     let aktif = true;
@@ -45,7 +57,7 @@ export default function VerifikasiAkun({
   /* ------------------------------------------------------ sudah selesai */
   if (terverifikasi) {
     return (
-      <div className="flex flex-wrap items-center gap-3 rounded-md border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+      <div className="flex flex-wrap items-center gap-3 rounded-md border border-emerald-300 bg-white px-4 py-3 text-sm text-emerald-900">
         <span aria-hidden="true" className="text-base leading-none">
           ✓
         </span>
@@ -80,7 +92,7 @@ export default function VerifikasiAkun({
 
   const mintaKode = async () => {
     if (!username?.trim()) {
-      setPesan(t("verifikasi.isiUsernameDulu"));
+      setBukaKosong(true);
       return;
     }
     setSibuk(true);
@@ -103,7 +115,8 @@ export default function VerifikasiAkun({
     try {
       const hasil = await periksaKodeProfil(username);
       if (hasil.cocok && hasil.tiket) {
-        onTerverifikasi({ username: hasil.username, tiket: hasil.tiket });
+        setTahap("awal");
+        setHasilVerifikasi({ username: hasil.username, tiket: hasil.tiket });
       } else {
         setPesan(hasil.pesan || t("verifikasi.belumTerbaca"));
         setTahap("kode");
@@ -113,6 +126,13 @@ export default function VerifikasiAkun({
       setTahap("kode");
     } finally {
       setSibuk(false);
+    }
+  };
+
+  const konfirmasiSukses = () => {
+    if (hasilVerifikasi) {
+      onTerverifikasi(hasilVerifikasi);
+      setHasilVerifikasi(null);
     }
   };
 
@@ -164,9 +184,23 @@ export default function VerifikasiAkun({
               {sibuk ? t("verifikasi.memproses") : t("verifikasi.tombolKode")}
             </button>
           )}
+        </div>
+      )}
 
-          {(tahap === "kode" || tahap === "memeriksa") && (
-            <div className="flex flex-col gap-3">
+      {/* Dialog: langkah memasang kode */}
+      <AlertDialog
+        open={tahap === "kode" || tahap === "memeriksa"}
+        onOpenChange={(terbuka) => {
+          if (!terbuka) {
+            setTahap("awal");
+            setKode("");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("verifikasi.tombolKode")}</AlertDialogTitle>
+            <AlertDialogDescription>
               <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-6 text-slate-700">
                 <li>{t("verifikasi.langkah1")}</li>
                 <li>
@@ -177,34 +211,74 @@ export default function VerifikasiAkun({
                 </li>
                 <li>{t("verifikasi.langkah3")}</li>
               </ol>
+              <a
+                href="https://www.chess.com/settings"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-block text-xs font-semibold text-primary underline underline-offset-2"
+              >
+                {t("verifikasi.bukaPengaturan")}
+              </a>
+              {pesan && (
+                <p className="mt-3 rounded border border-amber-300 bg-white px-3 py-2 text-xs leading-5 text-amber-900">
+                  {pesan}
+                </p>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setTahap("awal")} disabled={sibuk}>
+              {t("verifikasi.batal")}
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={periksa} disabled={sibuk}>
+              {tahap === "memeriksa"
+                ? t("verifikasi.memeriksa")
+                : t("verifikasi.sudahPasang")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <a
-                  href="https://www.chess.com/settings"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-semibold text-primary underline underline-offset-2"
-                >
-                  {t("verifikasi.bukaPengaturan")}
-                </a>
-                <button
-                  type="button"
-                  onClick={periksa}
-                  disabled={sibuk}
-                  className="rounded-full border border-solid border-primary px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
-                >
-                  {tahap === "memeriksa"
-                    ? t("verifikasi.memeriksa")
-                    : t("verifikasi.sudahPasang")}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+      {/* Dialog: username kosong */}
+      <AlertDialog open={bukaKosong} onOpenChange={setBukaKosong}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("verifikasi.judulKosong")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("verifikasi.isiUsernameDulu")}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setBukaKosong(false)}>
+              {t("verifikasi.mengerti")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
-      {pesan && (
-        <p className="mt-3 rounded border border-amber-300 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+      {/* Dialog: verifikasi berhasil */}
+      <AlertDialog
+        open={Boolean(hasilVerifikasi)}
+        onOpenChange={(terbuka) => {
+          if (!terbuka) setHasilVerifikasi(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("verifikasi.berhasil")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("verifikasi.akunTerverifikasi")}{" "}
+              <strong>{hasilVerifikasi?.username}</strong>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={konfirmasiSukses}>
+              {t("verifikasi.lanjut")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {(tahap !== "kode" && tahap !== "memeriksa" && pesan) && (
+        <p className="mt-3 rounded border border-amber-300 bg-white px-3 py-2 text-xs leading-5 text-amber-900">
           {pesan}
         </p>
       )}

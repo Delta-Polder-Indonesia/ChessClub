@@ -97,7 +97,7 @@ export default function DropdownNotifikasi({
                   type="button"
                   onClick={() => onBukaPesan(p)}
                   className={`flex w-full gap-3 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
-                    p.dibaca ? "bg-white" : "bg-blue-50/40"
+                    p.dibaca ? "bg-white" : "bg-slate-50"
                   }`}
                 >
                   <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
@@ -127,7 +127,7 @@ export default function DropdownNotifikasi({
                   </div>
                   {!p.dibaca && (
                     <span
-                      className="mt-2 h-2 w-2 shrink-0 rounded-full bg-blue-500"
+                      className="mt-2 h-2 w-2 shrink-0 rounded-full bg-slate-700"
                       aria-label="belum dibaca"
                     />
                   )}
@@ -142,7 +142,7 @@ export default function DropdownNotifikasi({
         <button
           type="button"
           onClick={onBuka}
-          className="w-full rounded-md px-3 py-2 text-center text-xs font-semibold text-primary hover:bg-blue-50"
+          className="w-full rounded-md px-3 py-2 text-center text-xs font-semibold text-primary hover:bg-slate-50"
         >
           Lihat semua pesan →
         </button>

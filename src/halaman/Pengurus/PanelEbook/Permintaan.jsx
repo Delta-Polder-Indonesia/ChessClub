@@ -75,11 +75,11 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
                   </TableCell>
                   <TableCell>
                     {m.status === "menunggu" ? (
-                      <span className="inline-flex rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
+                      <span className="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-amber-700">
                         Menunggu
                       </span>
                     ) : m.status === "diterbitkan" ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                         Diterbitkan
                         <span className="font-mono font-bold">{m.kode}</span>
                       </span>

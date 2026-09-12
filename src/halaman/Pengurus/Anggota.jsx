@@ -154,7 +154,7 @@ export default function PanelAnggota({
   return (
     <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b-2 border-slate-200 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-slate-200 pb-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">
             {klub ? `Anggota ${klub}` : "Daftar Anggota"}
@@ -163,28 +163,25 @@ export default function PanelAnggota({
             {anggota.length} anggota terdaftar dari roster klub Chess.com
           </p>
         </div>
-      </div>
-
-      {/* ── Banner Alert ────────────────────────────────────── */}
-      {anggotaTerblokir.length > 0 && (
-        <div className="flex items-center gap-3 rounded-md border-2 border-red-200 bg-red-50 px-4 py-3 text-sm">
-          <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <p className="flex-1 text-red-800">
-            <span className="font-semibold">{anggotaTerblokir.length} akun</span> di roster terdeteksi terkena ban.
+        {anggotaTerblokir.length > 0 && (
+          <p className="flex items-center gap-2 text-sm text-red-700">
+            <svg className="h-4 w-4 shrink-0 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="font-semibold">{anggotaTerblokir.length} akun</span>
+            <span>di roster terdeteksi terkena ban.</span>
             {filterStatus !== "terblokir" && (
               <button
                 type="button"
                 onClick={() => setFilterStatus("terblokir")}
-                className="ml-2 font-semibold text-red-900 underline underline-offset-2 hover:text-red-700"
+                className="font-semibold text-red-900 underline underline-offset-2 hover:text-red-700"
               >
                 Lihat →
               </button>
             )}
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Filter Tabs + Pencarian ──────────────────────────── */}
       <div className="flex items-center justify-between gap-4">
@@ -241,13 +238,14 @@ export default function PanelAnggota({
         </p>
 
         <div className="max-h-[480px] overflow-y-auto">
-          <Table>
+          <Table className="table-fixed">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10">#</TableHead>
                 <TableHead>Anggota</TableHead>
                 <TableHead>Kota</TableHead>
                 <TableHead>Rating</TableHead>
+                <TableHead>LIVE</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-24">Aksi</TableHead>
               </TableRow>
@@ -285,20 +283,16 @@ export default function PanelAnggota({
                     <TableCell>{a.kota || "—"}</TableCell>
                     <TableCell>
                       {a.elo ? (
-                        <span className="elo-pilih">
-                          {a.elo}
-                          {a.kontrol && (
-                            <span className="ml-1 text-sm text-slate-400">{a.kontrol}</span>
-                          )}
-                        </span>
+                        <span className="elo-pilih">{a.elo}</span>
                       ) : (
                         "—"
                       )}
                     </TableCell>
+                    <TableCell>{a.kontrol || "—"}</TableCell>
                     <TableCell>
                       {kenaBan ? (
                         <div>
-                          <span className="inline-flex items-center gap-1 rounded bg-red-600 px-2 py-0.5 text-xs font-medium text-white">
+                          <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-red-700">
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
                           </span>
                           {a.peringatan && (
@@ -308,7 +302,7 @@ export default function PanelAnggota({
                           )}
                         </div>
                       ) : a.terverifikasi ? (
-                        <span className="inline-flex items-center gap-1 rounded bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                        <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                           Terverifikasi
                         </span>
                       ) : (
@@ -346,7 +340,7 @@ export default function PanelAnggota({
               })}
               {!anggotaTersaring.length && (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-10 text-center text-slate-500">
+                  <TableCell colSpan={7} className="py-10 text-center text-slate-500">
                     {cari || filterStatus !== "semua"
                       ? "Tidak ada anggota yang cocok dengan filter."
                       : "Belum ada anggota dari roster klub."}

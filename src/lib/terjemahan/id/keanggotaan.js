@@ -109,6 +109,11 @@ export const verifikasi = {
     isiUsernameDulu: "Isi username Chess.com Anda terlebih dahulu.",
     berhasil: "Kepemilikan akun terverifikasi:",
     ganti: "Ganti akun",
+    judulKosong: "Username belum diisi",
+    mengerti: "Mengerti",
+    akunTerverifikasi: "Akun berikut milik Anda:",
+    lanjut: "Lanjut",
+    batal: "Batal",
   }
 
 export const pendaftaran = {
@@ -178,6 +183,9 @@ export const pendaftaran = {
 
     setuju:
       "Saya menyatakan data di atas benar, bahwa ini satu-satunya akun saya di komunitas, dan saya menyetujui Kode Etik Komunitas — termasuk larangan menggunakan bantuan engine.",
+
+    penutup:
+      "Dengan menyelesaikan pendaftaran, Anda tercatat sebagai anggota Blunder Skuad dan akan diarahkan kembali ke halaman Keanggotaan.",
 
     periksaIsian: "Periksa kembali isian yang ditandai merah.",
     galatUsername: "Username Chess.com wajib diisi.",

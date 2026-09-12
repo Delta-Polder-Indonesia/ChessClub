@@ -566,7 +566,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             </TableHeader>
             <TableBody>
 {tampil.map((x) => (
-                <TableRow key={x.id} className={terpilih.has(x.id) ? "bg-blue-50/50" : ""}>
+                <TableRow key={x.id} className={terpilih.has(x.id) ? "bg-slate-50/50" : ""}>
                   <TableCell>
                     <input
                       type="checkbox"

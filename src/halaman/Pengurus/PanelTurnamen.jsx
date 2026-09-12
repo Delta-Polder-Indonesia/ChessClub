@@ -107,18 +107,20 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
       <h2 className="text-base font-bold text-slate-900">Turnamen</h2>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <select
-          value={saring}
-          onChange={(e) => setSaring(e.target.value)}
-          className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-primary"
-        >
-          <option value="">Semua turnamen</option>
-          {Object.entries(jenis).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v.label}
-            </option>
-          ))}
-        </select>
+        {!buatBaru && (
+          <select
+            value={saring}
+            onChange={(e) => setSaring(e.target.value)}
+            className="rounded border border-slate-300 bg-white px-2 py-1 text-sm text-slate-800 outline-none focus:border-primary"
+          >
+            <option value="">Semua turnamen</option>
+            {Object.entries(jenis).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+        )}
         <Tombol
           anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}
           onClick={() => setBuatBaru((b) => !b)}
@@ -133,66 +135,70 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
         />
       )}
 
-      {memuat ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Memuat…
-        </p>
-      ) : tampil.length === 0 ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
-        </p>
-      ) : (
-        <div className="overflow-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>#</TableHead>
-                <TableHead>Nama Turnamen</TableHead>
-                <TableHead>Kategori</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Tanggal Mulai</TableHead>
-                <TableHead>Peserta</TableHead>
-                <TableHead className="w-24">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tampil.map((t, index) => (
-                <TableRow key={t.id}>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>
-                    <button
-                      type="button"
-                      onClick={() => bukaRincian(t)}
-                      className="font-medium text-primary hover:underline"
-                    >
-                      {t.nama}
-                    </button>
-                    {t.jumlahPengajuan > 0 && (
-                      <span className="ml-2 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700">
-                        {t.jumlahPengajuan} pengajuan
-                      </span>
-                    )}
-                  </TableCell>
-                  <TableCell>{jenis[t.jenis]?.label || t.jenis}</TableCell>
-                  <TableCell>
-                    <Lencana status={t.status} />
-                  </TableCell>
-                  <TableCell>{tanggal(t.mulai)}</TableCell>
-                  <TableCell>
-                    {t.jumlahPeserta}
-                    {t.kuota ? ` / ${t.kuota}` : ""}
-                  </TableCell>
-                  <TableCell className="w-24">
-                    <MenuAksi
-                      onUbah={() => bukaRincian(t)}
-                      onHapus={() => setTargetHapus(t)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+      {!buatBaru && (
+        <>
+          {memuat ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+              Memuat…
+            </p>
+          ) : tampil.length === 0 ? (
+            <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+              Belum ada turnamen. Tekan “+ Turnamen baru” untuk membuat.
+            </p>
+          ) : (
+            <div className="overflow-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Nama Turnamen</TableHead>
+                    <TableHead>Kategori</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Tanggal Mulai</TableHead>
+                    <TableHead>Peserta</TableHead>
+                    <TableHead className="w-24">Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tampil.map((t, index) => (
+                    <TableRow key={t.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>
+                        <button
+                          type="button"
+                          onClick={() => bukaRincian(t)}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {t.nama}
+                        </button>
+                        {t.jumlahPengajuan > 0 && (
+                          <span className="ml-2 bg-slate-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                            {t.jumlahPengajuan} pengajuan
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell>{jenis[t.jenis]?.label || t.jenis}</TableCell>
+                      <TableCell>
+                        <Lencana status={t.status} />
+                      </TableCell>
+                      <TableCell>{tanggal(t.mulai)}</TableCell>
+                      <TableCell>
+                        {t.jumlahPeserta}
+                        {t.kuota ? ` / ${t.kuota}` : ""}
+                      </TableCell>
+                      <TableCell className="w-24">
+                        <MenuAksi
+                          onUbah={() => bukaRincian(t)}
+                          onHapus={() => setTargetHapus(t)}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </>
       )}
 
       <Modal

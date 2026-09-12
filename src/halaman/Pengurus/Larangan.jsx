@@ -115,35 +115,32 @@ export default function PanelLarangan({
   return (
     <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b-2 border-slate-200 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b-2 border-slate-200 pb-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">Daftar Larangan</h2>
           <p className="mt-0.5 text-sm text-slate-500">
             {hitam.length} akun dilarang mengikuti kegiatan komunitas dan turnamen
           </p>
         </div>
-      </div>
-
-      {/* ── Banner Alert ────────────────────────────────────── */}
-      {jumlahOtomatis > 0 && (
-        <div className="flex items-center gap-3 rounded-md border-2 border-amber-200 bg-amber-50 px-4 py-3 text-sm">
-          <svg className="h-4 w-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
-          <p className="flex-1 text-amber-800">
-            <span className="font-semibold">{jumlahOtomatis} akun</span> terdeteksi terkena ban otomatis dari Chess.com.
+        {jumlahOtomatis > 0 && (
+          <p className="flex items-center gap-2 text-sm text-amber-700">
+            <svg className="h-4 w-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            <span className="font-semibold">{jumlahOtomatis} akun</span>
+            <span>terdeteksi terkena ban otomatis dari Chess.com.</span>
             {filterSumber !== "otomatis" && (
               <button
                 type="button"
                 onClick={() => setFilterSumber("otomatis")}
-                className="ml-2 font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
+                className="font-semibold text-amber-900 underline underline-offset-2 hover:text-amber-700"
               >
                 Lihat →
               </button>
             )}
           </p>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Filter Tabs + Pencarian + Cek HP ──────────────────── */}
       <div className="flex items-center justify-between gap-4">
@@ -250,7 +247,7 @@ export default function PanelLarangan({
                     <TableCell>
                       <span className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium ${
                         h.alasan === "fair_play_violations"
-                          ? "bg-red-600 text-white"
+                          ? "bg-slate-100 text-red-700"
                           : "bg-slate-200 text-slate-700"
                       }`}>
                         {h.alasan === "fair_play_violations" ? "Fair Play" : "Keputusan Pengurus"}

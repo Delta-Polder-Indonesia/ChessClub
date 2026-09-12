@@ -66,7 +66,7 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                       </span>
                     ) : (
                       <span
-                        className="inline-flex rounded bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                        className="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
                         title={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}
                       >
                         Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt

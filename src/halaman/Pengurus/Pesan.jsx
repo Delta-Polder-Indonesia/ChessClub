@@ -278,7 +278,7 @@ export default function PanelPesan({
               <div
                 key={p.id}
                 className={`flex items-center w-full px-4 py-3 gap-4 transition-colors hover:bg-slate-50 ${
-                  !p.dibaca ? "bg-blue-50/30" : ""
+                  !p.dibaca ? "bg-slate-50" : ""
                 }`}
               >
                 <input
@@ -294,7 +294,7 @@ export default function PanelPesan({
                   className={`flex-1 min-w-0 flex items-center gap-4 text-left ${!p.dibaca ? "font-semibold text-black" : "text-slate-500"}`}
                 >
                   {!p.dibaca && (
-                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    <span className="h-2 w-2 rounded-full bg-slate-700 shrink-0" />
                   )}
                   {p.dibaca && <span className="w-2 shrink-0" />}
                   <span className="shrink-0 w-36 truncate text-sm">

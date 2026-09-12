@@ -38,7 +38,7 @@ export function Bidang({ label, ...sisa }) {
     <label className="flex flex-col gap-1 text-xs font-medium text-slate-700">
       {label}
       <input
-        className="rounded border border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+        className="rounded border-2 border-slate-300 px-2.5 py-1.5 text-sm outline-none focus:border-primary"
         {...sisa}
       />
     </label>
@@ -53,7 +53,7 @@ export function Bidang({ label, ...sisa }) {
 export function KotakGalatMuat({ pesan, onCobaLagi, className = "" }) {
   return (
     <div
-      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 ${className}`}
+      className={`flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3 ${className}`}
     >
       <p className="text-sm font-medium text-red-800">{pesan}</p>
       {onCobaLagi && (
@@ -396,7 +396,7 @@ export function Sheet({
         aria-modal="true"
         aria-label={judul}
         onClick={(e) => e.stopPropagation()}
-        className={`absolute inset-y-0 left-0 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
+        className={`absolute bottom-0 left-0 top-12 flex w-64 max-w-full flex-col border-r-2 border-slate-200 bg-white transition-transform duration-300 ease-out ${
           terbuka ? "translate-x-0" : "-translate-x-full"
         }`}
       >

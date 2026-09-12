@@ -12,7 +12,7 @@ function ItemDropdown({ icon, label, onClick, disabled = false, bahaya = false }
         flex items-center gap-3
         transition-colors duration-100
         disabled:opacity-40
-        ${bahaya ? "text-red-600 hover:bg-red-50" : "text-slate-700 hover:bg-slate-50"}
+        ${bahaya ? "text-red-600 hover:bg-slate-100" : "text-slate-700 hover:bg-slate-50"}
       `}
     >
       <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -64,7 +64,7 @@ export default function DropdownProfil({
           ) : (
             "Pengurus"
           )}
-          <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-amber-100 text-amber-800" : "bg-slate-100 text-slate-700"}`}>
+          <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${isMaster ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700"}`}>
             {isMaster ? "MASTER" : "PENGURUS"}
           </span>
         </p>

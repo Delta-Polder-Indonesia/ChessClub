@@ -165,7 +165,7 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
         <div
           role="status"
           aria-live="polite"
-          className="flex flex-wrap items-center gap-3 rounded-md border-2 border-emerald-200 bg-emerald-50 px-4 py-3 text-sm"
+          className="flex flex-wrap items-center gap-3 rounded-md border-2 border-emerald-200 bg-white px-4 py-3 text-sm"
         >
           <div className="flex-1">
             <p className="text-emerald-800">
