@@ -13,7 +13,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
 } from "@tanstack/react-table/legacy";
-import { ArrowUpDown, ChevronDown } from "lucide-react";
+import { AlertCircleIcon, ArrowUpDown, CheckCircle2Icon, ChevronDown, InfoIcon } from "lucide-react";
 import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
@@ -33,6 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "../../../../components/ui/alert-dialog.jsx";
+import { Alert, Alertjudul } from "../../../../components/ui/alert.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import {
   ambilDaftarPartai,
@@ -676,7 +677,7 @@ function MenuKolom({ t, nilai, onPilih }) {
   );
 }
 
-function TabelRingkasan({ koleksiId, t, locale }) {
+function TabelRingkasan({ koleksiId, t, locale, overlay }) {
   /* null = masih memuat; [] = sudah dimuat tapi kosong */
   const [daftar, setDaftar] = useState(null);
   const [periode, setPeriode] = useState("semua");
@@ -842,7 +843,18 @@ function TabelRingkasan({ koleksiId, t, locale }) {
   const totalHal = tabel.getPageCount();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-3">
+    <div className="relative flex min-h-0 flex-1 flex-col gap-3">
+      {/*
+       * Overlay tarik data: muncul di tengah tabel saat unduhan berjalan,
+       * tabelnya sendiri tetap terlihat di baliknya (bukan diganti).
+       * `overlay` berisi spinner + progres dari LayarDatabase.
+       */}
+      {overlay ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-borderRoundness bg-backgroundBox/80">
+          <DualRingSpinner color={BIRU} />
+          {overlay}
+        </div>
+      ) : null}
       {/* Toolbar: pencarian + filter periode pada tombol Kolom - responsive */}
       <div className="flex shrink-0 flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-2">
         <div className="relative w-full sm:w-56">
@@ -991,8 +1003,13 @@ export default function LayarDatabase({
 
   const [salinSuksesId, setSalinSuksesId] = useState(null);
   const [notifikasi, setNotifikasi] = useState(null);
+  const notifikasiTimer = useRef(null);
   const [dialogTarikBesar, setDialogTarikBesar] = useState(false);
   const [dialogEksporKosong, setDialogEksporKosong] = useState(false);
+  const [dialogHapusPartai, setDialogHapusPartai] = useState(false);
+  const [targetHapusPartai, setTargetHapusPartai] = useState(null);
+  const [dialogHapusKoleksi, setDialogHapusKoleksi] = useState(null);
+  const [dialogKosongkanSemua, setDialogKosongkanSemua] = useState(false);
 
   // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
   const [mode, setMode] = useState(modeTersimpan);
@@ -1046,6 +1063,14 @@ export default function LayarDatabase({
   // lebih baru.
   const tokenPartai = useRef(0);
   const tokenMetadata = useRef(0);
+
+  // Dialog Radix di-render ke <body> via Portal — di luar `.analisa-root`,
+  // sehingga variabel tema Analisa tidak ikut dan kontennya tampil putih.
+  // Portal konten dialog ke dalam akar tema supaya memakai warna gelap halaman.
+  const wadahDialog = useMemo(
+    () => document.querySelector?.(".analisa-root") || undefined,
+    [],
+  );
 
   // Penggabungan pembacaan ringkasan yang beruntun: bila pemuatan metadata
   // masih berjalan (mis. layar dibuka ulang saat scan pertama belum selesai),
@@ -1390,9 +1415,10 @@ export default function LayarDatabase({
 
   /* ── Aksi / Handler ────────────────────────────────────────────── */
 
-  function tampilkanNotif(pesan) {
-    setNotifikasi(pesan);
-    setTimeout(() => setNotifikasi(null), 3000);
+  function tampilkanNotif(pesan, variasi = "sukses") {
+    setNotifikasi({ pesan, variasi });
+    if (notifikasiTimer.current) clearTimeout(notifikasiTimer.current);
+    notifikasiTimer.current = setTimeout(() => setNotifikasi(null), 4000);
   }
 
   /** Ambil teks PGN satu partai (baris tabel sengaja tidak membawanya). */
@@ -1410,7 +1436,7 @@ export default function LayarDatabase({
   async function tanganiAnalisa(game) {
     const pgn = await pgnPartai(game);
     if (!pgn) {
-      tampilkanNotif(t("analisa.basisData.pgnTidakAda"));
+      tampilkanNotif(t("analisa.basisData.pgnTidakAda"), "gagal");
       return;
     }
     onAnalisa({ format: "pgn", string: pgn });
@@ -1420,7 +1446,7 @@ export default function LayarDatabase({
   async function tanganiSalinPgn(game) {
     const pgn = await pgnPartai(game);
     if (!pgn) {
-      tampilkanNotif(t("analisa.basisData.pgnTidakAda"));
+      tampilkanNotif(t("analisa.basisData.pgnTidakAda"), "gagal");
       return;
     }
     try {
@@ -1431,7 +1457,7 @@ export default function LayarDatabase({
       tampilkanNotif(t("analisa.basisData.pgnDisalin"));
       setTimeout(() => setSalinSuksesId(null), 2000);
     } catch {
-      tampilkanNotif("Gagal menyalin PGN.");
+      tampilkanNotif("Gagal menyalin PGN.", "gagal");
     }
   }
 
@@ -1478,35 +1504,39 @@ export default function LayarDatabase({
       URL.revokeObjectURL(url);
       tampilkanNotif(t("analisa.basisData.eksporPgnSukses"));
     } catch {
-      tampilkanNotif("Gagal mengekspor PGN.");
+      tampilkanNotif("Gagal mengekspor PGN.", "gagal");
     }
   }
 
-  async function tanganiHapusPartai(e, game) {
-    e.stopPropagation();
-    if (!window.confirm(t("analisa.basisData.konfirmasiHapusPartai"))) return;
+  function bukaDialogHapusPartai(e, game) {
+    if (e) e.stopPropagation();
+    setTargetHapusPartai(game);
+    setDialogHapusPartai(true);
+  }
+
+  async function tanganiHapusPartai() {
+    const game = targetHapusPartai;
+    setDialogHapusPartai(false);
+    setTargetHapusPartai(null);
+    if (!game) return;
     await hapusPartai(game.id);
     await muatMetadata();
     await muatPartai();
     tampilkanNotif("Partai berhasil dihapus dari basis data.");
   }
 
-  async function tanganiHapusKoleksi(id) {
+  function tanganiHapusKoleksi(id) {
     const koleksiId = id ?? koleksiTerpilih;
+    if (!koleksiId) return;
+    setDialogHapusKoleksi(koleksiId);
+  }
+
+  async function konfirmasiHapusKoleksi() {
+    const koleksiId = dialogHapusKoleksi;
+    setDialogHapusKoleksi(null);
     if (!koleksiId) return;
     const kol = koleksiList.find((k) => k.id === koleksiId);
     const label = kol?.label || koleksiId;
-    const jlh = kol?.jumlahPartai || totalPartai;
-    if (
-      !window.confirm(
-        t("analisa.basisData.konfirmasiHapusKoleksi", {
-          koleksi: label,
-          jumlah: jlh,
-        }),
-      )
-    )
-      return;
-
     await hapusKoleksi(koleksiId);
     setKoleksiTerpilih((lama) => (lama === koleksiId ? "" : lama));
     await muatMetadata();
@@ -1514,8 +1544,12 @@ export default function LayarDatabase({
     tampilkanNotif(`Koleksi ${label} berhasil dihapus.`);
   }
 
-  async function tanganiKosongkanSemua() {
-    if (!window.confirm(t("analisa.basisData.konfirmasiHapusSemua"))) return;
+  function tanganiKosongkanSemua() {
+    setDialogKosongkanSemua(true);
+  }
+
+  async function konfirmasiKosongkanSemua() {
+    setDialogKosongkanSemua(false);
     await bersihkanBasisData();
     setKoleksiTerpilih("");
     await muatMetadata();
@@ -1526,11 +1560,11 @@ export default function LayarDatabase({
   /* ── Tarik data dengan filter periode ── */
   async function tanganiTarikData() {
     if (!koleksi) {
-      tampilkanNotif("Pilih koleksi dulu.");
+      tampilkanNotif("Pilih koleksi dulu.", "info");
       return;
     }
     if (koleksi.platform !== "chessCom") {
-      tampilkanNotif("Tarik data filter baru tersedia untuk Chess.com saja.");
+      tampilkanNotif("Tarik data filter baru tersedia untuk Chess.com saja.", "info");
       return;
     }
     if (sedangTarik) return;
@@ -1562,9 +1596,9 @@ export default function LayarDatabase({
       tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
     } catch (e) {
       if (e?.cooldown) {
-        tampilkanNotif("Terlalu sering, coba lagi 1 menit.");
+        tampilkanNotif("Terlalu sering, coba lagi 1 menit.", "gagal");
       } else {
-        tampilkanNotif(`Gagal tarik: ${e?.message || "unknown"}`);
+        tampilkanNotif(`Gagal tarik: ${e?.message || "unknown"}`, "gagal");
       }
     } finally {
       setSedangTarik(false);
@@ -1581,6 +1615,10 @@ export default function LayarDatabase({
   }
 
   /* ── Render ────────────────────────────────────────────────────── */
+
+  const koleksiHapus = dialogHapusKoleksi
+    ? koleksiList.find((k) => k.id === dialogHapusKoleksi)
+    : null;
 
   const toolbarTabel =
     mode === "tabel" ? (
@@ -1687,26 +1725,36 @@ export default function LayarDatabase({
           </div>
         ) : null
       }
-      headerKanan={toolbarTabel}
+      headerKanan={
+        <>
+          {notifikasi ? (
+            <Alert
+              variasi={notifikasi.variasi}
+              style={{
+                borderColor:
+                  notifikasi.variasi === "gagal"
+                    ? "var(--analisa-lossRed)"
+                    : notifikasi.variasi === "info"
+                      ? "var(--analisa-foregroundGrey)"
+                      : "var(--analisa-winGreen)",
+              }}
+              className="max-w-md shrink-0 bg-transparent text-white"
+            >
+              {notifikasi.variasi === "gagal" ? (
+                <AlertCircleIcon style={{ color: "var(--analisa-lossRed)" }} />
+              ) : notifikasi.variasi === "info" ? (
+                <InfoIcon style={{ color: "var(--analisa-foregroundGrey)" }} />
+              ) : (
+                <CheckCircle2Icon style={{ color: "var(--analisa-winGreen)" }} />
+              )}
+              <Alertjudul>{notifikasi.pesan}</Alertjudul>
+            </Alert>
+          ) : null}
+          {toolbarTabel}
+        </>
+      }
     >
       <div className="flex flex-1 min-h-0 flex-col gap-3">
-      {/* ── Toast Notifikasi ────────────────────────────────────── */}
-      {notifikasi && (
-        <div className="mb-3 flex items-center justify-between rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-2 text-xs font-semibold text-foregroundBlackDark transition-all">
-          <div className="flex items-center gap-2">
-            <IkonCheck className="h-4 w-4 shrink-0 text-foregroundBlackDark" />
-            <span>{notifikasi}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setNotifikasi(null)}
-            className="ml-2 text-xs opacity-75 hover:opacity-100 cursor-pointer"
-          >
-            ✕
-          </button>
-        </div>
-      )}
-
         <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
           {/* ── Kolom Kiri: daftar profil / koleksi (sembunyi dalam mode tabel biar tabel full layar) ── */}
           <div
@@ -1861,6 +1909,19 @@ export default function LayarDatabase({
                       koleksiId={koleksiTerpilih}
                       t={t}
                       locale={locale}
+                      overlay={
+                        sedangTarik ? (
+                          <div className="flex flex-col items-center gap-1.5 text-center">
+                            <p className="text-xs font-bold text-foreground">Menarik data…</p>
+                            {progresTarik.total > 0 ? (
+                              <p className="text-xs tabular-nums text-foregroundGrey">
+                                {progresTarik.current}/{progresTarik.total}
+                                {progresTarik.bulan ? ` ${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
+                              </p>
+                            ) : null}
+                          </div>
+                        ) : undefined
+                      }
                     />
 
                     {/* ── Panel Tarik Data dengan Filter Periode - responsive */}
@@ -1904,14 +1965,9 @@ export default function LayarDatabase({
                           onClick={tanganiTarikData}
                           className="inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                         >
-                          {sedangTarik ? <DualRingSpinner color="#000" /> : <Download className="h-3.5 w-3.5 shrink-0" />}
-                          <span>{sedangTarik ? "Menarik..." : "Tarik Data"}</span>
+                          <Download className="h-3.5 w-3.5 shrink-0" />
+                          <span>Tarik Data</span>
                         </button>
-                        {sedangTarik && progresTarik.total > 0 ? (
-                          <span className="text-[11px] text-foregroundGrey">
-                            {progresTarik.current}/{progresTarik.total} {progresTarik.bulan ? `${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
-                          </span>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() => setMode("tabel")}
@@ -2249,23 +2305,23 @@ export default function LayarDatabase({
       </div>
 
       {/* ── Peringatan unduhan partai dalam jumlah besar ── */}
-<AlertDialog open={dialogTarikBesar} onOpenChange={setDialogTarikBesar}>
-        <AlertDialogContent>
+      <AlertDialog open={dialogTarikBesar} onOpenChange={setDialogTarikBesar}>
+        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-white">
               {tarikPeriode === "semua"
                 ? "Unduhan seluruh arsip"
                 : "Unduhan partai satu tahun"}
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-[#939291]">
               Unduhan ini memuat ribuan partai sekaligus dan bisa membuat browser
               kewalahan. Sebaiknya gunakan periode Mingguan, Bulanan, atau pilih
               satu tanggal untuk menarik sebagian data saja.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={mulaiTarikData}>
+            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={mulaiTarikData} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
               Lanjut Unduh
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -2273,18 +2329,92 @@ export default function LayarDatabase({
       </AlertDialog>
 
       <AlertDialog open={dialogEksporKosong} onOpenChange={setDialogEksporKosong}>
-        <AlertDialogContent>
+        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle className="text-white">
               Tidak ada partai untuk diekspor
             </AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogDescription className="text-[#939291]">
               Tarik data terlebih dahulu di bagian bawah untuk mendapatkan data
               pemain yang kamu cari.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction>Mengerti</AlertDialogAction>
+            <AlertDialogAction className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">Mengerti</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Konfirmasi hapus partai ── */}
+      <AlertDialog
+        open={dialogHapusPartai}
+        onOpenChange={(o) => {
+          setDialogHapusPartai(o);
+          if (!o) setTargetHapusPartai(null);
+        }}
+      >
+        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              {t("analisa.basisData.hapusPartai")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#939291]">
+              {t("analisa.basisData.konfirmasiHapusPartai")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={tanganiHapusPartai} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Konfirmasi hapus koleksi ── */}
+      <AlertDialog
+        open={Boolean(dialogHapusKoleksi)}
+        onOpenChange={(o) => {
+          if (!o) setDialogHapusKoleksi(null);
+        }}
+      >
+        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              {t("analisa.basisData.hapusKoleksi")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#939291]">
+              {t("analisa.basisData.konfirmasiHapusKoleksi", {
+                koleksi: koleksiHapus?.label || dialogHapusKoleksi,
+                jumlah: koleksiHapus?.jumlahPartai || totalPartai,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={konfirmasiHapusKoleksi} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
+              Hapus
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* ── Konfirmasi kosongkan seluruh basis data ── */}
+      <AlertDialog open={dialogKosongkanSemua} onOpenChange={setDialogKosongkanSemua}>
+        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white">
+              {t("analisa.basisData.hapusSemua")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#939291]">
+              {t("analisa.basisData.konfirmasiHapusSemua")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
+            <AlertDialogAction onClick={konfirmasiKosongkanSemua} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
+              Hapus Semua
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

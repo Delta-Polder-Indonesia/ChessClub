@@ -51,3 +51,6 @@ data/roster-anggota.json
 # Laporan Lighthouse / audit — jangan masuk repo
 *.report.html
 laporan-lighthouse*.html
+
+# Khusus Develover local 
+prompt.md
