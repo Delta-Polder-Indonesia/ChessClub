@@ -1,25 +1,3 @@
-/*
- * Kerangka LAYAR untuk area kerja Analisa — pengganti modal.
- *
- * Dulu setiap menu di bilah navigasi (Akun, Basis Data, Impor) membuka popup
- * modal (`Popup.jsx`): latar digelapkan, papan tertutup, dan Esc/klik-luar
- * menutupnya. Sekarang area kerja berganti layar seperti halaman Pengurus
- * (`src/halaman/Pengurus/Dashboard.jsx`): bilah navigasi tetap di tempat,
- * isi area kerja yang berganti, dan tidak ada modal sama sekali.
- *
- * Perbedaan yang sengaja dibuat terhadap `Popup.jsx` yang lama:
- *  - tidak ada `fixed inset-0`, tidak ada latar digelapkan, tidak ada
- *    `role="dialog"`/`aria-modal` — ini panel biasa, bukan dialog;
- *  - tidak memasang pendengar Escape: tombol Escape milik papan catur
- *    (pintasan pemutar partai) dan tidak boleh direbut layar lain;
- *  - tidak ada klik-luar-menutup, karena tidak ada "luar";
- *  - tinggi mengikuti area kerja (`h-full min-h-0`) supaya tabel partai
- *    bisa menggulir sendiri tanpa menggulir seluruh halaman.
- *
- * Variabel tema tetap dibaca dari `.analisa-root`, sama seperti popup dulu,
- * sehingga panel ikut gelap/terang mengikuti tema papan.
- */
-
 /**
  * @param {object}  props
  * @param {unknown} props.judul        Judul di kepala panel (boleh berupa node,
@@ -48,26 +26,24 @@ export default function PanelLayar({
       className={`flex h-full min-h-0 w-full flex-col select-text bg-backgroundBoxDarker ${className}`}
     >
       {adaKepala ? (
-        <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-border px-5 py-3.5">
-          <div className="min-w-0">
-            <p className="text-base font-extrabold text-foreground">{judul}</p>
+        <div className="flex shrink-0 flex-col sm:flex-row sm:flex-wrap items-start sm:items-center justify-between gap-2 sm:gap-3 border-b border-border px-3 sm:px-5 py-3 sm:py-3.5">
+          <div className="min-w-0 w-full sm:w-auto">
+            <p className="text-sm sm:text-base font-extrabold text-foreground truncate">{judul}</p>
             {bawahJudul ? (
-              <div className="mt-1.5">{bawahJudul}</div>
+              <div className="mt-1 sm:mt-1.5 overflow-x-auto">{bawahJudul}</div>
             ) : subjudul ? (
-              <p className="mt-0.5 text-xs leading-4 text-foregroundGrey">{subjudul}</p>
+              <p className="mt-0.5 text-[11px] sm:text-xs leading-4 text-foregroundGrey">{subjudul}</p>
             ) : null}
           </div>
           {headerKanan ? (
-            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <div className="flex min-w-0 w-full sm:w-auto flex-wrap items-center justify-start sm:justify-end gap-2 mt-1 sm:mt-0">
               {headerKanan}
             </div>
           ) : null}
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col px-5 py-4">
-        {/* mx-auto supaya layar yang dibatasi lebarnya (mis. Impor) tetap
-            terpusat di tengah area kerja, bukan menempel kiri. */}
+      <div className="flex min-h-0 flex-1 flex-col px-3 sm:px-5 py-3 sm:py-4">
         <div className={`mx-auto flex min-h-0 w-full flex-1 flex-col ${lebarMaks}`}>{children}</div>
       </div>
     </section>

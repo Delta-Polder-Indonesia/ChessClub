@@ -421,8 +421,9 @@ function HeaderTabel({ urut, ubahUrut, t }) {
       kunci: "eventSitus",
       label: "Event",
       align: "text-left",
-      padding: "py-2 px-2",
+      padding: "py-2 px-2 hidden sm:table-cell",
       tanpaSort: true,
+      kelasTh: "hidden sm:table-cell",
     },
     {
       kunci: "tanggal",
@@ -440,8 +441,9 @@ function HeaderTabel({ urut, ubahUrut, t }) {
       kunci: "situs",
       label: "Situs",
       align: "text-left",
-      padding: "py-2 px-2",
+      padding: "py-2 px-2 hidden lg:table-cell",
       tanpaSort: true,
+      kelasTh: "hidden lg:table-cell",
     },
   ];
 
@@ -451,7 +453,7 @@ function HeaderTabel({ urut, ubahUrut, t }) {
         {kolom.map((k) => (
           <th
             key={k.kunci}
-            className={`${k.padding} ${k.align} text-xs font-semibold uppercase tracking-wide text-foregroundGrey`}
+            className={`${k.padding} ${k.align} text-xs font-semibold uppercase tracking-wide text-foregroundGrey ${k.kelasTh || ""}`}
           >
             {k.subKolom ? (
               <div className="grid grid-cols-2 gap-x-2">
@@ -533,9 +535,9 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
         </div>
       </td>
 
-      {/* Event */}
-      <td className="px-2 py-2 whitespace-nowrap text-xs text-foregroundGrey">
-        <div className="truncate">{game.event || "—"}</div>
+      {/* Event - hidden on mobile */}
+      <td className="px-2 py-2 whitespace-nowrap text-xs text-foregroundGrey hidden sm:table-cell">
+        <div className="truncate max-w-[120px]">{game.event || "—"}</div>
       </td>
 
       {/* Tanggal */}
@@ -551,9 +553,9 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
         {game.plyCount ?? "-"}
       </td>
 
-      {/* Situs */}
-      <td className="py-2 px-2 whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75">
-        {game.site || game.url || ""}
+      {/* Situs - hidden on mobile/tablet */}
+      <td className="py-2 px-2 whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75 hidden lg:table-cell">
+        <div className="truncate max-w-[100px]">{game.site || game.url || ""}</div>
       </td>
 
     </tr>
@@ -839,9 +841,9 @@ function TabelRingkasan({ koleksiId, t, locale }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
-      {/* Toolbar: pencarian + filter periode pada tombol Kolom */}
-      <div className="flex shrink-0 flex-wrap items-center justify-between gap-2">
-        <div className="relative w-56">
+      {/* Toolbar: pencarian + filter periode pada tombol Kolom - responsive */}
+      <div className="flex shrink-0 flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-2">
+        <div className="relative w-full sm:w-56">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
             <IkonSearch className="h-4 w-4" />
           </div>
@@ -873,8 +875,8 @@ function TabelRingkasan({ koleksiId, t, locale }) {
         </div>
       ) : (
         <>
-          <div className="relative min-h-0 w-full flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
-            <table className="w-full min-w-[820px] table-fixed border-collapse text-sm">
+          <div className="relative min-h-0 w-full flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+            <table className="w-full min-w-[640px] sm:min-w-[820px] table-fixed border-collapse text-sm">
               <colgroup>
                 <col style={{ width: "5%" }} />
                 <col style={{ width: "14%" }} />
@@ -1652,7 +1654,7 @@ export default function LayarDatabase({
             >
               <Back className="h-6 w-10" />
             </button>
-            <span className="min-w-0 truncate text-2xl leading-8 font-extrabold text-foreground">
+            <span className="min-w-0 truncate text-lg sm:text-2xl leading-6 sm:leading-8 font-extrabold text-foreground">
               {koleksi && koleksi.username
                 ? `${koleksi.username} ${koleksi.platform === "chessCom" ? "Chess.com" : koleksi.platform === "lichessOrg" ? "Lichess.org" : koleksi.platform}`
                 : koleksi?.label || t("analisa.basisData.judul")}
@@ -1711,11 +1713,11 @@ export default function LayarDatabase({
         </div>
       )}
 
-        <div className="flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
+        <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
           {/* ── Kolom Kiri: daftar profil / koleksi (sembunyi dalam mode tabel biar tabel full layar) ── */}
           <div
-            className={`flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0 ${
-              mode === "tabel" ? "hidden" : ""
+            className={`flex w-full shrink-0 flex-col gap-3 lg:w-[300px] lg:min-h-0 lg:max-h-none max-h-[45vh] sm:max-h-[38vh] lg:overflow-visible ${
+              mode === "tabel" ? "hidden" : "flex"
             }`}
           >
             {/* Pencarian koleksi */}
@@ -1826,7 +1828,7 @@ export default function LayarDatabase({
             </div>
 
           {/* ── Kolom Kanan: Data / Tabel ─────────────────────────── */}
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3">
+          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 sm:gap-4">
             {mode === "data" ? (
               <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-borderRoundness border border-border bg-backgroundBox p-4">
                 {koleksi ? (
@@ -1846,13 +1848,13 @@ export default function LayarDatabase({
                       locale={locale}
                     />
 
-                    {/* ── Panel Tarik Data dengan Filter Periode ── */}
+                    {/* ── Panel Tarik Data dengan Filter Periode - responsive */}
                     <div className="shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3">
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
                         <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">Tarik Data</div>
-                        <span className="text-[10px] text-foregroundGrey/70">Filter: minggu / bulan / tahun agar tidak stag 1jt game</span>
+                        <span className="text-[10px] text-foregroundGrey/70 leading-3">Filter: minggu / bulan / tahun agar tidak stag 1jt game</span>
                       </div>
-                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <div className="mt-3 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
                         <DropdownPilih
                           ariaLabel="Periode tarik"
                           nilai={tarikPeriode}
@@ -1888,7 +1890,7 @@ export default function LayarDatabase({
 
                     <div className="shrink-0">
                       <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">{t("analisa.basisData.aksi")}</div>
-                      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                      <div className="mt-3 grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5">
                         <button type="button" onClick={tanganiEksporPgn} className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-backgroundBoxBoxHover hover:text-foregroundHighlighted cursor-pointer">
                           <Download className="h-3.5 w-3.5 shrink-0" />
                           <span>{t("analisa.basisData.eksporPgn")}</span>
@@ -1919,12 +1921,12 @@ export default function LayarDatabase({
               </div>
             ) : (
               <>
-      {/* Toolbar tabel: tab tampilan (Partai/Pemain/Event) + pencarian kecil */}
-      <div className="flex flex-wrap items-center gap-2 pb-2.5 shrink-0">
+      {/* Toolbar tabel: tab tampilan (Partai/Pemain/Event) + pencarian kecil - responsive */}
+      <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 pb-2.5 shrink-0">
         <div
           role="tablist"
           aria-label={t("analisa.basisData.judul")}
-          className="flex shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-0.5"
+          className="flex shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-0.5 w-full sm:w-auto overflow-x-auto"
         >
           {[
             { k: "partai", label: t("analisa.basisData.dataGames") },
@@ -1951,7 +1953,7 @@ export default function LayarDatabase({
         {/* Pencarian berlaku untuk semua tab: tab Partai menyaring nama
             pemain/event/isi PGN via basis, tab Pemain & Event menyaring
             rekap yang sudah dimuat secara langsung. */}
-        <div className="relative w-56">
+        <div className="relative w-full sm:w-56">
           <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-foregroundGrey">
             <IkonSearch className="h-4 w-4" />
           </div>
@@ -2011,8 +2013,8 @@ export default function LayarDatabase({
           paginasi langsung nempel di bawah tabel (tidak ada ruang kosong
           jauh di tengah). Kalau barisnya banyak, kotak menyusut sampai
           tinggi layar lalu scroll, jadi ruangnya tetap terpakai penuh. */}
-      <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
-        <table className="w-full min-w-[760px] table-fixed border-collapse text-sm">
+      <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+        <table className="w-full min-w-[600px] sm:min-w-[760px] table-fixed border-collapse text-sm">
           <colgroup>
             <col style={{ width: "16.6%" }} />
             <col style={{ width: "16.6%" }} />
@@ -2071,7 +2073,7 @@ export default function LayarDatabase({
           cukup dari gap-3 kolom induk, tidak ada lompatan ke dasar panel. */}
       <div className="shrink-0">
         {totalHal > 1 ? (
-          <div className="flex items-center justify-between gap-2 text-xs">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
               <span className="text-foregroundGrey">
                 {t("analisa.basisData.halaman", {
@@ -2081,7 +2083,7 @@ export default function LayarDatabase({
                 ({totalPartai} partai)
               </span>
             </div>
-<div className="flex items-center gap-2">
+<div className="flex flex-wrap items-center gap-1 sm:gap-2">
               {daftarHalaman(aktifHal, totalHal).map((hlm) => (
                 <button
                   key={hlm}
@@ -2130,8 +2132,8 @@ export default function LayarDatabase({
               {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
             </div>
           ) : (
-            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
-              <table className="w-full min-w-[560px] table-fixed border-collapse text-sm">
+            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+              <table className="w-full min-w-[480px] sm:min-w-[560px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col style={{ width: "10%" }} />
                   <col style={{ width: "30%" }} />
@@ -2203,8 +2205,8 @@ export default function LayarDatabase({
               {cari ? t("analisa.partai.tidakCocok") : t("analisa.partai.tidakAda")}
             </div>
           ) : (
-            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable]">
-              <table className="w-full min-w-[480px] table-fixed border-collapse text-sm">
+            <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+              <table className="w-full min-w-[400px] sm:min-w-[480px] table-fixed border-collapse text-sm">
                 <colgroup>
                   <col style={{ width: "10%" }} />
                   <col style={{ width: "45%" }} />

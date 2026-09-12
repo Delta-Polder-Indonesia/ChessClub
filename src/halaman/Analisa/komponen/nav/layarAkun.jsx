@@ -1,11 +1,5 @@
 /*
- * Layar "Akun" — daftar akun + statistik, menempati seluruh area kerja di
- * samping bilah Nav. 
- *
- * UPDATE:
- * - Tombol tarik data dihapus dari daftar akun — hanya info profile.
- * - Saat akun didaftarkan, koleksi kosong langsung dibuat di IndexedDB
- *   (pastikanKoleksi) agar otomatis muncul di layar Database.
+ * Layar "Akun" — daftar akun + statistik, responsive mobile.
  */
 import { useContext, useEffect, useState } from "react";
 import PanelLayar from "./PanelLayar.jsx";
@@ -20,7 +14,6 @@ export default function LayarAkun({ onTutup }) {
   const [username, setUsername] = analyzeContext.akun;
   const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
 
-  // Sinkronkan daftar dengan akun yang dipilih dari luar layar ini.
   useEffect(() => {
     const list = bacaDaftarAkun();
     if (username?.username) {
@@ -31,7 +24,6 @@ export default function LayarAkun({ onTutup }) {
       );
       if (!ada) {
         tambahKeDaftar({ platform: username.platform, username: username.username });
-        // Pastikan koleksi ada di DB agar langsung muncul di Database
         pastikanKoleksi({ platform: username.platform, username: username.username }).catch(() => {});
       }
     }
@@ -42,7 +34,6 @@ export default function LayarAkun({ onTutup }) {
     const list = tambahKeDaftar({ platform, username: nama });
     setDaftar(list);
     setUsername({ platform, username: nama });
-    // Buat koleksi kosong di Database otomatis
     pastikanKoleksi({ platform, username: nama }).catch(() => {});
   }
 
@@ -65,9 +56,9 @@ export default function LayarAkun({ onTutup }) {
 
   return (
     <PanelLayar>
-      <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-        {/* Kolom kiri: daftar akun + tombol tambah (tanpa tarik) */}
-        <div className="flex w-full shrink-0 flex-col gap-3 lg:w-1/2 lg:min-h-0">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 sm:gap-4 lg:flex-row">
+        {/* Kolom kiri: daftar akun - di HP max 45vh biar statistik tetap kelihatan */}
+        <div className="flex w-full shrink-0 flex-col gap-3 lg:w-1/2 lg:min-h-0 max-h-[45vh] sm:max-h-[38vh] lg:max-h-none overflow-y-auto lg:overflow-visible">
           <DaftarAkun
             daftar={daftar}
             aktif={username}
@@ -82,8 +73,8 @@ export default function LayarAkun({ onTutup }) {
           />
         </div>
 
-        {/* Kolom kanan: dashboard statistik (hanya baca lokal, tanpa tarik) */}
-        <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 lg:w-1/2">
+        {/* Kolom kanan: dashboard statistik */}
+        <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 lg:w-1/2 overflow-y-auto">
           <div className="min-h-0 min-w-0 flex-1 flex flex-col">
             <DashboardAkun platform={username?.platform} username={username?.username} />
           </div>

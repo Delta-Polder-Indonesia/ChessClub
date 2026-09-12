@@ -115,7 +115,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
       }`}
     >
       {/* Header: logo situs + nama + aksi (hanya refresh lokal + hapus, tanpa tarik) */}
-      <div className="flex items-center gap-3 border-b border-border px-3 py-2.5">
+      <div className="flex items-center gap-2 sm:gap-3 border-b border-border px-2.5 sm:px-3 py-2 sm:py-2.5">
         <span className={`grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-md ${platform === "chessCom" ? "bg-backgroundProfileWhite" : "bg-backgroundProfileBlack"}`}>
           {kartu?.avatar ? (
             <img className="h-full w-full object-cover" src={kartu.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
@@ -124,7 +124,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
           )}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm font-bold text-foreground">{user}</span>
-        <Logo platform={platform} className="h-[50px] w-[50px] shrink-0 fill-current text-foregroundGrey" />
+        <Logo platform={platform} className="h-[32px] w-[32px] sm:h-[50px] sm:w-[50px] shrink-0 fill-current text-foregroundGrey" />
         <div className="flex items-center gap-1">
           <button
             type="button"
