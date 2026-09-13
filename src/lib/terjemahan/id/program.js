@@ -199,10 +199,55 @@ export const unduhEbook = {
     galatMinta: "Permintaan tidak bisa dikirim. Coba lagi.",
 
     tercatatJudul: "Unduhan dimulai.",
+    tercatatIsi: "Tercatat di buku kunjungan: {nama} ({akun}) mengunduh “{judul}”.",
     unduhLagi: "Unduh lagi bila tidak berjalan",
     mintaJudul: "Permintaan terkirim ke pengurus.",
+    mintaIsi: "Tunggu kode akses dikirimkan oleh pengurus. Setelah kodenya diterima, buka popup ini lagi lalu pilih opsi {opsi} di bagian bawah.",
+    mintaIsiOpsi: "\"Sudah punya kode\"",
     mengerti: "Mengerti",
     tutup: "Tutup",
+    labelNamaAsli: "Nama asli",
+    labelAkunChess: "Akun Chess.com",
+    labelKodeAkses: "Kode akses",
+    belumPunyaKode: "Belum punya kode akses?",
+    mintaKodeDiSini: "Minta kode di sini",
+    sudahPunyaKode: "Sudah punya kode akses?",
+    masukkanKode: "Masukkan kode",
+  }
+
+export const ebookPanduan = {
+    judul: "E-Book & Panduan",
+    deskripsi: "Pusat literasi resmi komunitas: kumpulan e-book dan panduan catur dalam format PDF yang bisa dibaca langsung di browser atau diunduh.",
+    tentangJudul: "Tentang E-Book & Panduan",
+    tentangP1: "Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah, taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin memperdalam pemahaman strateginya.",
+    tentangP2: "Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.",
+    filterAriaLabel: "Filter kategori e-book",
+    semua: "Semua",
+    dokumenCount: "{n} dokumen",
+    baca: "Baca",
+    unduh: "Unduh",
+    segeraHadir: "Segera hadir",
+    belumTersedia: "Belum tersedia",
+    pdf: "PDF",
+    halaman: "halaman",
+    halamanCount: "{n} halaman",
+    bantuan: "Gunakan tombol panah ← → untuk berpindah halaman, atau",
+    bukaTabBaru: "buka di tab baru",
+    tutupEsc: "Tutup (Esc)",
+    tutup: "Tutup",
+    sampulAlt: "Sampul {judul}",
+    ariaKartuAksi: "{judul} — klik untuk membalik dan melihat aksi",
+    ariaKartuSegera: "{judul} — segera hadir",
+    info: "{kategori} • {ukuran} • {halaman}",
+  }
+
+export const fiturEbook = {
+    bacaanJudul: "Bacaan yang Nyaman",
+    bacaanIsi: "E-book catur kami dapat dibaca seperti buku aslinya, tetapi dengan tambahan papan analisis yang praktis untuk melihat setiap langkah di setiap posisi.",
+    integrasiJudul: "Integrasi Pembelajaran",
+    integrasiIsi: "Percepat pembelajaran Anda dengan buku-buku yang terintegrasi ke dalam alat pelatihan canggih kami. Manfaatkan metode pengulangan yang tepat sasaran seperti pengulangan berjarak dan pengulangan berulang untuk meningkatkan daya ingat Anda.",
+    buatJudul: "Buat buku Anda sendiri",
+    buatIsi: "Buat buku latihan Anda sendiri dan latih kontennya dengan pelatih soal, pelatih pembukaan, dan pelatih tebak langkah kami. Bagikan buku latihan yang telah Anda buat dengan siswa.",
   }
 
 export const analisaLanding = {

@@ -214,8 +214,23 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   {t("unduhEbook.tercatatJudul")}
                 </CardTitle>
                 <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-black">
-                  Tercatat di buku kunjungan: <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">{tercatat.nama}</strong>{" "}
-                  ({tercatat.akunChess}) mengunduh “{tercatat.judul}”.
+                  {(() => {
+                    // Gunakan interpolasi untuk nama, akun, judul dengan tetap menjaga bold pada nama
+                    const placeholder = "__NAMA__";
+                    const template = t("unduhEbook.tercatatIsi", {
+                      nama: placeholder,
+                      akun: tercatat.akunChess,
+                      judul: tercatat.judul,
+                    });
+                    const [awal, akhir] = template.split(placeholder);
+                    return (
+                      <>
+                        {awal}
+                        <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">{tercatat.nama}</strong>
+                        {akhir}
+                      </>
+                    );
+                  })()}
                 </CardDescription>
               </div>
             </CardContent>
@@ -247,7 +262,18 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   {t("unduhEbook.mintaJudul")}
                 </CardTitle>
                 <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-black">
-                  Tunggu kode akses dikirimkan oleh pengurus. Setelah kodenya diterima, buka popup ini lagi lalu pilih opsi <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">"Sudah punya kode"</strong> di bagian bawah.
+                  {(() => {
+                    const opsiPlaceholder = "__OPSI__";
+                    const template = t("unduhEbook.mintaIsi", { opsi: opsiPlaceholder });
+                    const [awal, akhir] = template.split(opsiPlaceholder);
+                    return (
+                      <>
+                        {awal}
+                        <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">{t("unduhEbook.mintaIsiOpsi")}</strong>
+                        {akhir}
+                      </>
+                    );
+                  })()}
                 </CardDescription>
               </div>
             </CardContent>
@@ -272,7 +298,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               )}
 
               <div className="flex flex-col gap-4">
-                <Field label="Nama asli" htmlFor="unduh-nama">
+                <Field label={t("unduhEbook.labelNamaAsli")} htmlFor="unduh-nama">
                   <Input
                     ref={namaRef}
                     id="unduh-nama"
@@ -289,7 +315,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                   />
                 </Field>
 
-                <Field label="Akun Chess.com" htmlFor="unduh-akun">
+                <Field label={t("unduhEbook.labelAkunChess")} htmlFor="unduh-akun">
                   <Input
                     id="unduh-akun"
                     name="akunChess"
@@ -307,7 +333,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                 </Field>
 
                 {punyaKode && (
-                  <Field label="Kode akses" htmlFor="unduh-kode">
+                  <Field label={t("unduhEbook.labelKodeAkses")} htmlFor="unduh-kode">
                     <Input
                       id="unduh-kode"
                       name="kode"
@@ -348,24 +374,24 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <div className="text-center text-xs font-medium text-black">
                 {punyaKode ? (
                   <>
-                    Belum punya kode akses?{" "}
+                    {t("unduhEbook.belumPunyaKode")}{" "}
                     <button
                       type="button"
                       onClick={() => gantiMode(false)}
                       className="font-bold underline underline-offset-4 hover:text-neutral-700"
                     >
-                      Minta kode di sini
+                      {t("unduhEbook.mintaKodeDiSini")}
                     </button>
                   </>
                 ) : (
                   <>
-                    Sudah punya kode akses?{" "}
+                    {t("unduhEbook.sudahPunyaKode")}{" "}
                     <button
                       type="button"
                       onClick={() => gantiMode(true)}
                       className="font-bold underline underline-offset-4 hover:text-neutral-700"
                     >
-                      Masukkan kode
+                      {t("unduhEbook.masukkanKode")}
                     </button>
                   </>
                 )}

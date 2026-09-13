@@ -197,10 +197,55 @@ export const unduhEbook = {
     galatMinta: "The request could not be sent. Try again.",
 
     tercatatJudul: "Download started.",
+    tercatatIsi: "Recorded in the guest book: {nama} ({akun}) downloaded “{judul}”.",
     unduhLagi: "Download again if nothing happens",
     mintaJudul: "Request sent to staff.",
+    mintaIsi: "Please wait for the access code to be sent by the staff. Once you receive the code, open this popup again and choose the {opsi} option below.",
+    mintaIsiOpsi: "\"Already have a code\"",
     mengerti: "Got it",
     tutup: "Close",
+    labelNamaAsli: "Real name",
+    labelAkunChess: "Chess.com account",
+    labelKodeAkses: "Access code",
+    belumPunyaKode: "Don't have an access code yet?",
+    mintaKodeDiSini: "Request a code here",
+    sudahPunyaKode: "Already have an access code?",
+    masukkanKode: "Enter code",
+  }
+
+export const ebookPanduan = {
+    judul: "E-Books & Guides",
+    deskripsi: "The community's official literacy hub: a collection of chess e-books and guides in PDF format that can be read directly in the browser or downloaded.",
+    tentangJudul: "About E-Books & Guides",
+    tentangP1: "This collection is the community's official literacy center, gathering structured chess learning materials from basic to advanced levels: introduction to the board and pieces, movement of each piece, basic tactics, strategy, and tournament guidance. Each material is arranged progressively so it can be learned step by step, both by beginners who are just starting and by players who want to deepen their strategic understanding.",
+    tentangP2: "All documents are provided in PDF format so they can be read directly in the browser without additional applications, or downloaded to be read offline on any device. The organized categorization helps users choose material that matches their skill level.",
+    filterAriaLabel: "Filter e-book categories",
+    semua: "All",
+    dokumenCount: "{n} documents",
+    baca: "Read",
+    unduh: "Download",
+    segeraHadir: "Coming soon",
+    belumTersedia: "Not available",
+    pdf: "PDF",
+    halaman: "pages",
+    halamanCount: "{n} pages",
+    bantuan: "Use arrow keys ← → to navigate pages, or",
+    bukaTabBaru: "open in a new tab",
+    tutupEsc: "Close (Esc)",
+    tutup: "Close",
+    sampulAlt: "Cover of {judul}",
+    ariaKartuAksi: "{judul} — click to flip and view actions",
+    ariaKartuSegera: "{judul} — coming soon",
+    info: "{kategori} • {ukuran} • {halaman}",
+  }
+
+export const fiturEbook = {
+    bacaanJudul: "Comfortable Reading",
+    bacaanIsi: "Our chess e-books can be read just like the original books, but with an added practical analysis board to see every move in every position.",
+    integrasiJudul: "Learning Integration",
+    integrasiIsi: "Accelerate your learning with books integrated into our advanced training tools. Use targeted repetition methods such as spaced repetition and repeated repetition to improve your memory.",
+    buatJudul: "Create your own book",
+    buatIsi: "Create your own exercise book and train its content with our puzzle trainer, opening trainer, and guess-the-move trainer. Share the exercise books you have created with students.",
   }
 
 export const analisaLanding = {

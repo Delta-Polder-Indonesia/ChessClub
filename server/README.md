@@ -132,7 +132,7 @@ menyeluruh: `npm run uji:supabase`.
 | `KCI_CHESS_KLUB` | tidak | URL-ID klub sumber anggota; bawaan `blunder-skuad` |
 | `KCI_CHESS_KLUB_CACHE` | tidak | Cache roster klub dalam detik; bawaan `43200` (12 jam) |
 | `KCI_CHESS_KLUB_PROFILE_CACHE` | tidak | Cache profil/rating roster dalam detik; bawaan `3600` |
-| `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` (bawaan) / `wajib` — mewajibkan tiket verifikasi saat mendaftar |
+| `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` (bawaan) / `wajib` — mewajibkan tiket verifikasi saat mendaftar. Pada `opsional`, pendaftaran tanpa `tiketVerifikasi` tetap lolos tanpa verifikasi Chess.com; hanya mode `wajib` yang menegakkan bukti kepemilikan akun. Setel `wajib` di produksi bila verifikasi kepemilikan akun Chess.com harus ditegakkan. |
 | `KCI_CHESS_CLIENT_ID` | untuk OAuth | Dari Chess.com; kosong ⇒ hanya jalur kode profil |
 | `KCI_CHESS_CLIENT_SECRET` | untuk OAuth | Dari Chess.com (opsional, PKCE tetap jalan tanpanya) |
 | `KCI_CHESS_REDIRECT_URI` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |
