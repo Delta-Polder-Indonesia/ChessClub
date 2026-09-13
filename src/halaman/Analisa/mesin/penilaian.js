@@ -73,7 +73,7 @@ export function getMoveRating({
   for (let i = 0; i < 4; i++) if (riwayat[i] === undefined) riwayat[i] = [];
 
   const winning = Number(staticEval[1]) < 0;
-  const previousWinig = Number(riwayat[0][1]) > 0;
+  const previousWinning = Number(riwayat[0][1]) > 0;
 
   const previousColor = invertColor(color);
 
@@ -91,7 +91,21 @@ export function getMoveRating({
     return rating;
   }
 
-  function losingGeatAdvantage(evaluation, previousEvaluation, warna) {
+  // Ambang keunggulan besar. Kedua fungsi di bawah SENGAJA punya struktur cabang
+  // yang identik; yang membedakan makna "kehilangan" vs "memberi" hanyalah nilai
+  // GREAT_ADVANTAGE (2 di sini, -2 di givingGreatAdvantage), bukan bentuk
+  // cabangnya.
+  // Cabang `warna === "w"` dan cabang hitam sengaja asimetris: putih dibandingkan
+  // terhadap +GREAT_ADVANTAGE, hitam terhadap -GREAT_ADVANTAGE (cabang hitam =
+  // cermin cabang putih dengan tanda nilai dibalik). Itu perlu karena koreksi
+  // tanda pada `staticEvalAmount`/`getPreviousStaticEvalAmount` membuat semua
+  // angka terbaca dari sudut pandang Putih, sehingga yang dibalik untuk Hitam
+  // adalah ambangnya, bukan nilainya (lihat catatan konvensi UCI di kepala
+  // getMoveRating).
+  // Rawan saat disunting: karena kedua fungsinya kembar, menyamakan atau membalik
+  // tanda 2 ↔ -2 tidak memicu error — yang bergeser hanya label "mistake"
+  // (loseAdvantage / giveAdvantage) pada salah satu warna.
+  function losingGreatAdvantage(evaluation, previousEvaluation, warna) {
     const GREAT_ADVANTAGE = 2;
     if (warna === "w") {
       return previousEvaluation >= GREAT_ADVANTAGE && evaluation < GREAT_ADVANTAGE;
@@ -99,7 +113,12 @@ export function getMoveRating({
     return previousEvaluation <= -GREAT_ADVANTAGE && evaluation > -GREAT_ADVANTAGE;
   }
 
-  function givingGeatAdvantage(evaluation, previousEvaluation, warna) {
+  // Cermin dari losingGreatAdvantage: struktur cabangnya sama persis, yang
+  // berbeda hanya tanda GREAT_ADVANTAGE (-2). Nilai -2 itulah yang membuat fungsi
+  // ini bermakna "memberi keunggulan besar" (ambang dilintasi ke sisi yang
+  // menguntungkan lawan), bukan cabangnya — jangan sampai terbalik menyalin
+  // konstanta 2 dari fungsi di atas.
+  function givingGreatAdvantage(evaluation, previousEvaluation, warna) {
     const GREAT_ADVANTAGE = -2;
     if (warna === "w") {
       return previousEvaluation >= GREAT_ADVANTAGE && evaluation < GREAT_ADVANTAGE;
@@ -156,16 +175,16 @@ export function getMoveRating({
     getWasNotMateRelated(1) &&
     getPreviousStandardRating(0) === "inaccuracy" &&
     getPreviousEvaluationDiff(0) >= 1.2 &&
-    (losingGeatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor) ||
-      givingGeatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor));
+    (losingGreatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor) ||
+      givingGreatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor));
 
   const previousPreviousMistake =
     getWasNotMateRelated(1) &&
     getWasNotMateRelated(2) &&
     getPreviousStandardRating(1) === "inaccuracy" &&
     getPreviousEvaluationDiff(1) >= 1.2 &&
-    (losingGeatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color) ||
-      givingGeatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color));
+    (losingGreatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color) ||
+      givingGreatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color));
 
   const previousMiss =
     getWasNotMateRelated(0) &&
@@ -262,7 +281,7 @@ export function getMoveRating({
   }
 
   // miss — melewatkan skakmat
-  if (riwayat[0][0] === "mate" && staticEval[0] !== "mate" && previousWinig) {
+  if (riwayat[0][0] === "mate" && staticEval[0] !== "mate" && previousWinning) {
     return { moveRating: "miss", ...komentar("missMate") };
   }
 
@@ -282,7 +301,7 @@ export function getMoveRating({
     isNotMateRelated &&
     standardRating === "inaccuracy" &&
     evaluationDiff >= 1.2 &&
-    losingGeatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
+    losingGreatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
   ) {
     return { moveRating: "mistake", ...komentar("loseAdvantage") };
   }
@@ -292,7 +311,7 @@ export function getMoveRating({
     isNotMateRelated &&
     standardRating === "inaccuracy" &&
     evaluationDiff >= 1.2 &&
-    givingGeatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
+    givingGreatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
   ) {
     return { moveRating: "mistake", ...komentar("giveAdvantage") };
   }
@@ -310,7 +329,7 @@ export function getMoveRating({
   // blunder — menyerahkan skakmat
   if (
     (riwayat[0][0] !== "mate" && staticEval[0] === "mate" && !winning) ||
-    (riwayat[0][0] === "mate" && staticEval[0] === "mate" && !winning && previousWinig)
+    (riwayat[0][0] === "mate" && staticEval[0] === "mate" && !winning && previousWinning)
   ) {
     return { moveRating: "blunder", ...komentar("gettingMated") };
   }
@@ -322,14 +341,24 @@ export function getMoveRating({
 
 function getAttackersDefenders(chess, warna, ke) {
   const attackers = chess.attackers(ke, invertColor(warna));
+
+  // Optimasi murni: FEN dan daftar langkah papan diambil sekali per pemanggilan
+  // lalu dipakai ulang, tetapi baru dihitung saat benar-benar diperlukan. Sebagian
+  // besar petak yang dipindai `isSacrifice` tidak diserang sama sekali, jadi
+  // memanggil `moves()` di awal fungsi justru menambah kerja (chess.js menyusun
+  // FEN untuk setiap langkah yang dihasilkannya).
+  let cacheLangkah, cacheFen;
+  const langkah = () => (cacheLangkah ??= chess.moves({ verbose: true }));
+  const fen = () => (cacheFen ??= chess.fen());
+
   const legalAttackers = attackers.filter(
-    (penyerang) => chess.moves({ verbose: true }).findIndex((m) => m.from === penyerang && m.to === ke) !== -1
+    (penyerang) => langkah().findIndex((m) => m.from === penyerang && m.to === ke) !== -1
   );
   const legalAttackersPieces = legalAttackers.map((kotak) => chess.get(kotak));
 
   let defenders, legalDefenders, legalDefendersPieces;
   if (attackers.length === 1) {
-    const testChess = new Chess(chess.fen());
+    const testChess = new Chess(fen());
     try {
       testChess.move({ from: attackers[0], to: ke });
     } catch {
@@ -337,22 +366,37 @@ function getAttackersDefenders(chess, warna, ke) {
     }
 
     defenders = testChess.attackers(ke, warna);
+    // `testChess` tidak diubah selama filter, jadi daftar langkahnya diambil
+    // sekali saja (dulu sekali per pembela).
+    let cacheAmbil;
+    const langkahSetelahAmbil = () => (cacheAmbil ??= testChess.moves({ verbose: true }));
     legalDefenders = defenders.filter(
-      (pembela) =>
-        testChess.moves({ verbose: true }).findIndex((m) => m.from === pembela && m.to === ke) !== -1
+      (pembela) => langkahSetelahAmbil().findIndex((m) => m.from === pembela && m.to === ke) !== -1
     );
     legalDefendersPieces = legalDefenders.map((kotak) => chess.get(kotak));
   } else {
     defenders = chess.attackers(ke, warna);
-    legalDefenders = defenders.filter((pembela) => {
-      for (const penyerang of legalAttackers) {
-        const testChess = new Chess(chess.fen());
+    // Posisi "penyerang mengambil di ke" hanya tergantung pada penyerangnya, jadi
+    // hasilnya di-memo per penyerang alih-alih dibangun ulang untuk tiap pasangan
+    // pembela×penyerang. Memo-nya tetap malas, sehingga kombinasi yang tidak
+    // sempat diperiksa karena `return false` lebih awal tetap dilewati seperti
+    // sebelumnya — hasil filter identik.
+    const cacheLangkahSerang = new Map();
+    const langkahUntuk = (penyerang) => {
+      if (!cacheLangkahSerang.has(penyerang)) {
+        const testChess = new Chess(fen());
         try {
           testChess.move({ from: penyerang, to: ke });
         } catch {
           /* sama seperti di atas */
         }
-        if (testChess.moves({ verbose: true }).findIndex((m) => m.from === pembela && m.to === ke) === -1) {
+        cacheLangkahSerang.set(penyerang, testChess.moves({ verbose: true }));
+      }
+      return cacheLangkahSerang.get(penyerang);
+    };
+    legalDefenders = defenders.filter((pembela) => {
+      for (const penyerang of legalAttackers) {
+        if (langkahUntuk(penyerang).findIndex((m) => m.from === pembela && m.to === ke) === -1) {
           return false;
         }
       }

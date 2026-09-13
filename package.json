@@ -13,7 +13,7 @@
     "uji": "npm run uji:rute && npm run uji:seo && npm run uji:i18n && npm run uji:tools && npm run uji:komentator && npm run uji:analisa && npm run uji:analisa-ui && npm run uji:engine && npm run uji:analisa-menyeluruh && npm run uji:suara && npm run uji:basisdata && npm run uji:lencana-skakmat && npm run uji:tanda-papan && npm run uji:rush && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema && node scripts/uji-ebook.mjs && node scripts/uji-ebook-pembaca.mjs && node scripts/uji-nama-pembukaan.mjs && node scripts/uji-artikel-wikipedia.mjs",
     "uji:tools": "node scripts/uji-tools.mjs",
     "uji:engine": "node scripts/uji-engine-uci.mjs && node scripts/uji-analisa-e2e.mjs && node scripts/uji-navigasi.mjs",
-    "uji:analisa-menyeluruh": "node scripts/uji-klasifikasi.mjs && node scripts/uji-akurasi.mjs && node scripts/uji-komentar.mjs && node scripts/uji-variasi.mjs && node scripts/uji-hasil.mjs && node scripts/uji-mobile.mjs && node scripts/uji-panel.mjs",
+    "uji:analisa-menyeluruh": "node scripts/uji-klasifikasi.mjs && node scripts/uji-sacrifice.mjs && node scripts/uji-akurasi.mjs && node scripts/uji-komentar.mjs && node scripts/uji-variasi.mjs && node scripts/uji-hasil.mjs && node scripts/uji-mobile.mjs && node scripts/uji-panel.mjs",
     "uji:skema": "node server/uji/uji-skema.mjs",
     "uji:rekor-rush": "node server/uji/uji-rekor-rush.mjs",
     "uji:rush": "node server/uji/uji-rekor-rush.mjs && node scripts/uji-rush-waktu.mjs",
