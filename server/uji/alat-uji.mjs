@@ -172,7 +172,7 @@ export async function luncurkanServerUji({ tanpaToken = false, chessDasar, env =
   };
 
   for (let i = 0; i < 100; i++) {
-    if (await serverHidup(dasar)) return { dasar, token, hentikan, chessTiruan: Boolean(peniru) };
+    if (await serverHidup(dasar)) return { dasar, token, hentikan, chessTiruan: Boolean(peniru), dirData };
     if (anak.exitCode !== null) {
       hentikan();
       throw new Error("Server uji mati saat dinyalakan.");

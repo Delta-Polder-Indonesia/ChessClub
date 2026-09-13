@@ -102,6 +102,95 @@ async function tiruApiTurnamen(page) {
   });
 }
 
+/* ---------------------------------------------- panel konten (berita/pengumuman) */
+
+/**
+ * 12 item konten bernomor dengan id stabil (berita-01 … berita-12) — cukup
+ * untuk memicu paginasi (pageSize tabel = 10). Judul terurut naik mengikuti
+ * nomor supaya hasil sorting deterministik.
+ */
+function daftarKontenUji(jenis) {
+  const label = jenis === "berita" ? "Berita" : "Pengumuman";
+  return Array.from({ length: 12 }, (_, i) => {
+    const nomor = String(i + 1).padStart(2, "0");
+    return {
+      id: `${jenis}-${nomor}`,
+      judul: `${label} ${nomor}`,
+      ringkasan: `Ringkasan ${jenis} nomor ${nomor}.`,
+      isi: `Isi ${jenis} nomor ${nomor}.`,
+      gambar: null,
+      tanggal: `2026-09-${nomor}`,
+      status: i % 2 === 0 ? "publik" : "draf",
+    };
+  });
+}
+
+/**
+ * Backend tiruan dashboard + panel konten. Endpoint hapus bersifat stateful:
+ * item benar-benar hilang dari daftar GET berikutnya, dan id yang diterima
+ * dicatat ke `state.terhapus` sehingga tes bisa memastikan hapus massal
+ * mengirim ID ITEM (bukan indeks baris — regresi getRowId).
+ */
+async function tiruApiKonten(page, state) {
+  await page.route(JALUR_API, async (route) => {
+    const request = route.request();
+    const path = new URL(request.url()).pathname;
+    const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
+    const token = request.headers()["x-token-admin"];
+
+    if (path === "/api/csrf-token") return json({ token: "csrf-uji" });
+    if (path === "/api/auth/login" && request.method() === "POST") {
+      const body = request.postDataJSON();
+      if (body.username === "pengurusuji" && body.password === "password-uji") {
+        return json({ token: "token-uji", username: "pengurusuji", role: "master" });
+      }
+      return json({ pesan: "Username atau password salah." }, 401);
+    }
+    if (path === "/api/pengurus/verifikasi") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      return json({ ok: true, username: "pengurusuji", role: "master" });
+    }
+    if (path === "/api/pengurus/ringkasan") {
+      if (token !== "token-uji") return json({ pesan: "Token tidak sah." }, 401);
+      return json({
+        anggota: 12, anggotaTerdata: 4, daftarHitam: 0, otomatis: 0, pengurus: 0,
+        pesan: { total: 0, belumDibaca: 0 },
+        turnamen: { total: 0, berlangsung: 0, pendaftaran: 0 },
+        konten: { berita: state.berita.length, pengumuman: state.pengumuman.length },
+        verifikasi: { mode: "opsional", oauthAktif: false },
+      });
+    }
+    if (path === "/api/pengurus/pesan") return json([]);
+    if (path === "/api/pengurus/pindai-otomatis") return json({ dijalankan: false });
+    if (path === "/api/anggota" || path === "/api/daftar-hitam") return json([]);
+    if (path === "/api/pengurus/berita" && request.method() === "GET") return json(state.berita);
+    if (path === "/api/pengurus/pengumuman" && request.method() === "GET") return json(state.pengumuman);
+
+    const hapus = /^\/api\/pengurus\/(berita|pengumuman)\/([^/]+)\/hapus$/.exec(path);
+    if (hapus && request.method() === "POST") {
+      const [, jenis, id] = hapus;
+      const daftar = jenis === "berita" ? state.berita : state.pengumuman;
+      if (!daftar.some((item) => item.id === id)) {
+        return json({ pesan: "Item tidak ditemukan." }, 404);
+      }
+      state.terhapus.push(id);
+      const sisa = daftar.filter((item) => item.id !== id);
+      if (jenis === "berita") state.berita = sisa;
+      else state.pengumuman = sisa;
+      return json({ pesan: "Dihapus." });
+    }
+    return json({});
+  });
+}
+
+/** Login dashboard lewat gerbang dengan kredensial mock pengurusuji. */
+async function masukDashboard(page) {
+  await page.goto("/pengurus");
+  await page.locator('input[autocomplete="username"]').fill("pengurusuji");
+  await page.locator('input[type="password"]').fill("password-uji");
+  await page.getByRole("button", { name: "Masuk" }).click();
+}
+
 /**
  * Jaring pengaman global: cegat seluruh permintaan /api/... agar tidak ada
  * yang lolos ke proxy Vite (backend localhost:8787 tidak berjalan di CI).
@@ -241,6 +330,83 @@ test("dashboard pengurus memverifikasi login dan logout dengan aman", async ({ p
   await page.getByTitle("Masuk sebagai pengurusuji").click();
   await page.getByRole("button", { name: "Keluar" }).click();
   await expect(page.locator('input[autocomplete="username"]')).toBeVisible();
+  periksaGalat();
+});
+
+test("panel konten menghapus massal baris terpilih memakai id item (sorting + paginasi)", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Tabel konten dengan paginasi diuji pada viewport desktop.");
+  const state = { berita: daftarKontenUji("berita"), pengumuman: daftarKontenUji("pengumuman"), terhapus: [] };
+  await tiruApiKonten(page, state);
+  const periksaGalat = pantauGalatHalaman(page);
+  await masukDashboard(page);
+
+  await page.getByRole("button", { name: "Berita Komunitas" }).click();
+  await expect(page.getByText("Berita 01")).toBeVisible();
+
+  // Aktifkan urutan TURUN pada kolom Judul. Urutan naik tak teramati (data
+  // mock sudah terurut), jadi dipakai turun: "Berita 12" pindah ke halaman 1
+  // dan assertions di bawah memastikan state sorting benar-benar ter-commit
+  // sebelum paginasi diklik (menghindari race auto-reset pageIndex).
+  // 12 item, pageSize 10 → halaman 2 (desc) berisi Berita 02 & Berita 01.
+  const tombolJudul = page.getByRole("button", { name: "Judul" });
+  await tombolJudul.click(); // naik
+  await tombolJudul.click(); // turun
+  await expect(page.getByText("Berita 12")).toBeVisible();
+
+  await page.getByRole("button", { name: "Berikutnya" }).click();
+  await expect(page.getByText("Berita 02")).toBeVisible();
+
+  // Pilih seluruh baris halaman ini lewat checkbox header, lalu hapus massal.
+  await page.locator('input[aria-label="Pilih semua"]').check();
+  await page.getByRole("button", { name: "Hapus terpilih" }).click();
+  await expect(page.getByText("Hapus 2 berita?")).toBeVisible();
+  await page.getByRole("button", { name: "Hapus semua" }).click();
+
+  // Regresi getRowId: kunci rowSelection harus id item, bukan indeks baris.
+  // Dengan indeks, permintaan terkirim ke /berita/0/hapus & /berita/1/hapus
+  // dan mock membalas 404 sehingga tidak ada id yang tercatat.
+  await expect.poll(() => [...state.terhapus].sort(), { timeout: 15000 }).toEqual([
+    "berita-01",
+    "berita-02",
+  ]);
+  await expect(page.getByText("Berita 02")).toBeHidden();
+  await expect(page.getByText("0 dari 10 berita terpilih.")).toBeVisible();
+  periksaGalat();
+});
+
+test("panel konten menghapus dengan benar saat kolom disembunyikan", async ({ page, isMobile }) => {
+  test.skip(isMobile, "Menu kolom dan tabel konten diuji pada viewport desktop.");
+  const state = { berita: daftarKontenUji("berita"), pengumuman: daftarKontenUji("pengumuman"), terhapus: [] };
+  await tiruApiKonten(page, state);
+  const periksaGalat = pantauGalatHalaman(page);
+  await masukDashboard(page);
+
+  await page.getByRole("button", { name: "Pengumuman", exact: true }).click();
+  await expect(page.getByText("Pengumuman 01")).toBeVisible();
+
+  // Sembunyikan kolom "Gambar" lewat menu Kolom (portal ditutup dengan Escape).
+  await page.getByRole("button", { name: "Kolom" }).click();
+  await page.getByLabel("Gambar").uncheck();
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("columnheader", { name: "Gambar" })).toHaveCount(0);
+
+  // Hapus 10 baris halaman pertama.
+  await page.locator('input[aria-label="Pilih semua"]').check();
+  await page.getByRole("button", { name: "Hapus terpilih" }).click();
+  await expect(page.getByText("Hapus 10 pengumuman?")).toBeVisible();
+  await page.getByRole("button", { name: "Hapus semua" }).click();
+  await expect.poll(() => state.terhapus.length, { timeout: 15000 }).toBe(10);
+  await expect(page.getByText("Pengumuman 11")).toBeVisible();
+
+  // Hapus dua sisanya → tabel kosong: baris "belum ada data" harus merentang
+  // SELURUH kolom yang masih tampil (5 kolom setelah Gambar disembunyikan).
+  await page.locator('input[aria-label="Pilih semua"]').check();
+  await page.getByRole("button", { name: "Hapus terpilih" }).click();
+  await expect(page.getByText("Hapus 2 pengumuman?")).toBeVisible();
+  await page.getByRole("button", { name: "Hapus semua" }).click();
+  await expect.poll(() => state.terhapus.length, { timeout: 15000 }).toBe(12);
+  await expect(page.getByText(/Belum ada pengumuman/)).toBeVisible();
+  await expect(page.locator("tbody td").first()).toHaveAttribute("colspan", "5");
   periksaGalat();
 });
 

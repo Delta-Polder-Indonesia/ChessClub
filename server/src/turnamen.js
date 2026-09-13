@@ -248,8 +248,20 @@ export async function ubahTurnamen(id, perubahan) {
   if (Object.keys(galat).length) {
     throw new GalatAplikasi(400, "Periksa kembali isian turnamen.", { galat });
   }
+  // Kategori boleh diubah (panel Juara mengirimnya); aturannya sama seperti
+  // saat membuat: kunci resmi JENIS atau teks bebas maksimal 60 karakter.
+  if (perubahan.jenis !== undefined) {
+    const j = String(perubahan.jenis || "").trim();
+    if (!j) galat.jenis = "Kategori wajib dipilih atau ditulis.";
+    else if (!JENIS[j] && j.length > 60)
+      galat.jenis = "Kategori terlalu panjang (maksimal 60 karakter).";
+    if (Object.keys(galat).length) {
+      throw new GalatAplikasi(400, "Periksa kembali isian turnamen.", { galat });
+    }
+    perubahan = { ...perubahan, jenis: j };
+  }
   const bolehUbah = [
-    "nama", "status", "deskripsi", "mulai", "selesai", "tutupDaftar",
+    "nama", "jenis", "status", "deskripsi", "mulai", "selesai", "tutupDaftar",
     "tempo", "sistem", "ronde", "kuota", "biaya", "hadiah", "tempat", "tautan",
     "juara",
   ];

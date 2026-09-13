@@ -110,6 +110,7 @@ import {
   tambahAdmin,
   hapusAdmin,
   ubahAdmin,
+  PANJANG_PASSWORD_MIN,
 } from "./admin-file.js";
 import { logAudit, bacaJejakAudit } from "./audit.js";
 import { FilterAuditSchema } from "./skema.js";
@@ -512,7 +513,9 @@ export function daftarkanRute(router, { mulaiPada }) {
   });
 
   router.get("/api/pengurus/audit", async (req) => {
-    pastikanAdmin(req);
+    // Jejak audit memuat IP, username, dan aksi administratif — selaraskan
+    // dengan UI (panel Jejak Audit hanya ada di Pengaturan, khusus master).
+    pastikanMaster(req);
     const url = new URL(req.url, "http://x");
     const parsed = FilterAuditSchema.safeParse({
       limit: url.searchParams.get("limit") || undefined,
@@ -526,34 +529,57 @@ export function daftarkanRute(router, { mulaiPada }) {
   });
 
   router.post("/api/pengurus/ganti-password", async (req, _p, konteks) => {
+    // LAYANAN MANDIRI: setiap admin yang login (master maupun pengurus)
+    // mengganti kredensial akunnya SENDIRI. Password lama diverifikasi hanya
+    // terhadap akun yang sedang login, role tidak pernah diubah, dan akun
+    // admin lain tidak bisa disentuh lewat endpoint ini — menutup jalur
+    // privilege-escalation pengurus → master.
     pastikanAdmin(req);
+    const adminAktif = dapatkanAdminDariRequest(req);
     const bodi = await bacaBodi(req);
     const passLama = String(bodi.passwordLama || "");
     const passBaru = String(bodi.passwordBaru || "");
-    const userBaru = String(bodi.usernameBaru || "").trim().toLowerCase() || konfigurasi.admin.username;
+    const userBaru = String(bodi.usernameBaru || "").trim().toLowerCase();
 
     if (!passLama || !passBaru) {
       throw new GalatAplikasi(400, "Password lama dan baru wajib diisi.");
     }
-    if (passBaru.length < 6) {
-      throw new GalatAplikasi(400, "Password baru minimal 6 karakter.");
+    // Ambang sama dengan lapisan penyimpanan (admin-file.js) lewat konstanta
+    // bersama — pesan galat jelas 400, bukan 500 dari bcrypt/validasi dalam.
+    if (passBaru.length < PANJANG_PASSWORD_MIN) {
+      throw new GalatAplikasi(400, `Password baru minimal ${PANJANG_PASSWORD_MIN} karakter.`);
     }
-    if (!/^[a-z0-9_-]{3,25}$/.test(userBaru)) {
-      throw new GalatAplikasi(400, "Username baru tidak valid (3-25 karakter).");
+    if (passBaru === "admin123") {
+      throw new GalatAplikasi(400, "Password bawaan admin123 tidak diizinkan.");
     }
 
-    const aktif = konfigurasi.admin.password;
-    const tokenAdmin = konfigurasi.tokenAdmin || "";
+    await muatAdminFileKeKonfigurasi().catch(() => {});
+    const admins = Array.isArray(konfigurasi.admins) ? konfigurasi.admins : [];
+    const usernameSendiri = adminAktif?.username || konfigurasi.admin?.username || "";
+    const usernameTarget = userBaru || usernameSendiri;
+    if (!/^[a-z0-9_-]{3,25}$/.test(usernameTarget)) {
+      throw new GalatAplikasi(400, "Username baru tidak valid (3-25 karakter).");
+    }
+    const rekamSendiri = admins.find((a) => a.username === usernameSendiri) || null;
+
+    // Password lama HARUS cocok dengan kredensial admin yang sedang login
+    // (rekamannya di admins.json, atau bawaan env/token lama) — tidak pernah
+    // dicocokkan dengan password admin lain.
     let cocok = false;
-    try {
-      cocok = await cocokkanPassword(passLama, aktif);
-      if (!cocok && tokenAdmin) cocok = await cocokkanPassword(passLama, tokenAdmin);
-    } catch {
-      cocok = passLama === aktif || (tokenAdmin && passLama === tokenAdmin);
+    if (rekamSendiri?.password) {
+      cocok = await cocokkanPassword(passLama, rekamSendiri.password);
+    }
+    if (!cocok && usernameSendiri === konfigurasi.admin?.username && konfigurasi.admin?.password) {
+      cocok = await cocokkanPassword(passLama, konfigurasi.admin.password);
+    }
+    if (!cocok && konfigurasi.tokenAdmin) {
+      // Kompatibel dengan token lama: token lama masih boleh diisi sebagai
+      // password lama oleh pemegangnya sendiri.
+      cocok = await cocokkanPassword(passLama, konfigurasi.tokenAdmin);
     }
     if (!cocok) {
       await logAudit("password-change", {
-        username: userBaru,
+        username: usernameTarget,
         ip: konteks.ip,
         status: "failed",
         reason: "password-lama-salah",
@@ -561,17 +587,32 @@ export function daftarkanRute(router, { mulaiPada }) {
       throw new GalatAplikasi(401, "Password lama salah.");
     }
 
-    await tulisAdminFile({ username: userBaru, password: passBaru });
-    konfigurasi.admin.username = userBaru;
+    if (rekamSendiri) {
+      // Admin tercatat di admins.json: ubahAdmin mempertahankan role asli
+      // dan menolak username baru yang sudah dipakai admin lain.
+      await ubahAdmin(usernameSendiri, {
+        password: passBaru,
+        ...(usernameTarget !== usernameSendiri ? { usernameBaru: usernameTarget } : {}),
+      });
+    } else {
+      // Bootstrap awal: file admins belum ada / admin aktif belum tercatat —
+      // tulisAdminFile membuat master pertama (satu-satunya jalur yang boleh
+      // menghasilkan role master dari endpoint ini).
+      await tulisAdminFile({ username: usernameTarget, password: passBaru });
+      if (usernameSendiri === konfigurasi.admin?.username) {
+        konfigurasi.admin.username = usernameTarget;
+      }
+    }
+
     await logAudit("password-change", {
-      username: userBaru,
+      username: usernameTarget,
       ip: konteks.ip,
       status: "success",
     });
 
     return {
       status: 200,
-      isi: { ok: true, username: userBaru, pesan: "Password berhasil diganti. Login ulang dengan password baru." },
+      isi: { ok: true, username: usernameTarget, pesan: "Password berhasil diganti. Login ulang dengan password baru." },
     };
   });
 

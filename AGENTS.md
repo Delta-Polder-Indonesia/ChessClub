@@ -105,3 +105,39 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 Catatan: panduan proyek lain (Better Auth, DSH/DeepSeek Harness) sudah dihapus dari repo.
 Jangan mengikuti dokumen lama yang menyebut SvelteKit, Better Auth, MongoDB, atau OpenRouter —
 bukan bagian dari proyek ini.
+
+## Sandbox Arena: CDN Playwright diblokir (workaround e2e)
+
+Jaringan sandbox agent (Arena/e2b) hanya mengizinkan `registry.npmjs.org`.
+Host lain diblokir: `cdn.playwright.dev`, `deb.debian.org`, `api.chess.com`,
+`cdn.npmmirror.com`, `storage.googleapis.com`. Akibatnya
+`npx playwright install chromium` SELALU gagal (ECONNRESET sebelum TLS),
+termasuk lewat `PLAYWRIGHT_DOWNLOAD_HOST` mirror atau paket
+`playwright-chromium` (postinstall-nya memakai CDN yang sama).
+
+Workaround yang TERBUKTI berfungsi (semua di luar repo, tanpa mengubah
+konfigurasi proyek):
+
+1. `npm install --no-save --ignore-scripts @sparticuz/chromium`
+   — binari Chromium ikut di dalam tarball npm (sekitar 67 MB), tidak butuh CDN.
+2. Ekstrak binari: `node -e "import('@sparticuz/chromium').then(m => m.default.executablePath()).then(console.log)"`
+   — menghasilkan `/tmp/chromium` (Chromium 153, kompatibel dengan Playwright 1.62 yang mengharapkan 151).
+3. Binari butuh `libnss3`/`libnspr4`/`libnssutil3` yang tidak ada di image.
+   Library-nya tersedia DI PAKET YANG SAMA: ekstrak `node_modules/@sparticuz/chromium/bin/al2023.tar.br`
+   (brotli, mis. `zlib.brotliDecompressSync`) lalu `tar -xf` ke `/tmp/chromium-libs`.
+   Jalankan Chromium dengan `LD_LIBRARY_PATH=/tmp/chromium-libs`.
+4. Daftarkan ke Playwright lewat cache registry (nama folder mengikuti
+   `node_modules/playwright-core/browsers.json`; untuk 1.62.x revisi `1234`):
+   - `~/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome`
+   - `~/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell-linux64/chrome-headless-shell`
+   Keduanya = skrip wrapper (chmod +x):
+   `#!/bin/sh` + `export LD_LIBRARY_PATH=/tmp/chromium-libs:$LD_LIBRARY_PATH` + `exec /tmp/chromium "$@"`.
+   Buat juga berkas penanda `INSTALLATION_COMPLETE` (kosong) di
+   `~/.cache/ms-playwright/chromium-1234/` dan `.../chromium_headless_shell-1234/`.
+5. `npx playwright test` lalu berjalan normal (webServer vite dev dijalankan
+   sendiri oleh config; semua API di-mock `page.route` sehingga backend tidak
+   perlu hidup).
+
+Di mesin pengguna/CI biasa cukup `npx playwright install` — workaround ini
+hanya untuk sandbox yang CDN-nya diblokir. Jangan commit `@sparticuz/chromium`
+ke `package.json` (pakai `--no-save`).

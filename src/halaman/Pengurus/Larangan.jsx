@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { Tombol, Modal, Avatar } from "./ui.jsx";
 import {
@@ -22,6 +22,12 @@ export default function PanelLarangan({
   const [targetBuka, setTargetBuka] = useState(null);
   const [filterSumber, setFilterSumber] = useState(filterAwal);
   const [cariAkun, setCariAkun] = useState("");
+
+  // Sinkronkan filter saat Dashboard mengubah filterAwal selagi panel
+  // ter-mount (mis. klik sidebar mereset filter ke "semua").
+  useEffect(() => {
+    setFilterSumber(filterAwal);
+  }, [filterAwal]);
 
   const jalankan = async (kunci, fn) => {
     setSibuk(kunci);

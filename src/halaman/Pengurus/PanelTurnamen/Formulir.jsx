@@ -26,18 +26,25 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
     deskripsi: "",
   });
   const [galat, setGalat] = useState({});
+  // Galat non-field (jaringan, 4xx/5xx tanpa rincian per-field). Dulu galat
+  // semacam ini ditelan diam-diam: GalatApi SELALU punya .galat (default {}
+  // yang truthy) sehingga `throw err` tak pernah jalan dan tidak ada pesan
+  // apa pun yang tampil.
+  const [galatUmum, setGalatUmum] = useState("");
   const [sibuk, setSibuk] = useState(false);
 
   const sifat = jenis[data.jenis];
   const ubah = (k, v) => {
     setData((d) => ({ ...d, [k]: v }));
     setGalat((g) => (g[k] ? { ...g, [k]: undefined } : g));
+    setGalatUmum("");
   };
 
   const kirim = async (e) => {
     e.preventDefault();
     setSibuk(true);
     setGalat({});
+    setGalatUmum("");
     try {
       await onSimpan({
         ...data,
@@ -46,8 +53,10 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
         kuota: data.kuota === "" ? null : Number(data.kuota),
       });
     } catch (err) {
-      setGalat(err.galat || {});
-      if (!err.galat) throw err;
+      const galatField =
+        err?.galat && Object.keys(err.galat).length ? err.galat : null;
+      if (galatField) setGalat(galatField);
+      else setGalatUmum(err?.message || "Gagal menyimpan turnamen.");
     } finally {
       setSibuk(false);
     }
@@ -185,6 +194,12 @@ export default function FormulirTurnamen({ jenis, onSimpan, onBatal }) {
         {sifat?.klasemenBerjalan && ", klasemen berjalan"}
         {sifat?.minPartai && ` (minimal ${sifat.minPartai} partai)`}.
       </p>
+
+      {galatUmum && (
+        <p className="mt-3 rounded-md border border-red-300 bg-white px-3 py-2 text-xs leading-5 text-red-800">
+          {galatUmum}
+        </p>
+      )}
 
       <div className="mt-4 flex gap-2">
         <button

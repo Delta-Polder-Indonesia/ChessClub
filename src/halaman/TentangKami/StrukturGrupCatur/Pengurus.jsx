@@ -3,6 +3,16 @@ import { PageArtikel } from "../../../components/PageBagian.jsx";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { BENDERA_PENGURUS, KELOMPOK_PENGURUS } from "./dataPengurus.js";
 
+/**
+ * Nama negara menurut bahasa halaman. Field `negara` di dataPengurus.js
+ * hanya menjadi cadangan — sebelumnya nilai Inggris ("Palestine") ikut
+ * tampil apa adanya di halaman berbahasa Indonesia.
+ */
+const NAMA_NEGARA = {
+  id: { id: "Indonesia", ps: "Palestina" },
+  en: { id: "Indonesia", ps: "Palestine" },
+};
+
 function formatTanggal(tanggal, bahasa) {
   return new Intl.DateTimeFormat(bahasa === "en" ? "en-US" : "id-ID", {
     day: "numeric",
@@ -61,7 +71,7 @@ function BarisPengurus({ anggota, bahasa, t }) {
         )}
         <span className="negara-pengurus">
           <span aria-hidden="true">{BENDERA_PENGURUS[anggota.kodeNegara]}</span>
-          {anggota.negara}
+          {NAMA_NEGARA[bahasa]?.[anggota.kodeNegara] || anggota.negara}
         </span>
       </div>
 

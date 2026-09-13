@@ -15,16 +15,33 @@ import bcrypt from "bcryptjs";
 import { konfigurasi } from "./konfigurasi.js";
 import { bacaJson, tulisJson } from "./simpanan.js";
 
-const PANJANG_PASSWORD_MIN = 12;
+/**
+ * Ambang panjang password admin — SATU sumber kebenaran untuk seluruh lapisan
+ * server (penyimpanan admin-file + handler rute ganti-password). Diekspor
+ * agar rute.js tidak menduplikasi angka 12 secara manual.
+ */
+export const PANJANG_PASSWORD_MIN = 12;
+
+/**
+ * Galat validasi admin dengan kode HTTP 400 — dispatcher (permintaan.js)
+ * meneruskan `e.status` apa adanya, sehingga PESAN ASLI sampai ke dashboard.
+ * Tanpa ini, Error polos jatuh ke penangan generik dan pengguna hanya
+ * melihat 500 "Kesalahan server." tanpa tahu sebabnya.
+ */
+function galatAdmin(pesan) {
+  const e = new Error(pesan);
+  e.status = 400;
+  return e;
+}
 
 /** Tolak password baru yang terlalu lemah sebelum disimpan. */
-function pastikanPasswordKuat(password) {
+export function pastikanPasswordKuat(password) {
   const p = String(password || "");
   if (p.length < PANJANG_PASSWORD_MIN) {
-    throw new Error(`Password minimal ${PANJANG_PASSWORD_MIN} karakter.`);
+    throw galatAdmin(`Password minimal ${PANJANG_PASSWORD_MIN} karakter.`);
   }
   if (p === "admin123") {
-    throw new Error("Password bawaan admin123 tidak diizinkan.");
+    throw galatAdmin("Password bawaan admin123 tidak diizinkan.");
   }
   return p;
 }
@@ -150,8 +167,12 @@ export async function tulisAdminFile({ username, password }) {
     const u = String(username || "").trim().toLowerCase();
     const idx = admins.findIndex((a) => a.username === u);
     if (idx >= 0) {
+      // Perbarui password TANPA mengubah role: pemaksaan role "master" pada
+      // update admin yang sudah ada adalah jalur privilege-escalation
+      // (pengurus bisa naik jadi master hanya lewat ganti password).
+      // Role master hanya diberikan saat bootstrap file baru (cabang !admins
+      // di atas) — perubahan role admin existing adalah wewenang ubahAdmin.
       admins[idx].password = password ? await hashJikaPerlu(password, { validasi: true }) : admins[idx].password;
-      admins[idx].role = "master";
       admins[idx].diubahPada = new Date().toISOString();
     } else {
       // jika ganti username master, ganti master pertama
@@ -214,10 +235,10 @@ export async function tambahAdmin({ username, password, role = "pengurus" }) {
   const u = String(username || "").trim().toLowerCase();
   const p = pastikanPasswordKuat(password);
   const r = role === "master" ? "master" : "pengurus";
-  if (!/^[a-z0-9_-]{3,25}$/.test(u)) throw new Error("Username tidak valid (3-25 karakter).");
+  if (!/^[a-z0-9_-]{3,25}$/.test(u)) throw galatAdmin("Username tidak valid (3-25 karakter).");
   let admins = await bacaAdminsFile();
   if (!admins) admins = await muatAdminFileKeKonfigurasi();
-  if (admins.some((a) => a.username === u)) throw new Error(`Username "${u}" sudah ada.`);
+  if (admins.some((a) => a.username === u)) throw galatAdmin(`Username "${u}" sudah ada.`);
   admins.push({
     username: u,
     password: await hashJikaPerlu(p, { validasi: true }),
@@ -232,33 +253,53 @@ export async function tambahAdmin({ username, password, role = "pengurus" }) {
 export async function hapusAdmin(username) {
   const u = String(username || "").trim().toLowerCase();
   let admins = await bacaAdminsFile();
-  if (!admins) throw new Error("Tidak ada data admin.");
-  if (admins.length <= 1) throw new Error("Tidak bisa hapus admin terakhir.");
+  if (!admins) throw galatAdmin("Tidak ada data admin.");
+  if (admins.length <= 1) throw galatAdmin("Tidak bisa hapus admin terakhir.");
   const target = admins.find((a) => a.username === u);
-  if (!target) throw new Error(`Admin "${u}" tidak ditemukan.`);
+  if (!target) { const e = galatAdmin(`Admin "${u}" tidak ditemukan.`); e.status = 404; throw e; }
   if (target.role === "master" && admins.filter((a) => a.role === "master").length <= 1) {
-    throw new Error("Tidak bisa hapus master terakhir. Minimal harus ada 1 master.");
+    throw galatAdmin("Tidak bisa hapus master terakhir. Minimal harus ada 1 master.");
   }
   admins = admins.filter((a) => a.username !== u);
   await tulisAdminsFile(admins);
   return admins;
 }
 
-export async function ubahAdmin(username, { password, role }) {
+/**
+ * Ubah password / role / username admin yang sudah tercatat di admins.json.
+ *
+ * - `password` divalidasi (minimal PANJANG_PASSWORD_MIN karakter).
+ * - `role` hanya berubah bila diminta EKSPLISIT; bila tidak diisi, role asli
+ *   dipertahankan — dipakai alur ganti-password mandiri (rute.js) agar
+ *   pengurus tidak pernah naik privilege lewat endpoint itu.
+ * - `usernameBaru` (opsional) mengganti username dengan cek format dan
+ *   tabrakan; role tetap mengikuti admin aslinya.
+ */
+export async function ubahAdmin(username, { password, role, usernameBaru }) {
   const u = String(username || "").trim().toLowerCase();
   let admins = await bacaAdminsFile();
-  if (!admins) throw new Error("Tidak ada data admin.");
+  if (!admins) throw galatAdmin("Tidak ada data admin.");
   const idx = admins.findIndex((a) => a.username === u);
-  if (idx < 0) throw new Error(`Admin "${u}" tidak ditemukan.`);
+  if (idx < 0) { const e = galatAdmin(`Admin "${u}" tidak ditemukan.`); e.status = 404; throw e; }
   if (password) {
     const p = pastikanPasswordKuat(password);
     admins[idx].password = await hashJikaPerlu(p, { validasi: true });
+  }
+  if (usernameBaru !== undefined && usernameBaru !== null) {
+    const baru = String(usernameBaru).trim().toLowerCase();
+    if (!/^[a-z0-9_-]{3,25}$/.test(baru)) {
+      throw galatAdmin("Username tidak valid (3-25 karakter).");
+    }
+    if (baru !== u && admins.some((a) => a.username === baru)) {
+      throw galatAdmin(`Username "${baru}" sudah dipakai admin lain.`);
+    }
+    admins[idx].username = baru;
   }
   if (role) {
     const r = role === "master" ? "master" : "pengurus";
     // cegah hilangkan master terakhir
     if (admins[idx].role === "master" && r !== "master" && admins.filter((a) => a.role === "master").length <= 1) {
-      throw new Error("Tidak bisa ubah role master terakhir menjadi pengurus.");
+      throw galatAdmin("Tidak bisa ubah role master terakhir menjadi pengurus.");
     }
     admins[idx].role = r;
   }

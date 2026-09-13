@@ -551,16 +551,24 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
     }
   };
 
-  const tampil = daftar.filter((x) => {
-    const cocokStatus = !saring || x.status === saring;
-    const q = cari.trim().toLowerCase();
-    const cocokCari =
-      !q ||
-      (x.judul || "").toLowerCase().includes(q) ||
-      (x.ringkasan || "").toLowerCase().includes(q) ||
-      (x.tanggal || "").includes(q);
-    return cocokStatus && cocokCari;
-  });
+  // WAJIB useMemo: tabel meng-auto-reset pageIndex setiap kali referensi
+  // `data` berubah. Tanpa memo, filter ini menghasilkan array baru di tiap
+  // render sehingga klik "Berikutnya" selalu dipatahkan (halaman melompat
+  // balik ke 1) dan paginasi tidak pernah bisa dipakai.
+  const tampil = useMemo(
+    () =>
+      daftar.filter((x) => {
+        const cocokStatus = !saring || x.status === saring;
+        const q = cari.trim().toLowerCase();
+        const cocokCari =
+          !q ||
+          (x.judul || "").toLowerCase().includes(q) ||
+          (x.ringkasan || "").toLowerCase().includes(q) ||
+          (x.tanggal || "").includes(q);
+        return cocokStatus && cocokCari;
+      }),
+    [daftar, saring, cari]
+  );
 
   const kolom = useMemo(
     () => [
@@ -572,7 +580,11 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             checked={
               table.getIsAllPageRowsSelected() || table.getIsSomePageRowsSelected()
             }
-            onChange={() => table.toggleAllPageRowsSelected()}
+            // Nilai target dikirim EKSPLISIT: toggleAllPageRowsSelected() tanpa
+            // argumen menghitung sendiri nilai tujuannya dan di wrapper legacy
+            // TanStack v9 hasilnya salah saat halaman aktif bukan halaman
+            // pertama (klik tidak memilih apa pun).
+            onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
             aria-label="Pilih semua"
             className="size-4 accent-primary"
           />
@@ -650,6 +662,10 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   const tabel = useLegacyTable({
     data: tampil,
     columns: kolom,
+    // WAJIB: tanpa ini id baris = indeks baris ("0","1",…), sehingga kunci
+    // rowSelection bukan id item dan hapus massal mengirim id yang salah
+    // (server membalas 404 "Berita tidak ditemukan.").
+    getRowId: (baris) => baris.id,
     state: { sorting, rowSelection, columnVisibility },
     onSortingChange: setSorting,
     onRowSelectionChange: setRowSelection,
@@ -779,9 +795,16 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="py-8 text-center text-slate-500">
-                    Belum ada {konfig.label.toLowerCase()}. Tekan “
-                    +{konfig.label} baru” untuk membuat.
+                  {/* Lebar baris kosong mengikuti jumlah kolom yang SEDANG
+                      tampil — hardcoded 6 akan salah bila pengguna
+                      menyembunyikan kolom lewat menu "Kolom". */}
+                  <TableCell
+                    colSpan={tabel.getVisibleLeafColumns().length}
+                    className="py-8 text-center text-slate-500"
+                  >
+                    {daftar.length === 0
+                      ? `Belum ada ${konfig.label.toLowerCase()}. Buka dropdown filter status di atas, lalu pilih “+ ${konfig.label} baru” untuk membuat.`
+                      : "Tidak ada hasil yang cocok dengan filter atau pencarian saat ini."}
                   </TableCell>
                 </TableRow>
               )}
@@ -794,7 +817,8 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
             <div className="flex items-center gap-2">
               <Tombol kecil={true} anak="Sebelumnya" disabled={!tabel.getCanPreviousPage()} onClick={() => tabel.previousPage()} />
               <span className="text-sm text-slate-600">
-                Halaman {tabel.getState().pagination.pageIndex + 1} dari {tabel.getPageCount()}
+                Halaman {tabel.getState().pagination.pageIndex + 1} dari{" "}
+                {Math.max(1, tabel.getPageCount())}
               </span>
               <Tombol kecil={true} anak="Berikutnya" disabled={!tabel.getCanNextPage()} onClick={() => tabel.nextPage()} />
             </div>

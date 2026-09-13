@@ -10,6 +10,30 @@ import { Tombol, Modal, Avatar, KotakGalatMuat } from "./ui.jsx";
    UTILITAS FORMAT WAKTU & PERANGKAT
    ======================================================== */
 
+/**
+ * Tanggal YYYY-MM-DD dalam zona komunitas (Asia/Jakarta, WIB).
+ * `toISOString().slice(0,10)` memakai UTC — login jam 00:00–06:59 WIB
+ * tercatat sebagai tanggal sebelumnya sehingga filter/statistik "Hari Ini"
+ * tidak cocok dengan tanggal WIB yang tampil di tabel. Pola sama dengan
+ * `hariIni()` di server (konten.js).
+ */
+function tanggalWIB(d = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+/** Apakah entri riwayat terjadi "hari ini" menurut waktu WIB? */
+function masukHariIni(waktuIso, tglSekarangWIB) {
+  if (!waktuIso) return false;
+  const d = new Date(waktuIso);
+  if (Number.isNaN(d.getTime())) return false;
+  return tanggalWIB(d) === tglSekarangWIB;
+}
+
 function formatWaktuLengkap(iso) {
   if (!iso) {
     return {
@@ -182,11 +206,8 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
   }, [riwayat]);
 
   const jumlahHariIni = useMemo(() => {
-    const sekarang = new Date();
-    const tglSekarang = sekarang.toISOString().slice(0, 10);
-    return riwayat.filter(
-      (r) => r.waktu && r.waktu.slice(0, 10) === tglSekarang
-    ).length;
+    const tglSekarang = tanggalWIB();
+    return riwayat.filter((r) => masukHariIni(r.waktu, tglSekarang)).length;
   }, [riwayat]);
 
   /* Penyaringan data */
@@ -212,10 +233,8 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
     if (filterWaktu !== "semua") {
       const kini = Date.now();
       if (filterWaktu === "hari-ini") {
-        const tglSekarang = new Date().toISOString().slice(0, 10);
-        hasil = hasil.filter(
-          (r) => r.waktu && r.waktu.slice(0, 10) === tglSekarang
-        );
+        const tglSekarang = tanggalWIB();
+        hasil = hasil.filter((r) => masukHariIni(r.waktu, tglSekarang));
       } else if (filterWaktu === "7-hari") {
         const batas = kini - 7 * 24 * 60 * 60 * 1000;
         hasil = hasil.filter(
@@ -247,7 +266,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           </div>
           <p className="mt-1 text-sm text-slate-600">
             Mendeteksi dan mencatat siapa saja yang login ke bagian pengurus
-            berdasarkan akun Chess.com, hari, tanggal, bulan, tahun, jam, serta
+            berdasarkan akun admin, hari, tanggal, bulan, tahun, jam, serta
             alamat IP.
           </p>
         </div>
@@ -288,7 +307,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
           <p className="mt-1 text-2xl font-bold text-primary">
             {akunUnik.length}
           </p>
-          <p className="mt-0.5 text-xs text-slate-500">Akun Chess.com unik</p>
+          <p className="mt-0.5 text-xs text-slate-500">Akun admin unik</p>
         </div>
 
         <div className="border-b border-slate-300 pb-4 text-center">
@@ -324,7 +343,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             type="text"
             value={cari}
             onChange={(e) => setCari(e.target.value)}
-            placeholder="contoh: magnuscarlsen atau IP"
+            placeholder="contoh: admin atau IP"
             className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
           />
         </label>
@@ -404,8 +423,9 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             Belum ada riwayat masuk tercatat
           </h3>
           <p className="mt-1 text-xs text-slate-500">
-            Setiap kali pengurus memasukkan username Chess.com dan token di
-            gerbang login, jejaknya akan otomatis tersimpan dan muncul di sini.
+            Setiap kali pengurus berhasil masuk lewat gerbang login dashboard
+            (username + password), jejaknya otomatis tersimpan dan muncul di
+            sini.
           </p>
         </div>
       ) : hasilTersaring.length === 0 ? (
@@ -423,7 +443,7 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             <thead>
               <tr>
                 <th style={{ textAlign: "center" }}>#</th>
-                <th>Akun Chess.com</th>
+                <th>Akun Admin</th>
                 <th>Hari</th>
                 <th>Tanggal, Bulan, Tahun</th>
                 <th>Jam / Waktu</th>
@@ -450,17 +470,11 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
                       <div className="flex items-center gap-2.5">
                         <Avatar username={item.username || "pengurus"} />
                         <div>
-                          <a
-                            href={`https://www.chess.com/member/${encodeURIComponent(
-                              item.username || ""
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-bold text-slate-900 hover:text-primary hover:underline"
-                            title={`Buka profil ${item.username} di Chess.com`}
-                          >
+                          {/* Bukan tautan chess.com — username login adalah
+                              akun admin dashboard, belum tentu akun Chess.com. */}
+                          <span className="font-bold text-slate-900">
                             {item.username || "pengurus"}
-                          </a>
+                          </span>
                           <p className="text-[11px] text-slate-400">
                             Pengurus Komunitas
                           </p>

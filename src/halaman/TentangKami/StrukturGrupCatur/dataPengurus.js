@@ -2,7 +2,6 @@
 export const KELOMPOK_PENGURUS = [
   {
     id: "super-admins",
-    label: "Super Admins",
     anggota: [
       {
         username: "Run_na",
@@ -41,7 +40,6 @@ export const KELOMPOK_PENGURUS = [
   },
   {
     id: "admins",
-    label: "Admins",
     anggota: [
       {
         username: "MagnusJacksen",
@@ -56,7 +54,6 @@ export const KELOMPOK_PENGURUS = [
   },
   {
     id: "event-coordinators",
-    label: "Event Coordinators",
     anggota: [
       {
         username: "Regansa30",
