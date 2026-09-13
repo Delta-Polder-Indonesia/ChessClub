@@ -158,7 +158,6 @@ export default function QuizCatur() {
     setLampau([]);
     setFase("main");
     mainkan(SUARA.mulai);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daftar, total, mainkan]);
 
   const pilihOpsi = (indeksOriginal) => {
