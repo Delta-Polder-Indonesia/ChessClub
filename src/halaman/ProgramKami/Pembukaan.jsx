@@ -309,25 +309,9 @@ export default function Pembukaan() {
         <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-12">
             <div className="flex flex-col gap-4">
-              <h3>Sejarah</h3>
-              <p>
-                Ruy Lopez dinamai menurut Ruy López de Segura, seorang pendeta Spanyol abad ke-16 yang secara
-                sistematis mempelajari pembukaan ini dan pembukaan lainnya dalam buku catur setebal 150 halaman,
-                Libro del Axedrez, yang ditulis pada tahun 1561. Lopez menganjurkan 3.Bb5 sebagai langkah yang lebih
-                unggul daripada 3.Bc4, dan berpendapat bahwa Hitam harus memainkan 2...d6 (Pertahanan Philidor) untuk
-                menghindarinya. Meskipun menyandang namanya, pembukaan khusus ini termasuk dalam manuskrip Göttingen,
-                yang berasal dari sekitar tahun 1490. Ruy Lopez tidak mendapatkan popularitas luas hingga pertengahan
-                abad ke-19, ketika ahli teori Finlandia-Rusia Carl Jaenisch menerbitkan artikel terperinci tentang
-                1.e4 e5 dalam edisi Desember 1847 dari Le Palamède, majalah catur pertama di dunia. Versi ringkasnya
-                muncul di Chess Player's Chronicle pada tahun 1848, diikuti oleh artikel tambahan di publikasi yang
-                sama pada tahun 1849.
-              </p>
-              <p>
-                Ruy Lopez telah lama dianggap sebagai pembukaan terpenting di antara Permainan Terbuka pada tingkat
-                master. Hampir setiap pemain telah menggunakannya pada suatu titik dalam karier mereka, seringkali
-                dengan kedua warna. Karena kesulitan bagi Hitam dalam mencapai kesetaraan, julukan umum untuk pembukaan
-                ini adalah "Penyiksaan Spanyol".
-              </p>
+              <h3>{t("bukuPembukaan.sejarahJudul")}</h3>
+              <p>{t("bukuPembukaan.sejarahAyat1")}</p>
+              <p>{t("bukuPembukaan.sejarahAyat2")}</p>
             </div>
           </div>
         </div>
