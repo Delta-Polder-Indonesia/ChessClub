@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Chess } from "chess.js";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -6,25 +7,53 @@ import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
-/** Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5 */
-const OPENING_BOARD_PIECES = [
-  ["r", "", "b", "q", "k", "b", "n", "r"],
-  ["p", "p", "p", "p", "", "p", "p", "p"],
-  ["", "", "n", "", "", "", "", ""],
-  ["", "B", "", "", "p", "", "", ""],
-  ["", "", "", "", "P", "", "", ""],
-  ["", "", "", "", "", "N", "", ""],
-  ["P", "P", "P", "P", "", "P", "P", "P"],
-  ["R", "N", "B", "Q", "K", "", "", "R"],
+/**
+ * Kandidat langkah lanjutan Ruy Lopez; `note` adalah kunci kamus supaya
+ * catatannya ikut berganti bahasa. Daftar ini bukan penilaian langkah
+ * terbaik — hanya lanjutan yang lazim dibahas di buku pembukaan.
+ */
+const LANJUTAN_RUY_LOPEZ = [
+  { move: "a6", note: "bukuPembukaan.lanjutan.morphy" },
+  { move: "Nf6", note: "bukuPembukaan.lanjutan.berlin" },
+  { move: "d6", note: "bukuPembukaan.lanjutan.steinitz" },
+  { move: "f5", note: "bukuPembukaan.lanjutan.schliemann" },
 ];
+
+/**
+ * Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5. Papan mini di latar memakai
+ * dua variannya — satu bidak diangkat supaya 36 papan kecil tidak tampak
+ * seragam — sehingga posisinya disimpan sebagai FEN, bukan matriks salinan.
+ */
+const FEN_RUY_LOPEZ =
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3";
+const FEN_VARIAN = [
+  FEN_RUY_LOPEZ,
+  // tanpa pion e4
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/8/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+  // tanpa kuda f3
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/8/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+];
+
+/** Matriks bidak (huruf besar = putih) dari sebuah FEN. */
+function matriksDariFen(fen) {
+  return new Chess(fen)
+    .board()
+    .map((baris) =>
+      baris.map((petak) =>
+        petak ? (petak.color === "w" ? petak.type.toUpperCase() : petak.type) : ""
+      )
+    );
+}
+
+/** Papan utama dan papan-papan mini, dihitung sekali saat modul dimuat. */
+const PAPAN_RUY_LOPEZ = matriksDariFen(FEN_RUY_LOPEZ);
+const PAPAN_VARIAN = FEN_VARIAN.map(matriksDariFen);
 
 /** Petak asal-tujuan langkah terakhir (Bf1-b5) untuk disorot. */
 const OPENING_HIGHLIGHT = new Set(["b5", "f1"]);
 
 function MiniOpeningBoard({ variant = 0 }) {
-  const pieces = OPENING_BOARD_PIECES.map((row) => row.slice());
-  if (variant % 3 === 1) pieces[4][4] = "";
-  if (variant % 3 === 2) pieces[5][5] = "";
+  const pieces = PAPAN_VARIAN[variant % 3];
 
   return (
     <div className="aspect-square w-full overflow-hidden border border-slate-300/60 bg-[#f0d9b5]">
@@ -82,7 +111,7 @@ function OpeningBookBoardComponent() {
             {RANKS.map((rank, rIdx) =>
               FILES.map((file, fIdx) => {
                 const squareName = `${file}${rank}`;
-                const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
+                const piece = PAPAN_RUY_LOPEZ[rIdx][fIdx] || "";
                 const highlighted = OPENING_HIGHLIGHT.has(squareName);
 
                 return (
@@ -279,12 +308,7 @@ export default function Pembukaan() {
                 </span>
                 
                 <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
-                  {[
-                    { move: "a6", note: "Morphy Defense (Utama)" },
-                    { move: "Nf6", note: "Berlin Defense" },
-                    { move: "d6", note: "Steinitz Defense" },
-                    { move: "f5", note: "Schliemann Gambit" },
-                  ].map((item) => (
+                  {LANJUTAN_RUY_LOPEZ.map((item) => (
                     <div
                       key={item.move}
                       className="flex items-center gap-2 border-b border-slate-300 py-1.5"
@@ -293,7 +317,7 @@ export default function Pembukaan() {
                         3... {item.move}
                       </span>
                       <span className="text-[10px] text-black pl-2">
-                        {item.note}
+                        {t(item.note)}
                       </span>
                     </div>
                   ))}
@@ -309,25 +333,9 @@ export default function Pembukaan() {
         <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-12">
             <div className="flex flex-col gap-4">
-              <h3>Sejarah</h3>
-              <p>
-                Ruy Lopez dinamai menurut Ruy López de Segura, seorang pendeta Spanyol abad ke-16 yang secara
-                sistematis mempelajari pembukaan ini dan pembukaan lainnya dalam buku catur setebal 150 halaman,
-                Libro del Axedrez, yang ditulis pada tahun 1561. Lopez menganjurkan 3.Bb5 sebagai langkah yang lebih
-                unggul daripada 3.Bc4, dan berpendapat bahwa Hitam harus memainkan 2...d6 (Pertahanan Philidor) untuk
-                menghindarinya. Meskipun menyandang namanya, pembukaan khusus ini termasuk dalam manuskrip Göttingen,
-                yang berasal dari sekitar tahun 1490. Ruy Lopez tidak mendapatkan popularitas luas hingga pertengahan
-                abad ke-19, ketika ahli teori Finlandia-Rusia Carl Jaenisch menerbitkan artikel terperinci tentang
-                1.e4 e5 dalam edisi Desember 1847 dari Le Palamède, majalah catur pertama di dunia. Versi ringkasnya
-                muncul di Chess Player's Chronicle pada tahun 1848, diikuti oleh artikel tambahan di publikasi yang
-                sama pada tahun 1849.
-              </p>
-              <p>
-                Ruy Lopez telah lama dianggap sebagai pembukaan terpenting di antara Permainan Terbuka pada tingkat
-                master. Hampir setiap pemain telah menggunakannya pada suatu titik dalam karier mereka, seringkali
-                dengan kedua warna. Karena kesulitan bagi Hitam dalam mencapai kesetaraan, julukan umum untuk pembukaan
-                ini adalah "Penyiksaan Spanyol".
-              </p>
+              <h3>{t("bukuPembukaan.sejarahJudul")}</h3>
+              <p>{t("bukuPembukaan.sejarahAyat1")}</p>
+              <p>{t("bukuPembukaan.sejarahAyat2")}</p>
             </div>
           </div>
         </div>

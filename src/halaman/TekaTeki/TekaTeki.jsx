@@ -17,6 +17,14 @@ import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
 import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
+import { coba } from "../../lib/utils.js";
+import {
+  parseLangkah,
+  terapkan,
+  butuhPromosi,
+  apakahLangkahLegal,
+  apakahLangkahSesuai,
+} from "../../lib/tekaTeki.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -118,14 +126,6 @@ const PETA_KELAS_SYZYGY = {
   unknown: "text-gray-400",
 };
 
-function parseLangkah(teks) {
-  return {
-    from: teks.slice(0, 2),
-    to: teks.slice(3, 5),
-    promo: teks.length > 5 ? teks[5] : null,
-  };
-}
-
 /** Urutan pilihan bidak promosi (menteri, benteng, gajah, kuda). */
 const PILIHAN_PROMOSI = ["q", "r", "b", "n"];
 const KUCI_NAMA_PROMOSI = {
@@ -134,17 +134,6 @@ const KUCI_NAMA_PROMOSI = {
   b: "tekaTeki.promosiGajah",
   n: "tekaTeki.promosiKuda",
 };
-
-function terapkan(fen, { from, to, promo }) {
-  const game = new Chess(fen);
-  const opsi = { from, to };
-  const bidak = game.get(from);
-  if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
-    opsi.promotion = promo || "q";
-  }
-  game.move(opsi);
-  return game;
-}
 
 /**
  * Fakta langkah (untuk komentator) dari koordinat asal/tujuan. Mengembalikan
@@ -161,47 +150,44 @@ function faktaDariKoordinat(fen, from, to, promo) {
 }
 
 function bacaTerpecahkan() {
-  try {
-    const simpan = JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]");
-    return new Set(Array.isArray(simpan) ? simpan : []);
-  } catch {
-    return new Set();
-  }
+  const simpan = coba(
+    () => JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]"),
+    "baca daftar teka-teki terpecahkan"
+  );
+  return new Set(Array.isArray(simpan) ? simpan : []);
 }
 
 function bacaPosisi() {
-  try {
-    const n = Number(localStorage.getItem(KUNCI_POSISI));
-    return Number.isInteger(n) && n >= 1 ? n : null;
-  } catch {
-    return null;
-  }
+  const n = Number(
+    coba(() => localStorage.getItem(KUNCI_POSISI), "baca posisi terakhir")
+  );
+  return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
 function bacaSetBidak() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_SET_BIDAK);
-    if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
-  } catch {}
+  const simpan = coba(
+    () => localStorage.getItem(KUNCI_SET_BIDAK),
+    "baca set bidak"
+  );
+  if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
   return "merida";
 }
 
 function bacaWarnaPapan() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_WARNA_PAPAN);
-    if (simpan && PILIHAN_WARNA_PAPAN.some(([nilai]) => nilai === simpan)) {
-      return simpan;
-    }
-  } catch {}
+  const simpan = coba(
+    () => localStorage.getItem(KUNCI_WARNA_PAPAN),
+    "baca warna papan"
+  );
+  if (simpan && PILIHAN_WARNA_PAPAN.some(([nilai]) => nilai === simpan)) {
+    return simpan;
+  }
   return "green";
 }
 
 function bacaOtomatis() {
-  try {
-    return localStorage.getItem(KUNCI_OTOMATIS) === "1";
-  } catch {
-    return false;
-  }
+  return (
+    coba(() => localStorage.getItem(KUNCI_OTOMATIS), "baca mode otomatis") === "1"
+  );
 }
 
 function KerangkaTekaTeki() {
@@ -260,6 +246,12 @@ export default function TekaTeki() {
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
+  /**
+   * Panel pengaturan (gear) hidup di `LayoutTekaTeki`, tetapi nilainya dipegang
+   * halaman: gerbang pintasan keyboard (`blokir`) dan panel harus membaca
+   * state yang sama, kalau tidak panah tetap menggerakkan papan saat panel
+   * terbuka.
+   */
   const [bukaPengaturan, setBukaPengaturan] = useState(false);
 
   // Suara papan (MP3 di public/SoundChess) — sakelarnya dibagi dengan
@@ -435,9 +427,10 @@ export default function TekaTeki() {
   const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
   const simpanPosisi = useCallback((id) => {
-    try {
-      localStorage.setItem(KUNCI_POSISI, String(id));
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_POSISI, String(id)),
+      "simpan posisi terakhir"
+    );
     setPosisiTersimpan(id);
   }, []);
 
@@ -481,6 +474,9 @@ export default function TekaTeki() {
     return () => {
       aktif = false;
     };
+    // Dependensi yang sengaja dilepas: params, terapkanSoal, setParams, dan
+    // simpanPosisi. Efek ini hanya boleh memuat data saat mount atau lewat
+    // "Coba lagi" (percobaan), bukan saat setParams menulis ulang query.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [percobaan]);
 
@@ -493,6 +489,9 @@ export default function TekaTeki() {
     terapkanSoal(soal[safeIdx]);
     setParams({ id: String(soal[safeIdx].problemid) }, { replace: true });
     simpanPosisi(soal[safeIdx].problemid);
+    // Dependensi yang sengaja dilepas: soal, indeks, terapkanSoal, setParams,
+    // dan simpanPosisi. Efek ini khusus re-filter: kalau soal/indeks ikut
+    // dipantau, tiap pindah soal posisi yang sama akan dipasang ulang.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTipe, filterLevel, filterTema, filterGiliran]);
 
@@ -549,24 +548,32 @@ export default function TekaTeki() {
   );
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_SET_BIDAK, setBidak);
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_SET_BIDAK, setBidak),
+      "simpan set bidak"
+    );
   }, [setBidak]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan);
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan),
+      "simpan warna papan"
+    );
   }, [warnaPapan]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0");
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0"),
+      "simpan mode otomatis"
+    );
   }, [otomatis]);
 
-  const terapkanSoal = useCallback((m) => {
+  /**
+   * Pasang satu soal ke papan. `pertahankanSelesai` dipakai mode review
+   * setelah cekmat: papan kembali ke posisi awal soal, tetapi status selesai
+   * beserta pesan "terpecahkan" dibiarkan supaya tombol maju tetap aktif.
+   */
+  const terapkanSoal = useCallback((m, { pertahankanSelesai = false } = {}) => {
     setFen(m.fen);
     setSisa(m.moves.split(";"));
     setJalurFen([m.fen]);
@@ -576,9 +583,11 @@ export default function TekaTeki() {
     setPetunjuk(null);
     setKesalahan(null);
     setLangkahAkhir(null);
-    setPesan(null);
+    if (!pertahankanSelesai) {
+      setPesan(null);
+      setSelesai(false);
+    }
     setKomputer(false);
-    setSelesai(false);
     setTanda({ panah: [], petak: {} });
     setSedangSeret(false);
     setPromosi(null);
@@ -663,31 +672,12 @@ export default function TekaTeki() {
 
     // Bidak menuju baris terakhir → promosi wajib. Bila pemain belum memilih
     // bidak promosi, buka pemilihnya (jangan langsung dianggap salah).
-    let butuhPromosi = false;
-    let warnaPromosi = "w";
-    try {
-      const papan = new Chess(fen);
-      const bidak = papan.get(from);
-      if (
-        bidak &&
-        bidak.type === "p" &&
-        (to.endsWith("8") || to.endsWith("1"))
-      ) {
-        butuhPromosi = true;
-        warnaPromosi = bidak.color;
-      }
-    } catch {}
-
+    const promosiDiminta = butuhPromosi(fen, from, to);
     // Jangan buka dialog promosi untuk drop yang tidak legal.
-    let langkahLegal = false;
-    try {
-      langkahLegal = new Chess(fen)
-        .moves({ square: from, verbose: true })
-        .some((langkah) => langkah.to === to);
-    } catch {}
+    const langkahLegal = apakahLangkahLegal(fen, from, to);
 
-    if (butuhPromosi && langkahLegal && !promo) {
-      setPromosi({ from, to, warna: warnaPromosi });
+    if (promosiDiminta.butuh && langkahLegal && !promo) {
+      setPromosi({ from, to, warna: promosiDiminta.warna });
       setTerpilih(null);
       setSasaran([]);
       return;
@@ -695,17 +685,11 @@ export default function TekaTeki() {
 
     let lanjut = null;
 
-    if (sisa.length === 1) {
-      try {
-        const g = terapkan(fen, { from, to, promo });
-        if (g.isCheckmate()) lanjut = g;
-      } catch {}
-    } else if (
-      from === diharapkan.from &&
-      to === diharapkan.to &&
-      // Untuk promosi di tengah varian, bidak harus sama dengan solusi.
-      (!diharapkan.promo || promo === diharapkan.promo)
-    ) {
+    // Langkah penutup tidak lagi istimewa: harus persis solusi, sama seperti
+    // Rush. Skakmat legal lain (mate alternatif) tetap dihitung salah.
+    // Untuk promosi, bidak harus sama dengan solusi — aturan itu ada di
+    // apakahLangkahSesuai.
+    if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
       try {
         lanjut = terapkan(fen, { from, to, promo: diharapkan.promo });
       } catch {}
@@ -791,17 +775,11 @@ export default function TekaTeki() {
     }
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
+    // Dependensi yang sengaja dilepas: batalPromosi (fungsi biasa yang
+    // identitasnya berubah tiap render); pendengar cukup dipasang selama
+    // dialog promosi terbuka.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promosi]);
-
-  useEffect(() => {
-    if (!bukaPengaturan) return;
-    function saatEscape(e) {
-      if (e.key === "Escape") setBukaPengaturan(false);
-    }
-    window.addEventListener("keydown", saatEscape);
-    return () => window.removeEventListener("keydown", saatEscape);
-  }, [bukaPengaturan]);
 
   useEffect(() => {
     if (!komputer || selesai || !sisa.length) return;
@@ -870,26 +848,9 @@ export default function TekaTeki() {
    */
   function keAwalLangkah() {
     if (!masalah || komputer || promosi) return;
-    if (selesai) {
-      // Mode review setelah cekmat: reset papan tapi jangan hapus status selesai
-      setFen(masalah.fen);
-      setSisa(masalah.moves.split(";"));
-      setJalurFen([masalah.fen]);
-      setOrientasi(masalah.first === "Black to Move" ? "b" : "w");
-      setTerpilih(null);
-      setSasaran([]);
-      setPetunjuk(null);
-      setKesalahan(null);
-      setLangkahAkhir(null);
-      setKomputer(false);
-      setTanda({ panah: [], petak: {} });
-      setSedangSeret(false);
-      setPromosi(null);
-      setKomentar({ tahap: "mulai", fakta: null, fen: masalah.fen });
-      // pesan dibiarkan hilang, tapi selesai tetap true → sudahPecah tetap tampil
-    } else {
-      terapkanSoal(masalah);
-    }
+    // Setelah cekmat (mode review) status selesai dipertahankan; sebelumnya
+    // cabang ini menyalin ulang seluruh setter terapkanSoal.
+    terapkanSoal(masalah, { pertahankanSelesai: selesai });
   }
 
   /** < — mundur satu langkah. */
@@ -1071,9 +1032,10 @@ export default function TekaTeki() {
       if (lama.has(id)) return lama;
       const baru = new Set(lama);
       baru.add(id);
-      try {
-        localStorage.setItem(KUNCI_SELESAI, JSON.stringify([...baru]));
-      } catch {}
+      coba(
+        () => localStorage.setItem(KUNCI_SELESAI, JSON.stringify([...baru])),
+        "simpan daftar teka-teki terpecahkan"
+      );
       return baru;
     });
   }
@@ -1111,6 +1073,9 @@ export default function TekaTeki() {
         pilihPetak(petak);
       }
     },
+    // Dependensi yang sengaja dilepas: pilihPetak (fungsi biasa) dan tanda —
+    // keduanya hanya dipakai pilihPetak untuk membersihkan panah/petak;
+    // keadaan yang menggerbangi seret sudah ada di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [masalah, komputer, selesai, fen]
   );
@@ -1126,6 +1091,9 @@ export default function TekaTeki() {
       abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
+    // Dependensi yang sengaja dilepas: cobaLangkah (fungsi biasa, identitasnya
+    // berubah tiap render); keadaan yang menggerbangi penjatuhan bidak sudah
+    // tercantum di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [masalah, komputer, selesai, fen, sisa, terpilih, sasaran]
   );
@@ -1387,6 +1355,8 @@ export default function TekaTeki() {
         <LayoutTekaTeki
               papan={papanWadah}
               barEvaluasi={barEvaluasiWadah}
+              bukaPengaturan={bukaPengaturan}
+              onGantiPengaturan={setBukaPengaturan}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               jumlahLangkah={langkahPenuh.length}
               syzygy={syzygy}
@@ -1534,7 +1504,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1542,16 +1512,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
 
-  // Pengaturan (gear): salinan perilaku dari halaman TekaTeki.
-  const [bukaPengaturan, setBukaPengaturan] = useState(false);
+  // Pengaturan (gear): state-nya milik halaman (lihat `bukaPengaturan` di
+  // komponen halaman) supaya pintasan panah ikut terkunci saat panel terbuka.
   useEffect(() => {
-    if (!bukaPengaturan) return;
+    if (!bukaPengaturan || !onGantiPengaturan) return;
     const saatEscape = (e) => {
-      if (e.key === "Escape") setBukaPengaturan(false);
+      if (e.key === "Escape") onGantiPengaturan(false);
     };
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
-  }, [bukaPengaturan]);
+  }, [bukaPengaturan, onGantiPengaturan]);
 
   return (
     <div className="flex flex-col min-h-screen lg:h-screen overflow-hidden bg-[#262421] text-gray-200 font-sans select-none">
@@ -1903,7 +1873,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setBukaPengaturan((v) => !v)}
+                  onClick={() =>
+                    onGantiPengaturan && onGantiPengaturan(!bukaPengaturan)
+                  }
                   aria-expanded={bukaPengaturan}
                   className={`p-2 rounded-md transition ${
                     bukaPengaturan
@@ -1941,7 +1913,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     <div
                       aria-hidden="true"
                       className="fixed inset-0 z-40"
-                      onClick={() => setBukaPengaturan(false)}
+                      onClick={() => onGantiPengaturan && onGantiPengaturan(false)}
                     />
                     <div
                       role="dialog"

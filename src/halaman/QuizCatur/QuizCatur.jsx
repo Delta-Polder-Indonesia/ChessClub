@@ -1,8 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
-import { SOAL_CATUR, DAFTAR_KATEGORI } from "./daftar.js";
+import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
 import { berkasPublik } from "../../lib/asets.js";
+import { gabungPeringkat } from "../../lib/peringkatKuis.js";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
 
@@ -65,17 +66,6 @@ const URUTAN_KATEGORI = DAFTAR_KATEGORI.slice()
   .sort((a, b) => a.urutan - b.urutan)
   .map((k) => k.id);
 
-/** Ikon berwarna per kategori dari koleksi public/images/color-icon. */
-const IKON_KATEGORI = {
-  semua: "/images/color-icon/explorer.svg",
-  peraturan: "/images/color-icon/chess-rules.svg",
-  bidak: "/images/color-icon/pawn-solo.svg",
-  skakmat: "/images/color-icon/game-endgames.svg",
-  pembukaan: "/images/color-icon/book-open-aqua.svg",
-  sejarah: "/images/color-icon/time-clock.svg",
-  umum: "/images/color-icon/globe.svg",
-};
-
 /* ================================================================== page */
 
 export default function QuizCatur() {
@@ -99,17 +89,12 @@ export default function QuizCatur() {
   const [peringkat, setPeringkat] = useState(() => {
     try {
       const mentah = JSON.parse(localStorage.getItem(KUNCI_PERINGKAT)) || [];
-      const unik = [];
-      for (const p of mentah) {
-        const ada = unik.find((u) => u.nama === p.nama);
-        if (ada) {
-          if (p.benar > ada.benar) Object.assign(ada, p);
-        } else {
-          unik.push(p);
-        }
-      }
-      unik.sort((a, b) => b.benar - a.benar);
-      return unik;
+      // Data lama bisa memuat nama ganda — gabungPeringkat menyisakan nilai
+      // terbaik per nama sekaligus mengurutkannya.
+      return (Array.isArray(mentah) ? mentah : []).reduce(
+        (daftar, p) => gabungPeringkat(daftar, p),
+        []
+      );
     } catch {
       return [];
     }
@@ -173,7 +158,6 @@ export default function QuizCatur() {
     setLampau([]);
     setFase("main");
     mainkan(SUARA.mulai);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daftar, total, mainkan]);
 
   const pilihOpsi = (indeksOriginal) => {
@@ -195,19 +179,10 @@ export default function QuizCatur() {
     const nama = username.trim();
     if (!nama || nilaiLampau.length === 0) return;
     const masuk = { nama, benar: nilaiBenar, total: nilaiLampau.length };
-    setPeringkat((sebelumnya) => {
-      const ada = sebelumnya.find((p) => p.nama === nama);
-      const gabung = ada
-        ? sebelumnya.map((p) => (p.nama === nama && p.benar < masuk.benar ? masuk : p))
-        : [...sebelumnya, masuk];
-      gabung.sort((a, b) => b.benar - a.benar);
-      try {
-        localStorage.setItem(KUNCI_PERINGKAT, JSON.stringify(gabung));
-      } catch {
-        /* localStorage bisa full/blocked; abaikan */
-      }
-      return gabung;
-    });
+    // Cukup perbarui state: efek persistensi [peringkat] yang menulis ke
+    // localStorage. Menulis di dalam updater ini membuat penulisan ganda —
+    // dan di StrictMode updater dipanggil dua kali (efek samping di dalamnya).
+    setPeringkat((sebelumnya) => gabungPeringkat(sebelumnya, masuk));
   };
 
   const lanjut = () => {
@@ -336,7 +311,7 @@ export default function QuizCatur() {
             >
               <span className="flex min-w-0 items-center gap-2">
                 <img
-                  src={berkasPublik(IKON_KATEGORI[k])}
+                  src={berkasPublik(IKON_KATEGORI[k] || IKON_KATEGORI.semua)}
                   alt=""
                   className="h-4 w-4 shrink-0"
                 />
