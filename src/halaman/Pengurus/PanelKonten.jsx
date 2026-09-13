@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { ChevronDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown } from "lucide-react";
+import { flexRender } from "@tanstack/react-table";
+import {
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useLegacyTable,
+} from "@tanstack/react-table/legacy";
 import { apiPengurus } from "../../lib/api/index.js";
 import { Tombol, Bidang, Modal, MenuAksi, KotakGalatMuat } from "./ui.jsx";
 import {
@@ -29,6 +37,116 @@ function Lencana({ status }) {
   const s = STATUS[status] || STATUS.draf;
   return (
     <span className="text-sm text-slate-700">{s.teks}</span>
+  );
+}
+
+/**
+ * Header kolom yang bisa diurutkan — ikon panah berubah mengikuti arah
+ * urutan (naik/turun/netral), pola template tabel shadcn.
+ */
+function TombolUrutkan({ kolom, anak }) {
+  const arah = kolom.getIsSorted();
+  return (
+    <button
+      type="button"
+      onClick={() => kolom.toggleSorting(arah === "asc")}
+      className="inline-flex items-center gap-1 font-medium text-slate-700 transition-colors hover:text-slate-900"
+    >
+      {anak}
+      {arah === "asc" ? (
+        <ArrowUp className="size-3.5" />
+      ) : arah === "desc" ? (
+        <ArrowDown className="size-3.5" />
+      ) : (
+        <ArrowUpDown className="size-3.5" />
+      )}
+    </button>
+  );
+}
+
+/**
+ * Dropdown pilih kolom yang tampil di tabel konten — pola portal sama seperti
+ * MenuStatus/MenuAksi, dengan checkbox per kolom yang bisa disembunyikan.
+ */
+function MenuKolom({ tabel }) {
+  const [terbuka, setTerbuka] = useState(false);
+  const [posisi, setPosisi] = useState(null);
+  const tombolRef = useRef(null);
+  const menuRef = useRef(null);
+
+  useLayoutEffect(() => {
+    if (!terbuka) return;
+    const el = tombolRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPosisi({
+      top: r.bottom + 4,
+      left: r.left,
+    });
+  }, [terbuka]);
+
+  useEffect(() => {
+    if (!terbuka) return;
+    function cekKlik(e) {
+      if (tombolRef.current?.contains(e.target)) return;
+      if (menuRef.current?.contains(e.target)) return;
+      setTerbuka(false);
+    }
+    function cekEsc(e) {
+      if (e.key === "Escape") setTerbuka(false);
+    }
+    document.addEventListener("mousedown", cekKlik);
+    document.addEventListener("keydown", cekEsc);
+    return () => {
+      document.removeEventListener("mousedown", cekKlik);
+      document.removeEventListener("keydown", cekEsc);
+    };
+  }, [terbuka]);
+
+  const nama = { gambar: "Gambar", judul: "Judul", tanggal: "Tanggal", status: "Status" };
+  const kolom = tabel.getAllColumns().filter((c) => c.getCanHide());
+  if (!kolom.length) return null;
+
+  return (
+    <div ref={tombolRef} className="inline-flex">
+      <button
+        type="button"
+        onClick={() => setTerbuka((t) => !t)}
+        aria-haspopup="menu"
+        aria-expanded={terbuka}
+        className="inline-flex h-9 items-center gap-1.5 rounded-md border-2 border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+      >
+        Kolom
+        <ChevronDown className="size-4" />
+      </button>
+      {terbuka &&
+        posisi &&
+        createPortal(
+          <div
+            ref={menuRef}
+            role="menu"
+            aria-label="Pilih kolom"
+            style={{ top: posisi.top, left: posisi.left }}
+            className="fixed z-50 min-w-[10rem] rounded-md border border-slate-200 bg-white p-1 shadow-lg"
+          >
+            {kolom.map((c) => (
+              <label
+                key={c.id}
+                className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                <input
+                  type="checkbox"
+                  checked={c.getIsVisible()}
+                  onChange={() => c.toggleVisibility()}
+                  className="size-4 accent-primary"
+                />
+                {nama[c.id] || c.id}
+              </label>
+            ))}
+          </div>,
+          document.body
+        )}
+    </div>
   );
 }
 
@@ -357,7 +475,9 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   const [formulir, setFormulir] = useState(null); // null | {item:null} | {item}
   const [saring, setSaring] = useState("");
   const [cari, setCari] = useState("");
-  const [terpilih, setTerpilih] = useState(() => new Set());
+  const [sorting, setSorting] = useState([]);
+  const [rowSelection, setRowSelection] = useState({});
+  const [columnVisibility, setColumnVisibility] = useState({});
   const [targetHapus, setTargetHapus] = useState(null);
   const [targetHapusMassal, setTargetHapusMassal] = useState(false);
 
@@ -394,8 +514,6 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
     muatUlang?.();
   };
 
-  const hapus = (x) => setTargetHapus(x);
-
   const konfirmasiHapus = async () => {
     const x = targetHapus;
     setTargetHapus(null);
@@ -404,6 +522,11 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
       await apiPengurus(`/${konfig.jalur}/${x.id}/hapus`, { metode: "POST" });
       beriTahu(`${konfig.label} dihapus.`, "sukses");
       if (formulir?.item?.id === x.id) setFormulir(null);
+      setRowSelection((s) => {
+        const baru = { ...s };
+        delete baru[x.id];
+        return baru;
+      });
       await muat();
       muatUlang?.();
     } catch (e) {
@@ -412,7 +535,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
   };
 
   const konfirmasiHapusMassal = async () => {
-    const ids = [...terpilih];
+    const ids = Object.keys(rowSelection);
     setTargetHapusMassal(false);
     if (!ids.length) return;
     try {
@@ -420,7 +543,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
         await apiPengurus(`/${konfig.jalur}/${id}/hapus`, { metode: "POST" });
       }
       beriTahu(`${ids.length} ${konfig.label.toLowerCase()} dihapus.`, "sukses");
-      setTerpilih(new Set());
+      setRowSelection({});
       await muat();
       muatUlang?.();
     } catch (e) {
@@ -439,30 +562,109 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
     return cocokStatus && cocokCari;
   });
 
-  const semuaTerpilih = tampil.length > 0 && tampil.every((x) => terpilih.has(x.id));
+  const kolom = useMemo(
+    () => [
+      {
+        id: "pilih",
+        header: ({ table }) => (
+          <input
+            type="checkbox"
+            checked={
+              table.getIsAllPageRowsSelected() || table.getIsSomePageRowsSelected()
+            }
+            onChange={() => table.toggleAllPageRowsSelected()}
+            aria-label="Pilih semua"
+            className="size-4 accent-primary"
+          />
+        ),
+        cell: ({ row }) => (
+          <input
+            type="checkbox"
+            checked={row.getIsSelected()}
+            onChange={row.getToggleSelectedHandler()}
+            aria-label="Pilih baris"
+            className="size-4 accent-primary"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "gambar",
+        header: "Gambar",
+        cell: ({ row }) =>
+          row.original.gambar ? (
+            <img
+              src={row.original.gambar}
+              alt=""
+              width={64}
+              height={40}
+              className="h-10 w-16 rounded border border-slate-200 object-cover"
+            />
+          ) : (
+            <span className="text-xs text-slate-400">Tanpa gambar</span>
+          ),
+        enableSorting: false,
+      },
+      {
+        accessorKey: "judul",
+        header: ({ column }) => <TombolUrutkan kolom={column} anak="Judul" />,
+        cell: ({ row }) => (
+          <button
+            type="button"
+            onClick={() => setFormulir({ item: row.original })}
+            className="text-left font-medium text-primary hover:underline"
+          >
+            {row.original.judul}
+          </button>
+        ),
+      },
+      {
+        accessorKey: "tanggal",
+        header: ({ column }) => <TombolUrutkan kolom={column} anak="Tanggal" />,
+        cell: ({ row }) => (
+          <span className="text-slate-600">{row.original.tanggal || "—"}</span>
+        ),
+      },
+      {
+        accessorKey: "status",
+        header: ({ column }) => <TombolUrutkan kolom={column} anak="Status" />,
+        cell: ({ row }) => <Lencana status={row.original.status} />,
+      },
+      {
+        id: "aksi",
+        header: "Aksi",
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <MenuAksi
+            onUbah={() => setFormulir({ item: row.original })}
+            onHapus={() => setTargetHapus(row.original)}
+          />
+        ),
+      },
+    ],
+    [konfig.label]
+  );
 
-  const toggleSemua = () => {
-    setTerpilih((s) => {
-      const baru = new Set(s);
-      if (semuaTerpilih) {
-        tampil.forEach((x) => baru.delete(x.id));
-      } else {
-        tampil.forEach((x) => baru.add(x.id));
-      }
-      return baru;
-    });
-  };
+  const tabel = useLegacyTable({
+    data: tampil,
+    columns: kolom,
+    state: { sorting, rowSelection, columnVisibility },
+    onSortingChange: setSorting,
+    onRowSelectionChange: setRowSelection,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: { pagination: { pageSize: 10 } },
+  });
 
-  const togglePilih = (id) => {
-    setTerpilih((s) => {
-      const baru = new Set(s);
-      if (baru.has(id)) baru.delete(id);
-      else baru.add(id);
-      return baru;
-    });
-  };
+  const jumlahTampil = tabel.getFilteredRowModel().rows.length;
+  const jumlahTerpilih = tabel.getFilteredSelectedRowModel().rows.length;
 
-  const bereskanSeleksi = () => setTerpilih(new Set());
+  const bereskanSeleksi = () => setRowSelection({});
 
   return (
     <div>
@@ -500,10 +702,11 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
               className="h-9 w-56 rounded-md border-2 border-slate-200 bg-white pl-8 pr-2.5 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-primary"
             />
           </div>
-          {terpilih.size > 0 && (
+          <MenuKolom tabel={tabel} />
+          {jumlahTerpilih > 0 && (
             <div className="ml-auto flex items-center gap-3">
               <span className="text-xs font-medium text-slate-700">
-                {terpilih.size} {konfig.label.toLowerCase()} terpilih
+                {jumlahTerpilih} {konfig.label.toLowerCase()} terpilih
               </span>
               <div className="flex gap-2">
                 <button
@@ -547,79 +750,55 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
         <div className="overflow-auto">
           <Table>
             <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">
-                  <input
-                    type="checkbox"
-                    checked={semuaTerpilih}
-                    onChange={toggleSemua}
-                    aria-label="Pilih semua"
-                    className="size-4 accent-primary"
-                  />
-                </TableHead>
-                <TableHead>Gambar</TableHead>
-                <TableHead>Judul</TableHead>
-                <TableHead>Tanggal</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="w-24">Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-{tampil.map((x) => (
-                <TableRow key={x.id} className={terpilih.has(x.id) ? "bg-slate-50/50" : ""}>
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={terpilih.has(x.id)}
-                      onChange={() => togglePilih(x.id)}
-                      aria-label={`Pilih ${x.judul}`}
-                      className="size-4 accent-primary"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    {x.gambar ? (
-                      <img
-                        src={x.gambar}
-                        alt=""
-                        width={64}
-                        height={40}
-                        className="h-10 w-16 rounded border border-slate-200 object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs text-slate-400">Tanpa gambar</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <button
-                      type="button"
-                      onClick={() => setFormulir({ item: x })}
-                      className="text-left font-medium text-primary hover:underline"
-                    >
-                      {x.judul}
-                    </button>
-                  </TableCell>
-                  <TableCell className="text-slate-600">{x.tanggal || "—"}</TableCell>
-                  <TableCell>
-                    <Lencana status={x.status} />
-                  </TableCell>
-                  <TableCell className="w-24">
-                    <MenuAksi
-                      onUbah={() => setFormulir({ item: x })}
-                      onHapus={() => hapus(x)}
-                    />
-                  </TableCell>
+              {tabel.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
-              {!tampil.length && (
+            </TableHeader>
+            <TableBody>
+              {tabel.getRowModel().rows.length ? (
+                tabel.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="data-[state=selected]:bg-slate-100"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
                 <TableRow>
                   <TableCell colSpan={6} className="py-8 text-center text-slate-500">
-                    Belum ada {konfig.label.toLowerCase()}. Tekan “+
-                    {konfig.label} baru” untuk membuat.
+                    Belum ada {konfig.label.toLowerCase()}. Tekan “
+                    +{konfig.label} baru” untuk membuat.
                   </TableCell>
                 </TableRow>
-)}
+              )}
             </TableBody>
           </Table>
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
+            <p className="text-sm text-slate-600">
+              {jumlahTerpilih} dari {jumlahTampil} {konfig.label.toLowerCase()} terpilih.
+            </p>
+            <div className="flex items-center gap-2">
+              <Tombol kecil={true} anak="Sebelumnya" disabled={!tabel.getCanPreviousPage()} onClick={() => tabel.previousPage()} />
+              <span className="text-sm text-slate-600">
+                Halaman {tabel.getState().pagination.pageIndex + 1} dari {tabel.getPageCount()}
+              </span>
+              <Tombol kecil={true} anak="Berikutnya" disabled={!tabel.getCanNextPage()} onClick={() => tabel.nextPage()} />
+            </div>
+          </div>
         </div>
       ))}
 
@@ -636,13 +815,13 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
 
       <Modal
         terbuka={targetHapusMassal}
-        judul={`Hapus ${terpilih.size} ${konfig.label.toLowerCase()}?`}
+        judul={`Hapus ${jumlahTerpilih} ${konfig.label.toLowerCase()}?`}
         labelKonfirmasi="Hapus semua"
         jenisKonfirmasi="bahaya"
         onBatal={() => setTargetHapusMassal(false)}
         onKonfirmasi={konfirmasiHapusMassal}
       >
-        {terpilih.size} data akan dihapus permanen dan tidak dapat dikembalikan.
+        {jumlahTerpilih} data akan dihapus permanen dan tidak dapat dikembalikan.
       </Modal>
     </div>
   );

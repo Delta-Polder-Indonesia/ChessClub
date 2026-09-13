@@ -100,11 +100,11 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                 className={`
                   w-full text-sm font-medium
                   flex items-center
-                  py-2.5 pl-4 pr-3
+                  pl-4 pr-3
                   transition-colors duration-150
                   ${aktif
-                    ? "bg-primary text-white"
-                    : "text-slate-700 hover:bg-slate-100"
+                    ? "py-1.5 text-slate-900 border border-slate-900 rounded-md"
+                    : "py-2.5 text-slate-700 hover:bg-slate-100"
                   }
                 `}
               >
@@ -171,12 +171,12 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                           type="button"
                           onClick={() => onPilihEbook?.(sub.kunci)}
                           className={`
-                            w-full text-sm rounded-sm
+                            w-full text-sm
                             flex items-center
                             py-1.5 pl-2 pr-2
                             transition-colors duration-150
                             ${subAktif
-                              ? "bg-primary text-white font-medium"
+                              ? "text-slate-900 font-medium border border-slate-900 rounded-sm"
                               : "text-slate-600 hover:bg-slate-100"
                             }
                           `}
