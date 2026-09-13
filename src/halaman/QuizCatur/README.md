@@ -56,6 +56,10 @@ duplikat, dan nama kategori ada di `DAFTAR_KATEGORI`.
 2. Tambahkan labelnya ke kamus terjemahan agar tampil di layar:
    - `src/lib/terjemahan/id/quiz.js` → `quiz.kategori.taktik`
    - `src/lib/terjemahan/en/quiz.js` → `quiz.kategori.taktik`
+3. Tambahkan ikonnya ke peta `IKON_KATEGORI` di `daftar.js` (mis.
+   `taktik: "/images/color-icon/puzzle-piece.svg"`, berkas dari
+   `public/images/color-icon/`). Kategori tanpa entri ikon akan tampil
+   sebagai gambar kosong di navigasi kiri.
 
 Label kategori, tombol (Mulai, Periksa, Lanjut), dan teks antarmuka lain berada
 di berkas terjemahan (`id/quiz.js` & `en/quiz.js`), bukan di `daftar.js`.

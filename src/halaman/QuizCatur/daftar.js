@@ -34,6 +34,27 @@ export const DAFTAR_KATEGORI = [
   { id: "umum", urutan: 9 },
 ];
 
+/**
+ * Ikon berwarna per kategori dari koleksi `public/images/color-icon`.
+ * Setiap id di `DAFTAR_KATEGORI` wajib punya entri di sini: kategori tanpa
+ * ikon membuat <img> di navigasi jatuh ke akar situs (tampil kosong).
+ * `semua` dipakai tombol Seluruh Kategori sekaligus cadangan bila ada id
+ * kategori yang belum punya ikon.
+ */
+export const IKON_KATEGORI = {
+  semua: "/images/color-icon/explorer.svg",
+  peraturan: "/images/color-icon/chess-rules.svg",
+  bidak: "/images/color-icon/pawn-solo.svg",
+  skakmat: "/images/color-icon/game-endgames.svg",
+  taktik: "/images/color-icon/puzzle-piece.svg",
+  pembukaan: "/images/color-icon/book-open-aqua.svg",
+  strategi: "/images/color-icon/magnifier-analysis.svg",
+  endgame: "/images/color-icon/board-4x4-brown.svg",
+  notasi: "/images/color-icon/pages-a-z.svg",
+  sejarah: "/images/color-icon/time-clock.svg",
+  umum: "/images/color-icon/globe.svg",
+};
+
 export const SOAL_CATUR = [
   /* --------------------------------------------------------- peraturan */
   {

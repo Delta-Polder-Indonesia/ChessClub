@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
-import { SOAL_CATUR, DAFTAR_KATEGORI } from "./daftar.js";
+import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
 import { berkasPublik } from "../../lib/asets.js";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
@@ -64,17 +64,6 @@ function IkonSalah({ size = 24 }) {
 const URUTAN_KATEGORI = DAFTAR_KATEGORI.slice()
   .sort((a, b) => a.urutan - b.urutan)
   .map((k) => k.id);
-
-/** Ikon berwarna per kategori dari koleksi public/images/color-icon. */
-const IKON_KATEGORI = {
-  semua: "/images/color-icon/explorer.svg",
-  peraturan: "/images/color-icon/chess-rules.svg",
-  bidak: "/images/color-icon/pawn-solo.svg",
-  skakmat: "/images/color-icon/game-endgames.svg",
-  pembukaan: "/images/color-icon/book-open-aqua.svg",
-  sejarah: "/images/color-icon/time-clock.svg",
-  umum: "/images/color-icon/globe.svg",
-};
 
 /* ================================================================== page */
 
@@ -336,7 +325,7 @@ export default function QuizCatur() {
             >
               <span className="flex min-w-0 items-center gap-2">
                 <img
-                  src={berkasPublik(IKON_KATEGORI[k])}
+                  src={berkasPublik(IKON_KATEGORI[k] || IKON_KATEGORI.semua)}
                   alt=""
                   className="h-4 w-4 shrink-0"
                 />
