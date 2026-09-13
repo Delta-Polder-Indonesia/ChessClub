@@ -474,6 +474,9 @@ export default function TekaTeki() {
     return () => {
       aktif = false;
     };
+    // Dependensi yang sengaja dilepas: params, terapkanSoal, setParams, dan
+    // simpanPosisi. Efek ini hanya boleh memuat data saat mount atau lewat
+    // "Coba lagi" (percobaan), bukan saat setParams menulis ulang query.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [percobaan]);
 
@@ -486,6 +489,9 @@ export default function TekaTeki() {
     terapkanSoal(soal[safeIdx]);
     setParams({ id: String(soal[safeIdx].problemid) }, { replace: true });
     simpanPosisi(soal[safeIdx].problemid);
+    // Dependensi yang sengaja dilepas: soal, indeks, terapkanSoal, setParams,
+    // dan simpanPosisi. Efek ini khusus re-filter: kalau soal/indeks ikut
+    // dipantau, tiap pindah soal posisi yang sama akan dipasang ulang.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTipe, filterLevel, filterTema, filterGiliran]);
 
@@ -772,6 +778,9 @@ export default function TekaTeki() {
     }
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
+    // Dependensi yang sengaja dilepas: batalPromosi (fungsi biasa yang
+    // identitasnya berubah tiap render); pendengar cukup dipasang selama
+    // dialog promosi terbuka.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promosi]);
 
@@ -1067,6 +1076,9 @@ export default function TekaTeki() {
         pilihPetak(petak);
       }
     },
+    // Dependensi yang sengaja dilepas: pilihPetak (fungsi biasa) dan tanda —
+    // keduanya hanya dipakai pilihPetak untuk membersihkan panah/petak;
+    // keadaan yang menggerbangi seret sudah ada di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [masalah, komputer, selesai, fen]
   );
@@ -1082,6 +1094,9 @@ export default function TekaTeki() {
       abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
+    // Dependensi yang sengaja dilepas: cobaLangkah (fungsi biasa, identitasnya
+    // berubah tiap render); keadaan yang menggerbangi penjatuhan bidak sudah
+    // tercantum di daftar ini.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [masalah, komputer, selesai, fen, sisa, terpilih, sasaran]
   );
