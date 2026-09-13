@@ -63,3 +63,16 @@ duplikat, dan nama kategori ada di `DAFTAR_KATEGORI`.
 
 Label kategori, tombol (Mulai, Periksa, Lanjut), dan teks antarmuka lain berada
 di berkas terjemahan (`id/quiz.js` & `en/quiz.js`), bukan di `daftar.js`.
+
+## Papan peringkat
+
+Peringkat Kuis bersifat **lokal**: hasil ditulis ke `localStorage` peramban
+(kunci `blunderskuad.quiz.peringkat`), bukan ke server, dan hanya menampilkan
+10 nama terbaik dengan nilai terbaik per nama. Tidak ada akun maupun
+verifikasi skor — namanya boleh diketik bebas. Ini memang disengaja: Kuis
+adalah latihan santai, tanpa papan peringkat daring.
+
+Bedakan dengan **Rush Teka-teki** yang punya rekor daring lewat `/api/rekor-rush`
+dengan segel anti-curang. Kalau nanti Kuis ingin punya papan peringkat daring,
+kerjakan sebagai fitur terpisah dengan endpoint sendiri, bukan dengan mengubah
+penyimpanan lokal ini.
