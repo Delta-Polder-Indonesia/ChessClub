@@ -17,6 +17,7 @@ import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
 import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
+import { coba } from "../../lib/utils.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -161,47 +162,44 @@ function faktaDariKoordinat(fen, from, to, promo) {
 }
 
 function bacaTerpecahkan() {
-  try {
-    const simpan = JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]");
-    return new Set(Array.isArray(simpan) ? simpan : []);
-  } catch {
-    return new Set();
-  }
+  const simpan = coba(
+    () => JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]"),
+    "baca daftar teka-teki terpecahkan"
+  );
+  return new Set(Array.isArray(simpan) ? simpan : []);
 }
 
 function bacaPosisi() {
-  try {
-    const n = Number(localStorage.getItem(KUNCI_POSISI));
-    return Number.isInteger(n) && n >= 1 ? n : null;
-  } catch {
-    return null;
-  }
+  const n = Number(
+    coba(() => localStorage.getItem(KUNCI_POSISI), "baca posisi terakhir")
+  );
+  return Number.isInteger(n) && n >= 1 ? n : null;
 }
 
 function bacaSetBidak() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_SET_BIDAK);
-    if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
-  } catch {}
+  const simpan = coba(
+    () => localStorage.getItem(KUNCI_SET_BIDAK),
+    "baca set bidak"
+  );
+  if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
   return "merida";
 }
 
 function bacaWarnaPapan() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_WARNA_PAPAN);
-    if (simpan && PILIHAN_WARNA_PAPAN.some(([nilai]) => nilai === simpan)) {
-      return simpan;
-    }
-  } catch {}
+  const simpan = coba(
+    () => localStorage.getItem(KUNCI_WARNA_PAPAN),
+    "baca warna papan"
+  );
+  if (simpan && PILIHAN_WARNA_PAPAN.some(([nilai]) => nilai === simpan)) {
+    return simpan;
+  }
   return "green";
 }
 
 function bacaOtomatis() {
-  try {
-    return localStorage.getItem(KUNCI_OTOMATIS) === "1";
-  } catch {
-    return false;
-  }
+  return (
+    coba(() => localStorage.getItem(KUNCI_OTOMATIS), "baca mode otomatis") === "1"
+  );
 }
 
 function KerangkaTekaTeki() {
@@ -441,9 +439,10 @@ export default function TekaTeki() {
   const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
   const simpanPosisi = useCallback((id) => {
-    try {
-      localStorage.setItem(KUNCI_POSISI, String(id));
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_POSISI, String(id)),
+      "simpan posisi terakhir"
+    );
     setPosisiTersimpan(id);
   }, []);
 
@@ -555,21 +554,24 @@ export default function TekaTeki() {
   );
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_SET_BIDAK, setBidak);
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_SET_BIDAK, setBidak),
+      "simpan set bidak"
+    );
   }, [setBidak]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan);
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_WARNA_PAPAN, warnaPapan),
+      "simpan warna papan"
+    );
   }, [warnaPapan]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0");
-    } catch {}
+    coba(
+      () => localStorage.setItem(KUNCI_OTOMATIS, otomatis ? "1" : "0"),
+      "simpan mode otomatis"
+    );
   }, [otomatis]);
 
   const terapkanSoal = useCallback((m) => {
@@ -1068,9 +1070,10 @@ export default function TekaTeki() {
       if (lama.has(id)) return lama;
       const baru = new Set(lama);
       baru.add(id);
-      try {
-        localStorage.setItem(KUNCI_SELESAI, JSON.stringify([...baru]));
-      } catch {}
+      coba(
+        () => localStorage.setItem(KUNCI_SELESAI, JSON.stringify([...baru])),
+        "simpan daftar teka-teki terpecahkan"
+      );
       return baru;
     });
   }
