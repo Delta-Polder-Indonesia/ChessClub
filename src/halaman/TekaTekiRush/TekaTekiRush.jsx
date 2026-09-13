@@ -661,7 +661,6 @@ export default function TekaTekiRush() {
       transisi,
       sisa,
       fen,
-      promo,
       mainkanLangkah,
       gagalSoal,
       muatSoalBerikut,
