@@ -38,6 +38,9 @@ export default function EbookTerbit({ onTerbit, sibuk, kodeBaru, onTutupKodeBaru
   }
 
   async function lanjut() {
+    // Sorot input panggilan bila kosong — sebelumnya `salahPanggilan` hanya
+    // pernah di-set false sehingga border merah tidak pernah tampil.
+    setSalahPanggilan(!panggilan.trim());
     const hasil = await onTerbit(panggilan, catatan);
     setHasilTerbit(hasil);
   }

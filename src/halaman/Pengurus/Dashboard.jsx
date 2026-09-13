@@ -20,6 +20,7 @@ import Sidebar from "./Sidebar.jsx";
 import DropdownNotifikasi from "./DropdownNotifikasi.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
+import { KotakGalatMuat } from "./ui.jsx";
 
 /* ========================================================
    HALAMAN UTAMA: Dashboard
@@ -57,6 +58,18 @@ export default function Dashboard() {
   const bukaTab = useCallback((kunciTab, filter = "semua") => {
     if (kunciTab === "larangan") setFilterLarangan(filter);
     if (kunciTab === "anggota") setFilterAnggota(filter);
+    setTab(kunciTab);
+  }, []);
+
+  /**
+   * Klik langsung dari Sidebar selalu membuka panel dengan filter "semua".
+   * Tanpa ini, filterAnggota/filterLarangan bekas bukaTab (mis. dari banner
+   * dashboard "terblokir"/"otomatis") menetap di state dan ikut terbawa saat
+   * panel re-mount lewat sidebar.
+   */
+  const pilihTabSidebar = useCallback((kunciTab) => {
+    if (kunciTab === "anggota") setFilterAnggota("semua");
+    if (kunciTab === "larangan") setFilterLarangan("semua");
     setTab(kunciTab);
   }, []);
 
@@ -243,7 +256,7 @@ export default function Dashboard() {
       {/* ── Halaman Pengaturan (Full Layar) — hanya Master ── */}
       {tabPengaturan ? (
         isMaster ? (
-          <Pengaturan onKembali={() => setTabPengaturan(false)} beriTahu={beriTahu} />
+          <Pengaturan onKembali={() => setTabPengaturan(false)} beriTahu={beriTahu} kabar={kabar} />
         ) : (
           <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-6 text-center">
             <div className="rounded-lg border border-red-200 bg-white p-8 max-w-md">
@@ -324,7 +337,7 @@ export default function Dashboard() {
 
       {/* ── Body ── */}
       <div className="flex flex-1 min-h-0">
-        <Sidebar tab={tab} setTab={setTab} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} />
+        <Sidebar tab={tab} setTab={pilihTabSidebar} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} />
 
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
           {kabar && (
@@ -356,8 +369,29 @@ export default function Dashboard() {
             )
           )}
 
-          {tab === "anggota" && <PanelAnggota anggota={anggota} muatUlang={muatUlang} beriTahu={beriTahu} filterAwal={filterAnggota} />}
-          {tab === "larangan" && <PanelLarangan hitam={hitam} muatUlang={muatUlang} beriTahu={beriTahu} filterAwal={filterLarangan} />}
+          {/* galatMuat: kegagalan muatUlang juga berdampak ke tab Anggota &
+              Larangan (datanya dari state bersama) — tampilkan kotak galat
+              permanen dengan tombol coba lagi, bukan tabel kosong. */}
+          {tab === "anggota" && (
+            galatMuat && !memuat && !anggota.length ? (
+              <KotakGalatMuat
+                pesan="Daftar anggota gagal dimuat. Periksa koneksi lalu coba lagi."
+                onCobaLagi={muatUlang}
+              />
+            ) : (
+              <PanelAnggota anggota={anggota} muatUlang={muatUlang} beriTahu={beriTahu} filterAwal={filterAnggota} />
+            )
+          )}
+          {tab === "larangan" && (
+            galatMuat && !memuat && !hitam.length ? (
+              <KotakGalatMuat
+                pesan="Daftar larangan gagal dimuat. Periksa koneksi lalu coba lagi."
+                onCobaLagi={muatUlang}
+              />
+            ) : (
+              <PanelLarangan hitam={hitam} muatUlang={muatUlang} beriTahu={beriTahu} filterAwal={filterLarangan} />
+            )
+          )}
           {tab === "pesan" && <PanelPesan beriTahu={beriTahu} muatUlang={onPesanBerubah} pesanTerpilihId={bukaPesanId} onPesanTerbuka={() => setBukaPesanId(null)} />}
           {tab === "berita" && <PanelBerita beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}
           {tab === "pengumuman" && <PanelPengumuman beriTahu={beriTahu} muatUlang={segarkanRingkasan} />}

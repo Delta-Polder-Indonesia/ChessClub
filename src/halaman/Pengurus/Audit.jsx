@@ -19,9 +19,18 @@ const BULAN = [
 
 function unduhCsv(baris) {
   const kepala = ["timestamp", "action", "username", "ip", "status", "resourceId", "reason"];
+  // Nilai per kolom dengan fallback yang RELEVAN untuk kolom itu saja.
+  // (Sebelumnya semua kolom memakai rantai `|| e.waktu || e.peristiwa ||
+  // e.pengguna` sehingga kolom kosong terisi timestamp — CSV rusak.)
+  const nilai = (e, k) => {
+    if (k === "timestamp") return e.timestamp || e.waktu || "";
+    if (k === "action") return e.action || e.peristiwa || "";
+    if (k === "username") return e.username || e.pengguna || "";
+    return e[k] ?? "";
+  };
   const isi = baris.map((e) =>
     kepala
-      .map((k) => `"${String(e[k] || e.waktu || e.peristiwa || e.pengguna || "").replace(/"/g, '""')}"`)
+      .map((k) => `"${String(nilai(e, k)).replace(/"/g, '""')}"`)
       .join(",")
   );
   const blob = new Blob([[kepala.join(","), ...isi].join("\n")], { type: "text/csv;charset=utf-8" });
@@ -30,7 +39,9 @@ function unduhCsv(baris) {
   a.href = url;
   a.download = `jejak-audit-${new Date().toISOString().slice(0, 10)}.csv`;
   a.click();
-  URL.revokeObjectURL(url);
+  // Tunda pencabutan URL — revoke sinkron tepat setelah click() bisa
+  // membatalkan unduhan di sebagian browser (mis. Firefox).
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
 
 export default function PanelAudit({ beriTahu }) {
@@ -39,6 +50,11 @@ export default function PanelAudit({ beriTahu }) {
   const [galat, setGalat] = useState(false);
   const [aksi, setAksi] = useState("");
   const [username, setUsername] = useState("");
+  // Nilai filter yang BENAR-BENAR dikirim ke server — hanya berubah saat
+  // tombol "Saring" ditekan (atau Enter). Sebelumnya input `aksi`/`username`
+  // menjadi dependensi useCallback+useEffect sehingga setiap ketikan
+  // menembak GET /audit (boros + berisiko kena rate-limit 429).
+  const [filterKirim, setFilterKirim] = useState({ aksi: "", username: "" });
   const [hari, setHari] = useState("");
   const [bulan, setBulan] = useState("");
 
@@ -47,8 +63,8 @@ export default function PanelAudit({ beriTahu }) {
     setGalat(false);
     try {
       const q = new URLSearchParams();
-      if (aksi.trim()) q.set("aksi", aksi.trim());
-      if (username.trim()) q.set("username", username.trim());
+      if (filterKirim.aksi) q.set("aksi", filterKirim.aksi);
+      if (filterKirim.username) q.set("username", filterKirim.username);
       q.set("limit", "300");
       const jalur = `/audit?${q.toString()}`;
       const isi = await apiPengurus(jalur);
@@ -59,11 +75,19 @@ export default function PanelAudit({ beriTahu }) {
     } finally {
       setMemuat(false);
     }
-  }, [aksi, username, beriTahu]);
+  }, [filterKirim, beriTahu]);
 
   useEffect(() => {
     muat();
   }, [muat]);
+
+  const terapkanFilter = (e) => {
+    e?.preventDefault?.();
+    const berikutnya = { aksi: aksi.trim(), username: username.trim() };
+    setFilterKirim((s) =>
+      s.aksi === berikutnya.aksi && s.username === berikutnya.username ? s : berikutnya
+    );
+  };
 
   const tampil = useMemo(() => {
     return data.filter((e) => {
@@ -79,7 +103,7 @@ export default function PanelAudit({ beriTahu }) {
 
   return (
     <section>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
+      <form onSubmit={terapkanFilter} className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
         <label className="flex items-center gap-2 text-sm text-slate-700">
           Aksi:
           <input
@@ -129,8 +153,7 @@ export default function PanelAudit({ beriTahu }) {
           </select>
         </label>
         <button
-          type="button"
-          onClick={muat}
+          type="submit"
           className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white"
         >
           Saring
@@ -143,7 +166,7 @@ export default function PanelAudit({ beriTahu }) {
         >
           Unduh CSV
         </button>
-      </div>
+      </form>
       {memuat ? (
         <p className="text-sm text-slate-500">Memuat jejak audit…</p>
       ) : galat ? (

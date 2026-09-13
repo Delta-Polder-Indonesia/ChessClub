@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { Tombol, Bidang, Modal, MenuAksi, Sheet } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, Sheet, KotakGalatMuat } from "./ui.jsx";
 import {
   Table,
   TableHeader,
@@ -120,6 +120,7 @@ export default function PanelJuara({ beriTahu }) {
   const [gagal, setGagal] = useState(false);
 
   const muat = useCallback(async () => {
+    setGagal(false);
     try {
       const data = await apiPengurus("/turnamen");
       // Saringan disamakan persis dengan tabel "Hasil Turnamen" publik.
@@ -185,7 +186,7 @@ export default function PanelJuara({ beriTahu }) {
     );
     const kategori = cocokResmi ? cocokResmi[0] : mentah;
     if (!form.nama.trim()) return;
-    if (!sheet.id && !kategori) {
+    if (!kategori) {
       beriTahu("Tulis dulu nama kategori pada kolom manual.", "galat");
       return;
     }
@@ -196,6 +197,9 @@ export default function PanelJuara({ beriTahu }) {
           metode: "POST",
           bodi: {
             nama: form.nama.trim(),
+            // Kategori ikut dikirim — dulu perubahan kategori di sheet ubah
+            // hilang diam-diam karena tidak pernah disertakan di bodi.
+            jenis: kategori,
             juara: form.juara.trim(),
             mulai: form.mulai,
             selesai: form.selesai,
@@ -249,9 +253,10 @@ export default function PanelJuara({ beriTahu }) {
       <h2 className="text-base font-bold text-slate-900">Juara Turnamen</h2>
 
       {gagal ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-          Data juara sedang tidak dapat dimuat. Silakan coba beberapa saat lagi.
-        </p>
+        <KotakGalatMuat
+          pesan="Data juara gagal dimuat. Periksa koneksi lalu coba lagi."
+          onCobaLagi={muat}
+        />
       ) : daftar === null ? (
         <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
           Memuat…

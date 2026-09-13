@@ -24,6 +24,12 @@ export default function PanelAnggota({
   const [filterStatus, setFilterStatus] = useState(filterAwal);
   const [cari, setCari] = useState("");
 
+  // Sinkronkan filter saat Dashboard mengubah filterAwal selagi panel
+  // ter-mount (mis. klik sidebar mereset filter ke "semua").
+  useEffect(() => {
+    setFilterStatus(filterAwal);
+  }, [filterAwal]);
+
   const klub = String(anggota.find((a) => a.klubChess)?.klubChess || "")
     .replace(/-/g, " ")
     .toUpperCase();
@@ -88,31 +94,27 @@ export default function PanelAnggota({
       await muatUlang();
     });
 
-  /* Klasifikasi anggota */
+  /* Klasifikasi anggota — satu predikat "kena ban" dipakai konsisten oleh
+     semua filter agar akun yang sama tidak muncul di dua kategori. */
+  const kenaBan = (a) =>
+    Boolean(
+      a.diblokirKomunitas ||
+      a.alasanStatus === "fair_play_violations" ||
+      (a.statusChess && a.statusChess.includes("closed"))
+    );
+
   const anggotaTerblokir = useMemo(
-    () =>
-      anggota.filter(
-        (a) =>
-          a.diblokirKomunitas ||
-          a.alasanStatus === "fair_play_violations" ||
-          (a.statusChess && a.statusChess.includes("closed"))
-      ),
+    () => anggota.filter(kenaBan),
     [anggota]
   );
 
   const anggotaTerverifikasi = useMemo(
-    () => anggota.filter((a) => a.terverifikasi && !a.diblokirKomunitas),
+    () => anggota.filter((a) => a.terverifikasi && !kenaBan(a)),
     [anggota]
   );
 
   const anggotaAktif = useMemo(
-    () =>
-      anggota.filter(
-        (a) =>
-          !a.diblokirKomunitas &&
-          a.alasanStatus !== "fair_play_violations" &&
-          !(a.statusChess && a.statusChess.includes("closed"))
-      ),
+    () => anggota.filter((a) => !kenaBan(a)),
     [anggota]
   );
 
@@ -252,10 +254,7 @@ export default function PanelAnggota({
             </TableHeader>
             <TableBody>
               {anggotaTersaring.map((a, index) => {
-                const kenaBan =
-                  a.diblokirKomunitas ||
-                  a.alasanStatus === "fair_play_violations" ||
-                  (a.statusChess && a.statusChess.includes("closed"));
+                const kenaBanBaris = kenaBan(a);
 
                 return (
                   <TableRow key={a.username}>
@@ -272,7 +271,7 @@ export default function PanelAnggota({
                             >
                               @{a.username}
                             </a>
-                            {kenaBan && <LencanaBan />}
+                            {kenaBanBaris && <LencanaBan />}
                           </div>
                           <p className="text-sm text-slate-500 truncate">
                             {a.nama || a.panggilan || "—"}
@@ -290,7 +289,7 @@ export default function PanelAnggota({
                     </TableCell>
                     <TableCell>{a.kontrol || "—"}</TableCell>
                     <TableCell>
-                      {kenaBan ? (
+                      {kenaBanBaris ? (
                         <div>
                           <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-red-700">
                             {a.alasanStatus === "fair_play_violations" ? "Fair Play" : "Terblokir"}
@@ -318,7 +317,7 @@ export default function PanelAnggota({
                             onClick: () => lihatKontak(a.username),
                             disabled: sibuk === `kontak-${a.username}`,
                           },
-                          kenaBan
+                          kenaBanBaris
                             ? {
                                 label: "Dilarang",
                                 Ikon: Ban,

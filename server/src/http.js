@@ -355,15 +355,44 @@ export function samaAman(a, b) {
   return crypto.timingSafeEqual(ha, hb);
 }
 
+/**
+ * Hash bcrypt (prefiks "$2") adalah format PENYIMPANAN password, bukan token
+ * login. Menerimanya sebagai X-Token-Admin berarti hash yang bocor (mis. dari
+ * cadangan admins.json atau log) bisa langsung dipakai sebagai kredensial,
+ * jadi nilai berbentuk hash selalu disaring dari daftar token sah.
+ */
+function hashBcrypt(nilai) {
+  return String(nilai || "").startsWith("$2");
+}
+
+/**
+ * Apakah ADA kredensial pengurus yang dikonfigurasi (token lama, password
+ * env, atau admins dari file) — terlepas dari bentuk penyimpanannya.
+ *
+ * Diperlukan karena hash bcrypt tidak lagi dihitung sebagai token sah
+ * (lihat hashBcrypt): tanpa pemeriksaan ini, server pengembangan yang
+ * password env-nya sudah di-hash di memori akan dianggap "tanpa kredensial"
+ * dan membuka jalur loopback tanpa token.
+ */
+function adaKredensialDikonfigurasi() {
+  return Boolean(
+    konfigurasi.tokenAdmin ||
+    konfigurasi.admin?.password ||
+    (Array.isArray(konfigurasi.admins) && konfigurasi.admins.some((a) => a?.password))
+  );
+}
+
 /** Daftar token yang dianggap sah untuk endpoint pengurus. */
 function daftarTokenSah() {
   const daftar = [];
   if (konfigurasi.tokenAdmin) daftar.push(konfigurasi.tokenAdmin);
-  if (konfigurasi.admin?.password) daftar.push(konfigurasi.admin.password);
-  // semua admin dari file
+  if (konfigurasi.admin?.password && !hashBcrypt(konfigurasi.admin.password)) {
+    daftar.push(konfigurasi.admin.password);
+  }
+  // semua admin dari file (password ter-hash bcrypt bukan token — lihat hashBcrypt)
   if (Array.isArray(konfigurasi.admins)) {
     for (const a of konfigurasi.admins) {
-      if (a?.password) daftar.push(a.password);
+      if (a?.password && !hashBcrypt(a.password)) daftar.push(a.password);
     }
   }
   return [...new Set(daftar)];
@@ -399,24 +428,34 @@ export function dapatkanAdminDariRequest(req) {
 
   // 3) cek di daftar admins (dari file)
   if (Array.isArray(konfigurasi.admins)) {
-    for (const a of konfigurasi.admins) {
-      if (!a?.password) continue;
-      // jika username cocok, cek passwordnya spesifik
-      if (username && a.username === username) {
-        if (samaAman(token, a.password)) return a;
+    // Hash bcrypt bukan token login yang sah (lihat hashBcrypt) — hanya
+    // password plaintext lama yang dibandingkan di jalur legacy ini.
+    const kandidat = konfigurasi.admins.filter(
+      (a) => a?.password && !hashBcrypt(a.password)
+    );
+    if (username) {
+      // Header X-Admin-User diisi: token HANYA boleh cocok dengan password
+      // admin ber-username itu. Pencocokan lintas username (token milik
+      // admin lain diterima lalu identitas diganti) tidak diizinkan —
+      // mencegah login lateral memakai kredensial admin lain.
+      for (const a of kandidat) {
+        if (a.username === username && samaAman(token, a.password)) return a;
       }
-    }
-    // jika tidak ada username atau username tidak cocok, cek token cocok dengan salah satu admin
-    for (const a of konfigurasi.admins) {
-      if (a?.password && samaAman(token, a.password)) {
-        if (!username || a.username === username) return a;
-        return a;
+    } else {
+      // Tanpa header identitas: token (legacy, non-JWT) yang cocok dengan
+      // salah satu admin plaintext menetapkan identitas mengikuti pemiliknya.
+      for (const a of kandidat) {
+        if (samaAman(token, a.password)) return a;
       }
     }
   }
 
-  // 4) cek konfigurasi.admin tunggal
-  if (konfigurasi.admin?.password && samaAman(token, konfigurasi.admin.password)) {
+  // 4) cek konfigurasi.admin tunggal (hash bcrypt tidak pernah jadi token)
+  if (
+    konfigurasi.admin?.password &&
+    !hashBcrypt(konfigurasi.admin.password) &&
+    samaAman(token, konfigurasi.admin.password)
+  ) {
     const role = konfigurasi.admins?.find((a) => a.username === konfigurasi.admin.username)?.role || "master";
     return { username: konfigurasi.admin.username, password: konfigurasi.admin.password, role };
   }
@@ -449,8 +488,7 @@ export function pastikanAdmin(req) {
   const diberikan = dariHeader || dariBearer;
 
   if (!diberikan) {
-    const tokenSah = daftarTokenSah();
-    if (!tokenSah.length) {
+    if (!adaKredensialDikonfigurasi()) {
       if (konfigurasi.produksi) {
         const e = new Error("Endpoint pengurus dinonaktifkan: KCI_TOKEN_ADMIN / KCI_ADMIN_PASSWORD belum diatur.");
         e.status = 503;

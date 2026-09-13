@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
-import { Tombol } from "./ui.jsx";
+import { Tombol, Modal } from "./ui.jsx";
 import {
   infoAdmin,
   gantiPasswordAdmin,
@@ -56,6 +56,8 @@ function PanelKelolaAdmin({ beriTahu }) {
   const [sibuk, setSibuk] = useState(false);
   const [editTarget, setEditTarget] = useState(null); // username yang sedang diedit
   const [editData, setEditData] = useState({ password: "", role: "pengurus" });
+  const [targetHapus, setTargetHapus] = useState(null); // username yang akan dihapus
+  const [lihatSandi, setLihatSandi] = useState(false);
 
   const muat = async () => {
     setLoading(true);
@@ -81,6 +83,15 @@ function PanelKelolaAdmin({ beriTahu }) {
       beriTahu?.("Username dan password wajib diisi.", "galat");
       return;
     }
+    // Kebijakan server (admin-file.js): minimal 12 karakter, bukan admin123.
+    if (form.password.length < 12) {
+      beriTahu?.("Password minimal 12 karakter.", "galat");
+      return;
+    }
+    if (form.password === "admin123") {
+      beriTahu?.("Password bawaan admin123 tidak diizinkan.", "galat");
+      return;
+    }
     setSibuk(true);
     try {
       const res = await tambahAdminBaru(form);
@@ -94,18 +105,28 @@ function PanelKelolaAdmin({ beriTahu }) {
     }
   };
 
-  const hapus = async (username) => {
-    if (!confirm(`Hapus admin "${username}"?`)) return;
+  /** Dipanggil dari Modal konfirmasi — bukan window.confirm (pola ui.jsx). */
+  const eksekusiHapus = async () => {
+    const username = targetHapus;
+    setTargetHapus(null);
+    if (!username) return;
+    setSibuk(true);
     try {
       const res = await hapusAdmin(username);
       beriTahu?.(res.pesan || "Admin dihapus.", "sukses");
       await muat();
     } catch (err) {
       beriTahu?.(err.message || "Gagal hapus admin.", "galat");
+    } finally {
+      setSibuk(false);
     }
   };
 
   const simpanEdit = async (username) => {
+    if (editData.password && editData.password.length < 12) {
+      beriTahu?.("Password minimal 12 karakter.", "galat");
+      return;
+    }
     try {
       const payload = { username };
       if (editData.password) payload.password = editData.password;
@@ -183,14 +204,22 @@ function PanelKelolaAdmin({ beriTahu }) {
           <label className="flex items-center gap-2 text-sm text-slate-700">
             Password:
             <input
-              type="text"
+              type={lihatSandi ? "text" : "password"}
               value={form.password}
               onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-              placeholder="minimal 6 karakter"
+              placeholder="minimal 12 karakter"
+              minLength={12}
               className="w-44 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
               required
             />
           </label>
+          <button
+            type="button"
+            onClick={() => setLihatSandi((v) => !v)}
+            className="text-xs text-slate-600 hover:text-slate-900"
+          >
+            {lihatSandi ? "Sembunyikan" : "Lihat"} password
+          </button>
           <label className="flex items-center gap-2 text-sm text-slate-700">
             Role:
             <select
@@ -212,6 +241,7 @@ function PanelKelolaAdmin({ beriTahu }) {
         </div>
         <p className="text-[11px] leading-5 text-slate-500">
           Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
+          Password minimal 12 karakter (kebijakan server) dan tidak boleh memakai password bawaan.
         </p>
       </form>
 
@@ -253,7 +283,7 @@ function PanelKelolaAdmin({ beriTahu }) {
                         anak="Hapus"
                         kecil
                         jenis="bahaya"
-                        onClick={() => hapus(a.username)}
+                        onClick={() => setTargetHapus(a.username)}
                         disabled={admins.length <= 1}
                       />
                     </div>
@@ -261,10 +291,10 @@ function PanelKelolaAdmin({ beriTahu }) {
                       <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-left space-y-2">
                         <div className="text-xs font-bold text-slate-700">Edit {a.username}</div>
                         <input
-                          type="text"
+                          type={lihatSandi ? "text" : "password"}
                           value={editData.password}
                           onChange={(e) => setEditData((d) => ({ ...d, password: e.target.value }))}
-                          placeholder="Password baru (kosongkan jika tidak ganti)"
+                          placeholder="Password baru min. 12 karakter (kosongkan jika tidak ganti)"
                           className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
                         />
                         <select
@@ -295,6 +325,21 @@ function PanelKelolaAdmin({ beriTahu }) {
           </table>
         </div>
       </div>
+
+      {/* Konfirmasi hapus admin — pola Modal bersama (pengganti window.confirm). */}
+      <Modal
+        terbuka={Boolean(targetHapus)}
+        judul={`Hapus admin @${targetHapus || ""}?`}
+        labelKonfirmasi="Hapus"
+        jenisKonfirmasi="bahaya"
+        sibuk={sibuk}
+        onBatal={() => setTargetHapus(null)}
+        onKonfirmasi={eksekusiHapus}
+      >
+        Admin <strong>@{targetHapus}</strong> tidak akan bisa masuk lagi ke
+        dashboard. Tindakan ini dicatat di jejak audit dan tidak dapat
+        dibatalkan.
+      </Modal>
     </div>
   );
 }
@@ -325,8 +370,12 @@ function PanelAkun({ beriTahu }) {
       beriTahu?.("Konfirmasi password tidak cocok.", "galat");
       return;
     }
-    if (passBaru.length < 6) {
-      beriTahu?.("Password baru minimal 6 karakter.", "galat");
+    if (passBaru.length < 12) {
+      beriTahu?.("Password baru minimal 12 karakter.", "galat");
+      return;
+    }
+    if (passBaru === "admin123") {
+      beriTahu?.("Password bawaan admin123 tidak diizinkan.", "galat");
       return;
     }
     setSibuk(true);
@@ -425,7 +474,7 @@ function PanelAkun({ beriTahu }) {
               value={passBaru}
               onChange={(e) => setPassBaru(e.target.value)}
               className="w-64 border-0 border-b border-slate-300 bg-transparent px-1 py-1 text-sm outline-none focus:border-primary"
-              placeholder="minimal 6 karakter"
+              placeholder="minimal 12 karakter"
               required
             />
           </label>
@@ -464,7 +513,7 @@ function PanelAkun({ beriTahu }) {
   );
 }
 
-export default function Pengaturan({ onKembali, beriTahu }) {
+export default function Pengaturan({ onKembali, beriTahu, kabar }) {
   const [bagian, setBagian] = useState("kelola-admin");
   const peran = peranPengurus.ambil();
   const isMaster = (peran || "").toLowerCase() === "master";
@@ -543,6 +592,16 @@ export default function Pengaturan({ onKembali, beriTahu }) {
         </aside>
 
         <main className="flex-1 p-6 overflow-y-auto min-w-0">
+          {/* Toast dashboard ikut ditampilkan di sini — sebelumnya semua
+              umpan balik beriTahu (sukses/gagal) tidak pernah terlihat
+              karena penampil kabar hanya dirender di tata letak dashboard. */}
+          {kabar && (
+            <p className={`mb-4 rounded-md border bg-white px-4 py-2.5 text-sm ${
+              kabar.jenis === "galat" ? "border-red-300 text-red-800"
+              : kabar.jenis === "peringatan" ? "border-amber-300 text-amber-900"
+              : "border-emerald-300 text-emerald-800"
+            }`}>{kabar.teks}</p>
+          )}
           {bagian === "kelola-admin" && <PanelKelolaAdmin beriTahu={beriTahu} />}
           {bagian === "riwayat-masuk" && <PanelRiwayatMasuk beriTahu={beriTahu} />}
           {bagian === "jejak-audit" && <PanelAudit beriTahu={beriTahu} />}

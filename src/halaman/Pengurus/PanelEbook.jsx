@@ -25,6 +25,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
   const [sibuk, setSibuk] = useState(false);
   const [kodeBaru, setKodeBaru] = useState(null);
   const [targetHapus, setTargetHapus] = useState(null);
+  const [targetTolak, setTargetTolak] = useState(null);
   const [kini, setKini] = useState(() => Date.now());
 
   const muat = useCallback(async () => {
@@ -119,7 +120,11 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
     }
   }
 
-  async function tolak(m) {
+  /** Dipanggil dari Modal konfirmasi — penolakan tidak lagi sekali klik. */
+  async function eksekusiTolak() {
+    const m = targetTolak;
+    setTargetTolak(null);
+    if (!m) return;
     setSibuk(true);
     try {
       await apiPengurus(`/ebook/minta/${m.id}/tolak`, { metode: "POST" });
@@ -206,7 +211,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
           onCariMinta={setCariMinta}
           sibuk={sibuk}
           onTerbitkan={setujui}
-          onTolak={tolak}
+          onTolak={setTargetTolak}
         />
       ) : halamanAktif === "kode" ? (
         <EbookKode
@@ -238,6 +243,27 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
         sibuk={sibuk}
         onKonfirmasi={hapus}
         onBatal={() => setTargetHapus(null)}
+      />
+
+      {/* Konfirmasi penolakan permintaan — paritas dengan aksi destruktif lain. */}
+      <Modal
+        terbuka={!!targetTolak}
+        judul="Tolak permintaan kode?"
+        anak={
+          targetTolak && (
+            <p>
+              Permintaan dari <strong>{targetTolak.nama}</strong>
+              {targetTolak.akunChess ? ` (@${targetTolak.akunChess})` : ""} akan
+              ditandai ditolak. Pengaju tetap bisa meminta ulang lewat popup
+              unduh bila memang membutuhkan.
+            </p>
+          )
+        }
+        labelKonfirmasi="Tolak"
+        jenisKonfirmasi="bahaya"
+        sibuk={sibuk}
+        onKonfirmasi={eksekusiTolak}
+        onBatal={() => setTargetTolak(null)}
       />
     </div>
   );
