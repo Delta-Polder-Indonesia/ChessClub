@@ -18,6 +18,7 @@ import KartuKomentator, {
 } from "../../components/KartuKomentator.jsx";
 import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
 import { coba } from "../../lib/utils.js";
+import { parseLangkah, terapkan } from "../../lib/tekaTeki.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -119,14 +120,6 @@ const PETA_KELAS_SYZYGY = {
   unknown: "text-gray-400",
 };
 
-function parseLangkah(teks) {
-  return {
-    from: teks.slice(0, 2),
-    to: teks.slice(3, 5),
-    promo: teks.length > 5 ? teks[5] : null,
-  };
-}
-
 /** Urutan pilihan bidak promosi (menteri, benteng, gajah, kuda). */
 const PILIHAN_PROMOSI = ["q", "r", "b", "n"];
 const KUCI_NAMA_PROMOSI = {
@@ -135,17 +128,6 @@ const KUCI_NAMA_PROMOSI = {
   b: "tekaTeki.promosiGajah",
   n: "tekaTeki.promosiKuda",
 };
-
-function terapkan(fen, { from, to, promo }) {
-  const game = new Chess(fen);
-  const opsi = { from, to };
-  const bidak = game.get(from);
-  if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
-    opsi.promotion = promo || "q";
-  }
-  game.move(opsi);
-  return game;
-}
 
 /**
  * Fakta langkah (untuk komentator) dari koordinat asal/tujuan. Mengembalikan
