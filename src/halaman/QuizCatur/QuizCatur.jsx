@@ -184,17 +184,15 @@ export default function QuizCatur() {
     const nama = username.trim();
     if (!nama || nilaiLampau.length === 0) return;
     const masuk = { nama, benar: nilaiBenar, total: nilaiLampau.length };
+    // Cukup perbarui state: efek persistensi [peringkat] yang menulis ke
+    // localStorage. Menulis di dalam updater ini membuat penulisan ganda —
+    // dan di StrictMode updater dipanggil dua kali (efek samping di dalamnya).
     setPeringkat((sebelumnya) => {
       const ada = sebelumnya.find((p) => p.nama === nama);
       const gabung = ada
         ? sebelumnya.map((p) => (p.nama === nama && p.benar < masuk.benar ? masuk : p))
         : [...sebelumnya, masuk];
       gabung.sort((a, b) => b.benar - a.benar);
-      try {
-        localStorage.setItem(KUNCI_PERINGKAT, JSON.stringify(gabung));
-      } catch {
-        /* localStorage bisa full/blocked; abaikan */
-      }
       return gabung;
     });
   };
