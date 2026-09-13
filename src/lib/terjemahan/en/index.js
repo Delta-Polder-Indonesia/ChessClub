@@ -49,6 +49,8 @@ import {
   bukuPembukaan,
   pembacaPdf,
   unduhEbook,
+  ebookPanduan,
+  fiturEbook,
   analisaLanding,
 } from "./program.js";
 
@@ -132,6 +134,8 @@ export const EN = {
   bukuPembukaan,
   pembacaPdf,
   unduhEbook,
+  ebookPanduan,
+  fiturEbook,
   analisaLanding,
   turnamen,
   turnamenBulanan,

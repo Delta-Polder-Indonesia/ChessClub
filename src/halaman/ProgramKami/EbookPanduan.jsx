@@ -74,6 +74,7 @@ function IkonUnduh() {
  * hover/fokus di desktop dan lewat klik/ketuk di perangkat sentuh.
  */
 function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh }) {
+  const { t } = useI18n();
   return (
     <article
       id={buku.id}
@@ -88,7 +89,11 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
       className={`group block aspect-[2/3] w-full cursor-pointer rounded-lg focus:outline-none lg:max-h-[280px] ${
         disorot ? "ring-4 ring-[#0B2F9F]/60 ring-offset-2" : ""
       }`}
-      aria-label={`${buku.judul} — ${buku.tersedia ? "klik untuk membalik dan melihat aksi" : "segera hadir"}`}
+      aria-label={
+        buku.tersedia
+          ? t("ebookPanduan.ariaKartuAksi", { judul: buku.judul })
+          : t("ebookPanduan.ariaKartuSegera", { judul: buku.judul })
+      }
     >
       <div
         className={`relative h-full w-full rounded-lg transition-all duration-500 [transform-style:preserve-3d] group-hover:[transform:rotateY(180deg)] group-focus:[transform:rotateY(180deg)] ${
@@ -104,7 +109,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                   // Kisi 2 / 3 / 5 kolom → lebar kartu ± 48vw, 33vw, 20vw.
                   sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 48vw",
                 })}
-                alt={`Sampul ${buku.judul}`}
+                alt={t("ebookPanduan.sampulAlt", { judul: buku.judul })}
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover"
@@ -116,7 +121,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
             )}
             {!buku.tersedia && (
               <span className="absolute bottom-2 right-2 z-20 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
-                Segera hadir
+                {t("ebookPanduan.segeraHadir")}
               </span>
             )}
           </div>
@@ -143,7 +148,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                   }}
                   className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0B2F9F] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#0a2a8e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
                 >
-                  <IkonBaca /> Baca
+                  <IkonBaca /> {t("ebookPanduan.baca")}
                 </button>
                 <button
                   type="button"
@@ -153,12 +158,12 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                   }}
                   className="inline-flex items-center justify-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-slate-700 hover:border-slate-300 hover:text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
                 >
-                  <IkonUnduh /> Unduh
+                  <IkonUnduh /> {t("ebookPanduan.unduh")}
                 </button>
               </div>
             ) : (
               <span className="rounded border border-dashed border-slate-300 px-3 py-1.5 text-[11px] font-medium text-slate-400">
-                Belum tersedia
+                {t("ebookPanduan.belumTersedia")}
               </span>
             )}
           </div>
@@ -248,10 +253,10 @@ export default function EbookPanduan() {
 
   return (
     <HalamanIsi
-      title="E-Book & Panduan"
+      title={t("ebookPanduan.judul")}
       parent={t("nav.programKami")}
       parentPath="/program-kami"
-      description="Pusat literasi resmi komunitas: kumpulan e-book dan panduan catur dalam format PDF yang bisa dibaca langsung di browser atau diunduh."
+      description={t("ebookPanduan.deskripsi")}
     >
       <section
         id="ebook-panduan"
@@ -259,23 +264,17 @@ export default function EbookPanduan() {
       >
         <div className="relative w-full mx-auto max-w-[1280px] flex flex-col">
 <div className="prose-kci mb-10">
-            <h3>Tentang E-Book & Panduan</h3>
+            <h3>{t("ebookPanduan.tentangJudul")}</h3>
             <p>
-              Koleksi ini merupakan pusat literasi resmi komunitas yang menghimpun materi belajar catur secara
-              terstruktur, dari tingkat dasar hingga lanjutan: pengenalan papan dan bidak, gerakan setiap buah,
-              taktik dasar, strategi, hingga panduan pertandingan. Setiap materi disusun berjenjang agar dapat
-              dipelajari selangkah demi selangkah, baik oleh pemula yang baru mulai maupun pemain yang ingin
-              memperdalam pemahaman strateginya.
+              {t("ebookPanduan.tentangP1")}
             </p>
             <p>
-              Seluruh dokumen disediakan dalam format PDF sehingga dapat dibaca langsung di browser tanpa memerlukan
-              aplikasi tambahan, maupun diunduh untuk dibaca secara offline di perangkat apa pun. Penataan kategori
-              yang teratur membantu pengguna memilih materi yang sesuai dengan tingkat kemampuannya.
+              {t("ebookPanduan.tentangP2")}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-4">
             <div className="overflow-x-auto">
-              <div role="tablist" aria-label="Filter kategori e-book" className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
+              <div role="tablist" aria-label={t("ebookPanduan.filterAriaLabel")} className="w-max flex flex-nowrap items-center gap-1 bg-slate-200 rounded-full p-2">
                 {kategoriList.map((k) => {
                   const aktif = k === kategoriAktif;
                   return (
@@ -292,13 +291,13 @@ export default function EbookPanduan() {
                           : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-black transition-all duration-300 hover:bg-slate-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
                       }
                     >
-                      {k}
+                      {k === "Semua" ? t("ebookPanduan.semua") : k}
                     </button>
                   );
                 })}
               </div>
             </div>
-            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-500">{daftarTampil.length} dokumen</span>
+            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-500">{t("ebookPanduan.dokumenCount", { n: daftarTampil.length })}</span>
           </div>
     
           <div
@@ -332,13 +331,18 @@ export default function EbookPanduan() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="hidden sm:inline-flex rounded bg-[#F15642]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#F15642] ring-1 ring-[#F15642]/20">
-                      PDF
+                      {t("ebookPanduan.pdf")}
                     </span>
                     <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
                   </div>
                   <p className="mt-0.5 hidden text-[11px] text-slate-500 md:block">
-                    {pdfAktif.kategori} • {pdfAktif.ukuran} •{" "}
-                    {halamanPdf ? `${halamanPdf} halaman` : pdfAktif.halaman}
+                    {t("ebookPanduan.info", {
+                      kategori: pdfAktif.kategori,
+                      ukuran: pdfAktif.ukuran,
+                      halaman: halamanPdf
+                        ? t("ebookPanduan.halamanCount", { n: halamanPdf })
+                        : pdfAktif.halaman,
+                    })}
                   </p>
                 </div>
     
@@ -349,13 +353,13 @@ export default function EbookPanduan() {
                     className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     <IkonUnduh />
-                    <span className="hidden sm:inline">Unduh</span>
+                    <span className="hidden sm:inline">{t("ebookPanduan.unduh")}</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => setPdfAktif(null)}
                     className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    aria-label="Tutup"
+                    aria-label={t("ebookPanduan.tutup")}
                   >
                     <CloseIcon className="h-4 w-4" />
                   </button>
@@ -373,14 +377,14 @@ export default function EbookPanduan() {
                 </div>
                 <div className="mx-auto mt-3 flex w-full max-w-[1024px] flex-wrap items-center justify-between gap-2 text-[11px] text-white/70">
                   <span>
-                    Gunakan tombol panah ← → untuk berpindah halaman, atau{" "}
+                    {t("ebookPanduan.bantuan")}{" "}
                     <a href={urlEbook(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
-                      buka di tab baru
+                      {t("ebookPanduan.bukaTabBaru")}
                     </a>
                     .
                   </span>
                   <button type="button" onClick={() => setPdfAktif(null)} className="rounded bg-white/10 px-3 py-1 hover:bg-white/20">
-                    Tutup (Esc)
+                    {t("ebookPanduan.tutupEsc")}
                   </button>
                 </div>
               </div>

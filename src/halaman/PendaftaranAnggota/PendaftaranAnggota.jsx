@@ -5,6 +5,7 @@ import { ImageCard } from "../../components/ui/image-card.jsx";
 import {
   daftarDenganChessCom,
   normalisasiUsername,
+  normalisasiNama,
   hpValid,
   formatHp,
   kategoriUmur,
@@ -157,7 +158,7 @@ export default function PendaftaranAnggota() {
       case "username":
         return Boolean(normalisasiUsername(form.username));
       case "namaLengkap":
-        return form.namaLengkap.trim().split(/\s+/).length >= 2;
+        return normalisasiNama(form.namaLengkap).split(" ").filter(Boolean).length >= 2;
       case "panggilan":
         return Boolean(form.panggilan.trim());
       case "tanggalLahir":
@@ -173,7 +174,7 @@ export default function PendaftaranAnggota() {
           ? /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(form.email)
           : null;
       case "klub":
-        return Boolean(form.klub.trim());
+        return form.klub.trim() ? true : null;
       default:
         return null;
     }
@@ -183,7 +184,7 @@ export default function PendaftaranAnggota() {
     const g = {};
     if (!normalisasiUsername(form.username))
       g.username = t("pendaftaran.galatUsername");
-    if (form.namaLengkap.trim().split(/\s+/).length < 2)
+    if (normalisasiNama(form.namaLengkap).split(" ").filter(Boolean).length < 2)
       g.namaLengkap = t("pendaftaran.galatNama");
     if (!form.panggilan.trim()) g.panggilan = t("pendaftaran.galatPanggilan");
     if (!hpValid(form.hp)) g.hp = t("pendaftaran.galatHp");
