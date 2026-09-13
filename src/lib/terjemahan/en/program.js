@@ -156,6 +156,12 @@ export const bukuPembukaan = {
       "Ruy Lopez is named after Ruy López de Segura, a 16th-century Spanish priest who systematically studied this and other openings in a 150-page chess book, Libro del Axedrez, written in 1561. Lopez recommended 3.Bb5 as a superior move to 3.Bc4, and argued that Black should play 2...d6 (the Philidor Defense) to avoid it. Despite bearing his name, this particular opening appears in the Göttingen manuscript, which dates from around 1490. Ruy Lopez did not gain wide popularity until the mid-19th century, when Finnish-Russian theorist Carl Jaenisch published a detailed article on 1.e4 e5 in the December 1847 issue of Le Palamède, the world's first chess magazine. A condensed version appeared in the Chess Player's Chronicle in 1848, followed by additional articles in the same publication in 1849.",
     sejarahAyat2:
       "Ruy Lopez has long been regarded as the most important opening among the Open Games at master level. Nearly every player has used it at some point in their career, often with both colors. Because of Black's difficulty in achieving equality, the opening's common nickname is \"the Spanish Torture\".",
+    lanjutan: {
+      morphy: "Morphy Defense (Main)",
+      berlin: "Berlin Defense",
+      steinitz: "Steinitz Defense",
+      schliemann: "Schliemann Gambit",
+    },
   }
 
 /** States of the PDF reader (src/components/PembacaPdf.jsx). */

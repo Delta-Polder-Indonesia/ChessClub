@@ -6,6 +6,18 @@ import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANKS = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
+/**
+ * Kandidat langkah lanjutan Ruy Lopez; `note` adalah kunci kamus supaya
+ * catatannya ikut berganti bahasa. Daftar ini bukan penilaian langkah
+ * terbaik — hanya lanjutan yang lazim dibahas di buku pembukaan.
+ */
+const LANJUTAN_RUY_LOPEZ = [
+  { move: "a6", note: "bukuPembukaan.lanjutan.morphy" },
+  { move: "Nf6", note: "bukuPembukaan.lanjutan.berlin" },
+  { move: "d6", note: "bukuPembukaan.lanjutan.steinitz" },
+  { move: "f5", note: "bukuPembukaan.lanjutan.schliemann" },
+];
+
 /** Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5 */
 const OPENING_BOARD_PIECES = [
   ["r", "", "b", "q", "k", "b", "n", "r"],
@@ -279,12 +291,7 @@ export default function Pembukaan() {
                 </span>
                 
                 <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
-                  {[
-                    { move: "a6", note: "Morphy Defense (Utama)" },
-                    { move: "Nf6", note: "Berlin Defense" },
-                    { move: "d6", note: "Steinitz Defense" },
-                    { move: "f5", note: "Schliemann Gambit" },
-                  ].map((item) => (
+                  {LANJUTAN_RUY_LOPEZ.map((item) => (
                     <div
                       key={item.move}
                       className="flex items-center gap-2 border-b border-slate-300 py-1.5"
@@ -293,7 +300,7 @@ export default function Pembukaan() {
                         3... {item.move}
                       </span>
                       <span className="text-[10px] text-black pl-2">
-                        {item.note}
+                        {t(item.note)}
                       </span>
                     </div>
                   ))}
