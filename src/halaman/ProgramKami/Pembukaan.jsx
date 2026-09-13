@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Chess } from "chess.js";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -18,25 +19,41 @@ const LANJUTAN_RUY_LOPEZ = [
   { move: "f5", note: "bukuPembukaan.lanjutan.schliemann" },
 ];
 
-/** Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5 */
-const OPENING_BOARD_PIECES = [
-  ["r", "", "b", "q", "k", "b", "n", "r"],
-  ["p", "p", "p", "p", "", "p", "p", "p"],
-  ["", "", "n", "", "", "", "", ""],
-  ["", "B", "", "", "p", "", "", ""],
-  ["", "", "", "", "P", "", "", ""],
-  ["", "", "", "", "", "N", "", ""],
-  ["P", "P", "P", "P", "", "P", "P", "P"],
-  ["R", "N", "B", "Q", "K", "", "", "R"],
+/**
+ * Posisi Ruy Lopez: 1. e4 e5 2. Nf3 Nc6 3. Bb5. Papan mini di latar memakai
+ * dua variannya — satu bidak diangkat supaya 36 papan kecil tidak tampak
+ * seragam — sehingga posisinya disimpan sebagai FEN, bukan matriks salinan.
+ */
+const FEN_RUY_LOPEZ =
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3";
+const FEN_VARIAN = [
+  FEN_RUY_LOPEZ,
+  // tanpa pion e4
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/8/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3",
+  // tanpa kuda f3
+  "r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/8/PPPP1PPP/RNBQK2R b KQkq - 3 3",
 ];
+
+/** Matriks bidak (huruf besar = putih) dari sebuah FEN. */
+function matriksDariFen(fen) {
+  return new Chess(fen)
+    .board()
+    .map((baris) =>
+      baris.map((petak) =>
+        petak ? (petak.color === "w" ? petak.type.toUpperCase() : petak.type) : ""
+      )
+    );
+}
+
+/** Papan utama dan papan-papan mini, dihitung sekali saat modul dimuat. */
+const PAPAN_RUY_LOPEZ = matriksDariFen(FEN_RUY_LOPEZ);
+const PAPAN_VARIAN = FEN_VARIAN.map(matriksDariFen);
 
 /** Petak asal-tujuan langkah terakhir (Bf1-b5) untuk disorot. */
 const OPENING_HIGHLIGHT = new Set(["b5", "f1"]);
 
 function MiniOpeningBoard({ variant = 0 }) {
-  const pieces = OPENING_BOARD_PIECES.map((row) => row.slice());
-  if (variant % 3 === 1) pieces[4][4] = "";
-  if (variant % 3 === 2) pieces[5][5] = "";
+  const pieces = PAPAN_VARIAN[variant % 3];
 
   return (
     <div className="aspect-square w-full overflow-hidden border border-slate-300/60 bg-[#f0d9b5]">
@@ -94,7 +111,7 @@ function OpeningBookBoardComponent() {
             {RANKS.map((rank, rIdx) =>
               FILES.map((file, fIdx) => {
                 const squareName = `${file}${rank}`;
-                const piece = OPENING_BOARD_PIECES[rIdx][fIdx] || "";
+                const piece = PAPAN_RUY_LOPEZ[rIdx][fIdx] || "";
                 const highlighted = OPENING_HIGHLIGHT.has(squareName);
 
                 return (
