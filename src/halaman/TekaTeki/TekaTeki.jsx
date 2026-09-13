@@ -562,7 +562,12 @@ export default function TekaTeki() {
     );
   }, [otomatis]);
 
-  const terapkanSoal = useCallback((m) => {
+  /**
+   * Pasang satu soal ke papan. `pertahankanSelesai` dipakai mode review
+   * setelah cekmat: papan kembali ke posisi awal soal, tetapi status selesai
+   * beserta pesan "terpecahkan" dibiarkan supaya tombol maju tetap aktif.
+   */
+  const terapkanSoal = useCallback((m, { pertahankanSelesai = false } = {}) => {
     setFen(m.fen);
     setSisa(m.moves.split(";"));
     setJalurFen([m.fen]);
@@ -572,9 +577,11 @@ export default function TekaTeki() {
     setPetunjuk(null);
     setKesalahan(null);
     setLangkahAkhir(null);
-    setPesan(null);
+    if (!pertahankanSelesai) {
+      setPesan(null);
+      setSelesai(false);
+    }
     setKomputer(false);
-    setSelesai(false);
     setTanda({ panah: [], petak: {} });
     setSedangSeret(false);
     setPromosi(null);
@@ -835,26 +842,9 @@ export default function TekaTeki() {
    */
   function keAwalLangkah() {
     if (!masalah || komputer || promosi) return;
-    if (selesai) {
-      // Mode review setelah cekmat: reset papan tapi jangan hapus status selesai
-      setFen(masalah.fen);
-      setSisa(masalah.moves.split(";"));
-      setJalurFen([masalah.fen]);
-      setOrientasi(masalah.first === "Black to Move" ? "b" : "w");
-      setTerpilih(null);
-      setSasaran([]);
-      setPetunjuk(null);
-      setKesalahan(null);
-      setLangkahAkhir(null);
-      setKomputer(false);
-      setTanda({ panah: [], petak: {} });
-      setSedangSeret(false);
-      setPromosi(null);
-      setKomentar({ tahap: "mulai", fakta: null, fen: masalah.fen });
-      // pesan dibiarkan hilang, tapi selesai tetap true → sudahPecah tetap tampil
-    } else {
-      terapkanSoal(masalah);
-    }
+    // Setelah cekmat (mode review) status selesai dipertahankan; sebelumnya
+    // cabang ini menyalin ulang seluruh setter terapkanSoal.
+    terapkanSoal(masalah, { pertahankanSelesai: selesai });
   }
 
   /** < — mundur satu langkah. */
