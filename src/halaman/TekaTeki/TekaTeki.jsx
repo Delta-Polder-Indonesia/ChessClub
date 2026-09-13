@@ -685,14 +685,11 @@ export default function TekaTeki() {
 
     let lanjut = null;
 
-    // Untuk promosi di tengah varian, bidak harus sama dengan solusi —
-    // aturan itu ada di apakahLangkahSesuai.
-    if (sisa.length === 1) {
-      try {
-        const g = terapkan(fen, { from, to, promo });
-        if (g.isCheckmate()) lanjut = g;
-      } catch {}
-    } else if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
+    // Langkah penutup tidak lagi istimewa: harus persis solusi, sama seperti
+    // Rush. Skakmat legal lain (mate alternatif) tetap dihitung salah.
+    // Untuk promosi, bidak harus sama dengan solusi — aturan itu ada di
+    // apakahLangkahSesuai.
+    if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
       try {
         lanjut = terapkan(fen, { from, to, promo: diharapkan.promo });
       } catch {}
