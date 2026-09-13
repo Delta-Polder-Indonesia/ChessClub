@@ -18,7 +18,13 @@ import KartuKomentator, {
 } from "../../components/KartuKomentator.jsx";
 import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
 import { coba } from "../../lib/utils.js";
-import { parseLangkah, terapkan } from "../../lib/tekaTeki.js";
+import {
+  parseLangkah,
+  terapkan,
+  butuhPromosi,
+  apakahLangkahLegal,
+  apakahLangkahSesuai,
+} from "../../lib/tekaTeki.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -653,31 +659,12 @@ export default function TekaTeki() {
 
     // Bidak menuju baris terakhir → promosi wajib. Bila pemain belum memilih
     // bidak promosi, buka pemilihnya (jangan langsung dianggap salah).
-    let butuhPromosi = false;
-    let warnaPromosi = "w";
-    try {
-      const papan = new Chess(fen);
-      const bidak = papan.get(from);
-      if (
-        bidak &&
-        bidak.type === "p" &&
-        (to.endsWith("8") || to.endsWith("1"))
-      ) {
-        butuhPromosi = true;
-        warnaPromosi = bidak.color;
-      }
-    } catch {}
-
+    const promosiDiminta = butuhPromosi(fen, from, to);
     // Jangan buka dialog promosi untuk drop yang tidak legal.
-    let langkahLegal = false;
-    try {
-      langkahLegal = new Chess(fen)
-        .moves({ square: from, verbose: true })
-        .some((langkah) => langkah.to === to);
-    } catch {}
+    const langkahLegal = apakahLangkahLegal(fen, from, to);
 
-    if (butuhPromosi && langkahLegal && !promo) {
-      setPromosi({ from, to, warna: warnaPromosi });
+    if (promosiDiminta.butuh && langkahLegal && !promo) {
+      setPromosi({ from, to, warna: promosiDiminta.warna });
       setTerpilih(null);
       setSasaran([]);
       return;
@@ -685,17 +672,14 @@ export default function TekaTeki() {
 
     let lanjut = null;
 
+    // Untuk promosi di tengah varian, bidak harus sama dengan solusi —
+    // aturan itu ada di apakahLangkahSesuai.
     if (sisa.length === 1) {
       try {
         const g = terapkan(fen, { from, to, promo });
         if (g.isCheckmate()) lanjut = g;
       } catch {}
-    } else if (
-      from === diharapkan.from &&
-      to === diharapkan.to &&
-      // Untuk promosi di tengah varian, bidak harus sama dengan solusi.
-      (!diharapkan.promo || promo === diharapkan.promo)
-    ) {
+    } else if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
       try {
         lanjut = terapkan(fen, { from, to, promo: diharapkan.promo });
       } catch {}

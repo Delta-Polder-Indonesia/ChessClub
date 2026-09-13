@@ -15,6 +15,13 @@ import { ambilPeringkatRush, kirimSkorRush } from "../../lib/api/rekorRush.js";
 import { muatAnggota, anggotaTersimpan } from "../../lib/anggotaBersama.js";
 import { berkasPublik } from "../../lib/asets.js";
 import { coba } from "../../lib/utils.js";
+import {
+  parseLangkah,
+  terapkan,
+  butuhPromosi,
+  apakahLangkahLegal,
+  apakahLangkahSesuai,
+} from "../../lib/tekaTeki.js";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
 import License from "../Analisa/komponen/svg/license.jsx";
@@ -50,27 +57,6 @@ const PILIHAN_WARNA = [
   ["marble-green", "papan.warnaMarmerHijau"],
   ["metal", "papan.warnaMetal"],
 ];
-
-/** Langkah data "c4-c8" / "e7-e8q" → { from, to, promo }. */
-function parseLangkah(teks) {
-  return {
-    from: teks.slice(0, 2),
-    to: teks.slice(3, 5),
-    promo: teks.length > 5 ? teks[5] : null,
-  };
-}
-
-/** Terapkan satu langkah ke posisi; bidak pion ke baris terakhir → promosi. */
-function terapkan(fen, { from, to, promo }) {
-  const game = new Chess(fen);
-  const opsi = { from, to };
-  const bidak = game.get(from);
-  if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
-    opsi.promotion = promo || "q";
-  }
-  game.move(opsi);
-  return game;
-}
 
 /** Tampilkan detik sebagai menit:detik (mis. "04:32"). */
 function formatWaktu(totalDetik) {
@@ -574,25 +560,11 @@ export default function TekaTekiRush() {
 
       const diharapkan = parseLangkah(sisa[0]);
 
-      let butuhPromosi = false;
-      let warnaPromosi = "w";
-      let legal = false;
-      try {
-        const papan = new Chess(fen);
-        const bidak = papan.get(from);
-        if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
-          butuhPromosi = true;
-          warnaPromosi = bidak.color;
-        }
-        legal = papan
-          .moves({ square: from, verbose: true })
-          .some((m) => m.to === to);
-      } catch {
-        /* abaikan */
-      }
+      const promosiDiminta = butuhPromosi(fen, from, to);
+      const legal = apakahLangkahLegal(fen, from, to);
 
-      if (butuhPromosi && legal && !promoBidak) {
-        setPromo({ from, to, warna: warnaPromosi });
+      if (promosiDiminta.butuh && legal && !promoBidak) {
+        setPromo({ from, to, warna: promosiDiminta.warna });
         setTerpilih(null);
         setSasaran([]);
         return;
@@ -600,12 +572,7 @@ export default function TekaTekiRush() {
       // Langkah ilegal → tidak dikurangi nyawa.
       if (!legal) return;
 
-      const sesuai =
-        from === diharapkan.from &&
-        to === diharapkan.to &&
-        (!diharapkan.promo || promoBidak === diharapkan.promo);
-
-      if (!sesuai) {
+      if (!apakahLangkahSesuai(from, to, promoBidak, diharapkan)) {
         gagalSoal(from, to);
         return;
       }

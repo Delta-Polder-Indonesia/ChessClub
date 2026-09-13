@@ -28,3 +28,51 @@ export function terapkan(fen, { from, to, promo }) {
   game.move(opsi);
   return game;
 }
+
+/**
+ * Apakah langkah ini memindahkan pion ke baris terakhir — yaitu promosi wajib
+ * yang bidaknya belum dipilih pemain?
+ *
+ * @returns {{ butuh: boolean, warna: "w" | "b" }}
+ */
+export function butuhPromosi(fen, from, to) {
+  let butuh = false;
+  let warna = "w";
+  try {
+    const bidak = new Chess(fen).get(from);
+    if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
+      butuh = true;
+      warna = bidak.color;
+    }
+  } catch {
+    butuh = false;
+  }
+  return { butuh, warna };
+}
+
+/**
+ * Apakah langkah from→to legal pada posisi `fen`? Dipakai memisahkan bunyi
+ * "tidak boleh" (langkah ilegal) dari "boleh tapi bukan solusinya".
+ */
+export function apakahLangkahLegal(fen, from, to) {
+  try {
+    return new Chess(fen)
+      .moves({ square: from, verbose: true })
+      .some((langkah) => langkah.to === to);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Apakah langkah pemain sama dengan langkah solusi yang diharapkan?
+ * Promosi di tengah varian harus memakai bidak yang sama dengan solusi;
+ * pada langkah terakhir (`diharapkan.promo` kosong) bidak apa pun diterima.
+ */
+export function apakahLangkahSesuai(from, to, promo, diharapkan) {
+  return (
+    from === diharapkan.from &&
+    to === diharapkan.to &&
+    (!diharapkan.promo || promo === diharapkan.promo)
+  );
+}
