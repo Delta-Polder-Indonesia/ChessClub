@@ -3,6 +3,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
 import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
 import { berkasPublik } from "../../lib/asets.js";
+import { gabungPeringkat } from "../../lib/peringkatKuis.js";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
 
@@ -88,17 +89,12 @@ export default function QuizCatur() {
   const [peringkat, setPeringkat] = useState(() => {
     try {
       const mentah = JSON.parse(localStorage.getItem(KUNCI_PERINGKAT)) || [];
-      const unik = [];
-      for (const p of mentah) {
-        const ada = unik.find((u) => u.nama === p.nama);
-        if (ada) {
-          if (p.benar > ada.benar) Object.assign(ada, p);
-        } else {
-          unik.push(p);
-        }
-      }
-      unik.sort((a, b) => b.benar - a.benar);
-      return unik;
+      // Data lama bisa memuat nama ganda — gabungPeringkat menyisakan nilai
+      // terbaik per nama sekaligus mengurutkannya.
+      return (Array.isArray(mentah) ? mentah : []).reduce(
+        (daftar, p) => gabungPeringkat(daftar, p),
+        []
+      );
     } catch {
       return [];
     }
@@ -187,14 +183,7 @@ export default function QuizCatur() {
     // Cukup perbarui state: efek persistensi [peringkat] yang menulis ke
     // localStorage. Menulis di dalam updater ini membuat penulisan ganda —
     // dan di StrictMode updater dipanggil dua kali (efek samping di dalamnya).
-    setPeringkat((sebelumnya) => {
-      const ada = sebelumnya.find((p) => p.nama === nama);
-      const gabung = ada
-        ? sebelumnya.map((p) => (p.nama === nama && p.benar < masuk.benar ? masuk : p))
-        : [...sebelumnya, masuk];
-      gabung.sort((a, b) => b.benar - a.benar);
-      return gabung;
-    });
+    setPeringkat((sebelumnya) => gabungPeringkat(sebelumnya, masuk));
   };
 
   const lanjut = () => {
