@@ -14,6 +14,7 @@ import { gunakanSuara, SUARA } from "../../lib/suara.js";
 import { ambilPeringkatRush, kirimSkorRush } from "../../lib/api/rekorRush.js";
 import { muatAnggota, anggotaTersimpan } from "../../lib/anggotaBersama.js";
 import { berkasPublik } from "../../lib/asets.js";
+import { coba } from "../../lib/utils.js";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
 import License from "../Analisa/komponen/svg/license.jsx";
@@ -84,16 +85,16 @@ function formatWaktu(totalDetik) {
  * membuat pemain tidak bisa sekadar mengetik skor besar di localStorage.
  */
 function bacaBungkus(kunci) {
-  try {
-    const mentah = localStorage.getItem(kunci);
-    if (!mentah) return 0;
-    const { n, c } = JSON.parse(mentah);
-    const bilangan = Number(n) || 0;
-    if (Number(c) !== (bilangan ^ 0x5a17) >>> 0) return 0;
-    return bilangan;
-  } catch {
-    return 0;
-  }
+  return (
+    coba(() => {
+      const mentah = localStorage.getItem(kunci);
+      if (!mentah) return 0;
+      const { n, c } = JSON.parse(mentah);
+      const bilangan = Number(n) || 0;
+      if (Number(c) !== (bilangan ^ 0x5a17) >>> 0) return 0;
+      return bilangan;
+    }, "baca skor tersegel") ?? 0
+  );
 }
 
 function bacaTerbaik() {
@@ -101,42 +102,29 @@ function bacaTerbaik() {
 }
 
 function simpanBungkus(kunci, nilai) {
-  try {
+  coba(() => {
     const bilangan = Math.max(0, Math.floor(Number(nilai) || 0));
     const c = (bilangan ^ 0x5a17) >>> 0;
     localStorage.setItem(kunci, JSON.stringify({ n: bilangan, c }));
-  } catch {
-    /* abaikan */
-  }
+  }, "simpan skor tersegel");
 }
 
 function bacaSetBidak() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_SET);
-    if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
-  } catch {
-    /* abaikan */
-  }
+  const simpan = coba(() => localStorage.getItem(KUNCI_SET), "baca set bidak");
+  if (simpan && DAFTAR_SET.some((s) => s.id === simpan)) return simpan;
   return "merida";
 }
 
 function bacaWarnaPapan() {
-  try {
-    const simpan = localStorage.getItem(KUNCI_WARNA);
-    if (simpan && PILIHAN_WARNA.some(([nilai]) => nilai === simpan))
-      return simpan;
-  } catch {
-    /* abaikan */
-  }
+  const simpan = coba(() => localStorage.getItem(KUNCI_WARNA), "baca warna papan");
+  if (simpan && PILIHAN_WARNA.some(([nilai]) => nilai === simpan)) return simpan;
   return "green";
 }
 
 function bacaUsername() {
-  try {
-    return (localStorage.getItem(KUNCI_USERNAME) || "").trim();
-  } catch {
-    return "";
-  }
+  return (
+    coba(() => localStorage.getItem(KUNCI_USERNAME), "baca username") || ""
+  ).trim();
 }
 
 /** Pilihan bidak promosi + kunci terjemahan (sama dgn halaman Teka-Teki). */
@@ -324,18 +312,13 @@ export default function TekaTekiRush() {
 
   // Simpan preferensi papan (dibagi dengan halaman lain).
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_SET, setBidak);
-    } catch {
-      /* abaikan */
-    }
+    coba(() => localStorage.setItem(KUNCI_SET, setBidak), "simpan set bidak");
   }, [setBidak]);
   useEffect(() => {
-    try {
-      localStorage.setItem(KUNCI_WARNA, warnaPapan);
-    } catch {
-      /* abaikan */
-    }
+    coba(
+      () => localStorage.setItem(KUNCI_WARNA, warnaPapan),
+      "simpan warna papan"
+    );
   }, [warnaPapan]);
 
   /* --------------------------------------------------- muat data teka-teki */
@@ -805,11 +788,7 @@ export default function TekaTekiRush() {
       return;
     }
     setSimpanStatus("kirim");
-    try {
-      localStorage.setItem(KUNCI_USERNAME, u);
-    } catch {
-      /* abaikan */
-    }
+    coba(() => localStorage.setItem(KUNCI_USERNAME, u), "simpan username");
     try {
       await kirimSkorRush({ username: u, skor, durasiMenit });
       setSimpanStatus("ok");
