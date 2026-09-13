@@ -677,7 +677,7 @@ function MenuKolom({ t, nilai, onPilih }) {
   );
 }
 
-function TabelRingkasan({ koleksiId, t, locale, overlay }) {
+function TabelRingkasan({ koleksiId, t, locale, overlay, revisi }) {
   /* null = masih memuat; [] = sudah dimuat tapi kosong */
   const [daftar, setDaftar] = useState(null);
   const [periode, setPeriode] = useState("semua");
@@ -708,7 +708,7 @@ function TabelRingkasan({ koleksiId, t, locale, overlay }) {
     return () => {
       hidup = false;
     };
-  }, [koleksiId]);
+  }, [koleksiId, revisi]);
 
   const dataTampil = useMemo(() => {
     const g = daftar || [];
@@ -1013,6 +1013,10 @@ export default function LayarDatabase({
 
   // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
   const [mode, setMode] = useState(modeTersimpan);
+  // Revisi basis saat terakhir tabel ringkasan ditarik. Dinaikkan tiap selesai
+  // tarik data agar TabelRingkasan ikut refetch (di luar itu cukup dependen
+  // pada koleksiId).
+  const [revisiRingkasan, setRevisiRingkasan] = useState(bacaRevisiBasis);
   // Statistik per koleksi (jumlah/pemain/event/ukuran) — di-cache di sini.
   const [statMap, setStatMap] = useState({});
 
@@ -1593,6 +1597,8 @@ export default function LayarDatabase({
       cacheRingkasan = null;
       await muatMetadata();
       await muatPartai();
+      // Tabel ringkasan (mode data) ikut ditarik ulang dengan data terbaru.
+      setRevisiRingkasan(bacaRevisiBasis());
       tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
     } catch (e) {
       if (e?.cooldown) {
@@ -1909,6 +1915,7 @@ export default function LayarDatabase({
                       koleksiId={koleksiTerpilih}
                       t={t}
                       locale={locale}
+                      revisi={revisiRingkasan}
                       overlay={
                         sedangTarik ? (
                           <div className="flex flex-col items-center gap-1.5 text-center">

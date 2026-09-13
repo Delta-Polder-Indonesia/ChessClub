@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { KotakGalatMuat } from "./ui.jsx";
+import { KotakGalatMuat, Tombol } from "./ui.jsx";
+import TabelData from "./TabelData.jsx";
 
 const BULAN = [
   "Januari",
@@ -101,6 +102,49 @@ export default function PanelAudit({ beriTahu }) {
     });
   }, [data, hari, bulan]);
 
+  const kolomAudit = useMemo(
+    () => [
+      {
+        accessorFn: (e) => String(e.timestamp || e.waktu || "").replace("T", " ").slice(0, 19),
+        id: "waktu",
+        header: "Waktu",
+        cell: (info) => (
+          <code className="whitespace-nowrap text-xs text-slate-600">
+            {info.getValue()}
+          </code>
+        ),
+      },
+      {
+        accessorFn: (e) => e.action || e.peristiwa || "",
+        id: "aksi",
+        header: "Aksi",
+        cell: (info) => <span className="text-sm font-medium">{info.getValue()}</span>,
+      },
+      {
+        accessorFn: (e) => e.username || e.pengguna || "—",
+        id: "siapa",
+        header: "Siapa",
+        cell: (info) => <span className="text-sm text-slate-700">{info.getValue()}</span>,
+      },
+      {
+        accessorFn: (e) => e.status || "—",
+        id: "status",
+        header: "Status",
+        cell: (info) => <span className="text-sm text-slate-700">{info.getValue()}</span>,
+      },
+      {
+        accessorFn: (e) =>
+          [e.resourceId, e.reason, e.jalur].filter(Boolean).join(" · ") || "—",
+        id: "rincian",
+        header: "Rincian",
+        cell: (info) => (
+          <span className="text-sm text-slate-500">{info.getValue()}</span>
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <section>
       <form onSubmit={terapkanFilter} className="flex flex-wrap items-center gap-x-6 gap-y-3 mb-4">
@@ -152,20 +196,13 @@ export default function PanelAudit({ beriTahu }) {
             ))}
           </select>
         </label>
-        <button
-          type="submit"
-          className="rounded-full bg-primary px-4 py-1.5 text-xs font-bold text-white"
-        >
-          Saring
-        </button>
-        <button
-          type="button"
+        <Tombol type="submit" jenis="biasa" anak="Saring" />
+        <Tombol
+          jenis="biasa"
           onClick={() => unduhCsv(tampil)}
-          className="rounded-full border border-slate-300 px-4 py-1.5 text-xs font-bold"
           disabled={!tampil.length}
-        >
-          Unduh CSV
-        </button>
+          anak="Unduh CSV"
+        />
       </form>
       {memuat ? (
         <p className="text-sm text-slate-500">Memuat jejak audit…</p>
@@ -174,37 +211,17 @@ export default function PanelAudit({ beriTahu }) {
           pesan="Jejak audit gagal dimuat. Periksa koneksi lalu coba lagi."
           onCobaLagi={muat}
         />
-      ) : !tampil.length ? (
-        <p className="text-sm text-slate-500">Belum ada jejak (90 hari terakhir).</p>
       ) : (
-        <div className="overflow-auto">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th>Waktu</th>
-                <th>Aksi</th>
-                <th>Siapa</th>
-                <th>Status</th>
-                <th>Rincian</th>
-              </tr>
-            </thead>
-            <tbody>
-              {tampil.map((e, i) => (
-                <tr key={i}>
-                  <td className="whitespace-nowrap text-slate-600">
-                    {String(e.timestamp || e.waktu || "").replace("T", " ").slice(0, 19)}
-                  </td>
-                  <td className="font-medium">{e.action || e.peristiwa}</td>
-                  <td>{e.username || e.pengguna || "—"}</td>
-                  <td>{e.status || "—"}</td>
-                  <td className="text-slate-500">
-                    {[e.resourceId, e.reason, e.jalur].filter(Boolean).join(" · ") || "—"}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <TabelData
+          data={tampil}
+          kolom={kolomAudit}
+          labelItem="jejak"
+          ruangKosong={
+            <p className="text-sm text-slate-500">
+              Belum ada jejak (90 hari terakhir).
+            </p>
+          }
+        />
       )}
     </section>
   );

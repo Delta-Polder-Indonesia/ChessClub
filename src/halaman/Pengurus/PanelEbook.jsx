@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal, KotakGalatMuat } from "./ui.jsx";
+import { Modal } from "./ui.jsx";
 import EbookTerbit from "./PanelEbook/Terbit.jsx";
 import EbookPermintaan from "./PanelEbook/Permintaan.jsx";
 import EbookKode from "./PanelEbook/Kode.jsx";
@@ -41,7 +41,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
       setUnduhan(Array.isArray(jejak) ? jejak : []);
       setMinta(Array.isArray(pengajuan) ? pengajuan : []);
     } catch (e) {
-      beriTahu(e.message, "galat");
+      beriTahu("Data e-book gagal dimuat. Periksa koneksi lalu coba lagi.", "galat");
       setGalat(true);
     } finally {
       setMemuat(false);
@@ -177,21 +177,26 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
   return (
     <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="border-b-2 border-slate-200 pb-5">
-        <h2 className="text-lg font-semibold text-slate-900">Kode E-Book</h2>
-        <p className="mt-0.5 text-sm text-slate-500">
-          Gerbang unduh e-book model perpustakaan: {menunggu} permintaan
-          menunggu, {aktif.length} kode aktif, {unduhan.length}{" "}
-          unduhan tercatat
-        </p>
-      </div>
+      <div className="flex items-start justify-between gap-4 border-b-2 border-slate-200 pb-5">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900">Kode E-Book</h2>
+          <p className="mt-0.5 text-sm text-slate-500">
+            Gerbang unduh e-book model perpustakaan: {menunggu} permintaan
+            menunggu, {aktif.length} kode aktif, {unduhan.length}{" "}
+            unduhan tercatat
+          </p>
+        </div>
 
-      {galat && !memuat && (
-        <KotakGalatMuat
-          pesan="Data e-book gagal dimuat. Periksa koneksi lalu coba lagi."
-          onCobaLagi={muat}
-        />
-      )}
+        {galat && !memuat && (
+          <button
+            type="button"
+            onClick={muat}
+            className="shrink-0 rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          >
+            Coba Lagi
+          </button>
+        )}
+      </div>
 
       {/* ── Halaman aktif ──────────────────────────────────── */}
       {memuat ? (

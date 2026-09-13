@@ -7,6 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
+import { MenuAksi } from "../ui.jsx";
+import { Check, X } from "lucide-react";
 
 /**
  * Halaman "Permintaan kode": pengajuan dari popup unduh yang belum diputus.
@@ -75,40 +77,35 @@ export default function EbookPermintaan({ minta, cariMinta, onCariMinta, sibuk, 
                   </TableCell>
                   <TableCell>
                     {m.status === "menunggu" ? (
-                      <span className="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-                        Menunggu
-                      </span>
+                      <span className="text-xs">Menunggu</span>
                     ) : m.status === "diterbitkan" ? (
-                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                        Diterbitkan
+                      <span className="text-xs">
+                        Diterbitkan{" "}
                         <span className="font-mono font-bold">{m.kode}</span>
                       </span>
                     ) : (
-                      <span className="inline-flex rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        Ditolak
-                      </span>
+                      <span className="text-xs">Ditolak</span>
                     )}
                   </TableCell>
                   <TableCell>
                     {m.status === "menunggu" ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          disabled={sibuk}
-                          onClick={() => onTerbitkan(m)}
-                          className="text-xs font-semibold text-emerald-700 hover:underline disabled:opacity-40"
-                        >
-                          Terbitkan kode
-                        </button>
-                        <button
-                          type="button"
-                          disabled={sibuk}
-                          onClick={() => onTolak(m)}
-                          className="text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
-                        >
-                          Tolak
-                        </button>
-                      </div>
+                      <MenuAksi
+                        aksi={[
+                          {
+                            label: "Terbitkan kode",
+                            Ikon: Check,
+                            onClick: () => onTerbitkan(m),
+                            disabled: sibuk,
+                          },
+                          {
+                            label: "Tolak",
+                            Ikon: X,
+                            onClick: () => onTolak(m),
+                            disabled: sibuk,
+                            bahaya: true,
+                          },
+                        ]}
+                      />
                     ) : (
                       <span className="text-xs text-slate-400">
                         {formatWaktu(m.diputus)}

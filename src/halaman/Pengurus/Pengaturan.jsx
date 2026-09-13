@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
 import { Tombol, Modal } from "./ui.jsx";
+import TabelData from "./TabelData.jsx";
+import Marquee from "../../components/ui/marquee.jsx";
 import {
   infoAdmin,
   gantiPasswordAdmin,
@@ -144,6 +146,106 @@ function PanelKelolaAdmin({ beriTahu }) {
   const masterCount = admins.filter((a) => a.role === "master").length;
   const pengurusCount = admins.filter((a) => a.role === "pengurus").length;
 
+  // Kolom tabel harus referensial stabil: react-table meng-auto-reset
+  // pageIndex bila `data`/`columns` berganti identitas tiap render. Nilai
+  // yang berubah (editTarget, editData, dst.) dibaca lewat ref sehingga
+  // array kolom tidak perlu diciptakan ulang.
+  const adminRef = useRef({
+    editTarget,
+    editData,
+    lihatSandi,
+    jumlahAdmin: admins.length,
+    simpanEdit,
+  });
+  adminRef.current = { editTarget, editData, lihatSandi, jumlahAdmin: admins.length, simpanEdit };
+
+  const kolomAdmin = useMemo(
+    () => [
+      {
+        accessorKey: "username",
+        header: "Username",
+        cell: ({ row }) => (
+          <span className="font-mono text-sm">@{row.original.username}</span>
+        ),
+      },
+      {
+        accessorKey: "role",
+        header: "Role",
+        cell: ({ row }) => (
+          <span className="text-xs font-semibold text-slate-700">
+            {row.original.role === "master" ? "MASTER" : "PENGURUS"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "dibuatPada",
+        header: "Dibuat",
+        cell: ({ row }) => (
+          <span className="text-sm text-slate-600">
+            {row.original.dibuatPada
+              ? new Date(row.original.dibuatPada).toLocaleDateString("id-ID")
+              : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "aksi",
+        header: "Aksi",
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => {
+          const a = row.original;
+          return (
+            <>
+              <div className="flex gap-1.5">
+                <Tombol
+                  anak="Ubah"
+                  kecil
+                  onClick={() => {
+                    setEditTarget(a.username);
+                    setEditData({ password: "", role: a.role });
+                  }}
+                />
+                <Tombol
+                  anak="Hapus"
+                  kecil
+                  jenis="bahaya"
+                  onClick={() => setTargetHapus(a.username)}
+                  disabled={adminRef.current.jumlahAdmin <= 1}
+                />
+              </div>
+              {adminRef.current.editTarget === a.username && (
+                <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-left space-y-2">
+                  <div className="text-xs font-bold text-slate-700">Edit {a.username}</div>
+                  <input
+                    type={adminRef.current.lihatSandi ? "text" : "password"}
+                    value={adminRef.current.editData.password}
+                    onChange={(e) => setEditData((d) => ({ ...d, password: e.target.value }))}
+                    placeholder="Password baru min. 12 karakter (kosongkan jika tidak ganti)"
+                    className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                  />
+                  <select
+                    value={adminRef.current.editData.role}
+                    onChange={(e) => setEditData((d) => ({ ...d, role: e.target.value }))}
+                    className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
+                  >
+                    <option value="pengurus">Admin Pengurus</option>
+                    <option value="master">Master Admin</option>
+                  </select>
+                  <div className="flex gap-2">
+                    <Tombol anak="Simpan" kecil jenis="utama" onClick={() => adminRef.current.simpanEdit(a.username)} />
+                    <Tombol anak="Batal" kecil onClick={() => setEditTarget(null)} />
+                  </div>
+                </div>
+              )}
+            </>
+          );
+        },
+      },
+    ],
+    [setEditTarget, setEditData, setTargetHapus]
+  );
+
   if (loading) return <div className="text-sm text-slate-500">Memuat daftar admin...</div>;
 
   return (
@@ -154,13 +256,7 @@ function PanelKelolaAdmin({ beriTahu }) {
             <span className="font-bold">Gagal memuat daftar admin.</span>{" "}
             {galat}
           </p>
-          <button
-            type="button"
-            onClick={muat}
-            className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100"
-          >
-            Coba Lagi
-          </button>
+          <Tombol jenis="bahaya" onClick={muat} anak="Coba Lagi" />
         </div>
       )}
       <div>
@@ -231,13 +327,12 @@ function PanelKelolaAdmin({ beriTahu }) {
               <option value="master">Master Admin</option>
             </select>
           </label>
-          <button
+          <Tombol
             type="submit"
+            jenis="biasa"
             disabled={sibuk}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
-          >
-            {sibuk ? "Menambahkan..." : "Tambah Admin"}
-          </button>
+            anak={sibuk ? "Menambahkan..." : "Tambah Admin"}
+          />
         </div>
         <p className="text-[11px] leading-5 text-slate-500">
           Admin Pengurus tidak bisa akses Pengaturan. Hanya Master yang bisa tambah/hapus admin dan lihat riwayat masuk.
@@ -247,83 +342,16 @@ function PanelKelolaAdmin({ beriTahu }) {
 
       <div>
         <h3 className="text-sm font-bold text-slate-900">Daftar Admin</h3>
-        <div className="overflow-auto">
-          <table className="tabel-kci tabel-peringkat" style={{ tableLayout: "fixed" }}>
-            <thead>
-              <tr>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Dibuat</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {admins.map((a) => (
-                <tr key={a.username}>
-                  <td className="font-mono">@{a.username}</td>
-                  <td>
-                    <span className="text-xs font-semibold text-slate-700">
-                      {a.role === "master" ? "MASTER" : "PENGURUS"}
-                    </span>
-                  </td>
-                  <td className="text-slate-600">
-                    {a.dibuatPada ? new Date(a.dibuatPada).toLocaleDateString("id-ID") : "—"}
-                  </td>
-                  <td>
-                    <div className="flex gap-1.5">
-                      <Tombol
-                        anak="Ubah"
-                        kecil
-                        onClick={() => {
-                          setEditTarget(a.username);
-                          setEditData({ password: "", role: a.role });
-                        }}
-                      />
-                      <Tombol
-                        anak="Hapus"
-                        kecil
-                        jenis="bahaya"
-                        onClick={() => setTargetHapus(a.username)}
-                        disabled={admins.length <= 1}
-                      />
-                    </div>
-                    {editTarget === a.username && (
-                      <div className="mt-2 rounded border border-slate-200 bg-slate-50 p-3 text-left space-y-2">
-                        <div className="text-xs font-bold text-slate-700">Edit {a.username}</div>
-                        <input
-                          type={lihatSandi ? "text" : "password"}
-                          value={editData.password}
-                          onChange={(e) => setEditData((d) => ({ ...d, password: e.target.value }))}
-                          placeholder="Password baru min. 12 karakter (kosongkan jika tidak ganti)"
-                          className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                        />
-                        <select
-                          value={editData.role}
-                          onChange={(e) => setEditData((d) => ({ ...d, role: e.target.value }))}
-                          className="w-full rounded border border-slate-300 px-2 py-1 text-xs"
-                        >
-                          <option value="pengurus">Admin Pengurus</option>
-                          <option value="master">Master Admin</option>
-                        </select>
-                        <div className="flex gap-2">
-                          <Tombol anak="Simpan" kecil jenis="utama" onClick={() => simpanEdit(a.username)} />
-                          <Tombol anak="Batal" kecil onClick={() => setEditTarget(null)} />
-                        </div>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
-              {!admins.length && (
-                <tr>
-                  <td colSpan={4} className="py-8 text-center text-slate-500">
-                    Belum ada admin. Tambahkan lewat form di atas.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <TabelData
+          data={admins}
+          kolom={kolomAdmin}
+          labelItem="admin"
+          ruangKosong={
+            <div className="py-8 text-center text-slate-500">
+              Belum ada admin. Tambahkan lewat form di atas.
+            </div>
+          }
+        />
       </div>
 
       {/* Konfirmasi hapus admin — pola Modal bersama (pengganti window.confirm). */}
@@ -500,13 +528,12 @@ function PanelAkun({ beriTahu }) {
           >
             {lihat ? "Sembunyikan password" : "Lihat password"}
           </button>
-          <button
+          <Tombol
             type="submit"
+            jenis="biasa"
             disabled={sibuk}
-            className="rounded-full bg-primary px-5 py-2 text-xs font-bold text-white hover:opacity-90 disabled:opacity-40 whitespace-nowrap"
-          >
-            {sibuk ? "Menyimpan..." : "Simpan Password Baru"}
-          </button>
+            anak={sibuk ? "Menyimpan..." : "Simpan Password Baru"}
+          />
         </div>
       </form>
     </div>
@@ -548,24 +575,16 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
     <div className="min-h-screen bg-white flex flex-col">
       <header className="bg-white border-b border-slate-200 px-6 py-3 shrink-0">
         <div className="flex items-center gap-4">
-          <button
-            type="button"
-            onClick={onKembali}
-            className="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Kembali
-          </button>
           <h1 className="text-lg font-bold text-slate-900">Pengaturan (Master Admin)</h1>
           <span className="ml-2 text-xs font-semibold text-slate-600">MASTER ONLY</span>
         </div>
       </header>
 
+      {kabar && <Marquee items={[kabar.teks]} />}
+
       <div className="flex flex-1 min-h-0">
-        <aside className="w-56 bg-white border-r border-slate-200 shrink-0 overflow-y-auto">
-          <nav className="p-3 space-y-1">
+        <aside className="w-56 bg-white border-r border-slate-200 shrink-0 overflow-y-auto flex flex-col">
+          <nav className="p-3 space-y-1 flex-1">
             {MENU_PENGATURAN.filter((m) => !m.masterOnly || isMaster).map(({ kunci, label, icon }) => {
               const aktif = bagian === kunci;
               return (
@@ -573,13 +592,15 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
                   key={kunci}
                   type="button"
                   onClick={() => setBagian(kunci)}
-                  className={`
-                    w-full text-sm font-medium
-                    flex items-center gap-3
-                    px-3 py-2.5 rounded-lg
-                    transition-colors duration-150
-                    ${aktif ? "bg-primary text-white" : "text-slate-700 hover:bg-slate-100"}
-                  `}
+className={`
+                  w-full text-sm font-medium
+                  flex items-center gap-3
+                  px-3
+                  transition-colors duration-150
+                  ${aktif
+                    ? "py-1.5 text-slate-900 border border-slate-900 rounded-md"
+                    : "py-2.5 text-slate-700 hover:bg-slate-100"}
+                `}
                 >
                   <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={icon} />
@@ -589,19 +610,19 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
               );
             })}
           </nav>
+          <button
+            type="button"
+            onClick={onKembali}
+            className="w-full flex items-center gap-3 border-t border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
+          >
+            <svg className="w-5 h-5 shrink-0 -scale-x-100" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M4 12a1 1 0 0 0 1 1h7.59l-2.3 2.29a1 1 0 0 0 0 1.42 1 1 0 0 0 1.42 0l4-4a1 1 0 0 0 .21-.33 1 1 0 0 0 0-.76 1 1 0 0 0-.21-.33l-4-4a1 1 0 1 0-1.42 1.42l2.3 2.29H5a1 1 0 0 0-1 1M17 2H7a3 3 0 0 0-3 3v3a1 1 0 0 0 2 0V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-3a1 1 0 0 0-2 0v3a3 3 0 0 0 3 3h10a3 3 0 0 0 3-3V5a3 3 0 0 0-3-3z" />
+            </svg>
+            Kembali
+          </button>
         </aside>
 
         <main className="flex-1 p-6 overflow-y-auto min-w-0">
-          {/* Toast dashboard ikut ditampilkan di sini — sebelumnya semua
-              umpan balik beriTahu (sukses/gagal) tidak pernah terlihat
-              karena penampil kabar hanya dirender di tata letak dashboard. */}
-          {kabar && (
-            <p className={`mb-4 rounded-md border bg-white px-4 py-2.5 text-sm ${
-              kabar.jenis === "galat" ? "border-red-300 text-red-800"
-              : kabar.jenis === "peringatan" ? "border-amber-300 text-amber-900"
-              : "border-emerald-300 text-emerald-800"
-            }`}>{kabar.teks}</p>
-          )}
           {bagian === "kelola-admin" && <PanelKelolaAdmin beriTahu={beriTahu} />}
           {bagian === "riwayat-masuk" && <PanelRiwayatMasuk beriTahu={beriTahu} />}
           {bagian === "jejak-audit" && <PanelAudit beriTahu={beriTahu} />}

@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
 import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
 import { berkasPublik } from "../../lib/asets.js";
 import { gabungPeringkat } from "../../lib/peringkatKuis.js";
+import License from "../Analisa/komponen/svg/license.jsx";
 import CeklisHijau from "../Analisa/komponen/svg/checkbox-green.svg";
 import CeklisMerah from "../Analisa/komponen/svg/checkbox-red.svg";
 
@@ -237,7 +239,7 @@ export default function QuizCatur() {
 
   const navKiri = (
     <aside className="flex w-full shrink-0 flex-col border-b border-r-0 border-[#262421] bg-[#262421] lg:w-[236px] lg:border-b-0 lg:border-r">
-      <div className="flex-1 px-4 py-4">
+      <div className="flex flex-1 flex-col px-4 py-4">
         <p className="text-[22px] font-bold tracking-tight text-white leading-none">
           Blunder<span className="text-[#81b64c]">Skuad</span>
         </p>
@@ -325,6 +327,16 @@ export default function QuizCatur() {
         </div>
           </>
         )}
+        <div className="mt-auto pt-4">
+          <Link
+            to="/program-kami/atribusi"
+            className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-white"
+          >
+            <License size={14} class="fill-current" />
+            Lisensi & Atribusi
+          </Link>
+          <p className="mt-2 text-[11px] text-slate-600">versi: 0.1.0 Beta</p>
+        </div>
       </div>
     </aside>
   );

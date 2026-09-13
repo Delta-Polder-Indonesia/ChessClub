@@ -152,15 +152,34 @@ export default function Gerbang({ onMasuk }) {
         </div>
 
         {galat && (
-          <p className="mt-4 rounded-md border border-red-300 bg-white px-3 py-2 text-xs leading-5 text-red-800">
-            {galat}
-          </p>
+          <div
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Gagal masuk"
+            onClick={() => setGalat("")}
+          >
+            <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-xl">
+              <h2 className="text-base font-bold text-slate-900">Gagal masuk</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{galat}</p>
+              <div className="mt-5 flex justify-end gap-2">
+                <button
+                  type="button"
+                  autoFocus
+                  onClick={() => setGalat("")}
+                  className="rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  Tutup
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         <button
           type="submit"
           disabled={sibuk || !sandi || !namaValid}
-          className="mt-6 w-full rounded-full bg-primary py-2.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-40"
+          className="mt-6 w-full rounded-md border-2 border-slate-300 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-40 transition"
         >
           {sibuk ? "Memeriksa…" : "Masuk"}
         </button>

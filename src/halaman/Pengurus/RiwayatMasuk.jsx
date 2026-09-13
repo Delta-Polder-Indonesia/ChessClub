@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ambilRiwayatMasuk,
   hapusRiwayatMasuk,
   bersihkanRiwayatMasuk,
 } from "../../lib/api/index.js";
 import { Tombol, Modal, Avatar, KotakGalatMuat } from "./ui.jsx";
+import TabelData from "./TabelData.jsx";
 
 /* ========================================================
    UTILITAS FORMAT WAKTU & PERANGKAT
@@ -251,6 +252,130 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
     return hasil;
   }, [riwayat, cari, filterAkun, filterWaktu]);
 
+  // Kolom tabel harus referensial stabil: react-table meng-auto-reset
+  // pageIndex bila `data`/`columns` berganti identitas tiap render. Nilai
+  // `sibuk` (yang berubah saat hapus/bersihkan) dibaca lewat ref agar
+  // array kolom tidak diciptakan ulang tiap render.
+  const sibukRef = useRef(sibuk);
+  sibukRef.current = sibuk;
+
+  const kolomRiwayat = useMemo(
+    () => [
+      {
+        accessorFn: (r) => r.username || "pengurus",
+        id: "akun",
+        header: "Akun Admin",
+        cell: ({ row }) => {
+          const u = row.original.username || "pengurus";
+          return (
+            <div className="flex items-center gap-2.5">
+              <Avatar username={u} />
+              <div>
+                {/* Bukan tautan chess.com — username login adalah akun
+                    admin dashboard, belum tentu akun Chess.com. */}
+                <span className="font-bold text-slate-900">{u}</span>
+                <p className="text-[11px] text-slate-400">Pengurus Komunitas</p>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorFn: (r) => formatWaktuLengkap(r.waktu).hari,
+        id: "hari",
+        header: "Hari",
+        cell: (info) => (
+          <span className="whitespace-nowrap text-sm text-slate-700">
+            {info.getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorFn: (r) => {
+          const w = formatWaktuLengkap(r.waktu);
+          return `${w.tanggalBulan} ${w.tahun}`;
+        },
+        id: "tanggal",
+        header: "Tanggal, Bulan, Tahun",
+        cell: ({ row }) => {
+          const w = formatWaktuLengkap(row.original.waktu);
+          return (
+            <div className="whitespace-nowrap">
+              <p className="text-sm font-semibold text-slate-800">
+                {w.tanggalBulan}
+              </p>
+              <p className="text-xs text-slate-400">{w.tahun}</p>
+            </div>
+          );
+        },
+      },
+      {
+        accessorFn: (r) => formatWaktuLengkap(r.waktu).jam,
+        id: "jam",
+        header: "Jam / Waktu",
+        cell: ({ row }) => {
+          const w = formatWaktuLengkap(row.original.waktu);
+          return (
+            <div className="whitespace-nowrap">
+              <p className="font-mono text-xs font-semibold text-slate-900">
+                {w.jam}
+              </p>
+              <p className="text-[11px] text-slate-400">{w.relatif}</p>
+            </div>
+          );
+        },
+      },
+      {
+        accessorFn: (r) => r.ip || "127.0.0.1",
+        id: "ip",
+        header: "Alamat IP",
+        cell: (info) => (
+          <code className="text-xs text-slate-700">{info.getValue()}</code>
+        ),
+      },
+      {
+        accessorFn: (r) => ringkasPerangkat(r.userAgent),
+        id: "perangkat",
+        header: "Perangkat",
+        cell: (info) => (
+          <span
+            className="block max-w-[160px] truncate text-xs text-slate-600"
+            title={info.row.original.userAgent || info.getValue()}
+          >
+            {info.getValue()}
+          </span>
+        ),
+      },
+      {
+        accessorFn: () => "Masuk",
+        id: "status",
+        header: "Status",
+        cell: (info) => (
+          <span className="whitespace-nowrap text-xs font-medium text-slate-700">
+            {info.getValue()}
+          </span>
+        ),
+      },
+      {
+        id: "aksi",
+        header: "Aksi",
+        enableSorting: false,
+        enableHiding: false,
+        cell: ({ row }) => (
+          <Tombol
+            anak="Hapus"
+            kecil
+            jenis="bahaya"
+            title="Hapus entri riwayat ini"
+            onClick={() => setTargetHapus(row.original)}
+            disabled={sibukRef.current === `hapus-${row.original.id}`}
+          />
+        ),
+      },
+    ],
+    []
+  );
+
   return (
     <div className="space-y-6">
       {/* ── Header Bagian ──────────────────────────────────── */}
@@ -379,17 +504,15 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
         </label>
 
         {(cari || filterAkun !== "semua" || filterWaktu !== "semua") && (
-          <button
-            type="button"
+          <Tombol
+            jenis="biasa"
             onClick={() => {
               setCari("");
               setFilterAkun("semua");
               setFilterWaktu("semua");
             }}
-            className="rounded px-3 py-1.5 text-xs font-semibold text-slate-500 hover:bg-slate-100 hover:text-slate-800"
-          >
-            Reset Filter
-          </button>
+            anak="Reset Filter"
+          />
         )}
       </div>
 
@@ -428,122 +551,22 @@ export default function PanelRiwayatMasuk({ beriTahu }) {
             sini.
           </p>
         </div>
-      ) : hasilTersaring.length === 0 ? (
-        <div className="rounded-lg border border-slate-200 bg-white p-10 text-center">
-          <p className="text-sm font-semibold text-slate-700">
-            Tidak ada riwayat yang cocok dengan filter pencarian.
-          </p>
-          <p className="mt-1 text-xs text-slate-500">
-            Coba gunakan kata kunci atau rentang tanggal lain.
-          </p>
-        </div>
       ) : (
-        <div className="overflow-auto">
-          <table className="tabel-kci tabel-peringkat">
-            <thead>
-              <tr>
-                <th style={{ textAlign: "center" }}>#</th>
-                <th>Akun Admin</th>
-                <th>Hari</th>
-                <th>Tanggal, Bulan, Tahun</th>
-                <th>Jam / Waktu</th>
-                <th>Alamat IP</th>
-                <th>Perangkat</th>
-                <th>Status</th>
-                <th>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {hasilTersaring.map((item, idx) => {
-                const waktu = formatWaktuLengkap(item.waktu);
-                const perangkat = ringkasPerangkat(item.userAgent);
-
-                return (
-                  <tr key={item.id || idx}>
-                    {/* Nomor Urut */}
-                    <td className="text-center text-xs font-medium text-slate-400">
-                      {idx + 1}
-                    </td>
-
-                    {/* Akun Chess.com */}
-                    <td>
-                      <div className="flex items-center gap-2.5">
-                        <Avatar username={item.username || "pengurus"} />
-                        <div>
-                          {/* Bukan tautan chess.com — username login adalah
-                              akun admin dashboard, belum tentu akun Chess.com. */}
-                          <span className="font-bold text-slate-900">
-                            {item.username || "pengurus"}
-                          </span>
-                          <p className="text-[11px] text-slate-400">
-                            Pengurus Komunitas
-                          </p>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Hari */}
-                    <td className="whitespace-nowrap text-slate-700">
-                      {waktu.hari}
-                    </td>
-
-                    {/* Tanggal, Bulan, Tahun */}
-                    <td className="whitespace-nowrap">
-                      <p className="font-semibold text-slate-800">
-                        {waktu.tanggalBulan}
-                      </p>
-                      <p className="text-xs text-slate-400">{waktu.tahun}</p>
-                    </td>
-
-                    {/* Jam / Waktu */}
-                    <td className="whitespace-nowrap">
-                      <p className="font-mono text-xs font-semibold text-slate-900">
-                        {waktu.jam}
-                      </p>
-                      <p className="text-[11px] text-slate-400">
-                        {waktu.relatif}
-                      </p>
-                    </td>
-
-                    {/* Alamat IP */}
-                    <td className="whitespace-nowrap">
-                      <code className="text-xs text-slate-700">
-                        {item.ip || "127.0.0.1"}
-                      </code>
-                    </td>
-
-                    {/* Perangkat */}
-                    <td
-                      className="text-xs text-slate-600 max-w-[160px] truncate"
-                      title={item.userAgent || perangkat}
-                    >
-                      {perangkat}
-                    </td>
-
-                    {/* Status */}
-                    <td className="whitespace-nowrap">
-                      <span className="text-xs font-medium text-slate-700">
-                        Masuk
-                      </span>
-                    </td>
-
-                    {/* Aksi */}
-                    <td className="whitespace-nowrap">
-                      <Tombol
-                        anak="Hapus"
-                        kecil
-                        jenis="bahaya"
-                        title="Hapus entri riwayat ini"
-                        onClick={() => setTargetHapus(item)}
-                        disabled={sibuk === `hapus-${item.id}`}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <TabelData
+          data={hasilTersaring}
+          kolom={kolomRiwayat}
+          labelItem="catatan masuk"
+          ruangKosong={
+            <div className="rounded-lg border border-slate-200 bg-white p-10 text-center">
+              <p className="text-sm font-semibold text-slate-700">
+                Tidak ada riwayat yang cocok dengan filter pencarian.
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                Coba gunakan kata kunci atau rentang tanggal lain.
+              </p>
+            </div>
+          }
+        />
       )}
 
       {/* ── Modal Konfirmasi Hapus Satu Entri ──────────────── */}

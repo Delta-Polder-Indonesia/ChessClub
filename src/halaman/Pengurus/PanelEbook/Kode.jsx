@@ -7,7 +7,8 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table.jsx";
-import { Tombol } from "../ui.jsx";
+import { Tombol, MenuAksi } from "../ui.jsx";
+import { Copy, Trash2 } from "lucide-react";
 
 /**
  * Halaman "Daftar kode akses": semua kode yang pernah diterbitkan.
@@ -61,12 +62,10 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                   </TableCell>
                   <TableCell>
                     {k.kadaluarsa ? (
-                      <span className="inline-flex rounded bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
-                        Kedaluwarsa
-                      </span>
+                      <span className="text-xs">Kedaluwarsa</span>
                     ) : (
                       <span
-                        className="inline-flex rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                        className="text-xs"
                         title={`Sisa ${sisaMenit(k.kedaluwarsa, kini)} menit lagi`}
                       >
                         Aktif · {sisaMenit(k.kedaluwarsa, kini)} mnt
@@ -80,24 +79,23 @@ export default function EbookKode({ kode, kini, sibuk, onSalin, onHapus, onMuat 
                     {k.catatan || "—"}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => onSalin(k.kode)}
-                        disabled={sibuk}
-                        className="text-xs font-medium text-primary hover:underline disabled:opacity-40"
-                      >
-                        Salin
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onHapus(k)}
-                        disabled={sibuk}
-                        className="text-xs font-medium text-red-600 hover:underline disabled:opacity-40"
-                      >
-                        Hapus
-                      </button>
-                    </div>
+                    <MenuAksi
+                      aksi={[
+                        {
+                          label: "Salin",
+                          Ikon: Copy,
+                          onClick: () => onSalin(k.kode),
+                          disabled: sibuk,
+                        },
+                        {
+                          label: "Hapus",
+                          Ikon: Trash2,
+                          onClick: () => onHapus(k),
+                          disabled: sibuk,
+                          bahaya: true,
+                        },
+                      ]}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

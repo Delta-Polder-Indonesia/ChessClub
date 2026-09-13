@@ -21,6 +21,7 @@ import DropdownNotifikasi from "./DropdownNotifikasi.jsx";
 import DropdownProfil from "./DropdownProfil.jsx";
 import RingkasanDashboard from "./RingkasanDashboard.jsx";
 import { KotakGalatMuat } from "./ui.jsx";
+import Marquee from "../../components/ui/marquee.jsx";
 
 /* ========================================================
    HALAMAN UTAMA: Dashboard
@@ -266,7 +267,7 @@ export default function Dashboard() {
                 Akun kamu saat ini adalah <strong>Admin Pengurus</strong>.
               </p>
               <button type="button" onClick={() => setTabPengaturan(false)}
-                className="mt-5 rounded-full bg-slate-900 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800">
+                className="mt-5 rounded-md border-2 border-slate-300 px-5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100">
                 Kembali ke Dashboard
               </button>
             </div>
@@ -275,8 +276,8 @@ export default function Dashboard() {
       ) : (
       <>
       {/* ── Header ── */}
-      <header className="bg-white border-b border-slate-200 px-6 py-0 shrink-0">
-        <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-slate-200 pl-2 pr-6 py-0 shrink-0">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-4">
             <button onClick={() => setSidebarTerbuka((s) => !s)}
               className="p-2 rounded-md hover:bg-slate-100 transition-colors duration-150"
@@ -286,6 +287,13 @@ export default function Dashboard() {
               </svg>
             </button>
             <h1 className="text-lg font-bold text-slate-900">{judulRincian || "Dashboard Pengurus"}</h1>
+          </div>
+
+          {/* Notifikasi backend (permintaan terlalu banyak, peringatan fair play,
+              pesan baru, dst.) mengisi ruang di samping judul sampai tepi lonceng —
+              bukan kotak toast di dalam konten yang sebelumnya menggeser tata letak. */}
+          <div className="flex min-w-0 flex-1 items-center justify-end">
+            {kabar && <Marquee ringan items={[kabar.teks]} />}
           </div>
 
           <div className="flex items-center gap-2">
@@ -323,7 +331,7 @@ export default function Dashboard() {
                   </p>
                   <p className="text-xs text-slate-500">{isMaster ? "Master Admin" : "Admin Pengurus"}</p>
                 </div>
-                <div className={`h-9 w-9 rounded-full flex items-center justify-center text-white text-sm font-semibold shrink-0 uppercase ${isMaster ? "bg-slate-900" : "bg-primary"}`}>
+                <div className="h-9 w-9 rounded-full flex items-center justify-center text-slate-900 text-sm font-semibold shrink-0 uppercase border-2 border-slate-900">
                   {(pengguna || "?").charAt(0)}
                 </div>
               </button>
@@ -340,14 +348,6 @@ export default function Dashboard() {
         <Sidebar tab={tab} setTab={pilihTabSidebar} terbuka={sidebarTerbuka} halamanEbook={halamanEbook} onPilihEbook={(hal) => { setHalamanEbook(hal); bukaTab("ebook"); }} />
 
         <main className="flex-1 p-6 md:p-8 min-w-0 overflow-y-auto min-h-0">
-          {kabar && (
-            <p className={`mb-4 rounded-md border bg-white px-4 py-2.5 text-sm ${
-              kabar.jenis === "galat" ? "border-red-300 text-red-800"
-              : kabar.jenis === "peringatan" ? "border-amber-300 text-amber-900"
-              : "border-emerald-300 text-emerald-800"
-            }`}>{kabar.teks}</p>
-          )}
-
           {tab === "dashboard" && (
             memuat && !ringkas ? (
               <p className="py-10 text-center text-sm text-slate-500">Memuat…</p>
@@ -361,7 +361,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={muatUlang}
-                  className="rounded-full border border-red-300 bg-white px-4 py-1.5 text-xs font-bold text-red-700 hover:bg-slate-50"
+                  className="rounded-md border-2 border-red-300 px-4 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
                 >
                   Coba Lagi
                 </button>

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { Tombol, Bidang, Modal, MenuAksi, Sheet, KotakGalatMuat } from "./ui.jsx";
+import { Tombol, Bidang, Modal, MenuAksi, Sheet } from "./ui.jsx";
 import {
   Table,
   TableHeader,
@@ -133,9 +133,10 @@ export default function PanelJuara({ beriTahu }) {
         );
       setDaftar(arsip);
     } catch {
+      beriTahu("Data juara gagal dimuat. Periksa koneksi lalu coba lagi.", "galat");
       setGagal(true);
     }
-  }, []);
+  }, [beriTahu]);
 
   useEffect(() => {
     muat();
@@ -250,21 +251,27 @@ export default function PanelJuara({ beriTahu }) {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-bold text-slate-900">Juara Turnamen</h2>
+      <div className="flex items-center justify-between gap-4">
+        <h2 className="text-base font-bold text-slate-900">Juara Turnamen</h2>
+        {gagal && (
+          <button
+            type="button"
+            onClick={muat}
+            className="rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+          >
+            Coba Lagi
+          </button>
+        )}
+      </div>
 
-      {gagal ? (
-        <KotakGalatMuat
-          pesan="Data juara gagal dimuat. Periksa koneksi lalu coba lagi."
-          onCobaLagi={muat}
-        />
-      ) : daftar === null ? (
+      {gagal ? null : daftar === null ? (
         <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
           Memuat…
         </p>
       ) : (
         <>
           <div className="flex justify-end">
-            <Tombol anak="+ Juara Turnamen" jenis="utama" onClick={bukaTambah} />
+            <Tombol anak="+ Juara Turnamen" jenis="biasa" onClick={bukaTambah} />
           </div>
 
           {daftar.length === 0 ? (
@@ -344,7 +351,7 @@ export default function PanelJuara({ beriTahu }) {
             <Tombol anak="Batal" onClick={() => setSheet(null)} disabled={sibukBaru} />
             <Tombol
               anak={sibukBaru ? "Simpan…" : "Simpan"}
-              jenis="utama"
+              jenis="biasa"
               disabled={sibukBaru || !form.nama.trim()}
               onClick={simpan}
             />

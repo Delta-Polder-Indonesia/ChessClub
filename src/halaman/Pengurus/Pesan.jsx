@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../lib/api/index.js";
-import { Modal, KotakGalatMuat } from "./ui.jsx";
+import { Modal } from "./ui.jsx";
 
 function waktuPesan(iso) {
   if (!iso) return "";
@@ -56,7 +56,7 @@ export default function PanelPesan({
       const data = await apiPengurus("/pesan");
       setPesan(data);
     } catch (e) {
-      beriTahu(e.message, "galat");
+      beriTahu("Pesan masuk gagal dimuat. Periksa koneksi lalu coba lagi.", "galat");
       setGalat(true);
     } finally {
       setMemuat(false);
@@ -234,28 +234,34 @@ export default function PanelPesan({
             {pesan.length} pesan{belumDibaca > 0 && <>, <span className="font-medium text-slate-700">{belumDibaca} belum dibaca</span></>}
           </p>
         </div>
-        {adaTerpilih && (
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-500">{terpilih.size} dipilih</span>
+        <div className="flex items-center gap-3">
+          {galat && (
             <button
               type="button"
-              onClick={() => setTargetHapusBanyak(true)}
-              className="rounded px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50"
+              onClick={muatPesan}
+              className="rounded-md border-2 border-slate-300 px-4 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100"
             >
-              Hapus Semua
+              Coba Lagi
             </button>
-          </div>
-        )}
+          )}
+          {adaTerpilih && (
+            <>
+              <span className="text-sm text-slate-500">{terpilih.size} dipilih</span>
+              <button
+                type="button"
+                onClick={() => setTargetHapusBanyak(true)}
+                className="rounded px-3 py-1.5 text-xs font-medium text-red-600 border border-red-200 hover:bg-red-50"
+              >
+                Hapus Semua
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {memuat ? (
         <p className="py-10 text-center text-sm text-slate-500">Memuat pesan…</p>
-      ) : galat ? (
-        <KotakGalatMuat
-          pesan="Pesan masuk gagal dimuat. Periksa koneksi lalu coba lagi."
-          onCobaLagi={muatPesan}
-        />
-      ) : pesan.length === 0 ? (
+      ) : galat ? null : pesan.length === 0 ? (
         <div className="border border-dashed border-slate-200 bg-white p-10 text-center">
           <p className="text-sm text-slate-500">Belum ada pesan masuk.</p>
         </div>

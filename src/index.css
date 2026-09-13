@@ -69,6 +69,30 @@
       height: 0;
     }
   }
+
+  /* Marquee notifikasi dashboard — dua lintasan identik yang bergeser ke
+     kiri secara kontinu (pola komponen ui/marquee). track2 memulai dari
+     translateX(100%) agar tak tampak celah saat track1 menyelesaikan siklus. */
+  --animate-marquee: marquee 25s linear infinite;
+  --animate-marquee2: marquee2 25s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-100%);
+    }
+  }
+
+  @keyframes marquee2 {
+    from {
+      transform: translateX(100%);
+    }
+    to {
+      transform: translateX(0);
+    }
+  }
 }
 
 html {

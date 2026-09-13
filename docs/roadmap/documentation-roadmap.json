@@ -1,0 +1,303 @@
+{
+  "repo_notes": [
+    {
+      "content": ""
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce the ChessClub (Komunitas Catur Indonesia / 'Blunder Skuad') platform: a React + Vite SPA with a zero-framework Node backend, chess training/analysis tools, member management, and an admin dashboard. Explain the Indonesian-language naming convention and link to child pages.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started & Local Development",
+      "purpose": "Node >=22 requirements, npm scripts (dev/build/uji), environment variables from .env.contoh, and local implementation checklist.",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Repository Layout & Naming Conventions",
+      "purpose": "Map directories (src/halaman, src/lib, server, scripts, plugins, public) and explain Indonesian identifier vocabulary and agent skill docs (.agents/, .opencode/).",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend Application Architecture",
+      "purpose": "Overview of the React SPA: routing, layouts, shared components, i18n, and design system. Links to child pages.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Routing, Code Splitting & Layouts",
+      "purpose": "RUTE_HALAMAN, RUTE_REDIRECT, ProtectedRoute, prefetch, PageLayout/TataLetakBeranda, menu.js navigation trees.",
+      "parent": "Frontend Application Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Shared Components & UI Kit",
+      "purpose": "Header/Footer/StickyMenu/Hero, src/components/ui shadcn-style primitives, tools components, components.json config, Radix usage guidelines.",
+      "parent": "Frontend Application Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Internationalization (terjemahan)",
+      "purpose": "i18n provider, id/en dictionary module structure, per-feature dictionaries, and translation testing conventions.",
+      "parent": "Frontend Application Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Styling & Theming",
+      "purpose": "Tailwind v4 setup, index.css custom classes (prose-kci, tabel-peringkat, daftar pengurus), and scoped .analisa-root token system.",
+      "parent": "Frontend Application Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Public Content Pages",
+      "purpose": "Beranda, Landing, TentangKami, ProgramKami, Keberlanjutan, Karir, MediaDanInformasi, Turnamen, Atribusi page families and their data sources.",
+      "parent": "Frontend Application Architecture",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Chess Features",
+      "purpose": "Overview of the chess-specific subsystems: interactive board, puzzles, rush mode, quiz, engine integration, and the commentator. Links to children.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Interactive Board & Puzzles (PapanInteraktif, TekaTeki)",
+      "purpose": "PapanTekaTeki rendering/drag/annotation engine, puzzle validation flow, tablebase queries, opening books and Wikibooks integration.",
+      "parent": "Chess Features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Chess Engine Integration (Stockfish/UCI)",
+      "purpose": "src/lib/engineCatur.js, gunakanEngineCatur hook, public/engines Stockfish builds, worker lifecycle, PanelEngine UI, UCI test scripts.",
+      "parent": "Chess Features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Move Commentator & Classification",
+      "purpose": "komentator.js/komentatorPengaya.js, KartuKomentator, annotation ratings (brilliant..blunder), checkmate badges, sound effects.",
+      "parent": "Chess Features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Training Modes: Teka-Teki Rush & Quiz Catur",
+      "purpose": "Timed puzzle rush gameplay, rekor-rush server records, quiz question catalogs and tests.",
+      "parent": "Chess Features",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Analisa Subsystem",
+      "purpose": "Overview of the ported Brilliant-Chess analysis workspace: providers, workspace screens, board, menus, local database, and accounts.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Workspace Shell: Analisa, Nav, Menu, Game",
+      "purpose": "Provider tree, TAMPILAN_ANALISA screen switching, never-unmount board strategy, move navigation and custom lines.",
+      "parent": "Analisa Subsystem",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Game Ingestion: PGN, FEN, Chess.com & Lichess",
+      "purpose": "Import screens, selectChessCom/selectLichessOrg, muatPartaiAkun archive fetching and normalization.",
+      "parent": "Analisa Subsystem",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Local Game Database (IndexedDB)",
+      "purpose": "basisData.js API, collections, revision-based cache invalidation, LayarDatabase table/pagination, export/import PGN.",
+      "parent": "Analisa Subsystem",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Accounts & Statistics Dashboard",
+      "purpose": "DaftarAkun/KartuAkun/LayarAkun, statsAkun computations, DashboardAkun tabs and rating charts.",
+      "parent": "Analisa Subsystem",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Analysis UI Details: Summary, Moves, Settings, Assets",
+      "purpose": "Summary/accuracy/rating widgets, moves & comments panels, settings panels, loading spinners and SVG assets.",
+      "parent": "Analisa Subsystem",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Backend API Server",
+      "purpose": "Overview of the framework-free Node HTTP backend: bootstrap, config, routing, domain modules, and persistence. Links to children.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Bootstrap, Configuration & HTTP Primitives",
+      "purpose": "index.js dual-mode server, konfigurasi.js env parsing, http.js (CORS, gzip, rate limiting, CSRF, JWT, router).",
+      "parent": "Backend API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Routes & Domain Modules",
+      "purpose": "rute.js registration plus keanggotaan, turnamen, konten, pesan, ebook, rekor-rush, klub, chess.com integration, oauth, verifikasi-profil.",
+      "parent": "Backend API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Persistence: JSON Seed Data & Supabase",
+      "purpose": "data/*.json seed files, simpanan.js, storage-supabase.js kci_storage table, db/supabase-schema.sql, migration notes.",
+      "parent": "Backend API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Security & Authentication Model",
+      "purpose": "Admin login flow, pepper/identity hashing, roles master vs pengurus, anti-brute-force, CSRF, audit and login history, security config tests.",
+      "parent": "Backend API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Frontend API Client (src/lib/api)",
+      "purpose": "api/index.js wrapper, token storage helpers, endpoint modules (anggota, pengurus, ebook, pesan, verifikasi) and error conventions.",
+      "parent": "Backend API Server",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Membership, Community & Admin Dashboard",
+      "purpose": "Overview of member registration, ratings leaderboard, and the pengurus admin console. Links to children.",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Membership & Ratings (Keanggotaan)",
+      "purpose": "PendaftaranAnggota flow, identity hashing, Chess.com roster sync, Peringkat leaderboard, DaftarAnggota, account verification.",
+      "parent": "Membership, Community & Admin Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Admin Gateway & Dashboard Panels",
+      "purpose": "Gerbang login, Dashboard shell/sidebar/notifications, panels for Anggota, Larangan, Pesan, Konten, Juara, Pengaturan, Audit.",
+      "parent": "Membership, Community & Admin Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Tournament Management",
+      "purpose": "PanelTurnamen forms/details, server turnamen module, DaftarTurnamen and results tables, standings tests.",
+      "parent": "Membership, Community & Admin Dashboard",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
