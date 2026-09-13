@@ -260,6 +260,12 @@ export default function TekaTeki() {
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
+  /**
+   * Panel pengaturan (gear) hidup di `LayoutTekaTeki`, tetapi nilainya dipegang
+   * halaman: gerbang pintasan keyboard (`blokir`) dan panel harus membaca
+   * state yang sama, kalau tidak panah tetap menggerakkan papan saat panel
+   * terbuka.
+   */
   const [bukaPengaturan, setBukaPengaturan] = useState(false);
 
   // Suara papan (MP3 di public/SoundChess) — sakelarnya dibagi dengan
@@ -793,15 +799,6 @@ export default function TekaTeki() {
     return () => window.removeEventListener("keydown", saatEscape);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [promosi]);
-
-  useEffect(() => {
-    if (!bukaPengaturan) return;
-    function saatEscape(e) {
-      if (e.key === "Escape") setBukaPengaturan(false);
-    }
-    window.addEventListener("keydown", saatEscape);
-    return () => window.removeEventListener("keydown", saatEscape);
-  }, [bukaPengaturan]);
 
   useEffect(() => {
     if (!komputer || selesai || !sisa.length) return;
@@ -1387,6 +1384,8 @@ export default function TekaTeki() {
         <LayoutTekaTeki
               papan={papanWadah}
               barEvaluasi={barEvaluasiWadah}
+              bukaPengaturan={bukaPengaturan}
+              onGantiPengaturan={setBukaPengaturan}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               jumlahLangkah={langkahPenuh.length}
               syzygy={syzygy}
@@ -1534,7 +1533,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1542,16 +1541,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
   const file = ["a", "b", "c", "d", "e", "f", "g", "h"];
   const daftarTema = opsiTema.length ? opsiTema : OPSI_TEMA_BAWAAN;
 
-  // Pengaturan (gear): salinan perilaku dari halaman TekaTeki.
-  const [bukaPengaturan, setBukaPengaturan] = useState(false);
+  // Pengaturan (gear): state-nya milik halaman (lihat `bukaPengaturan` di
+  // komponen halaman) supaya pintasan panah ikut terkunci saat panel terbuka.
   useEffect(() => {
-    if (!bukaPengaturan) return;
+    if (!bukaPengaturan || !onGantiPengaturan) return;
     const saatEscape = (e) => {
-      if (e.key === "Escape") setBukaPengaturan(false);
+      if (e.key === "Escape") onGantiPengaturan(false);
     };
     window.addEventListener("keydown", saatEscape);
     return () => window.removeEventListener("keydown", saatEscape);
-  }, [bukaPengaturan]);
+  }, [bukaPengaturan, onGantiPengaturan]);
 
   return (
     <div className="flex flex-col min-h-screen lg:h-screen overflow-hidden bg-[#262421] text-gray-200 font-sans select-none">
@@ -1903,7 +1902,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
               <div className="relative">
                 <button
                   type="button"
-                  onClick={() => setBukaPengaturan((v) => !v)}
+                  onClick={() =>
+                    onGantiPengaturan && onGantiPengaturan(!bukaPengaturan)
+                  }
                   aria-expanded={bukaPengaturan}
                   className={`p-2 rounded-md transition ${
                     bukaPengaturan
@@ -1941,7 +1942,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, onFlip = null, gilir
                     <div
                       aria-hidden="true"
                       className="fixed inset-0 z-40"
-                      onClick={() => setBukaPengaturan(false)}
+                      onClick={() => onGantiPengaturan && onGantiPengaturan(false)}
                     />
                     <div
                       role="dialog"
