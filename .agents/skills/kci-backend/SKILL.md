@@ -25,9 +25,11 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 - `index.js` — titik masuk: muat admin file → daftarkan rute → `periksaProduksi()` → dengarkan port.
   Bila env `VERCEL` terdeteksi, tidak membuka port dan mengekspor `tangani(req, res)` untuk
   `api/[...jalur].js`. Jaga urutan startup ini.
-- `konfigurasi.js` — **satu-satunya tempat membaca environment variable.** Fail-closed: pada mode produksi
-  (`NODE_ENV=production` ATAU `KCI_ASAL_DIIZINKAN` terisi) server menolak jalan bila `KCI_PEPPER` kosong
-  atau < 16 karakter, `KCI_ADMIN_PASSWORD` masih bawaan, atau `KCI_JWT_SECRET` kosong.
+- `konfigurasi.js` — **satu-satunya tempat membaca environment variable.** Fail-closed lewat
+  `periksaProduksi()`: pada mode produksi (`NODE_ENV=production` ATAU `KCI_ASAL_DIIZINKAN` terisi) server
+  menolak jalan bila `KCI_PEPPER` < 16 karakter, `KCI_JWT_SECRET` < 24 karakter, `KCI_ADMIN_PASSWORD`
+  bawaan/< 6 karakter, atau `KCI_TOKEN_ADMIN` diisi < 24 karakter. `index.js` memperketat lagi:
+  `KCI_ADMIN_PASSWORD` wajib >= 12 karakter di produksi.
 - `rute.js` — satu-satunya tempat registrasi rute HTTP; handler domain tetap di modul masing-masing
   (`keanggotaan.js`, `turnamen.js`, `konten.js`, `pesan.js`, `ebook.js`, `oauth.js`,
   `verifikasi-profil.js`, `rekor-rush.js`, `chess.js`, `klub.js`).

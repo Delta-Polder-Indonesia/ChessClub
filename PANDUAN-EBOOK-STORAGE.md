@@ -1,7 +1,12 @@
 # Memindahkan E-Book ke Object Storage (Supabase)
 
-E-book PDF di `public/ebooks/` (±500 MB) selama ini disimpan lewat **Git LFS**.
-Ini bekerja, tapi punya dua kelemahan:
+**Status sekarang:** e-book PDF di `public/ebooks/` (32 berkas, ±484 MB) disimpan
+sebagai **blob Git biasa**, sejak `scripts/keluar-dari-lfs.sh` dijalankan dan
+`.gitattributes` dikosongkan. Bagian LFS di bawah tinggal latar belakang; langkah
+object storage tetap berlaku, dan justru makin relevan karena repo sekarang ikut
+membawa seluruh koleksi setiap kali diklon atau di-deploy.
+
+Dua kelemahan saat koleksi masih lewat **Git LFS**:
 
 - Setiap deploy mengunduh ulang ±500 MB → cepat menghabiskan **bandwidth LFS
   gratis GitHub (1 GiB/bulan)**.
@@ -15,11 +20,13 @@ diunggah).
 
 ## Sekali jalan (migrasi)
 
-1. **Pastikan PDF asli ada di mesin lokal** (bukan pointer LFS):
+1. **Pastikan PDF asli ada di mesin lokal** (klon biasa sudah cukup sejak repo
+   tidak lagi memakai Git LFS):
    ```bash
-   git lfs install && git lfs pull
    head -c 4 "public/ebooks/Sicilian Defense.pdf"   # harus mencetak %PDF
    ```
+   Hanya untuk checkout lama yang isinya masih pointer: unduh isinya lebih dulu
+   (`git lfs install && git lfs pull`) sebelum mengunggah apa pun.
 
 2. **Unggah ke Supabase Storage** (pakai kunci *service role*):
    ```bash
@@ -93,6 +100,10 @@ build ulang — situs otomatis kembali membaca `public/ebooks/*.pdf`.
 
 ## Pilihan lain: keluar dari Git LFS (PDF disimpan biasa di repo)
 
+**Sudah dijalankan di repo ini** — PDF sekarang blob Git biasa dan `.gitattributes`
+kosong. Jangan ulangi skripnya; bagian berikut tinggal catatan cara kerjanya (dan
+pegangan kalau koleksi pernah dikembalikan ke LFS).
+
 Kalau Anda ingin PDF asli benar-benar ada di repositori — supaya Vercel
 menyajikannya langsung dari `dist/ebooks/` tanpa kuota LFS — pakai skrip:
 
@@ -111,12 +122,12 @@ Yang dilakukan skrip:
 4. `git add --renormalize` — commit berikutnya menyimpan PDF sebagai blob Git
    biasa. **Riwayat lama tidak ditulis ulang**, jadi tidak perlu force push.
 
-Kondisi koleksi saat ini: **24 berkas, ±394 MB**, terbesar
-`Ruy Lopez_Anti Berlin (id).pdf` ±72 MB (aman, tapi kena peringatan >50 MB).
+Kondisi koleksi saat ini: **32 berkas, ±484 MB**, terbesar
+`Ruy Lopez_Anti Berlin (id).pdf` ±75 MB (aman, tapi kena peringatan >50 MB).
 
 Konsekuensi yang perlu disadari:
 
-- Ukuran `.git` bertambah ±400 MB dan **tidak bisa dikecilkan** tanpa menulis
+- Ukuran `.git` bertambah ±484 MB dan **tidak bisa dikecilkan** tanpa menulis
   ulang riwayat; setiap kali satu PDF diganti, salinan penuhnya tersimpan lagi.
 - `git clone` (termasuk clone yang dilakukan Vercel/GitHub Actions setiap
   deploy) ikut mengunduh semua berkas itu → build lebih lambat.
@@ -136,7 +147,7 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook \
 | Opsi | Repo tetap ringan | Butuh layanan luar | Kuota LFS terpakai | Cocok bila |
 | --- | --- | --- | --- | --- |
 | Object storage (`npm run ebook:unggah`) | ✅ | Supabase/R2/S3 | ❌ | koleksi terus bertambah besar |
-| PDF biasa di Git (`scripts/keluar-dari-lfs.sh`) | ❌ (+394 MB) | ❌ | ❌ | ingin semuanya di satu repo |
+| PDF biasa di Git (`scripts/keluar-dari-lfs.sh`) — **status aktif** | ❌ (+484 MB) | ❌ | ❌ | ingin semuanya di satu repo |
 | Tetap Git LFS | ✅ | ❌ | ✅ 1 GiB/bulan | jumlah pembaca masih kecil |
 
 Apa pun pilihannya, tombol **Baca** tetap bekerja: proxy `/api/ebook-preview`

@@ -20,7 +20,7 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
   (auth JWT, verifikasi Chess.com, e-book).
 - `npm run uji:e2e` — Playwright smoke test halaman publik (butuh `npx playwright install chromium`).
 - `npm run uji:konfigurasi-keamanan` — konfigurasi keamanan server (wajib lulus bila menyentuh
-  `konfigurasi.js`/`http.js`; CI selalu menjalankannya).
+  `server/src/konfigurasi.js`/`server/src/http.js`; CI selalu menjalankannya).
 
 ## Kapan menjalankan apa (aturan minimum)
 
@@ -28,7 +28,7 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 - Logika frontend → uji topik terkait (lihat blok `"scripts"` di `package.json`; penamaan sudah
   menjelaskan isinya).
 - `server/` atau `api/` → `npm run uji:backend && npm run uji:skema && npm run uji:verifikasi`
-  (+ `uji:konfigurasi-keamanan` bila relevan).
+  (+ `uji:konfigurasi-keamanan` bila relevan; CI selalu menjalankannya).
 - Konten/data (`data/`, e-book, gambar, suara) → uji sesuai jenis (`uji:ebook`, `uji:gambar`,
   `uji:basisdata`, `uji:suara`).
 
@@ -39,13 +39,13 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
   ke rantai `npm run uji`.
 - Uji backend memakai alat bantu `server/uji/alat-uji.mjs`; boleh memakai dependensi akar (`zod`, dll.)
   tetapi tetap tanpa framework dan tanpa dependensi baru.
-- Uji e-book membutuhkan berkas PDF asli dari Git LFS (`git lfs pull`) — pointer LFS 132 byte membuat
-  uji gagal dengan pesan PDF tidak valid.
+- Uji e-book menerima PDF asli (`%PDF`) atau pointer Git LFS yang formatnya sah. PDF di
+  `public/ebooks/` kini blob Git biasa (`.gitattributes` kosong), jadi `git lfs pull` tidak perlu.
 
 ## Samakan dengan CI
 
-`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout LFS)
-menjalankan berurutan:
+`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout
+biasa tanpa `lfs: true`) menjalankan berurutan:
 
 1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan`
 2. "Build production bundle": `npm run build`

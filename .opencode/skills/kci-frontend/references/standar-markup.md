@@ -33,6 +33,7 @@ Pembanding per jenis halaman:
   - `PageArtikel` — semua konten teks/artikel (tipografi otomatis oleh `.prose-kci`).
   - `PageGambar` — foto + caption (srcset otomatis).
   - `StickyMenu` — submenu scroll-spy untuk halaman multi-bagian (`sections` dengan `id` + `label`).
+    Berkasnya `src/components/StickyMenu.jsx` (*default export*), bukan bagian `PageBagian.jsx`.
 
 Kerangka minimal halaman baru:
 

@@ -1,10 +1,10 @@
-# FILE INI = isi .github/workflows/quality.yml (versi setelah perbaikan Git LFS).
-# Alur penerapan dari lokal:
-#   1) git pull
-#   2) rename berkas ini menjadi .github/workflows/quality.yml (hapus ekstensi .md)
-#   3) git add .github/workflows/quality.yml && git commit && git push
-# (Berkas .md ini sengaja dibuat agar perubahan workflow bisa lewat dari
-#  lingkungan yang token-nya tidak punya izin `workflows`.)
+# FILE INI = salinan persis .github/workflows/quality.yml (isi yang aktif di `main`).
+# Keberadaan berkas ini hanya cadangan untuk lingkungan yang token-nya tidak
+# punya izin `workflows`: salin seluruh isi di bawah ke
+# .github/workflows/quality.yml (bukan di-rename — berkas ini memang mirror).
+# Ubah salah satu → ubah keduanya, kalau tidak dokumennya jadi bohong.
+# Catatan: Git LFS sudah tidak dipakai (PDF e-book = blob Git biasa, lihat
+# scripts/keluar-dari-lfs.sh), karena itu checkout sengaja TANPA `lfs: true`.
 
 name: Quality checks
 
@@ -23,23 +23,19 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        # LFS agar e-book PDF asli ikut terunduh (uji-ebook & smoke test
-        # memeriksa berkas di public/ebooks/).
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
       - name: Run logic and backend tests
-        run: npm run uji && npm run uji:backend && npm run uji:verifikasi
+        run: npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan
 
       - name: Build production bundle
         run: npm run build
