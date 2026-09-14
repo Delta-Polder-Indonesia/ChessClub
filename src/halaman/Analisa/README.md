@@ -312,6 +312,73 @@ menjalankan Stockfish sekali per langkah:
   partai berikutnya;
 - analisis TIDAK berjalan otomatis saat tab dibuka — pengguna menekan tombol.
 
+## Roadmap anti-cheat — status & langkah selanjutnya
+
+Bagian ini dokumen serah-terima: kalau suatu saat ingin melanjutkan, cukup
+tunjuk bagian ini — semua konteks teknis untuk melanjutkan ada di sini dan di
+file-file yang disebut.
+
+### Status terkini (selesai, 2026-09-14)
+
+- **Fase 1 — peringkat kandidat MultiPV + WDL.** Setiap posisi direkam
+  `MULTI_PV` (5) kandidat terbaik (`engineCatur.js` → `mesin/engine.js`);
+  metrik `rataPeringkat`, `kecocokanTop3/Top5`, `acplKandidat`,
+  `rataKehilanganMenang` (WDL) di `mesin/antiCheat.js`; skor 4 komponen
+  (kecocokan 0,30 · peringkat 0,25 · ACPL 0,25 · waktu 0,20).
+- **Fase 2 — metrik kondisional perilaku.** `kecocokanSulit` /`kecocokanMudah`
+  (keranjang ketajaman 20/100 cp), `streakTerpanjang`,
+  `korelasiWaktuKualitas` (Spearman waktu pikir ↔ peringkat). Laporan
+  peninjau, bukan komponen skor — sengaja, agar makna skor stabil.
+- Uji: `scripts/uji-anticheat.mjs` (203) dan `scripts/uji-engine-uci.mjs`
+  (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
+  sebelum dan sesudah langkah berikutnya.
+
+### Langkah berikutnya (urut prioritas)
+
+1. **Baseline ke-manusiaan Maia (butuh hosting model terpisah).** Bandingkan
+   setiap langkah pemain dengan prediksi "manusia rating X" dari model Maia
+   (ONNX). Deviasi besar dari manusia + peringkat MultiPV tinggi = sinyal
+   terkuat. Teknis: jalankan via `onnxruntime-web` (pola bundel Maia2 di
+   A.C.A.S), metrik baru di `mesin/antiCheat.js` membaca `kandidat` yang
+   sudah terekam — parsePGN TIDAK perlu diubah bila model hanya menilai
+   langkah yang dimainkan. **PENTING:** bobot 40–90 MB — jangan masuk repo
+   (cap patchset ~128 MB); host di Supabase Storage (`storage-supabase.js`
+   sudah ada) atau R2, unduh dan cache di IndexedDB (`basisData.js` punya
+   pola penyimpanan biner yang bisa ditiru). Lisensi: kode maia-chess
+   GPL-3.0 (setara Stockfish yang sudah di-bundle), lisensi bobot per model
+   wajib dicek sebelum dipakai.
+2. **Kalibrasi ambang per rating.** `AMBANG.kecocokanDasar` dkk. saat ini
+   global; pemain 800 dan 2600 punya kecocokan alami yang berbeda jauh.
+   Kumpulkan korpus partai jujur per rentang rating (mis. 400-poin),
+   hitung distribusi metriknya, lalu jadikan tabel kalibrasi (bisa statis
+   di `mesin/antiCheat.js`). Skor akhir dibandingkan terhadap persentil
+   korpus, bukan ambang tetap.
+3. **Laporan peninjauan untuk pengurus turnamen.** Ekspor ringkasan satu
+   pemain (agregat + per partai + metrik kondisional + sanggahan) menjadi
+   berkas teks/JSON yang bisa dilampirkan berita acara — memakai data
+   `agregatSkorPemain` yang sudah ada, tanpa analisis ulang.
+4. **Ukur biaya riil MultiPV.** Tambahkan opsinya untuk mencatat durasi
+   `parsePGN` per partai (sebelum/sesudah MultiPV 5) supaya keputusan
+   menaikkan/menurunkan `MULTI_PV` atau `KEDALAMAN_AGGREGAT` berbasis
+   angka, bukan kira-kira.
+5. **(Opsional) cache agregat lintas sesi di server.** Saat ini cache
+   per-sesi di peramban; bila analisis rutin dipakai pengurus, simpan hasil
+   `hitungSkorKecurigaan` per id partai ke `kci_storage` dengan kunci
+   `anticheat|<id>|d8|mp5` — pola sama dengan kunci cache sesi.
+
+### Catatan untuk pelanjut
+
+- Semua metrik baru wajib null-safe terhadap partai lama tanpa `kandidat`
+  (lihat pola `komponen?.peringkat ?? null` di `mesin/antiCheat.js`).
+- Kunci cache agregat ada di `akun/antiCheatRiwayat.js` →
+  `kunciCachePartai`; bila hasil analisis berubah bentuk, selipkan penanda
+  versi baru (pola `mp5`) agar cache lama tidak tercampur.
+- UI metrik: kartu `summary/deteksiEngine.jsx` + tab agregat
+  `akun/DashboardAkun.jsx`; kunci kamus di
+  `lib/terjemahan/{id,en}/analisa.js` (wajib seimbang — `npm run uji:i18n`).
+- Bahasa UI tetap probabilistik: indikasi untuk ditinjau manusia, bukan
+  vonis — jangan pernah menulis "terbukti curang".
+
 ## Periksa sendiri
 
 `jsdom` + `esbuild` sekarang ada di `devDependencies`. Sebelumnya tidak, dan
