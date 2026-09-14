@@ -5,36 +5,13 @@ import { useI18n } from "../../../../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../../../../lib/pemainCatur.js";
 import RatingBox from "./ratingBox.jsx";
 import { Chess } from "chess.js";
-function isEndOpening(position2) {
-  let nonDeveloppedBlack = 0, nonDeveloppedWhite = 0;
-  for (const square of position2[0]) {
-    if (square?.color === "w") continue;
-    if (square?.type === "n" || square?.type === "b" || square?.type === "q") nonDeveloppedBlack++;
-  }
-  for (const square of position2[position2.length - 1]) {
-    if (square?.color === "b") continue;
-    if (square?.type === "n" || square?.type === "b" || square?.type === "q") nonDeveloppedWhite++;
-  }
-  const developpedBlack = 5 - nonDeveloppedBlack;
-  const developpedWhite = 5 - nonDeveloppedWhite;
-  if (developpedBlack >= 3 && developpedWhite >= 2) return true;
-  if (developpedWhite >= 3 && developpedBlack >= 2) return true;
-  if (developpedBlack >= 4) return true;
-  if (developpedWhite >= 4) return true;
-}
-function isEndMiddlegame(position2) {
-  let whitePieces = 0, blackPieces = 0;
-  for (const row of position2) {
-    for (const square of row) {
-      if (square?.type === "r" || square?.type === "n" || square?.type === "b" || square?.type === "q") {
-        if (square.color === "w") whitePieces++;
-        else blackPieces++;
-      }
-    }
-  }
-  if (whitePieces <= 2 && blackPieces <= 2) return true;
-  if (whitePieces <= 1 || blackPieces <= 1) return true;
-}
+/*
+ * Pembanding fase dipindah ke modul bersama `mesin/fase.js` (isi & ambangnya
+ * identik) karena perhitungan anti-cheat memakai batas fase yang sama.
+ * Urutan pemindaian di bawah TIDAK berubah: langkah tetap dicatat ke fase
+ * yang sedang aktif, baru kemudian fasenya dimajukan.
+ */
+import { isEndOpening, isEndMiddlegame } from "../../../../mesin/fase.js";
 function avg(arr) {
   // Tanpa penjagaan ini, daftar kosong menghasilkan 0/0 = NaN dan panel
   // ringkasan menampilkan "NaN" alih-alih angka akurasi.

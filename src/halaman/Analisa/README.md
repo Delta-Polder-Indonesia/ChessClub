@@ -189,14 +189,81 @@ tooltip saat label hilang.
   aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
 - **Dashboard statistik akun** (gaya en-croissant). Setelah akun dipilih,
   panel menampilkan kartu akun (avatar + rating Bullet/Blitz/Rapid + jumlah
-  partai + pembaruan terakhir) dan tiga tab: **Ringkasan** (total, W/D/L,
+  partai + pembaruan terakhir) dan empat tab: **Ringkasan** (total, W/D/L,
   partai per tahun), **Peringkat** (grafik riwayat rating + rentang
-  7 hari/30 hari/90 hari/1 tahun/selamanya), dan **Pembukaan** (daftar
-  pembukaan + W/D/L per warna). Data dibaca dari `basisData` (IndexedDB);
-  bila belum ada, ditarik dari API chess.com lewat
+  7 hari/30 hari/90 hari/1 tahun/selamanya), **Pembukaan** (daftar
+  pembukaan + W/D/L per warna), dan **Deteksi engine** (indikasi agregat
+  pemakaian engine lintas riwayat — lihat bagian berikutnya). Data dibaca dari
+  `basisData` (IndexedDB); bila belum ada, ditarik dari API chess.com lewat
   `akun/muatPartaiAkun.js` lalu disimpan. Statistik dihitung di
   `akun/statsAkun.js` (murni). Pengguna bisa berpindah ke tabel partai
   untuk memilih & menganalisis lewat toggle di panel.
+
+## Deteksi engine (anti-cheat) — indikasi, bukan vonis
+
+Dua tingkat perhitungan, keduanya membaca output engine yang sudah ada —
+tidak ada logika engine baru:
+
+| Tingkat | Berkas | Isi |
+| --- | --- | --- |
+| Per partai | `mesin/antiCheat.js` → `hitungSkorKecurigaan(moves)` | metrik + skor 0–100 per warna, dirender kartu `summary/deteksiEngine.jsx` di panel Ringkasan |
+| Agregat riwayat | `mesin/antiCheat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender tab **Deteksi engine** pada `akun/DashboardAkun.jsx` |
+
+Metrik (langkah `moveRating === "forced"` dan langkah buku TIDAK dihitung):
+
+- **`engineMatchRate`** — persen langkah yang SAN-nya sama dengan usulan engine.
+  **Jebakan:** usulan untuk langkah pada `moves[i]` ada di
+  `moves[i - 1].bestMoveSan`, karena `moves[i].bestMoveSan` dihitung dari
+  `moves[i].fen` (posisi SESUDAH langkah) sehingga milik pemain berikutnya.
+  Membandingkan `san` dengan `bestMoveSan` pada entri yang sama berarti
+  mengadu langkah Putih dengan saran untuk Hitam.
+- **`acpl`** — rata-rata kerugian centipawn dari `previousStaticEvals`.
+  Dengan konvensi UCI (eval relatif terhadap pihak yang bergilir),
+  `previousStaticEvals[0]` = eval sesudah langkah dan `[1]` = eval sebelum,
+  sehingga kerugian = `cp[1] + cp[0]` untuk KEDUA warna. Skor `mate`
+  diperlakukan setara ±10 000 cp dan kerugian satu langkah dipotong di
+  1 000 cp supaya kehilangan menteri tidak mendominasi rata-rata.
+- **`konsistensiWaktu`** — dibaca dari `move.clock` (`{white, black}`) yang
+  ditempel `parsePGN`; dilewati bila `clock` null atau selisihnya negatif
+  (increment lebih besar dari waktu pikir). Nilainya 0–1 dari koefisien
+  variasi waktu pikir, minimum 8 sampel.
+- **`perFase`** — metrik yang sama dipilah opening/middlegame/endgame lewat
+  `mesin/fase.js`.
+
+Skor 0–100 = rata-rata berbobot tiga komponen (kecocokan 0,45 · ACPL 0,35 ·
+waktu 0,20; bobot dinormalkan ulang bila sebuah metrik tidak tersedia), lalu
+disusutkan `n / (n + 12)` menurut jumlah langkah yang dinilai. Level:
+`rendah` < 35 ≤ `sedang` < 70 ≤ `tinggi`. Ambangnya ada di `AMBANG` dan
+direkam `scripts/uji-anticheat.mjs` — mengubahnya berarti mengubah makna
+angka yang sudah dibaca orang.
+
+**`mesin/fase.js` adalah modul bersama.** `isEndOpening`/`isEndMiddlegame`
+dipindah apa adanya dari `playersAccuracy.jsx` supaya Akurasi dan Deteksi
+Engine memakai batas fase yang identik; jangan menggandakannya lagi. Satu
+perbedaan yang disengaja: anti-cheat memajukan fase pada SETIAP langkah yang
+FEN-nya terbaca, sedangkan Akurasi melewati langkah tanpa rating (perilaku v1
+dipertahankan). Selisihnya hanya beberapa ply dan hanya muncul bila ada
+langkah paksa tepat di batas fase.
+
+**Bahasa UI wajib probabilistik.** Keluaran ini untuk ditinjau manusia, bukan
+tuduhan: kecocokan langkah naik secara alami seiring kekuatan pemain, kontrol
+waktu panjang, dan akhirpartai sederhana. Sanggahan ditampilkan permanen di
+bawah angka (bukan di tooltip) pada kartu partai maupun tab agregat, dan
+metrik mentah selalu ikut ditampilkan supaya peninjau bisa menilai sendiri.
+
+Batas performa tab agregat (`akun/antiCheatRiwayat.js`), karena `parsePGN`
+menjalankan Stockfish sekali per langkah:
+
+- maksimal `BATAS_PARTAI` (12) partai terbaru tempat username benar-benar
+  bermain, diambil dengan `ambilDaftarPartai({ limit: 12, sertakanPgn: true })`
+  — bukan `limit: 0` yang menarik seluruh arsip ke memori;
+- kedalaman `KEDALAMAN_AGGREGAT` (8) ply, lebih dangkal dari analisis tunggal;
+- cache sesi per `id partai + kedalaman` (pola `cachePartai`), jadi berpindah
+  tab atau mengulang analisis tidak membayar dua kali;
+- progres + tombol Batal (`AbortController`, pola `selectChessCom.jsx`);
+  partai yang sudah selesai diurai tetap dipakai, yang dibatalkan hanya
+  partai berikutnya;
+- analisis TIDAK berjalan otomatis saat tab dibuka — pengguna menekan tombol.
 
 ## Periksa sendiri
 
@@ -207,6 +274,7 @@ memasangnya — sehingga uji UI tampak "lulus" padahal tidak pernah berjalan.
 ```bash
 node scripts/uji-analisa.mjs        # kontrak engine + penilaian + ketahanan worker
 node scripts/uji-analisa-ui.mjs     # render halaman di jsdom + engine UCI palsu
+node scripts/uji-anticheat.mjs      # anti-cheat: metrik, agregat, cache/batal, kartu UI
 npm run uji:i18n                    # kunci analisa.* harus ada di ID dan EN
 node scripts/generasi-buku-analisa.mjs   # bangun ulang tabel buku pembukaan
 ```
@@ -269,6 +337,13 @@ Aturan saat beku:
 - Suite berikut adalah **uji regresi hidup** perilaku v1 — bila perilaku
   memang sengaja diubah, ekspektasi di berkasnya diperbarui dalam perubahan
   yang sama (jangan dilewati/dimatikan).
+- **Kartu tambahan di `summary/summary.jsx` wajib dipasang paling bawah.**
+  `uji-hasil.mjs` mencari baris Ringkasan lewat teks labelnya
+  (`spans.find(s => s.textContent === …)`) sehingga baris PERTAMA yang cocok
+  yang menang; kartu baru yang menyisip di tengah — atau yang memakai ulang
+  label "Pembukaan"/"Menengah"/"Akhir" — akan membajak pencarian itu. Itulah
+  alasan `deteksiEngine.jsx` berada setelah `GameRating` dan memakai label
+  fase sendiri (`analisa.antiCheat.fase.*`, "Kecocokan pembukaan", …).
 
 | Suite | Cakupan | Pemeriksaan |
 | --- | --- | --- |
@@ -279,6 +354,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, agregat riwayat, cache & batal, kartu UI + tab DashboardAkun | 122 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

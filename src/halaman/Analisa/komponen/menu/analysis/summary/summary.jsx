@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import RatingCount from "./ratingCount.jsx";
 import PlayersAccuracy from "./playersAccuracy.jsx";
 import GameRating from "./gameRating.jsx";
+import DeteksiEngine from "./deteksiEngine.jsx";
 import GameChart from "../gameChart.jsx";
 import { reduceSummary } from "../../../../konstanta.js";
 function Summary(props) {
@@ -34,6 +35,12 @@ function Summary(props) {
             <RatingCount moves={moves} />
             <hr className="border-neutral-600 w-[85%]" />
             <GameRating reducedSummary={reducedSummary} accuracy={accuracy} accuracyPhases={accuracyPhases2} />
+            <hr className="border-neutral-600 w-[85%]" />
+            {/* Deteksi engine ditaruh paling bawah: kartu tambahan ini tidak
+                boleh menggeser urutan baris Ringkasan yang sudah direkam
+                suite uji beku (scripts/uji-hasil.mjs mencari baris berdasarkan
+                urutan DOM). */}
+            <DeteksiEngine moves={moves} />
         </div>;
 }
 export {
