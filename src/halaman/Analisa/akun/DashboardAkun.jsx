@@ -9,6 +9,8 @@ import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
 import { analisisRiwayatAntiCheat, BATAS_PARTAI, KEDALAMAN_AGGREGAT } from "./antiCheatRiwayat.js";
+import { MULTI_PV } from "../mesin/engine.js";
+import { unduhLaporanPeninjauan } from "../mesin/laporanPeninjauan.js";
 import { DAFTAR_FASE } from "../mesin/fase.js";
 import { gunakanMesin } from "../konteks/mesin.jsx";
 import Database from "../komponen/svg/database.jsx";
@@ -228,8 +230,46 @@ function RingkasanAntiCheat({ agregat }) {
           : t("analisa.antiCheat.riwayat.tidakAndal", { partai: agregat.jumlahPartai, langkah: agregat.jumlahLangkah })}
       </p>
 
+      {Number.isFinite(agregat.rating) ? (
+        <p className="text-xs leading-4 text-foregroundGrey">
+          {t("analisa.antiCheat.riwayat.kalibrasi", { n: Math.round(agregat.rating) })}
+        </p>
+      ) : null}
+
       <div className="flex flex-col gap-1.5 border-t border-border pt-3">
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.kecocokan")} nilai={persen(agregat.engineMatchRate)} />
+        {agregat.kandidatSampel > 0 ? (
+          <>
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanTop3")}
+              nilai={persen(agregat.kecocokanTop3)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.rataPeringkat")}
+              nilai={`${agregat.rataPeringkat ?? "-"} / ${MULTI_PV + 1}`}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.acplKandidat")}
+              nilai={cp(agregat.acplKandidat)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanSulit")}
+              nilai={persen(agregat.kecocokanSulit)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanMudah")}
+              nilai={persen(agregat.kecocokanMudah)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.streak")}
+              nilai={String(agregat.streakTerpanjang ?? 0)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.korelasiWaktu")}
+              nilai={Number.isFinite(agregat.korelasiWaktuKualitas) ? agregat.korelasiWaktuKualitas.toFixed(2) : "-"}
+            />
+          </>
+        ) : null}
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.acpl")} nilai={cp(agregat.acpl)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.waktu")} nilai={rasio(agregat.konsistensiWaktu)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.langkah")} nilai={String(agregat.jumlahLangkah)} />
@@ -600,6 +640,7 @@ export default function DashboardAkun({ platform, username }) {
               <ul className="flex list-disc flex-col gap-1 pl-4 text-xs leading-4 text-foregroundGrey">
                 <li>{t("analisa.antiCheat.riwayat.batas", { n: BATAS_PARTAI, user })}</li>
                 <li>{t("analisa.antiCheat.riwayat.kedalaman", { n: KEDALAMAN_AGGREGAT })}</li>
+                <li>{t("analisa.antiCheat.riwayat.multipv", { n: MULTI_PV })}</li>
                 <li>{t("analisa.antiCheat.riwayat.cache")}</li>
               </ul>
 
@@ -642,6 +683,23 @@ export default function DashboardAkun({ platform, username }) {
               ) : null}
 
               {acHasil && acHasil.agregat.jumlahPartai > 0 ? <RingkasanAntiCheat agregat={acHasil.agregat} /> : null}
+              {acHasil && acHasil.agregat.jumlahPartai > 0 && Number.isFinite(acHasil.durasi?.totalMs) ? (
+                <p className="text-xs leading-4 text-foregroundGrey">
+                  {t("analisa.antiCheat.riwayat.waktu", {
+                    detik: Math.max(1, Math.round(acHasil.durasi.totalMs / 1000)),
+                    ms: acHasil.durasi.rataMs ?? 0,
+                  })}
+                </p>
+              ) : null}
+              {acHasil && acHasil.agregat.jumlahPartai > 0 ? (
+                <button
+                  type="button"
+                  onClick={() => unduhLaporanPeninjauan(acHasil.agregat, { username: user })}
+                  className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted"
+                >
+                  {t("analisa.antiCheat.riwayat.unduh")}
+                </button>
+              ) : null}
               {acHasil && acHasil.agregat.jumlahPartai === 0 ? (
                 <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.tanpaPartai")}</p>
               ) : null}

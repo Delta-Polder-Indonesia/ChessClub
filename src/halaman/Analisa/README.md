@@ -231,12 +231,56 @@ Metrik (langkah `moveRating === "forced"` dan langkah buku TIDAK dihitung):
 - **`perFase`** — metrik yang sama dipilah opening/middlegame/endgame lewat
   `mesin/fase.js`.
 
-Skor 0–100 = rata-rata berbobot tiga komponen (kecocokan 0,45 · ACPL 0,35 ·
-waktu 0,20; bobot dinormalkan ulang bila sebuah metrik tidak tersedia), lalu
-disusutkan `n / (n + 12)` menurut jumlah langkah yang dinilai. Level:
-`rendah` < 35 ≤ `sedang` < 70 ≤ `tinggi`. Ambangnya ada di `AMBANG` dan
-direkam `scripts/uji-anticheat.mjs` — mengubahnya berarti mengubah makna
-angka yang sudah dibaca orang.
+**Metrik generasi 2 — kandidat MultiPV.** `parsePGN` menganalisis setiap
+posisi dengan `MULTI_PV` (5) kandidat terbaik engine; setiap entri `moves[i]`
+membawa `uci` (langkah yang dimainkan) dan `moves[i].kandidat` — kandidat
+posisi SEBELUMNYA, pola yang sama dengan `bestMoveSan`. Dari situ dihitung:
+
+- **`rataPeringkat`** — peringkat rata-rata langkah pemain di antara kandidat
+  (1 = selalu langkah terbaik engine; di luar daftar = `MULTI_PV + 1`).
+  Sinyal paling sulit dipalsukan secara alami dan jauh lebih halus daripada
+  top-1: langkah peringkat 2 dengan selisih 8 cp tidak lagi dihitung sama
+  dengan langkah buruk.
+- **`kecocokanTop3` / `kecocokanTop5`** — persen langkah di dalam 3/5 kandidat
+  terbaik (penyebut = `kandidatSampel`, jumlah langkah yang punya data).
+- **`acplKandidat`** — kerugian centipawn langsung terhadap kandidat terbaik
+  pada pencarian yang SAMA (depth/hash identik, lebih konsisten daripada ACPL
+  antarposisi).
+- **`rataKehilanganMenang`** — kehilangan permille WDL terhadap kandidat
+  terbaik (membutuhkan `UCI_ShowWDL`, yang dinyalakan `engineCatur.js`).
+  Hanya laporan, tidak masuk skor.
+
+Semua metrik generasi 2 bernilai `null` bila kandidat tidak ada (analisis
+lama/cache lama, atau `multiPv: 1`) dan bobot skor otomatis ternormalisasi
+ulang — perilaku lama tetap utuh.
+
+**Metrik kondisional (laporan peninjau, bukan komponen skor).** Skor tetap
+empat komponen agar maknanya stabil; tiga sinyal perilaku berikut ditampilkan
+mentah di sampingnya untuk memperkuat/melemahkan bacaan:
+
+- **`kecocokanSulit` / `kecocokanMudah`** — kecocokan top-1 dipilah
+  menurut ketajaman posisi (`ketajamanKandidat` = selisih cp kandidat #1
+  vs #3): sulit ≤ `AMBANG.kandidatSulit` (20 cp), mudah ≥
+  `AMBANG.kandidatMudah` (100 cp), sisanya netral. Pemakai engine justru
+  paling sempurna pada posisi sulit; manusia sebaliknya. Pola
+  "sempurna-saat-sulit, hancur-saat-mudah" adalah tanda khas.
+- **`streakTerpanjang`** — rentetan peringkat-1 beruntun terpanjang dalam
+  satu partai. Manusia yang jujur nyaris tidak pernah merangkai 20+ langkah
+  terbaik engine berturut-turut.
+- **`korelasiWaktuKualitas`** — korelasi Spearman waktu pikir ↔ peringkat
+  kandidat (`korelasiSpearman`), minimum
+  `AMBANG.korelasiSampelMinimum` (12) pasangan. Manusia: makin lama
+  berpikir makin baik langkahnya → NEGATIF. Pemakai engine: kualitas tidak
+  bergantung waktu → ≈ 0 atau positif. Agregat lintas partai dirata-rata
+  berbobot jumlah sampel.
+
+Skor 0–100 = rata-rata berbobot empat komponen (kecocokan 0,30 · peringkat
+0,25 · ACPL 0,25 · waktu 0,20; bobot dinormalkan ulang bila sebuah metrik
+tidak tersedia), lalu disusutkan `n / (n + 12)` menurut jumlah langkah yang
+dinilai. Komponen peringkat memetakan rata-rata peringkat 1 → 100 secara
+linear sampai 0 pada `MULTI_PV + 1`. Level: `rendah` < 35 ≤ `sedang` < 70 ≤
+`tinggi`. Ambangnya ada di `AMBANG` dan direkam `scripts/uji-anticheat.mjs` —
+mengubahnya berarti mengubah makna angka yang sudah dibaca orang.
 
 **`mesin/fase.js` adalah modul bersama.** `isEndOpening`/`isEndMiddlegame`
 dipindah apa adanya dari `playersAccuracy.jsx` supaya Akurasi dan Deteksi
@@ -259,12 +303,90 @@ menjalankan Stockfish sekali per langkah:
   bermain, diambil dengan `ambilDaftarPartai({ limit: 12, sertakanPgn: true })`
   — bukan `limit: 0` yang menarik seluruh arsip ke memori;
 - kedalaman `KEDALAMAN_AGGREGAT` (8) ply, lebih dangkal dari analisis tunggal;
-- cache sesi per `id partai + kedalaman` (pola `cachePartai`), jadi berpindah
-  tab atau mengulang analisis tidak membayar dua kali;
+  setiap posisi direkam `MULTI_PV` (5) kandidat terbaik untuk metrik peringkat;
+- cache sesi per `id partai + kedalaman + MultiPV` (pola `cachePartai`), jadi
+  berpindah tab atau mengulang analisis tidak membayar dua kali, dan hasil
+  lama tanpa kandidat tidak pernah tercampur dengan hasil ber-kandidat;
 - progres + tombol Batal (`AbortController`, pola `selectChessCom.jsx`);
   partai yang sudah selesai diurai tetap dipakai, yang dibatalkan hanya
   partai berikutnya;
 - analisis TIDAK berjalan otomatis saat tab dibuka — pengguna menekan tombol.
+
+## Roadmap anti-cheat — status & langkah selanjutnya
+
+Bagian ini dokumen serah-terima: kalau suatu saat ingin melanjutkan, cukup
+tunjuk bagian ini — semua konteks teknis untuk melanjutkan ada di sini dan di
+file-file yang disebut.
+
+### Status terkini (selesai, 2026-09-14)
+
+- **Fase 1 — peringkat kandidat MultiPV + WDL.** Setiap posisi direkam
+  `MULTI_PV` (5) kandidat terbaik (`engineCatur.js` → `mesin/engine.js`);
+  metrik `rataPeringkat`, `kecocokanTop3/Top5`, `acplKandidat`,
+  `rataKehilanganMenang` (WDL) di `mesin/antiCheat.js`; skor 4 komponen
+  (kecocokan 0,30 · peringkat 0,25 · ACPL 0,25 · waktu 0,20).
+- **Fase 2 — metrik kondisional perilaku.** `kecocokanSulit`/`kecocokanMudah`
+  (keranjang ketajaman 20/100 cp), `streakTerpanjang`,
+  `korelasiWaktuKualitas` (Spearman waktu pikir ↔ peringkat). Laporan
+  peninjau, bukan komponen skor — sengaja, agar makna skor stabil.
+- **Fase 3 — kelengkapan operasional.**
+  - *Kalibrasi per rating*: `KALIBRASI_RATING` + `pilihKalibrasi` menggeser
+    `kecocokanDasar`/`acplAcuan` menurut band Elo; rating dibaca dari
+    metadata PGN (`ratingDariMetadata`), agregat memakai **median** rating
+    partai (`agregat.rating`). Tanpa rating → ambang global (perilaku lama).
+    ANGKA TABEL MASIH TAKSIRAN — kalibrasi ulang dengan korpus lokal
+    sebelum dipakai untuk keputusan serius.
+  - *Laporan peninjauan*: `mesin/laporanPeninjauan.js` — teks + JSON siap
+    lampir berita acara, sanggahan wajib menyertai; tombol unduh di tab
+    Deteksi engine (`DashboardAkun.jsx`).
+  - *Pengukuran biaya*: `analisisRiwayatAntiCheat` mengembalikan
+    `durasi: { totalMs, rataMs, perPartai }` — dasar berbasis angka untuk
+    menaikkan/menurunkan kedalaman atau `MULTI_PV`; ditampilkan di UI.
+  - *Cache lintas-sesi*: hasil per partai ditulis-lulus ke localStorage
+    (`kci-anticheat-cache-v2`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
+    dimuat ulang otomatis saat sesi baru; `bersihkanCacheAntiCheat`
+    menghapus memori + localStorage.
+  - *Fondasi deviasi-manusia (siap-Maia)*: `mesin/deviasiManusia.js`
+    menghitung kejutan bit + peringkat distribusi manusia dari
+    `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
+    tinggal dipasang tanpa menyentuh `parsePGN`.
+- Uji: `scripts/uji-anticheat.mjs` (245) dan `scripts/uji-engine-uci.mjs`
+  (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
+  sebelum dan sesudah langkah berikutnya.
+
+### Langkah berikutnya (urut prioritas)
+
+1. **Penyedia prediksi manusia (Maia) — satu-satunya bagian fase 3 yang
+   belum ada.** Metriknya sudah siap (`mesin/deviasiManusia.js`); yang
+   tersisa: host file model ONNX (40–90 MB — JANGAN masuk repo; Supabase
+   Storage/R2), loader `onnxruntime-web` + peta langkah, lalu pasang hasilnya
+   sebagai `Map<fen, {uci: prob}>` per partai. Lisensi bobot per model wajib
+   dicek (kode maia-chess GPL-3.0, setara Stockfish yang sudah di-bundle).
+2. **Kalibrasi ulang tabel `KALIBRASI_RATING` dengan korpus lokal.** Kumpulkan
+   distribusi metrik partai jujur per band 400-poin dari basis data kalian,
+   ganti angka taksiran, dan pertimbangkan interpolasi halus antarband.
+3. **Cache agregat di server (opsional).** Saat ini cache peramban
+   (memori + localStorage) sudah lintas-sesi; bila analisis rutin dipakai
+   banyak pengurus, simpan `hitungSkorKecurigaan` per id partai ke
+   `kci_storage` dengan kunci `anticheat|<id>|d8|mp5` — pola sama dengan
+   kunci cache sesi.
+4. **(Jauh) model kombinasi.** Setelah korpus lokal cukup besar, latih
+   penggabung komponen (logistik sederhana pun cukup) alih-alih bobot
+   manual `BOBOT` — tetap sertakan metrik mentah di UI untuk peninjau.
+
+### Catatan untuk pelanjut
+
+- Semua metrik baru wajib null-safe terhadap partai lama tanpa `kandidat`
+  (lihat pola `komponen?.peringkat ?? null` di `mesin/antiCheat.js`).
+- Kunci cache agregat ada di `akun/antiCheatRiwayat.js` →
+  `kunciCachePartai`; bila hasil analisis berubah bentuk, selipkan penanda
+  versi baru (pola `mp5`, simpanan `kci-anticheat-cache-v2`) agar cache lama
+  tidak tercampur.
+- UI metrik: kartu `summary/deteksiEngine.jsx` + tab agregat
+  `akun/DashboardAkun.jsx`; kunci kamus di
+  `lib/terjemahan/{id,en}/analisa.js` (wajib seimbang — `npm run uji:i18n`).
+- Bahasa UI tetap probabilistik: indikasi untuk ditinjau manusia, bukan
+  vonis — jangan pernah menulis "terbukti curang".
 
 ## Periksa sendiri
 
@@ -355,7 +477,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, agregat riwayat, cache & batal, kartu UI + tab DashboardAkun | 122 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 245 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

@@ -311,6 +311,13 @@ export const analisa = {
       },
       metrik: {
         kecocokan: "Engine move agreement",
+        kecocokanTop3: "Moves within engine top-3",
+        rataPeringkat: "Average candidate rank",
+        acplKandidat: "Loss vs best candidate",
+        kecocokanSulit: "Agreement on hard positions",
+        kecocokanMudah: "Agreement on easy positions",
+        streak: "Longest best-move streak",
+        korelasiWaktu: "Think-time ↔ quality correlation",
         acpl: "Average centipawn loss",
         waktu: "Think-time consistency",
         langkah: "Moves evaluated",
@@ -324,6 +331,10 @@ export const analisa = {
       tanpaData: "No move can be evaluated yet — forced and book moves are not counted.",
       sampelKecil: "Only {n} moves could be evaluated on one side; a sample this small proves nothing.",
       tanpaJam: "This PGN carries no clock data ([%clk]), so the think-time metric is skipped.",
+      tanpaKandidat: "This game was analyzed without MultiPV candidates (older analysis); rank metrics are skipped.",
+      catatanKandidat: "Ranks are measured against the engine's {n} best candidates (MultiPV) per position; scale 1–{nMax}.",
+      catatanKondisional:
+        "Hard positions = the engine's top candidates are close (gap ≤ {sulit} cp); engine users stand out there while humans err. Long best-move streaks and a time↔quality correlation near 0 (not negative) further support suspicion.",
       disclaimer:
         "The numbers above are a statistical indication for human review, not evidence or an accusation. Strong players, long time controls, and simple endgames all raise engine agreement. Any decision must come from reviewing the original games.",
       riwayat: {
@@ -338,6 +349,10 @@ export const analisa = {
         gagal: "Analysis stopped: {pesan}",
         tanpaPartai: "No games stored for this account yet — fetch data from the Database menu first.",
         kedalaman: "Aggregate mode runs at depth {n} ply for speed; single-game results at full depth can differ slightly.",
+        multipv: "Each position records the engine's {n} best candidates (MultiPV) so played moves are ranked, not just matched.",
+        waktu: "Analysis finished in {detik} seconds (average {ms} ms per game).",
+        unduh: "Download review report",
+        kalibrasi: "Match/ACPL thresholds calibrated for a reference rating of ~{n} (median of analyzed games).",
         batas: "Limited to the {n} most recent games where {user} played, newest first.",
         cache: "Games already analyzed are read from the session cache.",
         partaiDianalisis: "{partai} games · {langkah} moves evaluated",

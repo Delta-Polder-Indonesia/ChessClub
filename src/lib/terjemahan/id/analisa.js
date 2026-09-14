@@ -312,6 +312,13 @@ export const analisa = {
       },
       metrik: {
         kecocokan: "Kecocokan langkah engine",
+        kecocokanTop3: "Langkah dalam top-3 engine",
+        rataPeringkat: "Peringkat rata-rata kandidat",
+        acplKandidat: "Rugi vs kandidat terbaik",
+        kecocokanSulit: "Kecocokan pada posisi sulit",
+        kecocokanMudah: "Kecocokan pada posisi mudah",
+        streak: "Rentetan langkah terbaik beruntun",
+        korelasiWaktu: "Korelasi waktu pikir ↔ kualitas",
         acpl: "Kerugian rata-rata (ACPL)",
         waktu: "Konsistensi waktu pikir",
         langkah: "Langkah dinilai",
@@ -325,6 +332,10 @@ export const analisa = {
       tanpaData: "Belum ada langkah yang dapat dinilai — langkah paksa dan langkah buku tidak dihitung.",
       sampelKecil: "Hanya {n} langkah yang dinilai pada salah satu sisi; sampel sekecil ini belum bisa disimpulkan.",
       tanpaJam: "PGN ini tidak memuat data jam ([%clk]), jadi metrik waktu pikir dilewati.",
+      tanpaKandidat: "Partai ini dianalisis tanpa kandidat MultiPV (analisis lama); metrik peringkat dilewati.",
+      catatanKandidat: "Peringkat dihitung terhadap {n} kandidat terbaik engine (MultiPV) pada setiap posisi; skala 1–{nMax}.",
+      catatanKondisional:
+        "Posisi sulit = kandidat terbaik engine berdekatan (selisih ≤ {sulit} cp); pemakai engine paling menonjol di sana, manusia justru sering keliru. Rentetan panjang langkah terbaik dan korelasi waktu↔kualitas mendekati 0 (bukan negatif) turut memperkuat kecurigaan.",
       disclaimer:
         "Angka di atas adalah indikasi statistik untuk ditinjau manusia, bukan bukti atau tuduhan. Pemain kuat, kontrol waktu yang panjang, dan akhirpartai sederhana sama-sama menaikkan kecocokan langkah dengan engine. Keputusan apa pun harus lewat peninjauan partai aslinya.",
       riwayat: {
@@ -339,6 +350,10 @@ export const analisa = {
         gagal: "Analisis berhenti: {pesan}",
         tanpaPartai: "Belum ada partai tersimpan untuk akun ini — tarik data lebih dulu dari menu Database.",
         kedalaman: "Mode agregat memakai kedalaman {n} ply agar cepat; hasil partai tunggal pada kedalaman penuh bisa sedikit berbeda.",
+        multipv: "Setiap posisi direkam {n} kandidat terbaik engine (MultiPV) supaya langkah pemain bisa diperanking, bukan hanya dicocokkan.",
+        waktu: "Analisis selesai dalam {detik} detik (rata-rata {ms} ms per partai).",
+        unduh: "Unduh laporan peninjauan",
+        kalibrasi: "Ambang kecocokan/ACPL dikalibrasi untuk rating acuan ±{n} (median partai yang dianalisis).",
         batas: "Dibatasi {n} partai terbaru tempat {user} bermain, diurut dari yang terbaru.",
         cache: "Partai yang sudah pernah dianalisis dibaca dari cache sesi.",
         partaiDianalisis: "{partai} partai · {langkah} langkah dinilai",

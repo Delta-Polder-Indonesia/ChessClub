@@ -69,6 +69,20 @@ export function moveToSan(move, coronation, fen) {
 
 /* --------------------------------------------------------------- engine */
 
+/**
+ * Jumlah kandidat MultiPV yang direkam `parsePGN` untuk tiap posisi.
+ *
+ * Anti-cheat yang serius tidak menilai langkah dari `bestmove` tunggal saja:
+ * setiap posisi dianalisis dengan MultiPV sehingga langkah pemain bisa
+ * DIPERINGKAT di antara N kandidat terbaik (rank 1 = langkah terbaik, 2–5 =
+ * masih dalam kelompok engine, di luar daftar = paling buruk). Nilai 5 adalah
+ * keseimbangan biaya (MultiPV memperlambat pencarian ±20–40% pada kedalaman
+ * sama) dan ketajaman sinyal; Lichess memakai pendekat serupa untuk metrik
+ * "move match". Konstanta ini juga membentuk AMBANG.peringkatJenuh di
+ * ./antiCheat.js — ubah keduanya bersamaan.
+ */
+export const MULTI_PV = 5;
+
 export class EngineAnalisis {
   /**
    * @param {{idEngine?: string, kedalaman?: number, threads?: number}} [opsi]
@@ -92,8 +106,10 @@ export class EngineAnalisis {
    * Analisis satu posisi. Beresolusi setelah engine menerbitkan "bestmove",
    * sehingga pencarian berikutnya selalu memakai tabel hash yang sudah panas.
    * `sinyal` (AbortSignal) menghentikan pencarian aktif bila pengguna batal.
+   * `multiPv > 1` mengaktifkan MultiPV: hasilnya berupa `daftarKandidat`,
+   * kandidat terbaik terurut peringkat — bahan metrik peringkat anti-cheat.
    */
-  async cari(fen, { kedalaman = this.kedalaman, sinyal = null } = {}) {
+  async cari(fen, { kedalaman = this.kedalaman, sinyal = null, multiPv = 1 } = {}) {
     if (sinyal?.aborted) throw galat(GALAT_BATAL);
     await this.siapkan();
 
@@ -102,14 +118,14 @@ export class EngineAnalisis {
 
     let hasil;
     try {
-      hasil = await this.engine.cari({ fen, kedalaman });
+      hasil = await this.engine.cari({ fen, kedalaman, multiPv });
     } finally {
       if (sinyal) sinyal.removeEventListener("abort", hentikan);
     }
 
     if (sinyal?.aborted) throw galat(GALAT_BATAL);
 
-    const { uci, info } = hasil;
+    const { uci, info, daftarPv } = hasil;
     const staticEval = info
       ? info.mate !== null
         ? ["mate", String(info.mate)]
@@ -123,6 +139,21 @@ export class EngineAnalisis {
       bestMoveCoronation: langkah && langkah.length > 4 ? langkah[4] : undefined,
       kedalamanTercapai: info?.kedalaman ?? 0,
       pv: info?.pv ?? [],
+      /*
+       * Kandidat MultiPV → bentuk ringkas: langkah pertama tiap baris PV
+       * (string UCI), skornya, dan WDL bila engine menyiarkannya. Entri
+       * tanpa langkah (baris rusak) dibuang; peringkat tetap asli dari
+       * engine sehingga celah antar-peringkat tetap terbaca.
+       */
+      daftarKandidat: (daftarPv ?? [])
+        .map((x) => ({
+          peringkat: x.peringkat,
+          uci: x.pv?.[0] ?? null,
+          cp: x.cp ?? null,
+          mate: x.mate ?? null,
+          wdl: x.wdl ?? null,
+        }))
+        .filter((x) => x.uci),
     };
   }
 
@@ -285,13 +316,13 @@ function muatPgn(chess, rawPgn) {
 /* ------------------------------------------------------------ per langkah */
 
 /** Posisi sebelum langkah pertama dianalisis agar rating langkah 1 adil. */
-export async function parsePosition(mesin, chess, depth, sinyal, handleAbort) {
+export async function parsePosition(mesin, chess, depth, sinyal, handleAbort, multiPv = 1) {
   const fen = chess.fen();
   const color = chess.turn();
 
   let hasil;
   try {
-    hasil = await mesin.cari(fen, { kedalaman: depth, sinyal });
+    hasil = await mesin.cari(fen, { kedalaman: depth, sinyal, multiPv });
   } catch (e) {
     // Pembatalan oleh pengguna → serahkan ke handleAbort (menghentikan
     // seluruh alur). Kegagalan engine yang sesungguhnya TIDAK boleh
@@ -299,13 +330,13 @@ export async function parsePosition(mesin, chess, depth, sinyal, handleAbort) {
     // formulir tanpa pesan apa pun dan tampak seperti tombolnya mati.
     if (sinyal?.aborted || e?.kunci === GALAT_BATAL) {
       handleAbort?.();
-      hasil = { staticEval: [], bestMove: undefined, bestMoveCoronation: undefined };
+      hasil = { staticEval: [], bestMove: undefined, bestMoveCoronation: undefined, daftarKandidat: [] };
     } else {
       throw galat(GALAT_MESIN);
     }
   }
 
-  const { staticEval, bestMove, bestMoveCoronation } = hasil;
+  const { staticEval, bestMove, bestMoveCoronation, daftarKandidat } = hasil;
 
   return {
     fen,
@@ -313,13 +344,18 @@ export async function parsePosition(mesin, chess, depth, sinyal, handleAbort) {
     bestMoveSan: bestMove ? moveToSan(bestMove, bestMoveCoronation, fen) : undefined,
     color,
     previousStaticEvals: [staticEval],
+    // Kandidat MultiPV posisi AWAL — usulan untuk langkah pertama pemain.
+    kandidat: daftarKandidat ?? [],
   };
 }
 
-export async function parseMove(mesin, depth, move, chess, previousStaticEvals, previousBestMoveSan, previousSacrifice, openings, handleAbort, sinyal) {
+export async function parseMove(mesin, depth, move, chess, previousStaticEvals, previousBestMoveSan, previousSacrifice, openings, handleAbort, sinyal, multiPv = 1) {
   if (sinyal?.aborted) handleAbort?.();
 
   const movement = [move.from, move.to].map((kotak) => formatSquare(kotak));
+  // Langkah yang DIMAINKAN dalam string UCI — kunci pencocokan peringkat
+  // anti-cheat terhadap kandidat MultiPV posisi sebelumnya.
+  const uciLangkah = `${move.from}${move.to}${move.promotion ?? ""}`;
 
   const fen = move.after;
   chess.load(fen);
@@ -332,6 +368,7 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
   let staticEval;
   let bestMove;
   let bestMoveCoronation;
+  let kandidat = [];
   let sacrifice = false;
   let forced = false;
 
@@ -343,11 +380,16 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
     staticEval = chess.isCheckmate() ? ["mate"] : ["cp", "0"];
     bestMove = undefined;
     bestMoveCoronation = undefined;
+    kandidat = [];
   } else {
     sacrifice = move.promotion ? false : isSacrifice(move);
 
     try {
-      ({ staticEval, bestMove, bestMoveCoronation } = await mesin.cari(fen, { kedalaman: depth, sinyal }));
+      ({ staticEval, bestMove, bestMoveCoronation, daftarKandidat: kandidat } = await mesin.cari(fen, {
+        kedalaman: depth,
+        sinyal,
+        multiPv,
+      }));
     } catch (e) {
       // Lihat catatan yang sama di parsePosition: hanya pembatalan yang
       // boleh ditelan, kegagalan engine harus terlihat oleh pengguna.
@@ -356,6 +398,7 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
         bestMove = undefined;
         bestMoveCoronation = undefined;
         staticEval = [];
+        kandidat = [];
       } else {
         throw galat(GALAT_MESIN);
       }
@@ -392,6 +435,14 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
     fen,
     sacrifice,
     movement,
+    uci: uciLangkah,
+    /*
+     * Kandidat MultiPV posisi SETELAH langkah ini — usulan untuk PEMAIN
+     * BERIKUTNYA (pola yang sama dengan `bestMoveSan`). Pada entri `i`,
+     * langkah pemain `daftar[i].uci` dibandingkan dengan
+     * `daftar[i - 1].kandidat` oleh ./antiCheat.js.
+     */
+    kandidat,
     // Hanya 4 evaluasi terakhir yang dibaca ./penilaian.js; dipotong supaya
     // analisis partai panjang tidak menyalin seluruh riwayat tiap langkah.
     previousStaticEvals: [staticEval, ...previousStaticEvals].slice(0, 4),
@@ -401,8 +452,12 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
 /**
  * Analisis seluruh partai PGN, langkah demi langkah.
  * Progres dilaporkan dalam persen (0–100) untuk bilah muat.
+ *
+ * `opsi.multiPv` (bawaan MULTI_PV) mengaktifkan perekaman kandidat MultiPV
+ * per posisi — bahan metrik peringkat anti-cheat. Nilai 1 mematikan rekaman
+ * (paling cepat) dan membuat metrik peringkat bernilai null di antiCheat.js.
  */
-export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal) {
+export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV } = {}) {
   const chess = new Chess();
 
   let pgn;
@@ -443,7 +498,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     // Langkah pembuka dianalisis dari posisi awal supaya diff eval langkah
     // pertama punya pembanding.
     const chessAwal = new Chess(riwayat[0].before);
-    const awal = await parsePosition(mesin, chessAwal, depth, sinyal, gagalkan);
+    const awal = await parsePosition(mesin, chessAwal, depth, sinyal, gagalkan, multiPv);
     moves.push({ ...awal, clock: daftarClock[0] ?? { white: metadata.time || null, black: metadata.time || null } });
     previousStaticEvals = awal.previousStaticEvals;
     previousBestMoveSan = awal.bestMoveSan;
@@ -463,7 +518,8 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
         previousSacrifice,
         openings,
         gagalkan,
-        sinyal
+        sinyal,
+        multiPv
       );
 
       if (sinyal?.aborted) throw galat(GALAT_BATAL);

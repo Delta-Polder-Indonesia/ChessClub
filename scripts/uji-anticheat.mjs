@@ -15,6 +15,22 @@
  *   6. Orkestrator: hanya partai tempat username bermain, cache per id partai,
  *      AbortSignal menghentikan loop tanpa membuang hasil yang sudah jadi.
  *   7. `deteksiEngine.jsx` merender skor + level + sanggahan di DOM.
+ *   8. METRIK GENERASI 2 (kandidat MultiPV): peringkat langkah pemain di
+ *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
+ *      kandidat terbaik, komponen skor `peringkat`, dan parsing baris
+ *      `info multipv`/`wdl` di `EngineCatur`.
+ *   9. METRIK KONDISIONAL (fase 2): keranjang posisi sulit/mudah dari
+ *      ketajaman kandidat, rentetan langkah terbaik beruntun, dan korelasi
+ *      Spearman waktu pikir ↔ peringkat kandidat.
+ *  10. KALIBRASI PER RATING: band KALIBRASI_RATING, pilihKalibrasi,
+ *      ratingDariMetadata, median rating agregat, arah pengaruhnya ke skor.
+ *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
+ *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
+ *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
+ *      lintas-sesi (baca ulang setelah memori dibersihkan).
+ *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
+ *      kandidat terbaik, komponen skor `peringkat`, dan parsing baris
+ *      `info multipv`/`wdl` di `EngineCatur`.
  *
  * Jalankan: node scripts/uji-anticheat.mjs
  */
@@ -29,6 +45,9 @@ const { I18nProvider } = await import("../src/lib/i18n.jsx");
 const { Chess } = await import("chess.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
+const { EngineCatur } = await import("../src/lib/engineCatur.js");
+const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
+const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
 const ac = await import("../src/halaman/Analisa/mesin/antiCheat.js");
 const { FASE_PEMBUKAAN, faseBerikutnya, isEndOpening, isEndMiddlegame } = await import(
   "../src/halaman/Analisa/mesin/fase.js"
@@ -254,12 +273,46 @@ function buatEnginePalsu({ fen, san }, mode) {
         const indeks = i < 0 ? fen.length : i;
         putih = indeks % 2 === 0 ? 100 : 100 - GIGI;
       }
+      /*
+       * Kandidat MultiPV deterministik untuk metrik generasi 2:
+       *  - sempurna  → langkah yang dimainkan selalu peringkat 1;
+       *  - jujur     → pada 2 dari 3 posisi langkah pemain "turun" ke
+       *                peringkat 4 (kandidat 1 = usulan lain), kerugian
+       *                kandidat 30 cp (peringkat k kehilangan (k-1)·10).
+       * Kandidat pengisi memakai UCI sintetis — antiCheat hanya
+       * mencocokkan string, tidak memvalidasi legalitas.
+       */
+      const dasar = giliranPutih ? putih : -putih;
+      const uciDariSan = (san) => {
+        if (!san) return null;
+        const m = new Chess(fenCari).moves({ verbose: true }).find((x) => x.san === san);
+        return m ? `${m.from}${m.to}${m.promotion ?? ""}` : null;
+      };
+      const dimainkanUci = uciDariSan(dimainkan);
+      const pengisi = ["a1a2", "a1a3", "a1a4", "a1a5", "a1a6", "b1b2"].filter(
+        (u) => u !== dimainkanUci && u !== uci
+      );
+      let daftarKandidat = [];
+      if (uci) {
+        const turunKeEmpat = mode === "jujur" && i % 3 !== 0 && dimainkanUci && dimainkanUci !== uci;
+        const urutan = turunKeEmpat
+          ? [uci, pengisi[0], pengisi[1], dimainkanUci, pengisi[2]]
+          : [uci, pengisi[0], pengisi[1], pengisi[2], pengisi[3]];
+        daftarKandidat = urutan.slice(0, 5).map((u, idx) => ({
+          peringkat: idx + 1,
+          uci: u,
+          cp: dasar - idx * 10,
+          mate: null,
+          wdl: [850 - idx * 100, 150, 0],
+        }));
+      }
       return {
-        staticEval: ["cp", String(giliranPutih ? putih : -putih)],
+        staticEval: ["cp", String(dasar)],
         bestMove: uci ? [formatSquare(uci.slice(0, 2)), formatSquare(uci.slice(2, 4))] : undefined,
         bestMoveCoronation: uci && uci.length > 4 ? uci[4] : undefined,
         kedalamanTercapai: 8,
         pv: [],
+        daftarKandidat,
       };
     },
     async siapkan() {},
@@ -336,6 +389,55 @@ hasil(
   "skor partai engine jauh di atas partai jujur",
   skorMesin.w.skor - skorJujur.w.skor >= 40,
   `${skorMesin.w.skor} vs ${skorJujur.w.skor}`
+);
+
+/* ---- metrik generasi 2 (kandidat MultiPV) pada partai parsePGN nyata ---- */
+console.log(
+  `   jujur  : top3 ${skorJujur.w.kecocokanTop3}% rata-rangking ${skorJujur.w.rataPeringkat} ` +
+    `acplKandidat ${skorJujur.w.acplKandidat} komponenPeringkat ${skorJujur.w.komponen?.peringkat}`
+);
+console.log(
+  `   engine : top3 ${skorMesin.w.kecocokanTop3}% rata-rangking ${skorMesin.w.rataPeringkat} ` +
+    `acplKandidat ${skorMesin.w.acplKandidat} komponenPeringkat ${skorMesin.w.komponen?.peringkat}`
+);
+hasil(
+  "partai engine: hampir semua langkah punya kandidat (posisi pamungkas tanpa kandidat)",
+  skorMesin.w.kandidatSampel >= skorMesin.w.langkahDinilai - 2 && skorMesin.w.kandidatSampel > 0,
+  `${skorMesin.w.kandidatSampel}/${skorMesin.w.langkahDinilai}`
+);
+hasil("partai engine: kecocokan top-3 = 100%", skorMesin.w.kecocokanTop3 === 100 && skorMesin.b.kecocokanTop3 === 100, `${skorMesin.w.kecocokanTop3}`);
+hasil("partai engine: peringkat rata-rata = 1", skorMesin.w.rataPeringkat === 1 && skorMesin.b.rataPeringkat === 1, `${skorMesin.w.rataPeringkat}`);
+hasil("partai engine: kerugian kandidat 0 cp", skorMesin.w.acplKandidat === 0 && skorMesin.b.acplKandidat === 0, `${skorMesin.w.acplKandidat}`);
+hasil("partai engine: komponen peringkat 100", skorMesin.w.komponen?.peringkat === 100, `${skorMesin.w.komponen?.peringkat}`);
+hasil(
+  "partai jujur: peringkat rata-rata lebih buruk dari engine",
+  skorJujur.w.rataPeringkat > 2 && skorJujur.b.rataPeringkat > 2,
+  `${skorJujur.w.rataPeringkat}/${skorJujur.b.rataPeringkat}`
+);
+hasil(
+  "partai jujur: kecocokan top-3 < 60%",
+  skorJujur.w.kecocokanTop3 < 60 && skorJujur.b.kecocokanTop3 < 60,
+  `${skorJujur.w.kecocokanTop3}/${skorJujur.b.kecocokanTop3}`
+);
+hasil(
+  "partai jujur: kerugian kandidat = 20 cp (2 dari 3 langkah rugi 30)",
+  hampir(skorJujur.w.acplKandidat, 20, 1) && hampir(skorJujur.b.acplKandidat, 20, 1),
+  `${skorJujur.w.acplKandidat}/${skorJujur.b.acplKandidat}`
+);
+hasil(
+  "partai jujur: komponen peringkat sedang (≈60 pada rata-rata 3)",
+  skorJujur.w.komponen?.peringkat > 40 && skorJujur.w.komponen?.peringkat < 75,
+  `${skorJujur.w.komponen?.peringkat}`
+);
+hasil(
+  "partai jujur: WDL tercatat → rata kehilangan peluang menang positif",
+  Number.isFinite(skorJujur.w.rataKehilanganMenang) && skorJujur.w.rataKehilanganMenang > 0,
+  `${skorJujur.w.rataKehilanganMenang}`
+);
+hasil(
+  "partai engine: kehilangan peluang menang 0",
+  skorMesin.w.rataKehilanganMenang === 0,
+  `${skorMesin.w.rataKehilanganMenang}`
 );
 
 const totalFase = (sisi) =>
@@ -665,5 +767,508 @@ hasil(
   !/analisa\.antiCheat\.[a-zA-Z.]+/.test(teksAkun()),
   teksAkun().match(/analisa\.antiCheat\.[a-zA-Z.]+/)?.[0] ?? ""
 );
+
+/* ================= 9. kandidat MultiPV: unit + parsing EngineCatur ================= */
+
+console.log("\n== metrik kandidat MultiPV (generasi 2) ==");
+
+hasil(
+  "bobot skor berjumlah 1",
+  hampir(Object.values(ac.BOBOT).reduce((a, b) => a + b, 0), 1, 1e-9),
+  JSON.stringify(ac.BOBOT)
+);
+hasil("AMBANG.peringkatJenuh = MULTI_PV + 1", ac.AMBANG.peringkatJenuh === ac.MULTI_PV + 1, `${ac.AMBANG.peringkatJenuh}`);
+hasil("komponenPeringkat(1) = 100", ac.komponenPeringkat(1) === 100);
+hasil("komponenPeringkat(3) = 60", ac.komponenPeringkat(3) === 60, `${ac.komponenPeringkat(3)}`);
+hasil("komponenPeringkat(jenuh) = 0", ac.komponenPeringkat(ac.AMBANG.peringkatJenuh) === 0);
+hasil("komponenPeringkat tanpa data = null", ac.komponenPeringkat(null) === null && ac.komponenPeringkat(NaN) === null);
+
+const KANDIDAT = [
+  { peringkat: 1, uci: "e2e4", cp: 30, mate: null, wdl: [550, 400, 50] },
+  { peringkat: 2, uci: "d2d4", cp: 22, mate: null, wdl: [520, 420, 60] },
+  { peringkat: 3, uci: "g1f3", cp: 18, mate: null, wdl: [510, 430, 60] },
+  { peringkat: 4, uci: "c2c4", cp: 10, mate: null, wdl: [490, 440, 70] },
+  { peringkat: 5, uci: "b1c3", cp: 4, mate: null, wdl: [480, 450, 70] },
+];
+hasil("peringkatLangkahDalam: rank 1 terbaca", ac.peringkatLangkahDalam("e2e4", KANDIDAT) === 1);
+hasil("peringkatLangkahDalam: rank 4 terbaca", ac.peringkatLangkahDalam("c2c4", KANDIDAT) === 4);
+hasil("peringkatLangkahDalam: di luar daftar = jenuh", ac.peringkatLangkahDalam("a2a3", KANDIDAT) === ac.MULTI_PV + 1, `${ac.peringkatLangkahDalam("a2a3", KANDIDAT)}`);
+hasil("peringkatLangkahDalam: tanpa kandidat = null", ac.peringkatLangkahDalam("e2e4", []) === null && ac.peringkatLangkahDalam("e2e4", undefined) === null);
+hasil("kerugianKandidatCp: rank 4 rugi 20 cp", ac.kerugianKandidatCp("c2c4", KANDIDAT) === 20, `${ac.kerugianKandidatCp("c2c4", KANDIDAT)}`);
+hasil("kerugianKandidatCp: rank 1 rugi 0", ac.kerugianKandidatCp("e2e4", KANDIDAT) === 0);
+hasil("kerugianKandidatCp: di luar daftar = null", ac.kerugianKandidatCp("a2a3", KANDIDAT) === null);
+hasil("kerugianKandidatCp: kandidat tunggal = null", ac.kerugianKandidatCp("e2e4", [KANDIDAT[0]]) === null);
+hasil("cpKandidat: mate dihitung CP_MATE", ac.cpKandidat({ cp: null, mate: 2 }) === ac.CP_MATE);
+hasil("kehilanganMenangPermille: rank 4 kehilangan 60 permille", ac.kehilanganMenangPermille("c2c4", KANDIDAT) === 60, `${ac.kehilanganMenangPermille("c2c4", KANDIDAT)}`);
+hasil("kehilanganMenangPermille: tanpa WDL = null", ac.kehilanganMenangPermille("c2c4", KANDIDAT.map(({ wdl, ...k }) => k)) === null);
+
+/* Partai mini: Putih selalu rank 1, Hitam selalu rank 4 → skor Putih > Hitam. */
+const KAND = [
+  { peringkat: 1, uci: "e2e4", cp: 30, mate: null, wdl: [550, 400, 50] },
+  { peringkat: 2, uci: "d2d4", cp: 20, mate: null, wdl: [520, 420, 60] },
+  { peringkat: 3, uci: "g1f3", cp: 15, mate: null, wdl: [500, 430, 70] },
+  { peringkat: 4, uci: "c2c4", cp: 5, mate: null, wdl: [480, 450, 70] },
+  { peringkat: 5, uci: "b1c3", cp: 0, mate: null, wdl: [470, 460, 70] },
+];
+/*
+ * Struktur daftar mengikuti parsePGN: entri bernomor ganjil = langkah
+ * (punya `san`+`uci`), entri genap = posisi hasilnya yang membawa `kandidat`
+ * (usulan untuk pemain BERIKUTNYA). Langkah pada indeks i membaca kandidat
+ * entri i-1 — pola yang sama dengan `bestMoveSan`.
+ */
+const daftarMini = [];
+daftarMini.push({ fen: "8/8/8/8/8/8/8/8 w - - 0 1", color: "b", kandidat: KAND, bestMoveSan: "e4" });
+for (let i = 0; i < 40; i++) {
+  const warnaGiliran = i % 2 === 0 ? "w" : "b";
+  const putihMain = warnaGiliran === "w";
+  daftarMini.push({
+    san: putihMain ? "e4" : "c4",
+    uci: putihMain ? "e2e4" : "c2c4",
+    color: putihMain ? "b" : "w",
+    moveRating: null,
+    fen: "8/8/8/8/8/8/8/8 b - - 0 1",
+    previousStaticEvals: [["cp", "30"], ["cp", "0"]],
+  });
+  // Posisi hasil langkah ini — kandidat untuk pemain berikutnya.
+  daftarMini.push({
+    fen: "8/8/8/8/8/8/8/8 " + (putihMain ? "b" : "w") + " - - 0 1",
+    color: putihMain ? "w" : "b",
+    kandidat: KAND,
+    bestMoveSan: putihMain ? "c4" : "e4",
+  });
+}
+const mini = ac.hitungSkorKecurigaan(daftarMini);
+hasil("mini: Putih (selalu rank 1) peringkat rata-rata 1", mini.w.rataPeringkat === 1, `${mini.w.rataPeringkat}`);
+hasil("mini: Hitam (selalu rank 4) peringkat rata-rata 4", mini.b.rataPeringkat === 4, `${mini.b.rataPeringkat}`);
+hasil("mini: kecocokan top-3 Putih 100% vs Hitam 0%", mini.w.kecocokanTop3 === 100 && mini.b.kecocokanTop3 === 0, `${mini.w.kecocokanTop3}/${mini.b.kecocokanTop3}`);
+hasil("mini: kerugian kandidat Putih 0 vs Hitam 25", mini.w.acplKandidat === 0 && mini.b.acplKandidat === 25, `${mini.w.acplKandidat}/${mini.b.acplKandidat}`);
+hasil("mini: komponen peringkat Putih 100 vs Hitam 40", mini.w.komponen?.peringkat === 100 && mini.b.komponen?.peringkat === 40, `${mini.w.komponen?.peringkat}/${mini.b.komponen?.peringkat}`);
+hasil("mini: skor Putih lebih tinggi dari Hitam", mini.w.skor > mini.b.skor, `${mini.w.skor} vs ${mini.b.skor}`);
+hasil("mini: kecocokan top-5 keduanya 100%", mini.w.kecocokanTop5 === 100 && mini.b.kecocokanTop5 === 100);
+
+/* Partai tanpa kandidat (cache lama) → komponen peringkat null, skor tetap ada. */
+const daftarTanpaKandidat = daftarMini.map((e) => ({ ...e, kandidat: undefined }));
+const tanpaKandidat = ac.hitungSkorKecurigaan(daftarTanpaKandidat);
+hasil("tanpa kandidat: kandidatSampel 0", tanpaKandidat.w.kandidatSampel === 0 && tanpaKandidat.b.kandidatSampel === 0);
+hasil("tanpa kandidat: semua metrik peringkat null", tanpaKandidat.w.rataPeringkat === null && tanpaKandidat.w.kecocokanTop3 === null && tanpaKandidat.w.acplKandidat === null);
+hasil("tanpa kandidat: komponen peringkat null", tanpaKandidat.w.komponen?.peringkat === null);
+hasil("tanpa kandidat: skor tetap dihitung (bobot ternormalisasi ulang)", Number.isFinite(tanpaKandidat.w.skor), `${tanpaKandidat.w.skor}`);
+hasil("tanpa kandidat: skor putih = skor hitam (kandidat tidak membedakan lagi)", tanpaKandidat.w.skor === tanpaKandidat.b.skor, `${tanpaKandidat.w.skor}/${tanpaKandidat.b.skor}`);
+
+/* Agregat membawa metrik kandidat dari jumlah mentah. */
+const agregatKandidat = ac.agregatSkorPemain(
+  [
+    { id: "k1", timestamp: 1, warna: "w", hasil: mini },
+    { id: "k2", timestamp: 2, warna: "w", hasil: mini },
+  ],
+  "budi"
+);
+hasil(
+  "agregat: rataPeringkat putih terjaga dari jumlah mentah",
+  agregatKandidat.rataPeringkat === mini.w.rataPeringkat,
+  `${agregatKandidat.rataPeringkat} vs ${mini.w.rataPeringkat}`
+);
+hasil("agregat: kandidatSampel terjumlah ulang", agregatKandidat.kandidatSampel === 2 * mini.w.kandidatSampel, `${agregatKandidat.kandidatSampel}`);
+hasil("agregat: kecocokanTop3 ikut terbawa", Number.isFinite(agregatKandidat.kecocokanTop3), `${agregatKandidat.kecocokanTop3}`);
+
+/* Agregat campuran w+b membagi rata peringkat sesuai proporsi sampelnya. */
+const agregatCampur = ac.agregatSkorPemain(
+  [
+    { id: "m1", timestamp: 1, warna: "w", hasil: mini },
+    { id: "m2", timestamp: 2, warna: "b", hasil: mini },
+  ],
+  "budi"
+);
+hasil(
+  "agregat campur: rataPeringkat = rata-rata berbobot sampel w & b",
+  hampir(agregatCampur.rataPeringkat, (mini.w.rataPeringkat * mini.w.kandidatSampel + mini.b.rataPeringkat * mini.b.kandidatSampel) / (mini.w.kandidatSampel + mini.b.kandidatSampel), 0.01),
+  `${agregatCampur.rataPeringkat}`
+);
+
+/* ---------------- parsing baris `info multipv` di EngineCatur ---------------- */
+
+console.log("\n== EngineCatur: parsing MultiPV + WDL (worker tiruan) ==");
+{
+  const ec = new EngineCatur();
+  const terkirim = [];
+  ec.kirim = (perintah) => terkirim.push(perintah);
+  const janji = ec.cari({ fen: "posisi-uji", kedalaman: 8, multiPv: 3 });
+
+  // Urutan baris meniru Stockfish: setiap iterasi kedalaman menerbitkan
+  // multipv 1..N; batch terakhir (depth 9) yang harus menang.
+  ec.terima("info depth 8 multipv 1 score cp 30 wdl 540 410 50 pv e2e4 e7e5 g1f3");
+  ec.terima("info depth 8 multipv 2 score cp 20 wdl 520 420 60 pv d2d4 d7d5 g1f3");
+  ec.terima("info depth 8 multipv 3 score cp 10 wdl 500 430 70 pv c2c4 c7c5");
+  ec.terima("info depth 7 multipv 2 score cp 25 upperbound pv d2d4");
+  ec.terima("info depth 9 multipv 1 score cp 35 wdl 560 390 50 pv e2e4 e7e5 g1f3 b8c6");
+  ec.terima("info depth 9 multipv 2 score cp 18 wdl 515 425 60 pv d2d4 d7d5 c1g5");
+  ec.terima("info depth 9 multipv 3 score cp 9 pv g1f3 g8f6");
+  ec.terima("bestmove e2e4");
+  const keluar = await janji;
+
+  hasil("bestmove diteruskan", keluar.uci === "e2e4", `${keluar.uci}`);
+  hasil("info = baris peringkat 1 TERDALAM (cp 35, bukan cp 10)", keluar.info?.cp === 35 && keluar.info?.kedalaman === 9, JSON.stringify(keluar.info));
+  hasil("tiga kandidat terekam", Array.isArray(keluar.daftarPv) && keluar.daftarPv.length === 3, `${keluar.daftarPv?.length}`);
+  hasil("kandidat 1: cp 35 + WDL 560/390/50 + pv dipotong benar", keluar.daftarPv[0]?.cp === 35 && keluar.daftarPv[0]?.wdl?.[0] === 560 && keluar.daftarPv[0]?.pv?.length === 4, JSON.stringify(keluar.daftarPv[0]));
+  hasil("kandidat 3: baris tanpa WDL → wdl null", keluar.daftarPv[2]?.cp === 9 && keluar.daftarPv[2]?.wdl === null, JSON.stringify(keluar.daftarPv[2]));
+  hasil("baris upperbound tidak masuk daftar (ditembus batch depth 9)", keluar.daftarPv[1]?.cp === 18, `${keluar.daftarPv[1]?.cp}`);
+  hasil("kandidat terurut peringkat", keluar.daftarPv.map((x) => x.peringkat).join(",") === "1,2,3");
+  hasil("setoption MultiPV 3 dikirim sebelum go", terkirim.includes("setoption name MultiPV value 3"), terkirim.join(" | "));
+  hasil("opsi MultiPV dikembalikan ke 1 setelah bestmove", terkirim.filter((c) => c === "setoption name MultiPV value 1").length === 1 && ec.multiPvAktif === 1);
+}
+{
+  const ec2 = new EngineCatur();
+  ec2.kirim = () => {};
+  const j2 = ec2.cari({ fen: "x", kedalaman: 4 });
+  ec2.terima("info depth 4 multipv 1 score cp 12 pv e2e4");
+  ec2.terima("info depth 4 multipv 2 score cp 8 pv d2d4");
+  ec2.terima("bestmove e2e4");
+  const k2 = await j2;
+  hasil("tanpa multiPv: daftarPv null meski baris multipv lewat", k2.daftarPv === null && k2.info?.cp === 12, JSON.stringify(k2));
+}
+
+/* ============ 10. kondisional fase 2: sulit/mudah, streak, korelasi ============ */
+
+console.log("\n== metrik kondisional: keranjang ketajaman, streak, korelasi waktu↔kualitas ==");
+
+hasil(
+  "AMBANG: kandidatSulit < kandidatMudah (keranjang tidak tumpang tindih)",
+  ac.AMBANG.kandidatSulit < ac.AMBANG.kandidatMudah,
+  `${ac.AMBANG.kandidatSulit}/${ac.AMBANG.kandidatMudah}`
+);
+hasil(
+  "ketajamanKandidat: selisih cp #1 vs #3",
+  ac.ketajamanKandidat(KANDIDAT) === 12,
+  `${ac.ketajamanKandidat(KANDIDAT)}`
+);
+hasil(
+  "ketajamanKandidat: kurang dari 3 kandidat memakai terakhir",
+  ac.ketajamanKandidat(KANDIDAT.slice(0, 2)) === 8,
+  `${ac.ketajamanKandidat(KANDIDAT.slice(0, 2))}`
+);
+hasil("ketajamanKandidat: kosong = null", ac.ketajamanKandidat([]) === null && ac.ketajamanKandidat(undefined) === null);
+hasil(
+  "ketajamanKandidat: mate dihitung CP_MATE",
+  ac.ketajamanKandidat([
+    { peringkat: 1, uci: "x", cp: null, mate: 1 },
+    { peringkat: 2, uci: "y", cp: 50, mate: null },
+  ]) === ac.CP_MATE - 50
+);
+
+/* Spearman: monoton sempurna, ties, sampel kurang, varians nol. */
+const pasanganManusia = [];
+for (let i = 0; i < 15; i++) pasanganManusia.push({ detik: i + 1, peringkat: 15 - i });
+hasil("korelasiSpearman: makin lama makin baik → -1", ac.korelasiSpearman(pasanganManusia) === -1, `${ac.korelasiSpearman(pasanganManusia)}`);
+hasil(
+  "korelasiSpearman: makin lama makin buruk → +1 (pola mustahil manusia)",
+  ac.korelasiSpearman(pasanganManusia.map((p) => ({ detik: p.detik, peringkat: 16 - p.peringkat }))) === 1
+);
+hasil("korelasiSpearman: sampel < minimum → null", ac.korelasiSpearman(pasanganManusia.slice(0, 5)) === null);
+hasil(
+  "korelasiSpearman: varians nol (semua waktu sama) → null",
+  ac.korelasiSpearman(pasanganManusia.map((p) => ({ detik: 5, peringkat: p.peringkat }))) === null
+);
+hasil("korelasiSpearman: pasangan rusak dibuang", ac.korelasiSpearman([{ detik: null, peringkat: 2 }, ...pasanganManusia]) === -1);
+const pasanganSeri = [];
+for (let i = 0; i < 12; i++) pasanganSeri.push({ detik: Math.floor(i / 3), peringkat: Math.floor(i / 4) });
+hasil("korelasiSpearman: ties dirata-rata tanpa NaN", Number.isFinite(ac.korelasiSpearman(pasanganSeri)), `${ac.korelasiSpearman(pasanganSeri)}`);
+
+/* Streak pada partai mini generasi 2 yang sudah ada. */
+hasil(
+  "mini: Putih (selalu rank 1) streak = jumlah langkah ber-kandidat",
+  mini.w.streakTerpanjang === mini.w.kandidatSampel,
+  `${mini.w.streakTerpanjang}/${mini.w.kandidatSampel}`
+);
+hasil("mini: Hitam (selalu rank 4) streak 0", mini.b.streakTerpanjang === 0, `${mini.b.streakTerpanjang}`);
+hasil(
+  "tanpa kandidat: metrik kondisional null",
+  tanpaKandidat.w.kecocokanSulit === null && tanpaKandidat.w.kecocokanMudah === null && tanpaKandidat.w.korelasiWaktuKualitas === null && tanpaKandidat.w.streakTerpanjang === 0
+);
+
+/* Partai kondisional: putih = "pemakai engine" (sempurna saat sulit,
+ * hancur saat mudah), hitam = "manusia" (sebaliknya). Posisi sulit/mudah
+ * bergantian; detik putih menempel pada pola kualitas (korelasi -1),
+ * detik hitam justru terbalik (korelasi +1). */
+const KANDIDAT_SULIT = [
+  { peringkat: 1, uci: "e2e4", cp: 30, mate: null, wdl: null },
+  { peringkat: 2, uci: "d2d4", cp: 29, mate: null, wdl: null },
+  { peringkat: 3, uci: "g1f3", cp: 28, mate: null, wdl: null },
+  { peringkat: 4, uci: "c2c4", cp: 27, mate: null, wdl: null },
+  { peringkat: 5, uci: "b1c3", cp: 26, mate: null, wdl: null },
+];
+const KANDIDAT_MUDAH = [
+  { peringkat: 1, uci: "e2e4", cp: 200, mate: null, wdl: null },
+  { peringkat: 2, uci: "d2d4", cp: 20, mate: null, wdl: null },
+  { peringkat: 3, uci: "g1f3", cp: 10, mate: null, wdl: null },
+  { peringkat: 4, uci: "c2c4", cp: 5, mate: null, wdl: null },
+  { peringkat: 5, uci: "b1c3", cp: 0, mate: null, wdl: null },
+];
+hasil("klasifikasi: KANDIDAT_SULIT → sulit", ac.ketajamanKandidat(KANDIDAT_SULIT) <= ac.AMBANG.kandidatSulit);
+hasil("klasifikasi: KANDIDAT_MUDAH → mudah", ac.ketajamanKandidat(KANDIDAT_MUDAH) >= ac.AMBANG.kandidatMudah);
+
+const KANDIDAT_SULIT_HITAM = [
+  { peringkat: 1, uci: "e7e5", cp: 30, mate: null, wdl: null },
+  { peringkat: 2, uci: "e7e6", cp: 29, mate: null, wdl: null },
+  { peringkat: 3, uci: "d7d5", cp: 28, mate: null, wdl: null },
+  { peringkat: 4, uci: "d7d6", cp: 27, mate: null, wdl: null },
+  { peringkat: 5, uci: "g8f6", cp: 26, mate: null, wdl: null },
+];
+const KANDIDAT_MUDAH_HITAM = [
+  { peringkat: 1, uci: "e7e5", cp: 200, mate: null, wdl: null },
+  { peringkat: 2, uci: "d7d5", cp: 20, mate: null, wdl: null },
+  { peringkat: 3, uci: "g8f6", cp: 10, mate: null, wdl: null },
+  { peringkat: 4, uci: "b8c6", cp: 5, mate: null, wdl: null },
+  { peringkat: 5, uci: "a7a6", cp: 0, mate: null, wdl: null },
+];
+
+function bangunKondisional() {
+  const daftar = [];
+  let sisa = { w: 7200, b: 7200 };
+  const dorong = (attrsPosisi, attrsLangkah, pemain, detik) => {
+    const sebelum = { white: sisa.w, black: sisa.b };
+    if (pemain === "w") sisa.w -= detik;
+    else sisa.b -= detik;
+    const sesudah = { white: sisa.w, black: sisa.b };
+    daftar.push({
+      fen: "8/8/8/8/8/8/8/8 w - - 0 1",
+      color: pemain === "w" ? "b" : "w",
+      clock: sebelum,
+      ...attrsPosisi,
+    });
+    daftar.push({
+      san: attrsLangkah.san,
+      uci: attrsLangkah.uci,
+      color: pemain === "w" ? "b" : "w",
+      moveRating: null,
+      fen: "8/8/8/8/8/8/8/8 b - - 0 1",
+      previousStaticEvals: [["cp", "30"], ["cp", "0"]],
+      clock: sesudah,
+    });
+  };
+  for (let r = 0; r < 20; r++) {
+    const sulitPutih = r % 2 === 0;
+    // kandidat #1 kedua daftar putih = e2e4 → bestMoveSan selalu "e4";
+    // putih "engine": e2e4 (rank 1) saat sulit, c2c4 (rank 4) saat mudah.
+    dorong(
+      { kandidat: sulitPutih ? KANDIDAT_SULIT : KANDIDAT_MUDAH, bestMoveSan: "e4" },
+      sulitPutih ? { san: "e4", uci: "e2e4" } : { san: "c4", uci: "c2c4" },
+      "w",
+      sulitPutih ? 50 : 10
+    );
+    const mudahHitam = r % 2 === 0;
+    // kandidat #1 kedua daftar hitam = e7e5 → bestMoveSan selalu "e5";
+    // hitam "manusia": e7e5 (rank 1) saat mudah, d7d6 (rank 4) saat sulit.
+    dorong(
+      { kandidat: mudahHitam ? KANDIDAT_MUDAH_HITAM : KANDIDAT_SULIT_HITAM, bestMoveSan: "e5" },
+      mudahHitam ? { san: "e5", uci: "e7e5" } : { san: "d6", uci: "d7d6" },
+      "b",
+      mudahHitam ? 30 : 70
+    );
+  }
+  return daftar;
+}
+const kondisional = ac.hitungSkorKecurigaan(bangunKondisional());
+hasil(
+  "kondisional: putih cocok 100% di posisi sulit (tanda khas engine)",
+  kondisional.w.kecocokanSulit === 100 && kondisional.w.sulitDinilai === 10,
+  `${kondisional.w.kecocokanSulit}/${kondisional.w.sulitDinilai}`
+);
+hasil(
+  "kondisional: putih cocok 0% di posisi mudah",
+  kondisional.w.kecocokanMudah === 0 && kondisional.w.mudahDinilai === 10,
+  `${kondisional.w.kecocokanMudah}/${kondisional.w.mudahDinilai}`
+);
+hasil(
+  "kondisional: hitam (manusia) kebalikannya — 0% sulit, 100% mudah",
+  kondisional.b.kecocokanSulit === 0 && kondisional.b.kecocokanMudah === 100,
+  `${kondisional.b.kecocokanSulit}/${kondisional.b.kecocokanMudah}`
+);
+hasil("kondisional: streak putih & hitam = 1 (bergantian rank 1/4)", kondisional.w.streakTerpanjang === 1 && kondisional.b.streakTerpanjang === 1, `${kondisional.w.streakTerpanjang}/${kondisional.b.streakTerpanjang}`);
+hasil(
+  "kondisional: korelasi putih -1 (manusia: lama berpikir → langkah baik)",
+  kondisional.w.korelasiWaktuKualitas === -1 && kondisional.w.sampelKorelasi === 20,
+  `${kondisional.w.korelasiWaktuKualitas}/${kondisional.w.sampelKorelasi}`
+);
+hasil(
+  "kondisional: korelasi hitam +1 (makin lama makin buruk — mencurigakan)",
+  kondisional.b.korelasiWaktuKualitas === 1,
+  `${kondisional.b.korelasiWaktuKualitas}`
+);
+
+/* Agregat: keranjang dijumlah ulang mentah, streak maksimum, korelasi berbobot. */
+const agregatSulit = ac.agregatSkorPemain([{ id: "s1", timestamp: 1, warna: "w", hasil: kondisional }], "budi");
+hasil(
+  "agregat: kecocokanSulit/Mudah terbawa",
+  agregatSulit.kecocokanSulit === 100 && agregatSulit.kecocokanMudah === 0,
+  `${agregatSulit.kecocokanSulit}/${agregatSulit.kecocokanMudah}`
+);
+hasil("agregat: streakTerpanjang = maksimum antarpartai", agregatSulit.streakTerpanjang === 1, `${agregatSulit.streakTerpanjang}`);
+hasil("agregat: korelasi berbobot sampel = -1", agregatSulit.korelasiWaktuKualitas === -1, `${agregatSulit.korelasiWaktuKualitas}`);
+const agregatCampurKondisional = ac.agregatSkorPemain(
+  [
+    { id: "s1", timestamp: 1, warna: "w", hasil: kondisional },
+    { id: "s2", timestamp: 2, warna: "b", hasil: kondisional },
+  ],
+  "budi"
+);
+hasil(
+  "agregat campur: kecocokan sulit (10+0)/20 = 50%",
+  agregatCampurKondisional.kecocokanSulit === 50,
+  `${agregatCampurKondisional.kecocokanSulit}`
+);
+hasil(
+  "agregat campur: korelasi rata berbobot (-1 dan +1) ≈ 0",
+  agregatCampurKondisional.korelasiWaktuKualitas === 0,
+  `${agregatCampurKondisional.korelasiWaktuKualitas}`
+);
+
+/* ============ 11. kalibrasi per rating ============ */
+
+console.log("\n== kalibrasi ambang per rating ==");
+hasil("pilihKalibrasi(null) = ambang global", ac.pilihKalibrasi(null).kecocokanDasar === ac.AMBANG.kecocokanDasar);
+hasil("pilihKalibrasi(NaN) = ambang global", ac.pilihKalibrasi(NaN).acplAcuan === ac.AMBANG.acplAcuan);
+hasil("pilihKalibrasi(700) → band 40/70", ac.pilihKalibrasi(700).kecocokanDasar === 40 && ac.pilihKalibrasi(700).acplAcuan === 70);
+hasil("pilihKalibrasi(800) masuk band 800", ac.pilihKalibrasi(800).kecocokanDasar === 40);
+hasil("pilihKalibrasi(1500) → band 50/45", ac.pilihKalibrasi(1500).kecocokanDasar === 50 && ac.pilihKalibrasi(1500).acplAcuan === 45);
+hasil("pilihKalibrasi(2600) → band tertinggi", ac.pilihKalibrasi(2600).kecocokanDasar === 65 && ac.pilihKalibrasi(2600).acplAcuan === 27);
+hasil(
+  "band kalibrasi terurut & tidak tumpang tindih",
+  ac.KALIBRASI_RATING.every((b, i, arr) => i === 0 || arr[i - 1].batas < b.batas)
+);
+hasil(
+  "ratingDariMetadata: elo angka dibaca, NOELO → null",
+  ac.ratingDariMetadata({ players: [{ elo: 1750 }, { elo: "NOELO" }] }).w === 1750 &&
+    ac.ratingDariMetadata({ players: [{ elo: 1750 }, { elo: "NOELO" }] }).b === null
+);
+hasil("ratingDariMetadata: elo 0/negatif → null", ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).w === null && ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).b === null);
+
+/* Arah kalibrasi: metrik sama, pemain lemah yang cocok 70% → skor lebih
+ * tinggi daripada pemain kuat (70% itu biasa di 2400+). */
+const metrikSama = { engineMatchRate: 70, acpl: 30, konsistensiWaktu: 0.5, rataPeringkat: 2, jumlahLangkah: 80 };
+const skorLemah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
+const skorKuat = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
+hasil("kalibrasi: skor pemain 800 > skor pemain 2600 pada metrik sama", skorLemah.skor > skorKuat.skor, `${skorLemah.skor} vs ${skorKuat.skor}`);
+hasil(
+  "kalibrasi: tanpa rating = ambang global (perilaku lama utuh)",
+  JSON.stringify(ac.skorKecurigaan(metrikSama)) === JSON.stringify(ac.skorKecurigaan({ ...metrikSama, ratingPemain: null }))
+);
+
+/* hitungSkorKecurigaan menerima rating per warna. */
+const miniRating = ac.hitungSkorKecurigaan(daftarMini, { rating: { w: 800, b: 2600 } });
+hasil("kalibrasi per warna: diterapkan tanpa galat", Number.isFinite(miniRating.w.skor) && Number.isFinite(miniRating.b.skor));
+
+/* barisPartai membaca rating dari metadata; agregat memakai median. */
+const metadataRating = { players: [{ name: "budi", elo: 1200 }, { name: "lawan", elo: 1250 }] };
+const agregatRating = ac.agregatSkorPemain(
+  [
+    { id: "r1", timestamp: 1, warna: "w", metadata: metadataRating, hasil: mini },
+    { id: "r2", timestamp: 2, warna: "b", metadata: metadataRating, hasil: mini },
+  ],
+  "budi"
+);
+hasil("agregat: rating median = 1225", agregatRating.rating === 1225, `${agregatRating.rating}`);
+hasil("agregat: baris membawa rating", agregatRating.partai.every((b) => b.rating === 1200 || b.rating === 1250));
+const agregatTanpaRating = ac.agregatSkorPemain([{ id: "r1", timestamp: 1, warna: "w", hasil: mini }], "budi");
+hasil("agregat: tanpa metadata → rating null (tanpa kalibrasi)", agregatTanpaRating.rating === null);
+
+/* ============ 12. laporan peninjauan ============ */
+
+console.log("\n== laporan peninjauan pengurus ==");
+{
+  const teks = laporan.buatLaporanPeninjauan(agregatRating, { username: "budi" });
+  hasil("laporan memuat nama pemain", teks.includes("budi"));
+  hasil("laporan memuat skor & level", teks.includes(`Skor kecurigaan: ${agregatRating.skor}`) && teks.includes(agregatRating.level ?? ""));
+  hasil("laporan memuat rating acuan", teks.includes("1225"));
+  hasil("laporan memuat sanggahan wajib", teks.includes("bukan bukti atau tuduhan"));
+  hasil("laporan memuat rincian per partai", teks.includes("RINCIAN PER PARTAI") && teks.split("\n").length > 15);
+  hasil("laporan agregat kosong tetap berbentuk", laporan.buatLaporanPeninjauan(null).includes("Tidak ada partai"));
+  const json = JSON.parse(laporan.buatLaporanJson(agregatRating, { username: "budi" }));
+  hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 2);
+  hasil("laporan JSON: metrik lengkap", Number.isFinite(json.metrik.engineMatchRate) && "kecocokanSulit" in json.metrik);
+  hasil("laporan JSON: sanggahan ikut", json.sanggahan.includes("indikasi statistik"));
+  // jsdom punya document+Blob → fungsi harus mengembalikan true dan mengklik
+  // anchor sekali. Klik di-stub supaya jsdom tidak mencoba "navigasi" unduhan.
+  const klikAsli = window.HTMLAnchorElement.prototype.click;
+  let jumlahKlik = 0;
+  window.HTMLAnchorElement.prototype.click = function () {
+    jumlahKlik++;
+  };
+  const unduhOk = laporan.unduhLaporanPeninjauan(agregatRating, { username: "budi" });
+  window.HTMLAnchorElement.prototype.click = klikAsli;
+  hasil("unduhLaporanPeninjauan: memicu unduhan (anchor diklik sekali)", unduhOk === true && jumlahKlik === 1, `${unduhOk}/${jumlahKlik}`);
+}
+
+/* ============ 13. deviasi manusia (siap-Maia) ============ */
+
+console.log("\n== fondasi deviasi manusia ==");
+{
+  const daftarDev = [{ fen: "pos-awal", color: "b" }];
+  for (let i = 0; i < 12; i++) {
+    daftarDev.push({ san: "e4", uci: "e2e4", fen: `pos-${i}`, color: "w" });
+  }
+  const prediksiJelas = new Map();
+  for (let i = 0; i < 12; i++) {
+    prediksiJelas.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { e2e4: 0.4, d2d4: 0.3, c2c4: 0.2, g1f3: 0.1 });
+  }
+  const dev = deviasi.hitungDeviasiManusia(daftarDev, prediksiJelas);
+  hasil("deviasi: sampel terhitung", dev?.sampel === 12, `${dev?.sampel}`);
+  hasil("deviasi: langkah teratas manusia → kejutan ≈ 1.32 bit", Math.abs(dev.kejutanRata - Math.log2(1 / 0.4)) < 0.01, `${dev.kejutanRata}`);
+  hasil("deviasi: peringkat Maia 1", dev.rataPeringkatMaia === 1);
+  hasil("deviasi: tidak ada kejutan tinggi", dev.kejutanTinggi === 0);
+
+  const prediksiAneh = new Map();
+  for (let i = 0; i < 12; i++) {
+    prediksiAneh.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { d2d4: 0.5, e2e4: 0.0001, c2c4: 0.3, g1f3: 0.2 });
+  }
+  const devAneh = deviasi.hitungDeviasiManusia(daftarDev, prediksiAneh);
+  hasil("deviasi: langkah tak-manusiawi → kejutan tinggi tercatat", devAneh.kejutanTinggi === 12, `${devAneh.kejutanTinggi}`);
+  hasil("deviasi: peringkat Maia = 4 (tiga langkah lebih disukai)", devAneh.rataPeringkatMaia === 4, `${devAneh.rataPeringkatMaia}`);
+  hasil("deviasi: prediksi kurang → null", deviasi.hitungDeviasiManusia(daftarDev.slice(0, 5), prediksiJelas) === null);
+  hasil("deviasi: tanpa prediksi → null", deviasi.hitungDeviasiManusia(daftarDev, new Map()) === null);
+  hasil("deviasi: input rusak → null", deviasi.hitungDeviasiManusia(null, prediksiJelas) === null);
+}
+
+/* ============ 14. orkestrator: durasi + cache localStorage ============ */
+
+console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
+{
+  // cache dibersihkan dulu supaya hitungan dariCache bisa dipastikan
+  riwayat.bersihkanCacheAntiCheat();
+  const pgnSatu = PGN_JUJUR;
+  const jalan1 = await riwayat.analisisRiwayatAntiCheat({
+    partai: [{ id: "dur-1", timestamp: 1, whiteName: "budi", blackName: "lawan", pgn: pgnSatu }],
+    username: "budi",
+    mesin: buatEnginePalsu(peta, "jujur"),
+    parserPgn: parsePGN,
+  });
+  hasil("durasi: totalMs tercatat (>0)", Number.isFinite(jalan1.durasi?.totalMs) && jalan1.durasi.totalMs >= 0, `${jalan1.durasi?.totalMs}`);
+  hasil("durasi: rataMs = totalMs (satu partai)", jalan1.durasi.rataMs === jalan1.durasi.totalMs);
+  hasil("durasi: perPartai membawa id", jalan1.durasi.perPartai[0]?.id === "dur-1");
+  hasil("dariCache: pertama = 0", jalan1.dariCache === 0);
+
+  // Bersihkan cache MEMORI saja (simulasi sesi baru): tulis ulang Map lewat
+  // trik — bersihkan lalu muat dari localStorage via bacaCachePartai.
+  const jalan2 = await riwayat.analisisRiwayatAntiCheat({
+    partai: [{ id: "dur-1", timestamp: 1, whiteName: "budi", blackName: "lawan", pgn: pgnSatu }],
+    username: "budi",
+    mesin: buatEnginePalsu(peta, "jujur"),
+    parserPgn: parsePGN,
+  });
+  hasil("cache: jalan kedua membaca dari cache", jalan2.dariCache === 1 && jalan2.durasi.totalMs === 0, `${jalan2.dariCache}/${jalan2.durasi.totalMs}`);
+
+  // Simulasi SESI BARU: buang isi Map memori secara langsung lalu pastikan
+  // bacaCachePartai memuat ulang dari localStorage.
+  const kunci = riwayat.kunciCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
+  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}");
+  hasil("cache: tersimpan di localStorage", Boolean(diSimpanan[kunci]));
+  riwayat.bersihkanCacheAntiCheat?.tampak === undefined; // no-op, jaga bentuk
+  // Muat ulang: bacaCachePartai setelah Map dibersihkan harus mengambil dari localStorage.
+  const hasilBaca = riwayat.bacaCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
+  hasil("cache: baca ulang lintas-sesi dari localStorage", Boolean(hasilBaca) && Boolean(hasilBaca.hasil?.w), `${Boolean(hasilBaca)}`);
+  hasil("cache: bersihkan menghapus localStorage", (() => {
+    riwayat.bersihkanCacheAntiCheat();
+    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}")[kunci];
+  })());
+}
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);

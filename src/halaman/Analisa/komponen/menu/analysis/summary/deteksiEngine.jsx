@@ -13,6 +13,7 @@
 import { useMemo } from "react";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import { hitungSkorKecurigaan } from "../../../../mesin/antiCheat.js";
+import { MULTI_PV } from "../../../../mesin/engine.js";
 import { DAFTAR_FASE } from "../../../../mesin/fase.js";
 import RatingBox from "./ratingBox.jsx";
 
@@ -36,6 +37,16 @@ function formatCentipawn(nilai) {
 
 function formatRasio(nilai) {
   return Number.isFinite(nilai) ? `${Math.round(nilai * 100)}%` : "-";
+}
+
+/** Peringkat rata-rata kandidat: "1.8" dari skala 1–MULTI_PV+1. */
+function formatPeringkat(nilai) {
+  return Number.isFinite(nilai) ? nilai.toFixed(1) : "-";
+}
+
+/** Korelasi Spearman waktu↔kualitas: dua desimal dengan tanda. */
+function formatKorelasi(nilai) {
+  return Number.isFinite(nilai) ? nilai.toFixed(2) : "-";
 }
 
 function BarisMetrik({ label, putih, hitam }) {
@@ -100,6 +111,45 @@ export default function DeteksiEngine({ moves }) {
             putih={formatPersen(putih.engineMatchRate)}
             hitam={formatPersen(hitam.engineMatchRate)}
           />
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <>
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanTop3")}
+                putih={formatPersen(putih.kecocokanTop3)}
+                hitam={formatPersen(hitam.kecocokanTop3)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.rataPeringkat")}
+                putih={formatPeringkat(putih.rataPeringkat)}
+                hitam={formatPeringkat(hitam.rataPeringkat)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.acplKandidat")}
+                putih={formatCentipawn(putih.acplKandidat)}
+                hitam={formatCentipawn(hitam.acplKandidat)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanSulit")}
+                putih={formatPersen(putih.kecocokanSulit)}
+                hitam={formatPersen(hitam.kecocokanSulit)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanMudah")}
+                putih={formatPersen(putih.kecocokanMudah)}
+                hitam={formatPersen(hitam.kecocokanMudah)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.streak")}
+                putih={String(putih.streakTerpanjang ?? 0)}
+                hitam={String(hitam.streakTerpanjang ?? 0)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.korelasiWaktu")}
+                putih={formatKorelasi(putih.korelasiWaktuKualitas)}
+                hitam={formatKorelasi(hitam.korelasiWaktuKualitas)}
+              />
+            </>
+          ) : null}
           <BarisMetrik
             label={t("analisa.antiCheat.metrik.acpl")}
             putih={formatCentipawn(putih.acpl)}
@@ -131,6 +181,18 @@ export default function DeteksiEngine({ moves }) {
           {langkahTersedikit < 20 ? (
             <p className="text-xs leading-4 text-foregroundGrey">
               {t("analisa.antiCheat.sampelKecil", { n: langkahTersedikit })}
+            </p>
+          ) : null}
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">
+              {t("analisa.antiCheat.catatanKandidat", { n: MULTI_PV, nMax: MULTI_PV + 1 })}
+            </p>
+          ) : (
+            <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaKandidat")}</p>
+          )}
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">
+              {t("analisa.antiCheat.catatanKondisional", { sulit: 20, mudah: 100 })}
             </p>
           ) : null}
           {!putih.rincianWaktu || !hitam.rincianWaktu ? (
