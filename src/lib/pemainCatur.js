@@ -1,25 +1,34 @@
 /**
- * Kartu profil pemain dari API publik chess.com (tanpa autentikasi).
+ * Kartu profil pemain dari API publik chess.com / lichess.org (tanpa autentikasi).
  *
  * Ambil nama tampilan, gelar (title), avatar, bendera negara, dan rating
  * Bullet/Blitz/Rapid untuk ditampilkan di dekat papan & pada ringkasan —
  * persis seperti kartu profil pada referensi. Semua hasil di-`cache` per
- * username (Map + localStorage) supaya membuka partai lain jadi instan dan
- * tidak membanjiri API.
+ * (platform, username) (Map + localStorage) supaya membuka partai lain jadi
+ * instan dan tidak membanjiri API.
+ *
+ * PENTING: platform wajib diteruskan untuk akun yang sudah diketahui
+ * situsnya (kartu akun di layar Akun). Tanpa platform, nama akun Lichess
+ * ikut ditembak ke api.chess.com dan selalu 404 — kartunya kosong melulu.
  */
 
 import { useEffect, useState } from "react";
 
-const BASE = "https://api.chess.com/pub";
+const BASE_CHESSCOM = "https://api.chess.com/pub";
+const BASE_LICHESS = "https://lichess.org/api";
 const KUNCI_CACHE = "kci-analisa-pemain-";
 
 const cache = new Map();
 
-/** Bilangan nama yang jelas bukan akun chess.com (jangan dipakai untuk fetch). */
+/** Bilangan nama yang jelas bukan akun (jangan dipakai untuk fetch). */
 const NAMA_SKIP = new Set(["", "?", "unknown", "anonim", "putih", "hitam", "white", "black"]);
 
 function bersihkanUsername(username) {
   return encodeURIComponent(String(username ?? "").trim().toLowerCase());
+}
+
+function normalisasiPlatform(platform) {
+  return platform === "lichessOrg" ? "lichessOrg" : "chessCom";
 }
 
 /** Kode negara dua huruf ("id") → emoji bendera. */
@@ -47,37 +56,18 @@ function simpanStorage(kunci, nilai) {
   }
 }
 
-/**
- * Ambil kartu profil untuk satu username. Resolusi `null` bila tidak ada
- * (pemain anonim / bukan akun chess.com yang terindeks / offline).
- * @param {string} username
- * @returns {Promise<object|null>}
- */
-export async function ambilKartuPemain(username) {
-  const kunci = String(username ?? "").trim().toLowerCase();
-  if (NAMA_SKIP.has(kunci)) return null;
-  if (cache.has(kunci)) return cache.get(kunci);
-
-  const dariStorage = muatStorage(kunci);
-  if (dariStorage) {
-    cache.set(kunci, dariStorage);
-    return dariStorage;
-  }
-
+async function ambilDariChessCom(username) {
   const u = bersihkanUsername(username);
   const [profil, statistik] = await Promise.all([
-    fetch(`${BASE}/player/${u}`)
+    fetch(`${BASE_CHESSCOM}/player/${u}`)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null),
-    fetch(`${BASE}/player/${u}/stats`)
+    fetch(`${BASE_CHESSCOM}/player/${u}/stats`)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null),
   ]);
 
-  if (!profil) {
-    cache.set(kunci, null);
-    return null;
-  }
+  if (!profil) return null;
 
   const kodeNegara = profil.country ? profil.country.split("/").pop() : null;
   // Total partai = jumlah menang + kalah + seri seluruh kelas waktu (untuk
@@ -87,9 +77,9 @@ export async function ambilKartuPemain(username) {
       const c = statistik?.[k]?.record;
       return s + (c ? (c.win + c.loss + c.draw) : 0);
     },
-    0,
+    0
   );
-  const kartu = {
+  return {
     username,
     exists: true,
     name: profil.name || null,
@@ -104,9 +94,69 @@ export async function ambilKartuPemain(username) {
       rapid: statistik?.chess_rapid?.last?.rating ?? null,
     },
   };
+}
+
+async function ambilDariLichess(username) {
+  const u = bersihkanUsername(username);
+  let data = null;
+  try {
+    const r = await fetch(`${BASE_LICHESS}/user/${u}`, {
+      headers: { Accept: "application/json" },
+    });
+    if (!r.ok) return null;
+    data = await r.json();
+  } catch {
+    return null;
+  }
+  if (!data || !data.id) return null;
+
+  const perfs = data.perfs || {};
+  // Lichess tidak menyediakan avatar publik — kartu memakai ikon profil.
+  return {
+    username,
+    exists: true,
+    name: data.profile?.firstName && data.profile?.lastName
+      ? `${data.profile.firstName} ${data.profile.lastName}`
+      : null,
+    title: data.title || null,
+    avatar: null,
+    flag: null,
+    url: data.url || `https://lichess.org/@/${username}`,
+    total: Number(data.count?.all) || null,
+    ratings: {
+      bullet: perfs.bullet?.rating ?? null,
+      blitz: perfs.blitz?.rating ?? null,
+      rapid: perfs.rapid?.rating ?? null,
+    },
+  };
+}
+
+/**
+ * Ambil kartu profil untuk satu username. Resolusi `null` bila tidak ada
+ * (pemain anonim / bukan akun terindeks / offline).
+ * @param {string} username
+ * @param {string} [platform="chessCom"] "chessCom" | "lichessOrg"
+ * @returns {Promise<object|null>}
+ */
+export async function ambilKartuPemain(username, platform = "chessCom") {
+  const nama = String(username ?? "").trim().toLowerCase();
+  if (NAMA_SKIP.has(nama)) return null;
+  const plat = normalisasiPlatform(platform);
+  const kunci = `${plat}:${nama}`;
+  if (cache.has(kunci)) return cache.get(kunci);
+
+  const dariStorage = muatStorage(kunci);
+  if (dariStorage) {
+    cache.set(kunci, dariStorage);
+    return dariStorage;
+  }
+
+  const kartu = plat === "lichessOrg"
+    ? await ambilDariLichess(username)
+    : await ambilDariChessCom(username);
 
   cache.set(kunci, kartu);
-  simpanStorage(kunci, kartu);
+  if (kartu) simpanStorage(kunci, kartu);
   return kartu;
 }
 
@@ -116,10 +166,11 @@ export async function ambilKartuPemain(username) {
  *
  * @param {string|null} nama
  * @param {boolean} [aktif=true] Tahan pemanggilan API hingga partai benar-benar
- *   dimuat, supaya tidak menembak chess.com saat papan masih kosong (nama
+ *   dimuat, supaya tidak menembak API saat papan masih kosong (nama
  *   bawaan "Putih"/"Hitam") maupun untuk nama yang jelas bukan akun.
+ * @param {string} [platform="chessCom"] Situs akun ("chessCom" | "lichessOrg").
  */
-export function useKartuPemain(nama, aktif = true) {
+export function useKartuPemain(nama, aktif = true, platform = "chessCom") {
   const [kartu, setKartu] = useState(undefined);
   useEffect(() => {
     let hidup = true;
@@ -129,12 +180,12 @@ export function useKartuPemain(nama, aktif = true) {
       setKartu(null);
       return undefined;
     }
-    ambilKartuPemain(nama).then((k) => {
+    ambilKartuPemain(nama, platform).then((k) => {
       if (hidup) setKartu(k ?? null);
     });
     return () => {
       hidup = false;
     };
-  }, [nama, aktif]);
+  }, [nama, aktif, platform]);
   return kartu;
 }

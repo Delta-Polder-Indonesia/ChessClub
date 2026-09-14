@@ -46,6 +46,40 @@ export function bacaRevisiBasis() {
   return revisiBasis;
 }
 
+/*
+ * Pendengar perubahan basis data. Setiap tulis (simpan/hapus/gabung/
+ * bersihkan/pastikan koleksi) menaikkan revisi SEKALIGUS memberitahu
+ * pendengar — layar Database berlangganan di sini supaya koleksi yang baru
+ * ditambahkan dari layar Akun langsung muncul tanpa harus keluar-masuk
+ * layar. Tanpa ini ada balapan: Database yang dibuka sepersekian detik
+ * setelah "Tambah akun" membaca revisi lama, mengira cache-nya masih segar,
+ * dan akun barunya tidak terlihat sampai layar dibuka ulang.
+ */
+const pendengarRevisi = new Set();
+
+/**
+ * Daftarkan panggilan-balik yang dijalankan setiap revisi naik.
+ * @returns {Function} fungsi berhenti berlangganan.
+ */
+export function langgananRevisi(cb) {
+  if (typeof cb !== "function") return () => {};
+  pendengarRevisi.add(cb);
+  return () => {
+    pendengarRevisi.delete(cb);
+  };
+}
+
+function naikkanRevisi() {
+  revisiBasis++;
+  for (const cb of Array.from(pendengarRevisi)) {
+    try {
+      cb(revisiBasis);
+    } catch {
+      /* pendengar tidak boleh merusak tulis */
+    }
+  }
+}
+
 function punyaIndexedDB() {
   try {
     return typeof window !== "undefined" && Boolean(window.indexedDB);
@@ -361,7 +395,7 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
   const user = username.trim();
   const koleksiId = `${plat}:${user.toLowerCase()}`;
   const daftarNormal = daftarPartai.map((p) => normalisasiDataPartai(p, plat, user)).filter((p) => p.pgn);
-  if (daftarNormal.length > 0) revisiBasis++;
+  if (daftarNormal.length > 0) naikkanRevisi();
 
   const db = await bukaDB();
   if (!db) {
@@ -391,22 +425,48 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
         storePartai.put(p);
       }
 
-      const reqCount = storePartai.index("kombinasi").count(IDBKeyRange.only([plat, user]));
-      reqCount.onsuccess = () => {
-        const total = reqCount.result || daftarNormal.length;
-        storeKoleksi.put({
-          id: koleksiId,
-          platform: plat,
-          username: user,
-      label: user ? `${user} ${plat === "chessCom" ? "Chess.com" : plat === "lichessOrg" ? "Lichess.org" : plat}` : plat,
-          jumlahPartai: total,
-          terakhirDisinkronkan: Date.now(),
-          dibuatPada: Date.now(),
-        });
+      /*
+       * Hitung ulang isi koleksi lewat indeks `koleksiWaktu` (kunci
+       * `koleksiId` yang sudah huruf kecil semua). Versi lama memakai
+       * indeks [platform, username] dengan ejaan asli — meleset bila
+       * akunnya ber-huruf besar, sehingga kartu koleksi menampilkan angka
+       * yang salah. `dibuatPada` dipertahankan dari rekaman lama.
+       */
+      let totalKoleksi = daftarNormal.length;
+      const tulisKoleksi = (total) => {
+        totalKoleksi = total;
+        const reqKol = storeKoleksi.get(koleksiId);
+        const simpan = (lama) => {
+          storeKoleksi.put({
+            id: koleksiId,
+            platform: plat,
+            username: user,
+            label: user ? `${user} ${plat === "chessCom" ? "Chess.com" : plat === "lichessOrg" ? "Lichess.org" : plat}` : plat,
+            jumlahPartai: total,
+            terakhirDisinkronkan: Date.now(),
+            dibuatPada: lama?.dibuatPada || Date.now(),
+          });
+        };
+        reqKol.onsuccess = () => simpan(reqKol.result);
+        reqKol.onerror = () => simpan(null);
       };
+      try {
+        let reqCount;
+        if (storePartai.indexNames.contains("koleksiWaktu")) {
+          reqCount = storePartai
+            .index("koleksiWaktu")
+            .count(IDBKeyRange.bound([koleksiId, -Infinity], [koleksiId, Infinity]));
+        } else {
+          reqCount = storePartai.index("kombinasi").count(IDBKeyRange.only([plat, user]));
+        }
+        reqCount.onsuccess = () => tulisKoleksi(reqCount.result || daftarNormal.length);
+        reqCount.onerror = () => tulisKoleksi(daftarNormal.length);
+      } catch {
+        tulisKoleksi(daftarNormal.length);
+      }
 
       tx.oncomplete = () => {
-        resolve({ tersimpan: daftarNormal.length, total: daftarNormal.length });
+        resolve({ tersimpan: daftarNormal.length, total: totalKoleksi });
       };
       tx.onerror = () => {
         resolve({ tersimpan: 0, total: 0 });
@@ -434,7 +494,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
   const db = await bukaDB();
   if (!db) {
     if (!memoriKoleksi.has(koleksiId)) {
-      revisiBasis++;
+      naikkanRevisi();
       memoriKoleksi.set(koleksiId, {
         id: koleksiId,
         platform: plat,
@@ -460,7 +520,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
           resolve(ada);
           return;
         }
-        revisiBasis++;
+        naikkanRevisi();
         const baru = {
           id: koleksiId,
           platform: plat,
@@ -475,7 +535,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
         tx.onerror = () => resolve(baru);
       };
       reqGet.onerror = () => {
-        revisiBasis++;
+        naikkanRevisi();
         const baru = {
           id: koleksiId,
           platform: plat,
@@ -861,12 +921,20 @@ export async function ambilPartai(id) {
  */
 export async function hapusPartai(id) {
   if (!id) return false;
-  revisiBasis++;
+  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     const partai = memoriPartai.get(id);
     if (partai) {
       memoriPartai.delete(id);
+      const kol = partai.koleksiId ? memoriKoleksi.get(partai.koleksiId) : null;
+      if (kol) {
+        memoriKoleksi.set(partai.koleksiId, {
+          ...kol,
+          jumlahPartai: Math.max(0, (Number(kol.jumlahPartai) || 1) - 1),
+          terakhirDisinkronkan: Date.now(),
+        });
+      }
       simpanFallbackKeStorage();
       return true;
     }
@@ -875,11 +943,33 @@ export async function hapusPartai(id) {
 
   return new Promise((resolve) => {
     try {
-      const tx = db.transaction([STORE_PARTAI], "readwrite");
+      const tx = db.transaction([STORE_PARTAI, STORE_KOLEKSI], "readwrite");
       const store = tx.objectStore(STORE_PARTAI);
-      const req = store.delete(id);
-      req.onsuccess = () => resolve(true);
-      req.onerror = () => resolve(false);
+      const storeKoleksi = tx.objectStore(STORE_KOLEKSI);
+      let ketemu = false;
+      const reqGet = store.get(id);
+      reqGet.onsuccess = () => {
+        const partai = reqGet.result;
+        if (!partai) return;
+        ketemu = true;
+        store.delete(id);
+        if (partai.koleksiId) {
+          const reqKol = storeKoleksi.get(partai.koleksiId);
+          reqKol.onsuccess = () => {
+            const kol = reqKol.result;
+            if (kol) {
+              storeKoleksi.put({
+                ...kol,
+                jumlahPartai: Math.max(0, (Number(kol.jumlahPartai) || 1) - 1),
+                terakhirDisinkronkan: Date.now(),
+              });
+            }
+          };
+        }
+      };
+      reqGet.onerror = () => resolve(false);
+      tx.oncomplete = () => resolve(ketemu);
+      tx.onerror = () => resolve(false);
     } catch {
       resolve(false);
     }
@@ -891,7 +981,7 @@ export async function hapusPartai(id) {
  */
 export async function hapusKoleksi(koleksiId) {
   if (!koleksiId) return false;
-  revisiBasis++;
+  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     memoriKoleksi.delete(koleksiId);
@@ -942,7 +1032,7 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
   const asli = String(namaAsliRaw || "").trim();
   const tujuan = String(namaTujuanRaw || "").trim();
   if (!koleksiId || !asli || !tujuan) return { diubah: 0, nama: "" };
-  revisiBasis++;
+  naikkanRevisi();
 
   const cocokNama = (nama) => String(nama || "").trim().toLowerCase() === asli.toLowerCase();
 
@@ -1020,7 +1110,7 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
  * Kosongkan seluruh basis data (semua partai & koleksi).
  */
 export async function bersihkanBasisData() {
-  revisiBasis++;
+  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     memoriPartai.clear();

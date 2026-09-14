@@ -24,7 +24,17 @@ export default function LayarAkun({ onTutup }) {
       );
       if (!ada) {
         tambahKeDaftar({ platform: username.platform, username: username.username });
-        pastikanKoleksi({ platform: username.platform, username: username.username }).catch(() => {});
+      }
+    }
+    /*
+     * Selaraskan SELURUH daftar ke basis data, bukan hanya akun aktif:
+     * bila IndexedDB pernah dibersihkan (atau akun ditambahkan sebelum
+     * koleksinya sempat tersimpan), akun-akun lain tidak punya koleksi dan
+     * tidak akan pernah muncul di layar Database.
+     */
+    for (const a of bacaDaftarAkun()) {
+      if (a?.platform && a?.username) {
+        pastikanKoleksi({ platform: a.platform, username: a.username }).catch(() => {});
       }
     }
     setDaftar(bacaDaftarAkun());
