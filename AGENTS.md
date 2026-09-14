@@ -144,4 +144,4 @@ ke `package.json` (pakai `--no-save`).
 
 ## roadmap ( projeck kci )
 
-docs\roadmap\documentation-roadmap.json
+docs/roadmap/documentation-roadmap.json
