@@ -68,6 +68,18 @@ const DAFTAR_PEMBUKAAN = [
   { nama: "Saragossa Opening", san: "c3", popularitas: 0, putih: 49, seri: 3, hitam: 48, fen: "rnbqkbnr/pppppppp/8/8/8/2P5/PP1PPPPP/RNBQKBNR w KQkq - 0 1" },
 ];
 
+/** Posisi legal setelah langkah pertama; dihitung sekali, bukan setiap render. */
+const RINCIAN_PEMBUKAAN = DAFTAR_PEMBUKAAN.slice(1).map((pembukaan) => {
+  const permainan = new Chess();
+  const langkah = permainan.move(pembukaan.san);
+  return {
+    ...pembukaan,
+    papan: matriksDariFen(permainan.fen()),
+    asal: langkah.from,
+    tujuan: langkah.to,
+  };
+});
+
 function PapanMini({ pieces }) {
   return (
     <div className="aspect-square w-full overflow-hidden border border-slate-300/60 bg-[#e8e8e8]">
@@ -110,13 +122,12 @@ function MiniBoardFen({ fen }) {
  */
 const FEN_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1";
 const PAPAN_E4 = matriksDariFen(FEN_E4);
-const HIGHLIGHT_E4 = new Set(["e2", "e4"]);
 
 /** Bar evaluasi statis di kiri papan (nilai dalam pion, putih di bawah). */
 function EvalBar({ nilai = 0.3 }) {
   const putih = Math.max(2, Math.min(98, Math.round(50 + nilai * 20)));
   return (
-    <div className="flex w-5 flex-col gap-1 self-stretch">
+    <div className="flex w-5 shrink-0 flex-col gap-1 self-stretch">
       <div className="relative min-h-0 flex-1 overflow-hidden border border-slate-300/60 bg-slate-900">
         <div
           className="absolute bottom-0 left-0 right-0 bg-[#e8e8e8]"
@@ -131,16 +142,28 @@ function EvalBar({ nilai = 0.3 }) {
   );
 }
 
-/** Papan besar statis posisi 1. e4, warna hijau ala Lichess. */
-function PapanPionRaja() {
+/** Papan artikel mengikuti contoh e4, dengan sorotan dan panah langkah pertama. */
+function PapanPembukaan({
+  papan = PAPAN_E4,
+  asal = "e2",
+  tujuan = "e4",
+  notasi = "e4",
+  label = "Posisi setelah 1. e4",
+}) {
+  const x = (petak) => FILES.indexOf(petak[0]) * 12.5 + 6.25;
+  const y = (petak) => RANKS.indexOf(petak[1]) * 12.5 + 6.25;
+  const idPanah = `panah-pembukaan-${notasi}`;
+  const jalur = notasi.startsWith("N")
+    ? `M ${x(asal)} ${y(asal)} V ${y(tujuan)} H ${x(tujuan)}`
+    : `M ${x(asal)} ${y(asal)} L ${x(tujuan)} ${y(tujuan)}`;
   return (
-    <div className="relative w-full max-w-[560px] overflow-hidden border border-slate-300/60 bg-[#e8e8e8]">
+    <div role="img" aria-label={label} className="relative min-w-0 w-full max-w-[560px] overflow-hidden border border-slate-300/60 bg-[#e8e8e8]">
       <div className="grid aspect-square w-full grid-cols-8 grid-rows-8">
         {RANKS.map((rank, rIdx) =>
           FILES.map((file, fIdx) => {
             const squareName = `${file}${rank}`;
-            const piece = PAPAN_E4[rIdx][fIdx] || "";
-            const highlighted = HIGHLIGHT_E4.has(squareName);
+            const piece = papan[rIdx][fIdx] || "";
+            const highlighted = squareName === asal || squareName === tujuan;
 
             return (
               <div
@@ -151,7 +174,7 @@ function PapanPionRaja() {
                     (rIdx + fIdx) % 2 === 0 ? "#e8e8e8" : "#6ab293",
                 }}
               >
-                {/* Highlight Langkah 1. e4 */}
+                {/* Sorotan petak asal dan tujuan */}
                 {highlighted && (
                   <span className="absolute inset-0 bg-red-700/25 pointer-events-none" />
                 )}
@@ -192,7 +215,7 @@ function PapanPionRaja() {
         )}
       </div>
 
-      {/* Panah Langkah e2 -> e4 */}
+      {/* Panah langkah; jalur siku untuk kuda */}
       <svg
         className="pointer-events-none absolute inset-0 z-20 h-full w-full"
         viewBox="0 0 100 100"
@@ -200,7 +223,7 @@ function PapanPionRaja() {
       >
         <defs>
           <marker
-            id="panah-pion-raja"
+            id={idPanah}
             viewBox="0 0 10 10"
             refX="8"
             refY="5"
@@ -211,15 +234,13 @@ function PapanPionRaja() {
             <path d="M0 0L10 5L0 10Z" fill="#b91c1c" />
           </marker>
         </defs>
-        <line
-          x1="56.25"
-          y1="81.25"
-          x2="56.25"
-          y2="56.25"
+        <path
+          d={jalur}
+          fill="none"
           stroke="#b91c1c"
           strokeWidth="1.6"
           strokeLinecap="square"
-          markerEnd="url(#panah-pion-raja)"
+          markerEnd={`url(#${idPanah})`}
         />
       </svg>
     </div>
@@ -228,15 +249,15 @@ function PapanPionRaja() {
 
 /** Notasi langkah catur ber-format dalam teks artikel. */
 function Notasi({ children }) {
-  return <span className="font-mono font-bold text-slate-900">{children}</span>;
+  return <span className="whitespace-nowrap font-mono text-[0.9em] font-semibold text-slate-900">{children}</span>;
 }
 
 /** Judul sub-bagian artikel bergaya KCI (persegi + kapital). */
 function JudulBagian({ children }) {
   return (
-    <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+    <div className="mt-6 flex items-center gap-3 border-b border-slate-300 pb-3">
       <span className="h-2 w-2 bg-slate-900" />
-      <h4 className="m-0 text-xs font-bold uppercase tracking-wider text-black">
+      <h4 className="m-0 text-sm font-semibold uppercase tracking-wider text-slate-900">
         {children}
       </h4>
     </div>
@@ -251,7 +272,7 @@ function ArtikelE4Awal() {
         <h3 className="m-0 text-lg font-semibold text-slate-900">
           1. e4 · Pembukaan Pion Raja
         </h3>
-        <blockquote className="mt-2 border-l-2 border-slate-900 pl-3 text-sm italic leading-relaxed text-slate-600">
+        <blockquote className="my-5 border-l-2 border-slate-900 py-2 pl-5 font-serif text-lg italic leading-relaxed text-slate-600">
           Terbaik berdasarkan uji coba.
           <span className="mt-1 block not-italic font-semibold text-slate-900">
             — Bobby Fischer
@@ -280,210 +301,52 @@ function ArtikelE4Awal() {
   );
 }
 
-/** Sisa artikel 1. e4, ditampilkan selebar halaman penuh. */
-function ArtikelE4Lanjutan() {
+/** Papan di kiri, pembuka di kanan, dan lanjutan penuh seperti contoh e4. */
+function ArtikelPembukaan({ pembukaan }) {
+  const { t } = useI18n();
+  const kunci = `bukuPembukaan.panduan.${pembukaan.san}`;
+  const posisi = t("bukuPembukaan.posisi", { langkah: pembukaan.san });
+  const idJudul = `judul-pembukaan-${pembukaan.san}`;
+
   return (
-    <article className="flex flex-col gap-4">
-      <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-        Hitam memiliki beberapa cara untuk merespons. Ide utamanya adalah menemukan
-        cara untuk mencegah Putih mencapai atau mempertahankan pusat dua pion dengan{" "}
-        <Notasi>e4</Notasi> dan <Notasi>d4</Notasi>. Mereka mungkin mencoba untuk:
-      </p>
-      <ul className="m-0 list-disc space-y-1 pl-5 text-[15px] leading-relaxed text-slate-700">
-        <li>Kuasai petak d4.</li>
-        <li>Serang langsung pion e4 Putih.</li>
-        <li>Bersiaplah untuk menempatkan pion mereka sendiri di d5.</li>
-        <li>Biarkan Putih membangun pusat, tetapi bersiaplah untuk melemahkannya nanti.</li>
-      </ul>
+    <article
+      aria-labelledby={idJudul}
+      className="border-b border-slate-200 py-10"
+    >
+      <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
+        <figure className="m-0 flex min-w-0 flex-col gap-3 lg:col-span-6">
+          <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] font-bold uppercase tracking-wider text-slate-900">
+            <span>{t(`${kunci}.judul`)}</span>
+            <span className="border border-slate-300 px-1.5 py-0.5">
+              1. {pembukaan.san}
+            </span>
+          </div>
+          <PapanPembukaan
+            papan={pembukaan.papan}
+            asal={pembukaan.asal}
+            tujuan={pembukaan.tujuan}
+            notasi={pembukaan.san}
+            label={posisi}
+          />
+          <figcaption className="py-1.5 text-center text-xs font-semibold leading-relaxed text-slate-700">
+            {posisi} · {t(`${kunci}.fokus`)}
+          </figcaption>
+        </figure>
 
-      <div className="flex flex-col gap-3">
-        <JudulBagian>Kontrol d4</JudulBagian>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Jika Hitam dapat mengontrol d4 dengan pion, maka akan sulit bagi Putih
-          untuk menempatkan pion di d4 dan e4 dan mempertahankannya di sana.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Hitam memiliki dua langkah pion yang mengontrol petak d4:{" "}
-          <Notasi>1...e5</Notasi> permainan Terbuka, dan <Notasi>1...c5</Notasi>{" "}
-          pertahanan Sisilia. Bukan kebetulan bahwa ini adalah kelanjutan yang
-          paling populer di semua tingkatan.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...e5</Notasi> memungkinkan Hitam mengambil ruang di tengah. Ini
-          adalah balasan klasik: secara tradisional pembukaan <Notasi>1. e4</Notasi>{" "}
-          dibagi menjadi <Notasi>1...e5</Notasi>, permainan Terbuka, dan sisanya,
-          permainan Semi-Terbuka. Sekarang jika <Notasi>2. d4</Notasi>, Hitam dapat
-          mengambilnya dan mencegah Putih mengendalikan seluruh ruang tengah itu.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Sama seperti <Notasi>1. e4</Notasi> membantu Putih untuk secara tidak
-          langsung mengontrol petak e4, <Notasi>1...e5</Notasi> mencegah Putih
-          memainkan <Notasi>2. e5</Notasi>, dan dengan demikian memastikan Hitam
-          dapat mengembangkan kudanya ke <Notasi>f6</Notasi>.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Argumen Putih adalah bahwa posisi simetris pada akhirnya akan
-          menguntungkan pemain yang bergerak lebih dulu. Langkah lanjutan Putih
-          biasanya adalah <Notasi>2. Nf3</Notasi>, sebuah ancaman untuk menyingkirkan
-          pion e5 sehingga mereka dapat memainkan d4 dengan aman.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...c5</Notasi> adalah variasi utama dalam permainan tingkat
-          master saat ini. Jika Putih memainkan d4, Hitam dapat mengambilnya dengan
-          pion c di sisi sayap, mempertahankan dua pion tengahnya yang lebih
-          penting. Sebagai pembukaan asimetris, variasi ini dianggap lebih agresif
-          daripada <Notasi>1...e5</Notasi>.
-        </p>
+        <div className="flex min-w-0 flex-col gap-4 lg:col-span-6">
+          <h3 id={idJudul} className="m-0 text-lg font-semibold text-slate-900">
+            1. {pembukaan.san} · {t(`${kunci}.judul`)}
+          </h3>
+          <p>{t(`${kunci}.pembuka1`)}</p>
+          <p>{t(`${kunci}.pembuka2`)}</p>
+        </div>
+      </div>
 
-        <JudulBagian>Serangan e4</JudulBagian>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Hitam dapat langsung menghadapi pion e Putih untuk membuka ruang di tengah
-          papan.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...d5</Notasi> adalah pertahanan Skandinavia. Hitam bermaksud
-          untuk melenyapkan pusat Putih, meskipun mereka harus mengorbankan harapan
-          untuk memiliki pusat yang besar sendiri. Pembukaan ini kurang populer
-          dalam turnamen dibandingkan sebagai balasan di tingkat klub, di mana
-          sebagian daya tariknya adalah karena sangat memaksa dan konfrontatif.
-          Balasan Putih hampir selalu <Notasi>2. exd5</Notasi>, kemudian Hitam dapat
-          mengambil kembali pion jika mereka mau.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...f5?</Notasi> adalah gambit Duras yang berisiko.{" "}
-          <Notasi>2. exf5</Notasi> dan Hitam berhasil mengalihkan pion e dari pusat,
-          tetapi dengan mengorbankan sisi raja yang melemah.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...Nf6</Notasi>, pertahanan Alekhine, juga menyerang e4, tetapi
-          Putih jarang membiarkan Hitam mengambilnya. Biasanya berlanjut{" "}
-          <Notasi>2. e5</Notasi> (menendang kuda) <Notasi>Nd5</Notasi>{" "}
-          <Notasi>3. d4</Notasi>. Ide sebenarnya Hitam adalah membiarkan Putih
-          menguasai pusat untuk saat ini dan melemahkannya nanti.
-        </p>
-
-        <JudulBagian>Dukungan d5</JudulBagian>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Jika Hitam dapat memainkan pion ke d5 dan mempertahankannya di sana,
-          mereka dapat mempertahankan sebagian pusat papan. Jika Hitam mencoba
-          menempatkan pion di d5 segera, Putih akan menangkapnya (pertahanan
-          Skandinavia, di atas), jadi untuk mempertahankan pion di d5, Hitam perlu
-          dapat menangkapnya kembali dengan pion dari c6 atau e6.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...e6</Notasi> adalah Pertahanan Prancis. Setelah{" "}
-          <Notasi>2. d4</Notasi> <Notasi>d5</Notasi>, Hitam mempertahankan sebagian
-          kendali atas pusat papan, dan langkah lanjutan Putih termasuk membuka
-          posisi dengan <Notasi>exd5 exd5</Notasi>, atau menutup posisi dengan{" "}
-          <Notasi>e5</Notasi>. Kelemahan utama Pertahanan Prancis adalah gajah
-          Hitam di sisi menteri menjadi beban dan sulit dikembangkan, karena pion
-          e6 menghalanginya.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...c6</Notasi> adalah Caro-Kann. Langkah ini memiliki keuntungan
-          menghindari gajah Prancis yang merepotkan, tetapi sebagai gantinya,
-          langkah ini mengambil petak c6 dari kuda Hitam, dan jika Hitam ingin
-          memainkan c5 nanti, mereka telah kehilangan satu tempo.
-        </p>
-
-        <JudulBagian>Lepaskan pusatnya</JudulBagian>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Hitam dapat melepaskan kendali atas pusat untuk sementara waktu, dan lebih
-          memilih mengembangkan buah catur. Mereka ingin kemudian melemahkan pusat
-          dan mengendalikannya dari jauh dengan buah catur mereka, bukan dengan
-          pion.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Salah satu cara Hitam dapat mengendalikan pusat dari jauh adalah dengan
-          melakukan fianchetto pada gajah (mengembangkannya ke sisi, baik ke g7 atau
-          b7, di mana ia mengendalikan diagonal panjang yang membentang melalui
-          pusat).
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...g6</Notasi> adalah pertahanan Modern. Hitam akan melanjutkan
-          dengan <Notasi>Bg7</Notasi> untuk mengontrol sebagian besar pusat sebelum
-          melakukan langkah pion yang lebih mengikat.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...b6</Notasi> adalah pertahanan Owen. Hitam bermaksud{" "}
-          <Notasi>Bb7</Notasi> untuk mengontrol diagonal panjang lainnya. Tidak
-          seperti Modern, langkah ini tidak memiliki keuntungan mempersiapkan
-          rokade di sisi raja.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...d6</Notasi> adalah pertahanan Pirc. Hitam ingin memainkan{" "}
-          <Notasi>Nf6</Notasi> untuk mengontrol pusat. d6 adalah tindakan pencegahan
-          untuk mencegah Putih memainkan e5: setelah <Notasi>1...d6</Notasi>{" "}
-          <Notasi>2. d4</Notasi> <Notasi>Nf6</Notasi>, langkah <Notasi>3. e5</Notasi>{" "}
-          tidak berhasil karena <Notasi>3...dxe5</Notasi> <Notasi>4. dxe5</Notasi>{" "}
-          <Notasi>Qxd1+</Notasi> <Notasi>5. Kxd1</Notasi> <Notasi>Ng4!</Notasi> yang
-          mengancam pion di e5 dan f2 (bandingkan dengan <Notasi>1...Nf6</Notasi>,
-          pertahanan Alekhine). Hitam biasanya juga melakukan fianchetto gajah ke{" "}
-          <Notasi>Bg7</Notasi> dalam pembukaan ini.
-        </p>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          <Notasi>1...Nc6</Notasi>, pertahanan Nimzowitsch, mengembangkan kuda untuk
-          mengontrol d4 dan e5. Ini memungkinkan <Notasi>2. d4</Notasi>, dan kemudian
-          Hitam dapat memilih untuk merespons dengan <Notasi>2...d5</Notasi> atau{" "}
-          <Notasi>2...e5</Notasi>.
-        </p>
-
-        <JudulBagian>Respons yang jarang terjadi</JudulBagian>
-        <p className="m-0 text-[15px] leading-relaxed text-slate-700">
-          Respons lainnya meliputi:
-        </p>
-        <ul className="m-0 list-disc space-y-1.5 pl-5 text-[15px] leading-relaxed text-slate-700">
-          <li>
-            <Notasi>1...a6</Notasi>, pertahanan St. George, paling terkenal karena
-            dimainkan oleh Tony Miles melawan Juara Dunia saat itu, Anatoly Karpov.
-            Seringkali Hitam akan melanjutkan dengan <Notasi>2...b5</Notasi>,
-            melakukan ekspansi di sisi menteri.
-          </li>
-          <li>
-            <Notasi>1...f6?</Notasi>, Pertahanan Barnes. Langkah langka yang bukan
-            ide bagus, karena menghilangkan petak f6 untuk kuda dan melemahkan sisi
-            raja. Meskipun demikian, Thomas Wilson Barnes (yang namanya digunakan
-            untuk pembukaan ini) mengalahkan Paul Morphy, salah satu pemain catur
-            terkuat abad ke-19, dengan pembukaan ini. Satu-satunya keuntungannya
-            adalah ia keluar dari teori.
-          </li>
-          <li>
-            <Notasi>1...g5?</Notasi>, Pertahanan Borg (kebalikan dari Grob) adalah
-            pilihan lain yang dimiliki Hitam, namun ini adalah pilihan yang buruk
-            karena sangat melemahkan sisi raja. Pion g5 dapat berfungsi sebagai umpan
-            bagi Putih (h4) di kemudian hari. Ini juga dapat menyebabkan Mat Bodoh
-            bagi Hitam.
-          </li>
-          <li>
-            <Notasi>1...a5?!</Notasi>, Pertahanan Ware sama lemahnya dengan{" "}
-            <Notasi>1...h5</Notasi>. Itu hanya membuang tempo.
-          </li>
-          <li>
-            <Notasi>1...h5?!</Notasi>, Pertahanan Pickering hanya membuang tempo dan
-            melemahkan posisi Hitam.
-          </li>
-          <li>
-            <Notasi>1...h6?!</Notasi>, Pertahanan Carr, adalah langkah membuang waktu
-            lainnya, tetapi biasanya bertransposisi menjadi Pertahanan Borg setelah{" "}
-            <Notasi>2. d4</Notasi> <Notasi>g5</Notasi>.
-          </li>
-          <li>
-            <Notasi>1...Na6?!</Notasi> mengembangkan kuda b8 ke petak yang lebih
-            rendah.
-          </li>
-          <li>
-            <Notasi>1...Nh6?!</Notasi> mengembangkan kuda di g8 ke petak yang lebih
-            rendah.
-          </li>
-          <li>
-            <Notasi>1...b5?</Notasi> hanya akan kehilangan bidak karena{" "}
-            <Notasi>2. Bxb5</Notasi>.
-          </li>
-        </ul>
-
-        <p className="m-0 border-t border-slate-200 pt-3 text-[11px] leading-relaxed text-slate-500">
-          Terjemahan dari artikel "King's Pawn Game" di Penjelajah Pembukaan Lichess.
-        </p>
+      <div className="flex flex-col gap-4 pt-6">
+        <JudulBagian>{t(`${kunci}.responsJudul`)}</JudulBagian>
+        <p>{t(`${kunci}.respons`)}</p>
+        <JudulBagian>{t(`${kunci}.rencanaJudul`)}</JudulBagian>
+        <p>{t(`${kunci}.rencana`)}</p>
       </div>
     </article>
   );
@@ -618,7 +481,7 @@ function KalimatInfo({ t }) {
   return (
     <>
       {pra}
-      <span className="font-mono font-bold px-1.5 py-[1px] text-xs border border-slate-200 text-black mx-1">
+      <span className="box-decoration-clone border border-slate-300 px-1.5 py-0.5 font-mono text-sm font-semibold leading-loose text-slate-900">
         1. e4 e5 2. Nf3 Nc6 3. Bb5
       </span>
       {tengah}
@@ -641,13 +504,19 @@ export default function Pembukaan() {
       description={t("bukuPembukaan.deskripsi")}
       next={{ to: "/papan-interaktif", judul: t("papan.judul") }}
     >
+      <aside aria-labelledby="status-pembangunan-pembukaan" className="border-b border-slate-300 bg-slate-50 px-6 py-5 text-center">
+        <h2 id="status-pembangunan-pembukaan" className="m-0 text-base font-semibold text-slate-900 sm:text-lg">
+          {t("bukuPembukaan.pembangunan")}
+        </h2>
+      </aside>
       <PageArtikel title={t("bukuPembukaan.artikel")}>
+        <div className="[&_p]:!text-left [&_p]:!mb-0 [&_h3]:!mt-0 [&_h3]:!mb-3">
         {/* HERO GRID SECTION: 2 Kolom Sejajar (Corporate Flat) */}
-        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 pb-10 lg:grid-cols-12 lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-300 pb-10 lg:grid-cols-12 lg:items-center lg:gap-12">
           
           {/* KOLOM KIRI (6/12): Deskripsi & CTA */}
-          <div className="flex flex-col justify-between lg:col-span-6">
-            <div>
+          <div className="flex min-w-0 flex-col gap-7 lg:col-span-6">
+            <div className="space-y-5">
               <p className="m-0 mb-4 text-[15px] leading-relaxed text-slate-700">
                 {t("bukuPembukaan.paragraf1")}
               </p>
@@ -658,12 +527,13 @@ export default function Pembukaan() {
 
             <Link
               to="/papan-interaktif"
-              className="inline-flex w-fit items-center justify-center gap-2.5 rounded-none border border-slate-900 bg-slate-950 px-6 py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-slate-800 no-underline"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded border border-slate-900 bg-slate-950 px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900 sm:w-fit"
               style={{ textDecoration: "none" }}
             >
               <span>{t("bukuPembukaan.buka")}</span>
               <svg
-                className="h-4 w-4"
+                className="h-4 w-4 shrink-0"
+                aria-hidden="true"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -684,9 +554,9 @@ export default function Pembukaan() {
         </div>
 
         {/* SECTION PAPAN BESAR + ARTIKEL 1. e4 (tambahan baru) */}
-        <div className="grid w-full grid-cols-1 gap-6 pb-6 pt-2 lg:grid-cols-12 lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 py-10 lg:grid-cols-12 lg:items-start lg:gap-12">
           {/* KOLOM KIRI (6/12): Bar Evaluasi + Papan Besar */}
-          <div className="flex flex-col gap-3 lg:col-span-6">
+          <div className="flex min-w-0 flex-col gap-3 lg:col-span-6">
             <div className="flex items-center gap-3 text-[11px] font-mono text-slate-600">
               <span className="font-bold uppercase tracking-wider text-slate-900">
                 Pembukaan Pion Raja
@@ -696,9 +566,9 @@ export default function Pembukaan() {
               </span>
             </div>
 
-            <div className="flex w-full items-stretch gap-2">
+            <div className="flex w-full min-w-0 items-stretch gap-2">
               <EvalBar nilai={0.3} />
-              <PapanPionRaja />
+              <PapanPembukaan />
             </div>
 
             <div className="w-full py-1.5 text-center text-xs font-semibold uppercase tracking-wider text-black">
@@ -712,15 +582,8 @@ export default function Pembukaan() {
           </div>
         </div>
 
-        {/* SECTION SISA ARTIKEL (rata penuh kiri-kanan) */}
-        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
-          <div className="lg:col-span-12">
-            <ArtikelE4Lanjutan />
-          </div>
-        </div>
-
         {/* SECTION DAFTAR PEMBUKAAN (Penjelajah pembukaan) */}
-        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 py-10 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-12">
             <div className="flex flex-col gap-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-3">
@@ -735,22 +598,22 @@ export default function Pembukaan() {
                 </span>
               </div>
 
-              <ul className="m-0 list-none p-0">
+              <ul className="!m-0 !list-none !p-0 border-t-2 border-b-2 border-slate-900">
                 {DAFTAR_PEMBUKAAN.map((b) => (
                   <li
                     key={b.san}
-                    className="grid grid-cols-[44px_minmax(0,1fr)] items-center gap-x-3 gap-y-1 border-b border-slate-200 py-2.5 sm:grid-cols-[44px_minmax(0,1fr)_150px_160px]"
+                    className="!mb-0 grid grid-cols-[52px_minmax(0,1fr)] items-center gap-x-4 gap-y-3 border-b border-slate-200 py-4 !text-left last:border-b-0 sm:grid-cols-[52px_minmax(0,1fr)_110px_120px] lg:gap-x-6"
                   >
                     <MiniBoardFen fen={b.fen} />
                     <div className="min-w-0">
-                      <div className="truncate text-sm font-semibold text-slate-900">
+                      <div className="text-sm font-semibold leading-snug text-slate-900">
                         {b.nama}
                       </div>
                       <div className="font-mono text-xs font-bold text-slate-600">
                         {b.san}
                       </div>
                     </div>
-                    <div className="hidden sm:block">
+                    <div className="col-span-2 min-w-0 sm:col-span-1">
                       <div className="mb-1 flex items-center justify-between text-[10px] uppercase tracking-wide text-slate-500">
                         <span>Popularitas</span>
                         <span className="font-bold tabular-nums text-slate-900">
@@ -764,7 +627,7 @@ export default function Pembukaan() {
                         />
                       </div>
                     </div>
-                    <div className="hidden sm:block">
+                    <div className="col-span-2 min-w-0 sm:col-span-1">
                       <div className="mb-1 flex items-center justify-between text-[10px] tabular-nums text-slate-500">
                         <span className="font-bold text-slate-900">{b.putih}%</span>
                         <span>{b.seri}%</span>
@@ -783,17 +646,22 @@ export default function Pembukaan() {
           </div>
         </div>
 
+        {/* Pembukaan lain mengikuti contoh e4; statistik tetap ada di atas. */}
+        {RINCIAN_PEMBUKAAN.map((pembukaan) => (
+          <ArtikelPembukaan key={pembukaan.san} pembukaan={pembukaan} />
+        ))}
+
         {/* SECTION BOTTOM: Teori & Kandidat Langkah Berikutnya */}
-        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 py-10 lg:grid-cols-12 lg:items-start">
           
           {/* KANAN INFORMASI (12/12 - Full Width Container untuk Teori) */}
           <div className="lg:col-span-12">
-            <div className="flex flex-col gap-4 p-5">
+            <div className="flex flex-col gap-5 border border-slate-300 p-4 sm:p-6">
               
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 bg-slate-900" />
-                  <h4 className="m-0 text-xs font-bold uppercase tracking-wider text-black">
+                  <h4 className="m-0 text-sm font-semibold uppercase tracking-wider text-slate-900">
                     {t("bukuPembukaan.demoJudul")}
                   </h4>
                 </div>
@@ -813,16 +681,16 @@ export default function Pembukaan() {
                   {t("papan.langkahBerikutnya")}
                 </span>
                 
-                <div className="grid w-full grid-cols-2 gap-x-8 gap-y-4 lg:grid-cols-4">
+                <div className="grid w-full grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
                   {LANJUTAN_RUY_LOPEZ.map((item) => (
                     <div
                       key={item.move}
-                      className="flex items-center gap-2 border-b border-slate-300 py-1.5"
+                      className="flex min-w-0 flex-col items-start gap-1 border-l-2 border-slate-300 py-2 pl-3"
                     >
                       <span className="font-mono text-xs font-bold text-black">
                         3... {item.move}
                       </span>
-                      <span className="text-[10px] text-black pl-2">
+                      <span className="text-xs leading-relaxed text-slate-600">
                         {t(item.note)}
                       </span>
                     </div>
@@ -836,7 +704,7 @@ export default function Pembukaan() {
         </div>
 
         {/* SEJARAH RUY LOPEZ */}
-        <div className="grid w-full grid-cols-1 gap-8 pt-8 lg:grid-cols-12 lg:items-start">
+        <div className="grid w-full grid-cols-1 gap-8 border-b border-slate-200 py-10 lg:grid-cols-12 lg:items-start">
           <div className="lg:col-span-12">
             <div className="flex flex-col gap-4">
               <h3>{t("bukuPembukaan.sejarahJudul")}</h3>
@@ -844,6 +712,7 @@ export default function Pembukaan() {
               <p>{t("bukuPembukaan.sejarahAyat2")}</p>
             </div>
           </div>
+        </div>
         </div>
       </PageArtikel>
     </HalamanIsi>
