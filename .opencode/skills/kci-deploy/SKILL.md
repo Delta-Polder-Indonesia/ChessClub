@@ -21,18 +21,23 @@ Catatan cepat: `varcel.md` adalah ringkasan akses dashboard; `VERCEL-LIMITATIONS
 
 ## Env var wajib produksi (fail-closed)
 
-`server/src/konfigurasi.js` **menolak menjalankan** mode produksi bila:
+`server/src/konfigurasi.js` (`periksaProduksi()`) **menolak menjalankan** mode produksi bila:
 
 - `KCI_PEPPER` kosong atau < 16 karakter (hash identitas — jangan pernah diganti setelah ada data),
-- `KCI_ADMIN_PASSWORD` masih bawaan `admin123`,
-- `KCI_JWT_SECRET` kosong.
+- `KCI_ADMIN_PASSWORD` masih bawaan `admin123` atau < 6 karakter,
+- `KCI_JWT_SECRET` kosong atau < 24 karakter,
+- `KCI_TOKEN_ADMIN` diisi tetapi < 24 karakter.
+
+`server/src/index.js` menambah gerbang kedua sebelum server jalan: di produksi
+`KCI_ADMIN_PASSWORD` wajib **>= 12 karakter** dan bukan bawaan. Angka 12 inilah yang
+bekerja di lapangan — lebih ketat daripada `periksaProduksi()`.
 
 Mode produksi aktif bila `NODE_ENV=production` **ATAU** `KCI_ASAL_DIIZINKAN` terisi.
 
 ## Env var lain yang sering dipakai
 
 - `KCI_ASAL_DIIZINKAN` — origin frontend, dipisah koma, tanpa trailing slash.
-- `KCI_ADMIN_USER` — username dashboard `/pengurus`; `KCI_TOKEN_ADMIN` — opsional (legacy).
+- `KCI_ADMIN_USER` — username dashboard `/pengurus`; `KCI_TOKEN_ADMIN` — opsional (legacy, min. 24 karakter bila diisi).
 - `KCI_JUMLAH_PROXY` — `0` lokal, otomatis `1` di Vercel; `KCI_DIR_DATA` — di Vercel `/tmp/kci-data`.
 - `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` — wajib diisi agar data awet di FULL VERCEL
   (skema: `db/supabase-schema.sql`).
@@ -56,5 +61,10 @@ Daftar lengkap beserta komentarnya ada di `.env.contoh`.
 - `.github/workflows/quality.yml` — uji + build + Playwright pada setiap PR/push `main` (lihat skill
   `kci-pengujian`).
 - `.github/workflows/health.yml` — pengecekan kesehatan API; deployment production dikelola Vercel.
-- `quality.yml` di akar repo adalah salinan isi workflow untuk diterapkan saat token tidak punya izin
-  `workflows` — salin ke `.github/workflows/quality.yml` (hapus ekstensi `.md`), commit, push.
+- `quality.yml` di akar repo adalah mirror persis `.github/workflows/quality.yml` (7 baris komentar di
+  atasnya bukan bagian workflow). Fungsinya tempat menyiapkan perubahan workflow bila token tidak punya
+  izin `workflows`: salin body-nya ke `.github/workflows/quality.yml`, commit, push. Ubah keduanya
+  bersamaan — berkas itu bukan sumber kebenaran.
+- Checkout CI sengaja TANPA `lfs: true`: repo sudah keluar dari Git LFS (`.gitattributes` kosong, PDF
+  `public/ebooks/` = blob Git biasa, lihat `scripts/keluar-dari-lfs.sh`). Jangan "memperbaiki" CI dengan
+  menambah LFS lagi.

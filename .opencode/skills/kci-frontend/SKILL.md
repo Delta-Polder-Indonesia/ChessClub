@@ -50,7 +50,7 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 | Heading | H1 24–38px weight 600; H2 22–30px weight 600; H3 18px weight 500 — sisanya weight 400 |
 | Tombol | tinggi 38–44px; teks 11–12px uppercase, letter-spacing `.1rem`; primer solid `#0B2F9F`, sekunder outline `#bbb` |
 | Tautan | warna sama dengan teks; hover → `#b1b1b1` + underline; transisi warna halus |
-| Font | Plus Jakarta Sans self-hosted (`src/fonts/`) — tidak ada font/CDN tambahan |
+| Font | Plus Jakarta Sans self-hosted (`src/fonts/`, `@font-face` di `src/index.css`) — jangan menambah font/CDN lain. Catatan: `@fontsource-variable/geist` sudah ter-impor di `src/index.css` dan blok `@theme inline` shadcn di bagian bawah berkas yang sama menyetel ulang `--font-sans` ke `'Geist Variable'`; periksa keduanya sebelum menyimpulkan font mana yang terpakai |
 
 ### Anatomi halaman & landing yang benar
 
@@ -102,8 +102,9 @@ Agar tidak terjadi konflik antara brand KCI dan referensi visual baru, gunakan u
 
 Sebelum menulis satu baris JSX untuk halaman baru atau porting, baca
 [`references/standar-markup.md`](references/standar-markup.md) — isinya: langkah mencari halaman
-pembanding, kerangka wajib (`HalamanIsi` + `PageArtikel`/`PageGambar`/`StickyMenu` dari
-`src/components/PageBagian.jsx`), tipografi `prose-kci`, enam titik pendaftaran rute/menu/terjemahan,
+pembanding, kerangka wajib (`HalamanIsi` + `PageArtikel`/`PageGambar` dari
+`src/components/PageBagian.jsx`; `StickyMenu` ada di `src/components/StickyMenu.jsx` sebagai
+*default export* — bukan bagian `PageBagian.jsx`), tipografi `prose-kci`, enam titik pendaftaran rute/menu/terjemahan,
 dan larangan membuat komponen `Hero`/`Section`/`Card` versi sendiri. Intinya: **salin pola rumah,
 jangan mengarang struktur baru.**
 
@@ -125,8 +126,9 @@ jangan mengarang struktur baru.**
 ## Performa (target Lighthouse 100 di keempat kategori)
 
 - Foto: WebP + `srcset` (828/1280); kompres dengan `npm run gambar:optimum`, verifikasi `npm run uji:gambar`.
-- LCP (`hero-about`) di-preload dan dilukis dari HTML awal (`#boot-hero` di `index.html`) — pertahankan pola ini
-  untuk LCP baru.
+- LCP adalah `/images/tonggak-2015.webp`: di-`preload` di `<head>` `index.html` dan dilukis lebih dulu lewat
+  `#boot-hero` (`hero-about.jpg/.webp` hanyalah nilai bawaan komponen `Hero`/`CorporatePage`, bukan aset
+  LCP beranda) — pertahankan pola preload + paint awal ini untuk LCP baru.
 - Jangan menambah dependensi runtime baru tanpa alasan kuat dan persetujuan pengguna.
 
 ## Sebelum selesai
@@ -136,4 +138,4 @@ jangan mengarang struktur baru.**
 
 ## Radix UI dan markup interaktif
 
-Saat mengubah Tabs, Card, Button, Label, Input, popup, atau komponen UI di `src/components/ui/`, baca panduan root [`RADIX-UI.md`](../../../RADIX-UI.md). Panduan tersebut menjelaskan wrapper Radix yang tersedia, alias `@`, `cn()`, kontrak controlled Tabs, aksesibilitas popup, diagnosis error, dan checklist verifikasi untuk AI/Opencode.
+Saat mengubah Tabs, Card, Button, Label, Input, popup, atau komponen UI di `src/components/ui/`, baca panduan root [`RADIX-UI.md`](../../../RADIX-UI.md). Panduan tersebut menjelaskan wrapper Radix yang tersedia, alias `@`, `cn()`, kontrak controlled Tabs, aksesibilitas popup, diagnosis error, dan checklist verifikasi untuk AI/Opencode. Catatan: dari 35 berkas di `src/components/ui/`, 3 memakai `@base-ui/react` (`hover-card.jsx`, `progress.jsx`, `separator.jsx`) dan tidak dibahas di `RADIX-UI.md` — selalu cek baris `import` berkas sebelum meniru pola Radix.

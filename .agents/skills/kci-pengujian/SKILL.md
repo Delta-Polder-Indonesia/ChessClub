@@ -20,7 +20,7 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
   (auth JWT, verifikasi Chess.com, e-book).
 - `npm run uji:e2e` — Playwright smoke test halaman publik (butuh `npx playwright install chromium`).
 - `npm run uji:konfigurasi-keamanan` — konfigurasi keamanan server (wajib lulus bila menyentuh
-  `konfigurasi.js`/`http.js`; CI selalu menjalankannya).
+  `server/src/konfigurasi.js`/`server/src/http.js`; CI selalu menjalankannya).
 
 ## Kapan menjalankan apa (aturan minimum)
 
