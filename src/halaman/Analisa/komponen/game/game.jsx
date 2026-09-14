@@ -304,6 +304,17 @@ function Game({ wadah }) {
       setPageState("default");
       return;
     }
+    /*
+     * Tabel buku (nama pembukaan, 1,3 MB) diunduh saat halaman dibuka — analisis
+     * yang dimulai SEBELUM unduhannya selesai akan berjalan TANPA label "book"
+     * bila memakai `openings2 ?? {}` apa adanya, dan labelnya tidak bisa pulih
+     * lagi karena rating sudah dibakar ke hasil analisis. Tunggu janji yang SAMA
+     * (di-cache di modul buku.js, jadi tidak mengunduh ulang) BERSELANG dengan
+     * penyiapan engine supaya tidak menambah waktu tunggu.
+     */
+    const janjiBuku = openings2
+      ? Promise.resolve(openings2)
+      : cariNamaPembukaan().catch(() => ({}));
     let mesin;
     try {
       mesin = await siapkan();
@@ -312,8 +323,9 @@ function Game({ wadah }) {
       setPageState("default");
       return;
     }
+    const buku = await janjiBuku;
     try {
-      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, openings2 ?? {}, setProgress, analyzeController.signal);
+      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, analyzeController.signal);
       setTime(metadata.time);
       setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
       setGame(moves);
@@ -559,7 +571,13 @@ function Game({ wadah }) {
     let move3;
     try {
       const signal = analyzeController.signal;
+      // Lihat catatan balapan buku di handlePGN: langkah manual pun menunggu
+      // tabel buku yang sama (berselang dengan penyiapan engine) sebelum dinilai.
+      const janjiBuku = openings2
+        ? Promise.resolve(openings2)
+        : cariNamaPembukaan().catch(() => ({}));
       const mesin = ambilMesin() ?? (await siapkan().catch(() => null));
+      const buku = await janjiBuku;
       if (mesin && !signal.aborted) {
         const chess2 = new Chess(previousFen);
         const move4 = chess2.move(movement);
@@ -571,7 +589,7 @@ function Game({ wadah }) {
           previousStaticEvals,
           previousBestMoveSan,
           previousSacrifice,
-          openings2 ?? {},
+          buku,
           () => {
             throw new Error("canceled");
           },

@@ -182,11 +182,11 @@ tooltip saat label hilang.
   Chess.com/Lichess terasa berat. PGN tetap di-parse penuh saat sebuah
   partai **dibuka** untuk dianalisis (wajar & wajib).
 - **Kartu profil pemain.** Avatar, gelar, bendera, dan rating
-  Bullet/Blitz/Rapid diambil dari API publik chess.com via
+  Bullet/Blitz/Rapid diambil dari API publik chess.com / lichess.org via
   `src/lib/pemainCatur.js` (`ambilKartuPemain` + `useKartuPemain`), dengan
-  cache Map + `localStorage`. Ditampilkan di samping papan (`name.jsx`) dan
-  pada kotak pemain di Ringkasan (`playersAccuracy.jsx`). Pemanggilan hanya
-  aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
+  cache Map + `localStorage` per (platform, username). Ditampilkan di samping
+  papan (`name.jsx`) dan pada kotak pemain di Ringkasan (`playersAccuracy.jsx`).
+  Pemanggilan hanya aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
 - **Dashboard statistik akun** (gaya en-croissant). Setelah akun dipilih,
   panel menampilkan kartu akun (avatar + rating Bullet/Blitz/Rapid + jumlah
   partai + pembaruan terakhir) dan empat tab: **Ringkasan** (total, W/D/L,
@@ -194,8 +194,9 @@ tooltip saat label hilang.
   7 hari/30 hari/90 hari/1 tahun/selamanya), **Pembukaan** (daftar
   pembukaan + W/D/L per warna), dan **Deteksi engine** (indikasi agregat
   pemakaian engine lintas riwayat — lihat bagian berikutnya). Data dibaca dari
-  `basisData` (IndexedDB); bila belum ada, ditarik dari API chess.com lewat
-  `akun/muatPartaiAkun.js` lalu disimpan. Statistik dihitung di
+  `basisData` (IndexedDB); bila belum ada, ditarik dari API chess.com /
+  lichess.org lewat `akun/muatPartaiAkun.js` (`muatPartaiChessCom` /
+  `muatPartaiLichess`) lalu disimpan. Statistik dihitung di
   `akun/statsAkun.js` (murni). Pengguna bisa berpindah ke tabel partai
   untuk memilih & menganalisis lewat toggle di panel.
 

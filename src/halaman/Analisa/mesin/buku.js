@@ -23,7 +23,16 @@ function unduh() {
 
 /** Muat tabel buku (janji yang sama dikembalikan untuk panggilan berikutnya). */
 export function muatBuku() {
-  janji ||= unduh();
+  janji ||= unduh().then((peta) => {
+    /*
+     * Hasil kosong ({}) berarti unduhannya gagal (buku asli selalu berisi
+     * belasan ribu posisi) — jangan cache kegagalan: kosongkan lagi supaya
+     * analisis berikutnya mencoba mengunduh ulang, bukan memakai buku kosong
+     * selama sisa kunjungan tanpa ada yang tahu.
+     */
+    if (!peta || Object.keys(peta).length === 0) janji = null;
+    return peta;
+  });
   return janji;
 }
 

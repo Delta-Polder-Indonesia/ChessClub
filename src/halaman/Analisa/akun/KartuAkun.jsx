@@ -46,7 +46,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
   const { t, bahasa: locale } = useI18n();
   const user = String(username || "").trim();
   const koleksiId = `${platform}:${user.toLowerCase()}`;
-  const kartu = useKartuPemain(user, !!user);
+  const kartu = useKartuPemain(user, !!user, platform);
   const [info, setInfo] = useState(() => {
     const e = cacheValid(cacheInfo, koleksiId);
     return e ? { games: e.games, lastUpdate: e.lastUpdate, galat: false } : { games: 0, lastUpdate: null, galat: false };

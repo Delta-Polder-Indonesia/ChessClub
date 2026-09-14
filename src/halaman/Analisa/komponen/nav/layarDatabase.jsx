@@ -46,8 +46,11 @@ import {
   hapusPartai,
   hitungStatistikBasisData,
   hitungStatistikKoleksiRingan,
+  langgananRevisi,
+  pastikanKoleksi,
 } from "../../basisData.js";
-import { muatPartaiChessCom } from "../../akun/muatPartaiAkun.js";
+import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
+import { muatPartaiChessCom, muatPartaiLichess } from "../../akun/muatPartaiAkun.js";
 
 /* ── Konstanta ─────────────────────────────────────────────────────── */
 
@@ -1207,8 +1210,42 @@ export default function LayarDatabase({
 
   /* ── Effects ───────────────────────────────────────────────────── */
 
+  /*
+   * Muat ulang otomatis setiap basis data berubah (mis. akun baru selesai
+   * ditambahkan dari layar Akun sepersekian detik sebelum layar ini dibuka,
+   * atau partai selesai ditarik). Memakai ref agar selalu memanggil pemuat
+   * versi terbaru tanpa harus daftar-ulang tiap render.
+   */
+  const muatUlangRef = useRef({ meta: null, partai: null });
+  muatUlangRef.current = { meta: muatMetadata, partai: muatPartai };
+  useEffect(
+    () =>
+      langgananRevisi(() => {
+        muatUlangRef.current.meta?.();
+        muatUlangRef.current.partai?.();
+      }),
+    []
+  );
+
   useEffect(() => {
-    muatMetadata();
+    // Selaraskan daftar akun → koleksi lebih dulu: akun yang koleksinya
+    // belum ada (balapan tulis / basis pernah dibersihkan) langsung dibuat
+    // di sini sehingga tidak ada akun yang "hilang" dari Database.
+    (async () => {
+      try {
+        const daftar = bacaDaftarAkun();
+        await Promise.all(
+          daftar
+            .filter((a) => a?.platform && a?.username)
+            .map((a) =>
+              pastikanKoleksi({ platform: a.platform, username: a.username }).catch(() => null)
+            )
+        );
+      } catch {
+        /* abaikan — muatMetadata tetap jalan dengan apa yang ada */
+      }
+      muatMetadata();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -1561,14 +1598,14 @@ export default function LayarDatabase({
     tampilkanNotif("Seluruh basis data telah dikosongkan.");
   }
 
-  /* ── Tarik data dengan filter periode ── */
+  /* ── Tarik data dengan filter periode (Chess.com & Lichess.org) ── */
   async function tanganiTarikData() {
     if (!koleksi) {
       tampilkanNotif("Pilih koleksi dulu.", "info");
       return;
     }
-    if (koleksi.platform !== "chessCom") {
-      tampilkanNotif("Tarik data filter baru tersedia untuk Chess.com saja.", "info");
+    if (koleksi.platform !== "chessCom" && koleksi.platform !== "lichessOrg") {
+      tampilkanNotif("Koleksi hasil impor tidak bisa ditarik ulang dari API.", "info");
       return;
     }
     if (sedangTarik) return;
@@ -1585,7 +1622,9 @@ export default function LayarDatabase({
     setProgresTarik({ current: 0, total: 0, bulan: null });
     try {
       const username = koleksi.username;
-      const hasil = await muatPartaiChessCom(username, {
+      const situs = koleksi.platform === "lichessOrg" ? "Lichess.org" : "Chess.com";
+      const muat = koleksi.platform === "lichessOrg" ? muatPartaiLichess : muatPartaiChessCom;
+      const hasil = await muat(username, {
         periode: tarikPeriode,
         tanggal: kustomTanggal || undefined,
         paksa: true,
@@ -1599,7 +1638,7 @@ export default function LayarDatabase({
       await muatPartai();
       // Tabel ringkasan (mode data) ikut ditarik ulang dengan data terbaru.
       setRevisiRingkasan(bacaRevisiBasis());
-      tampilkanNotif(`Berhasil tarik ${hasil.length} partai (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
+      tampilkanNotif(`Berhasil tarik ${hasil.length} partai ${situs} (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
     } catch (e) {
       if (e?.cooldown) {
         tampilkanNotif("Terlalu sering, coba lagi 1 menit.", "gagal");
@@ -1924,6 +1963,10 @@ export default function LayarDatabase({
                               <p className="text-xs tabular-nums text-foregroundGrey">
                                 {progresTarik.current}/{progresTarik.total}
                                 {progresTarik.bulan ? ` ${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
+                              </p>
+                            ) : progresTarik.current > 0 ? (
+                              <p className="text-xs tabular-nums text-foregroundGrey">
+                                {progresTarik.current} partai…
                               </p>
                             ) : null}
                           </div>
