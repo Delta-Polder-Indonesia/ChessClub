@@ -28,7 +28,7 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 - Logika frontend → uji topik terkait (lihat blok `"scripts"` di `package.json`; penamaan sudah
   menjelaskan isinya).
 - `server/` atau `api/` → `npm run uji:backend && npm run uji:skema && npm run uji:verifikasi`
-  (+ `uji:konfigurasi-keamanan` bila relevan).
+  (+ `uji:konfigurasi-keamanan` bila relevan; CI selalu menjalankannya).
 - Konten/data (`data/`, e-book, gambar, suara) → uji sesuai jenis (`uji:ebook`, `uji:gambar`,
   `uji:basisdata`, `uji:suara`).
 
