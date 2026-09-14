@@ -13,6 +13,7 @@
 import { useMemo } from "react";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import { hitungSkorKecurigaan } from "../../../../mesin/antiCheat.js";
+import { MULTI_PV } from "../../../../mesin/engine.js";
 import { DAFTAR_FASE } from "../../../../mesin/fase.js";
 import RatingBox from "./ratingBox.jsx";
 
@@ -36,6 +37,11 @@ function formatCentipawn(nilai) {
 
 function formatRasio(nilai) {
   return Number.isFinite(nilai) ? `${Math.round(nilai * 100)}%` : "-";
+}
+
+/** Peringkat rata-rata kandidat: "1.8" dari skala 1–MULTI_PV+1. */
+function formatPeringkat(nilai) {
+  return Number.isFinite(nilai) ? nilai.toFixed(1) : "-";
 }
 
 function BarisMetrik({ label, putih, hitam }) {
@@ -100,6 +106,25 @@ export default function DeteksiEngine({ moves }) {
             putih={formatPersen(putih.engineMatchRate)}
             hitam={formatPersen(hitam.engineMatchRate)}
           />
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <>
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanTop3")}
+                putih={formatPersen(putih.kecocokanTop3)}
+                hitam={formatPersen(hitam.kecocokanTop3)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.rataPeringkat")}
+                putih={formatPeringkat(putih.rataPeringkat)}
+                hitam={formatPeringkat(hitam.rataPeringkat)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.acplKandidat")}
+                putih={formatCentipawn(putih.acplKandidat)}
+                hitam={formatCentipawn(hitam.acplKandidat)}
+              />
+            </>
+          ) : null}
           <BarisMetrik
             label={t("analisa.antiCheat.metrik.acpl")}
             putih={formatCentipawn(putih.acpl)}
@@ -133,6 +158,13 @@ export default function DeteksiEngine({ moves }) {
               {t("analisa.antiCheat.sampelKecil", { n: langkahTersedikit })}
             </p>
           ) : null}
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">
+              {t("analisa.antiCheat.catatanKandidat", { n: MULTI_PV, nMax: MULTI_PV + 1 })}
+            </p>
+          ) : (
+            <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaKandidat")}</p>
+          )}
           {!putih.rincianWaktu || !hitam.rincianWaktu ? (
             <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaJam")}</p>
           ) : null}

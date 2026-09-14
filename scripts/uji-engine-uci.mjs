@@ -207,6 +207,74 @@ async function ujiEngine(engine, nomor) {
   }
 }
 
+/*
+ * ---------- 5. MultiPV: dasar metrik peringkat anti-cheat ----------
+ *
+ * Setiap posisi anti-cheat dianalisis dengan MultiPV: kandidat terbaik
+ * direkam berurutan peringkat, lalu langkah pemain diperanking di antaranya.
+ * Uji ini membuktikan bawaan engine di repo benar-benar menerbitkan daftar
+ * itu: peringkat terurut, kandidat pertama = bestmove, skor tidak menaik
+ * (kandidat terbaik selalu paling unggul), dan semua langkah legal.
+ */
+async function ujiMultiPv(engine) {
+  const mesin = new UciEngine(engine, { timeout: 60_000, timeoutMulai: 180_000 });
+  console.log(`\n[MultiPV] ${engine.label}`);
+  try {
+    mesin.mulai();
+    await mesin.siap();
+
+    const t0 = Date.now();
+    const banyak = 4;
+    const hasilCari = await mesin.cari({ fen: STARTPOS, kedalaman: 10, multiPv: banyak });
+    const daftar = hasilCari.daftarPv ?? [];
+
+    hasil(`MultiPV ${banyak}: kandidat terekam`, daftar.length === banyak, `${daftar.length}`);
+    hasil(
+      "kandidat terurut peringkat 1..N",
+      daftar.every((x, i) => (x.multipv ?? i + 1) === i + 1),
+      daftar.map((x) => x.multipv).join(",")
+    );
+    hasil(
+      "kandidat 1 = bestmove",
+      daftar[0]?.pv?.[0] === hasilCari.uci,
+      `${daftar[0]?.pv?.[0]} vs ${hasilCari.uci}`
+    );
+    const skorDari = (x) => (x.mate !== null ? x.mate * 10000 : x.cp);
+    const daftarSkor = daftar.map(skorDari);
+    hasil(
+      "skor kandidat tidak menaik (terbaik di peringkat 1)",
+      daftarSkor.every((s, i) => i === 0 || s <= daftarSkor[i - 1]),
+      daftarSkor.join(",")
+    );
+    hasil(
+      "semua langkah pertama kandidat legal (chess.js)",
+      daftar.every((x) => uciKeSan(STARTPOS, x.pv[0]) !== null),
+      daftar.map((x) => x.pv[0]).join(",")
+    );
+    hasil(
+      "kandidat saling berbeda",
+      new Set(daftar.map((x) => x.pv[0])).size === daftar.length
+    );
+    const denganWdl = daftar.filter((x) => Array.isArray(x.wdl)).length;
+    console.log(
+      `    → ${daftar.length} kandidat @ depth ${hasilCari.info?.kedalaman}, ` +
+        `${denganWdl} dengan WDL (${Date.now() - t0} ms)`
+    );
+    if (denganWdl === daftar.length) {
+      hasil("WDL tersedia di semua kandidat", true);
+    } else {
+      console.log(`    (build ini tidak menyiarkan WDL — dilewati, bukan gagal)`);
+    }
+  } catch (galat) {
+    gagal++;
+    console.error(`  ✗ [MultiPV ${engine.label}] ${galat?.message ?? galat}`);
+    console.error(mesin.galatDiagnostics());
+    process.exitCode = 1;
+  } finally {
+    await mesin.tutup();
+  }
+}
+
 async function utama() {
   // Sanity: semua FEN uji valid menurut chess.js.
   for (const [nama, fen] of Object.entries({
@@ -222,6 +290,10 @@ async function utama() {
   for (let i = 0; i < DAFTAR_ENGINE_NODE.length; i++) {
     await ujiEngine(DAFTAR_ENGINE_NODE[i], i + 1);
   }
+
+  // MultiPV cukup dibuktikan pada satu build (semua build Stockfish di repo
+  // berbagi implementasi UCI yang sama) — pakai yang lite agar cepat.
+  await ujiMultiPv(DAFTAR_ENGINE_NODE[0]);
 
   console.log(
     `\nHasil: ${lulus} lulus, ${gagal} gagal${

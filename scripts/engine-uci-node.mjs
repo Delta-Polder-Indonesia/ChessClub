@@ -72,11 +72,14 @@ export function uraiInfo(baris) {
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 14);
+  const cocokWdl = baris.match(/ wdl (\d+) (\d+) (\d+)(?: |$)/);
   return {
     kedalaman: angkaUci(baris, "depth") ?? 0,
     cp,
     mate,
     pv,
+    multipv: angkaUci(baris, "multipv"),
+    wdl: cocokWdl ? [Number(cocokWdl[1]), Number(cocokWdl[2]), Number(cocokWdl[3])] : null,
     adaBatas: baris.includes(" lowerbound ") || baris.includes(" upperbound "),
   };
 }
@@ -127,6 +130,8 @@ export class UciEngine {
     this.janjiBestmove = null; // { selesaikan, tolak }
     this.pemantau = new Set(); // { cocok(baris), tolak(galat) }
     this.infoTerakhir = null;
+    this.barisPv = null; // Map peringkat→info saat pencarian MultiPV
+    this.multiPvAktif = 1;
     this.kodeTutup = null;
     this.tutupTerjeda = null;
     this.runner = null;
@@ -189,9 +194,14 @@ export class UciEngine {
     if (baris.startsWith("info ")) {
       const info = uraiInfo(baris);
       if (info) {
-        // Baris bound hanya dipakai bila belum ada baris bersih — sama
-        // seperti engineCatur.js.
-        if (!info.adaBatas || !this.infoTerakhir) this.infoTerakhir = info;
+        // Rekam semua peringkat saat pencarian MultiPV (batch terdalam
+        // menimpa yang lama). `infoTerakhir` hanya dari peringkat 1 — pada
+        // MultiPV, baris terakhir justru peringkat terburuk.
+        if (this.barisPv) {
+          this.barisPv.set(info.multipv ?? 1, info);
+        }
+        const peringkatPertama = (info.multipv ?? 1) === 1;
+        if (peringkatPertama && (!info.adaBatas || !this.infoTerakhir)) this.infoTerakhir = info;
       }
       return;
     }
@@ -199,10 +209,20 @@ export class UciEngine {
     if (baris.startsWith("bestmove")) {
       const uci = (baris.split(/\s+/)[1] || "").trim();
       const info = this.infoTerakhir;
+      const daftarPv = this.barisPv
+        ? [...this.barisPv.values()]
+            .filter((x) => !x.adaBatas && x.pv.length)
+            .sort((a, b) => (a.multipv ?? 1) - (b.multipv ?? 1))
+        : null;
+      this.barisPv = null;
+      if (this.multiPvAktif !== 1) {
+        this.kirim("setoption name MultiPV value 1");
+        this.multiPvAktif = 1;
+      }
       this.infoTerakhir = null;
       const janji = this.janjiBestmove;
       this.janjiBestmove = null;
-      if (janji) janji.selesaikan({ uci, info: info ?? null });
+      if (janji) janji.selesaikan({ uci, info: info ?? null, daftarPv });
       return;
     }
 
@@ -255,6 +275,9 @@ export class UciEngine {
     this.kirim("setoption name Hash value 16");
     this.kirim("setoption name Threads value 1");
     this.kirim("setoption name Ponder value false");
+    // Sama seperti engineCatur.js: wdl dipakai anti-cheat. Build tanpa opsi
+    // ini hanya membalas "No such option" — pencarian tetap normal.
+    this.kirim("setoption name UCI_ShowWDL value true");
     this.kirim("isready");
     const idBaris = await this.tungguBaris(
       (b) => b.startsWith("id name"),
@@ -268,14 +291,22 @@ export class UciEngine {
 
   /**
    * Analisis satu posisi sampai "bestmove".
-   * @param {{fen: string, kedalaman?: number|null, mate?: number|null, movetime?: number|null}} opsi
+   * @param {{fen: string, kedalaman?: number|null, mate?: number|null,
+   *   movetime?: number|null, multiPv?: number|null}} opsi
+   * `multiPv > 1` mengaktifkan MultiPV: hasil memuat `daftarPv`, kandidat
+   * terurut peringkat (persis bentuk engineCatur.js).
    */
-  cari({ fen, kedalaman = null, mate = null, movetime = null }) {
+  cari({ fen, kedalaman = null, mate = null, movetime = null, multiPv = 1 }) {
     if (this.janjiBestmove) {
       return Promise.reject(
         new Error("pencarian sebelumnya belum selesai — tunggu bestmove dulu")
       );
     }
+    if (multiPv !== this.multiPvAktif) {
+      this.kirim(`setoption name MultiPV value ${multiPv}`);
+      this.multiPvAktif = multiPv;
+    }
+    this.barisPv = multiPv > 1 ? new Map() : null;
     this.kirim(`position fen ${fen}`);
     const batas = [];
     if (mate) batas.push(`mate ${mate}`);

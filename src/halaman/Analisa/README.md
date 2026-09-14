@@ -231,12 +231,36 @@ Metrik (langkah `moveRating === "forced"` dan langkah buku TIDAK dihitung):
 - **`perFase`** — metrik yang sama dipilah opening/middlegame/endgame lewat
   `mesin/fase.js`.
 
-Skor 0–100 = rata-rata berbobot tiga komponen (kecocokan 0,45 · ACPL 0,35 ·
-waktu 0,20; bobot dinormalkan ulang bila sebuah metrik tidak tersedia), lalu
-disusutkan `n / (n + 12)` menurut jumlah langkah yang dinilai. Level:
-`rendah` < 35 ≤ `sedang` < 70 ≤ `tinggi`. Ambangnya ada di `AMBANG` dan
-direkam `scripts/uji-anticheat.mjs` — mengubahnya berarti mengubah makna
-angka yang sudah dibaca orang.
+**Metrik generasi 2 — kandidat MultiPV.** `parsePGN` menganalisis setiap
+posisi dengan `MULTI_PV` (5) kandidat terbaik engine; setiap entri `moves[i]`
+membawa `uci` (langkah yang dimainkan) dan `moves[i].kandidat` — kandidat
+posisi SEBELUMNYA, pola yang sama dengan `bestMoveSan`. Dari situ dihitung:
+
+- **`rataPeringkat`** — peringkat rata-rata langkah pemain di antara kandidat
+  (1 = selalu langkah terbaik engine; di luar daftar = `MULTI_PV + 1`).
+  Sinyal paling sulit dipalsukan secara alami dan jauh lebih halus daripada
+  top-1: langkah peringkat 2 dengan selisih 8 cp tidak lagi dihitung sama
+  dengan langkah buruk.
+- **`kecocokanTop3` / `kecocokanTop5`** — persen langkah di dalam 3/5 kandidat
+  terbaik (penyebut = `kandidatSampel`, jumlah langkah yang punya data).
+- **`acplKandidat`** — kerugian centipawn langsung terhadap kandidat terbaik
+  pada pencarian yang SAMA (depth/hash identik, lebih konsisten daripada ACPL
+  antarposisi).
+- **`rataKehilanganMenang`** — kehilangan permille WDL terhadap kandidat
+  terbaik (membutuhkan `UCI_ShowWDL`, yang dinyalakan `engineCatur.js`).
+  Hanya laporan, tidak masuk skor.
+
+Semua metrik generasi 2 bernilai `null` bila kandidat tidak ada (analisis
+lama/cache lama, atau `multiPv: 1`) dan bobot skor otomatis ternormalisasi
+ulang — perilaku lama tetap utuh.
+
+Skor 0–100 = rata-rata berbobot empat komponen (kecocokan 0,30 · peringkat
+0,25 · ACPL 0,25 · waktu 0,20; bobot dinormalkan ulang bila sebuah metrik
+tidak tersedia), lalu disusutkan `n / (n + 12)` menurut jumlah langkah yang
+dinilai. Komponen peringkat memetakan rata-rata peringkat 1 → 100 secara
+linear sampai 0 pada `MULTI_PV + 1`. Level: `rendah` < 35 ≤ `sedang` < 70 ≤
+`tinggi`. Ambangnya ada di `AMBANG` dan direkam `scripts/uji-anticheat.mjs` —
+mengubahnya berarti mengubah makna angka yang sudah dibaca orang.
 
 **`mesin/fase.js` adalah modul bersama.** `isEndOpening`/`isEndMiddlegame`
 dipindah apa adanya dari `playersAccuracy.jsx` supaya Akurasi dan Deteksi
@@ -259,8 +283,10 @@ menjalankan Stockfish sekali per langkah:
   bermain, diambil dengan `ambilDaftarPartai({ limit: 12, sertakanPgn: true })`
   — bukan `limit: 0` yang menarik seluruh arsip ke memori;
 - kedalaman `KEDALAMAN_AGGREGAT` (8) ply, lebih dangkal dari analisis tunggal;
-- cache sesi per `id partai + kedalaman` (pola `cachePartai`), jadi berpindah
-  tab atau mengulang analisis tidak membayar dua kali;
+  setiap posisi direkam `MULTI_PV` (5) kandidat terbaik untuk metrik peringkat;
+- cache sesi per `id partai + kedalaman + MultiPV` (pola `cachePartai`), jadi
+  berpindah tab atau mengulang analisis tidak membayar dua kali, dan hasil
+  lama tanpa kandidat tidak pernah tercampur dengan hasil ber-kandidat;
 - progres + tombol Batal (`AbortController`, pola `selectChessCom.jsx`);
   partai yang sudah selesai diurai tetap dipakai, yang dibatalkan hanya
   partai berikutnya;
@@ -355,7 +381,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, agregat riwayat, cache & batal, kartu UI + tab DashboardAkun | 122 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), agregat riwayat, cache & batal, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 176 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

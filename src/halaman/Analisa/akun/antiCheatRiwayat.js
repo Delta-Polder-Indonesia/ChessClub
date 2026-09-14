@@ -24,7 +24,7 @@
  * perlu memuat worker Stockfish.
  */
 
-import { GALAT_BATAL, parsePGN } from "../mesin/engine.js";
+import { GALAT_BATAL, MULTI_PV, parsePGN } from "../mesin/engine.js";
 import { cariNamaPembukaan } from "../mesin/buku.js";
 import { agregatSkorPemain, hitungSkorKecurigaan, warnaPemainDariMetadata } from "../mesin/antiCheat.js";
 
@@ -40,14 +40,16 @@ export const BATAS_PARTAI = 12;
 export const KEDALAMAN_AGGREGAT = 8;
 
 /*
- * Cache sesi hasil per partai. Kuncinya menyertakan kedalaman karena hasil
- * pada 8 ply dan 13 ply memang berbeda; menyimpan keduanya terpisah lebih
- * jujur daripada menimpa dan berpura-pura setara.
+ * Cache sesi hasil per partai. Kuncinya menyertakan kedalaman dan MULTI_PV
+ * karena hasil pada 8 ply dan 13 ply memang berbeda, dan hasil tanpa
+ * kandidat MultiPV (analisis generasi lama) tidak boleh tercampur dengan
+ * hasil ber-kandidat — menyimpan keduanya terpisah lebih jujur daripada
+ * menimpa dan berpura-pura setara.
  */
 const cacheHasilPartai = new Map();
 
 export function kunciCachePartai(id, kedalaman) {
-  return `${id ?? ""}|d${kedalaman}`;
+  return `${id ?? ""}|d${kedalaman}|mp${MULTI_PV}`;
 }
 
 export function bacaCachePartai(id, kedalaman) {
@@ -129,7 +131,9 @@ export async function analisisRiwayatAntiCheat({
 
     if (!hasil) {
       try {
-        const { metadata, moves } = await parserPgn(mesin, p.pgn, kedalaman, openings, () => {}, sinyal);
+        const { metadata, moves } = await parserPgn(mesin, p.pgn, kedalaman, openings, () => {}, sinyal, {
+          multiPv: MULTI_PV,
+        });
         hasil = { metadata, hasil: hitungSkorKecurigaan(moves) };
         simpanCachePartai(p.id, kedalaman, hasil);
       } catch (e) {

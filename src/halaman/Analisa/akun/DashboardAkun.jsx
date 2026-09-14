@@ -9,6 +9,7 @@ import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
 import { analisisRiwayatAntiCheat, BATAS_PARTAI, KEDALAMAN_AGGREGAT } from "./antiCheatRiwayat.js";
+import { MULTI_PV } from "../mesin/engine.js";
 import { DAFTAR_FASE } from "../mesin/fase.js";
 import { gunakanMesin } from "../konteks/mesin.jsx";
 import Database from "../komponen/svg/database.jsx";
@@ -230,6 +231,22 @@ function RingkasanAntiCheat({ agregat }) {
 
       <div className="flex flex-col gap-1.5 border-t border-border pt-3">
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.kecocokan")} nilai={persen(agregat.engineMatchRate)} />
+        {agregat.kandidatSampel > 0 ? (
+          <>
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanTop3")}
+              nilai={persen(agregat.kecocokanTop3)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.rataPeringkat")}
+              nilai={`${agregat.rataPeringkat ?? "-"} / ${MULTI_PV + 1}`}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.acplKandidat")}
+              nilai={cp(agregat.acplKandidat)}
+            />
+          </>
+        ) : null}
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.acpl")} nilai={cp(agregat.acpl)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.waktu")} nilai={rasio(agregat.konsistensiWaktu)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.langkah")} nilai={String(agregat.jumlahLangkah)} />
@@ -600,6 +617,7 @@ export default function DashboardAkun({ platform, username }) {
               <ul className="flex list-disc flex-col gap-1 pl-4 text-xs leading-4 text-foregroundGrey">
                 <li>{t("analisa.antiCheat.riwayat.batas", { n: BATAS_PARTAI, user })}</li>
                 <li>{t("analisa.antiCheat.riwayat.kedalaman", { n: KEDALAMAN_AGGREGAT })}</li>
+                <li>{t("analisa.antiCheat.riwayat.multipv", { n: MULTI_PV })}</li>
                 <li>{t("analisa.antiCheat.riwayat.cache")}</li>
               </ul>
 
