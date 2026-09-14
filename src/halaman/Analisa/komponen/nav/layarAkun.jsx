@@ -6,7 +6,7 @@ import PanelLayar from "./PanelLayar.jsx";
 import DaftarAkun from "../../akun/DaftarAkun.jsx";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
-import { pastikanKoleksi } from "../../basisData.js";
+import { hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 
 export default function LayarAkun({ onTutup }) {
@@ -50,6 +50,7 @@ export default function LayarAkun({ onTutup }) {
   function hapusAkunHandler(platform, nama) {
     const list = hapusDariDaftar(platform, nama);
     setDaftar(list);
+    hapusKoleksi(`${platform}:${String(nama || "").trim().toLowerCase()}`).catch(() => {});
     if (
       String(username?.username || "").toLowerCase() === String(nama || "").toLowerCase() &&
       username?.platform === platform

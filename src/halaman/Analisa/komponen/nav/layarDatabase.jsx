@@ -998,6 +998,10 @@ export default function LayarDatabase({
   const [filterWaktu, setFilterWaktu] = useState("");
   const [urut, setUrut] = useState({ kolom: "tanggal", arah: "desc" });
   const [hal, setHal] = useState(1);
+  // Tandai bahwa auto-pilih "koleksi pertama" sudah pernah berjalan. Dipakai
+  // supaya pilihan sah "Semua Koleksi" (nilai "") tidak di-bypass lagi oleh
+  // auto-pilih tiap daftar koleksi berubah.
+  const otomatisPilihRef = useRef(false);
 
   const [daftarPartai, setDaftarPartai] = useState([]);
   const [totalPartai, setTotalPartai] = useState(0);
@@ -1158,7 +1162,8 @@ export default function LayarDatabase({
     ]);
     // Koleksi pertama belum terpilih otomatis (daftar koleksi masih dimuat):
     // skip dulu — effect ini akan berjalan ulang setelah auto-pilih.
-    if (!koleksiTerpilih && koleksiList.length > 0) return;
+    // "Semua Koleksi" (nilai "") tetap dihormati setelah auto-pilih pernah jalan.
+    if (!koleksiTerpilih && koleksiList.length > 0 && !otomatisPilihRef.current) return;
     const tersimpan = cacheTabelPartai;
     if (tersimpan && tersimpan.kunci === kunci && tersimpan.revisi === revisi) {
       if (token === tokenPartai.current) {
@@ -1188,7 +1193,9 @@ export default function LayarDatabase({
         urut: urut.kolom,
         arah: urut.arah,
         limit: BARIS_PER_HALAMAN,
-        offset: (hal - 1) * BARIS_PER_HALAMAN,
+        // Pakai halaman efektif (data menyusut → halaman terakhir yang valid),
+        // bukan `hal` mentah, agar tidak minta offset di luar total partai.
+        offset: (aktifHal - 1) * BARIS_PER_HALAMAN,
         // Tabel hanya butuh metadata. Teks PGN (bagian terberat tiap rekaman)
         // baru diambil untuk satu partai saat ditekan Analisa / Salin.
         sertakanPgn: false,
@@ -1280,8 +1287,9 @@ export default function LayarDatabase({
   useEffect(() => {
     if (tampilan !== "pemain") return undefined;
     // Koleksi pertama belum terpilih otomatis: tunggu auto-pilih, effect ini
-    // akan berjalan ulang begitu koleksi pertama siap.
-    if (!koleksiTerpilih && koleksiList.length > 0) return undefined;
+    // akan berjalan ulang begitu koleksi pertama siap. Pilihan "Semua Koleksi"
+    // tetap dilayani setelah auto-pilih pernah jalan.
+    if (!koleksiTerpilih && koleksiList.length > 0 && !otomatisPilihRef.current) return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
     const kunciCache = koleksiTerpilih || "";
@@ -1367,7 +1375,7 @@ export default function LayarDatabase({
   useEffect(() => {
     if (tampilan !== "event") return undefined;
     // Lihat catatan guard di effect tab Pemain.
-    if (!koleksiTerpilih && koleksiList.length > 0) return undefined;
+    if (!koleksiTerpilih && koleksiList.length > 0 && !otomatisPilihRef.current) return undefined;
     let hidup = true;
     const revisi = bacaRevisiBasis();
     const kunciCache = koleksiTerpilih || "";
@@ -1446,9 +1454,10 @@ export default function LayarDatabase({
     };
   }, [tampilan, koleksiTerpilih]);
 
-  // Bila belum ada koleksi yang dipilih, pilih koleksi pertama otomatis.
+  // Bila belum ada koleksi yang dipilih, pilih koleksi pertama otomatis (satu kali saja).
   useEffect(() => {
-    if (!koleksiTerpilih && koleksiList.length > 0) {
+    if (!koleksiTerpilih && koleksiList.length > 0 && !otomatisPilihRef.current) {
+      otomatisPilihRef.current = true;
       setKoleksiTerpilih(koleksiList[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1742,8 +1751,8 @@ export default function LayarDatabase({
         )
       }
       bawahJudul={
-        mode === "data" && stats && stats.totalPartai > 0 ? (
-          <div className="flex flex-wrap items-center gap-2.5 text-xs text-foregroundGrey">
+        mode === "data" ? (
+          <div className={`flex flex-wrap items-center gap-2.5 text-xs text-foregroundGrey ${!stats || stats.totalPartai === 0 ? "invisible" : ""}`}>
             <span className="font-bold text-foreground flex items-center gap-1.5">
               <Database
                 width={14}
@@ -1751,21 +1760,21 @@ export default function LayarDatabase({
                 className="fill-foregroundHighlighted"
               />
               {t("analisa.basisData.jumlahPartai", {
-                jumlah: stats.totalPartai,
+                jumlah: stats?.totalPartai ?? 0,
               })}
             </span>
             <span className="text-border">/</span>
             <span className="flex items-center gap-1 text-winGreen font-medium">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-winGreen" />
-              {stats.putihMenang} {t("analisa.basisData.menang")} Putih
+              {stats?.putihMenang ?? 0} {t("analisa.basisData.menang")} Putih
             </span>
             <span className="flex items-center gap-1 text-lossRed font-medium">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-lossRed" />
-              {stats.hitamMenang} {t("analisa.basisData.menang")} Hitam
+              {stats?.hitamMenang ?? 0} {t("analisa.basisData.menang")} Hitam
             </span>
             <span className="flex items-center gap-1 text-foregroundGrey font-medium">
               <span className="inline-block h-1.5 w-1.5 rounded-full bg-foregroundGrey" />
-              {stats.seri} {t("analisa.basisData.seri")}
+              {stats?.seri ?? 0} {t("analisa.basisData.seri")}
             </span>
           </div>
         ) : null
@@ -1783,7 +1792,7 @@ export default function LayarDatabase({
                       ? "var(--analisa-foregroundGrey)"
                       : "var(--analisa-winGreen)",
               }}
-              className="max-w-md shrink-0 bg-transparent text-white"
+              className="shrink-0 bg-transparent text-white text-[11px] leading-tight px-2 py-1 gap-x-1.5 [&>svg]:size-3 [&>svg]:translate-y-px rounded-sm"
             >
               {notifikasi.variasi === "gagal" ? (
                 <AlertCircleIcon style={{ color: "var(--analisa-lossRed)" }} />
@@ -1792,7 +1801,7 @@ export default function LayarDatabase({
               ) : (
                 <CheckCircle2Icon style={{ color: "var(--analisa-winGreen)" }} />
               )}
-              <Alertjudul>{notifikasi.pesan}</Alertjudul>
+              <Alertjudul className="font-medium leading-tight">{notifikasi.pesan}</Alertjudul>
             </Alert>
           ) : null}
           {toolbarTabel}
@@ -2104,12 +2113,10 @@ export default function LayarDatabase({
       {tampilan === "partai" ? (
         <>
       {/* ── Tabel Permainan ─────────────────────────────────────── */}
-      {/* Tanpa flex-1: kotak mengikuti jumlah baris — kalau barisnya sedikit,
-          paginasi langsung nempel di bawah tabel (tidak ada ruang kosong
-          jauh di tengah). Kalau barisnya banyak, kotak menyusut sampai
-          tinggi layar lalu scroll, jadi ruangnya tetap terpakai penuh. */}
-      <div className="relative w-full min-h-0 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
-        <table className="w-full min-w-[600px] sm:min-w-[760px] table-fixed border-collapse text-sm">
+      {/* flex-1: kotak mengisi sisa tinggi kolom kanan — tabel selalu
+          mentok ke bawah, ada isi atau kosong. */}
+      <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+        <table className="w-full h-full min-w-[600px] sm:min-w-[760px] table-fixed border-collapse text-sm">
           <colgroup>
             <col style={{ width: "16.6%" }} />
             <col style={{ width: "16.6%" }} />
@@ -2126,41 +2133,43 @@ export default function LayarDatabase({
               ? Array.from({ length: JUMLAH_BARIS_SKELETON }, (_, i) => (
                   <BarisSkeleton key={`skeleton-${i}`} />
                 ))
-              : daftarPartai.map((game, i) => (
-                  <BarisPartai
-                    key={game.id || i}
-                    game={game}
-                    locale={locale}
-                    tanganiAnalisa={tanganiAnalisa}
-                  />
-                ))}
+              : daftarPartai.length > 0
+                ? daftarPartai.map((game, i) => (
+                    <BarisPartai
+                      key={game.id || i}
+                      game={game}
+                      locale={locale}
+                      tanganiAnalisa={tanganiAnalisa}
+                    />
+                  ))
+                : (
+                  <tr>
+                    <td colSpan={6} className="h-24 text-center align-middle">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <Database width={32} height={32} className="fill-foregroundGrey/30 mb-1" />
+                        <p className="font-bold text-foreground">
+                          {t("analisa.basisData.kosongJudul")}
+                        </p>
+                        <p className="max-w-md text-xs leading-5 text-foregroundGrey">
+                          {cari || filterHasil || filterWaktu
+                            ? t("analisa.partai.tidakCocok")
+                            : t("analisa.basisData.kosongIsi")}
+                        </p>
+                        {onBukaAkun && !cari && !filterHasil && !filterWaktu ? (
+                          <button
+                            type="button"
+                            onClick={() => onBukaAkun()}
+                            className="mt-1 inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
+                          >
+                            <span>{t("analisa.basisData.bukaAkun")}</span>
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                )}
           </tbody>
         </table>
-
-        {!memuat && daftarPartai.length === 0 ? (
-          <div className="absolute inset-x-0 top-[35px] bottom-0 flex items-center justify-center px-4 pointer-events-none">
-            <div className="flex flex-col items-center justify-center gap-2 text-center">
-              <Database width={32} height={32} className="fill-foregroundGrey/30 mb-1" />
-              <p className="font-bold text-foreground">
-                {t("analisa.basisData.kosongJudul")}
-              </p>
-              <p className="max-w-md text-xs leading-5 text-foregroundGrey">
-                {cari || filterHasil || filterWaktu
-                  ? t("analisa.partai.tidakCocok")
-                  : t("analisa.basisData.kosongIsi")}
-              </p>
-              {onBukaAkun && !cari && !filterHasil && !filterWaktu ? (
-                <button
-                  type="button"
-                  onClick={() => onBukaAkun()}
-                  className="pointer-events-auto mt-2 inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3.5 py-1.5 text-xs font-bold text-foregroundBlackDark hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer"
-                >
-                  <span>{t("analisa.basisData.bukaAkun")}</span>
-                </button>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
       </div>
 
       {/* ── Navigasi Paginasi ───────────────────────────────────── */}

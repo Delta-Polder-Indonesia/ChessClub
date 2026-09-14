@@ -297,10 +297,24 @@ export default function DashboardAkun({ platform, username }) {
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
   const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
-  const [games, setGames] = useState(() => cachePartai.get(koleksiIdAwal)?.daftar ?? null);
+  const bacaCachePartai = (id) => {
+    const entri = cachePartai.get(id);
+    return entri && entri.revisi === bacaRevisiBasis() ? entri.daftar : null;
+  };
+  const [games, setGames] = useState(() => bacaCachePartai(koleksiIdAwal));
   const [gamesPgn, setGamesPgn] = useState(null);
   const user = String(username || "").trim();
   const tokenMuat = useRef(0);
+
+  /* Ganti akun: buang partai akun lama secara sinkron saat render (bukan
+   * menunggu efek), supaya statistik akun sebelumnya tidak tampil sejenak
+   * di bawah nama akun baru. */
+  const koleksiIdRef = useRef(koleksiIdAwal);
+  if (koleksiIdRef.current !== koleksiIdAwal) {
+    koleksiIdRef.current = koleksiIdAwal;
+    setGames(bacaCachePartai(koleksiIdAwal));
+    setGamesPgn(null);
+  }
 
   /*
    * Anti-cheat agregat. Analisisnya mahal (Stockfish sekali per langkah), jadi

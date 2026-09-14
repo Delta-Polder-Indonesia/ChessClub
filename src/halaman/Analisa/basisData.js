@@ -395,7 +395,6 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
   const user = username.trim();
   const koleksiId = `${plat}:${user.toLowerCase()}`;
   const daftarNormal = daftarPartai.map((p) => normalisasiDataPartai(p, plat, user)).filter((p) => p.pgn);
-  if (daftarNormal.length > 0) naikkanRevisi();
 
   const db = await bukaDB();
   if (!db) {
@@ -412,6 +411,7 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
       dibuatPada: memoriKoleksi.get(koleksiId)?.dibuatPada || Date.now(),
     });
     simpanFallbackKeStorage();
+    if (daftarNormal.length > 0) naikkanRevisi();
     return { tersimpan: daftarNormal.length, total: hitung };
   }
 
@@ -466,6 +466,7 @@ export async function simpanBanyakPartai(daftarPartai, { platform = "chessCom", 
       }
 
       tx.oncomplete = () => {
+        if (daftarNormal.length > 0) naikkanRevisi();
         resolve({ tersimpan: daftarNormal.length, total: totalKoleksi });
       };
       tx.onerror = () => {
@@ -494,7 +495,6 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
   const db = await bukaDB();
   if (!db) {
     if (!memoriKoleksi.has(koleksiId)) {
-      naikkanRevisi();
       memoriKoleksi.set(koleksiId, {
         id: koleksiId,
         platform: plat,
@@ -505,6 +505,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
         dibuatPada: Date.now(),
       });
       simpanFallbackKeStorage();
+      naikkanRevisi();
     }
     return memoriKoleksi.get(koleksiId) || null;
   }
@@ -520,7 +521,6 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
           resolve(ada);
           return;
         }
-        naikkanRevisi();
         const baru = {
           id: koleksiId,
           platform: plat,
@@ -531,11 +531,13 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
           dibuatPada: Date.now(),
         };
         store.put(baru);
-        tx.oncomplete = () => resolve(baru);
+        tx.oncomplete = () => {
+          naikkanRevisi();
+          resolve(baru);
+        };
         tx.onerror = () => resolve(baru);
       };
       reqGet.onerror = () => {
-        naikkanRevisi();
         const baru = {
           id: koleksiId,
           platform: plat,
@@ -547,6 +549,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
         };
         try {
           store.put(baru);
+          naikkanRevisi();
         } catch {}
         resolve(baru);
       };
@@ -921,7 +924,6 @@ export async function ambilPartai(id) {
  */
 export async function hapusPartai(id) {
   if (!id) return false;
-  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     const partai = memoriPartai.get(id);
@@ -936,6 +938,7 @@ export async function hapusPartai(id) {
         });
       }
       simpanFallbackKeStorage();
+      naikkanRevisi();
       return true;
     }
     return false;
@@ -968,7 +971,10 @@ export async function hapusPartai(id) {
         }
       };
       reqGet.onerror = () => resolve(false);
-      tx.oncomplete = () => resolve(ketemu);
+      tx.oncomplete = () => {
+        if (ketemu) naikkanRevisi();
+        resolve(ketemu);
+      };
       tx.onerror = () => resolve(false);
     } catch {
       resolve(false);
@@ -981,7 +987,6 @@ export async function hapusPartai(id) {
  */
 export async function hapusKoleksi(koleksiId) {
   if (!koleksiId) return false;
-  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     memoriKoleksi.delete(koleksiId);
@@ -989,6 +994,7 @@ export async function hapusKoleksi(koleksiId) {
       if (p.koleksiId === koleksiId) memoriPartai.delete(id);
     }
     simpanFallbackKeStorage();
+    naikkanRevisi();
     return true;
   }
 
@@ -1008,7 +1014,10 @@ export async function hapusKoleksi(koleksiId) {
         }
       };
 
-      tx.oncomplete = () => resolve(true);
+      tx.oncomplete = () => {
+        naikkanRevisi();
+        resolve(true);
+      };
       tx.onerror = () => resolve(false);
     } catch {
       resolve(false);
@@ -1032,7 +1041,6 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
   const asli = String(namaAsliRaw || "").trim();
   const tujuan = String(namaTujuanRaw || "").trim();
   if (!koleksiId || !asli || !tujuan) return { diubah: 0, nama: "" };
-  naikkanRevisi();
 
   const cocokNama = (nama) => String(nama || "").trim().toLowerCase() === asli.toLowerCase();
 
@@ -1070,13 +1078,19 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
       memoriPartai.set(id, baru);
       diubah++;
     }
-    if (diubah > 0) simpanFallbackKeStorage();
+    if (diubah > 0) {
+      simpanFallbackKeStorage();
+      naikkanRevisi();
+    }
     return { diubah, nama: tujuan };
   }
 
   return new Promise((resolve) => {
     try {
       const tx = db.transaction([STORE_PARTAI], "readwrite");
+      tx.oncomplete = () => {
+        if (diubah > 0) naikkanRevisi();
+      };
       const store = tx.objectStore(STORE_PARTAI);
       const idx = store.index("koleksiWaktu");
       const BAWAH = -Infinity;
@@ -1110,12 +1124,12 @@ export async function gabungkanPemain(koleksiId, namaAsliRaw, namaTujuanRaw) {
  * Kosongkan seluruh basis data (semua partai & koleksi).
  */
 export async function bersihkanBasisData() {
-  naikkanRevisi();
   const db = await bukaDB();
   if (!db) {
     memoriPartai.clear();
     memoriKoleksi.clear();
     simpanFallbackKeStorage();
+    naikkanRevisi();
     return true;
   }
 
@@ -1124,7 +1138,10 @@ export async function bersihkanBasisData() {
       const tx = db.transaction([STORE_PARTAI, STORE_KOLEKSI], "readwrite");
       tx.objectStore(STORE_PARTAI).clear();
       tx.objectStore(STORE_KOLEKSI).clear();
-      tx.oncomplete = () => resolve(true);
+      tx.oncomplete = () => {
+        naikkanRevisi();
+        resolve(true);
+      };
       tx.onerror = () => resolve(false);
     } catch {
       resolve(false);
