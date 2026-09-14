@@ -86,6 +86,17 @@ export const AMBANG = Object.freeze({
    * Peringkat 1 = skor 100, linear turun sampai nol di sini.
    */
   peringkatJenuh: MULTI_PV + 1,
+  /**
+   * Ketajaman posisi (selisih cp kandidat #1 vs #3): ≤ angka ini = posisi
+   * SULIT (kandidat terbaik berdekatan, keputusan tidak jelas — di sinilah
+   * pemakai engine paling terlihat), ≥ kandidatMudah = posisi MUDAH (satu
+   * langkah jauh lebih baik). Posisi di antara kedua ambang tidak
+   * dimasukkan ke salah satu keranjang.
+   */
+  kandidatSulit: 20,
+  kandidatMudah: 100,
+  /** Pasangan (waktu pikir, peringkat) minimum sebelum korelasi dihitung. */
+  korelasiSampelMinimum: 12,
   /** Batas bawah level "sedang" dan "tinggi" pada skor 0–100. */
   sedang: 35,
   tinggi: 70,
@@ -227,6 +238,71 @@ export function kehilanganMenangPermille(uci, kandidat) {
   if (!Array.isArray(wdlTerbaik) || !Array.isArray(wdlDipilih)) return null;
   const selisih = (wdlTerbaik[0] ?? 0) - (wdlDipilih[0] ?? 0);
   return Number.isFinite(selisih) ? Math.max(0, selisih) : null;
+}
+
+/**
+ * Ketajaman posisi: selisih centipawn antara kandidat #1 dan kandidat #3
+ * (atau kandidat terakhir bila kurang dari tiga). Kecil = posisi sulit
+ * (beberapa langkah hampir sama baiknya — justru di sini manusia sering
+ * "salah" dan pemakai engine tetap sempurna), besar = posisi mudah.
+ * `null` bila kandidat tidak bisa dibandingkan.
+ */
+export function ketajamanKandidat(kandidat) {
+  if (!Array.isArray(kandidat) || kandidat.length < 2) return null;
+  const terbaik = cpKandidat(kandidat[0]);
+  const pembanding = cpKandidat(kandidat[Math.min(2, kandidat.length - 1)]);
+  if (terbaik === null || pembanding === null) return null;
+  return Math.max(0, terbaik - pembanding);
+}
+
+/**
+ * Korelasi pangkat Spearman antara waktu pikir (detik) dan peringkat
+ * kandidat — dari pasangan `{ detik, peringkat }`.
+ *
+ * Pola MANUSIA: makin lama berpikir makin baik langkahnya → peringkat
+ * menurun saat detik naik → korelasi NEGATIF. Pemakai engine: kualitas
+ * langkah tidak bergantung waktu (jawaban selalu ada) → korelasi ≈ 0 atau
+ * bahkan positif. Peringkat seri memakai peringkat rata-rata; varians nol
+ * pada salah satu sisi (semua waktu sama, semua peringkat sama) → `null`
+ * karena tidak ada informasi. `null` juga bila sampel < AMBANG minimum.
+ */
+export function korelasiSpearman(pasangan) {
+  const bersih = (Array.isArray(pasangan) ? pasangan : []).filter(
+    (p) => Number.isFinite(p?.detik) && Number.isFinite(p?.peringkat)
+  );
+  if (bersih.length < AMBANG.korelasiSampelMinimum) return null;
+
+  const peringkatKecil = (kunci) => {
+    const urut = bersih.map((p, i) => ({ i, v: p[kunci] })).sort((a, b) => a.v - b.v);
+    const pangkat = new Array(urut.length);
+    let i = 0;
+    while (i < urut.length) {
+      let j = i;
+      while (j + 1 < urut.length && urut[j + 1].v === urut[i].v) j++;
+      const rata = (i + j) / 2 + 1;
+      for (let k = i; k <= j; k++) pangkat[urut[k].i] = rata;
+      i = j + 1;
+    }
+    return pangkat;
+  };
+
+  const pangkatDetik = peringkatKecil("detik");
+  const pangkatPeringkat = peringkatKecil("peringkat");
+  const n = bersih.length;
+  const rataDetik = rataRata(pangkatDetik);
+  const rataPeringkat = rataRata(pangkatPeringkat);
+  let pembilang = 0;
+  let kuadratDetik = 0;
+  let kuadratPeringkat = 0;
+  for (let i = 0; i < n; i++) {
+    const a = pangkatDetik[i] - rataDetik;
+    const b = pangkatPeringkat[i] - rataPeringkat;
+    pembilang += a * b;
+    kuadratDetik += a * a;
+    kuadratPeringkat += b * b;
+  }
+  if (!kuadratDetik || !kuadratPeringkat) return null;
+  return pembilang / Math.sqrt(kuadratDetik * kuadratPeringkat);
 }
 
 /**
@@ -377,10 +453,18 @@ function kumpulBaru() {
     kerugianKandidatSampel: 0,
     menangHilangJumlah: 0,
     menangHilangSampel: 0,
+    // Metrik kondisional (fase 2) — perilaku, bukan sekadar rata-rata.
+    sulitDinilai: 0,
+    sulitCocok: 0,
+    mudahDinilai: 0,
+    mudahCocok: 0,
+    streakKini: 0,
+    streakTerpanjang: 0,
+    pasanganWaktuRangking: [],
   };
 }
 
-function catat(target, { cocok = null, kerugian = null, detik = null, peringkat = null, kerugianKandidat = null, kehilanganMenang = null }) {
+function catat(target, { cocok = null, kerugian = null, detik = null, peringkat = null, kerugianKandidat = null, kehilanganMenang = null, kategori = null }) {
   if (cocok !== null) {
     target.langkahDinilai++;
     if (cocok) target.langkahCocok++;
@@ -404,6 +488,11 @@ function catat(target, { cocok = null, kerugian = null, detik = null, peringkat 
     target.menangHilangSampel++;
     target.menangHilangJumlah += kehilanganMenang;
   }
+  if (kategori === "sulit" || kategori === "mudah") {
+    const kunci = kategori === "sulit" ? "sulit" : "mudah";
+    target[`${kunci}Dinilai`]++;
+    if (cocok) target[`${kunci}Cocok`]++;
+  }
 }
 
 function rampingkan(kumpul, { denganSkor = true } = {}) {
@@ -412,6 +501,7 @@ function rampingkan(kumpul, { denganSkor = true } = {}) {
   const rataPeringkat = kumpul.kandidatSampel ? kumpul.peringkatJumlah / kumpul.kandidatSampel : null;
   const acplKandidat = kumpul.kerugianKandidatSampel ? kumpul.kerugianKandidatJumlah / kumpul.kerugianKandidatSampel : null;
   const rataKehilanganMenang = kumpul.menangHilangSampel ? kumpul.menangHilangJumlah / kumpul.menangHilangSampel : null;
+  const korelasi = korelasiSpearman(kumpul.pasanganWaktuRangking);
   const ringkas = {
     langkahDinilai: kumpul.langkahDinilai,
     langkahCocok: kumpul.langkahCocok,
@@ -435,6 +525,16 @@ function rampingkan(kumpul, { denganSkor = true } = {}) {
     menangHilangJumlah: kumpul.menangHilangJumlah,
     menangHilangSampel: kumpul.menangHilangSampel,
     rataKehilanganMenang: bulat1(rataKehilanganMenang),
+    // Metrik kondisional (laporan untuk peninjau, bukan komponen skor).
+    sulitDinilai: kumpul.sulitDinilai,
+    sulitCocok: kumpul.sulitCocok,
+    kecocokanSulit: kumpul.sulitDinilai ? bulat1((kumpul.sulitCocok / kumpul.sulitDinilai) * 100) : null,
+    mudahDinilai: kumpul.mudahDinilai,
+    mudahCocok: kumpul.mudahCocok,
+    kecocokanMudah: kumpul.mudahDinilai ? bulat1((kumpul.mudahCocok / kumpul.mudahDinilai) * 100) : null,
+    streakTerpanjang: kumpul.streakTerpanjang,
+    sampelKorelasi: kumpul.pasanganWaktuRangking.length,
+    korelasiWaktuKualitas: korelasi !== null ? Math.round(korelasi * 100) / 100 : null,
   };
   if (!denganSkor) return ringkas;
 
@@ -511,9 +611,29 @@ export function hitungSkorKecurigaan(moves) {
       const peringkat = peringkatLangkahDalam(move.uci, daftar[i - 1]?.kandidat);
       const kerugianKandidat = kerugianKandidatCp(move.uci, daftar[i - 1]?.kandidat);
       const kehilanganMenang = kehilanganMenangPermille(move.uci, daftar[i - 1]?.kandidat);
-      catat(akum[warna], { cocok, kerugian, detik, peringkat, kerugianKandidat, kehilanganMenang });
+      /*
+       * Keranjang ketajaman posisi (sulit/mudah) dibaca dari kandidat yang
+       * SAMA dengan peringkat. Kategori null = posisi netral (tidak masuk
+       * kedua keranjang) atau kandidat tidak ada.
+       */
+      const tajam = ketajamanKandidat(daftar[i - 1]?.kandidat);
+      const kategori =
+        tajam === null ? null : tajam <= AMBANG.kandidatSulit ? "sulit" : tajam >= AMBANG.kandidatMudah ? "mudah" : null;
+      catat(akum[warna], { cocok, kerugian, detik, peringkat, kerugianKandidat, kehilanganMenang, kategori });
       catat(akumFase[fase][warna], { cocok, kerugian, detik, peringkat, kerugianKandidat, kehilanganMenang });
       jumlahLangkah++;
+
+      /*
+       * Streak langkah terbaik beruntun + pasangan waktu↔peringkat untuk
+       * korelasi Spearman. Keduanya hanya pada akumulator warna (bukan
+       * per fase) dan hanya bila langkah punya data peringkat.
+       */
+      if (peringkat !== null) {
+        const target = akum[warna];
+        target.streakKini = peringkat === 1 ? target.streakKini + 1 : 0;
+        if (target.streakKini > target.streakTerpanjang) target.streakTerpanjang = target.streakKini;
+        if (detik !== null) target.pasanganWaktuRangking.push({ detik, peringkat });
+      }
     }
 
     /*
@@ -594,6 +714,14 @@ function barisPartai(item, username) {
     kerugianKandidatSampel: ringkas.kerugianKandidatSampel ?? 0,
     menangHilangJumlah: ringkas.menangHilangJumlah ?? 0,
     menangHilangSampel: ringkas.menangHilangSampel ?? 0,
+    // Metrik kondisional (jumlah mentah; korelasi dirata-rata berbobot sampel).
+    sulitDinilai: ringkas.sulitDinilai ?? 0,
+    sulitCocok: ringkas.sulitCocok ?? 0,
+    mudahDinilai: ringkas.mudahDinilai ?? 0,
+    mudahCocok: ringkas.mudahCocok ?? 0,
+    streakTerpanjang: ringkas.streakTerpanjang ?? 0,
+    sampelKorelasi: ringkas.sampelKorelasi ?? 0,
+    korelasiWaktuKualitas: ringkas.korelasiWaktuKualitas ?? null,
     konsistensiWaktu: ringkas.konsistensiWaktu,
     rincianWaktu: ringkas.rincianWaktu ?? null,
     perFase: ringkas.perFase ?? null,
@@ -639,6 +767,13 @@ function hasilKosong(username) {
     rataPeringkat: null,
     acplKandidat: null,
     rataKehilanganMenang: null,
+    sulitDinilai: 0,
+    kecocokanSulit: null,
+    mudahDinilai: 0,
+    kecocokanMudah: null,
+    streakTerpanjang: 0,
+    sampelKorelasi: 0,
+    korelasiWaktuKualitas: null,
     konsistensiWaktu: null,
     rincianWaktu: null,
     komponen: { kecocokan: null, peringkat: null, acpl: null, waktu: null },
@@ -711,6 +846,15 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   let totalKerugianKandidatSampel = 0;
   let totalMenangHilang = 0;
   let totalMenangHilangSampel = 0;
+  // Metrik kondisional: kecocokan sulit/mudah dijumlah ulang mentah,
+  // streak diambil maksimumnya, korelasi dirata-rata berbobot sampel.
+  let totalSulitDinilai = 0;
+  let totalSulitCocok = 0;
+  let totalMudahDinilai = 0;
+  let totalMudahCocok = 0;
+  let streakMaksimum = 0;
+  let bobotKorelasi = 0;
+  let jumlahKorelasi = 0;
   const akumFase = {};
   for (const f of DAFTAR_FASE)
     akumFase[f] = {
@@ -739,6 +883,15 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     totalKerugianKandidatSampel += baris.kerugianKandidatSampel || 0;
     totalMenangHilang += baris.menangHilangJumlah || 0;
     totalMenangHilangSampel += baris.menangHilangSampel || 0;
+    totalSulitDinilai += baris.sulitDinilai || 0;
+    totalSulitCocok += baris.sulitCocok || 0;
+    totalMudahDinilai += baris.mudahDinilai || 0;
+    totalMudahCocok += baris.mudahCocok || 0;
+    streakMaksimum = Math.max(streakMaksimum, baris.streakTerpanjang || 0);
+    if (Number.isFinite(baris.korelasiWaktuKualitas) && (baris.sampelKorelasi || 0) > 0) {
+      jumlahKorelasi += baris.sampelKorelasi * baris.korelasiWaktuKualitas;
+      bobotKorelasi += baris.sampelKorelasi;
+    }
     const sampelWaktu = baris.rincianWaktu?.jumlahSampel ?? 0;
     if (Number.isFinite(baris.konsistensiWaktu) && sampelWaktu) {
       jumlahWaktu += sampelWaktu * baris.konsistensiWaktu;
@@ -814,6 +967,10 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     rataPeringkat: bulat1(rataPeringkat),
     acplKandidat: totalKerugianKandidatSampel ? bulat1(totalKerugianKandidat / totalKerugianKandidatSampel) : null,
     rataKehilanganMenang: totalMenangHilangSampel ? bulat1(totalMenangHilang / totalMenangHilangSampel) : null,
+    kecocokanSulit: totalSulitDinilai ? bulat1((totalSulitCocok / totalSulitDinilai) * 100) : null,
+    kecocokanMudah: totalMudahDinilai ? bulat1((totalMudahCocok / totalMudahDinilai) * 100) : null,
+    streakTerpanjang: streakMaksimum,
+    korelasiWaktuKualitas: bobotKorelasi ? Math.round((jumlahKorelasi / bobotKorelasi) * 100) / 100 : null,
     konsistensiWaktu: Number.isFinite(konsistensiWaktu) ? Math.round(konsistensiWaktu * 100) / 100 : null,
     rincianWaktu: { jumlahSampel: bobotWaktu },
     komponen,

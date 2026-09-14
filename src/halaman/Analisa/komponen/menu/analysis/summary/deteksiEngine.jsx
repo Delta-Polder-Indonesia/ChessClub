@@ -44,6 +44,11 @@ function formatPeringkat(nilai) {
   return Number.isFinite(nilai) ? nilai.toFixed(1) : "-";
 }
 
+/** Korelasi Spearman waktu↔kualitas: dua desimal dengan tanda. */
+function formatKorelasi(nilai) {
+  return Number.isFinite(nilai) ? nilai.toFixed(2) : "-";
+}
+
 function BarisMetrik({ label, putih, hitam }) {
   return (
     <div className="flex flex-row items-center justify-between">
@@ -123,6 +128,26 @@ export default function DeteksiEngine({ moves }) {
                 putih={formatCentipawn(putih.acplKandidat)}
                 hitam={formatCentipawn(hitam.acplKandidat)}
               />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanSulit")}
+                putih={formatPersen(putih.kecocokanSulit)}
+                hitam={formatPersen(hitam.kecocokanSulit)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.kecocokanMudah")}
+                putih={formatPersen(putih.kecocokanMudah)}
+                hitam={formatPersen(hitam.kecocokanMudah)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.streak")}
+                putih={String(putih.streakTerpanjang ?? 0)}
+                hitam={String(hitam.streakTerpanjang ?? 0)}
+              />
+              <BarisMetrik
+                label={t("analisa.antiCheat.metrik.korelasiWaktu")}
+                putih={formatKorelasi(putih.korelasiWaktuKualitas)}
+                hitam={formatKorelasi(hitam.korelasiWaktuKualitas)}
+              />
             </>
           ) : null}
           <BarisMetrik
@@ -165,6 +190,11 @@ export default function DeteksiEngine({ moves }) {
           ) : (
             <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaKandidat")}</p>
           )}
+          {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">
+              {t("analisa.antiCheat.catatanKondisional", { sulit: 20, mudah: 100 })}
+            </p>
+          ) : null}
           {!putih.rincianWaktu || !hitam.rincianWaktu ? (
             <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaJam")}</p>
           ) : null}

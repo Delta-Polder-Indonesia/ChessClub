@@ -254,6 +254,26 @@ Semua metrik generasi 2 bernilai `null` bila kandidat tidak ada (analisis
 lama/cache lama, atau `multiPv: 1`) dan bobot skor otomatis ternormalisasi
 ulang — perilaku lama tetap utuh.
 
+**Metrik kondisional (laporan peninjau, bukan komponen skor).** Skor tetap
+empat komponen agar maknanya stabil; tiga sinyal perilaku berikut ditampilkan
+mentah di sampingnya untuk memperkuat/melemahkan bacaan:
+
+- **`kecocokanSulit` / `kecocokanMudah`** — kecocokan top-1 dipilah
+  menurut ketajaman posisi (`ketajamanKandidat` = selisih cp kandidat #1
+  vs #3): sulit ≤ `AMBANG.kandidatSulit` (20 cp), mudah ≥
+  `AMBANG.kandidatMudah` (100 cp), sisanya netral. Pemakai engine justru
+  paling sempurna pada posisi sulit; manusia sebaliknya. Pola
+  "sempurna-saat-sulit, hancur-saat-mudah" adalah tanda khas.
+- **`streakTerpanjang`** — rentetan peringkat-1 beruntun terpanjang dalam
+  satu partai. Manusia yang jujur nyaris tidak pernah merangkai 20+ langkah
+  terbaik engine berturut-turut.
+- **`korelasiWaktuKualitas`** — korelasi Spearman waktu pikir ↔ peringkat
+  kandidat (`korelasiSpearman`), minimum
+  `AMBANG.korelasiSampelMinimum` (12) pasangan. Manusia: makin lama
+  berpikir makin baik langkahnya → NEGATIF. Pemakai engine: kualitas tidak
+  bergantung waktu → ≈ 0 atau positif. Agregat lintas partai dirata-rata
+  berbobot jumlah sampel.
+
 Skor 0–100 = rata-rata berbobot empat komponen (kecocokan 0,30 · peringkat
 0,25 · ACPL 0,25 · waktu 0,20; bobot dinormalkan ulang bila sebuah metrik
 tidak tersedia), lalu disusutkan `n / (n + 12)` menurut jumlah langkah yang
@@ -381,7 +401,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), agregat riwayat, cache & batal, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 176 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), agregat riwayat, cache & batal, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 203 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

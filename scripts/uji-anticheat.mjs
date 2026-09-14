@@ -19,6 +19,12 @@
  *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
  *      kandidat terbaik, komponen skor `peringkat`, dan parsing baris
  *      `info multipv`/`wdl` di `EngineCatur`.
+ *   9. METRIK KONDISIONAL (fase 2): keranjang posisi sulit/mudah dari
+ *      ketajaman kandidat, rentetan langkah terbaik beruntun, dan korelasi
+ *      Spearman waktu pikir ↔ peringkat kandidat.
+ *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
+ *      kandidat terbaik, komponen skor `peringkat`, dan parsing baris
+ *      `info multipv`/`wdl` di `EngineCatur`.
  *
  * Jalankan: node scripts/uji-anticheat.mjs
  */
@@ -912,5 +918,200 @@ console.log("\n== EngineCatur: parsing MultiPV + WDL (worker tiruan) ==");
   const k2 = await j2;
   hasil("tanpa multiPv: daftarPv null meski baris multipv lewat", k2.daftarPv === null && k2.info?.cp === 12, JSON.stringify(k2));
 }
+
+/* ============ 10. kondisional fase 2: sulit/mudah, streak, korelasi ============ */
+
+console.log("\n== metrik kondisional: keranjang ketajaman, streak, korelasi waktu↔kualitas ==");
+
+hasil(
+  "AMBANG: kandidatSulit < kandidatMudah (keranjang tidak tumpang tindih)",
+  ac.AMBANG.kandidatSulit < ac.AMBANG.kandidatMudah,
+  `${ac.AMBANG.kandidatSulit}/${ac.AMBANG.kandidatMudah}`
+);
+hasil(
+  "ketajamanKandidat: selisih cp #1 vs #3",
+  ac.ketajamanKandidat(KANDIDAT) === 12,
+  `${ac.ketajamanKandidat(KANDIDAT)}`
+);
+hasil(
+  "ketajamanKandidat: kurang dari 3 kandidat memakai terakhir",
+  ac.ketajamanKandidat(KANDIDAT.slice(0, 2)) === 8,
+  `${ac.ketajamanKandidat(KANDIDAT.slice(0, 2))}`
+);
+hasil("ketajamanKandidat: kosong = null", ac.ketajamanKandidat([]) === null && ac.ketajamanKandidat(undefined) === null);
+hasil(
+  "ketajamanKandidat: mate dihitung CP_MATE",
+  ac.ketajamanKandidat([
+    { peringkat: 1, uci: "x", cp: null, mate: 1 },
+    { peringkat: 2, uci: "y", cp: 50, mate: null },
+  ]) === ac.CP_MATE - 50
+);
+
+/* Spearman: monoton sempurna, ties, sampel kurang, varians nol. */
+const pasanganManusia = [];
+for (let i = 0; i < 15; i++) pasanganManusia.push({ detik: i + 1, peringkat: 15 - i });
+hasil("korelasiSpearman: makin lama makin baik → -1", ac.korelasiSpearman(pasanganManusia) === -1, `${ac.korelasiSpearman(pasanganManusia)}`);
+hasil(
+  "korelasiSpearman: makin lama makin buruk → +1 (pola mustahil manusia)",
+  ac.korelasiSpearman(pasanganManusia.map((p) => ({ detik: p.detik, peringkat: 16 - p.peringkat }))) === 1
+);
+hasil("korelasiSpearman: sampel < minimum → null", ac.korelasiSpearman(pasanganManusia.slice(0, 5)) === null);
+hasil(
+  "korelasiSpearman: varians nol (semua waktu sama) → null",
+  ac.korelasiSpearman(pasanganManusia.map((p) => ({ detik: 5, peringkat: p.peringkat }))) === null
+);
+hasil("korelasiSpearman: pasangan rusak dibuang", ac.korelasiSpearman([{ detik: null, peringkat: 2 }, ...pasanganManusia]) === -1);
+const pasanganSeri = [];
+for (let i = 0; i < 12; i++) pasanganSeri.push({ detik: Math.floor(i / 3), peringkat: Math.floor(i / 4) });
+hasil("korelasiSpearman: ties dirata-rata tanpa NaN", Number.isFinite(ac.korelasiSpearman(pasanganSeri)), `${ac.korelasiSpearman(pasanganSeri)}`);
+
+/* Streak pada partai mini generasi 2 yang sudah ada. */
+hasil(
+  "mini: Putih (selalu rank 1) streak = jumlah langkah ber-kandidat",
+  mini.w.streakTerpanjang === mini.w.kandidatSampel,
+  `${mini.w.streakTerpanjang}/${mini.w.kandidatSampel}`
+);
+hasil("mini: Hitam (selalu rank 4) streak 0", mini.b.streakTerpanjang === 0, `${mini.b.streakTerpanjang}`);
+hasil(
+  "tanpa kandidat: metrik kondisional null",
+  tanpaKandidat.w.kecocokanSulit === null && tanpaKandidat.w.kecocokanMudah === null && tanpaKandidat.w.korelasiWaktuKualitas === null && tanpaKandidat.w.streakTerpanjang === 0
+);
+
+/* Partai kondisional: putih = "pemakai engine" (sempurna saat sulit,
+ * hancur saat mudah), hitam = "manusia" (sebaliknya). Posisi sulit/mudah
+ * bergantian; detik putih menempel pada pola kualitas (korelasi -1),
+ * detik hitam justru terbalik (korelasi +1). */
+const KANDIDAT_SULIT = [
+  { peringkat: 1, uci: "e2e4", cp: 30, mate: null, wdl: null },
+  { peringkat: 2, uci: "d2d4", cp: 29, mate: null, wdl: null },
+  { peringkat: 3, uci: "g1f3", cp: 28, mate: null, wdl: null },
+  { peringkat: 4, uci: "c2c4", cp: 27, mate: null, wdl: null },
+  { peringkat: 5, uci: "b1c3", cp: 26, mate: null, wdl: null },
+];
+const KANDIDAT_MUDAH = [
+  { peringkat: 1, uci: "e2e4", cp: 200, mate: null, wdl: null },
+  { peringkat: 2, uci: "d2d4", cp: 20, mate: null, wdl: null },
+  { peringkat: 3, uci: "g1f3", cp: 10, mate: null, wdl: null },
+  { peringkat: 4, uci: "c2c4", cp: 5, mate: null, wdl: null },
+  { peringkat: 5, uci: "b1c3", cp: 0, mate: null, wdl: null },
+];
+hasil("klasifikasi: KANDIDAT_SULIT → sulit", ac.ketajamanKandidat(KANDIDAT_SULIT) <= ac.AMBANG.kandidatSulit);
+hasil("klasifikasi: KANDIDAT_MUDAH → mudah", ac.ketajamanKandidat(KANDIDAT_MUDAH) >= ac.AMBANG.kandidatMudah);
+
+const KANDIDAT_SULIT_HITAM = [
+  { peringkat: 1, uci: "e7e5", cp: 30, mate: null, wdl: null },
+  { peringkat: 2, uci: "e7e6", cp: 29, mate: null, wdl: null },
+  { peringkat: 3, uci: "d7d5", cp: 28, mate: null, wdl: null },
+  { peringkat: 4, uci: "d7d6", cp: 27, mate: null, wdl: null },
+  { peringkat: 5, uci: "g8f6", cp: 26, mate: null, wdl: null },
+];
+const KANDIDAT_MUDAH_HITAM = [
+  { peringkat: 1, uci: "e7e5", cp: 200, mate: null, wdl: null },
+  { peringkat: 2, uci: "d7d5", cp: 20, mate: null, wdl: null },
+  { peringkat: 3, uci: "g8f6", cp: 10, mate: null, wdl: null },
+  { peringkat: 4, uci: "b8c6", cp: 5, mate: null, wdl: null },
+  { peringkat: 5, uci: "a7a6", cp: 0, mate: null, wdl: null },
+];
+
+function bangunKondisional() {
+  const daftar = [];
+  let sisa = { w: 7200, b: 7200 };
+  const dorong = (attrsPosisi, attrsLangkah, pemain, detik) => {
+    const sebelum = { white: sisa.w, black: sisa.b };
+    if (pemain === "w") sisa.w -= detik;
+    else sisa.b -= detik;
+    const sesudah = { white: sisa.w, black: sisa.b };
+    daftar.push({
+      fen: "8/8/8/8/8/8/8/8 w - - 0 1",
+      color: pemain === "w" ? "b" : "w",
+      clock: sebelum,
+      ...attrsPosisi,
+    });
+    daftar.push({
+      san: attrsLangkah.san,
+      uci: attrsLangkah.uci,
+      color: pemain === "w" ? "b" : "w",
+      moveRating: null,
+      fen: "8/8/8/8/8/8/8/8 b - - 0 1",
+      previousStaticEvals: [["cp", "30"], ["cp", "0"]],
+      clock: sesudah,
+    });
+  };
+  for (let r = 0; r < 20; r++) {
+    const sulitPutih = r % 2 === 0;
+    // kandidat #1 kedua daftar putih = e2e4 → bestMoveSan selalu "e4";
+    // putih "engine": e2e4 (rank 1) saat sulit, c2c4 (rank 4) saat mudah.
+    dorong(
+      { kandidat: sulitPutih ? KANDIDAT_SULIT : KANDIDAT_MUDAH, bestMoveSan: "e4" },
+      sulitPutih ? { san: "e4", uci: "e2e4" } : { san: "c4", uci: "c2c4" },
+      "w",
+      sulitPutih ? 50 : 10
+    );
+    const mudahHitam = r % 2 === 0;
+    // kandidat #1 kedua daftar hitam = e7e5 → bestMoveSan selalu "e5";
+    // hitam "manusia": e7e5 (rank 1) saat mudah, d7d6 (rank 4) saat sulit.
+    dorong(
+      { kandidat: mudahHitam ? KANDIDAT_MUDAH_HITAM : KANDIDAT_SULIT_HITAM, bestMoveSan: "e5" },
+      mudahHitam ? { san: "e5", uci: "e7e5" } : { san: "d6", uci: "d7d6" },
+      "b",
+      mudahHitam ? 30 : 70
+    );
+  }
+  return daftar;
+}
+const kondisional = ac.hitungSkorKecurigaan(bangunKondisional());
+hasil(
+  "kondisional: putih cocok 100% di posisi sulit (tanda khas engine)",
+  kondisional.w.kecocokanSulit === 100 && kondisional.w.sulitDinilai === 10,
+  `${kondisional.w.kecocokanSulit}/${kondisional.w.sulitDinilai}`
+);
+hasil(
+  "kondisional: putih cocok 0% di posisi mudah",
+  kondisional.w.kecocokanMudah === 0 && kondisional.w.mudahDinilai === 10,
+  `${kondisional.w.kecocokanMudah}/${kondisional.w.mudahDinilai}`
+);
+hasil(
+  "kondisional: hitam (manusia) kebalikannya — 0% sulit, 100% mudah",
+  kondisional.b.kecocokanSulit === 0 && kondisional.b.kecocokanMudah === 100,
+  `${kondisional.b.kecocokanSulit}/${kondisional.b.kecocokanMudah}`
+);
+hasil("kondisional: streak putih & hitam = 1 (bergantian rank 1/4)", kondisional.w.streakTerpanjang === 1 && kondisional.b.streakTerpanjang === 1, `${kondisional.w.streakTerpanjang}/${kondisional.b.streakTerpanjang}`);
+hasil(
+  "kondisional: korelasi putih -1 (manusia: lama berpikir → langkah baik)",
+  kondisional.w.korelasiWaktuKualitas === -1 && kondisional.w.sampelKorelasi === 20,
+  `${kondisional.w.korelasiWaktuKualitas}/${kondisional.w.sampelKorelasi}`
+);
+hasil(
+  "kondisional: korelasi hitam +1 (makin lama makin buruk — mencurigakan)",
+  kondisional.b.korelasiWaktuKualitas === 1,
+  `${kondisional.b.korelasiWaktuKualitas}`
+);
+
+/* Agregat: keranjang dijumlah ulang mentah, streak maksimum, korelasi berbobot. */
+const agregatSulit = ac.agregatSkorPemain([{ id: "s1", timestamp: 1, warna: "w", hasil: kondisional }], "budi");
+hasil(
+  "agregat: kecocokanSulit/Mudah terbawa",
+  agregatSulit.kecocokanSulit === 100 && agregatSulit.kecocokanMudah === 0,
+  `${agregatSulit.kecocokanSulit}/${agregatSulit.kecocokanMudah}`
+);
+hasil("agregat: streakTerpanjang = maksimum antarpartai", agregatSulit.streakTerpanjang === 1, `${agregatSulit.streakTerpanjang}`);
+hasil("agregat: korelasi berbobot sampel = -1", agregatSulit.korelasiWaktuKualitas === -1, `${agregatSulit.korelasiWaktuKualitas}`);
+const agregatCampurKondisional = ac.agregatSkorPemain(
+  [
+    { id: "s1", timestamp: 1, warna: "w", hasil: kondisional },
+    { id: "s2", timestamp: 2, warna: "b", hasil: kondisional },
+  ],
+  "budi"
+);
+hasil(
+  "agregat campur: kecocokan sulit (10+0)/20 = 50%",
+  agregatCampurKondisional.kecocokanSulit === 50,
+  `${agregatCampurKondisional.kecocokanSulit}`
+);
+hasil(
+  "agregat campur: korelasi rata berbobot (-1 dan +1) ≈ 0",
+  agregatCampurKondisional.korelasiWaktuKualitas === 0,
+  `${agregatCampurKondisional.korelasiWaktuKualitas}`
+);
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);

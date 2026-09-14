@@ -245,6 +245,22 @@ function RingkasanAntiCheat({ agregat }) {
               label={t("analisa.antiCheat.metrik.acplKandidat")}
               nilai={cp(agregat.acplKandidat)}
             />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanSulit")}
+              nilai={persen(agregat.kecocokanSulit)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.kecocokanMudah")}
+              nilai={persen(agregat.kecocokanMudah)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.streak")}
+              nilai={String(agregat.streakTerpanjang ?? 0)}
+            />
+            <BarisAntiCheat
+              label={t("analisa.antiCheat.metrik.korelasiWaktu")}
+              nilai={Number.isFinite(agregat.korelasiWaktuKualitas) ? agregat.korelasiWaktuKualitas.toFixed(2) : "-"}
+            />
           </>
         ) : null}
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.acpl")} nilai={cp(agregat.acpl)} />

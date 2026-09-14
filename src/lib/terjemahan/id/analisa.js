@@ -315,6 +315,10 @@ export const analisa = {
         kecocokanTop3: "Langkah dalam top-3 engine",
         rataPeringkat: "Peringkat rata-rata kandidat",
         acplKandidat: "Rugi vs kandidat terbaik",
+        kecocokanSulit: "Kecocokan pada posisi sulit",
+        kecocokanMudah: "Kecocokan pada posisi mudah",
+        streak: "Rentetan langkah terbaik beruntun",
+        korelasiWaktu: "Korelasi waktu pikir ↔ kualitas",
         acpl: "Kerugian rata-rata (ACPL)",
         waktu: "Konsistensi waktu pikir",
         langkah: "Langkah dinilai",
@@ -330,6 +334,8 @@ export const analisa = {
       tanpaJam: "PGN ini tidak memuat data jam ([%clk]), jadi metrik waktu pikir dilewati.",
       tanpaKandidat: "Partai ini dianalisis tanpa kandidat MultiPV (analisis lama); metrik peringkat dilewati.",
       catatanKandidat: "Peringkat dihitung terhadap {n} kandidat terbaik engine (MultiPV) pada setiap posisi; skala 1–{nMax}.",
+      catatanKondisional:
+        "Posisi sulit = kandidat terbaik engine berdekatan (selisih ≤ {sulit} cp); pemakai engine paling menonjol di sana, manusia justru sering keliru. Rentetan panjang langkah terbaik dan korelasi waktu↔kualitas mendekati 0 (bukan negatif) turut memperkuat kecurigaan.",
       disclaimer:
         "Angka di atas adalah indikasi statistik untuk ditinjau manusia, bukan bukti atau tuduhan. Pemain kuat, kontrol waktu yang panjang, dan akhirpartai sederhana sama-sama menaikkan kecocokan langkah dengan engine. Keputusan apa pun harus lewat peninjauan partai aslinya.",
       riwayat: {

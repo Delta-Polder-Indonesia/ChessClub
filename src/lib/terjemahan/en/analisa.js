@@ -314,6 +314,10 @@ export const analisa = {
         kecocokanTop3: "Moves within engine top-3",
         rataPeringkat: "Average candidate rank",
         acplKandidat: "Loss vs best candidate",
+        kecocokanSulit: "Agreement on hard positions",
+        kecocokanMudah: "Agreement on easy positions",
+        streak: "Longest best-move streak",
+        korelasiWaktu: "Think-time ↔ quality correlation",
         acpl: "Average centipawn loss",
         waktu: "Think-time consistency",
         langkah: "Moves evaluated",
@@ -329,6 +333,8 @@ export const analisa = {
       tanpaJam: "This PGN carries no clock data ([%clk]), so the think-time metric is skipped.",
       tanpaKandidat: "This game was analyzed without MultiPV candidates (older analysis); rank metrics are skipped.",
       catatanKandidat: "Ranks are measured against the engine's {n} best candidates (MultiPV) per position; scale 1–{nMax}.",
+      catatanKondisional:
+        "Hard positions = the engine's top candidates are close (gap ≤ {sulit} cp); engine users stand out there while humans err. Long best-move streaks and a time↔quality correlation near 0 (not negative) further support suspicion.",
       disclaimer:
         "The numbers above are a statistical indication for human review, not evidence or an accusation. Strong players, long time controls, and simple endgames all raise engine agreement. Any decision must come from reviewing the original games.",
       riwayat: {
