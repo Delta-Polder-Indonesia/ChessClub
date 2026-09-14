@@ -581,7 +581,7 @@ export const SOAL_CATUR = [
   {
     kategori: "notasi",
     soal: "Bagaimana biasanya langkah pion ditulis dalam notasi aljabar jika tidak menangkap?",
-    pilihan: ["Hanya tujuan petaknya, misalnya e4", "Selalu diawali P", "Selalu diawali p", "Dengan huruf N"],
+    pilihan: ["Hanya tujuan petaknya, misalnya e4", "Selalu diawali P", "Ditulis lengkap, misalnya pawn e4", "Dengan huruf N"],
     kunci: 0,
   },
   {

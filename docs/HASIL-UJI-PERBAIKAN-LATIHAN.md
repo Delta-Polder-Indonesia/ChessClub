@@ -103,6 +103,10 @@ sebelum perbaikannya dengan menukar berkas sementara (lalu dipulihkan, `git stat
    dianggap duplikat (perbandingan tanpa beda huruf besar/kecil). Sudah ada di basis `b431ac8`, di luar
    langkah 1-7/10, dan tidak diubah di PR ini. Catatan tambahan: `uji:quiz` juga belum ikut rantai
    `npm run uji` (temuan C6, di luar cakupan).
+   *Pembaruan (PR #123):* distraktor ketiga soal 83 diganti menjadi "Ditulis lengkap, misalnya
+   pawn e4" sehingga tidak lagi berbeda hanya di huruf besar/kecil; `kunci` tetap 0 dan
+   `npm run uji:quiz` lulus. `uji:quiz` sengaja masih di luar rantai `npm run uji` — memasukkannya
+   berarti menambah langkah ke setiap job CI dan perlu keputusan terpisah.
 
 ## 6. Perintah reproduksi
 
@@ -112,7 +116,7 @@ npm run uji          # 22 skrip, semua lulus
 npm run build
 npm run uji:i18n
 npm run uji:tekateki-solusi           # uji A1 (baru, ikut rantai uji)
-npm run uji:quiz                      # gagal pra-ada: soal #83
+npm run uji:quiz                      # dulu gagal pra-ada (soal #83), kini lulus
 node scripts/uji-rush-waktu.mjs       # langkah 5
 node scripts/uji-tanda-papan.mjs      # langkah 6
 ```
