@@ -2,13 +2,14 @@
 /**
  * Unggah e-book PDF (public/ebooks/*.pdf) ke Supabase Storage.
  *
- * Mengapa: PDF e-book (±500 MB) selama ini disimpan lewat Git LFS, yang
- * membebani bandwidth LFS GitHub dan membuat situs menyajikan "pointer"
- * bila checkout tidak menarik LFS. Dengan object storage, PDF dilayani
- * langsung dari Supabase — bebas dari Git LFS.
+ * Mengapa: PDF e-book (±484 MB) kini disimpan sebagai blob Git biasa di repo.
+ * Itu membuat setiap klon/deploy ikut mengangkut seluruh koleksi, dan dulu
+ * (saat masih Git LFS) situs menyajikan "pointer" bila checkout tidak menarik
+ * LFS. Dengan object storage, PDF dilayani langsung dari Supabase dan repo
+ * bisa berhenti menyimpan binari besar.
  *
- * Jalankan SATU KALI dari mesin yang sudah punya PDF asli
- * (pastikan `git lfs pull` sudah dijalankan; cek: berkas harus diawali %PDF):
+ * Jalankan SATU KALI dari mesin yang sudah punya PDF asli (klon biasa sudah
+ * cukup sejak PDF tidak lagi lewat Git LFS; cek: berkas harus diawali %PDF):
  *   SUPABASE_URL=https://<proyek>.supabase.co \
  *   SUPABASE_SERVICE_ROLE_KEY=<kunci-service-role> \
  *   npm run ebook:unggah

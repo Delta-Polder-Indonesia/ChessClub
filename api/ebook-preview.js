@@ -2,9 +2,9 @@
  * Proxy pratinjau (dan unduhan) PDF e-book.
  *
  * Masalah yang diselesaikan:
- *   1. PDF di `public/ebooks/` dilacak Git LFS. Bila checkout deploy tidak
- *      menarik LFS, berkas statis yang tersaji hanya *pointer* teks 132 byte
- *      sehingga pratinjau kosong.
+ *   1. Berkas statis `public/ebooks/*.pdf` bisa bukan PDF asli — mis. checkout
+ *      lama yang masih memakai Git LFS sehingga isinya hanya *pointer* teks
+ *      132 byte — sehingga pratinjau kosong.
  *   2. GitHub Media mengirim `Content-Disposition: attachment`, sehingga
  *      browser MENGUNDUH berkas alih-alih menampilkannya.
  *
@@ -102,8 +102,9 @@ export default async function handler(req, res) {
     if (!sumber) {
       res.status(502).json({
         error:
-          "Berkas PDF tidak tersedia di sumber mana pun. Pastikan Git LFS ikut " +
-          "diunduh saat build, atau atur EBOOK_BASE ke object storage.",
+          "Berkas PDF tidak tersedia di sumber mana pun. Pastikan `public/ebooks/` " +
+          "ikut ter-checkout saat build dengan isi asli, atau atur EBOOK_BASE ke " +
+          "object storage.",
       });
       return;
     }

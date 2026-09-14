@@ -9,7 +9,7 @@
  * Plugin ini menyisipkan penangan yang sama SEBELUM proxy `/api`, sehingga
  * perilaku lokal = perilaku produksi:
  *   - berkas lokal `public/ebooks/*.pdf` dipakai bila isinya PDF asli,
- *   - selain itu jatuh ke object storage / GitHub Media (isi Git LFS),
+ *   - selain itu jatuh ke object storage / GitHub Media (sumber cadangan),
  *   - respons selalu `Content-Disposition: inline` (atau attachment bila
  *     `?unduh=1`) dan mendukung `Range`.
  */
@@ -30,9 +30,10 @@ const JALUR_API = "/api/ebook-preview";
 /**
  * PDF pengganti satu halaman (khusus dev/preview).
  *
- * Klon tanpa `git lfs pull` hanya punya *pointer* 132 byte, dan mesin
- * pengembangan tidak selalu boleh menghubungi GitHub. Daripada memunculkan
- * modal kosong, kembalikan PDF kecil yang menjelaskan keadaannya — pembaca
+ * Checkout lama (masih *pointer* Git LFS 132 byte) bisa tidak punya PDF
+ * asli, dan mesin pengembangan tidak selalu boleh menghubungi GitHub.
+ * Daripada memunculkan modal kosong, kembalikan PDF kecil yang menjelaskan
+ * keadaannya — pembaca
  * tetap bisa diuji, dan penyebabnya terbaca jelas.
  */
 function pdfPengganti(judul) {
@@ -42,7 +43,7 @@ function pdfPengganti(judul) {
     judul.slice(0, 60),
     "",
     "Isi PDF asli belum tersedia di mesin ini.",
-    "Jalankan: git lfs install && git lfs pull",
+    "Jalankan: git pull — isi PDF ada di repo (tanpa Git LFS)",
     "atau isi EBOOK_BASE di src/data/ebook-storage.js.",
   ];
   const teks = baris
@@ -147,7 +148,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       res.setHeader("Cache-Control", "no-cache");
     };
 
-    // 1) Berkas lokal (paling cepat, tidak memakai kuota LFS).
+    // 1) Berkas lokal (paling cepat, tanpa jaringan).
     const berkas = path.join(dirEbook, nama);
     const ukuran = berkas.startsWith(dirEbook) ? await berkasLokalSah(berkas) : null;
     if (ukuran) {
@@ -169,7 +170,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       return;
     }
 
-    // 2) Object storage → 3) isi Git LFS di GitHub Media.
+    // 2) Object storage → 3) GitHub Media (cadangan untuk checkout lama).
     const kandidat = [urlStorageEbook(nama), urlGithubMediaEbook(nama)].filter(Boolean);
     for (const sumber of kandidat) {
       try {
@@ -196,11 +197,11 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       }
     }
 
-    // 4) Tidak ada sumber yang bisa dijangkau (klon tanpa LFS + tanpa internet).
+    // 4) Tidak ada sumber yang bisa dijangkau (berkas tak ada + tanpa internet).
     //    Kirim PDF pengganti supaya pembaca tetap dapat dicoba secara lokal.
     console.warn(
       `[ebook] "${nama}" belum tersedia — menyajikan PDF pengganti. ` +
-        "Jalankan `git lfs install && git lfs pull` untuk isi aslinya."
+        "Jalankan `git pull` untuk PDF aslinya (isi ada di repo, tanpa Git LFS)."
     );
     const pengganti = pdfPengganti(nama.replace(/\.pdf$/i, ""));
     kepalaDasar();

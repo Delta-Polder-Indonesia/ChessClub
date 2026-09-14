@@ -2,28 +2,34 @@
 
 Folder ini berisi file PDF yang ditampilkan di halaman `/program-kami/ebook-panduan`.
 
-## Penting: berkas ini disimpan lewat Git LFS
+## Penyimpanan: PDF biasa di Git (Git LFS sudah tidak dipakai)
 
-Seluruh PDF di folder ini dilacak Git LFS (lihat `.gitattributes`). Di repositori,
-yang tersimpan hanya *pointer* kecil (132 byte) — isi aslinya diunduh dari server
-LFS GitHub saat checkout dengan Git LFS aktif.
+Seluruh PDF di folder ini adalah blob Git biasa — `public/ebooks/` berisi
+32 berkas, ±484 MB. `.gitattributes` sudah kosong (tidak ada satu pun pola
+`filter=lfs`), jadi `git clone` reguler langsung menghasilkan PDF asli.
+`git lfs install` dan `git lfs pull` tidak diperlukan lagi.
 
-- **Klon lokal** (perlu `git-lfs` terpasang sekali):
-  ```bash
-  git lfs install
-  git clone https://github.com/Delta-Polder-Indonesia/ChessClub.git
-  # atau di klon yang sudah ada:
-  git lfs pull
-  ```
-  Cek hasilnya: `head -c 4 "public/ebooks/Sicilian Defense.pdf"` harus mencetak `%PDF`.
-- **Deploy Vercel**: build memakai sumber PDF yang tersedia di checkout atau
-  object storage. Untuk koleksi besar, gunakan Supabase Storage sesuai
-  `PANDUAN-EBOOK-STORAGE.md` agar deployment tidak bergantung pada pointer LFS.
-- **Menambah e-book baru**: letakkan PDF asli di folder ini lalu `git add` seperti
-  biasa (Git LFS otomatis menangani). Jangan commit *pointer* hasil klon tanpa LFS.
-- **Ingin lepas dari LFS** (PDF disimpan sebagai berkas Git biasa):
-  `bash scripts/keluar-dari-lfs.sh --periksa` lalu tanpa `--periksa`.
-  Baca untung-ruginya di `PANDUAN-EBOOK-STORAGE.md`.
+Cara memastikan (harus mencetak `%PDF`; kalau yang tercetak `vers` itu berarti
+masih pointer LFS dari checkout lama):
+
+```bash
+head -c 4 "public/ebooks/Sicilian Defense.pdf"
+npm run uji:ebook
+```
+
+- **Klon lokal**: `git clone` biasa sudah cukup. Karena PDF ikut di dalam repo,
+  klon pertama besar dan setiap PDF yang diganti menyimpan salinan penuh baru di
+  riwayat — ukuran `.git` tidak bisa dikecilkan tanpa menulis ulang riwayat.
+- **Deploy Vercel**: `dist/ebooks/*.pdf` ikut ter-bundle dari repo. Kalau koleksi
+  terus bertambah, pindahkan ke Supabase Storage sesuai `PANDUAN-EBOOK-STORAGE.md`
+  (`npm run ebook:unggah` + `EBOOK_BASE`) supaya deploy tidak mengangkut ±484 MB.
+- **Menambah e-book baru**: taruh PDF asli di folder ini lalu `git add` seperti
+  biasa. GitHub MENOLAK berkas >= 100 MB dan memberi peringatan mulai 50 MB
+  (terbesar saat ini `Ruy Lopez_Anti Berlin (id).pdf` ±75 MB) — kompres lebih dulu:
+  `gs -sDEVICE=pdfwrite -dPDFSETTINGS=/ebook -sOutputFile=keluar.pdf masuk.pdf`.
+- **Riwayat LFS**: commit lama masih berisi *pointer* dan itu disengaja —
+  `scripts/keluar-dari-lfs.sh` tidak menulis ulang riwayat. Sumber GitHub Media di
+  `src/data/ebook-sumber.js` dibiarkan hanya sebagai cadangan checkout lama.
 
 ## Cara menambah e-book baru
 
@@ -56,8 +62,9 @@ Situs tidak membaca `/ebooks/*.pdf` secara langsung, melainkan lewat proxy
 `/api/ebook-preview?file=<nama>.pdf` (`api/ebook-preview.js` di Vercel,
 `plugins/ebook-preview.js` saat `npm run dev`). Proxy mencoba beberapa sumber
 berurutan — object storage (`EBOOK_BASE`) → berkas statis hasil build →
-isi Git LFS di GitHub Media — dan hanya memakai sumber yang benar-benar
-diawali `%PDF`, lalu mengirimnya dengan `Content-Disposition: inline`.
+GitHub Media (cadangan untuk checkout lama yang isinya masih pointer LFS) —
+dan hanya memakai sumber yang benar-benar diawali `%PDF`, lalu mengirimnya
+dengan `Content-Disposition: inline`.
 
-Jadi kalau di lokal berkas masih berupa pointer LFS, tombol **Baca** tetap
-bekerja selama ada koneksi ke GitHub. Untuk membaca offline: `git lfs pull`.
+Karena isi PDF sudah ada di repo, hampir selalu berkas statis yang terpakai:
+tombol **Baca** dan baca offline sama-sama jalan tanpa Git LFS.

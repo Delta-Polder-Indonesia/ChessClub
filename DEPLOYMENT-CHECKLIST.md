@@ -41,14 +41,16 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
   Cek: `git check-ignore -v .env.local data/rahasia/kontak.json`
 - [ ] `*.log` tidak ikut commit.
 
-## 2b. E-book PDF (Git LFS)
+## 2b. E-book PDF
 
-- [ ] Untuk koleksi PDF besar, gunakan Supabase Storage sesuai
-      `PANDUAN-EBOOK-STORAGE.md`; jangan mengandalkan checkout LFS saat build Vercel.
-- [ ] PDF lokal bukan pointer kosong sebelum menjalankan migrasi storage.
-      Cek: `head -c 4 public/ebooks/*.pdf` → semua diawali `%PDF`.
-      Kalau pointer: `git lfs pull` (butuh `git-lfs` terpasang).
-- [ ] Objek LFS masih tersedia di GitHub bila migrasi storage belum dilakukan.
+- [ ] PDF di `public/ebooks/` = blob Git biasa (Git LFS sudah tidak dipakai,
+      `.gitattributes` kosong), jadi deploy Vercel tidak perlu menarik LFS.
+- [ ] Semua berkas berisi PDF asli sebelum menjalankan migrasi storage.
+      Cek: `head -c 4 public/ebooks/*.pdf` → semuanya diawali `%PDF`
+      (kalau tercetak `vers`, itu checkout lama yang masih pointer — `git pull`).
+- [ ] Untuk koleksi yang terus bertambah (saat ini 32 berkas, ±484 MB), pindahkan
+      ke Supabase Storage sesuai `PANDUAN-EBOOK-STORAGE.md` agar ukuran itu tidak
+      ikut setiap klon dan build.
 - [ ] `npm run uji` lolos — di dalamnya `scripts/uji-ebook.mjs` memeriksa
       konsistensi entri `ebook-data.js` ↔ berkas di `public/ebooks/`.
 

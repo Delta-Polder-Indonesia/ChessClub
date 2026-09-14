@@ -34,7 +34,7 @@ export function berkasPublik(jalur) {
  *
  * SELALU same-origin (`/api/ebook-preview`). Endpoint itulah yang memilih
  * sumber sebenarnya — object storage bila `EBOOK_BASE` diisi, berkas statis
- * `/ebooks/…` hasil build, atau isi Git LFS di GitHub Media — lalu
+ * `/ebooks/…` hasil build, atau GitHub Media (cadangan) — lalu
  * mengembalikannya dengan `Content-Disposition: inline` supaya browser
  * MENAMPILKAN PDF, bukan mengunduhnya.
  *

@@ -4,16 +4,22 @@
  *   - `plugins/ebook-preview.js`  (middleware dev & preview Vite)
  *   - `src/lib/asets.js`          (daftar URL cadangan untuk pembaca di browser)
  *
- * Kenapa perlu banyak sumber? PDF di `public/ebooks/` dilacak Git LFS. Bila
- * checkout deploy tidak menarik LFS, berkas statis yang tersaji hanyalah
- * *pointer* teks 132 byte — pratinjau jadi kosong. Karena itu urutan sumber
- * selalu dicoba satu per satu sampai ada yang benar-benar mengembalikan PDF
- * (diperiksa lewat magic bytes `%PDF`).
+ * Kenapa perlu banyak sumber? Dulu PDF di `public/ebooks/` dilacak Git LFS, dan
+ * checkout deploy yang tidak menarik LFS hanya menyajikan *pointer* teks
+ * 132 byte sehingga pratinjau kosong. Kini PDF disimpan sebagai blob Git biasa
+ * (`.gitattributes` kosong — lihat `scripts/keluar-dari-lfs.sh`), jadi berkas
+ * statis umumnya sudah sah. Rantai sumber tetap dipertahankan (checkout lama,
+ * atau koleksi di object storage): setiap kandidat diuji sampai ada yang
+ * benar-benar mengembalikan PDF (magic bytes `%PDF`).
  */
 import { DAFTAR_EBOOK } from "../halaman/Beranda/ebook-data.js";
 import { EBOOK_BASE } from "./ebook-storage.js";
 
-/** Basis unduhan isi asli berkas Git LFS milik repositori ini. */
+/**
+ * Basis GitHub Media — isi asli berkas yang DULU dilacak Git LFS. Sumber
+ * cadangan ini hanya berarti untuk checkout lama; sejak PDF jadi blob Git
+ * biasa, path `media/...` tidak pernah berisi objek LFS lagi.
+ */
 export const GITHUB_MEDIA_BASE =
   "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks";
 
@@ -52,7 +58,7 @@ export function urlStorageEbook(nama) {
   return `${EBOOK_BASE.replace(/\/+$/, "")}/${encodeURIComponent(namaBerkasEbook(nama))}`;
 }
 
-/** URL isi asli Git LFS di GitHub Media. */
+/** URL cadangan di GitHub Media (isi asli berkas yang pernah dilacak LFS). */
 export function urlGithubMediaEbook(nama) {
   return `${GITHUB_MEDIA_BASE}/${encodeURIComponent(namaBerkasEbook(nama))}`;
 }
