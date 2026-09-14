@@ -12,14 +12,15 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 
 ## Peta cepat
 
-- `npm run uji` — gabungan uji frontend + konten: `uji:rute`, `uji:i18n`, `uji:komentator`, `uji:analisa`,
-  `uji:analisa-ui`, `uji:suara`, `uji:basisdata`, `uji:lencana-skakmat`, `uji:gambar`, `uji:identitas`,
-  `uji:skema`, `uji:ebook`, `uji:ebook-pembaca`, `uji:nama-pembukaan`, `uji:artikel-wikipedia`.
+- `npm run uji` — gabungan uji frontend + konten: `uji:rute`, `uji:seo`, `uji:i18n`, `uji:tools`,
+  `uji:komentator`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`,
+  `uji:basisdata`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:tekateki-solusi`, `uji:rush`, `uji:gambar`,
+  `uji:identitas`, `uji:skema`, `uji:ebook`, `uji:ebook-pembaca`, `uji:nama-pembukaan`, `uji:artikel-wikipedia`.
 - `npm run uji:backend && npm run uji:verifikasi` — backend menyala sementara dan diuji end-to-end
   (auth JWT, verifikasi Chess.com, e-book).
 - `npm run uji:e2e` — Playwright smoke test halaman publik (butuh `npx playwright install chromium`).
 - `npm run uji:konfigurasi-keamanan` — konfigurasi keamanan server (wajib lulus bila menyentuh
-  `konfigurasi.js`/`http.js`).
+  `konfigurasi.js`/`http.js`; CI selalu menjalankannya).
 
 ## Kapan menjalankan apa (aturan minimum)
 
@@ -43,12 +44,12 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 
 ## Samakan dengan CI
 
-`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 20, checkout LFS)
+`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout LFS)
 menjalankan berurutan:
 
-1. `npm run uji`
-2. `npm run uji:backend && npm run uji:verifikasi`
-3. `npm run build`
-4. `npx playwright install --with-deps chromium` lalu `npm run uji:e2e`
+1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan`
+2. "Build production bundle": `npm run build`
+3. "Install Chromium for Playwright": `npx playwright install --with-deps chromium`
+4. "Run public browser smoke tests": `npm run uji:e2e`
 
 Pekerjaan belum selesai sebelum langkah-langkah yang relevan lulus secara lokal.
