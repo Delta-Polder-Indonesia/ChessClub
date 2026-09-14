@@ -1,0 +1,939 @@
+{
+  "repo_notes": [
+    {
+      "content": "Peta navigasi cepat repo ChessClub (Komunitas Catur Indonesia / 'Blunder Skuad'). Cara pakai: saat ada permintaan kerja, cocokkan kata kunci permintaan dengan field 'keywords' tiap halaman (pakai grep pada file ini), lalu buka file di 'key_files' halaman yang cocok — tidak perlu mencari manual ke seluruh repo. Path berakhiran '/' berarti direktori. Urutan lookup: mulai dari halaman overview yang paling cocok, turun ke anaknya."
+    },
+    {
+      "content": "Semua key_files sudah diverifikasi ada di repo per 2026-09-14 (commit 2a806de). Jika sebuah file dipindah/diubah nama, perbarui entri ini agar peta tetap akurat."
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "README.md",
+        "AGENTS.md",
+        "package.json",
+        "src/App.jsx",
+        "src/main.jsx",
+        "server/src/index.js",
+        "server/README.md"
+      ],
+      "keywords": [
+        "chessclub",
+        "komunitas catur indonesia",
+        "blunder skuad",
+        "kci",
+        "gambaran umum",
+        "platform"
+      ]
+    },
+    {
+      "title": "Instalasi & Deploy",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "package.json",
+        ".env.contoh",
+        "CHECKLIST-IMPLEMENTASI-LOKAL.md",
+        "README.md",
+        "PANDUAN-DEPLOY.md",
+        "PANDUAN-DEPLOY-FULL-VERCEL.md",
+        "DEPLOYMENT-CHECKLIST.md",
+        "vite.config.js"
+      ],
+      "keywords": [
+        "node 22",
+        "npm run dev",
+        "npm run uji",
+        "env",
+        "environment",
+        "instalasi",
+        "setup",
+        "deploy",
+        "vercel",
+        "mulai"
+      ]
+    },
+    {
+      "title": "Struktur & Konvensi",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "AGENTS.md",
+        "src/halaman/BACA-DULU.md",
+        "jsconfig.json",
+        "vite.config.js",
+        ".agents/skills/kci-frontend/SKILL.md",
+        ".agents/skills/kci-backend/SKILL.md",
+        ".agents/skills/kci-pengujian/SKILL.md",
+        ".opencode/skills/"
+      ],
+      "keywords": [
+        "struktur",
+        "direktori",
+        "folder",
+        "istilah",
+        "bahasa indonesia",
+        "naming",
+        "skill",
+        "agents",
+        "opencode",
+        "konvensi"
+      ]
+    },
+    {
+      "title": "Arsitektur Frontend",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/main.jsx",
+        "src/App.jsx",
+        "src/index.css",
+        "src/menu.js",
+        "src/components/",
+        "src/lib/i18n.jsx",
+        "src/hooks/",
+        "vite.config.js"
+      ],
+      "keywords": [
+        "react",
+        "spa",
+        "vite",
+        "frontend",
+        "arsitektur",
+        "komponen",
+        "routing"
+      ]
+    },
+    {
+      "title": "Routing & Layout",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/App.jsx",
+        "src/components/ProtectedRoute.jsx",
+        "src/components/ScrollToTop.jsx",
+        "src/lib/prefetch.js",
+        "src/menu.js",
+        "src/components/PageLayout.jsx",
+        "src/halaman/Beranda/Beranda.jsx",
+        "scripts/uji-rute.mjs"
+      ],
+      "keywords": [
+        "RUTE_HALAMAN",
+        "RUTE_REDIRECT",
+        "rute",
+        "routing",
+        "lazy",
+        "prefetch",
+        "protectedroute",
+        "tata letak",
+        "tataletakberanda",
+        "layout",
+        "menu",
+        "navigasi"
+      ]
+    },
+    {
+      "title": "Komponen Bersama & UI",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/components/Header.jsx",
+        "src/components/Footer.jsx",
+        "src/components/StickyMenu.jsx",
+        "src/components/Hero.jsx",
+        "src/components/PageBagian.jsx",
+        "src/components/ui/",
+        "src/components/tools/",
+        "components.json",
+        "RADIX-UI.md",
+        "scripts/uji-tools.mjs"
+      ],
+      "keywords": [
+        "header",
+        "footer",
+        "stickymenu",
+        "hero",
+        "shadcn",
+        "radix",
+        "ui",
+        "komponen bersama",
+        "tools",
+        "button",
+        "dialog"
+      ]
+    },
+    {
+      "title": "Internasionalisasi (i18n)",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/lib/i18n.jsx",
+        "src/lib/terjemahan.js",
+        "src/lib/terjemahan/id/",
+        "src/lib/terjemahan/en/",
+        "src/lib/terjemahan/README.md",
+        "scripts/uji-i18n.mjs"
+      ],
+      "keywords": [
+        "i18n",
+        "terjemahan",
+        "translation",
+        "bahasa",
+        "dictionary",
+        "kamus",
+        "lokal",
+        "locale",
+        "idiom"
+      ]
+    },
+    {
+      "title": "CSS & Theming",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/index.css",
+        "src/halaman/Analisa/analisa.css",
+        "components.json",
+        "vite.config.js"
+      ],
+      "keywords": [
+        "tailwind",
+        "css",
+        "tema",
+        "theming",
+        "prose-kci",
+        "tabel-peringkat",
+        "analisa-root",
+        "gaya",
+        "warna",
+        "font"
+      ]
+    },
+    {
+      "title": "Halaman Publik",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Beranda/",
+        "src/halaman/Landing/",
+        "src/halaman/TentangKami/",
+        "src/halaman/ProgramKami/",
+        "src/halaman/Keberlanjutan/",
+        "src/halaman/Karir/",
+        "src/halaman/MediaDanInformasi/",
+        "src/halaman/Turnamen/",
+        "src/halaman/Atribusi/",
+        "data/berita.json",
+        "data/pengumuman.json"
+      ],
+      "keywords": [
+        "beranda",
+        "landing",
+        "tentang kami",
+        "program kami",
+        "keberlanjutan",
+        "karir",
+        "media",
+        "berita",
+        "turnamen",
+        "atribusi",
+        "konten publik",
+        "seo"
+      ]
+    },
+    {
+      "title": "Fitur Catur Inti",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/lib/pemainCatur.js",
+        "src/lib/skakmat.js",
+        "src/lib/suara.js",
+        "src/lib/namaPembukaan.js",
+        "src/lib/pgnRingan.js",
+        "public/data/teka-teki.json",
+        "public/data/buku-pembukaan.json"
+      ],
+      "keywords": [
+        "catur",
+        "chess",
+        "fitur",
+        "papan",
+        "puzzle",
+        "teka teki",
+        "petak"
+      ]
+    },
+    {
+      "title": "Teka-Teki & Papan Interaktif",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/TekaTeki/TekaTeki.jsx",
+        "src/halaman/TekaTeki/PapanTekaTeki.jsx",
+        "src/halaman/PapanInteraktif/PapanInteraktif.jsx",
+        "src/lib/tekaTeki.js",
+        "src/lib/artikelWikipedia.js",
+        "public/data/teka-teki.json",
+        "scripts/buat-teka-teki.py",
+        "scripts/uji-tekateki-solusi.mjs",
+        "scripts/uji-tanda-papan.mjs"
+      ],
+      "keywords": [
+        "papan",
+        "papantekateki",
+        "papaninteraktif",
+        "teka teki",
+        "puzzle",
+        "drag",
+        "anotasi",
+        "tablebase",
+        "wikibooks",
+        "opening book",
+        "buku pembukaan"
+      ]
+    },
+    {
+      "title": "Engine & Stockfish",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/lib/engineCatur.js",
+        "src/lib/gunakanEngineCatur.js",
+        "src/components/PanelEngine.jsx",
+        "public/engines/",
+        "src/halaman/Analisa/mesin/engine.js",
+        "src/halaman/Analisa/mesin/cekWasm.js",
+        "scripts/uji-engine-uci.mjs",
+        "scripts/engine-uci-node.mjs"
+      ],
+      "keywords": [
+        "stockfish",
+        "uci",
+        "engine",
+        "mesin catur",
+        "wasm",
+        "worker",
+        "panelengine",
+        "evaluasi"
+      ]
+    },
+    {
+      "title": "Komentator & Klasifikasi",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/lib/komentator.js",
+        "src/lib/komentatorPengaya.js",
+        "src/components/KartuKomentator.jsx",
+        "src/lib/skakmat.js",
+        "src/lib/suara.js",
+        "scripts/uji-komentator.mjs",
+        "scripts/uji-klasifikasi.mjs",
+        "scripts/uji-komentar.mjs",
+        "scripts/uji-lencana-skakmat.mjs"
+      ],
+      "keywords": [
+        "komentator",
+        "commentator",
+        "klasifikasi",
+        "brilliant",
+        "blunder",
+        "mistake",
+        "lencana",
+        "skakmat",
+        "suara",
+        "komentar langkah"
+      ]
+    },
+    {
+      "title": "Teka-Teki Rush & Quiz",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/TekaTekiRush/TekaTekiRush.jsx",
+        "src/halaman/QuizCatur/QuizCatur.jsx",
+        "src/halaman/QuizCatur/daftar.js",
+        "src/lib/peringkatKuis.js",
+        "server/src/rekor-rush.js",
+        "server/uji/uji-rekor-rush.mjs",
+        "scripts/uji-rush-waktu.mjs",
+        "scripts/uji-quiz.mjs"
+      ],
+      "keywords": [
+        "rush",
+        "quiz",
+        "kuis",
+        "teka-teki rush",
+        "rekor",
+        "peringkat kuis",
+        "latihan",
+        "waktu"
+      ]
+    },
+    {
+      "title": "Halaman Analisa",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/Analisa.jsx",
+        "src/halaman/Analisa/README.md",
+        "ARSITEKTUR-ANALISA.md",
+        "PERBANDINGAN-FITUR-ANALISA.md"
+      ],
+      "keywords": [
+        "analisa",
+        "analysis",
+        "brilliant chess",
+        "workspace",
+        "area kerja",
+        "analisis partai"
+      ]
+    },
+    {
+      "title": "Konteks & Navigasi Analisa",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/Analisa.jsx",
+        "src/halaman/Analisa/konstanta.js",
+        "src/halaman/Analisa/konteks/",
+        "src/halaman/Analisa/komponen/areaKerja.jsx",
+        "src/halaman/Analisa/komponen/nav/nav.jsx",
+        "src/halaman/Analisa/komponen/game/game.jsx",
+        "src/halaman/Analisa/komponen/menu/menu.jsx",
+        "src/halaman/Analisa/komponen/boardMenu/boardMenu.jsx"
+      ],
+      "keywords": [
+        "TAMPILAN_ANALISA",
+        "area kerja",
+        "provider",
+        "konteks",
+        "nav",
+        "layar",
+        "screen",
+        "navigasi langkah",
+        "variasi",
+        "lines"
+      ]
+    },
+    {
+      "title": "Impor Partai (PGN/FEN/Online)",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx",
+        "src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx",
+        "src/halaman/Analisa/komponen/nav/layarImpor.jsx",
+        "src/halaman/Analisa/akun/muatPartaiAkun.js",
+        "src/lib/pgnRingan.js"
+      ],
+      "keywords": [
+        "pgn",
+        "fen",
+        "chess.com",
+        "lichess",
+        "impor",
+        "import",
+        "muat partai",
+        "arsip",
+        "unggah partai"
+      ]
+    },
+    {
+      "title": "Basis Data Lokal (IndexedDB)",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/basisData.js",
+        "src/halaman/Analisa/penyimpanan.js",
+        "src/halaman/Analisa/komponen/nav/layarDatabase.jsx",
+        "scripts/uji-basisdata.mjs",
+        "scripts/uji-akun-database.mjs"
+      ],
+      "keywords": [
+        "indexeddb",
+        "basis data",
+        "basisdata",
+        "database",
+        "layardatabase",
+        "penyimpanan",
+        "ekspor pgn",
+        "cache",
+        "revisi"
+      ]
+    },
+    {
+      "title": "Akun & Statistik Pemain",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/akun/DaftarAkun.jsx",
+        "src/halaman/Analisa/akun/KartuAkun.jsx",
+        "src/halaman/Analisa/akun/DashboardAkun.jsx",
+        "src/halaman/Analisa/akun/FormulirAkun.jsx",
+        "src/halaman/Analisa/akun/statsAkun.js",
+        "src/halaman/Analisa/akun/daftarAkun.js",
+        "src/halaman/Analisa/akun/antiCheatRiwayat.js",
+        "src/halaman/Analisa/komponen/nav/layarAkun.jsx",
+        "scripts/uji-anticheat.mjs"
+      ],
+      "keywords": [
+        "akun",
+        "account",
+        "statistik",
+        "dashboard akun",
+        "daftarakun",
+        "kartuakun",
+        "statsakun",
+        "rating",
+        "grafik",
+        "anticheat"
+      ]
+    },
+    {
+      "title": "Komponen UI Analisa",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Analisa/komponen/game/",
+        "src/halaman/Analisa/komponen/pengaturan/",
+        "src/halaman/Analisa/komponen/loading/",
+        "src/halaman/Analisa/komponen/errors/",
+        "src/halaman/Analisa/komponen/svg/",
+        "src/halaman/Analisa/komponen/Gambar.jsx",
+        "src/halaman/Analisa/komponen/suaraPapan.js",
+        "scripts/uji-analisa-ui.mjs",
+        "scripts/uji-panel.mjs",
+        "scripts/uji-mobile.mjs"
+      ],
+      "keywords": [
+        "summary",
+        "ringkasan",
+        "akurasi",
+        "accuracy",
+        "panel langkah",
+        "pengaturan",
+        "tema",
+        "spinner",
+        "loading",
+        "svg",
+        "ui analisa"
+      ]
+    },
+    {
+      "title": "Backend (Server Node.js)",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "server/src/index.js",
+        "server/src/server.js",
+        "server/src/rute.js",
+        "server/README.md",
+        "server/package.json",
+        "api/[...jalur].js",
+        "api/ebook-preview.js",
+        "vercel.json"
+      ],
+      "keywords": [
+        "backend",
+        "server",
+        "api",
+        "node http",
+        "zero framework",
+        "serverless",
+        "vercel function",
+        "8787"
+      ]
+    },
+    {
+      "title": "Konfigurasi & Keamanan Server",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "server/src/index.js",
+        "server/src/konfigurasi.js",
+        "server/src/http.js",
+        "server/src/server.js",
+        "server/src/permintaan.js",
+        "server/src/jalur-api.js",
+        "server/uji/uji-konfigurasi-keamanan.mjs"
+      ],
+      "keywords": [
+        "bootstrap",
+        "konfigurasi",
+        "env",
+        "cors",
+        "gzip",
+        "rate limit",
+        "csrf",
+        "jwt",
+        "router",
+        "port"
+      ]
+    },
+    {
+      "title": "Rute API & Domain",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "server/src/rute.js",
+        "server/src/keanggotaan.js",
+        "server/src/turnamen.js",
+        "server/src/turnamen/",
+        "server/src/konten.js",
+        "server/src/pesan.js",
+        "server/src/ebook.js",
+        "server/src/rekor-rush.js",
+        "server/src/klub.js",
+        "server/src/chess.js",
+        "server/src/oauth.js",
+        "server/src/verifikasi-profil.js",
+        "server/src/jalur-api.js"
+      ],
+      "keywords": [
+        "rute",
+        "domain",
+        "endpoint",
+        "keanggotaan",
+        "turnamen",
+        "konten",
+        "pesan",
+        "ebook",
+        "rekor rush",
+        "klub",
+        "chess.com",
+        "oauth",
+        "verifikasi profil"
+      ]
+    },
+    {
+      "title": "Penyimpanan & Database Server",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "server/src/simpanan.js",
+        "server/src/storage-supabase.js",
+        "data/",
+        "db/supabase-schema.sql",
+        "DATABASE-MIGRATION.md",
+        "PANDUAN-EBOOK-STORAGE.md",
+        "scripts/uji-supabase.mjs",
+        "scripts/backup-data.mjs",
+        "scripts/backup-s3.mjs"
+      ],
+      "keywords": [
+        "supabase",
+        "kci_storage",
+        "json",
+        "seed",
+        "simpanan",
+        "persistensi",
+        "backup",
+        "migrasi",
+        "storage",
+        "data"
+      ]
+    },
+    {
+      "title": "Keamanan & Autentikasi",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "server/src/identitas-server.js",
+        "server/src/konfigurasi.js",
+        "server/src/admin-file.js",
+        "server/src/audit.js",
+        "server/src/riwayat-masuk.js",
+        "src/lib/identitas.js",
+        "server/uji/uji-keamanan-admin.mjs",
+        "server/uji/uji-auth-jwt.mjs",
+        "SECURITY.md",
+        "PANDUAN-VERIFIKASI-AKUN.md"
+      ],
+      "keywords": [
+        "keamanan",
+        "security",
+        "login",
+        "admin",
+        "pepper",
+        "hash",
+        "identitas",
+        "jwt",
+        "csrf",
+        "brute force",
+        "audit",
+        "riwayat masuk",
+        "token"
+      ]
+    },
+    {
+      "title": "API Client Frontend",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/lib/api/index.js",
+        "src/lib/api/core.js",
+        "src/lib/api/anggota.js",
+        "src/lib/api/pengurus.js",
+        "src/lib/api/ebook.js",
+        "src/lib/api/pesan.js",
+        "src/lib/api/verifikasi.js",
+        "src/lib/api/konten.js",
+        "src/lib/api/rekorRush.js",
+        "src/lib/api/turnamen.js",
+        "src/lib/api/README.md"
+      ],
+      "keywords": [
+        "api client",
+        "fetch",
+        "token",
+        "endpoint klien",
+        "anggota",
+        "pengurus",
+        "ebook",
+        "pesan",
+        "verifikasi",
+        "konten",
+        "rekorrush",
+        "turnamen",
+        "error"
+      ]
+    },
+    {
+      "title": "Keanggotaan & Pendaftaran",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/PendaftaranAnggota/",
+        "src/halaman/Beranda/Peringkat.jsx",
+        "src/halaman/Pengurus/Gerbang.jsx",
+        "src/halaman/Pengurus/Dashboard.jsx"
+      ],
+      "keywords": [
+        "keanggotaan",
+        "member",
+        "pendaftaran",
+        "admin",
+        "pengurus",
+        "dashboard",
+        "komunitas"
+      ]
+    },
+    {
+      "title": "Verifikasi & Chess.com Sync",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/PendaftaranAnggota/PendaftaranAnggota.jsx",
+        "src/halaman/Beranda/Peringkat.jsx",
+        "src/halaman/TentangKami/StrukturGrupCatur/Keanggotaan/DaftarAnggota.jsx",
+        "src/lib/identitas.js",
+        "src/lib/anggotaBersama.js",
+        "server/src/keanggotaan.js",
+        "server/src/klub.js",
+        "server/src/verifikasi-profil.js",
+        "scripts/uji-tarik-api.mjs",
+        "PANDUAN-VERIFIKASI-AKUN.md"
+      ],
+      "keywords": [
+        "pendaftaran anggota",
+        "peringkat",
+        "leaderboard",
+        "roster",
+        "chess.com sync",
+        "daftar anggota",
+        "verifikasi akun",
+        "hashing identitas"
+      ]
+    },
+    {
+      "title": "Panel Pengurus",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Pengurus/Gerbang.jsx",
+        "src/halaman/Pengurus/Dashboard.jsx",
+        "src/halaman/Pengurus/Sidebar.jsx",
+        "src/halaman/Pengurus/RingkasanDashboard.jsx",
+        "src/halaman/Pengurus/Anggota.jsx",
+        "src/halaman/Pengurus/Larangan.jsx",
+        "src/halaman/Pengurus/Pesan.jsx",
+        "src/halaman/Pengurus/PanelKonten.jsx",
+        "src/halaman/Pengurus/PanelEbook.jsx",
+        "src/halaman/Pengurus/PanelJuara.jsx",
+        "src/halaman/Pengurus/Pengaturan.jsx",
+        "src/halaman/Pengurus/Audit.jsx",
+        "src/halaman/Pengurus/RiwayatMasuk.jsx",
+        "src/halaman/Pengurus/TabelData.jsx",
+        "PANDUAN-PENGURUS.md",
+        "REVIEW-PENGURUS.md"
+      ],
+      "keywords": [
+        "gerbang",
+        "login admin",
+        "dashboard pengurus",
+        "panel anggota",
+        "larangan",
+        "ban",
+        "pesan",
+        "konten",
+        "juara",
+        "ebook",
+        "pengaturan",
+        "audit",
+        "notifikasi"
+      ]
+    },
+    {
+      "title": "Turnamen",
+      "description": "",
+      "sections": [
+        {
+          "content": ""
+        }
+      ],
+      "key_files": [
+        "src/halaman/Pengurus/PanelTurnamen.jsx",
+        "src/halaman/Pengurus/PanelTurnamen/",
+        "src/components/DaftarTurnamen.jsx",
+        "src/halaman/Turnamen/",
+        "server/src/turnamen.js",
+        "server/src/turnamen/klasemen.js",
+        "server/src/turnamen/jenis.js",
+        "server/uji/uji-klasemen.mjs",
+        "data/turnamen.json"
+      ],
+      "keywords": [
+        "turnamen",
+        "tournament",
+        "klasemen",
+        "standings",
+        "hasil",
+        "pendaftaran turnamen",
+        "jenis turnamen"
+      ]
+    }
+  ]
+}
