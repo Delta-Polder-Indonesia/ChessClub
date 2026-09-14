@@ -39,13 +39,13 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
   ke rantai `npm run uji`.
 - Uji backend memakai alat bantu `server/uji/alat-uji.mjs`; boleh memakai dependensi akar (`zod`, dll.)
   tetapi tetap tanpa framework dan tanpa dependensi baru.
-- Uji e-book membutuhkan berkas PDF asli dari Git LFS (`git lfs pull`) — pointer LFS 132 byte membuat
-  uji gagal dengan pesan PDF tidak valid.
+- Uji e-book menerima PDF asli (`%PDF`) atau pointer Git LFS yang formatnya sah. PDF di
+  `public/ebooks/` kini blob Git biasa (`.gitattributes` kosong), jadi `git lfs pull` tidak perlu.
 
 ## Samakan dengan CI
 
-`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout LFS)
-menjalankan berurutan:
+`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout
+biasa tanpa `lfs: true`) menjalankan berurutan:
 
 1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan`
 2. "Build production bundle": `npm run build`
