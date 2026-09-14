@@ -498,9 +498,27 @@ function HeaderTabel({ urut, ubahUrut, t }) {
 
 /* ── Komponen Baris Data Partai ─────────────────────────────────────── */
 
-function BarisPartai({ game, locale, tanganiAnalisa }) {
+/*
+ * Status hasil ± dari sudut pandang pemain yang sedang dilihat:
+ * - ada `perspectiveUser`: "+" (hijau) bila pemain itu menang, "−" (merah)
+ *   bila kalah — sama seperti pemilih partai.
+ * - tanpa perspektif ("Semua Koleksi"): ikut konvensi dunia, putih menang = "+".
+ */
+function statusHasil(game, perspectiveUser) {
+  const pemenang = game.result === "white" ? "white" : game.result === "black" ? "black" : "";
+  if (!pemenang) return "draw";
+  const pemain = String(perspectiveUser || "").trim().toLowerCase();
+  if (!pemain) return pemenang === "white" ? "win" : "loss";
+  const pemainMenang =
+    (pemenang === "white" && String(game.whiteName || "").toLowerCase() === pemain) ||
+    (pemenang === "black" && String(game.blackName || "").toLowerCase() === pemain);
+  return pemainMenang ? "win" : "loss";
+}
+
+function BarisPartai({ game, locale, tanganiAnalisa, perspectiveUser }) {
   const whiteWon = game.result === "white";
   const blackWon = game.result === "black";
+  const status = statusHasil(game, perspectiveUser);
 
   return (
     <tr
@@ -531,9 +549,9 @@ function BarisPartai({ game, locale, tanganiAnalisa }) {
           <span className="font-semibold text-xs font-mono text-foregroundGrey">
             {whiteWon ? "1 - 0" : blackWon ? "0 - 1" : "½ - ½"}
           </span>
-          {whiteWon ? (
+          {status === "win" ? (
             <SquareFillPlus className="h-3.5 w-3.5 shrink-0 text-winGreen" />
-          ) : blackWon ? (
+          ) : status === "loss" ? (
             <SquareFillMinus className="h-3.5 w-3.5 shrink-0 text-lossRed" />
           ) : (
             <SquareFillEqual className="h-3.5 w-3.5 shrink-0 text-foregroundGrey" />
@@ -680,7 +698,7 @@ function MenuKolom({ t, nilai, onPilih }) {
   );
 }
 
-function TabelRingkasan({ koleksiId, t, locale, overlay, revisi }) {
+function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
   /* null = masih memuat; [] = sudah dimuat tapi kosong */
   const [daftar, setDaftar] = useState(null);
   const [periode, setPeriode] = useState("semua");
@@ -768,14 +786,15 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi }) {
           const g = info.row.original;
           const whiteWon = g.result === "white";
           const blackWon = g.result === "black";
+          const status = statusHasil(g, username);
           return (
             <div className="flex items-center gap-1.5">
               <span className="font-mono text-xs font-semibold text-foregroundGrey">
                 {whiteWon ? "1 - 0" : blackWon ? "0 - 1" : "½ - ½"}
               </span>
-              {whiteWon ? (
+              {status === "win" ? (
                 <SquareFillPlus className="h-3.5 w-3.5 shrink-0 text-winGreen" />
-              ) : blackWon ? (
+              ) : status === "loss" ? (
                 <SquareFillMinus className="h-3.5 w-3.5 shrink-0 text-lossRed" />
               ) : (
                 <SquareFillEqual className="h-3.5 w-3.5 shrink-0 text-foregroundGrey" />
@@ -828,7 +847,7 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi }) {
         ),
       },
     ],
-    [t, locale],
+    [t, locale, username],
   );
 
   const tabel = useLegacyTable({
@@ -1964,6 +1983,7 @@ export default function LayarDatabase({
                       t={t}
                       locale={locale}
                       revisi={revisiRingkasan}
+                      username={koleksi?.username || ""}
                       overlay={
                         sedangTarik ? (
                           <div className="flex flex-col items-center gap-1.5 text-center">
@@ -2140,6 +2160,7 @@ export default function LayarDatabase({
                       game={game}
                       locale={locale}
                       tanganiAnalisa={tanganiAnalisa}
+                      perspectiveUser={koleksi?.username || ""}
                     />
                   ))
                 : (
