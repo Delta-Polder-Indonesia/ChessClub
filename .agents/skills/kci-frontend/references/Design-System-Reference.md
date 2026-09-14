@@ -267,10 +267,23 @@
 5. FOOTER / CATATAN KAKI
    - text-center, text-[11px], italic
 ```
+---
+
+## 14. STRUKTUR ARTIKEL STANDAR
+
+Gunakan gaya penulisan formal, analitis, dan bernuansa semi-akademik. Pembahasan harus disusun secara runtut, logis, dan mengalir dengan transisi yang halus antargagasan. Setiap paragraf perlu dikembangkan secara utuh sehingga tidak hanya menyampaikan informasi, tetapi juga menjelaskan hubungan, alasan, implikasi, atau konteks yang mendasarinya.
+
+Tulisan harus menunjukkan kedalaman pemahaman terhadap topik yang dibahas. Hindari penjelasan yang terlalu dangkal, repetitif, atau sekadar mendefinisikan konsep tanpa elaborasi lebih lanjut. Apabila membahas suatu gagasan, jelaskan keterkaitannya dengan faktor penyebab, dampak, tujuan, fungsi, atau perspektif yang relevan sehingga pembahasan terasa lebih komprehensif dan bernilai analitis.
+
+Nada tulisan harus menyerupai pembahasan dalam buku, esai edukatif, atau karya ilmiah populer yang ditulis secara matang dan reflektif. Gunakan bahasa yang jelas, presisi, dan intelektual tanpa menjadi terlalu teknis atau sulit dipahami.
+
+Hindari pola penutup yang bersifat generik, mekanis, atau terasa seperti template. Jangan menggunakan frasa seperti “Pada akhirnya”, “Pada dasarnya”, “Secara keseluruhan”, “Dengan demikian”, “Oleh karena itu”, atau bentuk kesimpulan klise lainnya. Penutup harus muncul secara alami sebagai kelanjutan logis dari pembahasan sebelumnya, dengan kalimat yang menegaskan inti gagasan secara elegan, reflektif, dan menyatu dengan alur tulisan.
+
+Fokus utama adalah menghasilkan tulisan yang terasa seperti hasil pemikiran manusia yang memahami topik secara mendalam, bukan sekadar rangkaian informasi yang disusun secara formal.
 
 ---
 
-## 14. CHECKLIST SEBELUM GENERATE
+## 15. CHECKLIST SEBELUM GENERATE
 
 - [ ] Semua heading uppercase?
 - [ ] Font serif untuk body, sans untuk heading?
