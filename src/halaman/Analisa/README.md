@@ -325,46 +325,54 @@ file-file yang disebut.
   metrik `rataPeringkat`, `kecocokanTop3/Top5`, `acplKandidat`,
   `rataKehilanganMenang` (WDL) di `mesin/antiCheat.js`; skor 4 komponen
   (kecocokan 0,30 · peringkat 0,25 · ACPL 0,25 · waktu 0,20).
-- **Fase 2 — metrik kondisional perilaku.** `kecocokanSulit` /`kecocokanMudah`
+- **Fase 2 — metrik kondisional perilaku.** `kecocokanSulit`/`kecocokanMudah`
   (keranjang ketajaman 20/100 cp), `streakTerpanjang`,
   `korelasiWaktuKualitas` (Spearman waktu pikir ↔ peringkat). Laporan
   peninjau, bukan komponen skor — sengaja, agar makna skor stabil.
-- Uji: `scripts/uji-anticheat.mjs` (203) dan `scripts/uji-engine-uci.mjs`
+- **Fase 3 — kelengkapan operasional.**
+  - *Kalibrasi per rating*: `KALIBRASI_RATING` + `pilihKalibrasi` menggeser
+    `kecocokanDasar`/`acplAcuan` menurut band Elo; rating dibaca dari
+    metadata PGN (`ratingDariMetadata`), agregat memakai **median** rating
+    partai (`agregat.rating`). Tanpa rating → ambang global (perilaku lama).
+    ANGKA TABEL MASIH TAKSIRAN — kalibrasi ulang dengan korpus lokal
+    sebelum dipakai untuk keputusan serius.
+  - *Laporan peninjauan*: `mesin/laporanPeninjauan.js` — teks + JSON siap
+    lampir berita acara, sanggahan wajib menyertai; tombol unduh di tab
+    Deteksi engine (`DashboardAkun.jsx`).
+  - *Pengukuran biaya*: `analisisRiwayatAntiCheat` mengembalikan
+    `durasi: { totalMs, rataMs, perPartai }` — dasar berbasis angka untuk
+    menaikkan/menurunkan kedalaman atau `MULTI_PV`; ditampilkan di UI.
+  - *Cache lintas-sesi*: hasil per partai ditulis-lulus ke localStorage
+    (`kci-anticheat-cache-v2`, kunci memuat `d<kedalaman>|mp<MULTI_PV>`),
+    dimuat ulang otomatis saat sesi baru; `bersihkanCacheAntiCheat`
+    menghapus memori + localStorage.
+  - *Fondasi deviasi-manusia (siap-Maia)*: `mesin/deviasiManusia.js`
+    menghitung kejutan bit + peringkat distribusi manusia dari
+    `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
+    tinggal dipasang tanpa menyentuh `parsePGN`.
+- Uji: `scripts/uji-anticheat.mjs` (245) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
 ### Langkah berikutnya (urut prioritas)
 
-1. **Baseline ke-manusiaan Maia (butuh hosting model terpisah).** Bandingkan
-   setiap langkah pemain dengan prediksi "manusia rating X" dari model Maia
-   (ONNX). Deviasi besar dari manusia + peringkat MultiPV tinggi = sinyal
-   terkuat. Teknis: jalankan via `onnxruntime-web` (pola bundel Maia2 di
-   A.C.A.S), metrik baru di `mesin/antiCheat.js` membaca `kandidat` yang
-   sudah terekam — parsePGN TIDAK perlu diubah bila model hanya menilai
-   langkah yang dimainkan. **PENTING:** bobot 40–90 MB — jangan masuk repo
-   (cap patchset ~128 MB); host di Supabase Storage (`storage-supabase.js`
-   sudah ada) atau R2, unduh dan cache di IndexedDB (`basisData.js` punya
-   pola penyimpanan biner yang bisa ditiru). Lisensi: kode maia-chess
-   GPL-3.0 (setara Stockfish yang sudah di-bundle), lisensi bobot per model
-   wajib dicek sebelum dipakai.
-2. **Kalibrasi ambang per rating.** `AMBANG.kecocokanDasar` dkk. saat ini
-   global; pemain 800 dan 2600 punya kecocokan alami yang berbeda jauh.
-   Kumpulkan korpus partai jujur per rentang rating (mis. 400-poin),
-   hitung distribusi metriknya, lalu jadikan tabel kalibrasi (bisa statis
-   di `mesin/antiCheat.js`). Skor akhir dibandingkan terhadap persentil
-   korpus, bukan ambang tetap.
-3. **Laporan peninjauan untuk pengurus turnamen.** Ekspor ringkasan satu
-   pemain (agregat + per partai + metrik kondisional + sanggahan) menjadi
-   berkas teks/JSON yang bisa dilampirkan berita acara — memakai data
-   `agregatSkorPemain` yang sudah ada, tanpa analisis ulang.
-4. **Ukur biaya riil MultiPV.** Tambahkan opsinya untuk mencatat durasi
-   `parsePGN` per partai (sebelum/sesudah MultiPV 5) supaya keputusan
-   menaikkan/menurunkan `MULTI_PV` atau `KEDALAMAN_AGGREGAT` berbasis
-   angka, bukan kira-kira.
-5. **(Opsional) cache agregat lintas sesi di server.** Saat ini cache
-   per-sesi di peramban; bila analisis rutin dipakai pengurus, simpan hasil
-   `hitungSkorKecurigaan` per id partai ke `kci_storage` dengan kunci
-   `anticheat|<id>|d8|mp5` — pola sama dengan kunci cache sesi.
+1. **Penyedia prediksi manusia (Maia) — satu-satunya bagian fase 3 yang
+   belum ada.** Metriknya sudah siap (`mesin/deviasiManusia.js`); yang
+   tersisa: host file model ONNX (40–90 MB — JANGAN masuk repo; Supabase
+   Storage/R2), loader `onnxruntime-web` + peta langkah, lalu pasang hasilnya
+   sebagai `Map<fen, {uci: prob}>` per partai. Lisensi bobot per model wajib
+   dicek (kode maia-chess GPL-3.0, setara Stockfish yang sudah di-bundle).
+2. **Kalibrasi ulang tabel `KALIBRASI_RATING` dengan korpus lokal.** Kumpulkan
+   distribusi metrik partai jujur per band 400-poin dari basis data kalian,
+   ganti angka taksiran, dan pertimbangkan interpolasi halus antarband.
+3. **Cache agregat di server (opsional).** Saat ini cache peramban
+   (memori + localStorage) sudah lintas-sesi; bila analisis rutin dipakai
+   banyak pengurus, simpan `hitungSkorKecurigaan` per id partai ke
+   `kci_storage` dengan kunci `anticheat|<id>|d8|mp5` — pola sama dengan
+   kunci cache sesi.
+4. **(Jauh) model kombinasi.** Setelah korpus lokal cukup besar, latih
+   penggabung komponen (logistik sederhana pun cukup) alih-alih bobot
+   manual `BOBOT` — tetap sertakan metrik mentah di UI untuk peninjau.
 
 ### Catatan untuk pelanjut
 
@@ -372,7 +380,8 @@ file-file yang disebut.
   (lihat pola `komponen?.peringkat ?? null` di `mesin/antiCheat.js`).
 - Kunci cache agregat ada di `akun/antiCheatRiwayat.js` →
   `kunciCachePartai`; bila hasil analisis berubah bentuk, selipkan penanda
-  versi baru (pola `mp5`) agar cache lama tidak tercampur.
+  versi baru (pola `mp5`, simpanan `kci-anticheat-cache-v2`) agar cache lama
+  tidak tercampur.
 - UI metrik: kartu `summary/deteksiEngine.jsx` + tab agregat
   `akun/DashboardAkun.jsx`; kunci kamus di
   `lib/terjemahan/{id,en}/analisa.js` (wajib seimbang — `npm run uji:i18n`).
@@ -468,7 +477,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), agregat riwayat, cache & batal, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 203 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 245 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

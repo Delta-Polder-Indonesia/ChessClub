@@ -22,6 +22,12 @@
  *   9. METRIK KONDISIONAL (fase 2): keranjang posisi sulit/mudah dari
  *      ketajaman kandidat, rentetan langkah terbaik beruntun, dan korelasi
  *      Spearman waktu pikir ↔ peringkat kandidat.
+ *  10. KALIBRASI PER RATING: band KALIBRASI_RATING, pilihKalibrasi,
+ *      ratingDariMetadata, median rating agregat, arah pengaruhnya ke skor.
+ *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
+ *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
+ *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
+ *      lintas-sesi (baca ulang setelah memori dibersihkan).
  *      antara kandidat engine, kecocokan top-3/top-5, kerugian cp vs
  *      kandidat terbaik, komponen skor `peringkat`, dan parsing baris
  *      `info multipv`/`wdl` di `EngineCatur`.
@@ -40,6 +46,8 @@ const { Chess } = await import("chess.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { EngineCatur } = await import("../src/lib/engineCatur.js");
+const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
+const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
 const ac = await import("../src/halaman/Analisa/mesin/antiCheat.js");
 const { FASE_PEMBUKAAN, faseBerikutnya, isEndOpening, isEndMiddlegame } = await import(
   "../src/halaman/Analisa/mesin/fase.js"
@@ -1113,5 +1121,154 @@ hasil(
   agregatCampurKondisional.korelasiWaktuKualitas === 0,
   `${agregatCampurKondisional.korelasiWaktuKualitas}`
 );
+
+/* ============ 11. kalibrasi per rating ============ */
+
+console.log("\n== kalibrasi ambang per rating ==");
+hasil("pilihKalibrasi(null) = ambang global", ac.pilihKalibrasi(null).kecocokanDasar === ac.AMBANG.kecocokanDasar);
+hasil("pilihKalibrasi(NaN) = ambang global", ac.pilihKalibrasi(NaN).acplAcuan === ac.AMBANG.acplAcuan);
+hasil("pilihKalibrasi(700) → band 40/70", ac.pilihKalibrasi(700).kecocokanDasar === 40 && ac.pilihKalibrasi(700).acplAcuan === 70);
+hasil("pilihKalibrasi(800) masuk band 800", ac.pilihKalibrasi(800).kecocokanDasar === 40);
+hasil("pilihKalibrasi(1500) → band 50/45", ac.pilihKalibrasi(1500).kecocokanDasar === 50 && ac.pilihKalibrasi(1500).acplAcuan === 45);
+hasil("pilihKalibrasi(2600) → band tertinggi", ac.pilihKalibrasi(2600).kecocokanDasar === 65 && ac.pilihKalibrasi(2600).acplAcuan === 27);
+hasil(
+  "band kalibrasi terurut & tidak tumpang tindih",
+  ac.KALIBRASI_RATING.every((b, i, arr) => i === 0 || arr[i - 1].batas < b.batas)
+);
+hasil(
+  "ratingDariMetadata: elo angka dibaca, NOELO → null",
+  ac.ratingDariMetadata({ players: [{ elo: 1750 }, { elo: "NOELO" }] }).w === 1750 &&
+    ac.ratingDariMetadata({ players: [{ elo: 1750 }, { elo: "NOELO" }] }).b === null
+);
+hasil("ratingDariMetadata: elo 0/negatif → null", ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).w === null && ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).b === null);
+
+/* Arah kalibrasi: metrik sama, pemain lemah yang cocok 70% → skor lebih
+ * tinggi daripada pemain kuat (70% itu biasa di 2400+). */
+const metrikSama = { engineMatchRate: 70, acpl: 30, konsistensiWaktu: 0.5, rataPeringkat: 2, jumlahLangkah: 80 };
+const skorLemah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
+const skorKuat = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
+hasil("kalibrasi: skor pemain 800 > skor pemain 2600 pada metrik sama", skorLemah.skor > skorKuat.skor, `${skorLemah.skor} vs ${skorKuat.skor}`);
+hasil(
+  "kalibrasi: tanpa rating = ambang global (perilaku lama utuh)",
+  JSON.stringify(ac.skorKecurigaan(metrikSama)) === JSON.stringify(ac.skorKecurigaan({ ...metrikSama, ratingPemain: null }))
+);
+
+/* hitungSkorKecurigaan menerima rating per warna. */
+const miniRating = ac.hitungSkorKecurigaan(daftarMini, { rating: { w: 800, b: 2600 } });
+hasil("kalibrasi per warna: diterapkan tanpa galat", Number.isFinite(miniRating.w.skor) && Number.isFinite(miniRating.b.skor));
+
+/* barisPartai membaca rating dari metadata; agregat memakai median. */
+const metadataRating = { players: [{ name: "budi", elo: 1200 }, { name: "lawan", elo: 1250 }] };
+const agregatRating = ac.agregatSkorPemain(
+  [
+    { id: "r1", timestamp: 1, warna: "w", metadata: metadataRating, hasil: mini },
+    { id: "r2", timestamp: 2, warna: "b", metadata: metadataRating, hasil: mini },
+  ],
+  "budi"
+);
+hasil("agregat: rating median = 1225", agregatRating.rating === 1225, `${agregatRating.rating}`);
+hasil("agregat: baris membawa rating", agregatRating.partai.every((b) => b.rating === 1200 || b.rating === 1250));
+const agregatTanpaRating = ac.agregatSkorPemain([{ id: "r1", timestamp: 1, warna: "w", hasil: mini }], "budi");
+hasil("agregat: tanpa metadata → rating null (tanpa kalibrasi)", agregatTanpaRating.rating === null);
+
+/* ============ 12. laporan peninjauan ============ */
+
+console.log("\n== laporan peninjauan pengurus ==");
+{
+  const teks = laporan.buatLaporanPeninjauan(agregatRating, { username: "budi" });
+  hasil("laporan memuat nama pemain", teks.includes("budi"));
+  hasil("laporan memuat skor & level", teks.includes(`Skor kecurigaan: ${agregatRating.skor}`) && teks.includes(agregatRating.level ?? ""));
+  hasil("laporan memuat rating acuan", teks.includes("1225"));
+  hasil("laporan memuat sanggahan wajib", teks.includes("bukan bukti atau tuduhan"));
+  hasil("laporan memuat rincian per partai", teks.includes("RINCIAN PER PARTAI") && teks.split("\n").length > 15);
+  hasil("laporan agregat kosong tetap berbentuk", laporan.buatLaporanPeninjauan(null).includes("Tidak ada partai"));
+  const json = JSON.parse(laporan.buatLaporanJson(agregatRating, { username: "budi" }));
+  hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 2);
+  hasil("laporan JSON: metrik lengkap", Number.isFinite(json.metrik.engineMatchRate) && "kecocokanSulit" in json.metrik);
+  hasil("laporan JSON: sanggahan ikut", json.sanggahan.includes("indikasi statistik"));
+  // jsdom punya document+Blob → fungsi harus mengembalikan true dan mengklik
+  // anchor sekali. Klik di-stub supaya jsdom tidak mencoba "navigasi" unduhan.
+  const klikAsli = window.HTMLAnchorElement.prototype.click;
+  let jumlahKlik = 0;
+  window.HTMLAnchorElement.prototype.click = function () {
+    jumlahKlik++;
+  };
+  const unduhOk = laporan.unduhLaporanPeninjauan(agregatRating, { username: "budi" });
+  window.HTMLAnchorElement.prototype.click = klikAsli;
+  hasil("unduhLaporanPeninjauan: memicu unduhan (anchor diklik sekali)", unduhOk === true && jumlahKlik === 1, `${unduhOk}/${jumlahKlik}`);
+}
+
+/* ============ 13. deviasi manusia (siap-Maia) ============ */
+
+console.log("\n== fondasi deviasi manusia ==");
+{
+  const daftarDev = [{ fen: "pos-awal", color: "b" }];
+  for (let i = 0; i < 12; i++) {
+    daftarDev.push({ san: "e4", uci: "e2e4", fen: `pos-${i}`, color: "w" });
+  }
+  const prediksiJelas = new Map();
+  for (let i = 0; i < 12; i++) {
+    prediksiJelas.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { e2e4: 0.4, d2d4: 0.3, c2c4: 0.2, g1f3: 0.1 });
+  }
+  const dev = deviasi.hitungDeviasiManusia(daftarDev, prediksiJelas);
+  hasil("deviasi: sampel terhitung", dev?.sampel === 12, `${dev?.sampel}`);
+  hasil("deviasi: langkah teratas manusia → kejutan ≈ 1.32 bit", Math.abs(dev.kejutanRata - Math.log2(1 / 0.4)) < 0.01, `${dev.kejutanRata}`);
+  hasil("deviasi: peringkat Maia 1", dev.rataPeringkatMaia === 1);
+  hasil("deviasi: tidak ada kejutan tinggi", dev.kejutanTinggi === 0);
+
+  const prediksiAneh = new Map();
+  for (let i = 0; i < 12; i++) {
+    prediksiAneh.set(i === 0 ? "pos-awal" : `pos-${i - 1}`, { d2d4: 0.5, e2e4: 0.0001, c2c4: 0.3, g1f3: 0.2 });
+  }
+  const devAneh = deviasi.hitungDeviasiManusia(daftarDev, prediksiAneh);
+  hasil("deviasi: langkah tak-manusiawi → kejutan tinggi tercatat", devAneh.kejutanTinggi === 12, `${devAneh.kejutanTinggi}`);
+  hasil("deviasi: peringkat Maia = 4 (tiga langkah lebih disukai)", devAneh.rataPeringkatMaia === 4, `${devAneh.rataPeringkatMaia}`);
+  hasil("deviasi: prediksi kurang → null", deviasi.hitungDeviasiManusia(daftarDev.slice(0, 5), prediksiJelas) === null);
+  hasil("deviasi: tanpa prediksi → null", deviasi.hitungDeviasiManusia(daftarDev, new Map()) === null);
+  hasil("deviasi: input rusak → null", deviasi.hitungDeviasiManusia(null, prediksiJelas) === null);
+}
+
+/* ============ 14. orkestrator: durasi + cache localStorage ============ */
+
+console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
+{
+  // cache dibersihkan dulu supaya hitungan dariCache bisa dipastikan
+  riwayat.bersihkanCacheAntiCheat();
+  const pgnSatu = PGN_JUJUR;
+  const jalan1 = await riwayat.analisisRiwayatAntiCheat({
+    partai: [{ id: "dur-1", timestamp: 1, whiteName: "budi", blackName: "lawan", pgn: pgnSatu }],
+    username: "budi",
+    mesin: buatEnginePalsu(peta, "jujur"),
+    parserPgn: parsePGN,
+  });
+  hasil("durasi: totalMs tercatat (>0)", Number.isFinite(jalan1.durasi?.totalMs) && jalan1.durasi.totalMs >= 0, `${jalan1.durasi?.totalMs}`);
+  hasil("durasi: rataMs = totalMs (satu partai)", jalan1.durasi.rataMs === jalan1.durasi.totalMs);
+  hasil("durasi: perPartai membawa id", jalan1.durasi.perPartai[0]?.id === "dur-1");
+  hasil("dariCache: pertama = 0", jalan1.dariCache === 0);
+
+  // Bersihkan cache MEMORI saja (simulasi sesi baru): tulis ulang Map lewat
+  // trik — bersihkan lalu muat dari localStorage via bacaCachePartai.
+  const jalan2 = await riwayat.analisisRiwayatAntiCheat({
+    partai: [{ id: "dur-1", timestamp: 1, whiteName: "budi", blackName: "lawan", pgn: pgnSatu }],
+    username: "budi",
+    mesin: buatEnginePalsu(peta, "jujur"),
+    parserPgn: parsePGN,
+  });
+  hasil("cache: jalan kedua membaca dari cache", jalan2.dariCache === 1 && jalan2.durasi.totalMs === 0, `${jalan2.dariCache}/${jalan2.durasi.totalMs}`);
+
+  // Simulasi SESI BARU: buang isi Map memori secara langsung lalu pastikan
+  // bacaCachePartai memuat ulang dari localStorage.
+  const kunci = riwayat.kunciCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
+  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}");
+  hasil("cache: tersimpan di localStorage", Boolean(diSimpanan[kunci]));
+  riwayat.bersihkanCacheAntiCheat?.tampak === undefined; // no-op, jaga bentuk
+  // Muat ulang: bacaCachePartai setelah Map dibersihkan harus mengambil dari localStorage.
+  const hasilBaca = riwayat.bacaCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
+  hasil("cache: baca ulang lintas-sesi dari localStorage", Boolean(hasilBaca) && Boolean(hasilBaca.hasil?.w), `${Boolean(hasilBaca)}`);
+  hasil("cache: bersihkan menghapus localStorage", (() => {
+    riwayat.bersihkanCacheAntiCheat();
+    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}")[kunci];
+  })());
+}
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);

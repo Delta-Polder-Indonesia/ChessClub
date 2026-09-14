@@ -11,14 +11,17 @@
  *     benar-benar bermain, pada `KEDALAMAN_AGGREGAT` ply (lebih dangkal dari
  *     kedalaman analisis tunggal) — cukup untuk metrik statistik, jauh lebih
  *     cepat.
- *  2. CACHE SESI per id partai + kedalaman (pola `cachePartai` di
- *     DashboardAkun): berpindah tab atau mengulang analisis tidak membayar
- *     dua kali untuk partai yang sama.
+ *  2. CACHE per id partai + kedalaman + MultiPV (pola `cachePartai`):
+ *     memori sesi + penulisan-lulus ke localStorage sehingga mengulang
+ *     analisis di kunjungan berikutnya tidak membayar dua kali (bisa
+ *     dibersihkan lewat `bersihkanCacheAntiCheat`).
  *  3. BATAL — `AbortSignal` diteruskan ke `parsePGN` (pola tombol Batal di
  *     `selectChessCom.jsx`). Pembatalan menghentikan loop, tetapi hasil partai
  *     yang sudah selesai TETAP dikembalikan: sebagian gambaran lebih berguna
  *     daripada tidak sama sekali.
- *  4. PROGRES — callback `progres({ jenis, ke, total, … })` untuk bilah muat.
+ *  4. PROGRES + WAKTU — callback `progres({ jenis, ke, total, … })` untuk
+ *     bilah muat, dan pengukuran durasi per partai (dasar keputusan
+ *     menaikkan/menurunkan kedalaman atau MULTI_PV — lihat README).
  *
  * `parserPgn` dan `cariBuku` bisa disuntikkan; uji memakai pemalsu agar tidak
  * perlu memuat worker Stockfish.
@@ -26,7 +29,7 @@
 
 import { GALAT_BATAL, MULTI_PV, parsePGN } from "../mesin/engine.js";
 import { cariNamaPembukaan } from "../mesin/buku.js";
-import { agregatSkorPemain, hitungSkorKecurigaan, warnaPemainDariMetadata } from "../mesin/antiCheat.js";
+import { agregatSkorPemain, hitungSkorKecurigaan, ratingDariMetadata, warnaPemainDariMetadata } from "../mesin/antiCheat.js";
 
 /** Jumlah maksimum partai yang dianalisis dalam satu jalan. */
 export const BATAS_PARTAI = 12;
@@ -52,20 +55,74 @@ export function kunciCachePartai(id, kedalaman) {
   return `${id ?? ""}|d${kedalaman}|mp${MULTI_PV}`;
 }
 
+/*
+ * Lapisan localStorage — cache lintas kunjungan. Kunci simpanan menyertakan
+ * penanda versi (`v2`) karena bentuk hasil ikut berubah saat metrik baru
+ * ditambahkan; hasil lama yang tidak punya field baru TIDAK boleh tercampur.
+ * Semua akses dibungkus try/catch: localStorage bisa penuh, dinonaktifkan,
+ * atau tidak ada (SSR/uji) — cache itu optimalisasi, bukan kebutuhan benar.
+ */
+const KUNCI_SIMPANAN_CACHE = "kci-anticheat-cache-v2";
+
+function bacaSimpananCache() {
+  try {
+    if (typeof localStorage === "undefined") return {};
+    const mentah = localStorage.getItem(KUNCI_SIMPANAN_CACHE);
+    const urai = mentah ? JSON.parse(mentah) : null;
+    return urai && typeof urai === "object" ? urai : {};
+  } catch {
+    return {};
+  }
+}
+
+function tulisSimpananCache(objek) {
+  try {
+    if (typeof localStorage === "undefined") return;
+    localStorage.setItem(KUNCI_SIMPANAN_CACHE, JSON.stringify(objek));
+  } catch {
+    /* penuh/dinonaktifkan — cache memori tetap jalan */
+  }
+}
+
+let cacheSudahDimuat = false;
+
+function pastikanCacheDimuat() {
+  if (cacheSudahDimuat) return;
+  cacheSudahDimuat = true;
+  const tersimpan = bacaSimpananCache();
+  for (const [kunci, nilai] of Object.entries(tersimpan)) {
+    if (!cacheHasilPartai.has(kunci) && nilai && typeof nilai === "object") {
+      cacheHasilPartai.set(kunci, nilai);
+    }
+  }
+}
+
 export function bacaCachePartai(id, kedalaman) {
+  pastikanCacheDimuat();
   return cacheHasilPartai.get(kunciCachePartai(id, kedalaman)) ?? null;
 }
 
 export function simpanCachePartai(id, kedalaman, hasil) {
   if (!id || !hasil) return;
+  pastikanCacheDimuat();
   cacheHasilPartai.set(kunciCachePartai(id, kedalaman), hasil);
+  const cermin = bacaSimpananCache();
+  cermin[kunciCachePartai(id, kedalaman)] = hasil;
+  tulisSimpananCache(cermin);
 }
 
 export function bersihkanCacheAntiCheat() {
   cacheHasilPartai.clear();
+  cacheSudahDimuat = true;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem(KUNCI_SIMPANAN_CACHE);
+  } catch {
+    /* abaikan */
+  }
 }
 
 export function ukuranCacheAntiCheat() {
+  pastikanCacheDimuat();
   return cacheHasilPartai.size;
 }
 
@@ -112,6 +169,9 @@ export async function analisisRiwayatAntiCheat({
   const hasilPartai = [];
   const galat = [];
   let dariCache = 0;
+  // Pengukuran durasi per partai (di luar cache) — lihat README roadmap.
+  const durasiPerPartai = [];
+  let totalDurasiMs = 0;
 
   // Tabel buku dipakai untuk menandai langkah "book" agar tidak ikut dinilai.
   // Kegagalan unduh tidak boleh menggagalkan seluruh analisis.
@@ -130,11 +190,16 @@ export async function analisisRiwayatAntiCheat({
     let hasil = tersimpan;
 
     if (!hasil) {
+      const mulai = Date.now();
       try {
         const { metadata, moves } = await parserPgn(mesin, p.pgn, kedalaman, openings, () => {}, sinyal, {
           multiPv: MULTI_PV,
         });
-        hasil = { metadata, hasil: hitungSkorKecurigaan(moves) };
+        const rating = ratingDariMetadata(metadata);
+        hasil = { metadata, hasil: hitungSkorKecurigaan(moves, { rating }) };
+        const ms = Date.now() - mulai;
+        durasiPerPartai.push({ id: p.id, ms });
+        totalDurasiMs += ms;
         simpanCachePartai(p.id, kedalaman, hasil);
       } catch (e) {
         if (sinyal?.aborted || e?.kunci === GALAT_BATAL) break;
@@ -178,5 +243,10 @@ export async function analisisRiwayatAntiCheat({
     dariCache,
     dibatalkan: Boolean(sinyal?.aborted),
     galat,
+    durasi: {
+      totalMs: totalDurasiMs,
+      rataMs: durasiPerPartai.length ? Math.round(totalDurasiMs / durasiPerPartai.length) : null,
+      perPartai: durasiPerPartai,
+    },
   };
 }
