@@ -10,7 +10,7 @@ import {
 } from "../../lib/api/index.js";
 import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
-import ContohTampilanPendaftaran from "./ContohTampilanPendaftaran.jsx";
+import TampilanPendaftaran from "./TampilanPendaftaran.jsx";
 
 const AWAL = {
   username: "",
@@ -137,7 +137,7 @@ export default function PendaftaranAnggota() {
       next={{ to: "/tentang-kami/struktur-grup-catur#keanggotaan", judul: t("pendaftaran.nextJudul") }}
     >
       <PageArtikel lebar>
-        <ContohTampilanPendaftaran
+        <TampilanPendaftaran
           form={form}
           status={status}
           pesan={pesan}

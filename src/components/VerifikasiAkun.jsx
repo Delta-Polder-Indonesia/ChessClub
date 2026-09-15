@@ -7,6 +7,7 @@ import {
   periksaKodeProfil,
 } from "../lib/api/index.js";
 import VerificationSpinner from "./VerificationSpinner.jsx";
+import { Button } from "./ui/button.jsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +34,6 @@ export default function VerifikasiAkun({
   terverifikasi,
   onTerverifikasi,
   onBatal,
-  onLewati,
   statusAwal = "idle",
   pesanAwal = "",
 }) {
@@ -44,6 +44,9 @@ export default function VerifikasiAkun({
   const [pesan, setPesan] = useState(pesanAwal);
   const [sibuk, setSibuk] = useState(false);
   const [bukaKosong, setBukaKosong] = useState(false);
+  const [bukaProses, setBukaProses] = useState(false);
+  const [bukaGagalKode, setBukaGagalKode] = useState(false);
+  const [bukaBelumTerbaca, setBukaBelumTerbaca] = useState(false);
   const [hasilVerifikasi, setHasilVerifikasi] = useState(null);
   const [statusSpinner, setStatusSpinner] = useState(statusAwal);
 
@@ -114,6 +117,7 @@ export default function VerifikasiAkun({
     setSibuk(true);
     setPesan("");
     setStatusSpinner("loading");
+    setBukaProses(true);
     try {
       const hasil = await mintaKodeProfil(username);
       setKode(hasil.kode);
@@ -122,8 +126,10 @@ export default function VerifikasiAkun({
     } catch (e) {
       setStatusSpinner("error");
       setPesan(e.message);
+      setBukaGagalKode(true);
     } finally {
       setSibuk(false);
+      setBukaProses(false);
     }
   };
 
@@ -142,11 +148,13 @@ export default function VerifikasiAkun({
         setStatusSpinner("error");
         setPesan(hasil.pesan || t("verifikasi.belumTerbaca"));
         setTahap("kode");
+        setBukaBelumTerbaca(true);
       }
     } catch (e) {
       setStatusSpinner("error");
       setPesan(e.message);
       setTahap("kode");
+      setBukaBelumTerbaca(true);
     } finally {
       setSibuk(false);
     }
@@ -162,7 +170,7 @@ export default function VerifikasiAkun({
   /* ----------------------------------------------------------- tampilan */
 
   return (
-    <div className="rounded-md border border-slate-200 bg-slate-50 px-4 py-4">
+    <div>
       <p className="text-sm font-semibold text-slate-900">
         {t("verifikasi.judul")}
         {wajib && <span className="text-red-600"> *</span>}
@@ -171,21 +179,15 @@ export default function VerifikasiAkun({
         {t("verifikasi.penjelasan")}
       </p>
 
-      {tahap === "awal" && !hasilVerifikasi && statusSpinner !== "idle" && (
-        <div className="mt-4">{indikatorVerifikasi}</div>
-      )}
-
       {/* Jalur 1: login Chess.com */}
       {cara?.oauth && (
         <div className="mt-4">
-          <button
-            type="button"
+          <Button
             onClick={loginChess}
             disabled={sibuk}
-            className="rounded-full bg-[#81b64c] px-5 py-2.5 text-xs font-bold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {t("verifikasi.tombolLogin")}
-          </button>
+          </Button>
           <p className="mt-2 text-xs leading-5 text-slate-500">
             {t("verifikasi.catatanLogin")}
           </p>
@@ -202,32 +204,30 @@ export default function VerifikasiAkun({
           )}
 
           {tahap === "awal" && (
-            <button
-              type="button"
-              onClick={mintaKode}
-              disabled={sibuk}
-              className="rounded-full border border-solid border-primary px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
-            >
-              {sibuk ? t("verifikasi.memproses") : t("verifikasi.tombolKode")}
-            </button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {onBatal && (
+                <Button
+                  variant="outline"
+                  onClick={onBatal}
+                >
+                  {t("verifikasi.batal")}
+                </Button>
+              )}
+              <Button
+                onClick={mintaKode}
+                disabled={sibuk}
+              >
+                {sibuk ? t("verifikasi.memproses") : t("verifikasi.tombolKode")}
+              </Button>
+            </div>
           )}
-        </div>
-      )}
 
-      {!wajib && cara && onLewati && (
-        <button
-          type="button"
-          onClick={onLewati}
-          disabled={sibuk}
-          className="mt-4 rounded-full border border-solid border-primary px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
-        >
-          {t("verifikasi.lanjut")}
-        </button>
+        </div>
       )}
 
       {/* Dialog: langkah memasang kode */}
       <AlertDialog
-        open={tahap === "kode" || tahap === "memeriksa"}
+        open={(tahap === "kode" || tahap === "memeriksa") && !bukaBelumTerbaca}
         onOpenChange={(terbuka) => {
           if (!terbuka) {
             setTahap("awal");
@@ -260,14 +260,9 @@ export default function VerifikasiAkun({
               >
                 {t("verifikasi.bukaPengaturan")}
               </a>
-              {pesan && (
-                <p className="mt-3 rounded border border-amber-300 bg-white px-3 py-2 text-xs leading-5 text-amber-900">
-                  {pesan}
-                </p>
-              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-row items-center justify-end gap-3">
             <AlertDialogCancel onClick={() => setTahap("awal")} disabled={sibuk}>
               {t("verifikasi.batal")}
             </AlertDialogCancel>
@@ -275,6 +270,79 @@ export default function VerifikasiAkun({
               {tahap === "memeriksa"
                 ? t("verifikasi.memeriksa")
                 : t("verifikasi.sudahPasang")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog: meminta kode sedang diproses */}
+      <AlertDialog open={bukaProses} onOpenChange={() => {}}>
+        <AlertDialogContent className="max-w-xs">
+          <AlertDialogHeader className="items-center text-center">
+            <AlertDialogTitle className="sr-only">
+              {t("verifikasi.memproses")}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">
+              {t("verifikasi.memproses")}
+            </AlertDialogDescription>
+            <VerificationSpinner
+              status="loading"
+              size={56}
+              loadingText={t("verifikasi.memproses")}
+            />
+          </AlertDialogHeader>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog: gagal meminta kode */}
+      <AlertDialog
+        open={bukaGagalKode}
+        onOpenChange={(terbuka) => {
+          if (!terbuka) {
+            setBukaGagalKode(false);
+            setPesan("");
+            setStatusSpinner("idle");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <VerificationSpinner status="error" size={48} showLabel={false} />
+            <AlertDialogTitle>{t("verifikasi.gagalMemintaKode")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pesan || t("verifikasi.gagalMemintaKodeKet")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setBukaGagalKode(false)}>
+              {t("verifikasi.mengerti")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Dialog: kode belum terbaca */}
+      <AlertDialog
+        open={bukaBelumTerbaca}
+        onOpenChange={(terbuka) => {
+          if (!terbuka) {
+            setBukaBelumTerbaca(false);
+            setPesan("");
+            setStatusSpinner("idle");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <VerificationSpinner status="error" size={48} showLabel={false} />
+            <AlertDialogTitle>{t("verifikasi.belumTerbacaJudul")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("verifikasi.belumTerbacaKet")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction onClick={() => setBukaBelumTerbaca(false)}>
+              {t("verifikasi.mengerti")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

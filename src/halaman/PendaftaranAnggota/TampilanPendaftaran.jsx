@@ -1,12 +1,9 @@
-import {
-  CircleUser,
-  Info,
-  SlidersHorizontal,
-  X,
-} from "lucide-react";
+import { CircleUser, Info } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useKartuPemain } from "../../lib/pemainCatur.js";
 import VerificationSpinner from "../../components/VerificationSpinner.jsx";
 import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
+import { Button } from "../../components/ui/button.jsx";
 
 /**
  * Tampilan mirip alur masuk Google (tema terang, dua kolom responsif,
@@ -135,7 +132,7 @@ const LANGKAH_KONTAK = [
   },
 ];
 
-export default function ContohTampilanPendaftaran({
+export default function TampilanPendaftaran({
   form,
   status,
   pesan,
@@ -153,13 +150,8 @@ export default function ContohTampilanPendaftaran({
   const [usernameError, setUsernameError] = useState("");
   const username = form.username;
   const setUsername = (nilai) => onUbah("username", nilai);
+  const kartuPemain = useKartuPemain(username, Boolean(username), "chessCom");
 
-  const [headingTitle, setHeadingTitle] = useState("Pendaftaran Anggota");
-  const [articleText, setArticleText] = useState(
-    "Gunakan akun Chess.com Anda. Data pendaftaran akan tersimpan aman di Komunitas Catur Indonesia."
-  );
-
-  const [showCustomizeModal, setShowCustomizeModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
   const dataDiri = form;
@@ -190,9 +182,6 @@ export default function ContohTampilanPendaftaran({
   };
   const [kontakStep, setKontakStep] = useState(0);
   const [kontakError, setKontakError] = useState("");
-
-  const [editHeadingTitle, setEditHeadingTitle] = useState(headingTitle);
-  const [editArticleText, setEditArticleText] = useState(articleText);
 
   useEffect(() => {
     if (verifikasi) setStep("success");
@@ -261,14 +250,6 @@ export default function ContohTampilanPendaftaran({
     }
   };
 
-  const handleSaveCustomization = (e) => {
-    e.preventDefault();
-    setHeadingTitle(editHeadingTitle);
-    setArticleText(editArticleText);
-    setShowCustomizeModal(false);
-    showToast("Pengaturan tampilan berhasil diperbarui.");
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col justify-between items-center p-4 sm:p-6 lg:p-10 select-none relative">
       {toastMessage && (
@@ -277,22 +258,6 @@ export default function ContohTampilanPendaftaran({
           <span>{toastMessage}</span>
         </div>
       )}
-
-      {/* Top Bar Navigation Demo */}
-      <div className="w-full max-w-4xl flex justify-between items-center mb-6 z-10">
-        <div className="flex items-center space-x-2 text-xs text-gray-600 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span className="font-medium">Demo Interactive React</span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowCustomizeModal(true)}
-          className="text-xs font-medium bg-white hover:bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg border border-gray-300 transition flex items-center gap-1.5 active:scale-95 shadow-sm"
-        >
-          <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
-          <span>Ubah Teks & Artikel</span>
-        </button>
-      </div>
 
       {/* Main Container */}
       <main className="w-full max-w-4xl my-auto z-10">
@@ -304,32 +269,33 @@ export default function ContohTampilanPendaftaran({
                 <div className="lg:col-span-6 flex flex-col space-y-3">
                   <MarkKomunitas />
                   <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
-                    {headingTitle}
+                    Pendaftaran Anggota
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    {articleText}
+                    Gunakan akun Chess.com Anda. Data pendaftaran akan tersimpan aman di Komunitas Catur Indonesia.
                   </p>
                 </div>
 
                 {/* Kolom Kanan: Form Input & Tindakan */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
                   <div className="relative mt-1">
-                    <input
-                      type="text"
-                      id="usernameInput"
-                      name="username"
-                      value={username}
-                      aria-invalid={usernameError ? "true" : undefined}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        if (usernameError) setUsernameError("");
-                      }}
-                      className="peer w-full h-14 px-4 pt-4 pb-1 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
-                      placeholder="Username Chess.com"
-                    />
-                    <label className="pointer-events-none absolute left-4 top-2 px-0.5 text-xs text-gray-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-blue-600">
-                      Username Chess.com *
-                    </label>
+<input
+          type="text"
+          id="usernameInput"
+          name="username"
+          value={username}
+          aria-invalid={usernameError ? "true" : undefined}
+          onChange={(e) => {
+            setUsername(e.target.value);
+            if (usernameError) setUsernameError("");
+          }}
+          className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all"
+          placeholder="Username Chess.com"
+        />
+        {/* PERBAIKAN: Gaya label memotong garis persis seperti Google */}
+        <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
+          Username Chess.com *
+        </label>
                   </div>
 
                   {usernameError && (
@@ -351,12 +317,9 @@ export default function ContohTampilanPendaftaran({
                   </p>
 
                   <div className="flex items-center justify-end pt-6">
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                    >
+                    <Button type="submit">
                       Berikutnya
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -373,14 +336,26 @@ export default function ContohTampilanPendaftaran({
                     Verifikasi diri Anda
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Untuk membantu menjaga keamanan akun Anda, kami ingin memastikan bahwa memang Anda yang mencoba mendaftar sebagai.
+                    Untuk membantu menjaga keamanan akun Anda, kami ingin memastikan bahwa memang Anda yang mencoba mendaftar.
                   </p>
 
-                  {/* Badge User */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 text-gray-800 text-xs sm:text-sm w-fit">
-                    <CircleUser className="h-4 w-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
-                    <span className="font-medium truncate max-w-[160px]">
-                      {username}
+                  {/* Badge User — avatar + nama dari Chess.com, tanpa pembungkus */}
+                  <div className="inline-flex items-center gap-2.5 text-sm sm:text-base text-gray-800">
+                    <span className="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full">
+                      {kartuPemain?.avatar ? (
+                        <img
+                          className="h-full w-full object-cover"
+                          src={kartuPemain.avatar}
+                          alt=""
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <CircleUser className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                      )}
+                    </span>
+                    <span className="font-medium truncate max-w-[200px]">
+                      {kartuPemain?.name || username}
                     </span>
                     <button
                       type="button"
@@ -402,19 +377,9 @@ export default function ContohTampilanPendaftaran({
                     terverifikasi={verifikasi}
                     onTerverifikasi={onTerverifikasi}
                     onBatal={onBatalVerifikasi}
-                    onLewati={() => setStep("data-diri")}
                     statusAwal={statusVerifikasi}
                     pesanAwal={statusVerifikasi === "error" ? pesan : ""}
                   />
-                  <div className="flex items-center justify-end pt-6 gap-3">
-                    <button
-                      type="button"
-                      onClick={() => setStep("akun")}
-                      className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
-                    >
-                      Batal
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
@@ -438,25 +403,20 @@ export default function ContohTampilanPendaftaran({
                 </span>{" "}
                 sudah terverifikasi dan siap melanjutkan pendaftaran anggota.
               </p>
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
+              <div className="flex w-full items-center justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setStep("akun");
                     onBatalVerifikasi();
                     setUsername("");
                   }}
-                  className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
                 >
                   Ganti Akun
-                </button>
-                <button
-                  type="button"
-                  className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                  onClick={() => setStep("data-diri")}
-                >
+                </Button>
+                <Button onClick={() => setStep("data-diri")}>
                   Lanjutkan Pendaftaran
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -518,10 +478,11 @@ export default function ContohTampilanPendaftaran({
                         if (diriError) setDiriError("");
                       }}
                       max={LANGKAH_DATADIRI[diriStep].tipe === "date" ? HARI_INI : undefined}
-                      className="peer w-full h-14 px-4 pt-4 pb-1 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
+                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
-                    <label className="pointer-events-none absolute left-4 top-2 px-0.5 text-xs text-gray-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-blue-600">
+                    {/* PERBAIKAN: Gaya label memotong garis */}
+                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
                   </div>
@@ -534,8 +495,8 @@ export default function ContohTampilanPendaftaran({
                   )}
 
                   <div className="flex items-center justify-end pt-6 gap-3">
-                    <button
-                      type="button"
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         if (diriStep === 0) {
                           setStep("success");
@@ -543,18 +504,14 @@ export default function ContohTampilanPendaftaran({
                           setDiriStep((s) => s - 1);
                         }
                       }}
-                      className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
                     >
                       Kembali
-                    </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                    >
+                    </Button>
+                    <Button type="submit">
                       {diriStep < LANGKAH_DATADIRI.length - 1
                         ? "Berikutnya"
                         : "Lanjutkan"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -617,10 +574,11 @@ export default function ContohTampilanPendaftaran({
                         }));
                         if (kontakError) setKontakError("");
                       }}
-                      className="peer w-full h-14 px-4 pt-4 pb-1 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
+                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
-                    <label className="pointer-events-none absolute left-4 top-2 px-0.5 text-xs text-gray-500 transition-all peer-placeholder-shown:top-4 peer-placeholder-shown:text-sm peer-focus:top-1.5 peer-focus:text-xs peer-focus:text-blue-600">
+                    {/* PERBAIKAN: Gaya label memotong garis */}
+                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
                       {LANGKAH_KONTAK[kontakStep].opsional ? "(opsional)" : "*"}
                     </label>
@@ -636,9 +594,9 @@ export default function ContohTampilanPendaftaran({
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between pt-6 gap-3">
-                    <button
-                      type="button"
+                  <div className="flex items-center justify-end pt-6 gap-3">
+                    <Button
+                      variant="outline"
                       onClick={() => {
                         if (kontakStep === 0) {
                           setStep("data-diri");
@@ -646,29 +604,19 @@ export default function ContohTampilanPendaftaran({
                           setKontakStep((s) => s - 1);
                         }
                       }}
-                      className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
                     >
                       Kembali
-                    </button>
-                    <div className="flex items-center gap-3">
-                      {LANGKAH_KONTAK[kontakStep].opsional && (
-                        <button
-                          type="button"
-                          onClick={handleLewatiKontak}
-                          className="px-5 py-2.5 text-gray-500 hover:bg-gray-100 rounded-full text-sm font-medium transition"
-                        >
-                          Lewati
-                        </button>
-                      )}
-                      <button
-                        type="submit"
-                        className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                      >
-                        {kontakStep < LANGKAH_KONTAK.length - 1
-                          ? "Berikutnya"
-                          : "Selesai"}
-                      </button>
-                    </div>
+                    </Button>
+                    {LANGKAH_KONTAK[kontakStep].opsional && (
+                      <Button variant="outline" onClick={handleLewatiKontak}>
+                        Lewati
+                      </Button>
+                    )}
+                    <Button type="submit">
+                      {kontakStep < LANGKAH_KONTAK.length - 1
+                        ? "Berikutnya"
+                        : "Selesai"}
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -717,126 +665,30 @@ export default function ContohTampilanPendaftaran({
                   {finalPesan || "Ada kesalahan saat mengirim. Coba lagi."}
                 </p>
               )}
-              <div className="flex items-center gap-3 pt-2">
-                <button
-                  type="button"
+              <div className="flex w-full items-center justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
                   onClick={() => {
                     setStep("akun");
                     setDiriStep(0);
                     setKontakStep(0);
                     onReset();
                   }}
-                  className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
                 >
                   {finalStatus === "success"
                     ? "Keluar / Ganti Akun"
                     : "Ulangi dari Awal"}
-                </button>
+                </Button>
                 {finalStatus !== "loading" && finalStatus !== "success" && (
-                  <button
-                    type="button"
-                    onClick={onKirim}
-                    className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                  >
+                  <Button onClick={onKirim}>
                     {finalStatus === "error" ? "Coba Lagi" : "Kirim Pendaftaran"}
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           )}
         </div>
       </main>
-
-      {/* Footer */}
-      <footer className="w-full max-w-4xl flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 pt-6 gap-4">
-        <div>Bahasa Indonesia</div>
-        <div className="flex items-center space-x-6">
-          <button
-            type="button"
-            onClick={() => showToast("Memuat Bantuan...")}
-            className="hover:text-gray-800 transition"
-          >
-            Bantuan
-          </button>
-          <button
-            type="button"
-            onClick={() => showToast("Memuat Privasi...")}
-            className="hover:text-gray-800 transition"
-          >
-            Privasi
-          </button>
-          <button
-            type="button"
-            onClick={() => showToast("Memuat Persyaratan...")}
-            className="hover:text-gray-800 transition"
-          >
-            Persyaratan
-          </button>
-        </div>
-      </footer>
-
-      {/* Modal Kustomisasi */}
-      {showCustomizeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white border border-gray-200 rounded-2xl p-6 max-w-md w-full shadow-xl space-y-4">
-            <div className="flex justify-between items-center border-b border-gray-100 pb-3">
-              <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-blue-600" aria-hidden="true" />
-                <span>Kustomisasi Portal Login</span>
-              </h3>
-              <button
-                type="button"
-                onClick={() => setShowCustomizeModal(false)}
-                className="text-gray-400 hover:text-gray-700 p-1 rounded-lg transition"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCustomization} className="space-y-4">
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Judul Halaman (Heading)
-                </label>
-                <input
-                  type="text"
-                  value={editHeadingTitle}
-                  onChange={(e) => setEditHeadingTitle(e.target.value)}
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-blue-600"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-1">
-                  Artikel / Subteks Penjelasan
-                </label>
-                <textarea
-                  value={editArticleText}
-                  onChange={(e) => setEditArticleText(e.target.value)}
-                  rows="3"
-                  className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:border-blue-600"
-                  required
-                ></textarea>
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCustomizeModal(false)}
-                  className="px-4 py-2 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition shadow-sm"
-                >
-                  Simpan Perubahan
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
     </div>
   );

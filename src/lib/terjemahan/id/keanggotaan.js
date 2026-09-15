@@ -106,6 +106,11 @@ export const verifikasi = {
     memeriksa: "Memeriksa profil…",
     belumTerbaca:
       "Kode belum terbaca. Pastikan sudah tersimpan, lalu coba lagi beberapa saat.",
+    belumTerbacaJudul: "Kode belum terbaca",
+    belumTerbacaKet: "Pastikan sudah tersimpan, lalu coba lagi beberapa saat.",
+    gagalMemintaKode: "Gagal meminta kode",
+    gagalMemintaKodeKet:
+      "Kode tidak dapat dibuat saat ini. Coba lagi beberapa saat.",
     isiUsernameDulu: "Isi username Chess.com Anda terlebih dahulu.",
     berhasil: "Kepemilikan akun terverifikasi:",
     ganti: "Ganti akun",
