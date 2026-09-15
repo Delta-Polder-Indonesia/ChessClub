@@ -33,6 +33,7 @@ export default function VerifikasiAkun({
   terverifikasi,
   onTerverifikasi,
   onBatal,
+  onLewati,
   statusAwal = "idle",
   pesanAwal = "",
 }) {
@@ -112,11 +113,14 @@ export default function VerifikasiAkun({
     }
     setSibuk(true);
     setPesan("");
+    setStatusSpinner("loading");
     try {
       const hasil = await mintaKodeProfil(username);
       setKode(hasil.kode);
+      setStatusSpinner("idle");
       setTahap("kode");
     } catch (e) {
+      setStatusSpinner("error");
       setPesan(e.message);
     } finally {
       setSibuk(false);
@@ -208,6 +212,17 @@ export default function VerifikasiAkun({
             </button>
           )}
         </div>
+      )}
+
+      {!wajib && cara && onLewati && (
+        <button
+          type="button"
+          onClick={onLewati}
+          disabled={sibuk}
+          className="mt-4 rounded-full border border-solid border-primary px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-50"
+        >
+          {t("verifikasi.lanjut")}
+        </button>
       )}
 
       {/* Dialog: langkah memasang kode */}

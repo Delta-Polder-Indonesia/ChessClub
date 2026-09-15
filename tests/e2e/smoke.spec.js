@@ -33,6 +33,10 @@ async function tiruApiPublik(page, onRequest = () => {}) {
 
     if (path === "/api/csrf-token") return json({ token: "csrf-uji" });
     if (path === "/api/auth/cara") return json({ oauth: false, kodeProfil: true, mode: "opsional" });
+    if (path === "/api/auth/kode/minta") return json({ kode: "KCI-UJIE2E" });
+    if (path === "/api/auth/kode/periksa") {
+      return json({ cocok: true, tiket: "tiket-uji-e2e", username: "pecaturuji" });
+    }
     if (path === "/api/anggota" && request.method() === "POST") return json({ username: "pecaturuji" }, 201);
     if (path === "/api/anggota") return json([]);
     if (path === "/api/pesan" && request.method() === "POST") return json({ id: "pesan-uji" }, 201);
@@ -410,38 +414,67 @@ test("panel konten menghapus dengan benar saat kolom disembunyikan", async ({ pa
   periksaGalat();
 });
 
-test("form pendaftaran menampilkan validasi lokal sebelum mengirim", async ({ page }) => {
+test("alur pendaftaran memvalidasi username pada langkah pertama", async ({ page }) => {
   await tiruApiPublik(page);
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pendaftaran-anggota");
-  // Label tombol kirim adalah "Daftar" (lihat pendaftaran.daftar di i18n).
-  await formPendaftaran(page).getByRole("button", { name: "Daftar", exact: true }).click();
-  await expect(
-    page.getByRole("alert").filter({ hasText: "Periksa kembali isian" })
-  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("Username Chess.com wajib diisi");
   await expect(page.locator('input[name="username"]')).toHaveAttribute("aria-invalid", "true");
   periksaGalat();
 });
 
-test("form pendaftaran mengirim data sah dan berpindah ke keanggotaan", async ({ page }) => {
+test("verifikasi opsional dapat dilewati untuk melanjutkan data diri", async ({ page }) => {
+  await tiruApiPublik(page);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/pendaftaran-anggota");
+
+  await page.locator('input[name="username"]').fill("pecaturuji");
+  await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
+  await page.getByRole("button", { name: "Lanjut", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Data Diri" })).toBeVisible();
+  periksaGalat();
+});
+
+test("alur pendaftaran terverifikasi mengirim data sah dan berpindah ke keanggotaan", async ({ page }) => {
   const requests = [];
   await tiruApiPublik(page, (request) => requests.push(request));
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pendaftaran-anggota");
 
   await page.locator('input[name="username"]').fill("pecaturuji");
-  await page.locator('input[name="namaLengkap"]').fill("Pecatur Penguji");
-  await page.locator('input[name="panggilan"]').fill("Uji");
-  await page.locator('input[name="tanggalLahir"]').fill("1995-05-20");
-  await page.locator('input[name="kota"]').fill("Medan");
-  await page.locator('input[name="hp"]').fill("081234567890");
-  await page.locator('input[name="email"]').fill("uji@example.test");
+  await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
+  await page.getByRole("button", { name: "Verifikasi lewat kode profil", exact: true }).click();
+  await expect(page.getByText("KCI-UJIE2E")).toBeVisible();
+  await page.getByRole("button", { name: "Saya sudah memasang kode", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Lanjut", exact: true }).click();
+  await page.getByRole("button", { name: "Lanjutkan Pendaftaran", exact: true }).click();
+
+  const isiLangkah = async (nama, nilai, tombol = "Berikutnya") => {
+    await page.locator(`input[name="${nama}"]`).fill(nilai);
+    await page.getByRole("button", { name: tombol, exact: true }).click();
+  };
+  await isiLangkah("namaLengkap", "Pecatur Penguji");
+  await isiLangkah("panggilan", "Uji");
+  await isiLangkah("tanggalLahir", "1995-05-20");
+  await isiLangkah("kota", "Medan", "Lanjutkan");
+  await isiLangkah("hp", "081234567890");
+  await page.getByRole("button", { name: "Lewati", exact: true }).click();
+  await isiLangkah("email", "uji@example.test");
+  await page.getByRole("button", { name: "Lewati", exact: true }).click();
+
   await page.locator('input[name="setuju"]').check();
-  await formPendaftaran(page).getByRole("button", { name: "Daftar", exact: true }).click();
+  await page.getByRole("button", { name: "Kirim Pendaftaran", exact: true }).click();
 
   await expect(page).toHaveURL(/struktur-grup-catur.*keanggotaan/);
   const pendaftaran = requests.find((request) => request.path === "/api/anggota" && request.method === "POST");
-  expect(pendaftaran?.body).toMatchObject({ username: "pecaturuji", kota: "Medan" });
+  expect(pendaftaran?.body).toMatchObject({
+    username: "pecaturuji",
+    kota: "Medan",
+    setuju: true,
+    tiketVerifikasi: "tiket-uji-e2e",
+  });
   periksaGalat();
 });
 

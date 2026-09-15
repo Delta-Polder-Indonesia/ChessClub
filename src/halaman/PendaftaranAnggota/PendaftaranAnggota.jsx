@@ -88,7 +88,7 @@ export default function PendaftaranAnggota() {
 
   const kirim = async () => {
     setPesan("");
-    const data = { ...form, setuju: true };
+    const data = form;
     const galat = validasiLokal(data);
     if (Object.keys(galat).length) {
       setStatus("gagal");
@@ -143,6 +143,7 @@ export default function PendaftaranAnggota() {
           pesan={pesan}
           verifikasi={verifikasi}
           statusVerifikasi={statusVerifikasi}
+          teksSetuju={t("pendaftaran.setuju")}
           onUbah={ubah}
           onTerverifikasi={(hasil) => {
             setVerifikasi(hasil);
