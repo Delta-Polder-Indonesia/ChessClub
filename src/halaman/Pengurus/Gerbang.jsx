@@ -6,6 +6,10 @@ import {
   peranPengurus,
 } from "../../lib/api/index.js";
 import Logo from "../../components/Logo.jsx";
+import Eye from "../Analisa/komponen/svg/eye.jsx";
+import EyeClosed from "../Analisa/komponen/svg/eye-closed.jsx";
+import User from "../Analisa/komponen/svg/user.jsx";
+import LockKeyhole from "../Analisa/komponen/svg/lock-keyhole.jsx";
 
 /**
  * Gerbang masuk dashboard pengurus — metode umum.
@@ -89,34 +93,44 @@ export default function Gerbang({ onMasuk }) {
           </p>
         </div>
 
-        <label htmlFor="gerbang-user" className="mt-6 block text-sm font-semibold text-slate-700">
-          Username
-        </label>
-        <input
-          id="gerbang-user"
-          type="text"
-          value={nama}
-          onChange={(e) => setNama(e.target.value)}
-          autoComplete="username"
-          autoCapitalize="none"
-          spellCheck="false"
-          placeholder="admin"
-          className="mt-1 w-full border-0 border-b border-slate-300 bg-transparent px-0 py-2 text-sm outline-none focus:border-primary"
-        />
+        <div className="relative mt-6 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+          <User className="h-4 w-4 shrink-0 text-slate-400" />
+          <input
+            id="gerbang-user"
+            type="text"
+            value={nama}
+            onChange={(e) => setNama(e.target.value)}
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck="false"
+            placeholder=" "
+            className="peer w-full border-0 bg-transparent pb-1.5 pt-5 text-sm outline-none"
+          />
+          <label
+            htmlFor="gerbang-user"
+            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
+          >
+            Username
+          </label>
+        </div>
 
-        <label htmlFor="gerbang-sandi" className="mt-5 block text-sm font-semibold text-slate-700">
-          Password
-        </label>
-        <div className="mt-1 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+        <div className="relative mt-5 flex items-center gap-2 border-b border-slate-300 transition-colors focus-within:border-primary">
+          <LockKeyhole className="h-4 w-4 shrink-0 text-slate-400" />
           <input
             id="gerbang-sandi"
             type={lihat ? "text" : "password"}
             value={sandi}
             onChange={(e) => setSandi(e.target.value)}
             autoComplete="current-password"
-            placeholder="admin123"
-            className="w-full border-0 bg-transparent py-2 text-sm outline-none"
+            placeholder=" "
+            className="peer w-full border-0 bg-transparent pb-1.5 pt-5 text-sm outline-none"
           />
+          <label
+            htmlFor="gerbang-sandi"
+            className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-400 transition-all duration-150 peer-focus:top-0 peer-focus:translate-y-0 peer-focus:text-xs peer-focus:font-semibold peer-focus:text-primary peer-[:not(:placeholder-shown)]:top-0 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-xs peer-[:not(:placeholder-shown)]:font-semibold peer-[:not(:placeholder-shown)]:text-slate-700"
+          >
+            Password
+          </label>
           <button
             type="button"
             onClick={() => setLihat((v) => !v)}
@@ -125,28 +139,9 @@ export default function Gerbang({ onMasuk }) {
             className="shrink-0 text-slate-500 hover:text-primary"
           >
             {lihat ? (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="square"
-                  strokeLinejoin="miter"
-                />
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-              </svg>
+              <Eye className="h-[18px] w-[18px]" />
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <path
-                  d="M2 12C2 12 5.5 5 12 5C18.5 5 22 12 22 12C22 12 18.5 19 12 19C5.5 19 2 12 2 12Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="square"
-                  strokeLinejoin="miter"
-                />
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M4 4L20 20M4 20L20 4" stroke="currentColor" strokeWidth="2" strokeLinecap="square" />
-              </svg>
+              <EyeClosed className="h-[18px] w-[18px]" />
             )}
           </button>
         </div>

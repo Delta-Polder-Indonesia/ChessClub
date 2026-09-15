@@ -78,7 +78,13 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
         ${terbuka ? "w-64" : "w-[52px]"}
       `}
     >
-      <nav className="flex-1 py-3 space-y-1 overflow-y-auto">
+      <nav className={`
+        flex-1 py-3 space-y-1
+        ${terbuka
+          ? "overflow-y-auto [scrollbar-gutter:stable]"
+          : "overflow-y-visible"
+        }
+      `}>
         {MENU_SIDEBAR.map(({ kunci, label, icon, anak }) => {
           const aktif = tab === kunci;
           const punyaAnak = Array.isArray(anak) && anak.length > 0;
@@ -100,11 +106,11 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                 className={`
                   w-full text-sm font-medium
                   flex items-center
-                  pl-4 pr-3
+                  pl-4 pr-3 py-2 border
                   transition-colors duration-150
                   ${aktif
-                    ? "py-1.5 text-slate-900 border border-slate-900 rounded-md"
-                    : "py-2.5 text-slate-700 hover:bg-slate-100"
+                    ? "text-slate-900 border-slate-900 rounded-md"
+                    : "text-slate-700 border-transparent hover:bg-slate-100"
                   }
                 `}
               >
@@ -173,11 +179,11 @@ export default function Sidebar({ tab, setTab, terbuka, halamanEbook, onPilihEbo
                           className={`
                             w-full text-sm
                             flex items-center
-                            py-1.5 pl-2 pr-2
+                            py-1.5 pl-2 pr-2 border
                             transition-colors duration-150
                             ${subAktif
-                              ? "text-slate-900 font-medium border border-slate-900 rounded-sm"
-                              : "text-slate-600 hover:bg-slate-100"
+                              ? "text-slate-900 font-medium border-slate-900 rounded-sm"
+                              : "text-slate-600 border-transparent hover:bg-slate-100"
                             }
                           `}
                         >

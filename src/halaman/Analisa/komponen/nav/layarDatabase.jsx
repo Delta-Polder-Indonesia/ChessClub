@@ -16,6 +16,7 @@ import {
 import { AlertCircleIcon, ArrowUpDown, CheckCircle2Icon, ChevronDown, InfoIcon } from "lucide-react";
 import PanelLayar from "./PanelLayar.jsx";
 import Database from "../svg/database.jsx";
+import Check from "../svg/check.jsx";
 import SquareFillEqual from "../svg/square-fill-equal.jsx";
 import SquareFillMinus from "../svg/square-fill-minus.jsx";
 import SquareFillPlus from "../svg/square-fill-plus.jsx";
@@ -140,23 +141,6 @@ function IkonCopy({ className = "h-3.5 w-3.5" }) {
     >
       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-    </svg>
-  );
-}
-
-function IkonCheck({ className = "h-3.5 w-3.5" }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      <polyline points="20 6 9 17 4 12" />
     </svg>
   );
 }
@@ -331,7 +315,7 @@ function DropdownPilih({ ariaLabel, nilai, opsi, onPilih, sejajar = "kiri", keAt
                   }`}
                 >
                   <span className="truncate">{o.label}</span>
-                  {dipilih ? <IkonCheck className="h-3 w-3 shrink-0 text-foregroundHighlighted" /> : null}
+                  {dipilih ? <Check className="h-3 w-3 shrink-0 text-foregroundHighlighted" /> : null}
                 </button>
               </li>
             );
@@ -686,7 +670,7 @@ function MenuKolom({ t, nilai, onPilih }) {
                 >
                   <span>{o.label}</span>
                   {dipilih ? (
-                    <IkonCheck className="h-3 w-3 shrink-0 text-foregroundHighlighted" />
+                    <Check className="h-3 w-3 shrink-0 text-foregroundHighlighted" />
                   ) : null}
                 </button>
               </li>

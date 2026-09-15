@@ -139,7 +139,6 @@ export default function PanelPesan({
     if (!p.dibaca) tandaiDibaca(p.id);
   };
 
-  const belumDibaca = pesan.filter((p) => !p.dibaca).length;
   const adaTerpilih = terpilih.size > 0;
   const semuaDipilih = pesan.length > 0 && terpilih.size === pesan.length;
 
@@ -227,14 +226,8 @@ export default function PanelPesan({
   /* ── Daftar pesan: email-style list ───────────────────── */
   return (
     <div className="space-y-4">
-      <div className="border-b border-slate-200 pb-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900">Pesan Masuk</h2>
-          <p className="mt-0.5 text-sm text-slate-500">
-            {pesan.length} pesan{belumDibaca > 0 && <>, <span className="font-medium text-slate-700">{belumDibaca} belum dibaca</span></>}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
+      {(galat || adaTerpilih) && (
+        <div className="flex items-center justify-end gap-3">
           {galat && (
             <button
               type="button"
@@ -257,12 +250,12 @@ export default function PanelPesan({
             </>
           )}
         </div>
-      </div>
+      )}
 
       {memuat ? (
         <p className="py-10 text-center text-sm text-slate-500">Memuat pesan…</p>
       ) : galat ? null : pesan.length === 0 ? (
-        <div className="border border-dashed border-slate-200 bg-white p-10 text-center">
+        <div className="flex items-center justify-center py-24">
           <p className="text-sm text-slate-500">Belum ada pesan masuk.</p>
         </div>
       ) : (

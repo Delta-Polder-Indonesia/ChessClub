@@ -68,6 +68,20 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 - Copy generik ("Selamat datang di website kami!", "Temukan pengalaman terbaikmu") atau lorem ipsum.
 - Ikon dekoratif tanpa makna; animasi masuk beruntun (bounce/delay berjenjang); warna atau font di luar palet.
 
+## Ikon — sumber, konversi, dan satu rumah bersama
+
+- **Sumber ikon baru: `icons-sample/`** (folder 1.847 SVG Lucide resmi di akar repo). Saat butuh ikon,
+  cari nama ikonnya (`lucide`-style, mis. `check`, `trash`, `settings`) di folder itu — jangan membuat
+  ikon dari ingatan agar konsisten dan tidak slop.
+- **Konversi ke komponen:** salin isi `<svg>` (path/polyline + atribut stroke), bungkus menjadi satu-ikon
+  per berkas `*.jsx` mengikuti format `refresh.jsx`: default `className="h-3.5 w-3.5"`, `strokeWidth="2"`,
+  `aria-hidden="true"`, `export { Nama as default }`.
+- **Satu rumah ikon publik:** semua ikon hasil konversi ditaruh di `src/halaman/Analisa/komponen/svg/`.
+  Ikon di folder ini **publik — dipakai silang halaman**. Dilarang mendefinisikan ikon
+  inline/lokal di dalam berkas halaman (boros kode dan tidak konsisten); jika halaman butuh ikon yang
+  belum ada, buat komponennya di folder svg itu lalu import.
+- Ikon umum yang sudah tersedia di `lucide-react` (mis. `ChevronDown`) tetap boleh di-import langsung.
+
 ## Sistem desain existing (pertahankan)
 
 - Nilai yang sudah terpasang: primary `#0B2F9F`, hero `#021624`, teks artikel `#374151`, footer `#F8FAFC`,

@@ -595,11 +595,11 @@ export default function Pengaturan({ onKembali, beriTahu, kabar }) {
 className={`
                   w-full text-sm font-medium
                   flex items-center gap-3
-                  px-3
+                  px-3 py-2 border
                   transition-colors duration-150
                   ${aktif
-                    ? "py-1.5 text-slate-900 border border-slate-900 rounded-md"
-                    : "py-2.5 text-slate-700 hover:bg-slate-100"}
+                    ? "text-slate-900 border-slate-900 rounded-md"
+                    : "text-slate-700 border-transparent hover:bg-slate-100"}
                 `}
                 >
                   <svg className="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

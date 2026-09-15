@@ -232,6 +232,42 @@ export default function PanelJuara({ beriTahu }) {
 
   const [hapusTarget, setHapusTarget] = useState(null);
   const [sibukAksi, setSibukAksi] = useState(false);
+  const [terpilih, setTerpilih] = useState({});
+  const [targetHapusMassal, setTargetHapusMassal] = useState(false);
+
+  const jumlahTerpilih = daftar
+    ? Object.values(terpilih).filter(Boolean).length
+    : 0;
+  const semuaTerpilih =
+    daftar?.length > 0 && daftar.every((t) => terpilih[t.id]);
+  const pilihSemua = (e) => {
+    if (e.target.checked) {
+      const baru = {};
+      (daftar || []).forEach((t) => { baru[t.id] = true; });
+      setTerpilih(baru);
+    } else {
+      setTerpilih({});
+    }
+  };
+
+  const konfirmasiHapusMassal = async () => {
+    const ids = Object.keys(terpilih);
+    setTargetHapusMassal(false);
+    if (!ids.length) return;
+    setSibukAksi(true);
+    try {
+      for (const id of ids) {
+        await apiPengurus(`/turnamen/${id}/hapus`, { metode: "POST" });
+      }
+      beriTahu(`${ids.length} turnamen dihapus.`, "sukses");
+      setTerpilih({});
+      await muat();
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    } finally {
+      setSibukAksi(false);
+    }
+  };
 
   const konfirmasiHapus = async () => {
     const t = hapusTarget;
@@ -251,9 +287,8 @@ export default function PanelJuara({ beriTahu }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-base font-bold text-slate-900">Juara Turnamen</h2>
-        {gagal && (
+      {gagal && (
+        <div className="flex items-center justify-end gap-4">
           <button
             type="button"
             onClick={muat}
@@ -261,8 +296,8 @@ export default function PanelJuara({ beriTahu }) {
           >
             Coba Lagi
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {gagal ? null : daftar === null ? (
         <p className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
@@ -270,8 +305,29 @@ export default function PanelJuara({ beriTahu }) {
         </p>
       ) : (
         <>
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <Tombol anak="+ Juara Turnamen" jenis="biasa" onClick={bukaTambah} />
+            {jumlahTerpilih > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium text-slate-700">
+                  {jumlahTerpilih} turnamen terpilih
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setTerpilih({})}
+                  className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                >
+                  Batalkan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTargetHapusMassal(true)}
+                  className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+                >
+                  Hapus terpilih
+                </button>
+              </div>
+            )}
           </div>
 
           {daftar.length === 0 ? (
@@ -282,6 +338,15 @@ export default function PanelJuara({ beriTahu }) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-10">
+                    <input
+                      type="checkbox"
+                      checked={semuaTerpilih}
+                      onChange={pilihSemua}
+                      aria-label="Pilih semua turnamen"
+                      className="size-4 accent-primary"
+                    />
+                  </TableHead>
                   <TableHead>#</TableHead>
                   <TableHead>Nama Turnamen</TableHead>
                   <TableHead>Kategori</TableHead>
@@ -294,6 +359,17 @@ export default function PanelJuara({ beriTahu }) {
               <TableBody>
                 {daftar.map((t, index) => (
                   <TableRow key={t.id}>
+                    <TableCell className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={!!terpilih[t.id]}
+                        onChange={(e) =>
+                          setTerpilih((s) => ({ ...s, [t.id]: e.target.checked }))
+                        }
+                        aria-label={`Pilih ${t.nama}`}
+                        className="size-4 accent-primary"
+                      />
+                    </TableCell>
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>{t.nama}</TableCell>
                     <TableCell>{LABEL_JENIS[t.jenis] || t.jenis}</TableCell>
@@ -339,6 +415,19 @@ export default function PanelJuara({ beriTahu }) {
       >
         “{hapusTarget?.nama}” akan dihapus permanen dari daftar hasil,
         termasuk dari halaman publik Turnamen.
+      </Modal>
+
+      <Modal
+        terbuka={targetHapusMassal}
+        judul={`Hapus ${jumlahTerpilih} turnamen?`}
+        labelKonfirmasi={sibukAksi ? "Menghapus…" : "Hapus semua"}
+        jenisKonfirmasi="bahaya"
+        sibuk={sibukAksi}
+        onBatal={() => setTargetHapusMassal(false)}
+        onKonfirmasi={konfirmasiHapusMassal}
+      >
+        {jumlahTerpilih} turnamen akan dihapus permanen dan tidak dapat
+        dikembalikan.
       </Modal>
 
       <Sheet

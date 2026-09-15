@@ -29,6 +29,8 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
   const [memuat, setMemuat] = useState(true);
   const [saring, setSaring] = useState("");
   const [targetHapus, setTargetHapus] = useState(null);
+  const [terpilih, setTerpilih] = useState({});
+  const [targetHapusMassal, setTargetHapusMassal] = useState(false);
 
   const muat = useCallback(async () => {
     setMemuat(true);
@@ -85,7 +87,35 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
     }
   };
 
+  const konfirmasiHapusMassal = async () => {
+    const ids = Object.keys(terpilih);
+    setTargetHapusMassal(false);
+    if (!ids.length) return;
+    try {
+      for (const id of ids) {
+        await apiPengurus(`/turnamen/${id}/hapus`, { metode: "POST" });
+      }
+      beriTahu(`${ids.length} turnamen dihapus.`, "sukses");
+      setTerpilih({});
+      await muat();
+      muatUlang?.();
+    } catch (e) {
+      beriTahu(e.message, "galat");
+    }
+  };
+
   const tampil = saring ? daftar.filter((t) => t.jenis === saring) : daftar;
+  const jumlahTerpilih = Object.values(terpilih).filter(Boolean).length;
+  const semuaTerpilih = tampil.length > 0 && tampil.every((t) => terpilih[t.id]);
+  const pilihSemua = (e) => {
+    if (e.target.checked) {
+      const baru = {};
+      tampil.forEach((t) => { baru[t.id] = true; });
+      setTerpilih(baru);
+    } else {
+      setTerpilih({});
+    }
+  };
 
   if (pilih) {
     return (
@@ -104,9 +134,11 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
 
   return (
     <div className="space-y-4">
-      <h2 className="text-base font-bold text-slate-900">Turnamen</h2>
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        <Tombol
+          anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}
+          onClick={() => setBuatBaru((b) => !b)}
+        />
         {!buatBaru && (
           <select
             value={saring}
@@ -121,10 +153,27 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
             ))}
           </select>
         )}
-        <Tombol
-          anak={buatBaru ? "Tutup formulir" : "+ Turnamen baru"}
-          onClick={() => setBuatBaru((b) => !b)}
-        />
+        {jumlahTerpilih > 0 && (
+          <div className="ml-auto flex items-center gap-3">
+            <span className="text-xs font-medium text-slate-700">
+              {jumlahTerpilih} turnamen terpilih
+            </span>
+            <button
+              type="button"
+              onClick={() => setTerpilih({})}
+              className="rounded-md border-2 border-slate-300 px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+            >
+              Batalkan
+            </button>
+            <button
+              type="button"
+              onClick={() => setTargetHapusMassal(true)}
+              className="rounded-md border-2 border-red-300 bg-red-50 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-100"
+            >
+              Hapus terpilih
+            </button>
+          </div>
+        )}
       </div>
 
       {buatBaru && (
@@ -150,6 +199,15 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-10">
+                      <input
+                        type="checkbox"
+                        checked={semuaTerpilih}
+                        onChange={pilihSemua}
+                        aria-label="Pilih semua turnamen"
+                        className="size-4 accent-primary"
+                      />
+                    </TableHead>
                     <TableHead>#</TableHead>
                     <TableHead>Nama Turnamen</TableHead>
                     <TableHead>Kategori</TableHead>
@@ -162,6 +220,17 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
                 <TableBody>
                   {tampil.map((t, index) => (
                     <TableRow key={t.id}>
+                      <TableCell className="w-10">
+                        <input
+                          type="checkbox"
+                          checked={!!terpilih[t.id]}
+                          onChange={(e) =>
+                            setTerpilih((s) => ({ ...s, [t.id]: e.target.checked }))
+                          }
+                          aria-label={`Pilih ${t.nama}`}
+                          className="size-4 accent-primary"
+                        />
+                      </TableCell>
                       <TableCell>{index + 1}</TableCell>
                       <TableCell>
                         <button
@@ -211,6 +280,18 @@ export default function PanelTurnamen({ beriTahu, muatUlang, saatBukaRincian }) 
       >
         "{targetHapus?.nama}" akan dihapus permanen beserta daftar peserta
         dan hasilnya.
+      </Modal>
+
+      <Modal
+        terbuka={targetHapusMassal}
+        judul={`Hapus ${jumlahTerpilih} turnamen?`}
+        labelKonfirmasi="Hapus semua"
+        jenisKonfirmasi="bahaya"
+        onBatal={() => setTargetHapusMassal(false)}
+        onKonfirmasi={konfirmasiHapusMassal}
+      >
+        {jumlahTerpilih} turnamen akan dihapus permanen dan tidak dapat
+        dikembalikan.
       </Modal>
     </div>
   );
