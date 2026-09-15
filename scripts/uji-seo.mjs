@@ -25,7 +25,7 @@ const gagal = (pesan) => GALAT.push(pesan);
 
 const baca = (rel) => readFile(path.resolve(rel), "utf8");
 const html = await baca("index.html");
-const situs = "https://chess-club-weld.vercel.app/";
+const situs = "https://blunder-skuad.vercel.app/";
 
 /* ------------------------------------------------ 1. tabel metadata rute */
 

@@ -22,7 +22,7 @@ function alamatSitus() {
   const baku = (alamat) => (alamat.endsWith("/") ? alamat : `${alamat}/`);
   if (nyaris) return baku(nyaris.startsWith("http") ? nyaris : `https://${nyaris}`);
   return process.env.NODE_ENV === "production"
-    ? "https://chess-club-weld.vercel.app/"
+    ? "https://blunder-skuad.vercel.app/"
     : "http://localhost:5173/";
 }
 

@@ -13,7 +13,7 @@
  * dibuat defensif agar berkas ini tetap bisa diimpor dari uji Node (pola
  * yang sama dipakai engineCatur.js).
  *
- * @returns {string} mis. "https://chess-club-weld.vercel.app"
+ * @returns {string} mis. "https://blunder-skuad.vercel.app"
  */
 export function asalSitus() {
   const situsEnv =

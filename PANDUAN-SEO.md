@@ -15,7 +15,7 @@ deskripsi yang jelas — bukan cuma link mentah.
 | `meta robots` | `index, follow` | Izin eksplisit di-crawl Google |
 | `meta google-site-verification` | `bWdpNEop…ULP0` | Bukti kepemilikan (metode **HTML tag**) untuk Google Search Console |
 | `google800ae0ab9c9d6db7.html` | `google-site-verification: google800ae0ab9c9d6db7.html` | Bukti kepemilikan (metode **upload berkas HTML**) untuk Google Search Console |
-| `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
+| `link canonical` + `og:url` | `https://blunder-skuad.vercel.app/` | Alamat resmi, hasil tidak terpecah |
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
 | JSON-LD BreadcrumbList (halaman dalam) | hierarki nama + URL tiap remah | Breadcrumb di hasil Google |
@@ -51,7 +51,7 @@ Sekali saja, ikuti langkah ini:
 1. Buka **https://search.google.com/search-console** → masuk dengan akun
    Google klub.
 2. Klik **Add property** → pilih **URL prefix** → isi
-   `https://chess-club-weld.vercel.app` (tanpa slash akhir).
+   `https://blunder-skuad.vercel.app` (tanpa slash akhir).
 3. **Verifikasi kepemilikan — kedua token sudah terpasang di repo:**
 
    | Metode | Yang dipasang | Di mana Google mencarinya |
@@ -59,7 +59,7 @@ Sekali saja, ikuti langkah ini:
    | **HTML tag** | `<meta name="google-site-verification" content="bWdpNEop…ULP0">` di `<head>` `index.html` (setelah tag viewport) | Halaman beranda situs. Karena `plugins/performa.js` menyalin `index.html` ke `404.html` dan ke dua salinan setiap rute (`<rute>.html` dan `<rute>/index.html`), tag ini ada di 70 berkas HTML hasil build |
    | **Upload berkas HTML** | `public/google800ae0ab9c9d6db7.html` berisi satu baris `google-site-verification: google800ae0ab9c9d6db7.html` | URL `…/google800ae0ab9c9d6db7.html` persis seperti yang ditulis wizard. Isi & nama berkas **tidak boleh diubah** (Google menolak bila berbeda); hanya newline di akhir yang diizinkan |
 
-   Deployment production resmi adalah **Vercel** (`https://chess-club-weld.vercel.app`,
+   Deployment production resmi adalah **Vercel** (`https://blunder-skuad.vercel.app`,
    `VITE_BASE_PUBLIC=/`). Berkas verifikasi berada di akar domain dan rewrite
    SPA `"/((?!api/).*)"` tidak menimpanya karena Vercel memeriksa berkas statis
    lebih dulu.
@@ -68,7 +68,7 @@ Sekali saja, ikuti langkah ini:
    baris `<meta>` lagi — jangan menimpa token yang ada. Alternatif lain adalah
    metode **DNS TXT** di provider domain.
 4. Setelah terverifikasi: menu **Sitemaps** → ketik
-   `https://chess-club-weld.vercel.app/sitemap.xml` → **Submit**.
+   `https://blunder-skuad.vercel.app/sitemap.xml` → **Submit**.
    Lihat penjelasan lengkap di bagian 2a.
 5. Menu **URL Inspection** → tempel URL beranda → **Request indexing**.
 
@@ -90,8 +90,8 @@ Langkahnya:
    bawah "Indexing").
 2. Pada kolom **Add a new sitemap**, isi **path akhirnya saja**:
    `sitemap.xml` — bukan URL penuh. Kolom depannya sudah terisi alamat
-   property (`https://chess-club-weld.vercel.app/`), sehingga hasil
-   akhirnya `https://chess-club-weld.vercel.app/sitemap.xml`.
+   property (`https://blunder-skuad.vercel.app/`), sehingga hasil
+   akhirnya `https://blunder-skuad.vercel.app/sitemap.xml`.
 3. Klik **Submit**. Statusnya harus berubah jadi **Success** dengan kolom
    "Discovered pages" terisi (mis. `31/31`).
 4. Bila statusnya **Couldn't fetch**: buka URL-nya di tab incognito.
@@ -128,7 +128,7 @@ peringatan merah, perbaiki sesuai pesannya.
 - **Bagikan link** situs di WhatsApp/Grup Chess.com/media sosial — trafik
   eksternal mempercepat crawling.
 - Cek hasil dengan mengetik di Google:
-  `site:chess-club-weld.vercel.app` → daftar halaman yang sudah terindeks.
+  `site:blunder-skuad.vercel.app` → daftar halaman yang sudah terindeks.
 
 ## 4. Bila pindah ke domain kustom (mis. `komunitascatur.or.id`)
 
@@ -143,13 +143,43 @@ peringatan merah, perbaiki sesuai pesannya.
    submit sitemap-nya.
 3. (Opsional) buat redirect 301 dari domain lama di Vercel.
 
+## 4a. Pindah subdomain Vercel: `chess-club-weld` → `blunder-skuad`
+
+Per 15 September 2026 alamat resmi produksi diganti dari
+`https://chess-club-weld.vercel.app` menjadi
+`https://blunder-skuad.vercel.app` supaya hasil pencarian Google tidak lagi
+menampilkan kata acak "weld"/"vercel", melainkan nama komunitas sendiri.
+Seluruh referensi di kode (canonical, og:url, og:image, JSON-LD, fallback
+`vite.config.js`, CORS, dokumentasi) **sudah menunjuk alamat baru**.
+
+Langkah yang harus dilakukan di luar kode:
+
+1. **Vercel Dashboard → Settings → Domains**: tambahkan
+   `blunder-skuad.vercel.app` dan jadikan Production. Biarkan domain lama
+   terpasang dulu agar tautan lama tidak langsung mati.
+2. **Environment variables di Vercel** (lalu Redeploy):
+   - `VITE_SITE_URL=https://blunder-skuad.vercel.app`
+   - `KCI_ASAL_DIIZINKAN` — tambahkan origin baru di samping yang lama, mis.
+     `https://blunder-skuad.vercel.app,https://chess-club-weld.vercel.app`
+   - `KCI_CHESS_REDIRECT_URI=https://blunder-skuad.vercel.app/api/auth/chess/kembali`
+     dan daftarkan redirect URI baru itu di pengaturan OAuth Chess.com
+     (lihat `PANDUAN-VERIFIKASI-AKUN.md`).
+3. **Google Search Console**: tambah property URL-prefix baru
+   `https://blunder-skuad.vercel.app`, verifikasi dengan tag HTML yang
+   diberikan (tempatkan berdampingan dengan tag lama di `index.html`),
+   lalu submit `sitemap.xml`. Property lama dibiarkan sampai transisi selesai.
+4. Verifikasi: `node scripts/uji-seo.mjs` — canonical, og, sitemap, dan
+   robots.txt harus seragam menunjuk alamat baru.
+5. Setelah semua stabil (beberapa minggu), domain lama boleh dilepas dari
+   Vercel atau dibiarkan sebagai redirect.
+
 ## 5. Cek cepat hasil pencarian (setelah terindeks)
 
 Hasil Google akan tampil kira-kira:
 
 ```
 Blunder Skuad | Komunitas Catur Indonesia
-chess-club-weld.vercel.app
+blunder-skuad.vercel.app
 Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan
 bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas
 pelatihan, dan kabar komunitas terbaru.
@@ -160,7 +190,7 @@ Catatan: ejaan resmi nama klub adalah **"Blunder Skuad"** (bukan
 
 ## 6. Bila Search Console melaporkan "tidak terindeks"
 
-Diagnosis 10 September 2026, sebelum perbaikan: `site:chess-club-weld.vercel.app`
+Diagnosis 10 September 2026, sebelum perbaikan: `site:blunder-skuad.vercel.app`
 menghasilkan **0 halaman**, padahal `robots.txt`, `sitemap.xml`, `meta robots`,
 dan kedua metode verifikasi sudah benar di production. Penyebabnya bukan
 blokir-memblokir, tapi HTML yang dikirim:
@@ -177,11 +207,11 @@ blokir-memblokir, tapi HTML yang dikirim:
 
 ```bash
 # 1. Kanonikal tiap rute harus alamat rute itu sendiri, bukan "/"
-curl -s https://chess-club-weld.vercel.app/tentang-kami | grep -o '<link rel="canonical"[^>]*>'
+curl -s https://blunder-skuad.vercel.app/tentang-kami | grep -o '<link rel="canonical"[^>]*>'
 
 # 2. ETag rute tidak boleh sama dengan ETag beranda — sama berarti HTML identik
-curl -sI https://chess-club-weld.vercel.app/tentang-kami | grep -i etag
-curl -sI https://chess-club-weld.vercel.app/ | grep -i etag
+curl -sI https://blunder-skuad.vercel.app/tentang-kami | grep -i etag
+curl -sI https://blunder-skuad.vercel.app/ | grep -i etag
 
 # 3. Kunci aturan di atas agar tidak melenceng lagi
 npm run uji:seo

@@ -53,7 +53,7 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    | `KCI_PEPPER`         | hasil generate langkah 1           | **WAJIB**  | Minimal 16 karakter, jangan diganti setelah ada data                       |
    | `KCI_ADMIN_USER`     | `admin` atau username pilihan      | disarankan | Username login dashboard `/pengurus`                                       |
    | `KCI_ADMIN_PASSWORD` | password kuat langkah 1            | **WAJIB**  | Server produksi menolak bawaan `admin123`                                  |
-   | `KCI_ASAL_DIIZINKAN` | `https://chess-club-weld.vercel.app` | **WAJIB**  | Tambahkan domain kustom juga bila ada, pisahkan koma, tanpa trailing slash |
+   | `KCI_ASAL_DIIZINKAN` | `https://blunder-skuad.vercel.app` | **WAJIB**  | Tambahkan domain kustom juga bila ada, pisahkan koma, tanpa trailing slash |
    | `KCI_TOKEN_ADMIN`    | token legacy langkah 1             | opsional   | Hanya bila ingin kompatibilitas token lama                                 |
    | `KCI_LOG_PERMINTAAN` | `1`                                | disarankan | Log ringkas tanpa body/token/IP                                            |
    | `KCI_CHESS_KLUB`     | `blunder-skuad`                    | opsional   | Bawaan sudah benar                                                         |
@@ -61,13 +61,13 @@ node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
    Untuk domain kustom, contoh:
 
    ```text
-   KCI_ASAL_DIIZINKAN=https://chess-club-weld.vercel.app,https://komunitasmu.id
+   KCI_ASAL_DIIZINKAN=https://blunder-skuad.vercel.app,https://komunitasmu.id
    ```
 
    > **Alamat kanonikal (SEO).** `MetaHalaman`, `sitemap.xml`, `robots.txt`, dan
    > `llms.txt` memakai satu alamat situs. Build mencarinya berurutan:
    > `VITE_SITE_URL` → `VERCEL_PROJECT_PRODUCTION_URL` →
-   > default `https://chess-club-weld.vercel.app/`. Set `VITE_SITE_URL` secara
+   > default `https://blunder-skuad.vercel.app/`. Set `VITE_SITE_URL` secara
    > eksplisit bila domain Vercel kustom digunakan.
 
    **Jangan isi `VITE_API_DASAR` untuk FULL VERCEL.** Biarkan kosong/tidak ada
@@ -103,7 +103,7 @@ vercel --prod
 Ganti domain di bawah dengan domain Vercel milikmu.
 
 ```bash
-DOMAIN=https://chess-club-weld.vercel.app
+DOMAIN=https://blunder-skuad.vercel.app
 ADMIN_USER=admin
 ADMIN_PASSWORD='isi-password-KCI_ADMIN_PASSWORD'
 
@@ -135,7 +135,7 @@ curl -s "$DOMAIN/api/pengurus" \
 Jika langkah 1–5 sesuai, buka:
 
 ```text
-https://chess-club-weld.vercel.app/pengurus
+https://blunder-skuad.vercel.app/pengurus
 ```
 
 Masuk dengan:
@@ -179,7 +179,7 @@ Jika client_id Chess.com sudah disetujui, tambahkan env vars berikut:
 | ------------------------- | --------------------------------------------------------- |
 | `KCI_CHESS_CLIENT_ID`     | dari Chess.com                                            |
 | `KCI_CHESS_CLIENT_SECRET` | dari Chess.com, jika tersedia                             |
-| `KCI_CHESS_REDIRECT_URI`  | `https://chess-club-weld.vercel.app/api/auth/chess/kembali` |
+| `KCI_CHESS_REDIRECT_URI`  | `https://blunder-skuad.vercel.app/api/auth/chess/kembali` |
 
 Daftarkan redirect URI itu persis sama di Chess.com. Tanpa OAuth, jalur
 cadangan kode profil (`KCI-XXXXXX` di kolom Location profil Chess.com) tetap
@@ -298,7 +298,7 @@ normal.
 Cek **endpoint publik** di browser:
 
 ```
-https://chess-club-weld.vercel.app/api/kesehatan
+https://blunder-skuad.vercel.app/api/kesehatan
 ```
 
 Ia memuat objek `supabase`. Yang Anda harapkan adalah **keduanya `true`**:

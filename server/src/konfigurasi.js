@@ -289,7 +289,7 @@ export function periksaProduksi() {
   if (!konfigurasi.asalDiizinkan.length) {
     masalah.push(
       "KCI_ASAL_DIIZINKAN sebaiknya diisi di produksi, mis. " +
-        "https://chess-club-weld.vercel.app"
+        "https://blunder-skuad.vercel.app"
     );
   }
   if (!/^[a-z0-9][a-z0-9-]{0,99}$/.test(konfigurasi.chess.klub.slug)) {

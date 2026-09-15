@@ -39,7 +39,7 @@ Setelah disetujui, isi di server:
 ```bash
 KCI_CHESS_CLIENT_ID=...
 KCI_CHESS_CLIENT_SECRET=...
-KCI_CHESS_REDIRECT_URI=https://chess-club-weld.vercel.app/api/auth/chess/kembali
+KCI_CHESS_REDIRECT_URI=https://blunder-skuad.vercel.app/api/auth/chess/kembali
 ```
 
 > `redirect_uri` **tidak boleh** memakai wildcard dan harus **persis sama**

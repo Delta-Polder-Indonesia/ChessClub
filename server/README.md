@@ -196,4 +196,4 @@ node server/uji/uji-verifikasi.mjs      # OAuth/PKCE/JWT + jalur kode profil (30
 ```
 
 Untuk menguji terhadap server yang sudah berjalan (mis. staging), tempelkan
-lewat `KCI_DASAR`, mis. `KCI_DASAR=https://chess-club-weld.vercel.app node server/uji/uji-backend.mjs`.
+lewat `KCI_DASAR`, mis. `KCI_DASAR=https://blunder-skuad.vercel.app node server/uji/uji-backend.mjs`.

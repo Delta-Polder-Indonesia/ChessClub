@@ -40,7 +40,7 @@ Isi nilai berikut untuk backend produksi/staging:
 | `KCI_ADMIN_USER` | Ya | Username dashboard `/pengurus`, mis. `admin`. |
 | `KCI_ADMIN_PASSWORD` | Ya | Password kuat dashboard `/pengurus`; jangan pakai `admin123` di publik. |
 | `KCI_TOKEN_ADMIN` | Opsional | Token legacy minimal 24 karakter bila masih dipakai sebagai password alternatif. |
-| `KCI_ASAL_DIIZINKAN` | Ya | Origin frontend Vercel persis, mis. `https://chess-club-weld.vercel.app` |
+| `KCI_ASAL_DIIZINKAN` | Ya | Origin frontend Vercel persis, mis. `https://blunder-skuad.vercel.app` |
 | `KCI_JUMLAH_PROXY` | Ya | `1` di Serverless Function Vercel; `0` saat lokal. |
 | `KCI_DIR_DATA` | Lokal saja | Direktori data di luar repository; Vercel memakai `/tmp`, jadi production gunakan Supabase. |
 | `KCI_CHESS_KLUB` | Ya | Slug klub Chess.com, mis. `blunder-skuad`. |
@@ -79,13 +79,13 @@ Di **Settings → Secrets and variables → Actions → Variables**, set:
 
 | Variable | Fungsi |
 | --- | --- |
-| `KCI_API_URL` | `https://chess-club-weld.vercel.app` untuk health check production. |
+| `KCI_API_URL` | `https://blunder-skuad.vercel.app` untuk health check production. |
 | `KCI_CHESS_KLUB` | Slug klub frontend (opsional; default `blunder-skuad`). |
 
 Setelah `KCI_API_URL` tersedia, workflow health check berjalan setiap 6 jam. Pastikan endpoint berikut dapat diakses publik:
 
 ```text
-GET https://chess-club-weld.vercel.app/api/kesehatan
+GET https://blunder-skuad.vercel.app/api/kesehatan
 ```
 
 ## 5. Data persisten dan backup
@@ -110,7 +110,7 @@ backup lokal tersedia di `.github/systemd/`.
 ## 6. Pemeriksaan sebelum rilis
 
 ```bash
-API=https://chess-club-weld.vercel.app
+API=https://blunder-skuad.vercel.app
 curl "$API/api/kesehatan"
 curl -o /dev/null -w "%{http_code}\n" "$API/api/pengurus/ringkasan" # wajib 401
 KCI_API_URL="$API" npm run operasi:kesehatan
