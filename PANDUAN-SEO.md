@@ -18,6 +18,7 @@ deskripsi yang jelas — bukan cuma link mentah.
 | `link canonical` + `og:url` | `https://chess-club-weld.vercel.app/` | Alamat resmi, hasil tidak terpecah |
 | Open Graph + Twitter Card | judul, deskripsi, gambar `landing-hero.webp` | Pratinjau saat link dibagikan (WhatsApp, X, Facebook) |
 | JSON-LD (Organization + WebSite) | nama, logo, kontak, bahasa | Data terstruktur untuk rich result |
+| JSON-LD BreadcrumbList (halaman dalam) | hierarki nama + URL tiap remah | Breadcrumb di hasil Google |
 | `robots.txt` + `sitemap.xml` | 34 URL halaman, tiap entri berisi `<lastmod>` | Peta situs agar Google tahu semua halaman |
 
 Catatan jujur: **Google mengabaikan tag `keywords`** untuk pemeringkatan.
@@ -32,6 +33,15 @@ JavaScript dijalankan**. Google membaca HTML mentahnya lebih dulu, jadi tabel
 `META_RUTE` di `plugins/performa.js` menulis judul, deskripsi, kanonikal, dan
 tag Open Graph yang sama ke dalam HTML setiap rute. Menambah halaman baru =
 menambah satu entri di `META_RUTE`; kalau lupa, `npm run uji:seo` gagal.
+
+Halaman dalam juga memasang JSON-LD `BreadcrumbList` lewat komponen
+`BreadcrumbJsonLd`. Properti `item` setiap remah WAJIB URL absolut
+(http/https) — Google memperlakukannya sebagai `@id`, dan URL relatif seperti
+`"/"` atau `"/program-kami"` memicu laporan Search Console "URL di kolom 'id'
+tidak valid". Selalu buat remah dari path relatif (mis. `to: "/program-kami"`)
+; komponen mengabsahkannya lewat helper `urlAbsolut` di `src/lib/urlSitus.js`.
+Aturan ini dikunci oleh `scripts/uji-jsonld.mjs` (ikut dalam `npm run
+uji:seo`).
 
 ## 2. Mendaftarkan situs ke Google (WAJIB — ini langkah yang menentukan)
 

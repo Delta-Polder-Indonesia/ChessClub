@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet-async";
+import { asalSitus, urlAbsolut } from "../lib/urlSitus.js";
 
 /**
  * Atur meta tag per halaman — judul, deskripsi, canonical, OG tags, dan robots.
@@ -26,11 +27,9 @@ export default function MetaHalaman({
 
   // Pakai URL situs produksi bila tersedia; fallback ke origin saat lokal.
   // Pathname dipakai tanpa query string dan hash agar canonical tetap bersih.
-  const situs = (import.meta.env.VITE_SITE_URL || window.location.origin).replace(/\/+$/, "");
+  const situs = asalSitus();
   const canonicalUrl = `${situs}${window.location.pathname || "/"}`;
-  const gambarUrl = /^https?:\/\//i.test(image)
-    ? image
-    : `${situs}${String(image).startsWith("/") ? image : `/${image}`}`;
+  const gambarUrl = urlAbsolut(image);
 
   return (
     <Helmet>
