@@ -1,14 +1,13 @@
 import {
   CircleCheck,
   CircleUser,
-  Copy,
   Info,
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useState } from "react";
-import { useKartuPemain } from "../../lib/pemainCatur.js";
+import { useEffect, useState } from "react";
 import VerificationSpinner from "../../components/VerificationSpinner.jsx";
+import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
 
 /**
  * Tampilan mirip alur masuk Google (tema terang, dua kolom responsif,
@@ -136,13 +135,23 @@ const LANGKAH_KONTAK = [
   },
 ];
 
-export default function ContohTampilanPendaftaran() {
-  const [step, setStep] = useState("akun");
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+export default function ContohTampilanPendaftaran({
+  form,
+  status,
+  pesan,
+  verifikasi,
+  statusVerifikasi,
+  onUbah,
+  onTerverifikasi,
+  onBatalVerifikasi,
+  onKirim,
+  onReset,
+  validasiLokal,
+}) {
+  const [step, setStep] = useState(verifikasi ? "success" : "akun");
   const [usernameError, setUsernameError] = useState("");
-
-  const kartu = useKartuPemain(username, step === "password", "chessCom");
+  const username = form.username;
+  const setUsername = (nilai) => onUbah("username", nilai);
 
   const [headingTitle, setHeadingTitle] = useState("Pendaftaran Anggota");
   const [articleText, setArticleText] = useState(
@@ -153,29 +162,42 @@ export default function ContohTampilanPendaftaran() {
   const [showGuestModal, setShowGuestModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
-  const [dataDiri, setDataDiri] = useState({
-    namaLengkap: "",
-    panggilan: "",
-    tanggalLahir: "",
-    kota: "",
-  });
+  const dataDiri = form;
+  const setDataDiri = (pembaruan) => {
+    const hasil = typeof pembaruan === "function" ? pembaruan(form) : pembaruan;
+    Object.entries(hasil).forEach(([kunci, nilai]) => {
+      if (form[kunci] !== nilai) onUbah(kunci, nilai);
+    });
+  };
   const [diriStep, setDiriStep] = useState(0);
   const [diriError, setDiriError] = useState("");
 
-  const [finalStatus, setFinalStatus] = useState("idle");
-  const [finalPesan, setFinalPesan] = useState("");
+  const finalStatus = status === "mengirim"
+    ? "loading"
+    : status === "sukses"
+      ? "success"
+      : status === "gagal"
+        ? "error"
+        : "idle";
+  const finalPesan = pesan;
 
-  const [kontak, setKontak] = useState({
-    hp: "",
-    dana: "",
-    email: "",
-    klub: "",
-  });
+  const kontak = form;
+  const setKontak = (pembaruan) => {
+    const hasil = typeof pembaruan === "function" ? pembaruan(form) : pembaruan;
+    Object.entries(hasil).forEach(([kunci, nilai]) => {
+      if (form[kunci] !== nilai) onUbah(kunci, nilai);
+    });
+  };
   const [kontakStep, setKontakStep] = useState(0);
   const [kontakError, setKontakError] = useState("");
 
   const [editHeadingTitle, setEditHeadingTitle] = useState(headingTitle);
   const [editArticleText, setEditArticleText] = useState(articleText);
+
+  useEffect(() => {
+    if (verifikasi) setStep("success");
+    else if (statusVerifikasi === "error") setStep("password");
+  }, [verifikasi, statusVerifikasi]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -184,34 +206,21 @@ export default function ContohTampilanPendaftaran() {
 
   const handleUsernameSubmit = (e) => {
     e.preventDefault();
-    if (!username.trim()) {
-      setUsernameError("Masukkan username Chess.com.");
+    const galat = validasiLokal({ ...form, setuju: true });
+    if (galat.username) {
+      setUsernameError(galat.username);
       return;
     }
     setUsernameError("");
     setStep("password");
   };
 
-  const handlePasswordSubmit = (e) => {
-    e.preventDefault();
-    setStep("success");
-    showToast("Verifikasi berhasil! Menyambungkan ke sistem...");
-  };
-
   const handleDiriSubmit = (e) => {
     e.preventDefault();
     const langkah = LANGKAH_DATADIRI[diriStep];
-    const nilai = dataDiri[langkah.kunci].trim();
-    if (!nilai) {
-      setDiriError("Isian ini wajib diisi.");
-      return;
-    }
-    if (langkah.kunci === "namaLengkap" && nilai.split(/\s+/).length < 2) {
-      setDiriError("Tulis nama lengkap (minimal dua kata).");
-      return;
-    }
-    if (langkah.kunci === "tanggalLahir" && nilai > HARI_INI) {
-      setDiriError("Tanggal lahir tidak masuk akal.");
+    const galat = validasiLokal({ ...form, setuju: true });
+    if (galat[langkah.kunci]) {
+      setDiriError(galat[langkah.kunci]);
       return;
     }
     setDiriError("");
@@ -226,12 +235,10 @@ export default function ContohTampilanPendaftaran() {
   const handleKontakSubmit = (e) => {
     e.preventDefault();
     const langkah = LANGKAH_KONTAK[kontakStep];
-    const nilai = kontak[langkah.kunci].trim();
-    if (!langkah.opsional) {
-      if (!nilai) {
-        setKontakError("Isian ini wajib diisi.");
-        return;
-      }
+    const galat = validasiLokal({ ...form, setuju: true });
+    if (galat[langkah.kunci]) {
+      setKontakError(galat[langkah.kunci]);
+      return;
     }
     setKontakError("");
     if (kontakStep < LANGKAH_KONTAK.length - 1) {
@@ -356,7 +363,7 @@ export default function ContohTampilanPendaftaran() {
           )}
 
           {step === "password" && (
-            <form onSubmit={handlePasswordSubmit} className="w-full h-full flex flex-col justify-between">
+            <div className="w-full h-full flex flex-col justify-between">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
                 {/* Kolom Kiri: Informasi Verifikasi */}
                 <div className="lg:col-span-6 flex flex-col space-y-4">
@@ -370,19 +377,9 @@ export default function ContohTampilanPendaftaran() {
 
                   {/* Badge User */}
                   <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 border border-gray-200 text-gray-800 text-xs sm:text-sm w-fit">
-                    {kartu?.avatar ? (
-                      <img
-                        src={kartu.avatar}
-                        alt=""
-                        loading="lazy"
-                        referrerPolicy="no-referrer"
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <CircleUser className="h-4 w-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
-                    )}
+                    <CircleUser className="h-4 w-4 text-gray-500 flex-shrink-0" aria-hidden="true" />
                     <span className="font-medium truncate max-w-[160px]">
-                      {kartu?.name ?? username}
+                      {username}
                     </span>
                     <button
                       type="button"
@@ -399,39 +396,14 @@ export default function ContohTampilanPendaftaran() {
                   <h2 className="text-sm font-semibold text-gray-900">
                     Verifikasi lewat kode profil
                   </h2>
-
-                  <div className="text-xs sm:text-sm text-gray-600 leading-relaxed space-y-3">
-                    <p>
-                      Buka pengaturan profil Chess.com Anda. Isi kolom <span className="font-semibold text-gray-800">Location</span> dengan kode berikut:
-                    </p>
-                    <div className="py-1 flex items-center gap-2">
-                      <code className="select-all rounded-md bg-gray-100 px-3 py-1.5 font-mono text-sm font-bold text-[#0B2F9F] border border-gray-300 inline-block tracking-wider">
-                        KCI-Z96AKZ
-                      </code>
-                      <button
-                        type="button"
-                        title="Salin kode"
-                        aria-label="Salin kode"
-                        onClick={() => {
-                          navigator.clipboard?.writeText("KCI-Z96AKZ").catch(() => {});
-                          showToast("Kode berhasil disalin.");
-                        }}
-                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white p-1.5 text-gray-500 hover:text-gray-800 hover:border-gray-400 transition"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <p>
-                      Simpan perubahan, lalu klik tombol di bawah. Setelah terverifikasi, kode boleh dihapus kembali.
-                    </p>
-                    <button
-                      type="button"
-                      className="text-blue-600 hover:underline font-medium text-xs sm:text-sm inline-block"
-                    >
-                      Buka pengaturan Chess.com
-                    </button>
-                  </div>
-
+                  <VerifikasiAkun
+                    username={username}
+                    terverifikasi={verifikasi}
+                    onTerverifikasi={onTerverifikasi}
+                    onBatal={onBatalVerifikasi}
+                    statusAwal={statusVerifikasi}
+                    pesanAwal={statusVerifikasi === "error" ? pesan : ""}
+                  />
                   <div className="flex items-center justify-end pt-6 gap-3">
                     <button
                       type="button"
@@ -440,31 +412,27 @@ export default function ContohTampilanPendaftaran() {
                     >
                       Batal
                     </button>
-                    <button
-                      type="submit"
-                      className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
-                    >
-                      Saya sudah memasang kode
-                    </button>
                   </div>
                 </div>
               </div>
-            </form>
+            </div>
           )}
 
           {/* STEP SUCCESS */}
           {step === "success" && (
             <div className="w-full h-full flex flex-col items-center justify-center text-center py-8 space-y-5">
-              <div className="w-20 h-20 rounded-full bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 flex items-center justify-center shadow-sm">
-                <CircleCheck className="h-10 w-10" />
-              </div>
+              <VerificationSpinner
+                status="success"
+                size={72}
+                successText="Verifikasi Berhasil!"
+              />
               <h2 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight">
                 Verifikasi Berhasil!
               </h2>
               <p className="text-gray-600 max-w-md text-sm sm:text-base leading-relaxed">
                 Akun{" "}
                 <span className="text-[#0B2F9F] font-semibold">
-                  {kartu?.name ?? username}
+                  {username}
                 </span>{" "}
                 sudah terverifikasi dan siap melanjutkan pendaftaran anggota.
               </p>
@@ -473,6 +441,7 @@ export default function ContohTampilanPendaftaran() {
                   type="button"
                   onClick={() => {
                     setStep("akun");
+                    onBatalVerifikasi();
                     setUsername("");
                   }}
                   className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
@@ -723,7 +692,7 @@ export default function ContohTampilanPendaftaran() {
                 <p className="text-sm text-gray-600 leading-relaxed max-w-md">
                   Selamat datang,{" "}
                   <span className="font-semibold text-gray-900">
-                    {kartu?.name ?? username}
+                    {username}
                   </span>
                   . Anda kini tercatat sebagai anggota Blunder Skuad.
                 </p>
@@ -738,17 +707,9 @@ export default function ContohTampilanPendaftaran() {
                   type="button"
                   onClick={() => {
                     setStep("akun");
-                    setUsername("");
-                    setDataDiri({
-                      namaLengkap: "",
-                      panggilan: "",
-                      tanggalLahir: "",
-                      kota: "",
-                    });
-                    setKontak({ hp: "", dana: "", email: "", klub: "" });
                     setDiriStep(0);
                     setKontakStep(0);
-                    setFinalStatus("idle");
+                    onReset();
                   }}
                   className="px-5 py-2.5 text-blue-600 hover:bg-gray-100 rounded-full text-sm font-medium transition"
                 >
@@ -759,28 +720,10 @@ export default function ContohTampilanPendaftaran() {
                 {finalStatus !== "loading" && finalStatus !== "success" && (
                   <button
                     type="button"
-                    onClick={() => {
-                      setFinalStatus("loading");
-                      setFinalPesan("");
-                      setTimeout(() => setFinalStatus("success"), 2500);
-                    }}
+                    onClick={onKirim}
                     className="px-6 py-2.5 bg-[#0B2F9F] hover:bg-[#08216f] text-white font-medium rounded-full text-sm shadow-sm hover:shadow transition-all active:scale-95"
                   >
                     {finalStatus === "error" ? "Coba Lagi" : "Kirim Pendaftaran"}
-                  </button>
-                )}
-                {finalStatus === "idle" && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFinalStatus("error");
-                      setFinalPesan(
-                        "Server tidak merespons. Periksa koneksi Anda lalu coba lagi."
-                      );
-                    }}
-                    className="px-5 py-2.5 text-gray-500 hover:bg-gray-100 rounded-full text-sm font-medium transition"
-                  >
-                    Simulasi Gagal
                   </button>
                 )}
               </div>

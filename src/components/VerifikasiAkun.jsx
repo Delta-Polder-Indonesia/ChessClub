@@ -6,6 +6,7 @@ import {
   mintaKodeProfil,
   periksaKodeProfil,
 } from "../lib/api/index.js";
+import VerificationSpinner from "./VerificationSpinner.jsx";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,15 +33,18 @@ export default function VerifikasiAkun({
   terverifikasi,
   onTerverifikasi,
   onBatal,
+  statusAwal = "idle",
+  pesanAwal = "",
 }) {
   const { t } = useI18n();
   const [cara, setCara] = useState(null);
   const [tahap, setTahap] = useState("awal"); // awal | kode | memeriksa
   const [kode, setKode] = useState("");
-  const [pesan, setPesan] = useState("");
+  const [pesan, setPesan] = useState(pesanAwal);
   const [sibuk, setSibuk] = useState(false);
   const [bukaKosong, setBukaKosong] = useState(false);
   const [hasilVerifikasi, setHasilVerifikasi] = useState(null);
+  const [statusSpinner, setStatusSpinner] = useState(statusAwal);
 
   useEffect(() => {
     let aktif = true;
@@ -53,6 +57,15 @@ export default function VerifikasiAkun({
   }, []);
 
   const wajib = cara?.mode === "wajib";
+  const indikatorVerifikasi = (
+    <VerificationSpinner
+      status={statusSpinner}
+      size={56}
+      loadingText={t("verifikasi.memeriksa")}
+      successText={t("verifikasi.berhasil")}
+      errorText={t("verifikasi.belumTerbaca")}
+    />
+  );
 
   /* ------------------------------------------------------ sudah selesai */
   if (terverifikasi) {
@@ -81,11 +94,13 @@ export default function VerifikasiAkun({
   const loginChess = async () => {
     setSibuk(true);
     setPesan("");
+    setStatusSpinner("loading");
     try {
       const { url } = await mulaiLoginChess(window.location.pathname);
       window.location.href = url;
     } catch (e) {
       setPesan(e.message);
+      setStatusSpinner("error");
       setSibuk(false);
     }
   };
@@ -112,16 +127,20 @@ export default function VerifikasiAkun({
     setSibuk(true);
     setPesan("");
     setTahap("memeriksa");
+    setStatusSpinner("loading");
     try {
       const hasil = await periksaKodeProfil(username);
       if (hasil.cocok && hasil.tiket) {
+        setStatusSpinner("success");
         setTahap("awal");
         setHasilVerifikasi({ username: hasil.username, tiket: hasil.tiket });
       } else {
+        setStatusSpinner("error");
         setPesan(hasil.pesan || t("verifikasi.belumTerbaca"));
         setTahap("kode");
       }
     } catch (e) {
+      setStatusSpinner("error");
       setPesan(e.message);
       setTahap("kode");
     } finally {
@@ -147,6 +166,10 @@ export default function VerifikasiAkun({
       <p className="mt-1 text-sm leading-6 text-slate-600">
         {t("verifikasi.penjelasan")}
       </p>
+
+      {tahap === "awal" && !hasilVerifikasi && statusSpinner !== "idle" && (
+        <div className="mt-4">{indikatorVerifikasi}</div>
+      )}
 
       {/* Jalur 1: login Chess.com */}
       {cara?.oauth && (
@@ -201,6 +224,9 @@ export default function VerifikasiAkun({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("verifikasi.tombolKode")}</AlertDialogTitle>
             <AlertDialogDescription>
+              {(tahap === "memeriksa" || statusSpinner === "error") && (
+                <div className="mb-4">{indikatorVerifikasi}</div>
+              )}
               <ol className="list-decimal space-y-1.5 pl-5 text-sm leading-6 text-slate-700">
                 <li>{t("verifikasi.langkah1")}</li>
                 <li>
@@ -265,6 +291,7 @@ export default function VerifikasiAkun({
           <AlertDialogHeader>
             <AlertDialogTitle>{t("verifikasi.berhasil")}</AlertDialogTitle>
             <AlertDialogDescription>
+              <div className="mb-4">{indikatorVerifikasi}</div>
               {t("verifikasi.akunTerverifikasi")}{" "}
               <strong>{hasilVerifikasi?.username}</strong>
             </AlertDialogDescription>
