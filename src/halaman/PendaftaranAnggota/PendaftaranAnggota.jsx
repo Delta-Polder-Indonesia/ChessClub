@@ -1,3 +1,16 @@
+import {
+  AtSign,
+  Cake,
+  Contact,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
+  Smartphone,
+  User,
+  Users,
+} from "lucide-react";
+import ContohTampilanPendaftaran from "./ContohTampilanPendaftaran.jsx";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
@@ -63,6 +76,7 @@ function Isian({
   autoComplete,
   max,
   terpenuhi,
+  ikon,
 }) {
   const idGalat = galat ? `${nama}-galat` : undefined;
   const warnaBatas = galat
@@ -78,6 +92,11 @@ function Isian({
         {!wajib && <span className="text-slate-400"> (opsional)</span>}
       </span>
       <div className="relative">
+        {ikon && (
+          <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-slate-400">
+            {ikon}
+          </span>
+        )}
         <input
           name={nama}
           type={tipe}
@@ -90,7 +109,7 @@ function Isian({
           aria-describedby={idGalat}
           className={`w-full border-0 border-b border-solid outline-none bg-transparent py-2 text-base transition-colors focus:border-primary ${
             terpenuhi === true ? "pr-7" : ""
-          } ${warnaBatas}`}
+          } ${ikon ? "pl-7" : ""} ${warnaBatas}`}
         />
         {terpenuhi === true && (
           <IconCentang className="pointer-events-none absolute right-0 top-1/2 h-5 w-5 -translate-y-1/2 text-emerald-600" />
@@ -248,6 +267,9 @@ export default function PendaftaranAnggota() {
       next={{ to: "/tentang-kami/struktur-grup-catur#keanggotaan", judul: t("pendaftaran.nextJudul") }}
     >
       <PageArtikel lebar>
+        {/* ═══ CONTOH tampilan ala Google — untuk disesuaikan ═══ */}
+        <ContohTampilanPendaftaran />
+
         {/* ═══ Header Editorial / Koran ═══ */}
         <section className="-mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
           <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
@@ -289,7 +311,10 @@ export default function PendaftaranAnggota() {
                 rel="noreferrer noopener"
                 className="mt-1 inline-block font-sans text-xs font-bold text-gray-900 underline underline-offset-2"
               >
-                {t("pendaftaran.gabungKlub")}
+                <span className="inline-flex items-center gap-1.5">
+                  <Globe className="h-3.5 w-3.5" aria-hidden="true" />
+                  {t("pendaftaran.gabungKlub")}
+                </span>
               </a>
             </div>
           </div>
@@ -321,6 +346,7 @@ export default function PendaftaranAnggota() {
               autoComplete="username"
               placeholder={t("pendaftaran.placeholder")}
               catatan={t("pendaftaran.catatanUsername")}
+              ikon={<AtSign className="h-4 w-4" aria-hidden="true" />}
             />
 
             <VerifikasiAkun
@@ -355,6 +381,7 @@ export default function PendaftaranAnggota() {
               autoComplete="name"
               placeholder={t("pendaftaran.phNama")}
               catatan={t("pendaftaran.catatanNama")}
+              ikon={<User className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="panggilan"
@@ -367,6 +394,7 @@ export default function PendaftaranAnggota() {
               autoComplete="nickname"
               placeholder={t("pendaftaran.phPanggilan")}
               catatan={t("pendaftaran.catatanPanggilan")}
+              ikon={<Contact className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="tanggalLahir"
@@ -384,6 +412,7 @@ export default function PendaftaranAnggota() {
                   ? `${t("pendaftaran.kategori")}: ${kategori} (${umur} ${t("pendaftaran.tahun")})`
                   : t("pendaftaran.catatanLahir")
               }
+              ikon={<Cake className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="kota"
@@ -396,6 +425,7 @@ export default function PendaftaranAnggota() {
               autoComplete="address-level2"
               placeholder={t("pendaftaran.phKota")}
               catatan={t("pendaftaran.catatanKota")}
+              ikon={<MapPin className="h-4 w-4" aria-hidden="true" />}
             />
           </fieldset>
 
@@ -420,6 +450,7 @@ export default function PendaftaranAnggota() {
                   ? `${t("pendaftaran.terbaca")}: ${formatHp(form.hp)}`
                   : t("pendaftaran.catatanHp")
               }
+              ikon={<Smartphone className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="dana"
@@ -435,6 +466,7 @@ export default function PendaftaranAnggota() {
                   ? `${t("pendaftaran.terbaca")}: ${formatHp(form.dana)}`
                   : t("pendaftaran.catatanDana")
               }
+              ikon={<Phone className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="email"
@@ -447,6 +479,7 @@ export default function PendaftaranAnggota() {
               autoComplete="email"
               placeholder={t("pendaftaran.phEmail")}
               catatan={t("pendaftaran.catatanEmail")}
+              ikon={<Mail className="h-4 w-4" aria-hidden="true" />}
             />
             <Isian
               nama="klub"
@@ -456,6 +489,7 @@ export default function PendaftaranAnggota() {
               terpenuhi={statusTerpenuhi("klub")}
               placeholder={t("pendaftaran.phKlub")}
               catatan={t("pendaftaran.catatanKlub")}
+              ikon={<Users className="h-4 w-4" aria-hidden="true" />}
             />
           </fieldset>
 
