@@ -1,11 +1,17 @@
 import { Helmet } from "react-helmet-async";
 import { useI18n } from "../lib/i18n.jsx";
+import { urlAbsolut } from "../lib/urlSitus.js";
 
 const NAMA_BRAND = "Blunder Skuad";
 
 /**
  * BreadcrumbList JSON-LD — membantu Google memahami hierarki navigasi.
  * Dipasang di setiap halaman yang punya breadcrumb.
+ *
+ * Properti `item` diubah ke URL ABSOLUT karena Google memperlakukannya
+ * sebagai `@id` dan menolak URL relatif (mis. "/" atau "/tentang-kami")
+ * dengan laporan "URL di kolom 'id' tidak valid". Item terakhir (halaman
+ * yang sedang dibuka) boleh tanpa `item` sesuai spesifikasi BreadcrumbList.
  */
 export function BreadcrumbJsonLd({ items }) {
   if (!items?.length) return null;
@@ -15,7 +21,7 @@ export function BreadcrumbJsonLd({ items }) {
     "@type": "ListItem",
     position: i + 1,
     name: item.label,
-    ...(item.to ? { item: item.to } : {}),
+    ...(item.to ? { item: urlAbsolut(item.to) } : {}),
   }));
 
   return (
