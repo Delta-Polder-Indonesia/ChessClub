@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCatur.js";
 import { URL_KLUB } from "./komponen/pendaftaran.js";
-import VerificationSpinner from "./komponen/VerificationSpinner.jsx";
-import VerifikasiAkun from "./komponen/VerifikasiAkun.jsx";
+import VerificationSpinner from "../../components/VerificationSpinner.jsx";
+import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
 import { Button } from "./komponen/ui/button.jsx";
 
 /**

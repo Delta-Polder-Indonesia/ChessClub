@@ -88,37 +88,6 @@ export const keanggotaan = {
   }
 
 export const verifikasi = {
-    judul: "Account Ownership Proof",
-    penjelasan:
-      "Prove that the Chess.com account you entered really belongs to you. This prevents other people from registering your account, and prevents anyone registering with someone else's account.",
-    tombolLogin: "Sign in with Chess.com",
-    catatanLogin:
-      "You will be redirected to chess.com to sign in. We never see or store your password.",
-    atau: "Or without signing in",
-    tombolKode: "Verify via profile code",
-    memproses: "Processing…",
-    langkah1: "Open your Chess.com profile settings.",
-    langkah2: "Set the Location field to this code:",
-    langkah3:
-      "Save your changes, then click the button below. Once verified, you may remove the code again.",
-    bukaPengaturan: "Open Chess.com settings",
-    sudahPasang: "I have added the code",
-    memeriksa: "Checking profile…",
-    belumTerbaca:
-      "The code was not found yet. Make sure it is saved, then try again shortly.",
-    belumTerbacaJudul: "Code not detected yet",
-    belumTerbacaKet: "Make sure it is saved, then try again shortly.",
-    gagalMemintaKode: "Failed to request code",
-    gagalMemintaKodeKet: "A code could not be created right now. Try again shortly.",
-    isiUsernameDulu: "Please enter your Chess.com username first.",
-    berhasil: "Account ownership verified:",
-    ganti: "Change account",
-    judulKosong: "Username not filled in",
-    mengerti: "Got it",
-    akunTerverifikasi: "The following account is yours:",
-    lanjut: "Continue",
-    batal: "Cancel",
-
     langkahSalinJudul: "Copy your verification code",
     langkahSalinRincian: "The code below is unique to this registration.",
     langkahTempelJudul: "Paste it on your Chess.com profile",

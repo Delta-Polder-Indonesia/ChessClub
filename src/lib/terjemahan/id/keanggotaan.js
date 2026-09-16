@@ -88,38 +88,6 @@ export const keanggotaan = {
   }
 
 export const verifikasi = {
-    judul: "Bukti Kepemilikan Akun",
-    penjelasan:
-      "Buktikan bahwa akun Chess.com yang Anda tulis benar-benar milik Anda. Ini mencegah orang lain mendaftarkan akun Anda, dan mencegah pendaftaran memakai akun milik pemain lain.",
-    tombolLogin: "Masuk dengan Chess.com",
-    catatanLogin:
-      "Anda akan diarahkan ke chess.com untuk masuk. Kata sandi Anda tidak pernah kami lihat maupun simpan.",
-    atau: "Atau tanpa login",
-    tombolKode: "Verifikasi lewat kode profil",
-    memproses: "Memproses…",
-    langkah1: "Buka pengaturan profil Chess.com Anda.",
-    langkah2: "Isi kolom Location dengan kode ini:",
-    langkah3:
-      "Simpan perubahan, lalu klik tombol di bawah. Setelah terverifikasi, kode boleh dihapus kembali.",
-    bukaPengaturan: "Buka pengaturan Chess.com",
-    sudahPasang: "Saya sudah memasang kode",
-    memeriksa: "Memeriksa profil…",
-    belumTerbaca:
-      "Kode belum terbaca. Pastikan sudah tersimpan, lalu coba lagi beberapa saat.",
-    belumTerbacaJudul: "Kode belum terbaca",
-    belumTerbacaKet: "Pastikan sudah tersimpan, lalu coba lagi beberapa saat.",
-    gagalMemintaKode: "Gagal meminta kode",
-    gagalMemintaKodeKet:
-      "Kode tidak dapat dibuat saat ini. Coba lagi beberapa saat.",
-    isiUsernameDulu: "Isi username Chess.com Anda terlebih dahulu.",
-    berhasil: "Kepemilikan akun terverifikasi:",
-    ganti: "Ganti akun",
-    judulKosong: "Username belum diisi",
-    mengerti: "Mengerti",
-    akunTerverifikasi: "Akun berikut milik Anda:",
-    lanjut: "Lanjut",
-    batal: "Batal",
-
     langkahSalinJudul: "Salin kode verifikasi Anda",
     langkahSalinRincian: "Kode di bawah bersifat unik untuk pendaftaran ini.",
     langkahTempelJudul: "Tempel pada profil Chess.com",
