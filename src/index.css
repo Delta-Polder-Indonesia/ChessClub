@@ -1340,3 +1340,59 @@ section[id] {
     @apply font-sans;
   }
 }
+
+/* ---------------------------------------------------------------- */
+/* Animasi kustom alur pendaftaran (contoh chess-community-ui).
+   Dipakai komponen VerificationSpinner & toast di berkas
+   src/halaman/PendaftaranAnggota. */
+/* ---------------------------------------------------------------- */
+
+@keyframes bskuad-putar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.anim-putar {
+  animation: bskuad-putar 0.9s linear infinite;
+}
+
+@keyframes bskuad-garis {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.anim-garis {
+  animation: bskuad-garis 0.5s ease-out both;
+}
+
+.anim-tunda {
+  animation-delay: 0.32s;
+}
+
+@keyframes bskuad-fade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-in {
+  animation: bskuad-fade 0.28s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-putar,
+  .anim-garis,
+  .animate-fade-in {
+    animation: none;
+  }
+}

@@ -50,6 +50,9 @@ const PendaftaranAnggota = lazy(() => import("./halaman/PendaftaranAnggota/Penda
 const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanKetentuan.jsx"));
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
+const Bantuan = lazy(() => import("./halaman/Keberlanjutan/Bantuan.jsx"));
+const Privasi = lazy(() => import("./halaman/Keberlanjutan/Privasi.jsx"));
+const Ketentuan = lazy(() => import("./halaman/Keberlanjutan/Ketentuan.jsx"));
 
 // Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
@@ -141,6 +144,9 @@ const RUTE_HALAMAN = [
   ["/keberlanjutan/syarat-dan-ketentuan", SyaratDanKetentuan],
   ["/keberlanjutan/kode-etik-komunitas", KodeEtikKomunitas],
   ["/keberlanjutan/pertanyaan-umum", PertanyaanUmum],
+  ["/bantuan", Bantuan],
+  ["/privasi", Privasi],
+  ["/ketentuan", Ketentuan],
 
   ["/hubungi-kami", HubungiKami],
   ["/karir", Karir],

@@ -38,6 +38,9 @@ export const RUTE_PUBLIK = [
   "/keberlanjutan/syarat-dan-ketentuan",
   "/keberlanjutan/kode-etik-komunitas",
   "/keberlanjutan/pertanyaan-umum",
+  "/bantuan",
+  "/privasi",
+  "/ketentuan",
   "/hubungi-kami",
   "/beranda",
   "/beranda/turnamen",
@@ -204,6 +207,18 @@ export const META_RUTE = {
   "/keberlanjutan/pertanyaan-umum": {
     judulKey: "pertanyaan.judul",
     deskripsiKey: "pertanyaan.deskripsi",
+  },
+  "/bantuan": {
+    judulKey: "bantuan.judul",
+    deskripsiKey: "bantuan.deskripsi",
+  },
+  "/privasi": {
+    judulKey: "privasi.judul",
+    deskripsiKey: "privasi.deskripsi",
+  },
+  "/ketentuan": {
+    judulKey: "ketentuan.judul",
+    deskripsiKey: "ketentuan.deskripsi",
   },
   "/hubungi-kami": {
     judulKey: "hubungi.judul",

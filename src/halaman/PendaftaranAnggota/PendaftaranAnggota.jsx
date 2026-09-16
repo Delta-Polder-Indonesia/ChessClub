@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { HalamanIsi } from "../../components/PageBagian.jsx";
 import {
   daftarDenganChessCom,
   normalisasiUsername,
@@ -11,6 +11,7 @@ import {
 import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import TampilanPendaftaran from "./TampilanPendaftaran.jsx";
+import { URL_KLUB } from "./komponen/pendaftaran.js";
 
 const AWAL = {
   username: "",
@@ -136,31 +137,57 @@ export default function PendaftaranAnggota() {
       description={t("pendaftaran.deskripsi")}
       next={{ to: "/tentang-kami/struktur-grup-catur#keanggotaan", judul: t("pendaftaran.nextJudul") }}
     >
-      <PageArtikel lebar>
-        <TampilanPendaftaran
-          form={form}
-          status={status}
-          pesan={pesan}
-          verifikasi={verifikasi}
-          statusVerifikasi={statusVerifikasi}
-          teksSetuju={t("pendaftaran.setuju")}
-          onUbah={ubah}
-          onTerverifikasi={(hasil) => {
-            setVerifikasi(hasil);
-            setStatusVerifikasi("success");
-            setForm((f) => ({ ...f, username: hasil.username }));
-            setStatus("idle");
-            setPesan("");
-          }}
-          onBatalVerifikasi={() => {
-            setVerifikasi(null);
-            setStatusVerifikasi("idle");
-          }}
-          onKirim={kirim}
-          onReset={reset}
-          validasiLokal={validasiLokal}
-        />
-      </PageArtikel>
+      <TampilanPendaftaran
+        form={form}
+        status={status}
+        pesan={pesan}
+        verifikasi={verifikasi}
+        statusVerifikasi={statusVerifikasi}
+        teksSetuju={t("pendaftaran.setuju")}
+        onUbah={ubah}
+        onTerverifikasi={(hasil) => {
+          setVerifikasi(hasil);
+          setStatusVerifikasi("success");
+          setForm((f) => ({ ...f, username: hasil.username }));
+          setStatus("idle");
+          setPesan("");
+        }}
+        onBatalVerifikasi={() => {
+          setVerifikasi(null);
+          setStatusVerifikasi("idle");
+        }}
+        onKirim={kirim}
+        onReset={reset}
+        validasiLokal={validasiLokal}
+      >
+        <footer className="z-10 w-full max-w-4xl pb-2">
+          <div className="flex flex-col items-center gap-3 border-t border-gray-200 pt-5 text-center sm:flex-row sm:justify-between sm:text-left">
+            <p className="order-2 text-[11px] leading-relaxed text-gray-500 sm:order-1">
+              © {new Date().getFullYear()} Komunitas Catur Indonesia · Blunder Skuad.
+              Pendaftaran diproses oleh pengurus klub.
+            </p>
+            <nav className="order-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-medium text-gray-600 sm:order-2">
+              <a
+                href={URL_KLUB}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#0B2F9F] hover:underline"
+              >
+                Klub Chess.com
+              </a>
+              <Link to="/bantuan" className="hover:text-[#0B2F9F] hover:underline">
+                {t("bantuan.judul")}
+              </Link>
+              <Link to="/privasi" className="hover:text-[#0B2F9F] hover:underline">
+                {t("privasi.judul")}
+              </Link>
+              <Link to="/ketentuan" className="hover:text-[#0B2F9F] hover:underline">
+                {t("ketentuan.judul")}
+              </Link>
+            </nav>
+          </div>
+        </footer>
+      </TampilanPendaftaran>
     </HalamanIsi>
   );
 }

@@ -40,6 +40,9 @@ import {
   kodeEtik,
   pertanyaan,
   keberlanjutan,
+  bantuan,
+  privasi,
+  ketentuan,
 } from "./keberlanjutan.js";
 
 import {
@@ -128,6 +131,9 @@ export const ID = {
   kodeEtik,
   pertanyaan,
   keberlanjutan,
+  bantuan,
+  privasi,
+  ketentuan,
   program,
   bermainCatur,
   tipsTekaTeki,

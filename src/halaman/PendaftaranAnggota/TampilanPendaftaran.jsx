@@ -1,13 +1,14 @@
-import { CircleUser, Info } from "lucide-react";
+import { CircleUser, ExternalLink, Info, Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useKartuPemain } from "../../lib/pemainCatur.js";
-import VerificationSpinner from "../../components/VerificationSpinner.jsx";
-import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
-import { Button } from "../../components/ui/button.jsx";
+import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCatur.js";
+import VerificationSpinner from "./komponen/VerificationSpinner.jsx";
+import VerifikasiAkun from "./komponen/VerifikasiAkun.jsx";
+import { Button } from "./komponen/ui/button.jsx";
 
 /**
  * Tampilan mirip alur masuk Google (tema terang, dua kolom responsif,
  * alur akun/username & verifikasi) dengan hirarki teks dan tombol yang konsisten.
+ * Port mandiri dari contoh chess-community-ui-component.
  */
 
 function WordmarkKomunitas({ gelap = false }) {
@@ -32,7 +33,7 @@ function WordmarkKomunitas({ gelap = false }) {
 }
 
 function MarkKomunitas({ kecil = false }) {
-  const px = kecil ? 36 : 40;
+  const px = kecil ? 44 : 56;
   return (
     <div className="select-none mb-6">
       <div className="flex items-center gap-3">
@@ -145,12 +146,17 @@ export default function TampilanPendaftaran({
   onKirim,
   onReset,
   validasiLokal,
+  children,
 }) {
   const [step, setStep] = useState(verifikasi ? "success" : "akun");
   const [usernameError, setUsernameError] = useState("");
   const username = form.username;
   const setUsername = (nilai) => onUbah("username", nilai);
-  const kartuPemain = useKartuPemain(username, Boolean(username), "chessCom");
+  const {
+    kartu: kartuPemain,
+    memuat: memuatProfil,
+    galat: galatProfil,
+  } = useProfilPemain(username, Boolean(username), "chessCom");
 
   const [toastMessage, setToastMessage] = useState("");
 
@@ -234,7 +240,7 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast("Pendaftaran sedang diproses...");
+      showToast("Data kontak selesai. Periksa kembali lalu kirim pendaftaran.");
     }
   };
 
@@ -246,7 +252,7 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast("Pendaftaran sedang diproses...");
+      showToast("Data kontak selesai. Periksa kembali lalu kirim pendaftaran.");
     }
   };
 
@@ -279,29 +285,92 @@ export default function TampilanPendaftaran({
                 {/* Kolom Kanan: Form Input & Tindakan */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
                   <div className="relative mt-1">
-<input
-          type="text"
-          id="usernameInput"
-          name="username"
-          value={username}
-          aria-invalid={usernameError ? "true" : undefined}
-          onChange={(e) => {
-            setUsername(e.target.value);
-            if (usernameError) setUsernameError("");
-          }}
-          className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all"
-          placeholder="Username Chess.com"
-        />
-        {/* PERBAIKAN: Gaya label memotong garis persis seperti Google */}
-        <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
-          Username Chess.com *
-        </label>
+                    <input
+                      type="text"
+                      id="usernameInput"
+                      name="username"
+                      value={username}
+                      aria-invalid={usernameError ? "true" : undefined}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        if (usernameError) setUsernameError("");
+                      }}
+                      className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all"
+                      placeholder="Username Chess.com"
+                    />
+                    {/* Gaya label memotong garis persis seperti Google */}
+                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
+                      Nama Lengkap / Username
+                    </label>
                   </div>
 
                   {usernameError && (
                     <div role="alert" className="text-xs text-red-600 flex items-center gap-1.5 -mt-2">
                       <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                       <span>{usernameError}</span>
+                    </div>
+                  )}
+
+                  {/* Status pencarian profil */}
+                  {!usernameError && memuatProfil && !kartuPemain && (
+                    <p className="flex items-center gap-2 text-xs text-gray-500 -mt-2">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                      Mencari profil Chess.com…
+                    </p>
+                  )}
+
+                  {!usernameError && !memuatProfil && !kartuPemain && galatProfil && (
+                    <p className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 -mt-2">
+                      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
+                      <span>
+                        {galatProfil} Periksa ejaan username, atau lanjutkan bila
+                        profil baru saja dibuat.
+                      </span>
+                    </p>
+                  )}
+
+                  {/* Pratinjau profil publik Chess.com */}
+                  {!usernameError && kartuPemain && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-gray-50/80 px-3 py-2.5 -mt-1">
+                      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white ring-1 ring-gray-200">
+                        {kartuPemain.avatar ? (
+                          <img
+                            className="h-full w-full object-cover"
+                            src={kartuPemain.avatar}
+                            alt=""
+                            loading="lazy"
+                            referrerPolicy="no-referrer"
+                          />
+                        ) : (
+                          <CircleUser className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium text-gray-900">
+                          {kartuPemain.nama}
+                          {kartuPemain.gelar && (
+                            <span className="ml-1 text-xs font-bold text-[#81b64c]">
+                              {kartuPemain.gelar}
+                            </span>
+                          )}
+                        </span>
+                        <span className="block truncate text-xs text-gray-500">
+                          {kartuPemain.username}
+                          {benderaNegara(kartuPemain.negara) && (
+                            <span className="ml-1">{benderaNegara(kartuPemain.negara)}</span>
+                          )}{" "}
+                          · {formatAngka(kartuPemain.followers)} pengikut
+                        </span>
+                      </span>
+                      <a
+                        href={kartuPemain.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex flex-none items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
+                      >
+                        Profil
+                        <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                      </a>
                     </div>
                   )}
 
@@ -365,6 +434,12 @@ export default function TampilanPendaftaran({
                       Ubah
                     </button>
                   </div>
+
+                  <p className="text-xs leading-relaxed text-gray-500">
+                    Kami tidak meminta kata sandi Chess.com Anda. Verifikasi cukup
+                    dilakukan dengan menempelkan kode sekali pakai pada profil
+                    publik Anda.
+                  </p>
                 </div>
 
                 {/* Kolom Kanan: Instruksi Kode & Tombol Aksi */}
@@ -376,7 +451,10 @@ export default function TampilanPendaftaran({
                     username={username}
                     terverifikasi={verifikasi}
                     onTerverifikasi={onTerverifikasi}
-                    onBatal={onBatalVerifikasi}
+                    onBatal={() => {
+                      setStep("akun");
+                      onBatalVerifikasi();
+                    }}
                     statusAwal={statusVerifikasi}
                     pesanAwal={statusVerifikasi === "error" ? pesan : ""}
                   />
@@ -481,7 +559,7 @@ export default function TampilanPendaftaran({
                       className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
-                    {/* PERBAIKAN: Gaya label memotong garis */}
+                    {/* Gaya label memotong garis */}
                     <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
@@ -577,7 +655,7 @@ export default function TampilanPendaftaran({
                       className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition-all"
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
-                    {/* PERBAIKAN: Gaya label memotong garis */}
+                    {/* Gaya label memotong garis */}
                     <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
                       {LANGKAH_KONTAK[kontakStep].opsional ? "(opsional)" : "*"}
@@ -634,7 +712,7 @@ export default function TampilanPendaftaran({
                 errorText="Pendaftaran Gagal"
               />
               {finalStatus !== "loading" && finalStatus !== "success" && (
-                <label className="flex max-w-md items-start gap-3 text-left text-sm leading-6 text-grey-800">
+                <label className="flex max-w-md items-start gap-3 text-left text-sm leading-6 text-gray-800 cursor-pointer">
                   <input
                     type="checkbox"
                     name="setuju"
@@ -652,13 +730,20 @@ export default function TampilanPendaftaran({
                 </p>
               )}
               {finalStatus === "success" && (
-                <p className="text-sm text-gray-600 leading-relaxed max-w-md">
-                  Selamat datang,{" "}
-                  <span className="font-semibold text-gray-900">
-                    {username}
-                  </span>
-                  . Anda kini tercatat sebagai anggota Blunder Skuad.
-                </p>
+                <>
+                  <p className="text-sm text-gray-600 leading-relaxed max-w-md">
+                    Selamat datang,{" "}
+                    <span className="font-semibold text-gray-900">
+                      {username}
+                    </span>
+                    . Anda kini tercatat sebagai anggota Blunder Skuad.
+                  </p>
+                  {finalPesan && (
+                    <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-800">
+                      {finalPesan}
+                    </span>
+                  )}
+                </>
               )}
               {finalStatus === "error" && (
                 <p className="text-sm text-red-600 leading-relaxed max-w-md">
@@ -690,6 +775,7 @@ export default function TampilanPendaftaran({
         </div>
       </main>
 
+      {children}
     </div>
   );
 }
