@@ -1343,8 +1343,8 @@ section[id] {
 
 /* ---------------------------------------------------------------- */
 /* Animasi kustom alur pendaftaran (contoh chess-community-ui).
-   Dipakai komponen VerificationSpinner & toast di berkas
-   src/halaman/PendaftaranAnggota. */
+   Dipakai komponen VerificationSpinner (src/components) pada alur
+   pendaftaran. */
 /* ---------------------------------------------------------------- */
 
 @keyframes bskuad-putar {

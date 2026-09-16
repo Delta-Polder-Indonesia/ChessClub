@@ -1,10 +1,16 @@
 import { useEffect, useState } from "react";
+import { useI18n } from "../../../lib/i18n.jsx";
+import { ID } from "../../../lib/terjemahan.js";
 
 /**
  * Utilitas data pemain catur — port mandiri dari contoh chess-community-ui-component.
  *
  * Semua data diambil langsung dari API publik Chess.com
  * (https://api.chess.com/pub/player/{username}) tanpa kunci API.
+ *
+ * Pesan galat mengikuti i18n situs: pemanggilan UI menyuntikkan penerjemah `t`
+ * lewat opsi `ambilProfilChessCom`; tanpa `t`, teks Indonesia dari kamus ID
+ * menjadi fallback yang aman (konsisten dengan perilaku i18n.jsx).
  */
 
 const API_CHESSCOM = "https://api.chess.com/pub/player";
@@ -12,6 +18,18 @@ const BATAS_TIMEOUT = 12000;
 
 /* Cache sederhana per-sesi supaya avatar/nama tidak diambil berulang kali. */
 const CACHE_KARTU = new Map();
+
+/* Penerjemah cadangan bila pemanggil tidak menyediakan `t` (teks ID). */
+const tBawaan = (kunci, ganti = {}) => {
+  let teks = kunci
+    .split(".")
+    .reduce((o, k) => (o ? o[k] : undefined), ID);
+  teks = teks ?? kunci;
+  for (const [k, v] of Object.entries(ganti)) {
+    teks = teks.replaceAll(`{${k}}`, v);
+  }
+  return teks;
+};
 
 export function normalisasiUsername(nilai) {
   return String(nilai ?? "")
@@ -55,13 +73,16 @@ function petakanProfil(data) {
 /**
  * Ambil profil pemain Chess.com.
  * @param {string} usernameRaw
- * @param {{ segar?: boolean }} opsi `segar: true` melewati cache (dipakai saat verifikasi kode).
+ * @param {{ segar?: boolean, t?: (kunci: string, ganti?: object) => string }} opsi
+ *        `segar: true` melewati cache (dipakai saat verifikasi kode);
+ *        `t` menerjemahkan pesan galat mengikuti bahasa aktif.
  */
 export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
+  const t = opsi.t || tBawaan;
   const username = normalisasiUsername(usernameRaw);
-  if (!username) throw new Error("Username masih kosong.");
+  if (!username) throw new Error(t("verifikasi.profilUsernameKosong"));
   if (!sahUsername(username)) {
-    throw new Error("Username hanya boleh berisi huruf, angka, tanda hubung, atau garis bawah (3–30 karakter).");
+    throw new Error(t("verifikasi.profilUsernameSah"));
   }
 
   const kunci = username.toLowerCase();
@@ -79,9 +100,9 @@ export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
 
     if (!tafsir.ok) {
       if (tafsir.status === 404) {
-        throw new Error(`Username "${username}" tidak ditemukan di Chess.com.`);
+        throw new Error(t("verifikasi.profilTidakDitemukan", { username }));
       }
-      throw new Error(`Chess.com menolak permintaan (kode ${tafsir.status}). Coba beberapa saat lagi.`);
+      throw new Error(t("verifikasi.profilDitolak", { kode: tafsir.status }));
     }
 
     const kartu = petakanProfil(await tafsir.json());
@@ -89,10 +110,10 @@ export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
     return kartu;
   } catch (galat) {
     if (galat?.name === "AbortError") {
-      throw new Error("Waktu koneksi ke Chess.com habis. Periksa jaringan Anda lalu coba lagi.");
+      throw new Error(t("verifikasi.profilTimeout"));
     }
     if (galat instanceof TypeError) {
-      throw new Error("Tidak dapat menghubungi Chess.com dari perangkat ini.");
+      throw new Error(t("verifikasi.profilJaringan"));
     }
     throw galat;
   } finally {
@@ -140,9 +161,9 @@ export function benderaNegara(urlNegara) {
     .join("");
 }
 
-export function formatAngka(nilai) {
+export function formatAngka(nilai, bahasa = "id") {
   try {
-    return new Intl.NumberFormat("id-ID").format(Number(nilai || 0));
+    return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID").format(Number(nilai || 0));
   } catch {
     return String(nilai ?? 0);
   }
@@ -169,6 +190,7 @@ export function formatTanggal(waktu) {
  * @returns {{ kartu: object|null, memuat: boolean, galat: string }}
  */
 export function useProfilPemain(username, aktif = true, platform = "chessCom") {
+  const { t } = useI18n();
   const [kartu, setKartu] = useState(null);
   const [memuat, setMemuat] = useState(false);
   const [galat, setGalat] = useState("");
@@ -188,7 +210,7 @@ export function useProfilPemain(username, aktif = true, platform = "chessCom") {
 
     const timer = setTimeout(async () => {
       try {
-        const hasil = await ambilProfilChessCom(bersih);
+        const hasil = await ambilProfilChessCom(bersih, { t });
         if (!dibatalkan) {
           setKartu(hasil);
           setGalat("");
@@ -196,7 +218,7 @@ export function useProfilPemain(username, aktif = true, platform = "chessCom") {
       } catch (galatBaru) {
         if (!dibatalkan) {
           setKartu(null);
-          setGalat(galatBaru?.message || "Profil tidak dapat dimuat.");
+          setGalat(galatBaru?.message || t("verifikasi.profilGagalMuat"));
         }
       } finally {
         if (!dibatalkan) setMemuat(false);

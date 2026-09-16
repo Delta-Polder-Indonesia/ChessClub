@@ -1,9 +1,11 @@
 import { CircleUser, ExternalLink, Info, Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useI18n } from "../../lib/i18n.jsx";
 import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCatur.js";
-import VerificationSpinner from "./komponen/VerificationSpinner.jsx";
-import VerifikasiAkun from "./komponen/VerifikasiAkun.jsx";
-import { Button } from "./komponen/ui/button.jsx";
+import { URL_KLUB } from "./komponen/pendaftaran.js";
+import VerificationSpinner from "../../components/VerificationSpinner.jsx";
+import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
+import { Button } from "../../components/ui/button.jsx";
 
 /**
  * Tampilan mirip alur masuk Google (tema terang, dua kolom responsif,
@@ -12,6 +14,7 @@ import { Button } from "./komponen/ui/button.jsx";
  */
 
 function WordmarkKomunitas({ gelap = false }) {
+  const { t } = useI18n();
   return (
     <span className="flex flex-col leading-none">
       <span
@@ -26,7 +29,7 @@ function WordmarkKomunitas({ gelap = false }) {
           gelap ? "text-slate-500" : "text-gray-600"
         }`}
       >
-        INDONESIA
+        {t("pendaftaran.brandLine2")}
       </span>
     </span>
   );
@@ -55,83 +58,6 @@ function MarkKomunitas({ kecil = false }) {
 }
 
 const HARI_INI = new Date().toISOString().slice(0, 10);
-const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
-
-/* Satu isian per langkah pada bagian Data Diri (1 → 2 → 3 → 4). */
-const LANGKAH_DATADIRI = [
-  {
-    kunci: "namaLengkap",
-    label: "Nama Lengkap",
-    judul: "Nama Lengkap Anda",
-    deskripsi: "Sesuai identitas resmi, untuk sertifikat dan hadiah turnamen.",
-    tipe: "text",
-    placeholder: "contoh: Budi Santoso",
-  },
-  {
-    kunci: "panggilan",
-    label: "Nama Panggilan",
-    judul: "Nama Panggilan Anda",
-    deskripsi: "Dipakai pengurus untuk administrasi dan turnamen.",
-    tipe: "text",
-    placeholder: "contoh: Budi",
-  },
-  {
-    kunci: "tanggalLahir",
-    label: "Tanggal Lahir",
-    judul: "Tanggal Lahir",
-    deskripsi: "Dipakai untuk menentukan kategori umur turnamen.",
-    tipe: "date",
-  },
-  {
-    kunci: "kota",
-    label: "Kota Asal",
-    judul: "Kota Asal Anda",
-    deskripsi: "Untuk pembagian wilayah pada liga antar-komunitas.",
-    tipe: "text",
-    placeholder: "contoh: Medan",
-  },
-];
-
-/* Satu isian per langkah pada bagian Kontak & Pembayaran (1 → 2 → 3 → 4).
-   Langkah dengan `opsional: true` menyediakan tombol "Lewati". */
-const LANGKAH_KONTAK = [
-  {
-    kunci: "hp",
-    label: "Nomor HP / WhatsApp",
-    judul: "Nomor HP / WhatsApp",
-    deskripsi: "Nomor aktif WhatsApp, untuk undangan turnamen dan verifikasi.",
-    tipe: "tel",
-    placeholder: "contoh: 0812-3456-7890",
-    opsional: false,
-  },
-  {
-    kunci: "dana",
-    label: "Nomor DANA",
-    judul: "Nomor DANA",
-    deskripsi: "Untuk pengiriman hadiah turnamen.",
-    tipe: "tel",
-    placeholder: "kosongkan bila sama dengan nomor HP",
-    opsional: true,
-  },
-  {
-    kunci: "email",
-    label: "Email",
-    judul: "Alamat Email",
-    deskripsi: "Untuk pemberitahuan resmi dari pengurus.",
-    tipe: "email",
-    placeholder: "contoh: budi@email.com",
-    opsional: true,
-  },
-  {
-    kunci: "klub",
-    label: "Klub / Komunitas Asal",
-    judul: "Klub / Komunitas Asal",
-    deskripsi: "Bila Anda sudah tergabung di klub lain.",
-    tipe: "text",
-    placeholder: "contoh: Klub Catur Medan",
-    opsional: true,
-  },
-];
 
 export default function TampilanPendaftaran({
   form,
@@ -148,7 +74,90 @@ export default function TampilanPendaftaran({
   validasiLokal,
   children,
 }) {
+  const { t, bahasa } = useI18n();
   const [step, setStep] = useState(verifikasi ? "success" : "akun");
+
+  /* Satu isian per langkah pada bagian Data Diri (1 → 2 → 3 → 4). */
+  const LANGKAH_DATADIRI = [
+    {
+      kunci: "namaLengkap",
+      label: t("pendaftaran.labelNama"),
+      judul: t("pendaftaran.judulNama"),
+      deskripsi: t("pendaftaran.catatanNama"),
+      tipe: "text",
+      placeholder: t("pendaftaran.phNama"),
+    },
+    {
+      kunci: "panggilan",
+      label: t("pendaftaran.labelPanggilan"),
+      judul: t("pendaftaran.judulPanggilan"),
+      deskripsi: t("pendaftaran.catatanPanggilan"),
+      tipe: "text",
+      placeholder: t("pendaftaran.phPanggilan"),
+    },
+    {
+      kunci: "tanggalLahir",
+      label: t("pendaftaran.labelLahir"),
+      judul: t("pendaftaran.labelLahir"),
+      deskripsi: t("pendaftaran.catatanLahir"),
+      tipe: "date",
+    },
+    {
+      kunci: "kota",
+      label: t("pendaftaran.labelKota"),
+      judul: t("pendaftaran.judulKota"),
+      deskripsi: t("pendaftaran.catatanKota"),
+      tipe: "text",
+      placeholder: t("pendaftaran.phKota"),
+    },
+  ];
+
+  /* Satu isian per langkah pada bagian Kontak & Pembayaran (1 → 2 → 3 → 4).
+     Langkah dengan `opsional: true` menyediakan tombol "Lewati". */
+  const LANGKAH_KONTAK = [
+    {
+      kunci: "hp",
+      label: t("pendaftaran.labelHp"),
+      judul: t("pendaftaran.labelHp"),
+      deskripsi: t("pendaftaran.catatanHp"),
+      tipe: "tel",
+      placeholder: t("pendaftaran.phHp"),
+      opsional: false,
+    },
+    {
+      kunci: "dana",
+      label: t("pendaftaran.labelDana"),
+      judul: t("pendaftaran.labelDana"),
+      deskripsi: t("pendaftaran.catatanDana"),
+      tipe: "tel",
+      placeholder: t("pendaftaran.phDana"),
+      opsional: true,
+    },
+    {
+      kunci: "email",
+      label: t("pendaftaran.labelEmail"),
+      judul: t("pendaftaran.judulEmail"),
+      deskripsi: t("pendaftaran.catatanEmail"),
+      tipe: "email",
+      placeholder: t("pendaftaran.phEmail"),
+      opsional: true,
+    },
+    {
+      kunci: "klub",
+      label: t("pendaftaran.labelKlub"),
+      judul: t("pendaftaran.labelKlub"),
+      deskripsi: t("pendaftaran.catatanKlub"),
+      tipe: "text",
+      placeholder: t("pendaftaran.phKlub"),
+      opsional: true,
+    },
+  ];
+
+  /* Username ditebalkan di tengah kalimat, jadi templat i18n dipecah pada
+     placeholder {username} agar markup <span> bergaya tetap dipertahankan. */
+  const [akunSiapAwal, akunSiapAkhir] = t("pendaftaran.akunSiap").split("{username}");
+  const [finalSuksesAwal, finalSuksesAkhir] = t("pendaftaran.finalSukses").split("{username}");
+
   const [usernameError, setUsernameError] = useState("");
   const username = form.username;
   const setUsername = (nilai) => onUbah("username", nilai);
@@ -223,7 +232,7 @@ export default function TampilanPendaftaran({
       setDiriStep((s) => s + 1);
     } else {
       setStep("kontak");
-      showToast("Data diri selesai. Lanjut ke Kontak & Pembayaran...");
+      showToast(t("pendaftaran.toastDiriSelesai"));
     }
   };
 
@@ -240,7 +249,7 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast("Data kontak selesai. Periksa kembali lalu kirim pendaftaran.");
+      showToast(t("pendaftaran.toastKontakSelesai"));
     }
   };
 
@@ -252,7 +261,7 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast("Data kontak selesai. Periksa kembali lalu kirim pendaftaran.");
+      showToast(t("pendaftaran.toastKontakSelesai"));
     }
   };
 
@@ -275,10 +284,10 @@ export default function TampilanPendaftaran({
                 <div className="lg:col-span-6 flex flex-col space-y-3">
                   <MarkKomunitas />
                   <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
-                    Pendaftaran Anggota
+                    {t("pendaftaran.judul")}
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Gunakan akun Chess.com Anda. Data pendaftaran akan tersimpan aman di Komunitas Catur Indonesia.
+                    {t("pendaftaran.subjudulAkun")}
                   </p>
                 </div>
 
@@ -296,11 +305,11 @@ export default function TampilanPendaftaran({
                         if (usernameError) setUsernameError("");
                       }}
                       className="peer w-full h-14 px-4 rounded-lg border border-gray-300 bg-transparent text-sm sm:text-base text-gray-900 placeholder-transparent focus:outline-none focus:border-gray-500 focus:ring-1 focus:ring-gray-500 transition-all"
-                      placeholder="Username Chess.com"
+                      placeholder={t("pendaftaran.phUsername")}
                     />
                     {/* Gaya label memotong garis persis seperti Google */}
-                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
-                      Nama Lengkap / Username
+                    <label htmlFor="usernameInput" className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
+                      {t("pendaftaran.labelUsernameAkun")}
                     </label>
                   </div>
 
@@ -315,7 +324,7 @@ export default function TampilanPendaftaran({
                   {!usernameError && memuatProfil && !kartuPemain && (
                     <p className="flex items-center gap-2 text-xs text-gray-500 -mt-2">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                      Mencari profil Chess.com…
+                      {t("pendaftaran.mencariProfil")}
                     </p>
                   )}
 
@@ -323,8 +332,7 @@ export default function TampilanPendaftaran({
                     <p className="flex items-start gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-800 -mt-2">
                       <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
                       <span>
-                        {galatProfil} Periksa ejaan username, atau lanjutkan bila
-                        profil baru saja dibuat.
+                        {galatProfil}{" "}{t("pendaftaran.profilGagalLanjut")}
                       </span>
                     </p>
                   )}
@@ -359,7 +367,7 @@ export default function TampilanPendaftaran({
                           {benderaNegara(kartuPemain.negara) && (
                             <span className="ml-1">{benderaNegara(kartuPemain.negara)}</span>
                           )}{" "}
-                          · {formatAngka(kartuPemain.followers)} pengikut
+                          · {formatAngka(kartuPemain.followers, bahasa)} {t("pendaftaran.pengikut")}
                         </span>
                       </span>
                       <a
@@ -368,26 +376,26 @@ export default function TampilanPendaftaran({
                         rel="noopener noreferrer"
                         className="flex flex-none items-center gap-1 text-xs font-medium text-blue-600 hover:underline"
                       >
-                        Profil
+                        {t("pendaftaran.profil")}
                         <ExternalLink className="h-3 w-3" aria-hidden="true" />
                       </a>
                     </div>
                   )}
 
                   <p className="text-xs text-gray-600 leading-normal">
-                    Username harus sudah tercatat sebagai anggota Blunder Skuad di Chess.com. Roster Chess.com dapat membutuhkan hingga 12 jam untuk diperbarui.{" "}
+                    {t("pendaftaran.catatanRoster")}{" "}
                     <button
                       type="button"
                       onClick={() => window.open(URL_KLUB, "_blank", "noopener,noreferrer")}
                       className="text-blue-600 hover:underline font-medium inline-block mt-1"
                     >
-                      Buka klub Blunder Skuad di Chess.com
+                      {t("pendaftaran.bukaKlub")}
                     </button>
                   </p>
 
                   <div className="flex items-center justify-end pt-6">
                     <Button type="submit">
-                      Berikutnya
+                      {t("pendaftaran.berikutnya")}
                     </Button>
                   </div>
                 </div>
@@ -402,10 +410,10 @@ export default function TampilanPendaftaran({
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
                   <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
-                    Verifikasi diri Anda
+                    {t("pendaftaran.verifJudul")}
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Untuk membantu menjaga keamanan akun Anda, kami ingin memastikan bahwa memang Anda yang mencoba mendaftar.
+                    {t("pendaftaran.verifDeskripsi")}
                   </p>
 
                   {/* Badge User — avatar + nama dari Chess.com, tanpa pembungkus */}
@@ -431,21 +439,19 @@ export default function TampilanPendaftaran({
                       onClick={() => setStep("akun")}
                       className="ml-1 text-xs text-blue-600 hover:underline font-semibold"
                     >
-                      Ubah
+                      {t("pendaftaran.ubah")}
                     </button>
                   </div>
 
                   <p className="text-xs leading-relaxed text-gray-500">
-                    Kami tidak meminta kata sandi Chess.com Anda. Verifikasi cukup
-                    dilakukan dengan menempelkan kode sekali pakai pada profil
-                    publik Anda.
+                    {t("pendaftaran.verifTanpaSandi")}
                   </p>
                 </div>
 
                 {/* Kolom Kanan: Instruksi Kode & Tombol Aksi */}
                 <div className="lg:col-span-6 flex flex-col space-y-5 pt-2 lg:pt-0">
                   <h2 className="text-sm font-semibold text-gray-900">
-                    Verifikasi lewat kode profil
+                    {t("pendaftaran.verifLewatKode")}
                   </h2>
                   <VerifikasiAkun
                     username={username}
@@ -469,17 +475,17 @@ export default function TampilanPendaftaran({
               <VerificationSpinner
                 status="success"
                 size={72}
-                successText="Verifikasi Berhasil!"
+                successText={t("pendaftaran.verifBerhasil")}
               />
               <h2 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight">
-                Verifikasi Berhasil!
+                {t("pendaftaran.verifBerhasil")}
               </h2>
               <p className="text-gray-600 max-w-md text-sm sm:text-base leading-relaxed">
-                Akun{" "}
+                {akunSiapAwal}
                 <span className="text-[#0B2F9F] font-semibold">
                   {username}
-                </span>{" "}
-                sudah terverifikasi dan siap melanjutkan pendaftaran anggota.
+                </span>
+                {akunSiapAkhir}
               </p>
               <div className="flex w-full items-center justify-end gap-3 pt-2">
                 <Button
@@ -490,10 +496,10 @@ export default function TampilanPendaftaran({
                     setUsername("");
                   }}
                 >
-                  Ganti Akun
+                  {t("pendaftaran.gantiAkun")}
                 </Button>
                 <Button onClick={() => setStep("data-diri")}>
-                  Lanjutkan Pendaftaran
+                  {t("pendaftaran.lanjutkanPendaftaran")}
                 </Button>
               </div>
             </div>
@@ -510,11 +516,10 @@ export default function TampilanPendaftaran({
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
                   <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
-                    Data Diri
+                    {t("pendaftaran.judulDataDiri")}
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Isi satu data per langkah. Data disimpan secara privat oleh
-                    pengurus untuk administrasi dan turnamen.
+                    {t("pendaftaran.deskDataDiri")}
                   </p>
 
                   <div className="flex items-center gap-2.5">
@@ -529,7 +534,7 @@ export default function TampilanPendaftaran({
                       ></span>
                     ))}
                     <span className="ml-1 text-xs text-gray-500">
-                      Langkah {diriStep + 1} dari {LANGKAH_DATADIRI.length}
+                      {t("pendaftaran.langkahDari", { n: diriStep + 1, total: LANGKAH_DATADIRI.length })}
                     </span>
                   </div>
                 </div>
@@ -546,6 +551,7 @@ export default function TampilanPendaftaran({
                   <div className="relative mt-2">
                     <input
                       type={LANGKAH_DATADIRI[diriStep].tipe}
+                      id={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`}
                       name={LANGKAH_DATADIRI[diriStep].kunci}
                       value={dataDiri[LANGKAH_DATADIRI[diriStep].kunci]}
                       onChange={(e) => {
@@ -560,7 +566,7 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
                   </div>
@@ -583,12 +589,12 @@ export default function TampilanPendaftaran({
                         }
                       }}
                     >
-                      Kembali
+                      {t("pendaftaran.kembali")}
                     </Button>
                     <Button type="submit">
                       {diriStep < LANGKAH_DATADIRI.length - 1
-                        ? "Berikutnya"
-                        : "Lanjutkan"}
+                        ? t("pendaftaran.berikutnya")
+                        : t("pendaftaran.lanjutkan")}
                     </Button>
                   </div>
                 </div>
@@ -607,12 +613,10 @@ export default function TampilanPendaftaran({
                 <div className="lg:col-span-6 flex flex-col space-y-4">
                   <MarkKomunitas kecil />
                   <h1 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight leading-tight">
-                    Kontak & Pembayaran
+                    {t("pendaftaran.judulKontak")}
                   </h1>
                   <p className="text-sm text-gray-600 leading-relaxed">
-                    Isi satu data per langkah. Nomor HP/WhatsApp dan DANA hanya
-                    disimpan pada catatan pengurus dan tidak pernah ditampilkan
-                    di situs.
+                    {t("pendaftaran.deskKontak")}
                   </p>
 
                   <div className="flex items-center gap-2.5">
@@ -625,7 +629,7 @@ export default function TampilanPendaftaran({
                       ></span>
                     ))}
                     <span className="ml-1 text-xs text-gray-500">
-                      Langkah {kontakStep + 1} dari {LANGKAH_KONTAK.length}
+                      {t("pendaftaran.langkahDari", { n: kontakStep + 1, total: LANGKAH_KONTAK.length })}
                     </span>
                   </div>
                 </div>
@@ -637,12 +641,13 @@ export default function TampilanPendaftaran({
                   </h2>
                   <p className="-mt-3 text-xs text-gray-500 leading-normal">
                     {LANGKAH_KONTAK[kontakStep].deskripsi}{" "}
-                    {LANGKAH_KONTAK[kontakStep].opsional && "(opsional)"}
+                    {LANGKAH_KONTAK[kontakStep].opsional && t("pendaftaran.opsional")}
                   </p>
 
                   <div className="relative mt-2">
                     <input
                       type={LANGKAH_KONTAK[kontakStep].tipe}
+                      id={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`}
                       name={LANGKAH_KONTAK[kontakStep].kunci}
                       value={kontak[LANGKAH_KONTAK[kontakStep].kunci]}
                       onChange={(e) => {
@@ -656,9 +661,9 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
-                      {LANGKAH_KONTAK[kontakStep].opsional ? "(opsional)" : "*"}
+                      {LANGKAH_KONTAK[kontakStep].opsional ? t("pendaftaran.opsional") : "*"}
                     </label>
                   </div>
 
@@ -683,17 +688,17 @@ export default function TampilanPendaftaran({
                         }
                       }}
                     >
-                      Kembali
+                      {t("pendaftaran.kembali")}
                     </Button>
                     {LANGKAH_KONTAK[kontakStep].opsional && (
                       <Button variant="outline" onClick={handleLewatiKontak}>
-                        Lewati
+                        {t("pendaftaran.lewati")}
                       </Button>
                     )}
                     <Button type="submit">
                       {kontakStep < LANGKAH_KONTAK.length - 1
-                        ? "Berikutnya"
-                        : "Selesai"}
+                        ? t("pendaftaran.berikutnya")
+                        : t("pendaftaran.selesai")}
                     </Button>
                   </div>
                 </div>
@@ -707,9 +712,9 @@ export default function TampilanPendaftaran({
               <VerificationSpinner
                 status={finalStatus}
                 size={72}
-                loadingText="Mendaftarkan anggota..."
-                successText="Pendaftaran Berhasil!"
-                errorText="Pendaftaran Gagal"
+                loadingText={t("pendaftaran.mendaftarkan")}
+                successText={t("pendaftaran.pendaftaranBerhasil")}
+                errorText={t("pendaftaran.pendaftaranGagal")}
               />
               {finalStatus !== "loading" && finalStatus !== "success" && (
                 <label className="flex max-w-md items-start gap-3 text-left text-sm leading-6 text-gray-800 cursor-pointer">
@@ -725,18 +730,17 @@ export default function TampilanPendaftaran({
               )}
               {finalStatus === "idle" && (
                 <p className="text-sm text-gray-600 leading-relaxed max-w-md">
-                  Semua data sudah lengkap. Klik tombol untuk mengirim
-                  pendaftaran.
+                  {t("pendaftaran.finalIdle")}
                 </p>
               )}
               {finalStatus === "success" && (
                 <>
                   <p className="text-sm text-gray-600 leading-relaxed max-w-md">
-                    Selamat datang,{" "}
+                    {finalSuksesAwal}
                     <span className="font-semibold text-gray-900">
                       {username}
                     </span>
-                    . Anda kini tercatat sebagai anggota Blunder Skuad.
+                    {finalSuksesAkhir}
                   </p>
                   {finalPesan && (
                     <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-1.5 text-xs font-semibold text-emerald-800">
@@ -747,7 +751,7 @@ export default function TampilanPendaftaran({
               )}
               {finalStatus === "error" && (
                 <p className="text-sm text-red-600 leading-relaxed max-w-md">
-                  {finalPesan || "Ada kesalahan saat mengirim. Coba lagi."}
+                  {finalPesan || t("pendaftaran.finalGagal")}
                 </p>
               )}
               <div className="flex w-full items-center justify-end gap-3 pt-2">
@@ -761,12 +765,12 @@ export default function TampilanPendaftaran({
                   }}
                 >
                   {finalStatus === "success"
-                    ? "Keluar / Ganti Akun"
-                    : "Ulangi dari Awal"}
+                    ? t("pendaftaran.keluarGantiAkun")
+                    : t("pendaftaran.ulangiAwal")}
                 </Button>
                 {finalStatus !== "loading" && finalStatus !== "success" && (
                   <Button onClick={onKirim}>
-                    {finalStatus === "error" ? "Coba Lagi" : "Kirim Pendaftaran"}
+                    {finalStatus === "error" ? t("pendaftaran.cobaLagi") : t("pendaftaran.kirimPendaftaran")}
                   </Button>
                 )}
               </div>

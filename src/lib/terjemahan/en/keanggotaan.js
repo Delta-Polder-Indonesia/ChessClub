@@ -88,36 +88,51 @@ export const keanggotaan = {
   }
 
 export const verifikasi = {
-    judul: "Account Ownership Proof",
-    penjelasan:
-      "Prove that the Chess.com account you entered really belongs to you. This prevents other people from registering your account, and prevents anyone registering with someone else's account.",
-    tombolLogin: "Sign in with Chess.com",
-    catatanLogin:
-      "You will be redirected to chess.com to sign in. We never see or store your password.",
-    atau: "Or without signing in",
-    tombolKode: "Verify via profile code",
-    memproses: "Processing…",
-    langkah1: "Open your Chess.com profile settings.",
-    langkah2: "Set the Location field to this code:",
-    langkah3:
-      "Save your changes, then click the button below. Once verified, you may remove the code again.",
-    bukaPengaturan: "Open Chess.com settings",
-    sudahPasang: "I have added the code",
-    memeriksa: "Checking profile…",
-    belumTerbaca:
-      "The code was not found yet. Make sure it is saved, then try again shortly.",
-    belumTerbacaJudul: "Code not detected yet",
-    belumTerbacaKet: "Make sure it is saved, then try again shortly.",
-    gagalMemintaKode: "Failed to request code",
-    gagalMemintaKodeKet: "A code could not be created right now. Try again shortly.",
-    isiUsernameDulu: "Please enter your Chess.com username first.",
-    berhasil: "Account ownership verified:",
-    ganti: "Change account",
-    judulKosong: "Username not filled in",
-    mengerti: "Got it",
-    akunTerverifikasi: "The following account is yours:",
-    lanjut: "Continue",
-    batal: "Cancel",
+    langkahSalinJudul: "Copy your verification code",
+    langkahSalinRincian: "The code below is unique to this registration.",
+    langkahTempelJudul: "Paste it on your Chess.com profile",
+    langkahTempelRincian:
+      "Open Settings → Profile, fill the Location field with the code, then press Save.",
+    langkahPeriksaJudul: "Check again here",
+    langkahPeriksaRincian:
+      "Press Check Code. We read your public profile to match the code.",
+    kodeAnda: "Your verification code",
+    salinKode: "Copy code",
+    salinKodeVerifikasi: "Copy verification code",
+    buatKodeBaru: "Generate new code",
+    bukaPengaturanProfil: "Open Chess.com profile settings",
+    menghubungi: "Contacting Chess.com and checking {username}'s profile…",
+    profilTerverifikasi: "Chess.com profile verified. Continuing registration…",
+    periksaKode: "Check Code",
+    sedangMemeriksa: "Checking…",
+    verifCepatGunakan: "Use quick verification",
+    verifCepatToggle: "Can't edit your profile? Quick verification",
+    tutup: "Close",
+    buka: "Open",
+    verifCepatKeterangan:
+      "If your Chess.com profile cannot be edited yet, or the cache still holds old data, retype the code above to complete verification (manual confirmation mode).",
+    kodeManual: "Manual verification code",
+    phKodeCepat: "BSKUAD-XXXXXX",
+    konfirmasiKode: "Confirm Code",
+    catatanPrivasi:
+      "We only read your public Chess.com profile. You may remove the code again once verification is complete.",
+    belumTerbacaProfil:
+      "The code was not detected on {username}'s profile. Make sure you pressed Save on Chess.com, then check again. Chess.com profiles can remain cached for several hours.",
+    usernameKosong: "Chess.com username is still empty.",
+    kodeTidakCocok:
+      "The code you entered does not match. Copy the code above, then paste it back.",
+    galatMemeriksa: "Failed to check the Chess.com profile.",
+    galatUmum: "Verification failed. Try again.",
+
+    profilUsernameKosong: "Username is still empty.",
+    profilUsernameSah:
+      "Username may only contain letters, numbers, hyphens, or underscores (3–30 characters).",
+    profilTidakDitemukan: "Username \"{username}\" was not found on Chess.com.",
+    profilDitolak: "Chess.com rejected the request (code {kode}). Try again shortly.",
+    profilTimeout: "The connection to Chess.com timed out. Check your network, then try again.",
+    profilJaringan: "Chess.com cannot be reached from this device.",
+    profilGagalMuat: "The profile could not be loaded.",
+    oauthGagal: "Chess.com verification failed: {sebab}",
   }
 
 export const pendaftaran = {
@@ -203,4 +218,68 @@ export const pendaftaran = {
     galatLahirAneh: "That date of birth is not plausible.",
     galatEmail: "Invalid email format.",
     galatSetuju: "You must agree to the community code of ethics.",
+
+    brandLine2: "INDONESIA",
+    subjudulAkun:
+      "Use your Chess.com account. Your registration data will be stored securely by the Indonesia Chess Community.",
+    labelUsernameAkun: "Full Name / Username",
+    phUsername: "Chess.com Username",
+    mencariProfil: "Searching Chess.com profile…",
+    profilGagalLanjut:
+      "Check the username spelling, or continue if the profile was just created.",
+    pengikut: "followers",
+    profil: "Profile",
+    catatanRoster:
+      "Your username must already be listed as a Blunder Skuad member on Chess.com. The Chess.com roster can take up to 12 hours to refresh.",
+    bukaKlub: "Open the Blunder Skuad club on Chess.com",
+    berikutnya: "Next",
+    verifJudul: "Verify it's you",
+    verifDeskripsi:
+      "To help keep your account secure, we want to make sure it is really you who is trying to register.",
+    ubah: "Change",
+    verifTanpaSandi:
+      "We never ask for your Chess.com password. Verification is done simply by pasting a one-time code onto your public profile.",
+    verifLewatKode: "Verify via profile code",
+    verifBerhasil: "Verification Successful!",
+    akunSiap:
+      "Account {username} is verified and ready to continue member registration.",
+    gantiAkun: "Change Account",
+    lanjutkanPendaftaran: "Continue Registration",
+    judulDataDiri: "Personal Details",
+    deskDataDiri:
+      "Fill in one item per step. Data is kept private by the committee for administration and tournaments.",
+    judulNama: "Your Full Name",
+    judulPanggilan: "Your Nickname",
+    judulKota: "Your City of Origin",
+    judulEmail: "Email Address",
+    judulKontak: "Contact & Payment",
+    deskKontak:
+      "Fill in one item per step. Phone/WhatsApp and DANA numbers are kept only in the committee's records and are never shown on the site.",
+    langkahDari: "Step {n} of {total}",
+    kembali: "Back",
+    lanjutkan: "Continue",
+    selesai: "Finish",
+    lewati: "Skip",
+    opsional: "(optional)",
+    toastDiriSelesai: "Personal details complete. Moving on to Contact & Payment...",
+    toastKontakSelesai: "Contact details complete. Review everything, then submit your registration.",
+    finalIdle: "All data is complete. Click the button to submit your registration.",
+    finalSukses:
+      "Welcome, {username}. You are now recorded as a Blunder Skuad member.",
+    finalGagal: "Something went wrong while submitting. Try again.",
+    mendaftarkan: "Registering member...",
+    pendaftaranBerhasil: "Registration Successful!",
+    pendaftaranGagal: "Registration Failed",
+    keluarGantiAkun: "Sign Out / Change Account",
+    ulangiAwal: "Start Over",
+    cobaLagi: "Try Again",
+    kirimPendaftaran: "Submit Registration",
+    hakCipta:
+      "© {tahun} Indonesia Chess Community · Blunder Skuad. Registrations are processed by the club committee.",
+    tautanKlub: "Chess.com Club",
+
+    spinnerMemproses: "Processing...",
+    spinnerBerhasil: "Success",
+    spinnerGagal: "Failed",
+    spinnerStatus: "Status",
   }
