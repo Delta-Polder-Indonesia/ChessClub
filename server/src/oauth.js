@@ -24,12 +24,23 @@
  *    (dan sebaliknya), dan
  *  - token CSRF (hex 64 karakter, tanpa titik) tidak pernah sah jadi tiket.
  *
- * Sisa keadaan yang memang harus dibagikan hanyalah "tiket ini sudah
- * dipakai". Ledger-nya ada di memori proses (lihat `tiketDipakai`): dalam
- * satu proses/restart pencegahan pemutaran ulang berlaku penuh, di lingkungan
- * multi-instance bersifat terbaik (best effort). Dampaknya kecil karena
- * tiket terikat username dan penyimpanan anggota menolak duplikasi secara
- * atomik — tiket yang sama tidak bisa menghasilkan dua anggota.
+ * Sisa keadaan yang benar-benar perlu dibagikan hanyalah "tiket ini sudah
+ * dipakai", dan itu SENGAJA belum dibagikan. Ledger `tiketDipakai` hidup di
+ * memori proses, jadi batasnya harus disebut apa adanya:
+ *   - sekali pakai = dalam satu instance yang masih hidup;
+ *   - TIDAK bertahan cold start / restart;
+ *   - TIDAK dibagikan antar-instance, sehingga replay lintas instance masih
+ *     MUNGKIN selama tiket belum kedaluwarsa.
+ *
+ * Kenapa tidak dipaksakan ke penyimpanan bersama: `kci_storage` (Supabase)
+ * hanya menyediakan upsert kunci-nilai — menang-last-write, tanpa pembaruan
+ * bersyarat — sehingga ledger di atasnya pun tetap bukan "sekali pakai
+ * lintas instance" yang sesungguhnya. Menjadikannya benar butuh lapisan baru
+ * (Redis SETNX / baris DB dengan constraint unik), yang tidak dibangun di sini
+ * karena belum ada bukti kebutuhan: dampak replay dibatasi dua hal, yaitu
+ * tiket terikat satu username dan antrean tulis anggota menolak duplikasi
+ * username secara atomik — tiket yang sama tidak dapat menghasilkan dua akun.
+ * Lihat PANDUAN-VERIFIKASI-AKUN.md §3 dan VERCEL-LIMITATIONS.md.
  *
  * Catatan: client_id harus diminta ke Chess.com lebih dulu melalui
  * https://forms.gle/7Ai8UZCJMZkCVvxn9 (persetujuan manual). Selama belum
@@ -202,6 +213,8 @@ export function statistikSesi() {
   return {
     modusTiket: "tanpa-keadaan (HMAC, berlaku lintas instance)",
     tiketDipakaiTercatat: tiketDipakai.size,
+    // Dicatat apa adanya: lingkup ledger sekali pakai masih per instance.
+    lingkupLedgerTiket: "per-instance (best effort lintas instance)",
   };
 }
 

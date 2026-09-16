@@ -152,7 +152,13 @@ async function kirimDenganCsrf(
 
   let csrfToken = await ambilCsrfToken();
   let { res, hasil } = await lakukan(csrfToken);
-  if (res.status === 403 && /csrf/i.test(hasil.pesan || "")) {
+  /* Penolakan CSRF dipulihkan sekali: pada deployment multi-instance token
+     bisa terbit di instance yang berbeda dari tempat POST mendarat. Deteksi
+     memakai `kode` dari server; teks pesan hanya cadangan untuk server lama. */
+  if (
+    res.status === 403 &&
+    (hasil?.kode === "token-csrf" || /csrf/i.test(hasil?.pesan || ""))
+  ) {
     try {
       sessionStorage.removeItem("kci-csrf-token");
     } catch {

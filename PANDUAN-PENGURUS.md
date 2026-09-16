@@ -140,7 +140,8 @@ Belum ada tab khusus di dashboard; periksa lewat API pengurus (token
 curl -s -H "X-Token-Admin: $KCI_TOKEN_ADMIN" \
   "$API/api/pengurus/pengajuan-verifikasi?status=menunggu"
 
-# setujui -> tiket cara "pengurus" terbit + status anggota ditulis
+# setujui -> status terverifikasi ditulis ke catatan anggota
+# (TIDAK ada tiket di respons: satu keputusan = satu mekanisme)
 curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
   "$API/api/pengurus/pengajuan-verifikasi/<id>/setujui"
 
@@ -151,10 +152,24 @@ curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
 ```
 
 Yang dicatat: nama pengurus, waktu, dan jejak audit
-(`pengajuan-verifikasi-disetujui` / `-ditolak`). Sebelum menyetujui, buka
-profil Chess.com orang tersebut dan pastikan kolom Location (atau nama
-profil) memuat kode tantangan yang tercantum pada pengajuan — tiket hanya
-boleh terbit karena pemeriksaan yang sungguh-sungguh dilakukan.
+(`pengajuan-verifikasi-disetujui` / `-ditolak`, plus
+`pengajuan-verifikasi-diterapkan` saat status benar-benar dipakai). Sebelum
+menyetujui, buka profil Chess.com orang tersebut dan pastikan kolom Location
+(atau nama profil) memuat kode tantangan yang tercantum pada pengajuan —
+perubahan status hanya boleh lahir dari pemeriksaan yang sungguh-sungguh
+dilakukan.
+
+Tiga hal yang perlu diketahui pengurus soal jalur ini:
+
+- `anggotaDiperbarui: true` berarti catatan anggotanya sudah ada dan langsung
+  menjadi terverifikasi.
+- `anggotaDiperbarui: false` + `petunjuk` berarti yang bersangkutan belum
+  mengirim formulir pendaftaran. Persetujuan **tidak** dibuang: server akan
+  menerapkannya begitu formulir masuk, lalu menandai pengajuan sebagai sudah
+  diterapkan supaya tidak dipakai dua kali.
+- Endpoint ini **tidak** mengembalikan tiket. Kalau ada yang meminta
+  "kode/tiket" untuk ditukar di formulir, itu bukan bagian dari alur ini —
+  status terverifikasi tidak dapat diberikan dari layar pengurus.
 
 ---
 

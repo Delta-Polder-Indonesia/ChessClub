@@ -83,6 +83,7 @@ import {
   normalisasiUsername as normalisasiHalaman,
   periksaUsername as periksaUsernameHalaman,
 } from "./src/halaman/PendaftaranAnggota/komponen/pemainCatur.js";
+import { ajukanVerifikasiManual } from "./src/lib/api/anggota.js";
 
 export {
   React,
@@ -96,6 +97,7 @@ export {
   sahUsernameHalaman,
   normalisasiHalaman,
   periksaUsernameHalaman,
+  ajukanVerifikasiManual,
 };
 
 export function TombolBahasa({ nilai }) {
@@ -505,6 +507,139 @@ console.log("\nVerifikasiAkun — kode diminta ke server, jalur manual = pengaju
     JSON.stringify(timer.hidup())
   );
   timer.pulihkan();
+}
+
+/* ================== VerifikasiAkun: tantangan hilang di server (cold start) */
+
+console.log("\nVerifikasiAkun — tantangan hilang: kode baru diminta, bukan pesan buntu");
+{
+  kosongkan();
+  let nomor = 0;
+  const f = pasangFetch({
+    "/api/csrf-token": { token: "csrf-uji" },
+    "POST /api/csrf-token": { token: "csrf-uji" },
+    "POST /api/auth/kode/minta": () => {
+      nomor += 1;
+      return {
+        username: "hikaru",
+        kode: `KCI-BARU${nomor}`,
+        berlakuDetik: 1800,
+        diulang: false,
+      };
+    },
+    /* Server menjawab bahwa tantangan tidak ada lagi (cold start tanpa
+       penyimpanan bersama, atau kode kedaluwarsa) dengan SEBAB-nya. */
+    "POST /api/auth/kode/periksa": {
+      status: 400,
+      body: {
+        pesan: "Belum ada kode aktif untuk akun ini. Minta kode baru, tempelkan ke profil, lalu periksa lagi.",
+        kode: "tantangan-tidak-ada",
+      },
+    },
+  });
+
+  const timer = pasangTimerPerekam();
+  const { root: r } = M.mountVerifikasi(root, { username: "hikaru" });
+  await tunggu(600);
+  await flush();
+  cek("kode pertama ditampilkan", /KCI-BARU1/.test(root.textContent || ""), root.textContent?.slice(0, 140));
+
+  const tombolPeriksa = [...root.querySelectorAll("button")].find((b) =>
+    /Periksa Kode/i.test(b.textContent || "")
+  );
+  cek("tombol periksa ada", Boolean(tombolPeriksa));
+  await klik(tombolPeriksa);
+  await tunggu(700);
+  await flush(8);
+
+  const jumlahMinta = f.panggilan.filter((p) => p.jalur === "/api/auth/kode/minta").length;
+  cek(
+    "tantangan yang hilang memicu permintaan kode ulang otomatis",
+    jumlahMinta >= 2,
+    `panggilan minta: ${jumlahMinta}`
+  );
+  cek(
+    "kode di layar diganti kode BARU, bukan kode mati",
+    /KCI-BARU2/.test(root.textContent || ""),
+    (root.textContent || "").slice(0, 160)
+  );
+  cek(
+    "permintaan ulang memakai paksa:true (kode lama dibuang server)",
+    f.panggilan.some((p) => p.jalur === "/api/auth/kode/minta" && p.body?.paksa === true),
+    JSON.stringify(f.panggilan.filter((p) => p.jalur === "/api/auth/kode/minta").map((p) => p.body))
+  );
+  cek(
+    "tidak ada tiket/status terverifikasi yang dikarang dari respons galat",
+    !/Verifikasi Berhasil/i.test(root.textContent || "")
+  );
+
+  await act(async () => r.unmount());
+  cek(
+    "timer dibersihkan saat unmount",
+    timer.hidup().length === 0,
+    JSON.stringify(timer.hidup())
+  );
+  timer.pulihkan();
+}
+
+/* ==================================== Pemulihan CSRF lintas instance (klien) */
+
+console.log("\nKlien — token CSRF ditolak (instance berganti): diminta ulang, kirim sekali");
+{
+  kosongkan();
+  let nomorToken = 0;
+  const f = pasangFetch({
+    "/api/csrf-token": () => {
+      nomorToken += 1;
+      return { token: `csrf-${nomorToken}` };
+    },
+    /* Token pertama ditolak — seperti yang terjadi bila POST mendarat di
+       instance lain (token CSRF hidup di memori instance). */
+    "POST /api/auth/pengajuan-manual": (bodi, state) => {
+      const sekarang = state.panggilan
+        .filter((p) => p.jalur === "/api/auth/pengajuan-manual")
+        .pop();
+      if (sekarang?.csrf === "csrf-1") {
+        return {
+          status: 403,
+          body: { pesan: "Token CSRF tidak valid.", kode: "token-csrf" },
+        };
+      }
+      /* `status` di sini adalah status HTTP jawaban mock, jadi body pengajuan
+         (yang juga punya field `status`) harus dibungkus `body`. */
+      return { body: { id: "pj-9", status: "menunggu", username: bodi?.username || "" } };
+    },
+  });
+
+  const hasil = await M.ajukanVerifikasiManual("Hikaru", "catatan uji");
+  cek(
+    "pengajuan tetap terkirim setelah token diperbarui",
+    hasil?.status === "menunggu",
+    JSON.stringify(hasil)
+  );
+  const percobaan = f.panggilan.filter((p) => p.jalur === "/api/auth/pengajuan-manual");
+  cek(
+    "hanya SATU pengiriman ulang (tidak ada loop)",
+    percobaan.length === 2,
+    JSON.stringify(percobaan.map((p) => p.csrf))
+  );
+  cek(
+    "percobaan ulang memakai token BARU, bukan token yang ditolak",
+    percobaan[0]?.csrf === "csrf-1" &&
+      percobaan[1]?.csrf === "csrf-2",
+    JSON.stringify(percobaan.map((p) => p.csrf))
+  );
+  cek(
+    "token baru benar-benar diminta ke server",
+    f.panggilan.filter((p) => p.jalur === "/api/csrf-token").length === 2,
+    `${f.panggilan.filter((p) => p.jalur === "/api/csrf-token").length}`
+  );
+  cek(
+    "pengiriman ulang membawa isian yang sama (tidak ada yang hilang karena retry)",
+    percobaan[1]?.body?.username === "Hikaru" &&
+      percobaan[1]?.body?.catatan === "catatan uji",
+    JSON.stringify(percobaan[1]?.body)
+  );
 }
 
 /* ============================================ VerifikasiAkun: pembatalan & timer */

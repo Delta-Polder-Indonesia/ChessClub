@@ -48,7 +48,17 @@ export function buatTangani(router) {
     if (metode === "POST" && !bebasCsrf) {
       const csrfToken = req.headers["x-csrf-token"];
       if (!validasiCsrfToken(csrfToken)) {
-        return kirimJson(res, 403, { pesan: "Token CSRF tidak valid." }, { req });
+        /* `kode` dikirim supaya klien dapat mengenali penyebabnya tanpa
+           mencocokkan kalimat. Token CSRF hidup di memori instance, jadi di
+           serverless token yang tadi diberikan bisa "hilang" saat POST
+           mendarat di instance lain — klien memulih dengan meminta token baru
+           dan mengirim ulang SATU kali (lihat kirimDenganCsrf). */
+        return kirimJson(
+          res,
+          403,
+          { pesan: "Token CSRF tidak valid.", kode: "token-csrf" },
+          { req }
+        );
       }
     }
 
@@ -128,7 +138,21 @@ export function buatTangani(router) {
         return kirimJson(res, e.status, { pesan: e.message, ...e.tambahan }, { req });
       }
       if (e.status) {
-        return kirimJson(res, e.status, { pesan: e.message }, { req });
+        /* `sebab` (kode mesin yang aman ditampilkan, mis. "kode-kedaluwarsa")
+           ikut dikirim supaya UI dapat bereaksi pada SEBAB-nya, bukan pada
+           angka status saja. Hanya token berformat tetap yang diteruskan, jadi
+           tidak ada teks sembarang dari dalam server yang bisa membocorkan
+           detail teknis ke klien. */
+        const sebabAman =
+          typeof e.sebab === "string" && /^[a-z0-9_-]{3,48}$/.test(e.sebab)
+            ? e.sebab
+            : null;
+        return kirimJson(
+          res,
+          e.status,
+          { pesan: e.message, ...(sebabAman ? { kode: sebabAman } : {}) },
+          { req }
+        );
       }
       if (e.kode === "TERLALU_BESAR") {
         return kirimJson(res, 413, { pesan: e.message }, { req });

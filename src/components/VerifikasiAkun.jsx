@@ -237,10 +237,20 @@ export default function VerifikasiAkun({
       setPesan(hasil?.pesan || t("verifikasi.belumTerbacaProfil", { username: terikat }));
     } catch (galat) {
       if (!aktifRef.current || nomor !== nomorReq.current) return;
-      // 410 = tantangan kedaluwarsa di server: kode baru diminta ulang.
-      if (galat?.status === 410) {
+      /* Server yang tahu bahwa tantangannya sudah tidak ada: kedaluwarsa,
+         percobaan habis, atau hilang karena instance lama pensiun (cold start
+         tanpa penyimpanan bersama). Kode di layar tidak ada gunanya lagi, jadi
+         minta kode baru dan suruh tempel ulang — bukan menyuruh pengguna
+         menebak-nebak. Sebab dibaca dari `kode`, bukan dari angka status saja. */
+      const sebab = galat?.kode;
+      const perluKodeBaru =
+        galat?.status === 410 ||
+        sebab === "kode-kedaluwarsa" ||
+        sebab === "tantangan-tidak-ada" ||
+        sebab === "terlalu-banyak-percobaan";
+      if (perluKodeBaru) {
         setStatus(KEDALUWARSA);
-        setPesan(galat.message || t("verifikasi.kodeKedaluwarsa"));
+        setPesan(galat?.message || t("verifikasi.kodeKedaluwarsa"));
         mintaUlangKode({ paksa: true });
         return;
       }

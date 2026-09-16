@@ -77,8 +77,15 @@ export const PEMAIN_TIRUAN = {
   },
 };
 
-/** Nyalakan server HTTP tiruan api.chess.com. Mengembalikan alamat dasar. */
-export function nyalakanPeniruChess(pemainTambahan = {}) {
+/**
+ * Nyalakan server HTTP tiruan api.chess.com. Mengembalikan alamat dasar.
+ *
+ * `ubahProfil(username, profil)` (opsional) dipanggil setiap kali profil
+ * diminta, dan hasilnya dipakai sebagai jawaban. Ini yang membuat uji dapat
+ * "memasang" kode tantangan ke kolom Location profil pada request berikutnya
+ * — persis yang dilakukan pendaftar sungguhan — tanpa perlu akun nyata.
+ */
+export function nyalakanPeniruChess(pemainTambahan = {}, { ubahProfil } = {}) {
   const pemain = { ...PEMAIN_TIRUAN, ...pemainTambahan };
   const server = http.createServer((req, res) => {
     const kirim = (status, isi) => {
@@ -97,7 +104,9 @@ export function nyalakanPeniruChess(pemainTambahan = {}) {
     const data = pemain[cocok[1].toLowerCase()];
     if (!data) return kirim(404, { code: 0, message: "Not Found" });
     if (cocok[2]) return kirim(200, data.stats || {});
-    const { stats, ...profil } = data;
+    const { stats, ...profilDasar } = data;
+    // Jangan pernah mengubah objek bersama: hasil hook adalah salinan baru.
+    const profil = ubahProfil ? { ...profilDasar, ...(ubahProfil(cocok[1].toLowerCase(), profilDasar) || {}) } : profilDasar;
     return kirim(200, profil);
   });
   return new Promise((resolve, reject) => {

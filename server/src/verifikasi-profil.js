@@ -26,30 +26,77 @@
  *   "menunggu" dan tercatat di berkas pengajuan untuk diperiksa pengurus.
  *   Pengurus menyetujui/menolak lewat endpoint /api/pengurus/pengajuan-verifikasi.
  *   Menyetujui lewat jalur inilah — bukan dengan mengetik ulang kode — yang
- *   dapat menerbitkan tiket (cara: "pengurus").
+ *   mengubah status anggota menjadi terverifikasi. Lihat blok "SATU mekanisme
+ *   approval untuk jalur manual" di bawah: endpoint pengurus sengaja TIDAK
+ *   menyerahkan tiket, supaya tidak ada dua mekanisme yang menghasilkan state
+ *   yang sama lewat jalan berbeda.
  */
 import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
 import { ambilProfil } from "./chess.js";
 import { buatRepo } from "./simpanan.js";
+import { supabaseSiap } from "./storage-supabase.js";
 import { catatJejak } from "./audit.js";
 import { periksaUsername } from "../../src/lib/identitas.js";
 
-const UMUR_TANTANGAN_MS = 30 * 60 * 1000;
-const JEDA_COBA_MS = 5000; // jeda minimum antar pemeriksaan
-const MAKS_PERCOBAAN = 40;
+/** Umur & rem tantangan dibaca dari konfigurasi supaya pengujian dapat
+ *  mempersingkatnya tanpa mengubah nilai produksi. */
+const umurTantanganMs = () => konfigurasi.verifikasi.umurTantanganDetik * 1000;
+const jedaCekMs = () => konfigurasi.verifikasi.jedaCekDetik * 1000;
+const maksPercobaan = () => konfigurasi.verifikasi.maksPercobaan;
 
-/** username -> { kode, kedaluwarsa, terakhirCek, percobaan } */
-const tantangan = new Map();
+/**
+ * username -> { kode, kedaluwarsa, terakhirCek, percobaan }
+ *
+ * Melalui `buatRepo` (lapisan penyimpanan yang SUDAH ada di repo ini), jadi
+ * otomatis ikut pindah ke PostgreSQL/Supabase (`kci_storage`) bila dipasang.
+ * Kenapa bukan `Map` di memori: pada deployment serverless dua request
+ * berurutan tidak dijamin mendarat di instance yang sama, dan memori /tmp
+ * hilang saat cold start — pendaftar akan kehilangan kodenya di tengah
+ * alur. Tantangan sekarang berada di tempat yang sama persis dengan antrean
+ * pengajuan manual, sehingga jaminannya identik dengan data aplikasi lain.
+ */
+const repoTantangan = buatRepo(konfigurasi.berkasTantangan, {});
 
 /** Antrean pengajuan manual (pending) — bukan bukti keamanan. */
 const repoPengajuan = buatRepo(konfigurasi.berkasPengajuan, []);
 
-const jam = setInterval(() => {
-  const kini = Date.now();
-  for (const [k, v] of tantangan) if (kini > v.kedaluwarsa) tantangan.delete(k);
-}, 60_000);
-jam.unref?.();
+/** Entri masih berlaku? Cacat data dianggap kedaluwarsa (fail closed). */
+function masihBerlaku(entri, kini = Date.now()) {
+  const sampai = Number(entri?.kedaluwarsa);
+  return Boolean(entri) && Number.isFinite(sampai) && sampai > kini;
+}
+
+/**
+ * Hanya entri yang masih berlaku. Sekaligus menjadi pembersih: berkas
+ * tantangan tidak ditumbuhi entri mati walau tidak ada timer apa pun
+ * (interval pembersih sengaja tidak dipasang — pada serverless timer hanya
+ * membuat instance tetap hidup tanpa menjamin apa pun).
+ */
+function buangKedaluwarsa(daftar, kini = Date.now()) {
+  const sisa = {};
+  const sumber = daftar && typeof daftar === "object" ? daftar : {};
+  for (const [k, v] of Object.entries(sumber)) {
+    if (v && typeof v === "object" && masihBerlaku(v, kini)) sisa[k] = v;
+  }
+  return sisa;
+}
+
+function tanpaEntri(daftar, username) {
+  const { [username]: _buang, ...sisa } = daftar;
+  return sisa;
+}
+
+/** Buang satu tantangan (bila ada). Tidak pernah melempar. */
+function hapusTantangan(username) {
+  return repoTantangan
+    .ubah((daftar) =>
+      daftar && Object.prototype.hasOwnProperty.call(daftar, username)
+        ? { data: tanpaEntri(buangKedaluwarsa(daftar), username) }
+        : {}
+    )
+    .catch(() => undefined);
+}
 
 /** Galat dengan status HTTP + kode sebab (pesan teknis tidak bocor ke klien). */
 function galatHttp(status, pesan, sebab = null) {
@@ -82,6 +129,10 @@ function usernameTantangan(usernameMentah) {
  * Terbitkan tantangan untuk sebuah username.
  * Memastikan akunnya benar-benar ada lebih dulu.
  * `paksa: true` membuang tantangan lama dan menerbitkan kode baru.
+ *
+ * Profil Chess.com dibaca SEBELUM masuk antrean tulis: `berurutan()` dipakai
+ * bersama oleh seluruh penyimpanan aplikasi, jadi jaringan tidak boleh
+ * ditanggung di dalamnya.
  */
 export async function mintaKode(usernameMentah, { paksa = false } = {}) {
   const username = usernameTantangan(usernameMentah);
@@ -91,30 +142,39 @@ export async function mintaKode(usernameMentah, { paksa = false } = {}) {
     throw galatHttp(404, "Akun Chess.com tidak ditemukan. Periksa ejaan username.", "akun-tidak-ditemukan");
   }
 
-  const adaSebelumnya = tantangan.get(username);
-  if (!paksa && adaSebelumnya && Date.now() < adaSebelumnya.kedaluwarsa) {
-    return {
-      username,
-      kode: adaSebelumnya.kode,
-      berlakuDetik: Math.floor((adaSebelumnya.kedaluwarsa - Date.now()) / 1000),
-      diulang: true,
+  const umurMs = umurTantanganMs();
+  return repoTantangan.ubah((daftar) => {
+    const simpanan = buangKedaluwarsa(daftar);
+    const lama = simpanan[username];
+    if (!paksa && lama) {
+      // Tantangan masih berlaku: kembalikan yang sama TANPA menulis ulang.
+      return {
+        hasil: {
+          username,
+          kode: lama.kode,
+          berlakuDetik: Math.max(0, Math.floor((lama.kedaluwarsa - Date.now()) / 1000)),
+          diulang: true,
+        },
+      };
+    }
+
+    const kode = buatKode();
+    const entri = {
+      kode,
+      kedaluwarsa: Date.now() + umurMs,
+      terakhirCek: 0,
+      percobaan: 0,
     };
-  }
-
-  const kode = buatKode();
-  tantangan.set(username, {
-    kode,
-    kedaluwarsa: Date.now() + UMUR_TANTANGAN_MS,
-    terakhirCek: 0,
-    percobaan: 0,
+    return {
+      data: { ...simpanan, [username]: entri },
+      hasil: {
+        username,
+        kode,
+        berlakuDetik: Math.floor(umurMs / 1000),
+        diulang: false,
+      },
+    };
   });
-
-  return {
-    username,
-    kode,
-    berlakuDetik: Math.floor(UMUR_TANTANGAN_MS / 1000),
-    diulang: false,
-  };
 }
 
 /** Cari kode pada kolom teks bebas profil publik. */
@@ -130,37 +190,37 @@ function kodeTerdeteksiDiProfil(profil, kode) {
  * Periksa (di SERVER) apakah kode sudah terpasang di profil Chess.com.
  * Mengembalikan { cocok: true, username, playerId } bila berhasil — pemanggil
  * rute.js yang menerbitkan tiket.
+ *
+ * Urutan disengaja: baca cepat -> jaringan (di luar antrean) -> KEPUTUSAN
+ * AKHIR di dalam antrean tulis. Dengan begitu dua permintaan pemeriksaan yang
+ * datang bersamaan tidak bisa sama-sama menang: yang kedua melihat tantangan
+ * sudah terpakai/habis jeda, sehingga hanya satu tiket yang terbit.
  */
 export async function periksaKode(usernameMentah) {
   const username = usernameTantangan(usernameMentah);
-  const data = tantangan.get(username);
+  const jedaMs = jedaCekMs();
 
-  if (!data) {
+  /* Penolakan awal: hemat satu panggilan API Chess.com untuk kasus yang jelas.
+     Berkas dibaca MENTAH (tanpa penyaringan) supaya "sudah kedaluwarsa" tetap
+     bisa dibedakan dari "tidak pernah minta kode" — keduanya butuh tindakan
+     pengguna yang berbeda. */
+  const mentah = await repoTantangan.baca();
+  const entriAwal = mentah && typeof mentah === "object" ? mentah[username] : null;
+  if (!entriAwal) {
     throw galatHttp(
       400,
-      "Belum ada kode aktif untuk akun ini. Minta kode terlebih dahulu.",
+      "Belum ada kode aktif untuk akun ini. Minta kode baru, tempelkan ke profil, lalu periksa lagi.",
       "tantangan-tidak-ada"
     );
   }
-  if (Date.now() > data.kedaluwarsa) {
-    tantangan.delete(username);
+  const kiniAwal = Date.now();
+  if (!masihBerlaku(entriAwal, kiniAwal)) {
+    await hapusTantangan(username);
     throw galatHttp(410, "Kode sudah kedaluwarsa. Minta kode baru.", "kode-kedaluwarsa");
   }
-
-  const sejakCek = Date.now() - data.terakhirCek;
-  if (sejakCek < JEDA_COBA_MS) {
-    throw galatHttp(
-      429,
-      `Tunggu ${Math.ceil((JEDA_COBA_MS - sejakCek) / 1000)} detik sebelum memeriksa lagi.`,
-      "terlalu-cepat"
-    );
-  }
-  data.terakhirCek = Date.now();
-  data.percobaan += 1;
-
-  if (data.percobaan > MAKS_PERCOBAAN) {
-    tantangan.delete(username);
-    throw galatHttp(429, "Terlalu banyak percobaan. Minta kode baru.", "terlalu-banyak-percobaan");
+  if (kiniAwal - Number(entriAwal.terakhirCek || 0) < jedaMs) {
+    const tunggu = Math.ceil((jedaMs - (kiniAwal - Number(entriAwal.terakhirCek || 0))) / 1000);
+    throw galatHttp(429, `Tunggu ${tunggu} detik sebelum memeriksa lagi.`, "terlalu-cepat");
   }
 
   // Profil harus dibaca segar — cache akan menyembunyikan perubahan terbaru.
@@ -170,20 +230,78 @@ export async function periksaKode(usernameMentah) {
   }
 
   const profil = res.data;
-  if (!kodeTerdeteksiDiProfil(profil, data.kode)) {
-    return {
-      cocok: false,
-      username,
-      pesan:
-        "Kode belum terbaca di profil Anda. Pastikan sudah disimpan, " +
-        "lalu tunggu sebentar dan periksa lagi.",
-      // Yang ditampilkan hanya kolom milik peminta sendiri, bukan data profil penuh.
-      terbaca: profil.location || "(kolom Location kosong)",
-    };
-  }
+  const keputusan = await repoTantangan.ubah((daftar) => {
+    const kini = Date.now();
+    const asal = daftar && typeof daftar === "object" ? daftar : {};
+    const simpanan = buangKedaluwarsa(asal, kini); // kunci lain ikut dibersihkan
+    const e = asal[username]; // kunci ini dinilai mentah, bukan hasil saringan
 
-  tantangan.delete(username);
-  return { cocok: true, username, playerId: profil.player_id ?? null };
+    if (!e) return { hasil: { jenis: "tidak-ada" } };
+    if (!masihBerlaku(e, kini)) {
+      return { data: tanpaEntri(simpanan, username), hasil: { jenis: "kedaluwarsa" } };
+    }
+    if (kini - Number(e.terakhirCek || 0) < jedaMs) {
+      return {
+        hasil: {
+          jenis: "terlalu-cepat",
+          tungguDetik: Math.ceil((jedaMs - (kini - Number(e.terakhirCek || 0))) / 1000),
+        },
+      };
+    }
+
+    const percobaan = Number(e.percobaan || 0) + 1;
+    if (percobaan > maksPercobaan()) {
+      return { data: tanpaEntri(simpanan, username), hasil: { jenis: "terlalu-banyak" } };
+    }
+
+    if (!kodeTerdeteksiDiProfil(profil, e.kode)) {
+      return {
+        data: { ...simpanan, [username]: { ...e, terakhirCek: kini, percobaan } },
+        hasil: {
+          jenis: "belum",
+          // Yang ditampilkan hanya kolom milik peminta sendiri, bukan data profil penuh.
+          terbaca: profil.location || "(kolom Location kosong)",
+        },
+      };
+    }
+
+    // Sekali pakai: tantangan dihapus pada saat keberhasilan diputuskan,
+    // sehingga hasil "cocok" tidak dapat ditukar jadi tiket kedua.
+    return {
+      data: tanpaEntri(simpanan, username),
+      hasil: { jenis: "cocok", playerId: profil.player_id ?? null },
+    };
+  });
+
+  switch (keputusan.jenis) {
+    case "cocok":
+      return { cocok: true, username, playerId: keputusan.playerId };
+    case "belum":
+      return {
+        cocok: false,
+        username,
+        pesan:
+          "Kode belum terbaca di profil Anda. Pastikan sudah disimpan, " +
+          "lalu tunggu sebentar dan periksa lagi.",
+        terbaca: keputusan.terbaca,
+      };
+    case "terlalu-cepat":
+      throw galatHttp(
+        429,
+        `Tunggu ${keputusan.tungguDetik} detik sebelum memeriksa lagi.`,
+        "terlalu-cepat"
+      );
+    case "kedaluwarsa":
+      throw galatHttp(410, "Kode sudah kedaluwarsa. Minta kode baru.", "kode-kedaluwarsa");
+    case "terlalu-banyak":
+      throw galatHttp(429, "Terlalu banyak percobaan. Minta kode baru.", "terlalu-banyak-percobaan");
+    default:
+      throw galatHttp(
+        400,
+        "Belum ada kode aktif untuk akun ini. Minta kode baru, tempelkan ke profil, lalu periksa lagi.",
+        "tantangan-tidak-ada"
+      );
+  }
 }
 
 /* ------------------------------------------------- pengajuan verifikasi manual */
@@ -201,9 +319,10 @@ export async function ajukanVerifikasiManual({ username: usernameMentah, catatan
     throw galatHttp(404, "Akun Chess.com tidak ditemukan. Periksa ejaan username.", "akun-tidak-ditemukan");
   }
 
-  const data = tantangan.get(username);
+  const data = buangKedaluwarsa(await repoTantangan.baca())[username] || null;
   const kodeTerdeteksi = data ? kodeTerdeteksiDiProfil(res.data, data.kode) : false;
-  if (data) tantangan.delete(username); // tantangan lama tidak berlaku lagi
+  // Tantangan lama tidak berlaku lagi begitu pengguna memilih jalur manual.
+  if (data) await hapusTantangan(username);
 
   const catatanBersih = String(catatan || "").trim().slice(0, 500);
   const kini = new Date().toISOString();
@@ -285,7 +404,10 @@ async function ubahStatusPengajuan(id, status, { pengurus = "", alasan = "" } = 
   });
 }
 
-/** Status pengajuan untuk satu username (informasi tampilan, bukan keputusan keamanan). */
+/**
+ * Status pengajuan untuk satu username (informasi tampilan, bukan keputusan
+ * keamanan — keputusan hanya diambil lewat `persetujuanSiapDipakai`).
+ */
 export async function statusPengajuan(username) {
   const arr = await repoPengajuan.baca();
   const cocok = (Array.isArray(arr) ? arr : []).filter((p) => p.username === username);
@@ -296,9 +418,68 @@ export async function statusPengajuan(username) {
   return { status: terakhir.status, diperiksaPada: terakhir.diperiksaPada || null };
 }
 
+/* ------------------ SATU mekanisme approval untuk jalur manual --------------
+ *
+ * Status "terverifikasi" dari jalur manual lahir dari SATU peristiwa: sebuah
+ * pengajuan dipindahkan ke "disetujui" oleh endpoint pengurus yang sudah
+ * melewati `pastikanAdmin`. Tidak ada mekanisme kedua, dan sengaja tidak ada
+ * lagi tiket yang diserahkan ke respons pengurus — tiket adalah bukti untuk
+ * jalur otomatis (OAuth / kode profil), dan menyalurkannya ke manusia lalu ke
+ * formulir pendaftar hanya menciptakan jalan kedua yang menghasilkan state
+ * yang sama tetapi lewat pihak yang berbeda (membingungkan dan lebih mudah
+ * salah pakai).
+ *
+ * Persetujuan berlaku untuk SATU username dan sekali pakai:
+ *   - pendaftar sudah mengirim formulir -> `tandaiAnggotaTerverifikasi()`
+ *     menulis status ke catatan anggota (di endpoint pengurus);
+ *   - pendaftar belum sempat mengirim formulir -> persetujuan tetap ada di
+ *     antrean dan dipakai OTOMATIS pada saat pendaftaran (server yang membaca
+ *     antrean, bukan browser), lalu ditandai `diterapkanPada` supaya tidak
+ *     dapat dipakai dua kali.
+ */
+
+/** Entri persetujuan "disetujui" yang masih boleh dipakai untuk username ini. */
+export async function persetujuanSiapDipakai(usernameMentah) {
+  const diperiksa = periksaUsername(usernameMentah);
+  if (!diperiksa.sah) return null;
+  const arr = await repoPengajuan.baca().catch(() => []);
+  const kandidat = (Array.isArray(arr) ? arr : []).filter(
+    (p) => p?.username === diperiksa.username && p?.status === "disetujui" && !p?.diterapkanPada
+  );
+  if (!kandidat.length) return null;
+  return kandidat.reduce((a, b) =>
+    String(b.diperiksaPada || "") > String(a.diperiksaPada || "") ? b : a
+  );
+}
+
+/** Tandai persetujuan sudah diterapkan, agar tidak dipakai ulang diam-diam. */
+export async function catatPersetujuanDiterapkan(id, cara = "pendaftaran") {
+  if (!id) return false;
+  const diterapkan = await repoPengajuan
+    .ubah((daftar) => {
+      const arr = Array.isArray(daftar) ? daftar : [];
+      const target = arr.find((p) => p?.id === id);
+      if (!target) return { hasil: false };
+      return {
+        data: arr.map((p) =>
+          p.id === id
+            ? { ...p, diterapkanPada: new Date().toISOString(), diterapkanCara: cara }
+            : p
+        ),
+        hasil: true,
+      };
+    })
+    .catch(() => false);
+  if (diterapkan) {
+    await catatJejak("pengajuan-verifikasi-diterapkan", { id, cara }).catch(() => {});
+  }
+  return diterapkan;
+}
+
 /**
- * Pengurus menyetujui pengajuan manual. HANYA di sinilah persetujuan pengurus
- * berubah menjadi tiket, dan nama pengurus tercatat di berkas + jejak audit.
+ * Pengurus menyetujui pengajuan manual. Persetujuan ini adalah satu-satunya
+ * titik di jalur manual yang mengubah status anggota; nama pengurus tercatat
+ * di berkas antrean + jejak audit.
  */
 export async function setujuiPengajuan(id, { pengurus = "" } = {}) {
   const entri = await ubahStatusPengajuan(id, "disetujui", { pengurus });
@@ -320,6 +501,26 @@ export async function tolakPengajuan(id, { pengurus = "", alasan = "" } = {}) {
   return entri;
 }
 
-export function statistikTantangan() {
-  return { tantanganAktif: tantangan.size };
+/**
+ * Statistik untuk dasbor pengurus. `tantanganPenyimpanan` melaporkan APAKAH
+ * tantangan benar-benar terlihat oleh instance lain: hanya bila lapisan
+ * penyimpanan bersama (Supabase `kci_storage`) terpasang. Tanpa itu berkas
+ * berada di direktori data instance (`/tmp` di Vercel) dan tantangan bisa
+ * hilang saat cold start — gagal dengan pesan yang bisa ditindaklanjuti,
+ * bukan lolos verifikasi.
+ */
+export async function statistikTantangan() {
+  let aktif = 0;
+  try {
+    aktif = Object.keys(buangKedaluwarsa(await repoTantangan.baca())).length;
+  } catch {
+    /* penyimpanan bermasalah -> laporkan 0, jangan gagalkan dasbor */
+  }
+  let penyimpanan = "berkas-per-instance";
+  try {
+    penyimpanan = (await supabaseSiap()) ? "penyimpanan-bersama" : "berkas-per-instance";
+  } catch {
+    /* sama: jangan gagalkan dasbor */
+  }
+  return { tantanganAktif: aktif, tantanganPenyimpanan: penyimpanan };
 }

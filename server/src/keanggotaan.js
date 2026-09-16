@@ -13,7 +13,11 @@ export { catatJejak };
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
 import { periksaTiket, tandaiTiketDipakai } from "./oauth.js";
-import { statusPengajuan } from "./verifikasi-profil.js";
+import {
+  statusPengajuan,
+  persetujuanSiapDipakai,
+  catatPersetujuanDiterapkan,
+} from "./verifikasi-profil.js";
 import {
   hashKunci,
   cariDiDaftarHitam,
@@ -110,8 +114,10 @@ export class GalatAplikasi extends Error {
  *
  * PENTING: fungsi ini membaca ALLOW-LIST field. Field tampilan/keamanan yang
  * dikirim browser (`mode`, `sumber`, `kode`, `profil`, `terverifikasi`,
- * `usernameVerifikasi`) TIDAK dibaca sama sekali — satu-satunya bukti yang
- * dipercaya adalah `tiketVerifikasi` hasil `terbitkanTiket()` di server.
+ * `usernameVerifikasi`) TIDAK dibaca sama sekali — yang dipercaya hanyalah
+ * `tiketVerifikasi` hasil `terbitkanTiket()` di server, ditambah persetujuan
+ * pengurus yang sudah tersimpan di antrean (ditulis endpoint pengurus, bukan
+ * oleh browser).
  */
 export function validasiPendaftaran(body) {
   const galat = {};
@@ -502,22 +508,27 @@ export async function daftarkan(body, konteks = {}) {
 
   /* --------------------------------------------------- bukti kepemilikan akun
    *
-   * Satu-satunya bukti yang dipercaya adalah tiket yang DITERBITKAN SERVER:
+   * Satu-satunya bukti yang dipercaya adalah bukti yang DITERBITKAN SERVER:
    *   - "oauth"       -> login Chess.com, id_token diverifikasi ketat;
    *   - "kode-profil" -> server membaca profil publik dan menemukan kodenya;
-   *   - "pengurus"    -> pengajuan manual disetujui pengurus (tercatat).
+   *   - "pengurus"    -> persetujuan pengurus yang tersimpan di antrean
+   *                      pengajuan (hanya bisa ditulis endpoint pengurus yang
+   *                      sudah melewati pastikanAdmin).
    *
    * Field lain dari browser — `mode`, `sumber`, `kode`, `profil`,
    * `terverifikasi`, `usernameVerifikasi` — TIDAK pernah dibaca sebagai
    * keputusan keamanan. Mengetik ulang kode yang ditampilkan di layar bukan
-   * bukti penguasaan akun, karena itu jalur manual tidak menghasilkan tiket.
+   * bukti penguasaan akun, karena itu jalur manual tidak menghasilkan tiket
+   * sama sekali: status berubah hanya bila pengurus memindahkan pengajuan ke
+   * "disetujui".
    *
    * Keputusan mode:
    *   off      -> tidak ada penilaian tiket sama sekali;
    *   opsional -> boleh mendaftar tanpa tiket (tercatat belum terverifikasi),
    *               TETAPI tiket yang dikirim dan ternyata tidak sah tetap
    *               ditolak, supaya pendaftar tidak dikira sudah terverifikasi;
-   *   wajib    -> tiket sah wajib ada.
+   *   wajib    -> tiket sah wajib ada, ATAU pendaftar sudah disetujui pengurus
+   *               lewat antrean pengajuan manual (bukti sisi server juga).
    *
    * Tiket BELUM dipakai di titik ini — pemakaiannya ditunda ke dalam antrean
    * tulis (lihat langkah 5) agar dua klik kirim tidak menghabiskan tiket yang
@@ -525,18 +536,36 @@ export async function daftarkan(body, konteks = {}) {
    */
   const mode = konfigurasi.wajibVerifikasi;
   let bukti = null;
+  /* Persetujuan pengurus yang belum diterapkan. Dibaca di SINI (sebelum
+     keputusan penolakan) supaya pendaftar jalur manual yang sudah disetujui
+     tidak terkunci di luar saat mode `wajib`; antrean ini hanya bisa ditulis
+     endpoint pengurus yang sudah melewati pastikanAdmin — jadi ini bukti sisi
+     server, bukan klaim browser. */
+  let persetujuan = null;
+
+  /** Penolakan seragam: sebab + pesan per field, tanpa detail teknis. */
+  const tolakTanpaBukti = (sebab) => {
+    throw new GalatAplikasi(403, PESAN_TIKET[sebab] || PESAN_TIKET["tidak-sah"], {
+      kodeVerifikasi: sebab,
+      perluVerifikasi: true,
+      galat: { username: PESAN_TIKET_GALAT[sebab] || "Verifikasi akun perlu diulang." },
+    });
+  };
 
   if (mode !== "off") {
     const dinilai = periksaTiket(body.tiketVerifikasi, bersih.username);
     if (dinilai.sah) {
       bukti = dinilai.data;
-    } else if (mode === "wajib" || body.tiketVerifikasi) {
-      const sebab = dinilai.sebab || "tidak-sah";
-      throw new GalatAplikasi(403, PESAN_TIKET[sebab] || PESAN_TIKET["tidak-sah"], {
-        kodeVerifikasi: sebab,
-        perluVerifikasi: true,
-        galat: { username: PESAN_TIKET_GALAT[sebab] || "Verifikasi akun perlu diulang." },
-      });
+    } else if (body.tiketVerifikasi) {
+      /* Tiket dikirim tapi tidak sah -> selalu ditolak, di mode apa pun.
+         Persetujuan pengurus tidak menutupi tiket rusak: kalau dibiarkan,
+         pendaftar bisa mengira dirinya sudah terverifikasi. */
+      tolakTanpaBukti(dinilai.sebab || "tidak-sah");
+    } else if (mode === "wajib") {
+      /* Tidak ada tiket sama sekali di mode `wajib`: satu-satunya jalan masuk
+         yang tersisa adalah persetujuan pengurus di antrean. */
+      persetujuan = await persetujuanSiapDipakai(bersih.username).catch(() => null);
+      if (!persetujuan) tolakTanpaBukti(dinilai.sebab || "tidak-sah");
     }
   }
 
@@ -686,10 +715,21 @@ export async function daftarkan(body, konteks = {}) {
   }
 
   /* Catatan pengurus: pendaftar tanpa tiket yang masih punya pengajuan manual
-     di antrean ditandai supaya tidak perlu dicari-cari lagi. Ini informasi
-     tampilan BUKAN keputusan keamanan — status terverifikasi tetap hanya
-     lahir dari tiket. */
+     di antrean ditandai supaya tidak perlu dicari-cari lagi. Markanya sendiri
+     hanya informasi tampilan BUKAN keputusan keamanan.
+
+     Persetujuan pengurus yang BELUM diterapkan (pengurus menyetujui sebelum
+     pendaftar sempat mengirim formulir) adalah bukti yang sah: status
+     "disetujui" hanya bisa ditulis endpoint pengurus yang sudah melewati
+     pastikanAdmin, dan tidak dapat dibuat dari browser. Pembacaannya dilakukan
+     DI SINI (luar antrean tulis) agar antrean penyimpanan tidak menahan
+     panggilan database. */
   const pengajuan = bukti ? null : await statusPengajuan(bersih.username).catch(() => null);
+  if (!persetujuan && !bukti && mode !== "off") {
+    /* Mode `opsional` (jalur `wajib` sudah membacanya di atas): pendaftar tanpa
+       tiket tetap berhak atas persetujuan pengurus yang sudah ada. */
+    persetujuan = await persetujuanSiapDipakai(bersih.username).catch(() => null);
+  }
 
   /* 5. Simpan — pengecekan duplikat DAN pemakaianskan tiket dilakukan DI
         DALAM antrean yang sama, agar:
@@ -727,6 +767,9 @@ export async function daftarkan(body, konteks = {}) {
       }
       caraVerifikasi = ulang.data.cara;
       tandaiTiketDipakai(ulang.data.jti, ulang.data.exp);
+    } else if (persetujuan) {
+      // Jalur manual: keputusan pengurus yang sudah tercatat di antrean.
+      caraVerifikasi = "pengurus";
     }
 
     const entri = {
@@ -737,10 +780,17 @@ export async function daftarkan(body, konteks = {}) {
       kotaKunci: normalisasiKota(bersih.kota),
       klub: bersih.klub || null,
       kategoriUmur: kategoriUmur(bersih.tanggalLahir),
-      // Status terverifikasi HANYA boleh datang dari tiket yang divalidasi
-      // server di atas — tidak dari field mana pun milik browser.
+      // Status terverifikasi HANYA boleh datang dari bukti yang diverifikasi
+      // server di atas (tiket atau persetujuan pengurus di antrean) — tidak
+      // dari field mana pun milik browser.
       terverifikasi: Boolean(caraVerifikasi),
       caraVerifikasi,
+      ...(persetujuan && !bukti
+        ? {
+            diverifikasiOleh: persetujuan.diperiksaOleh || "pengurus",
+            disetujuiPada: persetujuan.diperiksaPada || null,
+          }
+        : {}),
       identitas,
       sidikPepper: sidikPepper(),
       statusChess: profil.status || null,
@@ -795,6 +845,17 @@ export async function daftarkan(body, konteks = {}) {
   }
 
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
+  /* Persetujuan pengurus baru ditandai "sudah diterapkan" SETELAH seluruh
+     penyimpanan berhasil. Bila pendaftaran gagal (mis. tulis kontak error),
+     persetujuan tetap tinggal di antrean dan pendaftar cukup mengirim ulang
+     formulirnya tanpa harus menemui pengurus lagi. Kegagalan penandaan tidak
+     membatalkan pendaftaran: pemakaiannya tetap dibatasi cek duplikat username
+     di atas, dan jejak audit utama sudah tercatat. */
+  if (persetujuan && !bukti) {
+    await catatPersetujuanDiterapkan(persetujuan.id, "pendaftaran").catch((e) => {
+      console.warn(`[kci] gagal menandai persetujuan diterapkan: ${e?.message || e}`);
+    });
+  }
   // Hapus cache Chess.com agar data baru diambil pada request berikutnya
   hapusCache(uname);
   // Snapshot roster dianggap usang: permintaan berikutnya tetap dijawab

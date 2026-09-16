@@ -21,9 +21,10 @@ saat function dingin — itu satu-satunya data yang “awet” di FULL VERCEL.
 | ----- | -------- | ------ |
 | Cold start | ~1–3 detik request pertama | Dapat diterima untuk situs komunitas |
 | `/tmp` | Ephemeral per instance | **Tidak OK** untuk data produksi |
-| Rate-limit / CSRF | Hidup di memori function | Reset saat instance berganti |
-| State OAuth & tiket verifikasi | Token tanpa keadaan bertanda tangan (HMAC dari `KCI_JWT_SECRET`) |-instance tetap sah setelah cold start |
-| Ledger \"tiket sudah dipakai\" | Hidup di memori function | Pencegahan replay best-effort lintas instance; dampak dibatasi cek duplikasi username (lihat `PANDUAN-VERIFIKASI-AKUN.md` §3) |
+| Rate-limit / CSRF | Hidup di memori function | Reset saat instance berganti. Penolakan CSRF membawa `kode: "token-csrf"` dan klien memulihkan diri (token baru + satu pengiriman ulang); rate-limit tetap longgar di serverless |
+| State OAuth & tiket verifikasi | Token tanpa keadaan bertanda tangan (HMAC dari `KCI_JWT_SECRET`) — sah di instance mana pun, bertahan cold start |
+| Tantangan "kode di profil" | Berkas `data/rahasia/verifikasi-tantangan.json` melalui lapisan data yang sama dengan berkas anggota | Bertahan restart dan lintas instance **hanya bila `kci_storage` (Supabase) terpasang**; tanpa itu `/tmp` milik tiap instance dan hasilnya penolakan (gagal aman), bukan lolos verifikasi |
+| Ledger "tiket sudah dipakai" | Hidup di memori function | Berlaku sekali-pakai HANYA dalam satu instance: TIDAK bertahan cold start dan TIDAK dibagikan antar-instance, jadi replay lintas instance masih mungkin selama tiket belum kedaluwarsa. Dampaknya dibatasi cek duplikasi username secara atomik (lihat `PANDUAN-VERIFIKASI-AKUN.md` §3) |
 | CPU / durasi | Hobby: hingga 10 detik default; function ini `maxDuration: 60` | Sinkron roster Chess.com harus muat |
 | Ukuran function | Termasuk `server/` + `data/*.json` benih | Jangan masukkan dump besar |
 
@@ -63,6 +64,21 @@ untuk kebutuhan saat ini, opsi **A** sudah memadai.
   instance berbeda. Syaratnya satu: `KCI_JWT_SECRET` harus diisi dan sama
   di semua instance (tanpa itu, penandatohan gagal dan pendaftaran tanpa
   bukti verifikasi ditolak — fail-closed, bukan longgar).
-- Yang masih per-instance: ledger \"tiket sudah dipakai\", rate-limit, dan
-  token CSRF. Untuk pencegahan replay penuh, pindahkan ledger ke Vercel KV
-  atau Supabase (belum dibuat: volume situs belum membutuhkannya).
+- Yang masih per-instance: ledger "tiket sudah dipakai", rate-limit, dan
+  token CSRF.
+  - Token CSRF: penolakannya membawa `kode: "token-csrf"`, dan klien memulihkan
+    dirinya sendiri (minta token baru lalu kirim ulang satu kali), jadi
+    berpindah instance tidak membuat pendaftaran gagal permanen.
+  - Ledger "tiket sudah dipakai" sengaja TIDAK dipindah ke `kci_storage`:
+    lapisan itu hanya upsert kunci-nilai (tanpa pembaruan bersyarat), jadi
+    sekali-pakai di atasnya tetap bersifat terbaik, bukan jaminan. Pencegahan
+    replay penuh butuh Vercel KV `add` / Redis `SETNX` / tabel dengan
+    `UNIQUE(jti)` — belum dibuat karena volume situs belum membutuhkannya.
+    Dampak replay dibatasi: tiket terikat satu username dan antrean tulis
+    anggota menolak duplikasi username secara atomik.
+- Tantangan kode profil ikut lapisan penyimpanan data (bukan `Map` milik
+  proses), jadi tanpa Supabase ia tetap berada di `/tmp` milik instance.
+  `npm run uji:verifikasi` membuktikan kedua sisinya: instance baru dengan
+  penyimpanan bersama masih melihat tantangan yang sama, instance dengan
+  penyimpanan terpisah menolaknya (`tantangan-tidak-ada`) alih-alih
+  meloloskan verifikasi.

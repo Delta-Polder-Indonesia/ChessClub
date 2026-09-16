@@ -31,6 +31,7 @@ import {
   daftarPengajuan as daftarPengajuanVerifikasi,
   setujuiPengajuan as setujuiPengajuanVerifikasi,
   tolakPengajuan as tolakPengajuanVerifikasi,
+  catatPersetujuanDiterapkan as catatPersetujuanDiterapkanVerifikasi,
 } from "./verifikasi-profil.js";
 import {
   JENIS,
@@ -540,7 +541,7 @@ export function daftarkanRute(router, { mulaiPada }) {
           wajib: konfigurasi.wajibVerifikasi === "wajib",
           oauthAktif: oauthAktif(),
           ...statistikSesi(),
-          ...statistikTantangan(),
+          ...(await statistikTantangan()),
           // Pengajuan manual yang menunggu pemeriksaan — jalur manual tidak
           // mengubah status terverifikasi sampai pengajuan ini selesai diperiksa.
           pengajuanMenunggu: await daftarPengajuanVerifikasi({ status: "menunggu" })
@@ -812,8 +813,15 @@ export function daftarkanRute(router, { mulaiPada }) {
    * Pemeriksaan yang sebenarnya terjadi di sini, bukan di browser: pengajuan
    * berstatus "menunggu" sampai pengurus membuka daftar ini, membandingkan
    * kode/profil secara manual, lalu menyetujui atau menolak. Persetujuan
-   * menerbitkan tiket (cara: "pengurus") dan menulis status resmi ke data
-   * anggota — keduanya tercatat di jejak audit beserta nama pengurusnya.
+   * MENGIKUTKAN nama pengurus di berkas antrean + jejak audit.
+   *
+   * Hanya ADA SATU mekanisme yang mengubah status terverifikasi di jalur ini:
+   * perpindahan status "menunggu" -> "disetujui" oleh endpoint ini. Endpoint
+   * TIDAK lagi menyerahkan tiket verifikasi kepada pengurus. Tiket adalah
+   * bukti jalur otomatis (OAuth / kode profil); menyerahkannya di sini akan
+   * menciptakan mekanisme kedua yang menghasilkan state sama lewat jalan
+   * berbeda (pengurus lalu menyalin tiket ke pendaftar), yang justru lebih
+   * mudah salah pakai dan sulit diaudit.
    */
   router.get("/api/pengurus/pengajuan-verifikasi", async (req) => {
     pastikanAdmin(req);
@@ -828,22 +836,32 @@ export function daftarkanRute(router, { mulaiPada }) {
     const entri = await setujuiPengajuanVerifikasi(param.id, {
       pengurus: admin?.username || "pengurus",
     });
-    const { tiket, berlakuDetik } = terbitkanTiket(entri.username, "pengurus");
     const anggotaDiperbarui = await tandaiAnggotaTerverifikasi(
       entri.username,
       "pengurus"
     ).catch(() => false);
+    if (anggotaDiperbarui) {
+      // Persetujuan sudah benar-benar diterapkan -> tidak boleh dipakai lagi.
+      await catatPersetujuanDiterapkanVerifikasi(entri.id, "pengurus");
+    }
     return {
       status: 200,
       isi: {
         ok: true,
         username: entri.username,
         status: "disetujui",
-        // Tiket diberikan ke pengurus, bukan ke browser pendaftar: jalur ini
-        // hanya sah bila pemeriksaan pengurus memang sudah terjadi.
-        tiket,
-        berlakuDetik,
         anggotaDiperbarui,
+        // Pendaftar yang formulirnya belum masuk: persetujuan TIDAK dibuang,
+        // tetap di antrean dan akan dipakai server saat ia mendaftar (lihat
+        // persetujuanSiapDipakai di keanggotaan.js). Tidak ada tiket, tidak
+        // ada status, yang bisa disalin-salinkan dari layar ini.
+        ...(anggotaDiperbarui
+          ? {}
+          : {
+              petunjuk:
+                `Catatan anggota "${entri.username}" belum ada. Persetujuan tetap berlaku dan ` +
+                "akan diterapkan otomatis begitu yang bersangkutan mengirim formulir pendaftaran.",
+            }),
       },
     };
   });

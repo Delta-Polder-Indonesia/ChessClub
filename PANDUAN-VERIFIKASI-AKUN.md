@@ -56,7 +56,21 @@ langsung bisa dipakai **tanpa menunggu siapa pun**:
 3. Pendaftar menempelkannya ke kolom **Location** di profil Chess.com
 4. Browser memanggil `POST /api/auth/kode/periksa`; **server** yang membaca
    profil (tanpa cache) dan mencocokkan kodenya
-5. Bila cocok, server menerbitkan tiket; kode boleh dihapus lagi
+5. Bila cocok, server menerbitkan tiket dan membuang tantangannya (sekaligus,
+   di dalam antrean tulis yang sama) sehingga hasil "cocok" tidak dapat ditukar
+   jadi tiket kedua; kode boleh dihapus lagi
+
+**Di mana tantangan disimpan.** Tantangan tidak hidup di `Map` milik satu
+proses, melainkan lewat lapisan penyimpanan data yang sudah ada di repo ini
+(`server/src/simpanan.js` -> `buatRepo`, berkas `data/rahasia/verifikasi-tantangan.json`
+atau baris `kci_storage` di Supabase bila dipasang). Alasannya: di Vercel
+serverless, request "minta kode" dan "periksa kode" berikutnya tidak dijamin
+mendarat di instance yang sama, dan cold start menghapus memori proses — kalau
+tantangan hanya ada di `Map`, pendaftar kehilangan kodenya di tengah alur.
+Konsekuensi yang diinginkan: pencatat jeda 5 detik dan batas 40 percobaan ikut
+bertahan, jadi pemindaian ulang tidak dapat dimulai dari nol dengan berganti
+instance. Berkasnya ada di `rahasia/` (di-gitignore dan di luar glob
+`data/*.json` yang di-bundle Vercel) karena isinya kode yang sedang beredar.
 
 > Yang TIDAK ada lagi: mode "verifikasi cepat" tempat pendaftar mengetik ulang
 > kode yang sedang tampil di layar. Ketik ulang kode hanya membuktikan bahwa
@@ -72,6 +86,15 @@ Pengamanan jalur ini:
 - Kode berlaku **30 menit**, dibuat dari 6 byte acak kripto (bukan `Math.random`)
 - Jeda minimal **5 detik** antar pemeriksaan (anti pemborosan API)
 - Maksimum **40 percobaan** per kode
+- Umur, jeda, dan batas percobaan dapat diubah lewat `KCI_TANTANGAN_UMUR_DETIK`,
+  `KCI_TANTANGAN_JEDA_DETIK`, `KCI_TANTANGAN_MAKS_PERCOBAAN` (default tidak
+  berubah dari nilai sebelumnya; knob ini ada untuk pengujian)
+- Keputusan akhir dibuat **di dalam antrean tulis**, jadi dua pemeriksaan yang
+  datang bersamaan tidak bisa sama-sama menang dan hanya satu tiket yang terbit
+- Bila tantangan tidak ditemukan (mis. instance baru tanpa penyimpanan bersama),
+  server menjawab `400` dengan `kode: "tantangan-tidak-ada"`; UI langsung
+  meminta kode baru alih-alih membiarkan pengguna menebak. Kegagalan seperti ini
+  **selalu menolak**, tidak pernah meloloskan verifikasi
 - Profil dibaca **tanpa cache**, agar perubahan langsung terbaca
 - Pemeriksaan terjadi di server dengan pembatasan laju per IP
   (`/api/auth/kode/minta` 20×, `/api/auth/kode/periksa` 60× per 15 menit)
@@ -85,13 +108,29 @@ pengajuan dikirim (POST /api/auth/pengajuan-manual)
     -> status "menunggu", tercatat di data/pengajuan-verifikasi.json
     -> pengurus memeriksa:  GET  /api/pengurus/pengajuan-verifikasi
     -> setujui / tolak:     POST /api/pengurus/pengajuan-verifikasi/:id/setujui|tolak
-    -> persetujuan MENGIKUTKAN nama pengurus di jejak audit, menerbitkan tiket
-       (cara: "pengurus"), dan menulis status terverifikasi ke catatan anggota
+    -> bila catatan anggotanya sudah ada: status terverifikasi ditulis ke
+       catatan anggota (anggotaDiperbarui: true) dan pengajuan ditandai
+       diterapkan
+    -> bila formulirnya belum dikirim: persetujuan TIDAK dibuang dan TIDAK
+       menghasilkan apa pun di layar pengurus; server menerapkan persetujuan
+       itu pada saat pendaftaran, lalu menandai diterapkanPada
 ```
 
 Jalur ini **tidak pernah** menerbitkan tiket maupun menandai anggota
 terverifikasi dengan sendirinya. Bukti keamanan baru lahir setelah pemeriksaan
 pengurus tercatat di server.
+
+**Hanya ada SATU mekanisme persetujuan.** Endpoint `setujui` sengaja TIDAK
+lagi menyerahkan tiket kepada pengurus. Sebelumnya ia melakukan dua hal
+sekaligus: menerbitkan tiket (yang lalu harus disalin-salinkan ke pendaftar)
+dan menulis status ke catatan anggota — dua jalan yang menghasilkan state sama
+lewat pihak berbeda, dan yang pertama justru lebih mudah salah pakai serta tidak
+terikat pada instance/tempat pendaftar berada. Sekarang status berubah hanya
+dari satu peristiwa: `"menunggu" -> "disetujui"` oleh endpoint yang sudah
+melewati `pastikanAdmin`, dan penerapannya (ke catatan anggota yang sudah ada
+ATAU ke pendaftaran yang baru masuk) selalu terjadi di server. Jejak audit
+mencatat `pengajuan-verifikasi-disetujui` dan
+`pengajuan-verifikasi-diterapkan` (siapa, kapan, lewat jalur apa).
 
 ---
 
@@ -123,14 +162,25 @@ formulir bisa mendarat di instance berbeda, dan cold start menghapus
 isinya. Karena itu state OAuth (PKCE verifier + tujuan kembali) dan tiket
 kini berupa token kecil bertanda tangan, bukan entri `Map`.
 
-Yang tetap hidup di memori proses hanyalah ledger "tiket sudah dipakai".
-Akibatnya, di deployment multi-instance, tiket yang sama secara teori dapat
-dipakai dua kali di dua instance selama masa berlakunya. Dampaknya dibatasi:
+Yang tetap hidup di memori proses hanyalah ledger "tiket sudah dipakai", dan
+lingkupnya harus disebut apa adanya: sekali pakai berlaku **dalam satu instance
+yang masih hidup** — tidak bertahan cold start/restart, dan tidak dibagikan
+antar-instance. Jadi jangan ditulis (maupun dilaporkan) sebagai "sekali pakai
+lintas instance". Akibatnya, di deployment multi-instance, tiket yang sama
+secara teori dapat dipakai dua kali di dua instance selama masa berlakunya.
+Ledger tidak dipindahkan ke `kci_storage` karena lapisan itu hanya upsert
+kunci-nilai (menang-last-write, tanpa pembaruan bersyarat), jadi sekalipun
+dipindah sifatnya tetap "best effort", bukan sekali pakai yang sesungguhnya;
+yang benar butuh Redis `SETNX` atau baris DB dengan constraint unik.
+Dampaknya dibatasi:
 tiket terikat satu username, dan pengecekan duplikasi username dilakukan di
 dalam antrean tulis yang sama, sehingga satu tiket tidak pernah menghasilkan
 dua anggota (yang kedua menerima `409`). Untuk pencegahan pemutaran ulang
-penuh lintas instance, pindahkan ledger ke penyimpanan bersama (Vercel KV /
-Supabase) — belum dibuat karena belum ada bukti kebutuhan di volume situs ini.
+penuh lintas instance, pindahkan ledger ke penyimpanan bersama yang sanggup
+menolak pembaruan ganda (Vercel KV `add` / Redis `SETNX` / tabel dengan
+`UNIQUE(jti)` + INSERT) — belum dibuat karena belum ada bukti kebutuhan di
+volume situs ini, dan statusnya dilaporkan dasbor lewat
+`lingkupLedgerTiket`.
 
 ---
 
@@ -196,15 +246,19 @@ dibaca sebagai keputusan keamanan (validasi membaca allow-list field saja).
 | GET | `/api/auth/chess/mulai` | Mulai login Chess.com (state tanpa keadaan) |
 | GET | `/api/auth/chess/kembali` | Tujuan pengalihan dari Chess.com; menerbitkan tiket |
 | POST | `/api/auth/kode/minta` | `{username, paksa?}` → kode tantangan dari server |
-| POST | `/api/auth/kode/periksa` | `{username}` → `{cocok, tiket?}`; server yang memeriksa profil |
+| POST | `/api/auth/kode/periksa` | `{username}` → `{cocok, tiket?}`; server yang memeriksa profil; penolakan membawa `kode` sebab (`tantangan-tidak-ada`, `kode-kedaluwarsa`, `terlalu-cepat`, `terlalu-banyak-percobaan`) |
 | POST | `/api/auth/pengajuan-manual` | `{username, catatan}` → `202 {status:"menunggu"}`; TIDAK ada tiket |
 | GET | `/api/auth/tiket/:nilai` | Pratinjau tiket (pakai/umur) tanpa memakainya |
 | POST | `/api/anggota` | Pendaftaran; wajib CSRF; tiket diverifikasi di dalam antrean tulis |
 | GET | `/api/pengurus/pengajuan-verifikasi` | Antrean pengajuan (kredensial pengurus) |
-| POST | `/api/pengurus/pengajuan-verifikasi/:id/setujui` | Setujui → tiket "pengurus" + status anggota ditulis |
+| POST | `/api/pengurus/pengajuan-verifikasi/:id/setujui` | Setujui → status anggota ditulis; TIDAK ada tiket di respons (`anggotaDiperbarui:false` + `petunjuk` bila formulir belum masuk) |
 | POST | `/api/pengurus/pengajuan-verifikasi/:id/tolak` | Tolak dengan alasan |
 
-Semua POST memerlukan `X-CSRF-Token`; halaman perantara OAuth menulis hasil
+Semua POST memerlukan `X-CSRF-Token` (penolakannya membawa
+`kode: "token-csrf"` agar klien dapat membedakinya dari penolakan lain dan
+memulihkan diri: token CSRF hidup di memori instance, jadi di serverless token
+yang baru terbit bisa tidak dikenal oleh instance tempat POST mendarat — klien
+meminta token baru dan mengirim ulang satu kali). Halaman perantara OAuth menulis hasil
 ke `sessionStorage` (`kci-hasil-verifikasi`) sebagai JSON yang **diescape**
 agar `</script>` dari pihak ketiga tidak dapat menyuntik skrip, dan hanya
 kode sebab yang dikenal yang dikirim ke browser (pesan exception teknis tidak
@@ -214,9 +268,9 @@ pernah sampai ke pengguna).
 
 ## 6. Yang sudah diuji
 
-`npm run uji:verifikasi` (86 pemeriksaan) dan `npm run uji:pendaftaran`
-(49 pemeriksaan, server sungguhan + Chess.com tiruan), plus
-`npm run uji:pendaftaran-ui` (jsdom) dan tes Playwright alur pendaftaran.
+`npm run uji:verifikasi` (117 pemeriksaan) dan `npm run uji:pendaftaran`
+(60 pemeriksaan, server sungguhan + Chess.com tiruan), plus
+`npm run uji:pendaftaran-ui` (66, jsdom), `npm run uji:backend` (140) dan tes Playwright alur pendaftaran.
 
 | Serangan / skenario | Hasil |
 | ------------------- | ----- |
@@ -237,12 +291,26 @@ pernah sampai ke pengguna).
 | State OAuth dipalsukan | ditolak |
 | `kembali=https://…` / `//evil.com` | ditolak (hanya jalur internal) |
 | Ketik ulang kode manual | status `menunggu`, tanpa tiket |
+| Tantangan dibuat di request A, diperiksa di request B | berhasil (tersimpan, bukan `Map`) |
+| Kode di profil berbeda dengan tantangan | `cocok: false`, tanpa tiket |
+| Tantangan kedaluwarsa | `410` + `kode: "kode-kedaluwarsa"` |
+| Melewati batas percobaan (40) | `429` dan tantangan dibuang |
+| Dua `/api/auth/kode/periksa` bersamaan | tepat satu `cocok: true` + satu tiket |
+| Tantangan yang sudah berhasil dipakai lagi | `400` `tantangan-tidak-ada` |
+| Tantangan di instance BARU dengan penyimpanan bersama | tetap terlihat (restart-aman) |
+| Tantangan di instance dengan penyimpanan TERPISAH | ditolak — gagal aman, bukan lolos |
+| Persetujuan pengurus, tiket tidak diserahkan ke layar pengurus | `status: "disetujui"`, tanpa `tiket` |
+| Persetujuan pengurus sebelum formulir masuk | diterapkan saat mendaftar, lalu ditandai |
+| Persetujuan satu username dipakai pendaftar lain | `403` (tidak menular) |
+| Entri sudah ditolak lalu disetujui lagi | `409` |
 | Field `terverifikasi`/`mode`/`sumber` dari browser | diabaikan |
 | Username beda kapitalisasi / spasi / tautan | normalisasi + `409` duplikasi |
 | Dua klik kirim bersamaan | satu `201`, satu `409`, satu baris anggota |
 | Tanggal 30 Feb, masa depan, umur di luar 5–100 | `400` dengan pesan per field |
 | Pendaftar daftar hitam lewat varian tulisan | `403` |
-| POST tanpa CSRF | `403` |
+| POST tanpa CSRF | `403` + `kode: "token-csrf"` |
+| Token CSRF terbit di instance lain | `403`; klien meminta token baru lalu mengirim ulang SATU kali |
+| Sebab penolakan tantangan | `kode` di respons (`tantangan-tidak-ada`, `kode-kedaluwarsa`, `terlalu-cepat`, `terlalu-banyak-percobaan`) |
 
 ---
 
@@ -252,6 +320,16 @@ pernah sampai ke pengguna).
   sesi login. Akun yang kata sandinya dicuri tetap bisa disalahgunakan —
   jauh lebih kuat daripada mengetik username, tetapi OAuth tetap jalur utama.
 - Ledger "tiket sudah dipakai" per proses: lihat bagian 3.
+- Tantangan kode profil andal lintas instance **hanya bila penyimpanan bersama
+  terpasang** (`SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` + tabel
+  `kci_storage`). Tanpa itu `KCI_DIR_DATA` di Vercel adalah `/tmp` milik tiap
+  instance: tantangan bisa hilang di tengah alur, dan hasilnya selalu penolakan
+  dengan `kode: "tantangan-tidak-ada"` (UI langsung meminta kode baru), bukan
+  verifikasi palsu. Dasbor pengurus menampilkan `tantanganPenyimpanan`
+  (`penyimpanan-bersama` / `berkas-per-instance`) supaya ini terlihat, bukan
+  harus ditebak.
+- Belum ada antarmuka pengurus untuk antrean pengajuan: setujui/tolak masih
+  lewat API (Basic auth / `KCI_TOKEN_ADMIN`).
 - Cache Chess.com di server membuat perubahan profil baru terbaca setelah
   beberapa menit; karena itu `periksaKode` selalu membaca profil TANPA cache.
 - `KCI_JWT_SECRET` adalah kunci penandatangan tiket/state. Menggantinya

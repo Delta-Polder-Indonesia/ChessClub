@@ -205,6 +205,23 @@ export const konfigurasi = {
   get berkasPengajuan() {
     return path.join(this.dirData, "pengajuan-verifikasi.json");
   },
+  /**
+   * Tantangan kode profil (username -> kode yang harus terpasang di profil).
+   *
+   * Sengaja TIDAK di memori proses: pada Vercel serverless, request "minta
+   * kode" dan request "periksa kode" berikutnya bisa mendarat di instance
+   * berbeda dan setiap instance punya /tmp sendiri, jadi tantangan yang hanya
+   * hidup di `Map` akan hilang sebelum pengguna selesai menempelkan kodenya.
+   * Berkas ini memakai lapisan penyimpanan yang sudah ada (`simpanan.js`):
+   * otomatis pindah ke PostgreSQL/Supabase (`kci_storage`) bila dipasang, dan
+   * jatuh ke berkas bila tidak — tanpa mekanisme penyimpanan baru.
+   *
+   * Letaknya di `rahasia/` (di-gitignore, dan di luar glob `data/*.json` yang
+   * di-bundle sebagai benih) karena isinya kode aktif yang sedang beredar.
+   */
+  get berkasTantangan() {
+    return path.join(this.dirData, "rahasia", "verifikasi-tantangan.json");
+  },
   get berkasJejak() {
     return path.join(this.dirData, "rahasia", "jejak-audit.jsonl");
   },
@@ -242,6 +259,21 @@ export const konfigurasi = {
    */
   tiket: {
     umurDetik: angka(process.env.KCI_TIKET_UMUR_DETIK, 30 * 60),
+  },
+
+  /**
+   * Tantangan "kode di profil" (jalur cadangan tanpa OAuth).
+   * Nilai bawaan sama persis dengan yang sebelumnya hardcoded di
+   * `verifikasi-profil.js` — knob ini ada supaya umur/jeda dapat dipersingkat
+   * saat pengujian, bukan untuk mengubah perilaku produksi.
+   */
+  verifikasi: {
+    /** Berapa lama kode tantangan boleh dipakai diperiksa. */
+    umurTantanganDetik: angka(process.env.KCI_TANTANGAN_UMUR_DETIK, 30 * 60),
+    /** Jeda minimum antar pemeriksaan profil untuk satu username (anti boros API). */
+    jedaCekDetik: angka(process.env.KCI_TANTANGAN_JEDA_DETIK, 5),
+    /** Batas percobaan per kode; lewat batas ini tantangan dibuang. */
+    maksPercobaan: angka(process.env.KCI_TANTANGAN_MAKS_PERCOBAAN, 40),
   },
 
   /**

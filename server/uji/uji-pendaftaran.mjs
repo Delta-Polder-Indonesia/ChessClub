@@ -426,6 +426,163 @@ console.log("\nPendaftaran — mode `wajib` (tiket benar-benar dipaksa)");
   fs.rmSync(DIR_WAJIB, { recursive: true, force: true });
 }
 
+/* ==================== JALUR MANUAL SAMPAI SETUJU (mode wajib, tanpa tiket) */
+
+console.log("\nPendaftaran — jalur manual: menunggu sampai pengurus menyetujui (mode wajib)");
+{
+  const DIR_MANUAL = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-manual-"));
+  const server = await serverUji({
+    dirData: DIR_MANUAL,
+    env: { KCI_WAJIB_VERIFIKASI: "wajib" },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  const kirim = pembuatKirim(server.dasar, csrf, "10.44.0.21");
+  const kirimPengurus = pembuatKirim(server.dasar, csrf, "10.44.0.22");
+
+  try {
+    /* 1. Pengajuan manual: hanya mencatat antrean. */
+    const ajukan = await kirim("/api/auth/pengajuan-manual", {
+      username: "hikaru",
+      catatan: "profil sedang dikunci Chess.com",
+    });
+    cek(
+      "pengajuan manual -> 202 menunggu",
+      ajukan.status === 202 && ajukan.data?.status === "menunggu",
+      JSON.stringify(ajukan.data)?.slice(0, 160)
+    );
+
+    /* 2. Belum ada persetujuan: di mode wajib pendaftaran DITOLAK, dan
+          status di layar tidak bisa dinaikkan dari browser. */
+    const tanpaSetuju = await kirim("/api/anggota", formulir({}));
+    cek(
+      "pengajuan saja tidak menembus mode wajib",
+      tanpaSetuju.status === 403 && tanpaSetuju.data?.perluVerifikasi === true,
+      JSON.stringify(tanpaSetuju.data)?.slice(0, 180)
+    );
+    const puraPura = await kirim(
+      "/api/anggota",
+      formulir({ pengajuanVerifikasi: "disetujui", terverifikasi: true, status: "verif" })
+    );
+    cek(
+      "field 'disetujui' kiriman browser diabaikan (tetap 403)",
+      puraPura.status === 403 && puraPura.data?.perluVerifikasi === true,
+      `${puraPura.status} ${JSON.stringify(puraPura.data)?.slice(0, 160)}`
+    );
+
+    /* 3. Pengurus menyetujui. Yang belum mendaftar: tidak ada tiket,
+          tidak ada status, hanya antrean yang berubah. */
+    const daftar = await fetch(`${server.dasar}/api/pengurus/pengajuan-verifikasi?status=menunggu`, {
+      headers: { "X-Token-Admin": server.token },
+    }).then((r) => r.json().catch(() => []));
+    const entri = (Array.isArray(daftar) ? daftar : []).find((p) => p.username === "hikaru");
+    cek("pengurus melihat antrean pengajuan", Boolean(entri?.id), JSON.stringify(entri)?.slice(0, 160));
+
+    const setuju = await kirimPengurus(
+      `/api/pengurus/pengajuan-verifikasi/${entri?.id || "x"}/setujui`,
+      {},
+      { token: server.token }
+    );
+    cek(
+      "persetujuan tercatat tanpa tiket dan tanpa mengubah status paksa",
+      setuju.status === 200 &&
+        setuju.data?.status === "disetujui" &&
+        !setuju.data?.tiket &&
+        setuju.data?.anggotaDiperbarui === false,
+      JSON.stringify(setuju.data)?.slice(0, 200)
+    );
+
+    /* 4. Persetujuan server-lah yang membuat pendaftaran berikutnya sah. */
+    const setelahSetuju = await kirim("/api/anggota", formulir({ hp: "0812-7777-8888" }));
+    const anggota = (bacaBerkas("anggota.json", DIR_MANUAL) || []).find(
+      (a) => a.username === "hikaru"
+    );
+    cek(
+      "pendaftaran setelah disetujui -> 201 + terverifikasi dari antrean",
+      setelahSetuju.status === 201 &&
+        anggota?.terverifikasi === true &&
+        anggota?.caraVerifikasi === "pengurus",
+      `${setelahSetuju.status} ${JSON.stringify(anggota)?.slice(0, 200)}`
+    );
+    const antrean = bacaBerkas("pengajuan-verifikasi.json", DIR_MANUAL) || [];
+    const diterapkan = (Array.isArray(antrean) ? antrean : []).find(
+      (p) => p.username === "hikaru"
+    );
+    cek(
+      "persetujuan ditandai diterapkan (tidak dapat dipakai dua kali)",
+      Boolean(diterapkan?.diterapkanPada),
+      JSON.stringify(diterapkan)?.slice(0, 200)
+    );
+
+    /* 5. Persetujuan tidak menular ke username lain. */
+    const usernameLain = await kirim(
+      "/api/anggota",
+      formulir({
+        username: "gothamchess",
+        namaLengkap: "Levy Rozman",
+        panggilan: "Levy",
+        hp: "0812-7777-8889",
+        tanggalLahir: "1995-05-20",
+      })
+    );
+    cek(
+      "persetujuan hikaru tidak meloloskan pendaftar lain",
+      usernameLain.status === 403 && usernameLain.data?.perluVerifikasi === true,
+      JSON.stringify(usernameLain.data)?.slice(0, 160)
+    );
+
+    /* 6. Penolakan pengurus: tetap menunggu / ditolak, tidak ada status baru. */
+    const ajukanDua = await kirim("/api/auth/pengajuan-manual", { username: "gothamchess" });
+    const daftarDua = await fetch(`${server.dasar}/api/pengurus/pengajuan-verifikasi?status=menunggu`, {
+      headers: { "X-Token-Admin": server.token },
+    }).then((r) => r.json().catch(() => []));
+    const entriDua = (Array.isArray(daftarDua) ? daftarDua : []).find(
+      (p) => p.username === "gothamchess"
+    );
+    const tolak = await kirimPengurus(
+      `/api/pengurus/pengajuan-verifikasi/${entriDua?.id || "x"}/tolak`,
+      { alasan: "profil tidak dapat diperiksa" },
+      { token: server.token }
+    );
+    cek(
+      "penolakan pengurus -> status ditolak + alasan",
+      ajukanDua.status === 202 &&
+        tolak.status === 200 &&
+        tolak.data?.status === "ditolak",
+      JSON.stringify(tolak.data)?.slice(0, 160)
+    );
+    const setelahTolak = await kirim(
+      "/api/anggota",
+      formulir({
+        username: "gothamchess",
+        namaLengkap: "Levy Rozman",
+        panggilan: "Levy",
+        hp: "0812-7777-8890",
+        tanggalLahir: "1995-05-20",
+      })
+    );
+    cek(
+      "pengajuan yang ditolak tidak pernah melahirkan status terverifikasi",
+      setelahTolak.status === 403,
+      `dapat ${setelahTolak.status}`
+    );
+
+    /* 7. Persetujuan ganda ditolak (satu entri, satu keputusan). */
+    const setujuLagi = await kirimPengurus(
+      `/api/pengurus/pengajuan-verifikasi/${entriDua?.id || "x"}/setujui`,
+      {},
+      { token: server.token }
+    );
+    cek(
+      "menyetujui ulang entri yang sudah ditolak -> 409",
+      setujuLagi.status === 409,
+      `dapat ${setujuLagi.status}`
+    );
+  } finally {
+    server.hentikan();
+    fs.rmSync(DIR_MANUAL, { recursive: true, force: true });
+  }
+}
+
 /* =============================================== NORMALISASI MODE VERIFIKASI */
 
 console.log("\nKonfigurasi mode verifikasi");
