@@ -2,8 +2,8 @@
  * Verifikasi kepemilikan akun Chess.com — port mandiri dari contoh
  * chess-community-ui-component (alur "Periksa Kode" lewat profil publik),
  * dipakai TampilanPendaftaran pada alur Pendaftaran Anggota.
- * Utilitas pendukung (pemainCatur.js, pendaftaran.js, ui/button.jsx) tetap
- * tinggal di folder halaman PendaftaranAnggota.
+ * Utilitas pendukung (pemainCatur.js, pendaftaran.js) tetap tinggal di
+ * folder halaman PendaftaranAnggota — sengaja mandiri dari modul Analisa.
  */
 import { useEffect, useState } from "react";
 import {
@@ -17,7 +17,7 @@ import {
   ShieldCheck,
   TriangleAlert,
 } from "lucide-react";
-import { Button } from "../halaman/PendaftaranAnggota/komponen/ui/button.jsx";
+import { Button } from "./ui/button.jsx";
 import {
   ambilProfilChessCom,
   buatKodeVerifikasi,

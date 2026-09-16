@@ -5,7 +5,7 @@ import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCa
 import { URL_KLUB } from "./komponen/pendaftaran.js";
 import VerificationSpinner from "../../components/VerificationSpinner.jsx";
 import VerifikasiAkun from "../../components/VerifikasiAkun.jsx";
-import { Button } from "./komponen/ui/button.jsx";
+import { Button } from "../../components/ui/button.jsx";
 
 /**
  * Tampilan mirip alur masuk Google (tema terang, dua kolom responsif,

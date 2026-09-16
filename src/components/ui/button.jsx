@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { Loader2 } from "lucide-react";
 import { cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +11,9 @@ const buttonVariants = cva(
         default: "bg-[#0B2F9F] text-white shadow-sm hover:bg-[#0a2a8e]",
         outline: "border border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900",
         ghost: "text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        /* secondary + prop loading: dipakai alur Pendaftaran Anggota.
+           Tambahan aditif — pemakai tombol lain tidak terpengaruh. */
+        secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -26,16 +30,21 @@ const buttonVariants = cva(
 );
 
 export const Button = forwardRef(function Button(
-  { className, variant, size, type = "button", ...props },
+  { className, variant, size, type = "button", loading = false, disabled, children, ...props },
   ref,
 ) {
   return (
     <button
       ref={ref}
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading ? "true" : undefined}
       className={cn(buttonVariants({ variant, size }), className)}
       {...props}
-    />
+    >
+      {loading && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+      {children}
+    </button>
   );
 });
 
