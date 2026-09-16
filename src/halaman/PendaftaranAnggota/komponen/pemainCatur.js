@@ -1,17 +1,27 @@
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ID } from "../../../lib/terjemahan.js";
+import {
+  normalisasiUsernameKanonik,
+  periksaUsername,
+} from "../../../lib/identitas.js";
 
 /**
  * Utilitas data pemain catur — port mandiri dari contoh chess-community-ui-component.
  *
- * Semua data diambil langsung dari API publik Chess.com
- * (https://api.chess.com/pub/player/{username}) tanpa kunci API.
+ * Semua data yang diambil di sini berasal dari API publik Chess.com
+ * (https://api.chess.com/pub/player/{username}) tanpa kunci API, dan hanya
+ * untuk kebutuhan PRATINJAU profil. Yang membuktikan kepemilikan akun bukan
+ * bagian modul ini, melainkan tiket yang diterbitkan server (lihat
+ * `src/lib/api/anggota.js`).
  *
  * Pesan galat mengikuti i18n situs: pemanggilan UI menyuntikkan penerjemah `t`
  * lewat opsi `ambilProfilChessCom`; tanpa `t`, teks Indonesia dari kamus ID
  * menjadi fallback yang aman (konsisten dengan perilaku i18n.jsx).
  */
+
+/** Platform yang didukung modul ini. Lichess TIDAK didukung di sini. */
+export const PLATFORM_DI_DUKUNG = ["chessCom"];
 
 const API_CHESSCOM = "https://api.chess.com/pub/player";
 const BATAS_TIMEOUT = 12000;
@@ -31,16 +41,15 @@ const tBawaan = (kunci, ganti = {}) => {
   return teks;
 };
 
-export function normalisasiUsername(nilai) {
-  return String(nilai ?? "")
-    .trim()
-    .replace(/\s+/g, "");
-}
-
-export function sahUsername(nilai) {
-  const bersih = normalisasiUsername(nilai);
-  return /^[A-Za-z0-9_-]{3,30}$/.test(bersih);
-}
+/**
+ * Aturan username: DIIMPOR dari `src/lib/identitas.js`, modul yang sama juga
+ * dipakai `server/src/keanggotaan.js`. Karena itu tidak mungkin lagi terjadi
+ * isian yang lolos frontend lalu ditolak backend (dulu: 3–30 di sini,
+ * 3–25 + huruf kecil di server).
+ */
+export const normalisasiUsername = normalisasiUsernameKanonik;
+export const sahUsername = (nilai) => periksaUsername(nilai).sah;
+export { periksaUsername };
 
 /* Petakan respons mentah Chess.com menjadi kartu pemain yang mudah dipakai UI. */
 function petakanProfil(data) {
@@ -71,25 +80,33 @@ function petakanProfil(data) {
 }
 
 /**
- * Ambil profil pemain Chess.com.
+ * Ambil profil pemain Chess.com (pratinjau saja — bukan bukti kepemilikan).
+ *
  * @param {string} usernameRaw
- * @param {{ segar?: boolean, t?: (kunci: string, ganti?: object) => string }} opsi
- *        `segar: true` melewati cache (dipakai saat verifikasi kode);
- *        `t` menerjemahkan pesan galat mengikuti bahasa aktif.
+ * @param {{ segar?: boolean, t?: Function, sinyal?: AbortSignal }} opsi
+ *        `segar: true` melewati cache;
+ *        `t` menerjemahkan pesan galat mengikuti bahasa aktif;
+ *        `sinyal` membatalkan permintaan (dipakai hook saat komponen
+ *        dibongkar atau saat username berubah, agar permintaan lama tidak
+ *        menimpa hasil terbaru).
  */
 export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
   const t = opsi.t || tBawaan;
-  const username = normalisasiUsername(usernameRaw);
-  if (!username) throw new Error(t("verifikasi.profilUsernameKosong"));
-  if (!sahUsername(username)) {
-    throw new Error(t("verifikasi.profilUsernameSah"));
-  }
+  const diperiksa = periksaUsername(usernameRaw);
+  if (!diperiksa.username) throw new Error(t("verifikasi.profilUsernameKosong"));
+  if (!diperiksa.sah) throw new Error(t("verifikasi.profilUsernameSah"));
+  const username = diperiksa.username;
 
   const kunci = username.toLowerCase();
   if (!opsi.segar && CACHE_KARTU.has(kunci)) return CACHE_KARTU.get(kunci);
 
   const pengendali = new AbortController();
   const timer = setTimeout(() => pengendali.abort(), BATAS_TIMEOUT);
+  const batalkanLuar = () => pengendali.abort();
+  if (opsi.sinyal) {
+    if (opsi.sinyal.aborted) pengendali.abort();
+    else opsi.sinyal.addEventListener("abort", batalkanLuar, { once: true });
+  }
 
   try {
     const tafsir = await fetch(`${API_CHESSCOM}/${encodeURIComponent(username)}`, {
@@ -105,12 +122,23 @@ export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
       throw new Error(t("verifikasi.profilDitolak", { kode: tafsir.status }));
     }
 
-    const kartu = petakanProfil(await tafsir.json());
+    let data;
+    try {
+      data = await tafsir.json();
+    } catch {
+      // Respons tidak terurai: jangan diteruskan sebagai SyntaxError mentah.
+      throw new Error(t("verifikasi.profilGagalMuat"));
+    }
+    const kartu = petakanProfil(data);
     CACHE_KARTU.set(kunci, kartu);
     return kartu;
   } catch (galat) {
     if (galat?.name === "AbortError") {
-      throw new Error(t("verifikasi.profilTimeout"));
+      throw new Error(
+        opsi.sinyal?.aborted
+          ? t("verifikasi.profilDibatalkan")
+          : t("verifikasi.profilTimeout")
+      );
     }
     if (galat instanceof TypeError) {
       throw new Error(t("verifikasi.profilJaringan"));
@@ -118,36 +146,12 @@ export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
     throw galat;
   } finally {
     clearTimeout(timer);
+    opsi.sinyal?.removeEventListener?.("abort", batalkanLuar);
   }
 }
 
 export function hapusCacheProfil(usernameRaw) {
   CACHE_KARTU.delete(normalisasiUsername(usernameRaw).toLowerCase());
-}
-
-/** Kode acak yang ditempel pemain pada profil Chess.com-nya. */
-export function buatKodeVerifikasi() {
-  const abjad = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let isi = "";
-  for (let i = 0; i < 6; i += 1) {
-    isi += abjad[Math.floor(Math.random() * abjad.length)];
-  }
-  return `BSKUAD-${isi}`;
-}
-
-/** Cari kode verifikasi pada kolom profil publik Chess.com. */
-export function cariKodeDiProfil(profil, kode) {
-  if (!profil || !kode) return null;
-  const target = String(kode).toUpperCase();
-  const kandidat = [
-    ["Lokasi", profil.lokasi],
-    ["Nama profil", profil.nama],
-    ["Bio", profil.mentah?.bio],
-  ];
-  for (const [sumber, nilai] of kandidat) {
-    if (typeof nilai === "string" && nilai.toUpperCase().includes(target)) return sumber;
-  }
-  return null;
 }
 
 /** Ubah URL negara Chess.com menjadi emoji bendera. */
@@ -183,10 +187,22 @@ export function formatTanggal(waktu) {
 }
 
 /**
- * Hook profil pemain lengkap (kartu + status pemuatan).
+ * Hook profil pemain untuk PRATINJAU formulir (kartu + status pemuatan).
+ *
+ * `platform` sengaja dibatasi: modul ini HANYA bicara ke Chess.com. Jika
+ * suatu hari ada platform lain, tambahkan cabang yang benar-benar mengambil
+ * datanya — jangan biarkan pemanggil mengira Lichess sudah didukung hanya
+ * karena argumennya diterima.
+ *
+ * Daur hidup:
+ *  - permintaan ditunda 550 ms (debounce) lalu dibatalkan saat username
+ *    berubah atau komponen dibongkar, sehingga permintaan lama tidak pernah
+ *    menimpa hasil permintaan terbaru;
+ *  - hasil hanya dipakai bila nomor permintaan masih yang terbaru.
+ *
  * @param {string} username
  * @param {boolean} aktif  aktifkan pengambilan data
- * @param {"chessCom"|"lichess"} platform
+ * @param {"chessCom"} platform
  * @returns {{ kartu: object|null, memuat: boolean, galat: string }}
  */
 export function useProfilPemain(username, aktif = true, platform = "chessCom") {
@@ -202,34 +218,43 @@ export function useProfilPemain(username, aktif = true, platform = "chessCom") {
       setKartu(null);
       setGalat("");
       setMemuat(false);
-      return;
+      return undefined;
+    }
+    if (!PLATFORM_DI_DUKUNG.includes(platform)) {
+      setKartu(null);
+      setMemuat(false);
+      setGalat(t("verifikasi.profilPlatformTidakDidukung"));
+      return undefined;
     }
 
-    let dibatalkan = false;
+    let hidup = true;
+    const kendali = new AbortController();
     setMemuat(true);
 
-    const timer = setTimeout(async () => {
-      try {
-        const hasil = await ambilProfilChessCom(bersih, { t });
-        if (!dibatalkan) {
+    const jam = setTimeout(() => {
+      ambilProfilChessCom(bersih, { t, sinyal: kendali.signal })
+        .then((hasil) => {
+          if (!hidup) return;
           setKartu(hasil);
           setGalat("");
-        }
-      } catch (galatBaru) {
-        if (!dibatalkan) {
+        })
+        .catch((galatBaru) => {
+          if (!hidup) return;
+          if (galatBaru?.name === "AbortError") return; // dibatalkan: bukan galat
           setKartu(null);
           setGalat(galatBaru?.message || t("verifikasi.profilGagalMuat"));
-        }
-      } finally {
-        if (!dibatalkan) setMemuat(false);
-      }
+        })
+        .finally(() => {
+          if (hidup) setMemuat(false);
+        });
     }, 550);
 
     return () => {
-      dibatalkan = true;
-      clearTimeout(timer);
+      hidup = false;
+      clearTimeout(jam);
+      kendali.abort();
     };
-  }, [username, aktif, platform]);
+  }, [username, aktif, platform, t]);
 
   return { kartu, memuat, galat };
 }

@@ -126,6 +126,53 @@ sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.
 
 ---
 
+## 4b. Antrean "pengajuan verifikasi manual"
+
+Pendaftar yang tidak dapat menyunting profil Chess.com-nya boleh mengirim
+pengajuan manual. Pengajuan **tidak** memverifikasi siapa pun — statusnya
+`menunggu` sampai pengurus memeriksa profil pemain dan mencatat keputusan.
+
+Belum ada tab khusus di dashboard; periksa lewat API pengurus (token
+`X-Token-Admin` atau JWT hasil login dashboard):
+
+```bash
+# lihat antrean
+curl -s -H "X-Token-Admin: $KCI_TOKEN_ADMIN" \
+  "$API/api/pengurus/pengajuan-verifikasi?status=menunggu"
+
+# setujui -> status terverifikasi ditulis ke catatan anggota
+# (TIDAK ada tiket di respons: satu keputusan = satu mekanisme)
+curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
+  "$API/api/pengurus/pengajuan-verifikasi/<id>/setujui"
+
+# tolak dengan alasan
+curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
+  -H "Content-Type: application/json" -d '{"alasan":"profil tidak cocok"}' \
+  "$API/api/pengurus/pengajuan-verifikasi/<id>/tolak"
+```
+
+Yang dicatat: nama pengurus, waktu, dan jejak audit
+(`pengajuan-verifikasi-disetujui` / `-ditolak`, plus
+`pengajuan-verifikasi-diterapkan` saat status benar-benar dipakai). Sebelum
+menyetujui, buka profil Chess.com orang tersebut dan pastikan kolom Location
+(atau nama profil) memuat kode tantangan yang tercantum pada pengajuan —
+perubahan status hanya boleh lahir dari pemeriksaan yang sungguh-sungguh
+dilakukan.
+
+Tiga hal yang perlu diketahui pengurus soal jalur ini:
+
+- `anggotaDiperbarui: true` berarti catatan anggotanya sudah ada dan langsung
+  menjadi terverifikasi.
+- `anggotaDiperbarui: false` + `petunjuk` berarti yang bersangkutan belum
+  mengirim formulir pendaftaran. Persetujuan **tidak** dibuang: server akan
+  menerapkannya begitu formulir masuk, lalu menandai pengajuan sebagai sudah
+  diterapkan supaya tidak dipakai dua kali.
+- Endpoint ini **tidak** mengembalikan tiket. Kalau ada yang meminta
+  "kode/tiket" untuk ditukar di formulir, itu bukan bagian dari alur ini —
+  status terverifikasi tidak dapat diberikan dari layar pengurus.
+
+---
+
 ## 5. Mengelola turnamen
 
 Keempat halaman turnamen publik — Turnamen Bulanan, Liga Musiman, Turnamen

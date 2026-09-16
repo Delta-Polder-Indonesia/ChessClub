@@ -35,6 +35,13 @@ lewat saluran tidak terenkripsi.
 | Spoof IP | `X-Forwarded-For` hanya dihormati jika `KCI_JUMLAH_PROXY` > 0 |
 | Kredensial bocor | `.gitignore` untuk `.env`, `data/rahasia/`; scanner GitHub |
 | Timing attack token | `crypto.timingSafeEqual` lewat hash SHA-256 |
+| Klaim "sudah terverifikasi" dari browser | Bukti = tiket HMAC terbitan server, terikat username, sekali pakai **dalam satu instance** (ledger per-proses, lihat `PANDUAN-VERIFIKASI-AKUN.md` §3); field `mode`/`sumber`/`kode`/`terverifikasi` diabaikan |
+| Kode tantangan profil dibawa antar request | Disimpan lewat lapisan data aplikasi (`kci_storage`/berkas), bukan `Map` proses; keputusan akhir diambil di dalam antrean tulis sehingga dua pemeriksaan bersamaan hanya menghasilkan satu tiket |
+| Pemindaian tantangan (kode/profile) | Jeda minimum + batas percobaan ikut tersimpan, jadi berpindah instance tidak menyegarkan kuota; kode hanya diterima bila terbaca di profil milik username itu sendiri |
+| Dua jalur approval yang saling bertabrakan | Persetujuan pengurus adalah satu-satunya pemicu status terverifikasi di jalur manual; endpoint tidak lagi menyerahkan tiket, dan penerapan persetujuan dicatat (`diterapkanPada`) agar tidak dipakai ulang |
+| Pemalsuan `id_token` Chess.com | RS256 + `kid` dikenal + `iss`/`aud`/`exp`/`sub` wajib; token tanpa salah satunya ditolak |
+| Open redirect pasca-login | hanya jalur internal (`jalurInternal`) yang diterima dan disimpan di state bertanda tangan |
+| Injeksi ke halaman perantara OAuth | JSON di-escape (`<`/`>`) dan hanya kode sebab yang dikenal yang dikirim ke browser |
 
 ## Arsitektur
 

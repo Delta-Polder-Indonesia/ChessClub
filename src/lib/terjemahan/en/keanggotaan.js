@@ -22,6 +22,10 @@ export const keanggotaan = {
     sumberCatatan: "The public Chess.com roster refreshes at most every 12 hours.",
     memuat: "Loading data from Chess.com…",
     menyegarkan: "Refreshing the member list from Chess.com…",
+    fallbackCatatan:
+      "The community server cannot be reached, so this list is the PUBLIC Chess.com club roster — not the official ChessClub member list. Names and links may be outdated, and official membership status cannot be inferred from this page.",
+    dariSimpanan:
+      "Showing data from your previous visit. The latest version is being fetched.",
     kosongKlub: "No members could be read from the Chess.com club yet.",
     aktivitasKlub: "Club activity",
     aktivitas: {
@@ -89,50 +93,76 @@ export const keanggotaan = {
 
 export const verifikasi = {
     langkahSalinJudul: "Copy your verification code",
-    langkahSalinRincian: "The code below is unique to this registration.",
+    langkahSalinRincian:
+      "The code is created and recorded by our server for this registration — not a random number from your browser.",
     langkahTempelJudul: "Paste it on your Chess.com profile",
     langkahTempelRincian:
       "Open Settings → Profile, fill the Location field with the code, then press Save.",
     langkahPeriksaJudul: "Check again here",
     langkahPeriksaRincian:
-      "Press Check Code. We read your public profile to match the code.",
+      "Press Check Code. Our server reads your public profile and matches the code. On a match, the server issues a single-use ticket.",
     kodeAnda: "Your verification code",
     salinKode: "Copy code",
     salinKodeVerifikasi: "Copy verification code",
-    buatKodeBaru: "Generate new code",
+    buatKodeBaru: "Request a new code",
+    membuatKode: "Requesting a code from the server…",
+    kodeBelumTersedia: "code not available yet",
+    kodeTidakDiterbitkan: "The server did not issue a code. Try again.",
+    galatMintaKode: "The verification code could not be requested. Check your connection, then try again.",
     bukaPengaturanProfil: "Open Chess.com profile settings",
-    menghubungi: "Contacting Chess.com and checking {username}'s profile…",
-    profilTerverifikasi: "Chess.com profile verified. Continuing registration…",
+    menghubungi: "Contacting the server and checking {username}'s profile…",
+    profilTerverifikasi:
+      "The code was found on your profile and recorded by the server. Continue with the form before the ticket expires.",
     periksaKode: "Check Code",
     sedangMemeriksa: "Checking…",
-    verifCepatGunakan: "Use quick verification",
-    verifCepatToggle: "Can't edit your profile? Quick verification",
+    ajukanManualGunakan: "request a manual review",
+    ajukanManualToggle: "Can't edit your profile? Request a manual review",
+    ajukanManualKeterangan:
+      "Submitting a request does NOT verify your account. Retyping the code shown on screen proves nothing about account ownership, so the status becomes \u201cwaiting for a committee review\u201d and no ticket is issued. A committee member checks your profile separately; only after that approval does the server write the verified status.",
     tutup: "Close",
     buka: "Open",
-    verifCepatKeterangan:
-      "If your Chess.com profile cannot be edited yet, or the cache still holds old data, retype the code above to complete verification (manual confirmation mode).",
-    kodeManual: "Manual verification code",
-    phKodeCepat: "BSKUAD-XXXXXX",
-    konfirmasiKode: "Confirm Code",
+    catatanPengajuan: "Note for the committee (optional)",
+    phCatatanPengajuan: "e.g. my profile is locked, please review it manually",
+    kirimPengajuan: "Submit Request",
+    galatPengajuan: "The manual request could not be sent. Try again.",
+    galatOAuth: "Could not start the Chess.com sign-in. Try again.",
+    masukChessCom: "Sign in with Chess.com",
+    kodeKedaluwarsa: "The verification code expired. A new one was requested — copy it again.",
+    tiketKedaluwarsa:
+      "Your verification session has expired. Please verify your Chess.com account again.",
+    pengajuanTerkirim:
+      "Your request was recorded as \u201cpending\u201d. Your account has NOT become verified.",
+    hasilOauthRusak:
+      "The Chess.com login result could not be read (corrupted data). Please verify again.",
     catatanPrivasi:
       "We only read your public Chess.com profile. You may remove the code again once verification is complete.",
     belumTerbacaProfil:
       "The code was not detected on {username}'s profile. Make sure you pressed Save on Chess.com, then check again. Chess.com profiles can remain cached for several hours.",
     usernameKosong: "Chess.com username is still empty.",
-    kodeTidakCocok:
-      "The code you entered does not match. Copy the code above, then paste it back.",
     galatMemeriksa: "Failed to check the Chess.com profile.",
     galatUmum: "Verification failed. Try again.",
 
     profilUsernameKosong: "Username is still empty.",
     profilUsernameSah:
-      "Username may only contain letters, numbers, hyphens, or underscores (3–30 characters).",
+      "Username may only contain lowercase letters, numbers, hyphens, or underscores (3\u201325 characters).",
     profilTidakDitemukan: "Username \"{username}\" was not found on Chess.com.",
     profilDitolak: "Chess.com rejected the request (code {kode}). Try again shortly.",
     profilTimeout: "The connection to Chess.com timed out. Check your network, then try again.",
     profilJaringan: "Chess.com cannot be reached from this device.",
+    profilDibatalkan: "The previous profile check was cancelled.",
     profilGagalMuat: "The profile could not be loaded.",
+    profilPlatformTidakDidukung:
+      "Profile preview is only available for Chess.com accounts in this form.",
     oauthGagal: "Chess.com verification failed: {sebab}",
+    sebabOauth: {
+      konfigurasi: "Chess.com sign-in is not enabled on this server",
+      state: "the login session is unknown or expired",
+      "state-kedaluwarsa": "the verification session expired",
+      chesscom: "Chess.com rejected the login request",
+      token: "the login token could not be trusted",
+      username: "Chess.com did not return a valid username",
+      penandatangan: "the verification service is currently unavailable",
+    },
   }
 
 export const pendaftaran = {
@@ -208,14 +238,30 @@ export const pendaftaran = {
       "By completing this registration, you are recorded as a Blunder Skuad member and will be redirected back to the Membership page.",
 
     periksaIsian: "Please review the fields marked in red.",
-    galatUsername: "Chess.com username is required.",
+    /* Per-reason messages of the canonical username rule
+       (src/lib/identitas.js). The server uses the same reasons. */
+    galatUsername: {
+      kosong: "Chess.com username is required.",
+      spasi: "Chess.com username may not contain spaces.",
+      kependekan: "Chess.com username is too short (at least 3 characters).",
+      kepanjangan: "Chess.com username is too long (at most 25 characters).",
+      karakter:
+        "Invalid username format: lowercase letters, numbers, hyphens or underscores (3\u201325 characters).",
+    },
+    galatLahir: {
+      kosong: "Date of birth is required.",
+      format: "Invalid date of birth (expected format YYYY-MM-DD).",
+      "masa-depan": "The date of birth cannot be in the future.",
+      "terlalu-muda": "Registrants must be at least 5 years old.",
+      "terlalu-tua": "That date of birth is not plausible (age above 100 years).",
+    },
+    galatVerifikasiWajib:
+      "Chess.com account verification is required on this server. Complete the verification first.",
     galatNama: "Enter your full name (at least two words).",
     galatPanggilan: "Nickname is required.",
     galatHp: "Invalid phone/WhatsApp number. Example: 0812-3456-7890.",
     galatDana: "Invalid DANA number.",
     galatKota: "City of origin is required.",
-    galatLahir: "Date of birth is required.",
-    galatLahirAneh: "That date of birth is not plausible.",
     galatEmail: "Invalid email format.",
     galatSetuju: "You must agree to the community code of ethics.",
 
@@ -241,8 +287,22 @@ export const pendaftaran = {
       "We never ask for your Chess.com password. Verification is done simply by pasting a one-time code onto your public profile.",
     verifLewatKode: "Verify via profile code",
     verifBerhasil: "Verification Successful!",
+    verifStatusLabel: "Verification status",
+    verifStatusBerhasil: "verified by the server",
+    verifStatusMenunggu: "waiting for a committee review",
+    verifStatusBelum: "not verified yet",
+    verifTiketBerlaku:
+      "The verification ticket is valid for about {menit} minutes. Submit the form before it expires.",
+    verifOpsionalCatatan:
+      "Verification is not mandatory on this server yet. Registering without it means your account is recorded as NOT verified.",
+    lewatiVerifikasi: "Skip verification for now",
+    pengajuanDiterima: "Request Received",
+    pengajuanPenjelasan:
+      "The request for {username} was recorded and is pending. A committee member reviews your Chess.com profile separately; the verified status is only written after that review is done.",
+    lanjutkanTanpaVerifikasi: "Continue without verification",
+    ulangiVerifikasi: "Verify again",
     akunSiap:
-      "Account {username} is verified and ready to continue member registration.",
+      "Account {username} was verified by the server and is ready to continue member registration.",
     gantiAkun: "Change Account",
     lanjutkanPendaftaran: "Continue Registration",
     judulDataDiri: "Personal Details",

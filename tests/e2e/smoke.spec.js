@@ -24,7 +24,20 @@ const formPendaftaran = (page) =>
   page.locator("form").filter({ has: page.locator('input[name="username"]') });
 
 /** Backend tiruan untuk memverifikasi alur browser tanpa data produksi. */
-async function tiruApiPublik(page, onRequest = () => {}) {
+/**
+ * Backend tiruan untuk halaman publik.
+ *
+ * `state` dipakai bersama tes: kode tantangan "diterbitkan server" dan hanya
+ * cocok bila tes memasangnya pada profil tiruan (lihat `tiruProfilChessCom`).
+ * Tiket verifikasi selalu berasal dari respons server — tidak pernah dari
+ * browser — sehingga kontrak yang diuji sama dengan produksi.
+ */
+async function tiruApiPublik(page, onRequest = () => {}, state = {}) {
+  // State dipakai bersama (bukan salinan): tes memasang kode pada profil
+  // tiruan, handler ini membacanya kembali saat memeriksa.
+  state.kode ??= "KCI-UJI007";
+  state.pemeriksaan ??= 0;
+  const tiruan = state;
   await page.route(JALUR_API, async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -32,8 +45,42 @@ async function tiruApiPublik(page, onRequest = () => {}) {
     const json = (body, status = 200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
 
     if (path === "/api/csrf-token") return json({ token: "csrf-uji" });
-    if (path === "/api/auth/cara") return json({ oauth: false, kodeProfil: true, mode: "opsional" });
-    if (path === "/api/anggota" && request.method() === "POST") return json({ username: "pecaturuji" }, 201);
+    if (path === "/api/auth/cara")
+      return json({
+        oauth: false,
+        kodeProfil: true,
+        mode: tiruan.mode || "opsional",
+        wajib: tiruan.mode === "wajib",
+        tiketBerlakuDetik: 1800,
+      });
+    if (path === "/api/auth/kode/minta" && request.method() === "POST") {
+      const body = request.postDataJSON?.() || {};
+      if (body.paksa) tiruan.kode = `KCI-${String(tiruan.pemeriksaan + 7).padStart(6, "0")}`;
+      return json({ username: body.username, kode: tiruan.kode, berlakuDetik: 1800, diulang: false });
+    }
+    if (path === "/api/auth/kode/periksa" && request.method() === "POST") {
+      if (tiruan.terpasang !== tiruan.kode)
+        return json({ cocok: false, pesan: "Kode belum terbaca di profil Anda." });
+      tiruan.pemeriksaan += 1;
+      return json({
+        cocok: true,
+        username: "pecaturuji",
+        tiket: `kci1.uji-${tiruan.pemeriksaan}`,
+        berlakuDetik: 1800,
+        cara: "kode-profil",
+      });
+    }
+    if (path === "/api/auth/pengajuan-manual" && request.method() === "POST") {
+      tiruan.pengajuan = request.postDataJSON?.() || {};
+      return json({ id: "pj-uji", status: "menunggu", username: "pecaturuji" }, 202);
+    }
+    if (path === "/api/anggota" && request.method() === "POST") {
+      const body = request.postDataJSON?.() || {};
+      if (body.tiketVerifikasi && !/^kci1\.uji-/.test(body.tiketVerifikasi))
+        return json({ pesan: "Sesi verifikasi telah kedaluwarsa. Silakan ulangi verifikasi akun Chess.com Anda.", perluVerifikasi: true, kodeVerifikasi: "tidak-sah" }, 403);
+      tiruan.terkirim = body;
+      return json({ username: "pecaturuji" }, 201);
+    }
     if (path === "/api/anggota") return json([]);
     if (path === "/api/pesan" && request.method() === "POST") return json({ id: "pesan-uji" }, 201);
     return json({});
@@ -453,32 +500,37 @@ test("alur pendaftaran memvalidasi username pada langkah pertama", async ({ page
   periksaGalat();
 });
 
-test("verifikasi cepat manual dapat dipakai untuk melanjutkan ke data diri", async ({ page }) => {
-  await tiruApiPublik(page);
-  await tiruProfilChessCom(page);
+test("jalur manual menjadi pengajuan menunggu, bukan verifikasi", async ({ page }) => {
+  const state = {};
+  await tiruApiPublik(page, () => {}, state);
+  await tiruProfilChessCom(page, () => null);
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/pendaftaran-anggota");
 
   await page.locator('input[name="username"]').fill("pecaturuji");
   await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
 
-  // Kode verifikasi dibuat acak di klien — baca dari kartu, lalu selesaikan
-  // lewat jalur "verifikasi cepat" (konfirmasi manual, tanpa menyunting
-  // profil Chess.com).
-  const kode = (await page.getByText(/^BSKUAD-[A-Z2-9]{6}$/).textContent()).trim();
-  await page.getByRole("button", { name: "Verifikasi cepat" }).click();
-  await page.getByLabel("Kode verifikasi manual").fill(kode);
-  await page.getByRole("button", { name: "Konfirmasi Kode", exact: true }).click();
+  // Kode tantangan berasal dari SERVER (endpoint /api/auth/kode/minta),
+  // bukan angka acak buatan browser.
+  await expect(page.getByText(/^KCI-[A-Z0-9]{6}$/)).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Verifikasi Berhasil!" })).toBeVisible();
-  await page.getByRole("button", { name: "Lanjutkan Pendaftaran", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Data Diri" })).toBeVisible();
+  await page.getByRole("button", { name: /Ajukan pemeriksaan manual/i }).click();
+  await page.getByLabel(/Catatan untuk pengurus/i).fill("profil saya terkunci");
+  await page.getByRole("button", { name: "Kirim Pengajuan", exact: true }).click();
+
+  await expect(page.getByRole("heading", { name: "Pengajuan Diterima" })).toBeVisible();
+  await expect(page.getByText(/menunggu/i).first()).toBeVisible();
+  // Yang lama: mengetik ulang kode dianggap "Verifikasi Berhasil!" — tidak lagi.
+  await expect(page.getByRole("heading", { name: "Verifikasi Berhasil!" })).toHaveCount(0);
+  expect(state.pengajuan?.username).toBe("pecaturuji");
+  expect(state.pengajuan?.tiketVerifikasi).toBeUndefined();
   periksaGalat();
 });
 
-test("alur pendaftaran terverifikasi mengirim data sah dan berpindah ke keanggotaan", async ({ page }) => {
+test("alur pendaftaran mengirim tiket server dan menolak tiket palsu", async ({ page }) => {
   const requests = [];
-  await tiruApiPublik(page, (request) => requests.push(request));
+  const state = {};
+  await tiruApiPublik(page, (request) => requests.push(request), state);
   let kodeTerpasang = null;
   await tiruProfilChessCom(page, () => kodeTerpasang);
   const periksaGalat = pantauGalatHalaman(page);
@@ -486,9 +538,18 @@ test("alur pendaftaran terverifikasi mengirim data sah dan berpindah ke keanggot
 
   await page.locator('input[name="username"]').fill("pecaturuji");
   await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
-  // Baca kode acak dari kartu, "pasang" pada profil tiruan (kolom Location),
-  // lalu minta halaman memeriksa ulang profil secara segar.
-  kodeTerpasang = (await page.getByText(/^BSKUAD-[A-Z2-9]{6}$/).textContent()).trim();
+
+  // Tanpa kode terpasang: server menjawab cocok:false dan TIDAK menerbitkan tiket.
+  await expect(page.getByText(/^KCI-[A-Z0-9]{6}$/)).toBeVisible();
+  const kode = (await page.getByText(/^KCI-[A-Z0-9]{6}$/).textContent()).trim();
+  await page.getByRole("button", { name: "Periksa Kode", exact: true }).click();
+  await expect(page.getByText(/belum terbaca di profil/i)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Verifikasi Berhasil!" })).toHaveCount(0);
+
+  // "Pasang" kode pada profil (kolom Location), lalu periksa ulang: server
+  // mencocokkan dan mengembalikan tiket yang dipakai formulir.
+  kodeTerpasang = kode;
+  state.terpasang = kode;
   await page.getByRole("button", { name: "Periksa Kode", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Verifikasi Berhasil!" })).toBeVisible();
   await page.getByRole("button", { name: "Lanjutkan Pendaftaran", exact: true }).click();
@@ -516,8 +577,39 @@ test("alur pendaftaran terverifikasi mengirim data sah dan berpindah ke keanggot
     kota: "Medan",
     setuju: true,
   });
-  // Verifikasi "Periksa Kode" berlangsung di browser — tanpa tiket server.
-  expect(pendaftaran?.body).not.toHaveProperty("tiketVerifikasi");
+  // Bukti kepemilikan yang dikirim adalah tiket terbitan server.
+  expect(pendaftaran?.body?.tiketVerifikasi).toBe("kci1.uji-1");
+  // Field yang dulu dipakai untuk "mengaku" terverifikasi tidak dikirim lagi.
+  expect(pendaftaran?.body).not.toHaveProperty("sumber");
+  expect(pendaftaran?.body).not.toHaveProperty("kode");
+  expect(pendaftaran?.body).not.toHaveProperty("terverifikasi");
+  expect(state.terkirim?.tiketVerifikasi).toBe("kci1.uji-1");
+  periksaGalat();
+});
+
+test("tiket yang tidak dikenali server menghentikan pendaftaran dengan pesan jelas", async ({ page }) => {
+  const state = { terkirim: null };
+  await tiruApiPublik(page, () => {}, state);
+  await tiruProfilChessCom(page, () => null);
+  const periksaGalat = pantauGalatHalaman(page);
+  await page.goto("/pendaftaran-anggota");
+
+  // Hasil OAuth palsu di sessionStorage: tanpa tiket, status tidak berubah.
+  await page.evaluate(() => {
+    sessionStorage.setItem(
+      "kci-hasil-verifikasi",
+      JSON.stringify({ sukses: true, username: "pecaturuji" })
+    );
+  });
+  await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
+  await page.locator('input[name="username"]').fill("pecaturuji");
+  await page.getByRole("button", { name: "Berikutnya", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Verifikasi Berhasil!" })).toHaveCount(0);
+
+  // Data sessionStorage yang rusak tidak membuat halaman crash.
+  await page.evaluate(() => sessionStorage.setItem("kci-hasil-verifikasi", "{rusak: ja"));
+  await page.reload();
+  await expect(page.locator('input[name="username"]')).toBeVisible();
   periksaGalat();
 });
 

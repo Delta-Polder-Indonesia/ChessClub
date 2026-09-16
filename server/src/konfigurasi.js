@@ -42,6 +42,42 @@ const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
  */
 const rahasia = (v) => String(v ?? "").trim();
 
+/** Nilai KCI_WAJIB_VERIFIKASI yang dikenal. */
+export const MODE_VERIFIKASI = ["off", "opsional", "wajib"];
+const MODE_VERIFIKASI_BAWAAN = "opsional";
+/** Alias yang umum ditulis pengelola, dipetakan ke nilai kanonik. */
+const ALIAS_MODE_VERIFIKASI = {
+  "0": "off",
+  "1": "wajib",
+  true: "wajib",
+  false: "off",
+  on: "wajib",
+  yes: "wajib",
+  no: "off",
+  optional: "opsional",
+  required: "wajib",
+  none: "off",
+};
+
+/**
+ * Normalisasi mode verifikasi. Nilai tak dikenal TIDAK dipakai apa adanya:
+ * dikembalikan ke bawaan + peringatan, agar UI dan backend selalu sepakat
+ * dan satu huruf kapital tidak melumpuhkan kewajiban verifikasi.
+ */
+export function normalisasiModeVerifikasi(nilai) {
+  const mentah = String(nilai ?? "").trim().toLowerCase();
+  if (!mentah) return MODE_VERIFIKASI_BAWAAN;
+  const kanonik = ALIAS_MODE_VERIFIKASI[mentah] ?? mentah;
+  if (!MODE_VERIFIKASI.includes(kanonik)) {
+    console.warn(
+      `[kci] KCI_WAJIB_VERIFIKASI="${nilai}" tidak dikenal — memakai "${MODE_VERIFIKASI_BAWAAN}". ` +
+        `Nilai sah: ${MODE_VERIFIKASI.join(", ")}.`
+    );
+    return MODE_VERIFIKASI_BAWAAN;
+  }
+  return kanonik;
+}
+
 export const konfigurasi = {
   lingkungan: LINGKUNGAN,
   produksi: PRODUKSI,
@@ -161,6 +197,31 @@ export const konfigurasi = {
   get berkasKontak() {
     return path.join(this.dirData, "rahasia", "kontak.json");
   },
+  /**
+   * Pengajuan verifikasi manual (status "menunggu"). Berkas ini TIDAK
+   * membuktikan apa pun: ia hanya antrean kerja pengurus. Status terverifikasi
+   * baru muncul setelah pengurus menyetujui lewat endpoint pengurus.
+   */
+  get berkasPengajuan() {
+    return path.join(this.dirData, "pengajuan-verifikasi.json");
+  },
+  /**
+   * Tantangan kode profil (username -> kode yang harus terpasang di profil).
+   *
+   * Sengaja TIDAK di memori proses: pada Vercel serverless, request "minta
+   * kode" dan request "periksa kode" berikutnya bisa mendarat di instance
+   * berbeda dan setiap instance punya /tmp sendiri, jadi tantangan yang hanya
+   * hidup di `Map` akan hilang sebelum pengguna selesai menempelkan kodenya.
+   * Berkas ini memakai lapisan penyimpanan yang sudah ada (`simpanan.js`):
+   * otomatis pindah ke PostgreSQL/Supabase (`kci_storage`) bila dipasang, dan
+   * jatuh ke berkas bila tidak — tanpa mekanisme penyimpanan baru.
+   *
+   * Letaknya di `rahasia/` (di-gitignore, dan di luar glob `data/*.json` yang
+   * di-bundle sebagai benih) karena isinya kode aktif yang sedang beredar.
+   */
+  get berkasTantangan() {
+    return path.join(this.dirData, "rahasia", "verifikasi-tantangan.json");
+  },
   get berkasJejak() {
     return path.join(this.dirData, "rahasia", "jejak-audit.jsonl");
   },
@@ -182,6 +243,37 @@ export const konfigurasi = {
     tujuanSetelahLogin:
       process.env.KCI_TUJUAN_SETELAH_LOGIN ||
       "/pendaftaran-anggota",
+    /** Umur state OAuth (menit). state = token tanpa keadaan bertanda tangan. */
+    umurStateDetik: angka(process.env.KCI_OAUTH_STATE_DETIK, 10 * 60),
+    /**
+     * Batas umur id_token yang masih diterima. Token Chess.com berumur pendek;
+     * angka ini hanya penjaga waras terhadap token yang salah terbit/bocor.
+     */
+    umurTokenMaksDetik: angka(process.env.KCI_OAUTH_TOKEN_MAKS_DETIK, 24 * 60 * 60),
+  },
+
+  /**
+   * Tiket verifikasi (bukti kepemilikan akun yang diterbitkan server).
+   * Umur 30 menit memberi waktu mengisi formulir tanpa membuat tiket
+   * berumur panjang kalau jatuh ke tangan orang lain.
+   */
+  tiket: {
+    umurDetik: angka(process.env.KCI_TIKET_UMUR_DETIK, 30 * 60),
+  },
+
+  /**
+   * Tantangan "kode di profil" (jalur cadangan tanpa OAuth).
+   * Nilai bawaan sama persis dengan yang sebelumnya hardcoded di
+   * `verifikasi-profil.js` — knob ini ada supaya umur/jeda dapat dipersingkat
+   * saat pengujian, bukan untuk mengubah perilaku produksi.
+   */
+  verifikasi: {
+    /** Berapa lama kode tantangan boleh dipakai diperiksa. */
+    umurTantanganDetik: angka(process.env.KCI_TANTANGAN_UMUR_DETIK, 30 * 60),
+    /** Jeda minimum antar pemeriksaan profil untuk satu username (anti boros API). */
+    jedaCekDetik: angka(process.env.KCI_TANTANGAN_JEDA_DETIK, 5),
+    /** Batas percobaan per kode; lewat batas ini tantangan dibuang. */
+    maksPercobaan: angka(process.env.KCI_TANTANGAN_MAKS_PERCOBAAN, 40),
   },
 
   /**
@@ -189,8 +281,13 @@ export const konfigurasi = {
    * "off"      - tidak diwajibkan (bawaan lama)
    * "opsional" - diverifikasi bila ada tiket, tidak wajib
    * "wajib"    - pendaftaran ditolak tanpa tiket verifikasi
+   *
+   * Nilai dinormalisasi (trim + huruf kecil) dan nilai tak dikenal dipaksa
+   * kembali ke "opsional" dengan peringatan, supaya salah ketik (mis. "Wajib"
+   * atau "wajib ") TIDAK diam-diam melonggarkan pemeriksaan. Default tidak
+   * diubah: "opsional" (lihat PANDUAN-VERIFIKASI-AKUN.md bagian mode operasi).
    */
-  wajibVerifikasi: process.env.KCI_WAJIB_VERIFIKASI || "opsional",
+  wajibVerifikasi: normalisasiModeVerifikasi(process.env.KCI_WAJIB_VERIFIKASI),
 
   /** Chess.com */
   chess: {

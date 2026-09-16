@@ -340,7 +340,7 @@ export default function DaftarAnggota() {
   const [dipilih, setDipilih] = useState(null);
 
   // Satu pintu: sumber data yang sama dengan halaman Peringkat.
-  const { anggota, status, pesan, menyegarkan } = useAnggota();
+  const { anggota, status, pesan, menyegarkan, sumber, peringatan } = useAnggota();
   // Data dari kunjungan sebelumnya sudah bisa ditampilkan sementara versi
   // terbaru diambil di latar belakang.
   const adaData = anggota.length > 0;
@@ -409,6 +409,24 @@ export default function DaftarAnggota() {
       {menyegarkan && adaData && (
         <p className="mb-3 text-xs text-slate-500">
           {t("keanggotaan.menyegarkan")}
+        </p>
+      )}
+
+      {/* Jujur tentang asal data: roster publik Chess.com bukan daftar resmi
+          anggota komunitas, dan snapshot dari kunjungan lama tetap diberi
+          label. Tidak ada hak anggota atau hasil turnamen yang disimpulkan
+          dari data cadangan ini. */}
+      {sumber === "fallback" && adaData && (
+        <p
+          role="status"
+          className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-900"
+        >
+          {t("keanggotaan.fallbackCatatan")}
+        </p>
+      )}
+      {sumber !== "fallback" && peringatan === "simpanan-lokal" && adaData && (
+        <p className="mb-3 text-xs text-slate-500">
+          {t("keanggotaan.dariSimpanan")}
         </p>
       )}
       {status === "siap" && !adaData && <p>{t("keanggotaan.kosongKlub")}</p>}

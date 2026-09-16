@@ -22,6 +22,10 @@ export const keanggotaan = {
     sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
     memuat: "Memuat data dari Chess.com…",
     menyegarkan: "Menyegarkan daftar anggota dari Chess.com…",
+    fallbackCatatan:
+      "Server komunitas tidak dapat dihubungi, jadi daftar ini adalah ROSTER PUBLIK klub Chess.com — bukan daftar resmi anggota ChessClub. Nama dan tautan mungkin tertinggal, dan status keanggotaan resmi tidak dapat disimpulkan dari halaman ini.",
+    dariSimpanan:
+      "Menampilkan data dari kunjungan Anda sebelumnya. Versi terbaru sedang diambil.",
     kosongKlub: "Belum ada anggota yang terbaca dari klub Chess.com.",
     aktivitasKlub: "Aktivitas klub",
     aktivitas: {
@@ -89,50 +93,76 @@ export const keanggotaan = {
 
 export const verifikasi = {
     langkahSalinJudul: "Salin kode verifikasi Anda",
-    langkahSalinRincian: "Kode di bawah bersifat unik untuk pendaftaran ini.",
+    langkahSalinRincian:
+      "Kode dibuat dan dicatat server untuk pendaftaran ini — bukan angka acak di browser.",
     langkahTempelJudul: "Tempel pada profil Chess.com",
     langkahTempelRincian:
       "Buka Settings → Profile, isi kolom Location (Lokasi) dengan kode tersebut, lalu tekan Save.",
     langkahPeriksaJudul: "Periksa kembali di sini",
     langkahPeriksaRincian:
-      "Tekan Periksa Kode. Kami membaca profil publik Anda untuk mencocokkan kode.",
+      "Tekan Periksa Kode. Server kami membaca profil publik Anda dan cocokkan kode. Bila cocok, server menerbitkan tiket sekali pakai.",
     kodeAnda: "Kode verifikasi Anda",
     salinKode: "Salin kode",
     salinKodeVerifikasi: "Salin kode verifikasi",
     buatKodeBaru: "Buat kode baru",
+    membuatKode: "Meminta kode ke server…",
+    kodeBelumTersedia: "kode belum tersedia",
+    kodeTidakDiterbitkan: "Server tidak menerbitkan kode. Coba lagi.",
+    galatMintaKode: "Kode verifikasi tidak dapat diminta. Periksa koneksi lalu coba lagi.",
     bukaPengaturanProfil: "Buka pengaturan profil Chess.com",
-    menghubungi: "Menghubungi Chess.com dan memeriksa profil {username}…",
-    profilTerverifikasi: "Profil Chess.com terverifikasi. Melanjutkan pendaftaran…",
+    menghubungi: "Menghubungi server dan memeriksa profil {username}…",
+    profilTerverifikasi:
+      "Kode terbaca di profil Anda dan tercatat di server. Lanjutkan mengisi formulir sebelum tiket kedaluwarsa.",
     periksaKode: "Periksa Kode",
     sedangMemeriksa: "Memeriksa…",
-    verifCepatGunakan: "Gunakan verifikasi cepat",
-    verifCepatToggle: "Tidak bisa menyunting profil? Verifikasi cepat",
+    ajukanManualGunakan: "ajukan pemeriksaan manual",
+    ajukanManualToggle: "Tidak bisa menyunting profil? Ajukan pemeriksaan manual",
+    ajukanManualKeterangan:
+      "Mengirim pengajuan TIDAK memverifikasi akun. Mengetik ulang kode yang tampil di layar bukan bukti kepemilikan, karena itu statusnya menjadi “menunggu pemeriksaan pengurus” dan tidak ada tiket yang terbit. Pengurus memeriksa profil Anda secara terpisah; setelah disetujui, barulah status terverifikasi ditulis di server.",
     tutup: "Tutup",
     buka: "Buka",
-    verifCepatKeterangan:
-      "Bila profil Chess.com Anda belum dapat disunting atau cache masih menyimpan data lama, ketik ulang kode di atas untuk menyelesaikan verifikasi (mode konfirmasi manual).",
-    kodeManual: "Kode verifikasi manual",
-    phKodeCepat: "BSKUAD-XXXXXX",
-    konfirmasiKode: "Konfirmasi Kode",
+    catatanPengajuan: "Catatan untuk pengurus (opsional)",
+    phCatatanPengajuan: "mis. profil saya sedang terkunci, mohon periksa manual",
+    kirimPengajuan: "Kirim Pengajuan",
+    galatPengajuan: "Pengajuan manual tidak dapat dikirim. Coba lagi.",
+    galatOAuth: "Login Chess.com gagal dimulai. Coba lagi.",
+    masukChessCom: "Masuk dengan Chess.com",
+    kodeKedaluwarsa: "Kode verifikasi kedaluwarsa. Kode baru sudah diminta — salin kembali.",
+    tiketKedaluwarsa:
+      "Sesi verifikasi telah kedaluwarsa. Silakan ulangi verifikasi akun Chess.com Anda.",
+    pengajuanTerkirim:
+      "Pengajuan terkirim dan tercatat sebagai “menunggu”. Status akun Anda belum berubah menjadi terverifikasi.",
+    hasilOauthRusak:
+      "Hasil login Chess.com tidak dapat dibaca (data rusak). Silakan ulangi verifikasi.",
     catatanPrivasi:
       "Kami hanya membaca profil publik Chess.com. Kode boleh Anda hapus kembali setelah verifikasi selesai.",
     belumTerbacaProfil:
       "Kode belum terbaca pada profil {username}. Pastikan sudah ditekan Save di Chess.com, lalu periksa lagi. Profil Chess.com dapat tersimpan di cache hingga beberapa jam.",
     usernameKosong: "Username Chess.com masih kosong.",
-    kodeTidakCocok:
-      "Kode yang Anda masukkan tidak cocok. Salin kode di atas, lalu tempel kembali.",
     galatMemeriksa: "Gagal memeriksa profil Chess.com.",
     galatUmum: "Verifikasi gagal. Coba lagi.",
 
     profilUsernameKosong: "Username masih kosong.",
     profilUsernameSah:
-      "Username hanya boleh berisi huruf, angka, tanda hubung, atau garis bawah (3–30 karakter).",
+      "Username hanya boleh berisi huruf kecil, angka, tanda hubung, atau garis bawah (3–25 karakter).",
     profilTidakDitemukan: "Username \"{username}\" tidak ditemukan di Chess.com.",
     profilDitolak: "Chess.com menolak permintaan (kode {kode}). Coba beberapa saat lagi.",
     profilTimeout: "Waktu koneksi ke Chess.com habis. Periksa jaringan Anda lalu coba lagi.",
     profilJaringan: "Tidak dapat menghubungi Chess.com dari perangkat ini.",
+    profilDibatalkan: "Pemeriksaan profil sebelumnya dibatalkan.",
     profilGagalMuat: "Profil tidak dapat dimuat.",
+    profilPlatformTidakDidukung:
+      "Pratinjau profil hanya tersedia untuk akun Chess.com di formulir ini.",
     oauthGagal: "Verifikasi Chess.com gagal: {sebab}",
+    sebabOauth: {
+      konfigurasi: "login Chess.com belum diaktifkan di server ini",
+      state: "sesi login tidak dikenali atau sudah kedaluwarsa",
+      "state-kedaluwarsa": "sesi verifikasi telah kedaluwarsa",
+      chesscom: "Chess.com menolak permintaan login",
+      token: "token login tidak dapat dipercaya",
+      username: "Chess.com tidak mengirim username yang sah",
+      penandatangan: "layanan verifikasi sedang tidak tersedia",
+    },
   }
 
 export const pendaftaran = {
@@ -207,14 +237,30 @@ export const pendaftaran = {
       "Dengan menyelesaikan pendaftaran, Anda tercatat sebagai anggota Blunder Skuad dan akan diarahkan kembali ke halaman Keanggotaan.",
 
     periksaIsian: "Periksa kembali isian yang ditandai merah.",
-    galatUsername: "Username Chess.com wajib diisi.",
+    /* Pesan per-sebab dari aturan username kanonik (src/lib/identitas.js) —
+       kunci yang sama dipakai server, jadi kedua sisi tidak pernah berbeda. */
+    galatUsername: {
+      kosong: "Username Chess.com wajib diisi.",
+      spasi: "Username Chess.com tidak boleh mengandung spasi.",
+      kependekan: "Username Chess.com terlalu pendek (minimal 3 karakter).",
+      kepanjangan: "Username Chess.com terlalu panjang (maksimal 25 karakter).",
+      karakter:
+        "Format username tidak valid: huruf kecil, angka, tanda hubung, atau garis bawah (3–25 karakter).",
+    },
+    galatLahir: {
+      kosong: "Tanggal lahir wajib diisi.",
+      format: "Tanggal lahir tidak valid (format YYYY-MM-DD).",
+      "masa-depan": "Tanggal lahir tidak boleh di masa depan.",
+      "terlalu-muda": "Pendaftar minimal 5 tahun.",
+      "terlalu-tua": "Tanggal lahir tampak tidak masuk akal (umur di atas 100 tahun).",
+    },
+    galatVerifikasiWajib:
+      "Verifikasi akun Chess.com wajib pada server ini. Selesaikan verifikasi terlebih dahulu.",
     galatNama: "Tulis nama lengkap (minimal dua kata).",
     galatPanggilan: "Nama panggilan wajib diisi.",
     galatHp: "Nomor HP/WhatsApp tidak valid. Contoh: 0812-3456-7890.",
     galatDana: "Nomor DANA tidak valid.",
     galatKota: "Kota asal wajib diisi.",
-    galatLahir: "Tanggal lahir wajib diisi.",
-    galatLahirAneh: "Tanggal lahir tidak masuk akal.",
     galatEmail: "Format email tidak valid.",
     galatSetuju: "Anda harus menyetujui kode etik komunitas.",
 
@@ -240,8 +286,22 @@ export const pendaftaran = {
       "Kami tidak meminta kata sandi Chess.com Anda. Verifikasi cukup dilakukan dengan menempelkan kode sekali pakai pada profil publik Anda.",
     verifLewatKode: "Verifikasi lewat kode profil",
     verifBerhasil: "Verifikasi Berhasil!",
+    verifStatusLabel: "Status verifikasi",
+    verifStatusBerhasil: "berhasil diverifikasi server",
+    verifStatusMenunggu: "menunggu pemeriksaan pengurus",
+    verifStatusBelum: "belum diverifikasi",
+    verifTiketBerlaku:
+      "Tiket verifikasi berlaku sekitar {menit} menit. Kirim formulir sebelum masa itu lewat.",
+    verifOpsionalCatatan:
+      "Verifikasi belum diwajibkan di server ini. Menjalankan pendaftaran tanpa verifikasi berarti akun Anda tercatat BELUM terverifikasi.",
+    lewatiVerifikasi: "Lewati verifikasi untuk sekarang",
+    pengajuanDiterima: "Pengajuan Diterima",
+    pengajuanPenjelasan:
+      "Pengajuan untuk {username} tercatat dan berstatus menunggu. Pengurus akan memeriksa profil Chess.com Anda secara terpisah; status terverifikasi baru ditulis setelah pemeriksaan itu selesai.",
+    lanjutkanTanpaVerifikasi: "Lanjutkan tanpa verifikasi",
+    ulangiVerifikasi: "Ulangi verifikasi",
     akunSiap:
-      "Akun {username} sudah terverifikasi dan siap melanjutkan pendaftaran anggota.",
+      "Akun {username} sudah terverifikasi oleh server dan siap melanjutkan pendaftaran anggota.",
     gantiAkun: "Ganti Akun",
     lanjutkanPendaftaran: "Lanjutkan Pendaftaran",
     judulDataDiri: "Data Diri",

@@ -260,6 +260,29 @@ console.log("\nValidasi masukan");
     body: JSON.stringify(anggotaSah("magnuscarlsen")),
   });
   cek("POST tanpa token CSRF -> 403", tanpaCsrf.status === 403, `dapat ${tanpaCsrf.status}`);
+  cek(
+    "penolakan CSRF membawa sebab mesin (klien bisa membedakannya)",
+    (await tanpaCsrf.json().catch(() => ({})))?.kode === "token-csrf",
+    "respons tanpa kode sebab"
+  );
+  /* Token yang bentuknya sah tapi tidak dikenal proses ini = kasus
+     "POST mendarat di instance lain" di serverless. Harus ditolak, bukan
+     dipercaya; klien memulih dengan meminta token baru (lihat uji UI). */
+  const tokenAsing = await fetch(DASAR + "/api/anggota", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-Token": "a".repeat(64),
+      "X-Forwarded-For": ipBaru(),
+    },
+    body: JSON.stringify(anggotaSah("gothamchess")),
+  });
+  const isiAsing = await tokenAsing.json().catch(() => ({}));
+  cek(
+    "token CSRF dari instance lain -> 403 + kode token-csrf",
+    tokenAsing.status === 403 && isiAsing?.kode === "token-csrf",
+    `${tokenAsing.status} ${JSON.stringify(isiAsing)?.slice(0, 120)}`
+  );
 
   ipSaatIni = ipBaru();
   const kosong = await panggil("POST", "/api/anggota", {});
