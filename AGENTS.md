@@ -90,6 +90,24 @@ A task is complete only when the requested change is implemented and the relevan
 - Ketidakpastian dinyatakan eksplisit ("belum diverifikasi", "perlu konfirmasi") — jangan mengarang fakta,
   versi, atau nama berkas.
 
+## Kebijakan UI — milik pemilik proyek (WAJIB)
+
+- Markup, gaya, kelas CSS, struktur, dan elemen visual yang sudah dibangun
+  pemilik proyek adalah **milik pemilik proyek**. Agent DILARANG mengubah,
+  menghapus, mengganti, atau "merapikan" UI yang sudah ada tanpa permintaan
+  eksplisit pada pesan terakhir pengguna.
+- Tugas agent hanya engineering/logika: alur data, wiring backend/API,
+  keamanan, validasi, i18n (selama kalimat Bahasa Indonesia yang tampil
+  tetap identik), atribut aksesibilitas tak kasat mata, cleanup timer,
+  dan perbaikan bug perilaku.
+- Bila perbaikan logika benar-benar menuntut perubahan tampilan (misalnya
+  sebuah elemen harus hilang karena celah keamanan), agent wajib menyatakan
+  rencana terlebih dahulu dan menunggu persetujuan eksplisit sebelum eksekusi.
+- Berkas persiapan/stok di luar area tugas (ikon, animasi, komponen arsip)
+  tidak boleh dihapus; cukup dilaporkan sebagai temuan.
+- Temuan visual/gaya yang tidak sesuai standar dilaporkan sebagai saran,
+  bukan dieksekusi sepihak.
+
 ## Skill proyek (SKILL.md)
 
 Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/skills/`

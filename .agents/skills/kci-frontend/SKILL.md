@@ -153,3 +153,11 @@ jangan mengarang struktur baru.**
 ## Radix UI dan markup interaktif
 
 Saat mengubah Tabs, Card, Button, Label, Input, popup, atau komponen UI di `src/components/ui/`, baca panduan root [`RADIX-UI.md`](../../../RADIX-UI.md). Panduan tersebut menjelaskan wrapper Radix yang tersedia, alias `@`, `cn()`, kontrak controlled Tabs, aksesibilitas popup, diagnosis error, dan checklist verifikasi untuk AI/Opencode. Catatan: dari 35 berkas di `src/components/ui/`, 3 memakai `@base-ui/react` (`hover-card.jsx`, `progress.jsx`, `separator.jsx`) dan tidak dibahas di `RADIX-UI.md` — selalu cek baris `import` berkas sebelum meniru pola Radix.
+
+## Kebijakan UI (ringkas)
+
+UI yang sudah ada adalah milik pemilik proyek: dilarang mengubah/menghapus
+markup, gaya, atau elemen visual tanpa permintaan eksplisit. Agent hanya
+mengerjakan logika/engineering (alur data, wiring backend, keamanan,
+validasi, i18n dengan kalimat ID identik, a11y tak kasat mata, bug perilaku).
+Detail kebijakan ada di `AGENTS.md` bagian "Kebijakan UI — milik pemilik proyek".
