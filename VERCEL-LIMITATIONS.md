@@ -21,7 +21,9 @@ saat function dingin — itu satu-satunya data yang “awet” di FULL VERCEL.
 | ----- | -------- | ------ |
 | Cold start | ~1–3 detik request pertama | Dapat diterima untuk situs komunitas |
 | `/tmp` | Ephemeral per instance | **Tidak OK** untuk data produksi |
-| Rate-limit / CSRF / sesi OAuth | Hidup di memori function | Reset saat instance berganti |
+| Rate-limit / CSRF | Hidup di memori function | Reset saat instance berganti |
+| State OAuth & tiket verifikasi | Token tanpa keadaan bertanda tangan (HMAC dari `KCI_JWT_SECRET`) |-instance tetap sah setelah cold start |
+| Ledger \"tiket sudah dipakai\" | Hidup di memori function | Pencegahan replay best-effort lintas instance; dampak dibatasi cek duplikasi username (lihat `PANDUAN-VERIFIKASI-AKUN.md` §3) |
 | CPU / durasi | Hobby: hingga 10 detik default; function ini `maxDuration: 60` | Sinkron roster Chess.com harus muat |
 | Ukuran function | Termasuk `server/` + `data/*.json` benih | Jangan masukkan dump besar |
 
@@ -56,5 +58,11 @@ untuk kebutuhan saat ini, opsi **A** sudah memadai.
   Pengaturan dashboard (tulisan ke `admins.json` di `/tmp` tidak awet).
 - Rate-limit brute-force login **lebih longgar** di serverless; password
   admin harus kuat dan unik.
-- OAuth Chess.com (PKCE state di memori) bisa gagal jika callback mendarat
-  di instance lain. Untuk OAuth stabil, pakai backend persisten.
+- OAuth Chess.com TIDAK lagi menyimpan state di memori: state dan tiket
+  berupa token bertanda tangan, sehingga callback boleh mendarat di
+  instance berbeda. Syaratnya satu: `KCI_JWT_SECRET` harus diisi dan sama
+  di semua instance (tanpa itu, penandatohan gagal dan pendaftaran tanpa
+  bukti verifikasi ditolak — fail-closed, bukan longgar).
+- Yang masih per-instance: ledger \"tiket sudah dipakai\", rate-limit, dan
+  token CSRF. Untuk pencegahan replay penuh, pindahkan ledger ke Vercel KV
+  atau Supabase (belum dibuat: volume situs belum membutuhkannya).

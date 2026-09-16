@@ -12,7 +12,8 @@ import { catatJejak } from "./audit.js";
 export { catatJejak };
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
-import { pakaiTiket } from "./oauth.js";
+import { periksaTiket, tandaiTiketDipakai } from "./oauth.js";
+import { statusPengajuan } from "./verifikasi-profil.js";
 import {
   hashKunci,
   cariDiDaftarHitam,
@@ -27,10 +28,55 @@ import {
   hpValid,
   normalisasiNama,
   normalisasiKota,
-  normalisasiTanggal,
-  hitungUmur,
   kategoriUmur,
+  periksaUsername,
+  periksaTanggalLahir,
 } from "../../src/lib/identitas.js";
+
+/**
+ * Pesan validasi username. Kuncinya adalah `sebab` dari `periksaUsername()`
+ * di modul bersama, sehingga browser (yang memakai fungsi yang sama) dan
+ * server menjelaskan alasan yang identik.
+ */
+const PESAN_USERNAME = {
+  kosong: "Username Chess.com wajib diisi.",
+  spasi: "Username Chess.com tidak boleh mengandung spasi.",
+  kependekan: "Username Chess.com terlalu pendek (minimal 3 karakter).",
+  kepanjangan: "Username Chess.com terlalu panjang (maksimal 25 karakter).",
+  karakter:
+    "Format username Chess.com tidak valid (huruf kecil, angka, _ atau -).",
+};
+
+const PESAN_TANGGAL = {
+  kosong: "Tanggal lahir wajib diisi.",
+  format: "Tanggal lahir tidak valid (format YYYY-MM-DD).",
+  "masa-depan": "Tanggal lahir tidak boleh di masa depan.",
+  "terlalu-muda": "Pendaftar minimal 5 tahun.",
+  "terlalu-tua": "Tanggal lahir tampak tidak masuk akal (umur di atas 100 tahun).",
+};
+
+/** Pesan tiket verifikasi — spesifik dan dapat ditindaklanjuti pendaftar. */
+const PESAN_TIKET = {
+  kosong: "Anda harus membuktikan kepemilikan akun Chess.com sebelum mendaftar.",
+  "tidak-sah":
+    "Tiket verifikasi tidak dikenali. Silakan ulangi verifikasi akun Chess.com Anda.",
+  kedaluwarsa:
+    "Sesi verifikasi telah kedaluwarsa. Silakan ulangi verifikasi akun Chess.com Anda.",
+  "sudah-dipakai":
+    "Tiket verifikasi sudah dipakai. Silakan ulangi verifikasi akun Chess.com Anda.",
+  "username-beda":
+    "Tiket verifikasi ini terbit untuk akun lain. Ulangi verifikasi dengan username yang sama.",
+};
+
+/** Versi pendek untuk ditampilkan di dekat isian username. */
+const PESAN_TIKET_GALAT = {
+  kosong: "Verifikasi akun Chess.com belum dilakukan.",
+  "tidak-sah": "Verifikasi akun tidak dikenali. Ulangi verifikasi.",
+  kedaluwarsa: "Sesi verifikasi kedaluwarsa. Ulangi verifikasi.",
+  "sudah-dipakai": "Tiket verifikasi sudah terpakai. Ulangi verifikasi.",
+  "username-beda": "Tiket verifikasi bukan untuk username ini.",
+};
+
 
 const repoAnggota = buatRepo(konfigurasi.berkasAnggota, []);
 /**
@@ -57,13 +103,24 @@ export class GalatAplikasi extends Error {
 
 /* ------------------------------------------------------------ validasi */
 
+/**
+ * Validasi pendaftaran. Semua aturan datang dari modul bersama
+ * `src/lib/identitas.js` (username kanonik, tanggal lahir, umur) sehingga
+ * browser dan server tidak pernah bisa berbeda kesimpulan.
+ *
+ * PENTING: fungsi ini membaca ALLOW-LIST field. Field tampilan/keamanan yang
+ * dikirim browser (`mode`, `sumber`, `kode`, `profil`, `terverifikasi`,
+ * `usernameVerifikasi`) TIDAK dibaca sama sekali — satu-satunya bukti yang
+ * dipercaya adalah `tiketVerifikasi` hasil `terbitkanTiket()` di server.
+ */
 export function validasiPendaftaran(body) {
   const galat = {};
 
-  const username = normalisasiUsername(body.username);
-  if (!username) galat.username = "Username Chess.com wajib diisi.";
-  else if (!/^[a-z0-9_-]{3,25}$/.test(username))
-    galat.username = "Format username Chess.com tidak valid.";
+  const diperiksaUsername = periksaUsername(body.username);
+  const username = diperiksaUsername.username;
+  if (!diperiksaUsername.sah) {
+    galat.username = PESAN_USERNAME[diperiksaUsername.sebab] || PESAN_USERNAME.karakter;
+  }
 
   const namaLengkap = String(body.namaLengkap || "").trim();
   if (!namaLengkap) galat.namaLengkap = "Nama lengkap wajib diisi.";
@@ -88,13 +145,8 @@ export function validasiPendaftaran(body) {
   if (!kota) galat.kota = "Kota asal wajib diisi.";
   else if (kota.length > 60) galat.kota = "Nama kota terlalu panjang.";
 
-  const lahir = normalisasiTanggal(body.tanggalLahir);
-  if (!lahir) galat.tanggalLahir = "Tanggal lahir wajib diisi.";
-  else {
-    const umur = hitungUmur(lahir);
-    if (umur == null || umur < 5 || umur > 100)
-      galat.tanggalLahir = "Tanggal lahir tidak masuk akal.";
-  }
+  const lahir = periksaTanggalLahir(body.tanggalLahir);
+  if (!lahir.sah) galat.tanggalLahir = PESAN_TANGGAL[lahir.sebab] || PESAN_TANGGAL.format;
 
   const email = String(body.email || "").trim();
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email))
@@ -114,7 +166,7 @@ export function validasiPendaftaran(body) {
       hp: normalisasiHp(body.hp),
       dana: danaIsi ? normalisasiHp(danaIsi) : "",
       kota,
-      tanggalLahir: lahir,
+      tanggalLahir: lahir.tanggal,
       email,
       klub,
     },
@@ -448,31 +500,43 @@ export async function daftarkan(body, konteks = {}) {
     throw new GalatAplikasi(400, "Periksa kembali isian formulir.", { galat });
   }
 
-  /* Bukti kepemilikan akun Chess.com.
-     Tiket diterbitkan setelah pendaftar login lewat OAuth Chess.com, atau
-     setelah ia membuktikan menguasai profil lewat kode verifikasi. */
+  /* --------------------------------------------------- bukti kepemilikan akun
+   *
+   * Satu-satunya bukti yang dipercaya adalah tiket yang DITERBITKAN SERVER:
+   *   - "oauth"       -> login Chess.com, id_token diverifikasi ketat;
+   *   - "kode-profil" -> server membaca profil publik dan menemukan kodenya;
+   *   - "pengurus"    -> pengajuan manual disetujui pengurus (tercatat).
+   *
+   * Field lain dari browser — `mode`, `sumber`, `kode`, `profil`,
+   * `terverifikasi`, `usernameVerifikasi` — TIDAK pernah dibaca sebagai
+   * keputusan keamanan. Mengetik ulang kode yang ditampilkan di layar bukan
+   * bukti penguasaan akun, karena itu jalur manual tidak menghasilkan tiket.
+   *
+   * Keputusan mode:
+   *   off      -> tidak ada penilaian tiket sama sekali;
+   *   opsional -> boleh mendaftar tanpa tiket (tercatat belum terverifikasi),
+   *               TETAPI tiket yang dikirim dan ternyata tidak sah tetap
+   *               ditolak, supaya pendaftar tidak dikira sudah terverifikasi;
+   *   wajib    -> tiket sah wajib ada.
+   *
+   * Tiket BELUM dipakai di titik ini — pemakaiannya ditunda ke dalam antrean
+   * tulis (lihat langkah 5) agar dua klik kirim tidak menghabiskan tiket yang
+   * sama lalu gagal menyimpan.
+   */
   const mode = konfigurasi.wajibVerifikasi;
-  let caraVerifikasi = null;
+  let bukti = null;
 
   if (mode !== "off") {
-    const tiket = body.tiketVerifikasi;
-    if (tiket) {
-      const sah = pakaiTiket(tiket, bersih.username);
-      if (!sah) {
-        throw new GalatAplikasi(
-          403,
-          "Bukti kepemilikan akun tidak sah atau sudah kedaluwarsa. " +
-            "Silakan verifikasi ulang akun Chess.com Anda.",
-          { galat: { username: "Verifikasi akun kedaluwarsa." } }
-        );
-      }
-      caraVerifikasi = sah.cara;
-    } else if (mode === "wajib") {
-      throw new GalatAplikasi(
-        403,
-        "Anda harus membuktikan kepemilikan akun Chess.com sebelum mendaftar.",
-        { perluVerifikasi: true }
-      );
+    const dinilai = periksaTiket(body.tiketVerifikasi, bersih.username);
+    if (dinilai.sah) {
+      bukti = dinilai.data;
+    } else if (mode === "wajib" || body.tiketVerifikasi) {
+      const sebab = dinilai.sebab || "tidak-sah";
+      throw new GalatAplikasi(403, PESAN_TIKET[sebab] || PESAN_TIKET["tidak-sah"], {
+        kodeVerifikasi: sebab,
+        perluVerifikasi: true,
+        galat: { username: PESAN_TIKET_GALAT[sebab] || "Verifikasi akun perlu diulang." },
+      });
     }
   }
 
@@ -494,8 +558,13 @@ export async function daftarkan(body, konteks = {}) {
 
   const identitas = hashKunci(bersih);
 
-  /* 1. Username ada di daftar hitam? */
-  const kenaUsername = hitam.find((h) => h.username === bersih.username);
+  /* 1. Username ada di daftar hitam? Perbandingan memakai username yang
+        sudah dinormalisasi di SISI SERVER (hasil `periksaUsername`), sehingga
+        kapitalisasi berbeda, spasi awal/akhir, atau bentuk tautan tidak bisa
+        dipakai untuk menyelinap. */
+  const kenaUsername = hitam.find(
+    (h) => String(h.username || "").trim().toLowerCase() === bersih.username
+  );
   if (kenaUsername) {
     await catatJejak("tolak-daftar-hitam-username", {
       username: bersih.username,
@@ -532,10 +601,11 @@ export async function daftarkan(body, konteks = {}) {
 
   /* 3. Verifikasi akun ke Chess.com (di luar antrean — ini lambat) */
   const pRes = await ambilProfil(bersih.username).catch((e) => {
+    // Penyebab teknis hanya masuk log; klien menerima pesan umum saja.
+    console.warn(`[kci] profil Chess.com gagal untuk "${bersih.username}": ${e?.message || e}`);
     throw new GalatAplikasi(
       502,
-      "Chess.com sedang tidak dapat dihubungi. Coba beberapa saat lagi.",
-      { sebab: e.message }
+      "Chess.com sedang tidak dapat dihubungi. Coba beberapa saat lagi."
     );
   });
 
@@ -578,7 +648,24 @@ export async function daftarkan(body, konteks = {}) {
     );
   }
 
-  const uname = (profil.username || bersih.username).toLowerCase();
+  /* Username yang disimpan harus persis akun yang baru saja diverifikasi.
+     Bila profil Chess.com menjawab dengan username lain (akun diganti nama,
+     diarahkan ulang, atau sumber data aneh), tiket yang tadi sah tidak lagi
+     membuktikan kepemilikan username ini — maka pendaftaran ditolak. */
+  const dariProfil = periksaUsername(profil.username || bersih.username);
+  if (!dariProfil.sah || dariProfil.username !== bersih.username) {
+    await catatJejak("tolak-username-profil-beda", {
+      diminta: bersih.username,
+      dibacakan: dariProfil.username || "(tidak sah)",
+      ip: konteks.ip,
+    });
+    throw new GalatAplikasi(409,
+      "Username pada profil Chess.com tidak sama dengan akun yang diverifikasi. " +
+        "Periksa kembali ejaan username Anda.", {
+        galat: { username: "Profil Chess.com tidak cocok dengan username yang diverifikasi." },
+      });
+  }
+  const uname = dariProfil.username;
 
   /* Keanggotaan publik mengikuti roster klub, bukan sekadar formulir lokal.
      Endpoint roster Chess.com dapat membutuhkan hingga 12 jam untuk ikut
@@ -598,10 +685,20 @@ export async function daftarkan(body, konteks = {}) {
     );
   }
 
-  /* 5. Simpan — pengecekan duplikat dilakukan DI DALAM antrean agar
-        dua permintaan bersamaan tidak lolos berdua. */
+  /* Catatan pengurus: pendaftar tanpa tiket yang masih punya pengajuan manual
+     di antrean ditandai supaya tidak perlu dicari-cari lagi. Ini informasi
+     tampilan BUKAN keputusan keamanan — status terverifikasi tetap hanya
+     lahir dari tiket. */
+  const pengajuan = bukti ? null : await statusPengajuan(bersih.username).catch(() => null);
+
+  /* 5. Simpan — pengecekan duplikat DAN pemakaianskan tiket dilakukan DI
+        DALAM antrean yang sama, agar:
+          - dua permintaan bersamaan tidak lolos berdua (username sama);
+          - satu tiket tidak habis dipakai dua pendaftaran;
+          - tiket baru benar-benar hangus pada saat entri ditulis, bukan
+            sebelum seluruh pemeriksaan lain selesai. */
   const baru = await repoAnggota.ubah(async (daftar) => {
-    if (daftar.some((a) => a.username === uname)) {
+    if (daftar.some((a) => String(a.username || "").toLowerCase() === uname)) {
       throw new GalatAplikasi(409, "Username ini sudah terdaftar sebagai anggota.", {
         galat: { username: "Username ini sudah terdaftar." },
       });
@@ -617,6 +714,21 @@ export async function daftarkan(body, konteks = {}) {
       );
     }
 
+    let caraVerifikasi = null;
+    if (bukti) {
+      const ulang = periksaTiket(body.tiketVerifikasi, bersih.username);
+      if (!ulang.sah) {
+        const sebab = ulang.sebab || "tidak-sah";
+        throw new GalatAplikasi(409, PESAN_TIKET[sebab] || PESAN_TIKET["tidak-sah"], {
+          kodeVerifikasi: sebab,
+          perluVerifikasi: true,
+          galat: { username: PESAN_TIKET_GALAT[sebab] || "Verifikasi akun perlu diulang." },
+        });
+      }
+      caraVerifikasi = ulang.data.cara;
+      tandaiTiketDipakai(ulang.data.jti, ulang.data.exp);
+    }
+
     const entri = {
       username: uname,
       playerId: profil.player_id ?? null,
@@ -625,12 +737,15 @@ export async function daftarkan(body, konteks = {}) {
       kotaKunci: normalisasiKota(bersih.kota),
       klub: bersih.klub || null,
       kategoriUmur: kategoriUmur(bersih.tanggalLahir),
+      // Status terverifikasi HANYA boleh datang dari tiket yang divalidasi
+      // server di atas — tidak dari field mana pun milik browser.
       terverifikasi: Boolean(caraVerifikasi),
       caraVerifikasi,
       identitas,
       sidikPepper: sidikPepper(),
       statusChess: profil.status || null,
       daftarPada: new Date().toISOString(),
+      ...(pengajuan ? { pengajuanVerifikasi: pengajuan.status } : {}),
     };
     return { data: [...daftar, entri], hasil: entri };
   });
@@ -660,11 +775,23 @@ export async function daftarkan(body, konteks = {}) {
     // data pribadi (tidak bisa dihubungi pengurus).
     await repoAnggota
       .ubah((daftar) => ({
-        data: daftar.filter((a) => a.username !== uname),
+        data: daftar.filter((a) => String(a.username || "").toLowerCase() !== uname),
         hasil: null,
       }))
       .catch(() => {});
-    throw e;
+    console.error(`[kci] penyimpanan kontak gagal untuk "${uname}": ${e?.message || e}`);
+    // KONSEKUENSI YANG DIDOKUMENTASIKAN: tiket sudah dipakai di langkah 5 dan
+    // TIDAK dikembalikan — tiket sekali pakai tidak boleh dapat "dibatalkan",
+    // karena pendaftar masih memegang nilainya. Pendaftar karena itu diminta
+    // mengulang verifikasi (pesan di bawah + tombol "Ulangi verifikasi" di UI);
+    // isian formulirnya tetap ada di layar sehingga tidak perlu mengetik ulang.
+    throw new GalatAplikasi(
+      503,
+      bukti
+        ? "Pendaftaran belum tersimpan (penyimpanan data bermasalah). Data Anda masih terisi — kirim ulang setelah mengulang verifikasi akun."
+        : "Pendaftaran belum tersimpan (penyimpanan data bermasalah). Data Anda masih terisi — silakan kirim ulang.",
+      { perluVerifikasi: Boolean(bukti), kodeVerifikasi: bukti ? "tiket-habis" : undefined }
+    );
   }
 
   await catatJejak("daftar-berhasil", { username: uname, ip: konteks.ip });
@@ -750,11 +877,46 @@ export async function blokirAnggota(username, keterangan) {
   return entri;
 }
 
+/**
+ * Pengurus menyetujui pengajuan manual untuk anggota yang SUDAH terdaftar:
+ * status resmi diperbarui di penyimpanan (bukan di browser). Hanya dipanggil
+ * dari endpoint pengurus yang sudah melewati pastikanAdmin.
+ * @returns {Promise<boolean>} true bila ada catatan anggota yang diperbarui.
+ */
+export async function tandaiAnggotaTerverifikasi(username, cara = "pengurus") {
+  const uname = periksaUsername(username).username;
+  if (!uname) throw new GalatAplikasi(400, "Username tidak valid.");
+  const diperbarui = await repoAnggota.ubah(async (daftar) => {
+    const cocok = (a) => String(a.username || "").toLowerCase() === uname;
+    if (!daftar.some(cocok)) return { data: undefined, hasil: false };
+    return {
+      data: daftar.map((a) =>
+        cocok(a)
+          ? {
+              ...a,
+              terverifikasi: true,
+              caraVerifikasi: cara,
+              terverifikasiPada: new Date().toISOString(),
+              pengajuanVerifikasi: "disetujui",
+            }
+          : a
+      ),
+      hasil: true,
+    };
+  });
+  if (diperbarui) {
+    await catatJejak("anggota-verifikasi-pengurus", { username: uname, cara });
+    usangkanRoster();
+  }
+  return diperbarui;
+}
+
 /** Cabut larangan. */
 export async function bukaBlokir(username) {
   const uname = normalisasiUsername(username);
+  const cocok = (h) => String(h.username || "").trim().toLowerCase() === uname;
   const dicabut = await repoHitam.ubah(async (hitam) => {
-    const sisa = hitam.filter((h) => h.username !== uname);
+    const sisa = hitam.filter((h) => !cocok(h));
     if (sisa.length === hitam.length) {
       throw new GalatAplikasi(404, `"${uname}" tidak ada di daftar hitam.`);
     }

@@ -1,11 +1,25 @@
 /**
- * Verifikasi kepemilikan akun Chess.com — port mandiri dari contoh
- * chess-community-ui-component (alur "Periksa Kode" lewat profil publik),
- * dipakai TampilanPendaftaran pada alur Pendaftaran Anggota.
+ * Verifikasi kepemilikan akun Chess.com — dipakai TampilanPendaftaran pada
+ * alur Pendaftaran Anggota.
+ *
+ * Kontrak keamanan (mengapa komponennya begini):
+ *  - Kode tantangan DIBUAT DAN DISIMPAN SERVER (`POST /api/auth/kode/minta`)
+ *    dan terikat pada username. Browser tidak pernah menciptakannya.
+ *  - Yang membuktikan kepemilikan adalah pemeriksaan OLEH SERVER terhadap
+ *    profil publik Chess.com (`POST /api/auth/kode/periksa`). Bila cocok,
+ *    server menerbitkan tiket sekali pakai yang terikat username.
+ *  - Komponen ini TIDAK PUNYA jalur yang mengubah status menjadi
+ *    "terverifikasi" karena pengguna mengetik ulang kode: blok manual kini
+ *    menjadi PENGAJUAN (status "menunggu pemeriksaan pengurus") dan tidak
+ *    menghasilkan tiket.
+ *  - Login Chess.com (OAuth) ditampilkan bila server mengaktifkannya; itu
+ *    jalur terkuat karena identitas berasal dari id_token yang diverifikasi
+ *    server.
+ *
  * Utilitas pendukung (pemainCatur.js, pendaftaran.js) tetap tinggal di
  * folder halaman PendaftaranAnggota — sengaja mandiri dari modul Analisa.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
   Copy,
@@ -19,11 +33,12 @@ import {
 } from "lucide-react";
 import { Button } from "./ui/button.jsx";
 import {
-  ambilProfilChessCom,
-  buatKodeVerifikasi,
-  cariKodeDiProfil,
-  normalisasiUsername,
-} from "../halaman/PendaftaranAnggota/komponen/pemainCatur.js";
+  ajukanVerifikasiManual,
+  mulaiLoginChessCom,
+  mintaKodeVerifikasi,
+  periksaKodeVerifikasi,
+} from "../lib/api/anggota.js";
+import { periksaUsername } from "../lib/identitas.js";
 import { URL_PENGATURAN_PROFIL } from "../halaman/PendaftaranAnggota/komponen/pendaftaran.js";
 import { useI18n } from "../lib/i18n.jsx";
 
@@ -52,13 +67,25 @@ async function salinTeks(teks) {
   }
 }
 
+/** Status tampilan — jangan disamakan dengan status keamanan. */
+const IDLE = "idle";
+const MEMBUAT = "membuat-kode";
+const MEMERIKSA = "memeriksa";
+const GAGAL = "gagal";
+const KEDALUWARSA = "kedaluwarsa";
+const SUKSES = "sukses";
+const PENGAJUAN = "pengajuan";
+
 export default function VerifikasiAkun({
   username,
   terverifikasi = false,
+  verifikasi = null,
   onTerverifikasi,
+  onPengajuan,
   onBatal,
   statusAwal = "idle",
   pesanAwal = "",
+  cara = null,
 }) {
   const { t } = useI18n();
 
@@ -77,96 +104,195 @@ export default function VerifikasiAkun({
     },
   ];
 
-  const [kode, setKode] = useState(() => buatKodeVerifikasi());
-  const [status, setStatus] = useState("idle"); // idle | memeriksa | gagal | sukses
+  const [kode, setKode] = useState("");
+  const [status, setStatus] = useState(IDLE);
   const [pesan, setPesan] = useState("");
   const [sudahDisalin, setSudahDisalin] = useState(false);
   const [percobaan, setPercobaan] = useState(0);
-  const [modeCepat, setModeCepat] = useState(false);
-  const [kodeCepat, setKodeCepat] = useState("");
+  const [modeManual, setModeManual] = useState(false);
+  const [catatanManual, setCatatanManual] = useState("");
+  const [mengirimPengajuan, setMengirimPengajuan] = useState(false);
+  const [mengalihkan, setMengalihkan] = useState(false);
+
+  /* Ref timer agar effect/mount berikutnya tidak pernah menghapus toast
+     baru, dan agar tidak ada timer yang hidup setelah komponen dibongkar. */
+  const timerSalin = useRef(null);
+  const aktifRef = useRef(true);
+  /* Nomor permintaan: hanya hasil permintaan TERAKHIR yang boleh dipakai,
+     supaya permintaan lama tidak menimpa hasil baru. */
+  const nomorReq = useRef(0);
+
+  useEffect(() => {
+    aktifRef.current = true;
+    return () => {
+      aktifRef.current = false;
+      if (timerSalin.current) clearTimeout(timerSalin.current);
+    };
+  }, []);
+
+  const terikat = periksaUsername(username).username;
+  const usernameSah = periksaUsername(username).sah;
+
+  /** Minta kode tantangan ke server (sekali per username yang berubah). */
+  const mintaUlangKode = useCallback(
+    async ({ paksa = false, sinyal } = {}) => {
+      if (!usernameSah) {
+        setKode("");
+        setStatus(IDLE);
+        return;
+      }
+      const nomor = ++nomorReq.current;
+      setStatus(MEMBUAT);
+      setPesan("");
+      try {
+        const hasil = await mintaKodeVerifikasi(terikat, { paksa, sinyal });
+        if (!aktifRef.current || nomor !== nomorReq.current) return;
+        if (typeof hasil?.kode !== "string" || !hasil.kode) {
+          throw new Error(t("verifikasi.kodeTidakDiterbitkan"));
+        }
+        setKode(hasil.kode);
+        setStatus(IDLE);
+      } catch (galat) {
+        if (!aktifRef.current || nomor !== nomorReq.current) return;
+        if (galat?.name === "AbortError" || sinyal?.aborted) return;
+        setKode("");
+        setStatus(GAGAL);
+        setPesan(galat?.message || t("verifikasi.galatMintaKode"));
+      }
+    },
+    [terikat, usernameSah, t]
+  );
+
+  /* Kode diambil saat komponen dibuka dan setiap username (kanonik)
+     berubah. Permintaan sebelumnya dibatalkan lewat AbortController. */
+  useEffect(() => {
+    const kendali = new AbortController();
+    const jam = setTimeout(() => {
+      mintaUlangKode({ sinyal: kendali.signal });
+    }, 350);
+    return () => {
+      clearTimeout(jam);
+      kendali.abort();
+    };
+  }, [mintaUlangKode]);
 
   useEffect(() => {
     if (statusAwal === "success") {
-      setStatus("sukses");
+      setStatus(SUKSES);
       return;
     }
     if (statusAwal === "error") {
-      setStatus("gagal");
+      setStatus(GAGAL);
       setPesan(pesanAwal || t("verifikasi.galatUmum"));
+    } else if (statusAwal === "kedaluwarsa") {
+      setStatus(KEDALUWARSA);
+      setPesan(pesanAwal || t("verifikasi.tiketKedaluwarsa"));
+    } else if (statusAwal === "pengajuan") {
+      setStatus(PENGAJUAN);
     }
-  }, [statusAwal, pesanAwal]);
+  }, [statusAwal, pesanAwal, t]);
 
-  const berhasil = status === "sukses" || terverifikasi;
+  const berhasil = status === SUKSES || Boolean(verifikasi?.tiket) || terverifikasi;
+  const sedangSibuk = status === MEMERIKSA || status === MEMBUAT;
 
   const handleSalin = async () => {
     const ok = await salinTeks(kode);
     if (ok) {
+      if (timerSalin.current) clearTimeout(timerSalin.current);
       setSudahDisalin(true);
-      setTimeout(() => setSudahDisalin(false), 2200);
+      timerSalin.current = setTimeout(() => {
+        timerSalin.current = null;
+        setSudahDisalin(false);
+      }, 2200);
     }
   };
 
   const handlePeriksa = async () => {
-    const bersih = normalisasiUsername(username);
-    if (!bersih) {
-      setStatus("gagal");
+    if (!usernameSah) {
+      setStatus(GAGAL);
       setPesan(t("verifikasi.usernameKosong"));
       return;
     }
-
-    setStatus("memeriksa");
+    const nomor = ++nomorReq.current;
+    setStatus(MEMERIKSA);
     setPesan("");
-
     try {
-      const profil = await ambilProfilChessCom(bersih, { segar: true, t });
-      const sumber = cariKodeDiProfil(profil, kode);
+      const hasil = await periksaKodeVerifikasi(terikat);
+      if (!aktifRef.current || nomor !== nomorReq.current) return;
 
-      if (sumber) {
-        setStatus("sukses");
+      if (hasil?.cocok && hasil.tiket) {
+        setStatus(SUKSES);
         setPesan("");
         onTerverifikasi?.({
-          username: profil.username,
-          kode,
-          sumber,
-          mode: "profil",
-          profil,
+          username: hasil.username || terikat,
+          tiket: hasil.tiket,
+          cara: "kode-profil",
+          berlakuDetik: Number(hasil.berlakuDetik) || 0,
         });
         return;
       }
 
-      setStatus("gagal");
+      setStatus(GAGAL);
       setPercobaan((n) => n + 1);
-      setPesan(
-        t("verifikasi.belumTerbacaProfil", { username: profil.username }),
-      );
+      setPesan(hasil?.pesan || t("verifikasi.belumTerbacaProfil", { username: terikat }));
     } catch (galat) {
-      setStatus("gagal");
+      if (!aktifRef.current || nomor !== nomorReq.current) return;
+      // 410 = tantangan kedaluwarsa di server: kode baru diminta ulang.
+      if (galat?.status === 410) {
+        setStatus(KEDALUWARSA);
+        setPesan(galat.message || t("verifikasi.kodeKedaluwarsa"));
+        mintaUlangKode({ paksa: true });
+        return;
+      }
+      setStatus(GAGAL);
       setPercobaan((n) => n + 1);
       setPesan(galat?.message || t("verifikasi.galatMemeriksa"));
     }
   };
 
-  const handleCepat = (e) => {
+  /**
+   * Jalur manual = PENGAJUAN. Statusnya "menunggu", tidak ada tiket, dan
+   * tidak ada kata "terverifikasi" di jalur ini.
+   */
+  const handlePengajuanManual = async (e) => {
     e.preventDefault();
-    const bersih = normalisasiUsername(username);
-    if (kodeCepat.trim().toUpperCase() === kode && bersih) {
-      setStatus("sukses");
-      setPesan("");
-      onTerverifikasi?.({
-        username: bersih,
-        kode,
-        sumber: "Konfirmasi manual",
-        mode: "manual",
-        profil: null,
-      });
+    if (!usernameSah) {
+      setStatus(GAGAL);
+      setPesan(t("verifikasi.usernameKosong"));
       return;
     }
-    setStatus("gagal");
-    setPesan(
-      !bersih
-        ? t("verifikasi.usernameKosong")
-        : t("verifikasi.kodeTidakCocok"),
-    );
+    setMengirimPengajuan(true);
+    setPesan("");
+    try {
+      const hasil = await ajukanVerifikasiManual(terikat, catatanManual);
+      if (!aktifRef.current) return;
+      setStatus(PENGAJUAN);
+      onPengajuan?.({
+        username: hasil?.username || terikat,
+        status: "menunggu",
+        id: hasil?.id || null,
+      });
+    } catch (galat) {
+      if (!aktifRef.current) return;
+      setStatus(GAGAL);
+      setPesan(galat?.message || t("verifikasi.galatPengajuan"));
+    } finally {
+      if (aktifRef.current) setMengirimPengajuan(false);
+    }
+  };
+
+  const handleMasukChessCom = async () => {
+    setMengalihkan(true);
+    setPesan("");
+    try {
+      const { url } = await mulaiLoginChessCom("/pendaftaran-anggota");
+      if (!aktifRef.current) return;
+      window.location.assign(url);
+    } catch (galat) {
+      if (!aktifRef.current) return;
+      setMengalihkan(false);
+      setPesan(galat?.message || t("verifikasi.galatOAuth"));
+    }
   };
 
   return (
@@ -179,12 +305,20 @@ export default function VerifikasiAkun({
           </p>
           <div className="mt-2 flex items-stretch gap-2">
             <code className="flex-1 min-w-0 rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-3 font-mono text-base sm:text-lg font-bold tracking-[0.14em] text-gray-900 select-text">
-              {kode}
+              {status === MEMBUAT && !kode ? (
+                <span className="inline-flex items-center gap-2 text-sm font-sans tracking-normal text-gray-500">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  {t("verifikasi.membuatKode")}
+                </span>
+              ) : (
+                kode || t("verifikasi.kodeBelumTersedia")
+              )}
             </code>
             <Button
               variant="outline"
               size="icon"
               onClick={handleSalin}
+              disabled={!kode}
               aria-label={t("verifikasi.salinKodeVerifikasi")}
               title={t("verifikasi.salinKode")}
             >
@@ -198,11 +332,11 @@ export default function VerifikasiAkun({
               variant="outline"
               size="icon"
               onClick={() => {
-                setKode(buatKodeVerifikasi());
-                setStatus("idle");
                 setPesan("");
-                setKodeCepat("");
+                setPercobaan(0);
+                mintaUlangKode({ paksa: true });
               }}
+              disabled={status === MEMBUAT}
               aria-label={t("verifikasi.buatKodeBaru")}
               title={t("verifikasi.buatKodeBaru")}
             >
@@ -237,21 +371,30 @@ export default function VerifikasiAkun({
         </a>
 
         {/* Status */}
-        {status === "memeriksa" && (
+        {(status === MEMBUAT || status === MEMERIKSA) && (
           <p className="flex items-center gap-2 text-xs font-medium text-[#0B2F9F]">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            {t("verifikasi.menghubungi", { username: normalisasiUsername(username) })}
+            {status === MEMERIKSA
+              ? t("verifikasi.menghubungi", { username: terikat })
+              : t("verifikasi.membuatKode")}
           </p>
         )}
 
-        {status === "sukses" && (
+        {status === SUKSES && (
           <p className="flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-800">
             <ShieldCheck className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
             {t("verifikasi.profilTerverifikasi")}
           </p>
         )}
 
-        {status === "gagal" && (
+        {status === PENGAJUAN && (
+          <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-900">
+            <Info className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
+            <span>{t("verifikasi.pengajuanTerkirim")}</span>
+          </p>
+        )}
+
+        {(status === GAGAL || status === KEDALUWARSA) && (
           <div
             role="alert"
             className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-xs text-red-700"
@@ -264,10 +407,10 @@ export default function VerifikasiAkun({
                   {" "}
                   <button
                     type="button"
-                    onClick={() => setModeCepat(true)}
+                    onClick={() => setModeManual(true)}
                     className="font-semibold text-red-800 underline"
                   >
-                    {t("verifikasi.verifCepatGunakan")}
+                    {t("verifikasi.ajukanManualGunakan")}
                   </button>
                 </>
               )}
@@ -277,6 +420,15 @@ export default function VerifikasiAkun({
 
         {/* Aksi */}
         <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
+          {cara?.oauth && (
+            <Button
+              variant="secondary"
+              onClick={handleMasukChessCom}
+              loading={mengalihkan}
+            >
+              {t("verifikasi.masukChessCom")}
+            </Button>
+          )}
           {onBatal && (
             <Button variant="ghost" onClick={onBatal}>
               {t("pendaftaran.gantiAkun")}
@@ -284,50 +436,54 @@ export default function VerifikasiAkun({
           )}
           <Button
             onClick={handlePeriksa}
-            loading={status === "memeriksa"}
-            disabled={berhasil}
+            loading={status === MEMERIKSA}
+            disabled={berhasil || sedangSibuk}
           >
-            {status === "memeriksa" ? t("verifikasi.sedangMemeriksa") : t("verifikasi.periksaKode")}
+            {status === MEMERIKSA
+              ? t("verifikasi.sedangMemeriksa")
+              : t("verifikasi.periksaKode")}
           </Button>
         </div>
       </div>
 
-      {/* Verifikasi cepat */}
+      {/* Pengajuan manual (bukan verifikasi otomatis) */}
       <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 space-y-3">
         <button
           type="button"
-          onClick={() => setModeCepat((v) => !v)}
+          onClick={() => setModeManual((v) => !v)}
           className="flex w-full items-center justify-between gap-3 text-left"
-          aria-expanded={modeCepat}
+          aria-expanded={modeManual}
         >
           <span className="flex items-center gap-2 text-xs font-semibold text-gray-900">
             <KeyRound className="h-4 w-4 text-gray-500" aria-hidden="true" />
-            {t("verifikasi.verifCepatToggle")}
+            {t("verifikasi.ajukanManualToggle")}
           </span>
           <span className="text-[11px] font-medium text-gray-500">
-            {modeCepat ? t("verifikasi.tutup") : t("verifikasi.buka")}
+            {modeManual ? t("verifikasi.tutup") : t("verifikasi.buka")}
           </span>
         </button>
 
-        {modeCepat && (
-          <form onSubmit={handleCepat} className="space-y-3 pt-1">
+        {modeManual && (
+          <form onSubmit={handlePengajuanManual} className="space-y-3 pt-1">
             <p className="text-[11px] leading-relaxed text-gray-600">
-              {t("verifikasi.verifCepatKeterangan")}
+              {t("verifikasi.ajukanManualKeterangan")}
             </p>
-            <input
-              type="text"
-              value={kodeCepat}
-              onChange={(e) => {
-                setKodeCepat(e.target.value);
-                if (status === "gagal") setStatus("idle");
-              }}
-              placeholder={t("verifikasi.phKodeCepat")}
-              aria-label={t("verifikasi.kodeManual")}
-              className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm tracking-[0.12em] uppercase text-gray-900 placeholder:tracking-normal placeholder:font-sans placeholder:text-gray-400 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
-            />
+            <label className="block">
+              <span className="text-[11px] font-medium text-gray-600">
+                {t("verifikasi.catatanPengajuan")}
+              </span>
+              <textarea
+                value={catatanManual}
+                onChange={(e) => setCatatanManual(e.target.value)}
+                rows={2}
+                maxLength={500}
+                placeholder={t("verifikasi.phCatatanPengajuan")}
+                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
+              />
+            </label>
             <div className="flex items-center justify-end gap-3">
-              <Button type="submit" variant="secondary">
-                {t("verifikasi.konfirmasiKode")}
+              <Button type="submit" variant="secondary" loading={mengirimPengajuan}>
+                {t("verifikasi.kirimPengajuan")}
               </Button>
             </div>
           </form>

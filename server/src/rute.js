@@ -27,6 +27,10 @@ import {
   mintaKode,
   periksaKode,
   statistikTantangan,
+  ajukanVerifikasiManual,
+  daftarPengajuan as daftarPengajuanVerifikasi,
+  setujuiPengajuan as setujuiPengajuanVerifikasi,
+  tolakPengajuan as tolakPengajuanVerifikasi,
 } from "./verifikasi-profil.js";
 import {
   JENIS,
@@ -63,6 +67,7 @@ import {
   cekNomor,
   kontakAnggota,
   ringkasan,
+  tandaiAnggotaTerverifikasi,
 } from "./keanggotaan.js";
 import {
   berita,
@@ -244,12 +249,19 @@ export function daftarkanRute(router, { mulaiPada }) {
 
   /* ------------------------------------------------- verifikasi akun Chess.com */
 
+  /**
+   * Kontrak bagi formulir: cara verifikasi mana yang tersedia dan APAKAH
+   * bukti kepemilikan diwajibkan. UI tidak boleh menyimpulkan sendiri —
+   * mode dibaca dari server supaya label "wajib" tidak pernah bohong.
+   */
   router.get("/api/auth/cara", async () => ({
     status: 200,
     isi: {
       oauth: oauthAktif(),
       kodeProfil: true,
       mode: konfigurasi.wajibVerifikasi,
+      wajib: konfigurasi.wajibVerifikasi === "wajib",
+      tiketBerlakuDetik: konfigurasi.tiket.umurDetik,
     },
   }));
 
@@ -268,37 +280,76 @@ export function daftarkanRute(router, { mulaiPada }) {
 
     const tujuanDasar = konfigurasi.oauth.tujuanSetelahLogin;
 
-    const hasilkanHtml = (data, tujuan = tujuanDasar) => `<!doctype html>
+    /**
+     * Halaman perantara: menaruh hasil ke sessionStorage lalu mengali-
+     * hkan. Dua hal yang harus aman di sini:
+     *  - data disisipkan ke dalam <script> sebagai JSON yang DIESCAPE, agar
+     *    `</script>` dari Chess.com / query string tidak menutup tag dan
+     *    menjalankan skrip di asal kita (XSS). Nilai yang dikembalikan
+     *    Chess.com adalah input pihak ketiga.
+     *  - yang dikirim HANYA kode sebab yang sudah dikenal. Pesan exception
+     *    teknis (isi token, pesan HTTP Chess.com) tidak pernah ditempel ke
+     *    halaman; itu hanya masuk log server.
+     */
+    const hasilkanHtml = (data, tujuan = tujuanDasar) => {
+      const aman = JSON.stringify(data)
+        .replace(/</g, "\\u003c")
+        .replace(/>/g, "\\u003e")
+        .replace(/\u2028/g, "\\u2028")
+        .replace(/\u2029/g, "\\u2029");
+      const arah = JSON.stringify(jalurInternal(tujuan) || "/");
+      return `<!doctype html>
 <html lang="id"><head><meta charset="utf-8"><title>Login...</title></head>
 <body>
 <script>
 (function(){
-  var data = ${JSON.stringify(data)};
+  var data = ${aman};
   try {
     sessionStorage.setItem("kci-hasil-verifikasi", JSON.stringify(data));
   } catch(e) {}
-  window.location.replace(${JSON.stringify(jalurInternal(tujuan) || "/")});
+  window.location.replace(${arah});
 })();
 </script>
 </body></html>`;
+    };
+
+    /** Penyebab OAuth yang aman ditampilkan — daftar kode, bukan teks bebas. */
+    const KODE_SEBAB = new Set([
+      "konfigurasi",
+      "state",
+      "state-kedaluwarsa",
+      "chesscom",
+      "token",
+      "username",
+      "penandatangan",
+    ]);
 
     if (galat) {
-      return { status: 200, html: hasilkanHtml({ sukses: false, sebab: galat }) };
+      // Chess.com mengirim `error` seperti "access_denied" — petakan ke kode
+      // kita, jangan teruskan mentah-mentah.
+      return { status: 200, html: hasilkanHtml({ sukses: false, sebab: "chesscom" }) };
     }
     if (!kode || !state) {
-      return { status: 200, html: hasilkanHtml({ sukses: false, sebab: "parameter-kurang" }) };
+      return { status: 200, html: hasilkanHtml({ sukses: false, sebab: "state" }) };
     }
 
     try {
       const { username, kembaliKe } = await selesaikanLogin({ code: kode, state });
-      const { tiket } = terbitkanTiket(username, "oauth");
+      const { tiket, berlakuDetik } = terbitkanTiket(username, "oauth");
       return {
         status: 200,
-        html: hasilkanHtml({ sukses: true, username, tiket }, kembaliKe),
+        html: hasilkanHtml({
+          sukses: true,
+          username,
+          tiket,
+          cara: "oauth",
+          berlakuDetik,
+        }, kembaliKe),
       };
     } catch (e) {
-      console.error("[kci] gagal menyelesaikan login Chess.com:", e.message);
-      return { status: 200, html: hasilkanHtml({ sukses: false, sebab: e.message }) };
+      const sebab = KODE_SEBAB.has(e?.sebab) ? e.sebab : "token";
+      console.warn(`[kci] login Chess.com gagal (${sebab}): ${e?.message || e}`);
+      return { status: 200, html: hasilkanHtml({ sukses: false, sebab }) };
     }
   });
 
@@ -306,11 +357,16 @@ export function daftarkanRute(router, { mulaiPada }) {
     "/api/auth/kode/minta",
     async (req) => {
       const bodi = await bacaBodi(req);
-      return { status: 200, isi: await mintaKode(bodi.username) };
+      return { status: 200, isi: await mintaKode(bodi.username, { paksa: Boolean(bodi.paksa) }) };
     },
     { batas: 20 }
   );
 
+  /**
+   * Pemeriksaan kode dilakukan DI SERVER (baca profil segar + cocokkan kode
+   * yang tadi ia terbitkan). Hanya di titik ini tiket "kode-profil" terbit.
+   * Browser tidak pernah memutuskan sendiri bahwa ia "terverifikasi".
+   */
   router.post(
     "/api/auth/kode/periksa",
     async (req) => {
@@ -318,15 +374,36 @@ export function daftarkanRute(router, { mulaiPada }) {
       const hasil = await periksaKode(bodi.username);
       if (!hasil.cocok) return { status: 200, isi: hasil };
 
-      const { tiket, berlakuDetik } = terbitkanTiket(hasil.username, "kode-profil");
+      const { tiket, berlakuDetik, kedaluwarsaPada } = terbitkanTiket(hasil.username, "kode-profil");
       return {
         status: 200,
-        isi: { ...hasil, tiket, berlakuDetik },
+        isi: { ...hasil, tiket, berlakuDetik, kedaluwarsaPada, cara: "kode-profil" },
       };
     },
     { batas: 60 }
   );
 
+  /**
+   * Pengajuan verifikasi manual — untuk pendaftar yang tidak dapat menyunting
+   * profilnya. Jalur ini SENGAJA tidak pernah menerbitkan tiket: hasilnya
+   * selalu "menunggu" sampai pengurus memeriksa dan menyetujui lewat
+   * /api/pengurus/pengajuan-verifikasi/:id/setujui.
+   */
+  router.post(
+    "/api/auth/pengajuan-manual",
+    async (req, _param, konteks) => {
+      const bodi = await bacaBodi(req);
+      const hasil = await ajukanVerifikasiManual({
+        username: bodi.username,
+        catatan: bodi.catatan,
+        ip: konteks.ip,
+      });
+      return { status: 202, isi: hasil };
+    },
+    { batas: 10 }
+  );
+
+  /** Pratinjau tiket milik pendaftar sendiri (cek kedaluwarsa di UI). */
   router.get("/api/auth/tiket/:nilai", async (_req, param) => {
     const data = intipTiket(param.nilai);
     if (!data) return { status: 404, isi: { pesan: "Tiket tidak berlaku." } };
@@ -460,9 +537,15 @@ export function daftarkanRute(router, { mulaiPada }) {
         riwayatMasuk: await ringkasanRiwayatMasuk(),
         verifikasi: {
           mode: konfigurasi.wajibVerifikasi,
+          wajib: konfigurasi.wajibVerifikasi === "wajib",
           oauthAktif: oauthAktif(),
           ...statistikSesi(),
           ...statistikTantangan(),
+          // Pengajuan manual yang menunggu pemeriksaan — jalur manual tidak
+          // mengubah status terverifikasi sampai pengajuan ini selesai diperiksa.
+          pengajuanMenunggu: await daftarPengajuanVerifikasi({ status: "menunggu" })
+            .then((d) => d.length)
+            .catch(() => 0),
         },
       },
     };
@@ -721,6 +804,61 @@ export function daftarkanRute(router, { mulaiPada }) {
     return {
       status: 200,
       isi: { dijalankan: Boolean(hasil), ...(hasil || {}) },
+    };
+  });
+
+  /* ------------------------------- pengajuan verifikasi manual (jalur pengurus)
+   *
+   * Pemeriksaan yang sebenarnya terjadi di sini, bukan di browser: pengajuan
+   * berstatus "menunggu" sampai pengurus membuka daftar ini, membandingkan
+   * kode/profil secara manual, lalu menyetujui atau menolak. Persetujuan
+   * menerbitkan tiket (cara: "pengurus") dan menulis status resmi ke data
+   * anggota — keduanya tercatat di jejak audit beserta nama pengurusnya.
+   */
+  router.get("/api/pengurus/pengajuan-verifikasi", async (req) => {
+    pastikanAdmin(req);
+    const url = new URL(req.url, "http://x");
+    const status = url.searchParams.get("status") || "menunggu";
+    return { status: 200, isi: await daftarPengajuanVerifikasi({ status }) };
+  });
+
+  router.post("/api/pengurus/pengajuan-verifikasi/:id/setujui", async (req, param) => {
+    pastikanAdmin(req);
+    const admin = dapatkanAdminDariRequest(req);
+    const entri = await setujuiPengajuanVerifikasi(param.id, {
+      pengurus: admin?.username || "pengurus",
+    });
+    const { tiket, berlakuDetik } = terbitkanTiket(entri.username, "pengurus");
+    const anggotaDiperbarui = await tandaiAnggotaTerverifikasi(
+      entri.username,
+      "pengurus"
+    ).catch(() => false);
+    return {
+      status: 200,
+      isi: {
+        ok: true,
+        username: entri.username,
+        status: "disetujui",
+        // Tiket diberikan ke pengurus, bukan ke browser pendaftar: jalur ini
+        // hanya sah bila pemeriksaan pengurus memang sudah terjadi.
+        tiket,
+        berlakuDetik,
+        anggotaDiperbarui,
+      },
+    };
+  });
+
+  router.post("/api/pengurus/pengajuan-verifikasi/:id/tolak", async (req, param) => {
+    pastikanAdmin(req);
+    const admin = dapatkanAdminDariRequest(req);
+    const bodi = await bacaBodi(req).catch(() => ({}));
+    const entri = await tolakPengajuanVerifikasi(param.id, {
+      pengurus: admin?.username || "pengurus",
+      alasan: bodi?.alasan,
+    });
+    return {
+      status: 200,
+      isi: { ok: true, username: entri.username, status: "ditolak" },
     };
   });
 

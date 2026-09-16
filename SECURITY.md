@@ -35,6 +35,10 @@ lewat saluran tidak terenkripsi.
 | Spoof IP | `X-Forwarded-For` hanya dihormati jika `KCI_JUMLAH_PROXY` > 0 |
 | Kredensial bocor | `.gitignore` untuk `.env`, `data/rahasia/`; scanner GitHub |
 | Timing attack token | `crypto.timingSafeEqual` lewat hash SHA-256 |
+| Klaim "sudah terverifikasi" dari browser | Bukti = tiket HMAC terbitan server, terikat username, sekali pakai; field `mode`/`sumber`/`kode`/`terverifikasi` diabaikan |
+| Pemalsuan `id_token` Chess.com | RS256 + `kid` dikenal + `iss`/`aud`/`exp`/`sub` wajib; token tanpa salah satunya ditolak |
+| Open redirect pasca-login | hanya jalur internal (`jalurInternal`) yang diterima dan disimpan di state bertanda tangan |
+| Injeksi ke halaman perantara OAuth | JSON di-escape (`<`/`>`) dan hanya kode sebab yang dikenal yang dikirim ke browser |
 
 ## Arsitektur
 

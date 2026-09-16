@@ -6,12 +6,20 @@
  */
 export {
   normalisasiUsername,
+  normalisasiUsernameKanonik,
+  periksaUsername,
+  sahUsername,
+  POLA_USERNAME,
+  PANJANG_USERNAME_MIN,
+  PANJANG_USERNAME_MAKS,
   normalisasiHp,
   hpValid,
   formatHp,
   normalisasiNama,
   normalisasiKota,
   normalisasiTanggal,
+  periksaTanggalLahir,
+  hariIniUTC,
   hitungUmur,
   kategoriUmur,
 } from "../identitas.js";

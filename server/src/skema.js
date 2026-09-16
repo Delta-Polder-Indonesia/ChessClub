@@ -7,20 +7,35 @@
  * menjadi kontrak bersama dan dipakai di endpoint baru / query.
  */
 import { z } from "zod";
+import { POLA_USERNAME } from "../../src/lib/identitas.js";
 
+/**
+ * Aturan username kanonik. Polanya DIIMPOR dari `src/lib/identitas.js`
+ * (satu sumber yang sama dengan browser), sehingga skema server tidak pernah
+ * bisa lebih longgar atau lebih ketat daripada validasi formulir.
+ */
 export const UsernameSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .regex(/^[a-z0-9_-]{3,25}$/, "Username tidak valid (3-25 karakter, huruf/angka/_/-).");
+  .regex(POLA_USERNAME, "Username tidak valid (3-25 karakter, huruf/angka/_/-).");
 
 export const LoginSchema = z.object({
   username: z.string().min(1, "Username dan password wajib diisi."),
   password: z.string().min(1, "Username dan password wajib diisi."),
 });
 
+/**
+ * Kontrak POST /api/anggota.
+ *
+ * Yang menjadi dasar keputusan keamanan hanya `tiketVerifikasi` (token yang
+ * diterbitkan server). Field tampilan seperti `mode`, `sumber`, `kode`,
+ * `profil`, `terverifikasi`, `usernameVerifikasi` TIDAK didefinisikan di sini
+ * dan diabaikan `validasiPendaftaran()` — `.passthrough()` sengaja tidak
+ * dipakai supaya tidak ada field tak dikenal yang suatu saat terbaca diam-diam.
+ */
 export const PendaftaranSchema = z.object({
-  username: z.string().min(1, "Username Chess.com wajib diisi."),
+  username: UsernameSchema,
   namaLengkap: z.string().trim().min(1, "Nama lengkap wajib diisi.").max(80, "Nama lengkap terlalu panjang."),
   panggilan: z.string().trim().min(1, "Nama panggilan wajib diisi.").max(30, "Nama panggilan terlalu panjang."),
   hp: z.string().min(1, "Nomor HP/WhatsApp tidak valid. Contoh: 0812-3456-7890."),
@@ -37,8 +52,11 @@ export const PendaftaranSchema = z.object({
   setuju: z.union([z.literal(true), z.literal("true"), z.literal(1)]).refine(Boolean, {
     message: "Anda harus menyetujui kode etik komunitas.",
   }),
-  tiketVerifikasi: z.string().optional(),
+  // Panjangnya dibatasi: tiket adalah token pendek bertanda tangan, bukan
+  // tempat menyelipkan muatan besar.
+  tiketVerifikasi: z.string().max(512, "Tiket verifikasi tidak sah.").optional(),
 });
+
 
 export const SkorPartaiSchema = z.enum(["1-0", "0-1", "0.5-0.5"], {
   errorMap: () => ({ message: "Skor harus salah satu dari: 1-0, 0-1, 0.5-0.5." }),

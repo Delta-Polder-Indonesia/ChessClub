@@ -1,5 +1,5 @@
 /**
- * Login dengan akun Chess.com (OAuth 2.0 + OpenID Connect).
+ * Login dengan akun Chess.com (OAuth 2.0 + OpenID Connect) dan tiket verifikasi.
  *
  * Inilah bukti kepemilikan akun yang paling kuat: pendaftar masuk langsung
  * ke chess.com dengan kata sandinya sendiri, lalu Chess.com yang memberi
@@ -8,8 +8,28 @@
  * Alur (Authorization Code + PKCE):
  *   1. /api/auth/chess/mulai   -> arahkan pengguna ke oauth.chess.com
  *   2. pengguna login & menyetujui di chess.com
- *   3. /api/auth/chess/kembali -> tukar kode jadi token, baca id_token
- *   4. simpan "tiket verifikasi" berumur pendek untuk dipakai formulir
+ *   3. /api/auth/chess/kembali -> tukar code jadi token, baca id_token
+ *   4. id_token diverifikasi KETAT (lihat verifikasiIdToken)
+ *   5. server menerbitkan tiket sekali pakai terikat username
+ *
+ * Catatan deployment — Vercel Serverless (`api/[...jalur].js`):
+ * state OAuth dan tiket TIDAK disimpan di `Map` milik satu proses, karena
+ * callback dan pengiriman formulir bisa mendarat di instance berbeda dan
+ * /tmp maupun memori proses hilang saat cold start. Keduanya berupa token
+ * TANPA KEADAAN: muatan JSON kecil yang ditandatangani HMAC-SHA256
+ * (turunan KCI_JWT_SECRET via HKDF) memakai konteks berbeda, sehingga
+ *  - valid di instance mana pun, dan
+ *  - state tidak dapat dipalsukan, dan
+ *  - tiket verifikasi tidak dapat dipalsukan atau ditukar dengan state
+ *    (dan sebaliknya), dan
+ *  - token CSRF (hex 64 karakter, tanpa titik) tidak pernah sah jadi tiket.
+ *
+ * Sisa keadaan yang memang harus dibagikan hanyalah "tiket ini sudah
+ * dipakai". Ledger-nya ada di memori proses (lihat `tiketDipakai`): dalam
+ * satu proses/restart pencegahan pemutaran ulang berlaku penuh, di lingkungan
+ * multi-instance bersifat terbaik (best effort). Dampaknya kecil karena
+ * tiket terikat username dan penyimpanan anggota menolak duplikasi secara
+ * atomik — tiket yang sama tidak bisa menghasilkan dua anggota.
  *
  * Catatan: client_id harus diminta ke Chess.com lebih dulu melalui
  * https://forms.gle/7Ai8UZCJMZkCVvxn9 (persetujuan manual). Selama belum
@@ -17,8 +37,102 @@
  */
 import crypto from "node:crypto";
 import { konfigurasi } from "./konfigurasi.js";
+import { periksaUsername } from "../../src/lib/identitas.js";
 
 const OAUTH_DASAR = "https://oauth.chess.com";
+
+/** Galat verifikasi dengan kode sebab yang AMAN ditampilkan ke pengguna. */
+export class GalatVerifikasi extends Error {
+  constructor(sebab, pesan) {
+    super(pesan);
+    this.name = "GalatVerifikasi";
+    this.sebab = sebab;
+    this.status = 400;
+  }
+}
+
+/** Pesan baku untuk pengguna — detail teknis HANYA masuk log server. */
+export const PESAN_VERIFIKASI = {
+  konfigurasi:
+    "Login Chess.com belum diaktifkan pada server ini. Gunakan jalur verifikasi lain.",
+  state:
+    "Sesi login Chess.com tidak dikenali atau sudah kedaluwarsa. Silakan ulangi verifikasi.",
+  "state-kedaluwarsa":
+    "Sesi verifikasi telah kedaluwarsa. Silakan ulangi verifikasi akun Chess.com Anda.",
+  chesscom:
+    "Chess.com menolak permintaan login. Silakan coba beberapa saat lagi.",
+  token:
+    "Token login dari Chess.com tidak dapat dipercaya. Silakan ulangi verifikasi.",
+  username:
+    "Chess.com tidak mengirim username yang sah. Silakan ulangi verifikasi.",
+  penandatangan:
+    "Layanan verifikasi sedang tidak tersedia di server ini. Hubungi pengurus.",
+};
+
+export function pesanVerifikasiUntukPengguna(sebab) {
+  return PESAN_VERIFIKASI[sebab] || PESAN_VERIFIKASI.token;
+}
+
+/* --------------------------------------------------- penanda tangan */
+
+const AWALAN_TOKEN = "kci1";
+const KONTEKS = {
+  state: "kci/oauth/state/v1",
+  tiket: "kci/oauth/tiket/v1",
+};
+
+/**
+ * Kunci turunan per kegunaan (HKDF). Memakai KCI_JWT_SECRET yang sama,
+ * tetapi materi kuncinya berbeda, sehingga satu token tidak pernah sah
+ * untuk dua kegunaan.
+ */
+const kunciCache = new Map();
+function kunciUntuk(konteks) {
+  if (kunciCache.has(konteks)) return kunciCache.get(konteks);
+  const rahasia = konfigurasi.jwtSecret;
+  if (!rahasia || String(rahasia).length < 24) {
+    throw new GalatVerifikasi(
+      "penandatangan",
+      "KCI_JWT_SECRET belum dikonfigurasi; penerbitan tiket dihentikan (fail-closed)."
+    );
+  }
+  const kunci = Buffer.from(
+    crypto.hkdfSync("sha256", Buffer.from(String(rahasia)), Buffer.alloc(0), Buffer.from(konteks), 32)
+  );
+  kunciCache.set(konteks, kunci);
+  return kunci;
+}
+
+function tandaTangani(muatan, konteks) {
+  const isi = Buffer.from(JSON.stringify(muatan)).toString("base64url");
+  const t = crypto
+    .createHmac("sha256", kunciUntuk(konteks))
+    .update(`${konteks}.${isi}`)
+    .digest("base64url");
+  return `${AWALAN_TOKEN}.${isi}.${t}`;
+}
+
+/** Urai + periksa tanda tangan. Mengembalikan null untuk apa pun yang asing. */
+function tandaUrai(nilai, konteks) {
+  if (typeof nilai !== "string") return null;
+  const bagian = nilai.split(".");
+  if (bagian.length !== 3 || bagian[0] !== AWALAN_TOKEN) return null;
+  const [, isi, t] = bagian;
+  if (!isi || !t) return null;
+  const harapan = crypto
+    .createHmac("sha256", kunciUntuk(konteks))
+    .update(`${konteks}.${isi}`)
+    .digest();
+  const diberi = Buffer.from(t, "base64url");
+  if (diberi.length !== harapan.length) return null;
+  if (!crypto.timingSafeEqual(harapan, diberi)) return null;
+  try {
+    const muatan = JSON.parse(Buffer.from(isi, "base64url").toString("utf8"));
+    return muatan && typeof muatan === "object" ? muatan : null;
+  } catch {
+    return null;
+  }
+}
 
 /* ------------------------------------------------------- PKCE & state */
 
@@ -59,33 +173,36 @@ export function buatPkce() {
   return { verifier, challenge };
 }
 
-/* --------------------------------------------- penyimpanan sesi singkat */
+/* ------------------------------------------------- tiket sudah dipakai */
 
-/**
- * Sesi OAuth yang sedang berjalan (state -> data). Disimpan di memori
- * karena umurnya hanya beberapa menit; kalau server restart di tengah
- * alur, pengguna cukup mengulang login.
- */
-const sesi = new Map();
-const UMUR_SESI_MS = 10 * 60 * 1000;
+/** jti -> waktu kedaluwarsa (ms). Best effort per proses; lihat catatan di atas. */
+const tiketDipakai = new Map();
+const MAKS_LEDGER = 20_000;
 
-/** Tiket hasil verifikasi, ditukar formulir saat mengirim pendaftaran. */
-const tiket = new Map();
-const UMUR_TIKET_MS = 30 * 60 * 1000;
-
-function bersihkan(peta) {
-  const kini = Date.now();
-  for (const [k, v] of peta) if (kini > v.kedaluwarsa) peta.delete(k);
+function catatTiketDipakai(jti, kedaluwarsaMs) {
+  if (!jti) return;
+  if (tiketDipakai.size >= MAKS_LEDGER) {
+    // Buang entri terlama lebih dulu agar ledger tidak tumbuh tanpa batas.
+    for (const [k, v] of tiketDipakai) {
+      if (v < Date.now()) tiketDipakai.delete(k);
+      if (tiketDipakai.size < MAKS_LEDGER * 0.9) break;
+      tiketDipakai.delete(k);
+    }
+  }
+  tiketDipakai.set(jti, kedaluwarsaMs);
 }
 
 const jam = setInterval(() => {
-  bersihkan(sesi);
-  bersihkan(tiket);
+  const kini = Date.now();
+  for (const [k, v] of tiketDipakai) if (kini > v) tiketDipakai.delete(k);
 }, 60_000);
 jam.unref?.();
 
 export function statistikSesi() {
-  return { sesiAktif: sesi.size, tiketAktif: tiket.size };
+  return {
+    modusTiket: "tanpa-keadaan (HMAC, berlaku lintas instance)",
+    tiketDipakaiTercatat: tiketDipakai.size,
+  };
 }
 
 /* ------------------------------------------------------------- token */
@@ -93,17 +210,42 @@ export function statistikSesi() {
 /** Ambil kunci publik Chess.com untuk memverifikasi tanda tangan JWT. */
 let cacheKunci = { nilai: null, kedaluwarsa: 0 };
 
-export async function ambilKunciPublik() {
-  if (cacheKunci.nilai && Date.now() < cacheKunci.kedaluwarsa) {
+export async function ambilKunciPublik({ paksa = false } = {}) {
+  if (!paksa && cacheKunci.nilai && Date.now() < cacheKunci.kedaluwarsa) {
     return cacheKunci.nilai;
   }
-  const res = await fetchDenganTenggang(`${OAUTH_DASAR}/certs`, {
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Gagal mengambil kunci publik (${res.status}).`);
-  const { keys } = await res.json();
+  let res;
+  try {
+    res = await fetchDenganTenggang(`${OAUTH_DASAR}/certs`, {
+      headers: { Accept: "application/json" },
+    });
+  } catch (e) {
+    throw new GalatVerifikasi("chesscom", `Gagal mengambil kunci publik: ${e?.message || e}`);
+  }
+  if (!res.ok) {
+    throw new GalatVerifikasi("chesscom", `Gagal mengambil kunci publik (${res.status}).`);
+  }
+  let keys;
+  try {
+    ({ keys } = await res.json());
+  } catch {
+    throw new GalatVerifikasi("chesscom", "Respons kunci publik Chess.com bukan JSON.");
+  }
+  if (!Array.isArray(keys)) {
+    throw new GalatVerifikasi("chesscom", "Respons kunci publik Chess.com tidak sah.");
+  }
   cacheKunci = { nilai: keys, kedaluwarsa: Date.now() + 60 * 60 * 1000 };
   return keys;
+}
+
+function bacaBagianJson(b64, sebab) {
+  try {
+    const obj = JSON.parse(Buffer.from(b64, "base64url").toString("utf8"));
+    if (!obj || typeof obj !== "object" || Array.isArray(obj)) throw new Error("bukan objek");
+    return obj;
+  } catch {
+    throw new GalatVerifikasi(sebab, "Bagian id_token tidak dapat dibaca.");
+  }
 }
 
 /**
@@ -111,53 +253,109 @@ export async function ambilKunciPublik() {
  *
  * Ini bagian paling penting untuk keamanan: tanpa memeriksa tanda tangan,
  * siapa pun bisa mengarang token dan mengaku sebagai pemain mana pun.
+ *
+ * Semua klaim yang DIWAJIBKAN harus ada: ketiadaan klaim = token ditolak
+ * (bukan "dilewati bila tidak ada"). Yang boleh tidak ada hanya `nbf`.
  */
 export async function verifikasiIdToken(idToken, { clientId } = {}) {
+  if (!clientId || typeof clientId !== "string") {
+    throw new GalatVerifikasi("konfigurasi", "client_id OAuth belum dikonfigurasi.");
+  }
+
   const bagian = String(idToken || "").split(".");
-  if (bagian.length !== 3) throw new Error("Format id_token tidak valid.");
+  if (bagian.length !== 3) {
+    throw new GalatVerifikasi("token", "Format id_token tidak valid.");
+  }
 
   const [kepalaB64, muatanB64, tandaB64] = bagian;
-  const kepala = JSON.parse(Buffer.from(kepalaB64, "base64url").toString());
-  const muatan = JSON.parse(Buffer.from(muatanB64, "base64url").toString());
+  const kepala = bacaBagianJson(kepalaB64, "token");
+  const muatan = bacaBagianJson(muatanB64, "token");
 
   if (kepala.alg !== "RS256") {
-    throw new Error(`Algoritma token tidak didukung: ${kepala.alg}`);
+    throw new GalatVerifikasi("token", `Algoritma token tidak didukung: ${kepala.alg ?? "(kosong)"}`);
+  }
+  if (kepala.typ !== undefined && !/^JWT$/i.test(String(kepala.typ))) {
+    throw new GalatVerifikasi("token", "Tipe token bukan JWT.");
+  }
+  if (typeof kepala.kid !== "string" || !kepala.kid) {
+    throw new GalatVerifikasi("token", "id_token tanpa `kid` — kunci mana yang dipakai?");
   }
 
   const kunci = await ambilKunciPublik();
   // Wajib mencocokkan `kid` dari token. Jangan pernah "fallback" ke kunci
   // pertama: token dengan kid tak dikenal harus ditolak, karena kunci yang
   // salah hanya akan membuat verifikasi tanda tangan kebetulan/loyo.
-  const cocok = kunci.find((k) => k.kid === kepala.kid);
-  if (!cocok) throw new Error("Kunci publik token tidak dikenal.");
+  const cocok = kunci.find((k) => k && k.kid === kepala.kid);
+  if (!cocok) throw new GalatVerifikasi("token", "Kunci publik token tidak dikenal.");
 
-  const publik = crypto.createPublicKey({ key: cocok, format: "jwk" });
-  const sah = crypto.verify(
-    "RSA-SHA256",
-    Buffer.from(`${kepalaB64}.${muatanB64}`),
-    publik,
-    Buffer.from(tandaB64, "base64url")
-  );
-  if (!sah) throw new Error("Tanda tangan id_token tidak sah.");
-
-  // Issuer harus dikenal bila id_token menyertakannya. Ini mencegah token
-  // dari penyedia lain yang kebetulan tanda tangannya lolos dipakai di sini.
-  const issuer = String(muatan.iss || "").replace(/\/+$/, "");
-  if (issuer && issuer !== OAUTH_DASAR) {
-    throw new Error(`Issuer id_token tidak dikenal: ${issuer}`);
+  let publik;
+  try {
+    publik = crypto.createPublicKey({ key: cocok, format: "jwk" });
+  } catch {
+    throw new GalatVerifikasi("token", "Kunci publik tidak dapat digunakan.");
   }
 
+  let sah = false;
+  try {
+    sah = crypto.verify(
+      "RSA-SHA256",
+      Buffer.from(`${kepalaB64}.${muatanB64}`),
+      publik,
+      Buffer.from(tandaB64, "base64url")
+    );
+  } catch {
+    sah = false;
+  }
+  if (!sah) throw new GalatVerifikasi("token", "Tanda tangan id_token tidak sah.");
+
+  // Issuer WAJIB ada dan wajib Chess.com. Ini mencegah token dari penyedia
+  // lain yang kebetulan tanda tangannya lolos dipakai di sini.
+  const issuer = typeof muatan.iss === "string" ? muatan.iss.replace(/\/+$/, "") : "";
+  if (!issuer) throw new GalatVerifikasi("token", "id_token tanpa `iss`.");
+  if (issuer !== OAUTH_DASAR) {
+    throw new GalatVerifikasi("token", `Issuer id_token tidak dikenal: ${issuer}`);
+  }
+
+  // Audience WAJIB ada dan WAJIB mencakup client_id aplikasi.
+  const aud = Array.isArray(muatan.aud) ? muatan.aud : [muatan.aud];
+  if (!aud.length || aud.every((a) => typeof a !== "string" || !a)) {
+    throw new GalatVerifikasi("token", "id_token tanpa `aud`.");
+  }
+  if (!aud.includes(clientId)) {
+    throw new GalatVerifikasi("token", "id_token bukan untuk aplikasi ini.");
+  }
+
+  // exp WAJIB, numerik, dan belum lewat. Umur token juga dibatasi agar token
+  // bocor/tersalah-terbit tidak bisa dipakai berhari-hari.
   const kini = Math.floor(Date.now() / 1000);
-  if (muatan.exp && kini > muatan.exp) throw new Error("id_token kedaluwarsa.");
-  if (muatan.nbf && kini < muatan.nbf - 60)
-    throw new Error("id_token belum berlaku.");
-  if (clientId && muatan.aud && muatan.aud !== clientId) {
-    const daftar = Array.isArray(muatan.aud) ? muatan.aud : [muatan.aud];
-    if (!daftar.includes(clientId)) {
-      throw new Error("id_token bukan untuk aplikasi ini.");
-    }
+  if (typeof muatan.exp !== "number" || !Number.isFinite(muatan.exp)) {
+    throw new GalatVerifikasi("token", "id_token tanpa `exp`.");
   }
-  return muatan;
+  if (kini > muatan.exp) throw new GalatVerifikasi("state-kedaluwarsa", "id_token kedaluwarsa.");
+  if (muatan.exp - kini > konfigurasi.oauth.umurTokenMaksDetik) {
+    throw new GalatVerifikasi("token", "id_token berlaku terlalu lama.");
+  }
+  if (muatan.nbf !== undefined) {
+    if (typeof muatan.nbf !== "number" || !Number.isFinite(muatan.nbf)) {
+      throw new GalatVerifikasi("token", "`nbf` id_token tidak sah.");
+    }
+    // Toleransi 60 detik untuk selisih jam server.
+    if (kini < muatan.nbf - 60) throw new GalatVerifikasi("token", "id_token belum berlaku.");
+  }
+
+  // Identitas utama WAJIB ada.
+  if (muatan.sub === undefined || muatan.sub === null || String(muatan.sub).trim() === "") {
+    throw new GalatVerifikasi("username", "id_token tanpa `sub`.");
+  }
+
+  // Username: ambil, normalisasi dengan aturan kanonik, dan pastikan sah.
+  const mentah = muatan.preferred_username ?? muatan.username ?? "";
+  const diperiksa = periksaUsername(mentah || String(muatan.sub));
+  if (!diperiksa.sah) {
+    throw new GalatVerifikasi("username", "id_token memuat username yang tidak sah.");
+  }
+
+  return { ...muatan, usernameTerverifikasi: diperiksa.username };
 }
 
 /* -------------------------------------------------------------- alur */
@@ -171,22 +369,27 @@ export function mulaiLogin({ kembaliKe = "/pendaftaran-anggota" } = {}) {
   if (!oauthAktif()) {
     throw Object.assign(
       new Error("Login Chess.com belum diaktifkan pada server ini."),
-      { status: 503 }
+      { status: 503, sebab: "konfigurasi" }
     );
   }
 
   const { verifier, challenge } = buatPkce();
-  const state = acakUrl(16);
 
   // Validasi di sisi SERVER sebelum disimpan: nilai `kembali` dari query
   // string adalah input pengguna — hanya jalur internal yang diterima.
   const tujuan = jalurInternal(kembaliKe) || "/pendaftaran-anggota";
 
-  sesi.set(state, {
-    verifier,
-    kembaliKe: tujuan,
-    kedaluwarsa: Date.now() + UMUR_SESI_MS,
-  });
+  // State = token tanpa keadaan berisi verifier PKCE + tujuan + masa berlaku,
+  // ditandatangani server. Karena tidak ada `Map` di proses, callback yang
+  // mendarat di instance lain (Vercel) tetap dapat memakainya.
+  const state = tandaTangani(
+    {
+      v: verifier,
+      r: tujuan,
+      x: Math.floor(Date.now() / 1000) + konfigurasi.oauth.umurStateDetik,
+    },
+    KONTEKS.state
+  );
 
   const params = new URLSearchParams({
     client_id: konfigurasi.oauth.clientId,
@@ -203,21 +406,23 @@ export function mulaiLogin({ kembaliKe = "/pendaftaran-anggota" } = {}) {
 
 /** Langkah 4: tukar authorization code menjadi token, lalu baca identitas. */
 export async function selesaikanLogin({ code, state }) {
-  const data = sesi.get(state);
-  if (!data) {
-    throw Object.assign(
-      new Error("Sesi login tidak dikenal atau sudah kedaluwarsa. Ulangi dari awal."),
-      { status: 400 }
-    );
+  const data = tandaUrai(state, KONTEKS.state);
+  if (!data || typeof data.v !== "string" || !data.v) {
+    throw new GalatVerifikasi("state", "Sesi login tidak dikenali (state salah atau palsu).");
   }
-  sesi.delete(state); // sekali pakai — cegah serangan pemutaran ulang
+  if (typeof data.x !== "number" || Date.now() / 1000 > data.x) {
+    throw new GalatVerifikasi("state-kedaluwarsa", "Sesi login kedaluwarsa.");
+  }
+  if (!code || typeof code !== "string") {
+    throw new GalatVerifikasi("chesscom", "Authorization code tidak ada.");
+  }
 
   const bodi = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: konfigurasi.oauth.clientId,
     redirect_uri: konfigurasi.oauth.redirectUri,
     code,
-    code_verifier: data.verifier,
+    code_verifier: data.v,
   });
   if (konfigurasi.oauth.clientSecret) {
     bodi.set("client_secret", konfigurasi.oauth.clientSecret);
@@ -230,73 +435,148 @@ export async function selesaikanLogin({ code, state }) {
       Accept: "application/json",
     },
     body: bodi,
+  }).catch(() => {
+    throw new GalatVerifikasi("chesscom", "Gagal menghubungi endpoint token Chess.com.");
   });
 
   if (!res.ok) {
+    // Isi jawaban Chess.com hanya masuk log, tidak dikirim ke browser.
     const teks = await res.text().catch(() => "");
-    throw Object.assign(
-      new Error(`Chess.com menolak permintaan token (${res.status}). ${teks.slice(0, 200)}`),
-      { status: 502 }
+    console.warn(
+      `[kci] Chess.com menolak pertukaran code (${res.status}): ${teks.slice(0, 200)}`
     );
+    throw new GalatVerifikasi("chesscom", `Chess.com menolak permintaan token (${res.status}).`);
   }
 
-  const token = await res.json();
-  if (!token.id_token) {
-    throw Object.assign(new Error("Chess.com tidak mengirim id_token."), {
-      status: 502,
-    });
+  let token;
+  try {
+    token = await res.json();
+  } catch {
+    throw new GalatVerifikasi("chesscom", "Respons token Chess.com bukan JSON.");
+  }
+  if (!token || !token.id_token) {
+    throw new GalatVerifikasi("chesscom", "Chess.com tidak mengirim id_token.");
   }
 
   const muatan = await verifikasiIdToken(token.id_token, {
     clientId: konfigurasi.oauth.clientId,
   });
 
-  const username = String(
-    muatan.preferred_username || muatan.username || muatan.sub || ""
-  ).toLowerCase();
-  if (!username) {
-    throw Object.assign(new Error("id_token tidak memuat username."), {
-      status: 502,
-    });
-  }
-
-  return { username, kembaliKe: data.kembaliKe, muatan };
+  return {
+    username: muatan.usernameTerverifikasi,
+    kembaliKe: jalurInternal(data.r) || konfigurasi.oauth.tujuanSetelahLogin,
+    muatan,
+  };
 }
 
 /* ------------------------------------------------------------- tiket */
 
 /**
- * Tiket membuktikan "username ini sudah diverifikasi" tanpa perlu
- * menyimpan sesi login. Ditandatangani agar tidak bisa dipalsukan.
+ * Tiket membuktikan "username ini sudah diverifikasi server" tanpa perlu
+ * menyimpan sesi login. Bentuknya token kecil bertanda tangan HMAC sehingga
+ * (a) tidak dapat dipalsukan, (b) terikat pada satu username, (c) tetap sah
+ * di instance mana pun, dan (d) hangus setelah umurnya lewat.
  */
 export function terbitkanTiket(username, cara = "oauth") {
-  const nilai = acakUrl(24);
-  tiket.set(nilai, {
-    username: username.toLowerCase(),
-    cara,
-    kedaluwarsa: Date.now() + UMUR_TIKET_MS,
-  });
-  return { tiket: nilai, berlakuDetik: Math.floor(UMUR_TIKET_MS / 1000) };
+  const diperiksa = periksaUsername(username);
+  if (!diperiksa.sah) {
+    throw new GalatVerifikasi("username", "Username tidak sah; tiket tidak dapat diterbitkan.");
+  }
+  const umurDetik = konfigurasi.tiket.umurDetik;
+  const kedaluwarsaPada = Math.floor(Date.now() / 1000) + umurDetik;
+  const nilai = tandaTangani(
+    {
+      u: diperiksa.username,
+      c: String(cara || "oauth").slice(0, 24),
+      x: kedaluwarsaPada,
+      j: acakUrl(12),
+    },
+    KONTEKS.tiket
+  );
+  return {
+    tiket: nilai,
+    berlakuDetik: umurDetik,
+    kedaluwarsaPada: new Date(kedaluwarsaPada * 1000).toISOString(),
+  };
 }
 
-/** Pakai tiket (sekali pakai). Mengembalikan null bila tidak sah. */
+/**
+ * Periksa tiket TANPA memakainya.
+ * @returns {{sah: boolean, sebab?: string, data?: {username:string, cara:string, jti:string, exp:number}}}
+ *   `sebab`: kosong | tidak-sah | kedaluwarsa | sudah-dipakai | username-beda
+ */
+export function periksaTiket(nilai, username) {
+  if (nilai === undefined || nilai === null || nilai === "") {
+    return { sah: false, sebab: "kosong" };
+  }
+  if (typeof nilai !== "string") {
+    // Bentuk lain (objek, angka, array) bukan tiket — jangan dibilang kosong.
+    return { sah: false, sebab: "tidak-sah" };
+  }
+  let muatan = null;
+  try {
+    muatan = tandaUrai(nilai, KONTEKS.tiket);
+  } catch {
+    muatan = null;
+  }
+  if (!muatan || typeof muatan.u !== "string" || typeof muatan.x !== "number") {
+    return { sah: false, sebab: "tidak-sah" };
+  }
+  if (Date.now() / 1000 > muatan.x) {
+    return { sah: false, sebab: "kedaluwarsa" };
+  }
+  if (tiketDipakai.has(muatan.j)) {
+    return { sah: false, sebab: "sudah-dipakai" };
+  }
+  const diminta = periksaUsername(username);
+  if (!diminta.sah || diminta.username !== muatan.u) {
+    return { sah: false, sebab: "username-beda" };
+  }
+  return {
+    sah: true,
+    data: { username: muatan.u, cara: muatan.c || "oauth", jti: muatan.j, exp: muatan.x },
+  };
+}
+
+/** Tandai tiket sebagai sudah dipakai (sekali pakai). */
+export function tandaiTiketDipakai(jti, kedaluwarsaDetik) {
+  catatTiketDipakai(
+    String(jti || ""),
+    (Number.isFinite(kedaluwarsaDetik) ? kedaluwarsaDetik * 1000 : Date.now() + 30 * 60 * 1000)
+  );
+}
+
+/**
+ * Pakai tiket (periksa + langsung tandai dipakai).
+ * Mengembalikan muatan tiket, atau null bila tidak sah.
+ */
 export function pakaiTiket(nilai, username) {
-  const data = tiket.get(String(nilai || ""));
-  if (!data) return null;
-  if (Date.now() > data.kedaluwarsa) {
-    tiket.delete(nilai);
+  const hasil = periksaTiket(nilai, username);
+  if (!hasil.sah) return null;
+  tandaiTiketDipakai(hasil.data.jti, hasil.data.exp);
+  return { username: hasil.data.username, cara: hasil.data.cara };
+}
+
+/**
+ * Periksa tiket tanpa memakainya dan tanpa memeriksa username pemiliknya
+ * (pratinjau untuk formulir). Mengembalikan null bila palsu/kedaluwarsa.
+ */
+export function intipTiket(nilai) {
+  if (!nilai || typeof nilai !== "string") return null;
+  let dibaca = null;
+  try {
+    dibaca = tandaUrai(nilai, KONTEKS.tiket);
+  } catch {
     return null;
   }
-  if (data.username !== String(username || "").toLowerCase()) return null;
-  tiket.delete(nilai);
-  return data;
-}
-
-/** Periksa tiket tanpa memakainya (untuk pratinjau di formulir). */
-export function intipTiket(nilai) {
-  const data = tiket.get(String(nilai || ""));
-  if (!data || Date.now() > data.kedaluwarsa) return null;
-  return { username: data.username, cara: data.cara };
+  if (!dibaca || typeof dibaca.u !== "string" || typeof dibaca.x !== "number") return null;
+  if (Date.now() / 1000 > dibaca.x) return null;
+  return {
+    username: dibaca.u,
+    cara: dibaca.c || "oauth",
+    sudahDipakai: tiketDipakai.has(dibaca.j),
+    kedaluwarsaPada: new Date(dibaca.x * 1000).toISOString(),
+  };
 }
 
 export { OAUTH_DASAR };

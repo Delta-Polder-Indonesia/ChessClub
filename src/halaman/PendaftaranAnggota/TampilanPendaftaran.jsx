@@ -1,5 +1,5 @@
 import { CircleUser, ExternalLink, Info, Loader2, TriangleAlert } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCatur.js";
 import { URL_KLUB } from "./komponen/pendaftaran.js";
@@ -59,16 +59,28 @@ function MarkKomunitas({ kecil = false }) {
 
 const HARI_INI = new Date().toISOString().slice(0, 10);
 
+/**
+ * Status verifikasi yang dipahami tampilan ini. Nilainya berasal dari orang
+ * tua (PendaftaranAnggota) dan HANYA menggambarkan apa yang dikatakan server:
+ *   "sukses"     -> tiket verifikasi diterbitkan server;
+ *   "pengajuan"  -> pengajuan manual dikirim, menunggu pemeriksaan pengurus;
+ *   "gagal"      -> pemeriksaan terakhir gagal;
+ *   "kedaluwarsa"-> tiket tidak berlaku lagi (kedaluwarsa/terpakai/username
+ *                   berbeda) — pengguna harus memverifikasi ulang.
+ */
 export default function TampilanPendaftaran({
   form,
   status,
   pesan,
   verifikasi,
-  statusVerifikasi,
+  statusVerifikasi = "idle",
+  cara = null,
   teksSetuju,
   onUbah,
   onTerverifikasi,
+  onPengajuan,
   onBatalVerifikasi,
+  onUlangiVerifikasi,
   onKirim,
   onReset,
   validasiLokal,
@@ -167,7 +179,21 @@ export default function TampilanPendaftaran({
     galat: galatProfil,
   } = useProfilPemain(username, Boolean(username), "chessCom");
 
-  const [toastMessage, setToastMessage] = useState("");
+  /* Toast menyimpan KUNCI terjemahan, bukan kalimat jadi: kalimat yang
+     disimpan saat klik akan tetap berbahasa lama setelah pengguna berganti
+     bahasa (kamus EN dimuat malas). */
+  const [toastKey, setToastKey] = useState("");
+  /* Satu timer untuk satu toast. Tanpa ini, timer dari toast lama akan
+     mengosongkan toast baru yang sedang tampil (bug "toast hilang tiba-tiba"). */
+  const timerToast = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (timerToast.current) clearTimeout(timerToast.current);
+      timerToast.current = null;
+    },
+    []
+  );
 
   const dataDiri = form;
   const setDataDiri = (pembaruan) => {
@@ -200,13 +226,27 @@ export default function TampilanPendaftaran({
 
   useEffect(() => {
     if (verifikasi) setStep("success");
-    else if (statusVerifikasi === "error") setStep("password");
+    else if (statusVerifikasi === "pengajuan") setStep("pengajuan");
+    else if (statusVerifikasi === "error" || statusVerifikasi === "kedaluwarsa")
+      setStep("password");
   }, [verifikasi, statusVerifikasi]);
 
-  const showToast = (msg) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(""), 3500);
+  const showToast = (kunci) => {
+    if (timerToast.current) clearTimeout(timerToast.current);
+    setToastKey(kunci);
+    timerToast.current = setTimeout(() => {
+      timerToast.current = null;
+      setToastKey("");
+    }, 3500);
   };
+
+  /* Ringkasan status verifikasi untuk langkah terakhir — jujur terhadap apa
+     yang sebenarnya tercatat di server. */
+  const statusVerifikasiTeks = verifikasi?.tiket
+    ? t("pendaftaran.verifStatusBerhasil")
+    : statusVerifikasi === "pengajuan"
+      ? t("pendaftaran.verifStatusMenunggu")
+      : t("pendaftaran.verifStatusBelum");
 
   const handleUsernameSubmit = (e) => {
     e.preventDefault();
@@ -232,7 +272,7 @@ export default function TampilanPendaftaran({
       setDiriStep((s) => s + 1);
     } else {
       setStep("kontak");
-      showToast(t("pendaftaran.toastDiriSelesai"));
+      showToast("pendaftaran.toastDiriSelesai");
     }
   };
 
@@ -249,7 +289,7 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast(t("pendaftaran.toastKontakSelesai"));
+      showToast("pendaftaran.toastKontakSelesai");
     }
   };
 
@@ -261,16 +301,16 @@ export default function TampilanPendaftaran({
       setKontakStep((s) => s + 1);
     } else {
       setStep("final");
-      showToast(t("pendaftaran.toastKontakSelesai"));
+      showToast("pendaftaran.toastKontakSelesai");
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col justify-between items-center p-4 sm:p-6 lg:p-10 select-none relative">
-      {toastMessage && (
+      {toastKey && (
         <div className="fixed top-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl border border-gray-700 shadow-xl flex items-center gap-3 animate-fade-in">
           <Info className="h-4 w-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
-          <span>{toastMessage}</span>
+          <span>{t(toastKey)}</span>
         </div>
       )}
 
@@ -317,6 +357,15 @@ export default function TampilanPendaftaran({
                     <div role="alert" className="text-xs text-red-600 flex items-center gap-1.5 -mt-2">
                       <Info className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                       <span>{usernameError}</span>
+                    </div>
+                  )}
+
+                  {/* Hasil verifikasi yang gagal sebelumnya (OAuth rusak/kedaluwarsa)
+                      tetap terlihat di langkah pertama, tidak hilang saat kembali. */}
+                  {!usernameError && status === "gagal" && pesan && (
+                    <div role="alert" className="flex items-start gap-1.5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs leading-relaxed text-red-700 -mt-2">
+                      <TriangleAlert className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
+                      <span>{pesan}</span>
                     </div>
                   )}
 
@@ -455,22 +504,45 @@ export default function TampilanPendaftaran({
                   </h2>
                   <VerifikasiAkun
                     username={username}
-                    terverifikasi={verifikasi}
+                    terverifikasi={Boolean(verifikasi?.tiket)}
+                    verifikasi={verifikasi}
                     onTerverifikasi={onTerverifikasi}
+                    onPengajuan={onPengajuan}
+                    cara={cara}
                     onBatal={() => {
                       setStep("akun");
                       onBatalVerifikasi();
                     }}
                     statusAwal={statusVerifikasi}
-                    pesanAwal={statusVerifikasi === "error" ? pesan : ""}
+                    pesanAwal={
+                      statusVerifikasi === "error" ||
+                      statusVerifikasi === "kedaluwarsa"
+                        ? pesan
+                        : ""
+                    }
                   />
+
+                  {/* Mode `opsional`/`off`: verifikasi boleh dilewati, tetapi
+                      tanpa tiket pendaftaran TIDAK akan berstatus terverifikasi. */}
+                  {!verifikasi && !cara?.wajib && (
+                    <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] leading-relaxed text-gray-500">
+                      <span>{t("pendaftaran.verifOpsionalCatatan")}</span>
+                      <button
+                        type="button"
+                        onClick={() => setStep("data-diri")}
+                        className="font-semibold text-blue-600 hover:underline"
+                      >
+                        {t("pendaftaran.lewatiVerifikasi")}
+                      </button>
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP SUCCESS */}
-          {step === "success" && (
+          {/* STEP SUCCESS — hanya muncul bila SERVER menerbitkan tiket. */}
+          {step === "success" && verifikasi?.tiket && (
             <div className="w-full h-full flex flex-col items-center justify-center text-center py-8 space-y-5">
               <VerificationSpinner
                 status="success"
@@ -487,6 +559,13 @@ export default function TampilanPendaftaran({
                 </span>
                 {akunSiapAkhir}
               </p>
+              {verifikasi.berlakuDetik ? (
+                <p className="text-[11px] text-gray-500">
+                  {t("pendaftaran.verifTiketBerlaku", {
+                    menit: Math.max(1, Math.round(verifikasi.berlakuDetik / 60)),
+                  })}
+                </p>
+              ) : null}
               <div className="flex w-full items-center justify-end gap-3 pt-2">
                 <Button
                   variant="outline"
@@ -501,6 +580,39 @@ export default function TampilanPendaftaran({
                 <Button onClick={() => setStep("data-diri")}>
                   {t("pendaftaran.lanjutkanPendaftaran")}
                 </Button>
+              </div>
+            </div>
+          )}
+
+          {/* STEP PENGAJUAN — status menunggu, BUKAN terverifikasi. */}
+          {step === "pengajuan" && (
+            <div className="w-full h-full flex flex-col items-center justify-center text-center py-8 space-y-5">
+              <VerificationSpinner
+                status="idle"
+                size={72}
+                idleText={t("pendaftaran.verifStatusMenunggu")}
+              />
+              <h2 className="text-2xl sm:text-3xl font-normal text-gray-900 tracking-tight">
+                {t("pendaftaran.pengajuanDiterima")}
+              </h2>
+              <p className="text-gray-600 max-w-md text-sm sm:text-base leading-relaxed">
+                {t("pendaftaran.pengajuanPenjelasan", { username })}
+              </p>
+              <div className="flex w-full items-center justify-end gap-3 pt-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setStep("akun");
+                    onBatalVerifikasi();
+                  }}
+                >
+                  {t("pendaftaran.kembali")}
+                </Button>
+                {!cara?.wajib && (
+                  <Button onClick={() => setStep("data-diri")}>
+                    {t("pendaftaran.lanjutkanTanpaVerifikasi")}
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -733,6 +845,40 @@ export default function TampilanPendaftaran({
                   {t("pendaftaran.finalIdle")}
                 </p>
               )}
+
+              {/* Status verifikasi sesuai catatan server — bukan apa yang
+                  tadi diklik di layar ini. */}
+              {finalStatus !== "loading" && finalStatus !== "success" && (
+                <div className="flex w-full max-w-md flex-wrap items-center justify-between gap-2 rounded-xl border border-gray-200 bg-gray-50 px-3 py-2 text-left">
+                  <span className="text-[11px] font-medium text-gray-700">
+                    {t("pendaftaran.verifStatusLabel")}:{" "}
+                    <span
+                      className={
+                        verifikasi?.tiket
+                          ? "text-emerald-700 font-semibold"
+                          : statusVerifikasi === "pengajuan"
+                            ? "text-amber-700 font-semibold"
+                            : "text-gray-500 font-semibold"
+                      }
+                    >
+                      {statusVerifikasiTeks}
+                    </span>
+                  </span>
+                  {(statusVerifikasi === "kedaluwarsa" ||
+                    statusVerifikasi === "error") && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUlangiVerifikasi?.();
+                        setStep("password");
+                      }}
+                      className="text-[11px] font-semibold text-blue-600 hover:underline"
+                    >
+                      {t("pendaftaran.ulangiVerifikasi")}
+                    </button>
+                  )}
+                </div>
+              )}
               {finalStatus === "success" && (
                 <>
                   <p className="text-sm text-gray-600 leading-relaxed max-w-md">
@@ -769,7 +915,14 @@ export default function TampilanPendaftaran({
                     : t("pendaftaran.ulangiAwal")}
                 </Button>
                 {finalStatus !== "loading" && finalStatus !== "success" && (
-                  <Button onClick={onKirim}>
+                  <Button
+                    onClick={onKirim}
+                    /* Double-klik: tombol dikunci selama permintaan berjalan
+                       (status dipegang orang tua, jadi tetap konsisten bila
+                       pengguna berpindah langkah di tengah jalan). */
+                    loading={status === "mengirim"}
+                    disabled={status === "mengirim"}
+                  >
                     {finalStatus === "error" ? t("pendaftaran.cobaLagi") : t("pendaftaran.kirimPendaftaran")}
                   </Button>
                 )}

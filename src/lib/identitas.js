@@ -20,6 +20,67 @@ export function normalisasiUsername(raw) {
   return s.toLowerCase();
 }
 
+/* ------------------------------------------------- aturan username kanonik */
+
+/**
+ * SATU aturan username untuk seluruh aplikasi. Dipakai browser (validasi
+ * cepat), `server/src/keanggotaan.js`, `server/src/verifikasi-profil.js`,
+ * dan `server/src/skema.js`, sehingga isian yang lolos frontend tidak pernah
+ * ditolak backend.
+ *
+ * Keputusan yang didokumentasikan:
+ *  - panjang 3–25 karakter (mengikuti batas Chess.com, bukan 30);
+ *  - hanya huruf kecil, angka, `_`, `-`; huruf kapital TIDAK diizinkan apa
+ *    adanya — input dikapital-kecilkan lebih dulu, jadi "BudiCatur" dan
+ *    "budicatur" adalah akun yang sama;
+ *  - spasi di awal/akhir dibuang, spasi di TENGAH tidak pernah "ditempel"
+ *    diam-diam: input `budi santoso` menjadi tidak valid, bukan berubah
+ *    menjadi `budisantoso` (yang bisa jadi akun orang lain);
+ *  - nilai hasil normalisasi inilah yang dipakai untuk pencarian, tiket,
+ *    pengecekan duplikasi, dan penyimpanan — tidak pernah nilai mentah.
+ */
+export const PANJANG_USERNAME_MIN = 3;
+export const PANJANG_USERNAME_MAKS = 25;
+export const POLA_USERNAME = /^[a-z0-9_-]{3,25}$/;
+
+/**
+ * Normalisasi kanonik untuk pendaftaran & verifikasi. Beda dengan
+ * `normalisasiUsername` (yang memotong di spasi pertama) dan
+ * `normalisasiUsername` milik halaman Pendaftaran (yang menempel spasi):
+ * fungsi ini TIDAK menebak-nebak — spasi di tengah dibiarkan agar validasi
+ * di bawah bisa menolaknya.
+ */
+export function normalisasiUsernameKanonik(raw) {
+  let s = String(raw ?? "").trim();
+  s = s.replace(/^https?:\/\/(www\.)?chess\.com\/member\//i, "");
+  s = s.replace(/^@/, "");
+  s = s.split(/[/?#]/)[0].trim();
+  return s.toLowerCase();
+}
+
+/**
+ * Periksa username dengan aturan kanonik.
+ * @returns {{username: string, sah: boolean, sebab: (string|null)}}
+ *   `sebab`: kosong | spasi | kependekan | kepanjangan | karakter
+ */
+export function periksaUsername(raw) {
+  const username = normalisasiUsernameKanonik(raw);
+  if (!username) return { username: "", sah: false, sebab: "kosong" };
+  if (/\s/.test(username)) return { username, sah: false, sebab: "spasi" };
+  if (username.length < PANJANG_USERNAME_MIN)
+    return { username, sah: false, sebab: "kependekan" };
+  if (username.length > PANJANG_USERNAME_MAKS)
+    return { username, sah: false, sebab: "kepanjangan" };
+  if (!POLA_USERNAME.test(username))
+    return { username, sah: false, sebab: "karakter" };
+  return { username, sah: true, sebab: null };
+}
+
+/** Username sah menurut aturan kanonik. */
+export function sahUsername(raw) {
+  return periksaUsername(raw).sah;
+}
+
 /**
  * Nomor Indonesia ke bentuk baku 62xxxxxxxxx.
  * "0812-3456-7890", "+62 812 3456 7890", "62 81234567890", "812 3456 7890"
@@ -102,15 +163,27 @@ export function normalisasiTanggal(raw) {
   return s;
 }
 
-/** Umur (tahun penuh) pada tanggal acuan. */
+/**
+ * Umur (tahun penuh) pada tanggal acuan.
+ *
+ * Kalender yang dipakai adalah UTC, bukan zona waktu lokal: browser (WIB)
+ * dan server (UTC) karenanya SELALU menghasilkan angka yang sama untuk
+ * tanggal lahir yang sama. Konsekuensinya tercatat di dokumentasi — umur
+ * dapat meleset satu tahun selama beberapa jam pada hari ulang tahun
+ * seseorang, tetapi tidak pernah berbeda antara kedua sisi.
+ */
 export function hitungUmur(tanggalLahir, acuan = new Date()) {
   const s = normalisasiTanggal(tanggalLahir);
   if (!s) return null;
+  const tanggal =
+    acuan instanceof Date && Number.isFinite(acuan.getTime())
+      ? acuan
+      : new Date();
   const [y, m, d] = s.split("-").map(Number);
-  let umur = acuan.getFullYear() - y;
+  let umur = tanggal.getUTCFullYear() - y;
   const belumUlangTahun =
-    acuan.getMonth() + 1 < m ||
-    (acuan.getMonth() + 1 === m && acuan.getDate() < d);
+    tanggal.getUTCMonth() + 1 < m ||
+    (tanggal.getUTCMonth() + 1 === m && tanggal.getUTCDate() < d);
   if (belumUlangTahun) umur -= 1;
   return umur;
 }
@@ -123,6 +196,50 @@ export function kategoriUmur(tanggalLahir, acuan = new Date()) {
   if (umur < 18) return "Junior";
   if (umur < 50) return "Umum";
   return "Senior";
+}
+
+/* ------------------------------------------------ tanggal lahir & umur */
+
+/** Rentang umur yang diterima pendaftaran anggota. */
+export const UMUR_MIN = 5;
+export const UMUR_MAKS = 100;
+
+/** Tanggal (YYYY-MM-DD) menurut kalender UTC — acuan bersama dua sisi. */
+export function hariIniUTC(acuan = new Date()) {
+  const t =
+    acuan instanceof Date && Number.isFinite(acuan.getTime())
+      ? acuan
+      : new Date();
+  return t.toISOString().slice(0, 10);
+}
+
+/**
+ * Periksa tanggal lahir untuk pendaftaran: format, validitas kalender,
+ * bukan hari di masa depan, dan umur dalam rentang kebijakan.
+ *
+ * Dipakai browser SEBELUM mengirim dan server SEBELUM menyimpan, sehingga
+ * pesan yang dilihat pengguna identik dan validasi frontend tidak pernah
+ * menjadi satu-satunya penjaga.
+ *
+ * @returns {{tanggal: string, umur: (number|null), sah: boolean,
+ *            sebab: (string|null)}}
+ *   `sebab`: kosong | format | masa-depan | terlalu-muda | terlalu-tua
+ */
+export function periksaTanggalLahir(raw, acuan = new Date()) {
+  const mentah = String(raw ?? "").trim();
+  const tanggal = normalisasiTanggal(mentah);
+  if (!tanggal)
+    return { tanggal: "", umur: null, sah: false, sebab: mentah ? "format" : "kosong" };
+  if (tanggal > hariIniUTC(acuan))
+    return { tanggal, umur: null, sah: false, sebab: "masa-depan" };
+  const umur = hitungUmur(tanggal, acuan);
+  if (umur == null)
+    return { tanggal, umur: null, sah: false, sebab: "format" };
+  if (umur < UMUR_MIN)
+    return { tanggal, umur, sah: false, sebab: "terlalu-muda" };
+  if (umur > UMUR_MAKS)
+    return { tanggal, umur, sah: false, sebab: "terlalu-tua" };
+  return { tanggal, umur, sah: true, sebab: null };
 }
 
 /**

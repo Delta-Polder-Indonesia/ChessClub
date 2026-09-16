@@ -126,6 +126,38 @@ sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.
 
 ---
 
+## 4b. Antrean "pengajuan verifikasi manual"
+
+Pendaftar yang tidak dapat menyunting profil Chess.com-nya boleh mengirim
+pengajuan manual. Pengajuan **tidak** memverifikasi siapa pun — statusnya
+`menunggu` sampai pengurus memeriksa profil pemain dan mencatat keputusan.
+
+Belum ada tab khusus di dashboard; periksa lewat API pengurus (token
+`X-Token-Admin` atau JWT hasil login dashboard):
+
+```bash
+# lihat antrean
+curl -s -H "X-Token-Admin: $KCI_TOKEN_ADMIN" \
+  "$API/api/pengurus/pengajuan-verifikasi?status=menunggu"
+
+# setujui -> tiket cara "pengurus" terbit + status anggota ditulis
+curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
+  "$API/api/pengurus/pengajuan-verifikasi/<id>/setujui"
+
+# tolak dengan alasan
+curl -s -X POST -H "X-Token-Admin: $KCI_TOKEN_ADMIN" -H "X-CSRF-Token: $CSRF" \
+  -H "Content-Type: application/json" -d '{"alasan":"profil tidak cocok"}' \
+  "$API/api/pengurus/pengajuan-verifikasi/<id>/tolak"
+```
+
+Yang dicatat: nama pengurus, waktu, dan jejak audit
+(`pengajuan-verifikasi-disetujui` / `-ditolak`). Sebelum menyetujui, buka
+profil Chess.com orang tersebut dan pastikan kolom Location (atau nama
+profil) memuat kode tantangan yang tercantum pada pengajuan — tiket hanya
+boleh terbit karena pemeriksaan yang sungguh-sungguh dilakukan.
+
+---
+
 ## 5. Mengelola turnamen
 
 Keempat halaman turnamen publik — Turnamen Bulanan, Liga Musiman, Turnamen

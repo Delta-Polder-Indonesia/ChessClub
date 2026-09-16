@@ -18,8 +18,8 @@
  * Server mengambil roster publik klub Chess.com, lalu memperkaya profil +
  * rating pemain dan mengurutkannya menurut rating menurun.
  */
-import { useEffect, useState } from "react";
-import { ambilDaftarAnggota } from "./api/index.js";
+import { useEffect, useRef, useState } from "react";
+import { ambilAnggotaDenganSumber } from "./api/index.js";
 
 /** Berapa lama hasil dianggap masih segar (ms). */
 const TTL = 5 * 60 * 1000;
@@ -57,18 +57,22 @@ function bacaSimpanan() {
     if (!Array.isArray(isi?.data) || !isi.data.length) return null;
     const waktu = Number(isi.waktu) || 0;
     if (!waktu || Date.now() - waktu > UMUR_SIMPANAN_MAKS) return null;
-    return { waktu, data: isi.data };
+    return {
+      waktu,
+      data: isi.data,
+      sumber: isi.sumber === "fallback" ? "fallback" : "api",
+    };
   } catch {
     // localStorage bisa tidak tersedia (mode privat, kuota penuh, SSR).
     return null;
   }
 }
 
-function tulisSimpanan(data) {
+function tulisSimpanan(data, sumber = "api", peringatan = "") {
   try {
     globalThis.localStorage?.setItem(
       KUNCI_SIMPANAN,
-      JSON.stringify({ waktu: Date.now(), data })
+      JSON.stringify({ waktu: Date.now(), data, sumber, peringatan })
     );
   } catch {
     /* menyimpan cache bukan hal kritis */
@@ -82,7 +86,13 @@ function pulihkanCache() {
   if (tersimpan) {
     // Ditandai kedaluwarsa agar kunjungan baru tetap memicu penyegaran,
     // tetapi datanya sudah bisa ditampilkan sekarang juga.
-    cache = { waktu: 0, data: tersimpan.data, dariSimpanan: true };
+    cache = {
+      waktu: 0,
+      data: tersimpan.data,
+      dariSimpanan: true,
+      sumber: tersimpan.sumber || "api",
+      peringatan: "simpanan-lokal",
+    };
   }
   return cache;
 }
@@ -106,16 +116,21 @@ export function muatAnggota({ paksa = false } = {}) {
   }
   if (!paksa && sedangJalan) return sedangJalan;
 
-  sedangJalan = ambilDaftarAnggota()
-    .then((data) => {
-      const bersih = Array.isArray(data) ? data : [];
+  sedangJalan = ambilAnggotaDenganSumber()
+    .then(({ anggota, sumber, peringatan }) => {
+      const bersih = Array.isArray(anggota) ? anggota : [];
       // Jawaban kosong tidak boleh menghapus daftar yang sudah tampil —
       // itu hampir selalu berarti sumbernya sedang bermasalah.
       if (!bersih.length && cache?.data?.length) {
         return cache.data;
       }
-      cache = { waktu: Date.now(), data: bersih };
-      tulisSimpanan(bersih);
+      /* Asal data ikut disimpan dan ikut dikirim ke komponen. Roster publik
+         Chess.com (sumber "fallback") BUKAN daftar anggota resmi — ia hanya
+         muncul karena backend tidak dapat dihubungi — dan tidak boleh
+         dipakai untuk menyimpulkan status/hak anggota apa pun. Kegagalan
+         backend karenanya tidak disamarkan seolah sistem sehat. */
+      cache = { waktu: Date.now(), data: bersih, sumber, peringatan };
+      tulisSimpanan(bersih, sumber, peringatan);
       siarkan();
       return bersih;
     })
@@ -145,6 +160,15 @@ export function segarkanAnggota() {
  *            muatUlang: Function}}
  */
 export function useAnggota() {
+  /* Guard mounted: permintaan muat ulang yang selesai setelah komponennya
+     dibongkar tidak boleh lagi memanggil setState. */
+  const hidupRef = useRef(true);
+  useEffect(
+    () => () => {
+      hidupRef.current = false;
+    },
+    []
+  );
   const [anggota, setAnggota] = useState(() => cache?.data || []);
   const [status, setStatus] = useState(() =>
     cache?.data?.length ? (cache.waktu ? "siap" : "menyegarkan") : "memuat"
@@ -153,6 +177,9 @@ export function useAnggota() {
     () => cache?.waktu || null
   );
   const [pesan, setPesan] = useState("");
+  /* "api" = jawaban backend, "fallback" = roster publik Chess.com saja. */
+  const [sumber, setSumber] = useState(() => cache?.sumber || "api");
+  const [peringatan, setPeringatan] = useState(() => cache?.peringatan || "");
 
   useEffect(() => {
     let hidup = true;
@@ -161,6 +188,8 @@ export function useAnggota() {
       if (hidup && cache) {
         setAnggota(cache.data);
         setDiperbaruiPada(cache.waktu || null);
+        setSumber(cache.sumber || "api");
+        setPeringatan(cache.peringatan || "");
       }
     };
     pendengar.add(sinkron);
@@ -174,6 +203,8 @@ export function useAnggota() {
         if (!hidup) return;
         setAnggota(data);
         setDiperbaruiPada(cache?.waktu || Date.now());
+        setSumber(cache?.sumber || "api");
+        setPeringatan(cache?.peringatan || "");
         setStatus("siap");
       })
       .catch((err) => {
@@ -198,11 +229,16 @@ export function useAnggota() {
     setStatus(anggota.length ? "menyegarkan" : "memuat");
     return segarkanAnggota()
       .then((data) => {
+        if (!hidupRef.current) return data;
         setAnggota(data);
         setDiperbaruiPada(cache?.waktu || Date.now());
+        setSumber(cache?.sumber || "api");
+        setPeringatan(cache?.peringatan || "");
         setStatus("siap");
+        return data;
       })
       .catch((err) => {
+        if (!hidupRef.current) return;
         if (cache?.data?.length) {
           setStatus("siap");
           return;
@@ -216,6 +252,8 @@ export function useAnggota() {
     anggota,
     status,
     pesan,
+    sumber,
+    peringatan,
     menyegarkan: status === "menyegarkan",
     diperbaruiPada,
     muatUlang,
