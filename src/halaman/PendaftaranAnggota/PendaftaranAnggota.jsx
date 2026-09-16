@@ -39,6 +39,10 @@ export default function PendaftaranAnggota() {
   const [pesan, setPesan] = useState("");
   const [verifikasi, setVerifikasi] = useState(null);
   const [statusVerifikasi, setStatusVerifikasi] = useState("idle");
+  /* Sebab galat OAuth disimpan mentah, bukan kalimat jadi — pesannya
+     diterjemahkan saat render agar mengikuti bahasa aktif (kamus EN
+     dimuat malas; kalimat yang disimpan saat mount terkunci di ID). */
+  const [sebabOauth, setSebabOauth] = useState(null);
 
   useEffect(() => {
     try {
@@ -51,7 +55,7 @@ export default function PendaftaranAnggota() {
         setForm((f) => ({ ...f, username: data.username }));
         setStatusVerifikasi("success");
       } else if (data.sebab) {
-        setPesan(t("verifikasi.oauthGagal", { sebab: data.sebab }));
+        setSebabOauth(data.sebab);
         setStatus("gagal");
         setStatusVerifikasi("error");
       }
@@ -130,6 +134,7 @@ export default function PendaftaranAnggota() {
     setStatusVerifikasi("idle");
     setStatus("idle");
     setPesan("");
+    setSebabOauth(null);
   };
 
   return (
@@ -143,7 +148,10 @@ export default function PendaftaranAnggota() {
       <TampilanPendaftaran
         form={form}
         status={status}
-        pesan={pesan}
+        pesan={
+          pesan ||
+          (sebabOauth ? t("verifikasi.oauthGagal", { sebab: sebabOauth }) : "")
+        }
         verifikasi={verifikasi}
         statusVerifikasi={statusVerifikasi}
         teksSetuju={t("pendaftaran.setuju")}
