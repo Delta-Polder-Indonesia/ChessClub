@@ -18,6 +18,7 @@ import {
   normalisasiUsername,
 } from "./pemainCatur.js";
 import { URL_PENGATURAN_PROFIL } from "./pendaftaran.js";
+import { useI18n } from "../../../lib/i18n.jsx";
 
 async function salinTeks(teks) {
   try {
@@ -44,23 +45,6 @@ async function salinTeks(teks) {
   }
 }
 
-const LANGKAH = [
-  {
-    judul: "Salin kode verifikasi Anda",
-    rincian: "Kode di bawah bersifat unik untuk pendaftaran ini.",
-  },
-  {
-    judul: "Tempel pada profil Chess.com",
-    rincian:
-      "Buka Settings → Profile, isi kolom Location (Lokasi) dengan kode tersebut, lalu tekan Save.",
-  },
-  {
-    judul: "Periksa kembali di sini",
-    rincian:
-      "Tekan Periksa Kode. Kami membaca profil publik Anda untuk mencocokkan kode.",
-  },
-];
-
 export default function VerifikasiAkun({
   username,
   terverifikasi = false,
@@ -69,6 +53,23 @@ export default function VerifikasiAkun({
   statusAwal = "idle",
   pesanAwal = "",
 }) {
+  const { t } = useI18n();
+
+  const LANGKAH = [
+    {
+      judul: t("verifikasi.langkahSalinJudul"),
+      rincian: t("verifikasi.langkahSalinRincian"),
+    },
+    {
+      judul: t("verifikasi.langkahTempelJudul"),
+      rincian: t("verifikasi.langkahTempelRincian"),
+    },
+    {
+      judul: t("verifikasi.langkahPeriksaJudul"),
+      rincian: t("verifikasi.langkahPeriksaRincian"),
+    },
+  ];
+
   const [kode, setKode] = useState(() => buatKodeVerifikasi());
   const [status, setStatus] = useState("idle"); // idle | memeriksa | gagal | sukses
   const [pesan, setPesan] = useState("");
@@ -84,7 +85,7 @@ export default function VerifikasiAkun({
     }
     if (statusAwal === "error") {
       setStatus("gagal");
-      setPesan(pesanAwal || "Verifikasi gagal. Coba lagi.");
+      setPesan(pesanAwal || t("verifikasi.galatUmum"));
     }
   }, [statusAwal, pesanAwal]);
 
@@ -102,7 +103,7 @@ export default function VerifikasiAkun({
     const bersih = normalisasiUsername(username);
     if (!bersih) {
       setStatus("gagal");
-      setPesan("Username Chess.com masih kosong.");
+      setPesan(t("verifikasi.usernameKosong"));
       return;
     }
 
@@ -129,12 +130,12 @@ export default function VerifikasiAkun({
       setStatus("gagal");
       setPercobaan((n) => n + 1);
       setPesan(
-        `Kode belum terbaca pada profil ${profil.username}. Pastikan sudah ditekan Save di Chess.com, lalu periksa lagi. Profil Chess.com dapat tersimpan di cache hingga beberapa jam.`,
+        t("verifikasi.belumTerbacaProfil", { username: profil.username }),
       );
     } catch (galat) {
       setStatus("gagal");
       setPercobaan((n) => n + 1);
-      setPesan(galat?.message || "Gagal memeriksa profil Chess.com.");
+      setPesan(galat?.message || t("verifikasi.galatMemeriksa"));
     }
   };
 
@@ -156,8 +157,8 @@ export default function VerifikasiAkun({
     setStatus("gagal");
     setPesan(
       !bersih
-        ? "Username Chess.com masih kosong."
-        : "Kode yang Anda masukkan tidak cocok. Salin kode di atas, lalu tempel kembali.",
+        ? t("verifikasi.usernameKosong")
+        : t("verifikasi.kodeTidakCocok"),
     );
   };
 
@@ -167,7 +168,7 @@ export default function VerifikasiAkun({
         {/* Kode verifikasi */}
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
-            Kode verifikasi Anda
+            {t("verifikasi.kodeAnda")}
           </p>
           <div className="mt-2 flex items-stretch gap-2">
             <code className="flex-1 min-w-0 rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-3 font-mono text-base sm:text-lg font-bold tracking-[0.14em] text-gray-900 select-text">
@@ -177,8 +178,8 @@ export default function VerifikasiAkun({
               variant="outline"
               size="icon"
               onClick={handleSalin}
-              aria-label="Salin kode verifikasi"
-              title="Salin kode"
+              aria-label={t("verifikasi.salinKodeVerifikasi")}
+              title={t("verifikasi.salinKode")}
             >
               {sudahDisalin ? (
                 <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" />
@@ -195,8 +196,8 @@ export default function VerifikasiAkun({
                 setPesan("");
                 setKodeCepat("");
               }}
-              aria-label="Buat kode baru"
-              title="Buat kode baru"
+              aria-label={t("verifikasi.buatKodeBaru")}
+              title={t("verifikasi.buatKodeBaru")}
             >
               <RefreshCw className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -224,7 +225,7 @@ export default function VerifikasiAkun({
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline"
         >
-          Buka pengaturan profil Chess.com
+          {t("verifikasi.bukaPengaturanProfil")}
           <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
         </a>
 
@@ -232,14 +233,14 @@ export default function VerifikasiAkun({
         {status === "memeriksa" && (
           <p className="flex items-center gap-2 text-xs font-medium text-[#0B2F9F]">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-            Menghubungi Chess.com dan memeriksa profil {normalisasiUsername(username)}…
+            {t("verifikasi.menghubungi", { username: normalisasiUsername(username) })}
           </p>
         )}
 
         {status === "sukses" && (
           <p className="flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-800">
             <ShieldCheck className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
-            Profil Chess.com terverifikasi. Melanjutkan pendaftaran…
+            {t("verifikasi.profilTerverifikasi")}
           </p>
         )}
 
@@ -259,7 +260,7 @@ export default function VerifikasiAkun({
                     onClick={() => setModeCepat(true)}
                     className="font-semibold text-red-800 underline"
                   >
-                    Gunakan verifikasi cepat
+                    {t("verifikasi.verifCepatGunakan")}
                   </button>
                 </>
               )}
@@ -271,7 +272,7 @@ export default function VerifikasiAkun({
         <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
           {onBatal && (
             <Button variant="ghost" onClick={onBatal}>
-              Ganti Akun
+              {t("pendaftaran.gantiAkun")}
             </Button>
           )}
           <Button
@@ -279,7 +280,7 @@ export default function VerifikasiAkun({
             loading={status === "memeriksa"}
             disabled={berhasil}
           >
-            {status === "memeriksa" ? "Memeriksa…" : "Periksa Kode"}
+            {status === "memeriksa" ? t("verifikasi.sedangMemeriksa") : t("verifikasi.periksaKode")}
           </Button>
         </div>
       </div>
@@ -294,19 +295,17 @@ export default function VerifikasiAkun({
         >
           <span className="flex items-center gap-2 text-xs font-semibold text-gray-900">
             <KeyRound className="h-4 w-4 text-gray-500" aria-hidden="true" />
-            Tidak bisa menyunting profil? Verifikasi cepat
+            {t("verifikasi.verifCepatToggle")}
           </span>
           <span className="text-[11px] font-medium text-gray-500">
-            {modeCepat ? "Tutup" : "Buka"}
+            {modeCepat ? t("verifikasi.tutup") : t("verifikasi.buka")}
           </span>
         </button>
 
         {modeCepat && (
           <form onSubmit={handleCepat} className="space-y-3 pt-1">
             <p className="text-[11px] leading-relaxed text-gray-600">
-              Bila profil Chess.com Anda belum dapat disunting atau cache masih
-              menyimpan data lama, ketik ulang kode di atas untuk menyelesaikan
-              verifikasi (mode konfirmasi manual).
+              {t("verifikasi.verifCepatKeterangan")}
             </p>
             <input
               type="text"
@@ -315,13 +314,13 @@ export default function VerifikasiAkun({
                 setKodeCepat(e.target.value);
                 if (status === "gagal") setStatus("idle");
               }}
-              placeholder="BSKUAD-XXXXXX"
-              aria-label="Kode verifikasi manual"
+              placeholder={t("verifikasi.phKodeCepat")}
+              aria-label={t("verifikasi.kodeManual")}
               className="h-11 w-full rounded-lg border border-gray-300 bg-white px-4 font-mono text-sm tracking-[0.12em] uppercase text-gray-900 placeholder:tracking-normal placeholder:font-sans placeholder:text-gray-400 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
             />
             <div className="flex items-center justify-end gap-3">
               <Button type="submit" variant="secondary">
-                Konfirmasi Kode
+                {t("verifikasi.konfirmasiKode")}
               </Button>
             </div>
           </form>
@@ -329,8 +328,7 @@ export default function VerifikasiAkun({
 
         <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-gray-500">
           <Info className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
-          Kami hanya membaca profil publik Chess.com. Kode boleh Anda hapus
-          kembali setelah verifikasi selesai.
+          {t("verifikasi.catatanPrivasi")}
         </p>
       </div>
     </div>

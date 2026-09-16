@@ -119,6 +119,42 @@ export const verifikasi = {
     akunTerverifikasi: "Akun berikut milik Anda:",
     lanjut: "Lanjut",
     batal: "Batal",
+
+    langkahSalinJudul: "Salin kode verifikasi Anda",
+    langkahSalinRincian: "Kode di bawah bersifat unik untuk pendaftaran ini.",
+    langkahTempelJudul: "Tempel pada profil Chess.com",
+    langkahTempelRincian:
+      "Buka Settings → Profile, isi kolom Location (Lokasi) dengan kode tersebut, lalu tekan Save.",
+    langkahPeriksaJudul: "Periksa kembali di sini",
+    langkahPeriksaRincian:
+      "Tekan Periksa Kode. Kami membaca profil publik Anda untuk mencocokkan kode.",
+    kodeAnda: "Kode verifikasi Anda",
+    salinKode: "Salin kode",
+    salinKodeVerifikasi: "Salin kode verifikasi",
+    buatKodeBaru: "Buat kode baru",
+    bukaPengaturanProfil: "Buka pengaturan profil Chess.com",
+    menghubungi: "Menghubungi Chess.com dan memeriksa profil {username}…",
+    profilTerverifikasi: "Profil Chess.com terverifikasi. Melanjutkan pendaftaran…",
+    periksaKode: "Periksa Kode",
+    sedangMemeriksa: "Memeriksa…",
+    verifCepatGunakan: "Gunakan verifikasi cepat",
+    verifCepatToggle: "Tidak bisa menyunting profil? Verifikasi cepat",
+    tutup: "Tutup",
+    buka: "Buka",
+    verifCepatKeterangan:
+      "Bila profil Chess.com Anda belum dapat disunting atau cache masih menyimpan data lama, ketik ulang kode di atas untuk menyelesaikan verifikasi (mode konfirmasi manual).",
+    kodeManual: "Kode verifikasi manual",
+    phKodeCepat: "BSKUAD-XXXXXX",
+    konfirmasiKode: "Konfirmasi Kode",
+    catatanPrivasi:
+      "Kami hanya membaca profil publik Chess.com. Kode boleh Anda hapus kembali setelah verifikasi selesai.",
+    belumTerbacaProfil:
+      "Kode belum terbaca pada profil {username}. Pastikan sudah ditekan Save di Chess.com, lalu periksa lagi. Profil Chess.com dapat tersimpan di cache hingga beberapa jam.",
+    usernameKosong: "Username Chess.com masih kosong.",
+    kodeTidakCocok:
+      "Kode yang Anda masukkan tidak cocok. Salin kode di atas, lalu tempel kembali.",
+    galatMemeriksa: "Gagal memeriksa profil Chess.com.",
+    galatUmum: "Verifikasi gagal. Coba lagi.",
   }
 
 export const pendaftaran = {
@@ -203,4 +239,63 @@ export const pendaftaran = {
     galatLahirAneh: "Tanggal lahir tidak masuk akal.",
     galatEmail: "Format email tidak valid.",
     galatSetuju: "Anda harus menyetujui kode etik komunitas.",
+
+    brandLine2: "INDONESIA",
+    subjudulAkun:
+      "Gunakan akun Chess.com Anda. Data pendaftaran akan tersimpan aman di Komunitas Catur Indonesia.",
+    labelUsernameAkun: "Nama Lengkap / Username",
+    phUsername: "Username Chess.com",
+    mencariProfil: "Mencari profil Chess.com…",
+    profilGagalLanjut:
+      "Periksa ejaan username, atau lanjutkan bila profil baru saja dibuat.",
+    pengikut: "pengikut",
+    profil: "Profil",
+    catatanRoster:
+      "Username harus sudah tercatat sebagai anggota Blunder Skuad di Chess.com. Roster Chess.com dapat membutuhkan hingga 12 jam untuk diperbarui.",
+    bukaKlub: "Buka klub Blunder Skuad di Chess.com",
+    berikutnya: "Berikutnya",
+    verifJudul: "Verifikasi diri Anda",
+    verifDeskripsi:
+      "Untuk membantu menjaga keamanan akun Anda, kami ingin memastikan bahwa memang Anda yang mencoba mendaftar.",
+    ubah: "Ubah",
+    verifTanpaSandi:
+      "Kami tidak meminta kata sandi Chess.com Anda. Verifikasi cukup dilakukan dengan menempelkan kode sekali pakai pada profil publik Anda.",
+    verifLewatKode: "Verifikasi lewat kode profil",
+    verifBerhasil: "Verifikasi Berhasil!",
+    akunSiap:
+      "Akun {username} sudah terverifikasi dan siap melanjutkan pendaftaran anggota.",
+    gantiAkun: "Ganti Akun",
+    lanjutkanPendaftaran: "Lanjutkan Pendaftaran",
+    judulDataDiri: "Data Diri",
+    deskDataDiri:
+      "Isi satu data per langkah. Data disimpan secara privat oleh pengurus untuk administrasi dan turnamen.",
+    judulNama: "Nama Lengkap Anda",
+    judulPanggilan: "Nama Panggilan Anda",
+    judulKota: "Kota Asal Anda",
+    judulEmail: "Alamat Email",
+    judulKontak: "Kontak & Pembayaran",
+    deskKontak:
+      "Isi satu data per langkah. Nomor HP/WhatsApp dan DANA hanya disimpan pada catatan pengurus dan tidak pernah ditampilkan di situs.",
+    langkahDari: "Langkah {n} dari {total}",
+    kembali: "Kembali",
+    lanjutkan: "Lanjutkan",
+    selesai: "Selesai",
+    lewati: "Lewati",
+    opsional: "(opsional)",
+    toastDiriSelesai: "Data diri selesai. Lanjut ke Kontak & Pembayaran...",
+    toastKontakSelesai: "Data kontak selesai. Periksa kembali lalu kirim pendaftaran.",
+    finalIdle: "Semua data sudah lengkap. Klik tombol untuk mengirim pendaftaran.",
+    finalSukses:
+      "Selamat datang, {username}. Anda kini tercatat sebagai anggota Blunder Skuad.",
+    finalGagal: "Ada kesalahan saat mengirim. Coba lagi.",
+    mendaftarkan: "Mendaftarkan anggota...",
+    pendaftaranBerhasil: "Pendaftaran Berhasil!",
+    pendaftaranGagal: "Pendaftaran Gagal",
+    keluarGantiAkun: "Keluar / Ganti Akun",
+    ulangiAwal: "Ulangi dari Awal",
+    cobaLagi: "Coba Lagi",
+    kirimPendaftaran: "Kirim Pendaftaran",
+    hakCipta:
+      "© {tahun} Komunitas Catur Indonesia · Blunder Skuad. Pendaftaran diproses oleh pengurus klub.",
+    tautanKlub: "Klub Chess.com",
   }

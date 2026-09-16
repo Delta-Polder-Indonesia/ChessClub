@@ -12,6 +12,7 @@ import { segarkanAnggota } from "../../lib/anggotaBersama.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import TampilanPendaftaran from "./TampilanPendaftaran.jsx";
 import { URL_KLUB } from "./komponen/pendaftaran.js";
+import { sahUsername } from "./komponen/pemainCatur.js";
 
 const AWAL = {
   username: "",
@@ -71,6 +72,8 @@ export default function PendaftaranAnggota() {
     const usia = hitungUmur(data.tanggalLahir);
     if (!normalisasiUsername(data.username))
       g.username = t("pendaftaran.galatUsername");
+    else if (!sahUsername(data.username))
+      g.username = t("pendaftaran.galatUsername");
     if (normalisasiNama(data.namaLengkap).split(" ").filter(Boolean).length < 2)
       g.namaLengkap = t("pendaftaran.galatNama");
     if (!data.panggilan.trim()) g.panggilan = t("pendaftaran.galatPanggilan");
@@ -116,7 +119,7 @@ export default function PendaftaranAnggota() {
       return true;
     } catch (err) {
       setStatus("gagal");
-      setPesan(err.message);
+      setPesan(err.message || t("pendaftaran.periksaIsian"));
       return false;
     }
   };
@@ -163,8 +166,7 @@ export default function PendaftaranAnggota() {
         <footer className="z-10 w-full max-w-4xl pb-2">
           <div className="flex flex-col items-center gap-3 border-t border-gray-200 pt-5 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="order-2 text-[11px] leading-relaxed text-gray-500 sm:order-1">
-              © {new Date().getFullYear()} Komunitas Catur Indonesia · Blunder Skuad.
-              Pendaftaran diproses oleh pengurus klub.
+              {t("pendaftaran.hakCipta", { tahun: new Date().getFullYear() })}
             </p>
             <nav className="order-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] font-medium text-gray-600 sm:order-2">
               <a
@@ -173,7 +175,7 @@ export default function PendaftaranAnggota() {
                 rel="noopener noreferrer"
                 className="hover:text-[#0B2F9F] hover:underline"
               >
-                Klub Chess.com
+                {t("pendaftaran.tautanKlub")}
               </a>
               <Link to="/bantuan" className="hover:text-[#0B2F9F] hover:underline">
                 {t("bantuan.judul")}
