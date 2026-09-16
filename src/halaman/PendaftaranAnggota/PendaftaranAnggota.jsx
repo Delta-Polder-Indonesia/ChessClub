@@ -51,7 +51,7 @@ export default function PendaftaranAnggota() {
         setForm((f) => ({ ...f, username: data.username }));
         setStatusVerifikasi("success");
       } else if (data.sebab) {
-        setPesan(`Verifikasi Chess.com gagal: ${data.sebab}`);
+        setPesan(t("verifikasi.oauthGagal", { sebab: data.sebab }));
         setStatus("gagal");
         setStatusVerifikasi("error");
       }

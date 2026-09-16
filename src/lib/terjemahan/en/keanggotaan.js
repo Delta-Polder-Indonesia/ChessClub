@@ -154,6 +154,16 @@ export const verifikasi = {
       "The code you entered does not match. Copy the code above, then paste it back.",
     galatMemeriksa: "Failed to check the Chess.com profile.",
     galatUmum: "Verification failed. Try again.",
+
+    profilUsernameKosong: "Username is still empty.",
+    profilUsernameSah:
+      "Username may only contain letters, numbers, hyphens, or underscores (3–30 characters).",
+    profilTidakDitemukan: "Username \"{username}\" was not found on Chess.com.",
+    profilDitolak: "Chess.com rejected the request (code {kode}). Try again shortly.",
+    profilTimeout: "The connection to Chess.com timed out. Check your network, then try again.",
+    profilJaringan: "Chess.com cannot be reached from this device.",
+    profilGagalMuat: "The profile could not be loaded.",
+    oauthGagal: "Chess.com verification failed: {sebab}",
   }
 
 export const pendaftaran = {
@@ -298,4 +308,9 @@ export const pendaftaran = {
     hakCipta:
       "© {tahun} Indonesia Chess Community · Blunder Skuad. Registrations are processed by the club committee.",
     tautanKlub: "Chess.com Club",
+
+    spinnerMemproses: "Processing...",
+    spinnerBerhasil: "Success",
+    spinnerGagal: "Failed",
+    spinnerStatus: "Status",
   }

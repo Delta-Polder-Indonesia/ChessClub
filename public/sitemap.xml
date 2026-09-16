@@ -131,6 +131,21 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%bantuan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%privasi</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%ketentuan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%hubungi-kami</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>

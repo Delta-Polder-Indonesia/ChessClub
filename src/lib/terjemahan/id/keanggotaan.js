@@ -155,6 +155,16 @@ export const verifikasi = {
       "Kode yang Anda masukkan tidak cocok. Salin kode di atas, lalu tempel kembali.",
     galatMemeriksa: "Gagal memeriksa profil Chess.com.",
     galatUmum: "Verifikasi gagal. Coba lagi.",
+
+    profilUsernameKosong: "Username masih kosong.",
+    profilUsernameSah:
+      "Username hanya boleh berisi huruf, angka, tanda hubung, atau garis bawah (3–30 karakter).",
+    profilTidakDitemukan: "Username \"{username}\" tidak ditemukan di Chess.com.",
+    profilDitolak: "Chess.com menolak permintaan (kode {kode}). Coba beberapa saat lagi.",
+    profilTimeout: "Waktu koneksi ke Chess.com habis. Periksa jaringan Anda lalu coba lagi.",
+    profilJaringan: "Tidak dapat menghubungi Chess.com dari perangkat ini.",
+    profilGagalMuat: "Profil tidak dapat dimuat.",
+    oauthGagal: "Verifikasi Chess.com gagal: {sebab}",
   }
 
 export const pendaftaran = {
@@ -298,4 +308,9 @@ export const pendaftaran = {
     hakCipta:
       "© {tahun} Komunitas Catur Indonesia · Blunder Skuad. Pendaftaran diproses oleh pengurus klub.",
     tautanKlub: "Klub Chess.com",
+
+    spinnerMemproses: "Memproses...",
+    spinnerBerhasil: "Berhasil",
+    spinnerGagal: "Gagal",
+    spinnerStatus: "Status",
   }

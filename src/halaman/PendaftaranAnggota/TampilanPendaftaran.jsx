@@ -74,7 +74,7 @@ export default function TampilanPendaftaran({
   validasiLokal,
   children,
 }) {
-  const { t } = useI18n();
+  const { t, bahasa } = useI18n();
   const [step, setStep] = useState(verifikasi ? "success" : "akun");
 
   /* Satu isian per langkah pada bagian Data Diri (1 → 2 → 3 → 4). */
@@ -367,7 +367,7 @@ export default function TampilanPendaftaran({
                           {benderaNegara(kartuPemain.negara) && (
                             <span className="ml-1">{benderaNegara(kartuPemain.negara)}</span>
                           )}{" "}
-                          · {formatAngka(kartuPemain.followers)} {t("pendaftaran.pengikut")}
+                          · {formatAngka(kartuPemain.followers, bahasa)} {t("pendaftaran.pengikut")}
                         </span>
                       </span>
                       <a

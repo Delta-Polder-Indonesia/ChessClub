@@ -111,7 +111,7 @@ export default function VerifikasiAkun({
     setPesan("");
 
     try {
-      const profil = await ambilProfilChessCom(bersih, { segar: true });
+      const profil = await ambilProfilChessCom(bersih, { segar: true, t });
       const sumber = cariKodeDiProfil(profil, kode);
 
       if (sumber) {

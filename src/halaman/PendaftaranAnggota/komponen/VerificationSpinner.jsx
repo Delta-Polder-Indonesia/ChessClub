@@ -1,3 +1,4 @@
+import { useI18n } from "../../../lib/i18n.jsx";
 import { cn } from "../../../lib/utils";
 
 /**
@@ -8,22 +9,18 @@ const TAMPILAN = {
   idle: {
     lingkar: "#d1d5db",
     isi: "#9ca3af",
-    teks: "",
   },
   loading: {
     lingkar: "#0B2F9F",
     isi: "#0B2F9F",
-    teks: "Memproses...",
   },
   success: {
     lingkar: "#059669",
     isi: "#059669",
-    teks: "Berhasil",
   },
   error: {
     lingkar: "#dc2626",
     isi: "#dc2626",
-    teks: "Gagal",
   },
 };
 
@@ -36,13 +33,22 @@ export default function VerificationSpinner({
   idleText,
   className,
 }) {
+  const { t } = useI18n();
+  /* Teks bawaan per status — hanya terpakai bila prop teks tidak diberikan. */
+  const teksBawaan = {
+    idle: "",
+    loading: t("pendaftaran.spinnerMemproses"),
+    success: t("pendaftaran.spinnerBerhasil"),
+    error: t("pendaftaran.spinnerGagal"),
+  };
   const tampil = TAMPILAN[status] || TAMPILAN.idle;
   const teks =
     (status === "loading" && loadingText) ||
     (status === "success" && successText) ||
     (status === "error" && errorText) ||
     (status === "idle" && idleText) ||
-    tampil.teks;
+    teksBawaan[status] ||
+    "";
 
   return (
     <div className={cn("flex flex-col items-center gap-3", className)}>
@@ -52,7 +58,7 @@ export default function VerificationSpinner({
         viewBox="0 0 100 100"
         role="status"
         aria-live="polite"
-        aria-label={teks || "Status"}
+        aria-label={teks || t("pendaftaran.spinnerStatus")}
       >
         {/* lintasan latar */}
         <circle
