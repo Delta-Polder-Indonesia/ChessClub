@@ -8,6 +8,12 @@
     "api/[...jalur].js": { "includeFiles": "data/*.json", "maxDuration": 60 },
     "api/ebook-preview.js": { "maxDuration": 60 }
   },
+  "crons": [
+    {
+      "path": "/api/verifikasi/pindai-jadwal",
+      "schedule": "17 4 * * *"
+    }
+  ],
   "rewrites": [
     { "source": "/api/((?!ebook-preview).*)", "destination": "/api/[...jalur]" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }

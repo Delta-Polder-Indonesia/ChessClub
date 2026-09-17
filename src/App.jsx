@@ -47,6 +47,7 @@ const DetailPengumuman = () => <DetailKonten jenis="pengumuman" />;
 // Keberlanjutan & keanggotaan
 const Keberlanjutan = lazy(() => import("./halaman/Keberlanjutan/Keberlanjutan.jsx"));
 const PendaftaranAnggota = lazy(() => import("./halaman/PendaftaranAnggota/PendaftaranAnggota.jsx"));
+const LengkapiVerifikasi = lazy(() => import("./halaman/LengkapiVerifikasi/LengkapiVerifikasi.jsx"));
 const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanKetentuan.jsx"));
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
@@ -139,6 +140,8 @@ const RUTE_HALAMAN = [
 
   // Keanggotaan hanya dirender sebagai tab di Struktur Grup Catur.
   ["/pendaftaran-anggota", PendaftaranAnggota],
+  // Jalur anggota yang SUDAH terdaftar untuk melengkapi verifikasi.
+  ["/lengkapi-verifikasi", LengkapiVerifikasi],
 
   ["/keberlanjutan", Keberlanjutan],
   ["/keberlanjutan/syarat-dan-ketentuan", SyaratDanKetentuan],

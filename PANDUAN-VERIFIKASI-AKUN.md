@@ -190,26 +190,31 @@ Diatur lewat `KCI_WAJIB_VERIFIKASI`:
 
 | Mode | Perilaku | Kapan dipakai |
 | ---- | -------- | ------------- |
-| `off` | Verifikasi dinonaktifkan | Bila ingin kembali ke perilaku lama |
-| `opsional` *(bawaan)* | Boleh mendaftar tanpa verifikasi; yang terverifikasi ditandai | Masa transisi |
-| `wajib` | Pendaftaran **ditolak** tanpa tiket sah | Turnamen berhadiah |
+| `off` | Verifikasi dinonaktifkan; tiket tidak dinilai sama sekali | Hanya bila ditulis eksplisit (uji/dev, atau kembali ke perilaku lama) |
+| `opsional` | Boleh mendaftar tanpa verifikasi; yang terverifikasi ditandai | Masa transisi, hanya bila ditulis eksplisit |
+| `wajib` *(bawaan)* | Pendaftaran **ditolak** tanpa tiket sah | Produksi |
 
 Yang berlaku sejak perbaikan ini:
 
+- **Bawaan `wajib` dan fail-closed.** Env yang kosong, tidak disetel, atau
+  bernilai tak dikenal jatuh ke `wajib` + peringatan di log. Arah gagalnya ke
+  sisi ketat: deployment yang lupa env tidak mungkin diam-diam membuka
+  pendaftaran tanpa bukti kepemilikan akun.
 - Nilai dinormalisasi (trim + huruf kecil) dan alias umum (`on`, `1`,
   `required`, …) dipetakan ke tiga nilai di atas. Nilai tak dikenal **tidak**
-  dipakai apa adanya: server kembali ke `opsional` dan memberi peringatan di
-  log, sehingga salah ketik (`Wajib`, `wajibd`) tidak diam-diam melumpuhkan
+  dipakai apa adanya: server kembali ke `wajib` dan memberi peringatan di
+  log, sehingga salah ketik (`Wajibb`, `optionall`) tidak melumpuhkan
   kewajiban verifikasi.
-- Bawaan **tidak diubah** (`opsional`). Memindahkan ke `wajib` adalah
-  keputusan pengelola; lakukan setelah anggota lama terverifikasi semua.
+- Melonggarkan ke `opsional` atau `off` adalah keputusan pengelola yang harus
+  ditulis **eksplisit** di env. Tidak ada jalan lain untuk mencapai keduanya.
 - `GET /api/auth/cara` melaporkan `mode`, `wajib`, `oauth`, `kodeProfil`,
   dan `tiketBerlakuDetik`. UI membaca endpoint ini — tidak menyimpulkan
   sendiri — jadi label "wajib" di layar dan aturan di backend tidak bisa
   berbeda.
-- Di mode `opsional`, UI menampilkan catatan bahwa verifikasi belum diwajibkan
-  dan menawarkan "Lewati verifikasi untuk sekarang"; pendaftar tanpa tiket
-  dicatat `terverifikasi: false` dan tidak pernah diberi label terverifikasi.
+- Di mode `opsional`, pendaftar tanpa tiket dicatat `terverifikasi: false`
+  dan tidak pernah diberi label terverifikasi. Jalur ini dipakai harness uji
+  (`server/uji/alat-uji.mjs` mematok `KCI_WAJIB_VERIFIKASI=opsional`) agar
+  suite lama tidak berubah makna.
 - Tiket yang **dikirim tapi tidak sah** selalu ditolak, juga di mode
   `opsional`. Alasannya: pendaftar yang mengirim tiket yakin sudah terverifikasi;
   mendiamkannya berarti mendaftar dengan status yang menyesatkan.
@@ -250,6 +255,9 @@ dibaca sebagai keputusan keamanan (validasi membaca allow-list field saja).
 | POST | `/api/auth/pengajuan-manual` | `{username, catatan}` → `202 {status:"menunggu"}`; TIDAK ada tiket |
 | GET | `/api/auth/tiket/:nilai` | Pratinjau tiket (pakai/umur) tanpa memakainya |
 | POST | `/api/anggota` | Pendaftaran; wajib CSRF; tiket diverifikasi di dalam antrean tulis |
+| POST | `/api/anggota/verifikasi-diri` | `{username, tiketVerifikasi}` → anggota yang SUDAH terdaftar melengkapi bukti; wajib CSRF; tiket tidak dikembalikan |
+| GET | `/api/verifikasi/pindai-jadwal` | Pemindaian terjadwal (Vercel Cron); butuh `Authorization: Bearer <KCI_CRON_SECRET>` |
+| POST | `/api/pengurus/pindai` | "Pindai sekarang" dari dasbor: satu batch, melanjutkan kursor (kredensial pengurus) |
 | GET | `/api/pengurus/pengajuan-verifikasi` | Antrean pengajuan (kredensial pengurus) |
 | POST | `/api/pengurus/pengajuan-verifikasi/:id/setujui` | Setujui → status anggota ditulis; TIDAK ada tiket di respons (`anggotaDiperbarui:false` + `petunjuk` bila formulir belum masuk) |
 | POST | `/api/pengurus/pengajuan-verifikasi/:id/tolak` | Tolak dengan alasan |
@@ -365,3 +373,137 @@ Validasi keamanan selalu selesai **sebelum** apa pun ditulis:
 Konsekuensi yang diterima sadar: tiket dipakai di langkah 6 dan **tidak**
 dikembalikan bila langkah 7 gagal — pendaftar diminta mengulang verifikasi,
 sementara isian formulirnya tetap ada di layar.
+---
+
+## 9. Deteksi ban fair play otomatis
+
+Keluhan yang mendorong bagian ini: *"banyak anggota memakai engine, jadi datanya
+tidak terlacak kalau dia kena banned."* Verifikasi di depan saja tidak cukup —
+akun yang hari ini bersih bisa kena ban tahun depan, dan tanpa pemindaian
+berkala tidak ada yang tahu.
+
+### Apa yang dipindai
+
+Sumber pemindaian adalah **gabungan** roster klub Chess.com dan anggota yang
+tercatat di situs (`data/anggota.json`). Sebelumnya hanya roster yang dipindai,
+sehingga dua kelompok lolos dari pemeriksaan:
+
+- anggota yang keluar atau dikeluarkan dari klub Chess.com;
+- anggota yang dulu mendaftar tanpa bukti kepemilikan akun.
+
+Justru mereka yang paling mungkin memakai engine, dan ban pada akun semacam itu
+tidak akan pernah terlihat bila hanya roster yang diperiksa.
+
+### Apa akibatnya bagi data anggota
+
+| Temuan | Tindakan |
+| ------ | -------- |
+| `closed:fair_play_violations` | Masuk daftar larangan (`sumber:"otomatis"`) **dan** `terverifikasi:false` + `perluVerifikasiUlang:true` + `alasanStatus` + `diperiksaPada`, plus jejak audit `verifikasi-dicabut` |
+| `closed` (akun ditutup) | `terverifikasi:false` + penanda yang sama. TIDAK masuk daftar larangan |
+| Profil 404 (akun hilang) | `terverifikasi:false` + penanda yang sama. TIDAK masuk daftar larangan |
+| Tidak muncul di roster klub | `perluVerifikasiUlang:true` SAJA — verifikasi **tidak** dicabut |
+| Jaringan gagal / timeout / 5xx | TIDAK mengubah data apa pun; dihitung di `gagal` |
+
+Dua pagar pengaman yang disengaja:
+
+- **Roster klub bisa tertinggal hingga 12 jam** (batasan resmi endpoint
+  Chess.com). Karena itu "tidak ada di roster" bukan bukti yang cukup untuk
+  mencabut verifikasi anggota sah — hanya ditandai agar pengurus memeriksa.
+  Bila endpoint roster gagal dibaca, penandaan ini dilewati seluruhnya, supaya
+  satu gangguan tidak menandai semua anggota sekaligus.
+- **Chess.com yang sedang down tidak boleh mengubah data kami.** Kegagalan
+  permintaan selalu masuk `gagal` dan tidak pernah dianggap "akun hilang".
+  Hanya 404 definitif (permintaan berhasil, akun memang tidak ada) yang
+  mencabut verifikasi.
+
+Pencabutan bersifat satu arah: pemindaian tidak pernah memulihkan
+`terverifikasi:true`. Pemulihan hanya lewat bukti baru (bagian 10) atau
+tindakan pengurus.
+
+### Kapan pemindaian berjalan
+
+1. **Terjadwal** — `vercel.json` `crons` memanggil
+   `GET /api/verifikasi/pindai-jadwal` sekali sehari pada 04:17 UTC. Tanpa
+   cron, pemindaian hanya terjadi saat ada pengurus membuka dasbor; di
+   serverless tanpa trafik itu bisa berarti tidak pernah.
+2. **Manual** — tombol "Pindai sekarang" di dasbor pengurus
+   (`POST /api/pengurus/pindai`).
+
+Setiap pemanggilan memproses akun per batch (maks. 40) dan menyimpan kursor di
+`terakhir-pindai.json`, karena satu permintaan profil per anggota dengan batas
+waktu fungsi 60 detik tidak muat untuk roster besar. Pemanggilan terjadwal
+melanjutkan batch beruntun sampai roster tuntas atau anggaran waktu 45 detik
+habis, jadi sekali sehari tetap menutup seluruh roster. Tombol manual
+menjalankan satu batch lalu mengembalikan kursor, sehingga menekan berulang
+kali benar-benar menyusuri daftar — bukan mengulang 40 akun pertama.
+
+### Jadwal cron dan paket Vercel
+
+Jadwalnya **sekali sehari dengan sengaja**. Paket Vercel Hobby menolak
+deployment yang cronnya berjalan lebih dari sekali sehari (galat saat deploy:
+*"Hobby accounts are limited to daily Cron Jobs"*), jadi `17 */6 * * *` akan
+mematahkan deployment. Bila proyek sudah di paket Pro, jadwal boleh diperketat
+ke `17 */6 * * *` tanpa perubahan kode; throttle internal 6 jam sudah
+menyesuaikan.
+
+Endpoint cron menolak jalan bila `KCI_CRON_SECRET` kosong (503 + peringatan
+log). Ini gagal aman yang disengaja: endpoint memicu permintaan keluar ke
+Chess.com dan mengubah data anggota, jadi tidak boleh terbuka tanpa kunci.
+Perbandingannya konstan-time (`samaAman()`: hash SHA-256 lalu
+`timingSafeEqual`), dan rahasia cron tidak diterima sebagai token pengurus.
+
+---
+
+## 10. Verifikasi mandiri untuk anggota lama
+
+Pendaftaran menolak username yang sudah ada (`409`). Artinya anggota yang
+terlanjur `terverifikasi:false` tidak bisa mengulang dari formulir, dan setelah
+mode `wajib` menjadi bawaan mereka akan terkunci di luar kegiatan komunitas.
+Karena itu ada jalur tersendiri:
+
+- Halaman **`/lengkapi-verifikasi`** (tautannya juga tersedia di langkah
+  username halaman pendaftaran).
+- Endpoint **`POST /api/anggota/verifikasi-diri`** dengan
+  `{username, tiketVerifikasi}`.
+
+### Otorisasi
+
+Situs ini **tidak punya sesi/login anggota** — login hanya untuk pengurus.
+Jadi yang menjadi bukti identitas adalah tiket itu sendiri: HMAC ditandatangani
+server, terikat ke satu username, berumur pendek, dan sekali pakai. Mengetahui
+username orang lain tidak cukup; penyerang tetap harus membuktikan kepemilikan
+akun Chess.com itu lewat OAuth atau kode di profil. Ini bukti yang sama persis
+dengan yang diterima `POST /api/anggota`.
+
+### Yang ditolak
+
+Endpoint ini tidak boleh bisa dipakai memulihkan akun bermasalah:
+
+- akun ada di daftar larangan (dicocokkan lewat username **dan** hash
+  identitas) → `403` `diblokir:true`;
+- profil Chess.com-nya kena ban fair play atau ditutup → `403` `diblokir:true`,
+  dan ban fair play langsung dicatat ulang ke daftar larangan;
+- tiket untuk username lain → `403` `kodeVerifikasi:"username-beda"`;
+- profil Chess.com menjawab username yang berbeda → `409`;
+- username bukan anggota terdaftar → `404` (endpoint ini melengkapi, bukan
+  membuat anggota);
+- `KCI_PEPPER` tidak cocok dengan entri daftar larangan → `503`, lebih baik
+  menolak daripada meloloskan pemain yang seharusnya dilarang.
+
+Tiket dipakai **di dalam antrean tulis** bersama penulisan status, jadi dua
+klik beruntun tidak menghabiskan tiket yang sama lalu gagal menyimpan. Tiket
+tidak pernah dikembalikan ke klien dan tidak disimpan di state browser setelah
+dipakai.
+
+### Gerbang kegiatan
+
+Anggota dengan `terverifikasi:false` ditolak saat mendaftar turnamen
+(`403` `perluVerifikasi:true`) dengan pesan mengarahkan melengkapi verifikasi.
+Pengecualian per-even bisa dibuka pengurus lewat field
+`izinkanBelumTerverifikasi`. Pengecualian itu **tidak** meloloskan akun yang
+kena ban fair play atau ada di daftar larangan — pemeriksaan larangan tetap
+berjalan lebih dulu.
+
+Jalur pengurus menambahkan peserta langsung (`daftarkanPeserta`) sengaja tidak
+digerbangi, agar data tetap bisa diperbaiki manual — misalnya saat Chess.com
+sedang down dan verifikasi mandiri menjawab `502`.

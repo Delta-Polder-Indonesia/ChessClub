@@ -33,6 +33,7 @@ import {
   keanggotaan,
   verifikasi,
   pendaftaran,
+  lengkapiVerifikasi,
 } from "./keanggotaan.js";
 
 import {
@@ -127,6 +128,7 @@ export const EN = {
   keanggotaan,
   verifikasi,
   pendaftaran,
+  lengkapiVerifikasi,
   syarat,
   kodeEtik,
   pertanyaan,

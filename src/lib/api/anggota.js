@@ -255,6 +255,29 @@ export async function daftarDenganChessCom(data) {
   });
 }
 
+/**
+ * Lengkapi verifikasi untuk anggota yang SUDAH terdaftar.
+ *
+ * Pendaftaran menolak username yang sudah ada, jadi anggota lama yang
+ * `terverifikasi:false` memakai jalur ini. `tiketVerifikasi` adalah tiket
+ * sekali pakai yang DITERBITKAN SERVER setelah kepemilikan akun terbukti;
+ * browser tidak pernah menentukan status verifikasinya sendiri.
+ *
+ * @param {string} username
+ * @param {string} tiketVerifikasi
+ * @param {{sinyal?: AbortSignal}} [opsi]
+ */
+export async function lengkapiVerifikasiAnggota(username, tiketVerifikasi, { sinyal } = {}) {
+  return kirimDenganCsrf(
+    "/api/anggota/verifikasi-diri",
+    { username, tiketVerifikasi },
+    {
+      pesanCadangan: "Verifikasi gagal disimpan. Ulangi verifikasi akun Anda.",
+      sinyal,
+    }
+  );
+}
+
 /* Catatan: pemindaian fair play (POST /api/pengurus/pindai) membutuhkan
  * header token admin; satu-satunya jalur yang benar adalah apiPengurus()
  * dari panel Anggota — jangan mengatur permintaan mentah di sini. */

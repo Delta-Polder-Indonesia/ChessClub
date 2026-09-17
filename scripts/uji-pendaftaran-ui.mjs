@@ -940,6 +940,16 @@ console.log("\nPendaftaranAnggota — tiket kedaluwarsa & isian tidak hilang");
   await tunggu(500);
   await flush();
 
+  // Mode `wajib`: tidak ada jalan pintas sama sekali di langkah verifikasi.
+  cek(
+    "mode wajib: tidak ada centang 'lanjut tanpa verifikasi'",
+    isian("pahamTanpaVerifikasi") === null
+  );
+  cek(
+    "mode wajib: tidak ada tombol lanjut tanpa verifikasi",
+    tombol("Lanjutkan tanpa verifikasi") === null
+  );
+
   // Verifikasi berhasil di server -> tiket dipegang halaman.
   await klik(tombol("Periksa Kode"));
   await tunggu(150);
@@ -1051,8 +1061,36 @@ console.log("\nPendaftaranAnggota — timer toast & pergantian bahasa");
   await tunggu(400);
   await flush();
 
-  // Lewati verifikasi (mode opsional) -> langkah data diri.
-  await klik(tombol("Lewati verifikasi untuk sekarang"));
+  // Mode `opsional`: lanjut tanpa verifikasi menuntut pengakuan eksplisit.
+  // Tombol tidak boleh bisa diklik sebelum centangnya dipasang.
+  const tombolLanjut = tombol("Lanjutkan tanpa verifikasi");
+  cek(
+    "opsional: tombol lanjut tanpa verifikasi ada",
+    Boolean(tombolLanjut)
+  );
+  cek(
+    "opsional: tombol lanjut NONAKTIF sebelum pengakuan dicentang",
+    tombolLanjut?.disabled === true
+  );
+  await klik(tombolLanjut);
+  cek(
+    "opsional: klik tanpa centang tidak memajukan langkah",
+    isian("namaLengkap") === null
+  );
+
+  const paham = isian("pahamTanpaVerifikasi");
+  cek("opsional: centang pengakuan tersedia", Boolean(paham));
+  if (paham) {
+    await act(async () => {
+      paham.click();
+    });
+    await flush();
+  }
+  cek(
+    "opsional: tombol lanjut aktif setelah pengakuan dicentang",
+    tombol("Lanjutkan tanpa verifikasi")?.disabled === false
+  );
+  await klik(tombol("Lanjutkan tanpa verifikasi"));
   await flush();
 
   const langkah = async (nama, nilai, tombolBerikutnya = "Berikutnya") => {

@@ -1,5 +1,6 @@
 import { CircleUser, ExternalLink, Info, Loader2, TriangleAlert } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { useProfilPemain, formatAngka, benderaNegara } from "./komponen/pemainCatur.js";
 import { URL_KLUB } from "./komponen/pendaftaran.js";
@@ -68,6 +69,67 @@ const HARI_INI = new Date().toISOString().slice(0, 10);
  *   "kedaluwarsa"-> tiket tidak berlaku lagi (kedaluwarsa/terpakai/username
  *                   berbeda) — pengguna harus memverifikasi ulang.
  */
+/**
+ * Pengakuan eksplisit untuk melanjutkan TANPA verifikasi (mode `opsional`).
+ *
+ * Menggantikan tombol "lewati" yang dulu bisa diklik sekali tanpa membaca apa
+ * pun. Melanjutkan sekarang menuntut centang lebih dulu: pendaftar menyatakan
+ * paham bahwa akunnya akan tercatat BELUM terverifikasi. Ini murni keputusan
+ * UI — status `terverifikasi` tetap hanya ditulis server dari bukti yang sah,
+ * dan di mode `wajib` komponen ini tidak pernah dirender.
+ */
+function LanjutTanpaVerifikasi({ onLanjut, varian = "tautan" }) {
+  const { t } = useI18n();
+  const [paham, setPaham] = useState(false);
+  const lanjut = () => {
+    if (paham) onLanjut();
+  };
+
+  if (varian === "tombol") {
+    return (
+      <div className="flex flex-col items-end gap-2">
+        <label className="flex max-w-sm cursor-pointer items-start gap-2 text-left text-[11px] leading-relaxed text-gray-600">
+          <input
+            type="checkbox"
+            name="pahamTanpaVerifikasi"
+            checked={paham}
+            onChange={(e) => setPaham(e.target.checked)}
+            className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#0B2F9F]"
+          />
+          <span>{t("pendaftaran.verifPahamTanpaVerifikasi")}</span>
+        </label>
+        <Button onClick={lanjut} disabled={!paham}>
+          {t("pendaftaran.lanjutkanTanpaVerifikasi")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2 text-[11px] leading-relaxed text-gray-500">
+      <p>{t("pendaftaran.verifOpsionalCatatan")}</p>
+      <label className="flex cursor-pointer items-start gap-2 text-left text-gray-700">
+        <input
+          type="checkbox"
+          name="pahamTanpaVerifikasi"
+          checked={paham}
+          onChange={(e) => setPaham(e.target.checked)}
+          className="mt-0.5 h-3.5 w-3.5 shrink-0 accent-[#0B2F9F]"
+        />
+        <span>{t("pendaftaran.verifPahamTanpaVerifikasi")}</span>
+      </label>
+      <button
+        type="button"
+        onClick={lanjut}
+        disabled={!paham}
+        className="font-semibold text-blue-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+      >
+        {t("pendaftaran.verifLanjutSetelahPaham")}
+      </button>
+    </div>
+  );
+}
+
 export default function TampilanPendaftaran({
   form,
   status,
@@ -442,7 +504,16 @@ export default function TampilanPendaftaran({
                     </button>
                   </p>
 
-                  <div className="flex items-center justify-end pt-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-6">
+                    {/* Anggota lama yang belum terverifikasi tidak bisa mengulang
+                        pendaftaran (username sudah ada -> 409). Beri jalan keluar
+                        yang terlihat, bukan halaman tersembunyi. */}
+                    <Link
+                      to="/lengkapi-verifikasi"
+                      className="text-xs font-semibold text-blue-600 hover:underline"
+                    >
+                      {t("pendaftaran.sudahTerdaftarLengkapi")}
+                    </Link>
                     <Button type="submit">
                       {t("pendaftaran.berikutnya")}
                     </Button>
@@ -523,18 +594,11 @@ export default function TampilanPendaftaran({
                   />
 
                   {/* Mode `opsional`/`off`: verifikasi boleh dilewati, tetapi
-                      tanpa tiket pendaftaran TIDAK akan berstatus terverifikasi. */}
+                      tanpa tiket pendaftaran TIDAK akan berstatus terverifikasi.
+                      Melewati menuntut pengakuan eksplisit (centang) lebih dulu,
+                      bukan satu klik yang bisa tidak terbaca. */}
                   {!verifikasi && !cara?.wajib && (
-                    <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] leading-relaxed text-gray-500">
-                      <span>{t("pendaftaran.verifOpsionalCatatan")}</span>
-                      <button
-                        type="button"
-                        onClick={() => setStep("data-diri")}
-                        className="font-semibold text-blue-600 hover:underline"
-                      >
-                        {t("pendaftaran.lewatiVerifikasi")}
-                      </button>
-                    </p>
+                    <LanjutTanpaVerifikasi onLanjut={() => setStep("data-diri")} />
                   )}
                 </div>
               </div>
@@ -609,9 +673,10 @@ export default function TampilanPendaftaran({
                   {t("pendaftaran.kembali")}
                 </Button>
                 {!cara?.wajib && (
-                  <Button onClick={() => setStep("data-diri")}>
-                    {t("pendaftaran.lanjutkanTanpaVerifikasi")}
-                  </Button>
+                  <LanjutTanpaVerifikasi
+                    varian="tombol"
+                    onLanjut={() => setStep("data-diri")}
+                  />
                 )}
               </div>
             </div>

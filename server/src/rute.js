@@ -13,6 +13,7 @@ import {
   buatCsrfToken,
   terbitkanJwt,
   cocokkanPassword,
+  samaAman,
 } from "./http.js";
 import {
   oauthAktif,
@@ -63,12 +64,15 @@ import {
   daftarkan,
   blokirAnggota,
   bukaBlokir,
-  pindaiFairPlay,
+  pindaiFairPlayLanjut,
   pindaiFairPlayOtomatis,
+  pindaiFairPlayTerjadwal,
+  statusPindaiTerakhir,
   cekNomor,
   kontakAnggota,
   ringkasan,
   tandaiAnggotaTerverifikasi,
+  verifikasiMandiri,
 } from "./keanggotaan.js";
 import {
   berita,
@@ -131,21 +135,85 @@ const CACHE_ANGGOTA = "public, max-age=300, stale-while-revalidate=86400";
 const CACHE_ANGGOTA_USANG = "public, max-age=0, stale-while-revalidate=86400";
 
 export function daftarkanRute(router, { mulaiPada }) {
+  /**
+   * Peringatan operasional yang bisa dibaca manusia maupun monitor eksternal.
+   *
+   * Tujuannya menutup celah "deployment terlihat sehat padahal longgar":
+   * sebelum ini, server yang lupa menyetel KCI_WAJIB_VERIFIKASI atau yang
+   * menyimpan data di /tmp tetap menjawab `status: "sehat"` dan tidak ada satu
+   * pun layar yang mengatakan ada yang salah. Sekarang kondisi itu disebut
+   * eksplisit di `/api/kesehatan` dan di dasbor pengurus.
+   *
+   * `kode` adalah kunci stabil untuk mesin; `pesan` untuk manusia. Tidak ada
+   * nilai rahasia (token, pepper, password) yang ikut dikirim.
+   */
+  async function peringatanOperasional({ pengajuanMenunggu = 0, supabase = null } = {}) {
+    const daftar = [];
+    const infoSupabase = supabase || (await kesehatanSupabase());
+    const mode = konfigurasi.wajibVerifikasi;
+
+    if (konfigurasi.produksi && mode !== "wajib") {
+      daftar.push({
+        kode: "verifikasi-tidak-wajib",
+        tingkat: "kritis",
+        pesan:
+          `Produksi berjalan dengan KCI_WAJIB_VERIFIKASI="${mode}". ` +
+          "Pendaftaran dapat masuk tanpa bukti kepemilikan akun Chess.com.",
+      });
+    }
+    if (konfigurasi.produksi && !oauthAktif()) {
+      daftar.push({
+        kode: "oauth-nonaktif",
+        tingkat: "peringatan",
+        pesan:
+          "OAuth Chess.com tidak aktif di produksi (KCI_CHESS_CLIENT_ID / " +
+          "KCI_CHESS_REDIRECT_URI kosong). Hanya jalur kode profil yang tersedia.",
+      });
+    }
+    if (!infoSupabase.siap) {
+      daftar.push({
+        kode: "penyimpanan-sementara",
+        tingkat: "kritis",
+        pesan:
+          "Supabase tidak siap — data ditulis ke penyimpanan sementara /tmp dan " +
+          "HILANG saat cold start atau redeploy.",
+      });
+    }
+    if (pengajuanMenunggu > 0) {
+      daftar.push({
+        kode: "pengajuan-menunggu",
+        tingkat: "info",
+        pesan:
+          `${pengajuanMenunggu} pengajuan verifikasi menunggu pemeriksaan pengurus.`,
+      });
+    }
+    return daftar;
+  }
+
   /* ------------------------------------------------------------ rute publik */
 
-  router.get("/api/kesehatan", async () => ({
-    status: 200,
-    isi: {
-      status: "sehat",
-      lingkungan: konfigurasi.lingkungan,
-      hidupDetik: Math.round((Date.now() - mulaiPada) / 1000),
-      waktu: new Date().toISOString(),
-      versiApi: VERSI_API_KANONIK,
-      // Status integrasi Supabase (terpasang & siap). Menunjukkan apakah data
-      // benar-benar akan TERSIMPAN di PostgreSQL atau masih jatuh ke /tmp.
-      supabase: await kesehatanSupabase(),
-    },
-  }));
+  router.get("/api/kesehatan", async () => {
+    // Status integrasi Supabase (terpasang & siap). Menunjukkan apakah data
+    // benar-benar akan TERSIMPAN di PostgreSQL atau masih jatuh ke /tmp.
+    const supabase = await kesehatanSupabase();
+    return {
+      status: 200,
+      isi: {
+        status: "sehat",
+        lingkungan: konfigurasi.lingkungan,
+        hidupDetik: Math.round((Date.now() - mulaiPada) / 1000),
+        waktu: new Date().toISOString(),
+        versiApi: VERSI_API_KANONIK,
+        supabase,
+        verifikasi: {
+          mode: konfigurasi.wajibVerifikasi,
+          wajib: konfigurasi.wajibVerifikasi === "wajib",
+          oauthAktif: oauthAktif(),
+        },
+        peringatan: await peringatanOperasional({ supabase }),
+      },
+    };
+  });
 
   /** CSRF token untuk request POST. */
   router.get(
@@ -194,6 +262,31 @@ export function daftarkanRute(router, { mulaiPada }) {
       const bodi = await bacaBodi(req);
       const anggota = await daftarkan(bodi, konteks);
       return { status: 201, isi: anggota };
+    },
+    { batas: konfigurasi.batas.maksDaftar }
+  );
+
+  /**
+   * Verifikasi mandiri untuk anggota yang SUDAH terdaftar.
+   * POST /api/anggota/verifikasi-diri { username, tiketVerifikasi }
+   *
+   * Pendaftaran menolak username yang sudah ada (409), jadi tanpa endpoint ini
+   * anggota lama yang `terverifikasi:false` tidak punya jalan melengkapi bukti
+   * kepemilikan akun. Otorisasinya adalah tiket itu sendiri (HMAC, terikat
+   * username, sekali pakai) — lihat `verifikasiMandiri()` untuk penjaga
+   * daftar larangan dan status Chess.com yang mencegah endpoint ini dipakai
+   * memulihkan akun yang kena ban.
+   */
+  router.post(
+    "/api/anggota/verifikasi-diri",
+    async (req, _param, konteks) => {
+      const bodi = await bacaBodi(req);
+      const hasil = await verifikasiMandiri(
+        { username: bodi?.username, tiketVerifikasi: bodi?.tiketVerifikasi },
+        konteks
+      );
+      // Tiket tidak pernah dikembalikan ke klien.
+      return { status: 200, isi: hasil };
     },
     { batas: konfigurasi.batas.maksDaftar }
   );
@@ -525,6 +618,11 @@ export function daftarkanRute(router, { mulaiPada }) {
   async function isiDashboardPengurus(req) {
     pastikanAdmin(req);
     const admin = dapatkanAdminDariRequest(req);
+    // Pengajuan manual yang menunggu pemeriksaan — jalur manual tidak
+    // mengubah status terverifikasi sampai pengajuan ini selesai diperiksa.
+    const pengajuanMenunggu = await daftarPengajuanVerifikasi({ status: "menunggu" })
+      .then((d) => d.length)
+      .catch(() => 0);
     return {
       status: 200,
       isi: {
@@ -542,12 +640,13 @@ export function daftarkanRute(router, { mulaiPada }) {
           oauthAktif: oauthAktif(),
           ...statistikSesi(),
           ...(await statistikTantangan()),
-          // Pengajuan manual yang menunggu pemeriksaan — jalur manual tidak
-          // mengubah status terverifikasi sampai pengajuan ini selesai diperiksa.
-          pengajuanMenunggu: await daftarPengajuanVerifikasi({ status: "menunggu" })
-            .then((d) => d.length)
-            .catch(() => 0),
+          pengajuanMenunggu,
+          /* Kapan pemindaian ban fair play terakhir berjalan dan apakah
+             putarannya tuntas. Tanpa ini pengurus tidak bisa membedakan
+             "tidak ada yang kena ban" dari "pemindaian tidak pernah jalan". */
+          pindaiTerakhir: await statusPindaiTerakhir().catch(() => ({ pernah: false })),
         },
+        peringatan: await peringatanOperasional({ pengajuanMenunggu }).catch(() => []),
       },
     };
   }
@@ -794,9 +893,12 @@ export function daftarkanRute(router, { mulaiPada }) {
     return { status: 200, isi: { jumlah: anggota.length, diperbaruiPada: new Date().toISOString() } };
   });
 
+  /* "Pindai sekarang" dari dasbor. Menjalankan SATU batch dan melanjutkan
+     kursor yang tersimpan, jadi aman terhadap `maxDuration: 60` sekaligus
+     benar-benar menyusuri seluruh roster bila ditekan berulang kali. */
   router.post("/api/pengurus/pindai", async (req) => {
     pastikanAdmin(req);
-    return { status: 200, isi: await pindaiFairPlay() };
+    return { status: 200, isi: await pindaiFairPlayLanjut() };
   });
 
   router.get("/api/pengurus/pindai-otomatis", async (req) => {
@@ -807,6 +909,66 @@ export function daftarkanRute(router, { mulaiPada }) {
       isi: { dijalankan: Boolean(hasil), ...(hasil || {}) },
     };
   });
+
+  /**
+   * Pemindaian terjadwal (Vercel Cron -> `vercel.json` `crons`).
+   *
+   * Mengapa endpoint ini ada: tanpa cron, pemindaian ban fair play HANYA
+   * berjalan saat ada pengurus yang membuka dasbor. Di serverless tanpa trafik
+   * itu bisa berarti tidak pernah — akun yang memakai engine lalu kena ban
+   * tidak pernah terlacak. Cron membuatnya berjalan terjadwal apa pun yang
+   * terjadi di sisi pengguna.
+   *
+   * Jadwalnya sekali sehari (`17 4 * * *`), bukan tiap 6 jam: paket Vercel
+   * Hobby MENOLAK deployment dengan cron yang berjalan lebih dari sekali
+   * sehari. Supaya sekali sehari tetap cukup, `pindaiFairPlayTerjadwal()`
+   * menjalankan batch beruntun sampai roster tuntas atau anggaran waktu habis.
+   * Bila proyek sudah di paket Pro, jadwal boleh diperketat ke `17 *\/6 * * *`.
+   *
+   * Penjaga: header `Authorization: Bearer <KCI_CRON_SECRET>`, dibandingkan
+   * konstan-time lewat `samaAman()` (hash dulu, baru timingSafeEqual) supaya
+   * panjang dan isi rahasia tidak bocor lewat waktu respons. Vercel Cron
+   * mengirim GET; mewajibkan header Authorization juga berarti tautan biasa,
+   * prefetch browser, atau perayap tidak dapat memicu pemindaian.
+   *
+   * Bila `KCI_CRON_SECRET` kosong, endpoint menolak dengan 503 + peringatan
+   * log. Sengaja TIDAK "terbuka bila belum disetel": endpoint ini memicu
+   * permintaan keluar ke Chess.com dan mengubah data anggota.
+   */
+  router.get(
+    "/api/verifikasi/pindai-jadwal",
+    async (req) => {
+      const rahasiaDiharapkan = konfigurasi.cronSecret;
+      if (!rahasiaDiharapkan) {
+        console.warn(
+          "[kci] KCI_CRON_SECRET kosong — /api/verifikasi/pindai-jadwal menolak " +
+            "semua panggilan (503). Setel KCI_CRON_SECRET di Vercel dan samakan " +
+            "dengan CRON_SECRET agar pemindaian terjadwal bisa jalan."
+        );
+        return {
+          status: 503,
+          isi: {
+            pesan:
+              "Pemindaian terjadwal tidak aktif: KCI_CRON_SECRET belum disetel di server.",
+            dijalankan: false,
+          },
+        };
+      }
+
+      const header = String(req.headers?.authorization || "");
+      const diterima = /^Bearer\s+(.+)$/i.exec(header);
+      if (!diterima || !samaAman(diterima[1].trim(), rahasiaDiharapkan)) {
+        return {
+          status: 401,
+          isi: { pesan: "Tidak berwenang.", dijalankan: false },
+        };
+      }
+
+      const hasil = await pindaiFairPlayTerjadwal();
+      return { status: 200, isi: { ok: true, ...hasil } };
+    },
+    { batas: 12 }
+  );
 
   /* ------------------------------- pengajuan verifikasi manual (jalur pengurus)
    *

@@ -726,10 +726,15 @@ console.log("\nDaftar hitam & pencegahan akun kecil  (butuh api.chess.com)");
 console.log("\nPersetujuan peserta turnamen");
 {
   ipSaatIni = ipBaru();
+  /* Anggota di suite ini mendaftar pada mode `opsional` tanpa tiket, jadi
+     mereka tercatat belum terverifikasi. Gerbang verifikasi turnamen diuji
+     tersendiri di uji-verifikasi.mjs; di sini pengecualian per-even dipakai
+     supaya yang diuji tetap alur persetujuan pengajuan peserta. */
   const buat = await panggil("POST", "/api/pengurus/turnamen", {
     jenis: "bulanan",
     nama: "Turnamen Uji Persetujuan",
     status: "pendaftaran",
+    izinkanBelumTerverifikasi: true,
   });
   cek("pengurus membuat turnamen pendaftaran", buat.status === 201, JSON.stringify(buat.data));
   const id = buat.data?.id;
@@ -857,6 +862,8 @@ console.log("\nPencatatan hasil partai");
     jenis: "bulanan",
     nama: "Turnamen Uji Hasil",
     status: "pendaftaran",
+    // Lihat catatan di blok "Persetujuan peserta turnamen".
+    izinkanBelumTerverifikasi: true,
   });
   cek(
     "pengurus membuat turnamen untuk uji hasil",

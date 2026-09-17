@@ -75,6 +75,9 @@ export function untukPublik(t) {
     tempat: t.tempat,
     tautan: t.tautan,
     juara: t.juara || null,
+    /* Diumumkan supaya halaman turnamen bisa menjelaskan lebih dulu bahwa
+       pendaftaran butuh akun terverifikasi, bukan mengejutkan pendaftar. */
+    izinkanBelumTerverifikasi: t.izinkanBelumTerverifikasi === true,
     jumlahPeserta: (t.peserta || []).length,
     peserta: (t.peserta || []).map((p) => ({
       username: p.username,
@@ -234,6 +237,9 @@ export async function buatTurnamen(data) {
       tempat: String(data.tempat || "Daring — Chess.com").trim(),
       tautan: String(data.tautan || "").trim(),
       juara: String(data.juara || "").trim() || null,
+      /* Pengecualian gerbang verifikasi untuk even ini saja. Bawaan false:
+         anggota belum terverifikasi tidak dapat mendaftar sendiri. */
+      izinkanBelumTerverifikasi: data.izinkanBelumTerverifikasi === true,
       peserta: [],
       hasil: [],
       dibuatPada: kiniIso(),
@@ -263,7 +269,7 @@ export async function ubahTurnamen(id, perubahan) {
   const bolehUbah = [
     "nama", "jenis", "status", "deskripsi", "mulai", "selesai", "tutupDaftar",
     "tempo", "sistem", "ronde", "kuota", "biaya", "hadiah", "tempat", "tautan",
-    "juara",
+    "juara", "izinkanBelumTerverifikasi",
   ];
   return repoTurnamen.ubah(async (semua) => {
     const i = semua.findIndex((t) => t.id === id);
@@ -280,6 +286,10 @@ export async function ubahTurnamen(id, perubahan) {
     }
     if (perubahan.kuota !== undefined) {
       ubah.kuota = perubahan.kuota ? Number(perubahan.kuota) : null;
+    }
+    if (perubahan.izinkanBelumTerverifikasi !== undefined) {
+      // Dipaksa boolean: nilai kiriman browser tidak boleh jadi string truthy.
+      ubah.izinkanBelumTerverifikasi = perubahan.izinkanBelumTerverifikasi === true;
     }
     ubah.diubahPada = kiniIso();
     const salinan = [...semua];
@@ -356,6 +366,31 @@ export async function ajukanKeikutsertaan(id, { username }) {
       diblokir: true,
       alasan: kondisi.alasan,
     });
+  }
+
+  /* GERBANG VERIFIKASI. Anggota tanpa bukti kepemilikan akun Chess.com tidak
+     boleh mendaftar sendiri ke turnamen: tanpa verifikasi, pendaftar bisa
+     memakai akun orang lain atau akun yang sudah kena ban engine.
+
+     Sengaja ditempatkan SETELAH pemeriksaan daftar larangan dan status Chess.com
+     supaya akun bermasalah tetap menerima alasan yang sebenarnya, bukan alasan
+     verifikasi yang lebih lunak.
+
+     Pengecualian per-even lewat `izinkanBelumTerverifikasi` (diatur pengurus),
+     dan pengurus tetap dapat menambahkan peserta langsung lewat
+     `daftarkanPeserta` — jalur itu sengaja tidak digerbangi agar data bisa
+     diperbaiki manual, misalnya saat Chess.com sedang down. */
+  if (rekamLokal.terverifikasi !== true && t.izinkanBelumTerverifikasi !== true) {
+    throw new GalatAplikasi(
+      403,
+      `Akun "${uname}" belum terverifikasi. Lengkapi verifikasi kepemilikan akun ` +
+        "Chess.com terlebih dahulu sebelum mendaftar turnamen ini.",
+      {
+        perluVerifikasi: true,
+        belumTerverifikasi: true,
+        alasanStatus: rekamLokal.alasanStatus || null,
+      }
+    );
   }
 
   return repoTurnamen.ubah(async (semua) => {

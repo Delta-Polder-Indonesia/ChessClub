@@ -86,6 +86,8 @@ export default function VerifikasiAkun({
   statusAwal = "idle",
   pesanAwal = "",
   cara = null,
+  /** Tujuan kembali setelah OAuth Chess.com. Bawaan = alur pendaftaran. */
+  kembaliKe = "/pendaftaran-anggota",
 }) {
   const { t } = useI18n();
 
@@ -295,7 +297,7 @@ export default function VerifikasiAkun({
     setMengalihkan(true);
     setPesan("");
     try {
-      const { url } = await mulaiLoginChessCom("/pendaftaran-anggota");
+      const { url } = await mulaiLoginChessCom(kembaliKe);
       if (!aktifRef.current) return;
       window.location.assign(url);
     } catch (galat) {

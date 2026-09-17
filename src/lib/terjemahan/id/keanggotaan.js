@@ -294,7 +294,11 @@ export const pendaftaran = {
       "Tiket verifikasi berlaku sekitar {menit} menit. Kirim formulir sebelum masa itu lewat.",
     verifOpsionalCatatan:
       "Verifikasi belum diwajibkan di server ini. Menjalankan pendaftaran tanpa verifikasi berarti akun Anda tercatat BELUM terverifikasi.",
-    lewatiVerifikasi: "Lewati verifikasi untuk sekarang",
+    verifPahamTanpaVerifikasi:
+      "Saya lanjut tanpa verifikasi dan paham akun saya tidak terverifikasi",
+    verifLanjutSetelahPaham: "Lanjutkan tanpa verifikasi",
+    sudahTerdaftarLengkapi:
+      "Sudah terdaftar? Lengkapi verifikasi akun Anda",
     pengajuanDiterima: "Pengajuan Diterima",
     pengajuanPenjelasan:
       "Pengajuan untuk {username} tercatat dan berstatus menunggu. Pengurus akan memeriksa profil Chess.com Anda secara terpisah; status terverifikasi baru ditulis setelah pemeriksaan itu selesai.",
@@ -342,3 +346,34 @@ export const pendaftaran = {
     spinnerGagal: "Gagal",
     spinnerStatus: "Status",
   }
+/**
+ * Halaman "Lengkapi Verifikasi" untuk anggota yang SUDAH terdaftar.
+ * Pendaftaran menolak username yang sudah ada, jadi anggota lama yang
+ * terverifikasi:false memakai jalur ini untuk membuktikan kepemilikan akun.
+ */
+export const lengkapiVerifikasi = {
+  judul: "Lengkapi Verifikasi Akun",
+  deskripsi:
+    "Halaman bagi anggota Komunitas Catur Indonesia yang sudah terdaftar untuk melengkapi verifikasi kepemilikan akun Chess.com.",
+  pengantar:
+    "Sudah terdaftar tetapi akun Anda belum terverifikasi? Buktikan kepemilikan akun Chess.com Anda di sini. Status terverifikasi hanya ditulis server setelah bukti diterima.",
+  catatanKenapa:
+    "Verifikasi memastikan satu orang satu akun dan membuat pelanggaran fair play dapat dilacak. Tanpa verifikasi, pendaftaran turnamen dibatasi.",
+  labelUsername: "Username Chess.com",
+  phUsername: "mis. hikaru",
+  tombolLanjut: "Lanjutkan",
+  tombolUbah: "Ganti username",
+  judulVerifikasi: "Buktikan kepemilikan akun",
+  pengantarVerifikasi:
+    "Pilih salah satu cara di bawah. Setelah bukti diterima server, status verifikasi akun Anda diperbarui otomatis.",
+  memproses: "Menyimpan status verifikasi…",
+  berhasilJudul: "Verifikasi Berhasil",
+  berhasilPesan:
+    "Akun {username} sekarang tercatat terverifikasi. Terima kasih sudah melengkapi data keanggotaan Anda.",
+  gagalJudul: "Verifikasi Gagal Disimpan",
+  gagalUmum:
+    "Status verifikasi belum dapat disimpan. Ulangi verifikasi atau hubungi pengurus bila masalah berlanjut.",
+  galatUsername: "Masukkan username Chess.com yang benar terlebih dahulu.",
+  keAnggota: "Lihat daftar anggota",
+  kePendaftaran: "Belum terdaftar? Daftar di sini",
+};

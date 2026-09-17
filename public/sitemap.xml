@@ -111,6 +111,11 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%lengkapi-verifikasi</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%keberlanjutan</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>

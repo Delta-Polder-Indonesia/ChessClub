@@ -166,6 +166,11 @@ export async function luncurkanServerUji({ tanpaToken = false, chessDasar, env =
       KCI_CHESS_DASAR: targetChess,
       KCI_CHESS_TIMEOUT: "1500",
       KCI_CHESS_RETRY: "2",
+      // Bawaan produksi kini "wajib" (fail-closed). Harness dipatok ke
+      // "opsional" agar suite lama tidak berubah makna: tes yang memang
+      // menguji mode ketat tetap menyetel KCI_WAJIB_VERIFIKASI sendiri lewat
+      // opsi `env` (di-spread setelah ini, jadi selalu menang).
+      KCI_WAJIB_VERIFIKASI: "opsional",
       // Uji mensimulasikan IP klien lewat X-Forwarded-For; beri tahu
       // server bahwa ada satu proxy tepercaya di depannya.
       KCI_JUMLAH_PROXY: "1",

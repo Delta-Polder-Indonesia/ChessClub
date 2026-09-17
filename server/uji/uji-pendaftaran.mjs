@@ -109,7 +109,11 @@ function bacaBerkas(nama, dir = DIRENDE) {
 
 /* ============================================================ MODE OPSIONAL */
 
-console.log("\nPendaftaran — mode default `opsional` (server A)");
+/* Catatan: harness (alat-uji.mjs) mematok KCI_WAJIB_VERIFIKASI="opsional"
+   supaya suite ini tetap menguji perilaku lama tanpa berubah makna. Bawaan
+   SEBENARNYA di produksi adalah "wajib" dan diuji end-to-end di blok
+   "BAWAAN FAIL-CLOSED" di bawah. */
+console.log("\nPendaftaran — mode `opsional` dipatok harness (server A)");
 {
   const server = await serverUji();
   const csrf = await ambilTokenCsrf(server.dasar);
@@ -426,6 +430,70 @@ console.log("\nPendaftaran — mode `wajib` (tiket benar-benar dipaksa)");
   fs.rmSync(DIR_WAJIB, { recursive: true, force: true });
 }
 
+/* ============================================= BAWAAN FAIL-CLOSED (server C) */
+
+/* Inti perbaikan: deployment yang LUPA menyetel env, atau salah menulis
+   nilainya, harus tetap menuntut bukti kepemilikan akun. Melonggarkan hanya
+   bisa lewat penulisan "off"/"opsional" secara eksplisit. */
+console.log("\nPendaftaran — bawaan fail-closed (env kosong / salah tulis / off eksplisit)");
+{
+  const kasus = [
+    { label: "env kosong", env: { KCI_WAJIB_VERIFIKASI: "" }, wajib: true },
+    { label: "typo 'dapet'", env: { KCI_WAJIB_VERIFIKASI: "dapet" }, wajib: true },
+    { label: "typo 'Wajib '", env: { KCI_WAJIB_VERIFIKASI: "Wajib " }, wajib: true },
+    { label: "'off' eksplisit", env: { KCI_WAJIB_VERIFIKASI: "off" }, wajib: false },
+  ];
+
+  for (const [i, k] of kasus.entries()) {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), `kci-uji-bawaan-${i}-`));
+    const server = await serverUji({ dirData: dir, env: k.env });
+    const csrf = await ambilTokenCsrf(server.dasar);
+    const kirim = pembuatKirim(server.dasar, csrf, `10.44.1.${i + 1}`);
+
+    const caraRes = await fetch(server.dasar + "/api/auth/cara", {
+      method: "GET",
+      headers: { "X-Forwarded-For": `10.44.1.${i + 1}` },
+    });
+    const cara = { status: caraRes.status, data: await caraRes.json().catch(() => null) };
+    cek(
+      `${k.label}: /api/auth/cara wajib=${k.wajib}`,
+      cara.status === 200 &&
+        cara.data?.wajib === k.wajib &&
+        cara.data?.mode === (k.wajib ? "wajib" : "off"),
+      JSON.stringify(cara.data)?.slice(0, 160)
+    );
+
+    const daftar = await kirim("/api/anggota", formulir());
+    if (k.wajib) {
+      cek(
+        `${k.label}: daftar tanpa tiket -> 403 perluVerifikasi`,
+        daftar.status === 403 && daftar.data?.perluVerifikasi === true,
+        `${daftar.status} ${JSON.stringify(daftar.data)?.slice(0, 160)}`
+      );
+      cek(
+        `${k.label}: tidak ada entri anggota yang tersimpan`,
+        (bacaBerkas("anggota.json", dir) || []).length === 0
+      );
+    } else {
+      cek(
+        `${k.label}: daftar tanpa tiket -> 201 (longgar hanya bila eksplisit)`,
+        daftar.status === 201,
+        `${daftar.status} ${JSON.stringify(daftar.data)?.slice(0, 160)}`
+      );
+      const entri = (bacaBerkas("anggota.json", dir) || []).find(
+        (x) => x.username === "hikaru"
+      );
+      cek(
+        `${k.label}: entri tetap tercatat BELUM terverifikasi`,
+        entri?.terverifikasi === false
+      );
+    }
+
+    server.hentikan();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+}
+
 /* ==================== JALUR MANUAL SAMPAI SETUJU (mode wajib, tanpa tiket) */
 
 console.log("\nPendaftaran — jalur manual: menunggu sampai pengurus menyetujui (mode wajib)");
@@ -590,15 +658,56 @@ console.log("\nKonfigurasi mode verifikasi");
   const { normalisasiModeVerifikasi, MODE_VERIFIKASI } = await import(
     "../src/konfigurasi.js"
   );
+
+  /* Panggil sambil menampung console.warn: nilai tak dikenal harus jatuh ke
+     sisi KETAT (wajib) DAN tetap memberi peringatan di log. */
+  const panggil = (nilai) => {
+    const aslinya = console.warn;
+    const tertampung = [];
+    console.warn = (...a) => tertampung.push(a.join(" "));
+    try {
+      return { hasil: normalisasiModeVerifikasi(nilai), peringatan: tertampung };
+    } finally {
+      console.warn = aslinya;
+    }
+  };
+
   cek("nilai sah dipertahankan", MODE_VERIFIKASI.every((m) => normalisasiModeVerifikasi(m) === m));
   cek("kapital dinormalisasi", normalisasiModeVerifikasi("WAJIB") === "wajib");
   cek("spasi dinormalisasi", normalisasiModeVerifikasi(" wajib ") === "wajib");
   cek("alias 'on' dipetakan ke wajib", normalisasiModeVerifikasi("on") === "wajib");
+  cek("alias 'required' dipetakan ke wajib", normalisasiModeVerifikasi("required") === "wajib");
+
+  /* BAWAAN FAIL-CLOSED: env yang tidak disetel sama sekali berarti wajib. */
+  cek("kosong = bawaan 'wajib' (fail-closed)", normalisasiModeVerifikasi("") === "wajib");
+  cek("undefined = bawaan 'wajib' (fail-closed)", normalisasiModeVerifikasi(undefined) === "wajib");
+  cek("null = bawaan 'wajib' (fail-closed)", normalisasiModeVerifikasi(null) === "wajib");
+  cek("spasi saja = bawaan 'wajib'", normalisasiModeVerifikasi("   ") === "wajib");
+
+  /* Salah ketik TIDAK boleh melonggarkan: jatuh ke 'wajib' + ada peringatan. */
+  const salah = panggil("Wajibb");
   cek(
-    "nilai tak dikenal jatuh ke bawaan (bukan 'off'!)",
-    normalisasiModeVerifikasi("Wajibb") === "opsional"
+    "nilai tak dikenal jatuh ke 'wajib' (bukan 'opsional'/'off'!)",
+    salah.hasil === "wajib"
   );
-  cek("kosong = bawaan", normalisasiModeVerifikasi("") === "opsional");
+  cek(
+    "nilai tak dikenal tetap memberi peringatan",
+    salah.peringatan.length === 1 && salah.peringatan[0].includes("tidak dikenal")
+  );
+  cek(
+    "peringatan menyebut nilai sah yang tersedia",
+    salah.peringatan[0].includes("off") && salah.peringatan[0].includes("opsional")
+  );
+  cek(
+    "alias longgar tak dikenal ('optionall') jatuh ke 'wajib'",
+    panggil("optionall").hasil === "wajib"
+  );
+
+  /* Melonggarkan HANYA lewat penulisan eksplisit. */
+  cek("'off' eksplisit dihormati", normalisasiModeVerifikasi("off") === "off");
+  cek("'opsional' eksplisit dihormati", normalisasiModeVerifikasi("opsional") === "opsional");
+  cek("alias 'none' -> 'off' (eksplisit)", normalisasiModeVerifikasi("none") === "off");
+  cek("alias '0' -> 'off' (eksplisit)", normalisasiModeVerifikasi("0") === "off");
 }
 
 fs.rmSync(DIRENDE, { recursive: true, force: true });

@@ -109,6 +109,8 @@ Isi dashboard:
 | Bagian | Fungsi |
 | ------ | ------ |
 | Kartu ringkasan | Jumlah anggota roster klub, larangan, turnamen, riwayat masuk, pesan, dan mode verifikasi |
+| Kotak peringatan | Kondisi deployment yang perlu ditindak: mode verifikasi bukan `wajib` di produksi, OAuth tidak aktif di produksi, data masih di `/tmp` (Supabase belum siap), dan pengajuan verifikasi yang menunggu |
+| Panel **Pemindaian fair play** | Jumlah akun **perlu diperiksa ulang**, jumlah anggota **belum terverifikasi**, jumlah **ban fair play otomatis**, **pengajuan menunggu**, **terakhir dipindai**, apakah putaran terakhir tuntas, dan tombol **Pindai sekarang** |
 | Tab **Anggota** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, cek nomor HP, dan **Pindai ban fair play** |
 | Tab **Daftar Larangan** | Tabel larangan dengan tombol **Cabut** dan cek nomor HP |
 | Tab **Riwayat Masuk** | Jejak log aktivitas login siapa saja yang masuk ke dashboard pengurus (akun Chess.com, hari, tanggal, bulan, tahun, jam, dan IP) |
@@ -123,6 +125,48 @@ sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.
 > Tombol **Blokir** membatasi akun dari situs dan turnamen. Tombol itu tidak
 > dapat mengeluarkan akun dari klub Chess.com; lakukan penghapusan anggota
 > tersebut langsung di Chess.com bila diperlukan.
+
+### Panel "Pemindaian fair play"
+
+Panel ini menjawab keluhan *"banyak anggota memakai engine, jadi datanya tidak
+terlacak kalau dia kena banned"*. Yang perlu diketahui pengurus:
+
+- **Perlu diperiksa ulang** = akun yang ditandai pemindaian otomatis. Ada dua
+  makna dan keduanya perlu dibedakan:
+  - verifikasi sudah **dicabut** (`terverifikasi:false`) karena ban fair play,
+    akun ditutup, atau akun hilang di Chess.com;
+  - hanya **ditandai** (verifikasi tetap ada) karena akun tidak lagi muncul di
+    roster klub. Roster Chess.com resmi bisa tertinggal hingga 12 jam, jadi
+    sinyal ini lemah dan keputusannya ada di pengurus, bukan otomatis.
+- **Belum terverifikasi** = anggota yang sejak awal tidak punya bukti
+  kepemilikan akun. Mereka tidak bisa mendaftar turnamen sendiri (lihat
+  bagian 5) dan perlu diarahkan ke `/lengkapi-verifikasi`.
+- **Terakhir dipindai** dan **putaran terakhir tuntas** membedakan "tidak ada
+  yang kena ban" dari "pemindaian tidak pernah jalan". Bila `KCI_CRON_SECRET`
+  belum disetel, pemindaian terjadwal mati dan kolom ini tidak akan bergerak
+  sendiri — tekan **Pindai sekarang**.
+- Tombol **Pindai sekarang** menjalankan satu batch (maks. 40 akun) lalu
+  menyimpan kursor. Untuk roster besar, tekan berulang sampai panel
+  melaporkan putaran tuntas; setiap penekanan melanjutkan dari akun
+  terakhir, bukan mengulang dari awal.
+
+Rincian teknis pemindaian (sumber data, apa yang dicabut, pagar pengaman saat
+Chess.com down) ada di `PANDUAN-VERIFIKASI-AKUN.md` bagian 9.
+
+### Menyalakan pemindaian terjadwal di Vercel
+
+`vercel.json` sudah mendaftarkan cron sekali sehari (04:17 UTC) ke
+`GET /api/verifikasi/pindai-jadwal`. Endpoint itu **menolak jalan** bila
+`KCI_CRON_SECRET` kosong (503 + peringatan di log fungsi), jadi:
+
+1. Vercel → project → **Settings → Environment Variables**.
+2. Ambil nilai `CRON_SECRET` yang dibuat otomatis Vercel (atau buat sendiri),
+   lalu isi `KCI_CRON_SECRET` dengan nilai yang sama.
+3. Redeploy.
+
+Jadwalnya sekali sehari karena paket Hobby **menolak deployment** dengan cron
+lebih dari sekali sehari. Setelah naik ke paket Pro, jadwal boleh diperketat ke
+`17 */6 * * *` tanpa perubahan kode.
 
 ---
 
@@ -188,8 +232,9 @@ blok "Jadwal & Klasemen" di bawahnya.
 2. **Pendaftaran** — ubah status ke *Pendaftaran*. Sejak titik ini turnamen
    muncul di halaman publik dengan tombol **Daftar sebagai peserta**. Player
    memasukkan username Chess.com; sistem menolak non-anggota, akun tertutup,
-   username terlarang, serta identitas terverifikasi yang cocok dengan daftar
-   larangan. Pengajuan yang lolos pemeriksaan awal masuk ke tabel **Pengajuan
+   username terlarang, identitas terverifikasi yang cocok dengan daftar
+   larangan, **serta anggota yang belum terverifikasi**. Pengajuan yang lolos
+   pemeriksaan awal masuk ke tabel **Pengajuan
    Peserta** dan belum menjadi peserta sampai pengurus menekan **Terima**.
    Periksa profil serta tanggal pembuatan akun sebelum menerima, atau tekan
    **Tolak** dan berikan alasan. Pengurus tetap dapat menambahkan peserta
@@ -201,6 +246,36 @@ blok "Jadwal & Klasemen" di bawahnya.
 Status **Batal** menyembunyikan turnamen dari daftar aktif tanpa menghapus
 riwayatnya. **Hapus** bersifat permanen — pakai hanya untuk turnamen yang
 salah dibuat.
+
+### Gerbang verifikasi peserta
+
+Anggota dengan `terverifikasi:false` **ditolak** saat mendaftar sendiri ke
+turnamen (`403`, pesan mengarahkan melengkapi verifikasi). Alasannya: tanpa
+bukti kepemilikan akun, pendaftar bisa memakai akun orang lain atau akun yang
+sudah kena ban engine — persis hal yang tidak terlacak sebelumnya.
+
+Yang perlu diketahui pengurus:
+
+- **Arahkan anggota ke `/lengkapi-verifikasi`.** Anggota lama yang belum
+  terverifikasi tidak bisa mengulang formulir pendaftaran (username sudah
+  terdaftar → `409`); halaman itu satu-satunya jalur mandiri mereka.
+- **Pengecualian per-even.** Field `izinkanBelumTerverifikasi` pada turnamen
+  membuka gerbang untuk even itu saja, lewat endpoint pengurus yang sudah ada:
+  ```text
+  POST /api/pengurus/turnamen/:id/ubah
+  { "izinkanBelumTerverifikasi": true }
+  ```
+  Pengecualian ini **tidak** meloloskan akun yang kena ban fair play atau ada
+  di daftar larangan — pemeriksaan larangan dan status Chess.com tetap
+  dijalankan lebih dulu, jadi akun bermasalah menerima alasan yang sebenarnya.
+- **Menambahkan peserta langsung tidak digerbangi.** Pengurus tetap bisa
+  memasukkan peserta lewat username dari dashboard. Ini disengaja supaya data
+  bisa diperbaiki manual, misalnya saat Chess.com sedang down dan verifikasi
+  mandiri menjawab `502`.
+- **Bila Chess.com down**, verifikasi mandiri dan pendaftaran turnamen yang
+  butuh cek profil akan gagal sementara. Itu rem pengaman yang dimaksud: lebih
+  baik menolak sementara daripada meloloskan tanpa bukti. Pakai pengecualian
+  per-even atau tambahkan peserta langsung bila even harus tetap jalan.
 
 ### Perbedaan keempat jenis
 
@@ -263,7 +338,28 @@ Sistem ini **mempersulit**, bukan membuat mustahil. Yang masih bisa terjadi:
 
 **Sudah ditambahkan:** verifikasi kepemilikan akun Chess.com — pendaftar
 membuktikan akun itu benar miliknya, lewat login Chess.com (OAuth) atau
-kode di profil. Lihat `PANDUAN-VERIFIKASI-AKUN.md`.
+kode di profil. Lihat `PANDUAN-VERIFIKASI-AKUN.md`. Ditambah pemindaian
+berkala yang mencabut verifikasi saat Chess.com menjatuhkan ban fair play
+(bagian 9 panduan itu).
+
+Yang **tidak** bisa dilakukan sistem ini, dan penting untuk tidak
+disalahpahami:
+
+- **Tidak bisa mendeteksi engine.** Tidak ada API Chess.com yang melaporkan
+  kecurangan yang belum diputuskan. Yang bisa dilacak adalah **akibatnya**:
+  begitu Chess.com menjatuhkan ban fair play, pemindaian menemukannya,
+  mencatatnya di daftar larangan, dan mencabut verifikasi akun itu. Sebelum
+  Chess.com memutuskan, pemain yang memakai engine tetap tampak sah.
+- **Perlu `KCI_CRON_SECRET` disetel.** Tanpa itu pemindaian terjadwal mati
+  (503) dan ban hanya terlihat saat ada yang menekan tombol **Pindai
+  sekarang** di dasbor.
+- **`node scripts/pengurus.mjs pindai` berbeda dari pemindaian server.** CLI
+  itu membaca berkas data secara langsung dan hanya mengisi daftar larangan;
+  ia **tidak** mencabut `terverifikasi` dan tidak menyimpan kursor. Untuk
+  perilaku lengkap, pakai tombol dasbor atau endpoint terjadwal.
+- Batasan lain (ledger tiket per proses, `/tmp` di Vercel, tantangan kode
+  lintas instance) ada di `PANDUAN-VERIFIKASI-AKUN.md` bagian 7 dan
+  `VERCEL-LIMITATIONS.md`.
 
 Nomor HP/WA dan DANA sengaja **tidak** diverifikasi OTP — keduanya bersifat
 administratif untuk pendataan identitas dan pengiriman hadiah.

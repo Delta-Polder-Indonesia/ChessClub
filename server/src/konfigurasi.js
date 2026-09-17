@@ -44,7 +44,12 @@ const rahasia = (v) => String(v ?? "").trim();
 
 /** Nilai KCI_WAJIB_VERIFIKASI yang dikenal. */
 export const MODE_VERIFIKASI = ["off", "opsional", "wajib"];
-const MODE_VERIFIKASI_BAWAAN = "opsional";
+/**
+ * Bawaan adalah "wajib" (fail-closed). Deployment yang lupa menyetel env,
+ * atau salah menulis nilainya, TIDAK boleh diam-diam membuka pendaftaran
+ * tanpa bukti kepemilikan akun. "off" hanya berlaku bila ditulis eksplisit.
+ */
+const MODE_VERIFIKASI_BAWAAN = "wajib";
 /** Alias yang umum ditulis pengelola, dipetakan ke nilai kanonik. */
 const ALIAS_MODE_VERIFIKASI = {
   "0": "off",
@@ -63,6 +68,10 @@ const ALIAS_MODE_VERIFIKASI = {
  * Normalisasi mode verifikasi. Nilai tak dikenal TIDAK dipakai apa adanya:
  * dikembalikan ke bawaan + peringatan, agar UI dan backend selalu sepakat
  * dan satu huruf kapital tidak melumpuhkan kewajiban verifikasi.
+ *
+ * Fail-closed: bawaan "wajib", sehingga env yang kosong ATAU salah tulis
+ * sama-sama menuntut bukti kepemilikan akun. Melonggarkan verifikasi hanya
+ * bisa dilakukan dengan menulis "opsional" atau "off" secara eksplisit.
  */
 export function normalisasiModeVerifikasi(nilai) {
   const mentah = String(nilai ?? "").trim().toLowerCase();
@@ -117,6 +126,12 @@ export const konfigurasi = {
 
   /** Token admin legacy untuk endpoint pengurus. Opsional; masih diterima sebagai password alternatif. */
   tokenAdmin: rahasia(process.env.KCI_TOKEN_ADMIN),
+
+  /** Rahasia pemanggil cron (`/api/verifikasi/pindai-jadwal`).
+   *  Vercel Cron mengirim header `Authorization: Bearer <nilai ini>`. Bila
+   *  kosong, endpoint cron menjawab 503 dan menolak jalan — endpoint itu
+   *  memicu pemindaian ke Chess.com, jadi tidak boleh terbuka tanpa kunci. */
+  cronSecret: rahasia(process.env.KCI_CRON_SECRET),
 
   /** Rahasia untuk menandatangani JWT. Wajib di produksi. */
   jwtSecret: rahasia(process.env.KCI_JWT_SECRET) ||
@@ -278,14 +293,15 @@ export const konfigurasi = {
 
   /**
    * Wajibkan bukti kepemilikan akun saat mendaftar.
-   * "off"      - tidak diwajibkan (bawaan lama)
+   * "off"      - tidak diwajibkan (hanya bila ditulis eksplisit)
    * "opsional" - diverifikasi bila ada tiket, tidak wajib
-   * "wajib"    - pendaftaran ditolak tanpa tiket verifikasi
+   * "wajib"    - pendaftaran ditolak tanpa tiket verifikasi (BAWAAN)
    *
-   * Nilai dinormalisasi (trim + huruf kecil) dan nilai tak dikenal dipaksa
-   * kembali ke "opsional" dengan peringatan, supaya salah ketik (mis. "Wajib"
-   * atau "wajib ") TIDAK diam-diam melonggarkan pemeriksaan. Default tidak
-   * diubah: "opsional" (lihat PANDUAN-VERIFIKASI-AKUN.md bagian mode operasi).
+   * Nilai dinormalisasi (trim + huruf kecil). Env yang kosong maupun nilai
+   * tak dikenal dipaksa ke "wajib" dengan peringatan, supaya salah ketik
+   * (mis. "Wajibb") atau env yang lupa disetel TIDAK diam-diam melonggarkan
+   * pemeriksaan. Arah gagalnya ke sisi ketat, bukan ke sisi longgar
+   * (lihat PANDUAN-VERIFIKASI-AKUN.md bagian mode operasi).
    */
   wajibVerifikasi: normalisasiModeVerifikasi(process.env.KCI_WAJIB_VERIFIKASI),
 

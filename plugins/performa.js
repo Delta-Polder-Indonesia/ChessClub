@@ -34,6 +34,7 @@ export const RUTE_PUBLIK = [
   "/media-dan-informasi/pengumuman",
   "/media-dan-informasi/galeri",
   "/pendaftaran-anggota",
+  "/lengkapi-verifikasi",
   "/keberlanjutan",
   "/keberlanjutan/syarat-dan-ketentuan",
   "/keberlanjutan/kode-etik-komunitas",
@@ -191,6 +192,10 @@ export const META_RUTE = {
   "/pendaftaran-anggota": {
     judulKey: "pendaftaran.judul",
     deskripsiKey: "pendaftaran.deskripsi",
+  },
+  "/lengkapi-verifikasi": {
+    judulKey: "lengkapiVerifikasi.judul",
+    deskripsiKey: "lengkapiVerifikasi.deskripsi",
   },
   "/keberlanjutan": {
     judulKey: "keberlanjutan.judul",

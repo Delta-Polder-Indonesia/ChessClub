@@ -295,7 +295,11 @@ export const pendaftaran = {
       "The verification ticket is valid for about {menit} minutes. Submit the form before it expires.",
     verifOpsionalCatatan:
       "Verification is not mandatory on this server yet. Registering without it means your account is recorded as NOT verified.",
-    lewatiVerifikasi: "Skip verification for now",
+    verifPahamTanpaVerifikasi:
+      "I will continue without verification and understand my account is not verified",
+    verifLanjutSetelahPaham: "Continue without verification",
+    sudahTerdaftarLengkapi:
+      "Already registered? Complete your account verification",
     pengajuanDiterima: "Request Received",
     pengajuanPenjelasan:
       "The request for {username} was recorded and is pending. A committee member reviews your Chess.com profile separately; the verified status is only written after that review is done.",
@@ -343,3 +347,34 @@ export const pendaftaran = {
     spinnerGagal: "Failed",
     spinnerStatus: "Status",
   }
+/**
+ * "Complete Verification" page for members who are ALREADY registered.
+ * Registration rejects an existing username, so long-standing members with
+ * terverifikasi:false use this path to prove account ownership.
+ */
+export const lengkapiVerifikasi = {
+  judul: "Complete Account Verification",
+  deskripsi:
+    "Page for already registered Indonesia Chess Community members to complete Chess.com account ownership verification.",
+  pengantar:
+    "Already registered but your account is not verified yet? Prove ownership of your Chess.com account here. The verified status is only written by the server once proof is accepted.",
+  catatanKenapa:
+    "Verification ensures one person one account and makes fair play violations traceable. Without it, tournament registration is restricted.",
+  labelUsername: "Chess.com username",
+  phUsername: "e.g. hikaru",
+  tombolLanjut: "Continue",
+  tombolUbah: "Change username",
+  judulVerifikasi: "Prove account ownership",
+  pengantarVerifikasi:
+    "Choose one of the methods below. Once the server accepts the proof, your verification status is updated automatically.",
+  memproses: "Saving verification status…",
+  berhasilJudul: "Verification Successful",
+  berhasilPesan:
+    "Account {username} is now recorded as verified. Thank you for completing your membership data.",
+  gagalJudul: "Verification Could Not Be Saved",
+  gagalUmum:
+    "Your verification status could not be saved yet. Repeat the verification or contact the committee if the problem persists.",
+  galatUsername: "Enter a valid Chess.com username first.",
+  keAnggota: "View member list",
+  kePendaftaran: "Not registered yet? Sign up here",
+};

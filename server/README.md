@@ -67,6 +67,7 @@ atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / storage ekster
 | GET | `/api/auth/chess/kembali` | Callback OAuth — hasil login disimpan ke `sessionStorage` (`kci-hasil-verifikasi`) lalu redirect ke halaman tujuan |
 | POST | `/api/auth/kode/minta` | Jalur cadangan: minta kode `KCI-XXXXXX` |
 | POST | `/api/auth/kode/periksa` | Cek kode di kolom Location profil |
+| POST | `/api/anggota/verifikasi-diri` | Anggota yang SUDAH terdaftar melengkapi bukti kepemilikan akun `{username, tiketVerifikasi}`. Pendaftaran menolak username yang sudah ada (409), jadi ini satu-satunya jalur mandiri bagi anggota lama. Ditolak bila akun ada di daftar larangan atau profilnya kena ban fair play/ditutup — pencabutan otomatis tidak bisa dipulihkan sendiri. Tiket tidak dikembalikan. |
 | GET | `/api/auth/tiket/:nilai` | Status tiket verifikasi |
 
 ### Pengurus — butuh login/token
@@ -83,7 +84,7 @@ alternatif.
 | GET | `/api/pengurus` | Ringkasan dashboard + identitas login (alias `/ringkasan`) |
 | GET | `/api/pengurus/verifikasi` | Verifikasi token ringan untuk membuka dashboard |
 | GET | `/api/pengurus/ringkasan` | Jumlah anggota & daftar hitam |
-| POST | `/api/pengurus/pindai` | Pindai ban fair play ke Chess.com |
+| POST | `/api/pengurus/pindai` | Pindai ban fair play ke Chess.com (roster klub + anggota situs). Menjalankan SATU batch maks. 40 akun dan melanjutkan kursor yang tersimpan, jadi aman terhadap `maxDuration` dan tetap menyusuri seluruh roster bila ditekan berulang |
 | POST | `/api/pengurus/blokir` | `{username, keterangan}` |
 | POST | `/api/pengurus/buka` | `{username}` — cabut larangan |
 | POST | `/api/pengurus/cek-nomor` | `{hp}` — cek nomor di daftar hitam |
@@ -107,6 +108,40 @@ alternatif.
 Skor yang sah hanya `1-0`, `0-1`, `0.5-0.5`. Peserta ganda pada ronde yang
 sama ditolak `409`, termasuk bila warnanya dibalik.
 
+### Terjadwal — Vercel Cron
+
+| Metode | Jalur | Keterangan |
+| ------ | ----- | ---------- |
+| GET | `/api/verifikasi/pindai-jadwal` | Pemindaian ban fair play terjadwal. Butuh `Authorization: Bearer <KCI_CRON_SECRET>` |
+
+`vercel.json` mendaftarkan `crons` dengan jadwal `17 4 * * *` (sekali sehari,
+04:17 UTC). Endpoint ini ada karena tanpa cron pemindaian hanya berjalan saat
+ada pengurus membuka dasbor — di serverless tanpa trafik itu bisa berarti tidak
+pernah, sehingga akun yang kena ban engine tidak terlacak.
+
+**Jadwalnya sekali sehari dengan sengaja.** Paket Vercel Hobby MENOLAK
+deployment yang cronnya berjalan lebih dari sekali sehari (galatnya muncul saat
+deploy: *"Hobby accounts are limited to daily Cron Jobs"*), jadi `17 */6 * * *`
+akan mematahkan deployment proyek ini. Sekali sehari tetap cukup karena
+`pindaiFairPlayTerjadwal()` menjalankan batch beruntun (masing-masing maks. 40
+akun) sampai roster tuntas atau anggaran waktu 45 detik habis — di bawah
+`maxDuration: 60`, supaya fungsi sempat menyimpan kursor dan menjawab, bukan
+mati dipotong di tengah. Bila proyek sudah naik ke paket Pro, jadwal boleh
+diperketat ke `17 */6 * * *` tanpa perubahan kode.
+
+Penjaga:
+
+- Header dibandingkan konstan-time (`samaAman()`: hash SHA-256 lalu
+  `timingSafeEqual`), jadi panjang dan isi rahasia tidak bocor lewat waktu
+  respons.
+- Bila `KCI_CRON_SECRET` kosong, endpoint menjawab **503** dan mencatat
+  peringatan. Sengaja gagal aman: endpoint ini memicu permintaan keluar ke
+  Chess.com dan mengubah data anggota, jadi tidak boleh terbuka tanpa kunci.
+- Bearer salah/tidak ada/skema bukan `Bearer` → **401**. Rahasia cron tidak
+  diterima sebagai token pengurus.
+- Mewajibkan header `Authorization` juga berarti tautan biasa, prefetch
+  browser, atau perayap tidak dapat memicu pemindaian.
+
 ## Variabel lingkungan
 
 | Nama | Wajib | Keterangan |
@@ -115,6 +150,7 @@ sama ditolak `409`, termasuk bila warnanya dibalik.
 | `KCI_ADMIN_USER` | disarankan | Username login dashboard pengurus; bawaan `admin` |
 | `KCI_ADMIN_PASSWORD` | produksi | Password login dashboard pengurus; ganti dari bawaan `admin123` |
 | `KCI_TOKEN_ADMIN` | opsional | Token legacy endpoint pengurus, min. 24 karakter bila dipakai |
+| `KCI_CRON_SECRET` | untuk cron | Rahasia pemanggil `/api/verifikasi/pindai-jadwal` (header `Authorization: Bearer`). Samakan dengan `CRON_SECRET` bawaan Vercel. Bila kosong, endpoint cron menjawab 503 dan menolak jalan |
 | `KCI_ASAL_DIIZINKAN` | produksi | Origin yang boleh memanggil API, dipisah koma tanpa trailing slash |
 | `PORT` | tidak | Bawaan `8787` |
 | `KCI_LOG_PERMINTAAN` | disarankan | `1` = log JSON ringkas per request (ID, method, path, status, durasi; tanpa body/token/IP) |
@@ -132,7 +168,7 @@ menyeluruh: `npm run uji:supabase`.
 | `KCI_CHESS_KLUB` | tidak | URL-ID klub sumber anggota; bawaan `blunder-skuad` |
 | `KCI_CHESS_KLUB_CACHE` | tidak | Cache roster klub dalam detik; bawaan `43200` (12 jam) |
 | `KCI_CHESS_KLUB_PROFILE_CACHE` | tidak | Cache profil/rating roster dalam detik; bawaan `3600` |
-| `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` (bawaan) / `wajib` — mewajibkan tiket verifikasi saat mendaftar. Pada `opsional`, pendaftaran tanpa `tiketVerifikasi` tetap lolos tanpa verifikasi Chess.com; hanya mode `wajib` yang menegakkan bukti kepemilikan akun. Setel `wajib` di produksi bila verifikasi kepemilikan akun Chess.com harus ditegakkan. |
+| `KCI_WAJIB_VERIFIKASI` | tidak | `off` / `opsional` / `wajib` (bawaan) — mewajibkan tiket verifikasi saat mendaftar. **Fail-closed**: env yang kosong, tidak disetel, atau salah tulis (mis. `Wajibb`) jatuh ke `wajib` + peringatan di log, jadi deployment yang lupa env tidak diam-diam membuka pendaftaran tanpa bukti. Melonggarkan hanya bisa lewat penulisan eksplisit: `opsional` (boleh daftar tanpa tiket, tercatat belum terverifikasi) atau `off` (tidak ada penilaian tiket). |
 | `KCI_CHESS_CLIENT_ID` | untuk OAuth | Dari Chess.com; kosong ⇒ hanya jalur kode profil |
 | `KCI_CHESS_CLIENT_SECRET` | untuk OAuth | Dari Chess.com (opsional, PKCE tetap jalan tanpanya) |
 | `KCI_CHESS_REDIRECT_URI` | untuk OAuth | Harus **persis** sama dengan yang didaftarkan |

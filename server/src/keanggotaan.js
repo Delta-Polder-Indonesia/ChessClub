@@ -959,6 +959,9 @@ export async function tandaiAnggotaTerverifikasi(username, cara = "pengurus") {
               caraVerifikasi: cara,
               terverifikasiPada: new Date().toISOString(),
               pengajuanVerifikasi: "disetujui",
+              // Verifikasi yang baru diberikan membersihkan penanda dari
+              // pemindaian otomatis, supaya tidak terus muncul di dasbor.
+              perluVerifikasiUlang: false,
             }
           : a
       ),
@@ -970,6 +973,257 @@ export async function tandaiAnggotaTerverifikasi(username, cara = "pengurus") {
     usangkanRoster();
   }
   return diperbarui;
+}
+
+/**
+ * Verifikasi mandiri untuk anggota yang SUDAH terdaftar.
+ *
+ * Mengapa perlu: `daftarkan()` menolak username yang sudah ada (409), jadi
+ * anggota lama yang terlanjur `terverifikasi:false` tidak punya jalan untuk
+ * melengkapi bukti kepemilikan akun. Tanpa endpoint ini, pengetatan mode
+ * `wajib` mengunci mereka di luar kegiatan komunitas secara permanen.
+ *
+ * OTORISASI. Repo ini tidak punya sesi/login anggota (login hanya untuk
+ * pengurus), jadi yang menjadi bukti identitas di sini adalah TIKET itu
+ * sendiri: HMAC ditandatangani server, terikat ke satu username, berumur
+ * pendek, dan sekali pakai. Mengetahui username orang lain tidak cukup —
+ * penyerang tetap harus membuktikan kepemilikan akun Chess.com itu lewat
+ * OAuth atau kode di profil. Ini bukti yang sama persis dengan yang diterima
+ * `daftarkan()`.
+ *
+ * Endpoint ini TIDAK dapat dipakai untuk memulihkan akun bermasalah:
+ *   - akun di daftar larangan (username ATAU hash identitas) ditolak;
+ *   - akun yang profil Chess.com-nya kena ban fair play atau ditutup ditolak,
+ *     dan ban fair play langsung dicatat ulang ke daftar larangan.
+ * Jadi pencabutan otomatis dari pemindaian tidak bisa dibatalkan sendiri.
+ *
+ * Tiket TIDAK dikembalikan ke klien, dan pemakaiannya ditandai DI DALAM
+ * antrean tulis bersama penulisan status, supaya dua klik beruntun tidak
+ * menghabiskan tiket yang sama lalu gagal menyimpan.
+ */
+export async function verifikasiMandiri({ username, tiketVerifikasi }, konteks = {}) {
+  const diperiksa = periksaUsername(username);
+  if (!diperiksa.sah) {
+    throw new GalatAplikasi(
+      400,
+      PESAN_USERNAME[diperiksa.sebab] || PESAN_USERNAME.karakter,
+      {
+        galat: {
+          username: PESAN_USERNAME[diperiksa.sebab] || PESAN_USERNAME.karakter,
+        },
+      }
+    );
+  }
+  const uname = diperiksa.username;
+
+  const tolakTiket = (sebab, status = 403) => {
+    throw new GalatAplikasi(
+      status,
+      PESAN_TIKET[sebab] || PESAN_TIKET["tidak-sah"],
+      {
+        kodeVerifikasi: sebab,
+        perluVerifikasi: true,
+        galat: {
+          username: PESAN_TIKET_GALAT[sebab] || "Verifikasi akun perlu diulang.",
+        },
+      }
+    );
+  };
+
+  /* 1. Tiket dinilai lebih dulu (murah, tanpa jaringan) supaya permintaan
+        sampah tidak sampai membebani Chess.com maupun antrean tulis. */
+  const dinilai = periksaTiket(tiketVerifikasi, uname);
+  if (!dinilai.sah) {
+    await catatJejak("verifikasi-mandiri-ditolak", {
+      username: uname,
+      sebab: dinilai.sebab || "tidak-sah",
+      ip: konteks.ip,
+    });
+    tolakTiket(dinilai.sebab || "tidak-sah");
+  }
+
+  /* 2. Harus anggota yang sudah ada — endpoint ini melengkapi verifikasi,
+        bukan membuat anggota baru. */
+  const anggota = await repoAnggota.baca();
+  const rekam = anggota.find(
+    (a) => String(a.username || "").toLowerCase() === uname
+  );
+  if (!rekam) {
+    throw new GalatAplikasi(
+      404,
+      `"${uname}" belum terdaftar sebagai anggota. Isi formulir pendaftaran terlebih dahulu.`,
+      { galat: { username: "Anggota tidak ditemukan." } }
+    );
+  }
+
+  /* 3. Daftar larangan. Tanpa ini, akun yang sudah diblokir karena ban engine
+        bisa memulihkan statusnya sendiri dengan tiket baru. */
+  const hitam = await repoHitam.baca();
+  const bedaPepper = periksaPepper(hitam);
+  if (bedaPepper.length) {
+    console.error(
+      `[kci] KCI_PEPPER tidak cocok dengan ${bedaPepper.length} entri daftar hitam ` +
+        `(${bedaPepper.map((h) => h.username).join(", ")}).`
+    );
+    throw new GalatAplikasi(
+      503,
+      "Sistem verifikasi keanggotaan sedang bermasalah. Silakan hubungi pengurus."
+    );
+  }
+
+  const kenaUsername = hitam.find(
+    (h) => String(h.username || "").trim().toLowerCase() === uname
+  );
+  if (kenaUsername) {
+    await catatJejak("verifikasi-mandiri-ditolak", {
+      username: uname,
+      sebab: "daftar-hitam-username",
+      ip: konteks.ip,
+    });
+    throw new GalatAplikasi(
+      403,
+      "Akun Anda dilarang mengikuti kegiatan komunitas. Hubungi pengurus bila Anda merasa ini keliru.",
+      { alasan: kenaUsername.alasan, diblokir: true }
+    );
+  }
+
+  const cocok = cariDiDaftarHitam(rekam.identitas || {}, hitam);
+  if (cocok) {
+    await catatJejak("verifikasi-mandiri-ditolak", {
+      username: uname,
+      sebab: "daftar-hitam-identitas",
+      cocokDengan: cocok.entri.username,
+      jenis: cocok.jenis,
+      ip: konteks.ip,
+    });
+    throw new GalatAplikasi(
+      403,
+      `Verifikasi ditolak. Data Anda (${LABEL_KUNCI[cocok.jenis] || "identitas"}) cocok ` +
+        `dengan anggota yang sebelumnya dilarang. Hubungi pengurus bila ini keliru.`,
+      { alasan: cocok.entri.alasan, diblokir: true }
+    );
+  }
+
+  /* 4. Status Chess.com terkini, DI LUAR antrean tulis (ini lambat).
+        Chess.com yang sedang down menjawab 502 dan TIDAK mengubah apa pun —
+        jalur manual pengurus tetap terbuka sebagai rem pengaman. */
+  const pRes = await ambilProfil(uname).catch((e) => {
+    console.warn(`[kci] profil Chess.com gagal untuk "${uname}": ${e?.message || e}`);
+    throw new GalatAplikasi(
+      502,
+      "Chess.com sedang tidak dapat dihubungi. Coba beberapa saat lagi."
+    );
+  });
+
+  if (!pRes.ada) {
+    throw new GalatAplikasi(
+      404,
+      "Akun Chess.com tidak ditemukan. Periksa ejaan username.",
+      { galat: { username: "Akun Chess.com tidak ditemukan." } }
+    );
+  }
+
+  const profil = pRes.data;
+  const statusAkun = evaluasiStatusChess(profil.status);
+
+  if (statusAkun.diblokir) {
+    await blokir({
+      username: uname,
+      playerId: profil.player_id ?? rekam.playerId ?? null,
+      identitas: rekam.identitas || {},
+      alasan: statusAkun.alasan,
+      keterangan: statusAkun.keterangan,
+      sumber: "otomatis",
+    });
+    await catatJejak("verifikasi-mandiri-ditolak", {
+      username: uname,
+      sebab: "tolak-fair-play",
+      ip: konteks.ip,
+    });
+    throw new GalatAplikasi(
+      403,
+      "Akun Chess.com ini ditutup karena pelanggaran fair play, sehingga tidak dapat diverifikasi.",
+      { alasan: statusAkun.alasan, diblokir: true }
+    );
+  }
+
+  if (statusAkun.ditutup) {
+    throw new GalatAplikasi(
+      403,
+      "Akun Chess.com ini sudah ditutup dan tidak dapat diverifikasi."
+    );
+  }
+
+  /* Username yang dikembalikan profil harus sama dengan yang diverifikasi.
+     Bila berbeda, tiket tadi tidak lagi membuktikan kepemilikan username ini. */
+  const dariProfil = periksaUsername(profil.username || uname);
+  if (!dariProfil.sah || dariProfil.username !== uname) {
+    await catatJejak("verifikasi-mandiri-ditolak", {
+      username: uname,
+      sebab: "username-profil-beda",
+      ip: konteks.ip,
+    });
+    throw new GalatAplikasi(
+      409,
+      "Username pada profil Chess.com tidak sama dengan akun yang diverifikasi.",
+      { galat: { username: "Profil Chess.com tidak cocok dengan username yang diverifikasi." } }
+    );
+  }
+
+  /* 5. Terapkan DI DALAM antrean tulis: tiket diperiksa ulang lalu ditandai
+        dipakai pada saat yang sama dengan penulisan status. */
+  const hasil = await repoAnggota.ubah(async (daftar) => {
+    const ulang = periksaTiket(tiketVerifikasi, uname);
+    if (!ulang.sah) tolakTiket(ulang.sebab || "tidak-sah", 409);
+
+    const i = daftar.findIndex(
+      (a) => String(a.username || "").toLowerCase() === uname
+    );
+    if (i === -1) {
+      throw new GalatAplikasi(404, "Anggota tidak ditemukan.");
+    }
+
+    tandaiTiketDipakai(ulang.data.jti, ulang.data.exp);
+
+    const sekarang = new Date().toISOString();
+    const diperbarui = {
+      ...daftar[i],
+      // Status terverifikasi HANYA dari bukti yang diverifikasi server.
+      terverifikasi: true,
+      caraVerifikasi: ulang.data.cara,
+      terverifikasiPada: sekarang,
+      // Bersihkan penanda pemindaian otomatis: akun ini sudah punya bukti baru.
+      perluVerifikasiUlang: false,
+      alasanStatus: null,
+      statusChess: profil.status || null,
+      playerId: profil.player_id ?? daftar[i].playerId ?? null,
+      diverifikasiMandiriPada: sekarang,
+      /* `pengajuanVerifikasi` sengaja tidak disetel "disetujui": itu artinya
+         pengurus yang menyetujui. Jalur ini adalah bukti mandiri. */
+    };
+    const salinan = [...daftar];
+    salinan[i] = diperbarui;
+    return {
+      data: salinan,
+      hasil: {
+        username: uname,
+        terverifikasi: true,
+        caraVerifikasi: ulang.data.cara,
+        terverifikasiPada: sekarang,
+        perluVerifikasiUlang: false,
+      },
+    };
+  });
+
+  await catatJejak("verifikasi-mandiri", {
+    username: uname,
+    cara: hasil.caraVerifikasi,
+    ip: konteks.ip,
+  });
+  hapusCache(uname);
+  usangkanRoster();
+  // Tiket TIDAK ikut dikembalikan ke klien.
+  return hasil;
 }
 
 /** Cabut larangan. */
@@ -989,71 +1243,183 @@ export async function bukaBlokir(username) {
 }
 
 /**
- * Pindai seluruh anggota ke Chess.com; yang kena ban fair play otomatis
- * dipindahkan ke daftar hitam.
+ * Jumlah maksimum username yang diperiksa dalam SATU invokasi pemindaian.
+ *
+ * Setiap username = satu permintaan profil ke Chess.com, dan chess.js membatasi
+ * lima koneksi keluar bersamaan. Di Vercel fungsi dibatasi `maxDuration: 60`,
+ * jadi memindai roster besar sekaligus bisa timeout di tengah jalan dan tidak
+ * menghasilkan apa pun. Pemindaian dipecah per batch dan dilanjutkan lewat
+ * kursor yang disimpan di `terakhir-pindai.json`.
  */
-export async function pindaiFairPlay() {
-  // Yang dipindai adalah roster Chess.com, bukan hanya akun yang pernah
-  // mengisi formulir lokal. Data lokal dipakai bila tersedia agar hash
-  // identitas tetap ikut tercatat ketika suatu akun diblokir.
+export const MAKS_PINDAI_PER_JALAN = 40;
+
+/** Kumpulkan pencabutan verifikasi satu entri untuk penulisan berikutnya. */
+function kumpulkanCabut(pembaruan, rekam, alasan, hasil) {
+  pembaruan.set(rekam.username, {
+    ...(pembaruan.get(rekam.username) || {}),
+    terverifikasi: false,
+    perluVerifikasiUlang: true,
+    alasanStatus: alasan || null,
+    diperiksaPada: new Date().toISOString(),
+  });
+  // Dihitung hanya bila statusnya BENAR-BENAR turun, supaya angka di dasbor
+  // tidak membengkak setiap kali pemindaian mengulang akun yang sama.
+  if (rekam.terverifikasi === true) hasil.dicabut.push(rekam.username);
+}
+
+/**
+ * Kumpulkan penandaan PERLU DIPERIKSA ULANG tanpa mencabut verifikasi.
+ * Dipakai untuk sinyal yang tidak cukup kuat sebagai bukti.
+ */
+function kumpulkanTandai(pembaruan, rekam, alasan, hasil) {
+  pembaruan.set(rekam.username, {
+    ...(pembaruan.get(rekam.username) || {}),
+    perluVerifikasiUlang: true,
+    alasanStatus: alasan || null,
+    diperiksaPada: new Date().toISOString(),
+  });
+  if (rekam.perluVerifikasiUlang !== true) hasil.ditandai.push(rekam.username);
+}
+
+/**
+ * Pindai status akun Chess.com, lalu cabut verifikasi akun yang bermasalah.
+ *
+ * SUMBER YANG DIPINDAI adalah GABUNGAN roster klub Chess.com dan anggota yang
+ * tercatat di situs (`data/anggota.json`). Sebelumnya hanya roster yang
+ * dipindai, sehingga dua kelompok penting lolos dari pemeriksaan:
+ *   - anggota yang keluar atau dikeluarkan dari klub Chess.com;
+ *   - anggota yang dulu mendaftar tanpa bukti kepemilikan akun.
+ * Justru mereka yang paling mungkin memakai engine lalu kena ban fair play,
+ * dan ban semacam itu tidak akan pernah terlacak bila hanya roster yang dilihat.
+ *
+ * Yang ditulis balik ke entri anggota:
+ *   - ban fair play, akun ditutup, atau akun hilang (404 definitif)
+ *       -> `terverifikasi:false` + `perluVerifikasiUlang:true` + `alasanStatus`
+ *          + `diperiksaPada`, plus jejak audit `verifikasi-dicabut`.
+ *   - tidak lagi muncul di roster klub
+ *       -> `perluVerifikasiUlang:true` SAJA, verifikasi TIDAK dicabut.
+ *     Endpoint roster Chess.com resmi bisa tertinggal hingga 12 jam, jadi
+ *     "tidak ada di roster" bukan bukti yang cukup kuat untuk mencabut
+ *     verifikasi anggota yang sah. Keputusan tetap di pengurus.
+ *
+ * Kegagalan jaringan, timeout, atau 5xx TIDAK PERNAH mencabut apa pun — hanya
+ * dihitung di `hasil.gagal`. Ini rem pengaman saat Chess.com sedang down:
+ * gangguan di sisi Chess.com tidak boleh mengubah data anggota kami.
+ *
+ * Pencabutan bersifat satu arah. Pemindaian tidak pernah memulihkan
+ * `terverifikasi:true`; pemulihan hanya lewat bukti baru (verifikasi mandiri,
+ * OAuth, atau kode profil) atau tindakan pengurus.
+ *
+ * Semua fetch HTTP dijalankan DI LUAR antrean tulis: `berurutan()` di
+ * simpanan.js adalah satu antrean global, sehingga menahan antrean sambil
+ * menunggu jaringan akan menyumbat seluruh penulisan data. Hasilnya
+ * dikumpulkan dulu, lalu ditulis dalam satu `repoAnggota.ubah()`.
+ *
+ * @param {{batas?: number, kursor?: string}} [opsi] `kursor` = username terakhir
+ *   yang sudah diperiksa pada batch sebelumnya; batch ini mulai sesudahnya.
+ */
+export async function pindaiFairPlay({ batas = MAKS_PINDAI_PER_JALAN, kursor = "" } = {}) {
+  // Data lokal dibaca lebih dulu agar hash identitas tetap ikut tercatat
+  // ketika suatu akun harus diblokir.
+  /* Kegagalan roster TIDAK boleh membatalkan pemindaian: anggota situs tetap
+     diperiksa walau endpoint klub Chess.com sedang bermasalah. */
   const [anggotaLokal, anggotaKlub] = await Promise.all([
     repoAnggota.baca(),
-    daftarAnggotaKlub(),
+    daftarAnggotaKlub().catch(() => null),
   ]);
-  const lokalPerUsername = new Map(
-    anggotaLokal.map((a) => [a.username, a])
-  );
-  const pembaruanLokal = new Map();
+  const rosterTersedia = Array.isArray(anggotaKlub);
+  const roster = rosterTersedia ? anggotaKlub : [];
+  const lokalPerUsername = new Map(anggotaLokal.map((a) => [a.username, a]));
+  const rosterKlub = new Set(roster.map((a) => a.username));
+
+  /* Gabungan roster + anggota situs, diurutkan agar kursor stabil antar
+     invokasi (urutan dari Chess.com tidak dijamin sama setiap kali). */
+  const gabungan = [...new Set([...rosterKlub, ...lokalPerUsername.keys()])].sort();
+  const mulai = kursor ? Math.max(0, gabungan.findIndex((u) => u > kursor)) : 0;
+  const batch = gabungan.slice(mulai, mulai + Math.max(1, batas));
+
   const hasil = {
     diperiksa: 0,
     diblokir: [],
     ditutup: [],
     hilang: [],
     gagal: [],
+    dicabut: [],
+    ditandai: [],
+    jumlahKlub: rosterTersedia ? rosterKlub.size : null,
+    jumlahSitus: lokalPerUsername.size,
+    jumlahGabungan: gabungan.length,
+    kursor,
+    kursorLanjut: batch.length ? batch[batch.length - 1] : kursor,
+    selesai: mulai + batch.length >= gabungan.length,
   };
 
-  // Promise seluruh roster dijalankan bersamaan, tetapi chess.js tetap
-  // membatasi koneksi keluar menjadi lima sehingga tidak membanjiri API.
+  const pembaruanLokal = new Map();
+
+  /* Janji seluruh batch dijalankan bersamaan, tetapi chess.js tetap membatasi
+     koneksi keluar menjadi lima sehingga tidak membanjiri API. */
   await Promise.all(
-    anggotaKlub.map(async (a) => {
+    batch.map(async (username) => {
       hasil.diperiksa += 1;
-      const rekamLokal = lokalPerUsername.get(a.username);
+      const rekamLokal = lokalPerUsername.get(username);
       try {
-        const pRes = await ambilProfil(a.username, { pakaiCache: false });
+        const pRes = await ambilProfil(username, { pakaiCache: false });
+
+        /* 404 DEFINITIF: permintaan berhasil dan akun memang tidak ada.
+           Kegagalan jaringan ditangani blok catch, bukan di sini. */
         if (!pRes.ada) {
-          hasil.hilang.push(a.username);
+          hasil.hilang.push(username);
+          if (rekamLokal) kumpulkanCabut(pembaruanLokal, rekamLokal, "akun-hilang", hasil);
           return;
         }
+
         const profil = pRes.data;
         const st = evaluasiStatusChess(profil.status);
+        let alasanCabut = null;
 
         if (st.diblokir) {
           await blokir({
-            username: a.username,
+            username,
             playerId: profil.player_id ?? rekamLokal?.playerId ?? null,
             identitas: rekamLokal?.identitas || {},
             alasan: st.alasan,
             keterangan: st.keterangan,
             sumber: "otomatis",
           });
-          hasil.diblokir.push(a.username);
+          hasil.diblokir.push(username);
+          alasanCabut = st.alasan;
+        } else if (st.ditutup) {
+          hasil.ditutup.push(username);
+          alasanCabut = "closed";
         }
 
-        if (st.ditutup) hasil.ditutup.push(a.username);
         if (rekamLokal) {
-          pembaruanLokal.set(a.username, {
+          if (alasanCabut) {
+            kumpulkanCabut(pembaruanLokal, rekamLokal, alasanCabut, hasil);
+          } else if (rosterTersedia && !rosterKlub.has(username)) {
+            /* Hanya bila roster benar-benar terbaca. Kalau endpoint klub gagal,
+               "tidak ada di roster" tidak bisa dibedakan dari "roster tidak
+               tersedia", dan menandai seluruh anggota akan jadi banjir
+               positif palsu. */
+            kumpulkanTandai(pembaruanLokal, rekamLokal, "keluar-klub", hasil);
+          }
+          /* Metadata Chess.com tetap disegarkan. Penandaan yang sudah
+             dikumpulkan ditumpuk di atasnya supaya tidak tertimpa. */
+          pembaruanLokal.set(username, {
             statusChess: profil.status || null,
             playerId: profil.player_id ?? rekamLokal.playerId ?? null,
+            ...(pembaruanLokal.get(username) || {}),
           });
         }
       } catch (e) {
-        hasil.gagal.push({ username: a.username, sebab: e.message });
+        /* Chess.com down / timeout / 5xx: JANGAN sentuh data anggota. */
+        hasil.gagal.push({ username, sebab: e.message });
       }
     })
   );
 
-  // Hanya metadata anggota yang pernah mendaftar lokal yang ditulis balik;
-  // roster utama tidak disalin ke data/anggota.json.
+  /* Hanya metadata anggota yang pernah mendaftar lokal yang ditulis balik;
+     roster utama tidak disalin ke data/anggota.json. */
   if (pembaruanLokal.size) {
     await repoAnggota.ubah(async (daftar) => ({
       data: daftar.map((a) => ({
@@ -1068,9 +1434,21 @@ export async function pindaiFairPlay() {
   await catatJejak("pindai-fairplay", {
     diperiksa: hasil.diperiksa,
     diblokir: hasil.diblokir.length,
+    dicabut: hasil.dicabut.length,
+    ditandai: hasil.ditandai.length,
+    selesai: hasil.selesai,
   });
-  // Hapus cache untuk anggota yang di-scan agar data terbaru diambil
-  for (const a of anggotaKlub) hapusCache(a.username);
+  /* Jejak per akun ditulis SETELAH penulisan berhasil, supaya audit tidak
+     mengklaim pencabutan yang ternyata gagal tersimpan. */
+  for (const username of hasil.dicabut) {
+    await catatJejak("verifikasi-dicabut", {
+      username,
+      alasan: pembaruanLokal.get(username)?.alasanStatus || null,
+      sumber: "pindai-otomatis",
+    });
+  }
+  // Hapus cache untuk anggota yang dipindai agar data terbaru diambil
+  for (const username of batch) hapusCache(username);
   usangkanRoster();
   return hasil;
 }
@@ -1124,6 +1502,12 @@ export async function ringkasan() {
     daftarHitam: hitam.length,
     otomatis: hitam.filter((h) => h.sumber === "otomatis").length,
     pengurus: hitam.filter((h) => h.sumber === "pengurus").length,
+    /* Anggota situs yang verifikasinya perlu ditindak. `perluVerifikasiUlang`
+       dipasang pemindaian otomatis; `belumTerverifikasi` adalah anggota yang
+       sejak awal tidak punya bukti kepemilikan akun. Keduanya ditampilkan di
+       dasbor supaya pengurus tidak perlu menunggu keluhan masuk. */
+    perluVerifikasiUlang: anggotaLokal.filter((a) => a.perluVerifikasiUlang === true).length,
+    belumTerverifikasi: anggotaLokal.filter((a) => a.terverifikasi !== true).length,
     // Catatan: sidikPepper() sengaja TIDAK dikirim ke klien. Ia hanya
     // dipakai server untuk mendeteksi perubahan pepper antar-berkas.
   };
@@ -1131,34 +1515,182 @@ export async function ringkasan() {
 
 /**
  * Pindai fair play secara otomatis — hanya jika sudah lebih dari 6 jam
- * sejak pemindaian terakhir. Mengembalikan hasil scan bila dijalankan,
- * atau null bila belum waktunya.
+ * sejak putaran terakhir, ATAU putaran sebelumnya belum tuntas.
+ * Mengembalikan hasil scan bila dijalankan, atau null bila belum waktunya.
  */
-export async function pindaiFairPlayOtomatis() {
-  const berkasMeta = path.join(konfigurasi.dirData, "terakhir-pindai.json");
-  let meta = {};
+const BERKAS_META_PINDAI = () => path.join(konfigurasi.dirData, "terakhir-pindai.json");
+
+/** Baca marker putaran pemindaian. Tidak pernah melempar. */
+async function bacaMetaPindai() {
   try {
-    meta = await bacaJson(berkasMeta, {});
+    const meta = await bacaJson(BERKAS_META_PINDAI(), {});
+    return meta && typeof meta === "object" && !Array.isArray(meta) ? meta : {};
   } catch {
-    /* pertama kali — belum ada berkas */
+    return {}; // pertama kali — belum ada berkas
   }
+}
 
-  const ENAM_JAM = 6 * 60 * 60 * 1000;
-  const terakhir = meta.waktu ? new Date(meta.waktu).getTime() : 0;
-  if (Date.now() - terakhir < ENAM_JAM) {
-    return null; // belum waktunya
-  }
+/** Apakah masih ada sisa batch dari putaran yang belum tuntas? */
+const adaSisaBatch = (meta) => meta.selesai === false && Boolean(meta.kursor);
 
-  const hasil = await pindaiFairPlay();
+/**
+ * Jalankan SATU batch pemindaian dan simpan kemajuannya.
+ *
+ * Kursor ikut disimpan supaya roster yang lebih besar dari satu batch tetap
+ * tuntas tergarap: batch berikutnya mulai tepat setelah username terakhir,
+ * bukan mengulang dari awal. Tanpa ini, akun di ujung daftar tidak pernah
+ * terperiksa dan ban-nya tidak pernah terlacak.
+ */
+async function jalankanSatuBatch(meta) {
+  const hasil = await pindaiFairPlay({
+    kursor: adaSisaBatch(meta) ? meta.kursor : "",
+  });
 
-  // Catat kapan terakhir kali scan dijalankan.
-  await tulisJson(berkasMeta, {
-    waktu: new Date().toISOString(),
+  /* `waktu` = selesainya satu PUTARAN penuh, bukan setiap batch, supaya
+     throttle 6 jam dihitung dari putaran terakhir yang tuntas. */
+  await tulisJson(BERKAS_META_PINDAI(), {
+    waktu: hasil.selesai ? new Date().toISOString() : meta.waktu || null,
+    kursor: hasil.selesai ? "" : hasil.kursorLanjut,
+    selesai: hasil.selesai,
     diperiksa: hasil.diperiksa,
     diblokir: hasil.diblokir.length,
+    dicabut: hasil.dicabut.length,
+    ditandai: hasil.ditandai.length,
+    gagal: hasil.gagal.length,
+    diperbaruiPada: new Date().toISOString(),
   });
 
   return hasil;
+}
+
+/**
+ * Pindai fair play secara otomatis — hanya jika sudah lebih dari 6 jam
+ * sejak putaran terakhir, ATAU putaran sebelumnya belum tuntas.
+ * Mengembalikan hasil scan bila dijalankan, atau null bila belum waktunya.
+ */
+export async function pindaiFairPlayOtomatis() {
+  const meta = await bacaMetaPindai();
+  const ENAM_JAM = 6 * 60 * 60 * 1000;
+  const terakhir = meta.waktu ? new Date(meta.waktu).getTime() : 0;
+  /* Batch yang belum tuntas dilanjutkan TANPA menunggu jeda 6 jam. Kalau
+     tidak, roster besar tidak akan pernah selesai dipindai. */
+  if (!adaSisaBatch(meta) && Date.now() - terakhir < ENAM_JAM) {
+    return null; // belum waktunya
+  }
+  return jalankanSatuBatch(meta);
+}
+
+/**
+ * Satu batch pemindaian TANPA throttle 6 jam — dipakai tombol "Pindai sekarang"
+ * di dasbor pengurus. Tetap melanjutkan kursor yang tersimpan, jadi menekan
+ * tombol berulang kali benar-benar menyusuri seluruh roster, bukan mengulang
+ * 40 akun pertama terus-menerus.
+ */
+export async function pindaiFairPlayLanjut() {
+  return jalankanSatuBatch(await bacaMetaPindai());
+}
+
+/**
+ * Pemindaian terjadwal: jalankan batch BERUNTUN sampai roster tuntas atau
+ * anggaran waktu habis.
+ *
+ * Mengapa tidak satu batch saja: paket Vercel Hobby hanya mengizinkan cron
+ * sekali sehari (ekspresi yang lebih sering membuat DEPLOYMENT GAGAL, bukan
+ * sekadar diperlambat). Dengan satu pemanggilan per hari, satu batch 40 akun
+ * berarti roster besar baru tuntas berhari-hari — dan ban di ujung daftar
+ * tetap tidak terlacak. Loop beranggaran waktu menutup itu: satu pemanggilan
+ * cron mengerjakan sebanyak yang muat dalam `maxDuration`.
+ *
+ * `anggaranMs` sengaja di bawah `maxDuration: 60` supaya fungsi sempat
+ * menyimpan kursor dan menjawab 200, bukan mati dipotong di tengah.
+ *
+ * Throttle 6 jam diperiksa DI SINI (bukan oleh pemanggil) supaya satu
+ * pemanggilan cron = tepat satu rangkaian batch. Kalau pemanggil menjalankan
+ * satu batch lebih dulu lalu memanggil fungsi ini, batch pertama akan terulang.
+ *
+ * @param {{anggaranMs?: number, paksa?: boolean}} [opsi] `paksa:true` melewati
+ *   throttle — dipakai uji dan pemulihan manual.
+ */
+export async function pindaiFairPlayTerjadwal({ anggaranMs = 45000, paksa = false } = {}) {
+  const ENAM_JAM = 6 * 60 * 60 * 1000;
+  if (!paksa) {
+    const metaAwal = await bacaMetaPindai();
+    const terakhir = metaAwal.waktu ? new Date(metaAwal.waktu).getTime() : 0;
+    if (!adaSisaBatch(metaAwal) && Date.now() - terakhir < ENAM_JAM) {
+      // Belum waktunya. Jawaban normal, bukan kegagalan.
+      return { dijalankan: false, batch: 0, diperiksa: 0, selesai: false };
+    }
+  }
+
+  const mulaiPada = Date.now();
+  const ringkas = {
+    dijalankan: true,
+    batch: 0,
+    diperiksa: 0,
+    diblokir: [],
+    ditutup: [],
+    hilang: [],
+    gagal: [],
+    dicabut: [],
+    ditandai: [],
+    selesai: false,
+    anggaranHabis: false,
+    durasiMs: 0,
+  };
+  for (;;) {
+    const hasil = await jalankanSatuBatch(await bacaMetaPindai());
+    ringkas.batch += 1;
+    ringkas.diperiksa += hasil.diperiksa;
+    for (const kunci of ["diblokir", "ditutup", "hilang", "gagal", "dicabut", "ditandai"]) {
+      ringkas[kunci].push(...(hasil[kunci] || []));
+    }
+    ringkas.selesai = hasil.selesai;
+
+    if (hasil.selesai) break;
+    /* Rem pengaman: bila kursor tidak maju (gabungan kosong, atau kursor
+       tersimpan menunjuk melewati ujung daftar), berhenti daripada berputar
+       selamanya sampai durasi fungsi dipotong Vercel di tengah. */
+    if (hasil.kursorLanjut === hasil.kursor) break;
+    if (Date.now() - mulaiPada >= anggaranMs) {
+      ringkas.anggaranHabis = true;
+      break;
+    }
+  }
+
+  ringkas.durasiMs = Date.now() - mulaiPada;
+  // Daftar username tetap dikembalikan (dipakai log/notifikasi), ditambah
+  // bentuk angka supaya pemantau eksternal mudah membacanya.
+  return {
+    ...ringkas,
+    jumlahDiblokir: ringkas.diblokir.length,
+    jumlahDicabut: ringkas.dicabut.length,
+    jumlahDitandai: ringkas.ditandai.length,
+    jumlahGagal: ringkas.gagal.length,
+  };
+}
+
+/**
+ * Ringkasan pemindaian terakhir untuk dasbor pengurus dan `/api/kesehatan`.
+ * Dibaca dari berkas marker yang sama dengan `pindaiFairPlayOtomatis()`.
+ * Tidak pernah melempar: ketiadaan berkas berarti "belum pernah dipindai".
+ */
+export async function statusPindaiTerakhir() {
+  const meta = await bacaMetaPindai();
+  if (!meta.pernah && !meta.waktu && !meta.diperbaruiPada && meta.selesai === undefined) {
+    return { pernah: false };
+  }
+  return {
+    pernah: true,
+    waktu: meta.waktu || null,
+    diperbaruiPada: meta.diperbaruiPada || meta.waktu || null,
+    selesai: meta.selesai !== false,
+    kursor: meta.kursor || "",
+    diperiksa: meta.diperiksa ?? 0,
+    diblokir: meta.diblokir ?? 0,
+    dicabut: meta.dicabut ?? 0,
+    ditandai: meta.ditandai ?? 0,
+    gagal: meta.gagal ?? 0,
+  };
 }
 
 export { repoAnggota, repoHitam, repoKontak, repoRoster };

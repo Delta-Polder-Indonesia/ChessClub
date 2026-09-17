@@ -36,6 +36,18 @@ const cek = (nama, syarat, rincian = "") => {
   }
 };
 
+/**
+ * Hapus direktori data uji.
+ *
+ * `maxRetries` bukan hiasan: server anak menutup dengan anggun saat menerima
+ * SIGTERM dan masih sempat menuliskan jejak audit, jadi berkas baru bisa
+ * muncul ketika `rmSync` sedang menyusuri pohon direktori. Tanpa percobaan
+ * ulang, pembersihan ini sesekali melempar ENOTEMPTY dan menjatuhkan seluruh
+ * suite — kegagalan di langkah bersih-bersih, bukan pada perilaku yang diuji.
+ */
+const bersihkanDirData = (dir) =>
+  fs.rmSync(dir, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+
 /** Jalankan `isi` dan kembalikan pesan galatnya (atau null bila lolos). */
 async function galatDari(isi) {
   try {
@@ -1017,8 +1029,1072 @@ console.log("\nTantangan kode profil (penyimpanan, siklus, isolasi proses)");
   } finally {
     server?.hentikan();
     peniru.server.close();
-    fs.rmSync(DIR_BERSAMA, { recursive: true, force: true });
-    fs.rmSync(DIR_LAIN, { recursive: true, force: true });
+    bersihkanDirData(DIR_BERSAMA);
+    bersihkanDirData(DIR_LAIN);
+  }
+}
+
+/* ============ PEMINDAIAN BAN FAIR PLAY: jangkauan, pencabutan, batch, cron */
+
+/* Inti keluhan pengguna: "banyak anggota memakai engine, jadi datanya tidak
+   terlacak kalau dia kena banned." Yang diuji di sini:
+     1. pemindaian menjangkau anggota SITUS, bukan hanya roster klub;
+     2. ban fair play / akun ditutup / akun hilang mencabut verifikasi;
+     3. Chess.com down TIDAK mencabut apa pun (rem pengaman);
+     4. keluar dari klub hanya menandai, tidak mencabut (roster bisa telat 12 jam);
+     5. batch + kursor menyusuri roster besar tanpa mengulang dari awal;
+     6. endpoint cron terkunci KCI_CRON_SECRET dan gagal aman bila kosong. */
+console.log("\nPemindaian fair play (jangkauan anggota situs & pencabutan verifikasi)");
+{
+  const { luncurkanServerUji, ambilTokenCsrf, nyalakanPeniruChess } = await import(
+    "./alat-uji.mjs"
+  );
+
+  /** Tulis langsung data anggota: pemindaian harus menjangkau akun yang
+   *  TIDAK ada di roster klub, dan itu tidak bisa dibuat lewat pendaftaran
+   *  (pendaftaran justru menolak username di luar roster). */
+  const tulisAnggota = (dir, daftar) =>
+    fs.writeFileSync(path.join(dir, "anggota.json"), JSON.stringify(daftar, null, 2));
+  const bacaAnggota = (dir) => {
+    try {
+      return JSON.parse(fs.readFileSync(path.join(dir, "anggota.json"), "utf8"));
+    } catch {
+      return [];
+    }
+  };
+  const cariAnggota = (dir, username) =>
+    bacaAnggota(dir).find((a) => a.username === username) || null;
+  const bacaHitam = (dir) => {
+    try {
+      return JSON.parse(fs.readFileSync(path.join(dir, "daftar-hitam.json"), "utf8"));
+    } catch {
+      return [];
+    }
+  };
+
+  /* Anggota situs yang sengaja TIDAK ada di roster klub tiruan
+     (roster = magnuscarlsen, gothamchess, hikaru). */
+  const anggotaAwal = [
+    { username: "hikaru", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+    { username: "tukang_engine", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+    { username: "akun_ditutup", terverifikasi: true, caraVerifikasi: "kode", identitas: {} },
+    { username: "akun_hilang", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+    { username: "di_luar_klub", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+  ];
+
+  const peniru = await nyalakanPeniruChess({
+    tukang_engine: {
+      username: "Tukang_Engine",
+      player_id: 9001,
+      status: "closed:fair_play_violations",
+      name: "Pemain Engine",
+    },
+    akun_ditutup: {
+      username: "Akun_Ditutup",
+      player_id: 9002,
+      status: "closed",
+      name: "Akun Ditutup",
+    },
+    // "akun_hilang" sengaja TIDAK didefinisikan -> mock menjawab 404.
+  });
+
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-pindai-"));
+  tulisAnggota(DIR, anggotaAwal);
+
+  const server = await luncurkanServerUji({
+    chessDasar: peniru.dasar,
+    env: {
+      KCI_DIR_DATA: DIR,
+      KCI_BATAS_UMUM: "5000",
+      KCI_BATAS_DAFTAR: "500",
+    },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  const pindai = async () => {
+    const r = await fetch(server.dasar + "/api/pengurus/pindai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Token-Admin": server.token,
+        "X-Forwarded-For": "10.88.0.1",
+      },
+      body: "{}",
+    });
+    return { status: r.status, data: await r.json().catch(() => null) };
+  };
+
+  try {
+    const hasil = await pindai();
+    cek("pindai -> 200", hasil.status === 200, `dapat ${hasil.status}`);
+
+    /* 1. JANGKAUAN: anggota situs yang tidak ada di roster ikut dipindai.
+          Sebelum perbaikan hanya 3 akun roster yang diperiksa, jadi akun
+          pemakai engine di bawah ini tidak pernah terlihat sama sekali. */
+    cek(
+      "memindai gabungan roster + anggota situs (bukan roster saja)",
+      hasil.data?.jumlahGabungan === 7 &&
+        hasil.data?.jumlahKlub === 3 &&
+        hasil.data?.jumlahSitus === 5 &&
+        hasil.data?.diperiksa === 7,
+      JSON.stringify({
+        gabungan: hasil.data?.jumlahGabungan,
+        klub: hasil.data?.jumlahKlub,
+        situs: hasil.data?.jumlahSitus,
+        diperiksa: hasil.data?.diperiksa,
+      })
+    );
+
+    cek(
+      "ban fair play terdeteksi pada akun DI LUAR roster",
+      (hasil.data?.diblokir || []).includes("tukang_engine"),
+      JSON.stringify(hasil.data?.diblokir)
+    );
+    cek(
+      "akun ditutup terdeteksi",
+      (hasil.data?.ditutup || []).includes("akun_ditutup")
+    );
+    cek(
+      "akun hilang (404) terdeteksi",
+      (hasil.data?.hilang || []).includes("akun_hilang")
+    );
+    cek(
+      "tidak ada kegagalan jaringan pada pemindaian ini",
+      (hasil.data?.gagal || []).length === 0,
+      JSON.stringify(hasil.data?.gagal)
+    );
+
+    /* 2. PENCABUTAN verifikasi pada tiga sinyal yang berwenang. */
+    const engine = cariAnggota(DIR, "tukang_engine");
+    cek(
+      "ban fair play -> terverifikasi:false + perluVerifikasiUlang:true",
+      engine?.terverifikasi === false && engine?.perluVerifikasiUlang === true,
+      JSON.stringify(engine)?.slice(0, 200)
+    );
+    cek(
+      "ban fair play -> alasanStatus + diperiksaPada tercatat",
+      engine?.alasanStatus === "fair_play_violations" &&
+        Boolean(engine?.diperiksaPada) &&
+        !Number.isNaN(Date.parse(engine?.diperiksaPada || "")),
+      JSON.stringify({ alasan: engine?.alasanStatus, pada: engine?.diperiksaPada })
+    );
+
+    const ditutup = cariAnggota(DIR, "akun_ditutup");
+    cek(
+      "akun ditutup -> verifikasi dicabut dengan alasan 'closed'",
+      ditutup?.terverifikasi === false && ditutup?.alasanStatus === "closed"
+    );
+
+    const hilang = cariAnggota(DIR, "akun_hilang");
+    cek(
+      "akun hilang -> verifikasi dicabut dengan alasan 'akun-hilang'",
+      hilang?.terverifikasi === false && hilang?.alasanStatus === "akun-hilang"
+    );
+
+    cek(
+      "tiga akun tercabut dilaporkan di hasil",
+      (hasil.data?.dicabut || []).length === 3,
+      JSON.stringify(hasil.data?.dicabut)
+    );
+
+    /* 3. Daftar hitam: hanya ban fair play, sesuai perilaku yang sudah ada.
+          Anggota yang sekadar keluar klub tidak boleh dipermalukan di daftar
+          hitam publik. */
+    const hitam = bacaHitam(DIR);
+    cek(
+      "ban fair play otomatis masuk daftar hitam dengan sumber 'otomatis'",
+      hitam.some((h) => h.username === "tukang_engine" && h.sumber === "otomatis"),
+      JSON.stringify(hitam.map((h) => [h.username, h.sumber]))
+    );
+    cek(
+      "anggota yang keluar klub TIDAK dimasukkan ke daftar hitam",
+      !hitam.some((h) => h.username === "di_luar_klub")
+    );
+
+    /* 4. KELUAR KLUB: hanya ditandai, verifikasi TIDAK dicabut. */
+    const luar = cariAnggota(DIR, "di_luar_klub");
+    cek(
+      "keluar klub -> ditandai perluVerifikasiUlang tapi verifikasi TETAP ada",
+      luar?.perluVerifikasiUlang === true && luar?.terverifikasi === true,
+      JSON.stringify(luar)?.slice(0, 200)
+    );
+    cek(
+      "keluar klub -> alasanStatus 'keluar-klub'",
+      luar?.alasanStatus === "keluar-klub"
+    );
+
+    /* 5. Anggota sehat tidak tersentuh status verifikasinya. */
+    const sehat = cariAnggota(DIR, "hikaru");
+    cek(
+      "anggota sehat tetap terverifikasi dan tidak ditandai",
+      sehat?.terverifikasi === true && sehat?.perluVerifikasiUlang !== true,
+      JSON.stringify(sehat)?.slice(0, 200)
+    );
+
+    /* 6. Jejak audit per pencabutan. */
+    let jejak = "";
+    try {
+      jejak = fs.readFileSync(path.join(DIR, "rahasia", "jejak-audit.jsonl"), "utf8");
+    } catch {
+      jejak = "";
+    }
+    cek(
+      "jejak audit 'verifikasi-dicabut' tercatat",
+      jejak.includes("verifikasi-dicabut") && jejak.includes("tukang_engine"),
+      jejak ? jejak.slice(-200) : "berkas jejak tidak ditemukan"
+    );
+
+    /* 7. Dasbor menampilkan status pemindaian + jumlah yang perlu ditindak. */
+    const dasbor = await fetch(server.dasar + "/api/pengurus", {
+      headers: { "X-Token-Admin": server.token, "X-Forwarded-For": "10.88.0.2" },
+    }).then((r) => r.json());
+    cek(
+      "dasbor: perluVerifikasiUlang terhitung",
+      dasbor?.perluVerifikasiUlang === 4,
+      `dapat ${dasbor?.perluVerifikasiUlang}`
+    );
+    cek(
+      "dasbor: ban fair play otomatis terhitung",
+      dasbor?.otomatis === 1,
+      `dapat ${dasbor?.otomatis}`
+    );
+    cek(
+      "dasbor: terakhir dipindai tersedia dan putarannya tuntas",
+      dasbor?.verifikasi?.pindaiTerakhir?.pernah === true &&
+        dasbor?.verifikasi?.pindaiTerakhir?.selesai === true,
+      JSON.stringify(dasbor?.verifikasi?.pindaiTerakhir)
+    );
+    cek(
+      "dasbor: mode verifikasi ikut dilaporkan",
+      dasbor?.verifikasi?.mode === "opsional"
+    );
+
+    /* 8. Pemindaian ulang tidak menghitung ulang pencabutan yang sama,
+          jadi angka dasbor tidak membengkak tiap 6 jam. */
+    const ulang = await pindai();
+    cek(
+      "pemindaian ulang: akun yang sudah tercabut tidak dihitung lagi",
+      (ulang.data?.dicabut || []).length === 0,
+      JSON.stringify(ulang.data?.dicabut)
+    );
+    cek(
+      "pemindaian ulang: anggota sehat TIDAK ikut dicabut",
+      cariAnggota(DIR, "hikaru")?.terverifikasi === true
+    );
+  } finally {
+    server.hentikan();
+    peniru.server.close();
+    bersihkanDirData(DIR);
+  }
+}
+
+/* ------------------------- Chess.com down: jangan sentuh data anggota */
+console.log("\nPemindaian fair play — Chess.com gagal menjawab (rem pengaman)");
+{
+  const { luncurkanServerUji, ambilTokenCsrf } = await import("./alat-uji.mjs");
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-pindai-gagal-"));
+  fs.writeFileSync(
+    path.join(DIR, "anggota.json"),
+    JSON.stringify(
+      [
+        { username: "hikaru", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+        { username: "magnuscarlsen", terverifikasi: true, caraVerifikasi: "kode", identitas: {} },
+      ],
+      null,
+      2
+    )
+  );
+
+  /* Port 1 tidak didengarkan apa pun -> koneksi ditolak untuk SEMUA permintaan
+     Chess.com, persis kondisi Chess.com down. */
+  const server = await luncurkanServerUji({
+    chessDasar: "http://127.0.0.1:1",
+    env: {
+      KCI_DIR_DATA: DIR,
+      KCI_BATAS_UMUM: "5000",
+      KCI_CHESS_TIMEOUT: "400",
+      KCI_CHESS_RETRY: "1",
+    },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  try {
+    const r = await fetch(server.dasar + "/api/pengurus/pindai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Token-Admin": server.token,
+        "X-Forwarded-For": "10.88.1.1",
+      },
+      body: "{}",
+    });
+    const hasil = await r.json().catch(() => null);
+
+    cek("pindai saat Chess.com down -> 200 (tidak melempar)", r.status === 200, `dapat ${r.status}`);
+    cek(
+      "semua akun masuk 'gagal', bukan 'hilang'",
+      (hasil?.gagal || []).length === 2 && (hasil?.hilang || []).length === 0,
+      JSON.stringify({ gagal: hasil?.gagal?.length, hilang: hasil?.hilang?.length })
+    );
+    cek(
+      "tidak ada verifikasi yang dicabut",
+      (hasil?.dicabut || []).length === 0
+    );
+
+    const setelah = JSON.parse(fs.readFileSync(path.join(DIR, "anggota.json"), "utf8"));
+    cek(
+      "data anggota tidak berubah sedikit pun saat Chess.com down",
+      setelah.every((a) => a.terverifikasi === true && a.perluVerifikasiUlang !== true),
+      JSON.stringify(setelah)?.slice(0, 220)
+    );
+    cek(
+      "roster yang gagal dibaca tidak memicu penandaan 'keluar-klub' massal",
+      setelah.every((a) => a.alasanStatus !== "keluar-klub"),
+      JSON.stringify(setelah.map((a) => a.alasanStatus))
+    );
+  } finally {
+    server.hentikan();
+    bersihkanDirData(DIR);
+  }
+}
+
+/* ------------------------------------------ batch + kursor (maxDuration 60) */
+console.log("\nPemindaian fair play — batch & kursor pada roster besar");
+{
+  const { luncurkanServerUji, ambilTokenCsrf, nyalakanPeniruChess } = await import(
+    "./alat-uji.mjs"
+  );
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-pindai-batch-"));
+  /* 45 anggota situs, semuanya tak dikenal mock -> 404. Ditambah 3 akun roster
+     menjadi 48 target: lebih besar dari satu batch (40) supaya kursor terpakai. */
+  const banyak = Array.from({ length: 45 }, (_, i) => ({
+    username: `batch_${String(i + 1).padStart(3, "0")}`,
+    terverifikasi: true,
+    caraVerifikasi: "oauth",
+    identitas: {},
+  }));
+  fs.writeFileSync(path.join(DIR, "anggota.json"), JSON.stringify(banyak, null, 2));
+
+  const peniru = await nyalakanPeniruChess();
+  const server = await luncurkanServerUji({
+    chessDasar: peniru.dasar,
+    env: { KCI_DIR_DATA: DIR, KCI_BATAS_UMUM: "5000" },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  const pindai = async () => {
+    const r = await fetch(server.dasar + "/api/pengurus/pindai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Token-Admin": server.token,
+        "X-Forwarded-For": "10.88.2.1",
+      },
+      body: "{}",
+    });
+    return { status: r.status, data: await r.json().catch(() => null) };
+  };
+
+  try {
+    const pertama = await pindai();
+    cek(
+      "batch pertama dibatasi 40 akun, tidak seluruh roster sekaligus",
+      pertama.data?.diperiksa === 40,
+      `diperiksa=${pertama.data?.diperiksa}`
+    );
+    cek(
+      "batch pertama menandai putaran belum tuntas + menyimpan kursor",
+      pertama.data?.selesai === false && Boolean(pertama.data?.kursorLanjut),
+      JSON.stringify({ selesai: pertama.data?.selesai, kursor: pertama.data?.kursorLanjut })
+    );
+
+    const kedua = await pindai();
+    cek(
+      "batch kedua MELANJUTKAN dari kursor (bukan mengulang dari awal)",
+      kedua.data?.kursor === pertama.data?.kursorLanjut && kedua.data?.diperiksa === 8,
+      JSON.stringify({ kursor: kedua.data?.kursor, diperiksa: kedua.data?.diperiksa })
+    );
+    cek("batch kedua menyelesaikan putaran", kedua.data?.selesai === true);
+
+    const ketiga = await pindai();
+    cek(
+      "setelah tuntas, putaran baru mulai lagi dari awal",
+      ketiga.data?.kursor === "" && ketiga.data?.diperiksa === 40,
+      JSON.stringify({ kursor: ketiga.data?.kursor, diperiksa: ketiga.data?.diperiksa })
+    );
+
+    const semua = JSON.parse(fs.readFileSync(path.join(DIR, "anggota.json"), "utf8"));
+    cek(
+      "seluruh 45 akun akhirnya terperiksa dan tercabut (tidak ada yang terlewat)",
+      semua.length === 45 && semua.every((a) => a.terverifikasi === false),
+      `tercabut=${semua.filter((a) => a.terverifikasi === false).length}/${semua.length}`
+    );
+  } finally {
+    server.hentikan();
+    peniru.server.close();
+    bersihkanDirData(DIR);
+  }
+}
+
+/* ------------------------------------------- endpoint cron terjadwal */
+console.log("\nEndpoint cron /api/verifikasi/pindai-jadwal (KCI_CRON_SECRET)");
+{
+  const { luncurkanServerUji, nyalakanPeniruChess, ambilTokenCsrf } = await import(
+    "./alat-uji.mjs"
+  );
+  const RAHASIA_CRON = "rahasia-cron-uji-yang-cukup-panjang";
+
+  const panggil = async (dasar, headerAuth) => {
+    const r = await fetch(dasar + "/api/verifikasi/pindai-jadwal", {
+      headers: {
+        "X-Forwarded-For": "10.88.3.1",
+        ...(headerAuth ? { Authorization: headerAuth } : {}),
+      },
+    });
+    return { status: r.status, data: await r.json().catch(() => null) };
+  };
+
+  /* a) Tanpa KCI_CRON_SECRET: endpoint HARUS menolak (503), bukan terbuka. */
+  const DIR_TANPA = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-cron-tanpa-"));
+  const peniruA = await nyalakanPeniruChess();
+  const tanpaRahasia = await luncurkanServerUji({
+    chessDasar: peniruA.dasar,
+    env: { KCI_DIR_DATA: DIR_TANPA, KCI_BATAS_UMUM: "5000", KCI_CRON_SECRET: "" },
+  });
+  try {
+    const kosong = await panggil(tanpaRahasia.dasar);
+    cek(
+      "KCI_CRON_SECRET kosong -> 503 (gagal aman, bukan terbuka)",
+      kosong.status === 503 && kosong.data?.dijalankan === false,
+      `${kosong.status} ${JSON.stringify(kosong.data)?.slice(0, 140)}`
+    );
+    const nebak = await panggil(tanpaRahasia.dasar, `Bearer ${RAHASIA_CRON}`);
+    cek(
+      "KCI_CRON_SECRET kosong -> tebakan rahasia tetap 503",
+      nebak.status === 503
+    );
+  } finally {
+    tanpaRahasia.hentikan();
+    peniruA.server.close();
+    bersihkanDirData(DIR_TANPA);
+  }
+
+  /* b) Dengan KCI_CRON_SECRET: hanya bearer yang cocok yang jalan. */
+  const DIR_CRON = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-cron-"));
+  fs.writeFileSync(
+    path.join(DIR_CRON, "anggota.json"),
+    JSON.stringify(
+      [{ username: "hikaru", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} }],
+      null,
+      2
+    )
+  );
+  const peniruB = await nyalakanPeniruChess();
+  const denganRahasia = await luncurkanServerUji({
+    chessDasar: peniruB.dasar,
+    env: {
+      KCI_DIR_DATA: DIR_CRON,
+      KCI_BATAS_UMUM: "5000",
+      KCI_CRON_SECRET: RAHASIA_CRON,
+    },
+  });
+  try {
+    const tanpaHeader = await panggil(denganRahasia.dasar);
+    cek("tanpa header Authorization -> 401", tanpaHeader.status === 401, `dapat ${tanpaHeader.status}`);
+
+    const salah = await panggil(denganRahasia.dasar, `Bearer rahasia-salah`);
+    cek("bearer salah -> 401", salah.status === 401, `dapat ${salah.status}`);
+
+    const tanpaPrefix = await panggil(denganRahasia.dasar, RAHASIA_CRON);
+    cek(
+      "rahasia tanpa skema 'Bearer' -> 401",
+      tanpaPrefix.status === 401,
+      `dapat ${tanpaPrefix.status}`
+    );
+
+    const skemaSalah = await panggil(denganRahasia.dasar, `Basic ${RAHASIA_CRON}`);
+    cek("skema Basic dengan rahasia benar -> 401", skemaSalah.status === 401);
+
+    const benar = await panggil(denganRahasia.dasar, `Bearer ${RAHASIA_CRON}`);
+    cek(
+      "bearer benar -> 200 dan pemindaian dijalankan",
+      benar.status === 200 && benar.data?.dijalankan === true,
+      `${benar.status} ${JSON.stringify(benar.data)?.slice(0, 160)}`
+    );
+    cek(
+      "cron melaporkan cakupan pemindaian",
+      typeof benar.data?.diperiksa === "number" && benar.data?.diperiksa >= 1,
+      JSON.stringify({ diperiksa: benar.data?.diperiksa })
+    );
+
+    /* Throttle 6 jam: panggilan cron berikutnya dalam putaran yang sama
+       menjawab 200 dengan dijalankan:false — itu normal, bukan kegagalan. */
+    const lagi = await panggil(denganRahasia.dasar, `Bearer ${RAHASIA_CRON}`);
+    cek(
+      "pemanggilan beruntun kena throttle 6 jam -> 200 + dijalankan:false",
+      lagi.status === 200 && lagi.data?.dijalankan === false,
+      `${lagi.status} ${JSON.stringify(lagi.data)?.slice(0, 140)}`
+    );
+
+    /* Endpoint cron tidak boleh bocor jadi jalur pengurus. CSRF disertakan
+       supaya yang diukur benar-benar keputusan otorisasi admin, bukan
+       penolakan CSRF yang memang terjadi lebih dulu. */
+    const csrfCron = await ambilTokenCsrf(denganRahasia.dasar);
+    const adminPalsu = await fetch(denganRahasia.dasar + "/api/pengurus/pindai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfCron,
+        Authorization: `Bearer ${RAHASIA_CRON}`,
+        "X-Forwarded-For": "10.88.3.9",
+      },
+      body: "{}",
+    });
+    cek(
+      "rahasia cron TIDAK diterima sebagai token pengurus",
+      adminPalsu.status === 401,
+      `dapat ${adminPalsu.status}`
+    );
+  } finally {
+    denganRahasia.hentikan();
+    peniruB.server.close();
+    bersihkanDirData(DIR_CRON);
+  }
+}
+
+/* Paket Vercel Hobby MENOLAK deployment dengan cron lebih dari sekali sehari,
+   jadi pemindaian terjadwal hanya dipanggil sekali sehari. Konsekuensinya satu
+   pemanggilan HARUS menutup seluruh roster: bila hanya satu batch (40 akun)
+   yang jalan, akun di ujung daftar baru terperiksa berhari-hari kemudian.
+   Uji ini menaruh satu akun kena ban di ujung alfabet (`zzz_engine`) — batch
+   pertama tidak mungkin mencapainya — lalu memastikan satu pemanggilan cron
+   tetap menemukannya. */
+console.log("\nCron terjadwal: banyak batch dalam satu pemanggilan");
+{
+  const { luncurkanServerUji, nyalakanPeniruChess } = await import("./alat-uji.mjs");
+  const RAHASIA_CRON = "rahasia-cron-uji-yang-cukup-panjang";
+
+  /* 50 anggota sehat + 1 akun kena ban di ujung alfabet. Ditambah roster klub
+     (3 akun) gabungannya melewati batas 40 akun per batch. */
+  const pemainTambahan = {};
+  const anggotaSitus = [];
+  for (let i = 1; i <= 50; i += 1) {
+    const nama = `pemain${String(i).padStart(3, "0")}`;
+    pemainTambahan[nama] = {
+      username: nama,
+      player_id: 5000 + i,
+      status: "basic",
+      name: nama,
+    };
+    anggotaSitus.push({
+      username: nama,
+      terverifikasi: true,
+      caraVerifikasi: "oauth",
+      identitas: {},
+    });
+  }
+  pemainTambahan.zzz_engine = {
+    username: "zzz_engine",
+    player_id: 5999,
+    status: "closed:fair_play_violations",
+    name: "Kena Ban Di Ujung Daftar",
+  };
+  anggotaSitus.push({
+    username: "zzz_engine",
+    terverifikasi: true,
+    caraVerifikasi: "oauth",
+    identitas: {},
+  });
+
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-cron-batch-"));
+  fs.writeFileSync(path.join(DIR, "anggota.json"), JSON.stringify(anggotaSitus, null, 2));
+  const peniru = await nyalakanPeniruChess(pemainTambahan);
+  const server = await luncurkanServerUji({
+    chessDasar: peniru.dasar,
+    env: {
+      KCI_DIR_DATA: DIR,
+      KCI_BATAS_UMUM: "5000",
+      KCI_CRON_SECRET: RAHASIA_CRON,
+    },
+  });
+  try {
+    const r = await fetch(server.dasar + "/api/verifikasi/pindai-jadwal", {
+      headers: {
+        Authorization: `Bearer ${RAHASIA_CRON}`,
+        "X-Forwarded-For": "10.88.4.1",
+      },
+    });
+    const data = await r.json().catch(() => null);
+
+    cek(
+      "satu pemanggilan cron -> 200",
+      r.status === 200 && data?.dijalankan === true,
+      `${r.status} ${JSON.stringify(data)?.slice(0, 160)}`
+    );
+    cek(
+      "roster di atas 40 akun dikerjakan dalam LEBIH dari satu batch",
+      typeof data?.batch === "number" && data.batch >= 2,
+      `batch=${data?.batch} diperiksa=${data?.diperiksa}`
+    );
+    cek(
+      "putaran tuntas dalam satu pemanggilan (bukan berhenti di batch pertama)",
+      data?.selesai === true,
+      JSON.stringify({ selesai: data?.selesai, batch: data?.batch })
+    );
+    cek(
+      "seluruh gabungan roster + anggota situs terperiksa",
+      typeof data?.diperiksa === "number" && data.diperiksa >= 51,
+      `diperiksa=${data?.diperiksa}`
+    );
+    cek(
+      "akun kena ban di UJUNG alfabet tertangkap dalam satu pemanggilan",
+      Array.isArray(data?.diblokir) && data.diblokir.includes("zzz_engine"),
+      JSON.stringify(data?.diblokir)
+    );
+    cek(
+      "verifikasi akun kena ban itu ikut dicabut",
+      Array.isArray(data?.dicabut) && data.dicabut.includes("zzz_engine"),
+      JSON.stringify(data?.dicabut)
+    );
+
+    /* Kursor harus kosong lagi setelah putaran tuntas, supaya pemanggilan
+       berikutnya mulai dari awal daftar (bukan melewatkan 40 akun pertama). */
+    const meta = JSON.parse(
+      fs.readFileSync(path.join(DIR, "terakhir-pindai.json"), "utf8")
+    );
+    cek(
+      "kursor dikosongkan setelah putaran tuntas",
+      meta.selesai === true && meta.kursor === "" && Boolean(meta.waktu),
+      JSON.stringify({ selesai: meta.selesai, kursor: meta.kursor, waktu: meta.waktu })
+    );
+
+    /* Anggota sehat tidak boleh kehilangan verifikasi hanya karena ikut
+       terpindai — pencabutan satu arah khusus temuan nyata. */
+    const setelah = JSON.parse(fs.readFileSync(path.join(DIR, "anggota.json"), "utf8"));
+    const sehat = setelah.filter(
+      (a) => a.username.startsWith("pemain") && a.terverifikasi !== true
+    );
+    cek(
+      "50 anggota sehat tetap terverifikasi setelah pemindaian",
+      sehat.length === 0,
+      JSON.stringify(sehat.map((a) => a.username).slice(0, 5))
+    );
+  } finally {
+    server.hentikan();
+    peniru.server.close();
+    bersihkanDirData(DIR);
+  }
+}
+
+/* ================ VERIFIKASI MANDIRI (anggota lama) + GERBANG TURNAMEN */
+
+/* Tanpa jalur ini, pengetatan mode `wajib` mengunci anggota lama yang
+   terverifikasi:false secara permanen: pendaftaran menolak username yang sudah
+   ada (409), jadi mereka tidak bisa mengulang dari formulir. */
+console.log("\nVerifikasi mandiri anggota lama (POST /api/anggota/verifikasi-diri)");
+{
+  const { luncurkanServerUji, ambilTokenCsrf, nyalakanPeniruChess } = await import(
+    "./alat-uji.mjs"
+  );
+
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-mandiri-"));
+  const tulisAnggota = (daftar) =>
+    fs.writeFileSync(path.join(DIR, "anggota.json"), JSON.stringify(daftar, null, 2));
+  const cariAnggota = (username) => {
+    try {
+      return (
+        JSON.parse(fs.readFileSync(path.join(DIR, "anggota.json"), "utf8")).find(
+          (a) => a.username === username
+        ) || null
+      );
+    } catch {
+      return null;
+    }
+  };
+
+  /* hikaru: anggota lama yang dulu mendaftar tanpa bukti (di roster, sehat).
+     tukang_engine: akan kena ban fair play lewat pemindaian.
+     di_luar_klub: sehat tapi tidak ada di roster (hanya ditandai). */
+  tulisAnggota([
+    { username: "hikaru", terverifikasi: false, caraVerifikasi: null, identitas: {} },
+    { username: "tukang_engine", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+    { username: "di_luar_klub", terverifikasi: true, caraVerifikasi: "oauth", identitas: {}, perluVerifikasiUlang: true, alasanStatus: "keluar-klub" },
+  ]);
+
+  const peniru = await nyalakanPeniruChess({
+    tukang_engine: {
+      username: "Tukang_Engine",
+      player_id: 9101,
+      status: "closed:fair_play_violations",
+      name: "Pemain Engine",
+    },
+  });
+
+  const server = await luncurkanServerUji({
+    chessDasar: peniru.dasar,
+    env: { KCI_DIR_DATA: DIR, KCI_BATAS_UMUM: "5000", KCI_BATAS_DAFTAR: "500" },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  let nomorIp = 0;
+
+  const verifikasiDiri = async ({ username, tiket, tanpaCsrf = false, token } = {}) => {
+    nomorIp += 1;
+    const r = await fetch(server.dasar + "/api/anggota/verifikasi-diri", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(tanpaCsrf ? {} : { "X-CSRF-Token": csrf }),
+        ...(token ? { "X-Token-Admin": token } : {}),
+        "X-Forwarded-For": `10.99.0.${nomorIp}`,
+      },
+      body: JSON.stringify({ username, tiketVerifikasi: tiket }),
+    });
+    return { status: r.status, data: await r.json().catch(() => null) };
+  };
+
+  try {
+    /* --- Penolakan dasar ------------------------------------------------- */
+    const tanpaCsrf = await verifikasiDiri({ username: "hikaru", tiket: "x", tanpaCsrf: true });
+    cek("tanpa token CSRF -> 403", tanpaCsrf.status === 403, `dapat ${tanpaCsrf.status}`);
+
+    const tanpaTiket = await verifikasiDiri({ username: "hikaru" });
+    cek(
+      "tanpa tiket -> 403 + kodeVerifikasi 'kosong'",
+      tanpaTiket.status === 403 && tanpaTiket.data?.kodeVerifikasi === "kosong",
+      JSON.stringify(tanpaTiket.data)?.slice(0, 160)
+    );
+    cek(
+      "tanpa tiket -> status anggota tidak berubah",
+      cariAnggota("hikaru")?.terverifikasi === false
+    );
+
+    const palsu = await verifikasiDiri({ username: "hikaru", tiket: "kci1.e30.bm9wZQ" });
+    cek(
+      "tiket palsu -> 403 'tidak-sah'",
+      palsu.status === 403 && palsu.data?.kodeVerifikasi === "tidak-sah",
+      JSON.stringify(palsu.data)?.slice(0, 160)
+    );
+
+    /* Tiket sah tetapi untuk username lain: tidak boleh dipakai membajak
+       akun anggota lain. */
+    const tiketOrang = oauth.terbitkanTiket("magnuscarlsen", "oauth").tiket;
+    const bajak = await verifikasiDiri({ username: "hikaru", tiket: tiketOrang });
+    cek(
+      "tiket milik username lain -> 403 'username-beda'",
+      bajak.status === 403 && bajak.data?.kodeVerifikasi === "username-beda",
+      JSON.stringify(bajak.data)?.slice(0, 160)
+    );
+    cek(
+      "percobaan bajak tidak memverifikasi akun target",
+      cariAnggota("hikaru")?.terverifikasi === false
+    );
+
+    /* Anggota yang tidak ada: endpoint melengkapi verifikasi, bukan mendaftar. */
+    const tiketAsing = oauth.terbitkanTiket("gothamchess", "oauth").tiket;
+    const bukanAnggota = await verifikasiDiri({ username: "gothamchess", tiket: tiketAsing });
+    cek(
+      "username bukan anggota -> 404 (tidak membuat anggota baru)",
+      bukanAnggota.status === 404,
+      `${bukanAnggota.status} ${JSON.stringify(bukanAnggota.data)?.slice(0, 140)}`
+    );
+    cek(
+      "username bukan anggota tidak ditambahkan ke data",
+      cariAnggota("gothamchess") === null
+    );
+
+    /* --- Jalur bahagia --------------------------------------------------- */
+    const { tiket: tiketHikaru } = oauth.terbitkanTiket("HIKARU", "oauth");
+    const sukses = await verifikasiDiri({ username: "HIKARU", tiket: tiketHikaru });
+    cek(
+      "tiket sah (username beda kapitalisasi) -> 200 terverifikasi",
+      sukses.status === 200 && sukses.data?.terverifikasi === true,
+      `${sukses.status} ${JSON.stringify(sukses.data)?.slice(0, 180)}`
+    );
+    const sesudah = cariAnggota("hikaru");
+    cek(
+      "entri anggota tercatat terverifikasi dari bukti server",
+      sesudah?.terverifikasi === true && sesudah?.caraVerifikasi === "oauth",
+      JSON.stringify(sesudah)?.slice(0, 200)
+    );
+    cek(
+      "penanda perluVerifikasiUlang dibersihkan",
+      sesudah?.perluVerifikasiUlang === false
+    );
+    cek(
+      "tiket TIDAK dikembalikan ke klien",
+      !JSON.stringify(sukses.data || {}).includes(tiketHikaru) &&
+        sukses.data?.tiketVerifikasi === undefined,
+      JSON.stringify(sukses.data)?.slice(0, 200)
+    );
+
+    /* Tiket sekali pakai: replay harus gagal, bukan memverifikasi ulang. */
+    const replay = await verifikasiDiri({ username: "hikaru", tiket: tiketHikaru });
+    cek(
+      "tiket tidak dapat dipakai ulang (replay)",
+      replay.status !== 200 &&
+        ["sudah-dipakai", "kedaluwarsa", "tidak-sah"].includes(replay.data?.kodeVerifikasi),
+      `${replay.status} ${JSON.stringify(replay.data)?.slice(0, 160)}`
+    );
+
+    /* Penandaan "keluar-klub" bisa dibersihkan dengan bukti baru. */
+    const tiketLuar = oauth.terbitkanTiket("di_luar_klub", "kode").tiket;
+    const luar = await verifikasiDiri({ username: "di_luar_klub", tiket: tiketLuar });
+    cek(
+      "anggota di luar roster tetap bisa memverifikasi diri -> 200",
+      luar.status === 200,
+      `${luar.status} ${JSON.stringify(luar.data)?.slice(0, 160)}`
+    );
+    cek(
+      "alasanStatus 'keluar-klub' dibersihkan setelah bukti baru",
+      cariAnggota("di_luar_klub")?.alasanStatus === null &&
+        cariAnggota("di_luar_klub")?.perluVerifikasiUlang === false,
+      JSON.stringify(cariAnggota("di_luar_klub"))?.slice(0, 200)
+    );
+
+    /* --- Bypass yang harus TERTUTUP -------------------------------------- */
+    /* Pemindaian otomatis memblokir tukang_engine. Setelah itu, endpoint ini
+       tidak boleh bisa memulihkan status verifikasinya dengan tiket baru. */
+    const pindai = await fetch(server.dasar + "/api/pengurus/pindai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Token-Admin": server.token,
+        "X-Forwarded-For": "10.99.1.1",
+      },
+      body: "{}",
+    }).then((r) => r.json());
+    cek(
+      "pemindaian memblokir tukang_engine lebih dulu",
+      (pindai?.diblokir || []).includes("tukang_engine"),
+      JSON.stringify(pindai?.diblokir)
+    );
+    cek(
+      "pemindaian mencabut verifikasi tukang_engine",
+      cariAnggota("tukang_engine")?.terverifikasi === false
+    );
+
+    const tiketEngine = oauth.terbitkanTiket("tukang_engine", "oauth").tiket;
+    const pulihkan = await verifikasiDiri({ username: "tukang_engine", tiket: tiketEngine });
+    cek(
+      "akun kena ban fair play TIDAK bisa memulihkan diri lewat verifikasi mandiri",
+      pulihkan.status === 403 && pulihkan.data?.diblokir === true,
+      `${pulihkan.status} ${JSON.stringify(pulihkan.data)?.slice(0, 180)}`
+    );
+    cek(
+      "status tercabut akun banned tetap bertahan",
+      cariAnggota("tukang_engine")?.terverifikasi === false,
+      JSON.stringify(cariAnggota("tukang_engine"))?.slice(0, 200)
+    );
+
+    /* Jejak audit. */
+    let jejak = "";
+    try {
+      jejak = fs.readFileSync(path.join(DIR, "rahasia", "jejak-audit.jsonl"), "utf8");
+    } catch {
+      jejak = "";
+    }
+    cek(
+      "jejak audit 'verifikasi-mandiri' tercatat",
+      jejak.includes("verifikasi-mandiri") && jejak.includes("hikaru"),
+      jejak ? jejak.slice(-160) : "berkas jejak tidak ditemukan"
+    );
+    cek(
+      "penolakan juga meninggalkan jejak audit",
+      jejak.includes("verifikasi-mandiri-ditolak")
+    );
+
+    /* --- Gerbang turnamen (T5) ------------------------------------------ */
+    /* Turnamen dibuat tanpa pengecualian: anggota belum terverifikasi tidak
+       boleh mendaftar sendiri. */
+    tulisAnggota([
+      { username: "hikaru", terverifikasi: false, caraVerifikasi: null, identitas: {} },
+      { username: "magnuscarlsen", terverifikasi: true, caraVerifikasi: "oauth", identitas: {} },
+    ]);
+    const buatTurnamen = (nama, izinkan) =>
+      fetch(server.dasar + "/api/pengurus/turnamen", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          "X-Token-Admin": server.token,
+          "X-Forwarded-For": "10.99.2.1",
+        },
+        body: JSON.stringify({
+          jenis: "bulanan",
+          nama,
+          status: "pendaftaran",
+          ...(izinkan === undefined ? {} : { izinkanBelumTerverifikasi: izinkan }),
+        }),
+      }).then((r) => r.json());
+
+    const daftarTurnamen = async (id, username) => {
+      nomorIp += 1;
+      const r = await fetch(server.dasar + `/api/turnamen/${id}/daftar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRF-Token": csrf,
+          "X-Forwarded-For": `10.99.3.${nomorIp}`,
+        },
+        body: JSON.stringify({ username }),
+      });
+      return { status: r.status, data: await r.json().catch(() => null) };
+    };
+
+    const ketat = await buatTurnamen("Turnamen Gerbang Ketat");
+    cek("turnamen uji dibuat", Boolean(ketat?.id), JSON.stringify(ketat)?.slice(0, 160));
+
+    const belumVerif = await daftarTurnamen(ketat.id, "hikaru");
+    cek(
+      "anggota belum terverifikasi ditolak mendaftar turnamen",
+      belumVerif.status === 403 && belumVerif.data?.perluVerifikasi === true,
+      `${belumVerif.status} ${JSON.stringify(belumVerif.data)?.slice(0, 180)}`
+    );
+    cek(
+      "pesan penolakan mengarahkan melengkapi verifikasi",
+      /verifikasi/i.test(belumVerif.data?.pesan || ""),
+      belumVerif.data?.pesan
+    );
+    cek(
+      "penolakan tidak memasukkan pengajuan peserta",
+      belumVerif.data?.status !== "menunggu"
+    );
+
+    const sudahVerif = await daftarTurnamen(ketat.id, "magnuscarlsen");
+    cek(
+      "anggota terverifikasi tetap bisa mendaftar turnamen",
+      sudahVerif.status === 201,
+      `${sudahVerif.status} ${JSON.stringify(sudahVerif.data)?.slice(0, 180)}`
+    );
+
+    /* Setelah melengkapi verifikasi, anggota yang tadi ditolak bisa masuk. */
+    const tiketBaru = oauth.terbitkanTiket("hikaru", "oauth").tiket;
+    const lengkapi = await verifikasiDiri({ username: "hikaru", tiket: tiketBaru });
+    cek("anggota melengkapi verifikasi -> 200", lengkapi.status === 200, `${lengkapi.status}`);
+    const setelahLengkap = await daftarTurnamen(ketat.id, "hikaru");
+    cek(
+      "setelah terverifikasi, pendaftaran turnamen diterima",
+      setelahLengkap.status === 201,
+      `${setelahLengkap.status} ${JSON.stringify(setelahLengkap.data)?.slice(0, 180)}`
+    );
+
+    /* Pengecualian per-even yang bisa dibuka pengurus. */
+    const longgar = await buatTurnamen("Turnamen Pengecualian", true);
+    cek(
+      "pengecualian per-even tersimpan dan terumumkan",
+      longgar?.izinkanBelumTerverifikasi === true,
+      JSON.stringify({ izin: longgar?.izinkanBelumTerverifikasi })
+    );
+    tulisAnggota([
+      { username: "hikaru", terverifikasi: false, caraVerifikasi: null, identitas: {} },
+    ]);
+    const denganIzin = await daftarTurnamen(longgar.id, "hikaru");
+    cek(
+      "even dengan pengecualian menerima anggota belum terverifikasi",
+      denganIzin.status === 201,
+      `${denganIzin.status} ${JSON.stringify(denganIzin.data)?.slice(0, 180)}`
+    );
+
+  } finally {
+    server.hentikan();
+    peniru.server.close();
+    bersihkanDirData(DIR);
+  }
+}
+
+/* ------- pengecualian per-even TIDAK meloloskan akun kena ban fair play */
+
+/* Dipisah karena yang diuji harus anggota ROSTER klub: `tukang_engine` di blok
+   sebelumnya tidak ada di roster sehingga ditolak lebih dulu oleh pemeriksaan
+   keanggotaan klub, bukan oleh pemeriksaan ban. */
+console.log("\nGerbang turnamen — akun banned tidak lolos lewat pengecualian");
+{
+  const { luncurkanServerUji, ambilTokenCsrf, nyalakanPeniruChess } = await import(
+    "./alat-uji.mjs"
+  );
+  const DIR = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-gerbang-ban-"));
+  /* "hikaru" ada di roster tiruan; di sini profilnya dibuat kena ban fair play. */
+  const peniru = await nyalakanPeniruChess(
+    {},
+    {
+      ubahProfil: (u) =>
+        u === "hikaru" ? { status: "closed:fair_play_violations" } : {},
+    }
+  );
+  fs.writeFileSync(
+    path.join(DIR, "anggota.json"),
+    JSON.stringify(
+      [{ username: "hikaru", terverifikasi: false, caraVerifikasi: null, identitas: {} }],
+      null,
+      2
+    )
+  );
+  const server = await luncurkanServerUji({
+    chessDasar: peniru.dasar,
+    env: { KCI_DIR_DATA: DIR, KCI_BATAS_UMUM: "5000" },
+  });
+  const csrf = await ambilTokenCsrf(server.dasar);
+  try {
+    const buat = await fetch(server.dasar + "/api/pengurus/turnamen", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Token-Admin": server.token,
+        "X-Forwarded-For": "10.99.9.1",
+      },
+      body: JSON.stringify({
+        jenis: "bulanan",
+        nama: "Turnamen Longgar",
+        status: "pendaftaran",
+        izinkanBelumTerverifikasi: true,
+      }),
+    }).then((r) => r.json());
+
+    const daftar = await fetch(server.dasar + `/api/turnamen/${buat.id}/daftar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Forwarded-For": "10.99.9.2",
+      },
+      body: JSON.stringify({ username: "hikaru" }),
+    });
+    const data = await daftar.json().catch(() => null);
+    cek(
+      "pengecualian per-even TIDAK meloloskan akun kena ban fair play",
+      daftar.status === 403 && data?.diblokir === true,
+      `${daftar.status} ${JSON.stringify(data)?.slice(0, 180)}`
+    );
+
+    /* Verifikasi mandiri juga harus menolak, walau akunnya ada di roster. */
+    const tiket = oauth.terbitkanTiket("hikaru", "oauth").tiket;
+    const mandiri = await fetch(server.dasar + "/api/anggota/verifikasi-diri", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrf,
+        "X-Forwarded-For": "10.99.9.3",
+      },
+      body: JSON.stringify({ username: "hikaru", tiketVerifikasi: tiket }),
+    });
+    const dataMandiri = await mandiri.json().catch(() => null);
+    cek(
+      "akun banned di roster tetap ditolak verifikasi mandiri",
+      mandiri.status === 403 && dataMandiri?.diblokir === true,
+      `${mandiri.status} ${JSON.stringify(dataMandiri)?.slice(0, 180)}`
+    );
+    const setelah = JSON.parse(fs.readFileSync(path.join(DIR, "anggota.json"), "utf8"));
+    cek(
+      "verifikasi tidak dipulihkan oleh percobaan itu",
+      setelah[0]?.terverifikasi === false,
+      JSON.stringify(setelah[0])?.slice(0, 180)
+    );
+  } finally {
+    server.hentikan();
+    peniru.server.close();
+    bersihkanDirData(DIR);
   }
 }
 

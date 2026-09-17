@@ -477,7 +477,13 @@ export default function Dashboard() {
             memuat && !ringkas ? (
               <p className="py-10 text-center text-sm text-slate-500">Memuat…</p>
             ) : ringkas ? (
-              <RingkasanDashboard ringkas={ringkas} onBuka={bukaTab} hitam={hitam} />
+              <RingkasanDashboard
+                ringkas={ringkas}
+                onBuka={bukaTab}
+                hitam={hitam}
+                beriTahu={beriTahu}
+                muatUlang={muatUlang}
+              />
             ) : (
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-red-200 bg-white px-4 py-3">
                 <p className="text-sm font-medium text-red-800">
