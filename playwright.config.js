@@ -14,7 +14,10 @@ export default defineConfig({
   // Timeout dijaga agak longgar supaya `uji:e2e` tidak gagal semu karena
   // "cold start" dev server di tes yang pertama kali membuka halaman.
   timeout: 60_000,
-  expect: { timeout: 8_000 },
+  // Render halaman berat (mis. papan-papan pembukaan) dan ganti rute klien
+  // pada mesin lambat bisa melewati 8 detik; beri kelonggaran agar
+  // `uji:e2e` tidak gagal semu karena timing rendering, bukan karena bug.
+  expect: { timeout: 15_000 },
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -33,8 +36,10 @@ export default defineConfig({
     url: "http://127.0.0.1:4173",
     reuseExistingServer: !process.env.CI,
     // Di luar CI server dev perlu boot dari nol; beri kelonggaran agar
-    // "cold start" Vite (terutama instal node_modules dan pre-bundle deps)
-    // tidak keburu timeout sebelum server siap melayani.
-    timeout: 60_000,
+    // "cold start" Vite (terutama instal node_modules dan pre-bundle deps
+    // yang menahan request "/" pertama sampai optimizer selesai) tidak
+    // keburu timeout sebelum server siap melayani. Mesin lambat/antivirus
+    // aktif bisa memakan waktu lebih dari satu menit untuk langkah ini.
+    timeout: 180_000,
   },
 });

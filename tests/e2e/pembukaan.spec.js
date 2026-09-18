@@ -8,14 +8,18 @@ const BIDAK = { p: "Bidak", n: "Kuda", b: "Gajah", r: "Benteng", q: "Menteri", k
 
 for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
   test(`artikel pembukaan: posisi, isi, dan penempatan (${bahasa})`, async ({ page }) => {
+    // Halaman sangat berat (36 papan mini + 11 papan artikel). Pada mesin
+    // dingin commit React pertama bisa lambat, jadi beri kelonggaran jauh
+    // hanya untuk spec ini.
+    test.setTimeout(180_000);
     const galat = [];
     page.on("pageerror", (error) => galat.push(error.message));
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
     await page.route((url) => url.pathname.startsWith("/api/"), (route) =>
       route.fulfill({ json: {} }),
     );
-    await page.goto("/program-kami/pembukaan");
-    await expect(page.getByRole("heading", { name: kamus.artikel, exact: true })).toBeVisible();
+    await page.goto("/program-kami/pembukaan", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: kamus.artikel, exact: true })).toBeVisible({ timeout: 90_000 });
     await expect(page.getByRole("heading", { name: kamus.pembangunan, exact: true })).toBeVisible();
     await expect(page.getByText("Hitam memiliki beberapa cara untuk merespons.", { exact: false })).toHaveCount(0);
     await expect(page.locator('article[aria-labelledby^="judul-pembukaan-"]')).toHaveCount(11);
