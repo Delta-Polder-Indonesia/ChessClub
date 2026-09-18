@@ -196,13 +196,68 @@ function Coronation(props) {
         </div>;
 }
 function Piece(props) {
-  const { boardRef, pieceRef, castleRookRef, moved, isCastleRook, pieceColor, pieceSymbol, drag, setDrag, id, squareSize, setPlaying, isCoronating } = props;
+  const { boardRef, pieceRef, castleRookRef, moved, isCastleRook, pieceColor, pieceSymbol, drag, setDrag, id, squareSize, setPlaying, isCoronating, bolehSeret, kotakDariKursor } = props;
   const [movement, setMovement] = useState({ x: 0, y: 0 });
   const wasSelectedRef = useRef(false);
+  const pindahKotakRef = useRef(false);
+  const bersihRef = useRef(null);
+  /*
+   * Drag memasang tiga listener di `document` dan menulis kursor <body>.
+   * Bila bidak ini dilepas di tengah drag (partai baru dimuat, komponen
+   * dibongkar), tanpa pelepasan berikut listener-nya menetap di document dan
+   * kursor situs terkunci "grabbing" sampai halaman dimuat ulang.
+   */
+  useEffect(() => () => bersihRef.current?.(), []);
   if (isCoronating) return;
+  /*
+   * Batas seret HARUS dibaca dari `getBoundingClientRect()` papan, bukan
+   * `offsetLeft`/`offsetTop` seperti upstream.
+   *
+   * `offset*` dihitung terhadap offsetParent terdekat — di situs ini `<main>`
+   * ber-`relative` di areaKerja.jsx — sehingga:
+   *   1. tidak memuat jarak papan ke tepi viewport (tinggi bilah navigasi atas
+   *      di mobile, lebar bilah kiri di desktop), dan
+   *   2. tidak ikut berkurang saat `<main>`/halaman di-scroll,
+   * padahal pembandingnya (`e.clientX`/`e.clientY`) SELALU koordinat viewport.
+   * Selisih kedua ruang koordinat itu membuat kursor "di-clamp" lebih awal:
+   * bidak tertahan puluhan piksel dari kursor di tepi kanan/bawah papan dan
+   * terasa terangkat jauh, tidak lagi di tengah kursor.
+   */
+  function batasSeret() {
+    const board = boardRef.current;
+    if (!board) return null;
+    const rect = board.getBoundingClientRect();
+    // Papan belum diukur (render pertama, jsdom): tanpa batas — memaksa clamp
+    // ke rect kosong justru membekukan bidak di titik nol.
+    if (!rect.width || !rect.height) return null;
+    // Batasnya = tepi papan persis, jadi selama kursor di atas papan bidak
+    // SELALU tepat di tengah kursor; yang dibatasi hanya kursor yang sudah
+    // keluar papan (bidak berhenti di tepi, tidak terbang ke luar layar).
+    return {
+      minX: rect.left,
+      maxX: rect.right,
+      minY: rect.top,
+      maxY: rect.bottom
+    };
+  }
+  // Pusat bidak dikunci tepat di bawah kursor (pola chessground/Lichess).
+  function gerakIkutKursor(clientX, clientY, startPosition) {
+    const batas = batasSeret();
+    const x = batas ? Math.min(Math.max(clientX, batas.minX), batas.maxX) : clientX;
+    const y = batas ? Math.min(Math.max(clientY, batas.minY), batas.maxY) : clientY;
+    return { x: x - startPosition.x, y: y - startPosition.y };
+  }
   function handlePieceDragStart(e) {
     if (e.button !== 0) return;
+    /*
+     * Bidak lawan tidak boleh diangkat. chess.js tidak menghasilkan langkah
+     * untuknya, jadi drag-nya buntu: bidak melompat mengikuti kursor lalu
+     * balik sendiri, dan kotaknya tetap tersorot sebagai "terpilih" sampai
+     * FEN berganti. Ditutup di pintu masuk, bukan lewat efek pembersih.
+     */
+    if (!bolehSeret) return;
     wasSelectedRef.current = drag.id === id;
+    pindahKotakRef.current = false;
     const element = e.currentTarget;
     const elemenRect = element.getBoundingClientRect();
     const startPosition = { x: elemenRect.x + elemenRect.width / 2, y: elemenRect.y + elemenRect.height / 2 };
@@ -211,6 +266,7 @@ function Piece(props) {
       document.removeEventListener("mousemove", pieceDrag);
       document.removeEventListener("mouseup", pieceDragStop);
       document.body.style.cursor = "";
+      bersihRef.current = null;
     }
     function pieceDragCancel(e2) {
       // Event mousedown yang MEMULAI drag ini ikut merambat sampai `document`
@@ -224,56 +280,62 @@ function Piece(props) {
       cleanUp();
     }
     function pieceDrag(e2) {
-      if (e2.button !== 0) return;
+      /* `button` pada mousemove tidak bisa diandalkan (peramban modern
+         melaporkannya 0 tanpa peduli tombol mana yang tertahan) — yang benar
+         `buttons`. Tidak ada tombol tertahan berarti mouseup-nya terlewat
+         (tombol dilepas di luar jendela/tab): akhiri drag di sini supaya
+         bidak tidak terus menempel pada kursor. */
+      if (typeof e2.buttons === "number" && e2.buttons === 0) {
+        pieceDragCancel(e2);
+        return;
+      }
       handlePieceDrag(e2, startPosition);
     }
     function pieceDragStop(e2) {
       if (e2.button !== 0) return;
-      handlePieceDragStop(e2, startPosition);
+      handlePieceDragStop(e2);
       cleanUp();
     }
     document.addEventListener("mousedown", pieceDragCancel);
     document.addEventListener("mousemove", pieceDrag);
     document.addEventListener("mouseup", pieceDragStop);
+    bersihRef.current = cleanUp;
     document.body.style.cursor = "grabbing";
-    const movement2 = {
-      x: e.clientX - startPosition.x,
-      y: e.clientY - startPosition.y
-    };
-    setMovement(movement2);
+    setMovement(gerakIkutKursor(e.clientX, e.clientY, startPosition));
     setPlaying(false);
     setDrag({ is: true, id });
   }
   function handlePieceDrag(e, startPosition) {
-    const board = boardRef.current;
-    if (!board) return;
-    const limits = {
-      min: {
-        x: board.offsetLeft,
-        y: board.offsetTop
-      },
-      max: {
-        x: board.offsetLeft + board.offsetWidth,
-        y: board.offsetTop + board.offsetHeight
-      }
-    };
-    const movement2 = {
-      x: Math.min(Math.max(e.clientX, limits.min.x), limits.max.x) - startPosition.x,
-      y: Math.min(Math.max(e.clientY, limits.min.y), limits.max.y) - startPosition.y
-    };
-    setMovement(movement2);
+    setMovement(gerakIkutKursor(e.clientX, e.clientY, startPosition));
+    // `keyHasChanged` ala chessground: gestur ini pernah meninggalkan kotak
+    // asal, walau nanti kembali lagi.
+    if (kotakDariKursor?.(e.clientX, e.clientY) !== id) pindahKotakRef.current = true;
   }
-  function handlePieceDragStop(e, startPosition) {
-    const movement2 = {
-      x: e.clientX - startPosition.x,
-      y: e.clientY - startPosition.y
-    };
-    let newId = id;
-    if (wasSelectedRef.current && Math.abs(movement2.x) <= squareSize / 2 && Math.abs(movement2.y) <= squareSize / 2) {
-      newId = "";
-    }
+  function handlePieceDragStop(e) {
+    /*
+     * Aturan chessground — library papan yang dipakai Lichess dan en-croissant
+     * (`@lichess-org/chessground`, `src/drag.ts` → `end()`, sama di v10.1.1):
+     *
+     *   (orig === previouslySelected || keyHasChanged) && (orig === dest || !dest)
+     *       → unselect
+     *
+     * Artinya: bidak yang SUDAH terpilih, lalu diangkat dan dilepas di
+     * kotaknya sendiri (atau di luar papan) = batal pilih, titik petunjuk
+     * mati. Klik berikutnya memilih lagi → on/off/on/off.
+     *
+     * Port lama memakai jarak piksel dari TENGAH kotak (`|movement| <=
+     * squareSize/2`) dengan `startPosition` dibaca dari
+     * `getBoundingClientRect()` bidak. Rect itu bergeser selama animasi
+     * langkah (150 ms, `transform` WAAPI di `animateMove`), jadi klik kedua di
+     * tempat yang sama bisa terhitung "pindah" dan titik petunjuk tidak mati;
+     * lepas di luar papan juga tidak pernah membatalkan pilihan. Membandingkan
+     * KOTAK — bukan piksel — tidak bergantung pada rect bidak sama sekali.
+     */
+    const kotakAkhir = kotakDariKursor ? kotakDariKursor(e.clientX, e.clientY) : id;
+    const lepasDiAsal = kotakAkhir === id || kotakAkhir === "";
+    const batalPilih = lepasDiAsal && (wasSelectedRef.current || pindahKotakRef.current);
     setMovement({ x: 0, y: 0 });
-    setDrag({ is: false, id: newId });
+    setDrag({ is: false, id: batalPilih ? "" : id });
   }
   return <div
     data-dontcleandrag={true}
@@ -400,6 +462,24 @@ function Board(props) {
     if (!currentArrowRef.current[0] || !currentArrowRef.current[1]) return;
     pushArrow([...currentArrowRef.current]);
     currentArrowRef.current = [];
+  }
+  /*
+   * Kotak di bawah kursor (koordinat viewport), atau "" bila di luar papan.
+   * Konvensi kolom/barisnya mengikuti `startArrow` di atas: `white` menentukan
+   * papan dibaca dari a8 (putih di bawah) atau h1 (hitam di bawah).
+   *
+   * Dipakai `Piece` untuk membedakan "klik" dan "seret" lewat perbandingan
+   * KOTAK, bukan jarak piksel — lihat komentar di `handlePieceDragStop`.
+   */
+  function kotakDariKursor(clientX, clientY) {
+    const board = boardRef.current;
+    if (!board) return "";
+    const rect = board.getBoundingClientRect();
+    if (!rect.width || !rect.height) return "";
+    const kolom = Math.floor((clientX - rect.left) / squareSize);
+    const baris = Math.floor((clientY - rect.top) / squareSize);
+    if (kolom < 0 || kolom > 7 || baris < 0 || baris > 7) return "";
+    return getSquareId(white ? kolom : 7 - kolom, white ? baris : 7 - baris);
   }
   function filterHighlightStyle(highlightStyle) {
     const filteredHighlightStyle2 = {};
@@ -584,10 +664,20 @@ function Board(props) {
             pieceColor={pieceColor}
             pieceSymbol={pieceType}
             boardRef={boardRef}
+            bolehSeret={pieceColor === chess.turn()}
+            kotakDariKursor={kotakDariKursor}
             isCoronating={coronation.choosing && adaptedCoronationSquare?.col === columnNumber && adaptedCoronationSquare?.row === rowNumber}
           />;
         }
-        const hoverDragSquare = <div style={{ display: drag.is ? "" : "none", opacity: hoverDrag === squareId ? "100" : "", borderWidth: squareSize * 0.05 }} onMouseEnter={() => setHoverDrag(squareId)} onMouseLeave={() => setHoverDrag("")} className={`absolute top-0 z-[30] left-0 w-full h-full border-opacity-65 opacity-0 block border-white pointer-events-auto ${rounded}`} />;
+        /* Cincin penanda kotak tujuan saat menyeret.
+           Dua cacat upstream diperbaiki di sini:
+           1. `opacity: "100"` bukan nilai CSS yang sah (opacity 0..1), jadi
+              deklarasi inline-nya dibuang peramban dan cincin tidak pernah
+              muncul — kelas `opacity-0` yang menang. Nilainya kini 1.
+           2. `border-opacity-65` sudah dihapus di Tailwind v4 (diperiksa
+              dengan compiler Tailwind 4.3.3 milik repo: kelas itu tidak
+              menghasilkan CSS apa pun) — diganti modifier `border-white/65`. */
+        const hoverDragSquare = <div style={{ display: drag.is ? "" : "none", opacity: hoverDrag === squareId ? 1 : "", borderWidth: squareSize * 0.05 }} onMouseEnter={() => setHoverDrag(squareId)} onMouseLeave={() => setHoverDrag("")} className={`absolute top-0 z-[30] left-0 w-full h-full opacity-0 block border-white/65 pointer-events-auto ${rounded}`} />;
         const legalMove = legalMoves.includes(squareId) ? piece ? <div onMouseEnter={() => setHoverDrag(squareId)} onMouseLeave={() => setHoverDrag("")} onMouseDown={(e) => handleMovePiece(e, squareId)} onMouseUp={(e) => handleMovePiece(e, squareId)} className="absolute w-full h-full z-[40] top-0 left-0 cursor-grab pointer-events-auto"><div style={{ borderWidth: squareSize * 0.12 }} className="border-black opacity-[15%] w-full h-full rounded-full" /></div> : <div onMouseEnter={() => setHoverDrag(squareId)} onMouseLeave={() => setHoverDrag("")} onMouseDown={(e) => handleMovePiece(e, squareId)} onMouseUp={(e) => handleMovePiece(e, squareId)} style={{ opacity: showLegalMoves ? "" : 0 }} className="absolute w-full h-full z-[40] top-0 left-0 flex justify-center items-center pointer-events-auto"><div className="bg-black opacity-[15%] w-[30%] h-[30%] rounded-full" /></div> : null;
         squares.push(<div data-square={squareId} key={squareId} style={{ height: squareSize + "px", width: squareSize + "px", fontSize: guideSize, backgroundColor: bgColor }} className={`font-bold relative ${rounded}`}>{squareNumGuide}{squareLetterGuide}{piece}{highlighted}{resultIcon ? null : highlightedIcon}{resultIcon}{hoverDragSquare}{legalMove}</div>);
         if (square2) {

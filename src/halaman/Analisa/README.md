@@ -350,7 +350,7 @@ file-file yang disebut.
     menghitung kejutan bit + peringkat distribusi manusia dari
     `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
     tinggal dipasang tanpa menyentuh `parsePGN`.
-- Uji: `scripts/uji-anticheat.mjs` (245) dan `scripts/uji-engine-uci.mjs`
+- Uji: `scripts/uji-anticheat.mjs` (301) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
@@ -474,6 +474,7 @@ Aturan saat beku:
 | `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
 | `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
 | `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
+| `scripts/uji-seret-bidak.mjs` | geometri seret bidak di atas tata letak sintetis (desktop/mobile/`<main>` di-scroll): pusat bidak = kursor, clamp tepi papan, cincin kotak tujuan, klik bidak sama = on/off, bidak lawan tidak terangkat, pembersihan listener saat unmount | 27 |
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
@@ -502,3 +503,136 @@ build sebelumnya — dicatat agar tidak dianggap regresi):
 3. **`bersihkanPgn`** (`mesin/engine.js`): komentar `%` yang tidak di awal
    baris (dan komentar `{…}` di mana pun) kini dibuang dengan benar tanpa
    merusak teks header yang dikutip.
+
+## Perbaikan seret bidak (2026-09-18)
+
+Laporan pengguna: saat memegang bidak, bidaknya tidak lagi di tengah kursor —
+ia tertinggal / "terangkat jauh" dari kursor. Semua penyebabnya ada di
+`komponen/game/board.jsx` (komponen `Piece`) dan semuanya warisan upstream:
+logika drag di `src/components/game/board.tsx` (wdeloo/Brilliant-Chess,
+commit `56e8c48`) identik — clamp `offsetLeft/offsetTop`, `opacity: "100"`,
+cek `e.button` pada `mousemove`, tanpa pembersih saat unmount. Jadi ini bukan
+regresi hasil port. Diuji `scripts/uji-seret-bidak.mjs` (22 pemeriksaan; 9 di
+antaranya gagal pada kode lama).
+
+1. **Clamp drag memakai ruang koordinat yang salah.** Batas seret dihitung
+   dari `board.offsetLeft/offsetTop`, yaitu koordinat terhadap *offsetParent*
+   terdekat — di situs ini `<main className="relative">` di `areaKerja.jsx` —
+   sementara pembandingnya `e.clientX/clientY` selalu koordinat *viewport*.
+   `offset*` tidak memuat jarak `<main>` ke tepi viewport (lebar bilah kiri
+   `nav.jsx`: `w-12`/`w-[210px]` di desktop, tinggi bilah mendatar di mobile)
+   dan tidak berkurang saat `<main>` di-scroll. Akibatnya kursor "di-clamp"
+   lebih awal dan bidak tertahan: terukur **165px** di belakang kursor saat
+   menyeret ke kolom paling kanan dengan bilah kiri terbuka, **59px** saat
+   papan di-scroll 160px. Perbaikan: batas dibaca dari
+   `boardRef.current.getBoundingClientRect()` (viewport, sama seperti kursor),
+   tanpa clamp bila rect masih kosong (papan belum diukur / jsdom).
+2. **Cincin penanda kotak tujuan tidak pernah muncul.** Gaya inline-nya
+   `opacity: "100"` — bukan nilai CSS yang sah (opacity 0..1), jadi dibuang
+   peramban dan kelas `opacity-0` yang menang. Ditambah `border-opacity-65`
+   yang sudah dihapus di Tailwind v4 (diperiksa dengan compiler Tailwind
+   4.3.3 milik repo: kelas itu tidak menghasilkan CSS apa pun). Kini
+   `opacity: 1` + `border-white/65`.
+3. **`mousemove` diperiksa lewat `e.button`.** Nilai itu tidak berarti apa-apa
+   pada `mousemove`; yang bisa diandalkan `e.buttons`. Sekarang `buttons === 0`
+   (mouseup terlewat karena tombol dilepas di luar jendela/tab) mengakhiri
+   drag, bukan membiarkan bidak terus menempel pada kursor.
+4. **Bidak lawan bisa diangkat.** chess.js tidak menghasilkan langkah untuk
+   bidak yang bukan giliran, jadi drag-nya buntu: bidak melompat lalu balik
+   sendiri dan kotaknya tetap tersorot sebagai "terpilih" sampai FEN berganti
+   (efek pembersih di `Board` hanya jalan saat `fen` berubah). Ditutup di
+   pintu masuk lewat prop `bolehSeret={pieceColor === chess.turn()}`.
+5. **Listener drag bocor saat komponen dilepas.** Tiga listener `document` +
+   `document.body.style.cursor = "grabbing"` hanya dibersihkan oleh
+   `mouseup`/`mousedown` berikutnya; bila bidak dilepas di tengah drag
+   (partai baru, komponen dibongkar) kursor situs terkunci "grabbing" sampai
+   reload. Sekarang `cleanUp` disimpan di ref dan dipanggil efek pembersih
+   saat unmount.
+
+6. **Klik bidak yang sama tidak selalu mematikan titik petunjuk.** Port lama
+   memutuskan "ini klik, bukan seret" dari jarak piksel terhadap TENGAH kotak
+   (`|movement| <= squareSize/2`) dengan `startPosition` dibaca dari
+   `getBoundingClientRect()` bidak. Rect bidak ikut bergeser selama animasi
+   langkah (150 ms, `transform` WAAPI di `animateMove`), jadi klik kedua di
+   tempat yang sama terhitung "pindah" dan titik petunjuk tetap menyala; lepas
+   di luar papan juga tidak pernah membatalkan pilihan. Aturan yang dipakai
+   sekarang = aturan chessground (lihat di bawah), membandingkan KOTAK asal
+   dengan kotak di bawah kursor saat tombol dilepas (`kotakDariKursor` di
+   `Board`) — tidak bergantung pada rect bidak sama sekali.
+
+**Acuan perilaku klik/seret (dicek ke sumbernya, bukan ingatan):**
+`@lichess-org/chessground` — library papan yang dipakai Lichess dan
+[en-croissant](https://github.com/franciscoBSalgueiro/en-croissant)
+(`package.json`: `"@lichess-org/chessground": "^10.1.1"`, dirender lewat
+`src/chessground/Chessground.tsx`). Di `src/drag.ts` → `end()`, sama pada tag
+v10.1.1 maupun master:
+
+```ts
+if ((cur.orig === cur.previouslySelected || cur.keyHasChanged) && (cur.orig === dest || !dest))
+  board.unselect(s);
+```
+
+dan di `src/board.ts` → `selectSquare()`:
+
+```ts
+if (state.selected === key && !state.draggable.enabled) { unselect(state); … }
+```
+
+Jadi "klik bidak → titik muncul, klik bidak yang sama → titik hilang
+(on/off)" memang perilaku standar, dan itulah yang sekarang ditiru papan
+Analisa.
+
+**Batas yang belum diubah (sengaja):** drag masih jalur mouse
+(`mousedown`/`mousemove`/`mouseup`), bukan Pointer Events — di layar sentuh
+bidak tidak bisa diseret, tapi ketuk-bidak → ketuk-kotak tetap jalan lewat
+event mouse emulasi peramban. Memindah ke pointer events berarti menyentuh
+juga `handleMovePiece` di dua overlay kotak legal dan `handleMouseDown` papan
+(gambar panah), dan tidak bisa diverifikasi di sini (tidak ada browser sungguhan
+di lingkungan uji: `npx playwright install chromium` gagal mengunduh, dan
+jsdom tidak mengimplementasikan `PointerEvent`). Dicatat supaya pengganti
+berikutnya tahu apa yang tersisa.
+
+## Metrik akurasi/ACPL sepadan platform lain (2026-09-18)
+
+Ditambahkan setelah pertanyaan: *bagaimana en-croissant menghitung ACPL/CP,
+supaya angka kita sama untuk analisa pemain cheat?* Penelusuran lengkap
+(rumus, sumber, tabel perbandingan, contoh angka) ada di
+**`docs/PERBANDINGAN-METRIK-AKURASI.md`** — baca itu sebelum menyentuh angka
+di bagian ini.
+
+- Modul baru **`mesin/akurasi.js`** (murni): `peluangMenang` (kurva win
+  chance 50 + 50·(2/(1+e^(−0.00368208·cp))−1)), `cpBaku` (eval dipotong
+  ±1000, mate = ±1000), `akurasiLangkah` (103.1668·e^(−0.04354·Δwin%) − 3.1669
+  + 1, dibatasi [0,100]), `kerugianLangkah`, `anotasiLangkah` (ambang win%
+  20/10/5 + aturan pengorbanan), `rataHarmonik`, `CP_CEILING = 1000`,
+  `CP_AWAL = 15`. Angka-angkanya SALINAN PERSIS en-croissant
+  `src/utils/score.ts` + `src/utils/misc.ts`; asal-usulnya lichess
+  (`scalachess/…/eval.scala`, `lila/…/AccuracyPercent.scala`).
+- `mesin/antiCheat.js` menambahkan empat keluaran per warna (per partai, per
+  fase, dan di agregat): **`akurasi`** (harmonic mean — cara en-croissant
+  merangkum akurasi partai), **`akurasiAritmetik`** (pembanding),
+  **`acplBaku`** (ACPL konvensi lichess), dan **`anotasi`** (hitungan
+  `?? ? ?! !! ! !?`). Harmonic mean diagregasi dari jumlah mentah
+  (`akurasiSampel`, `akurasiInversJumlah` → `harmonikDariJumlah`), BUKAN
+  dengan merata-rata nilai per partai.
+- Tampil di panel `summary/deteksiEngine.jsx` (dua baris + catatan metode),
+  `akun/DashboardAkun.jsx`, dan `mesin/laporanPeninjauan.js` (teks + JSON,
+  `versi` dinaikkan 2 → 3; bentuk lama tetap terbaca).
+- **Yang lama tidak dihapus dan tidak dipakai ulang untuk skor kecurigaan.**
+  `acpl` (clamp 1000 cp/langkah, mate = 10000) tetap menjadi masukan
+  `skorKecurigaan` karena `AMBANG.acplAcuan` dan seluruh
+  `KALIBRASI_RATING` dikalibrasi terhadap konvensi itu; menukarnya tanpa
+  kalibrasi ulang akan menggeser semua skor. Akurasi panel Ringkasan
+  (`summary/playersAccuracy.jsx`, peta label port Brilliant-Chess) juga tidak
+  disentuh — halaman ini beku, dan angka itu sudah lama dilihat pengguna.
+- **en-croissant tidak punya model skor kecurangan.** Panel "Report" mereka
+  hanya menampilkan ACPL + akurasi + hitungan anotasi + eval chart; metrik
+  kecocokan top-1/top-3, peringkat MultiPV, konsistensi jam, korelasi
+  Spearman, dan skor 0–100 adalah tambahan kita sendiri dan tidak punya
+  padanan upstream.
+- Uji: `scripts/uji-anticheat.mjs` seksi 14 mengunci **nilai emas dari suite
+  uji en-croissant sendiri** (`src/utils/tests/score.test.ts`) —
+  `peluangMenang(100) ≈ 59.1`, `akurasiLangkah(0, −500) ≈ 19.07`,
+  `kerugianLangkah(mate −1 → 0, hitam) = 1000`, anotasi −500/−200/−100/−50 →
+  `??`/`?`/`?!`/"". Kalau salah satu angka itu berubah, rumus kita sudah
+  menyimpang dari acuan. Suite: 245 → **301** pemeriksaan.

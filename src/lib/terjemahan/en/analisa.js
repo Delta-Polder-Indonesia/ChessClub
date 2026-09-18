@@ -319,6 +319,8 @@ export const analisa = {
         streak: "Longest best-move streak",
         korelasiWaktu: "Think-time ↔ quality correlation",
         acpl: "Average centipawn loss",
+        acplBaku: "Standard ACPL (±1000 cp, lichess method)",
+        akurasi: "Accuracy (harmonic mean, lichess method)",
         waktu: "Think-time consistency",
         langkah: "Moves evaluated",
       },
@@ -331,6 +333,8 @@ export const analisa = {
       tanpaData: "No move can be evaluated yet — forced and book moves are not counted.",
       sampelKecil: "Only {n} moves could be evaluated on one side; a sample this small proves nothing.",
       tanpaJam: "This PGN carries no clock data ([%clk]), so the think-time metric is skipped.",
+      catatanMetrikBaku:
+        "Accuracy and standard ACPL use the lichess/en-croissant formulas: win-chance curve, evals clamped to ±1000 cp (mate = ±1000), harmonic mean. These are the numbers comparable with a lichess report; neither feeds the suspicion score above, which still uses the between-position ACPL.",
       tanpaKandidat: "This game was analyzed without MultiPV candidates (older analysis); rank metrics are skipped.",
       catatanKandidat: "Ranks are measured against the engine's {n} best candidates (MultiPV) per position; scale 1–{nMax}.",
       catatanKondisional:

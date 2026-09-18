@@ -30,6 +30,12 @@ const KATA_BAKU = Object.freeze({
   peringkat: "Rata-rata peringkat kandidat",
   acpl: "ACPL antarposisi",
   acplKandidat: "ACPL vs kandidat terbaik",
+  akurasi: "Akurasi (harmonic mean, metode lichess/en-croissant)",
+  akurasiAritmetik: "Akurasi (rata-rata aritmetik)",
+  acplBaku: "ACPL baku (eval dipotong ±1000, mate = ±1000)",
+  anotasi: "Anotasi NAG",
+  catatanMetrik:
+    "Metrik berlabel 'metode lichess/en-croissant' memakai kurva win chance dan harmonic mean sehingga bisa disandingkan dengan angka lichess; ACPL antarposisi memakai konvensi lama modul ini (clamp 1000 cp/langkah, mate 10000) dan tetap menjadi masukan skor kecurigaan.",
   kehilanganMenang: "Rata kehilangan peluang menang (WDL, permille)",
   konsistensi: "Konsistensi waktu pikir",
   korelasi: "Korelasi waktu pikir ↔ kualitas (Spearman)",
@@ -39,18 +45,27 @@ const KATA_BAKU = Object.freeze({
   komponen: "Komponen skor (0–100)",
   tren: "Tren antarpartai",
   perPartai: "RINCIAN PER PARTAI",
-  kolom: ["#", "Tanggal", "Warna", "Lawan", "Langkah", "Cocok%", "ACPL", "Peringkat", "Skor", "Level"],
+  kolom: ["#", "Tanggal", "Warna", "Lawan", "Langkah", "Cocok%", "ACPL", "Akurasi", "ACPLbaku", "Peringkat", "Skor", "Level"],
   tanpaData: "Tidak ada partai yang bisa dianalisis.",
   sanggahan:
     "Angka di atas adalah indikasi statistik untuk ditinjau manusia, bukan bukti atau tuduhan. Pemain kuat, kontrol waktu panjang, dan akhirpartai sederhana juga menaikkan kecocokan dengan engine. Keputusan apa pun harus lewat peninjauan partai aslinya.",
 });
+
+/** Anotasi NAG menjadi satu baris ringkas; "-" bila tidak ada hitungan. */
+function formatAnotasi(anotasi) {
+  if (!anotasi || typeof anotasi !== "object") return "-";
+  const bagian = Object.entries(anotasi)
+    .filter(([, n]) => Number(n) > 0)
+    .map(([simbol, n]) => `${simbol} ${n}`);
+  return bagian.length ? bagian.join(" · ") : "tidak ada";
+}
 
 function fmt(nilai, akhiran = "") {
   return Number.isFinite(nilai) ? `${nilai}${akhiran}` : "-";
 }
 
 function barisTabel(kolom) {
-  const lebar = [4, 12, 6, 18, 8, 8, 8, 10, 6, 8];
+  const lebar = [4, 12, 6, 18, 8, 8, 8, 8, 9, 10, 6, 8];
   return kolom.map((sel, i) => String(sel ?? "").slice(0, lebar[i]).padEnd(lebar[i])).join(" ");
 }
 
@@ -84,6 +99,9 @@ export function buatLaporanPeninjauan(agregat, { username = "", kata = {} } = {}
   out.push(`${k.kecocokan}: ${fmt(a.engineMatchRate, "%")} · ${k.kecocokanTop3}: ${fmt(a.kecocokanTop3, "%")}`);
   out.push(`${k.peringkat}: ${fmt(a.rataPeringkat)} (skala 1–6)`);
   out.push(`${k.acpl}: ${fmt(a.acpl, " cp")} · ${k.acplKandidat}: ${fmt(a.acplKandidat, " cp")}`);
+  out.push(`${k.akurasi}: ${fmt(a.akurasi, "%")} · ${k.akurasiAritmetik}: ${fmt(a.akurasiAritmetik, "%")}`);
+  out.push(`${k.acplBaku}: ${fmt(a.acplBaku, " cp")}`);
+  out.push(`${k.anotasi}: ${formatAnotasi(a.anotasi)}`);
   out.push(`${k.kehilanganMenang}: ${fmt(a.rataKehilanganMenang)}`);
   out.push(`${k.konsistensi}: ${fmt(a.konsistensiWaktu)} · ${k.streak}: ${fmt(a.streakTerpanjang)}`);
   out.push(`${k.korelasi}: ${fmt(a.korelasiWaktuKualitas)}`);
@@ -124,6 +142,8 @@ export function buatLaporanPeninjauan(agregat, { username = "", kata = {} } = {}
           b.langkahDinilai ?? 0,
           fmt(b.engineMatchRate),
           fmt(b.acpl),
+          fmt(b.akurasi),
+          fmt(b.acplBaku),
           fmt(b.rataPeringkat),
           fmt(b.skor),
           b.level ?? "-",
@@ -134,6 +154,8 @@ export function buatLaporanPeninjauan(agregat, { username = "", kata = {} } = {}
 
   out.push("");
   out.push(halus);
+  out.push(`CATATAN METODE: ${k.catatanMetrik}`);
+  out.push("");
   out.push(`SANGGAHAN: ${k.sanggahan}`);
   out.push(halus);
   return out.join("\n");
@@ -145,7 +167,12 @@ export function buatLaporanJson(agregat, { username = "" } = {}) {
   return JSON.stringify(
     {
       jenis: "laporan-peninjauan-anticheat",
-      versi: 2,
+      /*
+       * v3: menambah metrik sepadan platform lain (`akurasi`,
+       * `akurasiAritmetik`, `acplBaku`, `anotasi`) + `catatanMetode`.
+       * Bentuk lama (v2) tetap terbaca; yang berubah hanya tambahan kunci.
+       */
+      versi: 3,
       dibuat: new Date().toISOString(),
       username: a.username || username || "",
       rating: a.rating ?? null,
@@ -162,6 +189,12 @@ export function buatLaporanJson(agregat, { username = "" } = {}) {
         rataPeringkat: a.rataPeringkat ?? null,
         acpl: a.acpl ?? null,
         acplKandidat: a.acplKandidat ?? null,
+        // Metrik sepadan platform lain (./akurasi.js).
+        akurasi: a.akurasi ?? null,
+        akurasiAritmetik: a.akurasiAritmetik ?? null,
+        akurasiSampel: a.akurasiSampel ?? 0,
+        acplBaku: a.acplBaku ?? null,
+        anotasi: a.anotasi ?? null,
         rataKehilanganMenang: a.rataKehilanganMenang ?? null,
         konsistensiWaktu: a.konsistensiWaktu ?? null,
         korelasiWaktuKualitas: a.korelasiWaktuKualitas ?? null,
@@ -171,6 +204,7 @@ export function buatLaporanJson(agregat, { username = "" } = {}) {
       },
       tren: a.tren ?? null,
       partai: Array.isArray(a.partai) ? a.partai : [],
+      catatanMetode: KATA_BAKU.catatanMetrik,
       sanggahan: KATA_BAKU.sanggahan,
     },
     null,

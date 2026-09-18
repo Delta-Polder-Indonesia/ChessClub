@@ -20,6 +20,17 @@
  *    (analisis lama, atau partai hasil cache sebelum fitur ini) dan skor
  *    otomatis menormalkan ulang bobotnya.
  *
+ * METRIK SEPADAN PLATFORM LAIN (./akurasi.js, metode lichess/en-croissant):
+ * `akurasi` (harmonic mean kurva win chance), `akurasiAritmetik`, `acplBaku`
+ * (kerugian cp dengan eval dipotong ±1000, mate = ±1000), dan hitungan
+ * `anotasi` NAG (`??` `?` `?!` `!!` `!` `!?`). Angka-angka inilah yang bisa
+ * disandingkan dengan yang tampil di lichess/en-croissant. Yang LAMA
+ * (`acpl`, dan akurasi label di `summary/playersAccuracy.jsx`) tetap ada dan
+ * tetap menjadi masukan `skorKecurigaan` — ambang `AMBANG.acplAcuan` serta
+ * `KALIBRASI_RATING` dikalibrasi terhadap konvensi lama (clamp 1000 cp per
+ * langkah, mate = 10000), jadi menggantinya diam-diam akan menggeser semua
+ * skor tanpa kalibrasi ulang. Lihat `docs/PERBANDINGAN-METRIK-AKURASI.md`.
+ *
  * Keluarannya PROBABILISTIK: angka untuk dibaca manusia (pengurus/turnamen),
  * BUKAN vonis. Kecocokan langkah dengan engine naik secara alami seiring
  * kekuatan pemain, kontrol waktu yang panjang, dan fase akhirpartai yang
@@ -48,9 +59,36 @@
 import { invertColor } from "./penilaian.js";
 import { DAFTAR_FASE, FASE_PEMBUKAAN, faseBerikutnya, papanDariFen } from "./fase.js";
 import { MULTI_PV } from "./engine.js";
+import {
+  akurasiMove,
+  anotasiMove,
+  cpBaku,
+  harmonikDariJumlah,
+  inversAkurasi,
+  kerugianMove,
+  petaAnotasiKosong,
+} from "./akurasi.js";
 
 /** Ikut diekspor supaya konsumen modul ini tak perlu mengimpor ./engine.js. */
 export { MULTI_PV };
+
+/*
+ * Metrik gaya lichess/en-croissant ikut diekspor dari sini: pemanggil
+ * anti-cheat (panel Deteksi Engine, Dashboard akun, laporan peninjauan)
+ * cukup bergantung pada satu modul. Rumusnya sendiri ada di ./akurasi.js.
+ */
+export {
+  akurasiMove,
+  anotasiMove,
+  CP_AWAL,
+  CP_CEILING,
+  DAFTAR_ANOTASI,
+  harmonikDariJumlah,
+  kerugianMove,
+  peluangMenang,
+  petaAnotasiKosong,
+  rataHarmonik,
+} from "./akurasi.js";
 
 /** Skor `["mate", n]` diperlakukan setara keunggulan sebesar ini (centipawn). */
 export const CP_MATE = 10000;
@@ -507,10 +545,33 @@ function kumpulBaru() {
     streakKini: 0,
     streakTerpanjang: 0,
     pasanganWaktuRangking: [],
+    /*
+     * Metrik sepadan platform lain (./akurasi.js). Yang disimpan MENTAH:
+     * harmonic mean tidak bisa dirata-rata antarpartai, jadi yang dibawa ke
+     * agregat adalah `akurasiInversJumlah` (= Σ 1/max(1, akurasi)) dan
+     * `akurasiSampel`, lalu `harmonikDariJumlah` menyusun ulang nilainya.
+     */
+    akurasiSampel: 0,
+    akurasiJumlah: 0,
+    akurasiInversJumlah: 0,
+    kerugianBakuSampel: 0,
+    kerugianBakuJumlah: 0,
+    anotasi: petaAnotasiKosong(),
   };
 }
 
-function catat(target, { cocok = null, kerugian = null, detik = null, peringkat = null, kerugianKandidat = null, kehilanganMenang = null, kategori = null }) {
+function catat(target, {
+  cocok = null,
+  kerugian = null,
+  detik = null,
+  peringkat = null,
+  kerugianKandidat = null,
+  kehilanganMenang = null,
+  kategori = null,
+  akurasiBaku = null,
+  kerugianBaku = null,
+  anotasi = "",
+}) {
   if (cocok !== null) {
     target.langkahDinilai++;
     if (cocok) target.langkahCocok++;
@@ -539,6 +600,20 @@ function catat(target, { cocok = null, kerugian = null, detik = null, peringkat 
     target[`${kunci}Dinilai`]++;
     if (cocok) target[`${kunci}Cocok`]++;
   }
+  // Metrik sepadan platform lain (./akurasi.js).
+  if (akurasiBaku !== null) {
+    const invers = inversAkurasi(akurasiBaku);
+    if (invers !== null) {
+      target.akurasiSampel++;
+      target.akurasiJumlah += akurasiBaku;
+      target.akurasiInversJumlah += invers;
+    }
+  }
+  if (kerugianBaku !== null) {
+    target.kerugianBakuSampel++;
+    target.kerugianBakuJumlah += kerugianBaku;
+  }
+  if (anotasi && Object.hasOwn(target.anotasi, anotasi)) target.anotasi[anotasi]++;
 }
 
 function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
@@ -548,6 +623,10 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   const acplKandidat = kumpul.kerugianKandidatSampel ? kumpul.kerugianKandidatJumlah / kumpul.kerugianKandidatSampel : null;
   const rataKehilanganMenang = kumpul.menangHilangSampel ? kumpul.menangHilangJumlah / kumpul.menangHilangSampel : null;
   const korelasi = korelasiSpearman(kumpul.pasanganWaktuRangking);
+  // Metrik sepadan platform lain: harmonic mean (en-croissant) + pembandingnya.
+  const akurasi = harmonikDariJumlah(kumpul.akurasiInversJumlah, kumpul.akurasiSampel);
+  const akurasiAritmetik = kumpul.akurasiSampel ? kumpul.akurasiJumlah / kumpul.akurasiSampel : null;
+  const acplBaku = kumpul.kerugianBakuSampel ? kumpul.kerugianBakuJumlah / kumpul.kerugianBakuSampel : null;
   const ringkas = {
     langkahDinilai: kumpul.langkahDinilai,
     langkahCocok: kumpul.langkahCocok,
@@ -581,6 +660,19 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
     streakTerpanjang: kumpul.streakTerpanjang,
     sampelKorelasi: kumpul.pasanganWaktuRangking.length,
     korelasiWaktuKualitas: korelasi !== null ? Math.round(korelasi * 100) / 100 : null,
+    /*
+     * Metrik sepadan platform lain (./akurasi.js). Nilai mentah ikut dibawa
+     * supaya agregat lintas partai bisa menyusun harmonic mean secara eksak.
+     */
+    akurasiSampel: kumpul.akurasiSampel,
+    akurasiJumlah: kumpul.akurasiJumlah,
+    akurasiInversJumlah: kumpul.akurasiInversJumlah,
+    akurasi: bulat1(akurasi),
+    akurasiAritmetik: bulat1(akurasiAritmetik),
+    kerugianBakuSampel: kumpul.kerugianBakuSampel,
+    kerugianBakuJumlah: kumpul.kerugianBakuJumlah,
+    acplBaku: bulat1(acplBaku),
+    anotasi: { ...kumpul.anotasi },
   };
   if (!denganSkor) return ringkas;
 
@@ -623,7 +715,9 @@ function ringkasPerFase(akumFase) {
  *   kalibrasi ambang komponen kecocokan/ACPL; tanpa itu ambang global.
  * @returns {{ w: object, b: object, jumlahLangkah: number }} metrik per warna:
  *   `engineMatchRate`, `acpl`, `konsistensiWaktu` (+ `rincianWaktu`),
- *   `perFase`, `komponen`, `skor` (0–100), dan `level`.
+ *   `perFase`, `komponen`, `skor` (0–100), `level`, ditambah metrik sepadan
+ *   platform lain: `akurasi` (harmonic mean), `akurasiAritmetik`, `acplBaku`,
+ *   dan hitungan `anotasi` NAG.
  */
 export function hitungSkorKecurigaan(moves, { rating = {} } = {}) {
   const daftar = Array.isArray(moves) ? moves : [];
@@ -669,8 +763,40 @@ export function hitungSkorKecurigaan(moves, { rating = {} } = {}) {
       const tajam = ketajamanKandidat(daftar[i - 1]?.kandidat);
       const kategori =
         tajam === null ? null : tajam <= AMBANG.kandidatSulit ? "sulit" : tajam >= AMBANG.kandidatMudah ? "mudah" : null;
-      catat(akum[warna], { cocok, kerugian, detik, peringkat, kerugianKandidat, kehilanganMenang, kategori });
-      catat(akumFase[fase][warna], { cocok, kerugian, detik, peringkat, kerugianKandidat, kehilanganMenang });
+      /*
+       * Metrik sepadan platform lain (./akurasi.js). Ketiganya dibaca dari
+       * entri yang sama dengan metrik lama — `previousStaticEvals` untuk
+       * akurasi/ACPL, dan kandidat entri SEBELUMNYA untuk anotasi.
+       * `previousStaticEvals[2]` adalah eval dua ply sebelumnya, yaitu posisi
+       * saat pemain yang sama bergerak lagi, sehingga tidak perlu dibalik
+       * tandanya (lihat `cpBaku`).
+       */
+      const akurasiBaku = akurasiMove(move);
+      const kerugianBaku = kerugianMove(move);
+      const anotasi = anotasiMove(move, daftar[i - 1]?.kandidat, cpBaku(move.previousStaticEvals?.[2], false));
+      catat(akum[warna], {
+        cocok,
+        kerugian,
+        detik,
+        peringkat,
+        kerugianKandidat,
+        kehilanganMenang,
+        kategori,
+        akurasiBaku,
+        kerugianBaku,
+        anotasi,
+      });
+      catat(akumFase[fase][warna], {
+        cocok,
+        kerugian,
+        detik,
+        peringkat,
+        kerugianKandidat,
+        kehilanganMenang,
+        akurasiBaku,
+        kerugianBaku,
+        anotasi,
+      });
       jumlahLangkah++;
 
       /*
@@ -791,6 +917,17 @@ function barisPartai(item, username) {
     korelasiWaktuKualitas: ringkas.korelasiWaktuKualitas ?? null,
     konsistensiWaktu: ringkas.konsistensiWaktu,
     rincianWaktu: ringkas.rincianWaktu ?? null,
+    // Metrik sepadan platform lain — jumlah mentah untuk penjumlahan ulang.
+    akurasiSampel: ringkas.akurasiSampel ?? 0,
+    akurasiJumlah: ringkas.akurasiJumlah ?? 0,
+    akurasiInversJumlah: ringkas.akurasiInversJumlah ?? 0,
+    kerugianBakuSampel: ringkas.kerugianBakuSampel ?? 0,
+    kerugianBakuJumlah: ringkas.kerugianBakuJumlah ?? 0,
+    anotasi: ringkas.anotasi ?? petaAnotasiKosong(),
+    // Nilai siap tampil untuk tabel per partai di laporan peninjauan.
+    akurasi: ringkas.akurasi ?? null,
+    akurasiAritmetik: ringkas.akurasiAritmetik ?? null,
+    acplBaku: ringkas.acplBaku ?? null,
     perFase: ringkas.perFase ?? null,
     skor: ringkas.skor,
     level: ringkas.level,
@@ -844,6 +981,16 @@ function hasilKosong(username) {
     korelasiWaktuKualitas: null,
     konsistensiWaktu: null,
     rincianWaktu: null,
+    // Metrik sepadan platform lain (./akurasi.js).
+    akurasiSampel: 0,
+    akurasiJumlah: 0,
+    akurasiInversJumlah: 0,
+    akurasi: null,
+    akurasiAritmetik: null,
+    kerugianBakuSampel: 0,
+    kerugianBakuJumlah: 0,
+    acplBaku: null,
+    anotasi: petaAnotasiKosong(),
     komponen: { kecocokan: null, peringkat: null, acpl: null, waktu: null },
     skor: null,
     level: null,
@@ -862,6 +1009,12 @@ function hasilKosong(username) {
           kecocokanTop5: null,
           rataPeringkat: null,
           acplKandidat: null,
+          akurasiSampel: 0,
+          akurasi: null,
+          akurasiAritmetik: null,
+          kerugianBakuSampel: 0,
+          acplBaku: null,
+          anotasi: petaAnotasiKosong(),
         },
       ])
     ),
@@ -923,6 +1076,13 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   let streakMaksimum = 0;
   let bobotKorelasi = 0;
   let jumlahKorelasi = 0;
+  // Metrik sepadan platform lain: dijumlah MENTAH agar harmonic mean eksak.
+  let totalAkurasiSampel = 0;
+  let totalAkurasiJumlah = 0;
+  let totalAkurasiInvers = 0;
+  let totalKerugianBakuSampel = 0;
+  let totalKerugianBaku = 0;
+  const totalAnotasi = petaAnotasiKosong();
   const akumFase = {};
   for (const f of DAFTAR_FASE)
     akumFase[f] = {
@@ -936,6 +1096,12 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
       peringkatJumlah: 0,
       kerugianKandidatJumlah: 0,
       kerugianKandidatSampel: 0,
+      akurasiSampel: 0,
+      akurasiJumlah: 0,
+      akurasiInversJumlah: 0,
+      kerugianBakuSampel: 0,
+      kerugianBakuJumlah: 0,
+      anotasi: petaAnotasiKosong(),
     };
 
   for (const baris of partai) {
@@ -956,6 +1122,20 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     totalMudahDinilai += baris.mudahDinilai || 0;
     totalMudahCocok += baris.mudahCocok || 0;
     streakMaksimum = Math.max(streakMaksimum, baris.streakTerpanjang || 0);
+    /*
+     * Partai yang dianalisis sebelum metrik ini ada (atau dibaca dari cache
+     * versi lama) tidak membawa jumlah mentahnya; `|| 0` membuatnya tidak
+     * menyumbang apa-apa, jadi `akurasi` agregat tetap null bila tidak ada
+     * satu partai pun yang punya data.
+     */
+    totalAkurasiSampel += baris.akurasiSampel || 0;
+    totalAkurasiJumlah += baris.akurasiJumlah || 0;
+    totalAkurasiInvers += baris.akurasiInversJumlah || 0;
+    totalKerugianBakuSampel += baris.kerugianBakuSampel || 0;
+    totalKerugianBaku += baris.kerugianBakuJumlah || 0;
+    for (const kunciAnotasi of Object.keys(totalAnotasi)) {
+      totalAnotasi[kunciAnotasi] += baris.anotasi?.[kunciAnotasi] || 0;
+    }
     if (Number.isFinite(baris.korelasiWaktuKualitas) && (baris.sampelKorelasi || 0) > 0) {
       jumlahKorelasi += baris.sampelKorelasi * baris.korelasiWaktuKualitas;
       bobotKorelasi += baris.sampelKorelasi;
@@ -979,6 +1159,12 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
       a.peringkatJumlah += faseBaris.peringkatJumlah || 0;
       a.kerugianKandidatJumlah += faseBaris.kerugianKandidatJumlah || 0;
       a.kerugianKandidatSampel += faseBaris.kerugianKandidatSampel || 0;
+      a.akurasiSampel += faseBaris.akurasiSampel || 0;
+      a.akurasiJumlah += faseBaris.akurasiJumlah || 0;
+      a.akurasiInversJumlah += faseBaris.akurasiInversJumlah || 0;
+      a.kerugianBakuSampel += faseBaris.kerugianBakuSampel || 0;
+      a.kerugianBakuJumlah += faseBaris.kerugianBakuJumlah || 0;
+      for (const kunciAnotasi of Object.keys(a.anotasi)) a.anotasi[kunciAnotasi] += faseBaris.anotasi?.[kunciAnotasi] || 0;
     }
   }
 
@@ -1016,6 +1202,12 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
       kecocokanTop5: a.kandidatSampel ? bulat1((a.langkahTop5 / a.kandidatSampel) * 100) : null,
       rataPeringkat: a.kandidatSampel ? bulat1(a.peringkatJumlah / a.kandidatSampel) : null,
       acplKandidat: a.kerugianKandidatSampel ? bulat1(a.kerugianKandidatJumlah / a.kerugianKandidatSampel) : null,
+      akurasiSampel: a.akurasiSampel,
+      akurasi: bulat1(harmonikDariJumlah(a.akurasiInversJumlah, a.akurasiSampel)),
+      akurasiAritmetik: a.akurasiSampel ? bulat1(a.akurasiJumlah / a.akurasiSampel) : null,
+      kerugianBakuSampel: a.kerugianBakuSampel,
+      acplBaku: a.kerugianBakuSampel ? bulat1(a.kerugianBakuJumlah / a.kerugianBakuSampel) : null,
+      anotasi: { ...a.anotasi },
     };
   }
 
@@ -1030,7 +1222,18 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
 
   const tren = {
     // Poin ringan untuk grafik; rincian per partai ada di `partai`.
-    poin: partai.map((b) => ({ id: b.id, timestamp: b.timestamp, warna: b.warna, lawan: b.lawan, skor: b.skor, level: b.level })),
+    poin: partai.map((b) => ({
+      id: b.id,
+      timestamp: b.timestamp,
+      warna: b.warna,
+      lawan: b.lawan,
+      skor: b.skor,
+      level: b.level,
+      // Ikut dibawa supaya tren akurasi/ACPL bisa digambar tanpa membuka
+      // rincian per partai.
+      akurasi: b.akurasi,
+      acplBaku: b.acplBaku,
+    })),
     kemiringan: kemiringanTren(partai.map((b) => b.skor)),
     arah: null,
   };
@@ -1044,6 +1247,17 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     engineMatchRate: bulat1(engineMatchRate),
     acpl: bulat1(acpl),
     rating: ratingMedan,
+    /*
+     * Metrik sepadan platform lain (./akurasi.js). Harmonic mean disusun dari
+     * jumlah mentah, bukan dirata-rata dari angka per partai — merata-rata
+     * harmonic mean per partai akan menghasilkan angka yang salah.
+     */
+    akurasiSampel: totalAkurasiSampel,
+    akurasi: bulat1(harmonikDariJumlah(totalAkurasiInvers, totalAkurasiSampel)),
+    akurasiAritmetik: totalAkurasiSampel ? bulat1(totalAkurasiJumlah / totalAkurasiSampel) : null,
+    kerugianBakuSampel: totalKerugianBakuSampel,
+    acplBaku: totalKerugianBakuSampel ? bulat1(totalKerugianBaku / totalKerugianBakuSampel) : null,
+    anotasi: { ...totalAnotasi },
     // Metrik kandidat MultiPV pada tingkat agregat.
     kandidatSampel: totalKandidatSampel,
     kecocokanTop3: totalKandidatSampel ? bulat1((totalLangkahTop3 / totalKandidatSampel) * 100) : null,

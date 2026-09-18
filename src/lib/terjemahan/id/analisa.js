@@ -320,6 +320,8 @@ export const analisa = {
         streak: "Rentetan langkah terbaik beruntun",
         korelasiWaktu: "Korelasi waktu pikir ↔ kualitas",
         acpl: "Kerugian rata-rata (ACPL)",
+        acplBaku: "ACPL baku (±1000 cp, metode lichess)",
+        akurasi: "Akurasi (harmonic mean, metode lichess)",
         waktu: "Konsistensi waktu pikir",
         langkah: "Langkah dinilai",
       },
@@ -332,6 +334,8 @@ export const analisa = {
       tanpaData: "Belum ada langkah yang dapat dinilai — langkah paksa dan langkah buku tidak dihitung.",
       sampelKecil: "Hanya {n} langkah yang dinilai pada salah satu sisi; sampel sekecil ini belum bisa disimpulkan.",
       tanpaJam: "PGN ini tidak memuat data jam ([%clk]), jadi metrik waktu pikir dilewati.",
+      catatanMetrikBaku:
+        "Akurasi dan ACPL baku memakai rumus lichess/en-croissant: kurva win chance, eval dipotong ±1000 cp (mate = ±1000), dan harmonic mean. Angka inilah yang bisa disandingkan dengan laporan lichess; keduanya bukan masukan skor kecurigaan di atas, yang tetap memakai ACPL antarposisi.",
       tanpaKandidat: "Partai ini dianalisis tanpa kandidat MultiPV (analisis lama); metrik peringkat dilewati.",
       catatanKandidat: "Peringkat dihitung terhadap {n} kandidat terbaik engine (MultiPV) pada setiap posisi; skala 1–{nMax}.",
       catatanKondisional:
