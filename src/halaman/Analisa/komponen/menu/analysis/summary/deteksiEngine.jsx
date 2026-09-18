@@ -155,6 +155,21 @@ export default function DeteksiEngine({ moves }) {
             putih={formatCentipawn(putih.acpl)}
             hitam={formatCentipawn(hitam.acpl)}
           />
+          {/*
+           * Dua baris berikut memakai rumus lichess/en-croissant
+           * (mesin/akurasi.js) — inilah angka yang bisa dibandingkan dengan
+           * laporan lichess. ACPL di atas memakai konvensi lama modul ini.
+           */}
+          <BarisMetrik
+            label={t("analisa.antiCheat.metrik.acplBaku")}
+            putih={formatCentipawn(putih.acplBaku)}
+            hitam={formatCentipawn(hitam.acplBaku)}
+          />
+          <BarisMetrik
+            label={t("analisa.antiCheat.metrik.akurasi")}
+            putih={formatPersen(putih.akurasi)}
+            hitam={formatPersen(hitam.akurasi)}
+          />
           <BarisMetrik
             label={t("analisa.antiCheat.metrik.waktu")}
             putih={formatRasio(putih.konsistensiWaktu)}
@@ -197,6 +212,9 @@ export default function DeteksiEngine({ moves }) {
           ) : null}
           {!putih.rincianWaktu || !hitam.rincianWaktu ? (
             <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.tanpaJam")}</p>
+          ) : null}
+          {putih.akurasiSampel > 0 || hitam.akurasiSampel > 0 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.catatanMetrikBaku")}</p>
           ) : null}
         </>
       )}

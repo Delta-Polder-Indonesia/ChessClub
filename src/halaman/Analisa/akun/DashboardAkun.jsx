@@ -271,6 +271,9 @@ function RingkasanAntiCheat({ agregat }) {
           </>
         ) : null}
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.acpl")} nilai={cp(agregat.acpl)} />
+        {/* Metrik sepadan platform lain (mesin/akurasi.js) — lihat catatanMetrikBaku. */}
+        <BarisAntiCheat label={t("analisa.antiCheat.metrik.acplBaku")} nilai={cp(agregat.acplBaku)} />
+        <BarisAntiCheat label={t("analisa.antiCheat.metrik.akurasi")} nilai={persen(agregat.akurasi)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.waktu")} nilai={rasio(agregat.konsistensiWaktu)} />
         <BarisAntiCheat label={t("analisa.antiCheat.metrik.langkah")} nilai={String(agregat.jumlahLangkah)} />
       </div>

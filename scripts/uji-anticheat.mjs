@@ -695,6 +695,9 @@ hasil(
   /ditinjau manusia/i.test(tID("analisa.antiCheat.disclaimer"))
 );
 hasil("baris per fase tampil", teks().includes(tID("analisa.antiCheat.fase.opening")));
+hasil("baris ACPL baku tampil", teks().includes(tID("analisa.antiCheat.metrik.acplBaku")));
+hasil("baris akurasi metode lichess tampil", teks().includes(tID("analisa.antiCheat.metrik.akurasi")));
+hasil("catatan metode metrik baku tampil", teks().includes(tID("analisa.antiCheat.catatanMetrikBaku")));
 
 act(() => {
   root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: [] })));
@@ -1181,10 +1184,16 @@ console.log("\n== laporan peninjauan pengurus ==");
   hasil("laporan memuat rating acuan", teks.includes("1225"));
   hasil("laporan memuat sanggahan wajib", teks.includes("bukan bukti atau tuduhan"));
   hasil("laporan memuat rincian per partai", teks.includes("RINCIAN PER PARTAI") && teks.split("\n").length > 15);
+  hasil("laporan memuat akurasi metode lichess", teks.includes("harmonic mean"), teks.split("\n").find((b) => b.startsWith("Akurasi")) ?? "");
+  hasil("laporan memuat ACPL baku", teks.includes("ACPL baku (eval dipotong"));
+  hasil("laporan memuat hitungan anotasi NAG", teks.includes("Anotasi NAG:"));
+  hasil("laporan memuat catatan metode", teks.includes("CATATAN METODE:"));
   hasil("laporan agregat kosong tetap berbentuk", laporan.buatLaporanPeninjauan(null).includes("Tidak ada partai"));
   const json = JSON.parse(laporan.buatLaporanJson(agregatRating, { username: "budi" }));
-  hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 2);
+  hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 3);
   hasil("laporan JSON: metrik lengkap", Number.isFinite(json.metrik.engineMatchRate) && "kecocokanSulit" in json.metrik);
+  hasil("laporan JSON: metrik sepadan platform lain ikut", "akurasi" in json.metrik && "acplBaku" in json.metrik && "anotasi" in json.metrik);
+  hasil("laporan JSON: catatan metode ikut", typeof json.catatanMetode === "string" && json.catatanMetode.length > 0);
   hasil("laporan JSON: sanggahan ikut", json.sanggahan.includes("indikasi statistik"));
   // jsdom punya document+Blob → fungsi harus mengembalikan true dan mengklik
   // anchor sekali. Klik di-stub supaya jsdom tidak mencoba "navigasi" unduhan.
@@ -1270,5 +1279,167 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
     return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}")[kunci];
   })());
 }
+
+/* ==== 14. metrik sepadan platform lain (lichess / en-croissant) ==== */
+
+console.log("\n== metrik akurasi baku (lichess/en-croissant) ==");
+const mtr = await import("../src/halaman/Analisa/mesin/akurasi.js");
+
+/*
+ * NILAI EMAS di bawah diambil dari suite uji en-croissant sendiri
+ * (`src/utils/tests/score.test.ts`, branch `master`): getWinChance(0)=50,
+ * getWinChance(100)≈59.1, getWinChance(-500)≈13.69,
+ * getAccuracy(0,0,white)=100, getAccuracy(0,-500,white)≈19.07,
+ * getCPLoss(0,50,black)=50, getCPLoss(mate -1,cp 0,black)=1000,
+ * getAnnotation(-500)="??", (-200)="?", (-100)="?!", (-50)="".
+ * Kalau salah satu angka ini berubah, rumus kita sudah menyimpang dari
+ * acuan dan angka kita tidak lagi bisa dibandingkan dengan lichess.
+ */
+hasil("peluangMenang(0) = 50", mtr.peluangMenang(0) === 50);
+hasil("peluangMenang(100) ≈ 59.1", hampir(mtr.peluangMenang(100), 59.1, 0.05), `${mtr.peluangMenang(100)}`);
+hasil("peluangMenang(-500) ≈ 13.69", hampir(mtr.peluangMenang(-500), 13.69, 0.05), `${mtr.peluangMenang(-500)}`);
+hasil(
+  "peluangMenang dipotong pada ±1000 cp (97.5 / 2.5, bukan 100 / 0)",
+  mtr.peluangMenang(99999) === mtr.peluangMenang(1000) &&
+    mtr.peluangMenang(-99999) === mtr.peluangMenang(-1000) &&
+    hampir(mtr.peluangMenang(1000), 97.5447, 0.001),
+  `${mtr.peluangMenang(1000)}`
+);
+hasil("CP_CEILING = 1000 (lichess Cp.CEILING)", mtr.CP_CEILING === 1000);
+hasil("cpBaku: mate → ±1000", mtr.cpBaku(["mate", "7"]) === 1000 && mtr.cpBaku(["mate", "-2"]) === -1000);
+hasil("cpBaku: cp di atas plafon dipotong", mtr.cpBaku(["cp", "4200"]) === 1000 && mtr.cpBaku(["cp", "-4200"]) === -1000);
+hasil("cpBaku: balikTanda membalik sudut pandang", mtr.cpBaku(["cp", "34"], true) === -34);
+hasil("cpBaku: data rusak → null", mtr.cpBaku([]) === null && mtr.cpBaku(["mate"]) === null && mtr.cpBaku(undefined) === null);
+hasil("akurasiLangkah: langkah tanpa kerugian = 100", mtr.akurasiLangkah(0, 0) === 100);
+hasil("akurasiLangkah(0 → -500) ≈ 19.07", hampir(mtr.akurasiLangkah(0, -500), 19.07, 0.005), `${mtr.akurasiLangkah(0, -500)}`);
+hasil("akurasiLangkah: eval membaik tetap 100 (jalan pintas lichess)", mtr.akurasiLangkah(-300, 300) === 100);
+hasil("akurasiLangkah: input tak hingga → null", mtr.akurasiLangkah(0, null) === null);
+hasil(
+  "kerugianLangkah(0 → 50, sudut hitam) = 50",
+  mtr.kerugianLangkah(mtr.cpBaku(["cp", "0"], true), mtr.cpBaku(["cp", "50"], true)) === 50
+);
+hasil(
+  "kerugianLangkah(mate -1 → 0, hitam) = 1000",
+  mtr.kerugianLangkah(mtr.cpBaku(["mate", "-1"], true), mtr.cpBaku(["cp", "0"], true)) === 1000
+);
+hasil("kerugianLangkah: langkah yang memperbaiki eval → 0", mtr.kerugianLangkah(-100, 400) === 0);
+hasil("kerugianLangkah: maksimum 2000 (bukan 1000)", mtr.kerugianLangkah(1000, -1000) === 2000);
+
+hasil('anotasi: kehilangan 500 cp win chance → "??"', mtr.anotasiLangkah({ sebelumCp: 0, sesudahCp: -500 }) === "??");
+hasil('anotasi: -200 cp → "?"', mtr.anotasiLangkah({ sebelumCp: 0, sesudahCp: -200 }) === "?");
+hasil('anotasi: -100 cp → "?!"', mtr.anotasiLangkah({ sebelumCp: 0, sesudahCp: -100 }) === "?!");
+hasil('anotasi: -50 cp → tanpa catatan', mtr.anotasiLangkah({ sebelumCp: 0, sesudahCp: -50 }) === "");
+hasil(
+  'anotasi: pengorbanan yang memulihkan keadaan → "!!"',
+  mtr.anotasiLangkah({
+    sebelumCp: 0,
+    sesudahCp: 0,
+    kandidat: [{ uci: "e2e4", cp: 300 }, { uci: "d2d4", cp: -200 }],
+    uci: "e2e4",
+    sacrifice: true,
+  }) === "!!"
+);
+hasil(
+  'anotasi: langkah terbaik yang membalik posisi → "!"',
+  mtr.anotasiLangkah({
+    sebelumCp: 0,
+    sesudahCp: 0,
+    duaLangkahLaluCp: -300,
+    kandidat: [{ uci: "e2e4", cp: 300 }, { uci: "d2d4", cp: -200 }],
+    uci: "e2e4",
+    sacrifice: false,
+  }) === "!"
+);
+hasil(
+  'anotasi: pengorbanan tanpa pemulihan → "!?"',
+  mtr.anotasiLangkah({
+    sebelumCp: 0,
+    sesudahCp: -50,
+    kandidat: [{ uci: "a1a2", cp: 10 }, { uci: "b2b3", cp: 5 }],
+    uci: "c2c3",
+    sacrifice: true,
+  }) === "!?"
+);
+
+hasil("rataHarmonik: [100, 100] = 100", mtr.rataHarmonik([100, 100]) === 100);
+hasil("rataHarmonik: daftar kosong → null (bukan NaN)", mtr.rataHarmonik([]) === null);
+hasil("rataHarmonik: lantai 1 mencegah divisi 0", mtr.rataHarmonik([0]) === 1);
+hasil(
+  "rataHarmonik menghukum blunder lebih keras daripada rata-rata",
+  mtr.rataHarmonik([100, 100, 100, 0]) < mtr.rataRataAngka([100, 100, 100, 0]) - 20,
+  `${mtr.rataHarmonik([100, 100, 100, 0])} vs ${mtr.rataRataAngka([100, 100, 100, 0])}`
+);
+hasil(
+  "harmonikDariJumlah menyusun nilai yang sama dengan rataHarmonik",
+  hampir(
+    mtr.harmonikDariJumlah(mtr.inversAkurasi(90) + mtr.inversAkurasi(40), 2),
+    mtr.rataHarmonik([90, 40]),
+    1e-9
+  )
+);
+hasil("harmonikDariJumlah: tanpa sampel → null", mtr.harmonikDariJumlah(0, 0) === null);
+
+/* Pasangan cp dibaca dari entri parsePGN: [1] = sebelum (giliran pemain),
+ * [0] = sesudah (giliran lawan → tanda dibalik). */
+const entriAkurasi = { color: "b", previousStaticEvals: [["cp", "100"], ["cp", "0"]] };
+hasil("akurasiMove: sebelum 0, sesudah -100", hampir(mtr.akurasiMove(entriAkurasi), 67.24, 0.01), `${mtr.akurasiMove(entriAkurasi)}`);
+hasil("kerugianMove: 100 cp", mtr.kerugianMove(entriAkurasi) === 100);
+hasil("akurasiMove: tanpa riwayat eval → null", mtr.akurasiMove({}) === null);
+
+/* ---- terpasang di hitungSkorKecurigaan ---- */
+hasil("hitungSkorKecurigaan: akurasi terisi", Number.isFinite(skorMesin.w.akurasi), `${skorMesin.w.akurasi}`);
+hasil("hitungSkorKecurigaan: acplBaku terisi", Number.isFinite(skorMesin.w.acplBaku), `${skorMesin.w.acplBaku}`);
+hasil(
+  "partai sempurna engine → akurasi ≈ 100",
+  skorMesin.w.akurasi >= 99,
+  `${skorMesin.w.akurasi}`
+);
+hasil(
+  "partai jujur: akurasi harmonik ≤ rata-rata aritmetik",
+  skorJujur.w.akurasi <= skorJujur.w.akurasiAritmetik + 1e-9,
+  `${skorJujur.w.akurasi} vs ${skorJujur.w.akurasiAritmetik}`
+);
+hasil(
+  "partai sempurna lebih bersih daripada partai jujur (ACPL baku)",
+  skorMesin.w.acplBaku < skorJujur.w.acplBaku,
+  `${skorMesin.w.acplBaku} vs ${skorJujur.w.acplBaku}`
+);
+hasil(
+  "anotasi: enam kunci NAG selalu ada",
+  mtr.DAFTAR_ANOTASI.every((a) => Number.isFinite(skorJujur.w.anotasi[a])) && Object.keys(skorJujur.w.anotasi).length === 6,
+  JSON.stringify(skorJujur.w.anotasi)
+);
+hasil(
+  "anotasi: jumlah anotasi ≤ langkah yang dinilai",
+  Object.values(skorJujur.w.anotasi).reduce((a, b) => a + b, 0) <= skorJujur.jumlahLangkah &&
+    Object.values(skorJujur.b.anotasi).reduce((a, b) => a + b, 0) <= skorJujur.jumlahLangkah,
+  `${Object.values(skorJujur.w.anotasi).reduce((a, b) => a + b, 0)}/${skorJujur.jumlahLangkah}`
+);
+hasil(
+  "perFase membawa akurasi & ACPL baku",
+  "akurasi" in skorJujur.w.perFase.opening && "acplBaku" in skorJujur.w.perFase.opening
+);
+hasil(
+  "pemainDariEntri identik dengan pemainLangkah (duplikat terjaga)",
+  hasilJujur.moves.every((m, i) => mtr.pemainDariEntri(m, i) === ac.pemainLangkah(m, i))
+);
+
+/* ---- agregat lintas partai ---- */
+hasil("agregat: akurasi & acplBaku ikut", Number.isFinite(agregatRating.akurasi) && Number.isFinite(agregatRating.acplBaku));
+const totalInvers = agregatRating.partai.reduce((a, b) => a + (b.akurasiInversJumlah || 0), 0);
+const totalSampelAkurasi = agregatRating.partai.reduce((a, b) => a + (b.akurasiSampel || 0), 0);
+hasil(
+  "agregat: akurasi disusun dari jumlah mentah, bukan rata-rata per partai",
+  hampir(agregatRating.akurasi, Math.round(mtr.harmonikDariJumlah(totalInvers, totalSampelAkurasi) * 10) / 10, 0.05),
+  `${agregatRating.akurasi}`
+);
+hasil(
+  "agregat: anotasi dijumlah antarpartai",
+  Object.keys(agregatRating.anotasi).length === 6 &&
+    Object.values(agregatRating.anotasi).reduce((a, b) => a + b, 0) ===
+      agregatRating.partai.reduce((a, b) => a + Object.values(b.anotasi ?? {}).reduce((x, y) => x + y, 0), 0)
+);
+hasil("agregat kosong: metrik baru null, bukan NaN", ac.agregatSkorPemain([]).akurasi === null && ac.agregatSkorPemain([]).acplBaku === null);
+hasil("re-ekspor antiCheat: peluangMenang & CP_CEILING tersedia", typeof ac.peluangMenang === "function" && ac.CP_CEILING === 1000);
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);
