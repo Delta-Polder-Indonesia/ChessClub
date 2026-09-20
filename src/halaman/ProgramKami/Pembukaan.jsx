@@ -527,7 +527,7 @@ export default function Pembukaan() {
 
             <Link
               to="/papan-interaktif"
-              className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded border border-slate-900 bg-slate-950 px-5 py-3 text-sm font-semibold text-white no-underline transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-slate-900 sm:w-fit"
+              className="inline-flex min-h-11 w-full items-center justify-center gap-3 rounded border border-black bg-transparent px-5 py-3 text-sm font-semibold text-black no-underline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black sm:w-fit"
               style={{ textDecoration: "none" }}
             >
               <span>{t("bukuPembukaan.buka")}</span>

@@ -167,7 +167,7 @@ export default function HubungiKami() {
             <button
               type="submit"
               disabled={sedangMengirim}
-              className="self-start text-sm font-semibold rounded-full px-6 py-3 border border-solid border-primary bg-primary text-white hover:bg-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="self-start text-sm font-semibold rounded px-6 py-3 border border-solid border-black bg-transparent text-black disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {sedangMengirim ? t("hubungi.mengirim") : t("hubungi.kirimPesan")}
             </button>

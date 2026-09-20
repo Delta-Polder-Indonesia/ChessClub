@@ -512,7 +512,7 @@ function AjakanBergabung({ t }) {
         <p className="text-slate-600">{t("landing.ajakanDeskripsi")}</p>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 bg-primary text-white font-semibold text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-2 border border-black bg-transparent text-black font-semibold text-sm px-8 py-3 rounded"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -600,7 +600,7 @@ export default function Landing() {
               <Link
                 to="/keberlanjutan"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 hover:gap-4 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full"
+                className="text-sm h-12 px-4 md:px-6 gap-2 font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded"
               >
                 <span className="order-1">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />

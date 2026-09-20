@@ -12,7 +12,7 @@ export default function TurnamenBulanan() {
       description={t("turnamenBulanan.deskripsi")}
       next={{ to: "/turnamen/liga-musiman", judul: t("turnamenBulanan.nextJudul") }}
     >
-      <PageArtikel title={t("turnamenBulanan.artikel")}>
+      <PageArtikel judulAkademik title={t("turnamenBulanan.artikel")}>
         <p>{t("turnamenBulanan.p1")}</p>
         <ol>
           <li>{t("turnamenBulanan.l1")}</li>

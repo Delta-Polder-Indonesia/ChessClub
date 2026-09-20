@@ -33,7 +33,7 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 ### Prinsip komposisi
 
 1. **Datar (flat).** Kedalaman dibuat lewat whitespace dan garis 1px, bukan bayangan atau gradien.
-2. **Satu warna aksen.** `#0B2F9F` hanya untuk CTA primer, tautan aktif, dan status penting. Sisanya netral.
+2. **Satu warna aksen.** `#0B2F9F` untuk tautan aktif, status penting, dan aksen non-tombol. **Tombol primer = tanpa isi**: garis 1px hitam, sudut sedikit melengkung (`rounded`), teks hitam, tanpa efek (permintaan pengguna). Sisanya netral.
 3. **Hierarki lewat ukuran dan bobot yang tertahan.** Tidak semuanya tebal; hanya satu elemen terkuat per layar.
 4. **Copy faktual dan spesifik** — angka, nama resmi, tanggal, nama program. Bukan slogan kosong.
 
@@ -48,7 +48,7 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 | Pemisah | garis 1px `#E1E1E1` antar bagian dan kartu; atau whitespace 64–96px |
 | Radius | 4px (maks. 8px) |
 | Heading | H1 24–38px weight 600; H2 22–30px weight 600; H3 18px weight 500 — sisanya weight 400 |
-| Tombol | tinggi 38–44px; teks 11–12px uppercase, letter-spacing `.1rem`; primer solid `#0B2F9F`, sekunder outline `#bbb` |
+| Tombol | tinggi 38–44px; teks 11–12px uppercase, letter-spacing `.1rem`; **primer: tanpa isi — garis 1px `black`, sudut sedikit melengkung (`rounded`), teks `black`, tanpa hover/shadow/transition**; sekunder outline `#bbb` |
 | Tautan | warna sama dengan teks; hover → `#b1b1b1` + underline; transisi warna halus |
 | Font | Plus Jakarta Sans self-hosted (`src/fonts/`, `@font-face` di `src/index.css`) — jangan menambah font/CDN lain. Catatan: `@fontsource-variable/geist` sudah ter-impor di `src/index.css` dan blok `@theme inline` shadcn di bagian bawah berkas yang sama menyetel ulang `--font-sans` ke `'Geist Variable'`; periksa keduanya sebelum menyimpulkan font mana yang terpakai |
 

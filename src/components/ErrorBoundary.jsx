@@ -68,7 +68,7 @@ export default class ErrorBoundary extends Component {
               <button
                 type="button"
                 onClick={() => window.location.reload()}
-                className="rounded-full bg-primary px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary/90"
+                className="rounded border border-black bg-transparent px-6 py-2.5 text-sm font-semibold text-black"
               >
                 Muat Ulang Halaman
               </button>

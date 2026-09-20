@@ -6,10 +6,12 @@
 import { useI18n } from "../lib/i18n.jsx";
 
 export const WARNA_STATUS = {
-  pendaftaran: "bg-blue-50 text-blue-700",
-  berlangsung: "bg-amber-50 text-amber-800",
-  selesai: "bg-emerald-50 text-emerald-700",
-  batal: "bg-red-50 text-red-700",
+  // Satu gaya netral untuk semua status — sesuai bahasa desain KCI (flat,
+  // satu aksen, tanpa pelangi warna). Makna dibawa oleh teks, bukan warna.
+  pendaftaran: "bg-slate-100 text-slate-700",
+  berlangsung: "bg-slate-100 text-slate-700",
+  selesai: "bg-slate-100 text-slate-700",
+  batal: "bg-slate-100 text-slate-700",
 };
 
 export const TEKS_STATUS = {

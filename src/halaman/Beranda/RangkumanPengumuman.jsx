@@ -90,7 +90,7 @@ export default function RangkumanPengumuman() {
                       - Tinggi tombol dikurangi dari h-12 ke h-9
                       - Padding horizontal dikurangi dari px-6 ke px-4
                     */
-                    className="text-xs h-9 px-4 gap-1.5 hover:gap-3 font-semibold leading-relaxed flex items-center justify-center transition-all duration-200 ease-in-out border border-solid border-slate-600 text-slate-600 hover:border-primary hover:bg-primary hover:text-white rounded-full flex-row"
+                    className="text-xs h-9 px-4 gap-1.5 font-semibold leading-relaxed flex items-center justify-center border border-solid border-black text-black rounded flex-row"
                   >
                     <span className="order-1">{t("common.selengkapnya")}</span>
                     {/* Ukuran ikon panah diperkecil dari size-6 ke size-4 */}

@@ -12,7 +12,7 @@ export default function LigaMusiman() {
       description={t("ligaMusiman.deskripsi")}
       next={{ to: "/turnamen/turnamen-terbuka", judul: t("ligaMusiman.nextJudul") }}
     >
-      <PageArtikel title={t("ligaMusiman.artikel")}>
+      <PageArtikel judulAkademik title={t("ligaMusiman.artikel")}>
         <p>{t("ligaMusiman.p1")}</p>
         <p>{t("ligaMusiman.p2")}</p>
         <p>{t("ligaMusiman.p3")}</p>

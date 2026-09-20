@@ -59,7 +59,7 @@ function PaginationLink({
           size,
         }),
         className,
-        isActive && "bg-black text-white",
+        isActive && "border border-black bg-transparent text-black",
       )}
       {...props}
     />

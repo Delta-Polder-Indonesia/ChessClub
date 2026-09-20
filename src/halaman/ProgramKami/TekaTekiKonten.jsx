@@ -326,7 +326,7 @@ export default function TekaTekiKonten() {
 
             <Link
               to="/teka-teki"
-              className="inline-flex w-fit items-center justify-center gap-2 rounded-none border border-slate-900 bg-slate-950 px-6 py-2.5 text-sm font-bold text-white transition-colors duration-150 hover:bg-slate-800 no-underline"
+              className="inline-flex w-fit items-center justify-center gap-2 rounded border border-black bg-transparent px-6 py-2.5 text-sm font-bold text-black no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
               style={{ textDecoration: "none" }}
             >
               <span>{t("tipsTekaTeki.mulai")}</span>

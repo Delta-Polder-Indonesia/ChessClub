@@ -59,7 +59,7 @@ export default function AnalisaLanding() {
 
                 <Link
                   to={RUTE_PAPAN_ANALISA}
-                  className="mt-1 inline-flex w-fit shrink-0 items-center justify-center gap-2 rounded-none border border-slate-900 bg-slate-950 px-6 py-2.5 text-sm font-bold text-white no-underline transition-colors duration-150 hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+                  className="mt-1 inline-flex w-fit shrink-0 items-center justify-center gap-2 rounded border border-black bg-transparent px-6 py-2.5 text-sm font-bold text-black no-underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
                 >
                   <span>{t("analisaLanding.mulai")}</span>
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
