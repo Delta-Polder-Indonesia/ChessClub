@@ -11,6 +11,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 process.env.KCI_PEPPER = "pepper-uji-verifikasi-yang-panjang";
 process.env.KCI_DIR_DATA = "/tmp/kci-uji-verif";
@@ -202,7 +203,7 @@ console.log("\nTiket verifikasi (sekali pakai, terikat username)");
 console.log("\nTiket tanpa keadaan (bertahan lintas proses & restart)");
 {
   const { tiket } = oauth.terbitkanTiket("budi", "oauth");
-  const AKAR_REPO = new URL("../../", import.meta.url).pathname;
+  const AKAR_REPO = fileURLToPath(new URL("../../", import.meta.url));
   const hasilAnak = await new Promise((resolve) => {
     const proses = spawn(
       process.execPath,
@@ -816,7 +817,7 @@ console.log("\nTantangan kode profil (penyimpanan, siklus, isolasi proses)");
       berkasTantangan(DIR_BERSAMA)
     );
     {
-      const AKAR_REPO = new URL("../../", import.meta.url).pathname;
+      const AKAR_REPO = fileURLToPath(new URL("../../", import.meta.url));
       const gitignore = fs.readFileSync(path.join(AKAR_REPO, ".gitignore"), "utf8");
       cek(
         "data/rahasia/ di-gitignore (kode tantangan tidak ikut ter-commit)",
