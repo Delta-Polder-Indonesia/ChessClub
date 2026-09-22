@@ -177,7 +177,27 @@ export async function luncurkanServerUji({ tanpaToken = false, chessDasar, env =
   const hentikan = () => {
     if (anak.exitCode === null) anak.kill("SIGTERM");
     peniru?.server.close();
-    fs.rmSync(dirData, { recursive: true, force: true });
+    // Anak menulis data terakhir saat mematikan diri; menghapus dir begitu
+    // saja bisa kalah balapan (ENOTEMPTY di Linux saat anak masih menulis).
+    // Anak adalah proses terpisah, jadi tetap tuntas walau event loop uji
+    // tersendat oleh jeda singkat di bawah.
+    const tidur = (ms) =>
+      Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+    for (let i = 0; i < 40; i++) {
+      try {
+        fs.rmSync(dirData, { recursive: true, force: true });
+        return;
+      } catch {
+        tidur(100);
+      }
+    }
+    if (anak.exitCode === null) anak.kill("SIGKILL");
+    tidur(150);
+    try {
+      fs.rmSync(dirData, { recursive: true, force: true });
+    } catch {
+      // Dir sementara tersisa hanyalah temp—tidak dianggap gagal uji.
+    }
   };
 
   for (let i = 0; i < 100; i++) {
