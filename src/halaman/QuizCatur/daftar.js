@@ -36,10 +36,9 @@ export const DAFTAR_KATEGORI = [
 
 /**
  * Ikon berwarna per kategori dari koleksi `public/images/color-icon`.
- * Setiap id di `DAFTAR_KATEGORI` wajib punya entri di sini: kategori tanpa
- * ikon membuat <img> di navigasi jatuh ke akar situs (tampil kosong).
- * `semua` dipakai tombol Seluruh Kategori sekaligus cadangan bila ada id
- * kategori yang belum punya ikon.
+ * Setiap id di `DAFTAR_KATEGORI` sebaiknya punya entri di sini. Bila ada
+ * kategori yang belum punya ikon, navigasi & area soal memakai `semua`
+ * (explorer) sebagai cadangan.
  */
 export const IKON_KATEGORI = {
   semua: "/images/color-icon/explorer.svg",
@@ -568,7 +567,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "notasi",
-    soal: "Dalam notasi aljabar, huruf 'R' mewakili bidak apa?",
+    soal: "Dalam notasi aljabar bahasa Inggris, huruf 'R' mewakili bidak apa?",
     pilihan: ["Raja", "Benteng", "Menteri", "Kuda"],
     kunci: 1,
   },

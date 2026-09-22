@@ -210,20 +210,21 @@ export default function QuizCatur() {
   };
 
   const menyerah = () => {
+    // Menyerah sebelum menjawab apa pun: tidak ada hasil untuk dicatat,
+    // cukup kembali ke beranda tanpa layar selesai "0 / 0".
+    if (lampau.length === 0) {
+      kembaliDepan();
+      return;
+    }
     catatHasil();
-    setUrutan([]);
-    setIdx(0);
-    setDipilih(null);
-    setAcakOpsi([]);
     setFase("selesai");
     mainkan(SUARA.klik);
   };
 
   const kembaliDepan = () => {
-    setUrutan([]);
-    setIdx(0);
-    setDipilih(null);
-    setAcakOpsi([]);
+    // urutan/idx/dipilih dipertahankan: panel rekap kanan membacanya untuk
+    // menampilkan hasil terakhir di beranda (mulai() yang mereset semua saat
+    // kuis baru dimulai).
     setFase("pilih");
     mainkan(SUARA.klik);
   };
@@ -234,8 +235,6 @@ export default function QuizCatur() {
       {children}
     </span>
   );
-
-  const kategoriAktif = kategori === "semua" ? t("quiz.semua") : t(`quiz.kategori.${kategori}`);
 
   const navKiri = (
     <aside className="flex w-full shrink-0 flex-col border-b border-r-0 border-[#262421] bg-[#262421] lg:w-[236px] lg:border-b-0 lg:border-r">

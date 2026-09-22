@@ -58,8 +58,8 @@ duplikat, dan nama kategori ada di `DAFTAR_KATEGORI`.
    - `src/lib/terjemahan/en/quiz.js` → `quiz.kategori.taktik`
 3. Tambahkan ikonnya ke peta `IKON_KATEGORI` di `daftar.js` (mis.
    `taktik: "/images/color-icon/puzzle-piece.svg"`, berkas dari
-   `public/images/color-icon/`). Kategori tanpa entri ikon akan tampil
-   sebagai gambar kosong di navigasi kiri.
+   `public/images/color-icon/`). Kategori tanpa entri ikon otomatis
+   memakai ikon cadangan `semua` (explorer) di navigasi & area soal.
 
 Label kategori, tombol (Mulai, Periksa, Lanjut), dan teks antarmuka lain berada
 di berkas terjemahan (`id/quiz.js` & `en/quiz.js`), bukan di `daftar.js`.
