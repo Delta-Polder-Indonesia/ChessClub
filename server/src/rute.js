@@ -80,6 +80,7 @@ import {
   susunPeringkat,
   catatRekorRush,
   anggotaTerdafatar,
+  MAKS_SKOR,
 } from "./rekor-rush.js";
 import {
   buatKodeEbook,
@@ -202,7 +203,8 @@ export function daftarkanRute(router, { mulaiPada }) {
   /** Peringkat "Rush Teka-teki" untuk satu durasi (bawaan 5 menit). */
   router.get("/api/rekor-rush", async (req) => {
     const url = new URL(req.url || "", "http://x");
-    const durasi = Number(url.searchParams.get("durasi") || 5);
+    const diminta = Number(url.searchParams.get("durasi"));
+    const durasi = diminta === 3 || diminta === 5 ? diminta : 5;
     const daftar = await bacaSemuaRekor();
     return {
       status: 200,
@@ -237,6 +239,14 @@ export function daftarkanRute(router, { mulaiPada }) {
       }
       if (durasiMenit !== 3 && durasiMenit !== 5) {
         return { status: 400, isi: { pesan: "Durasi harus 3 atau 5 menit." } };
+      }
+      if (skor > MAKS_SKOR[durasiMenit]) {
+        return {
+          status: 422,
+          isi: {
+            pesan: `Skor melebihi batas wajar untuk ${durasiMenit} menit.`,
+          },
+        };
       }
       const { hasil, peringkat } = await catatRekorRush({
         username,

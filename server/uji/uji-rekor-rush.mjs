@@ -89,7 +89,17 @@ console.log("\n== 6. Input tidak sah ditolak ==");
   coba(() => perbaruiRekor([], { username: "x", skor: 5, durasiMenit: 7 }));
   coba(() => perbaruiRekor([], { username: "", skor: 5, durasiMenit: 3 }));
   coba(() => perbaruiRekor([], { username: "aa", skor: -1, durasiMenit: 3 }));
-  sama(menolak, 3, "tiga input ditolak");
+  coba(() => perbaruiRekor([], { username: "cc", skor: 9999, durasiMenit: 3 }));
+  coba(() => perbaruiRekor([], { username: "dd", skor: 200, durasiMenit: 5 }));
+  sama(menolak, 5, "lima input ditolak");
+}
+
+console.log("\n== 7. Skor di batas wajar tetap diterima ==");
+{
+  const a = perbaruiRekor([], { username: "ee", skor: 90, durasiMenit: 3 });
+  const b = perbaruiRekor([], { username: "ff", skor: 120, durasiMenit: 5 });
+  sama(a.hasil.baru, true, "3 menit: tepat batas 90 diterima");
+  sama(b.hasil.baru, true, "5 menit: tepat batas 120 diterima");
 }
 
 console.log(`\nRekor Rush: ${lolos} lolos, ${gagal} gagal.`);

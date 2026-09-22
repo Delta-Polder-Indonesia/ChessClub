@@ -3,10 +3,24 @@ import { ambilCsrfToken } from "./pengurus.js";
 
 /* ----------------------------------------- papan peringkat "Rush Teka-teki" */
 
+/** Batas tunggu tiap permintaan peringkat (mdtk) — hindari UI menggantung. */
+const BATAS_WAKTU_MS = 8000;
+
+/** fetch dengan pengaman waktu: batalkan bila server tak kunjung merespons. */
+async function ambilDenganWaktu(jalur, opsi = {}) {
+  const kontrol = new AbortController();
+  const waktu = setTimeout(() => kontrol.abort(), BATAS_WAKTU_MS);
+  try {
+    return await fetch(urlApi(jalur), { ...opsi, signal: kontrol.signal });
+  } finally {
+    clearTimeout(waktu);
+  }
+}
+
 /** Peringkat online untuk satu durasi (3 atau 5 menit). */
 export async function ambilPeringkatRush(durasiMenit) {
-  const res = await fetch(
-    urlApi(`/api/rekor-rush?durasi=${encodeURIComponent(durasiMenit)}`)
+  const res = await ambilDenganWaktu(
+    `/api/rekor-rush?durasi=${encodeURIComponent(durasiMenit)}`
   );
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
@@ -23,7 +37,7 @@ export async function ambilPeringkatRush(durasiMenit) {
  */
 export async function kirimSkorRush({ username, skor, durasiMenit }) {
   const csrfToken = await ambilCsrfToken();
-  const res = await fetch(urlApi("/api/rekor-rush"), {
+  const res = await ambilDenganWaktu("/api/rekor-rush", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

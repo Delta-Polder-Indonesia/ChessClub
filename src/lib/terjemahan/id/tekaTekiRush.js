@@ -61,6 +61,7 @@ export const tekaTekiRush = {
     // Layar hasil
     hasilWaktu: "Waktu habis",
     hasilNyawa: "Nyawa habis",
+    hasilBerhenti: "Sesi diakhiri",
     rekorBaru: "Rekor baru!",
     skorAkhir: "Skor kamu: {n}",
     mainLagi: "Main Lagi",

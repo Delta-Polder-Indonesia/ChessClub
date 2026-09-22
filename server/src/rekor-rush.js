@@ -20,6 +20,9 @@ import { daftarAnggota } from "./keanggotaan.js";
 const DURASI_SAH = new Set([3, 5]);
 const BATAS_TAMPIL = 20;
 
+/** Batas skor wajar per durasi (menit) — menolak klaim skor yang mustahil. */
+export const MAKS_SKOR = { 3: 90, 5: 120 };
+
 export const repoRekorRush = buatRepo(
   `${konfigurasi.dirData}/rekor-rush.json`,
   []
@@ -40,6 +43,9 @@ export function perbaruiRekor(daftar, { username, skor, durasiMenit }) {
   }
   if (nilai < 0) throw new Error("skor tidak sah.");
   const durasi = Number(durasiMenit);
+  if (nilai > MAKS_SKOR[durasi]) {
+    throw new Error(`skor melebihi batas wajar untuk ${durasi} menit.`);
+  }
   const lama = daftar.find(
     (e) => e.username === u && Number(e.durasi) === durasi
   );

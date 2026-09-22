@@ -61,6 +61,7 @@ export const tekaTekiRush = {
     // Result screen
     hasilWaktu: "Time's up",
     hasilNyawa: "Out of lives",
+    hasilBerhenti: "Session ended",
     rekorBaru: "New high score!",
     skorAkhir: "Your score: {n}",
     mainLagi: "Play Again",
