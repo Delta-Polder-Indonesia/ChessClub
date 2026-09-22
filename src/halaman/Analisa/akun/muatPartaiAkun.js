@@ -31,8 +31,13 @@ const MAKS_PARTAI_LICHESS = 5000;
 const sedangMengunduh = new Map(); // `${platform}:${username}` → Promise
 const kegagalanTerakhir = new Map(); // `${platform}:${username}` → timestamp
 
-function kunciUnduh(platform, username) {
-  return `${platform}:${String(username || "").trim().toLowerCase()}`;
+function kunciUnduh(platform, username, { periode, tanggal } = {}) {
+  const dasar = `${platform}:${String(username || "").trim().toLowerCase()}`;
+  // Periode/tanggal ikut dalam kunci: dua pemanggil untuk akun yang sama
+  // dengan rentang berbeda tidak boleh berbagi janji yang sama — hasil untuk
+  // rentang yang satu akan meleset untuk yang lain.
+  if (tanggal) return `${dasar}:d:${tanggal}`;
+  return `${dasar}:p:${String(periode || "semua").toLowerCase()}`;
 }
 
 /* Periode filter untuk tarik data — mencegah 1jt partai langsung diunduh */
@@ -129,7 +134,7 @@ export function olahPartaiLichess(json) {
  */
 export async function muatPartaiChessCom(username, { onProgress, signal, paksa = false, periode = "semua", tanggal } = {}) {
   const user = String(username || "").trim();
-  const kunci = kunciUnduh("chessCom", user);
+  const kunci = kunciUnduh("chessCom", user, { periode, tanggal });
 
   const berjalan = sedangMengunduh.get(kunci);
   if (berjalan && !paksa) return berjalan.janji;
@@ -183,11 +188,14 @@ async function muatPartaiChessComInti(user, { onProgress, signal, periode = "sem
   }
 
   const semua = [];
+  let dicoba = 0;
+  let berhasil = 0;
   for (let i = 0; i < arsip.length; i += ANTREAN_ARSIP) {
     const potongan = arsip.slice(i, i + ANTREAN_ARSIP);
     const hasil = await Promise.all(
       potongan.map(async (bulan) => {
         onProgress?.(i + 1, arsip.length, bulan);
+        dicoba++;
         try {
           const jawaban = await fetch(bulan.url, { signal });
           if (!jawaban.ok) return [];
@@ -202,6 +210,7 @@ async function muatPartaiChessComInti(user, { onProgress, signal, periode = "sem
           } else if (cutoffMs) {
             daftar = daftar.filter((g) => (g.timestamp || 0) >= cutoffMs);
           }
+          berhasil++;
           return daftar;
         } catch (e) {
           if (e?.name === "AbortError") throw e;
@@ -212,10 +221,19 @@ async function muatPartaiChessComInti(user, { onProgress, signal, periode = "sem
     for (const bagian of hasil) semua.push(...bagian);
   }
 
+  // Galat yang SELURUHNYA ditelan membuat tab "Database" tampak kosong tanpa
+  // alasan. Bila tidak ada satu pun arsip yang berhasil (dan bukan karena
+  // dibatalkan), laporkan.
+  if (dicoba > 0 && berhasil === 0 && !signal?.aborted) {
+    throw Object.assign(new Error("unduhan arsip gagal"), { status: 0 });
+  }
+
   semua.sort((a, b) => b.timestamp - a.timestamp);
 
   if (semua.length > 0) {
-    await simpanBanyakPartai(semua, { platform: "chessCom", username: user }).catch(() => {});
+    await simpanBanyakPartai(semua, { platform: "chessCom", username: user }).catch((e) => {
+      console.error("[muatPartaiAkun] gagal menyimpan partai Chess.com:", e);
+    });
   }
 
   return semua;
@@ -324,7 +342,7 @@ export async function muatPartaiLichess(
   { onProgress, signal, paksa = false, periode = "semua", tanggal, maks = MAKS_PARTAI_LICHESS } = {}
 ) {
   const user = String(username || "").trim();
-  const kunci = kunciUnduh("lichessOrg", user);
+  const kunci = kunciUnduh("lichessOrg", user, { periode, tanggal });
 
   const berjalan = sedangMengunduh.get(kunci);
   if (berjalan && !paksa) return berjalan.janji;
@@ -396,7 +414,9 @@ async function muatPartaiLichessInti(user, { onProgress, signal, periode = "semu
   semua.sort((a, b) => b.timestamp - a.timestamp);
 
   if (semua.length > 0) {
-    await simpanBanyakPartai(semua, { platform: "lichessOrg", username: user }).catch(() => {});
+    await simpanBanyakPartai(semua, { platform: "lichessOrg", username: user }).catch((e) => {
+      console.error("[muatPartaiAkun] gagal menyimpan partai Lichess:", e);
+    });
   }
 
   return semua;

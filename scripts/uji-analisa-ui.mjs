@@ -314,6 +314,24 @@ modul.mount(dom.window.document.getElementById("root"));
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 await tunggu(900);
 
+/**
+ * Tunggu sampai `pemeriksa` terpenuhi (atau habis batas). Mengganti jeda
+ * tetap yang flaky: di mesin lambat rantai fetch pemilih belum tuntas dalam
+ * waktu tetap, di mesin cepat/CI menunggu lebih lama dari perlu. Pemeriksa
+ * dievaluasi tiap 60ms sampai benar (maks 8s) sebelum lanjut; hasilnya
+ * boolean: benar bila kondisi tercapai, salah bila waktu habis.
+ */
+const tungguSampai = (pemeriksa, batasMs = 8000, selangMs = 60) =>
+  new Promise((selesai) => {
+    const mulai = Date.now();
+    const cek = () => {
+      const tercapai = pemeriksa() || Date.now() - mulai >= batasMs;
+      if (tercapai) selesai(tercapai);
+      else setTimeout(cek, selangMs);
+    };
+    cek();
+  });
+
 function teksBagus() {
   return dom.window.document.body.textContent.replace(/\s+/g, " ");
 }
@@ -633,8 +651,18 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     const wadah = domSiap.createElement("div");
     domSiap.body.appendChild(wadah);
     modul.mountPemilih(wadah, platform);
-    await tunggu(500);
-    teksPemilih[platform] = (wadah.textContent ?? "").replace(/\s+/g, " ");
+    const teks = () => (wadah.textContent ?? "").replace(/\s+/g, " ");
+    // Tunggu pemuatan selesai (bukan jeda tetap 500ms) — baris tabel agregat
+    // Chess.com baru tampil setelah dua permintaan API, daftar bulan Lichess
+    // setelah dua permintaan `createdAt`. Bila tidak kunjung selesai, uji di
+    // bawah tetap menandai kegagalan dengan teks yang sesungguhnya.
+    const selesaiMemuat = platform === "chessCom"
+      ? () => teks().includes("lawanuji") && teks().includes("putihuji") && teks().includes("contoh")
+      : () => /\b2026\b/.test(teks());
+    if (!(await tungguSampai(selesaiMemuat))) {
+      console.log(`DEBUG pemuat belum selesai ${platform}:`, JSON.stringify(teks()).slice(0, 400));
+    }
+    teksPemilih[platform] = teks();
   }
   dom.window.fetch = fetchAsli;
   globalThis.fetch = fetchAsli;

@@ -1,6 +1,6 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { deformatSquare, formatSquare } from "../../mesin/engine.js";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { BISHOP, BLACK, Chess, KING, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
 import { buatSuara } from "../suaraPapan.js";
 import { ConfigContext } from "../../konteks/config.jsx";
@@ -363,6 +363,9 @@ function Board(props) {
   const pieceRef = useRef(null);
   const castleRookRef = useRef(null);
   const currentArrowRef = useRef([]);
+  const dragTimerRef = useRef(0);
+  const animasiLangkahRef = useRef(new WeakMap());
+  useEffect(() => () => clearTimeout(dragTimerRef.current), []);
   const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
   const fen = props.fen;
   const nextFen = props.nextFen;
@@ -493,7 +496,8 @@ function Board(props) {
     if (e.button !== 0) return;
     if (!drag.id) return;
     const animation2 = e.type === "mousedown" ? true : false;
-    setTimeout(() => setDrag({ is: false, id: "" }), 0);
+    clearTimeout(dragTimerRef.current);
+    dragTimerRef.current = setTimeout(() => setDrag({ is: false, id: "" }), 0);
     if (analyzingMove) return;
     const from = drag.id;
     const to = toSquare;
@@ -555,6 +559,9 @@ function Board(props) {
       element.style.zIndex = "";
       element.style.willChange = "";
     }
+    // Navigasi cepat antar-langkah: animasi lama yang belum selesai dibatalkan
+    // dulu supaya handler `.finished`-nya tidak merobohkan reset animasi baru.
+    animasiLangkahRef.current.get(element)?.cancel();
     element.style.zIndex = String(zIndex);
     element.style.willChange = "transform";
     const animation2 = element.animate(
@@ -564,15 +571,17 @@ function Board(props) {
       ],
       { duration: 150, easing: "linear", direction: forward2 ? "normal" : "reverse" }
     );
+    animasiLangkahRef.current.set(element, animation2);
     animation2.finished.then(resetElements).catch(resetElements);
     animation2.oncancel = resetElements;
   }
-  function getLegalMoves() {
+  // Langkah sah hanya berubah saat kotak yang diseret atau posisinya berubah.
+  // `chess` dibuat baru setiap render, jadi tanpa `useMemo` daftar langkah sah
+  // dihitung ulang pada setiap render saat menyeret (berat & memuat busuk).
+  const legalMoves = useMemo(() => {
     if (!drag.id) return [];
-    const moves = chess.moves({ square: drag.id, verbose: true }).map((move2) => move2.to);
-    return moves;
-  }
-  const legalMoves = getLegalMoves();
+    return chess.moves({ square: drag.id, verbose: true }).map((move2) => move2.to);
+  }, [drag.id, fen]);
   const boardColors = [boardThemes[boardTheme].white, boardThemes[boardTheme].black];
   const adaptedCoronationSquare = coronation.movement[0] ? adaptSquare(coronation.movement[0]) : null;
   return <div ref={boardRef} onContextMenu={(e) => e.preventDefault()} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} className="grid w-fit h-fit relative" style={{ gridTemplateColumns: `repeat(8, ${squareSize}px)`, pointerEvents: drag.is ? "none" : "unset" }}>
@@ -634,7 +643,7 @@ function Board(props) {
               resultIcon = <ResultSVG className="absolute top-0 right-0 z-[60]" style={{ transform: `translateX(${iconTranslateX}%) translateY(${iconTranslateY}%)` }} size={iconSize} result="draw" />;
             } else {
               if (square2.color === WHITE) {
-                if (result2 === "1-0") resultIcon = resultIcon = <ResultSVG className="absolute top-0 right-0 z-[60]" style={{ transform: `translateX(${iconTranslateX}%) translateY(${iconTranslateY}%)` }} size={iconSize} result="victory" />;
+                if (result2 === "1-0") resultIcon = <ResultSVG className="absolute top-0 right-0 z-[60]" style={{ transform: `translateX(${iconTranslateX}%) translateY(${iconTranslateY}%)` }} size={iconSize} result="victory" />;
                 else if (result2 === "0-1") resultIcon = <ResultSVG className="absolute top-0 right-0 z-[60]" style={{ transform: `translateX(${iconTranslateX}%) translateY(${iconTranslateY}%) rotate(-90deg)` }} size={iconSize} result="defeat" />;
               } else {
                 if (result2 === "0-1") resultIcon = <ResultSVG className="absolute top-0 right-0 z-[60]" style={{ transform: `translateX(${iconTranslateX}%) translateY(${iconTranslateY}%)` }} size={iconSize} result="victory" />;

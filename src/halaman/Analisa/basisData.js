@@ -116,8 +116,13 @@ function simpanFallbackKeStorage() {
   try {
     const arrKoleksi = Array.from(memoriKoleksi.values());
     localStorage.setItem(AWALAN_STORAGE + "koleksi", JSON.stringify(arrKoleksi));
-    // Simpan maksimal 100 partai terbaru di localStorage sebagai cadangan darurat
-    const arrPartai = Array.from(memoriPartai.values()).slice(-100);
+    // Simpan maksimal 100 partai TERBARU di localStorage sebagai cadangan
+    // darurat. Urutkan berdasar timestamp dulu: Map disusun berdasar urutan
+    // sisipan, jadi `.slice(-100)` begitu saja bisa menyimpan partai lama
+    // yang dimuat belakangan dan justru membuang partai terbaru.
+    const arrPartai = Array.from(memoriPartai.values())
+      .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+      .slice(0, 100);
     localStorage.setItem(AWALAN_STORAGE + "partai", JSON.stringify(arrPartai));
   } catch {
     /* kuota penuh */

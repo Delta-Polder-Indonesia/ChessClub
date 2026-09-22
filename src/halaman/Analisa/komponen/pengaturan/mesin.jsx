@@ -33,6 +33,12 @@ function PengaturanMesin() {
 
   function pilihEngine(id) {
     if (id === idEngine) return;
+    // Ganti engine = batalkan analisis yang sedang berjalan. Kalau tidak,
+    // engine lama yang ditamat di tengah pencarian dianggap galat dan
+    // memunculkan pesan "galat.engine" yang menyesatkan.
+    const [kkontrol, setKontrol] = analyzeContext.analyzeController;
+    kkontrol.abort();
+    setKontrol(new AbortController());
     setop();
     gantiEngine(id);
   }

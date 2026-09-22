@@ -54,7 +54,13 @@ export function bacaPembukaan(pgn) {
   const m2 = pgn.match(/\[ECOUrl\s+"([^"]*)"\]/i);
   if (m2 && m2[1]) {
     const slug = m2[1].split("/").pop() || "";
-    return decodeURIComponent(slug).replace(/[-_]+/g, " ");
+    try {
+      return decodeURIComponent(slug).replace(/[-_]+/g, " ");
+    } catch {
+      // Slug berisi "%" yang tak sah → pakai mentahnya, jangan merobohkan
+      // ringkasan statistik karena satu partai.
+      return slug.replace(/[-_]+/g, " ");
+    }
   }
   const e = pgn.match(/\[ECO\s+"([^"]*)"\]/i);
   return e && e[1] ? e[1].trim() : "";

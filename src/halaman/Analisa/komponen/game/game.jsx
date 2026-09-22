@@ -116,6 +116,10 @@ function Game({ wadah }) {
   const analyzingMoveRef = useRef(analyzingMove);
   const pageStateRef = useRef(pageState);
   const tampilanRef = useRef(tampilan);
+  // Nomor urut muatan partai: muatan yang lebih lama dibatalkan oleh yang
+  // lebih baru sehingga hasilnya tidak saling menimpa (`related key` ada di
+  // useEffect [data]).
+  const muatSeqRef = useRef(0);
   const { previousMove, move: move2, nextMove } = getMoves(game, moveNumber, customLine, returnedToNormalGame);
   const shownResult = customLine.moveNumber < 0 ? result2 : getCustomResult(move2);
   useEffect(() => {
@@ -297,7 +301,7 @@ function Game({ wadah }) {
     // memicu beberapa langkah sekaligus.
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
-  async function handlePGN(pgn, depth2) {
+  async function handlePGN(pgn, depth2, terkini, signal) {
     setPageState("loading");
     if (!pgn?.trim()) {
       pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
@@ -325,7 +329,8 @@ function Game({ wadah }) {
     }
     const buku = await janjiBuku;
     try {
-      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, analyzeController.signal);
+      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, signal);
+      if (!terkini()) return;
       setTime(metadata.time);
       setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
       setGame(moves);
@@ -337,6 +342,8 @@ function Game({ wadah }) {
       if (boardSounds) setTimeout(() => gameStartSound.play(), 100);
       setPageState("analyze");
     } catch (e) {
+      // Muatan lama yang dibatalkan tidak boleh menimpa muatan baru.
+      if (!terkini()) return;
       switch (e?.kunci ?? e?.message) {
         case "pgn":
           pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
@@ -355,7 +362,7 @@ function Game({ wadah }) {
     setProgress(0);
     setMoveNumber(0);
   }
-  async function handleFEN(fen) {
+  async function handleFEN(fen, terkini, sinyal) {
     let move3;
     try {
       move3 = await new Promise(async (resolve, reject) => {
@@ -401,7 +408,7 @@ function Game({ wadah }) {
           reject(new Error("fen"));
           return;
         }
-        const signal = analyzeController.signal;
+        const signal = sinyal;
         function handleAbort() {
           reject(new Error("canceled"));
           signal.removeEventListener("abort", handleAbort);
@@ -410,6 +417,8 @@ function Game({ wadah }) {
         resolve(move4);
       });
     } catch (e) {
+      // Muatan lama yang dibatalkan tidak boleh menimpa muatan baru.
+      if (!terkini()) return;
       switch (e?.kunci ?? e?.message) {
         case "fen":
           pushPageError(setErrors, t("analisa.galat.fenJudul"), t("analisa.galat.fenIsi"));
@@ -427,20 +436,33 @@ function Game({ wadah }) {
       return;
     }
     if (!move3) {
-      setPageState("default");
+      if (terkini()) setPageState("default");
       return;
     }
+    if (!terkini()) return;
     setGame([{ ...move3, clock: { white: null, black: null } }]);
     setPageState("analyzeCustom");
   }
   useEffect(() => {
     const { format, string } = data;
+    /*
+     * Muatan baru membatalkan analisis yang masih berjalan — dua parsePGN
+     * sekaligus memakai signal yang sama saling menimpa hasil. Muatan baru
+     * memakai controller/signal miliknya sendiri; `terkini` mencegah muatan
+     * lama yang dibatalkan ikut menyetor state (langkah, progres, halaman).
+     */
+    analyzeController.abort();
+    const baru = new AbortController();
+    setAnalyzeController(baru);
+    muatSeqRef.current += 1;
+    const nomor = muatSeqRef.current;
+    const terkini = () => muatSeqRef.current === nomor;
     switch (format) {
       case "pgn":
-        handlePGN(string, depth);
+        handlePGN(string, depth, terkini, baru.signal);
         break;
       case "fen":
-        handleFEN(string);
+        handleFEN(string, terkini, baru.signal);
         break;
     }
   }, [data]);
@@ -570,7 +592,15 @@ function Game({ wadah }) {
      */
     let move3;
     try {
-      const signal = analyzeController.signal;
+      // Controller yang sudah dibatalkan (tombol Batal / ganti engine) tidak
+      // bisa dipakai lagi: signal aborted memacetkan setiap analisis berikutnya
+      // secara diam-diam. Ganti dengan yang baru sebelum melanjutkan.
+      let signal = analyzeController.signal;
+      if (signal.aborted) {
+        const baru = new AbortController();
+        setAnalyzeController(baru);
+        signal = baru.signal;
+      }
       // Lihat catatan balapan buku di handlePGN: langkah manual pun menunggu
       // tabel buku yang sama (berselang dengan penyiapan engine) sebelum dinilai.
       const janjiBuku = openings2
@@ -600,8 +630,13 @@ function Game({ wadah }) {
       // Batal (tombol Batal / ganti engine) bukan galat yang perlu
       // ditampilkan; sisanya dilaporkan supaya tidak hilang diam-diam.
       const kunci = e?.kunci ?? e?.message;
-      if (kunci !== "canceled" && kunci !== "pencarian dibatalkan" && kunci !== "permintaan digantikan") {
+      const dibatalkan = kunci === "canceled" || kunci === "pencarian dibatalkan" || kunci === "permintaan digantikan";
+      if (!dibatalkan) {
         pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
+      } else {
+        // Signal ini sudah mati; ganti dengan yang baru supaya langkah
+        // berikutnya tetap bisa dinilai, bukan langsung "canceled".
+        setAnalyzeController(new AbortController());
       }
       move3 = undefined;
     } finally {

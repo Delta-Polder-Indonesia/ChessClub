@@ -112,6 +112,13 @@ export class EngineAnalisis {
   async cari(fen, { kedalaman = this.kedalaman, sinyal = null, multiPv = 1 } = {}) {
     if (sinyal?.aborted) throw galat(GALAT_BATAL);
     await this.siapkan();
+    /*
+     * Batal selama engine masih diunduh/disiapkan tidak punya pendengar abort
+     * (baru dipasang di bawah). Cek ulang di sini supaya pencarian yang
+     * "dibatalkan saat memuat" tidak tetap berjalan sampai kedalaman penuh —
+     * cuma unduhan wasm yang terlanjur selesai, bukan analisisnya.
+     */
+    if (sinyal?.aborted) throw galat(GALAT_BATAL);
 
     const hentikan = () => this.engine.setop();
     if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });

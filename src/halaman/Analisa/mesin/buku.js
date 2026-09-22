@@ -14,9 +14,17 @@ import { kunciFen } from "./kunciFen.js";
 
 let janji = null;
 
+/*
+ * Cache-buster pada URL: berkas buku dipakai berbulan-bulan dan di-cache di
+ * modul ini untuk seluruh kunjungan, jadi tanpa versi sebuah deploy buku baru
+ * tidak akan pernah terlihat sampai peramban dimatikan. Naikkan versi setiap
+ * kali scripts/generasi-buku-analisa.mjs menghasilkan berkas baru.
+ */
+const VERSI_BUKU = "2026-09-22";
+
 function unduh() {
   const dasar = typeof import.meta !== "undefined" && import.meta.env ? import.meta.env.BASE_URL : "/";
-  return fetch(`${dasar}data/buku-analisa.json`)
+  return fetch(`${dasar}data/buku-analisa.json?v=${VERSI_BUKU}`)
     .then((respon) => (respon.ok ? respon.json() : {}))
     .catch(() => ({}));
 }
