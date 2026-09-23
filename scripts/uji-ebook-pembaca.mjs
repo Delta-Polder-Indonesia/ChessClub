@@ -432,6 +432,18 @@ export function mount(el, props) {
   const tunggu = (ms = 30) => new Promise((r) => setTimeout(r, ms));
   const teks = () => window.document.getElementById("akar").textContent;
 
+  // Menunggu hingga kondisi terpenuhi, bukan tidur dengan durasi tetap: di
+  // jsdom, reaksi komponen (React 19) tidak selalu selesai dalam satu tick
+  // grafis sehingga tidur tetap bisa membaca DOM terlalu dini.
+  const tungguSampai = async (ketika, tenggat = 2000, selang = 15) => {
+    const mulai = Date.now();
+    for (;;) {
+      if (ketika()) return true;
+      if (Date.now() - mulai > tenggat) return false;
+      await tunggu(selang);
+    }
+  };
+
   await ujiAsync("dokumen berhasil dimuat → kanvas & navigasi halaman tampil", async () => {
     globalThis.__pdfStub = async () => ({
       numPages: 3,
@@ -448,9 +460,9 @@ export function mount(el, props) {
       judul: "Contoh",
       urlUnduh: "/api/ebook-preview?file=a.pdf&unduh=1",
     });
-    await tunggu(80);
 
-    benar(el.querySelector("canvas"), "kanvas halaman tidak dirender");
+    benar(await tungguSampai(() => el.querySelector("canvas")), "kanvas halaman tidak dirender");
+    await tunggu(20);
     benar(teks().includes("/ 3"), `jumlah halaman tidak tampil: ${teks()}`);
     const nomor = el.querySelector('input[type="number"]');
     benar(nomor && Number(nomor.value) === 1, "penunjuk halaman awal bukan 1");
@@ -460,9 +472,8 @@ export function mount(el, props) {
     );
     benar(berikutnya, "tombol halaman berikutnya tidak ada");
     berikutnya.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-    await tunggu(60);
     benar(
-      Number(el.querySelector('input[type="number"]').value) === 2,
+      await tungguSampai(() => Number(el.querySelector('input[type="number"]')?.value) === 2),
       "tombol berikutnya tidak memindahkan halaman"
     );
   });
@@ -479,10 +490,10 @@ export function mount(el, props) {
       judul: "Contoh",
       urlUnduh: "/api/ebook-preview?file=a.pdf&unduh=1",
     });
-    await tunggu(120);
 
+    const berhasil = await tungguSampai(() => el.textContent.includes("gagal dimuat"));
     const isi = el.textContent;
-    benar(isi.includes("gagal dimuat"), `pesan galat tidak tampil: ${isi}`);
+    benar(berhasil, `pesan galat tidak tampil: ${isi}`);
     benar(isi.includes("Coba lagi"), "tombol coba lagi tidak tersedia");
     benar(
       [...el.querySelectorAll("a")].some((a) => a.hasAttribute("download")),

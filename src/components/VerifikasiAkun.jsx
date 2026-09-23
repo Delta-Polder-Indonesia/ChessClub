@@ -164,8 +164,14 @@ export default function VerifikasiAkun({
   );
 
   /* Kode diambil saat komponen dibuka dan setiap username (kanonik)
-     berubah. Permintaan sebelumnya dibatalkan lewat AbortController. */
+     berubah. Permintaan sebelumnya dibatalkan lewat AbortController.
+     Bila status berisi pesan yang HARUS tampil lebih dulu (mis. sesi
+     verifikasi kedaluwarsa saat pendaftaran ditolak server), jangan
+     langsung menimpa pesan itu dengan permintaan kode otomatis: pesannya
+     hilang sebelum pengguna sempat membacanya. Pengguna bisa meminta kode
+     baru lewat tombol segarkan. */
   useEffect(() => {
+    if (statusAwal === "error" || statusAwal === "kedaluwarsa") return undefined;
     const kendali = new AbortController();
     const jam = setTimeout(() => {
       mintaUlangKode({ sinyal: kendali.signal });
@@ -174,7 +180,7 @@ export default function VerifikasiAkun({
       clearTimeout(jam);
       kendali.abort();
     };
-  }, [mintaUlangKode]);
+  }, [mintaUlangKode, statusAwal]);
 
   useEffect(() => {
     if (statusAwal === "success") {

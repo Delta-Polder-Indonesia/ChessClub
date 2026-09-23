@@ -102,6 +102,13 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | `kci-pengujian` | menyelesaikan perubahan apa pun, menambah uji, atau menyelidiki CI merah |
 | `kci-deploy` | mengubah `vercel.json`, workflow CI, atau env var Vercel |
 
+Sebelum menelusuri repo secara manual: jalankan `npm run peta`. Perintah itu menulis
+`docs/PETA-KODE.md` (area → berkas → uji penjaga → halaman peta navigasi, serta berkas uji →
+skrip npm yang menjalankannya) dan menjawab "alur uji ini kemana" tanpa menebak. Jangan
+membuat berkas panduan per-folder: `npm run uji:peta` menjaga peta ini tetap akurat, dan
+berkas panduan yang tersebar tidak punya penjaga seperti itu. Rincian per area ada di
+`.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
+
 Catatan: panduan proyek lain (Better Auth, DSH/DeepSeek Harness) sudah dihapus dari repo.
 Jangan mengikuti dokumen lama yang menyebut SvelteKit, Better Auth, MongoDB, atau OpenRouter —
 bukan bagian dari proyek ini.

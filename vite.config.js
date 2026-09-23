@@ -36,8 +36,12 @@ const SITE_URL = alamatSitus();
 function tanggalPerubahanKonten() {
   const hariIni = new Date().toISOString().slice(0, 10);
   try {
+    // Perhatikan: perintah ini dijalankan lewat shell. Di Windows shell-nya
+    // cmd.exe yang mengekspansi `%…%`, sehingga format tanggal yang memuat
+    // tanda persen (mis. `--date=format:%Y-%m-%d` + `%cd`) bisa rusak.
+    // `--date=short` menghasilkan YYYY-MM-DD tanpa satu pun tanda persen.
     const keluaran = execSync(
-      "git log -1 --date=format:%Y-%m-%d --format=%cd -- src public index.html",
+      "git log -1 --date=short --format=%cd -- src public index.html",
       { cwd: __dirname, stdio: ["ignore", "pipe", "ignore"] },
     )
       .toString()

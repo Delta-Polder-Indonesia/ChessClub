@@ -7,7 +7,9 @@
  * `item` sebagai `@id` dan mewajibkan URL absolut http(s).
  *
  * Uji ini merender komponen BreadcrumbJsonLd yang ASLI di jsdom, membaca
- * skrip ld+json yang disuntik Helmet ke <head>, dan mengunci:
+ * skrip ld+json yang disuntik Helmet ke <head> (lewat requestAnimationFrame,
+ * jadi perlu satu jeda timer sebelum dibaca — lihat catatan di bawah), dan
+ * mengunci:
  *   1. setiap item yang punya `item` memakai URL absolut http(s);
  *   2. posisi berurutan mulai dari 1;
  *   3. item terakhir (halaman aktif) boleh tanpa `item`;
@@ -92,17 +94,22 @@ await act(async () => {
   );
 });
 
-// Helmet v3 menulis ke <head> di dalam requestAnimationFrame; beri waktu
-// satu siklus timer agar suntikan <script> benar-benar terpasang.
+// Helmet v3 menulis ke <head> di dalam requestAnimationFrame, jadi suntikan
+// <script> baru ada setelah macrotask pertama. Beri waktu satu siklus timer
+// sebelum membaca DOM: tanpa jeda ini query berjalan terlalu awal dan
+// menemukan 0 skrip (terukur: 0 segera setelah act(), 1 setelah setTimeout 0).
 await act(async () => {
   await new Promise((selesai) => setTimeout(selesai, 10));
 });
 
+// Helmet v3 + react-helmet-async menaruh skrip di <head> (atribut data-rh).
+// Query seluruh dokumen agar tetap benar bila suatu saat komponen merender
+// jsonld di tempat monternya, bukan hanya di <head>.
 const skrip = [
-  ...document.head.querySelectorAll('script[type="application/ld+json"]'),
+  ...document.querySelectorAll('script[type="application/ld+json"]'),
 ].map((el) => el.textContent);
 
-hasil("Helmet menyuntik tepat satu skrip ld+json", skrip.length === 1);
+hasil("Komponen menyuntik tepat satu skrip ld+json", skrip.length === 1);
 
 let data = null;
 try {
