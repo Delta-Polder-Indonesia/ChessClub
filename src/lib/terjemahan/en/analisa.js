@@ -447,6 +447,11 @@ export const analisa = {
         "This move weakens your overall position.",
         "An avoidable slip that leads to a worse situation.",
       ],
+      mistake: [
+        "This move throws away much of your advantage.",
+        "A costly slip \u2014 other moves were clearly better.",
+        "You give up too much with this move.",
+      ],
       blunder: [
         "This move loses significant advantage.",
         "This move significantly worsens your position.",

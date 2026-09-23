@@ -7,13 +7,14 @@ ChessClub?**
 
 Sifat dokumen: **kajian + catatan pelaksanaan**. Bagian 1–8 ditulis sebelum
 ada perubahan kode; bagian 9 adalah usulan urutan; bagian 10 mencatat apa yang
-benar-benar dikerjakan (2026-09-23: P2 & P4, 2026-09-24: P1) dan apa yang
-sengaja belum, beserta alasannya.
+benar-benar dikerjakan (2026-09-23: P2 & P4, 2026-09-24: P1 lalu P3) dan apa
+yang sengaja belum, beserta alasannya.
 
-Status ringkas: **P1 (bagian penyerang tersembunyi), P2, dan P4 sudah
-dikerjakan** — label `critical`, ekspor PGN beranotasi, dan perbaikan baterai/
-x-ray pada `isSacrifice`. **P3 belum**, dan itu keputusan sadar — bukan karena
-kelupaan; alasannya ada di bagian 6.
+Status ringkas: **seluruh usulan P1–P4 sudah dikerjakan** — perbaikan baterai/
+x-ray pada `isSacrifice` (P1, lingkup terbatas), label `critical` (P2), ambang
+klasifikasi di ruang peluang (P3), dan ekspor PGN beranotasi (P4). Yang tetap
+TIDAK diambil adalah bagian P1 yang lebih besar (`isPieceSafe`, `isPieceTrapped`,
+`hasDangerLevels`, syarat brilliant baru) — alasannya di bagian 4 dan 10.
 
 ---
 
@@ -23,7 +24,7 @@ kelupaan; alasannya ada di bagian 6.
 |---|---|---|---|
 | P1 | Deteksi brilliant berbasis **keselamatan bidak** (`getAttackingMoves` transfektif, `getDefendingMoves`, `isPieceSafe`, `isPieceTrapped`, `hasDangerLevels`) | **SEBAGIAN — SELESAI 2026-09-24** | Yang diambil hanya penyerang **transfektif** (baterai/x-ray), dan dipakai HANYA untuk membatalkan pengecualian "satu penyerang" — bukan untuk menghidupkan aturan lain. `isPieceSafe`/`isPieceTrapped`/`hasDangerLevels`/`isPieceSafe` tetap **tidak** diambil: lihat bagian 4 & 10 |
 | P2 | Label **CRITICAL** dari kandidat MultiPV | **AMBIL — SELESAI 2026-09-23** | Datanya **sudah ada** di `daftarKandidat` (`MULTI_PV = 5`), cuma belum dipakai untuk label |
-| P3 | Ambang klasifikasi di **ruang peluang** + matriks transisi `mate ↔ cp` | **PERTIMBANGKAN** | Ide bagus, tapi mengubah label yang sudah terbit + uji-uji lama harus disetel ulang |
+| P3 | Ambang klasifikasi di **ruang peluang** + matriks transisi `mate ↔ cp` | **DIAMBIL — SELESAI 2026-09-24** | Diambil bagian cp→cp (ambang jadi kerugian peluang 5/10/20/30, sejajar lichess). Transisi mate↔cp **tidak** perlu ditambahkan: cabang mate kita sudah eksplisit (`keepMating`/`delayMate`/`advanceMate`/`missMate`/`gettingMated`), jadi menyalin matriks mereka justru menduplikasi |
 | P4 | **Ekspor PGN beranotasi** (`classifNags` `$1`–`$6`) | **AMBIL — SELESAI 2026-09-23** | Panel Basis Data hanya menyimpan PGN mentah, jadi kartu ekspor dipasang di Ringkasan |
 | N1 | MultiPV / multi-baris | **JANGAN** | Kita **sudah** MultiPV 5; WintrChess hanya 2 |
 | N2 | Akurasi | **JANGAN** | Punya kita (lichess/en-croissant) lebih maju daripada milik mereka |
@@ -365,6 +366,37 @@ kita sudah memuat `peluangMenang(cp)`, `cpBaku()`, dan `batasiCp()` — jadi
 "berpikir di ruang peluang" bisa dilakukan dengan modul kita sendiri. Itu
 sekaligus menghindari persoalan lisensi di bagian 1.
 
+### Hasil yang akhirnya diambil (2026-09-24)
+
+Dikerjakan **hanya baris cp→cp** dari tabel di atas: `getStandardRating` kini
+menerima KERUGIAN PELUANG (peluang menang sebelum − sesudah, keduanya dari
+sudut pelangkah), bukan selisih centipawn. Kurvanya dipindah ke modul bersama
+`mesin/peluang.js` supaya `penilaian.js` dan `akurasi.js` memakai fungsi yang
+sama persis (dulu kurvanya di `akurasi.js`, yang mengimpor `penilaian.js` —
+memakai `peluangMenang` dari sana akan membuat impor melingkar).
+
+Ambatnya **5/10/20/30 poin persen**, bukan tabel WintrChess (4,5/8/12/22).
+Alasannya: angka itu adalah ambang label **lichess** (10/20/30), sedangkan
+seluruh modul akurasi kita memang mengikuti lichess/en-croissant — jadi label
+dan akurasi berbicara dalam skala yang sama. Band `good` mengisi celah di bawah
+10. Padanan cp dari posisi seimbang: 0,55/1,15/2,35/3,80 pion (ambang lama
+0,4/0,8/4,0).
+
+**Transisi mate↔cp tidak ditambahkan** — bukan karena sulit, tapi karena sudah
+ada: cabang mate di `penilaian.js` sudah eksplisit dan tidak memakai ambang
+standar (`keepMating`, `delayMate`, `advanceMate`, `missMate`, `gettingMated`).
+Menyalin matriks mereka di atas jalur itu akan menduplikasi keputusan yang sudah
+lebih kaya (kita membandingkan JUMLAH LANGKAH mat, bukan sekadar tipe eval).
+
+Pengukuran (probe di luar repo, dijalankan pada korpus eval nyata):
+bidang eval 81×81 → 85,4% label identik dan **0 pelanggaran monotonisitas**;
+6 partai self-play Stockfish 17 Lite (depth 8, MultiPV 4) dengan kesalahan
+disuntikkan → 494 langkah, 377 identik (76,3%), `inaccuracy` 66 → 6,
+`excellent` 82 → 172. Empat kandidat ambang dibandingkan lebih dulu pada korpus
+(WintrChess 4,5/8/12/22 · lichess 5/10/20/30 · 4/9/14/24 · 5/10/15/25); semuanya
+memberi bentuk distribusi yang sama, sehingga yang menentukan pilihan adalah
+keterbandingan dengan lichess, bukan angka korpusnya.
+
 ---
 
 ## 7. P4 — Ekspor PGN beranotasi
@@ -429,7 +461,7 @@ tidak ada langkah yang menyentuh dua hal sensitif sekaligus.
 | 1 | P2 — label `critical` dari kandidat MultiPV | `penilaian.js`, kamus i18n, `uji-klasifikasi.mjs` | `uji:klasifikasi`, `uji:komentar`, `uji:i18n` | sedang (tambah label + i18n) |
 | 2 | P4 — ekspor PGN beranotasi NAG | `basisData.js`, `layarDatabase.jsx`, uji baru | uji baru + `uji:basisdata` | rendah (aditif, terisolasi) |
 | 3 | P1 — penyerang tersembunyi (baterai/x-ray) saja, brilliant lebih tajam **tidak** diambil | modul baru `keamananBidak.js`, `penilaian.js` | `uji:sacrifice` + uji baru baterai, **ukur waktu** | ~~tinggi~~ → rendah setelah diukur (biaya tak terukur; SEE penuh 2,6× ditolak) — SELESAI 2026-09-24 |
-| 4 | P3 — ambang di ruang peluang | `penilaian.js`, `uji-klasifikasi.mjs` | seluruh `uji:analisa-menyeluruh` | tinggi (mengubah label terbit) |
+| 4 | P3 — ambang di ruang peluang | `peluang.js` (baru), `penilaian.js`, `akurasi.js`, kamus i18n, `uji-klasifikasi.mjs` | seluruh `uji:analisa-menyeluruh` | tinggi (mengubah label terbit) — SELESAI 2026-09-24; pergeseran label diukur dulu, ekspektasi suite diperbarui sadar |
 
 Tahap 1 dan 2 bisa dikerjakan lebih dulu karena keduanya **tidak menghapus
 perilaku yang ada**. Tahap 3 dan 4 sebaiknya dipisah, karena keduanya
@@ -484,6 +516,25 @@ perubahan: ratu Hitam terpaksa merebut untuk keluar dari skak, lalu jatuh ke
 baterai — `couldBeSaved = false`, jadi bukan pengorbanan yang disengaja).
 Selalu bawa `from`/`to` saat menyalin langkah dari PGN/puzzle.
 
+**P3 — ambang klasifikasi di ruang peluang.** Modul baru
+`src/halaman/Analisa/mesin/peluang.js` (`CP_CEILING`, `FAKTOR_PELUANG`,
+`batasiCp`, `peluangMenang` — dipindah dari `akurasi.js`, yang tetap
+mengekspor ulang keempatnya sehingga pemanggil lama tidak berubah).
+`AMBANG_KERUGIAN_PELUANG` = 5/10/20/30 poin persen di `penilaian.js`; label
+`mistake` kini juga bisa keluar dari band (kunci kamus baru), dan
+perbandingan "sekurang-kurangnya seburuk" (`minimalSeparah`) menggantikan
+`=== "inaccuracy"` di syarat brilliant/great/miss — tanpa itu, band `mistake`
+baru akan lolos dari syarat tersebut dan label brilliant/great/miss hilang.
+Uji `scripts/uji-klasifikasi.mjs` 45 → **63** (bagian baru: kurva bersama,
+band label per titik potong, dan karakterisasi determinisme).
+
+Pengukuran: bidang eval 81×81 → 85,4% identik, **0 pelanggaran monotonisitas**
+(label tidak pernah makin ringan saat kerugian bertambah); korpus nyata 494
+langkah → 376 identik (76,3%), `inaccuracy` 66 → 6, `excellent` 82 → 172,
+`good` 54 → 33, `blunder` 17 → 11. Skenario `uji-hasil.mjs` (partai contoh yang
+labelnya sudah terbit: e4 best / Bc4 blunder / Bc5 great / sisanya excellent)
+**tidak berubah** — jadi contoh yang dikenal pengguna tetap sama.
+
 ### Yang sengaja TIDAK dikerjakan
 
 **Sisa P1 (keamanan bidak gaya WintrChess).** Celah x-ray sudah ditutup, tetapi
@@ -501,15 +552,12 @@ lewat perubahan ini. Hasil 2026-09-24 **tidak** mengubah kesimpulan itu: yang
 diambil hanya penyerang transfektif, dan itupun hanya sebagai pembatal
 pengecualian — bukan sebagai masukan aturan baru.
 
-**P3 (ambang di ruang peluang).** Sama: mengubah label yang sudah dilihat
-pengguna, dan menuntut seluruh ekspektasi suite beku disetel ulang. Manfaatnya
-nyata tetapi tidak mendesak.
-
 ### Verifikasi yang dijalankan
 
 - `npm run uji:analisa-menyeluruh` — 12 suite, semuanya lulus
-  (45 + 54 + 60 + 65 + 31 + 31 + 28 + 27 + 27 + 14 + 11 + 301; angka `65` untuk
-  `uji-sacrifice.mjs` adalah hasil 2026-09-24, sebelumnya 39).
+  (63 + 54 + 60 + 65 + 31 + 31 + 28 + 27 + 27 + 14 + 11 + 301; `63` =
+  `uji-klasifikasi.mjs` dan `65` = `uji-sacrifice.mjs`, keduanya hasil
+  2026-09-24 — sebelumnya 45 dan 39).
 - `npm run uji` (seluruh rantai, termasuk suite non-Analisa) — exit 0.
 - `npm run uji:i18n` — 2405 kunci ID = 2405 kunci EN.
 - `npm run build` — bundel produksi terbentuk.
@@ -519,9 +567,16 @@ nyata tetapi tidak mendesak.
 
 ### Sisa yang layak dikerjakan berikutnya
 
-1. **P3** (ambang klasifikasi di ruang peluang) — satu-satunya tahap dari
-   rencana awal yang belum dikerjakan; menyentuh `penilaian.js` dan menuntut
-   seluruh ekspektasi suite beku disetel ulang, jadi kerjakan sendiri.
+Seluruh rencana P1–P4 sudah dikerjakan; yang tersisa adalah penyetelan, bukan
+tahap baru:
+
+1. **Setel ulang `AMBANG_KERUGIAN_PELUANG` bila ada bukti dari partai nyata
+   pengguna.** Ambangnya sengaja dikumpulkan di satu konstanta; korpus yang
+   dipakai memilihnya adalah self-play engine, yang lebih sedikit melahirkan
+   kerugian 10–20 poin dibanding permainan manusia. Prosedurnya: kumpulkan
+   distribusi kerugian peluang per langkah dari partai nyata, bandingkan dengan
+   tabel kandidat ambang di bagian 6, lalu perbarui suite-nya dalam commit yang
+   sama.
 2. **Sisa P1** hanya kalau ada bukti bahwa label brilliant masih salah pada
    kasus nyata: urutan yang paling murah adalah `isPieceTrapped` dulu (bidak
    terkunci), bukan merombak seluruh syarat brilliant.

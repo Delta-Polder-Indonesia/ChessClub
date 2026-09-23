@@ -448,6 +448,11 @@ export const analisa = {
         "Posisi Anda melemah akibat langkah ini.",
         "Kekhilafan kecil yang membuat keadaan kurang menguntungkan.",
       ],
+      mistake: [
+        "Langkah ini membuang sebagian besar keunggulan Anda.",
+        "Kerugian besar \u2014 pilihan lain jauh lebih baik.",
+        "Anda menyerahkan terlalu banyak pada langkah ini.",
+      ],
       blunder: [
         "Langkah ini membuang keunggulan secara besar-besaran.",
         "Posisi Anda memburuk tajam setelah langkah ini.",

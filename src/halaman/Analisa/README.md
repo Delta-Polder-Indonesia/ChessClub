@@ -471,7 +471,7 @@ Aturan saat beku:
 
 | Suite | Cakupan | Pemeriksaan |
 | --- | --- | --- |
-| `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang poin | 45 |
+| `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang kerugian peluang (kurva bersama, band label, determinisme) | 63 |
 | `scripts/uji-langkah-kritis.mjs` | label `critical`: kurva kandidat MultiPV, tujuh syaratnya satu per satu, batas "hanya di cabang best", dan rantai `parsePGN` entri i ← kandidat entri i−1 | 54 |
 | `scripts/uji-pgn-anotasi.mjs` | ekspor PGN beranotasi: konvensi eval sudut Putih, peta NAG, tag header (termasuk PGN tanpa tag), dan bahwa berkas hasilnya tetap PGN sah saat dimuat ulang | 60 |
 | `scripts/uji-sacrifice.mjs` | `isSacrifice`: kasus bernalar, karakterisasi PADAT (16 rekaman implementasi pra-optimasi), penyaring penyerang legal, penyerang tersembunyi/baterai (`keamananBidak.js`) + 3 batas perbaikannya, determinisme & kemurnian | 65 |
@@ -747,8 +747,62 @@ yang tak terlihat membuat pengorbanan nyata dinilai **bukan** pengorbanan.
   (`Rxh2+`, `g5+`, `Qxe8`), masing-masing menjaga syarat keberadaan penyerang
   legal, gerbang legalitas, dan `couldBeSaved`.
 
-## Yang belum dikerjakan (jangan dikira sudah)
+## Ambang klasifikasi di ruang peluang (2026-09-24)
 
-- **Ambang klasifikasi di ruang peluang** (matriks `mate↔cp` ala WintrChess)
-  juga belum: itu mengubah label yang sudah terbit dan menuntut seluruh
-  ekspektasi `uji-klasifikasi.mjs` disetel ulang.
+Sampai perubahan ini, label standar (`excellent`/`good`/`inaccuracy`/`blunder`)
+dihitung dari **selisih centipawn** dengan ambang tetap: `≥0,4 good`,
+`≥0,8 inaccuracy`, `≥4 blunder`. Padahal makna satu pion tidak seragam — jatuh
+dari +5,0 ke +4,2 hampir tidak berarti, sedangkan +0,5 → −0,3 bisa menentukan
+hasil partai. Sekarang labelnya dihitung dari **kerugian peluang** memakai kurva
+yang SAMA dengan `akurasi.js` (jadi label dan angka akurasi tidak mungkin lagi
+berbicara dalam dua bahasa berbeda).
+
+- Modul baru **`mesin/peluang.js`**: `CP_CEILING`, `FAKTOR_PELUANG`, `batasiCp`,
+  `peluangMenang` — pindahan dari `akurasi.js`. Dipindah karena `akurasi.js`
+  mengimpor `penilaian.js` (untuk `invertColor`), sehingga menaruh kurvanya di
+  sana akan membuat impor melingkar. `akurasi.js` **mengekspor ulang** keempat
+  nama itu, jadi `antiCheat.js`, `langkahKritis.js`, dan uji lama tidak berubah.
+- **`AMBANG_KERUGIAN_PELUANG`** di `penilaian.js` — satu tempat untuk semua
+  ambang: `good 5 · inaccuracy 10 · mistake 20 · blunder 30` (poin persen).
+  Angkanya sejajar ambang label lichess (10/20/30) supaya bisa dibandingkan
+  langsung dengan analisis lichess; band `good` mengisi celah di bawah 10.
+  Padanan cp dari posisi seimbang: **0,55 / 1,15 / 2,35 / 3,80 pion** (bandingkan
+  ambang lama 0,4 / 0,8 / 4,0).
+- `mistake` kini juga bisa keluar langsung dari band (dulu hanya dari cabang
+  `loseAdvantage`/`giveAdvantage`), jadi ada kunci kamus baru
+  `analisa.komentar.mistake` (ID+EN, 3 kalimat).
+- Cabang **diagnosis tetap menentukan komentar**, bukan keparahan: langkah yang
+  kehilangan keunggulan besar memakai kalimat `loseAdvantage`/`giveAdvantage`
+  (pengguna tahu APA yang salah), sedangkan labelnya mengikuti band — `blunder`
+  bila kerugiannya ≥30 poin, selain itu `mistake`.
+- Perbandingan label lama/baru memakai **"sekurang-kurangnya seburuk"**
+  (`minimalSeparah`) alih-alih kesamaan persis (`=== "inaccuracy"`). Tanpa itu,
+  band `mistake` baru akan lolos dari syarat "lawan sebelumnya keliru" sehingga
+  label brilliant/great/miss hilang di posisi yang justru lebih buruk.
+
+### Yang diukur
+
+| Ukuran | Hasil |
+| --- | --- |
+| Bidang eval 81×81 (langkah 0,25 pion, 6561 titik) | 85,4% label identik; 961 berubah |
+| Monotonisitas (label tak boleh makin ringan saat kerugian bertambah) | **0 pelanggaran** |
+| Korpus nyata: 6 partai self-play Stockfish 17 Lite (depth 8, MultiPV 4) + kesalahan disuntikkan, 494 langkah | 376 identik (76,3%); distribusi: `inaccuracy` 66 → 6, `excellent` 82 → 172, `good` 54 → 33, `blunder` 17 → 11 |
+| Ambang alternatif yang dibandingkan pada korpus (lihat `KAJIAN-WINTRCHESS-ANALISA.md` bagian 10) | WintrChess 4,5/8/12/22 · lichess 5/10/20/30 · tengah 4/9/14/24 · lichess ketat 5/10/15/25 — dipilih **lichess 5/10/20/30** |
+
+Dua sifat yang perlu diketahui pengguna (sengaja, bukan bug):
+
+1. **Posisi yang sudah kalah jauh mendapat label ringan.** Menurunkan eval dari
+   −12,0 ke −20,0 hanya mengubah peluang menang ~1 poin, jadi labelnya
+   `excellent` — sama seperti lichess, yang juga mengukur perubahan peluang,
+   bukan jumlah materi. Kalimat komentarnya tetap ada (mis. `blunder`), tetapi
+   dihitung dari band yang baru.
+2. **`komentar("blunder")` praktis tidak terpakai lagi.** Kerugian ≥30 poin
+   selalu menyeberangi garis keunggulan ±2,0 sehingga salah satu cabang
+   diagnosis mengambil alih. Kalimatnya sengaja tetap ada di kamus untuk
+   keadaan ambang disetel ulang. Kasus determinisme di `uji-klasifikasi.mjs`
+   karena itu memakai kasus blunder **+ diagnosis**, bukan blunder murni.
+
+Ambang lama tetap dipakai untuk dua hal, dan itu disengaja: gerbang
+`evaluationDiff >= 1.2` (kerugiannya material) dan garis keunggulan besar ±2,0 —
+keduanya memang bicara soal materi/posisi, bukan peluang.
+

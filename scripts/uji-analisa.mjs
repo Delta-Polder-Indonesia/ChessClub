@@ -288,13 +288,18 @@ await uji("blunder saat eval jatuh lebih dari 4 bidak", () => {
     previousSacrifice: false,
     openings: {},
   });
+  // Sejak ambang dihitung di ruang peluang (2026-09-24), label tetap ditentukan
+  // band — kerugian 35,9 poin → blunder — sedangkan komentarnya diambil dari
+  // DIAGNOSIS: posisi Hitam menyeberangi garis +2,0 (dari +0,2 ke +4,6 dari
+  // sudut Putih), jadi kalimatnya "menyerahkan keunggulan" (giveAdvantage),
+  // bukan kalimat blunder umum.
   assert.equal(hasil.moveRating, "blunder");
-  assert.equal(hasil.commentKey, "blunder");
+  assert.equal(hasil.commentKey, "giveAdvantage");
 });
 
 await uji("inaccuracy untuk kerugian kecil", () => {
   const hasil = getMoveRating({
-    staticEval: EVAL(120),
+    staticEval: EVAL(140),
     previousStaticEvals: [EVAL(-10)],
     bestMoveSan: "Nf6",
     moveSan: "h6",
@@ -304,6 +309,10 @@ await uji("inaccuracy untuk kerugian kecil", () => {
     previousSacrifice: false,
     openings: {},
   });
+  // Nilai 120 sempat dipakai dan menghasilkan TEPAT di tepi band: kerugiannya
+  // 9,95 poin, di bawah ambang inaccuracy (10) — jadi "good". Nilai 140
+  // (kerugian 11,7 poin) masuk band inaccuracy. Kasus tepi itu sengaja tidak
+  // diuji di sini; `uji-klasifikasi.mjs` yang memuat uji band per titik potong.
   assert.equal(hasil.moveRating, "inaccuracy");
 });
 
