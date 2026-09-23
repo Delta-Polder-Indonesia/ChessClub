@@ -73,21 +73,64 @@ export default defineConfig({
     dedupe: ["react", "react-dom", "react-router", "react-router-dom"],
   },
   optimizeDeps: {
+    /*
+     * SEMUA paket yang diimpor kode klien (`src/**`) harus ada di sini.
+     * Kalau ada satu saja yang belum, Vite meng-optimasi ulang dependensi saat
+     * paket itu pertama kali diimpor: hash URL dependensi berganti di tengah
+     * sesi, dan modul yang masih dipegang browser dari generasi lama membuat
+     * React termuat DUA kali — gejalanya "Invalid hook call" lalu
+     * "Cannot read properties of null (reading 'useState')" dan halaman mati
+     * di ErrorBoundary. Kejadian persis itu menimpa sesi review (dialog/menu
+     * Radix + lucide-react pertama kali dibuka).
+     *
+     * Daftar ini dihasilkan dari pemindaian impor `src/**` — spesifier ditulis
+     * apa adanya, termasuk sub-path (`@base-ui/react/separator`,
+     * `@tanstack/react-table/legacy`), karena setiap sub-path adalah entri
+     * optimasi tersendiri. Kalau menambah paket baru di kode klien, tambahkan
+     * juga di sini.
+     */
     include: [
+      // Inti React & router
       "react",
       "react-dom",
       "react-dom/client",
-      "react/jsx-runtime",
-      "react/jsx-dev-runtime",
-      "react-router",
-      "react-router-dom",
       "react-helmet-async",
-      "chess.js",
-      "@vercel/speed-insights/react",
-      // Dipakai komponen UI neobrutalism (src/components/ui + components/tools);
-      // ikut di-pre-bundle agar tidak memicu optimasi ulang di tengah sesi.
+      "react-router-dom",
+      "react/jsx-dev-runtime",
+      "react/jsx-runtime",
+
+      // Kit UI (neobrutalism, src/components/ui + tools)
+      "@base-ui/react/preview-card",
+      "@base-ui/react/progress",
+      "@base-ui/react/separator",
       "@radix-ui/react-accordion",
+      "@radix-ui/react-alert-dialog",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-label",
+      "@radix-ui/react-menubar",
+      "@radix-ui/react-navigation-menu",
+      "@radix-ui/react-popover",
+      "@radix-ui/react-select",
+      "@radix-ui/react-slot",
+      "@radix-ui/react-switch",
+      "@radix-ui/react-tabs",
+      "@radix-ui/react-tooltip",
+
+      // Data, papan, berkas
+      "@tanstack/react-table",
+      "@tanstack/react-table/legacy",
+      "chess.js",
+      "pdfjs-dist",
       "recharts",
+
+      // Lain-lain
+      "@vercel/speed-insights/react",
+      "class-variance-authority",
+      "cn",
+      "embla-carousel-react",
+      "input-otp",
+      "lucide-react",
     ],
   },
   build: {
