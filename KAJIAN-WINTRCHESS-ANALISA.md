@@ -5,10 +5,13 @@ Dokumen ini menilai repo referensi **WintrChess**
 satu pertanyaan: **apa yang layak diambil untuk meng-upgrade halaman Analisa
 ChessClub?**
 
-Sifat dokumen: **kajian + usulan**. Belum ada satu baris pun kode yang
-diubah. Semua perubahan yang diusulkan di bagian 6 menunggu persetujuan
-pengguna lebih dulu (kebijakan `AGENTS.md`: perubahan medium/besar tidak
-diekseskusi sebelum ada persetujuan).
+Sifat dokumen: **kajian + catatan pelaksanaan**. Bagian 1–8 ditulis sebelum
+ada perubahan kode; bagian 9 mencatat apa yang benar-benar dikerjakan
+(2026-09-23) dan apa yang sengaja belum, beserta alasannya.
+
+Status ringkas: **P2 dan P4 sudah dikerjakan** (label `critical`, ekspor PGN
+beranotasi). **P1 dan P3 belum**, dan itu keputusan sadar — bukan karena
+kelupaan; alasannya ada di bagian 4 dan 6.
 
 ---
 
@@ -16,10 +19,10 @@ diekseskusi sebelum ada persetujuan).
 
 | # | Item | Verdict | Alasan singkat |
 |---|---|---|---|
-| P1 | Deteksi brilliant berbasis **keselamatan bidak** (`getAttackingMoves` transfektif, `getDefendingMoves`, `isPieceSafe`, `isPieceTrapped`, `hasDangerLevels`) | **AMBIL (tulis ulang)** | `isSacrifice` kita memakai `chess.attackers()` yang **tidak melihat baterai/x-ray** — sudah dibuktikan dengan uji di bagian 4 |
-| P2 | Label **CRITICAL** dari kandidat MultiPV | **AMBIL** | Datanya **sudah ada** di `daftarKandidat` (`MULTI_PV = 5`), cuma belum dipakai untuk label |
+| P1 | Deteksi brilliant berbasis **keselamatan bidak** (`getAttackingMoves` transfektif, `getDefendingMoves`, `isPieceSafe`, `isPieceTrapped`, `hasDangerLevels`) | **BELUM — menunggu keputusan desain** | Celahnya nyata (dibuktikan di bagian 4), tetapi menutupnya berarti merombak `isSacrifice`; lihat bagian 9 |
+| P2 | Label **CRITICAL** dari kandidat MultiPV | **AMBIL — SELESAI 2026-09-23** | Datanya **sudah ada** di `daftarKandidat` (`MULTI_PV = 5`), cuma belum dipakai untuk label |
 | P3 | Ambang klasifikasi di **ruang peluang** + matriks transisi `mate ↔ cp` | **PERTIMBANGKAN** | Ide bagus, tapi mengubah label yang sudah terbit + uji-uji lama harus disetel ulang |
-| P4 | **Ekspor PGN beranotasi** (`classifNags` `$1`–`$6`) | **AMBIL (kecil)** | `eksporPgnKoleksi` sudah ada di `basisData.js`, tinggal varian beranotasi |
+| P4 | **Ekspor PGN beranotasi** (`classifNags` `$1`–`$6`) | **AMBIL — SELESAI 2026-09-23** | Panel Basis Data hanya menyimpan PGN mentah, jadi kartu ekspor dipasang di Ringkasan |
 | N1 | MultiPV / multi-baris | **JANGAN** | Kita **sudah** MultiPV 5; WintrChess hanya 2 |
 | N2 | Akurasi | **JANGAN** | Punya kita (lichess/en-croissant) lebih maju daripada milik mereka |
 | N3 | Estimasi rating | **JANGAN** | Milik mereka masih hardcode `2000`/`1000` |
@@ -409,18 +412,69 @@ perubahan label sulit dilacak.
 
 ---
 
-## 10. Permintaan keputusan
+## 10. Pelaksanaan (2026-09-23)
 
-Yang perlu ditetapkan pengguna sebelum saya menyunting apa pun:
+### Yang dikerjakan
 
-1. **Tahap mana yang dikerjakan?** Saran saya mulai dari Tahap 1 (P2 —
-   label `critical`), karena manfaatnya paling cepat terasa dan datanya sudah
-   ada tanpa biaya engine tambahan.
-2. **Untuk Tahap 1:** `critical` menjadi label tersendiri (seperti WintrChess),
-   atau menggantikan `best` pada langkah yang memenuhi syarat?
-3. **Untuk Tahap 3:** apakah kenaikan waktu analisis bisa diterima? Ini
-   menghasilkan label brilliant yang lebih tepat, tapi menambah pekerjaan per
-   langkah. Saya bisa mengukur dulu biayanya pada satu partai contoh sebelum
-   menulis modul penuhnya.
+**P2 — label `critical`.** Modul baru `src/halaman/Analisa/mesin/langkahKritis.js`
+(murni) + sambungan ke `getMoveRating` (hanya di cabang `isBest`), `parseMove`
+(parameter ke-12 `previousKandidat`), `parsePGN`, dan prop `kandidat` pada jalur
+variasi manual. UI: ikon `Critical` (kotak, satu-satunya ungu di daftar label),
+warna `--analisa-highlightCritical`, baris di perincian penilaian, penanda di
+daftar Langkah/grafik/sorot papan, kamus ID/EN. Uji baru
+`scripts/uji-langkah-kritis.mjs` (54 pemeriksaan).
 
-Tanpa jawaban di atas, tidak ada berkas kode yang saya ubah.
+Alasan label ini **terpisah** dari `best` (bukan menggantikannya): "langkah
+wajib ditemukan" adalah informasi tambahan, bukan koreksi penilaian kualitas —
+dan dengan begitu tidak ada satu pun label lama yang berubah makna.
+
+**P4 — ekspor PGN beranotasi.** Modul baru
+`src/halaman/Analisa/mesin/pgnAnotasi.js` (murni kecuali fungsi unduh) + kartu
+`summary/eksporPgn.jsx` yang dipasang paling bawah Ringkasan. Peta NAG
+mengikuti gagasan `classifNags` WintrChess tetapi sengaja lebih hemat
+(brilliant `$3`, critical `$1`, inaccuracy `$6`, miss/mistake `$2`, blunder
+`$4`; label netral tidak ditandai). Uji baru `scripts/uji-pgn-anotasi.mjs`
+(60 pemeriksaan), termasuk pemeriksaan bahwa berkas hasilnya **masih PGN sah**
+saat dimuat ulang dan menghasilkan langkah yang identik.
+
+### Yang sengaja TIDAK dikerjakan
+
+**P1 (keamanan bidak / brilliant).** Celahnya sudah dibuktikan, tetapi
+perbaikan yang benar bukan sekadar menambahkan penyerang x-ray ke daftar
+penyerang: `isSacrifice` memakai satu daftar penyerang untuk banyak aturan
+yang berbeda (mis. "tanpa pembela tapi ada penyerang" = menggantung), dan
+menambahkan x-ray ke daftar itu akan **menyalakan** aturan tersebut pada
+posisi yang sebenarnya belum terserang — false positive baru. Model yang
+benar (seperti WintrChess) memisahkan penyerang **langsung** dan penyerang
+**menyeluruh**, lalu memakai keduanya untuk aturan yang berbeda. Itu berarti
+merombak ulang `isSacrifice` — bagian yang justru paling matang di halaman
+ini — beserta seluruh ekspektasi `uji-sacrifice.mjs` dan `uji-klasifikasi.mjs`.
+Pekerjaan sebesar itu butuh keputusan pemilik produk, bukan diselundupkan
+lewat perubahan ini.
+
+**P3 (ambang di ruang peluang).** Sama: mengubah label yang sudah dilihat
+pengguna, dan menuntut seluruh ekspektasi suite beku disetel ulang. Manfaatnya
+nyata tetapi tidak mendesak.
+
+### Verifikasi yang dijalankan
+
+- `npm run uji:analisa-menyeluruh` — 12 suite, semuanya lulus
+  (45 + 54 + 60 + 39 + 31 + 31 + 28 + 27 + 27 + 14 + 11 + 301).
+- `npm run uji` (seluruh rantai, termasuk suite non-Analisa) — exit 0.
+- `npm run uji:i18n` — 2405 kunci ID = 2405 kunci EN.
+- `npm run build` — bundel produksi terbentuk.
+- `scripts/uji-analisa-ui.mjs` +4 pemeriksaan baru: kartu ekspor terpasang di
+  Ringkasan, tombolnya ada, dan mengkliknya di jsdom (tanpa
+  `URL.createObjectURL`) tidak melempar serta tidak merobohkan halaman.
+
+### Sisa yang layak dikerjakan berikutnya
+
+1. **P1** dengan rancangan eksplisit: modul `keamananBidak.js` yang memisahkan
+   penyerang langsung vs menyeluruh, lalu `isSacrifice` diarahkan bertahap
+   (diukur dulu biaya waktunya per partai).
+2. **P3** setelah itu, karena keduanya sama-sama menyentuh `penilaian.js` dan
+   sebaiknya tidak diubah bersamaan.
+3. Bila label `critical` terbukti jarang muncul pada analisis nyata
+   (MultiPV 5 dengan kedalaman 13 di build single-thread), tinjau ambang
+   `AMBANG_KERUGIAN_KRITIS` — angkanya sengaja dikumpulkan sebagai konstanta di
+   satu tempat supaya mudah disetel.

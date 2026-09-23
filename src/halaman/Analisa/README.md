@@ -461,6 +461,7 @@ Aturan saat beku:
   memang sengaja diubah, ekspektasi di berkasnya diperbarui dalam perubahan
   yang sama (jangan dilewati/dimatikan).
 - **Kartu tambahan di `summary/summary.jsx` wajib dipasang paling bawah.**
+  Dua kartu tambahan saat ini: `deteksiEngine.jsx` lalu `eksporPgn.jsx`.
   `uji-hasil.mjs` mencari baris Ringkasan lewat teks labelnya
   (`spans.find(s => s.textContent === …)`) sehingga baris PERTAMA yang cocok
   yang menang; kartu baru yang menyisip di tengah — atau yang memakai ulang
@@ -471,6 +472,8 @@ Aturan saat beku:
 | Suite | Cakupan | Pemeriksaan |
 | --- | --- | --- |
 | `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang poin | 45 |
+| `scripts/uji-langkah-kritis.mjs` | label `critical`: kurva kandidat MultiPV, tujuh syaratnya satu per satu, batas "hanya di cabang best", dan rantai `parsePGN` entri i ← kandidat entri i−1 | 54 |
+| `scripts/uji-pgn-anotasi.mjs` | ekspor PGN beranotasi: konvensi eval sudut Putih, peta NAG, tag header (termasuk PGN tanpa tag), dan bahwa berkas hasilnya tetap PGN sah saat dimuat ulang | 60 |
 | `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
 | `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
 | `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
@@ -636,3 +639,80 @@ di bagian ini.
   `kerugianLangkah(mate −1 → 0, hitam) = 1000`, anotasi −500/−200/−100/−50 →
   `??`/`?`/`?!`/"". Kalau salah satu angka itu berubah, rumus kita sudah
   menyimpang dari acuan. Suite: 245 → **301** pemeriksaan.
+
+## Label `critical` & ekspor PGN beranotasi (2026-09-23)
+
+Dua tambahan yang **bukan** hasil port Brilliant-Chess. Keduanya lahir dari
+kajian repo **WintrChess** (`WintrCat/wintrchess`) — lihat
+`KAJIAN-WINTRCHESS-ANALISA.md` di akar repo. Gagasannya dipakai, kodenya
+TIDAK: WintrChess berlisensi **GPL-3.0**, sedangkan repo ini MIT, jadi kode
+yang diambil dari sana akan memaksa lisensi karya gabungannya berpindah.
+Semua implementasi di bawah ditulis dengan konvensi ChessClub sendiri.
+
+### 1. Label `critical` — langkah yang wajib ditemukan
+
+`penilaian.js` menilai langkah dari selisih eval sebelum/sesudah, sehingga
+langkah "terbaik" dan langkah "satu-satunya yang menang" tampak sama. Label
+`critical` membedakannya dengan membandingkan kandidat **#1 dan #2 MultiPV
+pada posisi yang SEBELUM langkah** — data yang sejak lama sudah direkam
+`engine.js` (`MULTI_PV = 5`, dipakai metrik peringkat di `antiCheat.js`)
+tetapi belum pernah dipakai untuk label.
+
+- Modul baru **`mesin/langkahKritis.js`** (murni): `cpKandidat`,
+  `kerugianPeluangKandidat`, `apakahLangkahKritis`. Ambang: kerugian peluang
+  ≥ 10 poin persen (`AMBANG_KERUGIAN_KRITIS`) dan "sudah menang mutlak" pada
+  ≥ 700 cp (`AMBANG_UNGGUL_MUTLAK_CP`). Kurva peluangnya meminjam
+  `peluangMenang`/`cpBaku` dari `mesin/akurasi.js` — tidak ada rumus baru.
+- Syaratnya: langkah itu usulan engine, kandidat #2 ada (tanpa MultiPV label
+  tidak muncul sama sekali — bukan menebak), kandidat #2 belum menang
+  mutlak, pemain tidak kalah sesudahnya, bukan promosi ratu, pemain tidak
+  sedang disekak, dan kandidat #2 benar-benar merugikan.
+- Labelnya hanya keluar di cabang `isBest` `getMoveRating`, jadi
+  brilliant/great/book/forced dan semua label buruk tidak pernah tertimpa.
+- `parseMove` menerima parameter ke-12 `previousKandidat` (`moves[i−1].kandidat`);
+  `parsePGN` meneruskannya, dan jalur variasi manual mengalirkannya lewat prop
+  `kandidat` di `board.jsx` → `game.jsx`.
+- UI: ikon `Critical` di `komponen/svg/rating.jsx` (kotak, `#8f7ee7` — warna
+  ini satu-satunya ungu di daftar label, sengaja, dan dipilih setelah
+  dibandingkan pada ukuran tampil 18px), warna `--analisa-highlightCritical`,
+  ikon/warna di daftar Langkah + grafik + sorot papan, baris tersendiri di
+  perincian penilaian, dan kalimat komentar di kamus ID/EN.
+- Akurasi panel Ringkasan: label ini diperlakukan seperti `best` (100 poin),
+  bukan peta baru — angka akurasi lama tidak bergeser.
+
+### 2. Kartu "Ekspor PGN beranotasi" (`summary/eksporPgn.jsx`)
+
+Sebelumnya satu-satunya jalan membawa hasil keluar halaman adalah PGN
+**mentah** dari panel Basis Data — dan panel itu memang hanya menyimpan teks
+PGN, bukan labelnya. Kartu ini menyusun ulang PGN dari `moves` hasil analisis:
+
+- Modul baru **`mesin/pgnAnotasi.js`** (murni, kecuali `unduhPgnBeranotasi`):
+  `evalKeTeks` (eval mentah UCI → sudut Putih, skakmat sebagai `#n`),
+  `bangunPgnBeranotasi`, `NAG_LABEL`, `tanpaAnotasi`.
+- Peta NAG sengaja tidak lengkap: `brilliant $3`, `critical $1`,
+  `inaccuracy $6`, `miss/mistake $2`, `blunder $4`; label netral
+  (`best`/`excellent`/`good`/`book`/`forced`) tidak ditandai supaya tidak
+  setiap langkah menjadi `$1`.
+- Komentar `{ [%eval x.xx] }` ditulis per langkah (mematikan opsinya lewat
+  tombol "Tanpa eval"). Tag hander disalin dari PGN asli; PGN tanpa tag —
+  termasuk pengisian `"?"` bawaan chess.js — jatuh ke nama pemain halaman,
+  jadi berkasnya tidak pernah berbunyi `[White "?"]`.
+- Nama berkas: `<Putih> vs <Hitam>-<tanggal>.pgn`; kegagalan menyiapkan
+  unduhan (mis. `URL.createObjectURL` tidak ada) mengembalikan `false` dan
+  tidak merobohkan panel.
+- Kartu dipasang **paling bawah** Ringkasan, mengikuti aturan beku yang sama
+  dengan `deteksiEngine.jsx`.
+
+### Yang belum dikerjakan (jangan dikira sudah)
+
+- **`isSacrifice` masih buta terhadap baterai/x-ray.** `chess.js`
+  `attackers()` tidak melaporkan penyerang di belakang bidak lain; sudah
+  dibuktikan: FEN `q5k1/8/8/8/8/8/R7/R5K1 w` → `attackers("a8","w")` = `["a2"]`,
+  `a1` tidak disebut (setelah `a2` dibuang baru muncul). WintrChess menutup
+  ini dengan penyerang **transfektif** + pemisahan penyerang langsung vs
+  menyeluruh; menyalin pendekatan itu berarti merombak `isSacrifice`, sehingga
+  **sengaja tidak dikerjakan** di perubahan ini. Rinciannya (termasuk alasan
+  dan risikonya) ada di `KAJIAN-WINTRCHESS-ANALISA.md` bagian 4.
+- **Ambang klasifikasi di ruang peluang** (matriks `mate↔cp` ala WintrChess)
+  juga belum: itu mengubah label yang sudah terbit dan menuntut seluruh
+  ekspektasi `uji-klasifikasi.mjs` disetel ulang.
