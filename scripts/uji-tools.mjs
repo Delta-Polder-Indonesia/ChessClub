@@ -115,6 +115,7 @@ export const hasil = {
 `;
 
 let gagal = 0;
+let kodeKeluar = 0;
 const lapor = (pesan) => {
   gagal++;
   console.error(`  ✗ ${pesan}`);
@@ -182,13 +183,31 @@ try {
 
   if (gagal) {
     console.error(`\n${gagal} masalah pada komponen tools ditemukan.`);
-    process.exit(1);
+    kodeKeluar = 1;
+  } else {
+    console.log("OK — komponen tools (AccordionTools + 4 grafik neobrutalism) me-render markup yang dijanjikan.");
   }
-  console.log("OK — komponen tools (AccordionTools + 4 grafik neobrutalism) me-render markup yang dijanjikan.");
 } catch (err) {
   console.error("  ✗ komponen tools gagal dibundel/di-render:");
   console.error(err);
-  process.exit(1);
+  kodeKeluar = 1;
 } finally {
-  rmSync(TMP, { recursive: true, force: true });
+  // Layanan esbuild (proses anak) masih memegang berkas keluaran di dalam TMP
+  // saat akhir skrip. Hentikan lebih dulu sebelum menghapus TMP: rmSync() pada
+  // direktori yang berkasnya masih dipakai proses lain bisa menggantung lama
+  // (khas Windows, apalagi bila antivirus ikut memindai berkas yang baru ditulis).
+  try {
+    await esbuild.stop();
+  } catch {
+    /* layanan esbuild tidak hidup — tidak apa-apa */
+  }
+  try {
+    rmSync(TMP, { recursive: true, force: true });
+  } catch {
+    /* TMP gagal dibersihkan bukan alasan menggagalkan uji (mis. berkas terkunci) */
+  }
 }
+
+// Keluar eksplisit: tanpa ini proses bergantung pada tidak adanya handle sisa,
+// dan `npm run uji` bisa tampak menggantung setelah "OK" tercetak.
+process.exit(kodeKeluar);
