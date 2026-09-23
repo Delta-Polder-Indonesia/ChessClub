@@ -9,6 +9,8 @@ const ratings = [
   // text-highlightGreat
   "best",
   // text-highlightBest
+  "critical",
+  // text-highlightCritical — TIDAK ada di upstream Brilliant-Chess
   "excellent",
   // text-highlightExcellent
   "good",

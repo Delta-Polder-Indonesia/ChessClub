@@ -12,6 +12,7 @@ const ratings = [
   "brilliant",
   "great",
   "best",
+  "critical",
   "excellent",
   "good",
   "book",

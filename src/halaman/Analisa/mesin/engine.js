@@ -21,6 +21,7 @@ import { Chess } from "chess.js";
 import { EngineCatur, cariEngine } from "../../../lib/engineCatur.js";
 import { hashUntukEngine } from "./cekWasm.js";
 import { getMoveRating, invertColor, isForced, isSacrifice } from "./penilaian.js";
+import { apakahLangkahKritis } from "./langkahKritis.js";
 
 const HURUF_PAPAN = "abcdefgh".split("");
 
@@ -356,7 +357,16 @@ export async function parsePosition(mesin, chess, depth, sinyal, handleAbort, mu
   };
 }
 
-export async function parseMove(mesin, depth, move, chess, previousStaticEvals, previousBestMoveSan, previousSacrifice, openings, handleAbort, sinyal, multiPv = 1) {
+/**
+ * Analisis satu langkah. Seluruh parameter berawalan `previous` adalah milik
+ * entri SEBELUMNYA (`moves[i - 1]`), bukan entri yang sedang dibuat:
+ * `previousStaticEvals` (eval posisi sebelum langkah), `previousBestMoveSan`
+ * (usulan engine di posisi itu), `previousSacrifice` (pengorbanan langkah
+ * sebelumnya) dan `previousKandidat` (kandidat MultiPV posisi itu — bahan
+ * label "kritis"). Pola yang sama dipakai ./antiCheat.js saat membaca
+ * `moves[i - 1].kandidat`.
+ */
+export async function parseMove(mesin, depth, move, chess, previousStaticEvals, previousBestMoveSan, previousSacrifice, openings, handleAbort, sinyal, multiPv = 1, previousKandidat = []) {
   if (sinyal?.aborted) handleAbort?.();
 
   const movement = [move.from, move.to].map((kotak) => formatSquare(kotak));
@@ -427,6 +437,13 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
         sacrifice,
         previousSacrifice,
         openings,
+        /*
+         * Label "kritis" menuntut kandidat MultiPV posisi SEBELUM langkah ini
+         * (`previousKandidat`), jadi dihitung di sini lalu diserahkan sebagai
+         * boolean — `penilaian.js` tetap murni dan tidak perlu menyentuh
+         * papan. Lihat ./langkahKritis.js.
+         */
+        kritis: apakahLangkahKritis(move, { staticEval, previousKandidat, previousBestMoveSan }),
       });
 
   const bestMoveSan = bestMove ? moveToSan(bestMove, bestMoveCoronation, fen) : undefined;
@@ -493,6 +510,13 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
   let previousStaticEvals = [];
   let previousBestMoveSan;
   let previousSacrifice = false;
+  /*
+   * Kandidat MultiPV posisi sebelum langkah yang sedang dianalisis — bahan
+   * label "kritis" (./langkahKritis.js). Pada entri `i`, ini adalah
+   * `daftar[i - 1].kandidat`, sama seperti pola `previousBestMoveSan` dan
+   * `previousStaticEvals` di atas.
+   */
+  let previousKandidat = [];
 
   /** Menghentikan seluruh loop analisis dengan rapi (dipakai tombol Batal). */
   const gagalkan = () => {
@@ -509,6 +533,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     moves.push({ ...awal, clock: daftarClock[0] ?? { white: metadata.time || null, black: metadata.time || null } });
     previousStaticEvals = awal.previousStaticEvals;
     previousBestMoveSan = awal.bestMoveSan;
+    previousKandidat = awal.kandidat ?? [];
 
     for (let i = 0; i < riwayat.length; i++) {
       if (sinyal?.aborted) throw galat(GALAT_BATAL);
@@ -526,7 +551,8 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
         openings,
         gagalkan,
         sinyal,
-        multiPv
+        multiPv,
+        previousKandidat
       );
 
       if (sinyal?.aborted) throw galat(GALAT_BATAL);
@@ -535,6 +561,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
       previousStaticEvals = dianalisis.previousStaticEvals;
       previousBestMoveSan = dianalisis.bestMoveSan;
       previousSacrifice = dianalisis.sacrifice ?? false;
+      previousKandidat = dianalisis.kandidat ?? [];
 
       setProgress(((i + 1) / riwayat.length) * 100);
     }

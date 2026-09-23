@@ -298,6 +298,16 @@ export const analisa = {
       cukupLangkah: "Belum cukup langkah untuk menilai fase ini.",
       akurasiFase: "{fase}: akurasi {angka}%",
       ratingPartai: "Rating permainan",
+      ekspor: {
+        judul: "Ekspor PGN beranotasi",
+        keterangan:
+          "PGN berisi tanda NAG (!!, !, ?, ?!, ??) dan eval [%eval] dari analisis ini \u2014 bisa dibuka di lichess, ChessBase, atau aplikasi catur lain.",
+        tombol: "Unduh .pgn",
+        tombolTanpaEval: "Tanpa eval",
+        jumlahLabel: "{n} dari {total} langkah bertanda",
+        kosong: "Belum ada langkah yang bisa diekspor \u2014 jalankan analisis lebih dulu.",
+        sukses: "Berkas PGN beranotasi diunduh.",
+      },
 
     },
     antiCheat: {
@@ -389,6 +399,7 @@ export const analisa = {
       brilliant: "Brilian",
       great: "Sangat baik",
       best: "Terbaik",
+      critical: "Kritis",
       excellent: "Unggul",
       good: "Layak",
       book: "Buku",
@@ -416,6 +427,11 @@ export const analisa = {
         "Ini langkah terbaik pada posisi ini.",
         "Inilah langkah paling tepat yang bisa Anda mainkan.",
         "Pilihan paling presisi untuk situasi ini.",
+      ],
+      critical: [
+        "Satu-satunya langkah yang mempertahankan keunggulan Anda.",
+        "Alternatif terbaik lainnya sudah membuang keunggulan \u2014 langkah ini wajib ditemukan.",
+        "Langkah kritis: pilihan lain akan menyerahkan keunggulan kepada lawan.",
       ],
       excellent: [
         "Bukan langkah terbaik, tetapi kekuatannya setara.",

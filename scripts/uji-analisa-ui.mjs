@@ -426,6 +426,27 @@ if (tabRingkasan) {
   const ringkasan = teksBagus();
   uji("ringkasan: akurasi + fase berbahasa Indonesia", /Akurasi/.test(ringkasan) && /Pembukaan/.test(ringkasan) && /Menengah/.test(ringkasan) && !/Middlegame/.test(ringkasan));
   uji("ringkasan: perincian penilaian", /Brilian|Blunder/.test(ringkasan));
+  /*
+   * Kartu ekspor PGN beranotasi (mesin/pgnAnotasi.js). Yang diperiksa di sini
+   * bukan isi berkasnya (itu tugas scripts/uji-pgn-anotasi.mjs), melainkan
+   * bahwa kartunya benar-benar terpasang di Ringkasan dan tombolnya aman
+   * diklik: `URL.createObjectURL` tidak ada di jsdom, jadi jalur gagal
+   * halusnya ikut teruji — dulu cukup untuk merobohkan seluruh panel.
+   */
+  uji("ringkasan: kartu ekspor PGN beranotasi ada", /Ekspor PGN beranotasi/.test(ringkasan));
+  const tombolEkspor = [...domSiap.querySelectorAll("button")].find((b) => /Unduh \.pgn/.test(b.textContent ?? ""));
+  uji("ringkasan: tombol unduh PGN ada", !!tombolEkspor);
+  if (tombolEkspor) {
+    let melempar = null;
+    try {
+      tombolEkspor.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    } catch (e) {
+      melempar = e;
+    }
+    await tunggu(50);
+    uji("ringkasan: klik tombol unduh tidak melempar", melempar === null, String(melempar?.message ?? ""));
+    uji("ringkasan: halaman tetap terpasang setelah klik", !!domSiap.querySelector(".analisa-root"));
+  }
 }
 
 const tabLangkah = tab(/Langkah/);

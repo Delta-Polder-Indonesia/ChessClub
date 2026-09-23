@@ -1162,6 +1162,7 @@ section[id] {
   --color-highlightBrilliant: var(--analisa-highlightBrilliant);
   --color-highlightGreat: var(--analisa-highlightGreat);
   --color-highlightBest: var(--analisa-highlightBest);
+  --color-highlightCritical: var(--analisa-highlightCritical);
   --color-highlightExcellent: var(--analisa-highlightExcellent);
   --color-highlightGood: var(--analisa-highlightGood);
   --color-highlightBook: var(--analisa-highlightBook);

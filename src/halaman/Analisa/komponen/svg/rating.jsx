@@ -312,6 +312,63 @@ function Best({ size }) {
             </g>
         </svg>;
 }
+/*
+ * Label `critical` ("langkah kritis") TIDAK ada di upstream Brilliant-Chess —
+ * ini tambahan ChessClub, jadi glyphnya pun bukan hasil port. Bentuknya kotak
+ * (□), lambang "only move" yang lazim di literatur catur: satu-satunya langkah
+ * yang mempertahankan keunggulan. Sengaja dipilih setelah dibandingkan pada
+ * ukuran tampil sebenarnya (18px di daftar Langkah): kunci/gembok/target
+ * menggumpal di ukuran itu, kotak tetap terbaca.
+ */
+function Critical({ size }) {
+  return <svg
+    width={size}
+    height={size}
+    viewBox="0 0 120 120"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+            <circle
+    style={{
+      fill: "#8f7ee7",
+      fillOpacity: 1,
+      stroke: "none",
+      strokeWidth: 1.00135
+    }}
+    cx={60}
+    cy={60}
+    r={60}
+  />
+            <rect
+    x={32}
+    y={32}
+    width={56}
+    height={56}
+    rx={3}
+    style={{
+      fill: "none",
+      stroke: "#000000",
+      strokeOpacity: 0.4,
+      strokeWidth: 32,
+      strokeLinecap: "round",
+      strokeLinejoin: "round"
+    }}
+  />
+            <rect
+    x={32}
+    y={32}
+    width={56}
+    height={56}
+    rx={3}
+    style={{
+      fill: "none",
+      stroke: "#ffffff",
+      strokeWidth: 16,
+      strokeLinecap: "round",
+      strokeLinejoin: "round"
+    }}
+  />
+        </svg>;
+}
 function Excellent({ size }) {
   return <svg
     width={size}
@@ -1247,6 +1304,8 @@ function RatingSVG({ rating, size, dataset, draggable, className, style, title }
         return <Great {...ratingProps} />;
       case "best":
         return <Best {...ratingProps} />;
+      case "critical":
+        return <Critical {...ratingProps} />;
       case "excellent":
         return <Excellent {...ratingProps} />;
       case "good":

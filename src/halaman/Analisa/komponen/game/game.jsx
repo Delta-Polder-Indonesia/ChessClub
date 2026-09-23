@@ -566,7 +566,12 @@ function Game({ wadah }) {
     }
     return newArrows;
   }
-  async function analyzeMove(previousFen, movement, previousSacrifice, previousStaticEvals, animation2, previousBestMoveSan) {
+  /*
+   * `previousKandidat` ditambahkan paling belakang supaya pemanggil lama
+   * (uji dan jalur lain) tetap sah: tanpanya label "kritis" tidak muncul,
+   * perilaku lainnya identik.
+   */
+  async function analyzeMove(previousFen, movement, previousSacrifice, previousStaticEvals, animation2, previousBestMoveSan, previousKandidat) {
     const chess = new Chess(previousFen);
     const unanalyzedMoveObj = chess.move(movement);
     const unanalyzedMove = {
@@ -623,7 +628,9 @@ function Game({ wadah }) {
           () => {
             throw new Error("canceled");
           },
-          signal
+          signal,
+          undefined,
+          previousKandidat ?? []
         );
       }
     } catch (e) {
@@ -724,6 +731,7 @@ function Game({ wadah }) {
     pushArrow={pushArrow}
     analyzeMove={analyzeMove}
     previousStaticEvals={move2?.previousStaticEvals}
+    kandidat={move2?.kandidat}
     analyzingMove={analyzingMove}
     setMaterialAdvantage={setMaterialAdvantage}
     drag={drag2}

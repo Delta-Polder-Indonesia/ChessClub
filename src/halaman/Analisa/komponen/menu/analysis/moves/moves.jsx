@@ -11,6 +11,7 @@ const RATING_TEXT_COLORS = {
   brilliant: "text-highlightBrilliant",
   great: "text-highlightGreat",
   best: "text-highlightBest",
+  critical: "text-highlightCritical",
   excellent: "text-highlightExcellent",
   good: "text-highlightGood",
   book: "text-highlightBook",
@@ -23,7 +24,7 @@ function getRating(moveNumber, rating, prevRating, nextRating, lastBookMove) {
   if (!rating) return;
   if (moveNumber === lastBookMove) return { rating, textClass: RATING_TEXT_COLORS[rating] };
   if (rating === "best" && prevRating === "inaccuracy") return { rating, textClass: RATING_TEXT_COLORS[rating] };
-  if (rating === "blunder" || rating === "mistake" || rating === "miss" || rating === "great" || rating === "brilliant") return { rating, textClass: RATING_TEXT_COLORS[rating] };
+  if (rating === "critical" || rating === "blunder" || rating === "mistake" || rating === "miss" || rating === "great" || rating === "brilliant") return { rating, textClass: RATING_TEXT_COLORS[rating] };
   return;
 }
 function getLastBookMove(moves) {

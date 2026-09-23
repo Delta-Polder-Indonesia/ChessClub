@@ -20,6 +20,7 @@ const FORMAT_LABEL = {
   brilliant: "adalah",
   great: "adalahLangkahA",
   best: "adalah",
+  critical: "adalah",
   excellent: "adalah",
   good: "adalah",
   inaccuracy: "adalahLangkahAn",

@@ -13,6 +13,7 @@ const HIGHLIGHT_COLORS = {
   forced: "",
   brilliant: "var(--highlightBrilliant)",
   great: "var(--highlightGreat)",
+  critical: "var(--highlightCritical)",
   best: "var(--highlightBest)",
   excellent: "var(--highlightExcellent)",
   good: "var(--highlightGood)",
@@ -366,7 +367,7 @@ function Board(props) {
   const dragTimerRef = useRef(0);
   const animasiLangkahRef = useRef(new WeakMap());
   useEffect(() => () => clearTimeout(dragTimerRef.current), []);
-  const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
+  const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, kandidat, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
   const fen = props.fen;
   const nextFen = props.nextFen;
   const move = props.move ?? [];
@@ -506,7 +507,7 @@ function Board(props) {
     if (chess.get(from)?.type === PAWN && [0, 7].includes(formattedTo.row)) {
       setCoronation({ choosing: true, movement: [formattedFrom, formattedTo] });
     } else {
-      analyzeMove(fen, { from, to }, sacrifice ?? false, previousStaticEvals ?? [], animation2, bestMoveSan);
+      analyzeMove(fen, { from, to }, sacrifice ?? false, previousStaticEvals ?? [], animation2, bestMoveSan, kandidat ?? []);
     }
   }
   function cleanDrag(target) {
@@ -722,7 +723,7 @@ function Board(props) {
     function coronate(piece) {
       const from = deformatSquare(coronation.movement[0]);
       const to2 = deformatSquare(coronation.movement[1]);
-      analyzeMove(fen, { from, to: to2, promotion: piece }, sacrifice ?? false, previousStaticEvals ?? [], false, bestMoveSan);
+      analyzeMove(fen, { from, to: to2, promotion: piece }, sacrifice ?? false, previousStaticEvals ?? [], false, bestMoveSan, kandidat ?? []);
       setCoronation({ choosing: false, movement: [] });
     }
     const to = coronation.movement[1];

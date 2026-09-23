@@ -11,6 +11,12 @@
  * "go depth" mentah — itu bagian yang di proyek ini ditangani engine lokal
  * (lihat `src/lib/engineCatur.js` dan `./engine.js`).
  *
+ * TAMBAHAN di luar upstream: label `critical` ("langkah kritis"). Brilliant-Chess
+ * tidak punya label ini; gagasannya berasal dari `classify()` WintrChess
+ * (GPL-3.0) dan ditulis ulang di ./langkahKritis.js memakai kandidat MultiPV
+ * yang sudah direkam ./engine.js. Karena itu `critical` hanya keluar di cabang
+ * `isBest` dan `kritis` dihitung pemanggil — lihat catatan di fungsi itu.
+ *
  * Semua fungsi di sini murni: menerima hasil evaluasi, mengembalikan label.
  * Teks komentar tidak disimpan sebagai string mentah, melainkan sebagai
  * kunci kamus (`commentKey` + `commentIndex`) agar bisa ikut i18n.
@@ -23,6 +29,7 @@ export const KUNCI_KOMENTAR = [
   "brilliant",
   "great",
   "best",
+  "critical",
   "excellent",
   "good",
   "inaccuracy",
@@ -66,6 +73,7 @@ export function getMoveRating({
   sacrifice,
   previousSacrifice,
   openings,
+  kritis = false,
 }) {
   // Salinan kerja: upstream menulis padding langsung ke argumen, yang berarti
   // state React milik pemanggil ikut berubah diam-diam.
@@ -240,6 +248,16 @@ export function getMoveRating({
   if (isBest && staticEval[0] === "mate" && !staticEval[1]) {
     return { moveRating: "best", ...komentar("mate") };
   }
+  /*
+   * best yang kritis: langkah terbaik, tetapi alternatif terbaik keduanya
+   * sudah menjatuhkan peluang menang secara berarti (hanya satu langkah yang
+   * menang). Keputusannya dihitung pemanggil lewat ./langkahKritis.js karena
+   * butuh kandidat MultiPV posisi SEBELUM langkah — data yang tidak dimiliki
+   * fungsi ini. Diperiksa hanya di cabang ini supaya label brilliant/great/
+   * book/forced (yang sudah keluar lebih awal) tidak pernah tertimpa, dan
+   * supaya "kritis" tetap berarti "ini langkah terbaik" tanpa terkecuali.
+   */
+  if (isBest && kritis) return { moveRating: "critical", ...komentar("critical") };
   if (isBest) return { moveRating: "best", ...komentar("best") };
 
   // excellent — skakmat sudah pasti

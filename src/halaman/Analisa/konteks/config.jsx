@@ -4,6 +4,7 @@ const defaultUsedRatings = {
   brilliant: true,
   great: true,
   best: true,
+  critical: true,
   excellent: true,
   good: true,
   book: true,
