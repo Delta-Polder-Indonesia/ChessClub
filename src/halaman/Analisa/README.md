@@ -474,6 +474,7 @@ Aturan saat beku:
 | `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang poin | 45 |
 | `scripts/uji-langkah-kritis.mjs` | label `critical`: kurva kandidat MultiPV, tujuh syaratnya satu per satu, batas "hanya di cabang best", dan rantai `parsePGN` entri i ← kandidat entri i−1 | 54 |
 | `scripts/uji-pgn-anotasi.mjs` | ekspor PGN beranotasi: konvensi eval sudut Putih, peta NAG, tag header (termasuk PGN tanpa tag), dan bahwa berkas hasilnya tetap PGN sah saat dimuat ulang | 60 |
+| `scripts/uji-sacrifice.mjs` | `isSacrifice`: kasus bernalar, karakterisasi PADAT (16 rekaman implementasi pra-optimasi), penyaring penyerang legal, penyerang tersembunyi/baterai (`keamananBidak.js`) + 3 batas perbaikannya, determinisme & kemurnian | 65 |
 | `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
 | `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
 | `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
@@ -703,16 +704,51 @@ PGN, bukan labelnya. Kartu ini menyusun ulang PGN dari `moves` hasil analisis:
 - Kartu dipasang **paling bawah** Ringkasan, mengikuti aturan beku yang sama
   dengan `deteksiEngine.jsx`.
 
-### Yang belum dikerjakan (jangan dikira sudah)
+## Penyerang tersembunyi (baterai/x-ray) pada `isSacrifice` (2026-09-24)
 
-- **`isSacrifice` masih buta terhadap baterai/x-ray.** `chess.js`
-  `attackers()` tidak melaporkan penyerang di belakang bidak lain; sudah
-  dibuktikan: FEN `q5k1/8/8/8/8/8/R7/R5K1 w` → `attackers("a8","w")` = `["a2"]`,
-  `a1` tidak disebut (setelah `a2` dibuang baru muncul). WintrChess menutup
-  ini dengan penyerang **transfektif** + pemisahan penyerang langsung vs
-  menyeluruh; menyalin pendekatan itu berarti merombak `isSacrifice`, sehingga
-  **sengaja tidak dikerjakan** di perubahan ini. Rinciannya (termasuk alasan
-  dan risikonya) ada di `KAJIAN-WINTRCHESS-ANALISA.md` bagian 4.
+`chess.attackers()` hanya melaporkan penyerang yang garis serangnya **saat ini**
+menyentuh petak sasaran, jadi penyerang di belakang baterai tidak terlihat:
+pada `q5k1/8/8/8/8/8/R7/R5K1 w`, `attackers("a8","w")` hanya berisi `["a2"]`,
+padahal `a1` menyerang `a8` begitu `a2` menyingkir. Pengecualian "satu
+penyerang" untuk benteng/ratu di `isSacrifice` bertumpu pada hitungan itu
+(satu penyerang + ada pembela ⇒ dianggap tukar-menukar adil), sehingga baterai
+yang tak terlihat membuat pengorbanan nyata dinilai **bukan** pengorbanan.
+
+- Modul baru **`mesin/keamananBidak.js`** (murni): `penyerangTersembunyi`
+  menyingkirkan penyerang terdepan dari papan lalu memeriksa petak sasaran
+  lagi — penyingkirannya menumpuk, jadi rantai `Ra3–Ra2–Qa1` di depan `a8` pun
+  terbaca berurutan. Ada **gerbang legalitas**: baterai hanya mungkin terbuka
+  kalau bidak terdepannya benar-benar punya langkah legal (bidak yang terkunci
+  karena rajanya disekak tidak membuka apa pun). Raja tidak pernah dihitung
+  sebagai penyerang tersembunyi.
+- Perubahannya **bertarget**, hanya di `getAttackersDefenders`: syarat
+  keberadaan tetap memakai penyerang **legal**, sedangkan baterai hanya
+  membatalkan pengecualian "satu penyerang" (variabel `satuPenyerang` di
+  `isSacrifice`). Baterai cuma dihitung pada petak yang punya tepat satu
+  penyerang legal — dan di situ daftar langkah legalnya sudah tersedia — jadi
+  **biayanya tidak terukur** (1,470 → 1,465 ms/langkah pada korpus puzzle;
+  selisih di bawah derau). Alternatifnya sudah diukur lalu **ditolak**: SEE
+  penuh semua bidak 3,19 ms/langkah, 2,6× lebih lambat.
+- Buktinya pada 15824 langkah solusi `public/data/teka-teki.json` (objek `move`
+  utuh termasuk `from` — tanpa `from`, `couldBeSaved` menerima petak
+  `undefined` dan angkanya menggelembung): **15817 identik (99,96%), 7
+  berubah, semuanya `false→true`, tak satu pun di langkah penutup partai**.
+  Contoh nyata: `Rf8+` (benteng Putih di f8 diserang baterai e8–d8; 6 dari 7
+  kasus ini diverifikasi ulang dengan SEE offline dan memang untung bagi pihak
+  lawan), `Rd1+`, `Re8+`, `Rg8+` (dua posisi), `Qxf6` (SEE +1).
+- Satu kasus sengaja dibiarkan: `Rc1+` (SEE 0). Baterainya nyata, jadi premis
+  pengecualiannya memang sudah salah — petaknya diserang dua bidak, bukan
+  satu. Memperlakukannya sama dengan petak yang sejak awal diserang dua bidak
+  membuat perilakunya konsisten dengan sisa `isSacrifice` (yang juga tidak
+  memeriksa untung-ruginya kecuali lewat pengecualian itu).
+- `uji-sacrifice.mjs` bertambah dari 39 → **65** pemeriksaan: bagian KEAMANAN
+  (x-ray, rantai, gerbang legalitas, raja, papan masukan tak diubah), BATERAI
+  (7 posisi nyata di atas), dan PENJAGA — 3 posisi yang HARUS tetap `false`
+  (`Rxh2+`, `g5+`, `Qxe8`), masing-masing menjaga syarat keberadaan penyerang
+  legal, gerbang legalitas, dan `couldBeSaved`.
+
+## Yang belum dikerjakan (jangan dikira sudah)
+
 - **Ambang klasifikasi di ruang peluang** (matriks `mate↔cp` ala WintrChess)
   juga belum: itu mengubah label yang sudah terbit dan menuntut seluruh
   ekspektasi `uji-klasifikasi.mjs` disetel ulang.

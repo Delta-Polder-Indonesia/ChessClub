@@ -6,12 +6,14 @@ satu pertanyaan: **apa yang layak diambil untuk meng-upgrade halaman Analisa
 ChessClub?**
 
 Sifat dokumen: **kajian + catatan pelaksanaan**. Bagian 1–8 ditulis sebelum
-ada perubahan kode; bagian 9 mencatat apa yang benar-benar dikerjakan
-(2026-09-23) dan apa yang sengaja belum, beserta alasannya.
+ada perubahan kode; bagian 9 adalah usulan urutan; bagian 10 mencatat apa yang
+benar-benar dikerjakan (2026-09-23: P2 & P4, 2026-09-24: P1) dan apa yang
+sengaja belum, beserta alasannya.
 
-Status ringkas: **P2 dan P4 sudah dikerjakan** (label `critical`, ekspor PGN
-beranotasi). **P1 dan P3 belum**, dan itu keputusan sadar — bukan karena
-kelupaan; alasannya ada di bagian 4 dan 6.
+Status ringkas: **P1 (bagian penyerang tersembunyi), P2, dan P4 sudah
+dikerjakan** — label `critical`, ekspor PGN beranotasi, dan perbaikan baterai/
+x-ray pada `isSacrifice`. **P3 belum**, dan itu keputusan sadar — bukan karena
+kelupaan; alasannya ada di bagian 6.
 
 ---
 
@@ -19,7 +21,7 @@ kelupaan; alasannya ada di bagian 4 dan 6.
 
 | # | Item | Verdict | Alasan singkat |
 |---|---|---|---|
-| P1 | Deteksi brilliant berbasis **keselamatan bidak** (`getAttackingMoves` transfektif, `getDefendingMoves`, `isPieceSafe`, `isPieceTrapped`, `hasDangerLevels`) | **BELUM — menunggu keputusan desain** | Celahnya nyata (dibuktikan di bagian 4), tetapi menutupnya berarti merombak `isSacrifice`; lihat bagian 9 |
+| P1 | Deteksi brilliant berbasis **keselamatan bidak** (`getAttackingMoves` transfektif, `getDefendingMoves`, `isPieceSafe`, `isPieceTrapped`, `hasDangerLevels`) | **SEBAGIAN — SELESAI 2026-09-24** | Yang diambil hanya penyerang **transfektif** (baterai/x-ray), dan dipakai HANYA untuk membatalkan pengecualian "satu penyerang" — bukan untuk menghidupkan aturan lain. `isPieceSafe`/`isPieceTrapped`/`hasDangerLevels`/`isPieceSafe` tetap **tidak** diambil: lihat bagian 4 & 10 |
 | P2 | Label **CRITICAL** dari kandidat MultiPV | **AMBIL — SELESAI 2026-09-23** | Datanya **sudah ada** di `daftarKandidat` (`MULTI_PV = 5`), cuma belum dipakai untuk label |
 | P3 | Ambang klasifikasi di **ruang peluang** + matriks transisi `mate ↔ cp` | **PERTIMBANGKAN** | Ide bagus, tapi mengubah label yang sudah terbit + uji-uji lama harus disetel ulang |
 | P4 | **Ekspor PGN beranotasi** (`classifNags` `$1`–`$6`) | **AMBIL — SELESAI 2026-09-23** | Panel Basis Data hanya menyimpan PGN mentah, jadi kartu ekspor dipasang di Ringkasan |
@@ -258,6 +260,30 @@ berprinsip daripada daftar pengecualian per jenis bidak:
   atau diperbarui secara sadar; tambahan uji baterai/x-ray wajib dibuat karena
   justru itu kasus yang tadinya tidak terdeteksi.
 
+### Hasil yang akhirnya diambil (2026-09-24)
+
+Yang dikerjakan **hanya butir 1 di atas** (penyerang transfektif), dan tidak
+dipasang seperti rencana awal: penyerang tersembunyi **tidak** dimasukkan ke
+daftar penyerang. Alasannya persis risiko yang sudah ditulis di bagian 10 —
+daftar penyerang dipakai oleh banyak aturan sekaligus, jadi menambahkan x-ray
+ke situ akan menyalakan aturan "tanpa pembela tapi ada penyerang" pada posisi
+yang belum benar-benar terserang. Sudah dibuktikan saat mengukur: varian itu
+menandai rook g8 Hitam pada posisi `6rk/ppp2p2/7p/5P1K/4NP2/1P4R1/3r3P/6R1`
+(padahal Putih sedang disekak, jadi tidak ada satu pun penyerang legal untuk
+g8) dan rook Hitam c1 pada `8/2R4p/6pk/5pP1/2rP1K1P/4PP2/8/2r5` (padahal
+benteng pembukanya, c4, tidak punya langkah legal).
+
+Bentuk akhirnya: hitungan penyerang **legal** tetap dipakai untuk syarat
+keberadaan, dan baterai hanya dipakai membatalkan pengecualian "satu penyerang"
+untuk benteng/ratu. Efeknya diukur pada 15824 langkah solusi puzzle: 15817
+identik (99,96%), 7 berubah (semuanya `false→true`, tak satu pun di langkah
+penutup), biaya tambahan tidak terukur. Rincian + ujinya ada di
+`src/halaman/Analisa/README.md` bagian "Penyerang tersembunyi (baterai/x-ray)
+pada `isSacrifice`". Butir 2–6 (pembela gaya WintrChess, `isPieceSafe`,
+`isPieceTrapped`, `hasDangerLevels`, syarat brilliant baru) tetap **tidak**
+diambil — manfaatnya lebih kecil daripada risiko mengubah label yang sudah
+terbit, dan itu tidak berubah oleh hasil ini.
+
 ---
 
 ## 5. P2 — Label CRITICAL dari kandidat MultiPV yang sudah ada
@@ -402,7 +428,7 @@ tidak ada langkah yang menyentuh dua hal sensitif sekaligus.
 |---|---|---|---|---|
 | 1 | P2 — label `critical` dari kandidat MultiPV | `penilaian.js`, kamus i18n, `uji-klasifikasi.mjs` | `uji:klasifikasi`, `uji:komentar`, `uji:i18n` | sedang (tambah label + i18n) |
 | 2 | P4 — ekspor PGN beranotasi NAG | `basisData.js`, `layarDatabase.jsx`, uji baru | uji baru + `uji:basisdata` | rendah (aditif, terisolasi) |
-| 3 | P1 — keamanan bidak + brilliant lebih tajam | modul baru `keamananBidak.js`, `penilaian.js` | `uji:sacrifice` + uji baru baterai, **ukur waktu** | tinggi (berat secara komputasi) |
+| 3 | P1 — penyerang tersembunyi (baterai/x-ray) saja, brilliant lebih tajam **tidak** diambil | modul baru `keamananBidak.js`, `penilaian.js` | `uji:sacrifice` + uji baru baterai, **ukur waktu** | ~~tinggi~~ → rendah setelah diukur (biaya tak terukur; SEE penuh 2,6× ditolak) — SELESAI 2026-09-24 |
 | 4 | P3 — ambang di ruang peluang | `penilaian.js`, `uji-klasifikasi.mjs` | seluruh `uji:analisa-menyeluruh` | tinggi (mengubah label terbit) |
 
 Tahap 1 dan 2 bisa dikerjakan lebih dulu karena keduanya **tidak menghapus
@@ -412,7 +438,7 @@ perubahan label sulit dilacak.
 
 ---
 
-## 10. Pelaksanaan (2026-09-23)
+## 10. Pelaksanaan (2026-09-23 & 2026-09-24)
 
 ### Yang dikerjakan
 
@@ -437,9 +463,30 @@ mengikuti gagasan `classifNags` WintrChess tetapi sengaja lebih hemat
 (60 pemeriksaan), termasuk pemeriksaan bahwa berkas hasilnya **masih PGN sah**
 saat dimuat ulang dan menghasilkan langkah yang identik.
 
+**P1 — penyerang tersembunyi (baterai/x-ray) pada `isSacrifice`.** Modul baru
+`src/halaman/Analisa/mesin/keamananBidak.js` (`penyerangTersembunyi`), dipakai
+`getAttackersDefenders` **hanya** untuk petak yang punya tepat satu penyerang
+legal. Syarat keberadaan penyerang tetap memakai penyerang legal; baterai cuma
+membatalkan pengecualian "satu penyerang" benteng/ratu (`satuPenyerang`).
+Gerbang legalitas di modul itu wajib: baterai hanya bisa terbuka kalau bidak
+terdepannya punya langkah legal. Pengukuran (15824 langkah solusi puzzle, objek
+`move` utuh): 15817 identik, 7 berubah `false→true`, tak ada yang `true→false`,
+tak satu pun di langkah penutup; biaya 1,470 → 1,465 ms/langkah (di bawah
+derau). SEE penuh semua bidak diukur 3,19 ms/langkah (2,6×) dan **ditolak**.
+Uji `scripts/uji-sacrifice.mjs` bertambah 39 → **65** pemeriksaan (bagian
+KEAMANAN, BATERAI, PENJAGA).
+
+Catatan metodologi yang penting untuk pelanjut: pengukuran pertama saya
+memakai objek `move` tanpa `from`. Akibatnya `couldBeSaved` menerima petak
+`undefined` dan selalu mengembalikan `true`, sehingga jumlah perubahan
+menggelembung (8, dan salah satunya `Qxe8` yang sebenarnya **bukan**
+perubahan: ratu Hitam terpaksa merebut untuk keluar dari skak, lalu jatuh ke
+baterai — `couldBeSaved = false`, jadi bukan pengorbanan yang disengaja).
+Selalu bawa `from`/`to` saat menyalin langkah dari PGN/puzzle.
+
 ### Yang sengaja TIDAK dikerjakan
 
-**P1 (keamanan bidak / brilliant).** Celahnya sudah dibuktikan, tetapi
+**Sisa P1 (keamanan bidak gaya WintrChess).** Celah x-ray sudah ditutup, tetapi
 perbaikan yang benar bukan sekadar menambahkan penyerang x-ray ke daftar
 penyerang: `isSacrifice` memakai satu daftar penyerang untuk banyak aturan
 yang berbeda (mis. "tanpa pembela tapi ada penyerang" = menggantung), dan
@@ -450,7 +497,9 @@ benar (seperti WintrChess) memisahkan penyerang **langsung** dan penyerang
 merombak ulang `isSacrifice` — bagian yang justru paling matang di halaman
 ini — beserta seluruh ekspektasi `uji-sacrifice.mjs` dan `uji-klasifikasi.mjs`.
 Pekerjaan sebesar itu butuh keputusan pemilik produk, bukan diselundupkan
-lewat perubahan ini.
+lewat perubahan ini. Hasil 2026-09-24 **tidak** mengubah kesimpulan itu: yang
+diambil hanya penyerang transfektif, dan itupun hanya sebagai pembatal
+pengecualian — bukan sebagai masukan aturan baru.
 
 **P3 (ambang di ruang peluang).** Sama: mengubah label yang sudah dilihat
 pengguna, dan menuntut seluruh ekspektasi suite beku disetel ulang. Manfaatnya
@@ -459,7 +508,8 @@ nyata tetapi tidak mendesak.
 ### Verifikasi yang dijalankan
 
 - `npm run uji:analisa-menyeluruh` — 12 suite, semuanya lulus
-  (45 + 54 + 60 + 39 + 31 + 31 + 28 + 27 + 27 + 14 + 11 + 301).
+  (45 + 54 + 60 + 65 + 31 + 31 + 28 + 27 + 27 + 14 + 11 + 301; angka `65` untuk
+  `uji-sacrifice.mjs` adalah hasil 2026-09-24, sebelumnya 39).
 - `npm run uji` (seluruh rantai, termasuk suite non-Analisa) — exit 0.
 - `npm run uji:i18n` — 2405 kunci ID = 2405 kunci EN.
 - `npm run build` — bundel produksi terbentuk.
@@ -469,11 +519,12 @@ nyata tetapi tidak mendesak.
 
 ### Sisa yang layak dikerjakan berikutnya
 
-1. **P1** dengan rancangan eksplisit: modul `keamananBidak.js` yang memisahkan
-   penyerang langsung vs menyeluruh, lalu `isSacrifice` diarahkan bertahap
-   (diukur dulu biaya waktunya per partai).
-2. **P3** setelah itu, karena keduanya sama-sama menyentuh `penilaian.js` dan
-   sebaiknya tidak diubah bersamaan.
+1. **P3** (ambang klasifikasi di ruang peluang) — satu-satunya tahap dari
+   rencana awal yang belum dikerjakan; menyentuh `penilaian.js` dan menuntut
+   seluruh ekspektasi suite beku disetel ulang, jadi kerjakan sendiri.
+2. **Sisa P1** hanya kalau ada bukti bahwa label brilliant masih salah pada
+   kasus nyata: urutan yang paling murah adalah `isPieceTrapped` dulu (bidak
+   terkunci), bukan merombak seluruh syarat brilliant.
 3. Bila label `critical` terbukti jarang muncul pada analisis nyata
    (MultiPV 5 dengan kedalaman 13 di build single-thread), tinjau ambang
    `AMBANG_KERUGIAN_KRITIS` — angkanya sengaja dikumpulkan sebagai konstanta di

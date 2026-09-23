@@ -23,6 +23,7 @@
  */
 
 import { BISHOP, Chess, KNIGHT, PAWN, QUEEN, ROOK } from "chess.js";
+import { penyerangTersembunyi } from "./keamananBidak.js";
 
 /** Daftar kunci komentar → `analisa.komentar.<kunci>` di kamus terjemahan. */
 export const KUNCI_KOMENTAR = [
@@ -374,6 +375,13 @@ function getAttackersDefenders(chess, warna, ke) {
   );
   const legalAttackersPieces = legalAttackers.map((kotak) => chess.get(kotak));
 
+  // Baterai (x-ray): penyerang yang baru terlihat setelah satu-satunya penyerang
+  // legal menyingkir. Hanya dihitung pada kasus "satu penyerang legal" karena
+  // hanya di situ `isSacrifice` memakainya (pengecualian tukar-menukar untuk
+  // benteng/ratu). Di kasus itu `langkah()` sudah terisi, jadi biaya tambahannya
+  // hanya penelusuran garis serangnya — lihat ./keamananBidak.js.
+  const tersembunyi = legalAttackers.length === 1 ? penyerangTersembunyi(chess, ke, invertColor(warna), langkah).length : 0;
+
   let defenders, legalDefenders, legalDefendersPieces;
   if (attackers.length === 1) {
     const testChess = new Chess(fen());
@@ -424,7 +432,14 @@ function getAttackersDefenders(chess, warna, ke) {
   }
 
   return {
-    attackers: { squares: legalAttackers, pieces: legalAttackersPieces, length: legalAttackers.length },
+    attackers: {
+      squares: legalAttackers,
+      pieces: legalAttackersPieces,
+      length: legalAttackers.length,
+      // Jumlah penyerang tersembunyi; selalu 0 kecuali tepat satu penyerang
+      // legal (lihat perhitungan di atas).
+      tersembunyi,
+    },
     defenders: { squares: legalDefenders, pieces: legalDefendersPieces, length: legalDefenders.length },
   };
 }
@@ -460,6 +475,13 @@ export function isSacrifice(move) {
 
       const { attackers, defenders } = getAttackersDefenders(chess, move.color, kotak.square);
 
+      // Pengecualian "satu penyerang" di bawah mengandaikan serangan satu lawan
+      // satu, sehingga tukar-menukar material dianggap adil. Penyerang tersembunyi
+      // di belakang penyerang tunggal itu (baterai) membatalkan pengandaiannya —
+      // sama seperti petak yang sejak awal diserang dua bidak, yang memang tidak
+      // pernah mendapat pengecualian. Lihat ./keamananBidak.js.
+      const satuPenyerang = attackers.length === 1 && !attackers.tersembunyi;
+
       if (!defenders.length && attackers.length && (!move.captured || move.captured === PAWN)) {
         sacrifying.push(kotak);
         continue;
@@ -477,7 +499,7 @@ export function isSacrifice(move) {
         attackers.length &&
         move.captured !== ROOK &&
         move.captured !== QUEEN &&
-        !(attackers.length === 1 && (attackers.pieces[0]?.type === QUEEN || attackers.pieces[0]?.type === ROOK) && defenders.length) &&
+        !(satuPenyerang && (attackers.pieces[0]?.type === QUEEN || attackers.pieces[0]?.type === ROOK) && defenders.length) &&
         !(defenders.length && (move.captured === KNIGHT || move.captured === BISHOP))
       ) {
         sacrifying.push(kotak);
@@ -487,8 +509,8 @@ export function isSacrifice(move) {
         kotak.type === QUEEN &&
         attackers.length &&
         move.captured !== QUEEN &&
-        !(attackers.length === 1 && attackers.pieces[0]?.type === QUEEN && defenders.length) &&
-        !(attackers.length === 1 && attackers.pieces[0]?.type === ROOK && move.captured === ROOK && defenders.length)
+        !(satuPenyerang && attackers.pieces[0]?.type === QUEEN && defenders.length) &&
+        !(satuPenyerang && attackers.pieces[0]?.type === ROOK && move.captured === ROOK && defenders.length)
       ) {
         sacrifying.push(kotak);
         continue;
