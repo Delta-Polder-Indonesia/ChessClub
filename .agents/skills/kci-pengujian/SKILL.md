@@ -12,15 +12,36 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 
 ## Peta cepat
 
-- `npm run uji` — gabungan uji frontend + konten: `uji:rute`, `uji:seo`, `uji:i18n`, `uji:tools`,
-  `uji:komentator`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`,
-  `uji:basisdata`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:tekateki-solusi`, `uji:rush`, `uji:gambar`,
-  `uji:identitas`, `uji:skema`, `uji:ebook`, `uji:ebook-pembaca`, `uji:nama-pembukaan`, `uji:artikel-wikipedia`.
+**Arah yang tidak perlu ditebak: `npm run peta`** menulis `docs/PETA-KODE.md` — tabel
+area → berkas → uji penjaga → halaman peta navigasi, dan tabel berkas uji → skrip npm
+yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manual.
+Rincian per area (frontend, analisa, backend, konten, e2e) ada di
+`references/alur-uji-per-area.md`.
+
+- `npm run uji` — 27 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+  `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
+  `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
+  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:tekateki-solusi`, `uji:rush`,
+  `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
+  `uji-ebook-pembaca` (node langsung), `uji-nama-pembukaan` (node langsung),
+  `uji-artikel-wikipedia` (node langsung), `uji:pendaftaran-ui`. Urutan ini selalu bisa dilihat
+  segar di bagian 1 `docs/PETA-KODE.md`.
 - `npm run uji:backend && npm run uji:verifikasi` — backend menyala sementara dan diuji end-to-end
   (auth JWT, verifikasi Chess.com, e-book).
 - `npm run uji:e2e` — Playwright smoke test halaman publik (butuh `npx playwright install chromium`).
 - `npm run uji:konfigurasi-keamanan` — konfigurasi keamanan server (wajib lulus bila menyentuh
   `server/src/konfigurasi.js`/`server/src/http.js`; CI selalu menjalankannya).
+- Di luar rantai `npm run uji` ada 17 skrip:
+  - dipanggil CI: `uji:backend`, `uji:verifikasi`, `uji:pendaftaran`, `uji:konfigurasi-keamanan`,
+    `uji:auth-jwt`, `uji:klasemen`, `uji:quiz`, `uji:keamanan-admin`, `uji:e2e`.
+  - pintasan topik (anggotanya sudah ada di rantai): `uji:ebook`, `uji:artikel`,
+    `uji:nama-pembukaan`, `uji:anticheat`, `uji:seret-bidak`, `uji:jsonld`, `uji:rekor-rush`.
+  - perlu kredensial atau jaringan: `uji:supabase` (butuh `SUPABASE_URL` +
+    `SUPABASE_SERVICE_ROLE_KEY`; sengaja di luar CI).
+- `npm run uji:peta` — penjaga dokumentasi arah: memastikan tidak ada `key_files` mati, semua
+  skrip `uji:*` tercatat di berkas ini, tidak ada berkas uji yatim, setiap folder
+  `src/halaman/*` terdaftar, cermin `.agents` ⇄ `.opencode` serta `quality.yml` tetap identik,
+  dan `docs/PETA-KODE.md` mutakhir. Ikut berjalan di dalam `npm run uji` dan CI.
 
 ## Kapan menjalankan apa (aturan minimum)
 
