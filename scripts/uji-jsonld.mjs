@@ -94,9 +94,17 @@ await act(async () => {
   );
 });
 
-// Helmet v3 + React 19: title/meta/link di-hoist React ke <head>, sedangkan
-// <script type="application/ld+json"> dirender di tempat komponen (dalam
-// <div id=root>). Query seluruh dokumen, bukan hanya <head>.
+// Helmet v3 menulis ke <head> di dalam requestAnimationFrame, jadi suntikan
+// <script> baru ada setelah macrotask pertama. Beri waktu satu siklus timer
+// sebelum membaca DOM: tanpa jeda ini query berjalan terlalu awal dan
+// menemukan 0 skrip (terukur: 0 segera setelah act(), 1 setelah setTimeout 0).
+await act(async () => {
+  await new Promise((selesai) => setTimeout(selesai, 10));
+});
+
+// Helmet v3 + react-helmet-async menaruh skrip di <head> (atribut data-rh).
+// Query seluruh dokumen agar tetap benar bila suatu saat komponen merender
+// jsonld di tempat monternya, bukan hanya di <head>.
 const skrip = [
   ...document.querySelectorAll('script[type="application/ld+json"]'),
 ].map((el) => el.textContent);
