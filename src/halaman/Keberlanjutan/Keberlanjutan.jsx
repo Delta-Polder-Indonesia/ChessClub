@@ -1,4 +1,4 @@
-import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
 export default function Keberlanjutan() {
@@ -12,21 +12,11 @@ export default function Keberlanjutan() {
     >
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
-        <section className="-mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
-          <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-            <div className="relative mb-6 border-b-4 border-double border-gray-900 pb-3 text-center">
-              <p className="mb-1 font-sans text-xs font-bold tracking-widest text-gray-900 uppercase">
-                {t("keberlanjutan.judul")}
-              </p>
-              <h1 className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">
-                {t("keberlanjutan.artikel")}
-              </h1>
-              <p className="m-0 text-sm text-gray-900 italic">
-                {t("keberlanjutan.deskripsi")}
-              </p>
-            </div>
-          </div>
-        </section>
+        <MastheadEditorial
+          kicker={t("keberlanjutan.judul")}
+          judul={t("keberlanjutan.artikel")}
+          subjudul={t("keberlanjutan.deskripsi")}
+        />
 
         {/* ═══ Konten Paragraf Utama ═══ */}
         <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-sm leading-relaxed text-justify text-gray-800">

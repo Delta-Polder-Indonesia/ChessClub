@@ -1,24 +1,29 @@
-import { useEffect } from "react";
-import Hero from "../../components/Hero.jsx";
 import StickyMenu from "../../components/StickyMenu.jsx";
 import Sekilas from "../../components/Sekilas.jsx";
 import Tonggak from "../../components/Tonggak.jsx";
 import VisiMisi from "../../components/VisiMisi.jsx";
 import MaknaLogo from "../../components/MaknaLogo.jsx";
-import { PageSelanjutnya } from "../../components/PageBagian.jsx";
+import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
 export default function TentangKami() {
   const { t } = useI18n();
 
-  useEffect(() => {
-    document.title = `${t("nav.tentangKami")} | ${t("common.namaKomunitas")}`;
-  }, [t]);
-
   return (
-    <>
-      <Hero />
-      <StickyMenu />
+    <HalamanIsi
+      title={t("hero.tentangKami")}
+      description={t("hero.deskripsi")}
+      next={{ to: "/tentang-kami/struktur-grup-catur", judul: t("nav.strukturGrupCatur") }}
+      submenu={<StickyMenu />}
+    >
+      <PageArtikel lebar>
+        {/* ═══ Header Editorial / Koran ═══ */}
+        <MastheadEditorial
+          kicker={t("hero.tentangKami")}
+          judul={t("hero.tentangKami")}
+          subjudul={t("hero.deskripsi")}
+        />
+      </PageArtikel>
 
       <Sekilas />
 
@@ -31,11 +36,6 @@ export default function TentangKami() {
       <div className="w-full border-t my-24 md:my-24 border-grey-200" />
 
       <MaknaLogo />
-
-      <PageSelanjutnya
-        to="/tentang-kami/struktur-grup-catur"
-        judul={t("nav.strukturGrupCatur")}
-      />
-    </>
+    </HalamanIsi>
   );
 }

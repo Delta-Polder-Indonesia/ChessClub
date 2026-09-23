@@ -1,4 +1,4 @@
-import { HalamanIsi } from "../../components/PageBagian.jsx";
+import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 
@@ -101,54 +101,6 @@ function Triptych({ t }) {
 
   return (
     <div className="w-full">
-      {/* ═══ Hero Header — Gaya Koran / Editorial Press ═══ */}
-      <section className="relative w-full border-b-2 border-stone-900 bg-stone-900 text-stone-100 pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden">
-        <div className="mx-auto max-w-7xl px-6 md:px-8 xl:px-0">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7 flex flex-col gap-y-6">
-              <div className="inline-flex items-center gap-2 border-b border-amber-400/40 pb-2 w-max">
-                <span className="font-sans text-xs uppercase tracking-widest text-amber-400 font-bold">
-                  Manifes Operasional
-                </span>
-              </div>
-
-              <h1 className="font-serif text-3xl md:text-5xl lg:text-6xl font-black leading-tight tracking-tight text-white">
-                {t("bermainCatur.judul")}
-              </h1>
-
-              <p className="font-serif text-lg md:text-xl text-amber-100/90 italic border-l-2 border-amber-400 pl-4 py-1">
-                {t("bermainCatur.slogan")}
-              </p>
-
-              <div className="flex flex-col gap-y-4 font-serif text-sm md:text-base leading-relaxed text-stone-300 text-justify">
-                <p className="m-0 first-letter:float-left first-letter:mr-3 first-letter:text-4xl first-letter:font-black first-letter:leading-none first-letter:text-amber-400">
-                  {t("bermainCatur.p1")}
-                </p>
-                <p className="m-0">{t("bermainCatur.p2")}</p>
-              </div>
-            </div>
-
-            <div className="lg:col-span-5">
-              <div className="relative border border-stone-700 bg-stone-800 p-3 shadow-2xl">
-                <div className="aspect-[3/4] w-full overflow-hidden">
-                  <img
-                    src={gambar("/images/hero-about.webp")}
-                    alt=""
-                    draggable="false"
-                    decoding="async"
-                    loading="lazy"
-                    className="h-full w-full object-cover object-center filter contrast-105 brightness-95"
-                  />
-                </div>
-                <p className="mt-3 m-0 text-center font-serif text-xs italic text-stone-400">
-                  Aktivitas komunal dan ruang pembelajaran catur berkelanjutan.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ═══ Bilik 1 — Terang, Gambar Kiri, Daftar Butir Editorial ═══ */}
       <Bilik
         gelap={false}
@@ -257,6 +209,14 @@ export default function ProgramKami() {
         judul: t("nav.tekaTeki"),
       }}
     >
+      <PageArtikel lebar>
+        {/* ═══ Header Editorial / Koran ═══ */}
+        <MastheadEditorial
+          kicker={t("program.judul")}
+          judul={t("program.artikel")}
+          subjudul={t("program.deskripsi")}
+        />
+      </PageArtikel>
       <Triptych t={t} />
     </HalamanIsi>
   );
