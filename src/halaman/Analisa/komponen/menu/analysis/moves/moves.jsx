@@ -11,7 +11,7 @@ const RATING_TEXT_COLORS = {
   brilliant: "text-highlightBrilliant",
   great: "text-highlightGreat",
   best: "text-highlightBest",
-  critical: "text-highlightCritical",
+  critical: "text-highlightBest",
   excellent: "text-highlightExcellent",
   good: "text-highlightGood",
   book: "text-highlightBook",

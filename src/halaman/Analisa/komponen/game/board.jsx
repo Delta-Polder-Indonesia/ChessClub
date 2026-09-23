@@ -13,7 +13,8 @@ const HIGHLIGHT_COLORS = {
   forced: "",
   brilliant: "var(--highlightBrilliant)",
   great: "var(--highlightGreat)",
-  critical: "var(--highlightCritical)",
+  // `critical` sengaja memakai warna `best`: tidak ada kosakata visual baru.
+  critical: "var(--highlightBest)",
   best: "var(--highlightBest)",
   excellent: "var(--highlightExcellent)",
   good: "var(--highlightGood)",
@@ -489,7 +490,10 @@ function Board(props) {
     const filteredHighlightStyle2 = {};
     for (const key in highlightStyle) {
       const rating = key;
-      if (usedRatings[rating]) filteredHighlightStyle2[rating] = { color: HIGHLIGHT_COLORS[rating], rating };
+      // `critical` tampil sebagai `best`, jadi saklar pengaturannya pun ikut
+      // `best` — mematikan "best" tidak boleh menyisakan sorotan bintang.
+      const saklar = rating === "critical" ? "best" : rating;
+      if (usedRatings[saklar]) filteredHighlightStyle2[rating] = { color: HIGHLIGHT_COLORS[rating], rating };
     }
     return filteredHighlightStyle2;
   }

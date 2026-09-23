@@ -673,11 +673,23 @@ tetapi belum pernah dipakai untuk label.
 - `parseMove` menerima parameter ke-12 `previousKandidat` (`moves[i−1].kandidat`);
   `parsePGN` meneruskannya, dan jalur variasi manual mengalirkannya lewat prop
   `kandidat` di `board.jsx` → `game.jsx`.
-- UI: ikon `Critical` di `komponen/svg/rating.jsx` (kotak, `#8f7ee7` — warna
-  ini satu-satunya ungu di daftar label, sengaja, dan dipilih setelah
-  dibandingkan pada ukuran tampil 18px), warna `--analisa-highlightCritical`,
-  ikon/warna di daftar Langkah + grafik + sorot papan, baris tersendiri di
-  perincian penilaian, dan kalimat komentar di kamus ID/EN.
+- **UI: TIDAK ada ikon atau warna baru** (keputusan pemilik produk,
+  2026-09-24). Label ini tampil persis seperti `best` — bintang, warna
+  `--highlightBest`, kelas `text-highlightBest` — di daftar Langkah, grafik,
+  dan sorot papan, sehingga kosakata visual halaman tetap sama dengan
+  chess.com. Yang membedakannya hanya kalimat komentar
+  (`analisa.komentar.critical`, ID/EN). Konsekuensinya:
+  - perincian penilaian **tidak** punya baris "Kritis" tersendiri; jumlah
+    langkah kritis ikut baris "Terbaik" (`ratingCount` memetakan
+    `critical → best` supaya total peringkat tetap sama dengan jumlah langkah);
+  - pengaturan "Sorot berdasarkan label" juga tidak punya tombol Critical —
+    saklarnya mengikuti tombol "Best" (`board.jsx` `filterHighlightStyle` dan
+    `ratings.jsx`).
+  - Ujinya: `uji-analisa-ui.mjs` membandingkan markup ikon
+    (`markupIkon("critical") === markupIkon("best")`) dan memastikan Ringkasan
+    tidak memuat label "Kritis". Ikon sebelumnya (lingkaran ungu `#8f7ee7`
+    berisi kotak) sudah **dihapus** — jangan dihidupkan lagi tanpa keputusan
+    baru.
 - Akurasi panel Ringkasan: label ini diperlakukan seperti `best` (100 poin),
   bukan peta baru — angka akurasi lama tidak bergeser.
 

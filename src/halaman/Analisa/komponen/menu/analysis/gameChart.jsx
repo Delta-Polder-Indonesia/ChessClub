@@ -5,7 +5,8 @@ function isImportantMove(moveNumber, rating, prevRating, nextRating, lastBookMov
   if (!rating) return;
   if (moveNumber === lastBookMove) return "highlightBook";
   if (rating === "best" && prevRating === "inaccuracy") return "highlightBest";
-  if (rating === "critical") return "highlightCritical";
+  // Tanpa warna sendiri: `critical` memakai warna `best` (lihat svg/rating.jsx).
+  if (rating === "critical") return "highlightBest";
   if (rating === "blunder") return "highlightBlunder";
   if (rating === "mistake") return "highlightMistake";
   if (rating === "miss") return "highlightMiss";

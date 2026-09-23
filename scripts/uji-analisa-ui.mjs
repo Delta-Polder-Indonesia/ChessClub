@@ -56,8 +56,18 @@ import Game, { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/gam
 import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
 import * as basisData from "./src/halaman/Analisa/basisData.js";
+import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
+import { renderToStaticMarkup } from "react-dom/server";
 
 export { basisData };
+
+/**
+ * Markup satu ikon label (tanpa DOM) — dipakai uji kosakata visual: label
+ * "critical" harus memakai ikon "best" yang sudah ada, bukan ikon baru.
+ */
+export function markupIkon(rating, size = 18) {
+  return renderToStaticMarkup(<RatingSVG rating={rating} size={size} />);
+}
 
 /**
  * Render pemilih partai satu platform. Dipakai uji regresi: komponen ini
@@ -433,6 +443,16 @@ if (tabRingkasan) {
    * diklik: `URL.createObjectURL` tidak ada di jsdom, jadi jalur gagal
    * halusnya ikut teruji — dulu cukup untuk merobohkan seluruh panel.
    */
+  /*
+   * Kosakata visual: label `critical` sengaja TIDAK punya ikon/warna sendiri.
+   * Halaman ini memakai ikon yang sudah ada (bintang `best`) supaya terasa
+   * sama dengan chess.com; kalau suatu saat ada yang menambahkan ikon baru
+   * lagi, uji ini yang menahan.
+   */
+  uji(
+    "ringkasan: tidak ada baris label 'Kritis' (critical tampil sebagai Terbaik)",
+    /Terbaik/.test(ringkasan) && !/\bKritis\b/.test(ringkasan)
+  );
   uji("ringkasan: kartu ekspor PGN beranotasi ada", /Ekspor PGN beranotasi/.test(ringkasan));
   const tombolEkspor = [...domSiap.querySelectorAll("button")].find((b) => /Unduh \.pgn/.test(b.textContent ?? ""));
   uji("ringkasan: tombol unduh PGN ada", !!tombolEkspor);
@@ -447,6 +467,19 @@ if (tabRingkasan) {
     uji("ringkasan: klik tombol unduh tidak melempar", melempar === null, String(melempar?.message ?? ""));
     uji("ringkasan: halaman tetap terpasang setelah klik", !!domSiap.querySelector(".analisa-root"));
   }
+}
+
+/* --- ikon label: `critical` = `best`, bukan ikon baru --- */
+{
+  const markup = (rating) => modul.markupIkon(rating);
+  uji(
+    "ikon `critical` identik dengan ikon `best` (tanpa ikon baru)",
+    markup("critical") === markup("best") && markup("best").includes("<svg")
+  );
+  uji(
+    "ikon lama tidak tersentuh (blunder & brilliant masih punya markup sendiri)",
+    markup("blunder") !== markup("best") && markup("brilliant") !== markup("best")
+  );
 }
 
 const tabLangkah = tab(/Langkah/);

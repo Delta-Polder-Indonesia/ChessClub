@@ -477,10 +477,20 @@ perubahan label sulit dilacak.
 **P2 — label `critical`.** Modul baru `src/halaman/Analisa/mesin/langkahKritis.js`
 (murni) + sambungan ke `getMoveRating` (hanya di cabang `isBest`), `parseMove`
 (parameter ke-12 `previousKandidat`), `parsePGN`, dan prop `kandidat` pada jalur
-variasi manual. UI: ikon `Critical` (kotak, satu-satunya ungu di daftar label),
-warna `--analisa-highlightCritical`, baris di perincian penilaian, penanda di
-daftar Langkah/grafik/sorot papan, kamus ID/EN. Uji baru
-`scripts/uji-langkah-kritis.mjs` (54 pemeriksaan).
+variasi manual.
+
+UI label ini mengalami satu koreksi setelah ditinjau pemilik produk
+(2026-09-24): rancangan pertama memakai **ikon baru** (lingkaran ungu berisi
+kotak) plus warna `--analisa-highlightCritical` dan baris tersendiri di
+perincian penilaian. Ikon itu dicabut — halaman ini memakai kosakata visual
+yang sama dengan chess.com, jadi langkah "wajib ditemukan" sekarang tampil
+persis seperti `best` (bintang + warna `--highlightBest`), tanpa baris dan
+tanpa tombol pengaturan sendiri (hitungannya ikut baris "Terbaik", dan
+saklarnya mengikuti tombol "Best"). Informasinya sampai ke pengguna lewat
+kalimat komentar `analisa.komentar.critical` (ID/EN), bukan lewat ikon baru.
+Ujinya: `scripts/uji-langkah-kritis.mjs` (54, logika label) +
+`scripts/uji-analisa-ui.mjs` (markup ikon `critical` harus identik dengan
+`best`, dan Ringkasan tidak boleh memuat label "Kritis").
 
 Alasan label ini **terpisah** dari `best` (bukan menggantikannya): "langkah
 wajib ditemukan" adalah informasi tambahan, bukan koreksi penilaian kualitas —
