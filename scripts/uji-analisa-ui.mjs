@@ -57,9 +57,20 @@ import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/sele
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
 import * as basisData from "./src/halaman/Analisa/basisData.js";
 import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
+import LoadingBar from "./src/halaman/Analisa/komponen/menu/loading/loadingBar.jsx";
+import { persenProgres } from "./src/halaman/Analisa/komponen/menu/loading/loading.jsx";
 import { renderToStaticMarkup } from "react-dom/server";
 
-export { basisData };
+export { basisData, persenProgres };
+
+/**
+ * Markup bar kemajuan kartu analisa (tanpa DOM). Kartu ini mengadopsi kartu
+ * progres WintrChess: jalur penuh + isian selebar persentase + atribut
+ * aksesibilitas.
+ */
+export function markupBar(progress, transitionTime = 100) {
+  return renderToStaticMarkup(<LoadingBar progress={progress} transitionTime={transitionTime} />);
+}
 
 /**
  * Markup satu ikon label (tanpa DOM) — dipakai uji kosakata visual: label
@@ -417,6 +428,24 @@ if (kotakPgn) {
   kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   await tunggu(200);
   klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+
+  /*
+   * Kartu progres analisa (adopsi kartu progres WintrChess): harus terlihat
+   * SELAGI analisa berjalan — bar kemajuan, persentase, dan tombol Batal.
+   * Keberadaannya dipantau sesaat setelah kirim, sebelum analisa selesai.
+   */
+  let kartuTeks = "";
+  const kartuMuncul = await tungguSampai(() => {
+    if (!domSiap.querySelector("[role='progressbar']")) return false;
+    kartuTeks = domSiap.querySelector(".analisa-root")?.textContent ?? "";
+    return kartuTeks.includes("Sedang analisa") && /\d+[.,]\d%/.test(kartuTeks);
+  }, 1500, 25);
+  uji(
+    "kartu progres tampil saat analisa (bar + persentase + tombol Batal)",
+    kartuMuncul && kartuTeks.includes("Batal") && kartuTeks.includes("Kalau prosesnya terasa lama"),
+    kartuTeks.replace(/\s+/g, " ").slice(0, 160)
+  );
+
   await tunggu(1900);
 }
 
@@ -479,6 +508,32 @@ if (tabRingkasan) {
   uji(
     "ikon lama tidak tersentuh (blunder & brilliant masih punya markup sendiri)",
     markup("blunder") !== markup("best") && markup("brilliant") !== markup("best")
+  );
+}
+
+/* --- kartu progres analisa (adopsi kartu progres WintrChess) --- */
+{
+  uji("progres: persentase satu angka di belakang koma", modul.persenProgres(42.5) === "42.5");
+  uji(
+    "progres: nilai di luar 0-100 atau bukan angka dijinakkan (kartu tak pernah menulis NaN%)",
+    modul.persenProgres(-5) === "0.0"
+      && modul.persenProgres(180) === "100.0"
+      && modul.persenProgres(undefined) === "0.0"
+      && modul.persenProgres("bukan angka") === "0.0"
+  );
+
+  const markup = modul.markupBar(42.5);
+  uji(
+    "progres: bar punya peran aksesibilitas yang benar",
+    markup.includes('role="progressbar"')
+      && markup.includes('aria-valuemin="0"')
+      && markup.includes('aria-valuemax="100"')
+      && markup.includes('aria-valuenow="43"')
+  );
+  uji("progres: lebar isian mengikuti persentase", markup.includes("width:42.5%"));
+  uji(
+    "progres: bar berisi & tidak pernah melebihi jalurnya",
+    modul.markupBar(250).includes("width:100%") && modul.markupBar(-1).includes("width:0%")
   );
 }
 

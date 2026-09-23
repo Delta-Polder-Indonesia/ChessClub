@@ -245,6 +245,7 @@ export const analisa = {
     },    muat: {
       menganalisa: "Processing",
       menganalisaPartai: "Analyzing",
+      petunjukLama: "If this takes a while, try lowering the engine depth in the settings.",
       menyiapkanEngine: "Preparing engine",
       membatalkan: "Canceling",
       dibatalkan: "Analysis canceled",

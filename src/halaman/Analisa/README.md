@@ -818,3 +818,41 @@ Ambang lama tetap dipakai untuk dua hal, dan itu disengaja: gerbang
 `evaluationDiff >= 1.2` (kerugiannya material) dan garis keunggulan besar ±2,0 —
 keduanya memang bicara soal materi/posisi, bukan peluang.
 
+## Kartu progres analisa (2026-09-24)
+
+Sebelumnya kartu ini hanya memutar spinner dan menulis "Sedang analisa…",
+dengan kemajuan diwakili garis putih 1px di dasar kartu — pengguna tidak tahu
+sudah berapa jauh prosesnya. Sekarang bentuknya mengikuti kartu progres
+WintrChess (`components/common/ProgressReporter`, dipakai
+`AnalysisPanel/AnalysisProgress`):
+
+- baris atas: label status + **persentase satu angka di belakang koma**
+  (`42.5%`) di ujung kanan — sama seperti WintrChess, yang menulis
+  `(progress * 100).toFixed(1)`;
+- **bar kemajuan penuh selebar kartu** (`loadingBar.jsx`): jalur
+  `bg-backgroundBoxBox` + isian biru `#4a9dd9` (warna yang sudah dipakai
+  spinner kartu ini — tidak ada warna baru), `transition: width 100ms linear`;
+  diberi `role="progressbar"` + `aria-valuenow` supaya terbaca pembaca layar
+  (WintrChess memakai elemen `<progress>` bawaan browser, yang aksesibel
+  otomatis);
+- baris petunjuk kecil: "Kalau prosesnya terasa lama, coba turunkan kedalaman
+  mesin di Pengaturan." (`analisa.muat.petunjukLama`, ID/EN) — ini tooltip
+  WintrChess;
+- ikon lensa + lencana format + spinner tetap, karena itu ciri kartu kita.
+
+Bilangan persen lewat `persenProgres()` (diekspor dari `loading.jsx`): nilai
+di luar 0–100 atau bukan angka dijinakkan, jadi kartu tidak pernah menulis
+`NaN%`. Sumber angkanya `setProgress` di `mesin/engine.js` (dipanggil tiap
+langkah selesai dianalisis), sama seperti sebelumnya.
+
+"Bar hitam-putih" yang tampak di WintrChess adalah **eval bar** di samping
+papan, dan itu sudah ada di halaman ini sejak lama
+(`komponen/game/evaluation.jsx`, token `--analisa-evaluationBarWhite/Black`).
+Yang belum ditiru: eval bar itu **bergerak selama analisa** di WintrChess
+(posisi dinilai satu per satu), sedangkan di kita nilainya baru muncul setelah
+seluruh partai selesai dianalisis — mengubahnya berarti mengalirkan eval per
+posisi ke papan selagi `parsePGN` berjalan, pekerjaan tersendiri.
+
+Ujinya di `scripts/uji-analisa-ui.mjs`: kartu wajib muncul selagi analisa
+berjalan (bar + persentase + tombol Batal + baris petunjuk), plus uji satuan
+`persenProgres` dan markup bar (lebar isian, penjepitan 0–100, atribut ARIA).

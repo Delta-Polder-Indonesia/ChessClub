@@ -246,6 +246,7 @@ export const analisa = {
     },    muat: {
       menganalisa: "Sedang proses",
       menganalisaPartai: "Sedang analisa",
+      petunjukLama: "Kalau prosesnya terasa lama, coba turunkan kedalaman mesin di Pengaturan.",
       menyiapkanEngine: "Menyiapkan engine",
       membatalkan: "Membatalkan",
       dibatalkan: "Analisis dibatalkan",
