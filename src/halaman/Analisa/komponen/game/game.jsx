@@ -95,6 +95,7 @@ function Game({ wadah }) {
   const [materialAdvantage] = analyzeContext.materialAdvantage;
   const [result2, setResult] = analyzeContext.result;
   const setProgress = analyzeContext.progress[1];
+  const setLangkahSementara = analyzeContext.langkahSementara[1];
   const [tab, setTab] = analyzeContext.tab;
   const [analyzeController, setAnalyzeController] = analyzeContext.analyzeController;
   const [customLine, setCustomLine] = analyzeContext.customLine;
@@ -303,6 +304,8 @@ function Game({ wadah }) {
   }, []);
   async function handlePGN(pgn, depth2, terkini, signal) {
     setPageState("loading");
+    // Grafik eval di kartu muat mulai dari kosong, bukan sisa partai sebelumnya.
+    setLangkahSementara([]);
     if (!pgn?.trim()) {
       pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
       setPageState("default");
@@ -329,7 +332,9 @@ function Game({ wadah }) {
     }
     const buku = await janjiBuku;
     try {
-      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, signal);
+      // `onLangkah` memasok grafik yang tumbuh selama analisa (lihat
+      // komponen/menu/loading/grafikMuat.jsx), `setProgress` tetap mengisi bar.
+      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, signal, { onLangkah: setLangkahSementara });
       if (!terkini()) return;
       setTime(metadata.time);
       setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
@@ -360,6 +365,7 @@ function Game({ wadah }) {
       setPageState("default");
     }
     setProgress(0);
+    setLangkahSementara([]);
     setMoveNumber(0);
   }
   async function handleFEN(fen, terkini, sinyal) {

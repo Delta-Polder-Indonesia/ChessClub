@@ -64,6 +64,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 export { basisData, persenProgres };
 
 /**
+ * Geometri grafik eval (murni) — dipakai grafik tab Ringkasan DAN grafik yang
+ * tumbuh di kartu muat, jadi keduanya harus menghasilkan kurva yang sama.
+ */
+export { jalurGrafik, tinggiEval, xGrafik } from "./src/halaman/Analisa/komponen/menu/analysis/grafikEval.js";
+
+/**
  * Markup bar kemajuan kartu analisa (tanpa DOM). Kartu ini mengadopsi kartu
  * progres WintrChess: jalur penuh + isian selebar persentase + atribut
  * aksesibilitas.
@@ -435,15 +441,24 @@ if (kotakPgn) {
    * Keberadaannya dipantau sesaat setelah kirim, sebelum analisa selesai.
    */
   let kartuTeks = "";
+  let jurus = "";
   const kartuMuncul = await tungguSampai(() => {
-    if (!domSiap.querySelector("[role='progressbar']")) return false;
+    const bar = domSiap.querySelector("[role='progressbar']");
+    const grafik = domSiap.querySelector(".analisa-root svg[role='img'] path");
+    if (!bar || !grafik) return false;
     kartuTeks = domSiap.querySelector(".analisa-root")?.textContent ?? "";
+    jurus = grafik.getAttribute("d") ?? "";
     return kartuTeks.includes("Sedang analisa") && /\d+[.,]\d%/.test(kartuTeks);
   }, 1500, 25);
   uji(
     "kartu progres tampil saat analisa (bar + persentase + tombol Batal)",
     kartuMuncul && kartuTeks.includes("Batal") && kartuTeks.includes("Kalau prosesnya terasa lama"),
     kartuTeks.replace(/\s+/g, " ").slice(0, 160)
+  );
+  uji(
+    "grafik eval tumbuh di kartu selama analisa berjalan",
+    kartuMuncul && jurus.split("L ").length >= 3 && !jurus.includes("NaN"),
+    jurus.slice(0, 120)
   );
 
   await tunggu(1900);
@@ -508,6 +523,46 @@ if (tabRingkasan) {
   uji(
     "ikon lama tidak tersentuh (blunder & brilliant masih punya markup sendiri)",
     markup("blunder") !== markup("best") && markup("brilliant") !== markup("best")
+  );
+}
+
+/* --- geometri grafik eval (dipakai grafik Ringkasan & grafik kartu muat) --- */
+{
+  const cp = (nilai) => ({ previousStaticEvals: [["cp", String(nilai)]] });
+  uji(
+    "grafik: eval 0 = tengah, putih unggul naik, hitam unggul turun",
+    modul.tinggiEval(cp(0), 0) === 0.5
+      && modul.tinggiEval(cp(400), 0) === 0.925
+      && modul.tinggiEval(cp(-400), 0) === 0.075
+  );
+  uji(
+    "grafik: eval ekstrem dijepit di dalam ruang gambar (tanpa kurva keluar bingkai)",
+    modul.tinggiEval(cp(99999), 0) === 0.925 && modul.tinggiEval(cp(-99999), 0) === 0.075
+  );
+  uji(
+    "grafik: giliran bicara (indeks ganjil = hitam jalan) membalik arah nilai",
+    modul.tinggiEval(cp(100), 1) === modul.tinggiEval(cp(-100), 0)
+  );
+  uji(
+    "grafik: skakmat menempel di tepi sesuai pihak yang unggul",
+    modul.tinggiEval({ previousStaticEvals: [["mate", "3"]] }, 0) === 1
+      && modul.tinggiEval({ previousStaticEvals: [["mate", "-3"]] }, 0) === 0
+  );
+
+  const jalur = modul.jalurGrafik([cp(0), cp(0)], 400, 96);
+  uji(
+    "grafik: jalur 2 titik sah dan menutup area (tanpa NaN)",
+    jalur === "M 0 48 L 0 48 L 400 48 L 400 96 L 0 96",
+    jalur
+  );
+  uji(
+    "grafik: daftar kosong/satu entri tetap menghasilkan jalur sah",
+    !modul.jalurGrafik([], 400, 96).includes("NaN") && !modul.jalurGrafik([cp(0)], 400, 96).includes("NaN")
+  );
+  uji(
+    "grafik: titik bertambah seiring langkah masuk (kurva tumbuh)",
+    modul.jalurGrafik([cp(0), cp(50), cp(100)], 400, 96).split("L ").length
+      > modul.jalurGrafik([cp(0), cp(50)], 400, 96).split("L ").length
   );
 }
 

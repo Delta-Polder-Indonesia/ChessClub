@@ -840,6 +840,25 @@ WintrChess (`components/common/ProgressReporter`, dipakai
   WintrChess;
 - ikon lensa + lencana format + spinner tetap, karena itu ciri kartu kita.
 
+Selain itu, di dalam kartu ada **grafik eval yang tumbuh selama analisa**
+(adopsi dari WintrChess, yang sudah menampilkan grafik Report selagi posisi
+dinilai satu per satu):
+
+- `mesin/engine.js` — `parsePGN(..., { onLangkah })` memanggil balik dengan
+  salinan `moves` sementara setiap satu posisi selesai (posisi awal + tiap
+  langkah). Opsional, jadi pemanggil lama tidak berubah.
+- `konteks/analyze.jsx` — state `langkahSementara` (dikosongkan lagi saat
+  muatan dimulai/selesai/gagal di `game.jsx`).
+- `komponen/menu/loading/grafikMuat.jsx` — SVG area 400×96 yang direntangkan
+  `viewBox` (tidak mengukur lebar wadah, jadi tetap aman sebelum layout ada),
+  muncul begitu ada ≥2 titik. Latar `bg-evaluationBarBlack` + jalur putih +
+  garis tengah, sama seperti grafik tab Ringkasan.
+- Geometri kurvanya satu modul: `komponen/menu/analysis/grafikEval.js`
+  (`tinggiEval`/`xGrafik`/`jalurGrafik`), dipakai grafik Ringkasan
+  (`gameChart.jsx`, setelah refaktor tetap menghasilkan jalur yang sama persis)
+  dan grafik kartu muat — supaya bentuk yang tumbuh selama analisa identik
+  dengan grafik akhir.
+
 Bilangan persen lewat `persenProgres()` (diekspor dari `loading.jsx`): nilai
 di luar 0–100 atau bukan angka dijinakkan, jadi kartu tidak pernah menulis
 `NaN%`. Sumber angkanya `setProgress` di `mesin/engine.js` (dipanggil tiap
@@ -854,5 +873,8 @@ seluruh partai selesai dianalisis — mengubahnya berarti mengalirkan eval per
 posisi ke papan selagi `parsePGN` berjalan, pekerjaan tersendiri.
 
 Ujinya di `scripts/uji-analisa-ui.mjs`: kartu wajib muncul selagi analisa
-berjalan (bar + persentase + tombol Batal + baris petunjuk), plus uji satuan
-`persenProgres` dan markup bar (lebar isian, penjepitan 0–100, atribut ARIA).
+berjalan (bar + persentase + tombol Batal + baris petunjuk), grafik eval wajib
+sudah tergambar di kartu selagi analisa berjalan, plus uji satuan
+`persenProgres`, markup bar (lebar isian, penjepitan 0–100, atribut ARIA), dan
+geometri kurva (skala ±400 cp, jepitan, skakmat, jalur sah tanpa `NaN`, titik
+bertambah seiring langkah masuk).

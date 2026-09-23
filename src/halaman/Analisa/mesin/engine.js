@@ -481,7 +481,12 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
  * per posisi — bahan metrik peringkat anti-cheat. Nilai 1 mematikan rekaman
  * (paling cepat) dan membuat metrik peringkat bernilai null di antiCheat.js.
  */
-export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV } = {}) {
+/**
+ * `opts.onLangkah` (opsional) dipanggil dengan salinan `moves` sementara setiap
+ * satu posisi selesai dinilai — bahan grafik yang tumbuh selama analisa
+ * (`komponen/menu/loading/grafikMuat.jsx`), seperti grafik Report WintrChess.
+ */
+export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV, onLangkah } = {}) {
   const chess = new Chess();
 
   let pgn;
@@ -531,6 +536,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     const chessAwal = new Chess(riwayat[0].before);
     const awal = await parsePosition(mesin, chessAwal, depth, sinyal, gagalkan, multiPv);
     moves.push({ ...awal, clock: daftarClock[0] ?? { white: metadata.time || null, black: metadata.time || null } });
+    onLangkah?.([...moves]);
     previousStaticEvals = awal.previousStaticEvals;
     previousBestMoveSan = awal.bestMoveSan;
     previousKandidat = awal.kandidat ?? [];
@@ -564,6 +570,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
       previousKandidat = dianalisis.kandidat ?? [];
 
       setProgress(((i + 1) / riwayat.length) * 100);
+      onLangkah?.([...moves]);
     }
   } finally {
     if (sinyal) sinyal.removeEventListener("abort", hentikan);

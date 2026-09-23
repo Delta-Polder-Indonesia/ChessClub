@@ -2,6 +2,7 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import Lens from "../../svg/lens.jsx";
 import LoadingBar from "./loadingBar.jsx";
+import GrafikMuat from "./grafikMuat.jsx";
 import DualRingSpinner from "../../loading/DualRingSpinner.jsx";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { gunakanMesin } from "../../../konteks/mesin.jsx";
@@ -23,6 +24,7 @@ function Loading(props) {
   const [ellipsis, setEllipsis] = useState("");
   const analyzeContext = useContext(AnalyzeContext);
   const [progress] = analyzeContext.progress;
+  const [langkahSementara] = analyzeContext.langkahSementara;
   const progressRef = useRef(progress);
   const ellipsisRef = useRef(ellipsis);
   const { format, analyzeController } = props;
@@ -65,6 +67,7 @@ function Loading(props) {
                         <LoadingBar progress={progress} transitionTime={100} />
                         <span className="w-full text-xs leading-4 text-foregroundGrey">{t("analisa.muat.petunjukLama")}</span>
                     </div>
+                    <GrafikMuat moves={langkahSementara} label={t("analisa.muat.grafik")} />
                     <div className="w-36 flex flex-col items-center gap-4">
                         <Lens class="animate-[pulse_1.25s_cubic-bezier(0.4,_0,_0.6,_1)_infinite;] scale-x-[-1] fill-backgroundBoxBoxHighlighted" size={60} />
                         <span className="text-xl text-foreground font-bold">{format.toUpperCase()}</span>

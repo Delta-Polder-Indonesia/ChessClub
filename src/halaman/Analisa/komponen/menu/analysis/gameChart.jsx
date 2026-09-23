@@ -1,6 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { useEffect, useState } from "react";
 import { getLastBookMove } from "./moves/moves.jsx";
+import { jalurGrafik, tinggiEval, xGrafik } from "./grafikEval.js";
 function isImportantMove(moveNumber, rating, prevRating, nextRating, lastBookMove) {
   if (!rating) return;
   if (moveNumber === lastBookMove) return "highlightBook";
@@ -22,8 +23,8 @@ function GameChart(props) {
   // Analisis satu posisi (alur FEN) hanya punya 1 entri → totalMoves 0 →
   // pembagian nol → seluruh koordinat NaN dan <path> tidak sah. Minimal 1.
   const totalMoves = Math.max(1, moves.length - 1);
-  const hoveredMoveX = getMoveX(hoveredMove, totalMoves) * size.width;
-  const moveNumberX = getMoveX(moveNumber, totalMoves) * size.width;
+  const hoveredMoveX = xGrafik(hoveredMove, totalMoves, size.width);
+  const moveNumberX = xGrafik(moveNumber, totalMoves, size.width);
   useEffect(() => {
     // `container` datang dari `menuRef.current` induk dan pada render
     // pertama masih null — tanpa penjagaan ini grafik melempar TypeError
@@ -66,28 +67,6 @@ function GameChart(props) {
     }
     setMoveNumber(hoveredMove);
   }
-  function getMoveY(move2, moveNumber2) {
-    const OLD_PERCENTS = [-400, 400];
-    const NEW_PERCENTS = [0.075, 0.925];
-    const advantage = move2.previousStaticEvals?.[0] ?? ["cp", "0"];
-    const whiteMoving = moveNumber2 % 2 === 0;
-    const advantageAmount = Number(advantage[1]) * (whiteMoving ? 1 : -1);
-    const rawPercent = (advantageAmount - OLD_PERCENTS[0]) * (NEW_PERCENTS[1] - NEW_PERCENTS[0]) / (OLD_PERCENTS[1] - OLD_PERCENTS[0]) + NEW_PERCENTS[0];
-    let percent;
-    if (advantage[0] === "mate") {
-      if (advantage[1]) {
-        percent = advantageAmount >= 0 ? 1 : 0;
-      } else {
-        percent = whiteMoving ? 0 : 1;
-      }
-    } else {
-      percent = Math.min(Math.max(rawPercent, NEW_PERCENTS[0]), NEW_PERCENTS[1]);
-    }
-    return percent;
-  }
-  function getMoveX(moveNumber2, maxNumber) {
-    return moveNumber2 / maxNumber;
-  }
   const upperFirstLetter = (str) => str[0]?.toUpperCase() + str.substring(1);
   const lastBookMove = getLastBookMove(moves);
   // `moves[moveNumber]` bisa undefined sesaat setelah partai baru dimuat
@@ -98,23 +77,15 @@ function GameChart(props) {
   return <svg onClick={changeMoveNumber} onMouseMove={hoverMove} onMouseLeave={() => setHoveredMove(NaN)} width={size.width} height={size.height} className="bg-evaluationBarBlack rounded-borderRoundness">
             <path
     fill="#ffffff"
-    d={`M 0 ${size.height * 0.5} ${moves.map((move2, moveNumber2) => {
-      const xRelation = getMoveX(moveNumber2, totalMoves);
-      const yRelation = 1 - getMoveY(move2, moveNumber2);
-      const x = size.width * xRelation;
-      const y = size.height * yRelation;
-      return `L ${x} ${y}`;
-    }).join(" ")} L ${size.width} ${size.height} L 0 ${size.height}`}
+    d={jalurGrafik(moves, size.width, size.height)}
   />
             <line x1={0} y1={size.height / 2} x2={size.width} y2={size.height / 2} className="stroke-foregroundGrey opacity-75 stroke-2" />
             {isNaN(hoveredMoveX) ? "" : <line x1={hoveredMoveX} y1={size.height} x2={hoveredMoveX} y2={0} className="stroke-foregroundGrey opacity-50 stroke-2" />}
             {isNaN(moveNumberX) ? "" : <line style={{ display: !moveNumber ? "none" : "", stroke: `var(--${strokeColor})` }} x1={moveNumberX} y1={size.height} x2={moveNumberX} y2={0} className="stroke-[4px]" />}
             {importantMoves.map((move2, i) => {
     if (!(move2.color || i === moveNumber && moveNumber)) return;
-    const xRelation = getMoveX(i, totalMoves);
-    const yRelation = 1 - getMoveY(move2.move, i);
-    const x = size.width * xRelation;
-    const y = size.height * yRelation;
+    const x = xGrafik(i, totalMoves, size.width);
+    const y = size.height * (1 - tinggiEval(move2.move, i));
     return <circle key={i} style={{ fill: `var(--${move2.color ?? strokeColor})` }} cx={x} cy={y} r={5} />;
   })}
         </svg>;
