@@ -15,6 +15,7 @@
  * bisa membandingkan berkas di disk dengan hasil generate tanpa menulis apa pun.
  */
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,17 +42,39 @@ const AREA = [
   "public",
 ];
 
-/** Berkas uji yang dikenal: berkas inilah yang dipetakan ke skrip npm-nya. */
-const POLA_UJI = [
-  ["scripts/uji-*.mjs", "uji-*.mjs"],
-  ["server/uji/uji-*.mjs", "uji-*.mjs"],
-  ["tests/e2e/*.spec.js", "*.spec.js"],
-];
-
 const baca = (relatif) => readFileSync(path.join(ROOT, relatif), "utf8");
+
+/**
+ * Daftar berkas yang DILACAK git. Penting agar peta deterministik: uji backend
+ * menulis state runtime di dalam repo (mis. `data/rahasia/`, `data/riwayat-masuk.json`)
+ * yang diabaikan git — kalau ikut dihitung, jumlah berkas berbeda antara mesin
+ * pengembang (sudah menjalankan uji) dan checkout bersih di CI, sehingga
+ * `uji:peta` gagal membandingkan peta yang seharusnya sama.
+ */
+let singgahanTerlacak;
+function berkasTerlacak() {
+  if (singgahanTerlacak !== undefined) return singgahanTerlacak;
+  try {
+    singgahanTerlacak = execFileSync("git", ["ls-files", "-z"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    })
+      .split("\0")
+      .filter(Boolean);
+  } catch {
+    singgahanTerlacak = null; // tanpa git (mis. di dalam build): pakai filesystem
+  }
+  return singgahanTerlacak;
+}
 
 /** Daftar berkas (rekursif) di dalam satu folder, relatif terhadap ROOT. */
 function berkasDalam(folder) {
+  const terlacak = berkasTerlacak();
+  if (terlacak) {
+    const awalan = `${folder.replace(/\/$/, "")}/`;
+    return terlacak.filter((f) => f.startsWith(awalan)).sort();
+  }
   const akar = path.join(ROOT, folder);
   if (!existsSync(akar)) return [];
   const hasil = [];
@@ -70,22 +93,14 @@ function berkasDalam(folder) {
 
 /** Semua berkas uji (relatif) beserta isinya, dibaca sekali agar murah. */
 export function berkasUji() {
-  const daftar = [];
-  for (const [folder] of POLA_UJI) {
-    const dir = path.join(ROOT, folder);
-    const dirRelatif = folder.includes("/") ? folder.slice(0, folder.lastIndexOf("/")) : "";
-    const dirPenuh = dirRelatif ? path.join(ROOT, dirRelatif) : ROOT;
-    if (!existsSync(dirPenuh)) continue;
-    const cocok = /^uji-.*\.mjs$/.test(folder.slice(folder.lastIndexOf("/") + 1))
-      ? /^uji-.*\.mjs$/
-      : /\.spec\.js$/;
-    for (const nama of readdirSync(dirPenuh)) {
-      if (!cocok.test(nama)) continue;
-      const relatif = dirRelatif ? `${dirRelatif}/${nama}` : nama;
-      daftar.push({ relatif, isi: baca(relatif) });
-    }
-  }
-  return daftar.sort((a, b) => a.relatif.localeCompare(b.relatif));
+  const kandidat = [
+    ...berkasDalam("scripts").filter((f) => /\/uji-.*\.mjs$/.test(`/${f}`)),
+    ...berkasDalam("server/uji").filter((f) => /\/uji-.*\.mjs$/.test(`/${f}`)),
+    ...berkasDalam("tests/e2e").filter((f) => f.endsWith(".spec.js")),
+  ];
+  return kandidat
+    .sort()
+    .map((relatif) => ({ relatif, isi: baca(relatif) }));
 }
 
 /** Skrip npm yang memanggil setiap berkas uji (nama berkas → daftar skrip). */
@@ -96,7 +111,6 @@ export function petaSkripUji() {
     if (!peta.has(berkas)) peta.set(berkas, []);
     if (!peta.get(berkas).includes(nama)) peta.get(berkas).push(nama);
   };
-  const folderE2e = path.join(ROOT, "tests/e2e");
   for (const nama of Object.keys(skrip).sort()) {
     for (const bagian of skrip[nama].split(/&&|\|\|/)) {
       const cocok = bagian.match(/(?:scripts|server\/uji|tests\/e2e)\/([\w.-]+\.(?:mjs|js))/);
@@ -106,9 +120,9 @@ export function petaSkripUji() {
       }
       // `playwright test` tidak menyebut nama berkas: ia menjalankan seluruh
       // tests/e2e/*.spec.js, jadi spesifikasi di folder itu dianggap dipanggil.
-      if (/playwright\s+test/.test(bagian) && existsSync(folderE2e)) {
-        for (const spesifikasi of readdirSync(folderE2e)) {
-          if (spesifikasi.endsWith(".spec.js")) tambah(spesifikasi, nama);
+      if (/playwright\s+test/.test(bagian)) {
+        for (const spesifikasi of berkasDalam("tests/e2e")) {
+          if (spesifikasi.endsWith(".spec.js")) tambah(spesifikasi.split("/").pop(), nama);
         }
       }
     }
