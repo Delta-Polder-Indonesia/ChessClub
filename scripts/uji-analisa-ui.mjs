@@ -551,6 +551,12 @@ if (tabRingkasan) {
 
   const jalur = modul.jalurGrafik([cp(0), cp(0)], 400, 96);
   uji(
+    "grafik: entri eval tak lengkap tidak menghasilkan NaN di kurva",
+    modul.tinggiEval({ previousStaticEvals: [["cp"]] }, 0) === 0.5
+      && modul.tinggiEval({ previousStaticEvals: [["cp", "abc"]] }, 0) === 0.5
+      && !modul.jalurGrafik([cp(0), { previousStaticEvals: [["cp"]] }], 400, 96).includes("NaN")
+  );
+  uji(
     "grafik: jalur 2 titik sah dan menutup area (tanpa NaN)",
     jalur === "M 0 48 L 0 48 L 400 48 L 400 96 L 0 96",
     jalur

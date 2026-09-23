@@ -20,6 +20,13 @@ export function tinggiEval(move, indeks) {
   const advantage = move?.previousStaticEvals?.[0] ?? ["cp", "0"];
   const putihJalan = indeks % 2 === 0;
   const nilai = Number(advantage[1]) * (putihJalan ? 1 : -1);
+  /*
+   * Entri eval yang tidak lengkap (`["cp"]`, `["cp", undefined]`, nilai tak
+   * terbaca) menghasilkan `NaN`; satu `NaN` saja membuat seluruh atribut `d`
+   * kurva tidak sah dan React menulis "<path> attribute d: Expected number".
+   * Diperlakukan sebagai posisi seimbang.
+   */
+  if (!Number.isFinite(nilai)) return 0.5;
   if (advantage[0] === "mate") {
     if (advantage[1]) return nilai >= 0 ? 1 : 0;
     return putihJalan ? 0 : 1;
