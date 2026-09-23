@@ -7,9 +7,9 @@
  * `item` sebagai `@id` dan mewajibkan URL absolut http(s).
  *
  * Uji ini merender komponen BreadcrumbJsonLd yang ASLI di jsdom, membaca
- * skrip ld+json yang dirender Helmet (bukan hanya di <head>: jsonld dirender
- * di tempat monternya, head elements saja yang di-hoist jsdom ke <head>),
- * dan mengunci:
+ * skrip ld+json yang disuntik Helmet ke <head> (lewat requestAnimationFrame,
+ * jadi perlu satu jeda timer sebelum dibaca — lihat catatan di bawah), dan
+ * mengunci:
  *   1. setiap item yang punya `item` memakai URL absolut http(s);
  *   2. posisi berurutan mulai dari 1;
  *   3. item terakhir (halaman aktif) boleh tanpa `item`;
