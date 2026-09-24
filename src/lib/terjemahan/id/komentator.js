@@ -179,6 +179,13 @@ export const komentatorPapan = {
       "Mau tahu langkah ini bagus atau tidak? Nyalakan engine, aku akan menilainya.",
       "Nyalakan engine di atas kalau mau komentar lengkap dengan skor dan penilaian.",
     ],
+    // Saran basis data awan (chessdb.cn) — dipakai saat engine mati dan partai
+    // sudah keluar dari buku pembukaan lokal. Saran untuk pihak yang jalan.
+    awan: [
+      "Basis data awan menyarankan {awan} untuk {lawan}, skor {nilai}.",
+      "Cloud bilang {awan} masuk akal di sini — skor {nilai} buat {lawan}.",
+      "Menurut basis data awan, {lawan} sebaiknya main {awan} (skor {nilai}).",
+    ],
   },
   genZ: {
     biasa: [
@@ -340,6 +347,11 @@ export const komentatorPapan = {
       "Nyalakan engine kalau mau tahu langkah tadi masak atau malah gosong.",
       "Butuh penilaian jujur? Aktifkan engine, biar angkanya bicara.",
     ],
+    awan: [
+      "Basis data awan nyaranin {awan} buat {lawan}. Skornya {nilai}, lumayan.",
+      "Cloud bilang {awan} — skor {nilai} buat {lawan}. Intip tab Basis Data.",
+      "Kalau ikut awan, {lawan} main {awan}. Skor {nilai}.",
+    ],
   } ,
   formal: {
     biasa: [
@@ -500,6 +512,11 @@ export const komentatorPapan = {
     ajakEngine: [
       "Nyalakan engine untuk memperoleh penilaian langkah dan evaluasi posisi.",
       "Penilaian kualitas langkah tersedia bila engine diaktifkan.",
+    ],
+    awan: [
+      "Basis data awan menyarankan {awan} untuk {lawan} dengan skor {nilai}.",
+      "Data awan menunjukkan {awan} sebagai pilihan {lawan}; skor {nilai}.",
+      "Saran basis data awan: {awan} untuk {lawan} (skor {nilai}).",
     ],
   },
 };

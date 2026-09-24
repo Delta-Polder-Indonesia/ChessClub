@@ -82,6 +82,16 @@ export const papan = {
     kolomJumlah: "Jumlah Partai",
     kolomPersen: "Persentase Kemenangan",
     kolomPutihSeriHitam: "Putih / Seri / Hitam",
+    // Basis data awan (chessdb.cn) — dipakai setelah partai keluar dari buku.
+    awanSumber: "Basis data awan: Chess Cloud Database",
+    awanMemuat: "Menanyakan basis data awan…",
+    awanKosong: "Posisi ini belum ada di basis data awan.",
+    awanGalat: "Basis data awan tidak dapat dihubungi — coba nyalakan engine.",
+    awanKolomSkor: "Skor",
+    awanKolomWinrate: "Winrate",
+    awanKolomCatatan: "Catatan",
+    awanCatatanSkor:
+      "Skor dari sudut pandang pihak yang sedang jalan (positif = lebih baik).",
     warnaBiru: "Biru",
     warnaCokelat: "Cokelat",
     warnaOranye: "Oranye",

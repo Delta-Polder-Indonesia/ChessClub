@@ -74,6 +74,8 @@ export function gunakanPreferensiKomentator() {
  * @param {string|null} p.saranTerbaik   SAN saran engine pada posisi SEBELUM langkah
  * @param {boolean} p.engineNyala
  * @param {boolean} p.engineMenilai      engine menyala tapi eval belum siap
+ * @param {{san:string, nilai:string}|null} [p.saranAwan] saran basis data awan
+ *        (chessdb.cn) — dipakai saat engine mati & sudah di luar buku pembukaan
  * @param {boolean} p.posisiAwal         belum ada langkah
  * @param {boolean} p.nyala
  * @param {(v: boolean) => void} p.setNyala
@@ -92,6 +94,7 @@ export default function KartuKomentator({
   engineNyala = false,
   engineMenilai = false,
   posisiAwal = false,
+  saranAwan = null,
   nyala,
   setNyala,
   gaya,
@@ -114,12 +117,13 @@ export default function KartuKomentator({
             namaPembukaan,
             saranTerbaik,
             engineNyala,
+            saranAwan,
           })
         : []);
     return rapikanKalimat(
       daftar.map(({ kunci, ganti }) => isiNamaBidak(t(kunci, ganti), t)).join(" ")
     );
-  }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, t]);
+  }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, saranAwan, t]);
 
   // Animasi "muncul" ringan tiap kalimat berganti — cukup memberi kesan hidup
   // tanpa memindahkan tata letak.

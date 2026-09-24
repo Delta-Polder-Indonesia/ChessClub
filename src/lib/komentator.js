@@ -368,6 +368,9 @@ export function kategoriKeunggulan({ cpPutih, matePutih } = {}) {
  * @param {string|null} [p.saranTerbaik]  SAN langkah terbaik menurut engine
  *                                        (untuk kalimat "lebih kuat: …")
  * @param {boolean} [p.engineNyala]
+ * @param {{san: string, nilai: string}|null} [p.saranAwan] saran basis data
+ *        awan (chessdb.cn) — hanya dipakai saat engine MATI, karena setelah
+ *        keluar dari buku pembukaan lokal itulah satu-satunya sumber saran.
  * @returns {Array<{kunci: string, ganti?: object}>}
  */
 export function susunKomentar({
@@ -378,6 +381,7 @@ export function susunKomentar({
   namaPembukaan = null,
   saranTerbaik = null,
   engineNyala = false,
+  saranAwan = null,
 }) {
   if (!fakta) return [];
   const g = GAYA_KOMENTATOR.includes(gaya) ? gaya : "santai";
@@ -496,6 +500,14 @@ export function susunKomentar({
     // Tanpa engine & tanpa peristiwa khusus: sesekali ingatkan engine
     // (hanya tiap beberapa langkah agar tidak cerewet).
     if (fakta.ply % 6 === 5) tambah("ajakEngine", 2, {}, 3);
+  }
+
+  /* ---- 6. Saran basis data awan — hanya saat engine MATI. ---- */
+  // Saran ini untuk pihak yang SEDANG jalan (= lawan pelangkah terakhir),
+  // jadi kalimatnya menyebut {lawan}. Saat engine nyala, penilaian engine
+  // sudah jadi acuan dan saran awan hanya akan mengulang informasi.
+  if (!engineNyala && saranAwan?.san && saranAwan?.nilai) {
+    tambah("awan", 2, { awan: saranAwan.san, nilai: saranAwan.nilai }, 3);
   }
 
   return pangkas(daftar);

@@ -123,6 +123,7 @@ import { logAudit, bacaJejakAudit } from "./audit.js";
 import { FilterAuditSchema } from "./skema.js";
 import { VERSI_API_KANONIK } from "./jalur-api.js";
 import { kesehatanSupabase } from "./storage-supabase.js";
+import { tanyaAwan } from "./basisDataAwan.js";
 
 // Kirim skor Rush dibatasi lebih ketat daripada batas umum (anti-spam).
 const BATAS_REKOR_RUSH = 30;
@@ -130,6 +131,13 @@ const CACHE_PUBLIK = "public, max-age=60";
 const CACHE_ANGGOTA = "public, max-age=300, stale-while-revalidate=86400";
 /** Snapshot tua tetap boleh dipakai, tetapi jangan disimpan lama di CDN. */
 const CACHE_ANGGOTA_USANG = "public, max-age=0, stale-while-revalidate=86400";
+/**
+ * Basis data awan: hasil per posisi jarang berubah, jadi boleh disimpan agak
+ * lama — memangkas panggilan ke pihak ketiga secara drastis.
+ */
+const CACHE_AWAN = "public, max-age=1800, stale-while-revalidate=86400";
+/** Batas permintaan awan per IP: satu posisi per langkah, jadi perlu lega. */
+const BATAS_AWAN = 200;
 
 export function daftarkanRute(router, { mulaiPada }) {
   /* ------------------------------------------------------------ rute publik */
@@ -188,6 +196,27 @@ export function daftarkanRute(router, { mulaiPada }) {
     isi: await daftarHitamPublik(),
     cache: CACHE_PUBLIK,
   }));
+
+  /**
+   * Basis data awan (Chess Cloud Database — chessdb.cn).
+   *
+   * Dipakai papan interaktif SETELAH partai keluar dari buku pembukaan lokal:
+   * buku lokal hanya memuat teori, CDB menyimpan penilaian mesin posisi
+   * lanjutan. Panggilan ke pihak ketiga dilakukan dari server karena CSP situs
+   * (connect-src) tidak mengizinkan chessdb.cn dan cdb.php tidak mengirim
+   * header CORS. Handler-nya sengaja hanya membaca (`queryall`, `learn=0`) —
+   * tidak pernah memakai `queue`, jadi kueri pengunjung tidak menambah beban
+   * antrean analisis milik layanan publik tersebut.
+   */
+  router.get(
+    "/api/basisdata-awan",
+    async (req) => {
+      const url = new URL(req.url, "http://x");
+      const hasil = await tanyaAwan(url.searchParams.get("fen") || "");
+      return { status: 200, isi: hasil, cache: CACHE_AWAN };
+    },
+    { batas: BATAS_AWAN }
+  );
 
   router.post(
     "/api/anggota",

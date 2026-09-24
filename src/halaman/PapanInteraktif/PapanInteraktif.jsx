@@ -31,6 +31,11 @@ import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
 import { faktaLangkah } from "../../lib/komentator.js";
+import {
+  ambilBasisDataAwan,
+  formatSkorAwan,
+  saranAwanKomentator,
+} from "../../lib/basisDataAwan.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -314,6 +319,10 @@ export default function PapanInteraktif() {
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
   const [tampilPgn, setTampilPgn] = useState(false); // dialog Review (input PGN/FEN)
+  // Basis data awan (chessdb.cn) — hanya dipanggil SETELAH partai keluar dari
+  // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
+  // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
+  const [awan, setAwan] = useState({ status: "idle", posisi: null, langkah: [], akhir: null });
 
   // Artikel Wikibooks tentang pembukaan aktif — berganti mengikuti langkah.
   const [artikelPembukaan, setArtikelPembukaan] = useState(null);
@@ -1156,6 +1165,67 @@ export default function PapanInteraktif() {
   }, [riwayat, fen, engineNyala, hasilTertahan]);
 
   /**
+   * Basis data awan (chessdb.cn) — LANJUTAN setelah buku pembukaan lokal habis.
+   *
+   * Buku lokal hanya memuat teori; begitu `cocok` menjadi false tidak ada lagi
+   * saran langkah tanpa menyalakan engine. Di titik itulah chessdb.cn ditanyai
+   * (lewat backend kita — browser dilarang CSP & CORS), dan hanya bila datanya
+   * memang akan terlihat (komentator menyala atau tab Partai dibuka) supaya
+   * kueri ke layanan publik itu tidak boros.
+   */
+  useEffect(() => {
+    const perlu =
+      !infoPembukaan.cocok &&
+      riwayat.length > 0 &&
+      // Partai yang sudah selesai (mat/remis) tidak perlu ditanyakan — kalimat
+      // komentator sudah menutupnya.
+      !faktaKomentator?.skakmat &&
+      !faktaKomentator?.remis &&
+      (preferensiKomentator.nyala || tabPanel === "games");
+    if (!perlu) {
+      setAwan((lama) =>
+        lama.status === "idle" ? lama : { status: "idle", posisi: null, langkah: [], akhir: null }
+      );
+      return undefined;
+    }
+    setAwan({ status: "memuat", posisi: fen, langkah: [], akhir: null });
+    const kendali = new AbortController();
+    // Jeda kecil: pengguna sering menelusuri beberapa langkah cepat; kueri
+    // hanya untuk posisi yang benar-benar berhenti ditampilkan.
+    const jam = setTimeout(() => {
+      ambilBasisDataAwan(fen, { signal: kendali.signal })
+        .then((hasil) => {
+          setAwan({
+            status: hasil.langkah.length ? "siap" : "kosong",
+            posisi: fen,
+            langkah: hasil.langkah,
+            akhir: hasil.akhir,
+          });
+        })
+        .catch((e) => {
+          if (e?.name === "AbortError") return;
+          setAwan({ status: "galat", posisi: fen, langkah: [], akhir: null });
+        });
+    }, 350);
+    return () => {
+      clearTimeout(jam);
+      kendali.abort();
+    };
+    // `riwayat.length` hanya penanda "sudah ada langkah"; perubahan `fen`
+    // sudah mewakili langkah baru (undo/redo tidak memicu kueri baru).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala]);
+
+  /** Saran awan untuk kalimat komentator — hanya saat engine mati. */
+  const saranAwan = useMemo(
+    () =>
+      !engineNyala && !infoPembukaan.cocok && awan.status === "siap" && awan.posisi === fen
+        ? saranAwanKomentator(awan)
+        : null,
+    [engineNyala, infoPembukaan.cocok, awan, fen]
+  );
+
+  /**
    * Lencana skakmat — petak raja yang termat pada posisi yang sedang
    * ditampilkan. Kosong (tanpa lencana) selama permainan belum berakhir.
    */
@@ -1655,12 +1725,13 @@ export default function PapanInteraktif() {
                         </div>
                         <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
                       </div>
-                    ) : (
+                    ) : infoPembukaan.cocok ? (
                       <p className="mt-1.5 text-sm font-medium text-gray-400">
-                        {infoPembukaan.cocok
-                          ? t("papan.petunjukAwal")
-                          : t("papan.diLuarBuku")}
+                        {t("papan.petunjukAwal")}
                       </p>
+                    ) : (
+                      /* Keluar dari buku lokal → lanjut ke basis data awan. */
+                      <PanelBasisDataAwan awan={awan} fen={fen} onPilih={mainkanSan} t={t} />
                     )
                   ) : (
                     <>
@@ -1701,6 +1772,7 @@ export default function PapanInteraktif() {
                             evalSesudah={dataKomentator.evalSesudah}
                             namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
                             saranTerbaik={dataKomentator.saranTerbaik}
+                            saranAwan={saranAwan}
                             engineNyala={engineNyala}
                             engineMenilai={dataKomentator.engineMenilai}
                             posisiAwal={riwayat.length === 0}
@@ -2310,6 +2382,109 @@ function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
           })}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+/**
+ * Panel basis data awan (Chess Cloud Database — chessdb.cn) untuk tab "Partai".
+ *
+ * Dipakai SETELAH buku pembukaan lokal habis: buku lokal hanya memuat teori,
+ * sedangkan CDB menyimpan penilaian mesin posisi lanjutan. Permintaan jaringan
+ * dilakukan satuan tugas di atas (hanya saat keluar buku); komponen ini murni
+ * menampilkan hasilnya — termasuk saat data belum ada / layanan tak terjangkau,
+ * karena pengguna tetap perlu tahu kenapa daftarnya kosong.
+ */
+function PanelBasisDataAwan({ awan, fen, onPilih, t }) {
+  const baris = useMemo(() => {
+    if (!awan.langkah?.length) return [];
+    let game = null;
+    try {
+      game = new Chess(fen);
+    } catch {
+      game = null;
+    }
+    return awan.langkah.map((l) => ({
+      uci: l.uci,
+      // CDB mengirim SAN saat `json=1`; konversi manual hanya jaring pengaman.
+      san: l.san || (game ? sanDiPosisi(game, l.uci) : l.uci),
+      skor: formatSkorAwan(l.skorCp) ?? "—",
+      winrate:
+        l.winrate === null || l.winrate === undefined
+          ? "—"
+          : `${Math.round(l.winrate * 10) / 10}%`,
+      catatan: l.catatan || "—",
+    }));
+  }, [awan.langkah, fen]);
+
+  if (awan.status === "memuat") {
+    return <p className="mt-1.5 text-sm font-medium text-gray-400">{t("papan.awanMemuat")}</p>;
+  }
+
+  if (baris.length) {
+    return (
+      <div>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
+          <span className="shrink-0 text-xs text-gray-500">{t("papan.awanSumber")}</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[420px] border-collapse text-left text-xs text-gray-300">
+            <thead className="bg-[#2c2926] text-gray-200">
+              <tr>
+                <th className="border-b border-[#363431] px-3 py-2 font-bold">
+                  {t("papan.kolomLangkah")}
+                </th>
+                <th className="border-b border-[#363431] px-3 py-2 font-bold">
+                  {t("papan.awanKolomSkor")}
+                </th>
+                <th className="border-b border-[#363431] px-3 py-2 font-bold">
+                  {t("papan.awanKolomWinrate")}
+                </th>
+                <th className="border-b border-[#363431] px-3 py-2 font-bold">
+                  {t("papan.awanKolomCatatan")}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {baris.map((item) => (
+                <tr
+                  key={item.uci}
+                  className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]"
+                >
+                  <td className="px-3 py-2 align-top">
+                    <button
+                      type="button"
+                      onClick={() => onPilih(item.san)}
+                      className="font-bold text-[#a3d168] hover:underline"
+                    >
+                      {item.san}
+                    </button>
+                  </td>
+                  <td className="px-3 py-2 align-top tabular-nums">{item.skor}</td>
+                  <td className="px-3 py-2 align-top tabular-nums">{item.winrate}</td>
+                  <td className="px-3 py-2 align-top text-gray-400">{item.catatan}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {/* Skor CDB dilihat dari sisi yang sedang jalan — beri keterangan agar
+            angka positif tidak disalahartikan sebagai keunggulan Putih. */}
+        <p className="mt-2 text-[10px] text-gray-500">{t("papan.awanCatatanSkor")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-1.5 space-y-1">
+      <p className="text-sm font-medium text-gray-400">{t("papan.diLuarBuku")}</p>
+      {awan.status === "kosong" && (
+        <p className="text-xs text-gray-500">{t("papan.awanKosong")}</p>
+      )}
+      {awan.status === "galat" && (
+        <p className="text-xs text-gray-500">{t("papan.awanGalat")}</p>
+      )}
     </div>
   );
 }

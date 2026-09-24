@@ -110,6 +110,16 @@ const skenarioKunci = [
 for (const [f, opsi] of skenarioKunci) {
   for (const gaya of GAYA_KOMENTATOR) {
     kumpulkan(susunKomentar({ fakta: f, gaya, engineNyala: false, ...opsi }));
+    // Saran basis data awan (chessdb.cn) — hanya muncul saat engine mati.
+    kumpulkan(
+      susunKomentar({
+        fakta: f,
+        gaya,
+        engineNyala: false,
+        ...opsi,
+        saranAwan: { san: "Nf3", nilai: "+0.4" },
+      })
+    );
     for (const rating of [
       "brilliant",
       "great",
@@ -254,6 +264,7 @@ const bolehPlaceholder = new Set([
   "unggul",
   "nilai",
   "mat",
+  "awan", // saran basis data awan (chessdb.cn) saat engine mati
 ]);
 for (const [label, kamus] of [
   ["ID", ID],
