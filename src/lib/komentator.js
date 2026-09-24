@@ -40,6 +40,76 @@ const PETA_RATING = {
   blunder: "nilaiBlunder",
 };
 
+/**
+ * Avatar gambar kartu komentator (public/gambar_comentator). Semua berkas
+ * sudah berlatar transparan sehingga aman di atas gelembung gelap.
+ */
+export const GAMBAR_KOMENTATOR = {
+  fritz: "/gambar_comentator/FritzConcentrated.png",
+  berpikir: "/gambar_comentator/catur_berpikir.png",
+  bingung: "/gambar_comentator/catur_bingung.png",
+  marah: "/gambar_comentator/catur_marah.png",
+  sedih: "/gambar_comentator/catur_sedih.png",
+  senang: "/gambar_comentator/catur_senang.png",
+  terkejut: "/gambar_comentator/catur_terkejut.png",
+};
+
+/** Pengelompokan rating engine → emosi karakter yang mewakilinya. */
+const RATING_SENANG = new Set(["brilliant", "great", "best", "excellent", "good"]);
+const RATING_BINGUNG = new Set(["inaccuracy", "miss"]);
+const RATING_SEDIH = new Set(["mistake"]);
+const RATING_MARAH = new Set(["blunder"]);
+
+/**
+ * Pilih avatar karakter untuk kartu komentator.
+ *
+ * Engine MATI: komentar hanya berbasis SAN/fakta papan (tanpa penilaian),
+ * jadi wajahnya tetap Fritz yang berkonsentrasi — tidak ada vonis untuk
+ * direaksikan. Engine NYALA: enam karakter catur bereaksi terhadap vonis
+ * engine terlebih dahulu, lalu (bila eval belum siap) terhadap fakta papan:
+ * skakmat/langkah bagus/rokade/promosi → senang, pengorbanan/skak/tangkap
+ * besar → terkejut, bidak sendiri menggantung → bingung, dan seterusnya.
+ *
+ * @param {object} [p]
+ * @param {boolean} [p.engineNyala]
+ * @param {boolean} [p.engineMenilai] engine menyala tapi eval belum siap
+ * @param {string|null} [p.rating]    label penilaian engine (best/blunder/…)
+ * @param {object|null} [p.fakta]     hasil faktaLangkah() langkah terakhir
+ * @returns {string} path gambar avatar
+ */
+export function gambarKomentator({
+  engineNyala = false,
+  engineMenilai = false,
+  rating = null,
+  fakta = null,
+} = {}) {
+  if (!engineNyala) return GAMBAR_KOMENTATOR.fritz;
+  if (fakta?.skakmat) return GAMBAR_KOMENTATOR.senang;
+  if (rating && rating !== "book" && rating !== "forced") {
+    if (RATING_SENANG.has(rating)) return GAMBAR_KOMENTATOR.senang;
+    if (RATING_BINGUNG.has(rating)) return GAMBAR_KOMENTATOR.bingung;
+    if (RATING_SEDIH.has(rating)) return GAMBAR_KOMENTATOR.sedih;
+    if (RATING_MARAH.has(rating)) return GAMBAR_KOMENTATOR.marah;
+  }
+  if (engineMenilai) return GAMBAR_KOMENTATOR.berpikir;
+  if (fakta) {
+    const untungTangkap = fakta.tangkap
+      ? NILAI_BIDAK[fakta.tangkap] - NILAI_BIDAK[fakta.bidak]
+      : -1;
+    if (
+      fakta.skak ||
+      fakta.tangkap === "q" ||
+      untungTangkap >= 2 ||
+      adalahPengorbanan(fakta)
+    ) {
+      return GAMBAR_KOMENTATOR.terkejut;
+    }
+    if ((fakta.sendiriMenggantung[0]?.nilai ?? 0) >= 3) return GAMBAR_KOMENTATOR.bingung;
+    if (fakta.promosi || fakta.rokade) return GAMBAR_KOMENTATOR.senang;
+  }
+  return GAMBAR_KOMENTATOR.berpikir;
+}
+
 /** Gaya bahasa yang tersedia; disimpan di localStorage lewat kunci di bawah. */
 export const GAYA_KOMENTATOR = ["santai", "formal", "genZ"];
 export const KUNCI_GAYA = "kci-komentator-gaya";

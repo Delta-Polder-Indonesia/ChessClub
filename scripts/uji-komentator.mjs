@@ -18,16 +18,19 @@
  */
 import { Chess } from "chess.js";
 import { ID, EN } from "../src/lib/terjemahan.js";
+import { existsSync } from "node:fs";
 import {
   adalahPengorbanan,
   bidakMenggantung,
   faktaLangkah,
+  gambarKomentator,
   indeksVarian,
   isiNamaBidak,
   kategoriKeunggulan,
   rapikanKalimat,
   susunKomentar,
   susunKomentarTekaTeki,
+  GAMBAR_KOMENTATOR,
   GAYA_KOMENTATOR,
   TEMA_DISEBUT,
 } from "../src/lib/komentator.js";
@@ -641,6 +644,67 @@ for (const [nama, blokId, blokEn] of [
       );
     }
   }
+}
+
+/* ----------------------------- 7. avatar gambar kartu komentator (karakter) */
+// Engine mati → selalu Fritz (komentar berbasis SAN saja). Engine nyala →
+// satu dari enam karakter catur menurut vonis engine / fakta papan. Semua
+// berkas gambar yang dirujuk juga harus benar-benar ada di public/ (penjaga
+// regresi agar avatar tidak lagi menunjuk berkas yang tidak ada).
+console.log("\n7) Avatar gambar komentator");
+for (const [nama, src] of Object.entries(GAMBAR_KOMENTATOR)) {
+  ok(
+    existsSync(new URL(`../public${src}`, import.meta.url)),
+    `gambar komentator "${nama}" tidak ditemukan di public${src}`
+  );
+}
+{
+  const fMat = faktaDasar("rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2", "Qh4#");
+  const fSkak = faktaDasar("r1bqkbnr/pppp1ppp/2n5/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR w KQkq - 0 3", "Qxf7+");
+  const fKorban = faktaDasar("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3", "Nxe5");
+  const fGantung = faktaDasar("r1bqkbnr/1pp1pppp/p1n5/1N1p4/4P3/8/PPPP1PPP/R1BQKBNR w KQkq - 0 4", "h3");
+  const fRokade = faktaDasar("rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1", "O-O");
+  const fBiasa = faktaDasar(AWAL, "e4");
+
+  ok(gambarKomentator({}) === GAMBAR_KOMENTATOR.fritz, "engine mati (bawaan) → Fritz");
+  ok(
+    gambarKomentator({ engineNyala: false, rating: "blunder", fakta: fMat }) === GAMBAR_KOMENTATOR.fritz,
+    "engine mati tetap Fritz walau ada rating/fakta"
+  );
+  ok(gambarKomentator({ engineNyala: true }) === GAMBAR_KOMENTATOR.berpikir, "engine nyala tanpa langkah → berpikir");
+  ok(
+    gambarKomentator({ engineNyala: true, engineMenilai: true, fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
+    "engine sedang menilai → berpikir"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "book", fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
+    "rating book → berpikir"
+  );
+  ok(gambarKomentator({ engineNyala: true, fakta: fMat }) === GAMBAR_KOMENTATOR.senang, "skakmat → senang");
+  for (const r of ["brilliant", "great", "best", "excellent", "good"]) {
+    ok(
+      gambarKomentator({ engineNyala: true, rating: r, fakta: fBiasa }) === GAMBAR_KOMENTATOR.senang,
+      `rating ${r} → senang`
+    );
+  }
+  for (const r of ["inaccuracy", "miss"]) {
+    ok(
+      gambarKomentator({ engineNyala: true, rating: r, fakta: fBiasa }) === GAMBAR_KOMENTATOR.bingung,
+      `rating ${r} → bingung`
+    );
+  }
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "mistake", fakta: fBiasa }) === GAMBAR_KOMENTATOR.sedih,
+    "rating mistake → sedih"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "blunder", fakta: fBiasa }) === GAMBAR_KOMENTATOR.marah,
+    "rating blunder → marah"
+  );
+  ok(gambarKomentator({ engineNyala: true, fakta: fSkak }) === GAMBAR_KOMENTATOR.terkejut, "skak → terkejut");
+  ok(gambarKomentator({ engineNyala: true, fakta: fKorban }) === GAMBAR_KOMENTATOR.terkejut, "pengorbanan → terkejut");
+  ok(gambarKomentator({ engineNyala: true, fakta: fGantung }) === GAMBAR_KOMENTATOR.bingung, "bidak sendiri menggantung → bingung");
+  ok(gambarKomentator({ engineNyala: true, fakta: fRokade }) === GAMBAR_KOMENTATOR.senang, "rokade → senang");
 }
 
 console.log(gagal ? `\nGAGAL — ${gagal} masalah (${lulus} lulus).` : `\nOK — ${lulus} pemeriksaan lulus.`);
