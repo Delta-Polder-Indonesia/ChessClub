@@ -14,11 +14,20 @@
  * - CACHE: hasil posisi yang sudah diketahui disimpan 12 jam; posisi yang
  *   belum ada disimpan 30 menit saja (siapa tahu menyusul).
  * - TENGGANG/ULANG: permintaan menggantung tidak boleh membekukan server;
- *   5xx/429 dicoba ulang sekali, 4xx tidak.
+ *   5xx/429/jaringan dicoba sekali lagi lewat alamat cadangan, 4xx tidak.
+ *
+ * Format balasan cdb.php (diverifikasi langsung ke layanan, Sep 2026):
+ *   - `json=1` → OBJEK: `{"status":"ok","moves":[{uci,san,score,rank,note,
+ *     winrate}], "ply":5}`; status lain: "unknown", "checkmate",
+ *     "stalemate", "invalid board". `score` bisa "??" dan `winrate` berupa
+ *     teks ("50.00").
+ *   - tanpa `json` → teks `move:a7a6,score:0,rank:2,note:! (32-04),winrate:50.00|...`
+ *   - `rank`: 2 = langkah terbaik ("!"), 1 = bagus, 0 = buruk/belum dinilai.
  */
-const DASAR = "https://www.chessdb.cn/cdb.php";
-const TENGGANG_MS = 5000;
-const PERCOBAAN = 2;
+/** Alamat dicoba berurutan; yang kedua hanya dipakai bila yang pertama gagal
+ * di jaringan/5xx (bukan saat menolak dengan 4xx). */
+const ALAMAT = ["https://www.chessdb.cn/cdb.php", "https://chessdb.cn/cdb.php"];
+const TENGGANG_MS = 8000;
 const KONKURENSI_MAKS = 4;
 const CACHE_MAKS = 500;
 const TTL_DIKETAHUI_MS = 12 * 60 * 60 * 1000;
@@ -34,11 +43,12 @@ const tidur = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /** Galat dengan status HTTP siap pakai (dibaca server/src/permintaan.js). */
 export class GalatAwan extends Error {
-  constructor(pesan, { status = 502, sebab = "awan-gagal" } = {}) {
+  constructor(pesan, { status = 502, sebab = "awan-gagal", rincian = null } = {}) {
     super(pesan);
     this.name = "GalatAwan";
     this.status = status;
     this.sebab = sebab;
+    this.rincian = rincian;
   }
 }
 
@@ -123,65 +133,77 @@ export function bersihkanFen(fen) {
   return [papan, giliran, rokade, enPassant, setengah, penuh].join(" ");
 }
 
-/** Satu langkah dari balasan CDB (JSON `{uci,san,score,rank,winrate,note}`). */
+/** Satu langkah dari balasan CDB (`{uci,san,score,rank,winrate,note}`). */
 function rapikanLangkah(b) {
   const uci = String(b?.uci ?? b?.move ?? "").trim().toLowerCase();
   if (!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci)) return null;
   const skor = angka(b.score);
+  // Skor "??" = langkah yang belum dinilai CDB. Tidak berguna di tabel (hanya
+  // "—") dan bisa menenggelamkan langkah yang sungguh dinilai — dibuang.
+  if (skor === null) return null;
   return {
     uci,
     san: b.san ? String(b.san).trim() : null,
     // Skor sentipion dari sudut pandang pihak yang jalan (positif = unggul).
-    skorCp: skor !== null && Math.abs(skor) < AMBANG_SKOR_PAKSA ? skor : null,
+    skorCp: Math.abs(skor) < AMBANG_SKOR_PAKSA ? skor : null,
     rank: angka(b.rank),
     winrate: angka(b.winrate),
     catatan: b.note ? String(b.note).trim() : null,
+    // Skor mentah hanya untuk mengurutkan (termasuk penanda mat paksa).
+    _skor: skor,
   };
 }
 
-/** Urutkan: rank CDB lebih dulu (0 = terbaik), lalu skor menurun. */
+/** Urutkan: rank CDB lebih dulu (2 = terbaik), lalu skor menurun. */
 function urutkanLangkah(daftar) {
   return daftar
     .slice()
     .sort((a, b) => {
-      const ra = a.rank === null ? Number.MAX_SAFE_INTEGER : a.rank;
-      const rb = b.rank === null ? Number.MAX_SAFE_INTEGER : b.rank;
-      if (ra !== rb) return ra - rb;
-      return (b.skorCp ?? -Infinity) - (a.skorCp ?? -Infinity);
+      const ra = a.rank === null ? -1 : a.rank;
+      const rb = b.rank === null ? -1 : b.rank;
+      if (ra !== rb) return rb - ra;
+      return b._skor - a._skor;
     })
-    .slice(0, MAKS_LANGKAH);
+    .slice(0, MAKS_LANGKAH)
+    .map(({ _skor, ...langkah }) => langkah);
 }
 
-function uraiJson(teks) {
-  let data;
-  try {
-    data = JSON.parse(teks);
-  } catch {
-    return [];
-  }
-  const daftar = Array.isArray(data) ? data : Array.isArray(data?.moves) ? data.moves : [];
-  return daftar.map(rapikanLangkah).filter(Boolean);
+function galatTakDikenal(contoh) {
+  return new GalatAwan("Balasan basis data awan tidak dikenali.", {
+    status: 502,
+    sebab: "awan-balasan-tak-dikenal",
+    rincian: String(contoh || "").slice(0, 120),
+  });
 }
 
-/** Format teks: `move:d2d4,score:31,rank:100,note:!|move:g1f3,...`. */
-function uraiTeks(teks) {
-  const hasil = [];
-  for (const potong of teks.split("|")) {
-    if (!potong.trim()) continue;
-    const bidang = {};
-    for (const pasangan of potong.split(",")) {
-      const pisah = pasangan.indexOf(":");
-      if (pisah < 0) continue;
-      bidang[pasangan.slice(0, pisah).trim()] = pasangan.slice(pisah + 1).trim();
-    }
-    const langkah = rapikanLangkah(bidang);
-    if (langkah) hasil.push(langkah);
+/** Status teks CDB → hasil baku; `null` bila bukan status yang dikenal. */
+function dariStatus(status) {
+  if (status === "unknown" || status === "nobestmove") {
+    return { diketahui: false, akhir: null, langkah: [] };
   }
-  return hasil;
+  if (status === "checkmate" || status === "stalemate") {
+    return { diketahui: true, akhir: status, langkah: [] };
+  }
+  if (status === "invalid board") {
+    throw new GalatAwan("Basis data awan menolak posisi ini.", {
+      status: 502,
+      sebab: "awan-tolak-posisi",
+    });
+  }
+  return null;
+}
+
+function hasilLangkah(mentah) {
+  const langkah = urutkanLangkah(mentah.map(rapikanLangkah).filter(Boolean));
+  return { diketahui: langkah.length > 0, akhir: null, langkah };
 }
 
 /**
  * Urai balasan cdb.php menjadi bentuk yang stabil untuk UI.
+ *
+ * Balasan yang TIDAK dikenali (HTML halaman blokir, JSON asing, dsb.) dilempar
+ * sebagai galat — jangan pernah diam-diam dianggap "posisi belum ada", karena
+ * itulah yang dulu membuat panel tampak kosong tanpa penjelasan.
  *
  * @returns {{diketahui: boolean, akhir: string|null, langkah: Array<object>}}
  *          `akhir` = "checkmate" | "stalemate" bila posisi sudah berakhir.
@@ -189,51 +211,120 @@ function uraiTeks(teks) {
 export function uraiBalasanAwan(teks) {
   const bersih = String(teks || "").trim();
   if (!bersih) return { diketahui: false, akhir: null, langkah: [] };
-  if (bersih === "unknown") return { diketahui: false, akhir: null, langkah: [] };
-  if (bersih === "nobestmove") return { diketahui: false, akhir: null, langkah: [] };
-  if (bersih === "checkmate" || bersih === "stalemate") {
-    return { diketahui: true, akhir: bersih, langkah: [] };
+
+  if (bersih.startsWith("{") || bersih.startsWith("[")) {
+    let data;
+    try {
+      data = JSON.parse(bersih);
+    } catch {
+      throw galatTakDikenal(bersih);
+    }
+    if (Array.isArray(data)) return hasilLangkah(data);
+    const status = String(data?.status ?? "").trim().toLowerCase();
+    if (status === "ok") {
+      return hasilLangkah(Array.isArray(data.moves) ? data.moves : []);
+    }
+    const hasil = dariStatus(status);
+    if (hasil) return hasil;
+    throw galatTakDikenal(bersih);
   }
-  if (bersih === "invalid board") {
-    throw new GalatAwan("Basis data awan menolak posisi ini.", {
-      status: 502,
-      sebab: "awan-tolak-posisi",
-    });
+
+  const hasil = dariStatus(bersih.toLowerCase());
+  if (hasil) return hasil;
+
+  // Format teks: `move:d2d4,score:31,rank:2,note:!|move:g1f3,...`.
+  if (!/(^|\|)\s*move:/.test(bersih)) throw galatTakDikenal(bersih);
+  const mentah = [];
+  for (const potong of bersih.split("|")) {
+    if (!potong.trim()) continue;
+    const bidang = {};
+    for (const pasangan of potong.split(",")) {
+      const pisah = pasangan.indexOf(":");
+      if (pisah < 0) continue;
+      bidang[pasangan.slice(0, pisah).trim()] = pasangan.slice(pisah + 1).trim();
+    }
+    mentah.push(bidang);
   }
-  const langkah = urutkanLangkah(bersih.startsWith("[") ? uraiJson(bersih) : uraiTeks(bersih));
-  return { diketahui: langkah.length > 0, akhir: null, langkah };
+  return hasilLangkah(mentah);
 }
 
 /* ---------------------------------------------------------------- jaringan */
 
-async function ambilTeks(url, fetchImpl) {
+/** Kode penyebab kegagalan jaringan yang ringkas & aman untuk log. */
+function penyebabJaringan(e, habisWaktu) {
+  if (habisWaktu) return "tenggang-habis";
+  const kode = e?.cause?.code || e?.code;
+  if (typeof kode === "string" && /^[A-Z0-9_]{2,40}$/.test(kode)) return kode;
+  return e?.name === "AbortError" ? "dibatalkan" : "jaringan";
+}
+
+/**
+ * Satu baris JSON per kegagalan di log server/function (Vercel → Logs).
+ * Tanpa ini, 503 di produksi tidak bisa dibedakan antara DNS gagal, IP
+ * datacenter diblokir, atau layanan lambat.
+ */
+function catatGagal(info) {
+  try {
+    console.warn(`[kci] basis data awan gagal: ${JSON.stringify(info)}`);
+  } catch {
+    /* log tidak boleh menjatuhkan permintaan */
+  }
+}
+
+/**
+ * Ambil teks mentah cdb.php. Alamat di `ALAMAT` dicoba berurutan: kegagalan
+ * jaringan/tenggang/5xx/429 pindah ke alamat berikutnya, sedangkan 4xx lain
+ * (penolakan tegas) langsung dilaporkan — alamat lain tidak akan membaik.
+ */
+async function ambilTeks(kueri, fetchImpl) {
   let galatTerakhir = new GalatAwan("Basis data awan tidak dapat dihubungi.", {
     status: 503,
     sebab: "awan-tidak-terjangkau",
   });
-  for (let percobaan = 1; percobaan <= PERCOBAAN; percobaan += 1) {
+  for (let i = 0; i < ALAMAT.length; i += 1) {
+    const alamat = ALAMAT[i];
+    const host = new URL(alamat).host;
     await kunciKonkurensi();
     const kendali = new AbortController();
-    const jam = setTimeout(() => kendali.abort(), TENGGANG_MS);
+    let habisWaktu = false;
+    const jam = setTimeout(() => {
+      habisWaktu = true;
+      kendali.abort();
+    }, TENGGANG_MS);
+    let lanjut = true;
     try {
-      const res = await fetchImpl(url, {
+      const res = await fetchImpl(`${alamat}?${kueri}`, {
         signal: kendali.signal,
         headers: { Accept: "application/json, text/plain;q=0.8", "User-Agent": UA },
       });
       if (res.ok) return await res.text();
       galatTerakhir = new GalatAwan(`Basis data awan menjawab ${res.status}.`, {
         status: 502,
-        sebab: "awan-balas-galat",
+        sebab: `awan-http-${res.status}`,
       });
-      // 4xx (selain 429) tidak akan membaik dengan diulang.
-      if (res.status < 500 && res.status !== 429) break;
-    } catch {
-      /* jaringan/abort -> galatTerakhir tetap "tidak terjangkau" */
+      catatGagal({ host, pesan: galatTerakhir.message, penyebab: `http-${res.status}` });
+      // 4xx (selain 429) tidak akan membaik dengan alamat lain.
+      if (res.status < 500 && res.status !== 429) lanjut = false;
+    } catch (e) {
+      const penyebab = penyebabJaringan(e, habisWaktu);
+      catatGagal({
+        host,
+        pesan: String(e?.message || e).slice(0, 200),
+        sebab: e?.cause ? String(e.cause?.message || e.cause).slice(0, 200) : null,
+        penyebab,
+      });
+      galatTerakhir = new GalatAwan(
+        habisWaktu
+          ? "Basis data awan tidak menjawab tepat waktu."
+          : "Basis data awan tidak dapat dihubungi.",
+        { status: 503, sebab: habisWaktu ? "awan-tenggang-habis" : "awan-tidak-terjangkau" }
+      );
     } finally {
       clearTimeout(jam);
       lepasKonkurensi();
     }
-    if (percobaan < PERCOBAAN) await tidur(250 * percobaan);
+    if (!lanjut) break;
+    if (i < ALAMAT.length - 1) await tidur(250);
   }
   throw galatTerakhir;
 }
@@ -256,10 +347,18 @@ export async function tanyaAwan(fen, { fetchImpl = globalThis.fetch } = {}) {
   const tersimpan = dariCache(posisi);
   if (tersimpan) return { ...tersimpan, dariCache: true };
 
-  const url =
-    `${DASAR}?action=queryall&board=${encodeURIComponent(posisi)}` +
-    "&json=1&showall=0&learn=0";
-  const urai = uraiBalasanAwan(await ambilTeks(url, fetchImpl));
+  const kueri =
+    `action=queryall&board=${encodeURIComponent(posisi)}` + "&json=1&showall=0&learn=0";
+  const teks = await ambilTeks(kueri, fetchImpl);
+  let urai;
+  try {
+    urai = uraiBalasanAwan(teks);
+  } catch (e) {
+    if (e instanceof GalatAwan && e.sebab === "awan-balasan-tak-dikenal") {
+      catatGagal({ pesan: e.message, penyebab: "balasan-tak-dikenal", contoh: e.rincian });
+    }
+    throw e;
+  }
   const hasil = {
     sumber: "chessdb",
     posisi,

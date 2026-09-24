@@ -87,6 +87,7 @@ export const papan = {
     awanMemuat: "Menanyakan basis data awan…",
     awanKosong: "Posisi ini belum ada di basis data awan.",
     awanGalat: "Basis data awan tidak dapat dihubungi — coba nyalakan engine.",
+    awanCobaLagi: "Coba lagi",
     awanKolomSkor: "Skor",
     awanKolomWinrate: "Winrate",
     awanKolomCatatan: "Catatan",

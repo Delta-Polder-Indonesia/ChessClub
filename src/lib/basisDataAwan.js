@@ -28,19 +28,22 @@ const CACHE_MAKS = 200;
  * Ambil daftar langkah basis data awan untuk satu posisi.
  *
  * @param {string} fen posisi (FEN; bidang yang kurang akan dilengkapi server)
- * @param {{signal?: AbortSignal}} [opsi]
+ * @param {{signal?: AbortSignal, segarkan?: boolean}} [opsi] `segarkan`
+ *        melewati cache klien (tombol "Coba lagi") — kegagalan yang tersimpan
+ *        30 detik tidak boleh menghalangi percobaan yang diminta pengguna.
  * @returns {Promise<{sumber:string, posisi:string, diketahui:boolean,
  *                    akhir:string|null, langkah:Array<object>}>}
  * @throws {Error} bila jaringan gagal, dibatalkan (name = "AbortError"),
- *                 atau server membalas non-2xx.
+ *                 atau server membalas non-2xx. `kode` (bila ada) = kode
+ *                 penyebab dari server, mis. "awan-tidak-terjangkau".
  */
-export async function ambilBasisDataAwan(fen, { signal } = {}) {
+export async function ambilBasisDataAwan(fen, { signal, segarkan = false } = {}) {
   const posisi = String(fen || "").trim();
   if (!posisi) throw new Error("Posisi kosong.");
 
   const tersimpan = cache.get(posisi);
-  if (tersimpan && Date.now() < tersimpan.kedaluwarsa) {
-    if (tersimpan.galat) throw new Error(tersimpan.galat);
+  if (!segarkan && tersimpan && Date.now() < tersimpan.kedaluwarsa) {
+    if (tersimpan.galat) throw buatGalat(tersimpan.galat, tersimpan.kode);
     return tersimpan.nilai;
   }
 
@@ -48,8 +51,8 @@ export async function ambilBasisDataAwan(fen, { signal } = {}) {
   // pasti gagal (juga menghindari galat jaringan di konsol).
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     const pesan = "Tidak ada koneksi internet.";
-    simpanGagal(posisi, pesan);
-    throw new Error(pesan);
+    simpanGagal(posisi, pesan, "offline");
+    throw buatGalat(pesan, "offline");
   }
 
   try {
@@ -57,14 +60,29 @@ export async function ambilBasisDataAwan(fen, { signal } = {}) {
       signal,
       headers: { Accept: "application/json" },
     });
-    if (!res.ok) throw new Error(`Basis data awan menjawab ${res.status}.`);
+    if (!res.ok) {
+      // Teruskan pesan + kode server apa adanya: "menjawab 503" saja tidak
+      // membantu siapa pun mendiagnosis masalah di produksi.
+      let isi = null;
+      try {
+        isi = await res.json();
+      } catch {
+        isi = null;
+      }
+      throw buatGalat(
+        typeof isi?.pesan === "string" && isi.pesan
+          ? isi.pesan
+          : `Basis data awan menjawab ${res.status}.`,
+        typeof isi?.kode === "string" ? isi.kode : `http-${res.status}`
+      );
+    }
 
     const nilai = await res.json();
     simpanNilai(posisi, nilai);
     return nilai;
   } catch (e) {
     // Pembatalan bukan kegagalan layanan — jangan di-cache.
-    if (e?.name !== "AbortError") simpanGagal(posisi, e?.message || String(e));
+    if (e?.name !== "AbortError") simpanGagal(posisi, e?.message || String(e), e?.kode || null);
     throw e;
   }
 }
@@ -78,8 +96,14 @@ function simpanNilai(posisi, nilai) {
   buangKelebihan();
 }
 
-function simpanGagal(posisi, pesan) {
-  cache.set(posisi, { galat: pesan, kedaluwarsa: Date.now() + TTL_GAGAL_MS });
+function buatGalat(pesan, kode) {
+  const galat = new Error(pesan);
+  galat.kode = kode || null;
+  return galat;
+}
+
+function simpanGagal(posisi, pesan, kode) {
+  cache.set(posisi, { galat: pesan, kode, kedaluwarsa: Date.now() + TTL_GAGAL_MS });
   buangKelebihan();
 }
 
