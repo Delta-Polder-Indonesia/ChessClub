@@ -5,7 +5,7 @@ import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
-import { formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
+import { bacaPartaiPGN, formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
 import { cariNamaPembukaan } from "../../mesin/buku.js";
 import { Chess, WHITE } from "chess.js";
 import { pushPageWarning, pushPageError } from "../errors/pageErrors.jsx";
@@ -304,38 +304,53 @@ function Game({ wadah }) {
   }, []);
   async function handlePGN(pgn, depth2, terkini, signal) {
     setPageState("loading");
-    // Grafik eval di kartu muat mulai dari kosong, bukan sisa partai sebelumnya.
+    setTab("summary");
+    setProgress(0);
     setLangkahSementara([]);
     if (!pgn?.trim()) {
       pushPageError(setErrors, t("analisa.galat.pgnJudul"), t("analisa.galat.pgnIsi"));
       setPageState("default");
       return;
     }
-    /*
-     * Tabel buku (nama pembukaan, 1,3 MB) diunduh saat halaman dibuka — analisis
-     * yang dimulai SEBELUM unduhannya selesai akan berjalan TANPA label "book"
-     * bila memakai `openings2 ?? {}` apa adanya, dan labelnya tidak bisa pulih
-     * lagi karena rating sudah dibakar ke hasil analisis. Tunggu janji yang SAMA
-     * (di-cache di modul buku.js, jadi tidak mengunduh ulang) BERSELANG dengan
-     * penyiapan engine supaya tidak menambah waktu tunggu.
-     */
-    const janjiBuku = openings2
-      ? Promise.resolve(openings2)
-      : cariNamaPembukaan().catch(() => ({}));
-    let mesin;
-    try {
-      mesin = await siapkan();
-    } catch {
-      pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
-      setPageState("default");
-      return;
-    }
-    const buku = await janjiBuku;
-    try {
-      // `onLangkah` memasok grafik yang tumbuh selama analisa (lihat
-      // komponen/menu/loading/grafikMuat.jsx), `setProgress` tetap mengisi bar.
-      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, setProgress, signal, { onLangkah: setLangkahSementara });
+
+    // Tombol Batal juga bekerja saat engine/buku masih disiapkan, bukan cuma
+    // saat pencarian UCI sudah berjalan. Muatan lama tidak boleh menutup yang baru.
+    const batal = () => {
       if (!terkini()) return;
+      setPageState("default");
+      setProgress(0);
+      setLangkahSementara([]);
+    };
+    signal.addEventListener("abort", batal, { once: true });
+    try {
+      const partai = bacaPartaiPGN(pgn);
+      if (signal.aborted || !terkini()) return;
+      setLangkahSementara(partai.kerangka);
+
+      // Buku pembukaan diunduh bersamaan dengan penyiapan engine.
+      const janjiBuku = openings2
+        ? Promise.resolve(openings2)
+        : cariNamaPembukaan().catch(() => ({}));
+      const mesin = await siapkan().catch(() => {
+        throw new Error(signal.aborted ? "canceled" : "mesin");
+      });
+      if (signal.aborted || !terkini()) return;
+      const buku = await janjiBuku;
+      if (signal.aborted || !terkini()) return;
+
+      // Posisi belum dinilai tetap berada pada garis tengah. Sumbu X berasal
+      // dari seluruh partai dan tidak berubah setiap kali onLangkah terpanggil.
+      const laporkanLangkah = (dinilai) => {
+        if (!terkini() || signal.aborted) return;
+        setLangkahSementara(partai.kerangka.map((posisi, i) => dinilai[i] ?? posisi));
+      };
+      const laporkanProgres = (nilai) => {
+        if (terkini() && !signal.aborted) setProgress(nilai);
+      };
+      const { metadata, moves } = await parsePGN(mesin, pgn, depth2, buku, laporkanProgres, signal, {
+        partai, onLangkah: laporkanLangkah,
+      });
+      if (!terkini() || signal.aborted) return;
       setTime(metadata.time);
       setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
       setGame(moves);
@@ -347,7 +362,6 @@ function Game({ wadah }) {
       if (boardSounds) setTimeout(() => gameStartSound.play(), 100);
       setPageState("analyze");
     } catch (e) {
-      // Muatan lama yang dibatalkan tidak boleh menimpa muatan baru.
       if (!terkini()) return;
       switch (e?.kunci ?? e?.message) {
         case "pgn":
@@ -363,10 +377,14 @@ function Game({ wadah }) {
           pushPageError(setErrors, t("analisa.galat.analisisJudul"), String(e?.message ?? e));
       }
       setPageState("default");
+    } finally {
+      signal.removeEventListener("abort", batal);
+      if (terkini()) {
+        setProgress(0);
+        setLangkahSementara([]);
+        setMoveNumber(0);
+      }
     }
-    setProgress(0);
-    setLangkahSementara([]);
-    setMoveNumber(0);
   }
   async function handleFEN(fen, terkini, sinyal) {
     let move3;
@@ -457,12 +475,12 @@ function Game({ wadah }) {
      * memakai controller/signal miliknya sendiri; `terkini` mencegah muatan
      * lama yang dibatalkan ikut menyetor state (langkah, progres, halaman).
      */
-    analyzeController.abort();
-    const baru = new AbortController();
-    setAnalyzeController(baru);
     muatSeqRef.current += 1;
     const nomor = muatSeqRef.current;
     const terkini = () => muatSeqRef.current === nomor;
+    analyzeController.abort();
+    const baru = new AbortController();
+    setAnalyzeController(baru);
     switch (format) {
       case "pgn":
         handlePGN(string, depth, terkini, baru.signal);
@@ -487,7 +505,7 @@ function Game({ wadah }) {
       const lebar = el?.clientWidth ?? window.innerWidth;
       const tinggi = el?.clientHeight ?? window.innerHeight;
 
-      const newGap = lebar < maxVertical ? 6 : 10;
+      const newGap = window.innerWidth < maxVertical ? 6 : 10;
       setGap(newGap);
 
       const component = componentRef.current;
@@ -501,7 +519,9 @@ function Game({ wadah }) {
       const gapWidth = 8;
       const paddingWidth = 16;
 
-      const isNavTop = lebar < navTop;
+      // CSS breakpoint `vertical`/`navTop` memakai lebar viewport, bukan
+      // lebar <main> (yang sudah dikurangi bilah navigasi kiri).
+      const isNavTop = window.innerWidth < navTop;
       setIsNavTop(isNavTop);
 
       if (isNavTop) {
@@ -517,7 +537,7 @@ function Game({ wadah }) {
         return;
       }
 
-      if (lebar < maxVertical) {
+      if (window.innerWidth < maxVertical) {
         const padding = 8;
         const evalLebar = 28;
         const gameButtonsHeight = 69;

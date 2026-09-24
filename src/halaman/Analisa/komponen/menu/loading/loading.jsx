@@ -2,7 +2,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import Lens from "../../svg/lens.jsx";
 import LoadingBar from "./loadingBar.jsx";
-import GrafikMuat from "./grafikMuat.jsx";
 import DualRingSpinner from "../../loading/DualRingSpinner.jsx";
 import { AnalyzeContext } from "../../../konteks/analyze.jsx";
 import { gunakanMesin } from "../../../konteks/mesin.jsx";
@@ -24,8 +23,6 @@ function Loading(props) {
   const [ellipsis, setEllipsis] = useState("");
   const analyzeContext = useContext(AnalyzeContext);
   const [progress] = analyzeContext.progress;
-  const [langkahSementara] = analyzeContext.langkahSementara;
-  const progressRef = useRef(progress);
   const ellipsisRef = useRef(ellipsis);
   const { format, analyzeController } = props;
   useEffect(() => {
@@ -43,19 +40,16 @@ function Loading(props) {
     const ellipsisInterval = setInterval(animateEllipsis, 300);
     return () => clearInterval(ellipsisInterval);
   }, []);
-  useEffect(() => {
-    progressRef.current = progress;
-  }, [progress]);
   function cancel() {
     analyzeController?.abort();
   }
-  return <div className="flex flex-col flex-grow">
-            <div className="text-lg font-bold text-foregroundGrey px-5 pb-5 w-full">
+  return <div data-uji="kartu-progres-analisa" className="flex flex-col">
+            <div className="text-lg font-bold text-foregroundGrey px-5 pb-3 w-full">
                 {status === "memuat" ? t("analisa.status.memuat") : `${t("analisa.muat.menganalisa")}${ellipsis}`}
             </div>
             <hr className="border-neutral-600" />
-            <div className="flex-grow flex flex-col justify-center items-center relative">
-                <div className="w-[70%] bg-backgroundBox relative overflow-hidden rounded-borderExtraRoundness text-lg text-foregroundGrey flex flex-col gap-8 px-5 pb-4 pt-6 items-center">
+            <div className="flex justify-center py-3">
+                <div className="w-[85%] bg-backgroundBox rounded-borderExtraRoundness text-foregroundGrey flex flex-col gap-3 px-4 py-3">
                     <div className="w-full flex flex-col gap-2">
                         <div className="flex flex-wrap justify-between gap-2 w-full">
                             <span className="flex items-baseline whitespace-nowrap">
@@ -67,13 +61,16 @@ function Loading(props) {
                         <LoadingBar progress={progress} transitionTime={100} />
                         <span className="w-full text-xs leading-4 text-foregroundGrey">{t("analisa.muat.petunjukLama")}</span>
                     </div>
-                    <GrafikMuat moves={langkahSementara} label={t("analisa.muat.grafik")} />
-                    <div className="w-36 flex flex-col items-center gap-4">
-                        <Lens class="animate-[pulse_1.25s_cubic-bezier(0.4,_0,_0.6,_1)_infinite;] scale-x-[-1] fill-backgroundBoxBoxHighlighted" size={60} />
-                        <span className="text-xl text-foreground font-bold">{format.toUpperCase()}</span>
-                        <DualRingSpinner color="#4a9dd9" />
+                    <div className="flex w-full items-center justify-between gap-3 text-sm">
+                        <div className="flex items-center gap-2">
+                            <Lens class="scale-x-[-1] fill-backgroundBoxBoxHighlighted" size={30} />
+                            <span className="font-semibold text-foreground">{format?.toUpperCase()}</span>
+                            <div className="flex h-8 w-8 items-center justify-center overflow-hidden">
+                                <DualRingSpinner color="#4a9dd9" scale={0.55} />
+                            </div>
+                        </div>
+                        <button onClick={cancel} className="hover:text-foreground transition-colors" type="button">{t("analisa.muat.batal")}</button>
                     </div>
-                    <button onClick={cancel} className="hover:text-foreground transition-colors" type="button">{t("analisa.muat.batal")}</button>
                 </div>
             </div>
         </div>;

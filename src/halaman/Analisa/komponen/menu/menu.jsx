@@ -3,6 +3,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import Loading from "./loading/loading.jsx";
+import GrafikMuat from "./loading/grafikMuat.jsx";
 import GameButtons from "./analysis/gameButtons.jsx";
 import Star from "../svg/star.jsx";
 import BoardIcon from "../svg/boardIcon.jsx";
@@ -30,6 +31,7 @@ function Menu() {
   const [pageState] = analyzeContext.pageState;
   const [data] = analyzeContext.data;
   const [game] = analyzeContext.game;
+  const [langkahSementara] = analyzeContext.langkahSementara;
   const [players] = analyzeContext.players;
   const [result] = analyzeContext.result;
   const [moveNumber, setMoveNumber] = analyzeContext.moveNumber;
@@ -43,6 +45,8 @@ function Menu() {
 
   const modeAnalisis = pageState === "analyze" || pageState === "analyzeCustom";
   const memuatPartai = pageState === "loading";
+  const grafikPartai = (memuatPartai && data?.format === "pgn") ||
+    (pageState === "analyze" && tab === "summary");
   const kosong = pageState === "default";
 
   /* Saat masuk mode analisis, buka tab Ringkasan lebih dulu. */
@@ -70,7 +74,7 @@ function Menu() {
   }, [players, result, t]);
 
   const tabs = [
-    { label: t("analisa.tab.ringkasan"), state: "summary", icon: (className) => <Star class={className} size={20} />, show: pageState === "analyze" },
+    { label: t("analisa.tab.ringkasan"), state: "summary", icon: (className) => <Star class={className} size={20} />, show: pageState === "analyze" || (memuatPartai && data?.format === "pgn") },
     { label: t("analisa.tab.langkah"), state: "moves", icon: (className) => <BoardIcon class={className} size={20} />, show: modeAnalisis },
   ].filter((x) => x.show);
 
@@ -98,8 +102,23 @@ function Menu() {
       <div className="overflow-y-auto h-full flex flex-col">
         {memuatPartai ? <Loading format={data?.format} analyzeController={analyzeController} /> : ""}
 
+        {grafikPartai ? (
+          <div data-uji="grafik-analisa" className="flex w-full justify-center py-3">
+            <GrafikMuat
+              moves={memuatPartai ? langkahSementara : game}
+              label={t(memuatPartai ? "analisa.muat.grafik" : "analisa.grafik.judul")}
+              container={menuRef.current}
+              moveNumber={moveNumber}
+              setMoveNumber={setMoveNumber}
+              setAnimation={setAnimation}
+              setForward={setForward}
+              interaktif={!memuatPartai}
+            />
+          </div>
+        ) : null}
+
         {modeAnalisis && tab === "summary" ? (
-          <Summary setAnimation={setAnimation} setForward={setForward} setMoveNumber={setMoveNumber} moveNumber={moveNumber} players={players} moves={game} container={menuRef.current} />
+          <Summary players={players} moves={game} />
         ) : ""}
         {modeAnalisis && tab === "moves" && pageState === "analyze" ? (
           <Moves container={menuRef.current} moves={game} overallGameComment={overallGameComment} moveNumber={moveNumber} setMoveNumber={setMoveNumber} analyzingMove={analyzingMove} setAnimation={setAnimation} setForward={setForward} customLine={customLine} returnedToNormalGame={returnedToNormalGame} />

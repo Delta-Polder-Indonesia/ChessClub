@@ -120,12 +120,7 @@ function AnalyzeContextProvider(props) {
   const [materialAdvantage, setMaterialAdvantage] = useState(0);
   const [result2, setResult] = useState("");
   const [progress, setProgress] = useState(0);
-  /*
-   * Hasil analisis yang sudah selesai tetapi partainya belum utuh — dipakai
-   * grafik eval yang tumbuh selama analisa berjalan (lihat
-   * `komponen/menu/loading/grafikMuat.jsx`). Dikosongkan lagi setelah muatan
-   * selesai/gagal supaya tidak ada sisa partai lama.
-   */
+  /* Posisi lengkap dari PGN; eval tiap posisi diisi selama analisis berjalan. */
   const [langkahSementara, setLangkahSementara] = useState([]);
   const [tab, setTab] = useState("analyze");
   const [analyzeController, setAnalyzeController] = useState(abortControllerInstance);

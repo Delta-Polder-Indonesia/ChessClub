@@ -14,6 +14,7 @@ import { Chess } from "chess.js";
 
 import {
   EngineAnalisis,
+  bacaPartaiPGN,
   deformatSquare,
   formatSquare,
   getCastle,
@@ -153,6 +154,20 @@ await uji("ekstrakDaftarClock melacak sisa waktu Putih & Hitam per langkah", () 
   assert.deepEqual(clocks[4], { white: 175, black: 174 }); // setelah 2... Nc6
 });
 
+await uji("kerangka PGN menyediakan semua posisi sebelum evaluasi", () => {
+  const partai = bacaPartaiPGN(PGN_CONTOH);
+  assert.equal(partai.kerangka.length, 9);
+  assert.equal(partai.kerangka[0].color, "w");
+  assert.deepEqual(partai.kerangka.slice(1, 3).map((posisi) => posisi.san), ["e4", "e5"]);
+  assert.ok(partai.kerangka.every((posisi) => posisi.fen && !posisi.previousStaticEvals));
+  assert.equal(partai.metadata.time, 300);
+  assert.throws(() => bacaPartaiPGN("PGN tidak sah"), /pgn/);
+
+  const awalHitam = new Chess().move("e4").after;
+  const partaiHitam = bacaPartaiPGN(`[SetUp "1"]\n[FEN "${awalHitam}"]\n\n1... e5 2. Nf3 *`);
+  assert.deepEqual(partaiHitam.kerangka.map((posisi) => posisi.color), ["b", "w", "b"]);
+});
+
 /* ---------------------------------------------------------------- engine */
 
 console.log("Analisa — integrasi engine (engine tiruan)");
@@ -230,6 +245,20 @@ await uji("parsePGN: satu entri posisi + satu entri per langkah", async () => {
   assert.equal(moves[0].moveRating, undefined, "entri posisi memang tidak diberi label");
   assert.ok(moves.slice(1).every((m) => m.moveRating), "semua langkah punya label");
   assert.ok(mesin.kedalaman.every((d) => d === 10), "kedalaman diteruskan ke engine");
+});
+
+await uji("parsePGN mengisi kerangka tetap secara bertahap", async () => {
+  const partai = bacaPartaiPGN(PGN_CONTOH);
+  const foto = [];
+  const mesin = engineTiruan();
+  const { moves } = await parsePGN(mesin, PGN_CONTOH, 10, {}, () => {}, null, {
+    partai,
+    onLangkah: (dinilai) => foto.push(partai.kerangka.map((posisi, i) => dinilai[i] ?? posisi)),
+  });
+  assert.equal(foto.length, partai.kerangka.length);
+  assert.ok(foto.every((posisi) => posisi.length === moves.length));
+  assert.deepEqual(foto[0].slice(1).map((posisi) => posisi.previousStaticEvals), Array(8).fill(undefined));
+  assert.deepEqual(foto.at(-1), moves);
 });
 
 await uji("parsePGN dengan tag clock menghasilkan waktu per langkah", async () => {

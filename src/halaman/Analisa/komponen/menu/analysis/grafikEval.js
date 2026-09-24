@@ -1,36 +1,25 @@
 /*
- * Geometri grafik eval. Murni (tanpa React/DOM) karena dipakai dua tempat yang
- * harus menghasilkan kurva identik:
- *   - `gameChart.jsx` — grafik tab Ringkasan setelah analisa selesai;
- *   - `../loading/grafikMuat.jsx` — grafik yang tumbuh selama analisa berjalan
- *     (adopsi grafik Report WintrChess).
- * Pemetaan eval → tinggi mengikuti `evaluation.jsx` (skala ±400 cp → 7,5%–92,5%
- * tinggi) supaya bentuk kurvanya sejalan dengan eval bar di samping papan.
+ * Geometri grafik eval yang sama sepanjang analisis dan di tab Ringkasan.
+ * Pemetaan eval → tinggi mengikuti evaluation.jsx (±400 cp → 7,5%–92,5%).
+ * Posisi PGN yang belum dievaluasi tetap pada garis tengah sampai hasil masuk.
  */
 
 const EVAL_LAMA = [-400, 400];
 const EVAL_BARU = [0.075, 0.925];
 
-/**
- * Posisi vertikal relatif satu langkah: 0 = hitam unggul penuh, 1 = putih
- * unggul penuh. `indeks` menentukan warna yang jalan (indeks genap = putih),
- * sama seperti perhitungan di grafik Ringkasan.
- */
+/** 0 = hitam unggul, 1 = putih unggul; warna giliran berasal dari FEN. */
 export function tinggiEval(move, indeks) {
   const advantage = move?.previousStaticEvals?.[0] ?? ["cp", "0"];
-  const putihJalan = indeks % 2 === 0;
+  const putihJalan = move?.color === "w" || (move?.color !== "b" && indeks % 2 === 0);
   const nilai = Number(advantage[1]) * (putihJalan ? 1 : -1);
-  /*
-   * Entri eval yang tidak lengkap (`["cp"]`, `["cp", undefined]`, nilai tak
-   * terbaca) menghasilkan `NaN`; satu `NaN` saja membuat seluruh atribut `d`
-   * kurva tidak sah dan React menulis "<path> attribute d: Expected number".
-   * Diperlakukan sebagai posisi seimbang.
-   */
-  if (!Number.isFinite(nilai)) return 0.5;
   if (advantage[0] === "mate") {
-    if (advantage[1]) return nilai >= 0 ? 1 : 0;
-    return putihJalan ? 0 : 1;
+    // Skakmat pada posisi akhir: giliran berikutnya sudah kalah, termasuk
+    // ketika engine melaporkan "mate 0" alih-alih ["mate"] tanpa angka.
+    if (!advantage[1] || nilai === 0) return putihJalan ? 0 : 1;
+    return Number.isFinite(nilai) ? (nilai > 0 ? 1 : 0) : 0.5;
   }
+  // Eval yang belum masuk/rusak tidak boleh merusak seluruh path SVG.
+  if (!Number.isFinite(nilai)) return 0.5;
   const mentah = (nilai - EVAL_LAMA[0]) * (EVAL_BARU[1] - EVAL_BARU[0]) / (EVAL_LAMA[1] - EVAL_LAMA[0]) + EVAL_BARU[0];
   return Math.min(Math.max(mentah, EVAL_BARU[0]), EVAL_BARU[1]);
 }

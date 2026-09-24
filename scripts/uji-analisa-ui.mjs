@@ -63,10 +63,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 
 export { basisData, persenProgres };
 
-/**
- * Geometri grafik eval (murni) — dipakai grafik tab Ringkasan DAN grafik yang
- * tumbuh di kartu muat, jadi keduanya harus menghasilkan kurva yang sama.
- */
+/** Geometri grafik eval yang tetap terpasang selama loading dan Ringkasan. */
 export { jalurGrafik, tinggiEval, xGrafik } from "./src/halaman/Analisa/komponen/menu/analysis/grafikEval.js";
 
 /**
@@ -197,8 +194,8 @@ class PengamatPalsu {
 /**
  * Engine UCI palsu. Menirukan yang dibutuhkan EngineCatur: `uci` → uciok,
  * `isready` → readyok, lalu untuk setiap `go` satu baris `info ... score cp`
- * dan `bestmove` dari langkah legal pertama posisi saat ini. Angka skornya
- * acak kecil supaya penilaian langkah (best/mistake/…) ikut terlatih.
+ * dan `bestmove` dari langkah legal pertama posisi saat ini. Setiap `go`
+ * ditunda supaya uji bisa menangkap grafik sebelum dan sesudah evaluasi masuk.
  */
 class WorkerPalsu {
   constructor() {
@@ -206,7 +203,7 @@ class WorkerPalsu {
   }
 
   postMessage(perintah) {
-    setTimeout(() => this.eksekusi(String(perintah)), 0);
+    setTimeout(() => this.eksekusi(String(perintah)), String(perintah).startsWith("go") ? 100 : 0);
   }
 
   eksekusi(perintah) {
@@ -233,7 +230,7 @@ class WorkerPalsu {
         langkah = null;
       }
       const uci = langkah ? `${langkah.from}${langkah.to}${langkah.promotion ?? ""}` : "e2e4";
-      const skor = Math.floor(Math.random() * 480) - 240;
+      const skor = this.fen?.includes(" b ") ? -120 : 90;
       kirim(`info depth 13 score cp ${skor} nodes 24000 nps 4800 time 10 pv ${uci}`);
       kirim(`bestmove ${uci}`);
     }
@@ -352,8 +349,8 @@ const tungguSampai = (pemeriksa, batasMs = 8000, selangMs = 60) =>
   new Promise((selesai) => {
     const mulai = Date.now();
     const cek = () => {
-      const tercapai = pemeriksa() || Date.now() - mulai >= batasMs;
-      if (tercapai) selesai(tercapai);
+      if (pemeriksa()) selesai(true);
+      else if (Date.now() - mulai >= batasMs) selesai(false);
       else setTimeout(cek, selangMs);
     };
     cek();
@@ -429,37 +426,56 @@ const bukaImpor = async () => {
 uji("layar Impor menggantikan papan (tanpa popup)", await bukaImpor());
 const kotakPgn = domSiap.querySelector('[data-uji="impor-pgn"]');
 uji("area tempel PGN tersedia", !!kotakPgn);
+let grafikSelamaMuat = null;
 if (kotakPgn) {
   pengeset.call(kotakPgn, PGN_UJI);
   kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   await tunggu(200);
   klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
 
-  /*
-   * Kartu progres analisa (adopsi kartu progres WintrChess): harus terlihat
-   * SELAGI analisa berjalan — bar kemajuan, persentase, dan tombol Batal.
-   * Keberadaannya dipantau sesaat setelah kirim, sebelum analisa selesai.
-   */
-  let kartuTeks = "";
-  let jurus = "";
-  const kartuMuncul = await tungguSampai(() => {
-    const bar = domSiap.querySelector("[role='progressbar']");
-    const grafik = domSiap.querySelector(".analisa-root svg[role='img'] path");
-    if (!bar || !grafik) return false;
-    kartuTeks = domSiap.querySelector(".analisa-root")?.textContent ?? "";
-    jurus = grafik.getAttribute("d") ?? "";
-    return kartuTeks.includes("Sedang analisa") && /\d+[.,]\d%/.test(kartuTeks);
-  }, 1500, 25);
+  // Seperti WintrChess: seluruh posisi sudah ada saat progres masih 0%; grafik
+  // tetap di bawah progres (bukan di dalam kartunya) hingga Ringkasan selesai.
+  const grafikSiap = await tungguSampai(() => {
+    const kartu = domSiap.querySelector('[data-uji="kartu-progres-analisa"]');
+    const area = domSiap.querySelector('[data-uji="grafik-analisa"]');
+    grafikSelamaMuat = area?.querySelector('svg[role="img"]');
+    return kartu && grafikSelamaMuat?.querySelector("path") && !kartu.contains(grafikSelamaMuat)
+      && (grafikSelamaMuat.querySelector("path").getAttribute("d").match(/L /g)?.length ?? 0) === 9;
+  }, 1500, 15);
+  const kartu = domSiap.querySelector('[data-uji="kartu-progres-analisa"]');
+  const bar = kartu?.querySelector("[role='progressbar']");
+  const jurusAwal = grafikSelamaMuat?.querySelector("path")?.getAttribute("d") ?? "";
+  const titikX = (d) => [...d.matchAll(/L ([\d.]+) ([\d.]+)/g)].slice(0, 7).map((m) => Number(m[1]));
+
   uji(
-    "kartu progres tampil saat analisa (bar + persentase + tombol Batal)",
-    kartuMuncul && kartuTeks.includes("Batal") && kartuTeks.includes("Kalau prosesnya terasa lama"),
-    kartuTeks.replace(/\s+/g, " ").slice(0, 160)
+    "kartu progres tampil di atas grafik (persentase + tombol Batal)",
+    grafikSiap && !!bar && kartu.textContent.includes("Batal") && kartu.textContent.includes("Kalau prosesnya terasa lama")
+      && [...domSiap.querySelectorAll('button[role="tab"]')].some((b) => b.textContent.includes("Ringkasan")),
   );
   uji(
-    "grafik eval tumbuh di kartu selama analisa berjalan",
-    kartuMuncul && jurus.split("L ").length >= 3 && !jurus.includes("NaN"),
-    jurus.slice(0, 120)
+    "grafik memuat tujuh posisi sejak awal, bukan menunggu langkah kedua",
+    grafikSiap && grafikSelamaMuat?.getAttribute("aria-label") === "Grafik evaluasi yang tumbuh selama analisa berjalan"
+      && titikX(jurusAwal).length === 7 && !jurusAwal.includes("NaN"),
+    jurusAwal.slice(0, 120),
   );
+
+  // Tunggu sebuah nilai selesai dinilai. X tiap titik harus tetap, hanya Y
+  // yang berubah, sementara bar progres belum mencapai 100%.
+  const bertambah = await tungguSampai(() => {
+    const d = grafikSelamaMuat?.querySelector("path")?.getAttribute("d");
+    const nilai = Number(bar?.getAttribute("aria-valuenow"));
+    return d && d !== jurusAwal && nilai > 0 && nilai < 100;
+  }, 1500, 15);
+  const jurusBerjalan = grafikSelamaMuat?.querySelector("path")?.getAttribute("d") ?? "";
+  uji(
+    "kurva bertambah dengan sumbu X tetap selama analisa",
+    bertambah && jurusBerjalan !== jurusAwal && titikX(jurusAwal).every((x, i) => x === titikX(jurusBerjalan)[i]),
+    `${jurusAwal.slice(0, 80)} -> ${jurusBerjalan.slice(0, 80)}`,
+  );
+  grafikSelamaMuat?.dispatchEvent(new dom.window.MouseEvent("mousemove", { bubbles: true, clientX: 200 }));
+  await tunggu(20);
+  uji("tooltip grafik memuat SAN selama analisa", domSiap.querySelector('[data-uji="grafik-analisa"] [role="tooltip"]')?.textContent.includes("Nf3"));
+  grafikSelamaMuat?.dispatchEvent(new dom.window.MouseEvent("mouseleave", { bubbles: true }));
 
   await tunggu(1900);
 }
@@ -469,6 +485,11 @@ uji("PGN diterima (tanpa galat parse)", !setelahKirim.includes("PGN tidak terbac
 uji("engine siap dipakai", !setelahKirim.includes("Engine gagal dimuat"));
 uji("papan pindah ke mode analisis", /Ringkasan/.test(setelahKirim) && /Langkah/.test(setelahKirim));
 uji("panel langkah memakai bahasa Indonesia", /adalah langkah|Langkah|Ringkasan/.test(setelahKirim));
+uji(
+  "grafik yang sama berlanjut ke Ringkasan tanpa dibongkar",
+  !!grafikSelamaMuat && domSiap.querySelector('[data-uji="grafik-analisa"] svg[role="button"]') === grafikSelamaMuat
+    && !domSiap.querySelector('[data-uji="kartu-progres-analisa"]'),
+);
 
 /* --- tab ringkasan --- */
 const tab = (pola) => [...domSiap.querySelectorAll('button[role="tab"]')].find((b) => pola.test(b.textContent ?? ""));
@@ -547,6 +568,12 @@ if (tabRingkasan) {
     "grafik: skakmat menempel di tepi sesuai pihak yang unggul",
     modul.tinggiEval({ previousStaticEvals: [["mate", "3"]] }, 0) === 1
       && modul.tinggiEval({ previousStaticEvals: [["mate", "-3"]] }, 0) === 0
+      && modul.tinggiEval({ color: "b", previousStaticEvals: [["mate"]] }, 0) === 1
+      && modul.tinggiEval({ color: "w", previousStaticEvals: [["mate", "0"]] }, 1) === 0
+  );
+  uji(
+    "grafik: PGN yang dimulai saat Hitam jalan memakai warna dari FEN, bukan paritas",
+    modul.tinggiEval({ color: "b", previousStaticEvals: [["cp", "100"]] }, 0) === modul.tinggiEval(cp(-100), 0)
   );
 
   const jalur = modul.jalurGrafik([cp(0), cp(0)], 400, 96);
@@ -565,10 +592,14 @@ if (tabRingkasan) {
     "grafik: daftar kosong/satu entri tetap menghasilkan jalur sah",
     !modul.jalurGrafik([], 400, 96).includes("NaN") && !modul.jalurGrafik([cp(0)], 400, 96).includes("NaN")
   );
+  const kerangka = Array.from({ length: 7 }, (_, i) => ({ color: i % 2 ? "b" : "w" }));
+  const awal = modul.jalurGrafik(kerangka, 400, 96);
+  const masuk = modul.jalurGrafik(kerangka.map((posisi, i) => i < 2
+    ? { ...posisi, previousStaticEvals: [["cp", String(i ? -100 : 80)]] } : posisi), 400, 96);
+  const titikX = (d) => [...d.matchAll(/L ([\d.]+) ([\d.]+)/g)].slice(0, 7).map((m) => m[1]);
   uji(
-    "grafik: titik bertambah seiring langkah masuk (kurva tumbuh)",
-    modul.jalurGrafik([cp(0), cp(50), cp(100)], 400, 96).split("L ").length
-      > modul.jalurGrafik([cp(0), cp(50)], 400, 96).split("L ").length
+    "grafik: tujuh titik sejak awal, posisi X tetap ketika dua skor masuk",
+    titikX(awal).length === 7 && masuk !== awal && titikX(awal).every((x, i) => x === titikX(masuk)[i])
   );
 }
 
@@ -930,6 +961,35 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       // impor sukses = papan langsung mengambil alih area kerja
       !domSiap.querySelector("[data-layar]")
     );
+  }
+}
+
+/* --- membatalkan evaluasi menghapus grafik dan mencegah hasil tertunda --- */
+{
+  klik(domSiap.querySelector('[data-uji="nav-impor"]'));
+  await tunggu(150);
+  klik(domSiap.querySelectorAll('button[aria-pressed]')[0]); // PGN
+  await tunggu(60);
+  const kotak = domSiap.querySelector('[data-uji="impor-pgn"]');
+  if (kotak) {
+    pengeset.call(kotak, PGN_UJI);
+    kotak.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+    await tunggu(100);
+    klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+    const berjalan = await tungguSampai(() =>
+      !!domSiap.querySelector('[data-uji="grafik-analisa"] svg[role="img"]')
+      && !!domSiap.querySelector('[data-uji="kartu-progres-analisa"] button'), 1000, 10);
+    const tombolBatal = [...domSiap.querySelectorAll('[data-uji="kartu-progres-analisa"] button')]
+      .find((b) => b.textContent === "Batal");
+    klik(tombolBatal);
+    const bersih = await tungguSampai(() =>
+      !domSiap.querySelector('[data-uji="grafik-analisa"]')
+      && !domSiap.querySelector('[data-uji="kartu-progres-analisa"]'), 1000, 10);
+    uji("Batal menutup grafik dan progres selama engine aktif", berjalan && !!tombolBatal && bersih);
+    await tunggu(1100);
+    uji("hasil dari evaluasi yang dibatalkan tidak tampil lagi", !domSiap.querySelector('[data-uji="grafik-analisa"]'));
+  } else {
+    uji("isian PGN tersedia untuk uji pembatalan", false);
   }
 }
 
