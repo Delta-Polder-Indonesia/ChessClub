@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText } from "lucide-react";
 import RatingSVG from "../halaman/Analisa/komponen/svg/rating.jsx";
 import {
+  AVATAR_BUKU,
   GAYA_KOMENTATOR,
   KUNCI_GAYA,
   KUNCI_NYALA,
+  gambarKomentator,
   isiNamaBidak,
   rapikanKalimat,
   susunKomentar,
@@ -72,6 +74,8 @@ export function gunakanPreferensiKomentator() {
  * @param {string|null} p.saranTerbaik   SAN saran engine pada posisi SEBELUM langkah
  * @param {boolean} p.engineNyala
  * @param {boolean} p.engineMenilai      engine menyala tapi eval belum siap
+ * @param {{san:string, nilai:string}|null} [p.saranAwan] saran basis data awan
+ *        (chessdb.cn) — dipakai saat engine mati & sudah di luar buku pembukaan
  * @param {boolean} p.posisiAwal         belum ada langkah
  * @param {boolean} p.nyala
  * @param {(v: boolean) => void} p.setNyala
@@ -90,6 +94,7 @@ export default function KartuKomentator({
   engineNyala = false,
   engineMenilai = false,
   posisiAwal = false,
+  saranAwan = null,
   nyala,
   setNyala,
   gaya,
@@ -112,12 +117,13 @@ export default function KartuKomentator({
             namaPembukaan,
             saranTerbaik,
             engineNyala,
+            saranAwan,
           })
         : []);
     return rapikanKalimat(
       daftar.map(({ kunci, ganti }) => isiNamaBidak(t(kunci, ganti), t)).join(" ")
     );
-  }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, t]);
+  }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, saranAwan, t]);
 
   // Animasi "muncul" ringan tiap kalimat berganti — cukup memberi kesan hidup
   // tanpa memindahkan tata letak.
@@ -127,6 +133,22 @@ export default function KartuKomentator({
   }, [kalimat]);
 
   const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
+  // Avatar karakter: engine mati → Fritz berkonsentrasi (komentar berbasis
+  // SAN saja), kecuali selama masih di buku pembukaan → ikon buku; engine
+  // nyala → satu dari enam karakter yang bereaksi terhadap vonis engine /
+  // fakta papan (lihat gambarKomentator di lib/komentator.js).
+  const gambarAvatar = gambarKomentator({
+    engineNyala,
+    engineMenilai,
+    rating,
+    namaPembukaan,
+    posisiAwal,
+    fakta,
+  });
+  // Saat avatar sudah berupa ikon buku, lencana penilaian disembunyikan agar
+  // tidak ada dua ikon buku berdampingan.
+  const avatarBuku = gambarAvatar === AVATAR_BUKU;
+  const lencanaRating = avatarBuku ? null : ikonRating;
 
   return (
     <section aria-label={t("papan.komentator.judul")} className={className}>
@@ -185,19 +207,29 @@ export default function KartuKomentator({
           className="komentator-gelembung mt-3 flex items-start gap-2.5 rounded-lg border border-[#312e2b] bg-[#262421] px-3 py-2.5"
           aria-live="polite"
         >
-          {ikonRating ? (
-            <span className="mt-0.5 shrink-0" title={t(`analisa.penilaian.${ikonRating}`)}>
-              <RatingSVG rating={ikonRating} size={20} />
+          {avatarBuku ? (
+            <span className="mt-0.5 flex h-9 w-10 shrink-0 items-center justify-center">
+              <RatingSVG rating="book" size={28} title={t("analisa.penilaian.book")} />
             </span>
           ) : (
-            <span className="mt-0.5 shrink-0" aria-hidden="true">
-              <img
-                src="/gambar_comentator/catur_berpikir-nobg.png"
-                alt=""
-                className="h-6 w-6 drop-shadow-md"
-                loading="lazy"
-              />
-            </span>
+            <>
+              <span
+                className="mt-0.5 flex h-9 w-10 shrink-0 items-center justify-center"
+                aria-hidden="true"
+              >
+                <img
+                  src={gambarAvatar}
+                  alt=""
+                  className="max-h-9 max-w-full object-contain drop-shadow-md"
+                  loading="lazy"
+                />
+              </span>
+              {lencanaRating && (
+                <span className="mt-1 shrink-0" title={t(`analisa.penilaian.${lencanaRating}`)}>
+                  <RatingSVG rating={lencanaRating} size={18} />
+                </span>
+              )}
+            </>
           )}
           <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
             {posisiAwal ? t("papan.komentator.posisiAwal") : kalimat || t("papan.komentator.menunggu")}

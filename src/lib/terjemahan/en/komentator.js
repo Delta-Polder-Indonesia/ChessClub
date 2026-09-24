@@ -179,6 +179,11 @@ export const komentatorPapan = {
       "Want to know if that move was any good? Turn on the engine and I'll rate it.",
       "Switch the engine on above for full commentary with scores and ratings.",
     ],
+    awan: [
+      "The cloud database suggests {awan} for {lawan}, score {nilai}.",
+      "Cloud says {awan} makes sense here — score {nilai} for {lawan}.",
+      "According to the cloud database, {lawan} should play {awan} (score {nilai}).",
+    ],
   },
   genZ: {
     biasa: [
@@ -340,6 +345,11 @@ export const komentatorPapan = {
       "Turn on the engine to see whether that move cooked or got cooked.",
       "Want an honest rating? Enable the engine and let the numbers talk.",
     ],
+    awan: [
+      "Cloud db says {awan} for {lawan}. Score {nilai}, not bad.",
+      "The cloud is calling {awan} — score {nilai} for {lawan}. Check the Database tab.",
+      "If you trust the cloud, {lawan} plays {awan}. Score {nilai}.",
+    ],
   } ,
   formal: {
     biasa: [
@@ -500,6 +510,11 @@ export const komentatorPapan = {
     ajakEngine: [
       "Enable the engine to obtain move ratings and a position evaluation.",
       "Move-quality assessment is available when the engine is active.",
+    ],
+    awan: [
+      "The cloud database recommends {awan} for {lawan} with a score of {nilai}.",
+      "Cloud data indicates {awan} as {lawan}'s choice; score {nilai}.",
+      "Cloud database suggestion: {awan} for {lawan} (score {nilai}).",
     ],
   },
 };

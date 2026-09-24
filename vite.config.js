@@ -154,17 +154,45 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // Pisahkan vendor library ke chunk terpisah supaya browser
-        // meng-cache React, react-router, dan lib lain secara independen
-        // dari kode aplikasi yang sering berubah.
-        manualChunks: {
-          "vendor-react": [
-            "react",
-            "react-dom",
-            "react-dom/client",
-            "react-router",
-            "react-router-dom",
-          ],
+        /**
+         * Pisahkan vendor library ke chunk terpisah supaya browser
+         * meng-cache React, react-router, dan lib lain secara independen
+         * dari kode aplikasi yang sering berubah.
+         *
+         * Bentuk FUNGSI (bukan objek) dipakai dengan sengaja: bentuk objek
+         * `{ "vendor-chart": ["recharts"] }` menyeret SELURUH subtree
+         * dependensi recharts — termasuk `clsx` dan `es-toolkit` yang dipakai
+         * nyaris semua komponen shadcn. Akibatnya `dashboard`, dialog
+         * (`alert`), hingga halaman Pendaftaran ikut mengunduh recharts
+         * (351 kB) hanya karena butuh `clsx`. Dengan mencocokkan jalur paket,
+         * hanya paket khusus grafik yang dipindahkan; pembantu bersama tetap
+         * di tempat asalnya.
+         */
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          const paket = id.split("node_modules/").pop();
+          if (
+            /^(react|react-dom|react-router|react-router-dom|scheduler|use-sync-external-store)\//.test(
+              paket
+            )
+          ) {
+            return "vendor-react";
+          }
+          // Pembantu super kecil (penggabung className) dipakai nyaris semua
+          // komponen. Tanpa penugasan eksplisit, Rollup menitipkannya ke
+          // chunk vendor-chart sehingga `alert`/dialog ikut mengunduh
+          // recharts hanya demi `clsx`.
+          if (/^(clsx|tailwind-merge|cn|es-toolkit)\//.test(paket)) {
+            return "vendor-alat";
+          }
+          if (
+            /^(recharts|victory-vendor|d3-[a-z-]+|internmap|react-redux|redux|redux-thunk|immer|reselect|decimal\.js-light|eventemitter3)\//.test(
+              paket
+            )
+          ) {
+            return "vendor-chart";
+          }
+          return undefined;
         },
       },
     },
@@ -205,6 +233,30 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    /**
+     * HANYA saat `vite dev` (apply: "serve"): longgarkan `connect-src` di CSP
+     * supaya websocket HMR diizinkan.
+     *
+     * Meta CSP di index.html sengaja ketat dan TIDAK memuat skema ws:/wss:,
+     * sehingga browser memblokir websocket Vite: "Connecting to
+     * 'wss://localhost:5173/?token=…' violates … connect-src". Akibatnya HMR
+     * tidak pernah menyambung, invalidasi modul tidak sampai, dan modul yang
+     * sudah berubah tetap dipakai dari cache browser — gejalanya baru muncul
+     * sebagai galat seperti "does not provide an export named 'AVATAR_BUKU'"
+     * (KartuKomentator versi baru + komentator.js versi lama). Di lingkungan
+     * pratinjau/proxy, host websocket-nya bukan localhost, jadi yang
+     * ditambahkan adalah SKEMA-nya, bukan satu alamat.
+     *
+     * Produksi tidak disentuh sedikit pun: build tetap memakai CSP dari
+     * index.html apa adanya (Vercel juga mengirimnya sebagai header).
+     */
+    {
+      name: "kci-csp-dev-websocket",
+      apply: "serve",
+      transformIndexHtml(html) {
+        return html.replace(/(connect-src [^;]*)/, "$1 ws: wss:");
+      },
+    },
     performaHalaman({ siteUrl: SITE_URL }),
     // Pratinjau e-book: /api/ebook-preview harus dilayani lokal (bukan
     // diteruskan ke backend Node), persis seperti function di Vercel.

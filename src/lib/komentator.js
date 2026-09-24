@@ -40,6 +40,93 @@ const PETA_RATING = {
   blunder: "nilaiBlunder",
 };
 
+/**
+ * Avatar gambar kartu komentator (public/gambar_comentator). Semua berkas
+ * sudah berlatar transparan sehingga aman di atas gelembung gelap.
+ */
+export const GAMBAR_KOMENTATOR = {
+  fritz: "/gambar_comentator/FritzConcentrated.png",
+  berpikir: "/gambar_comentator/catur_berpikir.png",
+  bingung: "/gambar_comentator/catur_bingung.png",
+  marah: "/gambar_comentator/catur_marah.png",
+  sedih: "/gambar_comentator/catur_sedih.png",
+  senang: "/gambar_comentator/catur_senang.png",
+  terkejut: "/gambar_comentator/catur_terkejut.png",
+};
+
+/**
+ * Nilai khusus dari `gambarKomentator()`: avatar diganti ikon BUKU PEMBUKAAN
+ * (RatingSVG `book`), bukan salah satu gambar karakter.
+ */
+export const AVATAR_BUKU = "book";
+
+/** Pengelompokan rating engine → emosi karakter yang mewakilinya. */
+const RATING_SENANG = new Set(["brilliant", "great", "best", "excellent", "good"]);
+const RATING_BINGUNG = new Set(["inaccuracy", "miss"]);
+const RATING_SEDIH = new Set(["mistake"]);
+const RATING_MARAH = new Set(["blunder"]);
+
+/**
+ * Pilih avatar karakter untuk kartu komentator.
+ *
+ * BUKU PEMBUKAAN berlaku untuk KEDUA keadaan engine: selama partai masih di
+ * jalur buku (rating `book`, `namaPembukaan` tersedia, atau belum ada langkah
+ * sama sekali) yang tampil cukup IKON BUKU — tidak ada gambar karakter sama
+ * sekali. Karakter dan Fritz baru muncul setelah partai keluar dari buku.
+ *
+ * Setelah keluar buku: engine MATI → Fritz yang berkonsentrasi (komentar
+ * hanya dari fakta papan); engine NYALA → enam karakter catur bereaksi
+ * terhadap vonis engine lebih dulu, lalu (bila eval belum siap) terhadap fakta
+ * papan: skakmat/langkah bagus/rokade/promosi → senang, pengorbanan/skak/
+ * tangkap besar → terkejut, bidak sendiri menggantung → bingung, dst.
+ *
+ * @param {object} [p]
+ * @param {boolean} [p.engineNyala]
+ * @param {boolean} [p.engineMenilai] engine menyala tapi eval belum siap
+ * @param {string|null} [p.rating]    label penilaian engine (best/blunder/…)
+ * @param {string|null} [p.namaPembukaan] nama pembukaan bila masih di buku
+ * @param {boolean} [p.posisiAwal]    belum ada langkah (masih tahap pembukaan)
+ * @param {object|null} [p.fakta]     hasil faktaLangkah() langkah terakhir
+ * @returns {string} path gambar avatar, atau AVATAR_BUKU untuk ikon buku
+ */
+export function gambarKomentator({
+  engineNyala = false,
+  engineMenilai = false,
+  rating = null,
+  namaPembukaan = null,
+  posisiAwal = false,
+  fakta = null,
+} = {}) {
+  // Masih di buku pembukaan (atau papan belum melangkah) → ikon buku saja,
+  // apa pun keadaan engine-nya.
+  if (posisiAwal || rating === "book" || namaPembukaan) return AVATAR_BUKU;
+  if (!engineNyala) return GAMBAR_KOMENTATOR.fritz;
+  if (fakta?.skakmat) return GAMBAR_KOMENTATOR.senang;
+  if (rating && rating !== "book" && rating !== "forced") {
+    if (RATING_SENANG.has(rating)) return GAMBAR_KOMENTATOR.senang;
+    if (RATING_BINGUNG.has(rating)) return GAMBAR_KOMENTATOR.bingung;
+    if (RATING_SEDIH.has(rating)) return GAMBAR_KOMENTATOR.sedih;
+    if (RATING_MARAH.has(rating)) return GAMBAR_KOMENTATOR.marah;
+  }
+  if (engineMenilai) return GAMBAR_KOMENTATOR.berpikir;
+  if (fakta) {
+    const untungTangkap = fakta.tangkap
+      ? NILAI_BIDAK[fakta.tangkap] - NILAI_BIDAK[fakta.bidak]
+      : -1;
+    if (
+      fakta.skak ||
+      fakta.tangkap === "q" ||
+      untungTangkap >= 2 ||
+      adalahPengorbanan(fakta)
+    ) {
+      return GAMBAR_KOMENTATOR.terkejut;
+    }
+    if ((fakta.sendiriMenggantung[0]?.nilai ?? 0) >= 3) return GAMBAR_KOMENTATOR.bingung;
+    if (fakta.promosi || fakta.rokade) return GAMBAR_KOMENTATOR.senang;
+  }
+  return GAMBAR_KOMENTATOR.berpikir;
+}
+
 /** Gaya bahasa yang tersedia; disimpan di localStorage lewat kunci di bawah. */
 export const GAYA_KOMENTATOR = ["santai", "formal", "genZ"];
 export const KUNCI_GAYA = "kci-komentator-gaya";
@@ -285,6 +372,9 @@ export function kategoriKeunggulan({ cpPutih, matePutih } = {}) {
  * @param {string|null} [p.saranTerbaik]  SAN langkah terbaik menurut engine
  *                                        (untuk kalimat "lebih kuat: …")
  * @param {boolean} [p.engineNyala]
+ * @param {{san: string, nilai: string}|null} [p.saranAwan] saran basis data
+ *        awan (chessdb.cn) — hanya dipakai saat engine MATI, karena setelah
+ *        keluar dari buku pembukaan lokal itulah satu-satunya sumber saran.
  * @returns {Array<{kunci: string, ganti?: object}>}
  */
 export function susunKomentar({
@@ -295,6 +385,7 @@ export function susunKomentar({
   namaPembukaan = null,
   saranTerbaik = null,
   engineNyala = false,
+  saranAwan = null,
 }) {
   if (!fakta) return [];
   const g = GAYA_KOMENTATOR.includes(gaya) ? gaya : "santai";
@@ -413,6 +504,14 @@ export function susunKomentar({
     // Tanpa engine & tanpa peristiwa khusus: sesekali ingatkan engine
     // (hanya tiap beberapa langkah agar tidak cerewet).
     if (fakta.ply % 6 === 5) tambah("ajakEngine", 2, {}, 3);
+  }
+
+  /* ---- 6. Saran basis data awan — hanya saat engine MATI. ---- */
+  // Saran ini untuk pihak yang SEDANG jalan (= lawan pelangkah terakhir),
+  // jadi kalimatnya menyebut {lawan}. Saat engine nyala, penilaian engine
+  // sudah jadi acuan dan saran awan hanya akan mengulang informasi.
+  if (!engineNyala && saranAwan?.san && saranAwan?.nilai) {
+    tambah("awan", 2, { awan: saranAwan.san, nilai: saranAwan.nilai }, 3);
   }
 
   return pangkas(daftar);

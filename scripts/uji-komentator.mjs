@@ -18,16 +18,20 @@
  */
 import { Chess } from "chess.js";
 import { ID, EN } from "../src/lib/terjemahan.js";
+import { existsSync } from "node:fs";
 import {
   adalahPengorbanan,
   bidakMenggantung,
   faktaLangkah,
+  gambarKomentator,
+  AVATAR_BUKU,
   indeksVarian,
   isiNamaBidak,
   kategoriKeunggulan,
   rapikanKalimat,
   susunKomentar,
   susunKomentarTekaTeki,
+  GAMBAR_KOMENTATOR,
   GAYA_KOMENTATOR,
   TEMA_DISEBUT,
 } from "../src/lib/komentator.js";
@@ -106,6 +110,16 @@ const skenarioKunci = [
 for (const [f, opsi] of skenarioKunci) {
   for (const gaya of GAYA_KOMENTATOR) {
     kumpulkan(susunKomentar({ fakta: f, gaya, engineNyala: false, ...opsi }));
+    // Saran basis data awan (chessdb.cn) — hanya muncul saat engine mati.
+    kumpulkan(
+      susunKomentar({
+        fakta: f,
+        gaya,
+        engineNyala: false,
+        ...opsi,
+        saranAwan: { san: "Nf3", nilai: "+0.4" },
+      })
+    );
     for (const rating of [
       "brilliant",
       "great",
@@ -250,6 +264,7 @@ const bolehPlaceholder = new Set([
   "unggul",
   "nilai",
   "mat",
+  "awan", // saran basis data awan (chessdb.cn) saat engine mati
 ]);
 for (const [label, kamus] of [
   ["ID", ID],
@@ -641,6 +656,128 @@ for (const [nama, blokId, blokEn] of [
       );
     }
   }
+}
+
+/* ----------------------------- 7. avatar gambar kartu komentator (karakter) */
+// Engine mati → selalu Fritz (komentar berbasis SAN saja). Engine nyala →
+// satu dari enam karakter catur menurut vonis engine / fakta papan. Semua
+// berkas gambar yang dirujuk juga harus benar-benar ada di public/ (penjaga
+// regresi agar avatar tidak lagi menunjuk berkas yang tidak ada).
+console.log("\n7) Avatar gambar komentator");
+for (const [nama, src] of Object.entries(GAMBAR_KOMENTATOR)) {
+  ok(
+    existsSync(new URL(`../public${src}`, import.meta.url)),
+    `gambar komentator "${nama}" tidak ditemukan di public${src}`
+  );
+}
+{
+  const fMat = faktaDasar("rnbqkbnr/pppp1ppp/8/4p3/6P1/5P2/PPPPP2P/RNBQKBNR b KQkq g3 0 2", "Qh4#");
+  const fSkak = faktaDasar("r1bqkbnr/pppp1ppp/2n5/4p2Q/4P3/8/PPPP1PPP/RNB1KBNR w KQkq - 0 3", "Qxf7+");
+  const fKorban = faktaDasar("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 0 3", "Nxe5");
+  const fGantung = faktaDasar("r1bqkbnr/1pp1pppp/p1n5/1N1p4/4P3/8/PPPP1PPP/R1BQKBNR w KQkq - 0 4", "h3");
+  const fRokade = faktaDasar("rnbqk2r/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1", "O-O");
+  const fBiasa = faktaDasar(AWAL, "e4");
+
+  ok(gambarKomentator({}) === GAMBAR_KOMENTATOR.fritz, "engine mati (bawaan) → Fritz");
+  ok(
+    gambarKomentator({ engineNyala: false, rating: "blunder", fakta: fMat }) === GAMBAR_KOMENTATOR.fritz,
+    "engine mati tetap Fritz walau ada rating/fakta"
+  );
+  // Buku pembukaan (engine mati): cukup ikon buku, Fritz baru muncul setelah
+  // partai keluar dari buku.
+  ok(
+    gambarKomentator({ engineNyala: false, rating: "book", namaPembukaan: "King's Pawn", fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine mati + masih di buku → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, namaPembukaan: "King's Pawn", fakta: fBiasa }) === AVATAR_BUKU,
+    "engine mati + nama pembukaan (tanpa rating book) → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, rating: null, namaPembukaan: null, fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.fritz,
+    "engine mati + keluar dari buku → Fritz"
+  );
+  ok(gambarKomentator({ engineNyala: true }) === GAMBAR_KOMENTATOR.berpikir, "engine nyala tanpa langkah → berpikir");
+  ok(
+    gambarKomentator({ engineNyala: true, engineMenilai: true, fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
+    "engine sedang menilai → berpikir"
+  );
+  // Aturan ikon buku berlaku untuk KEDUA keadaan engine: selama masih di
+  // buku tidak ada gambar karakter sama sekali; karakter baru muncul setelah
+  // partai keluar dari buku.
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "book", namaPembukaan: "King's Pawn", fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine nyala + rating book → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, namaPembukaan: "King's Pawn", fakta: fBiasa }) === AVATAR_BUKU,
+    "engine nyala + nama pembukaan (tanpa rating book) → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "book", namaPembukaan: null, fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine nyala + rating book saja → ikon buku"
+  );
+  ok(
+    gambarKomentator({
+      engineNyala: true,
+      rating: "best",
+      namaPembukaan: null,
+      fakta: fBiasa,
+    }) === GAMBAR_KOMENTATOR.senang,
+    "engine nyala + keluar buku (rating best) → karakter muncul"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: null, namaPembukaan: null, fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.berpikir,
+    "engine nyala + keluar buku tanpa vonis → berpikir"
+  );
+  // Papan belum melangkah = masih tahap pembukaan → ikon buku, bukan karakter.
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: true, fakta: null }) === AVATAR_BUKU,
+    "engine nyala + belum ada langkah → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, posisiAwal: true, fakta: null }) === AVATAR_BUKU,
+    "engine mati + belum ada langkah → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: true, rating: "best", fakta: null }) === AVATAR_BUKU,
+    "ikon buku menang atas rating apa pun selama belum melangkah"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: false, rating: "best", fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.senang,
+    "posisiAwal=false + sudah keluar buku → karakter kembali muncul"
+  );
+  ok(gambarKomentator({ engineNyala: true, fakta: fMat }) === GAMBAR_KOMENTATOR.senang, "skakmat → senang");
+  for (const r of ["brilliant", "great", "best", "excellent", "good"]) {
+    ok(
+      gambarKomentator({ engineNyala: true, rating: r, fakta: fBiasa }) === GAMBAR_KOMENTATOR.senang,
+      `rating ${r} → senang`
+    );
+  }
+  for (const r of ["inaccuracy", "miss"]) {
+    ok(
+      gambarKomentator({ engineNyala: true, rating: r, fakta: fBiasa }) === GAMBAR_KOMENTATOR.bingung,
+      `rating ${r} → bingung`
+    );
+  }
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "mistake", fakta: fBiasa }) === GAMBAR_KOMENTATOR.sedih,
+    "rating mistake → sedih"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "blunder", fakta: fBiasa }) === GAMBAR_KOMENTATOR.marah,
+    "rating blunder → marah"
+  );
+  ok(gambarKomentator({ engineNyala: true, fakta: fSkak }) === GAMBAR_KOMENTATOR.terkejut, "skak → terkejut");
+  ok(gambarKomentator({ engineNyala: true, fakta: fKorban }) === GAMBAR_KOMENTATOR.terkejut, "pengorbanan → terkejut");
+  ok(gambarKomentator({ engineNyala: true, fakta: fGantung }) === GAMBAR_KOMENTATOR.bingung, "bidak sendiri menggantung → bingung");
+  ok(gambarKomentator({ engineNyala: true, fakta: fRokade }) === GAMBAR_KOMENTATOR.senang, "rokade → senang");
 }
 
 console.log(gagal ? `\nGAGAL — ${gagal} masalah (${lulus} lulus).` : `\nOK — ${lulus} pemeriksaan lulus.`);
