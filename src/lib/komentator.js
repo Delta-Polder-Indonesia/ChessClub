@@ -54,6 +54,12 @@ export const GAMBAR_KOMENTATOR = {
   terkejut: "/gambar_comentator/catur_terkejut.png",
 };
 
+/**
+ * Nilai khusus dari `gambarKomentator()`: avatar diganti ikon BUKU PEMBUKAAN
+ * (RatingSVG `book`), bukan salah satu gambar karakter.
+ */
+export const AVATAR_BUKU = "book";
+
 /** Pengelompokan rating engine → emosi karakter yang mewakilinya. */
 const RATING_SENANG = new Set(["brilliant", "great", "best", "excellent", "good"]);
 const RATING_BINGUNG = new Set(["inaccuracy", "miss"]);
@@ -63,27 +69,34 @@ const RATING_MARAH = new Set(["blunder"]);
 /**
  * Pilih avatar karakter untuk kartu komentator.
  *
- * Engine MATI: komentar hanya berbasis SAN/fakta papan (tanpa penilaian),
- * jadi wajahnya tetap Fritz yang berkonsentrasi — tidak ada vonis untuk
- * direaksikan. Engine NYALA: enam karakter catur bereaksi terhadap vonis
- * engine terlebih dahulu, lalu (bila eval belum siap) terhadap fakta papan:
- * skakmat/langkah bagus/rokade/promosi → senang, pengorbanan/skak/tangkap
- * besar → terkejut, bidak sendiri menggantung → bingung, dan seterusnya.
+ * Engine MATI: selama partai masih menelusuri BUKU PEMBUKAAN (rating `book`
+ * atau `namaPembukaan` tersedia) yang tampil cukup ikon buku — tidak ada yang
+ * bisa dinilai engine, jadi avatar karakter tidak relevan; begitu keluar dari
+ * buku, Fritz yang berkonsentrasi muncul. Engine NYALA: enam karakter catur
+ * bereaksi terhadap vonis engine terlebih dahulu, lalu (bila eval belum siap)
+ * terhadap fakta papan: skakmat/langkah bagus/rokade/promosi → senang,
+ * pengorbanan/skak/tangkap besar → terkejut, bidak sendiri menggantung →
+ * bingung, dan seterusnya.
  *
  * @param {object} [p]
  * @param {boolean} [p.engineNyala]
  * @param {boolean} [p.engineMenilai] engine menyala tapi eval belum siap
  * @param {string|null} [p.rating]    label penilaian engine (best/blunder/…)
+ * @param {string|null} [p.namaPembukaan] nama pembukaan bila masih di buku
  * @param {object|null} [p.fakta]     hasil faktaLangkah() langkah terakhir
- * @returns {string} path gambar avatar
+ * @returns {string} path gambar avatar, atau AVATAR_BUKU untuk ikon buku
  */
 export function gambarKomentator({
   engineNyala = false,
   engineMenilai = false,
   rating = null,
+  namaPembukaan = null,
   fakta = null,
 } = {}) {
-  if (!engineNyala) return GAMBAR_KOMENTATOR.fritz;
+  if (!engineNyala) {
+    const diBuku = rating === "book" || Boolean(namaPembukaan);
+    return diBuku ? AVATAR_BUKU : GAMBAR_KOMENTATOR.fritz;
+  }
   if (fakta?.skakmat) return GAMBAR_KOMENTATOR.senang;
   if (rating && rating !== "book" && rating !== "forced") {
     if (RATING_SENANG.has(rating)) return GAMBAR_KOMENTATOR.senang;

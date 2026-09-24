@@ -24,6 +24,7 @@ import {
   bidakMenggantung,
   faktaLangkah,
   gambarKomentator,
+  AVATAR_BUKU,
   indeksVarian,
   isiNamaBidak,
   kategoriKeunggulan,
@@ -671,14 +672,33 @@ for (const [nama, src] of Object.entries(GAMBAR_KOMENTATOR)) {
     gambarKomentator({ engineNyala: false, rating: "blunder", fakta: fMat }) === GAMBAR_KOMENTATOR.fritz,
     "engine mati tetap Fritz walau ada rating/fakta"
   );
+  // Buku pembukaan (engine mati): cukup ikon buku, Fritz baru muncul setelah
+  // partai keluar dari buku.
+  ok(
+    gambarKomentator({ engineNyala: false, rating: "book", namaPembukaan: "King's Pawn", fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine mati + masih di buku → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, namaPembukaan: "King's Pawn", fakta: fBiasa }) === AVATAR_BUKU,
+    "engine mati + nama pembukaan (tanpa rating book) → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, rating: null, namaPembukaan: null, fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.fritz,
+    "engine mati + keluar dari buku → Fritz"
+  );
   ok(gambarKomentator({ engineNyala: true }) === GAMBAR_KOMENTATOR.berpikir, "engine nyala tanpa langkah → berpikir");
   ok(
     gambarKomentator({ engineNyala: true, engineMenilai: true, fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
     "engine sedang menilai → berpikir"
   );
+  // Ikon buku HANYA berlaku saat engine mati; dengan engine nyala, karakter
+  // tetap yang menjawab (di sini "berpikir" karena menunggu vonis engine).
   ok(
-    gambarKomentator({ engineNyala: true, rating: "book", fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
-    "rating book → berpikir"
+    gambarKomentator({ engineNyala: true, rating: "book", namaPembukaan: "King's Pawn", fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.berpikir,
+    "engine nyala + book → karakter (bukan ikon buku)"
   );
   ok(gambarKomentator({ engineNyala: true, fakta: fMat }) === GAMBAR_KOMENTATOR.senang, "skakmat → senang");
   for (const r of ["brilliant", "great", "best", "excellent", "good"]) {
