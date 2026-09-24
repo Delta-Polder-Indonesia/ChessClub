@@ -4,7 +4,7 @@
 
 **Tujuan:** belajar pembukaan saja, bukan main vs engine.
 
-**File:** `PapanInteraktif.jsx` (2331 baris)
+**File:** `PapanInteraktif.jsx` (1676 baris — komponen halaman; kode folder ini juga dipecah ke `konstanta.js`, `utilPapan.js`, dan komponen pembantu `IkonTab.jsx`, `BukuPembukaan.jsx`, `KartuArtikelPembukaan.jsx`, `DaftarRiwayat.jsx`, `TangkapanBidak.jsx`, `MasukanPgn.jsx`, `LangkahExplorer.jsx`, `PanelBasisDataAwan.jsx`, `PopupPengaturan.jsx`)
 
 **Data:** `public/data/buku-pembukaan.json` (lichess-org/chess-openings, CC0) → `pohonDariDaftar()` → tree `{n, c}`
 

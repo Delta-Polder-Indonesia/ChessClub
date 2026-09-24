@@ -95,6 +95,7 @@ export default function KartuKomentator({
   engineMenilai = false,
   posisiAwal = false,
   saranAwan = null,
+  ekspresiAwan = null,
   nyala,
   setNyala,
   gaya,
@@ -133,9 +134,10 @@ export default function KartuKomentator({
   }, [kalimat]);
 
   const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
-  // Avatar karakter: engine mati → Fritz berkonsentrasi (komentar berbasis
-  // SAN saja), kecuali selama masih di buku pembukaan → ikon buku; engine
-  // nyala → satu dari enam karakter yang bereaksi terhadap vonis engine /
+  // Avatar karakter: engine mati → Fritz berkonsentrasi, KECUALI bila ada
+  // ekspresi dari skor basis data awan (ekspresiAwan) yang membuat wajah
+  // bereaksi seperti mode engine; selama masih di buku pembukaan → ikon buku;
+  // engine nyala → satu dari enam karakter yang bereaksi terhadap vonis engine /
   // fakta papan (lihat gambarKomentator di lib/komentator.js).
   const gambarAvatar = gambarKomentator({
     engineNyala,
@@ -144,6 +146,7 @@ export default function KartuKomentator({
     namaPembukaan,
     posisiAwal,
     fakta,
+    ekspresiAwan,
   });
   // Saat avatar sudah berupa ikon buku, lencana penilaian disembunyikan agar
   // tidak ada dua ikon buku berdampingan.

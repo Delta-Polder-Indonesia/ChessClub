@@ -22,6 +22,7 @@ import { existsSync } from "node:fs";
 import {
   adalahPengorbanan,
   bidakMenggantung,
+  ekspresiDariSkorAwan,
   faktaLangkah,
   gambarKomentator,
   AVATAR_BUKU,
@@ -778,6 +779,82 @@ for (const [nama, src] of Object.entries(GAMBAR_KOMENTATOR)) {
   ok(gambarKomentator({ engineNyala: true, fakta: fKorban }) === GAMBAR_KOMENTATOR.terkejut, "pengorbanan → terkejut");
   ok(gambarKomentator({ engineNyala: true, fakta: fGantung }) === GAMBAR_KOMENTATOR.bingung, "bidak sendiri menggantung → bingung");
   ok(gambarKomentator({ engineNyala: true, fakta: fRokade }) === GAMBAR_KOMENTATOR.senang, "rokade → senang");
+}
+
+/* --------------------- 8. ekspresi karakter dari skor basis data awan ----- */
+
+console.log("\n8) Ekspresi karakter dari skor basis data awan (engine mati)");
+{
+  // Batas mengikuti skor yang TAMPIL di UI (0,1 pion) — wajah & angka sejalan.
+  ok(ekspresiDariSkorAwan(250) === "terkejut", "skor +2,5 → terkejut (>= +2)");
+  ok(ekspresiDariSkorAwan(200) === "terkejut", "skor +2,0 → terkejut");
+  ok(ekspresiDariSkorAwan(150) === "senang", "skor +1,5 → senang");
+  ok(ekspresiDariSkorAwan(0) === "senang", "skor 0 → senang (+0 s/d +2)");
+  ok(ekspresiDariSkorAwan(-1) === "senang", 'skor -1 cp (tampil "0") → senang — wajah ikut angka tampilan');
+  ok(ekspresiDariSkorAwan(-50) === "berpikir", "skor -0,5 → berpikir (0 s/d -1)");
+  ok(ekspresiDariSkorAwan(-100) === "berpikir", "skor -1,0 → berpikir");
+  ok(ekspresiDariSkorAwan(-150) === "bingung", "skor -1,5 → bingung (-1 s/d -3)");
+  ok(ekspresiDariSkorAwan(-300) === "bingung", "skor -3,0 → bingung");
+  ok(ekspresiDariSkorAwan(-350) === "sedih", "skor -3,5 → sedih (-3 s/d -5)");
+  ok(ekspresiDariSkorAwan(-500) === "sedih", "skor -5,0 → sedih");
+  ok(ekspresiDariSkorAwan(-550) === "marah", "skor -5,5 → marah (-5 s/d -6)");
+  ok(ekspresiDariSkorAwan(-800) === "marah", "skor -8,0 → marah (rentang dst.)");
+  ok(ekspresiDariSkorAwan(null) === null, "skor null → null (tanpa ekspresi)");
+  ok(ekspresiDariSkorAwan(undefined) === null, "skor undefined → null");
+  ok(ekspresiDariSkorAwan(NaN) === null, "skor NaN → null");
+
+  // gambarKomentator: engine mati + ekspresi awan → wajah bereaksi; tanpa
+  // ekspresi tetap Fritz; ikon buku tetap menang selama masih di pembukaan.
+  const fBiasa8 = faktaDasar(AWAL, "e4");
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: "senang", fakta: fBiasa8 }) ===
+      GAMBAR_KOMENTATOR.senang,
+    "engine mati + ekspresi awan senang → senang"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: "marah", fakta: fBiasa8 }) ===
+      GAMBAR_KOMENTATOR.marah,
+    "engine mati + ekspresi awan marah → marah"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: "terkejut", fakta: fBiasa8 }) ===
+      GAMBAR_KOMENTATOR.terkejut,
+    "engine mati + ekspresi awan terkejut → terkejut"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: null, fakta: fBiasa8 }) ===
+      GAMBAR_KOMENTATOR.fritz,
+    "engine mati + tanpa ekspresi awan → Fritz"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: "xyz", fakta: fBiasa8 }) ===
+      GAMBAR_KOMENTATOR.fritz,
+    "ekspresi awan tak dikenal → fallback Fritz"
+  );
+  ok(
+    gambarKomentator({
+      engineNyala: false,
+      ekspresiAwan: "senang",
+      namaPembukaan: "King's Pawn",
+      fakta: fBiasa8,
+    }) === AVATAR_BUKU,
+    "ikon buku menang atas ekspresi awan selama masih di pembukaan"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, ekspresiAwan: "senang", posisiAwal: true, fakta: null }) ===
+      AVATAR_BUKU,
+    "posisiAwal → ikon buku, ekspresi awan diabaikan"
+  );
+  ok(
+    gambarKomentator({
+      engineNyala: true,
+      ekspresiAwan: "marah",
+      rating: "best",
+      namaPembukaan: null,
+      fakta: fBiasa8,
+    }) === GAMBAR_KOMENTATOR.senang,
+    "engine nyala → vonis engine yang menentukan (ekspresi awan tidak dipakai)"
+  );
 }
 
 console.log(gagal ? `\nGAGAL — ${gagal} masalah (${lulus} lulus).` : `\nOK — ${lulus} pemeriksaan lulus.`);

@@ -32,7 +32,8 @@ const CACHE_MAKS = 200;
  *        melewati cache klien (tombol "Coba lagi") — kegagalan yang tersimpan
  *        30 detik tidak boleh menghalangi percobaan yang diminta pengguna.
  * @returns {Promise<{sumber:string, posisi:string, diketahui:boolean,
- *                    akhir:string|null, langkah:Array<object>}>}
+ *                    akhir:string|null, langkah:Array<object>,
+ *                    jumlahDinilai:number, jumlahBelumDinilai:number}>}
  * @throws {Error} bila jaringan gagal, dibatalkan (name = "AbortError"),
  *                 atau server membalas non-2xx. `kode` (bila ada) = kode
  *                 penyebab dari server, mis. "awan-tidak-terjangkau".
@@ -113,6 +114,31 @@ export function bersihkanCacheAwanKlien() {
 }
 
 /**
+ * Intip cache klien saja — TANPA kueri jaringan. Dipakai tinjauan pasca-
+ * langkah komentator (data posisi sebelum langkah terakhir) supaya tidak ada
+ * permintaan tambahan ke chessdb.cn: posisi itu baru saja tampil, hampir
+ * selalu sudah tersimpan (TTL 5 menit). `null` bila tidak ada / kedaluwarsa.
+ */
+export function intipBasisDataAwan(fen) {
+  const posisi = String(fen || "").trim();
+  const tersimpan = cache.get(posisi);
+  if (!tersimpan || Date.now() >= tersimpan.kedaluwarsa || tersimpan.galat) return null;
+  return tersimpan.nilai;
+}
+
+/**
+ * Skor langkah tertentu (dicocokkan lewat SAN) dari data awan sebuah posisi —
+ * sumber ekspresi karakter komentator untuk langkah yang BARU dimainkan.
+ * `null` bila langkah tidak ada di data, belum dinilai ("??"), atau skor
+ * mat paksa (tidak muat skala pion).
+ */
+export function skorLangkahAwan(data, san) {
+  const target = String(san || "").trim();
+  const langkah = data?.langkah?.find((l) => l?.dinilai !== false && l.san === target);
+  return langkah && Number.isFinite(langkah.skorCp) ? langkah.skorCp : null;
+}
+
+/**
  * Skor sentipion (sudut pandang pihak yang jalan) → teks siap tampil,
  * mis. `-121` → "-1.2", `35` → "+0.4". `null` bila tidak ada skor.
  */
@@ -128,11 +154,13 @@ export function formatSkorAwan(skorCp) {
 
 /**
  * Saran terbaik basis data awan untuk kalimat komentator.
- * Mengembalikan `{ san, nilai }` (nilai sudah diformat) atau null bila langkah
- * pertama tidak punya SAN/skor — komentator hanya menyebut saran yang jelas.
+ * HANYA memakai langkah yang sudah dinilai (`dinilai` true) — langkah "??"
+ * belum punya skor dan tidak boleh pernah jadi saran komentator. Mengembalikan
+ * `{ san, nilai }` (nilai sudah diformat) atau null bila langkah teratas tidak
+ * punya SAN/skor — komentator hanya menyebut saran yang jelas.
  */
 export function saranAwanKomentator(data) {
-  const langkah = data?.langkah?.[0];
+  const langkah = data?.langkah?.find((l) => l?.dinilai !== false);
   if (!langkah || !langkah.san) return null;
   const nilai = formatSkorAwan(langkah.skorCp);
   if (!nilai) return null;

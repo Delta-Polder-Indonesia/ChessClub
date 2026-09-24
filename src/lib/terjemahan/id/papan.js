@@ -93,6 +93,16 @@ export const papan = {
     awanKolomCatatan: "Catatan",
     awanCatatanSkor:
       "Skor dari sudut pandang pihak yang sedang jalan (positif = lebih baik).",
+    awanMat: "Mat",
+    awanTampilkanBelumDinilai: "Tampilkan {jumlah} langkah yang belum dianalisis",
+    awanSembunyikanBelumDinilai: "Sembunyikan langkah yang belum dianalisis",
+    awanCatatanDinilai:
+      "Hanya {jumlah} langkah yang sudah dinilai basis data awan — nyalakan engine untuk menilai sisanya.",
+    awanBelumAdaDinilai:
+      "Belum ada langkah yang dinilai basis data awan — nyalakan engine untuk menilainya.",
+    awanNyalakanEngine: "Nyalakan engine",
+    awanTampilanPenuh: "Tampilkan semua langkah basis data awan",
+    awanRingkas: "Langkah terbaik: {langkah} ({nilai})",
     warnaBiru: "Biru",
     warnaCokelat: "Cokelat",
     warnaOranye: "Oranye",

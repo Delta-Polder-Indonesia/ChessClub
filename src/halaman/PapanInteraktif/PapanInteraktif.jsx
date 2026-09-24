@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import { Link } from "react-router-dom";
 import {
@@ -12,7 +12,7 @@ import {
 import License from "../Analisa/komponen/svg/license.jsx";
 import Profile from "../Analisa/komponen/svg/profile.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import PanelEngine from "../../components/PanelEngine.jsx";
@@ -20,265 +20,47 @@ import {
   ambilArtikelPembukaan,
   lihatArtikelTercache,
 } from "../../lib/artikelWikipedia.js";
-import {
-  normalkanPohonPembukaan,
-  standarkanNamaPembukaan,
-} from "../../lib/namaPembukaan.js";
+import { normalkanPohonPembukaan } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
-import { faktaLangkah } from "../../lib/komentator.js";
+import { ekspresiDariSkorAwan, faktaLangkah } from "../../lib/komentator.js";
 import {
   ambilBasisDataAwan,
-  formatSkorAwan,
+  intipBasisDataAwan,
   saranAwanKomentator,
+  skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
-
-const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-/** Urutan pilihan bidak promosi (menteri, benteng, gajah, kuda). */
-const PILIHAN_PROMOSI = ["q", "r", "b", "n"];
-const KUCI_NAMA_PROMOSI = {
-  q: "tekaTeki.promosiMenteri",
-  r: "tekaTeki.promosiBenteng",
-  b: "tekaTeki.promosiGajah",
-  n: "tekaTeki.promosiKuda",
-};
-
-/** Tab panel kanan — urutan & label (ikon digambar lokal, tanpa pustaka ikon). */
-const TAB_PANEL = [
-  { id: "analisa", labelKey: "papan.tabAnalisa" },
-  { id: "books", labelKey: "papan.tabBuku" },
-  { id: "explorer", labelKey: "papan.tabPenjelajah" },
-  { id: "games", labelKey: "papan.tabPartai" },
-];
-
-/** Ikon kecil gaya stroke untuk tab panel kanan (mengikuti gaya icons.jsx). */
-function IkonTab({ nama, className = "h-4 w-4" }) {
-  const umum = {
-    width: 16,
-    height: 16,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 2,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    className,
-    "aria-hidden": true,
-  };
-  if (nama === "analisa") {
-    return (
-      <svg {...umum}>
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    );
-  }
-  if (nama === "books") {
-    return (
-      <svg {...umum}>
-        <path d="M2 4h6a4 4 0 0 1 4 4v12a3 3 0 0 0-3-3H2z" />
-        <path d="M22 4h-6a4 4 0 0 0-4 4v12a3 3 0 0 1 3-3h7z" />
-      </svg>
-    );
-  }
-  if (nama === "explorer") {
-    return (
-      <svg {...umum}>
-        <circle cx="12" cy="12" r="9" />
-        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88" />
-      </svg>
-    );
-  }
-  return (
-    <svg {...umum}>
-      <line x1="6" y1="11" x2="10" y2="11" />
-      <line x1="8" y1="9" x2="8" y2="13" />
-      <line x1="15" y1="12" x2="15.01" y2="12" />
-      <line x1="18" y1="10" x2="18.01" y2="10" />
-      <rect x="2" y="6" width="20" height="12" rx="2" />
-    </svg>
-  );
-}
-
-
-/** Pilihan warna papan (nilai + kunci terjemahan), mengikuti opsi pengaturan. */
-const PILIHAN_WARNA_PAPAN = [
-  ["blue", "papan.warnaBiru"],
-  ["brown", "papan.warnaCokelat"],
-  ["orange", "papan.warnaOranye"],
-  ["green", "papan.warnaHijau"],
-  ["grey", "papan.warnaAbu"],
-  ["light-blue", "papan.warnaBiruMuda"],
-  ["dark-blue", "papan.warnaBiruTua"],
-  ["wood", "papan.warnaKayu"],
-  ["marble-brown", "papan.warnaMarmerCokelat"],
-  ["marble-green", "papan.warnaMarmerHijau"],
-  ["metal", "papan.warnaMetal"],
-];
+import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./konstanta.js";
+import {
+  fenDanSanDariKoordinat,
+  fenDariLangkah,
+  kuciDariPindahan,
+  modeDariPohon,
+  pohonDariDaftar,
+  sanDariPgn,
+  sanDiPosisi,
+  statTurunan,
+  susunKatalog,
+  susunPgn,
+} from "./utilPapan.js";
+import IkonTab from "./IkonTab.jsx";
+import BukuPembukaan from "./BukuPembukaan.jsx";
+import KartuArtikelPembukaan from "./KartuArtikelPembukaan.jsx";
+import DaftarRiwayat from "./DaftarRiwayat.jsx";
+import TangkapanBidak, { susunTangkapan } from "./TangkapanBidak.jsx";
+import MasukanPgn from "./MasukanPgn.jsx";
+import LangkahExplorer from "./LangkahExplorer.jsx";
+import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
+import PopupPengaturan from "./PopupPengaturan.jsx";
 
 /* ------------------------------------------------- analisis Stockfish */
 // Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
 // lihat src/lib/gunakanEngineCatur.js dan src/components/PanelEngine.jsx.
 
-
-/** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
-function fenDariLangkah(daftarSan) {
-  const game = new Chess();
-  for (const san of daftarSan) game.move(san);
-  return game.fen();
-}
-
-/** Susun deret SAN menjadi teks PGN sederhana ("1. e4 e5 2. Nf3 …"). */
-function susunPgn(daftarSan) {
-  const bagian = [];
-  for (let i = 0; i < daftarSan.length; i += 2) {
-    const nomor = i / 2 + 1;
-    const putih = daftarSan[i];
-    const hitam = daftarSan[i + 1];
-    bagian.push(`${nomor}. ${putih}${hitam ? ` ${hitam}` : ""}`);
-  }
-  return bagian.join(" ");
-}
-
-/** Kumpulkan katalog (nama + jalur terpendek) lewat DFS dari pohon pembukaan. */
-function susunKatalog(pohon) {
-  const hasil = [];
-  (function telusur(node, jalur) {
-    if (node.n) {
-      for (const [eco, nama] of node.n) {
-        hasil.push({ eco, nama, langkah: [...jalur] });
-      }
-    }
-    for (const [san, anak] of Object.entries(node.c || {})) {
-      jalur.push(san);
-      telusur(anak, jalur);
-      jalur.pop();
-    }
-  })(pohon, []);
-  hasil.sort((a, b) => (a.eco === b.eco ? a.nama.localeCompare(b.nama) : a.eco.localeCompare(b.eco)));
-  return hasil;
-}
-
-/** Pola langkah koordinat ("e2e4") — dipakai untuk membedakan jenis kunci pohon. */
-const POLA_KOORDINAT = /^[a-h][1-8][a-h][1-8]$/;
-
-/** Ambil statistik dari satu entri (null bila entri tidak punya statistik). */
-function statDariEntri(entri) {
-  if (typeof entri.games !== "number") return null;
-  const angka = (v) => (typeof v === "number" ? v : null);
-  return {
-    games: entri.games,
-    whiteWin: angka(entri.white_win_rate),
-    blackWin: angka(entri.black_win_rate),
-    draw: angka(entri.draw_rate),
-    rating: angka(entri.avg_rating),
-  };
-}
-
-/**
- * Ubah buku pembukaan berformat "daftar rata" (format Lichess, mis.
- * [{ eco, opening, moves: "e2e4 e7e5 g1f3 …" }, …]) menjadi pohon langkah
- * ber-key koordinat: node = { "n"?: [[eco, nama, stat], …], "c"?: {…} }.
- * Konversi ini murni penyusunan string sehingga cepat (tidak butuh chess.js).
- */
-function pohonDariDaftar(daftar) {
-  const akar = {};
-  for (const entri of daftar) {
-    const eco = entri.eco || entri.code || "?";
-    const nama = standarkanNamaPembukaan(entri.opening || entri.name);
-    const langkah = String(entri.moves || entri.uci || "")
-      .trim()
-      .split(/\s+/)
-      .filter(Boolean);
-    if (!nama || !langkah.length) continue;
-    const stat = statDariEntri(entri);
-    let node = akar;
-    for (const k of langkah) {
-      if (!node.c) node.c = {};
-      if (!node.c[k]) node.c[k] = {};
-      node = node.c[k];
-    }
-    if (!node.n) node.n = [];
-    const ada = node.n.find(([e, n]) => e === eco && n === nama);
-    if (!ada) {
-      node.n.push([eco, nama, stat]);
-    } else if (!ada[2] && stat) {
-      ada[2] = stat; // lengkapi statistik pada nama duplikat yang belum punya
-    }
-  }
-  return akar;
-}
-
-/** Tebak kunci pohon: koordinat ("e2e4") atau SAN ("e4", "Nf3", …). */
-function modeDariPohon(pohon) {
-  const kunci = Object.keys((pohon && pohon.c) || {});
-  if (!kunci.length) return "koordinat";
-  return kunci.every((k) => POLA_KOORDINAT.test(k)) ? "koordinat" : "san";
-}
-
-/** Kunci pohon untuk satu pindahan: koordinat atau SAN, sesuai mode. */
-function kuciDariPindahan(pindah, mode) {
-  return mode === "koordinat" ? `${pindah.from}${pindah.to}` : pindah.san;
-}
-
-/** Ubah satu langkah koordinat menjadi SAN pada posisi `game` (lalu undo). */
-function sanDiPosisi(game, koordinat) {
-  try {
-    const pindah = game.move({ from: koordinat.slice(0, 2), to: koordinat.slice(2, 4) });
-    if (pindah) {
-      game.undo();
-      return pindah.san;
-    }
-  } catch {}
-  return koordinat;
-}
-
-/** Replay deret koordinat menjadi { fen, san } (untuk memuat jalur katalog). */
-function fenDanSanDariKoordinat(daftarKoordinat) {
-  const game = new Chess();
-  const san = [];
-  for (const k of daftarKoordinat) {
-    let pindah;
-    try {
-      pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
-    } catch {
-      pindah = null;
-    }
-    if (!pindah) return null;
-    san.push(pindah.san);
-  }
-  return { fen: game.fen(), san };
-}
-
-/** Format angka sesuai bahasa aktif (22.326 → "22.326" id / "22,326" en). */
-function formatAngka(nilai, bahasa) {
-  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID").format(nilai);
-}
-
-/** Ubah pecahan (0..1) menjadi persen berdesimal (0.527 → "52,7"/"52.7"). */
-function statTurunan(node) {
-  if (!node) return null;
-  const milikNode = (node.n || []).map(([, , stat]) => stat).find((stat) => stat?.games);
-  if (milikNode) return milikNode;
-  for (const anak of Object.values(node.c || {})) {
-    const stat = statTurunan(anak);
-    if (stat) return stat;
-  }
-  return null;
-}
-
-function formatPersen(pecahan, bahasa) {
-  return new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID", {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 1,
-  }).format(pecahan * 100);
-}
 
 function Kerangka() {
   return (
@@ -322,7 +104,19 @@ export default function PapanInteraktif() {
   // Basis data awan (chessdb.cn) — hanya dipanggil SETELAH partai keluar dari
   // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
   // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
-  const [awan, setAwan] = useState({ status: "idle", posisi: null, langkah: [], akhir: null });
+  const [awan, setAwan] = useState({
+    status: "idle",
+    posisi: null,
+    langkah: [],
+    akhir: null,
+    jumlahDinilai: 0,
+    jumlahBelumDinilai: 0,
+  });
+  // Sakelar "tampilkan semua langkah" untuk basis data awan (di Pengaturan
+  // Papan). Sengaja TIDAK disimpan di localStorage: begitu pengguna keluar
+  // dari papan interaktif, nilainya otomatis kembali ke OFF (ringkas 1
+  // langkah terbaik) — ON hanya untuk sesi yang sedang membutuhkan.
+  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(false);
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -1188,11 +982,13 @@ export default function PapanInteraktif() {
       (preferensiKomentator.nyala || tabPanel === "games");
     if (!perlu) {
       setAwan((lama) =>
-        lama.status === "idle" ? lama : { status: "idle", posisi: null, langkah: [], akhir: null }
+        lama.status === "idle"
+          ? lama
+          : { status: "idle", posisi: null, langkah: [], akhir: null, jumlahDinilai: 0, jumlahBelumDinilai: 0 }
       );
       return undefined;
     }
-    setAwan({ status: "memuat", posisi: fen, langkah: [], akhir: null });
+    setAwan({ status: "memuat", posisi: fen, langkah: [], akhir: null, jumlahDinilai: 0, jumlahBelumDinilai: 0 });
     const kendali = new AbortController();
     // Jeda kecil: pengguna sering menelusuri beberapa langkah cepat; kueri
     // hanya untuk posisi yang benar-benar berhenti ditampilkan.
@@ -1206,6 +1002,10 @@ export default function PapanInteraktif() {
             posisi: fen,
             langkah: hasil.langkah,
             akhir: hasil.akhir,
+            // Jumlah asli dari server — langkah "??" bisa dipotong batas
+            // kirim, tetapi catatan panel tetap memakai angka sebenarnya.
+            jumlahDinilai: hasil.jumlahDinilai ?? 0,
+            jumlahBelumDinilai: hasil.jumlahBelumDinilai ?? 0,
           });
         })
         .catch((e) => {
@@ -1215,6 +1015,8 @@ export default function PapanInteraktif() {
             posisi: fen,
             langkah: [],
             akhir: null,
+            jumlahDinilai: 0,
+            jumlahBelumDinilai: 0,
             pesan: e?.message || null,
             kode: e?.kode || null,
           });
@@ -1234,14 +1036,27 @@ export default function PapanInteraktif() {
     setAwanUlang((n) => n + 1);
   }, []);
 
+  /**
+   * Tinjauan pasca-langkah dari basis data awan (chessdb.cn) — hanya saat
+   * engine mati. `saran` = langkah terbaik untuk sisi kita di posisi SEBELUM
+   * langkah terakhir ("langkah terbaik waktu itu …"); `ekspresi` = emosi
+   * karakter dari skor langkah yang BARU kita mainkan (mis. -0,5 → bingung).
+   * Data diintip dari cache klien (posisi itu baru saja tampil, hampir selalu
+   * tersimpan) — TANPA kueri tambahan ke chessdb.cn.
+   */
+  const tinjauanAwan = useMemo(() => {
+    if (engineNyala || riwayat.length === 0) return null;
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const data = intipBasisDataAwan(fenSebelum);
+    if (!data?.langkah?.length) return null;
+    return {
+      saran: saranAwanKomentator(data),
+      ekspresi: ekspresiDariSkorAwan(skorLangkahAwan(data, riwayat[riwayat.length - 1])),
+    };
+  }, [riwayat, engineNyala]);
+
   /** Saran awan untuk kalimat komentator — hanya saat engine mati. */
-  const saranAwan = useMemo(
-    () =>
-      !engineNyala && !infoPembukaan.cocok && awan.status === "siap" && awan.posisi === fen
-        ? saranAwanKomentator(awan)
-        : null,
-    [engineNyala, infoPembukaan.cocok, awan, fen]
-  );
+  const saranAwan = tinjauanAwan?.saran ?? null;
 
   /**
    * Lencana skakmat — petak raja yang termat pada posisi yang sedang
@@ -1512,109 +1327,6 @@ export default function PapanInteraktif() {
                   </div>
                 </div>
 
-                {/* Popup pengaturan */}
-                  {tampilSetting && (
-                    <div
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-                      onClick={() => setTampilSetting(false)}
-                    ><div className="w-full max-w-sm rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <div className="mb-4 flex items-center justify-between">
-                          <h3 className="text-lg font-bold text-white">{t("papan.pengaturanPapan")}</h3>
-                          <button
-                            type="button"
-                            onClick={() => setTampilSetting(false)}
-                            className="text-gray-400 transition hover:text-gray-200"
-                            title={t("papan.tutup")}
-                            aria-label={t("papan.tutup")}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                          <div className="flex flex-col gap-1">
-                            <label className="text-sm font-semibold text-gray-400">
-                              {t("papan.setBidak")}
-                            </label>
-                            <select
-                              value={setBidak}
-                              onChange={(e) => setSetBidak(e.target.value)}
-                              className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
-                            >
-                              {DAFTAR_SET.map((s) => (
-                                <option key={s.id} value={s.id}>
-                                  {s.nama}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <label className="flex cursor-pointer items-center justify-between gap-3">
-                            <span className="text-sm font-semibold text-gray-400">
-                              {t("papan.suara")}
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={suaraNyala}
-                              onChange={(e) => setSuaraNyala(e.target.checked)}
-                              className="h-4 w-4 accent-[#81b64c]"
-                            />
-                          </label>
-                          <label className="flex cursor-pointer items-center justify-between gap-3">
-                            <span className="text-sm font-semibold text-gray-400">
-                              {t("papan.enginePanahToggle")}
-                            </span>
-                            <input
-                              type="checkbox"
-                              checked={tampilPanahMesin}
-                              onChange={(e) => setTampilPanahMesin(e.target.checked)}
-                              aria-label={t("papan.enginePanahToggle")}
-                              className="h-4 w-4 accent-[#81b64c]"
-                            />
-                          </label>
-                          <div className="flex flex-col gap-1">
-                            <label htmlFor="warna-papan" className="text-sm font-semibold text-gray-400">{t("papan.warnaPapan")}</label>
-                            <select
-                              id="warna-papan"
-                              value={warnaPapan}
-                              onChange={(e) => setWarnaPapan(e.target.value)}
-                              className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
-                            >
-                              {PILIHAN_WARNA_PAPAN.map(([nilai, kunci]) => <option key={nilai} value={nilai}>{t(kunci)}</option>)}
-                            </select>
-                          </div>
-                          <div className="border-t border-[#312e2b] pt-3">
-                            <KartuKomentator
-                              fakta={faktaKomentator}
-                              rating={ikonLangkahAkhir?.rating || null}
-                              evalSesudah={dataKomentator.evalSesudah}
-                              namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
-                              saranTerbaik={dataKomentator.saranTerbaik}
-                              engineNyala={engineNyala}
-                              engineMenilai={dataKomentator.engineMenilai}
-                              posisiAwal={riwayat.length === 0}
-                              nyala={preferensiKomentator.nyala}
-                              setNyala={preferensiKomentator.setNyala}
-                              gaya={preferensiKomentator.gaya}
-                              setGaya={preferensiKomentator.setGaya}
-                              t={t}
-                              className=""
-                              hanyaKontrol
-                            />
-                          </div>
-                        </div>
-                        <div className="mt-5 flex justify-end">
-                          <button
-                            type="button"
-                            onClick={() => setTampilSetting(false)}
-                            className="rounded-md border border-[#81b64c] bg-[#81b64c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a3d168]"
-                          >
-                            {t("papan.tutup")}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
               </div>
 
               {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki */}
@@ -1754,6 +1466,9 @@ export default function PapanInteraktif() {
                         fen={fen}
                         onPilih={mainkanSan}
                         onCobaLagi={cobaLagiAwan}
+                        onNyalakanEngine={nyalakanEngine}
+                        engineNyala={engineNyala}
+                        tampilanPenuh={awanTampilanPenuh}
                         t={t}
                       />
                     )
@@ -1797,6 +1512,7 @@ export default function PapanInteraktif() {
                             namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
                             saranTerbaik={dataKomentator.saranTerbaik}
                             saranAwan={saranAwan}
+                            ekspresiAwan={tinjauanAwan?.ekspresi ?? null}
                             engineNyala={engineNyala}
                             engineMenilai={dataKomentator.engineMenilai}
                             posisiAwal={riwayat.length === 0}
@@ -1958,592 +1674,3 @@ export default function PapanInteraktif() {
 
 /** Buang sisa markup wiki (pranala [[…]], templat {{…}}, tanda petik '''…''',
  *  tag HTML) dari sebaris teks agar terbaca seperti artikel biasa. */
-function bersihTeksArtikel(teks) {
-  return String(teks || "")
-    .replace(/<!--[\s\S]*?-->/g, "")
-    .replace(/<ref[^>]*\/?>/gi, "")
-    .replace(/<\/ref>/gi, "")
-    .replace(/<[^>]+>/g, "")
-    .replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, "$1")
-    .replace(/\{\{[^{}]*\}\}/g, "")
-    .replace(/'{2,}/g, "")
-    .replace(/^\s*[:*#;]+/, "")
-    .replace(/\s+/g, " ")
-    .replace(/\s+([.,;:!?])/g, "$1")
-    .replace(/([.,;:!?])(?=[.,;:!?])/g, "$1")
-    .trim();
-}
-
-/** Pecah ringkasan Wikibooks menjadi blok tersusun: baris `== judul ==` /
- *  `=== subjudul ===` menjadi judul bagian, sisanya paragraf isi. */
-function susunBlokArtikel(teks) {
-  const blok = [];
-  for (const mentah of String(teks || "").split(/\r?\n/)) {
-    const baris = bersihTeksArtikel(mentah);
-    if (!baris) continue;
-    const judul = /^(={2,6})\s*(.*?)\s*\1$/.exec(baris);
-    if (judul) {
-      const isi = bersihTeksArtikel(judul[2]);
-      if (isi) {
-        blok.push({
-          jenis: judul[1].length === 2 ? "judul" : "subjudul",
-          teks: isi,
-        });
-      }
-      continue;
-    }
-    // Buang penanda judul yang tersisa di tengah baris (artefak
-    // terjemahan), mis. "==3. d4==", agar jadi teks biasa.
-    blok.push({ jenis: "paragraf", teks: baris.replace(/={2,}/g, "") });
-  }
-  return blok;
-}
-
-/**
- * Kartu "Tentang Pembukaan Ini" — ringkasan dari Wikibooks Chess Opening
- * Theory yang berganti otomatis mengikuti pembukaan aktif di papan.
- * Seluruh paragraf ringkasan ditampilkan langsung (tanpa tombol
- * "selengkapnya"); artikelnya sendiri baru dimuat saat tab Explorer terbuka.
- */
-function KartuArtikelPembukaan({ artikel, t }) {
-  const blok = useMemo(
-    () =>
-      artikel && artikel.data
-        ? susunBlokArtikel(artikel.data.ringkasan)
-        : [],
-    [artikel]
-  );
-
-  if (!artikel) return null;
-  const data = artikel.data;
-
-  return (
-    <div className="mt-3 border-t border-[#312e2b] pt-3">
-      <p className="m-0 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-        {t("papan.artikelJudul")}
-      </p>
-
-      {artikel.status === "memuat" ? (
-        <div
-          className="mt-2 animate-pulse"
-          role="status"
-          aria-label={t("papan.artikelMemuat")}
-        >
-          <div className="h-3 w-2/5 rounded bg-[#312e2b]" />
-          <div className="mt-2 h-3 w-full rounded bg-[#312e2b]" />
-          <div className="mt-1.5 h-3 w-11/12 rounded bg-[#312e2b]" />
-          <div className="mt-1.5 h-3 w-3/5 rounded bg-[#312e2b]" />
-        </div>
-      ) : artikel.status === "siap" && data ? (
-        <div className="mt-2">
-          <p className="m-0 text-sm font-bold text-white">{data.judul}</p>
-          <div className="mt-1.5 flex items-start gap-3">
-            {data.gambar && (
-              <img
-                src={data.gambar}
-                alt=""
-                width={72}
-                height={72}
-                loading="lazy"
-                className="h-[72px] w-[72px] shrink-0 border border-[#363431] bg-[#262421] object-cover"
-              />
-            )}
-            <div className="min-w-0">
-              {blok.map((b, i) =>
-                b.jenis === "judul" ? (
-                  <p
-                    key={i}
-                    className="m-0 mb-1 mt-2.5 text-[13px] font-bold leading-snug text-gray-100 first:mt-0"
-                  >
-                    {b.teks}
-                  </p>
-                ) : b.jenis === "subjudul" ? (
-                  <p
-                    key={i}
-                    className="m-0 mb-1 mt-2 text-xs font-semibold leading-snug text-gray-200"
-                  >
-                    {b.teks}
-                  </p>
-                ) : (
-                  <p key={i} className="m-0 mb-1.5 text-xs leading-5 text-gray-400">
-                    {b.teks}
-                  </p>
-                )
-              )}
-            </div>
-          </div>
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <span className="text-[10px] text-gray-500">
-              Wikibooks · {data.bahasa.toUpperCase()} · CC BY-SA
-              {data.terjemahanOtomatis &&
-                ` · ${t("papan.artikelOtomatis")}`}
-            </span>
-            <a
-              href={data.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-bold text-[#a3d168] hover:underline"
-            >
-              {t("papan.artikelBaca")} ↗
-            </a>
-          </div>
-        </div>
-      ) : (
-        <p className="m-0 mt-1.5 text-xs text-gray-400">
-          {t("papan.artikelKosong")}
-        </p>
-      )}
-    </div>
-  );
-}
-
-/**
- * Tab "Books": katalog pembukaan sebagai daftar berkelompok (bukan <select>).
- * Kotak pencarian menyaring nama atau kode ECO; klik baris memuat jalurnya.
- */
-function BukuPembukaan({ kelompok, idDari, terpilihId, onPilih, t }) {
-  const [cari, setCari] = useState("");
-  const kataKunci = cari.trim().toLowerCase();
-
-  const cocok = (entri) =>
-    !kataKunci ||
-    entri.nama.toLowerCase().includes(kataKunci) ||
-    String(entri.eco || "").toLowerCase().includes(kataKunci);
-
-  const hasil = useMemo(
-    () =>
-      kelompok
-        .map((g) => ({ nama: g.nama, daftar: g.daftar.filter(cocok) }))
-        .filter((g) => g.daftar.length > 0),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [kelompok, kataKunci]
-  );
-
-  const jumlahTotal = kelompok.reduce((n, g) => n + g.daftar.length, 0);
-  const jumlahHasil = hasil.reduce((n, g) => n + g.daftar.length, 0);
-
-  return (
-    <div className="flex flex-col">
-      <input
-        type="search"
-        value={cari}
-        onChange={(e) => setCari(e.target.value)}
-        placeholder={t("papan.cariPembukaan")}
-        aria-label={t("papan.cariPembukaan")}
-        className="w-full rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition placeholder:text-gray-500 focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
-      />
-
-      <p className="mt-2 text-[11px] text-gray-500">
-        {t("papan.menampilkan", { n: jumlahHasil, total: jumlahTotal })}
-      </p>
-
-      {hasil.length === 0 ? (
-        <p className="px-3 py-8 text-center text-xs text-gray-500">
-          {kataKunci
-            ? t("papan.tidakAdaHasil", { q: cari.trim() })
-            : t("papan.petunjukAwal")}
-        </p>
-      ) : (
-        <div className="mt-1 pr-1">
-          {hasil.map((g) => (
-            <div key={g.nama}>
-              <p className="sticky top-0 z-10 border-y border-[#312e2b] bg-[#262421] px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                {g.nama}
-              </p>
-              <ul>
-                {g.daftar.map((entri) => {
-                  const id = idDari.get(entri);
-                  const aktif = id === terpilihId;
-                  return (
-                    <li key={id}>
-                      <button
-                        type="button"
-                        onClick={() => onPilih(entri, id)}
-                        aria-current={aktif ? "true" : undefined}
-                        className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-xs transition ${
-                          aktif
-                            ? "bg-[#363431] text-white"
-                            : "text-gray-300 hover:bg-[#2c2926]"
-                        }`}
-                      >
-                        <span
-                          className={`shrink-0 rounded px-1.5 py-0.5 font-bold tabular-nums ${
-                            aktif
-                              ? "bg-[#81b64c] text-[#1e1c18]"
-                              : "bg-[#81b64c]/15 text-[#a3d168]"
-                          }`}
-                        >
-                          {entri.eco}
-                        </span>
-                        <span className="min-w-0 truncate" title={entri.nama}>
-                          {entri.nama}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/**
- * Daftar langkah (move log) — baris nomor + langkah Putih/Hitam yang bisa
- * diklik untuk melompat ke posisi tersebut (pola "Move Log" di prompt.md).
- * Langkah masa depan (setelah undo) dibuat redup sampai dipilih lagi.
- */
-function DaftarRiwayat({ langkah, aktifPly, onPilih }) {
-  if (!langkah.length) return null;
-  const baris = [];
-  for (let i = 0; i < langkah.length; i += 2) {
-    const hitam = i + 1 < langkah.length ? langkah[i + 1] : null;
-    baris.push({ nomor: i / 2 + 1, putihI: i, putih: langkah[i], hitamI: i + 1, hitam });
-  }
-  const kelas = (ply) => {
-    if (ply === aktifPly) return "bg-[#363431] text-white";
-    if (ply > aktifPly) return "text-gray-600 hover:bg-[#2c2926] hover:text-gray-300";
-    return "text-gray-300 hover:bg-[#2c2926] hover:text-white";
-  };
-  return (
-    <div className="mt-3 space-y-0.5">
-      {baris.map((b) => (
-        <div
-          key={b.nomor}
-          className="flex items-center gap-2 rounded px-1 py-0.5 transition hover:bg-[#2c2926]"
-        >
-          <span className="w-6 shrink-0 text-right text-xs text-gray-500">{b.nomor}.</span>
-          <button
-            type="button"
-            onClick={() => onPilih(b.putihI + 1)}
-            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${kelas(
-              b.putihI
-            )}`}
-          >
-            {b.putih}
-          </button>
-          <button
-            type="button"
-            onClick={() => onPilih(b.hitamI + 1)}
-            disabled={b.hitam === null}
-            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${
-              b.hitam === null
-                ? "cursor-default text-gray-600"
-                : kelas(b.hitamI)
-            }`}
-          >
-            {b.hitam ?? "…"}
-          </button>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-const NILAI_BIDAK = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 };
-
-/**
- * Hitung bidak yang ditangkap tiap sisi dari riwayat SAN. "olehPutih" berisi
- * bidak Hitam yang ditangkap Putih (tampil di baris Putih), "olehHitam"
- * sebaliknya. Hasil diurutkan dari bidak paling berharga, dengan jumlah per jenis.
- */
-function susunTangkapan(daftarSan) {
-  const kantongPutih = {}; // bidak hitam yang ditangkap Putih
-  const kantongHitam = {}; // bidak putih yang ditangkap Hitam
-  const game = new Chess();
-  for (const san of daftarSan) {
-    let pindah;
-    try {
-      pindah = game.move(san);
-    } catch {
-      break;
-    }
-    if (!pindah || !pindah.captured) continue;
-    const kantong = pindah.color === "w" ? kantongPutih : kantongHitam;
-    kantong[pindah.captured] = (kantong[pindah.captured] || 0) + 1;
-  }
-  const rapikan = (kantong, warnaTampil) =>
-    Object.entries(kantong)
-      .sort((a, b) => NILAI_BIDAK[b[0]] - NILAI_BIDAK[a[0]])
-      .map(([jenis, jumlah]) => ({
-        huruf: warnaTampil === "w" ? jenis.toUpperCase() : jenis,
-        jumlah,
-      }));
-  return {
-    olehPutih: rapikan(kantongPutih, "b"),
-    olehHitam: rapikan(kantongHitam, "w"),
-  };
-}
-
-/** Ikon bidak yang ditangkap: satu ikon per jenis + pengali bila lebih dari satu. */
-function TangkapanBidak({ daftar, set }) {
-  if (!daftar || daftar.length === 0) return null;
-  return (
-    <span className="flex items-center gap-1.5">
-      {daftar.map(({ huruf, jumlah }) => (
-        <span key={huruf} className="flex shrink-0 items-center">
-          <ChessPiece piece={huruf} set={set} className="h-4 w-4 opacity-80" />
-          {jumlah > 1 && (
-            <span className="ml-0.5 text-[10px] font-semibold leading-none text-gray-500">
-              {jumlah}×
-            </span>
-          )}
-        </span>
-      ))}
-    </span>
-  );
-}
-
-/** Ambil daftar SAN dari teks PGN (abaikan nomor langkah, komentar, hasil akhir). */
-function sanDariPgn(pgn) {
-  const dibersihkan = String(pgn || "")
-    .replace(/^\[[^\n]*\]/gm, " ")
-    .replace(/\{[^}]*\}/g, " ")
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/\b\d+\.(\.\.)?/g, " ")
-    .replace(/\b(1-0|0-1|1\/2-1\/2|½-½|\*)\b/g, " ");
-  return dibersihkan.split(/\s+/).filter(Boolean);
-}
-
-/** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
-function MasukanPgn({ onTerapkan, onTutup, t }) {
-  const [teks, setTeks] = useState("");
-  const [galat, setGalat] = useState(false);
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-      onClick={onTutup}
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("papan.inputPgnFen")}
-        className="w-full max-w-md rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-base font-bold text-white">{t("papan.inputPgnFen")}</h3>
-          <button
-            type="button"
-            onClick={onTutup}
-            aria-label={t("papan.tutup")}
-            className="text-gray-400 transition hover:text-gray-200"
-          >
-            ✕
-          </button>
-        </div>
-        <textarea
-          value={teks}
-          onChange={(e) => {
-            setTeks(e.target.value);
-            setGalat(false);
-          }}
-          rows={7}
-          spellCheck={false}
-          placeholder="1. e4 e5 2. Nf3 Nc6 3. Bb5 … (atau tempel FEN)"
-          className="w-full resize-y rounded-md border border-[#363431] bg-[#262421] p-3 font-mono text-xs leading-5 text-gray-200 outline-none transition placeholder:text-gray-600 focus:border-[#81b64c]"
-        />
-        {galat && (
-          <p className="mt-2 text-xs font-medium text-red-400">
-            PGN/FEN tidak dapat dimuat — periksa kembali isinya.
-          </p>
-        )}
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={onTutup}
-            className="rounded-md border border-[#363431] bg-[#2c2926] px-4 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#363431] hover:text-white"
-          >
-            Batal
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (onTerapkan(teks)) onTutup();
-              else setGalat(true);
-            }}
-            disabled={!teks.trim()}
-            className="rounded-md bg-[#81b64c] px-4 py-2 text-xs font-bold text-white transition hover:bg-[#a3d168] disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Muat
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[510px] border-collapse text-left text-xs text-gray-300">
-        <thead className="bg-[#2c2926] text-gray-200">
-          <tr>
-            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomLangkah")}</th>
-            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomJumlah")}</th>
-            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.kolomPersen")}<br /><span className="font-normal">{t("papan.kolomPutihSeriHitam")}</span></th>
-            <th className="border-b border-[#363431] px-3 py-2 font-bold">{t("papan.pembukaan")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {langkah.map((item) => {
-            const stat = item.stat;
-            return (
-              <tr key={item.k} className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]">
-                <td className="px-3 py-2 align-top">
-                  <button type="button" onClick={() => onPilih(item.san)} className="font-bold text-[#a3d168] hover:underline">{item.san}</button>
-                </td>
-                <td className="px-3 py-2 align-top tabular-nums">{stat ? formatAngka(stat.games, bahasa) : "—"}</td>
-                <td className="min-w-[145px] px-3 py-2 align-top">
-                  {stat ? <HasilBar stat={stat} bahasa={bahasa} /> : "—"}
-                </td>
-                <td className="px-3 py-2 align-top text-gray-400">{item.nama || "—"}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-/**
- * Panel basis data awan (Chess Cloud Database — chessdb.cn) untuk tab "Partai".
- *
- * Dipakai SETELAH buku pembukaan lokal habis: buku lokal hanya memuat teori,
- * sedangkan CDB menyimpan penilaian mesin posisi lanjutan. Permintaan jaringan
- * dilakukan satuan tugas di atas (hanya saat keluar buku); komponen ini murni
- * menampilkan hasilnya — termasuk saat data belum ada / layanan tak terjangkau,
- * karena pengguna tetap perlu tahu kenapa daftarnya kosong.
- */
-function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, t }) {
-  const baris = useMemo(() => {
-    if (!awan.langkah?.length) return [];
-    let game = null;
-    try {
-      game = new Chess(fen);
-    } catch {
-      game = null;
-    }
-    return awan.langkah.map((l) => ({
-      uci: l.uci,
-      // CDB mengirim SAN saat `json=1`; konversi manual hanya jaring pengaman.
-      san: l.san || (game ? sanDiPosisi(game, l.uci) : l.uci),
-      skor: formatSkorAwan(l.skorCp) ?? "—",
-      winrate:
-        l.winrate === null || l.winrate === undefined
-          ? "—"
-          : `${Math.round(l.winrate * 10) / 10}%`,
-      catatan: l.catatan || "—",
-    }));
-  }, [awan.langkah, fen]);
-
-  if (awan.status === "memuat") {
-    return <p className="mt-1.5 text-sm font-medium text-gray-400">{t("papan.awanMemuat")}</p>;
-  }
-
-  if (baris.length) {
-    return (
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
-          <span className="shrink-0 text-xs text-gray-500">{t("papan.awanSumber")}</span>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] border-collapse text-left text-xs text-gray-300">
-            <thead className="bg-[#2c2926] text-gray-200">
-              <tr>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.kolomLangkah")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomSkor")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomWinrate")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomCatatan")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {baris.map((item) => (
-                <tr
-                  key={item.uci}
-                  className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]"
-                >
-                  <td className="px-3 py-2 align-top">
-                    <button
-                      type="button"
-                      onClick={() => onPilih(item.san)}
-                      className="font-bold text-[#a3d168] hover:underline"
-                    >
-                      {item.san}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2 align-top tabular-nums">{item.skor}</td>
-                  <td className="px-3 py-2 align-top tabular-nums">{item.winrate}</td>
-                  <td className="px-3 py-2 align-top text-gray-400">{item.catatan}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        {/* Skor CDB dilihat dari sisi yang sedang jalan — beri keterangan agar
-            angka positif tidak disalahartikan sebagai keunggulan Putih. */}
-        <p className="mt-2 text-[10px] text-gray-500">{t("papan.awanCatatanSkor")}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="mt-1.5 space-y-1">
-      <p className="text-sm font-medium text-gray-400">{t("papan.diLuarBuku")}</p>
-      {awan.status === "kosong" && (
-        <p className="text-xs text-gray-500">{t("papan.awanKosong")}</p>
-      )}
-      {awan.status === "galat" && (
-        <div className="space-y-1">
-          <p className="text-xs text-gray-500">{t("papan.awanGalat")}</p>
-          {/* Pesan + kode penyebab dari server — tanpa ini laporan "tidak bisa"
-              dari produksi tidak dapat dibedakan (DNS, blokir, lambat, …). */}
-          {(awan.pesan || awan.kode) && (
-            <p className="text-[10px] text-gray-500">
-              {awan.pesan}
-              {awan.kode ? <span className="ml-1 font-mono">({awan.kode})</span> : null}
-            </p>
-          )}
-          {onCobaLagi && (
-            <button
-              type="button"
-              onClick={onCobaLagi}
-              className="text-xs font-bold text-[#a3d168] hover:underline"
-            >
-              {t("papan.awanCobaLagi")}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function HasilBar({ stat, bahasa }) {
-  const putih = stat.whiteWin ?? 0;
-  const seri = stat.draw ?? 0;
-  const hitam = stat.blackWin ?? 0;
-  return <>
-    <div className="flex h-2 w-full overflow-hidden border border-[#555] bg-[#1e1d1c]">
-      <span style={{ width: `${putih * 100}%` }} className="bg-[#e8e6e3]" />
-      <span style={{ width: `${seri * 100}%` }} className="bg-[#8a8a8a]" />
-      <span style={{ width: `${hitam * 100}%` }} className="bg-[#57534e]" />
-    </div>
-    <div className="mt-1 whitespace-nowrap text-[10px] text-gray-400">{formatPersen(putih, bahasa)}% / {formatPersen(seri, bahasa)}% / {formatPersen(hitam, bahasa)}%</div>
-  </>;
-}
-
-

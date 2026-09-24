@@ -28,7 +28,7 @@ console.log("Menanyakan https://www.chessdb.cn/cdb.php (action=queryall, learn=0
 
 try {
   const hasil = await tanyaAwan(posisi);
-  if (!hasil.diketahui) {
+  if (!hasil.diketahui && !hasil.langkah.length) {
     console.log(
       hasil.akhir
         ? `Posisi sudah berakhir: ${hasil.akhir}.`
@@ -36,19 +36,26 @@ try {
     );
     process.exit(0);
   }
+  if (!hasil.diketahui) {
+    console.log(
+      'Belum ada langkah BERNILAI — semua langkah masih "??" (belum dianalisis). ' +
+        "Di UI: daftar abu-abu terlipat + tawaran menyalakan engine; cache pendek (5 menit)."
+    );
+  }
   console.log(`Sumber : ${hasil.sumber} (${hasil.diambilPada})`);
+  console.log(`Dinilai: ${hasil.jumlahDinilai} bernilai + ${hasil.jumlahBelumDinilai} belum dinilai`);
   console.log("Langkah:");
   for (const l of hasil.langkah) {
-    const skor = l.skorCp === null ? "  —  " : `${(l.skorCp / 100).toFixed(2).padStart(6)}`;
+    const skor = l.mat ? " mat " : l.skorCp === null ? "  —  " : `${(l.skorCp / 100).toFixed(2).padStart(6)}`;
     const wr = l.winrate === null ? " — " : `${l.winrate}%`;
     console.log(
-      `  ${(l.san || l.uci).padEnd(8)} uci=${l.uci.padEnd(6)} skor=${skor} winrate=${wr.padEnd(7)} catatan=${l.catatan || "-"}`
+      `  ${(l.san || l.uci).padEnd(8)} uci=${l.uci.padEnd(6)} skor=${skor} winrate=${wr.padEnd(7)} catatan=${l.catatan || "-"}${l.dinilai ? "" : " [belum dinilai]"}`
     );
   }
   console.log(
     "\nCatatan: skor (sentipion) dari sudut pandang pihak yang sedang jalan — positif = lebih baik."
   );
-  console.log("Pemetaan ke UI: langkah → tabel tab \"Partai\"; langkah teratas → kalimat komentator.");
+  console.log('Pemetaan ke UI: langkah bernilai → tabel tab "Partai"; "??" → lipatan abu-abu; langkah teratas bernilai → kalimat komentator.');
 } catch (e) {
   if (e instanceof GalatAwan) {
     console.error(`GAGAL (status ${e.status}, kode ${e.sebab}): ${e.message}`);
