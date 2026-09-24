@@ -322,7 +322,14 @@ export default function PapanInteraktif() {
   // Basis data awan (chessdb.cn) — hanya dipanggil SETELAH partai keluar dari
   // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
   // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
-  const [awan, setAwan] = useState({ status: "idle", posisi: null, langkah: [], akhir: null });
+  const [awan, setAwan] = useState({
+    status: "idle",
+    posisi: null,
+    langkah: [],
+    akhir: null,
+    jumlahDinilai: 0,
+    jumlahBelumDinilai: 0,
+  });
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -1188,11 +1195,13 @@ export default function PapanInteraktif() {
       (preferensiKomentator.nyala || tabPanel === "games");
     if (!perlu) {
       setAwan((lama) =>
-        lama.status === "idle" ? lama : { status: "idle", posisi: null, langkah: [], akhir: null }
+        lama.status === "idle"
+          ? lama
+          : { status: "idle", posisi: null, langkah: [], akhir: null, jumlahDinilai: 0, jumlahBelumDinilai: 0 }
       );
       return undefined;
     }
-    setAwan({ status: "memuat", posisi: fen, langkah: [], akhir: null });
+    setAwan({ status: "memuat", posisi: fen, langkah: [], akhir: null, jumlahDinilai: 0, jumlahBelumDinilai: 0 });
     const kendali = new AbortController();
     // Jeda kecil: pengguna sering menelusuri beberapa langkah cepat; kueri
     // hanya untuk posisi yang benar-benar berhenti ditampilkan.
@@ -1206,6 +1215,10 @@ export default function PapanInteraktif() {
             posisi: fen,
             langkah: hasil.langkah,
             akhir: hasil.akhir,
+            // Jumlah asli dari server — langkah "??" bisa dipotong batas
+            // kirim, tetapi catatan panel tetap memakai angka sebenarnya.
+            jumlahDinilai: hasil.jumlahDinilai ?? 0,
+            jumlahBelumDinilai: hasil.jumlahBelumDinilai ?? 0,
           });
         })
         .catch((e) => {
@@ -1215,6 +1228,8 @@ export default function PapanInteraktif() {
             posisi: fen,
             langkah: [],
             akhir: null,
+            jumlahDinilai: 0,
+            jumlahBelumDinilai: 0,
             pesan: e?.message || null,
             kode: e?.kode || null,
           });
@@ -1754,6 +1769,8 @@ export default function PapanInteraktif() {
                         fen={fen}
                         onPilih={mainkanSan}
                         onCobaLagi={cobaLagiAwan}
+                        onNyalakanEngine={nyalakanEngine}
+                        engineNyala={engineNyala}
                         t={t}
                       />
                     )
@@ -2419,80 +2436,89 @@ function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
  * menampilkan hasilnya — termasuk saat data belum ada / layanan tak terjangkau,
  * karena pengguna tetap perlu tahu kenapa daftarnya kosong.
  */
-function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, t }) {
-  const baris = useMemo(() => {
-    if (!awan.langkah?.length) return [];
+function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, onNyalakanEngine, engineNyala, t }) {
+  // Langkah "??" (belum dinilai CDB) dilipat supaya tabel utama tetap ringkas.
+  const [tampilkanBelumDinilai, setTampilkanBelumDinilai] = useState(false);
+  const { bernilai, belumDinilai } = useMemo(() => {
     let game = null;
     try {
       game = new Chess(fen);
     } catch {
       game = null;
     }
-    return awan.langkah.map((l) => ({
+    const keBaris = (l) => ({
       uci: l.uci,
       // CDB mengirim SAN saat `json=1`; konversi manual hanya jaring pengaman.
       san: l.san || (game ? sanDiPosisi(game, l.uci) : l.uci),
-      skor: formatSkorAwan(l.skorCp) ?? "—",
+      skor: l.dinilai === false ? "??" : l.mat ? t("papan.awanMat") : formatSkorAwan(l.skorCp) ?? "—",
       winrate:
         l.winrate === null || l.winrate === undefined
           ? "—"
           : `${Math.round(l.winrate * 10) / 10}%`,
-      catatan: l.catatan || "—",
-    }));
-  }, [awan.langkah, fen]);
+      catatan: l.dinilai === false ? "—" : l.catatan || "—",
+    });
+    const bernilai = [];
+    const belumDinilai = [];
+    for (const l of awan.langkah || []) {
+      (l.dinilai === false ? belumDinilai : bernilai).push(keBaris(l));
+    }
+    return { bernilai, belumDinilai };
+  }, [awan.langkah, fen, t]);
 
   if (awan.status === "memuat") {
     return <p className="mt-1.5 text-sm font-medium text-gray-400">{t("papan.awanMemuat")}</p>;
   }
 
-  if (baris.length) {
+  if (bernilai.length || belumDinilai.length) {
+    // Jumlah bernilai dari server (bisa lebih besar dari yang tampil bila
+    // terkena batas kirim) — dipakai catatan "hanya N langkah yang dinilai".
+    const jumlahDinilai = awan.jumlahDinilai ?? bernilai.length;
     return (
       <div>
         <div className="mb-2 flex items-center justify-between gap-2">
           <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
           <span className="shrink-0 text-xs text-gray-500">{t("papan.awanSumber")}</span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[420px] border-collapse text-left text-xs text-gray-300">
-            <thead className="bg-[#2c2926] text-gray-200">
-              <tr>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.kolomLangkah")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomSkor")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomWinrate")}
-                </th>
-                <th className="border-b border-[#363431] px-3 py-2 font-bold">
-                  {t("papan.awanKolomCatatan")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {baris.map((item) => (
-                <tr
-                  key={item.uci}
-                  className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]"
-                >
-                  <td className="px-3 py-2 align-top">
-                    <button
-                      type="button"
-                      onClick={() => onPilih(item.san)}
-                      className="font-bold text-[#a3d168] hover:underline"
-                    >
-                      {item.san}
-                    </button>
-                  </td>
-                  <td className="px-3 py-2 align-top tabular-nums">{item.skor}</td>
-                  <td className="px-3 py-2 align-top tabular-nums">{item.winrate}</td>
-                  <td className="px-3 py-2 align-top text-gray-400">{item.catatan}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {bernilai.length > 0 && <TabelLangkahAwan baris={bernilai} onPilih={onPilih} t={t} />}
+        {/* Langkah "??": sama seperti queryc_en ikut ditampilkan, tetapi
+            terlipat & abu-abu — tetap bisa diklik untuk dimainkan. */}
+        {belumDinilai.length > 0 && (
+          <div className="mt-2">
+            <button
+              type="button"
+              onClick={() => setTampilkanBelumDinilai((v) => !v)}
+              aria-expanded={tampilkanBelumDinilai}
+              className="text-xs font-bold text-gray-400 hover:text-gray-200 hover:underline"
+            >
+              {tampilkanBelumDinilai
+                ? t("papan.awanSembunyikanBelumDinilai")
+                : t("papan.awanTampilkanBelumDinilai", { jumlah: belumDinilai.length })}
+            </button>
+            {tampilkanBelumDinilai && (
+              <div className="mt-1.5">
+                <TabelLangkahAwan baris={belumDinilai} redup onPilih={onPilih} t={t} />
+              </div>
+            )}
+          </div>
+        )}
+        {/* Catatan opsi B: nilai yang tersedia masih sedikit — tawarkan engine
+            untuk menilai sisanya (hanya saat engine belum menyala). */}
+        {!engineNyala && onNyalakanEngine && belumDinilai.length > 0 && (
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+            <p className="text-[11px] text-gray-500">
+              {bernilai.length > 0
+                ? t("papan.awanCatatanDinilai", { jumlah: jumlahDinilai })
+                : t("papan.awanBelumAdaDinilai")}
+            </p>
+            <button
+              type="button"
+              onClick={onNyalakanEngine}
+              className="shrink-0 text-xs font-bold text-[#a3d168] hover:underline"
+            >
+              {t("papan.awanNyalakanEngine")}
+            </button>
+          </div>
+        )}
         {/* Skor CDB dilihat dari sisi yang sedang jalan — beri keterangan agar
             angka positif tidak disalahartikan sebagai keunggulan Putih. */}
         <p className="mt-2 text-[10px] text-gray-500">{t("papan.awanCatatanSkor")}</p>
@@ -2528,6 +2554,64 @@ function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, t }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Tabel satu kelompok langkah CDB — `redup` = gaya abu-abu untuk langkah
+ *  "??" yang belum dianalisis (skor "??" di kolom skor). */
+function TabelLangkahAwan({ baris, redup = false, onPilih, t }) {
+  return (
+    <div className="overflow-x-auto">
+      <table
+        className={`w-full min-w-[420px] border-collapse text-left text-xs ${
+          redup ? "text-gray-500" : "text-gray-300"
+        }`}
+      >
+        <thead className="bg-[#2c2926] text-gray-200">
+          <tr>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">
+              {t("papan.kolomLangkah")}
+            </th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">
+              {t("papan.awanKolomSkor")}
+            </th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">
+              {t("papan.awanKolomWinrate")}
+            </th>
+            <th className="border-b border-[#363431] px-3 py-2 font-bold">
+              {t("papan.awanKolomCatatan")}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {baris.map((item) => (
+            <tr
+              key={item.uci}
+              className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]"
+            >
+              <td className="px-3 py-2 align-top">
+                <button
+                  type="button"
+                  onClick={() => onPilih(item.san)}
+                  className={
+                    redup
+                      ? "font-bold text-gray-400 hover:text-[#a3d168] hover:underline"
+                      : "font-bold text-[#a3d168] hover:underline"
+                  }
+                >
+                  {item.san}
+                </button>
+              </td>
+              <td className="px-3 py-2 align-top tabular-nums">{item.skor}</td>
+              <td className="px-3 py-2 align-top tabular-nums">{item.winrate}</td>
+              <td className={`px-3 py-2 align-top ${redup ? "" : "text-gray-400"}`}>
+                {item.catatan}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

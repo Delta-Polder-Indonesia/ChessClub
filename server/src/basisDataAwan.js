@@ -19,8 +19,9 @@
  * Format balasan cdb.php (diverifikasi langsung ke layanan, Sep 2026):
  *   - `json=1` → OBJEK: `{"status":"ok","moves":[{uci,san,score,rank,note,
  *     winrate}], "ply":5}`; status lain: "unknown", "checkmate",
- *     "stalemate", "invalid board". `score` bisa "??" dan `winrate` berupa
- *     teks ("50.00").
+ *     "stalemate", "invalid board". `score` bisa "??" (belum dinilai — tetap
+ *     disertakan, ditandai `dinilai:false`) dan `winrate` berupa teks
+ *     ("50.00").
  *   - tanpa `json` → teks `move:a7a6,score:0,rank:2,note:! (32-04),winrate:50.00|...`
  *   - `rank`: 2 = langkah terbaik ("!"), 1 = bagus, 0 = buruk/belum dinilai.
  */
@@ -35,7 +36,14 @@ const TTL_BELUM_ADA_MS = 30 * 60 * 1000;
 /** Skor di atas ini adalah penanda kemenangan paksa/kotak (bukan pion). */
 const AMBANG_SKOR_PAKSA = 10000;
 const UA = "BlunderSkuad/1.0 (+basis data awan papan interaktif)";
-const MAKS_LANGKAH = 10;
+/** Batas langkah bernilai yang dikirim — supaya respons & cache tetap kecil. */
+const MAKS_LANGKAH_DINILAI = 20;
+/**
+ * Batas langkah "??" (belum dinilai). Posisi nyaris tidak pernah punya > 40
+ * langkah legal, jadi batas ini hanya pengaman; `jumlahBelumDinilai` tetap
+ * melaporkan jumlah asli bila sampai dipotong.
+ */
+const MAKS_LANGKAH_BELUM_DINILAI = 40;
 
 const cache = new Map(); // posisi -> { kedaluwarsa, nilai }
 
@@ -138,14 +146,20 @@ function rapikanLangkah(b) {
   const uci = String(b?.uci ?? b?.move ?? "").trim().toLowerCase();
   if (!/^[a-h][1-8][a-h][1-8][qrbn]?$/.test(uci)) return null;
   const skor = angka(b.score);
-  // Skor "??" = langkah yang belum dinilai CDB. Tidak berguna di tabel (hanya
-  // "—") dan bisa menenggelamkan langkah yang sungguh dinilai — dibuang.
-  if (skor === null) return null;
+  // Skor "??" = langkah yang belum pernah dinilai CDB. Tetap disertakan
+  // (ditandai `dinilai: false`) supaya daftar sama kayanya dengan situs
+  // queryc_en — UI menampilkannya terlipat dengan label "belum dianalisis".
+  const dinilai = skor !== null;
+  // Skor mat paksa (± ≥ 10000) tidak muat skala pion: `skorCp` null, tapi
+  // bedakan dari "??" lewat `mat` supaya UI menulis "Mat", bukan "—".
+  const mat = dinilai && Math.abs(skor) >= AMBANG_SKOR_PAKSA;
   return {
     uci,
     san: b.san ? String(b.san).trim() : null,
+    dinilai,
     // Skor sentipion dari sudut pandang pihak yang jalan (positif = unggul).
-    skorCp: Math.abs(skor) < AMBANG_SKOR_PAKSA ? skor : null,
+    skorCp: dinilai && !mat ? skor : null,
+    mat,
     rank: angka(b.rank),
     winrate: angka(b.winrate),
     catatan: b.note ? String(b.note).trim() : null,
@@ -154,18 +168,23 @@ function rapikanLangkah(b) {
   };
 }
 
-/** Urutkan: rank CDB lebih dulu (2 = terbaik), lalu skor menurun. */
+/**
+ * Urutkan: yang dinilai lebih dulu (rank CDB menurun = 2 terbaik, lalu skor
+ * menurun), disusul yang belum dinilai dalam urutan asli CDB. Batas terpisah:
+ * dinilai maks. 20, belum dinilai maks. 40.
+ */
 function urutkanLangkah(daftar) {
-  return daftar
-    .slice()
+  const dinilai = daftar
+    .filter((l) => l.dinilai)
     .sort((a, b) => {
       const ra = a.rank === null ? -1 : a.rank;
       const rb = b.rank === null ? -1 : b.rank;
       if (ra !== rb) return rb - ra;
       return b._skor - a._skor;
     })
-    .slice(0, MAKS_LANGKAH)
-    .map(({ _skor, ...langkah }) => langkah);
+    .slice(0, MAKS_LANGKAH_DINILAI);
+  const belumDinilai = daftar.filter((l) => !l.dinilai).slice(0, MAKS_LANGKAH_BELUM_DINILAI);
+  return [...dinilai, ...belumDinilai].map(({ _skor, ...langkah }) => langkah);
 }
 
 function galatTakDikenal(contoh) {
@@ -179,10 +198,10 @@ function galatTakDikenal(contoh) {
 /** Status teks CDB → hasil baku; `null` bila bukan status yang dikenal. */
 function dariStatus(status) {
   if (status === "unknown" || status === "nobestmove") {
-    return { diketahui: false, akhir: null, langkah: [] };
+    return { diketahui: false, akhir: null, langkah: [], jumlahDinilai: 0, jumlahBelumDinilai: 0 };
   }
   if (status === "checkmate" || status === "stalemate") {
-    return { diketahui: true, akhir: status, langkah: [] };
+    return { diketahui: true, akhir: status, langkah: [], jumlahDinilai: 0, jumlahBelumDinilai: 0 };
   }
   if (status === "invalid board") {
     throw new GalatAwan("Basis data awan menolak posisi ini.", {
@@ -194,8 +213,17 @@ function dariStatus(status) {
 }
 
 function hasilLangkah(mentah) {
-  const langkah = urutkanLangkah(mentah.map(rapikanLangkah).filter(Boolean));
-  return { diketahui: langkah.length > 0, akhir: null, langkah };
+  const semua = mentah.map(rapikanLangkah).filter(Boolean);
+  // "Diketahui" = ada ≥ 1 langkah YANG BERNILAI. Posisi yang semua langkahnya
+  // "??" belum dianggap diketahui — cache pendek & panel menawarkan engine.
+  const jumlahDinilai = semua.filter((l) => l.dinilai).length;
+  return {
+    diketahui: jumlahDinilai > 0,
+    akhir: null,
+    langkah: urutkanLangkah(semua),
+    jumlahDinilai,
+    jumlahBelumDinilai: semua.length - jumlahDinilai,
+  };
 }
 
 /**
@@ -205,8 +233,11 @@ function hasilLangkah(mentah) {
  * sebagai galat — jangan pernah diam-diam dianggap "posisi belum ada", karena
  * itulah yang dulu membuat panel tampak kosong tanpa penjelasan.
  *
- * @returns {{diketahui: boolean, akhir: string|null, langkah: Array<object>}}
- *          `akhir` = "checkmate" | "stalemate" bila posisi sudah berakhir.
+ * @returns {{diketahui: boolean, akhir: string|null, langkah: Array<object>,
+ *            jumlahDinilai: number, jumlahBelumDinilai: number}}
+ *          `akhir` = "checkmate" | "stalemate" bila posisi sudah berakhir;
+ *          `diketahui` = true bila ada ≥ 1 langkah bernilai (skor numerik)
+ *          atau posisi sudah berakhir — semua "??" saja TIDAK cukup.
  */
 export function uraiBalasanAwan(teks) {
   const bersih = String(teks || "").trim();
@@ -331,7 +362,9 @@ async function ambilTeks(kueri, fetchImpl) {
 
 /**
  * Tanya basis data awan untuk satu posisi (aksi `queryall`, tanpa `queue`).
- * Hasil sukses selalu berisi `diketahui` + daftar `langkah` (maks. 10).
+ * Hasil sukses selalu berisi `diketahui` + daftar `langkah` (dinilai lebih
+ * dulu, maks. 20 bernilai + 40 belum dinilai) + `jumlahDinilai` /
+ * `jumlahBelumDinilai` (jumlah asli sebelum pemotongan batas).
  */
 export async function tanyaAwan(fen, { fetchImpl = globalThis.fetch } = {}) {
   const posisi = bersihkanFen(fen);

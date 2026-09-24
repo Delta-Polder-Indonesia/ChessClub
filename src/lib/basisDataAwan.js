@@ -32,7 +32,8 @@ const CACHE_MAKS = 200;
  *        melewati cache klien (tombol "Coba lagi") — kegagalan yang tersimpan
  *        30 detik tidak boleh menghalangi percobaan yang diminta pengguna.
  * @returns {Promise<{sumber:string, posisi:string, diketahui:boolean,
- *                    akhir:string|null, langkah:Array<object>}>}
+ *                    akhir:string|null, langkah:Array<object>,
+ *                    jumlahDinilai:number, jumlahBelumDinilai:number}>}
  * @throws {Error} bila jaringan gagal, dibatalkan (name = "AbortError"),
  *                 atau server membalas non-2xx. `kode` (bila ada) = kode
  *                 penyebab dari server, mis. "awan-tidak-terjangkau".
@@ -128,11 +129,13 @@ export function formatSkorAwan(skorCp) {
 
 /**
  * Saran terbaik basis data awan untuk kalimat komentator.
- * Mengembalikan `{ san, nilai }` (nilai sudah diformat) atau null bila langkah
- * pertama tidak punya SAN/skor — komentator hanya menyebut saran yang jelas.
+ * HANYA memakai langkah yang sudah dinilai (`dinilai` true) — langkah "??"
+ * belum punya skor dan tidak boleh pernah jadi saran komentator. Mengembalikan
+ * `{ san, nilai }` (nilai sudah diformat) atau null bila langkah teratas tidak
+ * punya SAN/skor — komentator hanya menyebut saran yang jelas.
  */
 export function saranAwanKomentator(data) {
-  const langkah = data?.langkah?.[0];
+  const langkah = data?.langkah?.find((l) => l?.dinilai !== false);
   if (!langkah || !langkah.san) return null;
   const nilai = formatSkorAwan(langkah.skorCp);
   if (!nilai) return null;

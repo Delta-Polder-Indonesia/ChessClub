@@ -5,9 +5,11 @@
  *  1. FEN disaring sebelum dikirim ke pihak ketiga: FEN sampah ditolak,
  *     FEN yang kurang bidang dilengkapi (bukan diteruskan apa adanya).
  *  2. Balasan cdb.php ASLI benar-benar dimengerti: objek JSON (`json=1`,
- *     `{"status":"ok","moves":[...]}`, rank 2 = terbaik, skor "??" dibuang) DAN
- *     bentuk teks (`move:d2d4,score:31,...`), termasuk `unknown`, posisi
- *     tanpa data, dan penanda akhir permainan.
+ *     `{"status":"ok","moves":[...]}`, rank 2 = terbaik, skor "??" disertakan
+ *     sebagai `dinilai:false` — TIDAK dibuang, dan skor mat paksa ditandai
+ *     `mat`) DAN bentuk teks (`move:d2d4,score:31,...`), termasuk `unknown`,
+ *     posisi tanpa data, dan penanda akhir permainan. `diketahui` hanya true
+ *     bila ≥ 1 langkah BERNILAI (semua "??" = belum diketahui).
  *  3. Klien server: timeout/ulang, cache (kueri kedua tidak menyentuh
  *     jaringan), FEN tidak sah → 400 tanpa memanggil jaringan, 5xx → 502.
  *  4. Penolakan "invalid board" dan balasan asing (HTML blokir, status tak
@@ -88,13 +90,21 @@ console.log("2) Uraian balasan cdb.php");
   const urai = uraiBalasanAwan(asliJson);
   ok(urai.diketahui === true, "JSON asli: posisi dianggap diketahui");
   ok(urai.akhir === null, "JSON asli: tidak ada penanda akhir permainan");
-  ok(urai.langkah.length === 3, `JSON asli: skor "??" dibuang (${urai.langkah.length} langkah)`);
+  ok(urai.langkah.length === 5, `JSON asli: skor "??" kini ikut dikirim (${urai.langkah.length} langkah)`);
   ok(
-    urai.langkah.map((l) => l.san).join(" ") === "a6 Nf6 d6",
-    `JSON asli: rank 2 dulu lalu skor menurun (${urai.langkah.map((l) => l.san).join(" ")})`
+    urai.langkah.map((l) => l.san).join(" ") === "a6 Nf6 d6 Ke7 f6",
+    `JSON asli: yang dinilai dulu (rank 2 lalu skor menurun), "??" menyusul urut CDB (${urai.langkah.map((l) => l.san).join(" ")})`
   );
   ok(urai.langkah[0].skorCp === 0 && urai.langkah[0].winrate === 50, "JSON asli: skor & winrate teks jadi angka");
   ok(urai.langkah[1].catatan === "! (32-08)", "JSON asli: catatan dipertahankan");
+  ok(
+    urai.langkah[0].dinilai === true && urai.langkah[3].dinilai === false,
+    'JSON asli: bidang `dinilai` benar (numeri` = true, "??" = false)'
+  );
+  ok(
+    urai.jumlahDinilai === 3 && urai.jumlahBelumDinilai === 2,
+    "JSON asli: jumlahDinilai/jumlahBelumDinilai terhitung benar"
+  );
   ok(!("_skor" in urai.langkah[0]), "JSON asli: bidang bantu pengurutan tidak bocor");
 
   ok(uraiBalasanAwan('{"status":"unknown"}').diketahui === false, 'JSON {"status":"unknown"} → belum ada data');
@@ -103,13 +113,23 @@ console.log("2) Uraian balasan cdb.php");
   ok(uraiBalasanAwan('{"status":"ok","moves":[]}').diketahui === false, "JSON ok tanpa langkah → belum ada data");
   const mat = uraiBalasanAwan('{"status":"ok","moves":[{"uci":"d8h4","san":"Qh4#","score":29999,"rank":2}]}');
   ok(mat.langkah.length === 1 && mat.langkah[0].skorCp === null, "skor mat paksa: langkah tetap ada, skorCp null");
+  ok(
+    mat.langkah[0].mat === true && mat.langkah[0].dinilai === true,
+    'skor mat paksa: `mat` true & `dinilai` true (bukan "??")'
+  );
+  const matKalah = uraiBalasanAwan('{"status":"ok","moves":[{"uci":"e1g1","san":"O-O","score":-29995,"rank":0}]}');
+  ok(matKalah.langkah[0].mat === true && matKalah.langkah[0].skorCp === null, "skor mat negatif juga ditandai `mat`");
 
   const uraiTeks = uraiBalasanAwan(
     "move:a7a6,score:0,rank:2,note:! (32-04),winrate:50.00|move:e8e7,score:??,rank:0,note:? (??-??)|move:d7d6,score:-45,rank:1"
   );
-  ok(uraiTeks.langkah.length === 2, "teks asli: dua langkah bernilai terbaca, \"??\" dibuang");
+  ok(uraiTeks.langkah.length === 3, 'teks asli: "??" kini ikut terbaca (3 langkah)');
   ok(uraiTeks.langkah[0].uci === "a7a6" && uraiTeks.langkah[0].catatan === "! (32-04)", "teks asli: uci + catatan (dengan spasi) terbaca");
   ok(uraiTeks.langkah[1].catatan === null && uraiTeks.langkah[1].rank === 1, "teks: bidang yang tidak dikirim jadi null");
+  ok(
+    uraiTeks.langkah[2].uci === "e8e7" && uraiTeks.langkah[2].dinilai === false,
+    'teks asli: "??" terbaca sebagai belum dinilai, menyusul di belakang'
+  );
 
   ok(uraiBalasanAwan("unknown").diketahui === false, "\"unknown\" → belum ada data");
   ok(uraiBalasanAwan("").diketahui === false, "balasan kosong → belum ada data");
@@ -148,6 +168,123 @@ console.log("2) Uraian balasan cdb.php");
     tolak = e;
   }
   ok(tolak instanceof GalatAwan && tolak.status === 502, "\"invalid board\" → galat (bukan dianggap kosong)");
+}
+
+/* ------------------------------- 2b. "??" dinilai-salah, mat, urutan, batas */
+
+console.log("2b) Langkah \"??\", penanda mat, urutan dinilai-dulu & batas kirim");
+{
+  // Semua "??" = belum ada yang dinilai → TIDAK dianggap diketahui (cache
+  // pendek + panel menawarkan engine), tetapi daftarnya tetap dikirim utuh.
+  const semuaTanya = uraiBalasanAwan(
+    '{"status":"ok","moves":[{"uci":"e8e7","san":"Ke7","score":"??","rank":0,"note":"? (??-??)"},' +
+      '{"uci":"a7a6","san":"a6","score":"??","rank":0,"note":"? (??-??)"}]}'
+  );
+  ok(semuaTanya.diketahui === false, 'semua "??" → diketahui false');
+  ok(
+    semuaTanya.langkah.length === 2 && semuaTanya.jumlahBelumDinilai === 2,
+    'semua "??" → daftar tetap dikirim lengkap'
+  );
+  ok(
+    semuaTanya.langkah.every((l) => l.dinilai === false && l.skorCp === null && l.mat === false),
+    'semua "??" → dinilai false, skorCp null, mat false'
+  );
+  ok(
+    uraiBalasanAwan("move:e8e7,score:??,rank:0|move:a7a6,score:??,rank:0").diketahui === false,
+    'teks semua "??" → diketahui false'
+  );
+
+  // Fixture ASLI cdb.php (queryall, Sep 2026): FEN Berlin 4.O-O
+  // `r1bqkb1r/pppp1ppp/2n2n2/1B2p3/4P3/5N2/PPPP1PPP/RNBQ1RK1 b kq - 5 4`
+  // — hanya Nxe4 yang bernilai; 27 langkah lain "??" (sama seperti queryc_en).
+  const berlin =
+    '{"status":"ok","moves":[{"uci":"f6e4","san":"Nxe4","score":-1,"rank":2,"note":"! (29-07)","winrate":"49.92"},' +
+    '{"uci":"e8e7","san":"Ke7","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"a7a6","san":"a6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"b7b6","san":"b6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"d7d6","san":"d6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"g7g6","san":"g6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"h7h6","san":"h6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"a7a5","san":"a5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"d7d5","san":"d5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"g7g5","san":"g5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"h7h5","san":"h5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"c6b4","san":"Nb4","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"c6d4","san":"Nd4","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"c6a5","san":"Na5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"c6e7","san":"Ne7","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"c6b8","san":"Nb8","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f6g4","san":"Ng4","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f6d5","san":"Nd5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f6h5","san":"Nh5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f6g8","san":"Ng8","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f8a3","san":"Ba3","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f8b4","san":"Bb4","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f8c5","san":"Bc5","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f8d6","san":"Bd6","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"f8e7","san":"Be7","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"a8b8","san":"Rb8","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"h8g8","san":"Rg8","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"d8e7","san":"Qe7","score":"??","rank":0,"note":"? (??-??)"}],"ply":7}';
+  const b = uraiBalasanAwan(berlin);
+  ok(b.diketahui === true, "Berlin: Nxe4 bernilai → diketahui true");
+  ok(b.jumlahDinilai === 1 && b.jumlahBelumDinilai === 27, 'Berlin: 1 bernilai + 27 "??"');
+  ok(b.langkah.length === 28, "Berlin: 28 langkah dikirim (sekaya queryc_en)");
+  ok(
+    b.langkah[0].san === "Nxe4" && b.langkah[0].dinilai === true && b.langkah[0].skorCp === -1,
+    "Berlin: Nxe4 di puncak dengan skor -1"
+  );
+  ok(
+    b.langkah[1].san === "Ke7" && b.langkah[1].dinilai === false && b.langkah[27].san === "Qe7",
+    'Berlin: "??" menyusul dengan urutan asli CDB (Ke7 … Qe7)'
+  );
+
+  // Fixture ASLI cdb.php: posisi awal — 16 langkah bernilai + 4 "??".
+  // Batas lama (10) memotong 16 jadi 10; batas baru menampung semuanya.
+  const posisiAwal =
+    '{"status":"ok","moves":[{"uci":"d2d4","san":"d4","score":0,"rank":2,"note":"! (20-04)","winrate":"50.00"},' +
+    '{"uci":"e2e4","san":"e4","score":0,"rank":2,"note":"! (20-05)","winrate":"50.00"},' +
+    '{"uci":"g1f3","san":"Nf3","score":0,"rank":2,"note":"! (20-06)","winrate":"50.00"},' +
+    '{"uci":"b1c3","san":"Nc3","score":0,"rank":2,"note":"! (20-07)","winrate":"50.00"},' +
+    '{"uci":"c2c4","san":"c4","score":0,"rank":2,"note":"! (20-07)","winrate":"50.00"},' +
+    '{"uci":"a2a3","san":"a3","score":0,"rank":2,"note":"! (20-09)","winrate":"50.00"},' +
+    '{"uci":"g2g3","san":"g3","score":0,"rank":2,"note":"! (20-09)","winrate":"50.00"},' +
+    '{"uci":"c2c3","san":"c3","score":0,"rank":2,"note":"! (20-11)","winrate":"50.00"},' +
+    '{"uci":"e2e3","san":"e3","score":0,"rank":2,"note":"! (20-11)","winrate":"50.00"},' +
+    '{"uci":"b2b3","san":"b3","score":0,"rank":2,"note":"! (20-12)","winrate":"50.00"},' +
+    '{"uci":"h2h3","san":"h3","score":0,"rank":2,"note":"! (20-12)","winrate":"50.00"},' +
+    '{"uci":"d2d3","san":"d3","score":0,"rank":2,"note":"! (20-13)","winrate":"50.00"},' +
+    '{"uci":"a2a4","san":"a4","score":-1,"rank":2,"note":"! (20-12)","winrate":"49.92"},' +
+    '{"uci":"h2h4","san":"h4","score":-1,"rank":2,"note":"! (20-12)","winrate":"49.92"},' +
+    '{"uci":"b2b4","san":"b4","score":-1,"rank":2,"note":"! (20-14)","winrate":"49.92"},' +
+    '{"uci":"f2f4","san":"f4","score":-1,"rank":2,"note":"! (20-15)","winrate":"49.92"},' +
+    '{"uci":"f2f3","san":"f3","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"g2g4","san":"g4","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"b1a3","san":"Na3","score":"??","rank":0,"note":"? (??-??)"},' +
+    '{"uci":"g1h3","san":"Nh3","score":"??","rank":0,"note":"? (??-??)"}],"ply":0}';
+  const awal = uraiBalasanAwan(posisiAwal);
+  ok(awal.diketahui === true && awal.jumlahDinilai === 16, "posisi awal: 16 langkah bernilai → diketahui");
+  ok(awal.jumlahBelumDinilai === 4 && awal.langkah.length === 20, 'posisi awal: 4 "??" ikut → 20 langkah utuh');
+  ok(
+    awal.langkah[0].san === "d4" && awal.langkah[15].san === "f4" && awal.langkah[16].san === "f3",
+    'posisi awal: 16 bernilai (d4 … f4) lebih dulu, baru "??" (f3 …)'
+  );
+
+  // Batas kirim: maks. 20 bernilai + 40 "??"; jumlah asli tetap dilaporkan.
+  const mentah = [];
+  for (let i = 0; i < 25; i += 1) mentah.push({ uci: "a7a6", san: `V${i}`, score: 25 - i, rank: 2 });
+  for (let i = 0; i < 50; i += 1) mentah.push({ uci: "b7b6", san: `U${i}`, score: "??", rank: 0 });
+  const batas = uraiBalasanAwan(JSON.stringify({ status: "ok", moves: mentah }));
+  ok(
+    batas.jumlahDinilai === 25 && batas.jumlahBelumDinilai === 50,
+    "batas: jumlah asli tetap dilaporkan (25/50)"
+  );
+  ok(batas.langkah.length === 60, `batas: maks 20 dinilai + 40 belum dinilai (${batas.langkah.length})`);
+  ok(
+    batas.langkah[0].san === "V0" && batas.langkah[19].san === "V19" && batas.langkah[20].san === "U0",
+    "batas: 20 skor teratas dipilih & urutan tetap dinilai-dulu"
+  );
+  ok(batas.langkah[59].san === "U39", 'batas: 40 "??" pertama (urut CDB) dipilih');
 }
 
 /* ------------------------------------------------------- 3. klien server */
@@ -309,6 +446,28 @@ console.log("4) Formatter & saran untuk komentator");
   ok(saranAwanKomentator({ langkah: [{ uci: "g1f3", skorCp: 35 }] }) === null, "tanpa SAN → tidak ada saran");
   ok(saranAwanKomentator({ langkah: [{ san: "Nf3", skorCp: null }] }) === null, "tanpa skor → tidak ada saran");
   ok(saranAwanKomentator({ langkah: [] }) === null, "daftar kosong → tidak ada saran");
+  ok(
+    saranAwanKomentator({
+      langkah: [
+        { san: "a6", dinilai: false, skorCp: null, mat: false },
+        { san: "Nf3", dinilai: true, skorCp: 35, mat: false },
+      ],
+    })?.san === "Nf3",
+    'saran komentator melewati langkah "??" yang terselip di depan'
+  );
+  ok(
+    saranAwanKomentator({ langkah: [{ san: "a6", dinilai: false, skorCp: null, mat: false }] }) === null,
+    'hanya "??" → tidak ada saran komentator'
+  );
+  ok(
+    saranAwanKomentator({
+      langkah: [
+        { san: "Qh4#", dinilai: true, skorCp: null, mat: true },
+        { san: "Nf3", dinilai: true, skorCp: 35, mat: false },
+      ],
+    }) === null,
+    "langkah mat paksa tanpa skor pion → nilai tak terformat, tidak jadi saran"
+  );
 
   bersihkanCacheAwanKlien();
 

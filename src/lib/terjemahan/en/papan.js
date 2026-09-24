@@ -91,6 +91,14 @@ export const papan = {
     awanKolomWinrate: "Winrate",
     awanKolomCatatan: "Note",
     awanCatatanSkor: "Score is from the side to move (positive = better).",
+    awanMat: "Mate",
+    awanTampilkanBelumDinilai: "Show {jumlah} unanalyzed moves",
+    awanSembunyikanBelumDinilai: "Hide unanalyzed moves",
+    awanCatatanDinilai:
+      "Only {jumlah} moves have been scored by the cloud database — turn on the engine to evaluate the rest.",
+    awanBelumAdaDinilai:
+      "No moves have been scored by the cloud database yet — turn on the engine to evaluate them.",
+    awanNyalakanEngine: "Turn on engine",
     warnaBiru: "Blue",
     warnaCokelat: "Brown",
     warnaOranye: "Orange",
