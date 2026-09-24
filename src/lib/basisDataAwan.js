@@ -14,10 +14,14 @@
  */
 import { urlApi } from "./api/core.js";
 
-/** Cache klien: posisi -> { kedaluwarsa, nilai }. Server sudah punya cache
- * sendiri yang jauh lebih panjang; ini hanya menghemat perjalanan bolak-balik. */
+/** Cache klien: posisi -> { kedaluwarsa, nilai?, galat? }. Server sudah punya
+ * cache sendiri yang jauh lebih panjang; ini hanya menghemat perjalanan
+ * bolak-balik. Kegagalan disimpan SEBENTAR (30 detik) supaya satu layanan yang
+ * sedang tidak terjangkau tidak dipanggil ulang tiap langkah — dan konsol
+ * browser tidak dipenuhi galat jaringan yang sama berulang-ulang. */
 const cache = new Map();
 const TTL_MS = 5 * 60 * 1000;
+const TTL_GAGAL_MS = 30 * 1000;
 const CACHE_MAKS = 200;
 
 /**
@@ -35,18 +39,48 @@ export async function ambilBasisDataAwan(fen, { signal } = {}) {
   if (!posisi) throw new Error("Posisi kosong.");
 
   const tersimpan = cache.get(posisi);
-  if (tersimpan && Date.now() < tersimpan.kedaluwarsa) return tersimpan.nilai;
+  if (tersimpan && Date.now() < tersimpan.kedaluwarsa) {
+    if (tersimpan.galat) throw new Error(tersimpan.galat);
+    return tersimpan.nilai;
+  }
 
-  const res = await fetch(urlApi(`/api/basisdata-awan?fen=${encodeURIComponent(posisi)}`), {
-    signal,
-    headers: { Accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`Basis data awan menjawab ${res.status}.`);
+  // Tidak ada koneksi: jangan buang waktu pengguna dengan permintaan yang
+  // pasti gagal (juga menghindari galat jaringan di konsol).
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    const pesan = "Tidak ada koneksi internet.";
+    simpanGagal(posisi, pesan);
+    throw new Error(pesan);
+  }
 
-  const nilai = await res.json();
-  cache.set(posisi, { nilai, kedaluwarsa: Date.now() + TTL_MS });
+  try {
+    const res = await fetch(urlApi(`/api/basisdata-awan?fen=${encodeURIComponent(posisi)}`), {
+      signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error(`Basis data awan menjawab ${res.status}.`);
+
+    const nilai = await res.json();
+    simpanNilai(posisi, nilai);
+    return nilai;
+  } catch (e) {
+    // Pembatalan bukan kegagalan layanan — jangan di-cache.
+    if (e?.name !== "AbortError") simpanGagal(posisi, e?.message || String(e));
+    throw e;
+  }
+}
+
+function buangKelebihan() {
   while (cache.size > CACHE_MAKS) cache.delete(cache.keys().next().value);
-  return nilai;
+}
+
+function simpanNilai(posisi, nilai) {
+  cache.set(posisi, { nilai, kedaluwarsa: Date.now() + TTL_MS });
+  buangKelebihan();
+}
+
+function simpanGagal(posisi, pesan) {
+  cache.set(posisi, { galat: pesan, kedaluwarsa: Date.now() + TTL_GAGAL_MS });
+  buangKelebihan();
 }
 
 /** Kosongkan cache klien (dipakai uji). */

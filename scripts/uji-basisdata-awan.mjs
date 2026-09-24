@@ -23,6 +23,7 @@ import {
   uraiBalasanAwan,
 } from "../server/src/basisDataAwan.js";
 import {
+  ambilBasisDataAwan,
   bersihkanCacheAwanKlien,
   formatSkorAwan,
   saranAwanKomentator,
@@ -212,7 +213,43 @@ console.log("4) Formatter & saran untuk komentator");
   ok(saranAwanKomentator({ langkah: [] }) === null, "daftar kosong → tidak ada saran");
 
   bersihkanCacheAwanKlien();
-  ok(true, "cache klien bisa dikosongkan");
+
+  // Kegagalan layanan disimpan sebentar: satu kali jaringan gagal, panggilan
+  // berikutnya untuk posisi yang sama tidak lagi menyentuh fetch.
+  {
+    const fetchAsli = globalThis.fetch;
+    let panggilan = 0;
+    globalThis.fetch = async () => {
+      panggilan += 1;
+      return { ok: false, status: 503, json: async () => ({}) };
+    };
+    const FEN_UJI = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1";
+    let pesan1 = null;
+    try {
+      await ambilBasisDataAwan(FEN_UJI);
+    } catch (e) {
+      pesan1 = e.message;
+    }
+    let pesan2 = null;
+    try {
+      await ambilBasisDataAwan(FEN_UJI);
+    } catch (e) {
+      pesan2 = e.message;
+    }
+    globalThis.fetch = fetchAsli;
+    ok(panggilan === 1, `kegagalan tidak diulang tiap langkah (fetch dipanggil ${panggilan}×)`);
+    ok(pesan1 === pesan2 && /503/.test(pesan2), "pesan galat yang sama dipakai ulang (di-cache 30 detik)");
+
+    // Cache dibersihkan → permintaan baru diizinkan lagi.
+    bersihkanCacheAwanKlien();
+    globalThis.fetch = async () => {
+      panggilan += 1;
+      return { ok: true, status: 200, json: async () => ({ diketahui: false, langkah: [] }) };
+    };
+    await ambilBasisDataAwan(FEN_UJI);
+    globalThis.fetch = fetchAsli;
+    ok(panggilan === 2, "setelah cache dikosongkan, permintaan baru dijalankan lagi");
+  }
 }
 
 /* --------------------------------- 5. kalimat komentator memakai saran itu */
