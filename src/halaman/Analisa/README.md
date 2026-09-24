@@ -838,31 +838,37 @@ WintrChess (`components/common/ProgressReporter`, dipakai
 - baris petunjuk kecil: "Kalau prosesnya terasa lama, coba turunkan kedalaman
   mesin di Pengaturan." (`analisa.muat.petunjukLama`, ID/EN) — ini tooltip
   WintrChess;
-- ikon lensa + lencana format + spinner tetap, karena itu ciri kartu kita.
+- ikon lensa, format, spinner, dan tombol Batal tetap ada, namun disusun
+  lebih ringkas agar grafik terlihat segera di bawah progres, termasuk mobile.
 
-Selain itu, di dalam kartu ada **grafik eval yang tumbuh selama analisa**
-(adopsi dari WintrChess, yang sudah menampilkan grafik Report selagi posisi
-dinilai satu per satu):
+**Grafik Report sekarang tetap terpasang saat loading sampai Ringkasan jadi**,
+seperti WintrChess (tidak lagi digambar terpisah di dalam kartu progres):
 
-- `mesin/engine.js` — `parsePGN(..., { onLangkah })` memanggil balik dengan
-  salinan `moves` sementara setiap satu posisi selesai (posisi awal + tiap
-  langkah). Opsional, jadi pemanggil lama tidak berubah.
-- `konteks/analyze.jsx` — state `langkahSementara` (dikosongkan lagi saat
-  muatan dimulai/selesai/gagal di `game.jsx`).
-- `komponen/menu/loading/grafikMuat.jsx` — SVG area 400×96 yang direntangkan
-  `viewBox` (tidak mengukur lebar wadah, jadi tetap aman sebelum layout ada),
-  muncul begitu ada ≥2 titik. Latar `bg-evaluationBarBlack` + jalur putih +
-  garis tengah, sama seperti grafik tab Ringkasan.
-- Geometri kurvanya satu modul: `komponen/menu/analysis/grafikEval.js`
-  (`tinggiEval`/`xGrafik`/`jalurGrafik`), dipakai grafik Ringkasan
-  (`gameChart.jsx`, setelah refaktor tetap menghasilkan jalur yang sama persis)
-  dan grafik kartu muat — supaya bentuk yang tumbuh selama analisa identik
-  dengan grafik akhir.
+- `mesin/engine.js` — `bacaPartaiPGN()` mengurai seluruh posisi/SAN sebelum
+  engine dimuat. Hasilnya juga dipakai `parsePGN(..., { partai, onLangkah })`,
+  jadi partai tidak diparse ulang. `onLangkah` tetap opsional untuk pemanggil
+  lama dan memasok evaluasi setelah tiap posisi selesai.
+- `konteks/analyze.jsx` + `komponen/game/game.jsx` — `langkahSementara`
+  memuat semua posisi sejak awal; hasil yang masuk mengganti posisi terkait,
+  sisanya tetap pada garis tengah. Partai lama/dibatalkan tidak boleh
+  menimpa grafik partai baru. Tombol Batal membersihkan grafik dan progres
+  termasuk saat engine masih disiapkan.
+- `komponen/menu/menu.jsx` — grafik sama (`loading/grafikMuat.jsx` →
+  `analysis/gameChart.jsx`) muncul di bawah progres lalu tetap di tempat
+  saat Ringkasan menggantikan progres, tanpa bongkar-pasang SVG. Area grafik
+  responsif selebar 85% panel, dengan tooltip eval/SAN. Setelah analisis
+  selesai klik/keyboard dapat melompat ke langkah seperti sebelumnya.
+- `analysis/grafikEval.js` tetap memakai skala ±400 cp yang sama dengan
+  eval bar papan; kini membalik skor berdasarkan `move.color` (penting untuk
+  PGN yang mulai dari giliran hitam) dan membaca skakmat `mate 0` dengan benar.
+- `komponen/areaKerja.jsx` + ukuran papan di `game.jsx` mencegah panel
+  melebar melewati viewport saat nav kiri aktif, sehingga seluruh grafik
+  tetap terlihat sepanjang transisi loading → Ringkasan.
 
 Bilangan persen lewat `persenProgres()` (diekspor dari `loading.jsx`): nilai
 di luar 0–100 atau bukan angka dijinakkan, jadi kartu tidak pernah menulis
 `NaN%`. Sumber angkanya `setProgress` di `mesin/engine.js` (dipanggil tiap
-langkah selesai dianalisis), sama seperti sebelumnya.
+langkah selesai dianalisis).
 
 "Bar hitam-putih" yang tampak di WintrChess adalah **eval bar** di samping
 papan, dan itu sudah ada di halaman ini sejak lama

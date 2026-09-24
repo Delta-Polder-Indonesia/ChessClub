@@ -473,22 +473,14 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
   };
 }
 
-/**
- * Analisis seluruh partai PGN, langkah demi langkah.
- * Progres dilaporkan dalam persen (0–100) untuk bilah muat.
- *
- * `opsi.multiPv` (bawaan MULTI_PV) mengaktifkan perekaman kandidat MultiPV
- * per posisi — bahan metrik peringkat anti-cheat. Nilai 1 mematikan rekaman
- * (paling cepat) dan membuat metrik peringkat bernilai null di antiCheat.js.
+/*
+ * Siapkan seluruh posisi dari PGN SEBELUM engine dimuat. Grafik Report sudah
+ * memiliki sumbu X penuh sejak awal; posisi yang belum dinilai tetap pada
+ * garis tengah, lalu diisi satu per satu oleh parsePGN. Parser ini juga dipakai
+ * parsePGN agar PGN tidak perlu dibaca dua kali dalam satu proses analisis.
  */
-/**
- * `opts.onLangkah` (opsional) dipanggil dengan salinan `moves` sementara setiap
- * satu posisi selesai dinilai — bahan grafik yang tumbuh selama analisa
- * (`komponen/menu/loading/grafikMuat.jsx`), seperti grafik Report WintrChess.
- */
-export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV, onLangkah } = {}) {
+export function bacaPartaiPGN(rawPgn) {
   const chess = new Chess();
-
   let pgn;
   try {
     pgn = muatPgn(chess, rawPgn);
@@ -505,8 +497,27 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     time: waktuDariPgn(headers),
     result: getResult(headers, pgn),
   };
-
   const daftarClock = ekstrakDaftarClock(chess, rawPgn, riwayat, metadata.time);
+  const kerangka = [
+    { fen: riwayat[0].before, color: riwayat[0].color },
+    ...riwayat.map((langkah) => ({
+      fen: langkah.after,
+      san: langkah.san,
+      color: invertColor(langkah.color),
+    })),
+  ];
+  return { metadata, riwayat, daftarClock, kerangka };
+}
+
+/**
+ * Analisis seluruh partai PGN, langkah demi langkah.
+ * Progres dilaporkan dalam persen (0–100) untuk bilah muat.
+ * `partai` opsional adalah hasil bacaPartaiPGN yang sudah ditampilkan di
+ * grafik; `onLangkah` menerima posisi yang telah dinilai setelah tiap langkah.
+ * `multiPv` (bawaan MULTI_PV) merekam kandidat untuk penilaian langkah.
+ */
+export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV, onLangkah, partai } = {}) {
+  const { riwayat, metadata, daftarClock } = partai ?? bacaPartaiPGN(rawPgn);
 
   const hentikan = () => mesin.setop();
   if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });

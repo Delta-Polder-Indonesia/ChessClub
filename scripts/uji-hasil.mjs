@@ -1,5 +1,5 @@
 /**
- * Uji HASIL ANALISA fitur Analisa — komponen `Summary` ASLI (panel ringkasan)
+ * Uji HASIL ANALISA fitur Analisa — grafik + komponen `Summary` ASLI
  * di atas jsdom, diberi partai hasil `parsePGN()` asli dengan engine PALSU
  * deterministik:
  *
@@ -31,6 +31,9 @@ const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/en
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { default: Summary } = await import(
   "../src/halaman/Analisa/komponen/menu/analysis/summary/summary.jsx"
+);
+const { default: GrafikMuat } = await import(
+  "../src/halaman/Analisa/komponen/menu/loading/grafikMuat.jsx"
 );
 
 const act = React.act ?? (await import("react-dom/test-utils")).act;
@@ -160,12 +163,11 @@ const rata = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
 const AKURASI_W = rata(akurasiPutih); // 74
 const AKURASI_B = rata(akurasiHitam); // 90
 
-/* ------------------------- render Summary ASLI ------------------------- */
+/* ------------------------- render Grafik + Summary seperti di Menu ------------------------- */
 
 const el = document.getElementById("root");
 const root = createRoot(el);
 
-const container = React.createRef();
 const status = { moveNumber: 0, animation: false, forward: false };
 function Wadah() {
   const [moveNumber, setMoveNumber] = React.useState(0);
@@ -174,15 +176,12 @@ function Wadah() {
   status.moveNumber = moveNumber;
   status.animation = animation;
   status.forward = forward;
-  return React.createElement(Summary, {
-    moves,
-    container,
-    players: metadata.players,
-    moveNumber,
-    setMoveNumber,
-    setAnimation,
-    setForward,
-  });
+  return React.createElement(React.Fragment, null,
+    React.createElement(GrafikMuat, {
+      moves, moveNumber, setMoveNumber, setAnimation, setForward, interaktif: true,
+    }),
+    React.createElement(Summary, { moves, players: metadata.players }),
+  );
 }
 
 act(() => {

@@ -70,11 +70,11 @@ export default function AreaKerja() {
   const papanAktif = tampilan === TAMPILAN_ANALISA.BERMAIN;
 
   return (
-    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col">
+    <div className="relative flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
       <main
         ref={wadahRef}
         aria-hidden={papanAktif ? undefined : true}
-        className={`relative h-full w-full overflow-y-auto overflow-x-hidden ${papanAktif ? "" : "invisible"}`}
+        className={`relative h-full min-w-0 w-full overflow-y-auto overflow-x-hidden ${papanAktif ? "" : "invisible"}`}
       >
         <div className="flex h-full w-full flex-col items-center justify-start gap-4 overflow-y-auto p-2 vertical:flex-row vertical:justify-start vertical:gap-2 vertical:overflow-visible vertical:p-4">
           <div className="flex h-full w-min flex-col navTop:flex-row vertical:gap-[10px] gap-[6px]">
