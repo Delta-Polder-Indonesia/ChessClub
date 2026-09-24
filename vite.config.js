@@ -154,17 +154,45 @@ export default defineConfig({
     },
     rollupOptions: {
       output: {
-        // Pisahkan vendor library ke chunk terpisah supaya browser
-        // meng-cache React, react-router, dan lib lain secara independen
-        // dari kode aplikasi yang sering berubah.
-        manualChunks: {
-          "vendor-react": [
-            "react",
-            "react-dom",
-            "react-dom/client",
-            "react-router",
-            "react-router-dom",
-          ],
+        /**
+         * Pisahkan vendor library ke chunk terpisah supaya browser
+         * meng-cache React, react-router, dan lib lain secara independen
+         * dari kode aplikasi yang sering berubah.
+         *
+         * Bentuk FUNGSI (bukan objek) dipakai dengan sengaja: bentuk objek
+         * `{ "vendor-chart": ["recharts"] }` menyeret SELURUH subtree
+         * dependensi recharts — termasuk `clsx` dan `es-toolkit` yang dipakai
+         * nyaris semua komponen shadcn. Akibatnya `dashboard`, dialog
+         * (`alert`), hingga halaman Pendaftaran ikut mengunduh recharts
+         * (351 kB) hanya karena butuh `clsx`. Dengan mencocokkan jalur paket,
+         * hanya paket khusus grafik yang dipindahkan; pembantu bersama tetap
+         * di tempat asalnya.
+         */
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return undefined;
+          const paket = id.split("node_modules/").pop();
+          if (
+            /^(react|react-dom|react-router|react-router-dom|scheduler|use-sync-external-store)\//.test(
+              paket
+            )
+          ) {
+            return "vendor-react";
+          }
+          // Pembantu super kecil (penggabung className) dipakai nyaris semua
+          // komponen. Tanpa penugasan eksplisit, Rollup menitipkannya ke
+          // chunk vendor-chart sehingga `alert`/dialog ikut mengunduh
+          // recharts hanya demi `clsx`.
+          if (/^(clsx|tailwind-merge|cn|es-toolkit)\//.test(paket)) {
+            return "vendor-alat";
+          }
+          if (
+            /^(recharts|victory-vendor|d3-[a-z-]+|internmap|react-redux|redux|redux-thunk|immer|reselect|decimal\.js-light|eventemitter3)\//.test(
+              paket
+            )
+          ) {
+            return "vendor-chart";
+          }
+          return undefined;
         },
       },
     },
