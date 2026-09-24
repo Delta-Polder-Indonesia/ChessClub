@@ -180,9 +180,9 @@ export const komentatorPapan = {
       "Switch the engine on above for full commentary with scores and ratings.",
     ],
     awan: [
-      "The cloud database suggests {awan} for {lawan}, score {nilai}.",
-      "Cloud says {awan} makes sense here — score {nilai} for {lawan}.",
-      "According to the cloud database, {lawan} should play {awan} (score {nilai}).",
+      "Oh — the best move in that position: {awan}, score {nilai}.",
+      "For the record, before that move: {awan} ({nilai}) was best.",
+      "Cloud notes for that position: {awan}, score {nilai}.",
     ],
   },
   genZ: {
@@ -346,9 +346,9 @@ export const komentatorPapan = {
       "Want an honest rating? Enable the engine and let the numbers talk.",
     ],
     awan: [
-      "Cloud db says {awan} for {lawan}. Score {nilai}, not bad.",
-      "The cloud is calling {awan} — score {nilai} for {lawan}. Check the Database tab.",
-      "If you trust the cloud, {lawan} plays {awan}. Score {nilai}.",
+      "BTW, best move back there: {awan} — score {nilai}.",
+      "Noted: the top pick was {awan} ({nilai}).",
+      "FYI, the cloud's pick: {awan}, score {nilai}.",
     ],
   } ,
   formal: {
@@ -512,9 +512,9 @@ export const komentatorPapan = {
       "Move-quality assessment is available when the engine is active.",
     ],
     awan: [
-      "The cloud database recommends {awan} for {lawan} with a score of {nilai}.",
-      "Cloud data indicates {awan} as {lawan}'s choice; score {nilai}.",
-      "Cloud database suggestion: {awan} for {lawan} (score {nilai}).",
+      "The best move in the previous position: {awan} (score {nilai}).",
+      "Note: in that position the best move was {awan}, score {nilai}.",
+      "The cloud database reference for that position: {awan} (score {nilai}).",
     ],
   },
 };

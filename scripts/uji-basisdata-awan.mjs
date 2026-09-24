@@ -31,7 +31,9 @@ import {
   ambilBasisDataAwan,
   bersihkanCacheAwanKlien,
   formatSkorAwan,
+  intipBasisDataAwan,
   saranAwanKomentator,
+  skorLangkahAwan,
 } from "../src/lib/basisDataAwan.js";
 import { susunKomentar, faktaLangkah } from "../src/lib/komentator.js";
 import { ID, EN } from "../src/lib/terjemahan.js";
@@ -544,6 +546,53 @@ console.log("4) Formatter & saran untuk komentator");
     const segar = await ambilBasisDataAwan(FEN_UJI, { segarkan: true });
     globalThis.fetch = fetchAsli;
     ok(panggilan === 2 && segar.diketahui === true, "segarkan: true melewati cache kegagalan (Coba lagi)");
+    bersihkanCacheAwanKlien();
+  }
+}
+
+/* ------------------ 4b. intip cache & skor langkah (tinjauan komentator) */
+
+console.log("4b) Intip cache klien & skor langkah yang dimainkan");
+{
+  // skorLangkahAwan — sumber ekspresi karakter untuk langkah yang BARU
+  // dimainkan, diambil dari data posisi SEBELUM langkah itu.
+  const dataTinjau = {
+    langkah: [
+      { san: "Nf3", dinilai: true, skorCp: 35, mat: false },
+      { san: "f3", dinilai: false, skorCp: null, mat: false },
+      { san: "Qh4#", dinilai: true, skorCp: null, mat: true },
+    ],
+  };
+  ok(skorLangkahAwan(dataTinjau, "Nf3") === 35, "skorLangkahAwan: langkah bernilai → skornya");
+  ok(skorLangkahAwan(dataTinjau, "f3") === null, 'skorLangkahAwan: langkah "??" → null');
+  ok(skorLangkahAwan(dataTinjau, "Qh4#") === null, "skorLangkahAwan: mat paksa (tanpa skorCp) → null");
+  ok(skorLangkahAwan(dataTinjau, "e4") === null, "skorLangkahAwan: langkah tak ada di data → null");
+  ok(skorLangkahAwan(null, "Nf3") === null, "skorLangkahAwan: data kosong → null");
+
+  // intipBasisDataAwan — cache-ONLY, tidak boleh menyentuh jaringan (dipakai
+  // tinjauan pasca-langkah komentator supaya beban chessdb tidak bertambah).
+  {
+    bersihkanCacheAwanKlien();
+    const FEN_INTIP = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+    ok(intipBasisDataAwan(FEN_INTIP) === null, "intip: cache kosong → null");
+    const fetchAsli = globalThis.fetch;
+    let panggilan = 0;
+    globalThis.fetch = async () => {
+      panggilan += 1;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ diketahui: true, langkah: [{ san: "Nf3", skorCp: 35 }] }),
+      };
+    };
+    await ambilBasisDataAwan(FEN_INTIP);
+    const diintip = intipBasisDataAwan(FEN_INTIP);
+    globalThis.fetch = fetchAsli;
+    ok(
+      panggilan === 1 && diintip?.langkah?.[0]?.san === "Nf3",
+      "intip: hasil cache terbaca tanpa kueri tambahan"
+    );
+    ok(intipBasisDataAwan("bukan-fen-simpanan") === null, "intip: posisi lain → null");
     bersihkanCacheAwanKlien();
   }
 }

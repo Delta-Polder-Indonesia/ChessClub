@@ -114,6 +114,31 @@ export function bersihkanCacheAwanKlien() {
 }
 
 /**
+ * Intip cache klien saja — TANPA kueri jaringan. Dipakai tinjauan pasca-
+ * langkah komentator (data posisi sebelum langkah terakhir) supaya tidak ada
+ * permintaan tambahan ke chessdb.cn: posisi itu baru saja tampil, hampir
+ * selalu sudah tersimpan (TTL 5 menit). `null` bila tidak ada / kedaluwarsa.
+ */
+export function intipBasisDataAwan(fen) {
+  const posisi = String(fen || "").trim();
+  const tersimpan = cache.get(posisi);
+  if (!tersimpan || Date.now() >= tersimpan.kedaluwarsa || tersimpan.galat) return null;
+  return tersimpan.nilai;
+}
+
+/**
+ * Skor langkah tertentu (dicocokkan lewat SAN) dari data awan sebuah posisi —
+ * sumber ekspresi karakter komentator untuk langkah yang BARU dimainkan.
+ * `null` bila langkah tidak ada di data, belum dinilai ("??"), atau skor
+ * mat paksa (tidak muat skala pion).
+ */
+export function skorLangkahAwan(data, san) {
+  const target = String(san || "").trim();
+  const langkah = data?.langkah?.find((l) => l?.dinilai !== false && l.san === target);
+  return langkah && Number.isFinite(langkah.skorCp) ? langkah.skorCp : null;
+}
+
+/**
  * Skor sentipion (sudut pandang pihak yang jalan) → teks siap tampil,
  * mis. `-121` → "-1.2", `35` → "+0.4". `null` bila tidak ada skor.
  */

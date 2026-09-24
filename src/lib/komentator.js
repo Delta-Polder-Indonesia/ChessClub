@@ -67,6 +67,27 @@ const RATING_SEDIH = new Set(["mistake"]);
 const RATING_MARAH = new Set(["blunder"]);
 
 /**
+ * Emosi karakter dari skor langkah basis data awan (sentipion, sudut pandang
+ * pihak yang melangkah). Dipakai saat engine MATI supaya wajah karakter tetap
+ * hidup mengikuti angka — sama seperti saat engine menyala. Batas sengaja
+ * diambil pada nilai yang TAMPIL di UI (dibulatkan 0,1 pion) supaya ekspresi
+ * tidak bertabrakan dengan angka yang terbaca:
+ *   ≥ +2 sangat senang (terkejut) · +0 s/d +2 senang · 0 s/d -1 berpikir ·
+ *   -1 s/d -3 bingung · -3 s/d -5 sedih · ≤ -5 marah (termasuk -5 s/d -6, dst.).
+ * `null` bila skor tidak diketahui (langkah "??" / mat) → Fritz seperti biasa.
+ */
+export function ekspresiDariSkorAwan(skorCp) {
+  if (!Number.isFinite(skorCp)) return null;
+  const pion = Math.round(skorCp / 10) / 10;
+  if (pion >= 2) return "terkejut";
+  if (pion >= 0) return "senang";
+  if (pion >= -1) return "berpikir";
+  if (pion >= -3) return "bingung";
+  if (pion >= -5) return "sedih";
+  return "marah";
+}
+
+/**
  * Pilih avatar karakter untuk kartu komentator.
  *
  * BUKU PEMBUKAAN berlaku untuk KEDUA keadaan engine: selama partai masih di
@@ -75,7 +96,9 @@ const RATING_MARAH = new Set(["blunder"]);
  * sekali. Karakter dan Fritz baru muncul setelah partai keluar dari buku.
  *
  * Setelah keluar buku: engine MATI → Fritz yang berkonsentrasi (komentar
- * hanya dari fakta papan); engine NYALA → enam karakter catur bereaksi
+ * hanya dari fakta papan) — KECUALI bila ada `ekspresiAwan` (skor langkah
+ * dari basis data awan), wajahnya ikut bereaksi seperti mode engine;
+ * engine NYALA → enam karakter catur bereaksi
  * terhadap vonis engine lebih dulu, lalu (bila eval belum siap) terhadap fakta
  * papan: skakmat/langkah bagus/rokade/promosi → senang, pengorbanan/skak/
  * tangkap besar → terkejut, bidak sendiri menggantung → bingung, dst.
@@ -87,6 +110,8 @@ const RATING_MARAH = new Set(["blunder"]);
  * @param {string|null} [p.namaPembukaan] nama pembukaan bila masih di buku
  * @param {boolean} [p.posisiAwal]    belum ada langkah (masih tahap pembukaan)
  * @param {object|null} [p.fakta]     hasil faktaLangkah() langkah terakhir
+ * @param {string|null} [p.ekspresiAwan] emosi dari ekspresiDariSkorAwan() —
+ *        dipakai saat engine mati (skor basis data awan)
  * @returns {string} path gambar avatar, atau AVATAR_BUKU untuk ikon buku
  */
 export function gambarKomentator({
@@ -96,11 +121,16 @@ export function gambarKomentator({
   namaPembukaan = null,
   posisiAwal = false,
   fakta = null,
+  ekspresiAwan = null,
 } = {}) {
   // Masih di buku pembukaan (atau papan belum melangkah) → ikon buku saja,
   // apa pun keadaan engine-nya.
   if (posisiAwal || rating === "book" || namaPembukaan) return AVATAR_BUKU;
-  if (!engineNyala) return GAMBAR_KOMENTATOR.fritz;
+  if (!engineNyala) {
+    // Ekspresi dari skor basis data awan — wajah mengikuti angka seperti mode
+    // engine. Tanpa skor (atau skor tak dikenal): Fritz yang berkonsentrasi.
+    return (ekspresiAwan && GAMBAR_KOMENTATOR[ekspresiAwan]) || GAMBAR_KOMENTATOR.fritz;
+  }
   if (fakta?.skakmat) return GAMBAR_KOMENTATOR.senang;
   if (rating && rating !== "book" && rating !== "forced") {
     if (RATING_SENANG.has(rating)) return GAMBAR_KOMENTATOR.senang;
@@ -506,10 +536,12 @@ export function susunKomentar({
     if (fakta.ply % 6 === 5) tambah("ajakEngine", 2, {}, 3);
   }
 
-  /* ---- 6. Saran basis data awan — hanya saat engine MATI. ---- */
-  // Saran ini untuk pihak yang SEDANG jalan (= lawan pelangkah terakhir),
-  // jadi kalimatnya menyebut {lawan}. Saat engine nyala, penilaian engine
-  // sudah jadi acuan dan saran awan hanya akan mengulang informasi.
+  /* ---- 6. Tinjauan langkah dari basis data awan — hanya saat engine MATI. ---- */
+  // `saranAwan` = langkah terbaik untuk sisi yang BARU melangkah, diambil dari
+  // posisi SEBELUM langkah terakhir (tinjauan pasca-langkah: "langkah terbaik
+  // waktu itu …"). Sengaja BUKAN saran untuk pihak yang sekarang jalan —
+  // membocorkan langkah berikutnya tidak diinginkan. Saat engine nyala,
+  // penilaian engine sudah jadi acuan dan tinjauan awan hanya mengulang.
   if (!engineNyala && saranAwan?.san && saranAwan?.nilai) {
     tambah("awan", 2, { awan: saranAwan.san, nilai: saranAwan.nilai }, 3);
   }

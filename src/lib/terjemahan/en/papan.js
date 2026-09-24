@@ -99,6 +99,8 @@ export const papan = {
     awanBelumAdaDinilai:
       "No moves have been scored by the cloud database yet — turn on the engine to evaluate them.",
     awanNyalakanEngine: "Turn on engine",
+    awanTampilanPenuh: "Show all cloud database moves",
+    awanRingkas: "Best move: {langkah} ({nilai})",
     warnaBiru: "Blue",
     warnaCokelat: "Brown",
     warnaOranye: "Orange",

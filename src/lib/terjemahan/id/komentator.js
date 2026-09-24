@@ -179,12 +179,14 @@ export const komentatorPapan = {
       "Mau tahu langkah ini bagus atau tidak? Nyalakan engine, aku akan menilainya.",
       "Nyalakan engine di atas kalau mau komentar lengkap dengan skor dan penilaian.",
     ],
-    // Saran basis data awan (chessdb.cn) — dipakai saat engine mati dan partai
-    // sudah keluar dari buku pembukaan lokal. Saran untuk pihak yang jalan.
+    // Tinjauan basis data awan (chessdb.cn) — dipakai saat engine mati dan
+    // partai sudah keluar dari buku pembukaan lokal. Menyebut langkah terbaik
+    // untuk sisi yang BARU melangkah di posisi SEBELUM langkahnya (pasca-
+    // langkah) — bukan saran untuk pihak yang sekarang jalan.
     awan: [
-      "Basis data awan menyarankan {awan} untuk {lawan}, skor {nilai}.",
-      "Cloud bilang {awan} masuk akal di sini — skor {nilai} buat {lawan}.",
-      "Menurut basis data awan, {lawan} sebaiknya main {awan} (skor {nilai}).",
+      "Oh iya, langkah terbaik di posisi tadi: {awan}, skor {nilai}.",
+      "Buat catatan — sebelum langkah itu, terbaik: {awan} ({nilai}).",
+      "Rujukan awan buat posisi tadi: {awan}, skor {nilai}.",
     ],
   },
   genZ: {
@@ -348,9 +350,9 @@ export const komentatorPapan = {
       "Butuh penilaian jujur? Aktifkan engine, biar angkanya bicara.",
     ],
     awan: [
-      "Basis data awan nyaranin {awan} buat {lawan}. Skornya {nilai}, lumayan.",
-      "Cloud bilang {awan} — skor {nilai} buat {lawan}. Intip tab Basis Data.",
-      "Kalau ikut awan, {lawan} main {awan}. Skor {nilai}.",
+      "BTW, best move tadi: {awan} — skor {nilai}.",
+      "Catet ya, di posisi tadi yang paling jos: {awan} ({nilai}).",
+      "FYI, rujukan awan tadi: {awan}, skor {nilai}.",
     ],
   } ,
   formal: {
@@ -514,9 +516,9 @@ export const komentatorPapan = {
       "Penilaian kualitas langkah tersedia bila engine diaktifkan.",
     ],
     awan: [
-      "Basis data awan menyarankan {awan} untuk {lawan} dengan skor {nilai}.",
-      "Data awan menunjukkan {awan} sebagai pilihan {lawan}; skor {nilai}.",
-      "Saran basis data awan: {awan} untuk {lawan} (skor {nilai}).",
+      "Langkah terbaik pada posisi sebelumnya: {awan} (skor {nilai}).",
+      "Catatan: pada posisi tersebut langkah terbaik adalah {awan} dengan skor {nilai}.",
+      "Rujukan basis data awan untuk posisi tersebut: {awan} (skor {nilai}).",
     ],
   },
 };

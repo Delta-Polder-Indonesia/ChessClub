@@ -30,11 +30,13 @@ import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
-import { faktaLangkah } from "../../lib/komentator.js";
+import { ekspresiDariSkorAwan, faktaLangkah } from "../../lib/komentator.js";
 import {
   ambilBasisDataAwan,
   formatSkorAwan,
+  intipBasisDataAwan,
   saranAwanKomentator,
+  skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
@@ -330,6 +332,11 @@ export default function PapanInteraktif() {
     jumlahDinilai: 0,
     jumlahBelumDinilai: 0,
   });
+  // Sakelar "tampilkan semua langkah" untuk basis data awan (di Pengaturan
+  // Papan). Sengaja TIDAK disimpan di localStorage: begitu pengguna keluar
+  // dari papan interaktif, nilainya otomatis kembali ke OFF (ringkas 1
+  // langkah terbaik) — ON hanya untuk sesi yang sedang membutuhkan.
+  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(false);
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -1249,14 +1256,27 @@ export default function PapanInteraktif() {
     setAwanUlang((n) => n + 1);
   }, []);
 
+  /**
+   * Tinjauan pasca-langkah dari basis data awan (chessdb.cn) — hanya saat
+   * engine mati. `saran` = langkah terbaik untuk sisi kita di posisi SEBELUM
+   * langkah terakhir ("langkah terbaik waktu itu …"); `ekspresi` = emosi
+   * karakter dari skor langkah yang BARU kita mainkan (mis. -0,5 → bingung).
+   * Data diintip dari cache klien (posisi itu baru saja tampil, hampir selalu
+   * tersimpan) — TANPA kueri tambahan ke chessdb.cn.
+   */
+  const tinjauanAwan = useMemo(() => {
+    if (engineNyala || riwayat.length === 0) return null;
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const data = intipBasisDataAwan(fenSebelum);
+    if (!data?.langkah?.length) return null;
+    return {
+      saran: saranAwanKomentator(data),
+      ekspresi: ekspresiDariSkorAwan(skorLangkahAwan(data, riwayat[riwayat.length - 1])),
+    };
+  }, [riwayat, engineNyala]);
+
   /** Saran awan untuk kalimat komentator — hanya saat engine mati. */
-  const saranAwan = useMemo(
-    () =>
-      !engineNyala && !infoPembukaan.cocok && awan.status === "siap" && awan.posisi === fen
-        ? saranAwanKomentator(awan)
-        : null,
-    [engineNyala, infoPembukaan.cocok, awan, fen]
-  );
+  const saranAwan = tinjauanAwan?.saran ?? null;
 
   /**
    * Lencana skakmat — petak raja yang termat pada posisi yang sedang
@@ -1587,6 +1607,18 @@ export default function PapanInteraktif() {
                               className="h-4 w-4 accent-[#81b64c]"
                             />
                           </label>
+                          <label className="flex cursor-pointer items-center justify-between gap-3">
+                            <span className="text-sm font-semibold text-gray-400">
+                              {t("papan.awanTampilanPenuh")}
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={awanTampilanPenuh}
+                              onChange={(e) => setAwanTampilanPenuh(e.target.checked)}
+                              aria-label={t("papan.awanTampilanPenuh")}
+                              className="h-4 w-4 accent-[#81b64c]"
+                            />
+                          </label>
                           <div className="flex flex-col gap-1">
                             <label htmlFor="warna-papan" className="text-sm font-semibold text-gray-400">{t("papan.warnaPapan")}</label>
                             <select
@@ -1771,6 +1803,7 @@ export default function PapanInteraktif() {
                         onCobaLagi={cobaLagiAwan}
                         onNyalakanEngine={nyalakanEngine}
                         engineNyala={engineNyala}
+                        tampilanPenuh={awanTampilanPenuh}
                         t={t}
                       />
                     )
@@ -1814,6 +1847,7 @@ export default function PapanInteraktif() {
                             namaPembukaan={infoPembukaan.cocok && namaUtama ? namaUtama[1] : null}
                             saranTerbaik={dataKomentator.saranTerbaik}
                             saranAwan={saranAwan}
+                            ekspresiAwan={tinjauanAwan?.ekspresi ?? null}
                             engineNyala={engineNyala}
                             engineMenilai={dataKomentator.engineMenilai}
                             posisiAwal={riwayat.length === 0}
@@ -2436,7 +2470,16 @@ function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
  * menampilkan hasilnya — termasuk saat data belum ada / layanan tak terjangkau,
  * karena pengguna tetap perlu tahu kenapa daftarnya kosong.
  */
-function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, onNyalakanEngine, engineNyala, t }) {
+function PanelBasisDataAwan({
+  awan,
+  fen,
+  onPilih,
+  onCobaLagi,
+  onNyalakanEngine,
+  engineNyala,
+  tampilanPenuh,
+  t,
+}) {
   // Langkah "??" (belum dinilai CDB) dilipat supaya tabel utama tetap ringkas.
   const [tampilkanBelumDinilai, setTampilkanBelumDinilai] = useState(false);
   const { bernilai, belumDinilai } = useMemo(() => {
@@ -2467,6 +2510,35 @@ function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, onNyalakanEngine, 
 
   if (awan.status === "memuat") {
     return <p className="mt-1.5 text-sm font-medium text-gray-400">{t("papan.awanMemuat")}</p>;
+  }
+
+  // Mode RINGKAS (sakelar "tampilkan semua langkah" di Pengaturan Papan mati —
+  // bawaan): cukup SATU langkah terbaik saja, tanpa tabel & daftar "??" —
+  // hemat tampilan. Nyalakan sakelarnya untuk daftar lengkap (di bawah).
+  if (!tampilanPenuh) {
+    const terbaik = bernilai[0] || null;
+    if (terbaik) {
+      return (
+        <p className="mt-1.5 text-xs text-gray-300">
+          {t("papan.awanRingkas", { langkah: terbaik.san, nilai: terbaik.skor })}
+        </p>
+      );
+    }
+    if (belumDinilai.length && !engineNyala && onNyalakanEngine) {
+      return (
+        <div className="mt-1.5 space-y-1">
+          <p className="text-[11px] text-gray-500">{t("papan.awanBelumAdaDinilai")}</p>
+          <button
+            type="button"
+            onClick={onNyalakanEngine}
+            className="text-xs font-bold text-[#a3d168] hover:underline"
+          >
+            {t("papan.awanNyalakanEngine")}
+          </button>
+        </div>
+      );
+    }
+    // Tanpa langkah bernilai → jatuh ke blok kosong/galat di bawah.
   }
 
   if (bernilai.length || belumDinilai.length) {
