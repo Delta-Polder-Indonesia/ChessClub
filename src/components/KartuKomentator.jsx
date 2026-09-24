@@ -190,11 +190,13 @@ export default function KartuKomentator({
               <RatingSVG rating={ikonRating} size={20} />
             </span>
           ) : (
-            <span
-              className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#81b64c]/20 text-[11px]"
-              aria-hidden="true"
-            >
-              🎙️
+            <span className="mt-0.5 shrink-0" aria-hidden="true">
+              <img
+                src="/gambar_comentator/catur_berpikir-nobg.png"
+                alt=""
+                className="h-6 w-6 drop-shadow-md"
+                loading="lazy"
+              />
             </span>
           )}
           <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
