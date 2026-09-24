@@ -136,6 +136,10 @@ const CACHE_ANGGOTA_USANG = "public, max-age=0, stale-while-revalidate=86400";
  * lama — memangkas panggilan ke pihak ketiga secara drastis.
  */
 const CACHE_AWAN = "public, max-age=1800, stale-while-revalidate=86400";
+/** Posisi yang BELUM ada di CDB (atau sudah berakhir tanpa langkah) jangan
+ * disimpan lama di browser: datanya bisa menyusul, dan jawaban "belum ada"
+ * yang keliru tidak boleh menempel setengah jam. */
+const CACHE_AWAN_BELUM_ADA = "public, max-age=300";
 /** Batas permintaan awan per IP: satu posisi per langkah, jadi perlu lega. */
 const BATAS_AWAN = 200;
 
@@ -213,7 +217,11 @@ export function daftarkanRute(router, { mulaiPada }) {
     async (req) => {
       const url = new URL(req.url, "http://x");
       const hasil = await tanyaAwan(url.searchParams.get("fen") || "");
-      return { status: 200, isi: hasil, cache: CACHE_AWAN };
+      return {
+        status: 200,
+        isi: hasil,
+        cache: hasil.diketahui && hasil.langkah?.length ? CACHE_AWAN : CACHE_AWAN_BELUM_ADA,
+      };
     },
     { batas: BATAS_AWAN }
   );

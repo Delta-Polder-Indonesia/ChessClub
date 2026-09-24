@@ -86,6 +86,7 @@ export const papan = {
     awanMemuat: "Asking the cloud database…",
     awanKosong: "This position is not in the cloud database yet.",
     awanGalat: "The cloud database is unreachable — try turning on the engine.",
+    awanCobaLagi: "Try again",
     awanKolomSkor: "Score",
     awanKolomWinrate: "Winrate",
     awanKolomCatatan: "Note",

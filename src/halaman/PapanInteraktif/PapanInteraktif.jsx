@@ -323,6 +323,10 @@ export default function PapanInteraktif() {
   // buku pembukaan lokal; `posisi` menyimpan FEN yang datanya sedang tampil
   // supaya jawaban posisi lama tidak pernah menimpa posisi sekarang.
   const [awan, setAwan] = useState({ status: "idle", posisi: null, langkah: [], akhir: null });
+  // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
+  // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
+  const [awanUlang, setAwanUlang] = useState(0);
+  const awanSegarkanRef = useRef(false);
 
   // Artikel Wikibooks tentang pembukaan aktif — berganti mengikuti langkah.
   const [artikelPembukaan, setArtikelPembukaan] = useState(null);
@@ -1192,8 +1196,10 @@ export default function PapanInteraktif() {
     const kendali = new AbortController();
     // Jeda kecil: pengguna sering menelusuri beberapa langkah cepat; kueri
     // hanya untuk posisi yang benar-benar berhenti ditampilkan.
+    const segarkan = awanSegarkanRef.current;
+    awanSegarkanRef.current = false;
     const jam = setTimeout(() => {
-      ambilBasisDataAwan(fen, { signal: kendali.signal })
+      ambilBasisDataAwan(fen, { signal: kendali.signal, segarkan })
         .then((hasil) => {
           setAwan({
             status: hasil.langkah.length ? "siap" : "kosong",
@@ -1204,7 +1210,14 @@ export default function PapanInteraktif() {
         })
         .catch((e) => {
           if (e?.name === "AbortError") return;
-          setAwan({ status: "galat", posisi: fen, langkah: [], akhir: null });
+          setAwan({
+            status: "galat",
+            posisi: fen,
+            langkah: [],
+            akhir: null,
+            pesan: e?.message || null,
+            kode: e?.kode || null,
+          });
         });
     }, 350);
     return () => {
@@ -1214,7 +1227,12 @@ export default function PapanInteraktif() {
     // `riwayat.length` hanya penanda "sudah ada langkah"; perubahan `fen`
     // sudah mewakili langkah baru (undo/redo tidak memicu kueri baru).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala]);
+  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala, awanUlang]);
+
+  const cobaLagiAwan = useCallback(() => {
+    awanSegarkanRef.current = true;
+    setAwanUlang((n) => n + 1);
+  }, []);
 
   /** Saran awan untuk kalimat komentator — hanya saat engine mati. */
   const saranAwan = useMemo(
@@ -1731,7 +1749,13 @@ export default function PapanInteraktif() {
                       </p>
                     ) : (
                       /* Keluar dari buku lokal → lanjut ke basis data awan. */
-                      <PanelBasisDataAwan awan={awan} fen={fen} onPilih={mainkanSan} t={t} />
+                      <PanelBasisDataAwan
+                        awan={awan}
+                        fen={fen}
+                        onPilih={mainkanSan}
+                        onCobaLagi={cobaLagiAwan}
+                        t={t}
+                      />
                     )
                   ) : (
                     <>
@@ -2395,7 +2419,7 @@ function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
  * menampilkan hasilnya — termasuk saat data belum ada / layanan tak terjangkau,
  * karena pengguna tetap perlu tahu kenapa daftarnya kosong.
  */
-function PanelBasisDataAwan({ awan, fen, onPilih, t }) {
+function PanelBasisDataAwan({ awan, fen, onPilih, onCobaLagi, t }) {
   const baris = useMemo(() => {
     if (!awan.langkah?.length) return [];
     let game = null;
@@ -2483,7 +2507,26 @@ function PanelBasisDataAwan({ awan, fen, onPilih, t }) {
         <p className="text-xs text-gray-500">{t("papan.awanKosong")}</p>
       )}
       {awan.status === "galat" && (
-        <p className="text-xs text-gray-500">{t("papan.awanGalat")}</p>
+        <div className="space-y-1">
+          <p className="text-xs text-gray-500">{t("papan.awanGalat")}</p>
+          {/* Pesan + kode penyebab dari server — tanpa ini laporan "tidak bisa"
+              dari produksi tidak dapat dibedakan (DNS, blokir, lambat, …). */}
+          {(awan.pesan || awan.kode) && (
+            <p className="text-[10px] text-gray-500">
+              {awan.pesan}
+              {awan.kode ? <span className="ml-1 font-mono">({awan.kode})</span> : null}
+            </p>
+          )}
+          {onCobaLagi && (
+            <button
+              type="button"
+              onClick={onCobaLagi}
+              className="text-xs font-bold text-[#a3d168] hover:underline"
+            >
+              {t("papan.awanCobaLagi")}
+            </button>
+          )}
+        </div>
       )}
     </div>
   );
