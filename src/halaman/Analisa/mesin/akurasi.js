@@ -64,15 +64,17 @@
  */
 
 import { invertColor } from "./penilaian.js";
+import { batasiCp, CP_CEILING, FAKTOR_PELUANG, peluangMenang } from "./peluang.js";
 
-/** `Cp.CEILING` lichess / `CP_CEILING` en-croissant: batas mutlak eval. */
-export const CP_CEILING = 1000;
+/*
+ * Kurva peluang tinggal di ./peluang.js (satu rumus untuk seluruh halaman:
+ * akurasi, anti-cheat, dan ambang klasifikasi di ./penilaian.js). Diekspor
+ * ulang di sini supaya pemanggil lama tidak perlu berubah.
+ */
+export { batasiCp, CP_CEILING, FAKTOR_PELUANG, peluangMenang };
 
 /** Eval posisi awal bila tidak dianalisis (`Cp.initial` / `INITIAL_SCORE`). */
 export const CP_AWAL = 15;
-
-/** Pengali kurva win chance (lichess PR #11148). */
-export const FAKTOR_PELUANG = -0.00368208;
 
 /** Konstanta kurva akurasi — SALINAN ANGKA en-croissant, lihat kepala modul. */
 export const KURVA_AKURASI = Object.freeze({
@@ -93,22 +95,6 @@ export const AMBANG_ANOTASI = Object.freeze({ blunder: 20, mistake: 10, dubious:
 
 function batas01pct(angka) {
   return Math.min(100, Math.max(0, angka));
-}
-
-/** Potong cp ke [-1000, 1000] — `minMax(cp, -CP_CEILING, CP_CEILING)`. */
-export function batasiCp(cp) {
-  return Math.min(CP_CEILING, Math.max(-CP_CEILING, cp));
-}
-
-/**
- * Peluang menang 0–100 dari centipawn — `getWinChance` en-croissant /
- * `WinPercent.fromCentiPawns` lichess. 0 cp → 50, +100 cp ≈ 59.1,
- * −500 cp ≈ 13.69.
- */
-export function peluangMenang(cp) {
-  const dibatasi = batasiCp(Number(cp) || 0);
-  const mentah = 2 / (1 + Math.exp(FAKTOR_PELUANG * dibatasi)) - 1;
-  return 50 + 50 * Math.min(1, Math.max(-1, mentah));
 }
 
 /**

@@ -461,6 +461,7 @@ Aturan saat beku:
   memang sengaja diubah, ekspektasi di berkasnya diperbarui dalam perubahan
   yang sama (jangan dilewati/dimatikan).
 - **Kartu tambahan di `summary/summary.jsx` wajib dipasang paling bawah.**
+  Dua kartu tambahan saat ini: `deteksiEngine.jsx` lalu `eksporPgn.jsx`.
   `uji-hasil.mjs` mencari baris Ringkasan lewat teks labelnya
   (`spans.find(s => s.textContent === …)`) sehingga baris PERTAMA yang cocok
   yang menang; kartu baru yang menyisip di tengah — atau yang memakai ulang
@@ -470,7 +471,10 @@ Aturan saat beku:
 
 | Suite | Cakupan | Pemeriksaan |
 | --- | --- | --- |
-| `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang poin | 45 |
+| `scripts/uji-klasifikasi.mjs` | label langkah (brilliant…blunder) + ambang kerugian peluang (kurva bersama, band label, determinisme) | 63 |
+| `scripts/uji-langkah-kritis.mjs` | label `critical`: kurva kandidat MultiPV, tujuh syaratnya satu per satu, batas "hanya di cabang best", dan rantai `parsePGN` entri i ← kandidat entri i−1 | 54 |
+| `scripts/uji-pgn-anotasi.mjs` | ekspor PGN beranotasi: konvensi eval sudut Putih, peta NAG, tag header (termasuk PGN tanpa tag), dan bahwa berkas hasilnya tetap PGN sah saat dimuat ulang | 60 |
+| `scripts/uji-sacrifice.mjs` | `isSacrifice`: kasus bernalar, karakterisasi PADAT (16 rekaman implementasi pra-optimasi), penyaring penyerang legal, penyerang tersembunyi/baterai (`keamananBidak.js`) + 3 batas perbaikannya, determinisme & kemurnian | 65 |
 | `scripts/uji-akurasi.mjs` | akurasi keseluruhan & per fase, rumus rating partai | 31 |
 | `scripts/uji-komentar.mjs` | komentar langkah, FormatEval (cp/mate), komentar partai keseluruhan | 31 |
 | `scripts/uji-variasi.mjs` | top line (bestMove + panah) & variasi manual (seret bidak via event mouse) | 28 |
@@ -636,3 +640,241 @@ di bagian ini.
   `kerugianLangkah(mate −1 → 0, hitam) = 1000`, anotasi −500/−200/−100/−50 →
   `??`/`?`/`?!`/"". Kalau salah satu angka itu berubah, rumus kita sudah
   menyimpang dari acuan. Suite: 245 → **301** pemeriksaan.
+
+## Label `critical` & ekspor PGN beranotasi (2026-09-23)
+
+Dua tambahan yang **bukan** hasil port Brilliant-Chess. Keduanya lahir dari
+kajian repo **WintrChess** (`WintrCat/wintrchess`) — lihat
+`KAJIAN-WINTRCHESS-ANALISA.md` di akar repo. Gagasannya dipakai, kodenya
+TIDAK: WintrChess berlisensi **GPL-3.0**, sedangkan repo ini MIT, jadi kode
+yang diambil dari sana akan memaksa lisensi karya gabungannya berpindah.
+Semua implementasi di bawah ditulis dengan konvensi ChessClub sendiri.
+
+### 1. Label `critical` — langkah yang wajib ditemukan
+
+`penilaian.js` menilai langkah dari selisih eval sebelum/sesudah, sehingga
+langkah "terbaik" dan langkah "satu-satunya yang menang" tampak sama. Label
+`critical` membedakannya dengan membandingkan kandidat **#1 dan #2 MultiPV
+pada posisi yang SEBELUM langkah** — data yang sejak lama sudah direkam
+`engine.js` (`MULTI_PV = 5`, dipakai metrik peringkat di `antiCheat.js`)
+tetapi belum pernah dipakai untuk label.
+
+- Modul baru **`mesin/langkahKritis.js`** (murni): `cpKandidat`,
+  `kerugianPeluangKandidat`, `apakahLangkahKritis`. Ambang: kerugian peluang
+  ≥ 10 poin persen (`AMBANG_KERUGIAN_KRITIS`) dan "sudah menang mutlak" pada
+  ≥ 700 cp (`AMBANG_UNGGUL_MUTLAK_CP`). Kurva peluangnya meminjam
+  `peluangMenang`/`cpBaku` dari `mesin/akurasi.js` — tidak ada rumus baru.
+- Syaratnya: langkah itu usulan engine, kandidat #2 ada (tanpa MultiPV label
+  tidak muncul sama sekali — bukan menebak), kandidat #2 belum menang
+  mutlak, pemain tidak kalah sesudahnya, bukan promosi ratu, pemain tidak
+  sedang disekak, dan kandidat #2 benar-benar merugikan.
+- Labelnya hanya keluar di cabang `isBest` `getMoveRating`, jadi
+  brilliant/great/book/forced dan semua label buruk tidak pernah tertimpa.
+- `parseMove` menerima parameter ke-12 `previousKandidat` (`moves[i−1].kandidat`);
+  `parsePGN` meneruskannya, dan jalur variasi manual mengalirkannya lewat prop
+  `kandidat` di `board.jsx` → `game.jsx`.
+- **UI: TIDAK ada ikon atau warna baru** (keputusan pemilik produk,
+  2026-09-24). Label ini tampil persis seperti `best` — bintang, warna
+  `--highlightBest`, kelas `text-highlightBest` — di daftar Langkah, grafik,
+  dan sorot papan, sehingga kosakata visual halaman tetap sama dengan
+  chess.com. Yang membedakannya hanya kalimat komentar
+  (`analisa.komentar.critical`, ID/EN). Konsekuensinya:
+  - perincian penilaian **tidak** punya baris "Kritis" tersendiri; jumlah
+    langkah kritis ikut baris "Terbaik" (`ratingCount` memetakan
+    `critical → best` supaya total peringkat tetap sama dengan jumlah langkah);
+  - pengaturan "Sorot berdasarkan label" juga tidak punya tombol Critical —
+    saklarnya mengikuti tombol "Best" (`board.jsx` `filterHighlightStyle` dan
+    `ratings.jsx`).
+  - Ujinya: `uji-analisa-ui.mjs` membandingkan markup ikon
+    (`markupIkon("critical") === markupIkon("best")`) dan memastikan Ringkasan
+    tidak memuat label "Kritis". Ikon sebelumnya (lingkaran ungu `#8f7ee7`
+    berisi kotak) sudah **dihapus** — jangan dihidupkan lagi tanpa keputusan
+    baru.
+- Akurasi panel Ringkasan: label ini diperlakukan seperti `best` (100 poin),
+  bukan peta baru — angka akurasi lama tidak bergeser.
+
+### 2. Kartu "Ekspor PGN beranotasi" (`summary/eksporPgn.jsx`)
+
+Sebelumnya satu-satunya jalan membawa hasil keluar halaman adalah PGN
+**mentah** dari panel Basis Data — dan panel itu memang hanya menyimpan teks
+PGN, bukan labelnya. Kartu ini menyusun ulang PGN dari `moves` hasil analisis:
+
+- Modul baru **`mesin/pgnAnotasi.js`** (murni, kecuali `unduhPgnBeranotasi`):
+  `evalKeTeks` (eval mentah UCI → sudut Putih, skakmat sebagai `#n`),
+  `bangunPgnBeranotasi`, `NAG_LABEL`, `tanpaAnotasi`.
+- Peta NAG sengaja tidak lengkap: `brilliant $3`, `critical $1`,
+  `inaccuracy $6`, `miss/mistake $2`, `blunder $4`; label netral
+  (`best`/`excellent`/`good`/`book`/`forced`) tidak ditandai supaya tidak
+  setiap langkah menjadi `$1`.
+- Komentar `{ [%eval x.xx] }` ditulis per langkah (mematikan opsinya lewat
+  tombol "Tanpa eval"). Tag hander disalin dari PGN asli; PGN tanpa tag —
+  termasuk pengisian `"?"` bawaan chess.js — jatuh ke nama pemain halaman,
+  jadi berkasnya tidak pernah berbunyi `[White "?"]`.
+- Nama berkas: `<Putih> vs <Hitam>-<tanggal>.pgn`; kegagalan menyiapkan
+  unduhan (mis. `URL.createObjectURL` tidak ada) mengembalikan `false` dan
+  tidak merobohkan panel.
+- Kartu dipasang **paling bawah** Ringkasan, mengikuti aturan beku yang sama
+  dengan `deteksiEngine.jsx`.
+
+## Penyerang tersembunyi (baterai/x-ray) pada `isSacrifice` (2026-09-24)
+
+`chess.attackers()` hanya melaporkan penyerang yang garis serangnya **saat ini**
+menyentuh petak sasaran, jadi penyerang di belakang baterai tidak terlihat:
+pada `q5k1/8/8/8/8/8/R7/R5K1 w`, `attackers("a8","w")` hanya berisi `["a2"]`,
+padahal `a1` menyerang `a8` begitu `a2` menyingkir. Pengecualian "satu
+penyerang" untuk benteng/ratu di `isSacrifice` bertumpu pada hitungan itu
+(satu penyerang + ada pembela ⇒ dianggap tukar-menukar adil), sehingga baterai
+yang tak terlihat membuat pengorbanan nyata dinilai **bukan** pengorbanan.
+
+- Modul baru **`mesin/keamananBidak.js`** (murni): `penyerangTersembunyi`
+  menyingkirkan penyerang terdepan dari papan lalu memeriksa petak sasaran
+  lagi — penyingkirannya menumpuk, jadi rantai `Ra3–Ra2–Qa1` di depan `a8` pun
+  terbaca berurutan. Ada **gerbang legalitas**: baterai hanya mungkin terbuka
+  kalau bidak terdepannya benar-benar punya langkah legal (bidak yang terkunci
+  karena rajanya disekak tidak membuka apa pun). Raja tidak pernah dihitung
+  sebagai penyerang tersembunyi.
+- Perubahannya **bertarget**, hanya di `getAttackersDefenders`: syarat
+  keberadaan tetap memakai penyerang **legal**, sedangkan baterai hanya
+  membatalkan pengecualian "satu penyerang" (variabel `satuPenyerang` di
+  `isSacrifice`). Baterai cuma dihitung pada petak yang punya tepat satu
+  penyerang legal — dan di situ daftar langkah legalnya sudah tersedia — jadi
+  **biayanya tidak terukur** (1,470 → 1,465 ms/langkah pada korpus puzzle;
+  selisih di bawah derau). Alternatifnya sudah diukur lalu **ditolak**: SEE
+  penuh semua bidak 3,19 ms/langkah, 2,6× lebih lambat.
+- Buktinya pada 15824 langkah solusi `public/data/teka-teki.json` (objek `move`
+  utuh termasuk `from` — tanpa `from`, `couldBeSaved` menerima petak
+  `undefined` dan angkanya menggelembung): **15817 identik (99,96%), 7
+  berubah, semuanya `false→true`, tak satu pun di langkah penutup partai**.
+  Contoh nyata: `Rf8+` (benteng Putih di f8 diserang baterai e8–d8; 6 dari 7
+  kasus ini diverifikasi ulang dengan SEE offline dan memang untung bagi pihak
+  lawan), `Rd1+`, `Re8+`, `Rg8+` (dua posisi), `Qxf6` (SEE +1).
+- Satu kasus sengaja dibiarkan: `Rc1+` (SEE 0). Baterainya nyata, jadi premis
+  pengecualiannya memang sudah salah — petaknya diserang dua bidak, bukan
+  satu. Memperlakukannya sama dengan petak yang sejak awal diserang dua bidak
+  membuat perilakunya konsisten dengan sisa `isSacrifice` (yang juga tidak
+  memeriksa untung-ruginya kecuali lewat pengecualian itu).
+- `uji-sacrifice.mjs` bertambah dari 39 → **65** pemeriksaan: bagian KEAMANAN
+  (x-ray, rantai, gerbang legalitas, raja, papan masukan tak diubah), BATERAI
+  (7 posisi nyata di atas), dan PENJAGA — 3 posisi yang HARUS tetap `false`
+  (`Rxh2+`, `g5+`, `Qxe8`), masing-masing menjaga syarat keberadaan penyerang
+  legal, gerbang legalitas, dan `couldBeSaved`.
+
+## Ambang klasifikasi di ruang peluang (2026-09-24)
+
+Sampai perubahan ini, label standar (`excellent`/`good`/`inaccuracy`/`blunder`)
+dihitung dari **selisih centipawn** dengan ambang tetap: `≥0,4 good`,
+`≥0,8 inaccuracy`, `≥4 blunder`. Padahal makna satu pion tidak seragam — jatuh
+dari +5,0 ke +4,2 hampir tidak berarti, sedangkan +0,5 → −0,3 bisa menentukan
+hasil partai. Sekarang labelnya dihitung dari **kerugian peluang** memakai kurva
+yang SAMA dengan `akurasi.js` (jadi label dan angka akurasi tidak mungkin lagi
+berbicara dalam dua bahasa berbeda).
+
+- Modul baru **`mesin/peluang.js`**: `CP_CEILING`, `FAKTOR_PELUANG`, `batasiCp`,
+  `peluangMenang` — pindahan dari `akurasi.js`. Dipindah karena `akurasi.js`
+  mengimpor `penilaian.js` (untuk `invertColor`), sehingga menaruh kurvanya di
+  sana akan membuat impor melingkar. `akurasi.js` **mengekspor ulang** keempat
+  nama itu, jadi `antiCheat.js`, `langkahKritis.js`, dan uji lama tidak berubah.
+- **`AMBANG_KERUGIAN_PELUANG`** di `penilaian.js` — satu tempat untuk semua
+  ambang: `good 5 · inaccuracy 10 · mistake 20 · blunder 30` (poin persen).
+  Angkanya sejajar ambang label lichess (10/20/30) supaya bisa dibandingkan
+  langsung dengan analisis lichess; band `good` mengisi celah di bawah 10.
+  Padanan cp dari posisi seimbang: **0,55 / 1,15 / 2,35 / 3,80 pion** (bandingkan
+  ambang lama 0,4 / 0,8 / 4,0).
+- `mistake` kini juga bisa keluar langsung dari band (dulu hanya dari cabang
+  `loseAdvantage`/`giveAdvantage`), jadi ada kunci kamus baru
+  `analisa.komentar.mistake` (ID+EN, 3 kalimat).
+- Cabang **diagnosis tetap menentukan komentar**, bukan keparahan: langkah yang
+  kehilangan keunggulan besar memakai kalimat `loseAdvantage`/`giveAdvantage`
+  (pengguna tahu APA yang salah), sedangkan labelnya mengikuti band — `blunder`
+  bila kerugiannya ≥30 poin, selain itu `mistake`.
+- Perbandingan label lama/baru memakai **"sekurang-kurangnya seburuk"**
+  (`minimalSeparah`) alih-alih kesamaan persis (`=== "inaccuracy"`). Tanpa itu,
+  band `mistake` baru akan lolos dari syarat "lawan sebelumnya keliru" sehingga
+  label brilliant/great/miss hilang di posisi yang justru lebih buruk.
+
+### Yang diukur
+
+| Ukuran | Hasil |
+| --- | --- |
+| Bidang eval 81×81 (langkah 0,25 pion, 6561 titik) | 85,4% label identik; 961 berubah |
+| Monotonisitas (label tak boleh makin ringan saat kerugian bertambah) | **0 pelanggaran** |
+| Korpus nyata: 6 partai self-play Stockfish 17 Lite (depth 8, MultiPV 4) + kesalahan disuntikkan, 494 langkah | 376 identik (76,3%); distribusi: `inaccuracy` 66 → 6, `excellent` 82 → 172, `good` 54 → 33, `blunder` 17 → 11 |
+| Ambang alternatif yang dibandingkan pada korpus (lihat `KAJIAN-WINTRCHESS-ANALISA.md` bagian 10) | WintrChess 4,5/8/12/22 · lichess 5/10/20/30 · tengah 4/9/14/24 · lichess ketat 5/10/15/25 — dipilih **lichess 5/10/20/30** |
+
+Dua sifat yang perlu diketahui pengguna (sengaja, bukan bug):
+
+1. **Posisi yang sudah kalah jauh mendapat label ringan.** Menurunkan eval dari
+   −12,0 ke −20,0 hanya mengubah peluang menang ~1 poin, jadi labelnya
+   `excellent` — sama seperti lichess, yang juga mengukur perubahan peluang,
+   bukan jumlah materi. Kalimat komentarnya tetap ada (mis. `blunder`), tetapi
+   dihitung dari band yang baru.
+2. **`komentar("blunder")` praktis tidak terpakai lagi.** Kerugian ≥30 poin
+   selalu menyeberangi garis keunggulan ±2,0 sehingga salah satu cabang
+   diagnosis mengambil alih. Kalimatnya sengaja tetap ada di kamus untuk
+   keadaan ambang disetel ulang. Kasus determinisme di `uji-klasifikasi.mjs`
+   karena itu memakai kasus blunder **+ diagnosis**, bukan blunder murni.
+
+Ambang lama tetap dipakai untuk dua hal, dan itu disengaja: gerbang
+`evaluationDiff >= 1.2` (kerugiannya material) dan garis keunggulan besar ±2,0 —
+keduanya memang bicara soal materi/posisi, bukan peluang.
+
+## Kartu progres analisa (2026-09-24)
+
+Sebelumnya kartu ini hanya memutar spinner dan menulis "Sedang analisa…",
+dengan kemajuan diwakili garis putih 1px di dasar kartu — pengguna tidak tahu
+sudah berapa jauh prosesnya. Sekarang bentuknya mengikuti kartu progres
+WintrChess (`components/common/ProgressReporter`, dipakai
+`AnalysisPanel/AnalysisProgress`):
+
+- baris atas: label status + **persentase satu angka di belakang koma**
+  (`42.5%`) di ujung kanan — sama seperti WintrChess, yang menulis
+  `(progress * 100).toFixed(1)`;
+- **bar kemajuan penuh selebar kartu** (`loadingBar.jsx`): jalur
+  `bg-backgroundBoxBox` + isian biru `#4a9dd9` (warna yang sudah dipakai
+  spinner kartu ini — tidak ada warna baru), `transition: width 100ms linear`;
+  diberi `role="progressbar"` + `aria-valuenow` supaya terbaca pembaca layar
+  (WintrChess memakai elemen `<progress>` bawaan browser, yang aksesibel
+  otomatis);
+- baris petunjuk kecil: "Kalau prosesnya terasa lama, coba turunkan kedalaman
+  mesin di Pengaturan." (`analisa.muat.petunjukLama`, ID/EN) — ini tooltip
+  WintrChess;
+- ikon lensa + lencana format + spinner tetap, karena itu ciri kartu kita.
+
+Selain itu, di dalam kartu ada **grafik eval yang tumbuh selama analisa**
+(adopsi dari WintrChess, yang sudah menampilkan grafik Report selagi posisi
+dinilai satu per satu):
+
+- `mesin/engine.js` — `parsePGN(..., { onLangkah })` memanggil balik dengan
+  salinan `moves` sementara setiap satu posisi selesai (posisi awal + tiap
+  langkah). Opsional, jadi pemanggil lama tidak berubah.
+- `konteks/analyze.jsx` — state `langkahSementara` (dikosongkan lagi saat
+  muatan dimulai/selesai/gagal di `game.jsx`).
+- `komponen/menu/loading/grafikMuat.jsx` — SVG area 400×96 yang direntangkan
+  `viewBox` (tidak mengukur lebar wadah, jadi tetap aman sebelum layout ada),
+  muncul begitu ada ≥2 titik. Latar `bg-evaluationBarBlack` + jalur putih +
+  garis tengah, sama seperti grafik tab Ringkasan.
+- Geometri kurvanya satu modul: `komponen/menu/analysis/grafikEval.js`
+  (`tinggiEval`/`xGrafik`/`jalurGrafik`), dipakai grafik Ringkasan
+  (`gameChart.jsx`, setelah refaktor tetap menghasilkan jalur yang sama persis)
+  dan grafik kartu muat — supaya bentuk yang tumbuh selama analisa identik
+  dengan grafik akhir.
+
+Bilangan persen lewat `persenProgres()` (diekspor dari `loading.jsx`): nilai
+di luar 0–100 atau bukan angka dijinakkan, jadi kartu tidak pernah menulis
+`NaN%`. Sumber angkanya `setProgress` di `mesin/engine.js` (dipanggil tiap
+langkah selesai dianalisis), sama seperti sebelumnya.
+
+"Bar hitam-putih" yang tampak di WintrChess adalah **eval bar** di samping
+papan, dan itu sudah ada di halaman ini sejak lama
+(`komponen/game/evaluation.jsx`, token `--analisa-evaluationBarWhite/Black`).
+Yang belum ditiru: eval bar itu **bergerak selama analisa** di WintrChess
+(posisi dinilai satu per satu), sedangkan di kita nilainya baru muncul setelah
+seluruh partai selesai dianalisis — mengubahnya berarti mengalirkan eval per
+posisi ke papan selagi `parsePGN` berjalan, pekerjaan tersendiri.
+
+Ujinya di `scripts/uji-analisa-ui.mjs`: kartu wajib muncul selagi analisa
+berjalan (bar + persentase + tombol Batal + baris petunjuk), grafik eval wajib
+sudah tergambar di kartu selagi analisa berjalan, plus uji satuan
+`persenProgres`, markup bar (lebar isian, penjepitan 0–100, atribut ARIA), dan
+geometri kurva (skala ±400 cp, jepitan, skakmat, jalur sah tanpa `NaN`, titik
+bertambah seiring langkah masuk).

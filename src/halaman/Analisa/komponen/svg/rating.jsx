@@ -1247,6 +1247,15 @@ function RatingSVG({ rating, size, dataset, draggable, className, style, title }
         return <Great {...ratingProps} />;
       case "best":
         return <Best {...ratingProps} />;
+      /*
+       * `critical` ("langkah kritis") TIDAK punya ikon sendiri: halaman ini
+       * memakai kosakata visual yang sama dengan chess.com, jadi langkah yang
+       * "wajib ditemukan" ditampilkan seperti `best` (bintang). Informasinya
+       * tetap sampai ke pengguna lewat kalimat komentar (kunci
+       * `analisa.komentar.critical`), bukan lewat ikon baru.
+       */
+      case "critical":
+        return <Best {...ratingProps} />;
       case "excellent":
         return <Excellent {...ratingProps} />;
       case "good":

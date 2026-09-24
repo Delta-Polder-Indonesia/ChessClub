@@ -20,7 +20,13 @@
  *      di-memo. Nilainya adalah *karakterisasi*: direkam dari implementasi
  *      sebelum optimasi (commit 54e4a90). Kalau suatu saat perbedaannya memang
  *      disengaja, fixture ini harus diperbarui secara sadar — bukan otomatis.
- *   4. SIFAT  — determinisme antar-pemanggilan dan kemurnian (objek `move`
+ *   4. KEAMANAN — `penyerangTersembunyi` di ./keamananBidak.js: penyerang di
+ *      belakang baterai harus terlihat, TANPA menghitung baterai yang tak mungkin
+ *      terbuka (bidak terdepan tak punya langkah legal) dan tanpa mengubah papan.
+ *   5. BATERAI/PENJAGA — 7 posisi nyata dari korpus puzzle yang putusannya
+ *      berubah karena perbaikan baterai (semuanya false→true), plus 3 yang
+ *      HARUS tetap false sebagai batas perbaikan.
+ *   6. SIFAT  — determinisme antar-pemanggilan dan kemurnian (objek `move`
  *      input tidak dimutasi).
  *
  * Kasus dasar (kuda jatuh ke bidak, langkah tenang, Qxd5) sudah ada di
@@ -29,6 +35,7 @@
  * Jalankan: node scripts/uji-sacrifice.mjs
  */
 import { isSacrifice } from "../src/halaman/Analisa/mesin/penilaian.js";
+import { penyerangTersembunyi } from "../src/halaman/Analisa/mesin/keamananBidak.js";
 import { Chess } from "chess.js";
 
 let lulus = 0;
@@ -213,6 +220,126 @@ for (const [fen, dari, ke, harapan] of PENYERANG) {
   hasil(`isSacrifice(${move.san}) = ${harapan}`, isSacrifice(move) === harapan, `dapat ${isSacrifice(move)}`);
 }
 
+/* -------------------------------------- KEAMANAN: penyerang tersembunyi (baterai) */
+
+console.log("\n== keamananBidak: penyerang tersembunyi (baterai/x-ray)");
+
+// `chess.attackers()` hanya melihat penyerang yang garis serangnya SAAT INI
+// menyentuh petak sasaran, sehingga penyerang di belakang baterai tak terhitung.
+// Hitungan itulah yang dipakai pengecualian "satu penyerang" di `isSacrifice`,
+// jadi baterai yang tak terlihat membuat pengorbanan nyata dinilai bukan
+// pengorbanan. Kasus terakhir menjaga batasnya: baterai hanya mungkin terbuka
+// kalau bidak terdepannya punya langkah legal, dan raja tidak ikut dihitung.
+const KEAMANAN = [
+  {
+    nama: "x-ray: benteng a1 di belakang benteng a2 menyerang ratu a8",
+    fen: "q5k1/8/8/8/8/8/R7/R5K1 w - - 0 1",
+    kotak: "a8",
+    warna: "w",
+    langsung: ["a2"],
+    tersembunyi: ["a1"],
+  },
+  {
+    nama: "rantai: Ra3–Ra2–Qa1 terlihat berurutan (penyingkiran menumpuk)",
+    fen: "q5k1/8/8/8/8/R7/R7/Q5K1 w - - 0 1",
+    kotak: "a8",
+    warna: "w",
+    langsung: ["a3"],
+    tersembunyi: ["a2", "a1"],
+  },
+  {
+    nama: "penyerang tunggal tanpa baterai → tidak ada penyerang tersembunyi",
+    fen: "4k3/1b6/8/8/R7/8/8/4K3 w - - 0 1",
+    kotak: "a6",
+    warna: "b",
+    langsung: ["b7"],
+    tersembunyi: [],
+  },
+  {
+    nama: "gerbang legalitas: pembuka tanpa langkah legal (Rc4 Hitam disekak) tak membuka baterai",
+    fen: "8/2R4p/6pk/5pP1/2rP1K1P/4PP2/8/2r5 b - - 0 42",
+    kotak: "c7",
+    warna: "b",
+    langsung: ["c4"],
+    tersembunyi: [],
+    fakta: (papan) => papan.moves({ verbose: true }).every((m) => m.from !== "c4"),
+  },
+  {
+    nama: "raja tidak dipakai sebagai pembuka baterai (keterbatasan yang disengaja)",
+    fen: "8/8/8/8/8/2Q5/1K6/r3k3 w - - 0 1",
+    kotak: "a1",
+    warna: "w",
+    langsung: ["b2"],
+    tersembunyi: [],
+  },
+];
+
+for (const { nama, fen, kotak, warna, langsung, tersembunyi, fakta } of KEAMANAN) {
+  const papan = new Chess(fen);
+  const nampak = papan.attackers(kotak, warna);
+  const dapat = penyerangTersembunyi(papan, kotak, warna);
+  hasil(`${nama} — penyerang langsung`, JSON.stringify(nampak) === JSON.stringify(langsung), `dapat ${JSON.stringify(nampak)}`);
+  hasil(`${nama} — penyerang tersembunyi`, JSON.stringify(dapat) === JSON.stringify(tersembunyi), `dapat ${JSON.stringify(dapat)}`);
+  hasil(`${nama} — papan masukan tidak diubah`, papan.fen() === fen, `menjadi ${papan.fen()}`);
+  if (fakta) hasil(`${nama} — alasan di komentar masih berlaku`, fakta(papan) === true);
+}
+
+/* --------------------------------------------------------- BATERAI: putusan label */
+
+console.log("\n== isSacrifice: baterai membatalkan pengecualian \"satu penyerang\"");
+
+// Semua kasus di bawah bernilai false SEBELUM perbaikan baterai dan true
+// sesudahnya. Angkanya direkam dari seluruh 15824 langkah solusi
+// `public/data/teka-teki.json` dengan objek `move` UTUH (from/to harus ikut —
+// tanpa `from`, `couldBeSaved` menerima petak `undefined` dan hasilnya
+// menggelembung). Dari korpus itu: 15817 langkah identik, 7 berubah, semuanya
+// false→true, tak satu pun di langkah penutup partai.
+// 6 dari 7 diverifikasi SEE offline (merebut di petak itu benar-benar
+// menguntungkan pihak lawan). Yang ketujuh, Rc1+, SEE-nya 0 dan tetap dihitung
+// pengorbanan karena premis pengecualiannya memang salah — petaknya diserang dua
+// bidak, bukan satu — sama seperti petak yang sejak awal diserang dua bidak.
+const BATERAI = [
+  ["3rr2k/2p3pp/p4Rb1/3P2q1/2p3Pn/8/PB3Q1P/5R1K w - - 0 26", "f6", "f8", true], // Rf8+ (SEE +4)
+  ["r1bq1rk1/pp3pp1/5N1p/2p1nQ2/3b4/3B3P/PP4P1/R1B2R1K b - - 6 19", "d8", "f6", true], // Qxf6 (SEE +1)
+  ["3r4/5p2/2k1p2p/6r1/4PQ2/5P2/2q3PP/R1R4K b - - 3 31", "d8", "d1", true], // Rd1+ (SEE +5)
+  ["6k1/2r4p/5Pp1/5BP1/3p4/qPr1bN2/P3Q3/1K1R3R b - - 0 33", "c3", "c1", true], // Rc1+ (SEE 0)
+  ["2rq3k/p4Q1p/5bpB/5p2/2P5/8/P2p2PP/4R1K1 w - - 0 31", "e1", "e8", true], // Re8+ (SEE +5)
+  ["r4r1k/5p1p/2p2b1N/P7/4n3/8/6RP/6RK w - - 0 34", "g2", "g8", true], // Rg8+ (SEE +3)
+  ["rn1q1r1k/p4pRn/4p3/2p1N3/3P1p2/7P/PpP2P2/1K4R1 w - - 0 22", "g7", "g8", true], // Rg8+ (SEE +5)
+];
+
+for (const [fen, dari, ke, harapan] of BATERAI) {
+  const move = buatLangkah({ fen, dari, ke });
+  hasil(`isSacrifice(${move.san}) = ${harapan} (baterai)`, isSacrifice(move) === harapan, `dapat ${isSacrifice(move)}`);
+}
+
+/* ------------------------------------- PENJAGA: yang tidak boleh ikut berubah */
+
+console.log("\n== isSacrifice: batas perbaikan baterai (harus tetap false)");
+
+// Baterai hanya membatalkan PENGECUALIAN. Ia tidak boleh menghidupkan penyerang
+// yang tidak legal, tidak boleh menembus gerbang legalitas, dan tidak boleh
+// membuat bidak yang memang tak punya jalan selamat jadi pengorbanan.
+const PENJAGA = [
+  // Baterai g1 di belakang g3 memang ada, tetapi penyerang LEGAL untuk g8 nol
+  // (Putih sedang disekak), jadi syarat keberadaan `attackers.length` tetap gugur.
+  ["6rk/ppp2p2/7p/5P1K/4NP2/1P4R1/3r3P/6R1 b - - 20 37", "d2", "h2", false], // Rxh2+
+  // Dua lapis menjaga kasus ini: gerbang legalitas menolak benteng c4 sebagai
+  // pembuka (tidak punya langkah legal — Hitam disekak), dan syarat keberadaan
+  // tetap memakai penyerang legal (nol). Inilah pengorbanan palsu yang muncul
+  // kalau keduanya dilepas.
+  ["8/2R4p/6pk/5p2/2rP1KPP/4PP2/8/2r5 w - - 0 42", "g4", "g5", false], // g5+
+  // Kandidat baterainya nyata (ratu e8 vs ratu e2 + benteng e1 di belakangnya),
+  // tetapi ratu Hitam baru saja TERPAKSA merebut di e8 untuk keluar dari skak dan
+  // tidak punya jalan selamat → bukan pengorbanan yang disengaja.
+  ["r2qR1k1/pp3ppp/2p5/3p3b/2nP4/2N2N1P/PPP1QP2/4R1K1 b - - 0 22", "d8", "e8", false], // Qxe8
+];
+
+for (const [fen, dari, ke, harapan] of PENJAGA) {
+  const move = buatLangkah({ fen, dari, ke });
+  hasil(`isSacrifice(${move.san}) = ${harapan} (penjaga)`, isSacrifice(move) === harapan, `dapat ${isSacrifice(move)}`);
+}
+
 /* ------------------------------------------------------------------- SIFAT */
 
 console.log("\n== isSacrifice: determinisme & kemurnian ==");
@@ -221,6 +348,8 @@ const SEMUA = [
   ...NALAR.map(({ fen, dari, ke }) => ({ fen, dari, ke })),
   ...PADAT.map(([fen, dari, ke]) => ({ fen, dari, ke })),
   ...PENYERANG.map(([fen, dari, ke]) => ({ fen, dari, ke })),
+  ...BATERAI.map(([fen, dari, ke]) => ({ fen, dari, ke })),
+  ...PENJAGA.map(([fen, dari, ke]) => ({ fen, dari, ke })),
 ];
 const gerakan = SEMUA.map(buatLangkah);
 const sidikJari = gerakan.map((m) => JSON.stringify(m));

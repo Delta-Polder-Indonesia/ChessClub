@@ -245,6 +245,8 @@ export const analisa = {
     },    muat: {
       menganalisa: "Processing",
       menganalisaPartai: "Analyzing",
+      petunjukLama: "If this takes a while, try lowering the engine depth in the settings.",
+      grafik: "Live evaluation graph while the analysis runs",
       menyiapkanEngine: "Preparing engine",
       membatalkan: "Canceling",
       dibatalkan: "Analysis canceled",
@@ -297,6 +299,16 @@ export const analisa = {
       cukupLangkah: "Not enough moves to evaluate this phase.",
       akurasiFase: "{fase}: accuracy {angka}%",
       ratingPartai: "Game rating",
+      ekspor: {
+        judul: "Export annotated PGN",
+        keterangan:
+          "A PGN file with NAG markers (!!, !, ?, ?!, ??) and [%eval] data from this analysis \u2014 ready to open in lichess, ChessBase, or any other chess app.",
+        tombol: "Download .pgn",
+        tombolTanpaEval: "Without eval",
+        jumlahLabel: "{n} of {total} moves marked",
+        kosong: "No moves to export yet \u2014 run an analysis first.",
+        sukses: "Annotated PGN file downloaded.",
+      },
 
     },
     antiCheat: {
@@ -388,6 +400,7 @@ export const analisa = {
       brilliant: "Brilliant",
       great: "Great",
       best: "Best",
+      critical: "Critical",
       excellent: "Excellent",
       good: "Good",
       book: "Book",
@@ -411,6 +424,11 @@ export const analisa = {
         "This move takes full advantage of your opponent's error.",
         "A strong response to punish your opponent's oversight.",
       ],
+      critical: [
+        "The only move that keeps your advantage.",
+        "Every other good alternative throws the advantage away \u2014 this one had to be found.",
+        "A critical move: any other choice hands the advantage to your opponent.",
+      ],
       best: [
         "This has been the best move in this position.",
         "This was the most optimal move you could play here.",
@@ -430,6 +448,11 @@ export const analisa = {
         "This move causes you to lose some advantage.",
         "This move weakens your overall position.",
         "An avoidable slip that leads to a worse situation.",
+      ],
+      mistake: [
+        "This move throws away much of your advantage.",
+        "A costly slip \u2014 other moves were clearly better.",
+        "You give up too much with this move.",
       ],
       blunder: [
         "This move loses significant advantage.",

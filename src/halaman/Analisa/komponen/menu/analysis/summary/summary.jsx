@@ -4,6 +4,7 @@ import RatingCount from "./ratingCount.jsx";
 import PlayersAccuracy from "./playersAccuracy.jsx";
 import GameRating from "./gameRating.jsx";
 import DeteksiEngine from "./deteksiEngine.jsx";
+import EksporPgn from "./eksporPgn.jsx";
 import GameChart from "../gameChart.jsx";
 import { reduceSummary } from "../../../../konstanta.js";
 function Summary(props) {
@@ -41,6 +42,10 @@ function Summary(props) {
                 suite uji beku (scripts/uji-hasil.mjs mencari baris berdasarkan
                 urutan DOM). */}
             <DeteksiEngine moves={moves} />
+            {/* Ekspor juga PALING BAWAH, dengan alasan yang sama seperti
+                DeteksiEngine di atas: suite beku mencari baris Ringkasan
+                berdasarkan urutan DOM. */}
+            <EksporPgn moves={moves} />
         </div>;
 }
 export {

@@ -12,6 +12,7 @@ const ratings = [
   "brilliant",
   "great",
   "best",
+  "critical",
   "excellent",
   "good",
   "book",
@@ -93,12 +94,16 @@ function Ratings() {
                 <span className="font-bold text-sm">{t("analisa.pengaturan.sorotLabel")}</span>
                 <div style={{ backgroundColor: "var(--foreground)", display: highlightByRating ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
             </button>
-            {ratings.map((rating, i) => {
+            {ratings.filter((rating) => rating !== "critical").map((rating, i) => {
     const color = rating === "forced" ? "var(--highlightGood)" : `var(--highlight${capitalizeFirst(rating)})`;
     function toggleRating() {
+      const baru = !usedRatings2[rating];
       const newUsedRatings = {
         ...usedRatings2,
-        [rating]: !usedRatings2[rating]
+        [rating]: baru,
+        // `critical` tampil sebagai `best`, jadi saklarnya ikut — tidak ada
+        // pengaturan terpisah untuk label yang tidak punya ikon sendiri.
+        ...(rating === "best" ? { critical: baru } : {})
       };
       setUsedRatings(newUsedRatings);
       tulis("usedRatings", serializeRatings(newUsedRatings));

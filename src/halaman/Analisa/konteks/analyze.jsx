@@ -65,6 +65,8 @@ const AnalyzeContext = createContext({
   }],
   progress: [0, () => {
   }],
+  langkahSementara: [[], () => {
+  }],
   tab: ["analyze", () => {
   }],
   analyzeController: [abortControllerInstance, () => {
@@ -118,6 +120,13 @@ function AnalyzeContextProvider(props) {
   const [materialAdvantage, setMaterialAdvantage] = useState(0);
   const [result2, setResult] = useState("");
   const [progress, setProgress] = useState(0);
+  /*
+   * Hasil analisis yang sudah selesai tetapi partainya belum utuh — dipakai
+   * grafik eval yang tumbuh selama analisa berjalan (lihat
+   * `komponen/menu/loading/grafikMuat.jsx`). Dikosongkan lagi setelah muatan
+   * selesai/gagal supaya tidak ada sisa partai lama.
+   */
+  const [langkahSementara, setLangkahSementara] = useState([]);
   const [tab, setTab] = useState("analyze");
   const [analyzeController, setAnalyzeController] = useState(abortControllerInstance);
   const [customLine, setCustomLine] = useState({ moveNumber: -1, moves: [], arrows: {} });
@@ -212,7 +221,7 @@ function AnalyzeContextProvider(props) {
       setPlaying(false);
     }
   };
-  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], tampilan: [tampilan, setTampilan], gameController }}>
+  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], langkahSementara: [langkahSementara, setLangkahSementara], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], tampilan: [tampilan, setTampilan], gameController }}>
             {props.children}
         </AnalyzeContext.Provider>;
 }

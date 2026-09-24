@@ -56,8 +56,35 @@ import Game, { formatPlayerLabel } from "./src/halaman/Analisa/komponen/game/gam
 import SelectChessComGame from "./src/halaman/Analisa/komponen/menu/analyze/selectChessCom.jsx";
 import SelectLichessOrgGame from "./src/halaman/Analisa/komponen/menu/analyze/selectLichessOrg.jsx";
 import * as basisData from "./src/halaman/Analisa/basisData.js";
+import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
+import LoadingBar from "./src/halaman/Analisa/komponen/menu/loading/loadingBar.jsx";
+import { persenProgres } from "./src/halaman/Analisa/komponen/menu/loading/loading.jsx";
+import { renderToStaticMarkup } from "react-dom/server";
 
-export { basisData };
+export { basisData, persenProgres };
+
+/**
+ * Geometri grafik eval (murni) — dipakai grafik tab Ringkasan DAN grafik yang
+ * tumbuh di kartu muat, jadi keduanya harus menghasilkan kurva yang sama.
+ */
+export { jalurGrafik, tinggiEval, xGrafik } from "./src/halaman/Analisa/komponen/menu/analysis/grafikEval.js";
+
+/**
+ * Markup bar kemajuan kartu analisa (tanpa DOM). Kartu ini mengadopsi kartu
+ * progres WintrChess: jalur penuh + isian selebar persentase + atribut
+ * aksesibilitas.
+ */
+export function markupBar(progress, transitionTime = 100) {
+  return renderToStaticMarkup(<LoadingBar progress={progress} transitionTime={transitionTime} />);
+}
+
+/**
+ * Markup satu ikon label (tanpa DOM) — dipakai uji kosakata visual: label
+ * "critical" harus memakai ikon "best" yang sudah ada, bukan ikon baru.
+ */
+export function markupIkon(rating, size = 18) {
+  return renderToStaticMarkup(<RatingSVG rating={rating} size={size} />);
+}
 
 /**
  * Render pemilih partai satu platform. Dipakai uji regresi: komponen ini
@@ -407,6 +434,33 @@ if (kotakPgn) {
   kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   await tunggu(200);
   klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+
+  /*
+   * Kartu progres analisa (adopsi kartu progres WintrChess): harus terlihat
+   * SELAGI analisa berjalan — bar kemajuan, persentase, dan tombol Batal.
+   * Keberadaannya dipantau sesaat setelah kirim, sebelum analisa selesai.
+   */
+  let kartuTeks = "";
+  let jurus = "";
+  const kartuMuncul = await tungguSampai(() => {
+    const bar = domSiap.querySelector("[role='progressbar']");
+    const grafik = domSiap.querySelector(".analisa-root svg[role='img'] path");
+    if (!bar || !grafik) return false;
+    kartuTeks = domSiap.querySelector(".analisa-root")?.textContent ?? "";
+    jurus = grafik.getAttribute("d") ?? "";
+    return kartuTeks.includes("Sedang analisa") && /\d+[.,]\d%/.test(kartuTeks);
+  }, 1500, 25);
+  uji(
+    "kartu progres tampil saat analisa (bar + persentase + tombol Batal)",
+    kartuMuncul && kartuTeks.includes("Batal") && kartuTeks.includes("Kalau prosesnya terasa lama"),
+    kartuTeks.replace(/\s+/g, " ").slice(0, 160)
+  );
+  uji(
+    "grafik eval tumbuh di kartu selama analisa berjalan",
+    kartuMuncul && jurus.split("L ").length >= 3 && !jurus.includes("NaN"),
+    jurus.slice(0, 120)
+  );
+
   await tunggu(1900);
 }
 
@@ -426,6 +480,122 @@ if (tabRingkasan) {
   const ringkasan = teksBagus();
   uji("ringkasan: akurasi + fase berbahasa Indonesia", /Akurasi/.test(ringkasan) && /Pembukaan/.test(ringkasan) && /Menengah/.test(ringkasan) && !/Middlegame/.test(ringkasan));
   uji("ringkasan: perincian penilaian", /Brilian|Blunder/.test(ringkasan));
+  /*
+   * Kartu ekspor PGN beranotasi (mesin/pgnAnotasi.js). Yang diperiksa di sini
+   * bukan isi berkasnya (itu tugas scripts/uji-pgn-anotasi.mjs), melainkan
+   * bahwa kartunya benar-benar terpasang di Ringkasan dan tombolnya aman
+   * diklik: `URL.createObjectURL` tidak ada di jsdom, jadi jalur gagal
+   * halusnya ikut teruji — dulu cukup untuk merobohkan seluruh panel.
+   */
+  /*
+   * Kosakata visual: label `critical` sengaja TIDAK punya ikon/warna sendiri.
+   * Halaman ini memakai ikon yang sudah ada (bintang `best`) supaya terasa
+   * sama dengan chess.com; kalau suatu saat ada yang menambahkan ikon baru
+   * lagi, uji ini yang menahan.
+   */
+  uji(
+    "ringkasan: tidak ada baris label 'Kritis' (critical tampil sebagai Terbaik)",
+    /Terbaik/.test(ringkasan) && !/\bKritis\b/.test(ringkasan)
+  );
+  uji("ringkasan: kartu ekspor PGN beranotasi ada", /Ekspor PGN beranotasi/.test(ringkasan));
+  const tombolEkspor = [...domSiap.querySelectorAll("button")].find((b) => /Unduh \.pgn/.test(b.textContent ?? ""));
+  uji("ringkasan: tombol unduh PGN ada", !!tombolEkspor);
+  if (tombolEkspor) {
+    let melempar = null;
+    try {
+      tombolEkspor.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+    } catch (e) {
+      melempar = e;
+    }
+    await tunggu(50);
+    uji("ringkasan: klik tombol unduh tidak melempar", melempar === null, String(melempar?.message ?? ""));
+    uji("ringkasan: halaman tetap terpasang setelah klik", !!domSiap.querySelector(".analisa-root"));
+  }
+}
+
+/* --- ikon label: `critical` = `best`, bukan ikon baru --- */
+{
+  const markup = (rating) => modul.markupIkon(rating);
+  uji(
+    "ikon `critical` identik dengan ikon `best` (tanpa ikon baru)",
+    markup("critical") === markup("best") && markup("best").includes("<svg")
+  );
+  uji(
+    "ikon lama tidak tersentuh (blunder & brilliant masih punya markup sendiri)",
+    markup("blunder") !== markup("best") && markup("brilliant") !== markup("best")
+  );
+}
+
+/* --- geometri grafik eval (dipakai grafik Ringkasan & grafik kartu muat) --- */
+{
+  const cp = (nilai) => ({ previousStaticEvals: [["cp", String(nilai)]] });
+  uji(
+    "grafik: eval 0 = tengah, putih unggul naik, hitam unggul turun",
+    modul.tinggiEval(cp(0), 0) === 0.5
+      && modul.tinggiEval(cp(400), 0) === 0.925
+      && modul.tinggiEval(cp(-400), 0) === 0.075
+  );
+  uji(
+    "grafik: eval ekstrem dijepit di dalam ruang gambar (tanpa kurva keluar bingkai)",
+    modul.tinggiEval(cp(99999), 0) === 0.925 && modul.tinggiEval(cp(-99999), 0) === 0.075
+  );
+  uji(
+    "grafik: giliran bicara (indeks ganjil = hitam jalan) membalik arah nilai",
+    modul.tinggiEval(cp(100), 1) === modul.tinggiEval(cp(-100), 0)
+  );
+  uji(
+    "grafik: skakmat menempel di tepi sesuai pihak yang unggul",
+    modul.tinggiEval({ previousStaticEvals: [["mate", "3"]] }, 0) === 1
+      && modul.tinggiEval({ previousStaticEvals: [["mate", "-3"]] }, 0) === 0
+  );
+
+  const jalur = modul.jalurGrafik([cp(0), cp(0)], 400, 96);
+  uji(
+    "grafik: entri eval tak lengkap tidak menghasilkan NaN di kurva",
+    modul.tinggiEval({ previousStaticEvals: [["cp"]] }, 0) === 0.5
+      && modul.tinggiEval({ previousStaticEvals: [["cp", "abc"]] }, 0) === 0.5
+      && !modul.jalurGrafik([cp(0), { previousStaticEvals: [["cp"]] }], 400, 96).includes("NaN")
+  );
+  uji(
+    "grafik: jalur 2 titik sah dan menutup area (tanpa NaN)",
+    jalur === "M 0 48 L 0 48 L 400 48 L 400 96 L 0 96",
+    jalur
+  );
+  uji(
+    "grafik: daftar kosong/satu entri tetap menghasilkan jalur sah",
+    !modul.jalurGrafik([], 400, 96).includes("NaN") && !modul.jalurGrafik([cp(0)], 400, 96).includes("NaN")
+  );
+  uji(
+    "grafik: titik bertambah seiring langkah masuk (kurva tumbuh)",
+    modul.jalurGrafik([cp(0), cp(50), cp(100)], 400, 96).split("L ").length
+      > modul.jalurGrafik([cp(0), cp(50)], 400, 96).split("L ").length
+  );
+}
+
+/* --- kartu progres analisa (adopsi kartu progres WintrChess) --- */
+{
+  uji("progres: persentase satu angka di belakang koma", modul.persenProgres(42.5) === "42.5");
+  uji(
+    "progres: nilai di luar 0-100 atau bukan angka dijinakkan (kartu tak pernah menulis NaN%)",
+    modul.persenProgres(-5) === "0.0"
+      && modul.persenProgres(180) === "100.0"
+      && modul.persenProgres(undefined) === "0.0"
+      && modul.persenProgres("bukan angka") === "0.0"
+  );
+
+  const markup = modul.markupBar(42.5);
+  uji(
+    "progres: bar punya peran aksesibilitas yang benar",
+    markup.includes('role="progressbar"')
+      && markup.includes('aria-valuemin="0"')
+      && markup.includes('aria-valuemax="100"')
+      && markup.includes('aria-valuenow="43"')
+  );
+  uji("progres: lebar isian mengikuti persentase", markup.includes("width:42.5%"));
+  uji(
+    "progres: bar berisi & tidak pernah melebihi jalurnya",
+    modul.markupBar(250).includes("width:100%") && modul.markupBar(-1).includes("width:0%")
+  );
 }
 
 const tabLangkah = tab(/Langkah/);

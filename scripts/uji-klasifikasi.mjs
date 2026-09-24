@@ -23,7 +23,9 @@
  *
  * Jalankan: node scripts/uji-klasifikasi.mjs
  */
-import { getMoveRating, isForced, isSacrifice } from "../src/halaman/Analisa/mesin/penilaian.js";
+import { AMBANG_KERUGIAN_PELUANG, getMoveRating, isForced, isSacrifice } from "../src/halaman/Analisa/mesin/penilaian.js";
+import { peluangMenang } from "../src/halaman/Analisa/mesin/peluang.js";
+import * as akurasi from "../src/halaman/Analisa/mesin/akurasi.js";
 import { Chess } from "chess.js";
 
 let lulus = 0;
@@ -71,13 +73,27 @@ const SKENARIO = [
     kunci: "mate",
   },
   {
-    nama: 'inaccuracy — keunggulan turun 1.0 → 0.1 (diff 0.9)',
-    riwayat: [CP(100), CP(-100), CP(30), CP(-30)],
-    staticEval: CP(-10),
+    // Dulu 1,0 → 0,1 (selisih 0,9 pion) sudah "inaccuracy"; dengan ambang ruang
+    // peluang kerugiannya hanya 8,2 poin → good. Band inaccuracy (10–20 poin)
+    // diuji di sini dengan 1,5 → 0,2 (rugi 11,7 poin).
+    nama: 'inaccuracy — keunggulan turun 1.5 → 0.2 (rugi 11,7 poin)',
+    riwayat: [CP(150), CP(-150), CP(30), CP(-30)],
+    staticEval: CP(-20),
     bestMoveSan: "a3",
     moveSan: "e4",
     label: "inaccuracy",
     kunci: "inaccuracy",
+  },
+  {
+    // Penurunan kecil yang DULU inaccuracy kini good — dicatat sebagai kasus
+    // tersendiri supaya pergeserannya terlihat dan tidak diam-diam hilang.
+    nama: 'good (dulu inaccuracy) — keunggulan turun 1.0 → 0.1 (rugi 8,2 poin)',
+    riwayat: [CP(100), CP(-100), CP(30), CP(-30)],
+    staticEval: CP(-10),
+    bestMoveSan: "a3",
+    moveSan: "e4",
+    label: "good",
+    kunci: "good",
   },
   {
     nama: 'mistake "loseAdvantage" (putih) — unggul 2.5 → 1.0 (diff 1.5, >2 menjadi <2)',
@@ -90,7 +106,9 @@ const SKENARIO = [
     hanya: "w",
   },
   {
-    nama: 'mistake "giveAdvantage" — dari seimbang (0.0) langsung -3.0 (diff 3, jatuh ke <-2)',
+    // Kerugian peluangnya 25,1 poin persen: masuk band `mistake` (20–30), jadi
+    // labelnya tetap mistake meski garis keunggulan ±2,0 ikut diseberangi.
+    nama: 'mistake "giveAdvantage" — dari seimbang (0.0) langsung -3.0 (rugi 25,1 poin)',
     riwayat: [CP(0), CP(0), CP(0), CP(0)],
     staticEval: CP(300),
     bestMoveSan: "a3",
@@ -104,13 +122,40 @@ const SKENARIO = [
     hanya: "w",
   },
   {
-    nama: "blunder — keunggulan 0 → -5.0 (diff 5 ≥ 4)",
+    nama: "blunder — keunggulan 0 → -5.0 (rugi 36,3 poin ≥ 30, garis -2.0 diseberangi)",
     riwayat: [CP(0), CP(0), CP(0), CP(0)],
     staticEval: CP(500),
     bestMoveSan: "a3",
     moveSan: "e4",
     label: "blunder",
-    kunci: "blunder",
+    kunci: "giveAdvantage",
+  },
+  {
+    // Jalur mistake UMUM (tanpa diagnosis): posisi sudah kalah jauh, jadi tidak
+    // ada garis keunggulan yang diseberangi dan komentarnya kalimat "mistake".
+    // Ini juga bukti bahwa label band bisa berubah sendiri tanpa diagnosis —
+    // dulu jalur ini bernilai "blunder" karena ambang centipawn (selisih 9,0).
+    nama: "mistake — -3.0 → -12.0 (rugi 22,4 poin, band mistake, tanpa diagnosis)",
+    riwayat: [CP(-300), CP(-300), CP(-300), CP(-300)],
+    staticEval: CP(1200),
+    bestMoveSan: "a3",
+    moveSan: "e4",
+    label: "mistake",
+    kunci: "mistake",
+  },
+  {
+    // Kasus "blunder/blunder" (komentar cadangan) praktis tak terjangkau lagi:
+    // kerugian ≥ 30 poin selalu menyeberangi garis ±2,0 sehingga salah satu
+    // cabang diagnosis yang mengambil alih. Karena itu kasus determinisme di
+    // bawah memakai kasus blunder BAND + diagnosis ini.
+    nama: "blunder — -1.0 → -8.0 (rugi 35,9 poin ≥ 30, diagnosis giveAdvantage)",
+    riwayat: [CP(-100), CP(-100), CP(-100), CP(-100)],
+    staticEval: CP(800),
+    bestMoveSan: "a3",
+    moveSan: "e4",
+    label: "blunder",
+    kunci: "giveAdvantage",
+    hanya: "w",
   },
   {
     nama: 'excellent "memulai skakmat" — mulai rantai skakmat lawan (M2 bagi lawan)',
@@ -194,8 +239,12 @@ const SKENARIO = [
     kunci: "gettingMated",
   },
   {
-    nama: 'brilliant — pengorbanan, lawan sebelumnya keliru (diff 1.0), posisi seimbang lagi',
-    riwayat: [CP(-50), CP(150), CP(-100), CP(100)],
+    // Kesalahan lawan sebelumnya HARUS cukup besar di ruang peluang: pola lama
+    // (riwayat[1] = +150) hanya rugi 8,9 poin → band "good", jadi brilliant
+    // tidak lagi menyala. Dengan riwayat[1] = +250 kerugiannya 16,8 poin →
+    // band inaccuracy, dan pengorbanan yang menghukumnya menjadi brilliant.
+    nama: 'brilliant — pengorbanan, lawan sebelumnya keliru (rugi 16,8 poin), posisi seimbang lagi',
+    riwayat: [CP(-50), CP(250), CP(-100), CP(100)],
     staticEval: CP(0),
     bestMoveSan: "a3",
     moveSan: "Qd5",
@@ -243,6 +292,79 @@ for (const sk of SKENARIO) {
       r.moveRating === sk.label && r.commentKey === sk.kunci,
       `dapat ${r.moveRating}/${r.commentKey}`
     );
+  }
+}
+
+console.log("\n== ambang kerugian peluang: kurva bersama & band label ==");
+{
+  /*
+   * Label standar tidak lagi memakai selisih centipawn, melainkan kerugian
+   * peluang lewat kurva yang SAMA dengan akurasi. Dua hal yang dijaga di sini:
+   * kurvanya benar-benar satu fungsi (bukan salinan yang bisa menyimpang), dan
+   * batas tiap band berperilaku persis seperti `AMBANG_KERUGIAN_PELUANG`.
+   */
+  hasil(
+    "akurasi.js mengekspor ULANG fungsi kurva yang sama (satu sumber, bukan salinan)",
+    akurasi.peluangMenang === peluangMenang && akurasi.batasiCp !== undefined,
+    `akurasi.peluangMenang === peluangMenang → ${akurasi.peluangMenang === peluangMenang}`
+  );
+  hasil(
+    "peluangMenang masih cocok dengan acuan (0 → 50, +100 → 59,1)",
+    Math.abs(peluangMenang(0) - 50) < 1e-9 && Math.abs(peluangMenang(100) - 59.10258971916129) < 1e-9,
+    `dapat ${peluangMenang(0)} / ${peluangMenang(100)}`
+  );
+  hasil(
+    "ambang band berurutan naik (good < inaccuracy < mistake < blunder)",
+    AMBANG_KERUGIAN_PELUANG.good < AMBANG_KERUGIAN_PELUANG.inaccuracy &&
+      AMBANG_KERUGIAN_PELUANG.inaccuracy < AMBANG_KERUGIAN_PELUANG.mistake &&
+      AMBANG_KERUGIAN_PELUANG.mistake < AMBANG_KERUGIAN_PELUANG.blunder
+  );
+
+  // Skenario band: tiap baris [eval sebelum (sudut pemain), eval sesudah, label]
+  // — semuanya tanpa penyeberangan garis ±2,0 supaya yang diuji murni bandnya.
+  const BAND = [
+    // +5,0 → +4,2: dulu "inaccuracy" (selisih 0,8 pion) padahal posisinya masih
+    // menang mutlak; kerugian peluangnya cuma 3,9 poin → excellent.
+    ['band: +5,0 → +4,2 (rugi 3,9 poin) → excellent', 500, 420, "excellent"],
+    // +9,0 → +6,0: selisih 3,0 pion (dulu "inaccuracy"), kerugian 6,4 poin → good.
+    ['band: +9,0 → +6,0 (rugi 6,4 poin) → good', 900, 600, "good"],
+    // 0,0 → -1,2: kerugian 10,9 poin → inaccuracy (ambang 10), dan TIDAK ada
+    // garis keunggulan yang diseberangi sehingga labelnya murni dari band.
+    ['band: 0,0 → -1,2 (rugi 10,9 poin) → inaccuracy', 0, -120, "inaccuracy"],
+    // -2,1 → -9,0: kerugian 28,1 poin → band mistake (20–30). Posisinya sudah
+    // kalah jauh dan tidak menyeberangi garis ±2,0, jadi komentarnya "mistake".
+    ['band: -2,1 → -9,0 (rugi 28,1 poin) → mistake', -210, -900, "mistake"],
+    // Kerugian peluang memperlakukan penurunan di posisi sudah kalah jauh
+    // berbeda dari sebelumnya: 9,0 pion hanya bernilai 22,4 poin.
+    ['band: -3,0 → -12,0 (rugi 22,4 poin) → mistake', -300, -1200, "mistake"],
+  ];
+  for (const [nama, sebelum, sesudah, harapan] of BAND) {
+    for (const c of ["w", "b"]) {
+      // Konvensi UCI (sama seperti seluruh suite ini): eval selalu dari sudut
+      // pihak yang BERGILIR, jadi angka yang sama berlaku untuk kedua warna.
+      // riwayat[0] = posisi sebelum langkah → pihak bergilir = pelangkah, jadi
+      // ditulis apa adanya; staticEval = posisi sesudah langkah → pihak bergilir
+      // = lawan pelangkah, jadi tandanya DIBALIK.
+      //
+      // Riwayat sengaja "jinak" (pola tanda berselang-seling seperti SERAGAM):
+      // konversi sudut pandang membuat eval UCI [+A, −A, +A, −A] berarti posisi
+      // TIDAK berubah selama tiga ply sebelumnya, sehingga label yang keluar
+      // murni dari kerugian langkah ini — bukan efek samping langkah lawan yang
+      // lalu dihukum label "great".
+      const riwayat = [CP(sebelum), CP(-sebelum), CP(sebelum), CP(-sebelum)];
+      const r = getMoveRating({
+        staticEval: CP(-sesudah),
+        previousStaticEvals: riwayat,
+        bestMoveSan: "a3",
+        moveSan: "e4",
+        fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        color: c,
+        sacrifice: false,
+        previousSacrifice: false,
+        openings: {},
+      });
+      hasil(`${nama} [color ${c}]`, r.moveRating === harapan, `dapat ${r.moveRating}/${r.commentKey}`);
+    }
   }
 }
 
@@ -321,7 +443,7 @@ console.log("\n== isSacrifice: pengorbanan bidak ==");
 
 console.log("\n== determinasi: label & kunci komentar stabil ==");
 {
-  const kasus = SKENARIO.find((s) => s.label === "blunder");
+  const kasus = SKENARIO.find((s) => s.label === "blunder" && s.kunci === "giveAdvantage");
   const indeks = new Set();
   let stabil = true;
   for (let i = 0; i < 25; i++) {
@@ -336,14 +458,14 @@ console.log("\n== determinasi: label & kunci komentar stabil ==");
       previousSacrifice: false,
       openings: {},
     });
-    if (r.moveRating !== "blunder" || r.commentKey !== "blunder") stabil = false;
+    if (r.moveRating !== kasus.label || r.commentKey !== kasus.kunci) stabil = false;
     indeks.add(r.commentIndex);
   }
-  hasil("25× blunder → moveRating & commentKey selalu 'blunder'", stabil);
+  hasil("25× blunder → moveRating 'blunder' & commentKey stabil", stabil);
   hasil(
     "commentIndex acak 0..2 terisi semua varian (3 kalimat)",
     indeks.size === 3,
-    `varian muncul: ${[...indeks].join(",")}`
+    `varian muncul: ${[...indeks].join(",")} (3 kalimat giveAdvantage)`
   );
 }
 

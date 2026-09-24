@@ -31,7 +31,12 @@ function RatingCount(props) {
   useEffect(() => {
     const newCounter = { w: {}, b: {} };
     moves.forEach((move2, i) => {
-      const rating = move2.moveRating;
+      /*
+       * `critical` tidak punya barisnya sendiri: ia ditampilkan sebagai `best`
+       * (ikon bintang, kosakata visual chess.com), jadi hitungannya ikut baris
+       * "Best" supaya total peringkat tetap sama dengan jumlah langkah.
+       */
+      const rating = move2.moveRating === "critical" ? "best" : move2.moveRating;
       const color = i % 2 === 0 ? "b" : "w";
       newCounter[color][rating] = newCounter[color][rating] + 1 || 1;
     });

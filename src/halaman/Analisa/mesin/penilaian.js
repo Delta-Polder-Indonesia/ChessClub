@@ -11,21 +11,41 @@
  * "go depth" mentah — itu bagian yang di proyek ini ditangani engine lokal
  * (lihat `src/lib/engineCatur.js` dan `./engine.js`).
  *
+ * TAMBAHAN di luar upstream: label `critical` ("langkah kritis"). Brilliant-Chess
+ * tidak punya label ini; gagasannya berasal dari `classify()` WintrChess
+ * (GPL-3.0) dan ditulis ulang di ./langkahKritis.js memakai kandidat MultiPV
+ * yang sudah direkam ./engine.js. Karena itu `critical` hanya keluar di cabang
+ * `isBest` dan `kritis` dihitung pemanggil — lihat catatan di fungsi itu.
+ *
+ * PERUBAHAN kedua dari upstream: ambang label standar tidak lagi berupa selisih
+ * centipawn (dulu `≥0,4 good`, `≥0,8 inaccuracy`, `≥4 blunder`) melainkan
+ * KERUGIAN PELUANG lewat kurva yang sama dengan ./akurasi.js — lihat
+ * `AMBANG_KERUGIAN_PELUANG`. Sebabnya: 0,8 pion di posisi +5,0 hampir tidak
+ * berarti, sedangkan 0,8 pion dari +0,5 ke −0,3 bisa menentukan hasil partai.
+ * Ambang centipawn yang tersisa (gerbang `evaluationDiff >= 1.2` dan garis
+ * keunggulan besar ±2,0) sengaja DIPERTAHANKAN: keduanya bukan penentu label
+ * utama, melainkan syarat tambahan "kerugiannya material" dan "posisinya
+ * melintasi garis menang" — maknanya memang tentang materi, bukan peluang.
+ *
  * Semua fungsi di sini murni: menerima hasil evaluasi, mengembalikan label.
  * Teks komentar tidak disimpan sebagai string mentah, melainkan sebagai
  * kunci kamus (`commentKey` + `commentIndex`) agar bisa ikut i18n.
  */
 
 import { BISHOP, Chess, KNIGHT, PAWN, QUEEN, ROOK } from "chess.js";
+import { penyerangTersembunyi } from "./keamananBidak.js";
+import { peluangMenang } from "./peluang.js";
 
 /** Daftar kunci komentar → `analisa.komentar.<kunci>` di kamus terjemahan. */
 export const KUNCI_KOMENTAR = [
   "brilliant",
   "great",
   "best",
+  "critical",
   "excellent",
   "good",
   "inaccuracy",
+  "mistake",
   "blunder",
   "mate",
   "mateIn",
@@ -44,6 +64,64 @@ export const JUMLAH_VARIAN = 3;
 
 export function invertColor(warna) {
   return warna === "w" ? "b" : "w";
+}
+
+/**
+ * Ambang kerugian peluang (poin persen, 0–100) yang memisahkan label standar
+ * `getStandardRating` di ./penilaian.js. Artinya: kerugian < `good` →
+ * excellent, < `inaccuracy` → good, < `mistake` → inaccuracy, < `blunder` →
+ * mistake, selebihnya blunder.
+ *
+ * Selisih centipawn TIDAK lagi dipakai untuk ambang ini karena maknanya tidak
+ * seragam: +5,0 → +4,2 hampir tidak berarti, sedangkan +0,5 → −0,3 bisa
+ * menentukan hasil partai — padahal keduanya sama-sama berjarak 0,8 pion.
+ * Kurvanya milik repo ini (`peluangMenang` ./peluang.js) sehingga label langkah
+ * dan angka akurasi selalu sejalan.
+ *
+ * Angkanya memakai ambang label lichess (kerugian peluang 10/20/30 untuk
+ * inaccuracy/mistake/blunder) supaya label halaman ini berbicara dalam skala
+ * yang sama dengan akurasi — yang juga memakai kurva lichess/en-croissant —
+ * dan bisa dibandingkan langsung dengan analisis lichess oleh pengguna. Band
+ * `good` mengisi celah di bawah 10. Gagasan "berpikir di ruang peluang" sendiri
+ * datang dari tabel transisi `pointLoss.ts` WintrChess (GPL-3.0); kodenya tidak
+ * diambil, dan angkanya sengaja dipilih sejajar lichess, bukan tabel mereka.
+ *
+ * Padanan cp dari posisi SEIMBANG (setara peluang, jadi angka ini bergeser di
+ * posisi yang sudah berat sebelah — justru itu maksud perubahan ini):
+ *   good ≈ 0,55 pion · inaccuracy ≈ 1,15 · mistake ≈ 2,35 · blunder ≈ 3,80.
+ * Sebagai perbandingan, ambang centipawn lama adalah 0,4/0,8/4,0 — inaccuracy
+ * lama jauh lebih galak di posisi seimbang, dan sebaliknya terlalu jinak di
+ * posisi menang besar.
+ *
+ * Catatan: karena bervariasi bersama ambang, komentar cadangan `blunder`
+ * (`komentar("blunder")`) hampir tidak pernah terpakai — kerugian ≥30 poin
+ * selalu menyeberangi garis keunggulan ±2,0 sehingga cabang diagnosis
+ * (loseAdvantage/giveAdvantage) yang mengambil alih. Kalimatnya sengaja
+ * dibiarkan di kamus: kalau ambangnya disetel ulang, ia bisa hidup lagi.
+ */
+export const AMBANG_KERUGIAN_PELUANG = Object.freeze({
+  good: 5,
+  inaccuracy: 10,
+  mistake: 20,
+  blunder: 30,
+});
+
+/**
+ * Kerugian peluang (poin persen) satu langkah: peluang menang SEBELUM dikurangi
+ * SESUDAH, keduanya dari sudut pandang pihak yang melangkah.
+ *
+ * Masukannya eval BERSUSUT PANDANG PUTIH dalam satuan pion — bentuk yang sama
+ * dengan `getPreviousStaticEvalAmount`/`staticEvalAmount` di `getMoveRating` —
+ * lalu tandanya dibalik untuk pelangkah Hitam. Riwayat yang tidak ada/rusak
+ * (`NaN`) berarti TIDAK ADA informasi, bukan kerugian besar: hasilnya 0 supaya
+ * perilakunya sama dengan ambang centipawn dulu (perbandingan NaN selalu false
+ * → "excellent"). Langkah yang malah menaikkan peluang menghasilkan nilai
+ * negatif dan otomatis masuk band terbaik.
+ */
+function kerugianPeluang(sebelum, sesudah, warnaPelangkah) {
+  if (!Number.isFinite(sebelum) || !Number.isFinite(sesudah)) return 0;
+  const tanda = warnaPelangkah === "w" ? 1 : -1;
+  return peluangMenang(tanda * 100 * sebelum) - peluangMenang(tanda * 100 * sesudah);
 }
 
 function angkaAcak(batas) {
@@ -66,6 +144,7 @@ export function getMoveRating({
   sacrifice,
   previousSacrifice,
   openings,
+  kritis = false,
 }) {
   // Salinan kerja: upstream menulis padding langsung ke argumen, yang berarti
   // state React milik pemanggil ikut berubah diam-diam.
@@ -83,12 +162,32 @@ export function getMoveRating({
     return { commentKey: kunci, commentIndex: commentNumber };
   }
 
-  function getStandardRating(diff) {
+  /*
+   * Label standar dari KERUGIAN PELUANG (poin persen), bukan selisih centipawn —
+   * lihat `AMBANG_KERUGIAN_PELUANG`. Ambangnya sengaja dipusatkan di satu
+   * konstanta supaya mudah disetel ulang bersama ujinya; `mistake` kini bisa
+   * keluar langsung dari sini (dulu hanya dari cabang loseAdvantage/
+   * giveAdvantage), dan komentarnya memakai `KUNCI_KOMENTAR.mistake`.
+   */
+  function getStandardRating(kerugian) {
     let rating = "excellent";
-    if (diff >= 0.4) rating = "good";
-    if (diff >= 0.8) rating = "inaccuracy";
-    if (diff >= 4) rating = "blunder";
+    if (kerugian >= AMBANG_KERUGIAN_PELUANG.good) rating = "good";
+    if (kerugian >= AMBANG_KERUGIAN_PELUANG.inaccuracy) rating = "inaccuracy";
+    if (kerugian >= AMBANG_KERUGIAN_PELUANG.mistake) rating = "mistake";
+    if (kerugian >= AMBANG_KERUGIAN_PELUANG.blunder) rating = "blunder";
     return rating;
+  }
+
+  /*
+   * Urutan keparahan label standar. Dipakai untuk pertanyaan "sekurang-kurangnya
+   * seburuk X" alih-alih kesamaan persis: sejak ambang kerugian peluang punya
+   * band `mistake` sendiri, `=== "inaccuracy"` akan melewatkan langkah yang
+   * justru LEBIH buruk (dan sebaliknya menyamakan band yang berbeda makna).
+   * Label non-standar (brilliant/great/miss/…) tidak pernah masuk ke sini.
+   */
+  const KEPARAHAN = { excellent: 0, good: 1, inaccuracy: 2, mistake: 3, blunder: 4 };
+  function minimalSeparah(peringkat, batas) {
+    return KEPARAHAN[peringkat] >= KEPARAHAN[batas];
   }
 
   // Ambang keunggulan besar. Kedua fungsi di bawah SENGAJA punya struktur cabang
@@ -154,7 +253,12 @@ export function getMoveRating({
   if (openingName) return { moveRating: "book", comment: openingName };
 
   function getPreviousStandardRating(number) {
-    return getStandardRating(getPreviousEvaluationDiff(number));
+    // Pelangkah langkah ke-`number`: 0 = lawan, 1 = pemain ini lagi, 2 = lawan,
+    // ... (riwayat[number] adalah posisi SEBELUM langkah itu).
+    const pelangkah = number % 2 === 0 ? invertColor(color) : color;
+    return getStandardRating(
+      kerugianPeluang(getPreviousStaticEvalAmount(number + 1), getPreviousStaticEvalAmount(number), pelangkah)
+    );
   }
 
   function getPreviousEvaluationDiff(number) {
@@ -168,12 +272,14 @@ export function getMoveRating({
     color === "w"
       ? getPreviousStaticEvalAmount(0) - staticEvalAmount
       : staticEvalAmount - getPreviousStaticEvalAmount(0);
-  const standardRating = getStandardRating(evaluationDiff);
+  const standardRating = getStandardRating(
+    kerugianPeluang(getPreviousStaticEvalAmount(0), staticEvalAmount, color)
+  );
 
   const previousMistake =
     getWasNotMateRelated(0) &&
     getWasNotMateRelated(1) &&
-    getPreviousStandardRating(0) === "inaccuracy" &&
+    minimalSeparah(getPreviousStandardRating(0), "inaccuracy") &&
     getPreviousEvaluationDiff(0) >= 1.2 &&
     (losingGreatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor) ||
       givingGreatAdvantage(getPreviousStaticEvalAmount(0), getPreviousStaticEvalAmount(1), previousColor));
@@ -181,15 +287,15 @@ export function getMoveRating({
   const previousPreviousMistake =
     getWasNotMateRelated(1) &&
     getWasNotMateRelated(2) &&
-    getPreviousStandardRating(1) === "inaccuracy" &&
+    minimalSeparah(getPreviousStandardRating(1), "inaccuracy") &&
     getPreviousEvaluationDiff(1) >= 1.2 &&
     (losingGreatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color) ||
       givingGreatAdvantage(getPreviousStaticEvalAmount(1), getPreviousStaticEvalAmount(2), color));
 
   const previousMiss =
     getWasNotMateRelated(0) &&
-    (previousPreviousMistake || getPreviousStandardRating(1) === "blunder") &&
-    (getPreviousStandardRating(0) === "blunder" || getPreviousStandardRating(0) === "inaccuracy") &&
+    (previousPreviousMistake || minimalSeparah(getPreviousStandardRating(1), "blunder")) &&
+    minimalSeparah(getPreviousStandardRating(0), "inaccuracy") &&
     getPreviousEvaluationDiff(0) <= getPreviousEvaluationDiff(1) + 0.5;
 
   // brilliant — pengorbanan
@@ -200,10 +306,9 @@ export function getMoveRating({
     isNotMateRelated &&
     standardRating === "excellent" &&
     sacrifice &&
-    (getPreviousStandardRating(0) === "inaccuracy" ||
-      getPreviousStandardRating(0) === "blunder" ||
-      (!(getPreviousStandardRating(1) === "inaccuracy" || getPreviousStandardRating(1) === "blunder") &&
-        (getPreviousStandardRating(2) === "inaccuracy" || getPreviousStandardRating(2) === "blunder")))
+    (minimalSeparah(getPreviousStandardRating(0), "inaccuracy") ||
+      (!minimalSeparah(getPreviousStandardRating(1), "inaccuracy") &&
+        minimalSeparah(getPreviousStandardRating(2), "inaccuracy")))
   ) {
     return { moveRating: "brilliant", ...komentar("brilliant") };
   }
@@ -240,6 +345,16 @@ export function getMoveRating({
   if (isBest && staticEval[0] === "mate" && !staticEval[1]) {
     return { moveRating: "best", ...komentar("mate") };
   }
+  /*
+   * best yang kritis: langkah terbaik, tetapi alternatif terbaik keduanya
+   * sudah menjatuhkan peluang menang secara berarti (hanya satu langkah yang
+   * menang). Keputusannya dihitung pemanggil lewat ./langkahKritis.js karena
+   * butuh kandidat MultiPV posisi SEBELUM langkah — data yang tidak dimiliki
+   * fungsi ini. Diperiksa hanya di cabang ini supaya label brilliant/great/
+   * book/forced (yang sudah keluar lebih awal) tidak pernah tertimpa, dan
+   * supaya "kritis" tetap berarti "ini langkah terbaik" tanpa terkecuali.
+   */
+  if (isBest && kritis) return { moveRating: "critical", ...komentar("critical") };
   if (isBest) return { moveRating: "best", ...komentar("best") };
 
   // excellent — skakmat sudah pasti
@@ -289,31 +404,42 @@ export function getMoveRating({
   if (
     !previousMiss &&
     isNotMateRelated &&
-    (previousMistake || getPreviousStandardRating(0) === "blunder") &&
-    (standardRating === "blunder" || standardRating === "inaccuracy") &&
+    (previousMistake || minimalSeparah(getPreviousStandardRating(0), "blunder")) &&
+    minimalSeparah(standardRating, "inaccuracy") &&
     evaluationDiff <= getPreviousEvaluationDiff(0) + 0.5
   ) {
     return { moveRating: "miss", ...komentar("missAdvantage") };
   }
 
+  /*
+   * Dua cabang berikut adalah DIAGNOSIS, bukan penentu keparahan: keduanya
+   * menandai kerugian yang melintasi garis keunggulan besar (±2,0) — "kehilangan
+   * keunggulan" dan "menyerahkan keunggulan". Sejak keparahan datang dari band
+   * kerugian peluang, labelnya mengikuti band blunder bila memang sebesar itu,
+   * tetapi tidak pernah lebih ringan dari `mistake`: melintasi garis menang
+   * terlalu besar untuk disebut sekadar "inaccuracy". Komentarnya tetap yang
+   * spesifik supaya pengguna tahu APA yang salah, bukan cuma seberapa buruk.
+   */
+  const keparahanBesar = standardRating === "blunder" ? "blunder" : "mistake";
+
   // mistake — kehilangan advantage
   if (
     isNotMateRelated &&
-    standardRating === "inaccuracy" &&
+    minimalSeparah(standardRating, "inaccuracy") &&
     evaluationDiff >= 1.2 &&
     losingGreatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
   ) {
-    return { moveRating: "mistake", ...komentar("loseAdvantage") };
+    return { moveRating: keparahanBesar, ...komentar("loseAdvantage") };
   }
 
   // mistake — memberikan advantage ke lawan
   if (
     isNotMateRelated &&
-    standardRating === "inaccuracy" &&
+    minimalSeparah(standardRating, "inaccuracy") &&
     evaluationDiff >= 1.2 &&
     givingGreatAdvantage(staticEvalAmount, getPreviousStaticEvalAmount(0), color)
   ) {
-    return { moveRating: "mistake", ...komentar("giveAdvantage") };
+    return { moveRating: keparahanBesar, ...komentar("giveAdvantage") };
   }
 
   // mistake — mulai terserang skakmat
@@ -355,6 +481,13 @@ function getAttackersDefenders(chess, warna, ke) {
     (penyerang) => langkah().findIndex((m) => m.from === penyerang && m.to === ke) !== -1
   );
   const legalAttackersPieces = legalAttackers.map((kotak) => chess.get(kotak));
+
+  // Baterai (x-ray): penyerang yang baru terlihat setelah satu-satunya penyerang
+  // legal menyingkir. Hanya dihitung pada kasus "satu penyerang legal" karena
+  // hanya di situ `isSacrifice` memakainya (pengecualian tukar-menukar untuk
+  // benteng/ratu). Di kasus itu `langkah()` sudah terisi, jadi biaya tambahannya
+  // hanya penelusuran garis serangnya — lihat ./keamananBidak.js.
+  const tersembunyi = legalAttackers.length === 1 ? penyerangTersembunyi(chess, ke, invertColor(warna), langkah).length : 0;
 
   let defenders, legalDefenders, legalDefendersPieces;
   if (attackers.length === 1) {
@@ -406,7 +539,14 @@ function getAttackersDefenders(chess, warna, ke) {
   }
 
   return {
-    attackers: { squares: legalAttackers, pieces: legalAttackersPieces, length: legalAttackers.length },
+    attackers: {
+      squares: legalAttackers,
+      pieces: legalAttackersPieces,
+      length: legalAttackers.length,
+      // Jumlah penyerang tersembunyi; selalu 0 kecuali tepat satu penyerang
+      // legal (lihat perhitungan di atas).
+      tersembunyi,
+    },
     defenders: { squares: legalDefenders, pieces: legalDefendersPieces, length: legalDefenders.length },
   };
 }
@@ -442,6 +582,13 @@ export function isSacrifice(move) {
 
       const { attackers, defenders } = getAttackersDefenders(chess, move.color, kotak.square);
 
+      // Pengecualian "satu penyerang" di bawah mengandaikan serangan satu lawan
+      // satu, sehingga tukar-menukar material dianggap adil. Penyerang tersembunyi
+      // di belakang penyerang tunggal itu (baterai) membatalkan pengandaiannya —
+      // sama seperti petak yang sejak awal diserang dua bidak, yang memang tidak
+      // pernah mendapat pengecualian. Lihat ./keamananBidak.js.
+      const satuPenyerang = attackers.length === 1 && !attackers.tersembunyi;
+
       if (!defenders.length && attackers.length && (!move.captured || move.captured === PAWN)) {
         sacrifying.push(kotak);
         continue;
@@ -459,7 +606,7 @@ export function isSacrifice(move) {
         attackers.length &&
         move.captured !== ROOK &&
         move.captured !== QUEEN &&
-        !(attackers.length === 1 && (attackers.pieces[0]?.type === QUEEN || attackers.pieces[0]?.type === ROOK) && defenders.length) &&
+        !(satuPenyerang && (attackers.pieces[0]?.type === QUEEN || attackers.pieces[0]?.type === ROOK) && defenders.length) &&
         !(defenders.length && (move.captured === KNIGHT || move.captured === BISHOP))
       ) {
         sacrifying.push(kotak);
@@ -469,8 +616,8 @@ export function isSacrifice(move) {
         kotak.type === QUEEN &&
         attackers.length &&
         move.captured !== QUEEN &&
-        !(attackers.length === 1 && attackers.pieces[0]?.type === QUEEN && defenders.length) &&
-        !(attackers.length === 1 && attackers.pieces[0]?.type === ROOK && move.captured === ROOK && defenders.length)
+        !(satuPenyerang && attackers.pieces[0]?.type === QUEEN && defenders.length) &&
+        !(satuPenyerang && attackers.pieces[0]?.type === ROOK && move.captured === ROOK && defenders.length)
       ) {
         sacrifying.push(kotak);
         continue;
