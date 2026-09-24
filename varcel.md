@@ -30,7 +30,8 @@ Isi di **Vercel → Project → Settings → Environment Variables**:
 | `KCI_PEPPER` | rahasia hashing, minimal 16 karakter |
 | `KCI_ADMIN_USER` | contoh: `admin` |
 | `KCI_ADMIN_PASSWORD` | password kuat, bukan `admin123` |
-| `KCI_ASAL_DIIZINKAN` | `https://chess-club-weld.vercel.app` tanpa trailing slash |
+| `KCI_JWT_SECRET` | rahasia acak minimal 24 karakter |
+| `KCI_ASAL_DIIZINKAN` | `https://chess-club-weld.vercel.app` tanpa trailing slash (opsional: URL preview otomatis diizinkan) |
 
 Opsional: `KCI_TOKEN_ADMIN` bila masih ingin memakai token lama sebagai password
 alternatif.

@@ -28,6 +28,19 @@ const daftar = (v) =>
     .map((s) => s.trim())
     .filter(Boolean);
 
+/**
+ * Vercel mengubah URL deployment menjadi hostname tanpa protokol. Sertakan
+ * URL aktif secara otomatis agar API yang dipanggil dari deployment preview
+ * tidak ditolak CORS hanya karena KCI_ASAL_DIIZINKAN masih berisi domain
+ * produksi. Nilai ini berasal dari environment Vercel, bukan input pengguna.
+ */
+const asalVercel = () => {
+  if (!DI_VERCEL) return [];
+  return [process.env.VERCEL_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL]
+    .filter(Boolean)
+    .map((host) => `https://${String(host).replace(/^https?:\/\//, "").replace(/\/$/, "")}`);
+};
+
 /** URL-ID klub Chess.com hanya boleh berupa slug, bukan URL penuh. */
 const slugKlub = (v) => String(v || "blunder-skuad").trim().toLowerCase();
 
@@ -134,7 +147,9 @@ export const konfigurasi = {
   admins: [],
 
   /** Asal (origin) yang boleh memanggil API. Kosong = izinkan semua. */
-  asalDiizinkan: daftar(process.env.KCI_ASAL_DIIZINKAN),
+  asalDiizinkan: [
+    ...new Set([...daftar(process.env.KCI_ASAL_DIIZINKAN), ...asalVercel()]),
+  ],
 
   /** Lokasi berkas data.
    * Di Vercel hanya /tmp yang dapat ditulis (filesystem lain read-only),
