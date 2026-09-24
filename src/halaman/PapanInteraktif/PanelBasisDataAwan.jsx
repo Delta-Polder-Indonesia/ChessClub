@@ -199,9 +199,9 @@ function TabelLangkahAwan({ baris, redup = false, onPilih, t }) {
           </tr>
         </thead>
         <tbody>
-          {baris.map((item) => (
+          {baris.map((item, indeks) => (
             <tr
-              key={item.uci}
+              key={`${item.uci}-${indeks}`}
               className="border-b border-[#312e2b] last:border-b-0 hover:bg-[#2c2926]"
             >
               <td className="px-3 py-2 align-top">

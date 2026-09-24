@@ -10,7 +10,7 @@ export default function BukuPembukaan({ kelompok, idDari, terpilihId, onPilih, t
 
   const cocok = (entri) =>
     !kataKunci ||
-    entri.nama.toLowerCase().includes(kataKunci) ||
+    String(entri.nama ?? "").toLowerCase().includes(kataKunci) ||
     String(entri.eco || "").toLowerCase().includes(kataKunci);
 
   const hasil = useMemo(

@@ -4,11 +4,32 @@
  */
 import { Chess } from "chess.js";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
+import { FEN_AWAL } from "./konstanta.js";
 
-/** Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog). */
-export function fenDariLangkah(daftarSan) {
-  const game = new Chess();
-  for (const san of daftarSan) game.move(san);
+/**
+ * Replay deret SAN menjadi FEN (dipakai untuk undo & memuat jalur katalog).
+ *
+ * @param {string[]} daftarSan deret SAN dari posisi `dasar`
+ * @param {string} [dasar] FEN posisi awal replay (bawaan: posisi awal standar)
+ * @returns {string|null} FEN hasil, atau null bila ada SAN ilegal / FEN rusak
+ *   (tidak pernah melempar — pemanggil wajib menangani null).
+ */
+export function fenDariLangkah(daftarSan, dasar = FEN_AWAL) {
+  let game;
+  try {
+    game = new Chess(dasar);
+  } catch {
+    return null;
+  }
+  for (const san of daftarSan) {
+    let pindah = null;
+    try {
+      pindah = game.move(san);
+    } catch {
+      return null;
+    }
+    if (!pindah) return null;
+  }
   return game.fen();
 }
 
@@ -22,6 +43,25 @@ export function susunPgn(daftarSan) {
     bagian.push(`${nomor}. ${putih}${hitam ? ` ${hitam}` : ""}`);
   }
   return bagian.join(" ");
+}
+
+/**
+ * Susun PGN lengkap: bila partai berangkat dari FEN kustom (bukan posisi
+ * awal standar), sertakan header `[SetUp "1"]` + `[FEN "…"]` agar PGN bisa
+ * dimuat ulang dengan benar.
+ */
+export function susunPgnDenganFen(daftarSan, fenAwal) {
+  const isi = susunPgn(daftarSan);
+  if (fenAwal && fenAwal !== FEN_AWAL) {
+    return `[SetUp "1"]\n[FEN "${fenAwal}"]\n\n${isi}`;
+  }
+  return isi;
+}
+
+/** Ambil FEN dari header `[FEN "…"]` sebuah PGN (null bila tidak ada). */
+export function ekstrakFenDariPgn(pgn) {
+  const cocok = String(pgn || "").match(/^\s*\[FEN\s+"([^"]+)"\s*\]/m);
+  return cocok ? cocok[1].trim() : null;
 }
 
 /** Kumpulkan katalog (nama + jalur terpendek) lewat DFS dari pohon pembukaan. */
@@ -159,13 +199,32 @@ export function formatPersen(pecahan, bahasa) {
 }
 
 
-/** Ambil daftar SAN dari teks PGN (abaikan nomor langkah, komentar, hasil akhir). */
+/**
+ * Ambil daftar SAN jalur utama dari teks PGN. Diabaikan: baris header `[]`,
+ * komentar `{…}` dan `;…`, variasi `(…)` BERSARANG, nomor langkah, NAG
+ * (`$1`), anotasi `?!`, dan tanda hasil akhir.
+ */
 export function sanDariPgn(pgn) {
-  const dibersihkan = String(pgn || "")
+  let teks = String(pgn || "")
     .replace(/^\[[^\n]*\]/gm, " ")
-    .replace(/\{[^}]*\}/g, " ")
-    .replace(/\([^)]*\)/g, " ")
-    .replace(/\b\d+\.(\.\.)?/g, " ")
+    .replace(/;[^\n]*/g, " ")
+    .replace(/\{[^}]*\}/g, " ");
+  // Buang variasi dengan hitung kedalaman agar "(1. d4 d5 (1... Nf6))" ikut
+  // hilang seluruhnya — regex satu tingkat menyisakan token variasi.
+  let tanpaVariasi = "";
+  let kedalaman = 0;
+  for (const ch of teks) {
+    if (ch === "(") kedalaman++;
+    else if (ch === ")") {
+      if (kedalaman > 0) kedalaman--;
+    } else if (kedalaman === 0) tanpaVariasi += ch;
+  }
+  teks = tanpaVariasi
+    .replace(/\b\d+\s*\.(?:\s*\.)?/g, " ")
+    .replace(/\$\d+/g, " ")
     .replace(/\b(1-0|0-1|1\/2-1\/2|½-½|\*)\b/g, " ");
-  return dibersihkan.split(/\s+/).filter(Boolean);
+  return teks
+    .split(/\s+/)
+    .map((token) => token.replace(/[!?]+$/, ""))
+    .filter((token) => token && token !== "..." && token !== "…");
 }

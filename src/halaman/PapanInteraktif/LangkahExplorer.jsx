@@ -35,9 +35,17 @@ export default function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
 }
 
 function HasilBar({ stat, bahasa }) {
-  const putih = stat.whiteWin ?? 0;
-  const seri = stat.draw ?? 0;
-  const hitam = stat.blackWin ?? 0;
+  // Data rusak (NaN/negatif/total > 1) tidak boleh membuat bar meluber.
+  const batasi = (nilai) => Math.min(1, Math.max(0, Number(nilai) || 0));
+  let putih = batasi(stat.whiteWin);
+  let seri = batasi(stat.draw);
+  let hitam = batasi(stat.blackWin);
+  const total = putih + seri + hitam;
+  if (total > 1) {
+    putih /= total;
+    seri /= total;
+    hitam /= total;
+  }
   return <>
     <div className="flex h-2 w-full overflow-hidden border border-[#555] bg-[#1e1d1c]">
       <span style={{ width: `${putih * 100}%` }} className="bg-[#e8e6e3]" />
