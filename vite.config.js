@@ -205,6 +205,30 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    /**
+     * HANYA saat `vite dev` (apply: "serve"): longgarkan `connect-src` di CSP
+     * supaya websocket HMR diizinkan.
+     *
+     * Meta CSP di index.html sengaja ketat dan TIDAK memuat skema ws:/wss:,
+     * sehingga browser memblokir websocket Vite: "Connecting to
+     * 'wss://localhost:5173/?token=…' violates … connect-src". Akibatnya HMR
+     * tidak pernah menyambung, invalidasi modul tidak sampai, dan modul yang
+     * sudah berubah tetap dipakai dari cache browser — gejalanya baru muncul
+     * sebagai galat seperti "does not provide an export named 'AVATAR_BUKU'"
+     * (KartuKomentator versi baru + komentator.js versi lama). Di lingkungan
+     * pratinjau/proxy, host websocket-nya bukan localhost, jadi yang
+     * ditambahkan adalah SKEMA-nya, bukan satu alamat.
+     *
+     * Produksi tidak disentuh sedikit pun: build tetap memakai CSP dari
+     * index.html apa adanya (Vercel juga mengirimnya sebagai header).
+     */
+    {
+      name: "kci-csp-dev-websocket",
+      apply: "serve",
+      transformIndexHtml(html) {
+        return html.replace(/(connect-src [^;]*)/, "$1 ws: wss:");
+      },
+    },
     performaHalaman({ siteUrl: SITE_URL }),
     // Pratinjau e-book: /api/ebook-preview harus dilayani lokal (bukan
     // diteruskan ke backend Node), persis seperti function di Vercel.
