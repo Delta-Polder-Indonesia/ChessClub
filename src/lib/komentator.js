@@ -69,20 +69,23 @@ const RATING_MARAH = new Set(["blunder"]);
 /**
  * Pilih avatar karakter untuk kartu komentator.
  *
- * Engine MATI: selama partai masih menelusuri BUKU PEMBUKAAN (rating `book`
- * atau `namaPembukaan` tersedia) yang tampil cukup ikon buku — tidak ada yang
- * bisa dinilai engine, jadi avatar karakter tidak relevan; begitu keluar dari
- * buku, Fritz yang berkonsentrasi muncul. Engine NYALA: enam karakter catur
- * bereaksi terhadap vonis engine terlebih dahulu, lalu (bila eval belum siap)
- * terhadap fakta papan: skakmat/langkah bagus/rokade/promosi → senang,
- * pengorbanan/skak/tangkap besar → terkejut, bidak sendiri menggantung →
- * bingung, dan seterusnya.
+ * BUKU PEMBUKAAN berlaku untuk KEDUA keadaan engine: selama partai masih di
+ * jalur buku (rating `book`, `namaPembukaan` tersedia, atau belum ada langkah
+ * sama sekali) yang tampil cukup IKON BUKU — tidak ada gambar karakter sama
+ * sekali. Karakter dan Fritz baru muncul setelah partai keluar dari buku.
+ *
+ * Setelah keluar buku: engine MATI → Fritz yang berkonsentrasi (komentar
+ * hanya dari fakta papan); engine NYALA → enam karakter catur bereaksi
+ * terhadap vonis engine lebih dulu, lalu (bila eval belum siap) terhadap fakta
+ * papan: skakmat/langkah bagus/rokade/promosi → senang, pengorbanan/skak/
+ * tangkap besar → terkejut, bidak sendiri menggantung → bingung, dst.
  *
  * @param {object} [p]
  * @param {boolean} [p.engineNyala]
  * @param {boolean} [p.engineMenilai] engine menyala tapi eval belum siap
  * @param {string|null} [p.rating]    label penilaian engine (best/blunder/…)
  * @param {string|null} [p.namaPembukaan] nama pembukaan bila masih di buku
+ * @param {boolean} [p.posisiAwal]    belum ada langkah (masih tahap pembukaan)
  * @param {object|null} [p.fakta]     hasil faktaLangkah() langkah terakhir
  * @returns {string} path gambar avatar, atau AVATAR_BUKU untuk ikon buku
  */
@@ -91,12 +94,13 @@ export function gambarKomentator({
   engineMenilai = false,
   rating = null,
   namaPembukaan = null,
+  posisiAwal = false,
   fakta = null,
 } = {}) {
-  if (!engineNyala) {
-    const diBuku = rating === "book" || Boolean(namaPembukaan);
-    return diBuku ? AVATAR_BUKU : GAMBAR_KOMENTATOR.fritz;
-  }
+  // Masih di buku pembukaan (atau papan belum melangkah) → ikon buku saja,
+  // apa pun keadaan engine-nya.
+  if (posisiAwal || rating === "book" || namaPembukaan) return AVATAR_BUKU;
+  if (!engineNyala) return GAMBAR_KOMENTATOR.fritz;
   if (fakta?.skakmat) return GAMBAR_KOMENTATOR.senang;
   if (rating && rating !== "book" && rating !== "forced") {
     if (RATING_SENANG.has(rating)) return GAMBAR_KOMENTATOR.senang;

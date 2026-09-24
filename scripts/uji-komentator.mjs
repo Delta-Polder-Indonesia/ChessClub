@@ -704,12 +704,54 @@ for (const [nama, src] of Object.entries(GAMBAR_KOMENTATOR)) {
     gambarKomentator({ engineNyala: true, engineMenilai: true, fakta: fBiasa }) === GAMBAR_KOMENTATOR.berpikir,
     "engine sedang menilai → berpikir"
   );
-  // Ikon buku HANYA berlaku saat engine mati; dengan engine nyala, karakter
-  // tetap yang menjawab (di sini "berpikir" karena menunggu vonis engine).
+  // Aturan ikon buku berlaku untuk KEDUA keadaan engine: selama masih di
+  // buku tidak ada gambar karakter sama sekali; karakter baru muncul setelah
+  // partai keluar dari buku.
   ok(
     gambarKomentator({ engineNyala: true, rating: "book", namaPembukaan: "King's Pawn", fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine nyala + rating book → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, namaPembukaan: "King's Pawn", fakta: fBiasa }) === AVATAR_BUKU,
+    "engine nyala + nama pembukaan (tanpa rating book) → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: "book", namaPembukaan: null, fakta: fBiasa }) ===
+      AVATAR_BUKU,
+    "engine nyala + rating book saja → ikon buku"
+  );
+  ok(
+    gambarKomentator({
+      engineNyala: true,
+      rating: "best",
+      namaPembukaan: null,
+      fakta: fBiasa,
+    }) === GAMBAR_KOMENTATOR.senang,
+    "engine nyala + keluar buku (rating best) → karakter muncul"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, rating: null, namaPembukaan: null, fakta: fBiasa }) ===
       GAMBAR_KOMENTATOR.berpikir,
-    "engine nyala + book → karakter (bukan ikon buku)"
+    "engine nyala + keluar buku tanpa vonis → berpikir"
+  );
+  // Papan belum melangkah = masih tahap pembukaan → ikon buku, bukan karakter.
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: true, fakta: null }) === AVATAR_BUKU,
+    "engine nyala + belum ada langkah → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: false, posisiAwal: true, fakta: null }) === AVATAR_BUKU,
+    "engine mati + belum ada langkah → ikon buku"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: true, rating: "best", fakta: null }) === AVATAR_BUKU,
+    "ikon buku menang atas rating apa pun selama belum melangkah"
+  );
+  ok(
+    gambarKomentator({ engineNyala: true, posisiAwal: false, rating: "best", fakta: fBiasa }) ===
+      GAMBAR_KOMENTATOR.senang,
+    "posisiAwal=false + sudah keluar buku → karakter kembali muncul"
   );
   ok(gambarKomentator({ engineNyala: true, fakta: fMat }) === GAMBAR_KOMENTATOR.senang, "skakmat → senang");
   for (const r of ["brilliant", "great", "best", "excellent", "good"]) {

@@ -142,6 +142,7 @@ export default function KartuKomentator({
     engineMenilai,
     rating,
     namaPembukaan,
+    posisiAwal,
     fakta,
   });
   // Saat avatar sudah berupa ikon buku, lencana penilaian disembunyikan agar
