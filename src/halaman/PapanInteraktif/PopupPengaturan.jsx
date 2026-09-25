@@ -27,6 +27,8 @@ export default function PopupPengaturan({
   setTampilPanahMesin,
   awanTampilanPenuh,
   setAwanTampilanPenuh,
+  bantuanNyala,
+  setBantuanNyala,
   warnaPapan,
   setWarnaPapan,
   kartuKomentator,
@@ -99,6 +101,21 @@ export default function PopupPengaturan({
                             className="h-4 w-4 accent-[#81b64c]"
                           />
                         </label>
+                        <label className="flex cursor-pointer items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-gray-400">
+                            {t("papan.bantuanToggle")}
+                          </span>
+                          <input
+                            type="checkbox"
+                            checked={bantuanNyala}
+                            onChange={(e) => setBantuanNyala(e.target.checked)}
+                            aria-label={t("papan.bantuanToggle")}
+                            className="h-4 w-4 accent-[#81b64c]"
+                          />
+                        </label>
+                        {bantuanNyala && (
+                          <p className="-mt-2 text-xs text-gray-500">{t("papan.bantuanPetunjuk")}</p>
+                        )}
                         <label className="flex cursor-pointer items-center justify-between gap-3">
                           <span className="text-sm font-semibold text-gray-400">
                             {t("papan.awanTampilanPenuh")}

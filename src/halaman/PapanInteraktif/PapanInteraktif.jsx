@@ -15,6 +15,8 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import { nilaiDariSudutPelangkah } from "../../lib/bantuanSeret.js";
+import { gunakanBantuanSeret } from "../../lib/gunakanBantuanSeret.js";
 import PanelEngine from "../../components/PanelEngine.jsx";
 import {
   ambilArtikelPembukaan,
@@ -124,10 +126,16 @@ export default function PapanInteraktif() {
     jumlahBelumDinilai: 0,
   });
   // Sakelar "tampilkan semua langkah" untuk basis data awan (di Pengaturan
-  // Papan). Sengaja TIDAK disimpan di localStorage: begitu pengguna keluar
-  // dari papan interaktif, nilainya otomatis kembali ke OFF (ringkas 1
-  // langkah terbaik) — ON hanya untuk sesi yang sedang membutuhkan.
-  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(false);
+  // Papan). Bawaannya ON: begitu buku pembukaan habis, tab Partai langsung
+  // memperlihatkan DAFTAR langkah dari basis data awan (bukan hanya satu baris
+  // "langkah terbaik"). Dimatikan → panel kembali ringkas 1 langkah. Sengaja
+  // TIDAK disimpan di localStorage: begitu pengguna keluar dari papan
+  // interaktif, nilainya kembali ke bawaan.
+  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(true);
+  // Bantuan langkah saat menyeret (assisted play): petak tujuan diwarnai
+  // hijau/kuning/merah + panah balasan lawan. Bawaannya MATI — ini alat
+  // latihan, bukan analisa otomatis; dinyalakan dari Pengaturan Papan.
+  const [bantuanNyala, setBantuanNyala] = useState(false);
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -196,6 +204,27 @@ export default function PapanInteraktif() {
     }
   }, [engineNyala, hasilEngine, fen]);
 
+  /**
+   * Nilai langkah terbaik posisi SEKARANG (sudut pandang pihak yang melangkah)
+   * — pembanding untuk warna bantuan langkah. Diambil dari eval engine yang
+   * sedang tampil; tanpa engine nilainya null dan petak hanya diberi kuning
+   * netral (hook bantuan menanganinya).
+   */
+  const sisiSekarang = fen.split(" ")[1] === "b" ? "b" : "w";
+  const nilaiTerbaikSekarang = useMemo(() => {
+    const sumber = hasilEngine || hasilTertahan;
+    if (!sumber) return null;
+    return nilaiDariSudutPelangkah(sumber.cpPutih, sisiSekarang);
+  }, [hasilEngine, hasilTertahan, sisiSekarang]);
+
+  // Bantuan langkah ala "assisted play": worker engine TERPISAH, hanya hidup
+  // saat sakelarnya nyala dan seret sedang berjalan (lihat gunakanBantuanSeret).
+  const bantuanSeret = gunakanBantuanSeret({
+    aktif: bantuanNyala,
+    fen,
+    nilaiTerbaik: nilaiTerbaikSekarang,
+  });
+
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
     let aktif = true;
@@ -229,6 +258,14 @@ export default function PapanInteraktif() {
   useEffect(() => {
     document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;
   }, [t]);
+
+  // Posisi berganti (langkah dimainkan, undo/redo, reset, PGN/FEN dimuat) →
+  // bantuan langkah yang sedang tampil tidak lagi relevan.
+  const bersihkanBantuanRef = useRef(bantuanSeret.bersihkan);
+  bersihkanBantuanRef.current = bantuanSeret.bersihkan;
+  useEffect(() => {
+    bersihkanBantuanRef.current();
+  }, [fen]);
 
   useEffect(
     () => () => {
@@ -270,6 +307,14 @@ export default function PapanInteraktif() {
     }
     return { nama: namaTerdalam, saran, cocok };
   }, [pohon, jalur, fen, mode, posisiKustom]);
+
+  /**
+   * Masih ada lanjutan DI BUKU? Bukan sekadar `cocok`: 16.218 node buku adalah
+   * daun (jalur teori habis di situ) — di posisi itu `cocok` masih true tetapi
+   * `saran` kosong. Justru di situlah buku dianggap SELESAI sehingga tab Partai
+   * berpindah ke basis data awan.
+   */
+  const masihDiBuku = infoPembukaan.cocok && infoPembukaan.saran.length > 0;
 
   /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
   const statTampil = useMemo(() => {
@@ -527,6 +572,10 @@ export default function PapanInteraktif() {
     return () => window.removeEventListener("keydown", saatEscape);
   }, [tampilSetting]);
 
+  // Petak asal yang sedang diseret — dipakai bantuan langkah; disimpan di ref
+  // karena dipanggil dari callback pointermove (bukan render).
+  const seretDariRef = useRef(null);
+
   const mulaiSeret = useCallback(
     (petak) => {
       if (!fen || promosi) return;
@@ -534,6 +583,7 @@ export default function PapanInteraktif() {
       const bidak = game.get(petak);
       if (bidak && bidak.color === game.turn()) {
         abaikanKlikRef.current = false;
+        seretDariRef.current = petak;
         pilihPetak(petak);
       }
     },
@@ -541,8 +591,30 @@ export default function PapanInteraktif() {
     [fen, promosi]
   );
 
+  /**
+   * Petak tujuan yang sedang dilintasi selama bidak diseret (dari PapanTekaTeki).
+   * Petak yang sah → minta bantuan langkah ke engine; selain itu bantuan
+   * yang tampil dibersihkan supaya warna/panah tidak menempel di petak lama.
+   */
+  const lewatiPetak = useCallback(
+    (petak) => {
+      if (!bantuanNyala) return;
+      const dari = seretDariRef.current;
+      if (!petak || !dari || petak === dari || !sasaran.includes(petak)) {
+        bantuanSeret.bersihkan();
+        return;
+      }
+      bantuanSeret.panggil({ dari, tujuan: petak });
+    },
+    // bantuanSeret stabil (useCallback) — cukup bergantung pada isi yang berubah.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bantuanNyala, sasaran, bantuanSeret.panggil, bantuanSeret.bersihkan]
+  );
+
   const selesaiSeret = useCallback(
     (from, to) => {
+      seretDariRef.current = null;
+      bersihkanBantuanRef.current();
       if (!fen || promosi) return;
       if (!to || from === to) return;
       abaikanKlikRef.current = true;
@@ -553,6 +625,8 @@ export default function PapanInteraktif() {
   );
 
   const batalkanSeret = useCallback(() => {
+    seretDariRef.current = null;
+    bersihkanBantuanRef.current();
     abaikanKlikRef.current = true;
     setTerpilih(null);
     setSasaran([]);
@@ -1076,15 +1150,16 @@ export default function PapanInteraktif() {
   /**
    * Basis data awan (chessdb.cn) — LANJUTAN setelah buku pembukaan lokal habis.
    *
-   * Buku lokal hanya memuat teori; begitu `cocok` menjadi false tidak ada lagi
-   * saran langkah tanpa menyalakan engine. Di titik itulah chessdb.cn ditanyai
-   * (lewat backend kita — browser dilarang CSP & CORS), dan hanya bila datanya
-   * memang akan terlihat (komentator menyala atau tab Partai dibuka) supaya
-   * kueri ke layanan publik itu tidak boros.
+   * Buku lokal hanya memuat teori; begitu `masihDiBuku` menjadi false (langkah
+   * keluar dari buku ATAU jalur buku sudah habis di daun) tidak ada lagi saran
+   * langkah tanpa menyalakan engine. Di titik itulah chessdb.cn ditanyai (lewat
+   * backend kita — browser dilarang CSP & CORS), dan hanya bila datanya memang
+   * akan terlihat (komentator menyala atau tab Partai dibuka) supaya kueri ke
+   * layanan publik itu tidak boros.
    */
   useEffect(() => {
     const perlu =
-      !infoPembukaan.cocok &&
+      !masihDiBuku &&
       // Posisi FEN kustom langsung boleh ditanyakan walau belum ada langkah.
       (riwayat.length > 0 || posisiKustom) &&
       // Partai yang sudah selesai (mat/remis) tidak perlu ditanyakan — kalimat
@@ -1141,7 +1216,7 @@ export default function PapanInteraktif() {
     // `riwayat.length` hanya penanda "sudah ada langkah"; perubahan `fen`
     // sudah mewakili langkah baru (undo/redo tidak memicu kueri baru).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala, awanUlang, posisiKustom]);
+  }, [fen, riwayat.length, masihDiBuku, tabPanel, preferensiKomentator.nyala, awanUlang, posisiKustom]);
 
   const cobaLagiAwan = useCallback(() => {
     awanSegarkanRef.current = true;
@@ -1357,6 +1432,8 @@ export default function PapanInteraktif() {
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
                     panahMesin={tampilPanahMesin ? panahMesin : null}
+                    bantuanPetak={bantuanNyala ? bantuanSeret.petakBantuan : null}
+                    bantuanPanah={bantuanNyala ? bantuanSeret.panahBantuan : null}
                     ikonLangkah={ikonLangkahAkhir}
                     ikonSkakmat={ikonSkakmat}
                     ikonMahkota={ikonMahkota}
@@ -1368,6 +1445,7 @@ export default function PapanInteraktif() {
                     onMulaiSeret={mulaiSeret}
                     onSelesaiSeret={selesaiSeret}
                     onBatalSeret={batalkanSeret}
+                    onLewatiPetak={lewatiPetak}
                     onJatuh={cobaLangkah}
                     onTandaPetak={tandaPetak}
                     onTandaPanah={tandaPanah}
@@ -1567,25 +1645,13 @@ export default function PapanInteraktif() {
                       t={t}
                     />
                   ) : tabPanel === "explorer" ? (
-                    // Penjelajah = tabel statistik langkah buku + artikel pembukaan.
-                    infoPembukaan.saran.length > 0 || namaUtama ? (
-                      <div>
-                        {infoPembukaan.saran.length > 0 && (
-                          <div>
-                            <div className="mb-2 flex items-center justify-between">
-                              <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
-                              <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
-                            </div>
-                            <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
-                          </div>
-                        )}
-                        {namaUtama && (
-                          <KartuArtikelPembukaan
-                            artikel={artikelPembukaan}
-                            t={t}
-                          />
-                        )}
-                      </div>
+                    // Penjelajah = artikel pembukaan saja (daftar langkah
+                    // pembukuan kini tampil di tab Partai).
+                    namaUtama ? (
+                      <KartuArtikelPembukaan
+                        artikel={artikelPembukaan}
+                        t={t}
+                      />
                     ) : !infoPembukaan.cocok ? (
                       <p className="mt-1.5 text-sm font-medium text-gray-400">
                         {t("papan.diLuarBuku")}
@@ -1596,11 +1662,19 @@ export default function PapanInteraktif() {
                       </p>
                     )
                   ) : tabPanel === "games" ? (
-                    // Partai = basis data awan (langkah lanjutan di luar buku).
-                    infoPembukaan.cocok ? (
-                      <p className="mt-1.5 text-sm font-medium text-gray-400">
-                        {t("papan.partaiDalamBuku")}
-                      </p>
+                    // Partai = satu tempat untuk LANJUTAN langkah: selama buku
+                    // masih punya saran, yang tampil tabel pembukuan; begitu
+                    // buku selesai (langkah keluar buku ATAU jalur buku habis)
+                    // tabel itu digantikan daftar langkah basis data awan
+                    // (chessdb.cn) dengan judul yang sama-sama "Daftar Langkah".
+                    masihDiBuku ? (
+                      <div>
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
+                          <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
+                        </div>
+                        <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
+                      </div>
                     ) : (
                       <PanelBasisDataAwan
                         awan={awan}
@@ -1642,6 +1716,15 @@ export default function PapanInteraktif() {
                           <span className="ml-1 font-normal text-gray-500">Stockfish 18</span>
                         </p>
                       </div>
+
+                      {/* Bantuan langkah: status singkat + legenda warna. */}
+                      {bantuanNyala && (
+                        <p className="mt-2 text-[11px] leading-snug text-gray-500">
+                          {bantuanSeret.status === "menghitung" || bantuanSeret.status === "menunggu"
+                            ? t("papan.bantuanMenghitung")
+                            : t("papan.bantuanPetunjuk")}
+                        </p>
+                      )}
 
                       {/* Status posisi: komentator menggantikan nama pembukaan saat aktif. */}
                       <div className="mt-3 min-w-0 border-b border-[#312e2b] pb-3">
@@ -1829,6 +1912,13 @@ export default function PapanInteraktif() {
           setTampilPanahMesin={setTampilPanahMesin}
           awanTampilanPenuh={awanTampilanPenuh}
           setAwanTampilanPenuh={setAwanTampilanPenuh}
+          bantuanNyala={bantuanNyala}
+          setBantuanNyala={(nilai) => {
+            setBantuanNyala(nilai);
+            // Pembanding warna datang dari eval engine posisi sekarang —
+            // menyalakan bantuan berarti menyalakan engine juga.
+            if (nilai) nyalakanEngine();
+          }}
           warnaPapan={warnaPapan}
           setWarnaPapan={setWarnaPapan}
           kartuKomentator={{

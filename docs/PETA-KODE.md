@@ -31,16 +31,17 @@ kegagalan pertama karena dirangkai dengan `&&`):
 16. `npm run uji:buku-analisa`
 17. `npm run uji:lencana-skakmat`
 18. `npm run uji:tanda-papan`
-19. `npm run uji:tekateki-solusi`
-20. `npm run uji:rush`
-21. `npm run uji:gambar`
-22. `node scripts/uji-identitas.mjs` (langsung)
-23. `npm run uji:skema`
-24. `node scripts/uji-ebook.mjs` (langsung)
-25. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-26. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-27. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-28. `npm run uji:pendaftaran-ui`
+19. `npm run uji:bantuan-langkah`
+20. `npm run uji:tekateki-solusi`
+21. `npm run uji:rush`
+22. `npm run uji:gambar`
+23. `node scripts/uji-identitas.mjs` (langsung)
+24. `npm run uji:skema`
+25. `node scripts/uji-ebook.mjs` (langsung)
+26. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+27. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+28. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+29. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
@@ -132,7 +133,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
 | Area | Berkas | Uji penjaga | Halaman peta |
 | --- | --- | --- | --- |
-| `src/halaman` | 217 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +31 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
+| `src/halaman` | 219 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +31 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
 | `src/components` | 70 | `uji-ebook-pembaca.mjs`, `uji-jsonld.mjs`, `uji-pendaftaran-ui.mjs`, `uji-tools.mjs` | Frontend Application Architecture; Routing, Code Splitting & Layouts; Shared Components & UI Kit, +3 |
 | `src/lib` | 70 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +31 | Frontend Application Architecture; Routing, Code Splitting & Layouts; Internationalization (terjemahan), +9 |
 | `src/lib/api` | 10 | `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, `smoke.spec.js` | Frontend API Client (src/lib/api) |
@@ -147,7 +148,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
 | `scripts` | 67 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +37 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | — | — |
-| `public` | 338 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +10 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
+| `public` | 339 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +10 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
 ## 4. Cermin yang dijaga `uji:peta`
 

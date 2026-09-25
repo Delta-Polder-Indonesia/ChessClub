@@ -54,9 +54,10 @@ export default function PanelBasisDataAwan({
     return <p className="mt-1.5 text-sm font-medium text-gray-400">{t("papan.awanMemuat")}</p>;
   }
 
-  // Mode RINGKAS (sakelar "tampilkan semua langkah" di Pengaturan Papan mati —
-  // bawaan): cukup SATU langkah terbaik saja, tanpa tabel & daftar "??" —
-  // hemat tampilan. Nyalakan sakelarnya untuk daftar lengkap (di bawah).
+  // Mode RINGKAS (sakelar "tampilkan semua langkah" di Pengaturan Papan mati):
+  // cukup SATU langkah terbaik saja, tanpa tabel & daftar "??" — hemat
+  // tampilan. Bawaannya sakelar itu NYALA, jadi tab Partai memperlihatkan
+  // daftar lengkap; mode ringkas hanya bila pengguna mematikannya sendiri.
   if (!tampilanPenuh) {
     const terbaik = bernilai[0] || null;
     if (terbaik) {
