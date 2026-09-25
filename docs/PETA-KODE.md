@@ -105,6 +105,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-peta.mjs` | `npm run uji:peta` |
 | `scripts/uji-pgn-anotasi.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-quiz.mjs` | `npm run uji:quiz` |
+| `scripts/uji-repertoar.mjs` | `npm run uji:repertoar` |
 | `scripts/uji-rush-waktu.mjs` | `npm run uji:rush` |
 | `scripts/uji-rute.mjs` | `npm run uji:rute` |
 | `scripts/uji-sacrifice.mjs` | `npm run uji:analisa-menyeluruh` |
@@ -135,7 +136,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
 | Area | Berkas | Uji penjaga | Halaman peta |
 | --- | --- | --- | --- |
-| `src/halaman` | 219 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +32 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
+| `src/halaman` | 224 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +33 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
 | `src/components` | 70 | `uji-ebook-pembaca.mjs`, `uji-jsonld.mjs`, `uji-pendaftaran-ui.mjs`, `uji-tools.mjs` | Frontend Application Architecture; Routing, Code Splitting & Layouts; Shared Components & UI Kit, +3 |
 | `src/lib` | 72 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +32 | Frontend Application Architecture; Routing, Code Splitting & Layouts; Internationalization (terjemahan), +9 |
 | `src/lib/api` | 10 | `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, `smoke.spec.js` | Frontend API Client (src/lib/api) |
@@ -146,9 +147,9 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `server/uji` | 11 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
 | `api` | 2 | `uji-akun-database.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, +8 | Backend API Server |
 | `plugins` | 3 | `uji-rute.mjs`, `uji-seo.mjs` | — |
-| `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-supabase.mjs`, `uji-tarik-api.mjs` | Persistence: JSON Seed Data & Supabase |
+| `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-repertoar.mjs`, `uji-supabase.mjs`, +1 | Persistence: JSON Seed Data & Supabase |
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
-| `scripts` | 68 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +38 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
+| `scripts` | 69 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +38 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | — | — |
 | `public` | 339 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +10 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
