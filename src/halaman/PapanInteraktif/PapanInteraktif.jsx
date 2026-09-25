@@ -1653,7 +1653,11 @@ export default function PapanInteraktif() {
                   role="tabpanel"
                   id={`panel-papan-${tabPanel}`}
                   aria-labelledby={`tab-papan-${tabPanel}`}
-                  className="min-h-0 flex-1 overflow-y-auto p-4"
+                  className={`min-h-0 flex-1 p-4 ${
+                    tabPanel === "analisa"
+                      ? "flex flex-col overflow-hidden"
+                      : "overflow-y-auto"
+                  }`}
                 >
                   {tabPanel === "books" ? (
                     <BukuPembukaan
@@ -1712,7 +1716,7 @@ export default function PapanInteraktif() {
                   ) : (
                     <>
                       {/* Toggle nyala/mati engine — pola baris "Analysis" di prompt.md */}
-                      <div className="mb-3 flex items-center justify-between border-b border-[#312e2b] pb-3">
+                      <div className="mb-3 flex shrink-0 items-center justify-between border-b border-[#312e2b] pb-3">
                         <button
                           type="button"
                           id="sampel-toggle-engine"
@@ -1742,13 +1746,13 @@ export default function PapanInteraktif() {
                       {/* Bantuan langkah: hanya status berjalan — petunjuk panjang dihapus. */}
                       {bantuanNyala &&
                         (bantuanSeret.status === "menghitung" || bantuanSeret.status === "menunggu") && (
-                          <p className="mt-2 text-[11px] leading-snug text-gray-500">
+                          <p className="mt-2 shrink-0 text-[11px] leading-snug text-gray-500">
                             {t("papan.bantuanMenghitung")}
                           </p>
                         )}
 
                       {/* Status posisi: komentator menggantikan nama pembukaan saat aktif. */}
-                      <div className="mt-3 min-w-0 border-b border-[#312e2b] pb-3">
+                      <div className="mt-3 min-w-0 shrink-0 border-b border-[#312e2b] pb-3">
                         {preferensiKomentator.nyala ? (
                           <KartuKomentator
                             fakta={faktaKomentator}
@@ -1787,36 +1791,38 @@ export default function PapanInteraktif() {
                         )}
                       </div>
 
-                  {engineNyala && (
-                  <div className="mt-3 border-b border-[#312e2b] pb-3">
-                  <PanelEngine
-                    nyala={engineNyala}
-                    status={statusEngine}
-                    hasil={hasilEngine}
-                    fen={fen}
-                    kecepatan={kecepatanEngine}
-                    setKecepatan={setKecepatanEngine}
-                    permainanSelesai={permainanSelesai}
-                    onNyalakan={nyalakanEngine}
-                    onMatikan={matikanEngine}
-                    onMainkan={mainkanSan}
-                    tanpaBilah
-                    tanpaJudul
-                    tanpaDeskripsi
-                    tanpaGaris
-                    gelap
-                    t={t}
-                  />
-                  </div>
-                  )}
+                      {engineNyala && (
+                        <div className="mt-3 shrink-0 border-b border-[#312e2b] pb-3">
+                          <PanelEngine
+                            nyala={engineNyala}
+                            status={statusEngine}
+                            hasil={hasilEngine}
+                            fen={fen}
+                            kecepatan={kecepatanEngine}
+                            setKecepatan={setKecepatanEngine}
+                            permainanSelesai={permainanSelesai}
+                            onNyalakan={nyalakanEngine}
+                            onMatikan={matikanEngine}
+                            onMainkan={mainkanSan}
+                            tanpaBilah
+                            tanpaJudul
+                            tanpaDeskripsi
+                            tanpaGaris
+                            gelap
+                            t={t}
+                          />
+                        </div>
+                      )}
 
-                      <DaftarRiwayat
-                        langkah={riwayatLengkap}
-                        aktifPly={riwayat.length - 1}
-                        rating={ratingRiwayat}
-                        onPilih={keLangkah}
-                        t={t}
-                      />
+                      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                        <DaftarRiwayat
+                          langkah={riwayatLengkap}
+                          aktifPly={riwayat.length - 1}
+                          rating={ratingRiwayat}
+                          onPilih={keLangkah}
+                          t={t}
+                        />
+                      </div>
 
                     </>
                   )}
