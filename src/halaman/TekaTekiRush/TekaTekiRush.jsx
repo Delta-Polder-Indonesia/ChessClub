@@ -668,6 +668,11 @@ export default function TekaTekiRush() {
         cobaLangkah(terpilih, petak);
         return;
       }
+      if (terpilih === petak) {
+        setTerpilih(null);
+        setSasaran([]);
+        return;
+      }
       pilihPetak(petak);
     },
     [terkunci, fen, sisa, terpilih, sasaran, cobaLangkah, pilihPetak]
@@ -675,7 +680,12 @@ export default function TekaTekiRush() {
 
   const mulaiSeret = useCallback((petak) => pilihPetak(petak), [pilihPetak]);
   const selesaiSeret = useCallback(
-    (from, to) => {
+    (from, to, klikUlang) => {
+      if (klikUlang) {
+        setTerpilih(null);
+        setSasaran([]);
+        return;
+      }
       if (!to || from === to) return;
       cobaLangkah(from, to);
     },

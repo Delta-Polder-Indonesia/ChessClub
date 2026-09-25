@@ -652,6 +652,11 @@ export default function TekaTeki() {
       cobaLangkah(terpilih, petak);
       return;
     }
+    if (!selesai && terpilih === petak) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
 
     if (!selesai) {
       const game = new Chess(fen);
@@ -1081,9 +1086,14 @@ export default function TekaTeki() {
   );
 
   const selesaiSeret = useCallback(
-    (from, to) => {
+    (from, to, klikUlang) => {
       setSedangSeret(false);
       if (!masalah || komputer || selesai || !fen) return;
+      if (klikUlang) {
+        setTerpilih(null);
+        setSasaran([]);
+        return;
+      }
       if (!to || from === to) {
         // Dijatuhkan di petak asal / di luar papan → tetap terpilih.
         return;

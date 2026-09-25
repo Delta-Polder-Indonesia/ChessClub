@@ -63,8 +63,8 @@ const TekaTekiRush = lazy(() => import("./halaman/TekaTekiRush/TekaTekiRush.jsx"
 // Kuis Catur — pilihan ganda trivia, soal di halaman/QuizCatur/daftar.js.
 const QuizCatur = lazy(() => import("./halaman/QuizCatur/QuizCatur.jsx"));
 
-// Papan bebas + buku pembukaan (data dari lichess-org/chess-openings, CC0) — layout full layar.
-const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/PapanInteraktif.jsx"));
+// Workspace Papan Interaktif: menu mode lazy, termasuk PvE, latihan repertoar, dan Buku Pembukaan.
+const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/Workspace.jsx"));
 
 // Analisis partai (port Brilliant-Chess) — engine memakai EngineCatur lokal.
 // /program-kami/analisa menampilkan halaman penjelasan; papan analisa
