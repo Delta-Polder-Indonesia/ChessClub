@@ -108,6 +108,13 @@ const skenarioKunci = [
   [faktaDasar("k7/2Q5/8/8/8/8/8/6K1 w - - 0 1", "Qb6"), {}], // pat
   [faktaDasar("k7/2Q5/8/8/8/8/8/6K1 w - - 0 1", "Kf2"), {}], // langkah biasa di akhir
   [faktaDasar("k7/8/8/8/8/8/8/K5B1 w - - 0 1", "Bf2"), {}], // material tidak cukup (K+B vs K) → remis
+  // Taktik & evaluasi: fork, skak bayangan, pin, struktur pion, posisi tajam
+  [faktaDasar("4k3/8/8/1r1q4/8/8/4N3/4K3 w - - 0 1", "Nc3"), {}], // fork: benteng b5 + menteri d5
+  [faktaDasar("4k3/8/8/8/8/8/4N3/4R1K1 w - - 0 1", "Ng3"), {}], // skak bayangan: benteng e1 terbuka
+  [faktaDasar("6k1/5n2/8/8/8/1B6/8/3NK3 w - - 0 1", "Nf2"), {}], // kuda f7 terpaku oleh gajah b3
+  [faktaDasar("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2"), {}], // unggul struktur pion
+  [faktaDasar("4k3/8/8/8/8/8/6qn/4K2R w - - 0 1", "Rxh2"), {}], // posisi tajam (tangkapan + banyak skak)
+  [faktaDasar("4k3/8/8/8/8/8/8/4K1RR w - - 0 1", "Rg2"), {}], // seimbang dinamis + unggul mobilitas
 ];
 for (const [f, opsi] of skenarioKunci) {
   for (const gaya of GAYA_KOMENTATOR) {
@@ -195,6 +202,11 @@ for (const nama of [
 // rokadePendek/rokadePanjang.
 for (const nama of ["remisUlang", "remisMaterial", "remis"]) diminta.set(nama, 2);
 for (const nama of ["rokadePendek", "rokadePanjang"]) diminta.set(nama, 2);
+// Kunci taktis & posisi baru (dipilih lewat peristiwaTaktis()/fakta papan,
+// jadi tidak muncul sebagai literal tambah() di sumber).
+for (const nama of ["fork", "skakBayangan", "terpaku", "unggulStruktur", "posisiTajam"])
+  diminta.set(nama, 2);
+diminta.set("seimbangDinamis", 4);
 
 ok(diminta.size >= 30, `jumlah peristiwa terdeteksi dari sumber: ${diminta.size} (harap ≥ 30)`);
 
@@ -433,6 +445,76 @@ ok(kategoriKeunggulan({ cpPutih: -60, matePutih: null }).pihak === "b", "-60cp �
 ok(kategoriKeunggulan({ cpPutih: 0, matePutih: -3 }).tingkat === "mat", "mate -3 → mat");
 ok(kategoriKeunggulan({}) === null, "kosong → null");
 ok(faktaLangkah(AWAL, "e5") === null, "langkah ilegal → null");
+
+// Fork: kuda e2 → c3 menyerang benteng b5 dan menteri d5 sekaligus.
+{
+  const f = faktaDasar("4k3/8/8/1r1q4/8/8/4N3/4K3 w - - 0 1", "Nc3");
+  ok(!!f.fork && f.fork.petak === "c3" && f.fork.sasaran.length === 2, "Nc3 → fork dua sasaran");
+  ok(f.fork.sasaran[0].jenis === "q" && f.fork.sasaran[1].jenis === "r", "sasaran fork diurutkan dari nilai terbesar");
+  const d = susunKomentar({ fakta: f });
+  ok(punya(d, "fork"), "kalimat fork dipilih");
+  ok(/fork|serangan ganda|SERANGAN GANDA/i.test(render(tId, d)), `ID fork menyebut serangan ganda: "${render(tId, d)}"`);
+}
+// Skak bayangan: kuda e2 minggir, benteng e1 mengecek raja e8.
+{
+  const f = faktaDasar("4k3/8/8/8/8/8/4N3/4R1K1 w - - 0 1", "Ng3");
+  ok(f.skak && !!f.skakBayangan, "Ng3 → skak bayangan");
+  const d = susunKomentar({ fakta: f });
+  ok(punya(d, "skakBayangan"), "kalimat skakBayangan dipilih");
+  ok(/skak/i.test(render(tId, d)), "ID skakBayangan menyebut skak");
+}
+// Pin: kuda hitam f7 terpaku oleh gajah putih b3 ke raja g8.
+{
+  const f = faktaDasar("6k1/5n2/8/8/8/1B6/8/3NK3 w - - 0 1", "Nf2");
+  ok(f.lawanTerpaku.length === 1 && f.lawanTerpaku[0].petak === "f7", "Nf7 terdeteksi terpaku");
+  ok(f.lawanTerpaku[0].jenis === "n", "bidak terpaku adalah kuda");
+  const d = susunKomentar({ fakta: f });
+  ok(punya(d, "terpaku"), "kalimat terpaku dipilih");
+  ok(/terpaku|pin|kepaku/i.test(render(tId, d)), `ID terpaku menyebut pin: "${render(tId, d)}"`);
+}
+// Unggul struktur: pion hitam ganda di h-file dan terisolasi di a-file.
+{
+  const f = faktaDasar("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2");
+  ok(f.strukturUnggul === true, "Kd2 → unggul struktur pion");
+  const d = susunKomentar({ fakta: f });
+  ok(punya(d, "unggulStruktur"), "kalimat unggulStruktur dipilih");
+}
+// Posisi tajam: tangkapan di papan dengan banyak opsi skak tersedia.
+{
+  const f = faktaDasar("4k3/8/8/8/8/8/6qn/4K2R w - - 0 1", "Rxh2");
+  ok(f.tangkap === "n" && f.posisiTajam === true, "Rxh2 → posisi tajam");
+  const d = susunKomentar({ fakta: f });
+  ok(punya(d, "posisiTajam"), "kalimat posisiTajam dipilih");
+}
+// Seimbang dinamis: posisi netral (|cp| < 40) memakai bank seimbang DAN
+// seimbangDinamis secara bergantian - dipilih lewat hash langkah.
+{
+  const pose = [
+    ["rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Nf3"],
+    ["rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", "e4"],
+    ["rnbqkb1r/pppp1ppp/5n2/4p3/3P4/5N2/PPP1PPPP/RNBQKB1R w KQkq - 4 3", "Nc3"],
+    ["r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R b KQkq - 3 3", "a6"],
+  ];
+  const kunci = [];
+  for (const gaya of ["santai", "formal", "genZ"])
+    for (const [fen, san] of pose) {
+      const f = faktaDasar(fen, san);
+      kunci.push(
+        ...susunKomentar({
+          fakta: f,
+          gaya,
+          engineNyala: true,
+          evalSesudah: { cpPutih: 5, matePutih: null },
+        }).map((x) => x.kunci.split(".").slice(3, 5).join("."))
+      );
+    }
+  // "seimbang" adalah prefix dari "seimbangDinamis" - titik pemisah indeks
+  // jadi pembeda agar tidak salah cocok.
+  ok(
+    kunci.some((x) => x.startsWith("seimbangDinamis.")) && kunci.some((x) => x.startsWith("seimbang.")),
+    "posisi seimbang memakai bank seimbang DAN seimbangDinamis"
+  );
+}
 
 /* ---------------------------------------------------- 4. deterministik */
 console.log("4) Varian deterministik & tersebar");
