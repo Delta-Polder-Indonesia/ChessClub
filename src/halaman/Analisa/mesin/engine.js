@@ -20,6 +20,7 @@
  */
 
 import { Chess } from "chess.js";
+import { pecahMultiPgn } from "../../../lib/pgnRingan.js";
 import { EngineCatur, cariEngine } from "../../../lib/engineCatur.js";
 import { hashUntukEngine } from "./cekWasm.js";
 import { getMoveRating, invertColor, isForced, isSacrifice } from "./penilaian.js";
@@ -318,7 +319,16 @@ function bersihkanPgn(pgn) {
   return hasil.replace(/\u0000(\d+)\u0000/g, (_, i) => kutip[Number(i)]);
 }
 
-/** Muat PGN; kalau mentahnya ditolak, coba lagi versi yang sudah dibersihkan. */
+/**
+ * Muat PGN; kalau mentahnya ditolak, coba lagi versi yang sudah dibersihkan.
+ *
+ * TAKSONOMI MASUKAN (hasil prob chess.js, didokumentasikan agar tak diusut
+ * ulang): variasi `(...)`, NAG `$n`, komentar `{...}`, `%clk`, SetUp/FEN,
+ * dan CRLF DITERIMA; yang DITOLAK (melempar → GALAT_PGN): variasi yang
+ * mengandung token hasil di dalamnya, nama tag berkarakter non-standar
+ * (mis. tanda hubung), dan nomor langkah tanpa titik ("1 e4"). Berkas
+ * MULTI-partai tidak sampai ke sini — sudah dipecah di `bacaPartaiPGN`.
+ */
 function muatPgn(chess, rawPgn) {
   try {
     chess.loadPgn(rawPgn, { strict: false });
@@ -521,10 +531,19 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
  * parsePGN agar PGN tidak perlu dibaca dua kali dalam satu proses analisis.
  */
 export function bacaPartaiPGN(rawPgn) {
+  /*
+   * Berkas multi-partai (ekspor chess.com/lichess): HANYA partai pertama
+   * yang dibaca — `chess.js` melempar bila diberi semuanya sekaligus, dan
+   * menggagalkan semuanya lebih buruk daripada menganalisis yang pertama.
+   * `jumlahPartai` dilaporkan agar pemanggil (game.jsx) bisa
+   * memperingatkan pengguna bahwa sisanya diabaikan.
+   */
+  const blok = pecahMultiPgn(rawPgn);
+  const pertama = blok.length > 0 ? blok[0] : rawPgn;
   const chess = new Chess();
   let pgn;
   try {
-    pgn = muatPgn(chess, rawPgn);
+    pgn = muatPgn(chess, pertama);
   } catch {
     throw galat(GALAT_PGN);
   }
@@ -538,7 +557,7 @@ export function bacaPartaiPGN(rawPgn) {
     time: waktuDariPgn(headers),
     result: getResult(headers, pgn),
   };
-  const daftarClock = ekstrakDaftarClock(chess, rawPgn, riwayat, metadata.time);
+  const daftarClock = ekstrakDaftarClock(chess, pertama, riwayat, metadata.time);
   const kerangka = [
     { fen: riwayat[0].before, color: riwayat[0].color },
     ...riwayat.map((langkah) => ({
@@ -547,7 +566,7 @@ export function bacaPartaiPGN(rawPgn) {
       color: invertColor(langkah.color),
     })),
   ];
-  return { metadata, riwayat, daftarClock, kerangka };
+  return { metadata, riwayat, daftarClock, kerangka, jumlahPartai: blok.length };
 }
 
 /**
@@ -558,7 +577,7 @@ export function bacaPartaiPGN(rawPgn) {
  * `multiPv` (bawaan MULTI_PV) merekam kandidat untuk penilaian langkah.
  */
 export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV, onLangkah, partai } = {}) {
-  const { riwayat, metadata, daftarClock } = partai ?? bacaPartaiPGN(rawPgn);
+  const { riwayat, metadata, daftarClock, jumlahPartai = 1 } = partai ?? bacaPartaiPGN(rawPgn);
 
   const hentikan = () => mesin.setop();
   if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });
@@ -629,5 +648,5 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     setProgress(0);
   }
 
-  return { metadata, moves };
+  return { metadata, moves, jumlahPartai };
 }

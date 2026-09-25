@@ -326,6 +326,11 @@ function Game({ wadah }) {
     try {
       const partai = bacaPartaiPGN(pgn);
       if (signal.aborted || !terkini()) return;
+      // Berkas multi-partai: hanya partai pertama yang dianalisis — katakan,
+      // jangan diam (pengguna menempel 100 partai lalu heran sisanya hilang).
+      if ((partai.jumlahPartai ?? 1) > 1) {
+        pushPageWarning(setErrors, t("analisa.multiPartai.judul"), t("analisa.multiPartai.isi", { n: partai.jumlahPartai }));
+      }
       setLangkahSementara(partai.kerangka);
 
       // Buku pembukaan diunduh bersamaan dengan penyiapan engine.

@@ -116,6 +116,8 @@ export const analisa = {
       memuat: "Loading stats…",
       tarikData: "Fetching all games from chess.com…",
       belumAdaData: "No data for this account yet.",
+      galatBasis: "Could not load the database.",
+      galatBasisSub: "Check your browser settings (private mode blocks storage), then reload the page.",
       tarik: "Fetch account data",
       refresh: "Refresh stats",
       terakhir: "Last update",
@@ -586,6 +588,10 @@ export const analisa = {
       engineJudul: "The engine failed to load",
       engineIsi: "The local engine file could not be downloaded. Reload the page, or pick another engine in settings.",
       analisisJudul: "Analysis stopped",
+    },
+    multiPartai: {
+      judul: "File contains more than one game",
+      isi: "Only the first of {n} games will be analyzed. Split the file to analyze the others.",
     },
     pengaturan: {
       judul: "Board settings",
