@@ -76,9 +76,11 @@ export function normalisasiEval(evalMentah) {
   if (!Array.isArray(evalMentah)) return null;
   const [jenis, mentah] = evalMentah;
   if (jenis !== "cp" && jenis !== "mate") return null;
-  // Warisan posisi mati: ["mate"] tanpa angka = skakmat sudah dikirim.
-  if (jenis === "mate" && (mentah === undefined || mentah === null || mentah === "")) {
-    return ["mate", "0"];
+  // Payload absen: warisan ["mate"] = skakmat terkirim; ["cp"] tanpa angka
+  // TIDAK punya makna (bukan 0!) dan ditolak. Kehadiran diuji eksplisit —
+  // `Number(null)` adalah 0 sehingga `isFinite` mentah bukan uji kehadiran.
+  if (mentah === undefined || mentah === null || mentah === "") {
+    return jenis === "mate" ? ["mate", "0"] : null;
   }
   const angka = Number(mentah);
   if (!Number.isFinite(angka)) return null;
@@ -109,6 +111,9 @@ export function apakahMateTerminal(evalMentah) {
  * @returns {1|-1|null}
  */
 export function tandaMate(nilai) {
+  // Absen (null/undefined/"") BUKAN angka 0 — tolak eksplisit, karena
+  // `Number(null)` dan `Number("")` sama-sama 0 (finite!).
+  if (nilai === null || nilai === undefined || nilai === "") return null;
   const angka = Number(nilai);
   if (!Number.isFinite(angka)) return null;
   if (angka === 0) return -1;
@@ -129,11 +134,23 @@ export function tandaMate(nilai) {
  */
 export function cpBaku(staticEval, balikTanda = false) {
   if (!Array.isArray(staticEval) || staticEval.length < 2) return null;
+  // Payload absen (mis. ["cp", null]) ditolak — BUKAN dibaca 0. Tanpa ini
+  // `Number(null)` menjadi 0 dan eval rusak menyamar jadi posisi seimbang.
+  const mentah = staticEval[1];
+  if (mentah === null || mentah === undefined || mentah === "") return null;
   // Mate 0 = pihak bergilir sudah mati (−1000), BUKAN posisi seimbang.
   // `tandaMate` (bukan `Math.sign`, yang mengubah 0 menjadi 0) yang menjamin
   // langkah skakmat terbaca sebagai kemenangan mutlak pemberinya.
-  const angka =
-    staticEval[0] === "mate" ? tandaMate(staticEval[1]) * CP_CEILING : Number(staticEval[1]);
+  // Tanda yang tak-terbaca → `null`: `null * CP_CEILING` adalah 0 (finite!)
+  // dan tanpa penjagaan ini eval mate rusak menyamar jadi posisi seimbang.
+  let angka;
+  if (staticEval[0] === "mate") {
+    const tanda = tandaMate(mentah);
+    if (tanda === null) return null;
+    angka = tanda * CP_CEILING;
+  } else {
+    angka = Number(mentah);
+  }
   if (!Number.isFinite(angka)) return null;
   const cp = balikTanda ? -angka : angka;
   return batasiCp(cp);
@@ -162,4 +179,16 @@ export function evalSiap(move) {
 export function langkahTerpaksa(move) {
   if (!move || typeof move !== "object") return false;
   return move.isForced === true || move.moveRating === "forced";
+}
+
+/**
+ * Label yang TAMPIL untuk satu entri langkah (ikon + warna + kalimat):
+ * langkah paksa memakai tampilan `"forced"` warisan walau kualitas aslinya
+ * tersimpan terpisah (`moveRating` + `isForced`) — lihat `langkahTerpaksa`.
+ * SATU-SATUNYA definisi pemetaan tampil: daftar langkah (termasuk tetangga
+ * untuk aturan ikon), grafik, kartu komentar, dan sorotan papan semuanya
+ * memakai ini supaya tidak menyimpang satu sama lain.
+ */
+export function ratingTampilan(move) {
+  return langkahTerpaksa(move) ? "forced" : move?.moveRating;
 }

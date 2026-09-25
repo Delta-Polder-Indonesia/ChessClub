@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import RatingSVG from "../../svg/rating.jsx";
 import { getLastBookMove } from "./moves/moves.jsx";
 import { jalurGrafik, tinggiEval, xGrafik } from "./grafikEval.js";
-import { langkahTerpaksa } from "../../../mesin/evaluasi.js";
+import { ratingTampilan } from "../../../mesin/evaluasi.js";
 
 function isImportantMove(moveNumber, rating, prevRating, lastBookMove) {
   if (!rating) return;
@@ -39,11 +39,11 @@ function GameChart(props) {
   const importantMoves = moves.map((move, i) => ({
     // Langkah paksa digambar netral (abu-abu) seperti warisan: kualitasnya
     // yang kebetulan menempel tidak mewarnai grafik.
-    color: isImportantMove(i, langkahTerpaksa(move) ? "forced" : move?.moveRating, langkahTerpaksa(moves[i - 1]) ? "forced" : moves[i - 1]?.moveRating, lastBookMove),
+    color: isImportantMove(i, ratingTampilan(move), ratingTampilan(moves[i - 1]), lastBookMove),
     move,
   }));
   const entriAktif = moves[moveNumber];
-  const penilaianAktif = langkahTerpaksa(entriAktif) ? "forced" : entriAktif?.moveRating;
+  const penilaianAktif = ratingTampilan(entriAktif);
   const strokeColor = penilaianAktif && penilaianAktif !== "forced"
     ? `highlight${penilaianAktif === "critical" ? "Best" : penilaianAktif[0].toUpperCase() + penilaianAktif.slice(1)}`
     : "foregroundGrey";
@@ -120,7 +120,7 @@ function GameChart(props) {
     </svg>
     {posisiAktif && <div role="tooltip" className="pointer-events-none absolute z-10 flex flex-col rounded border border-black bg-white/90 p-1 text-sm text-[#222]" style={{ left: posisiTooltip, top: size.height + 2 }}>
       <span className="flex items-center gap-1">
-        {posisiAktif.moveRating && <RatingSVG rating={langkahTerpaksa(posisiAktif) ? "forced" : posisiAktif.moveRating} size={18} /> }
+        {posisiAktif.moveRating && <RatingSVG rating={ratingTampilan(posisiAktif)} size={18} /> }
         {teksEvaluasi(posisiAktif, hoveredMove)}
       </span>
       {posisiAktif.san && <span className="text-xs">{posisiAktif.san}</span>}

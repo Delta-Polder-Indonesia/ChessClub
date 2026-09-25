@@ -145,8 +145,16 @@ export class EngineAnalisis {
      * ditolak gerbang validasi `getMoveRating` dan langkahnya dicap "gagal"
      * (lihat `statusEvaluasi`), bukan dilabeli kualitas palsu.
      */
-    const mateInfo = Number(info?.mate);
-    const cpInfo = Number(info?.cp);
+    /*
+     * Ketiadaan diuji EKSPLISIT (null/undefined), bukan lewat Number():
+     * `Number(null)` adalah 0 (finite!) sehingga uji `isFinite` mentah
+     * mengubah setiap posisi cp biasa (mate: null) menjadi ["mate","0"].
+     * Nilai 0 yang ASLI (angka, bukan null) tetap berarti mate-0.
+     */
+    const mateMentah = info?.mate;
+    const cpMentah = info?.cp;
+    const mateInfo = mateMentah === null || mateMentah === undefined ? NaN : Number(mateMentah);
+    const cpInfo = cpMentah === null || cpMentah === undefined ? NaN : Number(cpMentah);
     const staticEval = Number.isFinite(mateInfo)
       ? ["mate", String(Math.trunc(mateInfo))]
       : Number.isFinite(cpInfo)

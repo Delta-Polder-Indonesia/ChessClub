@@ -7,7 +7,7 @@ import Evaluation from "./evaluation.jsx";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
 import { bacaPartaiPGN, formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
 import { cariNamaPembukaan } from "../../mesin/buku.js";
-import { STATUS_EVALUASI, langkahTerpaksa } from "../../mesin/evaluasi.js";
+import { STATUS_EVALUASI, ratingTampilan } from "../../mesin/evaluasi.js";
 import { Chess, WHITE } from "chess.js";
 import { pushPageWarning, pushPageError } from "../errors/pageErrors.jsx";
 import { gunakanMesin } from "../../konteks/mesin.jsx";
@@ -670,7 +670,13 @@ function Game({ wadah }) {
       // Muatan baru dimulai saat menunggu → hasil analisis ini pasti basi;
       // berhenti di sini (`finally` tetap melepas kunci papan).
       if (muatSeqRef.current !== nomorMuat) return;
-      if (mesin && !signal.aborted) {
+      // Dibatalkan saat MENUNGGU engine/buku (tombol Batal / ganti engine
+      // mendarat di sela `await`): ini pembatalan, bukan kegagalan — capnya
+      // "dibatalkan" dan tidak ada kabar galat. (`signal` diambil sebelum
+      // `await`, jadi nilainya di sini adalah status saat menunggu.)
+      if (signal.aborted) {
+        dibatalkan = true;
+      } else if (mesin) {
         const chess2 = new Chess(previousFen);
         const move4 = chess2.move(movement);
         move3 = await parseMove(
@@ -796,7 +802,7 @@ function Game({ wadah }) {
     sacrifice={move2?.sacrifice}
     forward={forward}
     // Langkah paksa memakai sorotan papan bawaan (netral) seperti warisan.
-    moveRating={langkahTerpaksa(move2) ? "forced" : move2?.moveRating}
+    moveRating={ratingTampilan(move2)}
     bestMove={move2?.bestMove}
     previousBestMove={previousMove?.bestMove}
     move={move2?.movement}

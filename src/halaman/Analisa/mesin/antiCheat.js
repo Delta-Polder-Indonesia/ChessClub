@@ -196,7 +196,11 @@ export function normalkanSan(san) {
  */
 export function nilaiCentipawn(staticEval) {
   if (!Array.isArray(staticEval) || staticEval.length < 2) return null;
-  const angka = Number(staticEval[1]);
+  // Payload absen = tidak ada info (konsisten dengan ["mate"] warisan → null):
+  // `Number(null)` adalah 0, jadi tanpa baris ini ["cp",null] menyamar jadi 0.
+  const mentah = staticEval[1];
+  if (mentah === null || mentah === undefined || mentah === "") return null;
+  const angka = Number(mentah);
   if (!Number.isFinite(angka)) return null;
   return staticEval[0] === "mate" ? tandaMate(angka) * CP_MATE : angka;
 }

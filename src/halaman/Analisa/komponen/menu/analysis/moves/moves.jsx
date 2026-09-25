@@ -5,7 +5,7 @@ import { WHITE } from "chess.js";
 import GameChart from "../gameChart.jsx";
 import RatingSVG from "../../../svg/rating.jsx";
 import { getMoves } from "../../../game/game.jsx";
-import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
+import { langkahTerpaksa, ratingTampilan } from "../../../../mesin/evaluasi.js";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 const RATING_TEXT_COLORS = {
   forced: "",
@@ -21,14 +21,8 @@ const RATING_TEXT_COLORS = {
   miss: "text-highlightMiss",
   blunder: "text-highlightBlunder"
 };
-/*
- * Label yang TAMPIL di kartu komentar: langkah paksa tetap memakai tampilan
- * "forced" warisan (ikon + kalimat "paksa"), walau kualitas aslinya kini
- * tersimpan terpisah (`moveRating` + `isForced`) — lihat mesin/evaluasi.js.
- */
-function tampilanRating(move) {
-  return langkahTerpaksa(move) ? "forced" : move?.moveRating;
-}
+// Label tampil (ikon): satu definisi di mesin/evaluasi.js (`ratingTampilan`),
+// dipakai kartu komentar, daftar langkah, grafik, dan sorotan papan.
 function kunciKomentar(move) {
   return langkahTerpaksa(move) ? "forced" : move?.commentKey;
 }
@@ -129,7 +123,7 @@ function Moves(props) {
   const { previousMove, move: move2 } = getMoves(moves, moveNumber, customLine, returnedToNormalGame);
   return <div ref={componentRef} className="flex flex-col gap-3 items-center h-full">
             <div ref={commentsRef} className="w-full flex flex-col items-center">
-                <Comments comment={analyzingMove ? previousMove?.comment : move2?.comment} commentKey={analyzingMove ? kunciKomentar(previousMove) : kunciKomentar(move2)} commentIndex={analyzingMove ? indeksKomentar(previousMove) : indeksKomentar(move2)} rating={analyzingMove ? tampilanRating(previousMove) : tampilanRating(move2)} moveSan={analyzingMove ? previousMove?.san : move2?.san} evaluation={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={analyzingMove ? previousMove?.color === WHITE : move2?.color === WHITE} overallGameComment={overallGameComment} />
+                <Comments comment={analyzingMove ? previousMove?.comment : move2?.comment} commentKey={analyzingMove ? kunciKomentar(previousMove) : kunciKomentar(move2)} commentIndex={analyzingMove ? indeksKomentar(previousMove) : indeksKomentar(move2)} rating={analyzingMove ? ratingTampilan(previousMove) : ratingTampilan(move2)} moveSan={analyzingMove ? previousMove?.san : move2?.san} evaluation={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={analyzingMove ? previousMove?.color === WHITE : move2?.color === WHITE} overallGameComment={overallGameComment} />
             </div>
             <div style={{ display: previousMove ? "" : "none" }} className="bg-backgroundBoxDarker w-full">
                 <div className="w-[85%] text-sm font-semibold text-highlightBest mx-auto flex flex-row items-center gap-2 py-1.5">
@@ -148,8 +142,11 @@ function Moves(props) {
     const isSelected = moveNumber === currentMoveNumber;
     const entriKini = moves[currentMoveNumber];
     const rating = entriKini?.moveRating;
-    const prevRating = moves[currentMoveNumber - 1]?.moveRating;
-    const nextRating = moves[currentMoveNumber + 1]?.moveRating;
+    // Tetangga memakai label TAMPIL (paksa = "forced", seperti warisan):
+    // aturan kemunculan ikon ("best sesudah inaccuracy") disetel pada nilai
+    // warisan — kualitas mentah tetangga tak boleh mengubahnya.
+    const prevRating = ratingTampilan(moves[currentMoveNumber - 1]);
+    const nextRating = ratingTampilan(moves[currentMoveNumber + 1]);
     const shownRating = getRating(currentMoveNumber, rating, prevRating, nextRating, lastBookMove, langkahTerpaksa(entriKini));
     const fgColorClass = shownRating ? shownRating.textClass : isSelected ? "text-foregroundHighlighted" : "";
     return <div key={`${i}-${j}`} className="w-1/2 flex flex-row gap-1 items-center">

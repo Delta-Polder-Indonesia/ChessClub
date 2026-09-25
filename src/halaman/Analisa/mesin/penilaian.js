@@ -172,6 +172,13 @@ export function getMoveRating({
     return { moveRating: null, commentKey: null, commentIndex: 0, statusEvaluasi: STATUS_EVALUASI.GAGAL };
   }
 
+  /*
+   * `winning` tidak bermakna untuk eval TERMINAL (mate-0: `0 < 0` = false,
+   * padahal pemberi mat jelas menang) — tetapi cabang terminal di bawah
+   * (best-mate/excellent-mate) selalu mengembalikan lebih dulu, sehingga
+   * cabang-cabang mate yang memakai `winning` tidak pernah melihat eval
+   * terminal. JANGAN pindahkan cabang terminal ke bawah cabang mate lain.
+   */
   const winning = Number(staticEval[1]) < 0;
   const previousWinning = Number(riwayat[0][1]) > 0;
 

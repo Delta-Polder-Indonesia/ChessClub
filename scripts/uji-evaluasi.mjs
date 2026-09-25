@@ -34,10 +34,11 @@ import {
   cpBaku,
   evalSiap,
   langkahTerpaksa,
+  ratingTampilan,
 } from "../src/halaman/Analisa/mesin/evaluasi.js";
 import { cpBaku as cpBakuAkurasi } from "../src/halaman/Analisa/mesin/akurasi.js";
 import { getMoveRating } from "../src/halaman/Analisa/mesin/penilaian.js";
-import { parseMove } from "../src/halaman/Analisa/mesin/engine.js";
+import { EngineAnalisis, parseMove } from "../src/halaman/Analisa/mesin/engine.js";
 import { nilaiCentipawn, cpKandidat as cpKandidatAc, CP_MATE } from "../src/halaman/Analisa/mesin/antiCheat.js";
 import { cpKandidat as cpKandidatKritis } from "../src/halaman/Analisa/mesin/langkahKritis.js";
 import { evalKeTeks } from "../src/halaman/Analisa/mesin/pgnAnotasi.js";
@@ -96,6 +97,8 @@ hasil("[] → null", normalisasiEval([]) === null);
 hasil("jenis tak dikenal → null", normalisasiEval(["x", "1"]) === null);
 hasil("angka tak terbaca → null", normalisasiEval(["cp", "rusak"]) === null);
 hasil("bukan array → null", normalisasiEval("cp") === null && normalisasiEval(null) === null);
+hasil('["cp",null] → null (bukan 0!)', normalisasiEval(["cp", null]) === null);
+hasil('["cp",undefined]/["cp",""] → null', normalisasiEval(["cp", undefined]) === null && normalisasiEval(["cp", ""]) === null);
 
 console.log("\n== apakahMateTerminal & tandaMate ==");
 hasil('["mate"] warisan → terminal', apakahMateTerminal(["mate"]) === true);
@@ -109,6 +112,7 @@ hasil('tandaMate("-3") → −1', tandaMate("-3") === -1);
 hasil("tandaMate(0) → −1 (sudah mati, bukan remis)", tandaMate(0) === -1);
 hasil('tandaMate("0") → −1', tandaMate("0") === -1);
 hasil("tandaMate(rusak) → null", tandaMate("x") === null && tandaMate(undefined) === null && tandaMate(NaN) === null);
+hasil("tandaMate(null/\"\") → null (bukan −1)", tandaMate(null) === null && tandaMate("") === null);
 hasil("MATE_DISAMPAIKAN = 0", MATE_DISAMPAIKAN === 0);
 
 console.log("\n== cpBaku ==");
@@ -120,6 +124,8 @@ hasil('["mate","0"] → −1000 (bergilir mati)', cpBaku(["mate", "0"]) === -100
 hasil('["mate","0"] balik → +1000 (pemberi menang)', cpBaku(["mate", "0"], true) === 1000);
 hasil('warisan ["mate"] → null (tak cukup info)', cpBaku(["mate"]) === null);
 hasil("[]/rusak → null", cpBaku([]) === null && cpBaku(["cp", "x"]) === null);
+hasil('["mate","x"] → null (bukan 0!)', cpBaku(["mate", "x"]) === null);
+hasil('payload absen → null (["cp",null]/["mate",null])', cpBaku(["cp", null]) === null && cpBaku(["mate", null]) === null);
 hasil("plafon ±1000", cpBaku(["cp", "5000"]) === 1000 && cpBaku(["cp", "-5000"]) === -1000);
 hasil("akurasi.js mengekspor ulang fungsi yang SAMA", cpBakuAkurasi === cpBaku);
 
@@ -134,6 +140,8 @@ hasil("isForced:true → terpaksa", langkahTerpaksa({ isForced: true, moveRating
 hasil('label warisan "forced" → terpaksa', langkahTerpaksa({ moveRating: "forced" }) === true);
 hasil("label kualitas → tidak terpaksa", langkahTerpaksa({ moveRating: "best" }) === false);
 hasil("kosong/null → tidak terpaksa", langkahTerpaksa({}) === false && langkahTerpaksa(null) === false);
+hasil('tampil: paksa → "forced"', ratingTampilan({ moveRating: "best", isForced: true }) === "forced");
+hasil("tampil: biasa lolos apa adanya", ratingTampilan({ moveRating: "best" }) === "best" && ratingTampilan(undefined) === undefined);
 
 console.log("\n== getMoveRating: gerbang validasi ==");
 const EVAL_BAIK = ["cp", "100"];
@@ -227,12 +235,37 @@ console.log("\n== pembaca mate-0 ==");
 hasil("CP_MATE = 10000", CP_MATE === 10000);
 hasil('nilaiCentipawn mate-0 → −10000', nilaiCentipawn(["mate", "0"]) === -10000);
 hasil('nilaiCentipawn ["mate"] warisan → null', nilaiCentipawn(["mate"]) === null);
+hasil('nilaiCentipawn payload absen → null', nilaiCentipawn(["mate", null]) === null && nilaiCentipawn(["cp", null]) === null);
 hasil('nilaiCentipawn mate+3 → +10000', nilaiCentipawn(["mate", "3"]) === 10000);
 hasil("cpKandidat antiCheat mate 0 → −10000", cpKandidatAc({ cp: null, mate: 0 }) === -10000);
 hasil("cpKandidat antiCheat mate rusak → null (bukan NaN)", cpKandidatAc({ cp: null, mate: "rusak" }) === null);
 hasil("cpKandidat langkahKritis mate 0 → −1000", cpKandidatKritis({ cp: null, mate: 0 }) === -1000);
 hasil('evalKeTeks mate-0 putih melangkah → "#0"', evalKeTeks(["mate", "0"], "w") === "#0");
 hasil('evalKeTeks mate-0 hitam melangkah → "-#0"', evalKeTeks(["mate", "0"], "b") === "-#0");
+
+console.log("\n== EngineAnalisis.cari: info worker → eval baku ==");
+// Regresi: info Stockfish memakai `mate: null` untuk posisi cp biasa —
+// pemetaan TIDAK BOLEH membaca null sebagai 0 (mate-0 = skakmat!).
+{
+  const cariDengan = async (info) => {
+    const mesin = new EngineAnalisis({ kedalaman: 10 });
+    mesin.engine.cari = async () => ({ uci: "e2e4", info, daftarPv: [] });
+    mesin.siapkan = async () => {};
+    return mesin.cari("fen-uji", {});
+  };
+  const cp = await cariDengan({ kedalaman: 10, cp: 34, mate: null, pv: [], adaBatas: false });
+  hasil("cp 34 + mate null → [\"cp\",\"34\"]", JSON.stringify(cp.staticEval) === '["cp","34"]', JSON.stringify(cp.staticEval));
+  const mate = await cariDengan({ kedalaman: 10, cp: null, mate: 5, pv: [], adaBatas: false });
+  hasil("mate 5 → [\"mate\",\"5\"]", JSON.stringify(mate.staticEval) === '["mate","5"]');
+  const mate0 = await cariDengan({ kedalaman: 10, cp: null, mate: 0, pv: [], adaBatas: false });
+  hasil("mate 0 (angka, bukan null) → [\"mate\",\"0\"]", JSON.stringify(mate0.staticEval) === '["mate","0"]');
+  const kosong = await cariDengan({ kedalaman: 10, cp: null, mate: null, pv: [], adaBatas: false });
+  hasil("cp+mate null → [] (ditolak gerbang hilir)", JSON.stringify(kosong.staticEval) === "[]");
+  const tanpaInfo = await cariDengan(null);
+  hasil("info null → []", JSON.stringify(tanpaInfo.staticEval) === "[]");
+  const aneh = await cariDengan({ kedalaman: 10, cp: "x", mate: undefined, pv: [], adaBatas: false });
+  hasil("skor tak-terbaca → [] (bukan string sampah)", JSON.stringify(aneh.staticEval) === "[]", JSON.stringify(aneh.staticEval));
+}
 
 console.log("\n== paritas fase (catat-dulu-majukan-kemudian) ==");
 hasil("urutan fase tetap", JSON.stringify(DAFTAR_FASE) === '["opening","middlegame","endgame"]');

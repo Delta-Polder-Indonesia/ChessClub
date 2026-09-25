@@ -12,6 +12,9 @@
  *     dilaporkan, bukan placeholder polos tanpa kabar.
  *  4. Batal non-batalan-muatan (abort saat tertahan): placeholder dicap
  *     "dibatalkan" + controller diganti yang segar.
+ *  5. Batal saat MENUNGGU engine/buku (abort mendarat di sela `await`
+ *     penyiapan, sebelum `parseMove`): dicap "dibatalkan" (bukan "gagal"),
+ *     tanpa kabar galat, dan engine tidak dipanggil sama sekali.
  *
  * Jalankan: node scripts/uji-balap-analisa.mjs
  */
@@ -89,14 +92,23 @@ class EngineGerbang {
 }
 
 const engine = new EngineGerbang();
+// Indireksi agar skenario 5 bisa memaksa jalur `siapkan()` yang TERTAHAN
+// (tanpa render ulang — Game membaca fungsi stabil ini, yang membaca
+// variabel skenario saat dipanggil).
+let ambilHasil = engine;
+let tahanSiapkan = false;
+let bukaSiapkan = null;
 const NILAI_MESIN_PALSU = {
   idEngine: "engine-palsu",
   gantiEngine: () => {},
   status: "siap",
   galat: "",
-  siapkan: async () => engine,
+  siapkan: async () => {
+    if (tahanSiapkan) await new Promise((selesai) => { bukaSiapkan = selesai; });
+    return engine;
+  },
   setop: () => {},
-  ambilMesin: () => engine,
+  ambilMesin: () => ambilHasil,
   didukung: true,
 };
 
@@ -254,5 +266,29 @@ hasil("kunci dilepas", ctx.analyzingMove[0] === false);
 hasil('placeholder dicap "dibatalkan"', ctx.customLine[0].moves[0]?.statusEvaluasi === "dibatalkan", ctx.customLine[0].moves[0]?.statusEvaluasi);
 hasil("controller diganti yang segar", ctx.analyzeController[0].signal.aborted === false);
 hasil("batal murni TIDAK mendorong galat baru", daftarGalat.length === 1, `galat ${daftarGalat.length}`);
+await kembaliKeAwal();
+hasil("reset customLine", ctx.customLine[0].moveNumber === -1);
+
+/* ------------------------- 6: batal saat menunggu engine ------------------------- */
+
+console.log('\n== batal saat menunggu engine → "dibatalkan", engine tak dipanggil ==');
+ambilHasil = null; // paksa analyzeMove menunggu siapkan()
+tahanSiapkan = true;
+const cariSebelum = engine.jumlahCari;
+hasil("seret keempat terkirim", (await seretE2E4()) === true);
+hasil("tertahan di siapkan()", bukaSiapkan !== null);
+hasil("papan terkunci saat menunggu", ctx.analyzingMove[0] === true);
+await act(async () => {
+  ctx.analyzeController[0].abort(); // Batal mendarat di sela await
+  bukaSiapkan();
+  await new Promise((r) => setTimeout(r, 30));
+});
+ambilHasil = engine;
+tahanSiapkan = false;
+bukaSiapkan = null;
+hasil("kunci dilepas", ctx.analyzingMove[0] === false);
+hasil('placeholder dicap "dibatalkan"', ctx.customLine[0].moves[0]?.statusEvaluasi === "dibatalkan", ctx.customLine[0].moves[0]?.statusEvaluasi);
+hasil("engine TIDAK dipanggil (parseMove tak berjalan)", engine.jumlahCari === cariSebelum, `${cariSebelum} → ${engine.jumlahCari}`);
+hasil("batal TIDAK mendorong galat baru", daftarGalat.length === 1, `galat ${daftarGalat.length}`);
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);
