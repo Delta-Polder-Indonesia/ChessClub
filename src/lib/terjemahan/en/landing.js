@@ -51,8 +51,45 @@ export const landing = {
     sorotan3Judul: "Opening Explorer",
     sorotan3Isi:
       "Explore an interactive chess opening library — browse opening variations move by move and learn opponent plans.",
-    ajakanJudul: "Ready to Join the Indonesia Chess Community?",
+    ajakanLabel: "One last step",
+    ajakanJudul:
+      "If you want your chess rating to truly climb, cut back on random videos and start focusing on",
+    ajakanJudulAccent: "deep analysis.",
     ajakanDeskripsi:
-      "Complete your personal data and start joining tournaments, classes, and community activities.",
+      "Complete your personal data and start joining regular tournaments, coaching classes, and interactive board training sessions with the Indonesia Chess Community.",
     ajakanTombol: "Register Now",
+    tigaJalanLabel: "Three paths forward",
+    tigaJalanJudul: "Pick the path that fits",
+    tigaJalanJudulAccent: "your level",
+    tigaJalanAkademiKicker: "Chess Academy",
+    tigaJalanAkademiJudul: "Structured curriculum",
+    tigaJalanAkademiDesk:
+      "A comprehensive chess curriculum from the basics to the endgame. The material is organized chronologically, covering tactical motifs, positional strategy, opening theory, and reviews of famous games to ensure a steady learning process.",
+    tigaJalanAkademiTerms: "E-book materials · Free access · Downloadable",
+    tigaJalanAkademiCta: "See the curriculum",
+    tigaJalanLatihanJudul: "Interactive Board & Puzzles",
+    tigaJalanLatihanDesk:
+      "An interactive opening book board and tactical puzzles to sharpen your calculation every day, ready in the browser with no installation.",
+    tigaJalanLatihanCta: "Start practicing",
+    tigaJalanAnalisaJudul: "Game Analysis",
+    tigaJalanAnalisaDesk:
+      "Replay your games, explore variations, and compare them with engine analysis to understand your critical moves.",
+    tigaJalanAnalisaCta: "Open analysis",
+    testimoniLabel: "From the members",
+    testimoniJudul: "What community players say",
+    testimoniLeadAria: "Featured quote from a member",
+    testimoniLeadKutip:
+      "Since regularly joining the monthly tournaments, my competitive match practice has grown fast — every game is a new lesson I can immediately try on the interactive board.",
+    testimoniLeadNama: "Bima R.",
+    testimoniLeadPeran: "Intermediate player, rated 1650",
+    testimoniKutip1Aria: "Quote from Mayang",
+    testimoniKutip1Kutip:
+      "The endgame module in the free e-book is very valuable — I used to lose winning positions before I understood basic king-and-pawn technique.",
+    testimoniKutip1Nama: "Mayang T.",
+    testimoniKutip1Peran: "Beginner player, rated 1420",
+    testimoniKutip2Aria: "Quote from Salim",
+    testimoniKutip2Kutip:
+      "The interactive opening book gives my practice a clear structure — I now know opponent plans and feel confident leaving the opening.",
+    testimoniKutip2Nama: "Salim C.",
+    testimoniKutip2Peran: "Community member, rated 1890",
   }

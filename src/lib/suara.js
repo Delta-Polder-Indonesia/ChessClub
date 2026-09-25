@@ -75,7 +75,8 @@ const alamat = (nama) => berkasPublik(`/SoundChess/standard/${nama}.mp3`);
 
 let ctx = null;
 let webAudioMati = false;
-const bufferCache = new Map(); // nama → AudioBuffer | Promise<AudioBuffer>
+const byteCache = new Map(); // nama → Promise<ArrayBuffer | null> (unduhan hangat)
+const bufferCache = new Map(); // nama → AudioBuffer | Promise<AudioBuffer> (decoded)
 const elemenCache = new Map(); // nama → HTMLAudioElement (jalur cadangan)
 
 function konteksAudio() {
@@ -86,35 +87,60 @@ function konteksAudio() {
     return null;
   }
   try {
+    // AudioContext sengaja TIDAK dibuat saat pemanasan halaman: peramban
+    // menolak memulainya tanpa user gesture dan menulis peringatan autoplay.
+    // Konteks diciptakan paling cepat pada pemutaran pertama — pada halaman
+    // papan berarti di dalam handler klik — lalu di-resume di `bunyikan`.
     ctx ||= new AudioCtx();
   } catch {
     webAudioMati = true;
     return null;
   }
-  // Peramban membekukan AudioContext sampai ada interaksi pengguna.
-  if (ctx.state === "suspended") ctx.resume().catch(() => {});
   return ctx;
 }
 
+/**
+ * Unduh byte MP3 sekali lalu simpan di memori. Bisa dipanggil kapan saja
+ * (termasuk saat pemanasan halaman) karena tidak butuh AudioContext. Gagal
+ * unduh → null dan entrinya dibuang supaya pemanggilan berikutnya mencoba lagi.
+ */
+function unduh(nama) {
+  if (!byteCache.has(nama)) {
+    const janji = fetch(alamat(nama))
+      .then((res) => (res.ok ? res.arrayBuffer() : null))
+      .catch(() => null);
+    byteCache.set(
+      nama,
+      janji.then((data) => {
+        if (!data) byteCache.delete(nama);
+        return data;
+      })
+    );
+  }
+  return byteCache.get(nama);
+}
+
 function muat(nama) {
+  // Memanggil konteksAudio() di sini artinya AudioContext baru dibuat pada
+  // pemutaran pertama (umumnya di dalam user gesture), bukan saat halaman dimuat.
   const audio = konteksAudio();
   if (!audio) return null;
   const tersimpan = bufferCache.get(nama);
   if (tersimpan) return tersimpan;
 
-  const janji = fetch(alamat(nama))
-    .then((res) => {
-      if (!res.ok) throw new Error(`suara ${nama}: HTTP ${res.status}`);
-      return res.arrayBuffer();
+  const janji = unduh(nama)
+    .then((data) => {
+      if (!data) throw new Error(`suara ${nama}: unduhan kosong`);
+      return audio.decodeAudioData(data);
     })
-    .then((data) => audio.decodeAudioData(data))
     .then((buffer) => {
       bufferCache.set(nama, buffer);
       return buffer;
     })
     .catch(() => {
-      // Gagal ambil/decode: jangan cache kegagalan selamanya, cukup diamkan.
+      // Gagal unduh/decode: jangan cache kegagalan selamanya, cukup diamkan.
       bufferCache.delete(nama);
+      byteCache.delete(nama);
       return null;
     });
 
@@ -125,6 +151,12 @@ function muat(nama) {
 function bunyikan(buffer, volume) {
   const audio = konteksAudio();
   if (!audio || !buffer) return;
+  // Resume ditaruh tepat sebelum pemutaran (bukan saat pembuatan konteks):
+  // dipanggil dari handler langkah sehingga mendapat izin autoplay dari
+  // user gesture, sekaligus menghindari peringatan berulang saat load awal.
+  if (audio.state === "suspended") {
+    audio.resume().catch(() => {});
+  }
   const sumber = audio.createBufferSource();
   sumber.buffer = buffer;
   const gain = audio.createGain();
@@ -184,12 +216,14 @@ export function mainkanSuara(nama, { volume } = {}) {
 }
 
 /**
- * Panaskan berkas suara (unduh + decode) supaya bunyi pertama tidak telat.
- * Dipanggil sekali saat halaman papan dipasang; tanpa argumen memuat set inti.
+ * Panaskan berkas suara (unduh byte-nya saja) supaya pemutaran pertama tidak
+ * telat menunggu jaringan. Dipanggil sekali saat halaman papan dipasang; tanpa
+ * argumen memuat set inti. AudioContext dan decode ditunda sampai bunyi pertama,
+ * sehingga peramban tidak memblokir / memperingatkan soal kebijakan autoplay.
  */
 export function panaskanSuara(daftar = INTI) {
   if (typeof window === "undefined") return;
-  for (const nama of daftar) muat(nama);
+  for (const nama of daftar) unduh(nama);
 }
 
 /**

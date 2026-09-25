@@ -15,6 +15,8 @@ import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
+import TigaJalan from "./TigaJalan.jsx";
+import Testimoni from "./Testimoni.jsx";
 
 const SLIDE_DURATION = 7000;
 
@@ -100,7 +102,7 @@ function LandingHero({ t }) {
                   setIndex(i);
                 }
               }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-medium group border-b-[3px] border-white/30 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
@@ -115,7 +117,7 @@ function LandingHero({ t }) {
                 >
                   <circle cx="4" cy="4" r="4" fill="currentColor" />
                 </svg>
-                <div className="bullet-title transition-all duration-300 group-hover:text-white whitespace-nowrap">
+                <div className="bullet-title font-serif transition-all duration-300 group-hover:text-white whitespace-nowrap">
                   {slide.label}
                 </div>
               </div>
@@ -172,10 +174,10 @@ function SorotanKegiatan({ t }) {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="font-semibold text-2xl md:text-3xl text-black">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
             {t("landing.sorotanJudul")}
           </h2>
-          <p className="mt-3 text-slate-600">{t("landing.sorotanDeskripsi")}</p>
+          <p className="mt-3 font-serif text-slate-600">{t("landing.sorotanDeskripsi")}</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {sorotan.map((s) => {
@@ -190,8 +192,8 @@ function SorotanKegiatan({ t }) {
             );
             const teks = (
               <>
-                <h3 className="font-semibold text-lg text-slate-900">{s.judul}</h3>
-                <p className="text-sm text-slate-600 leading-6">{s.isi}</p>
+                <h3 className="font-serif font-semibold text-lg text-slate-900">{s.judul}</h3>
+                <p className="font-serif text-sm text-slate-600 leading-6">{s.isi}</p>
               </>
             );
             return (
@@ -298,13 +300,13 @@ function CardGambar({ index, t }) {
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3 z-10 pointer-events-none">
-        <p className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
+        <p className="font-serif text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
           {t("landing.pustakaLabel")}
         </p>
-        <h2 className="text-white font-bold text-3xl md:text-4xl mb-4 uppercase">
+        <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4 uppercase">
           {t("landing.pustakaJudul")}
         </h2>
-        <p className="text-white/90 text-sm md:text-base max-w-2xl leading-6">
+        <p className="font-serif text-white/90 text-sm md:text-base max-w-2xl leading-6">
           {t("landing.pustakaDesk")}
         </p>
       </div>
@@ -387,11 +389,11 @@ function CardCarousel({ index, setIndex, t }) {
                     : "bg-white text-slate-900 hover:bg-primary group"
                 }`}
               >
-                <h3 className={`text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
+                <h3 className={`font-serif text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
                 <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-red-600 group-hover:bg-white"} ${transisiWarna}`} />
-                <p className={`text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
+                <p className={`font-serif text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
                   {k.desk}
                 </p>
                 <div className="block mt-auto ml-auto">
@@ -472,11 +474,11 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className="focus:outline-none focus:ring-0 text-black font-semibold text-2xl md:text-3xl">
+            <h2 className="focus:outline-none focus:ring-0 font-serif text-black font-semibold text-2xl md:text-3xl">
               {t("landing.harapanJudul")}
             </h2>
             <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
-              <div className="relative z-[1] prose-kci max-w-none">
+              <div className="relative z-[1] font-serif prose-kci max-w-none">
                 <p>{t("landing.harapanPembuka")}</p>
                 <p>{t("landing.harapanP1")}</p>
                 <p>{t("landing.harapanP2")}</p>
@@ -487,10 +489,10 @@ function HarapanTerimaKasih({ t }) {
               </div>
             </div>
             <div className="w-full relative bg-transparent">
-              <p className="font-bold text-lg md:text-xl text-black">
+              <p className="font-serif font-bold text-lg md:text-xl text-black">
                 {t("landing.harapanNama")}
               </p>
-              <p className="mt-1 text-sm md:text-base text-slate-600">
+              <p className="mt-1 font-serif text-sm md:text-base text-slate-600">
                 {t("landing.harapanJabatan")}
               </p>
             </div>
@@ -506,13 +508,16 @@ function AjakanBergabung({ t }) {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
       <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
-        <h2 className="font-semibold text-2xl md:text-3xl text-black">
-          {t("landing.ajakanJudul")}
+        <p className="font-serif text-primary font-semibold text-xs uppercase tracking-wide">
+          {t("landing.ajakanLabel")}
+        </p>
+        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+          {t("landing.ajakanJudul")} <em className="font-serif text-primary italic">{t("landing.ajakanJudulAccent")}</em>
         </h2>
-        <p className="text-slate-600">{t("landing.ajakanDeskripsi")}</p>
+        <p className="font-serif text-slate-600">{t("landing.ajakanDeskripsi")}</p>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 border border-black bg-transparent text-black font-semibold text-sm px-8 py-3 rounded"
+          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -537,9 +542,11 @@ export default function Landing() {
       />
       {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
-      <h1 className="sr-only">{t("common.namaKomunitas")}</h1>
+      <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
       <SorotanKegiatan t={t} />
+      <TigaJalan />
+      <Testimoni />
       <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
         <img
           {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
@@ -550,13 +557,13 @@ export default function Landing() {
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-3">
-          <p className="text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
+          <p className="font-serif text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
             {t("landing.sekilasLabel")}
           </p>
-          <h2 className="text-white font-bold text-3xl md:text-4xl mb-4">
+          <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4">
             {t("nav.tentangKami")}
           </h2>
-          <p className="text-white/90 text-sm md:text-base max-w-2xl leading-6">
+          <p className="font-serif text-white/90 text-sm md:text-base max-w-2xl leading-6">
             {t("landing.sekilasDesk")}
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
@@ -566,14 +573,14 @@ export default function Landing() {
               // ini; tanpa konteks, pembaca layar (dan audit
               // identical-links-same-purpose) tidak bisa membedakan tujuannya.
               aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
-              className="inline-flex items-center gap-2 border border-white text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
+              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
             >
               {t("common.selengkapnya")}
               <ArrowRightIcon className="size-4 -rotate-45" />
             </Link>
             <Link
               to="/tentang-kami/struktur-grup-catur"
-              className="inline-flex items-center gap-2 border border-white text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
+              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
             >
               {t("landing.ketuaPengurus")}
               <ArrowRightIcon className="size-4 -rotate-45" />
@@ -585,14 +592,14 @@ export default function Landing() {
       <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-24 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full">
-            <p className="text-primary font-semibold text-xs uppercase">
+            <p className="font-serif text-primary font-semibold text-xs uppercase">
               {t("nav.keberlanjutan")}
             </p>
           </div>
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-semibold text-3xl">{t("nav.keberlanjutan")}</h2>
-              <p className="text-justify text-slate-600 leading-relaxed">
+              <h2 className="font-serif font-semibold text-3xl">{t("nav.keberlanjutan")}</h2>
+              <p className="font-serif text-justify text-slate-600 leading-relaxed">
                 {t("landing.keberlanjutanDesk")}
               </p>
             </div>
@@ -600,9 +607,9 @@ export default function Landing() {
               <Link
                 to="/keberlanjutan"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded"
+                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded"
               >
-                <span className="order-1">{t("common.selengkapnya")}</span>
+                <span className="order-1 font-serif">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />
               </Link>
             </div>

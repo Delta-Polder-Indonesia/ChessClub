@@ -51,8 +51,45 @@ export const landing = {
     sorotan3Judul: "Penjelajah Pembukaan",
     sorotan3Isi:
       "Jelajahi pustaka pembukaan catur interaktif — telusuri variasi pembukaan per langkah dan pelajari rencana lawan.",
-    ajakanJudul: "Siap Bergabung dengan Komunitas Catur Indonesia?",
+    ajakanLabel: "Langkah terakhir",
+    ajakanJudul:
+      "Jika ingin rating catur Anda benar-benar naik, kurangi belajar dari video acak dan mulailah fokus pada",
+    ajakanJudulAccent: "analisis mendalam.",
     ajakanDeskripsi:
-      "Lengkapi data diri Anda dan mulai ikuti turnamen, kelas, serta kegiatan komunitas.",
+      "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
+    tigaJalanLabel: "Tiga jalan ke depan",
+    tigaJalanJudul: "Pilih jalur yang paling cocok",
+    tigaJalanJudulAccent: "untuk jenjang Anda",
+    tigaJalanAkademiKicker: "Akademi Catur",
+    tigaJalanAkademiJudul: "Kurikulum terstruktur",
+    tigaJalanAkademiDesk:
+      "Kurikulum catur komprehensif dari tingkat dasar hingga permainan akhir. Materi disusun secara kronologis meliputi motif taktis, strategi posisi, teori pembukaan, dan ulasan partai terkenal guna memastikan proses belajar yang runut.",
+    tigaJalanAkademiTerms: "Materi e-book · Akses gratis · Dapat diunduh",
+    tigaJalanAkademiCta: "Lihat kurikulum",
+    tigaJalanLatihanJudul: "Papan Interaktif & Teka-teki",
+    tigaJalanLatihanDesk:
+      "Papan buku pembukaan interaktif dan teka-teki taktis untuk mengasah kalkulasi setiap hari, siap dipakai di peramban tanpa instalasi.",
+    tigaJalanLatihanCta: "Mulai berlatih",
+    tigaJalanAnalisaJudul: "Analisa Partai",
+    tigaJalanAnalisaDesk:
+      "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
+    tigaJalanAnalisaCta: "Buka analisa",
+    testimoniLabel: "Suara dari anggota",
+    testimoniJudul: "Apa kata para pecatur komunitas",
+    testimoniLeadAria: "Kutipan unggulan dari anggota",
+    testimoniLeadKutip:
+      "Sejak rutin mengikuti turnamen bulanan, jam terbang bertanding saya naik pesat — setiap partai adalah pelajaran baru yang langsung bisa saya praktekan di papan interaktif.",
+    testimoniLeadNama: "Bima R.",
+    testimoniLeadPeran: "Pemain menengah, peringkat 1650",
+    testimoniKutip1Aria: "Kutipan dari Mayang",
+    testimoniKutip1Kutip:
+      "Modul permainan akhir di e-book gratis itu sangat berharga — dulu saya selalu kehilangan posisi menang sebelum memahami teknik dasar raja dan pion.",
+    testimoniKutip1Nama: "Mayang T.",
+    testimoniKutip1Peran: "Pemain pemula, peringkat 1420",
+    testimoniKutip2Aria: "Kutipan dari Salim",
+    testimoniKutip2Kutip:
+      "Buku pembukaan interaktif memberi struktur latihan yang jelas — saya mulai hafal rencana lawan dan berani keluar dari pembukaan tanpa cemas.",
+    testimoniKutip2Nama: "Salim C.",
+    testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
   }
