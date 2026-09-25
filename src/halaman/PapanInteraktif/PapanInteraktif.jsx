@@ -27,7 +27,7 @@ import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
-import { ekspresiDariSkorAwan, faktaLangkah } from "../../lib/komentator.js";
+import { ekspresiDariSkorAwan, faktaLangkah, statusTerminalFen } from "../../lib/komentator.js";
 import {
   ambilBasisDataAwan,
   intipBasisDataAwan,
@@ -940,6 +940,8 @@ export default function PapanInteraktif() {
    *   - "best"        → engine menyala & langkah = saran terbaiknya,
    *   - "forced"      → satu-satunya langkah legal,
    *   - engine        → best / miss / blunder / mistake / inaccuracy / good,
+   *   - remis sesudah langkah (pat/50-langkah/…) → dinilai sebagai 0.00
+   *     pasti (posisi terminal tak punya snapshot eval),
    *   - skakmat/tak ada langkah sebelumnya → tanpa ikon klasifikasi.
    * Tanpa engine dan di luar buku, langkah biasa tidak diberi ikon.
    * (Skakmat punya lencana sendiri di atas raja lawan — lihat `ikonSkakmat`.)
@@ -995,7 +997,7 @@ export default function PapanInteraktif() {
       mateSebelum !== null
         ? Math.sign(mateSebelum) * 10000
         : sebelum.cpPutih ?? 0;
-    const nilaiSesudah =
+    let nilaiSesudah =
       mateSesudah !== null && mateSesudah !== undefined
         ? Math.sign(mateSesudah) * 10000
         : sesudah?.cpPutih;
@@ -1015,7 +1017,18 @@ export default function PapanInteraktif() {
         return { petak: kePetak, rating: "blunder" };
       }
     }
-    if (nilaiSesudah === undefined || nilaiSesudah === null) return null;
+    if (nilaiSesudah === undefined || nilaiSesudah === null) {
+      // Snapshot sesudah tak ada karena DUA sebab: balapan (eval belum
+      // tiba → tanpa ikon, seperti dulu) atau posisi sesudah TERMINAL
+      // (hook engine memang melewatkannya). Remis terminal nilainya pasti
+      // 0.00 — alirannya dilanjutkan supaya pat yang membuang kemenangan
+      // tetap berikon blunder/miss, bukan diam tanpa ikon.
+      if (!sesudah && statusTerminalFen(fen) === "remis") {
+        nilaiSesudah = 0;
+      } else {
+        return null;
+      }
+    }
     const rugiPion = ((nilaiSebelum - nilaiSesudah) * sudutPindah) / 100;
     if (rugiPion >= 4) return { petak: kePetak, rating: "blunder" };
     if (rugiPion >= 1.2) return { petak: kePetak, rating: "mistake" };

@@ -47,16 +47,28 @@ export function sanDariUci(fen, daftarUci) {
  * Ubah keluaran "info" UCI menjadi bentuk siap tampil. Skor UCI selalu
  * relatif terhadap pihak yang melangkah — di sini dinormalisasi menjadi
  * sudut pandang Putih agar konsisten dengan bilah evaluasi.
+ *
+ * Mate 0 = pihak bergilir SUDAH mati: pemenang adalah lawannya. Tanda
+ * kemenangan tak bisa dikodekan di angka 0 (`0 × arah = 0`), jadi `cpPutih`
+ * dan `teksSkor` memakai `giliran` posisi — tanpa ini mate-0 selalu terbaca
+ * sebagai kemenangan Hitam. (Hook di bawah melewatkan posisi terminal,
+ * jadi cabang ini pertahanan-lapis, bukan jalur hidup — dikunci uji.)
  */
-function susunHasilEngine(info, fen, giliran) {
+export function susunHasilEngine(info, fen, giliran) {
   const arah = giliran === "w" ? 1 : -1;
   let teksSkor;
   let cpPutih;
   let matePutih = null;
-  if (info.mate !== null) {
+  if (info.mate !== null && info.mate !== undefined) {
     matePutih = info.mate * arah;
-    cpPutih = matePutih > 0 ? 10000 : -10000;
-    teksSkor = `${matePutih > 0 ? "+" : "-"}M${Math.abs(matePutih)}`;
+    if (Number(info.mate) === 0) {
+      const putihMenang = giliran !== "w";
+      cpPutih = putihMenang ? 10000 : -10000;
+      teksSkor = `${putihMenang ? "+" : "-"}M0`;
+    } else {
+      cpPutih = matePutih > 0 ? 10000 : -10000;
+      teksSkor = `${matePutih > 0 ? "+" : "-"}M${Math.abs(matePutih)}`;
+    }
   } else {
     cpPutih = Math.round(info.cp * arah);
     teksSkor = `${cpPutih >= 0 ? "+" : "-"}${(Math.abs(cpPutih) / 100).toFixed(2)}`;
