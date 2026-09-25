@@ -350,14 +350,14 @@ await tungguHingga(() => wadahHalaman.querySelectorAll("[data-petak]").length ==
 uji("papan teka-teki ter-render", wadahHalaman.querySelectorAll("[data-petak]").length === 64);
 uji("belum ada lencana sebelum langkah mat", lencanaSkakmat(wadahHalaman).length === 0);
 
-/** Teks kartu komentator (section aria-label="Komentator"). */
+/** Teks kartu komentator (section aria-label="Komentator Papan"). */
 const teksKomentator = (wadah) =>
-  (wadah.querySelector('section[aria-label="Komentator"] [aria-live]')?.textContent || "")
+  (wadah.querySelector('section[aria-label="Komentator Papan"] [aria-live]')?.textContent || "")
     .replace(/\s+/g, " ")
     .trim();
 uji(
   "komentator teka-teki menyapa soal baru (mat dalam 1, Hitam jalan)",
-  /Mat dalam satu|satu langkah/i.test(teksKomentator(wadahHalaman)) &&
+  /dalam (?:1|satu) langkah/i.test(teksKomentator(wadahHalaman)) &&
     /Hitam/.test(teksKomentator(wadahHalaman))
 );
 
@@ -374,7 +374,7 @@ klikPetak("d1"); // Rd1#
 await tungguHingga(
   () =>
     lencanaSkakmat(wadahHalaman).length === 1 &&
-    /SKAKMAT|Skakmat|Mat!/.test(teksKomentator(wadahHalaman)),
+    /skakmat/i.test(teksKomentator(wadahHalaman)),
   5000
 );
 
@@ -390,7 +390,7 @@ uji(
 );
 uji(
   "komentator teka-teki merayakan skakmat",
-  /SKAKMAT|Skakmat|Mat!/.test(teksKomentator(wadahHalaman)) &&
+  /skakmat/i.test(teksKomentator(wadahHalaman)) &&
     !/\{[a-z]+\}|\{\{/.test(teksKomentator(wadahHalaman))
 );
 /** Klik sungguhan (React mendengar klik yang menggelembung, sama seperti pengguna). */
@@ -408,7 +408,7 @@ function klik(el) {
 
   const popup = wadahHalaman.querySelector('div[role="dialog"][aria-label="Pengaturan"]');
   const radioGaya = (akar) =>
-    [...(akar ?? wadahHalaman).querySelectorAll('section[aria-label="Komentator"] [role="radio"]')];
+    [...(akar ?? wadahHalaman).querySelectorAll('section[aria-label="Komentator Papan"] [role="radio"]')];
   uji(
     "kontrol komentator ada di dalam popup Pengaturan (santai + formal + Gen Z)",
     !!popup && radioGaya(popup).length === 3
@@ -419,7 +419,7 @@ function klik(el) {
   );
 
   const tombolFormal = popup?.querySelector(
-    'section[aria-label="Komentator"] [role="radio"][aria-checked="false"]'
+    'section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]'
   );
   const sebelum = teksKomentator(wadahHalaman);
   klik(tombolFormal);
@@ -432,7 +432,7 @@ function klik(el) {
   );
   // kembalikan ke santai agar uji berikutnya (papan interaktif) tidak bergantung urutan
   klik(
-    popup?.querySelector('section[aria-label="Komentator"] [role="radio"][aria-checked="false"]')
+    popup?.querySelector('section[aria-label="Komentator Papan"] [role="radio"][aria-checked="false"]')
   );
   await tunggu(100);
   klik(wadahHalaman.querySelector('button[aria-label="Pengaturan"]')); // tutup popup
@@ -504,7 +504,7 @@ uji("interaktif: lencana skakmat muncul setelah Qh4#", lencanaInt.length === 1);
   const teks = teksKomentator(wadahFool);
   uji(
     "interaktif: komentator mengomentari skakmat Fool's Mate (Hitam menang)",
-    /Skakmat|SKAKMAT|MAT/.test(teks) && /Hitam/.test(teks) && !/\{[a-z]+\}|\{\{/.test(teks)
+    /skakmat/i.test(teks) && /Hitam/.test(teks) && !/\{[a-z]+\}|\{\{/.test(teks)
   );
 }
 uji(

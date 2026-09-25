@@ -252,6 +252,107 @@ function nilaiPenyerangTermurah(game, petak, penyerang) {
 }
 
 /**
+ * FEN dengan satu petak dikosongkan. Dipakai untuk menguji pin dan skak
+ * bayangan: bila raja lawan TETAP diserang setelah bidak "penghalang"
+ * dibuang, bidak itu memang sedang menahan serangan ke raja.
+ */
+function fenTanpa(fen, petak) {
+  const bagian = fen.split(" ");
+  const baris = bagian[0].split("/").map((r) => {
+    const kotak = [];
+    for (const ch of r) {
+      if (ch >= "1" && ch <= "8") {
+        for (let i = 0; i < Number(ch); i += 1) kotak.push(null);
+      } else {
+        kotak.push(ch);
+      }
+    }
+    return kotak;
+  });
+  const indeks = 8 - Number(petak[1]);
+  const kolom = petak.charCodeAt(0) - 97;
+  if (indeks < 0 || indeks > 7 || kolom < 0 || kolom > 7) return fen;
+  baris[indeks][kolom] = null;
+  bagian[0] = baris
+    .map((kotak) => {
+      let teks = "";
+      let kosong = 0;
+      for (const isi of kotak) {
+        if (!isi) {
+          kosong += 1;
+        } else {
+          if (kosong) {
+            teks += kosong;
+            kosong = 0;
+          }
+          teks += isi;
+        }
+      }
+      if (kosong) teks += kosong;
+      return teks;
+    })
+    .join("/");
+  return bagian.join(" ");
+}
+
+/** Petak raja milik `warna`, atau null bila tidak ada di papan. */
+function petakRaja(game, warna) {
+  for (const baris of game.board()) {
+    for (const kotak of baris) {
+      if (kotak && kotak.type === "k" && kotak.color === warna) return kotak.square;
+    }
+  }
+  return null;
+}
+
+/**
+ * Apakah `penyerang` masih menyerang `target` setelah petak `petak`
+ * dikosongkan? `false` bila FEN hasilnya tidak bisa dipakai chess.js.
+ */
+function masihDiserangTanpa(game, penyerang, petak, target) {
+  try {
+    return new Chess(fenTanpa(game.fen(), petak)).isAttacked(target, penyerang);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Cacat struktur pion `warna`: pion berganda + pion terisolasi. Dipakai
+ * sebagai sinyal keunggulan struktur jangka panjang (bukan evaluasi).
+ */
+function cacatPion(game, warna) {
+  const perBerkas = Array.from({ length: 8 }, () => []);
+  for (const baris of game.board()) {
+    for (const kotak of baris) {
+      if (kotak && kotak.type === "p" && kotak.color === warna) {
+        perBerkas[kotak.square.charCodeAt(0) - 97].push(kotak.square);
+      }
+    }
+  }
+  let cacat = 0;
+  perBerkas.forEach((daftar, f) => {
+    if (daftar.length > 1) cacat += daftar.length - 1;
+    const kiri = f > 0 && perBerkas[f - 1].length > 0;
+    const kanan = f < 7 && perBerkas[f + 1].length > 0;
+    if (daftar.length > 0 && !kiri && !kanan) cacat += daftar.length;
+  });
+  return cacat;
+}
+
+/**
+ * Peristiwa taktis "besar" yang lebih menarik dari peristiwa struktural
+ * (tangkapan/promosi/rokade): skak bayangan lebih dulu, lalu fork. Pin
+ * sengaja TIDAK di sini — itu catatan posisional, ditambahkan terpisah
+ * supaya tidak menelan kalimat pembuka.
+ */
+function peristiwaTaktis(fakta) {
+  if (fakta.skakBayangan) return { kunci: "skakBayangan", n: 2, ganti: {} };
+  if (fakta.fork) return { kunci: "fork", n: 3, ganti: {} };
+  return null;
+}
+
+/**
  * Kumpulkan fakta satu langkah: hasil `game.move()` chess.js ditambah
  * keadaan posisi sesudahnya. Mengembalikan null bila langkah tidak legal.
  *
@@ -302,19 +403,124 @@ export function faktaLangkah(fenSebelum, san) {
     // Bidak yang baru bergerak bisa langsung ditangkap lawan (legal) —
     // bahan deteksi pengorbanan bersama nilai bidak yang dipertaruhkan.
     bisaDirebut: false,
+    // Taktik spesifik yang terdeteksi SETELAH langkah:
+    //  - fork          : bidak yang bergerak menyerang >=2 perwira lawan
+    //                    (minimal satu bernilai >= bidak ringan)
+    //  - skakBayangan  : skak datang dari perwira LAIN — garisnya terbuka
+    //                    karena bidak ini bergeser (termasuk skak ganda)
+    //  - lawanTerpaku  : perwira lawan terpaku ke rajanya sendiri
+    //  - strukturUnggul: struktur pion / kontrol ruang pelangkah lebih baik
+    //  - posisiTajam   : pihak yang jalan punya >=2 opsi skak — posisi beracun
+    fork: null,
+    skakBayangan: null,
+    lawanTerpaku: [],
+    strukturUnggul: false,
+    posisiTajam: false,
   };
 
+  // --- Fork: bidak yang baru bergerak menyerang >=2 perwira lawan. ---
+  // Sasaran dihitung dari petak TUJUAN (bukan asal): giliran dibalik ke
+  // pelangkah pada posisi sesudah langkah, lalu langkah legal bidak tersebut
+  // dari petak tujuannya dikumpulkan. Konservatif - kotak yang tidak bisa
+  // dituju tidak dihitung - dan raja lawan tidak dihitung sebagai sasaran
+  // (itu ranah kalimat skak, bukan fork).
+  try {
+    const bagian = fenSesudah.split(" ");
+    bagian[1] = warna;
+    bagian[3] = "-"; // en passant tidak relevan untuk pembalikan giliran
+    const sesudah = new Chess(bagian.join(" "));
+    const sasaran = [];
+    for (const m of sesudah.moves({ verbose: true })) {
+      if (m.from !== pindah.to) continue;
+      const isi = sesudah.get(m.to);
+      if (isi && isi.color === lawan && isi.type !== "k") {
+        sasaran.push({ petak: m.to, jenis: isi.type, nilai: NILAI_BIDAK[isi.type] });
+      }
+    }
+    const terbaik = sasaran.reduce((maks, x) => Math.max(maks, x.nilai), 0);
+    if (sasaran.length >= 2 && terbaik >= 3) {
+      fakta.fork = { petak: pindah.to, sasaran: sasaran.sort((a, b) => b.nilai - a.nilai) };
+    }
+  } catch {
+    /* deteksi fork opsional - posisi yang tidak bisa diputar dilewati */
+  }
+
+  let mobilitasSendiri = 0;
+  try {
+    mobilitasSendiri = new Chess(fenSebelum).moves().length;
+  } catch {
+    mobilitasSendiri = 0;
+  }
+
   if (!fakta.skakmat && !fakta.remis) {
+    const rajaLawan = petakRaja(game, lawan);
+
+    // --- Skak bayangan: skak datang dari perwira LAIN. Dibuktikan dengan
+    // membuang bidak yang bergerak dari papan - bila raja lawan MASIH
+    // diserang, serangannya memang datang dari garis yang terbuka. Pada skak
+    // ganda keduanya benar, dan kalimatnya tetap akurat. ---
+    if (fakta.skak && rajaLawan && masihDiserangTanpa(game, warna, pindah.to, rajaLawan)) {
+      fakta.skakBayangan = { petak: pindah.to };
+    }
+
+    // --- Pin: perwira lawan yang menahan serangan ke rajanya sendiri. Hanya
+    // dicari saat raja lawan TIDAK diskak - kalau diskak, "masih diserang"
+    // bisa berasal dari skak itu sendiri, bukan dari pin. ---
+    if (!fakta.skak && rajaLawan) {
+      for (const baris of game.board()) {
+        for (const kotak of baris) {
+          if (!kotak || kotak.color !== lawan || kotak.type === "k") continue;
+          // Pion/raja tidak dilaporkan (nilai di bawah ambang), jadi jangan
+          // buang waktu membongkar FEN untuk mengujinya.
+          if (NILAI_BIDAK[kotak.type] < 3) continue;
+          if (masihDiserangTanpa(game, warna, kotak.square, rajaLawan)) {
+            fakta.lawanTerpaku.push({
+              petak: kotak.square,
+              jenis: kotak.type,
+              nilai: NILAI_BIDAK[kotak.type],
+            });
+          }
+        }
+      }
+      fakta.lawanTerpaku = fakta.lawanTerpaku.sort((a, b) => b.nilai - a.nilai);
+    }
+
     fakta.lawanMenggantung = bidakMenggantung(fenSesudah, lawan);
     fakta.sendiriMenggantung = bidakMenggantung(fenSesudah, warna);
     try {
       const balasan = game.moves({ verbose: true });
       fakta.jumlahLegalLawan = balasan.length;
       fakta.bisaDirebut = balasan.some((m) => m.to === pindah.to && m.captured);
+      // --- Posisi tajam: pihak yang jalan punya >=2 opsi skak. Hanya dicari
+      // setelah langkah yang memaksa (skak/tangkapan) supaya "menjadi tajam"
+      // wajar, dan berhenti lebih awal begitu dua opsi ditemukan. ---
+      if (fakta.skak || fakta.tangkap) {
+        let skakTersedia = 0;
+        for (const m of balasan) {
+          try {
+            game.move(m);
+            const cek = game.inCheck();
+            game.undo();
+            if (cek) skakTersedia += 1;
+          } catch {
+            break;
+          }
+          if (skakTersedia >= 2) break;
+        }
+        fakta.posisiTajam = skakTersedia >= 2;
+      }
     } catch {
       fakta.jumlahLegalLawan = 0;
     }
   }
+
+  // --- Keunggulan struktur pion / kontrol ruang. Bukan evaluasi engine:
+  // cukup selisih cacat pion dan selisih mobilitas (jumlah langkah legal).
+  // Dihitung setelah jumlahLegalLawan terisi. ---
+  const selisihRuang = mobilitasSendiri - fakta.jumlahLegalLawan;
+  fakta.strukturUnggul =
+    cacatPion(game, lawan) - cacatPion(game, warna) >= 2 || selisihRuang >= 10;
+
   return fakta;
 }
 
@@ -470,7 +676,10 @@ export function susunKomentar({
 
   /* ---- 2. Kalimat pembuka: peristiwa utama langkah ini. ---- */
   const utama = peristiwaUtama(fakta);
-  if (utama) {
+  const taktis = peristiwaTaktis(fakta);
+  if (taktis) {
+    tambah(taktis.kunci, taktis.n, taktis.ganti, 1);
+  } else if (utama) {
     tambah(utama.kunci, utama.n, utama.ganti, 1);
   } else if (rating === "book" && namaPembukaan) {
     tambah("buku", 3, { pembukaan: namaPembukaan }, 1);
@@ -518,6 +727,24 @@ export function susunKomentar({
       5
     );
   }
+  // Pin: perwira lawan yang tidak bisa bergerak tanpa membuka rajanya.
+  const paku = fakta.lawanTerpaku && fakta.lawanTerpaku[0];
+  if (paku) {
+    tambah(
+      "terpaku",
+      2,
+      { bidak: `{{bidak:${paku.jenis}}}`, petak: paku.petak },
+      4
+    );
+  }
+  // Posisi tajam: ada >=2 opsi skak di tangan pihak yang jalan.
+  if (fakta.posisiTajam) {
+    tambah("posisiTajam", 2, {}, 4);
+  }
+  // Keunggulan struktur/ruang jangka panjang (tanpa engine).
+  if (fakta.strukturUnggul) {
+    tambah("unggulStruktur", 2, {}, 3);
+  }
 
   /* ---- 5. Penilaian engine + siapa yang unggul. ---- */
   if (engineNyala && kunciRating) {
@@ -543,7 +770,12 @@ export function susunKomentar({
         mat: String(k.nilai),
       };
       if (k.tingkat === "mat") tambah("unggulMat", 2, ganti, 2);
-      else if (k.tingkat === "seimbang") tambah("seimbang", 3, ganti, 3);
+      else if (k.tingkat === "seimbang") {
+        // Dua bank kalimat "imbang": seimbang (ringkas) & seimbangDinamis
+        // (gaya basis data engine) - dipilih bergantian lewat hash langkah.
+        if (indeksVarian(benih + "seimbang", 2) === 0) tambah("seimbangDinamis", 4, ganti, 3);
+        else tambah("seimbang", 3, ganti, 3);
+      }
       else if (k.tingkat === "tipis") tambah("unggulTipis", 2, ganti, 3);
       else if (k.tingkat === "jelas") tambah("unggulJelas", 2, ganti, 2);
       else tambah("unggulMenang", 2, ganti, 2);

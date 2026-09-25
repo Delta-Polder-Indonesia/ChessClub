@@ -13,7 +13,7 @@ import {
 } from "../lib/komentator.js";
 
 /**
- * Kartu "Komentator" — panel komentar langsung di Papan Interaktif.
+ * Kartu "Komentator Papan" — panel komentar langsung di Papan Interaktif.
  *
  * Menerima `fakta` (hasil faktaLangkah) untuk langkah terakhir yang sedang
  * ditampilkan, penilaian engine bila ada, lalu menyusun kalimatnya lewat
