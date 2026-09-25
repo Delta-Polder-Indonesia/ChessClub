@@ -5,6 +5,7 @@ import { WHITE } from "chess.js";
 import GameChart from "../gameChart.jsx";
 import RatingSVG from "../../../svg/rating.jsx";
 import { getMoves } from "../../../game/game.jsx";
+import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 const RATING_TEXT_COLORS = {
   forced: "",
@@ -20,7 +21,25 @@ const RATING_TEXT_COLORS = {
   miss: "text-highlightMiss",
   blunder: "text-highlightBlunder"
 };
-function getRating(moveNumber, rating, prevRating, nextRating, lastBookMove) {
+/*
+ * Label yang TAMPIL di kartu komentar: langkah paksa tetap memakai tampilan
+ * "forced" warisan (ikon + kalimat "paksa"), walau kualitas aslinya kini
+ * tersimpan terpisah (`moveRating` + `isForced`) — lihat mesin/evaluasi.js.
+ */
+function tampilanRating(move) {
+  return langkahTerpaksa(move) ? "forced" : move?.moveRating;
+}
+function kunciKomentar(move) {
+  return langkahTerpaksa(move) ? "forced" : move?.commentKey;
+}
+function indeksKomentar(move) {
+  return langkahTerpaksa(move) ? 0 : move?.commentIndex;
+}
+function getRating(moveNumber, rating, prevRating, nextRating, lastBookMove, terpaksa = false) {
+  // Langkah paksa memakai ikon "forced" (bukan ikon kualitasnya): status
+  // "tak punya pilihan" lebih informatif di daftar langkah daripada label
+  // kualitas yang kebetulan menempel — sama seperti perilaku warisan.
+  if (terpaksa) return { rating: "forced", textClass: RATING_TEXT_COLORS.forced };
   if (!rating) return;
   if (moveNumber === lastBookMove) return { rating, textClass: RATING_TEXT_COLORS[rating] };
   if (rating === "best" && prevRating === "inaccuracy") return { rating, textClass: RATING_TEXT_COLORS[rating] };
@@ -110,7 +129,7 @@ function Moves(props) {
   const { previousMove, move: move2 } = getMoves(moves, moveNumber, customLine, returnedToNormalGame);
   return <div ref={componentRef} className="flex flex-col gap-3 items-center h-full">
             <div ref={commentsRef} className="w-full flex flex-col items-center">
-                <Comments comment={analyzingMove ? previousMove?.comment : move2?.comment} commentKey={analyzingMove ? previousMove?.commentKey : move2?.commentKey} commentIndex={analyzingMove ? previousMove?.commentIndex : move2?.commentIndex} rating={analyzingMove ? previousMove?.moveRating : move2?.moveRating} moveSan={analyzingMove ? previousMove?.san : move2?.san} evaluation={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={analyzingMove ? previousMove?.color === WHITE : move2?.color === WHITE} overallGameComment={overallGameComment} />
+                <Comments comment={analyzingMove ? previousMove?.comment : move2?.comment} commentKey={analyzingMove ? kunciKomentar(previousMove) : kunciKomentar(move2)} commentIndex={analyzingMove ? indeksKomentar(previousMove) : indeksKomentar(move2)} rating={analyzingMove ? tampilanRating(previousMove) : tampilanRating(move2)} moveSan={analyzingMove ? previousMove?.san : move2?.san} evaluation={analyzingMove ? previousMove?.previousStaticEvals?.[0] ?? ["cp", "0"] : move2?.previousStaticEvals?.[0] ?? ["cp", "0"]} white={analyzingMove ? previousMove?.color === WHITE : move2?.color === WHITE} overallGameComment={overallGameComment} />
             </div>
             <div style={{ display: previousMove ? "" : "none" }} className="bg-backgroundBoxDarker w-full">
                 <div className="w-[85%] text-sm font-semibold text-highlightBest mx-auto flex flex-row items-center gap-2 py-1.5">
@@ -127,10 +146,11 @@ function Moves(props) {
     if (!move3) return <div key={`${i}-${j}`} className="w-1/2" />;
     const currentMoveNumber = i * 2 + j + (firstMoveBlack ? 0 : 1);
     const isSelected = moveNumber === currentMoveNumber;
-    const rating = moves[currentMoveNumber]?.moveRating;
+    const entriKini = moves[currentMoveNumber];
+    const rating = entriKini?.moveRating;
     const prevRating = moves[currentMoveNumber - 1]?.moveRating;
     const nextRating = moves[currentMoveNumber + 1]?.moveRating;
-    const shownRating = getRating(currentMoveNumber, rating, prevRating, nextRating, lastBookMove);
+    const shownRating = getRating(currentMoveNumber, rating, prevRating, nextRating, lastBookMove, langkahTerpaksa(entriKini));
     const fgColorClass = shownRating ? shownRating.textClass : isSelected ? "text-foregroundHighlighted" : "";
     return <div key={`${i}-${j}`} className="w-1/2 flex flex-row gap-1 items-center">
                                         <button type="button" onClick={() => handleMoveClick(currentMoveNumber)} className="w-[18px] outline-none">{shownRating ? <RatingSVG draggable rating={shownRating.rating} size={18} /> : null}</button>

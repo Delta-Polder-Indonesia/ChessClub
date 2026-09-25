@@ -7,6 +7,7 @@ import Evaluation from "./evaluation.jsx";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
 import { bacaPartaiPGN, formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
 import { cariNamaPembukaan } from "../../mesin/buku.js";
+import { langkahTerpaksa } from "../../mesin/evaluasi.js";
 import { Chess, WHITE } from "chess.js";
 import { pushPageWarning, pushPageError } from "../errors/pageErrors.jsx";
 import { gunakanMesin } from "../../konteks/mesin.jsx";
@@ -737,7 +738,8 @@ function Game({ wadah }) {
     arrows={getArrows(arrows, moveNumber, customLine)}
     sacrifice={move2?.sacrifice}
     forward={forward}
-    moveRating={move2?.moveRating}
+    // Langkah paksa memakai sorotan papan bawaan (netral) seperti warisan.
+    moveRating={langkahTerpaksa(move2) ? "forced" : move2?.moveRating}
     bestMove={move2?.bestMove}
     previousBestMove={previousMove?.bestMove}
     move={move2?.movement}

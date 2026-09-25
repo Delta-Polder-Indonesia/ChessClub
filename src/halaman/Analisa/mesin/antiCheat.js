@@ -57,6 +57,7 @@
  */
 
 import { invertColor } from "./penilaian.js";
+import { langkahTerpaksa, tandaMate } from "./evaluasi.js";
 import { DAFTAR_FASE, FASE_PEMBUKAAN, faseBerikutnya, papanDariFen } from "./fase.js";
 import { MULTI_PV } from "./engine.js";
 import {
@@ -187,14 +188,17 @@ export function normalkanSan(san) {
 
 /**
  * `staticEval` mentah UCI → centipawn dari sudut pihak yang bergilir.
- * `null` bila datanya tidak ada/rusak (mis. `["mate"]` pada posisi skakmat —
- * tidak punya makna centipawn dan memang harus dilewati).
+ * `null` bila datanya tidak ada/rusak (mis. bentuk warisan `["mate"]` tanpa
+ * angka — tidak punya makna centipawn dan memang harus dilewati).
+ * Skakmat yang sudah dikirim (`["mate", "0"]`) = pihak bergilir mati, jadi
+ * −`CP_MATE`, BUKAN 0 — `Math.sign` mentah dilarang di sini karena mengubah
+ * 0 menjadi 0 (lihat `tandaMate` di ./evaluasi.js).
  */
 export function nilaiCentipawn(staticEval) {
   if (!Array.isArray(staticEval) || staticEval.length < 2) return null;
   const angka = Number(staticEval[1]);
   if (!Number.isFinite(angka)) return null;
-  return staticEval[0] === "mate" ? Math.sign(angka) * CP_MATE : angka;
+  return staticEval[0] === "mate" ? tandaMate(angka) * CP_MATE : angka;
 }
 
 /**
@@ -227,7 +231,12 @@ export function kerugianCentipawn(move) {
 /** Skor centipawn satu entri kandidat `{cp, mate}` (sudut pihak yang bergilir). */
 export function cpKandidat(entri) {
   if (!entri) return null;
-  if (entri.mate !== null && entri.mate !== undefined) return Math.sign(entri.mate) * CP_MATE;
+  if (entri.mate !== null && entri.mate !== undefined) {
+    // Mate 0 = baris ini sudah mati (−CP_MATE); skor tak-terbaca = `null`,
+    // bukan NaN — lihat `tandaMate` di ./evaluasi.js.
+    const tanda = tandaMate(entri.mate);
+    return tanda === null ? null : tanda * CP_MATE;
+  }
   return Number.isFinite(entri.cp) ? entri.cp : null;
 }
 
@@ -736,7 +745,7 @@ export function hitungSkorKecurigaan(moves, { rating = {} } = {}) {
     // Langkah paksa (satu-satunya langkah legal) dan langkah buku dikeluarkan:
     // keduanya tidak mengatakan apa pun tentang keputusan pemain.
     const layakDinilai =
-      warna !== null && Boolean(move.san) && move.moveRating !== "forced" && move.moveRating !== "book";
+      warna !== null && Boolean(move.san) && !langkahTerpaksa(move) && move.moveRating !== "book";
 
     if (layakDinilai) {
       /*

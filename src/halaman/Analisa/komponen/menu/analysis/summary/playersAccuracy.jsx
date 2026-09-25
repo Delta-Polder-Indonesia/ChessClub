@@ -12,6 +12,7 @@ import { Chess } from "chess.js";
  * yang sedang aktif, baru kemudian fasenya dimajukan.
  */
 import { isEndOpening, isEndMiddlegame } from "../../../../mesin/fase.js";
+import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 function avg(arr) {
   // Tanpa penjagaan ini, daftar kosong menghasilkan 0/0 = NaN dan panel
   // ringkasan menampilkan "NaN" alih-alih angka akurasi.
@@ -51,6 +52,11 @@ function PlayersAccuracy(props) {
       }
       const color = move2.color === "w" ? "b" : "w";
       const rating = move2.moveRating;
+      // Langkah paksa tidak mencerminkan keputusan — dikeluarkan seperti
+      // warisan. Dulu labelnya "forced" sehingga lolos dari `switch` dan
+      // `continue` lewat NaN; kini kualitasnya terisi sehingga harus ditolak
+      // eksplisit (mencakup label warisan "forced" pada data lama).
+      if (langkahTerpaksa(move2)) continue;
       let moveAccuracy = NaN;
       switch (rating) {
         case "brilliant":

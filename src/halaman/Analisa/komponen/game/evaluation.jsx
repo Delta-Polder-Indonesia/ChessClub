@@ -1,4 +1,5 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
+import { apakahMateTerminal } from "../../mesin/evaluasi.js";
 function Evaluation(props) {
   const { size, white, advantage, whiteMoving, navTop } = props;
   const OLD_PERCENTS = [-400, 400];
@@ -6,8 +7,11 @@ function Evaluation(props) {
   const advantageAmount = Number(advantage[1]) * (whiteMoving ? 1 : -1);
   const rawPercent = (advantageAmount - OLD_PERCENTS[0]) * (NEW_PERCENTS[1] - NEW_PERCENTS[0]) / (OLD_PERCENTS[1] - OLD_PERCENTS[0]) + NEW_PERCENTS[0];
   let percent;
+  // Mate terminal (skakmat SUDAH dikirim: ["mate","0"] atau warisan ["mate"])
+  // selalu berarti pihak yang bergilir kalah — bukan 50/50, bukan menang.
+  const mateTerminal = apakahMateTerminal(advantage);
   if (advantage[0] === "mate") {
-    if (advantage[1]) {
+    if (!mateTerminal) {
       percent = advantageAmount >= 0 ? 100 : 0;
     } else {
       percent = whiteMoving ? 0 : 100;
@@ -18,7 +22,7 @@ function Evaluation(props) {
   const winning = white ? percent >= 50 : percent <= 50;
   let displayAdvantage;
   if (advantage[0] === "mate") {
-    displayAdvantage = advantage[1] ? "M" + Math.abs(advantageAmount) : whiteMoving ? "0-1" : "1-0";
+    displayAdvantage = !mateTerminal ? "M" + Math.abs(advantageAmount) : whiteMoving ? "0-1" : "1-0";
   } else {
     displayAdvantage = (Math.abs(advantageAmount) / 100).toFixed(1);
   }
