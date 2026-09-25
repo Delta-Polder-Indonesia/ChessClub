@@ -228,3 +228,75 @@ export function sanDariPgn(pgn) {
     .map((token) => token.replace(/[!?]+$/, ""))
     .filter((token) => token && token !== "..." && token !== "…");
 }
+
+/**
+ * Klasifikasi SATU langkah dari snapshot eval engine posisi SEBELUM dan
+ * SESUDAH langkah — kosakata & ambang yang sama dengan ikon di petak papan
+ * (best/miss/blunder/mistake/inaccuracy/good/excellent). Murni tanpa React,
+ * dipakai baik untuk ikon langkah terakhir maupun rating per langkah riwayat.
+ *
+ * @param {object} a argumen
+ * @param {string} a.san SAN langkah yang dinilai
+ * @param {"w"|"b"} a.warnaPenglangkah warna pihak yang melangkah
+ * @param {string} a.fenSesudah FEN posisi sesudah langkah (deteksi remis terminal)
+ * @param {{cpPutih:number, matePutih:number|null, bestSan?:string|null}|undefined} a.sebelum
+ *     snapshot eval posisi SEBELUM langkah (wajib — tanpa ini return null)
+ * @param {{cpPutih:number, matePutih:number|null}|undefined} a.sesudah
+ *     snapshot eval posisi SESUDAH langkah (belum siap → boleh undefined)
+ * @param {(fen:string)=>string|null} [a.statusTerminal] fungsi status akhir posisi
+ * @returns {string|null} rating, atau null bila data eval belum siap
+ */
+export function ratingDariSnapshotEval({
+  san,
+  warnaPenglangkah,
+  fenSesudah,
+  sebelum,
+  sesudah,
+  statusTerminal,
+}) {
+  if (!sebelum) return null;
+
+  // best — sama dengan saran utama engine pada posisi sebelumnya.
+  if (sebelum.bestSan && sebelum.bestSan === san) return "best";
+
+  const sudut = warnaPenglangkah === "w" ? 1 : -1;
+  const mateSebelum =
+    sebelum.matePutih !== null && sebelum.matePutih !== undefined
+      ? sebelum.matePutih
+      : null;
+  const mateSesudah =
+    sesudah && sesudah.matePutih !== null && sesudah.matePutih !== undefined
+      ? sesudah.matePutih
+      : null;
+  const nilaiSebelum =
+    mateSebelum !== null ? Math.sign(mateSebelum) * 10000 : sebelum.cpPutih ?? 0;
+  let nilaiSesudah =
+    mateSesudah !== null ? Math.sign(mateSesudah) * 10000 : sesudah ? sesudah.cpPutih : undefined;
+
+  // miss — melewatkan skakmat yang bisa langsung diberikan.
+  if (mateSebelum !== null && mateSebelum * sudut > 0) {
+    const dikasih = mateSesudah !== null && mateSesudah * sudut < 0;
+    if (!dikasih) return "miss";
+  }
+
+  // blunder — menyerahkan skakmat ke lawan.
+  if (mateSesudah !== null && mateSesudah * sudut < 0) return "blunder";
+
+  if (nilaiSesudah === undefined || nilaiSesudah === null) {
+    // Snapshot sesudah tak ada karena DUA sebab: eval belum tiba (tanpa ikon,
+    // hindari loncatan palsu) atau posisi sesudah TERMINAL — remis terminal
+    // nilainya pasti 0.00 sehingga pat yang membuang kemenangan tetap berikon.
+    if (!sesudah && statusTerminal && statusTerminal(fenSesudah) === "remis") {
+      nilaiSesudah = 0;
+    } else {
+      return null;
+    }
+  }
+
+  const rugiPion = ((nilaiSebelum - nilaiSesudah) * sudut) / 100;
+  if (rugiPion >= 4) return "blunder";
+  if (rugiPion >= 1.2) return "mistake";
+  if (rugiPion >= 0.8) return "inaccuracy";
+  if (rugiPion >= 0.4) return "good";
+  return "excellent";
+}

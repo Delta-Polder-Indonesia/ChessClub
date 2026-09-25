@@ -44,6 +44,7 @@ import {
   kuciDariPindahan,
   modeDariPohon,
   pohonDariDaftar,
+  ratingDariSnapshotEval,
   sanDariPgn,
   sanDiPosisi,
   statTurunan,
@@ -1057,62 +1058,83 @@ export default function PapanInteraktif() {
 
     const sebelum = snapshotEvalRef.current.get(fenSebelum);
     const sesudah = snapshotEvalRef.current.get(fen);
-    if (!sebelum) return null; // eval posisi sebelumnya belum siap
-
-    // best — sama dengan saran utama engine.
-    if (sebelum.bestSan && sebelum.bestSan === sanTerakhir) {
-      return { petak: kePetak, rating: "best" };
-    }
-
-    const sudutPindah = pindah.color === "w" ? 1 : -1;
-    const mateSebelum = sebelum.matePutih !== null ? sebelum.matePutih : null;
-    const mateSesudah = sesudah?.matePutih;
-    const nilaiSebelum =
-      mateSebelum !== null
-        ? Math.sign(mateSebelum) * 10000
-        : sebelum.cpPutih ?? 0;
-    let nilaiSesudah =
-      mateSesudah !== null && mateSesudah !== undefined
-        ? Math.sign(mateSesudah) * 10000
-        : sesudah?.cpPutih;
-
-    // miss — melewatkan skakmat yang bisa langsung diberikan.
-    if (mateSebelum !== null && mateSebelum * sudutPindah > 0) {
-      const dikasih =
-        mateSesudah !== null && mateSesudah !== undefined
-          ? mateSesudah * sudutPindah < 0
-          : false;
-      if (!dikasih) return { petak: kePetak, rating: "miss" };
-    }
-
-    // blunder — menyerahkan skakmat ke lawan, atau kerugian ≥ 4 pion.
-    if (mateSesudah !== null && mateSesudah !== undefined) {
-      if (mateSesudah * sudutPindah < 0) {
-        return { petak: kePetak, rating: "blunder" };
-      }
-    }
-    if (nilaiSesudah === undefined || nilaiSesudah === null) {
-      // Snapshot sesudah tak ada karena DUA sebab: balapan (eval belum
-      // tiba → tanpa ikon, seperti dulu) atau posisi sesudah TERMINAL
-      // (hook engine memang melewatkannya). Remis terminal nilainya pasti
-      // 0.00 — alirannya dilanjutkan supaya pat yang membuang kemenangan
-      // tetap berikon blunder/miss, bukan diam tanpa ikon.
-      if (!sesudah && statusTerminalFen(fen) === "remis") {
-        nilaiSesudah = 0;
-      } else {
-        return null;
-      }
-    }
-    const rugiPion = ((nilaiSebelum - nilaiSesudah) * sudutPindah) / 100;
-    if (rugiPion >= 4) return { petak: kePetak, rating: "blunder" };
-    if (rugiPion >= 1.2) return { petak: kePetak, rating: "mistake" };
-    if (rugiPion >= 0.8) return { petak: kePetak, rating: "inaccuracy" };
-    if (rugiPion >= 0.4) return { petak: kePetak, rating: "good" };
-    return { petak: kePetak, rating: "excellent" };
+    const rating = ratingDariSnapshotEval({
+      san: sanTerakhir,
+      warnaPenglangkah: pindah.color,
+      fenSesudah: fen,
+      sebelum,
+      sesudah,
+      statusTerminal: statusTerminalFen,
+    });
+    return rating ? { petak: kePetak, rating } : null;
     // hasilTertahan/hasilEngine jadi dependensi agar ikon terbarui begitu
     // snapshot eval posisi tersedia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [riwayat, fen, fenAwal, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
+
+  /**
+   * Rating per langkah riwayat — ikon kecil di DaftarRiwayat
+   * ("1. e4 📖 e5 📖"). Kosakata & ambang sama dengan ikon di petak papan:
+   *   - "book"   → langkah masih di jalur buku pembukaan (telusuri pohon),
+   *   - "forced" → satu-satunya langkah legal,
+   *   - engine   → best/miss/blunder/mistake/inaccuracy/good/excellent —
+   *                butuh snapshot eval posisi sebelum & sesudah tiap langkah,
+   *                terisi bertahap seiring posisi dianalisis engine.
+   * Langkah yang belum bisa dinilai → null (tanpa ikon). Indeks = ply.
+   */
+  const ratingRiwayat = useMemo(() => {
+    const hasil = new Array(riwayatLengkap.length).fill(null);
+
+    // Buku pembukaan — telusuri pohon sepanjang jalur; semua ply yang masih
+    // cocok adalah langkah buku (posisi FEN kustom tidak punya buku).
+    if (pohon && !posisiKustom) {
+      let node = pohon;
+      for (let i = 0; i < jalur.length; i++) {
+        if (!node.c || !node.c[jalur[i]]) break;
+        node = node.c[jalur[i]];
+        hasil[i] = "book";
+      }
+    }
+
+    // Satu-satunya langkah legal tidak butuh engine; penilaian eval iya.
+    let game;
+    try {
+      game = new Chess(fenAwal);
+    } catch {
+      return hasil;
+    }
+    for (let i = 0; i < riwayat.length; i++) {
+      const fenSebelum = game.fen();
+      let pindah = null;
+      try {
+        pindah = game.move(riwayat[i]);
+      } catch {
+        break;
+      }
+      if (!pindah) break;
+      if (hasil[i]) continue; // sudah "book" — engine tidak menimpa buku
+      try {
+        if (isForced({ before: fenSebelum })) {
+          hasil[i] = "forced";
+          continue;
+        }
+      } catch {
+        /* abaikan */
+      }
+      if (!engineNyala) continue;
+      hasil[i] = ratingDariSnapshotEval({
+        san: riwayat[i],
+        warnaPenglangkah: pindah.color,
+        fenSesudah: game.fen(),
+        sebelum: snapshotEvalRef.current.get(fenSebelum),
+        sesudah: snapshotEvalRef.current.get(game.fen()),
+        statusTerminal: statusTerminalFen,
+      });
+    }
+    return hasil;
+    // hasilTertahan memicu hitung ulang saat snapshot eval posisi baru tersedia.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [riwayat, riwayatLengkap.length, jalur, fenAwal, pohon, posisiKustom, engineNyala, hasilTertahan]);
 
   /**
    * Komentator langsung — bahan mentah untuk KartuKomentator di tab analisa.
@@ -1717,14 +1739,13 @@ export default function PapanInteraktif() {
                         </p>
                       </div>
 
-                      {/* Bantuan langkah: status singkat + legenda warna. */}
-                      {bantuanNyala && (
-                        <p className="mt-2 text-[11px] leading-snug text-gray-500">
-                          {bantuanSeret.status === "menghitung" || bantuanSeret.status === "menunggu"
-                            ? t("papan.bantuanMenghitung")
-                            : t("papan.bantuanPetunjuk")}
-                        </p>
-                      )}
+                      {/* Bantuan langkah: hanya status berjalan — petunjuk panjang dihapus. */}
+                      {bantuanNyala &&
+                        (bantuanSeret.status === "menghitung" || bantuanSeret.status === "menunggu") && (
+                          <p className="mt-2 text-[11px] leading-snug text-gray-500">
+                            {t("papan.bantuanMenghitung")}
+                          </p>
+                        )}
 
                       {/* Status posisi: komentator menggantikan nama pembukaan saat aktif. */}
                       <div className="mt-3 min-w-0 border-b border-[#312e2b] pb-3">
@@ -1792,7 +1813,9 @@ export default function PapanInteraktif() {
                       <DaftarRiwayat
                         langkah={riwayatLengkap}
                         aktifPly={riwayat.length - 1}
+                        rating={ratingRiwayat}
                         onPilih={keLangkah}
+                        t={t}
                       />
 
                     </>
