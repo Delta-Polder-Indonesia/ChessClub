@@ -435,6 +435,7 @@ export default function PapanTekaTeki({
       x0: e.clientX,
       y0: e.clientY,
       pindah: false,
+      terpilihSebelumnya: terpilih === petakAwal,
       pointerId: e.pointerId,
     };
     // Pasang bidak hantu. Posisi relatif papan dihitung di posisikanHantu —
@@ -535,14 +536,15 @@ export default function PapanTekaTeki({
 
   function padaLepas(e) {
     if (e.button === 0 && seretRef.current) {
-      const { dari, pindah } = seretRef.current;
+      const { dari, pindah, terpilihSebelumnya } = seretRef.current;
       seretRef.current = null;
       setSeret(null);
       lewatiRef.current = null;
       onLewatiPetakRef.current?.(null);
       const tujuan = pindah ? cariPetak(e.clientX, e.clientY) || dari : dari;
+      const klikUlang = !pindah && tujuan === dari && terpilihSebelumnya;
       if (pindah && tujuan !== dari) abaikanKlikRef.current = true;
-      if (onSelesaiSeret) onSelesaiSeret(dari, tujuan);
+      if (onSelesaiSeret) onSelesaiSeret(dari, tujuan, klikUlang);
       else if (pindah && tujuan !== dari) onJatuh?.(dari, tujuan);
       return;
     }

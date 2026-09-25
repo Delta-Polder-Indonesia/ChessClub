@@ -1,28 +1,18 @@
-# Papan Interaktif — ONLY Opening Book
+# Papan Interaktif — Workspace Modular
 
-> Skill lokal. Sumber utama: `.agents/skills/kci-papan-interaktif/SKILL.md`
+> Panduan lengkap: `.agents/skills/kci-papan-interaktif/SKILL.md` (identik dengan `.opencode/skills/kci-papan-interaktif/SKILL.md`).
 
-**Tujuan:** belajar pembukaan saja, bukan main vs engine.
+**Sidebar tahap ini berisi tepat tiga pilihan:**
+1. **Analisa** — tautan ke halaman `/program-kami/analisa`; tidak menggandakan fitur.
+2. **Manusia vs Mesin** — permainan melawan Stockfish lokal. Worker single-thread hanya dimulai saat mesin harus bergerak dan dihentikan saat mode/partai selesai.
+3. **Latihan Repertoar** — tambahkan jalur pembukaan, latih langkah sisi pilihan, nilai tingkat kesulitan untuk jadwal pengulangan, dan simpan progres lokal di IndexedDB.
 
-**File:** `PapanInteraktif.jsx` (~1800 baris — komponen halaman; kode folder ini juga dipecah ke `konstanta.js`, `utilPapan.js`, `gunakanDialog.js`, dan komponen pembantu `IkonTab.jsx`, `BukuPembukaan.jsx`, `KartuArtikelPembukaan.jsx`, `DaftarRiwayat.jsx`, `TangkapanBidak.jsx`, `MasukanPgn.jsx`, `LangkahExplorer.jsx`, `PanelBasisDataAwan.jsx`, `PopupPengaturan.jsx`)
+Buku Pembukaan yang ada tetap tersedia melalui tombol **Jelajah Buku Pembukaan** di Latihan Repertoar, bukan sebagai item sidebar keempat. Panel kanan `Analisa | Buku | Penjelajah | Partai` tetap menjadi detail Buku Pembukaan.
 
-**Data:** `public/data/buku-pembukaan.json` (lichess-org/chess-openings, CC0) → `pohonDariDaftar()` → tree `{n, c}`
+**Arsitektur:** `Workspace.jsx` memuat satu mode aktif; Manusia vs Mesin, Latihan Repertoar, dan tampilan Buku Pembukaan dimuat malas. Jangan menjalankan engine ketika mode permainan tidak aktif atau memuat katalog pembukaan sebelum pengguna masuk ke alur yang memerlukannya.
 
-**Fitur inti:**
-- Telusur jalur `e2e4` / `e4` → nama ECO + saran 8 langkah + stat games/winrate/rating
-- Katalog ECO group per keluarga (`:` split)
-- Tabel pembukuan + winrate bar (tab Partai) + artikel Wikibooks (fetch hanya tab explorer, cache session)
-- Riwayat SAN + FEN + PGN/FEN loader + tangkapan bidak + orientasi
-- Bantuan langkah saat menyeret bidak (sakelar di Pengaturan Papan, bawaan mati): petak
-tujuan hijau/kuning/merah + panah merah balasan lawan — worker engine kedua, `uji:bantuan-langkah`
+**Jangan duplikasi:** fitur Analisa, Teka-teki, Teka-teki Rush, database PGN, ekspor PGN, dan statistik akun yang sudah ada. Pencarian kartu hanya memakai jalur opening lokal yang dipilih pengguna.
 
-**Batasan:**
-- DILARANG tambah mode pve/pvp/swap/skill/elo/depth — itu di Analisa
-- DILARANG ganti board ke cm-chessboard/chessground/react-chessboard
-- DILARANG tambah openings.bin Polyglot atau COOP/COEP multi-thread
-- Engine optional hanya untuk eval bar, bukan mode tanding
+**Referensi:** En Croissant digunakan sebagai sumber konsep UX. Jangan menyalin kode/aset GPL-3.0 ke proyek MIT; implementasikan pola sesuai stack dan batas browser ChessClub.
 
-**Uji:** `uji:nama-pembukaan`, `uji:artikel-wikipedia`, `uji:rute`, `uji:i18n`,
-`uji:bantuan-langkah`, `build`
-
-Lihat skill lengkap di `.agents/skills/kci-papan-interaktif/SKILL.md`
+**Uji:** `npm run uji:repertoar`, `npm run uji:i18n`, `npm run uji:rute`, `npm run uji:peta`, dan `npm run build`; lihat skill lengkap untuk uji regresi papan/engine.

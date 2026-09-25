@@ -1,6 +1,6 @@
 /**
- * Uji perilaku HAPUS tanda bantu (panah & mark petak) di papan teka-teki /
- * papan interaktif.
+ * Uji perilaku tanda bantu (panah & mark petak) serta seleksi petak pada
+ * papan teka-teki / papan interaktif.
  *
  * Mengapa perlu: `PapanTekaTeki` dipakai bersama oleh TekaTeki,
  * PapanInteraktif, dan TekaTekiRush. Penghapusan tanda dulu hanya bergantung
@@ -17,10 +17,12 @@
  *   2. tetap menghapus saat papan terkunci (`terkunci`) — sama seperti Analisa;
  *   3. `pointerdown` kanan tidak menghapus (kanan = menggambar);
  *   4. bidak lawan & petak kosong tetap menghapus;
- *   5. halaman TekaTeki dan PapanInteraktif benar-benar mengirim
- *      `onHapusTanda` (diperiksa statis: jsdom tidak punya tata letak maupun
- *      `elementFromPoint`, jadi jalur klik penuh halaman tidak bisa
- *      dijalankan di sini).
+ *   5. klik pertama memilih bidak, klik kedua tanpa gerak pada bidak yang sama
+ *      membatalkan pilihan dan sasaran langkah;
+ *   6. seretan yang bergerak, termasuk kembali ke petak asal, bukan klik ulang;
+ *   7. halaman yang memakai papan bersama menangani pembatalan klik ulang.
+ *      Pemeriksaan halaman bersifat statis karena jsdom tidak menyediakan
+ *      tata letak maupun `elementFromPoint` untuk menjalankan alur penuh.
  *
  * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
@@ -78,18 +80,37 @@ import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
  * \`laporan\` diperbarui setiap render supaya uji bisa membaca tanda terkini;
  * \`catatan\` menghitung callback yang dipanggil (klik / seret / hapus).
  */
-export function mountPapanTanda(el, { fen, terkunci = false, awalTanda, laporan, catatan }) {
+export function mountPapanTanda(el, { fen, terkunci = false, awalTanda, awalTerpilih = null, laporan, catatan }) {
   function Harness() {
     const [tanda, setTanda] = React.useState(awalTanda ?? { panah: [], petak: {} });
+    const [terpilih, setTerpilih] = React.useState(awalTerpilih);
+    const [sasaran, setSasaran] = React.useState(awalTerpilih ? ["e3", "e4"] : []);
     laporan.tanda = tanda;
+    laporan.pilihan = { terpilih, sasaran };
     return (
       <PapanTekaTeki
         fen={fen}
         orientasi="w"
         terkunci={terkunci}
+        terpilih={terpilih}
+        sasaran={sasaran}
         tanda={tanda}
         onKlik={() => { catatan.klik += 1; }}
-        onMulaiSeret={() => { catatan.seret += 1; }}
+        onMulaiSeret={(petak) => {
+          catatan.seret += 1;
+          if (terpilih !== petak) {
+            setTerpilih(petak);
+            setSasaran(["e3", "e4"]);
+          }
+        }}
+        onSelesaiSeret={(from, to, klikUlang) => {
+          catatan.selesai += 1;
+          catatan.klikUlang = klikUlang;
+          if (klikUlang) {
+            setTerpilih(null);
+            setSasaran([]);
+          }
+        }}
         onHapusTanda={() => {
           catatan.hapus += 1;
           setTanda({ panah: [], petak: {} });
@@ -197,15 +218,33 @@ async function tekan(wadah, sq, button) {
   await tunggu(60);
 }
 
-function pasangPapan({ terkunci = false } = {}) {
+async function lepas(wadah, sq, { clientX = 0, clientY = 0 } = {}) {
+  petakEl(wadah, sq)?.dispatchEvent(
+    new dom.window.MouseEvent("pointerup", {
+      bubbles: true,
+      button: 0,
+      clientX,
+      clientY,
+    })
+  );
+  await tunggu(60);
+}
+
+async function klik(wadah, sq) {
+  await tekan(wadah, sq, 0);
+  await lepas(wadah, sq);
+}
+
+function pasangPapan({ terkunci = false, awalTerpilih = null } = {}) {
   const wadah = domSiap.createElement("div");
   domSiap.body.appendChild(wadah);
   const laporan = {};
-  const catatan = { hapus: 0, seret: 0, klik: 0 };
+  const catatan = { hapus: 0, seret: 0, klik: 0, selesai: 0, klikUlang: null };
   modul.mountPapanTanda(wadah, {
     fen: FEN_AWAL,
     terkunci,
     awalTanda: TANDA_AWAL,
+    awalTerpilih,
     laporan,
     catatan,
   });
@@ -254,7 +293,51 @@ console.log("\npapan terkunci (giliran komputer / soal selesai):");
   wadah.remove();
 }
 
-/* --------------------- 3. induk halaman benar-benar mengirim onHapusTanda */
+/* ------------------------------------------- 3. pilihan petak pada klik */
+
+console.log("\nseleksi petak:");
+{
+  const { wadah, laporan, catatan } = pasangPapan();
+  await tunggu(150);
+
+  await klik(wadah, "e2");
+  uji("klik pertama memilih bidak dan sasaran langkah", laporan.pilihan?.terpilih === "e2" && laporan.pilihan?.sasaran.length > 0);
+  uji("klik pertama tidak dianggap klik ulang", catatan.klikUlang === false);
+
+  await klik(wadah, "e2");
+  uji("klik kedua pada bidak yang sama membatalkan pilihan dan sasaran", laporan.pilihan?.terpilih === null && laporan.pilihan?.sasaran.length === 0);
+  uji("papan melaporkan klik ulang pada bidak terpilih", catatan.klikUlang === true);
+
+  wadah.remove();
+}
+
+{
+  const { wadah, laporan, catatan } = pasangPapan({ awalTerpilih: "e2" });
+  await tunggu(150);
+  const elementFromPointAsli = domSiap.elementFromPoint;
+  domSiap.elementFromPoint = () => petakEl(wadah, "e2");
+
+  await tekan(wadah, "e2", 0);
+  petakEl(wadah, "e2")?.dispatchEvent(
+    new dom.window.MouseEvent("pointermove", {
+      bubbles: true,
+      buttons: 1,
+      clientX: 10,
+      clientY: 0,
+    })
+  );
+  await tunggu(60);
+  await lepas(wadah, "e2", { clientX: 10 });
+
+  if (elementFromPointAsli) domSiap.elementFromPoint = elementFromPointAsli;
+  else delete domSiap.elementFromPoint;
+  uji("seretan yang kembali ke petak asal bukan klik ulang", catatan.klikUlang === false);
+  uji("seretan tetap mempertahankan pilihan petak asal", laporan.pilihan?.terpilih === "e2");
+
+  wadah.remove();
+}
+
+/* --------------------- 4. induk halaman benar-benar menangani tanda & seleksi */
 
 console.log("\npemasangan di halaman:");
 {
@@ -266,6 +349,29 @@ console.log("\npemasangan di halaman:");
     const isi = readFileSync(path.join(ROOT, relatif), "utf8");
     uji(`${nama} mengirim onHapusTanda ke papan`, /onHapusTanda=\{/.test(isi));
   }
+}
+
+const halamanSeleksi = [
+  ["TekaTeki.jsx", "src/halaman/TekaTeki/TekaTeki.jsx"],
+  ["TekaTekiRush.jsx", "src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
+  ["PapanInteraktif.jsx", "src/halaman/PapanInteraktif/PapanInteraktif.jsx"],
+];
+for (const [nama, relatif] of halamanSeleksi) {
+  const isi = readFileSync(path.join(ROOT, relatif), "utf8");
+  const selesaiSeret = isi.split("const selesaiSeret = useCallback(")[1]?.split("\n  );")[0] ?? "";
+  uji(
+    `${nama} mengosongkan seleksi setelah klik ulang`,
+    selesaiSeret.includes("(from, to, klikUlang) => {") &&
+      selesaiSeret.includes("if (klikUlang) {") &&
+      selesaiSeret.includes("setTerpilih(null);") &&
+      selesaiSeret.includes("setSasaran([]);")
+  );
+  uji(
+    `${nama} mendukung batal seleksi lewat klik petak`,
+    isi.includes("terpilih === petak)") &&
+      isi.includes("setTerpilih(null);") &&
+      isi.includes("setSasaran([]);")
+  );
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
