@@ -8,6 +8,10 @@
  *   - `import.meta.glob("…", { query: "?url", import: "default" })` → objek
  *     { jalurPola: () => Promise<url> } yang dipecah dengan glob sederhana
  *     di waktu muat (dipakai renderer bidak untuk memuat aset per-set).
+ *   - alias `@/…` → `<root>/src/…` (menyamakan `resolve.alias` vite.config.js
+ *     agar komponen UI bersama bisa diimpor uji jsdom).
+ *   - `import.meta.env` → objek `{ BASE_URL: "/", … }` (menyamakan `define`
+ *     esbuild uji-analisa-ui; di Node `import.meta.env` adalah undefined).
  */
 import { transformSync } from "esbuild";
 import { readdirSync, statSync } from "node:fs";
@@ -101,10 +105,27 @@ function shimGlobVite(source, urlModul) {
   });
 }
 
+const AKAR_REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+
+export async function resolve(specifier, context, next) {
+  if (specifier === "@" || specifier.startsWith("@/")) {
+    const relatif = specifier === "@" ? "" : specifier.slice(2);
+    return { url: pathToFileURL(path.join(AKAR_REPO, "src", relatif)).href, shortCircuit: true };
+  }
+  return next(specifier, context);
+}
+
+/** Nilai `import.meta.env` untuk uji — sama dengan `define` uji-analisa-ui. */
+const SHIM_ENV = '({"BASE_URL":"/","MODE":"test","DEV":true,"PROD":false})';
+
+function shimEnvVite(source) {
+  return source.includes("import.meta.env") ? source.replaceAll("import.meta.env", SHIM_ENV) : source;
+}
+
 export async function load(url, context, next) {
   if (url.endsWith(".jsx")) {
     const source = await readFile(fileURLToPath(url), "utf8");
-    const denganShim = shimGlobVite(source, url);
+    const denganShim = shimEnvVite(shimGlobVite(source, url));
     const { code } = transformSync(denganShim, {
       loader: "jsx",
       format: "esm",
@@ -112,6 +133,13 @@ export async function load(url, context, next) {
       jsx: "automatic",
     });
     return { format: "module", source: code, shortCircuit: true };
+  }
+  // Berkas .js milik repo yang menyentuh import.meta.env (mis. lib/asets.js):
+  // tanpa shim, `import.meta.env.BASE_URL` melempar di Node.
+  if (url.endsWith(".js") && url.startsWith(pathToFileURL(AKAR_REPO).href)) {
+    const source = await readFile(fileURLToPath(url), "utf8");
+    if (!source.includes("import.meta.env")) return next(url, context);
+    return { format: "module", source: shimEnvVite(source), shortCircuit: true };
   }
   return next(url, context);
 }

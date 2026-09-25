@@ -186,6 +186,9 @@ hasil('["mate","-2"] giliran putih, terbaik → "-M1"', teksFormatEval(["mate", 
 hasil('["mate","-2"] giliran hitam, terbaik → "+M1"', teksFormatEval(["mate", "-2"], false, true) === "+M1");
 hasil('["mate"] (posisi mat) giliran putih → "0-1"', teksFormatEval(["mate"], true) === "0-1", teksFormatEval(["mate"], true));
 hasil('["mate"] (posisi mat) giliran hitam → "1-0"', teksFormatEval(["mate"], false) === "1-0");
+hasil('["mate","0"] giliran putih → "0-1" (bukan "M0")', teksFormatEval(["mate", "0"], true) === "0-1", teksFormatEval(["mate", "0"], true));
+hasil('["mate","0"] giliran hitam → "1-0"', teksFormatEval(["mate", "0"], false) === "1-0");
+hasil('["mate","0"] + best → tetap "0-1" (bukan "M-1")', teksFormatEval(["mate", "0"], true, true) === "0-1");
 
 /* ------------------------- 3. getOverallGameComment ------------------------- */
 
