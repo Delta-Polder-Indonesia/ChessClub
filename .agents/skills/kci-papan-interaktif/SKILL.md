@@ -73,7 +73,7 @@ Dependensi yang dipakai:
 ## Logika inti yang harus dipertahankan
 
 1. **Muat pohon**: `fetch(BASE_URL + data/buku-pembukaan.json)` → Array? `pohonDariDaftar()` : `normalkanPohonPembukaan()`. Set `mode`.
-2. **Telusur posisi**: `jalur` = array kunci pohon (koordinat atau SAN). `infoPembukaan` loop `jalur` → `node`, ambil `namaTerdalam` dan `saran` (max 8).
+2. **Telusur posisi**: `jalur` = array kunci pohon (koordinat atau SAN). `infoPembukaan` loop `jalur` → `node`, ambil `namaTerdalam` dan `saran` (max 8). `masihDiBuku = cocok && saran.length > 0` — buku dianggap SELESAI juga saat posisi cocok tetapi node-nya daun (16.218 dari 42.417 node buku adalah daun); di situlah basis data awan mengambil alih, jadi jangan kembali memakai `cocok` saja.
 3. **Konversi SAN**: jika mode koordinat, `sanDiPosisi(game, k)` untuk tampil SAN manusia.
 4. **Riwayat**: `riwayat` = SAN untuk PGN, `riwayatLengkap` untuk forward setelah undo, `fen` untuk board.
 5. **PGN/FEN loader**: `sanDariPgn()` buang tag `[]`, komentar `{}`, `()`, nomor langkah, hasil. FEN langsung `new Chess(fen)`.
@@ -84,11 +84,12 @@ Dependensi yang dipakai:
 
 - Layout: board kiri, panel kanan tab `analisa | books | explorer | games`.
 - Tab `books` = daftar saran langkah + nama pembukaan.
-- Tab `explorer` = tabel `Langkah | Jumlah | Persen Putih/Seri/Hitam | Pembukaan` + kartu `Tentang Pembukaan Ini` (blok judul/subjudul/paragraf dari `susunBlokArtikel`).
-- Tab `games` = placeholder / daftar partai contoh (jika ada).
+- Tab `explorer` = kartu `Tentang Pembukaan Ini` (blok judul/subjudul/paragraf dari `susunBlokArtikel`).
+- Tab `games` = satu tempat untuk LANJUTAN langkah: tabel pembukuan `Langkah | Jumlah | Persen Putih/Seri/Hitam | Pembukaan` selama buku masih punya saran; setelah buku SELESAI (langkah keluar buku ATAU jalur buku habis di daun) tabel itu digantikan DAFTAR langkah basis data awan (chessdb.cn) dengan judul yang sama “Daftar Langkah”. Mode ringkas 1 baris hanya bila sakelar “tampilkan semua langkah” di Pengaturan Papan dimatikan (bawaannya nyala).
 - Dialog Review = textarea PGN/FEN → `terapkanTeks`.
 - DaftarRiwayat = baris nomor + tombol langkah putih/hitam bisa klik untuk lompat ply.
 - Tangkapan bidak = `susunTangkapan(riwayat)` → ikon kecil per jenis.
+- Bantuan langkah (assisted play, bawaan MATI): saat bidak diseret, `PapanTekaTeki` melaporkan petak tujuan yang dilintasi lewat `onLewatiPetak` → `gunakanBantuanSeret` menyusun FEN hipotetis (`susunFenHipotetis`), menilai dengan **worker engine KEDUA** (depth 8 / movetime 300, debounce 200 ms, cache per-FEN) → hijau/kuning/merah dari selisih nilai terhadap langkah terbaik posisi sekarang + panah merah balasan lawan (`bestmove` posisi hipotetis). Jangan pakai worker analisa utama untuk ini (bilah eval akan berkedip) dan jangan pindahkan ke chessdb/awan.
 
 Styling: dark theme `#1e1c18` / `#262421` / `#312e2b`, aksen `#81b64c`, bukan tema akademik monokrom. Pertahankan — jangan paksa `Design-System-Reference.md` ke sini kecuali komponen baru benar-benar butuh.
 
@@ -105,6 +106,7 @@ Jalankan `npm run uji:i18n` setelah menambah kunci.
 - `npm run uji:artikel-wikipedia` — parser artikel
 - `npm run uji:rute` — rute `/papan-interaktif` terdaftar
 - `npm run uji:analisa-ui` — jika menyentuh engine hook
+- `npm run uji:bantuan-langkah` — logika + hook + gambar bantuan langkah (worker UCI palsu)
 - `npm run build` — harus lulus
 
 ## Checklist sebelum selesai

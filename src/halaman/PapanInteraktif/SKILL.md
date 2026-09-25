@@ -11,8 +11,10 @@
 **Fitur inti:**
 - Telusur jalur `e2e4` / `e4` → nama ECO + saran 8 langkah + stat games/winrate/rating
 - Katalog ECO group per keluarga (`:` split)
-- Explorer table + winrate bar + artikel Wikibooks (fetch hanya tab explorer, cache session)
+- Tabel pembukuan + winrate bar (tab Partai) + artikel Wikibooks (fetch hanya tab explorer, cache session)
 - Riwayat SAN + FEN + PGN/FEN loader + tangkapan bidak + orientasi
+- Bantuan langkah saat menyeret bidak (sakelar di Pengaturan Papan, bawaan mati): petak
+tujuan hijau/kuning/merah + panah merah balasan lawan — worker engine kedua, `uji:bantuan-langkah`
 
 **Batasan:**
 - DILARANG tambah mode pve/pvp/swap/skill/elo/depth — itu di Analisa
@@ -20,6 +22,7 @@
 - DILARANG tambah openings.bin Polyglot atau COOP/COEP multi-thread
 - Engine optional hanya untuk eval bar, bukan mode tanding
 
-**Uji:** `uji:nama-pembukaan`, `uji:artikel-wikipedia`, `uji:rute`, `uji:i18n`, `build`
+**Uji:** `uji:nama-pembukaan`, `uji:artikel-wikipedia`, `uji:rute`, `uji:i18n`,
+`uji:bantuan-langkah`, `build`
 
 Lihat skill lengkap di `.agents/skills/kci-papan-interaktif/SKILL.md`

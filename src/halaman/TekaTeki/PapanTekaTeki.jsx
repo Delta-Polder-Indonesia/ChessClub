@@ -46,6 +46,17 @@ const WARNA_PETAK = {
   biru: "rgba(60, 90, 216, 0.5)",
 };
 
+/**
+ * Warna petak "Bantuan Langkah" (assisted play) — hijau aman, kuning
+ * diperebutkan, merah merugikan. Lebih pekat dari tanda pengguna supaya
+ * terbaca sekilas saat bidak sedang diseret di atasnya.
+ */
+const WARNA_BANTUAN = {
+  hijau: "rgba(0, 170, 90, 0.55)",
+  kuning: "rgba(230, 180, 0, 0.55)",
+  merah: "rgba(220, 50, 50, 0.55)",
+};
+
 /** Warna tanda berdasarkan tombol pengubah: default=merah, Shift=kuning, Ctrl=hijau, Alt=biru. */
 function warnaDariPeristiwa(e) {
   if (e.shiftKey) return "bawaan";
@@ -241,6 +252,10 @@ export default function PapanTekaTeki({
   langkahAkhir = null,
   tanda = { panah: [], petak: {} },
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
+  // Bantuan langkah saat menyeret (assisted play): petak tujuan diwarnai
+  // hijau/kuning/merah dan panah merah menunjukkan balasan terbaik lawan.
+  bantuanPetak = null, // { [petak]: "hijau" | "kuning" | "merah" }
+  bantuanPanah = null, // { from, to, warna } — panah lawan dari posisi hipotetis
   ikonLangkah = null, // { petak, rating } — ikon klasifikasi langkah di pojok petak (book/best/blunder, …)
   ikonSkakmat = null, // { petak } — lencana skakmat di atas raja lawan yang termat
   ikonMahkota = null, // { petak } — mahkota hijau (victory) di atas raja pemenang
@@ -254,6 +269,7 @@ export default function PapanTekaTeki({
   onMulaiSeret,
   onSelesaiSeret,
   onBatalSeret,
+  onLewatiPetak, // (petak|null) — petak tujuan yang sedang dilintasi saat seret
   onTandaPetak,
   onTandaPanah,
   onHapusTanda,
@@ -286,11 +302,16 @@ export default function PapanTekaTeki({
   const baruBatalRef = useRef(false);
   const onBatalSeretRef = useRef(onBatalSeret);
   onBatalSeretRef.current = onBatalSeret;
+  const onLewatiPetakRef = useRef(onLewatiPetak);
+  onLewatiPetakRef.current = onLewatiPetak;
   const batalkanSeretRef = useRef(() => {});
 
   // Keadaan tanda klik kanan.
   const kananRef = useRef(null); // { petak, warna }
   const [panahSementara, setPanahSementara] = useState(null); // { from, to, warna }
+  // Petak terakhir yang dilaporkan ke induk saat seret — hanya perubahan yang
+  // diteruskan, supaya pointermove (yang sangat sering) tidak memicu render.
+  const lewatiRef = useRef(null);
 
   /** Petak yang berada tepat di bawah titik layar (x, y). */
   function cariPetak(x, y) {
@@ -317,6 +338,8 @@ export default function PapanTekaTeki({
         /* pointer capture tidak aktif */
       }
     }
+    lewatiRef.current = null;
+    onLewatiPetakRef.current?.(null);
     onBatalSeretRef.current?.();
   }
   batalkanSeretRef.current = batalkanSeretInternal;
@@ -493,6 +516,12 @@ export default function PapanTekaTeki({
       // render ulang — jadi bidak mengikuti kursor tanpa delay.
       bacaGeometri();
       posisikanHantu(e.clientX, e.clientY);
+      // Petak tujuan yang sedang dilintasi (bantuan langkah ala assisted play).
+      const dilintasi = cariPetak(e.clientX, e.clientY);
+      if (dilintasi !== lewatiRef.current) {
+        lewatiRef.current = dilintasi;
+        onLewatiPetakRef.current?.(dilintasi);
+      }
     }
     if (kananRef.current) {
       const kini = cariPetak(e.clientX, e.clientY);
@@ -509,6 +538,8 @@ export default function PapanTekaTeki({
       const { dari, pindah } = seretRef.current;
       seretRef.current = null;
       setSeret(null);
+      lewatiRef.current = null;
+      onLewatiPetakRef.current?.(null);
       const tujuan = pindah ? cariPetak(e.clientX, e.clientY) || dari : dari;
       if (pindah && tujuan !== dari) abaikanKlikRef.current = true;
       if (onSelesaiSeret) onSelesaiSeret(dari, tujuan);
@@ -547,6 +578,8 @@ export default function PapanTekaTeki({
     if (adaSeret) {
       abaikanKlikRef.current = true;
       baruBatalRef.current = true;
+      lewatiRef.current = null;
+      onLewatiPetakRef.current?.(null);
       onBatalSeretRef.current?.();
     }
   }
@@ -692,6 +725,17 @@ export default function PapanTekaTeki({
                 />
               )}
 
+              {/* Bantuan langkah (assisted play): hijau/kuning/merah pada petak
+                  tujuan yang sedang dilintasi saat bidak diseret. */}
+              {bantuanPetak?.[sq] && (
+                <span
+                  data-bantuan={bantuanPetak[sq]}
+                  className="absolute inset-0"
+                  style={{ backgroundColor: WARNA_BANTUAN[bantuanPetak[sq]] }}
+                  aria-hidden="true"
+                />
+              )}
+
               {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
               {baris === 7 && (
                 <span
@@ -799,6 +843,17 @@ export default function PapanTekaTeki({
             className="arrow"
             points={titikKePoints(titikPanah(panahMesin.from, panahMesin.to, orientasi))}
             fill={WARNA_PANAH[panahMesin.warna] || WARNA_PANAH.biru}
+            style={{ opacity: 0.8 }}
+          />
+        )}
+
+        {/* Balasan terbaik lawan dari posisi hipotetis (bantuan langkah). */}
+        {bantuanPanah && bantuanPanah.to !== bantuanPanah.from && (
+          <polygon
+            data-bantuan-panah={`${bantuanPanah.from}${bantuanPanah.to}`}
+            className="arrow"
+            points={titikKePoints(titikPanah(bantuanPanah.from, bantuanPanah.to, orientasi))}
+            fill={WARNA_PANAH[bantuanPanah.warna] || WARNA_PANAH.merah}
             style={{ opacity: 0.8 }}
           />
         )}
