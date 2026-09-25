@@ -138,8 +138,6 @@ export const papan = {
     enginePanah: "The blue arrow on the board is the engine's suggestion.",
     enginePanahToggle: "Show engine suggestion arrow",
     bantuanToggle: "Move help while dragging a piece",
-    bantuanPetunjuk:
-      "Hold and drag a piece: the target square is coloured — green is safe, yellow is contested, red loses material — and a red arrow shows the opponent's best reply. Needs the engine (turned on automatically).",
     bantuanMenghitung: "Help: engine is judging the move…",
     warnaMetal: "Metal",
     komentator: komentatorPapan,

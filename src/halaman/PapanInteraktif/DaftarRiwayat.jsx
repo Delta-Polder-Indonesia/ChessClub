@@ -2,8 +2,28 @@
  * Daftar langkah (move log) — baris nomor + langkah Putih/Hitam yang bisa
  * diklik untuk melompat ke posisi tersebut (pola "Move Log" di prompt.md).
  * Langkah masa depan (setelah undo) dibuat redup sampai dipilih lagi.
+ *
+ * Setiap langkah bisa menyandang ikon klasifikasi kecil di samping SAN
+ * ("1. e4 📖 e5 📖") — kosakata sama dengan ikon di petak papan & kartu
+ * komentator: book/best/miss/blunder/mistake/inaccuracy/good/excellent/
+ * forced. Ikon diambil dari komponen RatingSVG yang sama.
  */
-export default function DaftarRiwayat({ langkah, aktifPly, onPilih }) {
+import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
+
+/** Ikon klasifikasi satu langkah — null bila langkah belum dinilai. */
+function IkonRating({ rating, t }) {
+  if (!rating) return null;
+  return (
+    <span
+      className="ml-0.5 inline-flex shrink-0 self-center"
+      title={t ? t(`analisa.penilaian.${rating}`) : undefined}
+    >
+      <RatingSVG rating={rating} size={13} />
+    </span>
+  );
+}
+
+export default function DaftarRiwayat({ langkah, aktifPly, rating, onPilih, t }) {
   if (!langkah.length) return null;
   const baris = [];
   for (let i = 0; i < langkah.length; i += 2) {
@@ -26,23 +46,25 @@ export default function DaftarRiwayat({ langkah, aktifPly, onPilih }) {
           <button
             type="button"
             onClick={() => onPilih(b.putihI + 1)}
-            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${kelas(
+            className={`flex flex-1 items-center rounded px-2 py-1 text-left text-xs font-semibold transition ${kelas(
               b.putihI
             )}`}
           >
-            {b.putih}
+            <span className="truncate">{b.putih}</span>
+            <IkonRating rating={rating?.[b.putihI]} t={t} />
           </button>
           <button
             type="button"
             onClick={() => onPilih(b.hitamI + 1)}
             disabled={b.hitam === null}
-            className={`flex-1 rounded px-2 py-1 text-left text-xs font-semibold transition ${
+            className={`flex flex-1 items-center rounded px-2 py-1 text-left text-xs font-semibold transition ${
               b.hitam === null
                 ? "cursor-default text-gray-600"
                 : kelas(b.hitamI)
             }`}
           >
-            {b.hitam ?? "…"}
+            <span className="truncate">{b.hitam ?? "…"}</span>
+            {b.hitam !== null && <IkonRating rating={rating?.[b.hitamI]} t={t} />}
           </button>
         </div>
       ))}

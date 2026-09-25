@@ -140,8 +140,6 @@ export const papan = {
     enginePanah: "Panah biru di papan = saran langkah engine.",
     enginePanahToggle: "Tampilkan panah saran engine",
     bantuanToggle: "Bantuan langkah saat menyeret bidak",
-    bantuanPetunjuk:
-      "Tahan lalu geser bidak: petak tujuan diberi warna — hijau aman, kuning diperebutkan, merah merugikan — dan panah merah menunjukkan langkah balasan terbaik lawan. Butuh engine (dinyalakan otomatis).",
     bantuanMenghitung: "Bantuan: engine menilai langkah…",
     warnaMetal: "Metal",
     komentator: komentatorPapan,
