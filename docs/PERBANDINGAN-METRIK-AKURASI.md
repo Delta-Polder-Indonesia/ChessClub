@@ -89,6 +89,23 @@ Tiga hal yang mudah terlewat:
    100 cp di posisi rata (50% → 41%) jauh lebih mahal daripada kehilangan
    100 cp di posisi yang sudah menang (+800 → +700).
 
+### Penyimpangan yang disengaja: mate 0 (2026-09-25)
+
+Rumus en-croissant memakai `CP_CEILING * Math.sign(cp)` untuk mate — dan
+`Math.sign(0)` adalah `0`, sehingga skakmat yang SUDAH dikirim (mate 0 =
+pihak bergilir sudah mati) dihitung sebagai posisi SEIMBANG (win chance
+50%). Di sini mate 0 dipetakan ke kekalahan mutlak pihak bergilir
+(−1000 cp baku, `−CP_MATE` di anti-cheat) lewat `tandaMate` di
+`src/halaman/Analisa/mesin/evaluasi.js`.
+
+Dampak angka: hanya langkah PENGANTAR skakmat (dan satu langkah setelahnya
+bila partai dilanjutkan melewati mat — tak terjadi di PGN normal). Langkah
+skakmat kini merugi 0 (bukan "kehilangan" 1000 karena lawannya "imbang"),
+dan ACPL partai skakmat turun sedikit dibanding perhitungan `Math.sign`
+mentah. Perilaku ini dikunci `scripts/uji-evaluasi.mjs` (seksi `cpBaku` dan
+"pembaca mate-0") dan bentuk warisan `["mate"]` tanpa angka tetap diterima
+pembaca (diperlakukan sama dengan mate 0).
+
 ### Sisi "cheat" en-croissant
 
 Penting untuk ekspektasi: **en-croissant tidak punya model skor kecurangan.**
@@ -206,9 +223,11 @@ getAnnotation: -500 → "??" · -200 → "?" · -100 → "?!" · -50 → ""
 ```
 
 Hasil suite: **301 lulus, 0 gagal** (sebelumnya 245 — 56 pemeriksaan baru).
-Seluruh rantai `npm run uji:analisa-menyeluruh`, `uji-analisa-ui` (68),
-`uji-analisa` (30), `uji-i18n` (2393 kunci ID = 2393 EN), dan `npm run build`
-hijau.
+Seluruh rantai `npm run uji:analisa-menyeluruh` (905 pemeriksaan, termasuk
+berkas baru `uji-evaluasi`, `uji-parser-pgn`, `uji-basisdata-galat`,
+`uji-balap-analisa`, `uji-area-kerja`), `uji-analisa-ui` (96),
+`uji-analisa` (32), `uji-i18n` (2444 kunci ID = 2444 EN), dan `npm run build`
+hijau (terakhir diverifikasi 2026-09-25).
 
 ### Contoh angka (dihitung dari kode, bukan taksiran)
 
