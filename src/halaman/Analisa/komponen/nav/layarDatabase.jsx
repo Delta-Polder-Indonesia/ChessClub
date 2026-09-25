@@ -1205,6 +1205,9 @@ export default function LayarDatabase({
       });
 
       if (token !== tokenPartai.current) return; // ada pemicu yang lebih baru
+      // Bedakan "koleksi kosong" dari "basis galat": yang kedua harus
+      // bersuara, bukan tampil sebagai tabel kosong tanpa kabar.
+      if (hasil?.galat) tampilkanNotif("Gagal memuat daftar partai dari basis data.", "gagal");
       cacheTabelPartai = { kunci, revisi, total: hasil.total || 0, daftar: hasil.partai || [] };
       setDaftarPartai(hasil.partai || []);
       setTotalPartai(hasil.total || 0);
@@ -1572,10 +1575,12 @@ export default function LayarDatabase({
     setDialogHapusPartai(false);
     setTargetHapusPartai(null);
     if (!game) return;
-    await hapusPartai(game.id);
+    // Nilai baliknya jujur (true/false) — jangan laporkan sukses buta.
+    const ok = await hapusPartai(game.id);
     await muatMetadata();
     await muatPartai();
-    tampilkanNotif("Partai berhasil dihapus dari basis data.");
+    if (ok) tampilkanNotif("Partai berhasil dihapus dari basis data.");
+    else tampilkanNotif("Gagal menghapus partai dari basis data.", "gagal");
   }
 
   function tanganiHapusKoleksi(id) {
@@ -1590,11 +1595,12 @@ export default function LayarDatabase({
     if (!koleksiId) return;
     const kol = koleksiList.find((k) => k.id === koleksiId);
     const label = kol?.label || koleksiId;
-    await hapusKoleksi(koleksiId);
+    const ok = await hapusKoleksi(koleksiId);
     setKoleksiTerpilih((lama) => (lama === koleksiId ? "" : lama));
     await muatMetadata();
     await muatPartai();
-    tampilkanNotif(`Koleksi ${label} berhasil dihapus.`);
+    if (ok) tampilkanNotif(`Koleksi ${label} berhasil dihapus.`);
+    else tampilkanNotif(`Gagal menghapus koleksi ${label}.`, "gagal");
   }
 
   function tanganiKosongkanSemua() {
@@ -1603,11 +1609,12 @@ export default function LayarDatabase({
 
   async function konfirmasiKosongkanSemua() {
     setDialogKosongkanSemua(false);
-    await bersihkanBasisData();
+    const ok = await bersihkanBasisData();
     setKoleksiTerpilih("");
     await muatMetadata();
     await muatPartai();
-    tampilkanNotif("Seluruh basis data telah dikosongkan.");
+    if (ok) tampilkanNotif("Seluruh basis data telah dikosongkan.");
+    else tampilkanNotif("Gagal mengosongkan basis data.", "gagal");
   }
 
   /* ── Tarik data dengan filter periode (Chess.com & Lichess.org) ── */

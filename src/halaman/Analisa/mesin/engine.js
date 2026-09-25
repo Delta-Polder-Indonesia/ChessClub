@@ -14,14 +14,18 @@
  *
  * Konvensi angka mengikuti upstream: `staticEval = ["cp", "34"]` atau
  * `["mate", "2"]`, relatif terhadap pihak yang bergilir (konvensi UCI), dan
- * dipakai apa adanya oleh ./penilaian.js.
+ * dipakai apa adanya oleh ./penilaian.js. Skakmat yang sudah dikirim ditulis
+ * `["mate", "0"]` (lihat ./evaluasi.js) — penulis baru dilarang mengeluarkan
+ * bentuk warisan `["mate"]` tanpa angka.
  */
 
 import { Chess } from "chess.js";
+import { pecahMultiPgn } from "../../../lib/pgnRingan.js";
 import { EngineCatur, cariEngine } from "../../../lib/engineCatur.js";
 import { hashUntukEngine } from "./cekWasm.js";
 import { getMoveRating, invertColor, isForced, isSacrifice } from "./penilaian.js";
-import { apakahLangkahKritis } from "./langkahKritis.js";
+import { apakahLangkahKritis, cpKandidat } from "./langkahKritis.js";
+import { MATE_DISAMPAIKAN, STATUS_EVALUASI } from "./evaluasi.js";
 
 const HURUF_PAPAN = "abcdefgh".split("");
 
@@ -134,11 +138,28 @@ export class EngineAnalisis {
     if (sinyal?.aborted) throw galat(GALAT_BATAL);
 
     const { uci, info, daftarPv } = hasil;
-    const staticEval = info
-      ? info.mate !== null
-        ? ["mate", String(info.mate)]
-        : ["cp", String(info.cp)]
-      : [];
+    /*
+     * Skor yang tak-terbaca (`undefined`/`null`/NaN dari worker) menjadi `[]`
+     * di sini, BUKAN `["mate", "undefined"]` atau `["cp", "null"]`: string
+     * sampah itu lolos sebagai angka di beberapa pembaca lama. Entri `[]`
+     * ditolak gerbang validasi `getMoveRating` dan langkahnya dicap "gagal"
+     * (lihat `statusEvaluasi`), bukan dilabeli kualitas palsu.
+     */
+    /*
+     * Ketiadaan diuji EKSPLISIT (null/undefined), bukan lewat Number():
+     * `Number(null)` adalah 0 (finite!) sehingga uji `isFinite` mentah
+     * mengubah setiap posisi cp biasa (mate: null) menjadi ["mate","0"].
+     * Nilai 0 yang ASLI (angka, bukan null) tetap berarti mate-0.
+     */
+    const mateMentah = info?.mate;
+    const cpMentah = info?.cp;
+    const mateInfo = mateMentah === null || mateMentah === undefined ? NaN : Number(mateMentah);
+    const cpInfo = cpMentah === null || cpMentah === undefined ? NaN : Number(cpMentah);
+    const staticEval = Number.isFinite(mateInfo)
+      ? ["mate", String(Math.trunc(mateInfo))]
+      : Number.isFinite(cpInfo)
+        ? ["cp", String(Math.trunc(cpInfo))]
+        : [];
     const langkah = uci && uci !== "(none)" ? uci : null;
 
     return {
@@ -306,7 +327,16 @@ function bersihkanPgn(pgn) {
   return hasil.replace(/\u0000(\d+)\u0000/g, (_, i) => kutip[Number(i)]);
 }
 
-/** Muat PGN; kalau mentahnya ditolak, coba lagi versi yang sudah dibersihkan. */
+/**
+ * Muat PGN; kalau mentahnya ditolak, coba lagi versi yang sudah dibersihkan.
+ *
+ * TAKSONOMI MASUKAN (hasil prob chess.js, didokumentasikan agar tak diusut
+ * ulang): variasi `(...)`, NAG `$n`, komentar `{...}`, `%clk`, SetUp/FEN,
+ * dan CRLF DITERIMA; yang DITOLAK (melempar → GALAT_PGN): variasi yang
+ * mengandung token hasil di dalamnya, nama tag berkarakter non-standar
+ * (mis. tanda hubung), dan nomor langkah tanpa titik ("1 e4"). Berkas
+ * MULTI-partai tidak sampai ke sini — sudah dipecah di `bacaPartaiPGN`.
+ */
 function muatPgn(chess, rawPgn) {
   try {
     chess.loadPgn(rawPgn, { strict: false });
@@ -394,7 +424,7 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
     // skakmat sehingga remis (pat/stalemate) ikut "dianalisis" dan menghasilkan
     // skor kosong — di sini keduanya dipotong dengan eval yang benar.
     sacrifice = false;
-    staticEval = chess.isCheckmate() ? ["mate"] : ["cp", "0"];
+    staticEval = chess.isCheckmate() ? ["mate", String(MATE_DISAMPAIKAN)] : ["cp", "0"];
     bestMove = undefined;
     bestMoveCoronation = undefined;
     kandidat = [];
@@ -425,26 +455,49 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
     forced = isForced(move);
   }
 
-  const penilaian = forced
-    ? { moveRating: "forced", commentKey: "forced", commentIndex: 0 }
-    : getMoveRating({
-        staticEval,
-        previousStaticEvals,
-        bestMoveSan: previousBestMoveSan ?? "",
-        moveSan: move.san,
-        fen,
-        color: move.color,
-        sacrifice,
-        previousSacrifice,
-        openings,
-        /*
-         * Label "kritis" menuntut kandidat MultiPV posisi SEBELUM langkah ini
-         * (`previousKandidat`), jadi dihitung di sini lalu diserahkan sebagai
-         * boolean — `penilaian.js` tetap murni dan tidak perlu menyentuh
-         * papan. Lihat ./langkahKritis.js.
-         */
-        kritis: apakahLangkahKritis(move, { staticEval, previousKandidat, previousBestMoveSan }),
-      });
+  /*
+   * Tri-state kritis: MultiPV tak tersedia/tak terbaca = tak diketahui
+   * (`null`, BUKAN "bukan kritis"); cukup data = hasil deteksi. Syarat
+   * "cukup data" (kandidat #1 dan #2 keduanya terbaca) disamakan dengan
+   * syarat internal `apakahLangkahKritis`, supaya `null` tepat berarti
+   * "detektornya sendiri akan menyerah" — bukan tebakan kedua yang bisa
+   * menyimpang dari detektor. `penilaian.js` membaca nilai ini sebagai
+   * boolean biasa (`null`/falsy = tidak kritis).
+   */
+  const cukupKandidat =
+    Array.isArray(previousKandidat) &&
+    previousKandidat.length >= 2 &&
+    cpKandidat(previousKandidat[0]) !== null &&
+    cpKandidat(previousKandidat[1]) !== null;
+  const kritis = cukupKandidat
+    ? apakahLangkahKritis(move, { staticEval, previousKandidat, previousBestMoveSan })
+    : null;
+
+  /*
+   * Keterpaksaan adalah STATUS, bukan kualitas: kualitas langkah paksa tetap
+   * dihitung seperti biasa (supaya akurasi dan grafik jujur) dan statusnya
+   * dicatat di `isForced` agar agregator keputusan bisa mengecualikannya
+   * (lihat `langkahTerpaksa` di ./evaluasi.js). Label "forced" warisan tidak
+   * lagi ditulis, tetapi tetap dikenali saat dibaca (data lama).
+   */
+  const penilaian = getMoveRating({
+    staticEval,
+    previousStaticEvals,
+    bestMoveSan: previousBestMoveSan ?? "",
+    moveSan: move.san,
+    fen,
+    color: move.color,
+    sacrifice,
+    previousSacrifice,
+    openings,
+    /*
+     * Label "kritis" menuntut kandidat MultiPV posisi SEBELUM langkah ini
+     * (`previousKandidat`), jadi dihitung di sini lalu diserahkan —
+     * `penilaian.js` tetap murni dan tidak perlu menyentuh papan. Lihat
+     * ./langkahKritis.js.
+     */
+    kritis,
+  });
 
   const bestMoveSan = bestMove ? moveToSan(bestMove, bestMoveCoronation, fen) : undefined;
 
@@ -454,6 +507,12 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
     san,
     castle,
     ...penilaian,
+    // Cap status: hasil penilaian menentukan SIAP vs GAGAL (tak ada eval
+    // valid = tak ada label = "gagal"). Pembatalan tak pernah sampai ke
+    // sini — `gagalkan` melempar GALAT_BATAL sebelum entri dibuat.
+    statusEvaluasi: penilaian.statusEvaluasi || STATUS_EVALUASI.SIAP,
+    isForced: forced,
+    kritis,
     bestMove,
     bestMoveSan,
     fen,
@@ -480,10 +539,19 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
  * parsePGN agar PGN tidak perlu dibaca dua kali dalam satu proses analisis.
  */
 export function bacaPartaiPGN(rawPgn) {
+  /*
+   * Berkas multi-partai (ekspor chess.com/lichess): HANYA partai pertama
+   * yang dibaca — `chess.js` melempar bila diberi semuanya sekaligus, dan
+   * menggagalkan semuanya lebih buruk daripada menganalisis yang pertama.
+   * `jumlahPartai` dilaporkan agar pemanggil (game.jsx) bisa
+   * memperingatkan pengguna bahwa sisanya diabaikan.
+   */
+  const blok = pecahMultiPgn(rawPgn);
+  const pertama = blok.length > 0 ? blok[0] : rawPgn;
   const chess = new Chess();
   let pgn;
   try {
-    pgn = muatPgn(chess, rawPgn);
+    pgn = muatPgn(chess, pertama);
   } catch {
     throw galat(GALAT_PGN);
   }
@@ -497,7 +565,7 @@ export function bacaPartaiPGN(rawPgn) {
     time: waktuDariPgn(headers),
     result: getResult(headers, pgn),
   };
-  const daftarClock = ekstrakDaftarClock(chess, rawPgn, riwayat, metadata.time);
+  const daftarClock = ekstrakDaftarClock(chess, pertama, riwayat, metadata.time);
   const kerangka = [
     { fen: riwayat[0].before, color: riwayat[0].color },
     ...riwayat.map((langkah) => ({
@@ -506,7 +574,7 @@ export function bacaPartaiPGN(rawPgn) {
       color: invertColor(langkah.color),
     })),
   ];
-  return { metadata, riwayat, daftarClock, kerangka };
+  return { metadata, riwayat, daftarClock, kerangka, jumlahPartai: blok.length };
 }
 
 /**
@@ -517,7 +585,7 @@ export function bacaPartaiPGN(rawPgn) {
  * `multiPv` (bawaan MULTI_PV) merekam kandidat untuk penilaian langkah.
  */
 export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, sinyal, { multiPv = MULTI_PV, onLangkah, partai } = {}) {
-  const { riwayat, metadata, daftarClock } = partai ?? bacaPartaiPGN(rawPgn);
+  const { riwayat, metadata, daftarClock, jumlahPartai = 1 } = partai ?? bacaPartaiPGN(rawPgn);
 
   const hentikan = () => mesin.setop();
   if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });
@@ -588,5 +656,5 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
     setProgress(0);
   }
 
-  return { metadata, moves };
+  return { metadata, moves, jumlahPartai };
 }

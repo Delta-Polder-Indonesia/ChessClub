@@ -18,6 +18,7 @@ import { AnalyzeContext } from "../../../../konteks/analyze.jsx";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import Download from "../../../svg/download.jsx";
 import { NAG_LABEL, bangunPgnBeranotasi, unduhPgnBeranotasi } from "../../../../mesin/pgnAnotasi.js";
+import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 
 function EksporPgn(props) {
   const { moves } = props;
@@ -38,7 +39,8 @@ function EksporPgn(props) {
 
   const ringkas = useMemo(() => {
     const daftar = Array.isArray(moves) ? moves.slice(1).filter((m) => m?.san) : [];
-    const ditandai = daftar.filter((m) => NAG_LABEL[m.moveRating]).length;
+    // Cerminan `tokenLangkah` di pgnAnotasi.js: langkah paksa tak ditandai.
+    const ditandai = daftar.filter((m) => !langkahTerpaksa(m) && NAG_LABEL[m.moveRating]).length;
     return { jumlah: daftar.length, ditandai };
   }, [moves]);
 

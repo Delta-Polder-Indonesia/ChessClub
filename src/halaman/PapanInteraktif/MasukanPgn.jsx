@@ -1,15 +1,19 @@
 import { useState } from "react";
+import { gunakanDialog } from "./gunakanDialog.js";
 
 /** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
 export default function MasukanPgn({ onTerapkan, onTutup, t }) {
   const [teks, setTeks] = useState("");
   const [galat, setGalat] = useState(false);
+  const refDialog = gunakanDialog(onTutup);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
       onClick={onTutup}
     >
       <div
+        ref={refDialog}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={t("papan.inputPgnFen")}
@@ -29,6 +33,7 @@ export default function MasukanPgn({ onTerapkan, onTutup, t }) {
         </div>
         <textarea
           value={teks}
+          data-autofokus
           onChange={(e) => {
             setTeks(e.target.value);
             setGalat(false);

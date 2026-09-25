@@ -30,6 +30,7 @@ import {
   isiNamaBidak,
   kategoriKeunggulan,
   rapikanKalimat,
+  statusTerminalFen,
   susunKomentar,
   susunKomentarTekaTeki,
   GAMBAR_KOMENTATOR,
@@ -854,6 +855,33 @@ console.log("\n8) Ekspresi karakter dari skor basis data awan (engine mati)");
       fakta: fBiasa8,
     }) === GAMBAR_KOMENTATOR.senang,
     "engine nyala → vonis engine yang menentukan (ekspresi awan tidak dipakai)"
+  );
+}
+
+/* ---------------- 8. status terminal FEN (penilaian remis ikon langkah) */
+// Posisi terminal tak punya snapshot eval (hook engine melewatkannya):
+// ikon langkah memakai status ini — remis terminal = 0.00 pasti.
+console.log("\n8) Status terminal FEN");
+{
+  ok(
+    statusTerminalFen("rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 0 1") === "mat",
+    "Fool's mate final → mat"
+  );
+  ok(
+    statusTerminalFen("k7/2Q5/8/8/8/8/8/6K1 b - - 0 1") === "remis",
+    "pat → remis"
+  );
+  ok(
+    statusTerminalFen("8/8/8/8/8/8/8/k6K w - - 0 1") === "remis",
+    "materi kurang (K vs K) → remis"
+  );
+  ok(
+    statusTerminalFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1") === null,
+    "posisi awal → null (berjalan)"
+  );
+  ok(
+    statusTerminalFen("bukan-fen") === null && statusTerminalFen(null) === null && statusTerminalFen("") === null,
+    "FEN rusak/null → null"
   );
 }
 

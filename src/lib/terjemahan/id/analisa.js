@@ -117,6 +117,8 @@ export const analisa = {
       memuat: "Memuat statistik…",
       tarikData: "Mengambil seluruh partai dari chess.com…",
       belumAdaData: "Belum ada data akun ini.",
+      galatBasis: "Basis data tidak bisa dimuat.",
+      galatBasisSub: "Periksa pengaturan peramban (mode privat memblokir penyimpanan), lalu muat ulang halaman.",
       tarik: "Tarik data akun",
       refresh: "Perbarui statistik",
       terakhir: "Pembaruan terakhir",
@@ -583,6 +585,10 @@ export const analisa = {
       engineJudul: "Engine gagal dimuat",
       engineIsi: "Berkas engine lokal tidak dapat diunduh. Muat ulang halaman, atau pilih engine lain di pengaturan.",
       analisisJudul: "Analisis terhenti",
+    },
+    multiPartai: {
+      judul: "Berkas berisi lebih dari satu partai",
+      isi: "Hanya partai pertama dari {n} partai yang dianalisis. Pisahkan berkasnya bila ingin menganalisis yang lain.",
     },
     pengaturan: {
       judul: "Pengaturan papan",

@@ -25,6 +25,7 @@
 import assert from "node:assert/strict";
 import { Chess } from "chess.js";
 import { DAFTAR_ENGINE_NODE, UciEngine } from "./engine-uci-node.mjs";
+import { susunHasilEngine } from "../src/lib/gunakanEngineCatur.js";
 
 const STARTPOS = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -285,6 +286,24 @@ async function utama() {
     HITAM_UNGGUL,
   })) {
     assert.ok(new Chess(fen), `${nama}: FEN tidak valid`);
+  }
+
+  // Pembentuk hasil engine bersama (Papan Interaktif + Teka-Teki):
+  // mate 0 = pihak bergilir sudah mati — pemenang dibaca dari giliran,
+  // BUKAN dari tanda angka 0 (yang selalu netral). Pertahanan-lapis:
+  // hook melewatkan posisi terminal, jadi ini dikunci murni di sini.
+  {
+    const matPutihMenang = susunHasilEngine({ mate: 0, cp: null, pv: [], kedalaman: 20 }, STARTPOS, "b");
+    hasil("mate-0 giliran hitam → Putih menang (+M0/+10000/poin 1)",
+      matPutihMenang.teksSkor === "+M0" && matPutihMenang.cpPutih === 10000 && matPutihMenang.matePutih === 0 && matPutihMenang.poinPutih === 1,
+      JSON.stringify({ t: matPutihMenang.teksSkor, cp: matPutihMenang.cpPutih }));
+    const matHitamMenang = susunHasilEngine({ mate: 0, cp: null, pv: [], kedalaman: 20 }, STARTPOS, "w");
+    hasil("mate-0 giliran putih → Hitam menang (−M0/−10000/poin ≈0)",
+      matHitamMenang.teksSkor === "-M0" && matHitamMenang.cpPutih === -10000 && matHitamMenang.poinPutih < 1e-9);
+    const matBiasa = susunHasilEngine({ mate: 3, cp: null, pv: [], kedalaman: 20 }, STARTPOS, "w");
+    hasil("mate bukan-nol tak berubah (+M3)", matBiasa.teksSkor === "+M3" && matBiasa.cpPutih === 10000);
+    const tanpaMate = susunHasilEngine({ cp: 34, pv: [], kedalaman: 20 }, STARTPOS, "w");
+    hasil("mate undefined → cabang cp (+0.34)", tanpaMate.teksSkor === "+0.34" && tanpaMate.matePutih === null);
   }
 
   for (let i = 0; i < DAFTAR_ENGINE_NODE.length; i++) {

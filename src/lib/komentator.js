@@ -319,6 +319,24 @@ export function faktaLangkah(fenSebelum, san) {
 }
 
 /**
+ * Status terminal satu posisi FEN: `"mat"` (pihak bergilir terskakmat),
+ * `"remis"` (pat / 50 langkah / pengulangan / materi kurang), atau `null`
+ * (partai berjalan / FEN rusak). Dipakai ikon langkah Papan Interaktif:
+ * posisi terminal tak punya snapshot eval (hook engine melewatkannya),
+ * jadi remis dinilai sebagai 0.00 pasti, bukan tanpa ikon.
+ */
+export function statusTerminalFen(fen) {
+  try {
+    const game = new Chess(fen);
+    if (game.isCheckmate()) return "mat";
+    if (game.isGameOver()) return "remis";
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Apakah langkah ini pengorbanan: bidak yang bergerak bisa langsung direbut
  * dan nilai yang dipertaruhkan (dikurangi hasil tangkapan) ≥ 2 pion.
  * Deteksi materiil sederhana — cukup untuk kalimat komentar.

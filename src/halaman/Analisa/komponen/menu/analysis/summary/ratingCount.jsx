@@ -2,6 +2,7 @@
 import RatingSVG from "../../../svg/rating.jsx";
 import { useEffect, useState } from "react";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
+import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 const ratings = [
   "brilliant",
   // text-highlightBrilliant
@@ -15,6 +16,7 @@ const ratings = [
   // text-highlightGood
   "book",
   // text-highlightBook
+  "forced",
   "inaccuracy",
   // text-highlightInaccuracy
   "mistake",
@@ -24,6 +26,15 @@ const ratings = [
   "blunder"
   // text-highlightBlunder
 ];
+/*
+ * Warna angka hitungan: label kualitas memakai warnanya sendiri, baris
+ * "Paksa" memakai abu-abu netral — keterpaksaan bukan kualitas (paksa ≠
+ * baik), jadi tidak boleh memakai hijau "good".
+ */
+function kelasHitung(rating) {
+  if (rating === "forced") return "text-foregroundGrey";
+  return `text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`;
+}
 function RatingCount(props) {
   const { t } = useI18n();
   const [counter, setCounter] = useState({ w: {}, b: {} });
@@ -36,7 +47,11 @@ function RatingCount(props) {
        * (ikon bintang, kosakata visual chess.com), jadi hitungannya ikut baris
        * "Best" supaya total peringkat tetap sama dengan jumlah langkah.
        */
-      const rating = move2.moveRating === "critical" ? "best" : move2.moveRating;
+      // Langkah paksa dihitung pada barisnya sendiri ("Paksa"), bukan pada
+      // baris kualitasnya: satu langkah dihitung tepat sekali sehingga total
+      // baris tetap sama dengan jumlah langkah (dulu label "forced" tidak
+      // punya baris sehingga langkah paksa hilang dari hitungan).
+      const rating = langkahTerpaksa(move2) ? "forced" : move2.moveRating === "critical" ? "best" : move2.moveRating;
       const color = i % 2 === 0 ? "b" : "w";
       newCounter[color][rating] = newCounter[color][rating] + 1 || 1;
     });
@@ -51,9 +66,9 @@ function RatingCount(props) {
     return <div key={rating} className="flex flex-row items-center justify-between">
                         <span className="text-sm font-semibold text-foregroundGrey">{titleRating}</span>
                         <div className="flex flex-row text-sm font-bold w-fit items-center">
-                            <span className={`reduceSummary:w-[72px] w-[36px] text-left text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.w[rating] ?? 0}</span>
+                            <span className={`reduceSummary:w-[72px] w-[36px] text-left ${kelasHitung(rating)}`}>{counter.w[rating] ?? 0}</span>
                             <RatingSVG draggable className="select-none" rating={rating} size={18} />
-                            <span className={`reduceSummary:w-[72px] w-[36px] text-right text-highlight${rating.charAt(0).toUpperCase() + rating.slice(1)}`}>{counter.b[rating] ?? 0}</span>
+                            <span className={`reduceSummary:w-[72px] w-[36px] text-right ${kelasHitung(rating)}`}>{counter.b[rating] ?? 0}</span>
                         </div>
                     </div>;
   })}

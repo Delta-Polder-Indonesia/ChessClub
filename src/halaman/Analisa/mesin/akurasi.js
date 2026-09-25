@@ -65,6 +65,7 @@
 
 import { invertColor } from "./penilaian.js";
 import { batasiCp, CP_CEILING, FAKTOR_PELUANG, peluangMenang } from "./peluang.js";
+import { cpBaku, tandaMate } from "./evaluasi.js";
 
 /*
  * Kurva peluang tinggal di ./peluang.js (satu rumus untuk seluruh halaman:
@@ -72,6 +73,12 @@ import { batasiCp, CP_CEILING, FAKTOR_PELUANG, peluangMenang } from "./peluang.j
  * ulang di sini supaya pemanggil lama tidak perlu berubah.
  */
 export { batasiCp, CP_CEILING, FAKTOR_PELUANG, peluangMenang };
+/*
+ * `cpBaku` tinggal di ./evaluasi.js (satu definisi untuk semua modul);
+ * diekspor ulang agar pemanggil lama — ./langkahKritis.js, ./antiCheat.js —
+ * tidak perlu berubah dan identitas fungsinya tetap sama.
+ */
+export { cpBaku };
 
 /** Eval posisi awal bila tidak dianalisis (`Cp.initial` / `INITIAL_SCORE`). */
 export const CP_AWAL = 15;
@@ -97,24 +104,7 @@ function batas01pct(angka) {
   return Math.min(100, Math.max(0, angka));
 }
 
-/**
- * `staticEval` mentah UCI → centipawn BAKU (mate → ±1000, dipotong ±1000),
- * setara `normalizeScore` en-croissant.
- *
- * @param {Array} staticEval `["cp", "34"]` / `["mate", "2"]`.
- * @param {boolean} [balikTanda] `true` bila pihak yang bergilir BUKAN pemain
- *   yang dinilai (yaitu eval SESUDAH langkah pemain dimainkan) sehingga
- *   tandanya harus dibalik agar terbaca dari sudut pemain.
- * @returns {number|null} `null` bila datanya tidak ada/rusak.
- */
-export function cpBaku(staticEval, balikTanda = false) {
-  if (!Array.isArray(staticEval) || staticEval.length < 2) return null;
-  const angka = Number(staticEval[1]);
-  if (!Number.isFinite(angka)) return null;
-  let cp = staticEval[0] === "mate" ? CP_CEILING * Math.sign(angka) : angka;
-  if (balikTanda) cp = -cp;
-  return batasiCp(cp);
-}
+/* `cpBaku` diimpor dari ./evaluasi.js (lihat re-ekspor di atas). */
 
 /**
  * Akurasi satu langkah, 0–100 — `getAccuracy` en-croissant.
@@ -207,7 +197,12 @@ export function anotasiLangkah({ sebelumCp, sesudahCp, duaLangkahLaluCp = null, 
 /** Skor cp baku satu entri kandidat MultiPV (`{cp, mate}` sudut yg bergilir). */
 function cpBakuDariKandidat(entri) {
   if (!entri) return null;
-  if (entri.mate !== null && entri.mate !== undefined) return batasiCp(CP_CEILING * Math.sign(Number(entri.mate) || 0));
+  if (entri.mate !== null && entri.mate !== undefined) {
+    // Mate 0 = baris ini sudah mati (bukan remis); skor tak-terbaca = null,
+    // bukan 0 — lihat `tandaMate` ./evaluasi.js.
+    const tanda = tandaMate(entri.mate);
+    return tanda === null ? null : batasiCp(CP_CEILING * tanda);
+  }
   return Number.isFinite(entri.cp) ? batasiCp(entri.cp) : null;
 }
 

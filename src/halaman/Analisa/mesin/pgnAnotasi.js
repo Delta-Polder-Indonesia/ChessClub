@@ -26,6 +26,7 @@
  */
 
 import { Chess } from "chess.js";
+import { langkahTerpaksa } from "./evaluasi.js";
 
 /**
  * Label langkah → kode NAG standar (lihat
@@ -72,6 +73,9 @@ export function evalKeTeks(staticEval, warnaPemain) {
   const sudutPutih = warnaPemain === "w" ? -angka : angka;
 
   if (staticEval[0] === "mate") {
+    // Mate 0 = skakmat sudah dikirim: pemenangnya adalah warnaPemain (pihak
+    // yang baru melangkah), bukan hasil `Math.sign(0)` yang selalu netral.
+    if (angka === 0) return warnaPemain === "w" ? "#0" : "-#0";
     return `${sudutPutih < 0 ? "-" : ""}#${Math.abs(sudutPutih)}`;
   }
 
@@ -85,7 +89,10 @@ function tokenLangkah(entri, nomorLangkah, putihMelangkah) {
   if (putihMelangkah) bagian.push(`${nomorLangkah}.`);
   bagian.push(entri.san);
 
-  const nag = NAG_LABEL[entri.moveRating];
+  // Langkah paksa tidak ditandai NAG: anotasi menilai keputusan, dan
+  // langkah tanpa pilihan bukan keputusan (kualitasnya tetap tersimpan di
+  // data, hanya tidak diberi tanda seru/tanya di berkas).
+  const nag = langkahTerpaksa(entri) ? undefined : NAG_LABEL[entri.moveRating];
   if (nag) bagian.push(nag);
 
   const evaluasi = evalKeTeks(entri.previousStaticEvals?.[0], entri.color === "w" ? "b" : "w");

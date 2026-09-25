@@ -1,6 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import RatingSVG from "../../../svg/rating.jsx";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
+import { apakahMateTerminal } from "../../../../mesin/evaluasi.js";
 
 /**
  * Kartu penjelasan satu langkah: label penilaian (brilian/blunder/…),
@@ -41,9 +42,11 @@ function FormatEval({ evaluation, white, smaller, best }) {
   if (angka < 0) karakter = "-";
 
   let teks;
-  if (evaluation?.[0] === "mate" && evaluation[1]) {
+  // Mate terminal (["mate","0"] atau warisan ["mate"]) = partai sudah berakhir,
+  // jadi tampil hasil 0-1/1-0 — bukan "M0" (dan bukan "M-1" saat `best`).
+  if (evaluation?.[0] === "mate" && !apakahMateTerminal(evaluation)) {
     teks = `${karakter}M${Math.abs(Number(evaluation[1])) - Number(Boolean(best))}`;
-  } else if (!evaluation?.[1]) {
+  } else if (!evaluation?.[1] || apakahMateTerminal(evaluation)) {
     teks = white ? "0-1" : "1-0";
   } else {
     teks = `${karakter}${Math.abs(angka).toFixed(2)}`;

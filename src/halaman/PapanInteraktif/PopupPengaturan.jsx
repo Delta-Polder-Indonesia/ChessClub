@@ -1,5 +1,7 @@
+import { useId } from "react";
 import { DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import KartuKomentator from "../../components/KartuKomentator.jsx";
+import { gunakanDialog } from "./gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
 
 /**
@@ -9,13 +11,15 @@ import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
  *
  * @param {object} p
  * @param {() => void} p.onTutup                 tutup popup
+ * @param {string} p.bidak                       id set bidak yang sedang aktif
+ * @param {(id: string) => void} p.setSetBidak   ganti set bidak
  * @param {object} p.kartuKomentator properti yang diteruskan apa adanya ke
- *        <KartuKomentator> (fakta, rating, eval, preferensi, dsb.)
+ *        <KartuKomentator> (nyala, setNyala, gaya, setGaya, t)
  */
 export default function PopupPengaturan({
   onTutup,
   t,
-  setBidak,
+  bidak,
   setSetBidak,
   suaraNyala,
   setSuaraNyala,
@@ -27,11 +31,18 @@ export default function PopupPengaturan({
   setWarnaPapan,
   kartuKomentator,
 }) {
+  const refDialog = gunakanDialog(onTutup);
+  const idSetBidak = useId();
   return (
     <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
                     onClick={onTutup}
-                  ><div className="w-full max-w-sm rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
+                  ><div ref={refDialog}
+                      tabIndex={-1}
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={t("papan.pengaturanPapan")}
+                      className="w-full max-w-sm rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="mb-4 flex items-center justify-between">
@@ -48,11 +59,13 @@ export default function PopupPengaturan({
                       </div>
                       <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-1">
-                          <label className="text-sm font-semibold text-gray-400">
+                          <label htmlFor={idSetBidak} className="text-sm font-semibold text-gray-400">
                             {t("papan.setBidak")}
                           </label>
                           <select
-                            value={setBidak}
+                            id={idSetBidak}
+                            data-autofokus
+                            value={bidak}
                             onChange={(e) => setSetBidak(e.target.value)}
                             className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200 outline-none transition focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20"
                           >

@@ -27,7 +27,7 @@ import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
 import KartuKomentator, {
   gunakanPreferensiKomentator,
 } from "../../components/KartuKomentator.jsx";
-import { ekspresiDariSkorAwan, faktaLangkah } from "../../lib/komentator.js";
+import { ekspresiDariSkorAwan, faktaLangkah, statusTerminalFen } from "../../lib/komentator.js";
 import {
   ambilBasisDataAwan,
   intipBasisDataAwan,
@@ -36,6 +36,7 @@ import {
 } from "../../lib/basisDataAwan.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./konstanta.js";
 import {
+  ekstrakFenDariPgn,
   fenDanSanDariKoordinat,
   fenDariLangkah,
   kuciDariPindahan,
@@ -45,7 +46,7 @@ import {
   sanDiPosisi,
   statTurunan,
   susunKatalog,
-  susunPgn,
+  susunPgnDenganFen,
 } from "./utilPapan.js";
 import IkonTab from "./IkonTab.jsx";
 import BukuPembukaan from "./BukuPembukaan.jsx";
@@ -77,8 +78,16 @@ export default function PapanInteraktif() {
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
   const [gagal, setGagal] = useState(false);
+  // Penghitung percobaan muat buku — tombol "Coba lagi" menaikkannya agar
+  // efek pemuatan data di bawah berjalan ulang.
+  const [percobaan, setPercobaan] = useState(0);
 
   const [fen, setFen] = useState(FEN_AWAL);
+  // FEN posisi awal partai saat ini — sama dengan FEN_AWAL kecuali pengguna
+  // memuat FEN kustom / PGN ber-header FEN lewat dialog Review. Semua replay
+  // riwayat (undo, lompat ply, tangkapan, ikon langkah) berangkat dari sini,
+  // bukan selalu dari posisi awal standar.
+  const [fenAwal, setFenAwal] = useState(FEN_AWAL);
   const [riwayat, setRiwayat] = useState([]); // SAN, untuk PGN
   const [riwayatLengkap, setRiwayatLengkap] = useState([]); // semua langkah untuk navigasi forward
   const [jalur, setJalur] = useState([]); // kunci pohon, untuk menelusuri pembukaan
@@ -96,6 +105,8 @@ export default function PapanInteraktif() {
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const [fenTersalin, setFenTersalin] = useState(false);
+  // Status tombol Bagikan: "idle" | "ok" | "gagal" (label tombol ikut berganti).
+  const [statusBerbagi, setStatusBerbagi] = useState("idle");
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
   const [tampilSetting, setTampilSetting] = useState(false);
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
@@ -188,6 +199,7 @@ export default function PapanInteraktif() {
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
     let aktif = true;
+    setGagal(false);
     fetch(`${import.meta.env.BASE_URL}data/buku-pembukaan.json`)
       .then((respon) => {
         if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
@@ -212,7 +224,7 @@ export default function PapanInteraktif() {
     return () => {
       aktif = false;
     };
-  }, []);
+  }, [percobaan]);
 
   useEffect(() => {
     document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;
@@ -227,8 +239,12 @@ export default function PapanInteraktif() {
   );
 
   /* ------------------------------------------------ pembukaan saat ini */
+  // Buku pembukaan hanya valid dari posisi awal standar — partai dari FEN
+  // kustom langsung dianggap di luar buku (saran datang dari basis data awan).
+  const posisiKustom = fenAwal !== FEN_AWAL;
   const infoPembukaan = useMemo(() => {
     if (!pohon) return { nama: null, saran: [], cocok: false };
+    if (posisiKustom) return { nama: null, saran: [], cocok: false };
     let node = pohon;
     let namaTerdalam = null;
     let cocok = true;
@@ -253,7 +269,7 @@ export default function PapanInteraktif() {
         }));
     }
     return { nama: namaTerdalam, saran, cocok };
-  }, [pohon, jalur, fen, mode]);
+  }, [pohon, jalur, fen, mode, posisiKustom]);
 
   /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
   const statTampil = useMemo(() => {
@@ -276,7 +292,7 @@ export default function PapanInteraktif() {
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
   // Bidak yang ditangkap tiap sisi (ikon di baris pemain), dihitung dari riwayat.
-  const tangkapan = useMemo(() => susunTangkapan(riwayat), [riwayat]);
+  const tangkapan = useMemo(() => susunTangkapan(riwayat, fenAwal), [riwayat, fenAwal]);
 
   /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
       menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
@@ -449,7 +465,9 @@ export default function PapanInteraktif() {
     bunyikanLangkah(pindah, game);
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
-    setRiwayatLengkap((lama) => [...lama, pindah.san]);
+    // Cabang baru: buang semua langkah "masa depan" setelah undo — kalau
+    // tidak, redo bisa memainkan jalur lama yang sudah tidak relevan.
+    setRiwayatLengkap((lama) => [...lama.slice(0, riwayat.length), pindah.san]);
     setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from, to });
     setTerpilih(null);
@@ -470,7 +488,8 @@ export default function PapanInteraktif() {
     bunyikanLangkah(pindah, game);
     setFen(game.fen());
     setRiwayat((lama) => [...lama, pindah.san]);
-    setRiwayatLengkap((lama) => [...lama, pindah.san]);
+    // Sama seperti cobaLangkah: langkah baru memangkas riwayat masa depan.
+    setRiwayatLengkap((lama) => [...lama.slice(0, riwayat.length), pindah.san]);
     setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
@@ -560,6 +579,7 @@ export default function PapanInteraktif() {
   function reset() {
     bunyikan(SUARA.mulai);
     setFen(FEN_AWAL);
+    setFenAwal(FEN_AWAL);
     setRiwayat([]);
     setRiwayatLengkap([]);
     setJalur([]);
@@ -573,7 +593,7 @@ export default function PapanInteraktif() {
   }
 
   function keAwal() {
-    setFen(FEN_AWAL);
+    setFen(fenAwal);
     setRiwayat([]);
     setJalur([]);
     setPilihan(-1);
@@ -592,7 +612,7 @@ export default function PapanInteraktif() {
     let pindah = null;
     let game = null;
     try {
-      const ulang = new Chess();
+      const ulang = new Chess(fenAwal);
       for (const san of riwayat) {
         pindah = ulang.move(san);
       }
@@ -603,7 +623,7 @@ export default function PapanInteraktif() {
     const baru = riwayat.slice(0, -1);
     setRiwayat(baru);
     setJalur((lama) => lama.slice(0, -1));
-    setFen(fenDariLangkah(baru));
+    setFen(fenDariLangkah(baru, fenAwal) || fenAwal);
     setTerpilih(null);
     setSasaran([]);
     setLangkahAkhir(null);
@@ -632,19 +652,28 @@ export default function PapanInteraktif() {
   function keAkhir() {
     if (!riwayatLengkap.length) return;
     setRiwayat([...riwayatLengkap]);
-    setJalur((lama) => {
+    setJalur(() => {
       // Rebuild jalur dari riwayat lengkap
-      const game = new Chess();
+      let game;
+      try {
+        game = new Chess(fenAwal);
+      } catch {
+        return [];
+      }
       const jalurBaru = [];
       for (const san of riwayatLengkap) {
-        const pindah = game.move(san);
-        if (pindah) {
-          jalurBaru.push(kuciDariPindahan(pindah, mode));
+        let pindah = null;
+        try {
+          pindah = game.move(san);
+        } catch {
+          break;
         }
+        if (!pindah) break;
+        jalurBaru.push(kuciDariPindahan(pindah, mode));
       }
       return jalurBaru;
     });
-    setFen(fenDariLangkah(riwayatLengkap));
+    setFen(fenDariLangkah(riwayatLengkap, fenAwal) || fenAwal);
     setTerpilih(null);
     setSasaran([]);
     setLangkahAkhir(null);
@@ -657,19 +686,25 @@ export default function PapanInteraktif() {
     const baru = riwayatLengkap.slice(0, ply);
     setRiwayat(baru);
     setJalur(() => {
-      const game = new Chess();
+      let game;
+      try {
+        game = new Chess(fenAwal);
+      } catch {
+        return [];
+      }
       const jalurBaru = [];
       for (const san of baru) {
         try {
           const pindah = game.move(san);
           if (pindah) jalurBaru.push(kuciDariPindahan(pindah, mode));
+          else break;
         } catch {
           break;
         }
       }
       return jalurBaru;
     });
-    setFen(fenDariLangkah(baru));
+    setFen(fenDariLangkah(baru, fenAwal) || fenAwal);
     setTerpilih(null);
     setSasaran([]);
     setLangkahAkhir(null);
@@ -700,6 +735,10 @@ export default function PapanInteraktif() {
       if (el.tagName === "INPUT" && tipeFokus.includes(el.getAttribute("type") ?? "")) return;
       if (el.tagName === "TEXTAREA") return;
       if (el.tagName === "SELECT") return;
+      // Panah di dalam dialog atau di atas tab panel punya arti sendiri
+      // (jebakan fokus dialog / pindah tab) — jangan curi untuk navigasi langkah.
+      if (el.getAttribute?.("role") === "tab") return;
+      if (el.closest?.('[role="dialog"]')) return;
       const kini = Date.now();
       if (kini - terakhirDitekan < 25) return;
       switch (e.key) {
@@ -733,18 +772,7 @@ export default function PapanInteraktif() {
   function terapkanTeks(teks) {
     const isi = String(teks || "").trim();
     if (!isi) return false;
-    const ruas = isi.split(/\s+/);
-    // FEN: ruas pertama memuat "/" dan teks punya ≥6 ruas.
-    if (ruas[0] && ruas[0].includes("/") && ruas.length >= 6) {
-      try {
-        new Chess(isi);
-      } catch {
-        return false;
-      }
-      setRiwayat([]);
-      setRiwayatLengkap([]);
-      setJalur([]);
-      setFen(new Chess(isi).fen());
+    const bersih = () => {
       setPilihan(-1);
       setOrientasi("w");
       setTerpilih(null);
@@ -752,46 +780,68 @@ export default function PapanInteraktif() {
       setLangkahAkhir(null);
       setPromosi(null);
       setTanda({ panah: [], petak: {} });
+    };
+    const ruas = isi.split(/\s+/);
+    // FEN: ruas pertama memuat "/" dan teks punya ≥6 ruas.
+    if (ruas[0] && ruas[0].includes("/") && ruas.length >= 6) {
+      let fenBaru;
+      try {
+        fenBaru = new Chess(isi).fen();
+      } catch {
+        return false;
+      }
+      // FEN dimuat sebagai posisi awal yang baru (mandiri): riwayat
+      // dikosongkan karena FEN tidak menyimpan langkah-langkah sebelumnya.
+      setFenAwal(fenBaru);
+      setRiwayat([]);
+      setRiwayatLengkap([]);
+      setJalur([]);
+      setFen(fenBaru);
+      bersih();
       return true;
     }
-    // Selain itu: anggap PGN.
+    // Selain itu: anggap PGN — hormati header [FEN "…"] bila ada (partai dari
+    // posisi kustom), kalau tidak mulai dari posisi awal standar.
     const daftar = sanDariPgn(isi);
     if (!daftar.length) return false;
-    const coba = new Chess();
-    for (const raw of daftar) {
-      let pindah = null;
+    const fenHeader = ekstrakFenDariPgn(isi);
+    let dasar = FEN_AWAL;
+    if (fenHeader) {
       try {
-        pindah = coba.move(raw.replace(/[!?]+$/, ""));
+        dasar = new Chess(fenHeader).fen();
       } catch {
-        pindah = null;
+        return false;
       }
-      if (!pindah) return false;
     }
+    const coba = new Chess(dasar);
     const sanAman = [];
+    try {
+      for (const san of daftar) {
+        const pindah = coba.move(san);
+        if (!pindah) return false;
+        sanAman.push(pindah.san);
+      }
+    } catch {
+      return false;
+    }
     const jalurBaru = [];
-    const main = new Chess();
-    for (const raw of daftar) {
-      const pindah = main.move(raw.replace(/[!?]+$/, ""));
-      sanAman.push(pindah.san);
+    const main = new Chess(dasar);
+    for (const san of sanAman) {
+      const pindah = main.move(san);
       jalurBaru.push(kuciDariPindahan(pindah, mode));
     }
+    setFenAwal(dasar);
     setRiwayat(sanAman);
     setRiwayatLengkap(sanAman);
     setJalur(jalurBaru);
-    setFen(main.fen());
-    setPilihan(-1);
-    setOrientasi("w");
-    setTerpilih(null);
-    setSasaran([]);
-    setLangkahAkhir(null);
-    setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    setFen(coba.fen());
+    bersih();
     return true;
   }
 
   function salinPgn() {
-    if (!riwayat.length) return;
-    const teks = susunPgn(riwayat);
+    if (!riwayat.length && !posisiKustom) return;
+    const teks = susunPgnDenganFen(riwayat, fenAwal);
     const selesai = () => {
       setPgnTersalin(true);
       window.clearTimeout(timerSalin.current);
@@ -817,7 +867,48 @@ export default function PapanInteraktif() {
     }
   }
 
+  /** Bagikan partai: Web Share API bila tersedia, kalau tidak salin PGN/FEN. */
+  async function bagikanPartai() {
+    const teks = susunPgnDenganFen(riwayat, fenAwal) || fen;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t("papan.judul"), text: teks });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(teks);
+      } else {
+        setStatusBerbagi("gagal");
+        return;
+      }
+      setStatusBerbagi("ok");
+    } catch (e) {
+      // AbortError = pengguna menutup lembar berbagi — bukan kegagalan.
+      if (e?.name === "AbortError") return;
+      setStatusBerbagi("gagal");
+    } finally {
+      window.clearTimeout(timerSalin.current);
+      timerSalin.current = window.setTimeout(() => setStatusBerbagi("idle"), 2000);
+    }
+  }
+
+  /** Navigasi keyboard antar-tab panel (panah/Home/End) — fokus ikut berpindah. */
+  const tabRefs = useRef([]);
+  function saatKunciTab(e) {
+    const aktif = TAB_PANEL.findIndex((tab) => tab.id === tabPanel);
+    let berikut = null;
+    if (e.key === "ArrowRight") berikut = (aktif + 1) % TAB_PANEL.length;
+    else if (e.key === "ArrowLeft") berikut = (aktif - 1 + TAB_PANEL.length) % TAB_PANEL.length;
+    else if (e.key === "Home") berikut = 0;
+    else if (e.key === "End") berikut = TAB_PANEL.length - 1;
+    if (berikut === null) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setTabPanel(TAB_PANEL[berikut].id);
+    tabRefs.current[berikut]?.focus();
+  }
+
   function muatJalur(entri) {
+    // Katalog selalu berangkat dari posisi awal standar.
+    setFenAwal(FEN_AWAL);
     if (mode === "koordinat") {
       const hasil = fenDanSanDariKoordinat(entri.langkah);
       if (!hasil) return;
@@ -826,10 +917,12 @@ export default function PapanInteraktif() {
       setJalur([...entri.langkah]);
       setFen(hasil.fen);
     } else {
+      const fenHasil = fenDariLangkah(entri.langkah, FEN_AWAL);
+      if (!fenHasil) return;
       setRiwayat([...entri.langkah]);
       setRiwayatLengkap([...entri.langkah]);
       setJalur([...entri.langkah]);
-      setFen(fenDariLangkah(entri.langkah));
+      setFen(fenHasil);
     }
     setOrientasi("w");
     setTerpilih(null);
@@ -847,6 +940,8 @@ export default function PapanInteraktif() {
    *   - "best"        → engine menyala & langkah = saran terbaiknya,
    *   - "forced"      → satu-satunya langkah legal,
    *   - engine        → best / miss / blunder / mistake / inaccuracy / good,
+   *   - remis sesudah langkah (pat/50-langkah/…) → dinilai sebagai 0.00
+   *     pasti (posisi terminal tak punya snapshot eval),
    *   - skakmat/tak ada langkah sebelumnya → tanpa ikon klasifikasi.
    * Tanpa engine dan di luar buku, langkah biasa tidak diberi ikon.
    * (Skakmat punya lencana sendiri di atas raja lawan — lihat `ikonSkakmat`.)
@@ -854,7 +949,8 @@ export default function PapanInteraktif() {
   const ikonLangkahAkhir = useMemo(() => {
     if (!riwayat.length) return null;
     const sanTerakhir = riwayat[riwayat.length - 1];
-    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
+    if (!fenSebelum) return null;
 
     let game;
     let pindah = null;
@@ -901,7 +997,7 @@ export default function PapanInteraktif() {
       mateSebelum !== null
         ? Math.sign(mateSebelum) * 10000
         : sebelum.cpPutih ?? 0;
-    const nilaiSesudah =
+    let nilaiSesudah =
       mateSesudah !== null && mateSesudah !== undefined
         ? Math.sign(mateSesudah) * 10000
         : sesudah?.cpPutih;
@@ -921,7 +1017,18 @@ export default function PapanInteraktif() {
         return { petak: kePetak, rating: "blunder" };
       }
     }
-    if (nilaiSesudah === undefined || nilaiSesudah === null) return null;
+    if (nilaiSesudah === undefined || nilaiSesudah === null) {
+      // Snapshot sesudah tak ada karena DUA sebab: balapan (eval belum
+      // tiba → tanpa ikon, seperti dulu) atau posisi sesudah TERMINAL
+      // (hook engine memang melewatkannya). Remis terminal nilainya pasti
+      // 0.00 — alirannya dilanjutkan supaya pat yang membuang kemenangan
+      // tetap berikon blunder/miss, bukan diam tanpa ikon.
+      if (!sesudah && statusTerminalFen(fen) === "remis") {
+        nilaiSesudah = 0;
+      } else {
+        return null;
+      }
+    }
     const rugiPion = ((nilaiSebelum - nilaiSesudah) * sudutPindah) / 100;
     if (rugiPion >= 4) return { petak: kePetak, rating: "blunder" };
     if (rugiPion >= 1.2) return { petak: kePetak, rating: "mistake" };
@@ -931,7 +1038,7 @@ export default function PapanInteraktif() {
     // hasilTertahan/hasilEngine jadi dependensi agar ikon terbarui begitu
     // snapshot eval posisi tersedia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [riwayat, fen, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
+  }, [riwayat, fen, fenAwal, infoPembukaan.cocok, infoPembukaan.nama, engineNyala, hasilTertahan]);
 
   /**
    * Komentator langsung — bahan mentah untuk KartuKomentator di tab analisa.
@@ -943,14 +1050,18 @@ export default function PapanInteraktif() {
   const preferensiKomentator = gunakanPreferensiKomentator();
   const faktaKomentator = useMemo(() => {
     if (!riwayat.length) return null;
-    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
+    if (!fenSebelum) return null;
     return faktaLangkah(fenSebelum, riwayat[riwayat.length - 1]);
-  }, [riwayat]);
+  }, [riwayat, fenAwal]);
   const dataKomentator = useMemo(() => {
     if (!riwayat.length) {
       return { evalSesudah: null, saranTerbaik: null, engineMenilai: false };
     }
-    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
+    if (!fenSebelum) {
+      return { evalSesudah: null, saranTerbaik: null, engineMenilai: false };
+    }
     const sebelum = engineNyala ? snapshotEvalRef.current.get(fenSebelum) : null;
     const sesudah = engineNyala ? snapshotEvalRef.current.get(fen) : null;
     return {
@@ -960,7 +1071,7 @@ export default function PapanInteraktif() {
     };
     // hasilTertahan memicu hitung ulang begitu snapshot eval posisi tersedia.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [riwayat, fen, engineNyala, hasilTertahan]);
+  }, [riwayat, fen, fenAwal, engineNyala, hasilTertahan]);
 
   /**
    * Basis data awan (chessdb.cn) — LANJUTAN setelah buku pembukaan lokal habis.
@@ -974,7 +1085,8 @@ export default function PapanInteraktif() {
   useEffect(() => {
     const perlu =
       !infoPembukaan.cocok &&
-      riwayat.length > 0 &&
+      // Posisi FEN kustom langsung boleh ditanyakan walau belum ada langkah.
+      (riwayat.length > 0 || posisiKustom) &&
       // Partai yang sudah selesai (mat/remis) tidak perlu ditanyakan — kalimat
       // komentator sudah menutupnya.
       !faktaKomentator?.skakmat &&
@@ -1029,7 +1141,7 @@ export default function PapanInteraktif() {
     // `riwayat.length` hanya penanda "sudah ada langkah"; perubahan `fen`
     // sudah mewakili langkah baru (undo/redo tidak memicu kueri baru).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala, awanUlang]);
+  }, [fen, riwayat.length, infoPembukaan.cocok, tabPanel, preferensiKomentator.nyala, awanUlang, posisiKustom]);
 
   const cobaLagiAwan = useCallback(() => {
     awanSegarkanRef.current = true;
@@ -1046,14 +1158,15 @@ export default function PapanInteraktif() {
    */
   const tinjauanAwan = useMemo(() => {
     if (engineNyala || riwayat.length === 0) return null;
-    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1));
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
+    if (!fenSebelum) return null;
     const data = intipBasisDataAwan(fenSebelum);
     if (!data?.langkah?.length) return null;
     return {
       saran: saranAwanKomentator(data),
       ekspresi: ekspresiDariSkorAwan(skorLangkahAwan(data, riwayat[riwayat.length - 1])),
     };
-  }, [riwayat, engineNyala]);
+  }, [riwayat, engineNyala, fenAwal]);
 
   /** Saran awan untuk kalimat komentator — hanya saat engine mati. */
   const saranAwan = tinjauanAwan?.saran ?? null;
@@ -1406,11 +1519,24 @@ export default function PapanInteraktif() {
                     kontrol dasar tidak ikut naik-turun saat isi tab pendek/kosong */}
                 <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[#312e2b] bg-[#211f1c]">
                 {/* Header Tab Navigasi — pola panel kanan Chess.com (referensi prompt.md) */}
-                <div className="flex flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18]">
-                  {TAB_PANEL.map((tab) => (
+                <div
+                  role="tablist"
+                  aria-label={t("papan.panel")}
+                  onKeyDown={saatKunciTab}
+                  className="flex flex-shrink-0 border-b border-[#312e2b] bg-[#1e1c18]"
+                >
+                  {TAB_PANEL.map((tab, indeks) => (
                     <button
                       key={tab.id}
+                      ref={(el) => {
+                        tabRefs.current[indeks] = el;
+                      }}
                       type="button"
+                      role="tab"
+                      id={`tab-papan-${tab.id}`}
+                      aria-selected={tabPanel === tab.id}
+                      aria-controls={`panel-papan-${tab.id}`}
+                      tabIndex={tabPanel === tab.id ? 0 : -1}
                       onClick={() => setTabPanel(tab.id)}
                       className={`flex-1 py-3 flex items-center justify-center gap-2 text-xs font-bold border-b-2 transition-all ${
                         tabPanel === tab.id
@@ -1423,7 +1549,12 @@ export default function PapanInteraktif() {
                     </button>
                   ))}
                 </div>
-                <div className="min-h-0 flex-1 overflow-y-auto p-4">
+                <div
+                  role="tabpanel"
+                  id={`panel-papan-${tabPanel}`}
+                  aria-labelledby={`tab-papan-${tabPanel}`}
+                  className="min-h-0 flex-1 overflow-y-auto p-4"
+                >
                   {tabPanel === "books" ? (
                     <BukuPembukaan
                       kelompok={daftarPilih.kelompok}
@@ -1436,31 +1567,41 @@ export default function PapanInteraktif() {
                       t={t}
                     />
                   ) : tabPanel === "explorer" ? (
-                    namaUtama ? (
-                      <KartuArtikelPembukaan
-                        artikel={artikelPembukaan}
-                        t={t}
-                      />
+                    // Penjelajah = tabel statistik langkah buku + artikel pembukaan.
+                    infoPembukaan.saran.length > 0 || namaUtama ? (
+                      <div>
+                        {infoPembukaan.saran.length > 0 && (
+                          <div>
+                            <div className="mb-2 flex items-center justify-between">
+                              <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
+                              <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
+                            </div>
+                            <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
+                          </div>
+                        )}
+                        {namaUtama && (
+                          <KartuArtikelPembukaan
+                            artikel={artikelPembukaan}
+                            t={t}
+                          />
+                        )}
+                      </div>
+                    ) : !infoPembukaan.cocok ? (
+                      <p className="mt-1.5 text-sm font-medium text-gray-400">
+                        {t("papan.diLuarBuku")}
+                      </p>
                     ) : (
                       <p className="mt-1.5 text-sm font-medium text-gray-400">
                         {t("papan.petunjukAwal")}
                       </p>
                     )
                   ) : tabPanel === "games" ? (
-                    infoPembukaan.saran.length > 0 ? (
-                      <div>
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
-                          <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
-                        </div>
-                        <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
-                      </div>
-                    ) : infoPembukaan.cocok ? (
+                    // Partai = basis data awan (langkah lanjutan di luar buku).
+                    infoPembukaan.cocok ? (
                       <p className="mt-1.5 text-sm font-medium text-gray-400">
-                        {t("papan.petunjukAwal")}
+                        {t("papan.partaiDalamBuku")}
                       </p>
                     ) : (
-                      /* Keluar dari buku lokal → lanjut ke basis data awan. */
                       <PanelBasisDataAwan
                         awan={awan}
                         fen={fen}
@@ -1515,7 +1656,7 @@ export default function PapanInteraktif() {
                             ekspresiAwan={tinjauanAwan?.ekspresi ?? null}
                             engineNyala={engineNyala}
                             engineMenilai={dataKomentator.engineMenilai}
-                            posisiAwal={riwayat.length === 0}
+                            posisiAwal={riwayat.length === 0 && !posisiKustom}
                             nyala={preferensiKomentator.nyala}
                             setNyala={preferensiKomentator.setNyala}
                             gaya={preferensiKomentator.gaya}
@@ -1526,7 +1667,7 @@ export default function PapanInteraktif() {
                           />
                         ) : riwayat.length === 0 ? (
                           <p className="truncate text-sm font-semibold text-gray-400">
-                            {t("papan.posisiAwal")}
+                            {posisiKustom ? t("papan.posisiKustom") : t("papan.posisiAwal")}
                           </p>
                         ) : infoPembukaan.cocok && namaUtama ? (
                           <p
@@ -1632,7 +1773,7 @@ export default function PapanInteraktif() {
                     <button
                       type="button"
                       onClick={salinPgn}
-                      disabled={!riwayat.length}
+                      disabled={!riwayat.length && !posisiKustom}
                       title={t("papan.daftarLangkahPgn")}
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
                     >
@@ -1650,10 +1791,18 @@ export default function PapanInteraktif() {
                     </button>
                     <button
                       type="button"
+                      onClick={bagikanPartai}
+                      title={t("papan.berbagi")}
                       className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
                     >
                       <Share2 className="h-4 w-4 text-gray-400" />
-                      <span>{t("papan.berbagi")}</span>
+                      <span>
+                        {statusBerbagi === "ok"
+                          ? t("papan.tersalinSingkat")
+                          : statusBerbagi === "gagal"
+                            ? t("papan.berbagiGagal")
+                            : t("papan.berbagi")}
+                      </span>
                     </button>
                   </div>
                 </div>
@@ -1667,6 +1816,29 @@ export default function PapanInteraktif() {
 
       {tampilPgn && (
         <MasukanPgn onTerapkan={terapkanTeks} onTutup={() => setTampilPgn(false)} t={t} />
+      )}
+      {tampilSetting && (
+        <PopupPengaturan
+          onTutup={() => setTampilSetting(false)}
+          t={t}
+          bidak={setBidak}
+          setSetBidak={setSetBidak}
+          suaraNyala={suaraNyala}
+          setSuaraNyala={setSuaraNyala}
+          tampilPanahMesin={tampilPanahMesin}
+          setTampilPanahMesin={setTampilPanahMesin}
+          awanTampilanPenuh={awanTampilanPenuh}
+          setAwanTampilanPenuh={setAwanTampilanPenuh}
+          warnaPapan={warnaPapan}
+          setWarnaPapan={setWarnaPapan}
+          kartuKomentator={{
+            nyala: preferensiKomentator.nyala,
+            setNyala: preferensiKomentator.setNyala,
+            gaya: preferensiKomentator.gaya,
+            setGaya: preferensiKomentator.setGaya,
+            t,
+          }}
+        />
       )}
     </div>
   );

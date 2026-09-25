@@ -123,7 +123,10 @@ function AnalyzeContextProvider(props) {
   /* Posisi lengkap dari PGN; eval tiap posisi diisi selama analisis berjalan. */
   const [langkahSementara, setLangkahSementara] = useState([]);
   const [tab, setTab] = useState("analyze");
-  const [analyzeController, setAnalyzeController] = useState(abortControllerInstance);
+  // Malas (per-mount), BUKAN lajang modul: `abortControllerInstance` dipakai
+  // bersama semua mount provider (termasuk StrictMode ganda + uji) sehingga
+  // membatalkan di satu tempat mematikan controller tempat lain.
+  const [analyzeController, setAnalyzeController] = useState(() => new AbortController());
   const [customLine, setCustomLine] = useState({ moveNumber: -1, moves: [], arrows: {} });
   const [returnedToNormalGame, setReturnedToNormalGame] = useState(null);
   const [analyzingMove, setAnalyzingMove] = useState(false);
@@ -151,7 +154,13 @@ function AnalyzeContextProvider(props) {
   useEffect(() => {
     gameLengthRef.current = game.length;
   }, [game.length]);
-  const gameController = {
+  /*
+   * Stabil antar-render: isinya hanya membaca ref + setter (keduanya stabil),
+   * jadi tidak perlu dibuat ulang — dan karena `gameController` masuk ke
+   * nilai konteks, kestabilan ini mencegah seluruh konsumen konteks
+   * me-render ulang setiap kali provider me-render.
+   */
+  const gameController = useMemo(() => ({
     back: () => {
       if (customLineRef.current.moveNumber > 0) {
         setForward(false);
@@ -215,8 +224,16 @@ function AnalyzeContextProvider(props) {
     pause: () => {
       setPlaying(false);
     }
-  };
-  return <AnalyzeContext.Provider value={{ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], langkahSementara: [langkahSementara, setLangkahSementara], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], tampilan: [tampilan, setTampilan], gameController }}>
+  }), []);
+  /*
+   * Nilai konteks di-memo: objek literal di sini dibuat ulang tiap render
+   * dan identitas baru = SEMUA konsumen me-render ulang (papan, menu,
+   * grafik, …) walau state yang mereka pakai tidak berubah. Dependensinya
+   * adalah seluruh NILAI state (setter stabil, tak perlu disebut) —
+   * menambah state baru ke provider WAJIB menambahkannya di sini.
+   */
+  const nilaiKonteks = useMemo(() => ({ data: [data, setData], pageState: [pageState, setPageState], game: [game, setGame], players: [playersAman, setPlayers], moveNumber: [moveNumber, setMoveNumber], forward: [forward, setForward], white: [white, setWhite], animation: [animation, setAnimation], playing: [playing, setPlaying], time: [time, setTime], materialAdvantage: [materialAdvantage, setMaterialAdvantage], result: [result2, setResult], progress: [progress, setProgress], langkahSementara: [langkahSementara, setLangkahSementara], tab: [tab, setTab], analyzeController: [analyzeController, setAnalyzeController], customLine: [customLine, setCustomLine], returnedToNormalGame: [returnedToNormalGame, setReturnedToNormalGame], analyzingMove: [analyzingMove, setAnalyzingMove], akun: [akun, setAkun], depth: [depth, setDepth], tampilan: [tampilan, setTampilan], gameController }), [data, pageState, game, playersAman, moveNumber, forward, white, animation, playing, time, materialAdvantage, result2, progress, langkahSementara, tab, analyzeController, customLine, returnedToNormalGame, analyzingMove, akun, depth, tampilan, gameController]);
+  return <AnalyzeContext.Provider value={nilaiKonteks}>
             {props.children}
         </AnalyzeContext.Provider>;
 }

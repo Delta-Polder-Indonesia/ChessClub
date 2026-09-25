@@ -35,6 +35,7 @@
 import { BISHOP, Chess, KNIGHT, PAWN, QUEEN, ROOK } from "chess.js";
 import { penyerangTersembunyi } from "./keamananBidak.js";
 import { peluangMenang } from "./peluang.js";
+import { apakahMateTerminal, normalisasiEval, STATUS_EVALUASI } from "./evaluasi.js";
 
 /** Daftar kunci komentar → `analisa.komentar.<kunci>` di kamus terjemahan. */
 export const KUNCI_KOMENTAR = [
@@ -132,7 +133,15 @@ function angkaAcak(batas) {
  * Inti klasifikasi. `staticEval` dan isi `previousStaticEvals` memakai bentuk
  * keluaran UCI mentah: `["cp", "34"]` atau `["mate", "2"]`, relatif terhadap
  * pihak yang BERGILIR pada posisi tersebut (konvensi upstream, jangan diubah
- * tanpa menyesuaikan seluruh ambang di bawah).
+ * tanpa menyesuaikan seluruh ambang di bawah). Skakmat yang sudah dikirim
+ * ditulis `["mate", "0"]` (bentuk warisan `["mate"]` tanpa angka tetap
+ * diterima dan diperlakukan sama) — lihat ./evaluasi.js.
+ *
+ * Eval SESUDAH langkah dan eval posisi SEBELUMNYA yang hilang/rusak membuat
+ * fungsi ini mengembalikan `{ moveRating: null, …, statusEvaluasi: "gagal" }`,
+ * BUKAN label "excellent": kerugian yang tak-terhitung tidak boleh menyamar
+ * jadi langkah sempurna. Riwayat yang LEBIH tua boleh hilang (langkah awal
+ * partai) dan tetap diperlakukan netral seperti sebelumnya.
  */
 export function getMoveRating({
   staticEval,
@@ -148,9 +157,28 @@ export function getMoveRating({
 }) {
   // Salinan kerja: upstream menulis padding langsung ke argumen, yang berarti
   // state React milik pemanggil ikut berubah diam-diam.
-  const riwayat = previousStaticEvals.slice(0, 4);
+  const riwayat = (Array.isArray(previousStaticEvals) ? previousStaticEvals : []).slice(0, 4);
   for (let i = 0; i < 4; i++) if (riwayat[i] === undefined) riwayat[i] = [];
 
+  /*
+   * Gerbang validasi: selisih langkah = eval kini vs eval lalu, jadi keduanya
+   * wajib valid. Tanpa gerbang ini, `Number(undefined)` menjadi NaN lalu
+   * `kerugianPeluang` mengubahnya menjadi 0 — nilai rusak lolos sebagai
+   * "excellent" (bahkan "brilliant"/"great" bila syarat lain terpenuhi).
+   * Pengembalian memakai `statusEvaluasi: "gagal"` supaya agregator
+   * (akurasi, anti-cheat, hitungan label) melewatinya, bukan menghitungnya.
+   */
+  if (!normalisasiEval(staticEval) || !normalisasiEval(riwayat[0])) {
+    return { moveRating: null, commentKey: null, commentIndex: 0, statusEvaluasi: STATUS_EVALUASI.GAGAL };
+  }
+
+  /*
+   * `winning` tidak bermakna untuk eval TERMINAL (mate-0: `0 < 0` = false,
+   * padahal pemberi mat jelas menang) — tetapi cabang terminal di bawah
+   * (best-mate/excellent-mate) selalu mengembalikan lebih dulu, sehingga
+   * cabang-cabang mate yang memakai `winning` tidak pernah melihat eval
+   * terminal. JANGAN pindahkan cabang terminal ke bawah cabang mate lain.
+   */
   const winning = Number(staticEval[1]) < 0;
   const previousWinning = Number(riwayat[0][1]) > 0;
 
@@ -342,7 +370,7 @@ export function getMoveRating({
 
   // best — sama dengan usulan engine
   const isBest = bestMoveSan === moveSan;
-  if (isBest && staticEval[0] === "mate" && !staticEval[1]) {
+  if (isBest && apakahMateTerminal(staticEval)) {
     return { moveRating: "best", ...komentar("mate") };
   }
   /*
@@ -358,7 +386,7 @@ export function getMoveRating({
   if (isBest) return { moveRating: "best", ...komentar("best") };
 
   // excellent — skakmat sudah pasti
-  if (staticEval[0] === "mate" && !staticEval[1]) return { moveRating: "excellent", ...komentar("mate") };
+  if (apakahMateTerminal(staticEval)) return { moveRating: "excellent", ...komentar("mate") };
 
   // excellent — memulai skakmat
   if (riwayat[0][0] !== "mate" && staticEval[0] === "mate" && winning) {

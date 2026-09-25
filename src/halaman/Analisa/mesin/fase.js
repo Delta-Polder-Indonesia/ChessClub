@@ -11,6 +11,14 @@
  * Semua fungsi murni: menerima papan hasil `new Chess(fen).board()`
  * (8 baris × 8 kotak, `null` untuk kotak kosong) dan mengembalikan boolean.
  * Gaya mengikuti ./penilaian.js — tanpa React, tanpa DOM.
+ *
+ * KONTRAK URUTAN (dipegang dua pemindai): langkah yang sedang diperiksa
+ * dicatat ke fase yang SEDANG AKTIF lebih dulu, BARU fasenya dimajukan
+ * berdasarkan papan langkah itu. `playersAccuracy.jsx` (panel Akurasi) dan
+ * `antiCheat.js` (via `faseBerikutnya`) memakai urutan yang sama — kalau
+ * salah satunya dibalik, angka "per fase" di Ringkasan dan di Deteksi
+ * Engine saling bertentangan untuk partai yang sama. Paritasnya dikunci
+ * `scripts/uji-evaluasi.mjs` (seksi "paritas fase").
  */
 
 import { Chess } from "chess.js";

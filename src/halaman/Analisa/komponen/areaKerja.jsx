@@ -27,7 +27,7 @@
  * z-[900] sengaja dipilih di bawah `PageErrors` (z-[999]) supaya pesan
  * galat analisis tetap tampil di atas layar mana pun.
  */
-import { useCallback, useContext, useRef } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../konteks/analyze.jsx";
 import Game from "./game/game.jsx";
 import BoardMenu from "./boardMenu/boardMenu.jsx";
@@ -43,6 +43,8 @@ export default function AreaKerja() {
   const setData = analyzeContext.data[1];
 
   const wadahRef = useRef(null);
+  const lapisanRef = useRef(null);
+  const awalRef = useRef(true);
 
   const kePapan = useCallback(
     () => setTampilan(TAMPILAN_ANALISA.BERMAIN),
@@ -69,6 +71,31 @@ export default function AreaKerja() {
 
   const papanAktif = tampilan === TAMPILAN_ANALISA.BERMAIN;
 
+  /*
+   * Fokus mengikuti layar: saat lapisan non-papan muncul, fokus dibawa ke
+   * lapisan supaya pembaca layar mengumumkannya dan tombol Tab mulai dari
+   * dalamnya (bukan tersesat di papan `invisible` yang tak bisa difokus).
+   * Render pertama dilewati — pengguna belum berpindah ke mana-mana.
+   */
+  useEffect(() => {
+    if (awalRef.current) {
+      awalRef.current = false;
+      return;
+    }
+    if (!papanAktif) lapisanRef.current?.focus({ preventScroll: true });
+  }, [tampilan, papanAktif]);
+
+  // Escape menutup lapisan kembali ke papan (pintasan papan sendiri sudah
+  // dimatikan lewat `tampilanRef` di game.jsx, jadi tak ada konflik).
+  useEffect(() => {
+    if (papanAktif) return undefined;
+    const tekan = (e) => {
+      if (e.key === "Escape") kePapan();
+    };
+    document.addEventListener("keydown", tekan);
+    return () => document.removeEventListener("keydown", tekan);
+  }, [papanAktif, kePapan]);
+
   return (
     <div className="relative flex h-full min-h-0 min-w-0 w-full flex-1 flex-col">
       <main
@@ -92,6 +119,8 @@ export default function AreaKerja() {
 
       {papanAktif ? null : (
         <div
+          ref={lapisanRef}
+          tabIndex={-1}
           data-uji={`layar-${tampilan}`}
           data-layar={tampilan}
           className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden"

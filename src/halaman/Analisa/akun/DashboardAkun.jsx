@@ -346,6 +346,9 @@ export default function DashboardAkun({ platform, username }) {
   };
   const [games, setGames] = useState(() => bacaCachePartai(koleksiIdAwal));
   const [gamesPgn, setGamesPgn] = useState(null);
+  // `true` = muat terakhir GAGAL (bukan "akun kosong") — tampilkan kabar
+  // galat, bukan panel kosong yang menuduh pengguna belum punya data.
+  const [galatBasis, setGalatBasis] = useState(false);
   const user = String(username || "").trim();
   const tokenMuat = useRef(0);
 
@@ -382,13 +385,17 @@ export default function DashboardAkun({ platform, username }) {
     }
     setGames(null);
     setGamesPgn(null);
+    setGalatBasis(false);
     try {
-      const daftar = (await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false }))?.partai || [];
+      const hasil = await ambilDaftarPartai({ koleksiId, limit: 0, sertakanPgn: false });
       if (token !== tokenMuat.current) return;
+      setGalatBasis(Boolean(hasil?.galat));
+      const daftar = hasil?.partai || [];
       if (daftar.length > 0) cachePartai.set(koleksiId, { revisi: bacaRevisiBasis(), daftar });
       setGames(daftar);
     } catch {
       if (token !== tokenMuat.current) return;
+      setGalatBasis(true);
       setGames([]);
     }
   }, [platform, user]);
@@ -601,7 +608,11 @@ export default function DashboardAkun({ platform, username }) {
           {games == null || (tab === "openings" && gamesPgn == null) ? (
             <MuatNegara isi={t("analisa.statistik.memuat")} />
           ) : games.length === 0 ? (
-            <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
+            galatBasis ? (
+              <KosongState isi={t("analisa.statistik.galatBasis")} sub={t("analisa.statistik.galatBasisSub")} />
+            ) : (
+              <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
+            )
           ) : tab === "overview" && overview ? (
             <div className="flex min-h-full flex-col gap-3">
               <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>

@@ -14,6 +14,7 @@
  * modul ini otomatis beralih ke memori + localStorage cadangan tanpa melempar galat.
  */
 import { Chess } from "chess.js";
+import { hashPgn, pecahMultiPgn } from "../../lib/pgnRingan.js";
 
 const NAMA_DB = "kci_catur_database_v1";
 /*
@@ -230,6 +231,23 @@ export function buatIdPartai(p, platform = "chessCom", username = "") {
 }
 
 /**
+ * Hasil partai → bentuk baku "white" | "black" | "draw".
+ *
+ * Menerima ejaan PGN ("1-0"), kata bahasa Inggris ("white"), dan bentuk
+ * baku itu sendiri; NILAI LAIN — "1/2-1/2", "½-½", "draw", "*", string
+ * kosong, `undefined`, sampah — semuanya berarti "bukan kemenangan siapa
+ * pun" → "draw". Searah dengan tampilan tabel (`½ - ½` untuk selain
+ * white/black) supaya nilai yang tersimpan tidak pernah "bocor" dari
+ * ketiga bentuk ini dan filter hasil selalu bisa mencocokkannya.
+ */
+export function normalisasiHasil(hasil) {
+  const h = String(hasil ?? "").trim().toLowerCase();
+  if (h === "1-0" || h === "white") return "white";
+  if (h === "0-1" || h === "black") return "black";
+  return "draw";
+}
+
+/**
  * Normalisasi data partai agar formatnya seragam dan aman disimpan.
  */
 export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
@@ -264,6 +282,9 @@ export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
     else if (p.black?.result === "win") hasil = "black";
     else hasil = "draw";
   }
+  // Kunci tiga bentuk baku — nilai tak dikenal ("*", sampah API) menjadi
+  // "draw", bukan tersimpan apa adanya lalu hilang dari semua filter.
+  hasil = normalisasiHasil(hasil);
 
   const timestamp = Number(p.timestamp) || (p.end_time ? p.end_time * 1000 : Date.now());
   const id = buatIdPartai({ ...p, whiteName: wName, blackName: bName, timestamp, plyCount }, plat, user);
@@ -697,6 +718,11 @@ function buatPenyaring({ koleksiId, cari, hasil, timeClass, username }) {
     if (hasil) {
       if (hasil === "white" || hasil === "black" || hasil === "draw") {
         if (p.result !== hasil) return false;
+      } else if ((hasil === "win" || hasil === "loss") && !nama) {
+        // Menang/kalah TANPA nama pembanding tidak bisa diartikan — tidak
+        // ada baris yang cocok. Dulu cabang ini lolos (tak ada yang menolak)
+        // sehingga "filter menang + username kosong" menampilkan SEMUA baris.
+        return false;
       } else if (hasil === "win" && nama) {
         const menang =
           (p.result === "white" && p.whiteName?.toLowerCase() === nama) ||
@@ -734,6 +760,19 @@ function bandingkan(urut, arah) {
 function telusuriKursor(sumber, rentang, arah, pada) {
   return new Promise((selesai) => {
     try {
+      /*
+       * Transaksi yang diaborsi (tab lain menaikkan versi, kuota penuh)
+       * TIDAK selalu memicu `onerror` pada request — tanpa kait `onabort`
+       * ini pemindaian menggantung selamanya dan tabel Database macet pada
+       * status "memuat". Sumber (store/indeks) selalu membawa referensi
+       * transaksinya, jadi tidak perlu mengubah tanda tangan fungsi.
+       */
+      try {
+        const tx = sumber?.transaction;
+        if (tx) tx.onabort = () => selesai(false);
+      } catch {
+        /* abaikan — onerror di bawah tetap jadi jaring pengaman */
+      }
       const req = sumber.openCursor(rentang, arah);
       req.onsuccess = (e) => {
         const kursor = e.target.result;
@@ -755,14 +794,18 @@ function telusuriKursor(sumber, rentang, arah, pada) {
   });
 }
 
+/*
+ * `null` = GAGAL menghitung (bukan "nol baris") — pemanggil wajib
+ * membedakannya, jangan menjumlahkannya.
+ */
 function hitungCepat(sumber, rentang) {
   return new Promise((selesai) => {
     try {
       const req = sumber.count(rentang);
       req.onsuccess = () => selesai(req.result || 0);
-      req.onerror = () => selesai(0);
+      req.onerror = () => selesai(null);
     } catch {
-      selesai(0);
+      selesai(null);
     }
   });
 }
@@ -785,7 +828,11 @@ function hitungCepat(sumber, rentang) {
  *
  * @param {object} opsi
  * @param {boolean} [opsi.sertakanPgn=true] sertakan teks PGN pada tiap baris.
- * @returns {Promise<{partai: object[], total: number}>}
+ * @returns {Promise<{partai: object[], total: number, galat?: boolean}>}
+ * `galat: true` berarti "GAGAL DIBACA" — bedakan dari "kosong" (daftar
+ * valid yang memang tidak berisi baris). Pemanggil yang menelan galat
+ * menjadi `[]` menampilkan koleksi rusak sebagai koleksi kosong tanpa
+ * kabar; selalu teruskan ke pemberitahuan (lihat layarDatabase.jsx).
  */
 export async function ambilDaftarPartai(opsi = {}) {
   const {
@@ -822,7 +869,7 @@ export async function ambilDaftarPartai(opsi = {}) {
   try {
     store = db.transaction([STORE_PARTAI], "readonly").objectStore(STORE_PARTAI);
   } catch {
-    return { partai: [], total: 0 };
+    return { partai: [], total: 0, galat: true };
   }
 
   const { sumber, rentang, urutWaktu, pemilikTerpenuhi } = pilihIndeks(
@@ -843,19 +890,21 @@ export async function ambilDaftarPartai(opsi = {}) {
   /* --- Jalur cepat: langsung lompat ke halaman yang diminta --- */
   if (bisaLompat) {
     const total = await hitungCepat(sumber, rentang);
+    if (total === null) return { partai: [], total: 0, galat: true };
     if (limit <= 0) {
       // Pemanggil memang meminta semuanya (mis. ekspor PGN).
       const semua = [];
-      await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+      const okSemua = await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
         semua.push(rapikan(kursor.value));
       });
+      if (!okSemua) return { partai: [], total: 0, galat: true };
       return { partai: semua, total };
     }
     if (offset >= total) return { partai: [], total };
 
     const baris = [];
     let sudahLompat = offset <= 0;
-    await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+    const okHalaman = await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
       if (!sudahLompat) {
         sudahLompat = true;
         kursor.advance(offset); // lompati offset tanpa membaca isinya
@@ -864,6 +913,7 @@ export async function ambilDaftarPartai(opsi = {}) {
       baris.push(rapikan(kursor.value));
       return baris.length >= limit ? "stop" : "lanjut";
     });
+    if (!okHalaman) return { partai: [], total: 0, galat: true };
     return { partai: baris, total };
   }
 
@@ -873,7 +923,7 @@ export async function ambilDaftarPartai(opsi = {}) {
   const jendela = [];
   let cocok = 0;
 
-  await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
+  const okSaring = await telusuriKursor(sumber, rentang, arahKursor, (kursor) => {
     const nilai = kursor.value;
     if (!saring(nilai)) return "lanjut";
     if (perluUrutUlang) {
@@ -889,6 +939,7 @@ export async function ambilDaftarPartai(opsi = {}) {
     cocok++;
     return "lanjut";
   });
+  if (!okSaring) return { partai: [], total: 0, galat: true };
 
   if (!perluUrutUlang) return { partai: jendela, total: cocok };
 
@@ -1004,28 +1055,55 @@ export async function hapusKoleksi(koleksiId) {
   }
 
   return new Promise((resolve) => {
+    let selesai = false;
+    const akhiri = (ok) => {
+      if (!selesai) {
+        selesai = true;
+        resolve(ok);
+      }
+    };
     try {
       const tx = db.transaction([STORE_PARTAI, STORE_KOLEKSI], "readwrite");
       const storePartai = tx.objectStore(STORE_PARTAI);
       const storeKoleksi = tx.objectStore(STORE_KOLEKSI);
 
-      storeKoleksi.delete(koleksiId);
-
-      const reqAll = storePartai.getAll();
-      reqAll.onsuccess = () => {
-        const semua = reqAll.result || [];
-        for (const p of semua) {
-          if (p.koleksiId === koleksiId) storePartai.delete(p.id);
-        }
-      };
-
       tx.oncomplete = () => {
         naikkanRevisi();
-        resolve(true);
+        akhiri(true);
       };
-      tx.onerror = () => resolve(false);
+      tx.onerror = () => akhiri(false);
+      tx.onabort = () => akhiri(false);
+
+      storeKoleksi.delete(koleksiId);
+
+      /*
+       * Hapus partai lewat kursor indeks — BUKAN `getAll` + `delete` per id.
+       * `getAll` memuat SELURUH teks PGN semua koleksi ke memori hanya untuk
+       * menghapus satu koleksi; kursor indeks hanya menyentuh baris yang
+       * cocok. Basis warisan tanpa indeks "koleksiWaktu" (versi lama) jatuh
+       * ke pindai seluruh store dengan pemeriksaan `koleksiId` per baris.
+       */
+      let sumber = storePartai;
+      let rentang;
+      try {
+        if (storePartai.indexNames.contains("koleksiWaktu")) {
+          sumber = storePartai.index("koleksiWaktu");
+          rentang = IDBKeyRange.bound([koleksiId, -Infinity], [koleksiId, Infinity]);
+        }
+      } catch {
+        sumber = storePartai;
+        rentang = undefined;
+      }
+      const req = sumber.openCursor(rentang);
+      req.onsuccess = (e) => {
+        const kursor = e.target.result;
+        if (!kursor) return; // selesai — tx.oncomplete yang menyelesaikan
+        if (kursor.value?.koleksiId === koleksiId) kursor.delete();
+        kursor.continue();
+      };
+      req.onerror = () => akhiri(false);
     } catch {
-      resolve(false);
+      akhiri(false);
     }
   });
 }
@@ -1223,24 +1301,9 @@ export async function imporPgnKeBasisData(teksPgn, { label = "Impor PGN" } = {})
   if (!teksPgn || !teksPgn.trim()) return { tersimpan: 0 };
   const raw = teksPgn.trim();
 
-  // Pisahkan berdasarkan awal tag [Event
-  const blokPartai = [];
-  const baris = raw.split("\n");
-  let buffer = [];
-
-  for (const b of baris) {
-    if (/^\s*\[Event\s+/i.test(b) && buffer.length > 0) {
-      const gabung = buffer.join("\n").trim();
-      if (gabung) blokPartai.push(gabung);
-      buffer = [b];
-    } else {
-      buffer.push(b);
-    }
-  }
-  if (buffer.length > 0) {
-    const gabung = buffer.join("\n").trim();
-    if (gabung) blokPartai.push(gabung);
-  }
+  // Pecah multi-partai lewat alat bersama (dipakai juga analisis di
+  // `bacaPartaiPGN`): impor dan analisis sepakat soal batas antar-partai.
+  const blokPartai = pecahMultiPgn(raw);
 
   const hasilPartai = [];
   for (const blok of blokPartai) {
@@ -1255,12 +1318,21 @@ export async function imporPgnKeBasisData(teksPgn, { label = "Impor PGN" } = {})
       const bName = headers.Black || "Hitam";
       const wElo = Number(headers.WhiteElo) || 0;
       const bElo = Number(headers.BlackElo) || 0;
-      let hasil = "draw";
-      if (headers.Result === "1-0") hasil = "white";
-      else if (headers.Result === "0-1") hasil = "black";
+      // Tag Result tidak selalu ada (PGN tanpa header) — jatuhkan ke token
+      // hasil di ujung movetext sebelum menyerah ke "draw".
+      const tokenAkhir = /\b(1-0|0-1|1\/2-1\/2|\*)\s*$/.exec(blok)?.[1];
+      const hasil = normalisasiHasil(headers.Result || tokenAkhir);
 
       hasilPartai.push({
-        id: `impor:${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        /*
+         * ID dari HASH isi PGN (bukan acak): mengimpor berkas yang sama dua
+         * kali menimpa baris yang sama (`put`), bukan menggandakan.
+         * CATATAN MIGRASI: baris impor lama (`impor:<waktu>_<acak>`) tetap
+         * valid dan tidak disentuh — duplikat yang telanjur ada dibiarkan
+         * (menghapusnya berisiko menghilangkan data pengguna); hanya impor
+         * BARU yang terdedup otomatis.
+         */
+        id: `impor:${hashPgn(blok)}`,
         platform: "impor",
         username: "impor",
         pgn: blok,

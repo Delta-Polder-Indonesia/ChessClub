@@ -205,8 +205,11 @@ await uji("posisi skakmat tidak dikirim ke engine", async () => {
   const mesin = engineTiruan([]);
   const hasil = await parseMove(mesin, 12, move, new Chess(), [EVAL(0)], undefined, false, {}, () => {}, null);
   assert.equal(mesin.kedalaman.length, 0, "engine tidak boleh dipanggil");
-  assert.deepEqual(hasil.previousStaticEvals[0], ["mate"]);
+  assert.deepEqual(hasil.previousStaticEvals[0], ["mate", "0"]);
   assert.equal(hasil.bestMove, undefined);
+  assert.equal(hasil.statusEvaluasi, "siap");
+  assert.equal(hasil.isForced, false);
+  assert.equal(hasil.kritis, null);
 });
 
 await uji("posisi remis (pat) diberi eval 0, bukan evaluasi kosong", async () => {
