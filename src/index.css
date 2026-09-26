@@ -964,6 +964,15 @@ section[id] {
   animation: bidak-bergerak 280ms ease-out both;
 }
 
+@keyframes bidak-overlay-bergerak {
+  from { transform: translate(0, 0); }
+  to { transform: translate(var(--tujuan-x), var(--tujuan-y)); }
+}
+
+.bidak-overlay-bergerak {
+  animation: bidak-overlay-bergerak 300ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .bidak-bergerak {
     animation: none;
