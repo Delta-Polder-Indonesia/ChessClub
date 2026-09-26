@@ -251,7 +251,6 @@ export default function PapanTekaTeki({
   kesalahan = null,
   langkahAkhir = null,
   animasiLangkah = false,
-  bidakAnimasi = null,
   tanda = { panah: [], petak: {} },
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
   // Bantuan langkah saat menyeret (assisted play): petak tujuan diwarnai
@@ -762,10 +761,10 @@ export default function PapanTekaTeki({
               {bidak && !sedangDiseret && (
                 <span
                   className={`relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none ${
-                    false ? "bidak-bergerak" : ""
+                    animasiLangkah && jadiAkhir && langkahAkhir.from !== langkahAkhir.to ? "bidak-bergerak" : ""
                   }`}
                   style={
-                    false && jadiAkhir && langkahAkhir.to === sq
+                    animasiLangkah && jadiAkhir && langkahAkhir.to === sq
                       ? {
                           "--gerak-x": `${(FILE.indexOf(langkahAkhir.from[0]) - FILE.indexOf(sq[0])) * 113.64}%`,
                           "--gerak-y": `${(Number(sq[1]) - Number(langkahAkhir.from[1])) * 113.64}%`,
@@ -846,24 +845,7 @@ export default function PapanTekaTeki({
         })}
       </div>
 
-      {animasiLangkah && bidakAnimasi && (
-        <div
-          key={bidakAnimasi.id}
-          className="pointer-events-none absolute z-50 flex items-center justify-center bidak-overlay-bergerak"
-          style={{
-            left: `${(petak.indexOf(bidakAnimasi.from) % 8) * 12.5}%`,
-            top: `${Math.floor(petak.indexOf(bidakAnimasi.from) / 8) * 12.5}%`,
-            width: "12.5%",
-            height: "12.5%",
-            "--tujuan-x": `${((petak.indexOf(bidakAnimasi.to) % 8) - (petak.indexOf(bidakAnimasi.from) % 8)) * 100}%`,
-            "--tujuan-y": `${(Math.floor(petak.indexOf(bidakAnimasi.to) / 8) - Math.floor(petak.indexOf(bidakAnimasi.from) / 8)) * 100}%`,
-          }}
-        >
-          <ChessPiece piece={bidakAnimasi.piece} set={setBidak} className="h-[88%] w-[88%] drop-shadow" />
-        </div>
-      )}
-
-      {/* Lapisan panah — poligon persis ala chess.com (fill + opacity 0.8). */
+      {/* Lapisan panah — poligon persis ala chess.com (fill + opacity 0.8). */}
       <svg
         className="arrows pointer-events-none absolute inset-0 z-30 h-full w-full"
         viewBox="0 0 100 100"
