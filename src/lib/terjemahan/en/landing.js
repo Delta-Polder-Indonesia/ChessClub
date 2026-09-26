@@ -71,10 +71,10 @@ export const landing = {
     tigaJalanLatihanDesk:
       "An interactive opening book board and tactical puzzles to sharpen your calculation every day, ready in the browser with no installation.",
     tigaJalanLatihanCta: "Start practicing",
-    tigaJalanAnalisaJudul: "Game Analysis",
+    tigaJalanAnalisaJudul: "Analysis Report",
     tigaJalanAnalisaDesk:
       "Replay your games, explore variations, and compare them with engine analysis to understand your critical moves.",
-    tigaJalanAnalisaCta: "Open analysis",
+    tigaJalanAnalisaCta: "Open analysis report",
     testimoniLabel: "From the members",
     testimoniJudul: "What community players say",
     testimoniLeadAria: "Featured quote from a member",

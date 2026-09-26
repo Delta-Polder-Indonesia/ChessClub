@@ -1312,7 +1312,8 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
         {/* ═══════════════════════════════════════════════════════ */}
         {/* SIDEBAR KIRI                                           */}
         {/* ═══════════════════════════════════════════════════════ */}
-        <aside className={`${tertanam ? "hidden" : "w-full lg:w-[220px] bg-[#1e1c18] flex flex-col justify-between py-4 border-r border-b lg:border-b-0 border-[#312e2b] flex-shrink-0 overflow-y-auto"}`}>
+        {!tertanam && (
+        <aside className="w-full lg:w-[220px] bg-[#1e1c18] flex flex-col justify-between py-4 border-r border-b lg:border-b-0 border-[#312e2b] flex-shrink-0 overflow-y-auto">
           <div>
             {/* Brand */}
             <div className="px-5 pb-4 mb-5 flex items-center border-b border-[#312e2b]">
@@ -1373,6 +1374,7 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
             </Link>
           </div>
         </aside>
+        )}
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/* AREA UTAMA                                            */}
@@ -1399,7 +1401,7 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
             </div>
           ) : (
             <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-3">
-              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0">
+              <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── PROFIL HITAM (ATAS) ─── */}
                 <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mb-2">
                   <div className="flex flex-row items-center gap-3 min-w-0 flex-1">

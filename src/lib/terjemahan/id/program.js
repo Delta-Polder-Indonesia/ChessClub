@@ -365,7 +365,7 @@ export const fiturEbook = {
   }
 
 export const analisaLanding = {
-    judul: "Analisis Permainan",
+    judul: "Report Analisa",
     deskripsi:
       "Sebelum masuk ke papan, kenali cara kerja analisis: setiap langkah dinilai Stockfish — brilian, terbaik, unggul, layak, keliru, kesalahan, hingga blunder — disertai saran engine dan ringkasan akurasi.",
     metaDeskripsi:

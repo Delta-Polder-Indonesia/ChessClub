@@ -363,7 +363,7 @@ export const fiturEbook = {
   }
 
 export const analisaLanding = {
-    judul: "Game Analysis",
+    judul: "Analysis Report",
     deskripsi:
       "Before you open the board, learn how analysis works: every move is scored by Stockfish — brilliant, best, excellent, good, inaccuracy, mistake, blunder — with the engine's suggestion and an accuracy summary.",
     metaDeskripsi:

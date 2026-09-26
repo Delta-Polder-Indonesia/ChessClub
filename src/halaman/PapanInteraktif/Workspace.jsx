@@ -1,5 +1,4 @@
 import { Suspense, lazy, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import IkonTab from "./IkonTab.jsx";
 
@@ -19,8 +18,7 @@ function KerangkaMode() {
 
 export default function WorkspacePapanInteraktif() {
   const { t } = useI18n();
-  const [mode, setMode] = useState(null);
-  const [jelajahBuku, setJelajahBuku] = useState(false);
+  const [mode, setMode] = useState("papan");
 
   useEffect(() => {
     document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;
@@ -28,7 +26,6 @@ export default function WorkspacePapanInteraktif() {
 
   function pilihMode(berikutnya) {
     setMode(berikutnya);
-    setJelajahBuku(false);
   }
 
   return (
@@ -45,13 +42,19 @@ export default function WorkspacePapanInteraktif() {
             aria-label={t("papan.menuMode")}
             className="flex max-w-full gap-2 overflow-x-auto px-3 pb-2 lg:flex-col lg:gap-1 lg:overflow-visible"
           >
-            <Link
-              to="/program-kami/analisa"
-              className="flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-sm font-semibold text-gray-300 transition hover:border-[#3b3935] hover:bg-[#262421] hover:text-white lg:min-w-0 lg:flex-none"
+            <button
+              type="button"
+              aria-pressed={mode === "papan"}
+              onClick={() => pilihMode("papan")}
+              className={`flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
+                mode === "papan"
+                  ? "border-[#81b64c]/40 bg-[#81b64c]/10 text-white"
+                  : "border-transparent text-gray-300 hover:border-[#3b3935] hover:bg-[#262421] hover:text-white"
+              }`}
             >
               <IkonTab nama="analisa" className="h-5 w-5 shrink-0" />
               <span className="truncate">{t("papan.menuAnalisa")}</span>
-            </Link>
+            </button>
 
             <button
               type="button"
@@ -89,29 +92,10 @@ export default function WorkspacePapanInteraktif() {
         <Suspense fallback={<KerangkaMode />}>
           {mode === "engine" ? (
             <ManusiaVsMesin />
-          ) : mode === "repertoar" && jelajahBuku ? (
-            <div className="flex h-full min-h-0 flex-col">
-              <div className="shrink-0 border-b border-[#312e2b] px-4 py-2">
-                <button
-                  type="button"
-                  onClick={() => setJelajahBuku(false)}
-                  className="rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#312e2b] hover:text-white"
-                >
-                  {t("papan.workspaceKembali")}
-                </button>
-              </div>
-              <div className="min-h-0 flex-1">
-                <PapanBuku tertanam />
-              </div>
-            </div>
           ) : mode === "repertoar" ? (
-            <LatihanRepertoar onJelajahBuku={() => setJelajahBuku(true)} />
+            <LatihanRepertoar onJelajahBuku={() => pilihMode("papan")} />
           ) : (
-            <section className="m-auto max-w-2xl px-6 py-10 text-center">
-              <h1 className="text-2xl font-bold text-white">{t("papan.workspaceJudul")}</h1>
-              <p className="mt-3 text-sm leading-relaxed text-gray-400">{t("papan.workspaceDeskripsi")}</p>
-              <p className="mt-5 text-xs font-semibold uppercase tracking-wide text-[#a3d168]">{t("papan.workspacePilih")}</p>
-            </section>
+            <PapanBuku tertanam />
           )}
         </Suspense>
       </main>

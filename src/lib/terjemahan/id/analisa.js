@@ -5,7 +5,7 @@
 
 export const analisa = {
     remah: "Remah navigasi",
-    judul: "Analisis Permainan",
+    judul: "Report Analisa",
     tagline: "Bedah setiap langkah permainan Anda dengan Stockfish lokal",
     deskripsi:
       "Tempel PGN dari Chess.com atau Lichess, ambil daftar permainan lewat nama pengguna, atau mulai dari satu posisi FEN. Setiap langkah diberi label — brilian, terbaik, layak, keliru, blunder — disertai saran engine, grafik evaluasi, dan ringkasan akurasi kedua pemain.",
@@ -15,7 +15,7 @@ export const analisa = {
       "Masukkan langkah pembukaan pada papan catur di bawah ini untuk melihat nama pembukaan catur tersebut dan mendapatkan statistik dari permainan Grandmaster manusia untuk setiap langkah. Basis data kami berisi sekitar 26 juta langkah dari permainan Grandmaster catur terbaru dan memberi Anda gambaran tentang apa pun yang telah dimainkan oleh pemain catur manusia yang kuat.",
     petunjuk:
       "Pintasan papan: kiri/kanan untuk mundur/maju, atas/bawah ke langkah pertama/terakhir, spasi untuk memutar otomatis, Tab untuk berpindah panel.",
-    metaJudul: "Analisis Permainan Catur Gratis",
+    metaJudul: "Report Analisa Catur Gratis",
     metaDeskripsi:
       "Analisis PGN dan FEN gratis dengan engine Stockfish lokal: label per langkah, grafik evaluasi, akurasi pemain, dan papan latihan. Permainan Anda tidak pernah diunggah.",
     bukaAplikasi: "Buka alat analisis",

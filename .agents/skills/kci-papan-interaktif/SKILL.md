@@ -14,21 +14,21 @@ Ikuti protokol di `AGENTS.md`, `kci-frontend`, dan `kci-pengujian`.
 ## Arah produk
 
 `/papan-interaktif` berkembang bertahap menjadi workspace papan catur modular. Untuk tahap ini, sidebar kiri dibatasi **tepat tiga pilihan**:
-1. **Analisa** — pintasan ke halaman Analisa yang sudah ada.
+1. **Analisa** — mode papan bebas/Opening Book lama; tampil langsung saat halaman dibuka, bukan pintasan ke Report Analisa.
 2. **Manusia vs Mesin** — mode bermain baru yang terpisah; gunakan engine lokal situs secara on-demand.
 3. **Latihan Repertoar** — latihan mengingat jalur pembukaan dengan pengulangan terjadwal, bukan bank soal taktik kedua.
 
-Jangan menambahkan item sidebar lain dulu. Buku Pembukaan yang sudah ada tetap dipertahankan, tetapi bukan item sidebar tersendiri untuk tahap ini. Tab `Analisa | Buku | Penjelajah | Partai` yang ada sekarang adalah tab detail panel kanan, bukan pilihan sidebar.
+Jangan menambahkan item sidebar lain dulu. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
 
-Sebelum membangun tiap mode baru, bandingkan dengan halaman Analisa, Teka-teki, Teka-teki Rush, Database PGN, dan fitur yang sudah ada. Jika fungsinya tersedia, tautkan atau gunakan kembali alurnya; jangan membuat salinan. Daftar menu ini membatasi pilihan navigasi, bukan izin untuk mengimplementasikan semua perilaku mode sekaligus.
+Sebelum membangun tiap mode baru, bandingkan dengan halaman Report Analisa, Teka-teki, Teka-teki Rush, Database PGN, dan fitur yang sudah ada. Gunakan kembali bagian yang relevan tanpa menautkan sidebar Papan Interaktif ke fitur lain atau membuat salinannya. Daftar menu ini membatasi pilihan navigasi, bukan izin untuk mengimplementasikan semua perilaku mode sekaligus.
 
 ## Batas produk: jangan menduplikasi halaman lain
 
-### Analisa (`/program-kami/analisa`)
+### Report Analisa (`/program-kami/analisa`)
 
-Halaman Analisa sudah memiliki impor dan pemindaian PGN, engine Stockfish, MultiPV, klasifikasi langkah termasuk mistake/blunder, evaluasi dan grafik, statistik akun, basis data PGN lokal, serta ekspor PGN beranotasi. Menu `Analisa` di sidebar Papan Interaktif sebaiknya menjadi **tautan ke halaman yang sama**, kecuali pengguna menyetujui integrasi yang memiliki fungsi baru dan tidak menggandakan alur.
+Halaman Report Analisa sudah memiliki impor dan pemindaian PGN, engine Stockfish, MultiPV, klasifikasi langkah termasuk mistake/blunder, evaluasi dan grafik, statistik akun, basis data PGN lokal, serta ekspor PGN beranotasi. Menu `Analisa` di sidebar Papan Interaktif **tetap di dalam workspace** dan menampilkan papan Opening Book lama, bukan halaman laporan tersebut.
 
-Analisa v1 ditandai dibekukan di `src/halaman/Analisa/README.md`. Perubahan di halaman itu perlu dianggap sebagai rencana v2 dan tetap menjaga seluruh uji regresinya.
+Report Analisa v1 ditandai dibekukan di `src/halaman/Analisa/README.md`. Perubahan di halaman itu perlu dianggap sebagai rencana v2 dan tetap menjaga seluruh uji regresinya.
 
 ### Teka-teki dan Teka-teki Rush
 
@@ -44,9 +44,9 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 ## Arsitektur
 
 - `Workspace.jsx` adalah shell rute: sidebar kiri dan satu mode aktif. `src/App.jsx` memuat shell ini secara lazy.
-- `Analisa` tetap menjadi tautan ke halaman `/program-kami/analisa` yang sudah ada.
+- `Analisa` memilih papan Opening Book di area kerja; Report Analisa (`/program-kami/analisa`) tetap terpisah di menu Program Kami.
 - `modus/ManusiaVsMesin.jsx` dan `modus/LatihanRepertoar.jsx` dipisahkan sebagai chunk lazy. Jangan render atau memuat worker mode lain saat pengguna berpindah.
-- `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; muat hanya saat pengguna memilih **Jelajah Buku Pembukaan** dari Latihan Repertoar.
+- `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; muat saat masuk ke halaman sebagai mode bawaan atau saat pengguna memilih **Jelajah Buku Pembukaan** dari Latihan Repertoar. Jangan pasang teks pengantar atau bilah kembali di atas papan.
 - Panel kanan `analisa | books | explorer | games` tetap menjadi tab detail di tampilan Buku Pembukaan, bukan navigasi global.
 - State khusus tiap mode tetap terisolasi. Buat util bersama hanya bila benar-benar dipakai lebih dari satu mode dan kontraknya teruji.
 - Pertahankan papan React custom dan set bidak proyek sebagai pilihan awal. En Croissant boleh menjadi acuan interaksi, tetapi bukan alasan otomatis untuk mengganti papan ke Chessground atau menyalin board desktop.
@@ -75,7 +75,8 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 - Panel kanan: `analisa | books | explorer | games` (label ID/EN melalui `papan.*`).
 - `books`: daftar jalur/saran pembukaan; `explorer`: artikel pembukaan; `games`: statistik/kelanjutan buku atau basis data awan; `analisa`: panel posisi pembukaan yang sudah ada.
-- Sidebar kiri berisi tepat tiga pilihan aktif: Analisa (tautan ke halaman yang sudah ada), Manusia vs Mesin, dan Latihan Repertoar. Buku Pembukaan lama dibuka dari dalam Latihan Repertoar; tidak menambah item sidebar keempat.
+- Sidebar kiri berisi tepat tiga mode internal: Analisa (papan Opening Book lama, langsung tampil), Manusia vs Mesin, dan Latihan Repertoar. Tombol Jelajah Buku Pembukaan di Repertoar kembali ke mode Analisa; tidak menambah item sidebar keempat atau tautan ke fitur lain.
+- Pada laptop, papan dan panel tampil dalam satu layar tanpa scrollbar halaman/papan. Konten panjang pada tab panel kanan boleh digulir di dalam panel agar fiturnya tetap terjangkau.
 - Manusia vs Mesin mendukung pilihan warna, tingkat waktu Stockfish, partai baru, papan interaktif, dan riwayat langkah. Tidak menampilkan panah best-move saat pemain sedang bermain.
 - Latihan Repertoar mencari jalur dari buku CC0, membangun kartu hanya untuk warna yang dipilih, menilai lagi/sulit/baik/mudah, dan menyimpan jadwal lokal ke IndexedDB (dengan fallback browser).
 - Tema papan gelap dan aksen hijau adalah identitas mode ini. Pertahankan selama tidak ada permintaan restyling.
@@ -83,9 +84,15 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 ## Batasan mode baru
 
 - PvE hanya berada di mode **Manusia vs Mesin**. Jangan mengubah Buku Pembukaan menjadi mode lawan engine.
-- Jangan membuat fitur yang sudah ada di Analisa atau Teka-teki dengan nama/antarmuka baru.
+- Jangan membuat fitur yang sudah ada di Report Analisa atau Teka-teki dengan nama/antarmuka baru.
 - Jangan menambah PvP daring, sinkronisasi cloud, fitur sosial, engine tambahan, atau korpus PGN besar tanpa permintaan dan rancangan terpisah.
 - Jangan menghapus atau melemahkan pengujian/guardrail fitur Buku Pembukaan saat menambah mode.
+
+## Acuan pemulihan atas permintaan pengguna
+
+- [PR #146](https://github.com/Delta-Polder-Indonesia/ChessClub/pull/146), cabang `arena/01a0d842-chessclub` (head `9121768334e9a6820850a2f3978b3b53613e5e98`), adalah snapshot repo **sebelum Papan Interaktif dimodifikasi menjadi workspace mode baru**. PR itu sendiri tentang teks komentator, bukan implementasi mode papan.
+- Jika pengguna kelak meminta riset atau pengembalian karena fitur papan baru tidak sesuai, ambil/clone snapshot PR #146 **sebagai referensi** dan bandingkan kode, tampilan, serta uji Papan Interaktif. Tujuannya memulihkan **seluruh perubahan Papan Interaktif** ke perilaku sebelum modifikasi, bukan menghapus perubahan pada fitur situs lain. Jangan melakukan rollback otomatis; tunggu permintaan dan persetujuan eksplisit untuk langkah pemulihan.
+- Jangan menambah mode, teks pengantar, atau ide antarmuka baru tanpa rujukan perilaku fitur yang sudah ada dan persetujuan pengguna. Hindari desain "AI slop" yang menyimpang dari referensi pengguna.
 
 ## i18n, pengujian, dan urutan kerja
 
