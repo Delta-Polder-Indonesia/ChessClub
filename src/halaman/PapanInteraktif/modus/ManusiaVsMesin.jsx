@@ -342,7 +342,6 @@ export default function ManusiaVsMesin() {
   // menelusuri mundur — sumber untuk redo/ke akhir, persis ala mode Buku.
   const [riwayatLengkap, setRiwayatLengkap] = useState([]);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
-  const [bidakAnimasi, setBidakAnimasi] = useState(null);
   const [langkahDialog, setLangkahDialog] = useState(null);
   const [tanda, setTanda] = useState({ panah: [], petak: {} });
   const [terpilih, setTerpilih] = useState(null);
@@ -401,8 +400,6 @@ export default function ManusiaVsMesin() {
       }
 
       const fenBaru = game.fen();
-      setBidakAnimasi({ piece: piece.color === "w" ? piece.type.toUpperCase() : piece.type, from, to, id: `${from}-${to}-${Date.now()}` });
-      window.setTimeout(() => setBidakAnimasi(null), 320);
       fenRef.current = fenBaru;
       setFen(fenBaru);
       setRiwayat((lama) => [...lama, pindah.san]);
@@ -733,8 +730,6 @@ export default function ManusiaVsMesin() {
                 terpilih={terpilih}
                 sasaran={sasaran}
                 langkahAkhir={langkahAkhir}
-                animasiLangkah
-                bidakAnimasi={bidakAnimasi}
                 tanda={tanda}
                 terkunci={!bolehGerak}
                 membeku={false}
