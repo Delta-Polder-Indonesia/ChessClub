@@ -348,5 +348,202 @@ await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1"
   );
 }
 
+/* =================== C. mode Manusia vs Mesin (jsdom) =================== */
+
+/*
+ * Mode Manusia vs Mesin memakai papan yang sama, tetapi alurnya sendiri:
+ * langkah pemain lewat klik ATAU seret, dan langkah mesin dijalankan sebagai
+ * "klik lawan" (src/halaman/PapanInteraktif/modus/gerakLawan.js) sebelum FEN
+ * berganti. Uji ini memasang mesin UCI palsu lalu memeriksa bidak benar-benar
+ * meluncur di mode itu — termasuk aturan bahwa bidak yang DISERET pemain tidak
+ * diluncurkan ulang, sementara balasan mesin tetap meluncur.
+ */
+
+console.log("\nC. mode Manusia vs Mesin");
+
+const MASUK_PVE = `
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { I18nProvider } from "./src/lib/i18n.jsx";
+import ManusiaVsMesin from "./src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx";
+
+export function mountPve(el) {
+  return createRoot(el).render(
+    <I18nProvider>
+      <ManusiaVsMesin />
+    </I18nProvider>
+  );
+}
+`;
+
+const berkasPve = path.join(tmpdir(), "kci-uji-animasi-pve.cjs");
+await build({
+  stdin: {
+    contents: MASUK_PVE,
+    resolveDir: ROOT,
+    loader: "jsx",
+    sourcefile: "uji-animasi-pve-entry.jsx",
+  },
+  bundle: true,
+  format: "cjs",
+  platform: "browser",
+  outfile: berkasPve,
+  loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "empty" },
+  banner: { js: "function __globPalsu() { return {}; }" },
+  define: {
+    "process.env.NODE_ENV": '"development"',
+    "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+    "import.meta.glob": "__globPalsu",
+  },
+  logLevel: "error",
+});
+
+/**
+ * Mesin UCI palsu — jawabannya dipilih dari FEN supaya selalu SAH: 1...e5
+ * selama pion e7 masih di tempat, sesudah itu 2...Nc6.
+ */
+class MesinPalsu {
+  postMessage(perintah) {
+    const cmd = String(perintah);
+    if (cmd === "uci") {
+      this.kirim("id name MesinUji");
+      this.kirim("uciok");
+      return;
+    }
+    if (cmd === "isready") {
+      this.kirim("readyok");
+      return;
+    }
+    if (cmd.startsWith("position fen ")) {
+      this.fen = cmd.slice("position fen ".length).trim();
+      return;
+    }
+    if (cmd.startsWith("go")) {
+      const langkah = String(this.fen || "").includes("4p3") ? "b8c6" : "e7e5";
+      this.timer = setTimeout(() => {
+        this.kirim(`info depth 8 score cp 20 pv ${langkah}`);
+        this.kirim(`bestmove ${langkah}`);
+      }, 10);
+    }
+  }
+  kirim(baris) {
+    this.onmessage?.({ data: baris });
+  }
+  terminate() {
+    clearTimeout(this.timer);
+  }
+  addEventListener() {}
+  removeEventListener() {}
+}
+
+window.Worker = MesinPalsu;
+globalThis.Worker = MesinPalsu;
+
+/** Petak di titik layar — jsdom tidak punya tata letak, jadi dihitung sendiri. */
+function pasangElementFromPoint(papan) {
+  window.document.elementFromPoint = (x, y) => {
+    const kolom = Math.floor(x / (UKURAN / 8));
+    const baris = Math.floor(y / (UKURAN / 8));
+    if (kolom < 0 || kolom > 7 || baris < 0 || baris > 7) return null;
+    const sq = "abcdefgh"[kolom] + (8 - baris);
+    return papan.querySelector(`[data-petak="${sq}"]`);
+  };
+}
+
+/** Titik tengah sebuah petak pada tata letak sintetis (papan 640px). */
+function titikPetak(sq) {
+  const kolom = "abcdefgh".indexOf(sq[0]);
+  const baris = 8 - Number(sq[1]);
+  const kotak = UKURAN / 8;
+  return { x: kolom * kotak + kotak / 2, y: baris * kotak + kotak / 2 };
+}
+
+function kirimEvent(el, jenis, titik, tambahan = {}) {
+  el.dispatchEvent(
+    new window.MouseEvent(jenis, {
+      bubbles: true,
+      cancelable: true,
+      button: 0,
+      clientX: titik.x,
+      clientY: titik.y,
+      ...tambahan,
+    })
+  );
+}
+
+const wadahPve = window.document.createElement("div");
+window.document.body.appendChild(wadahPve);
+const modulPve = require(berkasPve);
+modulPve.mountPve(wadahPve);
+await tunggu(120);
+
+const tombolMulai = [...wadahPve.querySelectorAll("button")].find(
+  (b) => b.textContent.trim() === "Mulai partai"
+);
+uji("tombol mulai partai ada", !!tombolMulai);
+tombolMulai?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+await tunggu(60);
+
+uji("papan mode Manusia vs Mesin ter-render", wadahPve.querySelectorAll("[data-petak]").length === 64);
+pasangElementFromPoint(wadahPve);
+
+const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);
+
+// 1. Langkah pemain lewat KLIK petak (keluhan asli: "klik move langsung blink").
+catatan.length = 0;
+petakPve("e2")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+await tunggu(20);
+petakPve("e4")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+await tunggu(40);
+{
+  const panggilan = catatan.filter((c) => c.petak === "e4");
+  uji(
+    "klik move pemain meluncurkan bidak ke e4",
+    panggilan.length === 1,
+    `${catatan.length} panggilan: ${JSON.stringify(catatan.map((c) => c.petak))}`
+  );
+  const awal = panggilan[0]?.keyframes?.[0]?.transform || "";
+  uji("luncuran pemain dimulai dari e2 (160px di bawah)", awal.includes("160px"), awal);
+}
+
+// 2. Balasan mesin (lewat "klik lawan" + jeda acak 180-320 ms) juga meluncur.
+catatan.length = 0;
+await tunggu(700);
+{
+  const panggilan = catatan.filter((c) => c.petak === "e5");
+  uji(
+    "balasan mesin meluncur ke e5",
+    panggilan.length === 1,
+    `${catatan.length} panggilan: ${JSON.stringify(catatan.map((c) => c.petak))}`
+  );
+}
+
+// 3. Langkah pemain lewat SERET: bidaknya sudah dilepas di petak tujuan, jadi
+//    tidak diluncurkan ulang — tetapi balasan mesin berikutnya tetap meluncur.
+catatan.length = 0;
+kirimEvent(petakPve("g1"), "pointerdown", titikPetak("g1"));
+await tunggu(20);
+kirimEvent(petakPve("f3"), "pointermove", titikPetak("f3"), { buttons: 1 });
+kirimEvent(petakPve("f3"), "pointerup", titikPetak("f3"));
+await tunggu(60);
+{
+  const diseret = catatan.filter((c) => c.petak === "f3");
+  const pindah = wadahPve.querySelector('[data-petak="f3"] [data-bidak]');
+  uji("seret benar-benar menjalankan langkah (kuda sampai di f3)", !!pindah);
+  uji(
+    "bidak yang diseret tidak diluncurkan ulang",
+    diseret.length === 0,
+    JSON.stringify(catatan.map((c) => c.petak))
+  );
+}
+
+catatan.length = 0;
+await tunggu(700);
+uji(
+  "balasan mesin setelah seret tetap meluncur (Nc6)",
+  catatan.some((c) => c.petak === "c6"),
+  JSON.stringify(catatan.map((c) => c.petak))
+);
+
 console.log(`\n${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

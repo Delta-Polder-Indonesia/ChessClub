@@ -52,7 +52,8 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   langkah dari selisih dua FEN (langkah biasa, pukulan, rokade, en passant, promosi, navigasi
   mundur) dan pengecualiannya (posisi diganti, lompat beberapa langkah, papan dibalik, bidak
   yang baru diseret). Bagian jsdom memeriksa `element.animate()` benar-benar dipanggil pada
-  bidak di petak tujuan.
+  bidak di petak tujuan, termasuk mode Manusia vs Mesin dengan mesin UCI palsu: klik move
+  pemain dan balasan mesin meluncur, sedangkan bidak yang diseret tidak diluncurkan ulang.
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
 - `npm run uji:peta` — penjaga dokumentasi arah: memastikan tidak ada `key_files` mati, semua
   skrip `uji:*` tercatat di berkas ini, tidak ada berkas uji yatim, setiap folder
