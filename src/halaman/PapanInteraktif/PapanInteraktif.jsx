@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import { Link } from "react-router-dom";
 import {
   Bookmark,
   Plus,
@@ -9,7 +8,6 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import License from "../Analisa/komponen/svg/license.jsx";
 import Profile from "../Analisa/komponen/svg/profile.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -1309,72 +1307,6 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
     <div className={`flex flex-col ${tertanam ? "h-full w-full" : "min-h-screen lg:h-screen"} overflow-hidden bg-[#262421] text-gray-200 font-sans select-none`}>
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
 
-        {/* ═══════════════════════════════════════════════════════ */}
-        {/* SIDEBAR KIRI                                           */}
-        {/* ═══════════════════════════════════════════════════════ */}
-        {!tertanam && (
-        <aside className="w-full lg:w-[220px] bg-[#1e1c18] flex flex-col justify-between py-4 border-r border-b lg:border-b-0 border-[#312e2b] flex-shrink-0 overflow-y-auto">
-          <div>
-            {/* Brand */}
-            <div className="px-5 pb-4 mb-5 flex items-center border-b border-[#312e2b]">
-              <span className="font-bold text-[22px] tracking-tight text-white leading-none">
-                Blunder<span className="text-[#81b64c]">Skuad</span>
-              </span>
-            </div>
-
-            {/* Pilihan sidebar tahap ini: hanya tiga item yang sudah disepakati. */}
-            <nav
-              aria-label={t("papan.menuMode")}
-              className="flex max-w-full gap-2 overflow-x-auto px-3 pb-2 lg:flex-col lg:gap-1 lg:overflow-visible"
-            >
-              <Link
-                to="/program-kami/analisa"
-                className="flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-sm font-semibold text-gray-300 transition hover:border-[#3b3935] hover:bg-[#262421] hover:text-white lg:min-w-0 lg:flex-none"
-              >
-                <IkonTab nama="analisa" className="h-5 w-5 shrink-0" />
-                <span className="truncate">{t("papan.menuAnalisa")}</span>
-              </Link>
-
-              <button
-                type="button"
-                disabled
-                title={t("papan.menuSegera")}
-                className="flex min-w-[190px] flex-1 cursor-not-allowed items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left text-sm font-semibold text-gray-500 opacity-70 lg:min-w-0 lg:flex-none"
-              >
-              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
-              <span className="min-w-0 flex-1 truncate">{t("papan.menuManusiaMesin")}</span>
-                <span className="shrink-0 rounded bg-[#262421] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500">
-                  {t("papan.menuSegera")}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                disabled
-                title={t("papan.menuSegera")}
-                className="flex min-w-[190px] flex-1 cursor-not-allowed items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left text-sm font-semibold text-gray-500 opacity-70 lg:min-w-0 lg:flex-none"
-              >
-                <IkonTab nama="books" className="h-5 w-5 shrink-0" />
-                <span className="min-w-0 flex-1 truncate">{t("papan.menuLatihanRepertoar")}</span>
-                <span className="shrink-0 rounded bg-[#262421] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500">
-                  {t("papan.menuSegera")}
-                </span>
-              </button>
-            </nav>
-          </div>
-
-          {/* Kaki sidebar */}
-          <div className="px-4 pt-3 flex justify-center text-gray-500 text-xs border-t border-[#312e2b]">
-            <Link
-              to="/program-kami/atribusi"
-              className="flex items-center gap-1.5 hover:text-white transition"
-            >
-              <License size={14} class="fill-current" />
-              Lisensi & Atribusi
-            </Link>
-          </div>
-        </aside>
-        )}
 
         {/* ═══════════════════════════════════════════════════════ */}
         {/* AREA UTAMA                                            */}
