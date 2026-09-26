@@ -440,9 +440,9 @@ export default function ManusiaVsMesin() {
       await klikLawan(papanRef.current, from);
       if (token !== tokenLawanRef.current) return;
       lawanKlikRef.current = null;
-      mainstreamkanLangkah(from, to, promosi);
+      mainkanLangkah(from, to, promosi);
     },
-    [mainkan, mainstreamkanLangkah]
+    [mainkan, mainkanLangkah]
   );
 
   // Worker hanya hidup selama mesin harus menjawab. Kekuatan dipasang lewat
