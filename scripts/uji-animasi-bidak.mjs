@@ -521,11 +521,11 @@ modulPve.GESTUR.jedaRagu = [5, 5];
 modulPve.GESTUR.peluangRagu = 0;
 modulPve.mountPve(wadahPve);
 const cariMulai = () =>
-  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Mulai partai");
+  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Main");
 await tungguSampai(() => !!cariMulai());
 
 const tombolMulai = cariMulai();
-uji("tombol mulai partai ada", !!tombolMulai);
+uji("tombol main ada", !!tombolMulai);
 tombolMulai?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 await tungguSampai(() => wadahPve.querySelectorAll("[data-petak]").length === 64);
 

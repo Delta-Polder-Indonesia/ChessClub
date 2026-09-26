@@ -152,7 +152,7 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     // Panel pra-partai berganti jadi panel partai berjalan: konfigurasi
     // disembunyikan dan jalan keluarnya lewat Menyerah (dulu tombol
     // "Partai baru"). Memulai partai juga membersihkan tanda pengguna.
-    await page.getByRole("button", { name: kamus.pveMulai }).click();
+    await page.getByRole("button", { name: kamus.pveMulai, exact: true }).click();
     await expect(page.getByRole("button", { name: kamus.pveMenyerah })).toBeVisible();
     await expect(warnaPemain).toHaveCount(0);
     await expect(levelMesin).toHaveCount(0);
@@ -161,7 +161,7 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.getByRole("button", { name: kamus.pveMenyerah }).click();
     await expect(page.getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })).toBeVisible();
     await page.getByRole("button", { name: kamus.pveYa, exact: true }).click();
-    await expect(page.getByRole("button", { name: kamus.pveMulai })).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
 

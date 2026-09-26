@@ -60,7 +60,7 @@ export const papan = {
     pveCepat: "Cepat · 250 ms",
     pveSeimbang: "Seimbang · 600 ms",
     pveKuat: "Kuat · 1.200 ms",
-    pveMulai: "Mulai partai",
+    pveMulai: "Main",
     pvePartaiBaru: "Partai baru",
     pveMenyerah: "Menyerah",
     pveKonfirmasiMenyerah: "Yakin menyerah?",

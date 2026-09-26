@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, Cpu, Flag, FlipVertical2, RotateCw, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
+import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
@@ -726,6 +726,10 @@ export default function ManusiaVsMesin() {
     return baris;
   }, []);
   const dialog = dialogMesin({ statusMesin, hasil, warnaMesin, langkahDialog, t });
+  // Ikon kartu mesin: lambang cip saat diam, lambang otak selama worker hidup
+  // (baru dimuat maupun sedang berpikir). Kembali kecip begitu mesin selesai
+  // menjawab, gagal, atau pertandingan berakhir.
+  const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
@@ -781,7 +785,7 @@ export default function ManusiaVsMesin() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
-              <Cpu className="h-4 w-4" aria-hidden="true" />
+              <IkonMesin className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{NAMA_MESIN}</p>
@@ -953,12 +957,13 @@ export default function ManusiaVsMesin() {
             </button>
             <button
               type="button"
-              disabled
-              title={t("papan.tinjau")}
-              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={mulaiPartai}
+              disabled={!riwayatLengkap.length}
+              title={t("papan.baru")}
+              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <RotateCw className="h-4 w-4 text-gray-400" aria-hidden="true" />
-              <span>{t("papan.tinjau")}</span>
+              <Plus className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <span>{t("papan.baru")}</span>
             </button>
             <button
               type="button"
