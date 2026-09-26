@@ -2,6 +2,8 @@ import { expect, test } from "@playwright/test";
 import { Chess } from "chess.js";
 import { bukuPembukaan as id } from "../../src/lib/terjemahan/id/program.js";
 import { bukuPembukaan as en } from "../../src/lib/terjemahan/en/program.js";
+import { papan as papanId } from "../../src/lib/terjemahan/id/papan.js";
+import { papan as papanEn } from "../../src/lib/terjemahan/en/papan.js";
 
 const LANGKAH = ["d4", "Nf3", "c4", "e3", "g3", "b3", "f4", "d3", "Nc3", "b4", "c3"];
 const BIDAK = { p: "Bidak", n: "Kuda", b: "Gajah", r: "Benteng", q: "Menteri", k: "Raja" };
@@ -68,6 +70,88 @@ for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
       expect(Math.abs(lanjutan.width - kotakArtikel.width)).toBeLessThan(2);
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    expect(galat).toEqual([]);
+  });
+}
+
+for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
+  test(`papan interaktif membuka papan lama tanpa meninggalkan workspace (${bahasa})`, async ({ page }, testInfo) => {
+    const galat = [];
+    page.on("pageerror", (error) => galat.push(error.message));
+    await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
+    await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
+
+    const menu = page.getByRole("navigation", { name: kamus.menuMode });
+    const analisa = menu.getByRole("button", { name: kamus.menuAnalisa, exact: true });
+    await expect(analisa).toHaveAttribute("aria-pressed", "true");
+    await expect(menu.getByRole("link")).toHaveCount(0);
+    await expect(page.locator('a[href="/program-kami/analisa"]')).toHaveCount(0);
+    await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 30_000 });
+    await expect(page.getByRole("tab", { name: kamus.tabBuku })).toBeVisible();
+    await expect(page.getByText(kamus.workspacePilih)).toHaveCount(0);
+    await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
+
+    if (testInfo.project.name === "desktop-chromium") {
+      for (const [lebar, tinggi] of [[1366, 768], [1366, 600], [1024, 768]]) {
+        await page.setViewportSize({ width: lebar, height: tinggi });
+        const ukuran = await page.evaluate(() => {
+          const papan = document.querySelector('[data-petak="e2"]').parentElement.parentElement;
+          const lajur = papan.closest('div[class*="lg:max-w-"]');
+          const batas = papan.getBoundingClientRect();
+          return {
+            lebarDokumen: document.documentElement.scrollWidth,
+            tinggiDokumen: document.documentElement.scrollHeight,
+            lebarLayar: innerWidth,
+            tinggiLayar: innerHeight,
+            atasPapan: batas.top,
+            bawahPapan: batas.bottom,
+            lajurBergulir: lajur.scrollHeight > lajur.clientHeight + 1,
+          };
+        });
+        expect(ukuran.lebarDokumen).toBeLessThanOrEqual(ukuran.lebarLayar);
+        expect(ukuran.tinggiDokumen).toBeLessThanOrEqual(ukuran.tinggiLayar);
+        expect(ukuran.atasPapan).toBeGreaterThanOrEqual(0);
+        expect(ukuran.bawahPapan).toBeLessThanOrEqual(ukuran.tinggiLayar);
+        expect(ukuran.lajurBergulir).toBe(false);
+      }
+    }
+
+    await page.locator('[data-petak="e2"]').click();
+    await page.locator('[data-petak="e4"]').click();
+    await expect(page.getByRole("tabpanel")).toContainText("e4");
+    await page.getByRole("tab", { name: kamus.tabBuku }).click();
+    await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
+
+    await menu.getByRole("button", { name: kamus.menuLatihanRepertoar }).click();
+    await expect(page.getByRole("heading", { name: kamus.repertoarJudul })).toBeVisible();
+    await page.getByRole("button", { name: kamus.repertoarJelajahBuku }).click();
+    await expect(analisa).toHaveAttribute("aria-pressed", "true");
+    await expect(page.locator("[data-petak]")).toHaveCount(64);
+    await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
+
+    await menu.getByRole("button", { name: kamus.menuManusiaMesin }).click();
+    await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
+    await page.getByRole("button", { name: kamus.pveMulai }).click();
+    await expect(page.getByRole("button", { name: kamus.pvePartaiBaru })).toBeVisible();
+    if (testInfo.project.name === "desktop-chromium") {
+      await page.setViewportSize({ width: 1366, height: 600 });
+      const ukuran = await page.evaluate(() => {
+        const papan = document.querySelector('[data-petak="e2"]').parentElement.parentElement;
+        const batas = papan.getBoundingClientRect();
+        return {
+          tinggiDokumen: document.documentElement.scrollHeight,
+          tinggiLayar: innerHeight,
+          bawahPapan: batas.bottom,
+          lajurBergulir: papan.closest("section").scrollHeight > papan.closest("section").clientHeight + 1,
+        };
+      });
+      expect(ukuran.tinggiDokumen).toBeLessThanOrEqual(ukuran.tinggiLayar);
+      expect(ukuran.bawahPapan).toBeLessThanOrEqual(ukuran.tinggiLayar);
+      expect(ukuran.lajurBergulir).toBe(false);
+    }
+    await analisa.click();
+    await expect(page.locator("[data-petak]")).toHaveCount(64);
+    await expect(page).toHaveURL(/\/papan-interaktif$/);
     expect(galat).toEqual([]);
   });
 }

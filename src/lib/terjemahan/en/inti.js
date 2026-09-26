@@ -23,7 +23,7 @@ export const common = {
   }
 
 export const nav = {
-    analisa: "Game analysis",
+    analisa: "Analysis Report",
     tentangKami: "About Us",
     programKami: "Our Programs",
     turnamen: "Tournaments",

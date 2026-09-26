@@ -5,7 +5,7 @@
 
 export const analisa = {
     remah: "Breadcrumb",
-    judul: "Game Analysis",
+    judul: "Analysis Report",
     tagline: "Break down every move of your games with a local Stockfish",
     deskripsi:
       "Paste a PGN from Chess.com or Lichess, pull your game list by username, or start from a single FEN. Every move is labelled — brilliant, best, good, inaccuracy, blunder — with the engine's suggestion, an evaluation chart, and an accuracy summary for both players.",
@@ -15,7 +15,7 @@ export const analisa = {
       "Enter an opening move on the board below to see its name and get statistics from human Grandmaster games for every move. Our database contains about 26 million moves from the latest chess Grandmaster games, giving you an idea of anything strong human chess players have played.",
     petunjuk:
       "Board shortcuts: left/right steps through the game, up/down jump to the first and last move, space plays automatically, Tab switches panel.",
-    metaJudul: "Free Chess Game Analysis",
+    metaJudul: "Free Chess Analysis Report",
     metaDeskripsi:
       "Free PGN and FEN analysis with a local Stockfish engine: per-move labels, evaluation chart, player accuracy, and a practice board. Your games are never uploaded.",
     bukaAplikasi: "Open the analyzer",

@@ -71,10 +71,10 @@ export const landing = {
     tigaJalanLatihanDesk:
       "Papan buku pembukaan interaktif dan teka-teki taktis untuk mengasah kalkulasi setiap hari, siap dipakai di peramban tanpa instalasi.",
     tigaJalanLatihanCta: "Mulai berlatih",
-    tigaJalanAnalisaJudul: "Analisa Partai",
+    tigaJalanAnalisaJudul: "Report Analisa",
     tigaJalanAnalisaDesk:
       "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
-    tigaJalanAnalisaCta: "Buka analisa",
+    tigaJalanAnalisaCta: "Buka Report Analisa",
     testimoniLabel: "Suara dari anggota",
     testimoniJudul: "Apa kata para pecatur komunitas",
     testimoniLeadAria: "Kutipan unggulan dari anggota",

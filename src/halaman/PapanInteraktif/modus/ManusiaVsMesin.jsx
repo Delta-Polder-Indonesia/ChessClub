@@ -207,12 +207,8 @@ export default function ManusiaVsMesin() {
 
   return (
     <div className="grid h-full min-h-0 grid-cols-1 gap-4 overflow-y-auto p-4 lg:grid-cols-[minmax(0,1fr)_300px] lg:overflow-hidden">
-      <section className="mx-auto flex w-full max-w-[660px] flex-col gap-3 lg:min-h-0 lg:overflow-y-auto">
-        <header>
-          <h1 className="text-xl font-bold text-white">{t("papan.pveJudul")}</h1>
-          <p className="mt-1 text-sm text-gray-400">{t("papan.pveDeskripsi")}</p>
-        </header>
-        <div className="relative mx-auto aspect-square w-full max-w-[620px]">
+      <section aria-label={t("papan.pveJudul")} className="mx-auto flex w-full max-w-[660px] flex-col items-center justify-center lg:min-h-0 lg:overflow-hidden">
+        <div className="relative mx-auto aspect-square w-full max-w-[620px] lg:max-w-[min(620px,calc(100dvh-32px))]">
           <PapanTekaTeki
             fen={fen}
             orientasi={warnaPemain}
