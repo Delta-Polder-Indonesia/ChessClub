@@ -154,6 +154,81 @@ hasil(
   "jalankan `npm run peta` lalu commit hasilnya"
 );
 
+/* ---------------- 8. Frontmatter SKILL.md sah ---------------- */
+
+// Syarat pemuatan skill di opencode (diverifikasi dari sumbernya): folder `.agents/skills/<name>/`
+// harus berisi `SKILL.md` ber-frontmatter YAML dengan `name` SAMA dengan nama folder, `description`
+// 1-1024 karakter, dan `metadata` berupa peta string ke string. Frontmatter yang tidak sah membuat
+// skill DILEWATI tanpa pesan yang jelas ke pengguna — persis kegagalan senyap yang ingin dicegah uji ini.
+console.log("\n8. Frontmatter SKILL.md sesuai aturan pemuatan opencode");
+
+const POLA_NAMA_SKILL = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const folderSkill = readdirSync(path.join(ROOT, ".agents/skills"), { withFileTypes: true })
+  .filter((entri) => entri.isDirectory())
+  .map((entri) => entri.name)
+  .sort();
+
+const tanpaFrontmatter = [];
+const namaSalah = [];
+const deskripsiSalah = [];
+for (const nama of folderSkill) {
+  const relatif = `.agents/skills/${nama}/SKILL.md`;
+  if (!ada(relatif)) {
+    tanpaFrontmatter.push(`${nama}: SKILL.md tidak ada`);
+    continue;
+  }
+  const blok = baca(relatif).match(/^---\n([\s\S]*?)\n---(\n|$)/);
+  if (!blok) {
+    tanpaFrontmatter.push(`${nama}: frontmatter YAML tidak ditemukan`);
+    continue;
+  }
+
+  const barisFrontmatter = blok[1].split("\n");
+  const nilaiKunci = (kunci) => {
+    const baris = barisFrontmatter.find((b) => new RegExp(`^${kunci}\\s*:`).test(b));
+    return baris ? baris.replace(new RegExp(`^${kunci}\\s*:`), "").trim() : null;
+  };
+
+  const namaSkill = nilaiKunci("name");
+  if (namaSkill !== nama || !POLA_NAMA_SKILL.test(namaSkill || "") || namaSkill.length > 64) {
+    namaSalah.push(`${nama}: name="${namaSkill}" (harus sama dengan nama folder, pola huruf kecil/angka dipisah satu '-')`);
+  }
+
+  const deskripsi = nilaiKunci("description");
+  const masalahDeskripsi = [];
+  if (!deskripsi) masalahDeskripsi.push("description kosong");
+  else {
+    if (deskripsi.length > 1024) masalahDeskripsi.push(`description ${deskripsi.length} karakter (maks 1024)`);
+    // ": " di nilai tanpa tanda kutip membuat YAML membacanya sebagai peta bersarang.
+    if (/:\s/.test(deskripsi)) masalahDeskripsi.push('description memuat ": " (bikin YAML rusak; ganti dengan " - ")');
+  }
+
+  const indeksMetadata = barisFrontmatter.findIndex((b) => /^metadata\s*:/.test(b));
+  if (indeksMetadata !== -1) {
+    for (const baris of barisFrontmatter.slice(indeksMetadata + 1)) {
+      if (!baris.trim()) continue;
+      if (!/^\s+/.test(baris)) break; // keluar dari blok metadata
+      if (!/^\s+[A-Za-z0-9_-]+:\s*\S/.test(baris)) {
+        masalahDeskripsi.push(`metadata harus "kunci: nilai" satu tingkat (baris: ${baris.trim()})`);
+        break;
+      }
+    }
+  }
+  if (masalahDeskripsi.length) deskripsiSalah.push(`${nama}: ${masalahDeskripsi.join("; ")}`);
+}
+
+hasil(
+  `semua ${folderSkill.length} folder skill punya SKILL.md ber-frontmatter`,
+  tanpaFrontmatter.length === 0,
+  tanpaFrontmatter.join("; ")
+);
+hasil("name setiap SKILL.md sama dengan nama folder", namaSalah.length === 0, namaSalah.join("; "));
+hasil(
+  "description 1-1024 karakter dan metadata peta string",
+  deskripsiSalah.length === 0,
+  deskripsiSalah.join("; ")
+);
+
 /* ---------------- Ringkasan ---------------- */
 
 console.log(`\n${gagal === 0 ? "LULUS" : "GAGAL"}: ${lulus} lulus, ${gagal} gagal.`);

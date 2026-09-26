@@ -168,3 +168,5 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 3. Setiap berkas uji dipanggil minimal satu skrip npm (tidak ada uji yatim).
 4. Setiap folder di `src/halaman/` terdaftar di peta navigasi.
 5. Keempat cermin pada bagian 4 tetap sinkron.
+6. Frontmatter setiap `SKILL.md` memenuhi syarat pemuatan opencode: `name` sama dengan nama
+   folder, `description` 1–1024 karakter tanpa `": "`, dan `metadata` peta string ke string.

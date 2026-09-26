@@ -10,6 +10,9 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
+Jalur berkas di dokumen ini relatif terhadap **akar repo**. Sebelum menelusuri manual, buka
+`docs/PETA-KODE.md` (atau jalankan `npm run peta`) — peta itu menjawab "berkas ini diuji oleh apa".
+
 Skill ini menetapkan standar mutu, bukan izin memperluas cakupan. Audit kebersihan berkas di luar
 permintaan tetap butuh persetujuan pengguna (lihat "Scope and approval gate" di `AGENTS.md`).
 

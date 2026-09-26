@@ -235,6 +235,8 @@ export function bangunPeta() {
   baris.push("3. Setiap berkas uji dipanggil minimal satu skrip npm (tidak ada uji yatim).");
   baris.push("4. Setiap folder di `src/halaman/` terdaftar di peta navigasi.");
   baris.push("5. Keempat cermin pada bagian 4 tetap sinkron.");
+  baris.push("6. Frontmatter setiap `SKILL.md` memenuhi syarat pemuatan opencode: `name` sama dengan nama");
+  baris.push("   folder, `description` 1–1024 karakter tanpa `\": \"`, dan `metadata` peta string ke string.");
   baris.push("");
   return baris.join("\n");
 }

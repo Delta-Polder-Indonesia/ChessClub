@@ -1,6 +1,6 @@
 ---
 name: kci-frontend
-description: Frontend conventions for the Komunitas Catur Indonesia (KCI) ChessClub site - React 18, Vite 6, Tailwind CSS v4, react-router-dom v7, Indonesian naming, i18n workflow, standard page markup from existing components, and a restrained corporate design language extracted from jekyll-simple (no emoji, no gradients, single accent, thin borders - anti AI-slop). Use when editing anything under src/, index.html, vite.config.js, or public/.
+description: Frontend conventions for the Komunitas Catur Indonesia (KCI) ChessClub site - React 18, Vite 6, Tailwind CSS v4, react-router-dom v7 with lazy routes in src/App.jsx, Indonesian naming, i18n dictionaries in src/lib/terjemahan/, standard page markup from existing components (src/components/PageBagian.jsx, src/halaman/BACA-DULU.md), shared UI primitives in src/components/ui/ plus RADIX-UI.md, board/engine render and memoization rules, grafik lazy loading, and a restrained corporate design language (no emoji, no gradients, single accent, thin borders - anti AI-slop) with Lighthouse 100 as the performance target. Use when editing anything under src/, index.html, vite.config.js, or public/.
 metadata:
   project: chessclub-kci
   area: frontend
@@ -9,6 +9,20 @@ metadata:
 # Frontend KCI — Komunitas Catur Indonesia
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
+
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`src/…`, `server/src/…`, `public/…`).
+Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
+
+## Baca dulu sebelum menyentuh `src/`
+
+| Kebutuhan | Berkas |
+| --- | --- |
+| Rute, halaman, dan pemuatan malas | `src/App.jsx` |
+| Peta menu sebelum menambah halaman | `src/halaman/BACA-DULU.md` |
+| Kerangka halaman standar | `src/components/PageBagian.jsx` + `references/standar-markup.md` |
+| Primitif UI dan aturan Radix | `src/components/ui/` + `RADIX-UI.md` |
+| Kamus teks ID/EN | `src/lib/terjemahan/{id,en}/` |
+| Uji penjaga halaman/logika | `docs/PETA-KODE.md` kolom "uji penjaga" |
 
 ## Stack (jangan diganti tanpa persetujuan pengguna)
 

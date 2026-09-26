@@ -10,6 +10,18 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`vercel.json`, `api/…`, `docs/…`).
+
+## Baca dulu sebelum menyentuh deploy
+
+| Kebutuhan | Berkas |
+| --- | --- |
+| Konfigurasi Vercel (rewrite, header, function) | `vercel.json` |
+| Fungsi serverless backend | `api/[...jalur].js` |
+| Daftar lengkap env beserta komentar | `.env.contoh` |
+| Panduan deploy lengkap | `PANDUAN-DEPLOY-FULL-VERCEL.md` |
+| Workflow CI | `.github/workflows/quality.yml` (+ cermin `quality.yml`) |
+
 ## Skema production Vercel
 
 | Skema | Kapan dipakai | Berkas kunci |

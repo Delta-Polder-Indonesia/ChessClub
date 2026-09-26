@@ -90,6 +90,28 @@ A task is complete only when the requested change is implemented and the relevan
 - Ketidakpastian dinyatakan eksplisit ("belum diverifikasi", "perlu konfirmasi") — jangan mengarang fakta,
   versi, atau nama berkas.
 
+## Peta cepat — jangan menebak lokasi berkas
+
+Nama berkas dan identifier di repo ini berbahasa Indonesia, jadi mencari dengan kata kunci Inggris
+("route", "auth", "storage", "test") sering meleset dan berakhir dengan penelusuran panjang. Pakai
+peta yang sudah ada:
+
+| Kebutuhan | Buka dulu |
+| --------- | --------- |
+| Peta area → berkas → uji penjaga → halaman peta | `docs/PETA-KODE.md` (bangkitkan dengan `npm run peta`) |
+| Rute/halaman frontend | `src/App.jsx` (semua halaman dimuat malas) |
+| Registrasi rute backend | `server/src/rute.js` |
+| Kontrak validasi masukan | `server/src/skema.js` |
+| Baca/tulis data (berkas JSON atau Supabase) | `server/src/simpanan.js` → `server/src/storage-supabase.js` |
+| Modul aturan catur murni | `src/halaman/Analisa/mesin/*` |
+| Teks antarmuka ID/EN | `src/lib/terjemahan/{id,en}/` |
+| Primitif UI bersama | `src/components/ui/` + `RADIX-UI.md` |
+| Perintah uji per topik | blok `"scripts"` di `package.json` (semua berawalan `uji`) |
+
+Satu kali membaca `docs/PETA-KODE.md` hampir selalu lebih murah daripada rangkaian pencarian berkas.
+Jangan membuat berkas peta/panduan baru per folder: berkas itu tidak punya penjaga, sehingga akan basi
+dan menyesatkan.
+
 ## Skill proyek (SKILL.md)
 
 Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/skills/`
@@ -111,6 +133,22 @@ skrip npm yang menjalankannya) dan menjawab "alur uji ini kemana" tanpa menebak.
 membuat berkas panduan per-folder: `npm run uji:peta` menjaga peta ini tetap akurat, dan
 berkas panduan yang tersebar tidak punya penjaga seperti itu. Rincian per area ada di
 `.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
+
+Cara opencode memuat skill (diverifikasi dari sumbernya, agar perubahan berikutnya tidak salah arah):
+
+- Berkas yang discan: `.agents/skills/**/SKILL.md` dan `.opencode/skills/**/SKILL.md`. Keduanya dibaca,
+  sehingga cermin di repo ini menghasilkan nama skill ganda — opencode menyimpan satu entri per nama
+  (yang terakhir discan menang), jadi isi kedua salinan wajib tetap identik. Cermin dipertahankan karena
+  `npm run uji:peta` menguncinya dan tool lain membaca `.opencode/`.
+- `name` **wajib sama dengan nama folder** dan hanya boleh huruf kecil/angka dengan pemisah satu tanda
+  hubung (`^[a-z0-9]+(-[a-z0-9]+)*$`).
+- `description` wajib ada, 1–1024 karakter. Sebelum dimuat, agen hanya melihat `name` + `description`,
+  jadi deskripsi harus memuat kata kunci pemicunya (nama folder, berkas, atau perintah uji).
+- `metadata` (opsional) harus peta string ke string. Field frontmatter lain diabaikan opencode.
+- Setiap pemuatan skill meminta izin (default `ask`) kecuali pengguna mengizinkan lebih dulu.
+
+Jangan menaruh panduan yang hanya berguna sesekali di `AGENTS.md` — berkas ini dimuat di setiap sesi,
+sedangkan skill dimuat saat dibutuhkan sesuai deskripsinya.
 
 Catatan: panduan proyek lain (Better Auth, DSH/DeepSeek Harness) sudah dihapus dari repo.
 Jangan mengikuti dokumen lama yang menyebut SvelteKit, Better Auth, MongoDB, atau OpenRouter —

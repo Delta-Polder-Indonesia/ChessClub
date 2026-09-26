@@ -10,6 +10,8 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`db/…`, `server/src/…`, `data/…`).
+
 Skill ini menetapkan aturan data. Detail modul server ada di `kci-backend`, env produksi di
 `kci-deploy`, dan uji minimum di `kci-pengujian`.
 

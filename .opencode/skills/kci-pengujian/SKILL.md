@@ -10,6 +10,9 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`scripts/…`, `server/uji/…`, `tests/e2e/…`).
+Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
+
 ## Peta cepat
 
 **Arah yang tidak perlu ditebak: `npm run peta`** menulis `docs/PETA-KODE.md` — tabel

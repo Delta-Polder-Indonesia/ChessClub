@@ -1,6 +1,6 @@
 ---
 name: kci-papan-interaktif
-description: Panduan halaman Papan Interaktif sebagai workspace papan catur modular. Opening Book tetap menjadi mode yang sudah ada; En Croissant menjadi referensi konsep untuk mode baru, dengan pemisahan dari Analisa/Teka-teki dan batas performa web.
+description: Panduan halaman Papan Interaktif (/papan-interaktif) di src/halaman/PapanInteraktif/ sebagai workspace papan catur modular - Workspace.jsx dan sidebar tiga pilihan (Analisa, Manusia vs Mesin, Latihan Repertoar), modus/ManusiaVsMesin.jsx, modus/LatihanRepertoar.jsx beserta repertoarLogika.js dan repertoarStorage.js, Buku Pembukaan lama (PapanInteraktif.jsx, utilPapan.js), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
 metadata:
   project: chessclub-kci
   area: frontend
@@ -9,7 +9,21 @@ metadata:
 
 # Papan Interaktif — Workspace Modular
 
-Ikuti protokol di `AGENTS.md`, `kci-frontend`, dan `kci-pengujian`.
+Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
+
+Jalur berkas di dokumen ini relatif terhadap **akar repo**. Utamakan peta berkas
+`docs/PETA-KODE.md` sebelum menelusuri `src/halaman/PapanInteraktif/` secara manual.
+
+## Baca dulu sebelum menyentuh `/papan-interaktif`
+
+| Kebutuhan | Berkas |
+| --- | --- |
+| Shell rute dan sidebar tiga pilihan | `src/halaman/PapanInteraktif/Workspace.jsx` |
+| Mode yang ada | `src/halaman/PapanInteraktif/modus/{ManusiaVsMesin,LatihanRepertoar}.jsx` |
+| Logika dan penyimpanan repertoar | `src/halaman/PapanInteraktif/modus/repertoarLogika.js`, `repertoarStorage.js` |
+| Buku pembukaan (mode lama) | `src/halaman/PapanInteraktif/PapanInteraktif.jsx` |
+| Utilitas papan dan riwayat | `src/halaman/PapanInteraktif/utilPapan.js` |
+| Ringkasan halaman | `src/halaman/PapanInteraktif/SKILL.md` |
 
 ## Arah produk
 
