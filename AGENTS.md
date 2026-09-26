@@ -81,6 +81,19 @@ A task is complete only when the requested change is implemented and the relevan
 6. **Laporkan faktual** — apa yang berubah, apa yang diverifikasi, apa yang tersisa. Tanpa basa-basi,
    tanpa pujian diri, tanpa janji berlebih.
 
+## Commit dan push (berlaku di semua area)
+
+Vercel terhubung ke repo ini: **setiap push memicu satu deployment**, dan deployment DITOLAK bila
+penulis commit tidak cocok dengan akun GitHub yang punya akses proyek — commit-nya lalu bertanda
+"Vercel — Deployment was blocked" dan pemilik proyek harus membersihkannya manual.
+
+- **Jangan menimpa identitas git.** `.git/config` sudah berisi identitas yang benar. Dilarang
+  `git -c user.name=…`, `git -c user.email=…`, `git commit --author=…`, dan `GIT_AUTHOR_*`/
+  `GIT_COMMITTER_*` beridentitas agen/bot.
+- Sebelum push, pastikan `git log -1 --format='%an <%ae>'` menunjukkan identitas pemilik repo.
+- Satu push per tugas selesai, bukan per commit. Jangan membuat cabang/PR tambahan tanpa diminta.
+- Rincian dan cara memulihkan bila terlanjur: skill `kci-deploy`.
+
 ## Gaya keluaran (anti "AI slop")
 
 - **Tanpa emoji** — di kode, UI/copy halaman, commit message, maupun dokumen. Emoji bukan bagian desain KCI.
@@ -125,7 +138,7 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | `kci-database` | mengubah `db/`, penyimpanan Supabase, `simpanan.js`, skema data, atau backup |
 | `kci-pengujian` | menyelesaikan perubahan apa pun, menambah uji, atau menyelidiki CI merah |
 | `kci-standar-kode` | menulis atau meninjau kode di area mana pun, dan sebelum PR dinyatakan siap |
-| `kci-deploy` | mengubah `vercel.json`, workflow CI, atau env var Vercel |
+| `kci-deploy` | mengubah `vercel.json`, workflow CI, env var Vercel, atau sebelum commit/push pertama (tiap push = satu deployment Vercel) |
 
 Sebelum menelusuri repo secara manual: jalankan `npm run peta`. Perintah itu menulis
 `docs/PETA-KODE.md` (area → berkas → uji penjaga → halaman peta navigasi, serta berkas uji →
