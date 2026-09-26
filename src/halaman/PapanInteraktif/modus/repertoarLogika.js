@@ -42,7 +42,7 @@ export function indeksJalurPembukaan(daftar) {
 
 /** Bangun kartu satu langkah untuk setiap giliran warna yang akan dilatih. */
 export function buatKartuDariJalur(jalur, warna, sekarang = Date.now()) {
-  if (!jalur || !["w", "b"].includes(warna)) return [];
+  if (!jalur?.moves?.length || !["w", "b"].includes(warna)) return [];
   const game = new Chess();
   const lineId = idJalurPembukaan({ eco: jalur.eco, nama: jalur.nama, warna });
   const kartu = [];
