@@ -39,6 +39,16 @@ const KODE_CHESSNUT = {
 };
 
 const cacheSet = new Map();
+/* Set yang SUDAH selesai dimuat, dalam bentuk siap pakai (bukan Promise).
+   Dipakai langsung pada render pertama sebuah bidak: tanpa ini, setiap bidak
+   yang baru muncul di sebuah petak menunggu satu putaran efek sebelum
+   gambarnya terpasang — terlihat sebagai kedipan saat bidak meluncur ke petak
+   tujuan. */
+const setSiap = new Map();
+
+function idSet(set) {
+  return DAFTAR_SET.some((item) => item.id === set) ? set : "bidak";
+}
 
 function jalurAset(set, piece) {
   if (set === "bidak") return `../../asets/bidak/${KODE_CHESSNUT[piece]}.svg`;
@@ -49,29 +59,39 @@ function jalurAset(set, piece) {
 }
 
 function muatSet(set) {
-  const id = DAFTAR_SET.some((item) => item.id === set) ? set : "bidak";
+  const id = idSet(set);
   if (!cacheSet.has(id)) {
     const tugas = Object.keys(NAMA_BIDAK).map(async (piece) => {
       const pemuat = PEMUAT_ASET[jalurAset(id, piece)];
       if (!pemuat) throw new Error(`Aset bidak tidak ditemukan: ${id}/${piece}`);
       return [piece, await pemuat()];
     });
-    cacheSet.set(id, Promise.all(tugas).then((entri) => Object.fromEntries(entri)));
+    cacheSet.set(
+      id,
+      Promise.all(tugas).then((entri) => {
+        const peta = Object.fromEntries(entri);
+        setSiap.set(id, peta);
+        return peta;
+      })
+    );
   }
   return cacheSet.get(id);
 }
 
 export function ChessPiece({ piece, set = "merida", className = "w-full h-full" }) {
-  const [peta, setPeta] = useState(null);
+  const id = idSet(set);
+  const [, tandaiMuat] = useState(0);
 
   useEffect(() => {
+    if (setSiap.has(id)) return undefined;
     let aktif = true;
-    muatSet(set)
-      .then((hasil) => { if (aktif) setPeta(hasil); })
-      .catch(() => { if (aktif) setPeta(null); });
+    muatSet(id)
+      .then(() => { if (aktif) tandaiMuat((n) => n + 1); })
+      .catch(() => { if (aktif) tandaiMuat((n) => n + 1); });
     return () => { aktif = false; };
-  }, [set]);
+  }, [id]);
 
+  const peta = setSiap.get(id) || null;
   const sumber = piece ? peta?.[piece] : null;
   if (!sumber) return null;
   return <img src={sumber} alt={NAMA_BIDAK[piece]} className={className} draggable={false} />;
