@@ -50,20 +50,12 @@ Tiga lapis, jangan dicampur:
 
 ### B. Kinerja render dan engine
 
-- **State papan satu sumber.** Simpan posisi (dan riwayat langkah) sekali; turunannya — daftar
-  langkah, FEN aktif, sorotan langkah terakhir, papan terbalik — dihitung saat render, bukan
-  disimpan ulang di state kedua yang bisa melenceng.
-- **Memoisasi seperlunya.** `React.memo`, `useMemo`, dan `useCallback` hanya untuk nilai atau
-  komponen yang terbukti mahal atau ikut berubah pada setiap pemindahan bidak. Memo di semua
-  tempat menambah biaya dan kebisingan, bukan kecepatan.
-- **Engine selalu di worker.** Semua komunikasi Stockfish lewat `src/lib/engineCatur.js`
-  (`new Worker`), memakai build single-thread di `public/engines/`. Worker hidup saat diminta dan
-  dihentikan begitu mode/partai selesai (lihat `kci-papan-interaktif`). Jangan menjalankan
-  pencarian engine di thread utama, dan jangan mengaktifkannya saat mode tidak memakainya —
-  analisis berat adalah penyebab utama halaman membeku.
-- **Biaya unduh ikut dinilai.** Aset di `public/` adalah bagian dari Lighthouse: perkecil dulu
-  (`npm run gambar:optimum`, `npm run gambar:kualitas`) dan jangan menambah engine/font/aset
-  besar tanpa persetujuan. Target dan pola LCP ada di `kci-frontend`.
+- Aturan teknisnya tinggal di satu tempat: `kci-frontend` (bagian "Komponen, state, dan render" serta
+  "Performa"), dan `kci-papan-interaktif` untuk siklus hidup worker per mode. Jangan diduplikasi di sini.
+- **Klaim kinerja wajib diukur** (React Profiler, Lighthouse, ukuran bundel), bukan diperkirakan; ukur
+  sebelum dan sesudah bila perubahannya berisiko menurunkan skor.
+- Menambah engine, aset besar, atau dependensi runtime demi kenyamanan pengembangan tidak diterima tanpa
+  persetujuan pengguna.
 
 ### C. Keamanan dan validasi masukan
 

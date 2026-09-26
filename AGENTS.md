@@ -98,6 +98,7 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | Skill | Muat saat |
 | ----- | --------- |
 | `kci-frontend` | mengubah `src/`, `index.html`, `vite.config.js`, atau `public/` |
+| `kci-papan-interaktif` | mengubah halaman `/papan-interaktif` atau mode Analisa/Manusia vs Mesin/Latihan Repertoar |
 | `kci-backend` | mengubah `server/`, `api/`, `db/`, atau alur data/auth backend |
 | `kci-database` | mengubah `db/`, penyimpanan Supabase, `simpanan.js`, skema data, atau backup |
 | `kci-pengujian` | menyelesaikan perubahan apa pun, menambah uji, atau menyelidiki CI merah |

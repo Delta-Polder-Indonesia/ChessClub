@@ -98,6 +98,6 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 - Semua label UI memakai `t("papan.xxx")`; terjemahan ID dan EN harus sinkron.
 - Sebelum membuat mode baru: inventaris fitur existing, tulis tujuan dan batas mode, lalu implementasikan satu mode secara vertikal dari UI hingga data dan uji. Jangan mulai beberapa mode dalam satu perubahan besar.
-- Pemeriksaan dasar: `npm run uji:rute`, `npm run uji:i18n`, `npm run uji:repertoar`, `npm run uji:nama-pembukaan`, `npm run uji:artikel-wikipedia`, `npm run uji:bantuan-langkah`, dan `npm run build` sesuai area yang berubah.
+- Pemeriksaan dasar: `npm run uji:rute`, `npm run uji:i18n`, `npm run uji:repertoar`, `npm run uji:nama-pembukaan`, `npm run uji:artikel`, `npm run uji:bantuan-langkah`, dan `npm run build` sesuai area yang berubah.
 - Bila menyentuh engine atau alur Analisa, jalankan uji engine/UI/regresi yang sesuai; perubahan Analisa mengikuti aturan v2 di atas.
 - Perubahan skill ini harus tetap identik antara `.agents/skills/` dan `.opencode/skills/`; jalankan `npm run uji:peta`.

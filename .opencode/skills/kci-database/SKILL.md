@@ -20,7 +20,7 @@ Nama di repo mudah tertukar; pastikan yang disentuh memang yang dimaksud:
 | Nama | Apa itu | Rumah kode | Uji penjaga |
 | --- | --- | --- | --- |
 | `kci_storage` (Supabase / PostgreSQL) | Penyimpanan runtime server: anggota, turnamen, berita, pengumuman, pesan, daftar hitam, admins, jejak audit, rekor Rush — satu baris per "berkas" | `server/src/storage-supabase.js` lewat `server/src/simpanan.js` | `npm run uji:supabase` (butuh kredensial, sengaja di luar CI) |
-| IndexedDB peramban | Data milik pengguna di peramban: partai hasil tarikan/impor untuk Analisa, progres latihan repertoar | `src/halaman/Analisa/basisData.js`, modus repertoar | `npm run uji:basisdata`, `npm run uji:basisdata-galat`, `npm run uji:repertoar` |
+| IndexedDB peramban | Data milik pengguna di peramban: partai hasil tarikan/impor untuk Analisa, progres latihan repertoar | `src/halaman/Analisa/basisData.js`, modus repertoar | `npm run uji:basisdata`, `npm run uji:repertoar`; jalur galat lewat `node scripts/uji-basisdata-galat.mjs` (dirangkai di `uji:analisa-menyeluruh`) |
 | Basis Data Awan Catur (chessdb.cn) | Layanan pihak ketiga penilaian posisi, bukan milik kita | `server/src/basisDataAwan.js` | `npm run uji:basisdata-awan` |
 
 Jebakan: `uji:basisdata-awan` menguji chessdb.cn dan `uji:basisdata` menguji IndexedDB — keduanya
@@ -35,7 +35,7 @@ tidak menyentuh Supabase. Jangan memakai salah satunya sebagai bukti bahwa jalur
 - **RLS wajib aktif, dan untuk `kci_storage` tanpa policy `anon`.** Backend memakai
   `SUPABASE_SERVICE_ROLE_KEY` yang melewati RLS. Komentar di `db/supabase-schema.sql` menyatakan
   alasannya: siapa pun yang memegang anon key bisa membaca/menulis anggota, kontak pribadi,
-  `rahasia/admins.json`, dan jejak audit bila policy anon dibuka.
+  `data/rahasia/admins.json`, dan jejak audit bila policy anon dibuka.
 - **Tabel baru** (termasuk yang diusulkan `DATABASE-MIGRATION.md`) mengikuti aturan:
   `alter table ... enable row level security` ditulis di `db/supabase-schema.sql` yang sama;
   baca publik hanya untuk data yang memang publik (mis. klasemen dan rekor); tulis hanya oleh
@@ -48,7 +48,7 @@ tidak menyentuh Supabase. Jangan memakai salah satunya sebagai bukti bahwa jalur
 
 ## 3. Kueri dan jalur tulis
 
-- **Kolom eksplisit, tanpa `select("*")`.** Pola yang berlaku di `storage-supabase.js`:
+- Ambil kolom eksplisit, tanpa `select("*")`. Pola yang berlaku di `server/src/storage-supabase.js`:
   `select("id")` untuk cek kesiapan tabel dan `select("id,data")` untuk membaca satu baris.
   Kolom `data` bisa memuat berkas besar (anggota, jejak audit) — jangan menarik seluruh tabel
   atau seluruh kolom ke memori hanya untuk mengambil satu kunci.
@@ -75,7 +75,7 @@ tidak menyentuh Supabase. Jangan memakai salah satunya sebagai bukti bahwa jalur
   bukan sesi pengguna. Jangan menambahkan `signIn`/sesi Supabase Auth tanpa keputusan pengguna.
 - **Verifikasi dulu, baru percaya:** identitas tidak sah tanpa `jwt.verify` memakai rahasia server;
   `username` atau `role` dari body/klien bukan bukti. Sebelum data sensitif (kontak pribadi,
-  `rahasia/admins.json`, jejak audit, daftar hitam) dibaca atau ditulis, lewati
+  `data/rahasia/admins.json`, jejak audit, daftar hitam) dibaca atau ditulis, lewati
   `pastikanAdmin`/`pastikanMaster`, lalu catat jejaknya di `audit.js`/`riwayat-masuk.js`.
 - **Rahasia hanya di `server/src/konfigurasi.js`.** `SUPABASE_SERVICE_ROLE_KEY` adalah kredensial
   produksi dan harus tetap rahasia; `SUPABASE_ANON_KEY` hanya cadangan pengembangan dan dengan RLS
