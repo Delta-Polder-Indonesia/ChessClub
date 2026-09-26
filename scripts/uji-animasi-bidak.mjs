@@ -308,6 +308,23 @@ for (const nama of ["HTMLElement", "Element", "Node", "Event", "MouseEvent", "Ke
 const modul = require(berkasBundel);
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
+/**
+ * Tunggu sampai `syarat()` benar, paling lama `batas` ms.
+ *
+ * Dipakai untuk menunggu balasan mesin: waktunya tidak pasti (pencarian engine
+ * palsu + gestur mesin + render React), dan runner CI jauh lebih lambat dari
+ * mesin pengembang. `await tunggu(700)` yang tetap membuat uji ini kadang
+ * gagal di GitHub Actions padahal lulus di lokal.
+ */
+async function tungguSampai(syarat, batas = 8000, langkah = 25) {
+  const tenggat = Date.now() + batas;
+  while (Date.now() < tenggat) {
+    if (syarat()) return true;
+    await tunggu(langkah);
+  }
+  return syarat();
+}
+
 const wadah = window.document.getElementById("root");
 const kendali = {};
 modul.mountPapan(wadah, { fen: AWAL, orientasi: "w", kendali });
@@ -503,14 +520,14 @@ modulPve.GESTUR.jedaLangkah = [10, 10];
 modulPve.GESTUR.jedaRagu = [5, 5];
 modulPve.GESTUR.peluangRagu = 0;
 modulPve.mountPve(wadahPve);
-await tunggu(120);
+const cariMulai = () =>
+  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Mulai partai");
+await tungguSampai(() => !!cariMulai());
 
-const tombolMulai = [...wadahPve.querySelectorAll("button")].find(
-  (b) => b.textContent.trim() === "Mulai partai"
-);
+const tombolMulai = cariMulai();
 uji("tombol mulai partai ada", !!tombolMulai);
 tombolMulai?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-await tunggu(60);
+await tungguSampai(() => wadahPve.querySelectorAll("[data-petak]").length === 64);
 
 uji("papan mode Manusia vs Mesin ter-render", wadahPve.querySelectorAll("[data-petak]").length === 64);
 pasangElementFromPoint(wadahPve);
@@ -520,9 +537,10 @@ const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);
 // 1. Langkah pemain lewat KLIK petak (keluhan asli: "klik move langsung blink").
 catatan.length = 0;
 petakPve("e2")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-await tunggu(20);
+// Tunggu sorotan kuning petak terpilih muncul, bukan menebak dengan jeda tetap.
+await tungguSampai(() => !!wadahPve.querySelector('[data-petak="e2"] span[style*="255, 255, 0"]'), 2000);
 petakPve("e4")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-await tunggu(40);
+await tungguSampai(() => catatan.some((c) => c.petak === "e4"));
 {
   const panggilan = catatan.filter((c) => c.petak === "e4");
   uji(
@@ -534,9 +552,9 @@ await tunggu(40);
   uji("luncuran pemain dimulai dari e2 (160px di bawah)", awal.includes("160px"), awal);
 }
 
-// 2. Balasan mesin (lewat "klik lawan" + jeda acak 180-320 ms) juga meluncur.
+// 2. Balasan mesin (klik lawan + goyang + jeda "berpikir") juga meluncur.
 catatan.length = 0;
-await tunggu(700);
+await tungguSampai(() => catatan.some((c) => c.petak === "e5"));
 {
   const panggilan = catatan.filter((c) => c.petak === "e5");
   uji(
@@ -554,8 +572,8 @@ await tunggu(20);
 kirimEvent(petakPve("f3"), "pointermove", titikPetak("f3"), { buttons: 1 });
 kirimEvent(petakPve("f3"), "pointerup", titikPetak("f3"));
 // Satu jendela pengamatan untuk seret DAN balasannya: dengan jeda gestur yang
-// dipangkas, mesin bisa menjawab sebelum jendela kedua dibuka.
-await tunggu(700);
+// dipangkas, mesin bisa menjawab sebelum jendela kedua sempat dibuka.
+await tungguSampai(() => catatan.some((c) => c.petak === "c6"));
 {
   const diseret = catatan.filter((c) => c.petak === "f3");
   const pindah = wadahPve.querySelector('[data-petak="f3"] [data-bidak]');
