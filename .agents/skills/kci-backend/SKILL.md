@@ -1,6 +1,6 @@
 ---
 name: kci-backend
-description: Rules for the KCI backend - a no-framework Node.js server in server/ (keanggotaan, verifikasi Chess.com, turnamen, e-book, pesan) plus its Vercel serverless entry api/[...jalur].js. Covers module architecture, route registration, atomic storage, fail-closed production config, and KCI_* environment variables. Use when editing server/, api/, db/, or backend data, auth, and storage behavior.
+description: Rules for the KCI backend - a no-framework Node.js server in server/ (keanggotaan, verifikasi Chess.com, turnamen, e-book, pesan) plus its Vercel serverless entry api/[...jalur].js. Covers module architecture with Indonesian identifiers, route registration in server/src/rute.js, atomic serialized storage in server/src/simpanan.js, validation contracts in server/src/skema.js, fail-closed production config, admin/CSRF auth in server/src/http.js, and KCI_* environment variables. Use when editing server/, api/, db/, or backend data, auth, and storage behavior, or when running npm run uji:backend.
 metadata:
   project: chessclub-kci
   area: backend
@@ -9,6 +9,19 @@ metadata:
 # Backend KCI (kci-server)
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
+
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`server/src/…`, `api/…`, `db/…`).
+
+## Baca dulu sebelum menyentuh `server/`
+
+| Kebutuhan | Berkas |
+| --- | --- |
+| Titik masuk dan urutan startup | `server/src/index.js` |
+| Registrasi seluruh rute HTTP | `server/src/rute.js` |
+| Kontrak validasi masukan | `server/src/skema.js` |
+| Baca/tulis data | `server/src/simpanan.js` |
+| Environment dan gerbang fail-closed | `server/src/konfigurasi.js` |
+| Titik masuk serverless Vercel | `api/[...jalur].js` |
 
 ## Prinsip
 

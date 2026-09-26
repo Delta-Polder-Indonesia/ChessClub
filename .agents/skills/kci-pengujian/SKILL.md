@@ -10,6 +10,9 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`scripts/…`, `server/uji/…`, `tests/e2e/…`).
+Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
+
 ## Peta cepat
 
 **Arah yang tidak perlu ditebak: `npm run peta`** menulis `docs/PETA-KODE.md` — tabel
@@ -34,7 +37,9 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   `server/src/konfigurasi.js`/`server/src/http.js`; CI selalu menjalankannya).
 - Di luar rantai `npm run uji` ada 17 skrip:
   - dipanggil CI: `uji:backend`, `uji:verifikasi`, `uji:pendaftaran`, `uji:konfigurasi-keamanan`,
-    `uji:auth-jwt`, `uji:klasemen`, `uji:quiz`, `uji:keamanan-admin`, `uji:e2e`.
+    `uji:auth-jwt`, `uji:klasemen`, `uji:quiz`, `uji:e2e`. Berkas `server/uji/uji-keamanan-admin.mjs`
+    ikut berjalan karena dirangkai di dalam `uji:backend`, bukan sebagai skrip `uji:keamanan-admin`
+    tersendiri.
   - pintasan topik (anggotanya sudah ada di rantai): `uji:ebook`, `uji:artikel`,
     `uji:nama-pembukaan`, `uji:anticheat`, `uji:seret-bidak`, `uji:jsonld`, `uji:rekor-rush`.
   - perlu kredensial atau jaringan: `uji:supabase` (butuh `SUPABASE_URL` +
@@ -68,12 +73,44 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 - Uji e-book menerima PDF asli (`%PDF`) atau pointer Git LFS yang formatnya sah. PDF di
   `public/ebooks/` kini blob Git biasa (`.gitattributes` kosong), jadi `git lfs pull` tidak perlu.
 
+## Cakupan wajib per fitur
+
+Sebagian area tidak boleh hanya mengandalkan uji lain yang kebetulan menyentuhnya:
+
+- **Autentikasi JWT** — wajib menguji token sah, kedaluwarsa, **dan** palsu. Sudah ditangani
+  `server/uji/uji-auth-jwt.mjs` (login mengembalikan JWT, JWT sah dipakai ke endpoint pengurus, JWT
+  kedaluwarsa ditolak, JWT palsu ditolak 401, ganti password tetap bcrypt) → `npm run uji:auth-jwt`.
+  Perubahan di `server/src/http.js` atau `server/src/konfigurasi.js` menjalankan uji ini bersama
+  `npm run uji:konfigurasi-keamanan`.
+- **Validasi kuis dan klasemen** — bank soal divalidasi `npm run uji:quiz`; perhitungan peringkat diuji
+  terisolasi di `server/uji/uji-klasemen.mjs` `hitungKlasemen` (poin, jumlah menang, urutan peringkat,
+  peserta dianulir). Celah yang belum ditutup: `src/lib/peringkatKuis.js` (`gabungPeringkat`) belum punya
+  uji — bila berkas itu disentuh, tulis ujinya lebih dulu.
+- **Variasi kalimat komentator** — setiap penambahan variasi teks wajib lewat `npm run uji:komentator`,
+  yang menjaga nilai `undefined`/`NaN` tidak lolos ke UI (mis. `ekspresiDariSkorAwan(undefined) === null`).
+  Menambah kalimat tanpa memperluas uji ini akan lolos ke produksi tanpa penjaga.
+
+## Prosedur sebelum PR
+
+1. Jalankan rantai yang relevan sampai hijau di lokal: `npm run uji` (atau uji topik) + `npm run build`,
+   dan `npm run uji:e2e` bila perubahan menyentuh halaman publik.
+2. Repo ini **tidak punya linter**: tidak ada ESLint/Prettier/Biome, tidak ada skrip `lint`, dan CI tidak
+   menjalankan lint. Jangan menulis "jalankan linter" di catatan PR, dan jangan menambah tooling lint
+   sebagai bagian dari tugas lain tanpa persetujuan pengguna. Kebersihan kode dijaga lewat aturan di
+   `kci-standar-kode` dan lewat uji.
+3. Struktur berkas, folder, atau skrip berubah → `npm run peta`, lalu pastikan `npm run uji:peta` hijau
+   sebelum push.
+4. Uji yang melewati dirinya sendiri (`esbuild` atau `fake-indexeddb` tidak terpasang, `uji:supabase`
+   tanpa kredensial) laporkan apa adanya — jangan mengklaim lulus padahal bagian itu dilewati.
+5. Uji merah diperbaiki di cabang kerja sebelum meminta tinjauan. Menghapus, melewati, atau melemahkan
+   uji agar CI hijau tidak dibenarkan; bila aturan lama memang sudah usang, sebutkan alasannya di PR.
+
 ## Samakan dengan CI
 
 `.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout
 biasa tanpa `lfs: true`) menjalankan berurutan:
 
-1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:konfigurasi-keamanan`
+1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz`
 2. "Build production bundle": `npm run build`
 3. "Install Chromium for Playwright": `npx playwright install --with-deps chromium`
 4. "Run public browser smoke tests": `npm run uji:e2e`

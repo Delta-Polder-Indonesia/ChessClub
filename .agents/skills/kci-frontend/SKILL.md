@@ -1,6 +1,6 @@
 ---
 name: kci-frontend
-description: Frontend conventions for the Komunitas Catur Indonesia (KCI) ChessClub site - React 18, Vite 6, Tailwind CSS v4, react-router-dom v7, Indonesian naming, i18n workflow, standard page markup from existing components, and a restrained corporate design language extracted from jekyll-simple (no emoji, no gradients, single accent, thin borders - anti AI-slop). Use when editing anything under src/, index.html, vite.config.js, or public/.
+description: Frontend conventions for the Komunitas Catur Indonesia (KCI) ChessClub site - React 18, Vite 6, Tailwind CSS v4, react-router-dom v7 with lazy routes in src/App.jsx, Indonesian naming, i18n dictionaries in src/lib/terjemahan/, standard page markup from existing components (src/components/PageBagian.jsx, src/halaman/BACA-DULU.md), shared UI primitives in src/components/ui/ plus RADIX-UI.md, board/engine render and memoization rules, grafik lazy loading, and a restrained corporate design language (no emoji, no gradients, single accent, thin borders - anti AI-slop) with Lighthouse 100 as the performance target. Use when editing anything under src/, index.html, vite.config.js, or public/.
 metadata:
   project: chessclub-kci
   area: frontend
@@ -9,6 +9,20 @@ metadata:
 # Frontend KCI — Komunitas Catur Indonesia
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
+
+Jalur berkas di dokumen ini relatif terhadap **akar repo** (`src/…`, `server/src/…`, `public/…`).
+Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
+
+## Baca dulu sebelum menyentuh `src/`
+
+| Kebutuhan | Berkas |
+| --- | --- |
+| Rute, halaman, dan pemuatan malas | `src/App.jsx` |
+| Peta menu sebelum menambah halaman | `src/halaman/BACA-DULU.md` |
+| Kerangka halaman standar | `src/components/PageBagian.jsx` + `references/standar-markup.md` |
+| Primitif UI dan aturan Radix | `src/components/ui/` + `RADIX-UI.md` |
+| Kamus teks ID/EN | `src/lib/terjemahan/{id,en}/` |
+| Uji penjaga halaman/logika | `docs/PETA-KODE.md` kolom "uji penjaga" |
 
 ## Stack (jangan diganti tanpa persetujuan pengguna)
 
@@ -70,17 +84,48 @@ terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
 
 ## Ikon — sumber, konversi, dan satu rumah bersama
 
-- **Sumber ikon baru: `icons-sample/`** (folder 1.847 SVG Lucide resmi di akar repo). Saat butuh ikon,
-  cari nama ikonnya (`lucide`-style, mis. `check`, `trash`, `settings`) di folder itu — jangan membuat
-  ikon dari ingatan agar konsisten dan tidak slop.
-- **Konversi ke komponen:** salin isi `<svg>` (path/polyline + atribut stroke), bungkus menjadi satu-ikon
-  per berkas `*.jsx` mengikuti format `refresh.jsx`: default `className="h-3.5 w-3.5"`, `strokeWidth="2"`,
-  `aria-hidden="true"`, `export { Nama as default }`.
-- **Satu rumah ikon publik:** semua ikon hasil konversi ditaruh di `src/halaman/Analisa/komponen/svg/`.
-  Ikon di folder ini **publik — dipakai silang halaman**. Dilarang mendefinisikan ikon
+- **Sumber utama: `lucide-react`** (dependensi proyek, dipakai puluhan berkas di `src/`). Impor ikon
+  standar langsung dari sana (mis. `ChevronDown`) — jalur termurah dan paling konsisten.
+- **Satu rumah ikon hasil konversi: `src/halaman/Analisa/komponen/svg/`** (38 komponen `.jsx` + 8 berkas
+  `.svg`). Ikon di folder ini **publik — dipakai silang halaman**. Dilarang mendefinisikan ikon
   inline/lokal di dalam berkas halaman (boros kode dan tidak konsisten); jika halaman butuh ikon yang
-  belum ada, buat komponennya di folder svg itu lalu import.
-- Ikon umum yang sudah tersedia di `lucide-react` (mis. `ChevronDown`) tetap boleh di-import langsung.
+  tidak ada di `lucide-react` (mis. lambang pihak ketiga), buat komponennya di folder itu lalu impor.
+- **Format konversi:** satu ikon per berkas mengikuti `refresh.jsx` — `function Nama({ className =
+  "h-3.5 w-3.5" })`, `stroke="currentColor"`, `strokeWidth="2"`, `aria-hidden="true"`, lalu
+  `export { Nama as default }`.
+- Catatan: folder `icons-sample/` yang dulu disebut di sini **tidak ada di repo** (dan tidak pernah
+  terlacak git). Jangan mencarinya — pakai dua sumber di atas.
+
+## Komponen, state, dan render
+
+Prinsipnya: perubahan state yang tidak berhubungan tidak boleh menggetarkan papan catur, dan komponen
+yang mahal hanya dihitung ulang bila masukannya memang berubah.
+
+- **Pisahkan state papan dari state UI global.** State visual papan (posisi, riwayat langkah, sorotan,
+  orientasi, pilihan petak) hidup di komponennya sendiri; perubahan sidebar, tema, notifikasi kuis, atau
+  bahasa tidak boleh memaksa petak dan bidak dirender ulang. Jangan mengangkat state papan ke konteks
+  global kecuali dua mode benar-benar membutuhkannya bersamaan.
+- **Turunan dihitung saat render, bukan disimpan ganda.** FEN aktif, daftar langkah, bidak tertangkap, dan
+  katalog pembukaan adalah turunan dari posisi/riwayat. Menyimpannya sebagai state kedua menciptakan dua
+  kebenaran yang bisa melenceng setelah satu langkah salah.
+- **Memoisasi berdasarkan pengukuran, bukan kebiasaan.** Di repo ini belum ada satu pun `React.memo`;
+  papan mengandalkan `useMemo`/`useCallback` untuk nilai yang benar-benar dialokasikan ulang tiap render
+  (mis. daftar langkah sah di `src/halaman/Analisa/komponen/game/board.jsx` — ada komentar alasan di
+  sana — dan `PapanInteraktif.jsx`). Pakai memo bila profiler (React DevTools) menunjukkan render
+  berulang yang mahal; jangan menaburkannya ke semua petak dan bidak karena biaya perbandingan props dan
+  kebisingan kode tumbuh tanpa manfaat terukur.
+- **Grafik dan visualisasi berat dimuat saat dibutuhkan.** Komponen grafik
+  (`src/components/tools/GrafikTools.jsx`) dan visualisasi besar lain hanya diunduh ketika tab atau
+  bagian pemakainya dibuka (`React.lazy`/dynamic import), bukan ikut bundel awal — target Lighthouse 100
+  dan LCP tidak boleh mundur. Pola serupa sudah dipakai untuk seluruh rute (`src/App.jsx`), pustaka
+  pembaca PDF (`pdfjs-dist` diimpor dinamis di `src/components/PembacaPdf.jsx`), dan engine. Catatan:
+  sampai sekarang `GrafikTools` belum dipakai halaman mana pun, jadi aturan ini berlaku begitu ia mulai
+  dipakai.
+- **Satu bahasa visual untuk komponen bersama.** Tombol, kartu, input, tab, dan popup memakai primitif di
+  `src/components/ui/` (pembungkus Radix + `cn()` dari `@/lib/utils`), bukan gaya ad-hoc per halaman.
+  Belum ada `Avatar` maupun pemilih tanggal di repo — bila dibutuhkan, buat primitifnya di
+  `src/components/ui/` mengikuti pola yang ada (baca `RADIX-UI.md`), jangan menulis komponen sekali pakai
+  di dalam berkas halaman.
 
 ## Sistem desain existing (pertahankan)
 
@@ -143,6 +188,9 @@ jangan mengarang struktur baru.**
 - LCP adalah `/images/tonggak-2015.webp`: di-`preload` di `<head>` `index.html` dan dilukis lebih dulu lewat
   `#boot-hero` (`hero-about.jpg/.webp` hanyalah nilai bawaan komponen `Hero`/`CorporatePage`, bukan aset
   LCP beranda) — pertahankan pola preload + paint awal ini untuk LCP baru.
+- Engine catur selalu berjalan di worker lewat `src/lib/engineCatur.js` (build single-thread di
+  `public/engines/`), dinyalakan saat dibutuhkan dan dihentikan saat mode/partai selesai — pencarian di
+  thread utama membekukan halaman. Siklus hidup per mode ada di `kci-papan-interaktif`.
 - Jangan menambah dependensi runtime baru tanpa alasan kuat dan persetujuan pengguna.
 
 ## Sebelum selesai
