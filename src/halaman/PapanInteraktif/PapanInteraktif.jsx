@@ -1341,8 +1341,8 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
                 title={t("papan.menuSegera")}
                 className="flex min-w-[190px] flex-1 cursor-not-allowed items-center gap-3 rounded-lg border border-transparent px-3 py-3 text-left text-sm font-semibold text-gray-500 opacity-70 lg:min-w-0 lg:flex-none"
               >
-                <IkonTab nama="games" className="h-5 w-5 shrink-0" />
-                <span className="min-w-0 flex-1 truncate">{t("papan.menuManusiaMesin")}</span>
+              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
+              <span className="min-w-0 flex-1 truncate">{t("papan.menuManusiaMesin")}</span>
                 <span className="shrink-0 rounded bg-[#262421] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-gray-500">
                   {t("papan.menuSegera")}
                 </span>

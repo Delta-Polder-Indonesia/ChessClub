@@ -1,6 +1,6 @@
 ---
 name: kci-deploy
-description: Deployment guidance for the KCI ChessClub site - Vercel production with the api/[...jalur].js serverless backend, required KCI_* and SUPABASE_* environment variables, fail-closed production startup, and the admin dashboard. Use when changing vercel.json, Vercel environment variables, or CI workflows.
+description: Deployment guidance for the KCI ChessClub site - Vercel production with the api/[...jalur].js serverless backend, required KCI_* and SUPABASE_* environment variables, fail-closed production startup, the admin dashboard, and the commit/push rules that keep Vercel from producing blocked deployments. Use when changing vercel.json, Vercel environment variables, or CI workflows, and before the first commit or push in any task because every push triggers a Vercel deployment.
 metadata:
   project: chessclub-kci
   area: deployment
@@ -67,6 +67,37 @@ Daftar lengkap beserta komentarnya ada di `.env.contoh`.
 - Tanpa Supabase, data di Vercel hilang saat cold start/redeploy (baca `VERCEL-LIMITATIONS.md`).
 - Dashboard pengurus: `<domain>/pengurus`; cek kesehatan: `GET /api/kesehatan`.
 - Setelah mengubah Environment Variable di Vercel → wajib **Redeploy**.
+
+## Commit dan push: jangan menghasilkan deployment yang diblokir
+
+Proyek Vercel `chess-club` terhubung langsung ke repo GitHub ini, jadi **setiap push ke cabang
+mana pun** (termasuk cabang kerja agen) memicu satu deployment. Vercel menolak deployment yang
+penulis commit-nya tidak bisa dicocokkan ke akun GitHub yang punya akses proyek. Hasilnya adalah
+status commit `Vercel — failure` dengan keterangan "GitHub couldn't verify an account for the
+commit" atau "Deployment was blocked", dan pemilik proyek harus membersihkannya manual di
+dashboard Vercel. Ini pernah terjadi (26 September 2026: dua commit beridentitas
+`Arena Agent <agent@arena.ai>` di cabang `arena/01a0dcd3-chessclub`).
+
+Aturan yang wajib diikuti:
+
+- **Jangan pernah menimpa identitas git.** `.git/config` repo sudah berisi identitas yang benar
+  (`Delta-Polder-Indonesia` + email `…@users.noreply.github.com`). Dilarang memakai
+  `git -c user.name=… -c user.email=…`, `git commit --author=…`, atau mengisi `GIT_AUTHOR_*` /
+  `GIT_COMMITTER_*` dengan identitas agen/bot. Commit memakai apa yang sudah ada di konfigurasi.
+- **Periksa sebelum push:** `git log -1 --format='%an <%ae>'` harus menampilkan identitas pemilik
+  repo, bukan nama agen. Bila salah: `git commit --amend --reset-author` (atau
+  `git rebase -i --exec 'git commit --amend --no-edit --reset-author'` untuk beberapa commit),
+  lalu push ulang cabang yang sama.
+- **Satu push per tugas selesai, bukan per commit.** Tiap push = satu deployment. Commit lokal
+  boleh beberapa kali; menunda push sampai pekerjaan selesai menahan jumlah deployment tetap satu.
+- **Jangan membuat cabang atau PR tambahan tanpa diminta** — tiap cabang dan tiap PR menambah
+  preview deployment baru.
+- **Jangan "memperbaiki" masalah ini dengan menyunting `vercel.json`, `.vercelignore`, atau
+  pengaturan proyek Vercel.** Penyebabnya identitas commit, bukan konfigurasi deploy.
+- Memeriksa dampak sebuah push tanpa membuka dashboard:
+  `gh api repos/Delta-Polder-Indonesia/ChessClub/commits/<sha>/status`.
+- Bila deployment yang diblokir terlanjur dibuat, laporkan apa adanya: status pada SHA lama tetap
+  ada dan hanya pemilik proyek yang bisa menghapusnya di dashboard Vercel.
 
 ## Workflow GitHub
 

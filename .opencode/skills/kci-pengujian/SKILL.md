@@ -21,10 +21,11 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 30 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+- `npm run uji` — 32 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
   `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
   `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
-  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:bantuan-langkah`,
+  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`,
+  `uji:gestur-lawan`, `uji:bantuan-langkah`,
   `uji:repertoar`, `uji:tekateki-solusi`, `uji:rush`,
   `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
   `uji-ebook-pembaca` (node langsung), `uji-nama-pembukaan` (node langsung),
@@ -47,6 +48,19 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 - `npm run uji:bantuan-langkah` — "Bantuan Langkah" Papan Interaktif (assisted play): FEN
   hipotetis + klasifikasi hijau/kuning/merah + panah balasan lawan dari posisi hipotetis.
   Memakai Worker UCI palsu supaya deterministik (debounce, cache, pembatalan, hasil basi).
+- `npm run uji:animasi-bidak` — animasi geser bidak papan bersama `PapanTekaTeki`: penyimpul
+  langkah dari selisih dua FEN (langkah biasa, pukulan, rokade, en passant, promosi, navigasi
+  mundur) dan pengecualiannya (posisi diganti, lompat beberapa langkah, papan dibalik, bidak
+  yang baru diseret). Bagian jsdom memeriksa `element.animate()` benar-benar dipanggil pada
+  bidak di petak tujuan, termasuk mode Manusia vs Mesin dengan mesin UCI palsu: klik move
+  pemain dan balasan mesin meluncur, sedangkan bidak yang diseret tidak diluncurkan ulang.
+  Entri PvE mengekspor `GESTUR` supaya uji memangkas jeda "berpikir" mesin (2-4 detik nyata).
+- `npm run uji:gestur-lawan` — gestur "seperti manusia" mesin di mode Manusia vs Mesin
+  (`src/halaman/PapanInteraktif/modus/gerakLawan.js`): penilaian posisi sulit (skor tipis +
+  banyak langkah sah), pemilihan bidak yang dilirik saat bimbang, urutan klik (bidak lain dulu,
+  petak asal terakhir), jeda 2-4 detik sebelum melangkah, goyangan bidak yang diklik, pembatalan
+  di tengah gestur, serta penjagaan bahwa langkah yang dijalankan tetap hasil engine dan modul
+  ini tidak dipakai mode lain (Teka-teki/Rush/Repertoar).
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
 - `npm run uji:peta` — penjaga dokumentasi arah: memastikan tidak ada `key_files` mati, semua
   skrip `uji:*` tercatat di berkas ini, tidak ada berkas uji yatim, setiap folder

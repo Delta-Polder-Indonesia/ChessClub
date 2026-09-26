@@ -66,7 +66,7 @@ export default function WorkspacePapanInteraktif() {
                   : "border-transparent text-gray-300 hover:border-[#3b3935] hover:bg-[#262421] hover:text-white"
               }`}
             >
-              <IkonTab nama="games" className="h-5 w-5 shrink-0" />
+              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
               <span className="truncate">{t("papan.menuManusiaMesin")}</span>
             </button>
 

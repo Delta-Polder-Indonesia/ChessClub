@@ -1,5 +1,12 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import {
+  KURVA_GESER,
+  durasiGeser,
+  geseranDariFen,
+  geseranPiksel,
+  petaBidak,
+} from "./animasiBidak.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
 import ResultSVG from "../Analisa/komponen/svg/result.jsx";
@@ -65,25 +72,8 @@ function warnaDariPeristiwa(e) {
   return "merah";
 }
 
-/** Ubah bagian posisi FEN menjadi peta petak → huruf bidak. */
-function petaBidak(fen) {
-  const peta = {};
-  const posisi = fen.split(" ")[0];
-  let baris = 8;
-  let kolom = 0;
-  for (const ch of posisi) {
-    if (ch === "/") {
-      baris -= 1;
-      kolom = 0;
-    } else if (ch >= "1" && ch <= "8") {
-      kolom += Number(ch);
-    } else {
-      peta[FILE[kolom] + baris] = ch;
-      kolom += 1;
-    }
-  }
-  return peta;
-}
+/* `petaBidak` dipakai bersama dengan logika animasi geser (animasiBidak.js)
+   agar papan dan penyimpul langkah membaca FEN dengan cara yang sama. */
 
 /** 64 petak dalam urutan tampilan: orientasi "w" = putih di bawah. */
 function daftarPetak(orientasi) {
@@ -263,6 +253,7 @@ export default function PapanTekaTeki({
   membeku = false,
   setBidak = "merida",
   tema = "hijau",
+  animasi = true, // luncurkan bidak saat posisi berganti (matikan bila perlu)
   onKlik,
   onPilih,
   onJatuh,
@@ -305,6 +296,12 @@ export default function PapanTekaTeki({
   const onLewatiPetakRef = useRef(onLewatiPetak);
   onLewatiPetakRef.current = onLewatiPetak;
   const batalkanSeretRef = useRef(() => {});
+
+  // Keadaan animasi geser bidak (lihat blok "animasi geser bidak" di bawah).
+  const fenSebelumRef = useRef(fen);
+  const orientasiSebelumRef = useRef(orientasi);
+  const lewatiGeserRef = useRef(null); // { ke, waktu } — bidak yang baru dilepas dari seret
+  const animasiJalanRef = useRef(new Set());
 
   // Keadaan tanda klik kanan.
   const kananRef = useRef(null); // { petak, warna }
@@ -427,6 +424,79 @@ export default function PapanTekaTeki({
     }
   }, [seret]);
 
+  /* ------------------------------------------------- animasi geser bidak */
+
+  /*
+   * Papan dirender dari FEN, jadi tanpa bantuan apa pun bidak "berkedip":
+   * hilang di petak asal, muncul seketika di petak tujuan. Di sini bidak yang
+   * berpindah DILUNCURKAN dari petak asalnya (pola chess.com/lichess): elemen
+   * bidak sudah berada di petak tujuan, lalu dianimasikan dari selisih posisi
+   * petak asal kembali ke nol memakai Web Animations API — murni transform
+   * GPU, tanpa render ulang React dan tanpa mengubah tata letak grid.
+   *
+   * Yang TIDAK dianimasikan (memang harus langsung):
+   *   - posisi diganti (soal/partai baru, muat FEN/PGN, lompat beberapa
+   *     langkah) — `geseranDariFen` mengembalikan daftar kosong;
+   *   - papan dibalik (orientasi berubah);
+   *   - bidak yang baru saja DISERET pengguna — bidaknya sudah dilepas di
+   *     petak tujuan, meluncurkannya lagi justru terlihat mundur.
+   *
+   * Setelan sistem "kurangi gerak" tidak mematikan luncuran, hanya
+   * mempersingkatnya (lihat `durasiGeser`).
+   */
+  useLayoutEffect(() => {
+    const fenLama = fenSebelumRef.current;
+    const orientasiLama = orientasiSebelumRef.current;
+    fenSebelumRef.current = fen;
+    orientasiSebelumRef.current = orientasi;
+    if (!animasi) return;
+    if (orientasiLama !== orientasi) return;
+    const wadah = akar.current;
+    if (!wadah) return;
+    const geseran = geseranDariFen(fenLama, fen);
+    if (!geseran.length) return;
+    const ukuranPetak = (wadah.getBoundingClientRect().width || 0) / 8;
+    if (!ukuranPetak) return;
+    // Seret yang baru saja mendarat: dilewati sekali, dan hanya sebentar agar
+    // penanda basi tidak ikut mematikan animasi langkah berikutnya.
+    const lewati = lewatiGeserRef.current;
+    lewatiGeserRef.current = null;
+    for (const g of geseran) {
+      if (lewati && lewati.ke === g.ke && Date.now() - lewati.waktu < 1500) continue;
+      const el = wadah.querySelector(`[data-petak="${g.ke}"] [data-bidak]`);
+      if (!el || typeof el.animate !== "function") continue;
+      const { x, y } = geseranPiksel(g, orientasi, ukuranPetak);
+      if (!x && !y) continue;
+      el.style.zIndex = "20"; // di atas bidak diam (z-10), di bawah lapisan panah (z-30)
+      el.style.willChange = "transform";
+      const gerak = el.animate(
+        [
+          { transform: `translate(${-x}px, ${-y}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        { duration: durasiGeser(), easing: KURVA_GESER }
+      );
+      animasiJalanRef.current.add(gerak);
+      const bersihkan = () => {
+        animasiJalanRef.current.delete(gerak);
+        el.style.zIndex = "";
+        el.style.willChange = "";
+      };
+      gerak.finished?.then(bersihkan).catch(bersihkan);
+      gerak.oncancel = bersihkan;
+    }
+  }, [fen, orientasi, animasi]);
+
+  // Papan dilepas di tengah luncuran (pindah halaman, soal baru): hentikan
+  // animasi yang masih berjalan supaya tidak menyentuh elemen yang sudah mati.
+  useEffect(
+    () => () => {
+      for (const gerak of animasiJalanRef.current) gerak.cancel?.();
+      animasiJalanRef.current.clear();
+    },
+    []
+  );
+
   function mulaiSeret(e, petakAwal) {
     if (e.pointerType !== "touch") e.preventDefault();
     bacaGeometri();
@@ -543,7 +613,12 @@ export default function PapanTekaTeki({
       onLewatiPetakRef.current?.(null);
       const tujuan = pindah ? cariPetak(e.clientX, e.clientY) || dari : dari;
       const klikUlang = !pindah && tujuan === dari && terpilihSebelumnya;
-      if (pindah && tujuan !== dari) abaikanKlikRef.current = true;
+      if (pindah && tujuan !== dari) {
+        abaikanKlikRef.current = true;
+        // Bidak ini sudah dilepas pengguna tepat di petak tujuan — jangan
+        // diluncurkan lagi dari petak asal saat FEN berikutnya tiba.
+        lewatiGeserRef.current = { ke: tujuan, waktu: Date.now() };
+      }
       if (onSelesaiSeret) onSelesaiSeret(dari, tujuan, klikUlang);
       else if (pindah && tujuan !== dari) onJatuh?.(dari, tujuan);
       return;
@@ -758,7 +833,10 @@ export default function PapanTekaTeki({
 
               {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
               {bidak && !sedangDiseret && (
-                <span className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none">
+                <span
+                  data-bidak={bidak}
+                  className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none"
+                >
                   <ChessPiece piece={bidak} set={setBidak} className="h-full w-full" />
                 </span>
               )}
