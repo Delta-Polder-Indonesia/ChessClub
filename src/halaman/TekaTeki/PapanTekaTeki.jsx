@@ -863,7 +863,7 @@ export default function PapanTekaTeki({
         </div>
       )}
 
-      {/* Lapisan panah — poligon persis ala chess.com (fill + opacity 0.8). */
+      {/* Lapisan panah — poligon persis ala chess.com (fill + opacity 0.8). */}
       <svg
         className="arrows pointer-events-none absolute inset-0 z-30 h-full w-full"
         viewBox="0 0 100 100"
