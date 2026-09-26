@@ -15,11 +15,23 @@
 
 export const LAJUR = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-/** Lama luncuran (ms) — sekitar chess.com (~0,2 dtk): terasa halus, tidak lambat. */
-export const DURASI_GESER = 180;
+/**
+ * Lama luncuran (ms). Sengaja lebih lambat daripada chess.com (~200 ms):
+ * permintaan pemilik situs adalah gerakan yang "santai", bidak terlihat
+ * benar-benar berjalan dari petak asal ke petak tujuan, bukan menyentak.
+ * Ubah di SATU tempat ini — papan dan ujinya membaca tetapan yang sama.
+ */
+export const DURASI_GESER = 320;
 
-/** Kurva percepatan luncuran: cepat di awal, melambat saat mendarat. */
-export const KURVA_GESER = "cubic-bezier(0.22, 0.61, 0.36, 1)";
+/**
+ * Lama luncuran saat sistem meminta pengurangan gerak
+ * (`prefers-reduced-motion: reduce`). Tetap meluncur supaya perpindahan bidak
+ * masih bisa diikuti mata, hanya dipersingkat.
+ */
+export const DURASI_GESER_MINIM = 120;
+
+/** Kurva percepatan luncuran: berangkat halus, mendarat halus. */
+export const KURVA_GESER = "cubic-bezier(0.4, 0, 0.2, 1)";
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak ("e4" → "P"). */
 export function petaBidak(fen) {
@@ -191,4 +203,13 @@ export function kurangiGerak() {
   } catch {
     return false;
   }
+}
+
+/**
+ * Lama luncuran yang dipakai papan saat ini. Dipisah dari tetapan supaya
+ * setelan "kurangi gerak" hanya MEMPERSINGKAT luncuran, bukan mematikannya —
+ * papan tanpa luncuran sama sekali itulah yang dulu terasa "berkedip".
+ */
+export function durasiGeser() {
+  return kurangiGerak() ? DURASI_GESER_MINIM : DURASI_GESER;
 }

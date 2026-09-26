@@ -29,6 +29,8 @@ import { fileURLToPath } from "node:url";
 
 import {
   DURASI_GESER,
+  DURASI_GESER_MINIM,
+  durasiGeser,
   geseranDariFen,
   geseranPiksel,
   posisiLayar,
@@ -157,6 +159,20 @@ const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
   );
   const a8 = posisiLayar("a8", "w");
   uji("a8 = pojok kiri-atas saat putih di bawah", a8.kolom === 0 && a8.baris === 0);
+}
+
+{
+  // Kecepatan luncuran: diminta "santai", bukan sentakan cepat.
+  uji("durasi bawaan santai (>= 300 ms)", DURASI_GESER >= 300, String(DURASI_GESER));
+  uji("tanpa setelan kurangi gerak: durasi penuh", durasiGeser() === DURASI_GESER);
+  const matchMediaAsli = globalThis.matchMedia;
+  globalThis.matchMedia = (media) => ({ matches: media.includes("reduced-motion"), media });
+  uji(
+    "setelan kurangi gerak mempersingkat luncuran, bukan mematikannya",
+    durasiGeser() === DURASI_GESER_MINIM && DURASI_GESER_MINIM > 0,
+    String(durasiGeser())
+  );
+  globalThis.matchMedia = matchMediaAsli;
 }
 
 /* ====================== B. papan sungguhan (jsdom) ====================== */
@@ -317,7 +333,11 @@ await aturPosisi({ fen: SETELAH_E4, orientasi: "w" });
     awal === "translate(-0px, 160px)" || awal === "translate(0px, 160px)",
     awal
   );
-  uji("durasi memakai tetapan bersama", panggilan?.opsi?.duration === DURASI_GESER);
+  uji(
+    "durasi memakai tetapan bersama (santai)",
+    panggilan?.opsi?.duration === DURASI_GESER,
+    String(panggilan?.opsi?.duration)
+  );
 }
 
 // Posisi diganti sepenuhnya (soal baru / muat FEN) → langsung, tanpa luncuran.

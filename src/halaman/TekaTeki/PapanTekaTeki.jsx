@@ -1,11 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import {
-  DURASI_GESER,
   KURVA_GESER,
+  durasiGeser,
   geseranDariFen,
   geseranPiksel,
-  kurangiGerak,
   petaBidak,
 } from "./animasiBidak.js";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -440,8 +439,10 @@ export default function PapanTekaTeki({
    *     langkah) — `geseranDariFen` mengembalikan daftar kosong;
    *   - papan dibalik (orientasi berubah);
    *   - bidak yang baru saja DISERET pengguna — bidaknya sudah dilepas di
-   *     petak tujuan, meluncurkannya lagi justru terlihat mundur;
-   *   - saat sistem meminta pengurangan gerak (prefers-reduced-motion).
+   *     petak tujuan, meluncurkannya lagi justru terlihat mundur.
+   *
+   * Setelan sistem "kurangi gerak" tidak mematikan luncuran, hanya
+   * mempersingkatnya (lihat `durasiGeser`).
    */
   useLayoutEffect(() => {
     const fenLama = fenSebelumRef.current;
@@ -450,7 +451,6 @@ export default function PapanTekaTeki({
     orientasiSebelumRef.current = orientasi;
     if (!animasi) return;
     if (orientasiLama !== orientasi) return;
-    if (kurangiGerak()) return;
     const wadah = akar.current;
     if (!wadah) return;
     const geseran = geseranDariFen(fenLama, fen);
@@ -474,7 +474,7 @@ export default function PapanTekaTeki({
           { transform: `translate(${-x}px, ${-y}px)` },
           { transform: "translate(0px, 0px)" },
         ],
-        { duration: DURASI_GESER, easing: KURVA_GESER }
+        { duration: durasiGeser(), easing: KURVA_GESER }
       );
       animasiJalanRef.current.add(gerak);
       const bersihkan = () => {
