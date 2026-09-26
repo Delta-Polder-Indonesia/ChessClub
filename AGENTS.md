@@ -100,6 +100,7 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | `kci-frontend` | mengubah `src/`, `index.html`, `vite.config.js`, atau `public/` |
 | `kci-backend` | mengubah `server/`, `api/`, `db/`, atau alur data/auth backend |
 | `kci-pengujian` | menyelesaikan perubahan apa pun, menambah uji, atau menyelidiki CI merah |
+| `kci-standar-kode` | menulis atau meninjau kode di area mana pun, dan sebelum PR dinyatakan siap |
 | `kci-deploy` | mengubah `vercel.json`, workflow CI, atau env var Vercel |
 
 Sebelum menelusuri repo secara manual: jalankan `npm run peta`. Perintah itu menulis
