@@ -149,16 +149,22 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.mouse.up({ button: "right" });
     await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(1);
 
+    // Panel pra-partai berganti jadi panel partai berjalan: konfigurasi
+    // disembunyikan dan jalan keluarnya lewat Menyerah (dulu tombol
+    // "Partai baru"). Memulai partai juga membersihkan tanda pengguna.
     await page.getByRole("button", { name: kamus.pveMulai }).click();
-    await expect(page.getByRole("button", { name: kamus.pvePartaiBaru })).toBeVisible();
-    await expect(page.getByLabel(kamus.pveKonfigurasiAktif)).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.pveMenyerah })).toBeVisible();
     await expect(warnaPemain).toHaveCount(0);
     await expect(levelMesin).toHaveCount(0);
-    await page.getByRole("button", { name: kamus.pvePartaiBaru }).click();
+    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
+
+    await page.getByRole("button", { name: kamus.pveMenyerah }).click();
+    await expect(page.getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })).toBeVisible();
+    await page.getByRole("button", { name: kamus.pveYa, exact: true }).click();
     await expect(page.getByRole("button", { name: kamus.pveMulai })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
-    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
+
     if (testInfo.project.name === "desktop-chromium") {
       await page.setViewportSize({ width: 1366, height: 600 });
       const ukuran = await page.evaluate(() => {
