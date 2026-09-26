@@ -950,6 +950,26 @@ section[id] {
   will-change: transform;
 }
 
+/* Animasi perpindahan bidak pada papan, supaya langkah tidak terlihat berkedip. */
+@keyframes bidak-bergerak {
+  from {
+    transform: translate(var(--gerak-x), var(--gerak-y));
+  }
+  to {
+    transform: translate(0, 0);
+  }
+}
+
+.bidak-bergerak {
+  animation: bidak-bergerak 280ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bidak-bergerak {
+    animation: none;
+  }
+}
+
 @keyframes progressbar {
   from {
     transform: scaleX(0);

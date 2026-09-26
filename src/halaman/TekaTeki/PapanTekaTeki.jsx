@@ -758,7 +758,19 @@ export default function PapanTekaTeki({
 
               {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
               {bidak && !sedangDiseret && (
-                <span className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none">
+                <span
+                  className={`relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none ${
+                    jadiAkhir && langkahAkhir.from !== langkahAkhir.to ? "bidak-bergerak" : ""
+                  }`}
+                  style={
+                    jadiAkhir && langkahAkhir.to === sq
+                      ? {
+                          "--gerak-x": `${(FILE.indexOf(langkahAkhir.from[0]) - FILE.indexOf(sq[0])) * 113.64}%`,
+                          "--gerak-y": `${(Number(sq[1]) - Number(langkahAkhir.from[1])) * 113.64}%`,
+                        }
+                      : undefined
+                  }
+                >
                   <ChessPiece piece={bidak} set={setBidak} className="h-full w-full" />
                 </span>
               )}
