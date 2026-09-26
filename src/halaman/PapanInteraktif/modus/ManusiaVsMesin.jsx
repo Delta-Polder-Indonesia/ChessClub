@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Cpu, FlipVertical2, Settings, Volume2, VolumeX, X } from "lucide-react";
+import { Copy, Cpu, FlipVertical2, Settings, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
 import { DAFTAR_SET } from "../../../components/chess/ChessPiece.jsx";
@@ -9,14 +9,51 @@ import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
 import { gunakanDialog } from "../gunakanDialog.js";
+import { susunPgn } from "../utilPapan.js";
 
 const PILIHAN_LEVEL_MESIN = [
-  { id: "beginner", keterampilan: 0, waktu: 250, label: "papan.pveLevelBeginner" },
-  { id: "casual", keterampilan: 4, waktu: 350, label: "papan.pveLevelCasual" },
-  { id: "intermediate", keterampilan: 8, waktu: 500, label: "papan.pveLevelIntermediate" },
-  { id: "advanced", keterampilan: 12, waktu: 700, label: "papan.pveLevelAdvanced" },
-  { id: "expert", keterampilan: 16, waktu: 1000, label: "papan.pveLevelExpert" },
-  { id: "master", keterampilan: 20, waktu: 1400, label: "papan.pveLevelMaster" },
+  {
+    id: "beginner",
+    keterampilan: 0,
+    waktu: 250,
+    label: "papan.pveLevelBeginner",
+    ringkas: "papan.pveLevelBeginnerRingkas",
+  },
+  {
+    id: "casual",
+    keterampilan: 4,
+    waktu: 350,
+    label: "papan.pveLevelCasual",
+    ringkas: "papan.pveLevelCasualRingkas",
+  },
+  {
+    id: "intermediate",
+    keterampilan: 8,
+    waktu: 500,
+    label: "papan.pveLevelIntermediate",
+    ringkas: "papan.pveLevelIntermediateRingkas",
+  },
+  {
+    id: "advanced",
+    keterampilan: 12,
+    waktu: 700,
+    label: "papan.pveLevelAdvanced",
+    ringkas: "papan.pveLevelAdvancedRingkas",
+  },
+  {
+    id: "expert",
+    keterampilan: 16,
+    waktu: 1000,
+    label: "papan.pveLevelExpert",
+    ringkas: "papan.pveLevelExpertRingkas",
+  },
+  {
+    id: "master",
+    keterampilan: 20,
+    waktu: 1400,
+    label: "papan.pveLevelMaster",
+    ringkas: "papan.pveLevelMasterRingkas",
+  },
 ];
 
 function hasilAkhir(game) {
@@ -218,6 +255,7 @@ export default function ManusiaVsMesin() {
   const [riwayat, setRiwayat] = useState([]);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
   const [langkahDialog, setLangkahDialog] = useState(null);
+  const [tanda, setTanda] = useState({ panah: [], petak: {} });
   const [terpilih, setTerpilih] = useState(null);
   const [sasaran, setSasaran] = useState([]);
   const [warnaPemain, setWarnaPemain] = useState("w");
@@ -237,7 +275,9 @@ export default function ManusiaVsMesin() {
   const [hasil, setHasil] = useState(null);
   const [pesan, setPesan] = useState("");
   const [evaluasi, setEvaluasi] = useState(null);
+  const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
+  const timerSalinRef = useRef(null);
 
   useEffect(() => {
     fenRef.current = fen;
@@ -338,6 +378,7 @@ export default function ManusiaVsMesin() {
     () => () => {
       mesinRef.current?.tamat();
       mesinRef.current = null;
+      window.clearTimeout(timerSalinRef.current);
     },
     []
   );
@@ -388,21 +429,79 @@ export default function ManusiaVsMesin() {
     pilihPetak(square);
   }
 
-  function mulaiPartai() {
-    mesinRef.current?.setop();
+  function bersihkanPartai() {
     fenRef.current = FEN_AWAL;
     setFen(FEN_AWAL);
     setRiwayat([]);
     setLangkahAkhir(null);
     setLangkahDialog(null);
+    setTanda({ panah: [], petak: {} });
     setTerpilih(null);
     setSasaran([]);
     setHasil(null);
     setPesan("");
     setEvaluasi(null);
+    setPgnTersalin(false);
+  }
+
+  function siapkanPartaiBaru() {
+    mesinRef.current?.tamat();
+    mesinRef.current = null;
+    bersihkanPartai();
+    setAktif(false);
+    setStatusMesin("idle");
+  }
+
+  function mulaiPartai() {
+    mesinRef.current?.tamat();
+    mesinRef.current = null;
+    bersihkanPartai();
     setAktif(true);
     setStatusMesin("pemain");
     mainkan(SUARA.mulai);
+  }
+
+  function aksiPartai() {
+    if (aktif) {
+      siapkanPartaiBaru();
+      return;
+    }
+    mulaiPartai();
+  }
+
+  function tandaPetak(petak, warna) {
+    setTanda((lama) => {
+      if (lama.petak[petak]) return { panah: [], petak: {} };
+      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
+    });
+  }
+
+  function tandaPanah(from, to, warna) {
+    setTanda((lama) => {
+      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
+      const panah = ada
+        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
+        : [...lama.panah, { from, to, warna }];
+      return { ...lama, panah };
+    });
+  }
+
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
+  }
+
+  function salinPgn() {
+    if (!riwayat.length) return;
+    const selesai = () => {
+      setPgnTersalin(true);
+      window.clearTimeout(timerSalinRef.current);
+      timerSalinRef.current = window.setTimeout(() => setPgnTersalin(false), 1500);
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(susunPgn(riwayat)).then(selesai).catch(selesai);
+    } else {
+      selesai();
+    }
   }
 
   function statusTeks() {
@@ -439,13 +538,17 @@ export default function ManusiaVsMesin() {
               terpilih={terpilih}
               sasaran={sasaran}
               langkahAkhir={langkahAkhir}
+              tanda={tanda}
               terkunci={!bolehGerak}
-              membeku={!bolehGerak}
+              membeku={false}
               setBidak={setBidak}
               tema={tema}
               onKlik={klikPetak}
               onPilih={pilihPetak}
               onJatuh={(from, to) => bolehGerak && mainkanLangkah(from, to)}
+              onTandaPetak={tandaPetak}
+              onTandaPanah={tandaPanah}
+              onHapusTanda={hapusSemuaTanda}
             />
           </div>
         </div>
@@ -486,56 +589,82 @@ export default function ManusiaVsMesin() {
           </p>
         </section>
 
-        <div className="grid grid-cols-2 gap-3">
-          <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
-            {t("papan.pveWarnaPemain")}
-            <select
-              value={warnaPemain}
-              disabled={aktif}
-              onChange={(event) => {
-                setWarnaPemain(event.target.value);
-                setOrientasiPapan(event.target.value);
-              }}
-              className="rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c] disabled:opacity-50"
-            >
-              <option value="w">{t("papan.pvePutih")}</option>
-              <option value="b">{t("papan.pveHitam")}</option>
-            </select>
-          </label>
+        {aktif ? (
+          <section aria-label={t("papan.pveKonfigurasiAktif")} className="rounded-md border border-[#3b3935] bg-[#262421] px-3 py-2.5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+              {t("papan.pveKonfigurasiAktif")}
+            </p>
+            <p className="mt-1 text-sm text-gray-200">
+              {t("papan.pveRingkasanKonfigurasi", {
+                warna: warnaPemain === "w" ? t("papan.pvePutih") : t("papan.pveHitam"),
+                level: t(tingkatAktif.ringkas),
+              })}
+            </p>
+          </section>
+        ) : (
+          <section aria-label={t("papan.pveKonfigurasi")} className="space-y-3">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
+              {t("papan.pveKonfigurasi")}
+            </p>
+            <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
+              {t("papan.pveWarnaPemain")}
+              <select
+                value={warnaPemain}
+                onChange={(event) => {
+                  setWarnaPemain(event.target.value);
+                  setOrientasiPapan(event.target.value);
+                }}
+                className="rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
+              >
+                <option value="w">{t("papan.pvePutih")}</option>
+                <option value="b">{t("papan.pveHitam")}</option>
+              </select>
+            </label>
 
-          <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
-            {t("papan.pveLevel")}
-            <select
-              value={levelMesin}
-              disabled={aktif}
-              onChange={(event) => setLevelMesin(event.target.value)}
-              className="truncate rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c] disabled:opacity-50"
-            >
-              {PILIHAN_LEVEL_MESIN.map((level) => (
-                <option key={level.id} value={level.id}>
-                  {t(level.label)}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-
-        <p className="text-xs text-gray-500">
-          {t("papan.pveKekuatan", { nilai: tingkatAktif.keterampilan, waktu: tingkatAktif.waktu })}
-        </p>
+            <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
+              {t("papan.pveLevel")}
+              <select
+                value={levelMesin}
+                onChange={(event) => setLevelMesin(event.target.value)}
+                className="rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
+              >
+                {PILIHAN_LEVEL_MESIN.map((level) => (
+                  <option key={level.id} value={level.id}>
+                    {t(level.ringkas)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p className="text-xs leading-5 text-gray-400">{t(tingkatAktif.label)}</p>
+            <p className="text-xs text-gray-500">
+              {t("papan.pveKekuatan", { nilai: tingkatAktif.keterampilan, waktu: tingkatAktif.waktu })}
+            </p>
+          </section>
+        )}
 
         <button
           type="button"
-          onClick={mulaiPartai}
+          onClick={aksiPartai}
           className="rounded-md bg-[#81b64c] px-4 py-2.5 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
         >
           {aktif ? t("papan.pvePartaiBaru") : t("papan.pveMulai")}
         </button>
 
         <section className="flex min-h-0 flex-1 flex-col border-t border-[#312e2b] pt-3">
-          <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
-            {t("papan.pveRiwayat")}
-          </h2>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-xs font-bold uppercase tracking-wide text-gray-400">
+              {t("papan.pveRiwayat")}
+            </h2>
+            <button
+              type="button"
+              onClick={salinPgn}
+              disabled={!riwayat.length}
+              className="flex items-center gap-1 rounded border border-[#4a4742] px-2 py-1 text-[11px] font-semibold text-gray-300 transition hover:border-[#81b64c] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+              {pgnTersalin ? t("papan.tersalinSingkat") : t("papan.salinPgn")}
+            </button>
+          </div>
           <div className="min-h-0 flex-1 overflow-y-auto rounded-md bg-[#262421] p-2 text-sm">
             {giliranPenuh.length ? (
               <ol className="space-y-1">

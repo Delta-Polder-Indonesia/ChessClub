@@ -131,8 +131,34 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
 
     await menu.getByRole("button", { name: kamus.menuManusiaMesin }).click();
     await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
+    const warnaPemain = page.getByLabel(kamus.pveWarnaPemain);
+    const levelMesin = page.getByLabel(kamus.pveLevel);
+    await expect(warnaPemain).toBeEnabled();
+    await expect(levelMesin).toBeEnabled();
+
+    // Tanda pengguna tetap berfungsi ketika belum bermain dan dapat dipakai
+    // saat komputer berpikir. Ini menutup regresi PvE yang sebelumnya tidak
+    // meneruskan callback onTandaPetak/onTandaPanah ke papan bersama.
+    const asal = await page.locator('[data-petak="e2"]').boundingBox();
+    const tujuan = await page.locator('[data-petak="e4"]').boundingBox();
+    expect(asal).not.toBeNull();
+    expect(tujuan).not.toBeNull();
+    await page.mouse.move(asal.x + asal.width / 2, asal.y + asal.height / 2);
+    await page.mouse.down({ button: "right" });
+    await page.mouse.move(tujuan.x + tujuan.width / 2, tujuan.y + tujuan.height / 2, { steps: 4 });
+    await page.mouse.up({ button: "right" });
+    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(1);
+
     await page.getByRole("button", { name: kamus.pveMulai }).click();
     await expect(page.getByRole("button", { name: kamus.pvePartaiBaru })).toBeVisible();
+    await expect(page.getByLabel(kamus.pveKonfigurasiAktif)).toBeVisible();
+    await expect(warnaPemain).toHaveCount(0);
+    await expect(levelMesin).toHaveCount(0);
+    await page.getByRole("button", { name: kamus.pvePartaiBaru }).click();
+    await expect(page.getByRole("button", { name: kamus.pveMulai })).toBeVisible();
+    await expect(warnaPemain).toBeEnabled();
+    await expect(levelMesin).toBeEnabled();
+    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
     if (testInfo.project.name === "desktop-chromium") {
       await page.setViewportSize({ width: 1366, height: 600 });
       const ukuran = await page.evaluate(() => {
