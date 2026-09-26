@@ -730,6 +730,7 @@ export default function ManusiaVsMesin() {
                 terpilih={terpilih}
                 sasaran={sasaran}
                 langkahAkhir={langkahAkhir}
+                animasiLangkah
                 tanda={tanda}
                 terkunci={!bolehGerak}
                 membeku={false}

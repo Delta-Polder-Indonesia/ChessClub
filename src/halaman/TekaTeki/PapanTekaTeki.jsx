@@ -250,6 +250,7 @@ export default function PapanTekaTeki({
   petunjuk = null,
   kesalahan = null,
   langkahAkhir = null,
+  animasiLangkah = false,
   tanda = { panah: [], petak: {} },
   panahMesin = null, // { from, to, warna } — saran engine, digambar terpisah dari tanda pengguna
   // Bantuan langkah saat menyeret (assisted play): petak tujuan diwarnai
@@ -760,10 +761,10 @@ export default function PapanTekaTeki({
               {bidak && !sedangDiseret && (
                 <span
                   className={`relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none ${
-                    jadiAkhir && langkahAkhir.from !== langkahAkhir.to ? "bidak-bergerak" : ""
+                    animasiLangkah && jadiAkhir && langkahAkhir.from !== langkahAkhir.to ? "bidak-bergerak" : ""
                   }`}
                   style={
-                    jadiAkhir && langkahAkhir.to === sq
+                    animasiLangkah && jadiAkhir && langkahAkhir.to === sq
                       ? {
                           "--gerak-x": `${(FILE.indexOf(langkahAkhir.from[0]) - FILE.indexOf(sq[0])) * 113.64}%`,
                           "--gerak-y": `${(Number(sq[1]) - Number(langkahAkhir.from[1])) * 113.64}%`,
