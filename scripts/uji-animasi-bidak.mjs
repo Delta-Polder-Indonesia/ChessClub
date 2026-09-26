@@ -387,6 +387,8 @@ import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 import ManusiaVsMesin from "./src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx";
 
+export { GESTUR } from "./src/halaman/PapanInteraktif/modus/gerakLawan.js";
+
 export function mountPve(el) {
   return createRoot(el).render(
     <I18nProvider>
@@ -494,6 +496,12 @@ function kirimEvent(el, jenis, titik, tambahan = {}) {
 const wadahPve = window.document.createElement("div");
 window.document.body.appendChild(wadahPve);
 const modulPve = require(berkasPve);
+// Gestur "seperti manusia" milik mesin menunggu 2-4 detik sebelum melangkah.
+// Untuk uji, jeda itu dipangkas dan gestur ragu dimatikan supaya bagian ini
+// tetap mengukur animasi luncuran, bukan lamanya mesin berpikir.
+modulPve.GESTUR.jedaLangkah = [10, 10];
+modulPve.GESTUR.jedaRagu = [5, 5];
+modulPve.GESTUR.peluangRagu = 0;
 modulPve.mountPve(wadahPve);
 await tunggu(120);
 
@@ -545,7 +553,9 @@ kirimEvent(petakPve("g1"), "pointerdown", titikPetak("g1"));
 await tunggu(20);
 kirimEvent(petakPve("f3"), "pointermove", titikPetak("f3"), { buttons: 1 });
 kirimEvent(petakPve("f3"), "pointerup", titikPetak("f3"));
-await tunggu(60);
+// Satu jendela pengamatan untuk seret DAN balasannya: dengan jeda gestur yang
+// dipangkas, mesin bisa menjawab sebelum jendela kedua dibuka.
+await tunggu(700);
 {
   const diseret = catatan.filter((c) => c.petak === "f3");
   const pindah = wadahPve.querySelector('[data-petak="f3"] [data-bidak]');
@@ -555,15 +565,12 @@ await tunggu(60);
     diseret.length === 0,
     JSON.stringify(catatan.map((c) => c.petak))
   );
+  uji(
+    "balasan mesin setelah seret tetap meluncur (Nc6)",
+    catatan.some((c) => c.petak === "c6"),
+    JSON.stringify(catatan.map((c) => c.petak))
+  );
 }
-
-catatan.length = 0;
-await tunggu(700);
-uji(
-  "balasan mesin setelah seret tetap meluncur (Nc6)",
-  catatan.some((c) => c.petak === "c6"),
-  JSON.stringify(catatan.map((c) => c.petak))
-);
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);

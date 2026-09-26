@@ -32,18 +32,19 @@ kegagalan pertama karena dirangkai dengan `&&`):
 17. `npm run uji:lencana-skakmat`
 18. `npm run uji:tanda-papan`
 19. `npm run uji:animasi-bidak`
-20. `npm run uji:bantuan-langkah`
-21. `npm run uji:repertoar`
-22. `npm run uji:tekateki-solusi`
-23. `npm run uji:rush`
-24. `npm run uji:gambar`
-25. `node scripts/uji-identitas.mjs` (langsung)
-26. `npm run uji:skema`
-27. `node scripts/uji-ebook.mjs` (langsung)
-28. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-29. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-30. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-31. `npm run uji:pendaftaran-ui`
+20. `npm run uji:gestur-lawan`
+21. `npm run uji:bantuan-langkah`
+22. `npm run uji:repertoar`
+23. `npm run uji:tekateki-solusi`
+24. `npm run uji:rush`
+25. `npm run uji:gambar`
+26. `node scripts/uji-identitas.mjs` (langsung)
+27. `npm run uji:skema`
+28. `node scripts/uji-ebook.mjs` (langsung)
+29. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+30. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+31. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+32. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 

@@ -12,7 +12,7 @@ import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
-import { klikLawan } from "./gerakLawan.js";
+import { GESTUR, gesturLawan, petakRagu, posisiSulit } from "./gerakLawan.js";
 
 const NAMA_MESIN = "Hikaru Nakamura";
 const AVATAR_MESIN = berkasPublik("/engine_expressions/hikaru.png");
@@ -428,21 +428,42 @@ export default function ManusiaVsMesin() {
   );
 
   /**
-   * Langkah lawan memakai klik move: satu klik pada biknya supaya sorotan dan
-   * titik tujuan muncul, baru bidak itu melangkah. Jalur yang sama dengan klik
-   * pemain, hanya pelakunya yang berbeda.
+   * Langkah lawan memakai klik move: mesin mengklik bidaknya sendiri (sorotan
+   * petak, titik tujuan, dan bidaknya bergoyang), diam beberapa detik, baru
+   * melangkah. Di posisi yang dinilai sulit mesin kadang melirik satu-dua
+   * bidak lain lebih dulu seperti sedang bimbang — langkah yang dijalankan
+   * tetap hasil pencarian engine, gestur ini murni tampilan.
+   *
+   * Seluruh gesturnya ada di `gerakLawan.js` dan hanya dipakai mode ini.
    */
   const mainstreamkanLangkahLawan = useCallback(
-    async (from, to, promosi) => {
+    async (from, to, promosi, info) => {
       const token = (tokenLawanRef.current += 1);
-      lawanKlikRef.current = { dari: from, ke: to };
-      mainkan(SUARA.klik);
-      await klikLawan(papanRef.current, from);
-      if (token !== tokenLawanRef.current) return;
+      let jumlahLangkah = 0;
+      try {
+        jumlahLangkah = new Chess(fenRef.current).moves().length;
+      } catch {
+        jumlahLangkah = 0;
+      }
+      const ragu =
+        posisiSulit(info, jumlahLangkah) && Math.random() < GESTUR.peluangRagu
+          ? petakRagu(fenRef.current, warnaMesin, from)
+          : [];
+      // Petak yang boleh diproses selama jendela gestur: bidak yang dilirik
+      // dan bidak yang benar-benar akan dijalankan. Selain itu diabaikan,
+      // supaya klik pemain tidak menyelinap di tengah giliran mesin.
+      lawanKlikRef.current = { dari: from, ke: to, boleh: [...ragu, from] };
+      const selesai = await gesturLawan(papanRef.current, {
+        dari: from,
+        ragu,
+        padaKlik: () => mainkan(SUARA.klik),
+        masihBerlaku: () => token === tokenLawanRef.current,
+      });
+      if (!selesai || token !== tokenLawanRef.current) return;
       lawanKlikRef.current = null;
       mainkanLangkah(from, to, promosi);
     },
-    [mainkan, mainkanLangkah]
+    [mainkan, mainkanLangkah, warnaMesin]
   );
 
   // Worker hanya hidup selama mesin harus menjawab. Kekuatan dipasang lewat
@@ -477,13 +498,13 @@ export default function ManusiaVsMesin() {
             if (!hidup || fenRef.current !== fen) return;
             setEvaluasi(nilaiEvaluasiPutih(info, game.turn()));
           },
-          padaSelesai: (uci, _info, error) => {
+          padaSelesai: (uci, info, error) => {
             if (!hidup || fenRef.current !== fen) return;
             if (error || !uci || uci.length < 4) {
               setStatusMesin("gagal");
               return;
             }
-            mainstreamkanLangkahLawan(uci.slice(0, 2), uci.slice(2, 4), uci[4]);
+            mainstreamkanLangkahLawan(uci.slice(0, 2), uci.slice(2, 4), uci[4], info);
           },
         });
       })
@@ -531,7 +552,9 @@ export default function ManusiaVsMesin() {
   }
 
   function pilihPetak(square, warnaBoleh = warnaPemain) {
-    if (!bolehGerak && !(lawanKlikRef.current && lawanKlikRef.current.dari === square)) return;
+    const jendelaLawan = lawanKlikRef.current;
+    if (!bolehGerak && !(jendelaLawan && (jendelaLawan.boleh || [jendelaLawan.dari]).includes(square)))
+      return;
     if (terpilih === square) {
       setTerpilih(null);
       setSasaran([]);
@@ -552,7 +575,8 @@ export default function ManusiaVsMesin() {
     // pemain yang memindahkan bidak — mesin melangkah sendiri setelah jeda.
     const lawan = lawanKlikRef.current;
     if (lawan) {
-      if (square === lawan.dari) pilihPetak(square, warnaMesin);
+      const boleh = lawan.boleh || [lawan.dari];
+      if (boleh.includes(square)) pilihPetak(square, warnaMesin);
       return;
     }
     if (!bolehGerak) return;
