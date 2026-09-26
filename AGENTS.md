@@ -145,7 +145,9 @@ Cara opencode memuat skill (diverifikasi dari sumbernya, agar perubahan berikutn
 - `description` wajib ada, 1–1024 karakter. Sebelum dimuat, agen hanya melihat `name` + `description`,
   jadi deskripsi harus memuat kata kunci pemicunya (nama folder, berkas, atau perintah uji).
 - `metadata` (opsional) harus peta string ke string. Field frontmatter lain diabaikan opencode.
-- Setiap pemuatan skill meminta izin (default `ask`) kecuali pengguna mengizinkan lebih dulu.
+- Pemuatan skill **tidak** meminta izin secara bawaan: aturan bawaan opencode adalah `"*": "allow"`
+  (hanya `doom_loop` dan `external_directory` yang `ask`). Berkas `opencode.json` di akar repo
+  menegaskan izin itu, supaya config global yang lebih ketat tidak mengubah perilaku ini.
 
 Jangan menaruh panduan yang hanya berguna sesekali di `AGENTS.md` — berkas ini dimuat di setiap sesi,
 sedangkan skill dimuat saat dibutuhkan sesuai deskripsinya.
