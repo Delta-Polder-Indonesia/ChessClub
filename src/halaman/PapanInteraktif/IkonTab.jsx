@@ -37,6 +37,16 @@ export default function IkonTab({ nama, className = "h-4 w-4" }) {
       </svg>
     );
   }
+  if (nama === "users") {
+    return (
+      <svg {...umum}>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <path d="M16 3.128a4 4 0 0 1 0 7.744" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <circle cx="9" cy="7" r="4" />
+      </svg>
+    );
+  }
   return (
     <svg {...umum}>
       <line x1="6" y1="11" x2="10" y2="11" />
