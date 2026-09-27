@@ -688,7 +688,7 @@ export default function ManusiaVsMesin() {
     benih: riwayatLengkap.length,
     t,
   });
-  const tampilkanEvaluasi = "sunfish" !== tingkatAktif.mesin;
+  const evaluasiMesinTersedia = "sunfish" !== tingkatAktif.mesin;
   // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
   // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
   const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
@@ -712,17 +712,15 @@ export default function ManusiaVsMesin() {
         <div className="mx-auto my-auto flex w-full max-w-[520px] flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
-            {/* Sunfish tidak menerbitkan baris "info score cp", dan skornya
-                sengaja dirusak — bilah evaluasi disembunyikan di level itu. */}
-            {tampilkanEvaluasi ? (
-              <BilahEvaluasi
-                cpPutih={evaluasi?.cp ?? 0}
-                matePutih={evaluasi?.mate ?? null}
-                orientasi={orientasiPapan}
-                label={t("papan.pveEvaluasi")}
-                adaEvaluasi={Boolean(evaluasi)}
-              />
-            ) : null}
+            {/* Satu komponen yang sama dengan Buku Pembukaan. Sunfish tidak
+                menerbitkan skor, jadi bilah tetap netral sampai ada evaluasi. */}
+            <BilahEvaluasi
+              cpPutih={evaluasi?.cp ?? 0}
+              matePutih={evaluasi?.mate ?? null}
+              orientasi={orientasiPapan}
+              label={t("papan.pveEvaluasi")}
+              adaEvaluasi={Boolean(evaluasi)}
+            />
             <div className="aspect-square w-full" ref={papanRef}>
               <PapanTekaTeki
                 fen={fen}
@@ -829,7 +827,7 @@ export default function ManusiaVsMesin() {
             {/* Keterangan engine per level: yang dipakai berbeda, dan di level
                 sunfish penilaian memang sengaja dirusak — pemain berhak tahu. */}
             <p className="text-[11px] leading-4 text-gray-500">
-              {tampilkanEvaluasi
+              {evaluasiMesinTersedia
                 ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
                 : t("papan.pveMesinSunfish")}
             </p>

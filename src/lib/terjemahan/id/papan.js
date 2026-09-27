@@ -38,7 +38,7 @@ export const papan = {
     pveLevelAdvancedRingkas: "Advanced / Menengah Atas",
     pveLevelExpertRingkas: "Expert / Ahli",
     pveLevelMasterRingkas: "Master",
-    pveMesinSunfish: "Level ini memakai engine sunfish dengan penilaian yang sengaja dilemahkan, jadi bilah evaluasi disembunyikan.",
+    pveMesinSunfish: "Level ini memakai engine sunfish dengan penilaian yang sengaja dilemahkan, jadi bilah evaluasi tetap netral.",
     pveMesinStockfish: "Level ini memakai Stockfish dengan Skill Level {nilai}/20.",
     pveKonfigurasi: "Konfigurasi partai",
     pveKekuatan: "Kekuatan Stockfish {nilai}/20 dengan waktu pikir {waktu} ms per langkah.",

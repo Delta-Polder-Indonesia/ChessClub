@@ -38,7 +38,7 @@ export const papan = {
     pveLevelAdvancedRingkas: "Advanced / Upper intermediate",
     pveLevelExpertRingkas: "Expert",
     pveLevelMasterRingkas: "Master",
-    pveMesinSunfish: "This level uses the sunfish engine with deliberately weakened evaluation, so the evaluation bar is hidden.",
+    pveMesinSunfish: "This level uses the sunfish engine with deliberately weakened evaluation, so the evaluation bar stays neutral.",
     pveMesinStockfish: "This level uses Stockfish at Skill Level {nilai}/20.",
     pveKonfigurasi: "Game setup",
     pveKekuatan: "Stockfish skill {nilai}/20 with {waktu} ms thinking time per move.",
