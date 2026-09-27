@@ -55,6 +55,14 @@ export const DAFTAR_ENGINE = [
 
 export const ENGINE_BAKU = DAFTAR_ENGINE.find((e) => e.saran)?.id ?? DAFTAR_ENGINE[0].id;
 
+/**
+ * Engine lawan level pemula: sunfish.js (GPL-3.0) dengan penilaian yang
+ * sengaja dirusak, dipakai mode Manusia vs Mesin lewat opsi `{ url }`.
+ * Sengaja TIDAK masuk `DAFTAR_ENGINE` — kekuatannya dilemahkan, jadi tidak
+ * layak dipakai untuk analisis posisi.
+ */
+export const URL_ENGINE_SUNFISH = `${dasarAset()}engines/sunfish/sunfish.js`;
+
 /** Cari konfigurasi engine berdasarkan id (fallback ke bawaan). */
 export function cariEngine(id) {
   return DAFTAR_ENGINE.find((e) => e.id === id) ?? DAFTAR_ENGINE.find((e) => e.id === ENGINE_BAKU);
