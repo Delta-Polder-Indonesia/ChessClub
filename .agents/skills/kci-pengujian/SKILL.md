@@ -21,11 +21,11 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 33 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+- `npm run uji` — 34 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
   `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
   `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
   `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`,
-  `uji:gestur-lawan`, `uji:bantuan-langkah`,
+  `uji:gestur-lawan`, `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
   `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:rush`,
   `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
   `uji-ebook-pembaca` (node langsung), `uji-nama-pembukaan` (node langsung),
@@ -61,6 +61,18 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   petak asal terakhir), jeda 2-4 detik sebelum melangkah, goyangan bidak yang diklik, pembatalan
   di tengah gestur, serta penjagaan bahwa langkah yang dijalankan tetap hasil engine dan modul
   ini tidak dipakai mode lain (Teka-teki/Rush/Repertoar).
+- `npm run uji:evaluasi-manusia-vs-mesin` — bilah evaluasi, pergantian posisi, dan deteksi akhir
+  partai di mode Manusia vs Mesin (`ManusiaVsMesin.jsx` + `gunakanEngineCatur.js`): evaluasi tidak
+  boleh macet menampilkan skor posisi lama begitu posisi berganti (bug utama yang dikunci uji
+  ini), hasil engine basi (termasuk posisi yang persis sama berulang lewat undo/redo) tidak boleh
+  menimpa posisi terkini, threefold repetition dideteksi lewat replay histori penuh (bukan
+  `new Chess(fen)` satu langkah), navigasi (undo/redo) tidak meninggalkan status giliran mesin
+  yang lama (papan tidak terkunci), reset/partai baru membuang evaluasi lama, skakmat tidak
+  menyisakan evaluasi posisi sebelumnya, dan konvensi tanda skor (+ = favorit Putih) konsisten
+  apa pun giliran/orientasi papan. Worker UCI Stockfish (bilah evaluasi) dan Worker sunfish
+  (lawan) sama-sama diganti Worker palsu yang dikendalikan manual (`job.rilis()`) supaya urutan
+  selesainya bisa diatur eksplisit; setiap bagian memasang mount React baru supaya pekerjaan
+  Worker palsu yang menggantung dari bagian sebelumnya tidak mencemari bagian berikutnya.
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
 - `npm run uji:sunfish` — engine lawan level pemula (`public/engines/sunfish/sunfish.js`):
   lisensi/atribusi GPL di header, protokol UCI termasuk `position fen` dan cabang Web Worker,

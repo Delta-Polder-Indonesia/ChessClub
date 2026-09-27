@@ -53,6 +53,38 @@ function hasilAkhir(game) {
   return null;
 }
 
+/**
+ * Bangun instance Chess dengan histori posisi PENUH dari awal partai (mode
+ * ini selalu berangkat dari `FEN_AWAL`), lewat replay deret SAN.
+ *
+ * `new Chess(fen)` memuat satu posisi tanpa histori — `_positionCount`
+ * internalnya dibuang setiap `load()` — sehingga `isThreefoldRepetition()`
+ * tidak akan pernah bernilai benar walau repetisi sungguhan sudah terjadi.
+ * Deteksi akhir permainan wajib memakai instance yang mengumpulkan histori
+ * dari langkah pertama, bukan instance sekali-muat seperti itu.
+ *
+ * @returns {import("chess.js").Chess|null} null bila replay gagal (SAN tidak
+ *   sah) — pemanggil wajib menyediakan alternatif, jangan melempar.
+ */
+function gameDenganHistoriPenuh(daftarSan) {
+  let game;
+  try {
+    game = new Chess();
+  } catch {
+    return null;
+  }
+  for (const san of daftarSan) {
+    let pindah = null;
+    try {
+      pindah = game.move(san);
+    } catch {
+      pindah = null;
+    }
+    if (!pindah) return null;
+  }
+  return game;
+}
+
 function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
   const labelNama = (
     <span
@@ -270,7 +302,6 @@ export default function ManusiaVsMesin() {
     nyalakanEngine: nyalakanEvaluasi,
     matikanEngine: matikanEvaluasi,
   } = gunakanEngineCatur(fen);
-  const [evaluasiTertahan, setEvaluasiTertahan] = useState(null);
   const [statusMesin, setStatusMesin] = useState("idle");
   const [hasil, setHasil] = useState(null);
   const [pesan, setPesan] = useState("");
@@ -294,21 +325,25 @@ export default function ManusiaVsMesin() {
     fenRef.current = fen;
   }, [fen]);
 
-  // Mulai Stockfish evaluator bersama saat partai dimulai. Nilai terakhir
-  // ditahan selama posisi baru dihitung agar bilah bergerak mulus, sama seperti
-  // implementasi mode Buku Pembukaan.
+  // Mulai Stockfish evaluator bersama saat partai dimulai.
   useEffect(() => {
     if (aktif) nyalakanEvaluasi();
     else matikanEvaluasi();
   }, [aktif, nyalakanEvaluasi, matikanEvaluasi]);
 
-  useEffect(() => {
-    if (hasilEvaluasi) setEvaluasiTertahan(hasilEvaluasi);
-  }, [hasilEvaluasi]);
-
-  useEffect(() => {
-    if (!aktif) setEvaluasiTertahan(null);
-  }, [aktif]);
+  // Evaluasi hanya berlaku untuk FEN yang benar-benar dihitung olehnya.
+  // `gunakanEngineCatur` sendiri sudah mengatur ulang `hasilEvaluasi` ke null
+  // begitu posisi berganti (lihat efeknya), tetapi menahan objek lama di
+  // state terpisah di sini dulu membuat bilah macet menampilkan evaluasi
+  // posisi SEBELUMNYA selama engine masih menghitung posisi baru — nilai
+  // lama tidak pernah tersentuh karena effect-nya mengabaikan reset ke null.
+  // Memakai `hasilEvaluasi` langsung (dijaga identitas FEN-nya di sini, bukan
+  // sekadar dipercaya) memastikan bilah masuk status "belum dievaluasi"
+  // tepat saat FEN berganti, tanpa menunggu siklus render tambahan.
+  const evaluasiAktif = useMemo(() => {
+    if (!hasilEvaluasi || hasilEvaluasi.fen !== fen) return null;
+    return hasilEvaluasi;
+  }, [hasilEvaluasi, fen]);
 
   useEffect(() => {
     riwayatRef.current = riwayat;
@@ -359,7 +394,13 @@ export default function ManusiaVsMesin() {
       setSasaran([]);
       setPesan("");
       bunyikanLangkah(pindah, game, { lawan: pindah.color === warnaMesin });
-      const terminal = hasilAkhir(game);
+      // Deteksi akhir permainan (termasuk threefold repetition) wajib memakai
+      // histori penuh partai, bukan `game` (satu FEN + satu langkah): lihat
+      // `gameDenganHistoriPenuh`. Kalau replay gagal (semestinya tidak
+      // terjadi — semua SAN di sini sudah pernah tervalidasi), `game` dipakai
+      // sebagai jatuhan sehingga skakmat/remis posisi tetap terdeteksi.
+      const daftarSanBaru = [...riwayatRef.current, pindah.san];
+      const terminal = hasilAkhir(gameDenganHistoriPenuh(daftarSanBaru) || game);
       if (terminal) {
         mesinRef.current?.tamat();
         mesinRef.current = null;
@@ -567,7 +608,6 @@ export default function ManusiaVsMesin() {
     setSasaran([]);
     setHasil(null);
     setPesan("");
-    setEvaluasiTertahan(null);
     setPgnTersalin(false);
   }
 
@@ -624,6 +664,15 @@ export default function ManusiaVsMesin() {
     setLangkahAkhir(null);
     setTerpilih(null);
     setSasaran([]);
+    // Efek mesin di bawah tetap diam selama pengguna menelusuri riwayat (lihat
+    // guard `riwayat.length < riwayatLengkap.length` di sana) dan tidak
+    // menyentuh `statusMesin` pada jalur itu. Tanpa baris ini, status
+    // "mesin"/"memuat" yang tertinggal dari SEBELUM navigasi (mis. undo tepat
+    // saat mesin masih berpikir) terus mengunci papan lewat `bolehGerak`
+    // walau FEN yang tampil sekarang sebenarnya giliran pemain. Efek mesin
+    // akan menetapkan ulang status begitu navigasi sampai ke langkah
+    // terakhir dan memang giliran mesin.
+    setStatusMesin("pemain");
   }
 
   function keAwal() {
@@ -725,14 +774,17 @@ export default function ManusiaVsMesin() {
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
             {/* Evaluasi objektif Stockfish dari hook yang sama dengan Buku.
-                Tidak memakai skor lawan yang sengaja dilemahkan. */}
+                Tidak memakai skor lawan yang sengaja dilemahkan. `evaluasiAktif`
+                hanya terisi bila hasilnya benar-benar milik FEN yang sedang
+                tampil — posisi berganti langsung membuat bilah "belum
+                dievaluasi" sampai hasil FEN baru datang. */}
             <BilahEvaluasi
-              cpPutih={evaluasiTertahan?.cpPutih ?? 0}
-              matePutih={evaluasiTertahan?.matePutih ?? null}
-              teksSkor={evaluasiTertahan?.teksSkor ?? ""}
+              cpPutih={evaluasiAktif?.cpPutih ?? 0}
+              matePutih={evaluasiAktif?.matePutih ?? null}
+              teksSkor={evaluasiAktif?.teksSkor ?? ""}
               orientasi={orientasiPapan}
               label={t("papan.pveEvaluasi")}
-              adaEvaluasi={Boolean(evaluasiTertahan)}
+              adaEvaluasi={Boolean(evaluasiAktif)}
             />
             <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
               <PapanTekaTeki

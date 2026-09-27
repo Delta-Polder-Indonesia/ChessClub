@@ -74,6 +74,12 @@ export function susunHasilEngine(info, fen, giliran) {
     teksSkor = `${cpPutih >= 0 ? "+" : "-"}${(Math.abs(cpPutih) / 100).toFixed(2)}`;
   }
   return {
+    // Identitas posisi: pemanggil yang menahan hasil ini (mis. bilah
+    // evaluasi mode Manusia vs Mesin) wajib membandingkan `fen` ini dengan
+    // FEN yang sedang tampil sebelum memakainya — hasil basi dari posisi
+    // lama tidak boleh dikira evaluasi posisi baru hanya karena depth/objek
+    // lebih baru.
+    fen,
     teksSkor,
     cpPutih,
     matePutih,
@@ -114,13 +120,18 @@ export function gunakanEngineCatur(fen) {
   }, [tampilPanahMesin]);
 
   const engineRef = useRef(null);
-  const fenRef = useRef(fen);
+  // Nomor generasi permintaan analisis: dinaikkan setiap kali efek di bawah
+  // dijalankan ulang (fen berganti, engine dinyala/dimatikan, atau kecepatan
+  // berubah), APA PUN cabang yang diambil. Callback `padaInfo`/`padaSelesai`
+  // milik permintaan lama membandingkan nomor generasi miliknya dengan nilai
+  // ref TERKINI sebelum memakai hasilnya — bukan sekadar membandingkan FEN.
+  // Perbandingan FEN saja tidak cukup: undo lalu redo bisa membuat posisi
+  // yang sama persis muncul lagi, dan hasil generasi LAMA untuk FEN itu
+  // tidak boleh dikira mewakili permintaan BARU untuk FEN yang sama.
+  const requestIdRef = useRef(0);
 
   useEffect(() => {
-    fenRef.current = fen;
-  }, [fen]);
-
-  useEffect(() => {
+    const requestId = ++requestIdRef.current;
     if (!engineNyala || !fen) return undefined;
 
     // Posisi akhir (skakmat/remis) tidak perlu dianalisis.
@@ -146,11 +157,11 @@ export function gunakanEngineCatur(fen) {
       engine.analisis(fen, {
         movetime: kecepatanEngine,
         padaInfo: (info) => {
-          if (fenRef.current !== fen) return;
+          if (requestIdRef.current !== requestId) return;
           setHasilEngine(susunHasilEngine(info, fen, giliran));
         },
         padaSelesai: (uci) => {
-          if (fenRef.current !== fen) return;
+          if (requestIdRef.current !== requestId) return;
           setHasilEngine((lama) => (lama ? { ...lama, bestUci: uci } : lama));
         },
       });
