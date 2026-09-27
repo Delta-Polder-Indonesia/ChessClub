@@ -150,15 +150,27 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(1);
 
     await page.getByRole("button", { name: kamus.pveMulai }).click();
-    await expect(page.getByRole("button", { name: kamus.pvePartaiBaru })).toBeVisible();
-    await expect(page.getByLabel(kamus.pveKonfigurasiAktif)).toBeVisible();
+    // Partai berjalan: kartu konfigurasi pra-partai hilang dan panel partai
+    // (daftar langkah + navigasi + baris aksi) menggantikannya.
+    await expect(page.getByRole("region", { name: kamus.pveKonfigurasi })).toHaveCount(0);
     await expect(warnaPemain).toHaveCount(0);
     await expect(levelMesin).toHaveCount(0);
-    await page.getByRole("button", { name: kamus.pvePartaiBaru }).click();
+    await expect(page.getByRole("button", { name: kamus.pveMulai })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: kamus.pveRiwayat })).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.keAwal })).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.pveMenyerah })).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.simpan })).toBeVisible();
+    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
+    // Tidak ada lagi tombol "Partai baru": sejak panel PvE dirombak, satu-satunya
+    // jalan kembali ke konfigurasi adalah menyerah lewat dialog konfirmasi.
+    await page.getByRole("button", { name: kamus.pveMenyerah }).click();
+    await page
+      .getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })
+      .getByRole("button", { name: kamus.pveYa })
+      .click();
     await expect(page.getByRole("button", { name: kamus.pveMulai })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
-    await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
     if (testInfo.project.name === "desktop-chromium") {
       await page.setViewportSize({ width: 1366, height: 600 });
       const ukuran = await page.evaluate(() => {
