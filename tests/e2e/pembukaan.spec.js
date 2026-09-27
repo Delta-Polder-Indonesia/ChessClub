@@ -131,6 +131,28 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
 
     await menu.getByRole("button", { name: kamus.menuManusiaMesin }).click();
     await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
+
+    // Workspace, menu mode, eval bar, dan papan harus tetap berada di dalam
+    // viewport sempit. Ini menjaga regresi flex `w-full` yang pernah membuat
+    // papan melebar melebihi layar ketika eval bar dipasang di sebelah kiri.
+    const tataLetakResponsif = await page.evaluate(() => {
+      const petak = document.querySelector('[data-petak="e2"]');
+      const papan = petak?.parentElement?.parentElement;
+      const menuMode = document.querySelector('nav[aria-label]');
+      const batasPapan = papan?.getBoundingClientRect();
+      return {
+        lebarDokumen: document.documentElement.scrollWidth,
+        lebarLayar: window.innerWidth,
+        kiriPapan: batasPapan?.left ?? -1,
+        kananPapan: batasPapan?.right ?? window.innerWidth + 1,
+        menuMeluap: menuMode ? menuMode.scrollWidth > menuMode.clientWidth + 1 : true,
+      };
+    });
+    expect(tataLetakResponsif.lebarDokumen).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
+    expect(tataLetakResponsif.kiriPapan).toBeGreaterThanOrEqual(0);
+    expect(tataLetakResponsif.kananPapan).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
+    expect(tataLetakResponsif.menuMeluap).toBe(false);
+
     const warnaPemain = page.getByLabel(kamus.pveWarnaPemain);
     const levelMesin = page.getByLabel(kamus.pveLevel);
     await expect(warnaPemain).toBeEnabled();

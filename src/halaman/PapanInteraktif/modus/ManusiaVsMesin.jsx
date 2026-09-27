@@ -704,12 +704,12 @@ export default function ManusiaVsMesin() {
   return (
     // Konten dibatasi 1280px + padding md:px-8 dan kolom papan maksimal 520px,
     // sama seperti mode Analisa, sehingga lebar panel kanan ikut selalu sama.
-    <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-4 overflow-y-auto p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
+    <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
       <section
         aria-label={t("papan.pveJudul")}
-        className="mx-auto flex min-h-0 w-full items-center justify-center lg:overflow-y-auto"
+        className="mx-auto flex min-h-0 w-full items-start justify-center sm:items-center lg:overflow-y-auto"
       >
-        <div className="mx-auto my-auto flex w-full max-w-[520px] flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+        <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
             {/* Satu komponen yang sama dengan Buku Pembukaan. Sunfish tidak
@@ -721,7 +721,7 @@ export default function ManusiaVsMesin() {
               label={t("papan.pveEvaluasi")}
               adaEvaluasi={Boolean(evaluasi)}
             />
-            <div className="aspect-square w-full" ref={papanRef}>
+            <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
               <PapanTekaTeki
                 fen={fen}
                 orientasi={orientasiPapan}
@@ -751,7 +751,7 @@ export default function ManusiaVsMesin() {
         </div>
       </section>
 
-      <aside className="flex min-h-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 lg:overflow-hidden">
+      <aside className="flex min-h-0 min-w-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-3 sm:p-4 lg:overflow-hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
@@ -773,15 +773,15 @@ export default function ManusiaVsMesin() {
           </button>
         </div>
 
-        <section aria-label={t("papan.pveDialogMesin")} className="flex min-h-[104px] items-center gap-3 rounded-md border border-[#3b3935] bg-[#262421] p-3">
+        <section aria-label={t("papan.pveDialogMesin")} className="flex min-h-[88px] items-center gap-2 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:min-h-[104px] sm:gap-3 sm:p-3">
           <img
             src={berkasPublik(`/engine_expressions/${dialog.gambar}`)}
             alt={t("papan.pveDialogAvatar")}
-            className="h-16 w-16 shrink-0 object-contain"
+            className="h-12 w-12 shrink-0 object-contain sm:h-16 sm:w-16"
             width="64"
             height="64"
           />
-          <p className="text-[13px] leading-5 text-gray-200" aria-live="polite">
+          <p className="min-w-0 text-[13px] leading-5 text-gray-200" aria-live="polite">
             {dialog.teks}
           </p>
         </section>
@@ -793,7 +793,7 @@ export default function ManusiaVsMesin() {
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
               {t("papan.pveKonfigurasi")}
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
                 {t("papan.pveWarnaPemain")}
                 <select
@@ -837,7 +837,7 @@ export default function ManusiaVsMesin() {
         {/* Slot riwayat: hanya saat BPK berjalan. Sebelum itu ruangnya dipakai
             fitur pra-partai lain. */}
         {aktif ? (
-          <section className="flex min-h-0 flex-1 flex-col border-t border-[#312e2b] pt-3">
+          <section className="flex min-h-0 max-h-52 flex-1 flex-col border-t border-[#312e2b] pt-3 lg:max-h-none">
             <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
               {t("papan.pveRiwayat")}
             </h2>
@@ -913,7 +913,7 @@ export default function ManusiaVsMesin() {
         {/* Baris aksi dasar. Saat bermain susunannya identik dengan mode Buku
             Pembukaan; sebelum mulai, satu-satunya jalan keluar panel ini tombol Mulai. */}
         {aktif ? (
-          <div className="grid shrink-0 grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
+          <div className="grid shrink-0 grid-cols-4 gap-1 text-[10px] font-semibold text-gray-300 sm:gap-2 sm:text-xs">
             <button
               type="button"
               onClick={() => setKonfirmasiMenyerah(true)}
