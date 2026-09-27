@@ -138,6 +138,22 @@ export default function Atribusi() {
       ),
     },
     {
+      judul: t("analisa.atribusi.enginePemula"),
+      ikon: null,
+      isi: (
+        <>
+          <li>{t("analisa.atribusi.enginePemulaOleh")}</li>
+          <li>
+            <Tautan href="https://github.com/thomasahle/sunfish">thomasahle/sunfish</Tautan> ·{" "}
+            <Tautan href="https://github.com/foo123/sunfish.js">foo123/sunfish.js</Tautan>
+          </li>
+          <li>
+            <Tautan href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</Tautan>
+          </li>
+        </>
+      ),
+    },
+    {
       judul: t("analisa.atribusi.kode"),
       ikon: null,
       isi: (

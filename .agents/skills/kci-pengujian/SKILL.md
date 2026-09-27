@@ -21,12 +21,12 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 32 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+- `npm run uji` — 33 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
   `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
   `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
   `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`,
   `uji:gestur-lawan`, `uji:bantuan-langkah`,
-  `uji:repertoar`, `uji:tekateki-solusi`, `uji:rush`,
+  `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:rush`,
   `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
   `uji-ebook-pembaca` (node langsung), `uji-nama-pembukaan` (node langsung),
   `uji-artikel-wikipedia` (node langsung), `uji:pendaftaran-ui`. Urutan ini selalu bisa dilihat
@@ -62,6 +62,12 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   di tengah gestur, serta penjagaan bahwa langkah yang dijalankan tetap hasil engine dan modul
   ini tidak dipakai mode lain (Teka-teki/Rush/Repertoar).
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
+- `npm run uji:sunfish` — engine lawan level pemula (`public/engines/sunfish/sunfish.js`):
+  lisensi/atribusi GPL di header, protokol UCI termasuk `position fen` dan cabang Web Worker,
+  knob pembodohan (quiescence, derau evaluasi, materi-saja, tunnel vision), pemetaan level
+  Manusia vs Mesin, dan legalitas self-play yang divalidasi chess.js. Pakai `--partai=200`
+  untuk uji legalitas berat. Kalibrasi Elo-nya ada di `scripts/kalibrasi-sunfish.mjs`
+  (skrip riset manual, di luar rantai uji).
 - `npm run uji:peta` — penjaga dokumentasi arah: memastikan tidak ada `key_files` mati, semua
   skrip `uji:*` tercatat di berkas ini, tidak ada berkas uji yatim, setiap folder
   `src/halaman/*` terdaftar, cermin `.agents` ⇄ `.opencode` serta `quality.yml` tetap identik,

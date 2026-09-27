@@ -626,6 +626,8 @@ export const analisa = {
       pembukaanOleh: "Data olahan lichess-org/chess-openings, lisensi CC0.",
       engine: "Stockfish",
       engineOleh: "Distribusi stockfish.js (GPL-3.0) — berkas dijalankan dari folder /engines situs ini.",
+      enginePemula: "Engine lawan pemula",
+      enginePemulaOleh: "sunfish oleh Thomas Ahle, port JavaScript oleh foo123 (GPL-3.0). Berkas dijalankan dari folder /engines situs ini dan dimodifikasi agar penilaiannya bisa dilemahkan untuk level pemula; modifikasinya ikut berlisensi GPL-3.0 dan tersedia di repositori proyek.",
       kode: "Berkas yang dipindah",
       kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
       desain: "Tata letak halaman",

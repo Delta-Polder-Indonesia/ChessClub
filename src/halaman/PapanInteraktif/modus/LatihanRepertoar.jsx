@@ -14,8 +14,7 @@ import {
   hapusJalurRepertoar,
   simpanKartuRepertoar,
 } from "./repertoarStorage.js";
-
-const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+import { FEN_AWAL } from "../konstanta.js";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
