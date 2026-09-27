@@ -1,66 +1,47 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
+import { Bookmark, Cpu, Flag, FlipVertical2, RotateCw, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
 import { DAFTAR_SET } from "../../../components/chess/ChessPiece.jsx";
 import { berkasPublik } from "../../../lib/asets.js";
-import { EngineCatur } from "../../../lib/engineCatur.js";
+import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
+import { dialogMesin } from "./dialogMesin.js";
+import {
+  PILIHAN_LEVEL_MESIN,
+  PROFIL_SUNFISH,
+  langkahMesinSah,
+  perintahProfilSunfish,
+} from "./mesinLemah.js";
 import { GESTUR, gesturLawan, petakRagu, posisiSulit } from "./gerakLawan.js";
 
 const NAMA_MESIN = "Hikaru Nakamura";
 const AVATAR_MESIN = berkasPublik("/engine_expressions/hikaru.png");
 
-const PILIHAN_LEVEL_MESIN = [
-  {
-    id: "beginner",
-    keterampilan: 0,
-    waktu: 250,
-    label: "papan.pveLevelBeginner",
-    ringkas: "papan.pveLevelBeginnerRingkas",
-  },
-  {
-    id: "casual",
-    keterampilan: 4,
-    waktu: 350,
-    label: "papan.pveLevelCasual",
-    ringkas: "papan.pveLevelCasualRingkas",
-  },
-  {
-    id: "intermediate",
-    keterampilan: 8,
-    waktu: 500,
-    label: "papan.pveLevelIntermediate",
-    ringkas: "papan.pveLevelIntermediateRingkas",
-  },
-  {
-    id: "advanced",
-    keterampilan: 12,
-    waktu: 700,
-    label: "papan.pveLevelAdvanced",
-    ringkas: "papan.pveLevelAdvancedRingkas",
-  },
-  {
-    id: "expert",
-    keterampilan: 16,
-    waktu: 1000,
-    label: "papan.pveLevelExpert",
-    ringkas: "papan.pveLevelExpertRingkas",
-  },
-  {
-    id: "master",
-    keterampilan: 20,
-    waktu: 1400,
-    label: "papan.pveLevelMaster",
-    ringkas: "papan.pveLevelMasterRingkas",
-  },
-];
+/**
+ * Ambil instance engine untuk jenis mesin level aktif, mengganti worker lama
+ * bila jenisnya berbeda. Dua level bisa memakai binari yang berbeda
+ * (Stockfish atau sunfish), sedangkan satu `EngineCatur` terikat pada satu URL.
+ */
+function ambilEngine(mesinRef, jenisRef, jenis) {
+  if (mesinRef.current && jenisRef.current !== jenis) {
+    mesinRef.current.tamat();
+    mesinRef.current = null;
+  }
+  if (!mesinRef.current) {
+    mesinRef.current = new EngineCatur(
+      "sunfish" === jenis ? { url: URL_ENGINE_SUNFISH, hash: 16, threads: 1 } : { hash: 16, threads: 1 }
+    );
+    jenisRef.current = jenis;
+  }
+  return mesinRef.current;
+}
 
 function hasilAkhir(game) {
   if (game.isCheckmate()) {
@@ -152,39 +133,6 @@ function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = f
       </div>
     </div>
   );
-}
-
-function dialogMesin({ statusMesin, hasil, warnaMesin, langkahDialog, t }) {
-  if (hasil?.jenis === "seri") {
-    return { gambar: "small_06_nervous.png", teks: t("papan.pveDialogSeri") };
-  }
-  if (hasil?.jenis === "skakmat") {
-    return hasil.pemenang === warnaMesin
-      ? { gambar: "small_05_triumphant.png", teks: t("papan.pveDialogMenang") }
-      : { gambar: "small_04_facepalm.png", teks: t("papan.pveDialogKalah") };
-  }
-  if (hasil?.jenis === "menyerah") {
-    return { gambar: "small_04_facepalm.png", teks: t("papan.pveDialogMenyerah") };
-  }
-  if (statusMesin === "gagal") {
-    return { gambar: "small_08_rage.png", teks: t("papan.pveDialogGagal") };
-  }
-  if (statusMesin === "memuat") {
-    return { gambar: "small_06_nervous.png", teks: t("papan.pveDialogMemuat") };
-  }
-  if (statusMesin === "mesin") {
-    return { gambar: "small_02_thinking.png", teks: t("papan.pveDialogBerpikir") };
-  }
-  if (langkahDialog?.oleh === "mesin") {
-    return {
-      gambar: "small_07_smug.png",
-      teks: t("papan.pveDialogJawab", { langkah: langkahDialog.san }),
-    };
-  }
-  if (statusMesin === "pemain") {
-    return { gambar: "small_01_taunting.png", teks: t("papan.pveDialogGiliran") };
-  }
-  return { gambar: "small_02_thinking.png", teks: t("papan.pveDialogSiap") };
 }
 
 function KonfirmasiMenyerah({ onTutup, onYa, t }) {
@@ -366,6 +314,12 @@ export default function ManusiaVsMesin() {
   const [evaluasi, setEvaluasi] = useState(null);
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
+  // Jenis binari yang sedang dimuat worker ("sunfish" atau "stockfish") dan
+  // benih derau per partai: benih tetap selama satu partai supaya kesalahan
+  // lawan konsisten, dan berbeda tiap partai baru.
+  const jenisMesinRef = useRef(null);
+  const benihMesinRef = useRef(1);
+  const langkahAkhirRef = useRef(null);
   const papanRef = useRef(null);
   // Gestur klik lawan yang sedang berjalan: { dari, ke }. Berlaku hanya
   // beberapa ratus milidetik; menaikkan token membatalkan gerakan yang
@@ -381,6 +335,12 @@ export default function ManusiaVsMesin() {
   useEffect(() => {
     riwayatRef.current = riwayat;
   }, [riwayat]);
+
+  // Dibaca efek mesin tanpa ikut jadi dependensi: petak tujuan langkah lawan
+  // adalah pusat "tunnel vision" profil sunfish.
+  useEffect(() => {
+    langkahAkhirRef.current = langkahAkhir;
+  }, [langkahAkhir]);
 
   const mainkanLangkah = useCallback(
     (from, to, promotion) => {
@@ -407,7 +367,16 @@ export default function ManusiaVsMesin() {
       // tidak memutar jalur lama yang sudah tidak relevan.
       setRiwayatLengkap((lama) => [...lama.slice(0, riwayatRef.current.length), pindah.san]);
       setLangkahAkhir({ from: pindah.from, to: pindah.to });
-      setLangkahDialog({ san: pindah.san, oleh: pindah.color === warnaMesin ? "mesin" : "pemain" });
+      // Konteks langkah untuk pemilih dialog: siapa yang jalan dan peristiwa
+      // apa saja yang terjadi (tangkapan, skak, rokade, promosi).
+      setLangkahDialog({
+        san: pindah.san,
+        oleh: pindah.color === warnaMesin ? "mesin" : "pemain",
+        tangkap: Boolean(pindah.captured),
+        skak: game.inCheck(),
+        rokade: pindah.san.startsWith("O-O"),
+        promosi: Boolean(pindah.promotion),
+      });
       setTerpilih(null);
       setSasaran([]);
       setPesan("");
@@ -482,29 +451,51 @@ export default function ManusiaVsMesin() {
     if (game.isGameOver() || game.turn() !== warnaMesin) return undefined;
 
     let hidup = true;
-    const engine = (mesinRef.current ||= new EngineCatur({ hash: 16, threads: 1 }));
+    const pakaiSunfish = "sunfish" === tingkatAktif.mesin;
+    const engine = ambilEngine(mesinRef, jenisMesinRef, tingkatAktif.mesin);
     setStatusMesin("memuat");
     engine
       .mulai()
       .then(() => {
         if (!hidup || fenRef.current !== fen) return;
-        // Skill Level adalah opsi resmi Stockfish dengan rentang 0 sampai 20.
-        // Label tingkat tetap memakai rentang rating pemain yang diminta UI.
-        engine.kirim(`setoption name Skill Level value ${tingkatAktif.keterampilan}`);
+        if (pakaiSunfish) {
+          // Level bawah: kekuatan diatur dengan merusak penilaian engine dari
+          // dalam (lihat mesinLemah.js), bukan dengan mengacak pilihan langkah.
+          const perintah = perintahProfilSunfish(PROFIL_SUNFISH[tingkatAktif.id], {
+            benih: benihMesinRef.current,
+            petakLawan: langkahAkhirRef.current?.to ?? null,
+          });
+          for (const baris of perintah) engine.kirim(baris);
+        } else {
+          // Skill Level adalah opsi resmi Stockfish dengan rentang 0 sampai 20.
+          // Label tingkat tetap memakai rentang rating pemain yang diminta UI.
+          engine.kirim(`setoption name Skill Level value ${tingkatAktif.keterampilan}`);
+        }
         setStatusMesin("mesin");
         engine.analisis(fen, {
           movetime: tingkatAktif.waktu,
+          kedalaman: tingkatAktif.kedalaman ?? null,
           padaInfo: (info) => {
             if (!hidup || fenRef.current !== fen) return;
             setEvaluasi(nilaiEvaluasiPutih(info, game.turn()));
           },
           padaSelesai: (uci, info, error) => {
             if (!hidup || fenRef.current !== fen) return;
-            if (error || !uci || uci.length < 4) {
+            if (error) {
               setStatusMesin("gagal");
               return;
             }
-            mainstreamkanLangkahLawan(uci.slice(0, 2), uci.slice(2, 4), uci[4], info);
+            // Sunfish bisa menjawab langkah tidak sah (konsep skak "raja boleh
+            // dimakan") atau "(none)". Itu bukan galat yang perlu dilihat
+            // pemain: langkah sah acak menggantikannya.
+            const pilihan = langkahMesinSah(fen, uci);
+            if (!pilihan) return; // tidak ada langkah sah: partai memang selesai
+            mainstreamkanLangkahLawan(
+              pilihan.uci.slice(0, 2),
+              pilihan.uci.slice(2, 4),
+              pilihan.uci[4],
+              info
+            );
           },
         });
       })
@@ -609,6 +600,8 @@ export default function ManusiaVsMesin() {
   function mulaiPartai() {
     mesinRef.current?.tamat();
     mesinRef.current = null;
+    jenisMesinRef.current = null;
+    benihMesinRef.current = (Math.floor(Math.random() * 0xffffffff) >>> 0) || 1;
     bersihkanPartai();
     setAktif(true);
     setStatusMesin("pemain");
@@ -725,11 +718,15 @@ export default function ManusiaVsMesin() {
     else baris[baris.length - 1].hitam = san;
     return baris;
   }, []);
-  const dialog = dialogMesin({ statusMesin, hasil, warnaMesin, langkahDialog, t });
-  // Ikon kartu mesin: lambang cip saat diam, lambang otak selama worker hidup
-  // (baru dimuat maupun sedang berpikir). Kembali kecip begitu mesin selesai
-  // menjawab, gagal, atau pertandingan berakhir.
-  const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
+  const dialog = dialogMesin({
+    statusMesin,
+    hasil,
+    warnaMesin,
+    langkahDialog,
+    benih: riwayatLengkap.length,
+    t,
+  });
+  const tampilkanEvaluasi = "sunfish" !== tingkatAktif.mesin;
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
@@ -750,7 +747,11 @@ export default function ManusiaVsMesin() {
         <div className="mx-auto my-auto flex w-full max-w-[520px] flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
-            <BilahEvaluasi evaluasi={evaluasi} label={t("papan.pveEvaluasi")} />
+            {/* Sunfish tidak menerbitkan baris "info score cp", dan skornya
+                sengaja dirusak — bilah evaluasi disembunyikan di level itu. */}
+            {tampilkanEvaluasi ? (
+              <BilahEvaluasi evaluasi={evaluasi} label={t("papan.pveEvaluasi")} />
+            ) : null}
             <div className="aspect-square w-full" ref={papanRef}>
               <PapanTekaTeki
                 fen={fen}
@@ -785,7 +786,7 @@ export default function ManusiaVsMesin() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
-              <IkonMesin className="h-4 w-4" aria-hidden="true" />
+              <Cpu className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{NAMA_MESIN}</p>
@@ -854,6 +855,13 @@ export default function ManusiaVsMesin() {
                 </select>
               </label>
             </div>
+            {/* Keterangan engine per level: yang dipakai berbeda, dan di level
+                sunfish penilaian memang sengaja dirusak — pemain berhak tahu. */}
+            <p className="text-[11px] leading-4 text-gray-500">
+              {tampilkanEvaluasi
+                ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
+                : t("papan.pveMesinSunfish")}
+            </p>
           </section>
         ) : null}
 
@@ -957,13 +965,12 @@ export default function ManusiaVsMesin() {
             </button>
             <button
               type="button"
-              onClick={mulaiPartai}
-              disabled={!riwayatLengkap.length}
-              title={t("papan.baru")}
-              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
+              disabled
+              title={t("papan.tinjau")}
+              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition disabled:cursor-not-allowed disabled:opacity-40"
             >
-              <Plus className="h-4 w-4 text-gray-400" aria-hidden="true" />
-              <span>{t("papan.baru")}</span>
+              <RotateCw className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <span>{t("papan.tinjau")}</span>
             </button>
             <button
               type="button"

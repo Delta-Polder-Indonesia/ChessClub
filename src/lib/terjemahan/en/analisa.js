@@ -629,6 +629,8 @@ export const analisa = {
       pembukaanOleh: "Data derived from lichess-org/chess-openings, licensed CC0.",
       engine: "Stockfish",
       engineOleh: "stockfish.js distribution (GPL-3.0) — served from this site's /engines folder.",
+      enginePemula: "Beginner opponent engine",
+      enginePemulaOleh: "sunfish by Thomas Ahle, JavaScript port by foo123 (GPL-3.0). Served from this site's /engines folder and modified so its evaluation can be weakened for beginner levels; those modifications are likewise GPL-3.0 and available in the project repository.",
       kode: "Ported source",
       kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
       desain: "Page layout",

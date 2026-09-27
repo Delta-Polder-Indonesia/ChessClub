@@ -46,8 +46,10 @@ export default function WorkspacePapanInteraktif() {
               type="button"
               aria-pressed={mode === "papan"}
               onClick={() => pilihMode("papan")}
-              className={`flex min-w-[150px] flex-1 items-center gap-3 px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
-                mode === "papan" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+              className={`flex min-w-[150px] flex-1 items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
+                mode === "papan"
+                  ? "border-[#81b64c]/40 bg-[#81b64c]/10 text-white"
+                  : "border-transparent text-gray-300 hover:border-[#3b3935] hover:bg-[#262421] hover:text-white"
               }`}
             >
               <IkonTab nama="analisa" className="h-5 w-5 shrink-0" />
@@ -58,8 +60,10 @@ export default function WorkspacePapanInteraktif() {
               type="button"
               aria-pressed={mode === "engine"}
               onClick={() => pilihMode("engine")}
-              className={`flex min-w-[190px] flex-1 items-center gap-3 px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
-                mode === "engine" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+              className={`flex min-w-[190px] flex-1 items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
+                mode === "engine"
+                  ? "border-[#81b64c]/40 bg-[#81b64c]/10 text-white"
+                  : "border-transparent text-gray-300 hover:border-[#3b3935] hover:bg-[#262421] hover:text-white"
               }`}
             >
               <IkonTab nama="users" className="h-5 w-5 shrink-0" />
@@ -70,8 +74,10 @@ export default function WorkspacePapanInteraktif() {
               type="button"
               aria-pressed={mode === "repertoar"}
               onClick={() => pilihMode("repertoar")}
-              className={`flex min-w-[190px] flex-1 items-center gap-3 px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
-                mode === "repertoar" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+              className={`flex min-w-[190px] flex-1 items-center gap-3 rounded-lg border px-3 py-3 text-left text-sm font-semibold transition lg:min-w-0 lg:flex-none ${
+                mode === "repertoar"
+                  ? "border-[#81b64c]/40 bg-[#81b64c]/10 text-white"
+                  : "border-transparent text-gray-300 hover:border-[#3b3935] hover:bg-[#262421] hover:text-white"
               }`}
             >
               <IkonTab nama="books" className="h-5 w-5 shrink-0" />
