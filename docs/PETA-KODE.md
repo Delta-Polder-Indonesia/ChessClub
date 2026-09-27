@@ -33,19 +33,20 @@ kegagalan pertama karena dirangkai dengan `&&`):
 18. `npm run uji:tanda-papan`
 19. `npm run uji:animasi-bidak`
 20. `npm run uji:gestur-lawan`
-21. `npm run uji:bantuan-langkah`
-22. `npm run uji:repertoar`
-23. `npm run uji:sunfish`
-24. `npm run uji:tekateki-solusi`
-25. `npm run uji:rush`
-26. `npm run uji:gambar`
-27. `node scripts/uji-identitas.mjs` (langsung)
-28. `npm run uji:skema`
-29. `node scripts/uji-ebook.mjs` (langsung)
-30. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-31. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-32. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-33. `npm run uji:pendaftaran-ui`
+21. `npm run uji:evaluasi-manusia-vs-mesin`
+22. `npm run uji:bantuan-langkah`
+23. `npm run uji:repertoar`
+24. `npm run uji:sunfish`
+25. `npm run uji:tekateki-solusi`
+26. `npm run uji:rush`
+27. `npm run uji:gambar`
+28. `node scripts/uji-identitas.mjs` (langsung)
+29. `npm run uji:skema`
+30. `node scripts/uji-ebook.mjs` (langsung)
+31. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+32. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+33. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+34. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
