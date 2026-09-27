@@ -12,6 +12,7 @@ import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
+import { dialogMesin } from "./dialogMesin.js";
 import { klikLawan } from "./gerakLawan.js";
 
 const NAMA_MESIN = "Hikaru Nakamura";
@@ -152,39 +153,6 @@ function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = f
       </div>
     </div>
   );
-}
-
-function dialogMesin({ statusMesin, hasil, warnaMesin, langkahDialog, t }) {
-  if (hasil?.jenis === "seri") {
-    return { gambar: "small_06_nervous.png", teks: t("papan.pveDialogSeri") };
-  }
-  if (hasil?.jenis === "skakmat") {
-    return hasil.pemenang === warnaMesin
-      ? { gambar: "small_05_triumphant.png", teks: t("papan.pveDialogMenang") }
-      : { gambar: "small_04_facepalm.png", teks: t("papan.pveDialogKalah") };
-  }
-  if (hasil?.jenis === "menyerah") {
-    return { gambar: "small_04_facepalm.png", teks: t("papan.pveDialogMenyerah") };
-  }
-  if (statusMesin === "gagal") {
-    return { gambar: "small_08_rage.png", teks: t("papan.pveDialogGagal") };
-  }
-  if (statusMesin === "memuat") {
-    return { gambar: "small_06_nervous.png", teks: t("papan.pveDialogMemuat") };
-  }
-  if (statusMesin === "mesin") {
-    return { gambar: "small_02_thinking.png", teks: t("papan.pveDialogBerpikir") };
-  }
-  if (langkahDialog?.oleh === "mesin") {
-    return {
-      gambar: "small_07_smug.png",
-      teks: t("papan.pveDialogJawab", { langkah: langkahDialog.san }),
-    };
-  }
-  if (statusMesin === "pemain") {
-    return { gambar: "small_01_taunting.png", teks: t("papan.pveDialogGiliran") };
-  }
-  return { gambar: "small_02_thinking.png", teks: t("papan.pveDialogSiap") };
 }
 
 function KonfirmasiMenyerah({ onTutup, onYa, t }) {
@@ -407,7 +375,16 @@ export default function ManusiaVsMesin() {
       // tidak memutar jalur lama yang sudah tidak relevan.
       setRiwayatLengkap((lama) => [...lama.slice(0, riwayatRef.current.length), pindah.san]);
       setLangkahAkhir({ from: pindah.from, to: pindah.to });
-      setLangkahDialog({ san: pindah.san, oleh: pindah.color === warnaMesin ? "mesin" : "pemain" });
+      // Konteks langkah untuk pemilih dialog: siapa yang jalan dan peristiwa
+      // apa saja yang terjadi (tangkapan, skak, rokade, promosi).
+      setLangkahDialog({
+        san: pindah.san,
+        oleh: pindah.color === warnaMesin ? "mesin" : "pemain",
+        tangkap: Boolean(pindah.captured),
+        skak: game.inCheck(),
+        rokade: pindah.san.startsWith("O-O"),
+        promosi: Boolean(pindah.promotion),
+      });
       setTerpilih(null);
       setSasaran([]);
       setPesan("");
@@ -701,7 +678,14 @@ export default function ManusiaVsMesin() {
     else baris[baris.length - 1].hitam = san;
     return baris;
   }, []);
-  const dialog = dialogMesin({ statusMesin, hasil, warnaMesin, langkahDialog, t });
+  const dialog = dialogMesin({
+    statusMesin,
+    hasil,
+    warnaMesin,
+    langkahDialog,
+    benih: riwayatLengkap.length,
+    t,
+  });
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
