@@ -53,6 +53,7 @@ import IkonTab from "./IkonTab.jsx";
 import BukuPembukaan from "./BukuPembukaan.jsx";
 import KartuArtikelPembukaan from "./KartuArtikelPembukaan.jsx";
 import DaftarRiwayat from "./DaftarRiwayat.jsx";
+import BilahEvaluasi from "./BilahEvaluasi.jsx";
 import TangkapanBidak, { susunTangkapan } from "./TangkapanBidak.jsx";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
@@ -1351,82 +1352,14 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
 
                 <div className="flex flex-col justify-center">
                 <div className="flex items-stretch gap-1.5">
-                  {(() => {
-                    // Bar evaluasi ala LayoutTekaTeki: skor tampil di dalam bar,
-                    // hanya sisi yang menang yang terlihat.
-                    const { teksSkor = "", cpPutih = 0, matePutih = null } =
-                      hasilTertahan || {};
-                    const advantageAmount =
-                      matePutih !== null ? Number(matePutih) : Number(cpPutih);
-                    const OLD_PERCENTS = [-400, 400];
-                    const NEW_PERCENTS = [5, 95];
-                    const rawPercent =
-                      ((advantageAmount - OLD_PERCENTS[0]) *
-                        (NEW_PERCENTS[1] - NEW_PERCENTS[0])) /
-                        (OLD_PERCENTS[1] - OLD_PERCENTS[0]) +
-                      NEW_PERCENTS[0];
-                    let percent;
-                    if (matePutih !== null) {
-                      percent =
-                        advantageAmount > 0
-                          ? 100
-                          : advantageAmount < 0
-                            ? 0
-                            : 50;
-                    } else {
-                      percent = Math.min(
-                        Math.max(rawPercent, NEW_PERCENTS[0]),
-                        NEW_PERCENTS[1]
-                      );
-                    }
-                    const white = orientasi === "w";
-                    const winning = white ? percent >= 50 : percent <= 50;
-                    let displayAdvantage;
-                    if (matePutih !== null) {
-                      displayAdvantage =
-                        advantageAmount !== 0
-                          ? "M" + Math.abs(advantageAmount)
-                          : white
-                            ? "1-0"
-                            : "0-1";
-                    } else {
-                      displayAdvantage = teksSkor || "";
-                    }
-                    return (
-                      <div
-                        className={`relative flex h-full w-9 shrink-0 flex-col overflow-hidden rounded-sm bg-[#403d39] ${white ? "justify-start" : "justify-end"}`}
-                        role="img"
-                        aria-label={
-                          hasilTertahan
-                            ? `${t("papan.engineSkor")} ${displayAdvantage}`
-                            : undefined
-                        }
-                      >
-                        <div
-                          className="w-full bg-[#ffffff]"
-                          style={{
-                            height: `${percent}%`,
-                            transition: "height 1.5s",
-                            willChange: "height",
-                          }}
-                        />
-                        <div className="absolute inset-0 flex w-full flex-col items-center justify-between py-1.5 text-[11px] font-bold">
-                          <div
-                            style={{ opacity: !winning ? 100 : 0 }}
-                            className={white ? "text-[#dedede]" : "text-[#262421]"}
-                          >
-                            {displayAdvantage}
-                          </div>
-                          <div
-                            style={{ opacity: winning ? 100 : 0 }}
-                            className={!white ? "text-[#dedede]" : "text-[#262421]"}
-                          >
-                            {displayAdvantage}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  <BilahEvaluasi
+                    cpPutih={hasilTertahan?.cpPutih ?? 0}
+                    matePutih={hasilTertahan?.matePutih ?? null}
+                    teksSkor={hasilTertahan?.teksSkor ?? ""}
+                    orientasi={orientasi}
+                    label={t("papan.engineSkor")}
+                    adaEvaluasi={Boolean(hasilTertahan)}
+                  />
                   <div className="relative min-w-0 flex-1">
                   <PapanTekaTeki
                     fen={fen}

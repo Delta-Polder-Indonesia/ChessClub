@@ -521,8 +521,8 @@ modulPve.GESTUR.jedaRagu = [5, 5];
 modulPve.GESTUR.peluangRagu = 0;
 modulPve.mountPve(wadahPve);
 const cariMulai = () =>
-  // Label tombol mulai mengikuti kamus `pveMulai` ("Mulai partai").
-  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Mulai partai");
+  // Label tombol mulai mengikuti kamus `pveMulai` ("Main").
+  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Main");
 await tungguSampai(() => !!cariMulai());
 
 const tombolMulai = cariMulai();
@@ -531,6 +531,17 @@ tombolMulai?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 await tungguSampai(() => wadahPve.querySelectorAll("[data-petak]").length === 64);
 
 uji("papan mode Manusia vs Mesin ter-render", wadahPve.querySelectorAll("[data-petak]").length === 64);
+uji(
+  "bilah evaluasi tampil di kiri papan mode Manusia vs Mesin",
+  !!wadahPve.querySelector("[data-bilah-evaluasi]")
+);
+await tungguSampai(
+  () => !wadahPve.querySelector("[data-bilah-evaluasi]")?.getAttribute("aria-label")?.includes("—")
+);
+uji(
+  "bilah evaluasi menerima skor nyata dari worker Stockfish terpisah",
+  /[+-]\d/.test(wadahPve.querySelector("[data-bilah-evaluasi]")?.getAttribute("aria-label") || "")
+);
 pasangElementFromPoint(wadahPve);
 
 const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);

@@ -131,6 +131,34 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
 
     await menu.getByRole("button", { name: kamus.menuManusiaMesin }).click();
     await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
+
+    // Workspace, menu mode, eval bar, dan papan harus tetap berada di dalam
+    // viewport sempit. Ini menjaga regresi flex `w-full` yang pernah membuat
+    // papan melebar melebihi layar ketika eval bar dipasang di sebelah kiri.
+    const tataLetakResponsif = await page.evaluate(() => {
+      const petak = document.querySelector('[data-petak="e2"]');
+      const papan = petak?.parentElement?.parentElement;
+      const bilahEvaluasi = document.querySelector("[data-bilah-evaluasi]");
+      const menuMode = document.querySelector('nav[aria-label]');
+      const batasPapan = papan?.getBoundingClientRect();
+      const batasBilah = bilahEvaluasi?.getBoundingClientRect();
+      return {
+        lebarDokumen: document.documentElement.scrollWidth,
+        lebarLayar: window.innerWidth,
+        kiriPapan: batasPapan?.left ?? -1,
+        kananPapan: batasPapan?.right ?? window.innerWidth + 1,
+        bilahTerlihat: Boolean(batasBilah?.width && batasBilah?.height),
+        kananBilah: batasBilah?.right ?? window.innerWidth + 1,
+        menuMeluap: menuMode ? menuMode.scrollWidth > menuMode.clientWidth + 1 : true,
+      };
+    });
+    expect(tataLetakResponsif.lebarDokumen).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
+    expect(tataLetakResponsif.kiriPapan).toBeGreaterThanOrEqual(0);
+    expect(tataLetakResponsif.kananPapan).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
+    expect(tataLetakResponsif.bilahTerlihat).toBe(true);
+    expect(tataLetakResponsif.kananBilah).toBeLessThanOrEqual(tataLetakResponsif.kiriPapan);
+    expect(tataLetakResponsif.menuMeluap).toBe(false);
+
     const warnaPemain = page.getByLabel(kamus.pveWarnaPemain);
     const levelMesin = page.getByLabel(kamus.pveLevel);
     await expect(warnaPemain).toBeEnabled();
@@ -149,26 +177,41 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.mouse.up({ button: "right" });
     await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(1);
 
-    await page.getByRole("button", { name: kamus.pveMulai }).click();
+    await page.getByRole("button", { name: kamus.pveMulai, exact: true }).click();
+    // Bilah bukan dekorasi: evaluator Stockfish terpisah harus mengganti tanda
+    // tunggu dengan skor posisi yang benar-benar diterbitkan worker.
+    await expect(page.locator("[data-bilah-evaluasi]")).not.toHaveAttribute("aria-label", /—/);
     // Partai berjalan: kartu konfigurasi pra-partai hilang dan panel partai
     // (daftar langkah + navigasi + baris aksi) menggantikannya.
     await expect(page.getByRole("region", { name: kamus.pveKonfigurasi })).toHaveCount(0);
     await expect(warnaPemain).toHaveCount(0);
     await expect(levelMesin).toHaveCount(0);
-    await expect(page.getByRole("button", { name: kamus.pveMulai })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toHaveCount(0);
     await expect(page.getByRole("heading", { name: kamus.pveRiwayat })).toBeVisible();
     await expect(page.getByRole("button", { name: kamus.keAwal })).toBeVisible();
     await expect(page.getByRole("button", { name: kamus.pveMenyerah })).toBeVisible();
     await expect(page.getByRole("button", { name: kamus.simpan })).toBeVisible();
     await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(0);
-    // Tidak ada lagi tombol "Partai baru": sejak panel PvE dirombak, satu-satunya
-    // jalan kembali ke konfigurasi adalah menyerah lewat dialog konfirmasi.
+
+    // Tombol + Baru tidak boleh dapat ditekan pada partai kosong. Begitu pemain
+    // melangkah, tombol aktif dan mereset papan tanpa kembali ke konfigurasi.
+    const partaiBaru = page.getByRole("button", { name: kamus.baru, exact: true });
+    await expect(partaiBaru).toBeDisabled();
+    await page.locator('[data-petak="e2"]').click();
+    await page.locator('[data-petak="e4"]').click();
+    await expect(partaiBaru).toBeEnabled();
+    await partaiBaru.click();
+    await expect(partaiBaru).toBeDisabled();
+    await expect(page.getByRole("heading", { name: kamus.pveRiwayat })).toBeVisible();
+    await expect(page.locator('[data-petak="e2"] img')).toHaveCount(1);
+    await expect(page.locator('[data-petak="e4"] img')).toHaveCount(0);
+
     await page.getByRole("button", { name: kamus.pveMenyerah }).click();
     await page
       .getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })
       .getByRole("button", { name: kamus.pveYa })
       .click();
-    await expect(page.getByRole("button", { name: kamus.pveMulai })).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
     if (testInfo.project.name === "desktop-chromium") {

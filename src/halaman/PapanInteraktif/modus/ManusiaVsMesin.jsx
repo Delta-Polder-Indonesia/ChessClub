@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, Cpu, Flag, FlipVertical2, RotateCw, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
+import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
 import { DAFTAR_SET } from "../../../components/chess/ChessPiece.jsx";
 import { berkasPublik } from "../../../lib/asets.js";
 import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
+import { gunakanEngineCatur } from "../../../lib/gunakanEngineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
+import BilahEvaluasi from "../BilahEvaluasi.jsx";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
@@ -49,54 +51,6 @@ function hasilAkhir(game) {
   }
   if (game.isDraw()) return { jenis: "seri", pemenang: null };
   return null;
-}
-
-function nilaiEvaluasiPutih(info, giliran) {
-  if (!info || (info.cp === null && info.mate === null)) return null;
-  const pembalik = giliran === "w" ? 1 : -1;
-  return {
-    cp: Number.isFinite(info.cp) ? info.cp * pembalik : null,
-    mate: Number.isFinite(info.mate) ? info.mate * pembalik : null,
-  };
-}
-
-function persentaseEvaluasi(evaluasi) {
-  if (!evaluasi) return 50;
-  if (evaluasi.mate !== null) return evaluasi.mate > 0 ? 100 : evaluasi.mate < 0 ? 0 : 50;
-  const nilai = Number(evaluasi.cp) || 0;
-  return Math.min(95, Math.max(5, 50 + nilai / 8));
-}
-
-function teksEvaluasi(evaluasi) {
-  if (!evaluasi) return "0.0";
-  if (evaluasi.mate !== null) return `M${Math.abs(evaluasi.mate)}`;
-  const nilai = (Number(evaluasi.cp) || 0) / 100;
-  return `${nilai > 0 ? "+" : ""}${nilai.toFixed(1)}`;
-}
-
-function BilahEvaluasi({ evaluasi, label }) {
-  const persenPutih = persentaseEvaluasi(evaluasi);
-  const teks = teksEvaluasi(evaluasi);
-  const fillDiAtas = persenPutih >= 52;
-  return (
-    <div
-      className="relative flex w-9 shrink-0 flex-col overflow-hidden self-stretch rounded-sm border border-[#494640] bg-[#403d39]"
-      role="img"
-      aria-label={`${label}: ${teks}`}
-    >
-      <div
-        className="w-full shrink-0 bg-[#f7f7f5] transition-[height] duration-700"
-        style={{ height: `${persenPutih}%` }}
-      />
-      <span
-        className={`pointer-events-none absolute inset-x-0 z-10 flex justify-center py-1.5 text-[10px] font-bold leading-none ${
-          fillDiAtas ? "top-0 text-[#292723]" : "bottom-0 text-white"
-        }`}
-      >
-        {teks}
-      </span>
-    </div>
-  );
 }
 
 function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
@@ -308,10 +262,18 @@ export default function ManusiaVsMesin() {
   const [tampilPengaturan, setTampilPengaturan] = useState(false);
   const [konfirmasiMenyerah, setKonfirmasiMenyerah] = useState(false);
   const [aktif, setAktif] = useState(false);
+  // Evaluasi objektif memakai pintu yang sama dengan mode Buku. Worker ini
+  // sengaja terpisah dari worker lawan: level lawan boleh dilemahkan tanpa
+  // ikut memalsukan nilai pada bilah evaluasi.
+  const {
+    hasilEngine: hasilEvaluasi,
+    nyalakanEngine: nyalakanEvaluasi,
+    matikanEngine: matikanEvaluasi,
+  } = gunakanEngineCatur(fen);
+  const [evaluasiTertahan, setEvaluasiTertahan] = useState(null);
   const [statusMesin, setStatusMesin] = useState("idle");
   const [hasil, setHasil] = useState(null);
   const [pesan, setPesan] = useState("");
-  const [evaluasi, setEvaluasi] = useState(null);
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
   // Jenis binari yang sedang dimuat worker ("sunfish" atau "stockfish") dan
@@ -331,6 +293,22 @@ export default function ManusiaVsMesin() {
   useEffect(() => {
     fenRef.current = fen;
   }, [fen]);
+
+  // Mulai Stockfish evaluator bersama saat partai dimulai. Nilai terakhir
+  // ditahan selama posisi baru dihitung agar bilah bergerak mulus, sama seperti
+  // implementasi mode Buku Pembukaan.
+  useEffect(() => {
+    if (aktif) nyalakanEvaluasi();
+    else matikanEvaluasi();
+  }, [aktif, nyalakanEvaluasi, matikanEvaluasi]);
+
+  useEffect(() => {
+    if (hasilEvaluasi) setEvaluasiTertahan(hasilEvaluasi);
+  }, [hasilEvaluasi]);
+
+  useEffect(() => {
+    if (!aktif) setEvaluasiTertahan(null);
+  }, [aktif]);
 
   useEffect(() => {
     riwayatRef.current = riwayat;
@@ -475,10 +453,6 @@ export default function ManusiaVsMesin() {
         engine.analisis(fen, {
           movetime: tingkatAktif.waktu,
           kedalaman: tingkatAktif.kedalaman ?? null,
-          padaInfo: (info) => {
-            if (!hidup || fenRef.current !== fen) return;
-            setEvaluasi(nilaiEvaluasiPutih(info, game.turn()));
-          },
           padaSelesai: (uci, info, error) => {
             if (!hidup || fenRef.current !== fen) return;
             if (error) {
@@ -593,7 +567,7 @@ export default function ManusiaVsMesin() {
     setSasaran([]);
     setHasil(null);
     setPesan("");
-    setEvaluasi(null);
+    setEvaluasiTertahan(null);
     setPgnTersalin(false);
   }
 
@@ -726,7 +700,10 @@ export default function ManusiaVsMesin() {
     benih: riwayatLengkap.length,
     t,
   });
-  const tampilkanEvaluasi = "sunfish" !== tingkatAktif.mesin;
+  const lawanPakaiStockfish = "sunfish" !== tingkatAktif.mesin;
+  // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
+  // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
+  const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
@@ -739,20 +716,25 @@ export default function ManusiaVsMesin() {
   return (
     // Konten dibatasi 1280px + padding md:px-8 dan kolom papan maksimal 520px,
     // sama seperti mode Analisa, sehingga lebar panel kanan ikut selalu sama.
-    <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-4 overflow-y-auto p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
+    <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
       <section
         aria-label={t("papan.pveJudul")}
-        className="mx-auto flex min-h-0 w-full items-center justify-center lg:overflow-y-auto"
+        className="mx-auto flex min-h-0 w-full items-start justify-center sm:items-center lg:overflow-y-auto"
       >
-        <div className="mx-auto my-auto flex w-full max-w-[520px] flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+        <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
-            {/* Sunfish tidak menerbitkan baris "info score cp", dan skornya
-                sengaja dirusak — bilah evaluasi disembunyikan di level itu. */}
-            {tampilkanEvaluasi ? (
-              <BilahEvaluasi evaluasi={evaluasi} label={t("papan.pveEvaluasi")} />
-            ) : null}
-            <div className="aspect-square w-full" ref={papanRef}>
+            {/* Evaluasi objektif Stockfish dari hook yang sama dengan Buku.
+                Tidak memakai skor lawan yang sengaja dilemahkan. */}
+            <BilahEvaluasi
+              cpPutih={evaluasiTertahan?.cpPutih ?? 0}
+              matePutih={evaluasiTertahan?.matePutih ?? null}
+              teksSkor={evaluasiTertahan?.teksSkor ?? ""}
+              orientasi={orientasiPapan}
+              label={t("papan.pveEvaluasi")}
+              adaEvaluasi={Boolean(evaluasiTertahan)}
+            />
+            <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
               <PapanTekaTeki
                 fen={fen}
                 orientasi={orientasiPapan}
@@ -782,11 +764,11 @@ export default function ManusiaVsMesin() {
         </div>
       </section>
 
-      <aside className="flex min-h-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 lg:overflow-hidden">
+      <aside className="flex min-h-0 min-w-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-3 sm:p-4 lg:overflow-hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
-              <Cpu className="h-4 w-4" aria-hidden="true" />
+              <IkonMesin className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{NAMA_MESIN}</p>
@@ -804,15 +786,15 @@ export default function ManusiaVsMesin() {
           </button>
         </div>
 
-        <section aria-label={t("papan.pveDialogMesin")} className="flex min-h-[104px] items-center gap-3 rounded-md border border-[#3b3935] bg-[#262421] p-3">
+        <section aria-label={t("papan.pveDialogMesin")} className="flex min-h-[88px] items-center gap-2 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:min-h-[104px] sm:gap-3 sm:p-3">
           <img
             src={berkasPublik(`/engine_expressions/${dialog.gambar}`)}
             alt={t("papan.pveDialogAvatar")}
-            className="h-16 w-16 shrink-0 object-contain"
+            className="h-12 w-12 shrink-0 object-contain sm:h-16 sm:w-16"
             width="64"
             height="64"
           />
-          <p className="text-[13px] leading-5 text-gray-200" aria-live="polite">
+          <p className="min-w-0 text-[13px] leading-5 text-gray-200" aria-live="polite">
             {dialog.teks}
           </p>
         </section>
@@ -824,7 +806,7 @@ export default function ManusiaVsMesin() {
             <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
               {t("papan.pveKonfigurasi")}
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
                 {t("papan.pveWarnaPemain")}
                 <select
@@ -858,7 +840,7 @@ export default function ManusiaVsMesin() {
             {/* Keterangan engine per level: yang dipakai berbeda, dan di level
                 sunfish penilaian memang sengaja dirusak — pemain berhak tahu. */}
             <p className="text-[11px] leading-4 text-gray-500">
-              {tampilkanEvaluasi
+              {lawanPakaiStockfish
                 ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
                 : t("papan.pveMesinSunfish")}
             </p>
@@ -868,7 +850,7 @@ export default function ManusiaVsMesin() {
         {/* Slot riwayat: hanya saat BPK berjalan. Sebelum itu ruangnya dipakai
             fitur pra-partai lain. */}
         {aktif ? (
-          <section className="flex min-h-0 flex-1 flex-col border-t border-[#312e2b] pt-3">
+          <section className="flex min-h-0 max-h-52 flex-1 flex-col border-t border-[#312e2b] pt-3 lg:max-h-none">
             <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-400">
               {t("papan.pveRiwayat")}
             </h2>
@@ -944,7 +926,7 @@ export default function ManusiaVsMesin() {
         {/* Baris aksi dasar. Saat bermain susunannya identik dengan mode Buku
             Pembukaan; sebelum mulai, satu-satunya jalan keluar panel ini tombol Mulai. */}
         {aktif ? (
-          <div className="grid shrink-0 grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
+          <div className="grid shrink-0 grid-cols-4 gap-1 text-[10px] font-semibold text-gray-300 sm:gap-2 sm:text-xs">
             <button
               type="button"
               onClick={() => setKonfirmasiMenyerah(true)}
@@ -965,12 +947,13 @@ export default function ManusiaVsMesin() {
             </button>
             <button
               type="button"
-              disabled
-              title={t("papan.tinjau")}
-              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={mulaiPartai}
+              disabled={!riwayatLengkap.length}
+              title={t("papan.baru")}
+              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#262421]"
             >
-              <RotateCw className="h-4 w-4 text-gray-400" aria-hidden="true" />
-              <span>{t("papan.tinjau")}</span>
+              <Plus className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <span>{t("papan.baru")}</span>
             </button>
             <button
               type="button"
