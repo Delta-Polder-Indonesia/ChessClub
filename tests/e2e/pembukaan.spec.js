@@ -138,19 +138,25 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     const tataLetakResponsif = await page.evaluate(() => {
       const petak = document.querySelector('[data-petak="e2"]');
       const papan = petak?.parentElement?.parentElement;
+      const bilahEvaluasi = document.querySelector("[data-bilah-evaluasi]");
       const menuMode = document.querySelector('nav[aria-label]');
       const batasPapan = papan?.getBoundingClientRect();
+      const batasBilah = bilahEvaluasi?.getBoundingClientRect();
       return {
         lebarDokumen: document.documentElement.scrollWidth,
         lebarLayar: window.innerWidth,
         kiriPapan: batasPapan?.left ?? -1,
         kananPapan: batasPapan?.right ?? window.innerWidth + 1,
+        bilahTerlihat: Boolean(batasBilah?.width && batasBilah?.height),
+        kananBilah: batasBilah?.right ?? window.innerWidth + 1,
         menuMeluap: menuMode ? menuMode.scrollWidth > menuMode.clientWidth + 1 : true,
       };
     });
     expect(tataLetakResponsif.lebarDokumen).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
     expect(tataLetakResponsif.kiriPapan).toBeGreaterThanOrEqual(0);
     expect(tataLetakResponsif.kananPapan).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
+    expect(tataLetakResponsif.bilahTerlihat).toBe(true);
+    expect(tataLetakResponsif.kananBilah).toBeLessThanOrEqual(tataLetakResponsif.kiriPapan);
     expect(tataLetakResponsif.menuMeluap).toBe(false);
 
     const warnaPemain = page.getByLabel(kamus.pveWarnaPemain);

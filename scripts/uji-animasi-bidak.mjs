@@ -531,6 +531,10 @@ tombolMulai?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 await tungguSampai(() => wadahPve.querySelectorAll("[data-petak]").length === 64);
 
 uji("papan mode Manusia vs Mesin ter-render", wadahPve.querySelectorAll("[data-petak]").length === 64);
+uji(
+  "bilah evaluasi tampil di kiri papan mode Manusia vs Mesin",
+  !!wadahPve.querySelector("[data-bilah-evaluasi]")
+);
 pasangElementFromPoint(wadahPve);
 
 const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);

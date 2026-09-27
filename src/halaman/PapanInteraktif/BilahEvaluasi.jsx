@@ -40,13 +40,16 @@ export default function BilahEvaluasi({
           : "0-1"
       : teksSkor || `${nilaiAman > 0 ? "+" : ""}${(nilaiAman / 100).toFixed(1)}`;
 
+  const skorTampil = adaEvaluasi ? skor : "—";
+
   return (
     <div
-      className={`relative flex h-full w-9 shrink-0 flex-col overflow-hidden rounded-sm bg-[#403d39] ${
-        putihDiAtas ? "justify-start" : "justify-end"
+      data-bilah-evaluasi
+      className={`relative flex w-9 shrink-0 self-stretch overflow-hidden rounded-sm border border-[#5b5751] bg-[#403d39] ${
+        putihDiAtas ? "flex-col justify-start" : "flex-col justify-end"
       }`}
       role="img"
-      aria-label={adaEvaluasi && label ? `${label}: ${skor}` : undefined}
+      aria-label={label ? `${label}: ${skorTampil}` : undefined}
     >
       <div
         className="w-full bg-white"
@@ -61,13 +64,13 @@ export default function BilahEvaluasi({
           style={{ opacity: sisiOrientasiUnggul ? 0 : 1 }}
           className={putihDiAtas ? "text-[#dedede]" : "text-[#262421]"}
         >
-          {adaEvaluasi ? skor : ""}
+          {skorTampil}
         </div>
         <div
           style={{ opacity: sisiOrientasiUnggul ? 1 : 0 }}
           className={!putihDiAtas ? "text-[#dedede]" : "text-[#262421]"}
         >
-          {adaEvaluasi ? skor : ""}
+          {skorTampil}
         </div>
       </div>
     </div>
