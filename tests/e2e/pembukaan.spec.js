@@ -178,6 +178,9 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.locator('[data-arrow="e2e4"]')).toHaveCount(1);
 
     await page.getByRole("button", { name: kamus.pveMulai, exact: true }).click();
+    // Bilah bukan dekorasi: evaluator Stockfish terpisah harus mengganti tanda
+    // tunggu dengan skor posisi yang benar-benar diterbitkan worker.
+    await expect(page.locator("[data-bilah-evaluasi]")).not.toHaveAttribute("aria-label", /—/);
     // Partai berjalan: kartu konfigurasi pra-partai hilang dan panel partai
     // (daftar langkah + navigasi + baris aksi) menggantikannya.
     await expect(page.getByRole("region", { name: kamus.pveKonfigurasi })).toHaveCount(0);

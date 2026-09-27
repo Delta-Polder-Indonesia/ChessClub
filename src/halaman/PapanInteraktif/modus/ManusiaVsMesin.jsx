@@ -6,6 +6,7 @@ import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
 import { DAFTAR_SET } from "../../../components/chess/ChessPiece.jsx";
 import { berkasPublik } from "../../../lib/asets.js";
 import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
+import { gunakanEngineCatur } from "../../../lib/gunakanEngineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
@@ -50,15 +51,6 @@ function hasilAkhir(game) {
   }
   if (game.isDraw()) return { jenis: "seri", pemenang: null };
   return null;
-}
-
-function nilaiEvaluasiPutih(info, giliran) {
-  if (!info || (info.cp === null && info.mate === null)) return null;
-  const pembalik = giliran === "w" ? 1 : -1;
-  return {
-    cp: Number.isFinite(info.cp) ? info.cp * pembalik : null,
-    mate: Number.isFinite(info.mate) ? info.mate * pembalik : null,
-  };
 }
 
 function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
@@ -270,10 +262,18 @@ export default function ManusiaVsMesin() {
   const [tampilPengaturan, setTampilPengaturan] = useState(false);
   const [konfirmasiMenyerah, setKonfirmasiMenyerah] = useState(false);
   const [aktif, setAktif] = useState(false);
+  // Evaluasi objektif memakai pintu yang sama dengan mode Buku. Worker ini
+  // sengaja terpisah dari worker lawan: level lawan boleh dilemahkan tanpa
+  // ikut memalsukan nilai pada bilah evaluasi.
+  const {
+    hasilEngine: hasilEvaluasi,
+    nyalakanEngine: nyalakanEvaluasi,
+    matikanEngine: matikanEvaluasi,
+  } = gunakanEngineCatur(fen);
+  const [evaluasiTertahan, setEvaluasiTertahan] = useState(null);
   const [statusMesin, setStatusMesin] = useState("idle");
   const [hasil, setHasil] = useState(null);
   const [pesan, setPesan] = useState("");
-  const [evaluasi, setEvaluasi] = useState(null);
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
   // Jenis binari yang sedang dimuat worker ("sunfish" atau "stockfish") dan
@@ -293,6 +293,22 @@ export default function ManusiaVsMesin() {
   useEffect(() => {
     fenRef.current = fen;
   }, [fen]);
+
+  // Mulai Stockfish evaluator bersama saat partai dimulai. Nilai terakhir
+  // ditahan selama posisi baru dihitung agar bilah bergerak mulus, sama seperti
+  // implementasi mode Buku Pembukaan.
+  useEffect(() => {
+    if (aktif) nyalakanEvaluasi();
+    else matikanEvaluasi();
+  }, [aktif, nyalakanEvaluasi, matikanEvaluasi]);
+
+  useEffect(() => {
+    if (hasilEvaluasi) setEvaluasiTertahan(hasilEvaluasi);
+  }, [hasilEvaluasi]);
+
+  useEffect(() => {
+    if (!aktif) setEvaluasiTertahan(null);
+  }, [aktif]);
 
   useEffect(() => {
     riwayatRef.current = riwayat;
@@ -437,10 +453,6 @@ export default function ManusiaVsMesin() {
         engine.analisis(fen, {
           movetime: tingkatAktif.waktu,
           kedalaman: tingkatAktif.kedalaman ?? null,
-          padaInfo: (info) => {
-            if (!hidup || fenRef.current !== fen) return;
-            setEvaluasi(nilaiEvaluasiPutih(info, game.turn()));
-          },
           padaSelesai: (uci, info, error) => {
             if (!hidup || fenRef.current !== fen) return;
             if (error) {
@@ -555,7 +567,7 @@ export default function ManusiaVsMesin() {
     setSasaran([]);
     setHasil(null);
     setPesan("");
-    setEvaluasi(null);
+    setEvaluasiTertahan(null);
     setPgnTersalin(false);
   }
 
@@ -688,7 +700,7 @@ export default function ManusiaVsMesin() {
     benih: riwayatLengkap.length,
     t,
   });
-  const evaluasiMesinTersedia = "sunfish" !== tingkatAktif.mesin;
+  const lawanPakaiStockfish = "sunfish" !== tingkatAktif.mesin;
   // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
   // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
   const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
@@ -712,14 +724,15 @@ export default function ManusiaVsMesin() {
         <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
           <BarisProfil {...barisSisi(warnaMesin)} setBidak={setBidak} className="mb-2" />
           <div className="flex w-full items-stretch justify-center gap-1.5">
-            {/* Satu komponen yang sama dengan Buku Pembukaan. Sunfish tidak
-                menerbitkan skor, jadi bilah tetap netral sampai ada evaluasi. */}
+            {/* Evaluasi objektif Stockfish dari hook yang sama dengan Buku.
+                Tidak memakai skor lawan yang sengaja dilemahkan. */}
             <BilahEvaluasi
-              cpPutih={evaluasi?.cp ?? 0}
-              matePutih={evaluasi?.mate ?? null}
+              cpPutih={evaluasiTertahan?.cpPutih ?? 0}
+              matePutih={evaluasiTertahan?.matePutih ?? null}
+              teksSkor={evaluasiTertahan?.teksSkor ?? ""}
               orientasi={orientasiPapan}
               label={t("papan.pveEvaluasi")}
-              adaEvaluasi={Boolean(evaluasi)}
+              adaEvaluasi={Boolean(evaluasiTertahan)}
             />
             <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
               <PapanTekaTeki
@@ -827,7 +840,7 @@ export default function ManusiaVsMesin() {
             {/* Keterangan engine per level: yang dipakai berbeda, dan di level
                 sunfish penilaian memang sengaja dirusak — pemain berhak tahu. */}
             <p className="text-[11px] leading-4 text-gray-500">
-              {evaluasiMesinTersedia
+              {lawanPakaiStockfish
                 ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
                 : t("papan.pveMesinSunfish")}
             </p>

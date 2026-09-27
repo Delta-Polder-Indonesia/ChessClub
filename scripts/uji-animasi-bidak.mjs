@@ -535,6 +535,13 @@ uji(
   "bilah evaluasi tampil di kiri papan mode Manusia vs Mesin",
   !!wadahPve.querySelector("[data-bilah-evaluasi]")
 );
+await tungguSampai(
+  () => !wadahPve.querySelector("[data-bilah-evaluasi]")?.getAttribute("aria-label")?.includes("—")
+);
+uji(
+  "bilah evaluasi menerima skor nyata dari worker Stockfish terpisah",
+  /[+-]\d/.test(wadahPve.querySelector("[data-bilah-evaluasi]")?.getAttribute("aria-label") || "")
+);
 pasangElementFromPoint(wadahPve);
 
 const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);
