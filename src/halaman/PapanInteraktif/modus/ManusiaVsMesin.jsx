@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Bookmark, Cpu, Flag, FlipVertical2, RotateCw, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
+import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
@@ -9,6 +9,7 @@ import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
+import BilahEvaluasi from "../BilahEvaluasi.jsx";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
@@ -58,45 +59,6 @@ function nilaiEvaluasiPutih(info, giliran) {
     cp: Number.isFinite(info.cp) ? info.cp * pembalik : null,
     mate: Number.isFinite(info.mate) ? info.mate * pembalik : null,
   };
-}
-
-function persentaseEvaluasi(evaluasi) {
-  if (!evaluasi) return 50;
-  if (evaluasi.mate !== null) return evaluasi.mate > 0 ? 100 : evaluasi.mate < 0 ? 0 : 50;
-  const nilai = Number(evaluasi.cp) || 0;
-  return Math.min(95, Math.max(5, 50 + nilai / 8));
-}
-
-function teksEvaluasi(evaluasi) {
-  if (!evaluasi) return "0.0";
-  if (evaluasi.mate !== null) return `M${Math.abs(evaluasi.mate)}`;
-  const nilai = (Number(evaluasi.cp) || 0) / 100;
-  return `${nilai > 0 ? "+" : ""}${nilai.toFixed(1)}`;
-}
-
-function BilahEvaluasi({ evaluasi, label }) {
-  const persenPutih = persentaseEvaluasi(evaluasi);
-  const teks = teksEvaluasi(evaluasi);
-  const fillDiAtas = persenPutih >= 52;
-  return (
-    <div
-      className="relative flex w-9 shrink-0 flex-col overflow-hidden self-stretch rounded-sm border border-[#494640] bg-[#403d39]"
-      role="img"
-      aria-label={`${label}: ${teks}`}
-    >
-      <div
-        className="w-full shrink-0 bg-[#f7f7f5] transition-[height] duration-700"
-        style={{ height: `${persenPutih}%` }}
-      />
-      <span
-        className={`pointer-events-none absolute inset-x-0 z-10 flex justify-center py-1.5 text-[10px] font-bold leading-none ${
-          fillDiAtas ? "top-0 text-[#292723]" : "bottom-0 text-white"
-        }`}
-      >
-        {teks}
-      </span>
-    </div>
-  );
 }
 
 function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
@@ -727,6 +689,9 @@ export default function ManusiaVsMesin() {
     t,
   });
   const tampilkanEvaluasi = "sunfish" !== tingkatAktif.mesin;
+  // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
+  // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
+  const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
@@ -750,7 +715,13 @@ export default function ManusiaVsMesin() {
             {/* Sunfish tidak menerbitkan baris "info score cp", dan skornya
                 sengaja dirusak — bilah evaluasi disembunyikan di level itu. */}
             {tampilkanEvaluasi ? (
-              <BilahEvaluasi evaluasi={evaluasi} label={t("papan.pveEvaluasi")} />
+              <BilahEvaluasi
+                cpPutih={evaluasi?.cp ?? 0}
+                matePutih={evaluasi?.mate ?? null}
+                orientasi={orientasiPapan}
+                label={t("papan.pveEvaluasi")}
+                adaEvaluasi={Boolean(evaluasi)}
+              />
             ) : null}
             <div className="aspect-square w-full" ref={papanRef}>
               <PapanTekaTeki
@@ -786,7 +757,7 @@ export default function ManusiaVsMesin() {
         <div className="flex items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
-              <Cpu className="h-4 w-4" aria-hidden="true" />
+              <IkonMesin className="h-4 w-4" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{NAMA_MESIN}</p>
@@ -965,12 +936,13 @@ export default function ManusiaVsMesin() {
             </button>
             <button
               type="button"
-              disabled
-              title={t("papan.tinjau")}
-              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 text-gray-300 transition disabled:cursor-not-allowed disabled:opacity-40"
+              onClick={mulaiPartai}
+              disabled={!riwayatLengkap.length}
+              title={t("papan.baru")}
+              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-[#262421]"
             >
-              <RotateCw className="h-4 w-4 text-gray-400" aria-hidden="true" />
-              <span>{t("papan.tinjau")}</span>
+              <Plus className="h-4 w-4 text-gray-400" aria-hidden="true" />
+              <span>{t("papan.baru")}</span>
             </button>
             <button
               type="button"

@@ -521,8 +521,8 @@ modulPve.GESTUR.jedaRagu = [5, 5];
 modulPve.GESTUR.peluangRagu = 0;
 modulPve.mountPve(wadahPve);
 const cariMulai = () =>
-  // Label tombol mulai mengikuti kamus `pveMulai` ("Mulai partai").
-  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Mulai partai");
+  // Label tombol mulai mengikuti kamus `pveMulai` ("Main").
+  [...wadahPve.querySelectorAll("button")].find((b) => b.textContent.trim() === "Main");
 await tungguSampai(() => !!cariMulai());
 
 const tombolMulai = cariMulai();
