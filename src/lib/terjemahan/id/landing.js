@@ -23,12 +23,12 @@ export const landing = {
     sebelumnya: "Sebelumnya",
     selanjutnya: "Selanjutnya",
     keberlanjutanDesk:
-      "Komunitas Catur Indonesia berkomitmen membangun ekosistem catur yang berkelanjutan melalui pendidikan, pembinaan bakat, dan penguatan jejaring pecatur di seluruh Indonesia. Kami percaya bahwa konsistensi dalam program dan kebersamaan adalah kunci kemajuan catur nasional.",
+      "Komunitas Catur Indonesia berkomitmen menumbuhkan catur secara berkelanjutan melalui pendidikan, pembinaan bakat, dan penguatan jejaring pecatur di seluruh Indonesia. Kami percaya konsistensi program dan kebersamaan adalah kunci kemajuan catur nasional.",
     harapanJudul: "Harapan dan Terima Kasih",
     harapanPembuka:
       "Kepada seluruh anggota, pecatur, dan sahabat komunitas yang kami hormati dan banggakan,",
     harapanP1:
-      "Bertepatan dengan perjalanan komunitas yang terus bertumbuh, kami menyampaikan terima kasih atas kontribusi dan dedikasi yang telah diberikan dalam membangun ekosistem catur nasional — bergotong-royong menghadirkan turnamen rutin, kelas pembinaan, dan ruang bertumbuh bagi pecatur dari berbagai daerah.",
+      "Seiring komunitas yang terus bertumbuh, kami menyampaikan terima kasih atas kontribusi dan dedikasi dalam membangun catur nasional — bergotong-royong menghadirkan turnamen rutin, kelas pembinaan, dan ruang bertumbuh bagi pecatur dari berbagai daerah.",
     harapanP2:
       "Terima kasih kami sampaikan pula kepada seluruh anggota dan masyarakat atas dukungannya kepada komunitas. Kami ada untuk kebermanfaatan bersama. Kami akan terus berkomitmen menghadirkan wadah bermain, belajar, dan bertumbuh bagi pecatur di seluruh Indonesia.",
     harapanP3:

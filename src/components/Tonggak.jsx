@@ -112,7 +112,7 @@ export default function Tonggak() {
                           {slide.paragraphs.map((p, j) => (
                             <p
                               key={j}
-                              className="text-white text-sm md:text-base leading-6 md:leading-7 mb-4"
+                              className="text-white text-base md:text-lg leading-relaxed md:leading-8 mb-5"
                             >
                               {p}
                             </p>

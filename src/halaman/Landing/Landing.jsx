@@ -78,7 +78,7 @@ function LandingHero({ t }) {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 pointer-events-none opacity-60 bg-[#000000CC]" />
+              <div className="absolute inset-0 pointer-events-none bg-black/50" />
             </div>
           </div>
         ))}
@@ -102,14 +102,14 @@ function LandingHero({ t }) {
                   setIndex(i);
                 }
               }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-red-600 opacity-100" : "opacity-10"
+                    active ? "text-blue-400 opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -123,7 +123,7 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-red-600 pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
                 style={
                   active
                     ? {
@@ -185,14 +185,14 @@ function SorotanKegiatan({ t }) {
               <img
                 {...s.sumber}
                 alt={s.judul}
-                className="w-full aspect-[3/2] object-cover rounded-xl"
+                className="w-full aspect-[3/2] object-cover rounded-lg"
                 loading="lazy"
                 decoding="async"
               />
             );
             const teks = (
               <>
-                <h3 className="font-serif font-semibold text-lg text-slate-900">{s.judul}</h3>
+                <h3 className="font-serif font-semibold text-lg text-slate-900 transition-colors group-hover:text-primary">{s.judul}</h3>
                 <p className="font-serif text-sm text-slate-600 leading-6">{s.isi}</p>
               </>
             );
@@ -200,7 +200,10 @@ function SorotanKegiatan({ t }) {
               <article key={s.judul} className="flex flex-col gap-4">
                 {gambar}
                 {s.to ? (
-                  <Link to={s.to} className="group flex cursor-pointer flex-col gap-4">
+                  <Link
+                    to={s.to}
+                    className="group flex cursor-pointer flex-col gap-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
                     {teks}
                   </Link>
                 ) : (
@@ -300,9 +303,6 @@ function CardGambar({ index, t }) {
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3 z-10 pointer-events-none">
-        <p className="font-serif text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
-          {t("landing.pustakaLabel")}
-        </p>
         <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4 uppercase">
           {t("landing.pustakaJudul")}
         </h2>
@@ -383,16 +383,16 @@ function CardCarousel({ index, setIndex, t }) {
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
-                className={`flex-none w-[250px] h-[300px] p-6 rounded-md shadow-lg gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
+                className={`flex-none w-[250px] h-[300px] p-6 rounded-lg border gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
                   isActive
-                    ? "bg-primary text-white"
-                    : "bg-white text-slate-900 hover:bg-primary group"
+                    ? "bg-primary border-primary text-white"
+                    : "bg-white border-slate-200 text-slate-900 hover:bg-primary hover:border-primary group"
                 }`}
               >
                 <h3 className={`font-serif text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
-                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-red-600 group-hover:bg-white"} ${transisiWarna}`} />
+                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-primary group-hover:bg-white"} ${transisiWarna}`} />
                 <p className={`font-serif text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
                   {k.desk}
                 </p>
@@ -409,7 +409,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.sebelumnya")}
           onClick={() => setIndex((i) => i - 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-slate-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
@@ -417,7 +417,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.selanjutnya")}
           onClick={() => setIndex((i) => i + 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-400 rounded-lg shadow hover:bg-primary transition-colors group"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-slate-600 group-hover:text-white transition-colors" />
         </button>
@@ -429,7 +429,7 @@ function CardCarousel({ index, setIndex, t }) {
 function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(4);
   return (
-    <section className="w-full bg-[#f8fafc] relative py-14 md:py-16 overflow-hidden">
+    <section className="w-full bg-slate-50 relative py-14 md:py-16 overflow-hidden">
       <div className="flex flex-col md:grid md:grid-cols-2 gap-6 items-center relative">
         <CardGambar index={index} t={t} />
         <CardCarousel index={index} setIndex={setIndex} t={t} />
@@ -464,7 +464,7 @@ function HarapanTerimaKasih({ t }) {
                   draggable="false"
                   decoding="async"
                   loading="lazy"
-                  className="w-full max-w-[500px] h-auto rounded-xl object-cover object-center"
+                  className="w-full max-w-[500px] h-auto rounded-lg object-cover object-center"
                 />
               </a>
             </div>
@@ -508,16 +508,13 @@ function AjakanBergabung({ t }) {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
       <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
-        <p className="font-serif text-primary font-semibold text-xs uppercase tracking-wide">
-          {t("landing.ajakanLabel")}
-        </p>
         <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
           {t("landing.ajakanJudul")} <em className="font-serif text-primary italic">{t("landing.ajakanJudulAccent")}</em>
         </h2>
         <p className="font-serif text-slate-600">{t("landing.ajakanDeskripsi")}</p>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded"
+          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -557,9 +554,6 @@ export default function Landing() {
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-3">
-          <p className="font-serif text-white font-semibold text-xs md:text-sm uppercase tracking-wide">
-            {t("landing.sekilasLabel")}
-          </p>
           <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4">
             {t("nav.tentangKami")}
           </h2>
@@ -573,14 +567,14 @@ export default function Landing() {
               // ini; tanpa konteks, pembaca layar (dan audit
               // identical-links-same-purpose) tidak bisa membedakan tujuannya.
               aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
-              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
+              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
             >
               {t("common.selengkapnya")}
               <ArrowRightIcon className="size-4 -rotate-45" />
             </Link>
             <Link
               to="/tentang-kami/struktur-grup-catur"
-              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded-full hover:bg-white hover:text-black transition-colors"
+              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
             >
               {t("landing.ketuaPengurus")}
               <ArrowRightIcon className="size-4 -rotate-45" />
@@ -591,14 +585,9 @@ export default function Landing() {
 
       <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-24 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
-          <div className="w-full">
-            <p className="font-serif text-primary font-semibold text-xs uppercase">
-              {t("nav.keberlanjutan")}
-            </p>
-          </div>
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-serif font-semibold text-3xl">{t("nav.keberlanjutan")}</h2>
+              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-black">{t("nav.keberlanjutan")}</h2>
               <p className="font-serif text-justify text-slate-600 leading-relaxed">
                 {t("landing.keberlanjutanDesk")}
               </p>
@@ -607,7 +596,7 @@ export default function Landing() {
               <Link
                 to="/keberlanjutan"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded"
+                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <span className="order-1 font-serif">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />

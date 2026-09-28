@@ -10,7 +10,7 @@ export const sekilas = {
     p3: "Kemampuan komunitas yang mumpuni ini dibangun di atas fondasi yang solid dan sejarah panjang dalam mengawal terwujudnya pembinaan catur nasional. Sejarah mencatat bahwa eksistensi Komunitas Catur Indonesia dibangun sejak sekitar tahun 2014, ketika sekelompok pecatur di Medan mulai berkumpul rutin untuk bertanding catur kilat di sebuah warung kopi. Kemudian kelompok tersebut resmi menjadi komunitas pada tanggal 10 Desember 2015, yang hingga kini diperingati sebagai hari lahir komunitas.",
     p4: "Pada tahun 2018, komunitas resmi membentuk klub di Chess.com sebagai basis pertandingan daring seluruh anggota. Selanjutnya, peran komunitas semakin strategis setelah pada tahun 2020 menginisiasi program kelas catur daring gratis bagi pelajar di tengah masa pandemi.",
     p5: "Berdasarkan kesepakatan Musyawarah Anggota tanggal 18 Juni 2023, komunitas mengubah struktur organisasi menjadi struktur kepengurusan dengan divisi-divisi fungsional. Pada tanggal 10 Desember 2024, komunitas memperbarui identitas visual dengan logo kuda catur berwarna dasar biru, merah, dan hijau yang merefleksikan unsur dinamis dan kepedulian pada pembinaan.",
-    p6: "Bahkan setelah evolusi yang dialami selama satu dekade itu, komunitas berkomitmen untuk tetap menggaungkan semangat transformasi yang berkelanjutan guna menyempurnakan langkahnya menjadi komunitas catur terdepan di Indonesia yang didukung oleh organisasi yang semakin lincah, mudah beradaptasi, dan fokus untuk pengembangan pembinaan yang lebih luas.",
+    p6: "Setelah satu dekade perkembangan itu, komunitas tetap berkomitmen terus berbenah agar menjadi komunitas catur terdepan di Indonesia, didukung organisasi yang gesit, mudah beradaptasi, dan fokus memperluas pembinaan.",
     imgAlt: "Suasana kegiatan rutin komunitas di sekretariat Medan",
     imgCaption: "Suasana kegiatan rutin komunitas di sekretariat Medan, 2025.",
   }
@@ -41,15 +41,15 @@ export const visimisi = {
     visi: "Visi",
     visiLead: "Menjadi komunitas catur yang mengedepankan sportivitas, prestasi, dan pembinaan.",
     visiP1:
-      "Komunitas Catur Indonesia berkomitmen untuk menjadi komunitas catur berskala nasional yang tidak hanya menjalankan kegiatan dengan landasan organisasi yang kuat, tetapi juga berperan strategis dalam mendukung pengembangan catur Indonesia, khususnya dalam memperkuat sportivitas, memastikan ketersediaan wadah bertanding, serta mendorong pembinaan yang berkelanjutan.",
-    visiL1: "Sportivitas: memperkuat budaya fair play dan integritas dalam setiap pertandingan.",
-    visiL2: "Prestasi: mewujudkan lingkungan kompetitif guna menjamin lahirnya pecatur berprestasi nasional dan internasional.",
-    visiL3: "Pembinaan: mendorong pengembangan bakat usia muda sebagai langkah strategis dalam menjaga keberlanjutan regenerasi catur Indonesia.",
+      "Komunitas Catur Indonesia bertekad menjadi komunitas catur berskala nasional dengan organisasi yang kuat, sekaligus berperan aktif memajukan catur Indonesia — memperkuat sportivitas, menyediakan wadah bertanding, dan mendorong pembinaan yang berkelanjutan.",
+    visiL1: "Sportivitas: menjunjung fair play dan integritas dalam setiap pertandingan.",
+    visiL2: "Prestasi: membangun lingkungan kompetitif yang melahirkan pecatur berprestasi di tingkat nasional dan internasional.",
+    visiL3: "Pembinaan: mengembangkan bakat usia muda untuk menjaga regenerasi catur Indonesia.",
     misi: "Misi",
     misiLead:
-      "Menyediakan wadah bermain dan belajar catur melalui program inovatif yang memberi nilai tambah untuk anggota dan masyarakat.",
+      "Menyediakan wadah bermain dan belajar catur melalui program yang bermanfaat bagi anggota dan masyarakat.",
     misiP1:
-      "Misi untuk menyediakan wadah bermain dan belajar catur melalui program inovatif yang memberi nilai tambah bagi anggota dan masyarakat mencerminkan komitmen komunitas dalam menghadirkan kegiatan yang andal, berkelanjutan, dan relevan dengan dinamika perkembangan catur nasional dan global. Upaya tersebut dilakukan melalui fokus program pada dual-growth strategy, yaitu Maximizing Competitive Play dan Building Grassroots Development. Pilar Maximizing Competitive Play fokus pada peningkatan frekuensi turnamen internal, penguatan liga musiman, penguatan pertandingan persahabatan antar komunitas, serta pengembangan infrastruktur latihan. Sedangkan pilar Building Grassroots Development fokus pada pengembangan kelas pemula, ekosistem pelatihan daring, program sekolah catur, dan teknologi latihan digital.",
+      "Komunitas menjalankan misi ini melalui dua fokus program yang berjalan beriringan. Fokus pertama memperkuat kegiatan pertandingan: menambah frekuensi turnamen internal, memperkuat liga musiman, menggencarkan pertandingan persahabatan antar komunitas, serta mengembangkan sarana latihan. Fokus kedua membina pecatur dari akar: membuka kelas pemula, menyelenggarakan pelatihan daring, menjalankan program sekolah catur, dan memanfaatkan teknologi latihan digital.",
     tataNilai: "Tata Nilai",
     nilaiImgAlt: "Tata nilai komunitas",
     nilaiImgCaption:
@@ -74,7 +74,7 @@ export const maknaLogo = {
 export const struktur = {
     judul: "Struktur Pengurus",
     p1: "Komunitas Catur Indonesia menjalankan kegiatan pembinaan dan pertandingan catur yang terintegrasi mulai dari tingkat pemula hingga tingkat lanjut. Dalam kapasitasnya sebagai komunitas catur terverifikasi di Chess.com, maka secara umum fokus komunitas adalah menjalankan kegiatan pengelolaan turnamen dan pembinaan anggota, mempercepat pengembangan program latihan baru, serta menjalankan program-program kerja tahunan.",
-    p2: "Sementara itu, sejumlah kegiatan yang sebelumnya merupakan kegiatan-kegiatan utama komunitas akan dijalankan oleh divisi yang telah terbentuk. Divisi ini menjalankan peran, antara lain mendorong terwujudnya operational excellence melalui pengembangan skala dan sinergi masing-masing program, mempercepat pengembangan program dan kapabilitas existing, serta meningkatkan kemampuan dan fleksibilitas dalam kemitraan dan pendanaan yang lebih menguntungkan komunitas. Berikut pemetaan peran divisi pada Komunitas Catur Indonesia:",
+    p2: "Sementara itu, sejumlah kegiatan yang sebelumnya merupakan kegiatan utama komunitas kini dijalankan oleh divisi yang telah terbentuk. Divisi-divisi ini bertugas menjalankan dan mengembangkan setiap program secara lebih terarah, meningkatkan kualitas program yang sudah berjalan, serta mengelola kemitraan dan pendanaan agar lebih bermanfaat bagi komunitas. Berikut pemetaan peran divisi pada Komunitas Catur Indonesia:",
     dewanPembina: "Dewan Pembina",
     dewanPenasihat: "Dewan Penasihat",
     ketuaUmum: "Ketua Umum",
@@ -86,5 +86,5 @@ export const struktur = {
     divisiKeanggotaan: "Divisi Keanggotaan",
     divisiTeknologi: "Divisi Teknologi",
     caption: "Bagan Struktur Pengurus Komunitas Catur Indonesia.",
-    p3: "Melalui pembentukan struktur baru komunitas ini, Komunitas Catur Indonesia diharapkan mampu bergerak lebih lincah (agile), fokus, dan lebih cepat dalam mengembangkan kapabilitas anggotanya yang setara dengan kualitas nasional guna mengakselerasi beragam inovasi di luar kegiatan konvensional komunitas, antara lain dalam bidang catur daring, sekolah catur, serta teknologi analisis digital, sehingga komunitas mampu meraih pertumbuhan jumlah anggota yang lebih besar sebagai fondasi menuju komunitas catur terdepan di Indonesia.",
+    p3: "Melalui struktur baru ini, Komunitas Catur Indonesia diharapkan dapat bergerak lebih gesit, fokus, dan cepat dalam mengembangkan kemampuan anggotanya hingga setara kualitas nasional. Struktur ini juga membuka ruang pengembangan di luar kegiatan konvensional komunitas, antara lain catur daring, sekolah catur, dan teknologi analisis digital, sehingga jumlah anggota dapat bertumbuh sebagai fondasi menuju komunitas catur terdepan di Indonesia.",
   }

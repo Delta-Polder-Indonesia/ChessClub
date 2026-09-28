@@ -55,6 +55,8 @@ import {
   ebookPanduan,
   fiturEbook,
   analisaLanding,
+  rushLanding,
+  kuisLanding,
 } from "./program.js";
 
 import {
@@ -143,6 +145,8 @@ export const ID = {
   ebookPanduan,
   fiturEbook,
   analisaLanding,
+  rushLanding,
+  kuisLanding,
   turnamen,
   turnamenBulanan,
   ligaMusiman,

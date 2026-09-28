@@ -23,12 +23,12 @@ export const landing = {
     sebelumnya: "Previous",
     selanjutnya: "Next",
     keberlanjutanDesk:
-      "Indonesia Chess Community is committed to building a sustainable chess ecosystem through education, talent development, and a stronger network of players across Indonesia. We believe that consistency in programs and togetherness are the keys to advancing national chess.",
+      "Indonesia Chess Community is committed to growing chess sustainably through education, talent development, and a stronger network of players across Indonesia. We believe consistency in programs and togetherness are the keys to advancing national chess.",
     harapanJudul: "Hope and Gratitude",
     harapanPembuka:
       "To all members, chess players, and friends of the community whom we respect and are proud of,",
     harapanP1:
-      "As the community continues to grow, we would like to express our gratitude for the contributions and dedication given to building the national chess ecosystem — working hand in hand to bring regular tournaments, coaching classes, and room to grow for chess players from many regions.",
+      "As the community continues to grow, we would like to express our gratitude for the contributions and dedication given to building national chess — working hand in hand to bring regular tournaments, coaching classes, and room to grow for chess players from many regions.",
     harapanP2:
       "Our thanks also go to all members and the wider public for their support of the community. We exist for the benefit of many, and we remain committed to providing a place to play, learn, and grow for chess players across Indonesia.",
     harapanP3:

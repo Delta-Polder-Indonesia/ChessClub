@@ -38,19 +38,11 @@ export default function AnalisaLanding() {
     >
       <PageArtikel lebar>
         {/* ═══ Hero — penambahan -mt-8 md:-mt-12 untuk menaikkan posisi konten ═══ */}
-        <section aria-labelledby="analisa-pengantar" className="-mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
+        <section aria-labelledby="analisa-pengantar" className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
           <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-            <div className="relative mb-4 border-b-4 border-double border-gray-900 pb-3 text-center">
-              <p className="mb-1 font-sans text-xs font-bold tracking-widest text-gray-900 uppercase">
-                {t("analisaLanding.judul")}
-              </p>
-              <h2 id="analisa-pengantar" className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">
-                {t("analisaLanding.p1Judul")}
-              </h2>
-              <p className="m-0 text-sm text-gray-900 italic">
-                {t("analisaLanding.deskripsi")}
-              </p>
-            </div>
+            <h2 id="analisa-pengantar" className="mb-4 border-b border-grey-200 pb-3 text-2xl font-semibold tracking-tight text-grey-800 md:text-3xl">
+              {t("analisaLanding.p1Judul")}
+            </h2>
             <div className="flex w-full flex-col items-stretch gap-6 md:flex-row md:gap-8">
               <div className="flex min-w-0 w-full flex-col justify-between gap-y-3 md:w-1/2">
                 <div className="flex flex-col gap-y-3 font-serif text-sm leading-relaxed text-justify text-gray-800">

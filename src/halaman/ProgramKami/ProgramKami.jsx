@@ -1,204 +1,43 @@
-import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
+import { Link } from "react-router-dom";
+import { HalamanIsi } from "../../components/PageBagian.jsx";
+import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 
 /**
- * Bilik Teks + Gambar Editorial.
+ * Halaman "Program Kami" (/program-kami).
  *
- * Menggunakan komposisi layout berselang-seling (editorial layout) dengan 
- * spacing yang lapang, garis aksen tipis, dan tipografi berlapis (serif + sans).
+ * Mengikuti DESIGN.md + craft-floor: palet biru/abu/putih tanpa gradien/glow,
+ * garis 1px tegas, satu elevasi. Tanpa kicker/eyebrow, tanpa penomoran seksi
+ * hiasan, dan tanpa mono sebagai kostum "teknis". Hierarki dibangun lewat
+ * satu program sorotan lebar + daftar definisi sekunder. Konten dari `program.*`.
  */
-function Bilik({ gelap, drawKiri, gambarKecil, judul, children, tanpaOverlay = false }) {
+
+/** Tautan teks dengan panah — afordансi "buka halaman" yang konsisten. */
+function TautanBuka({ to, children }) {
   return (
-    <section
-      className={`relative w-full border-b border-gray-200 transition-colors duration-200 ${
-        gelap ? "bg-stone-900 text-stone-100" : "bg-stone-50 text-stone-900"
-      }`}
+    <Link
+      to={to}
+      className="inline-flex w-fit items-center gap-1.5 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <div className="mx-auto max-w-7xl px-6 py-16 md:px-8 md:py-24 xl:px-0">
-        <div
-          className={`flex flex-col gap-12 lg:gap-16 items-center ${
-            drawKiri ? "lg:flex-row-reverse" : "lg:flex-row"
-          }`}
-        >
-          {/* Kolom Teks / Narasi */}
-          <div className="w-full lg:w-1/2 flex flex-col gap-y-6">
-            <div className="flex items-center gap-x-3">
-              <span
-                className={`h-px w-8 ${
-                  gelap ? "bg-amber-400/60" : "bg-stone-800"
-                }`}
-              />
-              <span
-                className={`font-sans text-xs tracking-widest uppercase font-bold ${
-                  gelap ? "text-amber-400/90" : "text-stone-600"
-                }`}
-              >
-                Program &amp; Inisiatif
-              </span>
-            </div>
-
-            <h2
-              className={`font-serif text-2xl md:text-3xl leading-snug tracking-tight font-black ${
-                gelap ? "text-white" : "text-stone-900"
-              }`}
-            >
-              {judul}
-            </h2>
-
-            <div
-              className={`flex flex-col gap-y-4 font-serif text-sm md:text-base leading-relaxed text-justify ${
-                gelap ? "text-stone-300" : "text-stone-700"
-              }`}
-            >
-              {children}
-            </div>
-          </div>
-
-          {/* Kolom Visual / Bingkai Foto Organik */}
-          <div className="w-full lg:w-1/2">
-            <div
-              className={`relative overflow-hidden rounded-sm border p-2 ${
-                gelap
-                  ? "border-stone-800 bg-stone-950/40"
-                  : "border-stone-300 bg-white shadow-sm"
-              }`}
-            >
-              <div className="relative aspect-[4/3] w-full overflow-hidden bg-stone-200">
-                <img
-                  src={gambarKecil}
-                  alt=""
-                  draggable="false"
-                  decoding="async"
-                  loading="lazy"
-                  className="h-full w-full object-cover object-center filter grayscale-[15%] hover:grayscale-0 transition-all duration-500"
-                />
-                {!tanpaOverlay && (
-                  <div
-                    className={`absolute inset-0 pointer-events-none mix-blend-multiply opacity-30 ${
-                      gelap ? "bg-stone-900" : "bg-amber-100/40"
-                    }`}
-                  />
-                )}
-              </div>
-              <div className="mt-2 flex justify-between items-center px-1 font-sans text-[10px] tracking-wider text-stone-500 uppercase">
-                <span>Arsip Komunitas</span>
-                <span>Blunder Skuad</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Triptych({ t }) {
-  const strong = (gelap) =>
-    `font-semibold font-sans text-sm tracking-wide ${
-      gelap ? "text-amber-300" : "text-stone-900"
-    }`;
-
-  return (
-    <div className="w-full">
-      {/* ═══ Bilik 1 — Terang, Gambar Kiri, Daftar Butir Editorial ═══ */}
-      <Bilik
-        gelap={false}
-        drawKiri
-        gambarKecil={gambar("/images/landing-sorotan-program.webp")}
-        judul={t("bermainCatur.f1Judul")}
-      >
-        <p className="m-0">{t("bermainCatur.f1P")}</p>
-        <ul className="list-none p-0 m-0 flex flex-col gap-y-3.5 mt-2">
-          {[1, 2, 3, 4, 5].map((n) => (
-            <li
-              key={n}
-              className="border-l-2 border-stone-800 pl-4 py-0.5 text-stone-800"
-            >
-              <strong className={strong(false)}>
-                {t(`bermainCatur.f1Item${n}Judul`)} —
-              </strong>{" "}
-              <span className="font-serif text-stone-700">
-                {t(`bermainCatur.f1Item${n}Isi`)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      </Bilik>
-
-      {/* ═══ Bilik 2 — Gelap, Gambar Kanan ═══ */}
-      <Bilik
-        gelap
-        drawKiri={false}
-        gambarKecil={gambar("/images/landing-sorotan-turnamen.webp")}
-        judul={t("bermainCatur.f2Judul")}
-      >
-        <p className="m-0">{t("bermainCatur.f2P")}</p>
-      </Bilik>
-
-      {/* ═══ Bilik 3 — Terang, Gambar Kiri ═══ */}
-      <Bilik
-        gelap={false}
-        drawKiri
-        gambarKecil={gambar("/images/landing-sorotan-media.webp")}
-        judul={t("bermainCatur.f3Judul")}
-      >
-        <p className="m-0">{t("bermainCatur.f3P")}</p>
-      </Bilik>
-
-      {/* ═══ Bilik 4 — Terang, Gambar Kanan, Tanpa Overlay ═══ */}
-      <Bilik
-        gelap={false}
-        drawKiri={false}
-        gambarKecil={gambar("/images/ProgramKami/chess_4_2.webp")}
-        judul={t("bermainCatur.f4Judul")}
-        tanpaOverlay
-      >
-        <p className="m-0">{t("bermainCatur.f4P1")}</p>
-        <p className="m-0">{t("bermainCatur.f4P2")}</p>
-      </Bilik>
-
-      {/* ═══ Bilik 5 — Gelap, Gambar Kiri ═══ */}
-      <Bilik
-        gelap
-        drawKiri
-        gambarKecil={gambar("/images/tata-nilai.webp")}
-        judul={t("bermainCatur.f5Judul")}
-      >
-        <p className="m-0">{t("bermainCatur.f5P")}</p>
-      </Bilik>
-
-      {/* ═══ Bilik 6 — Terang, Gambar Kanan ═══ */}
-      <Bilik
-        gelap={false}
-        drawKiri={false}
-        gambarKecil={gambar("/images/hero-about.webp")}
-        judul={t("bermainCatur.f6Judul")}
-      >
-        <p className="m-0">{t("bermainCatur.f6P1")}</p>
-        <p className="m-0">{t("bermainCatur.f6P2")}</p>
-        <div className="mt-2 p-4 bg-stone-200/60 border-l-4 border-stone-900">
-          <p className={`${strong(false)} m-0 italic`}>
-            {t("bermainCatur.f6P3")}
-          </p>
-        </div>
-      </Bilik>
-
-      {/* ═══ Footer Aksen Editorial ═══ */}
-      <div className="border-t-2 border-b-2 border-stone-900 bg-stone-100 py-6 text-center">
-        <strong className="block font-sans text-xs font-black tracking-widest uppercase text-stone-900">
-          Blunder Skuad
-        </strong>
-        <span className="block font-serif text-xs italic text-stone-600 mt-0.5">
-          Program &amp; Inisiatif Berkelanjutan
-        </span>
-      </div>
-    </div>
+      {children}
+      <ArrowRightIcon className="size-4" />
+    </Link>
   );
 }
 
 export default function ProgramKami() {
   const { t } = useI18n();
+
+  // Sorotan = program pertama (kelas berjenjang, titik masuk semua anggota).
+  // Sisanya tampil sebagai daftar definisi dua kolom — bukan kartu kembar.
+  const sekunder = [
+    { kunci: "clinic" },
+    { kunci: "sekolah" },
+    { kunci: "panduan", to: "/program-kami/ebook-panduan", label: t("nav.eBookPanduan") },
+    { kunci: "simultan" },
+    { kunci: "tekaTeki", to: "/program-kami/teka-teki", label: t("nav.tekaTeki") },
+  ];
 
   return (
     <HalamanIsi
@@ -209,15 +48,118 @@ export default function ProgramKami() {
         judul: t("nav.tekaTeki"),
       }}
     >
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          kicker={t("program.judul")}
-          judul={t("program.artikel")}
-          subjudul={t("program.deskripsi")}
-        />
-      </PageArtikel>
-      <Triptych t={t} />
+      <div className="font-serif">
+      {/* ═══ Sekilas Program — intro asimetris: judul (5) + narasi (7) ═══ */}
+      <section className="w-full border-t border-grey-200 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+          <div className="grid gap-x-16 gap-y-8 lg:grid-cols-12">
+            <h2 className="text-pretty text-2xl font-semibold leading-snug text-grey-800 md:text-3xl lg:col-span-5">
+              {t("program.artikel")}
+            </h2>
+            <div className="flex max-w-[68ch] flex-col gap-y-5 text-[15px] leading-relaxed text-grey-600 md:text-base lg:col-span-7">
+              <p className="m-0">{t("program.p1")}</p>
+              <p className="m-0">{t("program.p2")}</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
+      <section className="w-full border-b border-grey-200 bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+          <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+            {t("program.programJudul")}
+          </h2>
+
+          {/* Program sorotan — foto + narasi, memberi hierarki yang jelas. */}
+          <article className="mt-10 grid items-center gap-8 border-t border-grey-200 pt-10 md:mt-12 md:grid-cols-2 md:gap-12">
+            <figure className="order-2 m-0 border border-grey-200 bg-white p-1.5 md:order-1">
+              <img
+                src={gambar("/images/landing-sorotan-program.webp")}
+                alt="Sesi latihan berjenjang bersama pelatih Komunitas Catur Indonesia"
+                width={640}
+                height={427}
+                draggable="false"
+                decoding="async"
+                loading="lazy"
+                className="aspect-[3/2] w-full object-cover object-center"
+              />
+            </figure>
+            <div className="order-1 md:order-2">
+              <h3 className="text-pretty text-xl font-semibold leading-snug text-grey-800 md:text-2xl">
+                {t("program.kartu.kelas.judul")}
+              </h3>
+              <p className="mt-3 max-w-[60ch] text-pretty text-[15px] leading-relaxed text-grey-600 md:text-base">
+                {t("program.kartu.kelas.deskripsi")}
+              </p>
+            </div>
+          </article>
+
+          {/* Program sekunder — daftar definisi dua kolom (tanpa kartu/nomor). */}
+          <dl className="mt-12 grid gap-x-12 gap-y-9 border-t border-grey-200 pt-10 sm:grid-cols-2 md:mt-14">
+            {sekunder.map((item) => (
+              <div key={item.kunci} className="flex flex-col gap-y-2">
+                <dt className="text-lg font-semibold leading-snug text-grey-800">
+                  {t(`program.kartu.${item.kunci}.judul`)}
+                </dt>
+                <dd className="m-0 max-w-[58ch] text-pretty text-[15px] leading-relaxed text-grey-600">
+                  {t(`program.kartu.${item.kunci}.deskripsi`)}
+                </dd>
+                {item.to && (
+                  <TautanBuka to={item.to}>
+                    {t("common.selengkapnya")}: {item.label}
+                  </TautanBuka>
+                )}
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+
+      {/* ═══ Panduan dan Latihan Mandiri — panel ajakan datar + tautan ═══ */}
+      <section className="w-full bg-white">
+        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+          <div className="rounded-lg border border-grey-200 p-8 md:p-10">
+            <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+              {t("program.h1")}
+            </h2>
+            <p className="mt-4 max-w-[68ch] text-pretty text-[15px] leading-relaxed text-grey-600 md:text-base">
+              {t("program.p3a")}{" "}
+              <Link
+                to="/program-kami/ebook-panduan"
+                className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {t("nav.eBookPanduan")}
+              </Link>{" "}
+              {t("program.p3b")}{" "}
+              <Link
+                to="/program-kami/teka-teki"
+                className="font-semibold text-primary underline underline-offset-2 hover:no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {t("nav.tekaTeki")}
+              </Link>{" "}
+              {t("program.p3c")}
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link
+                to="/program-kami/ebook-panduan"
+                className="inline-flex items-center justify-center gap-2 rounded border border-primary bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {t("nav.eBookPanduan")}
+                <ArrowRightIcon className="size-4" />
+              </Link>
+              <Link
+                to="/program-kami/teka-teki"
+                className="inline-flex items-center justify-center gap-2 rounded border border-grey-800 bg-white px-6 py-3 text-sm font-semibold text-grey-800 hover:bg-grey-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {t("nav.tekaTeki")}
+                <ArrowRightIcon className="size-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+      </div>
     </HalamanIsi>
   );
 }

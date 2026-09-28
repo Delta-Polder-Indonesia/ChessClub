@@ -359,7 +359,7 @@ export const fiturEbook = {
     bacaanJudul: "Bacaan yang Nyaman",
     bacaanIsi: "E-book catur kami dapat dibaca seperti buku aslinya, tetapi dengan tambahan papan analisis yang praktis untuk melihat setiap langkah di setiap posisi.",
     integrasiJudul: "Integrasi Pembelajaran",
-    integrasiIsi: "Percepat pembelajaran Anda dengan buku-buku yang terintegrasi ke dalam alat pelatihan canggih kami. Manfaatkan metode pengulangan yang tepat sasaran seperti pengulangan berjarak dan pengulangan berulang untuk meningkatkan daya ingat Anda.",
+    integrasiIsi: "Setiap e-book terhubung dengan alat latihan komunitas, sehingga posisi di dalam buku bisa langsung dilatih. Tersedia metode pengulangan berjarak (spaced repetition) untuk membantu mengingat pola dan pembukaan.",
     buatJudul: "Buat buku Anda sendiri",
     buatIsi: "Buat buku latihan Anda sendiri dan latih kontennya dengan pelatih soal, pelatih pembukaan, dan pelatih tebak langkah kami. Bagikan buku latihan yang telah Anda buat dengan siswa.",
   }
@@ -372,9 +372,9 @@ export const analisaLanding = {
       "Analisis PGN dan FEN dengan Stockfish lokal: label langkah, grafik evaluasi, akurasi pemain, dan saran engine. Data permainan tetap di perangkat Anda.",
     artikel: "Analisis Permainan",
     p1Judul: "Membedah Setiap Langkah, Mempelajari yang Terbaik",
-    p1: "Analisis permainan pada hakikatnya adalah seni mengubah deretan notasi bisu menjadi pelajaran taktis yang hidup dan berharga. Melalui integrasi mesin catur modern seperti Stockfish yang beroperasi penuh langsung di peramban Anda, setiap manuver di atas papan kini dapat dinilai secara instan. Fitur ini memungkinkan Anda untuk mengidentifikasi spektrum kualitas langkah secara seketika, mulai dari eksekusi yang paling presisi, kekeliruan minor, hingga blunder fatal yang mengubah jalannya laga.",
-    p1b: "Proses evaluasi ini tidak hanya berhenti pada deteksi kesalahan, tetapi juga menyajikan rekomendasi variasi langkah terbaik serta memperlihatkan kapan momentum atau inisiatif permainan mulai berpindah tangan. Lebih jauh lagi, tingkat akurasi dan konsistensi Anda dapat diukur secara objektif melalui metrik centipawn loss dan label evaluasi visual yang tersemat langsung di atas papan catur. Dengan memahami alasan di balik setiap langkah yang kurang tepat serta melihat kelanjutan alternatif yang disarankan mesin, Anda dapat merekonstruksi pemahaman taktis dan mengasah ketajaman kalkulasi untuk laga-laga berikutnya.",
-    p2: "Kemudahan integrasi data memberikan keleluasaan penuh bagi Anda untuk memulai evaluasi dari berbagai sumber. Anda dapat menyalin notasi PGN dari platform seperti Chess.com maupun Lichess, mengimpor riwayat pertandingan secara otomatis hanya dengan memasukkan nama pengguna, atau memulai eksplorasi taktis dari satu posisi FEN yang spesifik. Di balik fleksibilitas tersebut, aspek privasi dan efisiensi tetap menjadi prioritas mutlak. Seluruh proses kalkulasi catur ini dijalankan secara lokal langsung di dalam peramban Anda, memastikan bahwa setiap data langkah dan rekaman permainan Anda tidak pernah dikirimkan ke peladen mana pun, melainkan sepenuhnya diproses secara aman di perangkat pribadi Anda.",
+    p1: "Analisis permainan mengubah deretan notasi menjadi pelajaran taktis yang jelas. Dengan mesin catur Stockfish yang berjalan langsung di peramban Anda, setiap langkah di atas papan dinilai seketika — mulai dari langkah paling presisi, kekeliruan kecil, hingga blunder yang mengubah jalannya laga.",
+    p1b: "Evaluasi tidak berhenti pada deteksi kesalahan; sistem juga menyajikan rekomendasi variasi langkah terbaik serta memperlihatkan kapan momentum atau inisiatif permainan berpindah tangan. Akurasi dan konsistensi Anda diukur melalui metrik centipawn loss dan label evaluasi yang tersemat langsung di atas papan. Dengan memahami alasan di balik setiap langkah yang kurang tepat dan melihat lanjutan alternatif dari mesin, Anda dapat memperbaiki pemahaman taktis dan mengasah kalkulasi untuk laga berikutnya.",
+    p2: "Kemudahan integrasi data memberikan keleluasaan penuh bagi Anda untuk memulai evaluasi dari berbagai sumber. Anda dapat menyalin notasi PGN dari platform seperti Chess.com maupun Lichess, mengimpor riwayat pertandingan secara otomatis hanya dengan memasukkan nama pengguna, atau memulai eksplorasi taktis dari satu posisi FEN yang spesifik. Di balik fleksibilitas itu, privasi dan efisiensi tetap terjaga. Seluruh kalkulasi catur berjalan lokal di dalam peramban Anda, sehingga setiap langkah dan rekaman permainan tidak pernah dikirim ke peladen mana pun, melainkan diproses di perangkat Anda sendiri.",
     mulai: "Buka Papan Analisis",
     demoJudul: "Papan Analisis",
     demoTantangan: "Evaluasi engine mengikuti setiap langkah yang dimainkan",
@@ -428,3 +428,58 @@ export const analisaLanding = {
     gradeTujuan:
       "Pada akhirnya, tujuan sejati dari analisis ini bukanlah untuk mencapai seratus persen langkah Terbaik—sebuah standar absolut yang bahkan tidak mampu diraih oleh para juara dunia sekalipun. Sasaran yang lebih realistis dan esensial adalah meminimalkan frekuensi Kesalahan dan Blunder, sembari secara konsisten meningkatkan kepekaan untuk menemukan langkah-langkah Unggul dan Brilian. Dengan menguasai bahasa analisis ini, setiap pertempuran yang Anda lalui di atas papan catur, baik berujung pada kemenangan gemilang maupun kekalahan telak, akan selalu bertransformasi menjadi bahan pelajaran yang tak ternilai harganya.",
   }
+
+export const rushLanding = {
+    judul: "Rush Teka-teki",
+    deskripsi:
+      "Latihan taktik berjangka waktu: pecahkan skakmat beruntun yang makin sulit sebelum waktu habis atau tiga nyawa hilang.",
+    metaDeskripsi:
+      "Rush Teka-teki Komunitas Catur Indonesia — mode latihan taktik kilat ala PuzzleDash. Pecahkan skakmat beruntun dalam batas waktu 3 atau 5 menit dengan tiga nyawa.",
+    introJudul: "Adu Cepat Melihat Skakmat",
+    intro1:
+      "Rush Teka-teki adalah mode latihan berjangka waktu: Anda menyelesaikan soal skakmat satu demi satu, dan setiap soal yang tuntas membuka soal berikutnya yang sedikit lebih sulit. Tujuannya sederhana — kumpulkan skor setinggi mungkin sebelum waktu habis.",
+    intro2:
+      "Format ini melatih pengenalan pola secara refleks. Alih-alih menghitung panjang, Anda dibiasakan langsung mengenali motif taktik yang berulang — garpu, sula, serangan ganda, hingga pola skakmat khas — sehingga saat bertanding, mata Anda lebih cepat menangkap peluang.",
+    caraJudul: "Cara bermain",
+    langkah1: "Masukkan username Chess.com Anda, lalu pilih durasi permainan: 3 menit atau 5 menit.",
+    langkah2: "Pecahkan setiap soal skakmat — klik atau seret bidak ke petak tujuan sebelum lawan membalas.",
+    langkah3: "Satu langkah keliru menggagalkan soal itu dan menghabiskan satu dari tiga nyawa Anda.",
+    langkah4: "Sesi berhenti saat waktu habis atau ketiga nyawa hilang; skor akhir tercatat pada papan peringkat.",
+    fiturJudul: "Yang membuatnya melatih",
+    fitur1Judul: "Kesulitan menaik",
+    fitur1Isi:
+      "Soal dimulai dari yang mudah lalu naik bertahap mengikuti performa Anda, sehingga selalu ada tantangan tanpa membuat frustrasi sejak awal.",
+    fitur2Judul: "Tekanan waktu",
+    fitur2Isi:
+      "Batas 3 atau 5 menit memaksa keputusan cepat — melatih intuisi taktis yang berguna dalam permainan kilat dan blitz.",
+    fitur3Judul: "Papan peringkat",
+    fitur3Isi:
+      "Skor terbaik tersimpan dan diadu dengan sesama anggota komunitas, menambah motivasi untuk terus memecahkan rekor pribadi.",
+    ctaJudul: "Siap mengadu kecepatan?",
+    ctaIsi:
+      "Pilih durasi, mulai sesi, dan lihat berapa banyak skakmat yang bisa Anda pecahkan tanpa henti.",
+    cta: "Mulai Rush Teka-teki",
+};
+
+export const kuisLanding = {
+    judul: "Kuis Catur",
+    deskripsi:
+      "Uji pemahaman catur Anda lewat soal pilihan ganda bertema — dari peraturan dasar sampai strategi dan sejarah.",
+    metaDeskripsi:
+      "Kuis Catur Komunitas Catur Indonesia — soal pilihan ganda dari sepuluh kategori: peraturan, bidak, pola skakmat, taktik, pembukaan, strategi, endgame, notasi, sejarah, dan umum.",
+    introJudul: "Belajar sambil Menguji Diri",
+    intro1:
+      "Kuis Catur menyajikan pertanyaan pilihan ganda dengan satu jawaban benar. Setiap soal disertai umpan balik langsung, sehingga Anda tidak sekadar menebak, tetapi memahami mengapa sebuah jawaban tepat atau keliru.",
+    intro2:
+      "Materinya menjangkau seluruh aspek permainan — mulai dari aturan resmi dan gerak bidak, motif taktik dan pola skakmat, hingga prinsip pembukaan, strategi tengah permainan, teknik babak akhir, notasi, dan sejarah catur.",
+    kategoriJudul: "Sepuluh kategori",
+    caraJudul: "Cara bermain",
+    langkah1: "Masukkan nama Anda, pilih kategori, dan tentukan batas kesalahan: 3 atau 5 jawaban salah.",
+    langkah2: "Baca setiap soal, lalu pilih satu jawaban dari opsi yang tersedia.",
+    langkah3: "Umpan balik muncul seketika — benar atau salah — beserta perpindahan ke soal berikutnya.",
+    langkah4: "Kuis selesai saat semua soal terjawab atau batas kesalahan tercapai; skor akhir muncul di layar.",
+    ctaJudul: "Seberapa dalam pemahaman Anda?",
+    ctaIsi:
+      "Pilih satu kategori favorit atau uji semuanya sekaligus, lalu buktikan pengetahuan catur Anda.",
+    cta: "Mulai Kuis Catur",
+};

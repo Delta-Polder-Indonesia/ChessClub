@@ -357,7 +357,7 @@ export const fiturEbook = {
     bacaanJudul: "Comfortable Reading",
     bacaanIsi: "Our chess e-books can be read just like the original books, but with an added practical analysis board to see every move in every position.",
     integrasiJudul: "Learning Integration",
-    integrasiIsi: "Accelerate your learning with books integrated into our advanced training tools. Use targeted repetition methods such as spaced repetition and repeated repetition to improve your memory.",
+    integrasiIsi: "Every e-book connects to the community's training tools, so positions from the book can be practiced directly. Spaced repetition is available to help you remember patterns and openings.",
     buatJudul: "Create your own book",
     buatIsi: "Create your own exercise book and train its content with our puzzle trainer, opening trainer, and guess-the-move trainer. Share the exercise books you have created with students.",
   }
@@ -370,9 +370,9 @@ export const analisaLanding = {
       "Analyze PGN and FEN games with local Stockfish: move labels, evaluation chart, player accuracy, and engine suggestions. Your game data stays on your device.",
     artikel: "Game Analysis",
     p1Judul: "Dissecting Every Move, Learning the Best One",
-    p1: "At its core, game analysis is the art of turning a silent sequence of moves into a living, valuable tactical lesson. Through modern chess engine integration such as Stockfish running fully in your browser, every maneuver on the board can now be scored instantly. This feature lets you identify the full spectrum of move quality at a glance — from the most precise execution, minor inaccuracies, to the fatal blunder that changes the course of the game.",
+    p1: "Game analysis turns a sequence of notation into a clear tactical lesson. With the Stockfish engine running directly in your browser, every move on the board is scored instantly — from the most precise move, to a small inaccuracy, to the blunder that changes the course of the game.",
     p1b: "This evaluation process does not stop at detecting mistakes; it also presents recommended variations and shows when the momentum or initiative of the game begins to shift hands. Furthermore, your level of accuracy and consistency can be measured objectively through the centipawn loss metric and visual evaluation labels placed directly on the chessboard. By understanding the reasoning behind each suboptimal move and seeing the alternative continuation the engine suggests, you can reconstruct your tactical understanding and sharpen your calculation skills for future games.",
-    p2: "Data integration makes it easy for you to start an evaluation from many sources. You can copy PGN notation from platforms such as Chess.com or Lichess, automatically import your game history just by entering a username, or begin a tactical exploration from a specific FEN position. Behind that flexibility, privacy and efficiency remain an absolute priority. All of this chess calculation runs locally, directly in your browser, ensuring that every move and game record of yours is never sent to any server, but fully processed safely on your own device.",
+    p2: "Data integration makes it easy for you to start an evaluation from many sources. You can copy PGN notation from platforms such as Chess.com or Lichess, automatically import your game history just by entering a username, or begin a tactical exploration from a specific FEN position. Behind that flexibility, privacy and efficiency are preserved. All chess calculation runs locally, directly in your browser, so every move and game record of yours is never sent to any server and is processed on your own device instead.",
     mulai: "Open the Analysis Board",
     demoJudul: "Analysis Board",
     demoTantangan: "The engine's evaluation follows every move played",
@@ -426,3 +426,58 @@ export const analisaLanding = {
     gradeTujuan:
       "Ultimately, the true goal of this analysis is not to achieve one hundred percent Best moves—an absolute standard that even world champions cannot reach. A more realistic and essential target is to minimize the frequency of Mistakes and Blunders while consistently sharpening your feel for Excellent and Brilliant moves. By mastering this analysis language, every battle you fight over the chessboard, whether it ends in a glorious win or a crushing defeat, will always turn into a priceless lesson.",
   }
+
+export const rushLanding = {
+    judul: "Puzzle Rush",
+    deskripsi:
+      "A timed tactics workout: solve a streak of increasingly hard checkmates before the clock runs out or you lose three lives.",
+    metaDeskripsi:
+      "Indonesian Chess Community Puzzle Rush — a fast-paced tactics mode. Solve back-to-back checkmate puzzles within a 3- or 5-minute limit with three lives.",
+    introJudul: "A Race to Spot the Checkmate",
+    intro1:
+      "Puzzle Rush is a timed practice mode: you solve checkmate puzzles one after another, and each solved puzzle unlocks a slightly harder one. The goal is simple — score as high as you can before time runs out.",
+    intro2:
+      "The format trains pattern recognition as a reflex. Instead of long calculation, you learn to instantly recognise recurring tactical motifs — forks, pins, double attacks, and classic mating patterns — so that in real games your eye catches chances faster.",
+    caraJudul: "How to play",
+    langkah1: "Enter your Chess.com username, then choose a session length: 3 minutes or 5 minutes.",
+    langkah2: "Solve each checkmate puzzle — click or drag your piece to the target square before your opponent replies.",
+    langkah3: "A single wrong move fails that puzzle and costs one of your three lives.",
+    langkah4: "The session ends when time runs out or all three lives are gone; your final score is recorded on the leaderboard.",
+    fiturJudul: "What makes it work",
+    fitur1Judul: "Rising difficulty",
+    fitur1Isi:
+      "Puzzles start easy and step up gradually with your performance, so there is always a challenge without frustrating you from the start.",
+    fitur2Judul: "Time pressure",
+    fitur2Isi:
+      "The 3- or 5-minute limit forces quick decisions — sharpening the tactical intuition you need in rapid and blitz play.",
+    fitur3Judul: "Leaderboard",
+    fitur3Isi:
+      "Your best score is saved and measured against fellow community members, adding motivation to keep beating your personal record.",
+    ctaJudul: "Ready to race the clock?",
+    ctaIsi:
+      "Pick a length, start a session, and see how many checkmates you can solve without stopping.",
+    cta: "Start Puzzle Rush",
+};
+
+export const kuisLanding = {
+    judul: "Chess Quiz",
+    deskripsi:
+      "Test your chess understanding with themed multiple-choice questions — from basic rules to strategy and history.",
+    metaDeskripsi:
+      "Indonesian Chess Community Chess Quiz — multiple-choice questions across ten categories: rules, pieces, mating patterns, tactics, openings, strategy, endgame, notation, history, and general.",
+    introJudul: "Learn While You Test Yourself",
+    intro1:
+      "The Chess Quiz presents multiple-choice questions with a single correct answer. Every question comes with instant feedback, so you don't just guess — you understand why an answer is right or wrong.",
+    intro2:
+      "The material spans the whole game — from official rules and piece movement, to tactical motifs and mating patterns, through opening principles, middlegame strategy, endgame technique, notation, and chess history.",
+    kategoriJudul: "Ten categories",
+    caraJudul: "How to play",
+    langkah1: "Enter your name, choose a category, and set a mistake limit: 3 or 5 wrong answers.",
+    langkah2: "Read each question, then pick one answer from the available options.",
+    langkah3: "Feedback appears instantly — right or wrong — along with the move to the next question.",
+    langkah4: "The quiz ends when all questions are answered or the mistake limit is reached; your final score is shown on screen.",
+    ctaJudul: "How deep is your understanding?",
+    ctaIsi:
+      "Choose a favourite category or test them all at once, then prove your chess knowledge.",
+    cta: "Start Chess Quiz",
+};

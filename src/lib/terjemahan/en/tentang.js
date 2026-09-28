@@ -10,7 +10,7 @@ export const sekilas = {
     p3: "This capable community is built on a solid foundation and a long history of guiding the realization of national chess development. Records show that the Indonesia Chess Community's existence dates back to around 2014, when a group of players in Medan began gathering regularly to play blitz chess at a coffee shop. The group was officially established as a community on December 10, 2015, which is still celebrated today as the community's birthday.",
     p4: "In 2018, the community officially formed a club on Chess.com as the basis for online play for all members. Subsequently, the community's role grew more strategic after 2020 when it initiated a free online chess class program for students during the pandemic.",
     p5: "Following the Member Assembly agreement of June 18, 2023, the community restructured its organization into a management structure with functional divisions. On December 10, 2024, the community renewed its visual identity with a knight logo on blue, red, and green bases reflecting dynamism and a commitment to development.",
-    p6: "Even after the evolution experienced over that decade, the community is committed to continuing its spirit of sustainable transformation to refine its path toward becoming Indonesia's leading chess community, supported by an organization that is increasingly agile, adaptable, and focused on broader development.",
+    p6: "After a decade of growth, the community remains committed to continual improvement so it can become Indonesia's leading chess community, supported by an organization that is nimble, adaptable, and focused on broadening its development work.",
     imgAlt: "Routine community activities at the Medan secretariat",
     imgCaption: "Routine community activities at the Medan secretariat, 2025.",
   }
@@ -42,15 +42,15 @@ export const visimisi = {
     visiLead:
       "To become a chess community that prioritizes sportsmanship, achievement, and development.",
     visiP1:
-      "The Indonesia Chess Community is committed to becoming a national-scale chess community that not only carries out its activities on a strong organizational foundation, but also plays a strategic role in supporting the development of Indonesian chess, particularly in strengthening sportsmanship, ensuring the availability of competition platforms, and encouraging sustainable development.",
-    visiL1: "Sportsmanship: strengthening a culture of fair play and integrity in every match.",
-    visiL2: "Achievement: creating a competitive environment to guarantee the emergence of nationally and internationally successful players.",
-    visiL3: "Development: encouraging youth talent development as a strategic step in sustaining the regeneration of Indonesian chess.",
+      "The Indonesia Chess Community aims to be a national-scale chess community with a strong organization, while playing an active role in advancing Indonesian chess — strengthening sportsmanship, providing places to compete, and encouraging sustainable development.",
+    visiL1: "Sportsmanship: upholding fair play and integrity in every match.",
+    visiL2: "Achievement: building a competitive environment that produces players who excel nationally and internationally.",
+    visiL3: "Development: nurturing young talent to sustain the regeneration of Indonesian chess.",
     misi: "Mission",
     misiLead:
-      "To provide a place to play and learn chess through innovative programs that add value for members and the wider community.",
+      "To provide a place to play and learn chess through programs that are useful for members and the wider community.",
     misiP1:
-      "The mission to provide a place to play and learn chess through innovative programs that add value for members and the community reflects the community's commitment to delivering reliable, sustainable activities relevant to the dynamics of national and global chess development. These efforts are carried out through a program focus on a dual-growth strategy: Maximizing Competitive Play and Building Grassroots Development. The Maximizing Competitive Play pillar focuses on increasing internal tournament frequency, strengthening seasonal leagues, reinforcing friendly matches between communities, and developing training infrastructure. Meanwhile, the Building Grassroots Development pillar focuses on developing beginner classes, an online training ecosystem, a chess school program, and digital training technology.",
+      "The community pursues this mission through two program focuses that run side by side. The first strengthens competitive activity: increasing the frequency of internal tournaments, reinforcing seasonal leagues, holding more friendly matches between communities, and developing training facilities. The second develops players from the ground up: opening beginner classes, running online training, operating a chess school program, and making use of digital training technology.",
     tataNilai: "Values",
     nilaiImgAlt: "Community values",
     nilaiImgCaption:
@@ -75,7 +75,7 @@ export const maknaLogo = {
 export const struktur = {
     judul: "Board Structure",
     p1: "The Indonesia Chess Community runs integrated chess development and competition activities from beginner to advanced levels. In its capacity as a verified chess community on Chess.com, the community's general focus is managing tournaments and member development, accelerating the development of new training programs, and carrying out annual work programs.",
-    p2: "Meanwhile, a number of activities that were previously core community activities will be run by the established divisions. These divisions play a role, among others, in driving operational excellence through the development of scale and synergy across programs, accelerating the development of existing programs and capabilities, and increasing capacity and flexibility in partnerships and funding that are more beneficial to the community. The following is a mapping of the division roles in the Indonesia Chess Community:",
+    p2: "Meanwhile, a number of activities that were previously core community activities are now run by the established divisions. These divisions are responsible for running and developing each program in a more focused way, improving the quality of programs already underway, and managing partnerships and funding so they are more beneficial to the community. The following is a mapping of the division roles in the Indonesia Chess Community:",
     dewanPembina: "Board of Trustees",
     dewanPenasihat: "Board of Advisors",
     ketuaUmum: "Chairperson",
@@ -87,5 +87,5 @@ export const struktur = {
     divisiKeanggotaan: "Membership Division",
     divisiTeknologi: "Technology Division",
     caption: "Organization chart of the Indonesia Chess Community.",
-    p3: "Through this new organizational structure, the Indonesia Chess Community is expected to move more agilely, more focused, and faster in developing member capabilities equal to national quality, to accelerate various innovations beyond conventional community activities, including in online chess, chess schools, and digital analysis technology, so that the community can achieve greater membership growth as the foundation toward becoming Indonesia's leading chess community.",
+    p3: "Through this new structure, the Indonesia Chess Community is expected to move more nimbly, with greater focus and speed, in developing member abilities up to national quality. The structure also opens room for development beyond the community's conventional activities, including online chess, chess schools, and digital analysis technology, so that membership can grow as the foundation toward becoming Indonesia's leading chess community.",
   }

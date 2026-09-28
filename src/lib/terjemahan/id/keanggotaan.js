@@ -11,13 +11,13 @@ export const keanggotaan = {
     intro:
       "Daftar ini menggunakan roster publik klub BLUNDER SKUAD di Chess.com. Anggota yang sudah bergabung di Chess.com tetap perlu melengkapi pendaftaran data diri di situs ini. Data tersebut membantu pengurus mengenali pemain, memeriksa riwayat larangan, dan mencegah pemain yang terkena ban kembali memakai akun baru.",
     jumlah: "Jumlah anggota: {jumlah}",
-    dataBelumLengkap: "Belum melengkapi data diri di website",
+    dataBelumLengkap: "Belum melengkapi data diri di situs",
     dataBelumLengkapPenjelasan:
-      "Akun ini sudah bergabung di BLUNDER SKUAD pada Chess.com, tetapi belum melengkapi data diri di website komunitas. Data diri disimpan secara privat agar pengurus dapat mengenali pemain dan mencocokkan identitas bila akun terkena ban.",
-    tandaTanyaJudul: "{jumlah} anggota belum melengkapi data website",
+      "Akun ini sudah bergabung di BLUNDER SKUAD pada Chess.com, tetapi belum melengkapi data diri di situs komunitas. Data diri disimpan secara privat agar pengurus dapat mengenali pemain dan mencocokkan identitas bila akun terkena ban.",
+    tandaTanyaJudul: "{jumlah} anggota belum melengkapi data situs",
     tandaTanyaPenjelasan:
-      "Tanda tanya di samping nama berarti player sudah menjadi anggota BLUNDER SKUAD di Chess.com, tetapi belum mendaftar ulang di website. Pendaftaran ulang diperlukan untuk menyimpan data identitas secara aman, membantu pemeriksaan turnamen, dan mencegah pemain terlarang kembali dengan akun baru.",
-    lengkapiData: "Lengkapi data diri di website",
+      "Tanda tanya di samping nama berarti pemain sudah menjadi anggota BLUNDER SKUAD di Chess.com, tetapi belum mendaftar ulang di situs. Pendaftaran ulang diperlukan untuk menyimpan data identitas secara aman, membantu pemeriksaan turnamen, dan mencegah pemain terlarang kembali dengan akun baru.",
+    lengkapiData: "Lengkapi data diri di situs",
     sumber: "Sumber anggota:",
     sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
     memuat: "Memuat data dari Chess.com…",

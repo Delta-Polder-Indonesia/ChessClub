@@ -52,12 +52,54 @@ export const galeri = {
     judul: "Galeri",
     deskripsi: "Foto kegiatan kelas, pertandingan, dan perayaan hari lahir komunitas.",
     artikel: "Dokumentasi",
-    p1: "Foto dipilih dari arsip Divisi Media. Untuk pemakaian ulang di luar kanal komunitas, hubungi humas terlebih dahulu.",
-    img1Alt: "Kegiatan rutin sekretariat Medan",
-    img1Caption: "Suasana kegiatan rutin komunitas di sekretariat Medan, 2025.",
-    img2Alt: "Tata nilai komunitas",
-    img2Caption:
-      "Nilai-nilai yang dipegang teguh anggota komunitas dalam setiap pertandingan.",
-    img3Alt: "Arsip kegiatan 2024",
-    img3Caption: "Dokumentasi kegiatan komunitas, 2024.",
+    standfirst:
+      "Arsip foto Komunitas Catur Indonesia, dikelompokkan menurut tonggak sejarah, turnamen, dan kegiatan latihan. Sebagian besar direkam di sekretariat Medan serta kegiatan komunitas di berbagai kota.",
+    p1: "Foto dipilih dari arsip Divisi Media. Untuk pemakaian ulang di luar kanal komunitas, hubungi humas terlebih dahulu di info@komunitascatur.or.id.",
+    filter: {
+      semua: "Semua",
+      tonggak: "Tonggak Sejarah",
+      turnamen: "Turnamen",
+      kegiatan: "Kegiatan & Latihan",
+    },
+    fotoMeta: "{n} foto",
+    hasil: "Menampilkan {n} foto.",
+    lightbox: {
+      buka: "Perbesar foto",
+      tutup: "Tutup",
+      sebelumnya: "Foto sebelumnya",
+      berikutnya: "Foto berikutnya",
+      posisi: "{i} dari {n}",
+    },
+    album: {
+      tonggak: {
+        judul: "Tonggak Sejarah Komunitas",
+        deskripsi:
+          "Rekam jejak kegiatan dari tahun ke tahun, sejak komunitas dirintis hingga hari ini.",
+      },
+      turnamen: {
+        judul: "Turnamen & Pertandingan",
+        deskripsi:
+          "Suasana babak turnamen, laga papan demi papan, dan momen penentu di atas bidak.",
+      },
+      kegiatan: {
+        judul: "Kegiatan & Latihan",
+        deskripsi:
+          "Kelas, latihan bersama, dan sesi analisa yang rutin digelar luring maupun daring.",
+      },
+    },
+    foto: {
+      t2015: "Dokumentasi kegiatan komunitas, 2015.",
+      t2016: "Dokumentasi kegiatan komunitas, 2016.",
+      t2018: "Dokumentasi kegiatan komunitas, 2018.",
+      t2020: "Dokumentasi kegiatan komunitas, 2020.",
+      t2022: "Dokumentasi kegiatan komunitas, 2022.",
+      t2024: "Penyerahan piala pada turnamen komunitas, 2024.",
+      aula: "Ratusan peserta bertanding dalam satu sesi turnamen.",
+      jalanan: "Catur jalanan, papan terbuka untuk siapa saja.",
+      menteri: "Detik menteri roboh, momen penentu sebuah partai.",
+      bidak: "Raja, menteri, dan kuda kayu di atas papan pertandingan.",
+      latihanTanding: "Dua pemain beradu strategi dalam latihan tanding.",
+      jamCatur: "Langkah kuda dieksekusi saat jam catur berjalan.",
+      notasi: "Catatan notasi partai untuk belajar mandiri.",
+    },
   }

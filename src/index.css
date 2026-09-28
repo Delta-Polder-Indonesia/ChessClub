@@ -104,6 +104,19 @@ body {
   color: #000000;
 }
 
+/* Permukaan peramban — diselaraskan token KCI, bukan default browser polos
+   (craft-floor: skill-craft-browser-surfaces). Seleksi teks & kontrol form
+   memakai biru brand; caret mengikuti warna teks. */
+::selection {
+  background-color: #0b2f9f;
+  color: #ffffff;
+}
+
+:root {
+  accent-color: #0b2f9f;
+  caret-color: #0b2f9f;
+}
+
 section[id] {
   scroll-margin-top: 134px;
 }

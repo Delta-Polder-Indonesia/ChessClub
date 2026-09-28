@@ -24,8 +24,8 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 
 ## 2. Tipografi (Typography System)
 
-- **Font Sans Utama:** `"Plus Jakarta Sans", system-ui, sans-serif` (self-hosted di `src/fonts/`).
-- **Font Editorial/Serif:** Digunakan pada kutipan testimoni atau judul artikel formal untuk aksen berwibawa.
+- **Font Utama (Serif — site-wide):** stack `serif` bawaan Tailwind, diterapkan lewat kelas `font-serif`. Ini adalah tipografi **default seluruh situs** — judul Hero, judul seksi, isi paragraf, dan caption menggunakan serif untuk nuansa berwibawa/akademis. Terapkan `font-serif` pada pembungkus konten tiap halaman (mis. `<div className="font-serif">` di dalam `HalamanIsi`) dan pada judul/isi Hero.
+- **Font Sans (`"Plus Jakarta Sans", system-ui, sans-serif`, self-hosted di `src/fonts/`):** dipertahankan untuk elemen UI/kontrol yang padat dan fungsional — navigasi/breadcrumb, tombol, badge, tabel data, dan antarmuka operasional. Bukan lagi font utama untuk teks bacaan.
 - **Font Mono:** Digunakan untuk notasi catur (PGN/FEN), koordinat petak, dan waktu engine.
 
 ### Skala Tipografi:

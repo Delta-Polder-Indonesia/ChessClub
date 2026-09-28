@@ -52,11 +52,54 @@ export const galeri = {
     judul: "Gallery",
     deskripsi: "Photos of classes, matches, and community anniversary celebrations.",
     artikel: "Documentation",
-    p1: "Photos are selected from the Media Division archive. For reuse outside the community channels, contact public relations first.",
-    img1Alt: "Routine Medan secretariat activities",
-    img1Caption: "Routine community activities at the Medan secretariat, 2025.",
-    img2Alt: "Community values",
-    img2Caption: "The values upheld by community members in every match.",
-    img3Alt: "2024 activity archive",
-    img3Caption: "Documentation of community activities, 2024.",
+    standfirst:
+      "The Indonesia Chess Community photo archive, grouped by milestones, tournaments, and training activities. Most were taken at the Medan secretariat and at community events across the country.",
+    p1: "Photos are selected from the Media Division archive. For reuse outside the community channels, contact public relations first at info@komunitascatur.or.id.",
+    filter: {
+      semua: "All",
+      tonggak: "Milestones",
+      turnamen: "Tournaments",
+      kegiatan: "Activities & Training",
+    },
+    fotoMeta: "{n} photos",
+    hasil: "Showing {n} photos.",
+    lightbox: {
+      buka: "Enlarge photo",
+      tutup: "Close",
+      sebelumnya: "Previous photo",
+      berikutnya: "Next photo",
+      posisi: "{i} of {n}",
+    },
+    album: {
+      tonggak: {
+        judul: "Community Milestones",
+        deskripsi:
+          "A year-by-year record of activities, from the community's earliest days to the present.",
+      },
+      turnamen: {
+        judul: "Tournaments & Matches",
+        deskripsi:
+          "The atmosphere of tournament rounds, board after board, and the decisive moments over the pieces.",
+      },
+      kegiatan: {
+        judul: "Activities & Training",
+        deskripsi:
+          "Classes, group practice, and analysis sessions held regularly, both offline and online.",
+      },
+    },
+    foto: {
+      t2015: "Community activity documentation, 2015.",
+      t2016: "Community activity documentation, 2016.",
+      t2018: "Community activity documentation, 2018.",
+      t2020: "Community activity documentation, 2020.",
+      t2022: "Community activity documentation, 2022.",
+      t2024: "Trophy presentation at the community tournament, 2024.",
+      aula: "Hundreds of participants competing in a single tournament session.",
+      jalanan: "Street chess: open boards for anyone to join.",
+      menteri: "The instant the queen falls, a game's decisive moment.",
+      bidak: "Wooden king, queen, and knight on the match board.",
+      latihanTanding: "Two players contest strategy in a practice match.",
+      jamCatur: "A knight move made as the chess clock runs.",
+      notasi: "Game notation notes for self-study.",
+    },
   }

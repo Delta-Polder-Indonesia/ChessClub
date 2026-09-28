@@ -59,15 +59,15 @@ export const MENU_UTAMA = [
       },
       {
         title: "nav.tekaTekiRush",
-        path: "/teka-teki-rush",
-        folder: "TekaTekiRush",
-        file: "TekaTekiRush.jsx",
+        path: "/program-kami/rush-teka-teki",
+        folder: "ProgramKami",
+        file: "RushTekaTekiLanding.jsx",
       },
       {
         title: "nav.quizCatur",
-        path: "/quiz-catur",
-        folder: "QuizCatur",
-        file: "QuizCatur.jsx",
+        path: "/program-kami/kuis-catur",
+        folder: "ProgramKami",
+        file: "KuisCaturLanding.jsx",
       },
       {
         title: "nav.analisa",
