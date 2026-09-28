@@ -87,7 +87,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
         }
       }}
       className={`group block aspect-[2/3] w-full cursor-pointer rounded-lg focus:outline-none lg:max-h-[280px] ${
-        disorot ? "ring-4 ring-[#0B2F9F]/60 ring-offset-2" : ""
+        disorot ? "ring-4 ring-primary/60 ring-offset-2" : ""
       }`}
       aria-label={
         buku.tersedia
@@ -128,7 +128,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
         </div>
 
         {/* Sisi belakang — info & aksi */}
-        <div className="absolute inset-0 z-10 h-full w-full rounded-lg bg-[#f1f5f9] text-center [transform:rotateY(180deg)] [backface-visibility:hidden] [transform-style:preserve-3d]">
+        <div className="absolute inset-0 z-10 h-full w-full rounded-lg bg-slate-100 text-center [transform:rotateY(180deg)] [backface-visibility:hidden] [transform-style:preserve-3d]">
           <div className="flex min-h-full flex-col items-center justify-center gap-2 p-3 [transform:translateZ(1px)]">
             <div className="flex-none">
               <PdfIcon />
@@ -146,7 +146,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
                     e.stopPropagation();
                     padaBaca();
                   }}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#0B2F9F] px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-[#0a2a8e] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                 >
                   <IkonBaca /> {t("ebookPanduan.baca")}
                 </button>
@@ -287,7 +287,7 @@ export default function EbookPanduan() {
                       onClick={() => setKategoriAktif(k)}
                       className={
                         aktif
-                          ? "flex whitespace-nowrap rounded-full bg-[#0B2F9F] px-4 py-2 text-sm text-white transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0B2F9F]"
+                          ? "flex whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm text-white transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                           : "flex whitespace-nowrap rounded-full px-4 py-2 text-sm text-black transition-all duration-300 hover:bg-slate-300/60 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-400"
                       }
                     >

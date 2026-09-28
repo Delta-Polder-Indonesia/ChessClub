@@ -25,6 +25,8 @@ const StrukturGrupCatur = lazy(() => import("./halaman/TentangKami/StrukturGrupC
 // Program Kami
 const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
 const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.jsx"));
+const RushTekaTekiLanding = lazy(() => import("./halaman/ProgramKami/RushTekaTekiLanding.jsx"));
+const KuisCaturLanding = lazy(() => import("./halaman/ProgramKami/KuisCaturLanding.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
@@ -113,6 +115,8 @@ const RUTE_HALAMAN = [
 
   ["/program-kami", ProgramKami],
   ["/program-kami/teka-teki", TekaTekiKonten],
+  ["/program-kami/rush-teka-teki", RushTekaTekiLanding],
+  ["/program-kami/kuis-catur", KuisCaturLanding],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/analisa", AnalisaLanding],
   ["/program-kami/analisa/papan", Analisa],

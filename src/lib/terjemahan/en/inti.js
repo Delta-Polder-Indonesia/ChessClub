@@ -92,7 +92,7 @@ export const footer = {
     kontakKami: "Contact Us",
     sistemPengaduan: "Complaint System",
     alamat: "Address: Indonesia Chess Community Secretariat, Jl. Gatot Subroto No. 11-13, Medan 20152, North Sumatra, Indonesia",
-    copyright: "© 2026 BLUNDER SKUAD Corporate Chess League. All Rights Reserved.",
+    copyright: "© 2026 Indonesia Chess Community (Blunder Skuad). All rights reserved.",
   }
 
 export const bagian = {

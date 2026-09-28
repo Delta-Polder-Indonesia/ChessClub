@@ -17,10 +17,10 @@ export default function Privasi() {
     >
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
-        <section className="-mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
+        <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
           <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
             <div className="relative mb-6 border-b-4 border-double border-gray-900 pb-3 text-center">
-              <p className="mb-1 font-sans text-xs font-bold tracking-widest text-gray-900 uppercase">
+              <p className="mb-1 text-xs font-bold tracking-widest text-gray-900 uppercase">
                 {t("privasi.artikel")}
               </p>
               <h1 className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">

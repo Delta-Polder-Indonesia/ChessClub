@@ -15,7 +15,7 @@ export const common = {
     selengkapnya: "Selengkapnya",
     tutup: "Tutup",
     daftarAnggota: "Daftar Anggota",
-    alamat: "Address",
+    alamat: "Alamat",
     surel: "Email",
     pilihBahasa: "Pilih bahasa",
     memuat: "Memuat…",
@@ -91,8 +91,8 @@ export const footer = {
     keterbukaanInformasi: "Keterbukaan Informasi",
     kontakKami: "Kontak Kami",
     sistemPengaduan: "Sistem Pengaduan",
-    alamat: "Address: Sekretariat Komunitas Catur Indonesia, Jl. Gatot Subroto No. 11-13, Medan 20152, Sumatera Utara, Indonesia",
-    copyright: "© 2026 BLUNDER SKUAD Corporate Chess League. All Rights Reserved.",
+    alamat: "Alamat: Sekretariat Komunitas Catur Indonesia, Jl. Gatot Subroto No. 11-13, Medan 20152, Sumatera Utara, Indonesia",
+    copyright: "© 2026 Komunitas Catur Indonesia (Blunder Skuad). Hak cipta dilindungi.",
   }
 
 export const bagian = {

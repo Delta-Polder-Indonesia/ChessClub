@@ -16,6 +16,7 @@ export default function TentangKami() {
       next={{ to: "/tentang-kami/struktur-grup-catur", judul: t("nav.strukturGrupCatur") }}
       submenu={<StickyMenu />}
     >
+      <div className="font-serif">
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
         <MastheadEditorial
@@ -36,6 +37,7 @@ export default function TentangKami() {
       <div className="w-full border-t my-24 md:my-24 border-grey-200" />
 
       <MaknaLogo />
+      </div>
     </HalamanIsi>
   );
 }
