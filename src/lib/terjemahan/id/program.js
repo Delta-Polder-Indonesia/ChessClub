@@ -113,28 +113,84 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Teka-teki & Tips",
     deskripsi:
-      "Sekilas tentang teka-teki: data langkah berdasarkan rating dan analisis posisi, sebelum masuk ke papan taktik.",
-    artikel: "Latihan Teka-teki",
-    paragraf1:
-      "Maia menyusun teka-teki berdasarkan pemahamannya tentang cara jutaan pemain meningkatkan kemampuan. Dengan teka-teki Maia, kamu dapat mengukur kemampuanmu, fokus pada kelemahan pemahamanmu, dan mengubah ide-ide yang sulit ditemukan menjadi kebiasaan.",
-    paragraf2:
-      "Setiap teka-teki dilengkapi data yang menunjukkan bagaimana pemain dengan rating berbeda menyikapi posisi tersebut, sehingga latihanmu lebih terarah dan efektif.",
-    mulai: "Mulailah Sesi Latihan Anda",
-    demoJudul: "Teka-teki Taktis",
-    demoLevel: "Menengah",
-    demoTantangan: "Temukan langkah terbaik dalam posisi taktis ini",
-    grafikJudul: "Langkah Berdasarkan Rating",
-    grafikSumbuY: "Probabilitas Bintang Toba",
-    analisisJudul: "Analisis Posisi",
-    analisisBag1:
-      "Waspada, posisi ini sangat berbahaya! Sangat mudah terjebak dengan kesalahan yang menggiurkan seperti {x}.",
-    analisisBag2:
-      "Hanya {x} yang memberikan keunggulan, dan sulit ditemukan oleh pemain manusia.",
-    langkahTerbaik: "Langkah Terbaik",
-    kesalahanUmum: "Kesalahan Umum",
-    kesalahanLain: "Kesalahan Lain",
-    kontenHanyaId:
-      "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
+      "Latihan taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess — saring menurut level dan tema, kerjakan langsung di peramban.",
+    metaDeskripsi:
+      "Alat latihan teka-teki skakmat Komunitas Catur Indonesia: 5.486 soal skakmat 1–3 langkah dari partai nyata basis data puzzle Lichess, dengan saringan level, tema, dan petunjuk.",
+    introJudul: "5.486 soal skakmat dari partai nyata",
+    intro1:
+      "Teka-teki & Tips adalah halaman pengantar alat latihan taktik Komunitas Catur Indonesia. Koleksinya memuat 5.486 soal skakmat satu sampai tiga langkah yang diambil dari partai nyata di basis data puzzle Lichess. Setiap soal menyertakan rating, penanda tema, serta nama pemain dan pembukaan partai asalnya.",
+    intro2:
+      "Latihan berjalan langsung di peramban tanpa perlu membuat akun. Saring soal menurut level, tema taktik, atau warna yang melangkah; bila buntu, tombol petunjuk menyoroti petak asal dan tujuan langkah pertama. Kemajuan tersimpan otomatis di perangkat Anda.",
+    ctaUtama: "Mulai Latihan Teka-teki",
+    ctaRush: "Rush Teka-teki — mode berjangka waktu",
+    demoJudul: "Satu soal, diperlihatkan utuh",
+    demoPengantar:
+      "Data di bawah ini — posisi, rating, tema, hingga identitas partai — diambil apa adanya dari berkas soal, sama seperti yang tampil di alat latihan. Tekan tombolnya untuk memutar solusi langkah demi langkah.",
+    demoGiliran: "Putih melangkah",
+    demoPutar: "Putar solusi",
+    demoLanjut: "Langkah berikutnya",
+    demoUlangi: "Ulangi dari awal",
+    demoNarasi0: "Putih melangkah. Temukan skakmat dua langkah.",
+    demoNarasi1: "25. Rxe8+ — benteng dikorbankan sebagai umpan.",
+    demoNarasi2: "25… Kxe8 — satu-satunya balasan legal; raja tertarik ke petak e8.",
+    demoNarasi3: "26. Qa8# — skakmat di baris kedelapan.",
+    demoAriaPapan:
+      "Papan catur posisi soal #4457: putih melangkah, skakmat dalam dua langkah.",
+    labelNomor: "Nomor soal",
+    labelJenis: "Jenis",
+    labelRating: "Rating soal",
+    labelLevel: "Level",
+    labelTema: "Tema",
+    labelPartai: "Partai asal",
+    labelPembukaan: "Pembukaan",
+    labelSumber: "Sumber",
+    nilaiJenis: "Skakmat dua langkah",
+    nilaiRating: "1.619",
+    nilaiLevel: "Level 4 — Sulit",
+    nilaiTema: "Pengorbanan · Attraksi (umpan) · Skakmat punggung",
+    nilaiPembukaan: "Pembukaan Inggris, Varian Simetris",
+    demoBuka: "Buka soal #4457 di alat latihan",
+    statJudul: "Isi koleksi soal",
+    statPengantar: "Dihitung langsung dari berkas data soal yang dipakai alat latihan.",
+    statBaris1: "Skakmat satu langkah",
+    statNilai1: "1.377",
+    statBaris2: "Skakmat dua langkah",
+    statNilai2: "2.991",
+    statBaris3: "Skakmat tiga langkah",
+    statNilai3: "1.118",
+    statTotalLabel: "Total soal",
+    statTotalNilai: "5.486",
+    statPitaLabel: "Rentang rating soal",
+    statPitaNilai: "600–2.567",
+    statGiliranLabel: "Giliran pertama",
+    statGiliranNilai: "2.923 posisi putih · 2.563 posisi hitam",
+    statSumberLabel: "Sumber data",
+    statSumberNilai: "Basis data puzzle Lichess — partai nyata",
+    caraJudul: "Cara latihan",
+    cara1:
+      "Saring soal sesuai kebutuhan: level 1–5 mengikuti pita rating soal, panjang skakmat satu sampai tiga langkah, tema taktik, atau warna yang melangkah.",
+    cara2:
+      "Mainkan langkah di papan dengan klik atau seret bidak. Setelah langkah Anda benar, balasan lawan dijalankan otomatis.",
+    cara3:
+      "Buntu? Tekan petunjuk untuk melihat petak asal dan tujuan langkah pertama, atau langsung buka nomor soal tertentu dari 1 sampai 5.486.",
+    cara4:
+      "Soal yang sudah dipecahkan ditandai dan dihitung otomatis. Daftarnya tersimpan di peramban Anda, bukan di server.",
+    tipsJudul: "Tips mengerjakan teka-teki",
+    tips1Judul: "Mulai dari semua skak",
+    tips1Isi:
+      "Pada soal skakmat, kandidat terkuat hampir selalu langkah berskak. Periksa setiap skak yang tersedia sebelum mempertimbangkan langkah tenang.",
+    tips2Judul: "Kenali motifnya, jangan hafalkan langkahnya",
+    tips2Isi:
+      "Contoh soal di atas memakai motif attraksi: benteng dikorbankan untuk menarik raja ke petak yang bisa diserang menteri. Setelah polanya dikenali, soal serupa terbaca lebih cepat.",
+    tips3Judul: "Satu tema dalam satu sesi",
+    tips3Isi:
+      "Gunakan saringan tema untuk mengulang satu motif — misalnya skakmat punggung atau skakmat sempit — sampai polanya terbaca tanpa berpikir panjang.",
+    tips4Judul: "Naik level setelah konsisten",
+    tips4Isi:
+      "Kerjakan level yang bisa Anda selesaikan berturut-turut tanpa petunjuk, lalu naik satu tingkat. Bila mentok di satu soal, catat nomornya — nomor soal apa pun bisa dibuka kembali kapan saja.",
+    penutupJudul: "Kerjakan sekarang",
+    penutupIsi:
+      "Alat terbuka langsung di peramban tanpa pendaftaran. Setiap soal bernomor 1–5.486 dan alamatnya bisa dibagikan, sehingga mudah dijadikan bahan latihan bersama teman.",
   }
 
 export const bukuPembukaan = {

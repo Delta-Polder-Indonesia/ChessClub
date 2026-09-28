@@ -111,28 +111,85 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Chess Puzzles & Tips",
     deskripsi:
-      "A look at the puzzles: moves-by-rating data and position analysis, before you enter the tactics board.",
-    artikel: "Chess Puzzle Training",
-    paragraf1:
-      "Maia builds its puzzles from an understanding of how millions of players improve. With Maia puzzles, you can measure your skill, focus on the gaps in your understanding, and turn hard-to-find ideas into habits.",
-    paragraf2:
-      "Every puzzle comes with data showing how players of different ratings respond to the position, so your training stays focused and effective.",
-    mulai: "Start Your Training Session",
-    demoJudul: "Tactical Puzzle",
-    demoLevel: "Intermediate",
-    demoTantangan: "Find the best move in this tactical position",
-    grafikJudul: "Moves by Rating",
-    grafikSumbuY: "Bintang Toba Probability",
-    analisisJudul: "Position Analysis",
-    analisisBag1:
-      "Careful — this position is very dangerous! It is easy to fall for tempting mistakes like {x}.",
-    analisisBag2:
-      "Only {x} grants an advantage, and it is hard for human players to find.",
-    langkahTerbaik: "Best Move",
-    kesalahanUmum: "Common Mistake",
-    kesalahanLain: "Other Mistakes",
-    kontenHanyaId:
-      "The example content below is only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
+      "Tactics training with 5,486 checkmate puzzles from real games in the Lichess puzzle database — filter by level and theme, and solve them right in your browser.",
+    metaDeskripsi:
+      "The chess puzzle trainer of Komunitas Catur Indonesia: 5,486 mate-in-1 to mate-in-3 puzzles from real games in the Lichess puzzle database, with level and theme filters plus hints.",
+    introJudul: "5,486 checkmate puzzles from real games",
+    intro1:
+      "Chess Puzzles & Tips introduces the tactics trainer of Komunitas Catur Indonesia. The collection holds 5,486 puzzles asking for mate in one to three moves, all taken from real games in the Lichess puzzle database. Each puzzle carries a rating, theme tags, and the players and opening of its source game.",
+    intro2:
+      "Training runs directly in the browser, with no account required. Filter puzzles by level, tactical theme, or the side to move; when you are stuck, the hint button highlights the first move's origin and destination squares. Your progress is saved automatically on your device.",
+    ctaUtama: "Start Puzzle Training",
+    ctaRush: "Puzzle Rush — the timed mode",
+    demoJudul: "One puzzle, shown in full",
+    demoPengantar:
+      "Everything below — the position, rating, themes, and source game — is taken verbatim from the puzzle file, exactly as the trainer shows it. Press the button to play through the solution move by move.",
+    demoGiliran: "White to move",
+    demoPutar: "Play the solution",
+    demoLanjut: "Next move",
+    demoUlangi: "Replay from the start",
+    demoNarasi0: "White to move. Find the mate in two.",
+    demoNarasi1: "25. Rxe8+ — the rook is offered as bait.",
+    demoNarasi2: "25… Kxe8 — the only legal reply; the king is pulled to e8.",
+    demoNarasi3: "26. Qa8# — checkmate along the back rank.",
+    demoAriaPapan:
+      "Chess board with the position of puzzle #4457: white to move, mate in two.",
+    labelNomor: "Puzzle number",
+    labelJenis: "Type",
+    labelRating: "Puzzle rating",
+    labelLevel: "Level",
+    labelTema: "Themes",
+    labelPartai: "Source game",
+    labelPembukaan: "Opening",
+    labelSumber: "Source",
+    nilaiJenis: "Mate in two",
+    nilaiRating: "1,619",
+    nilaiLevel: "Level 4 — Difficult",
+    nilaiTema: "Sacrifice · Attraction (bait) · Back-rank mate",
+    nilaiPembukaan: "English Opening, Symmetrical Variation",
+    demoBuka: "Open puzzle #4457 in the trainer",
+    statJudul: "What the collection holds",
+    statPengantar:
+      "Counted directly from the puzzle data file used by the trainer.",
+    statBaris1: "Mate in one",
+    statNilai1: "1,377",
+    statBaris2: "Mate in two",
+    statNilai2: "2,991",
+    statBaris3: "Mate in three",
+    statNilai3: "1,118",
+    statTotalLabel: "Total puzzles",
+    statTotalNilai: "5,486",
+    statPitaLabel: "Puzzle rating range",
+    statPitaNilai: "600–2,567",
+    statGiliranLabel: "Side to move",
+    statGiliranNilai: "2,923 white to move · 2,563 black to move",
+    statSumberLabel: "Data source",
+    statSumberNilai: "Lichess puzzle database — real games",
+    caraJudul: "How training works",
+    cara1:
+      "Filter the puzzles you want: levels 1–5 follow the puzzle rating bands, mate length from one to three moves, tactical theme, or the side to move.",
+    cara2:
+      "Play your move on the board by clicking or dragging the piece. Once your move is correct, the opponent's reply is played automatically.",
+    cara3:
+      "Stuck? Press the hint to see the origin and destination squares of the first move, or jump straight to any puzzle number from 1 to 5,486.",
+    cara4:
+      "Solved puzzles are marked and counted automatically. The list is stored in your browser, not on a server.",
+    tipsJudul: "Tips for solving puzzles",
+    tips1Judul: "Start with every check",
+    tips1Isi:
+      "In mate puzzles the strongest candidate is almost always a check. Examine every available check before considering a quiet move.",
+    tips2Judul: "Recognize the motif instead of memorizing moves",
+    tips2Isi:
+      "The example above uses attraction: a rook is sacrificed to pull the king onto a square the queen can attack. Once the pattern is familiar, similar puzzles read faster.",
+    tips3Judul: "One theme per session",
+    tips3Isi:
+      "Use the theme filter to drill a single motif — say the back-rank mate or the smothered mate — until the pattern is recognized at a glance.",
+    tips4Judul: "Move up after you are consistent",
+    tips4Isi:
+      "Work at a level you can finish several in a row without hints, then step up one band. If a puzzle keeps beating you, note its number — any puzzle can be reopened at any time.",
+    penutupJudul: "Start solving now",
+    penutupIsi:
+      "The trainer opens straight in the browser with no sign-up. Every puzzle is numbered from 1 to 5,486 and its address can be shared, which makes the set easy to use for training with a friend.",
   }
 
 export const bukuPembukaan = {
