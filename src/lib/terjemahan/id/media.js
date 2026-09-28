@@ -51,55 +51,68 @@ export const pengumuman = {
 export const galeri = {
     judul: "Galeri",
     deskripsi: "Foto kegiatan kelas, pertandingan, dan perayaan hari lahir komunitas.",
-    artikel: "Dokumentasi",
     standfirst:
       "Arsip foto Komunitas Catur Indonesia, dikelompokkan menurut tonggak sejarah, turnamen, dan kegiatan latihan. Sebagian besar direkam di sekretariat Medan serta kegiatan komunitas di berbagai kota.",
-    p1: "Foto dipilih dari arsip Divisi Media. Untuk pemakaian ulang di luar kanal komunitas, hubungi humas terlebih dahulu di info@komunitascatur.or.id.",
-    filter: {
-      semua: "Semua",
-      tonggak: "Tonggak Sejarah",
-      turnamen: "Turnamen",
-      kegiatan: "Kegiatan & Latihan",
-    },
-    fotoMeta: "{n} foto",
-    hasil: "Menampilkan {n} foto.",
+    pengantar: "First-pass results, before manual polish.",
+    pilihBrief: "Choose a brief",
+    tanpa: "Without Impeccable",
+    dengan: "With Impeccable",
+    running: "{n} runs",
+    variasi: "{n} variations",
+    catatan: "Same prompt and model. Image generation available to both.",
+    tentang: "About the examples",
+    metodeP1:
+      "Build directly examples start with the prompt shown. There may be choices along the way, but no follow-up prompts to polish the design. You'd usually refine further from here.",
+    metodeP2:
+      "Older baselines had image generation disabled. The new Opus 5.5 and GPT-6 Sol comparisons make it available with and without Impeccable. Design first shows selected examples with human reviews and feedback along the way. Some runs were resumed after technical fixes.",
     lightbox: {
-      buka: "Perbesar foto",
-      tutup: "Tutup",
-      sebelumnya: "Foto sebelumnya",
-      berikutnya: "Foto berikutnya",
-      posisi: "{i} dari {n}",
+      buka: "Open screenshot",
+      tutup: "Close enlarged screenshot",
+      salin: "Copy link",
+      salinTautan: "Copy link to this design",
+      terSalin: "Link copied",
+      salinGagal: "Could not copy the link.",
+      gagal: "This screenshot could not load. Try another variation, or close and reopen it.",
+      sebelumnya: "← Previous",
+      berikutnya: "Next →",
+      posisi: "{i} of {n}",
     },
-    album: {
-      tonggak: {
-        judul: "Tonggak Sejarah Komunitas",
-        deskripsi:
-          "Rekam jejak kegiatan dari tahun ke tahun, sejak komunitas dirintis hingga hari ini.",
+    proyek: {
+      "09-luxury-hotel": {
+        judul: "Boutique hotel",
+        brief:
+          "Make me a website for Villa Castagneto, our 14-room family-run boutique hotel on a cliff above the Ligurian coast. Three generations same family. Audience is well-traveled couples 40s-60s booking 4-6 months out. Owner's voice, not corporate.",
       },
-      turnamen: {
-        judul: "Turnamen & Pertandingan",
-        deskripsi:
-          "Suasana babak turnamen, laga papan demi papan, dan momen penentu di atas bidak.",
+      "02-kids-reading": {
+        judul: "Children’s reading",
+        brief:
+          "Make me a landing page for Otterly, our iPad reading app for kids ages 6-9 reading their first chapter books with adaptive vocabulary support. Audience is parents (and the kids peeking over their shoulder). Warm and encouraging, never condescending — feels more like a bookshop than an edutainment app.",
       },
-      kegiatan: {
-        judul: "Kegiatan & Latihan",
-        deskripsi:
-          "Kelas, latihan bersama, dan sesi analisa yang rutin digelar luring maupun daring.",
+      "03-italian-restaurant": {
+        judul: "Italian restaurant",
+        brief:
+          "Make me a homepage for Trattoria da Nonna Lucia, our family Italian restaurant in Gloucester's Fort neighborhood on the Massachusetts coast. Same family since 1978. We're at 47 Commercial Street, open for dinner Tuesday through Sunday, and take reservations by phone. Locals and weekend tourists are looking up the menu and hours on their phones. Family, neighborhood, no pretense.",
       },
-    },
-    foto: {
-      t2015: "Dokumentasi kegiatan komunitas, 2015.",
-      t2016: "Dokumentasi kegiatan komunitas, 2016.",
-      t2018: "Dokumentasi kegiatan komunitas, 2018.",
-      t2020: "Dokumentasi kegiatan komunitas, 2020.",
-      t2022: "Dokumentasi kegiatan komunitas, 2022.",
-      t2024: "Penyerahan piala pada turnamen komunitas, 2024.",
-      aula: "Ratusan peserta bertanding dalam satu sesi turnamen.",
-      jalanan: "Catur jalanan, papan terbuka untuk siapa saja.",
-      menteri: "Detik menteri roboh, momen penentu sebuah partai.",
-      bidak: "Raja, menteri, dan kuda kayu di atas papan pertandingan.",
-      latihanTanding: "Dua pemain beradu strategi dalam latihan tanding.",
-      jamCatur: "Langkah kuda dieksekusi saat jam catur berjalan.",
-      notasi: "Catatan notasi partai untuk belajar mandiri.",
+      "01-observability": {
+        judul: "Observability",
+        brief:
+          "Make me a landing page for Tortuga, our distributed-tracing tool for SREs running microservices. It reconstructs the smallest causal trace that explains a latency regression, so engineers inspect an incident path instead of searching a telemetry lake. Audience is senior backend engineers between incidents, evaluating us against Datadog/Honeycomb. Brand is technical and blunt, no hype. The main action installs a Helm chart into the engineer's cluster and points it at their existing OpenTelemetry collector. Do not claim that Tortuga is open source, self-hosted, SaaS, or any particular price; those commercial details are not decided. We can show a real trace, query, config, and reproducible latency methodology, but we have no customer logos or testimonials.",
+      },
+      "07-vintage-moto-forum": {
+        judul: "Vintage motorcycles",
+        brief:
+          "Make me a landing page for Carburetor.club, an online community for people restoring vintage Japanese motorcycles from the 60s and 70s. Audience is hobbyist mechanics, mostly men 45+. Enthusiast and mechanical, masculine without being aggressive — like a forum that's been around in spirit since 2003.",
+      },
+      "08-perp-dex": {
+        judul: "Perpetual exchange",
+        brief:
+          "Make me a landing page for Slipstream, a decentralized perp futures exchange offering 100x leverage on major crypto pairs. Audience is experienced degens evaluating new venues for fees, leverage, and liquidation engine. Fast and dense — they already understand the space, no hand-holding.",
+      },
+      "21-infra-platform": {
+        judul: "Infrastructure",
+        brief:
+          "Make me a landing page for Stratum, our B2B infrastructure platform — engineering teams deploy, observe, and scale apps globally with one primitive. Audience is platform engineers at Series-B-and-up startups arriving from Hacker News, skeptical of generic SaaS. Voice is precise, technical, product-forward — Stripe, Linear, Vercel, Posthog territory.",
+      },
     },
   }
+

@@ -39,6 +39,13 @@
   --color-grey-800: #1e293b;
   --color-hero: #021624;
 
+  /* Elevasi netral untuk permukaan foto galeri: lempeng tanpa border 1px
+     memakai shadow-lift sebagai satu-satunya penanda tepi (DESIGN.md:55). */
+  --shadow-lift: 0 1px 1px rgb(0 0 0 / 0.05), 0 2px 3px rgb(0 0 0 / 0.04),
+    0 6px 12px rgb(0 0 0 / 0.05);
+  --shadow-lift-lg: 0 1px 1px rgb(0 0 0 / 0.04), 0 3px 5px rgb(0 0 0 / 0.05),
+    0 12px 20px rgb(0 0 0 / 0.06), 0 32px 48px rgb(0 0 0 / 0.07);
+
   /* Palet grafik gaya neobrutalism — dipakai lewat var(--chart-1) dst.
      pada `chartConfig` komponen di src/components/ui/chart.jsx. */
   --chart-1: #0b2f9f; /* biru utama   */

@@ -1,0 +1,16 @@
+# Paksa XML tetap LF di semua mesin.
+#
+# Latar: repo ini sebelumnya tidak punya .gitattributes, jadi git memakai
+# core.autocrlf. Di Windows (core.autocrlf=true) checkout mengubah LF jadi
+# CRLF. scripts/uji-seo.mjs:106 membandingkan string literal
+#     "<url>\n    <loc>%%SITE_URL%%</loc>"
+# yang menuntut LF murni. Akibatnya uji-seo gagal di Windows tapi hijau di
+# Linux untuk isi berkas yang identik. Baris 116-118 dan 131 memakai regex
+# dengan penanda /m dan itu aman: di JavaScript CRLF dihitung satu line
+# terminator, jadi $ tetap cocok sebelum \r.
+#
+# Jangan longgarkan checks di baris 106 supaya toleran eol. Itu akan
+# menyembunyikan regresi eol yang sebenarnya. Perbaikannya di sini, di sisi
+# berkas, bukan di sisi test.
+
+public/*.xml text eol=lf
