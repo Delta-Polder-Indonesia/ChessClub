@@ -41,6 +41,16 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%program-kami/rush-teka-teki</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%program-kami/kuis-catur</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%teka-teki</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
