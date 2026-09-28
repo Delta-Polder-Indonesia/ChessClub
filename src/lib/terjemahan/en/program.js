@@ -193,149 +193,77 @@ export const tipsTekaTeki = {
   }
 
 export const bukuPembukaan = {
-    pembangunan: "This page is under construction",
-    posisi: "Position after 1. {langkah}",
-    panduan: {
-  "d4": {
-    "judul": "Queen's Pawn Game",
-    "fokus": "Controlling e5 and preparing the centre",
-    "pembuka1": "The move 1. d4 occupies the centre and controls e5 and c5. Unlike the pawn on e4, the d4-pawn is immediately defended by the queen on d1. White gains space and opens a diagonal for the c1-bishop, combining central occupation with development.",
-    "pembuka2": "White often follows with c4 to challenge the opposing centre, then Nc3 or Nf3. The e-pawn can remain flexible: e3 and e4 lead to different structures, and the choice depends on Black’s setup. Move order therefore matters when deciding which type of position to enter.",
-    "responsJudul": "Symmetrical replies and Indian defences",
-    "respons": "After 1. d4 d5, 2. c4 offers the Queen’s Gambit, using a wing pawn to challenge a central pawn. Black may support d5 with e6 or c6, or capture on c4. Alternatively, 1...Nf6 restrains an immediate e4 and allows Indian defences with later moves such as e6 or g6.",
-    "rencanaJudul": "Choosing a structure before attacking",
-    "rencana": "White should judge when central exchanges help. Advancing e4 gains space but needs support. Developing both knights, preparing castling and connecting the rooks are usually more urgent than a wing attack. A stable centre provides a basis for choosing play on either side of the board."
-  },
-  "Nf3": {
-    "judul": "Zukertort Opening",
-    "fokus": "Developing a knight and controlling e5",
-    "pembuka1": "The move 1. Nf3 develops the king’s knight, controls d4 and e5, and brings White closer to kingside castling. With neither central pawn committed, White can choose a structure in response to Black’s play.",
-    "pembuka2": "This flexibility allows transpositions. Playing d4 can lead to queen’s-pawn positions, c4 to English or Réti structures, while g3 and Bg2 prepare a fianchetto. The subsequent opening name depends on the position actually reached rather than the first move alone.",
-    "responsJudul": "Challenging Black’s centre",
-    "respons": "Black can reply 1...d5 to occupy the space White has left open, or 1...Nf6 to retain options. After 1. Nf3 d5 2. c4, White challenges d5 from the flank. Choosing 2. g3 instead prepares pressure on the long diagonal before deciding when to open the centre.",
-    "rencanaJudul": "Flexibility still needs a plan",
-    "rencana": "Delaying central pawn moves is useful only when the pieces cooperate. White must time c4 or d4 rather than allow Black an unchallenged large centre. The f3-knight can also become a target of an e5-e4 advance if White neglects developments in the middle."
-  },
-  "c4": {
-    "judul": "English Opening",
-    "fokus": "Pressuring d5 from the queenside",
-    "pembuka1": "The move 1. c4 controls d5 without immediately committing the d- or e-pawn. White uses a wing pawn to influence central squares and often develops the knight to c3, adding pressure on d5 and e4.",
-    "pembuka2": "A setup with g3 and Bg2 complements this approach: the bishop watches the long diagonal while the central pawns stay flexible. White may also choose d4 and transpose into a queen’s-pawn structure when central exchanges make that attractive.",
-    "responsJudul": "Symmetrical English and reversed Sicilian",
-    "respons": "The reply 1...c5 produces the Symmetrical English, with both sides contesting d4 and d5. The move 1...e5 creates a structure resembling a Sicilian Defence with colours reversed. White’s extra tempo offers options, but plans from the Sicilian cannot simply be copied without considering the changed position.",
-    "rencanaJudul": "Preparing a central break",
-    "rencana": "The advance d4 often opens the centre once development is sufficient. In other structures, White keeps the centre closed and gains space with b4. Such wing advances need support: if played too soon, the c4-pawn and the squares behind it can become targets."
-  },
-  "e3": {
-    "judul": "Van't Kruijs Opening",
-    "fokus": "Opening a bishop diagonal quietly",
-    "pembuka1": "The move 1. e3 opens lines for the f1-bishop and queen while controlling d4 and f4. White maintains a compact structure, but does not challenge the centre as directly as with 1. e4 or 1. d4.",
-    "pembuka2": "The trade-off concerns the c1-bishop: the e3-pawn blocks one of its development routes. White must decide whether to build a centre with d4, play b3 and Bb2, or prepare e4 after developing the pieces.",
-    "responsJudul": "Black’s opportunity to gain space",
-    "respons": "Black can reply 1...d5 or 1...e5 and occupy the centre. After 1. e3 d5 2. d4, play can transpose into a queen’s-pawn setup with an early e3. Against e5, White may consider d4 to challenge the centre rather than continue with purely defensive moves.",
-    "rencanaJudul": "Avoiding wasted tempi",
-    "rencana": "Playing e3-e4 uses two moves to reach a square available in one move at the start. This may be justified by the position, but is not an automatic benefit. White needs development and an active role for the c1-bishop so that a compact setup does not become passive."
-  },
-  "g3": {
-    "judul": "Hungarian Opening",
-    "fokus": "Preparing the kingside fianchetto",
-    "pembuka1": "The move 1. g3 prepares Bg2, placing the king’s bishop on the h1-a8 diagonal. White chooses long-range influence over the centre while postponing decisions about the d- and e-pawns. This is also known as the Benko Opening.",
-    "pembuka2": "After Bg2 and Nf3, White can castle kingside if the route is safe. Later play may resemble an English setup with c4 or a King’s Indian Attack with d3 and e4. These choices should respond to Black’s centre rather than form a compulsory sequence.",
-    "responsJudul": "Challenging Black’s pawn centre",
-    "respons": "Black may use the time for 1...d5 and then e5. White can challenge this two-pawn centre with c4 or d4, or prepare e4. The g2-bishop becomes more influential when its diagonal opens and other pieces join the pressure.",
-    "rencanaJudul": "Protecting the king’s surroundings",
-    "rencana": "With the g-pawn advanced, the g2-bishop is an important defender of the dark squares near the king. Exchanging it requires care. White should also avoid excessive wing-pawn moves before castling: a fianchetto alone does not complete development."
-  },
-  "b3": {
-    "judul": "Nimzo-Larsen Attack",
-    "fokus": "Preparing bishop pressure on e5",
-    "pembuka1": "The move 1. b3 prepares Bb2 so that the c1-bishop can operate on the a1-h8 diagonal. From b2, it influences e5 and Black’s kingside. White has not occupied the centre, but intends to pressure it through piece coordination.",
-    "pembuka2": "Nf3, e3 and Bb2 often form the basis of development. Later c4 or d4 can challenge the centre. White should consider the effect of a pawn on d4: if it obstructs the b2-bishop, the space gained must justify the loss of scope.",
-    "responsJudul": "Meeting e5 or d5",
-    "respons": "The reply 1...e5 occupies the centre while placing a pawn on the future b2-bishop’s diagonal. Black can support it with Nc6. Against 1...d5, White can develop with Nf3 and e3, then choose c4 or d4 according to Black’s setup.",
-    "rencanaJudul": "Coordination before an early attack",
-    "rencana": "Pressure towards g7 does not yet amount to a direct attack. The b2-bishop needs support from the knights, queen and open lines. Neglecting king safety to pursue a diagonal target may allow Black to open the centre before White is ready."
-  },
-  "f4": {
-    "judul": "Bird Opening",
-    "fokus": "Controlling e5 with the f-pawn",
-    "pembuka1": "The move 1. f4 controls e5 and gains kingside space. White often prepares Nf3, e3 and bishop development before castling. The structure may resemble a Dutch Defence with colours reversed.",
-    "pembuka2": "The strategic cost is opening the e1-h4 diagonal and reducing the king’s pawn cover. Further kingside pawn moves need care. Control of e5 is useful only if White can complete development safely.",
-    "responsJudul": "The d5 reply and From’s Gambit",
-    "respons": "The reply 1...d5 builds a solid centre and allows natural development. Playing 1...e5 offers From’s Gambit. After 2. fxe5 d6, Black sacrifices a pawn to open lines and seek the initiative; White must understand the threats to the king before accepting more material.",
-    "rencanaJudul": "King safety comes first",
-    "rencana": "White must watch for the queen arriving on h4 and pressure along exposed diagonals. Nf3 helps control h4, but does not replace concrete calculation. An e4 advance or wing attack is best considered once the pieces are developed and Black cannot readily open the centre."
-  },
-  "d3": {
-    "judul": "Mieses Opening",
-    "fokus": "Supporting e4 from a compact setup",
-    "pembuka1": "The move 1. d3 controls e4 and c4 and opens a diagonal for the c1-bishop. White keeps a restrained structure and retains the option of e4, but does not immediately contest central space.",
-    "pembuka2": "The d3-pawn blocks the f1-bishop along the f1-e2-d3 diagonal. White therefore needs a development plan for that bishop, perhaps g3 and Bg2 or a later change in the pawn structure. A quiet first move does not remove the need to challenge Black’s centre.",
-    "responsJudul": "Space for Black in the centre",
-    "respons": "Black can answer 1...d5 or 1...e5 and develop behind central pawns. White can prepare Nf3, g3 and Bg2, then play e4 to form a King’s Indian Attack setup. The move order must still account for Black’s threats and development.",
-    "rencanaJudul": "Choosing when to open play",
-    "rencana": "If White delays every central advance, Black can gain space comfortably. The e4 break needs support, while a later d4 means spending an extra tempo on the d-pawn. White should seek concrete reasons for such preparation rather than expect a defensive formation alone to provide an advantage."
-  },
-  "Nc3": {
-    "judul": "Van Geet Opening",
-    "fokus": "Developing a knight to pressure d5",
-    "pembuka1": "The move 1. Nc3 develops the queen’s knight and controls d5 and e4. White prepares possible e4 or d4 advances and invites Black to choose a central setup first. This active development also has consequences for the c-pawn.",
-    "pembuka2": "The knight on c3 prevents the c2-pawn from advancing to c4 while c3 remains occupied. This restricts some typical queen’s-pawn plans. White should choose a centre that suits the knight rather than assume every transposition remains available.",
-    "responsJudul": "Black’s central responses",
-    "respons": "After 1. Nc3 d5, White can play 2. e4 to challenge the d5-pawn. After 1...e5, 2. e4 transposes to the Vienna Game. Black can also develop with Nf6; White’s next choice determines whether the position becomes open or stays flexible.",
-    "rencanaJudul": "Anticipating a d4 advance",
-    "rencana": "If Black has a pawn on d5, advancing d4 can attack the c3-knight while gaining space. White needs to consider retreat squares and central counterplay. Early knight development is worthwhile when subsequent moves preserve its activity rather than force repeated relocations."
-  },
-  "b4": {
-    "judul": "Polish Opening",
-    "fokus": "Gaining space on the queenside",
-    "pembuka1": "The move 1. b4 gains queenside space and prepares Bb2. Also known as the Sokolsky Opening, it aims to disturb Black’s development from the wing while giving the c1-bishop a long diagonal.",
-    "pembuka2": "The b4-pawn is undefended after the first move. Away from the central pawns, it can become a target for Black’s developing pieces. White must connect wing expansion with central pressure so that Black cannot build a strong centre while attacking the pawn.",
-    "responsJudul": "Pressure against b4",
-    "respons": "After 1. b4 e5 2. Bb2, the f8-bishop has a route to capture on b4, while the b2-bishop targets e5. The continuation 2...Bxb4 3. Bxe5 illustrates this exchange of targets. Black can also choose d5 to occupy the centre without immediately entering these pawn exchanges.",
-    "rencanaJudul": "Balancing the wing and the centre",
-    "rencana": "Advancing b5 can dislodge or restrict a knight on c6, but further wing moves may delay development. White generally still needs Nf3, e3 and an appropriate central plan. The advanced b-pawn is an asset only if the other pieces do not fall behind and the king stays safe."
-  },
-  "c3": {
-    "judul": "Saragossa Opening",
-    "fokus": "Preparing support for d4",
-    "pembuka1": "The move 1. c3 controls d4 and b4. Its main idea is to prepare d4 with c-pawn support and build a protected centre. However, the move neither develops a piece nor occupies the centre itself.",
-    "pembuka2": "With a pawn on c3, that square is unavailable to the b1-knight. White may need to develop it through d2 or choose another formation. Compared with playing d4 immediately, preparing c3 gives Black extra time to gain space.",
-    "responsJudul": "Building a centre against d5 or e5",
-    "respons": "Black can answer 1...d5 and develop with Nf6. White may then choose d4 and Bf4 or Bg5 before e3, as the position permits. After 1...e5, 2. d4 directly challenges Black’s central pawn; an exchange on d4 can alter the pawn structure and open lines for the pieces.",
-    "rencanaJudul": "Activating the pieces behind the pawns",
-    "rencana": "A pawn-supported centre is not an end in itself. White still needs bishop development, a useful square for the b1-knight and castling. If all the early moves merely reinforce pawns, Black may finish development first and decide when the centre opens."
-  }
-},
     judul: "Openings",
     deskripsi:
-      "A look at the opening book: the opening name and its ECO code appear automatically as moves are played on the free board.",
-    artikel: "Opening Book: Know Your Openings",
-    paragraf1:
-      "Play moves on the free board and the opening book instantly recognizes the opening name along with its ECO code — from the Ruy Lopez and the Sicilian Najdorf to the Queen's Gambit.",
-    paragraf2:
-      "Complete with suggested next moves and a catalog of more than 3,300 opening names from lichess data (CC0 license).",
-    buka: "Open the Opening Book",
-    demoJudul: "Opening Book",
-    demoTantangan: "The opening name appears automatically once the position is recognized",
-    infoTeks:
-      "After {x}, the opening book instantly recognizes this position as {label}.",
-    kontenHanyaId:
-      "The example content below is only available in Indonesian. Switch the language to Bahasa Indonesia to read it in full.",
-    sejarahJudul: "History",
-    sejarahAyat1:
-      "Ruy Lopez is named after Ruy López de Segura, a 16th-century Spanish priest who systematically studied this and other openings in a 150-page chess book, Libro del Axedrez, written in 1561. Lopez recommended 3.Bb5 as a superior move to 3.Bc4, and argued that Black should play 2...d6 (the Philidor Defense) to avoid it. Despite bearing his name, this particular opening appears in the Göttingen manuscript, which dates from around 1490. Ruy Lopez did not gain wide popularity until the mid-19th century, when Finnish-Russian theorist Carl Jaenisch published a detailed article on 1.e4 e5 in the December 1847 issue of Le Palamède, the world's first chess magazine. A condensed version appeared in the Chess Player's Chronicle in 1848, followed by additional articles in the same publication in 1849.",
-    sejarahAyat2:
-      "Ruy Lopez has long been regarded as the most important opening among the Open Games at master level. Nearly every player has used it at some point in their career, often with both colors. Because of Black's difficulty in achieving equality, the opening's common nickname is \"the Spanish Torture\".",
-    lanjutan: {
-      morphy: "Morphy Defense (Main)",
-      berlin: "Berlin Defense",
-      steinitz: "Steinitz Defense",
-      schliemann: "Schliemann Gambit",
-    },
+      "A map of the openings built on real data: 18,713 lines, 3,196 names, 349 ECO codes — all wired into this site's interactive board.",
+    metaDeskripsi:
+      "Explore chess openings through data: 18,713 lines from lichess-org/chess-openings, a first-move tree, and a searchable catalog of opening families.",
+    introJudul: "Every opening has a name.",
+    introP1:
+      "Play 1. e4 e5 2. Nf3 Nc6 3. Bb5, and the position has a name: the Ruy Lopez, code C60. This site's opening book holds 18,713 such lines — processed from lichess-org/chess-openings data (CC0) — and it is built into the interactive board: play any move and the position's name and ECO code are recognized automatically.",
+    introP2:
+      "The numbers on this page are not estimates. Line, game, and win-rate figures are all counted directly from the opening book file this site uses.",
+    statJalur: "opening lines",
+    statNama: "opening names",
+    statKeluarga: "opening families",
+    statEco: "ECO codes",
+    sumberBaris:
+      "Source: this site's opening book — processed from lichess-org/chess-openings, CC0 licensed.",
+    pohonJudul: "Four doors in",
+    pohonPengantar:
+      "Nearly every line in the book begins with one of these four first moves. Line counts come from the book file; the family label on each reply is its largest family in the book.",
+    e4Deskripsi:
+      "The king's pawn takes the centre and opens lines for the queen and the f1-bishop. The classical 1… e5 leads to the Open Games — the Italian, the Ruy Lopez, the Scotch — while 1… c5 opens the Sicilian; the French and the Caro-Kann follow close behind.",
+    d4Deskripsi:
+      "The queen's pawn takes the centre and is immediately protected by the queen on d1. The 1… d5 reply leads to the Queen's Gambit family; 1… Nf6 to the various Indian defences.",
+    c4Deskripsi:
+      "A wing pawn controlling d5 from a distance without occupying the centre. Almost all of its replies are recorded in the book as English Opening variations — including the symmetrical setup after 1… c5.",
+    nf3Deskripsi:
+      "The knight develops while controlling e5; with no central pawn committed, positions often transpose into Zukertort, English, or queen's-pawn setups.",
+    kataJalur: "lines",
+    lainnyaCatatan:
+      "The remaining 340 lines open with other first moves — most often 1. b3 (88 lines), 1. g3 (45), and 1. f4 (42).",
+    kelItalia: "Italian Game",
+    kelSisilia: "Sicilian Defense",
+    kelSkandinavia: "Scandinavian Defense",
+    kelPrancis: "French Defense",
+    kelGambitMenteri: "Queen's Gambit Declined",
+    kelIndiaRaja: "King's Indian Defense",
+    kelEnglund: "Englund Gambit",
+    kelInggris: "English Opening",
+    kelSeranganIndiaRaja: "King's Indian Attack",
+    kelZukertort: "Zukertort Opening",
+    katalogJudul: "A catalog you can search",
+    katalogPengantar:
+      "The 72 opening families with the most games in the book — one top line per family. Type to filter them; the full catalog lives in the Books tab of the interactive board.",
+    katalogPlaceholder: "Search an opening name or ECO code…",
+    katalogCta: "Open the full catalog on the interactive board",
+    katalogJumlah: "Showing {n} of {total} top families",
+    katalogKosong: "No results for “{q}”. Try another name or ECO code.",
+    katalogCatatan:
+      "W·D·B = white, draw, and black win percentages for that line.",
+    kolomEco: "ECO",
+    kolomNama: "Opening name",
+    kolomPartai: "Games",
+    kolomPSH: "W·D·B",
+    alatJudul: "On the interactive board",
+    alat1:
+      "The opening name and ECO code of a position appear automatically as moves are played.",
+    alat2:
+      "A catalog of 3,196 names, grouped by family, searchable by name or ECO.",
+    alat3:
+      "Statistics for every candidate move: game count plus white, draw, and black percentages.",
+    alat4:
+      "Repertoire training: save lines and drill your side's moves on a repetition schedule — progress stays in your browser.",
+    alat5:
+      "Test your opening straight against the local Stockfish from any book position.",
+    penutupJudul: "Start with the first move",
+    penutupIsi:
+      "The interactive board opens straight in the browser with no sign-up. Play 1. e4 — or any move — and the opening book instantly shows the position's identity.",
+    ctaUtama: "Open the Interactive Board",
+    ariaPapanMini: "Chess board: position after {langkah}.",
   }
 
-/** States of the PDF reader (src/components/PembacaPdf.jsx). */
 export const pembacaPdf = {
     memuat: "Loading document",
     persen: " — {progres}%",
