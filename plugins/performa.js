@@ -20,6 +20,8 @@ export const RUTE_PUBLIK = [
   "/program-kami/analisa/papan",
   "/program-kami/atribusi",
   "/program-kami/pembukaan",
+  "/program-kami/rush-teka-teki",
+  "/program-kami/kuis-catur",
   "/teka-teki",
   "/teka-teki-rush",
   "/quiz-catur",
@@ -130,6 +132,14 @@ export const META_RUTE = {
   "/program-kami/pembukaan": {
     judulKey: "bukuPembukaan.judul",
     deskripsiKey: "bukuPembukaan.deskripsi",
+  },
+  "/program-kami/rush-teka-teki": {
+    judulKey: "rushLanding.judul",
+    deskripsiKey: "rushLanding.deskripsi",
+  },
+  "/program-kami/kuis-catur": {
+    judulKey: "kuisLanding.judul",
+    deskripsiKey: "kuisLanding.deskripsi",
   },
   "/program-kami/ebook-panduan": {
     judul: "E-Book & Panduan",

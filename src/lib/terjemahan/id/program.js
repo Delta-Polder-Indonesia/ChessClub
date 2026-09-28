@@ -113,171 +113,156 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Teka-teki & Tips",
     deskripsi:
-      "Sekilas tentang teka-teki: data langkah berdasarkan rating dan analisis posisi, sebelum masuk ke papan taktik.",
-    artikel: "Latihan Teka-teki",
-    paragraf1:
-      "Maia menyusun teka-teki berdasarkan pemahamannya tentang cara jutaan pemain meningkatkan kemampuan. Dengan teka-teki Maia, kamu dapat mengukur kemampuanmu, fokus pada kelemahan pemahamanmu, dan mengubah ide-ide yang sulit ditemukan menjadi kebiasaan.",
-    paragraf2:
-      "Setiap teka-teki dilengkapi data yang menunjukkan bagaimana pemain dengan rating berbeda menyikapi posisi tersebut, sehingga latihanmu lebih terarah dan efektif.",
-    mulai: "Mulailah Sesi Latihan Anda",
-    demoJudul: "Teka-teki Taktis",
-    demoLevel: "Menengah",
-    demoTantangan: "Temukan langkah terbaik dalam posisi taktis ini",
-    grafikJudul: "Langkah Berdasarkan Rating",
-    grafikSumbuY: "Probabilitas Bintang Toba",
-    analisisJudul: "Analisis Posisi",
-    analisisBag1:
-      "Waspada, posisi ini sangat berbahaya! Sangat mudah terjebak dengan kesalahan yang menggiurkan seperti {x}.",
-    analisisBag2:
-      "Hanya {x} yang memberikan keunggulan, dan sulit ditemukan oleh pemain manusia.",
-    langkahTerbaik: "Langkah Terbaik",
-    kesalahanUmum: "Kesalahan Umum",
-    kesalahanLain: "Kesalahan Lain",
-    kontenHanyaId:
-      "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
+      "Latihan taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess — saring menurut level dan tema, kerjakan langsung di peramban.",
+    metaDeskripsi:
+      "Alat latihan teka-teki skakmat Komunitas Catur Indonesia: 5.486 soal skakmat 1–3 langkah dari partai nyata basis data puzzle Lichess, dengan saringan level, tema, dan petunjuk.",
+    introJudul: "5.486 soal skakmat dari partai nyata",
+    intro1:
+      "Teka-teki & Tips adalah halaman pengantar alat latihan taktik Komunitas Catur Indonesia. Koleksinya memuat 5.486 soal skakmat satu sampai tiga langkah yang diambil dari partai nyata di basis data puzzle Lichess. Setiap soal menyertakan rating, penanda tema, serta nama pemain dan pembukaan partai asalnya.",
+    intro2:
+      "Latihan berjalan langsung di peramban tanpa perlu membuat akun. Saring soal menurut level, tema taktik, atau warna yang melangkah; bila buntu, tombol petunjuk menyoroti petak asal dan tujuan langkah pertama. Kemajuan tersimpan otomatis di perangkat Anda.",
+    ctaUtama: "Mulai Latihan Teka-teki",
+    ctaRush: "Rush Teka-teki — mode berjangka waktu",
+    demoJudul: "Satu soal, diperlihatkan utuh",
+    demoPengantar:
+      "Data di bawah ini — posisi, rating, tema, hingga identitas partai — diambil apa adanya dari berkas soal, sama seperti yang tampil di alat latihan. Tekan tombolnya untuk memutar solusi langkah demi langkah.",
+    demoGiliran: "Putih melangkah",
+    demoPutar: "Putar solusi",
+    demoLanjut: "Langkah berikutnya",
+    demoUlangi: "Ulangi dari awal",
+    demoNarasi0: "Putih melangkah. Temukan skakmat dua langkah.",
+    demoNarasi1: "25. Rxe8+ — benteng dikorbankan sebagai umpan.",
+    demoNarasi2: "25… Kxe8 — satu-satunya balasan legal; raja tertarik ke petak e8.",
+    demoNarasi3: "26. Qa8# — skakmat di baris kedelapan.",
+    demoAriaPapan:
+      "Papan catur posisi soal #4457: putih melangkah, skakmat dalam dua langkah.",
+    labelNomor: "Nomor soal",
+    labelJenis: "Jenis",
+    labelRating: "Rating soal",
+    labelLevel: "Level",
+    labelTema: "Tema",
+    labelPartai: "Partai asal",
+    labelPembukaan: "Pembukaan",
+    labelSumber: "Sumber",
+    nilaiJenis: "Skakmat dua langkah",
+    nilaiRating: "1.619",
+    nilaiLevel: "Level 4 — Sulit",
+    nilaiTema: "Pengorbanan · Attraksi (umpan) · Skakmat punggung",
+    nilaiPembukaan: "Pembukaan Inggris, Varian Simetris",
+    demoBuka: "Buka soal #4457 di alat latihan",
+    statJudul: "Isi koleksi soal",
+    statPengantar: "Dihitung langsung dari berkas data soal yang dipakai alat latihan.",
+    statBaris1: "Skakmat satu langkah",
+    statNilai1: "1.377",
+    statBaris2: "Skakmat dua langkah",
+    statNilai2: "2.991",
+    statBaris3: "Skakmat tiga langkah",
+    statNilai3: "1.118",
+    statTotalLabel: "Total soal",
+    statTotalNilai: "5.486",
+    statPitaLabel: "Rentang rating soal",
+    statPitaNilai: "600–2.567",
+    statGiliranLabel: "Giliran pertama",
+    statGiliranNilai: "2.923 posisi putih · 2.563 posisi hitam",
+    statSumberLabel: "Sumber data",
+    statSumberNilai: "Basis data puzzle Lichess — partai nyata",
+    caraJudul: "Cara latihan",
+    cara1:
+      "Saring soal sesuai kebutuhan: level 1–5 mengikuti pita rating soal, panjang skakmat satu sampai tiga langkah, tema taktik, atau warna yang melangkah.",
+    cara2:
+      "Mainkan langkah di papan dengan klik atau seret bidak. Setelah langkah Anda benar, balasan lawan dijalankan otomatis.",
+    cara3:
+      "Buntu? Tekan petunjuk untuk melihat petak asal dan tujuan langkah pertama, atau langsung buka nomor soal tertentu dari 1 sampai 5.486.",
+    cara4:
+      "Soal yang sudah dipecahkan ditandai dan dihitung otomatis. Daftarnya tersimpan di peramban Anda, bukan di server.",
+    tipsJudul: "Tips mengerjakan teka-teki",
+    tips1Judul: "Mulai dari semua skak",
+    tips1Isi:
+      "Pada soal skakmat, kandidat terkuat hampir selalu langkah berskak. Periksa setiap skak yang tersedia sebelum mempertimbangkan langkah tenang.",
+    tips2Judul: "Kenali motifnya, jangan hafalkan langkahnya",
+    tips2Isi:
+      "Contoh soal di atas memakai motif attraksi: benteng dikorbankan untuk menarik raja ke petak yang bisa diserang menteri. Setelah polanya dikenali, soal serupa terbaca lebih cepat.",
+    tips3Judul: "Satu tema dalam satu sesi",
+    tips3Isi:
+      "Gunakan saringan tema untuk mengulang satu motif — misalnya skakmat punggung atau skakmat sempit — sampai polanya terbaca tanpa berpikir panjang.",
+    tips4Judul: "Naik level setelah konsisten",
+    tips4Isi:
+      "Kerjakan level yang bisa Anda selesaikan berturut-turut tanpa petunjuk, lalu naik satu tingkat. Bila mentok di satu soal, catat nomornya — nomor soal apa pun bisa dibuka kembali kapan saja.",
+    penutupJudul: "Kerjakan sekarang",
+    penutupIsi:
+      "Alat terbuka langsung di peramban tanpa pendaftaran. Setiap soal bernomor 1–5.486 dan alamatnya bisa dibagikan, sehingga mudah dijadikan bahan latihan bersama teman.",
   }
 
 export const bukuPembukaan = {
-    pembangunan: "Halaman sedang dalam proses pembangunan",
-    posisi: "Posisi setelah 1. {langkah}",
-    panduan: {
-  "d4": {
-    "judul": "Pembukaan Pion Menteri",
-    "fokus": "Menguasai e5 dan menyiapkan pusat",
-    "pembuka1": "Langkah 1. d4 menempatkan pion di pusat dan mengontrol e5 serta c5. Berbeda dari pion e4, pion d4 langsung dilindungi oleh menteri di d1. Putih memperoleh ruang sambil membuka diagonal bagi gajah c1, sehingga pengembangan buah dapat berjalan bersama pembangunan pusat.",
-    "pembuka2": "Rencana berikutnya sering melibatkan c4 untuk menekan pusat Hitam, lalu Nc3 atau Nf3. Putih tidak harus segera menentukan letak pion e: keputusan memainkan e3 atau e4 bergantung pada susunan buah dan respons lawan. Karena itu, urutan langkah sangat berpengaruh terhadap jenis posisi yang terbentuk.",
-    "responsJudul": "Balasan simetris dan pertahanan India",
-    "respons": "Setelah 1. d4 d5, langkah 2. c4 menawarkan Gambit Menteri: pion sayap digunakan untuk menantang pion pusat. Hitam dapat mempertahankan d5 dengan e6 atau c6, atau menerima pion c4. Sementara itu, 1...Nf6 mencegah e4 secara langsung dan memungkinkan berbagai pertahanan India, bergantung pada kelanjutan seperti e6 atau g6.",
-    "rencanaJudul": "Menentukan struktur sebelum menyerang",
-    "rencana": "Putih perlu memperhatikan kapan pertukaran di pusat menguntungkan. Dorongan e4 dapat memberi ruang, tetapi memerlukan dukungan yang cukup. Mengembangkan kedua kuda, menyiapkan rokade, dan menghubungkan benteng biasanya lebih mendesak daripada serangan sayap. Pusat yang stabil memberi dasar untuk memilih rencana di sisi raja maupun sisi menteri."
-  },
-  "Nf3": {
-    "judul": "Pembukaan Zukertort",
-    "fokus": "Mengembangkan kuda dan mengontrol e5",
-    "pembuka1": "Langkah 1. Nf3 mengembangkan kuda raja ke petak aktif, mengontrol d4 dan e5, sekaligus mendekatkan Putih pada rokade pendek. Putih belum mengikat pion pusat, sehingga masih dapat memilih susunan berdasarkan respons Hitam.",
-    "pembuka2": "Fleksibilitas ini memungkinkan perpindahan ke pembukaan lain. Langkah d4 dapat membawa permainan ke struktur pion menteri, c4 menuju susunan Inggris atau Réti, sedangkan g3 dan Bg2 menyiapkan fianchetto. Nama pembukaan selanjutnya bergantung pada posisi yang benar-benar terbentuk, bukan hanya langkah pertama.",
-    "responsJudul": "Menghadapi pusat Hitam",
-    "respons": "Hitam dapat menjawab dengan 1...d5, mengambil ruang yang belum diduduki Putih, atau 1...Nf6 untuk mempertahankan pilihan. Setelah 1. Nf3 d5 2. c4, Putih menantang pion d5 dari sayap. Jika memilih 2. g3, Putih menyiapkan tekanan di diagonal panjang sebelum menentukan kapan pusat perlu dibuka.",
-    "rencanaJudul": "Fleksibel bukan berarti tanpa rencana",
-    "rencana": "Menunda pion pusat hanya bermanfaat jika buah-buah bekerja sama. Putih harus memilih saat yang tepat untuk c4 atau d4 dan tidak membiarkan Hitam membangun pusat besar tanpa tantangan. Kuda f3 juga dapat menjadi sasaran dorongan e5-e4 jika Putih mengabaikan perkembangan pusat."
-  },
-  "c4": {
-    "judul": "Pembukaan Inggris",
-    "fokus": "Menekan d5 dari sayap menteri",
-    "pembuka1": "Langkah 1. c4 mengontrol d5 tanpa segera menempatkan pion d atau e di pusat. Putih menggunakan pion sayap untuk memengaruhi petak sentral dan sering mengembangkan kuda ke c3, menambah tekanan pada d5 dan e4.",
-    "pembuka2": "Susunan g3 dan Bg2 dapat melengkapi rencana ini: gajah menyoroti diagonal panjang, sementara pion pusat tetap fleksibel. Namun, Putih juga dapat memilih d4 dan berpindah ke struktur pion menteri jika pertukaran di pusat mendukungnya.",
-    "responsJudul": "Inggris simetris dan Sisilia terbalik",
-    "respons": "Balasan 1...c5 menghasilkan Inggris Simetris, ketika kedua pihak berebut petak d4 dan d5. Balasan 1...e5 membentuk susunan yang menyerupai Pertahanan Sisilia dengan warna terbalik. Tempo tambahan Putih memberi pilihan, tetapi tidak membuat rencana Hitam dalam Sisilia dapat disalin tanpa memperhatikan perbedaan posisi.",
-    "rencanaJudul": "Mempersiapkan terobosan pusat",
-    "rencana": "Langkah d4 sering menjadi cara membuka pusat setelah pengembangan cukup. Dalam susunan lain, Putih mempertahankan pusat tertutup dan memperoleh ruang dengan b4. Dorongan sayap tersebut sebaiknya didukung buah; jika dilakukan terlalu cepat, pion c4 atau petak-petak di belakangnya dapat menjadi sasaran."
-  },
-  "e3": {
-    "judul": "Pembukaan Van't Kruijs",
-    "fokus": "Membuka diagonal gajah dengan langkah tenang",
-    "pembuka1": "Langkah 1. e3 membuka jalan bagi gajah f1 dan menteri, sekaligus mengontrol d4 dan f4. Pion hanya maju satu petak, sehingga Putih menjaga susunan yang kompak tetapi belum menantang pusat sekuat 1. e4 atau 1. d4.",
-    "pembuka2": "Komprominya terlihat pada gajah c1: pion e3 menutup salah satu jalur pengembangannya. Putih perlu memutuskan apakah akan membangun pusat dengan d4, memainkan b3 dan Bb2, atau menyiapkan dorongan e4 setelah buah-buah berkembang.",
-    "responsJudul": "Kesempatan Hitam mengambil ruang",
-    "respons": "Hitam dapat menjawab 1...d5 atau 1...e5 dan menempati pusat. Setelah 1. e3 d5 2. d4, posisi dapat beralih ke susunan pion menteri dengan e3 awal. Jika Hitam memilih e5, Putih dapat mempertimbangkan d4 untuk menantang pusat, bukan hanya melanjutkan langkah bertahan.",
-    "rencanaJudul": "Menghindari kehilangan tempo",
-    "rencana": "Rencana e3-e4 memakai dua langkah untuk mencapai petak yang dapat diduduki dalam satu langkah sejak awal. Hal itu dapat dibenarkan oleh kebutuhan posisi, tetapi bukan keuntungan otomatis. Putih perlu mengutamakan pengembangan dan mencari cara mengaktifkan gajah c1 agar susunan kompak tidak berubah menjadi posisi pasif."
-  },
-  "g3": {
-    "judul": "Pembukaan Hungaria",
-    "fokus": "Menyiapkan fianchetto gajah raja",
-    "pembuka1": "Langkah 1. g3 menyiapkan Bg2, menempatkan gajah raja pada diagonal h1-a8. Putih memilih pengaruh jarak jauh terhadap pusat dan menunda keputusan tentang pion d serta e. Pembukaan ini juga dikenal sebagai Benko Opening.",
-    "pembuka2": "Setelah Bg2 dan Nf3, Putih dapat melakukan rokade pendek jika jalurnya aman. Susunan selanjutnya dapat menyerupai Pembukaan Inggris dengan c4 atau Serangan India Raja dengan d3 dan e4. Pilihan itu harus menyesuaikan pusat Hitam, bukan dimainkan sebagai urutan yang wajib.",
-    "responsJudul": "Menantang pusat yang dibangun Hitam",
-    "respons": "Hitam dapat menggunakan waktu untuk 1...d5 dan kemudian e5. Pusat dua pion tersebut perlu diamati: Putih dapat menyerangnya dengan c4 atau d4, atau menyiapkan e4. Gajah g2 akan semakin berpengaruh jika diagonalnya terbuka dan buah lain ikut menekan pusat.",
-    "rencanaJudul": "Menjaga petak di sekitar raja",
-    "rencana": "Majunya pion g membuat gajah g2 penting sebagai penjaga petak gelap di sekitar raja. Pertukaran gajah itu perlu dinilai dengan hati-hati. Putih juga harus menghindari terlalu banyak langkah pion sayap sebelum rokade, karena fianchetto sendiri belum menyelesaikan pengembangan."
-  },
-  "b3": {
-    "judul": "Serangan Nimzo-Larsen",
-    "fokus": "Menyiapkan tekanan gajah pada e5",
-    "pembuka1": "Langkah 1. b3 menyiapkan Bb2 agar gajah c1 bekerja di diagonal a1-h8. Dari b2, gajah mengarahkan pengaruh ke e5 dan ke sisi raja Hitam. Putih belum menduduki pusat, tetapi berencana menekannya melalui koordinasi buah.",
-    "pembuka2": "Susunan Nf3, e3, dan Bb2 sering menjadi dasar pengembangan. Setelah itu, c4 atau d4 dapat menantang pusat. Perhatian khusus diperlukan pada pion d4 sendiri: ketika menutup diagonal gajah b2, Putih perlu memastikan bahwa keuntungan ruangnya sebanding dengan berkurangnya jangkauan gajah.",
-    "responsJudul": "Menghadapi e5 atau d5",
-    "respons": "Balasan 1...e5 menduduki pusat sekaligus menempatkan pion pada diagonal calon gajah b2. Hitam dapat mendukungnya dengan Nc6. Setelah 1...d5, Putih dapat menyiapkan tekanan pada pusat melalui Nf3 dan e3, lalu memilih c4 atau d4 sesuai perkembangan lawan.",
-    "rencanaJudul": "Koordinasi lebih penting daripada serangan dini",
-    "rencana": "Tekanan ke g7 belum berarti Putih memiliki serangan langsung. Gajah b2 memerlukan dukungan kuda, menteri, dan jalur yang terbuka. Mengabaikan keselamatan raja demi memburu sasaran di diagonal panjang dapat memberi Hitam kesempatan membuka pusat saat Putih belum siap."
-  },
-  "f4": {
-    "judul": "Pembukaan Bird",
-    "fokus": "Mengontrol e5 dengan pion f",
-    "pembuka1": "Langkah 1. f4 mengontrol e5 dan memperoleh ruang di sisi raja. Putih sering menyiapkan Nf3, e3, dan pengembangan gajah sebelum rokade. Struktur ini dapat menyerupai Pertahanan Belanda dengan warna terbalik.",
-    "pembuka2": "Harga strategisnya adalah terbukanya diagonal e1-h4 dan berkurangnya perlindungan raja. Karena pion f sudah maju, langkah pion tambahan di sisi raja perlu diperhitungkan. Penguasaan e5 baru bermanfaat jika Putih dapat menyelesaikan pengembangan dengan aman.",
-    "responsJudul": "Balasan d5 dan Gambit From",
-    "respons": "Balasan 1...d5 membangun pusat yang kokoh dan memungkinkan Hitam mengembangkan buah secara wajar. Pilihan 1...e5 menawarkan Gambit From. Setelah 2. fxe5 d6, Hitam mengorbankan pion untuk membuka jalur dan mencari inisiatif; Putih harus memahami ancaman terhadap raja sebelum menerima materi lebih lanjut.",
-    "rencanaJudul": "Keamanan raja sebagai prioritas",
-    "rencana": "Putih perlu mengawasi masuknya menteri Hitam ke h4 dan tekanan pada diagonal yang terbuka. Nf3 membantu mengontrol h4, tetapi tidak menggantikan perhitungan konkret. Dorongan e4 atau serangan sayap sebaiknya dilakukan setelah buah berkembang dan pusat tidak mudah dibuka oleh lawan."
-  },
-  "d3": {
-    "judul": "Pembukaan Mieses",
-    "fokus": "Menopang e4 dari susunan yang kompak",
-    "pembuka1": "Langkah 1. d3 mengontrol e4 dan c4 serta membuka diagonal gajah c1. Putih memilih susunan yang rendah dan mempertahankan kemungkinan e4, tetapi belum memperebutkan ruang pusat secara langsung.",
-    "pembuka2": "Pion d3 membatasi jalur gajah f1 di diagonal f1-e2-d3. Karena itu, Putih perlu merencanakan pengembangan gajah, misalnya melalui g3 dan Bg2 atau setelah perubahan susunan pion. Langkah pertama yang tenang tidak menghilangkan kebutuhan untuk menantang pusat lawan.",
-    "responsJudul": "Pusat luas bagi Hitam",
-    "respons": "Hitam dapat menjawab 1...d5 atau 1...e5 dan mengembangkan buah di belakang pion pusatnya. Putih dapat menyiapkan Nf3, g3, dan Bg2, lalu memainkan e4 untuk membentuk susunan Serangan India Raja. Urutannya tetap harus menyesuaikan ancaman dan perkembangan Hitam.",
-    "rencanaJudul": "Memilih saat untuk membuka permainan",
-    "rencana": "Jika Putih menunda semua dorongan pusat, Hitam dapat memperoleh ruang dengan nyaman. Terobosan e4 perlu didukung, sedangkan dorongan d4 di kemudian hari berarti pion d memakai tempo tambahan. Putih perlu mencari kondisi konkret yang membenarkan persiapan tersebut, bukan berharap susunan bertahan saja memberi keunggulan."
-  },
-  "Nc3": {
-    "judul": "Pembukaan Van Geet",
-    "fokus": "Mengembangkan kuda untuk menekan d5",
-    "pembuka1": "Langkah 1. Nc3 mengembangkan kuda menteri, mengontrol d5 dan e4. Putih menyiapkan kemungkinan e4 atau d4 dan mengajak Hitam menentukan susunan pusat lebih dulu. Pengembangan buah ini aktif, tetapi memiliki konsekuensi bagi pion c.",
-    "pembuka2": "Kuda c3 menghalangi pion c2 untuk maju ke c4 dalam satu langkah selama petak c3 masih ditempati. Ini membatasi beberapa rencana khas pembukaan pion menteri. Putih perlu memilih pusat yang cocok dengan kuda di c3, bukan menganggap semua perpindahan pembukaan tetap tersedia.",
-    "responsJudul": "Respons pusat Hitam",
-    "respons": "Setelah 1. Nc3 d5, Putih dapat memainkan 2. e4 untuk menantang pion d5. Setelah 1...e5, langkah 2. e4 berpindah ke Pembukaan Wina. Hitam juga dapat mengembangkan kuda dengan Nf6; pilihan Putih berikutnya akan menentukan apakah posisi menjadi terbuka atau tetap fleksibel.",
-    "rencanaJudul": "Mengantisipasi dorongan d4",
-    "rencana": "Jika Hitam memiliki pion d5, dorongan d4 dapat menyerang kuda c3 sekaligus memperoleh ruang. Putih harus memperhitungkan petak mundur dan kemungkinan serangan balik di pusat. Mengembangkan kuda lebih dulu bernilai jika langkah-langkah berikutnya menjaga aktivitasnya, bukan memaksanya berpindah berulang kali."
-  },
-  "b4": {
-    "judul": "Pembukaan Polandia",
-    "fokus": "Mengambil ruang di sayap menteri",
-    "pembuka1": "Langkah 1. b4 memperoleh ruang di sisi menteri dan menyiapkan Bb2. Pembukaan ini juga dikenal sebagai Sokolsky Opening. Putih ingin mengganggu perkembangan lawan dari sayap sambil memberi gajah c1 diagonal yang panjang.",
-    "pembuka2": "Pion b4 belum dilindungi setelah langkah pertama. Karena jauh dari pion pusat, pion itu dapat menjadi sasaran pengembangan Hitam. Putih perlu menghubungkan ekspansi sayap dengan tekanan di tengah agar lawan tidak memperoleh pusat yang kuat sambil menyerang pion tersebut.",
-    "responsJudul": "Tekanan terhadap pion b4",
-    "respons": "Setelah 1. b4 e5 2. Bb2, gajah f8 memiliki jalur untuk mengambil b4, sementara gajah b2 mengincar e5. Kelanjutan 2...Bxb4 3. Bxe5 menunjukkan pertukaran sasaran itu. Hitam juga dapat memilih d5 untuk menguasai pusat tanpa langsung memasuki pertukaran pion.",
-    "rencanaJudul": "Menjaga keseimbangan sayap dan pusat",
-    "rencana": "Dorongan b5 dapat mengusir atau membatasi kuda di c6, tetapi tambahan langkah sayap berisiko menunda pengembangan. Putih biasanya tetap membutuhkan Nf3, e3, dan langkah pusat yang sesuai. Pion b yang maju menjadi aset hanya jika tidak membuat buah lain tertinggal dan raja berada dalam bahaya."
-  },
-  "c3": {
-    "judul": "Pembukaan Saragossa",
-    "fokus": "Menyiapkan dukungan untuk d4",
-    "pembuka1": "Langkah 1. c3 mengontrol d4 dan b4. Gagasan utamanya adalah menyiapkan d4 dengan dukungan pion c, sehingga Putih dapat membangun pusat yang terlindungi. Namun, langkah ini belum mengembangkan buah dan belum menduduki pusat.",
-    "pembuka2": "Petak c3 yang ditempati pion tidak tersedia bagi kuda b1. Putih sering perlu mengembangkan kuda melalui d2 atau memilih susunan lain. Dibandingkan memainkan d4 langsung, persiapan c3 memberi Hitam waktu tambahan untuk mengambil ruang.",
-    "responsJudul": "Membangun pusat setelah d5 atau e5",
-    "respons": "Hitam dapat menjawab 1...d5 dan berkembang dengan Nf6. Putih kemudian dapat memilih d4 serta Bf4 atau Bg5 sebelum e3, sesuai posisi. Setelah 1...e5, langkah 2. d4 langsung menantang pion pusat Hitam; pertukaran di d4 dapat mengubah susunan pion dan membuka jalur buah.",
-    "rencanaJudul": "Mengaktifkan buah di balik pion",
-    "rencana": "Pusat yang ditopang pion bukan tujuan akhir. Putih tetap perlu mengembangkan gajah, menemukan petak yang berguna bagi kuda b1, dan melakukan rokade. Jika semua langkah awal hanya memperkuat pion, Hitam dapat menyelesaikan pengembangan lebih cepat dan menentukan kapan pusat dibuka."
-  }
-},
     judul: "Pembukaan",
     deskripsi:
-      "Sekilas tentang buku pembukaan: nama pembukaan dan kode ECO muncul otomatis saat langkah dimainkan di papan bebas.",
-    artikel: "Opening Book: Kenali Nama Pembukaanmu",
-    paragraf1:
-      "Mainkan langkah di papan bebas dan buku pembukaan akan langsung mengenali nama pembukaan beserta kode ECO-nya — mulai dari Ruy Lopez, Sicilian Najdorf, hingga Queen's Gambit.",
-    paragraf2:
-      "Lengkap dengan saran langkah berikutnya dan katalog lebih dari 3.300 nama pembukaan dari data lichess (lisensi CC0).",
-    buka: "Buka Opening Book",
-    demoJudul: "Buku Pembukaan",
-    demoTantangan: "Nama pembukaan muncul otomatis saat posisinya dikenali",
-    infoTeks:
-      "Setelah {x}, buku pembukaan langsung mengenali posisi ini sebagai {label}.",
-    kontenHanyaId:
-      "Konten contoh di bawah ini hanya tersedia dalam Bahasa Indonesia. Alihkan bahasa ke Bahasa Indonesia untuk membacanya secara lengkap.",
-    sejarahJudul: "Sejarah",
-    sejarahAyat1:
-      "Ruy Lopez dinamai menurut Ruy López de Segura, seorang pendeta Spanyol abad ke-16 yang secara sistematis mempelajari pembukaan ini dan pembukaan lainnya dalam buku catur setebal 150 halaman, Libro del Axedrez, yang ditulis pada tahun 1561. Lopez menganjurkan 3.Bb5 sebagai langkah yang lebih unggul daripada 3.Bc4, dan berpendapat bahwa Hitam harus memainkan 2...d6 (Pertahanan Philidor) untuk menghindarinya. Meskipun menyandang namanya, pembukaan khusus ini termasuk dalam manuskrip Göttingen, yang berasal dari sekitar tahun 1490. Ruy Lopez tidak mendapatkan popularitas luas hingga pertengahan abad ke-19, ketika ahli teori Finlandia-Rusia Carl Jaenisch menerbitkan artikel terperinci tentang 1.e4 e5 dalam edisi Desember 1847 dari Le Palamède, majalah catur pertama di dunia. Versi ringkasnya muncul di Chess Player's Chronicle pada tahun 1848, diikuti oleh artikel tambahan di publikasi yang sama pada tahun 1849.",
-    sejarahAyat2:
-      "Ruy Lopez telah lama dianggap sebagai pembukaan terpenting di antara Permainan Terbuka pada tingkat master. Hampir setiap pemain telah menggunakannya pada suatu titik dalam karier mereka, seringkali dengan kedua warna. Karena kesulitan bagi Hitam dalam mencapai kesetaraan, julukan umum untuk pembukaan ini adalah \"Penyiksaan Spanyol\".",
-    lanjutan: {
-      morphy: "Morphy Defense (Utama)",
-      berlin: "Berlin Defense",
-      steinitz: "Steinitz Defense",
-      schliemann: "Schliemann Gambit",
-    },
+      "Peta pembukaan dari data nyata: 18.713 jalur, 3.196 nama, 349 kode ECO — semuanya terhubung ke papan interaktif situs ini.",
+    metaDeskripsi:
+      "Jelajahi pembukaan catur lewat data: 18.713 jalur dari lichess-org/chess-openings, pohon langkah pertama, dan katalog keluarga pembukaan yang bisa dicari.",
+    introJudul: "Setiap pembukaan punya nama.",
+    introP1:
+      "Mainkan 1. e4 e5 2. Nf3 Nc6 3. Bb5, dan posisinya punya nama: Ruy Lopez, kode C60. Buku pembukaan situs ini menyimpan 18.713 jalur seperti itu — hasil olahan data lichess-org/chess-openings (CC0) — dan terpasang langsung di papan interaktif: mainkan langkah apa pun, nama dan kode ECO posisinya dikenali otomatis.",
+    introP2:
+      "Angka-angka di halaman ini bukan perkiraan. Jumlah jalur, partai, dan persentase kemenangan semuanya dihitung langsung dari berkas buku pembukaan yang dipakai situs ini.",
+    statJalur: "jalur pembukaan",
+    statNama: "nama pembukaan",
+    statKeluarga: "keluarga pembukaan",
+    statEco: "kode ECO",
+    sumberBaris:
+      "Sumber: buku pembukaan situs ini — hasil olahan lichess-org/chess-openings, lisensi CC0.",
+    pohonJudul: "Empat pintu masuk",
+    pohonPengantar:
+      "Hampir semua jalur buku bermula dari salah satu empat langkah pertama berikut. Jumlah jalur dihitung dari berkas buku; label keluarga pada tiap balasan adalah keluarga terbesar di buku untuk balasan itu.",
+    e4Deskripsi:
+      "Pion raja menduduki pusat dan membuka jalur menteri serta gajah f1. Balasan klasik 1… e5 melahirkan Permainan Terbuka — Italian, Ruy Lopez, Scotch — sementara 1… c5 membuka Sisilia; Prancis dan Karo-Kann menyusul di belakangnya.",
+    d4Deskripsi:
+      "Pion menteri menguasai pusat dan langsung dilindungi menteri d1. Balasan 1… d5 membawa ke keluarga Gambit Menteri; 1… Nf6 menuju berbagai pertahanan India.",
+    c4Deskripsi:
+      "Pion sayap yang mengontrol d5 dari kejauhan tanpa menduduki pusat. Hampir seluruh balasannya tercatat di buku sebagai varian Pembukaan Inggris — termasuk susunan simetris setelah 1… c5.",
+    nf3Deskripsi:
+      "Kuda berkembang sambil mengontrol e5; pion pusat belum ditentukan, sehingga posisi sering berpindah ke susunan Zukertort, Inggris, atau pion menteri.",
+    kataJalur: "jalur",
+    lainnyaCatatan:
+      "Sisanya 340 jalur dibuka dengan langkah pertama lain — terbanyak 1. b3 (88 jalur), 1. g3 (45), dan 1. f4 (42).",
+    kelItalia: "Permainan Italia",
+    kelSisilia: "Pertahanan Sisilia",
+    kelSkandinavia: "Pertahanan Skandinavia",
+    kelPrancis: "Pertahanan Prancis",
+    kelGambitMenteri: "Gambit Menteri Ditolak",
+    kelIndiaRaja: "Pertahanan India Raja",
+    kelEnglund: "Gambit Englund",
+    kelInggris: "Pembukaan Inggris",
+    kelSeranganIndiaRaja: "Serangan India Raja",
+    kelZukertort: "Pembukaan Zukertort",
+    katalogJudul: "Katalog yang bisa dicari",
+    katalogPengantar:
+      "72 keluarga pembukaan dengan partai terbanyak di buku — satu baris teratas per keluarga. Ketik untuk menyaringnya; katalog lengkapnya ada di tab Buku papan interaktif.",
+    katalogPlaceholder: "Cari nama pembukaan atau kode ECO…",
+    katalogCta: "Buka katalog lengkap di papan interaktif",
+    katalogJumlah: "Menampilkan {n} dari {total} keluarga teratas",
+    katalogKosong: "Tidak ada hasil untuk “{q}”. Coba nama lain atau kode ECO.",
+    katalogCatatan:
+      "P·S·H = persentase kemenangan putih, seri, dan hitam pada jalur tersebut.",
+    kolomEco: "ECO",
+    kolomNama: "Nama pembukaan",
+    kolomPartai: "Partai",
+    kolomPSH: "P·S·H",
+    alatJudul: "Di papan interaktif",
+    alat1:
+      "Nama pembukaan dan kode ECO posisi muncul otomatis saat langkah dimainkan.",
+    alat2:
+      "Katalog 3.196 nama, dikelompokkan per keluarga, dapat dicari menurut nama atau ECO.",
+    alat3:
+      "Statistik tiap kandidat langkah: jumlah partai serta persentase putih, seri, dan hitam.",
+    alat4:
+      "Latihan repertoar: simpan jalur, latih pihak pilihan Anda dengan jadwal pengulangan — progresnya tersimpan di peramban.",
+    alat5:
+      "Uji pembukaan Anda langsung melawan Stockfish lokal dari posisi buku mana pun.",
+    penutupJudul: "Mulai dari langkah pertama",
+    penutupIsi:
+      "Papan interaktif terbuka langsung di peramban tanpa pendaftaran. Mainkan 1. e4 — atau langkah apa pun — dan buku pembukaan langsung menunjukkan identitas posisinya.",
+    ctaUtama: "Buka Papan Interaktif",
+    ariaPapanMini: "Papan catur: posisi setelah {langkah}.",
   }
 
 /** Keadaan pembaca PDF (komponen src/components/PembacaPdf.jsx). */
