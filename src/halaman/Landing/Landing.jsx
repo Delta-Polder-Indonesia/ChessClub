@@ -476,7 +476,7 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className="focus:outline-none focus:ring-0 font-serif text-black font-semibold text-2xl md:text-3xl">
+            <h2 className="focus:outline-none focus:ring-0 font-serif text-slate-900 font-semibold text-2xl md:text-3xl">
               {t("landing.harapanJudul")}
             </h2>
             <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
@@ -491,7 +491,7 @@ function HarapanTerimaKasih({ t }) {
               </div>
             </div>
             <div className="w-full relative bg-transparent">
-              <p className="font-serif font-bold text-lg md:text-xl text-black">
+              <p className="font-serif font-bold text-lg md:text-xl text-slate-900">
                 {t("landing.harapanNama")}
               </p>
               <p className="mt-1 font-serif text-sm md:text-base text-slate-600">
@@ -510,7 +510,7 @@ function AjakanBergabung({ t }) {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
       <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
-        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-slate-900">
           {t("landing.ajakanJudul")} <em className="font-serif text-primary italic">{t("landing.ajakanJudulAccent")}</em>
         </h2>
         <p className="font-serif text-slate-600">{t("landing.ajakanDeskripsi")}</p>
@@ -589,7 +589,7 @@ export default function Landing() {
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-black">{t("nav.keberlanjutan")}</h2>
+              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-slate-900">{t("nav.keberlanjutan")}</h2>
               <p className="font-serif text-justify text-slate-600 leading-relaxed">
                 {t("landing.keberlanjutanDesk")}
               </p>

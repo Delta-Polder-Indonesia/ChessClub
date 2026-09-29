@@ -83,7 +83,7 @@ export default function Testimoni() {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-slate-900">
           {t("landing.testimoniJudul")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-x-[clamp(2rem,5vw,4.5rem)] gap-y-10 md:gap-y-0 items-start mt-10">

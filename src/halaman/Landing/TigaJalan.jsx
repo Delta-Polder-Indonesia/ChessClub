@@ -105,7 +105,7 @@ export default function TigaJalan() {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl text-slate-900">
             {t("landing.tigaJalanJudul")}{" "}
             <em className="font-serif text-primary not-italic">{t("landing.tigaJalanJudulAccent")}</em>
           </h2>
