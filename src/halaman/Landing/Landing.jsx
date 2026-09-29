@@ -16,8 +16,6 @@ import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import TigaJalan from "./TigaJalan.jsx";
-import Testimoni from "./Testimoni.jsx";
-
 const SLIDE_DURATION = 7000;
 
 /** Hero carousel — slide full-width gambar + overlay gelap + navigasi garis progress. */
@@ -38,6 +36,9 @@ function LandingHero({ t }) {
   ];
 
   useEffect(() => {
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return undefined;
+
     const timer = window.setTimeout(() => {
       setIndex((i) => (i + 1) % SLIDES.length);
     }, SLIDE_DURATION);
@@ -84,32 +85,53 @@ function LandingHero({ t }) {
         ))}
       </div>
 
+      <div className="absolute inset-0 z-[2] flex items-center pointer-events-none">
+        <div className="mx-auto w-full max-w-[1080px] xl:max-w-7xl px-6 md:px-8 xl:px-0 pt-8 md:pt-0">
+          <div className="max-w-2xl text-white">
+            <h1 className="max-w-[15ch] font-serif text-4xl font-semibold leading-[1.08] md:text-6xl">
+              {t("landing.heroJudul")}
+            </h1>
+            <p className="mt-6 max-w-[58ch] text-base leading-7 text-white/85 md:text-lg">
+              {t("landing.heroDeskripsi")}
+            </p>
+            <div className="pointer-events-auto mt-8 flex flex-wrap gap-3">
+              <Link
+                to="/papan-interaktif"
+                className="inline-flex min-h-12 items-center gap-2 rounded border border-white bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition-colors hover:bg-transparent hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                {t("landing.heroTombolUtama")}
+                <ArrowRightIcon className="size-4" />
+              </Link>
+              <Link
+                to="/tentang-kami"
+                className="inline-flex min-h-12 items-center gap-2 rounded border border-white/70 px-5 py-3 text-sm font-semibold text-white transition-colors hover:border-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950"
+              >
+                {t("landing.heroTombolSekunder")}
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Navigasi garis progress — di bawah gambar */}
       <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
-            <div
+            <button
+              type="button"
               key={slide.label}
-              role="button"
-              tabIndex={0}
               aria-label={slide.label}
               aria-current={active ? "true" : undefined}
               onClick={() => setIndex(i)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIndex(i);
-                }
-              }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
-                active ? "text-white" : "text-white/50"
-              }`}
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer bg-transparent py-2 text-left md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+              active ? "text-white" : "text-white/50"
+            }`}
             >
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-[red] opacity-100" : "opacity-10"
+                    active ? "text-blue-400 opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -123,7 +145,7 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
                 style={
                   active
                     ? {
@@ -131,8 +153,8 @@ function LandingHero({ t }) {
                       }
                     : { transform: "scaleX(0)" }
                 }
-              />
-            </div>
+                />
+            </button>
           );
         })}
       </div>
@@ -537,15 +559,11 @@ export default function Landing() {
     <div className="w-full overflow-x-hidden">
       <MetaHalaman
         title={t("common.judulBeranda")}
-        description="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
+        description={t("landing.metaDescription")}
       />
-      {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
-          disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
-      <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
       <SorotanKegiatan t={t} />
       <TigaJalan />
-      <Testimoni />
       <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
         <img
           {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
@@ -590,7 +608,7 @@ export default function Landing() {
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
               <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-slate-900">{t("nav.keberlanjutan")}</h2>
-              <p className="font-serif text-justify text-slate-600 leading-relaxed">
+              <p className="font-serif text-start text-slate-600 leading-relaxed">
                 {t("landing.keberlanjutanDesk")}
               </p>
             </div>
@@ -606,6 +624,16 @@ export default function Landing() {
             </div>
           </div>
         </div>
+      </section>
+
+      <BagianGambarKartu t={t} />
+
+      <HarapanTerimaKasih t={t} />
+
+      <AjakanBergabung t={t} />
+    </div>
+  );
+}      </div>
       </section>
 
       <BagianGambarKartu t={t} />

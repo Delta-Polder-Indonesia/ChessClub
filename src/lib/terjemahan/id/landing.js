@@ -4,14 +4,21 @@
  */
 
 export const landing = {
+    metaDescription:
+      "Komunitas Catur Indonesia: ruang untuk bermain, belajar, berlatih, dan mengikuti kegiatan catur dengan sumber yang jelas.",
+    heroJudul: "Bermain, belajar, dan menguji langkah.",
+    heroDeskripsi:
+      "Temukan papan interaktif, materi pembelajaran, latihan taktik, dan kegiatan komunitas dalam satu ruang catur yang terbuka.",
+    heroTombolUtama: "Mulai berlatih",
+    heroTombolSekunder: "Kenali komunitas",
     sekilasLabel: "Sekilas Blunder Skuad",
     sekilasDesk:
-      "Selama lebih dari satu dekade, kami menyediakan wadah bermain dan belajar bagi pecatur dari seluruh penjuru negeri.",
+      "KCI menyediakan ruang untuk bermain, belajar, dan bertumbuh bagi pecatur dari berbagai daerah di Indonesia.",
     ketuaPengurus: "Ketua dan Pengurus",
     pustakaLabel: "Perpustakaan",
     pustakaJudul: "E-Book Catur",
     pustakaDesk:
-      "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.",
+      "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Tersedia untuk dipelajari dan diunduh.",
     kartu1Judul: "Program Sekolah Catur",
     kartu1Desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan.",
     kartu2Judul: "Turnamen Berkala",

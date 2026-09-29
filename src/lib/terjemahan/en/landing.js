@@ -4,14 +4,21 @@
  */
 
 export const landing = {
+    metaDescription:
+      "Indonesia Chess Community: one clear place to play, learn, practice, and take part in chess activities.",
+    heroJudul: "Play, learn, and test your moves.",
+    heroDeskripsi:
+      "Find an interactive board, learning material, tactical practice, and community activities in one open chess space.",
+    heroTombolUtama: "Start practicing",
+    heroTombolSekunder: "Meet the community",
     sekilasLabel: "Blunder Skuad at a Glance",
     sekilasDesk:
-      "For more than a decade, we have provided a place to play and learn for chess players from every corner of the country.",
+      "KCI provides a place to play, learn, and grow for chess players from different regions of Indonesia.",
     ketuaPengurus: "Chairman & Management",
     pustakaLabel: "Library",
     pustakaJudul: "Chess E-Books",
     pustakaDesk:
-      "Learning materials written and curated by members, from opening fundamentals to theoretical endgames — all free to download.",
+      "Learning materials written and curated by members, from opening fundamentals to theoretical endgames. Available to read and download.",
     kartu1Judul: "Chess School Program",
     kartu1Desk: "Explore the chess education and training programs we provide for everyone.",
     kartu2Judul: "Regular Tournaments",
