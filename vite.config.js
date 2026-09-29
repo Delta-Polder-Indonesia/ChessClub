@@ -257,6 +257,25 @@ export default defineConfig({
         return html.replace(/(connect-src [^;]*)/, "$1 ws: wss:");
       },
     },
+    /**
+     * HANYA saat `vite dev` (apply: "serve"): izinkan helper impeccable live
+     * di http://localhost:8400 — skrip picker serta koneksi SSE ke /poll.
+     * Tanpa allowance ini CSP memblokir keduanya, jadi bar global live tidak
+     * pernah muncul.
+     *
+     *IDI production tidak tersentuh: `apply: "serve"` tidak pernah jalan
+     * saat build, sehingga meta CSP di index.html dan header vercel.json tetap
+     * seperti aslinya. Hapus blok ini untuk mematikan live mode.
+     */
+    {
+      name: "kci-csp-dev-impeccable-live",
+      apply: "serve",
+      transformIndexHtml(html) {
+        return html
+          .replace(/(script-src [^;]*)/, "$1 http://localhost:8400")
+          .replace(/(connect-src [^;]*)/, "$1 http://localhost:8400");
+      },
+    },
     performaHalaman({ siteUrl: SITE_URL }),
     // Pratinjau e-book: /api/ebook-preview harus dilayani lokal (bukan
     // diteruskan ke backend Node), persis seperti function di Vercel.

@@ -16,18 +16,17 @@
       http-equiv="Content-Security-Policy"
       content="
         default-src 'self';
-        script-src 'self' 'wasm-unsafe-eval' https://va.vercel-scripts.com;
+        script-src 'self' 'wasm-unsafe-eval' https://va.vercel-scripts.com http://localhost:8400;
         style-src 'self' 'unsafe-inline';
         img-src 'self' data: blob: https:;
         font-src 'self' data:;
-        connect-src 'self' https://media.githubusercontent.com https://*.supabase.co https://api.chess.com https://www.chess.com https://lichess.org https://tablebase.lichess.ovh https://va.vercel-scripts.com https://*.wikipedia.org https://*.wikibooks.org https://translate.googleapis.com;
+        connect-src 'self' https://media.githubusercontent.com https://*.supabase.co https://api.chess.com https://www.chess.com https://lichess.org https://tablebase.lichess.ovh https://va.vercel-scripts.com https://*.wikipedia.org https://*.wikibooks.org https://translate.googleapis.com http://localhost:8400;
         worker-src 'self' blob:;
         frame-src 'self' https://*.supabase.co https://media.githubusercontent.com https://docs.google.com;
         object-src 'none';
         base-uri 'self';
         form-action 'self';
-      "
-    />
+      " data-impeccable-csp-original="DQogICAgICAgIGRlZmF1bHQtc3JjICdzZWxmJzsNCiAgICAgICAgc2NyaXB0LXNyYyAnc2VsZicgJ3dhc20tdW5zYWZlLWV2YWwnIGh0dHBzOi8vdmEudmVyY2VsLXNjcmlwdHMuY29tOw0KICAgICAgICBzdHlsZS1zcmMgJ3NlbGYnICd1bnNhZmUtaW5saW5lJzsNCiAgICAgICAgaW1nLXNyYyAnc2VsZicgZGF0YTogYmxvYjogaHR0cHM6Ow0KICAgICAgICBmb250LXNyYyAnc2VsZicgZGF0YTo7DQogICAgICAgIGNvbm5lY3Qtc3JjICdzZWxmJyBodHRwczovL21lZGlhLmdpdGh1YnVzZXJjb250ZW50LmNvbSBodHRwczovLyouc3VwYWJhc2UuY28gaHR0cHM6Ly9hcGkuY2hlc3MuY29tIGh0dHBzOi8vd3d3LmNoZXNzLmNvbSBodHRwczovL2xpY2hlc3Mub3JnIGh0dHBzOi8vdGFibGViYXNlLmxpY2hlc3Mub3ZoIGh0dHBzOi8vdmEudmVyY2VsLXNjcmlwdHMuY29tIGh0dHBzOi8vKi53aWtpcGVkaWEub3JnIGh0dHBzOi8vKi53aWtpYm9va3Mub3JnIGh0dHBzOi8vdHJhbnNsYXRlLmdvb2dsZWFwaXMuY29tOw0KICAgICAgICB3b3JrZXItc3JjICdzZWxmJyBibG9iOjsNCiAgICAgICAgZnJhbWUtc3JjICdzZWxmJyBodHRwczovLyouc3VwYWJhc2UuY28gaHR0cHM6Ly9tZWRpYS5naXRodWJ1c2VyY29udGVudC5jb20gaHR0cHM6Ly9kb2NzLmdvb2dsZS5jb207DQogICAgICAgIG9iamVjdC1zcmMgJ25vbmUnOw0KICAgICAgICBiYXNlLXVyaSAnc2VsZic7DQogICAgICAgIGZvcm0tYWN0aW9uICdzZWxmJzsNCiAgICAgIA=="    />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="64x64" href="/favicon-64.png" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -94,5 +93,8 @@
       <img src="/images/tonggak-2015.webp" alt="" width="828" height="462" fetchpriority="high" decoding="async" />
     </div>
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+  <!-- impeccable-live-start -->
+<script src="http://localhost:8400/live.js?token=be9b0eaa-9ba8-43a9-9b53-bff12c519d7d"></script>
+<!-- impeccable-live-end -->
+</body>
 </html>

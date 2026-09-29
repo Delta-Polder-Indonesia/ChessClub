@@ -8,7 +8,7 @@
  * untuk Komunitas Catur Indonesia. Tidak ada kode maupun teks yang
  * disalin dari situs pihak lain.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
@@ -16,9 +16,19 @@ import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import TigaJalan from "./TigaJalan.jsx";
-import Testimoni from "./Testimoni.jsx";
+import AngkaNyata from "./AngkaNyata.jsx";
+import KabarKomunitas from "./KabarKomunitas.jsx";
 
 const SLIDE_DURATION = 7000;
+
+/** Tinggi minimum area foto hero. Nilainya sama dengan tinggi #boot-hero di
+ *  index.html supaya gambar pramuat dari HTML tidak melompat saat React mount. */
+const HERO_MIN_HEIGHT = "650px";
+
+/** Container yang dipakai hero, TigaJalan, dan seksi angka — satu pola
+ *  pengukuran saja, bukan tiga. */
+const KONTAINER_HERO =
+  "mx-auto w-full max-w-[1080px] xl:max-w-7xl px-6 md:px-8 lg:px-8 xl:px-0";
 
 /** Hero carousel — slide full-width gambar + overlay gelap + navigasi garis progress. */
 function LandingHero({ t }) {
@@ -55,18 +65,22 @@ function LandingHero({ t }) {
   }, [index]);
 
   return (
-    <section className="w-full relative bg-transparent pb-20 overflow-hidden">
-      <div className="w-full relative h-full min-h-[650px] overflow-hidden">
+    <section className="w-full relative bg-transparent overflow-hidden">
+      {/* Tumpukan foto — absolutely positioned di belakang; konten di bawah
+          memakai flow sehingga tinggi seksi mengikuti isinya, bukan angka tetap. */}
+      <div
+        className="absolute inset-0 h-full w-full overflow-hidden pointer-events-none"
+        aria-hidden="true"
+      >
         {SLIDES.map((slide, i) => (
           <div
             key={slide.label}
             className={`w-full absolute inset-0 transition-opacity duration-700 ease-in-out ${
-              i === index ? "opacity-100" : "opacity-0 pointer-events-none"
+              i === index ? "opacity-100" : "opacity-0"
             }`}
             style={{ zIndex: i === index ? 1 : 0 }}
-            aria-hidden={i !== index}
           >
-            <div className="w-full relative h-full min-h-[650px] bg-hero">
+            <div className="w-full relative h-full bg-hero">
               {i === index && (
                 <img
                   {...slide.sumber}
@@ -78,14 +92,56 @@ function LandingHero({ t }) {
                   className="absolute inset-0 w-full h-full object-cover"
                 />
               )}
-              <div className="absolute inset-0 pointer-events-none bg-black/50" />
+              {/* Scrim vertikal — satu-satunya gradien yang diizinkan
+                  DESIGN.md. Nilainya lebih gelap daripada yang tercatat di
+                  dokumen: dengan 0.2/0.35/0.8, foto hero yang terang
+                  menyisakan RGB ~159 di balik judul dan hanya memberi
+                  2.5:1 — di bawah ambang 3:1. Diukur ulang lewat
+                  getImageData; 0.30/0.65/0.85 menempatkan judul, paragraf,
+                  dan navigasi di atas 4.5:1. */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/65 to-black/85" />
             </div>
           </div>
         ))}
       </div>
 
-      {/* Navigasi garis progress — di bawah gambar */}
-      <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      {/* Judul, deskripsi, dan ajakan — flow normal supaya di layar sempit
+          halaman ikut memanjang, tidak pernah tertimpa seksi berikutnya. */}
+      <div
+        className={`${KONTAINER_HERO} relative z-10 flex flex-col justify-end`}
+        style={{ minHeight: HERO_MIN_HEIGHT }}
+      >
+        <div className="flex flex-col items-start gap-5 pt-28 pb-14 md:pt-32 md:pb-16 lg:max-w-[58%]">
+          <h1 className="m-0 font-serif text-white font-bold text-3xl md:text-[38px] leading-normal">
+            {t("landing.heroJudul")}
+          </h1>
+          <p className="m-0 max-w-[54ch] font-serif text-white/90 text-sm md:text-base leading-6">
+            {t("landing.heroDesk")}
+          </p>
+          <div className="flex flex-wrap gap-3 md:gap-4 mt-3">
+            <Link
+              to="/papan-interaktif"
+              className="inline-flex items-center gap-2 bg-white text-slate-950 font-serif font-semibold text-sm px-6 py-3 rounded hover:bg-transparent hover:text-white hover:border hover:border-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+            >
+              {t("landing.heroTombolUtama")}
+              <ArrowRightIcon className="size-4" />
+            </Link>
+            <Link
+              to="/pendaftaran-anggota"
+              className="inline-flex items-center gap-2 border border-white text-white font-serif font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-slate-950 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+            >
+              {t("landing.heroTombolDaftar")}
+              <ArrowRightIcon className="size-4" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigasi garis progress — di bawah gambar, sejajar dengan container
+          yang sama supaya judul dan navigasi dibaca sebagai satu blok. */}
+      <div
+        className={`${KONTAINER_HERO} relative z-10 flex space-x-2 pb-14 md:pb-16 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden`}
+      >
         {SLIDES.map((slide, i) => {
           const active = i === index;
           return (
@@ -109,7 +165,7 @@ function LandingHero({ t }) {
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-[red] opacity-100" : "opacity-10"
+                    active ? "text-[#4d7cf5] opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -123,7 +179,7 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[#4d7cf5] pointer-events-none"
                 style={
                   active
                     ? {
@@ -174,10 +230,10 @@ function SorotanKegiatan({ t }) {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none text-grey-800 max-[700px]:text-[2.4rem]">
+          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none text-slate-900 max-[700px]:text-[2.4rem]">
             {t("landing.sorotanJudul")}
           </h2>
-          <p className="mt-3 mb-0 text-sm leading-[1.5] text-grey-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
+          <p className="mt-3 mb-0 text-sm leading-[1.5] text-slate-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
             {t("landing.sorotanDeskripsi")}
           </p>
         </div>
@@ -194,7 +250,7 @@ function SorotanKegiatan({ t }) {
             );
             const teks = (
               <>
-                <h3 className="font-serif font-semibold text-lg text-slate-900 transition-colors group-hover:text-primary">{s.judul}</h3>
+                <h3 className="font-serif font-semibold text-lg text-slate-900 transition-colors group-hover:text-[#0B2F9F]">{s.judul}</h3>
                 <p className="font-serif text-sm text-slate-600 leading-6">{s.isi}</p>
               </>
             );
@@ -204,7 +260,7 @@ function SorotanKegiatan({ t }) {
                 {s.to ? (
                   <Link
                     to={s.to}
-                    className="group flex cursor-pointer flex-col gap-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                    className="group flex cursor-pointer flex-col gap-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2F9F] focus-visible:ring-offset-2"
                   >
                     {teks}
                   </Link>
@@ -373,11 +429,11 @@ function CardCarousel({ index, setIndex, t }) {
         >
           {tripled.map((k, i) => {
             const isActive = i === index;
-            // Saat lompatan reset (noAnim), kartu aktif biru "pindah" ke
+            // Saat lompatan reset (noAnim), kartu aktif "pindah" ke
             // elemen DOM lain. Bila kartu masih membawa kelas transisi,
-            // perpindahan putih → biru terANIMASI ±150 ms dan tampak
-            // sebagai kedipan putih. Karena itu SEMUA transisi (kartu,
-            // teks, garis, ikon) dilepas selama frame lompatan.
+            // perpindahan warna itu terANIMASI ±150 ms dan tampak sebagai
+            // kedipan. Karena itu SEMUA transisi (kartu, teks, garis, ikon)
+            // dilepas selama frame lompatan.
             const transisi = noAnim ? "" : "transition-all";
             const transisiWarna = noAnim ? "" : "transition-colors";
             return (
@@ -387,19 +443,19 @@ function CardCarousel({ index, setIndex, t }) {
                 title={k.judul}
                 className={`flex-none w-[250px] h-[300px] p-6 rounded-lg border gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
                   isActive
-                    ? "bg-primary border-primary text-white"
-                    : "bg-white border-slate-200 text-slate-900 hover:bg-primary hover:border-primary group"
+                    ? "bg-white border-[#0B2F9F] text-slate-900"
+                    : "bg-white border-slate-200 text-slate-900 hover:border-[#0B2F9F] group"
                 }`}
               >
-                <h3 className={`font-serif text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
+                <h3 className={`font-serif text-xl font-semibold ${isActive ? "text-[#0B2F9F]" : "text-slate-900 group-hover:text-[#0B2F9F]"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
-                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-primary group-hover:bg-white"} ${transisiWarna}`} />
-                <p className={`font-serif text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
+                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-[#0B2F9F]" : "bg-slate-300 group-hover:bg-[#0B2F9F]"} ${transisiWarna}`} />
+                <p className={`font-serif text-sm leading-6 ${isActive ? "text-slate-700" : "text-slate-600 group-hover:text-slate-700"} ${transisiWarna}`}>
                   {k.desk}
                 </p>
                 <div className="block mt-auto ml-auto">
-                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-white" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`} />
+                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-[#0B2F9F]" : "text-slate-400 group-hover:text-[#0B2F9F]"} ${transisiWarna}`} />
                 </div>
               </Link>
             );
@@ -411,7 +467,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.sebelumnya")}
           onClick={() => setIndex((i) => i - 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-[#0B2F9F] hover:border-[#0B2F9F] transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2F9F] focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-slate-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
@@ -419,7 +475,7 @@ function CardCarousel({ index, setIndex, t }) {
           type="button"
           aria-label={t("landing.selanjutnya")}
           onClick={() => setIndex((i) => i + 1)}
-          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-[#0B2F9F] hover:border-[#0B2F9F] transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2F9F] focus-visible:ring-offset-2"
         >
           <ArrowRightIcon className="size-6 text-slate-600 group-hover:text-white transition-colors" />
         </button>
@@ -511,12 +567,12 @@ function AjakanBergabung({ t }) {
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
       <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
         <h2 className="font-serif font-semibold text-2xl md:text-3xl text-slate-900">
-          {t("landing.ajakanJudul")} <em className="font-serif text-primary italic">{t("landing.ajakanJudulAccent")}</em>
+          {t("landing.ajakanJudul")} <em className="font-serif text-[#0B2F9F] italic">{t("landing.ajakanJudulAccent")}</em>
         </h2>
         <p className="font-serif text-slate-600">{t("landing.ajakanDeskripsi")}</p>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2F9F] focus-visible:ring-offset-2"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -529,23 +585,16 @@ function AjakanBergabung({ t }) {
 export default function Landing() {
   const { t } = useI18n();
 
-  useEffect(() => {
-    document.title = t("common.namaKomunitas");
-  }, [t]);
-
   return (
     <div className="w-full overflow-x-hidden">
       <MetaHalaman
         title={t("common.judulBeranda")}
-        description="Blunder Skuad — Komunitas Catur Indonesia: wadah bermain, belajar, dan bertumbuh bagi pecatur. Ikuti jadwal turnamen, peringkat anggota, kelas pelatihan, dan kabar komunitas terbaru."
+        description={t("landing.metaDeskripsi")}
       />
-      {/* H1 utama halaman — hero sengaja visual murni, jadi judul halaman
-          disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
-      <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
       <SorotanKegiatan t={t} />
       <TigaJalan />
-      <Testimoni />
+      <AngkaNyata />
       <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
         <img
           {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
@@ -585,6 +634,8 @@ export default function Landing() {
         </div>
       </section>
 
+      <KabarKomunitas />
+
       <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-24 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
@@ -598,7 +649,7 @@ export default function Landing() {
               <Link
                 to="/keberlanjutan"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0B2F9F] focus-visible:ring-offset-2"
               >
                 <span className="order-1 font-serif">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />

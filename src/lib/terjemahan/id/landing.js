@@ -4,22 +4,33 @@
  */
 
 export const landing = {
-    sekilasLabel: "Sekilas Blunder Skuad",
+    metaDeskripsi:
+      "Portal resmi Komunitas Catur Indonesia: 18.713 jalur buku pembukaan, 5.486 soal teka-teki, mesin Stockfish dan Sunfish, 32 e-book PDF, jadwal VH, dan pendaftaran anggota.",
+    heroJudul: "Wadah bermain dan belajar catur",
+    heroDesk:
+      "Papan interaktif, mesin Stockfish dan Sunfish, pohon pembukaan, teka-teki, dan e-book — semuanya berjalan di peramban, tanpa pemasangan.",
+    heroTombolUtama: "Buka papan interaktif",
+    heroTombolDaftar: "Daftar jadi anggota",
+    angkaJudul: "Portal ini dalam angka",
+    angkaDesk:
+      "Empat penghitung yang diambil langsung dari berkas data dan pustaka di repositori.",
+    angkaSoalNilai: "5.486",
+    angkaSoalLabel: "Soal teka-teki",
+    angkaBukaNilai: "18.713",
+    angkaBukaLabel: "Jalur buku pembukaan",
+    angkaEbookNilai: "32",
+    angkaEbookLabel: "PDF e-book",
+    angkaPetaNilai: "11.957",
+    angkaPetaLabel: "Peta posisi (FEN)",
+    angkaCatatan:
+      "Keempat angka dihitung dari berkas publik di repositori: public/data/teka-teki.json, public/data/buku-pembukaan.json, public/data/buku-analisa.json, dan public/ebooks/. Galeri di Media dan Informasi masih berisi foto sampel, dan kami belum mengumpulkan testimoni anggota — bagian itu tidak akan kami isi dengan rekaan.",
+    angkaCatatanTautan: "Lihat rincian aset dan lisensinya",
     sekilasDesk:
       "Selama lebih dari satu dekade, kami menyediakan wadah bermain dan belajar bagi pecatur dari seluruh penjuru negeri.",
     ketuaPengurus: "Ketua dan Pengurus",
-    pustakaLabel: "Perpustakaan",
     pustakaJudul: "E-Book Catur",
     pustakaDesk:
       "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.",
-    kartu1Judul: "Program Sekolah Catur",
-    kartu1Desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan.",
-    kartu2Judul: "Turnamen Berkala",
-    kartu2Desk: "Ikuti kompetisi catur rutin yang kami adakan untuk mengasah kemampuan dan sportivitas.",
-    kartu3Judul: "Komunitas dan Relasi",
-    kartu3Desk: "Bergabung dengan jaringan pecatur dari berbagai daerah di seluruh Indonesia.",
-    kartu4Judul: "Panduan Bermain Catur",
-    kartu4Desk: "Pelajari strategi, taktik, dan tips bermain catur dari dasar hingga tingkat lanjut.",
     sebelumnya: "Sebelumnya",
     selanjutnya: "Selanjutnya",
     keberlanjutanDesk:
@@ -47,49 +58,52 @@ export const landing = {
       "Turnamen Bulanan, Liga Musiman, dan Liga Antar Komunitas menjaga jam terbang bertanding anggota tetap tinggi sepanjang tahun.",
     sorotan2Judul: "Teka-teki Catur",
     sorotan2Isi:
-      "Latihan teka-teki catur (puzzle) mengasah kalkulasi, taktik, dan kejelian membaca posisi untuk setiap pecatur.",
+      "5.486 soal skakmat untuk melatih kalkulasi, taktik, dan kejelian membaca posisi, lengkap dengan mode berjangka.",
     sorotan3Judul: "Penjelajah Pembukaan",
     sorotan3Isi:
-      "Jelajahi pustaka pembukaan catur interaktif — telusuri variasi pembukaan per langkah dan pelajari rencana lawan.",
-    ajakanLabel: "Langkah terakhir",
+      "18.713 jalur pembukaan dari pustaka berlisensi CC0 — telusuri variasi per langkah dan pelajari rencana lawan.",
     ajakanJudul:
       "Jika ingin rating catur Anda benar-benar naik, kurangi belajar dari video acak dan mulailah fokus pada",
     ajakanJudulAccent: "analisis mendalam.",
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
-    tigaJalanLabel: "Tiga jalan ke depan",
     tigaJalanJudul: "Pilih jalur yang paling cocok",
     tigaJalanJudulAccent: "untuk jenjang Anda",
-    tigaJalanAkademiKicker: "Akademi Catur",
     tigaJalanAkademiJudul: "Kurikulum terstruktur",
     tigaJalanAkademiDesk:
       "Kurikulum catur komprehensif dari tingkat dasar hingga permainan akhir. Materi disusun secara kronologis meliputi motif taktis, strategi posisi, teori pembukaan, dan ulasan partai terkenal guna memastikan proses belajar yang runut.",
-    tigaJalanAkademiTerms: "Materi e-book · Akses gratis · Dapat diunduh",
+    tigaJalanAkademiTerms: "32 PDF · Akses gratis · Dapat diunduh",
     tigaJalanAkademiCta: "Lihat kurikulum",
-    tigaJalanLatihanJudul: "Papan Interaktif & Teka-teki",
+    tigaJalanLatihanJudul: "Papan Interaktif",
     tigaJalanLatihanDesk:
-      "Papan buku pembukaan interaktif dan teka-teki taktis untuk mengasah kalkulasi setiap hari, siap dipakai di peramban tanpa instalasi.",
-    tigaJalanLatihanCta: "Mulai berlatih",
-    tigaJalanAnalisaJudul: "Report Analisa",
+      "Satu ruang kerja dengan tiga modus: Analisa, Manusia vs Mesin, dan Latihan Repertoar. Papan, mesin, dan catatan langkah berada di satu layar penuh.",
+    tigaJalanLatihanCta: "Buka papan interaktif",
+    tigaJalanAnalisaJudul: "Papan Analisa Stockfish",
     tigaJalanAnalisaDesk:
-      "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
-    tigaJalanAnalisaCta: "Buka Report Analisa",
-    testimoniLabel: "Suara dari anggota",
-    testimoniJudul: "Apa kata para pecatur komunitas",
-    testimoniLeadAria: "Kutipan unggulan dari anggota",
-    testimoniLeadKutip:
-      "Sejak rutin mengikuti turnamen bulanan, jam terbang bertanding saya naik pesat — setiap partai adalah pelajaran baru yang langsung bisa saya praktekan di papan interaktif.",
-    testimoniLeadNama: "Bima R.",
-    testimoniLeadPeran: "Pemain menengah, peringkat 1650",
-    testimoniKutip1Aria: "Kutipan dari Mayang",
-    testimoniKutip1Kutip:
-      "Modul permainan akhir di e-book gratis itu sangat berharga — dulu saya selalu kehilangan posisi menang sebelum memahami teknik dasar raja dan pion.",
-    testimoniKutip1Nama: "Mayang T.",
-    testimoniKutip1Peran: "Pemain pemula, peringkat 1420",
-    testimoniKutip2Aria: "Kutipan dari Salim",
-    testimoniKutip2Kutip:
-      "Buku pembukaan interaktif memberi struktur latihan yang jelas — saya mulai hafal rencana lawan dan berani keluar dari pembukaan tanpa cemas.",
-    testimoniKutip2Nama: "Salim C.",
-    testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
+      "Impor PGN atau FEN, lalu bandingkan dengan mesin Stockfish 17/18 dan Sunfish. Lengkap dengan laporan ACPL, langkah kritis, dan deteksi kecurangan.",
+    tigaJalanAnalisaCta: "Buka papan analisa",
+    tigaJalanRushJudul: "Rush Teka-teki",
+    tigaJalanRushDesk:
+      "Mode berjangka: pecahkan sebanyak mungkin soal skakmat sebelum nyawa habis. Satu langkah keliru mengakhiri soal itu dan menghabiskan satu nyawa.",
+    tigaJalanRushCta: "Buka rush teka-teki",
+    tigaJalanKuisJudul: "Kuis Catur",
+    tigaJalanKuisDesk:
+      "Seratus soal pengetahuan catur dalam sepuluh kategori: peraturan, bidak, skakmat, taktik, pembukaan, strategi, endgame, notasi, sejarah, dan umum.",
+    tigaJalanKuisCta: "Buka kuis catur",
+    kabarJudul: "Kabar komunitas",
+    kabarDesk:
+      "Empat halaman yang isinya diperbarui pengurus sendiri, sehingga tidak menunggu satu siklus penyuntingan pun untuk sampai ke pengunjung.",
+    kabarBeritaJudul: "Berita Komunitas",
+    kabarBeritaDesk:
+      "Catatan kegiatan komunitas: laporan kegiatan, pembinaan, dan kerja sama yang ditulis pengurus setelah acara berlangsung.",
+    kabarPengumumanJudul: "Pengumuman Resmi",
+    kabarPengumumanDesk:
+      "Keterangan yang perlu diketahui anggota, mulai dari pendaftaran hingga perubahan jadwal. Pengumuman ini juga tampil di dashboard anggota.",
+    kabarJuaraJudul: "Daftar Juara",
+    kabarJuaraDesk:
+      "Turnamen yang sudah selesai atau yang sudah diberi nama juara, diambil dari tabel hasil yang sama dengan halaman Turnamen — jadi keduanya tidak mungkin berbeda.",
+    kabarPeringkatJudul: "Peringkat Anggota",
+    kabarPeringkatDesk:
+      "Rating, rekor, dan jumlah permainan tiap anggota pada kontrol waktu yang dipilih. Satu sumber data dipakai bersama dengan tab Keanggotaan.",
   }

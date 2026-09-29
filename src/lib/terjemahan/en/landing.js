@@ -4,22 +4,33 @@
  */
 
 export const landing = {
-    sekilasLabel: "Blunder Skuad at a Glance",
+    metaDeskripsi:
+      "Official portal of the Indonesia Chess Community: 18,713 opening book lines, 5,486 chess puzzles, Stockfish and Sunfish engines, 32 free e-book PDFs, tournament schedules, and membership registration.",
+    heroJudul: "A place to play and learn chess",
+    heroDesk:
+      "Interactive board, Stockfish and Sunfish engines, opening explorer, puzzles, and e-books — all running in the browser, with nothing to install.",
+    heroTombolUtama: "Open the interactive board",
+    heroTombolDaftar: "Become a member",
+    angkaJudul: "This portal in numbers",
+    angkaDesk:
+      "Four counts taken straight from the data and library files in the repository.",
+    angkaSoalNilai: "5,486",
+    angkaSoalLabel: "Chess puzzles",
+    angkaBukaNilai: "18,713",
+    angkaBukaLabel: "Opening book lines",
+    angkaEbookNilai: "32",
+    angkaEbookLabel: "E-book PDFs",
+    angkaPetaNilai: "11,957",
+    angkaPetaLabel: "Position maps (FEN)",
+    angkaCatatan:
+      "All four counts come from public files in the repository: public/data/teka-teki.json, public/data/buku-pembukaan.json, public/data/buku-analisa.json, and public/ebooks/. The gallery under Media and Information still holds sample photographs, and we have not collected member testimonials — we will not invent them.",
+    angkaCatatanTautan: "See the asset and licence details",
     sekilasDesk:
       "For more than a decade, we have provided a place to play and learn for chess players from every corner of the country.",
     ketuaPengurus: "Chairman & Management",
-    pustakaLabel: "Library",
     pustakaJudul: "Chess E-Books",
     pustakaDesk:
       "Learning materials written and curated by members, from opening fundamentals to theoretical endgames — all free to download.",
-    kartu1Judul: "Chess School Program",
-    kartu1Desk: "Explore the chess education and training programs we provide for everyone.",
-    kartu2Judul: "Regular Tournaments",
-    kartu2Desk: "Join our regular chess competitions to sharpen your skills and sportsmanship.",
-    kartu3Judul: "Community & Networking",
-    kartu3Desk: "Join a network of chess players from various regions across Indonesia.",
-    kartu4Judul: "Chess Playing Guide",
-    kartu4Desk: "Learn chess strategies, tactics, and tips from the basics to the advanced level.",
     sebelumnya: "Previous",
     selanjutnya: "Next",
     keberlanjutanDesk:
@@ -47,49 +58,52 @@ export const landing = {
       "Monthly Tournaments, Seasonal League, and Inter-Community League keep members' competitive flying hours high throughout the year.",
     sorotan2Judul: "Chess Puzzles",
     sorotan2Isi:
-      "Regular chess puzzle practice sharpens calculation, tactics, and the ability to read positions for every player.",
+      "5,486 checkmate problems to sharpen calculation, tactics, and positional reading, with a timed mode as well.",
     sorotan3Judul: "Opening Explorer",
     sorotan3Isi:
-      "Explore an interactive chess opening library — browse opening variations move by move and learn opponent plans.",
-    ajakanLabel: "One last step",
+      "18,713 opening lines from a CC0-licensed library — walk variations move by move and learn your opponent's plans.",
     ajakanJudul:
       "If you want your chess rating to truly climb, cut back on random videos and start focusing on",
     ajakanJudulAccent: "deep analysis.",
     ajakanDeskripsi:
       "Complete your personal data and start joining regular tournaments, coaching classes, and interactive board training sessions with the Indonesia Chess Community.",
     ajakanTombol: "Register Now",
-    tigaJalanLabel: "Three paths forward",
     tigaJalanJudul: "Pick the path that fits",
     tigaJalanJudulAccent: "your level",
-    tigaJalanAkademiKicker: "Chess Academy",
     tigaJalanAkademiJudul: "Structured curriculum",
     tigaJalanAkademiDesk:
       "A comprehensive chess curriculum from the basics to the endgame. The material is organized chronologically, covering tactical motifs, positional strategy, opening theory, and reviews of famous games to ensure a steady learning process.",
-    tigaJalanAkademiTerms: "E-book materials · Free access · Downloadable",
+    tigaJalanAkademiTerms: "32 PDFs · Free access · Downloadable",
     tigaJalanAkademiCta: "See the curriculum",
-    tigaJalanLatihanJudul: "Interactive Board & Puzzles",
+    tigaJalanLatihanJudul: "Interactive Board",
     tigaJalanLatihanDesk:
-      "An interactive opening book board and tactical puzzles to sharpen your calculation every day, ready in the browser with no installation.",
-    tigaJalanLatihanCta: "Start practicing",
-    tigaJalanAnalisaJudul: "Analysis Report",
+      "One workspace with three modes: Analysis, Humans vs Machines, and Opening Repertoire Rehearsal. Board, engine, and move notes share a single full-height screen.",
+    tigaJalanLatihanCta: "Open the interactive board",
+    tigaJalanAnalisaJudul: "Stockfish Analysis Board",
     tigaJalanAnalisaDesk:
-      "Replay your games, explore variations, and compare them with engine analysis to understand your critical moves.",
-    tigaJalanAnalisaCta: "Open analysis report",
-    testimoniLabel: "From the members",
-    testimoniJudul: "What community players say",
-    testimoniLeadAria: "Featured quote from a member",
-    testimoniLeadKutip:
-      "Since regularly joining the monthly tournaments, my competitive match practice has grown fast — every game is a new lesson I can immediately try on the interactive board.",
-    testimoniLeadNama: "Bima R.",
-    testimoniLeadPeran: "Intermediate player, rated 1650",
-    testimoniKutip1Aria: "Quote from Mayang",
-    testimoniKutip1Kutip:
-      "The endgame module in the free e-book is very valuable — I used to lose winning positions before I understood basic king-and-pawn technique.",
-    testimoniKutip1Nama: "Mayang T.",
-    testimoniKutip1Peran: "Beginner player, rated 1420",
-    testimoniKutip2Aria: "Quote from Salim",
-    testimoniKutip2Kutip:
-      "The interactive opening book gives my practice a clear structure — I now know opponent plans and feel confident leaving the opening.",
-    testimoniKutip2Nama: "Salim C.",
-    testimoniKutip2Peran: "Community member, rated 1890",
+      "Import a PGN or FEN and compare it against the Stockfish 17/18 and Sunfish engines, with ACPL reporting, critical moves, and cheating detection on top.",
+    tigaJalanAnalisaCta: "Open the analysis board",
+    tigaJalanRushJudul: "Puzzle Rush",
+    tigaJalanRushDesk:
+      "A timed mode: solve as many checkmate problems as you can before your lives run out. One wrong move ends that problem and costs a life.",
+    tigaJalanRushCta: "Open puzzle rush",
+    tigaJalanKuisJudul: "Chess Quiz",
+    tigaJalanKuisDesk:
+      "One hundred knowledge questions across ten categories: rules, pieces, checkmate, tactics, openings, strategy, endgames, notation, history, and general chess.",
+    tigaJalanKuisCta: "Open the chess quiz",
+    kabarJudul: "Community news",
+    kabarDesk:
+      "Four pages whose content the committee maintains directly, so nothing waits on an editing cycle before it reaches visitors.",
+    kabarBeritaJudul: "Community News",
+    kabarBeritaDesk:
+      "Written records of community activity: reports on tournaments, coaching, and collaborations written by the committee after the event.",
+    kabarPengumumanJudul: "Official Announcements",
+    kabarPengumumanDesk:
+      "What members need to know, from registration through schedule changes. These announcements also appear on the member dashboard.",
+    kabarJuaraJudul: "Champions List",
+    kabarJuaraDesk:
+      "Tournaments that have finished or that the committee has named winners for, read from the same results table as the Tournament page — so the two can never disagree.",
+    kabarPeringkatJudul: "Member Rankings",
+    kabarPeringkatDesk:
+      "Each member's rating, record, and game count at the selected time control. One data source shared with the Membership tab.",
   }
