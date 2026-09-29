@@ -50,7 +50,7 @@ function IkonUnduh() {
 function Field({ label, htmlFor, children }) {
   return (
     <div className="grid gap-1.5">
-      <Label htmlFor={htmlFor} className="font-bold text-black uppercase text-[11px] tracking-wider select-none">
+      <Label htmlFor={htmlFor} className="font-semibold text-grey-600 uppercase text-[11px] tracking-wider select-none">
         {label}
       </Label>
       {children}
@@ -171,12 +171,12 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="judul-unduh-ebook"
-        className="w-full max-w-[440px] overflow-hidden rounded-xl border-2 border-black bg-white shadow-none"
+        className="w-full max-w-[440px] overflow-hidden rounded-lg border border-slate-300 bg-white shadow-none"
       >
         {/* Header */}
-        <CardHeader className="flex-row items-center justify-between gap-4 border-b-2 border-black bg-neutral-50 p-5 shadow-none">
+        <CardHeader className="flex-row items-center justify-between gap-4 border-b border-slate-200 bg-grey-50 p-5 shadow-none">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg border-2 border-black bg-white p-1">
+            <div className="flex h-11 w-11 flex-none items-center justify-center rounded-lg border border-slate-300 bg-white p-1">
               <img
                 src={berkasPublik("/images/color-icon/book-open-aqua.svg")}
                 alt=""
@@ -185,10 +185,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               />
             </div>
             <div className="min-w-0">
-              <CardTitle as="h2" id="judul-unduh-ebook" className="text-base font-black uppercase tracking-tight text-black sm:text-lg">
+              <CardTitle as="h2" id="judul-unduh-ebook" className="text-base font-semibold text-grey-800 sm:text-lg">
                 {t("unduhEbook.judul")}
               </CardTitle>
-              <CardDescription className="mt-0.5 truncate text-xs font-bold text-neutral-700">
+              <CardDescription className="mt-0.5 truncate text-xs font-medium text-grey-600">
                 {buku.judul}
               </CardDescription>
             </div>
@@ -198,7 +198,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             size="icon"
             onClick={onTutup}
             aria-label={t("unduhEbook.tutup")}
-            className="h-9 w-9 flex-none rounded-lg border-2 border-black bg-white text-black shadow-none transition-all hover:bg-neutral-100 hover:text-black active:translate-y-0.5"
+            className="h-9 w-9 flex-none rounded-lg border border-slate-300 bg-white text-grey-600 shadow-none transition-colors hover:bg-grey-100 hover:text-grey-800"
           >
             <IkonTutup />
           </Button>
@@ -210,10 +210,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <CardContent className="flex flex-col items-center gap-4 bg-white p-6 sm:p-8 text-center">
               <IkonCentang />
               <div className="space-y-1">
-                <CardTitle as="h3" className="text-base font-black uppercase tracking-wide text-black">
+                <CardTitle as="h3" className="text-sm font-semibold text-grey-800">
                   {t("unduhEbook.tercatatJudul")}
                 </CardTitle>
-                <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-black">
+                <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-grey-600">
                   {(() => {
                     // Gunakan interpolasi untuk nama, akun, judul dengan tetap menjaga bold pada nama
                     const placeholder = "__NAMA__";
@@ -226,7 +226,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     return (
                       <>
                         {awal}
-                        <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">{tercatat.nama}</strong>
+                        <strong className="border border-slate-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{tercatat.nama}</strong>
                         {akhir}
                       </>
                     );
@@ -238,7 +238,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <a
                 href={urlEbook(buku.file, { unduh: true })}
                 download
-                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border-2 border-black bg-white px-4 text-xs font-bold uppercase tracking-wider text-black shadow-none transition-all hover:bg-neutral-100 active:translate-y-0.5"
+                className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-4 text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400"
               >
                 <IkonUnduh />
                 {t("unduhEbook.unduhLagi")}
@@ -246,7 +246,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <Button
                 variant="ghost"
                 onClick={onTutup}
-                className="h-10 w-full rounded-lg border-2 border-black bg-white text-xs font-bold uppercase tracking-wider text-black shadow-none transition-all hover:bg-neutral-100 active:translate-y-0.5"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
               >
                 {t("unduhEbook.tutup")}
               </Button>
@@ -258,10 +258,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <CardContent className="flex flex-col items-center gap-4 bg-white p-6 sm:p-8 text-center">
               <IkonCentang />
               <div className="space-y-2">
-                <CardTitle as="h3" className="text-base font-black uppercase tracking-wide text-black">
+                <CardTitle as="h3" className="text-sm font-semibold text-grey-800">
                   {t("unduhEbook.mintaJudul")}
                 </CardTitle>
-                <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-black">
+                <CardDescription className="mx-auto max-w-sm text-xs font-medium leading-relaxed text-grey-600">
                   {(() => {
                     const opsiPlaceholder = "__OPSI__";
                     const template = t("unduhEbook.mintaIsi", { opsi: opsiPlaceholder });
@@ -269,7 +269,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     return (
                       <>
                         {awal}
-                        <strong className="border border-black bg-neutral-100 px-1.5 py-0.5 font-bold">{t("unduhEbook.mintaIsiOpsi")}</strong>
+                        <strong className="border border-slate-300 bg-grey-100 px-1.5 py-0.5 font-semibold">{t("unduhEbook.mintaIsiOpsi")}</strong>
                         {akhir}
                       </>
                     );
@@ -280,7 +280,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             <CardFooter className="bg-white p-6 pt-0">
               <Button
                 onClick={onTutup}
-                className="h-10 w-full rounded-lg border-2 border-black bg-white text-xs font-bold uppercase tracking-wider text-black shadow-none transition-all hover:bg-neutral-100 active:translate-y-0.5"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none transition-colors hover:bg-grey-100"
               >
                 {t("unduhEbook.mengerti")}
               </Button>
@@ -291,7 +291,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           <form onSubmit={handleSubmit} noValidate>
             <CardContent className="bg-white p-5 sm:p-6 pb-2">
               {galat && (
-                <div role="alert" className="mb-4 flex items-center gap-2 rounded-lg border-2 border-red-600 bg-red-50 p-3 text-xs font-bold text-red-700 shadow-none">
+                <div role="alert" className="mb-4 flex items-center gap-2 rounded-lg border border-red-600 bg-red-50 p-3 text-xs font-semibold text-red-700 shadow-none">
                   <span className="h-2 w-2 flex-none rounded-full bg-red-600" />
                   <span>{galat}</span>
                 </div>
@@ -311,7 +311,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setNama(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black placeholder:text-neutral-400 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-normal"
                   />
                 </Field>
 
@@ -328,7 +328,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                       setAkun(e.target.value);
                       bersihkanGalat();
                     }}
-                    className="h-10 rounded-lg border-2 border-black bg-white text-xs font-semibold shadow-none focus-visible:ring-0 focus-visible:border-black placeholder:text-neutral-400 placeholder:font-normal"
+                    className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-normal"
                   />
                 </Field>
 
@@ -346,7 +346,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                         setKode(e.target.value.toUpperCase());
                         bersihkanGalat();
                       }}
-                      className="h-10 rounded-lg border-2 border-black bg-white text-xs font-mono font-bold tracking-wider shadow-none focus-visible:ring-0 focus-visible:border-black placeholder:text-neutral-400 placeholder:font-sans placeholder:font-normal"
+                      className="h-10 rounded-lg border border-slate-300 bg-white text-xs font-mono font-semibold tracking-wider text-grey-800 shadow-none focus-visible:ring-0 focus-visible:border-primary placeholder:text-slate-400 placeholder:font-sans placeholder:font-normal"
                     />
                   </Field>
                 )}
@@ -358,7 +358,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               <Button
                 type="submit"
                 disabled={sibuk}
-                className={`h-10 w-full gap-2 rounded-lg border-2 border-black bg-white text-xs font-bold uppercase tracking-wider shadow-none transition-all hover:bg-neutral-100 active:translate-y-0.5 disabled:opacity-50 ${salah ? "border-red-600 text-red-600" : "text-black"}`}
+                className={`h-10 w-full gap-2 rounded-lg border border-primary bg-primary text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400 disabled:opacity-50 ${salah ? "border-red-600 bg-white text-red-600" : "text-white"}`}
               >
                 {punyaKode ? <IkonUnduh /> : <IkonKirim />}
                 {sibuk
@@ -371,14 +371,14 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
               </Button>
 
               {/* Navigasi Teks ala Sign Up / Sign In */}
-              <div className="text-center text-xs font-medium text-black">
+              <div className="text-center text-xs font-medium text-grey-600">
                 {punyaKode ? (
                   <>
                     {t("unduhEbook.belumPunyaKode")}{" "}
                     <button
                       type="button"
                       onClick={() => gantiMode(false)}
-                      className="font-bold underline underline-offset-4 hover:text-neutral-700"
+                      className="font-semibold underline underline-offset-4 hover:text-primary"
                     >
                       {t("unduhEbook.mintaKodeDiSini")}
                     </button>
@@ -389,7 +389,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
                     <button
                       type="button"
                       onClick={() => gantiMode(true)}
-                      className="font-bold underline underline-offset-4 hover:text-neutral-700"
+                      className="font-semibold underline underline-offset-4 hover:text-primary"
                     >
                       {t("unduhEbook.masukkanKode")}
                     </button>

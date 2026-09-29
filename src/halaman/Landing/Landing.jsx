@@ -102,14 +102,14 @@ function LandingHero({ t }) {
                   setIndex(i);
                 }
               }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-[13px] font-sans font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-[red] opacity-100" : "opacity-10"
+                    active ? "text-blue-400 opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -117,13 +117,13 @@ function LandingHero({ t }) {
                 >
                   <circle cx="4" cy="4" r="4" fill="currentColor" />
                 </svg>
-                <div className="bullet-title font-serif transition-all duration-300 group-hover:text-white whitespace-nowrap">
+                <div className="bullet-title transition-all duration-300 group-hover:text-white whitespace-nowrap">
                   {slide.label}
                 </div>
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
                 style={
                   active
                     ? {
@@ -140,23 +140,28 @@ function LandingHero({ t }) {
   );
 }
 
-/** Tiga kartu sorotan kegiatan dengan foto. */
+/** Sorotan kegiatan — pola editorial: satu kartu unggulan lebar (foto + teks
+ *  berdampingan) dan dua kartu sekunder (DESIGN.md §3: hindari grid tiga
+ *  kartu identik). Seluruh kartu adalah tautan utuh; foto memakai alt kosong
+ *  karena judul di dalam tautan yang sama sudah menyebut isinya, sehingga
+ *  pembaca layar tidak membaca dua kali. */
 function SorotanKegiatan({ t }) {
-  const sorotan = [
-    {
-      to: "/turnamen",
-      // Grid 3 kolom di layar sedang (± 340px per kartu), satu kolom full-width
-      // di ponsel; varian 640w dari manifest menutupi keduanya.
-      sumber: sumberGambar("/images/landing-sorotan-turnamen.jpg", {
-        sizes: "(min-width: 768px) 33vw, 100vw",
-      }),
-      judul: t("landing.sorotan1Judul"),
-      isi: t("landing.sorotan1Isi"),
-    },
+  const unggulan = {
+    to: "/turnamen",
+    // Kartu unggulan selebar setengah wadah (± 640px) di layar ke atas;
+    // varian 640w dari manifest menutupinya.
+    sumber: sumberGambar("/images/landing-sorotan-turnamen.jpg", {
+      sizes: "(min-width: 768px) 50vw, 100vw",
+    }),
+    judul: t("landing.sorotan1Judul"),
+    isi: t("landing.sorotan1Isi"),
+    cta: t("landing.sorotan1Cta"),
+  };
+  const sekunder = [
     {
       to: "/program-kami/teka-teki",
       sumber: sumberGambar("/images/landing-sorotan-program.jpg", {
-        sizes: "(min-width: 768px) 33vw, 100vw",
+        sizes: "(min-width: 768px) 50vw, 100vw",
       }),
       judul: t("landing.sorotan2Judul"),
       isi: t("landing.sorotan2Isi"),
@@ -164,7 +169,7 @@ function SorotanKegiatan({ t }) {
     {
       to: "/program-kami/pembukaan",
       sumber: sumberGambar("/images/landing-sorotan-media.jpg", {
-        sizes: "(min-width: 768px) 33vw, 100vw",
+        sizes: "(min-width: 768px) 50vw, 100vw",
       }),
       judul: t("landing.sorotan3Judul"),
       isi: t("landing.sorotan3Isi"),
@@ -174,46 +179,67 @@ function SorotanKegiatan({ t }) {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none text-grey-800 max-[700px]:text-[2.4rem]">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
             {t("landing.sorotanJudul")}
           </h2>
-          <p className="mt-3 mb-0 text-sm leading-[1.5] text-grey-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
+          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
             {t("landing.sorotanDeskripsi")}
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {sorotan.map((s) => {
-            const gambar = (
+
+        {/* Kartu unggulan — foto kiri, teks kanan; bertumpuk di ponsel. */}
+        <Link
+          to={unggulan.to}
+          className="group grid grid-cols-1 md:grid-cols-2 border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        >
+          <img
+            {...unggulan.sumber}
+            alt=""
+            width={640}
+            height={427}
+            loading="lazy"
+            decoding="async"
+            className="w-full aspect-[3/2] md:aspect-auto md:h-full object-cover"
+          />
+          <div className="flex flex-col justify-center gap-3 p-6 md:p-8">
+            <h3 className="font-serif font-semibold text-xl text-grey-800 transition-colors group-hover:text-primary">
+              {unggulan.judul}
+            </h3>
+            <p className="font-serif text-base leading-[1.6] text-grey-600">
+              {unggulan.isi}
+            </p>
+            <span className="mt-2 inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary">
+              {unggulan.cta}
+              <ArrowRightIcon className="size-4" aria-hidden="true" />
+            </span>
+          </div>
+        </Link>
+
+        {/* Dua kartu sekunder — foto di atas, teks di bawah. */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {sekunder.map((s) => (
+            <Link
+              key={s.judul}
+              to={s.to}
+              className="group flex flex-col border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            >
               <img
                 {...s.sumber}
-                alt={s.judul}
-                className="w-full aspect-[3/2] object-cover rounded-lg"
+                alt=""
                 loading="lazy"
                 decoding="async"
+                className="w-full aspect-[3/2] object-cover"
               />
-            );
-            const teks = (
-              <>
-                <h3 className="font-serif font-semibold text-lg text-slate-900 transition-colors group-hover:text-primary">{s.judul}</h3>
-                <p className="font-serif text-sm text-slate-600 leading-6">{s.isi}</p>
-              </>
-            );
-            return (
-              <article key={s.judul} className="flex flex-col gap-4">
-                {gambar}
-                {s.to ? (
-                  <Link
-                    to={s.to}
-                    className="group flex cursor-pointer flex-col gap-4 rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {teks}
-                  </Link>
-                ) : (
-                  <div className="flex flex-col gap-4">{teks}</div>
-                )}
-              </article>
-            );
-          })}
+              <div className="flex flex-col gap-2 p-6">
+                <h3 className="font-serif font-semibold text-lg text-grey-800 transition-colors group-hover:text-primary">
+                  {s.judul}
+                </h3>
+                <p className="font-serif text-base leading-[1.6] text-grey-600">
+                  {s.isi}
+                </p>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </section>
@@ -305,10 +331,10 @@ function CardGambar({ index, t }) {
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3 z-10 pointer-events-none">
-        <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4 uppercase">
+        <h2 className="font-serif text-white font-semibold text-2xl md:text-3xl leading-snug">
           {t("landing.pustakaJudul")}
         </h2>
-        <p className="font-serif text-white/90 text-sm md:text-base max-w-2xl leading-6">
+        <p className="font-serif text-white/90 text-base leading-[1.6]">
           {t("landing.pustakaDesk")}
         </p>
       </div>
@@ -388,18 +414,18 @@ function CardCarousel({ index, setIndex, t }) {
                 className={`flex-none w-[250px] h-[300px] p-6 rounded-lg border gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
                   isActive
                     ? "bg-primary border-primary text-white"
-                    : "bg-white border-slate-200 text-slate-900 hover:bg-primary hover:border-primary group"
+                    : "bg-white border-grey-200 text-grey-800 hover:bg-primary hover:border-primary group"
                 }`}
               >
-                <h3 className={`font-serif text-xl font-bold ${isActive ? "text-white" : "text-slate-900 group-hover:text-white"} ${transisiWarna}`}>
+                <h3 className={`font-serif font-semibold text-lg ${isActive ? "text-white" : "text-grey-800 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
                 <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-primary group-hover:bg-white"} ${transisiWarna}`} />
-                <p className={`font-serif text-sm leading-6 ${isActive ? "text-white/90" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`}>
+                <p className={`font-serif text-[13px] leading-[1.6] ${isActive ? "text-white/90" : "text-grey-600 group-hover:text-white"} ${transisiWarna}`}>
                   {k.desk}
                 </p>
                 <div className="block mt-auto ml-auto">
-                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-white" : "text-slate-600 group-hover:text-white"} ${transisiWarna}`} />
+                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-white" : "text-grey-600 group-hover:text-white"} ${transisiWarna}`} />
                 </div>
               </Link>
             );
@@ -413,7 +439,7 @@ function CardCarousel({ index, setIndex, t }) {
           onClick={() => setIndex((i) => i - 1)}
           className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <ArrowRightIcon className="size-6 text-slate-600 rotate-180 group-hover:text-white transition-colors" />
+          <ArrowRightIcon className="size-6 text-grey-600 rotate-180 group-hover:text-white transition-colors" />
         </button>
         <button
           type="button"
@@ -421,7 +447,7 @@ function CardCarousel({ index, setIndex, t }) {
           onClick={() => setIndex((i) => i + 1)}
           className="w-10 h-10 flex items-center justify-center bg-white border border-slate-300 rounded-lg hover:bg-primary hover:border-primary transition-colors group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
-          <ArrowRightIcon className="size-6 text-slate-600 group-hover:text-white transition-colors" />
+          <ArrowRightIcon className="size-6 text-grey-600 group-hover:text-white transition-colors" />
         </button>
       </div>
     </div>
@@ -476,7 +502,7 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className="focus:outline-none focus:ring-0 font-serif text-black font-semibold text-2xl md:text-3xl">
+            <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
               {t("landing.harapanJudul")}
             </h2>
             <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
@@ -491,10 +517,10 @@ function HarapanTerimaKasih({ t }) {
               </div>
             </div>
             <div className="w-full relative bg-transparent">
-              <p className="font-serif font-bold text-lg md:text-xl text-black">
+              <p className="font-serif font-semibold text-lg text-grey-800">
                 {t("landing.harapanNama")}
               </p>
-              <p className="mt-1 font-serif text-sm md:text-base text-slate-600">
+              <p className="mt-1 font-serif text-[13px] text-grey-600">
                 {t("landing.harapanJabatan")}
               </p>
             </div>
@@ -505,18 +531,151 @@ function HarapanTerimaKasih({ t }) {
   );
 }
 
+/** Galeri kegiatan — mozaik foto editorial: satu foto besar (2×2 petak)
+ *  dan empat foto kecil, ukuran bervariasi, bukan grid kartu identik.
+ *
+ *  GAMBAR SAMPEL SEMENTARA: kelima foto adalah foto stok publik sebagai
+ *  penampung, bukan dokumentasi Blunder Skuad. Ganti dengan foto kegiatan
+ *  asli begitu tersedia — cukup tukar berkas di public/images/Galeri/
+ *  dengan nama yang sama. */
+function GaleriKegiatan({ t }) {
+  const foto = [
+    {
+      sumber: sumberGambar("/images/Galeri/sampel-turnamen-besar.webp", {
+        sizes: "(min-width: 768px) 50vw, 100vw",
+      }),
+      alt: t("landing.galeriAlt1"),
+      besar: true,
+    },
+    {
+      sumber: sumberGambar("/images/Galeri/sampel-papan-1.webp", {
+        sizes: "(min-width: 768px) 25vw, 50vw",
+      }),
+      alt: t("landing.galeriAlt2"),
+    },
+    {
+      sumber: sumberGambar("/images/Galeri/sampel-turnamen-1.webp", {
+        sizes: "(min-width: 768px) 25vw, 50vw",
+      }),
+      alt: t("landing.galeriAlt3"),
+    },
+    {
+      sumber: sumberGambar("/images/Galeri/sampel-papan-2.webp", {
+        sizes: "(min-width: 768px) 25vw, 50vw",
+      }),
+      alt: t("landing.galeriAlt4"),
+    },
+    {
+      sumber: sumberGambar("/images/Galeri/sampel-turnamen-2.webp", {
+        sizes: "(min-width: 768px) 25vw, 50vw",
+      }),
+      alt: t("landing.galeriAlt5"),
+    },
+  ];
+  return (
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
+        <div className="max-w-2xl">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
+            {t("landing.galeriJudul")}
+          </h2>
+          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
+            {t("landing.galeriDesk")}
+          </p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {foto.map((f) => (
+            <figure
+              key={f.alt}
+              className={`m-0 overflow-hidden rounded-lg ${
+                f.besar ? "col-span-2 row-span-2" : ""
+              }`}
+            >
+              <img
+                {...f.sumber}
+                alt={f.alt}
+                loading="lazy"
+                decoding="async"
+                className="w-full aspect-square object-cover"
+              />
+            </figure>
+          ))}
+        </div>
+        <div>
+          <Link
+            to="/media-dan-informasi"
+            className="inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary transition-colors hover:text-grey-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            {t("landing.galeriCta")}
+            <ArrowRightIcon className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/** Cara bergabung — tiga langkah sebagai daftar bernomor (penomoran sah
+ *  karena langkah = urutan nyata; tanpa kartu, cukup garis pemisah 1px). */
+function CaraBergabung({ t }) {
+  const langkah = [
+    { judul: t("landing.langkah1Judul"), isi: t("landing.langkah1Isi") },
+    { judul: t("landing.langkah2Judul"), isi: t("landing.langkah2Isi") },
+    { judul: t("landing.langkah3Judul"), isi: t("landing.langkah3Isi") },
+  ];
+  return (
+    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
+        <div className="max-w-2xl">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
+            {t("landing.langkahJudul")}
+          </h2>
+          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
+            {t("landing.langkahDesk")}
+          </p>
+        </div>
+        <ol className="m-0 p-0 list-none flex flex-col">
+          {langkah.map((l, i) => (
+            <li
+              key={l.judul}
+              className={`flex items-start gap-6 py-6 ${
+                i > 0 ? "border-t border-grey-200" : ""
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="font-serif text-2xl font-semibold text-primary leading-none pt-1"
+              >
+                {i + 1}
+              </span>
+              <div className="flex flex-col gap-2">
+                <h3 className="m-0 font-serif font-semibold text-lg text-grey-800">
+                  {l.judul}
+                </h3>
+                <p className="m-0 font-serif text-base leading-[1.6] text-grey-600">
+                  {l.isi}
+                </p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  );
+}
+
 /** Ajakan bergabung — penutup halaman. */
 function AjakanBergabung({ t }) {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
       <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
-        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
-          {t("landing.ajakanJudul")} <em className="font-serif text-primary italic">{t("landing.ajakanJudulAccent")}</em>
+        <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
+          {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
         </h2>
-        <p className="font-serif text-slate-600">{t("landing.ajakanDeskripsi")}</p>
+        <p className="font-serif text-base leading-[1.6] text-grey-600">{t("landing.ajakanDeskripsi")}</p>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -556,10 +715,10 @@ export default function Landing() {
         />
         <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-3">
-          <h2 className="font-serif text-white font-bold text-3xl md:text-4xl mb-4">
+          <h2 className="font-serif text-white font-semibold text-2xl md:text-3xl leading-snug">
             {t("nav.tentangKami")}
           </h2>
-          <p className="font-serif text-white/90 text-sm md:text-base max-w-2xl leading-6">
+          <p className="font-serif text-white/90 text-base leading-[1.6] max-w-2xl">
             {t("landing.sekilasDesk")}
           </p>
           <div className="flex flex-wrap gap-4 mt-8">
@@ -569,14 +728,14 @@ export default function Landing() {
               // ini; tanpa konteks, pembaca layar (dan audit
               // identical-links-same-purpose) tidak bisa membedakan tujuannya.
               aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
-              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+              className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
             >
               {t("common.selengkapnya")}
               <ArrowRightIcon className="size-4 -rotate-45" />
             </Link>
             <Link
               to="/tentang-kami/struktur-grup-catur"
-              className="inline-flex items-center gap-2 border border-white font-serif text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-black transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+              className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
             >
               {t("landing.ketuaPengurus")}
               <ArrowRightIcon className="size-4 -rotate-45" />
@@ -589,8 +748,8 @@ export default function Landing() {
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-black">{t("nav.keberlanjutan")}</h2>
-              <p className="font-serif text-justify text-slate-600 leading-relaxed">
+              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">{t("nav.keberlanjutan")}</h2>
+              <p className="font-serif text-base leading-[1.6] text-grey-600">
                 {t("landing.keberlanjutanDesk")}
               </p>
             </div>
@@ -598,9 +757,9 @@ export default function Landing() {
               <Link
                 to="/keberlanjutan"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 font-serif font-semibold leading-relaxed flex items-center justify-center border border-black text-black rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="text-sm h-12 px-4 md:px-6 gap-2 font-sans font-semibold leading-relaxed flex items-center justify-center border border-primary text-primary rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <span className="order-1 font-serif">{t("common.selengkapnya")}</span>
+                <span className="order-1">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />
               </Link>
             </div>
@@ -611,6 +770,10 @@ export default function Landing() {
       <BagianGambarKartu t={t} />
 
       <HarapanTerimaKasih t={t} />
+
+      <GaleriKegiatan t={t} />
+
+      <CaraBergabung t={t} />
 
       <AjakanBergabung t={t} />
     </div>

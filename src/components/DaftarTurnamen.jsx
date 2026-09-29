@@ -134,30 +134,30 @@ function Klasemen({ id, k }) {
   if (gagal)
     return (
       <div className="py-3">
-        <p className="text-sm text-gray-700">{k.gagalKlasemen}</p>
+        <p className="text-sm text-grey-600">{k.gagalKlasemen}</p>
         <button
           type="button"
           onClick={() => setPercobaan((n) => n + 1)}
-          className="mt-2 font-sans text-xs font-bold uppercase text-gray-900 underline underline-offset-2 hover:text-black"
+          className="mt-2 font-sans text-xs font-semibold uppercase text-primary underline underline-offset-2 hover:text-grey-800"
         >
           {t("common.cobaLagi")}
         </button>
       </div>
     );
-  if (!data) return <p className="py-3 text-sm text-gray-700">{k.memuatKlasemen}</p>;
+  if (!data) return <p className="py-3 text-sm text-grey-600">{k.memuatKlasemen}</p>;
   if (!data.klasemen?.length)
-    return <p className="py-3 text-sm text-gray-700">{k.belumMain}</p>;
+    return <p className="py-3 text-sm text-grey-600">{k.belumMain}</p>;
 
   return (
     <div className="mt-4 space-y-4">
       <div>
-        <h4 className="mb-2 font-sans text-sm font-black tracking-tight uppercase text-gray-900">
+        <h4 className="mb-2 font-serif text-lg font-semibold text-grey-800">
           {k.klasemen}
         </h4>
         <div className="overflow-auto">
-          <table className="w-full table-fixed border-collapse border-t-2 border-b-2 border-gray-900 text-left font-sans text-sm">
+          <table className="w-full table-fixed border-collapse border-t border-b border-slate-300 text-left font-sans text-sm">
             <thead>
-              <tr className="border-b border-gray-900 bg-gray-50 text-xs font-bold text-gray-900 uppercase">
+              <tr className="border-b border-slate-300 bg-grey-50 text-xs font-semibold text-grey-800 uppercase">
                 <th className="w-14 py-2 pr-4">{k.peringkat}</th>
                 <th className="py-2 pr-4">{k.pemain}</th>
                 <th className="w-16 py-2 text-right">{k.main}</th>
@@ -167,21 +167,21 @@ function Klasemen({ id, k }) {
             <tbody className="divide-y divide-gray-300">
               {data.klasemen.map((b) => (
                 <tr key={b.username}>
-                  <td className="py-2.5 pr-4 font-mono text-xs text-gray-900">
+                  <td className="py-2.5 pr-4 font-mono text-xs text-grey-800">
                     {b.peringkat}
                   </td>
-                  <td className="py-2.5 pr-4 font-bold text-gray-900">
+                  <td className="py-2.5 pr-4 font-bold text-grey-800">
                     {b.panggilan}
                     {b.resmi === false && (
-                      <span className="ml-1.5 font-serif text-xs italic text-gray-700">
+                      <span className="ml-1.5 font-serif text-xs italic text-grey-600">
                         ({k.belumResmi})
                       </span>
                     )}
                   </td>
-                  <td className="py-2.5 text-right font-mono text-xs text-gray-900">
+                  <td className="py-2.5 text-right font-mono text-xs text-grey-800">
                     {b.main}
                   </td>
-                  <td className="py-2.5 text-right font-mono text-xs text-gray-900">
+                  <td className="py-2.5 text-right font-mono text-xs text-grey-800">
                     {b.poin}
                   </td>
                 </tr>
@@ -193,13 +193,13 @@ function Klasemen({ id, k }) {
 
       {Boolean(data.klasemenTim?.length) && (
         <div>
-          <h4 className="mb-2 font-sans text-sm font-black tracking-tight uppercase text-gray-900">
+          <h4 className="mb-2 font-serif text-lg font-semibold text-grey-800">
             {k.klasemenTim}
           </h4>
           <div className="overflow-auto">
-            <table className="w-full table-fixed border-collapse border-t-2 border-b-2 border-gray-900 text-left font-sans text-sm">
+            <table className="w-full table-fixed border-collapse border-t border-b border-slate-300 text-left font-sans text-sm">
               <thead>
-                <tr className="border-b border-gray-900 bg-gray-50 text-xs font-bold text-gray-900 uppercase">
+                <tr className="border-b border-slate-300 bg-grey-50 text-xs font-semibold text-grey-800 uppercase">
                   <th className="w-14 py-2 pr-4">{k.peringkat}</th>
                   <th className="py-2 pr-4">{k.tim}</th>
                   <th className="w-16 py-2 text-right">{k.poin}</th>
@@ -208,11 +208,11 @@ function Klasemen({ id, k }) {
               <tbody className="divide-y divide-gray-300">
                 {data.klasemenTim.map((b) => (
                   <tr key={b.tim}>
-                    <td className="py-2.5 pr-4 font-mono text-xs text-gray-900">
+                    <td className="py-2.5 pr-4 font-mono text-xs text-grey-800">
                       {b.peringkat}
                     </td>
-                    <td className="py-2.5 pr-4 font-bold text-gray-900">{b.tim}</td>
-                    <td className="py-2.5 text-right font-mono text-xs text-gray-900">
+                    <td className="py-2.5 pr-4 font-bold text-grey-800">{b.tim}</td>
+                    <td className="py-2.5 text-right font-mono text-xs text-grey-800">
                       {b.poin}
                     </td>
                   </tr>
@@ -265,16 +265,16 @@ function KartuTurnamen({ t, k, bahasa }) {
   };
 
   return (
-    <article className="border-b-2 border-gray-900 py-5">
+    <article className="border-b border-slate-300 py-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="font-sans text-lg font-black tracking-tight uppercase text-gray-900">
+          <h3 className="font-serif text-xl font-semibold text-grey-800">
             {t.tautan ? (
               <a
                 href={t.tautan}
                 target="_blank"
                 rel="noreferrer noopener"
-                className="hover:text-black hover:underline"
+                className="hover:text-primary hover:underline"
               >
                 {t.nama} <span aria-hidden="true">↗</span>
               </a>
@@ -282,18 +282,18 @@ function KartuTurnamen({ t, k, bahasa }) {
               t.nama
             )}
           </h3>
-          <p className="mt-0.5 text-sm text-gray-800">
+          <p className="mt-0.5 text-sm text-grey-800">
             {t.jumlahPeserta} {k.peserta}
             {t.kuota ? ` / ${t.kuota}` : ""}
           </p>
         </div>
-        <span className="border border-gray-900 px-1 font-sans text-xs font-bold tracking-wide uppercase">
+        <span className="border border-slate-300 px-1 font-sans text-xs font-semibold tracking-wide uppercase text-grey-600">
           {label}
         </span>
       </div>
 
       {t.deskripsi && (
-        <p className="mt-3 font-serif text-sm leading-relaxed text-justify text-gray-900">
+        <p className="mt-3 font-serif text-sm leading-relaxed text-grey-800">
           {t.deskripsi}
         </p>
       )}
@@ -302,10 +302,10 @@ function KartuTurnamen({ t, k, bahasa }) {
         <dl className="mt-4 grid grid-cols-2 gap-x-6 gap-y-2 text-sm md:grid-cols-3">
           {baris.map(([nama, nilai]) => (
             <div key={nama}>
-              <dt className="font-sans text-[11px] font-bold tracking-widest uppercase text-gray-900">
+              <dt className="font-sans text-xs font-semibold tracking-wide uppercase text-grey-600">
                 {nama}
               </dt>
-              <dd className="font-serif text-gray-900">{nilai}</dd>
+              <dd className="font-serif text-grey-800">{nilai}</dd>
             </div>
           ))}
         </dl>
@@ -316,7 +316,7 @@ function KartuTurnamen({ t, k, bahasa }) {
           <button
             type="button"
             onClick={() => setBukaDaftar((nilai) => !nilai)}
-            className="rounded border border-black bg-transparent px-4 py-2 text-xs font-semibold text-black"
+            className="rounded border border-primary bg-transparent px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white"
           >
             {k.tombolDaftar}
           </button>
@@ -324,7 +324,7 @@ function KartuTurnamen({ t, k, bahasa }) {
         <button
           type="button"
           onClick={() => setBuka((b) => !b)}
-          className="px-4 py-1.5 font-sans text-xs font-bold uppercase text-gray-900 hover:text-black"
+          className="px-4 py-1.5 font-sans text-xs font-semibold uppercase text-grey-800 hover:text-primary"
         >
           {buka ? k.tutupRincian : k.lihat}
         </button>
@@ -333,7 +333,7 @@ function KartuTurnamen({ t, k, bahasa }) {
             href={t.tautan}
             target="_blank"
             rel="noreferrer noopener"
-            className="font-sans text-xs font-bold uppercase text-gray-900 hover:text-black hover:underline"
+            className="font-sans text-xs font-semibold uppercase text-grey-800 hover:text-primary hover:underline"
           >
             {k.bukaTurnamen} ↗
           </a>
@@ -343,26 +343,26 @@ function KartuTurnamen({ t, k, bahasa }) {
       {bukaDaftar && t.status === "pendaftaran" && (
         <form
           onSubmit={kirimPengajuan}
-          className="mt-4 border border-gray-900 p-4"
+          className="mt-4 border border-slate-300 p-4"
         >
-          <p className="mb-3 font-serif text-xs leading-5 text-gray-900">
+          <p className="mb-3 font-serif text-xs leading-5 text-grey-800">
             {k.catatanDaftar}
           </p>
           <div className="flex flex-wrap items-end gap-2">
-            <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-[11px] font-bold tracking-widest uppercase text-gray-900">
+            <label className="flex min-w-[220px] flex-1 flex-col gap-1 text-xs font-semibold tracking-wide uppercase text-grey-600">
               {k.username}
               <input
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="namauser"
                 autoComplete="off"
-                className="border border-gray-900 bg-white px-3 py-2 text-sm outline-none focus:border-black"
+                className="border border-slate-300 bg-white px-3 py-2 text-sm outline-none focus:border-primary"
               />
             </label>
             <button
               type="submit"
               disabled={mengirim || !username.trim()}
-              className="rounded border border-black bg-transparent px-4 py-2 text-xs font-semibold text-black disabled:opacity-40"
+              className="rounded border border-primary bg-transparent px-4 py-2 text-xs font-semibold text-primary transition-colors hover:bg-primary hover:text-white disabled:opacity-40"
             >
               {mengirim ? k.mengirim : k.kirimPengajuan}
             </button>
@@ -376,7 +376,7 @@ function KartuTurnamen({ t, k, bahasa }) {
               {harusDaftarAnggota && (
                 <Link
                   to="/pendaftaran-anggota"
-                  className="font-bold text-gray-900 underline underline-offset-2 hover:text-black"
+                  className="font-bold text-grey-800 underline underline-offset-2 hover:text-grey-800"
                 >
                   {k.daftarAnggotaDulu}
                 </Link>
@@ -416,27 +416,27 @@ export default function DaftarTurnamen({ jenis }) {
   return (
     <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16">
       <div className="relative mx-auto w-full md:max-w-[1024px]">
-        <h2 className="mb-6 font-sans text-xl font-black tracking-tight uppercase text-gray-900 border-b-2 border-gray-900 pb-2">
+        <h2 className="mb-6 font-serif text-2xl font-semibold text-grey-800 border-b border-grey-200 pb-2">
           {k.jadwal}
         </h2>
 
         {gagal ? (
-          <div className="border border-gray-900 p-4 text-sm text-gray-900">
+          <div className="border border-slate-300 p-4 text-sm text-grey-800">
             <p>{k.gagal}</p>
             <button
               type="button"
               onClick={() => setPercobaan((n) => n + 1)}
-              className="mt-2 font-sans text-xs font-bold uppercase text-gray-900 underline underline-offset-2 hover:text-black"
+              className="mt-2 font-sans text-xs font-semibold uppercase text-primary underline underline-offset-2 hover:text-grey-800"
             >
               {t("common.cobaLagi")}
             </button>
           </div>
         ) : daftar === null ? (
-          <p className="border border-gray-900 p-4 text-sm text-gray-900">
+          <p className="border border-slate-300 p-4 text-sm text-grey-800">
             {k.memuat}
           </p>
         ) : daftar.length === 0 ? (
-          <p className="border border-gray-900 p-4 text-sm text-gray-900">
+          <p className="border border-slate-300 p-4 text-sm text-grey-800">
             {k.kosong}
           </p>
         ) : (

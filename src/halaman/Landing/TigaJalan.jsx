@@ -23,14 +23,14 @@ function KartuUnggulan({ jalan, t }) {
           <span className="h-11 w-11 flex items-center justify-center rounded border border-slate-200 text-primary">
             <Ikon className="h-6 w-6" aria-hidden="true" />
           </span>
-          <h3 className="font-serif font-semibold text-xl text-slate-900">{jalan.judul}</h3>
+          <h3 className="font-serif font-semibold text-xl text-grey-800">{jalan.judul}</h3>
         </div>
-        <p className="font-serif text-sm text-slate-600 leading-6">{jalan.desk}</p>
-        <p className="font-serif text-xs text-slate-500">{jalan.terms}</p>
+        <p className="font-serif text-base leading-[1.6] text-grey-600">{jalan.desk}</p>
+        <p className="font-serif text-[13px] text-slate-500">{jalan.terms}</p>
         <div>
           <Link
             to={jalan.to}
-            className="inline-flex items-center gap-2 border border-black bg-transparent font-serif text-black font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-black hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+            className="inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {jalan.cta}
             <ArrowRightIcon className="size-4" />
@@ -61,10 +61,10 @@ function KartuKecil({ jalan, t }) {
         <span className="h-10 w-10 flex items-center justify-center rounded border border-slate-200 text-primary">
           <Ikon className="h-5 w-5" aria-hidden="true" />
         </span>
-        <h3 className="font-serif font-semibold text-lg text-slate-900">{jalan.judul}</h3>
+        <h3 className="font-serif font-semibold text-lg text-grey-800">{jalan.judul}</h3>
       </div>
-      <p className="font-serif text-sm text-slate-600 leading-6">{jalan.desk}</p>
-      <p className="flex items-center gap-2 mt-auto font-serif font-semibold text-sm text-slate-900 group-hover:text-primary">
+      <p className="font-serif text-base leading-[1.6] text-grey-600">{jalan.desk}</p>
+      <p className="flex items-center gap-2 mt-auto font-sans font-semibold text-sm text-grey-800 group-hover:text-primary">
         {jalan.cta}
         <ArrowRightIcon className="size-4" />
       </p>
@@ -105,9 +105,9 @@ export default function TigaJalan() {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
             {t("landing.tigaJalanJudul")}{" "}
-            <em className="font-serif text-primary not-italic">{t("landing.tigaJalanJudulAccent")}</em>
+            <em className="text-primary not-italic">{t("landing.tigaJalanJudulAccent")}</em>
           </h2>
         </div>
         <div className="flex flex-col gap-6 md:gap-8">

@@ -1,8 +1,13 @@
 ```markdown
 # DESIGN SKILL — Academic Journal / Formal Monochrome UI
 
-> File ini adalah single-source-of-truth untuk gaya desain komponen.
-> Setiap kali AI diminta membuat komponen baru, **WAJIB** mengikuti seluruh aturan di bawah ini.
+> **⚠️ TERDEPREKASI — jangan tiru contoh di berkas ini.**
+> Sumber kebenaran desain situs adalah `DESIGN.md` di akar repo (gaya serif
+> korporat, aksen biru `#0B2F9F`, teks rata kiri, token `grey-*`). Gaya
+> monokrom/koran di bawah (`font-black`, heading uppercase, garis tebal
+> `gray-900`, drop cap) sudah DIHAPUS dari halaman publik situs pada
+> Sep 2026. Berkas ini disimpan hanya sebagai referensi sejarah; jika
+> aturan di bawah bertentangan dengan `DESIGN.md`, `DESIGN.md` yang berlaku.
 
 ---
 
@@ -25,15 +30,15 @@
 | **Sub-judul seksi (H3)** | `text-base font-black tracking-tight uppercase` + `border-b border-gray-900 pb-1` |
 | **Label kecil atas** | `text-xs font-bold tracking-widest uppercase` |
 | **Heading langkah (H4)** | `text-sm font-bold uppercase` (font-sans) |
-| **Body text** | `text-sm leading-relaxed text-justify` |
+| **Body text** | `text-sm leading-relaxed` (rata kiri) |
 | **Catatan / footnote** | `text-xs italic` |
 | **Kode inline** | `<code class="font-mono">` |
-| **Drop cap (paragraf pertama)** | `first-letter:float-left first-letter:mr-2 first-letter:text-4xl first-letter:font-bold` |
+| **Drop cap (paragraf pertama)** | (dihapus — tidak dipakai lagi; jangan pakai drop cap) |
 
 ### Aturan Tipografi
 - Semua heading **WAJIB uppercase**.
 - Gunakan `font-black` untuk heading utama, `font-bold` untuk sub-heading.
-- Body text selalu `text-justify` untuk kesan koran.
+- Body text selalu rata kiri — TIDAK memakai `justify` (celah spasi antar-kata tidak merata; lihat `DESIGN.md` §2).
 - Catatan kaki selalu `italic` + ukuran lebih kecil (`text-xs` atau `text-[11px]`).
 
 ---
@@ -156,7 +161,7 @@
   <h4 className="mb-3 text-center font-sans text-sm font-bold tracking-wide text-gray-900 uppercase">
     ! JUDUL MAKLUMAT !
   </h4>
-  <ul className="space-y-2 text-justify text-xs text-gray-900">
+  <ul className="space-y-2 text-xs text-gray-900">
     <li className="list-inside list-disc">
       <span className="font-bold">Label:</span> Penjelasan...
     </li>
@@ -175,7 +180,7 @@
 ## 9. KOMPONEN: LANGKAH / STEP
 
 ```tsx
-<div className="text-justify">
+<div>
   <h4 className="mb-1 font-sans text-sm font-bold text-gray-900 uppercase">
     Langkah N: Judul Langkah
   </h4>

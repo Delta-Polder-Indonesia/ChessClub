@@ -60,7 +60,7 @@ export function PageArtikel({ title, lead, children, lebar = false, judulAkademi
           }`}
         >
         {title && (
-          <h2 className={`focus:outline-none focus:ring-0 text-black ${judulAkademik ? "text-3xl font-black tracking-tight uppercase md:text-4xl" : "font-semibold text-2xl md:text-3xl"}`}>
+          <h2 className="focus:outline-none focus:ring-0 text-grey-800 font-serif font-semibold text-2xl md:text-3xl leading-snug">
             {title}
           </h2>
         )}
@@ -77,19 +77,18 @@ export function PageArtikel({ title, lead, children, lebar = false, judulAkademi
   );
 }
 
-/** Masthead editorial bergaya koran untuk halaman landing — kicker, judul, subjudul, garis dobel. */
-export function MastheadEditorial({ kicker, judul, subjudul }) {
+/** Masthead halaman artikel — judul + subjudul, garis 1px (mengikuti
+ *  tipografi & token DESIGN.md). Tanpa label kecil di atas judul: kicker
+ *  lama selalu mengulang judul Hero di atasnya (redundan). */
+export function MastheadEditorial({ judul, subjudul }) {
   return (
     <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-        <div className="relative mb-6 border-b-4 border-double border-gray-900 pb-3 text-center">
-          <p className="mb-1 text-xs font-bold tracking-widest text-gray-900 uppercase">
-            {kicker}
-          </p>
-          <h1 className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">
+        <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
+          <h1 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
             {judul}
           </h1>
-          <p className="m-0 text-sm text-gray-900 italic">{subjudul}</p>
+          <p className="m-0 text-sm text-grey-600 italic">{subjudul}</p>
         </div>
       </div>
     </section>
@@ -113,7 +112,7 @@ export function PageGambar({ src, alt, caption }) {
             loading="lazy"
           />
           {caption && (
-            <p className="text-sm font-normal text-gray-500 mt-2">{caption}</p>
+            <p className="text-[13px] font-normal text-slate-500 mt-2">{caption}</p>
           )}
         </div>
       </div>
@@ -135,10 +134,10 @@ export function PageSelanjutnya({ to, judul }) {
             className="flex items-center justify-between gap-4 group"
           >
             <div className="flex flex-col">
-              <span className="text-xs sm:text-sm text-gray-600">
+              <span className="text-xs sm:text-sm text-grey-600">
                 {t("common.selanjutnya")}
               </span>
-              <span className="text-sm sm:text-base font-semibold text-gray-900 group-hover:text-primary">
+              <span className="text-sm sm:text-base font-semibold text-grey-800 group-hover:text-primary">
                 {judul}
               </span>
             </div>

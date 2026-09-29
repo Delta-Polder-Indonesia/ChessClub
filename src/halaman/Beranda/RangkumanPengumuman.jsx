@@ -75,7 +75,7 @@ export default function RangkumanPengumuman() {
                   </h3>
                   <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
                     {/* Diubah ke text-sm, text-slate-600, dan leading-relaxed */}
-                    <div className="relative z-1 prose prose-sm max-w-none text-justify text-sm text-slate-600 leading-relaxed">
+                    <div className="relative z-1 prose prose-sm max-w-none text-sm text-slate-600 leading-relaxed">
                       <p>{p.isi}</p>
                     </div>
                   </div>
@@ -90,7 +90,7 @@ export default function RangkumanPengumuman() {
                       - Tinggi tombol dikurangi dari h-12 ke h-9
                       - Padding horizontal dikurangi dari px-6 ke px-4
                     */
-                    className="text-xs h-9 px-4 gap-1.5 font-semibold leading-relaxed flex items-center justify-center border border-solid border-black text-black rounded flex-row"
+                    className="text-xs h-9 px-4 gap-1.5 font-semibold leading-relaxed flex items-center justify-center border border-solid border-primary text-primary rounded flex-row"
                   >
                     <span className="order-1">{t("common.selengkapnya")}</span>
                     {/* Ukuran ikon panah diperkecil dari size-6 ke size-4 */}

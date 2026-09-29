@@ -19,13 +19,15 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 ### Aturan Warna:
 - **Dilarang keras:** Gradien ungu/pink/biru, teks gradasi (`bg-gradient-to-r text-transparent`), dan efek bayangan pendar/glow (`shadow-[0_0_20px_...]`).
 - Semua kombinasi warna teks dan latar wajib lolos uji kontras **WCAG AA** ($\ge 4.5:1$ untuk body, $\ge 3:1$ untuk teks besar).
+- **Palet grafik** (komponen `ui/chart`, `tools/GrafikTools`): `--chart-1` `#0B2F9F` · `--chart-2` `#4D7CF5` · `--chart-3` `#FFDC58` · `--chart-4` `#FF6B6B` · `#7FBC8C` sebagai `--chart-5`.
+- **Zona token shadcn/Analisa** (`:root`/`.dark`/`@theme inline` di bagian bawah `src/index.css`): token `--primary`, `--background`, `--radius`, dst. hanya untuk komponen `components/ui/`. **Dilarang menimpa token global** (`--color-primary`, `--color-grey-*`, `--color-paper`, skala radius Tailwind) dari zona ini.
 
 ---
 
 ## 2. Tipografi (Typography System)
 
 - **Font Utama (Serif — site-wide):** stack `serif` bawaan Tailwind, diterapkan lewat kelas `font-serif`. Ini adalah tipografi **default seluruh situs** — judul Hero, judul seksi, isi paragraf, dan caption menggunakan serif untuk nuansa berwibawa/akademis. Terapkan `font-serif` pada pembungkus konten tiap halaman (mis. `<div className="font-serif">` di dalam `HalamanIsi`) dan pada judul/isi Hero.
-- **Font Sans (`"Plus Jakarta Sans", system-ui, sans-serif`, self-hosted di `src/fonts/`):** dipertahankan untuk elemen UI/kontrol yang padat dan fungsional — navigasi/breadcrumb, tombol, badge, tabel data, dan antarmuka operasional. Bukan lagi font utama untuk teks bacaan.
+- **Font Sans (`"Geist Variable", system-ui, sans-serif`, dibundel lewat paket npm `@fontsource-variable/geist` di `src/index.css`):** untuk elemen UI/kontrol yang padat dan fungsional — navigasi/breadcrumb, tombol, badge, tabel data, dan antarmuka operasional. Bukan font utama untuk teks bacaan. (`--font-sans` hanya boleh didefinisikan sekali di `@theme` utama; jangan menimpanya di blok `@theme` lain.)
 - **Font Mono:** Digunakan untuk notasi catur (PGN/FEN), koordinat petak, dan waktu engine.
 
 ### Skala Tipografi:
@@ -33,7 +35,15 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **H2 Judul Seksi:** `1.5rem` s.d. `1.875rem` (24–30px), font-semibold, leading-snug.
 - **H3 Sub-seksi / Kartu:** `1.125rem` s.d. `1.25rem` (18–20px), font-semibold.
 - **Body Text:** `0.9375rem` s.d. `1rem` (15–16px), line-height 1.6, max-width `65ch`–`75ch`.
-- **Caption / Meta:** `0.75rem` s.d. `0.8125rem` (12–13px), text-slate-500.
+- **Kutipan tarik (pull quote):** `1.5rem` s.d. `1.875rem` (24–30px), italic, font-medium, `text-grey-800` — sejajar rentang atas H2.
+- **Caption / Meta:** `0.75rem` s.d. `0.8125rem` (12–13px), text-slate-500. Tidak ada teks di bawah 12px.
+- **Tabel data padat** (peringkat, tingkatan rating): dikecualikan memakai `13–14px` karena kepadatan baris; tabel di dalam artikel (`.tabel-kci`) tetap mengikuti ukuran body.
+
+### Aturan Satu Suara:
+- Dalam satu halaman, **semua judul seksi memakai gaya H2 yang persis sama** (`font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800`; varian `text-white` di atas foto gelap). Tidak ada seksi dengan ukuran, ketebalan, atau kapitalisasi judul yang berbeda.
+- **Teks isi memakai satu ukuran** (`text-base leading-[1.6] text-grey-600`) dan **label/meta memakai satu ukuran caption** (`text-[13px]`) di seluruh halaman.
+- Warna teks hanya dari token palet: judul `text-grey-800`, teks sekunder `text-grey-600` — bukan `text-black`/`text-slate-900`/`text-slate-600` yang berada di luar palet.
+- **Teks isi rata kiri (start) di seluruh situs** — tidak memakai rata kiri-kanan (justify), yang meninggalkan celah spasi antar-kata tidak merata.
 
 ---
 

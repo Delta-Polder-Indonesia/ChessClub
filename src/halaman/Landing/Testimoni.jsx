@@ -20,10 +20,10 @@ function BalokKutip({ anak, aria }) {
 function GlobalKutip({ t, sumber }) {
   return (
     <div className="flex flex-col gap-[0.2rem] mt-5">
-      <cite className="font-serif font-bold text-[0.9375rem] not-italic text-slate-900">
+      <cite className="font-serif font-semibold text-[15px] not-italic text-grey-800">
         {sumber.nama}
       </cite>
-      <span className="font-serif text-primary font-semibold text-[0.8125rem] uppercase tracking-[0.1em]">
+      <span className="font-serif text-primary font-semibold text-[13px] uppercase tracking-[0.1em]">
         {sumber.peran}
       </span>
     </div>
@@ -37,7 +37,7 @@ function KutipUnggulan({ t }) {
       aria={t("landing.testimoniLeadAria")}
       anak={
         <>
-          <p className="border-l-4 border-primary m-0 pl-[clamp(1.25rem,3vw,2rem)] font-serif italic font-medium text-[clamp(1.5rem,2.6vw,2.125rem)] leading-[1.3] max-w-[24ch] text-slate-900">
+          <p className="border-l-4 border-primary m-0 pl-[clamp(1.25rem,3vw,2rem)] font-serif italic font-medium text-[clamp(1.5rem,2.6vw,1.875rem)] leading-[1.3] max-w-[24ch] text-grey-800">
             {t("landing.testimoniLeadKutip")}
           </p>
           <GlobalKutip
@@ -60,7 +60,7 @@ function KartuKutip({ t, kunci }) {
       aria={t(`${kunci}Aria`)}
       anak={
         <>
-          <p className="m-0 font-serif text-[1.0625rem] leading-[1.55] text-slate-700">
+          <p className="m-0 font-serif text-base leading-[1.6] text-grey-800">
             {t(`${kunci}Kutip`)}
           </p>
           <GlobalKutip
@@ -83,7 +83,7 @@ export default function Testimoni() {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+        <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
           {t("landing.testimoniJudul")}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-x-[clamp(2rem,5vw,4.5rem)] gap-y-10 md:gap-y-0 items-start mt-10">
