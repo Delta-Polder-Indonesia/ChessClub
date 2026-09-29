@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T00:00:00.000Z",
+  "title": "Design System: Komunitas Catur Indonesia (KCI)",
+  "extensions": {
+    "colorMeta": {
+      "ink-blue": {
+        "role": "primary",
+        "displayName": "Biru Tinta (Ink Blue)",
+        "canonical": "#0b2f9f",
+        "tonalRamp": [
+          "#0a1b52",
+          "#0b2469",
+          "#0b2f9f",
+          "#3a5cb8",
+          "#6d88ce",
+          "#a0b4e0",
+          "#ccd8ef",
+          "#e6ecf7"
+        ]
+      },
+      "ink-blue-bright": {
+        "role": "secondary",
+        "displayName": "Biru Terang (Ink Blue Bright)",
+        "canonical": "#4d7cf5",
+        "tonalRamp": [
+          "#152046",
+          "#22356f",
+          "#31499c",
+          "#4d7cf5",
+          "#7ba0f8",
+          "#a8c1fb",
+          "#cddbfd",
+          "#e9f0fe"
+        ]
+      },
+      "press-navy": {
+        "role": "neutral",
+        "displayName": "Navy Cetak (Press Navy)",
+        "canonical": "#021624",
+        "tonalRamp": [
+          "#021624",
+          "#082537",
+          "#123549",
+          "#20485c",
+          "#3d6472",
+          "#688895",
+          "#9db2bb",
+          "#d2dee3"
+        ]
+      },
+      "board-green": {
+        "role": "primary",
+        "displayName": "Hijau Papan (Board Green)",
+        "canonical": "#81b64c",
+        "tonalRamp": [
+          "#152009",
+          "#2b3f13",
+          "#4a6b26",
+          "#6b9639",
+          "#81b64c",
+          "#a7d179",
+          "#c9e7ae",
+          "#e4f3d8"
+        ]
+      },
+      "felt": {
+        "role": "neutral",
+        "displayName": "Bulu (Felt)",
+        "canonical": "#262421",
+        "tonalRamp": [
+          "#0d0c0b",
+          "#151413",
+          "#1e1c18",
+          "#262421",
+          "#3c3935",
+          "#5d5954",
+          "#8a857e",
+          "#c2bdb6"
+        ]
+      },
+      "felt-raised": {
+        "role": "neutral",
+        "displayName": "Felt Naik (Felt Raised)",
+        "canonical": "#312e2b",
+        "tonalRamp": [
+          "#100f0e",
+          "#1a1817",
+          "#262421",
+          "#312e2b",
+          "#484440",
+          "#6b6660",
+          "#9c9791",
+          "#d0ccc6"
+        ]
+      },
+      "felt-sunken": {
+        "role": "neutral",
+        "displayName": "Felt Turun (Felt Sunken)",
+        "canonical": "#1e1c18",
+        "tonalRamp": [
+          "#0a0a09",
+          "#121110",
+          "#1e1c18",
+          "#2a2825",
+          "#3c3935",
+          "#5d5954",
+          "#8a857e",
+          "#c2bdb6"
+        ]
+      },
+      "chalk": {
+        "role": "neutral",
+        "displayName": "Kapur (Chalk)",
+        "canonical": "#dedede",
+        "tonalRamp": [
+          "#2a2a2a",
+          "#454545",
+          "#666666",
+          "#8c8c8c",
+          "#b3b3b3",
+          "#dedede",
+          "#ebebeb",
+          "#f5f5f5"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Kertas (Paper)",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#f1f5f9",
+          "#f8fafc",
+          "#fdfdfd",
+          "#fefefe",
+          "#ffffff"
+        ]
+      },
+      "slate-950": {
+        "role": "neutral",
+        "displayName": "Tinta (Ink)",
+        "canonical": "#0f172a",
+        "tonalRamp": [
+          "#0f172a",
+          "#1e293b",
+          "#334155",
+          "#475569",
+          "#64748b",
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0"
+        ]
+      },
+      "rule-200": {
+        "role": "neutral",
+        "displayName": "Garis Rambut (Hairline Rule)",
+        "canonical": "#e2e8f0",
+        "tonalRamp": [
+          "#94a3b8",
+          "#cbd5e1",
+          "#e2e8f0",
+          "#f1f5f9",
+          "#f8fafc",
+          "#fdfdfd",
+          "#fefefe",
+          "#ffffff"
+        ]
+      },
+      "felt-line": {
+        "role": "neutral",
+        "displayName": "Garis Felt (Felt Line)",
+        "canonical": "#363431",
+        "tonalRamp": [
+          "#0a0a09",
+          "#121110",
+          "#1e1c18",
+          "#2a2825",
+          "#363431",
+          "#4a4742",
+          "#6b6660",
+          "#8a857e"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Heading besar blok fitur di Beranda dan batas seksi. Serif sangat ringan, leading rapat. Tidak pernah melewati 3.3rem."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Judul seksi korporat dan judul Hero. Serif semibold, satu per halaman."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Judul kartu, judul item, dan heading .prose-kci h3. Serif semibold 18-20px."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Paragraf bacaan dan deskripsi, dikunci 65-75ch. Sans untuk ruang belakang, serif untuk artikel korporat."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Navigasi, breadcrumb, tombol, badge, metadata. Sans, uppercase hanya untuk label data pendek."
+      },
+      "serif": {
+        "displayName": "Display Face",
+        "purpose": "Suara bicara KCI. Saat ini menyelesaikan ke font sistem (ui-serif, Georgia) — belum ada huruf yang dipilih dan self-host."
+      },
+      "sans": {
+        "displayName": "Working Face",
+        "purpose": "Suara mesin KCI untuk kontrol, tabel, sidebar, dan panel papan."
+      },
+      "mono": {
+        "displayName": "Notation Face",
+        "purpose": "Hanya untuk data catur: PGN/FEN, koordinat petak, rating, waktu engine. Bukan kostum."
+      }
+    },
+    "shadows": [
+      {
+        "name": "card-rest",
+        "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        "purpose": "Satu-satunya bayangan yang boleh menempel pada permukaan yang diam — Card dan Input ruang depan."
+      },
+      {
+        "name": "overlay",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)",
+        "purpose": "Hanya untuk lapisan yang benar-benar menutupi konten: dropdown Header, dialog Pengaturan, dialog Humans vs Machines, panel tooltip Teka-Teki."
+      },
+      {
+        "name": "board-panel",
+        "value": "0 20px 25px -5px rgb(0 0 0 / 0.35), 0 8px 10px -6px rgb(0 0 0 / 0.35)",
+        "purpose": "Versi gelap dari overlay, untuk dialog dan popover di dalam Ruang Belakang agar tetap terpisah dari felt yang sudah gelap."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out-standard",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Easing default untuk transisi state: hover, fokus, buka-tutup. Digunakan oleh header sticky (duration-200) dan sidebar corporate (duration-300 ease-in-out)."
+      },
+      {
+        "name": "accordion",
+        "value": "0.2s ease-out",
+        "purpose": "Buka-tutup Accordion Radix; tinggi konten diisi lewat --radix-accordion-content-height."
+      },
+      {
+        "name": "fade-rise",
+        "value": "0.28s ease-out",
+        "purpose": "Munculnya komponen verifikasi akun (bskuad-fade): opacity 0 ke 1 dengan translateY -6px ke 0. Satu-satunya entrance yang ada di KCI."
+      },
+      {
+        "name": "spinner",
+        "value": "0.9s linear infinite",
+        "purpose": "Memutar cincin verifikasi dan ikon pemuat pada tombol. Loop, bukan choreografi."
+      },
+      {
+        "name": "draw",
+        "value": "0.5s ease-out",
+        "purpose": "Gambar garis SVG yang sedang digambar (bskuad-garis) pada alur verifikasi akun."
+      },
+      {
+        "name": "marquee",
+        "value": "25s linear infinite",
+        "purpose": "Marquee notifikasi dashboardargesti. Dua lintasan identik; track2 mulai dari translateX(100%)."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "Menghapus anim-putar, anim-garis, dan animate-fade-in. Interaction tidak pernah bergantung pada animasi untuk conveying informasi."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" },
+      { "name": "2xl", "value": "1536px" },
+      { "name": "prose-collapse", "value": "700px" },
+      { "name": "analisa-navTop", "value": "516px" },
+      { "name": "analisa-vertical", "value": "1100px" },
+      { "name": "analisa-reduceNav", "value": "1280px" },
+      { "name": "analisa-notFullDate", "value": "1468px" },
+      { "name": "analisa-reduceSummary", "value": "1669px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Button Primary",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Aksi utama di ruang depan: garis rambut hitam, transparan, serif semibold. Mengisi penuh saat hover.",
+      "html": "<button type=\"button\" class=\"ds-btn-primary\">Lihat Program Kami<svg width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 12H20M14 6L20 12L14 18\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 32px;background:transparent;color:#0f172a;border:1px solid #0f172a;border-radius:4px;font-family:ui-serif,Georgia,Cambria,\"Times New Roman\",Times,serif;font-size:0.875rem;font-weight:600;line-height:1.2;cursor:pointer;transition:background-color 200ms cubic-bezier(0.16,1,0.3,1),color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-primary:hover{background:#0f172a;color:#ffffff}.ds-btn-primary:focus-visible{outline:2px solid #0b2f9f;outline-offset:2px}.ds-btn-primary:disabled{opacity:0.5;pointer-events:none}"
+    },
+    {
+      "name": "Button Primary on Dark",
+      "kind": "button",
+      "refersTo": "button-on-dark",
+      "description": "Inversi Button Primary di atas foto hero atau blok gelap: garis putih, teks putih, isi putih saat hover.",
+      "html": "<button type=\"button\" class=\"ds-btn-dark\">Daftar Jadi Anggota</button>",
+      "css": ".ds-btn-dark{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;background:transparent;color:#ffffff;border:1px solid #ffffff;border-radius:4px;font-family:ui-serif,Georgia,Cambria,\"Times New Roman\",Times,serif;font-size:0.875rem;font-weight:600;line-height:1.2;cursor:pointer;transition:background-color 200ms cubic-bezier(0.16,1,0.3,1),color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-btn-dark:hover{background:#ffffff;color:#0f172a}.ds-btn-dark:focus-visible{outline:2px solid #ffffff;outline-offset:2px}"
+    },
+    {
+      "name": "Button Action Board",
+      "kind": "button",
+      "refersTo": "board-action-primary",
+      "description": "Satu-satunya tombol filled di seluruh produk. Hijau papan, teks felt, uppercase, tracking lebar. Aksi utama di ruang belakang.",
+      "html": "<button type=\"button\" class=\"ds-board-primary\">MULAI</button>",
+      "css": ".ds-board-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;background:#81b64c;color:#1e1c18;border:none;border-radius:8px;font-family:\"Geist Variable\",sans-serif;font-size:0.875rem;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;line-height:1.2;cursor:pointer;transition:background-color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-board-primary:hover{background:#91c45a}.ds-board-primary:focus-visible{outline:2px solid #81b64c;outline-offset:2px}.ds-board-primary:disabled{opacity:0.4;pointer-events:none}"
+    },
+    {
+      "name": "Button Action Board Secondary",
+      "kind": "button",
+      "refersTo": "board-action-secondary",
+      "description": "Aksi sekunder di ruang belakang: permukaan felt naik dengan garis felt, teks kapur.",
+      "html": "<button type=\"button\" class=\"ds-board-secondary\">Buka Buku</button>",
+      "css": ".ds-board-secondary{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;background:#312e2b;color:#dedede;border:1px solid #363431;border-radius:6px;font-family:\"Geist Variable\",sans-serif;font-size:0.875rem;font-weight:400;line-height:1.2;cursor:pointer;transition:border-color 200ms cubic-bezier(0.16,1,0.3,1),color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-board-secondary:hover{border-color:#81b64c;color:#ffffff}.ds-board-secondary:focus-visible{outline:2px solid #81b64c;outline-offset:2px}.ds-board-secondary:disabled{opacity:0.4;pointer-events:none}"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Permukaan datar di ruang depan: kertas putih, garis rambut 200, radius 12px, bayangan sangat tipis. Tanpa warna aksen.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Papan Analisa Stockfish</h3><p class=\"ds-card-body\">Impor PGN atau FEN, lalu jalankan Stockfish 17/18 dan Sunfish langsung di peramban.</p></div>",
+      "css": ".ds-card{background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;border-radius:12px;padding:24px;box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05)}.ds-card-title{margin:0 0 6px;font-family:ui-serif,Georgia,Cambria,\"Times New Roman\",Times,serif;font-size:1.125rem;font-weight:600;line-height:1.35}.ds-card-body{margin:0;font-family:ui-serif,Georgia,Cambria,\"Times New Roman\",Times,serif;font-size:0.875rem;line-height:1.6;color:#475569}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Field ruang depan: 40px, radius 6px, garis slate-300. Fokus mengganti warna border dan menambah cincin biru 2px.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Cari program\" aria-label=\"Cari program\">",
+      "css": ".ds-input{height:40px;width:100%;padding:8px 12px;background:#ffffff;color:#1e293b;border:1px solid #cbd5e1;border-radius:6px;font-family:\"Geist Variable\",sans-serif;font-size:0.875rem;box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);transition:border-color 200ms cubic-bezier(0.16,1,0.3,1),box-shadow 200ms cubic-bezier(0.16,1,0.3,1)}.ds-input::placeholder{color:#94a3b8}.ds-input:hover{border-color:#94a3b8}.ds-input:focus{outline:none;border-color:#0b2f9f;box-shadow:0 0 0 2px rgb(11 47 159 / 0.2)}.ds-input:disabled{opacity:0.5;cursor:not-allowed}"
+    },
+    {
+      "name": "Input Board",
+      "kind": "input",
+      "refersTo": "board-input",
+      "description": "Field ruang belakang: permukaan felt naik, garis felt, teks kapur, placeholder abu gelap. Fokus memakai hijau papan.",
+      "html": "<input class=\"ds-board-input\" type=\"text\" placeholder=\"Masukkan PGN\" aria-label=\"Masukkan PGN\">",
+      "css": ".ds-board-input{height:40px;width:100%;padding:8px 12px;background:#262421;color:#dedede;border:1px solid #363431;border-radius:6px;font-family:\"Geist Variable\",sans-serif;font-size:0.875rem;transition:border-color 200ms cubic-bezier(0.16,1,0.3,1),box-shadow 200ms cubic-bezier(0.16,1,0.3,1)}.ds-board-input::placeholder{color:#64748b}.ds-board-input:hover{border-color:#4a4742}.ds-board-input:focus{outline:none;border-color:#81b64c;box-shadow:0 0 0 2px rgb(129 182 76 / 0.2)}.ds-board-input:disabled{opacity:0.4;cursor:not-allowed}"
+    },
+    {
+      "name": "Sidebar Item Active",
+      "kind": "nav",
+      "refersTo": "nav-active",
+      "description": "Item sidebar korporat yang terpilih: teks biru tinta, bold, dan rel 1px biru setinggi baris. Bukan pita border-left berwarna.",
+      "html": "<nav><ul class=\"ds-side\"><li><a class=\"ds-side-item is-active\" href=\"#\">Profil Komunitas</a></li><li><a class=\"ds-side-item\" href=\"#\">Sejarah</a></li><li><a class=\"ds-side-item\" href=\"#\">Struktur</a></li></ul></nav>",
+      "css": ".ds-side{position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px;font-family:\"Geist Variable\",sans-serif;font-size:0.875rem}.ds-side::after{content:\"\";position:absolute;top:0;left:0;width:1px;height:100%;background:#e2e8f0}.ds-side-item{position:relative;display:block;padding:8px 4px 8px 16px;color:#64748b;text-decoration:none;transition:color 300ms cubic-bezier(0.16,1,0.3,1)}.ds-side-item:hover{color:#475569}.ds-side-item.is-active{color:#0b2f9f;font-weight:700}.ds-side-item.is-active::after{content:\"\";position:absolute;left:-1px;top:0;width:1px;height:100%;background:#0b2f9f}.ds-side-item:focus-visible{outline:2px solid #0b2f9f;outline-offset:2px}"
+    },
+    {
+      "name": "Board Tab",
+      "kind": "nav",
+      "refersTo": "board-tab-active",
+      "description": "Tab di ruang belakang. Yang aktif ditandai garis bawah hijau papan 2px di atas permukaan felt naik, bukan pil filled.",
+      "html": "<div class=\"ds-tabs\"><button type=\"button\" class=\"ds-tab is-active\">Analisa</button><button type=\"button\" class=\"ds-tab\">Latihan</button><button type=\"button\" class=\"ds-tab\">Buka</button></div>",
+      "css": ".ds-tabs{display:flex;background:#1e1c18;border-bottom:1px solid #312e2b;font-family:\"Geist Variable\",sans-serif}.ds-tab{flex:1;padding:14px 12px;background:#262421;border:0;border-bottom:2px solid transparent;color:#9ca3af;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;transition:color 200ms cubic-bezier(0.16,1,0.3,1),border-color 200ms cubic-bezier(0.16,1,0.3,1),background-color 200ms cubic-bezier(0.16,1,0.3,1)}.ds-tab:hover{color:#e5e7eb;background:#2c2926}.ds-tab.is-active{color:#ffffff;border-bottom-color:#81b64c}.ds-tab:focus-visible{outline:2px solid #81b64c;outline-offset:-2px}"
+    },
+    {
+      "name": "Document Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Kartu unduh dokumen dengan ikon PDF 32px dan tautan merah. Satu-satunya tempat merah earned di ruang depan.",
+      "html": "<div class=\"ds-doc\"><svg width=\"32\" height=\"32\" viewBox=\"0 0 32 32\" fill=\"none\" aria-hidden=\"true\"><path d=\"M8 0C6.9 0 6 0.9 6 2V30C6 31.1 6.9 32 8 32H28C29.1 32 30 31.1 30 30V8L22 0H8Z\" fill=\"#E2E5E7\"/><path d=\"M24 8H30L22 0V6C22 7.1 22.9 8 24 8Z\" fill=\"#B0B7BD\"/><path d=\"M30 14L24 8H30V14Z\" fill=\"#CAD1D8\"/><path d=\"M26 26C26 26.55 25.55 27 25 27H3C2.45 27 2 26.55 2 26V16C2 15.45 2.55 15 3 15H25C25.55 15 26 15.45 26 16V26Z\" fill=\"#F15642\"/></svg><div class=\"ds-doc-body\"><h3 class=\"ds-doc-title\">Pedoman intensification KCI</h3><a class=\"ds-doc-link\" href=\"#\">Unduh PDF<svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\"><path d=\"M4 12H20M14 6L20 12L14 18\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/></svg></a></div></div>",
+      "css": ".ds-doc{display:flex;gap:16px;padding:16px;background:#ffffff;border:1px solid #e2e8f0;border-radius:8px;font-family:\"Geist Variable\",sans-serif}.ds-doc-body{display:flex;flex-direction:column;gap:8px;min-width:0}.ds-doc-title{margin:0;font-size:0.875rem;font-weight:400;color:#1e293b}.ds-doc-link{display:inline-flex;align-items:center;gap:8px;font-size:0.875rem;font-weight:600;color:#e21f23;text-decoration:none}.ds-doc-link:hover{color:#b91c1c;text-decoration:underline;text-underline-offset:3px}.ds-doc-link:focus-visible{outline:2px solid #0b2f9f;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Two Rooms, One Club",
+    "overview": "KCI punya dua ruang, dan seluruh sistem visual lahir dari pemisahan keduanya. Ruang Depan adalah ruang tamu klub perserikatan: kertas putih, huruf serif, garis rambut 1px, satu warna aksen biru tinta. Di sanalah orang membaca tentang klub, mendaftar jadi anggota, mengunduh e-book, dan mencari jadwal Turnamen. Ruang Belakang adalah ruang analisis: arang hangat, huruf sans rapat, satu aksen hijau catur, dan panel 220-280px yang tidak pernah bergeser. Di sanalah orang duduk mengorbit board - Papan Interaktif, Analisa Stockfish, Teka-Teki, Teka-Teki Rush, Quiz Catur.\n\nKedua ruang ini bukan dua merek. Keduanya milik klub yang sama, mengikuti aturan yang sama: tidak ada gradien dekoratif, tidak ada glow, tidak ada kartu klise, tidak ada emoji. Yang berubah hanya tempatnya, dan tempat itu penting. Ruang depan berdiri di bawah cahaya; ruang belakang berdiri di bawah bohlam meja. Papan harus menjadi objek paling tajam di layar; chrome harus menghilang.\n\nKerapatan juga berbeda, dan itu disengaja. Ruang depan boleh lapang - white space adalah tanda ketenangan dan kewibawaan. Ruang belakang harus padat dan hemat: di sinilah tempat orang duduk berlama-lama, dan setiap piksel yang dikorbankan untuk hiasan adalah piksel yang dirampas dari papan. Karena itu tipografi berpindah (serif di depan, sans di belakang), radius menyempit (12px di kartu korporat, 6-8px di panel papan), dan elevasi hilang hampir seluruhnya di ruang belakang.\n\nDi ruang depan, kontrol nyaris bersembunyi supaya foto dan teks yang bicara. Di ruang belakang, kontrol menjadi tegas dan high-contrast karena yang dibaca pengguna adalah board, bukan tombolnya.",
+    "keyCharacteristics": [
+      "Dua ruang, dua bahasa, satu klub - dan rute mana pun tahu ruang mana yang ia tempati.",
+      "Rambut 1px dan whitespace sebagai alat utama; bayangan hanya untuk hal yang benar-benar melayang.",
+      "Biru tinta adalah penanda, bukan cat - hampir tidak pernah menjadi isian besar.",
+      "Serif untuk suara, sans untuk mesin, mono hanya untuk data catur.",
+      "Bahasa Indonesia baku sebagai bahasa produk; istilah teknis (PGN, FEN, ECO, ACPL) tidak diterjemahkan.",
+      "Tidak ada klaim, angka, atau kemuliaan yang tidak ada buktinya di repositori."
+    ],
+    "rules": [
+      {
+        "name": "The Marker Rule",
+        "body": "Warna biru tinta adalah penanda, bukan cat. Isi biru hanya boleh dalam blok struktural kecil di bawah 64px (trigger, header, lencana angka). Tombol, kartu, dan panel tidak pernah diisi biru.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Accents Rule",
+        "body": "Biru hanya di Ruang Depan, hijau hanya di Ruang Belakang. Mengimpor satu ke ruang lain menghapus batas yang membuat setiap ruang punya suara sendiri.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Gradient Rule",
+        "body": "Gradien ungu/pink/biru, teks gradien, dan glow dilarang keras. Satu-satunya gradien yang ada adalah scrim hitam vertikal pada foto Hero - itu cipasan keterbacaan di atas foto, bukan hiasan.",
+        "section": "colors"
+      },
+      {
+        "name": "The Contrast Rule",
+        "body": "Semua pasangan teks/latar wajib minimal 4.5:1 untuk body dan 3:1 untuk teks besar, termasuk state terpilih dan penanda langkah. Warna tidak pernah menjadi satu-satunya pembawa makna.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two-Voice Rule",
+        "body": "Serif untuk apa yang dibaca orang; sans untuk apa yang mereka gunakan. Jangan menimpa font-serif pada tabel, kontrol, atau sidebar papan; jangan menimpa font-sans pada paragraf artikel.",
+        "section": "typography"
+      },
+      {
+        "name": "The Measure Rule",
+        "body": "Setiap blok bacaan panjang dikunci 65-75ch. Paragraf di dalam grid corporate wajib diberi max-w, bukan membiarkan paragraf memakai lebar penuh.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-By-Default Rule",
+        "body": "Permukaan datar saat diam. Bayangan muncul hanya sebagai jawaban terhadap state - hover, elevation, atau fokus pada sesuatu yang menutupi halaman.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Hairline Rule",
+        "body": "Kalau dua permukaan bersebelahan perlu dibedakan dan keduanya tidak bisa bergerak, taruh garis 1px di antaranya. Jangan menumpuk bayangan untuk mencapai hal yang sama sekali sedang dan bisa diselesaikan satu piksel.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do pilih ruangnya lebih dulu sebelum menulis satu baris pun: rute dengan papan, engine, teka-teki, atau kuis memakai bahasa Ruang Belakang (felt, sans, hijau catur, sidebar tetap, tanpa Header/Footer); semuanya else memakai bahasa Ruang Depan (kertas, serif, biru tinta, container 1080px).",
+      "Do pakai garis 1px `border-slate-200` untuk memisahkan permukaan, dan `bg-slate-50`/`#f8fafc` untuk membedakan header tabel tanpa menambah garis lagi.",
+      "Do batasi biru tinta pada penanda: teks tautan, label aktif, rel 1px, nomor langkah, cincin fokus. Jarang, dan selalu di atas kertas.",
+      "Do jadikan warna langkah sebagai pasangan — warna verdict selalu bersama bentuk, ikon, atau label teks.",
+      "Do kunci panjang baris bacaan di 65–75ch dan ruangkan lebih banyak di atas judul daripada di bawahnya.",
+      "Do jaga radius tetap kecil: `rounded` untuk CTA publik, `rounded-md` untuk kontrol, `rounded-lg` untuk aksi papan, `rounded-xl` hanya untuk kartu korporat.",
+      "Do sediakan hover, focus-visible, disabled, loading, dan error untuk setiap kontrol, dengan cincin fokus yang punya `ring-offset`.",
+      "Do hormati `prefers-reduced-motion` (sudah ada di `src/index.css:1404`); setiap keyframes KCI punya pasangan `animation: none` di sana.",
+      "Do sebutkan nama fitur apa adanya — \"Papan Analisa Stockfish\", \"Buku Panduan PDF\", \"Turnamen Catur Cepat\" — bukan kategori yang di-rewrite jadi jargon.",
+      "Do nyatakan kekurangan dengan jujur. Galeri masih contoh, belum ada testimoni, belum ada statistik; halaman yang butuh angka itu harus mengatakannya."
+    ],
+    "donts": [
+      "Don't pakai gradien ungu/pink/biru, teks gradien, atau glow. Sudah dilarang keras di PRODUCT.md; sistem ini tidak pernah memakainya di mana pun.",
+      "Don't isi biru pada tombol, kartu, atau panel. Biru tinta adalah penanda, bukan cat.",
+      "Don't campur aksen antar ruang. Biru tidak masuk ke alat catur; hijau tidak masuk ke halaman korporat.",
+      "Don't pakai `border-left`/`border-right` berwarna lebih dari 1px pada kartu, item daftar, atau callout. Rel aktif sidebar adalah `::after` 1px, bukan pita 4px.",
+      "Don't letakkan kicker atau eyebrow di atas judul. Judul membawa bobotnya sendiri; label yang berulang di atas setiap judul dihapus.",
+      "Don't susun halaman sebagai tiga kartu identik ikon-dikepala-teks. Pakai satu kartu featured + dua sekunder, daftar bergaris, atau tabel.",
+      "Don't letakkan label nomor/kicker (01 / 02 / 03) kecuali urutan itu sendiri membawa informasi yang dibutuhkan pembaca.",
+      "Don't pakai bayangan sebagai latar. `shadow-sm` hanya pada kartu dan input; `shadow-xl` hanya pada overlay yang benar-benar menutupi konten.",
+      "Don't pakai `rounded-3xl`, pill besar, atau lingkaran dekoratif. Yang diizinkan: avatar 64px dan tombol submit berbentuk lingkaran di overlay pencarian.",
+      "Don't pakai monospace sebagai kostum \"teknis\". Mono hanya untuk PGN/FEN, koordinat petak, rating, dan waktu engine.",
+      "Don't pakai emoji sebagai ikon. Ikon adalah SVG yang digambar dalam satu ketebalan garis — dan proyek ini tidak memakai emoji di UI maupun dokumen.",
+      "Don't menulis `text-primary`, `bg-primary`, atau `border-primary` mengharapkan warna biru; token itu saat ini nyaris hitam (lihat Drift-watch di Colors). Pakai literal `#0B2F9F`.",
+      "Don't mengarang angka, testimoni, klien, atau studi kasus. Kalau buktinya tidak ada di repositori, halaman itu menyebut kekurangan, bukan mengisinya.",
+      "Don't memakai kata buzz SaaS yang kosong — supercharge, streamline, memberdayakan ekosistem, solusi terbaik masa depan. Nada: Indonesia baku, lugas, dan berorientasi fakta."
+    ]
+  }
+}
