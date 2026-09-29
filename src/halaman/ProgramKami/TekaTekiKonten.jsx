@@ -15,7 +15,7 @@ import { parseLangkah, terapkan } from "../../lib/tekaTeki.js";
  * soal (#4457) disalin apa adanya dari berkas itu — solusinya 25. Rxe8+ Kxe8
  * 26. Qa8# (diverifikasi dengan chess.js; Kxe8 satu-satunya balasan legal).
  *
- * Mengikuti DESIGN.md + skill `impeccable`: serif untuk bacaan, sans untuk
+ * Mengikuti DESIGN.md: serif untuk bacaan, sans untuk
  * kontrol dan tabel data, mono untuk notasi serta angka; garis 1px datar
  * tanpa gradien/glow; tata letak asimetris, bukan grid kartu kembar.
  */
