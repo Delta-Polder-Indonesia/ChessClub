@@ -1,7 +1,5 @@
 # Product — Komunitas Catur Indonesia (KCI)
 
-<!-- impeccable:product-schema 1 -->
-
 ## Platform
 
 web
