@@ -14,3 +14,12 @@
 # berkas, bukan di sisi test.
 
 public/*.xml text eol=lf
+
+# Paksa Markdown tetap LF juga. scripts/uji-peta.mjs:180 mencocokkan
+# frontmatter SKILL.md dengan /^---\n([\s\S]*?)\n---(\n|$)/ yang menuntut LF
+# murni. Tanpa aturan di sini, checkout Windows mengubah 7 SKILL.md KCI
+# menjadi CRLF dan check 8 gagal di lokal padahal isi berkasnya benar dan
+# index git menyimpan LF. Aturan yang sama berlaku untuk kedua cermin skill
+# supaya perbandingan byte di check 6 tidak kabur karena beda eol.
+
+*.md text eol=lf

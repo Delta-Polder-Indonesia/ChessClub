@@ -29,7 +29,7 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(path.join(ROOT, "noop.js"));
@@ -71,7 +71,7 @@ const FEN_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
 /* ------------------------------------------------------ 1. logika murni */
 
 console.log("\n1. Logika murni bantuanSeret.js");
-const bantuan = await import(path.join(ROOT, "src/lib/bantuanSeret.js"));
+const bantuan = await import(pathToFileURL(path.join(ROOT, "src/lib/bantuanSeret.js")).href);
 const {
   AMBANG_BANTUAN,
   balasanLawan,
