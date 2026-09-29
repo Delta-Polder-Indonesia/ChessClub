@@ -102,14 +102,14 @@ function LandingHero({ t }) {
                   setIndex(i);
                 }
               }}
-              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
+              className={`swiper-pagination-line relative flex-1 min-w-[120px] cursor-pointer py-2 md:py-4 transition-all duration-300 text-xs md:text-sm font-serif font-medium group border-b-[3px] border-white/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${
                 active ? "text-white" : "text-white/50"
               }`}
             >
               <div className="flex items-center gap-1 md:gap-2">
                 <svg
                   className={`bullet-dot w-2 h-2 md:w-3 md:h-3 transition-all duration-300 group-hover:opacity-100 ${
-                    active ? "text-blue-400 opacity-100" : "opacity-10"
+                    active ? "text-[red] opacity-100" : "opacity-10"
                   }`}
                   viewBox="0 0 8 8"
                   fill="currentColor"
@@ -123,7 +123,7 @@ function LandingHero({ t }) {
               </div>
               <div
                 key={active ? `progress-${index}` : undefined}
-                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-blue-400 pointer-events-none"
+                className="bullet-progress absolute bottom-[-3px] border-b-[3px] border-[red] pointer-events-none"
                 style={
                   active
                     ? {
@@ -174,10 +174,12 @@ function SorotanKegiatan({ t }) {
     <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
         <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl text-black">
+          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.4vw,3.3rem)] leading-none text-grey-800 max-[700px]:text-[2.4rem]">
             {t("landing.sorotanJudul")}
           </h2>
-          <p className="mt-3 font-serif text-slate-600">{t("landing.sorotanDeskripsi")}</p>
+          <p className="mt-3 mb-0 text-sm leading-[1.5] text-grey-600 max-[700px]:mt-2.5 max-[700px]:text-[13px]">
+            {t("landing.sorotanDeskripsi")}
+          </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
           {sorotan.map((s) => {
