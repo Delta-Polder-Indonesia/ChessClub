@@ -27,7 +27,9 @@ Situs resmi komunitas dan organisasi catur dengan gaya **Editorial Formal / Acad
 ## Operating Context & Visitor Modes
 
 - **Persuade (`/`, `/tentang-kami`, `/pendaftaran-anggota`):**
-  Meyakinkan calon anggota, peserta turnamen, dan mitra. Menampilkan dokumentasi sejarah kegiatan nyata, program utama, dan ajakan bergabung yang lugas.
+  Meyakinkan calon anggota, peserta turnamen, dan mitra. Menampilkan profil
+  komunitas, program utama, dan ajakan bergabung yang lugas. Galeri foto masih
+  berupa tata letak contoh dan belum menampilkan dokumentasi kegiatan nyata.
 - **Operate (`/papan-interaktif`, `/program-kami/analisa`, `/teka-teki`, `/quiz-catur`):**
   Mengutamakan efisiensi ruang papan catur, kejelasan tombol kontrol langkah, respons instan engine catur, dan minim gangguan visual.
 - **Read (`/program-kami/ebook-panduan`, `/media-dan-informasi`):**

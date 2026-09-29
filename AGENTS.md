@@ -94,6 +94,22 @@ penulis commit tidak cocok dengan akun GitHub yang punya akses proyek — commit
 - Satu push per tugas selesai, bukan per commit. Jangan membuat cabang/PR tambahan tanpa diminta.
 - Rincian dan cara memulihkan bila terlanjur: skill `kci-deploy`.
 
+## Berkas sementara (wajib dihapus)
+
+Shell di mesin ini adalah `cmd.exe`, yang tidak menerima teks panjang maupun tanda
+`<` dan `>` langsung. Karena itu pesan commit, diff panjang, dan catatan hasil uji
+sering harus ditulis ke berkas lebih dulu.
+
+- Tulis hanya di `C:\Users\TRIANA~1\AppData\Local\Temp\opencode\`. Jangan pernah
+  di dalam repo atau folder proyek.
+- Pakai berkas itu untuk satu keperluan, lalu hapus di akhir langkah yang sama.
+  Setelah selesai, folder itu harus kosong kembali.
+- Kalau sebuah perintah gagal atau dihentikan di tengah dan meninggalkan log,
+  hapus log itu, dan sebutkan di laporan kalau masih ada sisa yang tertinggal.
+- Isi berkas sementara tidak pernah jadi sumber kebenaran. Kalau isinya masih
+  dibutuhkan, pindahkan ke berkas yang benar dan ikut di-commit, jangan disisakan
+  di Temp.
+
 ## Gaya keluaran (anti "AI slop")
 
 - **Tanpa emoji** — di kode, UI/copy halaman, commit message, maupun dokumen. Emoji bukan bagian desain KCI.
