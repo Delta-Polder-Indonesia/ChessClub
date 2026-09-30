@@ -15,9 +15,10 @@ Dokumen ini melengkapi `standar-markup.md`. Tujuannya bukan membuat design syste
 Gunakan token yang sudah ada, bukan warna acak per komponen:
 
 - Aksen utama: `#0b2f9f` melalui `text-primary` / `bg-primary`.
-- Teks utama: token palet situs `text-grey-800` (utama) / `text-grey-600` (sekunder) — lihat `DESIGN.md` §1.
-- Teks sekunder: `text-gray-500` / `text-gray-600`.
-- Garis: `border-grey-200` / `border-guide`.
+- Teks utama: `text-grey-800`.
+- Teks sekunder, deskripsi, metadata, dan caption: `text-grey-600`.
+- Garis: `border-grey-200` / `border-guide` sesuai implementasi resmi.
+- Jangan memakai `text-gray-*`, `text-slate-*`, atau hex langsung untuk teks konten baru; jika kode lama masih memakainya, jangan salin penyimpangan itu.
 - Latar hero: `bg-hero`.
 - State sukses/peringatan/error: ikuti kelas yang sudah dipakai implementasi existing; jangan membuat palet status baru tanpa kebutuhan.
 
@@ -43,15 +44,14 @@ Hindari gradient, glow, glassmorphism, neon, background dekoratif, dan banyak wa
 
 ### Tombol utama
 
-Implementasi existing yang menjadi referensi saat ini menggunakan pola sederhana seperti `bg-primary px-4 py-2 text-xs font-semibold text-white` dengan hover opacity dan tanpa radius dekoratif. Lihat `src/components/DaftarTurnamen.jsx`.
+Halaman konten memakai `AksiKonten` dan `TautanKonten` dari `src/components/konten/AksiKonten.jsx`.
 
 Aturan:
 
-- Gunakan `bg-primary` untuk aksi utama.
-- Teks putih, weight semibold.
-- Padding mengikuti implementasi existing.
-- Hover sederhana (`opacity` atau pola existing), bukan transform, glow, atau animasi berlebihan.
-- Jangan membuat tombol pill/full-rounded hanya karena tren.
+- Pilih varian `utama`, `sekunder`, atau `teks` berdasarkan fungsi.
+- Halaman konten tidak menentukan ulang warna, border, radius, padding, tinggi, focus, atau disabled state.
+- Ikon hanya ditambahkan bila memperjelas arah atau jenis tindakan.
+- Program Kami non-catur dan Pengurus mengikuti pintu domainnya; seluruh kontrol catur reusable berasal dari `src/halaman/Analisa/komponen/`.
 
 ### Aksi sekunder
 
@@ -69,23 +69,18 @@ Gunakan pola text/border yang sudah ada pada halaman pembanding. Aksi sekunder t
 
 Default KCI adalah konten terbuka dengan whitespace dan garis pemisah. Jangan mengubah setiap kelompok informasi menjadi card dengan shadow.
 
-Jika sebuah blok memang sudah berupa card pada implementasi existing, cari komponen/halaman tersebut dan tiru struktur serta tokennya.
+Halaman konten tidak memakai card operasional dari `components/ui`. Gunakan section terbuka, `CatatanKonten`, spacing, atau divider sesuai makna.
 
-- Hindari `shadow-*` untuk section/card biasa.
-- Gunakan `border-t`, `border-b`, atau `border-guide` jika pola existing menggunakannya.
-- Radius hanya jika implementasi existing yang relevan memang menggunakannya.
+- Hindari `shadow-*` untuk section/blok konten biasa.
+- Card khusus fitur tetap berada di domain fitur dan tidak menjadi contoh artikel.
 
 ## Form
 
-Gunakan label yang jelas, input sederhana, border tipis, background yang tenang, dan focus state berbasis `border-primary` seperti pola existing. Jangan membuat field bergaya glass/neumorphism.
-
-Referensi konkret: `src/components/DaftarTurnamen.jsx`.
+Form mengikuti keluarga alurnya, bukan standar artikel. Halaman konten biasa tidak membuat form dekoratif. Program non-catur, pendaftaran, dan Pengurus mempertahankan komponen domainnya; kontrol catur reusable berasal dari `Analisa/komponen/`.
 
 ## Tabel dan data
 
-Untuk data terstruktur, cari tabel existing terlebih dahulu. Referensi saat ini adalah `tabel-kci` dan `tabel-peringkat` di `src/components/DaftarTurnamen.jsx`.
-
-Jangan mengganti tabel informatif menjadi card grid hanya untuk alasan estetika.
+Artikel memakai keluarga `TabelKonten` dari `src/components/konten/TabelKonten.jsx`. Dashboard dan fitur memakai tabel domainnya sendiri. Jangan mengganti tabel informatif menjadi card grid hanya untuk alasan estetika.
 
 ## Navigasi dan tautan
 

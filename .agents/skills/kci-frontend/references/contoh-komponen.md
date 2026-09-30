@@ -10,6 +10,10 @@ Dokumen ini adalah katalog rujukan implementasi. Agent wajib membuka source file
 4. Tiru pola existing dengan perubahan seminimal mungkin.
 5. Jika tidak ada contoh yang cocok, jangan mengarang design pattern baru tanpa persetujuan pengguna.
 
+## Halaman acuan aktif
+
+`src/halaman/ProgramKami/ProgramKami.jsx` adalah acuan pertama untuk halaman informasi/program. Halaman ini menunjukkan penggunaan `BagianKonten`, `TeksPembuka`, `GambarKonten`, measure bacaan, daftar definisi program, tautan tindakan, serta media ilustratif yang disebut jujur sebagai ilustrasi. Acuan ini tidak otomatis berlaku untuk berita, panduan langkah, tabel data, atau workspace.
+
 ## Referensi utama
 
 | Kebutuhan | Implementasi rujukan | Pola |
@@ -17,30 +21,34 @@ Dokumen ini adalah katalog rujukan implementasi. Agent wajib membuka source file
 | Kerangka halaman publik | `src/components/PageLayout.jsx` | Header/footer standar |
 | Kerangka halaman isi | `src/components/PageBagian.jsx` | `HalamanIsi`, hero, breadcrumb, next page |
 | Artikel | `src/components/PageBagian.jsx` | `PageArtikel` + `prose-kci` |
-| Tombol utama | `src/components/DaftarTurnamen.jsx` | `bg-primary`, padding sederhana, semibold, hover opacity |
-| Tombol submit/disabled | `src/components/DaftarTurnamen.jsx` | tombol primary + `disabled:opacity-40` |
-| Aksi sekunder | `src/components/DaftarTurnamen.jsx` | text action, tanpa card dekoratif |
-| Form input | `src/components/DaftarTurnamen.jsx` | border tipis, background putih, focus border primary |
-| Blok form | `src/components/DaftarTurnamen.jsx` | border-y + background slate sederhana |
-| Tabel data | `src/components/DaftarTurnamen.jsx` | `tabel-kci tabel-peringkat` |
-| Empty/loading state | `src/components/DaftarTurnamen.jsx` | teks singkat, tenang, tanpa ilustrasi dekoratif |
-| Link utama | `src/components/DaftarTurnamen.jsx` | `text-primary` + hover underline bila sesuai konteks |
+| Bagian konten standar | `src/components/PageBagian.jsx` | `BagianKonten` |
+| Lead/pengantar | `src/components/PageBagian.jsx` | `TeksPembuka` |
+| Gambar informatif + caption | `src/components/PageBagian.jsx` | `GambarKonten` |
+| Kutipan bersumber | `src/components/PageBagian.jsx` | `KutipanKonten` |
+| Catatan pendukung | `src/components/PageBagian.jsx` | `CatatanKonten` |
+| Tombol konten | `src/components/konten/AksiKonten.jsx` | `AksiKonten` dengan varian domain konten |
+| Tautan aksi konten | `src/components/konten/AksiKonten.jsx` | `TautanKonten` |
+| Tabel artikel | `src/components/konten/TabelKonten.jsx` | keluarga tabel semantik untuk bacaan |
+| Media/catatan/kutipan | `src/components/PageBagian.jsx` | komponen konten resmi |
+| Form fitur | komponen domain pemilik fitur | jangan memaksakan form artikel ke fitur |
+| Empty/loading state | `src/components/ui/{empty,spinner,skeleton}.jsx` | state resmi sesuai jenis proses |
+| Link bergaya aksi | `src/components/ui/button.jsx` | `Button asChild` + `Link` |
 | Halaman panjang | `src/halaman/TentangKami/TentangKami.jsx` | section + `StickyMenu` |
 | Halaman bertab | `src/halaman/TentangKami/StrukturGrupCatur/StrukturGrupCatur.jsx` | pola tab existing |
 | Daftar konten | `src/components/DaftarKontenMedia.jsx` dan `src/halaman/MediaDanInformasi/` | daftar konten KCI |
-| Quick links | `src/halaman/Turnamen/Turnamen.jsx` | heading + ikon inline + Link |
+| Quick links | `Button asChild variant="text"` + `Link` | ikon resmi opsional, bukan SVG inline |
 
-## Tombol
+## Tombol konten
 
-Sebelum membuat tombol baru, buka `src/components/DaftarTurnamen.jsx` dan cari `bg-primary`. Gunakan struktur existing sebagai baseline. Jangan menambahkan radius, shadow, gradient, icon, atau motion hanya karena dianggap lebih modern.
+Halaman konten memakai `AksiKonten` atau `TautanKonten` dari `src/components/konten/AksiKonten.jsx`. Program Kami non-catur dan Pengurus memakai pintu domainnya. Seluruh antarmuka catur—termasuk Papan Interaktif, Teka-teki, Quiz, dan Rush—mengambil komponen reusable dari `src/halaman/Analisa/komponen/`.
 
 ## Form
 
-Sebelum membuat form baru, buka bagian `form` di `src/components/DaftarTurnamen.jsx`. Pertahankan label, input, border, focus state, spacing, dan disabled state yang relevan. Perubahan hanya boleh dilakukan jika kebutuhan form memang berbeda.
+Form bukan pola umum artikel. Gunakan komponen domain pemilik alur: fitur belajar tetap di Program Kami, kontrol permainan tetap di domain permainan, dan form operasional tetap di Pengurus/`components/ui`.
 
-## Tabel
+## Tabel konten
 
-Sebelum membuat tabel baru, cari `tabel-kci` dan `tabel-peringkat`. Pertahankan sistem tabel existing dan jangan mengganti bentuk data hanya untuk estetika.
+Artikel memakai keluarga `TabelKonten`. Dashboard dan fitur memakai tabel domainnya sendiri. Jangan membuat div-grid menyerupai tabel atau mengubah data tabular menjadi card hanya untuk estetika.
 
 ## Halaman
 
@@ -48,4 +56,4 @@ Untuk halaman publik baru, mulai dari `HalamanIsi` dan `PageArtikel`. Untuk hala
 
 ## Prinsip peniruan
 
-Source code existing adalah sumber kebenaran untuk detail yang belum ditulis di dokumen ini. Jika dokumen dan implementasi existing tampak berbeda, jangan menebak: baca implementasi terbaru dan laporkan perbedaannya sebelum melakukan perubahan besar.
+`DESIGN.md` dan primitif resmi adalah sumber kebenaran. Source existing hanya contoh jika masih sesuai keduanya. Jika implementasi lama berbeda, jangan menyalinnya ke kode baru dan jangan memigrasikannya di luar cakupan yang disetujui.

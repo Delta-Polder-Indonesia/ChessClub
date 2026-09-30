@@ -38,63 +38,47 @@ Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
   (baca `src/halaman/BACA-DULU.md` untuk peta menu sebelum menambah halaman).
 - Keanggotaan hanya menjadi tab di `StrukturGrupCatur/`; `PendaftaranAnggota` adalah halaman aksi terpisah.
 
-## Bahasa desain — korporat rapi, anti "AI slop"
+## Bahasa desain — sumber aturan tunggal
 
-Acuan gaya: tema **jekyll-simple** (berbasis Skeleton). Prinsipnya satu kalimat:
-**tipografi dan whitespace yang bekerja, bukan dekorasi.** Situs korporat yang tenang
-terlihat mahal; situs yang penuh gradien, emoji, dan bayangan terlihat murahan.
+`DESIGN.md` adalah satu-satunya sumber kebenaran visual KCI. Skill ini mengatur cara
+implementasi frontend; skill `kci-anti-slop` hanya mengaudit pola yang harus dihindari.
+Jangan membuat palet, skala tipografi, aturan tombol, font, radius, atau layout kedua di sini.
 
-### Prinsip komposisi
+Urutan keputusan visual:
 
-1. **Datar (flat).** Kedalaman dibuat lewat whitespace dan garis 1px, bukan bayangan atau gradien.
-2. **Satu warna aksen.** `#0B2F9F` untuk tautan aktif, status penting, dan aksen non-tombol. **Tombol primer = tanpa isi**: garis 1px hitam, sudut sedikit melengkung (`rounded`), teks hitam, tanpa efek (permintaan pengguna). Sisanya netral.
-3. **Hierarki lewat ukuran dan bobot yang tertahan.** Tidak semuanya tebal; hanya satu elemen terkuat per layar.
-4. **Copy faktual dan spesifik** — angka, nama resmi, tanggal, nama program. Bukan slogan kosong.
+1. Ikuti permintaan eksplisit pengguna untuk tugas aktif.
+2. Ikuti `DESIGN.md` untuk token dan keputusan visual.
+3. Ikuti komponen/pola existing yang masih sesuai `DESIGN.md`.
+4. Gunakan `kci-anti-slop` sebagai filter audit, bukan sebagai gaya pengganti.
 
-### Token acuan (diekstrak dari jekyll-simple, dipadukan dengan brand KCI)
+Jika implementasi existing bertentangan dengan `DESIGN.md`, jangan menyalin penyimpangan itu
+ke komponen baru. Jangan pula memperbaiki semua pemakaian lama tanpa persetujuan cakupan.
 
-| Elemen | Nilai acuan |
-| --- | --- |
-| Container | maks. 960–1100px, padding lateral 24–32px, konten di tengah |
-| Teks isi | 15–16px, line-height 1.6, weight 400, warna `#222` |
-| Teks sekunder / muted | `#828282` / `#b1b1b1` |
-| Permukaan | putih / `#fdfdfd`; blok gelap boleh `#021624` (hero brand) — **polos, tanpa gradien** |
-| Pemisah | garis 1px `#E1E1E1` antar bagian dan kartu; atau whitespace 64–96px |
-| Radius | 4px (maks. 8px) |
-| Heading | H1 24–38px weight 600; H2 22–30px weight 600; H3 18px weight 500 — sisanya weight 400 |
-| Tombol | tinggi 38–44px; teks 11–12px uppercase, letter-spacing `.1rem`; **primer: tanpa isi — garis 1px `black`, sudut sedikit melengkung (`rounded`), teks `black`, tanpa hover/shadow/transition**; sekunder outline `#bbb` |
-| Tautan | warna sama dengan teks; hover → `#b1b1b1` + underline; transisi warna halus |
-| Font | Plus Jakarta Sans self-hosted (`src/fonts/`, `@font-face` di `src/index.css`) — jangan menambah font/CDN lain. Catatan: `@fontsource-variable/geist` sudah ter-impor di `src/index.css` dan blok `@theme inline` shadcn di bagian bawah berkas yang sama menyetel ulang `--font-sans` ke `'Geist Variable'`; periksa keduanya sebelum menyimpulkan font mana yang terpakai |
+Sebelum membuat atau mengubah UI:
 
-### Anatomi halaman & landing yang benar
+- baca `DESIGN.md`;
+- buka `references/standar-markup.md`, `references/standar-visual.md`, dan contoh source terdekat;
+- gunakan kerangka halaman serta primitif bersama yang sudah ada;
+- muat `kci-anti-slop` dan jalankan checklist-nya sebelum selesai;
+- gunakan Bahasa Indonesia untuk identifier dan copy sesuai konvensi proyek.
 
-1. **Header tipis** — logo kiri, nav kanan, maksimal satu CTA. Bukan header raksasa ber-gradien.
-2. **Hero kiri-rata** (bukan everything-centered) — H1 satu kalimat, satu paragraf subteks faktual,
-   CTA primer + CTA sekunder outline. Blok gelap `#021624` polos bila perlu kontras.
-3. **Isi** — grid kartu ber-border tipis tanpa bayangan; bagian dipisah `hr` 1px atau whitespace besar.
-4. **Footer** — kolom tautan rapi, teks kecil `#828282`.
+Larangan ringkas: tanpa emoji, gradien dekoratif, glow, glassmorphism, card bertumpuk,
+ukuran teks ad-hoc, copy generik, atau motion tanpa fungsi. Rincian dan pengecualian ada di
+`kci-anti-slop`; nilai positif yang harus dipakai tetap berasal dari `DESIGN.md`.
 
-### Larangan keras (pemicu "AI slop" — jangan pernah)
+## Komponen satu pintu per domain
 
-- **Emoji atau karakter dekoratif** di UI, heading, tombol, maupun copy halaman.
-- Gradien ungu-pink/biru, "blob", glow, glassmorphism (`backdrop-blur`), warna neon.
-- `shadow-2xl` + `rounded-3xl` di semua kartu; font-weight 800–900 di mana-mana.
-- Copy generik ("Selamat datang di website kami!", "Temukan pengalaman terbaikmu") atau lorem ipsum.
-- Ikon dekoratif tanpa makna; animasi masuk beruntun (bounce/delay berjenjang); warna atau font di luar palet.
+Jangan menyamakan bentuk seluruh aplikasi. Gunakan rumah komponen sesuai domain:
 
-## Ikon — sumber, konversi, dan satu rumah bersama
+- halaman konten publik: `src/components/PageBagian.jsx` dan `src/components/konten/`;
+- Program Kami non-catur: komponen fitur di `src/halaman/ProgramKami/`;
+- seluruh visual catur: `src/halaman/Analisa/komponen/`, termasuk `game/`, `svg/`, panel, evaluasi, jam, dan elemen papan;
+- Papan Interaktif, Teka-teki, Quiz, dan Rush: folder sendiri hanya untuk orkestrasi/state/logika mode; visual catur reusable tetap mengambil dari `Analisa/komponen/`;
+- dashboard Pengurus: primitif `src/components/ui/` dan komponen Pengurus.
 
-- **Sumber utama: `lucide-react`** (dependensi proyek, dipakai puluhan berkas di `src/`). Impor ikon
-  standar langsung dari sana (mis. `ChevronDown`) — jalur termurah dan paling konsisten.
-- **Satu rumah ikon hasil konversi: `src/halaman/Analisa/komponen/svg/`** (38 komponen `.jsx` + 8 berkas
-  `.svg`). Ikon di folder ini **publik — dipakai silang halaman**. Dilarang mendefinisikan ikon
-  inline/lokal di dalam berkas halaman (boros kode dan tidak konsisten); jika halaman butuh ikon yang
-  tidak ada di `lucide-react` (mis. lambang pihak ketiga), buat komponennya di folder itu lalu impor.
-- **Format konversi:** satu ikon per berkas mengikuti `refresh.jsx` — `function Nama({ className =
-  "h-3.5 w-3.5" })`, `stroke="currentColor"`, `strokeWidth="2"`, `aria-hidden="true"`, lalu
-  `export { Nama as default }`.
-- Catatan: folder `icons-sample/` yang dulu disebut di sini **tidak ada di repo** (dan tidak pernah
-  terlacak git). Jangan mencarinya — pakai dua sumber di atas.
+Ikon umum non-catur boleh berasal dari `lucide-react` atau `src/components/icons.jsx`; ikon catur berasal
+dari `src/halaman/Analisa/komponen/svg/`. Dilarang membuat salinan komponen catur di setiap mode atau
+memaksakan gaya artikel ke fitur catur. Keseragaman diwajibkan di dalam masing-masing keluarga.
 
 ## Komponen, state, dan render
 
@@ -127,35 +111,20 @@ yang mahal hanya dihitung ulang bila masukannya memang berubah.
   `src/components/ui/` mengikuti pola yang ada (baca `RADIX-UI.md`), jangan menulis komponen sekali pakai
   di dalam berkas halaman.
 
-## Sistem desain existing (pertahankan)
+## Referensi visual
 
-- Nilai yang sudah terpasang: primary `#0B2F9F`, hero `#021624`, teks artikel `#374151`, footer `#F8FAFC`,
-  H2 30px semibold, H1 hero putih 38px bold — konsisten dengan token di atas; jangan dicampur gaya lain.
+- Sumber kebenaran aktif: [`DESIGN.md`](../../../DESIGN.md).
+- Kerangka halaman: [`references/standar-markup.md`](references/standar-markup.md).
+- Tipografi, layout, dan anatomi konten: [`references/standar-konten.md`](references/standar-konten.md).
+- Gambar, ilustrasi, diagram, dan dokumentasi: [`references/standar-media.md`](references/standar-media.md).
+- Penerapan visual: [`references/standar-visual.md`](references/standar-visual.md).
+- Contoh source existing: [`references/contoh-komponen.md`](references/contoh-komponen.md).
+- `references/Design-System-Reference.md` hanya penunjuk sejarah dan tidak memuat aturan aktif.
+- Filter larangan: skill `kci-anti-slop`.
 
-## Design System Reference — wajib untuk komponen baru
-
-Untuk **setiap komponen UI baru** atau perubahan yang secara langsung membentuk gaya visual sebuah komponen, baca dan ikuti:
-[`references/Design-System-Reference.md`](references/Design-System-Reference.md).
-
-Dokumen tersebut adalah referensi visual khusus untuk gaya **Academic Journal / Formal Monochrome UI** dan menjadi sumber aturan detail untuk tipografi, palet monokrom, border, spacing, tabel, kartu, maklumat, langkah, tombol, ikon, modal, dan checklist visual.
-
-### Prioritas aturan visual
-
-Agar tidak terjadi konflik antara brand KCI dan referensi visual baru, gunakan urutan berikut:
-
-1. **Perubahan existing:** pertahankan desain, token, warna, layout, dan perilaku existing. Jangan merombak hanya karena Design System Reference dibaca.
-2. **Perubahan visual existing yang diminta pengguna:** ikuti permintaan pengguna dan gunakan Design System Reference sebagai panduan, tanpa memperluas scope.
-3. **Komponen/halaman baru:** gunakan Design System Reference sebagai standar visual utama, lalu selaraskan dengan identitas KCI yang tidak bertentangan.
-4. **Jika aturan bertentangan:** jangan menebak dan jangan memilih aturan yang membuka perubahan lebih luas. Pertahankan existing untuk bagian yang sudah ada; untuk bagian baru, gunakan referensi baru dan pilih token KCI hanya jika tidak bertentangan secara visual.
-5. **Tidak ada perubahan massal otomatis:** membaca referensi bukan izin untuk restyling seluruh situs, mengganti palet existing, atau melakukan refactor.
-
-### Aturan penerapan
-
-1. **Baca `Design-System-Reference.md` sebelum membuat komponen baru.** Jangan menebak gaya dari ingatan.
-2. **Jangan melakukan restyling massal pada komponen existing hanya karena referensi ini dibaca.** Perubahan existing tetap harus sesuai permintaan pengguna.
-3. Jika referensi visual dan kode existing berbeda, **pertahankan UI existing** kecuali pengguna meminta perubahan visual; gunakan referensi sebagai standar untuk komponen baru.
-4. Untuk halaman/komponen baru, gabungkan aturan struktur dari `standar-markup.md` dengan aturan visual dari `Design-System-Reference.md`.
-5. `Design-System-Reference.md` tidak memberikan izin untuk menambah fitur, mengubah perilaku, atau melakukan refactor di luar permintaan pengguna.
+Jangan memilih referensi berbeda untuk membenarkan gaya yang bertentangan. Bila pola yang
+dibutuhkan belum diatur, ajukan pilihan kepada pengguna atau usulkan penambahan ke `DESIGN.md`
+sebelum menjadikannya standar baru.
 
 ## Standar markup halaman (WAJIB sebelum membuat/porting halaman)
 

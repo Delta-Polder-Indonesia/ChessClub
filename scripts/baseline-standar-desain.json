@@ -1,0 +1,97 @@
+{
+  "src/components/PageBagian.jsx": {
+    "ukuran-teks-arbitrary": 1,
+    "max-width-arbitrary": 6
+  },
+  "src/halaman/Atribusi/Atribusi.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "max-width-arbitrary": 5
+  },
+  "src/halaman/HubungiKami/HubungiKami.jsx": {
+    "tombol-ad-hoc": 2
+  },
+  "src/halaman/Keberlanjutan/Bantuan.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/Keberlanjutan.jsx": {
+    "ukuran-teks-arbitrary": 1,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/Ketentuan.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/KodeEtikKomunitas.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/PertanyaanUmum.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/Privasi.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/Keberlanjutan/SyaratDanKetentuan.jsx": {
+    "ukuran-teks-arbitrary": 2,
+    "leading-arbitrary": 1
+  },
+  "src/halaman/MediaDanInformasi/BeritaKomunitas.jsx": {
+    "tombol-ad-hoc": 1
+  },
+  "src/halaman/MediaDanInformasi/DetailKonten.jsx": {
+    "tombol-ad-hoc": 1
+  },
+  "src/halaman/MediaDanInformasi/Galeri.jsx": {
+    "ukuran-teks-arbitrary": 11,
+    "leading-arbitrary": 7,
+    "tracking-arbitrary": 1,
+    "max-width-arbitrary": 5,
+    "teks-terlalu-kecil": 3,
+    "radius-berlebihan": 1,
+    "tombol-ad-hoc": 5
+  },
+  "src/halaman/MediaDanInformasi/MediaDanInformasi.jsx": {
+    "leading-arbitrary": 1
+  },
+  "src/halaman/MediaDanInformasi/Pengumuman.jsx": {
+    "tombol-ad-hoc": 1
+  },
+  "src/halaman/PapanInteraktif/IkonTab.jsx": {
+    "svg-inline-catur": 5
+  },
+  "src/halaman/PapanInteraktif/PapanInteraktif.jsx": {
+    "svg-inline-catur": 2
+  },
+  "src/halaman/QuizCatur/QuizCatur.jsx": {
+    "svg-inline-catur": 2
+  },
+  "src/halaman/TekaTeki/PapanTekaTeki.jsx": {
+    "svg-inline-catur": 1
+  },
+  "src/halaman/TekaTeki/TekaTeki.jsx": {
+    "svg-inline-catur": 10
+  },
+  "src/halaman/TekaTekiRush/TekaTekiRush.jsx": {
+    "svg-inline-catur": 10
+  },
+  "src/halaman/TentangKami/StrukturGrupCatur/Keanggotaan/DaftarAnggota.jsx": {
+    "ukuran-teks-arbitrary": 4,
+    "teks-terlalu-kecil": 1,
+    "shadow-berlebihan": 1,
+    "tombol-ad-hoc": 2,
+    "tabel-ad-hoc": 1,
+    "svg-inline": 1
+  },
+  "src/halaman/TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx": {
+    "ukuran-teks-arbitrary": 1,
+    "tombol-ad-hoc": 1,
+    "tabel-ad-hoc": 1
+  },
+  "src/halaman/Turnamen/Turnamen.jsx": {
+    "ukuran-teks-arbitrary": 1,
+    "leading-arbitrary": 1
+  }
+}
