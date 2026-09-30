@@ -139,6 +139,9 @@ export function sumberGambar(jalur, opsi = {}) {
   const kandidat = varian
     .filter((l) => l < lebar)
     .map((l) => `${gambar(kunci.replace(/\.webp$/i, `-${l}.webp`))} ${l}w`);
+
+  // width/height selalu ikut: itulah yang membuat browser memesan ruang lebih
+  // dulu sehingga gambar lazy tidak menggeser tata letak (CLS) saat diunduh.
   kandidat.push(`${penuh} ${lebar}w`);
 
   return {

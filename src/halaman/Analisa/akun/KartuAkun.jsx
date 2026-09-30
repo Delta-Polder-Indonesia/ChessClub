@@ -118,7 +118,7 @@ export default function KartuAkun({ platform, username, aktif = false, onPilih, 
       <div className="flex items-center gap-2 sm:gap-3 border-b border-border px-2.5 sm:px-3 py-2 sm:py-2.5">
         <span className={`grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-md ${platform === "chessCom" ? "bg-backgroundProfileWhite" : "bg-backgroundProfileBlack"}`}>
           {kartu?.avatar ? (
-            <img className="h-full w-full object-cover" src={kartu.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
+            <img className="h-full w-full object-cover" width={28} height={28} src={kartu.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
           ) : (
             <Profile width={16} height={16} class={platform === "chessCom" ? "fill-foregroundProfileWhite" : "fill-foregroundProfileBlack"} />
           )}

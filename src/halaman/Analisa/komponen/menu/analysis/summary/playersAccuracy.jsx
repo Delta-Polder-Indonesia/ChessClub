@@ -112,14 +112,14 @@ function PlayersAccuracy(props) {
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end overflow-hidden bg-backgroundProfileWhite rounded-borderRoundness">
                         {kartuPutih?.avatar ? (
-                          <img className="h-full w-full object-cover" src={kartuPutih.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                          <img className="h-full w-full object-cover" width={80} height={80} src={kartuPutih.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
                         ) : (
                           <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileWhite" />
                         )}
                     </div>
                     <div className="reduceSummary:h-20 reduceSummary:w-20 h-16 w-16 flex flex-row justify-center items-end overflow-hidden bg-backgroundProfileBlack rounded-borderRoundness">
                         {kartuHitam?.avatar ? (
-                          <img className="h-full w-full object-cover" src={kartuHitam.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
+                          <img className="h-full w-full object-cover" width={80} height={80} src={kartuHitam.avatar} alt="" loading="lazy" referrerPolicy="no-referrer" />
                         ) : (
                           <Profile width={props.reducedSummary ? 58 : 70} height={props.reducedSummary ? 58 : 70} class="fill-foregroundProfileBlack" />
                         )}

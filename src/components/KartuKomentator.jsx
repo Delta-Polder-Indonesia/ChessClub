@@ -223,6 +223,8 @@ export default function KartuKomentator({
                 <img
                   src={gambarAvatar}
                   alt=""
+                  width={36}
+                  height={36}
                   className="max-h-9 max-w-full object-contain drop-shadow-md"
                   loading="lazy"
                 />

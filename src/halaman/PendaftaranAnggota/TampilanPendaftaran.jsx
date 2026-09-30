@@ -393,6 +393,8 @@ export default function TampilanPendaftaran({
                         {kartuPemain.avatar ? (
                           <img
                             className="h-full w-full object-cover"
+                            width={40}
+                            height={40}
                             src={kartuPemain.avatar}
                             alt=""
                             loading="lazy"
@@ -471,6 +473,8 @@ export default function TampilanPendaftaran({
                       {kartuPemain?.avatar ? (
                         <img
                           className="h-full w-full object-cover"
+                          width={32}
+                          height={32}
                           src={kartuPemain.avatar}
                           alt=""
                           loading="lazy"

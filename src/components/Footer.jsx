@@ -62,6 +62,8 @@ export default function Footer() {
                     src={s.src}
                     alt={s.name}
                     title={s.name}
+                    width={160}
+                    height={40}
                     className="h-8 md:h-10 w-auto object-contain"
                     loading="lazy"
                   />

@@ -107,7 +107,7 @@ function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = f
           }`}
         >
           {avatar ? (
-            <img src={avatar} alt="" className="h-8 w-8 object-contain" loading="lazy" />
+            <img src={avatar} alt="" width={32} height={32} className="h-8 w-8 object-contain" loading="lazy" />
           ) : (
             <Profile height={32} width={32} class={putih ? "fill-[#ffffff]" : "fill-[#1d1c1a]"} />
           )}
