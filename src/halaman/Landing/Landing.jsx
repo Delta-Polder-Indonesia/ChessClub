@@ -7,6 +7,19 @@
  * markup, komponen, dan konten di berkas ini ditulis dari nol khusus
  * untuk Komunitas Catur Indonesia. Tidak ada kode maupun teks yang
  * disalin dari situs pihak lain.
+ *
+ * TIPOGRAFI SEKSI — pilot "adopsi Impeccable" (2026-09-30, direvisi dengan
+ * token asli): seluruh judul seksi (`h2`), label kecil beraksen, paragraf
+ * pengantar, dan judul/deskripsi kartu di halaman ini memakai gaya bersama
+ * dari `./gayaTeks.jsx`. Nilainya BUKAN perkiraan — disalin literal dari
+ * token desain situs sumber (`_astro/kinpaku_tokens.czfxn__5.css` +
+ * `base.dh9lpkoi.css` + `sub_pages.dr6kqi_x.css` pada
+ * `Delta-Polder-Indonesia/Halaman_sample`), dengan satu penyimpangan sengaja
+ * (ukuran label dibulatkan ke 12px, floor DESIGN.md). Ini pengecualian
+ * tercatat terhadap skala H2 global DESIGN.md §2/§6, khusus halaman ini;
+ * rincian lengkap dan batasnya ada di
+ * `.agents/skills/kci-frontend/references/standar-galeri.md` §2b. Skala ini
+ * TIDAK berlaku untuk halaman lain dan TIDAK PERNAH untuk komponen catur.
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -17,6 +30,19 @@ import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import TigaJalan from "./TigaJalan.jsx";
 import Testimoni from "./Testimoni.jsx";
+import {
+  JUDUL_SEKSI,
+  JUDUL_SEKSI_TERANG,
+  LEAD_SEKSI,
+  LEAD_SEKSI_TERANG,
+  LABEL_SEKSI,
+  LABEL_SEKSI_TERANG,
+  KEPALA_SEKSI,
+  JUDUL_KARTU,
+  DESKRIPSI_KARTU,
+  JUDUL_POSTER,
+  TitikLabel,
+} from "./gayaTeks.jsx";
 
 const SLIDE_DURATION = 7000;
 
@@ -177,69 +203,63 @@ function SorotanKegiatan({ t }) {
   ];
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
-        <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
-            {t("landing.sorotanJudul")}
-          </h2>
-          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
-            {t("landing.sorotanDeskripsi")}
-          </p>
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
+        <div className={KEPALA_SEKSI}>
+          <h2 className={JUDUL_SEKSI}>{t("landing.sorotanJudul")}</h2>
+          <p className={LEAD_SEKSI}>{t("landing.sorotanDeskripsi")}</p>
         </div>
 
-        {/* Kartu unggulan — foto kiri, teks kanan; bertumpuk di ponsel. */}
-        <Link
-          to={unggulan.to}
-          className="group grid grid-cols-1 md:grid-cols-2 border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          <img
-            {...unggulan.sumber}
-            alt=""
-            width={640}
-            height={427}
-            loading="lazy"
-            decoding="async"
-            className="w-full aspect-[3/2] md:aspect-auto md:h-full object-cover"
-          />
-          <div className="flex flex-col justify-center gap-3 p-6 md:p-8">
-            <h3 className="font-serif font-semibold text-xl text-grey-800 transition-colors group-hover:text-primary">
-              {unggulan.judul}
-            </h3>
-            <p className="font-serif text-base leading-[1.6] text-grey-600">
-              {unggulan.isi}
-            </p>
-            <span className="mt-2 inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary">
-              {unggulan.cta}
-              <ArrowRightIcon className="size-4" aria-hidden="true" />
-            </span>
-          </div>
-        </Link>
+        <div className="flex flex-col gap-10">
+          {/* Kartu unggulan — foto kiri, teks kanan; bertumpuk di ponsel. */}
+          <Link
+            to={unggulan.to}
+            className="group grid grid-cols-1 md:grid-cols-2 border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          >
+            <img
+              {...unggulan.sumber}
+              alt=""
+              width={640}
+              height={427}
+              loading="lazy"
+              decoding="async"
+              className="w-full aspect-[3/2] md:aspect-auto md:h-full object-cover"
+            />
+            <div className="flex flex-col justify-center gap-3 p-6 md:p-8">
+              <h3 className={`${JUDUL_KARTU} transition-colors group-hover:text-primary`}>
+                {unggulan.judul}
+              </h3>
+              <p className={DESKRIPSI_KARTU}>{unggulan.isi}</p>
+              <span className="mt-2 inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary">
+                {unggulan.cta}
+                <ArrowRightIcon className="size-4" aria-hidden="true" />
+              </span>
+            </div>
+          </Link>
 
-        {/* Dua kartu sekunder — foto di atas, teks di bawah. */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {sekunder.map((s) => (
-            <Link
-              key={s.judul}
-              to={s.to}
-              className="group flex flex-col border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            >
-              <img
-                {...s.sumber}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="w-full aspect-[3/2] object-cover"
-              />
-              <div className="flex flex-col gap-2 p-6">
-                <h3 className="font-serif font-semibold text-lg text-grey-800 transition-colors group-hover:text-primary">
-                  {s.judul}
-                </h3>
-                <p className="font-serif text-base leading-[1.6] text-grey-600">
-                  {s.isi}
-                </p>
-              </div>
-            </Link>
-          ))}
+          {/* Dua kartu sekunder — foto di atas, teks di bawah. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {sekunder.map((s) => (
+              <Link
+                key={s.judul}
+                to={s.to}
+                className="group flex flex-col border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                <img
+                  {...s.sumber}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full aspect-[3/2] object-cover"
+                />
+                <div className="flex flex-col gap-2 p-6">
+                  <h3 className={`${JUDUL_KARTU} transition-colors group-hover:text-primary`}>
+                    {s.judul}
+                  </h3>
+                  <p className={DESKRIPSI_KARTU}>{s.isi}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -330,13 +350,13 @@ function CardGambar({ index, t }) {
       )}
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-3 z-10 pointer-events-none">
-        <h2 className="font-serif text-white font-semibold text-2xl md:text-3xl leading-snug">
-          {t("landing.pustakaJudul")}
-        </h2>
-        <p className="font-serif text-white/90 text-base leading-[1.6]">
-          {t("landing.pustakaDesk")}
+      <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-[14px] z-10 pointer-events-none">
+        <p className={LABEL_SEKSI_TERANG}>
+          <TitikLabel terang />
+          {t("landing.pustakaLabel")}
         </p>
+        <h2 className={JUDUL_POSTER}>{t("landing.pustakaJudul")}</h2>
+        <p className={LEAD_SEKSI_TERANG}>{t("landing.pustakaDesk")}</p>
       </div>
     </div>
   );
@@ -417,7 +437,7 @@ function CardCarousel({ index, setIndex, t }) {
                     : "bg-white border-grey-200 text-grey-800 hover:bg-primary hover:border-primary group"
                 }`}
               >
-                <h3 className={`font-serif font-semibold text-lg ${isActive ? "text-white" : "text-grey-800 group-hover:text-white"} ${transisiWarna}`}>
+                <h3 className={`font-serif text-[1.0625rem] font-semibold leading-[1.35] ${isActive ? "text-white" : "text-grey-800 group-hover:text-white"} ${transisiWarna}`}>
                   {k.judul}
                 </h3>
                 <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-primary group-hover:bg-white"} ${transisiWarna}`} />
@@ -502,9 +522,7 @@ function HarapanTerimaKasih({ t }) {
         {/* Kolom artikel */}
         <div className="w-full relative bg-transparent md:pt-4 xl:pt-4">
           <div className="relative w-full mx-auto flex flex-col gap-y-6">
-            <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
-              {t("landing.harapanJudul")}
-            </h2>
+            <h2 className={JUDUL_SEKSI}>{t("landing.harapanJudul")}</h2>
             <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
               <div className="relative z-[1] font-serif prose-kci max-w-none">
                 <p>{t("landing.harapanPembuka")}</p>
@@ -574,16 +592,12 @@ function GaleriKegiatan({ t }) {
   ];
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
-        <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
-            {t("landing.galeriJudul")}
-          </h2>
-          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
-            {t("landing.galeriDesk")}
-          </p>
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
+        <div className={KEPALA_SEKSI}>
+          <h2 className={JUDUL_SEKSI}>{t("landing.galeriJudul")}</h2>
+          <p className={LEAD_SEKSI}>{t("landing.galeriDesk")}</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px]">
           {foto.map((f) => (
             <figure
               key={f.alt}
@@ -601,7 +615,7 @@ function GaleriKegiatan({ t }) {
             </figure>
           ))}
         </div>
-        <div>
+        <div className="mt-10">
           <Link
             to="/media-dan-informasi"
             className="inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary transition-colors hover:text-grey-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
@@ -625,14 +639,10 @@ function CaraBergabung({ t }) {
   ];
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
-        <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
-            {t("landing.langkahJudul")}
-          </h2>
-          <p className="mt-3 font-serif text-base leading-[1.6] text-grey-600">
-            {t("landing.langkahDesk")}
-          </p>
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
+        <div className={KEPALA_SEKSI}>
+          <h2 className={JUDUL_SEKSI}>{t("landing.langkahJudul")}</h2>
+          <p className={LEAD_SEKSI}>{t("landing.langkahDesk")}</p>
         </div>
         <ol className="m-0 p-0 list-none flex flex-col">
           {langkah.map((l, i) => (
@@ -649,12 +659,8 @@ function CaraBergabung({ t }) {
                 {i + 1}
               </span>
               <div className="flex flex-col gap-2">
-                <h3 className="m-0 font-serif font-semibold text-lg text-grey-800">
-                  {l.judul}
-                </h3>
-                <p className="m-0 font-serif text-base leading-[1.6] text-grey-600">
-                  {l.isi}
-                </p>
+                <h3 className={`m-0 ${JUDUL_KARTU}`}>{l.judul}</h3>
+                <p className={`m-0 ${DESKRIPSI_KARTU}`}>{l.isi}</p>
               </div>
             </li>
           ))}
@@ -668,14 +674,20 @@ function CaraBergabung({ t }) {
 function AjakanBergabung({ t }) {
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
-      <div className="mx-auto max-w-2xl flex flex-col items-center gap-5">
-        <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
-          {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
-        </h2>
-        <p className="font-serif text-base leading-[1.6] text-grey-600">{t("landing.ajakanDeskripsi")}</p>
+      <div className="mx-auto max-w-2xl flex flex-col items-center">
+        <div className="flex flex-col items-center gap-[14px] text-center">
+          <p className={LABEL_SEKSI}>
+            <TitikLabel />
+            {t("landing.ajakanLabel")}
+          </p>
+          <h2 className={JUDUL_SEKSI}>
+            {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
+          </h2>
+          <p className={LEAD_SEKSI}>{t("landing.ajakanDeskripsi")}</p>
+        </div>
         <Link
           to="/pendaftaran-anggota"
-          className="inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+          className="mt-8 inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         >
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
@@ -714,13 +726,13 @@ export default function Landing() {
           decoding="async"
         />
         <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-3">
-          <h2 className="font-serif text-white font-semibold text-2xl md:text-3xl leading-snug">
-            {t("nav.tentangKami")}
-          </h2>
-          <p className="font-serif text-white/90 text-base leading-[1.6] max-w-2xl">
-            {t("landing.sekilasDesk")}
+        <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-[14px]">
+          <p className={LABEL_SEKSI_TERANG}>
+            <TitikLabel terang />
+            {t("landing.sekilasLabel")}
           </p>
+          <h2 className={JUDUL_SEKSI_TERANG}>{t("nav.tentangKami")}</h2>
+          <p className={`${LEAD_SEKSI_TERANG} max-w-2xl`}>{t("landing.sekilasDesk")}</p>
           <div className="flex flex-wrap gap-4 mt-8">
             <Link
               to="/tentang-kami"
@@ -748,10 +760,8 @@ export default function Landing() {
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
-              <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">{t("nav.keberlanjutan")}</h2>
-              <p className="font-serif text-base leading-[1.6] text-grey-600">
-                {t("landing.keberlanjutanDesk")}
-              </p>
+              <h2 className={JUDUL_SEKSI}>{t("nav.keberlanjutan")}</h2>
+              <p className={LEAD_SEKSI}>{t("landing.keberlanjutanDesk")}</p>
             </div>
             <div className="flex">
               <Link

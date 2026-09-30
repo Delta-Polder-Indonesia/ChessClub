@@ -116,6 +116,7 @@ yang mahal hanya dihitung ulang bila masukannya memang berubah.
 - Sumber kebenaran aktif: [`DESIGN.md`](../../../DESIGN.md).
 - Kerangka halaman: [`references/standar-markup.md`](references/standar-markup.md).
 - Tipografi, layout, dan anatomi konten: [`references/standar-konten.md`](references/standar-konten.md).
+- Kerangka Galeri/visual (pengecualian tipografi khusus, bukan untuk halaman catur): [`references/standar-galeri.md`](references/standar-galeri.md).
 - Gambar, ilustrasi, diagram, dan dokumentasi: [`references/standar-media.md`](references/standar-media.md).
 - Penerapan visual: [`references/standar-visual.md`](references/standar-visual.md).
 - Contoh source existing: [`references/contoh-komponen.md`](references/contoh-komponen.md).
