@@ -308,7 +308,7 @@ export default function TampilanPendaftaran({
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 font-sans flex flex-col justify-between items-center p-4 sm:p-6 lg:p-10 select-none relative">
       {toastKey && (
-        <div className="fixed top-5 right-5 z-50 bg-gray-900 text-white text-sm px-4 py-3 rounded-xl border border-gray-700 shadow-xl flex items-center gap-3 animate-fade-in">
+        <div className="fixed top-5 right-5 z-50 bg-grey-800 text-white text-sm px-4 py-3 rounded-lg border border-grey-600 shadow-xl flex items-center gap-3 animate-fade-in">
           <Info className="h-4 w-4 text-blue-400 flex-shrink-0" aria-hidden="true" />
           <span>{t(toastKey)}</span>
         </div>

@@ -51,7 +51,7 @@ export default function Logo({
           <span className="font-extrabold tracking-wide text-[15px] md:text-[17px]">
             KOMUNITAS CATUR
           </span>
-          <span className="font-semibold tracking-[0.3em] text-[9px] md:text-[10px] mt-[5px]">
+          <span className="font-semibold tracking-[0.3em] text-[10px] md:text-[11px] mt-[5px]">
             INDONESIA
           </span>
         </span>

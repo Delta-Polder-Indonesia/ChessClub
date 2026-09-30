@@ -15,7 +15,7 @@ Dokumen ini melengkapi `standar-markup.md`. Tujuannya bukan membuat design syste
 Gunakan token yang sudah ada, bukan warna acak per komponen:
 
 - Aksen utama: `#0b2f9f` melalui `text-primary` / `bg-primary`.
-- Teks utama: token existing seperti `text-gray-900` atau gaya yang sudah dipakai komponen pembanding.
+- Teks utama: token palet situs `text-grey-800` (utama) / `text-grey-600` (sekunder) — lihat `DESIGN.md` §1.
 - Teks sekunder: `text-gray-500` / `text-gray-600`.
 - Garis: `border-grey-200` / `border-guide`.
 - Latar hero: `bg-hero`.

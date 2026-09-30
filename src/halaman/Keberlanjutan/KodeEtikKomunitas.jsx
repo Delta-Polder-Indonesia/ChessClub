@@ -1,5 +1,5 @@
-import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
-import { useI18n } from "../../lib/i18n.jsx";
+import { HalamanIsi, PageArtikel } from"../../components/PageBagian.jsx";
+import { useI18n } from"../../lib/i18n.jsx";
 
 export default function KodeEtikKomunitas() {
   const { t } = useI18n();
@@ -11,7 +11,7 @@ export default function KodeEtikKomunitas() {
       parentPath="/keberlanjutan"
       description={t("kodeEtik.deskripsi")}
       next={{
-        to: "/keberlanjutan/pertanyaan-umum",
+        to:"/keberlanjutan/pertanyaan-umum",
         judul: t("kodeEtik.nextJudul"),
       }}
     >
@@ -19,14 +19,14 @@ export default function KodeEtikKomunitas() {
         {/* ═══ Header Editorial / Koran ═══ */}
         <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
           <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-            <div className="relative mb-6 border-b-4 border-double border-gray-900 pb-3 text-center">
-              <p className="mb-1 text-xs font-bold tracking-widest text-gray-900 uppercase">
+            <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
+              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
                 {t("kodeEtik.judul")}
               </p>
-              <h1 className="mb-2 text-3xl leading-none font-black tracking-tight text-gray-900 uppercase md:text-4xl">
+              <h1 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
                 {t("kodeEtik.artikel")}
               </h1>
-              <p className="m-0 text-sm text-gray-900 italic">
+              <p className="m-0 text-sm text-grey-800 italic">
                 {t("kodeEtik.deskripsi")}
               </p>
             </div>
@@ -34,16 +34,16 @@ export default function KodeEtikKomunitas() {
         </section>
 
         {/* ═══ Konten Paragraf Utama & Sub-bagian ═══ */}
-        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-sm leading-relaxed text-justify text-gray-800">
-          <p className="m-0 font-sans text-xs font-semibold text-gray-500">
+        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+          <p className="m-0 font-sans text-xs font-semibold text-slate-500">
             Terakhir diperbarui: 24 Agustus 2026
           </p>
 
           <div className="pt-2">
-            <h2 className="m-0 mb-2 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               1. Tujuan dan Ruang Lingkup
             </h2>
-            <p className="m-0 first-letter:float-left first-letter:mr-3 first-letter:text-4xl first-letter:font-black first-letter:leading-none first-letter:text-gray-900">
+            <p className="m-0">
               Kebijakan ini disusun sebagai landasan operasional Blunder Skuad
               dalam menciptakan ekosistem catur yang menyenangkan, aman, dan adil
               bagi seluruh anggota. Dokumen ini berlaku untuk setiap individu yang
@@ -58,10 +58,10 @@ export default function KodeEtikKomunitas() {
             </p>
           </div>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               2. Perilaku dalam Komunitas
             </h2>
             <p className="m-0">
@@ -93,10 +93,10 @@ export default function KodeEtikKomunitas() {
             </p>
           </div>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               3. Sikap Sportif dalam Bermain
             </h2>
             <p className="m-0">
@@ -119,10 +119,10 @@ export default function KodeEtikKomunitas() {
             </p>
           </div>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               4. Mekanisme Pelaporan
             </h2>
             <p className="m-0">
@@ -146,10 +146,10 @@ export default function KodeEtikKomunitas() {
             </p>
           </div>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <div className="flex flex-col gap-y-3">
-            <h2 className="m-0 mb-1 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-1 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               5. Peraturan Acara Komunitas
             </h2>
             <p className="m-0">
@@ -163,16 +163,16 @@ export default function KodeEtikKomunitas() {
             </p>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Klasifikasi Acara
               </h3>
               <p className="m-0">
                 Blunder Skuad mengklasifikasikan acara ke dalam dua kategori utama.
-                Pertama, <strong className="font-bold text-gray-900">Acara Internal</strong>, yang merupakan format standar
+                Pertama, <strong className="font-bold text-grey-800">Acara Internal</strong>, yang merupakan format standar
                 bagi sebagian besar turnamen dan kegiatan komunitas. Penyelenggara
                 acara internal tidak memerlukan izin khusus dari pengurus utama selama
-                mematuhi persyaratan operasional yang telah ditetapkan. Kedua,{" "}
-                <strong className="font-bold text-gray-900">Acara Resmi</strong>, yang merupakan status premium
+                mematuhi persyaratan operasional yang telah ditetapkan. Kedua,{""}
+                <strong className="font-bold text-grey-800">Acara Resmi</strong>, yang merupakan status premium
                 diperuntukkan bagi kegiatan penting yang memerlukan keterlibatan
                 langsung dan dukungan penuh dari pengurus Blunder Skuad. Status ini
                 hanya dapat diperoleh melalui proses pengajuan formal, diskusi, dan
@@ -181,16 +181,16 @@ export default function KodeEtikKomunitas() {
             </div>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Persyaratan untuk Acara Internal
               </h3>
               <p className="m-0">
                 Penyelenggara acara internal wajib menampilkan pernyataan berikut
                 secara jelas di semua halaman acara, formulir pendaftaran, dan materi
-                promosi:{" "}
+                promosi:{""}
                 <em className="italic font-semibold">
-                  "Acara ini diselenggarakan secara mandiri oleh anggota Blunder Skuad dan merupakan tanggung jawab penuh penyelenggara."
-                </em>{" "}
+"Acara ini diselenggarakan secara mandiri oleh anggota Blunder Skuad dan merupakan tanggung jawab penuh penyelenggara."
+                </em>{""}
                 Penyelenggara tidak boleh menyiratkan atau menyarankan bahwa pengurus
                 utama secara langsung mendukung, memantau, memverifikasi, atau
                 menyetujui acara tersebut kecuali jika terdapat pernyataan tertulis
@@ -206,21 +206,21 @@ export default function KodeEtikKomunitas() {
             </div>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Opsi Dukungan Permainan Adil
               </h3>
               <p className="m-0">
                 Blunder Skuad menyediakan berbagai tingkat dukungan permainan adil
-                untuk membantu penyelenggara menjaga integritas acara mereka.{" "}
-                <strong className="font-bold text-gray-900">Perlindungan Standar</strong> adalah mekanisme default yang
+                untuk membantu penyelenggara menjaga integritas acara mereka.{""}
+                <strong className="font-bold text-grey-800">Perlindungan Standar</strong> adalah mekanisme default yang
                 berlaku untuk seluruh pertandingan di dalam komunitas, di mana setiap
                 permainan diperiksa oleh sistem deteksi otomatis standar.
                 Penyelenggara tidak perlu melakukan tindakan tambahan untuk
-                mengaktifkan perlindungan ini. <strong className="font-bold text-gray-900">Peninjauan Prioritas</strong>{" "}
+                mengaktifkan perlindungan ini. <strong className="font-bold text-grey-800">Peninjauan Prioritas</strong>{""}
                 dapat diminta oleh penyelenggara kepada pengurus apabila ingin
                 algoritme deteksi memprioritaskan pertandingan dalam acara mereka;
                 layanan ini dapat disediakan secara gratis sesuai ketersediaan sumber
-                daya. <strong className="font-bold text-gray-900">Peninjauan Manual</strong> oleh tim analisis internal
+                daya. <strong className="font-bold text-grey-800">Peninjauan Manual</strong> oleh tim analisis internal
                 Blunder Skuad dapat diminta oleh penyelenggara acara internal apabila
                 diperlukan investigasi yang lebih mendalam; layanan ini tergantung
                 pada ketersediaan tim dan dapat dikenakan biaya operasional untuk
@@ -229,7 +229,7 @@ export default function KodeEtikKomunitas() {
             </div>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Persyaratan untuk Acara Resmi
               </h3>
               <p className="m-0">
@@ -243,16 +243,16 @@ export default function KodeEtikKomunitas() {
                 struktur hadiah. Acara resmi akan sepenuhnya didukung oleh tim
                 permainan adil dan operasional kami, dengan penerapan protokol
                 pemantauan yang paling ketat. Apabila status resmi diberikan,
-                penyelenggara wajib menampilkan pernyataan:{" "}
+                penyelenggara wajib menampilkan pernyataan:{""}
                 <em className="italic font-semibold">
-                  "Acara ini secara resmi didukung oleh, namun tetap merupakan
+"Acara ini secara resmi didukung oleh, namun tetap merupakan
                   tanggung jawab penyelenggara, Blunder Skuad."
                 </em>
               </p>
             </div>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Aturan Operasional Umum
               </h3>
               <p className="m-0">
@@ -274,7 +274,7 @@ export default function KodeEtikKomunitas() {
             </div>
 
             <div className="mt-1">
-              <h3 className="m-0 mb-1 font-sans text-xs font-bold tracking-wide text-gray-900 uppercase">
+              <h3 className="m-0 mb-1 font-sans text-sm font-semibold text-grey-800">
                 Sponsor dan Promosi
               </h3>
               <p className="m-0">
@@ -289,10 +289,10 @@ export default function KodeEtikKomunitas() {
             </div>
           </div>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-gray-900 pb-1 font-sans text-base font-black tracking-tight text-gray-900 uppercase">
+            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
               6. Penafian dan Tanggung Jawab
             </h2>
             <p className="m-0">
@@ -316,17 +316,17 @@ export default function KodeEtikKomunitas() {
           </div>
 
           {/* ═══ Footer Note / Penutup Editorial ═══ */}
-          <div className="mt-6 border-t-2 border-b-2 border-gray-900 p-4 text-center">
-            <p className="m-0 font-serif text-sm leading-relaxed text-gray-900 italic">
+          <div className="mt-6 border-t border-b border-grey-200 p-4 text-center">
+            <p className="m-0 font-serif text-sm leading-relaxed text-grey-800 italic">
               Dokumen ini disusun sebagai pedoman hidup komunitas Blunder Skuad.
               Dengan tetap aktif sebagai anggota, Anda dianggap telah membaca,
               memahami, dan menyetujui seluruh ketentuan yang tercantum di atas.
             </p>
-            <div className="mt-4 pt-3 border-t border-gray-300">
-              <strong className="block font-sans text-xs font-black tracking-widest uppercase text-gray-900">
+            <div className="mt-4 pt-3 border-t border-slate-300">
+              <strong className="block font-sans text-[13px] font-semibold text-grey-800">
                 Blunder Skuad
               </strong>
-              <span className="block font-serif text-xs italic text-gray-700 mt-0.5">
+              <span className="block font-serif text-xs italic text-grey-600 mt-0.5">
                 Komunitas Catur untuk Semua
               </span>
             </div>

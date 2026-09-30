@@ -11,7 +11,7 @@ export const landing = {
     pustakaLabel: "Library",
     pustakaJudul: "Chess E-Books",
     pustakaDesk:
-      "Learning materials written and curated by members, from opening fundamentals to theoretical endgames — all free to download.",
+      "Learning materials written and curated by members, from opening fundamentals to theoretical endgames. All free to download.",
     kartu1Judul: "Chess School Program",
     kartu1Desk: "Explore the chess education and training programs we provide for everyone.",
     kartu2Judul: "Regular Tournaments",
@@ -28,7 +28,7 @@ export const landing = {
     harapanPembuka:
       "To all members, chess players, and friends of the community whom we respect and are proud of,",
     harapanP1:
-      "As the community continues to grow, we would like to express our gratitude for the contributions and dedication given to building national chess — working hand in hand to bring regular tournaments, coaching classes, and room to grow for chess players from many regions.",
+      "As the community continues to grow, we would like to express our gratitude for the contributions and dedication given to building national chess, working hand in hand to bring regular tournaments, coaching classes, and room to grow for chess players from many regions.",
     harapanP2:
       "Our thanks also go to all members and the wider public for their support of the community. We exist for the benefit of many, and we remain committed to providing a place to play, learn, and grow for chess players across Indonesia.",
     harapanP3:
@@ -41,16 +41,17 @@ export const landing = {
     harapanAltFoto: "Illustration of a representative of Indonesia Chess Community",
     sorotanJudul: "Activity Highlights",
     sorotanDeskripsi:
-      "A series of activities that support the community's chess development and achievements.",
+      "Three regular activities that support members' development and achievements all year round.",
     sorotan1Judul: "Regular Monthly Tournaments",
     sorotan1Isi:
       "Monthly Tournaments, Seasonal League, and Inter-Community League keep members' competitive flying hours high throughout the year.",
+    sorotan1Cta: "See the tournament schedule",
     sorotan2Judul: "Chess Puzzles",
     sorotan2Isi:
       "Regular chess puzzle practice sharpens calculation, tactics, and the ability to read positions for every player.",
     sorotan3Judul: "Opening Explorer",
     sorotan3Isi:
-      "Explore an interactive chess opening library — browse opening variations move by move and learn opponent plans.",
+      "An interactive opening library for browsing variations move by move and studying your opponent's plans.",
     ajakanLabel: "One last step",
     ajakanJudul:
       "If you want your chess rating to truly climb, cut back on random videos and start focusing on",
@@ -79,17 +80,37 @@ export const landing = {
     testimoniJudul: "What community players say",
     testimoniLeadAria: "Featured quote from a member",
     testimoniLeadKutip:
-      "Since regularly joining the monthly tournaments, my competitive match practice has grown fast — every game is a new lesson I can immediately try on the interactive board.",
+      "Since regularly joining the monthly tournaments, my competitive match practice has grown fast; every game is a new lesson I can immediately try on the interactive board.",
     testimoniLeadNama: "Bima R.",
     testimoniLeadPeran: "Intermediate player, rated 1650",
     testimoniKutip1Aria: "Quote from Mayang",
     testimoniKutip1Kutip:
-      "The endgame module in the free e-book is very valuable — I used to lose winning positions before I understood basic king-and-pawn technique.",
+      "The endgame module in the free e-book is very valuable; I used to lose winning positions before I understood basic king-and-pawn technique.",
     testimoniKutip1Nama: "Mayang T.",
     testimoniKutip1Peran: "Beginner player, rated 1420",
     testimoniKutip2Aria: "Quote from Salim",
     testimoniKutip2Kutip:
-      "The interactive opening book gives my practice a clear structure — I now know opponent plans and feel confident leaving the opening.",
+      "The interactive opening book gives my practice a clear structure; I now know opponent plans and feel confident leaving the opening.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Community member, rated 1890",
+    galeriJudul: "Activity Gallery",
+    galeriDesk:
+      "Boards, pieces, and the atmosphere of chess games in tournament rooms.",
+    galeriCta: "See the full gallery",
+    galeriAlt1: "Chess tournament hall with players competing at tables",
+    galeriAlt2: "Black and white chess pieces on a board",
+    galeriAlt3: "Chess players competing in a tournament",
+    galeriAlt4: "Chess board with pieces in the starting position",
+    galeriAlt5: "Atmosphere of a chess game in a tournament room",
+    langkahJudul: "How to join",
+    langkahDesk: "Three steps to start competing with Blunder Skuad.",
+    langkah1Judul: "Fill in the registration form",
+    langkah1Isi:
+      "Enter your name, chess username, and region on the registration form, then submit.",
+    langkah2Judul: "Verify your account",
+    langkah2Isi:
+      "Follow the verification guide sent after registration to activate your membership.",
+    langkah3Judul: "Play your first tournament",
+    langkah3Isi:
+      "Pick a Monthly Tournament schedule on the Tournament page and register.",
   }

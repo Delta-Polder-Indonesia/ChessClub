@@ -53,7 +53,6 @@ export default function StrukturGrupCatur() {
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
         <MastheadEditorial
-          kicker={t("strukturGrupCatur.judul")}
           judul={t("strukturGrupCatur.judul")}
           subjudul={t("strukturGrupCatur.deskripsi")}
         />

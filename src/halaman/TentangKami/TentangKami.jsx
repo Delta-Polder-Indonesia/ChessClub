@@ -20,7 +20,6 @@ export default function TentangKami() {
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
         <MastheadEditorial
-          kicker={t("hero.tentangKami")}
           judul={t("hero.tentangKami")}
           subjudul={t("hero.deskripsi")}
         />

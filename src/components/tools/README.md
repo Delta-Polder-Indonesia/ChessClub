@@ -3,7 +3,7 @@
 Komponen siap panggil bergaya [neobrutalism.dev](https://www.neobrutalism.dev) —
 diport dari [ekmas/neobrutalism-components](https://github.com/ekmas/neobrutalism-components)
 dan disesuaikan dengan identitas situs (biru `#0B2F9F`, bayangan keras
-`shadow-[4px_4px_0px_0px_#000]`, font Plus Jakarta Sans).
+`shadow-[4px_4px_0px_0px_#000]`, font sans UI situs).
 
 **Tujuan:** semua halaman memakai markup yang sama. Jangan menulis
 ulang markup accordion/grafik per halaman — panggil komponen ini.

@@ -1,42 +1,42 @@
-import { Link } from "react-router-dom";
-import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
-import TabelHasilTurnamen from "../../components/TabelHasilTurnamen.jsx";
-import { useI18n } from "../../lib/i18n.jsx";
-import { gambar } from "../../lib/asets.js";
+import { Link } from"react-router-dom";
+import { HalamanIsi, PageArtikel, MastheadEditorial } from"../../components/PageBagian.jsx";
+import TabelHasilTurnamen from"../../components/TabelHasilTurnamen.jsx";
+import { useI18n } from"../../lib/i18n.jsx";
+import { gambar } from"../../lib/asets.js";
 
 /**
  * Halaman Turnamen — pintu masuk seluruh agenda kompetitif komunitas.
  * Lima tautan cepat mengarah ke layanan internal situs ini, sedangkan
- * artikel "Turnamen Komunitas" memuat kebijakan turnamen Blunder Skuad.
+ * artikel"Turnamen Komunitas" memuat kebijakan turnamen Blunder Skuad.
  */
 export default function Turnamen() {
   const { t } = useI18n();
 
   const DAFTAR_NAV = [
     {
-      to: "/pendaftaran-anggota",
-      judul: "Pendaftaran Anggota",
-      img: "/images/Turnamen/daftar.png",
+      to:"/pendaftaran-anggota",
+      judul:"Pendaftaran Anggota",
+      img:"/images/Turnamen/daftar.png",
     },
     {
-      to: "/turnamen/turnamen-bulanan",
-      judul: "Turnamen Bulanan",
-      img: "/images/Turnamen/skor.png",
+      to:"/turnamen/turnamen-bulanan",
+      judul:"Turnamen Bulanan",
+      img:"/images/Turnamen/skor.png",
     },
     {
-      to: "/turnamen/turnamen-terbuka",
-      judul: "Turnamen Terbuka",
-      img: "/images/Turnamen/live.png",
+      to:"/turnamen/turnamen-terbuka",
+      judul:"Turnamen Terbuka",
+      img:"/images/Turnamen/live.png",
     },
     {
-      to: "/turnamen/liga-antar-komunitas",
-      judul: "Liga Antar Komunitas",
-      img: "/images/Turnamen/chairs.png",
+      to:"/turnamen/liga-antar-komunitas",
+      judul:"Liga Antar Komunitas",
+      img:"/images/Turnamen/chairs.png",
     },
     {
-      to: "/turnamen/liga-musiman",
-      judul: "Liga Musiman",
-      img: "/images/Turnamen/hasil.png",
+      to:"/turnamen/liga-musiman",
+      judul:"Liga Musiman",
+      img:"/images/Turnamen/hasil.png",
     },
   ];
 
@@ -44,33 +44,32 @@ export default function Turnamen() {
     <HalamanIsi
       title={t("turnamen.judul")}
       description={t("turnamen.deskripsi")}
-      next={{ to: "/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
+      next={{ to:"/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
     >
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
         <MastheadEditorial
-          kicker={t("turnamen.judul")}
           judul="Turnamen Komunitas"
           subjudul={t("turnamen.deskripsi")}
         />
 
         {/* ═══ Direct Tautan / Navigation Grid Editorial ═══ */}
-        <nav className="mb-8 border-y-2 border-gray-900 py-4 bg-stone-50/50">
+        <nav className="mb-8 border-y border-slate-300 py-4 bg-grey-50">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {DAFTAR_NAV.map((item, index) => (
               <Link
                 key={index}
                 to={item.to}
-                className="group flex flex-col items-center justify-center p-3 text-center border border-gray-300 hover:border-gray-900 hover:bg-white transition-all duration-150"
+                className="group flex flex-col items-center justify-center p-3 text-center border border-slate-300 hover:border-primary hover:bg-white transition-all duration-150"
               >
                 <img
                   src={gambar(item.img)}
                   alt={item.judul}
                   width="60"
                   height="60"
-                  className="h-12 w-12 object-contain mb-2 group-hover:scale-105 transition-transform duration-150"
+                  className="h-12 w-12 object-contain mb-2"
                 />
-                <span className="font-sans text-xs font-bold uppercase tracking-wider text-gray-900 group-hover:underline">
+                <span className="font-sans text-xs font-bold uppercase tracking-wider text-grey-800 group-hover:underline">
                   {item.judul}
                 </span>
               </Link>
@@ -79,8 +78,8 @@ export default function Turnamen() {
         </nav>
 
         {/* ═══ Konten Artikel Editorial ═══ */}
-        <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-sm leading-relaxed text-justify text-gray-800">
-          <p className="m-0 first-letter:float-left first-letter:mr-3 first-letter:text-4xl first-letter:font-black first-letter:leading-none first-letter:text-gray-900">
+        <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+          <p className="m-0">
             Turnamen bukan sekadar ajang mencari pemenang; dalam konteks komunitas
             catur yang hidup, turnamen adalah medium di mana hubungan antaranggota
             diuji, strategi berkembang, dan nilai-nilai kolektif diaktualisasikan
@@ -116,7 +115,7 @@ export default function Turnamen() {
 
           <p className="m-0">
             Dalam hal format kompetisi, Blunder Skuad mengadopsi dua sistem utama
-            yang masing-masing memiliki karakteristik dan tujuan berbeda. Sistem{" "}
+            yang masing-masing memiliki karakteristik dan tujuan berbeda. Sistem{""}
             <em className="italic font-semibold">Swiss</em> menjadi pilihan utama ketika jumlah peserta relatif
             besar, karena format ini memungkinkan penentuan juara tanpa
             mengharuskan setiap peserta bertemu dengan seluruh peserta lainnya.
@@ -176,7 +175,7 @@ export default function Turnamen() {
           <p className="m-0">
             Selain format turnamen konvensional, Blunder Skuad juga memfasilitasi
             format kompetisi yang lebih intim dan cepat, yang dalam terminologi
-            komunitas ini dikenal sebagai pertandingan empat pemain atau{" "}
+            komunitas ini dikenal sebagai pertandingan empat pemain atau{""}
             <em className="italic font-semibold">quad</em>. Format ini melibatkan empat peserta yang saling
             bertanding dalam skema <em className="italic font-semibold">round robin</em> mini, di mana setiap pemain
             menghadapi tiga lawan dalam satu sesi. Warna bidak diatur dan diacak
@@ -201,7 +200,7 @@ export default function Turnamen() {
             adalah refleksi dari aktivitas dan konsistensi, bukan sekadar angka
             untuk diperebutkan. Terkait dengan hal ini, Blunder Skuad juga
             mengimplementasikan sistem rating internal yang menggunakan metodologi
-            Elo dengan nilai awal seribu. Sistem ini berfungsi sebagai alat{" "}
+            Elo dengan nilai awal seribu. Sistem ini berfungsi sebagai alat{""}
             <em className="italic font-semibold">pairing</em> untuk menciptakan pertandingan yang seimbang,
             sekaligus sebagai indikator perkembangan kemampuan anggota dari waktu
             ke waktu. Bagi anggota yang memiliki rating resmi dari federasi catur
@@ -261,13 +260,13 @@ export default function Turnamen() {
             kolektif yang terus berkembang dan saling memperkaya.
           </p>
 
-          <hr className="my-4 border-t border-gray-300" />
+          <hr className="my-4 border-t border-slate-300" />
 
           {/* ═══ Seksi Hasil Turnamen ═══ */}
           <section className="flex flex-col gap-y-3 pt-2">
             <h2
               id="history"
-              className="m-0 font-sans text-lg font-black tracking-tight text-gray-900 uppercase border-b-2 border-gray-900 pb-1"
+              className="m-0 font-serif text-xl font-semibold text-grey-800 border-b border-grey-200 pb-2"
             >
               Hasil Turnamen
             </h2>
@@ -281,14 +280,14 @@ export default function Turnamen() {
               <TabelHasilTurnamen />
             </div>
 
-            <p className="m-0 font-serif text-xs italic text-gray-700">
+            <p className="m-0 font-serif text-xs italic text-grey-600">
               Keterangan: Turnamen Bulanan adalah liga yang dimainkan rutin oleh
               anggota. Kursi Empat adalah turnamen mini yang diikuti oleh empat
               pemain. Turnamen Terbuka adalah turnaman langsung dengan ronde
-              terjadwal. Untuk detail selengkapnya bisa dilihat di halaman{" "}
+              terjadwal. Untuk detail selengkapnya bisa dilihat di halaman{""}
               <Link
                 to="/keberlanjutan/pertanyaan-umum"
-                className="underline font-bold text-gray-900 hover:text-black"
+                className="underline font-semibold text-primary hover:text-grey-800"
               >
                 tanya jawab
               </Link>
@@ -297,11 +296,11 @@ export default function Turnamen() {
           </section>
 
           {/* ═══ Footer Note / Penutup Editorial ═══ */}
-          <div className="mt-8 border-t-2 border-b-2 border-gray-900 p-4 text-center">
-            <strong className="block font-sans text-xs font-black tracking-widest uppercase text-gray-900">
+          <div className="mt-8 border-t border-b border-grey-200 p-4 text-center">
+            <strong className="block font-sans text-[13px] font-semibold text-grey-800">
               Blunder Skuad
             </strong>
-            <span className="block font-serif text-xs italic text-gray-700 mt-0.5">
+            <span className="block font-serif text-xs italic text-grey-600 mt-0.5">
               Komunitas Catur untuk Semua
             </span>
           </div>

@@ -313,16 +313,16 @@ export default function VerifikasiAkun({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl border border-gray-200 bg-gray-50/80 p-4 sm:p-5 space-y-4">
+      <div className="rounded-lg border border-slate-200 bg-grey-50 p-4 sm:p-5 space-y-4">
         {/* Kode verifikasi */}
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-gray-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-grey-600">
             {t("verifikasi.kodeAnda")}
           </p>
           <div className="mt-2 flex items-stretch gap-2">
-            <code className="flex-1 min-w-0 rounded-xl border-2 border-dashed border-gray-300 bg-white px-4 py-3 font-mono text-base sm:text-lg font-bold tracking-[0.14em] text-gray-900 select-text">
+            <code className="flex-1 min-w-0 rounded-lg border border-dashed border-slate-300 bg-white px-4 py-3 font-mono text-base sm:text-lg font-bold tracking-[0.14em] text-grey-800 select-text">
               {status === MEMBUAT && !kode ? (
-                <span className="inline-flex items-center gap-2 text-sm font-sans tracking-normal text-gray-500">
+                <span className="inline-flex items-center gap-2 text-sm font-sans tracking-normal text-grey-600">
                   <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                   {t("verifikasi.membuatKode")}
                 </span>
@@ -365,11 +365,11 @@ export default function VerifikasiAkun({
         <ol className="space-y-2.5">
           {LANGKAH.map((l, i) => (
             <li key={l.judul} className="flex items-start gap-3">
-              <span className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-[#0B2F9F] text-[10px] font-bold text-white">
+              <span className="mt-0.5 grid h-5 w-5 flex-none place-items-center rounded-full bg-primary text-[10px] font-bold text-white">
                 {i + 1}
               </span>
-              <span className="text-xs leading-relaxed text-gray-700">
-                <span className="font-semibold text-gray-900">{l.judul}</span>{" "}
+              <span className="text-xs leading-relaxed text-grey-600">
+                <span className="font-semibold text-grey-800">{l.judul}</span>{" "}
                 {l.rincian}
               </span>
             </li>
@@ -397,14 +397,14 @@ export default function VerifikasiAkun({
         )}
 
         {status === SUKSES && (
-          <p className="flex items-start gap-2 rounded-xl bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-800">
+          <p className="flex items-start gap-2 rounded bg-emerald-50 px-3 py-2.5 text-xs font-medium text-emerald-800">
             <ShieldCheck className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
             {t("verifikasi.profilTerverifikasi")}
           </p>
         )}
 
         {status === PENGAJUAN && (
-          <p className="flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-900">
+          <p className="flex items-start gap-2 rounded bg-amber-50 px-3 py-2.5 text-xs font-medium text-amber-900">
             <Info className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
             <span>{t("verifikasi.pengajuanTerkirim")}</span>
           </p>
@@ -413,7 +413,7 @@ export default function VerifikasiAkun({
         {(status === GAGAL || status === KEDALUWARSA) && (
           <div
             role="alert"
-            className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2.5 text-xs text-red-700"
+            className="flex items-start gap-2 rounded bg-red-50 px-3 py-2.5 text-xs text-red-700"
           >
             <TriangleAlert className="mt-0.5 h-4 w-4 flex-none" aria-hidden="true" />
             <span className="leading-relaxed">
@@ -463,29 +463,29 @@ export default function VerifikasiAkun({
       </div>
 
       {/* Pengajuan manual (bukan verifikasi otomatis) */}
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5 space-y-3">
+      <div className="rounded-lg border border-slate-200 bg-white p-4 sm:p-5 space-y-3">
         <button
           type="button"
           onClick={() => setModeManual((v) => !v)}
           className="flex w-full items-center justify-between gap-3 text-left"
           aria-expanded={modeManual}
         >
-          <span className="flex items-center gap-2 text-xs font-semibold text-gray-900">
-            <KeyRound className="h-4 w-4 text-gray-500" aria-hidden="true" />
+          <span className="flex items-center gap-2 text-xs font-semibold text-grey-800">
+            <KeyRound className="h-4 w-4 text-grey-600" aria-hidden="true" />
             {t("verifikasi.ajukanManualToggle")}
           </span>
-          <span className="text-[11px] font-medium text-gray-500">
+          <span className="text-xs font-medium text-grey-600">
             {modeManual ? t("verifikasi.tutup") : t("verifikasi.buka")}
           </span>
         </button>
 
         {modeManual && (
           <form onSubmit={handlePengajuanManual} className="space-y-3 pt-1">
-            <p className="text-[11px] leading-relaxed text-gray-600">
+            <p className="text-xs leading-relaxed text-grey-600">
               {t("verifikasi.ajukanManualKeterangan")}
             </p>
             <label className="block">
-              <span className="text-[11px] font-medium text-gray-600">
+              <span className="text-xs font-medium text-grey-600">
                 {t("verifikasi.catatanPengajuan")}
               </span>
               <textarea
@@ -494,7 +494,7 @@ export default function VerifikasiAkun({
                 rows={2}
                 maxLength={500}
                 placeholder={t("verifikasi.phCatatanPengajuan")}
-                className="mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
+                className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-grey-800 focus:border-[#0B2F9F] focus:outline-none focus:ring-1 focus:ring-[#0B2F9F]"
               />
             </label>
             <div className="flex items-center justify-end gap-3">
@@ -505,7 +505,7 @@ export default function VerifikasiAkun({
           </form>
         )}
 
-        <p className="flex items-start gap-1.5 text-[11px] leading-relaxed text-gray-500">
+        <p className="flex items-start gap-1.5 text-xs leading-relaxed text-grey-600">
           <Info className="mt-0.5 h-3.5 w-3.5 flex-none" aria-hidden="true" />
           {t("verifikasi.catatanPrivasi")}
         </p>

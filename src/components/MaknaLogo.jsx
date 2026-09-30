@@ -34,7 +34,7 @@ export default function MaknaLogo() {
       <div className="w-full relative pl-6 md:pl-8 xl:pl-20 pr-6 md:pr-8 xl:pr-20 pb-24 md:pb-24 xl:pb-24">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] border-guide flex flex justify-center items-center">
           <div className="flex flex-col justify-center items-center">
-            <div className="rounded-xl px-12 py-10">
+            <div className="rounded-lg px-12 py-10">
               <Logo variant="dark" size="lg" />
             </div>
             <p className="text-sm font-normal text-gray-500 mt-2">

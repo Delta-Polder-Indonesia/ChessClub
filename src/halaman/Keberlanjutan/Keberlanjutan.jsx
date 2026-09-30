@@ -1,5 +1,5 @@
-import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
-import { useI18n } from "../../lib/i18n.jsx";
+import { HalamanIsi, PageArtikel, MastheadEditorial } from"../../components/PageBagian.jsx";
+import { useI18n } from"../../lib/i18n.jsx";
 
 export default function Keberlanjutan() {
   const { t } = useI18n();
@@ -8,19 +8,18 @@ export default function Keberlanjutan() {
     <HalamanIsi
       title={t("keberlanjutan.judul")}
       description={t("keberlanjutan.deskripsi")}
-      next={{ to: "/keberlanjutan/syarat-dan-ketentuan", judul: t("keberlanjutan.nextJudul") }}
+      next={{ to:"/keberlanjutan/syarat-dan-ketentuan", judul: t("keberlanjutan.nextJudul") }}
     >
       <PageArtikel lebar>
         {/* ═══ Header Editorial / Koran ═══ */}
         <MastheadEditorial
-          kicker={t("keberlanjutan.judul")}
           judul={t("keberlanjutan.artikel")}
           subjudul={t("keberlanjutan.deskripsi")}
         />
 
         {/* ═══ Konten Paragraf Utama ═══ */}
-        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-sm leading-relaxed text-justify text-gray-800">
-          <p className="m-0 first-letter:float-left first-letter:mr-3 first-letter:text-4xl first-letter:font-black first-letter:leading-none first-letter:text-gray-900">
+        <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
+          <p className="m-0">
             Setiap komunitas yang ingin bertahan dan berkembang secara organik
             memerlukan fondasi yang lebih dalam sekadar keberadaan fisik atau
             aktivitas rutin. Tanpa landasan yang jelas, sebuah komunitas catur
@@ -28,9 +27,9 @@ export default function Keberlanjutan() {
             kehilangan identitasnya di tengah perubahan keanggotaan, atau bahkan
             terdegradasi menjadi sekadar ruang pertemuan tanpa makna kolektif.
             Blunder Skuad hadir dengan kesadaran penuh akan risiko tersebut, dan
-            oleh karena itu, pembentukannya tidak dimulai dari pertanyaan{" "}
+            oleh karena itu, pembentukannya tidak dimulai dari pertanyaan{""}
             <em className="italic font-semibold">apa yang bisa kita lakukan</em>, melainkan dari pertanyaan yang
-            lebih fundamental:{" "}
+            lebih fundamental:{""}
             <em className="italic font-semibold">
               untuk apa kita berkumpul, dan nilai apa yang ingin kita pertahankan
               bersama
@@ -56,7 +55,7 @@ export default function Keberlanjutan() {
             dikalahkan, bukan sebagai rekan seperjalanan yang saling memperkaya.
           </p>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <p className="m-0">
             Salah satu pilar utama yang menopang landasan Blunder Skuad adalah
@@ -91,7 +90,7 @@ export default function Keberlanjutan() {
             catur, bukan terjadi pada pengorbanan komunitas lain.
           </p>
 
-          <hr className="my-2 border-t border-gray-300" />
+          <hr className="my-2 border-t border-slate-300" />
 
           <p className="m-0">
             Dalam konteks yang lebih mikro, landasan komunitas ini juga menyangkut
@@ -155,18 +154,18 @@ export default function Keberlanjutan() {
           </p>
 
           {/* ═══ Footer Note / Penutup Editorial ═══ */}
-          <div className="mt-6 border-t-2 border-b-2 border-gray-900 p-4 text-center">
-            <p className="m-0 font-serif text-sm leading-relaxed text-gray-900 italic">
+          <div className="mt-6 border-t border-b border-grey-200 p-4 text-center">
+            <p className="m-0 font-serif text-sm leading-relaxed text-grey-800 italic">
               Artikel ini disusun sebagai panduan pemikiran bagi seluruh anggota
               Blunder Skuad, dengan harapan agar setiap individu yang bergabung
               memahami bahwa komunitas ini lebih dari sekadar tempat bermain
               catur — ia adalah ruang pertumbuhan yang dibangun bersama.
             </p>
-            <div className="mt-4 pt-3 border-t border-gray-300">
-              <strong className="block font-sans text-xs font-black tracking-widest uppercase text-gray-900">
+            <div className="mt-4 pt-3 border-t border-slate-300">
+              <strong className="block font-sans text-[13px] font-semibold text-grey-800">
                 Blunder Skuad
               </strong>
-              <span className="block font-serif text-xs italic text-gray-700 mt-0.5">
+              <span className="block font-serif text-xs italic text-grey-600 mt-0.5">
                 Komunitas Catur untuk Semua
               </span>
             </div>

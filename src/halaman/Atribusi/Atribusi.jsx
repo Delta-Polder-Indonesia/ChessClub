@@ -1,6 +1,6 @@
 /*
  * Halaman "Atribusi & lisensi" — atribusi fitur Analisa, ditata dengan markup
- * editorial koran (label kecil uppercase, judul font-black ber-border double,
+ * editorial koran (label kecil uppercase, judul font-semibold ber-border double,
  * serif, rata kiri-kanan) mengikuti pola Keberlanjutan. Tata letak grid kartu
  * dipertahankan. Tautan memakai <a> biasa — link sheet/eksternal.
  */
@@ -48,12 +48,12 @@ function Tautan({ href, children }) {
 
 function Kartu({ judul, ikon, isi }) {
   return (
-    <section className="bg-white border border-gray-400 rounded p-6 w-full flex flex-col items-center">
-      <h2 className="text-base font-sans font-bold tracking-widest uppercase text-gray-900 flex flex-row items-center justify-center w-fit mx-auto mb-5 gap-2 border-b border-gray-900 pb-1.5">
+    <section className="bg-white border border-slate-300 rounded p-6 w-full flex flex-col items-center">
+      <h2 className="text-[13px] font-sans font-semibold text-primary flex flex-row items-center justify-center w-fit mx-auto mb-5 gap-2 border-b border-grey-200 pb-1.5">
         {ikon}
         {judul}
       </h2>
-      <ul className="font-serif text-base leading-relaxed text-justify flex flex-col items-center gap-2 text-center text-gray-800">
+      <ul className="font-serif text-base leading-relaxed flex flex-col items-center gap-2 text-center text-grey-800">
         {isi}
       </ul>
     </section>
@@ -230,7 +230,7 @@ export default function Atribusi() {
         <>
           <li className="flex flex-row items-center gap-3">
             <ChessComLogo className="h-[26px] w-auto fill-current" />
-            <span className="h-6 w-px bg-gray-400" />
+            <span className="h-6 w-px bg-slate-300" />
             <LichessLogo className="h-[20px] w-auto fill-current" />
           </li>
           <li>{t("analisa.atribusi.logoOleh")}</li>
@@ -261,11 +261,11 @@ export default function Atribusi() {
             {TEKNOLOGI.map((k) => (
               <span key={k.nama} className="inline-flex items-center gap-1">
                 <Tautan href={k.href}>{k.nama}</Tautan>
-                <span className="text-gray-400">·</span>
+                <span className="text-slate-400">·</span>
               </span>
             ))}
           </li>
-          <li className="text-sm text-gray-500">
+          <li className="text-sm text-slate-500">
             Diarsiteki & kolaborasi via{" "}
             <Tautan href="https://arena.ai/">Arena AI</Tautan> menggunakan{" "}
             <Tautan href="https://opencode.ai/">OpenCode</Tautan>.
@@ -306,19 +306,19 @@ export default function Atribusi() {
         <div className="relative w-full mx-auto max-w-[1280px]">
           <div className="flex flex-col items-center gap-4 text-center">
             <License size={44} class="fill-gray-900" />
-            <div className="w-full border-b-4 border-double border-gray-900 pb-4">
-              <p className="mb-1 font-sans text-sm font-bold tracking-widest text-gray-900 uppercase">
+            <div className="w-full border-b border-grey-200 pb-4">
+              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
                 {t("analisa.atribusi.judul")}
               </p>
-              <h2 className="mb-2 text-3xl md:text-4xl leading-none font-black tracking-tight text-gray-900 uppercase">
+              <h2 className="mb-2 text-3xl md:text-4xl leading-none font-semibold text-grey-800 uppercase">
                 {t("analisa.atribusi.judulDaftar")}
               </h2>
-              <p className="m-0 mx-auto max-w-[720px] text-base text-gray-900 italic">
+              <p className="m-0 mx-auto max-w-[720px] text-base text-grey-800 italic">
                 {t("analisa.atribusi.pendahuluan")}
               </p>
             </div>
           </div>
-          <div className="w-full border-t border-gray-400 mb-10 md:mb-12" />
+          <div className="w-full border-t border-slate-300 mb-10 md:mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-5">
             {kartu.map((k) => (
               <Kartu key={k.judul} judul={k.judul} ikon={k.ikon} isi={k.isi} />
@@ -327,20 +327,20 @@ export default function Atribusi() {
           <div className="mt-10 w-full px-6 py-8 text-center">
             <div className="mx-auto flex w-fit flex-col items-center gap-3">
               <License size={36} class="fill-gray-900" />
-              <p className="max-w-[720px] font-serif text-base leading-6 text-justify text-gray-900 italic">
+              <p className="max-w-[720px] font-serif text-base leading-6 text-grey-800 italic">
                 {t("analisa.atribusi.lisensiProyekOleh")}
               </p>
-              <code className="rounded border border-gray-300 bg-white px-3 py-1.5 text-sm font-mono text-gray-700">
+              <code className="rounded border border-slate-300 bg-white px-3 py-1.5 text-sm font-mono text-grey-600">
                 © 2025-2026 Delta-Polder-Indonesia (Bintang Toba) · MIT License
               </code>
             </div>
           </div>
 
           <div className="w-full mt-14 md:mt-16 pt-10 md:pt-12 flex flex-col items-center gap-6 text-center">
-            <h3 className="pb-1 text-base sm:text-lg font-sans font-black tracking-tight uppercase text-gray-900 border-b border-gray-900">
+            <h3 className="pb-1 text-base sm:text-lg font-serif font-semibold text-grey-800 border-b border-grey-200">
               {t("analisa.atribusi.sosialJudul")}
             </h3>
-            <p className="max-w-[640px] font-serif text-base leading-relaxed text-justify text-gray-800">
+            <p className="max-w-[640px] font-serif text-base leading-relaxed text-grey-800">
               {t("analisa.atribusi.sosialDeskripsi")}
             </p>
             <div className="flex flex-row items-center justify-center gap-5">
@@ -365,11 +365,11 @@ export default function Atribusi() {
                 </a>
               ))}
             </div>
-            <div className="mt-2 w-full border border-gray-950 p-5 flex flex-col items-center gap-3">
-              <h4 className="font-sans text-base font-bold tracking-wide text-gray-900 uppercase">
+            <div className="mt-2 w-full border border-slate-300 p-5 flex flex-col items-center gap-3">
+              <h4 className="font-sans text-base font-bold tracking-wide text-grey-800 uppercase">
                 {t("analisa.atribusi.sanggahanJudul")}
               </h4>
-              <p className="mx-auto max-w-[720px] font-serif text-base leading-relaxed text-justify text-gray-900 italic">
+              <p className="mx-auto max-w-[720px] font-serif text-base leading-relaxed text-grey-800 italic">
                 {t("analisa.atribusi.sanggahan")}
               </p>
             </div>

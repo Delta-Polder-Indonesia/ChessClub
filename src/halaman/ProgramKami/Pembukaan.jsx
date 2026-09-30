@@ -496,7 +496,7 @@ export default function Pembukaan() {
             </p>
             <Link
               to="/papan-interaktif"
-              className="mt-8 inline-flex rounded bg-slate-900 px-5 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-slate-700"
+              className="mt-8 inline-flex rounded bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-blue-400"
             >
               {t("bukuPembukaan.ctaUtama")}
             </Link>

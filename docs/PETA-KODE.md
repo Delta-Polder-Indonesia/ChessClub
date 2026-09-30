@@ -159,7 +159,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
 | `scripts` | 75 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +42 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | — | — |
-| `public` | 405 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +11 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
+| `public` | 410 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +11 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
 ## 4. Cermin yang dijaga `uji:peta`
 
