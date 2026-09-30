@@ -226,8 +226,6 @@ function SorotanKegiatan({ t }) {
               <img
                 {...s.sumber}
                 alt=""
-                width={640}
-                height={427}
                 loading="lazy"
                 decoding="async"
                 className="w-full aspect-[3/2] object-cover"
@@ -596,8 +594,6 @@ function GaleriKegiatan({ t }) {
               <img
                 {...f.sumber}
                 alt={f.alt}
-                width={600}
-                height={600}
                 loading="lazy"
                 decoding="async"
                 className="w-full aspect-square object-cover"
@@ -713,8 +709,6 @@ export default function Landing() {
         <img
           {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
           alt=""
-          width={1920}
-          height={1080}
           className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
           decoding="async"

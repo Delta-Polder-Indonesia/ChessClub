@@ -30,7 +30,7 @@ function CareerBlock({ block, reverse }) {
     <section className="mx-auto w-full max-w-7xl px-5 py-14 md:px-8 md:py-24">
       <div className={`flex flex-col items-center gap-8 md:gap-14 lg:flex-row ${reverse ? "lg:flex-row-reverse" : ""}`}>
         <div className="w-full lg:w-1/2">
-          <img src={block.image} alt={block.title} title={block.title} className="aspect-[4/3] w-full rounded-lg object-cover shadow-lift" loading="lazy" />
+          <img src={block.image} alt={block.title} title={block.title} width={800} height={600} className="aspect-[4/3] w-full rounded-lg object-cover shadow-lift" loading="lazy" />
         </div>
         <div className="w-full lg:w-1/2">
           <span className="font-bold text-[#0B4D8C]">{block.eyebrow}</span>

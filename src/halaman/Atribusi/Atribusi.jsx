@@ -74,6 +74,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/pawn-solo.svg")}
               alt=""
               draggable="false"
+              width={90}
+              height={90}
               decoding="async"
               loading="lazy"
               className="h-14 w-auto"
@@ -98,6 +100,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/Landscape-Lichess-logo.svg")}
               alt=""
               draggable="false"
+              width={3300}
+              height={1353}
               decoding="async"
               loading="lazy"
               className="h-12 w-auto"
@@ -122,6 +126,8 @@ export default function Atribusi() {
               src={gambar("/images/stockfish.webp")}
               alt=""
               draggable="false"
+              width={256}
+              height={256}
               decoding="async"
               loading="lazy"
               className="h-24 w-auto"
@@ -163,6 +169,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/page-article.svg")}
               alt=""
               draggable="false"
+              width={90}
+              height={90}
               decoding="async"
               loading="lazy"
               className="h-14 w-auto"
@@ -187,6 +195,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/page-blog.svg")}
               alt=""
               draggable="false"
+              width={90}
+              height={90}
               decoding="async"
               loading="lazy"
               className="h-14 w-auto"
@@ -211,6 +221,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/today.svg")}
               alt=""
               draggable="false"
+              width={90}
+              height={90}
               decoding="async"
               loading="lazy"
               className="h-14 w-auto"
@@ -251,6 +263,8 @@ export default function Atribusi() {
               src={berkasPublik("/images/color-icon/reactjs-ar21.svg")}
               alt=""
               draggable="false"
+              width={120}
+              height={60}
               decoding="async"
               loading="lazy"
               className="h-14 w-auto"
@@ -357,6 +371,8 @@ export default function Atribusi() {
                   <img
                     src={berkasPublik(s.src)}
                     alt=""
+                    width={s.lebar ?? 24}
+                    height={s.tinggi ?? 24}
                     loading="lazy"
                     decoding="async"
                     draggable="false"

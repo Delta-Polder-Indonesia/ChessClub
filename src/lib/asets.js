@@ -139,6 +139,12 @@ export function sumberGambar(jalur, opsi = {}) {
   const kandidat = varian
     .filter((l) => l < lebar)
     .map((l) => `${gambar(kunci.replace(/\.webp$/i, `-${l}.webp`))} ${l}w`);
+
+  // Tanpa varian, srcSet hanya berisi berkas yang sama — tidak ada gunanya
+  // dikirim. Yang selalu dikirim adalah width/height: itulah yang membuat
+  // browser memesan ruang lebih dulu sehingga gambar lazy tidak menggeser
+  // tata letak (CLS) saat selesai diunduh.
+  if (!kandidat.length) return { src: penuh, width: lebar, height: tinggi };
   kandidat.push(`${penuh} ${lebar}w`);
 
   return {

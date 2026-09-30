@@ -288,6 +288,24 @@ function entriGambar(jalurRel) {
   return [d.lebar, d.tinggi, varian];
 }
 
+/** Semua WebP asli di public/images (rekursif, tanpa berkas varian). */
+export function semuaWebP(dirRelatif = "images") {
+  const dir = path.join(PUB, dirRelatif);
+  if (!existsSync(dir)) return [];
+  const hasil = [];
+  for (const nama of readdirSync(dir)) {
+    const rel = `${dirRelatif}/${nama}`;
+    const abs = path.join(PUB, rel);
+    if (statSync(abs).isDirectory()) {
+      hasil.push(...semuaWebP(rel));
+      continue;
+    }
+    if (!/\.webp$/i.test(nama) || lebarDariNama(nama) !== null) continue;
+    hasil.push(rel);
+  }
+  return hasil.sort();
+}
+
 export function berkasTarget() {
   const hasil = new Set();
   for (const t of TARGET) {
@@ -338,19 +356,23 @@ function bangunManifest() {
   const target = new Set(berkasTarget().map((j) => `/${j}`));
   const UKUR = {};
   const dilewati = {};
-  for (const jalur of berkasTarget()) {
+  // Seluruh gambar didaftarkan — bukan hanya yang punya varian responsif.
+  // Alasannya CLS: sumberGambar() memakai [lebar, tinggi] dari peta ini untuk
+  // mengisi atribut width/height <img>, sehingga browser sudah memesan ruang
+  // sebelum gambar lazy selesai diunduh. Gambar yang tidak terdaftar terpaksa
+  // dirender 0x0 dulu lalu melompat (audit "lazy-loaded images should have
+  // explicit dimensions").
+  for (const jalur of semuaWebP()) {
     const kunci = `/${jalur}`;
     const entri = entriGambar(jalur);
-    // Gambar tanpa varian tidak mengubah apa pun di sisi browser, dan setiap
-    // baris peta ini ikut masuk ke bundel — jadi hanya yang berguna disimpan.
-    if (entri && entri[2].length) UKUR[kunci] = entri;
+    if (entri) UKUR[kunci] = entri;
     // Keputusan "jangan buat varian ini" tetap dicatat (termasuk untuk gambar
     // yang akhirnya tidak punya entri), supaya --cek tidak menagihnya lagi.
     if (DILEWATI[kunci]?.length)
       dilewati[kunci] = [...DILEWATI[kunci]].sort((a, b) => a - b);
   }
   for (const kunci of Object.keys(DILEWATI)) {
-    if (!target.has(kunci)) continue;
+    if (!target.has(kunci) && !UKUR[kunci]) continue;
     dilewati[kunci] ??= [...DILEWATI[kunci]].sort((a, b) => a - b);
   }
   return { UKUR, DILEWATI: dilewati };
