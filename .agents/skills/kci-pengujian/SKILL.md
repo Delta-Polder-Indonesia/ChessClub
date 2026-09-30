@@ -74,6 +74,7 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   selesainya bisa diatur eksplisit; setiap bagian memasang mount React baru supaya pekerjaan
   Worker palsu yang menggantung dari bagian sebelumnya tidak mencemari bagian berikutnya.
 - `npm run uji:repertoar` — pemilihan jalur pembukaan, kartu per warna, jadwal pengulangan, dan penyimpanan IndexedDB.
+- `npm run uji:desain` — mengaudit keluarga halaman konten publik, bukan UI catur/fitur. Pemeriksaan menolak penambahan ukuran arbitrary, teks terlalu kecil, gradient, glassmorphism, radius/shadow berlebihan, hover-scale, serta `<button>`, `<table>`, dan `<svg>` ad-hoc terhadap baseline per berkas. Konten baru wajib melalui `PageBagian`/`components/konten`. Visual catur reusable berpusat di `src/halaman/Analisa/komponen/` dan diverifikasi melalui rangkaian uji Analisa/papan/teka-teki yang relevan; Program non-catur dan Pengurus mengikuti uji domainnya. Baseline hanya boleh diperbarui setelah audit dan persetujuan perubahan standar.
 - `npm run uji:sunfish` — engine lawan level pemula (`public/engines/sunfish/sunfish.js`):
   lisensi/atribusi GPL di header, protokol UCI termasuk `position fen` dan cabang Web Worker,
   knob pembodohan (quiescence, derau evaluasi, materi-saja, tunnel vision), pemetaan level

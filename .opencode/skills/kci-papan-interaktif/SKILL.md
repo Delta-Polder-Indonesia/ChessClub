@@ -14,6 +14,14 @@ Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanp
 Jalur berkas di dokumen ini relatif terhadap **akar repo**. Utamakan peta berkas
 `docs/PETA-KODE.md` sebelum menelusuri `src/halaman/PapanInteraktif/` secara manual.
 
+## Rumah komponen catur
+
+`src/halaman/Analisa/komponen/` adalah satu pintu komponen visual untuk seluruh bagian catur, bukan hanya halaman Report Analisa. Sebelum membuat papan, bidak, jam, evaluasi, identitas pemain, indikator hasil, tombol langkah, atau SVG baru, cari implementasi di sana dan gunakan/perluas komponen tersebut.
+
+Folder `src/halaman/PapanInteraktif/` menyimpan workspace, pemilihan mode, state, dan logika yang khusus Papan Interaktif. Folder ini tidak menjadi design system catur kedua. Teka-teki, Quiz, dan Rush mengikuti batas yang sama: alur boleh khusus, komponen visual catur reusable tetap tinggal di `Analisa/komponen/`.
+
+Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya memakai bentuk halaman artikel.
+
 ## Baca dulu sebelum menyentuh `/papan-interaktif`
 
 | Kebutuhan | Berkas |

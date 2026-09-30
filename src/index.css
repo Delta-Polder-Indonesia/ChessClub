@@ -178,6 +178,106 @@ section[id] {
   text-decoration: underline;
 }
 
+/* Primitif konten resmi — nilai mengikuti DESIGN.md. Halaman memakai kelas
+   semantik ini agar ukuran dan measure tidak dirangkai ulang per halaman. */
+.kontainer-konten {
+  max-width: 1080px;
+}
+
+.measure-konten {
+  max-width: 75ch;
+}
+
+.teks-lead-kci {
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 18px;
+  line-height: 1.6;
+  color: var(--color-grey-600);
+}
+
+.media-konten {
+  width: 100%;
+  margin: 32px 0 24px;
+}
+
+.media-konten--tanpa-margin {
+  margin: 0;
+}
+
+.media-konten__gambar {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  border-radius: 4px;
+  background: var(--color-paper);
+}
+
+.media-konten__caption {
+  margin-top: 8px;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-grey-600);
+}
+
+.kutipan-konten {
+  max-width: 75ch;
+  margin: 32px 0;
+  padding: 24px 0;
+  border-block: 1px solid var(--color-grey-200);
+}
+
+.kutipan-konten blockquote {
+  margin: 0;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 24px;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--color-grey-800);
+}
+
+.kutipan-konten figcaption {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-grey-600);
+}
+
+.catatan-konten {
+  max-width: 75ch;
+  margin: 32px 0;
+  padding: 20px 24px;
+  border: 1px solid var(--color-grey-200);
+  border-radius: 4px;
+  background: var(--color-paper);
+  color: var(--color-grey-600);
+}
+
+.catatan-konten h3 {
+  margin: 0 0 8px;
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--color-grey-800);
+}
+
+.catatan-konten p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 767px) {
+  .teks-lead-kci {
+    font-size: 17px;
+  }
+
+  .kutipan-konten blockquote {
+    font-size: 24px;
+  }
+}
+
 /* Berita & pengumuman — susunan editorial bergambar seperti portal berita,
    tetapi tetap memakai tipografi, warna, dan garis identitas korporat. */
 .prose-kci .daftar-konten-media {

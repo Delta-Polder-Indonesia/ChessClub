@@ -71,3 +71,132 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - Gunakan Bahasa Indonesia yang baku, lugas, dan terarah.
 - **Dilarang:** Kata-kata kosong klise (*supercharge, streamline, memberdayakan ekosistem, solusi terbaik masa depan*).
 - Utamakan fakta: sebutkan nama fitur langsung (*"Papan Analisa Stockfish"*, *"Buku Panduan PDF"*, *"Turnamen Catur Cepat"*).
+- Jangan mengarang metrik, testimonial, dokumentasi, sumber, tanggal, atau klaim keberhasilan.
+- Hindari label, heading, dan paragraf yang mengulang informasi sama.
+
+---
+
+## 6. Hirarki dan Ukuran Teks Resmi
+
+| Peran | Mobile | Desktop | Line-height | Penggunaan |
+|---|---:|---:|---:|---|
+| H1 hero | 36px | 40px | 1.15–1.2 | Satu judul utama per halaman |
+| H2 bagian | 24px | 30px | 1.25–1.35 | Pokok bahasan utama |
+| H3 subseksi | 18px | 20px | 1.35–1.45 | Rincian di bawah H2 |
+| H4 kelompok | 16px | 18px | 1.4 | Kelompok di bawah H3 |
+| Lead | 17px | 18px | 1.6 | Pengantar ringkas |
+| Body/list | 16px | 16px | 1.6 | Bacaan utama |
+| Caption/meta | 13px | 13px | 1.5 | Keterangan dan metadata |
+| UI padat | minimum 12px | minimum 12px | minimum 1.4 | Label/kontrol, bukan paragraf |
+
+- Teks di bawah 12px dilarang.
+- Body tidak memakai tracking tambahan; tracking negatif hanya untuk display besar yang telah diuji.
+- H1 hanya satu. Heading tidak boleh melompati level.
+- Judul lebih dekat dengan isi sesudahnya daripada blok sebelumnya.
+- Ukuran arbitrary seperti `text-[11px]` tidak boleh ditambahkan pada konten baru. Jika peran belum tersedia, perbarui sistem ini terlebih dahulu.
+
+---
+
+## 7. Container dan Ritme Konten
+
+- Bacaan panjang dibatasi sekitar **65–75 karakter per baris**.
+- Container halaman standar maksimum **1080px**, dengan padding lateral **24px mobile** dan **32px desktop**.
+- Tabel, diagram, galeri, dan gambar lebar boleh memakai lebar container; paragraf tetap kembali ke measure bacaan.
+- Elemen dalam satu kelompok berjarak 8–16px; antarkelompok 24–32px; antarbagian utama 64–80px.
+- Jarak paragraf ke media penjelas 24–32px, media ke caption 8px, dan caption ke teks lanjutan 24px.
+- Jangan menggunakan satu nilai gap untuk seluruh halaman. Spacing harus menunjukkan hubungan informasi.
+- Pada mobile, body tidak boleh menyentuh tepi viewport atau menimbulkan scroll horizontal.
+
+---
+
+## 8. Anatomi Halaman Konten
+
+Setiap halaman menentukan jenisnya sebelum markup dibuat:
+
+1. **Informasi organisasi/program:** hero → lead → bagian tematis → visual relevan → data/daftar → halaman berikutnya.
+2. **Artikel edukasi:** hero/masthead → lead → gambar pembuka bila perlu → pembahasan H2/H3 → contoh/diagram → penutup.
+3. **Berita kegiatan:** judul dan metadata → lead → dokumentasi utama → isi → dokumentasi tambahan yang informatif.
+4. **Panduan:** tujuan → prasyarat → langkah bernomor → screenshot pada langkah penting → hasil dan masalah umum.
+5. **Daftar/data:** pengantar → filter bila perlu → list/table → loading, empty, error, dan success state.
+6. **Galeri/visual:** pengantar → navigasi topik → brief → visual utama dan pendukung → keterangan.
+7. **Workspace/alat:** mengikuti kerangka fitur khusus; tidak disamakan dengan artikel.
+
+Gunakan `HalamanIsi`, `PageArtikel`, dan `.prose-kci` untuk konten publik biasa. Pola rinci berada di `.agents/skills/kci-frontend/references/standar-konten.md`.
+
+---
+
+## 9. Media, Gambar, dan Ilustrasi
+
+Visual wajib disediakan ketika pembaca perlu melihat tampilan fitur, langkah, posisi catur, objek, buku, tokoh, lokasi, kegiatan, struktur, data, perubahan, atau perbandingan.
+
+- Visual harus menjelaskan isi; jangan menambahkan gambar hanya untuk mengisi ruang.
+- Foto dokumentasi tidak boleh diganti gambar stok atau gambar generatif yang dipresentasikan sebagai peristiwa nyata.
+- Screenshot, diagram, papan catur, dan sampul buku memakai `object-contain` bila crop menghilangkan informasi.
+- Foto boleh memakai `object-cover` hanya jika subjek penting tetap utuh.
+- Media berketerangan memakai `<figure>` dan `<figcaption>`.
+- `alt` mendeskripsikan informasi visual; caption menjelaskan konteks. Jangan menyalin teks yang sama.
+- Gambar harus memiliki dimensi atau rasio yang mencegah layout shift.
+- Jika aset penting belum tersedia, laporkan kebutuhan aset; jangan mengarang dokumentasi.
+
+Rincian teknis berada di `.agents/skills/kci-frontend/references/standar-media.md`.
+
+---
+
+## 10. Semantik, State, dan Aksesibilitas
+
+- Gunakan heading, list, table, figure, button, link, nav, dan dialog sesuai fungsi.
+- Focus state harus terlihat dan seluruh kontrol dapat dipakai dengan keyboard.
+- Warna tidak boleh menjadi satu-satunya penanda status.
+- Form mempunyai label serta state error, success, disabled, dan loading yang jelas.
+- Motion menghormati `prefers-reduced-motion`; konten tetap terlihat ketika animasi gagal atau dimatikan.
+- Semua teks memenuhi WCAG AA.
+
+---
+
+## 11. Pengecualian Halaman Khusus
+
+Analisa, Papan Interaktif, Teka-teki, Dashboard, pembaca e-book, grafik, tabel padat, dan Galeri boleh memakai kepadatan atau container khusus. Pengecualian:
+
+- harus berasal dari kebutuhan tugas;
+- hanya berlaku pada area tersebut;
+- tidak boleh disalin ke artikel umum;
+- tetap mematuhi minimum keterbacaan, semantik, keyboard, kontras, dan reduced-motion;
+- harus tercatat di skill area atau komponen terkait.
+
+---
+
+## 12. Urutan Otoritas
+
+1. Permintaan eksplisit pengguna untuk tugas aktif.
+2. `AGENTS.md` untuk cakupan dan proses.
+3. `DESIGN.md` ini untuk seluruh keputusan visual.
+4. Skill `kci-frontend` untuk implementasi.
+5. Skill `kci-anti-slop` untuk audit larangan.
+6. Implementasi existing yang masih sesuai standar ini.
+
+Dokumen atau kode lama yang bertentangan tidak menjadi preseden. Jangan memperbaikinya secara massal tanpa persetujuan cakupan.
+
+---
+
+## 13. Arsitektur Komponen Satu Pintu per Domain
+
+“Satu pintu” berlaku **di dalam domain yang sama**, bukan satu bentuk untuk seluruh situs. Konten editorial, fitur belajar, papan catur, analisa, dan dashboard mempunyai kebutuhan serta karakter berbeda.
+
+| Domain | Sumber resmi | Batas |
+|---|---|---|
+| Halaman konten publik | `src/components/PageBagian.jsx`, `src/components/konten/AksiKonten.jsx`, dan `src/components/konten/TabelKonten.jsx` | Tipografi, bagian, media, kutipan, catatan, aksi, serta tabel konten |
+| Program dan fitur belajar non-catur | komponen di `src/halaman/ProgramKami/` | Tidak mengikuti bentuk artikel; pertahankan karakter fitur dan alurnya |
+| Seluruh antarmuka catur | `src/halaman/Analisa/komponen/` | Satu rumah papan, bidak, jam, evaluasi, nama pemain, panel, indikator, dan ikon catur untuk Analisa, Papan Interaktif, Teka-teki, Quiz, serta Rush |
+| Mode/alur catur | folder halaman masing-masing | Hanya orkestrasi, state, dan logika mode; jangan membuat ulang komponen visual catur yang sudah ada |
+| Pengurus/dashboard | `src/components/ui/` dan komponen Pengurus | Tabel padat, form operasional, dialog, dan state administrasi |
+| Ikon umum non-catur | `lucide-react` dan `src/components/icons.jsx` | Ikon catur tetap berasal dari `Analisa/komponen/svg/` |
+
+Aturan:
+
+- Halaman konten tidak menciptakan bentuk tombol, tabel, media, atau blok baru di setiap halaman; gunakan pintu konten.
+- Komponen Program Kami, antarmuka catur, dan Pengurus tidak dipaksa memakai rupa halaman konten.
+- Semua fitur catur mencari dan memperluas `src/halaman/Analisa/komponen/` sebelum membuat komponen visual lokal.
+- Folder Papan Interaktif, Teka-teki, Quiz, dan Rush boleh menyimpan komponen orkestrasi yang khusus alur, tetapi bukan salinan papan, bidak, ikon, jam, evaluasi, atau kontrol catur umum.
+- Komponen lintas domain boleh berbagi perilaku aksesibel, tetapi keluarga domain menentukan bentuk visualnya.
+- Jangan memindahkan ikon atau komponen catur ke komponen halaman umum hanya demi menyatukan rupa.
+- Kode lama dimigrasikan per domain; keberadaan pola lama bukan izin menambah variasi baru.

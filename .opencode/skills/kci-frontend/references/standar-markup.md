@@ -66,7 +66,7 @@ Di dalam `PageArtikel` pakai **elemen semantik polos** (`h3`, `p`, `ul`/`ol`, `s
 rata kiri-kanan, H2/H3, tautan, daftar. **Jangan** menaruh class warna/ukuran per elemen teks —
 itu tanda markup tidak standar.
 
-Daftar tautan cepat memakai pola rumah (lihat `Turnamen.jsx`): `h3` berisi ikon 60px inline + `Link`.
+Daftar tautan cepat memakai `Link` dan ikon dari pintu resmi. Jangan menaruh SVG inline atau ikon dekoratif besar di dalam heading.
 
 ## Pendaftaran halaman baru/porting — enam titik, semua wajib
 
@@ -97,7 +97,7 @@ npm run uji:rute && npm run uji:i18n && npm run build
 | Latar hero | `bg-hero` |
 | Pemisah/garis | `border-grey-200`, `border-guide` |
 | Teks artikel | bungkus dengan `prose-kci` (jangan styling manual) |
-| Teks muted | `text-gray-500`/`text-gray-600` |
+| Teks sekunder / muted | `text-grey-600` |
 
 Token baru hanya boleh lahir di `@theme` pada `src/index.css`, dengan alasan yang disebutkan
 ke pengguna — bukan class ad-hoc di JSX.
@@ -108,7 +108,7 @@ ke pengguna — bukan class ad-hoc di JSX.
   yang ada di `src/components/` sudah melayani semua kebutuhan itu.
 - Tanpa `shadow-*` pada kartu/section; pemisah bagian = `border-t` 1px atau whitespace
   (lihat `PageSelanjutnya` sebagai pola).
-- Tanpa ikon/emoji dekoratif di luar pola daftar tautan `h3` ber-ikon yang sudah ada.
+- Tanpa emoji, SVG inline, atau ikon dekoratif besar; gunakan ikon resmi hanya untuk makna atau tindakan.
 - Setiap bagian halaman harus punya padanan di halaman existing bila ragu —
   bila tidak ada padanannya, tanyakan ke pengguna sebelum menciptakan pola baru.
 

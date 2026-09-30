@@ -120,6 +120,93 @@ export function PageGambar({ src, alt, caption }) {
   );
 }
 
+/** Bagian konten standar. `lebar` hanya untuk tabel, diagram, atau media yang
+ * membutuhkan lebar container; teks bacaan tetap memakai measure prose. */
+export function BagianKonten({ id, title, lead, lebar = false, children }) {
+  return (
+    <section
+      id={id}
+      className="w-full px-6 py-16 md:px-8 md:py-20"
+    >
+      <div className={`mx-auto w-full ${lebar ? "max-w-7xl" : "kontainer-konten"}`}>
+        <div className={lebar ? "w-full" : "measure-konten"}>
+          {title && (
+            <h2 className="font-serif text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+              {title}
+            </h2>
+          )}
+          {lead && (
+            <p className="teks-lead-kci mt-3">
+              {lead}
+            </p>
+          )}
+        </div>
+        <div className={title || lead ? "mt-8" : ""}>{children}</div>
+      </div>
+    </section>
+  );
+}
+
+/** Lead artikel. Gunakan satu kali setelah judul/masthead. */
+export function TeksPembuka({ children }) {
+  return (
+    <p className="teks-lead-kci measure-konten mb-8">
+      {children}
+    </p>
+  );
+}
+
+/** Media informatif dengan dimensi, mode crop, dan caption yang konsisten. */
+export function GambarKonten({
+  src,
+  alt,
+  width,
+  height,
+  caption,
+  mode = "contain",
+  prioritas = false,
+  className = "",
+}) {
+  if (!src || !alt || !width || !height) return null;
+
+  return (
+    <figure className={`media-konten ${className}`.trim()}>
+      <img
+        src={src}
+        alt={alt}
+        width={width}
+        height={height}
+        loading={prioritas ? "eager" : "lazy"}
+        fetchPriority={prioritas ? "high" : "auto"}
+        decoding="async"
+        className={`media-konten__gambar ${mode === "cover" ? "object-cover" : "object-contain"}`}
+      />
+      {caption && <figcaption className="media-konten__caption">{caption}</figcaption>}
+    </figure>
+  );
+}
+
+/** Kutipan yang benar-benar berasal dari sumber; bukan heading dekoratif. */
+export function KutipanKonten({ children, sumber }) {
+  return (
+    <figure className="kutipan-konten">
+      <blockquote>{children}</blockquote>
+      {sumber && <figcaption>{sumber}</figcaption>}
+    </figure>
+  );
+}
+
+/** Catatan pendukung non-darurat. Untuk error/warning interaktif gunakan
+ * komponen alert bersama yang mempunyai semantik status. */
+export function CatatanKonten({ title, children }) {
+  return (
+    <aside className="catatan-konten" aria-label={title || "Catatan"}>
+      {title && <h3>{title}</h3>}
+      <div>{children}</div>
+    </aside>
+  );
+}
+
 /** Navigasi "Selanjutnya" — identik blok Pertamina. */
 export function PageSelanjutnya({ to, judul }) {
   const { t } = useI18n();

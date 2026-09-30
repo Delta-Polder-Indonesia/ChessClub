@@ -1,6 +1,6 @@
 # Panduan Radix UI dan Markup KCI
 
-Panduan ini adalah sumber kebenaran untuk AI/Opencode dan pengembang yang mengubah markup UI pada proyek ChessClub Komunitas Catur Indonesia (KCI), khususnya komponen popup, tab, card, formulir, dan kontrol aksesibilitas.
+Panduan ini menjelaskan implementasi primitif UI operasional KCI, khususnya popup, tab, card, formulir, dan kontrol aksesibilitas. `DESIGN.md` menetapkan batas visual lintas situs; skill domain menetapkan karakter fitur yang memakai primitif ini.
 
 Dokumen ini menjelaskan cara memakai primitive Radix UI yang sudah dipasang di proyek, cara memakai wrapper lokal bergaya shadcn/ui, cara mendiagnosis error umum, serta batasan perilaku yang harus dipertahankan ketika markup diperbaiki.
 
@@ -31,7 +31,7 @@ Proyek memakai:
 - Radix UI untuk primitive interaktif dan aksesibilitas.
 - `class-variance-authority` untuk varian komponen.
 - `clsx` dan `tailwind-merge` melalui helper `cn()`.
-- Plus Jakarta Sans yang di-host sendiri di `src/fonts/`.
+- Tipografi mengikuti domain pemakai; jangan memakai wrapper operasional untuk memaksakan tipografi halaman konten.
 - JavaScript JSX, bukan TypeScript.
 
 Dependensi UI yang sudah terdaftar di `package.json`:
@@ -182,7 +182,7 @@ API yang tersedia:
 
 Varian yang sekarang tersedia:
 
-- `default`: CTA biru KCI `#0B2F9F`.
+- `default`: tombol outline hitam untuk pemakai existing.
 - `outline`: tombol putih dengan border tipis.
 - `ghost`: tombol tanpa bidang, untuk aksi ringan atau tutup.
 
