@@ -11,6 +11,14 @@ import { Link } from "react-router-dom";
 import { Brain, GraduationCap, Puzzle } from "lucide-react";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { gambar } from "../../lib/asets.js";
+import {
+  JUDUL_SEKSI,
+  LABEL_SEKSI,
+  KEPALA_SEKSI,
+  JUDUL_KARTU,
+  DESKRIPSI_KARTU,
+  TitikLabel,
+} from "./gayaTeks.jsx";
 
 const GAMBAR_BUKU_TULIS = gambar("/images/buku_tulis.webp");
 
@@ -23,10 +31,10 @@ function KartuUnggulan({ jalan, t }) {
           <span className="h-11 w-11 flex items-center justify-center rounded border border-slate-200 text-primary">
             <Ikon className="h-6 w-6" aria-hidden="true" />
           </span>
-          <h3 className="font-serif font-semibold text-xl text-grey-800">{jalan.judul}</h3>
+          <h3 className={JUDUL_KARTU}>{jalan.judul}</h3>
         </div>
-        <p className="font-serif text-base leading-[1.6] text-grey-600">{jalan.desk}</p>
-        <p className="font-serif text-[13px] text-slate-500">{jalan.terms}</p>
+        <p className={DESKRIPSI_KARTU}>{jalan.desk}</p>
+        <p className="font-serif text-xs text-slate-500">{jalan.terms}</p>
         <div>
           <Link
             to={jalan.to}
@@ -61,9 +69,9 @@ function KartuKecil({ jalan, t }) {
         <span className="h-10 w-10 flex items-center justify-center rounded border border-slate-200 text-primary">
           <Ikon className="h-5 w-5" aria-hidden="true" />
         </span>
-        <h3 className="font-serif font-semibold text-lg text-grey-800">{jalan.judul}</h3>
+        <h3 className={JUDUL_KARTU}>{jalan.judul}</h3>
       </div>
-      <p className="font-serif text-base leading-[1.6] text-grey-600">{jalan.desk}</p>
+      <p className={DESKRIPSI_KARTU}>{jalan.desk}</p>
       <p className="flex items-center gap-2 mt-auto font-sans font-semibold text-sm text-grey-800 group-hover:text-primary">
         {jalan.cta}
         <ArrowRightIcon className="size-4" />
@@ -103,9 +111,13 @@ export default function TigaJalan() {
 
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-10">
-        <div className="max-w-2xl">
-          <h2 className="font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800">
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
+        <div className={KEPALA_SEKSI}>
+          <p className={LABEL_SEKSI}>
+            <TitikLabel />
+            {t("landing.tigaJalanLabel")}
+          </p>
+          <h2 className={JUDUL_SEKSI}>
             {t("landing.tigaJalanJudul")}{" "}
             <em className="text-primary not-italic">{t("landing.tigaJalanJudulAccent")}</em>
           </h2>

@@ -163,6 +163,17 @@ Analisa, Papan Interaktif, Teka-teki, Dashboard, pembaca e-book, grafik, tabel p
 - tetap mematuhi minimum keterbacaan, semantik, keyboard, kontras, dan reduced-motion;
 - harus tercatat di skill area atau komponen terkait.
 
+Galeri (`src/halaman/MediaDanInformasi/Galeri.jsx`) memakai skala tipografi dan grid
+tersendiri yang diadopsi dari markup konten (bukan komponen catur) sebuah situs
+galeri contoh — dicatat lengkap di
+`.agents/skills/kci-frontend/references/standar-galeri.md`. Skala itu hanya berlaku
+di kerangka Galeri dan tidak mengubah §2/§6 di atas untuk halaman lain.
+
+Landing (`/`, `src/halaman/Landing/`) memilot judul seksi dan label kecil dari
+adopsi yang sama (bukan grid/lightbox Galeri) lewat `src/halaman/Landing/gayaTeks.jsx`
+— dicatat di `references/standar-galeri.md` §2b. Ini pilot satu halaman; belum
+menjadi keputusan untuk mengubah skala H2 global.
+
 ---
 
 ## 12. Urutan Otoritas

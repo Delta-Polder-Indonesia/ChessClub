@@ -11,7 +11,7 @@ Dokumen ini menerjemahkan `DESIGN.md` menjadi keputusan implementasi. Jika nilai
 | Berita kegiatan | kerangka media existing | 65–75ch | selalu ada dokumentasi utama jika berita membahas kegiatan nyata |
 | Panduan | `HalamanIsi` + langkah bernomor | 65–75ch | langkah bergantung pada tampilan atau kontrol aplikasi |
 | Daftar/tabel | kerangka halaman + area lebar | teks 65–75ch; tabel boleh lebar | data lebih jelas lewat tabel, grafik, atau legenda |
-| Galeri/visual | kerangka Galeri | lebar visual | visual adalah isi utama |
+| Galeri/visual | kerangka Galeri (`references/standar-galeri.md`) | lebar visual | visual adalah isi utama |
 | Workspace/alat | kerangka fitur khusus | sesuai ruang kerja | gambar bukan pengganti kontrol interaktif |
 
 Jangan memakai kerangka workspace untuk artikel atau memaksa artikel menjadi grid card.
