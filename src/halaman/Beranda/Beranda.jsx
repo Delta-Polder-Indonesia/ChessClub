@@ -70,7 +70,7 @@ export default function Beranda() {
 
   return (
     <BagianBeranda id="turnamen" title="Informasi Jadwal Turnamen Catur">
-      <p className="ql-align-justify">
+      <p className="font-serif text-[1rem] leading-[1.8] text-grey-600 max-w-[62ch] text-pretty">
         Berikut rangkuman jadwal seluruh turnamen yang dikelola komunitas.
         Rincian lengkap, peserta, dan klasemen ada di halaman turnamen masing-masing.
       </p>

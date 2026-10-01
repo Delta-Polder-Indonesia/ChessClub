@@ -180,7 +180,7 @@ export function CorporateSection({ id, title, children, className = "", titleCla
     >
       <div className="relative w-full mx-auto grid grid-cols-[1fr] grid-rows-[1fr] gap-y-6 md:gap-y-6 lg:gap-y-6 lg:max-w-[960px] xl:max-w-[1280px]">
         {title && (
-          <h2 className={`focus:outline-none focus:ring-0 text-black font-semibold text-2xl md:text-3xl ${titleClassName}`}>
+          <h2 className={`focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800 ${titleClassName}`}>
             {title}
           </h2>
         )}

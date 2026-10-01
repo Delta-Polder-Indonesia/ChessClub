@@ -38,8 +38,7 @@ export default function RangkumanPengumuman() {
 
   return (
     <BagianBeranda id="pengumuman" title="Rangkuman Pengumuman">
-      {/* Diperkecil ke text-sm & warna slate-600 agar lebih elegan */}
-      <p className="ql-align-justify text-sm text-slate-600 leading-relaxed">
+      <p className="font-serif text-[1rem] leading-[1.8] text-grey-600 max-w-[62ch] text-pretty">
         Berikut rangkuman pengumuman resmi komunitas. Klik "Selengkapnya"
         untuk membuka isi pengumuman secara penuh.
       </p>

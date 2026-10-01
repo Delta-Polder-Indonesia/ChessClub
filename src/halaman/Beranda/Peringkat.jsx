@@ -174,9 +174,9 @@ export default function Peringkat() {
   return (
     <BagianBeranda
       id="peringkat"
-      title="Peringkat pemain BLUNDER SKUAD"
+      title="BLUNDER SKUAD"
     >
-      <p className="ql-align-justify">
+      <p className="font-serif text-[1rem] leading-[1.8] text-grey-600 max-w-[62ch] text-pretty">
         Peringkat disusun dari akun pada{" "}
         <a
           href={URL_KLUB}

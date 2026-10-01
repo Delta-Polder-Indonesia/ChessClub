@@ -59,11 +59,11 @@ export default function Hero({
             </span>
           ))}
         </div>
-        <h1 className="font-serif text-white w-full lg:w-1/2 text-3xl md:text-[38px] leading-normal xl:leading-normal font-bold line-clamp-2">
+        <h1 className="font-serif font-light text-white w-full lg:w-1/2 text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance line-clamp-2">
           {judul}
         </h1>
         {deskripsi && (
-          <p className="font-serif w-full max-w-[840px] text-sm md:text-base font-normal text-white">
+          <p className="font-serif w-full max-w-[62ch] text-[1rem] leading-[1.8] text-white/80 text-pretty">
             {deskripsi}
           </p>
         )}
