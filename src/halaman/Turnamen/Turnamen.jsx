@@ -265,7 +265,7 @@ export default function Turnamen() {
           <section className="flex flex-col gap-y-3 pt-2">
             <h2
               id="history"
-              className="m-0 font-serif text-xl font-semibold text-grey-800 border-b border-grey-200 pb-2"
+              className="font-serif border-b border-grey-200 pb-2"
             >
               Hasil Turnamen
             </h2>

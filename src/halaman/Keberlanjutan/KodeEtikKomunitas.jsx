@@ -16,22 +16,6 @@ export default function KodeEtikKomunitas() {
       }}
     >
       <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
-          <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-            <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
-              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
-                {t("kodeEtik.judul")}
-              </p>
-              <h1 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
-                {t("kodeEtik.artikel")}
-              </h1>
-              <p className="m-0 text-sm text-grey-800 italic">
-                {t("kodeEtik.deskripsi")}
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* ═══ Konten Paragraf Utama & Sub-bagian ═══ */}
         <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
@@ -40,7 +24,7 @@ export default function KodeEtikKomunitas() {
           </p>
 
           <div className="pt-2">
-            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               1. Tujuan dan Ruang Lingkup
             </h2>
             <p className="m-0">
@@ -61,7 +45,7 @@ export default function KodeEtikKomunitas() {
           <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               2. Perilaku dalam Komunitas
             </h2>
             <p className="m-0">
@@ -96,7 +80,7 @@ export default function KodeEtikKomunitas() {
           <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               3. Sikap Sportif dalam Bermain
             </h2>
             <p className="m-0">
@@ -122,7 +106,7 @@ export default function KodeEtikKomunitas() {
           <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               4. Mekanisme Pelaporan
             </h2>
             <p className="m-0">
@@ -149,7 +133,7 @@ export default function KodeEtikKomunitas() {
           <hr className="my-2 border-t border-slate-300" />
 
           <div className="flex flex-col gap-y-3">
-            <h2 className="m-0 mb-1 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               5. Peraturan Acara Komunitas
             </h2>
             <p className="m-0">
@@ -292,7 +276,7 @@ export default function KodeEtikKomunitas() {
           <hr className="my-2 border-t border-slate-300" />
 
           <div>
-            <h2 className="m-0 mb-2 border-b border-grey-200 pb-1 font-serif text-xl font-semibold text-grey-800">
+            <h2 className="border-b border-grey-200 pb-1 font-serif">
               6. Penafian dan Tanggung Jawab
             </h2>
             <p className="m-0">

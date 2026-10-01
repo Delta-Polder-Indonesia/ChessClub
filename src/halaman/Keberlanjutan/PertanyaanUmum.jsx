@@ -463,29 +463,13 @@ export default function PertanyaanUmum() {
       next={{ to:"/hubungi-kami", judul: t("pertanyaan.nextJudul") }}
     >
       <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
-          <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
-            <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
-              <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
-                {t("pertanyaan.judul")}
-              </p>
-              <h1 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
-                {t("pertanyaan.artikel")}
-              </h1>
-              <p className="m-0 text-sm text-grey-800 italic">
-                {t("pertanyaan.deskripsi")}
-              </p>
-            </div>
-          </div>
-        </section>
 
         {/* ═══ Konten Pertanyaan & Jawaban ═══ */}
         <div className="flex w-full flex-col gap-y-6 pt-1 font-serif text-base leading-[1.6] text-grey-800">
           <ol className="m-0 p-0 flex flex-col gap-y-5 list-none">
             {DAFTAR_TANYA.map((item, index) => (
               <li key={index} className="flex flex-col gap-y-1">
-                <h2 className="m-0 font-serif text-xl font-semibold text-grey-800">
+                <h2 className="font-serif">
                   {index + 1}. {item.t}
                 </h2>
                 <div className="text-grey-800">
