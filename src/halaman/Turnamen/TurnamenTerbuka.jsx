@@ -15,7 +15,7 @@ export default function TurnamenTerbuka() {
         judul: t("turnamenTerbuka.nextJudul"),
       }}
     >
-      <PageArtikel judulAkademik title={t("turnamenTerbuka.artikel")}>
+      <PageArtikel title={t("turnamenTerbuka.artikel")}>
         <p>{t("turnamenTerbuka.p1")}</p>
         <p>{t("turnamenTerbuka.p2")}</p>
       </PageArtikel>

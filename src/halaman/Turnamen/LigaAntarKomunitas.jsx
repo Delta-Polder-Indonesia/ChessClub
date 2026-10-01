@@ -12,7 +12,7 @@ export default function LigaAntarKomunitas() {
       description={t("ligaAntar.deskripsi")}
       next={{ to: "/media-dan-informasi", judul: t("ligaAntar.nextJudul") }}
     >
-      <PageArtikel judulAkademik title={t("ligaAntar.artikel")}>
+      <PageArtikel title={t("ligaAntar.artikel")}>
         <p>{t("ligaAntar.p1")}</p>
         <p>{t("ligaAntar.p2")}</p>
       </PageArtikel>

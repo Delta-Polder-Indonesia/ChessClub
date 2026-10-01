@@ -47,7 +47,7 @@ export function HalamanIsi({
 }
 
 /** Blok artikel — markup identik Sekilas / Visi Misi. */
-export function PageArtikel({ title, lead, children, lebar = false, judulAkademik = false }) {
+export function PageArtikel({ title, lead, children, lebar = false }) {
   return (
 <section
         className={`w-full relative bg-transparent pb-12 md:pb-12 xl:pb-16 pt-12 md:pt-12 xl:pt-24 ${
