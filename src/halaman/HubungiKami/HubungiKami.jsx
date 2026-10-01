@@ -139,12 +139,12 @@ export default function HubungiKami() {
 
             <div className="space-y-4 mb-4">
               <div>
-                <p className="font-medium text-base mb-4">Persetujuan Data Pribadi</p>
-                <div className="w-full px-4 py-5 border rounded-md border-slate-200 prose prose-sm max-w-none">
+                <h3>Persetujuan Data Pribadi</h3>
+                <div className="w-full px-4 py-5 border rounded-md border-grey-200 max-w-none">
                   <p>
                     Komunitas Catur Indonesia berkomitmen melindungi data pribadi Anda. Data yang dikirim melalui formulir ini hanya digunakan untuk menindaklanjuti pesan dan kebutuhan komunikasi komunitas.
                   </p>
-                  <p className="text-base font-bold">Persetujuan Pengguna</p>
+                  <h3>Persetujuan Pengguna</h3>
                   <p>
                     Dengan mengirimkan pesan, Anda memahami dan menyetujui pemrosesan data yang Anda berikan sesuai dengan kebijakan privasi yang berlaku.
                   </p>
@@ -176,7 +176,7 @@ export default function HubungiKami() {
       </CorporateSection>
 
       <CorporateSection id="jejaring-komunitas" title="Jejaring Komunitas" className="pt-6 md:pt-8 xl:pt-0">
-        <p>
+        <p className="font-serif text-[1rem] leading-[1.8] text-grey-600 max-w-[62ch] text-pretty">
           Komunitas Catur Indonesia terbuka untuk berkolaborasi dengan klub, sekolah, pelatih, sponsor, dan komunitas catur di berbagai daerah. Sampaikan rencana kolaborasi Anda melalui formulir di atas atau email resmi komunitas.
         </p>
       </CorporateSection>

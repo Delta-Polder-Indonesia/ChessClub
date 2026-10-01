@@ -10,13 +10,12 @@ export default function Keberlanjutan() {
       description={t("keberlanjutan.deskripsi")}
       next={{ to:"/keberlanjutan/syarat-dan-ketentuan", judul: t("keberlanjutan.nextJudul") }}
     >
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          judul={t("keberlanjutan.artikel")}
-          subjudul={t("keberlanjutan.deskripsi")}
-        />
+      <MastheadEditorial
+        judul={t("keberlanjutan.artikel")}
+        subjudul={t("keberlanjutan.deskripsi")}
+      />
 
+      <PageArtikel lebar>
         {/* ═══ Konten Paragraf Utama ═══ */}
         <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
           <p className="m-0">

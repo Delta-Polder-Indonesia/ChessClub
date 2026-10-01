@@ -82,12 +82,12 @@ export function PageArtikel({ title, lead, children, lebar = false, judulAkademi
  *  lama selalu mengulang judul Hero di atasnya (redundan). */
 export function MastheadEditorial({ judul, subjudul }) {
   return (
-    <section className="font-serif -mt-8 md:-mt-12 relative w-full overflow-hidden bg-white">
+    <section className="font-serif relative w-full bg-transparent pt-12 md:pt-12 xl:pt-24">
       <div className="relative z-10 mx-auto max-w-7xl px-6 py-2 md:px-8 md:py-3 xl:px-0">
         <div className="relative mb-6 border-b border-grey-200 pb-3 text-center">
-          <h1 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
+          <h2 className="mb-2 font-serif text-3xl md:text-4xl leading-tight font-semibold text-grey-800">
             {judul}
-          </h1>
+          </h2>
           <p className="m-0 text-sm text-grey-600 italic">{subjudul}</p>
         </div>
       </div>

@@ -9,7 +9,7 @@ export default function VisiMisi() {
       <div className="w-full relative pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-6 md:pb-6 xl:pb-16">
         <div className="relative w-full mx-auto md:max-w-[1024px] flex flex-col gap-y-6 md:gap-y-6 lg:gap-y-6">
           {/* Visi */}
-          <h2 className="focus:outline-none focus:ring-0 text-black font-semibold text-3xl md:text-3xl">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
             {t("visimisi.visi")}
           </h2>
           <div className="w-full">
@@ -19,11 +19,11 @@ export default function VisiMisi() {
           </div>
           <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
             <div className="relative z-[1] prose-kci max-w-none">
-              <p className="ql-align-justify">{t("visimisi.visiP1")}</p>
+              <p>{t("visimisi.visiP1")}</p>
               <ol>
-                <li className="ql-align-justify">{t("visimisi.visiL1")}</li>
-                <li className="ql-align-justify">{t("visimisi.visiL2")}</li>
-                <li className="ql-align-justify">{t("visimisi.visiL3")}</li>
+                <li>{t("visimisi.visiL1")}</li>
+                <li>{t("visimisi.visiL2")}</li>
+                <li>{t("visimisi.visiL3")}</li>
               </ol>
             </div>
           </div>
@@ -31,7 +31,7 @@ export default function VisiMisi() {
           <div className="w-full h-4 md:h-6 bg-transparent" />
 
           {/* Misi */}
-          <h2 className="focus:outline-none focus:ring-0 font-semibold text-3xl md:text-3xl text-black">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
             {t("visimisi.misi")}
           </h2>
           <div className="w-full">
@@ -41,7 +41,7 @@ export default function VisiMisi() {
           </div>
           <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
             <div className="relative z-[1] prose-kci max-w-none">
-              <p className="ql-align-justify">{t("visimisi.misiP1")}</p>
+              <p>{t("visimisi.misiP1")}</p>
             </div>
           </div>
         </div>
@@ -50,7 +50,7 @@ export default function VisiMisi() {
       {/* Tata Nilai — judul */}
       <div className="w-full relative pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-6 md:pb-6 xl:pb-16">
         <div className="relative w-full mx-auto md:max-w-[1024px]">
-          <h2 className="focus:outline-none focus:ring-0 font-semibold text-3xl md:text-3xl text-black">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
             {t("visimisi.tataNilai")}
           </h2>
         </div>
@@ -69,7 +69,7 @@ export default function VisiMisi() {
                 decoding="async"
                 loading="lazy"
               />
-              <p className="text-sm font-normal text-gray-500 mt-2">
+              <p className="text-sm font-normal text-grey-500 mt-2">
                 {t("visimisi.nilaiImgCaption")}
               </p>
             </div>

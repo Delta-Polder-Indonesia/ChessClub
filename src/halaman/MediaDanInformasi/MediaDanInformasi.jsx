@@ -13,13 +13,12 @@ export default function MediaDanInformasi() {
         judul: t("media.nextJudul"),
       }}
     >
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          judul={t("media.artikel")}
-          subjudul={t("media.deskripsi")}
-        />
+      <MastheadEditorial
+        judul={t("media.artikel")}
+        subjudul={t("media.deskripsi")}
+      />
 
+      <PageArtikel lebar>
         {/* ═══ Konten Paragraf Utama ═══ */}
         <div className="flex w-full flex-col gap-y-4 pt-1 font-serif text-base leading-[1.6] text-grey-800">
           <p className="m-0">

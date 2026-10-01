@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../../components/PageBagian.jsx";
+import { HalamanIsi } from "../../../components/PageBagian.jsx";
 import StickyMenu from "../../../components/StickyMenu.jsx";
 import Pengurus from "./Pengurus.jsx";
 import StrukturOrganisasiCatur from "./StrukturOrganisasiCatur.jsx";
@@ -50,13 +50,6 @@ export default function StrukturGrupCatur() {
         />
       }
     >
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          judul={t("strukturGrupCatur.judul")}
-          subjudul={t("strukturGrupCatur.deskripsi")}
-        />
-      </PageArtikel>
       {tab === "pengurus" && <Pengurus />}
       {tab === "organisasi" && <StrukturOrganisasiCatur />}
       {tab === "keanggotaan" && <Keanggotaan />}

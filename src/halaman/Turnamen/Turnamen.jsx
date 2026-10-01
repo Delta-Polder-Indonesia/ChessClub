@@ -46,13 +46,12 @@ export default function Turnamen() {
       description={t("turnamen.deskripsi")}
       next={{ to:"/turnamen/turnamen-bulanan", judul: t("turnamen.nextJudul") }}
     >
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          judul="Turnamen Komunitas"
-          subjudul={t("turnamen.deskripsi")}
-        />
+      <MastheadEditorial
+        judul="Turnamen Komunitas"
+        subjudul={t("turnamen.deskripsi")}
+      />
 
+      <PageArtikel lebar>
         {/* ═══ Direct Tautan / Navigation Grid Editorial ═══ */}
         <nav className="mb-8 border-y border-slate-300 py-4 bg-grey-50">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">

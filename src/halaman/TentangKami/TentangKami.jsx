@@ -3,7 +3,7 @@ import Sekilas from "../../components/Sekilas.jsx";
 import Tonggak from "../../components/Tonggak.jsx";
 import VisiMisi from "../../components/VisiMisi.jsx";
 import MaknaLogo from "../../components/MaknaLogo.jsx";
-import { HalamanIsi, PageArtikel, MastheadEditorial } from "../../components/PageBagian.jsx";
+import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
 export default function TentangKami() {
@@ -17,14 +17,6 @@ export default function TentangKami() {
       submenu={<StickyMenu />}
     >
       <div className="font-serif">
-      <PageArtikel lebar>
-        {/* ═══ Header Editorial / Koran ═══ */}
-        <MastheadEditorial
-          judul={t("hero.tentangKami")}
-          subjudul={t("hero.deskripsi")}
-        />
-      </PageArtikel>
-
       <Sekilas />
 
       <div className="w-full border-t my-8 md:my-8 border-grey-200" />

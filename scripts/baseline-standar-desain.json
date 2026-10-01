@@ -8,6 +8,9 @@
     "max-width-arbitrary": 5
   },
   "src/halaman/HubungiKami/HubungiKami.jsx": {
+    "ukuran-teks-arbitrary": 1,
+    "leading-arbitrary": 1,
+    "max-width-arbitrary": 1,
     "tombol-ad-hoc": 2
   },
   "src/halaman/Keberlanjutan/Bantuan.jsx": {

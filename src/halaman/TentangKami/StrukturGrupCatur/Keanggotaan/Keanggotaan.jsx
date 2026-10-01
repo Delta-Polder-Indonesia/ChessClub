@@ -13,7 +13,7 @@ export default function Keanggotaan() {
 
   return (
     <PageArtikel title={t("keanggotaan.artikel")}>
-      <p className="ql-align-justify">{t("keanggotaan.intro")}</p>
+      <p>{t("keanggotaan.intro")}</p>
       <DaftarAnggota />
       <TingkatanRating />
     </PageArtikel>

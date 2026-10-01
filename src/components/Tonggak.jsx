@@ -68,7 +68,7 @@ export default function Tonggak() {
       {/* Judul */}
       <div className="w-full relative pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-6 md:pb-6 xl:pb-16">
         <div className="relative w-full mx-auto md:max-w-[1024px]">
-          <h2 className="focus:outline-none focus:ring-0 font-semibold text-3xl md:text-3xl text-black">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
             {t("tonggak.judul")}
           </h2>
         </div>
@@ -86,7 +86,7 @@ export default function Tonggak() {
               style={{ zIndex: i === index ? 1 : 0 }}
               aria-hidden={i !== index}
             >
-              <div className="w-full relative h-full min-h-[600px] bg-[#021624]">
+              <div className="w-full relative h-full min-h-[600px] bg-hero">
                 {i === index && (
                   <img
                     {...slide.sumber}
@@ -104,7 +104,7 @@ export default function Tonggak() {
                 <div className="relative w-full h-full mx-auto grid grid-cols-[1fr] lg:grid-cols-[60%] lg:max-w-[960px] xl:max-w-[1280px] lg:justify-start items-end px-2 md:px-2">
                   <div className="w-full pl-6 md:pl-8 xl:pl-6 pr-6 md:pr-8 xl:pr-20 pb-12 md:pb-12 xl:pb-4 pt-12 md:pt-12 xl:pt-3.5">
                     <div className="w-full lg:max-w-[840px]">
-                      <h3 className="focus:outline-none focus:ring-0 text-white font-semibold text-4xl md:text-4xl mb-6">
+                      <h3 className="focus:outline-none focus:ring-0 font-serif font-light text-white text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance mb-6">
                         {slide.title}
                       </h3>
                       <div className="relative w-full overflow-x-auto xl:overflow-x-visible">

@@ -9,16 +9,16 @@ export default function Sekilas() {
       className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-12 md:pb-12 xl:pb-16 pt-12 md:pt-12 xl:pt-24"
     >
       <div className="relative w-full mx-auto md:max-w-[1024px] flex flex-col gap-y-6 md:gap-y-8 lg:gap-y-10">
-        <h2 className="focus:outline-none focus:ring-0 font-semibold text-2xl md:text-3xl text-black">
+        <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
           {t("sekilas.judul")}
         </h2>
         <div className="relative w-full overflow-x-auto xl:overflow-x-visible">
           <div className="relative z-[1] prose-kci max-w-none">
-            <p className="ql-align-justify">{t("sekilas.p1")}</p>
-            <p className="ql-align-justify">{t("sekilas.p2")}</p>
-            <p className="ql-align-justify">{t("sekilas.p3")}</p>
-            <p className="ql-align-justify">{t("sekilas.p4")}</p>
-            <p className="ql-align-justify">{t("sekilas.p5")}</p>
+            <p>{t("sekilas.p1")}</p>
+            <p>{t("sekilas.p2")}</p>
+            <p>{t("sekilas.p3")}</p>
+            <p>{t("sekilas.p4")}</p>
+            <p>{t("sekilas.p5")}</p>
             <p>{t("sekilas.p6")}</p>
           </div>
         </div>
@@ -36,7 +36,7 @@ export default function Sekilas() {
               decoding="async"
               loading="lazy"
             />
-            <p className="text-sm font-normal text-gray-500 mt-2">
+            <p className="text-sm font-normal text-grey-500 mt-2">
               {t("sekilas.imgCaption")}
             </p>
           </div>

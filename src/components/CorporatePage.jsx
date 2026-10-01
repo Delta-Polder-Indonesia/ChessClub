@@ -38,7 +38,7 @@ export function CorporatePage({
       <BreadcrumbJsonLd items={crumbs} />
       <Hero
         title={title}
-        description={null}
+        description={description}
         crumbs={crumbs}
         image={image}
       />
@@ -241,9 +241,9 @@ export function CorporateTable({ rows }) {
       <table className="table-fixed min-w-full text-sm md:text-base">
         <tbody>
           {rows.map(([label, value], index) => (
-            <tr key={label} className={`py-4 px-4 lg:px-0 grid grid-cols-4 bg-white border-0 border-b border-solid border-slate-200 ${index === rows.length - 1 ? "border-b-0" : ""}`}>
-              <td className="flex items-start font-bold w-full col-span-1 self-stretch flex-shrink-0 text-slate-900">{label}</td>
-              <td className="flex items-start col-span-3 w-full self-stretch flex-shrink-0 text-slate-700">{value}</td>
+            <tr key={label} className={`py-4 px-4 lg:px-0 grid grid-cols-4 border-0 border-b border-solid border-grey-200 ${index === rows.length - 1 ? "border-b-0" : ""}`}>
+              <td className="flex items-start font-bold w-full col-span-1 self-stretch flex-shrink-0 text-grey-800">{label}</td>
+              <td className="flex items-start col-span-3 w-full self-stretch flex-shrink-0 text-grey-600">{value}</td>
             </tr>
           ))}
         </tbody>
