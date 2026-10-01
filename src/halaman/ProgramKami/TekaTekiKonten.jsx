@@ -195,14 +195,14 @@ export default function TekaTekiKonten() {
       next={{ to: RUTE_RUSH, judul: t("nav.tekaTekiRush") }}
     >
       <div className="font-serif">
-        {/* ═══ Pengantar — asimetris: judul (5) + narasi & CTA (7) ═══ */}
+        {/* ═══ Pengantar — judul di atas, narasi & CTA mengalir di bawahnya ═══ */}
         <section className="w-full border-t border-grey-200 bg-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="grid gap-x-16 gap-y-8 lg:grid-cols-12">
-              <h2 className="text-pretty text-2xl font-semibold leading-snug text-grey-800 md:text-3xl lg:col-span-5">
+            <div className="flex flex-col gap-y-8">
+              <h2 className="text-pretty text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
                 {t("tipsTekaTeki.introJudul")}
               </h2>
-              <div className="flex max-w-[68ch] flex-col gap-y-5 text-[15px] leading-relaxed text-grey-600 md:text-base lg:col-span-7">
+              <div className="flex max-w-[68ch] flex-col gap-y-5 text-[15px] leading-relaxed text-grey-600 md:text-base">
                 <p className="m-0">{t("tipsTekaTeki.intro1")}</p>
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4 font-sans">
