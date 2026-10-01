@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
+import { Tombol } from "../../components/Tombol.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { berkasPublik, gambar } from "../../lib/asets.js";
 
@@ -43,15 +43,12 @@ export default function AnalisaLanding() {
               <p>{t("analisaLanding.p1")}</p>
             </div>
 
-            <Link
-              to={RUTE_PAPAN_ANALISA}
-              className="mt-1 inline-flex w-fit shrink-0 items-center justify-center gap-2 rounded border border-primary bg-transparent px-6 py-2.5 text-sm font-semibold text-primary no-underline transition-colors hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-            >
+            <Tombol to={RUTE_PAPAN_ANALISA} variant="garis" className="mt-1 w-fit shrink-0">
               <span>{t("analisaLanding.mulai")}</span>
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="square" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
-            </Link>
+            </Tombol>
           </div>
 
           <figure className="w-full min-w-0 md:w-1/2 md:self-start">

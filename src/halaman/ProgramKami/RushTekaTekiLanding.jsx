@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
+import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -39,15 +39,14 @@ export default function RushTekaTekiLanding() {
       next={{ to: "/program-kami/kuis-catur", judul: t("kuisLanding.judul") }}
     >
       <div className="font-serif">
-        {/* ═══ Pengantar — intro asimetris: judul (5) + narasi (7) ═══ */}
+        {/* ═══ Pengantar — judul di atas, narasi di bawahnya ═══ */}
         <section className="w-full border-t border-grey-200 bg-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="grid gap-x-16 gap-y-8 lg:grid-cols-12">
-              <h2 className="text-pretty text-2xl font-semibold leading-snug text-grey-800 md:text-3xl lg:col-span-5">
+            <div className="flex flex-col gap-y-8">
+              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
                 {t("rushLanding.introJudul")}
               </h2>
-              <div className="flex max-w-[68ch] flex-col gap-y-5 text-[15px] leading-relaxed text-grey-600 md:text-base lg:col-span-7">
-                <p className="m-0">{t("rushLanding.intro1")}</p>
+              <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 <p className="m-0">{t("rushLanding.intro2")}</p>
               </div>
             </div>
@@ -57,7 +56,7 @@ export default function RushTekaTekiLanding() {
         {/* ═══ Cara bermain — daftar bernomor ═══ */}
         <section className="w-full border-t border-grey-200 bg-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("rushLanding.caraJudul")}
             </h2>
             <ol className="mt-10 grid list-none gap-x-12 gap-y-8 border-t border-grey-200 p-0 pt-10 sm:grid-cols-2">
@@ -66,7 +65,7 @@ export default function RushTekaTekiLanding() {
                   <span className="shrink-0 text-lg font-semibold text-primary">
                     {i + 1}
                   </span>
-                  <p className="m-0 max-w-[52ch] text-[15px] leading-relaxed text-grey-600 md:text-base">
+                  <p className="m-0 max-w-[52ch] font-serif text-sm leading-[1.6] text-pretty text-grey-600">
                     {teks}
                   </p>
                 </li>
@@ -78,16 +77,16 @@ export default function RushTekaTekiLanding() {
         {/* ═══ Yang membuatnya melatih — daftar definisi ═══ */}
         <section className="w-full border-t border-grey-200 bg-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("rushLanding.fiturJudul")}
             </h2>
             <dl className="mt-10 grid gap-x-12 gap-y-9 border-t border-grey-200 pt-10 sm:grid-cols-3">
               {fitur.map((f) => (
                 <div key={f.judul} className="flex flex-col gap-y-2">
-                  <dt className="text-lg font-semibold leading-snug text-grey-800">
+                  <dt className="font-serif text-[1.0625rem] font-semibold leading-[1.35] text-balance text-grey-800">
                     {f.judul}
                   </dt>
-                  <dd className="m-0 max-w-[42ch] text-pretty text-[15px] leading-relaxed text-grey-600">
+                  <dd className="m-0 max-w-[42ch] font-serif text-sm leading-[1.6] text-pretty text-grey-600">
                     {f.isi}
                   </dd>
                 </div>
@@ -100,20 +99,17 @@ export default function RushTekaTekiLanding() {
         <section className="w-full bg-white">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <div className="rounded-lg border border-grey-200 p-8 md:p-10">
-              <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
                 {t("rushLanding.ctaJudul")}
               </h2>
-              <p className="mt-4 max-w-[68ch] text-pretty text-[15px] leading-relaxed text-grey-600 md:text-base">
+              <p className="mt-4 max-w-[62ch] font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 {t("rushLanding.ctaIsi")}
               </p>
-              <div className="mt-7">
-                <Link
-                  to={RUTE_ALAT}
-                  className="inline-flex items-center justify-center gap-2 rounded border border-primary bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                >
+              <div className="mt-8">
+                <Tombol to={RUTE_ALAT} variant="garis">
                   {t("rushLanding.cta")}
                   <ArrowRightIcon className="size-4" />
-                </Link>
+                </Tombol>
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
+import { Tombol } from "../../components/Tombol.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 
 /**
@@ -340,14 +341,14 @@ export default function Pembukaan() {
       {/* ═══ Pembuka — editorial: judul, dua paragraf, baris angka ═══ */}
       <section className="w-full border-t border-grey-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 max-w-[28ch] text-pretty font-serif text-2xl font-semibold leading-tight text-grey-800 md:text-3xl">
+          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.introJudul")}
           </h2>
-          <div className="mt-6 flex max-w-[68ch] flex-col gap-y-5">
-            <p className="m-0 font-serif text-[15px] leading-relaxed text-grey-600 md:text-base">
+          <div className="mt-6 flex flex-col gap-y-5">
+            <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
               {t("bukuPembukaan.introP1")}
             </p>
-            <p className="m-0 font-serif text-[15px] leading-relaxed text-grey-600 md:text-base">
+            <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
               {t("bukuPembukaan.introP2")}
             </p>
           </div>
@@ -373,10 +374,10 @@ export default function Pembukaan() {
       {/* ═══ Pohon langkah pertama — papan mini + balasan teratas ═══ */}
       <section className="w-full border-t border-grey-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 font-serif text-2xl font-semibold leading-tight text-grey-800 md:text-3xl">
+          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.pohonJudul")}
           </h2>
-          <p className="m-0 mt-4 max-w-[62ch] font-sans text-[15px] leading-relaxed text-grey-600">
+          <p className="m-0 mt-4 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
             {t("bukuPembukaan.pohonPengantar")}
           </p>
 
@@ -407,7 +408,7 @@ export default function Pembukaan() {
                       <span className="tabular-nums">{persen(pintu.jumlah)}</span>
                     </p>
                   </div>
-                  <p className="m-0 mt-3 max-w-[62ch] font-serif text-[15px] leading-relaxed text-grey-600">
+                  <p className="m-0 mt-3 font-serif text-sm leading-[1.6] text-pretty text-grey-600">
                     {t(`bukuPembukaan.${pintu.deskripsi}`)}
                   </p>
                   <ul className="mt-5 flex list-none flex-wrap gap-2 p-0">
@@ -445,10 +446,10 @@ export default function Pembukaan() {
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="grid gap-x-16 gap-y-10 lg:grid-cols-12">
             <div className="lg:col-span-4">
-              <h2 className="m-0 font-serif text-2xl font-semibold leading-tight text-grey-800 md:text-3xl">
+              <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
                 {t("bukuPembukaan.katalogJudul")}
               </h2>
-              <p className="m-0 mt-4 font-sans text-[15px] leading-relaxed text-grey-600">
+              <p className="m-0 mt-4 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 {t("bukuPembukaan.katalogPengantar")}
               </p>
               <Link
@@ -468,14 +469,14 @@ export default function Pembukaan() {
       {/* ═══ Di papan interaktif — daftar ringkas fitur buku ═══ */}
       <section className="w-full border-t border-grey-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 font-serif text-2xl font-semibold leading-tight text-grey-800 md:text-3xl">
+          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.alatJudul")}
           </h2>
           <ul className="mt-8 grid list-none gap-x-12 border-t border-grey-200 p-0 sm:grid-cols-2">
             {["alat1", "alat2", "alat3", "alat4", "alat5"].map((kunci) => (
               <li
                 key={kunci}
-                className="border-b border-grey-200 py-4 font-sans text-sm leading-relaxed text-grey-800"
+                className="border-b border-grey-200 py-4 font-serif text-sm leading-[1.6] text-pretty text-grey-800"
               >
                 {t(`bukuPembukaan.${kunci}`)}
               </li>
@@ -486,20 +487,19 @@ export default function Pembukaan() {
 
       {/* ═══ Penutup ═══ */}
       <section className="w-full border-t border-grey-200 bg-white">
-        <div className="mx-auto max-w-6xl px-6 pb-16 pt-12 md:px-8 md:pb-24 md:pt-16">
-          <div className="rounded-lg border border-grey-200 bg-grey-50 px-6 py-10 text-center md:px-12 md:py-14">
-            <h2 className="m-0 font-serif text-xl font-semibold text-grey-800 md:text-2xl">
+        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
+          <div className="rounded-lg border border-grey-200 p-8 md:p-10">
+            <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("bukuPembukaan.penutupJudul")}
             </h2>
-            <p className="mx-auto m-0 mt-4 max-w-[52ch] font-sans text-[15px] leading-relaxed text-grey-600">
+            <p className="m-0 mt-4 max-w-[62ch] font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
               {t("bukuPembukaan.penutupIsi")}
             </p>
-            <Link
-              to="/papan-interaktif"
-              className="mt-8 inline-flex rounded bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-white transition-colors hover:bg-blue-400"
-            >
-              {t("bukuPembukaan.ctaUtama")}
-            </Link>
+            <div className="mt-8">
+              <Tombol to="/papan-interaktif" variant="garis">
+                {t("bukuPembukaan.ctaUtama")}
+              </Tombol>
+            </div>
           </div>
         </div>
       </section>

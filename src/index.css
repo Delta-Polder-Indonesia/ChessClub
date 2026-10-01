@@ -129,6 +129,16 @@ body {
   background-color: var(--color-paper);
 }
 
+/* Angka pada teks serif. Repo tidak punya webfont serif — `font-serif`
+   jatuh ke stack bawaan Tailwind (Georgia/Cambria di Windows), dan font itu
+   memakai oldstyle figures secara default: 3 4 5 7 9 turun di bawah
+   baseline, 6 8 naik di atas cap height. Deret seperti "5.486" karena itu
+   tampak naik-turun. Paksa lining figures supaya semua angka serif duduk
+   satu baseline. */
+.font-serif {
+  font-variant-numeric: lining-nums;
+}
+
 /* Permukaan peramban — diselaraskan token KCI, bukan default browser polos
    (craft-floor: skill-craft-browser-surfaces). Seleksi teks & kontrol form
    memakai biru brand; caret mengikuti warna teks. */

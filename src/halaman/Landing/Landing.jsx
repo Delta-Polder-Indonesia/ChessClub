@@ -24,6 +24,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Tombol } from "../../components/Tombol.jsx";
 import { Brain, Puzzle } from "lucide-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
@@ -482,13 +483,10 @@ function BagianGambarKartu({ t }) {
               {t("landing.tigaJalanAkademiTerms")}
             </p>
             <div className="mt-4">
-              <Link
-                to="/program-kami/ebook-panduan"
-                className="inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
+              <Tombol to="/program-kami/ebook-panduan" variant="garis">
                 {t("landing.tigaJalanAkademiCta")}
                 <ArrowRightIcon className="size-4" />
-              </Link>
+              </Tombol>
             </div>
             {/* Deretan kartu kecil pindah ke bawah deskripsi, di dalam kolom
                 kanan. Sebelumnya ikut_flow penuh di bawah kartu besar, sehingga
@@ -575,13 +573,10 @@ function AjakanBergabung({ t }) {
           </h2>
           <p className={LEAD_SEKSI}>{t("landing.ajakanDeskripsi")}</p>
         </div>
-        <Link
-          to="/pendaftaran-anggota"
-          className="mt-8 inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
+        <Tombol to="/pendaftaran-anggota" variant="garis" className="mt-8">
           {t("landing.ajakanTombol")}
           <ArrowRightIcon className="size-4" />
-        </Link>
+        </Tombol>
       </div>
     </section>
   );
@@ -620,14 +615,15 @@ export default function Landing() {
               <p className={LEAD_SEKSI}>{t("landing.keberlanjutanDesk")}</p>
             </div>
             <div className="flex">
-              <Link
+              <Tombol
                 to="/keberlanjutan"
+                variant="garis"
                 aria-label={`${t("common.selengkapnya")}: ${t("nav.keberlanjutan")}`}
-                className="text-sm h-12 px-4 md:px-6 gap-2 font-sans font-semibold leading-relaxed flex items-center justify-center border border-primary text-primary rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="h-12 px-4 md:px-6"
               >
                 <span className="order-1">{t("common.selengkapnya")}</span>
                 <ArrowRightIcon className="size-5 order-2" />
-              </Link>
+              </Tombol>
             </div>
           </div>
         </div>

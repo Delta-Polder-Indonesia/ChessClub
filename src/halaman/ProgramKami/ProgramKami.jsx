@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
+import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
@@ -13,7 +14,7 @@ import { gambar } from "../../lib/asets.js";
  * satu program sorotan lebar + daftar definisi sekunder. Konten dari `program.*`.
  */
 
-/** Tautan teks dengan panah — afordансi "buka halaman" yang konsisten. */
+/** Tautan teks dengan panah — affordance "buka halaman" yang konsisten. */
 function TautanBuka({ to, children }) {
   return (
     <Link
@@ -49,14 +50,14 @@ export default function ProgramKami() {
       }}
     >
       <div className="font-serif">
-      {/* ═══ Sekilas Program — intro asimetris: judul (5) + narasi (7) ═══ */}
+      {/* ═══ Sekilas Program — judul di atas, narasi di bawahnya ═══ */}
       <section className="w-full border-t border-grey-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <div className="grid gap-x-16 gap-y-8 lg:grid-cols-12">
-            <h2 className="text-pretty text-2xl font-semibold leading-snug text-grey-800 md:text-3xl lg:col-span-5">
+          <div className="flex flex-col gap-y-8">
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("program.artikel")}
             </h2>
-            <div className="flex max-w-[68ch] flex-col gap-y-5 text-[15px] leading-relaxed text-grey-600 md:text-base lg:col-span-7">
+            <div className="flex flex-col gap-y-5 text-[1rem] leading-[1.8] text-pretty text-grey-600">
               <p className="m-0">{t("program.p1")}</p>
               <p className="m-0">{t("program.p2")}</p>
             </div>
@@ -65,9 +66,9 @@ export default function ProgramKami() {
       </section>
 
       {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
-      <section className="w-full border-b border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+          <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("program.programJudul")}
           </h2>
 
@@ -86,10 +87,10 @@ export default function ProgramKami() {
               />
             </figure>
             <div className="order-1 md:order-2">
-              <h3 className="text-pretty text-xl font-semibold leading-snug text-grey-800 md:text-2xl">
+              <h3 className="font-serif text-[clamp(1.5rem,2vw,1.85rem)] font-light leading-[1.04] tracking-normal text-balance text-grey-800">
                 {t("program.kartu.kelas.judul")}
               </h3>
-              <p className="mt-3 max-w-[60ch] text-pretty text-[15px] leading-relaxed text-grey-600 md:text-base">
+              <p className="mt-3 text-[1rem] leading-[1.65] text-pretty text-grey-600">
                 {t("program.kartu.kelas.deskripsi")}
               </p>
             </div>
@@ -99,10 +100,10 @@ export default function ProgramKami() {
           <dl className="mt-12 grid gap-x-12 gap-y-9 border-t border-grey-200 pt-10 sm:grid-cols-2 md:mt-14">
             {sekunder.map((item) => (
               <div key={item.kunci} className="flex flex-col gap-y-2">
-                <dt className="text-lg font-semibold leading-snug text-grey-800">
+                <dt className="font-serif text-[1.0625rem] font-semibold leading-[1.35] text-balance text-grey-800">
                   {t(`program.kartu.${item.kunci}.judul`)}
                 </dt>
-                <dd className="m-0 max-w-[58ch] text-pretty text-[15px] leading-relaxed text-grey-600">
+                <dd className="m-0 text-sm leading-[1.6] text-pretty text-grey-600">
                   {t(`program.kartu.${item.kunci}.deskripsi`)}
                 </dd>
                 {item.to && (
@@ -120,10 +121,10 @@ export default function ProgramKami() {
       <section className="w-full bg-white">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="rounded-lg border border-grey-200 p-8 md:p-10">
-            <h2 className="text-balance text-2xl font-semibold leading-snug text-grey-800 md:text-3xl">
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("program.h1")}
             </h2>
-            <p className="mt-4 max-w-[68ch] text-pretty text-[15px] leading-relaxed text-grey-600 md:text-base">
+            <p className="mt-4 text-[1rem] leading-[1.8] text-pretty text-grey-600">
               {t("program.p3a")}{" "}
               <Link
                 to="/program-kami/ebook-panduan"
@@ -140,21 +141,15 @@ export default function ProgramKami() {
               </Link>{" "}
               {t("program.p3c")}
             </p>
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                to="/program-kami/ebook-panduan"
-                className="inline-flex items-center justify-center gap-2 rounded border border-primary bg-primary px-6 py-3 text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Tombol to="/program-kami/ebook-panduan" variant="garis">
                 {t("nav.eBookPanduan")}
                 <ArrowRightIcon className="size-4" />
-              </Link>
-              <Link
-                to="/program-kami/teka-teki"
-                className="inline-flex items-center justify-center gap-2 rounded border border-grey-800 bg-white px-6 py-3 text-sm font-semibold text-grey-800 hover:bg-grey-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
+              </Tombol>
+              <Tombol to="/program-kami/teka-teki" variant="garis">
                 {t("nav.tekaTeki")}
                 <ArrowRightIcon className="size-4" />
-              </Link>
+              </Tombol>
             </div>
           </div>
         </div>
