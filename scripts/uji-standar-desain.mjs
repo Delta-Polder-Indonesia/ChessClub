@@ -83,6 +83,25 @@ function daftarBerkas(dir) {
   return hasil;
 }
 
+function hitungKemunculan(isi, kelas) {
+  let jumlah = 0;
+  let dari = 0;
+  for (;;) {
+    const pos = isi.indexOf(kelas, dari);
+    if (pos === -1) return jumlah;
+    jumlah += 1;
+    dari = pos + kelas.length;
+  }
+}
+
+// Gaya display rumah (lihat DESIGN.md "Skala Tipografi") disetujui dan boleh
+// muncul di area konten mana pun. Aturan tetap menandai ukuran/leading
+// arbitrer lain, jadi hanya nilai tunggal ini yang dikecualikan.
+const GAYA_DISPLAY = new Map([
+  ["ukuran-teks-arbitrary", ["text-[clamp(2.4rem,3.6vw,3.4rem)]"]],
+  ["leading-arbitrary", ["leading-[1.04]"]],
+]);
+
 function hitung() {
   const hasil = {};
   for (const penuh of daftarBerkas(path.join(AKAR, "src"))) {
@@ -97,8 +116,11 @@ function hitung() {
       if (relatif === "src/components/konten/AksiKonten.jsx" && nama === "tombol-ad-hoc") continue;
       if (relatif === "src/components/konten/TabelKonten.jsx" && nama === "tabel-ad-hoc") continue;
       pola.lastIndex = 0;
-      const jumlah = [...isi.matchAll(pola)].length;
-      if (jumlah) temuan[nama] = jumlah;
+      const diizinkan = GAYA_DISPLAY.get(nama) ?? [];
+      const jumlah =
+        [...isi.matchAll(pola)].length -
+        diizinkan.reduce((n, kelas) => n + hitungKemunculan(isi, kelas), 0);
+      if (jumlah > 0) temuan[nama] = jumlah;
     }
     if (Object.keys(temuan).length) hasil[relatif] = temuan;
   }

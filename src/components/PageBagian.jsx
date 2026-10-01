@@ -60,7 +60,7 @@ export function PageArtikel({ title, lead, children, lebar = false, judulAkademi
           }`}
         >
         {title && (
-          <h2 className="focus:outline-none focus:ring-0 text-grey-800 font-serif font-semibold text-2xl md:text-3xl leading-snug">
+          <h2 className="focus:outline-none focus:ring-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800">
             {title}
           </h2>
         )}

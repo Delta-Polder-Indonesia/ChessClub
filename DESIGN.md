@@ -31,18 +31,20 @@ Dokumen ini adalah sumber kebenaran (*single source of truth*) untuk token desai
 - **Font Mono:** Digunakan untuk notasi catur (PGN/FEN), koordinat petak, dan waktu engine.
 
 ### Skala Tipografi:
-- **Display / H1 Hero:** `2.25rem` s.d. `2.5rem` (36–40px), font-bold/font-semibold, leading-tight.
-- **H2 Judul Seksi:** `1.5rem` s.d. `1.875rem` (24–30px), font-semibold, leading-snug.
-- **H3 Sub-seksi / Kartu:** `1.125rem` s.d. `1.25rem` (18–20px), font-semibold.
+- **Display / H1 Hero dan H2 Judul Seksi:** `text-[clamp(2.4rem,3.6vw,3.4rem)]` (38–54px), `font-serif font-light`, `leading-[1.04]`, `text-balance`. Varian `text-white` di atas foto gelap. Satu skala untuk H1 dan H2 alike — hierarki dibentuk oleh **warna dan posisi**, bukan ukuran.
+- **Subjudul di dalam `.prose-kci`:** `1.5rem` (24px), `font-semibold` — hasil `.prose-kci h2`.
+- **H3 Sub-seksi / Kartu:** `1.125rem` s.d. `1.25rem` (18–20px), font-semibold. Label kartu ringkas boleh `0.875rem` (14px).
 - **Body Text:** `0.9375rem` s.d. `1rem` (15–16px), line-height 1.6, max-width `65ch`–`75ch`.
-- **Kutipan tarik (pull quote):** `1.5rem` s.d. `1.875rem` (24–30px), italic, font-medium, `text-grey-800` — sejajar rentang atas H2.
-- **Caption / Meta:** `0.75rem` s.d. `0.8125rem` (12–13px), text-slate-500. Tidak ada teks di bawah 12px.
+- **Kutipan tarik (pull quote):** `1.5rem` s.d. `1.875rem` (24–30px), italic, font-medium, `text-grey-800` — sejajar rentang atas subjudul.
+- **Caption / Meta:** `0.75rem` s.d. `0.8125rem` (12–13px). Tidak ada teks di bawah 12px.
+- **Label UI padat:** 12px minimum.
 - **Tabel data padat** (peringkat, tingkatan rating): dikecualikan memakai `13–14px` karena kepadatan baris; tabel di dalam artikel (`.tabel-kci`) tetap mengikuti ukuran body.
 
 ### Aturan Satu Suara:
-- Dalam satu halaman, **semua judul seksi memakai gaya H2 yang persis sama** (`font-serif font-semibold text-2xl md:text-3xl leading-snug text-grey-800`; varian `text-white` di atas foto gelap). Tidak ada seksi dengan ukuran, ketebalan, atau kapitalisasi judul yang berbeda.
-- **Teks isi memakai satu ukuran** (`text-base leading-[1.6] text-grey-600`) dan **label/meta memakai satu ukuran caption** (`text-[13px]`) di seluruh halaman.
-- Warna teks hanya dari token palet: judul `text-grey-800`, teks sekunder `text-grey-600` — bukan `text-black`/`text-slate-900`/`text-slate-600` yang berada di luar palet.
+- **Judul display diletakkan DI LUAR `.prose-kci`.** `.prose-kci` hanya untuk isi paragraf. Alasannya struktural, bukan selera: `.prose-kci h2` punya specificity (0,1,1) dan menang atas kelas utilitas seperti `text-xl`, sehingga `text-*` pada `h2` di dalam wrapper itu adalah kode mati. Judul display masuk lewat slot `title` pada `PageArtikel`, atau `h2` yang menjadi saudara `prose-kci` pada komponen seksi (`Sekilas`, `VisiMisi`, `MaknaLogo`, `Tonggak`, `CorporateSection`).
+- Dalam satu halaman, **semua judul seksi memakai gaya persis sama** (`font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800`; varian `text-white` di atas foto gelap). Tidak ada seksi dengan ukuran, ketebalan, atau kapitalisasi judul yang berbeda.
+- **Teks isi memakai satu ukuran** dan **label/meta memakai satu ukuran caption** (`text-[13px]`) di seluruh halaman.
+- Warna teks hanya dari token palet: judul `text-grey-800`, teks sekunder `text-grey-600` — bukan `text-black`/`text-slate-900`/`text-slate-600` yang berada di luar palet. Kartu memakai `bg-paper`, bukan `bg-white` yang lebih terang dari kanvas.
 - **Teks isi rata kiri (start) di seluruh situs** — tidak memakai rata kiri-kanan (justify), yang meninggalkan celah spasi antar-kata tidak merata.
 
 ---

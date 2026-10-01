@@ -162,13 +162,18 @@ section[id] {
   margin-bottom: 20px;
 }
 
-.prose-kci h2 {
-  margin: 24px 0 16px;
-  font-size: 24px;
-  line-height: 32px;
-  font-weight: 600;
-  color: var(--color-grey-800);
-}
+  /* Subjudul di dalam `.prose-kci`. Specificity (0,1,1) menang atas kelas
+     utilitas seperti `text-xl`, jadi `text-*` pada h2 di dalam wrapper ini
+     adalah kode mati. Judul display (serif light 38-54px) diletakkan DI LUAR
+     `.prose-kci` — lewat slot `title` pada `PageArtikel`, atau `h2` saudara
+     pada komponen seksi seperti `Sekilas` dan `CorporateSection`. */
+  .prose-kci h2 {
+    margin: 24px 0 16px;
+    font-size: 24px;
+    line-height: 32px;
+    font-weight: 600;
+    color: var(--color-grey-800);
+  }
 
 .prose-kci h3 {
   margin: 16px 0 12px;

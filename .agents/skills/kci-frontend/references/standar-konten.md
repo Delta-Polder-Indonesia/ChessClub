@@ -22,14 +22,20 @@ Gunakan peran, bukan memilih ukuran berdasarkan selera.
 
 | Peran | Mobile | Desktop | Leading | Catatan |
 | --- | --- | --- | --- | --- |
-| H1 hero | 36px | 40px | 1.15–1.2 | satu per halaman |
-| H2 bagian | 24px | 30px | 1.25–1.35 | seluruh H2 satu halaman konsisten |
-| H3 subseksi | 18px | 20px | 1.35–1.45 | tidak melompati H2 |
+| Judul display (H1 hero dan H2 bagian) | 38px | 54px | 1.04 | `font-serif font-light`, satu skala untuk H1 dan H2 alike; hierarki dari warna dan posisi, bukan ukuran |
+| Subjudul dalam `.prose-kci` | 24px | 24px | 1.33 | hasil `.prose-kci h2`; `text-*` pada h2 di dalam wrapper ini kalah specificity |
+| H3 subseksi | 18px | 20px | 1.35–1.45 | label kartu ringkas boleh 14px |
 | H4 kelompok | 16px | 18px | 1.4 | hanya jika ada H3 induk |
 | Lead | 17px | 18px | 1.6 | satu pengantar ringkas |
 | Body/list | 16px | 16px | 1.6 | serif, rata kiri |
 | Caption/meta | 13px | 13px | 1.5 | tetap terbaca, bukan teks dekoratif |
 | UI padat | 12px minimum | 12px minimum | 1.4 | hanya kontrol/label, bukan paragraf |
+
+Judul display **wajib diletakkan di luar `.prose-kci`**: lewat slot `title` pada `PageArtikel`,
+atau `h2` yang menjadi saudara `prose-kci` pada komponen seksi (`Sekilas`, `VisiMisi`,
+`MaknaLogo`, `Tonggak`, `CorporateSection`). Alasannya struktural — `.prose-kci h2` specificity
+(0,1,1) menang atas kelas utilitas seperti `text-xl`, jadi `text-*` pada `h2` di dalam wrapper
+itu adalah kode mati. Gaya display persis: `font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-balance text-grey-800`.
 
 Aturan:
 

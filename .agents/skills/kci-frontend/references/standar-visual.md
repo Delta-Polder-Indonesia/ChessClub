@@ -29,7 +29,7 @@ Hindari gradient, glow, glassmorphism, neon, background dekoratif, dan banyak wa
 - Pertahankan tipografi global KCI.
 - Konten artikel wajib menggunakan `prose-kci` melalui `PageArtikel`.
 - Jangan menambahkan ukuran, warna, atau weight per paragraf jika `prose-kci` sudah mengaturnya.
-- Heading harus mengikuti hierarki semantik. Jangan membesarkan H1/H2 hanya untuk efek visual.
+- Heading harus mengikuti hierarki semantik dan memakai satu skala display yang sudah ditetapkan (38–54px `font-serif font-light`, di luar `.prose-kci`). Jangan mengarang ukuran heading baru per halaman, dan jangan menaikkan ukuran hanya demi efek visual.
 - Hindari display text raksasa, huruf kapital dekoratif, dan kombinasi font yang tidak digunakan KCI.
 
 ## Layout dan spacing
@@ -106,7 +106,7 @@ Sebelum menyelesaikan perubahan visual, pastikan tidak ada:
 - glassmorphism / blur dekoratif
 - shadow besar pada card
 - pill button yang tidak punya referensi
-- heading raksasa tanpa kebutuhan informasi
+- heading dengan ukuran di luar skala display yang ditetapkan
 - emoji atau ikon dekoratif berlebihan
 - banyak warna aksen
 - animasi pada hampir semua elemen
