@@ -2,8 +2,9 @@
  * Landing page (Beranda utama).
  *
  * Struktur halaman terinspirasi pola umum situs korporat — hero carousel
- * tonggak sejarah, sorotan kegiatan, sekilas komunitas, keberlanjutan,
- * karusel kartu program + e-book, dan ajakan bergabung — tetapi seluruh
+ * tonggak sejarah, tiga jalan belajar, testimoni, sekilas komunitas,
+ * keberlanjutan, karusel kartu program + e-book, harapan pengurus, dan ajakan
+ * bergabung — tetapi seluruh
  * markup, komponen, dan konten di berkas ini ditulis dari nol khusus
  * untuk Komunitas Catur Indonesia. Tidak ada kode maupun teks yang
  * disalin dari situs pihak lain.
@@ -23,24 +24,24 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { Brain, Puzzle } from "lucide-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
-import TigaJalan from "./TigaJalan.jsx";
+import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
+import MaestroEdision from "./MaestroEdision.jsx";
 import Testimoni from "./Testimoni.jsx";
 import {
   JUDUL_SEKSI,
   JUDUL_SEKSI_TERANG,
   LEAD_SEKSI,
   LEAD_SEKSI_TERANG,
-  LABEL_SEKSI,
   LABEL_SEKSI_TERANG,
-  KEPALA_SEKSI,
-  JUDUL_KARTU,
-  DESKRIPSI_KARTU,
   JUDUL_POSTER,
+  JUDUL_PANEL,
+  DESKRIPSI_PANEL,
   TitikLabel,
 } from "./gayaTeks.jsx";
 
@@ -110,6 +111,40 @@ function LandingHero({ t }) {
         ))}
       </div>
 
+      {/* Blok "Sekilas / Tentang Kami" dipindahkan ke paling atas hero.
+          Foto `/images/sekilas.webp` tidak lagi dipakai di sini: hero sudah
+          memakai foto tonggak sebagai latar dengan `bg-black/50`, jadi blok
+          ini menjadi teks putih di atas foto itu. Token `_TERANG` tetap
+          dipakai karena latar hero gelap. */}
+      <div className="absolute inset-x-0 top-0 z-10 w-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 pt-56 md:pt-64 flex flex-col items-start gap-[14px]">
+        <p className={LABEL_SEKSI_TERANG}>
+          <TitikLabel terang />
+          {t("landing.sekilasLabel")}
+        </p>
+        <h2 className={JUDUL_SEKSI_TERANG}>{t("nav.tentangKami")}</h2>
+        <p className={`${LEAD_SEKSI_TERANG} max-w-2xl`}>{t("landing.sekilasDesk")}</p>
+        <div className="flex flex-wrap gap-4 mt-8">
+          <Link
+            to="/tentang-kami"
+            // Label "Selengkapnya" dipakai lebih dari satu tautan di halaman
+            // ini; tanpa konteks, pembaca layar (dan audit
+            // identical-links-same-purpose) tidak bisa membedakan tujuannya.
+            aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
+            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+          >
+            {t("common.selengkapnya")}
+            <ArrowRightIcon className="size-4 -rotate-45" />
+          </Link>
+          <Link
+            to="/tentang-kami/struktur-grup-catur"
+            className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
+          >
+            {t("landing.ketuaPengurus")}
+            <ArrowRightIcon className="size-4 -rotate-45" />
+          </Link>
+        </div>
+      </div>
+
       {/* Navigasi garis progress — di bawah gambar */}
       <div className="absolute bottom-24 left-0 right-0 z-10 lg:max-w-[960px] xl:max-w-[1280px] mx-auto flex space-x-2 px-8 md:px-10 lg:px-4 xl:px-0 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {SLIDES.map((slide, i) => {
@@ -161,106 +196,6 @@ function LandingHero({ t }) {
             </div>
           );
         })}
-      </div>
-    </section>
-  );
-}
-
-/** Sorotan kegiatan — pola editorial: satu kartu unggulan lebar (foto + teks
- *  berdampingan) dan dua kartu sekunder (DESIGN.md §3: hindari grid tiga
- *  kartu identik). Seluruh kartu adalah tautan utuh; foto memakai alt kosong
- *  karena judul di dalam tautan yang sama sudah menyebut isinya, sehingga
- *  pembaca layar tidak membaca dua kali. */
-function SorotanKegiatan({ t }) {
-  const unggulan = {
-    to: "/turnamen",
-    // Kartu unggulan selebar setengah wadah (± 640px) di layar ke atas;
-    // varian 640w dari manifest menutupinya.
-    sumber: sumberGambar("/images/landing-sorotan-turnamen.jpg", {
-      sizes: "(min-width: 768px) 50vw, 100vw",
-    }),
-    judul: t("landing.sorotan1Judul"),
-    isi: t("landing.sorotan1Isi"),
-    cta: t("landing.sorotan1Cta"),
-  };
-  const sekunder = [
-    {
-      to: "/program-kami/teka-teki",
-      sumber: sumberGambar("/images/landing-sorotan-program.jpg", {
-        sizes: "(min-width: 768px) 50vw, 100vw",
-      }),
-      judul: t("landing.sorotan2Judul"),
-      isi: t("landing.sorotan2Isi"),
-    },
-    {
-      to: "/program-kami/pembukaan",
-      sumber: sumberGambar("/images/landing-sorotan-media.jpg", {
-        sizes: "(min-width: 768px) 50vw, 100vw",
-      }),
-      judul: t("landing.sorotan3Judul"),
-      isi: t("landing.sorotan3Isi"),
-    },
-  ];
-  return (
-    <section className="w-full px-6 md:px-8 xl:px-0 pt-4 pb-16 md:pb-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <div className={KEPALA_SEKSI}>
-          <h2 className={JUDUL_SEKSI}>{t("landing.sorotanJudul")}</h2>
-          <p className={LEAD_SEKSI}>{t("landing.sorotanDeskripsi")}</p>
-        </div>
-
-        <div className="flex flex-col gap-10">
-          {/* Kartu unggulan — foto kiri, teks kanan; bertumpuk di ponsel. */}
-          <Link
-            to={unggulan.to}
-            className="group grid grid-cols-1 md:grid-cols-2 border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            <img
-              {...unggulan.sumber}
-              alt=""
-              width={640}
-              height={427}
-              loading="lazy"
-              decoding="async"
-              className="w-full aspect-[3/2] md:aspect-auto md:h-full object-cover"
-            />
-            <div className="flex flex-col justify-center gap-3 p-6 md:p-8">
-              <h3 className={`${JUDUL_KARTU} transition-colors group-hover:text-primary`}>
-                {unggulan.judul}
-              </h3>
-              <p className={DESKRIPSI_KARTU}>{unggulan.isi}</p>
-              <span className="mt-2 inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary">
-                {unggulan.cta}
-                <ArrowRightIcon className="size-4" aria-hidden="true" />
-              </span>
-            </div>
-          </Link>
-
-          {/* Dua kartu sekunder — foto di atas, teks di bawah. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {sekunder.map((s) => (
-              <Link
-                key={s.judul}
-                to={s.to}
-                className="group flex flex-col border border-grey-200 rounded-lg bg-white overflow-hidden transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-              >
-                <img
-                  {...s.sumber}
-                  alt=""
-                  loading="lazy"
-                  decoding="async"
-                  className="w-full aspect-[3/2] object-cover"
-                />
-                <div className="flex flex-col gap-2 p-6">
-                  <h3 className={`${JUDUL_KARTU} transition-colors group-hover:text-primary`}>
-                    {s.judul}
-                  </h3>
-                  <p className={DESKRIPSI_KARTU}>{s.isi}</p>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -318,7 +253,7 @@ function CardGambar({ index, t }) {
   };
 
   return (
-    <div className="relative w-full max-w-60 md:max-w-72 lg:max-w-80 xl:max-w-[340px] mx-auto aspect-[2/3] overflow-hidden order-1 bg-black">
+    <div className="relative w-full max-w-60 md:max-w-72 lg:max-w-80 xl:max-w-[340px] mx-auto md:mx-0 shrink-0 aspect-[2/3] overflow-hidden bg-black">
       {/* LAPISAN DASAR: Selalu stabil dan terlihat di bawah */}
       <img
         key={`base-${KARTU_GAMBAR[currentImg].id}`}
@@ -351,10 +286,6 @@ function CardGambar({ index, t }) {
 
       <div className="absolute inset-0 bg-black/40 pointer-events-none" />
       <div className="absolute bottom-0 left-0 right-0 px-4 lg:px-8 xl:px-10 py-10 flex flex-col items-start gap-[14px] z-10 pointer-events-none">
-        <p className={LABEL_SEKSI_TERANG}>
-          <TitikLabel terang />
-          {t("landing.pustakaLabel")}
-        </p>
         <h2 className={JUDUL_POSTER}>{t("landing.pustakaJudul")}</h2>
         <p className={LEAD_SEKSI_TERANG}>{t("landing.pustakaDesk")}</p>
       </div>
@@ -373,7 +304,16 @@ function CardCarousel({ index, setIndex, t }) {
   const tripled = [...kartu, ...kartu, ...kartu];
   const mid = n;
   const [noAnim, setNoAnim] = useState(false);
-  const CARD_W = 270;
+  // 320px kartu + 14px gap = 334px langkah. Jendela 4 x 334 = 1336px -> 4 kartu
+  // terlihat penuh; kartu pada `i === index` selalu berada di tepi kiri dan
+  // utuh, jadi penanda biru jatuh pada kartu pertama yang tidak terpotong.
+  // 320px kartu + 14px gap = 334px langkah. Jendela 2 kartu penuh +
+  // 160px (= separuh kartu ketiga) = 828px: muat di kolom kanan yang
+  // lebarnya sekitar 940px pada layar 1440px, dan separuh kartu ketiga
+  // sekaligus memberi tanda masih ada kelanjutannya. 3 kartu utuh
+  // (988px) tidak muat di lebar itu sehingga kartu ketiga terpotong penuh.
+  const CARD_W = 334;
+  const JENDELA = 828;
 
   // Karusel tak berujung: salinan tengah, dari mid sampai dua kali mid,
   // yang tampil. Setelah transisi selesai, bila index keluar dari rentang
@@ -410,49 +350,72 @@ function CardCarousel({ index, setIndex, t }) {
   }, [noAnim]);
 
   return (
-    <div className="w-full md:w-auto px-6 md:px-0 md:absolute md:left-[24%] lg:left-[32%] md:right-0 md:top-1/2 md:-translate-y-1/2 z-10 order-2 -mt-56 md:-mt-0 py-10 md:py-0 overflow-hidden">
-      <div className="overflow-hidden max-w-full" style={{ maxWidth: `${3 * CARD_W}px` }}>
+    <div className="w-full order-2 mt-8 px-6 md:px-0 overflow-hidden">
+      <div className="overflow-hidden max-w-full mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <div
-          className={`flex gap-5 ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
+          // Jarak antar kartu WAJIB 14px — nilai ini harus cocok dengan CARD_W (320+14).
+          // Kalau hanya kartu yang diubah jadi `gap-[14px]` tetapi track tetap
+          // `gap-5`, langkah sebenarnya 340px sementara transform menggeser
+          // 334px: kartu aktif bergeser 6px ke kanan tiap langkah dan kartu
+          // sebelumnya menyingkap dari tepi kiri.
+          className={`flex gap-[14px] ${noAnim ? "" : "transition-transform duration-500 ease-in-out"}`}
           style={{ transform: `translateX(-${index * CARD_W}px)` }}
           onTransitionEnd={handleEnd}
         >
           {tripled.map((k, i) => {
             const isActive = i === index;
-            // Saat lompatan reset (noAnim), kartu aktif biru "pindah" ke
-            // elemen DOM lain. Bila kartu masih membawa kelas transisi,
-            // perpindahan putih → biru terANIMASI ±150 ms dan tampak
-            // sebagai kedipan putih. Karena itu SEMUA transisi (kartu,
-            // teks, garis, ikon) dilepas selama frame lompatan.
-            const transisi = noAnim ? "" : "transition-all";
-            const transisiWarna = noAnim ? "" : "transition-colors";
+            // Kartu kecil TIDAK memakai transisi warna sama sekali.videMarkup
+            // Alasannya: `isActive` berubah seketika ketika tombol diklik,
+            // sementara posisinya masih bergeser 500 ms. Bila warna ikut
+            // bertransisi 150 ms, kartu yang baru menjadi aktif masih WHITE
+            // selama 500 ms pertama dan kartu yang keluar masih biru, lalu
+            // garisnya memudar putih → hitam setelah penanda biru pindah —
+            // terlihat seperti garis nyasar. Warna aktif kini berubah
+            // seketika, jadi tidak ada yang bisa "tinggal". Yang tetap
+            // dianimasikan hanya pergeseran track (lihat kelas di track).
             return (
               <Link
                 key={`${k.judul}-${i}`}
                 to={k.to}
                 title={k.judul}
-                className={`flex-none w-[250px] h-[300px] p-6 rounded-lg border gap-5 flex flex-col justify-between relative cursor-pointer ${transisi} ${
+                // Kartu 320x168, padding 18/18/14, jarak 14 — nilai `.t-card--plinth`
+                // di `index.duybiyfa.css`. Judul memakai skala `.t-card-quote`
+                // (.94rem/1.5, clamp 4) dan kategori skala `.t-name` (.82rem).
+                className={`flex-none w-[320px] h-[168px] pt-[18px] px-[18px] pb-[14px] rounded-lg border gap-[14px] flex flex-col justify-between relative cursor-pointer ${
                   isActive
                     ? "bg-primary border-primary text-white"
                     : "bg-white border-grey-200 text-grey-800 hover:bg-primary hover:border-primary group"
                 }`}
               >
-                <h3 className={`font-serif text-[1.0625rem] font-semibold leading-[1.35] ${isActive ? "text-white" : "text-grey-800 group-hover:text-white"} ${transisiWarna}`}>
+                <h3
+                  className={`font-sans text-[0.94rem] leading-[1.5] text-balance -tracking-[0.01em] line-clamp-4 ${isActive ? "text-white" : "text-grey-800 group-hover:text-white"}`}
+                >
                   {k.judul}
                 </h3>
-                <div className={`flex-none w-10 h-1 rounded ${isActive ? "bg-white" : "bg-primary group-hover:bg-white"} ${transisiWarna}`} />
-                <p className={`font-serif text-[13px] leading-[1.6] ${isActive ? "text-white/90" : "text-grey-600 group-hover:text-white"} ${transisiWarna}`}>
-                  {k.desk}
-                </p>
-                <div className="block mt-auto ml-auto">
-                  <ArrowRightIcon className={`size-6 -rotate-45 ${isActive ? "text-white" : "text-grey-600 group-hover:text-white"} ${transisiWarna}`} />
+                {/* Garis horizontal penuh menggantikan bar aksen pendek `w-6`:
+                    kini membentang di atas baris kategori + panah, dengan
+                    kategori di kiri dan panah miring di kanan. */}
+                <div className="flex flex-col gap-[10px]">
+                  {/* Garis hitam pada kartu biasa; pada kartu yang sedang aktif (biru
+                    penuh) garis ikut putih agar kontras. `group-hover:bg-white`
+                    dan `transition-colors` keduanya sudah dihapus: yang
+                    pertama membuat garis ikut putih pada kartu yang kebetulan
+                    lewat di bawah kursor, yang kedua membuat garis putih pada
+                    kartu keluar memudar terlambat setelah penanda biru pindah. */}
+                  <div className={`h-[2px] w-full rounded-sm ${isActive ? "bg-white" : "bg-black"}`} />
+                  <div className="flex items-end justify-between gap-3">
+                    <p className={`font-mono text-[0.82rem] leading-[1.2] tracking-[0.01em] truncate ${isActive ? "text-white/90" : "text-grey-600 group-hover:text-white"}`}>
+                      {k.desk}
+                    </p>
+                    <ArrowRightIcon className={`size-6 shrink-0 -rotate-45 ${isActive ? "text-white" : "text-grey-600 group-hover:text-white"}`} />
+                  </div>
                 </div>
               </Link>
             );
           })}
         </div>
       </div>
-      <div className="flex justify-end gap-2 mt-4 items-center pr-8 max-w-[810px]">
+      <div className="flex justify-end gap-2 mt-4 items-center pr-[18px] mx-auto" style={{ maxWidth: `${JENDELA}px` }}>
         <button
           type="button"
           aria-label={t("landing.sebelumnya")}
@@ -477,10 +440,62 @@ function CardCarousel({ index, setIndex, t }) {
 function BagianGambarKartu({ t }) {
   const [index, setIndex] = useState(4);
   return (
-    <section className="w-full bg-slate-50 relative py-14 md:py-16 overflow-hidden">
-      <div className="flex flex-col md:grid md:grid-cols-2 gap-6 items-center relative">
+    <section className="w-full relative py-12 md:py-14 overflow-hidden">
+      <div className="w-full max-w-[1500px] mx-auto px-[clamp(22px,4vw,56px)] relative flex flex-col md:flex-row md:items-center gap-8 md:gap-12">
         <CardGambar index={index} t={t} />
-        <CardCarousel index={index} setIndex={setIndex} t={t} />
+        <div className="w-full flex flex-col">
+            {/* Kepala seksi disusun vertikal: judul → deskripsi.
+                Label "Perpustakaan" beserta titiknya dihapus dari kartu besar
+                dan dari kolom ini, jadi yang tersisa hanya judul dan
+                deskripsi. Kunci terjemahan `pustakaLabel` juga dibuang karena
+                tidak lagi terpakai di mana pun.
+                Jarak antarbaris: 32px di bawah judul, supaya hierarkinya
+                terbaca. Batas lebar `md:max-w-[620px]` milik `.hero-left`
+                sumber dilepas: kartu besar di kiri hanya 340px, jadi kolom
+                620px menyisakan ruang kosong besar di kanan halaman. */}
+            {/* Judul dipaksa satu baris (`whitespace-nowrap`) sesuai permintaan: dengan
+                lebar 620px, ukuran display sumber `clamp(3rem,9vw,4.5rem)`
+                membuat "Pustaka & Modul Catur" membelah dan naik-turunnya
+                terbaca sebagai teks menumpuk. Ukuran diturunkan ke
+                `clamp(1.5rem,4.4vw,3.25rem)` — batas atas 52px sudah muat
+                satu baris di kolom 620px, batas bawah 24px agar tetap muat di
+                layar 320px setelah padding `clamp(22px,4vw,56px)`.
+                Lebar 620px dianggap sebagai batas keras: kalau di layar sempit
+                judul meluber, turunkan `whitespace-nowrap`. */}
+            <h2 className="font-serif font-extralight text-[clamp(1.5rem,4.4vw,3.25rem)] leading-[1.1] tracking-[0em] text-grey-900 whitespace-nowrap">
+              {t("landing.pustakaHeading")}
+            </h2>
+            {/* `.hero-body` sumber: 1rem / 300 / 1.6 / `text-wrap: pretty`.
+                Batas `max-width: 56ch` milik sumber dinaikkan ke 72ch karena
+                kolom kini jauh lebih lebar; 56ch akan menyisakan ruang kosong
+                besar di kanan. 72ch masih di bawah ambang keterbacaan satu
+                baris (sekitar 90–100ch). */}
+            <p className="mt-8 font-serif text-[1rem] font-light leading-[1.6] text-grey-600 max-w-[72ch] text-pretty">
+              {t("landing.pustakaKeterangan")}
+            </p>
+            {/* Baris syarat dan tombol "Lihat kurikulum" ikut pindah ke sini
+                dari kartu unggulan seksi TigaJalan yang sudah dihapus,
+                karena yang ditunjuk adalah
+                katalog e-book ini sendiri: posisinya langsung di bawah
+                deskripsi katalog, bukan di seksi lain. */}
+            <p className="mt-6 font-serif text-[0.8125rem] text-slate-500">
+              {t("landing.tigaJalanAkademiTerms")}
+            </p>
+            <div className="mt-4">
+              <Link
+                to="/program-kami/ebook-panduan"
+                className="inline-flex items-center gap-2 border border-primary bg-transparent font-sans text-primary font-semibold text-sm px-8 py-3 rounded transition-colors hover:bg-primary hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+              >
+                {t("landing.tigaJalanAkademiCta")}
+                <ArrowRightIcon className="size-4" />
+              </Link>
+            </div>
+            {/* Deretan kartu kecil pindah ke bawah deskripsi, di dalam kolom
+                kanan. Sebelumnya ikut_flow penuh di bawah kartu besar, sehingga
+                seksi setinggi kartu besar + carousel. Sekarang ruang kosong di
+                sebelah kanan kartu besar ikut terpakai. */}
+            <CardCarousel index={index} setIndex={setIndex} t={t} />
+          </div>
       </div>
     </section>
   );
@@ -496,23 +511,23 @@ function HarapanTerimaKasih({ t }) {
     sizes: "(min-width: 1024px) 42vw, 92vw",
   });
   return (
-    <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-24 pt-12 xl:pt-24">
+    <section className="w-full relative bg-transparent pl-6 pr-6 pb-12 xl:pb-16 pt-12 xl:pt-16">
       <div className="relative w-full mx-auto grid grid-cols-1 lg:grid-cols-[0.678fr_1.02fr] gap-x-4 md:gap-x-8 lg:gap-x-10 gap-y-4 lg:max-w-[960px] xl:max-w-[1280px]">
         {/* Kolom foto */}
         <div className="w-full relative bg-transparent">
           <div className="relative w-full mx-auto grid place-items-center lg:min-h-[560px]">
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center w-full">
               <a href={foto} target="_blank" rel="noopener noreferrer" className="block">
                 <img
                   {...sumberFoto}
-                  width="409"
-                  height="548"
+                  width="836"
+                  height="1254"
                   alt={t("landing.harapanAltFoto")}
                   title={t("landing.harapanAltFoto")}
                   draggable="false"
                   decoding="async"
                   loading="lazy"
-                  className="w-full max-w-[500px] h-auto rounded-lg object-cover object-center"
+                  className="w-full max-w-[400px] h-auto rounded-lg object-cover object-center"
                 />
               </a>
             </div>
@@ -538,9 +553,9 @@ function HarapanTerimaKasih({ t }) {
               <p className="font-serif font-semibold text-lg text-grey-800">
                 {t("landing.harapanNama")}
               </p>
-              <p className="mt-1 font-serif text-[13px] text-grey-600">
-                {t("landing.harapanJabatan")}
-              </p>
+<p className="mt-1 font-serif text-[0.8125rem] text-grey-600">
+                    {t("landing.harapanJabatan")}
+                  </p>
             </div>
           </div>
         </div>
@@ -549,137 +564,12 @@ function HarapanTerimaKasih({ t }) {
   );
 }
 
-/** Galeri kegiatan — mozaik foto editorial: satu foto besar (2×2 petak)
- *  dan empat foto kecil, ukuran bervariasi, bukan grid kartu identik.
- *
- *  GAMBAR SAMPEL SEMENTARA: kelima foto adalah foto stok publik sebagai
- *  penampung, bukan dokumentasi Blunder Skuad. Ganti dengan foto kegiatan
- *  asli begitu tersedia — cukup tukar berkas di public/images/Galeri/
- *  dengan nama yang sama. */
-function GaleriKegiatan({ t }) {
-  const foto = [
-    {
-      sumber: sumberGambar("/images/Galeri/sampel-turnamen-besar.webp", {
-        sizes: "(min-width: 768px) 50vw, 100vw",
-      }),
-      alt: t("landing.galeriAlt1"),
-      besar: true,
-    },
-    {
-      sumber: sumberGambar("/images/Galeri/sampel-papan-1.webp", {
-        sizes: "(min-width: 768px) 25vw, 50vw",
-      }),
-      alt: t("landing.galeriAlt2"),
-    },
-    {
-      sumber: sumberGambar("/images/Galeri/sampel-turnamen-1.webp", {
-        sizes: "(min-width: 768px) 25vw, 50vw",
-      }),
-      alt: t("landing.galeriAlt3"),
-    },
-    {
-      sumber: sumberGambar("/images/Galeri/sampel-papan-2.webp", {
-        sizes: "(min-width: 768px) 25vw, 50vw",
-      }),
-      alt: t("landing.galeriAlt4"),
-    },
-    {
-      sumber: sumberGambar("/images/Galeri/sampel-turnamen-2.webp", {
-        sizes: "(min-width: 768px) 25vw, 50vw",
-      }),
-      alt: t("landing.galeriAlt5"),
-    },
-  ];
-  return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <div className={KEPALA_SEKSI}>
-          <h2 className={JUDUL_SEKSI}>{t("landing.galeriJudul")}</h2>
-          <p className={LEAD_SEKSI}>{t("landing.galeriDesk")}</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-[18px]">
-          {foto.map((f) => (
-            <figure
-              key={f.alt}
-              className={`m-0 overflow-hidden rounded-lg ${
-                f.besar ? "col-span-2 row-span-2" : ""
-              }`}
-            >
-              <img
-                {...f.sumber}
-                alt={f.alt}
-                loading="lazy"
-                decoding="async"
-                className="w-full aspect-square object-cover"
-              />
-            </figure>
-          ))}
-        </div>
-        <div className="mt-10">
-          <Link
-            to="/media-dan-informasi"
-            className="inline-flex items-center gap-2 font-sans font-semibold text-sm text-primary transition-colors hover:text-grey-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-          >
-            {t("landing.galeriCta")}
-            <ArrowRightIcon className="size-4" aria-hidden="true" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/** Cara bergabung — tiga langkah sebagai daftar bernomor (penomoran sah
- *  karena langkah = urutan nyata; tanpa kartu, cukup garis pemisah 1px). */
-function CaraBergabung({ t }) {
-  const langkah = [
-    { judul: t("landing.langkah1Judul"), isi: t("landing.langkah1Isi") },
-    { judul: t("landing.langkah2Judul"), isi: t("landing.langkah2Isi") },
-    { judul: t("landing.langkah3Judul"), isi: t("landing.langkah3Isi") },
-  ];
-  return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
-        <div className={KEPALA_SEKSI}>
-          <h2 className={JUDUL_SEKSI}>{t("landing.langkahJudul")}</h2>
-          <p className={LEAD_SEKSI}>{t("landing.langkahDesk")}</p>
-        </div>
-        <ol className="m-0 p-0 list-none flex flex-col">
-          {langkah.map((l, i) => (
-            <li
-              key={l.judul}
-              className={`flex items-start gap-6 py-6 ${
-                i > 0 ? "border-t border-grey-200" : ""
-              }`}
-            >
-              <span
-                aria-hidden="true"
-                className="font-serif text-2xl font-semibold text-primary leading-none pt-1"
-              >
-                {i + 1}
-              </span>
-              <div className="flex flex-col gap-2">
-                <h3 className={`m-0 ${JUDUL_KARTU}`}>{l.judul}</h3>
-                <p className={`m-0 ${DESKRIPSI_KARTU}`}>{l.isi}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-  );
-}
-
 /** Ajakan bergabung — penutup halaman. */
 function AjakanBergabung({ t }) {
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 py-16 md:py-20 text-center overflow-hidden">
-      <div className="mx-auto max-w-2xl flex flex-col items-center">
+    <section className="w-full px-6 md:px-8 xl:px-0 py-12 md:py-16 text-center overflow-hidden">
+      <div className="mx-auto max-w-4xl flex flex-col items-center">
         <div className="flex flex-col items-center gap-[14px] text-center">
-          <p className={LABEL_SEKSI}>
-            <TitikLabel />
-            {t("landing.ajakanLabel")}
-          </p>
           <h2 className={JUDUL_SEKSI}>
             {t("landing.ajakanJudul")} <em className="text-primary not-italic">{t("landing.ajakanJudulAccent")}</em>
           </h2>
@@ -714,49 +604,15 @@ export default function Landing() {
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
       <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
-      <SorotanKegiatan t={t} />
-      <TigaJalan />
+      <MaestroEdision />
       <Testimoni />
-      <section className="relative w-full h-[500px] md:h-[600px] overflow-hidden">
-        <img
-          {...sumberGambar("/images/sekilas.webp", { sizes: "100vw" })}
-          alt=""
-          className="absolute inset-0 w-full h-full object-cover"
-          loading="lazy"
-          decoding="async"
-        />
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="relative z-[1] w-full h-full mx-auto max-w-[1080px] xl:max-w-7xl px-6 lg:px-8 xl:px-0 flex flex-col justify-center gap-[14px]">
-          <p className={LABEL_SEKSI_TERANG}>
-            <TitikLabel terang />
-            {t("landing.sekilasLabel")}
-          </p>
-          <h2 className={JUDUL_SEKSI_TERANG}>{t("nav.tentangKami")}</h2>
-          <p className={`${LEAD_SEKSI_TERANG} max-w-2xl`}>{t("landing.sekilasDesk")}</p>
-          <div className="flex flex-wrap gap-4 mt-8">
-            <Link
-              to="/tentang-kami"
-              // Label "Selengkapnya" dipakai lebih dari satu tautan di halaman
-              // ini; tanpa konteks, pembaca layar (dan audit
-              // identical-links-same-purpose) tidak bisa membedakan tujuannya.
-              aria-label={`${t("common.selengkapnya")}: ${t("nav.tentangKami")}`}
-              className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-            >
-              {t("common.selengkapnya")}
-              <ArrowRightIcon className="size-4 -rotate-45" />
-            </Link>
-            <Link
-              to="/tentang-kami/struktur-grup-catur"
-              className="inline-flex items-center gap-2 border border-white font-sans text-white font-semibold text-sm px-6 py-3 rounded hover:bg-white hover:text-primary transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black/40"
-            >
-              {t("landing.ketuaPengurus")}
-              <ArrowRightIcon className="size-4 -rotate-45" />
-            </Link>
-          </div>
-        </div>
-      </section>
 
-      <section className="w-full bg-white pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-24 overflow-hidden">
+      {/* `bg-white` dihapus: seksi ini satu-satunya yang berlatar putih murni,
+          sedangkan seksi lain tidak punya kelas latar dan mewarisi
+          `--color-paper` (#f8f8f8) dari `body`. Akibatnya di sini pernah
+          muncul garis sambungan karena putih murni #fff bersebelahan
+          dengan paper #f8f8f8. */}
+      <section className="w-full pl-6 md:pl-8 pr-6 md:pr-8 pb-12 xl:pb-16 pt-12 xl:pt-16 overflow-hidden">
         <div className="relative w-full mx-auto lg:max-w-[960px] xl:max-w-[1280px] flex flex-col gap-y-4 md:gap-y-6 lg:gap-y-2">
           <div className="w-full grid lg:grid-cols-[82%_18%] gap-x-10 gap-y-6 items-start">
             <div className="grid lg:grid-cols-[1fr_1fr] gap-x-10 gap-y-4 md:gap-y-6 items-start">
@@ -779,11 +635,9 @@ export default function Landing() {
 
       <BagianGambarKartu t={t} />
 
+      <KartuAlatLatihan />
+
       <HarapanTerimaKasih t={t} />
-
-      <GaleriKegiatan t={t} />
-
-      <CaraBergabung t={t} />
 
       <AjakanBergabung t={t} />
     </div>

@@ -8,10 +8,12 @@ export const landing = {
     sekilasDesk:
       "Selama lebih dari satu dekade, kami menyediakan wadah bermain dan belajar bagi pecatur dari seluruh penjuru negeri.",
     ketuaPengurus: "Ketua dan Pengurus",
-    pustakaLabel: "Perpustakaan",
     pustakaJudul: "E-Book Catur",
+    pustakaHeading: "Pustaka & Modul Catur",
     pustakaDesk:
       "Materi belajar yang ditulis dan dikurasi anggota, dari fundamental opening sampai endgame teoretis. Semua gratis diunduh.",
+    pustakaKeterangan:
+      "Jelajahi koleksi e-book catur lengkap mulai dari materi dasar, taktik, pembukaan (opening), hingga strategi endgame. Pilih salah satu judul untuk membaca langsung di peramban, atau unduh berkasnya secara gratis untuk dipelajari kapan saja secara mandiri.",
     kartu1Judul: "Program Sekolah Catur",
     kartu1Desk: "Jelajahi program pendidikan dan pelatihan catur yang kami sediakan untuk seluruh kalangan.",
     kartu2Judul: "Turnamen Berkala",
@@ -39,27 +41,12 @@ export const landing = {
     harapanNama: "Tim Pengurus Blunder Skuad",
     harapanJabatan: "Komunitas Catur Indonesia",
     harapanAltFoto: "Ilustrasi perwakilan pengurus Komunitas Catur Indonesia",
-    sorotanJudul: "Sorotan Kegiatan",
-    sorotanDeskripsi:
-      "Tiga kegiatan rutin yang menopang pembinaan dan prestasi anggota sepanjang tahun.",
-    sorotan1Judul: "Turnamen Rutin Setiap Bulan",
-    sorotan1Isi:
-      "Turnamen Bulanan, Liga Musiman, dan Liga Antar Komunitas menjaga jam terbang bertanding anggota tetap tinggi sepanjang tahun.",
-    sorotan1Cta: "Lihat jadwal turnamen",
-    sorotan2Judul: "Teka-teki Catur",
-    sorotan2Isi:
-      "Latihan teka-teki catur (puzzle) mengasah kalkulasi, taktik, dan kejelian membaca posisi untuk setiap pecatur.",
-    sorotan3Judul: "Penjelajah Pembukaan",
-    sorotan3Isi:
-      "Pustaka pembukaan interaktif untuk menelusuri variasi per langkah dan mempelajari rencana lawan.",
-    ajakanLabel: "Langkah terakhir",
     ajakanJudul:
       "Jika ingin rating catur Anda benar-benar naik, kurangi belajar dari video acak dan mulailah fokus pada",
     ajakanJudulAccent: "analisis mendalam.",
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
-    tigaJalanLabel: "Tiga jalan ke depan",
     tigaJalanJudul: "Pilih jalur yang paling cocok",
     tigaJalanJudulAccent: "untuk jenjang Anda",
     tigaJalanAkademiKicker: "Akademi Catur",
@@ -76,7 +63,6 @@ export const landing = {
     tigaJalanAnalisaDesk:
       "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
     tigaJalanAnalisaCta: "Buka Report Analisa",
-    testimoniLabel: "Suara dari anggota",
     testimoniJudul: "Apa kata para pecatur komunitas",
     testimoniLeadAria: "Kutipan unggulan dari anggota",
     testimoniLeadKutip:
@@ -93,25 +79,17 @@ export const landing = {
       "Buku pembukaan interaktif memberi struktur latihan yang jelas; saya mulai hafal rencana lawan dan berani keluar dari pembukaan tanpa cemas.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
-    galeriJudul: "Galeri Kegiatan",
-    galeriDesk:
-      "Papan, bidak, dan suasana permainan catur di ruang turnamen.",
-    galeriCta: "Lihat semua galeri",
-    galeriAlt1: "Balai turnamen catur dengan pemain bertanding di meja-meja",
-    galeriAlt2: "Bidak catur hitam dan putih di atas papan",
-    galeriAlt3: "Pemain catur tengah bertanding di turnamen",
-    galeriAlt4: "Papan catur dengan bidak pada posisi awal permainan",
-    galeriAlt5: "Suasana pertandingan catur di ruang turnamen",
-    langkahJudul: "Cara bergabung",
-    langkahDesk:
-      "Tiga langkah untuk mulai bertanding bersama Blunder Skuad.",
-    langkah1Judul: "Isi formulir pendaftaran",
-    langkah1Isi:
-      "Masukkan nama, username catur, dan daerah Anda pada formulir pendaftaran, lalu kirim.",
-    langkah2Judul: "Verifikasi akun",
-    langkah2Isi:
-      "Ikuti panduan verifikasi yang dikirim setelah pendaftaran untuk mengaktifkan keanggotaan.",
-    langkah3Judul: "Ikuti turnamen pertama",
-    langkah3Isi:
-      "Pilih jadwal Turnamen Bulanan di halaman Turnamen dan daftarkan diri Anda.",
-  }
+    arahJudul: "Give your design a different starting point.",
+    arahLead:
+      "Explore human-reviewed design directions, each with its own visual rules. Impeccable weighs these against ideas drawn from your product, then builds around the strongest fit.",
+    arahAriaLabel: "Design directions",
+    arahAltContoh: "example page design",
+    arahStatus: "Showing 6 design directions.",
+    arahAriaContoh: "A finished example",
+    arahContohJudul: "Neo Mirai",
+    arahContohDesk:
+      "One design direction, carried through a complete website.",
+    arahContohCta: "Explore the result →",
+    arahContohBuka: "Open the live build →",
+    arahContohKasus: "Read the case →",
+}

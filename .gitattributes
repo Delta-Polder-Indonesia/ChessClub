@@ -23,3 +23,16 @@ public/*.xml text eol=lf
 # supaya perbandingan byte di check 6 tidak kabur karena beda eol.
 
 *.md text eol=lf
+
+# Paksa manifest ukuran gambar tetap LF. scripts/optimumkan-gambar.mjs:430
+# membandingkan isi berkas hasil baca dengan string yang akan ditulisnya
+# (`lama !== serialManifest(peta)`) — perbandingan string mentah, tanpa
+# toleransi eol. Skrip menulis dengan "\n", jadi checkout Windows yang
+# mengubahnya jadi CRLF (core.autocrlf=true) membuat `npm run uji:gambar`
+# selalu gagal dengan pesan "tidak sesuai dengan isi public/images/" padahal
+# angka di manifest sudah benar semua.
+#
+# Aturan yang sama seperti dua blok di atas: perbaiki di sisi berkas, jangan
+# longgarkan check di sisi test.
+
+src/data/ukur-gambar.js text eol=lf

@@ -3,6 +3,27 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 
+/* Batasi sumber pindai Tailwind ke berkas yang benar-benar dirender browser.
+   Tanpa `@source`, Tailwind v4 memindai seluruh repo dari akar git dan
+   menemukan 30.473 kandidat, padahal `src/` + `index.html` cukup untuk
+   15.481 — sisanya sampah dari dokumen: rentetan tanda hubung tabel Markdown,
+   flag git yang dikutip di AGENTS.md (--amend, --no-edit, --is-inside-work-tree),
+   dan fragmen token desain di dokumen skill (--ks-lift-1, --color-anggota).
+   Bloat itu bukan cuma sia-sia: `npm run dev` memompanya ~19 detik setiap
+   start (load 5 s + transform 14 s), dan tidak ada build cache-nya karena
+   `node_modules/.cache` tidak pernah dibuat.
+
+   `@source` mematikan deteksi otomatis, jadi kedua baris ini WAJIB mencakup
+   semua tempat kelas muncul: komponen di `src/`, dan `index.html` untuk
+   `#boot-hero` yang dilukis sebelum React mount. Jangan masukkan `docs/`,
+   `puzzel.md`, atau `audit-vercel.json` — bukan sumber kelas.
+
+   Output CSS tetap identik: sha256 sama sebelum dan sesudah perubahan ini
+   (96bd151b349785d0, 22,0 kB), karena kandidat sampah tidak menghasilkan
+   utility apa pun. */
+@source "../src";
+@source "../index.html";
+
 @custom-variant dark (&:is(.dark *));
 
 @theme {
@@ -25,8 +46,11 @@
   --color-grey-500: #64748b;
   --color-grey-600: #475569;
   --color-grey-800: #1e293b;
-  /* Kanvas utama & permukaan kartu (DESIGN.md §1: --color-paper). */
-  --color-paper: #ffffff;
+  /* Kanvas utama & permukaan kartu (DESIGN.md §1: --color-paper).
+     Nilai diselaraskan ke halaman sumber: `--ks-paper: oklch(97.8% 0 0)`
+     pada `kinpaku_tokens.czfxn__5.css` ≈ #f8f8f8. Sebelumnya #ffffff,
+     membuat kanvas KCI ~7% lebih terang dari sumber. */
+  --color-paper: #f8f8f8;
   --color-hero: #021624;
 
   /* Elevasi netral untuk permukaan foto galeri: lempeng tanpa border 1px
@@ -99,6 +123,10 @@ html {
 body {
   font-family: var(--font-sans);
   color: var(--color-grey-800);
+  /* Kanvas halaman. Sebelumnya tidak di-set sama sekali, sehingga yang
+     tampil adalah putih default peramban dan `--color-paper` tidak pernah
+     berlaku sebagai latar utama. */
+  background-color: var(--color-paper);
 }
 
 /* Permukaan peramban — diselaraskan token KCI, bukan default browser polos

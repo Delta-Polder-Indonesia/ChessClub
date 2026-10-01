@@ -8,7 +8,7 @@
  * mewakili komunitas.
  */
 import { useI18n } from "../../lib/i18n.jsx";
-import { JUDUL_SEKSI, LABEL_SEKSI, KEPALA_SEKSI, TitikLabel } from "./gayaTeks.jsx";
+import { JUDUL_SEKSI, KEPALA_SEKSI } from "./gayaTeks.jsx";
 
 function BalokKutip({ anak, aria }) {
   return (
@@ -61,7 +61,7 @@ function KartuKutip({ t, kunci }) {
       aria={t(`${kunci}Aria`)}
       anak={
         <>
-          <p className="m-0 font-serif text-base leading-[1.6] text-grey-800">
+          <p className="m-0 font-serif text-base leading-[1.65] text-grey-800">
             {t(`${kunci}Kutip`)}
           </p>
           <GlobalKutip
@@ -82,24 +82,25 @@ export default function Testimoni() {
   const kartuKunci = ["landing.testimoniKutip1", "landing.testimoniKutip2"];
 
   return (
-    <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-16 md:pb-20 overflow-hidden">
+    <section className="w-full px-6 md:px-8 xl:px-0 pt-0 pb-12 md:pb-16 overflow-hidden">
       <div className="mx-auto max-w-[1080px] xl:max-w-7xl">
         <div className={KEPALA_SEKSI}>
-          <p className={LABEL_SEKSI}>
-            <TitikLabel />
-            {t("landing.testimoniLabel")}
-          </p>
           <h2 className={JUDUL_SEKSI}>{t("landing.testimoniJudul")}</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-x-[clamp(2rem,5vw,4.5rem)] gap-y-10 md:gap-y-0 items-start">
+        {/* Garis pemisah seksi — pola `border-top:1px solid var(--ks-rule)`
+            dari `.ks-bento` (`base.dh9lpkoi.css`), sama seperti TigaJalan.
+            `border-grey-200` (#e2e8f0) ≈ `--ks-rule` (≈ #e5e5e5). Garis atas
+            seksi ini menggantikan `border-t` kartu pertama dan `border-b`
+            penutup yang sebelumnya ada di kolom kanan, supaya tidak dobel.
+            Padding dalam mengikuti `.ks-bento-tile`: 48px desktop, 40px mobile. */}
+        <div className="grid grid-cols-1 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-x-[clamp(2rem,5vw,4.5rem)] gap-y-10 md:gap-y-0 items-start border-y border-grey-200 py-10 md:py-12">
           <KutipUnggulan t={t} />
           <div className="grid">
-            {kartuKunci.map((kunci) => (
-              <div key={kunci} className="border-t border-slate-300 py-6">
+            {kartuKunci.map((kunci, i) => (
+              <div key={kunci} className={`py-6 ${i > 0 ? "border-t border-grey-200" : ""}`}>
                 <KartuKutip t={t} kunci={kunci} />
               </div>
             ))}
-            <div className="border-b border-slate-300" />
           </div>
         </div>
       </div>

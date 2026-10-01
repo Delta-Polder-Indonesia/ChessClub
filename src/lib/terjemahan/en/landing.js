@@ -8,10 +8,12 @@ export const landing = {
     sekilasDesk:
       "For more than a decade, we have provided a place to play and learn for chess players from every corner of the country.",
     ketuaPengurus: "Chairman & Management",
-    pustakaLabel: "Library",
     pustakaJudul: "Chess E-Books",
+    pustakaHeading: "Chess Library & Modules",
     pustakaDesk:
       "Learning materials written and curated by members, from opening fundamentals to theoretical endgames. All free to download.",
+    pustakaKeterangan:
+      "Browse the complete chess e-book collection, from basic material and tactics to openings and endgames. Pick any title to read it directly in the browser, or download the file free to study on your own time.",
     kartu1Judul: "Chess School Program",
     kartu1Desk: "Explore the chess education and training programs we provide for everyone.",
     kartu2Judul: "Regular Tournaments",
@@ -39,27 +41,12 @@ export const landing = {
     harapanNama: "The Blunder Skuad Committee",
     harapanJabatan: "Indonesia Chess Community",
     harapanAltFoto: "Illustration of a representative of Indonesia Chess Community",
-    sorotanJudul: "Activity Highlights",
-    sorotanDeskripsi:
-      "Three regular activities that support members' development and achievements all year round.",
-    sorotan1Judul: "Regular Monthly Tournaments",
-    sorotan1Isi:
-      "Monthly Tournaments, Seasonal League, and Inter-Community League keep members' competitive flying hours high throughout the year.",
-    sorotan1Cta: "See the tournament schedule",
-    sorotan2Judul: "Chess Puzzles",
-    sorotan2Isi:
-      "Regular chess puzzle practice sharpens calculation, tactics, and the ability to read positions for every player.",
-    sorotan3Judul: "Opening Explorer",
-    sorotan3Isi:
-      "An interactive opening library for browsing variations move by move and studying your opponent's plans.",
-    ajakanLabel: "One last step",
     ajakanJudul:
       "If you want your chess rating to truly climb, cut back on random videos and start focusing on",
     ajakanJudulAccent: "deep analysis.",
     ajakanDeskripsi:
       "Complete your personal data and start joining regular tournaments, coaching classes, and interactive board training sessions with the Indonesia Chess Community.",
     ajakanTombol: "Register Now",
-    tigaJalanLabel: "Three paths forward",
     tigaJalanJudul: "Pick the path that fits",
     tigaJalanJudulAccent: "your level",
     tigaJalanAkademiKicker: "Chess Academy",
@@ -76,7 +63,6 @@ export const landing = {
     tigaJalanAnalisaDesk:
       "Replay your games, explore variations, and compare them with engine analysis to understand your critical moves.",
     tigaJalanAnalisaCta: "Open analysis report",
-    testimoniLabel: "From the members",
     testimoniJudul: "What community players say",
     testimoniLeadAria: "Featured quote from a member",
     testimoniLeadKutip:
@@ -93,24 +79,17 @@ export const landing = {
       "The interactive opening book gives my practice a clear structure; I now know opponent plans and feel confident leaving the opening.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Community member, rated 1890",
-    galeriJudul: "Activity Gallery",
-    galeriDesk:
-      "Boards, pieces, and the atmosphere of chess games in tournament rooms.",
-    galeriCta: "See the full gallery",
-    galeriAlt1: "Chess tournament hall with players competing at tables",
-    galeriAlt2: "Black and white chess pieces on a board",
-    galeriAlt3: "Chess players competing in a tournament",
-    galeriAlt4: "Chess board with pieces in the starting position",
-    galeriAlt5: "Atmosphere of a chess game in a tournament room",
-    langkahJudul: "How to join",
-    langkahDesk: "Three steps to start competing with Blunder Skuad.",
-    langkah1Judul: "Fill in the registration form",
-    langkah1Isi:
-      "Enter your name, chess username, and region on the registration form, then submit.",
-    langkah2Judul: "Verify your account",
-    langkah2Isi:
-      "Follow the verification guide sent after registration to activate your membership.",
-    langkah3Judul: "Play your first tournament",
-    langkah3Isi:
-      "Pick a Monthly Tournament schedule on the Tournament page and register.",
-  }
+    arahJudul: "Give your design a different starting point.",
+    arahLead:
+      "Explore human-reviewed design directions, each with its own visual rules. Impeccable weighs these against ideas drawn from your product, then builds around the strongest fit.",
+    arahAriaLabel: "Design directions",
+    arahAltContoh: "example page design",
+    arahStatus: "Showing 6 design directions.",
+    arahAriaContoh: "A finished example",
+    arahContohJudul: "Neo Mirai",
+    arahContohDesk:
+      "One design direction, carried through a complete website.",
+    arahContohCta: "Explore the result →",
+    arahContohBuka: "Open the live build →",
+    arahContohKasus: "Read the case →",
+    }

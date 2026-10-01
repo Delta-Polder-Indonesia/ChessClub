@@ -11,7 +11,7 @@ Kontak: info@komunitascatur.or.id · Klub Chess.com:
 
 ## Halaman utama
 
-- [Beranda](%%SITE_URL%%): hero tonggak sejarah, sorotan kegiatan, program, dan ajakan bergabung.
+- [Beranda](%%SITE_URL%%): hero tonggak sejarah, jalur belajar, program, dan ajakan bergabung.
 - [Tentang Kami](%%SITE_URL%%tentang-kami): sejarah, visi-misi, dan nilai komunitas.
 - [Struktur Grup Catur](%%SITE_URL%%tentang-kami/struktur-grup-catur): susunan pengurus, kelompok, dan jalur keanggotaan.
 - [Program Kami](%%SITE_URL%%program-kami): kelas pelatihan, teka-teki, buku pembukaan, dan e-book panduan.

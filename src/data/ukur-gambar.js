@@ -252,7 +252,7 @@ export const UKUR = {
   ],
   "/images/harapan-terima-kasih.webp": [
     836,
-    1120,
+    1254,
     []
   ],
   "/images/hero-about.webp": [
