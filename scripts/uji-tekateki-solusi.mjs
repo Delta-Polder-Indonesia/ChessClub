@@ -12,8 +12,10 @@
  * (`klikPetak`), bukan seret: jalur seret memakai `cariPetak(clientX,
  * clientY)` yang butuh tata letak, sedangkan jsdom tidak menghitungnya.
  * Posisi papan dibaca dari `aria-label` tiap `[data-petak]`, jadi tidak
- * bergantung pada gambar bidak (`import.meta.glob` diganti fungsi kosong di
- * luar Vite).
+ * bergantung pada gambar bidak. Aset bidak tetap dipecah oleh shim
+ * `import.meta.glob` yang sama dengan Node loader, sehingga skrip ini ikut
+ * gagal kalau pemanggilan glob di `ChessPiece` berubah bentuk dan tidak
+ * lagi di-expand Vite.
  *
  * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
@@ -25,6 +27,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { pluginGlobAset } from "./loader-jsx.mjs";
 import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
 import { tekaTeki as kamus } from "../src/lib/terjemahan/id/tekaTeki.js";
@@ -154,14 +157,13 @@ await build({
   platform: "browser",
   outfile: berkasBundel,
   loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "text" },
-  // `import.meta.glob` hanya ada di Vite (dipakai ChessPiece). Di luar Vite
-  // diganti fungsi kosong: bidak tidak tergambar, tetapi petak, aria-label,
-  // dan penanganan klik yang diuji tetap ter-render.
-  banner: { js: "function __globPalsu() { return {}; }" },
+  // `import.meta.glob` (dipakai ChessPiece) dipecah oleh shim yang sama dengan
+  // Node loader, bukan diganti fungsi kosong: `define` menghapus jejak makro dari
+  // sumber sehingga skrip ini buta terhadap bentuk yang tidak di-expand Vite.
+  plugins: [pluginGlobAset()],
   define: {
     "process.env.NODE_ENV": '"development"',
     "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
-    "import.meta.glob": "__globPalsu",
   },
   logLevel: "error",
 });

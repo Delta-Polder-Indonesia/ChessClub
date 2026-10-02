@@ -65,6 +65,13 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   alih-alih menelan glob), dan transform Vite sungguhan lewat `createServer().transformRequest`
   yang jumlah kunci asetnya harus sama dengan jumlah berkas di `src/asets/`. Jalankan uji ini
   setiap kali menyentuh `src/components/chess/ChessPiece.jsx` atau `scripts/loader-jsx.mjs`.
+- Delapan skrip jsdom yang punya bundel sendiri (`uji:analisa-ui`, `uji:animasi-bidak`,
+  `uji:bantuan-langkah`, `uji:evaluasi-manusia-vs-mesin`, `uji:lencana-skakmat`, `uji:rush-waktu`,
+  `uji:tanda-papan`, `uji:tekateki-solusi`) memakai `pluginGlobAset()` dari `scripts/loader-jsx.mjs`
+  untuk memecah `import.meta.glob`. Jangan pernah menggantinya dengan `define` + fungsi kosong:
+  `define` menghapus seluruh jejak makro dari sumber sebelum dianalisis, sehingga skrip-butanya
+  kembali hijau pada aset rusak. Delapan skrip ini ikut gagal kalau glob di `ChessPiece.jsx`
+  berubah bentuk — itulah penjaganya di luar `uji:glob-aset`.
 - `npm run uji:gestur-lawan` — gestur "seperti manusia" mesin di mode Manusia vs Mesin
   (`src/halaman/PapanInteraktif/modus/gerakLawan.js`): penilaian posisi sulit (skor tipis +
   banyak langkah sah), pemilihan bidak yang dilirik saat bimbang, urutan klik (bidak lain dulu,

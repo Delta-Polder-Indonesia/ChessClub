@@ -25,6 +25,7 @@ import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { pluginGlobAset } from "./loader-jsx.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(path.join(ROOT, "noop.js"));
@@ -111,11 +112,13 @@ await build({
   platform: "browser",
   outfile: berkasBundel,
   loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl" },
-  banner: { js: "function __globPalsu() { return {}; }" },
+  // `import.meta.glob` (dipakai ChessPiece) dipecah oleh shim yang sama dengan
+  // Node loader, bukan diganti fungsi kosong: `define` menghapus jejak makro dari
+  // sumber sehingga skrip ini buta terhadap bentuk yang tidak di-expand Vite.
+  plugins: [pluginGlobAset()],
   define: {
     "process.env.NODE_ENV": '"development"',
     "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
-    "import.meta.glob": "__globPalsu",
   },
   logLevel: "error",
 });

@@ -157,6 +157,30 @@ export function shimGlobVite(source, urlModul) {
   return hasil;
 }
 
+/**
+ * Plugin esbuild untuk skrip uji jsdom yang membundle modul `.jsx` sendiri
+ * lewat `build()` dan tidak lewat Node loader di atas.
+ *
+ * Tanpa plugin ini, skrip itu harus meng-/define/ `import.meta.glob` menjadi
+ * fungsi kosong — dan define itulah yang menghapus semua jejak makro dari
+ * sumber, sehingga `periksaGlobLangsung` tidak pernah bisa membedakan
+ * panggilan langsung (Vite meng-expandnya) dari alias/typeof (Vite
+ * mengabaikannya). Akibatnya regresi 85ddcfa lolos di 8 skrip uji tersebut.
+ * Dengan shim yang sama, bentuk tak langsung melempar galat di semua skrip.
+ */
+export function pluginGlobAset() {
+  return {
+    name: "kci-glob-aset",
+    setup(bangun) {
+      // Entri `stdin` tidak lewat onLoad, jadi isinya tidak tersentuh.
+      bangun.onLoad({ filter: /\.jsx$/ }, async (args) => ({
+        contents: shimGlobVite(await readFile(args.path, "utf8"), pathToFileURL(args.path).href),
+        loader: "jsx",
+      }));
+    },
+  };
+}
+
 const AKAR_REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 export async function resolve(specifier, context, next) {
