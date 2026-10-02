@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { ChessPiece, ambilSumberBidak } from "../../components/chess/ChessPiece.jsx";
 import {
   KURVA_GESER,
   durasiGeser,
@@ -302,6 +302,7 @@ export default function PapanTekaTeki({
   const orientasiSebelumRef = useRef(orientasi);
   const lewatiGeserRef = useRef(null); // { ke, waktu } — bidak yang baru dilepas dari seret
   const animasiJalanRef = useRef(new Set());
+  const animasiLangkahRef = useRef(new WeakMap());
 
   // Keadaan tanda klik kanan.
   const kananRef = useRef(null); // { petak, warna }
@@ -457,6 +458,7 @@ export default function PapanTekaTeki({
     if (!geseran.length) return;
     const ukuranPetak = (wadah.getBoundingClientRect().width || 0) / 8;
     if (!ukuranPetak) return;
+    const petaLama = petaBidak(fenLama);
     // Seret yang baru saja mendarat: dilewati sekali, dan hanya sebentar agar
     // penanda basi tidak ikut mematikan animasi langkah berikutnya.
     const lewati = lewatiGeserRef.current;
@@ -467,6 +469,50 @@ export default function PapanTekaTeki({
       if (!el || typeof el.animate !== "function") continue;
       const { x, y } = geseranPiksel(g, orientasi, ukuranPetak);
       if (!x && !y) continue;
+
+      // Efek fading bidak yang tertangkap (pola piece.fading ala @lichess-org/chessground)
+      const bidakTertangkap = petaLama[g.ke];
+      const petakTujuanEl = wadah.querySelector(`[data-petak="${g.ke}"]`);
+      if (petakTujuanEl && bidakTertangkap && typeof petakTujuanEl.appendChild === "function") {
+        const sumberTertangkap = ambilSumberBidak(setBidak, bidakTertangkap);
+        if (sumberTertangkap) {
+          const pudarEl = document.createElement("span");
+          pudarEl.className =
+            "absolute z-[5] flex h-[88%] w-[88%] items-center justify-center pointer-events-none";
+          pudarEl.setAttribute("aria-hidden", "true");
+          const img = document.createElement("img");
+          img.src = sumberTertangkap;
+          img.className = "h-full w-full";
+          img.draggable = false;
+          pudarEl.appendChild(img);
+          petakTujuanEl.appendChild(pudarEl);
+
+          const gerakPudar =
+            typeof pudarEl.animate === "function"
+              ? pudarEl.animate(
+                  [
+                    { opacity: 0.6, transform: "scale(1)" },
+                    { opacity: 0, transform: "scale(0.85)" },
+                  ],
+                  { duration: durasiGeser(), easing: KURVA_GESER }
+                )
+              : null;
+          const bersihkanPudar = () => {
+            pudarEl.remove?.();
+          };
+          if (gerakPudar) {
+            gerakPudar.finished?.then(bersihkanPudar).catch(bersihkanPudar);
+            gerakPudar.oncancel = bersihkanPudar;
+          } else {
+            bersihkanPudar();
+          }
+        }
+      }
+
+      // Batalkan animasi sebelumnya pada elemen yang sama sebelum memulai yang baru
+      // (pola FLIP lifecycle ala @lichess-org/chessground di en-croissant).
+      animasiLangkahRef.current.get(el)?.cancel();
+
       el.style.zIndex = "20"; // di atas bidak diam (z-10), di bawah lapisan panah (z-30)
       el.style.willChange = "transform";
       const gerak = el.animate(
@@ -476,9 +522,13 @@ export default function PapanTekaTeki({
         ],
         { duration: durasiGeser(), easing: KURVA_GESER }
       );
+      animasiLangkahRef.current.set(el, gerak);
       animasiJalanRef.current.add(gerak);
       const bersihkan = () => {
         animasiJalanRef.current.delete(gerak);
+        if (animasiLangkahRef.current.get(el) === gerak) {
+          animasiLangkahRef.current.delete(el);
+        }
         el.style.zIndex = "";
         el.style.willChange = "";
       };
