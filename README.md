@@ -51,6 +51,10 @@ Vercel menerbitkan deployment production. Ulangi tes di [PageSpeed Insights](htt
 
 ## Deploy
 
+Untuk status audit, scope, release gate, dan definition of done v1, baca
+[`V1-READINESS.md`](./V1-READINESS.md). Jalankan `npm run uji:rilis:v1`
+sebelum membuat release candidate.
+
 | Skema | Panduan | Keterangan |
 | ----- | ------- | ---------- |
 | **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Jalur deployment production resmi. Backend berjalan sebagai Serverless Function (`api/[...jalur].js`); aktifkan **Supabase** agar data awet. Baca `VERCEL-LIMITATIONS.md` dan `DEPLOYMENT-CHECKLIST.md`. |

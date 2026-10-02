@@ -1,7 +1,8 @@
 # Checklist Pra-Deploy — Komunitas Catur Indonesia
 
 Gunakan daftar ini **sebelum** setiap rilis produksi. Jangan deploy jika ada
-butir wajib yang belum dicentang. Panduan lengkap:
+butir wajib yang belum dicentang. Untuk audit dan definition of done v1, lihat
+[`V1-READINESS.md`](./V1-READINESS.md). Panduan lengkap:
 
 - [PANDUAN-DEPLOY-FULL-VERCEL.md](./PANDUAN-DEPLOY-FULL-VERCEL.md)
 - [VERCEL-LIMITATIONS.md](./VERCEL-LIMITATIONS.md)
@@ -71,12 +72,21 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 ## 4. Uji pasca-deploy (staging dulu)
 
+Sebelum deploy, jalankan release gate lokal yang sama dengan CI:
+
+```bash
+npm run uji:rilis:v1
+npm run uji:e2e
+```
+
+Sesudah deploy staging:
+
 ```bash
 DOMAIN=https://staging.contoh.id
-npm run uji:backend   # atau: KCI_DASAR=$DOMAIN npm run uji:backend
+KCI_API_URL="$DOMAIN" KCI_HEALTH_REQUIRE_SUPABASE=1 npm run operasi:kesehatan
 
-curl -sS "$DOMAIN/api/kesehatan"   # harus 200 {"status":"sehat",...}
-curl -sS "$DOMAIN/api/v1/kesehatan"  # alias versi, perilaku sama
+curl -sS "$DOMAIN/api/kesehatan"     # harus 200 {"status":"sehat",...}
+curl -sS "$DOMAIN/api/v1/kesehatan" # alias versi, perilaku sama
 ```
 
 - [ ] `GET /api/kesehatan` → 200 OK

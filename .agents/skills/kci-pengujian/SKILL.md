@@ -33,6 +33,8 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   segar di bagian 1 `docs/PETA-KODE.md`.
 - `npm run uji:backend && npm run uji:verifikasi` — backend menyala sementara dan diuji end-to-end
   (auth JWT, verifikasi Chess.com, e-book).
+- `npm run uji:rilis:v1` — release gate kanonik: audit dependency produksi, seluruh uji logika,
+  backend/keamanan/verifikasi/pendaftaran, dan build. CI menjalankan perintah yang sama.
 - `npm run uji:e2e` — Playwright smoke test halaman publik (butuh `npx playwright install chromium`).
 - `npm run uji:konfigurasi-keamanan` — konfigurasi keamanan server (wajib lulus bila menyentuh
   `server/src/konfigurasi.js`/`server/src/http.js`; CI selalu menjalankannya).
