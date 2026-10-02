@@ -1,15 +1,19 @@
 import { useEffect, useState } from "react";
 
 /**
- * Renderer bidak catur dengan pemuatan aset per-set.
+ * Renderer bidak catur dengan pemuatan aset per-set & cache sinkron.
  *
- * Vite membuat chunk terpisah untuk setiap SVG, sehingga pengguna hanya
- * mengunduh 12 aset dari gaya bidak yang dipilih—bukan seluruh 13 set.
+ * Vite membuat chunk terpisah untuk setiap SVG, dan aset yang sudah dimuat
+ * disimpan di `syncCache` sehingga saat bidak berpindah petak, render
+ * pertamanya langsung sinkron (tanpa kedip/blink).
  */
-const PEMUAT_ASET = import.meta.glob("../../asets/*/*.{svg,png}", {
-  query: "?url",
-  import: "default",
-});
+const PEMUAT_ASET =
+  typeof import.meta !== "undefined" && import.meta.glob
+    ? import.meta.glob("../../asets/*/*.{svg,png}", {
+        query: "?url",
+        import: "default",
+      })
+    : {};
 
 export const DAFTAR_SET = [
   { id: "bidak", nama: "Chessnut" },
@@ -39,40 +43,71 @@ const KODE_CHESSNUT = {
 };
 
 const cacheSet = new Map();
+const syncCache = new Map();
 
-function jalurAset(set, piece) {
+export function jalurAset(set, piece) {
   if (set === "bidak") return `../../asets/bidak/${KODE_CHESSNUT[piece]}.svg`;
   if (set === "chesscom")
-    return `../../asets/ChessCom/${KODE_ASET[piece].toLowerCase()}.png`;
+    return `../../asets/ChessCom/${KODE_ASET[piece]?.toLowerCase()}.png`;
   const kode = KODE_ASET[piece];
   return kode ? `../../asets/${set}/${kode}.svg` : null;
 }
 
-function muatSet(set) {
+export function muatSet(set) {
   const id = DAFTAR_SET.some((item) => item.id === set) ? set : "bidak";
   if (!cacheSet.has(id)) {
     const tugas = Object.keys(NAMA_BIDAK).map(async (piece) => {
-      const pemuat = PEMUAT_ASET[jalurAset(id, piece)];
-      if (!pemuat) throw new Error(`Aset bidak tidak ditemukan: ${id}/${piece}`);
-      return [piece, await pemuat()];
+      const pemuat = PEMUAT_ASET?.[jalurAset(id, piece)];
+      if (!pemuat) return [piece, null];
+      try {
+        const res = typeof pemuat === "function" ? await pemuat() : pemuat;
+        return [piece, typeof res === "string" ? res : res?.default || res || null];
+      } catch {
+        return [piece, null];
+      }
     });
-    cacheSet.set(id, Promise.all(tugas).then((entri) => Object.fromEntries(entri)));
+    const janji = Promise.all(tugas).then((entri) => {
+      const hasil = Object.fromEntries(entri.filter(([, v]) => v != null));
+      syncCache.set(id, hasil);
+      return hasil;
+    });
+    cacheSet.set(id, janji);
   }
   return cacheSet.get(id);
 }
 
+// Pre-load set bawaan sejak modul dievaluasi agar langsung siap di memory
+if (typeof window !== "undefined") {
+  for (const s of ["alpha", "merida", "bidak", "chesscom"]) {
+    void muatSet(s);
+  }
+}
+
+export function ambilSumberBidak(set, piece) {
+  if (!piece) return null;
+  const id = DAFTAR_SET.some((item) => item.id === set) ? set : "bidak";
+  return syncCache.get(id)?.[piece] || null;
+}
+
 export function ChessPiece({ piece, set = "merida", className = "w-full h-full" }) {
-  const [peta, setPeta] = useState(null);
+  const id = DAFTAR_SET.some((item) => item.id === set) ? set : "bidak";
+  const [peta, setPeta] = useState(() => syncCache.get(id) || null);
 
   useEffect(() => {
     let aktif = true;
     muatSet(set)
-      .then((hasil) => { if (aktif) setPeta(hasil); })
-      .catch(() => { if (aktif) setPeta(null); });
-    return () => { aktif = false; };
+      .then((hasil) => {
+        if (aktif) setPeta(hasil);
+      })
+      .catch(() => {
+        if (aktif) setPeta(null);
+      });
+    return () => {
+      aktif = false;
+    };
   }, [set]);
 
-  const sumber = piece ? peta?.[piece] : null;
+  const sumber = piece ? (peta || syncCache.get(id))?.[piece] : null;
   if (!sumber) return null;
-  return <img src={sumber} alt={NAMA_BIDAK[piece]} className={className} draggable={false} />;
+  return <img src={sumber} alt={NAMA_BIDAK[piece] || ""} className={className} draggable={false} />;
 }

@@ -8,25 +8,38 @@ export const PILIHAN_KECEPATAN = [
 ];
 
 /**
+ * Deret SAN → daftar objek bernomor untuk navigasi & rendering interaktif.
+ */
+function parseBarisanSan(fen, daftarSan) {
+  let game;
+  try {
+    game = new Chess(fen);
+  } catch {
+    game = new Chess();
+  }
+  let nomor = game.moveNumber();
+  const putihJalan = game.turn() === "w";
+  const item = [];
+  daftarSan.forEach((san, i) => {
+    let prefix = "";
+    if (i === 0 && !putihJalan) {
+      prefix = `${nomor}… `;
+    } else if ((i + (putihJalan ? 0 : 1)) % 2 === 0) {
+      prefix = `${nomor}. `;
+    }
+    item.push({ san, prefix, index: i });
+    if ((i + (putihJalan ? 1 : 0)) % 2 === 1) nomor += 1;
+  });
+  return item;
+}
+
+/**
  * Deret SAN → teks bernomor yang benar walau barisan dimulai dari giliran
  * Hitam, mis. "1… e5 2. Nf3 Nc6".
  */
 function barisanSan(fen, daftarSan) {
-  const game = new Chess(fen);
-  let nomor = game.moveNumber();
-  const putihJalan = game.turn() === "w";
-  const bagian = [];
-  daftarSan.forEach((san, i) => {
-    if (i === 0 && !putihJalan) {
-      bagian.push(`${nomor}… ${san}`);
-    } else if ((i + (putihJalan ? 0 : 1)) % 2 === 0) {
-      bagian.push(`${nomor}. ${san}`);
-    } else {
-      bagian.push(san);
-    }
-    if ((i + (putihJalan ? 1 : 0)) % 2 === 1) nomor += 1;
-  });
-  return bagian.join(" ");
+  const item = parseBarisanSan(fen, daftarSan);
+  return item.map((it) => `${it.prefix}${it.san}`).join(" ");
 }
 
 /**
@@ -194,7 +207,27 @@ export default function PanelEngine({
                 className={`min-w-0 flex-1 truncate ${g.pv}`}
                 title={barisanSan(fen, hasil.pvSan)}
               >
-                {barisanSan(fen, hasil.pvSan)}
+                {onMainkan ? (
+                  parseBarisanSan(fen, hasil.pvSan).map((langkah, idx) => (
+                    <span key={idx}>
+                      {langkah.prefix}
+                      {idx === 0 ? (
+                        <button
+                          type="button"
+                          onClick={() => onMainkan(langkah.san)}
+                          className="font-bold text-[#81b64c] hover:underline cursor-pointer"
+                          title={`Mainkan ${langkah.san}`}
+                        >
+                          {langkah.san}
+                        </button>
+                      ) : (
+                        langkah.san
+                      )}{" "}
+                    </span>
+                  ))
+                ) : (
+                  barisanSan(fen, hasil.pvSan)
+                )}
               </p>
             )}
           </div>
