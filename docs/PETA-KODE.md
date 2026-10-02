@@ -33,21 +33,22 @@ kegagalan pertama karena dirangkai dengan `&&`):
 18. `npm run uji:lencana-skakmat`
 19. `npm run uji:tanda-papan`
 20. `npm run uji:animasi-bidak`
-21. `npm run uji:gestur-lawan`
-22. `npm run uji:evaluasi-manusia-vs-mesin`
-23. `npm run uji:bantuan-langkah`
-24. `npm run uji:repertoar`
-25. `npm run uji:sunfish`
-26. `npm run uji:tekateki-solusi`
-27. `npm run uji:rush`
-28. `npm run uji:gambar`
-29. `node scripts/uji-identitas.mjs` (langsung)
-30. `npm run uji:skema`
-31. `node scripts/uji-ebook.mjs` (langsung)
-32. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-33. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-34. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-35. `npm run uji:pendaftaran-ui`
+21. `npm run uji:glob-aset`
+22. `npm run uji:gestur-lawan`
+23. `npm run uji:evaluasi-manusia-vs-mesin`
+24. `npm run uji:bantuan-langkah`
+25. `npm run uji:repertoar`
+26. `npm run uji:sunfish`
+27. `npm run uji:tekateki-solusi`
+28. `npm run uji:rush`
+29. `npm run uji:gambar`
+30. `node scripts/uji-identitas.mjs` (langsung)
+31. `npm run uji:skema`
+32. `node scripts/uji-ebook.mjs` (langsung)
+33. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+34. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+35. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+36. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 

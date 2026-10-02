@@ -21,10 +21,10 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 34 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+- `npm run uji` — 35 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
   `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
   `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
-  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`,
+  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`, `uji:glob-aset`,
   `uji:gestur-lawan`, `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
   `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:rush`,
   `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
@@ -57,6 +57,14 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   bidak di petak tujuan, termasuk mode Manusia vs Mesin dengan mesin UCI palsu: klik move
   pemain dan balasan mesin meluncur, sedangkan bidak yang diseret tidak diluncurkan ulang.
   Entri PvE mengekspor `GESTUR` supaya uji memangkas jeda "berpikir" mesin (2-4 detik nyata).
+- `npm run uji:glob-aset` — aset bidak lewat makro `import.meta.glob`. Glob ini compile-time Vite:
+  kalau tidak ter-expand hasilnya `{}` dan seluruh papan tampil tanpa bidak TANPA galat — persis
+  yang lolos di PR #167 (commit 85ddcfa membungkus `import.meta.glob` dengan guard `typeof`).
+  Uji ini menutupnya dari tiga sisi: bentuk sumber (setiap kemunculan di `src/` wajib panggilan
+  langsung), shim `scripts/loader-jsx.mjs` (dipakai 12 skrip uji lain — sekarang melempar galat
+  alih-alih menelan glob), dan transform Vite sungguhan lewat `createServer().transformRequest`
+  yang jumlah kunci asetnya harus sama dengan jumlah berkas di `src/asets/`. Jalankan uji ini
+  setiap kali menyentuh `src/components/chess/ChessPiece.jsx` atau `scripts/loader-jsx.mjs`.
 - `npm run uji:gestur-lawan` — gestur "seperti manusia" mesin di mode Manusia vs Mesin
   (`src/halaman/PapanInteraktif/modus/gerakLawan.js`): penilaian posisi sulit (skor tipis +
   banyak langkah sah), pemilihan bidak yang dilirik saat bimbang, urutan klik (bidak lain dulu,
