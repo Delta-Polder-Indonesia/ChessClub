@@ -21,10 +21,11 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 35 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
-  `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`, `uji:analisa-ui`, `uji:engine`,
-  `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`, `uji:akun-database`, `uji:tarik-api`,
-  `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`, `uji:animasi-bidak`, `uji:glob-aset`,
+- `npm run uji` — 37 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+  `uji:desain`, `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`,
+  `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`,
+  `uji:akun-database`, `uji:tarik-api`, `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`,
+  `uji:animasi-bidak`, `uji:glob-aset`, `uji:render-bidak`,
   `uji:gestur-lawan`, `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
   `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:rush`,
   `uji:gambar`, `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
@@ -50,6 +51,17 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 - `npm run uji:bantuan-langkah` — "Bantuan Langkah" Papan Interaktif (assisted play): FEN
   hipotetis + klasifikasi hijau/kuning/merah + panah balasan lawan dari posisi hipotetis.
   Memakai Worker UCI palsu supaya deterministik (debounce, cache, pembatalan, hasil basi).
+- `npm run uji:render-bidak` — kontrak render bidak, dari berkas di `src/asets/` sampai `<img>`
+  yang benar-benar muncul di papan. Empat lapis: (A) setiap pasangan set × bidak punya jalur yang
+  ada di disk dan jumlah berkas aset sama dengan jumlah pasangan terpetakan; (B) `muatSet`
+  mengembalikan 12 aset tanpa nilai kosong, set tak dikenal jatuh ke set bawaan, dan cache
+  bekerja; (C) `PapanTekaTeki` di jsdom menghasilkan 64 petak dan 32 `<img>` dengan src/alt
+  terisi, `[data-petak="e2"] img` = 1 dan `[data-petak="e4"] img` = 0, diulang untuk set
+  non-default `chesscom` (cabang `.png`); (D) papan mini pertama di halaman `Pembukaan`
+  berisi 64 petak dan 32 `<img>`. Lapis C dan D adalah cermin assertion
+  `tests/e2e/pembukaan.spec.js:289` dan `:104` yang menangkap regresi 85ddcfa setelah ~9 menit
+  di CI; skrip ini menangkapnya dalam hitungan detik. Memakai esbuild dan jsdom yang sudah
+  ada, dan melewati lapis yang tidak bisa dijalankan bila salah satunya tidak terpasang.
 - `npm run uji:animasi-bidak` — animasi geser bidak papan bersama `PapanTekaTeki`: penyimpul
   langkah dari selisih dua FEN (langkah biasa, pukulan, rokade, en passant, promosi, navigasi
   mundur) dan pengecualiannya (posisi diganti, lompat beberapa langkah, papan dibalik, bidak
