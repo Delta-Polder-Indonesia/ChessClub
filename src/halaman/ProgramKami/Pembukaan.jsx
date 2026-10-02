@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router";
+// PENTING: impor dari "react-router-dom", BUKAN "react-router". Spesifier
+// "react-router" tidak terdaftar di optimizeDeps.include (vite.config.js),
+// sehingga saat halaman lazy ini pertama dimuat Vite meng-optimasi ulang
+// dependensi di tengah sesi → dua instance React → "Cannot read properties
+// of null (reading 'useContext')" (uji e2e pembukaan jadi flaky).
+import { Link } from "react-router-dom";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
