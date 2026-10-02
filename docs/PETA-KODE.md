@@ -65,6 +65,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 - `npm run uji:pendaftaran` → `node server/uji/uji-pendaftaran.mjs`
 - `npm run uji:quiz` → `node scripts/uji-quiz.mjs`
 - `npm run uji:rekor-rush` → `node server/uji/uji-rekor-rush.mjs`
+- `npm run uji:rilis:v1` → `npm audit --omit=dev --audit-level=moderate && npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz && npm run build`
 - `npm run uji:seret-bidak` → `node scripts/uji-seret-bidak.mjs`
 - `npm run uji:supabase` → `node scripts/uji-supabase.mjs`
 - `npm run uji:verifikasi` → `node server/uji/uji-verifikasi.mjs`

@@ -21,8 +21,24 @@ try {
   if (!respons.ok || data?.status !== "sehat") {
     throw new Error(`HTTP ${respons.status}; status=${data?.status || "tidak sah"}`);
   }
+  if (data?.versiApi !== "v1") {
+    throw new Error(`versi API bukan v1 (diterima: ${data?.versiApi || "kosong"})`);
+  }
+  if (
+    process.env.KCI_HEALTH_REQUIRE_SUPABASE === "1" &&
+    (!data?.supabase?.terpasang || !data?.supabase?.siap)
+  ) {
+    throw new Error(
+      `Supabase belum siap (terpasang=${Boolean(data?.supabase?.terpasang)}, ` +
+        `siap=${Boolean(data?.supabase?.siap)})`
+    );
+  }
   const requestId = respons.headers.get("x-request-id");
-  console.log(`[health] sehat — ${url}${requestId ? ` (request ${requestId})` : ""}`);
+  console.log(
+    `[health] sehat — ${url}; API ${data.versiApi}; ` +
+      `Supabase ${data?.supabase?.siap ? "siap" : "belum siap"}` +
+      (requestId ? ` (request ${requestId})` : "")
+  );
 } catch (error) {
   console.error(`[health] GAGAL — ${url}: ${error.name === "AbortError" ? "timeout" : error.message}`);
   process.exitCode = 1;
