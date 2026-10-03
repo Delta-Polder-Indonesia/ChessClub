@@ -17,7 +17,7 @@
  *      dipanggil pada bidak di petak tujuan dengan pergeseran awal yang tepat,
  *      dan TIDAK dipanggil saat posisi diganti atau papan dibalik.
  *
- * Bagian B melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Bagian B gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-animasi-bidak.mjs  |  npm run uji:animasi-bidak
@@ -188,9 +188,9 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("\nB. dilewati — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  console.log("\nB. GAGAL — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
   console.log(`\n${lulus} lulus, ${gagal} gagal`);
-  process.exit(gagal ? 1 : 0);
+  process.exit(1);
 }
 
 console.log("\nB. papan PapanTekaTeki di atas jsdom");

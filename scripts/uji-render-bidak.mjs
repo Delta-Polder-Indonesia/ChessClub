@@ -31,7 +31,7 @@
  *      gagal di CI. `PapanMini` tidak diekspor, jadi halaman dirender lewat
  *      default export `Pembukaan()` tanpa menyentuh `src/`.
  *
- * Lapis A dan B dilewati bila esbuild tidak terpasang; lapis C dan D juga bila
+ * Semua lapis gagal keras bila esbuild tidak terpasang; lapis C dan D juga gagal bila
  * jsdom tidak terpasang — keduanya bukan dependensi runtime situs.
  *
  * C dan D sengaja tidak berhenti di branch "modul gagal dimuat": keduanya harus
@@ -75,7 +75,9 @@ function uji(nama, kondisi, keterangan = "") {
 }
 function lewati(nama, alasan) {
   dilewati++;
-  console.log(`  – ${nama} DILEWATI: ${alasan}`);
+  gagal++;
+  process.exitCode = 1;
+  console.error(`  ✗ ${nama} TIDAK BERJALAN: ${alasan}`);
 }
 /** Ringkas daftar masalah jadi satu baris keterangan yang masih terbaca. */
 function ringkas(daftar, batas = 8) {

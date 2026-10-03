@@ -30,7 +30,7 @@
  * mencemari bagian berikutnya — komponen di-unmount dulu sebelum bagian
  * baru dimulai.
  *
- * Skrip melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-evaluasi-manusia-vs-mesin.mjs
@@ -69,8 +69,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("dilewati \u2014 pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
-  process.exit(0);
+  console.error("GAGAL: jsdom dan esbuild wajib terpasang untuk menjalankan uji ini.");
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

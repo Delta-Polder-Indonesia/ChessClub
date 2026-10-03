@@ -9,7 +9,7 @@
  * dengan renderToString (hasil bundel esbuild, jadi sekalian membuktikan JSX
  * + alias "@" teresolusi), lalu memeriksa markup kunci yang dijanjikan.
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila esbuild tidak
+ * Skrip gagal keras bila esbuild tidak
  * terpasang — ia bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-tools.mjs  |  npm run uji:tools
@@ -27,8 +27,8 @@ let esbuild;
 try {
   esbuild = require("esbuild");
 } catch {
-  console.log("lewati uji tools — pasang `npm i -D esbuild` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji tools — pasang `npm i -D esbuild` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const TMP = mkdtempSync(path.join(tmpdir(), "uji-tools-"));

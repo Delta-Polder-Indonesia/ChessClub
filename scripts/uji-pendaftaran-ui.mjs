@@ -15,7 +15,7 @@
  *    membuat halaman crash (dan tidak dihapus sebelum berhasil diurai);
  *  - pergantian bahasa tidak meninggalkan pesan basi.
  *
- * Skrip melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-pendaftaran-ui.mjs  |  npm run uji:pendaftaran-ui
@@ -40,9 +40,9 @@ function ada(nama) {
 
 if (!ada("jsdom") || !ada("esbuild")) {
   console.log(
-    "lewati uji UI pendaftaran — pasang `npm i -D jsdom esbuild` untuk menjalankannya."
+    "GAGAL: tidak dapat menjalankan uji UI pendaftaran — pasang `npm i -D jsdom esbuild` untuk menjalankannya."
   );
-  process.exit(0);
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

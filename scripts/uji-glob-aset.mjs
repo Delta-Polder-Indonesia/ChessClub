@@ -48,7 +48,9 @@ function uji(nama, kondisi, keterangan = "") {
 }
 function lewati(nama, alasan) {
   dilewati++;
-  console.log(`  – ${nama} DILEWATI: ${alasan}`);
+  gagal++;
+  process.exitCode = 1;
+  console.error(`  ✗ ${nama} TIDAK BERJALAN: ${alasan}`);
 }
 
 /** Semua berkas .js/.jsx di bawah `src/`. */

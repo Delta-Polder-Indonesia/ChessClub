@@ -300,7 +300,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("lewati uji DOM pembaca — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  gagal.push("uji DOM pembaca tidak berjalan: jsdom atau esbuild tidak terpasang");
+  console.error("  ✗ uji DOM pembaca tidak berjalan — jsdom dan esbuild wajib terpasang.");
 } else {
   console.log("Komponen PembacaPdf (jsdom):");
 

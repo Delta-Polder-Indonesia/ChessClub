@@ -20,7 +20,7 @@
  *      (diperiksa statis: jsdom tidak punya tata letak maupun
  *      `elementFromPoint`, jadi seret penuh halaman tidak dapat dijalankan).
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-bantuan-langkah.mjs
@@ -45,8 +45,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("lewati uji bantuan langkah — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji bantuan langkah — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const { build } = require("esbuild");
