@@ -21,7 +21,7 @@ yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manu
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — 37 langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:rute`, `uji:peta`,
+- `npm run uji` — langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:impor-css`, `uji:rute`, `uji:peta`,
   `uji:desain`, `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`,
   `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`,
   `uji:akun-database`, `uji:tarik-api`, `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`,
