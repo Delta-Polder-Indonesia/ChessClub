@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
+@import "./gaya/shadcn-tailwind.css";
 @import "@fontsource-variable/geist";
 
 /* Batasi sumber pindai Tailwind ke berkas yang benar-benar dirender browser.
