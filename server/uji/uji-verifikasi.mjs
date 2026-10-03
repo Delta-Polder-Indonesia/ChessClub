@@ -430,8 +430,7 @@ console.log("\nVerifikasi kode di profil (lewat HTTP)");
       .then((r) => r.ok)
       .catch(() => false);
     if (!hidup) {
-      console.log(`  (server di ${DASAR} tidak merespons — bagian ini dilewati)`);
-      DASAR = "";
+      throw new Error(`Server uji di ${DASAR} tidak merespons; uji HTTP verifikasi tidak boleh dilewati.`);
     }
   }
   let tokenPengurus = "";
@@ -454,8 +453,8 @@ console.log("\nVerifikasi kode di profil (lewat HTTP)");
     let csrfToken = "";
     try {
       csrfToken = await ambilTokenCsrf(DASAR);
-    } catch {
-      console.log("  (server tidak menerbitkan token CSRF — bagian ini dilewati)");
+    } catch (galat) {
+      throw new Error(`Server uji tidak menerbitkan token CSRF: ${galat?.message || galat}`);
     }
 
     if (csrfToken) {

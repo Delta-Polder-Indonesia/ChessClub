@@ -16,7 +16,7 @@
  *     memakai cache pada pemutaran berikutnya.
  *  5. Halaman papan tidak menulis alamat `/SoundChess/...` secara langsung.
  *
- * Skrip melewatkan dirinya (exit 0) bila esbuild tidak terpasang.
+ * Skrip gagal keras bila esbuild tidak terpasang.
  *
  * Jalankan: node scripts/uji-suara.mjs
  */
@@ -94,8 +94,8 @@ function ada(nama) {
 }
 
 if (!ada("esbuild")) {
-  console.log("\nlewati uji modul suara — pasang `npm i -D esbuild` untuk menjalankannya.");
-  process.exit(gagal ? 1 : 0);
+  console.log("\nGAGAL: tidak dapat menjalankan uji modul suara — pasang `npm i -D esbuild` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

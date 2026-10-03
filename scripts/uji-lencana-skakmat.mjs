@@ -13,7 +13,7 @@
  *   3. alur penuh halaman TekaTeki — mainkan langkah terakhir satu soal
  *      "Mate in One" dari basis data, lalu pastikan lencananya muncul.
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-lencana-skakmat.mjs
@@ -74,9 +74,9 @@ uji("posisi awal → null", petakRajaTermat(FEN_AWAL) === null);
 uji("FEN rusak / kosong → null (tidak melempar)", petakRajaTermat("bukan-fen") === null && petakRajaTermat("") === null);
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("\nlewati uji render — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  console.log("\nGAGAL: tidak dapat menjalankan uji render — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
   console.log(`\n${lulus} lulus, ${gagal} gagal`);
-  process.exit(gagal ? 1 : 0);
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

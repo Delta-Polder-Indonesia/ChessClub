@@ -15,7 +15,7 @@
  * mempercepat WAKTU (stub Date.now berjalan ±20×) alih-alih mempercepat
  * interval — 3 menit selesai ±9 detik nyata, tanpa mengubah logika komponen.
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-rush-waktu.mjs
@@ -66,9 +66,9 @@ async function tungguHingga(kondisi, batasMs = 15000, jedaMs = 25) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("\nlewati uji render — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  console.log("\nGAGAL: tidak dapat menjalankan uji render — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
   console.log(`\n${lulus} lulus, ${gagal} gagal`);
-  process.exit(gagal ? 1 : 0);
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

@@ -21,7 +21,7 @@
  *   6. gestur tidak pernah mengubah langkah yang dijalankan — petak asal
  *      selalu diklik terakhir.
  *
- * Skrip melewatkan dirinya (exit 0) bila jsdom belum terpasang.
+ * Skrip gagal keras bila jsdom belum terpasang.
  *
  * Jalankan: node scripts/uji-gestur-lawan.mjs
  */
@@ -42,8 +42,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom")) {
-  console.log("lewati uji gestur lawan — pasang `npm i -D jsdom` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji gestur lawan — pasang `npm i -D jsdom` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const { JSDOM } = require("jsdom");

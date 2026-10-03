@@ -24,7 +24,7 @@
  *      Pemeriksaan halaman bersifat statis karena jsdom tidak menyediakan
  *      tata letak maupun `elementFromPoint` untuk menjalankan alur penuh.
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-tanda-papan.mjs
@@ -49,8 +49,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("lewati uji tanda papan — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji tanda papan — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const { build } = require("esbuild");

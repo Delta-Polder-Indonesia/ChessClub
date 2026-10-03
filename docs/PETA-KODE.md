@@ -13,43 +13,45 @@ Cara pakai saat audit: cari nama folder/berkas yang Anda curigai di tabel
 `npm run uji` menjalankan rangkaian berikut secara berurutan (berhenti di
 kegagalan pertama karena dirangkai dengan `&&`):
 
-1. `npm run uji:rute`
-2. `npm run uji:peta`
-3. `npm run uji:desain`
-4. `npm run uji:seo`
-5. `npm run uji:i18n`
-6. `npm run uji:tools`
-7. `npm run uji:komentator`
-8. `npm run uji:basisdata-awan`
-9. `npm run uji:analisa`
-10. `npm run uji:analisa-ui`
-11. `npm run uji:engine`
-12. `npm run uji:analisa-menyeluruh`
-13. `npm run uji:suara`
-14. `npm run uji:basisdata`
-15. `npm run uji:akun-database`
-16. `npm run uji:tarik-api`
-17. `npm run uji:buku-analisa`
-18. `npm run uji:lencana-skakmat`
-19. `npm run uji:tanda-papan`
-20. `npm run uji:animasi-bidak`
-21. `npm run uji:glob-aset`
-22. `npm run uji:render-bidak`
-23. `npm run uji:gestur-lawan`
-24. `npm run uji:evaluasi-manusia-vs-mesin`
-25. `npm run uji:bantuan-langkah`
-26. `npm run uji:repertoar`
-27. `npm run uji:sunfish`
-28. `npm run uji:tekateki-solusi`
-29. `npm run uji:rush`
-30. `npm run uji:gambar`
-31. `node scripts/uji-identitas.mjs` (langsung)
-32. `npm run uji:skema`
-33. `node scripts/uji-ebook.mjs` (langsung)
-34. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-35. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-36. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-37. `npm run uji:pendaftaran-ui`
+1. `npm run uji:integritas-suite`
+2. `npm run uji:impor-css`
+3. `npm run uji:rute`
+4. `npm run uji:peta`
+5. `npm run uji:desain`
+6. `npm run uji:seo`
+7. `npm run uji:i18n`
+8. `npm run uji:tools`
+9. `npm run uji:komentator`
+10. `npm run uji:basisdata-awan`
+11. `npm run uji:analisa`
+12. `npm run uji:analisa-ui`
+13. `npm run uji:engine`
+14. `npm run uji:analisa-menyeluruh`
+15. `npm run uji:suara`
+16. `npm run uji:basisdata`
+17. `npm run uji:akun-database`
+18. `npm run uji:tarik-api`
+19. `npm run uji:buku-analisa`
+20. `npm run uji:lencana-skakmat`
+21. `npm run uji:tanda-papan`
+22. `npm run uji:animasi-bidak`
+23. `npm run uji:glob-aset`
+24. `npm run uji:render-bidak`
+25. `npm run uji:gestur-lawan`
+26. `npm run uji:evaluasi-manusia-vs-mesin`
+27. `npm run uji:bantuan-langkah`
+28. `npm run uji:repertoar`
+29. `npm run uji:sunfish`
+30. `npm run uji:tekateki-solusi`
+31. `npm run uji:rush`
+32. `npm run uji:gambar`
+33. `node scripts/uji-identitas.mjs` (langsung)
+34. `npm run uji:skema`
+35. `node scripts/uji-ebook.mjs` (langsung)
+36. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+37. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+38. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+39. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
@@ -102,6 +104,8 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-hasil.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-i18n.mjs` | `npm run uji:i18n` |
 | `scripts/uji-identitas.mjs` | `npm run uji` |
+| `scripts/uji-impor-css.mjs` | `npm run uji:impor-css` |
+| `scripts/uji-integritas-suite.mjs` | `npm run uji:integritas-suite` |
 | `scripts/uji-jsonld.mjs` | `npm run uji:jsonld`, `npm run uji:seo` |
 | `scripts/uji-klasifikasi.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-komentar.mjs` | `npm run uji:analisa-menyeluruh` |
@@ -164,9 +168,9 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `plugins` | 3 | `uji-rute.mjs`, `uji-seo.mjs` | — |
 | `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-repertoar.mjs`, `uji-supabase.mjs`, +1 | Persistence: JSON Seed Data & Supabase |
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
-| `scripts` | 79 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +45 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
+| `scripts` | 81 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +47 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | `uji-render-bidak.mjs` | — |
-| `public` | 417 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +11 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
+| `public` | 417 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +12 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
 ## 4. Cermin yang dijaga `uji:peta`
 

@@ -13,7 +13,7 @@
  *  5. `hapusKoleksi` menghapus tanpa `getAll` (kursor indeks) dan
  *     koleksi lain tak tersentuh.
  *
- * Skrip melewatkan dirinya (exit 0) bila `fake-indexeddb` tidak terpasang.
+ * Skrip gagal keras bila `fake-indexeddb` tidak terpasang.
  *
  * Jalankan: node scripts/uji-basisdata-galat.mjs
  */
@@ -34,8 +34,8 @@ function ada(nama) {
 }
 
 if (!ada("fake-indexeddb")) {
-  console.log("lewati uji galat basis data — pasang `npm i -D fake-indexeddb` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji galat basis data — pasang `npm i -D fake-indexeddb` untuk menjalankannya.");
+  process.exit(1);
 }
 
 await import("fake-indexeddb/auto");

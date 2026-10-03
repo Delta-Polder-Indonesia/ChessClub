@@ -16,7 +16,7 @@
  *  4. `sertakanPgn: false` benar-benar membuang teks PGN dari hasil.
  *  5. Filter, pencarian, dan pengurutan tetap memberi hasil yang benar.
  *
- * Skrip melewatkan dirinya (exit 0) bila `fake-indexeddb` tidak terpasang.
+ * Skrip gagal keras bila `fake-indexeddb` tidak terpasang.
  *
  * Jalankan: node scripts/uji-basisdata.mjs
  */
@@ -37,8 +37,8 @@ function ada(nama) {
 }
 
 if (!ada("fake-indexeddb")) {
-  console.log("lewati uji basis data — pasang `npm i -D fake-indexeddb` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji basis data — pasang `npm i -D fake-indexeddb` untuk menjalankannya.");
+  process.exit(1);
 }
 
 await import("fake-indexeddb/auto");

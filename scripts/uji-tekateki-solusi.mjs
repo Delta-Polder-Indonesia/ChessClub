@@ -17,7 +17,7 @@
  * gagal kalau pemanggilan glob di `ChessPiece` berubah bentuk dan tidak
  * lagi di-expand Vite.
  *
- * Skrip ini melewatkan dirinya (exit 0, ada catatan) bila jsdom/esbuild tidak
+ * Skrip gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-tekateki-solusi.mjs
@@ -45,8 +45,8 @@ function ada(nama) {
 }
 
 if (!ada("jsdom") || !ada("esbuild")) {
-  console.log("lewati uji solusi teka-teki — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
-  process.exit(0);
+  console.log("GAGAL: tidak dapat menjalankan uji solusi teka-teki — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
+  process.exit(1);
 }
 
 const { build } = require("esbuild");
