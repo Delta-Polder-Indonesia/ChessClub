@@ -105,6 +105,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-i18n.mjs` | `npm run uji:i18n` |
 | `scripts/uji-identitas.mjs` | `npm run uji` |
 | `scripts/uji-impor-css.mjs` | `npm run uji:impor-css` |
+| `scripts/uji-integritas-suite.mjs` | `npm run uji:integritas-suite` |
 | `scripts/uji-jsonld.mjs` | `npm run uji:jsonld`, `npm run uji:seo` |
 | `scripts/uji-klasifikasi.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-komentar.mjs` | `npm run uji:analisa-menyeluruh` |
@@ -167,7 +168,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `plugins` | 3 | `uji-rute.mjs`, `uji-seo.mjs` | — |
 | `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-repertoar.mjs`, `uji-supabase.mjs`, +1 | Persistence: JSON Seed Data & Supabase |
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
-| `scripts` | 80 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +46 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
+| `scripts` | 81 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +47 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | `uji-render-bidak.mjs` | — |
 | `public` | 417 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +12 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
