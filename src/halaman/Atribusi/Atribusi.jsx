@@ -148,6 +148,18 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
+          <li>
+            <img
+              src={berkasPublik("/AtribusiDanlisensi/Sunfish.webp")}
+              alt=""
+              draggable="false"
+              width={545}
+              height={267}
+              decoding="async"
+              loading="lazy"
+              className="h-20 w-auto"
+            />
+          </li>
           <li>{t("analisa.atribusi.enginePemulaOleh")}</li>
           <li>
             <Tautan href="https://github.com/thomasahle/sunfish">thomasahle/sunfish</Tautan> ·{" "}
@@ -292,6 +304,18 @@ export default function Atribusi() {
       ikon: null,
       isi: (
         <>
+          <li>
+            <img
+              src={berkasPublik("/AtribusiDanlisensi/Konstitusi.webp")}
+              alt=""
+              draggable="false"
+              width={640}
+              height={640}
+              decoding="async"
+              loading="lazy"
+              className="h-20 w-auto"
+            />
+          </li>
           <li>{t("analisa.atribusi.lisensiProyekOleh")}</li>
           <li>
             <a
@@ -319,7 +343,15 @@ export default function Atribusi() {
       <section className="w-full relative bg-transparent pl-6 md:pl-8 xl:pl-40 pr-6 md:pr-8 xl:pr-40 pb-16 pt-12 md:pt-14 xl:pt-16">
         <div className="relative w-full mx-auto max-w-[1280px]">
           <div className="flex flex-col items-center gap-4 text-center">
-            <License size={44} class="fill-gray-900" />
+            <img
+              src={berkasPublik("/AtribusiDanlisensi/Dewi-Keadilan.webp")}
+              alt=""
+              draggable="false"
+              width={235}
+              height={405}
+              decoding="async"
+              className="h-32 w-auto"
+            />
             <div className="w-full border-b border-grey-200 pb-4">
               <p className="mb-1 font-sans text-[13px] font-semibold text-primary">
                 {t("analisa.atribusi.judul")}
