@@ -47,6 +47,29 @@ export const landing = {
     ajakanDeskripsi:
       "Complete your personal data and start joining regular tournaments, coaching classes, and interactive board training sessions with the Indonesia Chess Community.",
     ajakanTombol: "Register Now",
+    alatLatihanJudul: "Daily practice tools",
+    alatLatihanDesk:
+      "Five practice tools for training calculation and reviewing your own play: tactical puzzles, rush mode, a knowledge quiz, an analysis report, and an opening book. All of them run in the browser, with nothing to install.",
+    alatTekaTekiJudul: "Teka-teki Catur",
+    alatTekaTekiDesk:
+      "5,486 mate puzzles of one to three moves from the Lichess puzzle database, each labelled with rating, theme, and the player it came from.",
+    alatTekaTekiCta: "Solve puzzles",
+    alatRushJudul: "Rush Teka-teki",
+    alatRushDesk:
+      "Work through a chain of increasingly hard mates against the clock, with three lives.",
+    alatRushCta: "Start a rush",
+    alatKuisJudul: "Kuis Catur",
+    alatKuisDesk:
+      "Multiple-choice trivia about chess, grouped by category and tracked on a leaderboard.",
+    alatKuisCta: "Start the quiz",
+    alatAnalisaJudul: "Report Analisa",
+    alatAnalisaDesk:
+      "Replay a game, step through the variations, and compare them with engine analysis to see where the critical moves turned.",
+    alatAnalisaCta: "Open Report Analisa",
+    alatPembukaanJudul: "Pembukaan",
+    alatPembukaanDesk:
+      "18,713 opening lines with their names and ECO codes, wired straight into this site's interactive board.",
+    alatPembukaanCta: "Browse openings",
     tigaJalanJudul: "Pick the path that fits",
     tigaJalanJudulAccent: "your level",
     tigaJalanAkademiKicker: "Chess Academy",
@@ -79,17 +102,18 @@ export const landing = {
       "The interactive opening book gives my practice a clear structure; I now know opponent plans and feel confident leaving the opening.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Community member, rated 1890",
-    arahJudul: "Give your design a different starting point.",
+    arahJudul: "BLUNDER SKUAD Staff",
     arahLead:
-      "Explore human-reviewed design directions, each with its own visual rules. Impeccable weighs these against ideas drawn from your product, then builds around the strongest fit.",
-    arahAriaLabel: "Design directions",
-    arahAltContoh: "example page design",
-    arahStatus: "Showing 6 design directions.",
-    arahAriaContoh: "A finished example",
-    arahContohJudul: "Neo Mirai",
+      "Six representative staff members who run the club, support its members, and coordinate BLUNDER SKUAD activities on Chess.com. The full roster with join dates and ratings lives on the group structure page.",
+    arahAriaLabel: "BLUNDER SKUAD staff list",
+    arahPengurusAlt: "Chess.com profile photo of a staff member",
+    arahStatus: "Showing 6 of 8 staff members.",
+    arahAltContoh: "BLUNDER SKUAD logo",
+    arahAriaContoh: "The BLUNDER SKUAD club on Chess.com",
+    arahContohJudul: "BLUNDER SKUAD",
     arahContohDesk:
-      "One design direction, carried through a complete website.",
-    arahContohCta: "Explore the result →",
-    arahContohBuka: "Open the live build →",
-    arahContohKasus: "Read the case →",
+      "An Indonesian chess club on Chess.com. Open to anyone who wants to play and learn.",
+    arahContohCta: "View the club on Chess.com",
+    arahContohBuka: "Staff list",
+    arahContohKasus: "Membership",
     }

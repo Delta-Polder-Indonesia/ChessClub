@@ -2,30 +2,33 @@
  * MaestroEdision — adopsi kerangka markup `.worlds-section` dari halaman
  * marketing Impeccable (bagian "Give your design a different starting point").
  *
- * Berkas ini sengaja dibangun 100% struktural sama dengan sumber sebagai
- * langkah pertama; pemetaan teks ke istilah KCI dilakukan terpisah setelah
- * kerangka ini disetujui. Yang sudah dipetakan ke token KCI:
- * - Judul seksi memakai `JUDUL_SEKSI`, kepala seksi `KEPALA_SEKSI`, pengantar
- *   `LEAD_SEKSI` — semuanya dari `./gayaTeks.jsx`, pilot yang sama seperti
- *   `TigaJalan.jsx` dan `Testimoni.jsx`.
- * - Tier kartu memakai `LABEL_SEKSI` (font mono uppercase tracking 0.14em),
- *   nama kartu memakai `JUDUL_KARTU`.
- * - Aksen hijau lumut sumber diganti `text-primary`; tidak ada bayangan
- *   dekoratif (DESIGN.md §4); font tetap serif KCI, bukan display font sumber.
+ * Kerangka dua zona dari sumber dipertahankan utuh: kepala seksi, grid
+ * `lg:grid-cols-[minmax(0,1fr)_400px]`, `<ul>` kartu ber-fan (`--fan`), dan
+ * `<aside>` contoh utuh di kanan. Yang berubah hanya isi kartu kiri: mock
+ * "design direction" diganti enam perwakilan pengurus BLUNDER SKUAD.
  *
- * Struktur dua zona dari sumber, setelah teks yang diminta dihapus (label
- * zona "01"/"02", meta reroll, tombol "Show more", dan chip "Built with
- * Impeccable"):
- * - `<ul>` berisi 6 `<li>` kartu foto 2048x1152 dengan sudut fan per kartu
- *   (`--fan`), caption tier + nama, dan status `role=status`.
- * - `<aside>` dengan satu kartu besar 1440x1100.
+ * Pemetaan field sumber ke pengurus:
+ * - `tier`  -> label peran pengurus (`pengurus.peran.*`, sudah ada ID & EN).
+ * - `nama`  -> username Chess.com, dipakai sebagai nama kartu.
+ * - `aset`  -> `foto` pengurus dari `dataPengurus.js`.
  *
- * Catatan aset: gambar contoh tinggal di `public/Galeri_sample/`, di luar
- * `public/images/`, jadi `semuaWebP()` pada `scripts/optimumkan-gambar.mjs`
- * tidak memindainya dan `src/data/ukur-gambar.js` tidak memuatnya. Karena itu
- * `srcSet` tidak dibangun dan atribut `width`/`height` ditulis eksplisit di
- * sini (DESIGN.md §9 mensyaratkan dimensi untuk mencegah layout shift).
+ * Enam kartu pertama sesuai urutan `KELOMPOK_PENGURUS` (Admin Utama 4,
+ * Admin 1, Koordinator Acara 1); pengurus ke-7 dan ke-8 tetap tampil di
+ * `/tentang-kami/struktur-grup-catur#pengurus`.
+ *
+ * Catatan foto: avatar Chess.com disajikan dalam token `80x80o` saja — token
+ * ukuran lain membalas 404 (sudah diuji). Karena itu box gambar dikunci
+ * `aspect-video` (rasio 16:9 persis seperti slot sumber 2048x1152) dan foto
+ * ditampilkan `object-contain`, sehingga tinggi kartu tidak berubah. Bila foto
+ * gagal dimuat, kartu mundur ke huruf awal username — pola yang sama dengan
+ * `Pengurus.jsx`.
+ *
+ * Catatan aset: enam berkas `public/Galeri_sample/cards/*.webp` yang dulu
+ * dipakai di sini kini tidak direferensikan lagi; berkas itu dibiarkan apa
+ * adanya (di luar cakupan perubahan ini).
  */
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import {
   JUDUL_SEKSI,
@@ -34,50 +37,47 @@ import {
   LABEL_SEKSI,
   JUDUL_KARTU,
 } from "./gayaTeks.jsx";
+import { KELOMPOK_PENGURUS } from "../TentangKami/StrukturGrupCatur/dataPengurus.js";
 
 /**
- * Enam kartu arah desain. `fan` adalah sudut rotasi kartu sesuai variabel
- * `--fan` pada sumber; nilainya dipertahankan agar siluet kipas pada grid
- * tetap sama. Nama file aset persis sama dengan sumber.
+ * Sudut rotasi kartu, persis nilai `--fan` dari sumber. Dipakai ulang agar
+ * siluet kipas pada grid tetap sama; urutannya menempel pada enam kartu.
  */
-const ARAH = [
-  {
-    aset: "/Galeri_sample/cards/textiles_weave_drape_fashion_sneaker_box_stacks_hero.webp",
-    nama: "Sneaker Box Stacks",
-    tier: "atmosphere",
-    fan: "-2.1deg",
-  },
-  {
-    aset: "/Galeri_sample/cards/craft_making_lowicz_layered_papercut_hero.webp",
-    nama: "Lowicz Layered Papercut",
-    tier: "atmosphere",
-    fan: "1.4deg",
-  },
-  {
-    aset: "/Galeri_sample/cards/digital_design_canon_console_dashboard_atmosphere_hero.webp",
-    nama: "Console Dashboard Atmosphere",
-    tier: "graphic",
-    fan: "-1.1deg",
-  },
-  {
-    aset: "/Galeri_sample/cards/pop_culture_shelf_doujin_event_catalog_hero.webp",
-    nama: "Doujin Event Catalog",
-    tier: "graphic",
-    fan: "1.9deg",
-  },
-  {
-    aset: "/Galeri_sample/cards/signals_instruments_darkroom_safelight_bay_hero.webp",
-    nama: "Darkroom Safelight Bay",
-    tier: "interaction",
-    fan: "-1.6deg",
-  },
-  {
-    aset: "/Galeri_sample/cards/medium_native_algorave_source_floor_hero.webp",
-    nama: "Algorave Source Floor",
-    tier: "interaction",
-    fan: "1.2deg",
-  },
-];
+const FAN = ["-2.1deg", "1.4deg", "-1.1deg", "1.9deg", "-1.6deg", "1.2deg"];
+
+/** Enam pengurus pertama, tetap berurutan seperti urutan kelompok di data. */
+const PERWAKILAN = KELOMPOK_PENGURUS.flatMap((kelompok) =>
+  kelompok.anggota.map((anggota) => ({ ...anggota, kelompok: kelompok.id })),
+).slice(0, 6);
+
+function FotoPengurus({ anggota, alt }) {
+  const [gagal, setGagal] = useState(false);
+
+  if (gagal || !anggota.foto) {
+    return (
+      <span
+        aria-hidden="true"
+        className="font-serif text-[3.5rem] font-light leading-none text-grey-400"
+      >
+        {anggota.username.slice(0, 1).toUpperCase()}
+      </span>
+    );
+  }
+
+  return (
+    <img
+      src={anggota.foto}
+      alt={alt}
+      width="80"
+      height="80"
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      onError={() => setGagal(true)}
+      className="h-full w-full object-contain"
+    />
+  );
+}
 
 export default function MaestroEdision() {
   const { t } = useI18n();
@@ -91,31 +91,35 @@ export default function MaestroEdision() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_400px] gap-8 lg:gap-10 items-start">
-          {/* Zona 01 — enam kartu arah desain. */}
+          {/* Zona 01 — enam perwakilan pengurus. */}
           <div>
             <ul
               className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 md:gap-[18px]"
               data-worlds-hand=""
               aria-label={t("landing.arahAriaLabel")}
             >
-              {ARAH.map((arah) => (
-                <li key={arah.aset} style={{ "--fan": arah.fan }}>
-                  <div className="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-300 bg-white transition-colors hover:border-primary focus-within:border-primary">
-                    <div className="w-full overflow-hidden bg-slate-50">
-                      <img
-                        src={arah.aset}
-                        alt={`${arah.nama}: ${t("landing.arahAltContoh")}`}
-                        width={2048}
-                        height={1152}
-                        decoding="async"
-                        className="w-full h-auto object-cover"
+              {PERWAKILAN.map((pengurus, i) => (
+                <li key={pengurus.username} style={{ "--fan": FAN[i] }}>
+                  <a
+                    href={`https://www.chess.com/member/${pengurus.username.toLowerCase()}`}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={`${t("pengurus.bukaProfil")} ${pengurus.username}`}
+                    className="group flex h-full flex-col overflow-hidden rounded-lg border border-slate-300 bg-white transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                  >
+                    <div className="flex aspect-video w-full items-center justify-center overflow-hidden bg-slate-50">
+                      <FotoPengurus
+                        anggota={pengurus}
+                        alt={`${pengurus.username}: ${t("landing.arahPengurusAlt")}`}
                       />
                     </div>
                     <div className="flex flex-col gap-2 p-5">
-                      <span className={LABEL_SEKSI}>{arah.tier}</span>
-                      <strong className={JUDUL_KARTU}>{arah.nama}</strong>
+                      <span className={LABEL_SEKSI}>
+                        {t(`pengurus.peran.${pengurus.kelompok}`)}
+                      </span>
+                      <strong className={JUDUL_KARTU}>{pengurus.username}</strong>
                     </div>
-                  </div>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -129,21 +133,28 @@ export default function MaestroEdision() {
             </p>
           </div>
 
-          {/* Zona 02 — satu contoh yang sudah jadi utuh. */}
+          {/* Zona 02 — kartu klub BLUNDER SKUAD. */}
           <aside aria-label={t("landing.arahAriaContoh")}>
             <a
-              href="/neo-mirai/index.html"
+              href="https://www.chess.com/club/blunder-skuad"
+              target="_blank"
+              rel="noreferrer noopener"
               className="flex flex-col overflow-hidden rounded-lg border border-slate-300 bg-white transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              <img
-                src="/Galeri_sample/neo_mirai/live_fold.webp"
-                alt={t("landing.arahAltContoh")}
-                width={1440}
-                height={1100}
-                loading="lazy"
-                decoding="async"
-                className="w-full h-auto object-cover"
-              />
+              {/* Box dikunci ke rasio asli 1440x1100 (0.7639) agar tinggi kartu
+                  tidak berubah walau ganti gambar. Latar hitam menyesuaikan
+                  latar logo sehingga palang kiri-kanan menyatu. */}
+              <div className="aspect-[1440/1100] w-full overflow-hidden bg-black">
+                <img
+                  src="/images/BlunderSkuad.png"
+                  alt={t("landing.arahAltContoh")}
+                  width={1440}
+                  height={1100}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-contain"
+                />
+              </div>
               <span className="flex flex-col gap-2 p-5">
                 <strong className={JUDUL_KARTU}>{t("landing.arahContohJudul")}</strong>
                 <span className={LEAD_SEKSI}>{t("landing.arahContohDesk")}</span>
@@ -152,19 +163,22 @@ export default function MaestroEdision() {
                 </span>
               </span>
             </a>
+            {/* Dua tautan ini dulu menunjuk ke /neo-mirai dan /cases/neo-mirai,
+                yang keduanya tidak ada di public/ (404). Diarahkan ke rute
+                struktur grup catur yang benar-benar terdaftar di App.jsx. */}
             <p className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 font-serif text-sm text-black">
-              <a
-                href="/neo-mirai/index.html"
+              <Link
+                to="/tentang-kami/struktur-grup-catur#pengurus"
                 className="underline decoration-black underline-offset-4 transition-colors hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {t("landing.arahContohBuka")}
-              </a>
-              <a
-                href="/cases/neo-mirai"
+              </Link>
+              <Link
+                to="/tentang-kami/struktur-grup-catur#keanggotaan"
                 className="underline decoration-black underline-offset-4 transition-colors hover:decoration-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 {t("landing.arahContohKasus")}
-              </a>
+              </Link>
             </p>
           </aside>
         </div>

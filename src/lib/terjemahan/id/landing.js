@@ -47,6 +47,29 @@ export const landing = {
     ajakanDeskripsi:
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
+    alatLatihanJudul: "Alat latihan harian",
+    alatLatihanDesk:
+      "Lima alat latihan untuk mengasah kalkulasi dan membaca ulang hasil sendiri: teka-teki taktis, mode rush, kuis pengetahuan, laporan analisis, dan buku pembukaan. Semuanya berjalan di peramban, tanpa pemasangan apa pun.",
+    alatTekaTekiJudul: "Teka-teki Catur",
+    alatTekaTekiDesk:
+      "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
+    alatTekaTekiCta: "Kerjakan teka-teki",
+    alatRushJudul: "Rush Teka-teki",
+    alatRushDesk:
+      "Pecahkan skakmat beruntun yang makin sulit dalam batas waktu, dengan tiga nyawa.",
+    alatRushCta: "Mulai rush",
+    alatKuisJudul: "Kuis Catur",
+    alatKuisDesk:
+      "Soal trivia pilihan ganda tentang catur, dikelompokkan per kategori dan disertai papan peringkat.",
+    alatKuisCta: "Mulai kuis",
+    alatAnalisaJudul: "Report Analisa",
+    alatAnalisaDesk:
+      "Mainkan ulang partai, telusuri variasi, dan bandingkan dengan analisis mesin untuk memahami langkah kritis Anda.",
+    alatAnalisaCta: "Buka Report Analisa",
+    alatPembukaanJudul: "Pembukaan",
+    alatPembukaanDesk:
+      "18.713 jalur pembukaan beserta nama dan kode ECO-nya, terhubung langsung ke papan interaktif situs ini.",
+    alatPembukaanCta: "Jelajahi pembukaan",
     tigaJalanJudul: "Pilih jalur yang paling cocok",
     tigaJalanJudulAccent: "untuk jenjang Anda",
     tigaJalanAkademiKicker: "Akademi Catur",
@@ -79,17 +102,18 @@ export const landing = {
       "Buku pembukaan interaktif memberi struktur latihan yang jelas; saya mulai hafal rencana lawan dan berani keluar dari pembukaan tanpa cemas.",
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
-    arahJudul: "Give your design a different starting point.",
+    arahJudul: "Pengurus blunder skuad",
     arahLead:
-      "Explore human-reviewed design directions, each with its own visual rules. Impeccable weighs these against ideas drawn from your product, then builds around the strongest fit.",
-    arahAriaLabel: "Design directions",
-    arahAltContoh: "example page design",
-    arahStatus: "Showing 6 design directions.",
-    arahAriaContoh: "A finished example",
-    arahContohJudul: "Neo Mirai",
+      "Enam pengurus perwakilan yang mengelola klub, mendampingi anggota, dan mengoordinasikan kegiatan BLUNDER SKUAD di Chess.com. Susunan lengkap beserta tanggal bergabung dan rating ada di halaman struktur grup catur.",
+    arahAriaLabel: "Daftar pengurus BLUNDER SKUAD",
+    arahPengurusAlt: "foto profil Chess.com pengurus",
+    arahStatus: "Menampilkan 6 dari 8 pengurus.",
+    arahAltContoh: "Logo BLUNDER SKUAD",
+    arahAriaContoh: "Klub BLUNDER SKUAD di Chess.com",
+    arahContohJudul: "BLUNDER SKUAD",
     arahContohDesk:
-      "One design direction, carried through a complete website.",
-    arahContohCta: "Explore the result →",
-    arahContohBuka: "Open the live build →",
-    arahContohKasus: "Read the case →",
+      "Klub catur Indonesia di Chess.com. Terbuka untuk siapa pun yang mau bermain dan belajar.",
+    arahContohCta: "Lihat klub di Chess.com",
+    arahContohBuka: "Susunan pengurus",
+    arahContohKasus: "Keanggotaan",
 }
