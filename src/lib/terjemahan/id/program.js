@@ -116,7 +116,7 @@ export const tipsTekaTeki = {
       "Latihan taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess — saring menurut level dan tema, kerjakan langsung di peramban.",
     metaDeskripsi:
       "Alat latihan teka-teki skakmat Komunitas Catur Indonesia: 5.486 soal skakmat 1–3 langkah dari partai nyata basis data puzzle Lichess, dengan saringan level, tema, dan petunjuk.",
-    introJudul: "5.486 soal skakmat dari partai nyata",
+    introJudul: "Kuasai Taktik Catur dengan Puzzle dari Partai Turnamen Sungguhan",
     intro1:
       "Teka-teki & Tips adalah halaman pengantar alat latihan taktik Komunitas Catur Indonesia. Koleksinya memuat 5.486 soal skakmat satu sampai tiga langkah yang diambil dari partai nyata di basis data puzzle Lichess. Setiap soal menyertakan rating, penanda tema, serta nama pemain dan pembukaan partai asalnya.",
     intro2:
@@ -136,6 +136,7 @@ export const tipsTekaTeki = {
     demoNarasi3: "26. Qa8# — skakmat di baris kedelapan.",
     demoAriaPapan:
       "Papan catur posisi soal #4457: putih melangkah, skakmat dalam dua langkah.",
+    pengantarAriaPapan: "Papan catur posisi soal #1927: putih melangkah.",
     labelNomor: "Nomor soal",
     labelJenis: "Jenis",
     labelRating: "Rating soal",
@@ -425,6 +426,8 @@ export const rushLanding = {
       "Rush Teka-teki adalah mode latihan berjangka waktu: Anda menyelesaikan soal skakmat satu demi satu, dan setiap soal yang tuntas membuka soal berikutnya yang sedikit lebih sulit. Tujuannya sederhana — kumpulkan skor setinggi mungkin sebelum waktu habis.",
     intro2:
       "Format ini melatih pengenalan pola secara refleks. Alih-alih menghitung panjang, Anda dibiasakan langsung mengenali motif taktik yang berulang — garpu, sula, serangan ganda, hingga pola skakmat khas — sehingga saat bertanding, mata Anda lebih cepat menangkap peluang.",
+    introGambarAlt:
+      "Infografis manfaat latihan puzzle: mempertajam visi taktik, meningkatkan keterampilan menghitung, dan memperkuat pengenalan pola.",
     caraJudul: "Cara bermain",
     langkah1: "Masukkan username Chess.com Anda, lalu pilih durasi permainan: 3 menit atau 5 menit.",
     langkah2: "Pecahkan setiap soal skakmat — klik atau seret bidak ke petak tujuan sebelum lawan membalas.",

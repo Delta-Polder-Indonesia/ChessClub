@@ -110,7 +110,7 @@ export function CorporateSidebar({ title, items }) {
       </aside>
 
       <div className="lg:hidden relative w-full">
-        <div className="sticky top-0 bg-white z-20 border-b mb-6 transition-all duration-300 ease-in-out">
+        <div className="sticky top-0 bg-paper z-20 border-b mb-6 transition-all duration-300 ease-in-out">
           <button
             type="button"
             onClick={() => setOpen((value) => !value)}

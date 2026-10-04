@@ -268,7 +268,7 @@ function KatalogBuku({ t, angka }) {
       </p>
       <div className="mt-3 max-h-[30rem] overflow-y-auto rounded border border-grey-200">
         <table className="w-full border-collapse font-sans text-sm">
-          <thead className="sticky top-0 bg-white">
+          <thead className="sticky top-0 bg-paper">
             <tr className="border-b border-grey-200 text-xs text-grey-600">
               <th scope="col" className="px-3 py-2.5 text-left font-semibold">
                 {t("bukuPembukaan.kolomEco")}
@@ -344,7 +344,7 @@ export default function Pembukaan() {
       next={{ to: "/program-kami/ebook-panduan", judul: t("nav.eBookPanduan") }}
     >
       {/* ═══ Pembuka — editorial: judul, dua paragraf, baris angka ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.introJudul")}
@@ -377,7 +377,7 @@ export default function Pembukaan() {
       </section>
 
       {/* ═══ Pohon langkah pertama — papan mini + balasan teratas ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.pohonJudul")}
@@ -447,7 +447,7 @@ export default function Pembukaan() {
       </section>
 
       {/* ═══ Katalog — naskah di kiri, tabel yang bisa dicari di kanan ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="grid gap-x-16 gap-y-10 lg:grid-cols-12">
             <div className="lg:col-span-4">
@@ -472,7 +472,7 @@ export default function Pembukaan() {
       </section>
 
       {/* ═══ Di papan interaktif — daftar ringkas fitur buku ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.alatJudul")}
@@ -491,7 +491,7 @@ export default function Pembukaan() {
       </section>
 
       {/* ═══ Penutup ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="rounded-lg border border-grey-200 p-8 md:p-10">
             <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">

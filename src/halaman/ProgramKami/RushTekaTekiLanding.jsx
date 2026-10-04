@@ -2,6 +2,7 @@ import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { sumberGambar } from "../../lib/asets.js";
 
 /**
  * Halaman landing "Rush Teka-teki" (/program-kami/rush-teka-teki).
@@ -29,6 +30,8 @@ export default function RushTekaTekiLanding() {
     { judul: t("rushLanding.fitur3Judul"), isi: t("rushLanding.fitur3Isi") },
   ];
 
+  const gambarRush = sumberGambar("/images/RushPuzzle.webp");
+
   return (
     <HalamanIsi
       title={t("rushLanding.judul")}
@@ -39,22 +42,32 @@ export default function RushTekaTekiLanding() {
       next={{ to: "/program-kami/kuis-catur", judul: t("kuisLanding.judul") }}
     >
       <div className="font-serif">
-        {/* ═══ Pengantar — judul di atas, narasi di bawahnya ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
+        {/* ═══ Pengantar — kiri: judul & narasi; kanan: infografis ═══ */}
+        <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="flex flex-col gap-y-8">
-              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-                {t("rushLanding.introJudul")}
-              </h2>
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
+              {t("rushLanding.introJudul")}
+            </h2>
+            <div className="mt-8 grid gap-y-10 md:grid-cols-2 md:items-start md:gap-x-12">
               <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 <p className="m-0">{t("rushLanding.intro2")}</p>
+              </div>
+
+              <div className="w-full">
+                <img
+                  {...gambarRush}
+                  alt={t("rushLanding.introGambarAlt")}
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full rounded border border-slate-300"
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* ═══ Cara bermain — daftar bernomor ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
+        <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("rushLanding.caraJudul")}
@@ -75,7 +88,7 @@ export default function RushTekaTekiLanding() {
         </section>
 
         {/* ═══ Yang membuatnya melatih — daftar definisi ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
+        <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
               {t("rushLanding.fiturJudul")}
@@ -96,7 +109,7 @@ export default function RushTekaTekiLanding() {
         </section>
 
         {/* ═══ Ajakan mulai — panel datar + tautan ke alat ═══ */}
-        <section className="w-full bg-white">
+        <section className="w-full bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
             <div className="rounded-lg border border-grey-200 p-8 md:p-10">
               <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">

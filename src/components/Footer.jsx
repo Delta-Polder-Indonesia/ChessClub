@@ -43,7 +43,7 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="relative bg-white text-slate-700 px-6 md:px-10 xl:px-20 pt-12 md:pt-16 pb-8 md:pb-10">
+    <footer className="relative bg-paper text-slate-700 px-6 md:px-10 xl:px-20 pt-12 md:pt-16 pb-8 md:pb-10">
       <div className="w-full max-w-6xl mx-auto flex flex-col items-center gap-10 md:gap-12">
         {/* 1. Blok Sponsor */}
         {SPONSORS.length > 0 && (

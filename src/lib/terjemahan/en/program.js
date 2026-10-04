@@ -114,7 +114,8 @@ export const tipsTekaTeki = {
       "Tactics training with 5,486 checkmate puzzles from real games in the Lichess puzzle database — filter by level and theme, and solve them right in your browser.",
     metaDeskripsi:
       "The chess puzzle trainer of Komunitas Catur Indonesia: 5,486 mate-in-1 to mate-in-3 puzzles from real games in the Lichess puzzle database, with level and theme filters plus hints.",
-    introJudul: "5,486 checkmate puzzles from real games",
+    introJudul:
+      "Master chess tactics with puzzles from real tournament games",
     intro1:
       "Chess Puzzles & Tips introduces the tactics trainer of Komunitas Catur Indonesia. The collection holds 5,486 puzzles asking for mate in one to three moves, all taken from real games in the Lichess puzzle database. Each puzzle carries a rating, theme tags, and the players and opening of its source game.",
     intro2:
@@ -134,6 +135,8 @@ export const tipsTekaTeki = {
     demoNarasi3: "26. Qa8# — checkmate along the back rank.",
     demoAriaPapan:
       "Chess board with the position of puzzle #4457: white to move, mate in two.",
+    pengantarAriaPapan:
+      "Chess board with the position of puzzle #1927: white to move.",
     labelNomor: "Puzzle number",
     labelJenis: "Type",
     labelRating: "Puzzle rating",
@@ -423,6 +426,8 @@ export const rushLanding = {
       "Puzzle Rush is a timed practice mode: you solve checkmate puzzles one after another, and each solved puzzle unlocks a slightly harder one. The goal is simple — score as high as you can before time runs out.",
     intro2:
       "The format trains pattern recognition as a reflex. Instead of long calculation, you learn to instantly recognise recurring tactical motifs — forks, pins, double attacks, and classic mating patterns — so that in real games your eye catches chances faster.",
+    introGambarAlt:
+      "Infographic on the benefits of puzzle training: sharpens tactical vision, improves calculation skills, and boosts pattern recognition.",
     caraJudul: "How to play",
     langkah1: "Enter your Chess.com username, then choose a session length: 3 minutes or 5 minutes.",
     langkah2: "Solve each checkmate puzzle — click or drag your piece to the target square before your opponent replies.",

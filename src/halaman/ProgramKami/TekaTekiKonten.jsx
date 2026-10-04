@@ -1,24 +1,21 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useMemo } from "react";
 import { Chess } from "chess.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { parseLangkah, terapkan } from "../../lib/tekaTeki.js";
 
 /**
  * Halaman "Teka-teki & Tips" (/program-kami/teka-teki).
  *
- * Pintu masuk ke alat latihan taktik di /teka-teki. Seluruh kontennya
- * faktual: angka koleksi dihitung dari public/data/teka-teki.json, dan contoh
- * soal (#4457) disalin apa adanya dari berkas itu — solusinya 25. Rxe8+ Kxe8
- * 26. Qa8# (diverifikasi dengan chess.js; Kxe8 satu-satunya balasan legal).
+ * Pintu masuk ke alat latihan taktik di /teka-teki. Isinya satu seksi
+ * pengantar: judul, narasi, CTA, dan papan statis berisi posisi soal #1927
+ * dari public/data/teka-teki.json ("Mate in Two", rating 1095).
  *
- * Mengikuti DESIGN.md: serif untuk bacaan, sans untuk
- * kontrol dan tabel data, mono untuk notasi serta angka; garis 1px datar
- * tanpa gradien/glow; tata letak asimetris, bukan grid kartu kembar.
+ * Mengikuti DESIGN.md: serif untuk bacaan, sans untuk kontrol, mono untuk
+ * notasi serta angka; garis 1px datar tanpa gradien/glow; tata letak
+ * asimetris, bukan grid kartu kembar.
  */
 
 const RUTE_ALAT = "/teka-teki";
@@ -32,61 +29,21 @@ const PETAK_GELAP = "#779556";
 /* Tanda langkah terakhir — tint kuning datar ala lichess; bukan pendar. */
 const TINTA_LANGKAH = "rgba(255, 213, 79, 0.55)";
 
-/** Contoh soal #4457 — salinan dari public/data/teka-teki.json. */
-const CONTOH = {
-  id: 4457,
-  fen: "1R2nk1r/3pppb1/6p1/2P5/3P3p/2N1PQP1/3q1P1P/6K1 w - - 2 25",
-  langkah: ["b8-e8", "f8-e8", "f3-a8"], // 25. Rxe8+ Kxe8 26. Qa8#
-  pemain: "BeWater (2634) – Achanich (2449)",
-  sumberTeks: "lichess.org/wjMcCNHZ",
-  sumberUrl: "https://lichess.org/wjMcCNHZ/black#48",
-};
+/**
+ * Papan pengantar — posisi statis soal #1927 dari public/data/teka-teki.json
+ * ("Mate in Two", rating 1095). Hiasan kolom kanan, tanpa pemutar langkah.
+ */
+const PAPAN_PENGENAL =
+  "r2qrbk1/pb1n1pp1/1p1p1n1p/2pP2N1/2P5/2NBB3/PPQ2PPP/4RRK1 w - - 0 14";
 
-/** Komposisi koleksi — dihitung dari public/data/teka-teki.json (total 5.486). */
-const STATISTIK = [
-  { label: "statBaris1", nilai: "statNilai1", jumlah: 1377 },
-  { label: "statBaris2", nilai: "statNilai2", jumlah: 2991 },
-  { label: "statBaris3", nilai: "statNilai3", jumlah: 1118 },
-];
-const TOTAL_SOAL = 5486;
-
-/** Baris ringkasan koleksi: [kunciLabel, kunciNilai]. */
-const RINGKASAN = [
-  ["statPitaLabel", "statPitaNilai"],
-  ["statGiliranLabel", "statGiliranNilai"],
-  ["statSumberLabel", "statSumberNilai"],
-];
-
-const LANGKAH_CARA = ["cara1", "cara2", "cara3", "cara4"];
-
-const TIPS = [
-  { judul: "tips1Judul", isi: "tips1Isi" },
-  { judul: "tips2Judul", isi: "tips2Isi" },
-  { judul: "tips3Judul", isi: "tips3Isi" },
-  { judul: "tips4Judul", isi: "tips4Isi" },
-];
-
-/** Susunan papan, SAN, dan petak langkah terakhir setelah `diputar` langkah. */
-function posisiSolusi(diputar) {
-  let fen = CONTOH.fen;
-  const san = [];
-  for (let i = 0; i < diputar; i += 1) {
-    const g = terapkan(fen, parseLangkah(CONTOH.langkah[i]));
-    san.push(g.history().slice(-1)[0]);
-    fen = g.fen();
-  }
-  const terakhir = diputar ? parseLangkah(CONTOH.langkah[diputar - 1]) : null;
-  return { papan: new Chess(fen).board(), san, terakhir };
-}
-
-/** Papan statis untuk posisi contoh — render saja, tanpa interaksi. */
-function PapanContoh({ papan, terakhir }) {
+/** Papan statis — render saja, tanpa interaksi. */
+function PapanContoh({ papan, terakhir, ariaLabel }) {
   const { t } = useI18n();
 
   return (
     <div
       role="img"
-      aria-label={t("tipsTekaTeki.demoAriaPapan")}
+      aria-label={ariaLabel ?? t("tipsTekaTeki.demoAriaPapan")}
       className="w-full max-w-[420px] select-none"
     >
       <div className="grid aspect-square w-full grid-cols-8 overflow-hidden rounded border border-slate-300">
@@ -148,42 +105,8 @@ function PapanContoh({ papan, terakhir }) {
 
 export default function TekaTekiKonten() {
   const { t } = useI18n();
-  const [diputar, setDiputar] = useState(0);
 
-  const { papan, san, terakhir } = useMemo(
-    () => posisiSolusi(diputar),
-    [diputar],
-  );
-
-  const labelTombol =
-    diputar === 0
-      ? "demoPutar"
-      : diputar < CONTOH.langkah.length
-        ? "demoLanjut"
-        : "demoUlangi";
-
-  const barisContoh = [
-    { label: "labelNomor", isi: <span className="font-mono">#{CONTOH.id}</span> },
-    { label: "labelJenis", isi: t("tipsTekaTeki.nilaiJenis") },
-    { label: "labelRating", isi: <span className="font-mono">{t("tipsTekaTeki.nilaiRating")}</span> },
-    { label: "labelLevel", isi: t("tipsTekaTeki.nilaiLevel") },
-    { label: "labelTema", isi: t("tipsTekaTeki.nilaiTema") },
-    { label: "labelPartai", isi: CONTOH.pemain },
-    { label: "labelPembukaan", isi: t("tipsTekaTeki.nilaiPembukaan") },
-    {
-      label: "labelSumber",
-      isi: (
-        <a
-          href={CONTOH.sumberUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-        >
-          {CONTOH.sumberTeks}
-        </a>
-      ),
-    },
-  ];
+  const papanPengantar = useMemo(() => new Chess(PAPAN_PENGENAL).board(), []);
 
   return (
     <HalamanIsi
@@ -195,13 +118,13 @@ export default function TekaTekiKonten() {
       next={{ to: RUTE_RUSH, judul: t("nav.tekaTekiRush") }}
     >
       <div className="font-serif">
-        {/* ═══ Pengantar — judul di atas, narasi & CTA mengalir di bawahnya ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
+        {/* ═══ Pengantar — kiri: judul, narasi & CTA; kanan: papan statis ═══ */}
+        <section className="w-full border-t border-grey-200 bg-paper">
           <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="flex flex-col gap-y-8">
-              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-                {t("tipsTekaTeki.introJudul")}
-              </h2>
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
+              {t("tipsTekaTeki.introJudul")}
+            </h2>
+            <div className="mt-8 grid gap-y-10 md:grid-cols-2 md:items-start md:gap-x-12">
               <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 <p className="m-0">{t("tipsTekaTeki.intro1")}</p>
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
@@ -210,236 +133,15 @@ export default function TekaTekiKonten() {
                     {t("tipsTekaTeki.ctaUtama")}
                     <ArrowRightIcon className="size-4" />
                   </Tombol>
-                  <Link
-                    to={RUTE_RUSH}
-                    className="inline-flex items-center gap-1.5 rounded text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {t("tipsTekaTeki.ctaRush")}
-                    <ArrowRightIcon className="size-4" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ Contoh soal — papan (5) + tabel data (7), solusi bisa diputar ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-              {t("tipsTekaTeki.demoJudul")}
-            </h2>
-            <p className="mt-4 max-w-[62ch] font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-              {t("tipsTekaTeki.demoPengantar")}
-            </p>
-
-            <div className="mt-10 grid gap-x-16 gap-y-10 border-t border-grey-200 pt-10 lg:grid-cols-12">
-              {/* Papan + pemutar solusi */}
-              <div className="flex flex-col items-start gap-5 lg:col-span-5">
-                <div className="flex w-full max-w-[420px] items-baseline justify-between font-sans text-xs text-grey-600">
-                  <span className="font-mono font-semibold">
-                    #{CONTOH.id}
-                  </span>
-                  <span>{t("tipsTekaTeki.demoGiliran")}</span>
-                </div>
-
-                <PapanContoh papan={papan} terakhir={terakhir} />
-
-                <div className="flex w-full max-w-[420px] flex-col gap-4">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setDiputar((n) =>
-                        n >= CONTOH.langkah.length ? 0 : n + 1,
-                      )
-                    }
-                    className="inline-flex w-fit items-center justify-center gap-2 rounded border border-primary bg-primary px-5 py-2.5 font-sans text-sm font-semibold text-white hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                  >
-                    {t(`tipsTekaTeki.${labelTombol}`)}
-                  </button>
-
-                  {/* Narasi langkah — diumumkan ke pembaca layar */}
-                  <p
-                    key={diputar}
-                    aria-live="polite"
-                    className="m-0 max-w-[52ch] font-serif text-sm leading-[1.6] text-pretty text-grey-800"
-                  >
-                    {t(`tipsTekaTeki.demoNarasi${diputar}`)}
-                  </p>
-
-                  {/* Notasi solusi — terbuka bertahap mengikuti pemutar */}
-                  <div
-                    className="flex flex-wrap items-center gap-2"
-                    aria-hidden="true"
-                  >
-                    {CONTOH.langkah.map((_, i) => {
-                      const sudah = i < san.length;
-                      const nomor = i % 2 === 0 ? `${25 + i / 2}. ` : "";
-                      return (
-                        <span
-                          key={i}
-                          className={`rounded border px-2 py-1 font-mono text-[13px] leading-none ${
-                            sudah
-                              ? "border-slate-300 bg-white text-grey-800"
-                              : "border-grey-200 text-grey-300"
-                          }`}
-                        >
-                          {sudah ? `${nomor}${san[i]}` : "·"}
-                        </span>
-                      );
-                    })}
-                  </div>
                 </div>
               </div>
 
-              {/* Tabel data soal — salinan metadata dari berkas soal */}
-              <div className="lg:col-span-7">
-                <dl className="m-0 border-t border-grey-200 font-sans text-sm">
-                  {barisContoh.map((baris) => (
-                    <div
-                      key={baris.label}
-                      className="grid gap-x-6 gap-y-1 border-b border-grey-200 py-3 sm:grid-cols-[170px_1fr]"
-                    >
-                      <dt className="text-grey-600">
-                        {t(`tipsTekaTeki.${baris.label}`)}
-                      </dt>
-                      <dd className="m-0 font-medium text-grey-800">
-                        {baris.isi}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <Link
-                  to={`${RUTE_ALAT}?id=${CONTOH.id}`}
-                  className="mt-6 inline-flex items-center gap-1.5 rounded font-sans text-sm font-semibold text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-                >
-                  {t("tipsTekaTeki.demoBuka")}
-                  <ArrowRightIcon className="size-4" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ Isi koleksi — kartu statistik ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="flex flex-col gap-y-10">
-              <div>
-                <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-                  {t("tipsTekaTeki.statJudul")}
-                </h2>
-                <p className="mt-4 max-w-[40ch] font-serif text-sm leading-[1.6] text-pretty text-grey-600">
-                  {t("tipsTekaTeki.statPengantar")}
-                </p>
-              </div>
-
-              {/* Kartu total — angka utama koleksi */}
-              <div className="border border-grey-200 p-6 md:p-8">
-                <p className="font-sans text-sm text-grey-600">
-                  {t("tipsTekaTeki.statTotalLabel")}
-                </p>
-                <p className="mt-2 font-mono text-4xl font-semibold tracking-tight text-grey-800 md:text-5xl">
-                  {t("tipsTekaTeki.statTotalNilai")}
-                </p>
-              </div>
-
-              {/* Tiga kartu distribusi — jumlah + pangsa koleksi */}
-              <div className="grid gap-4 sm:grid-cols-3">
-                {STATISTIK.map((baris) => (
-                  <div key={baris.label} className="border border-grey-200 p-6">
-                    <p className="font-sans text-sm text-grey-600">
-                      {t(`tipsTekaTeki.${baris.label}`)}
-                    </p>
-                    <p className="mt-2 font-mono text-2xl font-semibold tracking-tight text-grey-800 md:text-3xl">
-                      {t(`tipsTekaTeki.${baris.nilai}`)}
-                    </p>
-                    <p className="mt-2 font-sans text-xs font-semibold text-primary">
-                      {Math.round((baris.jumlah / TOTAL_SOAL) * 100)}% koleksi
-                    </p>
-                  </div>
-                ))}
-              </div>
-
-              {/* Ringkasan koleksi */}
-              <dl className="m-0 grid gap-4 font-sans text-sm sm:grid-cols-3">
-                {RINGKASAN.map(([kunciLabel, kunciNilai]) => (
-                  <div key={kunciLabel} className="border border-grey-200 p-6">
-                    <dt className="text-grey-600">
-                      {t(`tipsTekaTeki.${kunciLabel}`)}
-                    </dt>
-                    <dd className="mt-1 font-medium text-grey-800">
-                      {t(`tipsTekaTeki.${kunciNilai}`)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ Cara latihan — daftar bernomor (urutan = alur kerja) ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-              {t("tipsTekaTeki.caraJudul")}
-            </h2>
-            <ol className="mt-10 grid list-none gap-x-12 gap-y-8 border-t border-grey-200 p-0 pt-10 sm:grid-cols-2">
-              {LANGKAH_CARA.map((kunci, i) => (
-                <li key={kunci} className="flex gap-4">
-                  <span className="shrink-0 text-lg font-semibold text-primary">
-                    {i + 1}
-                  </span>
-                  <p className="m-0 max-w-[52ch] font-serif text-sm leading-[1.6] text-pretty text-grey-600">
-                    {t(`tipsTekaTeki.${kunci}`)}
-                  </p>
-                </li>
-              ))}
-            </ol>
-          </div>
-        </section>
-
-        {/* ═══ Tips — judul di atas, daftar definisi di bawahnya ═══ */}
-        <section className="w-full border-t border-grey-200 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="flex flex-col gap-y-10">
-              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-                {t("tipsTekaTeki.tipsJudul")}
-              </h2>
-              <dl className="m-0">
-                {TIPS.map((tip, i) => (
-                  <div
-                    key={tip.judul}
-                    className={`py-5 ${i === 0 ? "" : "border-t border-grey-200"}`}
-                  >
-                    <dt className="font-serif text-[1.0625rem] font-semibold leading-[1.35] text-balance text-grey-800">
-                      {t(`tipsTekaTeki.${tip.judul}`)}
-                    </dt>
-                    <dd className="m-0 mt-2 max-w-[62ch] font-serif text-sm leading-[1.6] text-pretty text-grey-600">
-                      {t(`tipsTekaTeki.${tip.isi}`)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-        </section>
-
-        {/* ═══ Penutup — panel datar + tautan ke alat ═══ */}
-        <section className="w-full bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-            <div className="rounded-lg border border-grey-200 p-8 md:p-10">
-              <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-                {t("tipsTekaTeki.penutupJudul")}
-              </h2>
-              <p className="mt-4 max-w-[62ch] font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-                {t("tipsTekaTeki.penutupIsi")}
-              </p>
-              <div className="mt-8">
-                <Tombol to={RUTE_ALAT} variant="garis">
-                  {t("tipsTekaTeki.ctaUtama")}
-                  <ArrowRightIcon className="size-4" />
-                </Tombol>
+              <div className="w-full">
+                <PapanContoh
+                  papan={papanPengantar}
+                  terakhir={null}
+                  ariaLabel={t("tipsTekaTeki.pengantarAriaPapan")}
+                />
               </div>
             </div>
           </div>

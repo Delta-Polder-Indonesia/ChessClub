@@ -51,7 +51,7 @@ export default function ProgramKami() {
     >
       <div className="font-serif">
       {/* ═══ Sekilas Program — judul di atas, narasi di bawahnya ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="flex flex-col gap-y-8">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
@@ -66,7 +66,7 @@ export default function ProgramKami() {
       </section>
 
       {/* ═══ Program Unggulan — sorotan lebar + daftar definisi sekunder ═══ */}
-      <section className="w-full border-t border-grey-200 bg-white">
+      <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("program.programJudul")}
@@ -118,7 +118,7 @@ export default function ProgramKami() {
       </section>
 
       {/* ═══ Panduan dan Latihan Mandiri — panel ajakan datar + tautan ═══ */}
-      <section className="w-full bg-white">
+      <section className="w-full bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <div className="rounded-lg border border-grey-200 p-8 md:p-10">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">

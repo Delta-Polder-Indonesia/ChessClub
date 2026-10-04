@@ -51,7 +51,7 @@ export default function RecruitmentCareer() {
   }, [t]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="min-h-screen bg-paper text-slate-900">
       <Hero
         title={t("karir.judul")}
         description={t("karir.deskripsi")}
@@ -62,7 +62,7 @@ export default function RecruitmentCareer() {
         image={gambar("/images/hero-about.jpg")}
       />
       <main>
-        <section id="talenta" className="bg-white">
+        <section id="talenta" className="bg-paper">
           {CAREER_BLOCKS.map((block, index) => <CareerBlock key={block.title} block={block} reverse={index % 2 === 1} />)}
         </section>
         <section className="bg-[#F2F5FA] px-5 py-16 text-center md:py-24">
