@@ -141,15 +141,15 @@ export default function MaestroEdision() {
               rel="noreferrer noopener"
               className="flex flex-col overflow-hidden rounded-lg border border-slate-300 bg-white transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
-              {/* Box dikunci ke rasio asli 1440x1100 (0.7639) agar tinggi kartu
-                  tidak berubah walau ganti gambar. Latar hitam menyesuaikan
-                  latar logo sehingga palang kiri-kanan menyatu. */}
+              {/* Kotak mempertahankan proporsi kartu klub. Latar hitam
+                  menyatu dengan latar logo, sementara aset WebP menghemat
+                  unduhan dibanding PNG sebelumnya. */}
               <div className="aspect-[1440/1100] w-full overflow-hidden bg-black">
                 <img
-                  src="/images/BlunderSkuad.png"
+                  src="/images/BlunderSkuad.webp"
                   alt={t("landing.arahAltContoh")}
-                  width={1440}
-                  height={1100}
+                  width={160}
+                  height={160}
                   loading="lazy"
                   decoding="async"
                   className="h-full w-full object-contain"

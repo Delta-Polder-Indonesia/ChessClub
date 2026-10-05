@@ -15,6 +15,11 @@
  * berkas aslinya sudah lebih ramping daripada hasil kompresi ulang.
  */
 export const UKUR = {
+  "/images/BlunderSkuad.webp": [
+    160,
+    160,
+    []
+  ],
   "/images/E-Books/cover-101-prinsip-dasar.webp": [
     1024,
     1536,
@@ -23,7 +28,12 @@ export const UKUR = {
   "/images/E-Books/cover-basic-rules-of-chess.webp": [
     1024,
     1536,
-    []
+    [
+      320,
+      480,
+      640,
+      828
+    ]
   ],
   "/images/E-Books/cover-caro-kann-defense.webp": [
     1024,
@@ -43,7 +53,12 @@ export const UKUR = {
   "/images/E-Books/cover-complete-guide-to-chess.webp": [
     1024,
     1536,
-    []
+    [
+      320,
+      480,
+      640,
+      828
+    ]
   ],
   "/images/E-Books/cover-fide-laws-of-chess.webp": [
     1024,
@@ -288,13 +303,17 @@ export const UKUR = {
   "/images/logo-mark-dark.webp": [
     336,
     336,
-    []
+    [
+      52,
+      104
+    ]
   ],
   "/images/logo-mark-light.webp": [
     336,
     336,
     [
-      52
+      52,
+      104
     ]
   ],
   "/images/sekilas.webp": [
