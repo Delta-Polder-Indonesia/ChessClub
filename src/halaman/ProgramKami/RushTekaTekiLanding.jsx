@@ -2,7 +2,7 @@ import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { sumberGambar } from "../../lib/asets.js";
+import { gambar, sumberGambar } from "../../lib/asets.js";
 
 /**
  * Halaman landing "Rush Teka-teki" (/program-kami/rush-teka-teki).
@@ -13,6 +13,7 @@ import { sumberGambar } from "../../lib/asets.js";
  */
 
 const RUTE_ALAT = "/teka-teki-rush";
+const HERO_IMAGE = "/images/ProgramKami/rush-teka-teki-hero.webp";
 
 export default function RushTekaTekiLanding() {
   const { t } = useI18n();
@@ -32,6 +33,10 @@ export default function RushTekaTekiLanding() {
       parentPath="/program-kami"
       description={t("rushLanding.deskripsi")}
       metaDescription={t("rushLanding.metaDeskripsi")}
+      image={gambar(HERO_IMAGE)}
+      imageWidth={1672}
+      imageHeight={941}
+      heroImage={HERO_IMAGE}
       next={{ to: "/program-kami/kuis-catur", judul: t("kuisLanding.judul") }}
     >
       <div className="font-serif">

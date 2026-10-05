@@ -75,6 +75,13 @@ export const TARGET = [
     varian: [320, 480, 640, 828],
     kualitas: 78,
   },
+  // Hero lima halaman alat: 828w cukup untuk ponsel ber-DPR tinggi, sedangkan
+  // berkas sumber melayani layar desktop tanpa kualitas berlebihan di 4G.
+  { jalur: "images/ProgramKami/teka-teki-hero.webp", varian: [828], kualitas: 78 },
+  { jalur: "images/ProgramKami/rush-teka-teki-hero.webp", varian: [828], kualitas: 78 },
+  { jalur: "images/ProgramKami/kuis-catur-hero.webp", varian: [828], kualitas: 78 },
+  { jalur: "images/ProgramKami/analisa-hero.webp", varian: [828], kualitas: 78 },
+  { jalur: "images/ProgramKami/pembukaan-hero.webp", varian: [828], kualitas: 78 },
   { jalur: "images/chesscomlogo.webp", varian: [150], kualitas: 78 },
 ];
 

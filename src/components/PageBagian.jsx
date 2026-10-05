@@ -15,6 +15,8 @@ export function HalamanIsi({
   image,
   imageWidth,
   imageHeight,
+  heroImage,
+  heroImageAlt,
   robots,
   next,
   submenu,
@@ -38,7 +40,13 @@ export function HalamanIsi({
         robots={robots}
       />
       <BreadcrumbJsonLd items={crumbs} />
-      <Hero title={title} description={description} crumbs={crumbs} />
+      <Hero
+        title={title}
+        description={description}
+        crumbs={crumbs}
+        image={heroImage}
+        imageAlt={heroImageAlt}
+      />
       {submenu}
       {children}
       {next && <PageSelanjutnya to={next.to} judul={next.judul} />}

@@ -215,6 +215,13 @@ export const UKUR = {
     1200,
     []
   ],
+  "/images/ProgramKami/analisa-hero.webp": [
+    1672,
+    941,
+    [
+      828
+    ]
+  ],
   "/images/ProgramKami/chess_1.webp": [
     1002,
     524,
@@ -234,6 +241,34 @@ export const UKUR = {
     1322,
     781,
     []
+  ],
+  "/images/ProgramKami/kuis-catur-hero.webp": [
+    1672,
+    941,
+    [
+      828
+    ]
+  ],
+  "/images/ProgramKami/pembukaan-hero.webp": [
+    1672,
+    941,
+    [
+      828
+    ]
+  ],
+  "/images/ProgramKami/rush-teka-teki-hero.webp": [
+    1672,
+    941,
+    [
+      828
+    ]
+  ],
+  "/images/ProgramKami/teka-teki-hero.webp": [
+    1672,
+    941,
+    [
+      828
+    ]
   ],
   "/images/RushPuzzle.webp": [
     452,

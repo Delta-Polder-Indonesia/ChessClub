@@ -152,11 +152,29 @@ async function periksaHelper(peta) {
   }
 
   const hero = mod.sumberHero("/images/tonggak-2015.jpg");
-  if (hero.srcSet || hero.sizes) {
-    hasil.push(salah("hero tak boleh menjanjikan srcSet (varian sudah tidak ada)"));
-  }
   if (hero.src !== "/images/tonggak-2015.webp" || !ada(hero.src)) {
     hasil.push(salah(`hero menunjuk ${hero.src}, bukan berkas yang ada`));
+  }
+  // Hero lama bernama dengan akhiran tahun (mis. tonggak-2015.webp) tidak
+  // masuk manifest karena akhiran itu dibedakan dari varian responsif.
+  // Ia tetap boleh menjadi <img> tunggal; hero baru yang tercatat manifest
+  // wajib meneruskan srcset + ukuran dari sumberGambar().
+  if (hero.srcSet && hero.sizes !== "100vw") {
+    hasil.push(salah(`hero responsif harus memakai sizes=100vw, bukan ${hero.sizes}`));
+  }
+  for (const u of String(hero.srcSet || "")
+    .split(",")
+    .map((bagian) => bagian.trim().split(/\s+/)[0])
+    .filter(Boolean)) {
+    if (!ada(u)) hasil.push(salah(`hero srcset menunjuk ${u} yang tidak ada`));
+  }
+
+  const heroResponsif = mod.sumberHero("/images/ProgramKami/teka-teki-hero.webp");
+  if (heroResponsif.sizes !== "100vw" || !heroResponsif.width || !heroResponsif.height) {
+    hasil.push(salah("hero responsif harus memberi sizes, width, dan height"));
+  }
+  if (!String(heroResponsif.srcSet || "").includes("teka-teki-hero-828.webp")) {
+    hasil.push(salah("hero responsif harus menawarkan kandidat 828w"));
   }
   return hasil;
 }

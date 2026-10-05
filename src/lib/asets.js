@@ -82,10 +82,9 @@ export function sumberEbook(jalur) {
 /**
  * Atribut <img> untuk hero full-bleed.
  *
- * Dulu hero punya dua berkas per gambar (varian -828w untuk ponsel +
- * 1280w untuk desktop). Kini setiap gambar di public/images hanya disimpan
- * satu berkas (varian terkecil hasil optimasi), jadi cukup <img> biasa —
- * bentuk objeknya tetap sama ({ src }) supaya pemanggil tidak perlu berubah.
+ * Hero menerima kandidat responsif dari manifest bila tersedia (misalnya
+ * 828w untuk ponsel dan sumber penuh untuk desktop). Gambar lama yang belum
+ * punya varian tetap aman: sumberGambar() mengembalikan satu URL saja.
  * Menerima jalur relatif ("/images/x.jpg") atau URL lengkap hasil gambar().
  */
 export function sumberHero(jalur = "/images/hero-about.jpg") {
@@ -93,9 +92,7 @@ export function sumberHero(jalur = "/images/hero-about.jpg") {
   const relatif = mentah.includes("/images/")
     ? `/images/${mentah.split("/images/").pop()}`
     : mentah;
-  return {
-    src: gambar(relatif),
-  };
+  return sumberGambar(relatif, { sizes: "100vw" });
 }
 
 /** Basename React Router — tanpa garis miring di akhir. */

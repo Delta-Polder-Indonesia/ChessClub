@@ -20,6 +20,7 @@ const GRADE = [
 ];
 
 const RUTE_PAPAN_ANALISA = "/program-kami/analisa/papan";
+const HERO_IMAGE = "/images/ProgramKami/analisa-hero.webp";
 
 export default function AnalisaLanding() {
   const { t } = useI18n();
@@ -31,9 +32,10 @@ export default function AnalisaLanding() {
       parentPath="/program-kami"
       description={t("analisaLanding.deskripsi")}
       metaDescription={t("analisaLanding.metaDeskripsi")}
-      image={gambar("/images/PapanAnalysa.webp")}
-      imageWidth={1600}
-      imageHeight={1200}
+      image={gambar(HERO_IMAGE)}
+      imageWidth={1672}
+      imageHeight={941}
+      heroImage={HERO_IMAGE}
       next={{ to: RUTE_PAPAN_ANALISA, judul: t("analisa.judul") }}
     >
       <PageArtikel lebar title={t("analisaLanding.p1Judul")}>

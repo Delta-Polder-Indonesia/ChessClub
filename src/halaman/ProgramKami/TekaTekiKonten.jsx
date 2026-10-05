@@ -5,6 +5,7 @@ import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { gambar } from "../../lib/asets.js";
 
 /**
  * Halaman "Teka-teki & Tips" (/program-kami/teka-teki).
@@ -20,6 +21,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 
 const RUTE_ALAT = "/teka-teki";
 const RUTE_RUSH = "/program-kami/rush-teka-teki";
+const HERO_IMAGE = "/images/ProgramKami/teka-teki-hero.webp";
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANK = ["8", "7", "6", "5", "4", "3", "2", "1"];
 
@@ -115,6 +117,10 @@ export default function TekaTekiKonten() {
       parentPath="/program-kami"
       description={t("tipsTekaTeki.deskripsi")}
       metaDescription={t("tipsTekaTeki.metaDeskripsi")}
+      image={gambar(HERO_IMAGE)}
+      imageWidth={1672}
+      imageHeight={941}
+      heroImage={HERO_IMAGE}
       next={{ to: RUTE_RUSH, judul: t("nav.tekaTekiRush") }}
     >
       <div className="font-serif">

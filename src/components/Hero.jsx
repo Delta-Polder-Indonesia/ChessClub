@@ -10,6 +10,7 @@ export default function Hero({
   description,
   crumbs,
   image = "/images/hero-about.jpg",
+  imageAlt,
 }) {
   const { t } = useI18n();
   const judul = title ?? t("hero.tentangKami");
@@ -27,10 +28,10 @@ export default function Hero({
           src={foto.src}
           srcSet={foto.srcSet}
           sizes={foto.sizes}
-          alt={judul}
+          alt={imageAlt ?? judul}
           title={judul}
-          width={828}
-          height={462}
+          width={foto.width ?? 828}
+          height={foto.height ?? 462}
           className="w-full h-full object-cover"
           draggable="false"
           decoding="async"

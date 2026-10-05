@@ -2,6 +2,7 @@ import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { gambar } from "../../lib/asets.js";
 
 /**
  * Halaman landing "Kuis Catur" (/program-kami/kuis-catur).
@@ -12,6 +13,7 @@ import { useI18n } from "../../lib/i18n.jsx";
  */
 
 const RUTE_ALAT = "/quiz-catur";
+const HERO_IMAGE = "/images/ProgramKami/kuis-catur-hero.webp";
 
 const KATEGORI = [
   "peraturan",
@@ -43,6 +45,10 @@ export default function KuisCaturLanding() {
       parentPath="/program-kami"
       description={t("kuisLanding.deskripsi")}
       metaDescription={t("kuisLanding.metaDeskripsi")}
+      image={gambar(HERO_IMAGE)}
+      imageWidth={1672}
+      imageHeight={941}
+      heroImage={HERO_IMAGE}
       next={{ to: "/program-kami/pembukaan", judul: t("nav.pembukaan") }}
     >
       <div className="font-serif">

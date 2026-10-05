@@ -7,6 +7,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
+import { gambar } from "../../lib/asets.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { Tombol } from "../../components/Tombol.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
@@ -25,6 +26,7 @@ const PETAK_TERANG = "#f0d9b5";
 const PETAK_GELAP = "#b58863";
 /** Tinta petak asal–tujuan — warna sorotan langkah terakhir papan interaktif. */
 const TINTA_LANGKAH = "rgba(205, 210, 106, 0.5)";
+const HERO_IMAGE = "/images/ProgramKami/pembukaan-hero.webp";
 
 /** Total baris berkas buku pembukaan. */
 const TOTAL_JALUR = 18713;
@@ -341,6 +343,10 @@ export default function Pembukaan() {
       parentPath="/program-kami"
       description={t("bukuPembukaan.deskripsi")}
       metaDescription={t("bukuPembukaan.metaDeskripsi")}
+      image={gambar(HERO_IMAGE)}
+      imageWidth={1672}
+      imageHeight={941}
+      heroImage={HERO_IMAGE}
       next={{ to: "/program-kami/ebook-panduan", judul: t("nav.eBookPanduan") }}
     >
       {/* ═══ Pembuka — editorial: judul, dua paragraf, baris angka ═══ */}

@@ -105,13 +105,16 @@ export const META_RUTE = {
   "/program-kami/teka-teki": {
     judulKey: "tipsTekaTeki.judul",
     deskripsiKey: "tipsTekaTeki.deskripsi",
+    gambar: "/images/ProgramKami/teka-teki-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/analisa": {
     judulKey: "analisaLanding.judul",
     deskripsiKey: "analisaLanding.metaDeskripsi",
-    gambar: "/images/PapanAnalysa.webp",
-    gambarUkuran: "1600",
-    gambarTinggi: "1200",
+    gambar: "/images/ProgramKami/analisa-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/analisa/papan": {
     judulKey: "analisa.metaJudul",
@@ -132,14 +135,23 @@ export const META_RUTE = {
   "/program-kami/pembukaan": {
     judulKey: "bukuPembukaan.judul",
     deskripsiKey: "bukuPembukaan.deskripsi",
+    gambar: "/images/ProgramKami/pembukaan-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/rush-teka-teki": {
     judulKey: "rushLanding.judul",
     deskripsiKey: "rushLanding.deskripsi",
+    gambar: "/images/ProgramKami/rush-teka-teki-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/kuis-catur": {
     judulKey: "kuisLanding.judul",
     deskripsiKey: "kuisLanding.deskripsi",
+    gambar: "/images/ProgramKami/kuis-catur-hero.webp",
+    gambarUkuran: "1672",
+    gambarTinggi: "941",
   },
   "/program-kami/ebook-panduan": {
     judul: "E-Book & Panduan",
