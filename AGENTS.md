@@ -92,6 +92,10 @@ Vercel terhubung ke repo ini: **setiap push memicu satu deployment**, dan deploy
 penulis commit tidak cocok dengan akun GitHub yang punya akses proyek — commit-nya lalu bertanda
 "Vercel — Deployment was blocked" dan pemilik proyek harus membersihkannya manual.
 
+- **Jangan push kecuali pengguna menyuruh push.** Perbaikan kecil jangan langsung di-push:
+  setiap push memicu redeploy dan mengganggu pengunjung yang sedang membuka situs. Kerjakan,
+  verifikasi, lalu biarkan di working tree / commit lokal sampai ada perintah eksplisit push.
+  Bila push akhirnya diizinkan, sisakan jeda minimal 5 jam sejak perubahan atau push terakhir.
 - **Jangan menimpa identitas git.** `.git/config` sudah berisi identitas yang benar. Dilarang
   `git -c user.name=…`, `git -c user.email=…`, `git commit --author=…`, dan `GIT_AUTHOR_*`/
   `GIT_COMMITTER_*` beridentitas agen/bot.
