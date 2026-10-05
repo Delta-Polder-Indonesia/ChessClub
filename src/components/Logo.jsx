@@ -21,10 +21,11 @@ export default function Logo({
   const px = SIZES[size] || SIZES.md;
   const light = variant === "light";
   const jalur = light ? "/images/logo-mark-light.png" : "/images/logo-mark-dark.png";
-  // Mark aslinya 336×336 (± 14 KiB) untuk boks 52–91 px saja. Varian 200w
-  // dari manifest cukup untuk retina, jadi header tidak mengunduh gambar
-  // empat kali lebih besar dari kotak yang menampilkannya.
-  const sumber = sumberGambar(jalur, { sizes: `${px * 2}px` });
+  // `sizes` menyatakan lebar CSS, bukan target retina. Browser mengalikan
+  // nilai ini dengan DPR lalu memilih kandidat 52w/104w/336w yang paling
+  // tepat dari manifest; menyetel 2× di sini justru membuat header 52 px
+  // memilih berkas asli 336w terlalu dini.
+  const sumber = sumberGambar(jalur, { sizes: `${px}px` });
 
   return (
     <span className={`flex items-center gap-3 select-none ${className}`}>

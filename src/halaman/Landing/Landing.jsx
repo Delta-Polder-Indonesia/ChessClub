@@ -479,7 +479,7 @@ function BagianGambarKartu({ t }) {
                 karena yang ditunjuk adalah
                 katalog e-book ini sendiri: posisinya langsung di bawah
                 deskripsi katalog, bukan di seksi lain. */}
-            <p className="mt-6 font-serif text-[0.8125rem] text-slate-500">
+            <p className="mt-6 font-serif text-[0.8125rem] text-slate-600">
               {t("landing.tigaJalanAkademiTerms")}
             </p>
             <div className="mt-4">
