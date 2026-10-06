@@ -10,6 +10,14 @@
  * ============================================================
  */
 import { execFileSync, spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+
+// Tripwire TANPA SYARAT: bila anotasi ini saja tidak muncul di CI, berarti
+// `npm run uji:rilis:v1` gagal SEBELUM skrip sempat berjalan (npm error,
+// package.json tak terbaca, dst) — bukan audit/uji yang gagal.
+console.log(
+  `::notice::[diag-gerbang] MULAI node=${process.version} cwd=${process.cwd()} packageJson=${existsSync("package.json")} diagFile=${existsSync("scripts/_diag-audit.mjs")} CI=${process.env.CI ?? "?"} runner=${process.env.RUNNER_OS ?? "?"}/${process.env.RUNNER_ARCH ?? "?"}`,
+);
 
 function panggil(cmd, args) {
   return spawnSync(cmd, args, { encoding: "utf8", timeout: 180000 });
