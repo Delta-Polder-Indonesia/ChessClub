@@ -42,6 +42,12 @@ const potong = (s) =>
     .join(" ⏎ ")
     .slice(0, 1200);
 
+// Di CI, teks biasa tidak terbaca (log blob tak terjangkau) — pancarkan HASIL
+// audit sebagai anotasi TANPA SYARAT, bukan hanya saat gagal.
+console.log(
+  `::notice::[diag-gerbang] HASIL audit status=${String(r.status)} sinyal=${r.signal ?? "-"} err=${r.error?.message ?? "-"} | STDOUT: ${potong(r.stdout) || "(kosong)"} | STDERR: ${potong(r.stderr) || "(kosong)"}`,
+);
+
 if (r.status !== 0 || r.error) {
   let probe = "ping tidak dijalankan";
   try {
