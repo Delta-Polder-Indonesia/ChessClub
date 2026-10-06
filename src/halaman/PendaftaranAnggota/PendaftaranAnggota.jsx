@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import {
   daftarDenganChessCom,
@@ -124,10 +124,10 @@ function bacaHasilOauth(session) {
 export default function PendaftaranAnggota() {
   const { t } = useI18n();
   const navigate = useNavigate();
-  const [parameter] = useSearchParams();
+  const { username: usernamePath } = useParams();
   const [form, setForm] = useState(() => ({
     ...AWAL,
-    username: normalisasiUsernameKanonik(parameter.get("username")),
+    username: normalisasiUsernameKanonik(usernamePath),
   }));
   const [status, setStatus] = useState("idle");
   const [pesan, setPesan] = useState("");

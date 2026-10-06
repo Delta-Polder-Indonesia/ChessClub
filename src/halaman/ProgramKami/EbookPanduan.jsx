@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { CloseIcon } from "../../components/icons.jsx";
 import PembacaPdf from "../../components/PembacaPdf.jsx";
@@ -19,8 +19,8 @@ import ModalUnduhEbook from "./ModalUnduhEbook.jsx";
  *   tiket diteruskan ke pembaca PDF bawaan situs (berbasis pdf.js). Halaman
  *   digambar ke <canvas> sehingga dokumen benar-benar TAMPIL.
  * - Klik "Unduh" -> redemption lalu download file bertiket
- * - Dibuka dari laman lain dengan ?buku=<id> -> otomatis gulir & sorot kartu
- * - Dibuka dengan ?kategori=<label> -> pasang filter & gulir ke katalog
+ * - Dibuka dari laman lain dengan /ebook-panduan/<id> -> otomatis gulir & sorot kartu
+ * - Dibuka dengan /ebook-panduan/kategori/<slug> -> pasang filter & gulir ke katalog
  *
  * Data (DAFTAR_EBOOK, COVER, KATEGORI_URUTAN, kategoriDariDaftar) dipisah ke
  * src/halaman/Beranda/ebook-data.js agar bisa dipakai ulang di Landing dan
@@ -182,7 +182,7 @@ export default function EbookPanduan() {
   const [halamanPdf, setHalamanPdf] = useState(0);
   const [kategoriAktif, setKategoriAktif] = useState("Semua");
   const [disorot, setDisorot] = useState(null);
-  const [searchParams] = useSearchParams();
+  const { id: bukuIdPath, kategori: kategoriPath } = useParams();
   const [kartuBalik, setKartuBalik] = useState(() => new Set());
 
   // Flip kartu lewat klik/ketuk (perangkat tanpa hover).
@@ -234,10 +234,10 @@ export default function EbookPanduan() {
     }
   }, [pdfAktif, unduhan]);
 
-  // Bila dibuka dari laman lain dengan ?buku=<id>, gulir ke kartu e-book
-  // terkait dan sorot sebentar agar pengguna tahu posisinya.
+  // Bila dibuka dari laman lain dengan /ebook-panduan/<id>, gulir ke kartu
+  // e-book terkait dan sorot sebentar agar pengguna tahu posisinya.
   useEffect(() => {
-    const id = searchParams.get("buku");
+    const id = bukuIdPath;
     if (!id) return;
     const timer = window.setTimeout(() => {
       const el = document.getElementById(id);
@@ -248,20 +248,23 @@ export default function EbookPanduan() {
       }
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [searchParams]);
+  }, [bukuIdPath]);
 
-  // Bila dibuka dari Landing dengan ?kategori=<label>, pasang filter sesuai
+  // Bila dibuka dengan /ebook-panduan/kategori/<slug>, pasang filter sesuai
   // barisan kemudian gulir ke katalog buku.
   useEffect(() => {
-    const label = searchParams.get("kategori");
-    if (!label || !kategoriList.includes(label)) return;
+    if (!kategoriPath) return;
+    const label = kategoriList.find(
+      (kategori) => kategori.toLowerCase().replace(/\s+/g, "-") === kategoriPath
+    );
+    if (!label) return;
     setKategoriAktif(label);
     const timer = window.setTimeout(() => {
       const el = document.getElementById("katalog-ebook");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 120);
     return () => window.clearTimeout(timer);
-  }, [searchParams, kategoriList]);
+  }, [kategoriPath, kategoriList]);
 
   return (
     <HalamanIsi
