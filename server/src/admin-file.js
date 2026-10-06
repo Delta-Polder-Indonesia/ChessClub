@@ -1,7 +1,7 @@
 /**
  * Penyimpanan kredensial admin dengan role.
  * File utama: data/rahasia/admins.json
- * Format: { admins: [ { username, password, role, dibuatPada, diubahPada } ] }
+ * Format: { admins: [ { username, password, role, tokenVersion, dibuatPada, diubahPada } ] }
  * role: "master" | "pengurus"
  * - master: bisa akses pengaturan, tambah/hapus admin, lihat riwayat masuk
  * - pengurus: tidak bisa masuk pengaturan
@@ -76,6 +76,11 @@ function normalisasiAdmin(a) {
     role,
     dibuatPada: a.dibuatPada || new Date().toISOString(),
     diubahPada: a.diubahPada || a.dibuatPada || new Date().toISOString(),
+    // Naik setiap password, role, atau username berubah. Nilai ini ikut
+    // masuk JWT sehingga sesi lama langsung ditolak setelah perubahan.
+    tokenVersion: Number.isInteger(a.tokenVersion) && a.tokenVersion >= 0
+      ? a.tokenVersion
+      : 0,
   };
 }
 
@@ -173,6 +178,7 @@ export async function tulisAdminFile({ username, password }) {
       // Role master hanya diberikan saat bootstrap file baru (cabang !admins
       // di atas) — perubahan role admin existing adalah wewenang ubahAdmin.
       admins[idx].password = password ? await hashJikaPerlu(password, { validasi: true }) : admins[idx].password;
+      admins[idx].tokenVersion = (admins[idx].tokenVersion || 0) + 1;
       admins[idx].diubahPada = new Date().toISOString();
     } else {
       // jika ganti username master, ganti master pertama
@@ -180,6 +186,7 @@ export async function tulisAdminFile({ username, password }) {
       if (masterIdx >= 0) {
         admins[masterIdx].username = u;
         admins[masterIdx].password = password ? await hashJikaPerlu(password, { validasi: true }) : admins[masterIdx].password;
+        admins[masterIdx].tokenVersion = (admins[masterIdx].tokenVersion || 0) + 1;
         admins[masterIdx].diubahPada = new Date().toISOString();
       } else {
         admins.unshift({
@@ -303,6 +310,7 @@ export async function ubahAdmin(username, { password, role, usernameBaru }) {
     }
     admins[idx].role = r;
   }
+  admins[idx].tokenVersion = (admins[idx].tokenVersion || 0) + 1;
   admins[idx].diubahPada = new Date().toISOString();
   await tulisAdminsFile(admins);
   return admins;

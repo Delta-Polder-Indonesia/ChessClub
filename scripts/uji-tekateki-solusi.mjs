@@ -137,7 +137,7 @@ import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
 
 export function mount(el) {
   return createRoot(el).render(
-    <MemoryRouter initialEntries={["/teka-teki?id=__ID__"]}>
+    <MemoryRouter initialEntries={["/teka-teki/__ID__"]}>
       <I18nProvider><TekaTeki /></I18nProvider>
     </MemoryRouter>
   );

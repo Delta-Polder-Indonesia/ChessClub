@@ -48,7 +48,7 @@ function TandaDataBelumLengkap({ username }) {
   const { t } = useI18n();
   return (
     <Link
-      to={`/pendaftaran-anggota?username=${encodeURIComponent(username)}`}
+      to={`/pendaftaran-anggota/${encodeURIComponent(username)}`}
       title={t("keanggotaan.dataBelumLengkap")}
       aria-label={`${username}: ${t("keanggotaan.dataBelumLengkap")}`}
       onClick={(e) => e.stopPropagation()}
@@ -223,7 +223,7 @@ function PopupProfil({ a, tutup, bahasa }) {
               {t("keanggotaan.dataBelumLengkapPenjelasan")}
             </p>
             <Link
-              to={`/pendaftaran-anggota?username=${encodeURIComponent(a.username)}`}
+              to={`/pendaftaran-anggota/${encodeURIComponent(a.username)}`}
               className="mt-2 inline-block font-semibold text-primary underline underline-offset-2"
             >
               {t("keanggotaan.lengkapiData")}

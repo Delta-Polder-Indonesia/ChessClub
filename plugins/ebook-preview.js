@@ -24,6 +24,7 @@ import {
   urlGithubMediaEbook,
   urlStorageEbook,
 } from "../src/data/ebook-sumber.js";
+import { periksaTiketUnduh } from "../server/src/tiket-ebook.js";
 
 const JALUR_API = "/api/ebook-preview";
 
@@ -119,6 +120,12 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
 
   const penangan = async (req, res, next) => {
     const url = new URL(req.url || "/", "http://lokal");
+    // Jangan biarkan Vite menyajikan PDF mentah dari public/ebooks. Akses
+    // e-book wajib lewat proxy bertiket, sama seperti production.
+    if (url.pathname.startsWith("/ebooks/")) {
+      kirimJson(res, 403, { error: "Akses langsung ke PDF dinonaktifkan." });
+      return;
+    }
     if (url.pathname !== JALUR_API) return next();
 
     if (!["GET", "HEAD"].includes(req.method || "GET")) {
@@ -137,6 +144,10 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       String(url.searchParams.get("unduh") || "").toLowerCase()
     );
     const namaAman = nama.replace(/[\r\n\\"]/g, "_");
+    if (!periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
+      kirimJson(res, 403, { error: "Tiket akses tidak sah atau sudah kedaluwarsa." });
+      return;
+    }
     const kepalaDasar = () => {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
@@ -145,7 +156,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       );
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("X-Content-Type-Options", "nosniff");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", unduh ? "no-store" : "no-cache");
     };
 
     // 1) Berkas lokal (paling cepat, tanpa jaringan).

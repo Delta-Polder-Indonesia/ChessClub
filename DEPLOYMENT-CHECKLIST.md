@@ -49,11 +49,15 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 - [ ] Semua berkas berisi PDF asli sebelum menjalankan migrasi storage.
       Cek: `head -c 4 public/ebooks/*.pdf` → semuanya diawali `%PDF`
       (kalau tercetak `vers`, itu checkout lama yang masih pointer — `git pull`).
-- [ ] Untuk koleksi yang terus bertambah (saat ini 32 berkas, ±484 MB), pindahkan
-      ke Supabase Storage sesuai `PANDUAN-EBOOK-STORAGE.md` agar ukuran itu tidak
-      ikut setiap klon dan build.
-- [ ] `npm run uji` lolos — di dalamnya `scripts/uji-ebook.mjs` memeriksa
-      konsistensi entri `ebook-data.js` ↔ berkas di `public/ebooks/`.
+- [ ] Unggah koleksi ke bucket privat `ebooks-private` dengan
+      `npm run ebook:unggah`; isi `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`,
+      dan `KCI_EBOOK_PRIVATE_BUCKET` di Vercel, lalu redeploy.
+- [ ] Jika memakai gateway lain, isi `KCI_EBOOK_PRIVATE_BASE` dan token server;
+      jangan memakai URL bucket publik atau `EBOOK_BASE` di frontend.
+- [ ] `GET /ebooks/<nama>.pdf` tanpa tiket ditolak 403; preview dan unduhan
+      hanya berhasil setelah redemption.
+- [ ] `npm run uji:ebook` dan `npm run uji:backend` lolos — termasuk konsistensi
+      entri `ebook-data.js` ↔ berkas di `public/ebooks/` serta tiket e-book.
 
 ---
 

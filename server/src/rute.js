@@ -22,6 +22,7 @@ import {
   intipTiket,
   statistikSesi,
   jalurInternal,
+  pakaiTiket,
 } from "./oauth.js";
 import {
   mintaKode,
@@ -265,6 +266,17 @@ export function daftarkanRute(router, { mulaiPada }) {
       const username = bodi?.username;
       const skor = Number(bodi?.skor);
       const durasiMenit = Number(bodi?.durasiMenit);
+      const tiket = pakaiTiket(bodi?.tiketVerifikasi, username);
+      if (!tiket) {
+        return {
+          status: 401,
+          isi: {
+            pesan:
+              "Verifikasi kepemilikan akun Chess.com diperlukan sebelum skor dapat disimpan.",
+            kode: "rush-verifikasi-diperlukan",
+          },
+        };
+      }
       const anggota = await anggotaTerdafatar(username);
       if (!anggota) {
         return {
@@ -540,7 +552,11 @@ export function daftarkanRute(router, { mulaiPada }) {
       catatPercobaanAdmin(ip, true);
       const usernameCatat = adminDitemukan.username || usernameRaw;
       const roleBalik = adminDitemukan.role || "master";
-      const tokenBalik = terbitkanJwt(usernameCatat, roleBalik);
+      const tokenBalik = terbitkanJwt(
+        usernameCatat,
+        roleBalik,
+        Number.isInteger(adminDitemukan.tokenVersion) ? adminDitemukan.tokenVersion : 0
+      );
 
       try {
         await catatRiwayatMasuk({

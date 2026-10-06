@@ -1048,6 +1048,23 @@ console.log("\nValidasi pesan publik");
 }
 
 
+/* ---------------------------------------------------------- Rush anti-spoof */
+{
+  console.log("\n-- Rush: bukti identitas wajib sebelum leaderboard --");
+  ipSaatIni = ipBaru();
+  await ambilCsrf();
+  const tanpaTiket = await panggil("POST", "/api/rekor-rush", {
+    username: "magnuscarlsen",
+    skor: 10,
+    durasiMenit: 3,
+  });
+  cek(
+    "skor dengan username yang diketik tanpa tiket Chess.com -> 401",
+    tanpaTiket.status === 401 && tanpaTiket.data?.kode === "rush-verifikasi-diperlukan",
+    `dapat ${tanpaTiket.status}: ${JSON.stringify(tanpaTiket.data)}`
+  );
+}
+
 /* ------------------------------------------------------------- e-book */
 {
   console.log("\n-- E-book: gerbang unduh model perpustakaan --");

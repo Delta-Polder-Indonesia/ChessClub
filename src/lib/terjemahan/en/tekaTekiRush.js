@@ -86,6 +86,9 @@ export const tekaTekiRush = {
       "The online leaderboard isn't active yet — it needs the backend & Supabase running.",
     muatPeringkat: "Loading leaderboard…",
     simpanSkor: "Save score",
+    verifikasiChessCom: "Verify with Chess.com",
+    verifikasiDiperlukan: "Chess.com login is required before saving a score.",
+    verifikasiGagal: "Chess.com login could not be started.",
     usernameAnda: "Your Chess.com username",
     skorTersimpan: "Score saved!",
     hanyaAnggota:

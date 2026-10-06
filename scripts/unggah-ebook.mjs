@@ -5,7 +5,7 @@
  * Mengapa: PDF e-book (±484 MB) kini disimpan sebagai blob Git biasa di repo.
  * Itu membuat setiap klon/deploy ikut mengangkut seluruh koleksi, dan dulu
  * (saat masih Git LFS) situs menyajikan "pointer" bila checkout tidak menarik
- * LFS. Dengan object storage, PDF dilayani langsung dari Supabase dan repo
+ * LFS. Dengan object storage privat, PDF dilayani API dari Supabase dan repo
  * bisa berhenti menyimpan binari besar.
  *
  * Jalankan SATU KALI dari mesin yang sudah punya PDF asli (klon biasa sudah
@@ -15,14 +15,14 @@
  *   npm run ebook:unggah
  *
  * Skrip ini:
- *   1. Memastikan bucket publik `ebooks` tersedia (dibuat bila belum ada).
+ *   1. Memastikan bucket privat `ebooks-private` tersedia (dibuat bila belum ada).
  *   2. Mengunggah tiap PDF (lewat signed upload = mendukung file besar).
- *   3. Menulis basis URL ke src/data/ebook-storage.js agar frontend
- *      otomatis memakai URL storage pada build berikutnya.
+ *   3. Tidak menulis URL storage ke bundle frontend; API production membaca
+ *      bucket ini memakai service-role key.
  *
  * Env dibaca dari process.env atau berkas .env (tanpa menimpa env yang ada).
  */
-import { readFile, readdir, writeFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -30,9 +30,6 @@ import { createClient } from "@supabase/supabase-js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DIR_EBOOK = path.join(AKAR, "public", "ebooks");
-const BERKAS_STORAGE = path.join(AKAR, "src", "data", "ebook-storage.js");
-const BUCKET = "ebooks";
-
 /* -- Muat berkas .env bila ada (tidak menimpa env yang sudah disetel). -- */
 function muatEnv() {
   const berkas = path.join(AKAR, ".env");
@@ -58,16 +55,17 @@ function gagal(teks) {
 
 muatEnv();
 
+const BUCKET = (process.env.KCI_EBOOK_PRIVATE_BUCKET || "ebooks-private").trim();
 const url = (process.env.SUPABASE_URL || "").trim().replace(/\/+$/, "");
 if (!url) {
   gagal(
     "SUPABASE_URL belum diisi. Set di .env atau sebagai environment variable, lalu jalankan lagi."
   );
 }
-const kunci = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+const kunci = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!kunci) {
   gagal(
-    "SUPABASE_SERVICE_ROLE_KEY belum diisi. Pakai kunci service role dari Project Settings → API."
+    "SUPABASE_SERVICE_ROLE_KEY belum diisi. Bucket e-book privat hanya boleh diubah dengan service role key dari Project Settings → API."
   );
 }
 
@@ -75,7 +73,7 @@ const supabase = createClient(url, kunci, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-/* 1) Pastikan bucket publik `ebooks` tersedia. */
+/* 1) Pastikan bucket privat tersedia. */
 let bucketAda = false;
 const { data: daftar, error: errDaftar } = await supabase.storage.listBuckets();
 if (!errDaftar) {
@@ -83,16 +81,20 @@ if (!errDaftar) {
 }
 if (!bucketAda) {
   const { error: errBuat } = await supabase.storage.createBucket(BUCKET, {
-    public: true,
+    public: false,
     fileSizeLimit: "1GB",
     allowedMimeTypes: ["application/pdf"],
   });
   if (errBuat && !/already exists/i.test(errBuat.message)) {
     gagal(`Gagal membuat bucket "${BUCKET}": ${errBuat.message}`);
   }
-  console.log(`✓ Bucket publik "${BUCKET}" siap.`);
+  console.log(`✓ Bucket privat "${BUCKET}" siap.`);
 } else {
-  console.log(`✓ Bucket "${BUCKET}" sudah ada.`);
+  const { error: errPrivat } = await supabase.storage.updateBucket(BUCKET, { public: false });
+  if (errPrivat) {
+    gagal(`Gagal memastikan bucket "${BUCKET}" privat: ${errPrivat.message}`);
+  }
+  console.log(`✓ Bucket privat "${BUCKET}" sudah ada.`);
 }
 
 /* 2) Daftar PDF lokal yang berisi PDF asli (bukan pointer LFS). */
@@ -145,20 +147,9 @@ if (gagalCount) {
   gagal("Ada berkas yang gagal diunggah — perbaiki penyebabnya lalu jalankan ulang (idempoten).");
 }
 
-/* 3) Tulis basis URL ke konfigurasi frontend. */
-const basis = `${url}/storage/v1/object/public/${BUCKET}`;
-let teks = await readFile(BERKAS_STORAGE, "utf8");
-if (!/export const EBOOK_BASE = "[^"]*";/.test(teks)) {
-  gagal(`Pola EBOOK_BASE tidak ditemukan di ${BERKAS_STORAGE}`);
-}
-teks = teks.replace(/export const EBOOK_BASE = "[^"]*";/, `export const EBOOK_BASE = "${basis}";`);
-await writeFile(BERKAS_STORAGE, teks, "utf8");
-
-console.log(`\n✓ ${BERKAS_STORAGE} diperbarui dengan:`);
-console.log(`    ${basis}`);
+console.log("\n✓ Semua PDF berada di bucket privat dan tidak ditulis ke bundle frontend.");
 console.log("\nLangkah selanjutnya:");
-console.log("  1. Commit perubahan (khususnya src/data/ebook-storage.js), lalu push.");
-console.log("  2. Redeploy Vercel.");
-console.log("  3. Buka halaman E-Book & Panduan → klik Baca untuk memastikan PDF tampil.");
-console.log("\nCatatan: CSP frame-src di index.html & vercel.json sudah mengizinkan");
-console.log("https://*.supabase.co. Bila Anda memakai penyedia lain, tambahkan origin-nya di sana.");
+console.log("  1. Set KCI_EBOOK_PRIVATE_BUCKET (bila bukan ebooks-private) di Vercel.");
+console.log("  2. Pastikan SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY tersedia di Vercel.");
+console.log("  3. Redeploy Vercel, lalu buka E-Book & Panduan → Baca.");
+console.log("  4. Uji GET /ebooks/<nama>.pdf tanpa tiket — hasilnya harus 403.");

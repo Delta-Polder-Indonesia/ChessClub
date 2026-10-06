@@ -1,5 +1,11 @@
 import { Suspense, lazy, useEffect } from "react";
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useSearchParams,
+} from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
 import ScrollToTop from "./components/ScrollToTop.jsx";
 import { BersihkanBootHero, PlaceholderLayarPenuh } from "./components/Loading.jsx";
@@ -49,6 +55,40 @@ const DetailPengumuman = () => <DetailKonten jenis="pengumuman" />;
 // Keberlanjutan & keanggotaan
 const Keberlanjutan = lazy(() => import("./halaman/Keberlanjutan/Keberlanjutan.jsx"));
 const PendaftaranAnggota = lazy(() => import("./halaman/PendaftaranAnggota/PendaftaranAnggota.jsx"));
+
+function segmenUrl(value) {
+  return encodeURIComponent(
+    String(value ?? "")
+      .trim()
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+  );
+}
+
+// Kompatibilitas satu arah untuk URL lama: setelah dibuka, alamat publik
+// langsung berubah menjadi path/slug tanpa query string.
+function RuteEbookPanduan() {
+  const [parameter] = useSearchParams();
+  const bukuLama = parameter.get("buku");
+  const kategoriLama = parameter.get("kategori");
+  if (bukuLama) {
+    return <Navigate to={`/program-kami/ebook-panduan/${encodeURIComponent(bukuLama)}`} replace />;
+  }
+  if (kategoriLama) {
+    return <Navigate to={`/program-kami/ebook-panduan/kategori/${segmenUrl(kategoriLama)}`} replace />;
+  }
+  return <EbookPanduan />;
+}
+
+function RutePendaftaranAnggota() {
+  const [parameter] = useSearchParams();
+  const usernameLama = parameter.get("username");
+  if (usernameLama) {
+    return <Navigate to={`/pendaftaran-anggota/${encodeURIComponent(usernameLama)}`} replace />;
+  }
+  return <PendaftaranAnggota />;
+}
+
 const SyaratDanKetentuan = lazy(() => import("./halaman/Keberlanjutan/SyaratDanKetentuan.jsx"));
 const KodeEtikKomunitas = lazy(() => import("./halaman/Keberlanjutan/KodeEtikKomunitas.jsx"));
 const PertanyaanUmum = lazy(() => import("./halaman/Keberlanjutan/PertanyaanUmum.jsx"));
@@ -58,6 +98,17 @@ const Ketentuan = lazy(() => import("./halaman/Keberlanjutan/Ketentuan.jsx"));
 
 // Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
+
+// Wrapper ini hanya untuk menormalkan tautan lama yang masih memakai query.
+// Semua tautan baru memakai segmen path agar deep-link puzzle tetap bersih.
+function RuteTekaTeki() {
+  const [parameter] = useSearchParams();
+  const idLama = parameter.get("id");
+  if (idLama) {
+    return <Navigate to={`/teka-teki/${encodeURIComponent(idLama)}`} replace />;
+  }
+  return <TekaTeki />;
+}
 
 // Rush Teka-teki (mode berjangka ala PuzzleDash) — memakai data & papan yang sama.
 const TekaTekiRush = lazy(() => import("./halaman/TekaTekiRush/TekaTekiRush.jsx"));
@@ -121,9 +172,12 @@ const RUTE_HALAMAN = [
   ["/program-kami/analisa", AnalisaLanding],
   ["/program-kami/analisa/papan", Analisa],
   ["/program-kami/atribusi", Atribusi],
-  ["/program-kami/ebook-panduan", EbookPanduan],
+  ["/program-kami/ebook-panduan", RuteEbookPanduan],
+  ["/program-kami/ebook-panduan/:id", EbookPanduan],
+  ["/program-kami/ebook-panduan/kategori/:kategori", EbookPanduan],
 
-  ["/teka-teki", TekaTeki],
+  ["/teka-teki", RuteTekaTeki],
+  ["/teka-teki/:id", TekaTeki],
   ["/teka-teki-rush", TekaTekiRush],
   ["/quiz-catur", QuizCatur],
   ["/papan-interaktif", PapanInteraktif],
@@ -142,7 +196,8 @@ const RUTE_HALAMAN = [
   ["/media-dan-informasi/galeri", Galeri],
 
   // Keanggotaan hanya dirender sebagai tab di Struktur Grup Catur.
-  ["/pendaftaran-anggota", PendaftaranAnggota],
+  ["/pendaftaran-anggota", RutePendaftaranAnggota],
+  ["/pendaftaran-anggota/:username", PendaftaranAnggota],
 
   ["/keberlanjutan", Keberlanjutan],
   ["/keberlanjutan/syarat-dan-ketentuan", SyaratDanKetentuan],

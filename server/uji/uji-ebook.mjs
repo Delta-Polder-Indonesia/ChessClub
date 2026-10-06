@@ -25,6 +25,7 @@ const {
   terbitkanKodeDariMinta,
   tolakMintaEbook,
 } = await import(`../src/ebook.js?${tanda}`);
+const { periksaTiketUnduh } = await import(`../src/tiket-ebook.js?${tanda}`);
 
 let lulus = 0;
 let gagal = 0;
@@ -64,6 +65,12 @@ cek("kode berformat EBK-XXXXXXXX", /^EBK-[A-Z2-9]{8}$/.test(kode.kode));
 
 const tebusSah = await tebusUnduhanEbook({ kode: kode.kode, ...TEBUS });
 cek("kode baru bisa ditebus", tebusSah.panggilan === "Budi");
+cek("tebus menerbitkan tiket PDF", typeof tebusSah.tiketUnduh === "string");
+cek(
+  "tiket PDF terikat pada buku",
+  periksaTiketUnduh(tebusSah.tiketUnduh, "Sicilian Defense.pdf") &&
+    !periksaTiketUnduh(tebusSah.tiketUnduh, "buku-lain.pdf")
+);
 
 // Majukan jam: tulis ulang kedaluwarsa ke masa lalu (simulasi 1 jam berlalu).
 const satuJamLalu = new Date(Date.now() - 3601_000).toISOString();

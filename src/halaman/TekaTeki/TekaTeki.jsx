@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -202,7 +202,14 @@ function KerangkaTekaTeki() {
 
 export default function TekaTeki() {
   const { t } = useI18n();
-  const [params, setParams] = useSearchParams();
+  const lokasi = useLocation();
+  const navigate = useNavigate();
+  const { id: idRute } = useParams();
+  const idPath =
+    idRute ||
+    (lokasi.pathname.startsWith("/teka-teki/")
+      ? decodeURIComponent(lokasi.pathname.slice("/teka-teki/".length).split("/")[0])
+      : "");
 
   const [semuaSoal, setSemuaSoal] = useState(null);
   const [gagal, setGagal] = useState(false);
@@ -434,6 +441,11 @@ export default function TekaTeki() {
     setPosisiTersimpan(id);
   }, []);
 
+  const perbaruiUrlSoal = useCallback(
+    (id) => navigate(`/teka-teki/${encodeURIComponent(String(id))}`, { replace: true }),
+    [navigate]
+  );
+
   useEffect(() => {
     let aktif = true;
     setGagal(false);
@@ -451,7 +463,7 @@ export default function TekaTeki() {
             ? { ...item, pembukaan: standarkanNamaPembukaan(item.pembukaan) }
             : item
         );
-        const idParam = Number(params.get("id"));
+        const idParam = Number(idPath);
         let awal;
         if (idParam >= 1 && idParam <= daftar.length) {
           awal = idParam - 1;
@@ -465,7 +477,7 @@ export default function TekaTeki() {
         setSemuaSoal(daftar);
         setIndeks(awal);
         terapkanSoal(daftar[awal]);
-        setParams({ id: String(daftar[awal].problemid) }, { replace: true });
+        perbaruiUrlSoal(daftar[awal].problemid);
         simpanPosisi(daftar[awal].problemid);
       })
       .catch(() => {
@@ -474,9 +486,9 @@ export default function TekaTeki() {
     return () => {
       aktif = false;
     };
-    // Dependensi yang sengaja dilepas: params, terapkanSoal, setParams, dan
-    // simpanPosisi. Efek ini hanya boleh memuat data saat mount atau lewat
-    // "Coba lagi" (percobaan), bukan saat setParams menulis ulang query.
+    // Dependensi yang sengaja dilepas: idPath, terapkanSoal, perbaruiUrlSoal,
+    // dan simpanPosisi. Efek ini hanya boleh memuat data saat mount atau lewat
+    // "Coba lagi" (percobaan), bukan saat perbaruiUrlSoal menulis ulang path.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [percobaan]);
 
@@ -487,11 +499,12 @@ export default function TekaTeki() {
       setIndeks(safeIdx);
     }
     terapkanSoal(soal[safeIdx]);
-    setParams({ id: String(soal[safeIdx].problemid) }, { replace: true });
+    perbaruiUrlSoal(soal[safeIdx].problemid);
     simpanPosisi(soal[safeIdx].problemid);
-    // Dependensi yang sengaja dilepas: soal, indeks, terapkanSoal, setParams,
-    // dan simpanPosisi. Efek ini khusus re-filter: kalau soal/indeks ikut
-    // dipantau, tiap pindah soal posisi yang sama akan dipasang ulang.
+    // Dependensi yang sengaja dilepas: soal, indeks, terapkanSoal,
+    // perbaruiUrlSoal, dan simpanPosisi. Efek ini khusus re-filter: kalau
+    // soal/indeks ikut dipantau, tiap pindah soal posisi yang sama akan
+    // dipasang ulang.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTipe, filterLevel, filterTema, filterGiliran]);
 
@@ -606,11 +619,11 @@ export default function TekaTeki() {
       window.clearTimeout(timerOtomatis.current);
       setIndeks(idx);
       terapkanSoal(m);
-      setParams({ id: String(m.problemid) }, { replace: true });
+      perbaruiUrlSoal(m.problemid);
       simpanPosisi(m.problemid);
       bunyikan(SUARA.mulai);
     },
-    [soal, terapkanSoal, setParams, simpanPosisi, bunyikan]
+    [soal, terapkanSoal, perbaruiUrlSoal, simpanPosisi, bunyikan]
   );
 
   const pilihAcak = () =>
@@ -1637,7 +1650,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   value={nilaiNomorSoal}
                   onChange={(e) => onGantiNomorSoal && onGantiNomorSoal(e.target.value)}
                   placeholder="1–5486"
-                  className="w-full bg-[#262421] text-sm text-gray-200 px-3 py-2.5 rounded-md border border-[#363431] focus:outline-none focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20 placeholder-gray-500"
+                  className="w-full bg-[#262421] text-sm text-gray-200 px-3 py-2.5 rounded-md border border-[#363431] focus:outline-none focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20 placeholder-gray-400"
                 />
                 {teksGalatNomor && (
                   <p role="alert" className="mt-1 px-1 text-[11px] font-medium text-red-400">
@@ -1647,7 +1660,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </div>
               <button
                 type="submit"
-                className="w-full bg-[#81b64c] hover:bg-[#a3d168] text-white font-bold py-2.5 px-3 rounded-md text-sm transition shadow-lg shadow-[#81b64c]/20 cursor-pointer"
+                className="w-full bg-[#81b64c] hover:bg-[#a3d168] text-[#1e1c18] font-bold py-2.5 px-3 rounded-md text-sm transition shadow-lg shadow-[#81b64c]/20 cursor-pointer"
               >
                 {t("tekaTeki.buka")}
               </button>
@@ -1666,7 +1679,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </svg>
               Hint
             </button>
-            <div className="pt-3 flex justify-center text-gray-500 text-xs border-t border-[#312e2b]">
+            <div className="pt-3 flex justify-center text-gray-300 text-xs border-t border-[#312e2b]">
               <Link
                 to="/program-kami/atribusi"
                 className="flex items-center gap-1.5 hover:text-white transition"
@@ -1710,7 +1723,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                         <span className="text-sm font-bold text-[#fffaec] truncate">{t("tekaTeki.sisiHitam")}</span>
                       )}
                       {eloHitam > 0 && (
-                        <span className="text-xs text-gray-500 font-medium">({eloHitam})</span>
+                        <span className="text-xs text-gray-300 font-medium">({eloHitam})</span>
                       )}
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
@@ -1745,7 +1758,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   <div className="w-[30px] flex-shrink-0 rounded-md overflow-hidden relative bg-[#ffffff] shadow-inner">
                     {/* Bagian putih (atas) */}
                     <div className="absolute top-0 left-0 right-0 bg-[#ffffff] transition-all duration-500" style={{ height: "48%" }}>
-                      <div className="absolute bottom-1 left-0 right-0 text-center text-[9px] font-bold text-gray-600">
+                      <div className="absolute bottom-1 left-0 right-0 text-center text-[9px] font-bold text-gray-700">
                         +0.3
                       </div>
                     </div>
@@ -1858,12 +1871,12 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                         <span className="text-sm font-bold text-[#fffaec] truncate">{t("tekaTeki.sisiPutih")}</span>
                       )}
                       {eloPutih > 0 && (
-                        <span className="text-xs text-gray-500 font-medium">({eloPutih})</span>
+                        <span className="text-xs text-gray-300 font-medium">({eloPutih})</span>
                       )}
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       {teksTerpecahkan && (
-                        <span className="text-[11px] font-bold text-gray-500">{teksTerpecahkan}</span>
+                        <span className="text-[11px] font-bold text-gray-300">{teksTerpecahkan}</span>
                       )}
                     </div>
                   </div>
@@ -1890,7 +1903,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   className={`p-2 rounded-md transition ${
                     bukaPengaturan
                       ? "text-white bg-[#312e2b]"
-                      : "text-gray-500 hover:text-white hover:bg-[#312e2b]"
+                      : "text-gray-300 hover:text-white hover:bg-[#312e2b]"
                   }`}
                   aria-label={t("tekaTeki.pengaturan")}
                   title={t("tekaTeki.pengaturan")}
@@ -2026,7 +2039,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   aria-pressed={nilaiSuara}
                   className={`p-2 rounded-md transition ${
                     nilaiSuara
-                      ? "text-gray-500 hover:text-white hover:bg-[#312e2b]"
+                      ? "text-gray-300 hover:text-white hover:bg-[#312e2b]"
                       : "text-[#b33430] hover:bg-[#312e2b]"
                   }`}
                   aria-label={nilaiSuara ? t("tekaTeki.suaraMatikan") : t("tekaTeki.suaraHidupkan")}
@@ -2052,7 +2065,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               <button
                 type="button"
                 onClick={onFlip}
-                className="p-2 rounded-md text-gray-500 hover:text-white hover:bg-[#312e2b] transition"
+                className="p-2 rounded-md text-gray-300 hover:text-white hover:bg-[#312e2b] transition"
                 aria-label={t("tekaTeki.balikPapan")}
                 title={t("tekaTeki.balikPapan")}
               >
@@ -2113,8 +2126,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
           <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
               <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
-              <span className={giliran === "putih" ? "text-white" : "text-gray-500"}>{giliran === "putih" ? "Putih" : "Hitam"}</span>
-              <span className="text-gray-600">melangkah</span>
+              <span className={giliran === "putih" ? "text-white" : "text-gray-300"}>{giliran === "putih" ? "Putih" : "Hitam"}</span>
+              <span className="text-gray-300">melangkah</span>
             </div>
           </div>
 
@@ -2129,7 +2142,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
           ) : teksPembukaan ? (
             <div className="flex-shrink-0 min-w-0 border-b border-[#312e2b] bg-[#1e1c18] px-4 py-2 flex items-baseline gap-2">
-              <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
+              <span className="text-[10px] font-semibold text-gray-300 uppercase tracking-wider flex-shrink-0">{t("papan.pembukaan")}</span>
               <span className="text-[11px] font-medium text-gray-300 truncate min-w-0" title={teksPembukaan}>{teksPembukaan}</span>
             </div>
           ) : null}
@@ -2138,7 +2151,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
           <div className="flex-1 overflow-y-auto min-h-0 p-3 space-y-2 text-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-gray-300 uppercase tracking-wider">{syzygyJudul}</span>
-              <span className="text-[11px] text-gray-500">{syzygyDidukung}</span>
+              <span className="text-[11px] text-gray-300">{syzygyDidukung}</span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -2185,7 +2198,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               </ul>
             )}
 
-            <p className="text-[11px] leading-4 text-gray-500">{syzygyCatatan}</p>
+            <p className="text-[11px] leading-4 text-gray-300">{syzygyCatatan}</p>
           </div>
 
           {engineNyala && (

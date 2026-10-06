@@ -322,10 +322,20 @@ function verifyJwt(token) {
   }
 }
 
-/** Terbitkan JWT untuk admin. */
-export function terbitkanJwt(username, role = "pengurus") {
+/**
+ * Terbitkan JWT untuk admin.
+ * `ver` adalah versi kredensial yang disimpan bersama admin; perubahan
+ * password, role, atau username menaikkannya sehingga JWT lama tidak lagi
+ * diterima walaupun signature dan exp-nya masih sah.
+ */
+export function terbitkanJwt(username, role = "pengurus", tokenVersion = 0) {
   return jwt.sign(
-    { sub: username, role, typ: "admin" },
+    {
+      sub: username,
+      role,
+      ver: Number.isInteger(tokenVersion) && tokenVersion >= 0 ? tokenVersion : 0,
+      typ: "admin",
+    },
     jwtSecret(),
     { algorithm: "HS256", expiresIn: "24h", issuer: "kci-server" }
   );
@@ -411,13 +421,32 @@ export function dapatkanAdminDariRequest(req) {
 
   if (!token) return null;
 
-  // 1) Coba sebagai JWT terlebih dahulu — tidak perlu lookup file.
+  // 1) Coba sebagai JWT, lalu cocokkan dengan versi admin TERKINI.
+  // Signature JWT saja tidak cukup: password/role/username dapat berubah
+  // setelah token diterbitkan.
   const muatan = verifyJwt(token);
   if (muatan && muatan.typ === "admin") {
+    const sub = String(muatan.sub || "");
+    const dariFile = Array.isArray(konfigurasi.admins)
+      ? konfigurasi.admins.find((a) => a?.username === sub)
+      : null;
+    const dariKonfigurasi =
+      !dariFile && konfigurasi.admin?.username === sub
+        ? { ...konfigurasi.admin, role: "master", tokenVersion: 0 }
+        : null;
+    const terbaru = dariFile || dariKonfigurasi;
+    const versiToken = Number.isInteger(muatan.ver) ? muatan.ver : 0;
+    const versiKini = Number.isInteger(terbaru?.tokenVersion)
+      ? terbaru.tokenVersion
+      : 0;
+    if (!terbaru || terbaru.role !== (muatan.role || "pengurus") || versiToken !== versiKini) {
+      return null;
+    }
     return {
-      username: muatan.sub || username || "admin",
-      role: muatan.role || "pengurus",
+      username: sub,
+      role: terbaru.role,
       password: "",
+      tokenVersion: versiKini,
     };
   }
 
@@ -509,10 +538,16 @@ export function pastikanAdmin(req) {
     throw e;
   }
 
-  // 1) Coba verifikasi sebagai JWT terlebih dahulu.
+  // 1) Verifikasi signature sekaligus versi kredensial saat ini.
+  const adminJwt = dapatkanAdminDariRequest(req);
   const muatan = verifyJwt(diberikan);
   if (muatan && muatan.typ === "admin") {
-    return; // JWT sah — izinkan.
+    if (!adminJwt) {
+      const e = new Error("Sesi pengurus sudah dicabut atau kedaluwarsa.");
+      e.status = 401;
+      throw e;
+    }
+    return; // JWT sah dan masih memakai versi kredensial terkini.
   }
 
   // 2) Bukan JWT — coba kompatibilitas legacy (password/token mentah).

@@ -116,7 +116,7 @@ export function mountTekaTeki(el, id) {
   const root = createRoot(el);
   root.render(
     <HelmetProvider>
-      <MemoryRouter initialEntries={[\`/teka-teki?id=\${id}\`]}>
+      <MemoryRouter initialEntries={[\`/teka-teki/\${id}\`]}>
         <I18nProvider>
           <TekaTeki />
         </I18nProvider>
@@ -226,7 +226,7 @@ function pasangFetch(window) {
 }
 
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
-  url: "https://uji.test/teka-teki?id=6",
+  url: "https://uji.test/teka-teki/6",
   pretendToBeVisual: true,
 });
 siapkanGlobal(dom.window);

@@ -32,7 +32,9 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        # The release gate imports build/test-only packages such as Tailwind,
+        # Vite, and jsdom; never let a production NODE_ENV omit them.
+        run: npm ci --include=dev
 
       - name: Run the v1 release gate
         run: npm run uji:rilis:v1

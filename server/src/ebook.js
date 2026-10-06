@@ -17,6 +17,8 @@ import crypto from "node:crypto";
 import { buatRepo } from "./simpanan.js";
 import { konfigurasi } from "./konfigurasi.js";
 import { GalatAplikasi } from "./keanggotaan.js";
+import { DAFTAR_EBOOK } from "../../src/halaman/Beranda/ebook-data.js";
+import { terbitkanTiketUnduh } from "./tiket-ebook.js";
 
 const repoKode = buatRepo(`${konfigurasi.dirData}/kode-ebook.json`, []);
 const repoUnduhan = buatRepo(`${konfigurasi.dirData}/unduhan-ebook.json`, []);
@@ -296,6 +298,21 @@ export async function tebusUnduhanEbook({ kode, nama, akunChess, bukuId, judul }
   if (!idBuku) {
     throw new GalatAplikasi(400, "Buku yang diunduh tidak teridentifikasi.");
   }
+  // Pertahankan semantik 404/410 kode sebelum memvalidasi buku: klien lama
+  // bisa mengirim metadata buku lama ketika kode sudah dicabut.
+  const kodeTersimpan = (await repoKode.baca()).find((item) => item.kode === kodeBersih);
+  if (!kodeTersimpan) {
+    throw new GalatAplikasi(404, "Kode akses tidak dikenal. Periksa ejaan atau minta kode baru ke pengurus.");
+  }
+  if (Date.now() > new Date(kodeTersimpan.kedaluwarsa).getTime()) {
+    throw new GalatAplikasi(410, "Kode akses sudah kedaluwarsa (berlaku 1 jam). Minta kode baru ke pengurus.");
+  }
+
+  const buku = DAFTAR_EBOOK.find((item) => item.tersedia && item.id === idBuku);
+  if (!buku) {
+    throw new GalatAplikasi(400, "Buku yang diunduh tidak terdaftar.");
+  }
+  const namaBerkas = decodeURIComponent(String(buku.file).split(/[?#]/)[0].split("/").pop() || "");
 
   const kini = Date.now();
   let catatanUnduhan = null;
@@ -343,7 +360,12 @@ export async function tebusUnduhanEbook({ kode, nama, akunChess, bukuId, judul }
     hasil: catatanUnduhan,
   }));
 
-  return catatanUnduhan;
+  // Token tidak disimpan di buku tamu. Ia hanya dikembalikan ke pemegang
+  // kode yang baru saja berhasil menebusnya dan terikat pada PDF yang dipilih.
+  return {
+    ...catatanUnduhan,
+    tiketUnduh: terbitkanTiketUnduh(namaBerkas),
+  };
 }
 
 /** Jejak unduhan untuk dashboard pengurus (terbaru di depan). */

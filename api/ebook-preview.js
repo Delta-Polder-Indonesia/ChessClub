@@ -1,21 +1,17 @@
 /**
  * Proxy pratinjau (dan unduhan) PDF e-book.
  *
- * Masalah yang diselesaikan:
- *   1. Berkas statis `public/ebooks/*.pdf` bisa bukan PDF asli — mis. checkout
- *      lama yang masih memakai Git LFS sehingga isinya hanya *pointer* teks
- *      132 byte — sehingga pratinjau kosong.
- *   2. GitHub Media mengirim `Content-Disposition: attachment`, sehingga
- *      browser MENGUNDUH berkas alih-alih menampilkannya.
+ * Endpoint ini mewajibkan tiket redemption untuk preview maupun unduhan.
+ * Production hanya memilih storage privat (Supabase authenticated object atau
+ * gateway `KCI_EBOOK_PRIVATE_BASE`); mode lokal tetap boleh memakai checkout
+ * atau sumber cadangan agar pengembangan tidak bergantung pada deployment.
+ * Sumber PDF dicek lewat magic bytes `%PDF`, lalu disajikan dari origin situs
+ * sendiri sebagai `inline` (atau `attachment` bila `?unduh=1`). Permintaan
+ * `Range` diteruskan apa adanya supaya pembaca PDF dapat memuat per bagian.
  *
- * Endpoint ini memilih sumber PDF yang benar-benar berisi PDF (dicek lewat
- * magic bytes `%PDF`), lalu menyajikannya dari origin situs sendiri sebagai
- * `inline` (atau `attachment` bila `?unduh=1`). Permintaan `Range` diteruskan
- * apa adanya supaya pembaca PDF dapat memuat per bagian.
- *
- * Contoh:
- *   /api/ebook-preview?file=Problem%20Catur%20288.pdf
- *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&unduh=1
+ * Contoh (tiket diterbitkan endpoint redemption, bukan dibuat browser):
+ *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&tiket=<tiket>
+ *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&unduh=1&tiket=<tiket>
  */
 import { Readable } from "node:stream";
 import {
@@ -24,6 +20,9 @@ import {
   namaBerkasEbook,
   sumberEbookServer,
 } from "../src/data/ebook-sumber.js";
+import { konfigurasi } from "../server/src/konfigurasi.js";
+import { sumberEbookPrivat } from "../server/src/ebook-storage.js";
+import { periksaTiketUnduh } from "../server/src/tiket-ebook.js";
 
 /** Berkas terbesar ±35 MB; beri ruang waktu bagi instance dingin. */
 export const config = { maxDuration: 60 };
@@ -40,11 +39,15 @@ function asalSitus(req) {
 }
 
 /** Benarkah URL ini mengembalikan PDF? Hanya 4 byte pertama yang dibaca. */
-async function berisiPdf(url) {
+async function berisiPdf(kandidat) {
   const pembatal = new AbortController();
   try {
-    const jawaban = await fetch(url, {
-      headers: { Range: "bytes=0-3", Accept: "application/pdf,*/*" },
+    const jawaban = await fetch(kandidat.url, {
+      headers: {
+        ...kandidat.headers,
+        Range: "bytes=0-3",
+        Accept: "application/pdf,*/*",
+      },
       redirect: "follow",
       signal: pembatal.signal,
     });
@@ -69,14 +72,17 @@ async function pilihSumber(nama, asal) {
   const tersimpan = sumberTerpilih.get(nama);
   if (tersimpan) return tersimpan;
 
-  for (const kandidat of sumberEbookServer(nama, { asal })) {
+  const kandidat = konfigurasi.produksi
+    ? sumberEbookPrivat(nama)
+    : sumberEbookServer(nama, { asal }).map((url) => ({ url, headers: {} }));
+  for (const item of kandidat) {
     // eslint-disable-next-line no-await-in-loop -- sengaja berurutan: sumber tercepat dulu.
-    if (await berisiPdf(kandidat)) {
-      sumberTerpilih.set(nama, kandidat);
-      return kandidat;
+    if (await berisiPdf(item)) {
+      sumberTerpilih.set(nama, item);
+      return item;
     }
   }
-  return "";
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -97,22 +103,31 @@ export default async function handler(req, res) {
   const unduh = ["1", "true", "ya"].includes(String(req.query?.unduh || "").toLowerCase());
   const namaAman = nama.replace(/[\r\n\\"]/g, "_");
 
+  // Preview dan unduhan sama-sama dilindungi. Tanpa ini, siapa pun dapat
+  // melewati modal redemption dengan memanggil proxy langsung.
+  if (!periksaTiketUnduh(req.query?.tiket, nama)) {
+    res.status(403).json({ error: "Tiket akses tidak sah atau sudah kedaluwarsa." });
+    return;
+  }
+
   try {
     const sumber = await pilihSumber(nama, asalSitus(req));
     if (!sumber) {
-      res.status(502).json({
-        error:
-          "Berkas PDF tidak tersedia di sumber mana pun. Pastikan `public/ebooks/` " +
-          "ikut ter-checkout saat build dengan isi asli, atau atur EBOOK_BASE ke " +
-          "object storage.",
+      res.status(konfigurasi.produksi ? 503 : 502).json({
+        error: konfigurasi.produksi
+          ? "Penyimpanan e-book privat belum dikonfigurasi."
+          : "Berkas PDF tidak tersedia di sumber lokal atau cadangan.",
       });
       return;
     }
 
-    const kepala = { Accept: "application/pdf,*/*" };
+    const kepala = {
+      ...sumber.headers,
+      Accept: "application/pdf,*/*",
+    };
     if (req.headers.range) kepala.Range = req.headers.range;
 
-    const hulu = await fetch(sumber, { headers: kepala, redirect: "follow" });
+    const hulu = await fetch(sumber.url, { headers: kepala, redirect: "follow" });
     if (!hulu.ok) {
       sumberTerpilih.delete(nama);
       res.status(502).json({ error: "Sumber PDF tidak dapat diakses." });
@@ -126,7 +141,9 @@ export default async function handler(req, res) {
       `${unduh ? "attachment" : "inline"}; filename="${namaAman}"`
     );
     res.setHeader("Accept-Ranges", "bytes");
-    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    // Tiket dikirim di query string; jangan biarkan CDN menyimpan PDF bertiket
+    // atau melayani ulang salinan setelah tiket kedaluwarsa.
+    res.setHeader("Cache-Control", "private, no-store");
     res.setHeader("X-Content-Type-Options", "nosniff");
 
     const panjang = hulu.headers.get("content-length");

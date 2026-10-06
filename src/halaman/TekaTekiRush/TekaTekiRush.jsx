@@ -12,6 +12,7 @@ import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
 import { ambilPeringkatRush, kirimSkorRush } from "../../lib/api/rekorRush.js";
+import { mulaiLoginChessCom } from "../../lib/api/anggota.js";
 import { muatAnggota, anggotaTersimpan } from "../../lib/anggotaBersama.js";
 import { berkasPublik } from "../../lib/asets.js";
 import { coba } from "../../lib/utils.js";
@@ -278,6 +279,22 @@ export default function TekaTekiRush() {
   const [segarRekor, setSegarRekor] = useState(0);
   const [simpanStatus, setSimpanStatus] = useState("idle"); // idle|kirim|ok|galat
   const [simpanPesan, setSimpanPesan] = useState("");
+  // Tiket HMAC dari login Chess.com; tidak disimpan di localStorage dan hanya
+  // dipakai sekali oleh server untuk satu pengiriman skor.
+  const [tiketRush, setTiketRush] = useState("");
+
+  useEffect(() => {
+    try {
+      const data = JSON.parse(sessionStorage.getItem("kci-hasil-verifikasi") || "null");
+      if (data?.sukses && data.tiket && data.username) {
+        setTiketRush(data.tiket);
+        setUsernameForm(data.username);
+        sessionStorage.removeItem("kci-hasil-verifikasi");
+      }
+    } catch {
+      // Storage privat/nonaktif tidak boleh menjatuhkan halaman permainan.
+    }
+  }, []);
 
   const usedIdsRef = useRef(new Set());
   const nyawaRef = useRef(NYAWA_AWAL);
@@ -760,6 +777,19 @@ export default function TekaTekiRush() {
     mainkan(SUARA.selesai);
   }, [mainkan]);
 
+  /** Mulai login Chess.com untuk menerbitkan bukti identitas Rush. */
+  const mulaiVerifikasiRush = useCallback(async () => {
+    setSimpanStatus("kirim");
+    setSimpanPesan("");
+    try {
+      const hasil = await mulaiLoginChessCom("/teka-teki-rush");
+      window.location.assign(hasil.url);
+    } catch (e) {
+      setSimpanStatus("galat");
+      setSimpanPesan(e?.message || t("tekaTekiRush.verifikasiGagal"));
+    }
+  }, [t]);
+
   /** Simpan skor sesi ke papan peringkat online (berlaku di layar selesai). */
   const simpanSkorOnline = useCallback(async () => {
     const u = (usernameForm || "").trim();
@@ -768,10 +798,21 @@ export default function TekaTekiRush() {
       setSimpanPesan(t("tekaTekiRush.usernameAnda"));
       return;
     }
+    if (!tiketRush) {
+      setSimpanStatus("galat");
+      setSimpanPesan(t("tekaTekiRush.verifikasiDiperlukan"));
+      return;
+    }
     setSimpanStatus("kirim");
     coba(() => localStorage.setItem(KUNCI_USERNAME, u), "simpan username");
     try {
-      await kirimSkorRush({ username: u, skor, durasiMenit });
+      await kirimSkorRush({
+        username: u,
+        skor,
+        durasiMenit,
+        tiketVerifikasi: tiketRush,
+      });
+      setTiketRush("");
       setSimpanStatus("ok");
       setSimpanPesan(t("tekaTekiRush.skorTersimpan"));
       setSegarRekor((x) => x + 1);
@@ -784,7 +825,7 @@ export default function TekaTekiRush() {
           : t("tekaTekiRush.gagalSimpanOnline")
       );
     }
-  }, [usernameForm, skor, durasiMenit, t, mainkan]);
+  }, [usernameForm, skor, durasiMenit, tiketRush, t, mainkan]);
 
   // NAV KIRI: pengaturan papan + rekor + aksi sesi.
   const navKiri = (
@@ -1110,7 +1151,7 @@ export default function TekaTekiRush() {
                   onChange={(e) => setUsernameForm(e.target.value)}
                   placeholder={t("tekaTekiRush.usernameAnda")}
                   autoComplete="username"
-                  disabled={simpanStatus === "kirim"}
+                  disabled={simpanStatus === "kirim" || Boolean(tiketRush)}
                   className="min-w-0 flex-1 border-0 border-b-2 bg-transparent px-1 py-2 text-sm text-white outline-none transition-colors duration-200 placeholder:text-slate-500 disabled:opacity-60 focus:border-[#81b64c]"
                 />
                 {usernameForm.trim() &&
@@ -1140,10 +1181,20 @@ export default function TekaTekiRush() {
                       />
                     </svg>
                   ))}
+                {!tiketRush && (
+                  <button
+                    type="button"
+                    onClick={mulaiVerifikasiRush}
+                    disabled={simpanStatus === "kirim"}
+                    className="shrink-0 rounded-md border border-[#81b64c] px-4 py-2 text-sm font-bold text-[#a3d168] transition hover:bg-[#81b64c]/10 disabled:opacity-60"
+                  >
+                    {t("tekaTekiRush.verifikasiChessCom")}
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={simpanSkorOnline}
-                  disabled={simpanStatus === "kirim"}
+                  disabled={simpanStatus === "kirim" || !tiketRush}
                   className="shrink-0 rounded-md bg-[#81b64c] px-4 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#a3d168] disabled:opacity-60"
                 >
                   {t("tekaTekiRush.simpanSkor")}

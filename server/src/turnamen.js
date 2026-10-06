@@ -523,7 +523,12 @@ export async function daftarkanPeserta(id, { username, tim }) {
     if (t.kuota && (t.peserta || []).length >= t.kuota) {
       throw new GalatAplikasi(409, "Kuota peserta sudah penuh.");
     }
-    if (!JENIS[t.jenis].bolehNonAnggota && !rekamKlub) {
+    // Turnamen lama/arsip bisa memakai kategori bebas yang tidak ada di
+    // JENIS. Jangan dereference JENIS[t.jenis] langsung: pendaftaran pada
+    // kategori custom sebelumnya berakhir 500. Kategori custom memakai
+    // kebijakan turnamen terbuka (peserta boleh bukan anggota).
+    const sifatJenis = JENIS[t.jenis] || { bolehNonAnggota: true };
+    if (!sifatJenis.bolehNonAnggota && !rekamKlub) {
       throw new GalatAplikasi(
         403,
         `Turnamen ini khusus anggota. "${uname}" belum tercatat di klub Chess.com komunitas.`

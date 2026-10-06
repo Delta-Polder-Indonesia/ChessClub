@@ -7,10 +7,11 @@
  * (berkas lokal /tmp → otomatis ke Supabase `kci_storage` saat dikonfigurasi),
  * jadi TIDAK perlu tabel/database baru.
  *
- * Batasan keamanan v1: membatasi agar hanya username dalam roster yang bisa
- * mencatat skor. Untuk mencegah pemalsuan atas nama anggota lain, langkah
- * lanjutnya adalah mewajibkan login OAuth Chess.com per pengiriman — modul ini
- * sengaja dibuat murni & mudah diuji sehingga logika peringkat aman di-refactor.
+ * Batasan keamanan v1: selain roster klub, setiap penulisan wajib membawa
+ * tiket OAuth Chess.com sekali pakai yang diterbitkan server dan terikat pada
+ * username yang dikirim. Dengan begitu browser tidak lagi bisa mengaku sebagai
+ * anggota lain hanya dengan mengetik usernamenya. Modul ini tetap dibuat murni
+ * dan mudah diuji sehingga logika peringkat aman di-refactor.
  */
 import { buatRepo } from "./simpanan.js";
 import { konfigurasi } from "./konfigurasi.js";

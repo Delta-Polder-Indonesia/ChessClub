@@ -4,7 +4,6 @@
  * `npm run uji:gambar` memastikan isinya tidak ketinggalan.
  */
 import { UKUR as UKUR_GAMBAR } from "../data/ukur-gambar.js";
-import { EBOOK_BASE } from "../data/ebook-storage.js";
 
 /**
  * Alamat aset publik (gambar, favicon, dll).
@@ -33,18 +32,21 @@ export function berkasPublik(jalur) {
  * Alamat e-book PDF (pratinjau atau unduhan).
  *
  * SELALU same-origin (`/api/ebook-preview`). Endpoint itulah yang memilih
- * sumber sebenarnya — object storage bila `EBOOK_BASE` diisi, berkas statis
- * `/ebooks/…` hasil build, atau GitHub Media (cadangan) — lalu
- * mengembalikannya dengan `Content-Disposition: inline` supaya browser
- * MENAMPILKAN PDF, bukan mengunduhnya.
+ * sumber privat di server — lalu mengembalikannya dengan
+ * `Content-Disposition: inline` supaya browser MENAMPILKAN PDF, bukan
+ * mengunduhnya.
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
- * @param {{unduh?: boolean}} [opsi] `unduh: true` = paksa unduhan (attachment).
+ * @param {{unduh?: boolean, tiket?: string}} [opsi] `unduh: true` = paksa
+ * unduhan (attachment); `tiket` adalah tiket akses hasil penebusan kode.
  */
 export function urlEbook(jalur, opsi = {}) {
   const nama = namaEbook(jalur);
   const dasar = `${import.meta.env.BASE_URL}api/ebook-preview?file=${encodeURIComponent(nama)}`;
-  return opsi.unduh ? `${dasar}&unduh=1` : dasar;
+  const params = [];
+  if (opsi.unduh) params.push("unduh=1");
+  if (opsi.tiket) params.push(`tiket=${encodeURIComponent(opsi.tiket)}`);
+  return params.length ? `${dasar}&${params.join("&")}` : dasar;
 }
 
 /** Nama berkas polos dari entri e-book ("/ebooks/A%20B.pdf" → "A B.pdf"). */
@@ -60,23 +62,13 @@ function namaEbook(jalur) {
 }
 
 /**
- * Daftar URL PDF yang boleh dicoba pembaca di browser, urut prioritas.
+ * Daftar URL PDF yang boleh dicoba pembaca di browser.
  *
- * Situs production berjalan di Vercel (punya /api). Pembaca mencoba proxy
- * Vercel, berkas statis, dan object storage sampai menemukan PDF asli, jadi
- * tombol "Baca" tidak bergantung pada satu sumber saja.
+ * Hanya proxy same-origin yang dikembalikan. Dengan begitu browser tidak
+ * pernah menerima URL storage/GitHub yang dapat melewati tiket akses.
  */
-export function sumberEbook(jalur) {
-  const nama = namaEbook(jalur);
-  const daftar = [urlEbook(jalur), berkasPublik(`/ebooks/${encodeURIComponent(nama)}`)];
-  if (EBOOK_BASE) {
-    daftar.push(`${EBOOK_BASE.replace(/\/+$/, "")}/${encodeURIComponent(nama)}`);
-  }
-  daftar.push(
-    "https://media.githubusercontent.com/media/Delta-Polder-Indonesia/ChessClub/main/public/ebooks/" +
-      encodeURIComponent(nama)
-  );
-  return [...new Set(daftar)];
+export function sumberEbook(jalur, opsi = {}) {
+  return [urlEbook(jalur, { tiket: opsi.tiket })];
 }
 
 /**
