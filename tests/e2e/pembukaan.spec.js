@@ -1,58 +1,14 @@
 import { expect, test } from "@playwright/test";
-import { Chess } from "chess.js";
 import { bukuPembukaan as id } from "../../src/lib/terjemahan/id/program.js";
 import { bukuPembukaan as en } from "../../src/lib/terjemahan/en/program.js";
 import { papan as papanId } from "../../src/lib/terjemahan/id/papan.js";
 import { papan as papanEn } from "../../src/lib/terjemahan/en/papan.js";
 
-const BIDAK = { p: "Bidak", n: "Kuda", b: "Gajah", r: "Benteng", q: "Menteri", k: "Raja" };
-
-/**
- * Data pohon langkah pertama pada landing — angka yang sama dengan yang
- * dihitung dari berkas buku pembukaan (lihat Pembukaan.jsx).
- */
-const TOTAL_JALUR = 18713;
-const PINTU = [
-  {
-    san: "1. e4", uci: "e4", asal: "e2", tujuan: "e4", jumlah: 13342, deskripsi: "e4Deskripsi",
-    balasan: [
-      ["1… e5", 5828, "kelItalia"],
-      ["1… c5", 2230, "kelSisilia"],
-      ["1… d5", 1512, "kelSkandinavia"],
-      ["1… e6", 1359, "kelPrancis"],
-    ],
-  },
-  {
-    san: "1. d4", uci: "d4", asal: "d2", tujuan: "d4", jumlah: 4383, deskripsi: "d4Deskripsi",
-    balasan: [
-      ["1… d5", 1932, "kelGambitMenteri"],
-      ["1… Nf6", 1433, "kelIndiaRaja"],
-      ["1… e5", 239, "kelEnglund"],
-    ],
-  },
-  {
-    san: "1. c4", uci: "c4", asal: "c2", tujuan: "c4", jumlah: 402, deskripsi: "c4Deskripsi",
-    balasan: [
-      ["1… e5", 110, "kelInggris"],
-      ["1… Nf6", 85, "kelInggris"],
-      ["1… e6", 62, "kelInggris"],
-    ],
-  },
-  {
-    san: "1. Nf3", uci: "Nf3", asal: "g1", tujuan: "f3", jumlah: 246, deskripsi: "nf3Deskripsi",
-    balasan: [
-      ["1… d5", 104, "kelSeranganIndiaRaja"],
-      ["1… Nf6", 67, "kelSeranganIndiaRaja"],
-      ["1… c5", 15, "kelZukertort"],
-    ],
-  },
-];
-
 /** Ganti token {kunci} pada teks kamus, sama seperti fungsi t() aplikasi. */
 const ganti = (teks, nilai) => teks.replace(/\{(\w+)\}/g, (_, kunci) => nilai[kunci]);
 
 for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
-  test(`landing pembukaan: masthead, pohon langkah, dan katalog pencarian (${bahasa})`, async ({ page }) => {
+  test(`landing pembukaan: masthead dan katalog pencarian (${bahasa})`, async ({ page }) => {
     // Muatan pertama menanggung kompilasi graph modul Vite pada mesin dingin.
     test.setTimeout(120_000);
     const galat = [];
@@ -65,56 +21,10 @@ for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
 
     const lokal = bahasa === "en" ? "en-US" : "id-ID";
     const angka = new Intl.NumberFormat(lokal);
-    const persen = new Intl.NumberFormat(lokal, { style: "percent", maximumFractionDigits: 1 });
 
     // Hero dan pembuka editorial.
     await expect(page.getByRole("heading", { name: kamus.judul, exact: true })).toBeVisible({ timeout: 90_000 });
     await expect(page.getByRole("heading", { name: kamus.introJudul, exact: true })).toBeVisible();
-
-    // Masthead: empat angka dihitung dari berkas buku, format mengikuti bahasa.
-    await expect(page.locator("dl dd")).toHaveText([
-      angka.format(18713),
-      angka.format(3196),
-      angka.format(155),
-      angka.format(349),
-    ]);
-    await expect(page.getByText(kamus.sumberBaris)).toBeVisible();
-
-    // Pohon empat langkah pertama.
-    await expect(page.locator("article[data-langkah]")).toHaveCount(4);
-    for (const pintu of PINTU) {
-      const artikel = page.locator(`article[data-langkah="${pintu.san}"]`);
-      await expect(artikel.getByRole("heading", { name: pintu.san, exact: true })).toBeVisible();
-      const ringkasan = artikel.locator("p").first();
-      await expect(ringkasan).toContainText(`${angka.format(pintu.jumlah)} ${kamus.kataJalur}`);
-      await expect(ringkasan).toContainText(persen.format(pintu.jumlah / TOTAL_JALUR));
-      await expect(artikel).toContainText(kamus[pintu.deskripsi]);
-      for (const [san, jumlah, keluarga] of pintu.balasan) {
-        await expect(artikel).toContainText(san);
-        await expect(artikel).toContainText(angka.format(jumlah));
-        await expect(artikel).toContainText(kamus[keluarga]);
-      }
-
-      // Papan mini: 64 petak, isi sama dengan posisi chess.js setelah langkah,
-      // tinta sorotan hanya pada petak asal dan tujuan.
-      const papan = artikel.locator("[data-papan-mini]");
-      await expect(papan).toHaveAttribute("aria-label", ganti(kamus.ariaPapanMini, { langkah: pintu.san }));
-      const petak = papan.locator(":scope > .grid > div");
-      await expect(petak).toHaveCount(64);
-      await expect(papan.locator("img")).toHaveCount(32);
-      const permainan = new Chess();
-      permainan.move(pintu.uci);
-      const harapan = permainan.board().flat().map((bidak) => bidak
-        ? `${BIDAK[bidak.type]} ${bidak.color === "w" ? "putih" : "hitam"}`
-        : null);
-      expect(await petak.evaluateAll((elemen) => elemen.map((el) => el.querySelector("img")?.alt ?? null))).toEqual(harapan);
-      await expect(papan.locator("span[aria-hidden=true]")).toHaveCount(2);
-      await expect(papan.locator(`[data-petak="${pintu.asal}"] span[aria-hidden=true]`)).toHaveCount(1);
-      await expect(papan.locator(`[data-petak="${pintu.tujuan}"] span[aria-hidden=true]`)).toHaveCount(1);
-      const kotakPapan = await papan.boundingBox();
-      expect(Math.abs(kotakPapan.width - kotakPapan.height)).toBeLessThan(2);
-    }
-    await expect(page.getByText(kamus.lainnyaCatatan)).toBeVisible();
 
     // Katalog: 72 keluarga teratas, pencarian hidup menurut nama dan ECO.
     const carian = page.getByRole("searchbox", { name: kamus.katalogPlaceholder });
@@ -148,8 +58,7 @@ for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
     await carian.fill("");
     await expect(barisKatalog).toHaveCount(72);
 
-    // Fitur dan CTA.
-    await expect(page.getByRole("heading", { name: kamus.alatJudul, exact: true })).toBeVisible();
+    // CTA menuju papan interaktif, kini berada di bawah paragraf pembuka.
     await expect(page.getByRole("link", { name: kamus.ctaUtama, exact: true })).toHaveAttribute("href", "/papan-interaktif");
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

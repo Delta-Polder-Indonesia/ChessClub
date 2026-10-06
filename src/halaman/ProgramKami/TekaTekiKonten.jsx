@@ -1,8 +1,7 @@
 import { useMemo } from "react";
 import { Chess } from "chess.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
-import { Tombol } from "../../components/Tombol.jsx";
-import { ArrowRightIcon } from "../../components/icons.jsx";
+import { TombolConten } from "../../components/TombolConten.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
@@ -135,10 +134,7 @@ export default function TekaTekiKonten() {
                 <p className="m-0">{t("tipsTekaTeki.intro1")}</p>
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4 font-sans">
-                  <Tombol to={RUTE_ALAT} variant="garis">
-                    {t("tipsTekaTeki.ctaUtama")}
-                    <ArrowRightIcon className="size-4" />
-                  </Tombol>
+                  <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
                 </div>
               </div>
 

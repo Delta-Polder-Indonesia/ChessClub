@@ -26,15 +26,11 @@
  *      alt terisi; `[data-petak="e2"] img` = 1 dan `[data-petak="e4"] img` = 0.
  *      Cerminan assertion `tests/e2e/pembukaan.spec.js:289` yang gagal di CI,
  *      diulang untuk set non-default `chesscom` (cabang `.png` pada `jalurAset`).
- *   D. Papan mini halaman Pembukaan — papan pertama berisi 64 petak dan 32
- *      `<img>`. Cerminan assertion `tests/e2e/pembukaan.spec.js:104` yang juga
- *      gagal di CI. `PapanMini` tidak diekspor, jadi halaman dirender lewat
- *      default export `Pembukaan()` tanpa menyentuh `src/`.
  *
- * Semua lapis gagal keras bila esbuild tidak terpasang; lapis C dan D juga gagal bila
+ * Semua lapis gagal keras bila esbuild tidak terpasang; lapis C juga gagal bila
  * jsdom tidak terpasang — keduanya bukan dependensi runtime situs.
  *
- * C dan D sengaja tidak berhenti di branch "modul gagal dimuat": keduanya harus
+ * C sengaja tidak berhenti di branch "modul gagal dimuat": ia harus
  * ikut melapor gagal saat regresi 85ddcfa membuat peta aset kosong, karena di
  * situlah bug itu muncul tanpa satu pun pesan galat.
  *
@@ -221,16 +217,13 @@ if (modulBidak.galat) {
   uji("pemanggilan kedua untuk set yang sama memakai cache (referensi identik)", sekali === duaKali);
 }
 
-/* ============ Bundel uji: PapanTekaTeki dan halaman Pembukaan ============ */
+/* ===================== Bundel uji: PapanTekaTeki ===================== */
 
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
-import { MemoryRouter } from "react-router-dom";
-import { HelmetProvider } from "react-helmet-async";
-import Pembukaan from "./src/halaman/ProgramKami/Pembukaan.jsx";
 
 export function mountPapan(el, fen, setBidak) {
   const akar = createRoot(el);
@@ -238,20 +231,6 @@ export function mountPapan(el, fen, setBidak) {
     <I18nProvider>
       <PapanTekaTeki fen={fen} setBidak={setBidak} onKlik={() => {}} />
     </I18nProvider>
-  );
-  return () => akar.unmount();
-}
-
-export function mountPembukaan(el) {
-  const akar = createRoot(el);
-  akar.render(
-    <HelmetProvider>
-      <MemoryRouter>
-        <I18nProvider>
-          <Pembukaan />
-        </I18nProvider>
-      </MemoryRouter>
-    </HelmetProvider>
   );
   return () => akar.unmount();
 }
@@ -396,33 +375,6 @@ if (modulBidak.galat) {
 
   await periksaPapan("merida");
   await periksaPapan("chesscom");
-}
-
-/* =============== D. papan mini halaman Pembukaan =============== */
-
-console.log("\nD. papan mini halaman Pembukaan (cermin pembukaan.spec.js:104)");
-
-if (modulBidak.galat) {
-  uji("papan mini berisi tepat 32 gambar bidak", false, PETA_KOSONG);
-} else if (galatBuild) {
-  uji("papan mini berisi tepat 32 gambar bidak", false, galatBuild);
-} else if (!lingkungan) {
-  lewati("D. papan mini", ALASAN_LEWAT);
-} else {
-  const lepas = modul.mountPembukaan(wadah);
-  await tungguSampai(() => wadah.querySelector("[data-papan-mini] img"));
-  const mini = wadah.querySelector("[data-papan-mini]");
-  uji("papan mini pertama ter-render", Boolean(mini));
-  if (mini) {
-    const petak = mini.querySelectorAll("[data-petak]").length;
-    const gambar = mini.querySelectorAll("img").length;
-    uji("papan mini berisi 64 petak", petak === 64, `${petak} petak`);
-    uji("papan mini berisi tepat 32 gambar bidak", gambar === 32, `${gambar} img`);
-  } else {
-    uji("papan mini berisi 64 petak", false, "[data-papan-mini] tidak ada");
-    uji("papan mini berisi tepat 32 gambar bidak", false, "[data-papan-mini] tidak ada");
-  }
-  lepas();
 }
 
 if (lingkungan) rmSync(berkasBundel, { force: true });

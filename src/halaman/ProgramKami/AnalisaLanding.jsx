@@ -1,5 +1,5 @@
 import { HalamanIsi, PageArtikel } from "../../components/PageBagian.jsx";
-import { Tombol } from "../../components/Tombol.jsx";
+import { TombolConten } from "../../components/TombolConten.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { berkasPublik, gambar } from "../../lib/asets.js";
 
@@ -45,12 +45,9 @@ export default function AnalisaLanding() {
               <p>{t("analisaLanding.p1")}</p>
             </div>
 
-            <Tombol to={RUTE_PAPAN_ANALISA} variant="garis" className="mt-1 w-fit shrink-0">
-              <span>{t("analisaLanding.mulai")}</span>
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="square" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-              </svg>
-            </Tombol>
+            <TombolConten to={RUTE_PAPAN_ANALISA} className="mt-1 w-fit shrink-0 md:w-fit">
+              {t("analisaLanding.mulai")}
+            </TombolConten>
           </div>
 
           <figure className="w-full min-w-0 md:w-1/2 md:self-start">

@@ -22,7 +22,7 @@ export function Tombol({ to, children, variant = "garis", className, ...props })
     <Link
       to={to}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded px-6 py-3 font-sans text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+        "tombol-kci inline-flex items-center justify-center gap-2 rounded px-6 py-3 font-sans text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
         GAYA[variant],
         className
       )}

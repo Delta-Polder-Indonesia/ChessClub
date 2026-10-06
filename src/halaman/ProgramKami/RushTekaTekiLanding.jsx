@@ -1,6 +1,5 @@
 import { HalamanIsi } from "../../components/PageBagian.jsx";
-import { Tombol } from "../../components/Tombol.jsx";
-import { ArrowRightIcon } from "../../components/icons.jsx";
+import { TombolConten } from "../../components/TombolConten.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, sumberGambar } from "../../lib/asets.js";
 
@@ -50,10 +49,7 @@ export default function RushTekaTekiLanding() {
               <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 <p className="m-0">{t("rushLanding.intro2")}</p>
                 <div className="mt-3">
-                  <Tombol to={RUTE_ALAT} variant="garis">
-                    {t("rushLanding.cta")}
-                    <ArrowRightIcon className="size-4" />
-                  </Tombol>
+                  <TombolConten to={RUTE_ALAT}>{t("rushLanding.cta")}</TombolConten>
                 </div>
               </div>
 

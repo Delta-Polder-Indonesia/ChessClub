@@ -1,16 +1,36 @@
 import { useMemo, useState } from "react";
+import {
+  columnFilteringFeature,
+  createColumnHelper,
+  createFilteredRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  flexRender,
+  globalFilteringFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
+  tableFeatures,
+  useTable,
+} from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 // PENTING: impor dari "react-router-dom", BUKAN "react-router". Spesifier
 // "react-router" tidak terdaftar di optimizeDeps.include (vite.config.js),
 // sehingga saat halaman lazy ini pertama dimuat Vite meng-optimasi ulang
 // dependensi di tengah sesi → dua instance React → "Cannot read properties
 // of null (reading 'useContext')" (uji e2e pembukaan jadi flaky).
 import { Link } from "react-router-dom";
-import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
-import { Tombol } from "../../components/Tombol.jsx";
-import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { TombolConten } from "../../components/TombolConten.jsx";
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table.jsx";
 
 /**
  * Landing pembukaan — dibangun dari isi data, bukan dari kerangka halaman lain.
@@ -21,93 +41,7 @@ import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
  * data berubah — tidak ada angka yang diketik dari ingatan.
  */
 
-/** Warna petak — sama dengan tema klasik papan interaktif dan Teka-teki. */
-const PETAK_TERANG = "#f0d9b5";
-const PETAK_GELAP = "#b58863";
-/** Tinta petak asal–tujuan — warna sorotan langkah terakhir papan interaktif. */
-const TINTA_LANGKAH = "rgba(205, 210, 106, 0.5)";
 const HERO_IMAGE = "/images/ProgramKami/pembukaan-hero.webp";
-
-/** Total baris berkas buku pembukaan. */
-const TOTAL_JALUR = 18713;
-
-/**
- * Empat langkah pertama terbanyak. `fen` dihasilkan chess.js dari posisi awal
- * (skrip analisa, bukan diketik tangan); `jumlah` = baris buku yang dibuka
- * dengan langkah itu; `balasan` = jawaban Hitam terbanyak jalurnya, dengan
- * keluarga terbesar di buku untuk balasan tersebut.
- */
-const PINTU_MASUK = [
-  {
-    san: "1. e4",
-    fen: "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-    asal: "e2",
-    tujuan: "e4",
-    jumlah: 13342,
-    deskripsi: "e4Deskripsi",
-    balasan: [
-      { san: "1… e5", jumlah: 5828, keluarga: "kelItalia" },
-      { san: "1… c5", jumlah: 2230, keluarga: "kelSisilia" },
-      { san: "1… d5", jumlah: 1512, keluarga: "kelSkandinavia" },
-      { san: "1… e6", jumlah: 1359, keluarga: "kelPrancis" },
-    ],
-  },
-  {
-    san: "1. d4",
-    fen: "rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1",
-    asal: "d2",
-    tujuan: "d4",
-    jumlah: 4383,
-    deskripsi: "d4Deskripsi",
-    balasan: [
-      { san: "1… d5", jumlah: 1932, keluarga: "kelGambitMenteri" },
-      { san: "1… Nf6", jumlah: 1433, keluarga: "kelIndiaRaja" },
-      { san: "1… e5", jumlah: 239, keluarga: "kelEnglund" },
-    ],
-  },
-  {
-    san: "1. c4",
-    fen: "rnbqkbnr/pppppppp/8/8/2P5/8/PP1PPPPP/RNBQKBNR b KQkq - 0 1",
-    asal: "c2",
-    tujuan: "c4",
-    jumlah: 402,
-    deskripsi: "c4Deskripsi",
-    balasan: [
-      { san: "1… e5", jumlah: 110, keluarga: "kelInggris" },
-      { san: "1… Nf6", jumlah: 85, keluarga: "kelInggris" },
-      { san: "1… e6", jumlah: 62, keluarga: "kelInggris" },
-    ],
-  },
-  {
-    san: "1. Nf3",
-    fen: "rnbqkbnr/pppppppp/8/8/8/5N2/PPPPPPPP/RNBQKB1R b KQkq - 1 1",
-    asal: "g1",
-    tujuan: "f3",
-    jumlah: 246,
-    deskripsi: "nf3Deskripsi",
-    balasan: [
-      { san: "1… d5", jumlah: 104, keluarga: "kelSeranganIndiaRaja" },
-      { san: "1… Nf6", jumlah: 67, keluarga: "kelSeranganIndiaRaja" },
-      { san: "1… c5", jumlah: 15, keluarga: "kelZukertort" },
-    ],
-  },
-];
-
-/** Baris statistik masthead: [kunci label, nilai, kelas pemisah hairline]. */
-const STATISTIK = [
-  ["statJalur", 18713, "py-5"],
-  ["statNama", 3196, "py-5 border-l border-grey-200 pl-4 md:pl-6"],
-  [
-    "statKeluarga",
-    155,
-    "py-5 border-t border-grey-200 md:border-l md:border-t-0 md:pl-6",
-  ],
-  [
-    "statEco",
-    349,
-    "py-5 border-l border-t border-grey-200 pl-4 md:border-t-0 md:pl-6",
-  ],
-];
 
 /**
  * 72 keluarga pembukaan dengan partai terbanyak di buku — satu baris teratas
@@ -189,68 +123,209 @@ const KATALOG = [
   ["D00", "Blackmar-Diemer Gambit Declined: O'Kelly Defense", 311, 54, 3, 43]
 ];
 
-/** Papan mini statis untuk satu posisi FEN, dengan tinta petak asal–tujuan. */
-function PapanMini({ san, fen, asal, tujuan, label }) {
-  const petak = useMemo(() => new Chess(fen).board(), [fen]);
+/** Pembuat kolom TanStack Table untuk `KATALOG`. */
+const bantu = createColumnHelper();
+/**
+ * Fitur tabel katalog: filter global (pencarian) + pengurutan kolom.
+ * Tanpa pagination/row-selection/kolom visibility — katalog selalu memuat
+ * seluruh 72 baris sehingga kontrak aksesibilitas "N dari M" tetap utuh.
+ */
+const fitur = tableFeatures({
+  columnFilteringFeature,
+  globalFilteringFeature,
+  rowSortingFeature,
+  filteredRowModel: createFilteredRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  filterFns: { includesString: filterFn_includesString },
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+});
+
+/**
+ * Lima posisi berbeda yang dipakai 36 papan mini di blok papan, diambil apa
+ * adanya dari susunan petak pada rancangan asli (urutan baris = tampilan layar,
+ * baris paling atas dahulu — sudah termasuk orientasi papan).
+ */
+const POSISI_MINI = [
+  "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+  "rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR",
+  "rnbqkbnr/ppp2ppp/8/3pp3/4P3/5N2/PPPP1PPP/RNBQKB1R",
+  "r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R",
+  "r1bqk2r/pppp1ppp/2n2n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQK2R",
+];
+/** Papan utama 408px, orientasi hitam. */
+const POSISI_UTAMA =
+  "R2KQBNR/PPP2PPP/2N1P3/3P1B2/3p4/2n2n2/ppp1pppp/r1bkqb1r";
+/** 36 sel grid 6×6: lima posisi berulang 0,1,2,3,4,… sebanyak 36 kotak. */
+const URUT_MINI = Array.from({ length: 36 }, (_, i) => i % 5);
+
+const NAMA_JENIS = {
+  K: "king",
+  Q: "queen",
+  R: "rook",
+  B: "bishop",
+  N: "knight",
+  P: "pawn",
+};
+
+/** Pecah string petak 8×8 menjadi daftar { x, y, huruf } (kiri→kanan, atas→bawah). */
+function daftarBidak(papan) {
+  const hasil = [];
+  papan.split("/").forEach((baris, y) => {
+    let x = 0;
+    for (const c of baris) {
+      if (c >= "1" && c <= "8") {
+        x += Number(c);
+        continue;
+      }
+      hasil.push({ x, y, huruf: c });
+      x += 1;
+    }
+  });
+  return hasil;
+}
+
+/** Satu papan `cg-*`: DOM identik dengan rancangan, ukuran mengikuti induk. */
+function PapanCg({ papan }) {
   return (
     <div
-      role="img"
-      aria-label={label}
-      data-papan-mini={san}
-      className="w-[104px] shrink-0 overflow-hidden rounded ring-1 ring-black/10 sm:w-[140px]"
+      className="cg-wrap"
+      style={{ height: "100%", width: "100%", display: "table" }}
     >
-      <div className="grid grid-cols-8">
-        {petak.map((baris, y) =>
-          baris.map((sel, x) => {
-            const alamat = "abcdefgh"[x] + (8 - y);
-            const terang = (x + y) % 2 === 0;
-            const ditandai = alamat === asal || alamat === tujuan;
-            const bidak = sel
-              ? sel.color === "w"
-                ? sel.type.toUpperCase()
-                : sel.type
-              : null;
-            return (
-              <div
-                key={alamat}
-                data-petak={alamat}
-                className="relative aspect-square"
-                style={{
-                  backgroundColor: terang ? PETAK_TERANG : PETAK_GELAP,
-                }}
-              >
-                {ditandai && (
-                  <span
-                    className="absolute inset-0"
-                    style={{ backgroundColor: TINTA_LANGKAH }}
-                    aria-hidden="true"
-                  />
-                )}
-                {bidak && (
-                  <span className="relative z-10 flex h-[88%] w-[88%] items-center justify-center">
-                    <ChessPiece piece={bidak} set="merida" className="h-full w-full" />
-                  </span>
-                )}
+      <cg-container style={{ width: "100%", height: "100%" }}>
+        <cg-board>
+          {daftarBidak(papan).map(({ x, y, huruf }) => (
+            <piece
+              key={`${x}-${y}`}
+              className={`${huruf === huruf.toUpperCase() ? "white" : "black"} ${NAMA_JENIS[huruf.toUpperCase()]}`}
+              style={{ left: `${x * 12.5}%`, top: `${y * 12.5}%` }}
+            />
+          ))}
+        </cg-board>
+      </cg-container>
+    </div>
+  );
+}
+
+/** Blok papan: kisi 6×6 berisi 36 papan mini + papan utama di kanan bawah. */
+function PapanMaia() {
+  return (
+    <div className="relative flex aspect-square w-[544px] max-w-full items-center justify-center">
+      <div className="absolute left-0 top-0 grid h-3/4 w-3/4 grid-cols-6 grid-rows-6 gap-0.5 bg-transparent">
+        {URUT_MINI.map((idx, i) => (
+          <div key={i} className="relative">
+            <div className="h-full w-full">
+              <div style={{ height: "100%", width: "100%" }}>
+                <PapanCg papan={POSISI_MINI[idx]} />
               </div>
-            );
-          }),
-        )}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="absolute bottom-0 right-0 z-10 h-3/4 w-3/4 overflow-hidden border border-grey-300 bg-gradient-to-br from-white/8 to-white/4 backdrop-blur-md">
+        <div className="h-full w-full">
+          <div style={{ height: "100%", width: "100%" }}>
+            <PapanCg papan={POSISI_UTAMA} />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
+/**
+ * Kepala kolom katalog: label yang bisa diklik untuk mengurutkan kolom itu.
+ * Satu pola untuk semua kolom, mengikuti `TombolUrutkan` di TabelData.jsx.
+ */
+function KepalaUrut({ kolom, anak }) {
+  const arah = kolom.getIsSorted();
+  return (
+    <button
+      type="button"
+      onClick={() => kolom.toggleSorting(arah === "asc")}
+      className="inline-flex items-center gap-1 font-semibold transition-colors hover:text-grey-800"
+    >
+      {anak}
+      {arah === "asc" ? (
+        <ArrowUp className="size-3.5" />
+      ) : arah === "desc" ? (
+        <ArrowDown className="size-3.5" />
+      ) : (
+        <ArrowUpDown className="size-3.5 opacity-40" />
+      )}
+    </button>
+  );
+}
+
+/** Kolom berisi angka: judul dan isinya rata kanan. */
+const KOLOM_KANAN = new Set(["partai", "psh"]);
+/** Gaya sel per kolom, sama persis dengan gaya tabel katalog sebelumnya. */
+const GAYA_SEL = {
+  eco: "px-3 py-2.5 font-mono text-[13px] font-semibold text-grey-800",
+  nama: "px-3 py-2.5 whitespace-normal text-grey-800",
+  partai:
+    "px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-grey-800",
+  psh: "px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-grey-600",
+};
+
 /** Tabel katalog yang bisa dicari menurut nama atau kode ECO. */
 function KatalogBuku({ t, angka }) {
   const [kueri, setKueri] = useState("");
-  const hasil = useMemo(() => {
-    const q = kueri.trim().toLowerCase();
-    if (!q) return KATALOG;
-    return KATALOG.filter(
-      ([eco, nama]) =>
-        eco.toLowerCase().includes(q) || nama.toLowerCase().includes(q),
-    );
-  }, [kueri]);
+  const [pengurutan, setPengurutan] = useState([]);
+
+  const kolom = useMemo(
+    () =>
+      bantu.columns([
+        bantu.accessor((baris) => baris[0], {
+          id: "eco",
+          header: ({ column }) => (
+            <KepalaUrut kolom={column} anak={t("bukuPembukaan.kolomEco")} />
+          ),
+          cell: ({ getValue }) => getValue(),
+          sortingFn: "alphanumeric",
+        }),
+        bantu.accessor((baris) => baris[1], {
+          id: "nama",
+          header: ({ column }) => (
+            <KepalaUrut kolom={column} anak={t("bukuPembukaan.kolomNama")} />
+          ),
+          cell: ({ getValue }) => getValue(),
+          sortingFn: "alphanumeric",
+        }),
+        bantu.accessor((baris) => baris[2], {
+          id: "partai",
+          header: ({ column }) => (
+            <KepalaUrut kolom={column} anak={t("bukuPembukaan.kolomPartai")} />
+          ),
+          cell: ({ getValue }) => angka.format(getValue()),
+          sortingFn: "alphanumeric",
+        }),
+        bantu.accessor(
+          (baris) => `${baris[3]} · ${baris[4]} · ${baris[5]}`,
+          {
+            id: "psh",
+            header: ({ column }) => (
+              <KepalaUrut kolom={column} anak={t("bukuPembukaan.kolomPSH")} />
+            ),
+            cell: ({ getValue }) => getValue(),
+            sortingFn: "alphanumeric",
+          },
+        ),
+      ]),
+    [t, angka],
+  );
+
+  const tabel = useTable({
+    features: fitur,
+    data: KATALOG,
+    columns: kolom,
+    state: { sorting: pengurutan, globalFilter: kueri },
+    onSortingChange: setPengurutan,
+    onGlobalFilterChange: setKueri,
+    globalFilterFn: "includesString",
+  });
+
+  const baris = tabel.getRowModel().rows;
+  const kepala = tabel.getHeaderGroups()[0].headers;
 
   return (
     <div>
@@ -264,56 +339,61 @@ function KatalogBuku({ t, angka }) {
       />
       <p aria-live="polite" className="m-0 mt-2 font-sans text-xs text-grey-600">
         {t("bukuPembukaan.katalogJumlah", {
-          n: angka.format(hasil.length),
+          n: angka.format(baris.length),
           total: angka.format(KATALOG.length),
         })}
       </p>
       <div className="mt-3 max-h-[30rem] overflow-y-auto rounded border border-grey-200">
+        {/* `<table>` ditulis langsung, bukan lewat komponen `Table` dari
+            ui/table: pembungkus `overflow-x-auto` bawaannya membuat satu lapis
+            scroll tambahan, sehingga header sticky di bawah ini tidak lagi
+            menempel saat daftar digulir. */}
         <table className="w-full border-collapse font-sans text-sm">
-          <thead className="sticky top-0 bg-paper">
-            <tr className="border-b border-grey-200 text-xs text-grey-600">
-              <th scope="col" className="px-3 py-2.5 text-left font-semibold">
-                {t("bukuPembukaan.kolomEco")}
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-left font-semibold">
-                {t("bukuPembukaan.kolomNama")}
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right font-semibold">
-                {t("bukuPembukaan.kolomPartai")}
-              </th>
-              <th scope="col" className="px-3 py-2.5 text-right font-semibold">
-                {t("bukuPembukaan.kolomPSH")}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {hasil.length === 0 ? (
-              <tr>
-                <td colSpan={4} className="px-3 py-10 text-center text-sm text-grey-600">
-                  {t("bukuPembukaan.katalogKosong", { q: kueri.trim() })}
-                </td>
-              </tr>
-            ) : (
-              hasil.map(([eco, nama, partai, p, s, h]) => (
-                <tr
-                  key={`${eco}-${nama}`}
-                  data-katalog={`${eco} ${nama}`}
-                  className="border-b border-grey-100 last:border-b-0"
+          <TableHeader className="sticky top-0 bg-paper">
+            <TableRow className="border-b border-grey-200 text-xs text-grey-600 hover:bg-transparent">
+              {kepala.map((header) => (
+                <TableHead
+                  key={header.id}
+                  className={
+                    KOLOM_KANAN.has(header.column.id)
+                      ? "px-3 py-2.5 text-right font-semibold text-grey-600"
+                      : "px-3 py-2.5 font-semibold text-grey-600"
+                  }
                 >
-                  <td className="px-3 py-2.5 font-mono text-[13px] font-semibold text-grey-800">
-                    {eco}
-                  </td>
-                  <td className="px-3 py-2.5 text-grey-800">{nama}</td>
-                  <td className="px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-grey-800">
-                    {angka.format(partai)}
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-mono text-[13px] tabular-nums text-grey-600">
-                    {p} · {s} · {h}
-                  </td>
-                </tr>
+                  {flexRender(
+                    header.column.columnDef.header,
+                    header.getContext(),
+                  )}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {baris.length === 0 ? (
+              <TableRow className="hover:bg-transparent">
+                <TableCell
+                  colSpan={kolom.length}
+                  className="px-3 py-10 text-center text-sm text-grey-600"
+                >
+                  {t("bukuPembukaan.katalogKosong", { q: kueri.trim() })}
+                </TableCell>
+              </TableRow>
+            ) : (
+              baris.map((barisKatalog) => (
+                <TableRow
+                  key={barisKatalog.id}
+                  data-katalog={`${barisKatalog.original[0]} ${barisKatalog.original[1]}`}
+                  className="border-b border-grey-100 last:border-b-0 hover:bg-transparent"
+                >
+                  {barisKatalog.getAllCells().map((sel) => (
+                    <TableCell key={sel.id} className={GAYA_SEL[sel.column.id]}>
+                      {flexRender(sel.column.columnDef.cell, sel.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
               ))
             )}
-          </tbody>
+          </TableBody>
         </table>
       </div>
       <p className="m-0 mt-3 font-sans text-xs text-grey-600">
@@ -330,11 +410,6 @@ export default function Pembukaan() {
     () => new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID"),
     [bahasa],
   );
-  const persen = (bagian) =>
-    new Intl.NumberFormat(bahasa === "en" ? "en-US" : "id-ID", {
-      style: "percent",
-      maximumFractionDigits: 1,
-    }).format(bagian / TOTAL_JALUR);
 
   return (
     <HalamanIsi
@@ -349,106 +424,29 @@ export default function Pembukaan() {
       heroImage={HERO_IMAGE}
       next={{ to: "/program-kami/ebook-panduan", judul: t("nav.eBookPanduan") }}
     >
-      {/* ═══ Pembuka — editorial: judul, dua paragraf, baris angka ═══ */}
+      {/* ═══ Pembuka — editorial: judul, dua paragraf, papan ═══ */}
       <section className="w-full border-t border-grey-200 bg-paper">
         <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
           <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
             {t("bukuPembukaan.introJudul")}
           </h2>
-          <div className="mt-6 flex flex-col gap-y-5">
-            <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-              {t("bukuPembukaan.introP1")}
-            </p>
-            <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-              {t("bukuPembukaan.introP2")}
-            </p>
-          </div>
-
-          <dl className="mt-12 grid grid-cols-2 border-y border-grey-200 md:grid-cols-4">
-            {STATISTIK.map(([kunci, nilai, kelas]) => (
-              <div key={kunci} className={kelas}>
-                <dd className="m-0 font-mono text-2xl font-semibold tabular-nums text-grey-800">
-                  {angka.format(nilai)}
-                </dd>
-                <dt className="mt-1 font-sans text-[13px] text-grey-600">
-                  {t(`bukuPembukaan.${kunci}`)}
-                </dt>
+          <div className="mt-6 grid gap-x-12 gap-y-8 lg:grid-cols-[1fr_auto] lg:items-start">
+            <div className="flex flex-col gap-y-5">
+              <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
+                {t("bukuPembukaan.introP1")}
+              </p>
+              <p className="m-0 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
+                {t("bukuPembukaan.introP2")}
+              </p>
+              <div className="mt-1">
+                <TombolConten to="/papan-interaktif">
+                  {t("bukuPembukaan.ctaUtama")}
+                </TombolConten>
               </div>
-            ))}
-          </dl>
-          <p className="m-0 mt-3 font-sans text-xs text-grey-600">
-            {t("bukuPembukaan.sumberBaris")}
-          </p>
-        </div>
-      </section>
-
-      {/* ═══ Pohon langkah pertama — papan mini + balasan teratas ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-            {t("bukuPembukaan.pohonJudul")}
-          </h2>
-          <p className="m-0 mt-4 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-            {t("bukuPembukaan.pohonPengantar")}
-          </p>
-
-          <div className="mt-6 border-t border-grey-200">
-            {PINTU_MASUK.map((pintu) => (
-              <article
-                key={pintu.san}
-                data-langkah={pintu.san}
-                className="grid grid-cols-[104px_1fr] items-start gap-5 border-b border-grey-200 py-8 sm:grid-cols-[140px_1fr] sm:gap-8"
-              >
-                <PapanMini
-                  san={pintu.san}
-                  fen={pintu.fen}
-                  asal={pintu.asal}
-                  tujuan={pintu.tujuan}
-                  label={t("bukuPembukaan.ariaPapanMini", { langkah: pintu.san })}
-                />
-                <div className="min-w-0">
-                  <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-                    <h3 className="m-0 font-mono text-xl font-bold tracking-tight text-grey-800 sm:text-2xl">
-                      {pintu.san}
-                    </h3>
-                    <p className="m-0 font-sans text-sm text-grey-600">
-                      <span className="font-semibold tabular-nums text-grey-800">
-                        {angka.format(pintu.jumlah)}
-                      </span>{" "}
-                      {t("bukuPembukaan.kataJalur")} ·{" "}
-                      <span className="tabular-nums">{persen(pintu.jumlah)}</span>
-                    </p>
-                  </div>
-                  <p className="m-0 mt-3 font-serif text-sm leading-[1.6] text-pretty text-grey-600">
-                    {t(`bukuPembukaan.${pintu.deskripsi}`)}
-                  </p>
-                  <ul className="mt-5 flex list-none flex-wrap gap-2 p-0">
-                    {pintu.balasan.map((b) => (
-                      <li
-                        key={b.san}
-                        className="rounded border border-grey-200 px-3 py-2"
-                      >
-                        <span className="flex items-baseline gap-2">
-                          <span className="font-mono text-[13px] font-semibold text-grey-800">
-                            {b.san}
-                          </span>
-                          <span className="font-mono text-xs tabular-nums text-grey-600">
-                            {angka.format(b.jumlah)}
-                          </span>
-                        </span>
-                        <span className="mt-0.5 block font-sans text-xs leading-snug text-grey-600">
-                          {t(`bukuPembukaan.${b.keluarga}`)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
+            </div>
+            <PapanMaia />
           </div>
-          <p className="m-0 mt-6 font-sans text-sm text-grey-600">
-            {t("bukuPembukaan.lainnyaCatatan")}
-          </p>
+
         </div>
       </section>
 
@@ -472,44 +470,6 @@ export default function Pembukaan() {
             </div>
             <div className="lg:col-span-8">
               <KatalogBuku t={t} angka={angka} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Di papan interaktif — daftar ringkas fitur buku ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-            {t("bukuPembukaan.alatJudul")}
-          </h2>
-          <ul className="mt-8 grid list-none gap-x-12 border-t border-grey-200 p-0 sm:grid-cols-2">
-            {["alat1", "alat2", "alat3", "alat4", "alat5"].map((kunci) => (
-              <li
-                key={kunci}
-                className="border-b border-grey-200 py-4 font-serif text-sm leading-[1.6] text-pretty text-grey-800"
-              >
-                {t(`bukuPembukaan.${kunci}`)}
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      {/* ═══ Penutup ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-16 md:px-8 md:py-20">
-          <div className="rounded-lg border border-grey-200 p-8 md:p-10">
-            <h2 className="m-0 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] tracking-normal text-grey-800">
-              {t("bukuPembukaan.penutupJudul")}
-            </h2>
-            <p className="m-0 mt-4 max-w-[62ch] font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
-              {t("bukuPembukaan.penutupIsi")}
-            </p>
-            <div className="mt-8">
-              <Tombol to="/papan-interaktif" variant="garis">
-                {t("bukuPembukaan.ctaUtama")}
-              </Tombol>
             </div>
           </div>
         </div>
