@@ -371,7 +371,7 @@ export default function EbookPanduan() {
                   <PembacaPdf
                     sumber={sumberEbook(pdfAktif.file)}
                     judul={pdfAktif.judul}
-                    urlUnduh={urlEbook(pdfAktif.file, { unduh: true })}
+                    urlUnduh={null}
                     padaSiap={setHalamanPdf}
                   />
                 </div>

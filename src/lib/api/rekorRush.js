@@ -32,10 +32,10 @@ export async function ambilPeringkatRush(durasiMenit) {
 }
 
 /**
- * Kirim skor Rush untuk anggota. Hanya username dalam roster klub yang
- * diterima server. Mengembalikan peringkat terkini durasi tsb.
+ * Kirim skor Rush untuk anggota. Server meminta tiket verifikasi Chess.com
+ * yang terikat pada username selain memeriksa roster klub.
  */
-export async function kirimSkorRush({ username, skor, durasiMenit }) {
+export async function kirimSkorRush({ username, skor, durasiMenit, tiketVerifikasi }) {
   const csrfToken = await ambilCsrfToken();
   const res = await ambilDenganWaktu("/api/rekor-rush", {
     method: "POST",
@@ -43,7 +43,7 @@ export async function kirimSkorRush({ username, skor, durasiMenit }) {
       "Content-Type": "application/json",
       "X-CSRF-Token": csrfToken,
     },
-    body: JSON.stringify({ username, skor, durasiMenit }),
+    body: JSON.stringify({ username, skor, durasiMenit, tiketVerifikasi }),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {

@@ -86,6 +86,9 @@ export const tekaTekiRush = {
       "Papan peringkat online belum aktif — butuh backend & Supabase berjalan.",
     muatPeringkat: "Memuat peringkat…",
     simpanSkor: "Simpan skor",
+    verifikasiChessCom: "Verifikasi Chess.com",
+    verifikasiDiperlukan: "Login Chess.com diperlukan sebelum skor disimpan.",
+    verifikasiGagal: "Login Chess.com tidak dapat dimulai.",
     usernameAnda: "Username Chess.com Anda",
     skorTersimpan: "Skor tersimpan!",
     hanyaAnggota:

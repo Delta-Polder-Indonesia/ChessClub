@@ -24,6 +24,7 @@ import {
   namaBerkasEbook,
   sumberEbookServer,
 } from "../src/data/ebook-sumber.js";
+import { periksaTiketUnduh } from "../server/src/tiket-ebook.js";
 
 /** Berkas terbesar ±35 MB; beri ruang waktu bagi instance dingin. */
 export const config = { maxDuration: 60 };
@@ -97,6 +98,14 @@ export default async function handler(req, res) {
   const unduh = ["1", "true", "ya"].includes(String(req.query?.unduh || "").toLowerCase());
   const namaAman = nama.replace(/[\r\n\\"]/g, "_");
 
+  // Preview tetap dapat dibaca publik, tetapi mode attachment tidak boleh
+  // dipanggil dengan URL file mentah. Token ini diterbitkan hanya setelah kode
+  // e-book ditebus dan terikat pada nama PDF yang sama.
+  if (unduh && !periksaTiketUnduh(req.query?.tiket, nama)) {
+    res.status(403).json({ error: "Tiket unduh tidak sah atau sudah kedaluwarsa." });
+    return;
+  }
+
   try {
     const sumber = await pilihSumber(nama, asalSitus(req));
     if (!sumber) {
@@ -126,7 +135,10 @@ export default async function handler(req, res) {
       `${unduh ? "attachment" : "inline"}; filename="${namaAman}"`
     );
     res.setHeader("Accept-Ranges", "bytes");
-    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    res.setHeader(
+      "Cache-Control",
+      unduh ? "private, no-store" : "public, max-age=3600, s-maxage=86400"
+    );
     res.setHeader("X-Content-Type-Options", "nosniff");
 
     const panjang = hulu.headers.get("content-length");

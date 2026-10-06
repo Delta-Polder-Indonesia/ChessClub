@@ -24,6 +24,7 @@ import {
   urlGithubMediaEbook,
   urlStorageEbook,
 } from "../src/data/ebook-sumber.js";
+import { periksaTiketUnduh } from "../server/src/tiket-ebook.js";
 
 const JALUR_API = "/api/ebook-preview";
 
@@ -137,6 +138,10 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       String(url.searchParams.get("unduh") || "").toLowerCase()
     );
     const namaAman = nama.replace(/[\r\n\\"]/g, "_");
+    if (unduh && !periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
+      kirimJson(res, 403, { error: "Tiket unduh tidak sah atau sudah kedaluwarsa." });
+      return;
+    }
     const kepalaDasar = () => {
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
@@ -145,7 +150,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       );
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("X-Content-Type-Options", "nosniff");
-      res.setHeader("Cache-Control", "no-cache");
+      res.setHeader("Cache-Control", unduh ? "no-store" : "no-cache");
     };
 
     // 1) Berkas lokal (paling cepat, tanpa jaringan).

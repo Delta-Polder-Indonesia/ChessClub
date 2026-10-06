@@ -39,12 +39,16 @@ export function berkasPublik(jalur) {
  * MENAMPILKAN PDF, bukan mengunduhnya.
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
- * @param {{unduh?: boolean}} [opsi] `unduh: true` = paksa unduhan (attachment).
+ * @param {{unduh?: boolean, tiket?: string}} [opsi] `unduh: true` = paksa
+ * unduhan (attachment); `tiket` adalah tiket hasil penebusan kode.
  */
 export function urlEbook(jalur, opsi = {}) {
   const nama = namaEbook(jalur);
   const dasar = `${import.meta.env.BASE_URL}api/ebook-preview?file=${encodeURIComponent(nama)}`;
-  return opsi.unduh ? `${dasar}&unduh=1` : dasar;
+  const params = [];
+  if (opsi.unduh) params.push("unduh=1");
+  if (opsi.tiket) params.push(`tiket=${encodeURIComponent(opsi.tiket)}`);
+  return params.length ? `${dasar}&${params.join("&")}` : dasar;
 }
 
 /** Nama berkas polos dari entri e-book ("/ebooks/A%20B.pdf" → "A B.pdf"). */

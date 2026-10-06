@@ -173,7 +173,7 @@ async function jalankan() {
     const jwtPengurus = masukPengurus.data?.token || "";
     cek("login pengurus → 200 role pengurus", masukPengurus.status === 200 && masukPengurus.data?.role === "pengurus");
 
-    const authPengurus = { "X-Token-Admin": jwtPengurus, "X-Admin-User": "pengurus1" };
+    let authPengurus = { "X-Token-Admin": jwtPengurus, "X-Admin-User": "pengurus1" };
 
     /* --------------------------------------------- CRUD admin = master-only */
     console.log("\nCRUD admin master-only:");
@@ -207,6 +207,16 @@ async function jalankan() {
     });
     cek("login dengan password baru → 200", masukUlang.status === 200);
     cek("A1/A2: role TETAP pengurus setelah ganti password (tidak naik jadi master)", masukUlang.data?.role === "pengurus");
+    const jwtLama = await panggil("GET", "/api/pengurus/verifikasi", null, {
+      "X-Token-Admin": jwtPengurus,
+      "X-Admin-User": "pengurus1",
+    });
+    cek("JWT sebelum ganti password langsung dicabut → 401", jwtLama.status === 401);
+    // Password change mencabut JWT lama; lanjutkan pengujian dengan sesi baru.
+    authPengurus = {
+      "X-Token-Admin": masukUlang.data?.token || "",
+      "X-Admin-User": "pengurus1",
+    };
 
     ipBaru();
     const masukLama = await panggil("POST", "/api/auth/login", {

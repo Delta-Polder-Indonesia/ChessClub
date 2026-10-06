@@ -122,7 +122,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         setTercatat(catatan);
 
         const taut = document.createElement("a");
-        taut.href = urlEbook(buku.file, { unduh: true });
+        taut.href = urlEbook(buku.file, {
+          unduh: true,
+          tiket: catatan.tiketUnduh,
+        });
         taut.download = "";
         document.body.appendChild(taut);
         taut.click();
@@ -236,7 +239,10 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
             </CardContent>
             <CardFooter className="flex-col gap-2 bg-white p-6 pt-0">
               <a
-                href={urlEbook(buku.file, { unduh: true })}
+                href={urlEbook(buku.file, {
+                  unduh: true,
+                  tiket: tercatat.tiketUnduh,
+                })}
                 download
                 className="inline-flex h-10 w-full items-center justify-center gap-2 rounded-lg border border-primary bg-primary px-4 text-xs font-semibold text-white shadow-none transition-colors hover:bg-blue-400"
               >

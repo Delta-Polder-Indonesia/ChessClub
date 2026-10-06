@@ -162,7 +162,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `src/hooks` | 1 | — | Frontend Application Architecture |
 | `src/data` | 3 | `uji-ebook-pembaca.mjs`, `uji-gambar.mjs` | — |
 | `src/asets` | 170 | `uji-render-bidak.mjs` | — |
-| `server/src` | 27 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +24 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
+| `server/src` | 27 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +25 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
 | `server/uji` | 11 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
 | `api` | 2 | `uji-akun-database.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, +8 | Backend API Server |
 | `plugins` | 3 | `uji-rute.mjs`, `uji-seo.mjs` | — |

@@ -14,6 +14,7 @@ import {
 } from "./http.js";
 import { GalatAplikasi, catatJejak } from "./keanggotaan.js";
 import { jalurKanonik, adalahJalurPengurus } from "./jalur-api.js";
+import { muatAdminFileKeKonfigurasi } from "./admin-file.js";
 
 export function buatTangani(router) {
   return async function tangani(req, res) {
@@ -85,6 +86,17 @@ export function buatTangani(router) {
             `Terlalu banyak percobaan token pengurus yang gagal. ` +
             `Coba lagi dalam ${kunciAdmin.cobaLagiDetik} detik.`,
         }, { req });
+      }
+    }
+
+    // Vercel dapat melayani JWT lama dari instance yang berbeda. Muat ulang
+    // daftar admin dari storage sebelum autentikasi agar token yang dicabut
+    // tidak tetap sah hanya karena cache modul masih hangat.
+    if (adalahJalurPengurus(jalur)) {
+      try {
+        await muatAdminFileKeKonfigurasi();
+      } catch {
+        return kirimJson(res, 503, { pesan: "Kredensial pengurus belum dapat dimuat." }, { req });
       }
     }
 

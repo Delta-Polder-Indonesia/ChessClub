@@ -29,6 +29,7 @@ import {
   sumberEbookServer,
 } from "../src/data/ebook-sumber.js";
 import { DAFTAR_EBOOK } from "../src/halaman/Beranda/ebook-data.js";
+import { terbitkanTiketUnduh } from "../server/src/tiket-ebook.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(path.join(ROOT, "noop.js"));
@@ -101,9 +102,11 @@ uji("pratinjau memakai proxy same-origin, bukan GitHub Media", () => {
   );
 });
 
-uji("tombol unduh memaksa attachment lewat ?unduh=1", () => {
-  const url = asets.urlEbook(CONTOH.file, { unduh: true });
+uji("tombol unduh memaksa attachment lewat ?unduh=1 + tiket", () => {
+  const tiket = "tiket-uji";
+  const url = asets.urlEbook(CONTOH.file, { unduh: true, tiket });
   benar(url.includes("unduh=1"), `URL unduh salah: ${url}`);
+  benar(new URL(url, "https://contoh.id").searchParams.get("tiket") === tiket, "tiket tidak ikut URL unduh");
 });
 
 uji("sumberEbook menyediakan cadangan berlapis", () => {
@@ -269,8 +272,17 @@ await ujiAsync("melewati pointer Git LFS dan memakai isi PDF asli", async () => 
   benar(res.badan.subarray(0, 4).toString() === "%PDF", "badan respons bukan PDF");
 });
 
-await ujiAsync("?unduh=1 mengirim attachment", async () => {
+await ujiAsync("?unduh=1 tanpa tiket ditolak 403", async () => {
   const res = await panggilPratinjau({ file: CONTOH.file, unduh: "1" }, { [LFS]: "%PDF-1.7 x" });
+  benar(res.statusCode === 403, `unduh tanpa tiket harus 403, dapat ${res.statusCode}`);
+});
+
+await ujiAsync("?unduh=1 mengirim attachment setelah tiket sah", async () => {
+  const tiket = terbitkanTiketUnduh(NAMA_CONTOH);
+  const res = await panggilPratinjau(
+    { file: CONTOH.file, unduh: "1", tiket },
+    { [LFS]: "%PDF-1.7 x" }
+  );
   benar(
     (res.getHeader("content-disposition") || "").startsWith("attachment"),
     "tombol Unduh harus memaksa attachment"
