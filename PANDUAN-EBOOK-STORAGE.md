@@ -14,9 +14,10 @@ Dua kelemahan saat koleksi masih lewat **Git LFS**:
   Git LFS mati di Vercel), situs menyajikan *pointer teks* 132 byte sehingga
   tombol **Baca/Unduh rusak** ("Gagal memuat dokumen PDF").
 
-Solusi di repo ini: **unggah PDF ke Supabase Storage** lalu frontend membaca
-dari URL storage (dengan *fallback* otomatis ke berkas lokal bila belum
-diunggah).
+Solusi di repo ini: **unggah PDF ke bucket privat Supabase** lalu frontend
+meminta PDF melalui proxy same-origin setelah kode akses ditebus. Credential
+storage tidak pernah masuk bundle browser dan production fail-closed bila
+storage privat belum dikonfigurasi.
 
 ## Sekali jalan (migrasi)
 
@@ -35,9 +36,9 @@ diunggah).
    npm run ebook:unggah
    ```
    Skrip ini:
-   - membuat bucket publik `ebooks` (bila belum ada),
+   - membuat bucket privat `ebooks-private` (bila belum ada),
    - mengunggah semua PDF (mendukung file besar lewat *signed upload*),
-   - menulis basis URL ke `src/data/ebook-storage.js`.
+   - tidak menulis URL atau credential ke bundle frontend.
 
 3. **Commit & deploy ulang**:
    ```bash
@@ -48,22 +49,27 @@ diunggah).
    Lalu **Redeploy** di Vercel.
 
 4. **Cek**: buka halaman *Program Kami → E-Book & Panduan* → klik **Baca**.
-   PDF seharusnya tampil di pratinjau, dan **Unduh** menambahkan `?download`
-   agar browser langsung mengunduh.
+   Masukkan data redemption dan kode akses; PDF baru dibuka setelah tiket
+   berhasil diterbitkan. **Unduh** memakai tiket yang sama dan memaksa
+   `Content-Disposition: attachment`.
+
+5. **Cek penutupan akses**: permintaan langsung ke
+   `/ebooks/<nama>.pdf` tanpa `tiket` harus ditolak (403), baik di dev maupun
+   production.
 
 ## Bagaimana ini bekerja
 
 | Berkas | Peran |
 | --- | --- |
-| `scripts/unggah-ebook.mjs` | Mengunggah `public/ebooks/*.pdf` ke bucket Supabase `ebooks`. |
-| `src/data/ebook-storage.js` | Menyimpan `EBOOK_BASE` (basis URL storage). Kosong = mode lama (lokal/LFS). |
-| `src/lib/asets.js` → `urlEbook()` | Selalu menunjuk proxy same-origin `/api/ebook-preview`; endpoint itu yang memilih sumber sebenarnya. |
-| `src/lib/asets.js` → `sumberEbook()` | Daftar URL cadangan (proxy → berkas statis → storage → GitHub Media) untuk pembaca di browser. |
-| `api/ebook-preview.js` | Memilih sumber yang benar-benar berisi PDF (cek `%PDF`), lalu menyajikannya `inline` + dukung `Range`. |
-| `plugins/ebook-preview.js` | Menyediakan endpoint yang sama saat `npm run dev` / `npm run preview`. |
-| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dipakai tombol **Baca** (ikon mata). |
-| `plugins/pdfjs-aset.js` | Menyajikan/menyalin cMaps & font standar pdf.js ke `/vendor/pdfjs/`. |
-| `index.html` + `vercel.json` | CSP `connect-src` ditambah `media.githubusercontent.com` & `*.supabase.co` agar sumber cadangan boleh diambil pdf.js. |
+| `scripts/unggah-ebook.mjs` | Mengunggah `public/ebooks/*.pdf` ke bucket privat Supabase `ebooks-private`. |
+| `src/data/ebook-storage.js` | Konfigurasi legacy mode lokal; production tidak memakainya. |
+| `server/src/ebook-storage.js` | Membentuk kandidat storage privat custom atau Supabase authenticated object endpoint. |
+| `src/lib/asets.js` → `urlEbook()` | Selalu menunjuk proxy same-origin `/api/ebook-preview` dan membawa tiket. |
+| `src/lib/asets.js` → `sumberEbook()` | Hanya mengembalikan proxy bertiket; URL storage/GitHub tidak masuk bundle browser. |
+| `api/ebook-preview.js` | Memeriksa tiket, memilih storage privat di production, lalu menyajikan PDF `inline`/`attachment` dengan `Range`. |
+| `plugins/ebook-preview.js` | Menyediakan endpoint bertiket dan memblokir `/ebooks/*` saat `npm run dev` / `npm run preview`. |
+| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dipakai tombol **Baca** setelah redemption. |
+| `vercel.json` | Merutekan `/ebooks/*` ke endpoint bertiket dan memasang header `no-store`. |
 
 ## Kenapa tombol "Baca" tidak lagi mengunduh berkas
 
@@ -73,30 +79,36 @@ Android maupun peramban dalam aplikasi, sehingga berkas justru terunduh. Kini
 halaman digambar sendiri oleh pdf.js ke `<canvas>`, lengkap dengan navigasi
 halaman dan zoom, jadi perilakunya sama di semua perangkat.
 
-Sisi server pun tidak lagi menganggap satu sumber selalu benar: pointer Git LFS
-(132 byte teks) otomatis dilewati dan diganti isi asli dari GitHub Media atau
-object storage.
+Sisi server memeriksa magic bytes `%PDF` sebelum meneruskan sumber. Dalam
+production hanya storage privat yang dicoba; berkas `public/ebooks/`, GitHub
+Media, dan `EBOOK_BASE` tidak menjadi fallback. Mode lokal tetap mendukung
+berkas checkout dan sumber cadangan agar pengembangan offline tetap berjalan.
 
-## Bila memakai penyedia lain (R2 / S3 / B2)
+## Bila memakai penyedia privat lain (R2 / S3 / B2)
 
-Skrip di atas khusus Supabase. Untuk S3-compatible lain, unggah manual dengan
-AWS CLI, lalu isi `EBOOK_BASE` di `src/data/ebook-storage.js`:
+Skrip di atas khusus Supabase. Untuk gateway storage privat lain, unggah
+manual dengan AWS CLI atau mekanisme penyedia tersebut:
 
 ```bash
 aws s3 cp public/ebooks s3://bucket/ebooks/ --recursive --exclude "*" --include "*.pdf"
 ```
 
-Kemudian:
-- Set `EBOOK_BASE` = URL publik bucket (mis. `https://pub-<hash>.r2.dev/ebooks`).
-- Tambahkan origin bucket ke `frame-src` di `index.html` **dan** `vercel.json`.
-- Pastikan bucket menyajikan `Content-Type: application/pdf` dan, untuk tombol
-  Unduh, dukung `Content-Disposition: attachment` (R2: setel lewat metadata
-  `Content-Disposition` pada objek).
+Kemudian isi environment server, bukan `EBOOK_BASE` frontend:
 
-## Kembali ke mode lama (opsional)
+```bash
+KCI_EBOOK_PRIVATE_BASE=https://storage-internal.example/ebooks
+KCI_EBOOK_PRIVATE_TOKEN=<token-server>
+```
 
-Kosongkan `EBOOK_BASE` di `src/data/ebook-storage.js` (jadikan `""`), lalu
-build ulang — situs otomatis kembali membaca `public/ebooks/*.pdf`.
+Basis URL harus hanya dapat dijangkau oleh endpoint server dan gateway wajib
+mengembalikan `Content-Type: application/pdf`. Jangan membuat bucket publik,
+dan jangan menambahkan origin storage privat ke CSP browser.
+
+## Mode lokal
+
+Mode dev/preview tetap boleh memakai PDF di `public/ebooks/` atau
+`EBOOK_BASE`, tetapi akses langsung `/ebooks/*` tetap diblokir middleware dan
+endpoint tetap meminta tiket. Production tidak memakai fallback tersebut.
 
 ## Pilihan lain: keluar dari Git LFS (PDF disimpan biasa di repo)
 
@@ -104,8 +116,8 @@ build ulang — situs otomatis kembali membaca `public/ebooks/*.pdf`.
 kosong. Jangan ulangi skripnya; bagian berikut tinggal catatan cara kerjanya (dan
 pegangan kalau koleksi pernah dikembalikan ke LFS).
 
-Kalau Anda ingin PDF asli benar-benar ada di repositori — supaya Vercel
-menyajikannya langsung dari `dist/ebooks/` tanpa kuota LFS — pakai skrip:
+Kalau Anda ingin PDF asli tetap ada di repositori untuk mode lokal atau
+fallback pengembangan (akses production tetap melalui proxy bertiket), pakai skrip:
 
 ```bash
 bash scripts/keluar-dari-lfs.sh --periksa   # cek dulu, tidak mengubah apa pun

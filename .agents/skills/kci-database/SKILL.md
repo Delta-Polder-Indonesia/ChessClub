@@ -43,10 +43,11 @@ tidak menyentuh Supabase. Jangan memakai salah satunya sebagai bukti bahwa jalur
   baca publik hanya untuk data yang memang publik (mis. klasemen dan rekor); tulis hanya oleh
   pemilik data. Selama proyek belum memakai Supabase Auth (bagian 4), pemilik berarti "backend
   setelah identitas diverifikasi", bukan klien.
-- **Klien peramban tidak pernah bicara ke tabel.** Satu-satunya hal dari Supabase yang boleh
-  diakses browser adalah bucket publik `ebooks` (PDF, lewat `EBOOK_BASE` di
-  `src/data/ebook-storage.js`, diunggah `npm run ebook:unggah`). Origin baru tetap harus
-  terdaftar di CSP `vercel.json` (`connect-src`/`frame-src` sudah memuat `https://*.supabase.co`).
+- **Klien peramban tidak pernah bicara ke tabel atau bucket PDF.** E-book dilayani
+  melalui `/api/ebook-preview` setelah tiket redemption; bucket `ebooks-private` hanya
+  dibaca backend memakai service role. `npm run ebook:unggah` mengunggah ke bucket privat
+  dan tidak menulis URL storage ke bundle frontend. Origin storage privat tidak perlu
+  dimasukkan ke CSP browser.
 
 ## 3. Kueri dan jalur tulis
 

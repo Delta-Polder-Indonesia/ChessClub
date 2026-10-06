@@ -1,15 +1,12 @@
 /**
- * Konfigurasi penyimpanan e-book (object storage).
+ * Konfigurasi legacy untuk mode lokal saja.
  *
- * EBOOK_BASE = basis URL tempat PDF e-book asli disimpan, mis.
- *   https://<proyek>.supabase.co/storage/v1/object/public/ebooks
+ * Production TIDAK membaca EBOOK_BASE. API production hanya memakai
+ * KCI_EBOOK_PRIVATE_BASE atau bucket privat Supabase `ebooks-private` dari
+ * server/src/ebook-storage.js. Frontend juga tidak mengimpor nilai ini;
+ * semua akses browser melewati /api/ebook-preview dengan tiket redemption.
  *
- * Bila KOSONG (bawaan), situs membaca PDF dari berkas lokal
- * public/ebooks/*.pdf (mode lama lewat Git LFS). Setelah menjalankan
- * `npm run ebook:unggah`, skrip mengisi nilai ini otomatis.
- *
- * Catatan CSP: bila Anda pindah ke penyedia lain (R2/S3/B2), jangan lupa
- * menambahkan origin penyimpanan itu ke `frame-src` di index.html dan
- * vercel.json, supaya pratinjau "Baca" (iframe) tetap diizinkan.
+ * Nilai ini tetap tersedia untuk sumber cadangan mode dev/preview bila
+ * pengembangan lokal memakai object storage yang dapat dijangkau.
  */
 export const EBOOK_BASE = "";

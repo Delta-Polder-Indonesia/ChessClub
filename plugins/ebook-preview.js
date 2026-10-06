@@ -120,6 +120,12 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
 
   const penangan = async (req, res, next) => {
     const url = new URL(req.url || "/", "http://lokal");
+    // Jangan biarkan Vite menyajikan PDF mentah dari public/ebooks. Akses
+    // e-book wajib lewat proxy bertiket, sama seperti production.
+    if (url.pathname.startsWith("/ebooks/")) {
+      kirimJson(res, 403, { error: "Akses langsung ke PDF dinonaktifkan." });
+      return;
+    }
     if (url.pathname !== JALUR_API) return next();
 
     if (!["GET", "HEAD"].includes(req.method || "GET")) {
@@ -138,8 +144,8 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       String(url.searchParams.get("unduh") || "").toLowerCase()
     );
     const namaAman = nama.replace(/[\r\n\\"]/g, "_");
-    if (unduh && !periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
-      kirimJson(res, 403, { error: "Tiket unduh tidak sah atau sudah kedaluwarsa." });
+    if (!periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
+      kirimJson(res, 403, { error: "Tiket akses tidak sah atau sudah kedaluwarsa." });
       return;
     }
     const kepalaDasar = () => {

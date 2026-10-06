@@ -58,7 +58,7 @@ function Field({ label, htmlFor, children }) {
   );
 }
 
-export default function ModalUnduhEbook({ buku, onTutup }) {
+export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
   const { t } = useI18n();
   const [punyaKode, setPunyaKode] = useState(false);
   const [nama, setNama] = useState("");
@@ -102,7 +102,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
     setGalat("");
 
     if (punyaKode) {
-      // Logika Tebus & Unduh
+      // Redemption memberi tiket untuk Baca atau Unduh.
       if (!nama.trim() || !akun.trim() || !kode.trim()) {
         setGalat(t("unduhEbook.lengkapiKode"));
         setSalah(true);
@@ -119,8 +119,12 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
           bukuId: buku.id,
           judul: buku.judul,
         });
-        setTercatat(catatan);
+        if (buku.tujuanAkses === "baca") {
+          onTebusSukses?.(catatan);
+          return;
+        }
 
+        setTercatat(catatan);
         const taut = document.createElement("a");
         taut.href = urlEbook(buku.file, {
           unduh: true,

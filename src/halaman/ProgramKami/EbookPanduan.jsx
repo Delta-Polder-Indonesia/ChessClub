@@ -15,11 +15,10 @@ import ModalUnduhEbook from "./ModalUnduhEbook.jsx";
  * Konsep:
  * - Daftar file PDF yang ada di /public/ebooks/
  * - Gambar sampul (cover) di /public/images/E-Books/
- * - Klik "Baca" (ikon mata) -> buka modal pembaca PDF bawaan situs
- *   (src/components/PembacaPdf.jsx, berbasis pdf.js). Halaman digambar ke
- *   <canvas> sehingga dokumen benar-benar TAMPIL, termasuk di ponsel yang
- *   penampil PDF bawaannya justru mengunduh berkas.
- * - Klik "Unduh" -> download file
+ * - Klik "Baca" (ikon mata) -> buka gerbang redemption. Setelah kode sah,
+ *   tiket diteruskan ke pembaca PDF bawaan situs (berbasis pdf.js). Halaman
+ *   digambar ke <canvas> sehingga dokumen benar-benar TAMPIL.
+ * - Klik "Unduh" -> redemption lalu download file bertiket
  * - Dibuka dari laman lain dengan ?buku=<id> -> otomatis gulir & sorot kartu
  * - Dibuka dengan ?kategori=<label> -> pasang filter & gulir ke katalog
  *
@@ -196,6 +195,19 @@ export default function EbookPanduan() {
     });
   };
 
+  function unduhDenganTiket(buku) {
+    if (!buku?.tiketUnduh) {
+      setUnduhan({ ...buku, tujuanAkses: "unduh" });
+      return;
+    }
+    const taut = document.createElement("a");
+    taut.href = urlEbook(buku.file, { unduh: true, tiket: buku.tiketUnduh });
+    taut.download = "";
+    document.body.appendChild(taut);
+    taut.click();
+    taut.remove();
+  }
+
   const kategoriList = useMemo(() => {
     return ["Semua", ...kategoriDariDaftar(DAFTAR_EBOOK)];
   }, []);
@@ -315,10 +327,9 @@ export default function EbookPanduan() {
                 padaBalik={() => toggleBalik(buku.id)}
                 padaBaca={() => {
                   if (!buku.tersedia) return;
-                  setHalamanPdf(0);
-                  setPdfAktif(buku);
+                  setUnduhan({ ...buku, tujuanAkses: "baca" });
                 }}
-                padaUnduh={() => setUnduhan(buku)}
+                padaUnduh={() => setUnduhan({ ...buku, tujuanAkses: "unduh" })}
               />
             ))}
           </div>
@@ -349,7 +360,7 @@ export default function EbookPanduan() {
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setUnduhan(pdfAktif)}
+                    onClick={() => unduhDenganTiket(pdfAktif)}
                     className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-semibold text-slate-700 hover:bg-slate-50"
                   >
                     <IkonUnduh />
@@ -369,16 +380,24 @@ export default function EbookPanduan() {
               <div className="flex min-h-0 flex-1 flex-col bg-[#525659] p-2 md:p-4">
                 <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md shadow-xl">
                   <PembacaPdf
-                    sumber={sumberEbook(pdfAktif.file)}
+                    sumber={sumberEbook(pdfAktif.file, { tiket: pdfAktif.tiketUnduh })}
                     judul={pdfAktif.judul}
-                    urlUnduh={null}
+                    urlUnduh={urlEbook(pdfAktif.file, {
+                      unduh: true,
+                      tiket: pdfAktif.tiketUnduh,
+                    })}
                     padaSiap={setHalamanPdf}
                   />
                 </div>
                 <div className="mx-auto mt-3 flex w-full max-w-[1024px] flex-wrap items-center justify-between gap-2 text-[11px] text-white/70">
                   <span>
                     {t("ebookPanduan.bantuan")}{" "}
-                    <a href={urlEbook(pdfAktif.file)} target="_blank" rel="noreferrer noopener" className="underline hover:text-white">
+                    <a
+                      href={urlEbook(pdfAktif.file, { tiket: pdfAktif.tiketUnduh })}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="underline hover:text-white"
+                    >
                       {t("ebookPanduan.bukaTabBaru")}
                     </a>
                     .
@@ -392,7 +411,16 @@ export default function EbookPanduan() {
           )}
 
           {unduhan && (
-            <ModalUnduhEbook buku={unduhan} onTutup={() => setUnduhan(null)} />
+            <ModalUnduhEbook
+              buku={unduhan}
+              onTutup={() => setUnduhan(null)}
+              onTebusSukses={(catatan) => {
+                if (unduhan.tujuanAkses !== "baca") return;
+                setUnduhan(null);
+                setHalamanPdf(0);
+                setPdfAktif({ ...unduhan, tiketUnduh: catatan.tiketUnduh });
+              }}
+            />
           )}
         </div>
       </section>
