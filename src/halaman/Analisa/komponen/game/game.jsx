@@ -1,5 +1,5 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useEffect, useState, useRef, useContext } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
 import Board, { gameStartSound } from "./board.jsx";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
@@ -151,12 +151,29 @@ function Game({ wadah }) {
   // pencarian (fen) => nama, bukan peta mentah, agar penghitung langkah di
   // FEN bisa diabaikan — tabel upstream tidak pernah cocok karena itu.
   useEffect(() => {
+    /*
+     * Tabel bukunya ±160 KiB — jangan diunduh di jalur kritis pemuatan
+     * halaman (Lighthouse mencatatnya sebagai item payload terbesar).
+     * Ditunda ke waktu senggang peramban; belum ada partai yang butuh nama
+     * pembukaan pada detik-detik pertama, dan `cariNamaPembukaan` men-cache
+     * janjinya jadi jalur lain (muat partai/impor) tetap berbagi unduhan.
+     */
     let hidup = true;
-    cariNamaPembukaan().then((pencari) => {
-      if (hidup) setOpenings(() => pencari);
-    });
+    const muat = () =>
+      cariNamaPembukaan().then((pencari) => {
+        if (hidup) setOpenings(() => pencari);
+      });
+    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(muat, { timeout: 5000 });
+      return () => {
+        hidup = false;
+        window.cancelIdleCallback?.(id);
+      };
+    }
+    const id = setTimeout(muat, 1500);
     return () => {
       hidup = false;
+      clearTimeout(id);
     };
   }, []);
   // Engine TIDAK lagi dimuat di sini: worker dimiliki <MesinProvider> dan
@@ -519,7 +536,15 @@ function Game({ wadah }) {
    * kontainer ber-padding, jadi yang diukur elemen wadah itu sendiri
    * (`wadah` dari Analisa.jsx) agar papan tidak pernah meluap ke bawah lipatan.
    */
-  useEffect(() => {
+  /*
+   * PENGUKURAN UKURAN PAPAN — sengaja useLayoutEffect, bukan useEffect:
+   * koreksi `boardSize` (tebakan awal 750) terjadi setelah DOM terpasang
+   * tetapi SEBELUM paint pertama, jadi papan tidak pernah tampil sekejap
+   * dengan ukuran salah lalu menyusut/membesar. Inilah sumber CLS 0,949
+   * (mobile) / 0,358 (desktop) pada audit Lighthouse — penyebab tunggal
+   * terbesar skor Performance halaman ini.
+   */
+  useLayoutEffect(() => {
     function updateBoardSize() {
       const el = wadah?.current;
       const lebar = el?.clientWidth ?? window.innerWidth;

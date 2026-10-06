@@ -27,15 +27,23 @@
  * z-[900] sengaja dipilih di bawah `PageErrors` (z-[999]) supaya pesan
  * galat analisis tetap tampil di atas layar mana pun.
  */
-import { useCallback, useContext, useEffect, useRef } from "react";
+import { lazy, Suspense, useCallback, useContext, useEffect, useRef } from "react";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../konteks/analyze.jsx";
 import Game from "./game/game.jsx";
 import BoardMenu from "./boardMenu/boardMenu.jsx";
 import Menu from "./menu/menu.jsx";
 import GameButtons from "./menu/analysis/gameButtons.jsx";
-import LayarAkun from "./nav/layarAkun.jsx";
 import LayarDatabase from "./nav/layarDatabase.jsx";
 import LayarImpor from "./nav/layarImpor.jsx";
+
+/*
+ * LayarAkun (via DashboardAkun) mengimpor recharts ±97 KiB — bundle grafik
+ * itu tidak dibutuhkan untuk membuka papan, jadi layar ini dimuat malas
+ * (chunk terpisah, diunduh baru saat pengguna membuka layar Akun). Ini
+ * mengeluarkan vendor-chart dari jalur kritis halaman (temuan "reduce
+ * unused JavaScript" Lighthouse ±80 KiB).
+ */
+const LayarAkun = lazy(() => import("./nav/layarAkun.jsx"));
 
 export default function AreaKerja() {
   const analyzeContext = useContext(AnalyzeContext);
@@ -125,7 +133,11 @@ export default function AreaKerja() {
           data-layar={tampilan}
           className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden"
         >
-          {tampilan === TAMPILAN_ANALISA.AKUN ? <LayarAkun onTutup={kePapan} /> : null}
+          {tampilan === TAMPILAN_ANALISA.AKUN ? (
+            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+              <LayarAkun onTutup={kePapan} />
+            </Suspense>
+          ) : null}
           {tampilan === TAMPILAN_ANALISA.BASIS_DATA ? (
             <LayarDatabase onTutup={kePapan} onAnalisa={muatPartai} onBukaAkun={keAkun} />
           ) : null}

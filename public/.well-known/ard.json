@@ -1,0 +1,38 @@
+{
+  "entries": [
+    {
+      "identifier": "urn:air:chess-club-weld.vercel.app:app:analisa-partai",
+      "displayName": "Analisa Partai Catur Gratis — Blunder Skuad",
+      "type": "text/html",
+      "url": "https://chess-club-weld.vercel.app/program-kami/analisa",
+      "description": "Alat analisis partai catur gratis berbasis Stockfish dari komunitas Blunder Skuad: impor partai dari Chess.com/Lichess atau tempel PGN/FEN, lalu dapatkan evaluasi per langkah, klasifikasi blunder, grafik evaluasi, dan nama pembukaan — semuanya berjalan di peramban.",
+      "capabilities": [
+        "AnalisisCatur",
+        "EvaluasiLangkah",
+        "ImporPGN",
+        "DeteksiBlunder",
+        "NamaPembukaan"
+      ],
+      "representativeQueries": [
+        "analisis partai catur gratis dari PGN",
+        "impor dan evaluasi permainan dari Chess.com atau Lichess",
+        "temukan blunder di partai catur saya"
+      ],
+      "tags": ["chess", "catur", "analisis", "stockfish", "indonesia"],
+      "updatedAt": "2026-10-07"
+    },
+    {
+      "identifier": "urn:air:chess-club-weld.vercel.app:doc:llms",
+      "displayName": "Blunder Skuad — Dokumentasi Situs untuk Agen AI",
+      "type": "text/markdown",
+      "url": "https://chess-club-weld.vercel.app/llms.txt",
+      "description": "Dokumentasi resmi situs Blunder Skuad (Komunitas Catur Indonesia) untuk agen AI: profil komunitas, daftar program, dan kebijakan penggunaan konten.",
+      "representativeQueries": [
+        "apa itu Blunder Skuad komunitas catur Indonesia",
+        "program dan fitur situs komunitas catur Blunder Skuad"
+      ],
+      "tags": ["chess", "catur", "komunitas", "dokumentasi"],
+      "updatedAt": "2026-10-07"
+    }
+  ]
+}

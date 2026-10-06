@@ -21,7 +21,7 @@
  * komponen/areaKerja.jsx. Pengukuran tinggi/lebar papan tetap membaca
  * <main> di dalam AreaKerja, jadi `wadahRef` sudah pindah ke sana.
  */
-import { useEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { gambar } from "../../lib/asets.js";
@@ -36,14 +36,21 @@ import "./analisa.css";
 
 export default function Analisa() {
   const { t } = useI18n();
-  const [tinggi, setTinggi] = useState(0);
+  // Tebakan awal langsung dari jendela (bukan 0) supaya commit pertama sudah
+  // benar; nilai pastinya dikoreksi oleh effect di bawah.
+  const [tinggi, setTinggi] = useState(() =>
+    typeof window === "undefined" ? 0 : Math.round(window.innerHeight),
+  );
 
   /*
    * Area kerja = seluruh tinggi layar (header & footer situs disembunyikan
    * di halaman ini, lihat PageLayout). Dihitung via `window.innerHeight`
    * dan diulang setelah font muat supaya tidak ada lompatan layout.
+   * useLayoutEffect (bukan useEffect) agar koreksi tinggi terjadi SEBELUM
+   * paint pertama — penyebab CLS terbesar di halaman ini (Lighthouse mobile
+   * mengukur 0,949) adalah tinggi yang baru dipasang setelah paint.
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     function ukur() {
       setTinggi(Math.round(window.innerHeight));
     }
