@@ -105,14 +105,25 @@ export function muatSet(set) {
   return janji;
 }
 
-// Pre-load set bawaan sejak modul dievaluasi agar langsung siap di memory.
-// `?url` hanya mengembalikan string URL saat build, jadi tidak ada unduhan
-// aset sampai `<img src>` benar-benar dipakai.
+// Pre-load set bawaan di WAKTU SENGGANG (bukan saat modul dievaluasi).
+// Dulu empat set × 12 bidak = ±48 request chunk kecil langsung berdesakan
+// di jalur kritis pemuatan halaman (Lighthouse mobile: deretan request di
+// detik 1,3–1,6 pada 4G lambat). `?url` memang hanya mengembalikan string
+// URL, tetapi chunk JS-nya sendiri tetap harus diunduh. Pemanasan kini
+// menunggu idle; ChessPiece yang terlanjur tampil lebih dulu memuat set-nya
+// sendiri lewat effect di bawah (cache sama-sama dipakai).
 if (typeof window !== "undefined") {
-  for (const s of ["alpha", "merida", "bidak", "chesscom"]) {
-    muatSet(s).catch(() => {
-      /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
-    });
+  const panaskanSet = () => {
+    for (const s of ["alpha", "merida", "bidak", "chesscom"]) {
+      muatSet(s).catch(() => {
+        /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
+      });
+    }
+  };
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(panaskanSet, { timeout: 4000 });
+  } else {
+    window.setTimeout(panaskanSet, 2000);
   }
 }
 

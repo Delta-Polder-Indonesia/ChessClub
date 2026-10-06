@@ -29,9 +29,19 @@ const DIPAKAI = [
 ];
 
 if (typeof window !== "undefined") {
-  // Unduh + decode di latar; pemutarannya sendiri tetap menunggu gestur
-  // pengguna sesuai kebijakan autoplay peramban.
-  panaskanSuara(DIPAKAI);
+  /*
+   * Unduh + decode di latar SAAT PERAMBAN SENGGANG — bukan seketika saat
+   * modul diimpor, supaya kedelapan MP3 tidak ikut memenuhi jalur kritis
+   * pemuatan halaman (audio tidak dibutuhkan sebelum ada langkah).
+   * Pemutarannya sendiri tetap menunggu gestur pengguna sesuai kebijakan
+   * autoplay peramban, dan panaskanSuara idempoten (cache di lib/suara.js).
+   */
+  const panaskan = () => panaskanSuara(DIPAKAI);
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(panaskan, { timeout: 3000 });
+  } else {
+    window.setTimeout(panaskan, 2000);
+  }
 }
 
 /**

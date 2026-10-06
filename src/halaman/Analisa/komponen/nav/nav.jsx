@@ -176,7 +176,9 @@ export default function Nav() {
    * tengah lajur dan tidak bergeser saat burger ditekan — yang berubah
    * hanya lebar tombol, gap, dan labelnya.
    */
-  const kelasTombol = `flex flex-row gap-2 h-full navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer ${
+  // min-h-10 (40px) hanya di mode ponsel: target sentuh minimum yang nyaman
+  // (audit Lighthouse "touch targets"); di bilah tegak desktop tinggi tetap h-8.
+  const kelasTombol = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer ${
     navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
   }`;
 
@@ -262,7 +264,13 @@ export default function Nav() {
             <Link
               draggable={false}
               to="/"
-              className={`min-w-0 flex-row items-center navTop:py-1 p-1.5 transition-colors hover:bg-backgroundBoxHover ${
+              /*
+               * Wordmark-nya `hidden` di mode ponsel — tanpa aria-label
+               * tautan ini kosong bagi pembaca layar (temuan audit
+               * Lighthouse "links do not have a discernible name").
+               */
+              aria-label={t("analisa.nav.beranda")}
+              className={`min-w-0 min-h-10 navTop:min-h-0 flex-row items-center navTop:py-1 p-1.5 transition-colors hover:bg-backgroundBoxHover ${
                 navTerbuka ? "flex" : "navTop:hidden"
               }`}
             >
@@ -324,16 +332,19 @@ export default function Nav() {
             {botLinks.map((link, i) => {
               // Kelas yang sama dengan tombol menu: kotak 2rem saat bilah
               // menciut, melebar penuh saat terbuka.
-              const kelas = `flex flex-row gap-2 h-full navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors ${
+              const kelas = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors ${
                 navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
               }`;
+              // Label teksnya `hidden` di mode ponsel — aria-label wajib ada
+              // supaya tautan tetap bernama bagi pembaca layar (audit
+              // Lighthouse "links do not have a discernible name").
               return link.to ? (
-                <Link draggable={false} key={i} to={link.to} className={kelas}>
+                <Link draggable={false} key={i} to={link.to} aria-label={link.label} className={kelas}>
                   {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
                   <span className={kelasLabelNav}>{link.label}</span>
                 </Link>
               ) : (
-                <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} className={kelas}>
+                <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} aria-label={link.label} className={kelas}>
                   {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
                   <span className={kelasLabelNav}>{link.label}</span>
                 </a>

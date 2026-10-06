@@ -276,6 +276,7 @@ export const analisa = {
       impor: "Impor permainan",
       kodeSumber: "Kode Sumber",
       atribusi: "Atribusi",
+      beranda: "Ke beranda Blunder Skuad",
       tutupBilah: "Sembunyikan bilah",
       bukaBilah: "Tampilkan bilah",
     },

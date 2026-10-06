@@ -136,10 +136,11 @@ export default defineConfig({
   build: {
     modulePreload: { polyfill: false },
     cssCodeSplit: false,
-    // Source map tetap di produksi agar stack trace di browser/Sentry
-    // bisa dilacak ke sumber asli. Ukuran .map tidak dilayani ke klien
-    // kecuali diunggah terpisah — bundle JS-nya yang di-minify.
-    sourcemap: true,
+    // "hidden": berkas .map TETAP dibuat di dist untuk debug/Sentry, tetapi
+    // komentar `//# sourceMappingURL=` tidak disisipkan ke bundle — browser
+    // (dan audit Lighthouse) berhenti meminta .map yang memang tidak kami
+    // unggah ke produksi, jadi tidak ada lagi ratusan 404/noise.
+    sourcemap: "hidden",
     // esbuild adalah minify bawaan Vite: turun ~30–50% vs minify:false
     // tanpa mengubah perilaku runtime. Jangan matikan di produksi hanya
     // demi keterbacaan; pakai source map untuk debug.
