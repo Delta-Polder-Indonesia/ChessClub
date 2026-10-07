@@ -11,6 +11,12 @@ import {
 import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
+import {
+  ambilPemohonEbook,
+  simpanPemohonEbook,
+  ambilTiketSesi,
+  simpanTiketSesi,
+} from "../../lib/sesiUnduhEbook.js";
 import { urlEbook, berkasPublik } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 
@@ -60,9 +66,24 @@ function Field({ label, htmlFor, children }) {
 
 export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
   const { t } = useI18n();
-  const [punyaKode, setPunyaKode] = useState(false);
-  const [nama, setNama] = useState("");
-  const [akun, setAkun] = useState("");
+  /*
+   * Tiket sesi yang masih berlaku untuk berkas ini membuat pengguna tidak perlu
+   * mengetik ulang nama/akun/kode (tiket e-book hanya hidup 15 menit — lihat
+   * src/lib/sesiUnduhEbook.js). Mode "punya kode" dibuka otomatis supaya
+   * tombol Mulai unduh langsung menembus gerbang.
+   */
+  const tiketSesiAwal = useRef(null);
+  if (tiketSesiAwal.current === null) {
+    tiketSesiAwal.current = ambilTiketSesi({ file: buku?.file }) || "";
+  }
+  const pemohonTersimpan = useRef(null);
+  if (pemohonTersimpan.current === null) {
+    pemohonTersimpan.current = ambilPemohonEbook() || {};
+  }
+  const adaTiketSesi = Boolean(tiketSesiAwal.current);
+  const [punyaKode, setPunyaKode] = useState(adaTiketSesi);
+  const [nama, setNama] = useState(() => pemohonTersimpan.current?.nama || "");
+  const [akun, setAkun] = useState(() => pemohonTersimpan.current?.akun || "");
   const [kode, setKode] = useState("");
   const [sibuk, setSibuk] = useState(false);
   const [galat, setGalat] = useState("");
@@ -70,11 +91,17 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
   const [mintaTerkirim, setMintaTerkirim] = useState(false);
   const [salah, setSalah] = useState(false);
   const namaRef = useRef(null);
+  const kodeRef = useRef(null);
 
   useEffect(() => {
     const gulirTadi = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const jam = setTimeout(() => namaRef.current?.focus(), 60);
+    const jam = setTimeout(() => {
+      // Tiket sesi sudah ada & isian lengkap → langsung ke kode; kalau tidak,
+      // fokus ke nama supaya pengguna bisa langsung mengetik.
+      if (adaTiketSesi && pemohonTersimpan.current?.nama) kodeRef.current?.focus();
+      else namaRef.current?.focus();
+    }, 60);
     const onEsc = (e) => {
       if (e.key === "Escape") onTutup();
     };
@@ -102,6 +129,22 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
     setGalat("");
 
     if (punyaKode) {
+      /*
+       * Tiket sesi yang masih berlaku: lewati gerbang kode akses sama sekali.
+       * Ini menghindari (a) pengguna mengetik ulang nama/akun/kode untuk buku
+       * yang sama dalam 15 menit, dan (b) server menambah satu "unduhan" lagi
+       * di dashboard pengurus untuk kode yang sama.
+       */
+      if (adaTiketSesi && buku.tujuanAkses === "baca") {
+        onTebusSukses?.({
+          tiketUnduh: tiketSesiAwal.current,
+          nama: nama.trim() || pemohonTersimpan.current?.nama || "",
+          akunChess: akun.trim() || pemohonTersimpan.current?.akun || "",
+          judul: buku.judul,
+        });
+        return;
+      }
+
       // Redemption memberi tiket untuk Baca atau Unduh.
       if (!nama.trim() || !akun.trim() || !kode.trim()) {
         setGalat(t("unduhEbook.lengkapiKode"));
@@ -119,6 +162,12 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
           bukuId: buku.id,
           judul: buku.judul,
         });
+        // Sesi disimpan sebelum apa pun: tiket yang sama dipakai halaman untuk
+        // membuka pembaca, jadi menyimpannya lebih dulu berarti buku berikutnya
+        // (atau muat ulang) tidak meminta data yang sama lagi.
+        simpanPemohonEbook({ nama: nama.trim(), akun: akun.trim() });
+        simpanTiketSesi({ file: buku.file, tiket: catatan.tiketUnduh });
+
         if (buku.tujuanAkses === "baca") {
           onTebusSukses?.(catatan);
           return;
@@ -157,6 +206,7 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
           bukuId: buku.id,
           judul: buku.judul,
         });
+        simpanPemohonEbook({ nama: nama.trim(), akun: akun.trim() });
         setMintaTerkirim(true);
       } catch (e2) {
         setGalat(e2.message || t("unduhEbook.galatMinta"));
@@ -315,7 +365,7 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
                     name="nama"
                     autoComplete="name"
                     maxLength={80}
-                    placeholder="cth. Budi Santoso"
+                    placeholder={t("unduhEbook.placeholderNama")}
                     value={nama}
                     onChange={(e) => {
                       setNama(e.target.value);
@@ -332,7 +382,7 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
                     autoComplete="off"
                     spellCheck="false"
                     maxLength={25}
-                    placeholder="cth. budichess99"
+                    placeholder={t("unduhEbook.placeholderAkun")}
                     value={akun}
                     onChange={(e) => {
                       setAkun(e.target.value);
@@ -346,11 +396,12 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
                   <Field label={t("unduhEbook.labelKodeAkses")} htmlFor="unduh-kode">
                     <Input
                       id="unduh-kode"
+                      ref={kodeRef}
                       name="kode"
                       autoComplete="off"
                       spellCheck="false"
                       maxLength={12}
-                      placeholder="cth. EBK-7F3K2M9Q"
+                      placeholder={t("unduhEbook.placeholderKode")}
                       value={kode}
                       onChange={(e) => {
                         setKode(e.target.value.toUpperCase());

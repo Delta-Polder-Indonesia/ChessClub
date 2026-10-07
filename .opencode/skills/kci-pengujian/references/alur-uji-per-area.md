@@ -26,7 +26,7 @@ lewat requestAnimationFrame**, jadi DOM tidak boleh dibaca segera setelah `act()
 | Mesin Stockfish (WASM/UCI) | `npm run uji:engine` | `uji-engine-uci.mjs`, `uji-analisa-e2e.mjs`, `uji-navigasi.mjs` | Chess Engine Integration (Stockfish/UCI) |
 | Panel & UI Analisa | `npm run uji:analisa && npm run uji:analisa-ui` | `uji-analisa.mjs`, `uji-analisa-ui.mjs` | Analisa Subsystem; Analysis UI Details |
 | Klasifikasi langkah, akurasi, anti-cheat | `npm run uji:analisa-menyeluruh` | `uji-klasifikasi.mjs`, `uji-akurasi.mjs`, `uji-anticheat.mjs`, `uji-*` lain di grup itu | Move Commentator & Classification |
-| Papan interaktif & teka-teki | `npm run uji:lencana-skakmat && npm run uji:tanda-papan && npm run uji:tekateki-solusi` | `uji-lencana-skakmat.mjs`, `uji-tanda-papan.mjs`, `uji-tekateki-solusi.mjs` | Interactive Board & Puzzles |
+| Papan interaktif & teka-teki | `npm run uji:lencana-skakmat && npm run uji:tanda-papan && npm run uji:tekateki-solusi && npm run uji:tekateki-alur && npm run uji:kerangka-penuh` | `uji-lencana-skakmat.mjs`, `uji-tanda-papan.mjs`, `uji-tekateki-solusi.mjs`, `uji-teka-teki-alur.mjs` (alur halaman dari data → langkah → promosi → petunjuk → tinjauan → Syzygy → locale EN), `uji-kerangka-layar-penuh.mjs` (header/footer pada rute layar penuh), `uji-teka-teki-rute.mjs` (alamat kanonik `/teka-teki/problem/<nomor>`, pengalihan alamat lama, canonical) | Interactive Board & Puzzles |
 | Rush & Quiz | `npm run uji:rush` (termasuk `uji:rekor-rush`), `npm run uji:quiz` | `uji-rekor-rush.mjs`, `uji-rush-waktu.mjs`, `uji-quiz.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur |
 
 ## Data, konten, dan aset
@@ -35,7 +35,8 @@ lewat requestAnimationFrame**, jadi DOM tidak boleh dibaca segera setelah `act()
 | --- | --- | --- | --- |
 | Basis data lokal (IndexedDB) | `npm run uji:basisdata` | `uji-basisdata.mjs` | Local Game Database (IndexedDB) |
 | Tarik partai (Lichess/Chess.com) | `npm run uji:tarik-api` | `uji-tarik-api.mjs` | Game Ingestion: PGN, FEN, Chess.com & Lichess |
-| E-book & pembaca PDF | `npm run uji:ebook` | `uji-ebook.mjs`, `uji-ebook-pembaca.mjs` | Public Content Pages |
+| E-book & pembaca PDF | `npm run uji:ebook && npm run uji:sesi-ebook` | `uji-ebook.mjs`, `uji-ebook-pembaca.mjs`, `uji-sesi-ebook.mjs` (sesi pemohon & tiket 15 menit) | Public Content Pages |
+| CSRF API tulis | `npm run uji:api-csrf` | `uji-api-csrf.mjs` (perbarui token lalu ulangi sekali saat 403 `token-csrf`) | Authentication & Accounts |
 | Gambar & suara papan | `npm run uji:gambar && npm run uji:suara` | `uji-gambar.mjs`, `uji-suara.mjs` | Chess Features |
 | Nama pembukaan & artikel | `npm run uji:nama-pembukaan && npm run uji:artikel` | `uji-nama-pembukaan.mjs`, `uji-artikel-wikipedia.mjs` | Chess Features |
 

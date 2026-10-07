@@ -5,6 +5,7 @@
 
 export const quiz = {
     judul: "Kuis Catur",
+    versi: "versi: 0.1.0 Beta",
     tagline: "Uji pengetahuanmu seputar catur — pilih satu jawaban benar.",
     kembali: "Kembali ke Program",
     kategoriHeading: "Kategori",

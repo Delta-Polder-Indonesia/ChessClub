@@ -51,6 +51,26 @@ export function butuhPromosi(fen, from, to) {
 }
 
 /**
+ * Apakah langkah from→to MENGHASILKAN skakmat pada posisi `fen`?
+ *
+ * Dipakai halaman Teka-teki untuk membedakan dua kegagalan yang berbeda bagi
+ * pemain: langkah salah biasa vs skakmat alternatif (mate sah yang tidak
+ * tercatat di data soal). Pemeriksaan ini murni pada posisi — tidak menyentuh
+ * state halaman.
+ *
+ * @param {string} fen   posisi sebelum langkah
+ * @param {{from: string, to: string, promo?: string|null}} langkah
+ * @returns {boolean}
+ */
+export function apakahSkakmat(fen, { from, to, promo } = {}) {
+  try {
+    return terapkan(fen, { from, to, promo }).isCheckmate();
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Apakah langkah from→to legal pada posisi `fen`? Dipakai memisahkan bunyi
  * "tidak boleh" (langkah ilegal) dari "boleh tapi bukan solusinya".
  */

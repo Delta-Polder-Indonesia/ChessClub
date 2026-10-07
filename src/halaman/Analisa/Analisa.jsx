@@ -71,7 +71,14 @@ export default function Analisa() {
       <MetaHalaman
         title={t("analisa.metaJudul")}
         description={t("analisa.metaDeskripsi")}
-        robots="noindex, follow"
+        /*
+         * Halaman ini boleh diindeks: papan analisa adalah fitur publik yang
+         * berdiri sendiri (Stockfish lokal, data tidak dikirim ke server), dan
+         * sebelumnya noindex membuat permintaan "analisis catur online gratis"
+         * tidak pernah bisa mendarat di halaman yang tepat. Judul & deskripsi
+         * tidak disentuh.
+         */
+        robots="index, follow"
         image={gambar("/images/PapanAnalysa.webp")}
         imageWidth={1600}
         imageHeight={1200}

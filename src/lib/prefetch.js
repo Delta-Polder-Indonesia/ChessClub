@@ -32,6 +32,7 @@ const PEMUAT_RUTE = new Map([
   ["/program-kami/analisa", () => import("../halaman/ProgramKami/AnalisaLanding.jsx")],
   ["/program-kami/ebook-panduan", () => import("../halaman/ProgramKami/EbookPanduan.jsx")],
   ["/teka-teki", () => import("../halaman/TekaTeki/TekaTeki.jsx")],
+  ["/teka-teki/problem", () => import("../halaman/TekaTeki/TekaTeki.jsx")],
   ["/teka-teki-rush", () => import("../halaman/TekaTekiRush/TekaTekiRush.jsx")],
   ["/quiz-catur", () => import("../halaman/QuizCatur/QuizCatur.jsx")],
   ["/papan-interaktif", () => import("../halaman/PapanInteraktif/Workspace.jsx")],
@@ -62,6 +63,8 @@ const PEMUAT_RUTE = new Map([
 
 /** Rute dengan parameter dinamis (/:id) — dicocokkan dengan pola. */
 const POLA_RUTE = [
+  // Deep-link soal teka-teki: satu chunk yang sama dengan halaman kanoniknya.
+  [/^\/teka-teki\/problem\/\d+$/, () => import("../halaman/TekaTeki/TekaTeki.jsx")],
   // Halaman detail berita/pengumuman: chunk-nya kecil (± 2,6 KiB) dan hanya
   // berguna bila daftar kontennya benar-benar dilihat.
   [/^\/media-dan-informasi\/(berita|pengumuman)\/[^/]+$/, () => import("../halaman/MediaDanInformasi/DetailKonten.jsx")],

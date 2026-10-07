@@ -378,7 +378,10 @@ const awal = teksBagus();
 
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
 uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
-uji("papan memakai noindex, follow", domSiap.querySelector('meta[name="robots"]')?.content === "noindex, follow");
+uji(
+  "papan boleh diindeks (index, follow)",
+  domSiap.querySelector('meta[name="robots"]')?.content === "index, follow"
+);
 uji("canonical papan memakai pathname papan", domSiap.querySelector('link[rel="canonical"]')?.href === "https://uji.test/program-kami/analisa/papan");
 uji("Open Graph papan memakai gambar Analisa", domSiap.querySelector('meta[property="og:image"]')?.content.endsWith("/images/PapanAnalysa.webp"));
 uji("Twitter Card papan memakai kartu gambar besar", domSiap.querySelector('meta[name="twitter:card"]')?.content === "summary_large_image");

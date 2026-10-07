@@ -11,27 +11,12 @@ import { useI18n } from "../../lib/i18n.jsx";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
 import ResultSVG from "../Analisa/komponen/svg/result.jsx";
 
-/** Label keterangan (tooltip) lencana skakmat di atas raja yang termat. */
-const LABEL_IKON_SKAKMAT = "Skakmat — raja lawan tidak punya langkah lagi";
-/** Label keterangan (tooltip) mahkota di atas raja PEMENANG (tidak diawali
- *  "Skakmat" agar berbeda dari lencana raja yang kalah — uji lencana
- *  menghitung keduanya secara terpisah). */
-const LABEL_IKON_MAHKOTA = "Menang — raja pemenang";
-
-/** Label keterangan (tooltip) ikon klasifikasi langkah — gaya chess.com/lichess. */
-const LABEL_IKON_LANGKAH = {
-  brilliant: "Langkah brilian",
-  great: "Langkah hebat",
-  best: "Langkah terbaik",
-  excellent: "Langkah sangat baik",
-  good: "Langkah baik",
-  book: "Langkah buku (pembukaan)",
-  inaccuracy: "Ketidaktepatan",
-  mistake: "Kesalahan",
-  miss: "Kesempatan terlewat",
-  blunder: "Blunder (langkah salah)",
-  forced: "Satu-satunya langkah",
-};
+/**
+ * Label keterangan (tooltip) lencana papan. Semuanya lewat kamus
+ * `papan.ikonLangkah.*`, `papan.ikonSkakmat`, dan `papan.ikonMahkota` supaya
+ * versi Inggris ikut benar (sebelumnya teks Indonesia ditulis mentah di sini,
+ * sehingga pengguna EN melihat tooltip berbahasa Indonesia).
+ */
 
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
@@ -266,6 +251,12 @@ export default function PapanTekaTeki({
   onHapusTanda,
 }) {
   const { t } = useI18n();
+  /** Label lencana klasifikasi langkah; nilai di luar kamus ditampilkan apa adanya. */
+  const labelIkonLangkah = (rating) => {
+    const kunci = `papan.ikonLangkah.${rating}`;
+    const teks = t(kunci);
+    return teks === kunci ? rating : teks;
+  };
   const peta = petaBidak(fen);
   const petak = daftarPetak(orientasi);
   const giliran = fen.split(" ")[1] || "w";
@@ -909,7 +900,7 @@ export default function PapanTekaTeki({
                 <RatingSVG
                   rating={ikonLangkah.rating}
                   size="100%"
-                  title={LABEL_IKON_LANGKAH[ikonLangkah.rating] || ikonLangkah.rating}
+                  title={labelIkonLangkah(ikonLangkah.rating)}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",
@@ -927,7 +918,7 @@ export default function PapanTekaTeki({
                 <ResultSVG
                   result="victory"
                   size="100%"
-                  title={LABEL_IKON_MAHKOTA}
+                  title={t("papan.ikonMahkota")}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",
@@ -946,7 +937,7 @@ export default function PapanTekaTeki({
                 <ResultSVG
                   result="defeat"
                   size="100%"
-                  title={LABEL_IKON_SKAKMAT}
+                  title={t("papan.ikonSkakmat")}
                   className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
                   style={{
                     top: baris === 0 ? "2%" : "-8%",

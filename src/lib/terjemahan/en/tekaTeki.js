@@ -7,6 +7,9 @@ import { komentatorTekaTeki } from "./komentator.js";
 
 export const tekaTeki = {
     judul: "Chess Puzzles",
+    metaJudul: "Chess Puzzles | Komunitas Catur Indonesia",
+    metaDeskripsi:
+      "Sharpen your tactical instinct with 5,486 checkmate puzzles from real games in the Lichess puzzle database: checkmate in 1, 2, or 3 moves.",
     deskripsi:
       "Train your tactical instinct with 5,486 checkmate puzzles from real games in the Lichess puzzle database. Find checkmate in 1, 2, or 3 moves — hints are available when you get stuck.",
     memuat: "Loading puzzles…",
@@ -41,6 +44,8 @@ export const tekaTeki = {
     sebelumnya: "Previous",
     berikutnya: "Next",
     salah: "Not quite — try again!",
+    mateAlternatif:
+      "Checkmate! But this puzzle is scored on the recorded solution move — use Hint if you are stuck.",
     benar: "Nice! Correct move.",
     terpecahkan: "Checkmate.",
     sudahTerpecahkan: "Already solved",
@@ -63,6 +68,8 @@ export const tekaTeki = {
     ratingSoal: "Puzzle rating",
     skakDalamN: "Mate in {n}",
     kecepatanMesin: "Engine speed",
+    tabAtribusi: "Work by Bintang Toba (2026)",
+    mainkanSaran: "Play suggestion ({san})",
     soalAcak: "Random puzzle",
     soalPertama: "First puzzle (no. 1)",
     baru: "New",

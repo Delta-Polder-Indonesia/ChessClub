@@ -5,7 +5,9 @@
  * menerima skakmat legal APA PUN sebagai langkah penutup, berbeda dari Rush
  * yang menuntut solusi persis (docs/REVIEW-PERBAIKAN-LATIHAN.md A1). Uji ini
  * mengunci perilaku baru: pada posisi langkah terakhir, mate alternatif
- * ditolak, dan hanya langkah solusi yang menuntaskan soal.
+ * ditolak (tidak menuntaskan soal), hanya langkah solusi yang menuntaskan
+ * soal, dan pesan yang tampil menjelaskan situasinya (`tekaTeki.mateAlternatif`)
+ * alih-alih menyebut langkah itu salah.
  *
  * Caranya: halaman TekaTeki sungguhan dipasang di jsdom dengan `fetch` palsu
  * yang membaca dari `public/`. Langkah dimainkan lewat klik petak
@@ -133,13 +135,16 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/i18n.jsx";
+import { HelmetProvider } from "react-helmet-async";
 import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
 
 export function mount(el) {
   return createRoot(el).render(
-    <MemoryRouter initialEntries={["/teka-teki/__ID__"]}>
-      <I18nProvider><TekaTeki /></I18nProvider>
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/teka-teki/problem/__ID__"]}>
+        <I18nProvider><TekaTeki /></I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
   );
 }
 `.replace("__ID__", String(soalUji.soal.problemid));
@@ -382,7 +387,16 @@ console.log("\nlangkah penutup harus persis solusi:");
 await mainkan(soalUji.alternatif.from, soalUji.alternatif.to);
 await tunggu(400);
 uji("mate alternatif tidak mengubah posisi", papanSama(soalUji.fenAkhir));
-uji("pesan salah muncul untuk mate alternatif", domSiap.body.textContent.includes(kamus.salah));
+/*
+ * Sejak audit bagian 6 (A14), penilaian tetap ketat — mate alternatif TIDAK
+ * menyelesaikan soal — tetapi pesannya tidak lagi "salah" polos: pemain diberi
+ * tahu bahwa langkahnya memang skakmat, hanya bukan langkah yang dinilai data.
+ */
+uji("pesan khusus mate alternatif muncul", domSiap.body.textContent.includes(kamus.mateAlternatif));
+uji(
+  "pesan 'belum tepat' tidak muncul untuk mate alternatif",
+  !domSiap.body.textContent.includes(kamus.salah)
+);
 uji("soal belum tercatat terpecahkan", !terpecahkan().includes(soalUji.soal.problemid));
 
 await mainkan(soalUji.solusi.from, soalUji.solusi.to);

@@ -14,6 +14,13 @@ export default function MetaHalaman({
   image = "/images/landing-hero.webp",
   imageWidth = 828,
   imageHeight = 462,
+  /**
+   * Jalur kanonik eksplisit. Dipakai halaman yang alamatnya punya variasi
+   * (mis. `/teka-teki/problem/<nomor>`): seluruh variasi menunjuk SATU
+   * halaman resmi, jadi mesin pencari tidak melihatnya sebagai halaman
+   * terpisah. Bila kosong, pathname saat ini yang dipakai (perilaku lama).
+   */
+  path,
 }) {
   const namaKomunitas = "Blunder Skuad";
 
@@ -28,7 +35,8 @@ export default function MetaHalaman({
   // Pakai URL situs produksi bila tersedia; fallback ke origin saat lokal.
   // Pathname dipakai tanpa query string dan hash agar canonical tetap bersih.
   const situs = asalSitus();
-  const canonicalUrl = `${situs}${window.location.pathname || "/"}`;
+  const jalurKanonik = path || window.location.pathname || "/";
+  const canonicalUrl = `${situs}${jalurKanonik.startsWith("/") ? "" : "/"}${jalurKanonik}`;
   const gambarUrl = urlAbsolut(image);
 
   return (

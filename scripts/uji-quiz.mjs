@@ -2,7 +2,12 @@
  * Validasi daftar soal quiz catur (src/halaman/QuizCatur/daftar.js).
  * Dijalankan lewat: npm run uji:quiz
  */
-import { SOAL_CATUR, DAFTAR_KATEGORI } from "../src/halaman/QuizCatur/daftar.js";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "../src/halaman/QuizCatur/daftar.js";
+
+const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 const idKategori = new Set(DAFTAR_KATEGORI.map((k) => k.id));
 const pertanyaan = new Set();
@@ -64,6 +69,25 @@ for (const k of DAFTAR_KATEGORI) {
   const diharapkan = distribusiDiharapkan[k.id];
   cek(aktual === diharapkan, `Kategori "${k.id}": ${aktual} soal, diharapkan ${diharapkan}.`);
 }
+
+/*
+ * Ikon kategori: dahulu empat kategori (taktik, strategi, endgame, notasi)
+ * tidak punya entri sehingga `berkasPublik(undefined)` menghasilkan src kosong
+ * dan ikonnya hilang di 40 dari 100 soal. Penjaga ini memastikan setiap id
+ * kategori punya ikon DAN berkasnya benar-benar ada di `public/`.
+ */
+for (const k of DAFTAR_KATEGORI) {
+  const ikon = IKON_KATEGORI[k.id];
+  cek(typeof ikon === "string" && ikon.length > 0, `Kategori "${k.id}" belum punya ikon di IKON_KATEGORI.`);
+  if (typeof ikon === "string" && ikon.startsWith("/")) {
+    const berkas = path.join(AKAR, "public", ikon.replace(/^\//, ""));
+    cek(existsSync(berkas), `Berkas ikon kategori "${k.id}" tidak ada: public${ikon}.`);
+  }
+}
+cek(
+  typeof IKON_KATEGORI.semua === "string" && IKON_KATEGORI.semua.length > 0,
+  "Ikon cadangan IKON_KATEGORI.semua wajib ada."
+);
 
 if (gagal) {
   console.log(`\nQuiz: ${gagal} masalah ditemukan. Perbaiki daftar.js dulu.\n`);

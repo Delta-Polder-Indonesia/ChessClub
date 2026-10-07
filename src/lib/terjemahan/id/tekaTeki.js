@@ -7,6 +7,9 @@ import { komentatorTekaTeki } from "./komentator.js";
 
 export const tekaTeki = {
     judul: "Teka-teki Catur",
+    metaJudul: "Teka-teki Catur | Komunitas Catur Indonesia",
+    metaDeskripsi:
+      "Latih naluri taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess: skakmat dalam 1, 2, atau 3 langkah.",
     deskripsi:
       "Latih naluri taktismu dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess. Temukan skakmat dalam 1, 2, atau 3 langkah — ada petunjuk bila kamu buntu.",
     memuat: "Memuat teka-teki…",
@@ -41,6 +44,8 @@ export const tekaTeki = {
     sebelumnya: "Sebelumnya",
     berikutnya: "Berikutnya",
     salah: "Belum tepat, coba lagi!",
+    mateAlternatif:
+      "Skakmat! Namun soal ini dinilai dari langkah solusi data — tekan Petunjuk bila buntu.",
     benar: "Bagus! Langkah tepat.",
     terpecahkan: "Checkmate.",
     sudahTerpecahkan: "Sudah pernah kamu pecahkan",
@@ -63,6 +68,8 @@ export const tekaTeki = {
     ratingSoal: "Rating Soal",
     skakDalamN: "Skak dalam {n} langkah",
     kecepatanMesin: "Kecepatan mesin",
+    tabAtribusi: "Hasil Karya Bintang Toba (2026)",
+    mainkanSaran: "Mainkan saran ({san})",
     soalAcak: "Soal acak",
     soalPertama: "Soal pertama (nomor 1)",
     baru: "Baru",

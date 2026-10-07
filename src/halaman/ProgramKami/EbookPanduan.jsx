@@ -7,6 +7,12 @@ import { sumberEbook, sumberGambar, urlEbook } from "../../lib/asets.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_EBOOK, COVER, kategoriDariDaftar } from "../Beranda/ebook-data.js";
 import FiturEbook from "./FiturEbook.jsx";
+import {
+  ambilTiketSesi,
+  bersihkanSesiEbook,
+  hapusTiketSesi,
+  tiketBelumKedaluwarsa,
+} from "../../lib/sesiUnduhEbook.js";
 import ModalUnduhEbook from "./ModalUnduhEbook.jsx";
 
 /**
@@ -185,6 +191,12 @@ export default function EbookPanduan() {
   const { id: bukuIdPath, kategori: kategoriPath } = useParams();
   const [kartuBalik, setKartuBalik] = useState(() => new Set());
 
+  // Tiket kedaluwarsa dibuang sekali saat halaman dibuka supaya buku berikutnya
+  // tidak pernah memakai tiket mati (server akan menolaknya di tengah render PDF).
+  useEffect(() => {
+    bersihkanSesiEbook();
+  }, []);
+
   // Flip kartu lewat klik/ketuk (perangkat tanpa hover).
   const toggleBalik = (id) => {
     setKartuBalik((prev) => {
@@ -196,12 +208,23 @@ export default function EbookPanduan() {
   };
 
   function unduhDenganTiket(buku) {
-    if (!buku?.tiketUnduh) {
+    /*
+     * Tiket di state bisa saja sudah lewat 15 menit (pembaca dibiarkan terbuka
+     * lama). Mengirim tautan unduhan dengan tiket mati hanya menghasilkan
+     * berkas JSON galat 403 dari server, jadi tiket selalu diverifikasi dulu:
+     * pakai tiket state bila masih layak, lalu tiket sesi, dan kalau keduanya
+     * habis buka gerbang kode akses lagi.
+     */
+    const tiketLayak = tiketBelumKedaluwarsa(buku?.tiketUnduh)
+      ? buku.tiketUnduh
+      : ambilTiketSesi({ file: buku?.file });
+    if (!tiketLayak) {
       setUnduhan({ ...buku, tujuanAkses: "unduh" });
       return;
     }
+    if (tiketLayak !== buku.tiketUnduh) setPdfAktif({ ...buku, tiketUnduh: tiketLayak });
     const taut = document.createElement("a");
-    taut.href = urlEbook(buku.file, { unduh: true, tiket: buku.tiketUnduh });
+    taut.href = urlEbook(buku.file, { unduh: true, tiket: tiketLayak });
     taut.download = "";
     document.body.appendChild(taut);
     taut.click();
@@ -330,6 +353,14 @@ export default function EbookPanduan() {
                 padaBalik={() => toggleBalik(buku.id)}
                 padaBaca={() => {
                   if (!buku.tersedia) return;
+                  // Tiket sesi yang masih berlaku (≤15 menit) langsung membuka
+                  // pembaca — tanpa mengisi nama/akun/kode lagi.
+                  const tiketSesi = ambilTiketSesi({ file: buku.file });
+                  if (tiketSesi) {
+                    setHalamanPdf(0);
+                    setPdfAktif({ ...buku, tiketUnduh: tiketSesi });
+                    return;
+                  }
                   setUnduhan({ ...buku, tujuanAkses: "baca" });
                 }}
                 padaUnduh={() => setUnduhan({ ...buku, tujuanAkses: "unduh" })}
@@ -384,6 +415,18 @@ export default function EbookPanduan() {
                 <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md shadow-xl">
                   <PembacaPdf
                     sumber={sumberEbook(pdfAktif.file, { tiket: pdfAktif.tiketUnduh })}
+                    padaGagal={() => {
+                      /*
+                       * Semua sumber gagal — penyebab paling mungkin adalah
+                       * tiket sesi yang sudah kedaluwarsa (server menolak
+                       * 403). Buang tiket itu supaya percobaan berikutnya
+                       * melewati gerbang kode akses, dan JANGAN sentuh state
+                       * pembaca: `sumber` adalah prop dan ikut menjadi
+                       * dependensi efek pemuatan, jadi mengubahnya di sini
+                       * akan memicu pemuatan ulang tanpa henti.
+                       */
+                      hapusTiketSesi({ file: pdfAktif.file });
+                    }}
                     judul={pdfAktif.judul}
                     urlUnduh={urlEbook(pdfAktif.file, {
                       unduh: true,
