@@ -896,7 +896,7 @@ export default function TekaTekiRush() {
             <TombolSuara
               nyala={suaraNyala}
               onKlik={() => setNyala(!suaraNyala)}
-              label={suaraNyala ? "Suara menyala" : "Suara mati"}
+              label={suaraNyala ? t("papan.suaraNyala") : t("papan.suaraMati")}
             />
           </div>
         </div>
@@ -1086,9 +1086,7 @@ export default function TekaTekiRush() {
                 setCobaMulai(true);
                 return;
               }
-              setTimeout(() => {
-                mulai(durasiMenit);
-              }, 700);
+              mulai(durasiMenit);
             }}
             className="mt-6 w-full rounded-lg bg-[#81b64c] py-3.5 text-sm font-bold uppercase tracking-[0.14em] text-[#1e1c18] transition hover:bg-[#92c45f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c]/60"
           >

@@ -4,14 +4,28 @@ import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
 
-/** Halaman yang tampil tanpa header & footer situs agar kontennya full-screen. */
-const TANPA_KERANGKA = new Set([
+/**
+ * Halaman yang tampil tanpa header & footer situs agar kontennya full-screen.
+ *
+ * Dicocokkan sebagai AWALAN path, bukan path persis: halaman Teka-teki menulis
+ * ulang URL-nya menjadi `/teka-teki/<problemid>` begitu soal dimuat (dan tautan
+ * dalam `/teka-teki/<id>` dibagikan bebas), sehingga pencocokan persis membuat
+ * header + footer situs tersemat kembali di sekeliling papan yang seharusnya
+ * penuh layar — juga pada setiap deep-link soal.
+ */
+const TANPA_KERANGKA = [
   "/program-kami/analisa/papan",
   "/teka-teki",
   "/teka-teki-rush",
   "/quiz-catur",
   "/papan-interaktif",
-]);
+];
+
+function tanpaKerangkaPath(pathname) {
+  return TANPA_KERANGKA.some(
+    (awalan) => pathname === awalan || pathname.startsWith(`${awalan}/`)
+  );
+}
 
 /**
  * Kerangka semua halaman publik.
@@ -26,7 +40,7 @@ const TANPA_KERANGKA = new Set([
  */
 export default function PageLayout() {
   const { pathname } = useLocation();
-  const tanpaKerangka = TANPA_KERANGKA.has(pathname);
+  const tanpaKerangka = tanpaKerangkaPath(pathname);
   return (
     <>
       {tanpaKerangka ? null : <Header />}

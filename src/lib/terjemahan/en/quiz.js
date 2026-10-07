@@ -5,6 +5,7 @@
 
 export const quiz = {
     judul: "Chess Quiz",
+    versi: "version: 0.1.0 Beta",
     tagline: "Test your chess knowledge — pick one correct answer.",
     kembali: "Back to Programs",
     kategoriHeading: "Category",

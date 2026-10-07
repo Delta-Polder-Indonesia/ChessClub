@@ -121,9 +121,9 @@ export default function QuizCatur() {
         ? SOAL_CATUR
         : SOAL_CATUR.filter((s) => s.kategori === kategori);
     const urut = [...terisi].sort((a, b) => {
-      const ka = URUTAN_KATEGORI.indexOf(a.kategori) ?? 99;
-      const kb = URUTAN_KATEGORI.indexOf(b.kategori) ?? 99;
-      return ka - kb;
+      const ka = URUTAN_KATEGORI.indexOf(a.kategori);
+      const kb = URUTAN_KATEGORI.indexOf(b.kategori);
+      return (ka < 0 ? URUTAN_KATEGORI.length : ka) - (kb < 0 ? URUTAN_KATEGORI.length : kb);
     });
     return urut;
   }, [kategori]);
@@ -171,7 +171,7 @@ export default function QuizCatur() {
     const lampauBaru = [...lampau, benarSekarang];
     setLampau(lampauBaru);
     if (!benarSekarang && lampauBaru.filter((b) => !b).length >= batasSalah) {
-      catatHasil(benarSekarang ? benar + 1 : benar, lampauBaru);
+      catatHasil(benar, lampauBaru);
       setFase("selesai");
       mainkan(SUARA.selesai);
     }
@@ -332,9 +332,9 @@ export default function QuizCatur() {
             className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-white"
           >
             <License size={14} class="fill-current" />
-            Lisensi & Atribusi
+            {t("papan.menuAtribusi")}
           </Link>
-          <p className="mt-2 text-[11px] text-slate-600">versi: 0.1.0 Beta</p>
+          <p className="mt-2 text-[11px] text-slate-600">{t("quiz.versi")}</p>
         </div>
       </div>
     </aside>
@@ -540,7 +540,7 @@ export default function QuizCatur() {
             </h2>
 
 <div className="mt-6 grid gap-2.5 sm:grid-cols-2">
-              {acakOpsi.map((indeks) => {
+              {acakOpsi.map((indeks, posisiTampil) => {
                 const teks = soal.pilihan[indeks];
                 const terjawab = dipilih !== null;
                 const iniBenar = indeks === soal.kunci;
@@ -558,7 +558,7 @@ export default function QuizCatur() {
                     className={`flex items-center gap-3 rounded-lg border-2 px-4 py-3 text-left text-base font-medium transition ${cls}`}
                   >
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-current text-xs font-bold tabular-nums">
-                      {String.fromCharCode(65 + indeks)}
+                      {String.fromCharCode(65 + posisiTampil)}
                     </span>
                     <span className="min-w-0 flex-1">{teks}</span>
                     {terjawab && iniBenar && (

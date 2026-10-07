@@ -22,6 +22,7 @@ import {
   parseLangkah,
   terapkan,
   butuhPromosi,
+  apakahSkakmat,
   apakahLangkahLegal,
   apakahLangkahSesuai,
 } from "../../lib/tekaTeki.js";
@@ -31,18 +32,35 @@ const KUNCI_POSISI = "kci-teka-teki-posisi";
 const KUNCI_SET_BIDAK = "kci-teka-teki-set-bidak";
 const KUNCI_WARNA_PAPAN = "kci-teka-teki-warna-papan";
 const KUNCI_OTOMATIS = "kci-teka-teki-otomatis";
+/**
+ * "Ingat posisi terakhir". Bawaannya AKTIF (perilaku lama), tetapi kini bisa
+ * dimatikan pemain — sebelumnya posisi selalu disimpan & dipulihkan tanpa
+ * kendali dan tanpa pemberitahuan.
+ */
+const KUNCI_INGAT_POSISI = "kci-teka-teki-ingat-posisi";
+/**
+ * Peta tipe soal → kunci kamus label singkatnya (ditampilkan di baris status).
+ * Kunci lengkap dengan awalan `tekaTeki.` supaya `t()` benar-benar menemukan
+ * entrinya — nilai tanpa awalan akan dikembalikan apa adanya oleh fallback
+ * kamus, sehingga badge menampilkan "skakmat1" alih-alih "Skakmat dalam 1
+ * Langkah".
+ */
 const KUNCI_TIPE = {
-  "Mate in One": "skakmat1",
-  "Mate in Two": "skakmat2",
-  "Mate in Three": "skakmat3",
+  "Mate in One": "tekaTeki.skakmat1",
+  "Mate in Two": "tekaTeki.skakmat2",
+  "Mate in Three": "tekaTeki.skakmat3",
 };
-/** Label level (1–5) sesuai pita rating NACCL, sama dengan pilihan selector Level. */
-const NAMA_LEVEL = {
-  1: "Sangat Mudah",
-  2: "Mudah",
-  3: "Normal",
-  4: "Sulit",
-  5: "Sangat Sulit",
+/**
+ * Kunci kamus label level (1–5) sesuai pita rating NACCL — sama dengan pilihan
+ * selector Level. Dulu teksnya ditulis mentah sehingga pengguna EN melihat
+ * "Sangat Mudah" walau selector-nya sudah "Very easy".
+ */
+const KUNCI_LEVEL = {
+  1: "tekaTeki.sangatMudah",
+  2: "tekaTeki.mudah",
+  3: "tekaTeki.normal",
+  4: "tekaTeki.sulit",
+  5: "tekaTeki.sangatSulit",
 };
 function bandLevel(rating) {
   if (rating < 1000) return 1;
@@ -149,6 +167,21 @@ function faktaDariKoordinat(fen, from, to, promo) {
   }
 }
 
+/**
+ * Jumlah bidak pada FEN (bagian posisi saja). Dipakai menyaring permintaan
+ * tablebase Syzygy: standar Lichess hanya menerima ≤7 bidak, sedangkan soal
+ * skakmat umumnya jauh lebih penuh — permintaan yang pasti ditolak tidak
+ * perlu dikirim.
+ */
+function jumlahBidakFen(fen) {
+  const posisi = String(fen || "").split(" ")[0];
+  let jumlah = 0;
+  for (const ch of posisi) {
+    if (/[pnbrqkPNBRQK]/.test(ch)) jumlah += 1;
+  }
+  return jumlah;
+}
+
 function bacaTerpecahkan() {
   const simpan = coba(
     () => JSON.parse(localStorage.getItem(KUNCI_SELESAI) || "[]"),
@@ -184,6 +217,12 @@ function bacaWarnaPapan() {
   return "green";
 }
 
+function bacaIngatPosisi() {
+  // Bawaan aktif: hanya nilai "0" yang mematikan, sehingga pengguna lama
+  // (belum punya kunci ini) tetap melanjutkan dari posisi terakhirnya.
+  return coba(() => localStorage.getItem(KUNCI_INGAT_POSISI), "baca ingat posisi") !== "0";
+}
+
 function bacaOtomatis() {
   return (
     coba(() => localStorage.getItem(KUNCI_OTOMATIS), "baca mode otomatis") === "1"
@@ -216,6 +255,7 @@ export default function TekaTeki() {
   // Tombol "Coba lagi" pada layar galat mengulang pemuatan data soal.
   const [percobaan, setPercobaan] = useState(0);
   const [syzygy, setSyzygy] = useState(null);
+  const [syzygyMemuat, setSyzygyMemuat] = useState(false);
   const [syzygyGagal, setSyzygyGagal] = useState(false);
   const [indeks, setIndeks] = useState(0);
   const [filterTipe, setFilterTipe] = useState("semua");
@@ -253,6 +293,7 @@ export default function TekaTeki() {
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
   const [warnaPapan, setWarnaPapan] = useState(bacaWarnaPapan);
   const [otomatis, setOtomatis] = useState(bacaOtomatis);
+  const [ingatPosisi, setIngatPosisi] = useState(bacaIngatPosisi);
   /**
    * Panel pengaturan (gear) hidup di `LayoutTekaTeki`, tetapi nilainya dipegang
    * halaman: gerbang pintasan keyboard (`blokir`) dan panel harus membaca
@@ -279,6 +320,10 @@ export default function TekaTeki() {
 
   const timerSalah = useRef(null);
   const timerOtomatis = useRef(null);
+  // Dibaca `simpanPosisi` (useCallback ber-dependensi kosong) supaya preferensi
+  // terbaru selalu terpakai tanpa memasang ulang callback-nya.
+  const ingatPosisiRef = useRef(ingatPosisi);
+  ingatPosisiRef.current = ingatPosisi;
 
   // Analisis Stockfish (opsional) — mengikuti posisi teka-teki saat ini.
   const {
@@ -310,14 +355,17 @@ export default function TekaTeki() {
   // Dimuat sekali saat halaman dibuka; ikon "book" baru bisa muncul setelah
   // tabel siap — tanpa memblokir teka-teki.
   const bukuSiap = useRef(false);
-  const [, paksaHitungUlang] = useState(0);
+  // Nomor versi naik saat buku pembukaan selesai dimuat; dipakai sebagai
+  // dependensi `ikonLangkahAkhir` supaya posisi yang sedang tampil dihitung
+  // ulang dan lencana "book" langsung muncul tanpa menunggu langkah berikutnya.
+  const [versiBuku, setVersiBuku] = useState(0);
   useEffect(() => {
     let aktif = true;
     cariNamaPembukaan()
       .then((cari) => {
         if (aktif && typeof cari === "function") {
           bukuSiap.current = cari;
-          paksaHitungUlang((n) => n + 1);
+          setVersiBuku((n) => n + 1);
         }
       })
       .catch(() => {});
@@ -380,7 +428,7 @@ export default function TekaTeki() {
       }
     }
     return { petak: langkah.to, rating };
-  }, [jalurFen]);
+  }, [jalurFen, versiBuku]);
 
   /**
    * Lencana skakmat — petak raja LAWAN yang termat pada posisi yang sedang
@@ -434,6 +482,7 @@ export default function TekaTeki() {
   const posisiLangkah = Math.max(0, langkahPenuh.length - sisa.length);
 
   const simpanPosisi = useCallback((id) => {
+    if (!ingatPosisiRef.current) return;
     coba(
       () => localStorage.setItem(KUNCI_POSISI, String(id)),
       "simpan posisi terakhir"
@@ -468,7 +517,9 @@ export default function TekaTeki() {
         if (idParam >= 1 && idParam <= daftar.length) {
           awal = idParam - 1;
         } else {
-          const tersimpan = bacaPosisi();
+          // Posisi tersimpan hanya dipulihkan bila pemain masih mengaktifkan
+          // "Ingat posisi" (lihat preferensi di panel pengaturan).
+          const tersimpan = ingatPosisi ? bacaPosisi() : 0;
           awal =
             tersimpan >= 1 && tersimpan <= daftar.length
               ? tersimpan - 1
@@ -517,6 +568,15 @@ export default function TekaTeki() {
     // Jangan tampilkan hasil atau status gagal dari posisi sebelumnya.
     setSyzygy(null);
     setSyzygyGagal(false);
+    // Tablebase standar hanya untuk ≤7 bidak. Posisinga sendiri biasanya jauh
+    // lebih penuh; mengirim permintaan yang pasti ditolak hanya membebani
+    // jaringan (dan sempat membuat panel diam tanpa penjelasan).
+    if (jumlahBidakFen(fen) > 7) {
+      setSyzygyMemuat(false);
+      setSyzygyGagal(true);
+      return undefined;
+    }
+    setSyzygyMemuat(true);
     let aktif = true;
     const timer = window.setTimeout(() => {
       fetch(
@@ -529,12 +589,14 @@ export default function TekaTeki() {
         .then((data) => {
           if (aktif) {
             setSyzygy(data);
+            setSyzygyMemuat(false);
             setSyzygyGagal(false);
           }
         })
         .catch(() => {
           if (aktif) {
             setSyzygy(null);
+            setSyzygyMemuat(false);
             setSyzygyGagal(true);
           }
         });
@@ -581,6 +643,19 @@ export default function TekaTeki() {
     );
   }, [otomatis]);
 
+  useEffect(() => {
+    coba(
+      () => localStorage.setItem(KUNCI_INGAT_POSISI, ingatPosisi ? "1" : "0"),
+      "simpan preferensi ingat posisi"
+    );
+    // Saat dimatikan, posisi tersimpan lama langsung dibuang supaya tidak
+    // terpakai lagi bila pemain mengaktifkannya kembali nanti.
+    if (!ingatPosisi) {
+      coba(() => localStorage.removeItem(KUNCI_POSISI), "hapus posisi tersimpan");
+      setPosisiTersimpan(0);
+    }
+  }, [ingatPosisi]);
+
   /**
    * Pasang satu soal ke papan. `pertahankanSelesai` dipakai mode review
    * setelah cekmat: papan kembali ke posisi awal soal, tetapi status selesai
@@ -605,6 +680,7 @@ export default function TekaTeki() {
     setSedangSeret(false);
     setPromosi(null);
     setSyzygy(null);
+    setSyzygyMemuat(false);
     setSyzygyGagal(false);
     setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
   }, []);
@@ -709,7 +785,9 @@ export default function TekaTeki() {
     // apakahLangkahSesuai.
     if (apakahLangkahSesuai(from, to, promo, diharapkan)) {
       try {
-        lanjut = terapkan(fen, { from, to, promo: diharapkan.promo });
+        // Pilihan pemain dipakai bila data soal tidak menetapkan huruf promosi;
+        // bila data menetapkannya, apakahLangkahSesuai sudah memastikan sama.
+        lanjut = terapkan(fen, { from, to, promo: diharapkan.promo || promo });
       } catch {}
     }
 
@@ -718,7 +796,23 @@ export default function TekaTeki() {
       // Langkah tidak legal berbunyi lain dari jawaban keliru, supaya pemain
       // tahu bedanya "tidak boleh" dan "boleh tapi bukan solusinya".
       bunyikan(langkahLegal ? SUARA.tekaTekiSalah : SUARA.ilegal);
-      setPesan({ jenis: "salah", teks: t("tekaTeki.salah") });
+
+      /*
+       * Skakmat alternatif: pemain menemukan mate LAIN yang sah, bukan langkah
+       * yang tercatat di data. Kebijakan penilaian tetap ketat (harus persis
+       * solusi, sama seperti Rush), tetapi memberi tahu pemain "belum tepat"
+       * tanpa penjelasan menyesatkan — dia memang baru saja memberi skakmat.
+       *
+       * Pemeriksaan dibatasi ke langkah PENUTUP: hasil pemeriksaan seluruh
+       * 5.486 soal menunjukkan 0 soal yang memungkinkan mate lebih awal dari
+       * langkah penutup, jadi tidak ada kasus lain yang perlu ditangani.
+       */
+      const mateAlternatif =
+        langkahLegal && sisa.length === 1 && apakahSkakmat(fen, { from, to, promo });
+      setPesan({
+        jenis: "salah",
+        teks: t(mateAlternatif ? "tekaTeki.mateAlternatif" : "tekaTeki.salah"),
+      });
       setKomentar({
         tahap: "salah",
         legal: langkahLegal,
@@ -831,7 +925,8 @@ export default function TekaTeki() {
   }, [komputer, fen, sisa, selesai, masalah, terapkanSoal, bunyikanLangkah]);
 
   function tampilPetunjuk() {
-    if (!sisa.length || selesai) return;
+    if (!sisa.length || selesai || komputer || promosi) return;
+    window.clearTimeout(timerOtomatis.current);
     const d = parseLangkah(sisa[0]);
     setPetunjuk({ from: d.from, to: d.to });
     let bidak = null;
@@ -866,6 +961,7 @@ export default function TekaTeki() {
    */
   function keAwalLangkah() {
     if (!masalah || komputer || promosi) return;
+    window.clearTimeout(timerOtomatis.current);
     // Setelah cekmat (mode review) status selesai dipertahankan; sebelumnya
     // cabang ini menyalin ulang seluruh setter terapkanSoal.
     terapkanSoal(masalah, { pertahankanSelesai: selesai });
@@ -874,6 +970,7 @@ export default function TekaTeki() {
   /** < — mundur satu langkah. */
   function mundurLangkah() {
     if (!langkahPenuh.length || komputer || promosi) return;
+    window.clearTimeout(timerOtomatis.current);
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
     if (posisi <= 0) return;
     const baru = posisi - 1;
@@ -918,6 +1015,7 @@ export default function TekaTeki() {
    */
   function majuLangkah() {
     if (!langkahPenuh.length || komputer || promosi) return;
+    window.clearTimeout(timerOtomatis.current);
     // Cegah maju sebelum cekmat — sesuai permintaan: tombol maju mati sebelum cekmate
     if (!selesai) return;
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
@@ -948,6 +1046,7 @@ export default function TekaTeki() {
    */
   function keAkhirLangkah() {
     if (!langkahPenuh.length || komputer || promosi) return;
+    window.clearTimeout(timerOtomatis.current);
     if (!selesai) return;
     const posisi = Math.max(0, langkahPenuh.length - sisa.length);
     if (posisi >= langkahPenuh.length) return;
@@ -1383,6 +1482,10 @@ export default function TekaTeki() {
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
               jumlahLangkah={langkahPenuh.length}
               syzygy={syzygy}
+              syzygyMemuat={syzygyMemuat}
+              syzygyGagal={syzygyGagal}
+              teksSyzygyMemuat={t("tekaTeki.syzygyMenganalisis")}
+              teksSyzygyGagal={t("tekaTeki.syzygyGagal")}
               fen={fen}
               teksKategoriSyzygy={teksKategoriSyzygy}
               PETA_KELAS_SYZYGY={PETA_KELAS_SYZYGY}
@@ -1391,7 +1494,8 @@ export default function TekaTeki() {
               syzygyDetail={t("tekaTeki.syzygyDetail")}
               syzygyCatatan={t("tekaTeki.syzygyCatatan")}
               teksSoal={masalah ? t("tekaTeki.soal", { n: indeks + 1, total: soal.length }) : ""}
-              teksTingkat={masalah ? NAMA_LEVEL[bandLevel(masalah.rating ?? 0)] : ""}
+              teksTingkat={masalah ? t(KUNCI_LEVEL[bandLevel(masalah.rating ?? 0)]) : ""}
+              teksTipe={masalah ? t(KUNCI_TIPE[masalah.type] || "") : ""}
               eloSoal={masalah ? masalah.rating : 1500}
               namaHitam={masalah ? masalah.pemainHitam : ""}
               eloHitam={masalah ? masalah.eloHitam : 0}
@@ -1451,10 +1555,19 @@ export default function TekaTeki() {
               nilaiGiliran={filterGiliran}
               onGantiGiliran={setFilterGiliran}
               nilaiNomorSoal={nomorSoal}
+              nilaiTotalSoal={soal.length}
               onGantiNomorSoal={setNomorSoal}
+              nilaiIngatPosisi={ingatPosisi}
+              onGantiIngatPosisi={setIngatPosisi}
+              teksPosisiTersimpan={
+                ingatPosisi && posisiTersimpan
+                  ? t("tekaTeki.posisiTersimpan", { n: posisiTersimpan })
+                  : ""
+              }
+              teksIngatNonaktif={ingatPosisi ? "" : t("tekaTeki.ingatNonaktif")}
               teksGalatNomor={galatNomor || ""}
               onBukaNomor={bukaNomor}
-              bisaHint={!selesai && sisa.length > 0}
+              bisaHint={!selesai && !komputer && !promosi && sisa.length > 0}
               onHint={tampilPetunjuk}
               teksSalah={pesan?.jenis === "salah" ? pesan.teks : ""}
               kartuKomentator={
@@ -1515,7 +1628,7 @@ function papanSampel() {
 
 const TAB = [
   {
-    teks: "Hasil Karya Bintang Toba (2026)",
+    kunci: "tekaTeki.tabAtribusi",
     tautan: "https://delta-polder-indonesia.github.io/BintangToba/index.html",
   },
 ];
@@ -1527,7 +1640,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", onGantiNomorSoal = null, teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, syzygyMemuat = false, syzygyGagal = false, teksSyzygyMemuat = "", teksSyzygyGagal = "", fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1647,9 +1760,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 <input
                   type="number"
                   min={1}
+                  max={nilaiTotalSoal || undefined}
                   value={nilaiNomorSoal}
                   onChange={(e) => onGantiNomorSoal && onGantiNomorSoal(e.target.value)}
-                  placeholder="1–5486"
+                  aria-label={t("tekaTeki.rentangNomor", { total: nilaiTotalSoal || 1 })}
+                  placeholder={`1–${nilaiTotalSoal || 1}`}
                   className="w-full bg-[#262421] text-sm text-gray-200 px-3 py-2.5 rounded-md border border-[#363431] focus:outline-none focus:border-[#81b64c] focus:ring-2 focus:ring-[#81b64c]/20 placeholder-gray-400"
                 />
                 {teksGalatNomor && (
@@ -1677,7 +1792,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 <path d="M10 22h4" />
                 <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5.76.76 1.23 1.52 1.41 2.5" />
               </svg>
-              Hint
+              {t("tekaTeki.petunjuk")}
             </button>
             <div className="pt-3 flex justify-center text-gray-300 text-xs border-t border-[#312e2b]">
               <Link
@@ -1685,7 +1800,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 className="flex items-center gap-1.5 hover:text-white transition"
               >
                 <License size={14} class="fill-current" />
-                Lisensi & Atribusi
+                {t("papan.menuAtribusi")}
               </Link>
             </div>
           </div>
@@ -1944,7 +2059,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                       aria-label={t("tekaTeki.pengaturan")}
                       className="absolute right-full top-0 z-50 mr-3 w-64 max-w-[90vw] rounded-lg border border-[#312e2b] bg-[#1e1c18] p-4 shadow-xl ring-1 ring-black/50"
                     >
-                      <p className="mb-3 text-sm font-bold text-white">Pengaturan</p>
+                      <p className="mb-3 text-sm font-bold text-white">
+                        {t("tekaTeki.pengaturan")}
+                      </p>
                       <div className="flex flex-col gap-3">
                         {daftarSet.length > 0 && onGantiSetBidak && (
                           <div className="flex items-center justify-between gap-3">
@@ -1952,7 +2069,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                               htmlFor="sampel-pilih-set-bidak"
                               className="text-xs font-semibold text-gray-400"
                             >
-                              Bidak
+                              {t("papan.setBidak")}
                             </label>
                             <select
                               id="sampel-pilih-set-bidak"
@@ -1971,7 +2088,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                         {onGantiSuara && (
                           <label className="flex cursor-pointer items-center justify-between gap-3">
                             <span className="text-xs font-semibold text-gray-400">
-                              Suara papan
+                              {t("papan.suara")}
                             </span>
                             <input
                               type="checkbox"
@@ -1995,6 +2112,26 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                             />
                           </label>
                         )}
+                        {onGantiIngatPosisi && (
+                          <div className="grid gap-1">
+                            <label className="flex cursor-pointer items-center justify-between gap-3">
+                              <span className="text-xs font-semibold text-gray-400">
+                                {t("tekaTeki.ingatPosisi")}
+                              </span>
+                              <input
+                                type="checkbox"
+                                checked={nilaiIngatPosisi}
+                                onChange={(e) => onGantiIngatPosisi(e.target.checked)}
+                                className="h-4 w-4 accent-[#81b64c]"
+                              />
+                            </label>
+                            {(teksPosisiTersimpan || teksIngatNonaktif) && (
+                              <p className="text-[11px] text-gray-500">
+                                {teksPosisiTersimpan || teksIngatNonaktif}
+                              </p>
+                            )}
+                          </div>
+                        )}
                         {kartuKomentator && (
                           <div className="border-t border-[#312e2b] pt-3">
                             {kartuKomentator}
@@ -2006,7 +2143,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                               htmlFor="sampel-warna-papan"
                               className="text-xs font-semibold text-gray-400"
                             >
-                              Warna papan
+                              {t("papan.warnaPapan")}
                             </label>
                             <select
                               id="sampel-warna-papan"
@@ -2088,22 +2225,22 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             {TAB.map((tab) =>
               tab.tautan ? (
                 <a
-                  key={tab.teks}
+                  key={tab.kunci}
                   href={tab.tautan}
                   target="_blank"
                   rel="noopener noreferrer"
-                  title={tab.teks}
+                  title={t(tab.kunci)}
                   className="flex-1 px-2 py-3.5 flex items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421] hover:bg-[#2c2926] hover:underline cursor-pointer"
                 >
-                  {tab.teks}
+                  {t(tab.kunci)}
                 </a>
               ) : (
                 <button
-                  key={tab.teks}
+                  key={tab.kunci}
                   type="button"
                   className="flex-1 py-3.5 flex items-center justify-center gap-2 text-xs font-bold uppercase tracking-wider transition border-b-2 border-[#81b64c] text-white bg-[#262421]"
                 >
-                  {tab.teks}
+                  {t(tab.kunci)}
                 </button>
               )
             )}
@@ -2115,6 +2252,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
               <div className="flex flex-wrap items-center gap-x-3">
                 <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex-shrink-0"></span>
                 {teksSoal && <span className="text-[13px] font-bold text-white">{teksSoal}</span>}
+                {teksTipe && (
+                  <span className="rounded bg-[#312e2b] px-1.5 py-0.5 text-[11px] font-semibold text-emerald-300">
+                    {teksTipe}
+                  </span>
+                )}
                 {teksCekmat && <span className="text-[13px] font-bold text-gray-300">{teksCekmat}</span>}
                 {teksSudah && <span className="text-xs font-semibold text-emerald-300">{teksSudah}</span>}
                 {teksSalah && <span className="text-[13px] font-bold text-red-400">{teksSalah}</span>}
@@ -2126,8 +2268,11 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
           <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
               <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
-              <span className={giliran === "putih" ? "text-white" : "text-gray-300"}>{giliran === "putih" ? "Putih" : "Hitam"}</span>
-              <span className="text-gray-300">melangkah</span>
+              <span className={giliran === "putih" ? "text-white" : "text-gray-300"}>
+                {giliran === "putih"
+                  ? t("tekaTeki.giliranPutih")
+                  : t("tekaTeki.giliranHitam")}
+              </span>
             </div>
           </div>
 
@@ -2155,6 +2300,14 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+              {syzygyMemuat && !syzygy ? (
+                <span className="animate-pulse text-xs font-semibold text-gray-400">
+                  {teksSyzygyMemuat}
+                </span>
+              ) : syzygyGagal && !syzygy ? (
+                <span className="text-xs font-semibold text-gray-400">{teksSyzygyGagal}</span>
+              ) : (
+                <>
               <span
                 className={`inline-block text-xs font-semibold ${
                   syzygy && PETA_KELAS_SYZYGY
@@ -2175,6 +2328,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 >
                   {syzygyDetail}
                 </a>
+              )}
+                </>
               )}
             </div>
 
@@ -2223,7 +2378,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   onClick={() => onMainkanSaran(pvSanEngine[0])}
                   className="w-full rounded-md bg-[#363431] px-3 py-2 text-xs font-semibold text-white transition hover:bg-[#45423e]"
                 >
-                  Mainkan saran ({pvSanEngine[0]})
+                  {t("tekaTeki.mainkanSaran", { san: pvSanEngine[0] })}
                 </button>
               )}
             </div>

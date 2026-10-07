@@ -43,15 +43,20 @@ kegagalan pertama karena dirangkai dengan `&&`):
 28. `npm run uji:repertoar`
 29. `npm run uji:sunfish`
 30. `npm run uji:tekateki-solusi`
-31. `npm run uji:rush`
-32. `npm run uji:gambar`
-33. `node scripts/uji-identitas.mjs` (langsung)
-34. `npm run uji:skema`
-35. `node scripts/uji-ebook.mjs` (langsung)
-36. `node scripts/uji-ebook-pembaca.mjs` (langsung)
-37. `node scripts/uji-nama-pembukaan.mjs` (langsung)
-38. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
-39. `npm run uji:pendaftaran-ui`
+31. `npm run uji:tekateki-alur`
+32. `npm run uji:rush`
+33. `npm run uji:api-csrf`
+34. `npm run uji:sesi-ebook`
+35. `npm run uji:kerangka-penuh`
+36. `npm run uji:quiz`
+37. `npm run uji:gambar`
+38. `node scripts/uji-identitas.mjs` (langsung)
+39. `npm run uji:skema`
+40. `node scripts/uji-ebook.mjs` (langsung)
+41. `node scripts/uji-ebook-pembaca.mjs` (langsung)
+42. `node scripts/uji-nama-pembukaan.mjs` (langsung)
+43. `node scripts/uji-artikel-wikipedia.mjs` (langsung)
+44. `npm run uji:pendaftaran-ui`
 
 Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
@@ -67,7 +72,6 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 - `npm run uji:konfigurasi-keamanan` → `node server/uji/uji-konfigurasi-keamanan.mjs`
 - `npm run uji:nama-pembukaan` → `node scripts/uji-nama-pembukaan.mjs`
 - `npm run uji:pendaftaran` → `node server/uji/uji-pendaftaran.mjs`
-- `npm run uji:quiz` → `node scripts/uji-quiz.mjs`
 - `npm run uji:rekor-rush` → `node server/uji/uji-rekor-rush.mjs`
 - `npm run uji:rilis:v1` → `npm audit --omit=dev --audit-level=moderate && npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz && npm run build`
 - `npm run uji:seret-bidak` → `node scripts/uji-seret-bidak.mjs`
@@ -170,7 +174,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
 | `scripts` | 81 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +47 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | `uji-render-bidak.mjs` | — |
-| `public` | 446 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +12 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
+| `public` | 446 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +13 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
 ## 4. Cermin yang dijaga `uji:peta`
 

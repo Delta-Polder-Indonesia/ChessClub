@@ -295,7 +295,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "taktik",
-    soal: "Taktik ketika sebuah bidak menyerang bidak bernilai tinggi di belakang bidak yang lebih rendah disebut?",
+    soal: "Taktik ketika bidak bernilai lebih tinggi dipaksa menyingkir sehingga bidak bernilai lebih rendah di belakangnya menjadi sasaran disebut?",
     pilihan: ["Fork", "Skewer", "Pin", "Zugzwang"],
     kunci: 1,
   },
@@ -673,7 +673,7 @@ export const SOAL_CATUR = [
   },
   {
     kategori: "umum",
-    soal: "Kontrol waktu 10 menit tanpa increment umumnya dikategorikan sebagai?",
+    soal: "Kontrol waktu 5 menit tanpa increment umumnya dikategorikan sebagai?",
     pilihan: ["Blitz", "Rapid", "Bullet", "Korespondensi"],
     kunci: 0,
   },

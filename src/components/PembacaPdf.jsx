@@ -55,7 +55,7 @@ function IkonSesudah() {
   );
 }
 
-export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
+export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGagal }) {
   const { t } = useI18n();
   const daftarSumber = useMemo(
     () => (Array.isArray(sumber) ? sumber.filter(Boolean) : [sumber].filter(Boolean)),
@@ -138,6 +138,11 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
         setStatus("galat");
         setPesan(t("pembacaPdf.galatSumber"));
         if (galat.length) console.warn("[pembaca-pdf] semua sumber gagal:\n" + galat.join("\n"));
+        // Pemanggil memakai ini untuk membuang tiket sesi yang mungkin sudah
+        // kedaluwarsa (lihat EbookPanduan), TANPA menyentuh dokumen.id — kalau
+        // `daftarSumber` ikut berubah, efek pemuatan akan berjalan lagi dan
+        // percobaan ulang ini berputar tanpa akhir.
+        padaGagal?.();
       }
     }
 
@@ -163,6 +168,10 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap }) {
         }
       }
     };
+    // `padaGagal` sengaja tidak masuk dependensi: ia hanya dipanggil setelah
+    // seluruh sumber gagal, dan memantau identitasnya akan memicu pemuatan
+    // ulang setiap render induk.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [daftarSumber, percobaan, padaSiap]);
 
   /* --------------------------------------------- ukur lebar area baca ---- */

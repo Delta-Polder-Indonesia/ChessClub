@@ -378,6 +378,22 @@ uji("Baca menebus tiket sebelum membuka pembaca", () => {
   benar(modal.includes("onTebusSukses?.(catatan)"), "callback tiket ke pembaca belum dipanggil");
 });
 
+uji("pembaca bisa melaporkan kegagalan (padaGagal) ke pemanggil", () => {
+  const pembaca = readFileSync(path.join(ROOT, "src/components/PembacaPdf.jsx"), "utf8");
+  const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
+  benar(pembaca.includes("padaGagal?.()"), "PembacaPdf belum memanggil padaGagal saat semua sumber gagal");
+  benar(
+    halaman.includes("hapusTiketSesi({ file: pdfAktif.file })"),
+    "halaman belum membuang tiket sesi yang ditolak server"
+  );
+  // Regresi yang paling mudah terjadi: mengubah `sumber` di dalam padaGagal
+  // akan memicu efek pemuatan lagi (dependensi `daftarSumber`).
+  benar(
+    !/padaGagal=\{\(\) => \{[\s\S]{0,400}?setPdfAktif/.test(halaman),
+    "padaGagal mengubah state pembaca → berisiko pemuatan berulang tanpa henti"
+  );
+});
+
 /* ------------------------------------------- 6. uji asap komponen (DOM) -- */
 
 function ada(nama) {
@@ -546,13 +562,18 @@ export function mount(el, props) {
     });
 
     const el = window.document.getElementById("akar");
+    let gagalDipanggil = false;
     mount(el, {
       sumber: ["/api/ebook-preview?file=a.pdf"],
       judul: "Contoh",
       urlUnduh: "/api/ebook-preview?file=a.pdf&unduh=1",
+      padaGagal: () => {
+        gagalDipanggil = true;
+      },
     });
 
     benar(await tungguSampai(() => el.querySelector("canvas")), "kanvas halaman tidak dirender");
+    benar(!gagalDipanggil, "padaGagal dipanggil saat dokumen justru berhasil dimuat");
     await tunggu(20);
     benar(teks().includes("/ 3"), `jumlah halaman tidak tampil: ${teks()}`);
     const nomor = el.querySelector('input[type="number"]');
@@ -576,10 +597,20 @@ export function mount(el, props) {
 
     const el = window.document.createElement("div");
     window.document.body.appendChild(el);
+    let jumlahGagal = 0;
+    let jumlahPercobaan = 0;
+    const stubAsli = globalThis.__pdfStub;
+    globalThis.__pdfStub = async (...arg) => {
+      jumlahPercobaan += 1;
+      return stubAsli(...arg);
+    };
     mount(el, {
       sumber: ["/api/ebook-preview?file=a.pdf", "https://cdn.contoh/a.pdf"],
       judul: "Contoh",
       urlUnduh: "/api/ebook-preview?file=a.pdf&unduh=1",
+      padaGagal: () => {
+        jumlahGagal += 1;
+      },
     });
 
     const berhasil = await tungguSampai(() => el.textContent.includes("gagal dimuat"));
@@ -590,6 +621,15 @@ export function mount(el, props) {
       [...el.querySelectorAll("a")].some((a) => a.hasAttribute("download")),
       "tautan unduh cadangan tidak tersedia"
     );
+    benar(jumlahGagal === 1, `padaGagal dipanggil ${jumlahGagal}× (harus tepat 1×)`);
+    // `sumber` dipakai sebagai dependensi efek pemuatan; kalau pemanggil
+    // mengubahnya di dalam padaGagal, percobaan akan berputar tanpa akhir.
+    await tunggu(120);
+    benar(
+      jumlahPercobaan === 2,
+      `pemuatan berulang tanpa henti: ${jumlahPercobaan} percobaan (harus 2, satu per sumber)`
+    );
+    benar(jumlahGagal === 1, `padaGagal berulang: ${jumlahGagal}×`);
   });
 }
 

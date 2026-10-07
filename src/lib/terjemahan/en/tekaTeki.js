@@ -41,6 +41,8 @@ export const tekaTeki = {
     sebelumnya: "Previous",
     berikutnya: "Next",
     salah: "Not quite — try again!",
+    mateAlternatif:
+      "Checkmate! But this puzzle is scored on the recorded solution move — use Hint if you are stuck.",
     benar: "Nice! Correct move.",
     terpecahkan: "Checkmate.",
     sudahTerpecahkan: "Already solved",
@@ -63,6 +65,8 @@ export const tekaTeki = {
     ratingSoal: "Puzzle rating",
     skakDalamN: "Mate in {n}",
     kecepatanMesin: "Engine speed",
+    tabAtribusi: "Work by Bintang Toba (2026)",
+    mainkanSaran: "Play suggestion ({san})",
     soalAcak: "Random puzzle",
     soalPertama: "First puzzle (no. 1)",
     baru: "New",
