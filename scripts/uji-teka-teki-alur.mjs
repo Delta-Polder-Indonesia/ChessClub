@@ -114,14 +114,17 @@ const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
 
 export function mount(el) {
   return createRoot(el).render(
-    <MemoryRouter initialEntries={["/teka-teki/1"]}>
-      <I18nProvider><TekaTeki /></I18nProvider>
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/teka-teki/problem/1"]}>
+        <I18nProvider><TekaTeki /></I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
   );
 }
 `;
@@ -180,7 +183,8 @@ class AudioContextPalsu {
 const permintaanJaringan = [];
 
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
-  url: "https://uji.test/teka-teki/1",
+  // Alamat kanonik; pengalihan alamat lama diuji di uji-teka-teki-rute.mjs.
+  url: "https://uji.test/teka-teki/problem/1",
   pretendToBeVisual: true,
 });
 let { window } = dom;
@@ -410,12 +414,28 @@ function pasangDomBaru(bahasa) {
 const { mount } = require(berkasBundel);
 mount(dok.getElementById("root"));
 
-judul("pemuatan awal");
+judul("pemuatan awal & metadata halaman");
 uji(
-  "papan tampil dengan soal #1 dari URL",
+  "papan tampil dengan soal #1 dari URL kanonik /teka-teki/problem/1",
   await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64 && papanSama(problems[0].fen)),
-  "URL /teka-teki/1"
+  "URL /teka-teki/problem/1"
 );
+{
+  const kanonik = dok.querySelector('link[rel="canonical"]')?.getAttribute("href") || "";
+  uji(
+    "kanonik menunjuk halaman resmi /teka-teki/problem (bukan nomor soal)",
+    kanonik.endsWith("/teka-teki/problem"),
+    `kanonik: ${kanonik}`
+  );
+  const robots = dok.querySelector('meta[name="robots"]')?.getAttribute("content") || "";
+  uji("meta robots halaman teka-teki = index, follow", robots === "index, follow", `robots: ${robots}`);
+  const judulMeta = dok.title || "";
+  uji(
+    "judul dokumen memakai kamus metaJudul",
+    judulMeta.includes(kamus.metaJudul),
+    `judul: ${judulMeta}`
+  );
+}
 
 judul("menuntaskan soal untuk setiap jenis & giliran");
 for (const [nama, soal] of Object.entries(CONTOH)) {

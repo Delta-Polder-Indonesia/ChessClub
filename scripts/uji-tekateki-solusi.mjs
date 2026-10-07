@@ -135,13 +135,16 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/i18n.jsx";
+import { HelmetProvider } from "react-helmet-async";
 import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
 
 export function mount(el) {
   return createRoot(el).render(
-    <MemoryRouter initialEntries={["/teka-teki/__ID__"]}>
-      <I18nProvider><TekaTeki /></I18nProvider>
-    </MemoryRouter>
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/teka-teki/problem/__ID__"]}>
+        <I18nProvider><TekaTeki /></I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>
   );
 }
 `.replace("__ID__", String(soalUji.soal.problemid));

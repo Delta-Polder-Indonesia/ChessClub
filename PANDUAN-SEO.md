@@ -101,6 +101,9 @@ Langkahnya:
    `Sitemap:`, jadi Google juga menemukannya sendiri saat crawling.
 5. Cek ulang tiap kali menambah halaman baru: tambahkan URL-nya di
    `public/sitemap.xml` **dan** di `RUTE_PUBLIK` (`plugins/performa.js`).
+   Halaman yang alamatnya berganti cukup didaftarkan di `RUTE_ALIH`
+   (lihat §3a) — jangan di `RUTE_PUBLIK`, karena akan dipra-render sebagai
+   duplikat alamat barunya.
    Skrip cek cepat agar keduanya tidak melenceng:
 
    ```bash
@@ -136,6 +139,35 @@ peringatan merah, perbaiki sesuai pesannya.
   eksternal mempercepat crawling.
 - Cek hasil dengan mengetik di Google:
   `site:chess-club-weld.vercel.app` → daftar halaman yang sudah terindeks.
+
+### 3a. Alamat resmi pemutar teka-teki: `/teka-teki/problem`
+
+Pemutar teka-teki menuliskan nomor soal ke address bar supaya pemain bisa
+membagikan tautan ke soal tertentu (mis. `/teka-teki/problem/3747`). Nomor itu
+**nomor urut di `public/data/teka-teki.json`** (1–5.486), bukan id Lichess.
+Karena satu halaman bisa punya ribuan nomor, aturan alamatnya dibuat begini:
+
+| Alamat | Fungsi | Status SEO |
+| --- | --- | --- |
+| `/teka-teki/problem` | halaman RESMI pemutar teka-teki | `index, follow`, ada di `sitemap.xml`, ada di `RUTE_PUBLIK` + `META_RUTE` |
+| `/teka-teki/problem/<nomor>` | tautan berbagi ke satu soal | `<link rel="canonical">` menunjuk `/teka-teki/problem` — Google menggabungkannya ke halaman resmi, bukan menganggapnya halaman baru |
+| `/teka-teki` dan `/teka-teki/<nomor>` | alamat LAMA | dialihkan (308 di `vercel.json`, `<Navigate>` di `src/App.jsx`), **tidak** dipra-render dan **tidak** masuk sitemap |
+
+Yang menjaga aturan ini:
+
+- `plugins/performa.js` → `RUTE_ALIH` (daftar alamat lama → alamat kanoniknya).
+  Setiap rute di sana wajib punya padanan redirect di `vercel.json` **dan**
+  `<Navigate>` di `src/App.jsx`; `uji:seo` menuntut ketiganya.
+- `vercel.json` → `redirects` (dua alamat lama) dan satu `rewrites` tambahan
+  yang menyajikan HTML halaman kanonik untuk `/teka-teki/problem/<nomor>`.
+  Tanpa rewrite itu, HTML deep-link diambil dari shell beranda dan
+  kanoniknya ikut menunjuk beranda.
+- `MetaHalaman` menerima prop `path` untuk memaksa jalur kanonik; halaman
+  teka-teki memakainya supaya judul/deskripsi/kanonik di DOM sama persis
+  dengan HTML pra-render (`tekaTeki.metaJudul` / `tekaTeki.metaDeskripsi`).
+- Uji: `npm run uji:tekateki-rute` (pengalihan + kanonik lewat router
+  sungguhan) dan `npm run uji:seo` (sitemap ↔ `RUTE_PUBLIK` ↔ `RUTE_ALIH` ↔
+  `vercel.json`).
 
 ## 4. Bila pindah ke domain kustom (mis. `komunitascatur.or.id`)
 

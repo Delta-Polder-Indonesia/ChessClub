@@ -34,7 +34,8 @@ konfirmasi) ditandai **⚠️ dilaporkan**. Tidak ada klaim "sudah beres" tanpa 
 | --- | --- |
 | `npm run uji` (rantai penuh, 40+ perintah) | **EXIT=0** — penutup rantai `66 lulus, 0 gagal` (putaran 2, 2026-10-07) |
 | `npm run build` | **EXIT=0** — `✓ built in 13.68s` |
-| `node scripts/uji-teka-teki-alur.mjs` | **66 lulus, 0 gagal** (naik dari 54: badge tipe, sakelar "Ingat posisi", skakmat alternatif) |
+| `node scripts/uji-teka-teki-alur.mjs` | **69 lulus, 0 gagal** (naik dari 54: badge tipe, sakelar "Ingat posisi", skakmat alternatif, metadata kanonik) |
+| `node scripts/uji-teka-teki-rute.mjs` (baru) | **12 lulus, 0 gagal** (pengalihan `/teka-teki` → `/teka-teki/problem`, canonical, deep-link #3747) |
 | `node scripts/uji-tekateki-solusi.mjs` | **10 lulus, 0 gagal** (kebijakan pesan mate alternatif) |
 | `node scripts/uji-sesi-ebook.mjs` (baru) | **14 lulus, 0 gagal** |
 | `node scripts/uji-api-csrf.mjs` (baru) | **6 lulus, 0 gagal** |
@@ -360,13 +361,46 @@ otomatis tidak menyerobot peninjauan; locale EN bebas teks Indonesia; 0 galat re
 | `package.json` | `uji:api-csrf` dan `uji:sesi-ebook` masuk rantai `uji` + gerbang rilis |
 | `docs/PETA-KODE.md`, `.agents/skills/…`, `.opencode/skills/…` | Peta kode diregenerasi; nama dua skrip uji baru dicatat (penjaga `uji:peta` 14 lulus) |
 
+### 10.2 Pass SEO lanjutan (2026-10-07): alamat pemutar teka-teki
+
+Dipicu oleh pertanyaan pemilik repo soal tautan `/teka-teki/3747`. Angka itu
+adalah **nomor urut soal** di `public/data/teka-teki.json` (1–5.486), bukan id
+Lichess — halaman memang menuliskan nomor soal ke address bar sebagai sarana
+berbagi. Karena itu alamatnya dirapikan tanpa menghilangkan tautan berbagi:
+
+| Sebelum | Sesudah |
+| --- | --- |
+| `/teka-teki` (halaman pemutar) | `/teka-teki/problem` — alamat RESMI, `index, follow`, ada di sitemap |
+| `/teka-teki/3747` (tautan berbagi) | `/teka-teki/problem/3747` — `canonical` ke `/teka-teki/problem` |
+| — | `/teka-teki` & `/teka-teki/<nomor>` → redirect 308 (`vercel.json`) + `<Navigate>` (`App.jsx`), tidak dipra-render, tidak masuk sitemap |
+
+Berkas yang terlibat: `src/App.jsx` (rute + pengalihan), `src/halaman/TekaTeki/TekaTeki.jsx`
+(penulisan URL + `MetaHalaman`), `src/components/MetaHalaman.jsx` (prop `path`),
+`plugins/performa.js` (`RUTE_PUBLIK`, konsep baru `RUTE_ALIH`, entri `META_RUTE`),
+`public/sitemap.xml`, `vercel.json`, `src/lib/prefetch.js`, `TekaTekiKonten.jsx`,
+kamus `tekaTeki.metaJudul`/`metaDeskripsi` (paritas 2.556 = 2.556).
+
+Bukti: `uji:tekateki-rute` (**12 lulus**) menguji lewat router sungguhan —
+alamat lama dialihkan, soal #3747 termuat di alamat baru, `?id=` lama
+dinormalkan, dan `canonical` selalu `/teka-teki/problem`. `uji:seo` menuntut
+`RUTE_ALIH` ↔ `vercel.json` ↔ sitemap sejalan, termasuk aturan bahwa rewrite
+deep-link harus berada SEBELUM catch-all SPA. `npm run build` menghasilkan
+`dist/teka-teki/problem/index.html` berkanonik `/teka-teki/problem` dan
+**tidak lagi** membuat `dist/teka-teki/index.html`.
+
+Temuan susulan yang ikut ditutup: halaman pemutar sebelumnya **tidak punya
+metadata sendiri** saat dinavigasi di dalam aplikasi (tag Helmet halaman
+sebelumnya tetap tertinggal), dan deep-link soal dilayani HTML beranda
+sehingga kanoniknya menunjuk beranda. Keduanya kini dijaga uji.
+
 ---
 
 ## 11. Cara verifikasi ulang
 
 ```bash
 npm ci                                     # lingkungan bersih
-node scripts/uji-teka-teki-alur.mjs        # harap: "66 lulus, 0 gagal"
+node scripts/uji-teka-teki-alur.mjs        # harap: "69 lulus, 0 gagal"
+node scripts/uji-teka-teki-rute.mjs        # harap: "12 lulus, 0 gagal" (alamat & canonical)
 node scripts/uji-tekateki-solusi.mjs       # harap: "10 lulus, 0 gagal"
 node scripts/uji-kerangka-layar-penuh.mjs  # harap: "12 lulus, 0 gagal"
 node scripts/uji-api-csrf.mjs              # harap: "6 lulus, 0 gagal"

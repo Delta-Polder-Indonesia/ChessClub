@@ -11,6 +11,19 @@ import path from "node:path";
 import { ID } from "../src/lib/terjemahan/id/index.js";
 
 /** Rute publik — harus selaras dengan RUTE_HALAMAN di src/App.jsx. */
+/**
+ * Rute LAMA yang kini hanya berfungsi sebagai pengalihan ke alamat resminya.
+ *
+ * Sengaja dipisah dari RUTE_PUBLIK: rute seperti ini TIDAK dipra-render, TIDAK
+ * masuk `sitemap.xml`, dan TIDAK diberi metadata sendiri — kalau ikut, mesin
+ * pencari melihat dua alamat untuk satu halaman yang sama. Pengalihannya
+ * dipasang rangkap: redirect 308 di `vercel.json` (untuk pemuat halaman penuh)
+ * dan `<Navigate>` di `src/App.jsx` (untuk navigasi di dalam aplikasi).
+ */
+export const RUTE_ALIH = {
+  "/teka-teki": "/teka-teki/problem",
+};
+
 export const RUTE_PUBLIK = [
   "/tentang-kami",
   "/tentang-kami/struktur-grup-catur",
@@ -22,7 +35,7 @@ export const RUTE_PUBLIK = [
   "/program-kami/pembukaan",
   "/program-kami/rush-teka-teki",
   "/program-kami/kuis-catur",
-  "/teka-teki",
+  "/teka-teki/problem",
   "/teka-teki-rush",
   "/quiz-catur",
   "/papan-interaktif",
@@ -160,12 +173,14 @@ export const META_RUTE = {
     deskripsi:
       "Pusat literasi resmi komunitas: kumpulan e-book dan panduan catur dalam format PDF yang bisa dibaca langsung di browser atau diunduh.",
   },
-  "/teka-teki": {
-    judulKey: "tekaTeki.judul",
-    // tekaTeki.deskripsi 170 karakter — dipotong di cuplikan Google.
-    deskripsi:
-      "Latih naluri taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess: skakmat dalam 1, 2, atau 3 langkah.",
-    akhir: AKHIR_KORPORAT,
+  "/teka-teki/problem": {
+    /*
+     * Satu halaman kanonik untuk pemutar teka-teki. Judul & deskripsi dibaca
+     * dari kamus (`tekaTeki.metaJudul` / `tekaTeki.metaDeskripsi`) supaya HTML
+     * pra-render dan DOM yang di-render React memakai teks yang PERSIS sama.
+     */
+    judulKey: "tekaTeki.metaJudul",
+    deskripsiKey: "tekaTeki.metaDeskripsi",
   },
   "/teka-teki-rush": {
     judulKey: "tekaTekiRush.judul",

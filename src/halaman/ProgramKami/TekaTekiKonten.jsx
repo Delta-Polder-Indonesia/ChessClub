@@ -18,7 +18,12 @@ import { gambar } from "../../lib/asets.js";
  * asimetris, bukan grid kartu kembar.
  */
 
-const RUTE_ALAT = "/teka-teki";
+/**
+ * Alamat kanonik alat teka-teki. `/teka-teki` masih berfungsi (dialihkan),
+ * tetapi tautan internal diarahkan langsung ke alamat resmi agar mesin
+ * pencari dan pemain tidak melewati satu pengalihan.
+ */
+const RUTE_ALAT = "/teka-teki/problem";
 const RUTE_RUSH = "/program-kami/rush-teka-teki";
 const HERO_IMAGE = "/images/ProgramKami/teka-teki-hero.webp";
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];

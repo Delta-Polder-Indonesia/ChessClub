@@ -56,7 +56,7 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
-    <loc>%%SITE_URL%%teka-teki</loc>
+    <loc>%%SITE_URL%%teka-teki/problem</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
 </url>

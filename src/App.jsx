@@ -4,6 +4,7 @@ import {
   Route,
   Routes,
   useLocation,
+  useParams,
   useSearchParams,
 } from "react-router-dom";
 import PageLayout from "./components/PageLayout.jsx";
@@ -99,15 +100,43 @@ const Ketentuan = lazy(() => import("./halaman/Keberlanjutan/Ketentuan.jsx"));
 // Teka-teki interaktif (pemutar 5.486 soal skakmat dari basis data puzzle Lichess).
 const TekaTeki = lazy(() => import("./halaman/TekaTeki/TekaTeki.jsx"));
 
-// Wrapper ini hanya untuk menormalkan tautan lama yang masih memakai query.
-// Semua tautan baru memakai segmen path agar deep-link puzzle tetap bersih.
+/*
+ * Alamat RESMI alat teka-teki adalah `/teka-teki/problem`, bukan `/teka-teki`:
+ * dengan begitu hanya ada SATU alamat halaman teka-teki yang diindeks mesin
+ * pencari, sementara nomor soal tetap bisa dibagikan lewat
+ * `/teka-teki/problem/<nomor>`. Alamat lama (`/teka-teki`, `/teka-teki/<nomor>`,
+ * dan `?id=`) dialihkan supaya tautan yang sudah beredar tidak mati.
+ *
+ * Di produksi (Vercel) pengalihan yang sama juga terpasang di `vercel.json`
+ * sebagai redirect 308, jadi pengunjung tanpa JavaScript pun ikut terarah.
+ */
 function RuteTekaTeki() {
   const [parameter] = useSearchParams();
   const idLama = parameter.get("id");
   if (idLama) {
-    return <Navigate to={`/teka-teki/${encodeURIComponent(idLama)}`} replace />;
+    return <Navigate to={`/teka-teki/problem/${encodeURIComponent(idLama)}`} replace />;
   }
   return <TekaTeki />;
+}
+
+/** `/teka-teki` (alamat lama) → `/teka-teki/problem` (alamat kanonik). */
+function AlihTekaTeki() {
+  return <Navigate to="/teka-teki/problem" replace />;
+}
+
+/**
+ * `/teka-teki/<nomor>` (deep-link lama) → `/teka-teki/problem/<nomor>`.
+ * Id yang bukan angka (mis. sisa tautan ngawur) cukup diarahkan ke halaman
+ * kanonik — perilaku yang sama dengan halaman teka-teki sebelumnya, yang
+ * memilih posisi tersimpan/acak untuk id tak dikenal.
+ */
+function AlihTekaTekiLama() {
+  const { id } = useParams();
+  const tujuan =
+    id && /^\d+$/.test(id)
+      ? `/teka-teki/problem/${encodeURIComponent(id)}`
+      : "/teka-teki/problem";
+  return <Navigate to={tujuan} replace />;
 }
 
 // Rush Teka-teki (mode berjangka ala PuzzleDash) — memakai data & papan yang sama.
@@ -176,8 +205,10 @@ const RUTE_HALAMAN = [
   ["/program-kami/ebook-panduan/:id", EbookPanduan],
   ["/program-kami/ebook-panduan/kategori/:kategori", EbookPanduan],
 
-  ["/teka-teki", RuteTekaTeki],
-  ["/teka-teki/:id", TekaTeki],
+  ["/teka-teki", AlihTekaTeki],
+  ["/teka-teki/problem", RuteTekaTeki],
+  ["/teka-teki/problem/:id", TekaTeki],
+  ["/teka-teki/:id", AlihTekaTekiLama],
   ["/teka-teki-rush", TekaTekiRush],
   ["/quiz-catur", QuizCatur],
   ["/papan-interaktif", PapanInteraktif],

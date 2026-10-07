@@ -5,6 +5,7 @@ import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
+import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
@@ -244,10 +245,17 @@ export default function TekaTeki() {
   const lokasi = useLocation();
   const navigate = useNavigate();
   const { id: idRute } = useParams();
+  /*
+   * Segmen terakhir, bukan segmen pertama: alamat kanonik memakai
+   * `/teka-teki/problem/<nomor>`, sedangkan alamat lama `/teka-teki/<nomor>`
+   * (dialihkan di App.jsx) tetap dibaca dengan cara yang sama. Untuk
+   * `/teka-teki/problem` tanpa nomor, segmen terakhir = "problem" → bukan
+   * angka → halaman memakai posisi tersimpan atau soal acak.
+   */
   const idPath =
     idRute ||
     (lokasi.pathname.startsWith("/teka-teki/")
-      ? decodeURIComponent(lokasi.pathname.slice("/teka-teki/".length).split("/")[0])
+      ? decodeURIComponent(lokasi.pathname.split("/").filter(Boolean).pop() || "")
       : "");
 
   const [semuaSoal, setSemuaSoal] = useState(null);
@@ -490,8 +498,14 @@ export default function TekaTeki() {
     setPosisiTersimpan(id);
   }, []);
 
+  /*
+   * `replace: true` — nomor soal ditulis ke alamat supaya bisa dibagikan,
+   * tetapi TIDAK menumpuk riwayat: tombol "kembali" tetap membawa pemain
+   * keluar halaman, bukan berputar-putar antar soal.
+   */
   const perbaruiUrlSoal = useCallback(
-    (id) => navigate(`/teka-teki/${encodeURIComponent(String(id))}`, { replace: true }),
+    (id) =>
+      navigate(`/teka-teki/problem/${encodeURIComponent(String(id))}`, { replace: true }),
     [navigate]
   );
 
@@ -1450,6 +1464,17 @@ export default function TekaTeki() {
 
   return (
     <>
+      {/*
+        Satu halaman kanonik untuk pemutar teka-teki. Nomor soal di alamat
+        (dipakai untuk berbagi) sengaja TIDAK menjadi kanonik sendiri —
+        kalau tidak, 5.486 URL nyaris identik akan bersaing di hasil pencarian.
+      */}
+      <MetaHalaman
+        title={t("tekaTeki.metaJudul")}
+        description={t("tekaTeki.metaDeskripsi")}
+        robots="index, follow"
+        path="/teka-teki/problem"
+      />
       {gagal ? (
         <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#262421] px-6 py-10">
           <p className="max-w-md rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm leading-6 text-red-300">

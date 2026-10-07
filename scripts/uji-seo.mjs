@@ -16,7 +16,13 @@
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { RUTE_PUBLIK, META_RUTE, metadataRute, metadataUntukRute } from "../plugins/performa.js";
+import {
+  RUTE_PUBLIK,
+  RUTE_ALIH,
+  META_RUTE,
+  metadataRute,
+  metadataUntukRute,
+} from "../plugins/performa.js";
 
 const SEMUA_RUTE_BANGUN = ["/", ...RUTE_PUBLIK];
 const GALAT = [];
@@ -110,6 +116,46 @@ const jumlahLoc = (sitemap.match(/<loc>/g) || []).length;
 const jumlahLastmod = (sitemap.match(/<lastmod>%%LASTMOD%%<\/lastmod>/g) || []).length;
 if (jumlahLastmod !== jumlahLoc) {
   gagal(`sitemap.xml: ${jumlahLastmod} <lastmod> untuk ${jumlahLoc} <loc> — tiap URL harus punya lastmod.`);
+}
+
+/* ------------------------------------------- 3b. rute yang dialihkan (308) -- */
+
+const vercel = JSON.parse(await baca("vercel.json"));
+const sumberAlih = (vercel.redirects || []).map((r) => r.source);
+for (const [dari, ke] of Object.entries(RUTE_ALIH)) {
+  // Alamat lama tidak boleh lagi muncul sebagai halaman yang diindeks…
+  if (diSitemap.includes(dari)) {
+    gagal(`Sitemap memuat rute pengalihan ${dari} — alamat kanoniknya ${ke}.`);
+  }
+  // …dan tidak boleh dipra-render sebagai halaman berkanonik dirinya sendiri.
+  if (RUTE_PUBLIK.includes(dari)) {
+    gagal(`Rute pengalihan ${dari} ikut RUTE_PUBLIK — ia akan dipra-render sebagai duplikat.`);
+  }
+  // Pengalihan harus ada di dua lapis: config Vercel dan router React.
+  if (!sumberAlih.includes(dari)) {
+    gagal(`vercel.json tidak mengalihkan ${dari} ke ${ke} (pemuat halaman penuh).`);
+  }
+  const navigasiApp = await baca("src/App.jsx");
+  if (!navigasiApp.includes(`to="${ke}"`) && !navigasiApp.includes(`to={\`` + ke)) {
+    gagal(`src/App.jsx tidak mengalihkan ${dari} ke ${ke} (navigasi dalam aplikasi).`);
+  }
+}
+
+/*
+ * Deep-link soal (`/teka-teki/problem/<nomor>`) memakai HTML halaman kanonik,
+ * bukan shell beranda: tanpa rewrite ini, kanonik yang dibaca Googlebot untuk
+ * setiap nomor soal adalah alamat beranda.
+ */
+const rewrites = vercel.rewrites || [];
+const rewriteSoal = rewrites.find((r) => r.source.startsWith("/teka-teki/problem/"));
+if (!rewriteSoal) {
+  gagal("vercel.json tidak merutekan /teka-teki/problem/<nomor> ke HTML halaman kanonik.");
+} else {
+  const indeksCatchAll = rewrites.findIndex((r) => r.destination === "/index.html");
+  const indeksSoal = rewrites.indexOf(rewriteSoal);
+  if (indeksCatchAll !== -1 && indeksSoal > indeksCatchAll) {
+    gagal("rewrite deep-link soal berada SETELAH catch-all SPA sehingga tidak pernah terpakai.");
+  }
 }
 
 const robots = await baca("public/robots.txt");

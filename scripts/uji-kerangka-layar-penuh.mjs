@@ -37,6 +37,11 @@ function uji(nama, kondisi, catatan = "") {
 
 /** Rute alat yang WAJIB tampil penuh (tanpa Header/Footer situs). */
 const RUTE_PENUH = [
+  // Alamat kanonik pemutar teka-teki (sejak SEO pass: /teka-teki dialihkan).
+  "/teka-teki/problem",
+  "/teka-teki/problem/1",
+  "/teka-teki/problem/2500",
+  // Alamat LAMA: harus tetap mendarat di layar penuh lewat pengalihan.
   "/teka-teki",
   "/teka-teki/1",
   "/teka-teki/2500",

@@ -195,6 +195,12 @@ function siapkanGlobal(window) {
   window.HTMLElement.prototype.scrollTo = function scrollTo() {};
   window.Element.prototype.scrollTo = function scrollTo() {};
 
+  // Helmet (dipakai MetaHalaman di halaman TekaTeki) memakai
+  // requestAnimationFrame lewat scope bundel — harus ada di globalThis.
+  window.requestAnimationFrame =
+    window.requestAnimationFrame ?? ((cb) => setTimeout(() => cb(Date.now()), 0));
+  window.cancelAnimationFrame = window.cancelAnimationFrame ?? ((id) => clearTimeout(id));
+
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.localStorage = window.localStorage;
@@ -202,6 +208,8 @@ function siapkanGlobal(window) {
   globalThis.ResizeObserver = PengamatPalsu;
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.Worker = WorkerPalsu;
+  globalThis.requestAnimationFrame = window.requestAnimationFrame;
+  globalThis.cancelAnimationFrame = window.cancelAnimationFrame;
   for (const nama of ["HTMLElement", "HTMLInputElement", "HTMLTextAreaElement", "Element", "Node", "Event", "MouseEvent", "KeyboardEvent", "CustomEvent"]) {
     if (window[nama]) globalThis[nama] = window[nama];
   }

@@ -7,6 +7,9 @@ import { komentatorTekaTeki } from "./komentator.js";
 
 export const tekaTeki = {
     judul: "Chess Puzzles",
+    metaJudul: "Chess Puzzles | Komunitas Catur Indonesia",
+    metaDeskripsi:
+      "Sharpen your tactical instinct with 5,486 checkmate puzzles from real games in the Lichess puzzle database: checkmate in 1, 2, or 3 moves.",
     deskripsi:
       "Train your tactical instinct with 5,486 checkmate puzzles from real games in the Lichess puzzle database. Find checkmate in 1, 2, or 3 moves — hints are available when you get stuck.",
     memuat: "Loading puzzles…",
