@@ -40,7 +40,13 @@ jobs:
         run: npm run uji:rilis:v1
 
       - name: Install Chromium for Playwright
-        run: npx playwright install --with-deps chromium
+        # `--with-deps` shells out to `apt-get update`, which stalls on
+        # azure.archive.ubuntu.com (actions/runner-images#11347) and burns the
+        # job's 15-minute budget. ubuntu-latest already ships Chromium's system
+        # libraries, so only the browser download is needed. The step timeout
+        # keeps a CDN hang from eating the rest of the job.
+        timeout-minutes: 5
+        run: npx playwright install chromium
 
       - name: Run public browser smoke tests
         run: npm run uji:e2e
