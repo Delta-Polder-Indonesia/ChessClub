@@ -135,12 +135,12 @@ function Menu() {
             <p className="text-base font-bold text-foreground">{t("analisa.panel.kosongJudul")}</p>
             <p className="max-w-xs text-sm leading-5 text-foregroundGrey">{t("analisa.panel.kosongIsi")}</p>
             <div className="flex flex-row items-center gap-2 text-xs text-foregroundGrey">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-backgroundBoxBox px-2.5 py-1">
-                <Profile width={13} height={13} class="fill-foregroundGrey" />
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-backgroundBoxBox px-2.5 py-1 text-foreground">
+                <Profile width={13} height={13} class="fill-foreground" />
                 {t("analisa.nav.akun")}
               </span>
               <span>{t("analisa.panel.atau")}</span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-backgroundBoxBox px-2.5 py-1">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-backgroundBoxBox px-2.5 py-1 text-foreground">
                 {t("analisa.nav.impor")}
               </span>
             </div>
