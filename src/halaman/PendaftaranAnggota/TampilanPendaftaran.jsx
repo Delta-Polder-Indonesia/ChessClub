@@ -51,7 +51,7 @@ function MarkKomunitas({ kecil = false }) {
         <WordmarkKomunitas />
       </div>
       <div className="mt-2 text-2xl md:text-3xl font-bold tracking-tight text-gray-900 leading-tight">
-        Blunder <span className="text-[#81b64c]">Skuad</span>
+        Blunder <span className="text-[#15803d]">Skuad</span>
       </div>
     </div>
   );
@@ -348,7 +348,7 @@ export default function TampilanPendaftaran({
                       placeholder={t("pendaftaran.phUsername")}
                     />
                     {/* Gaya label memotong garis persis seperti Google */}
-                    <label htmlFor="usernameInput" className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
+                    <label htmlFor="usernameInput" className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-gray-700">
                       {t("pendaftaran.labelUsernameAkun")}
                     </label>
                   </div>
@@ -371,7 +371,7 @@ export default function TampilanPendaftaran({
 
                   {/* Status pencarian profil */}
                   {!usernameError && memuatProfil && !kartuPemain && (
-                    <p className="flex items-center gap-2 text-xs text-gray-500 -mt-2">
+                    <p className="flex items-center gap-2 text-xs text-gray-600 -mt-2">
                       <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
                       {t("pendaftaran.mencariProfil")}
                     </p>
@@ -408,12 +408,12 @@ export default function TampilanPendaftaran({
                         <span className="block truncate text-sm font-medium text-gray-900">
                           {kartuPemain.nama}
                           {kartuPemain.gelar && (
-                            <span className="ml-1 text-xs font-bold text-[#81b64c]">
+                            <span className="ml-1 text-xs font-bold text-[#15803d]">
                               {kartuPemain.gelar}
                             </span>
                           )}
                         </span>
-                        <span className="block truncate text-xs text-gray-500">
+                        <span className="block truncate text-xs text-gray-600">
                           {kartuPemain.username}
                           {benderaNegara(kartuPemain.negara) && (
                             <span className="ml-1">{benderaNegara(kartuPemain.negara)}</span>
@@ -481,7 +481,7 @@ export default function TampilanPendaftaran({
                           referrerPolicy="no-referrer"
                         />
                       ) : (
-                        <CircleUser className="h-5 w-5 text-gray-500" aria-hidden="true" />
+                        <CircleUser className="h-5 w-5 text-gray-600" aria-hidden="true" />
                       )}
                     </span>
                     <span className="font-medium truncate max-w-[200px]">
@@ -496,7 +496,7 @@ export default function TampilanPendaftaran({
                     </button>
                   </div>
 
-                  <p className="text-xs leading-relaxed text-gray-500">
+                  <p className="text-xs leading-relaxed text-gray-600">
                     {t("pendaftaran.verifTanpaSandi")}
                   </p>
                 </div>
@@ -529,7 +529,7 @@ export default function TampilanPendaftaran({
                   {/* Mode `opsional`/`off`: verifikasi boleh dilewati, tetapi
                       tanpa tiket pendaftaran TIDAK akan berstatus terverifikasi. */}
                   {!verifikasi && !cara?.wajib && (
-                    <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] leading-relaxed text-gray-500">
+                    <p className="flex flex-wrap items-center justify-between gap-2 text-[11px] leading-relaxed text-gray-600">
                       <span>{t("pendaftaran.verifOpsionalCatatan")}</span>
                       <button
                         type="button"
@@ -564,7 +564,7 @@ export default function TampilanPendaftaran({
                 {akunSiapAkhir}
               </p>
               {verifikasi.berlakuDetik ? (
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-gray-600">
                   {t("pendaftaran.verifTiketBerlaku", {
                     menit: Math.max(1, Math.round(verifikasi.berlakuDetik / 60)),
                   })}
@@ -649,7 +649,7 @@ export default function TampilanPendaftaran({
                         }`}
                       ></span>
                     ))}
-                    <span className="ml-1 text-xs text-gray-500">
+                    <span className="ml-1 text-xs text-gray-600">
                       {t("pendaftaran.langkahDari", { n: diriStep + 1, total: LANGKAH_DATADIRI.length })}
                     </span>
                   </div>
@@ -660,7 +660,7 @@ export default function TampilanPendaftaran({
                   <h2 className="text-xl font-normal text-gray-900 tracking-tight">
                     {LANGKAH_DATADIRI[diriStep].judul}
                   </h2>
-                  <p className="-mt-3 text-xs text-gray-500 leading-normal">
+                  <p className="-mt-3 text-xs text-gray-600 leading-normal">
                     {LANGKAH_DATADIRI[diriStep].deskripsi}
                   </p>
 
@@ -682,7 +682,7 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_DATADIRI[diriStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_DATADIRI[diriStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_DATADIRI[diriStep].label} *
                     </label>
                   </div>
@@ -744,7 +744,7 @@ export default function TampilanPendaftaran({
                         }`}
                       ></span>
                     ))}
-                    <span className="ml-1 text-xs text-gray-500">
+                    <span className="ml-1 text-xs text-gray-600">
                       {t("pendaftaran.langkahDari", { n: kontakStep + 1, total: LANGKAH_KONTAK.length })}
                     </span>
                   </div>
@@ -755,7 +755,7 @@ export default function TampilanPendaftaran({
                   <h2 className="text-xl font-normal text-gray-900 tracking-tight">
                     {LANGKAH_KONTAK[kontakStep].judul}
                   </h2>
-                  <p className="-mt-3 text-xs text-gray-500 leading-normal">
+                  <p className="-mt-3 text-xs text-gray-600 leading-normal">
                     {LANGKAH_KONTAK[kontakStep].deskripsi}{" "}
                     {LANGKAH_KONTAK[kontakStep].opsional && t("pendaftaran.opsional")}
                   </p>
@@ -777,7 +777,7 @@ export default function TampilanPendaftaran({
                       placeholder={LANGKAH_KONTAK[kontakStep].placeholder}
                     />
                     {/* Gaya label memotong garis */}
-                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-500 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
+                    <label htmlFor={`pendaftaran-${LANGKAH_KONTAK[kontakStep].kunci}`} className="pointer-events-none absolute left-3 top-0 -translate-y-1/2 bg-white px-1 text-xs text-gray-600 transition-all peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:text-sm sm:peer-placeholder-shown:text-base peer-focus:top-0 peer-focus:-translate-y-1/2 peer-focus:text-xs peer-focus:text-blue-600">
                       {LANGKAH_KONTAK[kontakStep].label}{" "}
                       {LANGKAH_KONTAK[kontakStep].opsional ? t("pendaftaran.opsional") : "*"}
                     </label>
@@ -862,7 +862,7 @@ export default function TampilanPendaftaran({
                           ? "text-emerald-700 font-semibold"
                           : statusVerifikasi === "pengajuan"
                             ? "text-amber-700 font-semibold"
-                            : "text-gray-500 font-semibold"
+                            : "text-gray-600 font-semibold"
                       }
                     >
                       {statusVerifikasiTeks}
