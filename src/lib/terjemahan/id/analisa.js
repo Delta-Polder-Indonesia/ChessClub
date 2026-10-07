@@ -103,7 +103,6 @@ export const analisa = {
       overview: "Ringkasan",
       ratings: "Peringkat",
       openings: "Pembukaan",
-      antiCheat: "Deteksi engine",
       situs: "Situs",
       semuaSitus: "Semua situs",
       waktu: "Kontrol waktu",

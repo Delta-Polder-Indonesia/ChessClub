@@ -65,11 +65,6 @@ export default function AreaKerja() {
     [setTampilan],
   );
 
-  const keDeteksiEngine = useCallback(
-    () => setTampilan(TAMPILAN_ANALISA.DETEKSI_ENGINE),
-    [setTampilan],
-  );
-
   /**
    * Partai dipilih dari layar Basis Data / Impor. Data PGN-nya dilempar ke
    * AnalyzeContext (itu yang memicu Game menganalisis) lalu area kerja
@@ -141,7 +136,7 @@ export default function AreaKerja() {
         >
           {tampilan === TAMPILAN_ANALISA.AKUN ? (
             <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarAkun onTutup={kePapan} onDeteksiEngine={keDeteksiEngine} />
+              <LayarAkun onTutup={kePapan} />
             </Suspense>
           ) : null}
           {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (

@@ -9,7 +9,7 @@ import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daft
 import { hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
 import { AnalyzeContext } from "../../konteks/analyze.jsx";
 
-export default function LayarAkun({ onTutup, onDeteksiEngine }) {
+export default function LayarAkun({ onTutup }) {
   const analyzeContext = useContext(AnalyzeContext);
   const [username, setUsername] = analyzeContext.akun;
   const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
@@ -87,7 +87,7 @@ export default function LayarAkun({ onTutup, onDeteksiEngine }) {
         {/* Kolom kanan: dashboard statistik */}
         <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 lg:w-1/2 overflow-y-auto">
           <div className="min-h-0 min-w-0 flex-1 flex flex-col">
-            <DashboardAkun platform={username?.platform} username={username?.username} onDeteksiEngine={onDeteksiEngine} />
+            <DashboardAkun platform={username?.platform} username={username?.username} />
           </div>
         </div>
       </div>

@@ -189,11 +189,11 @@ tooltip saat label hilang.
   Pemanggilan hanya aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
 - **Dashboard statistik akun** (gaya en-croissant). Setelah akun dipilih,
   panel menampilkan kartu akun (avatar + rating Bullet/Blitz/Rapid + jumlah
-  partai + pembaruan terakhir) dan empat tab: **Ringkasan** (total, W/D/L,
+  partai + pembaruan terakhir) dan tiga tab: **Ringkasan** (total, W/D/L,
   partai per tahun), **Peringkat** (grafik riwayat rating + rentang
   7 hari/30 hari/90 hari/1 tahun/selamanya), **Pembukaan** (daftar
-  pembukaan + W/D/L per warna), dan pintasan **Deteksi engine** yang membuka
-  layar khusus di sidebar dengan akun terpilih — lihat bagian berikutnya. Data dibaca dari
+  pembukaan + W/D/L per warna). Deteksi engine diakses hanya dari menu
+  tersendiri di sidebar, bukan tab atau pintasan dalam Akun. Data dibaca dari
   `basisData` (IndexedDB); bila belum ada, ditarik dari API chess.com /
   lichess.org lewat `akun/muatPartaiAkun.js` (`muatPartaiChessCom` /
   `muatPartaiLichess`) lalu disimpan. Statistik dihitung di
@@ -400,7 +400,7 @@ file-file yang disebut.
   tidak tercampur.
 - UI metrik: kartu `summary/deteksiEngine.jsx` + hasil agregat
   `komponen/nav/ringkasanAntiCheat.jsx`; layar/settings/run di
-  `komponen/nav/layarDeteksiEngine.jsx`, pintasan di `akun/DashboardAkun.jsx`.
+  `komponen/nav/layarDeteksiEngine.jsx`. Akun hanya menampilkan statistik.
   Kunci kamus di
   `lib/terjemahan/{id,en}/analisa.js` (wajib seimbang — `npm run uji:i18n`).
 - Bahasa UI tetap probabilistik: indikasi untuk ditinjau manusia, bukan
@@ -500,7 +500,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar/pintasan Deteksi engine (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 384 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 384 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan

@@ -110,14 +110,16 @@ for (const nama of ["database", "akun", "deteksi-engine", "impor"]) {
   hasil("Escape → kembali ke papan", ctx.tampilan[0] === "bermain" && lapisan() === null, ctx.tampilan[0]);
 }
 
-console.log("\n== pintasan dari akun ==");
-await act(async () => ctx.akun[1]({ platform: "chessCom", username: "ujipintasan" }));
+console.log("\n== Akun dan Deteksi engine terpisah ==");
+await act(async () => ctx.akun[1]({ platform: "chessCom", username: "ujiakun" }));
 await keTampilan("akun");
-const pintasan = Array.from(el.querySelectorAll("button")).find((b) => b.textContent.trim() === "Deteksi engine");
-hasil("pintasan deteksi tersedia di statistik akun", !!pintasan);
-await act(async () => { pintasan?.click(); });
-hasil("pintasan membuka layar deteksi, bukan tab duplikat", ctx.tampilan[0] === "deteksi-engine" && lapisan()?.getAttribute("data-layar") === "deteksi-engine");
-hasil("akun terpilih tetap sama sesudah pintasan", ctx.akun[0].username === "ujipintasan");
+const tombolAkun = Array.from(lapisan().querySelectorAll("button"));
+hasil("layar Akun tidak memiliki pintasan Deteksi engine", !tombolAkun.some((b) => b.textContent.trim() === "Deteksi engine"));
+hasil("ketiga tab statistik Akun tetap tersedia", ["Ringkasan", "Peringkat", "Pembukaan"].every((label) => tombolAkun.some((b) => b.textContent.trim() === label)));
+hasil("layar Akun tetap aktif saat dibuka", ctx.tampilan[0] === "akun");
+await keTampilan("deteksi-engine");
+hasil("layar Deteksi engine tetap bisa dibuka terpisah", lapisan()?.getAttribute("data-layar") === "deteksi-engine");
+hasil("akun terpilih tetap dipakai di layar Deteksi engine", ctx.akun[0].username === "ujiakun" && lapisan()?.querySelector('[data-uji="deteksi-akun"]')?.value === "ujiakun");
 await tekanEscape();
 act(() => root.unmount());
 

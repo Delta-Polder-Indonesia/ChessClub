@@ -177,7 +177,7 @@ function KosongState({ isi, sub }) {
   );
 }
 
-export default function DashboardAkun({ platform, username, onDeteksiEngine }) {
+export default function DashboardAkun({ platform, username }) {
   const { t } = useI18n();
   const [tab, setTab] = useState("overview");
   const [situs, setSitus] = useState(platform);
@@ -276,7 +276,6 @@ export default function DashboardAkun({ platform, username, onDeteksiEngine }) {
     { k: "overview", label: t("analisa.statistik.overview") },
     { k: "ratings", label: t("analisa.statistik.ratings") },
     { k: "openings", label: t("analisa.statistik.openings") },
-    { k: "antiCheat", label: t("analisa.statistik.antiCheat") },
   ];
 
 
@@ -301,13 +300,13 @@ export default function DashboardAkun({ platform, username, onDeteksiEngine }) {
           <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
         </div>
 
-        {/* `flex-wrap`: empat tab tidak muat satu baris di panel sempit. */}
+        {/* Tab membungkus agar tidak meluber di panel sempit. */}
         <div className="flex flex-wrap border-b border-border px-4 pt-2">
           {tabKunci.map((x) => (
             <button
               key={x.k}
               type="button"
-              onClick={() => x.k === "antiCheat" ? onDeteksiEngine?.() : setTab(x.k)}
+              onClick={() => setTab(x.k)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-bold transition-colors ${
                 tab === x.k ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] text-foreground" : "border-transparent text-foregroundGrey hover:text-foregroundHighlighted"
               }`}

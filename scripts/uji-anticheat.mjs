@@ -781,12 +781,12 @@ hasil("fase tidak mundur", faseBerikutnya(FASE_PEMBUKAAN, papanAwal) === FASE_PE
 hasil("fase maju ke akhir", faseBerikutnya("middlegame", papanAkhir) === "endgame");
 hasil("papanDariFen rusak → null", (await import("../src/halaman/Analisa/mesin/fase.js")).papanDariFen("bukan-fen") === null);
 
-/* ============== 9. tab "Deteksi engine" pada DashboardAkun ============== */
+/* ============== 9. pemisahan Akun dan layar Deteksi engine ============== */
 
-console.log("\n== pintasan Akun dan layar Deteksi engine (DOM) ==");
+console.log("\n== Akun tanpa artefak dan layar Deteksi engine (DOM) ==");
 
 const { simpanBanyakPartai, pastikanKoleksi } = await import("../src/halaman/Analisa/basisData.js");
-const { MesinProvider, KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
+const { KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
 const { default: DashboardAkun } = await import("../src/halaman/Analisa/akun/DashboardAkun.jsx");
 const { default: LayarDeteksiEngine } = await import("../src/halaman/Analisa/komponen/nav/layarDeteksiEngine.jsx");
 const { AnalyzeContext, default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
@@ -803,13 +803,12 @@ await simpanBanyakPartai(
 const elAkun = document.createElement("div");
 document.body.appendChild(elAkun);
 const rootAkun = createRoot(elAkun);
-let pintasanDipanggil = 0;
 await act(async () => {
   rootAkun.render(
     React.createElement(
       I18nProvider,
       null,
-      React.createElement(MesinProvider, null, React.createElement(DashboardAkun, { platform: "chessCom", username: "budi", onDeteksiEngine: () => { pintasanDipanggil++; } }))
+      React.createElement(DashboardAkun, { platform: "chessCom", username: "budi" })
     )
   );
 });
@@ -817,13 +816,8 @@ const teksAkun = () => elAkun.textContent;
 const tombol = (label) =>
   Array.from(elAkun.querySelectorAll("button")).find((b) => b.textContent.trim() === label);
 
-const tabAntiCheat = tombol(tID("analisa.statistik.antiCheat"));
-hasil("tab 'Deteksi engine' terdaftar", Boolean(tabAntiCheat), teksAkun().slice(0, 120));
-
-await act(async () => {
-  tabAntiCheat?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-});
-hasil("tab lama memanggil pintasan ke layar khusus", pintasanDipanggil === 1);
+hasil("Akun tidak memiliki tab/pintasan Deteksi engine", !tombol(tID("analisa.nav.deteksiEngine")));
+hasil("Akun hanya memiliki tiga tombol tab statistik", elAkun.querySelectorAll("button").length === 3);
 hasil("Akun tidak lagi merender input deteksi duplikat", !elAkun.querySelector('input[type="number"]'));
 hasil("Akun tidak lagi menyiapkan tombol analisis agregat sendiri", !tombol(tID("analisa.antiCheat.riwayat.mulai", { n: 12 })));
 hasil("ketiga tab statistik tetap tersedia", ["overview", "ratings", "openings"].every((k) => tombol(tID(`analisa.statistik.${k}`))));
