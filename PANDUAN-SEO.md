@@ -109,10 +109,17 @@ Langkahnya:
 
    Uji itu memeriksa sitemap ↔ `RUTE_PUBLIK` ↔ `META_RUTE`, `<lastmod>`,
    `robots.txt`, dan kedua metode verifikasi Search Console sekaligus.
-   Output yang benar: `OK — 34 rute publik punya metadata sendiri, 34 URL
+   Output yang benar: `OK — 39 rute publik punya metadata sendiri, 40 URL
    sitemap selaras, robots.txt & verifikasi Search Console utuh.`
-   Rute `noindex` (mis. `/program-kami/analisa/papan`) memang tidak boleh
-   muncul di sitemap.
+   Rute bertanda `noindex` memang tidak boleh muncul di sitemap — dan
+   sebaliknya, setiap rute `index, follow` **wajib** ada di sitemap. Saat ini
+   seluruh rute publik sudah `index, follow`; satu-satunya halaman `noindex`
+   adalah halaman 404 (`src/halaman/TidakDitemukan.jsx`) yang memang tidak
+   pernah masuk daftar rute publik.
+   `/program-kami/analisa/papan` **dipromosikan menjadi `index, follow`**
+   (papan analisa adalah fitur publik yang berdiri sendiri), jadi entrinya
+   kini ada di `public/sitemap.xml` dan metadata rutenya di
+   `plugins/performa.js` harus tetap sejalan.
 
 Setelah itu Google biasanya mulai mengindeks dalam **beberapa hari hingga
 2–3 minggu**. Pantau menu **Coverage** di Search Console; jika muncul

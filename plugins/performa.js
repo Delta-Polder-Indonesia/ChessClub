@@ -121,7 +121,9 @@ export const META_RUTE = {
     // analisa.metaDeskripsi 167 karakter — dipotong di cuplikan Google.
     deskripsi:
       "Analisis PGN dan FEN gratis dengan Stockfish lokal: label per langkah, grafik evaluasi, dan akurasi pemain. Data tetap di perangkat Anda.",
-    robots: "noindex, follow",
+    // Sejak papan analisa dipromosikan untuk SEO, rute ini IKUT diindeks dan
+    // karenanya WAJIB ada di public/sitemap.xml (dijaga `uji:seo`).
+    robots: "index, follow",
     gambar: "/images/PapanAnalysa.webp",
     gambarUkuran: "1600",
     gambarTinggi: "1200",

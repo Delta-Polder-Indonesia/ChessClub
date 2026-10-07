@@ -89,6 +89,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-analisa.mjs` | `npm run uji:analisa` |
 | `scripts/uji-animasi-bidak.mjs` | `npm run uji:animasi-bidak` |
 | `scripts/uji-anticheat.mjs` | `npm run uji:analisa-menyeluruh`, `npm run uji:anticheat` |
+| `scripts/uji-api-csrf.mjs` | `npm run uji:api-csrf` |
 | `scripts/uji-area-kerja.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-artikel-wikipedia.mjs` | `npm run uji`, `npm run uji:artikel` |
 | `scripts/uji-balap-analisa.mjs` | `npm run uji:analisa-menyeluruh` |
@@ -111,6 +112,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-impor-css.mjs` | `npm run uji:impor-css` |
 | `scripts/uji-integritas-suite.mjs` | `npm run uji:integritas-suite` |
 | `scripts/uji-jsonld.mjs` | `npm run uji:jsonld`, `npm run uji:seo` |
+| `scripts/uji-kerangka-layar-penuh.mjs` | `npm run uji:kerangka-penuh` |
 | `scripts/uji-klasifikasi.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-komentar.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-komentator.mjs` | `npm run uji:komentator` |
@@ -132,12 +134,14 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `scripts/uji-sacrifice.mjs` | `npm run uji:analisa-menyeluruh` |
 | `scripts/uji-seo.mjs` | `npm run uji:seo` |
 | `scripts/uji-seret-bidak.mjs` | `npm run uji:analisa-menyeluruh`, `npm run uji:seret-bidak` |
+| `scripts/uji-sesi-ebook.mjs` | `npm run uji:sesi-ebook` |
 | `scripts/uji-standar-desain.mjs` | `npm run desain:baseline`, `npm run uji:desain` |
 | `scripts/uji-suara.mjs` | `npm run uji:suara` |
 | `scripts/uji-sunfish.mjs` | `npm run uji:sunfish` |
 | `scripts/uji-supabase.mjs` | `npm run uji:supabase` |
 | `scripts/uji-tanda-papan.mjs` | `npm run uji:tanda-papan` |
 | `scripts/uji-tarik-api.mjs` | `npm run uji:tarik-api` |
+| `scripts/uji-teka-teki-alur.mjs` | `npm run uji:tekateki-alur` |
 | `scripts/uji-tekateki-solusi.mjs` | `npm run uji:tekateki-solusi` |
 | `scripts/uji-tools.mjs` | `npm run uji:tools` |
 | `scripts/uji-variasi.mjs` | `npm run uji:analisa-menyeluruh` |
@@ -159,22 +163,22 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 
 | Area | Berkas | Uji penjaga | Halaman peta |
 | --- | --- | --- | --- |
-| `src/halaman` | 233 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +39 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
+| `src/halaman` | 233 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +40 | Repository Layout & Naming Conventions; Routing, Code Splitting & Layouts; Styling & Theming, +14 |
 | `src/components` | 74 | `uji-ebook-pembaca.mjs`, `uji-glob-aset.mjs`, `uji-jsonld.mjs`, `uji-pendaftaran-ui.mjs`, +3 | Frontend Application Architecture; Routing, Code Splitting & Layouts; Shared Components & UI Kit, +3 |
-| `src/lib` | 72 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +35 | Frontend Application Architecture; Routing, Code Splitting & Layouts; Internationalization (terjemahan), +9 |
-| `src/lib/api` | 10 | `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, `smoke.spec.js` | Frontend API Client (src/lib/api) |
+| `src/lib` | 73 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +39 | Frontend Application Architecture; Routing, Code Splitting & Layouts; Internationalization (terjemahan), +9 |
+| `src/lib/api` | 10 | `uji-api-csrf.mjs`, `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, `smoke.spec.js` | Frontend API Client (src/lib/api) |
 | `src/hooks` | 1 | — | Frontend Application Architecture |
 | `src/data` | 3 | `uji-ebook-pembaca.mjs`, `uji-gambar.mjs` | — |
 | `src/asets` | 170 | `uji-render-bidak.mjs` | — |
-| `server/src` | 29 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +25 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
+| `server/src` | 29 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +26 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
 | `server/uji` | 11 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
-| `api` | 2 | `uji-akun-database.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, +8 | Backend API Server |
+| `api` | 2 | `uji-akun-database.mjs`, `uji-api-csrf.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, +9 | Backend API Server |
 | `plugins` | 3 | `uji-ebook-pembaca.mjs`, `uji-rute.mjs`, `uji-seo.mjs` | — |
 | `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-repertoar.mjs`, `uji-supabase.mjs`, +1 | Persistence: JSON Seed Data & Supabase |
-| `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +9 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
-| `scripts` | 81 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +47 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
+| `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +10 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
+| `scripts` | 85 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +51 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | `uji-render-bidak.mjs` | — |
-| `public` | 446 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +13 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
+| `public` | 446 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +14 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 
 ## 4. Cermin yang dijaga `uji:peta`
 
