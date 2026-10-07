@@ -3,7 +3,7 @@
  *
  * Diperiksa (aksesibilitas lapisan layar):
  *  1. Mount awal TIDAK mencuri fokus (pengguna belum berpindah ke mana-mana).
- *  2. Berpindah ke layar Akun/Database/Impor: lapisan muncul (`data-uji`),
+ *  2. Berpindah ke layar Akun/Deteksi engine/Database/Impor: lapisan muncul (`data-uji`),
  *     bisa difokus programatik (`tabIndex -1`), dan fokus DIBAWA ke sana
  *     (pembaca layar mengumumkannya, Tab mulai dari dalam).
  *  3. Escape menutup lapisan kembali ke papan.
@@ -99,7 +99,7 @@ async function tekanEscape() {
   });
 }
 
-for (const nama of ["database", "akun", "impor"]) {
+for (const nama of ["database", "akun", "deteksi-engine", "impor"]) {
   console.log(`\n== layar ${nama} ==`);
   await keTampilan(nama);
   const lapis = lapisan();
@@ -109,5 +109,16 @@ for (const nama of ["database", "akun", "impor"]) {
   await tekanEscape();
   hasil("Escape → kembali ke papan", ctx.tampilan[0] === "bermain" && lapisan() === null, ctx.tampilan[0]);
 }
+
+console.log("\n== pintasan dari akun ==");
+await act(async () => ctx.akun[1]({ platform: "chessCom", username: "ujipintasan" }));
+await keTampilan("akun");
+const pintasan = Array.from(el.querySelectorAll("button")).find((b) => b.textContent.trim() === "Deteksi engine");
+hasil("pintasan deteksi tersedia di statistik akun", !!pintasan);
+await act(async () => { pintasan?.click(); });
+hasil("pintasan membuka layar deteksi, bukan tab duplikat", ctx.tampilan[0] === "deteksi-engine" && lapisan()?.getAttribute("data-layar") === "deteksi-engine");
+hasil("akun terpilih tetap sama sesudah pintasan", ctx.akun[0].username === "ujipintasan");
+await tekanEscape();
+act(() => root.unmount());
 
 console.log(`\nHasil: ${lulus} lulus, ${gagal} gagal.`);

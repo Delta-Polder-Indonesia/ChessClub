@@ -582,6 +582,21 @@ hasil(
   riwayat.KEDALAMAN_AGGREGAT < 13
 );
 
+hasil(
+  "jumlah kosong memakai bawaan 12",
+  [undefined, null, "", "   "].every((nilai) => riwayat.batasPartaiDariInput(nilai) === 12)
+);
+hasil(
+  "jumlah custom menerima angka dan teks bilangan bulat positif",
+  riwayat.batasPartaiDariInput(30) === 30 && riwayat.batasPartaiDariInput(" 30 ") === 30 &&
+    riwayat.batasPartaiDariInput("1") === 1
+);
+const jumlahTidakSah = [0, -1, 1.5, "abc", Infinity, NaN, Number.MAX_SAFE_INTEGER + 1];
+hasil(
+  "nol, negatif, pecahan, teks, dan angka tidak aman ditolak",
+  jumlahTidakSah.every((nilai) => riwayat.batasPartaiDariInput(nilai) === null)
+);
+
 riwayat.bersihkanCacheAntiCheat();
 let panggilParse = 0;
 let kedalamanTerakhir = 0;
@@ -666,6 +681,55 @@ hasil("galat engine tidak melempar, tapi tercatat", jalanGalat.dianalisis === 0 
 hasil("galat partai tidak masuk cache", riwayat.ukuranCacheAntiCheat() === 0);
 riwayat.bersihkanCacheAntiCheat();
 
+/* ---- jumlah custom harus melewati kedua batas, bukan hanya pemilih ---- */
+{
+  const partaiBanyak = Array.from({ length: 30 }, (_, i) => ({
+    ...partaiPalsu[0], id: `batas-${i + 1}`, timestamp: i + 1,
+  }));
+  const opsiJumlah = {
+    partai: partaiBanyak, username: "budi", mesin: null, parserPgn: parserPalsu, cariBuku: bukuPalsu,
+  };
+  const bawaan = await riwayat.analisisRiwayatAntiCheat(opsiJumlah);
+  hasil("orkestrator tanpa jumlah tetap menganalisis 12", bawaan.total === 12 && bawaan.dianalisis === 12);
+  hasil(
+    "bawaan mengambil 12 terbaru, bukan 12 pertama dari masukan",
+    bawaan.agregat.partai[0]?.id === "batas-19" && bawaan.agregat.partai.at(-1)?.id === "batas-30"
+  );
+
+  const progresJumlah = [];
+  const custom = await riwayat.analisisRiwayatAntiCheat({
+    ...opsiJumlah, batas: 20, progres: (p) => progresJumlah.push(p),
+  });
+  hasil("orkestrator custom 20 tidak terpotong menjadi 12", custom.total === 20 && custom.dianalisis === 20);
+  hasil("agregat menghitung seluruh 20 partai custom", custom.agregat.jumlahPartai === 20);
+  hasil(
+    "custom mengambil terbaru hingga jumlah pilihan",
+    custom.agregat.partai[0]?.id === "batas-11" && custom.agregat.partai.at(-1)?.id === "batas-30"
+  );
+  hasil("memperbesar jumlah tetap memakai cache 12 partai sebelumnya", custom.dariCache === 12);
+  hasil("progres memakai jumlah custom", progresJumlah.at(-1)?.ke === 20 && progresJumlah.at(-1)?.total === 20);
+
+  const kecil = await riwayat.analisisRiwayatAntiCheat({ ...opsiJumlah, batas: 3 });
+  hasil("jumlah custom di bawah 12 juga dihormati", kecil.total === 3 && kecil.dianalisis === 3);
+  const kosong = await riwayat.analisisRiwayatAntiCheat({ ...opsiJumlah, batas: "" });
+  hasil("jumlah yang dikosongkan kembali ke 12", kosong.total === 12 && kosong.dianalisis === 12);
+  const melebihiArsip = await riwayat.analisisRiwayatAntiCheat({ ...opsiJumlah, batas: 50 });
+  hasil("jumlah melebihi arsip hanya menganalisis yang tersedia", melebihiArsip.total === 30 && melebihiArsip.dianalisis === 30);
+
+  const parseSebelum = panggilParse;
+  for (const batas of jumlahTidakSah) {
+    let ditolak = false;
+    try {
+      await riwayat.analisisRiwayatAntiCheat({ ...opsiJumlah, batas });
+    } catch (e) {
+      ditolak = e instanceof RangeError;
+    }
+    hasil(`orkestrator menolak jumlah tidak sah: ${batas}`, ditolak);
+  }
+  hasil("jumlah tidak sah tidak menjalankan parser", panggilParse === parseSebelum);
+  riwayat.bersihkanCacheAntiCheat();
+}
+
 /* ============================ 7. komponen UI ============================ */
 
 console.log("\n== komponen deteksiEngine.jsx (DOM) ==");
@@ -719,11 +783,14 @@ hasil("papanDariFen rusak → null", (await import("../src/halaman/Analisa/mesin
 
 /* ============== 9. tab "Deteksi engine" pada DashboardAkun ============== */
 
-console.log("\n== tab Deteksi engine di DashboardAkun (DOM) ==");
+console.log("\n== pintasan Akun dan layar Deteksi engine (DOM) ==");
 
-const { simpanBanyakPartai } = await import("../src/halaman/Analisa/basisData.js");
-const { MesinProvider } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
+const { simpanBanyakPartai, pastikanKoleksi } = await import("../src/halaman/Analisa/basisData.js");
+const { MesinProvider, KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
 const { default: DashboardAkun } = await import("../src/halaman/Analisa/akun/DashboardAkun.jsx");
+const { default: LayarDeteksiEngine } = await import("../src/halaman/Analisa/komponen/nav/layarDeteksiEngine.jsx");
+const { AnalyzeContext, default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
+const { bacaDaftarAkun, simpanDaftarAkun } = await import("../src/halaman/Analisa/akun/daftarAkun.js");
 
 await simpanBanyakPartai(
   [
@@ -736,12 +803,13 @@ await simpanBanyakPartai(
 const elAkun = document.createElement("div");
 document.body.appendChild(elAkun);
 const rootAkun = createRoot(elAkun);
+let pintasanDipanggil = 0;
 await act(async () => {
   rootAkun.render(
     React.createElement(
       I18nProvider,
       null,
-      React.createElement(MesinProvider, null, React.createElement(DashboardAkun, { platform: "chessCom", username: "budi" }))
+      React.createElement(MesinProvider, null, React.createElement(DashboardAkun, { platform: "chessCom", username: "budi", onDeteksiEngine: () => { pintasanDipanggil++; } }))
     )
   );
 });
@@ -755,21 +823,284 @@ hasil("tab 'Deteksi engine' terdaftar", Boolean(tabAntiCheat), teksAkun().slice(
 await act(async () => {
   tabAntiCheat?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 });
-hasil(
-  "isi tab menjelaskan batas partai",
-  teksAkun().includes(tID("analisa.antiCheat.riwayat.batas", { n: 12, user: "budi" }))
-);
-hasil("isi tab menyebut kedalaman agregat", teksAkun().includes(String(riwayat.KEDALAMAN_AGGREGAT)));
-hasil(
-  "tombol mulai analisis tampil (tidak jalan otomatis)",
-  Boolean(tombol(tID("analisa.antiCheat.riwayat.mulai", { n: 12 })))
-);
-hasil("sanggahan tampil di tab agregat", teksAkun().includes(tID("analisa.antiCheat.disclaimer")));
+hasil("tab lama memanggil pintasan ke layar khusus", pintasanDipanggil === 1);
+hasil("Akun tidak lagi merender input deteksi duplikat", !elAkun.querySelector('input[type="number"]'));
+hasil("Akun tidak lagi menyiapkan tombol analisis agregat sendiri", !tombol(tID("analisa.antiCheat.riwayat.mulai", { n: 12 })));
+hasil("ketiga tab statistik tetap tersedia", ["overview", "ratings", "openings"].every((k) => tombol(tID(`analisa.statistik.${k}`))));
 hasil(
   "tidak ada kunci kamus mentah yang bocor ke DOM",
   !/analisa\.antiCheat\.[a-zA-Z.]+/.test(teksAkun()),
   teksAkun().match(/analisa\.antiCheat\.[a-zA-Z.]+/)?.[0] ?? ""
 );
+
+/* ---- layar khusus: pilihan akun, jumlah, filter, kedalaman, dan siklus run ---- */
+act(() => rootAkun.unmount());
+{
+  const username = "budijumlah";
+  const partaiJumlah = Array.from({ length: 20 }, (_, i) => ({
+    id: `ui-jumlah-${i + 1}`,
+    whiteName: username,
+    blackName: `lawan-${i + 1}`,
+    result: "white",
+    timestamp: 1_700_100_000_000 + i * 1000,
+    timeClass: "blitz",
+    pgn: PGN_MESIN.replace('[White "Mesin"]', `[White "${username}"]`)
+      .replace('[Black "Manusia"]', `[Black "lawan-${i + 1}"]`),
+  }));
+  await simpanBanyakPartai(partaiJumlah, { platform: "chessCom", username });
+  for (const p of partaiJumlah) {
+    riwayat.simpanCachePartai(p.id, riwayat.KEDALAMAN_AGGREGAT, {
+      metadata: { ...hasilMesin.metadata, players: [{ name: username }, { name: p.blackName }] },
+      hasil: skorMesin,
+    });
+  }
+
+  await pastikanKoleksi({ platform: "chessCom", username: "akunarsip" });
+  const daftarAwal = bacaDaftarAkun();
+  simpanDaftarAkun([{ platform: "chessCom", username }, { platform: "lichessOrg", username }, { platform: "chessCom", username: "budi" }]);
+  const partaiLichess = partaiJumlah.slice(0, 4).map((p, i) => ({
+    ...p, id: `ui-lichess-${i + 1}`, blackName: `lichess-lawan-${i + 1}`,
+    pgn: p.pgn.replace(`[Black "${p.blackName}"]`, `[Black "lichess-lawan-${i + 1}"]`),
+  }));
+  await simpanBanyakPartai(partaiLichess, { platform: "lichessOrg", username });
+  for (const p of partaiLichess) {
+    riwayat.simpanCachePartai(p.id, 8, { metadata: { ...hasilMesin.metadata, players: [{ name: username }, { name: p.blackName }] }, hasil: skorMesin });
+  }
+
+  let siapkanDipanggil = 0;
+  let setopDipanggil = 0;
+  let galatMesin = null;
+  let blokirPencarian = false;
+  let rilisPencarian;
+  let rilisMesin;
+  const pencarian = [];
+  const engineDasar = buatEnginePalsu(peta, "sempurna");
+  const engineJumlah = {
+    ...engineDasar,
+    cari: async (fen, opsi) => {
+      pencarian.push(opsi);
+      if (blokirPencarian) {
+        blokirPencarian = false;
+        await new Promise((resolve) => { rilisPencarian = resolve; });
+      }
+      return engineDasar.cari(fen, opsi);
+    },
+    setop: () => { setopDipanggil++; },
+  };
+  const mesinJumlah = {
+    siapkan: () => {
+      siapkanDipanggil++;
+      if (galatMesin) return Promise.reject(galatMesin);
+      return new Promise((resolve) => { rilisMesin = () => resolve(engineJumlah); });
+    },
+    setop: () => { setopDipanggil++; },
+  };
+  const rootJumlah = createRoot(elAkun);
+  let ctxJumlah;
+  function ProbeJumlah() {
+    ctxJumlah = React.useContext(AnalyzeContext);
+    return null;
+  }
+  await act(async () => rootJumlah.render(
+    React.createElement(I18nProvider, null,
+      React.createElement(KonteksMesin.Provider, { value: mesinJumlah },
+        React.createElement(AnalyzeContextProvider, null,
+          React.createElement(ProbeJumlah), React.createElement(LayarDeteksiEngine, { onBukaAkun: () => {} })
+        )
+      )
+    )
+  ));
+  const renderJumlah = (nama) => ctxJumlah.akun[1]({ platform: "chessCom", username: nama });
+  await act(async () => renderJumlah(username));
+
+  const inputJumlah = () => elAkun.querySelector('input[type="number"]');
+  const isiJumlah = (nilai) => act(() => {
+    const input = inputJumlah();
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+    setter.call(input, nilai);
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+  });
+  const tombolJumlah = (n) => tombol(tID("analisa.antiCheat.riwayat.mulai", { n })) ||
+    tombol(tID("analisa.antiCheat.riwayat.mulaiUlang", { n }));
+  const mulaiJumlah = async (n) => {
+    await act(async () => tombolJumlah(n)?.click());
+  };
+  const selesaiJumlah = async () => {
+    await act(async () => rilisMesin?.());
+  };
+  const barisJumlah = () => Array.from(elAkun.querySelectorAll("tbody tr"));
+  const pilihDeteksi = (jenis, nilai) => act(async () => {
+    const select = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
+    select.value = nilai;
+    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+  });
+  const tungguUi = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+  const batalJumlah = () => act(async () => tombol(tID("analisa.antiCheat.riwayat.batal"))?.click());
+
+  hasil("layar baru tetap memakai panel/token Analisa", !!elAkun.querySelector('section.bg-backgroundBoxDarker') && elAkun.querySelectorAll('.border-border.bg-backgroundBox').length >= 2);
+  hasil("lima pengaturan memiliki kontrol berlabel", Array.from(elAkun.querySelectorAll("select, input")).length === 5 && Array.from(elAkun.querySelectorAll("select, input")).every((el) => el.labels.length > 0));
+  hasil("kedalaman deteksi bawaan 8, papan tetap 13", elAkun.querySelector('[data-uji="deteksi-kedalaman"]').value === "8" && ctxJumlah.depth[0] === 13);
+  hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
+  hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
+  hasil("sanggahan tampil sebelum analisis dimulai", teksAkun().includes(tID("analisa.antiCheat.disclaimer")));
+  hasil("keadaan awal hasil memiliki petunjuk", teksAkun().includes(tID("analisa.antiCheat.riwayat.hasilKosong")));
+
+  hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");
+  hasil("kolom jumlah memiliki label terhubung", inputJumlah()?.labels[0]?.textContent.trim() === tID("analisa.antiCheat.riwayat.jumlahPartai"));
+  hasil("petunjuk menjelaskan bawaan saat kolom kosong", teksAkun().includes(tID("analisa.antiCheat.riwayat.jumlahPetunjuk", { n: 12 })));
+
+  isiJumlah("20");
+  hasil("tombol mengikuti jumlah custom 20", Boolean(tombolJumlah(20)));
+  hasil("keterangan batas mengikuti jumlah custom", teksAkun().includes(tID("analisa.antiCheat.riwayat.batas", { n: 20, user: username })));
+  await mulaiJumlah(20);
+  hasil("jumlah tidak dapat diedit saat analisis berjalan", inputJumlah()?.disabled === true);
+  hasil("situs/akun/kedalaman/waktu terkunci selama run", Array.from(elAkun.querySelectorAll("select")).every((el) => el.disabled));
+  hasil("bar progres memiliki nilai aksesibel", elAkun.querySelector('[role="progressbar"]')?.getAttribute("aria-valuemax") === "20");
+  hasil("progres awal memakai jumlah custom", teksAkun().includes(tID("analisa.antiCheat.riwayat.progres", { ke: 0, total: 20 })));
+  await selesaiJumlah();
+  hasil("input 20 menghasilkan 20 partai di tabel (kedua batas terlewati)", barisJumlah().length === 20);
+  hasil("kolom dapat diedit setelah analisis selesai", inputJumlah()?.disabled === false);
+  hasil("metrik/level/fase/tren hasil lama tetap tampil", ["analisa.antiCheat.skor", "analisa.antiCheat.metrik.kecocokan", "analisa.antiCheat.metrik.acplBaku", "analisa.antiCheat.metrik.akurasi", "analisa.antiCheat.perFase", "analisa.antiCheat.riwayat.tren"].every((k) => teksAkun().includes(tID(k))));
+  hasil("hasil tetap menyediakan unduh/durasi/sanggahan", !!tombol(tID("analisa.antiCheat.riwayat.unduh")) && teksAkun().includes(tID("analisa.antiCheat.disclaimer")) && /detik/.test(teksAkun()));
+
+  isiJumlah("");
+  hasil("mengosongkan kolom mengembalikan tombol ke 12", Boolean(tombolJumlah(12)));
+  await mulaiJumlah(12);
+  await selesaiJumlah();
+  hasil("kolom kosong benar-benar menganalisis 12 dari database", barisJumlah().length === 12);
+  hasil("12 bawaan adalah partai terbaru", barisJumlah()[0]?.textContent.includes("lawan-9") && barisJumlah().at(-1)?.textContent.includes("lawan-20"));
+
+  isiJumlah("3");
+  await mulaiJumlah(3);
+  await selesaiJumlah();
+  hasil("input custom 3 menghasilkan 3 partai terbaru", barisJumlah().length === 3 && barisJumlah()[0]?.textContent.includes("lawan-18"));
+
+  isiJumlah("50");
+  await mulaiJumlah(50);
+  hasil("progres dibatasi partai yang tersedia saat input melebihi arsip", teksAkun().includes(tID("analisa.antiCheat.riwayat.progres", { ke: 0, total: 20 })));
+  await selesaiJumlah();
+  hasil("input melebihi arsip memakai 20 partai tersedia", barisJumlah().length === 20);
+
+  const siapkanSebelum = siapkanDipanggil;
+  for (const nilai of ["0", "-1", "1.5"]) {
+    isiJumlah(nilai);
+    hasil(`input tidak sah ${nilai}: ditandai dan tombol dinonaktifkan`, inputJumlah()?.getAttribute("aria-invalid") === "true" && tombolJumlah(12)?.disabled === true);
+    hasil(`input tidak sah ${nilai}: pesan galat tampil`, elAkun.querySelector('[role="alert"]')?.textContent.trim() === tID("analisa.antiCheat.riwayat.jumlahTidakValid"));
+    await mulaiJumlah(12);
+  }
+  hasil("input tidak sah tidak menyiapkan engine", siapkanDipanggil === siapkanSebelum);
+  isiJumlah("");
+  hasil("mengosongkan input galat memulihkan bawaan tanpa pesan galat", inputJumlah()?.getAttribute("aria-invalid") === "false" && tombolJumlah(12)?.disabled === false && !elAkun.querySelector('[role="alert"]'));
+
+  const siapkanSebelumPapan = siapkanDipanggil;
+  await act(async () => ctxJumlah.pageState[1]("loading"));
+  hasil("analisis papan memblokir run deteksi", tombolJumlah(12)?.disabled && teksAkun().includes(tID("analisa.antiCheat.riwayat.papanSibuk")));
+  await mulaiJumlah(12);
+  hasil("run terblokir tidak mengganggu engine papan", siapkanDipanggil === siapkanSebelumPapan && setopDipanggil === 0);
+  await act(async () => { ctxJumlah.pageState[1]("analyze"); ctxJumlah.analyzingMove[1](true); });
+  hasil("pencarian langkah manual papan juga memblokir deteksi", tombolJumlah(12)?.disabled === true);
+  await act(async () => ctxJumlah.analyzingMove[1](false));
+  hasil("selesai analisis papan membuka kembali tombol", tombolJumlah(12)?.disabled === false);
+
+  const partaiRapid = Array.from({ length: 15 }, (_, i) => ({
+    ...partaiJumlah[i], id: `ui-rapid-${i + 1}`, blackName: `rapid-lawan-${i + 1}`,
+    timestamp: 1_700_200_000_000 + i * 1000, timeClass: "rapid",
+    pgn: partaiJumlah[i].pgn.replace(`[Black "${partaiJumlah[i].blackName}"]`, `[Black "rapid-lawan-${i + 1}"]`),
+  }));
+  await simpanBanyakPartai(partaiRapid, { platform: "chessCom", username });
+  for (const p of partaiRapid) {
+    riwayat.simpanCachePartai(p.id, 8, { metadata: { ...hasilMesin.metadata, players: [{ name: username }, { name: p.blackName }] }, hasil: skorMesin });
+  }
+  isiJumlah("20");
+  await pilihDeteksi("waktu", "blitz");
+  hasil("ganti kontrol waktu membersihkan hasil lama", barisJumlah().length === 0);
+  await mulaiJumlah(20);
+  await selesaiJumlah();
+  hasil("filter blitz diterapkan sebelum limit 20 meski 15 rapid lebih baru", barisJumlah().length === 20 && barisJumlah().every((b) => !b.textContent.includes("rapid-lawan")));
+  await pilihDeteksi("waktu", "rapid");
+  isiJumlah("3");
+  await mulaiJumlah(3);
+  await selesaiJumlah();
+  hasil("rapid memilih tiga rapid terbaru saja", barisJumlah().length === 3 && barisJumlah()[0]?.textContent.includes("rapid-lawan-13") && barisJumlah().at(-1)?.textContent.includes("rapid-lawan-15"));
+  await pilihDeteksi("waktu", "any");
+  isiJumlah("50");
+  await mulaiJumlah(50);
+  await selesaiJumlah();
+  hasil("opsi semua waktu tidak diteruskan sebagai filter 'any'", barisJumlah().length === 35);
+
+  await pilihDeteksi("situs", "lichessOrg");
+  hasil("situs mengubah akun konteks dan mengosongkan hasil/jumlah", ctxJumlah.akun[0].platform === "lichessOrg" && ctxJumlah.akun[0].username === username && inputJumlah().value === "" && !barisJumlah().length);
+  await mulaiJumlah(12);
+  await selesaiJumlah();
+  hasil("koleksi Lichess dipakai, bukan Chess.com dengan username sama", barisJumlah().length === 4 && barisJumlah().every((b) => b.textContent.includes("lichess-lawan")));
+  await pilihDeteksi("situs", "chessCom");
+  await pilihDeteksi("akun", "budi");
+  hasil("pemilih akun tersambung ke konteks akun", ctxJumlah.akun[0].username === "budi" && !barisJumlah().length);
+  await pilihDeteksi("akun", username);
+  await pilihDeteksi("waktu", "rapid");
+  await pilihDeteksi("kedalaman", "10");
+  isiJumlah("1");
+  await mulaiJumlah(1);
+  await selesaiJumlah();
+  hasil("kedalaman terpilih benar-benar mencapai pencarian engine", pencarian.length > 0 && pencarian.every((p) => p.kedalaman === 10));
+  hasil("MultiPV tetap 5 di layar baru", pencarian.every((p) => p.multiPv === ac.MULTI_PV));
+  hasil("kedalaman deteksi tidak mengubah kedalaman/data papan", ctxJumlah.depth[0] === 13 && ctxJumlah.data[0].format === "fen" && ctxJumlah.data[0].string === "");
+  hasil("cache terpisah untuk kedalaman 8 dan 10", !!riwayat.bacaCachePartai("ui-rapid-15", 8) && !!riwayat.bacaCachePartai("ui-rapid-15", 10));
+  const pencarianSebelumCache = pencarian.length;
+  await mulaiJumlah(1);
+  await selesaiJumlah();
+  hasil("ulang pada kedalaman sama memakai cache tanpa pencarian baru", pencarian.length === pencarianSebelumCache && barisJumlah().length === 1);
+
+  isiJumlah("3");
+  blokirPencarian = true;
+  await mulaiJumlah(3);
+  await selesaiJumlah();
+  hasil("run kedua melaporkan satu hasil sebelum pencarian berikutnya", typeof rilisPencarian === "function" && teksAkun().includes(tID("analisa.antiCheat.riwayat.progres", { ke: 1, total: 3 })));
+  await batalJumlah();
+  await act(async () => rilisPencarian?.());
+  hasil("Batal menyetop engine dan tetap menampilkan partai selesai", setopDipanggil > 0 && barisJumlah().length === 1 && teksAkun().includes(tID("analisa.antiCheat.riwayat.dibatalkan")));
+  hasil("setelah batal kontrol dibuka kembali", !inputJumlah().disabled && !elAkun.querySelector('[role="progressbar"]'));
+
+  await mulaiJumlah(3);
+  await batalJumlah();
+  await selesaiJumlah();
+  hasil("batal saat menyiapkan engine tidak menulis hasil terlambat", !barisJumlah().length && !inputJumlah().disabled && teksAkun().includes(tID("analisa.antiCheat.riwayat.dibatalkan")));
+
+  isiJumlah("20");
+  await mulaiJumlah(20);
+  const rilisRunLama = rilisMesin;
+  await act(async () => renderJumlah("budi"));
+  hasil("ganti akun mengosongkan jumlah custom dan kembali ke 12", inputJumlah()?.value === "" && Boolean(tombolJumlah(12)));
+  await act(async () => rilisRunLama?.());
+  hasil("hasil run akun lama tidak menimpa akun baru", !barisJumlah().length && elAkun.querySelector('[data-uji="deteksi-akun"]').value === "budi" && !inputJumlah().disabled);
+  await tungguUi();
+  hasil("akun koleksi DB yang tidak ada di daftar lokal tetap dapat dipilih", Array.from(elAkun.querySelector('[data-uji="deteksi-akun"]').options).some((o) => o.value === "budi") && Array.from(elAkun.querySelector('[data-uji="deteksi-akun"]').options).some((o) => o.value === "akunarsip"));
+
+  await act(async () => renderJumlah("tanpaarsip"));
+  const siapkanSebelumKosong = siapkanDipanggil;
+  await mulaiJumlah(12);
+  await tungguUi();
+  hasil("filter/akun tanpa partai menampilkan keadaan kosong tanpa engine", siapkanDipanggil === siapkanSebelumKosong && teksAkun().includes(tID("analisa.antiCheat.riwayat.tanpaPartai")));
+  await act(async () => renderJumlah(username));
+  isiJumlah("1");
+  galatMesin = new Error("engine-uji-gagal");
+  await mulaiJumlah(1);
+  await tungguUi();
+  hasil("galat engine dilaporkan dan kontrol tidak terkunci", elAkun.querySelector('[role="alert"]')?.textContent.includes("engine-uji-gagal") && !inputJumlah().disabled);
+  galatMesin = null;
+  await mulaiJumlah(1);
+  await selesaiJumlah();
+  hasil("run dapat diulang setelah galat tanpa pesan lama", barisJumlah().length === 1 && !elAkun.querySelector('[role="alert"]'));
+  hasil("tidak ada kunci kamus mentah di layar khusus", !/analisa\.(antiCheat|kedalaman|nav)\.[a-zA-Z.]+/.test(teksAkun()));
+
+  await mulaiJumlah(1);
+  const rilisSetelahUnmount = rilisMesin;
+  act(() => rootJumlah.unmount());
+  await act(async () => rilisSetelahUnmount?.());
+  hasil("keluar layar menolak hasil run yang belum selesai", elAkun.childElementCount === 0);
+  simpanDaftarAkun(daftarAwal);
+  riwayat.bersihkanCacheAntiCheat();
+}
 
 /* ================= 9. kandidat MultiPV: unit + parsing EngineCatur ================= */
 

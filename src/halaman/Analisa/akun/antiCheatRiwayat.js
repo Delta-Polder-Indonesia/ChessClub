@@ -7,8 +7,9 @@
  *
  *  1. MEMBATASI KERJA — `parsePGN` menjalankan Stockfish sekali per langkah,
  *     jadi menganalisis seluruh arsip akun berarti ribuan pencarian. Yang
- *     dianalisis hanya `BATAS_PARTAI` partai terbaru tempat `username`
- *     benar-benar bermain, pada `KEDALAMAN_AGGREGAT` ply (lebih dangkal dari
+ *     dianalisis hanya sejumlah partai terbaru yang diminta (bawaan
+ *     `BATAS_PARTAI`) tempat `username` benar-benar bermain, pada
+ *     `KEDALAMAN_AGGREGAT` ply (lebih dangkal dari
  *     kedalaman analisis tunggal) — cukup untuk metrik statistik, jauh lebih
  *     cepat.
  *  2. CACHE per id partai + kedalaman + MultiPV (pola `cachePartai`):
@@ -31,8 +32,16 @@ import { GALAT_BATAL, MULTI_PV, parsePGN } from "../mesin/engine.js";
 import { cariNamaPembukaan } from "../mesin/buku.js";
 import { agregatSkorPemain, hitungSkorKecurigaan, ratingDariMetadata, warnaPemainDariMetadata } from "../mesin/antiCheat.js";
 
-/** Jumlah maksimum partai yang dianalisis dalam satu jalan. */
+/** Jumlah partai bawaan jika kolom jumlah dikosongkan. */
 export const BATAS_PARTAI = 12;
+
+/** Jumlah tidak sah tidak boleh berubah menjadi `limit: 0` (seluruh arsip). */
+export function batasPartaiDariInput(nilai) {
+  const isi = String(nilai ?? "").trim();
+  if (!isi) return BATAS_PARTAI;
+  const jumlah = Number(isi);
+  return Number.isSafeInteger(jumlah) && jumlah > 0 ? jumlah : null;
+}
 
 /**
  * Kedalaman untuk mode agregat. Analisis tunggal memakai 10–20 ply; di sini
@@ -160,12 +169,15 @@ export async function analisisRiwayatAntiCheat({
   username = "",
   mesin,
   kedalaman = KEDALAMAN_AGGREGAT,
+  batas = BATAS_PARTAI,
   sinyal = null,
   progres = null,
   parserPgn = parsePGN,
   cariBuku = cariNamaPembukaan,
 } = {}) {
-  const daftar = pilihPartaiUntukAnalisis(partai, username);
+  const batasPilihan = batasPartaiDariInput(batas);
+  if (batasPilihan === null) throw new RangeError("Jumlah partai harus berupa bilangan bulat positif.");
+  const daftar = pilihPartaiUntukAnalisis(partai, username, { batas: batasPilihan });
   const hasilPartai = [];
   const galat = [];
   let dariCache = 0;
