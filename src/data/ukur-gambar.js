@@ -85,6 +85,11 @@ export const UKUR = {
     1198,
     []
   ],
+  "/images/E-Books/cover-problem-catur-288.webp": [
+    1024,
+    1536,
+    []
+  ],
   "/images/E-Books/cover-rules-of-chess.webp": [
     1024,
     1536,
@@ -362,6 +367,36 @@ export const UKUR = {
     []
   ],
   "/images/tata-nilai.webp": [
+    1280,
+    714,
+    []
+  ],
+  "/images/tonggak-2015.webp": [
+    1280,
+    714,
+    []
+  ],
+  "/images/tonggak-2016.webp": [
+    1280,
+    714,
+    []
+  ],
+  "/images/tonggak-2018.webp": [
+    1024,
+    571,
+    []
+  ],
+  "/images/tonggak-2020.webp": [
+    1280,
+    714,
+    []
+  ],
+  "/images/tonggak-2022.webp": [
+    1280,
+    714,
+    []
+  ],
+  "/images/tonggak-2024.webp": [
     1280,
     714,
     []

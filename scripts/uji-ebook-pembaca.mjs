@@ -890,6 +890,15 @@ export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
         sampul.every((g) => String(g.getAttribute("src")).endsWith(".webp")),
         "sampul memakai berkas non-webp (akan 404 karena gambar() mengubah ekstensi)"
       );
+      // Tanpa width/height, browser tidak memesan ruang sebelum gambar lazy
+      // mendarat → kartu melompat (CLS). Ini pernah terjadi pada sampul yang
+      // namanya berakhiran angka ("...-288.webp") yang salah dianggap varian.
+      const tanpaUkuran = sampul.filter((g) => !g.getAttribute("width") || !g.getAttribute("height"));
+      benar(
+        tanpaUkuran.length === 0,
+        `${tanpaUkuran.length} sampul tanpa width/height (tata letak bergeser): ` +
+          tanpaUkuran.slice(0, 2).map((g) => g.getAttribute("src")).join(" | ")
+      );
       if (sampul[0]) {
         sampul[0].dispatchEvent(new window.Event("error"));
         await tunggu(20);

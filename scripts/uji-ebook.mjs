@@ -9,10 +9,19 @@
  *      Pointer LFS sah bila repo dikloning tanpa git-lfs — isi aslinya
  *      tersedia di checkout atau object storage sebelum build Vercel.
  *   3. Tidak ada berkas PDF yatim (di public/ebooks tapi tidak dirujuk).
+ *   3b. Struktur PDF asli tidak terpotong: ada penanda `%%EOF` dan tabel
+ *      silang `startxref` di ekor berkas. Berkas yang terpotong tetap diawali
+ *      `%PDF` sehingga lolos pemeriksaan buta huruf di atas, tetapi pdf.js
+ *      menolaknya di peramban.
  *   4. Sampul (COVER) benar-benar ada sebagai varian .webp — `gambar()` di
  *      src/lib/asets.js mengubah .jpg/.png menjadi .webp, jadi berkas yang
  *      hanya ada sebagai .jpg akan menghasilkan gambar rusak di katalog.
  *   5. Id di COVER selalu punya entri padanannya (tidak ada sampul liar).
+ *   6. `file:` tidak memakai escape URL yang MENGHALANGI penyajian statis
+ *      (mis. `%2C` untuk koma): server berkas menyerahkan permintaan seperti
+ *      itu ke index.html, jadi pembaca menerima HTML — bukan PDF — pada sumber
+ *      pertamanya dan harus jatuh ke proxy. Nama berkas yang mengandung koma
+ *      ditulis apa adanya (","), spasi sebagai "%20".
  *
  * Jalan offline; tidak perlu akses jaringan. Sertakan dalam `npm run uji`.
  */
@@ -74,9 +83,18 @@ for (const ref of entri) {
     masalah.push(`E-book dirujuk tapi berkas tidak ada: /ebooks/${nama}`);
     continue;
   }
-  const isi = readFileSync(jalur, "utf8");
+  const bita = readFileSync(jalur);
+  const isi = bita.toString("latin1");
   if (isi.startsWith("%PDF")) {
-    info.push(`  ✓ ${nama} — PDF asli (${isi.length} byte)`);
+    // Terpotong? Ekor PDF harus memuat penanda akhir + tabel silang.
+    const ekor = bita.subarray(Math.max(0, bita.length - 2048)).toString("latin1");
+    if (!ekor.includes("%%EOF")) {
+      masalah.push(`PDF terpotong (tanpa %%EOF): ${nama}`);
+    }
+    if (!ekor.includes("startxref")) {
+      masalah.push(`PDF tanpa tabel silang startxref: ${nama}`);
+    }
+    info.push(`  ✓ ${nama} — PDF asli (${bita.length} byte)`);
     continue;
   }
   const pointer = deskripsiPointer(isi);
@@ -123,6 +141,27 @@ if (!blokSampul) {
     }
   }
   info.push(`  ✓ ${pasangan.length} sampul diperiksa (.webp tersedia).`);
+}
+
+// 6) Escape URL yang membuat berkas statis tak bisa disajikan
+const ESCAPE_TERLARANG = [
+  ["%2C", ","],
+  ["%23", "#"],
+  ["%3F", "?"],
+  ["%26", "&"],
+  ["%25", "%"],
+  ["%2F", "/"],
+  ["%5C", "\\"],
+];
+for (const ref of entri) {
+  for (const [escape, harfiah] of ESCAPE_TERLARANG) {
+    if (ref.toUpperCase().includes(escape)) {
+      masalah.push(
+        `Nama berkas memakai escape ${escape} (${ref}): tulis "${harfiah}" apa adanya, ` +
+          "kalau tidak berkas statis gagal disajikan (pembaca menerima HTML)."
+      );
+    }
+  }
 }
 
 // ── Laporan ──────────────────────────────────────────────────────────────

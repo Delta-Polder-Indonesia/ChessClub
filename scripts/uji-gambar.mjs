@@ -13,13 +13,18 @@
  *   3. tidak ada berkas gambar > BATAS_KECIL di public/images yang belum
  *      punya varian responsif — kalau ada, jalankan skrip optimumkan;
  *   4. src/lib/asets.js bisa dijalankan dan srcset yang dihasilkannya
- *      menunjuk berkas yang sungguh ada.
+ *      menunjuk berkas yang sungguh ada;
+ *   5. setiap gambar sumber punya entri manifest UKUR — tanpa itu <img>-nya
+ *      tidak punya width/height (tata letak bergeser setelah gambar mendarat)
+ *      dan tidak pernah dapat srcset.
  */
 import { execFileSync } from "node:child_process";
 import {
+  apakahVarian,
   bangunRencana,
   berkasTarget,
   namaVarian,
+  semuaWebP,
 } from "./optimumkan-gambar.mjs";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
@@ -66,7 +71,7 @@ function webPAsli(dirRelatif) {
         hasil.push(n);
       continue;
     }
-    if (!/\.webp$/i.test(nama) || /-\d{2,4}\.webp$/i.test(nama)) continue;
+    if (!/\.webp$/i.test(nama) || apakahVarian(nama, dirRelatif)) continue;
     hasil.push(`${dirRelatif}/${nama}`);
   }
   return hasil;
@@ -155,10 +160,10 @@ async function periksaHelper(peta) {
   if (hero.src !== "/images/tonggak-2015.webp" || !ada(hero.src)) {
     hasil.push(salah(`hero menunjuk ${hero.src}, bukan berkas yang ada`));
   }
-  // Hero lama bernama dengan akhiran tahun (mis. tonggak-2015.webp) tidak
-  // masuk manifest karena akhiran itu dibedakan dari varian responsif.
-  // Ia tetap boleh menjadi <img> tunggal; hero baru yang tercatat manifest
-  // wajib meneruskan srcset + ukuran dari sumberGambar().
+  // Hero lama bernama dengan akhiran tahun (mis. tonggak-2015.webp) tetap
+  // dianggap gambar ASLI — bukan varian 640w — karena berkas dasarnya
+  // ("tonggak.webp") tidak ada. Ia kini terdaftar manifest seperti gambar
+  // lain, jadi sumberHero() wajib meneruskan srcset + ukuran.
   if (hero.srcSet && hero.sizes !== "100vw") {
     hasil.push(salah(`hero responsif harus memakai sizes=100vw, bukan ${hero.sizes}`));
   }
@@ -219,6 +224,22 @@ async function utama() {
   // (3) Gambar besar yang dipakai komponen wajib punya varian atau keputusan
   //     "dilewati". Yang di luar daftar TARGET skrip dibiarkan: tidak semua
   //     berkas di public/images tampil pada ukuran kecil.
+  // (3b) Invarian manifest: SETIAP gambar sumber wajib punya entri UKUR.
+  //     Tanpa entri, <img>-nya kehilangan width/height (tata letak bergeser
+  //     saat gambar selesai diunduh) dan tidak pernah dapat srcset. Ini kelas
+  //     bug yang pernah lolos: nama berkas sah berakhiran angka
+  //     ("cover-problem-catur-288.webp", "tonggak-2024.webp") diperlakukan
+  //     sebagai varian responsif lalu dilewati diam-diam. Nama seperti itu
+  //     tetap sah — asalkan berkas dasarnya tidak ada dan entri manifestnya
+  //     ada (lihat apakahVarian() di scripts/optimumkan-gambar.mjs).
+  for (const jalur of semuaWebP()) {
+    if (!peta.UKUR[`/${jalur}`]) {
+      galat.push(
+        `/${jalur} tidak terdaftar di manifest UKUR (tanpa width/height & srcset). ` +
+          "Jalankan: node scripts/optimumkan-gambar.mjs",
+      );
+    }
+  }
   const besarTanpaVarian = [];
   for (const jalur of webPAsli("images")) {
     const kunci = `/${jalur}`;
@@ -234,6 +255,22 @@ async function utama() {
       "gambar besar tanpa varian responsif:\n    " +
         besarTanpaVarian.join("\n    ") +
         "\n    jalankan: node scripts/optimumkan-gambar.mjs",
+    );
+  }
+
+  // (1) Sinkron dengan disk — pakai skrip pembuatnya supaya aturannya satu
+  //     sumber. Keluarannya diteruskan apa adanya, sedangkan kegagalannya
+  //     dicatat sebagai temuan uji ini (bukan tumpukan galat mentah).
+  try {
+    execFileSync(
+      process.execPath,
+      [path.join(AKAR, "scripts", "optimumkan-gambar.mjs"), "--cek"],
+      { stdio: "inherit" },
+    );
+  } catch {
+    galat.push(
+      "manifest src/data/ukur-gambar.js tidak selaras dengan isi public/images " +
+        "(lihat keluaran skrip optimumkan-gambar di atas)",
     );
   }
 
@@ -260,14 +297,6 @@ async function utama() {
     `OK — ${total} gambar responsif, ${kandidat} varian terdaftar di public/.`,
   );
 
-  // (1) Sinkron dengan disk — pakai skrip pembuatnya supaya aturannya satu sumber.
-  execFileSync(
-    process.execPath,
-    [path.join(AKAR, "scripts", "optimumkan-gambar.mjs"), "--cek"],
-    {
-      stdio: "inherit",
-    },
-  );
 }
 
 await utama();
