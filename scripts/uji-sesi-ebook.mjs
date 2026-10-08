@@ -74,7 +74,57 @@ function tiketTiruan({ kedaluwarsaDetik, acak = "acak-1" }) {
 const SEKARANG = 1_800_000_000_000; // ms — nilai tetap agar uji tidak bergantung waktu nyata
 const SEKARANG_DETIK = Math.floor(SEKARANG / 1000);
 
+/** Tiket dianggap layak bila sisa waktunya > 60 detik (lihat modul). */
+function sisaTiketLayak(tiket) {
+  const info = infoTiket(tiket);
+  return Boolean(info) && info.kedaluwarsa - SEKARANG_DETIK >= 60;
+}
+
 /* ------------------------------------------------------------------ kasus */
+
+console.log("\nSesi e-book · dekode tiket di browser");
+
+uji("infoTiket tetap membaca tiket TANPA Buffer (lingkungan browser)", () => {
+  // Token dibuat lebih dulu (pembuatnya boleh memakai Buffer), lalu Buffer
+  // "dihilangkan" seperti di browser: hanya atob + TextDecoder yang tersedia.
+  // Versi lama memakai Buffer.from(...) di dalam infoTiket, sehingga di
+  // browser SETIAP tiket dianggap tak dikenali — tiket sesi tidak pernah
+  // tersimpan dan pengguna selalu diminta memasukkan ulang kode akses.
+  const token = tiketTiruan({ kedaluwarsaDetik: SEKARANG_DETIK + 600 });
+  const simpanBuffer = globalThis.Buffer;
+  try {
+    // eslint-disable-next-line no-global-assign -- sengaja meniru browser
+    globalThis.Buffer = undefined;
+    const info = infoTiket(token);
+    assert.notEqual(info, null, "infoTiket mengembalikan null di lingkungan tanpa Buffer");
+    assert.equal(info?.kedaluwarsa, SEKARANG_DETIK + 600, "kedaluwarsa salah baca");
+    assert.equal(sisaTiketLayak(token), true, "tiket layak malah ditolak di lingkungan tanpa Buffer");
+  } finally {
+    globalThis.Buffer = simpanBuffer;
+  }
+});
+
+uji("tiket tersimpan & terbaca ulang di lingkungan tanpa Buffer", () => {
+  const token = tiketTiruan({ kedaluwarsaDetik: SEKARANG_DETIK + 600 });
+  const simpanBuffer = globalThis.Buffer;
+  const store = storageTiruan();
+  try {
+    // eslint-disable-next-line no-global-assign -- sengaja meniru browser
+    globalThis.Buffer = undefined;
+    assert.equal(
+      simpanTiketSesi({ file: "buku.pdf", tiket: token, store }),
+      true,
+      "simpanTiketSesi menolak tiket yang sah (Buffer hilang)"
+    );
+    assert.equal(
+      ambilTiketSesi({ file: "buku.pdf", store, sekarangMs: SEKARANG }),
+      token,
+      "tiket sesi tidak terbaca kembali"
+    );
+  } finally {
+    globalThis.Buffer = simpanBuffer;
+  }
+});
 
 console.log("\nSesi e-book · tiket per berkas");
 

@@ -454,7 +454,16 @@ uji("Baca bebas: pembaca dibuka tanpa gerbang kode", () => {
 uji("Unduh tetap lewat gerbang kode dan tiket redemption", () => {
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   const modal = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/ModalUnduhEbook.jsx"), "utf8");
-  benar(halaman.includes("padaUnduh={() => setUnduhan(buku)}"), "aksi Unduh belum membuka gerbang kode");
+  // Semua tombol Unduh lewat SATU jalur: `unduhDenganTiket` memakai tiket
+  // sesi bila masih sah, dan membuka gerbang kode bila tidak ada/ditolak.
+  benar(
+    halaman.includes("padaUnduh={() => unduhDenganTiket(buku)}"),
+    "aksi Unduh di kartu belum memakai jalur unduh bertiket"
+  );
+  benar(
+    /if \(!tiketLayak\) \{\s*setUnduhan\(buku\);/.test(halaman),
+    "tanpa tiket sesi, aksi Unduh harus membuka gerbang kode"
+  );
   benar(modal.includes("tebusUnduhanEbook("), "modal belum menebus kode di server");
   benar(halaman.includes("tiket: tiketLayak"), "tautan unduhan belum memakai tiket hasil redemption");
   benar(
@@ -468,10 +477,24 @@ uji("pembaca bisa melaporkan kegagalan (padaGagal) ke pemanggil", () => {
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   benar(pembaca.includes("padaGagal?.()"), "PembacaPdf belum memanggil padaGagal saat semua sumber gagal");
   // Membaca tidak memakai tiket: kegagalan pembaca tidak boleh menghapus
-  // tiket unduhan yang masih sah (dulu tiket dihapus di sini).
+  // tiket unduhan yang masih sah (dulu tiket dihapus di sini). Penghapusan
+  // tetap boleh ada di jalur lain — mis. saat server menolak tiket unduhan.
+  const blokGagal = halaman.slice(
+    halaman.indexOf("padaGagal={"),
+    halaman.indexOf("judul={pdfAktif.judul}")
+  );
+  benar(blokGagal.length > 0, "blok padaGagal tidak ditemukan");
   benar(
-    !halaman.includes("hapusTiketSesi("),
+    !blokGagal.includes("hapusTiketSesi"),
     "kegagalan pembaca tidak boleh membuang tiket unduhan yang masih sah"
+  );
+  benar(
+    /await fetch\([^)]*method: "HEAD"/.test(halaman),
+    "tautan unduh belum diverifikasi ke server sebelum berkas diambil"
+  );
+  benar(
+    halaman.includes("[401, 403].includes(jawaban.status)"),
+    "pemeriksaan HEAD harus hanya memblokir pada penolakan eksplisit (401/403)"
   );
   // Regresi yang paling mudah terjadi: mengubah `sumber` di dalam padaGagal
   // akan memicu efek pemuatan lagi (dependensi `daftarSumber`).
@@ -503,7 +526,10 @@ if (!ada("jsdom") || !ada("esbuild")) {
   const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import PembacaPdf from "./src/components/PembacaPdf.jsx";
+import EbookPanduan from "./src/halaman/ProgramKami/EbookPanduan.jsx";
 import { I18nProvider } from "./src/lib/i18n.jsx";
 
 export function mount(el, props) {
@@ -512,6 +538,46 @@ export function mount(el, props) {
     <I18nProvider>
       <PembacaPdf {...props} />
     </I18nProvider>
+  );
+  return root;
+}
+
+/** Pembungkus yang meniru halaman: array \`sumber\` BARU setiap render. */
+export function mountBungkus(el) {
+  const root = createRoot(el);
+  function Bungkus({ hitung }) {
+    return (
+      <I18nProvider>
+        <div data-hitung={hitung}>
+          {
+            // Literal array di JSX = identitas baru tiap render, persis pola
+            // \`sumber={sumberEbook(buku.file)}\` di halaman e-book.
+          }
+          <PembacaPdf sumber={["/api/ebook-preview?file=a.pdf"]} judul="Contoh" />
+        </div>
+      </I18nProvider>
+    );
+  }
+  return {
+    render(hitung) {
+      root.render(<Bungkus hitung={hitung} />);
+    },
+  };
+}
+
+/** Halaman E-Book & Panduan utuh, di dalam router + i18n seperti di situs. */
+export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
+  const root = createRoot(el);
+  root.render(
+    <HelmetProvider>
+      <I18nProvider>
+        <MemoryRouter initialEntries={[rute]}>
+          <Routes>
+            <Route path="/program-kami/ebook-panduan" element={<EbookPanduan />} />
+          </Routes>
+        </MemoryRouter>
+      </I18nProvider>
+    </HelmetProvider>
   );
   return root;
 }
@@ -533,6 +599,7 @@ export function mount(el, props) {
           contents: `
             export const GlobalWorkerOptions = { workerSrc: "" };
             export function getDocument(opsi) {
+              globalThis.__jumlahMuat = (globalThis.__jumlahMuat || 0) + 1;
               const tugas = { onProgress: null, destroy() {} };
               tugas.promise = globalThis.__pdfStub(opsi);
               return tugas;
@@ -603,6 +670,11 @@ export function mount(el, props) {
     "cancelAnimationFrame",
     "ResizeObserver",
     "getComputedStyle",
+    // Di browser `globalThis.sessionStorage` ITU SAMA dengan
+    // `window.sessionStorage`; tanpa menyalinnya, modul tiket sesi melihat
+    // penyimpanan kosong dan perilaku "tiket diingat" tak bisa diuji.
+    "sessionStorage",
+    "localStorage",
   ]) {
     if (!window[kunci]) continue;
     try {
@@ -621,7 +693,7 @@ export function mount(el, props) {
     galatAsli(...arg);
   };
 
-  const { mount } = require(berkasBundel);
+  const { mount, mountBungkus, mountHalaman } = require(berkasBundel);
 
   const tunggu = (ms = 30) => new Promise((r) => setTimeout(r, ms));
   const teks = () => window.document.getElementById("akar").textContent;
@@ -744,6 +816,209 @@ export function mount(el, props) {
       await tungguSampai(() => el503.textContent.includes("belum tersedia di server")),
       `pesan berkas belum tersedia tidak tampil: ${el503.textContent}`
     );
+  });
+
+  await ujiAsync("induk re-render tidak memuat ulang dokumen (tidak unduh 2×)", async () => {
+    globalThis.__pdfStub = async () => ({
+      numPages: 3,
+      destroy() {},
+      getPage: async () => ({
+        getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+        render: () => ({ promise: Promise.resolve(), cancel() {} }),
+      }),
+    });
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    const { render } = mountBungkus(el);
+    globalThis.__jumlahMuat = 0;
+    render(1);
+    benar(await tungguSampai(() => el.querySelector("canvas")), "kanvas tidak dirender");
+    const awal = globalThis.__jumlahMuat;
+
+    // Tiga render ulang induk, masing-masing dengan array sumber BARU.
+    for (const n of [2, 3, 4]) {
+      render(n);
+      await tunggu(40);
+    }
+    benar(
+      globalThis.__jumlahMuat === awal,
+      `dokumen dimuat ${globalThis.__jumlahMuat - awal}× lagi padahal sumbernya sama — ` +
+        "berkas besar akan terunduh berulang"
+    );
+  });
+
+  await ujiAsync("halaman e-book utuh: katalog, baca, dan unduh tanpa galat", async () => {
+    globalThis.__pdfStub = async () => ({
+      numPages: 12,
+      destroy() {},
+      getPage: async () => ({
+        getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+        render: () => ({ promise: Promise.resolve(), cancel() {} }),
+      }),
+    });
+
+    const galatJs = [];
+    const catat = (asli) => (...arg) => {
+      const teks = String(arg[0] || "");
+      // jsdom tidak bisa mengunduh berkas: klik <a download> memunculkan
+      // "Not implemented: navigation" — bukan galat aplikasi.
+      if (!teks.includes("not wrapped in act") && !teks.includes("Not implemented: navigation")) {
+        galatJs.push(teks);
+      }
+      asli(...arg);
+    };
+    const asliError = console.error;
+    const asliWarn = console.warn;
+    console.error = catat(asliError);
+    console.warn = catat(asliWarn);
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    try {
+      mountHalaman(el);
+
+      const kartu = await tungguSampai(() => el.querySelectorAll("article").length > 20);
+      benar(kartu, `kartu katalog tidak dirender: ${el.querySelectorAll("article").length}`);
+      const jumlahKartu = el.querySelectorAll("article").length;
+      benar(jumlahKartu === DAFTAR_EBOOK.length, `jumlah kartu ${jumlahKartu} ≠ ${DAFTAR_EBOOK.length}`);
+
+      // Sampul: setiap kartu punya gambar webp ATAU ikon PDF (tanpa <img> rusak).
+      const sampul = [...el.querySelectorAll("article img")];
+      benar(sampul.length > 0, "tidak ada satu pun sampul yang dirender");
+      benar(
+        sampul.every((g) => String(g.getAttribute("src")).endsWith(".webp")),
+        "sampul memakai berkas non-webp (akan 404 karena gambar() mengubah ekstensi)"
+      );
+      if (sampul[0]) {
+        sampul[0].dispatchEvent(new window.Event("error"));
+        await tunggu(20);
+        benar(
+          el.querySelectorAll("article").length === jumlahKartu,
+          "sampul yang gagal dimuat merusak daftar kartu"
+        );
+      }
+
+      // Klik tombol Baca (ikon mata) pada kartu pertama → pembaca terbuka.
+      const kartuPertama = el.querySelector("article");
+      const tombolBaca = [...kartuPertama.querySelectorAll("button")].find((b) =>
+        b.textContent.includes("Baca")
+      );
+      benar(tombolBaca, "tombol Baca tidak ditemukan di kartu");
+      tombolBaca.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("canvas")),
+        "pembaca PDF tidak terbuka setelah menekan Baca"
+      );
+      benar(
+        !el.textContent.includes("Unduh e-book"),
+        "menekan Baca seharusnya tidak membuka gerbang kode"
+      );
+
+      // Tutup pembaca, lalu tekan Unduh → gerbang kode muncul.
+      const tombolTutup = [...el.querySelectorAll("button")].find(
+        (b) => b.getAttribute("aria-label") === "Tutup"
+      );
+      benar(tombolTutup, "tombol tutup pembaca tidak ada");
+      tombolTutup.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+
+      const kartuUnduh = el.querySelector("article");
+      const tombolUnduh = [...kartuUnduh.querySelectorAll("button")].find((b) =>
+        b.textContent.includes("Unduh")
+      );
+      benar(tombolUnduh, "tombol Unduh tidak ditemukan di kartu");
+      tombolUnduh.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("#unduh-nama")),
+        "gerbang kode (modal unduh) tidak terbuka setelah menekan Unduh"
+      );
+
+      // Tutup gerbang kode supaya langkah berikutnya menguji kemunculannya
+      // kembali, bukan membiarkan modal lama menutupi kegagalan.
+      const tutupGerbang = [...el.querySelectorAll("button")].find(
+        (b) => b.getAttribute("aria-label") === "Tutup" && b.closest("#unduh-nama, [role='dialog']")
+      );
+      if (tutupGerbang) tutupGerbang.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => !el.querySelector("#unduh-nama")),
+        "gerbang kode tidak bisa ditutup"
+      );
+
+      // Tanam tiket sesi seperti hasil penebusan kode yang masih hidup.
+      const berkas = CONTOH.file;
+      const tiketPalsu = `kci-ebook-v1.${Buffer.from(
+        JSON.stringify({ v: 1, f: namaBerkasEbook(berkas), x: Math.floor(Date.now() / 1000) + 600, j: "uji" })
+      ).toString("base64url")}.tanda-tangan-uji`;
+      window.sessionStorage.setItem(
+        `kci-ebook-tiket:${berkas}`,
+        JSON.stringify({ tiket: tiketPalsu, file: berkas, disimpan: Date.now() })
+      );
+
+      // Kartu Unduh dengan tiket sesi yang SAH: berkas harus langsung diambil
+      // (tanpa mengetik ulang kode) — tiket hanya dipakai setelah server
+      // mengiyakan pemeriksaan HEAD. Pembaca TIDAK boleh ikut terbuka.
+      const fetchAsli = globalThis.fetch;
+      const dipanggil = [];
+      globalThis.fetch = async (url) => {
+        dipanggil.push(String(url));
+        return { ok: true, status: 200, json: async () => ({}) };
+      };
+      try {
+        const unduhKartu = [...el.querySelector("article").querySelectorAll("button")].find((b) =>
+          b.textContent.includes("Unduh")
+        );
+        unduhKartu.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        await tunggu(60);
+        benar(
+          dipanggil.some((u) => u.includes("unduh=1") && u.includes("tiket=")),
+          `tiket sesi tidak dipakai saat memeriksa unduhan: ${dipanggil.join(" | ")}`
+        );
+        benar(
+          !el.querySelector("#unduh-nama"),
+          "tiket sesi yang masih berlaku tidak boleh membuka gerbang kode"
+        );
+        benar(!el.querySelector("canvas"), "Unduh dari KARTU tidak boleh membuka pembaca PDF");
+      } finally {
+        globalThis.fetch = fetchAsli;
+      }
+
+      // Tombol Unduh di bilah pembaca: bila server MENOLAK tiket sesi (403),
+      // gerbang kode harus terbuka dan tiket mati itu dibuang — bukan
+      // mengunduh berkas JSON galat.
+      tombolBaca.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("canvas")),
+        "pembaca tidak terbuka saat tiket sesi tersimpan"
+      );
+
+      // Tombol Unduh di bilah pembaca dengan tiket yang DITOLAK server (403).
+      globalThis.fetch = async () => ({ ok: false, status: 403, json: async () => ({}) });
+      try {
+        const bilah = [...el.querySelectorAll("button")].find(
+          (b) => b.textContent.trim() === "Unduh" && b.closest(".fixed")
+        );
+        benar(bilah, "tombol Unduh di bilah pembaca tidak ditemukan");
+        bilah.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        benar(
+          await tungguSampai(() => el.querySelector("#unduh-nama")),
+          "tiket yang ditolak server tidak membuka gerbang kode"
+        );
+      } finally {
+        globalThis.fetch = fetchAsli;
+      }
+      benar(
+        window.sessionStorage.getItem(`kci-ebook-tiket:${berkas}`) === null,
+        "tiket yang ditolak server harus dibuang dari sesi"
+      );
+
+      benar(
+        galatJs.length === 0,
+        `halaman menulis galat ke konsol: ${galatJs.slice(0, 3).join(" | ")}`
+      );
+    } finally {
+      console.error = asliError;
+      console.warn = asliWarn;
+    }
   });
 }
 

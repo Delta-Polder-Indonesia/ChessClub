@@ -63,6 +63,19 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
     [sumber]
   );
 
+  /*
+   * Kunci SUMBER yang stabil antar-render.
+   *
+   * Pemanggil biasanya menulis `sumber={sumberEbook(buku.file)}` sehingga array
+   * itu BARU setiap render induk (mis. saat halaman menyimpan jumlah halaman
+   * atau status lain). Kalau efek pemuatan bergantung pada identitas array,
+   * setiap render induk membuang dokumen lama lalu MENGUNDUH ULANG berkasnya —
+   * untuk e-book 75 MB itu dua kali transfer dan kedipan layar. Karena itu
+   * efek hanya bergantung pada kunci teks ini; daftar URL-nya dibentuk ulang
+   * dari kunci tersebut.
+   */
+  const kunciSumber = daftarSumber.join("\u0000");
+
   const wadahRef = useRef(null);
   const kanvasRef = useRef(null);
   const dokumenRef = useRef(null);
@@ -81,6 +94,9 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
   useEffect(() => {
     let batal = false;
     let dokumenLokal = null;
+
+    // Daftar URL dibentuk dari kunci stabil (lihat kunciSumber di atas).
+    const daftar = kunciSumber ? kunciSumber.split("\u0000") : [];
 
     async function jalankan() {
       setStatus("memuat");
@@ -103,7 +119,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
       const galat = [];
       /** Status HTTP dari sumber terakhir yang gagal (pdf.js menyimpannya di `e.status`). */
       let statusHttp = 0;
-      for (const url of daftarSumber) {
+      for (const url of daftar) {
         if (batal) return;
         const tugas = pdfjs.getDocument({
           url,
@@ -153,7 +169,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
         if (galat.length) console.warn("[pembaca-pdf] semua sumber gagal:\n" + galat.join("\n"));
         // Pemanggil bisa memakai ini untuk menandai tiket unduhan yang sudah
         // kedaluwarsa (lihat EbookPanduan), TANPA menyentuh dokumen.id — kalau
-        // `daftarSumber` ikut berubah, efek pemuatan akan berjalan lagi dan
+        // kunci sumber ikut berubah, efek pemuatan akan berjalan lagi dan
         // percobaan ulang ini berputar tanpa akhir.
         padaGagal?.();
       }
@@ -183,9 +199,9 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
     };
     // `padaGagal` sengaja tidak masuk dependensi: ia hanya dipanggil setelah
     // seluruh sumber gagal, dan memantau identitasnya akan memicu pemuatan
-    // ulang setiap render induk.
+    // ulang setiap render induk. `padaSiap` biasanya `setState` yang stabil.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [daftarSumber, percobaan, padaSiap]);
+  }, [kunciSumber, percobaan, padaSiap]);
 
   /* --------------------------------------------- ukur lebar area baca ---- */
   useEffect(() => {

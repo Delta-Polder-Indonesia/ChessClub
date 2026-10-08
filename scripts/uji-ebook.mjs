@@ -9,6 +9,10 @@
  *      Pointer LFS sah bila repo dikloning tanpa git-lfs — isi aslinya
  *      tersedia di checkout atau object storage sebelum build Vercel.
  *   3. Tidak ada berkas PDF yatim (di public/ebooks tapi tidak dirujuk).
+ *   4. Sampul (COVER) benar-benar ada sebagai varian .webp — `gambar()` di
+ *      src/lib/asets.js mengubah .jpg/.png menjadi .webp, jadi berkas yang
+ *      hanya ada sebagai .jpg akan menghasilkan gambar rusak di katalog.
+ *   5. Id di COVER selalu punya entri padanannya (tidak ada sampul liar).
  *
  * Jalan offline; tidak perlu akses jaringan. Sertakan dalam `npm run uji`.
  */
@@ -100,6 +104,25 @@ for (const f of berkasDiDisk) {
   if (!dirujuk.has(f)) {
     masalah.push(`PDF yatim (tidak dirujuk ebook-data.js): ${f}`);
   }
+}
+
+// 4) Sampul: setiap COVER punya berkas .webp, dan id-nya selalu ada di entri
+const blokSampul = data.match(/export const COVER\s*=\s*\{([\s\S]*?)\n\};/);
+if (!blokSampul) {
+  masalah.push("Blok COVER tidak ditemukan di ebook-data.js.");
+} else {
+  const pasangan = [...blokSampul[1].matchAll(/"([^"]+)"\s*:\s*"([^"]+)"/g)];
+  const dirPublik = resolve(AKAR, "public");
+  const idEntri = new Set([...data.matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]));
+  for (const [, id, jalur] of pasangan) {
+    if (!idEntri.has(id)) masalah.push(`COVER punya id tanpa entri buku: ${id}`);
+    const relatif = namaDariEntri(jalur.replace(/^\//, ""));
+    const webp = resolve(dirPublik, relatif.replace(/\.(jpe?g|png)$/i, ".webp"));
+    if (!existsSync(webp)) {
+      masalah.push(`Sampul tidak ada sebagai .webp (akan 404): ${jalur}`);
+    }
+  }
+  info.push(`  ✓ ${pasangan.length} sampul diperiksa (.webp tersedia).`);
 }
 
 // ── Laporan ──────────────────────────────────────────────────────────────
