@@ -94,12 +94,14 @@ export class EngineCatur {
    * @param {{url?: string, hash?: number, threads?: number}} [opsi]
    *   `url`  — URL skrip worker engine (default: Stockfish 18 Lite lokal),
    *   `hash` — ukuran tabel hash dalam MB (naikkan untuk analisis partai),
-   *   `threads` — jumlah utas; build lokal di repo ini satu utas.
+   *   `threads` — jumlah utas; build lokal di repo ini satu utas,
+   *   `skill` — Skill Level Stockfish 0–20 (null = bawaan engine).
    */
-  constructor({ url = URL_ENGINE, hash = 16, threads = 1 } = {}) {
+  constructor({ url = URL_ENGINE, hash = 16, threads = 1, skill = null } = {}) {
     this.url = url;
     this.hash = hash;
     this.threads = threads;
+    this.skill = skill;
     this.worker = null;
     this.siap = false;
     this.janjiSiap = null;
@@ -148,6 +150,7 @@ export class EngineCatur {
       this.kirim("uci");
       this.kirim(`setoption name Hash value ${this.hash}`);
       this.kirim(`setoption name Threads value ${this.threads}`);
+      if (this.skill !== null) this.kirim(`setoption name Skill Level value ${this.skill}`);
       this.kirim("setoption name Ponder value false");
       // Tampilkan WDL (win/draw/loss permille) pada baris info. Dipakai fitur
       // anti-cheat untuk mengukur kehilangan peluang menang per langkah.

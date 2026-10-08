@@ -1,6 +1,6 @@
 ---
 name: kci-papan-interaktif
-description: Panduan halaman Papan Interaktif (/papan-interaktif) di src/halaman/PapanInteraktif/ sebagai workspace papan catur modular - Workspace.jsx dan sidebar tiga pilihan (Analisa, Manusia vs Mesin, Latihan Repertoar), modus/ManusiaVsMesin.jsx, modus/LatihanRepertoar.jsx beserta repertoarLogika.js dan repertoarStorage.js, Buku Pembukaan lama (PapanInteraktif.jsx, utilPapan.js), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
+description: Panduan halaman Papan Interaktif (/papan-interaktif) di src/halaman/PapanInteraktif/ sebagai workspace papan catur modular - Workspace.jsx dan sidebar empat pilihan (Analisa, Manusia vs Mesin, Latihan Repertoar, Pengaturan), modus/ManusiaVsMesin.jsx, modus/LatihanRepertoar.jsx beserta repertoarLogika.js dan repertoarStorage.js, Buku Pembukaan lama (PapanInteraktif.jsx, utilPapan.js), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
 metadata:
   project: chessclub-kci
   area: frontend
@@ -26,7 +26,8 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 
 | Kebutuhan | Berkas |
 | --- | --- |
-| Shell rute dan sidebar tiga pilihan | `src/halaman/PapanInteraktif/Workspace.jsx` |
+| Shell rute dan sidebar empat pilihan | `src/halaman/PapanInteraktif/Workspace.jsx` |
+| Pengaturan papan & engine (state hidup di Workspace) | `src/halaman/PapanInteraktif/LayarPengaturan.jsx`, `gunakanPengaturanPapan.js` |
 | Mode yang ada | `src/halaman/PapanInteraktif/modus/{ManusiaVsMesin,LatihanRepertoar}.jsx` |
 | Logika dan penyimpanan repertoar | `src/halaman/PapanInteraktif/modus/repertoarLogika.js`, `repertoarStorage.js` |
 | Buku pembukaan (mode lama) | `src/halaman/PapanInteraktif/PapanInteraktif.jsx` |
@@ -35,12 +36,13 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 
 ## Arah produk
 
-`/papan-interaktif` berkembang bertahap menjadi workspace papan catur modular. Untuk tahap ini, sidebar kiri dibatasi **tepat tiga pilihan**:
+`/papan-interaktif` berkembang bertahap menjadi workspace papan catur modular. Untuk tahap ini, sidebar kiri dibatasi **tepat empat pilihan**:
 1. **Analisa** — mode papan bebas/Opening Book lama; tampil langsung saat halaman dibuka, bukan pintasan ke Report Analisa.
 2. **Manusia vs Mesin** — mode bermain baru yang terpisah; gunakan engine lokal situs secara on-demand.
 3. **Latihan Repertoar** — latihan mengingat jalur pembukaan dengan pengulangan terjadwal, bukan bank soal taktik kedua.
+4. **Pengaturan** — layar pengaturan papan (set bidak, warna papan, suara, panah engine, bantuan langkah, tampilan basis data awan, komentator) dan engine analisa (mesin, kedalaman, threads, hash, MultiPV, skill level). Nilainya terhubung langsung ke Papan Interaktif dan tetap ada saat berpindah tab.
 
-Jangan menambahkan item sidebar lain dulu. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
+Jangan menambahkan item sidebar kelima tanpa permintaan terpisah. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
 
 Sebelum membangun tiap mode baru, bandingkan dengan halaman Report Analisa, Teka-teki, Teka-teki Rush, Database PGN, dan fitur yang sudah ada. Gunakan kembali bagian yang relevan tanpa menautkan sidebar Papan Interaktif ke fitur lain atau membuat salinannya. Daftar menu ini membatasi pilihan navigasi, bukan izin untuk mengimplementasikan semua perilaku mode sekaligus.
 
@@ -66,6 +68,8 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 ## Arsitektur
 
 - `Workspace.jsx` adalah shell rute: sidebar kiri dan satu mode aktif. `src/App.jsx` memuat shell ini secara lazy.
+- **State pengaturan hidup di `Workspace.jsx`** lewat `gunakanPengaturanPapan()` (`gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah tab. Nilainya diteruskan sebagai prop `pengaturan` ke `PapanInteraktif.jsx` dan `LayarPengaturan.jsx` (`{ nilai, ubah }`). Jangan kembali menyimpan pengaturan ini sebagai state lokal di tab.
+- Pengaturan engine diteruskan ke `gunakanEngineCatur(fen, opsi)` (`src/lib/gunakanEngineCatur.js`): `url`, `hash`, `threads`, `skill` membuat ulang worker; `kedalaman` dan `multiPv` dipakai per analisis. Suara dan komentator tetap tersimpan di localStorage (`gunakanSuara()`, `gunakanPreferensiKomentator()`).
 - `Analisa` memilih papan Opening Book di area kerja; Report Analisa (`/program-kami/analisa`) tetap terpisah di menu Program Kami.
 - `modus/ManusiaVsMesin.jsx` dan `modus/LatihanRepertoar.jsx` dipisahkan sebagai chunk lazy. Jangan render atau memuat worker mode lain saat pengguna berpindah.
 - `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; muat saat masuk ke halaman sebagai mode bawaan atau saat pengguna memilih **Jelajah Buku Pembukaan** dari Latihan Repertoar. Jangan pasang teks pengantar atau bilah kembali di atas papan.
@@ -97,7 +101,7 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 - Panel kanan: `analisa | books | explorer | games` (label ID/EN melalui `papan.*`).
 - `books`: daftar jalur/saran pembukaan; `explorer`: artikel pembukaan; `games`: statistik/kelanjutan buku atau basis data awan; `analisa`: panel posisi pembukaan yang sudah ada.
-- Sidebar kiri berisi tepat tiga mode internal: Analisa (papan Opening Book lama, langsung tampil), Manusia vs Mesin, dan Latihan Repertoar. Tombol Jelajah Buku Pembukaan di Repertoar kembali ke mode Analisa; tidak menambah item sidebar keempat atau tautan ke fitur lain.
+- Sidebar kiri berisi tepat empat mode internal: Analisa (papan Opening Book lama, langsung tampil), Manusia vs Mesin, Latihan Repertoar, dan Pengaturan. Tombol Jelajah Buku Pembukaan di Repertoar kembali ke mode Analisa; tidak menambah item sidebar kelima atau tautan ke fitur lain.
 - Pada laptop, papan dan panel tampil dalam satu layar tanpa scrollbar halaman/papan. Konten panjang pada tab panel kanan boleh digulir di dalam panel agar fiturnya tetap terjangkau.
 - Manusia vs Mesin mendukung pilihan warna, tingkat waktu Stockfish, partai baru, papan interaktif, dan riwayat langkah. Tidak menampilkan panah best-move saat pemain sedang bermain.
 - Latihan Repertoar mencari jalur dari buku CC0, membangun kartu hanya untuk warna yang dipilih, menilai lagi/sulit/baik/mudah, dan menyimpan jadwal lokal ke IndexedDB (dengan fallback browser).

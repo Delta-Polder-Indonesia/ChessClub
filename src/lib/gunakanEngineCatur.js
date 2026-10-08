@@ -5,7 +5,7 @@ import { EngineCatur } from "./engineCatur.js";
 const KUNCI_TAMPILAN_PANAH_MESIN = "chessclub.tampilanPanahMesin";
 
 /** Preferensi panah dibagi oleh Papan Interaktif dan Teka-Teki. */
-function bacaTampilanPanahMesin() {
+export function bacaTampilanPanahMesin() {
   try {
     return globalThis.localStorage?.getItem(KUNCI_TAMPILAN_PANAH_MESIN) !== "0";
   } catch {
@@ -100,13 +100,32 @@ export function susunHasilEngine(info, fen, giliran) {
  * dinyalakan dan dibuang sepenuhnya saat komponen dilepas.
  *
  * @param {string} fen posisi saat ini (boleh string kosong saat belum siap)
+ * @param {object} [opsi] pengaturan engine (semua opsional; kosong = bawaan):
+ *   `url`, `hash`, `threads`, `skill` — mengubah engine (worker dibuat ulang);
+ *   `kedalaman` (depth, null = tanpa batas kedalaman), `multiPv` — per analisis;
+ *   `tampilPanahMesin` + `setTampilPanahMesin` — preferensi panah dikendalikan
+ *   pemanggil (mis. Pengaturan Workspace), bila tidak ada dipakai state lokal.
  */
-export function gunakanEngineCatur(fen) {
+export function gunakanEngineCatur(fen, opsi = {}) {
+  const {
+    url,
+    hash,
+    threads,
+    skill,
+    kedalaman = null,
+    multiPv = 1,
+    tampilPanahMesin: panahKendali,
+    setTampilPanahMesin: setPanahKendali,
+  } = opsi;
   const [engineNyala, setEngineNyala] = useState(false);
   const [statusEngine, setStatusEngine] = useState("mati"); // mati | memuat | siap | gagal
   const [kecepatanEngine, setKecepatanEngine] = useState(800); // movetime (ms)
   const [hasilEngine, setHasilEngine] = useState(null);
-  const [tampilPanahMesin, setTampilPanahMesin] = useState(bacaTampilanPanahMesin);
+  const [panahLokal, setPanahLokal] = useState(bacaTampilanPanahMesin);
+  const tampilPanahMesin = panahKendali ?? panahLokal;
+  const setTampilPanahMesin = setPanahKendali ?? setPanahLokal;
+  // Identitas engine: bila berganti, worker lama dibuang dan worker baru dibuat.
+  const kunciEngine = `${url ?? ""}|${hash ?? ""}|${threads ?? ""}|${skill ?? ""}`;
 
   useEffect(() => {
     try {
@@ -130,6 +149,16 @@ export function gunakanEngineCatur(fen) {
   // tidak boleh dikira mewakili permintaan BARU untuk FEN yang sama.
   const requestIdRef = useRef(0);
 
+  // Ganti engine/hash/threads/skill, atau unmount → worker dibuang. Dideklarasikan
+  // SEBELUM efek analisis di bawah agar cleanup-nya jalan lebih dulu.
+  useEffect(
+    () => () => {
+      engineRef.current?.tamat();
+      engineRef.current = null;
+    },
+    [kunciEngine]
+  );
+
   useEffect(() => {
     const requestId = ++requestIdRef.current;
     if (!engineNyala || !fen) return undefined;
@@ -148,7 +177,7 @@ export function gunakanEngineCatur(fen) {
     }
 
     const giliran = fen.split(" ")[1] === "b" ? "b" : "w";
-    const engine = (engineRef.current ||= new EngineCatur());
+    const engine = (engineRef.current ||= new EngineCatur({ url, hash, threads, skill }));
 
     const minta = () => {
       // Posisi berganti → hapus panah lama agar tidak menyesatkan sebelum
@@ -156,6 +185,8 @@ export function gunakanEngineCatur(fen) {
       setHasilEngine(null);
       engine.analisis(fen, {
         movetime: kecepatanEngine,
+        kedalaman,
+        multiPv,
         padaInfo: (info) => {
           if (requestIdRef.current !== requestId) return;
           setHasilEngine(susunHasilEngine(info, fen, giliran));
@@ -183,16 +214,7 @@ export function gunakanEngineCatur(fen) {
       hidup = false;
       engine.setop();
     };
-  }, [engineNyala, fen, kecepatanEngine]);
-
-  // Worker dibuang sepenuhnya saat halaman ditutup.
-  useEffect(
-    () => () => {
-      engineRef.current?.tamat();
-      engineRef.current = null;
-    },
-    []
-  );
+  }, [engineNyala, fen, kecepatanEngine, kunciEngine, kedalaman, multiPv]);
 
   /** Apakah posisi saat ini sudah selesai (untuk pesan di panel engine). */
   const permainanSelesai = useMemo(() => {
