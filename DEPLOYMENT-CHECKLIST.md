@@ -54,8 +54,9 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
       dan `KCI_EBOOK_PRIVATE_BUCKET` di Vercel, lalu redeploy.
 - [ ] Jika memakai gateway lain, isi `KCI_EBOOK_PRIVATE_BASE` dan token server;
       jangan memakai URL bucket publik atau `EBOOK_BASE` di frontend.
-- [ ] `GET /ebooks/<nama>.pdf` tanpa tiket ditolak 403; preview dan unduhan
-      hanya berhasil setelah redemption.
+- [ ] Mode baca terbuka: `GET /ebooks/<nama>.pdf` mengembalikan PDF (200);
+      unduhan `?unduh=1` tanpa tiket ditolak 403 dan hanya berhasil setelah
+      redemption kode akses.
 - [ ] `npm run uji:ebook` dan `npm run uji:backend` lolos — termasuk konsistensi
       entri `ebook-data.js` ↔ berkas di `public/ebooks/` serta tiket e-book.
 

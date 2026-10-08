@@ -1,8 +1,10 @@
 /**
  * Sumber PDF e-book yang hanya boleh dibaca backend.
  *
- * Production tidak memakai public/ebooks, GitHub Media, atau EBOOK_BASE
- * frontend. Sumber yang didukung:
+ * Storage privat adalah sumber PRIORITAS untuk production (koleksi besar
+ * tidak perlu ikut setiap deploy). Bila belum dikonfigurasi, proxy tetap
+ * boleh memakai berkas statis hasil build / sumber cadangan — lihat
+ * api/ebook-preview.js. Sumber privat yang didukung:
  *   1. KCI_EBOOK_PRIVATE_BASE + KCI_EBOOK_PRIVATE_TOKEN (R2/S3/proxy lain)
  *   2. Supabase Storage bucket privat lewat service-role key.
  *

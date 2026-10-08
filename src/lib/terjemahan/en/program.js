@@ -275,6 +275,10 @@ export const pembacaPdf = {
     galatPustaka: "The PDF reader library failed to load. Check your connection and try again.",
     galatSumber:
       "The document could not be loaded from any source. Download the file or try again later.",
+    galatTiket:
+      "The server refused the file request (403). Reload this page; if it persists, contact the administrators.",
+    galatPenyimpanan:
+      "The PDF file is not available on the server yet. Contact the administrators so the file can be uploaded.",
     bukaTabBaru: "Open in a new tab",
     unduh: "Download PDF",
     halamanSebelumnya: "Previous page",

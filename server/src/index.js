@@ -118,6 +118,15 @@ if (!konfigurasi.pepper) {
   );
 }
 
+if (!process.env.KCI_JWT_SECRET) {
+  console.warn(
+    "[kci] KCI_JWT_SECRET belum diatur — memakai rahasia JWT pengembangan.\n" +
+      "      Nilainya tetap (bukan acak per proses) supaya tiket e-book yang\n" +
+      "      diterbitkan backend tetap sah di proses pratinjau Vite.\n" +
+      '      Untuk produksi: export KCI_JWT_SECRET="kalimat-acak-panjang"'
+  );
+}
+
 if (
   process.env.KCI_ADMIN_PASSWORD &&
   process.env.KCI_ADMIN_PASSWORD.trim() !== process.env.KCI_ADMIN_PASSWORD

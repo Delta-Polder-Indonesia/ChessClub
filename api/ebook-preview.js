@@ -1,17 +1,19 @@
 /**
  * Proxy pratinjau (dan unduhan) PDF e-book.
  *
- * Endpoint ini mewajibkan tiket redemption untuk preview maupun unduhan.
- * Production hanya memilih storage privat (Supabase authenticated object atau
- * gateway `KCI_EBOOK_PRIVATE_BASE`); mode lokal tetap boleh memakai checkout
- * atau sumber cadangan agar pengembangan tidak bergantung pada deployment.
- * Sumber PDF dicek lewat magic bytes `%PDF`, lalu disajikan dari origin situs
- * sendiri sebagai `inline` (atau `attachment` bila `?unduh=1`). Permintaan
- * `Range` diteruskan apa adanya supaya pembaca PDF dapat memuat per bagian.
+ * Model perpustakaan: MEMBACA bebas (pratinjau tanpa tiket) supaya pengunjung
+ * bisa menilai isi buku dulu; MENGUNDUH wajib tiket hasil tebus kode pengurus.
+ * Endpoint ini yang memilih sumber privat di server — lalu mengembalikannya
+ * dengan `Content-Disposition: inline` supaya browser MENAMPILKAN PDF (mode
+ * baca), atau `attachment` saat `?unduh=1` (wajib tiket).
  *
- * Contoh (tiket diterbitkan endpoint redemption, bukan dibuat browser):
- *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&tiket=<tiket>
+ * Contoh:
+ *   /api/ebook-preview?file=Problem%20Catur%20288.pdf            (baca)
  *   /api/ebook-preview?file=Problem%20Catur%20288.pdf&unduh=1&tiket=<tiket>
+ *
+ * Sumber PDF dicek lewat magic bytes `%PDF`, lalu disajikan dari origin situs
+ * sendiri. Permintaan `Range` diteruskan apa adanya supaya pembaca PDF dapat
+ * memuat per bagian.
  */
 import { Readable } from "node:stream";
 import {
@@ -72,9 +74,17 @@ async function pilihSumber(nama, asal) {
   const tersimpan = sumberTerpilih.get(nama);
   if (tersimpan) return tersimpan;
 
-  const kandidat = konfigurasi.produksi
-    ? sumberEbookPrivat(nama)
-    : sumberEbookServer(nama, { asal }).map((url) => ({ url, headers: {} }));
+  /*
+   * Urutan sumber: storage privat (bila produksi sudah dikonfigurasi) lebih
+   * dulu, lalu berkas statis hasil build dan sumber cadangan. Sejak membaca
+   * dibuka untuk umum, produksi HARUS tetap dapat melayani berkas statis —
+   * tanpa itu, situs yang belum mengunggah koleksi ke storage privat akan
+   * menjawab 503 dan pembaca kosong.
+   */
+  const kandidat = [
+    ...(konfigurasi.produksi ? sumberEbookPrivat(nama) : []),
+    ...sumberEbookServer(nama, { asal }).map((url) => ({ url, headers: {} })),
+  ];
   for (const item of kandidat) {
     // eslint-disable-next-line no-await-in-loop -- sengaja berurutan: sumber tercepat dulu.
     if (await berisiPdf(item)) {
@@ -103,19 +113,24 @@ export default async function handler(req, res) {
   const unduh = ["1", "true", "ya"].includes(String(req.query?.unduh || "").toLowerCase());
   const namaAman = nama.replace(/[\r\n\\"]/g, "_");
 
-  // Preview dan unduhan sama-sama dilindungi. Tanpa ini, siapa pun dapat
-  // melewati modal redemption dengan memanggil proxy langsung.
-  if (!periksaTiketUnduh(req.query?.tiket, nama)) {
-    res.status(403).json({ error: "Tiket akses tidak sah atau sudah kedaluwarsa." });
+  // Membaca bebas; mengunduh wajib tiket. Tanpa aturan ini, siapa pun dapat
+  // melewati modal redemption dengan memanggil proxy langsung pakai `unduh=1`
+  // lalu menyimpan seluruh koleksi.
+  const tiketSah = periksaTiketUnduh(req.query?.tiket, nama);
+  if (unduh && !tiketSah) {
+    res.status(403).json({ error: "Tiket akses unduhan tidak sah atau sudah kedaluwarsa." });
     return;
   }
 
   try {
     const sumber = await pilihSumber(nama, asalSitus(req));
     if (!sumber) {
+      // Semua kandidat gagal: berkas statis hasil build, storage privat, dan
+      // cadangan. Penyebab tersering di produksi: PDF belum ikut ter-deploy
+      // (atau isinya masih pointer Git LFS) DAN storage privat belum diisi.
       res.status(konfigurasi.produksi ? 503 : 502).json({
         error: konfigurasi.produksi
-          ? "Penyimpanan e-book privat belum dikonfigurasi."
+          ? "Berkas PDF tidak ditemukan di deployment maupun storage privat."
           : "Berkas PDF tidak tersedia di sumber lokal atau cadangan.",
       });
       return;
@@ -141,9 +156,10 @@ export default async function handler(req, res) {
       `${unduh ? "attachment" : "inline"}; filename="${namaAman}"`
     );
     res.setHeader("Accept-Ranges", "bytes");
-    // Tiket dikirim di query string; jangan biarkan CDN menyimpan PDF bertiket
-    // atau melayani ulang salinan setelah tiket kedaluwarsa.
-    res.setHeader("Cache-Control", "private, no-store");
+    // Mode baca: boleh di-cache browser (privat) supaya halaman berikutnya tidak
+    // mengunduh ulang berkas besar. Mode unduh memakai tiket, jadi tidak boleh
+    // disimpan: CDN tidak pernah melayani salinan PDF setelah tiket kedaluwarsa.
+    res.setHeader("Cache-Control", unduh ? "private, no-store" : "private, max-age=300");
     res.setHeader("X-Content-Type-Options", "nosniff");
 
     const panjang = hulu.headers.get("content-length");

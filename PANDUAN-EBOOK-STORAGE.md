@@ -49,13 +49,14 @@ storage privat belum dikonfigurasi.
    Lalu **Redeploy** di Vercel.
 
 4. **Cek**: buka halaman *Program Kami → E-Book & Panduan* → klik **Baca**.
-   Masukkan data redemption dan kode akses; PDF baru dibuka setelah tiket
-   berhasil diterbitkan. **Unduh** memakai tiket yang sama dan memaksa
-   `Content-Disposition: attachment`.
+   Pembaca PDF terbuka **tanpa kode** (mode baca bebas). **Unduh** wajib kode
+   akses pengurus: isi data redemption, lalu unduhan dipaksa
+   `Content-Disposition: attachment` memakai tiket hasil penebusan.
 
-5. **Cek penutupan akses**: permintaan langsung ke
-   `/ebooks/<nama>.pdf` tanpa `tiket` harus ditolak (403), baik di dev maupun
-   production.
+5. **Cek gerbang unduhan**: `?unduh=1` tanpa tiket harus ditolak (403), baik di
+   dev maupun production. Mode baca (`/ebooks/<nama>.pdf` dan
+   `/api/ebook-preview?file=<nama>`) sengaja terbuka supaya pengunjung bisa
+   menilai isi buku dulu.
 
 ## Bagaimana ini bekerja
 
@@ -64,12 +65,12 @@ storage privat belum dikonfigurasi.
 | `scripts/unggah-ebook.mjs` | Mengunggah `public/ebooks/*.pdf` ke bucket privat Supabase `ebooks-private`. |
 | `src/data/ebook-storage.js` | Konfigurasi legacy mode lokal; production tidak memakainya. |
 | `server/src/ebook-storage.js` | Membentuk kandidat storage privat custom atau Supabase authenticated object endpoint. |
-| `src/lib/asets.js` → `urlEbook()` | Selalu menunjuk proxy same-origin `/api/ebook-preview` dan membawa tiket. |
-| `src/lib/asets.js` → `sumberEbook()` | Hanya mengembalikan proxy bertiket; URL storage/GitHub tidak masuk bundle browser. |
-| `api/ebook-preview.js` | Memeriksa tiket, memilih storage privat di production, lalu menyajikan PDF `inline`/`attachment` dengan `Range`. |
-| `plugins/ebook-preview.js` | Menyediakan endpoint bertiket dan memblokir `/ebooks/*` saat `npm run dev` / `npm run preview`. |
-| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dipakai tombol **Baca** setelah redemption. |
-| `vercel.json` | Merutekan `/ebooks/*` ke endpoint bertiket dan memasang header `no-store`. |
+| `src/lib/asets.js` → `urlEbook()` | Menunjuk proxy same-origin `/api/ebook-preview`; `unduh: true` + `tiket` untuk unduhan. |
+| `src/lib/asets.js` → `sumberEbook()` | Sumber BACA: berkas statis `/ebooks/<nama>.pdf` dulu, lalu proxy tanpa tiket. URL storage/GitHub tidak masuk bundle browser. |
+| `api/ebook-preview.js` | Membaca bebas; `?unduh=1` wajib tiket. Memilih sumber di server (storage privat → berkas statis → cadangan) lalu menyajikan PDF `inline`/`attachment` dengan `Range`. |
+| `plugins/ebook-preview.js` | Endpoint yang sama saat `npm run dev` / `npm run preview`; `/ebooks/*` diteruskan ke berkas statis. |
+| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dibuka tombol **Baca** tanpa kode. |
+| `vercel.json` | Menyajikan `/ebooks/*` sebagai berkas statis (mode baca) dengan cache publik. |
 
 ## Kenapa tombol "Baca" tidak lagi mengunduh berkas
 
@@ -106,9 +107,27 @@ dan jangan menambahkan origin storage privat ke CSP browser.
 
 ## Mode lokal
 
-Mode dev/preview tetap boleh memakai PDF di `public/ebooks/` atau
-`EBOOK_BASE`, tetapi akses langsung `/ebooks/*` tetap diblokir middleware dan
-endpoint tetap meminta tiket. Production tidak memakai fallback tersebut.
+Mode dev/preview memakai PDF di `public/ebooks/` (berkas statis untuk mode
+baca) dan jatuh ke proxy bila berkas tidak ada. Production mencoba storage
+privat lebih dulu, lalu berkas statis hasil build — sehingga koleksi tetap
+bisa dibaca sebelum migrasi storage selesai.
+
+### Rahasia tiket harus sama di dua proses
+
+Tiket unduhan ditebus dan ditandatangani backend (port 8787), lalu
+**diverifikasi proses lain** yang melayani `/api/ebook-preview` (middleware Vite
+saat `npm run dev` / `npm run preview`). Bila `KCI_JWT_SECRET` tidak diisi,
+kedua proses otomatis memakai rahasia pengembangan yang sama, jadi alur
+`npm run dev` + backend langsung berfungsi.
+
+Kalau Anda mengisi `KCI_JWT_SECRET` (mis. untuk meniru produksi), isi di KEDUA
+proses. Bila hanya salah satu, unduhan dengan kode yang benar selalu ditolak
+403 — gejalanya: kode akses diterima di modal, tetapi berkasnya gagal diambil.
+
+```bash
+KCI_JWT_SECRET="kalimat-acak-panjang" npm run dev          # proses pratinjau
+KCI_JWT_SECRET="kalimat-acak-panjang" node server/src/index.js   # backend
+```
 
 ## Pilihan lain: keluar dari Git LFS (PDF disimpan biasa di repo)
 

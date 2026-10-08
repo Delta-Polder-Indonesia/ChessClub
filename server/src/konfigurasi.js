@@ -4,7 +4,6 @@
  * Semua nilai punya bawaan yang aman untuk pengembangan lokal, tetapi
  * beberapa WAJIB diisi di produksi (lihat `periksaProduksi`).
  */
-import crypto from "node:crypto";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -15,7 +14,21 @@ const AKAR = path.resolve(DIR, "../..");
 const DI_VERCEL = Boolean(process.env.VERCEL);
 const LINGKUNGAN = process.env.NODE_ENV || "development";
 const PRODUKSI = LINGKUNGAN === "production";
-const JWT_SECRET_PENGEMBANGAN = crypto.randomBytes(32).toString("hex");
+/**
+ * Rahasia JWT pengembangan. WAJIB berupa nilai TETAP, bukan acak per proses.
+ *
+ * Tiket unduhan e-book ditandatangani di proses yang melayani
+ * `/api/ebook/tebus` (backend Node) lalu diverifikasi di proses yang melayani
+ * `/api/ebook-preview` (middleware Vite saat `npm run dev` / `npm run preview`,
+ * `api/ebook-preview.js` saat Vercel). Bila rahasianya acak per proses, setiap
+ * unduhan dengan kode yang benar SELALU ditolak 403 oleh proxy — gejalanya:
+ * kode akses diterima di modal, tetapi berkasnya gagal diambil.
+ *
+ * Produksi tidak pernah memakai nilai ini: `jwtSecret` dikosongkan saat
+ * `NODE_ENV=production` sehingga `periksaProduksi()` menolak jalan tanpa
+ * KCI_JWT_SECRET (lihat juga peringatan di `server/src/index.js`).
+ */
+const JWT_SECRET_PENGEMBANGAN = "kci-jwt-pengembangan-jangan-dipakai-di-produksi";
 
 const angka = (v, bawaan) => {
   const n = Number(v);

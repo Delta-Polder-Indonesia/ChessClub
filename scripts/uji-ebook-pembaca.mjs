@@ -17,11 +17,12 @@
  *
  * Jalankan: node scripts/uji-ebook-pembaca.mjs
  */
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   cariEbookTerdaftar,
@@ -94,17 +95,17 @@ await build({
 
 const asets = require(berkasAsets);
 
-uji("pratinjau memakai proxy same-origin dan tiket", () => {
-  const tiket = "tiket-uji";
-  const url = asets.urlEbook(CONTOH.file, { tiket });
+uji("urlEbook memakai proxy same-origin", () => {
+  const url = asets.urlEbook(CONTOH.file);
   benar(url.startsWith("/api/ebook-preview?file="), `URL tidak same-origin: ${url}`);
-  benar(!/^https?:/i.test(url), "URL pratinjau tidak boleh lintas-origin");
+  benar(!/^https?:/i.test(url), "URL tidak boleh lintas-origin");
   const parsed = new URL(url, "https://contoh.id");
   benar(
     decodeURIComponent(parsed.searchParams.get("file")) === NAMA_CONTOH,
     "parameter file tidak sesuai nama berkas"
   );
-  benar(parsed.searchParams.get("tiket") === tiket, "tiket tidak ikut URL pratinjau");
+  benar(parsed.searchParams.get("tiket") === null, "membaca tidak lagi memakai tiket");
+  benar(parsed.searchParams.get("unduh") === null, "urlEbook tanpa opsi.unduh tidak boleh memaksa attachment");
 });
 
 uji("tombol unduh memaksa attachment lewat ?unduh=1 + tiket", () => {
@@ -114,13 +115,18 @@ uji("tombol unduh memaksa attachment lewat ?unduh=1 + tiket", () => {
   benar(new URL(url, "https://contoh.id").searchParams.get("tiket") === tiket, "tiket tidak ikut URL unduh");
 });
 
-uji("sumberEbook hanya mengembalikan proxy bertiket", () => {
-  const daftar = asets.sumberEbook(CONTOH.file, { tiket: "tiket-uji" });
-  benar(Array.isArray(daftar) && daftar.length === 1, "browser tidak boleh menerima fallback publik");
-  benar(daftar[0].startsWith("/api/ebook-preview"), "sumber harus proxy same-origin");
-  benar(new URL(daftar[0], "https://contoh.id").searchParams.get("tiket") === "tiket-uji", "tiket tidak ada");
-  benar(!daftar[0].includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
-  benar(!daftar[0].includes("/ebooks/"), "URL statis tidak boleh masuk bundle browser");
+uji("sumberEbook: berkas statis dulu, lalu proxy tanpa tiket", () => {
+  const daftar = asets.sumberEbook(CONTOH.file);
+  benar(Array.isArray(daftar) && daftar.length === 2, `jumlah sumber tak terduga: ${daftar.length}`);
+  benar(daftar[0] === CONTOH.file, `sumber pertama bukan berkas statis: ${daftar[0]}`);
+  benar(daftar[1].startsWith("/api/ebook-preview"), "cadangan harus proxy same-origin");
+  const parsed = new URL(daftar[1], "https://contoh.id");
+  benar(parsed.searchParams.get("tiket") === null, "membaca via proxy tidak boleh menuntut tiket");
+  benar(parsed.searchParams.get("unduh") === null, "membaca tidak boleh meminta attachment");
+  for (const url of daftar) {
+    benar(!url.includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
+    benar(!/^https?:/i.test(url), `sumber tidak same-origin: ${url}`);
+  }
 });
 
 /* ------------------------------------------------------- 3. allowlist ---- */
@@ -192,14 +198,18 @@ uji("/api/ebook-preview tidak tertelan rewrite catch-all", () => {
   benar(pola.test("/api/kesehatan"), "rute API lain harus tetap masuk catch-all");
 });
 
-uji("/ebooks/* dirutekan ke proxy dan tidak cache publik", () => {
+uji("/ebooks/* tetap berkas statis (mode baca) dan boleh di-cache", () => {
   const vercel = JSON.parse(readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
-  const rute = vercel.rewrites.find((r) => r.source === "/ebooks/:path*");
-  benar(rute?.destination === "/api/ebook-preview?file=:path*", "rute /ebooks/* belum masuk proxy");
+  // Pembaca memuat berkas statis `/ebooks/<nama>.pdf`; kalau rute ini di-rewrite
+  // ke API, sumber pertama pembaca mati dan pembaca jatuh ke jalur proxy terus.
+  const rute = vercel.rewrites.find((r) => String(r.source).startsWith("/ebooks/"));
+  benar(!rute, `rewrite /ebooks/* menghalangi mode baca: ${JSON.stringify(rute)}`);
   const header = vercel.headers.find((item) => item.source === "/ebooks/(.*)");
   benar(
-    header?.headers?.some((item) => item.key === "Cache-Control" && item.value === "no-store"),
-    "PDF /ebooks/* tidak boleh memiliki cache publik"
+    header?.headers?.some(
+      (item) => item.key === "Cache-Control" && item.value.startsWith("public")
+    ),
+    "PDF mode baca sebaiknya boleh di-cache (berkas besar, dibaca berulang)"
   );
 });
 
@@ -215,7 +225,7 @@ uji("CSP mengizinkan sumber cadangan PDF", () => {
   }
 });
 
-await ujiAsync("middleware lokal memblokir PDF statis langsung", async () => {
+await ujiAsync("middleware lokal meneruskan /ebooks/* (berkas statis untuk mode baca)", async () => {
   let middleware;
   pratinjauEbook({ akar: ROOT }).configureServer({
     middlewares: {
@@ -224,27 +234,77 @@ await ujiAsync("middleware lokal memblokir PDF statis langsung", async () => {
       },
     },
   });
-  const selesai = new Promise((resolve) => {
+  const diteruskan = await new Promise((resolve) => {
     const res = {
       statusCode: 200,
       headers: {},
-      setHeader(nama, nilai) {
-        this.headers[nama.toLowerCase()] = String(nilai);
-      },
-      end(badan = "") {
-        this.badan = String(badan);
-        resolve(this);
+      setHeader() {},
+      end() {
+        resolve(false);
       },
     };
     middleware({ method: "GET", url: `/ebooks/${encodeURIComponent(NAMA_CONTOH)}` }, res, () => {
-      throw new Error("akses /ebooks/* diteruskan ke Vite");
+      resolve(true);
     });
   });
-  const res = await selesai;
-  benar(res.statusCode === 403, `akses statis langsung harus 403, dapat ${res.statusCode}`);
+  benar(diteruskan, "berkas statis /ebooks/* harus dilayani Vite, bukan ditahan middleware");
 });
 
-/* ------------------------------------------- 4b. proxy /api/ebook-preview */
+/* -------------------------- 4b. rahasia tiket lintas proses (dev/preview) */
+
+console.log("Rahasia tiket lintas proses (mode pengembangan):");
+
+const TIKET_EBOOK_URL = pathToFileURL(
+  path.join(ROOT, "server/src/tiket-ebook.js")
+).href;
+
+/**
+ * Jalankan skrip di proses Node TERPISAH tanpa `KCI_JWT_SECRET`.
+ *
+ * Inilah bentuk asli `npm run dev`: backend (8787) menerbitkan tiket, lalu
+ * middleware Vite (5173) memverifikasinya di PROSES YANG BERBEDA. Bila rahasia
+ * pengembangan diacak per proses, setiap tiket yang sah ditolak 403 dan tombol
+ * mata hanya menampilkan "Gagal memuat dokumen PDF" walau kode aksesnya benar.
+ */
+function prosesNode(skrip, tambahanEnv = {}) {
+  const env = { ...process.env, ...tambahanEnv };
+  // Rahasia dari shell induk tidak boleh "menyelamatkan" uji ini: yang diuji
+  // adalah bawaan pengembangan yang dipakai saat nilainya tidak diisi.
+  delete env.KCI_JWT_SECRET;
+  const anak = spawnSync(
+    process.execPath,
+    ["--input-type=module", "-e", skrip],
+    { cwd: ROOT, env, encoding: "utf8" }
+  );
+  if (anak.status !== 0) {
+    throw new Error(
+      `proses anak keluar dengan kode ${anak.status}: ${(anak.stderr || anak.stdout || "").trim()}`
+    );
+  }
+  return anak.stdout.trim();
+}
+
+uji("tiket dari proses lain tetap sah di verifikator", () => {
+  const tiket = prosesNode(
+    `import { terbitkanTiketUnduh } from ${JSON.stringify(TIKET_EBOOK_URL)};
+     process.stdout.write(terbitkanTiketUnduh(process.env.KCI_UJI_NAMA));`,
+    { KCI_UJI_NAMA: NAMA_CONTOH }
+  );
+  benar(tiket.startsWith("kci-ebook-v1."), `bentuk tiket tidak dikenal: ${tiket.slice(0, 30)}`);
+
+  const hasil = prosesNode(
+    `import { periksaTiketUnduh } from ${JSON.stringify(TIKET_EBOOK_URL)};
+     const sah = periksaTiketUnduh(process.env.KCI_UJI_TIKET, process.env.KCI_UJI_NAMA);
+     process.stdout.write(sah ? "sah" : "tidak");`,
+    { KCI_UJI_TIKET: tiket, KCI_UJI_NAMA: NAMA_CONTOH }
+  );
+  benar(
+    hasil === "sah",
+    `tiket yang diterbitkan proses lain ditolak (${hasil}) — rahasia JWT pengembangan harus sama antar proses`
+  );
+});
+
+/* ------------------------------------------- 4c. proxy /api/ebook-preview */
 
 console.log("Proxy pratinjau (api/ebook-preview.js):");
 
@@ -324,7 +384,10 @@ await ujiAsync("melewati pointer Git LFS dan memakai isi PDF asli", async () => 
   );
   benar(res.statusCode === 200, `status tidak 200: ${res.statusCode} ${JSON.stringify(res.badanJson || "")}`);
   benar(res.getHeader("content-type") === "application/pdf", "Content-Type bukan PDF");
-  benar(res.getHeader("cache-control") === "private, no-store", "PDF bertiket tidak boleh di-cache publik");
+  benar(
+    res.getHeader("cache-control") === "private, max-age=300",
+    `pratinjau mode baca boleh di-cache privat, dapat: ${res.getHeader("cache-control")}`
+  );
   benar(
     (res.getHeader("content-disposition") || "").startsWith("inline"),
     `harus inline agar tidak terunduh: ${res.getHeader("content-disposition")}`
@@ -332,9 +395,13 @@ await ujiAsync("melewati pointer Git LFS dan memakai isi PDF asli", async () => 
   benar(res.badan.subarray(0, 4).toString() === "%PDF", "badan respons bukan PDF");
 });
 
-await ujiAsync("preview tanpa tiket ditolak 403", async () => {
+await ujiAsync("membaca tanpa tiket tetap dilayani (inline)", async () => {
   const res = await panggilPratinjau({ file: CONTOH.file }, { [LFS]: "%PDF-1.7 x" });
-  benar(res.statusCode === 403, `preview tanpa tiket harus 403, dapat ${res.statusCode}`);
+  benar(res.statusCode === 200, `preview tanpa tiket harus 200, dapat ${res.statusCode}`);
+  benar(
+    (res.getHeader("content-disposition") || "").startsWith("inline"),
+    "preview harus inline supaya tampil di pembaca"
+  );
 });
 
 await ujiAsync("?unduh=1 tanpa tiket ditolak 403", async () => {
@@ -369,22 +436,42 @@ await ujiAsync("semua sumber mati → 502 dengan pesan yang jelas", async () => 
 
 /* ----------------------------------------------- 5. alur redemption UI -- */
 
-uji("Baca menebus tiket sebelum membuka pembaca", () => {
+uji("Baca bebas: pembaca dibuka tanpa gerbang kode", () => {
+  const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
+  const pembaca = halaman.slice(
+    halaman.indexOf("padaBaca={()"),
+    halaman.indexOf("padaUnduh={")
+  );
+  benar(pembaca.includes("setPdfAktif({"), "aksi Baca belum membuka pembaca");
+  benar(!pembaca.includes("setUnduhan("), "aksi Baca tidak boleh lagi membuka gerbang kode");
+  benar(!pembaca.includes("tujuanAkses"), "aksi Baca masih memakai alur redemption lama");
+  benar(
+    halaman.includes("sumber={sumberEbook(pdfAktif.file)}"),
+    "pembaca belum memakai sumber baca tanpa tiket"
+  );
+});
+
+uji("Unduh tetap lewat gerbang kode dan tiket redemption", () => {
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   const modal = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/ModalUnduhEbook.jsx"), "utf8");
-  benar(halaman.includes('setUnduhan({ ...buku, tujuanAkses: "baca" })'), "aksi Baca belum membuka gerbang redemption");
-  benar(halaman.includes("tiketUnduh: catatan.tiketUnduh"), "tiket redemption belum diteruskan ke pembaca");
-  benar(modal.includes('buku.tujuanAkses === "baca"'), "modal belum membedakan tujuan Baca");
-  benar(modal.includes("onTebusSukses?.(catatan)"), "callback tiket ke pembaca belum dipanggil");
+  benar(halaman.includes("padaUnduh={() => setUnduhan(buku)}"), "aksi Unduh belum membuka gerbang kode");
+  benar(modal.includes("tebusUnduhanEbook("), "modal belum menebus kode di server");
+  benar(halaman.includes("tiket: tiketLayak"), "tautan unduhan belum memakai tiket hasil redemption");
+  benar(
+    /urlUnduh=\{\s*pdfAktif\.tiketUnduh/.test(halaman),
+    "tautan unduh pembaca harus kosong bila tiket unduhan tidak ada"
+  );
 });
 
 uji("pembaca bisa melaporkan kegagalan (padaGagal) ke pemanggil", () => {
   const pembaca = readFileSync(path.join(ROOT, "src/components/PembacaPdf.jsx"), "utf8");
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   benar(pembaca.includes("padaGagal?.()"), "PembacaPdf belum memanggil padaGagal saat semua sumber gagal");
+  // Membaca tidak memakai tiket: kegagalan pembaca tidak boleh menghapus
+  // tiket unduhan yang masih sah (dulu tiket dihapus di sini).
   benar(
-    halaman.includes("hapusTiketSesi({ file: pdfAktif.file })"),
-    "halaman belum membuang tiket sesi yang ditolak server"
+    !halaman.includes("hapusTiketSesi("),
+    "kegagalan pembaca tidak boleh membuang tiket unduhan yang masih sah"
   );
   // Regresi yang paling mudah terjadi: mengubah `sumber` di dalam padaGagal
   // akan memicu efek pemuatan lagi (dependensi `daftarSumber`).
@@ -630,6 +717,33 @@ export function mount(el, props) {
       `pemuatan berulang tanpa henti: ${jumlahPercobaan} percobaan (harus 2, satu per sumber)`
     );
     benar(jumlahGagal === 1, `padaGagal berulang: ${jumlahGagal}×`);
+  });
+
+  await ujiAsync("403 / 503 → pesan sebabnya, bukan 'dokumen rusak'", async () => {
+    const pasang = (status) => {
+      globalThis.__pdfStub = async () => {
+        // Bentuk galat pdf.js saat respons non-2xx.
+        const galat = new Error(`Unexpected server response (${status}) while retrieving PDF`);
+        galat.status = status;
+        throw galat;
+      };
+      const el = window.document.createElement("div");
+      window.document.body.appendChild(el);
+      mount(el, { sumber: ["/api/ebook-preview?file=a.pdf"], judul: "Contoh" });
+      return el;
+    };
+
+    const el403 = pasang(403);
+    benar(
+      await tungguSampai(() => el403.textContent.includes("403")),
+      `pesan penolakan 403 tidak tampil: ${el403.textContent}`
+    );
+
+    const el503 = pasang(503);
+    benar(
+      await tungguSampai(() => el503.textContent.includes("belum tersedia di server")),
+      `pesan berkas belum tersedia tidak tampil: ${el503.textContent}`
+    );
   });
 }
 

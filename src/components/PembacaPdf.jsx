@@ -12,8 +12,9 @@ import { useI18n } from "../lib/i18n.jsx";
  * "Baca" benar-benar membaca di tempat — di ponsel maupun desktop.
  *
  * Komponen ini juga tahan sumber-mati: `sumber` boleh berisi beberapa URL
- * (proxy same-origin, berkas statis, object storage, GitHub Media) dan akan
- * dicoba berurutan sampai ada yang berhasil dimuat.
+ * (berkas statis `/ebooks/…` lalu proxy same-origin) dan akan dicoba berurutan
+ * sampai ada yang berhasil dimuat. Mode baca tidak memakai tiket; yang
+ * bergerbang kode adalah unduhan (`urlUnduh`).
  */
 
 /** Muat pustaka pdf.js sekali saja, hanya ketika pembaca dibuka. */
@@ -100,6 +101,8 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
       }
 
       const galat = [];
+      /** Status HTTP dari sumber terakhir yang gagal (pdf.js menyimpannya di `e.status`). */
+      let statusHttp = 0;
       for (const url of daftarSumber) {
         if (batal) return;
         const tugas = pdfjs.getDocument({
@@ -126,6 +129,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
           return;
         } catch (e) {
           galat.push(`${url}: ${e?.message || e}`);
+          statusHttp = Number(e?.status) || statusHttp;
           try {
             tugas.destroy();
           } catch {
@@ -136,9 +140,18 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
 
       if (!batal) {
         setStatus("galat");
-        setPesan(t("pembacaPdf.galatSumber"));
+        // 403 = server menolak berkasnya, 503 = berkas belum ada di server
+        // (mode baca tidak memakai tiket). Keduanya sering disalahartikan
+        // sebagai "PDF rusak", jadi sebabnya disebut apa adanya di sini.
+        setPesan(
+          statusHttp === 403
+            ? t("pembacaPdf.galatTiket")
+            : statusHttp === 503
+              ? t("pembacaPdf.galatPenyimpanan")
+              : t("pembacaPdf.galatSumber")
+        );
         if (galat.length) console.warn("[pembaca-pdf] semua sumber gagal:\n" + galat.join("\n"));
-        // Pemanggil memakai ini untuk membuang tiket sesi yang mungkin sudah
+        // Pemanggil bisa memakai ini untuk menandai tiket unduhan yang sudah
         // kedaluwarsa (lihat EbookPanduan), TANPA menyentuh dokumen.id — kalau
         // `daftarSumber` ikut berubah, efek pemuatan akan berjalan lagi dan
         // percobaan ulang ini berputar tanpa akhir.
