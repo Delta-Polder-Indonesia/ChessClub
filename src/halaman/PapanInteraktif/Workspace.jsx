@@ -1,6 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import IkonTab from "./IkonTab.jsx";
+import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
 
 const ManusiaVsMesin = lazy(() => import("./modus/ManusiaVsMesin.jsx"));
 const LatihanRepertoar = lazy(() => import("./modus/LatihanRepertoar.jsx"));
@@ -20,6 +21,9 @@ function KerangkaMode() {
 export default function WorkspacePapanInteraktif() {
   const { t } = useI18n();
   const [mode, setMode] = useState("papan");
+  // State pengaturan hidup di sini (bukan di tab) agar tidak hilang saat
+  // berpindah tab; diteruskan ke Papan Interaktif dan layar Pengaturan.
+  const pengaturan = gunakanPengaturanPapan();
 
   useEffect(() => {
     document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;
@@ -102,9 +106,13 @@ export default function WorkspacePapanInteraktif() {
           ) : mode === "repertoar" ? (
             <LatihanRepertoar onJelajahBuku={() => pilihMode("papan")} />
           ) : mode === "pengaturan" ? (
-            <LayarPengaturan />
+            <LayarPengaturan pengaturan={pengaturan} />
           ) : (
-            <PapanBuku tertanam onBukaPengaturan={() => pilihMode("pengaturan")} />
+            <PapanBuku
+              tertanam
+              pengaturan={pengaturan}
+              onBukaPengaturan={() => pilihMode("pengaturan")}
+            />
           )}
         </Suspense>
       </main>

@@ -11,14 +11,14 @@ import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
  * @param {object} p
  * @param {string} p.t                 fungsi terjemahan
  * @param {string} p.bidak             id set bidak yang sedang aktif
- * @param {(id: string) => void} p.setSetBidak  ganti set bidak
+ * @param {(id: string) => void} p.setBidak  ganti set bidak
  * @param {object} p.kartuKomentator   properti yang diteruskan apa adanya ke
  *        <KartuKomentator> (nyala, setNyala, gaya, setGaya, t)
  */
 export function IsiPengaturanPapan({
   t,
   bidak,
-  setSetBidak,
+  setBidak,
   suaraNyala,
   setSuaraNyala,
   tampilPanahMesin,
@@ -43,7 +43,7 @@ export function IsiPengaturanPapan({
             id={idSetBidak}
             data-autofokus
             value={bidak}
-            onChange={(e) => setSetBidak(e.target.value)}
+            onChange={(e) => setBidak(e.target.value)}
             className="w-full rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
           >
             {DAFTAR_SET.map((s) => (
@@ -127,7 +127,7 @@ export function IsiPengaturanPapan({
  * @param {object} p
  * @param {() => void} p.onTutup                 tutup popup
  * @param {string} p.bidak                       id set bidak yang sedang aktif
- * @param {(id: string) => void} p.setSetBidak   ganti set bidak
+ * @param {(id: string) => void} p.setBidak   ganti set bidak
  * @param {object} p.kartuKomentator properti yang diteruskan apa adanya ke
  *        <KartuKomentator> (nyala, setNyala, gaya, setGaya, t)
  */

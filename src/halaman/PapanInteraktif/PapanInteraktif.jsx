@@ -59,6 +59,8 @@ import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
 import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
 import PopupPengaturan from "./PopupPengaturan.jsx";
+import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { cariEngine } from "../../lib/engineCatur.js";
 
 /* ------------------------------------------------- analisis Stockfish */
 // Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
@@ -74,8 +76,17 @@ function Kerangka() {
   );
 }
 
-export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null } = {}) {
+export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null, pengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
+  // Pengaturan dari Workspace (hidup lintas tab). Bila tidak diberikan,
+  // pakai state lokal agar komponen tetap berdiri sendiri.
+  const pengaturanLokal = gunakanPengaturanPapan();
+  const { nilai: pp, ubah: ubahPengaturan } = pengaturan ?? pengaturanLokal;
+  const setBidakPapan = useCallback((v) => ubahPengaturan("bidak", v), [ubahPengaturan]);
+  const setWarnaPapan = useCallback((v) => ubahPengaturan("warnaPapan", v), [ubahPengaturan]);
+  const setAwanTampilanPenuh = useCallback((v) => ubahPengaturan("awanTampilanPenuh", v), [ubahPengaturan]);
+  const setBantuanNyala = useCallback((v) => ubahPengaturan("bantuanNyala", v), [ubahPengaturan]);
+  const setTampilPanahMesinPapan = useCallback((v) => ubahPengaturan("tampilPanahMesin", v), [ubahPengaturan]);
 
   const [pohon, setPohon] = useState(null);
   const [mode, setMode] = useState("koordinat"); // "koordinat" | "san"
@@ -102,8 +113,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
   const [tanda, setTanda] = useState({ panah: [], petak: {} });
-  const [setBidak, setSetBidak] = useState("alpha");
-  const [warnaPapan, setWarnaPapan] = useState("metal");
+  // Set bidak & warna papan kini dari Pengaturan (Workspace).
+  const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const [fenTersalin, setFenTersalin] = useState(false);
@@ -133,11 +144,12 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   // "langkah terbaik"). Dimatikan → panel kembali ringkas 1 langkah. Sengaja
   // TIDAK disimpan di localStorage: begitu pengguna keluar dari papan
   // interaktif, nilainya kembali ke bawaan.
-  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(true);
+  const awanTampilanPenuh = pp.awanTampilanPenuh;
   // Bantuan langkah saat menyeret (assisted play): petak tujuan diwarnai
   // hijau/kuning/merah + panah balasan lawan. Bawaannya MATI — ini alat
   // latihan, bukan analisa otomatis; dinyalakan dari Pengaturan Papan.
-  const [bantuanNyala, setBantuanNyala] = useState(false);
+  const bantuanNyala = pp.bantuanNyala;
+  const warnaPapan = pp.warnaPapan;
   // Tombol "Coba lagi": penghitung memicu ulang efek kueri, ref sekali-pakai
   // meminta kueri berikutnya melewati cache kegagalan klien (30 detik).
   const [awanUlang, setAwanUlang] = useState(0);
@@ -147,7 +159,21 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [artikelPembukaan, setArtikelPembukaan] = useState(null);
   const batalArtikelRef = useRef(null);
 
-  // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan).
+  // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan). Pengaturan
+  // Engine (Workspace) diteruskan ke sini: mesin, hash, threads, depth, MultiPV, skill.
+  const opsiEngine = useMemo(
+    () => ({
+      url: cariEngine(pp.mesin).url,
+      hash: pp.hashMb,
+      threads: pp.threads,
+      skill: pp.skillLevel,
+      kedalaman: pp.kedalaman,
+      multiPv: pp.multipv,
+      tampilPanahMesin: pp.tampilPanahMesin,
+      setTampilPanahMesin: setTampilPanahMesinPapan,
+    }),
+    [pp, setTampilPanahMesinPapan]
+  );
   const {
     engineNyala,
     statusEngine,
@@ -160,7 +186,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
-  } = gunakanEngineCatur(fen);
+  } = gunakanEngineCatur(fen, opsiEngine);
+
+  // Bantuan langkah tersimpan di Pengaturan (hidup lintas tab), tetapi engine
+  // hanya dimulai saat dinyalakan. Papan yang dibuka ulang dengan bantuan
+  // aktif harus menyalakan engine lagi (sekali saat mount).
+  useEffect(() => {
+    if (pp.bantuanNyala) nyalakanEngine();
+  }, []);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
   // agar bar evaluasi tidak hilang dan papan tidak goyang.
@@ -1657,7 +1690,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                         </button>
                         <p className="pl-3 text-sm font-bold leading-none text-white">
                           {t("papan.engine")}{" "}
-                          <span className="ml-1 font-normal text-gray-500">Stockfish 18</span>
+                          <span className="ml-1 font-normal text-gray-500">{cariEngine(pp.mesin).label}</span>
                         </p>
                       </div>
 
@@ -1852,7 +1885,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
           onTutup={() => setTampilSetting(false)}
           t={t}
           bidak={setBidak}
-          setSetBidak={setSetBidak}
+          setBidak={setBidakPapan}
           suaraNyala={suaraNyala}
           setSuaraNyala={setSuaraNyala}
           tampilPanahMesin={tampilPanahMesin}

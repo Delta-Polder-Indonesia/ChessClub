@@ -1,9 +1,10 @@
-import { useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
-import { DAFTAR_ENGINE, ENGINE_BAKU } from "../../lib/engineCatur.js";
+import { DAFTAR_ENGINE } from "../../lib/engineCatur.js";
 import { gambar } from "../../lib/asets.js";
 import { gunakanPreferensiKomentator } from "../../components/KartuKomentator.jsx";
 import { IsiPengaturanPapan } from "./PopupPengaturan.jsx";
+import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { gunakanSuara } from "../../lib/suara.js";
 import PanelLayar from "../Analisa/komponen/nav/PanelLayar.jsx";
 import SelectDaftar from "../Analisa/komponen/nav/SelectDaftar.jsx";
 import Gambar from "../Analisa/komponen/Gambar.jsx";
@@ -17,6 +18,18 @@ import "../Analisa/analisa.css";
  * samping papan langsung membuka layar ini lewat onBukaPengaturan Workspace.
  */
 
+/**
+ * Input angka pengaturan engine: kosong / bukan angka diabaikan (nilai lama
+ * tetap), dan nilai di luar rentang dijepit ke batas — supaya engine tidak
+ * pernah menerima hash 0, kedalaman 0, atau skill di luar 0–20.
+ */
+function terapkanAngka(teks, min, max, simpan) {
+  if (String(teks).trim() === "") return;
+  const n = Math.round(Number(teks));
+  if (!Number.isFinite(n)) return;
+  simpan(Math.min(max, Math.max(min, n)));
+}
+
 function Pemisah({ teks }) {
   return (
     <div className="flex items-center gap-2">
@@ -27,30 +40,45 @@ function Pemisah({ teks }) {
   );
 }
 
-export default function LayarPengaturan() {
+export default function LayarPengaturan({ pengaturan = null }) {
   const { t } = useI18n();
   const preferensiKomentator = gunakanPreferensiKomentator();
+  // Suara papan: sakelarnya tersimpan di localStorage (dibagi dengan papan).
+  const { nyala: suaraNyala, setNyala: setSuaraNyala } = gunakanSuara();
 
-  // Pengaturan papan — awal sama dengan default PapanInteraktif (layout
-  // eksperimen: state lokal layar ini, bukan state papan).
-  const [bidak, setSetBidak] = useState("alpha");
-  const [suaraNyala, setSuaraNyala] = useState(true);
-  const [tampilPanahMesin, setTampilPanahMesin] = useState(true);
-  const [awanTampilanPenuh, setAwanTampilanPenuh] = useState(true);
-  const [bantuanNyala, setBantuanNyala] = useState(false);
-  const [warnaPapan, setWarnaPapan] = useState("metal");
+  // Pengaturan dari Workspace (hidup lintas tab). Tanpa prop → state lokal.
+  const pengaturanLokal = gunakanPengaturanPapan();
+  const { nilai: pp, ubah } = pengaturan ?? pengaturanLokal;
 
-  // Pengaturan engine analisa — BELUM terhubung ke engine (layout dulu).
-  const [mesin, setMesin] = useState(ENGINE_BAKU);
+  // Pengaturan papan — langsung terhubung ke Papan Interaktif lewat Workspace.
+  const bidak = pp.bidak;
+  const setBidak = (v) => ubah("bidak", v);
+  const tampilPanahMesin = pp.tampilPanahMesin;
+  const setTampilPanahMesin = (v) => ubah("tampilPanahMesin", v);
+  const awanTampilanPenuh = pp.awanTampilanPenuh;
+  const setAwanTampilanPenuh = (v) => ubah("awanTampilanPenuh", v);
+  const bantuanNyala = pp.bantuanNyala;
+  const setBantuanNyala = (v) => ubah("bantuanNyala", v);
+  const warnaPapan = pp.warnaPapan;
+  const setWarnaPapan = (v) => ubah("warnaPapan", v);
+
+  // Pengaturan engine analisa — dibaca oleh Papan Interaktif (gunakanEngineCatur).
+  const mesin = pp.mesin;
+  const setMesin = (v) => ubah("mesin", v);
   const mesinAktif = DAFTAR_ENGINE.find((e) => e.id === mesin);
   const labelMesin = mesinAktif?.label ?? mesin;
   const versiMesin = /\d+/.exec(labelMesin)?.[0] ?? "-";
   const namaBerkas = mesinAktif?.url.split("/").pop() ?? "-";
-  const [kedalaman, setKedalaman] = useState(13);
-  const [threads, setThreads] = useState(1);
-  const [hashMb, setHashMb] = useState(16);
-  const [multipv, setMultipv] = useState(1);
-  const [skillLevel, setSkillLevel] = useState(20);
+  const kedalaman = pp.kedalaman;
+  const setKedalaman = (v) => ubah("kedalaman", v);
+  const threads = pp.threads;
+  const setThreads = (v) => ubah("threads", v);
+  const hashMb = pp.hashMb;
+  const setHashMb = (v) => ubah("hashMb", v);
+  const multipv = pp.multipv;
+  const setMultipv = (v) => ubah("multipv", v);
+  const skillLevel = pp.skillLevel;
+  const setSkillLevel = (v) => ubah("skillLevel", v);
 
   return (
     <div className="analisa-root h-full min-h-0 w-full">
@@ -115,7 +143,7 @@ export default function LayarPengaturan() {
                             min={6}
                             max={15}
                             value={kedalaman}
-                            onChange={(e) => setKedalaman(Number(e.target.value))}
+                            onChange={(e) => terapkanAngka(e.target.value, 6, 15, setKedalaman)}
                             className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                           />
                         </div>
@@ -140,9 +168,9 @@ export default function LayarPengaturan() {
                         id="pengaturan-threads"
                         type="number"
                         min={1}
-                        max={8}
+                        max={1}
                         value={threads}
-                        onChange={(e) => setThreads(Number(e.target.value))}
+                        onChange={(e) => terapkanAngka(e.target.value, 1, 1, setThreads)}
                         className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
@@ -155,7 +183,7 @@ export default function LayarPengaturan() {
                         max={128}
                         step={16}
                         value={hashMb}
-                        onChange={(e) => setHashMb(Number(e.target.value))}
+                        onChange={(e) => terapkanAngka(e.target.value, 16, 128, setHashMb)}
                         className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
@@ -169,7 +197,7 @@ export default function LayarPengaturan() {
                         min={1}
                         max={5}
                         value={multipv}
-                        onChange={(e) => setMultipv(Number(e.target.value))}
+                        onChange={(e) => terapkanAngka(e.target.value, 1, 5, setMultipv)}
                         className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
@@ -181,7 +209,7 @@ export default function LayarPengaturan() {
                         min={0}
                         max={20}
                         value={skillLevel}
-                        onChange={(e) => setSkillLevel(Number(e.target.value))}
+                        onChange={(e) => terapkanAngka(e.target.value, 0, 20, setSkillLevel)}
                         className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
@@ -200,7 +228,7 @@ export default function LayarPengaturan() {
                 <IsiPengaturanPapan
                   t={t}
                   bidak={bidak}
-                  setSetBidak={setSetBidak}
+                  setBidak={setBidak}
                   suaraNyala={suaraNyala}
                   setSuaraNyala={setSuaraNyala}
                   tampilPanahMesin={tampilPanahMesin}

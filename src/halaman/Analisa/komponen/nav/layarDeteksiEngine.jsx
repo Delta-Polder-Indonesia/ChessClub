@@ -400,7 +400,7 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
                       labelTeks={t("analisa.antiCheat.riwayat.threads")}
                       dataUji="deteksi-threads"
                       nilai={threads}
-                      opsi={[1, 2, 4].map((n) => ({ nilai: n, label: String(n) }))}
+                      opsi={[{ nilai: 1, label: "1" }]}
                       onPilih={(n) => gantiThreads(Number(n))}
                       disabled={ac.berjalan}
                     />

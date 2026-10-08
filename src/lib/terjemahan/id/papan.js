@@ -11,7 +11,7 @@ export const papan = {
     remah: "Pembukaan",
     menuMode: "Mode papan",
     menuAnalisa: "Analisa",
-    menuManusiaMesin: "Human vs computer",
+    menuManusiaMesin: "Manusia vs Mesin",
     menuLatihanRepertoar: "Latihan Repertoar",
     menuSegera: "Segera hadir",
     menuAtribusi: "Lisensi & Atribusi",

@@ -45,6 +45,7 @@ import LayarImpor from "./nav/layarImpor.jsx";
  */
 const LayarAkun = lazy(() => import("./nav/layarAkun.jsx"));
 const LayarDeteksiEngine = lazy(() => import("./nav/layarDeteksiEngine.jsx"));
+const LayarPengaturan = lazy(() => import("./nav/layarPengaturan.jsx"));
 
 export default function AreaKerja() {
   const analyzeContext = useContext(AnalyzeContext);
@@ -137,6 +138,11 @@ export default function AreaKerja() {
           {tampilan === TAMPILAN_ANALISA.AKUN ? (
             <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
               <LayarAkun onTutup={kePapan} />
+            </Suspense>
+          ) : null}
+          {tampilan === TAMPILAN_ANALISA.PENGATURAN ? (
+            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+              <LayarPengaturan onTutup={kePapan} />
             </Suspense>
           ) : null}
           {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (
