@@ -790,6 +790,7 @@ export default function ManusiaVsMesin() {
               <PapanTekaTeki
                 fen={fen}
                 orientasi={orientasiPapan}
+                gayaGeser="analisa"
                 terpilih={terpilih}
                 sasaran={sasaran}
                 langkahAkhir={langkahAkhir}

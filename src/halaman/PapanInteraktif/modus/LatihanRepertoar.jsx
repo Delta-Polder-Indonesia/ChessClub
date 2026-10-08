@@ -287,6 +287,7 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
                 <PapanTekaTeki
                   fen={fen}
                   orientasi={kartuAktif.warna}
+                  gayaGeser="analisa"
                   terpilih={terpilih}
                   sasaran={sasaran}
                   langkahAkhir={langkahAkhir}

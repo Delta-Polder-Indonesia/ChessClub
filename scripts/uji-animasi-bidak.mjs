@@ -31,8 +31,10 @@ import { pluginGlobAset } from "./loader-jsx.mjs";
 import {
   DURASI_GESER,
   DURASI_GESER_MINIM,
+  GAYA_ANALISA,
   durasiGeser,
   geseranDariFen,
+  konfigurasiGeser,
   geseranPiksel,
   posisiLayar,
 } from "../src/halaman/TekaTeki/animasiBidak.js";
@@ -174,6 +176,16 @@ const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
     String(durasiGeser())
   );
   globalThis.matchMedia = matchMediaAsli;
+}
+
+{
+  // Papan Interaktif memakai gaya Report Analisa (board.jsx animateMove):
+  // 150 ms linear, tanpa pudar bidak dimakan. Papan lain tetap gaya bawaan.
+  const analisa = konfigurasiGeser("analisa");
+  uji("gaya analisa: 150 ms linear tanpa pudar", analisa.durasi === 150 && analisa.kurva === "linear" && analisa.pudar === false, JSON.stringify(analisa));
+  uji("gaya analisa cocok dengan konstanta GAYA_ANALISA", analisa.durasi === GAYA_ANALISA.durasi && analisa.kurva === GAYA_ANALISA.kurva);
+  const bawaan = konfigurasiGeser("bawaan");
+  uji("gaya bawaan tetap santai dan memakai pudar", bawaan.durasi === DURASI_GESER && bawaan.pudar === true, JSON.stringify(bawaan));
 }
 
 /* ====================== B. papan sungguhan (jsdom) ====================== */
