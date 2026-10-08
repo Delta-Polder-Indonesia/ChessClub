@@ -1,10 +1,9 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { ChessPiece, ambilSumberBidak } from "../../components/chess/ChessPiece.jsx";
 import {
-  KURVA_GESER,
-  durasiGeser,
   geseranDariFen,
   geseranPiksel,
+  konfigurasiGeser,
   petaBidak,
 } from "./animasiBidak.js";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -239,6 +238,7 @@ export default function PapanTekaTeki({
   setBidak = "merida",
   tema = "hijau",
   animasi = true, // luncurkan bidak saat posisi berganti (matikan bila perlu)
+  gayaGeser = "bawaan", // "analisa" = persis luncuran Report Analisa (lihat animasiBidak.js)
   onKlik,
   onPilih,
   onJatuh,
@@ -450,6 +450,7 @@ export default function PapanTekaTeki({
     const ukuranPetak = (wadah.getBoundingClientRect().width || 0) / 8;
     if (!ukuranPetak) return;
     const petaLama = petaBidak(fenLama);
+    const gaya = konfigurasiGeser(gayaGeser);
     // Seret yang baru saja mendarat: dilewati sekali, dan hanya sebentar agar
     // penanda basi tidak ikut mematikan animasi langkah berikutnya.
     const lewati = lewatiGeserRef.current;
@@ -461,10 +462,11 @@ export default function PapanTekaTeki({
       const { x, y } = geseranPiksel(g, orientasi, ukuranPetak);
       if (!x && !y) continue;
 
-      // Efek fading bidak yang tertangkap (pola piece.fading ala @lichess-org/chessground)
+      // Efek fading bidak yang tertangkap (pola piece.fading ala @lichess-org/chessground).
+      // Gaya Analisa tidak punya efek ini, jadi dilewati.
       const bidakTertangkap = petaLama[g.ke];
       const petakTujuanEl = wadah.querySelector(`[data-petak="${g.ke}"]`);
-      if (petakTujuanEl && bidakTertangkap && typeof petakTujuanEl.appendChild === "function") {
+      if (gaya.pudar && petakTujuanEl && bidakTertangkap && typeof petakTujuanEl.appendChild === "function") {
         const sumberTertangkap = ambilSumberBidak(setBidak, bidakTertangkap);
         if (sumberTertangkap) {
           const pudarEl = document.createElement("span");
@@ -485,7 +487,7 @@ export default function PapanTekaTeki({
                     { opacity: 0.6, transform: "scale(1)" },
                     { opacity: 0, transform: "scale(0.85)" },
                   ],
-                  { duration: durasiGeser(), easing: KURVA_GESER }
+                  { duration: gaya.durasi, easing: gaya.kurva }
                 )
               : null;
           const bersihkanPudar = () => {
@@ -511,7 +513,7 @@ export default function PapanTekaTeki({
           { transform: `translate(${-x}px, ${-y}px)` },
           { transform: "translate(0px, 0px)" },
         ],
-        { duration: durasiGeser(), easing: KURVA_GESER }
+        { duration: gaya.durasi, easing: gaya.kurva }
       );
       animasiLangkahRef.current.set(el, gerak);
       animasiJalanRef.current.add(gerak);
@@ -526,7 +528,7 @@ export default function PapanTekaTeki({
       gerak.finished?.then(bersihkan).catch(bersihkan);
       gerak.oncancel = bersihkan;
     }
-  }, [fen, orientasi, animasi]);
+  }, [fen, orientasi, animasi, gayaGeser]);
 
   // Papan dilepas di tengah luncuran (pindah halaman, soal baru): hentikan
   // animasi yang masih berjalan supaya tidak menyentuh elemen yang sudah mati.

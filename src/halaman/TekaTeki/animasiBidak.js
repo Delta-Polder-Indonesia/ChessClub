@@ -196,6 +196,28 @@ export function geseranPiksel(geseran, orientasi, ukuranPetak) {
   };
 }
 
+/**
+ * Gaya luncuran yang meniru `komponen/game/board.jsx` di Report Analisa
+ * (`animateMove`): 150 ms, linear, tanpa efek pudar bidak yang dimakan.
+ * Dipakai Papan Interaktif lewat prop `gayaGeser="analisa"`; papan lain tetap
+ * memakai gaya bawaan di bawah.
+ */
+export const GAYA_ANALISA = Object.freeze({
+  durasi: 150,
+  kurva: "linear",
+  pudar: false,
+});
+
+/**
+ * Konfigurasi luncuran untuk satu papan.
+ * - `"analisa"`: persis gaya Report Analisa (`GAYA_ANALISA`).
+ * - lainnya: gaya bawaan (durasi santai, kurva halus, pudar bidak dimakan).
+ */
+export function konfigurasiGeser(gaya) {
+  if (gaya === "analisa") return { ...GAYA_ANALISA };
+  return { durasi: durasiGeser(), kurva: KURVA_GESER, pudar: true };
+}
+
 /** Pengguna meminta animasi dikurangi (setelan sistem)? */
 export function kurangiGerak() {
   try {
