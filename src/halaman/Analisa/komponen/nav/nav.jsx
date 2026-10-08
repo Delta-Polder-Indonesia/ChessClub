@@ -177,23 +177,23 @@ export default function Nav() {
    * Mode ponsel (di bawah `navTop`): bilah mendatar, tombol melebar rata
    * tanpa label (`h-full`, label memang `hidden` di lebar ini).
    *
-   * Mode bilah tegak: lebar mengikuti bilah (`navTop:w-full`), dan saat
-   * bilah menciut lebarnya dipatok kotak 2rem dengan bantalan 8px yang
-   * tetap. Karena lajur menciut jadi 3rem (8 + 32 + 8), ikon jatuh tepat di
-   * tengah lajur dan tidak bergeser saat burger ditekan — yang berubah
-   * hanya lebar tombol, gap, dan labelnya.
+   * Mode bilah tegak: tombol SELALU `navTop:w-full` — lebarnya mengikuti
+   * bilah tanpa transisi sendiri, sama seperti Sidebar Pengurus. Saat bilah
+   * menciut, kontainer yang berukuran 3rem membuat tombol ikut 2rem secara
+   * otomatis (8 + 2rem + 8), jadi ikon diam total; yang beranimasi hanya
+   * lebar bilah dan labelnya. Menganimasikan lebar tombol (w-full ↔ w-8)
+   * justru membuat ikon berkedip: di tengah transisi tombol melebihi
+   * lebar bilah yang sedang menyusut dan sesaat terpotong overflow.
    */
   // min-h-10 (40px) hanya di mode ponsel: target sentuh minimum yang nyaman
   // (audit Lighthouse "touch targets"); di bilah tegak desktop tinggi tetap h-8.
-  const kelasTombol = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer ${
-    navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
-  }`;
+  const kelasTombol = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer navTop:w-full`;
 
   /**
    * Label menu yang bisa menciut (max-width/opacity) saat bilah ditutup —
    * persis perilaku sidebar Pengurus: ikon diam, label menyusut.
    */
-  const kelasLabelNav = `overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block text-sm ${
+  const kelasLabelNav = `overflow-hidden whitespace-nowrap transform-gpu transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block text-sm font-bold ${
     navTerbuka ? "navTop:max-w-[140px] navTop:opacity-100" : "navTop:max-w-0 navTop:opacity-0"
   }`;
 
@@ -242,11 +242,18 @@ export default function Nav() {
   }
 
   return (
-    <nav className={`flex flex-col navTop:h-full w-full relative ${navTerbuka ? "navTop:w-[210px]" : "navTop:w-12"} navTop:shrink-0 navTop:transition-[width] navTop:duration-300 navTop:ease-[cubic-bezier(0.22,1,0.36,1)]`}>
-      {/* `navTop:px-2` = bantalan 8px lajur: 3rem rail = 8 + 2rem + 8
-          (sama dengan bantalan SidebarContent + SidebarMenuButton di
-          `components/ui/sidebar.jsx`). */}
-      <div className="navTop:pt-1 navTop:pb-6 navTop:px-2 navTop:h-full w-full overflow-y-auto bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
+    <nav className={`flex flex-col navTop:h-full w-full relative ${navTerbuka ? "navTop:w-[210px]" : "navTop:w-12"} navTop:shrink-0 navTop:will-change-[width] navTop:transition-[width] navTop:duration-300 navTop:ease-[cubic-bezier(0.22,1,0.36,1)]`}>
+      {/*
+        `navTop:px-2` = bantalan 8px lajur: 3rem rail = 8 + 2rem + 8
+        (sama dengan bantalan SidebarContent + SidebarMenuButton di
+        `components/ui/sidebar.jsx`).
+        `navTop:overflow-x-hidden`: `overflow-y-auto` menurut spesifikasi
+        memaksa overflow-x jadi auto juga, sehingga overflow pecahan piksel
+        selama animasi lebar memunculkan scrollbar horizontal — yang
+        menggeser tata letak dan membuat ikon berkedip. Sidebar Pengurus
+        memakai `overflow-hidden` untuk alasan yang sama.
+      */}
+      <div className="navTop:pt-1 navTop:pb-6 navTop:px-2 navTop:h-full w-full overflow-y-auto navTop:overflow-x-hidden bg-backgroundBox flex navTop:flex-col flex-row justify-between select-none navTop:items-start items-stretch">
         <div className="flex navTop:flex-col flex-row">
           {/*
             Baris kepala: burger + wordmark. Burger hanya ada di bilah tegak
@@ -283,7 +290,7 @@ export default function Nav() {
             >
               <span
                 className={`hidden navTop:block leading-none font-bold text-[22px] tracking-tight text-foreground overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                  navTerbuka ? "max-w-[160px] opacity-100" : "max-w-0 opacity-0"
+                  navTerbuka ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0"
                 }`}
               >
                 Blunder<span className="text-backgroundBoxBoxHighlighted">Skuad</span>
@@ -327,7 +334,15 @@ export default function Nav() {
                     menungguKonfirmasi ? " bg-backgroundBoxHover text-lossRed" : ""
                   }`}
                 >
-                  {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
+                  {/*
+                    Ikon dibungkus span `shrink-0`: UA stylesheet menyetel
+                    `overflow: hidden` pada svg, sehingga menurut spesifikasi
+                    flexbox ia kehilangan min-width:auto dan BISA menyusut
+                    di bawah 18px saat ruang tombol sempit (rail menciut).
+                  */}
+                  <span className="flex shrink-0">
+                    {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
+                  </span>
                   <span className={kelasLabelNav}>{label}</span>
                 </button>
               );
@@ -337,22 +352,24 @@ export default function Nav() {
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
           <div className="flex navTop:flex-col flex-row">
             {botLinks.map((link, i) => {
-              // Kelas yang sama dengan tombol menu: kotak 2rem saat bilah
-              // menciut, melebar penuh saat terbuka.
-              const kelas = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors ${
-                navTerbuka ? "navTop:w-full navTop:gap-2" : "navTop:w-8 navTop:gap-0"
-              }`;
+              // Kelas yang sama dengan tombol menu: selalu `navTop:w-full`,
+              // ikon diam saat bilah menciut (lihat kelasTombol).
+              const kelas = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors navTop:w-full`;
               // Label teksnya `hidden` di mode ponsel — aria-label wajib ada
               // supaya tautan tetap bernama bagi pembaca layar (audit
               // Lighthouse "links do not have a discernible name").
               return link.to ? (
                 <Link draggable={false} key={i} to={link.to} aria-label={link.label} className={kelas}>
-                  {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                  <span className="flex shrink-0">
+                    {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                  </span>
                   <span className={kelasLabelNav}>{link.label}</span>
                 </Link>
               ) : (
                 <a draggable={false} key={i} target="_blank" rel="noreferrer noopener" href={link.href} aria-label={link.label} className={kelas}>
-                  {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                  <span className="flex shrink-0">
+                    {link.icon({ className: "fill-foregroundGrey transition-colors group-hover:fill-foregroundHighlighted" })}
+                  </span>
                   <span className={kelasLabelNav}>{link.label}</span>
                 </a>
               );

@@ -90,21 +90,37 @@ export const MULTI_PV = 5;
 
 export class EngineAnalisis {
   /**
-   * @param {{idEngine?: string, kedalaman?: number, threads?: number}} [opsi]
+   * @param {{idEngine?: string, kedalaman?: number, threads?: number, hash?: number}} [opsi]
    */
-  constructor({ idEngine, kedalaman = 13, threads = 1 } = {}) {
+  constructor({ idEngine, kedalaman = 13, threads = 1, hash = hashUntukEngine() } = {}) {
     const pilihan = cariEngine(idEngine);
     this.idEngine = pilihan.id;
     this.labelEngine = pilihan.label;
     this.kedalaman = kedalaman;
     this.memuat = null;
-    this.engine = new EngineCatur({ url: pilihan.url, hash: hashUntukEngine(), threads });
+    this.engine = new EngineCatur({ url: pilihan.url, hash, threads });
   }
 
   /** Unduh worker + tunggu "readyok". Boleh dipanggil berulang. */
   siapkan() {
     this.memuat ||= this.engine.mulai();
     return this.memuat;
+  }
+
+  /**
+   * Terapkan opsi UCI (Hash/Threads). Nilai tersimpan lebih dulu sehingga
+   * worker yang belum dimuat memakainya saat `mulai()`, lalu setoption
+   * dikirim ke worker yang sudah hidup (kirim aman bila worker belum ada).
+   */
+  terapkanOpsi({ hash, threads }) {
+    if (Number.isFinite(hash)) {
+      this.engine.hash = hash;
+      this.engine.kirim(`setoption name Hash value ${hash}`);
+    }
+    if (Number.isFinite(threads)) {
+      this.engine.threads = threads;
+      this.engine.kirim(`setoption name Threads value ${threads}`);
+    }
   }
 
   /**

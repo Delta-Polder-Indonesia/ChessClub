@@ -930,9 +930,18 @@ act(() => rootAkun.unmount());
   });
   const tungguUi = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
   const batalJumlah = () => act(async () => tombol(tID("analisa.antiCheat.riwayat.batal"))?.click());
+  // Penjelasan pengaturan kini berada di dialog ikon info (portaled ke body).
+  const bukaInfo = (nama) => act(async () => {
+    elAkun.querySelector(`[data-uji="info-${nama}"]`)?.click();
+  });
+  const tutupInfo = () => act(async () => {
+    Array.from(document.body.querySelectorAll("button"))
+      .find((b) => b.textContent.trim() === tID("analisa.antiCheat.riwayat.mengerti"))
+      ?.click();
+  });
 
   hasil("layar baru tetap memakai panel/token Analisa", !!elAkun.querySelector('section.bg-backgroundBoxDarker') && elAkun.querySelectorAll('.border-border.bg-backgroundBox').length >= 2);
-  hasil("lima pengaturan memiliki kontrol berlabel", Array.from(elAkun.querySelectorAll("select, input")).length === 5 && Array.from(elAkun.querySelectorAll("select, input")).every((el) => el.labels.length > 0));
+  hasil("delapan pengaturan memiliki kontrol berlabel", Array.from(elAkun.querySelectorAll("select, input")).length === 8 && Array.from(elAkun.querySelectorAll("select, input")).every((el) => el.labels.length > 0));
   hasil("kedalaman deteksi bawaan 8, papan tetap 13", elAkun.querySelector('[data-uji="deteksi-kedalaman"]').value === "8" && ctxJumlah.depth[0] === 13);
   hasil("progres papan 0 tidak dianggap sedang berjalan", ctxJumlah.progress[0] === 0 && tombolJumlah(12)?.disabled === false);
   hasil("layar menunggu perintah, tidak menyiapkan engine otomatis", siapkanDipanggil === 0 && !elAkun.querySelector("tbody"));
@@ -941,11 +950,15 @@ act(() => rootAkun.unmount());
 
   hasil("kolom jumlah opsional tampil kosong dengan placeholder 12", inputJumlah()?.value === "" && inputJumlah()?.placeholder === "12");
   hasil("kolom jumlah memiliki label terhubung", inputJumlah()?.labels[0]?.textContent.trim() === tID("analisa.antiCheat.riwayat.jumlahPartai"));
-  hasil("petunjuk menjelaskan bawaan saat kolom kosong", teksAkun().includes(tID("analisa.antiCheat.riwayat.jumlahPetunjuk", { n: 12 })));
+  await bukaInfo("jumlah");
+  hasil("petunjuk menjelaskan bawaan saat kolom kosong", document.body.textContent.includes(tID("analisa.antiCheat.riwayat.jumlahPetunjuk", { n: 12 })));
+  await tutupInfo();
 
   isiJumlah("20");
   hasil("tombol mengikuti jumlah custom 20", Boolean(tombolJumlah(20)));
-  hasil("keterangan batas mengikuti jumlah custom", teksAkun().includes(tID("analisa.antiCheat.riwayat.batas", { n: 20, user: username })));
+  await bukaInfo("jumlah");
+  hasil("keterangan batas mengikuti jumlah custom", document.body.textContent.includes(tID("analisa.antiCheat.riwayat.batas", { n: 20, user: username })));
+  await tutupInfo();
   await mulaiJumlah(20);
   hasil("jumlah tidak dapat diedit saat analisis berjalan", inputJumlah()?.disabled === true);
   hasil("situs/akun/kedalaman/waktu terkunci selama run", Array.from(elAkun.querySelectorAll("select")).every((el) => el.disabled));

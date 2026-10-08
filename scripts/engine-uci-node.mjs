@@ -40,6 +40,11 @@ export const DAFTAR_ENGINE_NODE = [
     dir: "stockfish-18-lite-single",
   },
   {
+    id: "stockfish-19-lite",
+    label: "Stockfish 19 Lite",
+    dir: "stockfish-19-lite-single",
+  },
+  {
     id: "stockfish-17-lite",
     label: "Stockfish 17 Lite",
     dir: "stockfish-17-lite-single",
@@ -50,9 +55,19 @@ export const DAFTAR_ENGINE_NODE = [
     dir: "stockfish-18-single",
   },
   {
+    id: "stockfish-19",
+    label: "Stockfish 19 (NNUE penuh)",
+    dir: "stockfish-19-single",
+  },
+  {
     id: "stockfish-17",
     label: "Stockfish 17 (NNUE penuh)",
     dir: "stockfish-17-single",
+  },
+  {
+    id: "stockfish-16",
+    label: "Stockfish 16",
+    dir: "stockfish-nnue-16-single",
   },
 ];
 
@@ -98,9 +113,10 @@ function siapkanRunner(engine) {
   writeFileSync(path.join(dir, "package.json"), '{"type":"commonjs"}\n');
   const loader = path.join(dir, `${engine.dir}.cjs`);
   copyFileSync(path.join(dirAsli, namaAsli), loader);
-  // berkas .wasm (satu utuh atau terpecah -part-N) cukup di-symlink.
+  // berkas pendukung (.wasm satu utuh/terpecah -part-N, .nnue net eksternal)
+  // cukup di-symlink.
   for (const berkas of readdirSync(dirAsli)) {
-    if (!berkas.endsWith(".wasm")) continue;
+    if (!berkas.endsWith(".wasm") && !berkas.endsWith(".nnue")) continue;
     symlinkSync(
       path.join(dirAsli, berkas),
       path.join(dir, berkas),
@@ -142,6 +158,9 @@ export class UciEngine {
     this.runner = siapkanRunner(this.engine);
     this.proc = spawn(process.execPath, [this.runner.loader], {
       stdio: ["pipe", "pipe", "pipe"],
+      // cwd = folder runner: net .nnue Stockfish 16 dibaca engine dengan
+      // path relatif (polyfill XHR Node), jadi berkasnya harus ada di cwd.
+      cwd: this.runner.dir,
     });
     this.proc.stdout.on("data", (d) => this.terima(d.toString()));
     this.proc.stderr.on("data", (d) => {
@@ -278,6 +297,8 @@ export class UciEngine {
     // Sama seperti engineCatur.js: wdl dipakai anti-cheat. Build tanpa opsi
     // ini hanya membalas "No such option" — pencarian tetap normal.
     this.kirim("setoption name UCI_ShowWDL value true");
+    // NNUE wajib aktif: Stockfish 16 memakai eval klasik secara bawaan.
+    this.kirim("setoption name Use NNUE value true");
     this.kirim("isready");
     const idBaris = await this.tungguBaris(
       (b) => b.startsWith("id name"),
