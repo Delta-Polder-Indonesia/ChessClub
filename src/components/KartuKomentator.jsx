@@ -155,7 +155,7 @@ export default function KartuKomentator({
 
   return (
     <section aria-label={t("papan.komentator.judul")} className={className}>
-      {!sembunyikanKontrol && <div className="flex items-center justify-between gap-2">
+      {!sembunyikanKontrol && <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
@@ -184,7 +184,7 @@ export default function KartuKomentator({
           <div
             role="radiogroup"
             aria-label={t("papan.komentator.gayaLabel")}
-            className="flex shrink-0 items-center rounded-md border border-[#312e2b] bg-[#262421] p-0.5 text-[11px] font-semibold"
+            className="flex flex-wrap items-center gap-0.5 rounded-md border border-[#312e2b] bg-[#262421] p-0.5 text-[11px] font-semibold"
           >
             {GAYA_KOMENTATOR.map((g) => (
               <button

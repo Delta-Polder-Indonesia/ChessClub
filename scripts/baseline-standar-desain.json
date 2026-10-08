@@ -14,7 +14,7 @@
     "tombol-ad-hoc": 2
   },
   "src/halaman/Keberlanjutan/Bantuan.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/Keberlanjutan.jsx": {
@@ -22,23 +22,23 @@
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/Ketentuan.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/KodeEtikKomunitas.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/PertanyaanUmum.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/Privasi.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/Keberlanjutan/SyaratDanKetentuan.jsx": {
-    "ukuran-teks-arbitrary": 2,
+    "ukuran-teks-arbitrary": 1,
     "leading-arbitrary": 1
   },
   "src/halaman/MediaDanInformasi/BeritaKomunitas.jsx": {
@@ -63,7 +63,7 @@
     "tombol-ad-hoc": 1
   },
   "src/halaman/PapanInteraktif/IkonTab.jsx": {
-    "svg-inline-catur": 5
+    "svg-inline-catur": 6
   },
   "src/halaman/PapanInteraktif/PapanInteraktif.jsx": {
     "svg-inline-catur": 2

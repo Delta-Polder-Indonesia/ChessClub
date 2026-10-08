@@ -74,7 +74,7 @@ function Kerangka() {
   );
 }
 
-export default function PapanInteraktif({ tertanam = false } = {}) {
+export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
 
   const [pohon, setPohon] = useState(null);
@@ -110,6 +110,8 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
   // Status tombol Bagikan: "idle" | "ok" | "gagal" (label tombol ikut berganti).
   const [statusBerbagi, setStatusBerbagi] = useState("idle");
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
+  // Popup pengaturan hanya untuk tanpa onBukaPengaturan (mis. halaman
+  // Teka-Teki); di /papan-interaktif tombol gear membuka layar Pengaturan.
   const [tampilSetting, setTampilSetting] = useState(false);
   // Tab aktif panel kanan: "analisa" | "books" | "explorer" | "games".
   const [tabPanel, setTabPanel] = useState("analisa");
@@ -1462,7 +1464,7 @@ export default function PapanInteraktif({ tertanam = false } = {}) {
               <div className="flex flex-col items-center gap-2 pt-14 lg:-ml-3">
                 <button
                   type="button"
-                  onClick={() => setTampilSetting(!tampilSetting)}
+                  onClick={() => (onBukaPengaturan ? onBukaPengaturan() : setTampilSetting(!tampilSetting))}
                   aria-expanded={tampilSetting}
                   className={`p-2 rounded-md transition ${
                     tampilSetting
