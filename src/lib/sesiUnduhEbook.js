@@ -11,9 +11,12 @@
  *     akses yang sama, yang juga menambah hitungan di dashboard pengurus),
  *   - tiket kedaluwarsa / ditolak dibuang, lalu pemain memakai kode lagi.
  *
- * Modul ini sengaja bebas DOM dan bebas efek samping supaya bisa diuji di Node
- * (lihat scripts/uji-sesi-ebook.mjs). Batas umur di sini hanya jaring pengaman
- * sisi klien; keputusan sah/tidak tetap milik server (HMAC).
+ * Modul ini sengaja bebas DOM, bebas `Buffer`, dan bebas efek samping supaya
+ * berjalan di browser MAUPUN di Node (lihat scripts/uji-sesi-ebook.mjs).
+ * Dekode base64url memakai `atob` + `TextDecoder`, bukan `Buffer` — `Buffer`
+ * tidak ada di browser dan membuat seluruh tiket dianggap kedaluwarsa.
+ * Batas umur di sini hanya jaring pengaman sisi klien; keputusan sah/tidak
+ * tetap milik server (HMAC).
  */
 
 const KUNCI_PEMOHON = "kci-ebook-pemohon";
@@ -60,6 +63,31 @@ function hapus(store, kunci) {
 }
 
 /**
+ * Uraikan base64url menjadi teks — TANPA `Buffer`.
+ *
+ * Modul ini juga jalan di browser, dan di sana `Buffer` tidak ada. Versi
+ * sebelumnya memakai `Buffer.from(..., "base64url")` sehingga di browser setiap
+ * tiket selalu dianggap "bentuknya tak dikenali" (diam-diam dilempar lalu
+ * ditangkap): tiket sesi tidak pernah tersimpan dan pengguna selalu diminta
+ * memasukkan kode lagi untuk buku yang sama. `atob` tersedia di browser modern
+ * maupun Node >= 16, jadi jalur ini aman di keduanya; `Buffer` tetap dipakai
+ * sebagai cadangan bila `atob` tidak ada (runtime lama/uji tertentu).
+ */
+function uraiBase64Url(teks) {
+  if (typeof atob === "function") {
+    const b64 = String(teks).replace(/-/g, "+").replace(/_/g, "/");
+    const berpad = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    const biner = atob(berpad);
+    const bita = Uint8Array.from(biner, (c) => c.charCodeAt(0));
+    return new TextDecoder().decode(bita);
+  }
+  if (typeof Buffer !== "undefined") {
+    return Buffer.from(String(teks), "base64url").toString("utf8");
+  }
+  throw new Error("base64url tidak bisa diuraikan di lingkungan ini");
+}
+
+/**
  * Baca usia tiket dari token `kci-ebook-v1.<base64url>.<ttd>`.
  *
  * @returns {{ kedaluwarsa: number, acak: string } | null} dalam detik epoch,
@@ -70,7 +98,7 @@ function infoTiket(tiket) {
   const bagian = tiket.split(".");
   if (bagian.length !== 3 || bagian[0] !== "kci-ebook-v1") return null;
   try {
-    const muatan = JSON.parse(Buffer.from(bagian[1], "base64url").toString("utf8"));
+    const muatan = JSON.parse(uraiBase64Url(bagian[1]));
     const kedaluwarsa = Number(muatan?.x);
     if (!Number.isFinite(kedaluwarsa)) return null;
     return { kedaluwarsa, acak: typeof muatan.j === "string" ? muatan.j : "" };
@@ -179,4 +207,11 @@ export function hapusTiketSesi({ file, store } = {}) {
   hapus(penyimpanan(store), AWALAN_TIKET + file);
 }
 
-export { AWALAN_TIKET, KUNCI_PEMOHON, UMUR_MAKS_DETIK, TOLERANSI_DETIK, infoTiket };
+export {
+  AWALAN_TIKET,
+  KUNCI_PEMOHON,
+  UMUR_MAKS_DETIK,
+  TOLERANSI_DETIK,
+  infoTiket,
+  uraiBase64Url,
+};

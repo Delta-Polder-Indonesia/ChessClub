@@ -13,7 +13,6 @@
     { "source": "/teka-teki/:nomor([0-9]+)", "destination": "/teka-teki/problem/:nomor", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/ebooks/:path*", "destination": "/api/ebook-preview?file=:path*" },
     { "source": "/api/((?!ebook-preview).*)", "destination": "/api/[...jalur]" },
     { "source": "/teka-teki/problem/:nomor([0-9]+)", "destination": "/teka-teki/problem/index.html" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
@@ -21,7 +20,7 @@
   "headers": [
     { "source": "/assets/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
     { "source": "/images/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
-    { "source": "/ebooks/(.*)", "headers": [{ "key": "Cache-Control", "value": "no-store" }] },
+    { "source": "/ebooks/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }] },
     { "source": "/SoundChess/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
     { "source": "/(favicon-[0-9]+\\.[a-z]+|apple-touch-icon\\.[a-z]+)$", "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }] },
     { "source": "/engines/(.*)", "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }] },

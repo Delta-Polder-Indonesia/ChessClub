@@ -2,7 +2,7 @@
  * Sumber berkas PDF e-book — dipakai bersama oleh:
  *   - `api/ebook-preview.js`      (Vercel Serverless Function)
  *   - `plugins/ebook-preview.js`  (middleware dev & preview Vite)
- *   - `src/lib/asets.js`          (daftar URL cadangan untuk pembaca di browser)
+ *   - `scripts/uji-ebook*.mjs`    (uji allowlist & pemilihan sumber)
  *
  * Kenapa perlu banyak sumber? Dulu PDF di `public/ebooks/` dilacak Git LFS, dan
  * checkout deploy yang tidak menarik LFS hanya menyajikan *pointer* teks

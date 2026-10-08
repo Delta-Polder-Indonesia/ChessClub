@@ -275,6 +275,11 @@ export const pembacaPdf = {
     galatPustaka: "Pustaka pembaca PDF gagal dimuat. Periksa koneksi lalu coba lagi.",
     galatSumber:
       "Dokumen tidak dapat dimuat dari sumber mana pun. Coba unduh berkasnya atau buka lagi nanti.",
+    galatTiket:
+      "Server menolak permintaan berkas (403). Muat ulang halaman ini; bila masih gagal, hubungi pengurus.",
+    galatPenyimpanan:
+      "Berkas PDF-nya belum tersedia di server. Hubungi pengurus agar berkas diunggah.",
+
     bukaTabBaru: "Buka di tab baru",
     unduh: "Unduh PDF",
     halamanSebelumnya: "Halaman sebelumnya",

@@ -49,13 +49,14 @@ storage privat belum dikonfigurasi.
    Lalu **Redeploy** di Vercel.
 
 4. **Cek**: buka halaman *Program Kami → E-Book & Panduan* → klik **Baca**.
-   Masukkan data redemption dan kode akses; PDF baru dibuka setelah tiket
-   berhasil diterbitkan. **Unduh** memakai tiket yang sama dan memaksa
-   `Content-Disposition: attachment`.
+   Pembaca PDF terbuka **tanpa kode** (mode baca bebas). **Unduh** wajib kode
+   akses pengurus: isi data redemption, lalu unduhan dipaksa
+   `Content-Disposition: attachment` memakai tiket hasil penebusan.
 
-5. **Cek penutupan akses**: permintaan langsung ke
-   `/ebooks/<nama>.pdf` tanpa `tiket` harus ditolak (403), baik di dev maupun
-   production.
+5. **Cek gerbang unduhan**: `?unduh=1` tanpa tiket harus ditolak (403), baik di
+   dev maupun production. Mode baca (`/ebooks/<nama>.pdf` dan
+   `/api/ebook-preview?file=<nama>`) sengaja terbuka supaya pengunjung bisa
+   menilai isi buku dulu.
 
 ## Bagaimana ini bekerja
 
@@ -64,12 +65,12 @@ storage privat belum dikonfigurasi.
 | `scripts/unggah-ebook.mjs` | Mengunggah `public/ebooks/*.pdf` ke bucket privat Supabase `ebooks-private`. |
 | `src/data/ebook-storage.js` | Konfigurasi legacy mode lokal; production tidak memakainya. |
 | `server/src/ebook-storage.js` | Membentuk kandidat storage privat custom atau Supabase authenticated object endpoint. |
-| `src/lib/asets.js` → `urlEbook()` | Selalu menunjuk proxy same-origin `/api/ebook-preview` dan membawa tiket. |
-| `src/lib/asets.js` → `sumberEbook()` | Hanya mengembalikan proxy bertiket; URL storage/GitHub tidak masuk bundle browser. |
-| `api/ebook-preview.js` | Memeriksa tiket, memilih storage privat di production, lalu menyajikan PDF `inline`/`attachment` dengan `Range`. |
-| `plugins/ebook-preview.js` | Menyediakan endpoint bertiket dan memblokir `/ebooks/*` saat `npm run dev` / `npm run preview`. |
-| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dipakai tombol **Baca** setelah redemption. |
-| `vercel.json` | Merutekan `/ebooks/*` ke endpoint bertiket dan memasang header `no-store`. |
+| `src/lib/asets.js` → `urlEbook()` | Menunjuk proxy same-origin `/api/ebook-preview`; `unduh: true` + `tiket` untuk unduhan. |
+| `src/lib/asets.js` → `sumberEbook()` | Sumber BACA: berkas statis `/ebooks/<nama>.pdf` dulu, lalu proxy tanpa tiket. URL storage/GitHub tidak masuk bundle browser. |
+| `api/ebook-preview.js` | Membaca bebas; `?unduh=1` wajib tiket. Memilih sumber di server (storage privat → berkas statis → cadangan) lalu menyajikan PDF `inline`/`attachment` dengan `Range`. |
+| `plugins/ebook-preview.js` | Endpoint yang sama saat `npm run dev` / `npm run preview`; `/ebooks/*` diteruskan ke berkas statis. |
+| `src/components/PembacaPdf.jsx` | Pembaca PDF berbasis pdf.js (canvas) — dibuka tombol **Baca** tanpa kode. |
+| `vercel.json` | Menyajikan `/ebooks/*` sebagai berkas statis (mode baca) dengan cache publik. |
 
 ## Kenapa tombol "Baca" tidak lagi mengunduh berkas
 
@@ -106,9 +107,27 @@ dan jangan menambahkan origin storage privat ke CSP browser.
 
 ## Mode lokal
 
-Mode dev/preview tetap boleh memakai PDF di `public/ebooks/` atau
-`EBOOK_BASE`, tetapi akses langsung `/ebooks/*` tetap diblokir middleware dan
-endpoint tetap meminta tiket. Production tidak memakai fallback tersebut.
+Mode dev/preview memakai PDF di `public/ebooks/` (berkas statis untuk mode
+baca) dan jatuh ke proxy bila berkas tidak ada. Production mencoba storage
+privat lebih dulu, lalu berkas statis hasil build — sehingga koleksi tetap
+bisa dibaca sebelum migrasi storage selesai.
+
+### Rahasia tiket harus sama di dua proses
+
+Tiket unduhan ditebus dan ditandatangani backend (port 8787), lalu
+**diverifikasi proses lain** yang melayani `/api/ebook-preview` (middleware Vite
+saat `npm run dev` / `npm run preview`). Bila `KCI_JWT_SECRET` tidak diisi,
+kedua proses otomatis memakai rahasia pengembangan yang sama, jadi alur
+`npm run dev` + backend langsung berfungsi.
+
+Kalau Anda mengisi `KCI_JWT_SECRET` (mis. untuk meniru produksi), isi di KEDUA
+proses. Bila hanya salah satu, unduhan dengan kode yang benar selalu ditolak
+403 — gejalanya: kode akses diterima di modal, tetapi berkasnya gagal diambil.
+
+```bash
+KCI_JWT_SECRET="kalimat-acak-panjang" npm run dev          # proses pratinjau
+KCI_JWT_SECRET="kalimat-acak-panjang" node server/src/index.js   # backend
+```
 
 ## Pilihan lain: keluar dari Git LFS (PDF disimpan biasa di repo)
 
@@ -164,3 +183,35 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook \
 
 Apa pun pilihannya, tombol **Baca** tetap bekerja: proxy `/api/ebook-preview`
 otomatis memilih sumber yang benar-benar berisi PDF.
+
+## Audit artefak (dijalankan manual, bukan bagian `npm run uji`)
+
+Dua audit ini memeriksa hal yang tak terlihat dari uji unit: berkas
+sungguhan di disk dan hasil build. Jalankan dari akar repo dengan server
+dev (`npm run dev`) hidup untuk bagian HTTP-nya.
+
+1. **Koleksi & penyajian** — untuk setiap entri: berkas PDF benar-benar
+   dibuka pdf.js (bukan sekadar berawalan `%PDF`), jumlah halamannya cocok
+   dengan data, dimensi tiap sampul cocok dengan manifest `UKUR`, lalu
+   setiap berkas diambil lewat HTTP — `/ebooks/*.pdf` (jalur baca statis),
+   `/api/ebook-preview?file=…`, dan sampul `.webp`. URL dibuat persis
+   seperti aplikasi (`berkasPublik()` tidak meng-encode nama; `urlEbook()`
+   meng-encode penuh), karena perbedaan encoding itulah yang dulu membuat
+   satu buku menerima HTML alih-alih PDF.
+2. **Artefak build** — setelah `npm run build`, seluruh rujukan aset statis
+   di `dist/**/*.js|css|html` dicocokkan dengan berkas yang benar-benar ada
+   di `dist/`, termasuk 32 PDF, seluruh sampul + variannya, cMaps/font
+   standar pdf.js, dan worker pdf.js.
+
+Aturan yang dijaga uji otomatis (`npm run uji:ebook`, `uji:gambar`):
+
+- nama berkas di `file:` tidak memakai escape yang mematikan penyajian
+  statis (`%2C`, `%23`, `%3F`, `%26`, `%25`, `%2F`, `%5C`) — koma/spasi
+  ditulis apa adanya (`,` dan `%20`);
+- berkas bernomor (`cover-...-288.webp`) hanya dianggap **varian** kalau
+  berkas dasarnya ada, kalau tidak ia gambar asli yang wajib terdaftar di
+  manifest (kalau tidak: tanpa `width`/`height`, tata letak bergeser);
+- buku bertanda `tersedia: false` **tidak boleh** punya berkas PDF di
+  `public/ebooks/` — `/ebooks/*` disajikan apa adanya, jadi berkas yang
+  sudah di-commit bisa dibaca siapa pun walau halaman menandainya
+  "segera hadir".

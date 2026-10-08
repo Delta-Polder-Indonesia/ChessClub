@@ -18,13 +18,16 @@ import ModalUnduhEbook from "./ModalUnduhEbook.jsx";
 /**
  * Halaman E-Book & Panduan (di bawah menu Program Kami)
  *
- * Konsep:
+ * Konsep — model perpustakaan (baca bebas, unduh pakai kode):
  * - Daftar file PDF yang ada di /public/ebooks/
  * - Gambar sampul (cover) di /public/images/E-Books/
- * - Klik "Baca" (ikon mata) -> buka gerbang redemption. Setelah kode sah,
- *   tiket diteruskan ke pembaca PDF bawaan situs (berbasis pdf.js). Halaman
- *   digambar ke <canvas> sehingga dokumen benar-benar TAMPIL.
- * - Klik "Unduh" -> redemption lalu download file bertiket
+ * - Klik "Baca" (ikon mata) -> pembaca PDF bawaan situs (berbasis pdf.js)
+ *   langsung terbuka TANPA kode: pengunjung bisa menilai isi buku dulu.
+ *   Halaman digambar ke <canvas> sehingga dokumen benar-benar TAMPIL.
+ * - Klik "Unduh" -> gerbang kode akses (redemption). Setelah kode sah, tiket
+ *   diterbitkan server dan unduhan dipaksa `attachment`.
+ * - Tiket hanya dipakai untuk mengunduh. Ia tidak pernah menghalangi membaca,
+ *   jadi tiket kedaluwarsa pun tidak membuat pembaca kosong.
  * - Dibuka dari laman lain dengan /ebook-panduan/<id> -> otomatis gulir & sorot kartu
  * - Dibuka dengan /ebook-panduan/kategori/<slug> -> pasang filter & gulir ke katalog
  *
@@ -74,6 +77,39 @@ function IkonUnduh() {
 }
 
 /**
+ * Sampul buku dengan cadangan aman.
+ *
+ * `sumberGambar()` mengarahkan JPG/PNG ke varian WebP, jadi berkas yang belum
+ * dikonversi (atau terhapus) akan gagal dimuat. Tanpa penanganan, kartu
+ * menampilkan ikon gambar rusak; di sini kegagalan itu jatuh ke ikon PDF yang
+ * sama seperti buku tanpa sampul, sehingga katalog tidak pernah tampak rusak.
+ */
+function SampulBuku({ jalur, judul }) {
+  const { t } = useI18n();
+  const [gagal, setGagal] = useState(false);
+  if (!jalur || gagal) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-slate-200">
+        <PdfIcon />
+      </div>
+    );
+  }
+  return (
+    <img
+      {...sumberGambar(jalur, {
+        // Kisi 2 / 3 / 5 kolom → lebar kartu ± 48vw, 33vw, 20vw.
+        sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 48vw",
+      })}
+      alt={t("ebookPanduan.sampulAlt", { judul })}
+      loading="lazy"
+      decoding="async"
+      onError={() => setGagal(true)}
+      className="h-full w-full object-cover"
+    />
+  );
+}
+
+/**
  * Kartu e-book gaya flip-card (mengikuti pola Pertamina): sisi depan = sampul
  * + judul berlapis gradasi, sisi belakang = info & tombol aksi. Flip lewat
  * hover/fokus di desktop dan lewat klik/ketuk di perangkat sentuh.
@@ -108,22 +144,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
         {/* Sisi depan — sampul */}
         <div className="absolute inset-0 h-full w-full rounded-lg [backface-visibility:hidden] [transform-style:preserve-3d]">
           <div className="relative h-full w-full overflow-hidden rounded-lg [transform:translateZ(1px)]">
-            {COVER[buku.id] ? (
-              <img
-                {...sumberGambar(COVER[buku.id], {
-                  // Kisi 2 / 3 / 5 kolom → lebar kartu ± 48vw, 33vw, 20vw.
-                  sizes: "(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 48vw",
-                })}
-                alt={t("ebookPanduan.sampulAlt", { judul: buku.judul })}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center bg-slate-200">
-                <PdfIcon />
-              </div>
-            )}
+            <SampulBuku jalur={COVER[buku.id]} judul={buku.judul} />
             {!buku.tersedia && (
               <span className="absolute bottom-2 right-2 z-20 rounded-full bg-amber-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-950">
                 {t("ebookPanduan.segeraHadir")}
@@ -207,24 +228,50 @@ export default function EbookPanduan() {
     });
   };
 
-  function unduhDenganTiket(buku) {
+  async function unduhDenganTiket(buku) {
     /*
      * Tiket di state bisa saja sudah lewat 15 menit (pembaca dibiarkan terbuka
-     * lama). Mengirim tautan unduhan dengan tiket mati hanya menghasilkan
-     * berkas JSON galat 403 dari server, jadi tiket selalu diverifikasi dulu:
-     * pakai tiket state bila masih layak, lalu tiket sesi, dan kalau keduanya
-     * habis buka gerbang kode akses lagi.
+     * lama), dan jam perangkat pengguna bisa bergeser dari jam server. Karena
+     * itu tiket tidak hanya diperiksa di sisi klien: URL-nya "diketuk" lebih
+     * dulu dengan HEAD. Tanpa langkah ini, tiket yang ditolak server membuat
+     * browser menyimpan berkas JSON 403 sebagai "unduhan" — pengguna merasa
+     * sudah mengunduh padahal isinya pesan galat.
      */
     const tiketLayak = tiketBelumKedaluwarsa(buku?.tiketUnduh)
       ? buku.tiketUnduh
       : ambilTiketSesi({ file: buku?.file });
     if (!tiketLayak) {
-      setUnduhan({ ...buku, tujuanAkses: "unduh" });
+      setUnduhan(buku);
       return;
     }
-    if (tiketLayak !== buku.tiketUnduh) setPdfAktif({ ...buku, tiketUnduh: tiketLayak });
+
+    const tautanUnduh = urlEbook(buku.file, { unduh: true, tiket: tiketLayak });
+    let boleh = true;
+    try {
+      const jawaban = await fetch(tautanUnduh, { method: "HEAD", credentials: "same-origin" });
+      // HANYA penolakan eksplisit (401/403) yang dianggap tiket tidak sah.
+      // Balasan lain (mis. 405 dari proxy yang tidak mendukung HEAD) tidak
+      // boleh menghalangi unduhan yang sebenarnya sah.
+      boleh = ![401, 403].includes(jawaban.status);
+    } catch {
+      // Jaringan bermasalah: biarkan browser mencoba (unduhan biasa pun akan
+      // memunculkan galatnya sendiri) daripada memaksa mengisi kode lagi.
+      boleh = true;
+    }
+
+    if (!boleh) {
+      hapusTiketSesi({ file: buku.file });
+      setUnduhan(buku);
+      return;
+    }
+
+    // Perbarui tiket pembaca HANYA bila pembaca sedang menampilkan buku ini.
+    // Tombol Unduh di kartu katalog tidak boleh ikut membuka pembaca PDF.
+    setPdfAktif((lama) =>
+      lama && lama.file === buku.file ? { ...lama, tiketUnduh: tiketLayak } : lama
+    );
     const taut = document.createElement("a");
-    taut.href = urlEbook(buku.file, { unduh: true, tiket: tiketLayak });
+    taut.href = tautanUnduh;
     taut.download = "";
     document.body.appendChild(taut);
     taut.click();
@@ -353,17 +400,22 @@ export default function EbookPanduan() {
                 padaBalik={() => toggleBalik(buku.id)}
                 padaBaca={() => {
                   if (!buku.tersedia) return;
-                  // Tiket sesi yang masih berlaku (≤15 menit) langsung membuka
-                  // pembaca — tanpa mengisi nama/akun/kode lagi.
-                  const tiketSesi = ambilTiketSesi({ file: buku.file });
-                  if (tiketSesi) {
-                    setHalamanPdf(0);
-                    setPdfAktif({ ...buku, tiketUnduh: tiketSesi });
-                    return;
-                  }
-                  setUnduhan({ ...buku, tujuanAkses: "baca" });
+                  // MEMBACA bebas: pembaca langsung dibuka, tanpa kode akses.
+                  // Pengunjung bisa menilai isi buku dulu; yang wajib kode
+                  // hanya UNDUH (lihat unduhDenganTiket).
+                  setHalamanPdf(0);
+                  setPdfAktif({
+                    ...buku,
+                    tiketUnduh: ambilTiketSesi({ file: buku.file }) || null,
+                  });
                 }}
-                padaUnduh={() => setUnduhan({ ...buku, tujuanAkses: "unduh" })}
+                // Satu jalur untuk semua tombol Unduh: bila tiket sesi untuk
+                // berkas ini masih berlaku, berkas langsung diunduh tanpa
+                // meminta kode lagi (tiket tetap diketik ulang HANYA kalau
+                // server menolaknya — lihat unduhDenganTiket). Tanpa ini,
+                // pengguna yang baru menebus kode tetap disuruh memasukkan
+                // kode yang sama dari kartu.
+                padaUnduh={() => unduhDenganTiket(buku)}
               />
             ))}
           </div>
@@ -414,24 +466,28 @@ export default function EbookPanduan() {
               <div className="flex min-h-0 flex-1 flex-col bg-[#525659] p-2 md:p-4">
                 <div className="mx-auto flex min-h-0 w-full max-w-[1024px] flex-1 flex-col overflow-hidden rounded-md shadow-xl">
                   <PembacaPdf
-                    sumber={sumberEbook(pdfAktif.file, { tiket: pdfAktif.tiketUnduh })}
+                    sumber={sumberEbook(pdfAktif.file)}
                     padaGagal={() => {
                       /*
-                       * Semua sumber gagal — penyebab paling mungkin adalah
-                       * tiket sesi yang sudah kedaluwarsa (server menolak
-                       * 403). Buang tiket itu supaya percobaan berikutnya
-                       * melewati gerbang kode akses, dan JANGAN sentuh state
-                       * pembaca: `sumber` adalah prop dan ikut menjadi
-                       * dependensi efek pemuatan, jadi mengubahnya di sini
-                       * akan memicu pemuatan ulang tanpa henti.
+                       * Semua sumber gagal (mis. berkas belum ada di storage
+                       * privat → 503). TIKET UNDUHAN sengaja tidak disentuh:
+                       * membaca tidak memakai tiket, jadi kegagalan di sini
+                       * tidak ada hubungannya dengan tiket, dan menghapusnya
+                       * hanya akan membuang kode akses yang masih sah.
+                       * State pembaca juga tidak boleh diubah di sini —
+                       * `sumber` adalah dependensi efek pemuatan, jadi
+                       * mengubahnya akan memicu pemuatan ulang tanpa henti.
                        */
-                      hapusTiketSesi({ file: pdfAktif.file });
                     }}
                     judul={pdfAktif.judul}
-                    urlUnduh={urlEbook(pdfAktif.file, {
-                      unduh: true,
-                      tiket: pdfAktif.tiketUnduh,
-                    })}
+                    urlUnduh={
+                      pdfAktif.tiketUnduh
+                        ? urlEbook(pdfAktif.file, {
+                            unduh: true,
+                            tiket: pdfAktif.tiketUnduh,
+                          })
+                        : undefined
+                    }
                     padaSiap={setHalamanPdf}
                   />
                 </div>
@@ -439,7 +495,7 @@ export default function EbookPanduan() {
                   <span>
                     {t("ebookPanduan.bantuan")}{" "}
                     <a
-                      href={urlEbook(pdfAktif.file, { tiket: pdfAktif.tiketUnduh })}
+                      href={urlEbook(pdfAktif.file)}
                       target="_blank"
                       rel="noreferrer noopener"
                       className="underline hover:text-white"
@@ -457,16 +513,7 @@ export default function EbookPanduan() {
           )}
 
           {unduhan && (
-            <ModalUnduhEbook
-              buku={unduhan}
-              onTutup={() => setUnduhan(null)}
-              onTebusSukses={(catatan) => {
-                if (unduhan.tujuanAkses !== "baca") return;
-                setUnduhan(null);
-                setHalamanPdf(0);
-                setPdfAktif({ ...unduhan, tiketUnduh: catatan.tiketUnduh });
-              }}
-            />
+            <ModalUnduhEbook buku={unduhan} onTutup={() => setUnduhan(null)} />
           )}
         </div>
       </section>

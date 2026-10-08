@@ -10,6 +10,7 @@
  * perilaku lokal = perilaku produksi:
  *   - berkas lokal `public/ebooks/*.pdf` dipakai bila isinya PDF asli,
  *   - selain itu jatuh ke object storage / GitHub Media (sumber cadangan),
+ *   - membaca bebas, mengunduh (`?unduh=1`) wajib tiket,
  *   - respons selalu `Content-Disposition: inline` (atau attachment bila
  *     `?unduh=1`) dan mendukung `Range`.
  */
@@ -120,12 +121,10 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
 
   const penangan = async (req, res, next) => {
     const url = new URL(req.url || "/", "http://lokal");
-    // Jangan biarkan Vite menyajikan PDF mentah dari public/ebooks. Akses
-    // e-book wajib lewat proxy bertiket, sama seperti production.
-    if (url.pathname.startsWith("/ebooks/")) {
-      kirimJson(res, 403, { error: "Akses langsung ke PDF dinonaktifkan." });
-      return;
-    }
+    // `/ebooks/*` sengaja TIDAK disentuh: berkas statis itulah yang dipakai
+    // pembaca untuk MODE BACA (bebas, tanpa tiket) — sama seperti production
+    // yang menyajikan `public/ebooks` apa adanya. Yang bergerbang adalah
+    // unduhan lewat `/api/ebook-preview?unduh=1`.
     if (url.pathname !== JALUR_API) return next();
 
     if (!["GET", "HEAD"].includes(req.method || "GET")) {
@@ -144,8 +143,9 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       String(url.searchParams.get("unduh") || "").toLowerCase()
     );
     const namaAman = nama.replace(/[\r\n\\"]/g, "_");
-    if (!periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
-      kirimJson(res, 403, { error: "Tiket akses tidak sah atau sudah kedaluwarsa." });
+    // Sama seperti api/ebook-preview.js: baca bebas, unduh wajib tiket.
+    if (unduh && !periksaTiketUnduh(url.searchParams.get("tiket"), nama)) {
+      kirimJson(res, 403, { error: "Tiket akses unduhan tidak sah atau sudah kedaluwarsa." });
       return;
     }
     const kepalaDasar = () => {
@@ -156,7 +156,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       );
       res.setHeader("Accept-Ranges", "bytes");
       res.setHeader("X-Content-Type-Options", "nosniff");
-      res.setHeader("Cache-Control", unduh ? "no-store" : "no-cache");
+      res.setHeader("Cache-Control", unduh ? "no-store" : "private, max-age=300");
     };
 
     // 1) Berkas lokal (paling cepat, tanpa jaringan).

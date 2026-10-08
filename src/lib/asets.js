@@ -29,12 +29,12 @@ export function berkasPublik(jalur) {
 }
 
 /**
- * Alamat e-book PDF (pratinjau atau unduhan).
+ * Alamat e-book PDF (pratinjau atau unduhan) lewat proxy same-origin
+ * `/api/ebook-preview`.
  *
- * SELALU same-origin (`/api/ebook-preview`). Endpoint itulah yang memilih
- * sumber privat di server — lalu mengembalikannya dengan
- * `Content-Disposition: inline` supaya browser MENAMPILKAN PDF, bukan
- * mengunduhnya.
+ * Endpoint itulah yang memilih sumber berkas di server (storage privat,
+ * berkas statis, atau cadangan) lalu mengembalikannya sebagai `inline`
+ * (membaca) atau `attachment` (`unduh: true`, WAJIB memakai `tiket`).
  *
  * @param {string} jalur "/ebooks/Nama%20File.pdf"
  * @param {{unduh?: boolean, tiket?: string}} [opsi] `unduh: true` = paksa
@@ -62,13 +62,23 @@ function namaEbook(jalur) {
 }
 
 /**
- * Daftar URL PDF yang boleh dicoba pembaca di browser.
+ * Daftar URL PDF yang boleh dicoba pembaca di browser (mode BACA).
  *
- * Hanya proxy same-origin yang dikembalikan. Dengan begitu browser tidak
- * pernah menerima URL storage/GitHub yang dapat melewati tiket akses.
+ * Membaca tidak memakai tiket, jadi urutannya:
+ *   1. berkas statis `/ebooks/<nama>.pdf` — paling cepat, tanpa proxy;
+ *   2. proxy `/api/ebook-preview` tanpa tiket — cadangan bila berkas statis
+ *      tidak ada (mis. koleksi sudah dipindah ke storage privat).
+ *
+ * Kalau berkas statis ada tetapi isinya bukan PDF asli (pointer Git LFS pada
+ * checkout lama), pemuatan pertama gagal dan pembaca otomatis mencoba sumber
+ * berikutnya; proxy di server yang memilih sumbernya dengan benar.
+ *
+ * URL storage/GitHub TIDAK pernah dikembalikan ke browser: origin privat tidak
+ * masuk daftar izin CSP dan tidak pernah menjadi alamat publik.
  */
-export function sumberEbook(jalur, opsi = {}) {
-  return [urlEbook(jalur, { tiket: opsi.tiket })];
+export function sumberEbook(jalur) {
+  const nama = String(jalur || "").replace(/^\/+/, "");
+  return [berkasPublik(nama), urlEbook(jalur)];
 }
 
 /**

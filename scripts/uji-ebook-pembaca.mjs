@@ -17,11 +17,12 @@
  *
  * Jalankan: node scripts/uji-ebook-pembaca.mjs
  */
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 import {
   cariEbookTerdaftar,
@@ -94,17 +95,17 @@ await build({
 
 const asets = require(berkasAsets);
 
-uji("pratinjau memakai proxy same-origin dan tiket", () => {
-  const tiket = "tiket-uji";
-  const url = asets.urlEbook(CONTOH.file, { tiket });
+uji("urlEbook memakai proxy same-origin", () => {
+  const url = asets.urlEbook(CONTOH.file);
   benar(url.startsWith("/api/ebook-preview?file="), `URL tidak same-origin: ${url}`);
-  benar(!/^https?:/i.test(url), "URL pratinjau tidak boleh lintas-origin");
+  benar(!/^https?:/i.test(url), "URL tidak boleh lintas-origin");
   const parsed = new URL(url, "https://contoh.id");
   benar(
     decodeURIComponent(parsed.searchParams.get("file")) === NAMA_CONTOH,
     "parameter file tidak sesuai nama berkas"
   );
-  benar(parsed.searchParams.get("tiket") === tiket, "tiket tidak ikut URL pratinjau");
+  benar(parsed.searchParams.get("tiket") === null, "membaca tidak lagi memakai tiket");
+  benar(parsed.searchParams.get("unduh") === null, "urlEbook tanpa opsi.unduh tidak boleh memaksa attachment");
 });
 
 uji("tombol unduh memaksa attachment lewat ?unduh=1 + tiket", () => {
@@ -114,13 +115,18 @@ uji("tombol unduh memaksa attachment lewat ?unduh=1 + tiket", () => {
   benar(new URL(url, "https://contoh.id").searchParams.get("tiket") === tiket, "tiket tidak ikut URL unduh");
 });
 
-uji("sumberEbook hanya mengembalikan proxy bertiket", () => {
-  const daftar = asets.sumberEbook(CONTOH.file, { tiket: "tiket-uji" });
-  benar(Array.isArray(daftar) && daftar.length === 1, "browser tidak boleh menerima fallback publik");
-  benar(daftar[0].startsWith("/api/ebook-preview"), "sumber harus proxy same-origin");
-  benar(new URL(daftar[0], "https://contoh.id").searchParams.get("tiket") === "tiket-uji", "tiket tidak ada");
-  benar(!daftar[0].includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
-  benar(!daftar[0].includes("/ebooks/"), "URL statis tidak boleh masuk bundle browser");
+uji("sumberEbook: berkas statis dulu, lalu proxy tanpa tiket", () => {
+  const daftar = asets.sumberEbook(CONTOH.file);
+  benar(Array.isArray(daftar) && daftar.length === 2, `jumlah sumber tak terduga: ${daftar.length}`);
+  benar(daftar[0] === CONTOH.file, `sumber pertama bukan berkas statis: ${daftar[0]}`);
+  benar(daftar[1].startsWith("/api/ebook-preview"), "cadangan harus proxy same-origin");
+  const parsed = new URL(daftar[1], "https://contoh.id");
+  benar(parsed.searchParams.get("tiket") === null, "membaca via proxy tidak boleh menuntut tiket");
+  benar(parsed.searchParams.get("unduh") === null, "membaca tidak boleh meminta attachment");
+  for (const url of daftar) {
+    benar(!url.includes("media.githubusercontent.com"), "GitHub Media tidak boleh masuk bundle browser");
+    benar(!/^https?:/i.test(url), `sumber tidak same-origin: ${url}`);
+  }
 });
 
 /* ------------------------------------------------------- 3. allowlist ---- */
@@ -192,14 +198,18 @@ uji("/api/ebook-preview tidak tertelan rewrite catch-all", () => {
   benar(pola.test("/api/kesehatan"), "rute API lain harus tetap masuk catch-all");
 });
 
-uji("/ebooks/* dirutekan ke proxy dan tidak cache publik", () => {
+uji("/ebooks/* tetap berkas statis (mode baca) dan boleh di-cache", () => {
   const vercel = JSON.parse(readFileSync(path.join(ROOT, "vercel.json"), "utf8"));
-  const rute = vercel.rewrites.find((r) => r.source === "/ebooks/:path*");
-  benar(rute?.destination === "/api/ebook-preview?file=:path*", "rute /ebooks/* belum masuk proxy");
+  // Pembaca memuat berkas statis `/ebooks/<nama>.pdf`; kalau rute ini di-rewrite
+  // ke API, sumber pertama pembaca mati dan pembaca jatuh ke jalur proxy terus.
+  const rute = vercel.rewrites.find((r) => String(r.source).startsWith("/ebooks/"));
+  benar(!rute, `rewrite /ebooks/* menghalangi mode baca: ${JSON.stringify(rute)}`);
   const header = vercel.headers.find((item) => item.source === "/ebooks/(.*)");
   benar(
-    header?.headers?.some((item) => item.key === "Cache-Control" && item.value === "no-store"),
-    "PDF /ebooks/* tidak boleh memiliki cache publik"
+    header?.headers?.some(
+      (item) => item.key === "Cache-Control" && item.value.startsWith("public")
+    ),
+    "PDF mode baca sebaiknya boleh di-cache (berkas besar, dibaca berulang)"
   );
 });
 
@@ -215,7 +225,7 @@ uji("CSP mengizinkan sumber cadangan PDF", () => {
   }
 });
 
-await ujiAsync("middleware lokal memblokir PDF statis langsung", async () => {
+await ujiAsync("middleware lokal meneruskan /ebooks/* (berkas statis untuk mode baca)", async () => {
   let middleware;
   pratinjauEbook({ akar: ROOT }).configureServer({
     middlewares: {
@@ -224,27 +234,77 @@ await ujiAsync("middleware lokal memblokir PDF statis langsung", async () => {
       },
     },
   });
-  const selesai = new Promise((resolve) => {
+  const diteruskan = await new Promise((resolve) => {
     const res = {
       statusCode: 200,
       headers: {},
-      setHeader(nama, nilai) {
-        this.headers[nama.toLowerCase()] = String(nilai);
-      },
-      end(badan = "") {
-        this.badan = String(badan);
-        resolve(this);
+      setHeader() {},
+      end() {
+        resolve(false);
       },
     };
     middleware({ method: "GET", url: `/ebooks/${encodeURIComponent(NAMA_CONTOH)}` }, res, () => {
-      throw new Error("akses /ebooks/* diteruskan ke Vite");
+      resolve(true);
     });
   });
-  const res = await selesai;
-  benar(res.statusCode === 403, `akses statis langsung harus 403, dapat ${res.statusCode}`);
+  benar(diteruskan, "berkas statis /ebooks/* harus dilayani Vite, bukan ditahan middleware");
 });
 
-/* ------------------------------------------- 4b. proxy /api/ebook-preview */
+/* -------------------------- 4b. rahasia tiket lintas proses (dev/preview) */
+
+console.log("Rahasia tiket lintas proses (mode pengembangan):");
+
+const TIKET_EBOOK_URL = pathToFileURL(
+  path.join(ROOT, "server/src/tiket-ebook.js")
+).href;
+
+/**
+ * Jalankan skrip di proses Node TERPISAH tanpa `KCI_JWT_SECRET`.
+ *
+ * Inilah bentuk asli `npm run dev`: backend (8787) menerbitkan tiket, lalu
+ * middleware Vite (5173) memverifikasinya di PROSES YANG BERBEDA. Bila rahasia
+ * pengembangan diacak per proses, setiap tiket yang sah ditolak 403 dan tombol
+ * mata hanya menampilkan "Gagal memuat dokumen PDF" walau kode aksesnya benar.
+ */
+function prosesNode(skrip, tambahanEnv = {}) {
+  const env = { ...process.env, ...tambahanEnv };
+  // Rahasia dari shell induk tidak boleh "menyelamatkan" uji ini: yang diuji
+  // adalah bawaan pengembangan yang dipakai saat nilainya tidak diisi.
+  delete env.KCI_JWT_SECRET;
+  const anak = spawnSync(
+    process.execPath,
+    ["--input-type=module", "-e", skrip],
+    { cwd: ROOT, env, encoding: "utf8" }
+  );
+  if (anak.status !== 0) {
+    throw new Error(
+      `proses anak keluar dengan kode ${anak.status}: ${(anak.stderr || anak.stdout || "").trim()}`
+    );
+  }
+  return anak.stdout.trim();
+}
+
+uji("tiket dari proses lain tetap sah di verifikator", () => {
+  const tiket = prosesNode(
+    `import { terbitkanTiketUnduh } from ${JSON.stringify(TIKET_EBOOK_URL)};
+     process.stdout.write(terbitkanTiketUnduh(process.env.KCI_UJI_NAMA));`,
+    { KCI_UJI_NAMA: NAMA_CONTOH }
+  );
+  benar(tiket.startsWith("kci-ebook-v1."), `bentuk tiket tidak dikenal: ${tiket.slice(0, 30)}`);
+
+  const hasil = prosesNode(
+    `import { periksaTiketUnduh } from ${JSON.stringify(TIKET_EBOOK_URL)};
+     const sah = periksaTiketUnduh(process.env.KCI_UJI_TIKET, process.env.KCI_UJI_NAMA);
+     process.stdout.write(sah ? "sah" : "tidak");`,
+    { KCI_UJI_TIKET: tiket, KCI_UJI_NAMA: NAMA_CONTOH }
+  );
+  benar(
+    hasil === "sah",
+    `tiket yang diterbitkan proses lain ditolak (${hasil}) — rahasia JWT pengembangan harus sama antar proses`
+  );
+});
+
+/* ------------------------------------------- 4c. proxy /api/ebook-preview */
 
 console.log("Proxy pratinjau (api/ebook-preview.js):");
 
@@ -324,7 +384,10 @@ await ujiAsync("melewati pointer Git LFS dan memakai isi PDF asli", async () => 
   );
   benar(res.statusCode === 200, `status tidak 200: ${res.statusCode} ${JSON.stringify(res.badanJson || "")}`);
   benar(res.getHeader("content-type") === "application/pdf", "Content-Type bukan PDF");
-  benar(res.getHeader("cache-control") === "private, no-store", "PDF bertiket tidak boleh di-cache publik");
+  benar(
+    res.getHeader("cache-control") === "private, max-age=300",
+    `pratinjau mode baca boleh di-cache privat, dapat: ${res.getHeader("cache-control")}`
+  );
   benar(
     (res.getHeader("content-disposition") || "").startsWith("inline"),
     `harus inline agar tidak terunduh: ${res.getHeader("content-disposition")}`
@@ -332,9 +395,13 @@ await ujiAsync("melewati pointer Git LFS dan memakai isi PDF asli", async () => 
   benar(res.badan.subarray(0, 4).toString() === "%PDF", "badan respons bukan PDF");
 });
 
-await ujiAsync("preview tanpa tiket ditolak 403", async () => {
+await ujiAsync("membaca tanpa tiket tetap dilayani (inline)", async () => {
   const res = await panggilPratinjau({ file: CONTOH.file }, { [LFS]: "%PDF-1.7 x" });
-  benar(res.statusCode === 403, `preview tanpa tiket harus 403, dapat ${res.statusCode}`);
+  benar(res.statusCode === 200, `preview tanpa tiket harus 200, dapat ${res.statusCode}`);
+  benar(
+    (res.getHeader("content-disposition") || "").startsWith("inline"),
+    "preview harus inline supaya tampil di pembaca"
+  );
 });
 
 await ujiAsync("?unduh=1 tanpa tiket ditolak 403", async () => {
@@ -369,22 +436,65 @@ await ujiAsync("semua sumber mati → 502 dengan pesan yang jelas", async () => 
 
 /* ----------------------------------------------- 5. alur redemption UI -- */
 
-uji("Baca menebus tiket sebelum membuka pembaca", () => {
+uji("Baca bebas: pembaca dibuka tanpa gerbang kode", () => {
+  const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
+  const pembaca = halaman.slice(
+    halaman.indexOf("padaBaca={()"),
+    halaman.indexOf("padaUnduh={")
+  );
+  benar(pembaca.includes("setPdfAktif({"), "aksi Baca belum membuka pembaca");
+  benar(!pembaca.includes("setUnduhan("), "aksi Baca tidak boleh lagi membuka gerbang kode");
+  benar(!pembaca.includes("tujuanAkses"), "aksi Baca masih memakai alur redemption lama");
+  benar(
+    halaman.includes("sumber={sumberEbook(pdfAktif.file)}"),
+    "pembaca belum memakai sumber baca tanpa tiket"
+  );
+});
+
+uji("Unduh tetap lewat gerbang kode dan tiket redemption", () => {
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   const modal = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/ModalUnduhEbook.jsx"), "utf8");
-  benar(halaman.includes('setUnduhan({ ...buku, tujuanAkses: "baca" })'), "aksi Baca belum membuka gerbang redemption");
-  benar(halaman.includes("tiketUnduh: catatan.tiketUnduh"), "tiket redemption belum diteruskan ke pembaca");
-  benar(modal.includes('buku.tujuanAkses === "baca"'), "modal belum membedakan tujuan Baca");
-  benar(modal.includes("onTebusSukses?.(catatan)"), "callback tiket ke pembaca belum dipanggil");
+  // Semua tombol Unduh lewat SATU jalur: `unduhDenganTiket` memakai tiket
+  // sesi bila masih sah, dan membuka gerbang kode bila tidak ada/ditolak.
+  benar(
+    halaman.includes("padaUnduh={() => unduhDenganTiket(buku)}"),
+    "aksi Unduh di kartu belum memakai jalur unduh bertiket"
+  );
+  benar(
+    /if \(!tiketLayak\) \{\s*setUnduhan\(buku\);/.test(halaman),
+    "tanpa tiket sesi, aksi Unduh harus membuka gerbang kode"
+  );
+  benar(modal.includes("tebusUnduhanEbook("), "modal belum menebus kode di server");
+  benar(halaman.includes("tiket: tiketLayak"), "tautan unduhan belum memakai tiket hasil redemption");
+  benar(
+    /urlUnduh=\{\s*pdfAktif\.tiketUnduh/.test(halaman),
+    "tautan unduh pembaca harus kosong bila tiket unduhan tidak ada"
+  );
 });
 
 uji("pembaca bisa melaporkan kegagalan (padaGagal) ke pemanggil", () => {
   const pembaca = readFileSync(path.join(ROOT, "src/components/PembacaPdf.jsx"), "utf8");
   const halaman = readFileSync(path.join(ROOT, "src/halaman/ProgramKami/EbookPanduan.jsx"), "utf8");
   benar(pembaca.includes("padaGagal?.()"), "PembacaPdf belum memanggil padaGagal saat semua sumber gagal");
+  // Membaca tidak memakai tiket: kegagalan pembaca tidak boleh menghapus
+  // tiket unduhan yang masih sah (dulu tiket dihapus di sini). Penghapusan
+  // tetap boleh ada di jalur lain — mis. saat server menolak tiket unduhan.
+  const blokGagal = halaman.slice(
+    halaman.indexOf("padaGagal={"),
+    halaman.indexOf("judul={pdfAktif.judul}")
+  );
+  benar(blokGagal.length > 0, "blok padaGagal tidak ditemukan");
   benar(
-    halaman.includes("hapusTiketSesi({ file: pdfAktif.file })"),
-    "halaman belum membuang tiket sesi yang ditolak server"
+    !blokGagal.includes("hapusTiketSesi"),
+    "kegagalan pembaca tidak boleh membuang tiket unduhan yang masih sah"
+  );
+  benar(
+    /await fetch\([^)]*method: "HEAD"/.test(halaman),
+    "tautan unduh belum diverifikasi ke server sebelum berkas diambil"
+  );
+  benar(
+    halaman.includes("[401, 403].includes(jawaban.status)"),
+    "pemeriksaan HEAD harus hanya memblokir pada penolakan eksplisit (401/403)"
   );
   // Regresi yang paling mudah terjadi: mengubah `sumber` di dalam padaGagal
   // akan memicu efek pemuatan lagi (dependensi `daftarSumber`).
@@ -416,8 +526,13 @@ if (!ada("jsdom") || !ada("esbuild")) {
   const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { MemoryRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 import PembacaPdf from "./src/components/PembacaPdf.jsx";
+import EbookPanduan from "./src/halaman/ProgramKami/EbookPanduan.jsx";
 import { I18nProvider } from "./src/lib/i18n.jsx";
+import { sumberEbook } from "./src/lib/asets.js";
+export { sumberEbook };
 
 export function mount(el, props) {
   const root = createRoot(el);
@@ -425,6 +540,46 @@ export function mount(el, props) {
     <I18nProvider>
       <PembacaPdf {...props} />
     </I18nProvider>
+  );
+  return root;
+}
+
+/** Pembungkus yang meniru halaman: array \`sumber\` BARU setiap render. */
+export function mountBungkus(el) {
+  const root = createRoot(el);
+  function Bungkus({ hitung }) {
+    return (
+      <I18nProvider>
+        <div data-hitung={hitung}>
+          {
+            // Literal array di JSX = identitas baru tiap render, persis pola
+            // \`sumber={sumberEbook(buku.file)}\` di halaman e-book.
+          }
+          <PembacaPdf sumber={["/api/ebook-preview?file=a.pdf"]} judul="Contoh" />
+        </div>
+      </I18nProvider>
+    );
+  }
+  return {
+    render(hitung) {
+      root.render(<Bungkus hitung={hitung} />);
+    },
+  };
+}
+
+/** Halaman E-Book & Panduan utuh, di dalam router + i18n seperti di situs. */
+export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
+  const root = createRoot(el);
+  root.render(
+    <HelmetProvider>
+      <I18nProvider>
+        <MemoryRouter initialEntries={[rute]}>
+          <Routes>
+            <Route path="/program-kami/ebook-panduan" element={<EbookPanduan />} />
+          </Routes>
+        </MemoryRouter>
+      </I18nProvider>
+    </HelmetProvider>
   );
   return root;
 }
@@ -446,6 +601,7 @@ export function mount(el, props) {
           contents: `
             export const GlobalWorkerOptions = { workerSrc: "" };
             export function getDocument(opsi) {
+              globalThis.__jumlahMuat = (globalThis.__jumlahMuat || 0) + 1;
               const tugas = { onProgress: null, destroy() {} };
               tugas.promise = globalThis.__pdfStub(opsi);
               return tugas;
@@ -516,6 +672,11 @@ export function mount(el, props) {
     "cancelAnimationFrame",
     "ResizeObserver",
     "getComputedStyle",
+    // Di browser `globalThis.sessionStorage` ITU SAMA dengan
+    // `window.sessionStorage`; tanpa menyalinnya, modul tiket sesi melihat
+    // penyimpanan kosong dan perilaku "tiket diingat" tak bisa diuji.
+    "sessionStorage",
+    "localStorage",
   ]) {
     if (!window[kunci]) continue;
     try {
@@ -534,7 +695,7 @@ export function mount(el, props) {
     galatAsli(...arg);
   };
 
-  const { mount } = require(berkasBundel);
+  const { mount, mountBungkus, mountHalaman, sumberEbook } = require(berkasBundel);
 
   const tunggu = (ms = 30) => new Promise((r) => setTimeout(r, ms));
   const teks = () => window.document.getElementById("akar").textContent;
@@ -590,6 +751,55 @@ export function mount(el, props) {
     );
   });
 
+  await ujiAsync("sumber pertama menyerahkan HTML → pembaca pindah ke proxy & tetap tampil", async () => {
+    // Inilah yang terjadi ketika berkas statis TIDAK disajikan (mis. nama
+    // berkas memakai escape yang tak dikenal server, atau berkas belum ikut
+    // ter-deploy): /ebooks/… menjawab index.html dengan status 200, dan pdf.js
+    // melaporkan "Invalid PDF structure". Pembaca harus mencoba sumber
+    // berikutnya (/api/ebook-preview) dan berhasil — bukan menyerah.
+    const urlDicoba = [];
+    globalThis.__pdfStub = async (opsi) => {
+      urlDicoba.push(String(opsi.url));
+      if (String(opsi.url).startsWith("/ebooks/")) {
+        throw new Error("Invalid PDF structure");
+      }
+      return {
+        numPages: 5,
+        destroy() {},
+        getPage: async () => ({
+          getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+          render: () => ({ promise: Promise.resolve(), cancel() {} }),
+        }),
+      };
+    };
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    let gagalDipanggil = false;
+    mount(el, {
+      sumber: sumberEbook("/ebooks/Buku%20Contoh.pdf"),
+      judul: "Contoh",
+      urlUnduh: "/api/ebook-preview?file=Buku%20Contoh.pdf&unduh=1",
+      padaGagal: () => {
+        gagalDipanggil = true;
+      },
+    });
+
+    benar(
+      await tungguSampai(() => el.querySelector("canvas")),
+      `pembaca menyerah padahal proxy masih hidup (dicoba: ${urlDicoba.join(" | ")})`
+    );
+    benar(
+      urlDicoba.some((u) => u.startsWith("/ebooks/")) && urlDicoba.some((u) => u.includes("/api/ebook-preview")),
+      `urutan sumber tidak seperti yang diharapkan: ${urlDicoba.join(" | ")}`
+    );
+    benar(!gagalDipanggil, "padaGagal dipanggil padahal sumber kedua berhasil");
+    benar(
+      !/tidak bisa dimuat|gagal/i.test(el.textContent || ""),
+      "pesan galat tampil padahal dokumen berhasil dibuka dari sumber kedua"
+    );
+  });
+
   await ujiAsync("semua sumber gagal → pesan galat + tombol pemulihan", async () => {
     globalThis.__pdfStub = async () => {
       throw new Error("sumber mati");
@@ -630,6 +840,325 @@ export function mount(el, props) {
       `pemuatan berulang tanpa henti: ${jumlahPercobaan} percobaan (harus 2, satu per sumber)`
     );
     benar(jumlahGagal === 1, `padaGagal berulang: ${jumlahGagal}×`);
+  });
+
+  await ujiAsync("403 / 503 → pesan sebabnya, bukan 'dokumen rusak'", async () => {
+    const pasang = (status) => {
+      globalThis.__pdfStub = async () => {
+        // Bentuk galat pdf.js saat respons non-2xx.
+        const galat = new Error(`Unexpected server response (${status}) while retrieving PDF`);
+        galat.status = status;
+        throw galat;
+      };
+      const el = window.document.createElement("div");
+      window.document.body.appendChild(el);
+      mount(el, { sumber: ["/api/ebook-preview?file=a.pdf"], judul: "Contoh" });
+      return el;
+    };
+
+    const el403 = pasang(403);
+    benar(
+      await tungguSampai(() => el403.textContent.includes("403")),
+      `pesan penolakan 403 tidak tampil: ${el403.textContent}`
+    );
+
+    const el503 = pasang(503);
+    benar(
+      await tungguSampai(() => el503.textContent.includes("belum tersedia di server")),
+      `pesan berkas belum tersedia tidak tampil: ${el503.textContent}`
+    );
+  });
+
+  await ujiAsync("induk re-render tidak memuat ulang dokumen (tidak unduh 2×)", async () => {
+    globalThis.__pdfStub = async () => ({
+      numPages: 3,
+      destroy() {},
+      getPage: async () => ({
+        getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+        render: () => ({ promise: Promise.resolve(), cancel() {} }),
+      }),
+    });
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    const { render } = mountBungkus(el);
+    globalThis.__jumlahMuat = 0;
+    render(1);
+    benar(await tungguSampai(() => el.querySelector("canvas")), "kanvas tidak dirender");
+    const awal = globalThis.__jumlahMuat;
+
+    // Tiga render ulang induk, masing-masing dengan array sumber BARU.
+    for (const n of [2, 3, 4]) {
+      render(n);
+      await tunggu(40);
+    }
+    benar(
+      globalThis.__jumlahMuat === awal,
+      `dokumen dimuat ${globalThis.__jumlahMuat - awal}× lagi padahal sumbernya sama — ` +
+        "berkas besar akan terunduh berulang"
+    );
+  });
+
+  await ujiAsync("halaman e-book utuh: katalog, baca, dan unduh tanpa galat", async () => {
+    globalThis.__pdfStub = async () => ({
+      numPages: 12,
+      destroy() {},
+      getPage: async () => ({
+        getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+        render: () => ({ promise: Promise.resolve(), cancel() {} }),
+      }),
+    });
+
+    const galatJs = [];
+    const catat = (asli) => (...arg) => {
+      const teks = String(arg[0] || "");
+      // jsdom tidak bisa mengunduh berkas: klik <a download> memunculkan
+      // "Not implemented: navigation" — bukan galat aplikasi.
+      if (!teks.includes("not wrapped in act") && !teks.includes("Not implemented: navigation")) {
+        galatJs.push(teks);
+      }
+      asli(...arg);
+    };
+    const asliError = console.error;
+    const asliWarn = console.warn;
+    console.error = catat(asliError);
+    console.warn = catat(asliWarn);
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    try {
+      mountHalaman(el);
+
+      const kartu = await tungguSampai(() => el.querySelectorAll("article").length > 20);
+      benar(kartu, `kartu katalog tidak dirender: ${el.querySelectorAll("article").length}`);
+      const jumlahKartu = el.querySelectorAll("article").length;
+      benar(jumlahKartu === DAFTAR_EBOOK.length, `jumlah kartu ${jumlahKartu} ≠ ${DAFTAR_EBOOK.length}`);
+
+      // Sampul: setiap kartu punya gambar webp ATAU ikon PDF (tanpa <img> rusak).
+      const sampul = [...el.querySelectorAll("article img")];
+      benar(sampul.length > 0, "tidak ada satu pun sampul yang dirender");
+      benar(
+        sampul.every((g) => String(g.getAttribute("src")).endsWith(".webp")),
+        "sampul memakai berkas non-webp (akan 404 karena gambar() mengubah ekstensi)"
+      );
+      // Tanpa width/height, browser tidak memesan ruang sebelum gambar lazy
+      // mendarat → kartu melompat (CLS). Ini pernah terjadi pada sampul yang
+      // namanya berakhiran angka ("...-288.webp") yang salah dianggap varian.
+      const tanpaUkuran = sampul.filter((g) => !g.getAttribute("width") || !g.getAttribute("height"));
+      benar(
+        tanpaUkuran.length === 0,
+        `${tanpaUkuran.length} sampul tanpa width/height (tata letak bergeser): ` +
+          tanpaUkuran.slice(0, 2).map((g) => g.getAttribute("src")).join(" | ")
+      );
+      if (sampul[0]) {
+        sampul[0].dispatchEvent(new window.Event("error"));
+        await tunggu(20);
+        benar(
+          el.querySelectorAll("article").length === jumlahKartu,
+          "sampul yang gagal dimuat merusak daftar kartu"
+        );
+      }
+
+      // Klik tombol Baca (ikon mata) pada kartu pertama → pembaca terbuka.
+      const kartuPertama = el.querySelector("article");
+      const tombolBaca = [...kartuPertama.querySelectorAll("button")].find((b) =>
+        b.textContent.includes("Baca")
+      );
+      benar(tombolBaca, "tombol Baca tidak ditemukan di kartu");
+      tombolBaca.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("canvas")),
+        "pembaca PDF tidak terbuka setelah menekan Baca"
+      );
+      benar(
+        !el.textContent.includes("Unduh e-book"),
+        "menekan Baca seharusnya tidak membuka gerbang kode"
+      );
+
+      // Tutup pembaca, lalu tekan Unduh → gerbang kode muncul.
+      const tombolTutup = [...el.querySelectorAll("button")].find(
+        (b) => b.getAttribute("aria-label") === "Tutup"
+      );
+      benar(tombolTutup, "tombol tutup pembaca tidak ada");
+      tombolTutup.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+
+      const kartuUnduh = el.querySelector("article");
+      const tombolUnduh = [...kartuUnduh.querySelectorAll("button")].find((b) =>
+        b.textContent.includes("Unduh")
+      );
+      benar(tombolUnduh, "tombol Unduh tidak ditemukan di kartu");
+      tombolUnduh.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("#unduh-nama")),
+        "gerbang kode (modal unduh) tidak terbuka setelah menekan Unduh"
+      );
+
+      // Tutup gerbang kode supaya langkah berikutnya menguji kemunculannya
+      // kembali, bukan membiarkan modal lama menutupi kegagalan.
+      const tutupGerbang = [...el.querySelectorAll("button")].find(
+        (b) => b.getAttribute("aria-label") === "Tutup" && b.closest("#unduh-nama, [role='dialog']")
+      );
+      if (tutupGerbang) tutupGerbang.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => !el.querySelector("#unduh-nama")),
+        "gerbang kode tidak bisa ditutup"
+      );
+
+      // Tanam tiket sesi seperti hasil penebusan kode yang masih hidup.
+      const berkas = CONTOH.file;
+      const tiketPalsu = `kci-ebook-v1.${Buffer.from(
+        JSON.stringify({ v: 1, f: namaBerkasEbook(berkas), x: Math.floor(Date.now() / 1000) + 600, j: "uji" })
+      ).toString("base64url")}.tanda-tangan-uji`;
+      window.sessionStorage.setItem(
+        `kci-ebook-tiket:${berkas}`,
+        JSON.stringify({ tiket: tiketPalsu, file: berkas, disimpan: Date.now() })
+      );
+
+      // Kartu Unduh dengan tiket sesi yang SAH: berkas harus langsung diambil
+      // (tanpa mengetik ulang kode) — tiket hanya dipakai setelah server
+      // mengiyakan pemeriksaan HEAD. Pembaca TIDAK boleh ikut terbuka.
+      const fetchAsli = globalThis.fetch;
+      const dipanggil = [];
+      globalThis.fetch = async (url) => {
+        dipanggil.push(String(url));
+        return { ok: true, status: 200, json: async () => ({}) };
+      };
+      try {
+        const unduhKartu = [...el.querySelector("article").querySelectorAll("button")].find((b) =>
+          b.textContent.includes("Unduh")
+        );
+        unduhKartu.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        await tunggu(60);
+        benar(
+          dipanggil.some((u) => u.includes("unduh=1") && u.includes("tiket=")),
+          `tiket sesi tidak dipakai saat memeriksa unduhan: ${dipanggil.join(" | ")}`
+        );
+        benar(
+          !el.querySelector("#unduh-nama"),
+          "tiket sesi yang masih berlaku tidak boleh membuka gerbang kode"
+        );
+        benar(!el.querySelector("canvas"), "Unduh dari KARTU tidak boleh membuka pembaca PDF");
+      } finally {
+        globalThis.fetch = fetchAsli;
+      }
+
+      // Tombol Unduh di bilah pembaca: bila server MENOLAK tiket sesi (403),
+      // gerbang kode harus terbuka dan tiket mati itu dibuang — bukan
+      // mengunduh berkas JSON galat.
+      tombolBaca.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      benar(
+        await tungguSampai(() => el.querySelector("canvas")),
+        "pembaca tidak terbuka saat tiket sesi tersimpan"
+      );
+
+      // Tombol Unduh di bilah pembaca dengan tiket yang DITOLAK server (403).
+      globalThis.fetch = async () => ({ ok: false, status: 403, json: async () => ({}) });
+      try {
+        const bilah = [...el.querySelectorAll("button")].find(
+          (b) => b.textContent.trim() === "Unduh" && b.closest(".fixed")
+        );
+        benar(bilah, "tombol Unduh di bilah pembaca tidak ditemukan");
+        bilah.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+        benar(
+          await tungguSampai(() => el.querySelector("#unduh-nama")),
+          "tiket yang ditolak server tidak membuka gerbang kode"
+        );
+      } finally {
+        globalThis.fetch = fetchAsli;
+      }
+      benar(
+        window.sessionStorage.getItem(`kci-ebook-tiket:${berkas}`) === null,
+        "tiket yang ditolak server harus dibuang dari sesi"
+      );
+
+      benar(
+        galatJs.length === 0,
+        `halaman menulis galat ke konsol: ${galatJs.slice(0, 3).join(" | ")}`
+      );
+  await ujiAsync("gerbang kode: kode ditolak server → pesan sebabnya, isian tidak hilang", async () => {
+    // Server menolak kode (404 tidak dikenal / 410 kedaluwarsa / 400 salah
+    // buku). Yang diuji: pesan server tampil apa adanya, formulir tetap hidup
+    // (nama/akun/kode tidak terhapus), dan tidak ada galat JavaScript.
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    const galatJs = [];
+    const asliError2 = console.error;
+    console.error = (...a) => {
+      const t = String(a[0] || "");
+      if (!t.includes("not wrapped in act")) galatJs.push(t);
+      asliError2(...a);
+    };
+
+    const setNilai = (input, nilai) => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      ).set;
+      setter.call(input, nilai);
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    };
+    const klik = (b) => b.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    const PESAN = "Kode akses tidak dikenal. Periksa ejaan atau minta kode baru ke pengurus.";
+
+    const fetchAsli2 = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      const u = String(url);
+      if (u.includes("/api/csrf-token")) return { ok: true, status: 200, json: async () => ({ token: "uji-csrf" }) };
+      if (u.includes("/api/ebook/tebus")) return { ok: false, status: 404, json: async () => ({ pesan: PESAN }) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    };
+
+    try {
+      window.sessionStorage.clear(); // tiket sesi sisa uji lain tidak boleh ikut
+      mountHalaman(el);
+      benar(
+        await tungguSampai(() => el.querySelectorAll("article").length > 20),
+        "katalog tidak dirender untuk uji gerbang kode"
+      );
+      klik(
+        [...el.querySelector("article").querySelectorAll("button")].find((b) =>
+          b.textContent.includes("Unduh")
+        )
+      );
+      benar(await tungguSampai(() => el.querySelector("#unduh-nama")), "gerbang kode tidak terbuka");
+      klik([...el.querySelectorAll("button")].find((b) => b.textContent.trim() === "Masukkan kode"));
+      benar(await tungguSampai(() => el.querySelector("#unduh-kode")), "mode tebus kode tidak muncul");
+
+      setNilai(el.querySelector("#unduh-nama"), "Pemain Uji");
+      setNilai(el.querySelector("#unduh-akun"), "pemainuji-chess");
+      setNilai(el.querySelector("#unduh-kode"), "EBK-SALAH99");
+      klik([...el.querySelectorAll("button")].find((b) => /Mulai unduh/.test(b.textContent)));
+
+      benar(
+        await tungguSampai(() => el.querySelector('[role="alert"]')),
+        "penolakan server tidak menghasilkan pesan di layar"
+      );
+      benar(
+        el.querySelector('[role="alert"]').textContent.includes(PESAN),
+        `pesan server tidak diteruskan: ${el.querySelector('[role="alert"]').textContent}`
+      );
+      benar(
+        el.querySelector("#unduh-nama")?.value === "Pemain Uji" &&
+          el.querySelector("#unduh-kode")?.value === "EBK-SALAH99",
+        "isian pengguna terhapus setelah kode ditolak"
+      );
+      benar(el.querySelector("#unduh-nama"), "gerbang kode ikut tertutup setelah kegagalan");
+      benar(
+        window.sessionStorage.getItem(`kci-ebook-tiket:${CONTOH.file}`) === null,
+        "tiket sesi tersimpan padahal kode ditolak"
+      );
+      await tunggu(20);
+      benar(galatJs.length === 0, `galat konsol saat kode ditolak: ${galatJs.slice(0, 2).join(" | ")}`);
+    } finally {
+      globalThis.fetch = fetchAsli2;
+      console.error = asliError2;
+    }
+  });
+
+    } finally {
+      console.error = asliError;
+      console.warn = asliWarn;
+    }
   });
 }
 

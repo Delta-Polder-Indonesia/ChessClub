@@ -64,13 +64,14 @@ function Field({ label, htmlFor, children }) {
   );
 }
 
-export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
+export default function ModalUnduhEbook({ buku, onTutup }) {
   const { t } = useI18n();
   /*
-   * Tiket sesi yang masih berlaku untuk berkas ini membuat pengguna tidak perlu
-   * mengetik ulang nama/akun/kode (tiket e-book hanya hidup 15 menit — lihat
-   * src/lib/sesiUnduhEbook.js). Mode "punya kode" dibuka otomatis supaya
-   * tombol Mulai unduh langsung menembus gerbang.
+   * Gerbang UNDUH saja: membaca e-book tidak lewat modal ini (baca bebas,
+   * lihat EbookPanduan.jsx). Tiket sesi yang masih berlaku untuk berkas ini
+   * membuat pengguna tidak perlu mengetik ulang nama/akun/kode (tiket e-book
+   * hanya hidup 15 menit — lihat src/lib/sesiUnduhEbook.js). Mode "punya kode"
+   * dibuka otomatis supaya tombol Mulai unduh langsung menembus gerbang.
    */
   const tiketSesiAwal = useRef(null);
   if (tiketSesiAwal.current === null) {
@@ -129,23 +130,7 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
     setGalat("");
 
     if (punyaKode) {
-      /*
-       * Tiket sesi yang masih berlaku: lewati gerbang kode akses sama sekali.
-       * Ini menghindari (a) pengguna mengetik ulang nama/akun/kode untuk buku
-       * yang sama dalam 15 menit, dan (b) server menambah satu "unduhan" lagi
-       * di dashboard pengurus untuk kode yang sama.
-       */
-      if (adaTiketSesi && buku.tujuanAkses === "baca") {
-        onTebusSukses?.({
-          tiketUnduh: tiketSesiAwal.current,
-          nama: nama.trim() || pemohonTersimpan.current?.nama || "",
-          akunChess: akun.trim() || pemohonTersimpan.current?.akun || "",
-          judul: buku.judul,
-        });
-        return;
-      }
-
-      // Redemption memberi tiket untuk Baca atau Unduh.
+      // Redemption menerbitkan tiket unduhan untuk berkas ini.
       if (!nama.trim() || !akun.trim() || !kode.trim()) {
         setGalat(t("unduhEbook.lengkapiKode"));
         setSalah(true);
@@ -162,16 +147,11 @@ export default function ModalUnduhEbook({ buku, onTutup, onTebusSukses }) {
           bukuId: buku.id,
           judul: buku.judul,
         });
-        // Sesi disimpan sebelum apa pun: tiket yang sama dipakai halaman untuk
-        // membuka pembaca, jadi menyimpannya lebih dulu berarti buku berikutnya
+        // Sesi disimpan sebelum apa pun: tiket yang sama dipakai tombol unduh
+        // di bilah pembaca, jadi menyimpannya lebih dulu berarti buku berikutnya
         // (atau muat ulang) tidak meminta data yang sama lagi.
         simpanPemohonEbook({ nama: nama.trim(), akun: akun.trim() });
         simpanTiketSesi({ file: buku.file, tiket: catatan.tiketUnduh });
-
-        if (buku.tujuanAkses === "baca") {
-          onTebusSukses?.(catatan);
-          return;
-        }
 
         setTercatat(catatan);
         const taut = document.createElement("a");

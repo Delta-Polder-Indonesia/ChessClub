@@ -131,6 +131,21 @@ function lebarDariNama(nama) {
   return cocok ? Number(cocok[1]) : null;
 }
 
+/**
+ * Benarkah `x-<lebar>.webp` sebuah VARIAN dari `x.webp`?
+ *
+ * Hanya bila berkas dasarnya benar-benar ada di folder yang sama. Nama gambar
+ * asli sah berakhiran angka — mis. `cover-problem-catur-288.webp` (288 soal) —
+ * dan berkas seperti itu dulu dianggap varian lalu DILEWATI: tidak pernah masuk
+ * manifest `UKUR`, sehingga `<img>`-nya tidak punya width/height dan tidak
+ * pernah dapat `srcset` (tata letak bergeser saat gambar selesai diunduh).
+ */
+export function apakahVarian(nama, dirRelatif = "images") {
+  if (lebarDariNama(nama) === null) return false;
+  const dasar = nama.replace(/-\d{2,4}\.webp$/i, ".webp");
+  return existsSync(path.join(PUB, dirRelatif, dasar));
+}
+
 /** Semua WebP asli (tanpa varian) di sebuah folder public/, terurut nama. */
 export function daftarWebP(dirRelatif, pola) {
   const dir = path.join(PUB, dirRelatif);
@@ -139,7 +154,7 @@ export function daftarWebP(dirRelatif, pola) {
     .filter(
       (n) =>
         /\.webp$/i.test(n) &&
-        lebarDariNama(n) === null &&
+        !apakahVarian(n, dirRelatif) &&
         (!pola || pola.test(n)),
     )
     .sort()
@@ -155,7 +170,7 @@ function lebarVarianTerpasang(jalurRel) {
   for (const nama of readdirSync(dirAbs)) {
     if (!nama.startsWith(`${dasar}-`) || !/\.webp$/i.test(nama)) continue;
     const lebar = lebarDariNama(nama);
-    if (lebar) hasil.push(lebar);
+    if (lebar && lebar > 0) hasil.push(lebar);
   }
   return [...new Set(hasil)].sort((a, b) => a - b);
 }
@@ -315,7 +330,7 @@ export function semuaWebP(dirRelatif = "images") {
       hasil.push(...semuaWebP(rel));
       continue;
     }
-    if (!/\.webp$/i.test(nama) || lebarDariNama(nama) !== null) continue;
+    if (!/\.webp$/i.test(nama) || apakahVarian(nama, dirRelatif)) continue;
     hasil.push(rel);
   }
   return hasil.sort();

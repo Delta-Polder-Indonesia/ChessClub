@@ -34,7 +34,7 @@ export const DAFTAR_EBOOK = [
     id: "chess-5334-problems-combinations-and-games",
     judul: "CHESS-5334 Problems, Combinations and Games",
     deskripsi: "Latihan taktik, kombinasi, dan penyelesaian catur.",
-    file: "/ebooks/CHESS-5334-Problems%2C%20Combinations-and-Games.pdf",
+    file: "/ebooks/CHESS-5334-Problems,%20Combinations-and-Games.pdf",
     kategori: "Taktik",
     ukuran: "5,2 MB",
     halaman: "-",
