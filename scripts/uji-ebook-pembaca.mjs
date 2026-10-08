@@ -531,6 +531,8 @@ import { HelmetProvider } from "react-helmet-async";
 import PembacaPdf from "./src/components/PembacaPdf.jsx";
 import EbookPanduan from "./src/halaman/ProgramKami/EbookPanduan.jsx";
 import { I18nProvider } from "./src/lib/i18n.jsx";
+import { sumberEbook } from "./src/lib/asets.js";
+export { sumberEbook };
 
 export function mount(el, props) {
   const root = createRoot(el);
@@ -693,7 +695,7 @@ export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
     galatAsli(...arg);
   };
 
-  const { mount, mountBungkus, mountHalaman } = require(berkasBundel);
+  const { mount, mountBungkus, mountHalaman, sumberEbook } = require(berkasBundel);
 
   const tunggu = (ms = 30) => new Promise((r) => setTimeout(r, ms));
   const teks = () => window.document.getElementById("akar").textContent;
@@ -746,6 +748,55 @@ export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
     benar(
       await tungguSampai(() => Number(el.querySelector('input[type="number"]')?.value) === 2),
       "tombol berikutnya tidak memindahkan halaman"
+    );
+  });
+
+  await ujiAsync("sumber pertama menyerahkan HTML → pembaca pindah ke proxy & tetap tampil", async () => {
+    // Inilah yang terjadi ketika berkas statis TIDAK disajikan (mis. nama
+    // berkas memakai escape yang tak dikenal server, atau berkas belum ikut
+    // ter-deploy): /ebooks/… menjawab index.html dengan status 200, dan pdf.js
+    // melaporkan "Invalid PDF structure". Pembaca harus mencoba sumber
+    // berikutnya (/api/ebook-preview) dan berhasil — bukan menyerah.
+    const urlDicoba = [];
+    globalThis.__pdfStub = async (opsi) => {
+      urlDicoba.push(String(opsi.url));
+      if (String(opsi.url).startsWith("/ebooks/")) {
+        throw new Error("Invalid PDF structure");
+      }
+      return {
+        numPages: 5,
+        destroy() {},
+        getPage: async () => ({
+          getViewport: ({ scale }) => ({ width: 600 * scale, height: 800 * scale, scale }),
+          render: () => ({ promise: Promise.resolve(), cancel() {} }),
+        }),
+      };
+    };
+
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    let gagalDipanggil = false;
+    mount(el, {
+      sumber: sumberEbook("/ebooks/Buku%20Contoh.pdf"),
+      judul: "Contoh",
+      urlUnduh: "/api/ebook-preview?file=Buku%20Contoh.pdf&unduh=1",
+      padaGagal: () => {
+        gagalDipanggil = true;
+      },
+    });
+
+    benar(
+      await tungguSampai(() => el.querySelector("canvas")),
+      `pembaca menyerah padahal proxy masih hidup (dicoba: ${urlDicoba.join(" | ")})`
+    );
+    benar(
+      urlDicoba.some((u) => u.startsWith("/ebooks/")) && urlDicoba.some((u) => u.includes("/api/ebook-preview")),
+      `urutan sumber tidak seperti yang diharapkan: ${urlDicoba.join(" | ")}`
+    );
+    benar(!gagalDipanggil, "padaGagal dipanggil padahal sumber kedua berhasil");
+    benar(
+      !/tidak bisa dimuat|gagal/i.test(el.textContent || ""),
+      "pesan galat tampil padahal dokumen berhasil dibuka dari sumber kedua"
     );
   });
 
@@ -1024,6 +1075,86 @@ export function mountHalaman(el, rute = "/program-kami/ebook-panduan") {
         galatJs.length === 0,
         `halaman menulis galat ke konsol: ${galatJs.slice(0, 3).join(" | ")}`
       );
+  await ujiAsync("gerbang kode: kode ditolak server → pesan sebabnya, isian tidak hilang", async () => {
+    // Server menolak kode (404 tidak dikenal / 410 kedaluwarsa / 400 salah
+    // buku). Yang diuji: pesan server tampil apa adanya, formulir tetap hidup
+    // (nama/akun/kode tidak terhapus), dan tidak ada galat JavaScript.
+    const el = window.document.createElement("div");
+    window.document.body.appendChild(el);
+    const galatJs = [];
+    const asliError2 = console.error;
+    console.error = (...a) => {
+      const t = String(a[0] || "");
+      if (!t.includes("not wrapped in act")) galatJs.push(t);
+      asliError2(...a);
+    };
+
+    const setNilai = (input, nilai) => {
+      const setter = Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value"
+      ).set;
+      setter.call(input, nilai);
+      input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    };
+    const klik = (b) => b.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    const PESAN = "Kode akses tidak dikenal. Periksa ejaan atau minta kode baru ke pengurus.";
+
+    const fetchAsli2 = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      const u = String(url);
+      if (u.includes("/api/csrf-token")) return { ok: true, status: 200, json: async () => ({ token: "uji-csrf" }) };
+      if (u.includes("/api/ebook/tebus")) return { ok: false, status: 404, json: async () => ({ pesan: PESAN }) };
+      return { ok: false, status: 404, json: async () => ({}) };
+    };
+
+    try {
+      window.sessionStorage.clear(); // tiket sesi sisa uji lain tidak boleh ikut
+      mountHalaman(el);
+      benar(
+        await tungguSampai(() => el.querySelectorAll("article").length > 20),
+        "katalog tidak dirender untuk uji gerbang kode"
+      );
+      klik(
+        [...el.querySelector("article").querySelectorAll("button")].find((b) =>
+          b.textContent.includes("Unduh")
+        )
+      );
+      benar(await tungguSampai(() => el.querySelector("#unduh-nama")), "gerbang kode tidak terbuka");
+      klik([...el.querySelectorAll("button")].find((b) => b.textContent.trim() === "Masukkan kode"));
+      benar(await tungguSampai(() => el.querySelector("#unduh-kode")), "mode tebus kode tidak muncul");
+
+      setNilai(el.querySelector("#unduh-nama"), "Pemain Uji");
+      setNilai(el.querySelector("#unduh-akun"), "pemainuji-chess");
+      setNilai(el.querySelector("#unduh-kode"), "EBK-SALAH99");
+      klik([...el.querySelectorAll("button")].find((b) => /Mulai unduh/.test(b.textContent)));
+
+      benar(
+        await tungguSampai(() => el.querySelector('[role="alert"]')),
+        "penolakan server tidak menghasilkan pesan di layar"
+      );
+      benar(
+        el.querySelector('[role="alert"]').textContent.includes(PESAN),
+        `pesan server tidak diteruskan: ${el.querySelector('[role="alert"]').textContent}`
+      );
+      benar(
+        el.querySelector("#unduh-nama")?.value === "Pemain Uji" &&
+          el.querySelector("#unduh-kode")?.value === "EBK-SALAH99",
+        "isian pengguna terhapus setelah kode ditolak"
+      );
+      benar(el.querySelector("#unduh-nama"), "gerbang kode ikut tertutup setelah kegagalan");
+      benar(
+        window.sessionStorage.getItem(`kci-ebook-tiket:${CONTOH.file}`) === null,
+        "tiket sesi tersimpan padahal kode ditolak"
+      );
+      await tunggu(20);
+      benar(galatJs.length === 0, `galat konsol saat kode ditolak: ${galatJs.slice(0, 2).join(" | ")}`);
+    } finally {
+      globalThis.fetch = fetchAsli2;
+      console.error = asliError2;
+    }
+  });
+
     } finally {
       console.error = asliError;
       console.warn = asliWarn;

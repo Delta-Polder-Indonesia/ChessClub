@@ -183,3 +183,35 @@ gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.5 -dPDFSETTINGS=/ebook \
 
 Apa pun pilihannya, tombol **Baca** tetap bekerja: proxy `/api/ebook-preview`
 otomatis memilih sumber yang benar-benar berisi PDF.
+
+## Audit artefak (dijalankan manual, bukan bagian `npm run uji`)
+
+Dua audit ini memeriksa hal yang tak terlihat dari uji unit: berkas
+sungguhan di disk dan hasil build. Jalankan dari akar repo dengan server
+dev (`npm run dev`) hidup untuk bagian HTTP-nya.
+
+1. **Koleksi & penyajian** — untuk setiap entri: berkas PDF benar-benar
+   dibuka pdf.js (bukan sekadar berawalan `%PDF`), jumlah halamannya cocok
+   dengan data, dimensi tiap sampul cocok dengan manifest `UKUR`, lalu
+   setiap berkas diambil lewat HTTP — `/ebooks/*.pdf` (jalur baca statis),
+   `/api/ebook-preview?file=…`, dan sampul `.webp`. URL dibuat persis
+   seperti aplikasi (`berkasPublik()` tidak meng-encode nama; `urlEbook()`
+   meng-encode penuh), karena perbedaan encoding itulah yang dulu membuat
+   satu buku menerima HTML alih-alih PDF.
+2. **Artefak build** — setelah `npm run build`, seluruh rujukan aset statis
+   di `dist/**/*.js|css|html` dicocokkan dengan berkas yang benar-benar ada
+   di `dist/`, termasuk 32 PDF, seluruh sampul + variannya, cMaps/font
+   standar pdf.js, dan worker pdf.js.
+
+Aturan yang dijaga uji otomatis (`npm run uji:ebook`, `uji:gambar`):
+
+- nama berkas di `file:` tidak memakai escape yang mematikan penyajian
+  statis (`%2C`, `%23`, `%3F`, `%26`, `%25`, `%2F`, `%5C`) — koma/spasi
+  ditulis apa adanya (`,` dan `%20`);
+- berkas bernomor (`cover-...-288.webp`) hanya dianggap **varian** kalau
+  berkas dasarnya ada, kalau tidak ia gambar asli yang wajib terdaftar di
+  manifest (kalau tidak: tanpa `width`/`height`, tata letak bergeser);
+- buku bertanda `tersedia: false` **tidak boleh** punya berkas PDF di
+  `public/ebooks/` — `/ebooks/*` disajikan apa adanya, jadi berkas yang
+  sudah di-commit bisa dibaca siapa pun walau halaman menandainya
+  "segera hadir".

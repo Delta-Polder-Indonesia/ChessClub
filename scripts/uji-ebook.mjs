@@ -3,7 +3,11 @@
  *
  * Memeriksa:
  *   1. Setiap entri `file:` di ebook-data.js menunjuk ke berkas yang ADA
- *      di public/ebooks/ (nama di-decode dari URL-encoding).
+ *      di public/ebooks/ (nama di-decode dari URL-encoding) — kecuali buku
+ *      yang memang belum dirilis (`tersedia: false`), yang JUSTRU tidak boleh
+ *      punya berkas: `/ebooks/*` disajikan apa adanya, jadi berkas yang sudah
+ *      di-commit bisa dibaca siapa pun lewat URL walau halaman menandainya
+ *      "segera hadir".
  *   2. Setiap berkas PDF adalah PDF asli (diawali %PDF) ATAU pointer Git LFS
  *      yang formatnya sah (baris version + oid sha256 64-hex + size > 0).
  *      Pointer LFS sah bila repo dikloning tanpa git-lfs — isi aslinya
@@ -28,6 +32,7 @@
 import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { resolve, dirname, basename } from "node:path";
 import { fileURLToPath } from "node:url";
+import { COVER, DAFTAR_EBOOK } from "../src/halaman/Beranda/ebook-data.js";
 
 const AKAR = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const BERKAS_DATA = resolve(AKAR, "src/halaman/Beranda/ebook-data.js");
@@ -65,23 +70,45 @@ function deskripsiPointer(isi) {
   return { pointer: true, sah: true, oid: oidHex, ukuran };
 }
 
-// 1) Kumpulkan semua referensi `file:` dari ebook-data.js
+// 1) Kumpulkan entri dari MODUL data (regex tetap dipakai sebagai silang-periksa:
+//    jumlah `file:` di berkas harus sama dengan jumlah entri — menangkap entri
+//    yang ter-commit setengah jalan atau blok yang tak sengaja dikomentari).
 const data = readFileSync(BERKAS_DATA, "utf8");
-const entri = [...data.matchAll(/file:\s*"([^"]+)"/g)].map((m) => m[1]);
+const refDiTeks = [...data.matchAll(/file:\s*"([^"]+)"/g)].map((m) => m[1]);
+const entri = DAFTAR_EBOOK.map((b) => b.file);
 
 if (!entri.length) {
   masalah.push("Tidak ada entri `file:` yang ditemukan di ebook-data.js.");
 } else {
   info.push(`${entri.length} entri e-book di ebook-data.js.`);
 }
+if (refDiTeks.length !== entri.length) {
+  masalah.push(
+    `Jumlah \`file:\` di berkas (${refDiTeks.length}) tidak sama dengan jumlah entri ` +
+      `yang dipakai aplikasi (${entri.length}) — ada entri setengah jalan atau terkomentari.`
+  );
+}
 
-// 2) Periksa setiap referensi
+// 2) Periksa setiap entri (termasuk bendera `tersedia`)
 for (const ref of entri) {
   const nama = namaDariEntri(ref);
   const jalur = resolve(DIR_EBOOK, nama);
+  const buku = DAFTAR_EBOOK.find((b) => b.file === ref);
+  const tersedia = buku?.tersedia !== false;
   if (basename(jalur) !== nama || !existsSync(jalur)) {
-    masalah.push(`E-book dirujuk tapi berkas tidak ada: /ebooks/${nama}`);
+    if (tersedia) {
+      masalah.push(`E-book dirujuk tapi berkas tidak ada: /ebooks/${nama}`);
+    } else {
+      info.push(`  · ${nama} — belum dirilis (tidak ada berkas), sesuai data.`);
+    }
     continue;
+  }
+  if (!tersedia) {
+    masalah.push(
+      `Buku "${buku.id}" ditandai tersedia=false tetapi berkasnya ADA di public/ebooks/ ` +
+        `(${nama}). /ebooks/* disajikan apa adanya, jadi isinya sudah bisa dibaca siapa pun. ` +
+        "Hapus berkasnya dari commit sampai buku benar-benar dirilis."
+    );
   }
   const bita = readFileSync(jalur);
   const isi = bita.toString("latin1");
@@ -125,13 +152,19 @@ for (const f of berkasDiDisk) {
 }
 
 // 4) Sampul: setiap COVER punya berkas .webp, dan id-nya selalu ada di entri
-const blokSampul = data.match(/export const COVER\s*=\s*\{([\s\S]*?)\n\};/);
-if (!blokSampul) {
-  masalah.push("Blok COVER tidak ditemukan di ebook-data.js.");
+const jumlahSampulTeks = [...data.matchAll(/^\s{2}"[^"]+":\s*"\/images\/E-Books\//gm)].length;
+if (!Object.keys(COVER).length) {
+  masalah.push("Peta COVER tidak ditemukan di ebook-data.js.");
 } else {
-  const pasangan = [...blokSampul[1].matchAll(/"([^"]+)"\s*:\s*"([^"]+)"/g)];
+  const pasangan = Object.entries(COVER).map(([id, jalur]) => [null, id, jalur]);
   const dirPublik = resolve(AKAR, "public");
-  const idEntri = new Set([...data.matchAll(/id:\s*"([^"]+)"/g)].map((m) => m[1]));
+  const idEntri = new Set(DAFTAR_EBOOK.map((b) => b.id));
+  if (pasangan.length !== jumlahSampulTeks) {
+    masalah.push(
+      `Jumlah sampul di berkas (${jumlahSampulTeks}) tidak sama dengan yang dipakai ` +
+        `aplikasi (${pasangan.length}).`
+    );
+  }
   for (const [, id, jalur] of pasangan) {
     if (!idEntri.has(id)) masalah.push(`COVER punya id tanpa entri buku: ${id}`);
     const relatif = namaDariEntri(jalur.replace(/^\//, ""));
