@@ -29,7 +29,7 @@ function teksEvaluasi(move, indeks) {
 }
 
 function GameChart(props) {
-  const { moves = [], container, moveNumber, setMoveNumber, setAnimation, setForward, interaktif = true, label } = props;
+  const { moves = [], container, moveNumber, setMoveNumber, setAnimation, setForward, interaktif = true, label, tooltipDiAtas = false } = props;
   const [hoveredMove, setHoveredMove] = useState(NaN);
   const [size, setSize] = useState({ width: 400, height: 96 });
   const totalMoves = Math.max(1, moves.length - 1);
@@ -118,7 +118,7 @@ function GameChart(props) {
         return <circle key={i} style={{ fill: `var(--${posisi.color ?? strokeColor})` }} cx={x} cy={y} r={i === moveNumber ? 4 : 3} />;
       })}
     </svg>
-    {posisiAktif && <div role="tooltip" className="pointer-events-none absolute z-10 flex flex-col rounded border border-black bg-white/90 p-1 text-sm text-[#222]" style={{ left: posisiTooltip, top: size.height + 2 }}>
+    {posisiAktif && <div role="tooltip" className="pointer-events-none absolute z-10 flex flex-col rounded border border-black bg-white/90 p-1 text-sm text-[#222]" style={tooltipDiAtas ? { left: posisiTooltip, bottom: size.height + 2 } : { left: posisiTooltip, top: size.height + 2 }}>
       <span className="flex items-center gap-1">
         {posisiAktif.moveRating && <RatingSVG rating={ratingTampilan(posisiAktif)} size={18} /> }
         {teksEvaluasi(posisiAktif, hoveredMove)}

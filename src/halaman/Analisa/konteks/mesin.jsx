@@ -18,7 +18,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ENGINE_BAKU } from "../../../lib/engineCatur.js";
 import { EngineAnalisis } from "../mesin/engine.js";
-import { wasmSupported } from "../mesin/cekWasm.js";
+import { hashUntukEngine, wasmSupported } from "../mesin/cekWasm.js";
 import { bacaTeks, tulis } from "../penyimpanan.js";
 
 export const KonteksMesin = createContext(null);
@@ -29,10 +29,22 @@ export function MesinProvider({ children }) {
   const [status, setStatus] = useState("mati"); // mati | memuat | siap | gagal
   const [galat, setGalat] = useState("");
   const mesinRef = useRef(null);
+  /*
+   * Opsi UCI per engine (Hash MB & Threads). Ref dipakai supaya `buat` yang
+   * selalu dibuat ulang memakai nilai terkini tanpa dependensi berubah.
+   */
+  const opsiRef = useRef({ hash: hashUntukEngine(), threads: 1 });
+  const [opsi, setOpsiState] = useState(opsiRef.current);
+
+  const ubahOpsi = useCallback((perubahan) => {
+    opsiRef.current = { ...opsiRef.current, ...perubahan };
+    setOpsiState(opsiRef.current);
+    mesinRef.current?.terapkanOpsi?.(perubahan);
+  }, []);
 
   const buat = useCallback((id) => {
     mesinRef.current?.hancurkan();
-    mesinRef.current = new EngineAnalisis({ idEngine: id });
+    mesinRef.current = new EngineAnalisis({ idEngine: id, hash: opsiRef.current.hash, threads: opsiRef.current.threads });
     return mesinRef.current;
   }, []);
 
@@ -83,6 +95,10 @@ export function MesinProvider({ children }) {
     galat,
     siapkan: Siapkan,
     setop,
+    /** Opsi UCI aktif (Hash MB & Threads). */
+    opsi,
+    /** Ubah opsi UCI — langsung disetel ke worker bila sudah ada. */
+    ubahOpsi,
     /** Instance engine aktif, atau null bila belum pernah dimuat. */
     ambilMesin: () => mesinRef.current,
     didukung,

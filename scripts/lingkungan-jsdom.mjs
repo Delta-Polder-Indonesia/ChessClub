@@ -34,6 +34,13 @@ class ResizeObserverPolyfill {
 }
 pasang("ResizeObserver", ResizeObserverPolyfill);
 dom.window.ResizeObserver = ResizeObserverPolyfill;
+// Radix (AlertDialog dipakai layar Database & Deteksi engine) membaca
+// getComputedStyle/MutationObserver sebagai global saat dialog dibuka, dan
+// membuat Event/CustomEvent global yang harus se-realm dengan document jsdom.
+pasang("getComputedStyle", dom.window.getComputedStyle.bind(dom.window));
+pasang("MutationObserver", dom.window.MutationObserver);
+pasang("Event", dom.window.Event);
+pasang("CustomEvent", dom.window.CustomEvent);
 // jsdom tidak mengimplementasikan Element.prototype.scrollTo (digunakan
 // daftar langkah Moves untuk meluncur ke langkah aktif). Polyfill no-op.
 dom.window.Element.prototype.scrollTo = function scrollTo() {};

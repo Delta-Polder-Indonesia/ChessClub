@@ -37,6 +37,11 @@ export const DAFTAR_ENGINE = [
     saran: true,
   },
   {
+    id: "stockfish-19-lite",
+    label: "Stockfish 19 Lite",
+    url: `${dasarAset()}engines/stockfish-19-lite-single/stockfish-19-lite-single.js`,
+  },
+  {
     id: "stockfish-17-lite",
     label: "Stockfish 17 Lite",
     url: `${dasarAset()}engines/stockfish-17-lite-single/stockfish-17-lite-single.js`,
@@ -47,9 +52,19 @@ export const DAFTAR_ENGINE = [
     url: `${dasarAset()}engines/stockfish-18-single/stockfish-18-single.js`,
   },
   {
+    id: "stockfish-19",
+    label: "Stockfish 19 (NNUE penuh)",
+    url: `${dasarAset()}engines/stockfish-19-single/stockfish-19-single.js`,
+  },
+  {
     id: "stockfish-17",
     label: "Stockfish 17 (NNUE penuh)",
     url: `${dasarAset()}engines/stockfish-17-single/stockfish-17-single.js`,
+  },
+  {
+    id: "stockfish-16",
+    label: "Stockfish 16",
+    url: `${dasarAset()}engines/stockfish-nnue-16-single/stockfish-nnue-16-single.js`,
   },
 ];
 
@@ -139,6 +154,10 @@ export class EngineCatur {
       // Build Stockfish lama yang tidak punya opsi ini hanya membalas
       // "No such option" dan pencarian tetap normal.
       this.kirim("setoption name UCI_ShowWDL value true");
+      // NNUE wajib aktif: Stockfish 16 memakai eval klasik secara bawaan.
+      // Build tanpa opsi ini hanya membalas "No such option", sama seperti
+      // UCI_ShowWDL di atas.
+      this.kirim("setoption name Use NNUE value true");
       this.kirim("isready");
     });
     // Kegagalan tidak boleh "lengket": tanpa ini, `janjiSiap` yang sudah

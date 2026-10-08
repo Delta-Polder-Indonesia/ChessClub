@@ -924,7 +924,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   await tunggu(250);
   uji("menu baru membuka layar Deteksi engine", !!domSiap.querySelector('[data-layar="deteksi-engine"]'));
   uji("sidebar menandai Deteksi engine aktif", navDeteksi.getAttribute("aria-current") === "true");
-  uji("layar deteksi memakai lima kontrol pengaturan", domSiap.querySelectorAll('[data-layar="deteksi-engine"] select, [data-layar="deteksi-engine"] input').length === 5);
+  uji("layar deteksi memakai delapan kontrol pengaturan", domSiap.querySelectorAll('[data-layar="deteksi-engine"] select, [data-layar="deteksi-engine"] input').length === 8);
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
   uji("layar Deteksi engine digantikan papan", !domSiap.querySelector("[data-layar]"));

@@ -158,7 +158,7 @@ function Moves(props) {
                     </li>)}
             </ul>
             <div ref={gameChartRef}>
-                <GameChart container={container} moves={moves} moveNumber={moveNumber} setMoveNumber={setMoveNumber} setAnimation={setAnimation} setForward={setForward} />
+                <GameChart container={container} moves={moves} moveNumber={moveNumber} setMoveNumber={setMoveNumber} setAnimation={setAnimation} setForward={setForward} tooltipDiAtas />
             </div>
         </div>;
 }
