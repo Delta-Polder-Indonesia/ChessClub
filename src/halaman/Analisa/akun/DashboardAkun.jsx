@@ -8,11 +8,6 @@ import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
-import { analisisRiwayatAntiCheat, BATAS_PARTAI, KEDALAMAN_AGGREGAT } from "./antiCheatRiwayat.js";
-import { MULTI_PV } from "../mesin/engine.js";
-import { unduhLaporanPeninjauan } from "../mesin/laporanPeninjauan.js";
-import { DAFTAR_FASE } from "../mesin/fase.js";
-import { gunakanMesin } from "../konteks/mesin.jsx";
 import Database from "../komponen/svg/database.jsx";
 import DualRingSpinner from "../komponen/loading/DualRingSpinner.jsx";
 
@@ -182,157 +177,6 @@ function KosongState({ isi, sub }) {
   );
 }
 
-/*
- * Kartu hasil anti-cheat agregat. Warna level memakai token highlight yang
- * sama dengan label langkah (hijau → kuning → merah) supaya satu bahasa warna
- * berlaku di seluruh halaman Analisa.
- */
-const KELAS_LEVEL = {
-  rendah: "text-highlightBest",
-  sedang: "text-highlightInaccuracy",
-  tinggi: "text-highlightBlunder",
-};
-
-function BarisAntiCheat({ label, nilai, kelas }) {
-  return (
-    <div className="flex items-center justify-between gap-2 text-[13px]">
-      <span className="text-foregroundGrey">{label}</span>
-      <span className={`font-bold ${kelas ?? "text-foreground"}`}>{nilai}</span>
-    </div>
-  );
-}
-
-function RingkasanAntiCheat({ agregat }) {
-  const { t } = useI18n();
-  const persen = (n) => (Number.isFinite(n) ? `${n.toFixed(1)}%` : "-");
-  const cp = (n) => (Number.isFinite(n) ? `${n.toFixed(1)} cp` : "-");
-  const rasio = (n) => (Number.isFinite(n) ? `${Math.round(n * 100)}%` : "-");
-  const level = agregat.level ?? "tidakAda";
-  const arah = agregat.tren?.arah ?? "tidakAda";
-
-  return (
-    <div className="flex flex-col gap-3 pt-2">
-      <div className="flex items-end justify-between">
-        <div className="flex flex-col">
-          <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.skor")}</span>
-          <span className={`text-4xl font-bold leading-none ${KELAS_LEVEL[level] ?? "text-foreground"}`}>
-            {Number.isFinite(agregat.skor) ? agregat.skor : "-"}
-          </span>
-        </div>
-        <span className={`text-sm font-bold ${KELAS_LEVEL[level] ?? "text-foregroundGrey"}`}>
-          {t(`analisa.antiCheat.level.${level}`)}
-        </span>
-      </div>
-
-      <p className="text-xs leading-4 text-foregroundGrey">
-        {agregat.andal
-          ? t("analisa.antiCheat.riwayat.andal", { partai: agregat.jumlahPartai, langkah: agregat.jumlahLangkah })
-          : t("analisa.antiCheat.riwayat.tidakAndal", { partai: agregat.jumlahPartai, langkah: agregat.jumlahLangkah })}
-      </p>
-
-      {Number.isFinite(agregat.rating) ? (
-        <p className="text-xs leading-4 text-foregroundGrey">
-          {t("analisa.antiCheat.riwayat.kalibrasi", { n: Math.round(agregat.rating) })}
-        </p>
-      ) : null}
-
-      <div className="flex flex-col gap-1.5 border-t border-border pt-3">
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.kecocokan")} nilai={persen(agregat.engineMatchRate)} />
-        {agregat.kandidatSampel > 0 ? (
-          <>
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.kecocokanTop3")}
-              nilai={persen(agregat.kecocokanTop3)}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.rataPeringkat")}
-              nilai={`${agregat.rataPeringkat ?? "-"} / ${MULTI_PV + 1}`}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.acplKandidat")}
-              nilai={cp(agregat.acplKandidat)}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.kecocokanSulit")}
-              nilai={persen(agregat.kecocokanSulit)}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.kecocokanMudah")}
-              nilai={persen(agregat.kecocokanMudah)}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.streak")}
-              nilai={String(agregat.streakTerpanjang ?? 0)}
-            />
-            <BarisAntiCheat
-              label={t("analisa.antiCheat.metrik.korelasiWaktu")}
-              nilai={Number.isFinite(agregat.korelasiWaktuKualitas) ? agregat.korelasiWaktuKualitas.toFixed(2) : "-"}
-            />
-          </>
-        ) : null}
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.acpl")} nilai={cp(agregat.acpl)} />
-        {/* Metrik sepadan platform lain (mesin/akurasi.js) — lihat catatanMetrikBaku. */}
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.acplBaku")} nilai={cp(agregat.acplBaku)} />
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.akurasi")} nilai={persen(agregat.akurasi)} />
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.waktu")} nilai={rasio(agregat.konsistensiWaktu)} />
-        <BarisAntiCheat label={t("analisa.antiCheat.metrik.langkah")} nilai={String(agregat.jumlahLangkah)} />
-      </div>
-
-      <div className="flex flex-col gap-1.5 border-t border-border pt-3">
-        <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.perFase")}</span>
-        {DAFTAR_FASE.map((f) => (
-          <BarisAntiCheat
-            key={f}
-            label={t(`analisa.antiCheat.fase.${f}`)}
-            nilai={`${persen(agregat.perFase[f].engineMatchRate)} · ${cp(agregat.perFase[f].acpl)}`}
-          />
-        ))}
-      </div>
-
-      <div className="flex flex-col gap-1 border-t border-border pt-3">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-foregroundGrey">{t("analisa.antiCheat.riwayat.tren")}</span>
-          <span className="text-xs font-bold text-foreground">{t(`analisa.antiCheat.riwayat.arah.${arah}`)}</span>
-        </div>
-        {Number.isFinite(agregat.tren?.kemiringan) ? (
-          <span className="text-xs text-foregroundGrey">
-            {t("analisa.antiCheat.riwayat.kemiringan", { n: agregat.tren.kemiringan.toFixed(1) })}
-          </span>
-        ) : null}
-      </div>
-
-      <table className="w-full text-left text-xs">
-        <thead>
-          <tr className="border-b border-border text-foregroundGrey">
-            <th className="py-1 font-bold">{t("analisa.antiCheat.riwayat.kolomPartai")}</th>
-            <th className="py-1 text-right font-bold">{t("analisa.antiCheat.riwayat.kolomLangkah")}</th>
-            <th className="py-1 text-right font-bold">{t("analisa.antiCheat.riwayat.kolomSkor")}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {agregat.partai.map((b, i) => (
-            <tr key={`${b.id}-${i}`} className="border-b border-border/50 align-top">
-              <td className="py-1">
-                <span className="block truncate text-foreground">
-                  {t("analisa.antiCheat.riwayat.vs", { lawan: b.lawan || "-" })}
-                </span>
-                <span className="block text-[11px] text-foregroundGrey">
-                  {b.timestamp ? new Date(b.timestamp).toISOString().split("T")[0] : "-"}
-                  {b.timeClass ? ` · ${b.timeClass}` : ""}
-                </span>
-              </td>
-              <td className="py-1 text-right text-foregroundGrey">{b.langkahDinilai}</td>
-              <td className={`py-1 text-right font-bold ${KELAS_LEVEL[b.level] ?? "text-foregroundGrey"}`}>
-                {Number.isFinite(b.skor) ? b.skor : "-"}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
 export default function DashboardAkun({ platform, username }) {
   const { t } = useI18n();
   const [tab, setTab] = useState("overview");
@@ -361,19 +205,6 @@ export default function DashboardAkun({ platform, username }) {
     setGames(bacaCachePartai(koleksiIdAwal));
     setGamesPgn(null);
   }
-
-  /*
-   * Anti-cheat agregat. Analisisnya mahal (Stockfish sekali per langkah), jadi
-   * TIDAK pernah berjalan otomatis saat tab dibuka — pengguna menekan tombol,
-   * melihat progres, dan bisa membatalkan. Lihat ./antiCheatRiwayat.js untuk
-   * batas partai, kedalaman, dan cache.
-   */
-  const mesin = gunakanMesin();
-  const [acHasil, setAcHasil] = useState(null);
-  const [acStatus, setAcStatus] = useState("kosong"); // kosong | jalan | selesai | batal | galat
-  const [acProgres, setAcProgres] = useState({ ke: 0, total: 0 });
-  const [acPesan, setAcPesan] = useState("");
-  const acController = useRef(null);
 
   const muatData = useCallback(async () => {
     const token = ++tokenMuat.current;
@@ -410,87 +241,6 @@ export default function DashboardAkun({ platform, username }) {
     setGamesPgn(null);
   }, [platform, user]);
 
-  /* Ganti akun = hasil anti-cheat akun lama tidak boleh ikut terbaca. */
-  useEffect(() => {
-    acController.current?.abort();
-    acController.current = null;
-    setAcHasil(null);
-    setAcStatus("kosong");
-    setAcProgres({ ke: 0, total: 0 });
-    setAcPesan("");
-  }, [platform, user]);
-
-  /* Keluar dari halaman: hentikan pencarian engine yang masih berjalan. */
-  useEffect(
-    () => () => {
-      acController.current?.abort();
-      acController.current = null;
-    },
-    []
-  );
-
-  const batalkanAntiCheat = useCallback(() => {
-    acController.current?.abort();
-    acController.current = null;
-    mesin.setop();
-    setAcStatus((sekarang) => (sekarang === "jalan" ? "batal" : sekarang));
-  }, [mesin]);
-
-  const jalankanAntiCheat = useCallback(async () => {
-    acController.current?.abort();
-    const controller = new AbortController();
-    acController.current = controller;
-    const { signal } = controller;
-
-    setAcStatus("jalan");
-    setAcPesan("");
-    setAcProgres({ ke: 0, total: 0 });
-    // Pesan galat dikumpulkan di variabel lokal, bukan dibaca dari state:
-    // `setAcPesan` belum terlihat di dalam run yang sama.
-    let pesanGalat = "";
-
-    try {
-      /*
-       * Hanya `BATAS_PARTAI` partai terbaru yang teks PGN-nya dibaca dari
-       * IndexedDB — bukan `limit: 0` seperti tab Pembukaan, yang menarik
-       * seluruh arsip (ribuan teks PGN) ke memori.
-       */
-      const koleksiId = `${platform}:${user.toLowerCase()}`;
-      const daftar =
-        (await ambilDaftarPartai({ koleksiId, limit: BATAS_PARTAI, sertakanPgn: true, urut: "tanggal", arah: "desc" }))
-          ?.partai || [];
-      if (signal.aborted) return;
-
-      const mesinSiap = await mesin.siapkan();
-      if (signal.aborted) return;
-
-      const keluaran = await analisisRiwayatAntiCheat({
-        partai: daftar,
-        username: user,
-        mesin: mesinSiap,
-        sinyal: signal,
-        progres: ({ jenis, ke, total, pesan }) => {
-          if (signal.aborted) return;
-          if (jenis === "galat") {
-            pesanGalat ||= pesan;
-            setAcPesan(pesan);
-            return;
-          }
-          setAcProgres({ ke, total });
-        },
-      });
-      if (signal.aborted) return;
-
-      setAcHasil(keluaran);
-      setAcStatus(keluaran.dibatalkan ? "batal" : keluaran.agregat.jumlahPartai > 0 ? "selesai" : "galat");
-      setAcPesan(pesanGalat || keluaran.galat[0]?.pesan || "");
-    } catch (e) {
-      if (signal.aborted) return;
-      setAcStatus("galat");
-      setAcPesan(e?.message ?? String(e));
-    }
-  }, [platform, user, mesin]);
-
   useEffect(() => {
     if (tab !== "openings" || !user) {
       setGamesPgn(null);
@@ -526,10 +276,8 @@ export default function DashboardAkun({ platform, username }) {
     { k: "overview", label: t("analisa.statistik.overview") },
     { k: "ratings", label: t("analisa.statistik.ratings") },
     { k: "openings", label: t("analisa.statistik.openings") },
-    { k: "antiCheat", label: t("analisa.statistik.antiCheat") },
   ];
 
-  const acPersen = acProgres.total > 0 ? Math.round((acProgres.ke / acProgres.total) * 100) : 0;
 
   const totalPutih = openings?.putih.reduce((s, e) => s + e.jumlah, 0) || 0;
   const totalHitam = openings?.hitam.reduce((s, e) => s + e.jumlah, 0) || 0;
@@ -552,7 +300,7 @@ export default function DashboardAkun({ platform, username }) {
           <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
         </div>
 
-        {/* `flex-wrap`: empat tab tidak muat satu baris di panel sempit. */}
+        {/* Tab membungkus agar tidak meluber di panel sempit. */}
         <div className="flex flex-wrap border-b border-border px-4 pt-2">
           {tabKunci.map((x) => (
             <button
@@ -647,80 +395,6 @@ export default function DashboardAkun({ platform, username }) {
                 <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">{t("analisa.statistik.hitam")}</div>
                 {openings.hitam.length ? openings.hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} totalWarna={totalHitam} />) : <p className="py-4 text-center text-sm text-foregroundGrey">—</p>}
               </div>
-            </div>
-          ) : tab === "antiCheat" ? (
-            <div className="flex flex-col gap-3 pt-4">
-              <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.isi")}</p>
-              <ul className="flex list-disc flex-col gap-1 pl-4 text-xs leading-4 text-foregroundGrey">
-                <li>{t("analisa.antiCheat.riwayat.batas", { n: BATAS_PARTAI, user })}</li>
-                <li>{t("analisa.antiCheat.riwayat.kedalaman", { n: KEDALAMAN_AGGREGAT })}</li>
-                <li>{t("analisa.antiCheat.riwayat.multipv", { n: MULTI_PV })}</li>
-                <li>{t("analisa.antiCheat.riwayat.cache")}</li>
-              </ul>
-
-              {acStatus === "jalan" ? (
-                <div className="flex flex-col gap-2">
-                  <div className="h-2 w-full overflow-hidden rounded-md bg-backgroundBoxBox">
-                    <div
-                      className="h-full bg-backgroundBoxBoxHighlighted transition-[width] duration-200"
-                      style={{ width: `${acPersen}%` }}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-2 text-xs text-foregroundGrey">
-                    <span>{t("analisa.antiCheat.riwayat.progres", { ke: acProgres.ke, total: acProgres.total || BATAS_PARTAI })}</span>
-                    <button
-                      type="button"
-                      onClick={batalkanAntiCheat}
-                      className="cursor-pointer font-bold text-foreground transition-colors hover:text-foregroundHighlighted"
-                    >
-                      {t("analisa.antiCheat.riwayat.batal")}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={jalankanAntiCheat}
-                  className="w-fit cursor-pointer rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-4 py-2 text-sm font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover"
-                >
-                  {acHasil ? t("analisa.antiCheat.riwayat.mulaiUlang") : t("analisa.antiCheat.riwayat.mulai", { n: BATAS_PARTAI })}
-                </button>
-              )}
-
-              {acStatus === "batal" ? (
-                <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.dibatalkan")}</p>
-              ) : null}
-              {acStatus === "galat" ? (
-                <p className="text-xs leading-4 text-warning">
-                  {t("analisa.antiCheat.riwayat.gagal", { pesan: acPesan || "-" })}
-                </p>
-              ) : null}
-
-              {acHasil && acHasil.agregat.jumlahPartai > 0 ? <RingkasanAntiCheat agregat={acHasil.agregat} /> : null}
-              {acHasil && acHasil.agregat.jumlahPartai > 0 && Number.isFinite(acHasil.durasi?.totalMs) ? (
-                <p className="text-xs leading-4 text-foregroundGrey">
-                  {t("analisa.antiCheat.riwayat.waktu", {
-                    detik: Math.max(1, Math.round(acHasil.durasi.totalMs / 1000)),
-                    ms: acHasil.durasi.rataMs ?? 0,
-                  })}
-                </p>
-              ) : null}
-              {acHasil && acHasil.agregat.jumlahPartai > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => unduhLaporanPeninjauan(acHasil.agregat, { username: user })}
-                  className="w-fit cursor-pointer rounded-borderRoundness border border-border bg-backgroundBoxBox px-4 py-2 text-sm font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted"
-                >
-                  {t("analisa.antiCheat.riwayat.unduh")}
-                </button>
-              ) : null}
-              {acHasil && acHasil.agregat.jumlahPartai === 0 ? (
-                <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.tanpaPartai")}</p>
-              ) : null}
-
-              <p className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-2 text-xs leading-4 text-foregroundGrey">
-                {t("analisa.antiCheat.disclaimer")}
-              </p>
             </div>
           ) : null}
         </div>

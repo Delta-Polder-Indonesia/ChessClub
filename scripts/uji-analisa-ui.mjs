@@ -656,6 +656,7 @@ if (tabLangkah) {
 
   for (const [tombol, layar] of [
     ["nav-akun", "akun"],
+    ["nav-deteksi-engine", "deteksi-engine"],
     ["nav-database", "database"],
     ["nav-impor", "impor"],
   ]) {
@@ -667,7 +668,7 @@ if (tabLangkah) {
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(250);
   uji(
-    "kembali ke papan setelah membuka ketiga layar, analisis utuh",
+    "kembali ke papan setelah membuka keempat layar, analisis utuh",
     !domSiap.querySelector("[data-layar]") && bukti()
   );
 }
@@ -716,7 +717,7 @@ if (tabLangkah) {
    * dan buang panah yang sudah digambar.
    */
   const teksSebelum = teksBagus();
-  for (const tombol of ["nav-database", "nav-play", "nav-impor", "nav-play"]) {
+  for (const tombol of ["nav-database", "nav-play", "nav-impor", "nav-play", "nav-deteksi-engine", "nav-play"]) {
     klik(domSiap.querySelector(`[data-uji="${tombol}"]`));
     await tunggu(220);
   }
@@ -890,13 +891,14 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   );
 }
 
-/* --- layar Akun, Database & Impor menggantikan area kerja (tanpa popup) --- */
+/* --- layar Akun, Deteksi engine, Database & Impor menggantikan area kerja --- */
 {
   const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
   const navAkun = domSiap.querySelector('[data-uji="nav-akun"]');
+  const navDeteksi = domSiap.querySelector('[data-uji="nav-deteksi-engine"]');
   const navDatabase = domSiap.querySelector('[data-uji="nav-database"]');
   const navImpor = domSiap.querySelector('[data-uji="nav-impor"]');
-  uji("bilah kiri punya tombol Akun, Database, & Impor", !!navAkun && !!navDatabase && !!navImpor);
+  uji("bilah kiri punya tombol Akun, Deteksi engine, Database, & Impor", !!navAkun && !!navDeteksi && !!navDatabase && !!navImpor);
 
   klik(navAkun);
   await tunggu(250);
@@ -917,6 +919,15 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   klik(domSiap.querySelector('[data-uji="nav-play"]'));
   await tunggu(200);
   uji("layar Akun digantikan papan", !domSiap.querySelector("[data-layar]"));
+
+  klik(navDeteksi);
+  await tunggu(250);
+  uji("menu baru membuka layar Deteksi engine", !!domSiap.querySelector('[data-layar="deteksi-engine"]'));
+  uji("sidebar menandai Deteksi engine aktif", navDeteksi.getAttribute("aria-current") === "true");
+  uji("layar deteksi memakai lima kontrol pengaturan", domSiap.querySelectorAll('[data-layar="deteksi-engine"] select, [data-layar="deteksi-engine"] input').length === 5);
+  klik(domSiap.querySelector('[data-uji="nav-play"]'));
+  await tunggu(200);
+  uji("layar Deteksi engine digantikan papan", !domSiap.querySelector("[data-layar]"));
 
   klik(navDatabase);
   await tunggu(250);

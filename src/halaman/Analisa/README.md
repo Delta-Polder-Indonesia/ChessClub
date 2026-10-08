@@ -189,11 +189,11 @@ tooltip saat label hilang.
   Pemanggilan hanya aktif saat partai dimuat, dan nama bawaan/anonim dilewati.
 - **Dashboard statistik akun** (gaya en-croissant). Setelah akun dipilih,
   panel menampilkan kartu akun (avatar + rating Bullet/Blitz/Rapid + jumlah
-  partai + pembaruan terakhir) dan empat tab: **Ringkasan** (total, W/D/L,
+  partai + pembaruan terakhir) dan tiga tab: **Ringkasan** (total, W/D/L,
   partai per tahun), **Peringkat** (grafik riwayat rating + rentang
   7 hari/30 hari/90 hari/1 tahun/selamanya), **Pembukaan** (daftar
-  pembukaan + W/D/L per warna), dan **Deteksi engine** (indikasi agregat
-  pemakaian engine lintas riwayat — lihat bagian berikutnya). Data dibaca dari
+  pembukaan + W/D/L per warna). Deteksi engine diakses hanya dari menu
+  tersendiri di sidebar, bukan tab atau pintasan dalam Akun. Data dibaca dari
   `basisData` (IndexedDB); bila belum ada, ditarik dari API chess.com /
   lichess.org lewat `akun/muatPartaiAkun.js` (`muatPartaiChessCom` /
   `muatPartaiLichess`) lalu disimpan. Statistik dihitung di
@@ -208,7 +208,14 @@ tidak ada logika engine baru:
 | Tingkat | Berkas | Isi |
 | --- | --- | --- |
 | Per partai | `mesin/antiCheat.js` → `hitungSkorKecurigaan(moves)` | metrik + skor 0–100 per warna, dirender kartu `summary/deteksiEngine.jsx` di panel Ringkasan |
-| Agregat riwayat | `mesin/antiCheat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender tab **Deteksi engine** pada `akun/DashboardAkun.jsx` |
+| Agregat riwayat | `mesin/antiCheat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender layar **Deteksi engine** pada `komponen/nav/layarDeteksiEngine.jsx` + `ringkasanAntiCheat.jsx` |
+
+Menu **Deteksi engine** adalah layar internal di `/program-kami/analisa/papan`,
+bukan rute publik baru. `PanelLayar`, kontrol, token, dan markup hasil Analisa
+tetap dipakai. Desktop menempatkan pengaturan di kiri (±⅓) dan hasil di kanan
+(±⅔); ponsel menumpuk pengaturan di atas hasil. Situs dan akun dipilih dari
+riwayat lokal/koleksi Database serta akun aktif. Mengganti situs/akun mengubah
+koleksi sumber, bukan PGN atau hasil analisis papan. Papan tetap terpasang.
 
 Metrik (langkah `moveRating === "forced"` dan langkah buku TIDAK dihitung):
 
@@ -293,24 +300,33 @@ langkah paksa tepat di batas fase.
 **Bahasa UI wajib probabilistik.** Keluaran ini untuk ditinjau manusia, bukan
 tuduhan: kecocokan langkah naik secara alami seiring kekuatan pemain, kontrol
 waktu panjang, dan akhirpartai sederhana. Sanggahan ditampilkan permanen di
-bawah angka (bukan di tooltip) pada kartu partai maupun tab agregat, dan
+bawah angka (bukan di tooltip) pada kartu partai maupun layar agregat, dan
 metrik mentah selalu ikut ditampilkan supaya peninjau bisa menilai sendiri.
 
-Batas performa tab agregat (`akun/antiCheatRiwayat.js`), karena `parsePGN`
+Batas performa layar agregat (`akun/antiCheatRiwayat.js`), karena `parsePGN`
 menjalankan Stockfish sekali per langkah:
 
-- maksimal `BATAS_PARTAI` (12) partai terbaru tempat username benar-benar
-  bermain, diambil dengan `ambilDaftarPartai({ limit: 12, sertakanPgn: true })`
-  — bukan `limit: 0` yang menarik seluruh arsip ke memori;
-- kedalaman `KEDALAMAN_AGGREGAT` (8) ply, lebih dangkal dari analisis tunggal;
-  setiap posisi direkam `MULTI_PV` (5) kandidat terbaik untuk metrik peringkat;
+- bawaan `BATAS_PARTAI` (12) partai terbaru tempat username benar-benar
+  bermain. Kolom jumlah opsional menerima bilangan bulat positif; kosong
+  tetap 12. Jumlah pilihan diteruskan ke `ambilDaftarPartai({ limit: jumlah,
+  sertakanPgn: true })` dan orkestrator, bukan `limit: 0` yang menarik seluruh
+  arsip ke memori. Filter kontrol waktu diterapkan oleh kueri **sebelum**
+  pembatasan partai terbaru; opsi Semua dipetakan ke filter kosong. Jika jumlah
+  melebihi arsip yang cocok, hanya partai tersedia dianalisis;
+- kedalaman bawaan `KEDALAMAN_AGGREGAT` (8) ply, dapat dipilih 8/10/13/16/20
+  dan diteruskan ke orkestrator. Pilihan ini tidak mengubah kedalaman papan;
+  setiap posisi tetap direkam `MULTI_PV` (5) kandidat terbaik untuk metrik peringkat;
 - cache sesi per `id partai + kedalaman + MultiPV` (pola `cachePartai`), jadi
-  berpindah tab atau mengulang analisis tidak membayar dua kali, dan hasil
+  berpindah layar atau mengulang analisis tidak membayar dua kali, dan hasil
   lama tanpa kandidat tidak pernah tercampur dengan hasil ber-kandidat;
 - progres + tombol Batal (`AbortController`, pola `selectChessCom.jsx`);
   partai yang sudah selesai diurai tetap dipakai, yang dibatalkan hanya
   partai berikutnya;
-- analisis TIDAK berjalan otomatis saat tab dibuka — pengguna menekan tombol.
+- analisis TIDAK berjalan otomatis saat layar dibuka — pengguna menekan tombol.
+  Tombol menunggu bila papan sedang menganalisis (`pageState: loading` atau
+  `analyzingMove`), karena memakai provider engine yang sama. Batal tetap
+  menampilkan partai yang selesai; pindah akun/keluar layar menolak callback
+  run lama. Situs, akun, kedalaman, jumlah, dan waktu terkunci selama run.
 
 ## Roadmap anti-cheat — status & langkah selanjutnya
 
@@ -337,8 +353,8 @@ file-file yang disebut.
     ANGKA TABEL MASIH TAKSIRAN — kalibrasi ulang dengan korpus lokal
     sebelum dipakai untuk keputusan serius.
   - *Laporan peninjauan*: `mesin/laporanPeninjauan.js` — teks + JSON siap
-    lampir berita acara, sanggahan wajib menyertai; tombol unduh di tab
-    Deteksi engine (`DashboardAkun.jsx`).
+    lampir berita acara, sanggahan wajib menyertai; tombol unduh di layar
+    Deteksi engine (`komponen/nav/layarDeteksiEngine.jsx`).
   - *Pengukuran biaya*: `analisisRiwayatAntiCheat` mengembalikan
     `durasi: { totalMs, rataMs, perPartai }` — dasar berbasis angka untuk
     menaikkan/menurunkan kedalaman atau `MULTI_PV`; ditampilkan di UI.
@@ -350,7 +366,7 @@ file-file yang disebut.
     menghitung kejutan bit + peringkat distribusi manusia dari
     `Map<fen, {uci: prob}>` — penyedia prediksi (host model + onnxruntime)
     tinggal dipasang tanpa menyentuh `parsePGN`.
-- Uji: `scripts/uji-anticheat.mjs` (301) dan `scripts/uji-engine-uci.mjs`
+- Uji: `scripts/uji-anticheat.mjs` (384) dan `scripts/uji-engine-uci.mjs`
   (59, termasuk MultiPV pada Stockfish asli) — semua wajib tetap hijau
   sebelum dan sesudah langkah berikutnya.
 
@@ -382,8 +398,10 @@ file-file yang disebut.
   `kunciCachePartai`; bila hasil analisis berubah bentuk, selipkan penanda
   versi baru (pola `mp5`, simpanan `kci-anticheat-cache-v2`) agar cache lama
   tidak tercampur.
-- UI metrik: kartu `summary/deteksiEngine.jsx` + tab agregat
-  `akun/DashboardAkun.jsx`; kunci kamus di
+- UI metrik: kartu `summary/deteksiEngine.jsx` + hasil agregat
+  `komponen/nav/ringkasanAntiCheat.jsx`; layar/settings/run di
+  `komponen/nav/layarDeteksiEngine.jsx`. Akun hanya menampilkan statistik.
+  Kunci kamus di
   `lib/terjemahan/{id,en}/analisa.js` (wajib seimbang — `npm run uji:i18n`).
 - Bahasa UI tetap probabilistik: indikasi untuk ditinjau manusia, bukan
   vonis — jangan pernah menulis "terbukti curang".
@@ -482,7 +500,7 @@ Aturan saat beku:
 | `scripts/uji-hasil.mjs` | panel Ringkasan end-to-end (grafs, jumlah label, rating, fase, interaksi) | 27 |
 | `scripts/uji-mobile.mjs` | ukuran papan 3 mode (mobile < 516px / tablet < 1100px / desktop) | 14 |
 | `scripts/uji-panel.mjs` | panel samping: tab awal Ringkasan + loncatan ke Langkah | 11 |
-| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + tab DashboardAkun, parsing MultiPV `EngineCatur` | 245 |
+| `scripts/uji-anticheat.mjs` | anti-cheat: konvensi eval, pengecualian forced/book, partai jujur vs engine, kandidat MultiPV (peringkat/top-3/WDL), metrik kondisional (sulit/mudah, streak, korelasi waktu↔kualitas), kalibrasi per rating, laporan peninjauan, deviasi manusia, durasi & cache lintas-sesi, agregat riwayat, kartu UI + layar Deteksi engine dan pemisahan dari Akun (jumlah, situs/akun, filter waktu, depth, busy, batal), parsing MultiPV `EngineCatur` | 384 |
 
 Infrastruktur bersama: `scripts/lingkungan-jsdom.mjs` (global jsdom +
 polyfill `ResizeObserver`/`Element.prototype.scrollTo`) dan
@@ -620,7 +638,7 @@ di bagian ini.
   (`akurasiSampel`, `akurasiInversJumlah` → `harmonikDariJumlah`), BUKAN
   dengan merata-rata nilai per partai.
 - Tampil di panel `summary/deteksiEngine.jsx` (dua baris + catatan metode),
-  `akun/DashboardAkun.jsx`, dan `mesin/laporanPeninjauan.js` (teks + JSON,
+  `komponen/nav/ringkasanAntiCheat.jsx`, dan `mesin/laporanPeninjauan.js` (teks + JSON,
   `versi` dinaikkan 2 → 3; bentuk lama tetap terbaca).
 - **Yang lama tidak dihapus dan tidak dipakai ulang untuk skor kecurigaan.**
   `acpl` (clamp 1000 cp/langkah, mate = 10000) tetap menjadi masukan

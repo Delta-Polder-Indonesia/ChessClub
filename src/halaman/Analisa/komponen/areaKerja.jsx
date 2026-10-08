@@ -44,6 +44,7 @@ import LayarImpor from "./nav/layarImpor.jsx";
  * unused JavaScript" Lighthouse ±80 KiB).
  */
 const LayarAkun = lazy(() => import("./nav/layarAkun.jsx"));
+const LayarDeteksiEngine = lazy(() => import("./nav/layarDeteksiEngine.jsx"));
 
 export default function AreaKerja() {
   const analyzeContext = useContext(AnalyzeContext);
@@ -136,6 +137,11 @@ export default function AreaKerja() {
           {tampilan === TAMPILAN_ANALISA.AKUN ? (
             <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
               <LayarAkun onTutup={kePapan} />
+            </Suspense>
+          ) : null}
+          {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (
+            <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
+              <LayarDeteksiEngine onBukaAkun={keAkun} />
             </Suspense>
           ) : null}
           {tampilan === TAMPILAN_ANALISA.BASIS_DATA ? (

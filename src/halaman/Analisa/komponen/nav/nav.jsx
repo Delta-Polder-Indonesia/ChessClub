@@ -52,6 +52,7 @@ import GitHub from "../svg/github.jsx";
 import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
+import ShieldAlert from "../svg/shield-alert.jsx";
 import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { berkasPublik } from "../../../../lib/asets.js";
@@ -149,6 +150,12 @@ export default function Nav() {
       icon: (props) => <Profile width={18} height={18} class={props.className} />,
       tampilan: TAMPILAN_ANALISA.AKUN,
       kunci: "akun",
+    },
+    {
+      label: t("analisa.nav.deteksiEngine"),
+      icon: () => <ShieldAlert className="h-[18px] w-[18px] shrink-0" />,
+      tampilan: TAMPILAN_ANALISA.DETEKSI_ENGINE,
+      kunci: "deteksi-engine",
     },
     {
       label: t("analisa.nav.database"),

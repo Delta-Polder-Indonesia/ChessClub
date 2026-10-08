@@ -11,6 +11,7 @@ import { bacaAngka } from "../penyimpanan.js";
 export const TAMPILAN_ANALISA = Object.freeze({
   BERMAIN: "bermain",
   AKUN: "akun",
+  DETEKSI_ENGINE: "deteksi-engine",
   BASIS_DATA: "database",
   IMPOR: "impor",
 });
