@@ -108,7 +108,7 @@ export function ambilSumberBidak(set, piece) {
  * diproses tanpa transform glob (unit test via esbuild, impor Node-side),
  * hasilnya `{}` dan seluruh papan jadi kosong tanpa error apa pun.
  */
-const PEMUAT_ASET = import.meta.glob("../asets/*/*.{svg,png}", {
+const PEMUAT_ASET = import.meta.glob("../../asets/*/*.{svg,png}", {
   query: "?url",
   import: "default",
 });
@@ -122,7 +122,7 @@ const PEMUAT_ASET = import.meta.glob("../asets/*/*.{svg,png}", {
  * ChessPiece dan sisanya URL aset — nol request chunk terpisah. Set lain
  * tetap lazy lewat PEMUAT_ASET di bawah.
  */
-const PEMUAT_MERIDA = import.meta.glob("../asets/merida/*.{svg,png}", {
+const PEMUAT_MERIDA = import.meta.glob("../../asets/merida/*.{svg,png}", {
   query: "?url",
   import: "default",
   eager: true,

@@ -41,7 +41,7 @@ register(new URL("./loader-jsx.mjs", import.meta.url));
 
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { I18nProvider } = await import("../src/lib/i18n.jsx");
+const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
@@ -786,10 +786,11 @@ hasil("papanDariFen rusak → null", (await import("../src/halaman/Analisa/mesin
 console.log("\n== Akun tanpa artefak dan layar Deteksi engine (DOM) ==");
 
 const { simpanBanyakPartai, pastikanKoleksi } = await import("../src/halaman/Analisa/basisData.js");
-const { KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
+const { KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesinKonteks.js");
 const { default: DashboardAkun } = await import("../src/halaman/Analisa/akun/DashboardAkun.jsx");
 const { default: LayarDeteksiEngine } = await import("../src/halaman/Analisa/komponen/nav/layarDeteksiEngine.jsx");
-const { AnalyzeContext, default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
+const { default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
+const { AnalyzeContext } = await import("../src/halaman/Analisa/konteks/analyzeKonteks.js");
 const { bacaDaftarAkun, simpanDaftarAkun } = await import("../src/halaman/Analisa/akun/daftarAkun.js");
 
 await simpanBanyakPartai(

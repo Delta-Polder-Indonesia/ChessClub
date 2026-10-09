@@ -11,7 +11,14 @@ const diApp = [...app.matchAll(/\["(\/[^"]*)",\s*\w+\]/g)].map((m) => m[1]);
 // Rute dinamis (mis. "/media-dan-informasi/berita/:id") tidak bisa
 // dipra-render menjadi berkas HTML statis — penanganannya diserahkan
 // ke fallback SPA Vercel. Jangan diuji di sini.
-const publikApp = diApp.filter((r) => r !== "/" && !r.includes(":"));
+// Parameter OPSIONAL (mis. "/teka-teki/problem/:id?") membuka dua alamat:
+// alamat polosnya (`/teka-teki/problem`) tetap rute publik yang harus
+// dipra-render, sedangkan bagian bernomornya ditangani fallback SPA.
+const publikApp = diApp.flatMap((r) => {
+  const polos = r.replace(/\/:[^/]+\?$/, "");
+  if (polos !== r) return polos && polos !== "/" ? [polos] : [];
+  return r === "/" || r.includes(":") ? [] : [r];
+});
 /*
  * Rute pengalihan (`RUTE_ALIH`) tetap harus terdaftar di App.jsx supaya
  * navigasi di dalam aplikasi ikut terarah, tetapi TIDAK boleh ikut

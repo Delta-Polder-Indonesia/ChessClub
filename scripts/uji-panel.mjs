@@ -25,12 +25,11 @@ register(new URL("./loader-jsx.mjs", import.meta.url));
 
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { I18nProvider } = await import("../src/lib/i18n.jsx");
+const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
-const { KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesin.jsx");
-const { AnalyzeContext, default: AnalyzeContextProvider } = await import(
-  "../src/halaman/Analisa/konteks/analyze.jsx"
-);
+const { KonteksMesin } = await import("../src/halaman/Analisa/konteks/mesinKonteks.js");
+const { default: AnalyzeContextProvider } = await import("../src/halaman/Analisa/konteks/analyze.jsx");
+const { AnalyzeContext } = await import("../src/halaman/Analisa/konteks/analyzeKonteks.js");
 const { formatSquare } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { default: Game } = await import("../src/halaman/Analisa/komponen/game/game.jsx");
 const { default: Menu } = await import("../src/halaman/Analisa/komponen/menu/menu.jsx");

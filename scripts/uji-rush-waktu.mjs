@@ -81,7 +81,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import TekaTekiRush from "./src/halaman/TekaTekiRush/TekaTekiRush.jsx";
 
 export function mount(el) {

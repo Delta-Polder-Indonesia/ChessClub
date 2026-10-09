@@ -134,7 +134,7 @@ const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import { HelmetProvider } from "react-helmet-async";
 import TekaTeki from "./src/halaman/TekaTeki/TekaTeki.jsx";
 
