@@ -18,6 +18,21 @@ const PEMUAT_ASET = import.meta.glob("../../asets/*/*.{svg,png}", {
   import: "default",
 });
 
+/**
+ * Set bawaan "merida" diimpor STATIS (eager). Tanpa ini, 12 chunk kecil
+ * `wK-*.js`/`bK-*.js` menjadi tingkatan tambahan dalam rantai request kritis
+ * pemuatan halaman (elemen LCP rute teka-teki adalah SVG bidak — audit
+ * PageSpeed Desktop mencatat rantai 2,5 detik sampai ke chunk ini). Dengan
+ * `eager`, berkas ≤ assetsInlineLimit langsung jadi data-URL di chunk
+ * ChessPiece dan sisanya URL aset — nol request chunk terpisah. Set lain
+ * tetap lazy lewat PEMUAT_ASET di bawah.
+ */
+const PEMUAT_MERIDA = import.meta.glob("../../asets/merida/*.{svg,png}", {
+  query: "?url",
+  import: "default",
+  eager: true,
+});
+
 export const DAFTAR_SET = [
   { id: "bidak", nama: "Chessnut" },
   { id: "alpha", nama: "Alpha" },
@@ -77,7 +92,9 @@ export function muatSet(set) {
       console.warn(`[ChessPiece] Kode aset tidak dikenal: ${id}/${piece}`);
       return [piece, null];
     }
-    const pemuat = PEMUAT_ASET[jalur];
+    // Set bawaan dicek lebih dulu (hasil glob eager, bukan fungsi); set lain
+    // jatuh ke pemuat lazy. `muatSet` sudah menangani kedua bentuk nilai.
+    const pemuat = PEMUAT_MERIDA[jalur] ?? PEMUAT_ASET[jalur];
     if (!pemuat) {
       console.warn(`[ChessPiece] Aset tidak ada di hasil glob: ${jalur}`);
       return [piece, null];
@@ -105,25 +122,32 @@ export function muatSet(set) {
   return janji;
 }
 
-// Pre-load set bawaan di WAKTU SENGGANG (bukan saat modul dievaluasi).
-// Dulu empat set × 12 bidak = ±48 request chunk kecil langsung berdesakan
-// di jalur kritis pemuatan halaman (Lighthouse mobile: deretan request di
-// detik 1,3–1,6 pada 4G lambat). `?url` memang hanya mengembalikan string
-// URL, tetapi chunk JS-nya sendiri tetap harus diunduh. Pemanasan kini
-// menunggu idle; ChessPiece yang terlanjur tampil lebih dulu memuat set-nya
-// sendiri lewat effect di bawah (cache sama-sama dipakai).
+// Pre-load set lain di WAKTU SENGGANG SETELAH `load` (bukan saat modul
+// dievaluasi). Empat set × 12 bidak = ±48 request chunk kecil berdesakan di
+// jalur kritis pemuatan halaman (Lighthouse mobile: deretan request detik
+// 1,3–1,6 pada 4G lambat). Kini: set bawaan "merida" sudah dibawa oleh glob
+// eager di atas (nol chunk), dan tiga set sisanya menunggu acara `load` lebih
+// dulu supaya tidak bersaing dengan kebutuhan LCP. ChessPiece yang terlanjur
+// tampil memuat setnya sendiri lewat effect di bawah (cache sama-sama dipakai).
 if (typeof window !== "undefined") {
   const panaskanSet = () => {
-    for (const s of ["alpha", "merida", "bidak", "chesscom"]) {
+    for (const s of ["alpha", "bidak", "chesscom"]) {
       muatSet(s).catch(() => {
         /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
       });
     }
   };
-  if (typeof window.requestIdleCallback === "function") {
-    window.requestIdleCallback(panaskanSet, { timeout: 4000 });
+  const jadwalkanPemanasan = () => {
+    if (typeof window.requestIdleCallback === "function") {
+      window.requestIdleCallback(panaskanSet, { timeout: 4000 });
+    } else {
+      window.setTimeout(panaskanSet, 2000);
+    }
+  };
+  if (document.readyState === "complete") {
+    jadwalkanPemanasan();
   } else {
-    window.setTimeout(panaskanSet, 2000);
+    window.addEventListener("load", jadwalkanPemanasan, { once: true });
   }
 }
 

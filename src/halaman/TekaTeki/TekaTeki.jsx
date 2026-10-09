@@ -377,17 +377,34 @@ export default function TekaTeki() {
   // ulang dan lencana "book" langsung muncul tanpa menunggu langkah berikutnya.
   const [versiBuku, setVersiBuku] = useState(0);
   useEffect(() => {
+    /*
+     * Tabel buku ±160 KiB (buku-analisa.json 1,3 MB) jangan diunduh di jalur
+     * kritis pemuatan halaman — PageSpeed mencatatnya dalam rantai request
+     * kritis rute ini. Ditunda ke waktu senggang peramban, sama seperti halaman
+     * Analisa (game.jsx); belum ada langkah yang butuh nama pembukaan pada
+     * detik-detik pertama, dan `cariNamaPembukaan` men-cache janjinya.
+     */
     let aktif = true;
-    cariNamaPembukaan()
-      .then((cari) => {
-        if (aktif && typeof cari === "function") {
-          bukuSiap.current = cari;
-          setVersiBuku((n) => n + 1);
-        }
-      })
-      .catch(() => {});
+    const muat = () =>
+      cariNamaPembukaan()
+        .then((cari) => {
+          if (aktif && typeof cari === "function") {
+            bukuSiap.current = cari;
+            setVersiBuku((n) => n + 1);
+          }
+        })
+        .catch(() => {});
+    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(muat, { timeout: 5000 });
+      return () => {
+        aktif = false;
+        window.cancelIdleCallback?.(id);
+      };
+    }
+    const id = setTimeout(muat, 1500);
     return () => {
       aktif = false;
+      clearTimeout(id);
     };
   }, []);
 

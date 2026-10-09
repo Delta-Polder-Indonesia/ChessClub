@@ -14,7 +14,11 @@
  *     <lastmod>; robots.txt tidak memblokir;
  *  4. dua metode verifikasi Search Console (meta tag + berkas html) utuh.
  *  5. rute layar-penuh gelap tidak lagi mewarisi `#boot-hero`/preload gambar
- *     hero beranda, dan sudah membawa latar `#262421` inline (anti-kedipan).
+ *     hero beranda, dan sudah membawa latar `#262421` inline (anti-kedipan);
+ *  6. rute teka-teki memuat preload `as=fetch` untuk data/teka-teki.json
+ *     (unduhan mulai bersamaan dengan parse HTML — render elemen LCP tidak
+ *     menunggu React), tidak bocor ke rute gelap lain, dan
+ *     .well-known/ai-catalog.json memuat `specVersion` di root.
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -22,6 +26,7 @@ import {
   RUTE_PUBLIK,
   RUTE_ALIH,
   RUTE_LATAR_GELAP,
+  PRELOAD_JSON_RUTE,
   META_RUTE,
   metadataRute,
   metadataUntukRute,
@@ -136,6 +141,35 @@ for (const rute of ["/", "/program-kami/teka-teki", "/turnamen"]) {
   }
 }
 
+/* ------------------------- 2c. preload JSON rute teka-teki ---------------- */
+
+/*
+ * Rute teka-teki me-fetch data/teka-teki.json saat mount; tanpa preload di
+ * HTML rute, unduhan baru mulai setelah React + chunk halaman siap sehingga
+ * render elemen LCP (SVG bidak) tertunda (audit PageSpeed Desktop: rantai
+ * kritis 2,49 detik). Pagar di bawah menjaga dua arah: preload harus ADA di
+ * rute yang memakainya, dan tidak BOCOR ke rute gelap lain yang tidak
+ * meng-fetch JSON itu (request terbuang di setiap halaman).
+ */
+const dasarPeta = process.env.VITE_BASE_PUBLIC || "/";
+for (const [rute, json] of Object.entries(PRELOAD_JSON_RUTE)) {
+  if (!RUTE_LATAR_GELAP.includes(rute)) {
+    gagal(`PRELOAD_JSON_RUTE memuat rute ${rute} yang bukan rute layar-penuh (tidak lewat kerangkaRute).`);
+    continue;
+  }
+  const hasil = kerangkaRute(metadataRute(html, rute, situs), rute);
+  const tautan = `<link rel="preload" as="fetch" href="${dasarPeta}${json}" crossorigin />`;
+  if (!hasil.includes(tautan)) {
+    gagal(`Rute ${rute}: preload as=fetch ${json} tidak ada di HTML hasil build.`);
+  }
+}
+for (const rute of RUTE_LATAR_GELAP.filter((r) => !(r in PRELOAD_JSON_RUTE))) {
+  const hasil = kerangkaRute(metadataRute(html, rute, situs), rute);
+  if (hasil.includes('rel="preload" as="fetch"')) {
+    gagal(`Rute ${rute}: preload JSON bocor — rute ini tidak meng-fetch data/teka-teki.json.`);
+  }
+}
+
 /* ------------------------------------------------- 3. sitemap & robots.txt */
 
 const sitemap = await baca("public/sitemap.xml");
@@ -215,6 +249,15 @@ if (isiVerifikasi !== "google-site-verification: google800ae0ab9c9d6db7.html") {
 }
 if (!/<meta name="robots" content="index, follow" \/>/.test(html)) {
   gagal("index.html: beranda tidak mengizinkan indeks (`meta robots` = index, follow).");
+}
+
+/* ---------------------------- 5. katalog agen AI (.well-known) ------------ */
+
+// Validasi katalog (audit PageSpeed) menuntut `specVersion` di root; tanpa
+// properti itu seluruh berkas ditolak, bukan hanya entrinya.
+const katalogAI = JSON.parse(await baca("public/.well-known/ai-catalog.json"));
+if (typeof katalogAI.specVersion !== "string" || !katalogAI.specVersion.trim()) {
+  gagal('ai-catalog.json: properti wajib "specVersion" tidak ada di root.');
 }
 
 /* ------------------------------------------------------------------ hasil */

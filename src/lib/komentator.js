@@ -45,7 +45,10 @@ const PETA_RATING = {
  * sudah berlatar transparan sehingga aman di atas gelembung gelap.
  */
 export const GAMBAR_KOMENTATOR = {
-  fritz: "/gambar_comentator/FritzConcentrated.png",
+  // WebP 72×72 (2× tampilan 36 CSS px), hasil konversi dari
+  // FritzConcentrated.png (256×256, 34 KiB) yang tetap disimpan di folder yang
+  // sama sebagai sumber asli.
+  fritz: "/gambar_comentator/FritzConcentrated.webp",
   berpikir: "/gambar_comentator/catur_berpikir.png",
   bingung: "/gambar_comentator/catur_bingung.png",
   marah: "/gambar_comentator/catur_marah.png",

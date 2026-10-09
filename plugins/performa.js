@@ -41,6 +41,21 @@ export const RUTE_LATAR_GELAP = [
   "/papan-interaktif",
 ];
 
+/**
+ * JSON yang di-fetch saat halaman terbuka, per rute. Dipreload di `<head>`
+ * dengan `as="fetch"` supaya unduhan mulai bersamaan dengan parse HTML, bukan
+ * setelah React + chunk halaman siap — fetch `teka-teki.json` inilah yang
+ * menunda render elemen LCP (SVG bidak) pada audit PageSpeed. `crossorigin`
+ * wajib untuk `as="fetch"` (mode fetch default = cors); same-origin + atribut
+ * ini terbukti memakai ulang preload di Chrome (peramban yang dipakai PSI).
+ * href harus sama persis dengan `fetch(BASE_URL + "data/teka-teki.json")`
+ * di TekaTeki/TekaTekiRush.
+ */
+export const PRELOAD_JSON_RUTE = {
+  "/teka-teki/problem": "data/teka-teki.json",
+  "/teka-teki-rush": "data/teka-teki.json",
+};
+
 export const RUTE_PUBLIK = [
   "/tentang-kami",
   "/tentang-kami/struktur-grup-catur",
@@ -407,16 +422,27 @@ export function metadataRute(html, rute, siteUrl) {
  *
  * `#boot-hero` yang tersisa di `index.html` (beranda), `404.html`, dan rute
  * ber-kerangka TIDAK disentuh: di sana elemen itu memang dipakai untuk LCP.
+ *
+ * Untuk rute dalam `PRELOAD_JSON_RUTE`, `<link rel=preload as=fetch>` ikut
+ * disisipkan ke `<head>` supaya JSON soal mulai diunduh bersamaan dengan parse
+ * HTML (lihat catatan di PRELOAD_JSON_RUTE).
  */
 export function kerangkaRute(html, rute) {
   if (!RUTE_LATAR_GELAP.includes(rute)) return html;
-  return html
+  const hasil = html
     .replace(
       /\s*<link rel="preload" as="image" href="\/images\/tonggak-2015\.webp"[^>]*\/>/,
       "",
     )
     .replace(/\s*<div id="boot-hero"[\s\S]*?<\/div>/, "")
     .replace("<body>", '<body style="background-color:#262421">');
+  const json = PRELOAD_JSON_RUTE[rute];
+  if (!json) return hasil;
+  const dasar = process.env.VITE_BASE_PUBLIC || "/";
+  return hasil.replace(
+    "<head>",
+    `<head>\n    <link rel="preload" as="fetch" href="${dasar}${json}" crossorigin />`,
+  );
 }
 
 /** Ganti meta robots HTML menjadi noindex (dipakai salinan 404.html). */

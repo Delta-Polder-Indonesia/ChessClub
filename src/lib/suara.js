@@ -289,9 +289,19 @@ export function gunakanSuara() {
     }
   }, [nyala]);
 
-  // Berkas dipanaskan hanya bila suara memang dipakai.
+  // Berkas dipanaskan hanya bila suara memang dipakai — dan ditunda ke waktu
+  // senggang: 6 MP3 inti di jalur kritis pemuatan muncul sebagai rantai
+  // request kritis di audit PageSpeed. Pemutaran pertama tetap aman karena
+  // `muat` mengunduh on-demand lewat `unduh` bila byte belum ada.
   useEffect(() => {
-    if (nyala) panaskanSuara();
+    if (!nyala) return undefined;
+    const panas = () => panaskanSuara();
+    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
+      const id = window.requestIdleCallback(panas, { timeout: 5000 });
+      return () => window.cancelIdleCallback?.(id);
+    }
+    const id = setTimeout(panas, 1500);
+    return () => clearTimeout(id);
   }, [nyala]);
 
   const mainkan = useCallback(

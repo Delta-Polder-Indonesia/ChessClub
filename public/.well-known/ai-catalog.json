@@ -1,4 +1,5 @@
 {
+  "specVersion": "1.0",
   "entries": [
     {
       "identifier": "urn:air:chess-club-weld.vercel.app:app:analisa-partai",
