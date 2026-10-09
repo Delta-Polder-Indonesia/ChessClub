@@ -89,7 +89,7 @@ export default function LayarPengaturan({ pengaturan = null }) {
               <div className="shrink-0 px-4 pt-4">
                 <span className="block text-center text-xl font-bold text-foreground">{t("papan.pengaturanEngine")}</span>
               </div>
-              <div className="flex flex-col gap-3 px-4 pb-4 pt-4 lg:min-h-0 lg:overflow-y-auto">
+              <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 lg:overflow-y-auto">
                 <div className="flex items-center gap-3 rounded-borderRoundness border border-[#81b64c] bg-backgroundBoxBox p-3">
                   <Gambar
                     src={gambar("/images/stockfish.webp")}
@@ -224,7 +224,7 @@ export default function LayarPengaturan({ pengaturan = null }) {
               <div className="shrink-0 px-4 pt-4">
                 <span className="block text-center text-xl font-bold text-foreground">{t("papan.pengaturanPapan")}</span>
               </div>
-              <div className="flex flex-col gap-3 px-4 pb-4 pt-4 lg:min-h-0 lg:overflow-y-auto">
+              <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 lg:overflow-y-auto">
                 <IsiPengaturanPapan
                   t={t}
                   bidak={bidak}

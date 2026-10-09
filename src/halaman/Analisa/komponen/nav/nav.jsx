@@ -153,12 +153,6 @@ export default function Nav() {
       kunci: "akun",
     },
     {
-      label: t("analisa.nav.deteksiEngine"),
-      icon: () => <ShieldAlert className="h-[18px] w-[18px] shrink-0" />,
-      tampilan: TAMPILAN_ANALISA.DETEKSI_ENGINE,
-      kunci: "deteksi-engine",
-    },
-    {
       label: t("analisa.nav.database"),
       icon: (props) => <Database width={18} height={18} class={props.className} />,
       tampilan: TAMPILAN_ANALISA.BASIS_DATA,
@@ -169,6 +163,12 @@ export default function Nav() {
       icon: (props) => <IkonImpor className={props.className} />,
       tampilan: TAMPILAN_ANALISA.IMPOR,
       kunci: "impor",
+    },
+    {
+      label: t("analisa.nav.deteksiEngine"),
+      icon: () => <ShieldAlert className="h-[18px] w-[18px] shrink-0" />,
+      tampilan: TAMPILAN_ANALISA.DETEKSI_ENGINE,
+      kunci: "deteksi-engine",
     },
     {
       label: t("analisa.nav.pengaturan"),
@@ -296,7 +296,7 @@ export default function Nav() {
               }`}
             >
               <span
-                className={`hidden navTop:block leading-none font-bold text-[22px] tracking-tight text-foreground overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                className={`hidden navTop:block leading-none font-bold text-[17px] tracking-tight text-foreground overflow-hidden whitespace-nowrap transition-[max-width,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                   navTerbuka ? "max-w-[140px] opacity-100" : "max-w-0 opacity-0"
                 }`}
               >

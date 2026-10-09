@@ -321,7 +321,7 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
             <div className="shrink-0 px-4 pt-4">
               <span className="block text-center text-xl font-bold text-foreground">{t("analisa.antiCheat.riwayat.pengaturan")}</span>
             </div>
-            <div className="flex flex-col gap-3 px-4 pb-4 pt-4 lg:min-h-0 lg:overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 lg:overflow-y-auto">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <span className="h-px flex-1 bg-border" />
@@ -504,7 +504,7 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
             <div className="shrink-0 px-4 pt-4">
               <span className="block text-center text-xl font-bold text-foreground">{t("analisa.antiCheat.riwayat.hasil")}</span>
             </div>
-            <div className="flex flex-col gap-3 px-4 pb-4 pt-4 lg:min-h-0 lg:overflow-y-auto">
+            <div className="flex min-h-0 flex-1 flex-col gap-3 px-4 pb-4 pt-4 lg:overflow-y-auto">
               <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.antiCheat.riwayat.isi")}</p>
               {ac.berjalan ? (
                 <div className="flex flex-col gap-2">
