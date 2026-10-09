@@ -3,8 +3,8 @@ import { useContext } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { DAFTAR_ENGINE, cariEngine } from "../../../../lib/engineCatur.js";
 import { gambar } from "../../../../lib/asets.js";
-import { gunakanMesin } from "../../konteks/mesin.jsx";
-import { AnalyzeContext } from "../../konteks/analyze.jsx";
+import { useMesin } from "../../konteks/mesinKonteks.js";
+import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 
 import { tulis } from "../../penyimpanan.js";
 import SelectDaftar from "../nav/SelectDaftar.jsx";
@@ -37,7 +37,7 @@ function terapkanAngka(teks, min, max, simpan) {
 
 function PengaturanMesin() {
   const { t } = useI18n();
-  const { idEngine, gantiEngine, status, galat, siapkan, setop, didukung } = gunakanMesin();
+  const { idEngine, gantiEngine, status, galat, siapkan, setop, didukung } = useMesin();
   const analyzeContext = useContext(AnalyzeContext);
   const [depth, setDepth] = analyzeContext.depth;
 

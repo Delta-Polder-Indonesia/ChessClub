@@ -273,7 +273,7 @@ export function suaraAktifTersimpan() {
  * menulis `if (nyala)` di mana-mana. Preferensinya disimpan di localStorage
  * dan dibagi antara Papan Interaktif dan Teka-Teki.
  */
-export function gunakanSuara() {
+export function useSuara() {
   const [nyala, setNyala] = useState(true);
 
   // Dibaca setelah mount agar aman untuk render di server / hidrasi.

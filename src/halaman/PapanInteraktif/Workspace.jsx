@@ -1,7 +1,7 @@
 import { Suspense, lazy, useEffect, useState } from "react";
 import { useI18n } from "../../lib/i18n.jsx";
 import IkonTab from "./IkonTab.jsx";
-import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
 
 const ManusiaVsMesin = lazy(() => import("./modus/ManusiaVsMesin.jsx"));
 const LatihanRepertoar = lazy(() => import("./modus/LatihanRepertoar.jsx"));
@@ -23,7 +23,7 @@ export default function WorkspacePapanInteraktif() {
   const [mode, setMode] = useState("papan");
   // State pengaturan hidup di sini (bukan di tab) agar tidak hilang saat
   // berpindah tab; diteruskan ke Papan Interaktif dan layar Pengaturan.
-  const pengaturan = gunakanPengaturanPapan();
+  const pengaturan = usePengaturanPapan();
 
   useEffect(() => {
     document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;

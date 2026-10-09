@@ -3,8 +3,8 @@ import { deformatSquare, formatSquare } from "../../mesin/engine.js";
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { BISHOP, BLACK, Chess, KING, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
 import { buatSuara } from "../suaraPapan.js";
-import { ConfigContext } from "../../konteks/config.jsx";
-import { boardThemes } from "../pengaturan/themes.jsx";
+import { ConfigContext } from "../../konteks/configKonteks.js";
+import { boardThemes } from "../pengaturan/boardThemes.js";
 import PieceSVG from "../svg/piece.jsx";
 import RatingSVG from "../svg/rating.jsx";
 import ResultSVG from "../svg/result.jsx";
@@ -38,7 +38,6 @@ const moveSelfSound = buatSuara("move-self");
 const moveOpponentSound = buatSuara("move-opponent");
 const moveCheckSound = buatSuara("move-check");
 const gameEndSound = buatSuara("game-end");
-const gameStartSound = buatSuara("game-start");
 const captureSound = buatSuara("capture");
 const castleSound = buatSuara("castle");
 
@@ -183,7 +182,7 @@ function Coronation(props) {
     }
     document.addEventListener("mousedown", clickClearCoronation);
     return () => document.removeEventListener("mousedown", clickClearCoronation);
-  }, []);
+  }, [clearCoronation]);
   const color = coroningWhite ? WHITE : BLACK;
   const top = white && coroningWhite || !white && !coroningWhite;
   return <div ref={coronationRef} className="flex absolute bg-white z-[90] shadow-lg shadow-black/50 cursor-pointer" style={{ flexDirection: top ? "column" : "column-reverse", top: top ? 0 : void 0, bottom: !top ? 0 : void 0, left: white ? column * squareSize : void 0, right: !white ? column * squareSize : void 0 }}>
@@ -371,8 +370,8 @@ function Board(props) {
   const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, kandidat, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
   const fen = props.fen;
   const nextFen = props.nextFen;
-  const move = props.move ?? [];
-  const nextMove = props.nextMove ?? [];
+  const move = useMemo(() => props.move ?? [], [props.move]);
+  const nextMove = useMemo(() => props.nextMove ?? [], [props.nextMove]);
   const squareSize = Math.round(boardSize / 8);
   const guideSize = squareSize / 4;
   const leftSize = guideSize / 4.5;
@@ -395,7 +394,7 @@ function Board(props) {
   const whiteMoving = !(chess.turn() === "w");
   const castleRookFrom = getCastleRookFromSquare(forward ? castle : nextCastle, forward ? whiteMoving : !whiteMoving);
   const castleRookTo = getCastleRookToSquare(forward ? castle : nextCastle, forward ? whiteMoving : !whiteMoving);
-  const castleRookMove = castleRookFrom && castleRookTo ? [castleRookFrom, castleRookTo] : [];
+  const castleRookMove = useMemo(() => (castleRookFrom && castleRookTo ? [castleRookFrom, castleRookTo] : []), [castleRookFrom, castleRookTo]);
   const filteredHighlightStyle = filterHighlightStyle(HIGHLIGHT_COLORS);
   const highlightColor = highlightByRating ? filteredHighlightStyle[moveRating2]?.color || boardThemes[boardTheme].highlight : boardThemes[boardTheme].highlight;
   const highlightRating = filteredHighlightStyle[moveRating2]?.rating;
@@ -424,7 +423,7 @@ function Board(props) {
       setDrag({ is: false, id: "" });
       return;
     }
-  }, [fen]);
+  }, [fen, chess, drag.id, drag.is, setDrag]);
   useEffect(() => {
     if (!props.fen) return;
     if (!boardSounds) return;
@@ -444,15 +443,15 @@ function Board(props) {
     if (gameEnded) {
       gameEndSound.play();
     }
-  }, [fen]);
+  }, [fen, boardSounds, gameEnded, props.fen, selfTurn, soundCaptureInstance, soundCastleInstance, soundChessInstance]);
   useEffect(() => {
     if (!animation) return;
     if (!animateMoves) return;
     if (pieceRef.current) animateMove(pieceRef.current, forward ? move : nextMove, 60, forward, white, squareSize);
     if (castleRookRef.current) animateMove(castleRookRef.current, castleRookMove, 50, forward, white, squareSize);
-  }, [move, animation]);
+  }, [move, animation, animateMoves, castleRookMove, forward, nextMove, squareSize, white]);
   let newMaterialAdvantage = 0;
-  useEffect(() => setMaterialAdvantage(newMaterialAdvantage), [fen]);
+  useEffect(() => setMaterialAdvantage(newMaterialAdvantage), [fen, newMaterialAdvantage, setMaterialAdvantage]);
   function startArrow(x, y) {
     const rowNumber = Math.floor(y / squareSize);
     const colNumber = Math.floor(x / squareSize);
@@ -586,7 +585,7 @@ function Board(props) {
   const legalMoves = useMemo(() => {
     if (!drag.id) return [];
     return chess.moves({ square: drag.id, verbose: true }).map((move2) => move2.to);
-  }, [drag.id, fen]);
+  }, [drag.id, chess]);
   const boardColors = [boardThemes[boardTheme].white, boardThemes[boardTheme].black];
   const adaptedCoronationSquare = coronation.movement[0] ? adaptSquare(coronation.movement[0]) : null;
   return <div ref={boardRef} onContextMenu={(e) => e.preventDefault()} onMouseDown={handleMouseDown} onMouseUp={handleMouseUp} className="grid w-fit h-fit relative" style={{ gridTemplateColumns: `repeat(8, ${squareSize}px)`, pointerEvents: drag.is ? "none" : "unset" }}>
@@ -735,8 +734,4 @@ function Board(props) {
   })()}
         </div>;
 }
-export {
-  Arrow,
-  Board as default,
-  gameStartSound
-};
+export { Arrow, Board as default };

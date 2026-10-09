@@ -4,7 +4,7 @@ import NextMove from "../../svg/nextMove.jsx";
 import Play from "../../svg/play.jsx";
 import SkipGame from "../../svg/skipGame.jsx";
 import Pause from "../../svg/pause.jsx";
-import { AnalyzeContext } from "../../../konteks/analyze.jsx";
+import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 function GameButtons() {
   const { t } = useI18n();

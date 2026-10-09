@@ -61,7 +61,7 @@ for (const rute of SEMUA_RUTE_BANGUN) {
   }
 }
 
-const SEMUA_RUTE = ["/", ...RUTE_PUBLIK];
+const _SEMUA_RUTE = ["/", ...RUTE_PUBLIK];
 const judulBeranda = (html.match(/<title>([^<]*)<\/title>/) || [])[1] || "";
 const judulTerpakai = new Map();
 for (const [rute, meta] of metaPerRute) {

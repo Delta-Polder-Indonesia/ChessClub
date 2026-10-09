@@ -1,5 +1,5 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { getPropsDataset } from "./piece.jsx";
+import { getPropsDataset } from "./getPropsDataset.js";
 function Brilliant({ size }) {
   return <svg
     width={size}

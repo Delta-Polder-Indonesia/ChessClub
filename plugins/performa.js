@@ -354,11 +354,11 @@ export function metadataUntukRute(rute) {
 }
 
 function escapeHtml(teks) {
-  return String(teks).replace(/[&<>\"']/g, (karakter) => ({
+  return String(teks).replace(/[&<>"']/g, (karakter) => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
-    '\"': "&quot;",
+    '"': "&quot;",
     "'": "&#39;",
   })[karakter]);
 }

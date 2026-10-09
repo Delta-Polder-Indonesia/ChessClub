@@ -2,7 +2,7 @@
 /* Tombol gear membuka layar Pengaturan penuh (TAMPILAN_ANALISA.PENGATURAN),
    bukan popup — sama seperti tombol gear di Papan Interaktif. */
 import { useContext } from "react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
+import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import Image from "../Gambar.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 

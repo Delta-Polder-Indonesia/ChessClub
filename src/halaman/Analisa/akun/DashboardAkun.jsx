@@ -42,7 +42,7 @@ function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
 }
 
 function GrafikTahunan({ data }) {
-  const [tahun, setTahun] = useState(null);
+  const [tahun] = useState(null);
   const bars = tahun ? data.filter((x) => x.tahun === tahun) : data;
   const max = Math.max(1, ...data.map((x) => x.jumlah));
   return (

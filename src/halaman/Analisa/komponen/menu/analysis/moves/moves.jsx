@@ -4,23 +4,11 @@ import Comments, { FormatEval } from "./comments.jsx";
 import { WHITE } from "chess.js";
 import GameChart from "../gameChart.jsx";
 import RatingSVG from "../../../svg/rating.jsx";
-import { getMoves } from "../../../game/game.jsx";
+import { getMoves } from "../../../game/getMoves.js";
 import { langkahTerpaksa, ratingTampilan } from "../../../../mesin/evaluasi.js";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
-const RATING_TEXT_COLORS = {
-  forced: "",
-  brilliant: "text-highlightBrilliant",
-  great: "text-highlightGreat",
-  best: "text-highlightBest",
-  critical: "text-highlightBest",
-  excellent: "text-highlightExcellent",
-  good: "text-highlightGood",
-  book: "text-highlightBook",
-  inaccuracy: "text-highlightInaccuracy",
-  mistake: "text-highlightMistake",
-  miss: "text-highlightMiss",
-  blunder: "text-highlightBlunder"
-};
+import { RATING_TEXT_COLORS, getLastBookMove } from "./movesData.js";
+
 // Label tampil (ikon): satu definisi di mesin/evaluasi.js (`ratingTampilan`),
 // dipakai kartu komentar, daftar langkah, grafik, dan sorotan papan.
 function kunciKomentar(move) {
@@ -40,12 +28,7 @@ function getRating(moveNumber, rating, prevRating, nextRating, lastBookMove, ter
   if (rating === "critical" || rating === "blunder" || rating === "mistake" || rating === "miss" || rating === "great" || rating === "brilliant") return { rating, textClass: RATING_TEXT_COLORS[rating] };
   return;
 }
-function getLastBookMove(moves) {
-  for (let i = moves.length - 1; i >= 0; i--) {
-    if (moves[i].moveRating === "book") return i;
-  }
-  return -1;
-}
+
 function Moves(props) {
   const { t } = useI18n();
   const { moves, overallGameComment, container, moveNumber, setMoveNumber, setAnimation, setForward, customLine, returnedToNormalGame, analyzingMove } = props;
@@ -90,7 +73,6 @@ function Moves(props) {
     });
   }
   useEffect(scrollToCurrentMove, [moveNumber]);
-  useEffect(scrollToCurrentMove, []);
   function resizeMoves() {
     if (!componentRef.current || !commentsRef.current || !moveListRef.current || !gameChartRef.current) return;
     const totalHeight = componentRef.current.offsetHeight;
@@ -162,8 +144,4 @@ function Moves(props) {
             </div>
         </div>;
 }
-export {
-  RATING_TEXT_COLORS,
-  Moves as default,
-  getLastBookMove
-};
+export default Moves;

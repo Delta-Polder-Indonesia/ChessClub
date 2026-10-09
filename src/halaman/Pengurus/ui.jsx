@@ -143,7 +143,7 @@ export function Modal({
       const t = setTimeout(fokusPertama, 50);
       return () => clearTimeout(t);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [terbuka, nilaiBawaanInput]);
 
   useEffect(() => {

@@ -34,7 +34,7 @@ function sumberSunfish() {
 /** Satu instance engine sunfish yang berdiri sendiri. */
 export function muatSunfish() {
   const modul = { exports: {} };
-  // eslint-disable-next-line no-new-func
+   
   const bungkus = new Function("module", "exports", "require", "global", "self", sumberSunfish());
   bungkus(modul, modul.exports, require, globalThis, undefined);
   const sunfish = modul.exports;
@@ -83,7 +83,7 @@ export function muatSunfishWorker() {
   function WorkerGlobalScope() {}
   function WorkerNavigator() {}
   const navigatorPalsu = Object.create(WorkerNavigator.prototype);
-  // eslint-disable-next-line no-new-func
+   
   const bungkus = new Function(
     "module",
     "exports",

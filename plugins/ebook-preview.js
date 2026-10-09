@@ -187,7 +187,7 @@ export function pratinjauEbook({ akar = process.cwd() } = {}) {
       try {
         const kepala = { Accept: "application/pdf,*/*" };
         if (req.headers.range) kepala.Range = req.headers.range;
-        // eslint-disable-next-line no-await-in-loop -- sengaja berurutan.
+         
         const hulu = await fetch(sumber, { headers: kepala, redirect: "follow" });
         if (!hulu.ok || !hulu.body) continue;
 

@@ -1,9 +1,9 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { capitalizeFirst } from "../menu/analyze/selectChessCom.jsx";
-import { ConfigContext, defaultUsedRatings } from "../../konteks/config.jsx";
+import { capitalizeFirst } from "../menu/analyze/selectChessComData.js";
+import { ConfigContext, defaultUsedRatings } from "../../konteks/configKonteks.js";
 import { useContext, useEffect } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
-import { boardThemes } from "./themes.jsx";
+import { boardThemes } from "./boardThemes.js";
 import { QUEEN, WHITE } from "chess.js";
 import PieceSVG from "../svg/piece.jsx";
 import RatingSVG from "../svg/rating.jsx";
@@ -58,7 +58,7 @@ function Ratings() {
       tulis("usedRatings", serializeRatings(defaultUsedRatings));
       setUsedRatings(defaultUsedRatings);
     }
-  }, []);
+  }, [setUsedRatings]);
   useEffect(() => {
     const highlightByRating2 = bacaTeks("highlightByRating");
     if (!highlightByRating2) return;
@@ -69,7 +69,7 @@ function Ratings() {
       tulis("highlightByRating", "1");
       setHighlightByRating(true);
     }
-  }, []);
+  }, [setHighlightByRating]);
   function toggleHighlightByRating() {
     const newHighlightByRating = !highlightByRating;
     tulis("highlightByRating", String(Number(newHighlightByRating)));

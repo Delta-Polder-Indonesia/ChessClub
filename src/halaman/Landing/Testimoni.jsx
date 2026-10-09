@@ -18,7 +18,7 @@ function BalokKutip({ anak, aria }) {
   );
 }
 
-function GlobalKutip({ t, sumber }) {
+function GlobalKutip({ t: _t, sumber }) {
   return (
     <div className="flex flex-col gap-[0.2rem] mt-5">
       <cite className="font-serif font-semibold text-[15px] not-italic text-grey-800">

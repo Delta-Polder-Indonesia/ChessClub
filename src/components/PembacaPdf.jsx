@@ -132,7 +132,7 @@ export default function PembacaPdf({ sumber, judul, urlUnduh, padaSiap, padaGaga
           if (!batal && total) setProgres(Math.min(100, Math.round((loaded / total) * 100)));
         };
         try {
-          // eslint-disable-next-line no-await-in-loop -- sengaja berurutan: sumber cadangan.
+           
           dokumenLokal = await tugas.promise;
           if (batal) {
             dokumenLokal.destroy();

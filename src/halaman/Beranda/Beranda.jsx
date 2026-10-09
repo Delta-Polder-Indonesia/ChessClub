@@ -14,7 +14,7 @@ import {
 } from "../../lib/api/index.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";
-import { TEKS_STATUS } from "../../components/LencanaStatus.jsx";
+import { TEKS_STATUS } from "../../components/lencanaStatusData.js";
 import {
   Table,
   TableBody,
@@ -104,7 +104,7 @@ export default function Beranda() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {turnamen.map((t, index) => {
+              {turnamen.map((t, _index) => {
                 const j = jenis[t.jenis] || {};
                 const href = j.slug ? `/turnamen/${j.slug}` : "";
                 return (

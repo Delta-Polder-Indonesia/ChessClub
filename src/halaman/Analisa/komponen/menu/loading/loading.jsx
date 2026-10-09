@@ -3,23 +3,14 @@ import { useContext, useEffect, useRef, useState } from "react";
 import Lens from "../../svg/lens.jsx";
 import LoadingBar from "./loadingBar.jsx";
 import DualRingSpinner from "../../loading/DualRingSpinner.jsx";
-import { AnalyzeContext } from "../../../konteks/analyze.jsx";
-import { gunakanMesin } from "../../../konteks/mesin.jsx";
+import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { useMesin } from "../../../konteks/mesinKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
-/**
- * Kemajuan analisa (0–100, dari `setProgress` di `mesin/engine.js`) untuk
- * ditampilkan sebagai satu angka di belakang koma — sama seperti kartu progres
- * WintrChess (`ProgressReporter`, `(progress * 100).toFixed(1)`). Nilai di luar
- * 0–100 atau bukan angka dijinakkan supaya kartu tidak pernah menulis "NaN%".
- */
-export function persenProgres(progress) {
-  const angka = Number(progress);
-  if (!Number.isFinite(angka)) return "0.0";
-  return Math.min(Math.max(angka, 0), 100).toFixed(1);
-}
+import { persenProgres } from "./persenProgres.js";
+
 function Loading(props) {
   const { t } = useI18n();
-  const { status } = gunakanMesin();
+  const { status } = useMesin();
   const [ellipsis, setEllipsis] = useState("");
   const analyzeContext = useContext(AnalyzeContext);
   const [progress] = analyzeContext.progress;

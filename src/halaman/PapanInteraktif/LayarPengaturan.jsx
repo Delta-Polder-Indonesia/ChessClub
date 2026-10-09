@@ -1,10 +1,10 @@
 import { useI18n } from "../../lib/i18n.jsx";
 import { DAFTAR_ENGINE } from "../../lib/engineCatur.js";
 import { gambar } from "../../lib/asets.js";
-import { gunakanPreferensiKomentator } from "../../components/KartuKomentator.jsx";
+import { usePreferensiKomentator } from "../../components/usePreferensiKomentator.js";
 import { IsiPengaturanPapan } from "./PopupPengaturan.jsx";
-import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
-import { gunakanSuara } from "../../lib/suara.js";
+import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { useSuara } from "../../lib/suara.js";
 import PanelLayar from "../Analisa/komponen/nav/PanelLayar.jsx";
 import SelectDaftar from "../Analisa/komponen/nav/SelectDaftar.jsx";
 import Gambar from "../Analisa/komponen/Gambar.jsx";
@@ -42,12 +42,12 @@ function Pemisah({ teks }) {
 
 export default function LayarPengaturan({ pengaturan = null }) {
   const { t } = useI18n();
-  const preferensiKomentator = gunakanPreferensiKomentator();
+  const preferensiKomentator = usePreferensiKomentator();
   // Suara papan: sakelarnya tersimpan di localStorage (dibagi dengan papan).
-  const { nyala: suaraNyala, setNyala: setSuaraNyala } = gunakanSuara();
+  const { nyala: suaraNyala, setNyala: setSuaraNyala } = useSuara();
 
   // Pengaturan dari Workspace (hidup lintas tab). Tanpa prop → state lokal.
-  const pengaturanLokal = gunakanPengaturanPapan();
+  const pengaturanLokal = usePengaturanPapan();
   const { nilai: pp, ubah } = pengaturan ?? pengaturanLokal;
 
   // Pengaturan papan — langsung terhubung ke Papan Interaktif lewat Workspace.
@@ -62,7 +62,7 @@ export default function LayarPengaturan({ pengaturan = null }) {
   const warnaPapan = pp.warnaPapan;
   const setWarnaPapan = (v) => ubah("warnaPapan", v);
 
-  // Pengaturan engine analisa — dibaca oleh Papan Interaktif (gunakanEngineCatur).
+  // Pengaturan engine analisa — dibaca oleh Papan Interaktif (useEngineCatur).
   const mesin = pp.mesin;
   const setMesin = (v) => ubah("mesin", v);
   const mesinAktif = DAFTAR_ENGINE.find((e) => e.id === mesin);
@@ -72,7 +72,7 @@ export default function LayarPengaturan({ pengaturan = null }) {
   const kedalaman = pp.kedalaman;
   const setKedalaman = (v) => ubah("kedalaman", v);
   const threads = pp.threads;
-  const setThreads = (v) => ubah("threads", v);
+  const _setThreads = (v) => ubah("threads", v);
   const hashMb = pp.hashMb;
   const setHashMb = (v) => ubah("hashMb", v);
   const multipv = pp.multipv;

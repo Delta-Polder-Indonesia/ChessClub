@@ -49,7 +49,7 @@ export function periksaTiketUnduh(nilai, nama) {
   const bagian = nilai.split(".");
   if (bagian.length !== 3 || bagian[0] !== AWALAN) return false;
   const [, isi, sig] = bagian;
-  let sah = false;
+  let sah;
   try {
     const a = Buffer.from(String(sig), "base64url");
     const b = Buffer.from(tanda(isi), "base64url");

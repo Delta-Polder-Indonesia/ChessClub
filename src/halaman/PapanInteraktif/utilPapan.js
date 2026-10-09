@@ -22,7 +22,7 @@ export function fenDariLangkah(daftarSan, dasar = FEN_AWAL) {
     return null;
   }
   for (const san of daftarSan) {
-    let pindah = null;
+    let pindah;
     try {
       pindah = game.move(san);
     } catch {
@@ -153,7 +153,7 @@ export function sanDiPosisi(game, koordinat) {
       game.undo();
       return pindah.san;
     }
-  } catch {}
+  } catch { /* koordinat tidak sah — kembalikan apa adanya */ }
   return koordinat;
 }
 

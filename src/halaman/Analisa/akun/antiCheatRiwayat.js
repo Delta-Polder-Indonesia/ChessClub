@@ -187,7 +187,7 @@ export async function analisisRiwayatAntiCheat({
 
   // Tabel buku dipakai untuk menandai langkah "book" agar tidak ikut dinilai.
   // Kegagalan unduh tidak boleh menggagalkan seluruh analisis.
-  let openings = {};
+  let openings;
   try {
     openings = (await cariBuku?.()) ?? {};
   } catch {

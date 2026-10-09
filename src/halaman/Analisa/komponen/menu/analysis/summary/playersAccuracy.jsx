@@ -13,13 +13,7 @@ import { Chess } from "chess.js";
  */
 import { isEndOpening, isEndMiddlegame } from "../../../../mesin/fase.js";
 import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
-function avg(arr) {
-  // Tanpa penjagaan ini, daftar kosong menghasilkan 0/0 = NaN dan panel
-  // ringkasan menampilkan "NaN" alih-alih angka akurasi.
-  if (!arr?.length) return NaN;
-  const sum = arr.reduce((acc, cur) => acc + cur, 0);
-  return sum / arr.length;
-}
+import { avg } from "./playersAccuracyData.js";
 
 /** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
 function formatAkurasi(nilai) {
@@ -101,7 +95,7 @@ function PlayersAccuracy(props) {
     const newAccuracy = { w: avg(accuracies.w), b: avg(accuracies.b) };
     setAccuracy(newAccuracy);
     setAccuracyPhases(accuraciesPhases);
-  }, [moves]);
+  }, [moves, setAccuracy, setAccuracyPhases]);
   return <div className="w-[85%] flex flex-col items-end gap-3">
             <div className="reduceSummary:w-[262px] w-[160px] flex flex-row justify-between font-semibold text-sm">
                 <div className="reduceSummary:w-20 w-16 flex flex-row justify-center whitespace-nowrap overflow-visible"><span>{players2[0].name}</span></div>
@@ -135,7 +129,4 @@ function PlayersAccuracy(props) {
             </div>
         </div>;
 }
-export {
-  avg,
-  PlayersAccuracy as default
-};
+export default PlayersAccuracy;

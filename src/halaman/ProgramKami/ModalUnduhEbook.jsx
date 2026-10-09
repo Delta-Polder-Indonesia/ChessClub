@@ -112,7 +112,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
       clearTimeout(jam);
       window.removeEventListener("keydown", onEsc);
     };
-  }, [onTutup]);
+  }, [onTutup, adaTiketSesi]);
 
   function bersihkanGalat() {
     if (galat) setGalat("");

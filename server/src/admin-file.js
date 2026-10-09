@@ -91,7 +91,7 @@ export async function bacaAdminsFile() {
     const list = Array.isArray(data?.admins) ? data.admins : Array.isArray(data) ? data : [];
     const hasil = list.map(normalisasiAdmin).filter(Boolean);
     if (hasil.length) return hasil;
-  } catch {}
+  } catch { /* file master tidak terbaca — coba file lama */ }
 
   // coba file lama single
   try {
@@ -102,7 +102,7 @@ export async function bacaAdminsFile() {
       single.role = "master";
       return [single];
     }
-  } catch {}
+  } catch { /* file lama juga tidak terbaca */ }
 
   return null;
 }

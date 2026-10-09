@@ -15,7 +15,7 @@ import EbookUnduhan from "./PanelEbook/Unduhan.jsx";
 export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
   const [halamanDalam, setHalamanDalam] = useState("terbit");
   const halamanAktif = halaman ?? halamanDalam;
-  const aturHalaman = onGantiHalaman ?? setHalamanDalam;
+  const _aturHalaman = onGantiHalaman ?? setHalamanDalam;
   const [kode, setKode] = useState([]);
   const [unduhan, setUnduhan] = useState([]);
   const [minta, setMinta] = useState([]);
@@ -40,7 +40,7 @@ export default function PanelEbook({ beriTahu, halaman, onGantiHalaman }) {
       setKode(Array.isArray(daftarKode) ? daftarKode : []);
       setUnduhan(Array.isArray(jejak) ? jejak : []);
       setMinta(Array.isArray(pengajuan) ? pengajuan : []);
-    } catch (e) {
+    } catch (_e) {
       beriTahu("Data e-book gagal dimuat. Periksa koneksi lalu coba lagi.", "galat");
       setGalat(true);
     } finally {

@@ -1,7 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { ConfigContext } from "../../konteks/config.jsx";
+import { ConfigContext } from "../../konteks/configKonteks.js";
 import { useContext, useEffect } from "react";
-import { boardThemes } from "./themes.jsx";
+import { boardThemes } from "./boardThemes.js";
 import { Arrow } from "../game/board.jsx";
 import PieceSVG from "../svg/piece.jsx";
 import { QUEEN, WHITE } from "chess.js";
@@ -24,7 +24,7 @@ function BestMoves() {
       tulis("showArrows", "1");
       setShowArrows(true);
     }
-  }, []);
+  }, [setShowArrows]);
   function toggleShowArrows() {
     const newShowArrows = !showArrows;
     tulis("showArrows", String(Number(newShowArrows)));
@@ -40,7 +40,7 @@ function BestMoves() {
       tulis("arrowAfterMove", "1");
       setArrowAfterMove(true);
     }
-  }, []);
+  }, [setArrowAfterMove]);
   function toggleArrowAfterMove() {
     const newArrowAfterMove = !arrowAfterMove;
     tulis("arrowAfterMove", String(Number(newArrowAfterMove)));

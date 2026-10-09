@@ -308,7 +308,7 @@ export async function verifikasiIdToken(idToken, { clientId } = {}) {
     throw new GalatVerifikasi("token", "Kunci publik tidak dapat digunakan.");
   }
 
-  let sah = false;
+  let sah;
   try {
     sah = crypto.verify(
       "RSA-SHA256",
@@ -526,7 +526,7 @@ export function periksaTiket(nilai, username) {
     // Bentuk lain (objek, angka, array) bukan tiket — jangan dibilang kosong.
     return { sah: false, sebab: "tidak-sah" };
   }
-  let muatan = null;
+  let muatan;
   try {
     muatan = tandaUrai(nilai, KONTEKS.tiket);
   } catch {
@@ -576,7 +576,7 @@ export function pakaiTiket(nilai, username) {
  */
 export function intipTiket(nilai) {
   if (!nilai || typeof nilai !== "string") return null;
-  let dibaca = null;
+  let dibaca;
   try {
     dibaca = tandaUrai(nilai, KONTEKS.tiket);
   } catch {

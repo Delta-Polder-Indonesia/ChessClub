@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiPengurus } from "../../../lib/api/index.js";
 import { Tombol, Bidang, Modal } from "../ui.jsx";
-import { Lencana, LABEL_STATUS, akunMasihBaru } from "./bagian.jsx";
+import { Lencana } from "./Lencana.jsx";
+import { LABEL_STATUS, akunMasihBaru } from "./bagianData.js";
 
 /**
  * Rincian satu turnamen: status, pengajuan peserta, daftar peserta,

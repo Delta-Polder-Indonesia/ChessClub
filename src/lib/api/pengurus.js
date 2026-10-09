@@ -75,12 +75,12 @@ export const peranPengurus = {
     try {
       if (v) sessionStorage.setItem(KUNCI_PERAN, v);
       else sessionStorage.removeItem(KUNCI_PERAN);
-    } catch {}
+    } catch { /* mode privat — abaikan */ }
   },
   hapus: () => {
     try {
       sessionStorage.removeItem(KUNCI_PERAN);
-    } catch {}
+    } catch { /* mode privat — abaikan */ }
   },
   isMaster: () => {
     try {

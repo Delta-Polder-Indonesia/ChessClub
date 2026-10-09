@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { gunakanDialog } from "./gunakanDialog.js";
+import { useDialog } from "./gunakanDialog.js";
 
 /** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
 export default function MasukanPgn({ onTerapkan, onTutup, t }) {
   const [teks, setTeks] = useState("");
   const [galat, setGalat] = useState(false);
-  const refDialog = gunakanDialog(onTutup);
+  const refDialog = useDialog(onTutup);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"

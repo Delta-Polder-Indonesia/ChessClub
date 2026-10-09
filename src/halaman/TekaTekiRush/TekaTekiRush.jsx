@@ -1,4 +1,4 @@
-import React, {
+import {
   useCallback,
   useEffect,
   useMemo,
@@ -8,9 +8,10 @@ import React, {
 import { Link } from "react-router-dom";
 import { Chess } from "chess.js";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
-import { gunakanSuara, SUARA } from "../../lib/suara.js";
+import { useSuara, SUARA } from "../../lib/suara.js";
 import { ambilPeringkatRush, kirimSkorRush } from "../../lib/api/rekorRush.js";
 import { mulaiLoginChessCom } from "../../lib/api/anggota.js";
 import { muatAnggota, anggotaTersimpan } from "../../lib/anggotaBersama.js";
@@ -228,7 +229,7 @@ function PapanPeringkat({ durasi, segar }) {
 
 export default function TekaTekiRush() {
   const { t } = useI18n();
-  const { nyala: suaraNyala, setNyala, mainkan, mainkanLangkah } = gunakanSuara();
+  const { nyala: suaraNyala, setNyala, mainkan, mainkanLangkah } = useSuara();
 
   // Preferensi papan — dibagi dengan halaman Teka-Teki & Papan Interaktif.
   const [setBidak, setSetBidak] = useState(bacaSetBidak);
@@ -656,6 +657,7 @@ export default function TekaTekiRush() {
       transisi,
       sisa,
       fen,
+      mainkan,
       mainkanLangkah,
       gagalSoal,
       muatSoalBerikut,
@@ -750,7 +752,7 @@ export default function TekaTekiRush() {
     orientasi === "b" ? t("tekaTekiRush.putih") : t("tekaTekiRush.hitam");
   const warnaLow = sisaWaktu <= 30 && sisaWaktu > 0;
 
-  const linkLichess = (f) =>
+  const _linkLichess = (f) =>
     `https://lichess.org/analysis/${f.replace(/ /g, "%20")}`;
 
   const teksHasil = useMemo(() => {
@@ -774,7 +776,7 @@ export default function TekaTekiRush() {
   );
 
   // Kembali ke menu mulai (hentikan sesi yang berjalan).
-  const keMenu = useCallback(() => {
+  const _keMenu = useCallback(() => {
     window.clearTimeout(timerRef.current);
     window.clearTimeout(delayRef.current);
     endedRef.current = true;

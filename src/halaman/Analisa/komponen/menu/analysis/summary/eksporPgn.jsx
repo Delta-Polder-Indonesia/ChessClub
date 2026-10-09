@@ -14,10 +14,10 @@
  * tengah — aturan yang sama sudah membuat deteksiEngine.jsx ada di bawah.
  */
 import { useContext, useMemo, useState } from "react";
-import { AnalyzeContext } from "../../../../konteks/analyze.jsx";
+import { AnalyzeContext } from "../../../../konteks/analyzeKonteks.js";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import Download from "../../../svg/download.jsx";
-import { NAG_LABEL, bangunPgnBeranotasi, unduhPgnBeranotasi } from "../../../../mesin/pgnAnotasi.js";
+import { NAG_LABEL, unduhPgnBeranotasi } from "../../../../mesin/pgnAnotasi.js";
 import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 
 function EksporPgn(props) {

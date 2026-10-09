@@ -305,7 +305,7 @@ for (const [id, profil] of Object.entries(PROFIL_SUNFISH)) {
       const pilihan = langkahMesinSah(fen, engine.cari(fen, { kedalaman: profil.kedalaman }));
       langkah += 1;
       if (pilihan.cadangan) cadangan += 1;
-      let pindah = null;
+      let pindah;
       try {
         pindah = game.move({
           from: pilihan.uci.slice(0, 2),

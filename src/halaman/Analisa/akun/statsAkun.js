@@ -75,13 +75,13 @@ export function ringkasanOverview(games, username, { rentang = "all", timeClass 
   let d = 0;
   let l = 0;
 
-  let cocok = 0;
+  let _cocok = 0;
   for (const p of games) {
     const info = infoPartaiUntuk(p, username);
     if (!info) continue;
     if (rentang !== "all" && !(info.timestamp >= sekarang - batas)) continue;
     if (timeClass && timeClass !== "any" && info.timeClass !== timeClass) continue;
-    cocok++;
+    _cocok++;
     const tahun = info.timestamp ? new Date(info.timestamp).getFullYear() : 0;
     tahunan.set(tahun, (tahunan.get(tahun) || 0) + 1);
     if (info.outcome === "win") w++;

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRightIcon, ChevronDownIcon, MenuIcon } from "./icons.jsx";
+import { ArrowRightIcon, MenuIcon } from "./icons.jsx";
 import Hero from "./Hero.jsx";
 import MetaHalaman from "./MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "./JsonLd.jsx";

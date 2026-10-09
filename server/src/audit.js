@@ -64,7 +64,7 @@ export async function bacaJejakAudit({
   sejak,
   hingga,
 } = {}) {
-  let teks = "";
+  let teks;
   try {
     teks = await fsp.readFile(konfigurasi.berkasJejak, "utf8");
   } catch (e) {

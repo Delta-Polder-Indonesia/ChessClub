@@ -12,7 +12,7 @@
  *
  * Yang dikunci:
  *   1. logika murni bantuanSeret.js (FEN hipotetis, ambang warna, panah lawan);
- *   2. hook gunakanBantuanSeret: debounce, klasifikasi, cache, buang hasil
+ *   2. hook useBantuanSeret: debounce, klasifikasi, cache, buang hasil
  *      basi, `bersihkan` mengirim "stop", worker dibuang saat sakelar mati;
  *   3. papan menggambar petak bantuan + panah lawan (data-bantuan /
  *      data-bantuan-panah) dan melaporkan petak yang dilintasi saat seret;
@@ -137,7 +137,7 @@ const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./src/lib/i18n.jsx";
-import { gunakanBantuanSeret } from "./src/lib/gunakanBantuanSeret.js";
+import { useBantuanSeret } from "./src/lib/gunakanBantuanSeret.js";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 
 let akarBantuan = null;
@@ -151,7 +151,7 @@ export function mountBantuan(el, props) {
 /** Render ulang harness dengan props baru — dipakai menguji mati/nyala sakelar. */
 export function perbaruiBantuan({ aktif, fen, nilaiTerbaik, laporan, catatan }) {
   function Harness() {
-    const b = gunakanBantuanSeret({ aktif, fen, nilaiTerbaik });
+    const b = useBantuanSeret({ aktif, fen, nilaiTerbaik });
     laporan.status = b.status;
     laporan.bantuan = b.bantuan;
     laporan.petakBantuan = b.petakBantuan;
@@ -334,7 +334,7 @@ const tungguSampai = (pemeriksa, batasMs = 4000, selangMs = 25) =>
     cek();
   });
 
-console.log("\n2. Hook gunakanBantuanSeret + worker engine kedua");
+console.log("\n2. Hook useBantuanSeret + worker engine kedua");
 const laporan = { status: "idle", bantuan: null, petakBantuan: null, panahBantuan: null };
 const catatan = { instans: 0 };
 modul.mountBantuan(dom.window.document.getElementById("akar"), {
@@ -437,7 +437,7 @@ console.log("\n3b. Laporan petak yang dilintasi saat bidak diseret");
 // jsdom tidak menghitung tata letak, jadi `elementFromPoint` tidak ada —
 // diganti peta koordinat→elemen petak supaya jalur asli `cariPetak` teruji.
 const petakDilintasi = { e4: akarPapan.querySelector('[data-petak="e4"]'), d4: akarPapan.querySelector('[data-petak="d4"]') };
-dom.window.document.elementFromPoint = (x, y) =>
+dom.window.document.elementFromPoint = (x, _y) =>
   x === 1 ? petakDilintasi.e4 : x === 2 ? petakDilintasi.d4 : null;
 
 const petakPapan = (sq) => akarPapan.querySelector(`[data-petak="${sq}"]`);

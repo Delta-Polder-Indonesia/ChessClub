@@ -127,7 +127,7 @@ function daftarHalaman(aktif, total) {
 
 /* ── SVG Ikon Internal ─────────────────────────────────────────────── */
 
-function IkonCopy({ className = "h-3.5 w-3.5" }) {
+function _IkonCopy({ className = "h-3.5 w-3.5" }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -163,7 +163,7 @@ function IkonSearch({ className = "h-4 w-4" }) {
   );
 }
 
-function IkonPlay({ className = "h-3 w-3" }) {
+function _IkonPlay({ className = "h-3 w-3" }) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -583,7 +583,7 @@ const PERIODE_MUNDUR = [
   { nilai: "semua", hari: 0 },
 ];
 
-function HeaderKolom({ kolom, t }) {
+function HeaderKolom({ kolom, t: _t }) {
   const label = flexRender(kolom.column.columnDef.header, kolom.getContext());
   if (!kolom.column.getCanSort()) return label;
   return (
@@ -1011,7 +1011,7 @@ export default function LayarDatabase({
   const [stats, setStats] = useState(null);
   const [memuat, setMemuat] = useState(true);
 
-  const [salinSuksesId, setSalinSuksesId] = useState(null);
+  const [, setSalinSuksesId] = useState(null);
   const [notifikasi, setNotifikasi] = useState(null);
   const notifikasiTimer = useRef(null);
   const [dialogTarikBesar, setDialogTarikBesar] = useState(false);
@@ -1259,7 +1259,7 @@ export default function LayarDatabase({
       }
       muatMetadata();
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   useEffect(() => {
@@ -1376,7 +1376,7 @@ export default function LayarDatabase({
     return () => {
       hidup = false;
     };
-  }, [tampilan, koleksiTerpilih]);
+  }, [tampilan, koleksiTerpilih, koleksiList.length]);
 
   useEffect(() => {
     if (tampilan !== "event") return undefined;
@@ -1458,7 +1458,7 @@ export default function LayarDatabase({
     return () => {
       hidup = false;
     };
-  }, [tampilan, koleksiTerpilih]);
+  }, [tampilan, koleksiTerpilih, koleksiList.length]);
 
   // Bila belum ada koleksi yang dipilih, pilih koleksi pertama otomatis (satu kali saja).
   useEffect(() => {
@@ -1499,7 +1499,7 @@ export default function LayarDatabase({
     onTutup();
   }
 
-  async function tanganiSalinPgn(game) {
+  async function _tanganiSalinPgn(game) {
     const pgn = await pgnPartai(game);
     if (!pgn) {
       tampilkanNotif(t("analisa.basisData.pgnTidakAda"), "gagal");
@@ -1564,7 +1564,7 @@ export default function LayarDatabase({
     }
   }
 
-  function bukaDialogHapusPartai(e, game) {
+  function _bukaDialogHapusPartai(e, game) {
     if (e) e.stopPropagation();
     setTargetHapusPartai(game);
     setDialogHapusPartai(true);

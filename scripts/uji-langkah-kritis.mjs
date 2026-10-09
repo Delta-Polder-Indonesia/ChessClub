@@ -26,7 +26,7 @@ import {
   kerugianPeluangKandidat,
 } from "../src/halaman/Analisa/mesin/langkahKritis.js";
 import { getMoveRating } from "../src/halaman/Analisa/mesin/penilaian.js";
-import { cpBaku, peluangMenang } from "../src/halaman/Analisa/mesin/akurasi.js";
+import { peluangMenang } from "../src/halaman/Analisa/mesin/akurasi.js";
 
 let lulus = 0;
 let gagal = 0;
@@ -297,7 +297,7 @@ hasil(
   langkahBuruk.moveRating
 );
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-const bukaBuku = getMoveRating({
+const _bukaBuku = getMoveRating({
   ...argRating,
   fen: FEN_AWAL,
   /* `openings` bisa peta biasa ATAU fungsi(fen) — lihat pemanggilnya di engine.js. */

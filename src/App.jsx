@@ -206,8 +206,16 @@ const RUTE_HALAMAN = [
   ["/program-kami/ebook-panduan/kategori/:kategori", EbookPanduan],
 
   ["/teka-teki", AlihTekaTeki],
-  ["/teka-teki/problem", RuteTekaTeki],
-  ["/teka-teki/problem/:id", TekaTeki],
+  // Satu rute dengan parameter opsional, bukan dua rute terpisah.
+  // Dulu `/teka-teki/problem` (elemen RuteTekaTeki) dan
+  // `/teka-teki/problem/:id` (elemen TekaTeki) adalah dua entri berbeda:
+  // saat `perbaruiUrlSoal` menulis ulang URL dari polos ke bernomor, jenis
+  // elemen React di posisi yang sama berubah sehingga <TekaTeki /> unmount
+  // lalu mount ulang dari nol — papan tampak "muat ulang" kedua kali setiap
+  // pemain masuk lewat `/teka-teki/problem`. Dengan `:id?` keduanya adalah
+  // SATU cabang rute, jadi navigasi polos ↔ bernomor hanya mengubah param —
+  // instance TekaTeki tetap terpakai, tanpa skeleton/fetch ulang.
+  ["/teka-teki/problem/:id?", RuteTekaTeki],
   ["/teka-teki/:id", AlihTekaTekiLama],
   ["/teka-teki-rush", TekaTekiRush],
   ["/quiz-catur", QuizCatur],

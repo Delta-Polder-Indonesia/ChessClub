@@ -565,7 +565,7 @@ judul("navigasi tinjau setelah skakmat");
 
 judul("saringan & input nomor");
 {
-  const soalLevel1 = problems.find((p) => p.rating < 1000);
+  const _soalLevel1 = problems.find((p) => p.rating < 1000);
   const pilih = dok.querySelector("#wadah-level");
   uji("select Level tersedia", !!pilih);
   if (pilih) {

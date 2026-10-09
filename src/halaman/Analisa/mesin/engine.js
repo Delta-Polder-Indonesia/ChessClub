@@ -278,7 +278,7 @@ export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0) {
         }
       }
     }
-  } catch {}
+  } catch { /* PGN tanpa komentar jam — lanjut tanpa mapKomentar */ }
 
   const sequentialClocks = [];
   const regexClk = /\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/gi;
@@ -340,7 +340,8 @@ function bersihkanPgn(pgn) {
     .replace(/\{[^{}]*\}/gs, " ")
     .replace(/\s{2,}/g, " ")
     .trim();
-  return hasil.replace(/\u0000(\d+)\u0000/g, (_, i) => kutip[Number(i)]);
+  // eslint-disable-next-line no-control-regex -- \x00 adalah pemisah asli dari output engine
+  return hasil.replace(/\x00(\d+)\x00/g, (_, i) => kutip[Number(i)]);
 }
 
 /**
@@ -431,8 +432,8 @@ export async function parseMove(mesin, depth, move, chess, previousStaticEvals, 
   let staticEval;
   let bestMove;
   let bestMoveCoronation;
-  let kandidat = [];
-  let sacrifice = false;
+  let kandidat;
+  let sacrifice;
   let forced = false;
 
   if (chess.isGameOver()) {
@@ -607,7 +608,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
   if (sinyal) sinyal.addEventListener("abort", hentikan, { once: true });
 
   const moves = [];
-  let previousStaticEvals = [];
+  let previousStaticEvals;
   let previousBestMoveSan;
   let previousSacrifice = false;
   /*
@@ -616,7 +617,7 @@ export async function parsePGN(mesin, rawPgn, depth, openings, setProgress, siny
    * `daftar[i - 1].kandidat`, sama seperti pola `previousBestMoveSan` dan
    * `previousStaticEvals` di atas.
    */
-  let previousKandidat = [];
+  let previousKandidat;
 
   /** Menghentikan seluruh loop analisis dengan rapi (dipakai tombol Batal). */
   const gagalkan = () => {

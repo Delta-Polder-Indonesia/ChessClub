@@ -17,9 +17,9 @@ Nama berkas adalah "nama bunyi" yang dipakai kode, tanpa ekstensi
 ## Cara memakainya dari kode
 
 ```js
-import { SUARA, gunakanSuara } from "../../lib/suara.js";
+import { SUARA, useSuara } from "../../lib/suara.js";
 
-const { nyala, setNyala, mainkan, mainkanLangkah } = gunakanSuara();
+const { nyala, setNyala, mainkan, mainkanLangkah } = useSuara();
 mainkan(SUARA.ilegal);              // satu bunyi
 mainkanLangkah(pindah, game);       // bunyi otomatis dari hasil chess.js move
 ```

@@ -252,7 +252,7 @@ async function bacaNdjsonLichess(res, { signal, onProgress, maks }) {
   const olahBaris = (baris) => {
     const teks = String(baris || "").trim();
     if (!teks) return true;
-    let obj = null;
+    let obj;
     try {
       obj = JSON.parse(teks);
     } catch {

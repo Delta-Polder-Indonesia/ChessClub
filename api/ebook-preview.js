@@ -86,7 +86,7 @@ async function pilihSumber(nama, asal) {
     ...sumberEbookServer(nama, { asal }).map((url) => ({ url, headers: {} })),
   ];
   for (const item of kandidat) {
-    // eslint-disable-next-line no-await-in-loop -- sengaja berurutan: sumber tercepat dulu.
+     
     if (await berisiPdf(item)) {
       sumberTerpilih.set(nama, item);
       return item;

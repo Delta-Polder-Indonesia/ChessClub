@@ -57,7 +57,6 @@ import {
 } from "./turnamen.js";
 import {
   GalatAplikasi,
-  daftarAnggota,
   rosterAnggota,
   segarkanRoster,
   daftarHitamPublik,
@@ -174,7 +173,7 @@ export function daftarkanRute(router, { mulaiPada }) {
    * SEKETIKA; bila snapshot sudah tua, penyegaran dari Chess.com berjalan di
    * latar belakang (stale-while-revalidate).
    */
-  router.get("/api/anggota", async (req) => {
+  router.get("/api/anggota", async (_req) => {
     const { anggota, diperbaruiPada, segar } = await rosterAnggota();
     return {
       status: 200,

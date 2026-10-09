@@ -196,7 +196,7 @@ await uji("parseMove melabeli langkah yang sama dengan usulan engine", async () 
 });
 
 await uji("posisi skakmat tidak dikirim ke engine", async () => {
-  const kotakSkak = "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3";
+  const _kotakSkak = "rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3";
   const game = new Chess();
   for (const san of ["f3", "e5", "g4", "Qh4#"]) game.move(san);
   const move = game.history({ verbose: true }).pop();

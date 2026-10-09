@@ -342,14 +342,14 @@ async function flush(n = 6) {
  */
 async function tunggu(ms = 80, putaran = 3) {
   for (let i = 0; i < putaran; i++) {
-    // eslint-disable-next-line no-await-in-loop
+     
     await act(async () => {
       await tick(ms);
     });
   }
 }
 
-const teksHalaman = () => M.document?.body?.textContent ?? window.document.body.textContent;
+const _teksHalaman = () => M.document?.body?.textContent ?? window.document.body.textContent;
 const cariTeks = (pola) => {
   const semua = [...window.document.querySelectorAll("h1,h2,p,button,label,span,code,div,alert")];
   return semua.find((el) => pola.test(el.textContent || "")) || null;
@@ -457,7 +457,6 @@ console.log("\nVerifikasiAkun — kode diminta ke server, jalur manual = pengaju
   const f = pasangFetch({
     "/api/csrf-token": { token: "csrf-uji" },
     "POST /api/csrf-token": { token: "csrf-uji" },
-    "/api/csrf-token": { token: "csrf-uji" },
     "POST /api/auth/kode/minta": { username: "hikaru", kode: "KCI-SERVER", berlakuDetik: 1800, diulang: false },
     "POST /api/auth/kode/periksa": { cocok: false, pesan: "Kode belum terbaca di profil Anda." },
     "POST /api/auth/pengajuan-manual": { status: 202, body: { id: "pj-1", status: "menunggu", username: "hikaru" } },

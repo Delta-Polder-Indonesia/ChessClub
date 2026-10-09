@@ -3,7 +3,7 @@
  * Penyesuaian lokal: ikon bidak yang dimakan memakai set gambar Chess.com
  * (`src/asets/ChessCom`) lewat komponen `ChessPiece`, menggantikan SVG garis. */
 
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 import { BISHOP, KNIGHT, PAWN, QUEEN, ROOK } from "chess.js";
 import { ChessPiece } from "../../../../components/chess/ChessPiece.jsx";
 

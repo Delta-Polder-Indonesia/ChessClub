@@ -98,7 +98,7 @@ async function ambilDariChessCom(username) {
 
 async function ambilDariLichess(username) {
   const u = bersihkanUsername(username);
-  let data = null;
+  let data;
   try {
     const r = await fetch(`${BASE_LICHESS}/user/${u}`, {
       headers: { Accept: "application/json" },

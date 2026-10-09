@@ -7,7 +7,7 @@
  *
  *   1. Bilah evaluasi dulu memakai state "tertahan" yang HANYA memperbarui
  *      diri saat hasil engine baru (truthy) datang — begitu posisi berganti
- *      dan `hasilEngine` di-reset ke null oleh `gunakanEngineCatur`, efek itu
+ *      dan `hasilEngine` di-reset ke null oleh `useEngineCatur`, efek itu
  *      mengabaikan reset tersebut sehingga bilah macet menampilkan evaluasi
  *      posisi SEBELUMNYA sampai hasil posisi baru selesai dihitung.
  *   2. Hasil engine yang basi (dari posisi yang sudah diganti pengguna

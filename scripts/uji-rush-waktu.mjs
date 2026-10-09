@@ -287,8 +287,8 @@ const penggerakWaktu = setIntervalAsli(() => {
 }, 1000);
 Date.now = () => kiniAsli() + offsetWaktu;
 
-let merahTerlihat = false;
-let bunyiPeringatan = false;
+let merahTerlihat;
+let bunyiPeringatan;
 try {
   // Penghitung harus TURUN — dulu (BEBAS_WAKTU=true) angkanya beku di 03:00.
   await tungguHingga(() => {

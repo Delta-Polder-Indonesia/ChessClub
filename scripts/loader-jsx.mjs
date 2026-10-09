@@ -70,7 +70,7 @@ export function temukanBerkasGlob(pola, akarDir) {
         continue;
       }
       const re = globKeRegExp(bp);
-      let daftar = [];
+      let daftar;
       try {
         daftar = readdirSync(dasar[j]);
       } catch {

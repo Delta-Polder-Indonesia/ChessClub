@@ -1,11 +1,5 @@
 import { Chess } from "chess.js";
-
-/** Pilihan durasi analisis (milidetik) + kunci terjemahannya. */
-export const PILIHAN_KECEPATAN = [
-  [300, "papan.engineCepat"],
-  [800, "papan.engineSeimbang"],
-  [2000, "papan.engineDalam"],
-];
+import { PILIHAN_KECEPATAN } from "./panelEngineData.js";
 
 /**
  * Deret SAN → daftar objek bernomor untuk navigasi & rendering interaktif.

@@ -22,10 +22,9 @@
  * `.agents/skills/kci-frontend/references/standar-galeri.md` §2b. Skala ini
  * TIDAK berlaku untuk halaman lain dan TIDAK PERNAH untuk komponen catur.
  */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tombol } from "../../components/Tombol.jsx";
-import { Brain, Puzzle } from "lucide-react";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar, pramuatGambar, sumberGambar, sumberHero } from "../../lib/asets.js";
 import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
@@ -41,8 +40,6 @@ import {
   LEAD_SEKSI_TERANG,
   LABEL_SEKSI_TERANG,
   JUDUL_POSTER,
-  JUDUL_PANEL,
-  DESKRIPSI_PANEL,
   TitikLabel,
 } from "./gayaTeks.jsx";
 
@@ -56,14 +53,14 @@ function LandingHero({ t }) {
      (berkas yang sama dengan <link rel=preload> + <div id=boot-hero> di
      index.html, jadi tidak ada gambar yang diunduh dua kali) dan 1280w untuk
      layar lebar. */
-  const SLIDES = [
+  const SLIDES = useMemo(() => [
     { label: "2015 - 2016", sumber: sumberHero("/images/tonggak-2015.jpg") },
     { label: "2016 - 2017", sumber: sumberHero("/images/tonggak-2016.jpg") },
     { label: "2018 - 2019", sumber: sumberHero("/images/tonggak-2018.jpg") },
     { label: "2020 - 2021", sumber: sumberHero("/images/tonggak-2020.jpg") },
     { label: "2022 - 2023", sumber: sumberHero("/images/tonggak-2022.jpg") },
     { label: "2024 - 2025", sumber: sumberHero("/images/tonggak-2024.jpg") },
-  ];
+  ], []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -80,7 +77,7 @@ function LandingHero({ t }) {
     const pra = new window.Image();
     pra.decoding = "async";
     pra.src = berikut.sumber.src;
-  }, [index]);
+  }, [index, SLIDES]);
 
   return (
     <section className="w-full relative bg-transparent pb-20 overflow-hidden">

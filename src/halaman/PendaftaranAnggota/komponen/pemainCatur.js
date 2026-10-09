@@ -137,11 +137,12 @@ export async function ambilProfilChessCom(usernameRaw, opsi = {}) {
       throw new Error(
         opsi.sinyal?.aborted
           ? t("verifikasi.profilDibatalkan")
-          : t("verifikasi.profilTimeout")
+          : t("verifikasi.profilTimeout"),
+        { cause: galat }
       );
     }
     if (galat instanceof TypeError) {
-      throw new Error(t("verifikasi.profilJaringan"));
+      throw new Error(t("verifikasi.profilJaringan"), { cause: galat });
     }
     throw galat;
   } finally {

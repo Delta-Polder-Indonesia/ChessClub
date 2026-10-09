@@ -1,6 +1,6 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { BISHOP, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
-import { getPropsDataset } from "./piece.jsx";
+import { getPropsDataset } from "./getPropsDataset.js";
 function Pawn({ color, size }) {
   return <svg
     fill={color === WHITE ? "#ffffff" : "#000000"}

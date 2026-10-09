@@ -59,7 +59,7 @@ const SEBAB_OAUTH = [
  *    ulang oleh backend saat formulir dikirim).
  */
 function bacaHasilOauth(session) {
-  let mentah = null;
+  let mentah;
   try {
     mentah = session?.getItem?.(KUNCI_HASIL_OAUTH) ?? null;
   } catch {
@@ -67,7 +67,7 @@ function bacaHasilOauth(session) {
   }
   if (!mentah) return { hasil: null, rusak: false };
 
-  let data = null;
+  let data;
   try {
     data = JSON.parse(mentah);
   } catch {
@@ -131,7 +131,7 @@ export default function PendaftaranAnggota() {
   }));
   const [status, setStatus] = useState("idle");
   const [pesan, setPesan] = useState("");
-  const [galatBidang, setGalatBidang] = useState({});
+  const [, setGalatBidang] = useState({});
   const [verifikasi, setVerifikasi] = useState(null);
   const [statusVerifikasi, setStatusVerifikasi] = useState("idle");
   const [cara, setCara] = useState(null);

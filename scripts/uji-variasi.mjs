@@ -270,7 +270,7 @@ hasil("kotak e2 ada di DOM", Boolean(kotakE2));
 const bidakE2 = kotakE2?.querySelector("[data-dontcleandrag]");
 hasil("bidak putih e2 ada di DOM", Boolean(bidakE2));
 
-let dragTersimpan = null;
+let _dragTersimpan = null;
 act(() => {
   kirimEvent(bidakE2, "mousedown");
 

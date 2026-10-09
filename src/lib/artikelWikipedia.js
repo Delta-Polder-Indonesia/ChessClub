@@ -359,7 +359,7 @@ export async function ambilArtikelPembukaan(input, bahasaUi = "id", sinyal) {
   const kunci = kunciCache(konteks, bahasaUi);
   if (CACHE.has(kunci)) return CACHE.get(kunci);
 
-  let hasil = null;
+  let hasil;
   try {
     let terbaik = null;
 

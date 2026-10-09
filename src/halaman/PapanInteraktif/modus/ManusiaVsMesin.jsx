@@ -3,17 +3,18 @@ import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volu
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
-import { DAFTAR_SET } from "../../../components/chess/ChessPiece.jsx";
+import { DAFTAR_SET } from "../../../components/chess/pemuatBidak.js";
 import { berkasPublik } from "../../../lib/asets.js";
 import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
-import { gunakanEngineCatur } from "../../../lib/gunakanEngineCatur.js";
+import { useEngineCatur } from "../../../lib/gunakanEngineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
-import { SUARA, gunakanSuara } from "../../../lib/suara.js";
+import { SUARA, useSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
-import { PENGATURAN_AWAL, gunakanPengaturanPapan } from "../gunakanPengaturanPapan.js";
+import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
 import BilahEvaluasi from "../BilahEvaluasi.jsx";
-import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
-import { gunakanDialog } from "../gunakanDialog.js";
+import TangkapanBidak from "../TangkapanBidak.jsx";
+import { susunTangkapan } from "../TangkapanBidakData.js";
+import { useDialog } from "../gunakanDialog.js";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
 import { dialogMesin } from "./dialogMesin.js";
 import {
@@ -75,7 +76,7 @@ function gameDenganHistoriPenuh(daftarSan) {
     return null;
   }
   for (const san of daftarSan) {
-    let pindah = null;
+    let pindah;
     try {
       pindah = game.move(san);
     } catch {
@@ -123,7 +124,7 @@ function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = f
 }
 
 function KonfirmasiMenyerah({ onTutup, onYa, t }) {
-  const refDialog = gunakanDialog(onTutup);
+  const refDialog = useDialog(onTutup);
 
   return (
     <div
@@ -174,7 +175,7 @@ function PengaturanPermainan({
   setSuaraNyala,
   onBalikPapan,
 }) {
-  const refDialog = gunakanDialog(onTutup);
+  const refDialog = useDialog(onTutup);
 
   return (
     <div
@@ -271,7 +272,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const { t } = useI18n();
   // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
   // komponen tetap berdiri sendiri.
-  const pengaturanLokal = gunakanPengaturanPapan();
+  const pengaturanLokal = usePengaturanPapan();
   const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [fen, setFen] = useState(FEN_AWAL);
@@ -298,7 +299,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   // dialog pengaturan permainan bisa menimpa lokal selama sesi.
   const [setBidak, setSetBidak] = useState(pp.bidak ?? "alpha");
   const [tema, setTema] = useState(pp.warnaPapan ?? "metal");
-  const { nyala: suaraNyala, setNyala: setSuaraNyala, mainkan, mainkanLangkah: bunyikanLangkah } = gunakanSuara();
+  const { nyala: suaraNyala, setNyala: setSuaraNyala, mainkan, mainkanLangkah: bunyikanLangkah } = useSuara();
   const [tampilPengaturan, setTampilPengaturan] = useState(false);
   const [konfirmasiMenyerah, setKonfirmasiMenyerah] = useState(false);
   const [aktif, setAktif] = useState(false);
@@ -309,10 +310,10 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     hasilEngine: hasilEvaluasi,
     nyalakanEngine: nyalakanEvaluasi,
     matikanEngine: matikanEvaluasi,
-  } = gunakanEngineCatur(fen);
+  } = useEngineCatur(fen);
   const [statusMesin, setStatusMesin] = useState("idle");
   const [hasil, setHasil] = useState(null);
-  const [pesan, setPesan] = useState("");
+  const [, setPesan] = useState("");
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
   // Jenis binari yang sedang dimuat worker ("sunfish" atau "stockfish") dan
@@ -340,7 +341,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   }, [aktif, nyalakanEvaluasi, matikanEvaluasi]);
 
   // Evaluasi hanya berlaku untuk FEN yang benar-benar dihitung olehnya.
-  // `gunakanEngineCatur` sendiri sudah mengatur ulang `hasilEvaluasi` ke null
+  // `useEngineCatur` sendiri sudah mengatur ulang `hasilEvaluasi` ke null
   // begitu posisi berganti (lihat efeknya), tetapi menahan objek lama di
   // state terpisah di sini dulu membuat bilah macet menampilkan evaluasi
   // posisi SEBELUMNYA selama engine masih menghitung posisi baru — nilai
@@ -435,7 +436,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const mainstreamkanLangkahLawan = useCallback(
     async (from, to, promosi, info) => {
       const token = (tokenLawanRef.current += 1);
-      let jumlahLangkah = 0;
+      let jumlahLangkah;
       try {
         jumlahLangkah = new Chess(fenRef.current).moves().length;
       } catch {

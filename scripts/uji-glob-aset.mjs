@@ -166,7 +166,7 @@ if (!existsSync(path.join(ROOT, "node_modules/vite/package.json"))) {
     optimizeDeps: { noDiscovery: true, include: [] },
     server: { middlewareMode: true, hmr: false, watch: null },
   });
-  let kode = "";
+  let kode;
   try {
     const hasil = await server.transformRequest(`/${BERKAS_BIDAK}`);
     kode = hasil ? hasil.code : "";

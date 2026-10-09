@@ -7,7 +7,7 @@ import {
 } from "../lib/api/index.js";
 import { useI18n } from "../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../lib/waktu.js";
-import { TEKS_STATUS } from "./LencanaStatus.jsx";
+import { TEKS_STATUS } from "./lencanaStatusData.js";
 
 /**
  * Bagian dinamis untuk keempat halaman turnamen publik.

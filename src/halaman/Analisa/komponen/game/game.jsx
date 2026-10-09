@@ -1,75 +1,24 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
-import Board, { gameStartSound } from "./board.jsx";
+import { useCallback, useEffect, useLayoutEffect, useState, useRef, useContext } from "react";
+import Board from "./board.jsx";
+import { gameStartSound } from "./gameStartSound.js";
 import Clock from "./clock.jsx";
 import Name from "./name.jsx";
 import Evaluation from "./evaluation.jsx";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
+import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import { bacaPartaiPGN, formatSquare, getCastle, invertColor, parseMove, parsePGN, parsePosition } from "../../mesin/engine.js";
 import { cariNamaPembukaan } from "../../mesin/buku.js";
 import { STATUS_EVALUASI, ratingTampilan } from "../../mesin/evaluasi.js";
 import { Chess, WHITE } from "chess.js";
-import { pushPageWarning, pushPageError } from "../errors/pageErrors.jsx";
-import { gunakanMesin } from "../../konteks/mesin.jsx";
+import { pushPageWarning, pushPageError } from "../errors/pushPageError.js";
+import { useMesin } from "../../konteks/mesinKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../../lib/pemainCatur.js";
-import { ErrorsContext } from "../../konteks/errors.jsx";
+import { ErrorsContext } from "../../konteks/errorsKonteks.js";
 import { maxVertical, navTop } from "../../konstanta.js";
-import { ConfigContext } from "../../konteks/config.jsx";
+import { ConfigContext } from "../../konteks/configKonteks.js";
 import GameButtons from "../menu/analysis/gameButtons.jsx";
-function getMoves(game, moveNumber, customLine, returnedToNormalGame) {
-  const previousMove = (() => {
-    if (customLine.moveNumber === 0) {
-      return game[moveNumber];
-    }
-    if (customLine.moveNumber > 0) {
-      return customLine.moves[customLine.moveNumber - 1];
-    }
-    return game[moveNumber - 1];
-  })();
-  const move2 = (() => {
-    if (customLine.moveNumber >= 0) {
-      return customLine.moves[customLine.moveNumber];
-    }
-    return game[moveNumber];
-  })();
-  const nextMove = (() => {
-    if (customLine.moveNumber >= 0) {
-      return customLine.moves[customLine.moveNumber + 1];
-    }
-    if (returnedToNormalGame) {
-      return { ...game[moveNumber], movement: returnedToNormalGame };
-    }
-    return game[moveNumber + 1];
-  })();
-  return { previousMove, move: move2, nextMove };
-}
-function getArrows(arrows, moveNumber, customLine) {
-  if (customLine.moveNumber < 0) {
-    return arrows[moveNumber];
-  }
-  return customLine.arrows[customLine.moveNumber];
-}
-function getCustomResult(move2) {
-  if (!move2?.fen) return "";
-  let chess;
-  try {
-    chess = new Chess(move2.fen);
-  } catch {
-    return "";
-  }
-  const color = move2.color;
-  if (chess.isCheckmate()) return color === WHITE ? "0-1" : "1-0";
-  if (chess.isDraw()) return "1/2-1/2";
-  return "";
-}
-
-/** Nama aman untuk bilah pemain, termasuk saat metadata belum lengkap. */
-function formatPlayerLabel(player, fallbackName) {
-  const name = String(player?.name ?? "").trim() || String(fallbackName ?? "");
-  const elo = String(player?.elo ?? "").trim();
-  return elo && elo !== "NOELO" ? `${name} (${elo})` : name;
-}
+import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMoves.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -111,7 +60,7 @@ function Game({ wadah }) {
   const componentRef = useRef(null);
   const gameRef = useRef(null);
   const { t } = useI18n();
-  const { didukung, siapkan, ambilMesin } = gunakanMesin();
+  const { didukung, siapkan, ambilMesin } = useMesin();
   const intervalRef = useRef();
   const tabRef = useRef(tab);
   const dragRef = useRef(drag2);
@@ -187,7 +136,7 @@ function Game({ wadah }) {
   }, [didukung, setErrors, t]);
   useEffect(() => {
     setAnimation(false);
-  }, [moveNumber, customLine.moveNumber]);
+  }, [moveNumber, customLine.moveNumber, setAnimation]);
   useEffect(() => {
     tabRef.current = tab;
   }, [tab]);
@@ -203,7 +152,7 @@ function Game({ wadah }) {
       clearInterval(intervalRef.current);
     }
     return () => clearInterval(intervalRef.current);
-  }, [playing]);
+  }, [playing, gameController]);
   function createArrowsObject(length) {
     const newArrows = {};
     Array.from({ length }).forEach((_, i) => {
@@ -211,9 +160,9 @@ function Game({ wadah }) {
     });
     return newArrows;
   }
-  function cleanArrows() {
+  const cleanArrows = useCallback(() => {
     setArrows({ 0: [] });
-  }
+  }, []);
   function cleanCurrentArrows() {
     if (customLine.moveNumber < 0) {
       setArrows((prev) => {
@@ -311,7 +260,7 @@ function Game({ wadah }) {
           gameController.togglePlay();
           lastPressed = (/* @__PURE__ */ new Date()).getTime();
           break;
-        case "Tab":
+        case "Tab": {
           e.preventDefault();
           if (now - lastPressed < minPressInterval) return;
           const tab2 = tabRef.current;
@@ -322,6 +271,7 @@ function Game({ wadah }) {
             else if (tab2 === "moves") setTab("summary");
           }
           break;
+        }
       }
     }
     document.addEventListener("keydown", handleKeyDown);
@@ -329,8 +279,9 @@ function Game({ wadah }) {
     // pendengar menumpuk setiap kali halaman dibuka ulang dan tombol panah
     // memicu beberapa langkah sekaligus.
     return () => document.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once: listener keyboard global hanya dipasang sekali; ref dipakai agar nilai selalu segar
   }, []);
-  async function handlePGN(pgn, depth2, terkini, signal) {
+  const handlePGN = useCallback(async (pgn, depth2, terkini, signal) => {
     setPageState("loading");
     setTab("summary");
     setProgress(0);
@@ -418,60 +369,59 @@ function Game({ wadah }) {
         setMoveNumber(0);
       }
     }
-  }
-  async function handleFEN(fen, terkini, sinyal) {
+  }, [t, openings2, siapkan, boardSounds, setErrors, setAnalyzeController, setPageState, setTab, setProgress, setLangkahSementara, setTime, setPlayers, setGame, setResult, setAnimation, setArrows, setCustomLine, setAnalyzingMove, setMoveNumber]);
+  const handleFEN = useCallback(async (fen, terkini, sinyal) => {
     let move3;
     try {
-      move3 = await new Promise(async (resolve, reject) => {
-        setPageState("loading");
-        setTime(0);
-        setPlayers([{ name: t("analisa.pemain.putih"), elo: "?" }, { name: t("analisa.pemain.hitam"), elo: "?" }]);
-        setWhite(true);
-        setPlaying(false);
-        setMoveNumber(0);
-        setResult("");
-        setProgress(0);
-        setCustomLine({ moveNumber: -1, moves: [], arrows: {} });
-        setAnalyzingMove(false);
-        cleanArrows();
-        if (!fen?.trim()) {
-          // Tanpa FEN: papan bebas dari posisi awal, saran engine langsung
-          // ditampilkan setelah engine siap (lihat efek di bawah).
-          const chess2 = new Chess();
-          const fen2 = chess2.fen();
-          const bestMove = chess2.move({ from: "e2", to: "e4" });
-          const move5 = {
-            fen: fen2,
-            color: chess2.turn(),
-            bestMove: [formatSquare(bestMove.from), formatSquare(bestMove.to)],
-            bestMoveSan: bestMove.san,
-            previousStaticEvals: [["cp", "-30"]],
-            clock: { white: null, black: null },
-          };
-          setGame([move5]);
-          setPageState("default");
-          return;
-        }
-        const mesin = await siapkan().catch(() => null);
-        if (!mesin) {
-          pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
-          resolve(null);
-          return;
-        }
-        let chess;
-        try {
-          chess = new Chess(fen);
-        } catch {
-          reject(new Error("fen"));
-          return;
-        }
-        const signal = sinyal;
-        function handleAbort() {
-          reject(new Error("canceled"));
-          signal.removeEventListener("abort", handleAbort);
-        }
-        const move4 = await parsePosition(mesin, chess, depth, signal, handleAbort);
-        resolve(move4);
+      move3 = await new Promise((resolve, reject) => {
+        (async () => {
+          setPageState("loading");
+          setTime(0);
+          setPlayers([{ name: t("analisa.pemain.putih"), elo: "?" }, { name: t("analisa.pemain.hitam"), elo: "?" }]);
+          setWhite(true);
+          setPlaying(false);
+          setMoveNumber(0);
+          setResult("");
+          setProgress(0);
+          setCustomLine({ moveNumber: -1, moves: [], arrows: {} });
+          setAnalyzingMove(false);
+          cleanArrows();
+          if (!fen?.trim()) {
+            // Tanpa FEN: papan bebas dari posisi awal, saran engine langsung
+            // ditampilkan setelah engine siap (lihat efek di bawah).
+            const chess2 = new Chess();
+            const fen2 = chess2.fen();
+            const bestMove = chess2.move({ from: "e2", to: "e4" });
+            const move5 = {
+              fen: fen2,
+              color: chess2.turn(),
+              bestMove: [formatSquare(bestMove.from), formatSquare(bestMove.to)],
+              bestMoveSan: bestMove.san,
+              previousStaticEvals: [["cp", "-30"]],
+              clock: { white: null, black: null },
+            };
+            setGame([move5]);
+            setPageState("default");
+            return null;
+          }
+          const mesin = await siapkan().catch(() => null);
+          if (!mesin) {
+            pushPageError(setErrors, t("analisa.galat.engineJudul"), t("analisa.galat.engineIsi"));
+            return null;
+          }
+          let chess;
+          try {
+            chess = new Chess(fen);
+          } catch {
+            throw new Error("fen");
+          }
+          const signal = sinyal;
+          function handleAbort() {
+            reject(new Error("canceled"));
+            signal.removeEventListener("abort", handleAbort);
+          }
+          return parsePosition(mesin, chess, depth, signal, handleAbort);
+        })().then(resolve, reject);
       });
     } catch (e) {
       // Muatan lama yang dibatalkan tidak boleh menimpa muatan baru.
@@ -499,7 +449,7 @@ function Game({ wadah }) {
     if (!terkini()) return;
     setGame([{ ...move3, clock: { white: null, black: null } }]);
     setPageState("analyzeCustom");
-  }
+  }, [t, depth, siapkan, cleanArrows, setErrors, setAnalyzeController, setPageState, setTime, setPlayers, setWhite, setPlaying, setMoveNumber, setResult, setProgress, setCustomLine, setAnalyzingMove, setGame]);
   useEffect(() => {
     const { format, string } = data;
     /*
@@ -526,7 +476,7 @@ function Game({ wadah }) {
         handleFEN(string, terkini, baru.signal);
         break;
     }
-  }, [data]);
+  }, [data, depth, handleFEN, handlePGN, setAnalyzeController, setErrors]);
   /**
    * Ukuran papan = sisi terkecil wadah halaman, dikurangi lajur bilah
    * evaluasi, menu papan, dan panel kanan bila panel masih sejajar.
@@ -624,7 +574,7 @@ function Game({ wadah }) {
       if (move3.capture) newCaptured[move3.color === "w" ? "black" : "white"].push(move3.capture);
     }
     setCaptured(newCaptured);
-  }, [moveNumber, customLine.moveNumber]);
+  }, [moveNumber, customLine.moveNumber, customLine.moves, game]);
   function roundBoardSize(boardSize2) {
     // Papan boleh melebar sampai batas ini (kelipatan 8) supaya tetap rapi.
     return Math.min(1000, Math.round(boardSize2 / 8) * 8);
@@ -867,8 +817,4 @@ function Game({ wadah }) {
         </div>
     </div>;
 }
-export {
-  Game as default,
-  formatPlayerLabel,
-  getMoves
-};
+export default Game;

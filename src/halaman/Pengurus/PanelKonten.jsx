@@ -492,7 +492,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
     } finally {
       setMemuat(false);
     }
-  }, [konfig.jalur, beriTahu]);
+  }, [konfig.jalur, konfig.label, beriTahu]);
 
   useEffect(() => {
     muat();
@@ -656,7 +656,7 @@ function PanelKonten({ konfig, beriTahu, muatUlang }) {
         ),
       },
     ],
-    [konfig.label]
+    []
   );
 
   const tabel = useLegacyTable({

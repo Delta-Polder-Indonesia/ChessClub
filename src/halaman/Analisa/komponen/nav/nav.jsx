@@ -54,7 +54,7 @@ import Profile from "../svg/profile.jsx";
 import Database from "../svg/database.jsx";
 import ShieldAlert from "../svg/shield-alert.jsx";
 import { Settings } from "lucide-react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyze.jsx";
+import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { berkasPublik } from "../../../../lib/asets.js";
 

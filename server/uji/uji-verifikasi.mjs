@@ -454,7 +454,7 @@ console.log("\nVerifikasi kode di profil (lewat HTTP)");
     try {
       csrfToken = await ambilTokenCsrf(DASAR);
     } catch (galat) {
-      throw new Error(`Server uji tidak menerbitkan token CSRF: ${galat?.message || galat}`);
+      throw new Error(`Server uji tidak menerbitkan token CSRF: ${galat?.message || galat}`, { cause: galat });
     }
 
     if (csrfToken) {

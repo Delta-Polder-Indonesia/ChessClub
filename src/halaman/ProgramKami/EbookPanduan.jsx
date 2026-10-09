@@ -246,7 +246,7 @@ export default function EbookPanduan() {
     }
 
     const tautanUnduh = urlEbook(buku.file, { unduh: true, tiket: tiketLayak });
-    let boleh = true;
+    let boleh;
     try {
       const jawaban = await fetch(tautanUnduh, { method: "HEAD", credentials: "same-origin" });
       // HANYA penolakan eksplisit (401/403) yang dianggap tiket tidak sah.

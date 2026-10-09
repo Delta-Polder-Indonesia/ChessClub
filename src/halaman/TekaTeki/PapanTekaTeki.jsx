@@ -1,5 +1,6 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ChessPiece, ambilSumberBidak } from "../../components/chess/ChessPiece.jsx";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { ambilSumberBidak } from "../../components/chess/pemuatBidak.js";
 import {
   geseranDariFen,
   geseranPiksel,
@@ -528,7 +529,7 @@ export default function PapanTekaTeki({
       gerak.finished?.then(bersihkan).catch(bersihkan);
       gerak.oncancel = bersihkan;
     }
-  }, [fen, orientasi, animasi, gayaGeser]);
+  }, [fen, orientasi, animasi, gayaGeser, setBidak]);
 
   // Papan dilepas di tengah luncuran (pindah halaman, soal baru): hentikan
   // animasi yang masih berjalan supaya tidak menyentuh elemen yang sudah mati.

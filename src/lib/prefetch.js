@@ -133,7 +133,7 @@ function buatAntrean(kerjakan) {
     sibuk = true;
     // Satu unduhan per waktu luang: tidak pernah ada lebih dari satu
     // prefetch bersaing dengan gambar/konten halaman yang sedang dimuat.
-    janji = janji.then(() => mengerjakan(jalur)).catch(() => {});
+    janji = janji.then(() => kerjakan(jalur)).catch(() => {});
     janji.then(() => {
       sibuk = false;
       if (antre.length) idle(() => jalan());

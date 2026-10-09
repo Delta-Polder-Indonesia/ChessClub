@@ -3,20 +3,20 @@ import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { ChessPiece, DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
-import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
-import { PILIHAN_KECEPATAN } from "../../components/PanelEngine.jsx";
+import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import { PILIHAN_KECEPATAN } from "../../components/panelEngineData.js";
 import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { cariNamaPembukaan } from "../Analisa/mesin/buku.js";
 import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
 import License from "../Analisa/komponen/svg/license.jsx";
-import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
-import KartuKomentator, {
-  gunakanPreferensiKomentator,
-} from "../../components/KartuKomentator.jsx";
+import { SUARA, useSuara, mainkanSuara } from "../../lib/suara.js";
+import KartuKomentator from "../../components/KartuKomentator.jsx";
+import { usePreferensiKomentator } from "../../components/usePreferensiKomentator.js";
 import { faktaLangkah, susunKomentarTekaTeki } from "../../lib/komentator.js";
 import { coba } from "../../lib/utils.js";
 import {
@@ -230,7 +230,7 @@ function bacaOtomatis() {
   );
 }
 
-function KerangkaTekaTeki() {
+function _KerangkaTekaTeki() {
   return (
     <div aria-hidden="true" className="animate-pulse">
       <div className="h-40 rounded-lg bg-slate-200" />
@@ -297,7 +297,7 @@ export default function TekaTeki() {
    * ikut tanpa menyimpan teks jadi.
    */
   const [komentar, setKomentar] = useState(null);
-  const preferensiKomentator = gunakanPreferensiKomentator();
+  const preferensiKomentator = usePreferensiKomentator();
   const [komputer, setKomputer] = useState(false);
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
@@ -326,7 +326,7 @@ export default function TekaTeki() {
     setNyala: setSuaraNyala,
     mainkan: bunyikan,
     mainkanLangkah: bunyikanLangkah,
-  } = gunakanSuara();
+  } = useSuara();
 
   // Sedang menyeret bidak (klik kiri tahan). Klik kanan membatalkan.
   const [sedangSeret, setSedangSeret] = useState(false);
@@ -345,17 +345,17 @@ export default function TekaTeki() {
   // Analisis Stockfish (opsional) — mengikuti posisi teka-teki saat ini.
   const {
     engineNyala,
-    statusEngine,
+    statusEngine: _statusEngine,
     kecepatanEngine,
     setKecepatanEngine,
     hasilEngine,
-    permainanSelesai,
+    permainanSelesai: _permainanSelesai,
     panahMesin,
     tampilPanahMesin,
     setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
-  } = gunakanEngineCatur(fen);
+  } = useEngineCatur(fen);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
   // agar bar evaluasi tidak goyang. Bar tampil selama engine menyala dan
@@ -375,7 +375,7 @@ export default function TekaTeki() {
   // Nomor versi naik saat buku pembukaan selesai dimuat; dipakai sebagai
   // dependensi `ikonLangkahAkhir` supaya posisi yang sedang tampil dihitung
   // ulang dan lencana "book" langsung muncul tanpa menunggu langkah berikutnya.
-  const [versiBuku, setVersiBuku] = useState(0);
+  const [, setVersiBuku] = useState(0);
   useEffect(() => {
     /*
      * Tabel buku ±160 KiB (buku-analisa.json 1,3 MB) jangan diunduh di jalur
@@ -425,7 +425,7 @@ export default function TekaTeki() {
     const fenSesudah = jalurFen[i];
     if (!fenSebelum || !fenSesudah) return null;
 
-    let langkah = null;
+    let langkah;
     try {
       const g = new Chess(fenSebelum);
       const daftar = g.moves({ verbose: true });
@@ -446,7 +446,7 @@ export default function TekaTeki() {
     if (!langkah) return null;
 
     let rating = "best";
-    let namaBuku = null;
+    let namaBuku;
     try {
       namaBuku = bukuSiap.current?.(fenSesudah) || null;
     } catch {
@@ -462,7 +462,7 @@ export default function TekaTeki() {
       }
     }
     return { petak: langkah.to, rating };
-  }, [jalurFen, versiBuku]);
+  }, [jalurFen]);
 
   /**
    * Lencana skakmat — petak raja LAWAN yang termat pada posisi yang sedang
@@ -487,7 +487,7 @@ export default function TekaTeki() {
   function mainkanSaranEngine(san) {
     if (!masalah || komputer || selesai || !sisa.length || !fen) return;
     const game = new Chess(fen);
-    let pindah = null;
+    let pindah;
     try {
       pindah = game.move(san);
     } catch {
@@ -842,7 +842,7 @@ export default function TekaTeki() {
         // Pilihan pemain dipakai bila data soal tidak menetapkan huruf promosi;
         // bila data menetapkannya, apakahLangkahSesuai sudah memastikan sama.
         lanjut = terapkan(fen, { from, to, promo: diharapkan.promo || promo });
-      } catch {}
+      } catch { /* langkah ilegal — lanjut tetap null */ }
     }
 
     if (!lanjut) {
@@ -944,7 +944,7 @@ export default function TekaTeki() {
     // Dependensi yang sengaja dilepas: batalPromosi (fungsi biasa yang
     // identitasnya berubah tiap render); pendengar cukup dipasang selama
     // dialog promosi terbuka.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [promosi]);
 
   useEffect(() => {
@@ -986,7 +986,7 @@ export default function TekaTeki() {
     let bidak = null;
     try {
       bidak = new Chess(fen).get(d.from)?.type || null;
-    } catch {}
+    } catch { /* fen tidak sah — bidak tetap null */ }
     setKomentar({ tahap: "petunjuk", petunjuk: { ...d, bidak }, fen });
   }
 
@@ -1034,7 +1034,7 @@ export default function TekaTeki() {
       const d = parseLangkah(langkahPenuh[baru]);
       const g = terapkan(jalurFen[baru], d);
       bunyikanLangkah(g.history({ verbose: true }).slice(-1)[0], g);
-    } catch {}
+    } catch { /* bunyi opsional — navigasi tetap jalan */ }
     setFen(jalurFen[baru]);
     setSisa(langkahPenuh.slice(baru));
     setJalurFen((l) => l.slice(0, baru + 1));
@@ -1092,7 +1092,7 @@ export default function TekaTeki() {
         nomor: posisi + 1,
         fen: fenBaru,
       });
-    } catch {}
+    } catch { /* posisi tidak sah — navigasi maju diabaikan */ }
   }
 
   /** >| — maju sampai posisi akhir solusi.
@@ -1295,7 +1295,7 @@ export default function TekaTeki() {
     setTanda({ panah: [], petak: {} });
   }
 
-  const crumbs = [
+  const _crumbs = [
     { label: t("common.home"), to: "/" },
     { label: t("tekaTeki.judul") },
   ];
@@ -1963,7 +1963,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                         row.map((bidak, c) => {
                           const terang = (r + c) % 2 === 0;
                           // Highlight last move squares
-                          const isLastMove =
+                          const _isLastMove =
                             (r === 4 && c === 4) || // e4
                             (r === 6 && c === 4) || // e2 (from)
                             (r === 3 && c === 4) || // e5

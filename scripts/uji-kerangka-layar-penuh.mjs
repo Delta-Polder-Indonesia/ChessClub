@@ -11,7 +11,6 @@
  *
  * Jalankan: node scripts/uji-kerangka-layar-penuh.mjs
  */
-import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -142,7 +141,7 @@ function siapkanGlobal(window) {
 
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
-async function periksa(jalur, harapPenuh) {
+async function periksa(jalur, _harapPenuh) {
   const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', {
     url: `https://uji.test${jalur}`,
     pretendToBeVisual: true,

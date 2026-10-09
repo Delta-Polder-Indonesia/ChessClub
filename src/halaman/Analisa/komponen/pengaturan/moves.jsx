@@ -1,7 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { ConfigContext } from "../../konteks/config.jsx";
+import { ConfigContext } from "../../konteks/configKonteks.js";
 import { useContext, useEffect, useState } from "react";
-import { boardThemes } from "./themes.jsx";
+import { boardThemes } from "./boardThemes.js";
 import { BISHOP, ROOK, WHITE } from "chess.js";
 import PieceSVG from "../svg/piece.jsx";
 import SoundMax from "../svg/soundMax.jsx";
@@ -36,7 +36,7 @@ function Moves() {
       tulis("showLegalMoves", "1");
       setShowLegalMoves(true);
     }
-  }, []);
+  }, [setShowLegalMoves]);
   function toggleShowLegalMoves() {
     const newShowLegalMoves = !showLegalMoves;
     tulis("showLegalMoves", String(Number(newShowLegalMoves)));
@@ -52,7 +52,7 @@ function Moves() {
       tulis("animateMoves", "1");
       setAnimateMoves(true);
     }
-  }, []);
+  }, [setAnimateMoves]);
   function toggleAnimateMoves() {
     const newAnimateMoves = !animateMoves;
     tulis("animateMoves", String(Number(newAnimateMoves)));
@@ -68,7 +68,7 @@ function Moves() {
       tulis("boardSounds", "1");
       setBoardSounds(true);
     }
-  }, []);
+  }, [setBoardSounds]);
   function toggleBoardSounds() {
     const newBoardSounds = !boardSounds;
     tulis("boardSounds", String(Number(newBoardSounds)));

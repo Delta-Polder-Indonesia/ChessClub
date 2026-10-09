@@ -1,5 +1,4 @@
 import { Helmet } from "react-helmet-async";
-import { useI18n } from "../lib/i18n.jsx";
 import { urlAbsolut } from "../lib/urlSitus.js";
 
 const NAMA_BRAND = "Blunder Skuad";
@@ -15,7 +14,6 @@ const NAMA_BRAND = "Blunder Skuad";
  */
 export function BreadcrumbJsonLd({ items }) {
   if (!items?.length) return null;
-  const { t } = useI18n();
 
   const itemList = items.map((item, i) => ({
     "@type": "ListItem",

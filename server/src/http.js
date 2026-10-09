@@ -306,7 +306,7 @@ function jwtSecret() {
 }
 
 /** Apakah token tampak seperti JWT (tiga segmen dipisah titik)? */
-function isJwt(token) {
+function _isJwt(token) {
   return typeof token === "string" && token.split(".").length === 3;
 }
 

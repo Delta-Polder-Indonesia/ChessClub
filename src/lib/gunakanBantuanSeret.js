@@ -43,7 +43,7 @@ const CACHE_MAKS = 400;
  *        (sudut pandang pihak yang melangkah; dari analisa utama yang sudah
  *        berjalan — tanpa ini petak hanya diberi warna kuning netral)
  */
-export function gunakanBantuanSeret({ aktif, fen, nilaiTerbaik = null }) {
+export function useBantuanSeret({ aktif, fen, nilaiTerbaik = null }) {
   const [bantuan, setBantuan] = useState(null);
   const [status, setStatus] = useState("idle"); // idle | menunggu | menghitung | siap | gagal
 

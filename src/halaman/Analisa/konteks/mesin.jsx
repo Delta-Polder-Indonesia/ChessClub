@@ -15,13 +15,12 @@
  * "mengunduh engine…" sebelum persentase langkah muncul.
  */
 
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ENGINE_BAKU } from "../../../lib/engineCatur.js";
 import { EngineAnalisis } from "../mesin/engine.js";
 import { hashUntukEngine, wasmSupported } from "../mesin/cekWasm.js";
 import { bacaTeks, tulis } from "../penyimpanan.js";
-
-export const KonteksMesin = createContext(null);
+import { KonteksMesin } from "./mesinKonteks.js";
 
 export function MesinProvider({ children }) {
   const [idEngine, setIdEngineState] = useState(() => bacaTeks("engine", ENGINE_BAKU));
@@ -105,10 +104,4 @@ export function MesinProvider({ children }) {
   };
 
   return <KonteksMesin.Provider value={nilai}>{children}</KonteksMesin.Provider>;
-}
-
-export function gunakanMesin() {
-  const konteks = useContext(KonteksMesin);
-  if (!konteks) throw new Error("gunakanMesin() harus dipakai di dalam <MesinProvider>");
-  return konteks;
 }

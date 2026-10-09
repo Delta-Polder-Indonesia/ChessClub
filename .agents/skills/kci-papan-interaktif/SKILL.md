@@ -68,8 +68,8 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 ## Arsitektur
 
 - `Workspace.jsx` adalah shell rute: sidebar kiri dan satu mode aktif. `src/App.jsx` memuat shell ini secara lazy.
-- **State pengaturan hidup di `Workspace.jsx`** lewat `gunakanPengaturanPapan()` (`gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah tab. Nilainya diteruskan sebagai prop `pengaturan` ke `PapanInteraktif.jsx` dan `LayarPengaturan.jsx` (`{ nilai, ubah }`). Jangan kembali menyimpan pengaturan ini sebagai state lokal di tab.
-- Pengaturan engine diteruskan ke `gunakanEngineCatur(fen, opsi)` (`src/lib/gunakanEngineCatur.js`): `url`, `hash`, `threads`, `skill` membuat ulang worker; `kedalaman` dan `multiPv` dipakai per analisis. Suara dan komentator tetap tersimpan di localStorage (`gunakanSuara()`, `gunakanPreferensiKomentator()`).
+- **State pengaturan hidup di `Workspace.jsx`** lewat `usePengaturanPapan()` (`gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah tab. Nilainya diteruskan sebagai prop `pengaturan` ke `PapanInteraktif.jsx` dan `LayarPengaturan.jsx` (`{ nilai, ubah }`). Jangan kembali menyimpan pengaturan ini sebagai state lokal di tab.
+- Pengaturan engine diteruskan ke `useEngineCatur(fen, opsi)` (`src/lib/gunakanEngineCatur.js`): `url`, `hash`, `threads`, `skill` membuat ulang worker; `kedalaman` dan `multiPv` dipakai per analisis. Suara dan komentator tetap tersimpan di localStorage (`useSuara()`, `usePreferensiKomentator()`).
 - `Analisa` memilih papan Opening Book di area kerja; Report Analisa (`/program-kami/analisa`) tetap terpisah di menu Program Kami.
 - `modus/ManusiaVsMesin.jsx` dan `modus/LatihanRepertoar.jsx` dipisahkan sebagai chunk lazy. Jangan render atau memuat worker mode lain saat pengguna berpindah.
 - `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; muat saat masuk ke halaman sebagai mode bawaan atau saat pengguna memilih **Jelajah Buku Pembukaan** dari Latihan Repertoar. Jangan pasang teks pengantar atau bilah kembali di atas papan.

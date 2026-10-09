@@ -39,7 +39,7 @@ function cariBerkas(rel) {
   const penuh = path.join(PUB_IMAGES, rel);
   try {
     if (statSync(penuh).isFile()) return [penuh, rel];
-  } catch {}
+  } catch { /* bukan file biasa — coba cari di direktori gambar */ }
   const dir = path.join(PUB_IMAGES, path.posix.dirname(rel));
   let ditemukan = null;
   try {
@@ -59,7 +59,7 @@ function cariBerkas(rel) {
         }
       }
     }
-  } catch {}
+  } catch { /* direktori tidak terbaca atau kosong */ }
   return ditemukan ? [ditemukan, path.posix.join(path.posix.dirname(rel), path.posix.basename(ditemukan))] : null;
 }
 

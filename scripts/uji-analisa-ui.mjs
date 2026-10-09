@@ -223,7 +223,7 @@ class WorkerPalsu {
       return;
     }
     if (perintah.startsWith("go")) {
-      let langkah = null;
+      let langkah;
       try {
         const catur = new Chess(this.fen ?? undefined);
         langkah = catur.moves({ verbose: true })[0] ?? null;

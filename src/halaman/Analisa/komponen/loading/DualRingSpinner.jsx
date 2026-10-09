@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function DualRingSpinner({ color = '#3b82f6', speed = 1, scale = 1 }) {
   return (
     <div className="relative flex items-center justify-center" style={{ transform: `scale(${scale})` }}>

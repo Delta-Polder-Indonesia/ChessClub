@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gunakanSuara, SUARA } from "../../lib/suara.js";
+import { useSuara, SUARA } from "../../lib/suara.js";
 import { SOAL_CATUR, DAFTAR_KATEGORI, IKON_KATEGORI } from "./daftar.js";
 import { berkasPublik } from "../../lib/asets.js";
 import { gabungPeringkat } from "../../lib/peringkatKuis.js";
@@ -72,7 +72,7 @@ const URUTAN_KATEGORI = DAFTAR_KATEGORI.slice()
 
 export default function QuizCatur() {
   const { t } = useI18n();
-  const { mainkan } = gunakanSuara();
+  const { mainkan } = useSuara();
 
   // Fase: "pilih" (idle) | "main" | "selesai".
   const [fase, setFase] = useState("pilih");

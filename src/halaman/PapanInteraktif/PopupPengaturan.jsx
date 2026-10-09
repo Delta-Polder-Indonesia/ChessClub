@@ -1,7 +1,7 @@
 import { useId } from "react";
-import { DAFTAR_SET } from "../../components/chess/ChessPiece.jsx";
+import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import KartuKomentator from "../../components/KartuKomentator.jsx";
-import { gunakanDialog } from "./gunakanDialog.js";
+import { useDialog } from "./gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
 
 /**
@@ -136,7 +136,7 @@ export default function PopupPengaturan({
   t,
   ...sisa
 }) {
-  const refDialog = gunakanDialog(onTutup);
+  const refDialog = useDialog(onTutup);
   return (
     <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"

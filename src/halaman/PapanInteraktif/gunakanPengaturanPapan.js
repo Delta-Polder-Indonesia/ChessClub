@@ -8,7 +8,7 @@ import { bacaTampilanPanahMesin } from "../../lib/gunakanEngineCatur.js";
  * Analisa / Manusia vs Mesin / Latihan Repertoar / Pengaturan.
  *
  * Preferensi suara & komentator tidak ada di sini: keduanya sudah disimpan
- * di localStorage oleh gunakanSuara() dan gunakanPreferensiKomentator().
+ * di localStorage oleh useSuara() dan usePreferensiKomentator().
  */
 export const PENGATURAN_AWAL = {
   bidak: "alpha",
@@ -28,7 +28,7 @@ export const PENGATURAN_AWAL = {
 /**
  * @returns {{ nilai: typeof PENGATURAN_AWAL, ubah: (kunci: string, nilai: any) => void }}
  */
-export function gunakanPengaturanPapan() {
+export function usePengaturanPapan() {
   const [nilai, setNilai] = useState(() => ({
     ...PENGATURAN_AWAL,
     // Panah mesin dibagi dengan Teka-Teki lewat localStorage — baca sekali di awal.

@@ -1,11 +1,12 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { useContext, useEffect, useState } from "react";
 import Arrow from "../../svg/arrow.jsx";
-import { AnalyzeContext } from "../../../konteks/analyze.jsx";
-import { pushPageError, pushPageWarning } from "../../errors/pageErrors.jsx";
+import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { pushPageError, pushPageWarning } from "../../errors/pushPageError.js";
 import { hitungPlyPgn } from "../../../../../lib/pgnRingan.js";
-import { API_BLOCKING_ERROR, GAMES_ERROR, GamesUI, getMonthName, Loading, USER_ERROR } from "./selectChessCom.jsx";
-import { ErrorsContext } from "../../../konteks/errors.jsx";
+import { API_BLOCKING_ERROR, GAMES_ERROR, GamesUI, Loading } from "./selectChessCom.jsx";
+import { getMonthName, USER_ERROR } from "./selectChessComData.js";
+import { ErrorsContext } from "../../../konteks/errorsKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { simpanBanyakPartai } from "../../../basisData.js";
 const PLAYER_URL = "https://lichess.org/@/";
@@ -66,6 +67,9 @@ function Games(props) {
         await pushPageWarning(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
       }
     })();
+    // Mount-once: unduhan arsip Lichess hanya dijalankan sekali saat komponen
+    // dipasang; url/username dijamin stabil selama sesi pemilih partai ini.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   if (gamesInfo.length === 0 && !loading) {
     return <div className="text-center text-sm text-foregroundGrey py-8">{t("analisa.partai.tidakAda")}</div>;
@@ -116,6 +120,9 @@ function SelectLichessOrgGame(props) {
         await pushPageWarning(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
       }
     })();
+    // Mount-once: daftar bulan diambil sekali saat username dimuat; locale
+    // hanya dipakai untuk menampilkan nama bulan di render, bukan di effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? " flex flex-col justify-center flex-grow" : ""}`}>
             <div style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">

@@ -133,7 +133,7 @@ async function jalankan() {
   // ── Uji 6: Login dengan password salah → 401 ──
   console.log("\n6. Login dengan password salah:");
   {
-    const { status, data } = await api("/api/auth/login", {
+    const { status, data: _data } = await api("/api/auth/login", {
       method: "POST",
       body: { username: "admin", password: "salah123" },
     });

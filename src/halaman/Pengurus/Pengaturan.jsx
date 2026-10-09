@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PanelRiwayatMasuk from "./RiwayatMasuk.jsx";
 import PanelAudit from "./Audit.jsx";
 import { Tombol, Modal } from "./ui.jsx";
@@ -61,7 +61,7 @@ function PanelKelolaAdmin({ beriTahu }) {
   const [targetHapus, setTargetHapus] = useState(null); // username yang akan dihapus
   const [lihatSandi, setLihatSandi] = useState(false);
 
-  const muat = async () => {
+  const muat = useCallback(async () => {
     setLoading(true);
     setGalat("");
     try {
@@ -73,11 +73,11 @@ function PanelKelolaAdmin({ beriTahu }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [beriTahu]);
 
   useEffect(() => {
     muat();
-  }, []);
+  }, [muat]);
 
   const tambah = async (e) => {
     e.preventDefault();

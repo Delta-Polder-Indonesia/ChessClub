@@ -12,21 +12,27 @@
  *    pemain yang dicari.
  */
 import { useContext, useEffect, useMemo, useRef, useState } from "react";
-import { AnalyzeContext } from "../../../konteks/analyze.jsx";
-import { pushPageError } from "../../errors/pageErrors.jsx";
-import { hitungPlyPgn } from "../../../../../lib/pgnRingan.js";
+import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
+import { pushPageError } from "../../errors/pushPageError.js";
 import Files from "../../svg/files.jsx";
 import Database from "../../svg/database.jsx";
 import SquareFillEqual from "../../svg/square-fill-equal.jsx";
 import SquareFillMinus from "../../svg/square-fill-minus.jsx";
 import SquareFillPlus from "../../svg/square-fill-plus.jsx";
-import { ErrorsContext } from "../../../konteks/errors.jsx";
+import { ErrorsContext } from "../../../konteks/errorsKonteks.js";
 import { useI18n } from "../../../../../lib/i18n.jsx";
 import { ambilDaftarPartai, simpanBanyakPartai } from "../../../basisData.js";
-/** Kunci pesan galat (lihat kamus analisa.partai.*) — dipakai juga oleh halaman Lichess. */
-const GAMES_ERROR = ["analisa.partai.galatJaringan", "analisa.partai.galatJaringanIsi"];
-const USER_ERROR = ["analisa.partai.galatPengguna", "analisa.partai.galatPenggunaIsi"];
-const API_BLOCKING_ERROR = ["analisa.partai.galatBatas", "analisa.partai.galatBatasIsi"];
+import {
+  GAMES_ERROR,
+  USER_ERROR,
+  API_BLOCKING_ERROR,
+  getMonthName,
+  formatTanggal,
+  olahPartaiChessCom,
+  nilaiHasil,
+} from "./selectChessComData.js";
+
+/** Platform dan URL dasar — hanya dipakai di file ini. */
 const PLATFORM = "Chess.com";
 const PLAYER_URL = "https://www.chess.com/member/";
 /** Berapa banyak partai per halaman pada tabel agregat. */
@@ -44,22 +50,6 @@ function IkonRefresh({ className = "h-3.5 w-3.5" }) {
   );
 }
 
-/** Nama bulan lewat Intl: mengikuti bahasa antarmuka, jadi tidak perlu tabel manual. */
-function getMonthName(month, locale = "id") {
-  return new Intl.DateTimeFormat(locale, { month: "long" }).format(new Date(2000, month - 1, 1));
-}
-function capitalizeFirst(string) {
-  return string[0].toUpperCase() + string.substring(1).toLowerCase();
-}
-/** Format tanggal penuh singkat: 12 Agu 2026 (atau 12 Aug 2026 dalam EN). */
-function formatTanggal(timestamp, locale) {
-  if (!timestamp) return "";
-  try {
-    return new Intl.DateTimeFormat(locale, { day: "numeric", month: "short", year: "numeric" }).format(new Date(timestamp));
-  } catch {
-    return "";
-  }
-}
 function Loading(props) {
   const { t } = useI18n();
   const [ellipsis, setEllipsis] = useState("");
@@ -115,42 +105,6 @@ function SimpleLoading(props) {
   return <div className="text-sm text-foregroundGrey animate-[pulse_1.25s_cubic-bezier(0.4,_0,_0.6,_1)_infinite;] w-fit my-4 m-auto">
             {t("analisa.partai.memuat")} {props.whatIsLoading}{ellipsis}
         </div>;
-}
-
-/** Ubah satu objek partai mentah Chess.com jadi baris tabel yang aman. */
-function olahPartaiChessCom(game) {
-  const pgn = typeof game?.pgn === "string" ? game.pgn : "";
-  if (!pgn) return null;
-  /*
-   * Jumlah langkah dihitung RINGAN dari teks PGN (lihat lib/pgnRingan.js).
-   * Dulu memakai `new Chess().loadPgn(pgn)` untuk SETIAP partai pada seluruh
-   * akun — menyusun ulang seluruh papan untuk ribuan partai hanya untuk
-   * angka di kolom "Langkah". Itu penyebab pemuatan terasa berat.
-   */
-  let plyCount = hitungPlyPgn(pgn);
-  if (Number.isNaN(plyCount) || plyCount <= 0) return null;
-  const putih = game.white ?? {};
-  const hitam = game.black ?? {};
-  let hasil = "draw";
-  if (putih.result === "win") hasil = "white";
-  else if (hitam.result === "win") hasil = "black";
-  const endTime = typeof game.end_time === "number" ? game.end_time : 0;
-  return {
-    pgn,
-    whiteName: putih.username ?? "",
-    blackName: hitam.username ?? "",
-    whiteElo: putih.rating ?? 0,
-    blackElo: hitam.rating ?? 0,
-    result: hasil,
-    timestamp: endTime * 1e3,
-    timeClass: game.time_class ?? "unknown",
-    plyCount,
-  };
-}
-function nilaiHasil(gameInfo) {
-  if (gameInfo.result === "white") return 1;
-  if (gameInfo.result === "black") return -1;
-  return 0;
 }
 
 function GamesUI(props) {
@@ -472,6 +426,10 @@ function SelectChessComGame(props) {
       dibatalkan = true;
       sinyal.abort();
     };
+    // gamesInfo.length hanya dipakai sebagai guard di jalur galat (jangan
+    // hancurkan tampilan yang sudah berisi). Menambahkannya ke deps akan
+    // memicu unduhan ulang setiap kali setGamesInfo dipanggil.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username, coba, t, locale, setErrors]);
 
   const muatUlang = () => {
@@ -530,14 +488,4 @@ function SelectChessComGame(props) {
             </> : null}
         </div>;
 }
-export {
-  API_BLOCKING_ERROR,
-  GAMES_ERROR,
-  GamesUI,
-  Loading,
-  SimpleLoading,
-  USER_ERROR,
-  capitalizeFirst,
-  SelectChessComGame as default,
-  getMonthName
-};
+export { GamesUI, Loading, SimpleLoading, SelectChessComGame as default };

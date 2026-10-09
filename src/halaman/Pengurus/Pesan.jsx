@@ -55,7 +55,7 @@ export default function PanelPesan({
     try {
       const data = await apiPengurus("/pesan");
       setPesan(data);
-    } catch (e) {
+    } catch (_e) {
       beriTahu("Pesan masuk gagal dimuat. Periksa koneksi lalu coba lagi.", "galat");
       setGalat(true);
     } finally {

@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function GradientRingSpinner({ color = '#3b82f6', speed = 1, scale = 1 }) {
   return (
     <div style={{ transform: `scale(${scale})` }}>

@@ -1,5 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import { BISHOP, KING, KNIGHT, PAWN, QUEEN, ROOK, WHITE } from "chess.js";
+import { getPropsDataset } from "./getPropsDataset.js";
+
 function Pawn({ color, size }) {
   return color === WHITE ? <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 45 45" width={size} height={size}>
             <path
@@ -539,12 +541,7 @@ function King({ color, size }) {
             </g>
         </svg>;
 }
-function getPropsDataset(dataset) {
-  const propsDatasetEntries = Object.entries(dataset).map(([key, value]) => {
-    return ["data-" + key, value];
-  });
-  return Object.fromEntries(propsDatasetEntries);
-}
+
 function PieceSVG({ piece, color, size, dataset, className, style, draggable, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const pieceProps = { color, size };
@@ -567,7 +564,5 @@ function PieceSVG({ piece, color, size, dataset, className, style, draggable, ti
   })()}
         </div>;
 }
-export {
-  PieceSVG as default,
-  getPropsDataset
-};
+
+export default PieceSVG;

@@ -1,40 +1,7 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { createContext, useState, useRef } from "react";
-const defaultUsedRatings = {
-  brilliant: true,
-  great: true,
-  best: true,
-  critical: true,
-  excellent: true,
-  good: true,
-  book: true,
-  inaccuracy: true,
-  mistake: true,
-  miss: true,
-  blunder: true,
-  forced: true
-};
-const ConfigContext = createContext({
-  openedMenu: [null, () => {
-  }],
-  boardTheme: [0, () => {
-  }],
-  usedRatings: [defaultUsedRatings, () => {
-  }],
-  highlightByRating: [true, () => {
-  }],
-  showArrows: [true, () => {
-  }],
-  arrowAfterMove: [true, () => {
-  }],
-  showLegalMoves: [true, () => {
-  }],
-  animateMoves: [true, () => {
-  }],
-  boardSounds: [true, () => {
-  }],
-  boardMenuSettingsRef: { current: null }
-});
+import { useState, useRef } from "react";
+import { ConfigContext, defaultUsedRatings } from "./configKonteks.js";
+
 function ConfigContextProvider(props) {
   const [openedMenu, setOpenedMenu] = useState(null);
   const [boardTheme, setBoardTheme] = useState(0);
@@ -50,8 +17,4 @@ function ConfigContextProvider(props) {
             {props.children}
         </ConfigContext.Provider>;
 }
-export {
-  ConfigContext,
-  ConfigContextProvider as default,
-  defaultUsedRatings
-};
+export default ConfigContextProvider;

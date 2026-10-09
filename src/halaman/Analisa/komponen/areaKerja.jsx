@@ -28,7 +28,7 @@
  * galat analisis tetap tampil di atas layar mana pun.
  */
 import { lazy, Suspense, useCallback, useContext, useEffect, useRef } from "react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../konteks/analyze.jsx";
+import { AnalyzeContext, TAMPILAN_ANALISA } from "../konteks/analyzeKonteks.js";
 import Game from "./game/game.jsx";
 import BoardMenu from "./boardMenu/boardMenu.jsx";
 import Menu from "./menu/menu.jsx";

@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table.jsx";
-import { Lencana } from "./PanelTurnamen/bagian.jsx";
+import { Lencana } from "./PanelTurnamen/Lencana.jsx";
 import FormulirTurnamen from "./PanelTurnamen/Formulir.jsx";
 import RincianTurnamen from "./PanelTurnamen/Rincian.jsx";
 import { parseWaktuKomunitas } from "../../lib/waktu.js";

@@ -147,7 +147,7 @@ function GrafikBatang({
             {...(formatX ? { tickFormatter: formatX } : {})}
           />
           <YAxis tickLine={false} axisLine={false} width={36} />
-          {semuaSeri.map((kunci, i) => (
+          {semuaSeri.map((kunci, _i) => (
             <Bar
               key={kunci}
               dataKey={kunci}

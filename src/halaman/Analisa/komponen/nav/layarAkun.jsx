@@ -7,7 +7,7 @@ import DaftarAkun from "../../akun/DaftarAkun.jsx";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
 import { hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
-import { AnalyzeContext } from "../../konteks/analyze.jsx";
+import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 
 export default function LayarAkun({ onTutup }) {
   const analyzeContext = useContext(AnalyzeContext);

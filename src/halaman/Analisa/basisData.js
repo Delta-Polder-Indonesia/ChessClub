@@ -576,7 +576,7 @@ export async function pastikanKoleksi({ platform = "", username = "" } = {}) {
         try {
           store.put(baru);
           naikkanRevisi();
-        } catch {}
+        } catch { /* IndexedDB penuh/tutup — data tetap dikirim ke pemanggil */ }
         resolve(baru);
       };
     } catch {
@@ -1297,7 +1297,7 @@ export async function eksporPgnKoleksi(opsi = {}) {
  * Pisahkan string PGN yang mungkin memuat beberapa partai sekaligus,
  * lalu simpan semuanya ke basis data di bawah koleksi "impor:default".
  */
-export async function imporPgnKeBasisData(teksPgn, { label = "Impor PGN" } = {}) {
+export async function imporPgnKeBasisData(teksPgn, { label: _label = "Impor PGN" } = {}) {
   if (!teksPgn || !teksPgn.trim()) return { tersimpan: 0 };
   const raw = teksPgn.trim();
 

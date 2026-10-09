@@ -48,7 +48,7 @@ import {
   kenaBan,
   KONTROL,
 } from "../../lib/anggotaBersama.js";
-import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRating.jsx";
+import { TINGKATAN_RATING } from "../TentangKami/StrukturGrupCatur/Keanggotaan/TingkatanRatingData.js";
 import {
   Table,
   TableBody,

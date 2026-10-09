@@ -47,7 +47,7 @@ export function bacaJsonSync(berkas, bawaan) {
     return isi.trim() ? JSON.parse(isi) : bawaan;
   } catch (e) {
     if (e.code === "ENOENT") return bawaan;
-    throw new Error(`Gagal membaca ${path.basename(berkas)}: ${e.message}`);
+    throw new Error(`Gagal membaca ${path.basename(berkas)}: ${e.message}`, { cause: e });
   }
 }
 
@@ -57,7 +57,8 @@ export async function bacaJson(berkas, bawaan) {
       return await bacaJsonSupabase(berkas, bawaan);
     } catch (e) {
       throw new Error(
-        `Gagal membaca ${path.basename(berkas)} dari Supabase: ${e?.message || e}`
+        `Gagal membaca ${path.basename(berkas)} dari Supabase: ${e?.message || e}`,
+        { cause: e }
       );
     }
   }
@@ -66,7 +67,7 @@ export async function bacaJson(berkas, bawaan) {
     return isi.trim() ? JSON.parse(isi) : bawaan;
   } catch (e) {
     if (e.code === "ENOENT") return bawaan;
-    throw new Error(`Gagal membaca ${path.basename(berkas)}: ${e.message}`);
+    throw new Error(`Gagal membaca ${path.basename(berkas)}: ${e.message}`, { cause: e });
   }
 }
 

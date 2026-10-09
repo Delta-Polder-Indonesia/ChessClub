@@ -12,9 +12,9 @@ import Profile from "../Analisa/komponen/svg/profile.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
-import { gunakanEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
 import { nilaiDariSudutPelangkah } from "../../lib/bantuanSeret.js";
-import { gunakanBantuanSeret } from "../../lib/gunakanBantuanSeret.js";
+import { useBantuanSeret } from "../../lib/gunakanBantuanSeret.js";
 import PanelEngine from "../../components/PanelEngine.jsx";
 import {
   ambilArtikelPembukaan,
@@ -23,10 +23,9 @@ import {
 import { normalkanPohonPembukaan } from "../../lib/namaPembukaan.js";
 import { isForced } from "../Analisa/mesin/penilaian.js";
 import { petakRajaPemenang, petakRajaTermat } from "../../lib/skakmat.js";
-import { SUARA, gunakanSuara, mainkanSuara } from "../../lib/suara.js";
-import KartuKomentator, {
-  gunakanPreferensiKomentator,
-} from "../../components/KartuKomentator.jsx";
+import { SUARA, useSuara, mainkanSuara } from "../../lib/suara.js";
+import KartuKomentator from "../../components/KartuKomentator.jsx";
+import { usePreferensiKomentator } from "../../components/usePreferensiKomentator.js";
 import { ekspresiDariSkorAwan, faktaLangkah, statusTerminalFen } from "../../lib/komentator.js";
 import {
   ambilBasisDataAwan,
@@ -54,12 +53,13 @@ import BukuPembukaan from "./BukuPembukaan.jsx";
 import KartuArtikelPembukaan from "./KartuArtikelPembukaan.jsx";
 import DaftarRiwayat from "./DaftarRiwayat.jsx";
 import BilahEvaluasi from "./BilahEvaluasi.jsx";
-import TangkapanBidak, { susunTangkapan } from "./TangkapanBidak.jsx";
+import TangkapanBidak from "./TangkapanBidak.jsx";
+import { susunTangkapan } from "./TangkapanBidakData.js";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
 import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
 import PopupPengaturan from "./PopupPengaturan.jsx";
-import { gunakanPengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
 import { cariEngine } from "../../lib/engineCatur.js";
 
 /* ------------------------------------------------- analisis Stockfish */
@@ -80,7 +80,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const { t, bahasa } = useI18n();
   // Pengaturan dari Workspace (hidup lintas tab). Bila tidak diberikan,
   // pakai state lokal agar komponen tetap berdiri sendiri.
-  const pengaturanLokal = gunakanPengaturanPapan();
+  const pengaturanLokal = usePengaturanPapan();
   const { nilai: pp, ubah: ubahPengaturan } = pengaturan ?? pengaturanLokal;
   const setBidakPapan = useCallback((v) => ubahPengaturan("bidak", v), [ubahPengaturan]);
   const setWarnaPapan = useCallback((v) => ubahPengaturan("warnaPapan", v), [ubahPengaturan]);
@@ -117,7 +117,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
-  const [fenTersalin, setFenTersalin] = useState(false);
+  const [, setFenTersalin] = useState(false);
   // Status tombol Bagikan: "idle" | "ok" | "gagal" (label tombol ikut berganti).
   const [statusBerbagi, setStatusBerbagi] = useState("idle");
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
@@ -186,13 +186,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setTampilPanahMesin,
     nyalakanEngine,
     matikanEngine,
-  } = gunakanEngineCatur(fen, opsiEngine);
+  } = useEngineCatur(fen, opsiEngine);
 
   // Bantuan langkah tersimpan di Pengaturan (hidup lintas tab), tetapi engine
   // hanya dimulai saat dinyalakan. Papan yang dibuka ulang dengan bantuan
   // aktif harus menyalakan engine lagi (sekali saat mount).
   useEffect(() => {
     if (pp.bantuanNyala) nyalakanEngine();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount-once: engine hanya dinyalakan sekali saat papan dibuka
   }, []);
 
   // Hasil evaluasi terakhir ditahan selama analisis posisi baru berjalan,
@@ -212,7 +213,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setNyala: setSuaraNyala,
     mainkan: bunyikan,
     mainkanLangkah: bunyikanLangkah,
-  } = gunakanSuara();
+  } = useSuara();
 
   const abaikanKlikRef = useRef(false);
   const timerSalah = useRef(null);
@@ -253,8 +254,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }, [hasilEngine, hasilTertahan, sisiSekarang]);
 
   // Bantuan langkah ala "assisted play": worker engine TERPISAH, hanya hidup
-  // saat sakelarnya nyala dan seret sedang berjalan (lihat gunakanBantuanSeret).
-  const bantuanSeret = gunakanBantuanSeret({
+  // saat sakelarnya nyala dan seret sedang berjalan (lihat useBantuanSeret).
+  const bantuanSeret = useBantuanSeret({
     aktif: bantuanNyala,
     fen,
     nilaiTerbaik: nilaiTerbaikSekarang,
@@ -352,7 +353,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const masihDiBuku = infoPembukaan.cocok && infoPembukaan.saran.length > 0;
 
   /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
-  const statTampil = useMemo(() => {
+  const _statTampil = useMemo(() => {
     const tuple = infoPembukaan.nama
       ? infoPembukaan.nama.find(([, , s]) => s && typeof s.games === "number") ||
         null
@@ -521,7 +522,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         butuhPromosi = true;
         warnaPromosi = bidak.color;
       }
-    } catch {}
+    } catch { /* posisi rusak — deteksi promosi dilewati */ }
 
     if (butuhPromosi && !promo) {
       setPromosi({ from, to, warna: warnaPromosi });
@@ -736,7 +737,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         pindah = ulang.move(san);
       }
       game = ulang;
-    } catch {}
+    } catch { /* replay gagal — jatuh ke bunyi klik */ }
     if (pindah && game) bunyikanLangkah(pindah, game);
     else bunyikan(SUARA.klik);
     const baru = riwayat.slice(0, -1);
@@ -781,7 +782,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       }
       const jalurBaru = [];
       for (const san of riwayatLengkap) {
-        let pindah = null;
+        let pindah;
         try {
           pindah = game.move(san);
         } catch {
@@ -973,7 +974,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     }
   }
 
-  function salinFen() {
+  function _salinFen() {
     const selesai = () => {
       setFenTersalin(true);
       window.clearTimeout(timerSalin.current);
@@ -1072,7 +1073,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     if (!fenSebelum) return null;
 
     let game;
-    let pindah = null;
+    let pindah;
     try {
       game = new Chess(fenSebelum);
       pindah = game.move(sanTerakhir);
@@ -1149,7 +1150,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     }
     for (let i = 0; i < riwayat.length; i++) {
       const fenSebelum = game.fen();
-      let pindah = null;
+      let pindah;
       try {
         pindah = game.move(riwayat[i]);
       } catch {
@@ -1187,7 +1188,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
    * menyala (memakai rating `ikonLangkahAkhir` dan snapshot eval yang sama
    * dengan ikon di petak, sehingga komentar & ikon selalu sejalan).
    */
-  const preferensiKomentator = gunakanPreferensiKomentator();
+  const preferensiKomentator = usePreferensiKomentator();
   const faktaKomentator = useMemo(() => {
     if (!riwayat.length) return null;
     const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
@@ -1330,11 +1331,11 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
-  const jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
+  const _jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
 
-  let giliranKini = "w";
+  let _giliranKini = "w";
   try {
-    giliranKini = new Chess(fen).turn();
+    _giliranKini = new Chess(fen).turn();
   } catch {
     /* abaikan */
   }

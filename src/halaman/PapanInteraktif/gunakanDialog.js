@@ -12,7 +12,7 @@ import { useEffect, useRef } from "react";
  * @param {() => void} onTutup dipanggil saat Escape ditekan
  * @returns {import("react").RefObject} pasang ke kotak dialog (beri tabIndex={-1})
  */
-export function gunakanDialog(onTutup) {
+export function useDialog(onTutup) {
   const refDialog = useRef(null);
   const tutupRef = useRef(onTutup);
   tutupRef.current = onTutup;
@@ -60,7 +60,7 @@ export function gunakanDialog(onTutup) {
       document.removeEventListener("keydown", saatKunci, true);
       if (pemicu && typeof pemicu.focus === "function") pemicu.focus();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   return refDialog;

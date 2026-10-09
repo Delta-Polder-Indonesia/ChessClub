@@ -93,7 +93,7 @@ uji("infoTiket tetap membaca tiket TANPA Buffer (lingkungan browser)", () => {
   const token = tiketTiruan({ kedaluwarsaDetik: SEKARANG_DETIK + 600 });
   const simpanBuffer = globalThis.Buffer;
   try {
-    // eslint-disable-next-line no-global-assign -- sengaja meniru browser
+     
     globalThis.Buffer = undefined;
     const info = infoTiket(token);
     assert.notEqual(info, null, "infoTiket mengembalikan null di lingkungan tanpa Buffer");
@@ -109,7 +109,7 @@ uji("tiket tersimpan & terbaca ulang di lingkungan tanpa Buffer", () => {
   const simpanBuffer = globalThis.Buffer;
   const store = storageTiruan();
   try {
-    // eslint-disable-next-line no-global-assign -- sengaja meniru browser
+     
     globalThis.Buffer = undefined;
     assert.equal(
       simpanTiketSesi({ file: "buku.pdf", tiket: token, store }),

@@ -27,7 +27,7 @@ export function sanDariUci(fen, daftarUci) {
   const game = new Chess(fen);
   const san = [];
   for (const u of daftarUci) {
-    let pindah = null;
+    let pindah;
     try {
       pindah = game.move({
         from: u.slice(0, 2),
@@ -106,7 +106,7 @@ export function susunHasilEngine(info, fen, giliran) {
  *   `tampilPanahMesin` + `setTampilPanahMesin` — preferensi panah dikendalikan
  *   pemanggil (mis. Pengaturan Workspace), bila tidak ada dipakai state lokal.
  */
-export function gunakanEngineCatur(fen, opsi = {}) {
+export function useEngineCatur(fen, opsi = {}) {
   const {
     url,
     hash,
@@ -164,7 +164,7 @@ export function gunakanEngineCatur(fen, opsi = {}) {
     if (!engineNyala || !fen) return undefined;
 
     // Posisi akhir (skakmat/remis) tidak perlu dianalisis.
-    let selesai = false;
+    let selesai;
     try {
       selesai = new Chess(fen).isGameOver();
     } catch {
@@ -214,7 +214,7 @@ export function gunakanEngineCatur(fen, opsi = {}) {
       hidup = false;
       engine.setop();
     };
-  }, [engineNyala, fen, kecepatanEngine, kunciEngine, kedalaman, multiPv]);
+  }, [engineNyala, fen, kecepatanEngine, kunciEngine, kedalaman, multiPv, hash, skill, threads, url]);
 
   /** Apakah posisi saat ini sudah selesai (untuk pesan di panel engine). */
   const permainanSelesai = useMemo(() => {

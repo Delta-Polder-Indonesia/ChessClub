@@ -7,8 +7,8 @@ import { InfoIcon } from "lucide-react";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { gambar } from "../../../../lib/asets.js";
 import { cariEngine, DAFTAR_ENGINE } from "../../../../lib/engineCatur.js";
-import { AnalyzeContext } from "../../konteks/analyze.jsx";
-import { gunakanMesin } from "../../konteks/mesin.jsx";
+import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
+import { useMesin } from "../../konteks/mesinKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import { analisisRiwayatAntiCheat, BATAS_PARTAI, batasPartaiDariInput, KEDALAMAN_AGGREGAT } from "../../akun/antiCheatRiwayat.js";
@@ -53,8 +53,8 @@ function TombolInfo({ uji, judul, buka }) {
   );
 }
 
-function gunakanDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk }) {
-  const mesin = gunakanMesin();
+function useDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk }) {
+  const mesin = useMesin();
   const [hasil, setHasil] = useState(null);
   const [status, setStatus] = useState("kosong");
   const [berjalan, setBerjalan] = useState(false);
@@ -167,7 +167,7 @@ function gunakanDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibu
 export default function LayarDeteksiEngine({ onBukaAkun }) {
   const { t } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
-  const mesin = gunakanMesin();
+  const mesin = useMesin();
   const [akun, setAkun] = analyzeContext.akun;
   const platform = akun?.platform === "lichessOrg" ? "lichessOrg" : "chessCom";
   const username = String(akun?.username || "").trim();
@@ -189,7 +189,7 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
   const threadsId = useId();
   const [infoTerbuka, setInfoTerbuka] = useState(null);
   const wadahDialog = useMemo(() => document.querySelector?.(".analisa-root") || undefined, []);
-  const ac = gunakanDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk });
+  const ac = useDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk });
   const daftar = gabungkanAkun([...akunTersimpan, ...koleksi, akun]);
   const engineAktif = cariEngine(mesin.idEngine);
   const versiEngine = /\d+/.exec(engineAktif.label)?.[0] ?? "-";

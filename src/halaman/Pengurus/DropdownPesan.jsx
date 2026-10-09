@@ -3,7 +3,7 @@
  * Sistem dan tampilan sama dengan DropdownNotifikasi (lonceng).
  */
 
-import { waktuRelatif, cuplikan } from "./DropdownNotifikasi.jsx";
+import { waktuRelatif, cuplikan } from "./DropdownNotifikasiData.js";
 
 export default function DropdownPesan({
   terbuka,

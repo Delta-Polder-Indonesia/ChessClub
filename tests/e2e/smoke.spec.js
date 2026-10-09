@@ -20,7 +20,7 @@ function pantauGalatHalaman(page) {
 const JALUR_API = (url) => url.pathname.startsWith("/api/");
 
 /** Formulir pendaftaran anggota (halaman juga memuat form pencarian header). */
-const formPendaftaran = (page) =>
+const _formPendaftaran = (page) =>
   page.locator("form").filter({ has: page.locator('input[name="username"]') });
 
 /** Backend tiruan untuk memverifikasi alur browser tanpa data produksi. */

@@ -240,7 +240,7 @@ function nilaiPenyerangTermurah(game, petak, penyerang) {
     }
   }
   let termurah = null;
-  let langkah = [];
+  let langkah;
   try {
     langkah = sumber.moves({ verbose: true });
   } catch {
@@ -448,7 +448,7 @@ export function faktaLangkah(fenSebelum, san) {
     /* deteksi fork opsional - posisi yang tidak bisa diputar dilewati */
   }
 
-  let mobilitasSendiri = 0;
+  let mobilitasSendiri;
   try {
     mobilitasSendiri = new Chess(fenSebelum).moves().length;
   } catch {

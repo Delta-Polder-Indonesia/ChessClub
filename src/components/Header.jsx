@@ -27,6 +27,7 @@ function useFokusDialog(terbuka, onTutup, pemicu) {
 
   useEffect(() => {
     if (!terbuka) return undefined;
+    const pemicuEl = pemicu.current;
     const frame = window.requestAnimationFrame(() => {
       dialogRef.current?.querySelector("[data-fokus-awal], button, input, a[href]")?.focus();
     });
@@ -55,7 +56,7 @@ function useFokusDialog(terbuka, onTutup, pemicu) {
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", saatTombol);
-      pemicu.current?.focus?.();
+      pemicuEl?.focus?.();
     };
   }, [terbuka, onTutup, pemicu]);
 

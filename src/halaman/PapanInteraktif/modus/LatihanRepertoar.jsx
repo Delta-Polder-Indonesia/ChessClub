@@ -15,7 +15,7 @@ import {
   simpanKartuRepertoar,
 } from "./repertoarStorage.js";
 import { FEN_AWAL } from "../konstanta.js";
-import { PENGATURAN_AWAL, gunakanPengaturanPapan } from "../gunakanPengaturanPapan.js";
+import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
@@ -24,7 +24,7 @@ function uciDariPindahan(pindah) {
 /** Pola petak papan yang sah (a1–h8). */
 const POLA_PETAK = /^[a-h][1-8]$/;
 
-function tanggalRingkas(timestamp, bahasa) {
+function _tanggalRingkas(timestamp, bahasa) {
   if (!timestamp) return "";
   const date = new Date(Number(timestamp) || 0);
   if (isNaN(date.getTime())) return "—";
@@ -39,10 +39,10 @@ function tanggalRingkas(timestamp, bahasa) {
 }
 
 export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
-  const { t, bahasa } = useI18n();
+  const { t, bahasa: _bahasa } = useI18n();
   // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
   // komponen tetap berdiri sendiri (misal dipakai di halaman lain).
-  const pengaturanLokal = gunakanPengaturanPapan();
+  const pengaturanLokal = usePengaturanPapan();
   const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [kartu, setKartu] = useState([]);
@@ -220,7 +220,7 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
     if (statusLatihan !== "menunggu" || !kartuAktif) return;
     if (!POLA_PETAK.test(from) || !POLA_PETAK.test(to)) return;
     const game = new Chess(fen);
-    let pindah = null;
+    let pindah;
     const piece = game.get(from);
     const promotion = piece?.type === "p" && (to.endsWith("1") || to.endsWith("8")) ? "q" : undefined;
     try {
