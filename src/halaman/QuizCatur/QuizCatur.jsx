@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gunakanSuara, SUARA } from "../../lib/suara.js";
@@ -88,6 +88,19 @@ export default function QuizCatur() {
   const [cobaMulai, setCobaMulai] = useState(false);
   const [konfirmasiMulai, setKonfirmasiMulai] = useState(false);
   const [batasSalah, setBatasSalah] = useState(3);
+  // Ref selalu sinkron dengan state — dipakai oleh catatHasil supaya skor
+  // yang tercatat tidak tertinggal satu angka akibat closure React yang
+  // masih memegang nilai lama saat setState di-batch dalam handler yang
+  // sama (mis. jawaban benar pada soal terakhir atau jawaban salah yang
+  // mencapai batas salah).
+  const benarRef = useRef(0);
+  const lampauRef = useRef([]);
+  useEffect(() => {
+    benarRef.current = benar;
+  }, [benar]);
+  useEffect(() => {
+    lampauRef.current = lampau;
+  }, [lampau]);
   const [peringkat, setPeringkat] = useState(() => {
     try {
       const mentah = JSON.parse(localStorage.getItem(KUNCI_PERINGKAT)) || [];
@@ -158,6 +171,8 @@ export default function QuizCatur() {
     setAcakOpsi(acak(Array.from({ length: daftar[barisan[0]].pilihan.length }, (_, i) => i)));
     setBenar(0);
     setLampau([]);
+    benarRef.current = 0;
+    lampauRef.current = [];
     setFase("main");
     mainkan(SUARA.mulai);
   }, [daftar, total, mainkan]);
@@ -167,18 +182,32 @@ export default function QuizCatur() {
     setDipilih(indeksOriginal);
     const benarSekarang = indeksOriginal === soal.kunci;
     mainkan(benarSekarang ? SUARA.tekaTekiBenar : SUARA.tekaTekiSalah);
-    if (benarSekarang) setBenar((b) => b + 1);
-    const lampauBaru = [...lampau, benarSekarang];
+    if (benarSekarang) {
+      const b = benarRef.current + 1;
+      benarRef.current = b;
+      setBenar(b);
+    }
+    const lampauBaru = [...lampauRef.current, benarSekarang];
+    lampauRef.current = lampauBaru;
     setLampau(lampauBaru);
     if (!benarSekarang && lampauBaru.filter((b) => !b).length >= batasSalah) {
-      catatHasil(benar, lampauBaru);
+      catatHasil();
       setFase("selesai");
       mainkan(SUARA.selesai);
     }
   };
 
-  const catatHasil = (nilaiBenar = benar, nilaiLampau = lampau) => {
+  /**
+   * Catat skor ke daftar peringkat lokal. Memakai ref (bukan closure state)
+   * supaya skor yang tersimpan selalu akurat meski dipanggil tepat setelah
+   * setState di dalam handler yang sama — React 18 men-batch setState
+   * se-siklus, sehingga membaca state lewat closure akan tertinggal
+   * satu nilai (skor berkurang 1) pada jalur akhir kuiz.
+   */
+  const catatHasil = () => {
     const nama = username.trim();
+    const nilaiLampau = lampauRef.current;
+    const nilaiBenar = benarRef.current;
     if (!nama || nilaiLampau.length === 0) return;
     const masuk = { nama, benar: nilaiBenar, total: nilaiLampau.length };
     // Cukup perbarui state: efek persistensi [peringkat] yang menulis ke

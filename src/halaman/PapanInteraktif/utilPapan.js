@@ -254,7 +254,7 @@ export function ratingDariSnapshotEval({
   sesudah,
   statusTerminal,
 }) {
-  if (!sebelum) return null;
+  if (!sebelum || !["w", "b"].includes(warnaPenglangkah)) return null;
 
   // best — sama dengan saran utama engine pada posisi sebelumnya.
   if (sebelum.bestSan && sebelum.bestSan === san) return "best";

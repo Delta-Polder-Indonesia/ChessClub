@@ -294,7 +294,12 @@ export default function EbookPanduan() {
       const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       const onEsc = (e) => {
-        if (e.key === "Escape" && !unduhan) setPdfAktif(null);
+        if (e.key !== "Escape") return;
+        if (unduhan) {
+          setUnduhan(null);
+          return;
+        }
+        if (pdfAktif) setPdfAktif(null);
       };
       window.addEventListener("keydown", onEsc);
       return () => {

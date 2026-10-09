@@ -10,6 +10,7 @@ import { gunakanEngineCatur } from "../../../lib/gunakanEngineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, gunakanSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
+import { PENGATURAN_AWAL, gunakanPengaturanPapan } from "../gunakanPengaturanPapan.js";
 import BilahEvaluasi from "../BilahEvaluasi.jsx";
 import TangkapanBidak, { susunTangkapan } from "../TangkapanBidak.jsx";
 import { gunakanDialog } from "../gunakanDialog.js";
@@ -266,8 +267,13 @@ function PengaturanPermainan({
   );
 }
 
-export default function ManusiaVsMesin() {
+export default function ManusiaVsMesin({ pengaturan = null }) {
   const { t } = useI18n();
+  // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
+  // komponen tetap berdiri sendiri.
+  const pengaturanLokal = gunakanPengaturanPapan();
+  const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+
   const [fen, setFen] = useState(FEN_AWAL);
   const fenRef = useRef(FEN_AWAL);
   const [riwayat, setRiwayat] = useState([]);
@@ -288,8 +294,10 @@ export default function ManusiaVsMesin() {
     () => PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin) || PILIHAN_LEVEL_MESIN[1],
     [levelMesin]
   );
-  const [setBidak, setSetBidak] = useState("alpha");
-  const [tema, setTema] = useState("metal");
+  // Inisialisasi tampilan papan dari pengaturan bersama (bila ada);
+  // dialog pengaturan permainan bisa menimpa lokal selama sesi.
+  const [setBidak, setSetBidak] = useState(pp.bidak ?? "alpha");
+  const [tema, setTema] = useState(pp.warnaPapan ?? "metal");
   const { nyala: suaraNyala, setNyala: setSuaraNyala, mainkan, mainkanLangkah: bunyikanLangkah } = gunakanSuara();
   const [tampilPengaturan, setTampilPengaturan] = useState(false);
   const [konfirmasiMenyerah, setKonfirmasiMenyerah] = useState(false);

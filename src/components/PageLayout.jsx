@@ -12,6 +12,14 @@ import { BersihkanBootHero, PlaceholderHalaman } from "./Loading.jsx";
  * dalam `/teka-teki/<id>` dibagikan bebas), sehingga pencocokan persis membuat
  * header + footer situs tersemat kembali di sekeliling papan yang seharusnya
  * penuh layar — juga pada setiap deep-link soal.
+ *
+ * KONVENSI PENAMAAN: Setiap awalan harus berupa nama dasar unik yang TIDAK
+ * akan menjadi prefiks dari rute lain yang perlu kerangka. Misalnya
+ * `/teka-teki` aman karena rute saudaranya bernama `/teka-teki-rush` (strip
+ * setelah "teki" mencegah startsWith("/teka-teki/") cocok). Bila menambah
+ * halaman baru, awali dengan segmen yang tidak bertumpang tindih (mis.
+ * jangan gunakan `/analisa` bila ada `/analisa-lain` — pakai nama yang
+ * tidak ambigu).
  */
 const TANPA_KERANGKA = [
   "/program-kami/analisa/papan",

@@ -385,6 +385,15 @@ export default function TekaTekiRush() {
     (karena) => {
       if (endedRef.current) return;
       endedRef.current = true;
+      // Hentikan semua timer transisi/penghitung yang masih terjadwal supaya
+      // tidak ada callback `muatSoalBerikut` atau setState yang menyelinap
+      // setelah fase berubah ke "selesai".
+      window.clearTimeout(timerRef.current);
+      window.clearTimeout(delayRef.current);
+      setKomputer(false);
+      setTransisi(false);
+      setPromo(null);
+      setFlash(null);
       const nilai = skorRef.current;
       setBerakhirKarena(karena);
       // Sembunyikan label "rekor baru" bila sudah ternoda oleh permainan
@@ -769,13 +778,22 @@ export default function TekaTekiRush() {
     window.clearTimeout(timerRef.current);
     window.clearTimeout(delayRef.current);
     endedRef.current = true;
+    // Bersihkan semua state sesi agar tidak ada sisa (flash merah/hijau,
+    // pilihan promosi, sorotan kesalahan) yang terbawa ke menu.
     setPromo(null);
     setFlash(null);
     setKesalahan(null);
+    setKomputer(false);
+    setTransisi(false);
+    setTerpilih(null);
+    setSasaran([]);
+    setLangkahAkhir(null);
+    setSisaWaktu(durasiMenit * 60);
+    setBerakhirKarena(null);
     setTersegel(false);
     setFase("pilih");
     mainkan(SUARA.selesai);
-  }, [mainkan]);
+  }, [mainkan, durasiMenit]);
 
   /** Mulai login Chess.com untuk menerbitkan bukti identitas Rush. */
   const mulaiVerifikasiRush = useCallback(async () => {

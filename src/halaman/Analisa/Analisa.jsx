@@ -37,7 +37,10 @@ import "./analisa.css";
 export default function Analisa() {
   const { t } = useI18n();
   // Tebakan awal langsung dari jendela (bukan 0) supaya commit pertama sudah
-  // benar; nilai pastinya dikoreksi oleh effect di bawah.
+  // benar. useLayoutEffect di bawah akan memastikan nilainya sinkron sebelum
+  // paint — dan karena Object.is comparison di useState bail out ketika nilai
+  // sama, tidak ada re-render ganda pada umumnya (hanya bila ukuran jendela
+  // benar-benar berubah antara fase render dan layout, yang sangat jarang).
   const [tinggi, setTinggi] = useState(() =>
     typeof window === "undefined" ? 0 : Math.round(window.innerHeight),
   );
@@ -52,7 +55,12 @@ export default function Analisa() {
    */
   useLayoutEffect(() => {
     function ukur() {
-      setTinggi(Math.round(window.innerHeight));
+      setTinggi((sebelumnya) => {
+        const berikutnya = Math.round(window.innerHeight);
+        // Hindari setState bila nilai sama persis — mencegah re-render
+        // yang tidak perlu dan menjaga referensi stabil untuk konsumen.
+        return berikutnya === sebelumnya ? sebelumnya : berikutnya;
+      });
     }
 
     ukur();

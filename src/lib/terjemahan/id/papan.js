@@ -169,6 +169,8 @@ export const papan = {
     repertoarJalurKosong: "Tidak ada langkah yang dapat dijadikan kartu latihan.",
     repertoarBerhasilTambah: "Ditambahkan {jumlah} posisi latihan.",
     repertoarMemuatBukuPlaceholder: "Pilih sebuah pembukaan dari katalog.",
+    repertoarPenyimpananTerbatas: "Penyimpanan database terbatas — data disimpan di localStorage untuk sesi ini saja.",
+    repertoarLangkahIlegal: "Langkah tidak diizinkan.",
     penjelajah: "Penjelajah Pembukaan",
     penjelajahDeskripsi:
       "Telusuri variasi pembukaan langkah demi langkah dan lihat statistik setiap kelanjutan.",
@@ -242,6 +244,7 @@ export const papan = {
     pengaturanVersi: "Versi",
     pengaturanDepth: "Kedalaman",
     pengaturanThreads: "Threads",
+    pengaturanThreadsSingle: "Stockfish lite hanya mendukung 1 thread.",
     pengaturanHash: "Hash (MB)",
     pengaturanMultiPv: "MultiPV",
     pengaturanSkillLevel: "Skill Level",

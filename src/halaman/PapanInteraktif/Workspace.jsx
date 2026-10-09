@@ -102,9 +102,9 @@ export default function WorkspacePapanInteraktif() {
       <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#262421]">
         <Suspense fallback={<KerangkaMode />}>
           {mode === "engine" ? (
-            <ManusiaVsMesin />
+            <ManusiaVsMesin pengaturan={pengaturan} />
           ) : mode === "repertoar" ? (
-            <LatihanRepertoar onJelajahBuku={() => pilihMode("papan")} />
+            <LatihanRepertoar pengaturan={pengaturan} onJelajahBuku={() => pilihMode("papan")} />
           ) : mode === "pengaturan" ? (
             <LayarPengaturan pengaturan={pengaturan} />
           ) : (

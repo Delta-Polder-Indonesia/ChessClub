@@ -55,6 +55,8 @@ export const tekaTeki = {
     buka: "Buka",
     rentangNomor: "Nomor 1 sampai {total}",
     nomorTidakValid: "Masukkan nomor antara 1 dan {total}.",
+    idSoalTidakDitemukan:
+      "Soal nomor {id} tidak ditemukan (total {total} soal). Menampilkan soal acak.",
     pengaturan: "Pengaturan",
     tidakAdaSoal:
       "Tidak ada soal yang cocok dengan kombinasi Level, Langkah, Tema, dan Giliran saat ini. Longgarkan salah satu saringan di Pengaturan.",
