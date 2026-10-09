@@ -67,7 +67,8 @@ import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
-import { I18nProvider, useI18n } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
+import { useI18n } from "./src/lib/i18n.jsx";
 import PendaftaranAnggota from "./src/halaman/PendaftaranAnggota/PendaftaranAnggota.jsx";
 import VerifikasiAkun from "./src/components/VerifikasiAkun.jsx";
 import {

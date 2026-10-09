@@ -136,7 +136,7 @@ uji("susunBantuan: selisih dijepit di 0", susunBantuan({
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import { useBantuanSeret } from "./src/lib/gunakanBantuanSeret.js";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 

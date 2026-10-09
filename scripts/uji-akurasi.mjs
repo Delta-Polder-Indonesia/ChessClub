@@ -22,11 +22,10 @@ register(new URL("./loader-jsx.mjs", import.meta.url));
 
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { I18nProvider } = await import("../src/lib/i18n.jsx");
+const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
-const { default: PlayersAccuracy, avg } = await import(
-  "../src/halaman/Analisa/komponen/menu/analysis/summary/playersAccuracy.jsx"
-);
+const { default: PlayersAccuracy } = await import("../src/halaman/Analisa/komponen/menu/analysis/summary/playersAccuracy.jsx");
+const { avg } = await import("../src/halaman/Analisa/komponen/menu/analysis/summary/playersAccuracyData.js");
 const { default: GameRating } = await import(
   "../src/halaman/Analisa/komponen/menu/analysis/summary/gameRating.jsx"
 );

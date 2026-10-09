@@ -17,7 +17,7 @@
  *   B. Shim loader uji — `scripts/loader-jsx.mjs` (dipakai 12 skrip uji lain)
  *      tidak boleh menelan glob diam-diam, dan peta yang dihasilkannya harus
  *      memuat seluruh berkas yang benar-benar ada di disk.
- *   C. Vite sungguhan — modulChessPiece di-transform dengan pipeline Vite
+ *   C. Vite sungguhan — modul pemuat bidak (pemuatBidak.js) di-transform dengan pipeline Vite
  *      asli; `import.meta.glob` harus hilang dari hasil transform dan jumlah
  *      kunci aset harus sama dengan jumlah berkas di disk.
  *
@@ -28,7 +28,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const BERKAS_BIDAK = "src/components/chess/ChessPiece.jsx";
+const BERKAS_BIDAK = "src/components/chess/pemuatBidak.js";
 const POLA_BIDAK = "../../asets/*/*.{svg,png}";
 /** Lantai safety: tanpa ini, folder aset kosong membuat A/B/C lulus hampa. */
 const MINIMAL_ASET = 100;
@@ -175,9 +175,11 @@ if (!existsSync(path.join(ROOT, "node_modules/vite/package.json"))) {
   }
 
   uji("transform Vite berhasil", kode.length > 0, "hasil transform kosong");
+  // Yang dicari adalah PEMANGGILAN (`import.meta.glob(`). Teks yang sama di
+  // komentar tetap ada di hasil transform Vite dan tidak berarti makro gagal.
   uji(
     "import.meta.glob hilang dari hasil transform (makro ter-expand)",
-    kode.length > 0 && !kode.includes("import.meta.glob")
+    kode.length > 0 && !/import\.meta\.glob\s*\(/.test(kode)
   );
 
   const kunciVite = new Set([...kode.matchAll(/"([^"]*\/[^"]*\.(?:svg|png))"/g)].map((m) => m[1]));

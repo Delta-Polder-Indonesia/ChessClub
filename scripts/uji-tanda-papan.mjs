@@ -73,7 +73,7 @@ function uji(nama, kondisi) {
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 
 /**

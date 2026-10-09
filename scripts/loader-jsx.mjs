@@ -173,10 +173,16 @@ export function pluginGlobAset() {
     name: "kci-glob-aset",
     setup(bangun) {
       // Entri `stdin` tidak lewat onLoad, jadi isinya tidak tersentuh.
-      bangun.onLoad({ filter: /\.jsx$/ }, async (args) => ({
-        contents: shimGlobVite(await readFile(args.path, "utf8"), pathToFileURL(args.path).href),
-        loader: "jsx",
-      }));
+      // `.js` ikut diproses: modul yang memakai `import.meta.glob` (mis.
+      // components/chess/pemuatBidak.js) tidak boleh lolos tanpa shim.
+      // `node_modules` dibiarkan ke loader bawaan esbuild.
+      bangun.onLoad({ filter: /\.(jsx|js)$/ }, async (args) => {
+        if (args.path.split(path.sep).includes("node_modules")) return undefined;
+        return {
+          contents: shimGlobVite(await readFile(args.path, "utf8"), pathToFileURL(args.path).href),
+          loader: args.path.endsWith(".jsx") ? "jsx" : "js",
+        };
+      });
     },
   };
 }
@@ -244,12 +250,15 @@ export async function load(url, context, next) {
     });
     return { format: "module", source: code, shortCircuit: true };
   }
-  // Berkas .js milik repo yang menyentuh import.meta.env (mis. lib/asets.js):
-  // tanpa shim, `import.meta.env.BASE_URL` melempar di Node.
+  // Berkas .js milik repo yang menyentuh import.meta.env (mis. lib/asets.js)
+  // atau import.meta.glob (mis. components/chess/pemuatBidak.js): tanpa shim,
+  // `import.meta.env.BASE_URL` melempar dan `import.meta.glob` tidak berfungsi di Node.
   if (url.endsWith(".js") && url.startsWith(pathToFileURL(AKAR_REPO).href)) {
     const source = await readFile(fileURLToPath(url), "utf8");
-    if (!source.includes("import.meta.env")) return next(url, context);
-    return { format: "module", source: shimEnvVite(source), shortCircuit: true };
+    if (!source.includes("import.meta.env") && !source.includes("import.meta.glob")) {
+      return next(url, context);
+    }
+    return { format: "module", source: shimEnvVite(shimGlobVite(source, url)), shortCircuit: true };
   }
   return next(url, context);
 }

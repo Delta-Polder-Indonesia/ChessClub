@@ -104,7 +104,7 @@ const modulBidak = { dimuat: null, galat: null };
 if (adaEsbuild) {
   register(new URL("./loader-jsx.mjs", import.meta.url));
   try {
-    modulBidak.dimuat = await import("../src/components/chess/ChessPiece.jsx");
+    modulBidak.dimuat = await import("../src/components/chess/pemuatBidak.js");
   } catch (e) {
     modulBidak.galat = e;
   }
@@ -222,7 +222,7 @@ if (modulBidak.galat) {
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 
 export function mountPapan(el, fen, setBidak) {
@@ -361,11 +361,21 @@ if (modulBidak.galat) {
     uji(`set ${setBidak}: papan ter-render dengan 64 petak`, petak === 64, `${petak} petak`);
     uji(`set ${setBidak}: tepat 32 gambar bidak`, gambar.length === 32, `${gambar.length} img`);
     const kosongSrc = [...gambar].filter((el) => !el.getAttribute("src")).length;
-    const kosongAlt = [...gambar].filter((el) => !el.getAttribute("alt")).length;
+    // Gambar bidak bersifat dekoratif (alt=""): nama & warna bidak sudah ada di
+    // aria-label petak (<button data-petak>), jadi tidak diumumkan dua kali.
+    const altTidakKosong = [...gambar].filter((el) => el.getAttribute("alt") !== "").length;
     uji(
-      `set ${setBidak}: setiap gambar punya src dan alt terisi`,
-      kosongSrc === 0 && kosongAlt === 0,
-      `src kosong ${kosongSrc}, alt kosong ${kosongAlt}`
+      `set ${setBidak}: setiap gambar punya src terisi dan alt kosong (dekoratif)`,
+      kosongSrc === 0 && altTidakKosong === 0,
+      `src kosong ${kosongSrc}, alt tidak kosong ${altTidakKosong}`
+    );
+    const petakBerbidakTanpaLabel = [...gambar].filter(
+      (el) => !el.closest("[data-petak]")?.getAttribute("aria-label")
+    ).length;
+    uji(
+      `set ${setBidak}: setiap petak berbidak punya aria-label`,
+      petakBerbidakTanpaLabel === 0,
+      `${petakBerbidakTanpaLabel} petak tanpa aria-label`
     );
     const e2 = wadah.querySelectorAll('[data-petak="e2"] img').length;
     const e4 = wadah.querySelectorAll('[data-petak="e4"] img').length;

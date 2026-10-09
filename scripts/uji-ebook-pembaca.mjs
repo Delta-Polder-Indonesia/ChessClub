@@ -530,7 +530,7 @@ import { MemoryRouter, Routes, Route } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import PembacaPdf from "./src/components/PembacaPdf.jsx";
 import EbookPanduan from "./src/halaman/ProgramKami/EbookPanduan.jsx";
-import { I18nProvider } from "./src/lib/i18n.jsx";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import { sumberEbook } from "./src/lib/asets.js";
 export { sumberEbook };
 

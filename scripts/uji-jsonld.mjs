@@ -35,7 +35,7 @@ if (typeof globalThis.requestAnimationFrame === "undefined") {
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
 const { HelmetProvider } = await import("react-helmet-async");
-const { I18nProvider } = await import("../src/lib/i18n.jsx");
+const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { BreadcrumbJsonLd } = await import("../src/components/JsonLd.jsx");
 const { urlAbsolut } = await import("../src/lib/urlSitus.js");
 

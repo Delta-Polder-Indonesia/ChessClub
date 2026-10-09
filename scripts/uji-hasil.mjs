@@ -25,7 +25,7 @@ register(new URL("./loader-jsx.mjs", import.meta.url));
 
 const React = await import("react");
 const { createRoot } = await import("react-dom/client");
-const { I18nProvider } = await import("../src/lib/i18n.jsx");
+const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
 const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
