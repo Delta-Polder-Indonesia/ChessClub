@@ -169,6 +169,8 @@ export const papan = {
     repertoarJalurKosong: "This line contains no moves that can be turned into practice cards.",
     repertoarBerhasilTambah: "Added {jumlah} practice positions.",
     repertoarMemuatBukuPlaceholder: "Choose an opening from the catalog.",
+    repertoarPenyimpananTerbatas: "Database storage limited — data saved in localStorage for this session only.",
+    repertoarLangkahIlegal: "Illegal move.",
     penjelajah: "Opening Explorer",
     penjelajahDeskripsi:
       "Explore opening variations move by move and see the statistics for each continuation.",
@@ -241,6 +243,7 @@ export const papan = {
     pengaturanVersi: "Version",
     pengaturanDepth: "Depth",
     pengaturanThreads: "Threads",
+    pengaturanThreadsSingle: "Stockfish lite supports only 1 thread.",
     pengaturanHash: "Hash (MB)",
     pengaturanMultiPv: "MultiPV",
     pengaturanSkillLevel: "Skill Level",

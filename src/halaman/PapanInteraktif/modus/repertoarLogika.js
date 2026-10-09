@@ -103,12 +103,12 @@ export function jadwalkanKartu(kartu, nilai, sekarang = Date.now()) {
       repetitions = repetisi + 1;
       break;
     case "easy":
-      intervalMs = Math.max(7 * HARI, intervalLama ? intervalLama * 2.5 : 0);
+      intervalMs = Math.max(7 * HARI, intervalLama ? intervalLama * 2.5 : 7 * HARI);
       repetitions = repetisi + 1;
       break;
     case "good":
     default:
-      intervalMs = Math.max(3 * HARI, intervalLama ? intervalLama * 2 : 0);
+      intervalMs = Math.max(3 * HARI, intervalLama ? intervalLama * 2 : 3 * HARI);
       repetitions = repetisi + 1;
       break;
   }

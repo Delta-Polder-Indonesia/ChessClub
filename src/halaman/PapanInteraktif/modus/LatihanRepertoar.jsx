@@ -15,25 +15,36 @@ import {
   simpanKartuRepertoar,
 } from "./repertoarStorage.js";
 import { FEN_AWAL } from "../konstanta.js";
+import { PENGATURAN_AWAL, gunakanPengaturanPapan } from "../gunakanPengaturanPapan.js";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
 }
 
+/** Pola petak papan yang sah (a1–h8). */
+const POLA_PETAK = /^[a-h][1-8]$/;
+
 function tanggalRingkas(timestamp, bahasa) {
   if (!timestamp) return "";
+  const date = new Date(Number(timestamp) || 0);
+  if (isNaN(date.getTime())) return "—";
   try {
     return new Intl.DateTimeFormat(bahasa === "en" ? "en-US" : "id-ID", {
       dateStyle: "medium",
       timeStyle: "short",
-    }).format(new Date(timestamp));
+    }).format(date);
   } catch {
-    return new Date(timestamp).toLocaleString();
+    return date.toLocaleString();
   }
 }
 
-export default function LatihanRepertoar({ onJelajahBuku }) {
+export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
   const { t, bahasa } = useI18n();
+  // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
+  // komponen tetap berdiri sendiri (misal dipakai di halaman lain).
+  const pengaturanLokal = gunakanPengaturanPapan();
+  const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+
   const [kartu, setKartu] = useState([]);
   const [memuatKartu, setMemuatKartu] = useState(true);
   const [tampilan, setTampilan] = useState("koleksi");
@@ -54,6 +65,7 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
   const [sasaran, setSasaran] = useState([]);
   const [statusLatihan, setStatusLatihan] = useState("menunggu");
   const [langkahSalah, setLangkahSalah] = useState(null);
+  const [menyimpan, setMenyimpan] = useState(false);
 
   useEffect(() => {
     let aktif = true;
@@ -68,6 +80,13 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
       aktif = false;
     };
   }, []);
+
+  // Otomatis hapus pesan status setelah 5 detik agar layar tidak penuh teks.
+  useEffect(() => {
+    if (!pesan) return undefined;
+    const timer = setTimeout(() => setPesan(""), 5000);
+    return () => clearTimeout(timer);
+  }, [pesan]);
 
   async function muatBuku() {
     if (bukuSiap || memuatBuku) return;
@@ -140,10 +159,14 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
       setPesan(t("papan.repertoarJalurKosong"));
       return;
     }
-    await simpanKartuRepertoar(baru);
+    const berhasil = await simpanKartuRepertoar(baru);
     setKartu((lama) => [...lama, ...baru]);
     setSekarang(Date.now());
-    setPesan(t("papan.repertoarBerhasilTambah", { jumlah: baru.length }));
+    if (!berhasil) {
+      setPesan(t("papan.repertoarPenyimpananTerbatas"));
+    } else {
+      setPesan(t("papan.repertoarBerhasilTambah", { jumlah: baru.length }));
+    }
     setTampilan("koleksi");
   }
 
@@ -167,6 +190,11 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
 
   function pilihPetak(square) {
     if (statusLatihan !== "menunggu" || !kartuAktif) return;
+    if (!POLA_PETAK.test(square)) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
     if (terpilih === square) {
       setTerpilih(null);
       setSasaran([]);
@@ -190,6 +218,7 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
 
   function jawabLangkah(from, to) {
     if (statusLatihan !== "menunggu" || !kartuAktif) return;
+    if (!POLA_PETAK.test(from) || !POLA_PETAK.test(to)) return;
     const game = new Chess(fen);
     let pindah = null;
     const piece = game.get(from);
@@ -199,11 +228,19 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
     } catch {
       pindah = null;
     }
-    if (!pindah) return;
+    if (!pindah) {
+      // Langkah ilegal (mis. seret jatuh ke petak yang tidak sah) — beri
+      // feedback singkat ke pengguna alih-alih diam saja.
+      setPesan(t("papan.repertoarLangkahIlegal"));
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
 
     setTerpilih(null);
     setSasaran([]);
     setLangkahSalah(null);
+    setPesan("");
     if (uciDariPindahan(pindah) === kartuAktif.expectedUci) {
       setFen(game.fen());
       setLangkahAkhir({ from: pindah.from, to: pindah.to });
@@ -215,31 +252,38 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
   }
 
   async function nilaiKartu(nilai) {
-    if (!kartuAktif || !jalurAktif) return;
-    const waktu = Date.now();
-    const diperbarui = jadwalkanKartu(kartuAktif, nilai, waktu);
-    await simpanKartuRepertoar([diperbarui]);
-    const daftarBaru = kartu.map((item) => (item.id === diperbarui.id ? diperbarui : item));
-    setKartu(daftarBaru);
-    setSekarang(waktu);
-    const berikutnya = kartuBerikutnya(daftarBaru, jalurAktif, waktu);
-    setKartuAktif(berikutnya);
-    setLangkahSalah(null);
-    setTerpilih(null);
-    setSasaran([]);
-    if (berikutnya) {
-      setFen(berikutnya.fen);
-      setLangkahAkhir(null);
-      setStatusLatihan("menunggu");
-    } else {
-      setStatusLatihan("selesai");
+    if (!kartuAktif || !jalurAktif || menyimpan) return;
+    setMenyimpan(true);
+    try {
+      const waktu = Date.now();
+      const diperbarui = jadwalkanKartu(kartuAktif, nilai, waktu);
+      const berhasil = await simpanKartuRepertoar([diperbarui]);
+      const daftarBaru = kartu.map((item) => (item.id === diperbarui.id ? diperbarui : item));
+      setKartu(daftarBaru);
+      setSekarang(waktu);
+      const berikutnya = kartuBerikutnya(daftarBaru, jalurAktif, waktu);
+      setKartuAktif(berikutnya);
+      setLangkahSalah(null);
+      setTerpilih(null);
+      setSasaran([]);
+      if (berikutnya) {
+        setFen(berikutnya.fen);
+        setLangkahAkhir(null);
+        setStatusLatihan("menunggu");
+      } else {
+        setStatusLatihan("selesai");
+      }
+      if (!berhasil) setPesan(t("papan.repertoarPenyimpananTerbatas"));
+    } finally {
+      setMenyimpan(false);
     }
   }
 
   async function hapusJalur(lineId) {
-    await hapusJalurRepertoar(lineId);
+    const berhasil = await hapusJalurRepertoar(lineId);
     setKartu((lama) => lama.filter((item) => item.lineId !== lineId));
-    setPesan("");
+    if (!berhasil) setPesan(t("papan.repertoarPenyimpananTerbatas"));
+    else setPesan("");
   }
 
   const jumlahJatuhTempo = kartu.filter((item) => Number(item.dueAt) <= sekarang).length;
@@ -293,8 +337,8 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
                   langkahAkhir={langkahAkhir}
                   terkunci={statusLatihan !== "menunggu"}
                   membeku={statusLatihan !== "menunggu"}
-                  setBidak="alpha"
-                  tema="metal"
+                  setBidak={pp.bidak}
+                  tema={pp.warnaPapan}
                   onKlik={(square) => {
                     if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
                     else pilihPetak(square);
@@ -323,7 +367,8 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
                     key={nilai}
                     type="button"
                     onClick={() => void nilaiKartu(nilai)}
-                    className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:border-[#81b64c] hover:text-white"
+                    disabled={menyimpan}
+                    className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-xs font-semibold text-gray-200 transition hover:border-[#81b64c] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {t(label)}
                   </button>
@@ -334,7 +379,8 @@ export default function LatihanRepertoar({ onJelajahBuku }) {
               <button
                 type="button"
                 onClick={() => void nilaiKartu("again")}
-                className="rounded-md bg-[#81b64c] px-3 py-2 text-sm font-bold text-[#1e1c18] hover:bg-[#91c45a]"
+                disabled={menyimpan}
+                className="rounded-md bg-[#81b64c] px-3 py-2 text-sm font-bold text-[#1e1c18] hover:bg-[#91c45a] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {t("papan.repertoarUlangi")}
               </button>

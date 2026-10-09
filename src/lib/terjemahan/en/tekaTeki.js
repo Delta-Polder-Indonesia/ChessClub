@@ -55,6 +55,8 @@ export const tekaTeki = {
     buka: "Open",
     rentangNomor: "Numbers 1 through {total}",
     nomorTidakValid: "Enter a number between 1 and {total}.",
+    idSoalTidakDitemukan:
+      "Puzzle #{id} was not found (total {total} puzzles). Showing a random puzzle instead.",
     pengaturan: "Settings",
     tidakAdaSoal:
       "No puzzles match the current Level, Moves, Theme, and Side combination. Loosen one of the filters in Settings.",

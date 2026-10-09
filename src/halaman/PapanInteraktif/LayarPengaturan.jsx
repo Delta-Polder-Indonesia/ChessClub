@@ -169,10 +169,12 @@ export default function LayarPengaturan({ pengaturan = null }) {
                         type="number"
                         min={1}
                         max={1}
+                        disabled
                         value={threads}
-                        onChange={(e) => terapkanAngka(e.target.value, 1, 1, setThreads)}
-                        className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
+                        readOnly
+                        className="rounded-borderRoundness cursor-not-allowed border border-border bg-[#1f1f1f] px-2 py-1 text-sm text-foreground/50 outline-none"
                       />
+                      <span className="text-[10px] text-foregroundGrey">{t("papan.pengaturanThreadsSingle")}</span>
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
                       <label htmlFor="pengaturan-hash" className="text-xs font-bold text-foregroundGrey">{t("papan.pengaturanHash")}</label>
