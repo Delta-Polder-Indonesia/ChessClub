@@ -925,9 +925,14 @@ act(() => rootAkun.unmount());
   const barisJumlah = () => Array.from(elAkun.querySelectorAll("tbody tr"));
   const pilihDeteksi = (jenis, nilai) => act(async () => {
     const kontrol = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
-    kontrol.value = nilai;
-    // select merespons event 'change', input angka merespons 'input'
-    // (React onChange) — keduanya dikirim supaya helper berlaku untuk keduanya.
+    // Lewati value tracker React pada input angka seperti pada isiJumlah;
+    // assignment biasa bisa menandai nilai baru sebagai sudah terobservasi,
+    // sehingga event `input` tidak memicu onChange (mis. pilihan kedalaman).
+    const setNilai = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(kontrol), "value")?.set;
+    if (setNilai) setNilai.call(kontrol, nilai);
+    else kontrol.value = nilai;
+    // Select merespons event 'change', input angka merespons 'input' —
+    // keduanya dikirim supaya helper berlaku untuk kedua jenis kontrol.
     kontrol.dispatchEvent(new window.Event("input", { bubbles: true }));
     kontrol.dispatchEvent(new window.Event("change", { bubbles: true }));
   });

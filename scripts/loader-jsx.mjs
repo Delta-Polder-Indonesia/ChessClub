@@ -182,11 +182,45 @@ export function pluginGlobAset() {
 }
 
 const AKAR_REPO = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const EKSTENSI_VITE = [".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx", ".json"];
+
+/**
+ * Vite menambahkan ekstensi standar saat menyelesaikan alias `@/…` tanpa
+ * ekstensi. Node tidak melakukannya, jadi cari berkas yang sama seperti
+ * `resolve.extensions` Vite sebelum memberikan URL kepada loader Node.
+ */
+function resolusikanAliasVite(jalur) {
+  const ada = (kandidat) => {
+    try {
+      return statSync(kandidat);
+    } catch {
+      return null;
+    }
+  };
+
+  if (ada(jalur)?.isFile()) return jalur;
+  for (const ekstensi of EKSTENSI_VITE) {
+    const kandidat = `${jalur}${ekstensi}`;
+    if (ada(kandidat)?.isFile()) return kandidat;
+  }
+
+  if (ada(jalur)?.isDirectory()) {
+    for (const ekstensi of EKSTENSI_VITE) {
+      const kandidat = path.join(jalur, `index${ekstensi}`);
+      if (ada(kandidat)?.isFile()) return kandidat;
+    }
+  }
+
+  // Jangan mengubah galat menjadi resolusi palsu; biarkan Node menampilkan
+  // lokasi sumber yang tidak ada dengan jelas.
+  return jalur;
+}
 
 export async function resolve(specifier, context, next) {
   if (specifier === "@" || specifier.startsWith("@/")) {
     const relatif = specifier === "@" ? "" : specifier.slice(2);
-    return { url: pathToFileURL(path.join(AKAR_REPO, "src", relatif)).href, shortCircuit: true };
+    const jalur = resolusikanAliasVite(path.join(AKAR_REPO, "src", relatif));
+    return { url: pathToFileURL(jalur).href, shortCircuit: true };
   }
   return next(specifier, context);
 }
