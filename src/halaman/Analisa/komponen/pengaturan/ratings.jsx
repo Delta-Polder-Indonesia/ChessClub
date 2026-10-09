@@ -8,6 +8,7 @@ import { QUEEN, WHITE } from "chess.js";
 import PieceSVG from "../svg/piece.jsx";
 import RatingSVG from "../svg/rating.jsx";
 import { bacaTeks, tulis } from "../../penyimpanan.js";
+import { Switch } from "../../../../components/ui/switch.jsx";
 const ratings = [
   "brilliant",
   "great",
@@ -75,10 +76,10 @@ function Ratings() {
     setHighlightByRating(newHighlightByRating);
   }
   return <section>
-            <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.pengaturan.penilaian")}</h1>
-            <button onClick={toggleHighlightByRating} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
-                <div className="grid grid-cols-2 w-fit">
-                    {Array.from({ length: 4 }).map((_, i) => {
+            <div className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full p-2">
+                <button onClick={toggleHighlightByRating} type="button" className="flex flex-1 flex-row gap-2 items-center text-left">
+                    <div className="grid grid-cols-2 w-fit">
+                        {Array.from({ length: 4 }).map((_, i) => {
     const isEvenCol = i % 2 === 0;
     const isEvenRow = Math.floor(i / 2) % 2 === 0;
     const squareColor = isEvenCol ? isEvenRow ? boardThemes[boardTheme].white : boardThemes[boardTheme].black : isEvenRow ? boardThemes[boardTheme].black : boardThemes[boardTheme].white;
@@ -90,12 +91,12 @@ function Ratings() {
                                     </> : null}
                             </div>;
   })}
-                </div>
-                <span className="font-bold text-sm">{t("analisa.pengaturan.sorotLabel")}</span>
-                <div style={{ backgroundColor: "var(--foreground)", display: highlightByRating ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
-            </button>
+                    </div>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.sorotLabel")}</span>
+                </button>
+                <Switch size="sm" checked={highlightByRating} onCheckedChange={toggleHighlightByRating} aria-label={t("analisa.pengaturan.sorotLabel")} />
+            </div>
             {ratings.filter((rating) => rating !== "critical").map((rating, i) => {
-    const color = rating === "forced" ? "var(--highlightGood)" : `var(--highlight${capitalizeFirst(rating)})`;
     function toggleRating() {
       const baru = !usedRatings2[rating];
       const newUsedRatings = {
@@ -108,11 +109,13 @@ function Ratings() {
       setUsedRatings(newUsedRatings);
       tulis("usedRatings", serializeRatings(newUsedRatings));
     }
-    return <button onClick={toggleRating} type="button" key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
-                        <RatingSVG rating={rating} size={35} className="w-[40px] h-[40px] flex justify-center items-center" />
-                        <span className="font-bold text-sm">{capitalizeFirst(rating)}</span>
-                        <div style={{ backgroundColor: color, display: usedRatings2[rating] ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
-                    </button>;
+    return <div key={i} className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full p-2">
+                        <button onClick={toggleRating} type="button" className="flex flex-1 flex-row gap-2 items-center text-left">
+                            <RatingSVG rating={rating} size={35} className="w-[40px] h-[40px] flex justify-center items-center" />
+                            <span className="font-bold text-sm">{capitalizeFirst(rating)}</span>
+                        </button>
+                        <Switch size="sm" checked={usedRatings2[rating]} onCheckedChange={toggleRating} aria-label={capitalizeFirst(rating)} />
+                    </div>;
   })}
         </section>;
 }

@@ -153,12 +153,6 @@ export default function Nav() {
       kunci: "akun",
     },
     {
-      label: t("analisa.nav.pengaturan"),
-      icon: () => <Settings className="h-[18px] w-[18px] shrink-0" />,
-      tampilan: TAMPILAN_ANALISA.PENGATURAN,
-      kunci: "pengaturan",
-    },
-    {
       label: t("analisa.nav.deteksiEngine"),
       icon: () => <ShieldAlert className="h-[18px] w-[18px] shrink-0" />,
       tampilan: TAMPILAN_ANALISA.DETEKSI_ENGINE,
@@ -175,6 +169,12 @@ export default function Nav() {
       icon: (props) => <IkonImpor className={props.className} />,
       tampilan: TAMPILAN_ANALISA.IMPOR,
       kunci: "impor",
+    },
+    {
+      label: t("analisa.nav.pengaturan"),
+      icon: () => <Settings className="h-[18px] w-[18px] shrink-0" />,
+      tampilan: TAMPILAN_ANALISA.PENGATURAN,
+      kunci: "pengaturan",
     },
   ];
 

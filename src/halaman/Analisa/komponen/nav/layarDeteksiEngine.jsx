@@ -176,9 +176,17 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
   const [koleksi, setKoleksi] = useState([]);
   const [waktu, setWaktu] = useState("any");
   const [kedalaman, setKedalaman] = useState(KEDALAMAN_AGGREGAT);
+  // Teks mentah saat mengetik: angka dijepit hanya saat melebihi batas atas
+  // (ketik 20 → langsung 15), batas bawah dijepit saat kolom kehilangan fokus —
+  // supaya angka dua digit seperti 10/15 masih bisa diketik utuh.
+  const [teksKedalaman, setTeksKedalaman] = useState(String(KEDALAMAN_AGGREGAT));
   const [hashMb, setHashMb] = useState(() => mesin.opsi?.hash ?? hashUntukEngine());
+  const [teksHash, setTeksHash] = useState(String(hashMb));
   const [threads, setThreads] = useState(() => mesin.opsi?.threads ?? 1);
   const jumlahId = useId();
+  const kedalamanId = useId();
+  const hashId = useId();
+  const threadsId = useId();
   const [infoTerbuka, setInfoTerbuka] = useState(null);
   const wadahDialog = useMemo(() => document.querySelector?.(".analisa-root") || undefined, []);
   const ac = gunakanDeteksiRiwayat({ platform, username, waktu, kedalaman, papanSibuk });
@@ -246,6 +254,60 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
     mesin.ubahOpsi?.({ threads: n });
   }
 
+  /**
+   * Input angka manual (Kedalaman & Hash): teks bebas diketik — angka yang
+   * melewati batas atas langsung dijepit (ketik 20 → 15), kosong atau di
+   * bawah batas bawah dijepit saat kolom kehilangan fokus. Jepit per ketikan
+   * hanya pada batas atas supaya angka dua digit (10, 64, 100) bisa diketik utuh.
+   */
+  function ubahKedalamanInput(teks) {
+    setTeksKedalaman(teks);
+    if (String(teks).trim() === "") return;
+    const n = Math.round(Number(teks));
+    if (!Number.isFinite(n)) return;
+    if (n > 15) {
+      setKedalaman(15);
+      setTeksKedalaman("15");
+    } else if (n >= 6) {
+      setKedalaman(n);
+    }
+  }
+
+  function selesaikanKedalaman() {
+    const n = Math.round(Number(teksKedalaman));
+    const hasil =
+      String(teksKedalaman).trim() === "" || !Number.isFinite(n) ? kedalaman : Math.min(15, Math.max(6, n));
+    setKedalaman(hasil);
+    setTeksKedalaman(String(hasil));
+  }
+
+  function ubahHashInput(teks) {
+    setTeksHash(teks);
+    if (String(teks).trim() === "") return;
+    const n = Math.round(Number(teks));
+    if (!Number.isFinite(n)) return;
+    if (n > 128) {
+      gantiHash(128);
+      setTeksHash("128");
+    } else if (n >= 16) {
+      gantiHash(n);
+    }
+  }
+
+  function selesaikanHash() {
+    const n = Math.round(Number(teksHash));
+    const hasil = String(teksHash).trim() === "" || !Number.isFinite(n) ? hashMb : Math.min(128, Math.max(16, n));
+    gantiHash(hasil);
+    setTeksHash(String(hasil));
+  }
+
+  function ubahThreadsInput(teks) {
+    if (String(teks).trim() === "") return;
+    const n = Math.round(Number(teks));
+    if (!Number.isFinite(n)) return;
+    gantiThreads(Math.min(1, Math.max(1, n)));
+  }
+
   function pilihEngineDeteksi(id) {
     if (id === mesin.idEngine) return;
     mesin.gantiEngine?.(id);
@@ -290,16 +352,22 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
                     </div>
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-1 text-xs font-bold text-foregroundGrey">
-                        <span>{t("analisa.antiCheat.riwayat.kedalamanAnalisis")}</span>
+                        <label htmlFor={kedalamanId}>{t("analisa.antiCheat.riwayat.kedalamanAnalisis")}</label>
                         <TombolInfo uji="info-kedalaman" judul={t("analisa.antiCheat.riwayat.kedalamanAnalisis")} buka={() => setInfoTerbuka("kedalaman")} />
                       </div>
-                      <SelectDaftar
-                        labelTeks={t("analisa.antiCheat.riwayat.kedalamanAnalisis")}
-                        dataUji="deteksi-kedalaman"
-                        nilai={kedalaman}
-                        opsi={Array.from({ length: 10 }, (_, i) => i + 6).map((n) => ({ nilai: String(n), label: String(n) }))}
-                        onPilih={(n) => setKedalaman(Number(n))}
+                      <input
+                        id={kedalamanId}
+                        type="number"
+                        min={6}
+                        max={15}
+                        step={1}
+                        inputMode="numeric"
+                        data-uji="deteksi-kedalaman"
+                        value={teksKedalaman}
+                        onChange={(e) => ubahKedalamanInput(e.currentTarget.value)}
+                        onBlur={selesaikanKedalaman}
                         disabled={ac.berjalan}
+                        className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                       />
                     </div>
                   </div>
@@ -384,25 +452,36 @@ export default function LayarDeteksiEngine({ onBukaAkun }) {
                 </div>
                 <div className="flex flex-row gap-2">
                   <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-foregroundGrey">
-                    <span>{t("analisa.antiCheat.riwayat.hashMb")}</span>
-                    <SelectDaftar
-                      labelTeks={t("analisa.antiCheat.riwayat.hashMb")}
-                      dataUji="deteksi-hash"
-                      nilai={hashMb}
-                      opsi={[16, 32, 64, 128].map((n) => ({ nilai: n, label: String(n) }))}
-                      onPilih={(n) => gantiHash(Number(n))}
+                    <label htmlFor={hashId}>{t("analisa.antiCheat.riwayat.hashMb")}</label>
+                    <input
+                      id={hashId}
+                      type="number"
+                      min={16}
+                      max={128}
+                      step={16}
+                      inputMode="numeric"
+                      data-uji="deteksi-hash"
+                      value={teksHash}
+                      onChange={(e) => ubahHashInput(e.currentTarget.value)}
+                      onBlur={selesaikanHash}
                       disabled={ac.berjalan}
+                      className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                     />
                   </div>
                   <div className="flex min-w-0 flex-1 flex-col gap-1 text-xs font-bold text-foregroundGrey">
-                    <span>{t("analisa.antiCheat.riwayat.threads")}</span>
-                    <SelectDaftar
-                      labelTeks={t("analisa.antiCheat.riwayat.threads")}
-                      dataUji="deteksi-threads"
-                      nilai={threads}
-                      opsi={[{ nilai: 1, label: "1" }]}
-                      onPilih={(n) => gantiThreads(Number(n))}
+                    <label htmlFor={threadsId}>{t("analisa.antiCheat.riwayat.threads")}</label>
+                    <input
+                      id={threadsId}
+                      type="number"
+                      min={1}
+                      max={1}
+                      step={1}
+                      inputMode="numeric"
+                      data-uji="deteksi-threads"
+                      value={threads}
+                      onChange={(e) => ubahThreadsInput(e.currentTarget.value)}
                       disabled={ac.berjalan}
+                      className="rounded-borderRoundness border border-border bg-[#272727] px-2 py-1 text-sm text-foreground outline-none"
                     />
                   </div>
                 </div>

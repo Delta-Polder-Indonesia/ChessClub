@@ -142,7 +142,7 @@ export default function AreaKerja() {
           ) : null}
           {tampilan === TAMPILAN_ANALISA.PENGATURAN ? (
             <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>
-              <LayarPengaturan onTutup={kePapan} />
+              <LayarPengaturan />
             </Suspense>
           ) : null}
           {tampilan === TAMPILAN_ANALISA.DETEKSI_ENGINE ? (

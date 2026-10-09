@@ -907,7 +907,7 @@ act(() => rootAkun.unmount());
   const renderJumlah = (nama) => ctxJumlah.akun[1]({ platform: "chessCom", username: nama });
   await act(async () => renderJumlah(username));
 
-  const inputJumlah = () => elAkun.querySelector('input[type="number"]');
+  const inputJumlah = () => elAkun.querySelector('[data-uji="deteksi-jumlah"]');
   const isiJumlah = (nilai) => act(() => {
     const input = inputJumlah();
     const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
@@ -924,9 +924,12 @@ act(() => rootAkun.unmount());
   };
   const barisJumlah = () => Array.from(elAkun.querySelectorAll("tbody tr"));
   const pilihDeteksi = (jenis, nilai) => act(async () => {
-    const select = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
-    select.value = nilai;
-    select.dispatchEvent(new window.Event("change", { bubbles: true }));
+    const kontrol = elAkun.querySelector(`[data-uji="deteksi-${jenis}"]`);
+    kontrol.value = nilai;
+    // select merespons event 'change', input angka merespons 'input'
+    // (React onChange) — keduanya dikirim supaya helper berlaku untuk keduanya.
+    kontrol.dispatchEvent(new window.Event("input", { bubbles: true }));
+    kontrol.dispatchEvent(new window.Event("change", { bubbles: true }));
   });
   const tungguUi = () => act(async () => { await new Promise((r) => setTimeout(r, 20)); });
   const batalJumlah = () => act(async () => tombol(tID("analisa.antiCheat.riwayat.batal"))?.click());

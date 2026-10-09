@@ -7,6 +7,7 @@ import PieceSVG from "../svg/piece.jsx";
 import { QUEEN, WHITE } from "chess.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { bacaTeks, tulis } from "../../penyimpanan.js";
+import { Switch } from "../../../../components/ui/switch.jsx";
 function BestMoves() {
   const { t } = useI18n();
   const configContext = useContext(ConfigContext);
@@ -46,10 +47,10 @@ function BestMoves() {
     setArrowAfterMove(newArrowAfterMove);
   }
   return <section>
-            <h1 className="block bg-backgroundBoxBox font-bold text-nowrap p-3 text-foreground">{t("analisa.pengaturan.langkahTerbaik")}</h1>
-            <button onClick={toggleShowArrows} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
-                <div className="grid grid-cols-2 w-fit relative">
-                    {Array.from({ length: 4 }).map((_, i) => {
+            <div className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full p-2">
+                <button onClick={toggleShowArrows} type="button" className="flex flex-1 flex-row gap-2 items-center text-left">
+                    <div className="grid grid-cols-2 w-fit relative">
+                        {Array.from({ length: 4 }).map((_, i) => {
     const isEvenCol = i % 2 === 0;
     const isEvenRow = Math.floor(i / 2) % 2 === 0;
     const squareColor = isEvenCol ? isEvenRow ? boardThemes[boardTheme].white : boardThemes[boardTheme].black : isEvenRow ? boardThemes[boardTheme].black : boardThemes[boardTheme].white;
@@ -57,14 +58,16 @@ function BestMoves() {
                                 {i === 2 ? <PieceSVG className="absolute z-10 top-0 left-0" piece={QUEEN} size={20} color={WHITE} /> : null}
                             </div>;
   })}
-                    {showArrows ? <Arrow move={[{ col: 0, row: 1 }, { col: 1, row: 1 }]} squareSize={20} white class="fill-bestArrow stroke-bestArrow" /> : null}
-                </div>
-                <span className="font-bold text-sm">{t("analisa.pengaturan.tampilPanah")}</span>
-                <div style={{ backgroundColor: "var(--foreground)", display: showArrows ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
-            </button>
-            <button onClick={toggleArrowAfterMove} type="button" className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full relative p-2">
-                <div className="grid grid-cols-2 w-fit relative">
-                    {Array.from({ length: 4 }).map((_, i) => {
+                        {showArrows ? <Arrow move={[{ col: 0, row: 1 }, { col: 1, row: 1 }]} squareSize={20} white class="fill-bestArrow stroke-bestArrow" /> : null}
+                    </div>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.tampilPanah")}</span>
+                </button>
+                <Switch size="sm" checked={showArrows} onCheckedChange={toggleShowArrows} aria-label={t("analisa.pengaturan.tampilPanah")} />
+            </div>
+            <div className="flex flex-row gap-2 items-center hover:text-foregroundHighlighted hover:bg-black transition-colors w-full p-2">
+                <button onClick={toggleArrowAfterMove} type="button" className="flex flex-1 flex-row gap-2 items-center text-left">
+                    <div className="grid grid-cols-2 w-fit relative">
+                        {Array.from({ length: 4 }).map((_, i) => {
     const isEvenCol = i % 2 === 0;
     const isEvenRow = Math.floor(i / 2) % 2 === 0;
     const squareColor = isEvenCol ? isEvenRow ? boardThemes[boardTheme].white : boardThemes[boardTheme].black : isEvenRow ? boardThemes[boardTheme].black : boardThemes[boardTheme].white;
@@ -74,11 +77,12 @@ function BestMoves() {
                                 {(i === 2 || i === 3) && arrowAfterMove ? <div className="w-full h-full opacity-50 absolute top-0 left-0" style={{ backgroundColor: boardThemes[boardTheme].highlight }} /> : null}
                             </div>;
   })}
-                    <Arrow move={[{ col: 0, row: 1 }, { col: 1, row: 1 }]} squareSize={20} white class="fill-bestArrow stroke-bestArrow" />
-                </div>
-                <span className="font-bold text-sm">{t("analisa.pengaturan.panahSetelahLangkah")}</span>
-                <div style={{ backgroundColor: "var(--foreground)", display: arrowAfterMove ? "" : "none" }} className="w-3 h-3 rounded-full absolute right-3" />
-            </button>
+                        <Arrow move={[{ col: 0, row: 1 }, { col: 1, row: 1 }]} squareSize={20} white class="fill-bestArrow stroke-bestArrow" />
+                    </div>
+                    <span className="font-bold text-sm">{t("analisa.pengaturan.panahSetelahLangkah")}</span>
+                </button>
+                <Switch size="sm" checked={arrowAfterMove} onCheckedChange={toggleArrowAfterMove} aria-label={t("analisa.pengaturan.panahSetelahLangkah")} />
+            </div>
         </section>;
 }
 export {
