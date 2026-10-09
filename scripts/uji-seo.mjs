@@ -13,15 +13,19 @@
  *  3. sitemap.xml memuat persis rute yang boleh diindeks, lengkap dengan
  *     <lastmod>; robots.txt tidak memblokir;
  *  4. dua metode verifikasi Search Console (meta tag + berkas html) utuh.
+ *  5. rute layar-penuh gelap tidak lagi mewarisi `#boot-hero`/preload gambar
+ *     hero beranda, dan sudah membawa latar `#262421` inline (anti-kedipan).
  */
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import {
   RUTE_PUBLIK,
   RUTE_ALIH,
+  RUTE_LATAR_GELAP,
   META_RUTE,
   metadataRute,
   metadataUntukRute,
+  kerangkaRute,
 } from "../plugins/performa.js";
 
 const SEMUA_RUTE_BANGUN = ["/", ...RUTE_PUBLIK];
@@ -95,6 +99,41 @@ for (const rute of SEMUA_RUTE_BANGUN) {
   }
   const ogUrl = (hasil.match(/<meta property="og:url" content="([^"]*)" \/>/) || [])[1];
   if (ogUrl !== kanonikal) gagal(`Rute ${rute}: og:url "${ogUrl}" tidak sama dengan kanonikal.`);
+}
+
+/* -------------------------------- 2b. kerangka rute berlatar gelap */
+
+/*
+ * Bug yang dijaga: rute layar-penuh gelap masih mewarisi `#boot-hero` + preload
+ * gambar hero beranda dari index.html, sehingga pengunjung melihat foto beranda
+ * dulu lalu layar berganti gelap (kedipan sekali). Membuangnya tanpa latar
+ * inline `#262421` menukar kedipan itu dengan kedipan putih — karenanya dua
+ * pemeriksaan di bawah berpasangan dan tidak boleh dipisah.
+ */
+const ruteGelapAsing = RUTE_LATAR_GELAP.filter((r) => !RUTE_PUBLIK.includes(r));
+if (ruteGelapAsing.length) {
+  gagal(
+    `RUTE_LATAR_GELAP memuat rute yang tidak dipra-render: ${ruteGelapAsing.join(", ")}.`,
+  );
+}
+for (const rute of RUTE_LATAR_GELAP) {
+  const hasil = kerangkaRute(metadataRute(html, rute, situs), rute);
+  if (hasil.includes('id="boot-hero"')) {
+    gagal(`Rute gelap ${rute}: #boot-hero masih ada di HTML hasil build.`);
+  }
+  if (hasil.includes("/images/tonggak-2015.webp")) {
+    gagal(`Rute gelap ${rute}: preload gambar hero beranda masih ada.`);
+  }
+  if (!hasil.includes('<body style="background-color:#262421">')) {
+    gagal(`Rute gelap ${rute}: <body> tanpa latar gelap inline #262421.`);
+  }
+}
+// Rute ber-kerangka (dan beranda) WAJIB mempertahankan boot-hero untuk LCP.
+for (const rute of ["/", "/program-kami/teka-teki", "/turnamen"]) {
+  const hasil = metadataRute(html, rute, situs);
+  if (!hasil.includes('id="boot-hero"')) {
+    gagal(`Rute ${rute}: #boot-hero hilang — LCP beranda ikut rusak.`);
+  }
 }
 
 /* ------------------------------------------------- 3. sitemap & robots.txt */

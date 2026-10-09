@@ -24,6 +24,23 @@ export const RUTE_ALIH = {
   "/teka-teki": "/teka-teki/problem",
 };
 
+/**
+ * Rute layar-penuh berlatar gelap (harus selaras dengan `TANPA_KERANGKA` di
+ * `src/components/PageLayout.jsx`).
+ *
+ * HTML tiap rute disalin dari `index.html`, yang masih membawa sisa optimasi
+ * LCP beranda: `<link rel=preload>` + `<div id=boot-hero>` (foto
+ * `tonggak-2015.webp`). Di rute ini elemen itu salah halaman — pengunjung
+ * melihat foto beranda sampai chunk halaman dimuat, lalu layar berganti
+ * total jadi gelap: itulah kedipan sekali saat membuka rute.
+ */
+export const RUTE_LATAR_GELAP = [
+  "/teka-teki/problem",
+  "/teka-teki-rush",
+  "/quiz-catur",
+  "/papan-interaktif",
+];
+
 export const RUTE_PUBLIK = [
   "/tentang-kami",
   "/tentang-kami/struktur-grup-catur",
@@ -375,6 +392,33 @@ export function metadataRute(html, rute, siteUrl) {
   return gantiMeta(hasil, 'name="twitter:description"', meta.deskripsi);
 }
 
+/**
+ * Sesuaikan "kerangka" HTML rute berlatar gelap: buang sisa shell beranda
+ * (`<link rel=preload>` gambar hero + `<div id=boot-hero>`) dan pasang latar
+ * gelap inline pada `<body>`.
+ *
+ * DUA LANGKAH INI WAJIB BERBARENGAN. Membuang `#boot-hero` saja hanya menukar
+ * kedipan foto beranda dengan kedipan putih: `body` memakai `--color-paper`
+ * (#f8f8f8, src/index.css) sedangkan halamannya `#262421`, sehingga kanvas
+ * terang tampil sampai React menutupinya. Inline `style` pada `<body>` menang
+ * atas aturan stylesheet `body{background-color:…}`, dan karena `<html>` tidak
+ * punya latar sendiri, latar `body` ter-propagasi ke kanvas — seluruh viewport
+ * gelap sejak paint pertama, bahkan sebelum `#root` diisi apa pun.
+ *
+ * `#boot-hero` yang tersisa di `index.html` (beranda), `404.html`, dan rute
+ * ber-kerangka TIDAK disentuh: di sana elemen itu memang dipakai untuk LCP.
+ */
+export function kerangkaRute(html, rute) {
+  if (!RUTE_LATAR_GELAP.includes(rute)) return html;
+  return html
+    .replace(
+      /\s*<link rel="preload" as="image" href="\/images\/tonggak-2015\.webp"[^>]*\/>/,
+      "",
+    )
+    .replace(/\s*<div id="boot-hero"[\s\S]*?<\/div>/, "")
+    .replace("<body>", '<body style="background-color:#262421">');
+}
+
 /** Ganti meta robots HTML menjadi noindex (dipakai salinan 404.html). */
 function tanpaIndeks(html) {
   return html.replace(
@@ -457,7 +501,7 @@ export function performaHalaman({ siteUrl } = {}) {
       for (const rute of RUTE_PUBLIK) {
         const bersih = rute.replace(/^\/+|\/+$/g, "");
         if (!bersih) continue;
-        const htmlRute = metadataRute(html, rute, siteUrl);
+        const htmlRute = kerangkaRute(metadataRute(html, rute, siteUrl), rute);
         const berkas = path.join(dist, `${bersih}.html`);
         await mkdir(path.dirname(berkas), { recursive: true });
         await writeFile(berkas, htmlRute);
