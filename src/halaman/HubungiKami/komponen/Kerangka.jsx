@@ -4,7 +4,8 @@
  * Disalin dari template portofolio MIT "modern-portfolio" (Sanidhya Kumar Verma,
  * https://github.com/sanidhyy/modern-portfolio) agar tampilannya sama persis.
  * Perbedaan yang disengaja:
- *  - tautan Nav mengarah ke halaman ChessClub, bukan ke halaman portofolio;
+ *  - tautan Nav memakai path yang sama dengan referensi (/, /about, /services,
+ *    /work, /testimonials, /contact); path ini belum tentu ada di ChessClub;
  *  - tautan sosial dan logo diganti; tautan sosial dapat diedit pemilik situs;
  *  - breakpoint `xl` referensi (1200px) ditulis eksplisit sebagai `min-[1200px]`,
  *    sedangkan `lg` referensi (960px) ditulis sebagai `min-[960px]`, karena
@@ -33,15 +34,15 @@ import { berkasPublik } from "../../../lib/asets.js";
 
 const navData = [
   { name: "home", path: "/", Icon: HiHome },
-  { name: "about", path: "/tentang-kami", Icon: HiUser },
-  { name: "services", path: "/program-kami", Icon: HiRectangleGroup },
-  { name: "work", path: "/media-dan-informasi", Icon: HiViewColumns },
+  { name: "about", path: "/about", Icon: HiUser },
+  { name: "services", path: "/services", Icon: HiRectangleGroup },
+  { name: "work", path: "/work", Icon: HiViewColumns },
   {
     name: "testimonials",
-    path: "/pendaftaran-anggota",
+    path: "/testimonials",
     Icon: HiChatBubbleBottomCenterText,
   },
-  { name: "contact", path: "/hubungi-kami", Icon: HiEnvelope },
+  { name: "contact", path: "/contact", Icon: HiEnvelope },
 ];
 
 export function Navigasi() {
