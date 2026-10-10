@@ -31,6 +31,7 @@ import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
+import KarakterAnomali from "../../components/KarakterAnomali.jsx";
 import MaestroEdision from "./MaestroEdision.jsx";
 import Testimoni from "./Testimoni.jsx";
 import {
@@ -633,6 +634,7 @@ export default function Landing() {
       <HarapanTerimaKasih t={t} />
 
       <AjakanBergabung t={t} />
+      <KarakterAnomali />
     </div>
   );
 }

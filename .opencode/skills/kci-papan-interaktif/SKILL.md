@@ -127,3 +127,98 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 - Pemeriksaan dasar: `npm run uji:rute`, `npm run uji:i18n`, `npm run uji:repertoar`, `npm run uji:nama-pembukaan`, `npm run uji:artikel`, `npm run uji:bantuan-langkah`, `npm run uji:sunfish` (lawan level pemula Manusia vs Mesin), dan `npm run build` sesuai area yang berubah.
 - Bila menyentuh engine atau alur Analisa, jalankan uji engine/UI/regresi yang sesuai; perubahan Analisa mengikuti aturan v2 di atas.
 - Perubahan skill ini harus tetap identik antara `.agents/skills/` dan `.opencode/skills/`; jalankan `npm run uji:peta`.
+
+## Panduan Arsitektur & Logika Aplikasi Catur (Chess.com Standard)
+
+Dokumen ini berisi cetak biru (blueprint) seluruh perilaku catur, aturan legalitas, status permainan, dan fitur aplikasi yang harus diimplementasikan agar sistem memiliki struktur kode yang kuat, valid, dan minim bug.
+
+### 1. Core Board & State Management (Manajemen Papan)
+
+Mengatur bagaimana papan catur direpresentasikan dalam memori dan bagaimana status permainan disimpan.
+
+- **Square Coordinate System**: Representasi papan menggunakan koordinat grid 8x8 (A1 hingga H8) atau array 1-dimensi (64 kotak).
+- **Piece Representation**: Sistem identifikasi bidak berdasarkan tipe (Pawn, Knight, Bishop, Rook, Queen, King) dan warna (White, Black).
+- **Turn Management**: Sistem pelacakan giliran jalan yang ketat (Putih selalu pertama, lalu bergantian).
+- **FEN (Forsyth-Edwards Notation) Parser/Generator**: Kemampuan membaca dan menghasilkan string FEN untuk menyimpan *state* papan secara instan (contoh: `rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1`).
+- **Move History Tracker (PGN)**: Mencatat setiap langkah ke dalam format notasi catur standar (misal: `1. e4 e5 2. Nf3 Nc6`) untuk dianalisis ulang.
+
+### 2. Basic Movement Rules (Gerakan Dasar Bidak)
+
+Logika validasi untuk memastikan setiap bidak hanya melangkah sesuai karakteristik aslinya.
+
+- **Pion (Pawn)**:
+  - Maju 1 kotak ke depan (jika kotak kosong).
+  - Maju 2 kotak ke depan khusus dari baris awal (baris 2 untuk Putih, baris 7 untuk Hitam).
+  - Menangkap bidak lawan 1 kotak secara diagonal ke depan.
+  - *Constraint*: Tidak bisa melompati bidak lain.
+- **Kuda (Knight)**:
+  - Bergerak membentuk pola "L" (2 kotak vertikal + 1 horizontal, atau 2 kotak horizontal + 1 vertikal).
+  - *Special*: Satu-satunya bidak yang bisa melompati bidak lain (baik kawan maupun lawan).
+- **Gajah (Bishop)**:
+  - Bergerak secara diagonal tanpa batas kotak.
+  - *Constraint*: Tidak bisa melompati bidak lain dan jalurnya harus bersih hingga kotak tujuan.
+- **Benteng (Rook)**:
+  - Bergerak secara vertikal atau horizontal tanpa batas kotak.
+  - *Constraint*: Tidak bisa melompati bidak lain dan jalurnya harus bersih.
+- **Menteri/Ratu (Queen)**:
+  - Gabungan kemampuan Benteng dan Gajah (bebas bergerak ke segala arah: vertikal, horizontal, diagonal).
+  - *Constraint*: Tidak bisa melompati bidak lain.
+- **Raja (King)**:
+  - Bergerak 1 kotak ke segala arah (vertikal, horizontal, diagonal).
+  - *Constraint*: Tidak boleh melangkah ke kotak yang sedang diancam/dijaga oleh bidak lawan.
+
+### 3. Advanced & Special Moves (Gerakan Khusus)
+
+Logika tingkat lanjut yang sering memicu *bug* jika tidak ditangani dengan teliti.
+
+- **Pawn Promotion (Promosi Pion)**:
+  - Memicu menu pilihan (Ratu, Benteng, Gajah, Kuda) ketika pion mencapai baris ujung lawan (baris 8 untuk Putih, baris 1 untuk Hitam).
+  - Menghapus pion dari papan dan menggantinya dengan bidak pilihan secara instan.
+- **En Passant (Menangkap Lewat)**:
+  - Mengizinkan pion menangkap pion lawan yang baru saja maju 2 kotak, seolah-olah pion lawan hanya maju 1 kotak.
+  - *Constraint*: Hanya valid dilakukan **tepat satu langkah** setelah lawan maju 2 kotak tersebut. Jika dilewatkan, hak En Passant hangus.
+- **Castling (Rokade)**:
+  - Menggeser Raja 2 kotak ke arah Benteng, dan Benteng melompati Raja ke kotak sebelahnya (berlaku untuk *Kingside* maupun *Queenside*).
+  - *Validation Flags (Syarat Ketat)*:
+    - Raja belum pernah bergerak sama sekali.
+    - Benteng yang bersangkutan belum pernah bergerak sama sekali.
+    - Tidak ada bidak lain di antara Raja dan Benteng.
+    - Raja tidak sedang dalam posisi **Skak (Check)**.
+    - Raja tidak melewati kotak yang sedang diancam oleh bidak lawan.
+    - Raja tidak mendarat di kotak yang sedang diancam oleh bidak lawan.
+
+### 4. Check & Game Over Conditions (Kondisi Skak & Selesai)
+
+Sistem validasi akhir untuk menentukan pemenang atau hasil remis seperti di chess.com.
+
+- **Check Detection (Deteksi Skak)**: Mencari tahu apakah Raja salah satu pihak sedang di bawah ancaman langsung oleh bidak lawan.
+- **Absolute Pin Validation**: Memastikan pemain *tidak boleh* melangkahkan bidak lain jika langkah tersebut menyebabkan Rajanya sendiri menjadi ter-skak.
+- **Checkmate Detection (Skakmat)**: Terjadi jika Raja sedang di-skak, DAN tidak ada satu pun langkah legal yang bisa menyelamatkan Raja (Putih/Hitam menang).
+- **Draw - Stalemate (Remis Gantung)**: Terjadi jika giliran seorang pemain melangkah, Rajanya **tidak sedang di-skak**, tetapi pemain tersebut **tidak memiliki satu pun langkah legal** di papan.
+- **Draw - Insufficient Material (Kurang Bidak)**: Otomatis remis jika sisa bidak di papan tidak memungkinkan terjadinya skakmat. Kombinasi:
+  - Raja vs Raja.
+  - Raja + Gajah vs Raja.
+  - Raja + Kuda vs Raja.
+  - Raja + Gajah vs Raja + Gajah (dengan gajah berada di warna kotak yang sama).
+- **Draw - Threefold Repetition**: Otomatis atau opsi remis jika posisi susunan papan yang sama persis terjadi sebanyak 3 kali dalam satu permainan.
+- **Draw - 50-Move Rule**: Otomatis atau opsi remis jika dalam 50 langkah beruntun tidak ada pion yang maju dan tidak ada bidak yang dimakan.
+- **Timeout (Kehabisan Waktu)**: Pemain kalah jika waktu pada jam catur habis, dengan syarat lawan masih memiliki materi yang cukup untuk melakukan skakmat. Jika tidak cukup materi, hasilnya **Timeout vs Insufficient Material (Remis)**.
+
+### 5. UI/UX & Interaction Behavior (Antarmuka & Pengalaman Pengguna)
+
+Standar kenyamanan bermain yang meniru interaksi modern chess.com.
+
+- **Drag & Drop + Click-Click Move**: Mendukung pemindahan bidak dengan cara digeser (*drag*) maupun diklik kotak asal lalu diklik kotak tujuan.
+- **Legal Moves Highlighting**: Saat sebuah bidak dipilih/diklik, kotak-kotak yang legal untuk dituju akan memunculkan indikator visual (titik abu-abu/lingkaran).
+- **Last Move Indicator**: Memberikan warna latar belakang yang berbeda (misal: kuning muda) pada kotak asal dan kotak tujuan dari langkah terakhir yang baru saja dilakukan.
+- **Check Warning**: Memberikan efek visual merah/flashing pada kotak Raja yang sedang dalam posisi ter-skak.
+- **Move Sound Effects**: Memisahkan efek suara yang berbeda untuk: langkah biasa, memakan bidak (*capture*), posisi skak, rokade, dan permainan berakhir.
+- **Premoves (Opsional Tingkat Lanjut)**: Mengizinkan pemain melakukan langkah berikutnya sebelum giliran lawan selesai (ditandai dengan warna merah/hijau pada kotak).
+
+### 6. Engine & Sistem Multiplayer (Konektivitas)
+
+Komponen backend agar game bisa dimainkan melawan komputer atau orang lain.
+
+- **Local Pass-and-Play**: Mode bermain dua orang di satu perangkat fisik yang sama secara bergantian.
+- **UCI Protocol Support**: Sistem komunikasi untuk menghubungkan antarmuka visual Anda dengan catur engine pihak ketiga (seperti Stockfish).
+- **Real-time WebSockets Sync**: Sinkronisasi data langkah antar-pemain via internet secara instan tanpa *delay* yang besar.

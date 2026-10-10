@@ -3,13 +3,14 @@ import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volu
 import { Chess } from "chess.js";
 import Profile from "../../Analisa/komponen/svg/profile.jsx";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
+import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../../components/chess/pemuatBidak.js";
 import { berkasPublik } from "../../../lib/asets.js";
 import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
 import { useEngineCatur } from "../../../lib/gunakanEngineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, useSuara } from "../../../lib/suara.js";
-import { FEN_AWAL, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
+import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
 import BilahEvaluasi from "../BilahEvaluasi.jsx";
 import TangkapanBidak from "../TangkapanBidak.jsx";
@@ -52,6 +53,27 @@ function hasilAkhir(game) {
     return { jenis: "skakmat", pemenang: game.turn() === "w" ? "b" : "w" };
   }
   if (game.isDraw()) return { jenis: "seri", pemenang: null };
+  return null;
+}
+
+/**
+ * Cari petak raja milik sisi tertentu (`"w"` atau `"b"`) pada posisi `fen`.
+ * Untuk menempelkan lencana hasil (mahkota, raja tumbang, resign) di atas
+ * petak raja yang tepat.
+ *
+ * @param {string} fen posisi papan
+ * @param {string} warna "w" atau "b"
+ * @returns {string|null} petak raja (mis. "e1") atau null bila tidak ditemukan
+ */
+function petakRajaWarna(fen, warna) {
+  try {
+    const game = new Chess(fen);
+    for (const baris of game.board()) {
+      for (const kotak of baris) {
+        if (kotak && kotak.type === "k" && kotak.color === warna) return kotak.square;
+      }
+    }
+  } catch { /* posisi tak terbaca */ }
   return null;
 }
 
@@ -157,6 +179,73 @@ function KonfirmasiMenyerah({ onTutup, onYa, t }) {
             className="rounded-md border border-red-800 px-3 py-2 text-sm font-semibold text-red-300 transition hover:bg-red-950/60"
           >
             {t("papan.pveYa")}
+          </button>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/**
+ * Dialog hasil akhir partai (skakmat, remis, atau menyerah) gaya chess.com.
+ * Tiga tombol: X menutup dialog agar pengguna bisa menelusuri riwayat langkah,
+ * "Partai baru" kembali ke layar pemilihan warna/level, "Tanding ulang"
+ * langsung memulai partai baru dengan pengaturan yang sama.
+ */
+function DialogSelesai({ hasil, statusTeks, onTutup, onPartaiBaru, onTandingUlang, t }) {
+  const refDialog = useDialog(onTutup);
+  const alasan =
+    hasil.jenis === "skakmat"
+      ? t("papan.pveSelesaiAlasanSkakmat")
+      : hasil.jenis === "seri"
+        ? t("papan.pveSelesaiAlasanSeri")
+        : t("papan.pveSelesaiAlasanMenyerah");
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+      onClick={onTutup}
+    >
+      <section
+        ref={refDialog}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("papan.pveSelesaiJudul")}
+        className="w-full max-w-xs rounded-lg border border-[#3b3935] bg-[#1e1c18] p-5 text-gray-200 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-white">{t("papan.pveSelesaiJudul")}</h2>
+            <p className="mt-1 text-sm font-semibold text-gray-200">{statusTeks}</p>
+            <p className="mt-1 text-xs text-gray-400">{alasan}</p>
+          </div>
+          <button
+            type="button"
+            data-autofokus
+            onClick={onTutup}
+            aria-label={t("papan.tutup")}
+            title={t("papan.tutup")}
+            className="shrink-0 rounded p-1 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onPartaiBaru}
+            className="rounded-md border border-[#4a4742] px-3 py-2 text-sm font-semibold text-gray-200 transition hover:border-[#81b64c] hover:text-white"
+          >
+            {t("papan.pvePartaiBaru")}
+          </button>
+          <button
+            type="button"
+            onClick={onTandingUlang}
+            className="rounded-md bg-[#81b64c] px-3 py-2 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
+          >
+            {t("papan.pveTandingUlang")}
           </button>
         </div>
       </section>
@@ -302,6 +391,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const { nyala: suaraNyala, setNyala: setSuaraNyala, mainkan, mainkanLangkah: bunyikanLangkah } = useSuara();
   const [tampilPengaturan, setTampilPengaturan] = useState(false);
   const [konfirmasiMenyerah, setKonfirmasiMenyerah] = useState(false);
+  const [promosi, setPromosi] = useState(null); // { from, to, warna }
+  const [tampilDialogSelesai, setTampilDialogSelesai] = useState(false);
   const [aktif, setAktif] = useState(false);
   // Evaluasi objektif memakai pintu yang sama dengan mode Buku. Worker ini
   // sengaja terpisah dari worker lawan: level lawan boleh dilemahkan tanpa
@@ -329,6 +420,15 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const lawanKlikRef = useRef(null);
   const tokenLawanRef = useRef(0);
   const timerSalinRef = useRef(null);
+
+  useEffect(() => {
+    if (!promosi) return;
+    function saatEscape(e) {
+      if (e.key === "Escape") batalPromosi();
+    }
+    window.addEventListener("keydown", saatEscape);
+    return () => window.removeEventListener("keydown", saatEscape);
+  }, [promosi]);
 
   useEffect(() => {
     fenRef.current = fen;
@@ -368,10 +468,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     (from, to, promotion) => {
       const game = new Chess(fenRef.current);
       const piece = game.get(from);
-      const promosi = promotion || (piece?.type === "p" && (to.endsWith("1") || to.endsWith("8")) ? "q" : undefined);
+      // Pemain: promosi tanpa pilihan → buka dialog (jangan langsung "q").
+      // Mesin (promotion dari UCI) tetap memakai huruf yang dikirim engine.
+      const bidakPromosi =
+        promotion ||
+        (piece?.type === "p" && (to.endsWith("1") || to.endsWith("8")) ? "q" : undefined);
       let pindah;
       try {
-        pindah = game.move({ from, to, ...(promosi ? { promotion: promosi } : {}) });
+        pindah = game.move({ from, to, ...(bidakPromosi ? { promotion: bidakPromosi } : {}) });
       } catch {
         pindah = null;
       }
@@ -415,7 +519,11 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         mesinRef.current = null;
         setHasil(terminal);
         setStatusMesin("selesai");
-        setAktif(false);
+        // `aktif` TIDAK diset false di sini: daftar langkah dan navigasi
+        // harus tetap tampil setelah partai selesai agar pengguna bisa
+        // mereview langkah-langkahnya. `hasil` sudah cukup untuk mencegah
+        // langkah baru (lihat `bolehGerak`).
+        setTampilDialogSelesai(true);
       } else {
         setStatusMesin(game.turn() === warnaMesin ? "mesin" : "pemain");
       }
@@ -594,12 +702,36 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       if (boleh.includes(square)) pilihPetak(square, warnaMesin);
       return;
     }
-    if (!bolehGerak) return;
+    if (!bolehGerak || promosi) return;
     if (terpilih && sasaran.includes(square)) {
+      // Pion ke baris terakhir → buka dialog pemilihan bidak promosi.
+      try {
+        const game = new Chess(fenRef.current);
+        const bidak = game.get(terpilih);
+        if (bidak?.type === "p" && (square.endsWith("1") || square.endsWith("8"))) {
+          setPromosi({ from: terpilih, to: square, warna: bidak.color });
+          setTerpilih(null);
+          setSasaran([]);
+          return;
+        }
+      } catch { /* posisi rusak — deteksi promosi dilewati */ }
       mainkanLangkah(terpilih, square);
       return;
     }
     pilihPetak(square);
+  }
+
+  function pilihPromosi(bidakPromosi) {
+    if (!promosi) return;
+    const { from, to } = promosi;
+    setPromosi(null);
+    mainkanLangkah(from, to, bidakPromosi);
+  }
+
+  function batalPromosi() {
+    setPromosi(null);
+    setTerpilih(null);
+    setSasaran([]);
   }
 
   function bersihkanPartai() {
@@ -618,6 +750,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setHasil(null);
     setPesan("");
     setPgnTersalin(false);
+    setPromosi(null);
+    setTampilDialogSelesai(false);
   }
 
   function mulaiPartai() {
@@ -626,6 +760,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     jenisMesinRef.current = null;
     benihMesinRef.current = (Math.floor(Math.random() * 0xffffffff) >>> 0) || 1;
     bersihkanPartai();
+    setTampilDialogSelesai(false);
     setAktif(true);
     setStatusMesin("pemain");
     mainkan(SUARA.mulai);
@@ -638,7 +773,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setKonfirmasiMenyerah(false);
     setHasil({ jenis: "menyerah", pemenang: warnaMesin });
     setStatusMesin("selesai");
+    // `aktif` tetap true agar daftar langkah dan navigasi tetap bisa
+    // dipakai untuk review setelah dialog ditutup.
+    setTampilDialogSelesai(true);
+    mainkan(SUARA.klik);
+  }
+
+  function keHalamanUtama() {
+    mesinRef.current?.tamat();
+    mesinRef.current = null;
+    jenisMesinRef.current = null;
+    bersihkanPartai();
+    setTampilDialogSelesai(false);
     setAktif(false);
+    setStatusMesin("idle");
     mainkan(SUARA.klik);
   }
 
@@ -673,6 +821,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setLangkahAkhir(null);
     setTerpilih(null);
     setSasaran([]);
+    setPromosi(null);
     // Efek mesin di bawah tetap diam selama pengguna menelusuri riwayat (lihat
     // guard `riwayat.length < riwayatLengkap.length` di sana) dan tidak
     // menyentuh `statusMesin` pada jalur itu. Tanpa baris ini, status
@@ -763,6 +912,28 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
   const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
   const tangkapan = useMemo(() => susunTangkapan(riwayat, FEN_AWAL), [riwayat]);
+  // Petak raja untuk lencana hasil: mahkota di pemenang, raja tumbang /
+  // resign di yang kalah. Hanya dihitung saat partai benar-benar selesai.
+  const lencanaHasil = useMemo(() => {
+    if (!hasil) return null;
+    if (hasil.jenis === "skakmat") {
+      const kalah = hasil.pemenang === "w" ? "b" : "w";
+      return {
+        pemenang: petakRajaWarna(fen, hasil.pemenang),
+        kalah: petakRajaWarna(fen, kalah),
+        ikonKalah: "defeat",
+      };
+    }
+    if (hasil.jenis === "menyerah") {
+      const kalah = warnaPemain; // pemain selalu yang menyerah di mode ini
+      return {
+        pemenang: petakRajaWarna(fen, warnaMesin),
+        kalah: petakRajaWarna(fen, kalah),
+        ikonKalah: "resign",
+      };
+    }
+    return null; // remis tanpa lencana
+  }, [hasil, fen, warnaPemain, warnaMesin]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
     nama: sisi === warnaPemain ? t("papan.pveAnda") : NAMA_MESIN,
@@ -796,25 +967,91 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
               adaEvaluasi={Boolean(evaluasiAktif)}
             />
             <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
-              <PapanTekaTeki
-                fen={fen}
-                orientasi={orientasiPapan}
-                gayaGeser="analisa"
-                terpilih={terpilih}
-                sasaran={sasaran}
-                langkahAkhir={langkahAkhir}
-                tanda={tanda}
-                terkunci={!bolehGerak}
-                membeku={false}
-                setBidak={setBidak}
-                tema={tema}
-                onKlik={klikPetak}
-                onPilih={pilihPetak}
-                onJatuh={(from, to) => bolehGerak && mainkanLangkah(from, to)}
-                onTandaPetak={tandaPetak}
-                onTandaPanah={tandaPanah}
-                onHapusTanda={hapusSemuaTanda}
-              />
+              <div className="relative h-full w-full">
+                <PapanTekaTeki
+                  fen={fen}
+                  orientasi={orientasiPapan}
+                  gayaGeser="analisa"
+                  terpilih={terpilih}
+                  sasaran={sasaran}
+                  langkahAkhir={langkahAkhir}
+                  tanda={tanda}
+                  terkunci={!bolehGerak || !!promosi}
+                  membeku={false}
+                  setBidak={setBidak}
+                  tema={tema}
+                  ikonMahkota={lencanaHasil?.pemenang ? { petak: lencanaHasil.pemenang } : null}
+                  ikonSkakmat={lencanaHasil?.ikonKalah === "defeat" && lencanaHasil.kalah ? { petak: lencanaHasil.kalah } : null}
+                  ikonResign={lencanaHasil?.ikonKalah === "resign" && lencanaHasil.kalah ? { petak: lencanaHasil.kalah } : null}
+                  onKlik={klikPetak}
+                  onPilih={pilihPetak}
+                  onJatuh={(from, to) => {
+                    if (!bolehGerak || promosi) return;
+                    try {
+                      const game = new Chess(fenRef.current);
+                      const bidak = game.get(from);
+                      if (bidak?.type === "p" && (to.endsWith("1") || to.endsWith("8"))) {
+                        setPromosi({ from, to, warna: bidak.color });
+                        setTerpilih(null);
+                        setSasaran([]);
+                        return;
+                      }
+                    } catch { /* posisi rusak — deteksi promosi dilewati */ }
+                    mainkanLangkah(from, to);
+                  }}
+                  onTandaPetak={tandaPetak}
+                  onTandaPanah={tandaPanah}
+                  onHapusTanda={hapusSemuaTanda}
+                />
+
+                {promosi && (
+                  <div
+                    className="absolute inset-0 z-50 flex items-center justify-center bg-black/50"
+                    onClick={batalPromosi}
+                  >
+                    <div
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label={t("tekaTeki.promosiJudul")}
+                      className="flex flex-col items-center gap-3 rounded-lg border border-[#3b3935] bg-[#1e1c18] p-4 shadow-xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <p className="text-sm font-semibold text-gray-200">
+                        {t(
+                          promosi.warna === "w"
+                            ? "tekaTeki.promosiPutih"
+                            : "tekaTeki.promosiHitam"
+                        )}
+                      </p>
+                      <div className="flex gap-2">
+                        {PILIHAN_PROMOSI.map((p) => (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => pilihPromosi(p)}
+                            aria-label={t(KUCI_NAMA_PROMOSI[p])}
+                            title={t(KUCI_NAMA_PROMOSI[p])}
+                            className="flex h-14 w-14 items-center justify-center rounded-md bg-[#262421] p-1.5 transition hover:bg-[#312e2b] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#81b64c]"
+                          >
+                            <ChessPiece
+                              piece={promosi.warna === "w" ? p.toUpperCase() : p}
+                              set={setBidak}
+                              className="h-full w-full"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={batalPromosi}
+                        className="text-xs font-medium text-gray-400 underline-offset-2 transition hover:text-gray-200 hover:underline"
+                      >
+                        {t("tekaTeki.promosiBatal")}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <BarisProfil
@@ -992,7 +1229,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             <button
               type="button"
               onClick={() => setKonfirmasiMenyerah(true)}
-              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b]"
+              disabled={Boolean(hasil)}
+              className="flex flex-col items-center gap-1 rounded border border-[#312e2b] bg-[#262421] p-2 transition hover:bg-[#312e2b] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Flag className="h-4 w-4 text-gray-400" aria-hidden="true" />
               <span>{t("papan.pveMenyerah")}</span>
@@ -1042,6 +1280,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         <KonfirmasiMenyerah
           onTutup={() => setKonfirmasiMenyerah(false)}
           onYa={menyerah}
+          t={t}
+        />
+      )}
+
+      {tampilDialogSelesai && hasil && (
+        <DialogSelesai
+          hasil={hasil}
+          statusTeks={statusTeks()}
+          onTutup={() => {
+            setTampilDialogSelesai(false);
+            mainkan(SUARA.klik);
+          }}
+          onPartaiBaru={keHalamanUtama}
+          onTandingUlang={mulaiPartai}
           t={t}
         />
       )}

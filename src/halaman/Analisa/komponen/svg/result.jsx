@@ -211,6 +211,20 @@ function Defeat({ size }) {
             </g>
         </svg>;
 }
+function Resign({ size }) {
+  return <svg
+    width={size}
+    height={size}
+    viewBox="0 0 18 19"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <circle cx="9" cy="9.5" r="8.5" fill="#e53935" />
+    <path
+      d="M4.117 5.463a.567.567 0 0 0-1.099.286l2.33 8.687a.56.56 0 1 0 1.078-.286zm10.35 1.277c-.133-.591-.312-1.144-.472-1.743L13.455 3a3.3 3.3 0 0 1-1.697.985 6.2 6.2 0 0 1-1.664.16c-.552 0-1.091-.04-1.637-.047a6.5 6.5 0 0 0-1.664.167 3.3 3.3 0 0 0-1.704.972l.539 1.997.466 1.744c.14.512.286 1.051.452 1.684 0 .106.06.213.087.32a3.33 3.33 0 0 1 1.71-.98 6.8 6.8 0 0 1 1.665-.16c.545 0 1.085.047 1.63.054a6.6 6.6 0 0 0 1.671-.16A3.33 3.33 0 0 0 15 8.751c-.206-.772-.373-1.411-.533-2.01"
+      fill="#fff"
+    />
+  </svg>;
+}
 function ResultSVG({ result, size, dataset, draggable, className, style, title }) {
   const propsDataset = getPropsDataset(dataset ?? {});
   const ratingProps = { size };
@@ -223,6 +237,8 @@ function ResultSVG({ result, size, dataset, draggable, className, style, title }
         return <Draw {...ratingProps} />;
       case "defeat":
         return <Defeat {...ratingProps} />;
+      case "resign":
+        return <Resign {...ratingProps} />;
     }
   })()}
         </div>;

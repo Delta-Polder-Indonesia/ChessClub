@@ -234,6 +234,7 @@ export default function PapanTekaTeki({
   ikonLangkah = null, // { petak, rating } — ikon klasifikasi langkah di pojok petak (book/best/blunder, …)
   ikonSkakmat = null, // { petak } — lencana skakmat di atas raja lawan yang termat
   ikonMahkota = null, // { petak } — mahkota hijau (victory) di atas raja pemenang
+  ikonResign = null, // { petak } — ikon resign (bendera menyerah) di atas raja yang menyerah
   terkunci = false,
   membeku = false,
   setBidak = "merida",
@@ -946,6 +947,21 @@ export default function PapanTekaTeki({
                     top: baris === 0 ? "2%" : "-8%",
                     right: kolom === 7 ? "2%" : "-8%",
                     transform: "rotate(-90deg)",
+                  }}
+                />
+              )}
+
+              {/* Lencana resign — ikon bendera menyerah di atas raja yang
+                  menyerah. Posisi & ukuran sama dengan lencana lain. */}
+              {ikonResign && ikonResign.petak === sq && (
+                <ResultSVG
+                  result="resign"
+                  size="100%"
+                  title={t("papan.ikonResign")}
+                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+                  style={{
+                    top: baris === 0 ? "2%" : "-8%",
+                    right: kolom === 7 ? "2%" : "-8%",
                   }}
                 />
               )}
