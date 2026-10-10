@@ -60,7 +60,7 @@ export function ChessPiece({ piece, set = "merida", className = "w-full h-full" 
     };
   }, [set, percobaan]);
 
-  const sumber = piece ? (peta ?? undefined) ?? ambilSumberBidak(set, piece) : null;
+  const sumber = piece ? (peta?.[piece] ?? ambilSumberBidak(set, piece)) : null;
   if (!sumber) return null;
   return <img src={sumber} alt="" className={className} draggable={false} />;
 }

@@ -18,6 +18,45 @@ export const DAFTAR_SET = [
   { id: "staunty", nama: "Staunty" },
   { id: "tatiana", nama: "Tatiana" },
   { id: "chesscom", nama: "Chess.com" },
+  { id: "3d_chesskid", nama: "3D ChessKid", png: true },
+  { id: "3d_plastic", nama: "3D Plastic", png: true },
+  { id: "3d_staunton", nama: "3D Staunton", png: true },
+  { id: "3d_wood", nama: "3D Wood", png: true },
+  { id: "8_bit", nama: "8-Bit", png: true },
+  { id: "8qetl", nama: "8qetl", png: true },
+  { id: "bases", nama: "Bases", png: true },
+  { id: "book", nama: "Book", png: true },
+  { id: "bubblegum", nama: "Bubblegum", png: true },
+  { id: "ca09k", nama: "ca09k", png: true },
+  { id: "cases", nama: "Cases", png: true },
+  { id: "classic", nama: "Classic", png: true },
+  { id: "club", nama: "Club", png: true },
+  { id: "condal", nama: "Condal", png: true },
+  { id: "dash", nama: "Dash", png: true },
+  { id: "ejgfv", nama: "ejgfv", png: true },
+  { id: "game_room", nama: "Game Room", png: true },
+  { id: "glass", nama: "Glass", png: true },
+  { id: "gothic", nama: "Gothic", png: true },
+  { id: "graffiti", nama: "Graffiti", png: true },
+  { id: "icy_sea", nama: "Icy Sea", png: true },
+  { id: "light", nama: "Light", png: true },
+  { id: "lolz", nama: "Lolz", png: true },
+  { id: "luca", nama: "Luca", png: true },
+  { id: "marble", nama: "Marble", png: true },
+  { id: "maya", nama: "Maya", png: true },
+  { id: "metal", nama: "Metal", png: true },
+  { id: "modern", nama: "Modern", png: true },
+  { id: "nature", nama: "Nature", png: true },
+  { id: "neo_wood", nama: "Neo Wood", png: true },
+  { id: "neon", nama: "Neon", png: true },
+  { id: "newspaper", nama: "Newspaper", png: true },
+  { id: "ocean", nama: "Ocean", png: true },
+  { id: "sky", nama: "Sky", png: true },
+  { id: "space", nama: "Space", png: true },
+  { id: "tigers", nama: "Tigers", png: true },
+  { id: "tournament", nama: "Tournament", png: true },
+  { id: "vintage", nama: "Vintage", png: true },
+  { id: "wood", nama: "Wood", png: true },
 ];
 
 const NAMA_BIDAK = {
@@ -43,12 +82,16 @@ export function jalurAset(set, piece) {
     const kode = KODE_CHESSNUT[piece];
     return kode ? `../../asets/bidak/${kode}.svg` : null;
   }
-  if (set === "chesscom") {
-    const kode = KODE_ASET[piece];
-    return kode ? `../../asets/ChessCom/${kode.toLowerCase()}.png` : null;
-  }
   const kode = KODE_ASET[piece];
-  return kode ? `../../asets/${set}/${kode}.svg` : null;
+  if (!kode) return null;
+  if (set === "chesscom") {
+    return `../../asets/ChessCom/${kode.toLowerCase()}.png`;
+  }
+  const entri = DAFTAR_SET.find((s) => s.id === set);
+  if (entri?.png) {
+    return `../../asets/${set}/${kode.toLowerCase()}.png`;
+  }
+  return `../../asets/${set}/${kode}.svg`;
 }
 
 export function muatSet(set) {

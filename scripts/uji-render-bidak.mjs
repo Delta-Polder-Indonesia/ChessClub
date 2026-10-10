@@ -149,6 +149,14 @@ if (modulBidak.galat) {
   }
   const totalPasangan = DAFTAR_SET.length * KODE_BIDAK.length;
 
+  // Kunci "folder/piece" tanpa ekstensi & huruf kecil: mengizinkan set yang
+  // punya dua format (mis. alpha: wK.svg + wk.png) tanpa dihitung yatim.
+  const kunciStem = (rel) => {
+    const m = rel.match(/^(.*\/)([wb][KQRBNP])\.(?:svg|png)$/i);
+    return m ? `${m[1]}${m[2].toLowerCase()}` : rel;
+  };
+  const stemTerpetakan = new Set([...terpetakan].map(kunciStem));
+
   uji(`jalurAset mengembalikan jalur untuk ${totalPasangan} pasangan set x bidak`, tanpaJalur.length === 0, ringkas(tanpaJalur));
   uji(`kedua ${totalPasangan} jalur itu benar-benar ada di disk`, takAdaDiDisk.length === 0, ringkas(takAdaDiDisk));
   uji(
@@ -156,12 +164,12 @@ if (modulBidak.galat) {
     diDisk.length >= MINIMAL_ASET,
     `hanya ${diDisk.length} berkas`
   );
-  const yatim = [...jalurDiDisk].filter((j) => !terpetakan.has(j));
+  const yatim = [...jalurDiDisk].filter((j) => !stemTerpetakan.has(kunciStem(j)));
   uji(`tidak ada pemetaan yang menunjuk berkas hantu (${terpetakan.size} jalur)`, yatim.length === 0, ringkas(yatim));
   const hantu = [...terpetakan].filter((j) => !jalurDiDisk.has(j));
   uji(
-    `jumlah pasangan terpetakan sama dengan jumlah berkas di disk (${totalPasangan} = ${diDisk.length})`,
-    hantu.length === 0 && totalPasangan === diDisk.length,
+    `setiap jalur terpetakan ada di disk (${terpetakan.size} jalur, ${diDisk.length} berkas)`,
+    hantu.length === 0,
     ringkas(hantu)
   );
 }
@@ -361,13 +369,18 @@ if (modulBidak.galat) {
     uji(`set ${setBidak}: papan ter-render dengan 64 petak`, petak === 64, `${petak} petak`);
     uji(`set ${setBidak}: tepat 32 gambar bidak`, gambar.length === 32, `${gambar.length} img`);
     const kosongSrc = [...gambar].filter((el) => !el.getAttribute("src")).length;
+    const direktoriAset = setBidak === "chesscom" ? "ChessCom" : setBidak;
+    const sumberTidakSah = [...gambar].filter((el) => {
+      const src = el.getAttribute("src") ?? "";
+      return !src.includes(`/src/asets/${direktoriAset}/`) || !/\.(?:svg|png)$/.test(src);
+    }).length;
     // Gambar bidak bersifat dekoratif (alt=""): nama & warna bidak sudah ada di
     // aria-label petak (<button data-petak>), jadi tidak diumumkan dua kali.
     const altTidakKosong = [...gambar].filter((el) => el.getAttribute("alt") !== "").length;
     uji(
-      `set ${setBidak}: setiap gambar punya src terisi dan alt kosong (dekoratif)`,
-      kosongSrc === 0 && altTidakKosong === 0,
-      `src kosong ${kosongSrc}, alt tidak kosong ${altTidakKosong}`
+      `set ${setBidak}: setiap gambar memakai URL aset dan alt kosong (dekoratif)`,
+      kosongSrc === 0 && sumberTidakSah === 0 && altTidakKosong === 0,
+      `src kosong ${kosongSrc}, src bukan aset set ${sumberTidakSah}, alt tidak kosong ${altTidakKosong}`
     );
     const petakBerbidakTanpaLabel = [...gambar].filter(
       (el) => !el.closest("[data-petak]")?.getAttribute("aria-label")
