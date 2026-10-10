@@ -149,7 +149,7 @@ export function SudutKiri() {
   return (
     <div className="absolute left-0 top-0 mix-blend-color-dodge z-10 w-50 min-[1200px]:w-100 opacity-50 pointer-events-none select-none">
       <img
-        src={berkasPublik("/images/kontak/top-left-img-640.webp")}
+        src={berkasPublik("/images/kontak/top-left-img.webp")}
         alt="left cover bg"
         width={400}
         height={400}

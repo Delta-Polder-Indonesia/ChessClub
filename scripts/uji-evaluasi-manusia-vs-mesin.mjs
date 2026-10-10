@@ -242,6 +242,26 @@ modul.GESTUR.peluangRagu = 0;
 
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
+/**
+ * Bila dialog pemilih promosi muncul (tombol Menteri/Ratu), klik tombol itu.
+ * Dialog dirender setelah klik tujuan, jadi tunggu sebentar. Mengembalikan
+ * true bila dialog ditemukan dan dipilih, false bila langkah bukan promosi.
+ */
+async function pilihRatuJikaPromosi(wadah, batas = 1500) {
+  const tenggat = Date.now() + batas;
+  while (Date.now() < tenggat) {
+    const ratu = [...wadah.querySelectorAll("button")].find(
+      (b) => b.getAttribute("aria-label") === "Menteri (Ratu)"
+    );
+    if (ratu) {
+      ratu.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+      return true;
+    }
+    await tunggu(25);
+  }
+  return false;
+}
+
 /** Tunggu sampai `syarat()` benar, paling lama `batas` ms. */
 async function tungguSampai(syarat, batas = 4000, langkah = 10) {
   const tenggat = Date.now() + batas;
@@ -619,7 +639,7 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
     { dari: "g4", ke: "g5" },
     { dari: "g5", ke: "g6" },
     { dari: "g6", ke: "h7" },
-    { dari: "h7", ke: "g8" }, // promosi otomatis ke menteri
+    { dari: "h7", ke: "g8" }, // promosi (dipilih Menteri/Ratu di dialog)
     { dari: "g8", ke: "h8" },
     { dari: "h8", ke: "g8" },
     { dari: "c3", ke: "c4" },
@@ -639,6 +659,9 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
     // jadi tunggu sambil coba klik berulang.
     await p.klikSampaiTersorot(dari);
     p.klik(ke);
+    // Promosi pemain membuka dialog pemilih bidak (ManusiaVsMesin: pilihPromosi);
+    // pilih Menteri (Ratu) supaya langkah benar-benar dimainkan.
+    if (/7$/.test(dari) && /8$/.test(ke)) await pilihRatuJikaPromosi(p.wadah);
     await tungguSampai(() => window.__lawanJobs.some((j) => !j.selesai));
     window.__lawanJobs.find((j) => !j.selesai)?.rilis({ cp: 0 });
   }

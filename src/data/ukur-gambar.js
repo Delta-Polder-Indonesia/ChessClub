@@ -320,6 +320,11 @@ export const UKUR = {
     714,
     []
   ],
+  "/images/kontak/top-left-img.webp": [
+    411,
+    405,
+    []
+  ],
   "/images/landing-hero.webp": [
     1280,
     714,
