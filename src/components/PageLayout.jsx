@@ -28,6 +28,7 @@ const TANPA_KERANGKA = [
   "/teka-teki-rush",
   "/quiz-catur",
   "/papan-interaktif",
+  "/hubungi-kami",
 ];
 
 function tanpaKerangkaPath(pathname) {

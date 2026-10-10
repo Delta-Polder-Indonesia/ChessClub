@@ -1,0 +1,19 @@
+/*
+ * Gaya dasar halaman Hubungi Kami. Semua aturan dibatasi ke `.kontak-skin`
+ * agar tidak mengubah halaman lain. Font Sora dan warna teks sama dengan
+ * template referensi (MIT, Sanidhya Kumar Verma).
+ *
+ * `:where()` menjaga spesifisitas tetap nol, sehingga kelas utilitas
+ * (mis. kelas teks kecil dan kelas warna) tetap menang atas aturan dasar ini.
+ */
+@import "@fontsource-variable/sora";
+
+:where(.kontak-skin) {
+  font-family: "Sora Variable", sans-serif;
+}
+
+:where(.kontak-skin p) {
+  line-height: 1.8;
+  color: rgb(255 255 255 / 0.6);
+  font-weight: 300;
+}

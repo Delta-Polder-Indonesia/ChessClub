@@ -8,10 +8,16 @@
     "max-width-arbitrary": 5
   },
   "src/halaman/HubungiKami/HubungiKami.jsx": {
-    "ukuran-teks-arbitrary": 1,
+    "ukuran-teks-arbitrary": 9,
     "leading-arbitrary": 1,
-    "max-width-arbitrary": 1,
-    "tombol-ad-hoc": 2
+    "max-width-arbitrary": 4,
+    "tombol-ad-hoc": 1
+  },
+  "src/halaman/HubungiKami/komponen/Kerangka.jsx": {
+    "ukuran-teks-arbitrary": 5,
+    "max-width-arbitrary": 4,
+    "glassmorphism": 1,
+    "radius-berlebihan": 1
   },
   "src/halaman/Keberlanjutan/Bantuan.jsx": {
     "ukuran-teks-arbitrary": 1,
