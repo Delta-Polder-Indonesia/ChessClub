@@ -203,6 +203,12 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
       .getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })
       .getByRole("button", { name: kamus.pveYa })
       .click();
+    // Menyerah membuka dialog hasil; partai tetap aktif untuk ditinjau sehingga
+    // kartu konfigurasi belum kembali. Kartu itu baru tampil lewat "Partai baru".
+    const dialogSelesai = page.getByRole("dialog", { name: kamus.pveSelesaiJudul });
+    await expect(dialogSelesai).toBeVisible();
+    await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toHaveCount(0);
+    await dialogSelesai.getByRole("button", { name: kamus.pvePartaiBaru, exact: true }).click();
     await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
