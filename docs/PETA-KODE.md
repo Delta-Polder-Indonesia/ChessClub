@@ -171,7 +171,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `src/lib/api` | 10 | `uji-api-csrf.mjs`, `uji-pendaftaran-ui.mjs`, `uji-peta.mjs`, `smoke.spec.js` | Frontend API Client (src/lib/api) |
 | `src/hooks` | 1 | — | Frontend Application Architecture |
 | `src/data` | 3 | `uji-ebook-pembaca.mjs`, `uji-gambar.mjs` | — |
-| `src/asets` | 170 | `uji-render-bidak.mjs` | — |
+| `src/asets` | 650 | `uji-render-bidak.mjs` | — |
 | `server/src` | 29 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +26 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
 | `server/uji` | 11 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
 | `api` | 2 | `uji-akun-database.mjs`, `uji-api-csrf.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, +9 | Backend API Server |
