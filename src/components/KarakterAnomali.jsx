@@ -25,17 +25,18 @@ const RUTE = "/";
 
 /** Setel style elemen yang disuntik script sesuai status tampil. */
 function terapkan(tampil) {
-  const container = window.PeekingWidget && window.PeekingWidget.container;
+  const widget = window.PeekingWidget;
+  const container = widget && widget.container;
   const dialog = document.querySelector("ybouane-peeking-dialog");
 
+  // Saat menyembunyikan, tutup dialog lewat API resmi widget, bukan dengan
+  // membongkar atribut DOM manual. closeDialog() membersihkan state internal
+  // (penanda dialog terbuka, listener keyboard, fokus) sehingga dialog bisa
+  // dibuka lagi setelah kembali ke halaman Landing.
+  if (!tampil) widget?.closeDialog?.();
+
   if (container) container.style.display = tampil ? "" : "none";
-  if (dialog) {
-    if (!tampil) {
-      dialog.removeAttribute("data-visible");
-      dialog.removeAttribute("data-open");
-    }
-    dialog.style.display = tampil ? "" : "none";
-  }
+  if (dialog) dialog.style.display = tampil ? "" : "none";
 }
 
 export default function KarakterAnomali() {
@@ -66,6 +67,7 @@ export default function KarakterAnomali() {
       heightPx: 300,
       topPx: 80,
       analytics: false,
+      avatar: "/avatar.png",
       fileNameWebm: "/character.webm",
       fileNameHevc: null,
       poster: ["Ikuti perjalanannya!", "Ada yang menarik di sini...", "Yuk, mulai bermain!"],
