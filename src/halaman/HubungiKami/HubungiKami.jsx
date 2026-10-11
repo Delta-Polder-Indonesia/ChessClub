@@ -139,19 +139,14 @@ export default function HubungiKami() {
   const [activeTab, setActiveTab] = useState(() => {
     if (typeof window !== "undefined") {
       const hash = window.location.hash.toLowerCase();
-      if (hash.includes("contact") || hash.includes("hubungi")) return "contact";
       if (hash.includes("about")) return "about";
       if (hash.includes("service")) return "services";
       if (hash.includes("work")) return "work";
       if (hash.includes("testi")) return "testimonials";
       if (hash.includes("home")) return "home";
-
-      // Otomatisasi test runner
-      if (window.navigator?.webdriver || window.navigator?.userAgent?.includes("Headless")) {
-        return "contact";
-      }
+      if (hash.includes("contact") || hash.includes("hubungi")) return "contact";
     }
-    return "home";
+    return "contact";
   });
 
   const [aboutIndex, setAboutIndex] = useState(0);
