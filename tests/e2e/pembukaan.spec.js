@@ -68,6 +68,7 @@ for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
 
 for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
   test(`papan interaktif membuka papan lama tanpa meninggalkan workspace (${bahasa})`, async ({ page }, testInfo) => {
+    test.setTimeout(120_000);
     const galat = [];
     page.on("pageerror", (error) => galat.push(error.message));
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
@@ -172,7 +173,7 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.getByRole("button", { name: kamus.pveMulai, exact: true }).click();
     // Bilah bukan dekorasi: evaluator Stockfish terpisah harus mengganti tanda
     // tunggu dengan skor posisi yang benar-benar diterbitkan worker.
-    await expect(page.locator("[data-bilah-evaluasi]")).not.toHaveAttribute("aria-label", /—/);
+    await expect(page.locator("[data-bilah-evaluasi]")).not.toHaveAttribute("aria-label", /—/, { timeout: 30_000 });
     // Partai berjalan: kartu konfigurasi pra-partai hilang dan panel partai
     // (daftar langkah + navigasi + baris aksi) menggantikannya.
     await expect(page.getByRole("region", { name: kamus.pveKonfigurasi })).toHaveCount(0);

@@ -768,14 +768,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
 
   function menyerah() {
     if (!aktif || hasil) return;
-    mesinRef.current?.tamat();
-    mesinRef.current = null;
     setKonfirmasiMenyerah(false);
-    setHasil({ jenis: "menyerah", pemenang: warnaMesin });
-    setStatusMesin("selesai");
-    // `aktif` tetap true agar daftar langkah dan navigasi tetap bisa
-    // dipakai untuk review setelah dialog ditutup.
-    setTampilDialogSelesai(true);
+    keHalamanUtama();
     mainkan(SUARA.klik);
   }
 
