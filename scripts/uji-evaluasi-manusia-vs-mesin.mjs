@@ -639,6 +639,11 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
     // jadi tunggu sambil coba klik berulang.
     await p.klikSampaiTersorot(dari);
     p.klik(ke);
+    // Jika promosi, dialog muncul — pilih opsi pertama (menteri)
+    if (dari === "h7" && ke === "g8") {
+      await tungguSampai(() => !!p.wadah.querySelector('[role="dialog"] button'));
+      p.wadah.querySelector('[role="dialog"] button')?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    }
     await tungguSampai(() => window.__lawanJobs.some((j) => !j.selesai));
     window.__lawanJobs.find((j) => !j.selesai)?.rilis({ cp: 0 });
   }
@@ -676,6 +681,7 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
   );
 
   const jumlahJobSebelumMat = window.__evalJobs.length;
+  await p.klikSampaiTersorot(dari);
   p.klik(ke);
 
   await tungguSampai(() => p.wadah.textContent.includes("Skakmat"));
