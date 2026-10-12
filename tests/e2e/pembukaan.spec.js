@@ -204,6 +204,11 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
       .getByRole("dialog", { name: kamus.pveKonfirmasiMenyerah })
       .getByRole("button", { name: kamus.pveYa })
       .click();
+    // Menyerah mengakhiri partai dan menampilkan dialog hasil (seperti skakmat);
+    // "Partai baru" baru membawa kembali ke layar pengaturan.
+    const dialogSelesai = page.getByRole("dialog", { name: kamus.pveSelesaiJudul });
+    await expect(dialogSelesai).toBeVisible();
+    await dialogSelesai.getByRole("button", { name: kamus.pvePartaiBaru, exact: true }).click();
     await expect(page.getByRole("button", { name: kamus.pveMulai, exact: true })).toBeVisible();
     await expect(warnaPemain).toBeEnabled();
     await expect(levelMesin).toBeEnabled();
