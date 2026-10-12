@@ -61,6 +61,8 @@ function bacaSimpanan() {
       waktu,
       data: isi.data,
       sumber: isi.sumber === "fallback" ? "fallback" : "api",
+      rosterDiperbaruiPada: isi.rosterDiperbaruiPada || null,
+      rosterSegar: Boolean(isi.rosterSegar),
     };
   } catch {
     // localStorage bisa tidak tersedia (mode privat, kuota penuh, SSR).
@@ -68,11 +70,26 @@ function bacaSimpanan() {
   }
 }
 
-function tulisSimpanan(data, sumber = "api", peringatan = "") {
+function tulisSimpanan(
+  data,
+  sumber = "api",
+  peringatan = "",
+  rosterDiperbaruiPada = null,
+  rosterSegar = false
+) {
   try {
     globalThis.localStorage?.setItem(
       KUNCI_SIMPANAN,
-      JSON.stringify({ waktu: Date.now(), data, sumber, peringatan })
+      JSON.stringify({
+        waktu: Date.now(),
+        data,
+        sumber,
+        peringatan,
+        // Cap waktu snapshot ROSTER dari server (bukan waktu muat di browser):
+        // inilah yang memberitahu pengunjung seberapa baru daftar ini.
+        rosterDiperbaruiPada,
+        rosterSegar,
+      })
     );
   } catch {
     /* menyimpan cache bukan hal kritis */
@@ -92,6 +109,8 @@ function pulihkanCache() {
       dariSimpanan: true,
       sumber: tersimpan.sumber || "api",
       peringatan: "simpanan-lokal",
+      rosterDiperbaruiPada: tersimpan.rosterDiperbaruiPada || null,
+      rosterSegar: false,
     };
   }
   return cache;
@@ -116,8 +135,8 @@ export function muatAnggota({ paksa = false } = {}) {
   }
   if (!paksa && sedangJalan) return sedangJalan;
 
-  sedangJalan = ambilAnggotaDenganSumber()
-    .then(({ anggota, sumber, peringatan }) => {
+  sedangJalan = ambilAnggotaDenganSumber({ paksa })
+    .then(({ anggota, sumber, peringatan, diperbaruiPada, rosterSegar }) => {
       const bersih = Array.isArray(anggota) ? anggota : [];
       // Jawaban kosong tidak boleh menghapus daftar yang sudah tampil —
       // itu hampir selalu berarti sumbernya sedang bermasalah.
@@ -129,8 +148,15 @@ export function muatAnggota({ paksa = false } = {}) {
          muncul karena backend tidak dapat dihubungi — dan tidak boleh
          dipakai untuk menyimpulkan status/hak anggota apa pun. Kegagalan
          backend karenanya tidak disamarkan seolah sistem sehat. */
-      cache = { waktu: Date.now(), data: bersih, sumber, peringatan };
-      tulisSimpanan(bersih, sumber, peringatan);
+      cache = {
+        waktu: Date.now(),
+        data: bersih,
+        sumber,
+        peringatan,
+        rosterDiperbaruiPada: diperbaruiPada || null,
+        rosterSegar: Boolean(rosterSegar),
+      };
+      tulisSimpanan(bersih, sumber, peringatan, diperbaruiPada, rosterSegar);
       siarkan();
       return bersih;
     })
@@ -180,6 +206,13 @@ export function useAnggota() {
   /* "api" = jawaban backend, "fallback" = roster publik Chess.com saja. */
   const [sumber, setSumber] = useState(() => cache?.sumber || "api");
   const [peringatan, setPeringatan] = useState(() => cache?.peringatan || "");
+  /* Cap waktu SNAPSHOT ROSTER di server — beda dengan `diperbaruiPada` di
+     atas yang mencatat kapan browser terakhir memuat. Ini yang bisa
+     ditampilkan sebagai "daftar diperbarui <waktu>". */
+  const [rosterDiperbaruiPada, setRosterDiperbaruiPada] = useState(
+    () => cache?.rosterDiperbaruiPada || null
+  );
+  const [rosterSegar, setRosterSegar] = useState(() => Boolean(cache?.rosterSegar));
 
   useEffect(() => {
     let hidup = true;
@@ -190,6 +223,8 @@ export function useAnggota() {
         setDiperbaruiPada(cache.waktu || null);
         setSumber(cache.sumber || "api");
         setPeringatan(cache.peringatan || "");
+        setRosterDiperbaruiPada(cache.rosterDiperbaruiPada || null);
+        setRosterSegar(Boolean(cache.rosterSegar));
       }
     };
     pendengar.add(sinkron);
@@ -205,6 +240,8 @@ export function useAnggota() {
         setDiperbaruiPada(cache?.waktu || Date.now());
         setSumber(cache?.sumber || "api");
         setPeringatan(cache?.peringatan || "");
+        setRosterDiperbaruiPada(cache?.rosterDiperbaruiPada || null);
+        setRosterSegar(Boolean(cache?.rosterSegar));
         setStatus("siap");
       })
       .catch((err) => {
@@ -234,6 +271,8 @@ export function useAnggota() {
         setDiperbaruiPada(cache?.waktu || Date.now());
         setSumber(cache?.sumber || "api");
         setPeringatan(cache?.peringatan || "");
+        setRosterDiperbaruiPada(cache?.rosterDiperbaruiPada || null);
+        setRosterSegar(Boolean(cache?.rosterSegar));
         setStatus("siap");
         return data;
       })
@@ -256,6 +295,9 @@ export function useAnggota() {
     peringatan,
     menyegarkan: status === "menyegarkan",
     diperbaruiPada,
+    // Kapan snapshot roster di SERVER terakhir diperbarui dari Chess.com.
+    rosterDiperbaruiPada,
+    rosterSegar,
     muatUlang,
   };
 }

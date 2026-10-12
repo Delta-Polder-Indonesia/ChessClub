@@ -74,7 +74,8 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 - `npm run uji:nama-pembukaan` → `node scripts/uji-nama-pembukaan.mjs`
 - `npm run uji:pendaftaran` → `node server/uji/uji-pendaftaran.mjs`
 - `npm run uji:rekor-rush` → `node server/uji/uji-rekor-rush.mjs`
-- `npm run uji:rilis:v1` → `npm audit --omit=dev --audit-level=moderate && npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz && npm run build`
+- `npm run uji:rilis:v1` → `npm audit --omit=dev --audit-level=moderate && npm run uji && npm run uji:backend && npm run uji:roster-segar && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz && npm run build`
+- `npm run uji:roster-segar` → `node server/uji/uji-roster-segar.mjs`
 - `npm run uji:seret-bidak` → `node scripts/uji-seret-bidak.mjs`
 - `npm run uji:supabase` → `node scripts/uji-supabase.mjs`
 - `npm run uji:verifikasi` → `node server/uji/uji-verifikasi.mjs`
@@ -155,6 +156,7 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `server/uji/uji-konfigurasi-keamanan.mjs` | `npm run uji:konfigurasi-keamanan` |
 | `server/uji/uji-pendaftaran.mjs` | `npm run uji:pendaftaran` |
 | `server/uji/uji-rekor-rush.mjs` | `npm run uji:rekor-rush`, `npm run uji:rush` |
+| `server/uji/uji-roster-segar.mjs` | `npm run uji:roster-segar` |
 | `server/uji/uji-skema.mjs` | `npm run uji:skema` |
 | `server/uji/uji-verifikasi.mjs` | `npm run uji:verifikasi` |
 | `tests/e2e/analisa-grafik.spec.js` | `npm run uji:e2e` |
@@ -172,13 +174,13 @@ Skrip uji di luar rantai di atas (dijalankan terpisah / oleh CI):
 | `src/hooks` | 1 | — | Frontend Application Architecture |
 | `src/data` | 3 | `uji-ebook-pembaca.mjs`, `uji-gambar.mjs` | — |
 | `src/asets` | 650 | `uji-render-bidak.mjs` | — |
-| `server/src` | 29 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +26 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
-| `server/uji` | 11 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
-| `api` | 2 | `uji-akun-database.mjs`, `uji-api-csrf.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, +9 | Backend API Server |
+| `server/src` | 30 | `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, `uji-analisa.mjs`, +26 | Overview; Training Modes: Teka-Teki Rush & Quiz Catur; Backend API Server, +6 |
+| `server/uji` | 12 | `uji-backend.mjs`, `uji-ebook.mjs`, `uji-keamanan-admin.mjs`, `uji-roster-segar.mjs` | Training Modes: Teka-Teki Rush & Quiz Catur; Bootstrap, Configuration & HTTP Primitives; Security & Authentication Model, +1 |
+| `api` | 2 | `uji-akun-database.mjs`, `uji-api-csrf.mjs`, `uji-ebook-pembaca.mjs`, `uji-pendaftaran-ui.mjs`, +10 | Backend API Server |
 | `plugins` | 3 | `uji-ebook-pembaca.mjs`, `uji-rute.mjs`, `uji-seo.mjs` | — |
 | `db` | 1 | `uji-basisdata-galat.mjs`, `uji-basisdata.mjs`, `uji-repertoar.mjs`, `uji-supabase.mjs`, +1 | Persistence: JSON Seed Data & Supabase |
 | `data` | 9 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-gambar.mjs`, +12 | Public Content Pages; Persistence: JSON Seed Data & Supabase; Tournament Management |
-| `scripts` | 86 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +52 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
+| `scripts` | 87 | `uji-akun-database.mjs`, `uji-akurasi.mjs`, `uji-analisa-e2e.mjs`, `uji-analisa-ui.mjs`, +52 | Routing, Code Splitting & Layouts; Shared Components & UI Kit; Internationalization (terjemahan), +9 |
 | `tests/e2e` | 3 | `uji-render-bidak.mjs` | — |
 | `public` | 472 | `uji-analisa-ui.mjs`, `uji-buku-analisa.mjs`, `uji-ebook-pembaca.mjs`, `uji-ebook.mjs`, +15 | Chess Features; Interactive Board & Puzzles (PapanInteraktif, TekaTeki); Chess Engine Integration (Stockfish/UCI) |
 

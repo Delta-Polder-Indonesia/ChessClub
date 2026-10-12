@@ -50,6 +50,11 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
     `uji:nama-pembukaan`, `uji:anticheat`, `uji:seret-bidak`, `uji:jsonld`, `uji:rekor-rush`.
   - perlu kredensial atau jaringan: `uji:supabase` (butuh `SUPABASE_URL` +
     `SUPABASE_SERVICE_ROLE_KEY`; sengaja di luar CI).
+- `npm run uji:roster-segar` — kesegaran daftar anggota dari API klub Chess.com: snapshot usang
+  tetap dijawab seketika (halaman tidak kosong) tetapi disegarkan di latar belakang, snapshot yang
+  melewati `KCI_CHESS_KLUB_SNAPSHOT_TUNGGU` disegarkan DI DALAM permintaan (penting di serverless,
+  tempat pekerjaan latar belakang dibekukan setelah respons terkirim), dan penyegaran paksa pengurus
+  benar-benar melewati cache daftar klub + cache profil. Chess.com ditiru server lokal; tanpa internet.
 - `npm run uji:bantuan-langkah` — "Bantuan Langkah" Papan Interaktif (assisted play): FEN
   hipotetis + klasifikasi hijau/kuning/merah + panah balasan lawan dari posisi hipotetis.
   Memakai Worker UCI palsu supaya deterministik (debounce, cache, pembatalan, hasil basi).

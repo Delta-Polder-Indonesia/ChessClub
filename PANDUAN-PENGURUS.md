@@ -109,7 +109,7 @@ Isi dashboard:
 | Bagian | Fungsi |
 | ------ | ------ |
 | Kartu ringkasan | Jumlah anggota roster klub, larangan, turnamen, riwayat masuk, pesan, dan mode verifikasi |
-| Tab **Anggota** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, cek nomor HP, dan **Pindai ban fair play** |
+| Tab **Anggota** | Tabel anggota roster (Elo & status verifikasi), tombol **Blokir**, cek nomor HP, **Segarkan dari Chess.com**, dan **Pindai ban fair play** |
 | Tab **Daftar Larangan** | Tabel larangan dengan tombol **Cabut** dan cek nomor HP |
 | Tab **Riwayat Masuk** | Jejak log aktivitas login siapa saja yang masuk ke dashboard pengurus (akun Chess.com, hari, tanggal, bulan, tahun, jam, dan IP) |
 | Tab **Pesan Masuk** | Pesan yang dikirim pengunjung melalui form Hubungi Kami |
@@ -123,6 +123,50 @@ sini. Terminal tetap berguna untuk otomatisasi dan saat situs sedang mati.
 > Tombol **Blokir** membatasi akun dari situs dan turnamen. Tombol itu tidak
 > dapat mengeluarkan akun dari klub Chess.com; lakukan penghapusan anggota
 > tersebut langsung di Chess.com bila diperlukan.
+
+---
+
+## 4a. Menjaga daftar anggota tetap segar
+
+Daftar anggota publik diambil dari roster klub Chess.com, jadi ada beberapa
+titik tunda yang wajar:
+
+| Tahap | Jeda | Bisa dipersingkat? |
+| ----- | ---- | ------------------ |
+| Chess.com memperbarui endpoint roster | maksimal 12 jam | tidak |
+| Cache daftar anggota di server (`KCI_CHESS_KLUB_CACHE`) | bawaan 12 jam | ya, turunkan env-nya |
+| Cache profil/foto satu anggota (`KCI_CHESS_KLUB_PROFILE_CACHE`) | bawaan 1 jam | ya, turunkan env-nya |
+| Snapshot situs disegarkan di latar belakang | saat daftar lebih tua dari 15 menit | ya (`KCI_CHESS_KLUB_SNAPSHOT_SEGAR`) |
+
+**Tombol "Segarkan dari Chess.com"** (tab Anggota) menerobos SEMUA cache di
+atas: daftar anggota dan profil diambil ulang dari Chess.com, lalu snapshot
+situs ditulis ulang. Pakai tombol ini saat ada anggota baru yang belum
+muncul di situs.
+
+Yang penting dan sudah dijamin server: snapshot **tidak bisa tertinggal
+berhari-hari**. Bila snapshot melewati `KCI_CHESS_KLUB_SNAPSHOT_TUNGGU`
+(bawaan 2 jam), penyegarannya ditunggu di dalam permintaan; penyusunan itu
+sendiri beranggaran waktu (`KCI_CHESS_KLUB_PENGAYAAN_MS`) dan memakai rotasi
+(`KCI_CHESS_KLUB_SAPU` profil per penyusunan), jadi tidak pernah menggantung
+atau membanjiri API Chess.com — sekalipun di Vercel yang membekukan
+pekerjaan latar belakang setelah respons terkirim.
+
+### Memeriksa sendiri kapan saja
+
+Ingin bukti angka, bukan dugaan? Jalankan (di mesin/server dengan akses
+internet dan environment yang sama seperti server):
+
+```bash
+# Bandingkan snapshot situs dengan roster klub Chess.com
+node scripts/cek-roster-chesscom.mjs
+
+# Sekaligus bandingkan foto profil yang tersimpan dengan yang dipakai sekarang
+node scripts/cek-roster-chesscom.mjs --cek-foto
+```
+
+Keluaran yang paling perlu diperhatikan: baris `diperbarui:` (kapan snapshot
+terakhir disegarkan) dan daftar "Di Chess.com tetapi BELUM ada di situs".
+Skrip keluar dengan kode 1 bila ada selisih.
 
 ---
 

@@ -71,6 +71,20 @@ export default function PanelAnggota({
     return () => document.removeEventListener("keydown", onEsc);
   }, [kontak]);
 
+  /* Tarik ulang roster dari Chess.com. Endpoint ini memakai `paksa`, sehingga
+     daftar anggota DAN profil benar-benar diambil ulang — bukan mengulang
+     cache 12 jam / 1 jam (dulu tombol serupa tidak ada, jadi pengurus tidak
+     punya cara menyusul anggota baru tanpa menunggu cache kedaluwarsa). */
+  const segarkanRoster = () =>
+    jalankan("segarkan", async () => {
+      const h = await apiPengurus("/segarkan-roster", { metode: "POST" });
+      beriTahu(
+        `Roster disegarkan dari Chess.com: ${h.jumlah} anggota${h.diperbaruiPada ? ` (${new Date(h.diperbaruiPada).toLocaleString("id-ID")})` : ""}.`,
+        "sukses"
+      );
+      await muatUlang();
+    });
+
   const pindai = () =>
     jalankan("pindai", async () => {
       const h = await apiPengurus("/pindai", { metode: "POST" });
@@ -211,10 +225,16 @@ export default function PanelAnggota({
             </button>
           ))}
           <Tombol
+            anak={sibuk === "segarkan" ? "Menyegarkan…" : "Segarkan dari Chess.com"}
+            onClick={segarkanRoster}
+            kecil
+            disabled={sibuk === "segarkan" || sibuk === "pindai"}
+          />
+          <Tombol
             anak={sibuk === "pindai" ? "Memindai…" : "Pindai Fair Play"}
             onClick={pindai}
             kecil
-            disabled={sibuk === "pindai"}
+            disabled={sibuk === "pindai" || sibuk === "segarkan"}
           />
         </div>
       </div>

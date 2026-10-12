@@ -75,13 +75,22 @@ async function ambilRosterPublikChess() {
 
 /**
  * Daftar anggota + dari mana data itu datang.
+ *
+ * `paksa: true` (tombol muat ulang) melewati cache HTTP browser — tanpa itu
+ * jawaban `Cache-Control: max-age=…` dapat dipakai ulang dan pengguna tetap
+ * melihat daftar lama walaupun server sudah punya data baru.
+ *
  * @returns {Promise<{anggota: Array, sumber: "api"|"fallback",
- *                    diperbaruiPada: string|null, peringatan: string}>}
+ *                    diperbaruiPada: string|null, peringatan: string,
+ *                    rosterSegar: boolean}>}
  */
-export async function ambilAnggotaDenganSumber() {
+export async function ambilAnggotaDenganSumber({ paksa = false } = {}) {
   let peringatan = "";
   try {
-    const res = await fetchApi("/api/anggota");
+    const res = await fetchApi(
+      "/api/anggota",
+      paksa ? { cache: "no-store" } : undefined
+    );
     if (!res.ok) throw new Error(`API anggota menjawab ${res.status}.`);
     const data = await res.json();
     if (!Array.isArray(data)) throw new Error("Format API anggota tidak sah.");
@@ -91,7 +100,13 @@ export async function ambilAnggotaDenganSumber() {
     if (segar === "0") {
       peringatan = "snapshot-lama";
     }
-    return { anggota: data, sumber: "api", diperbaruiPada, peringatan };
+    return {
+      anggota: data,
+      sumber: "api",
+      diperbaruiPada,
+      peringatan,
+      rosterSegar: segar !== "0",
+    };
   } catch (galatBackend) {
     try {
       const anggota = await ambilRosterPublikChess();
@@ -100,6 +115,7 @@ export async function ambilAnggotaDenganSumber() {
         sumber: "fallback",
         diperbaruiPada: null,
         peringatan: "roster-publik",
+        rosterSegar: false,
         sebab: galatBackend?.message || String(galatBackend),
       };
     } catch {

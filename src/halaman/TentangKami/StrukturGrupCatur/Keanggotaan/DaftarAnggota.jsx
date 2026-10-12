@@ -19,6 +19,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { CentangBiru, LencanaBan } from "../../../../components/Lencana.jsx";
 import { useAnggota, kenaBan } from "../../../../lib/anggotaBersama.js";
+import { Button } from "../../../../components/ui/button.jsx";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
 function sel(nilai) {
@@ -35,6 +36,28 @@ function formatTanggal(iso, bahasa) {
     month: "long",
     year: "numeric",
   });
+}
+
+/** Format ISO menjadi "13 Agu 2026, 21.05" mengikuti bahasa aktif. */
+function formatWaktu(iso, bahasa) {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString(bahasa === "en" ? "en-US" : "id-ID", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Berapa jam sejak cap waktu ISO (null bila tidak sah). */
+function umurJam(iso) {
+  if (!iso) return null;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return null;
+  return (Date.now() - t) / 3_600_000;
 }
 
 function namaKlub(slug) {
@@ -340,7 +363,23 @@ export default function DaftarAnggota() {
   const [dipilih, setDipilih] = useState(null);
 
   // Satu pintu: sumber data yang sama dengan halaman Peringkat.
-  const { anggota, status, pesan, menyegarkan, sumber, peringatan } = useAnggota();
+  const {
+    anggota,
+    status,
+    pesan,
+    menyegarkan,
+    sumber,
+    peringatan,
+    rosterDiperbaruiPada,
+    rosterSegar,
+    muatUlang,
+  } = useAnggota();
+  /* Kejujuran data: tampilkan KAPAN snapshot roster disegarkan dari Chess.com.
+     Sebelumnya cap waktu ini tidak pernah ditampilkan, sehingga daftar yang
+     tertinggal berhari-hari tidak bisa dibedakan dari daftar yang baru. */
+  const jamSejakRoster = umurJam(rosterDiperbaruiPada);
+  const rosterTertinggal =
+    sumber !== "fallback" && (rosterSegar === false || (jamSejakRoster ?? 0) > 24);
   // Data dari kunjungan sebelumnya sudah bisa ditampilkan sementara versi
   // terbaru diambil di latar belakang.
   const adaData = anggota.length > 0;
@@ -369,6 +408,32 @@ export default function DaftarAnggota() {
           <p className="text-sm text-slate-500">
             {t("keanggotaan.jumlah", { jumlah: anggota.length })}
           </p>
+          {sumber !== "fallback" && rosterDiperbaruiPada && (
+            <p
+              className={
+                rosterTertinggal
+                  ? "mt-1 text-xs font-medium leading-5 text-amber-700"
+                  : "mt-1 text-xs leading-5 text-slate-500"
+              }
+            >
+              {rosterTertinggal && jamSejakRoster !== null
+                ? t("keanggotaan.rosterTertinggal", {
+                    waktu: formatWaktu(rosterDiperbaruiPada, bahasa),
+                  })
+                : t("keanggotaan.rosterDiperbarui", {
+                    waktu: formatWaktu(rosterDiperbaruiPada, bahasa),
+                  })}{" "}
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={menyegarkan}
+                onClick={() => muatUlang()}
+                className="h-auto gap-0 p-0 text-xs font-semibold text-primary underline underline-offset-2 hover:bg-transparent"
+              >
+                {t("keanggotaan.muatUlang")}
+              </Button>
+            </p>
+          )}
           {sumberKlub && (
             <p className="mt-1 text-xs leading-5 text-slate-500">
               {t("keanggotaan.sumber")} {" "}

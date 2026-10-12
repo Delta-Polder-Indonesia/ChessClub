@@ -85,8 +85,17 @@ export const PEMAIN_TIRUAN = {
  * "memasang" kode tantangan ke kolom Location profil pada request berikutnya
  * — persis yang dilakukan pendaftar sungguhan — tanpa perlu akun nyata.
  */
-export function nyalakanPeniruChess(pemainTambahan = {}, { ubahProfil } = {}) {
+export function nyalakanPeniruChess(
+  pemainTambahan = {},
+  { ubahProfil, anggotaKlub, pemainTambahanGetter } = {}
+) {
   const pemain = { ...PEMAIN_TIRUAN, ...pemainTambahan };
+  /* `anggotaKlub` dibaca SETIAP permintaan (bukan disalin), sehingga uji
+     dapat mengubah keanggotaan klub di tengah jalan untuk membuktikan bahwa
+     daftar anggota yang tampil benar-benar ikut berubah. */
+  const daftarKlub = () => anggotaKlub || ANGGOTA_KLUB_TIRUAN;
+  const pemainSaatIni = () => ({ ...pemain, ...(pemainTambahanGetter?.() || {}) });
+  const hits = { klub: 0, pemain: 0 };
   const server = http.createServer((req, res) => {
     const kirim = (status, isi) => {
       res.writeHead(status, { "Content-Type": "application/json" });
@@ -95,14 +104,16 @@ export function nyalakanPeniruChess(pemainTambahan = {}, { ubahProfil } = {}) {
     const jalur = decodeURIComponent((req.url || "").split("?")[0]);
     const klub = /^\/club\/([^/]+)\/members$/.exec(jalur);
     if (klub) {
+      hits.klub++;
       return klub[1].toLowerCase() === "blunder-skuad"
-        ? kirim(200, ANGGOTA_KLUB_TIRUAN)
+        ? kirim(200, daftarKlub())
         : kirim(404, { code: 0, message: "Not Found" });
     }
     const cocok = /^\/player\/([^/]+?)(\/stats)?$/.exec(jalur);
     if (!cocok) return kirim(404, { pesan: "jalur tak dikenal" });
-    const data = pemain[cocok[1].toLowerCase()];
+    const data = pemainSaatIni()[cocok[1].toLowerCase()];
     if (!data) return kirim(404, { code: 0, message: "Not Found" });
+    hits.pemain++;
     if (cocok[2]) return kirim(200, data.stats || {});
     const { stats, ...profilDasar } = data;
     // Jangan pernah mengubah objek bersama: hasil hook adalah salinan baru.
@@ -112,7 +123,11 @@ export function nyalakanPeniruChess(pemainTambahan = {}, { ubahProfil } = {}) {
   return new Promise((resolve, reject) => {
     server.once("error", reject);
     server.listen(0, "127.0.0.1", () =>
-      resolve({ dasar: `http://127.0.0.1:${server.address().port}`, server })
+      resolve({
+        dasar: `http://127.0.0.1:${server.address().port}`,
+        server,
+        hits,
+      })
     );
   });
 }
