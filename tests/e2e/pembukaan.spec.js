@@ -116,7 +116,11 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
 
     await menu.getByRole("button", { name: kamus.menuLatihanRepertoar }).click();
-    await expect(page.getByRole("heading", { name: kamus.repertoarJudul })).toBeVisible();
+    // Chunk Repertoar dimuat malas; di CI (vite dev, worker paralel) transform
+    // dingin bisa melewati 15s bawaan — sama seperti papan di baris 82.
+    await expect(page.getByRole("heading", { name: kamus.repertoarJudul })).toBeVisible({
+      timeout: 30_000,
+    });
     await page.getByRole("button", { name: kamus.repertoarJelajahBuku }).click();
     await expect(analisa).toHaveAttribute("aria-pressed", "true");
     await expect(page.locator("[data-petak]")).toHaveCount(64);
