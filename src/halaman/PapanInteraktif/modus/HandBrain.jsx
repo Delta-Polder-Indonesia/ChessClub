@@ -140,16 +140,20 @@ export default function HandBrain({ pengaturan = null }) {
       : t("papan.hbSeri");
 
   return (
+    // Ukuran papan mengikuti mode Manusia vs Mesin: konten dibatasi 1280px dan
+    // kolom papan maksimal 520px, sehingga panel kanan selalu lebarnya sama.
     <section
       aria-label={t("papan.menuHandBrain")}
-      className="flex h-full min-h-0 flex-col overflow-y-auto p-4"
+      className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden"
     >
-      <header className="shrink-0 border-b border-[#312e2b] pb-3">
-        <h1 className="text-xl font-bold text-white">{t("papan.hbJudul")}</h1>
-      </header>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-        <div className="relative mx-auto aspect-square w-full max-w-[640px]">
+      <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+        <h1 className="mb-2 text-xl font-bold text-white">{t("papan.hbJudul")}</h1>
+        {/* Spacer selebar bilah evaluasi (w-9 + gap-1.5) di Manusia vs Mesin:
+            papan di sini berukuran sama persis dengan mode yang sudah berjalan. */}
+        <div className="flex w-full items-stretch justify-center gap-1.5">
+          <div aria-hidden="true" className="w-9 shrink-0" />
+          <div className="aspect-square min-w-0 flex-1">
+          <div className="relative h-full w-full">
           <PapanTekaTeki
             fen={fen}
             orientasi={giliran}
@@ -164,9 +168,12 @@ export default function HandBrain({ pengaturan = null }) {
             onKlik={onKlik}
             onSelesaiSeret={onSelesaiSeret}
           />
+          </div>
+          </div>
         </div>
+      </div>
 
-        <aside className="flex flex-col gap-3 rounded-md bg-[#211f1c] p-4 text-sm text-gray-200">
+      <aside className="flex min-h-0 flex-col gap-3 self-start rounded-md bg-[#211f1c] p-4 text-sm text-gray-200 lg:self-center">
           {selesai ? (
             <p className="font-semibold text-white" role="status">
               {statusTeks}
@@ -216,7 +223,6 @@ export default function HandBrain({ pengaturan = null }) {
             )}
           </div>
         </aside>
-      </div>
     </section>
   );
 }
