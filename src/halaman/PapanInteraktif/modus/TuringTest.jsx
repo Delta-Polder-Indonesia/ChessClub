@@ -4,6 +4,7 @@ import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
 import { EngineCatur } from "../../../lib/engineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
+import { GALAT_IMPOR, GalatImporLichess, ambilPgnLichess } from "./turingLichess.js";
 import {
   JUMLAH_SOAL,
   catatSkor,
@@ -17,6 +18,15 @@ import {
 
 /** Kedalaman Stockfish untuk langkah mesin. Cukup untuk pilihan yang wajar. */
 const KEDALAMAN_MESIN = 10;
+
+/** Kode galat impor → kunci i18n (literal, supaya dipindai uji-i18n). */
+const KUNCI_GALAT_IMPOR = {
+  [GALAT_IMPOR.namaTidakSah]: "papan.turingGalatNama",
+  [GALAT_IMPOR.tidakDitemukan]: "papan.turingGalatTidakAda",
+  [GALAT_IMPOR.batasTercapai]: "papan.turingGalatBatas",
+  [GALAT_IMPOR.jaringan]: "papan.turingGalatJaringan",
+  [GALAT_IMPOR.kosong]: "papan.turingGalatKosong",
+};
 
 /** FEN setelah langkah manusia, dipakai untuk menampilkan hasil tebakan. */
 function fenSetelahManusia(fen, uci) {
@@ -36,6 +46,9 @@ export default function TuringTest({ pengaturan = null }) {
   const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [teks, setTeks] = useState("");
+  const [namaLichess, setNamaLichess] = useState("");
+  const [ambilSedang, setAmbilSedang] = useState(false);
+  const ambilRef = useRef(null);
   // input | menyiapkan | tebak | hasil
   const [fase, setFase] = useState("input");
   const [soal, setSoal] = useState([]);
@@ -50,10 +63,34 @@ export default function TuringTest({ pengaturan = null }) {
     aktifRef.current = true;
     return () => {
       aktifRef.current = false;
+      ambilRef.current?.abort();
       engineRef.current?.tamat();
       engineRef.current = null;
     };
   }, []);
+
+  /** Isi kotak PGN dengan partai akun Lichess. Pemain tetap menekan "Mulai tebak". */
+  async function ambilDariLichess() {
+    ambilRef.current?.abort();
+    const kendali = new AbortController();
+    ambilRef.current = kendali;
+    setAmbilSedang(true);
+    setPesan("");
+    try {
+      const pgn = await ambilPgnLichess(namaLichess, { signal: kendali.signal });
+      if (!aktifRef.current || kendali.signal.aborted) return;
+      setTeks(pgn);
+    } catch (galat) {
+      if (!aktifRef.current || kendali.signal.aborted) return;
+      const kode = galat instanceof GalatImporLichess ? galat.kode : GALAT_IMPOR.jaringan;
+      setPesan(t(KUNCI_GALAT_IMPOR[kode] ?? "papan.turingGalatJaringan"));
+    } finally {
+      if (aktifRef.current && ambilRef.current === kendali) {
+        setAmbilSedang(false);
+        ambilRef.current = null;
+      }
+    }
+  }
 
   async function mulai() {
     const kandidat = ekstrakPosisi(teks);
@@ -164,6 +201,31 @@ export default function TuringTest({ pengaturan = null }) {
         {fase === "input" && (
           <>
             <p className="text-[11px] leading-relaxed text-gray-400">{t("papan.turingDeskripsi")}</p>
+            <form
+              className="flex gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (namaLichess.trim() && !ambilSedang) ambilDariLichess();
+              }}
+            >
+              <label className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="text-xs font-semibold text-gray-300">{t("papan.turingLabelUser")}</span>
+                <input
+                  value={namaLichess}
+                  onChange={(e) => setNamaLichess(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="rounded-md bg-[#312e2b] px-2 py-1.5 text-white outline-none focus:ring-1 focus:ring-[#81b64c]"
+                />
+              </label>
+              <button
+                type="submit"
+                disabled={ambilSedang || namaLichess.trim() === ""}
+                className="self-end rounded-md bg-[#312e2b] px-3 py-1.5 font-semibold text-white hover:bg-[#3d3935] disabled:opacity-50"
+              >
+                {ambilSedang ? t("papan.turingAmbilSedang") : t("papan.turingAmbil")}
+              </button>
+            </form>
             <label className="flex flex-col gap-1">
               <span className="text-xs font-semibold text-gray-300">{t("papan.turingLabelPgn")}</span>
               <textarea

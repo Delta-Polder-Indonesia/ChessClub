@@ -66,3 +66,41 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     expect(galat, galat.join("\n")).toEqual([]);
   });
 }
+
+/*
+ * Impor dari Lichess. Permintaan ke lichess.org dicegat (page.route) supaya
+ * tes tidak bergantung pada jaringan; respons yang dikirim meniru PGN asli.
+ */
+test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ page }) => {
+  test.setTimeout(180_000);
+  const galat = [];
+  page.on("pageerror", (error) => galat.push(error.message));
+  let urlDipanggil = "";
+  await page.route(/lichess\.org\/api\/games\/user\//, (route) => {
+    urlDipanggil = route.request().url();
+    route.fulfill({ status: 200, contentType: "application/x-chess-pgn", body: PGN });
+  });
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
+
+  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("button", { name: "Turing test", exact: true }).click();
+  await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("uji-pemain");
+  await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
+  await expect(page.getByLabel("PGN partai manusia")).toHaveValue(/\[Event "Uji A"\]/);
+  expect(urlDipanggil).toContain("/api/games/user/uji-pemain?");
+
+  await page.getByRole("button", { name: "Mulai tebak", exact: true }).click();
+  await expect(page.getByText(/Soal 1 dari \d+/)).toBeVisible({ timeout: 150_000 });
+  expect(galat, galat.join("\n")).toEqual([]);
+});
+
+test("turing test: pengguna tidak ditemukan di Lichess menampilkan pesan galat (id)", async ({ page }) => {
+  await page.route(/lichess\.org\/api\/games\/user\//, (route) => route.fulfill({ status: 404, body: "" }));
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
+  await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
+
+  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("button", { name: "Turing test", exact: true }).click();
+  await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("tidak-ada-kali");
+  await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
+  await expect(page.getByRole("alert")).toHaveText("Pengguna tidak ditemukan atau belum punya partai.");
+});
