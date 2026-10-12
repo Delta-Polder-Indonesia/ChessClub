@@ -1,110 +1,130 @@
-# Komunitas Catur Indonesia — Website "Tentang Kami"
+# ChessClub — Komunitas Catur Indonesia
 
-Website komunitas catur (klub Chess.com) yang dibangun dengan **Vite + React + Tailwind CSS v4**.
-Struktur halaman, markup (nama class), tipografi, warna, dan perilaku (header, sticky menu, carousel,
-footer) dibuat **meniru halaman "Tentang Kami" PT Pertamina** di `https://www.pertamina.com/id/tentang-kami`.
+[![Quality checks](https://github.com/Delta-Polder-Indonesia/ChessClub/actions/workflows/quality.yml/badge.svg)](https://github.com/Delta-Polder-Indonesia/ChessClub/actions/workflows/quality.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-## Menjalankan
+Website komunitas catur "Blunder Skuad" — profil klub, turnamen, media, dan
+pusat latihan catur berbasis web. Dibangun dengan **React + Vite + Tailwind CSS v4**
+di frontend dan **Node.js tanpa framework** di backend, keduanya dideploy sebagai
+satu proyek Vercel.
+
+Proyek ini terbuka untuk kolaborasi: siapa pun boleh fork, mengusulkan perubahan
+lewat pull request, dan ikut menjaga kualitas melalui gerbang uji otomatis.
+
+## Fitur
+
+- **Papan interaktif** — mode Analisa dengan Opening Book, Manusia vs Mesin
+  (Stockfish lokal / Sunfish), dan Latihan Repertoar tersimpan di IndexedDB.
+- **Teka-teki catur, Quiz, dan Teka-teki Rush** — latihan taktik dengan tingkat
+  kesulitan bertingkat dan progres tersimpan lokal.
+- **Analisa posisi** — evaluasi engine di dalam browser (Web Worker), grafik
+  evaluasi, dan bilah skor.
+- **Keanggotaan otomatis dari Chess.com** — backend mengambil roster publik
+  [BLUNDER SKUAD](https://www.chess.com/club/blunder-skuad), memperkaya profil dan
+  rating pemain; diperbarui maksimal tiap 12 jam.
+- **Turnamen, media & informasi, keberlanjutan** — halaman konten berbagi
+  kerangka layout yang sama dan mendukung SEO untuk setiap rute.
+- **Multibahasa** — kamus teks Indonesia/Inggris di `src/lib/terjemahan/`.
+- **Responsif penuh** — desktop, tablet, dan mobile; header sticky, submenu
+  scroll-spy, drawer menu mobile, dan footer akordeon.
+
+## Tech stack
+
+| Lapisan | Teknologi |
+| ------- | --------- |
+| Frontend | React 18, Vite 6, Tailwind CSS v4, react-router-dom v7 |
+| Backend | Node.js (vanilla, tanpa framework), dijalankan sebagai Serverless Function Vercel |
+| Database opsional | Supabase |
+| Engine catur | Stockfish (stockfish.js, GPL-3.0), Sunfish |
+| Logika catur | chess.js |
+| Hosting & CI | Vercel, GitHub Actions |
+
+Atribusi lengkap aset pihak ketiga (bidak, buku pembukaan, engine, suara, logo)
+ada di halaman **Atribusi & lisensi** dalam aplikasi (`/program-kami/atribusi`).
+
+## Memulai
+
+Prasyarat: **Node.js >= 22** dan npm.
 
 ```bash
+git clone https://github.com/Delta-Polder-Indonesia/ChessClub.git
+cd ChessClub
 npm install
-npm run dev      # development server
+npm run dev      # server development di http://localhost:5173
 npm run build    # build produksi ke /dist
 npm run preview  # pratinjau hasil build
 ```
 
-## Struktur Halaman (identik dengan Pertamina)
+Backend berjalan otomatis bersama frontend pada mode development. Konfigurasi
+environment untuk produksi dijelaskan di [`PANDUAN-DEPLOY-FULL-VERCEL.md`](./PANDUAN-DEPLOY-FULL-VERCEL.md).
 
-| Blok Pertamina                 | Blok di website ini              |
-| ------------------------------ | -------------------------------- |
-| Header + top bar + dropdown    | `src/components/Header.jsx`      |
-| Hero (breadcrumb, H1, deskripsi) | `src/components/Hero.jsx`      |
-| Sticky submenu (scroll-spy)    | `src/components/StickyMenu.jsx`  |
-| Sekilas Pertamina              | `src/components/Sekilas.jsx`     |
-| Tonggak Sejarah (Swiper)       | `src/components/Tonggak.jsx`     |
-| Visi, Misi, & Tata Nilai       | `src/components/VisiMisi.jsx`    |
-| Makna Logo                     | `src/components/MaknaLogo.jsx`   |
-| Struktur Grup Catur            | `src/halaman/TentangKami/StrukturGrupCatur/` |
-| Navigasi "Selanjutnya"         | `src/components/PageBagian.jsx` (`PageSelanjutnya`) |
-| Footer (kolom + sosial media)  | `src/components/Footer.jsx`      |
+## Struktur repositori
 
-## Desain
+| Path | Isi |
+| ---- | --- |
+| `src/halaman/` | Halaman per rute (dimuat malas via `src/App.jsx`) |
+| `src/components/` | Komponen bersama (header, footer, papan, ikon, UI) |
+| `src/lib/` | Utilitas: i18n, engine catur, suara, API client |
+| `server/` | Kode backend (rute, skema validasi, storage) |
+| `api/` | Entry point Serverless Function Vercel |
+| `scripts/` | Alat bantu & skrip uji (`uji:*`) |
+| `docs/` | Dokumentasi desain, audit, dan panduan deploy |
 
-- Font: **Plus Jakarta Sans** (self-hosted, tanpa Google Fonts), body 16px/24px
-- Warna primary biru `#0B2F9F`, hero `#021624`, teks artikel `#374151`, footer `#F8FAFC`
-- Judul H2 30px semibold, H1 hero putih 38px bold — nilai diambil langsung dari computed style situs Pertamina
-- Tanpa emoji, tanpa efek animasi yang tidak perlu (hanya transisi hover halus dan progress bar carousel yang meniru aslinya)
-- Foto-foto bertema catur di-generate khusus di `public/images/` (WebP, srcset 828/1280)
+Nama berkas dan identifier berbahasa Indonesia — konvensi ini disengaja dan
+menjadi bagian dari gaya kode proyek.
 
-## Performa (PageSpeed)
+## Pengujian & kualitas
 
-Situs dioptimasi agar Lighthouse mobile/desktop menuju 100 pada keempat kategori:
+```bash
+npm run uji:rilis:v1   # gerbang rilis lengkap (audit + seluruh uji + build)
+```
 
-- Font Plus Jakarta Sans di-host sendiri (tanpa `fonts.googleapis.com`)
-- Foto dikompresi WebP + `srcset`; logo 14 KiB (sebelumnya ~100 KiB)
-- Gambar LCP (`hero-about`) di-preload dan dilukis dari HTML awal (`#boot-hero`)
-- CSS di-inline; rute publik dibangkitkan dengan metadata route-specific untuk deep link Vercel
-- `BrowserRouter` memakai base `/` sesuai deployment Vercel
+Untuk perubahan kecil, jalankan uji topik terkait saja — daftar lengkapnya di
+blok `"scripts"` `package.json` (semua berawalan `uji:`), misalnya:
 
-Setelah merge ke `main`, GitHub Actions menjalankan quality check; integrasi
-Vercel menerbitkan deployment production. Ulangi tes di [PageSpeed Insights](https://pagespeed.web.dev/).
+```bash
+npm run uji:rute      # rute frontend
+npm run uji:i18n      # kamus teks ID/EN
+npm run uji:desain    # penjaga standar desain
+npm run uji:backend   # API end-to-end
+```
 
-## Deploy
+Setiap push dan pull request memicu workflow **Quality checks** di GitHub
+Actions; perubahan hanya boleh digabungkan bila gerbang itu hijau.
 
-Untuk status audit, scope, release gate, dan definition of done v1, baca
-[`V1-READINESS.md`](./V1-READINESS.md). Jalankan `npm run uji:rilis:v1`
-sebelum membuat release candidate.
+## Berkontribusi
 
-| Skema | Panduan | Keterangan |
-| ----- | ------- | ---------- |
-| **FULL VERCEL** — frontend + backend aktif dalam satu proyek Vercel | `PANDUAN-DEPLOY-FULL-VERCEL.md` | Jalur deployment production resmi. Backend berjalan sebagai Serverless Function (`api/[...jalur].js`); aktifkan **Supabase** agar data awet. Baca `VERCEL-LIMITATIONS.md` dan `DEPLOYMENT-CHECKLIST.md`. |
+Alur standar proyek ini:
 
-## Backend (keanggotaan, verifikasi, turnamen)
+1. **Fork** repositori dan buat cabang dari `main`:
+   `git checkout -b fitur/nama-perubahan`.
+2. **Ubah seminimal mungkin** — satu topik per pull request; jangan menyertakan
+   perbaikan di luar cakupan.
+3. **Jalankan uji relevan** secara lokal (lihat bagian Pengujian) dan catat
+   hasilnya di deskripsi pull request.
+4. **Buka pull request** ke `main`. Jelaskan apa yang berubah, mengapa, dan
+   bagaimana dampaknya; sebutkan hal yang belum diverifikasi apa adanya.
+5. Tinjauan akan memeriksa kecocokan konvensi, hasil CI, dan dampak performa.
+   Menguji, melewati, atau melemahkan uji agar CI hijau tidak dibenarkan.
 
-Frontend dan backend production berjalan dalam satu proyek Vercel. Frontend
-memanggil API relatif melalui `/api/*`; Serverless Function
-`api/[...jalur].js` meneruskan request ke kode di `server/`. Detail lengkap ada
-di `server/README.md` dan `PANDUAN-DEPLOY-FULL-VERCEL.md`.
+Panduan gaya kode, cakupan perubahan, dan prosedur deploy ada di berkas
+[`AGENTS.md`](./AGENTS.md) dan skill di `.agents/skills/`.
 
-File utama deployment:
-- `vercel.json` — build Vite, rewrite SPA, dan routing `/api/*`.
-- `.vercelignore` — mengecualikan bagian non-frontend saat unggah ke Vercel.
-- `api/[...jalur].js` — entry point Serverless Function.
+## Deployment
 
-Ikuti panduan langkah-demi-langkah di
-[`PANDUAN-DEPLOY-FULL-VERCEL.md`](./PANDUAN-DEPLOY-FULL-VERCEL.md) untuk
-penyiapan environment, Supabase, dan verifikasi production.
+Frontend dan backend produksi berjalan dalam satu proyek Vercel:
+`api/[...jalur].js` meneruskan request `/api/*` ke kode di `server/`.
 
-## Kredit, Teknologi & Lisensi
+| Dokumen | Isi |
+| ------- | --- |
+| [`PANDUAN-DEPLOY-FULL-VERCEL.md`](./PANDUAN-DEPLOY-FULL-VERCEL.md) | Panduan langkah demi langkah: environment, Supabase, verifikasi production |
+| [`DEPLOYMENT-CHECKLIST.md`](./DEPLOYMENT-CHECKLIST.md) | Checklist pra-deploy |
+| [`VERCEL-LIMITATIONS.md`](./VERCEL-LIMITATIONS.md) | Batasan platform yang perlu diketahui |
+| [`V1-READINESS.md`](./V1-READINESS.md) | Status audit, scope, dan definition of done v1 |
 
-Proyek ini dibangun dan dijalankan di atas layanan serta pustaka sumber terbuka berikut:
+## Lisensi
 
-| Teknologi / Layanan | Kegunaan |
-| ------------------- | -------- |
-| **GitHub** | Repositori, CI/CD (Actions), dokumentasi |
-| **Vercel** | Hosting frontend + Serverless Function + Speed Insights |
-| **Supabase** | Opsional — autentikasi & penyimpanan data awet bagi backend |
-| **React + Vite + Tailwind CSS v4** | Kerangka antarmuka |
-| **Stockfish (stockfish.js)** | Engine analisis catur (GPL-3.0) |
-| **chess.js** | Logika & parsing PGN |
-| **Arena AI** | Platform agen AI yang membantu pengembangan & kolaborasi kode |
-| **OpenCode** | Editor / agen AI yang dipakai saat menulis dan meninjau kode |
-
-Atribusi aset pihak ketiga (gambar bidak, buku pembukaan, engine, suara papan, logo)
-selengkapnya di halaman **"Atribusi & lisensi"** pada aplikasi
-(`/program-kami/atribusi`).
-
-**Lisensi:** Kode sumber proyek ini dirilis di bawah lisensi **MIT** — lihat
-berkas [`LICENSE`](./LICENSE). © 2025-2026 Delta-Polder-Indonesia (Bintang Toba).
-Kode yang dipindah/adaptasi dari proyek lain tetap tunduk pada lisensinya masing-masing.
-
-## Fitur
-
-- **Menu tab di atas selalu terlihat**: header menempel (sticky) di atas — transparan di atas hero, berubah putih dengan teks gelap saat halaman di-scroll (seperti situs Pertamina). Terdapat 5 tab menu utama: Tentang Kami, Program Kami, Turnamen, Media & Informasi, Keberlanjutan. Keanggotaan hanya tampil sebagai tab di dalam Struktur Grup Catur pada menu Tentang Kami.
-- **Daftar anggota otomatis dari Chess.com**: backend mengambil roster publik [BLUNDER SKUAD](https://www.chess.com/club/blunder-skuad), menyatukan kelompok aktivitasnya, lalu memperkaya profil dan rating pemain. Roster Chess.com sendiri diperbarui maksimal tiap 12 jam.
-- Dropdown menu hover + drawer menu mobile
-- Overlay pencarian (mirip halaman pencarian Pertamina) dengan hasil dari daftar halaman
-- Sticky submenu dengan scroll-spy (IntersectionObserver) + smooth scroll, menempel tepat di bawah header
-- Carousel Tonggak Sejarah: autoplay 7 detik, progress bar per slide, navigasi label tahun yang bisa diklik
-- Footer dengan kolom akordeon di mobile + ikon media sosial
-- Responsif penuh (desktop, tablet, mobile)
+Kode sumber dirilis di bawah lisensi **MIT** — lihat [`LICENSE`](./LICENSE).
+© 2025-2026 Delta-Polder-Indonesia (Bintang Toba). Kode yang dipindah atau
+diadaptasi dari proyek lain tetap tunduk pada lisensinya masing-masing
+(mis. Stockfish di bawah GPL-3.0).
