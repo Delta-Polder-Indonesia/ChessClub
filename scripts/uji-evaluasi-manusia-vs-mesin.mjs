@@ -301,14 +301,19 @@ async function partaiBaru(sebelumMulai) {
     return disorot(sq);
   };
   const tombolNavigasi = () => {
-    // `"⏮◀▶⏭".includes("")` bernilai true (string kosong = substring dari
-    // apa pun) — tanpa syarat panjang, tombol ikon lain yang teksnya kosong
-    // ikut lolos dan mengacaukan urutan kandidat.
-    const kandidat = [...wadah.querySelectorAll("button")].filter((b) => {
-      const teks = b.textContent.trim();
-      return teks.length === 1 && "⏮◀▶⏭".includes(teks);
-    });
-    return { keAwal: kandidat[0], mundur: kandidat[1], maju: kandidat[2], keAkhir: kandidat[3] };
+    // Pilih lewat `title`/`aria-label`, bukan teks glyph: keempat tombol kini
+    // memakai ikon SVG tanpa teks, dan kontrak yang stabil justru label
+    // aksesibelnya (`papan.keAwal` dst., bahasa Indonesia pada uji ini).
+    const cari = (label) =>
+      [...wadah.querySelectorAll("button")].find(
+        (b) => b.getAttribute("title") === label || b.getAttribute("aria-label") === label
+      );
+    return {
+      keAwal: cari("Ke awal"),
+      mundur: cari("Mundur"),
+      maju: cari("Maju"),
+      keAkhir: cari("Ke akhir"),
+    };
   };
 
   return {
