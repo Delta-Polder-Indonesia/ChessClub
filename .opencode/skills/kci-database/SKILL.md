@@ -118,4 +118,3 @@ beserta policy ditulis di `db/supabase-schema.sql`, dan kredensial (`DATABASE_UR
   `kci_storage`).
 - Identitas/JWT/admin → `npm run uji:auth-jwt && npm run uji:konfigurasi-keamanan && npm run uji:keamanan-admin`.
 - Peringkat/klasemen → `npm run uji:klasemen && npm run uji:rush`.
-- Struktur berkas atau skrip uji berubah → `npm run peta`, lalu `npm run uji:peta`.

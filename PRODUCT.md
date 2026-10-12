@@ -122,7 +122,6 @@ Konten nyata yang tersedia di repositori dan boleh dipakai sebagai bukti:
 | Aset merek | `public/favicon.svg`, `public/favicon-32.png`, `public/favicon-64.png`, `public/apple-touch-icon.png` | — |
 | Roster klub | Published Data API Chess.com (BLUNDER SKUAD), di-cache 12 jam | — |
 | Dokumen akurasi | `docs/PERBANDINGAN-METRIK-AKURASI.md`, `docs/REVIEW-PERBAIKAN-LATIHAN.md` | — |
-| Peta kode | `docs/PETA-KODE.md` (dijaga oleh `npm run uji:peta`) | — |
 
 **Ketiadaan yang tidak boleh dikarang:** belum ada testimoni pengguna, nama
 klien, studi kasus, angka pengguna, atau statistik penggunaan. Halaman mana pun

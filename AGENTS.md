@@ -141,7 +141,9 @@ sering harus ditulis ke berkas lebih dulu.
   terdeteksi uji). Jangan hapus kunci yatim — repo memang toleran.
 - **Jangan jalankan `npm run uji` penuh lokal** (35 langkah, HDD penuh); CI adalah gerbang.
   Jalankan `uji:*` tertarget.
-- **`gh` tidak terpasang** — verifikasi CI/GitHub lewat pengguna.
+- **`gh` terpasang dan sudah login** — cek hasil CI/GitHub sendiri setelah push:
+  `gh run list --limit 3`, `gh run view <id> --log-failed`. Jangan menunggu pengguna
+  menyalakan log CI.
 - **localhost tidak bisa diakses** untuk verifikasi visual — nyatakan eksplisit bila belum diverifikasi.
 - Guardrail desain mengizinkan `text-[clamp(2.4rem,3.6vw,3.4rem)]` + `leading-[1.04]` sebagai kelas
   display kanonik — bukan pelanggaran.
@@ -154,7 +156,6 @@ peta yang sudah ada:
 
 | Kebutuhan | Buka dulu |
 | --------- | --------- |
-| Peta area → berkas → uji penjaga → halaman peta | `docs/PETA-KODE.md` (bangkitkan dengan `npm run peta`) |
 | Rute/halaman frontend | `src/App.jsx` (semua halaman dimuat malas) |
 | Registrasi rute backend | `server/src/rute.js` |
 | Kontrak validasi masukan | `server/src/skema.js` |
@@ -164,9 +165,9 @@ peta yang sudah ada:
 | Primitif UI bersama | `src/components/ui/` + `RADIX-UI.md` |
 | Perintah uji per topik | blok `"scripts"` di `package.json` (semua berawalan `uji`) |
 
-Satu kali membaca `docs/PETA-KODE.md` hampir selalu lebih murah daripada rangkaian pencarian berkas.
-Jangan membuat berkas peta/panduan baru per folder: berkas itu tidak punya penjaga, sehingga akan basi
-dan menyesatkan.
+Jangan membuat berkas panduan baru per folder: berkas itu tidak punya penjaga, sehingga akan basi
+dan menyesatkan. Rincian alur uji per area ada di
+`.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
 
 ## Skill proyek (SKILL.md)
 
@@ -184,11 +185,7 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 | `kci-standar-kode` | menulis atau meninjau kode di area mana pun, dan sebelum PR dinyatakan siap |
 | `kci-deploy` | mengubah `vercel.json`, workflow CI, env var Vercel, atau sebelum commit/push pertama (tiap push = satu deployment Vercel) |
 
-Sebelum menelusuri repo secara manual: jalankan `npm run peta`. Perintah itu menulis
-`docs/PETA-KODE.md` (area → berkas → uji penjaga → halaman peta navigasi, serta berkas uji →
-skrip npm yang menjalankannya) dan menjawab "alur uji ini kemana" tanpa menebak. Jangan
-membuat berkas panduan per-folder: `npm run uji:peta` menjaga peta ini tetap akurat, dan
-berkas panduan yang tersebar tidak punya penjaga seperti itu. Rincian per area ada di
+Rincian alur uji per area ada di
 `.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
 
 Cara opencode memuat skill (diverifikasi dari sumbernya, agar perubahan berikutnya tidak salah arah):
@@ -196,7 +193,7 @@ Cara opencode memuat skill (diverifikasi dari sumbernya, agar perubahan berikutn
 - Berkas yang discan: `.agents/skills/**/SKILL.md` dan `.opencode/skills/**/SKILL.md`. Keduanya dibaca,
   sehingga cermin di repo ini menghasilkan nama skill ganda — opencode menyimpan satu entri per nama
   (yang terakhir discan menang), jadi isi kedua salinan wajib tetap identik. Cermin dipertahankan karena
-  `npm run uji:peta` menguncinya dan tool lain membaca `.opencode/`.
+  tool lain membaca `.opencode/`.
 - `name` **wajib sama dengan nama folder** dan hanya boleh huruf kecil/angka dengan pemisah satu tanda
   hubung (`^[a-z0-9]+(-[a-z0-9]+)*$`).
 - `description` wajib ada, 1–1024 karakter. Sebelum dimuat, agen hanya melihat `name` + `description`,

@@ -15,13 +15,10 @@ Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
 
 ## Peta cepat
 
-**Arah yang tidak perlu ditebak: `npm run peta`** menulis `docs/PETA-KODE.md` — tabel
-area → berkas → uji penjaga → halaman peta navigasi, dan tabel berkas uji → skrip npm
-yang menjalankannya. Jalankan itu lebih dulu sebelum menelusuri repo secara manual.
 Rincian per area (frontend, analisa, backend, konten, e2e) ada di
 `references/alur-uji-per-area.md`.
 
-- `npm run uji` — langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:integritas-suite`, `uji:impor-css`, `uji:rute`, `uji:peta`,
+- `npm run uji` — langkah berurutan (`&&`, berhenti di kegagalan pertama): `uji:integritas-suite`, `uji:impor-css`, `uji:rute`,
   `uji:desain`, `uji:seo`, `uji:i18n`, `uji:tools`, `uji:komentator`, `uji:basisdata-awan`, `uji:analisa`,
   `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`,
   `uji:akun-database`, `uji:tarik-api`, `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`,
@@ -32,8 +29,8 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   `uji:api-csrf`, `uji:sesi-ebook`, `uji:kerangka-penuh`, `uji:quiz`, `uji:gambar`,
   `uji-identitas` (node langsung), `uji:skema`, `uji-ebook` (node langsung),
   `uji-ebook-pembaca` (node langsung), `uji-nama-pembukaan` (node langsung),
-  `uji-artikel-wikipedia` (node langsung), `uji:pendaftaran-ui`. Urutan ini selalu bisa dilihat
-  segar di bagian 1 `docs/PETA-KODE.md`.
+  `uji-artikel-wikipedia` (node langsung), `uji:pendaftaran-ui`. Urutan lengkapnya selalu
+  ada di blok `"uji"` `package.json`.
 - `npm run uji:backend && npm run uji:verifikasi` — backend menyala sementara dan diuji end-to-end
   (auth JWT, verifikasi Chess.com, e-book).
 - `npm run uji:rilis:v1` — release gate kanonik: audit dependency produksi, seluruh uji logika,
@@ -118,10 +115,6 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   Manusia vs Mesin, dan legalitas self-play yang divalidasi chess.js. Pakai `--partai=200`
   untuk uji legalitas berat. Kalibrasi Elo-nya ada di `scripts/kalibrasi-sunfish.mjs`
   (skrip riset manual, di luar rantai uji).
-- `npm run uji:peta` — penjaga dokumentasi arah: memastikan tidak ada `key_files` mati, semua
-  skrip `uji:*` tercatat di berkas ini, tidak ada berkas uji yatim, setiap folder
-  `src/halaman/*` terdaftar, cermin `.agents` ⇄ `.opencode` serta `quality.yml` tetap identik,
-  dan `docs/PETA-KODE.md` mutakhir. Ikut berjalan di dalam `npm run uji` dan CI.
 
 ## Kapan menjalankan apa (aturan minimum)
 
@@ -168,11 +161,9 @@ Sebagian area tidak boleh hanya mengandalkan uji lain yang kebetulan menyentuhny
    menjalankan lint. Jangan menulis "jalankan linter" di catatan PR, dan jangan menambah tooling lint
    sebagai bagian dari tugas lain tanpa persetujuan pengguna. Kebersihan kode dijaga lewat aturan di
    `kci-standar-kode` dan lewat uji.
-3. Struktur berkas, folder, atau skrip berubah → `npm run peta`, lalu pastikan `npm run uji:peta` hijau
-   sebelum push.
-4. Uji yang melewati dirinya sendiri (`esbuild` atau `fake-indexeddb` tidak terpasang, `uji:supabase`
+3. Uji yang melewati dirinya sendiri (`esbuild` atau `fake-indexeddb` tidak terpasang, `uji:supabase`
    tanpa kredensial) laporkan apa adanya — jangan mengklaim lulus padahal bagian itu dilewati.
-5. Uji merah diperbaiki di cabang kerja sebelum meminta tinjauan. Menghapus, melewati, atau melemahkan
+4. Uji merah diperbaiki di cabang kerja sebelum meminta tinjauan. Menghapus, melewati, atau melemahkan
    uji agar CI hijau tidak dibenarkan; bila aturan lama memang sudah usang, sebutkan alasannya di PR.
 
 ## Samakan dengan CI

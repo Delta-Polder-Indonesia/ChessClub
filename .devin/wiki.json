@@ -4,7 +4,7 @@
       "content": "Peta navigasi cepat repo ChessClub (Komunitas Catur Indonesia / 'Blunder Skuad'). Cara pakai: saat ada permintaan kerja, cocokkan kata kunci permintaan dengan field 'keywords' tiap halaman (pakai grep pada file ini), lalu buka file di 'key_files' halaman yang cocok — tidak perlu mencari manual ke seluruh repo. Path berakhiran '/' berarti direktori. Urutan lookup: mulai dari halaman overview yang paling cocok, turun ke anaknya."
     },
     {
-      "content": "Peta ini dijaga otomatis: `npm run uji:peta` memastikan setiap key_files benar-benar ada, setiap folder di src/halaman/ terdaftar, dan setiap skrip uji:* tercatat di skill kci-pengujian. Terakhir diperiksa manual 2026-09-23 (commit 89591d4); setelah itu keakuratannya dijamin uji, bukan lagi mengandalkan pemeriksaan berkala."
+      "content": "Peta ini diperbarui manual saat struktur repo berubah. Terakhir diperiksa 2026-09-23 (commit 89591d4)."
     }
   ],
   "pages": [

@@ -18,4 +18,4 @@ Buku Pembukaan juga dapat dibuka melalui tombol **Jelajah Buku Pembukaan** di La
 
 **Jika pengguna meminta pemulihan:** [PR #146](https://github.com/Delta-Polder-Indonesia/ChessClub/pull/146) pada `arena/01a0d842-chessclub` adalah snapshot sebelum Papan Interaktif dimodifikasi. Riset/ambil snapshot itu sebagai acuan untuk mengembalikan **seluruh area Papan Interaktif** ke perilaku lama, bukan untuk menimpa fitur lain atau melakukan rollback otomatis. Lihat langkah dan batas persetujuan di skill lengkap.
 
-**Uji:** `npm run uji:repertoar`, `npm run uji:i18n`, `npm run uji:rute`, `npm run uji:peta`, dan `npm run build`; lihat skill lengkap untuk uji regresi papan/engine.
+**Uji:** `npm run uji:repertoar`, `npm run uji:i18n`, `npm run uji:rute`, dan `npm run build`; lihat skill lengkap untuk uji regresi papan/engine.

@@ -10,8 +10,8 @@ metadata:
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
-Jalur berkas di dokumen ini relatif terhadap **akar repo**. Sebelum menelusuri manual, buka
-`docs/PETA-KODE.md` (atau jalankan `npm run peta`) — peta itu menjawab "berkas ini diuji oleh apa".
+Jalur berkas di dokumen ini relatif terhadap **akar repo**. Untuk alur uji per area, buka
+`.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
 
 Skill ini menetapkan standar mutu, bukan izin memperluas cakupan. Audit kebersihan berkas di luar
 permintaan tetap butuh persetujuan pengguna (lihat "Scope and approval gate" di `AGENTS.md`).
@@ -88,9 +88,8 @@ Tiga lapis, jangan dicampur:
    dengan komentar. Jejak audit dan riwayat masuk backend ditulis lewat `audit.js`/`riwayat-masuk.js`
    (tersimpan via `simpanan.js`); konsol hanya untuk diagnostik startup berprefiks `[kci]`,
    bukan pengganti jejak audit.
-4. **Verifikasi dan peta.** Jalankan uji minimum area terkait (`kci-pengujian`); jalankan
-   `npm run peta` bila berkas, folder, atau skrip uji berubah — `docs/PETA-KODE.md` dan
-   cermin `.agents` ⇄ `.opencode` dijaga `npm run uji:peta` dan gagal bila ketinggalan.
+4. **Verifikasi.** Jalankan uji minimum area terkait (`kci-pengujian`) dan pastikan cermin
+   `.agents` ⇄ `.opencode` tetap identik bila skill ikut tersentuh.
 
 ## Bukti yang menyertai PR
 
@@ -101,5 +100,5 @@ Saat mengajukan atau meninjau PR, sertakan hal yang bisa diverifikasi — bukan 
 - Perubahan perilaku yang disengaja, dan penjelasan singkat untuk perilaku lama yang sengaja
   dipertahankan.
 - Dampak performa bila menyentuh aset, halaman, atau engine: apa yang diukur dan dengan alat apa.
-- Berkas lain yang ikut tersentuh karena peta/cermin dokumentasi (`npm run peta`, `npm run uji:peta`).
+- Berkas lain yang ikut tersentuh karena cermin dokumentasi (skill `.agents` ⇄ `.opencode`).
 - Sisa keterbatasan atau hal yang belum diverifikasi, dinyatakan apa adanya.

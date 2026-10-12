@@ -1,9 +1,7 @@
 # Alur uji per area
 
 Rujukan cepat: area kerja → uji yang harus jalan → berkas uji → halaman peta navigasi.
-Daftar ini stabil; untuk keadaan repo yang selalu segar (jumlah berkas, uji penjaga
-per folder, berkas uji yatim) jalankan `npm run peta` → `docs/PETA-KODE.md`.
-Keakuratan berkas itu dijaga `npm run uji:peta`.
+Daftar ini stabil; untuk tugas baru, pilih baris yang paling dekat dengan area yang diubah.
 
 ## Frontend — halaman, komponen, i18n
 
@@ -63,11 +61,10 @@ dengan tenggat (mis. 2 detik), seperti yang sudah dipakai sekarang.
 
 ## Urutan yang aman sebelum menyelesaikan pekerjaan
 
-1. `npm run peta` bila Anda menambah/memindahkan folder, berkas, atau skrip uji.
-2. Uji topik sesuai tabel di atas (yang paling dekat dengan perubahan).
-3. `npm run uji` (memuat `uji:peta` sebagai langkah ke-2) dan `npm run build`.
-4. Bila menyentuh `server/`, `api/`, atau alur auth: `npm run uji:backend`,
+1. Uji topik sesuai tabel di atas (yang paling dekat dengan perubahan).
+2. `npm run uji` dan `npm run build`.
+3. Bila menyentuh `server/`, `api/`, atau alur auth: `npm run uji:backend`,
    `npm run uji:verifikasi`, `npm run uji:pendaftaran`, `npm run uji:konfigurasi-keamanan`.
 
-CI (`.github/workflows/quality.yml`) menjalankan langkah 3 dan 4 di setiap PR —
-rangkaian persisnya ada di bagian 1 `docs/PETA-KODE.md`.
+CI (`.github/workflows/quality.yml`) menjalankan rantai uji, build, dan smoke e2e pada
+setiap PR — rinciannya ada di berkas workflow itu dan blok `"uji"`/`"uji:e2e"` `package.json`.

@@ -22,7 +22,7 @@ Hanya jalur yang diawali `references/` yang relatif terhadap folder skill ini.
 | Kerangka halaman standar | `src/components/PageBagian.jsx` + `references/standar-markup.md` |
 | Primitif UI dan aturan Radix | `src/components/ui/` + `RADIX-UI.md` |
 | Kamus teks ID/EN | `src/lib/terjemahan/{id,en}/` |
-| Uji penjaga halaman/logika | `docs/PETA-KODE.md` kolom "uji penjaga" |
+| Uji penjaga halaman/logika | blok `"uji"` di `package.json` + `.agents/skills/kci-pengujian/references/alur-uji-per-area.md` |
 
 ## Stack (jangan diganti tanpa persetujuan pengguna)
 
