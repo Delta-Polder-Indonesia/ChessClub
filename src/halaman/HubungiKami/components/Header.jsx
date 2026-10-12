@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import {
   HiHome,
   HiUser,
@@ -24,20 +25,19 @@ const navData = [
   },
 ];
 
-const Header = ({ activeTab, onSelectTab, onLogoClick }) => {
+const Header = ({ activeTab, onSelectTab }) => {
   return (
     <header className="absolute z-10 w-full items-center px-16 xl:px-0 xl:h-22.5">
       <div className="container mx-auto">
         <div className="flex flex-col lg:flex-row justify-between items-center gap-y-6 py-8">
-          <button
-            type="button"
-            onClick={onLogoClick}
+          <Link
+            to="/"
             className="cursor-pointer bg-transparent border-0 p-0 text-left"
           >
             <span className="text-white tracking-wide text-2xl md:text-3xl whitespace-nowrap">
               <span className="font-bold">Blunder</span> <span className="font-light">Skuad</span><span className="text-[#F13024]">.</span>
             </span>
-          </button>
+          </Link>
 
           <nav className="flex items-center gap-x-5 md:gap-x-8 text-2xl md:text-3xl xl:text-xl text-white">
             {navData.map((link, i) => (

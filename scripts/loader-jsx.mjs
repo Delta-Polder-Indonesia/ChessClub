@@ -133,28 +133,51 @@ export function periksaGlobLangsung(source, urlModul) {
 }
 
 /**
- * Ganti `import.meta.glob("POLA", { … })` dengan objek
- * { polaDenganWildcardDigantiNamaBerkas: () => Promise.resolve(urlFile) }.
- * (Kunci objek glob Vite memakai nama berkas sebenarnya, bukan polanya.)
+ * Ganti `import.meta.glob("POLA", { … })` atau `import.meta.glob(["P", "!N"], { … })`
+ * dengan objek { kunciRelatif: () => Promise.resolve(urlFile) }.
+ * Pola array mengikuti aturan Vite: `!` mengecualikan berkas agar tidak
+ * tumpang tindih dengan glob eager lain (pemuatBidak.js).
  */
 export function shimGlobVite(source, urlModul) {
   if (!source.includes("import.meta.glob")) return source;
   const dirModul = path.dirname(fileURLToPath(urlModul));
-  const re = /import\.meta\.glob\(\s*(['"])([^'"]+)\1\s*(?:,\s*\{[^{}]*\})?\s*\)/g;
-  const hasil = source.replace(re, (_padanan, _kutip, pola) => {
-    const bagianPola = pola.split("/").filter(Boolean);
-    const cocok = temukanBerkasGlob(pola, dirModul);
-    const entri = cocok.map((f) => {
-      const namaBagian = f.relatif.split("/");
-      const kunciBagian = bagianPola.map((bp, i) =>
-        bp === "*" || bp.includes("*") || bp.includes("{") ? namaBagian[i] : bp
-      );
-      return `${JSON.stringify(kunciBagian.join("/"))}: () => Promise.resolve(${JSON.stringify(pathToFileURL(f.absolut).href)})`;
-    });
-    return `({ ${entri.join(", ")} })`;
+  const re =
+    /import\.meta\.glob\(\s*(?:(['"])([^'"]+)\1|\[([^\]]+)\])\s*(?:,\s*\{[^{}]*\})?,?\s*\)/g;
+  const hasil = source.replace(re, (_padanan, _kutip, polaTunggal, isiArray) => {
+    if (isiArray === undefined) {
+      return `({ ${susunEntriGlob([polaTunggal], [], dirModul)} })`;
+    }
+    const semuaPola = [...isiArray.matchAll(/(['"])([^'"]+)\1/g)].map((m) => m[2]);
+    const positif = semuaPola.filter((p) => !p.startsWith("!"));
+    const negasi = semuaPola.filter((p) => p.startsWith("!")).map((p) => p.slice(1));
+    return `({ ${susunEntriGlob(positif, negasi, dirModul)} })`;
   });
   periksaGlobLangsung(hasil, urlModul);
   return hasil;
+}
+
+/**
+ * Susun entri shim dari pola positif dan pola negasi (`!…`).
+ * Negasi mengecualikan berkas agar tidak tumpang tindih dengan glob eager lain.
+ */
+function susunEntriGlob(positif, negasi, dirModul) {
+  const kunci = new Map(); // relatif -> absolut
+  for (const pola of positif) {
+    for (const f of temukanBerkasGlob(pola, dirModul)) {
+      kunci.set(f.relatif, f.absolut);
+    }
+  }
+  for (const pola of negasi) {
+    for (const f of temukanBerkasGlob(pola, dirModul)) {
+      kunci.delete(f.relatif);
+    }
+  }
+  return [...kunci.entries()]
+    .map(
+      ([relatif, absolut]) =>
+        `${JSON.stringify(relatif)}: () => Promise.resolve(${JSON.stringify(pathToFileURL(absolut).href)})`,
+    )
+    .join(", ");
 }
 
 /**

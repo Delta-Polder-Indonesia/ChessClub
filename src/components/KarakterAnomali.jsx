@@ -67,7 +67,7 @@ export default function KarakterAnomali() {
       heightPx: 300,
       topPx: 80,
       analytics: false,
-      avatar: "/avatar.png",
+      avatar: "/images/BlunderSkuad.webp",
       fileNameWebm: "/character.webm",
       fileNameHevc: null,
       poster: ["Ikuti perjalanannya!", "Ada yang menarik di sini...", "Yuk, mulai bermain!"],

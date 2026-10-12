@@ -12,9 +12,14 @@ import {
 } from "react-icons/fa";
 import { SiFramer, SiNextdotjs } from "react-icons/si";
 import { TbBrandAdobePhotoshop, TbBrandAdobeXd } from "react-icons/tb";
-import { BsArrowRight } from "react-icons/bs";
+import {
+  RiLoader4Line,
+  RiCheckboxCircleLine,
+  RiCloseCircleLine,
+} from "react-icons/ri";
 
 import Avatar from "./components/Avatar.jsx";
+import { SendIcon } from "../../components/icons.jsx";
 import Bulb from "./components/Bulb.jsx";
 import Circles from "./components/Circles.jsx";
 import Header from "./components/Header.jsx";
@@ -26,6 +31,7 @@ import TopLeftImg from "./components/TopLeftImg.jsx";
 import Transition from "./components/Transition.jsx";
 import WorkSlider from "./components/WorkSlider.jsx";
 import { fadeIn } from "./variants.js";
+import { Button } from "../../components/ui/button.jsx";
 import { kirimPesan } from "../../lib/api/index.js";
 
 /* ----------------------------------------------------------- aboutData */
@@ -164,8 +170,8 @@ export default function HubungiKami() {
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [toastMsg, setToastMsg] = useState(null);
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [statusError, setStatusError] = useState("");
   const [agreed, setAgreed] = useState(false);
 
   useLayoutEffect(() => {
@@ -223,20 +229,14 @@ export default function HubungiKami() {
     );
   };
 
-  const showToast = (text, type = "success") => {
-    setToastMsg({ text, type });
-    setTimeout(() => {
-      setToastMsg(null);
-    }, 4500);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    setIsSuccess(false);
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setStatus("loading");
+    setStatusError("");
 
     try {
       await kirimPesan({
@@ -246,8 +246,7 @@ export default function HubungiKami() {
         pesan: form.message,
       });
 
-      setIsSuccess(true);
-      showToast("Thank you. I will get back to you ASAP.", "success");
+      setStatus("success");
       setForm({
         name: "",
         email: "",
@@ -261,9 +260,12 @@ export default function HubungiKami() {
         message: false,
         agreement: false,
       });
+      setTimeout(() => setStatus("idle"), 3500);
     } catch (error) {
       console.error(error);
-      showToast(error.message || "Something went wrong!", "error");
+      setStatus("error");
+      setStatusError(error.message || "Pesan gagal terkirim. Silakan coba lagi.");
+      setTimeout(() => setStatus("idle"), 5000);
     } finally {
       setIsLoading(false);
     }
@@ -364,22 +366,6 @@ export default function HubungiKami() {
         }
       `}</style>
 
-      {/* Toast Notification */}
-      {toastMsg && (
-        <aside className="fixed top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div
-            className="px-6 py-3 rounded-lg border text-sm font-medium shadow-2xl flex items-center gap-2"
-            style={{
-              background: "#393a47",
-              color: "#fff",
-              border: "1px solid rgba(255, 255, 255, 0.2)",
-            }}
-          >
-            <span>{toastMsg.text}</span>
-          </div>
-        </aside>
-      )}
-
       {/* Decorative Top Left Image */}
       <TopLeftImg />
 
@@ -387,7 +373,6 @@ export default function HubungiKami() {
       <Header
         activeTab={activeTab}
         onSelectTab={selectTab}
-        onLogoClick={() => selectTab("home")}
       />
 
       {/* Animated Views Container */}
@@ -709,7 +694,7 @@ export default function HubungiKami() {
           {activeTab === "contact" && (
             <div className="h-full bg-primary/30 overflow-y-auto" id="hubungi-kami">
               <div className="container mx-auto py-8 xl:py-12 text-center xl:text-left flex min-h-full overflow-hidden">
-                <div className="flex flex-col w-full max-w-[700px] m-auto">
+                <div className="relative flex flex-col w-full max-w-[700px] m-auto">
                   <motion.h2
                     variants={fadeIn("up", 0.2)}
                     initial="hidden"
@@ -720,11 +705,52 @@ export default function HubungiKami() {
                     Let&apos;s <span className="text-accent">connect.</span>
                   </motion.h2>
 
-                  {/* Status Sukses untuk kompatibilitas uji smoke */}
-                  {isSuccess && (
-                    <div className="mb-4 p-4 rounded-lg bg-green-500/20 border border-green-500/40 text-green-300 text-center">
-                      <p className="font-semibold text-white">Pesan Anda berhasil dikirim!</p>
-                      <p className="text-xs text-green-200 mt-1">Thank you. I will get back to you ASAP.</p>
+                  {/* Overlay status kirim — terpusat, tidak menggeser tata letak */}
+                  {status !== "idle" && (
+                    <div
+                      role="status"
+                      aria-live="polite"
+                      className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[#131424]/90 pointer-events-none"
+                    >
+                      {status === "loading" && (
+                        <RiLoader4Line
+                          key="loading"
+                          aria-hidden
+                          className="text-5xl text-white animate-spin"
+                        />
+                      )}
+                      {status === "success" && (
+                        <RiCheckboxCircleLine
+                          key="success"
+                          aria-hidden
+                          className="text-5xl text-emerald-500 animate-in fade-in zoom-in-95 duration-300"
+                        />
+                      )}
+                      {status === "error" && (
+                        <RiCloseCircleLine
+                          key="error"
+                          aria-hidden
+                          className="text-5xl text-rose-500 animate-in fade-in zoom-in-95 duration-300"
+                        />
+                      )}
+
+                      {status === "loading" && (
+                        <p className="text-sm font-medium text-white">Mengirim pesan...</p>
+                      )}
+                      {status === "success" && (
+                        <div className="text-center">
+                          <p className="font-semibold text-white">Pesan Anda berhasil dikirim!</p>
+                          <p className="text-xs text-white/70 mt-1">
+                            Terima kasih, kami akan segera membalas Anda.
+                          </p>
+                        </div>
+                      )}
+                      {status === "error" && (
+                        <div className="text-center max-w-md">
+                          <p className="font-semibold text-white">Pesan gagal terkirim.</p>
+                          <p className="text-xs text-white/70 mt-1">{statusError}</p>
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -866,30 +892,17 @@ maxLength={5000}
                       </p>
                     )}
 
-                    <button
+                    <Button
                       type="submit"
                       aria-label="Kirim Pesan"
-                      className="btn rounded-full border border-white/50 max-w-42.5 px-8 transition-all duration-300 flex items-center justify-center overflow-hidden hover:border-accent group disabled:pointer-events-none cursor-pointer"
-                      disabled={isLoading}
-                      aria-disabled={isLoading}
+                      variant="default"
+                      size="lg"
+                      loading={isLoading}
+                      className="max-w-42.5 border-white text-white hover:bg-white/10"
                     >
-                      <span
-                        className={
-                          isLoading
-                            ? ""
-                            : "group-hover:translate-y-[-120%] group-hover:opacity-0 transition-all duration-500"
-                        }
-                      >
-                        {isLoading ? "Sending..." : "Let's talk"}
-                      </span>
-
-                      {!isLoading && (
-                        <BsArrowRight
-                          className="translate-y-[-120%] opacity-0 group-hover:flex group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 absolute text-[22px]"
-                          aria-hidden
-                        />
-                      )}
-                    </button>
+                      <SendIcon aria-hidden className="size-4" />
+                      Let&apos;s talk
+                    </Button>
                   </motion.form>
                 </div>
               </div>

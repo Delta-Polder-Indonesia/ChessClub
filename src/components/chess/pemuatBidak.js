@@ -151,10 +151,18 @@ export function ambilSumberBidak(set, piece) {
  * diproses tanpa transform glob (unit test via esbuild, impor Node-side),
  * hasilnya `{}` dan seluruh papan jadi kosong tanpa error apa pun.
  */
-const PEMUAT_ASET = import.meta.glob("../../asets/*/*.{svg,png}", {
-  query: "?url",
-  import: "default",
-});
+const PEMUAT_ASET = import.meta.glob(
+  [
+    "../../asets/*/*.{svg,png}",
+    // Set merida diimpor statis di bawah; kecualikan dari glob lazy ini
+    // agar Vite tidak memperingatkan tumpang tindih (dynamic + static).
+    "!../../asets/merida/*.{svg,png}",
+  ],
+  {
+    query: "?url",
+    import: "default",
+  },
+);
 
 /**
  * Set bawaan "merida" diimpor STATIS (eager). Tanpa ini, 12 chunk kecil
