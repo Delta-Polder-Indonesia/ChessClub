@@ -289,6 +289,15 @@ export const analisa = {
       jumlah: "{n} moves analyzed",
     },
     ringkasan: {
+      wawasan: {
+        judul: "Rating insights",
+        deskripsi: "Per-phase summary from move annotations and accuracy. Not an official rating estimate.",
+        keterangan: "Accuracy · serious errors per phase.",
+        kelemahan: "Needs work: {fase}",
+        kekuatan: "Strongest: {fase}",
+        tanpaKelemahan: "No standout serious errors.",
+        kurangLangkah: "Too few moves to assess per phase.",
+      },
       judul: "Game summary",
       pemain: "Players",
       akurasi: "Accuracy",

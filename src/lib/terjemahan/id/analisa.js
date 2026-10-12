@@ -290,6 +290,15 @@ export const analisa = {
       jumlah: "{n} langkah dianalisis",
     },
     ringkasan: {
+      wawasan: {
+        judul: "Wawasan rating",
+        deskripsi: "Ringkasan per fase dari anotasi dan akurasi tiap langkah. Bukan estimasi rating resmi.",
+        keterangan: "Akurasi · kesalahan berat per fase.",
+        kelemahan: "Perlu dilatih: {fase}",
+        kekuatan: "Paling kuat: {fase}",
+        tanpaKelemahan: "Tidak ada kesalahan berat yang menonjol.",
+        kurangLangkah: "Terlalu sedikit langkah untuk dinilai per fase.",
+      },
       judul: "Ringkasan permainan",
       pemain: "Pemain",
       akurasi: "Akurasi",
