@@ -5,6 +5,8 @@ import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
 
 const ManusiaVsMesin = lazy(() => import("./modus/ManusiaVsMesin.jsx"));
 const LatihanRepertoar = lazy(() => import("./modus/LatihanRepertoar.jsx"));
+const HandBrain = lazy(() => import("./modus/HandBrain.jsx"));
+const TuringTest = lazy(() => import("./modus/TuringTest.jsx"));
 const PapanBuku = lazy(() => import("./PapanInteraktif.jsx"));
 const LayarPengaturan = lazy(() => import("./LayarPengaturan.jsx"));
 
@@ -45,7 +47,7 @@ export default function WorkspacePapanInteraktif() {
 
           <nav
             aria-label={t("papan.menuMode")}
-            className="grid w-full grid-cols-4 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
+            className="grid w-full grid-cols-6 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
           >
             <button
               type="button"
@@ -85,6 +87,30 @@ export default function WorkspacePapanInteraktif() {
 
             <button
               type="button"
+              aria-pressed={mode === "handbrain"}
+              onClick={() => pilihMode("handbrain")}
+              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
+                mode === "handbrain" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+              }`}
+            >
+              <IkonTab nama="games" className="h-5 w-5 shrink-0" />
+              <span className="max-w-full truncate">{t("papan.menuHandBrain")}</span>
+            </button>
+
+            <button
+              type="button"
+              aria-pressed={mode === "turing"}
+              onClick={() => pilihMode("turing")}
+              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
+                mode === "turing" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+              }`}
+            >
+              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
+              <span className="max-w-full truncate">{t("papan.menuTuring")}</span>
+            </button>
+
+            <button
+              type="button"
               aria-pressed={mode === "pengaturan"}
               onClick={() => pilihMode("pengaturan")}
               className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
@@ -105,6 +131,10 @@ export default function WorkspacePapanInteraktif() {
             <ManusiaVsMesin pengaturan={pengaturan} />
           ) : mode === "repertoar" ? (
             <LatihanRepertoar pengaturan={pengaturan} onJelajahBuku={() => pilihMode("papan")} />
+          ) : mode === "handbrain" ? (
+            <HandBrain pengaturan={pengaturan} />
+          ) : mode === "turing" ? (
+            <TuringTest pengaturan={pengaturan} />
           ) : mode === "pengaturan" ? (
             <LayarPengaturan pengaturan={pengaturan} />
           ) : (
