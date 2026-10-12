@@ -20,6 +20,7 @@ saat function dingin — itu satu-satunya data yang “awet” di FULL VERCEL.
 | Aspek | Perilaku | Dampak |
 | ----- | -------- | ------ |
 | Cold start | ~1–3 detik request pertama | Dapat diterima untuk situs komunitas |
+| Pekerjaan latar belakang | Function DIBEKUKAN setelah respons terkirim; janji yang tidak ditunggu jadi pekerjaan yatim | Dulu membuat snapshot roster anggota tertinggal berhari-hari (daftar anggota berbeda dengan Chess.com, foto profil tidak berubah). Sekarang penyegaran didaftarkan lewat `waitUntil` runtime (`server/src/latar-belakang.js`) DAN dibatasi `KCI_CHESS_KLUB_SNAPSHOT_TUNGGU`: snapshot yang terlalu tua disegarkan di dalam permintaan, jadi tidak bisa tertinggal |
 | `/tmp` | Ephemeral per instance | **Tidak OK** untuk data produksi |
 | Rate-limit / CSRF | Hidup di memori function | Reset saat instance berganti. Penolakan CSRF membawa `kode: "token-csrf"` dan klien memulihkan diri (token baru + satu pengiriman ulang); rate-limit tetap longgar di serverless |
 | State OAuth & tiket verifikasi | Token tanpa keadaan bertanda tangan (HMAC dari `KCI_JWT_SECRET`) — sah di instance mana pun, bertahan cold start |
@@ -76,6 +77,11 @@ untuk kebutuhan saat ini, opsi **A** sudah memadai.
     `UNIQUE(jti)` — belum dibuat karena volume situs belum membutuhkannya.
     Dampak replay dibatasi: tiket terikat satu username dan antrean tulis
     anggota menolak duplikasi username secara atomik.
+- Roster anggota: penyusunan snapshot bersifat inkremental (rotasi
+  `KCI_CHESS_KLUB_SAPU` profil per penyusunan, anggaran
+  `KCI_CHESS_KLUB_PENGAYAAN_MS`), sehingga satu permintaan tidak pernah
+  mengunduh ratusan profil. Tombol **Segarkan dari Chess.com** di dashboard
+  pengurus memaksa pengambilan ulang daftar anggota + profil.
 - Tantangan kode profil ikut lapisan penyimpanan data (bukan `Map` milik
   proses), jadi tanpa Supabase ia tetap berada di `/tmp` milik instance.
   `npm run uji:verifikasi` membuktikan kedua sisinya: instance baru dengan

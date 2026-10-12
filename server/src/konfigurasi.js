@@ -337,6 +337,39 @@ export const konfigurasi = {
         process.env.KCI_CHESS_KLUB_SNAPSHOT_SEGAR,
         15 * 60
       ),
+
+      /**
+       * Batas umur snapshot sebelum penyegarannya DITUNGGU di dalam
+       * permintaan (bukan sekadar diteruskan ke latar belakang).
+       *
+       * Di serverless, pekerjaan latar belakang tidak bisa diandalkan
+       * (function dibekukan setelah respons terkirim — lihat
+       * latar-belakang.js). Tanpa batas ini, snapshot bisa tertinggal
+       * berhari-hari: daftar anggota tidak lagi sama dengan klub Chess.com
+       * dan foto profil tidak pernah berubah. Dengan batas ini, pengunjung
+       * paling lama menunggu satu kali penyusunan ringan untuk melihat data
+       * terbaru.
+       */
+      snapshotTungguDetik: angka(
+        process.env.KCI_CHESS_KLUB_SNAPSHOT_TUNGGU,
+        2 * 60 * 60
+      ),
+
+      /**
+       * Anggaran waktu (ms) untuk mengambil profil Chess.com pada satu
+       * penyusunan roster. Penyusunan SELALU berhenti di anggaran ini
+       * sehingga tidak ada permintaan yang menggantung: sisa anggota memakai
+       * data lama dari snapshot sebelumnya dan disegarkan pada penyusunan
+       * berikutnya (rotasi).
+       */
+      pengayaanMs: angka(process.env.KCI_CHESS_KLUB_PENGAYAAN_MS, 12_000),
+
+      /**
+       * Jumlah profil yang diambil ulang per penyusunan (rotasi). Profil
+       * yang paling lama diambil didahulukan, jadi seluruh roster berputar
+       * tanpa pernah membanjiri API Chess.com.
+       */
+      profilSekaliSapu: angka(process.env.KCI_CHESS_KLUB_SAPU, 40),
     },
   },
 

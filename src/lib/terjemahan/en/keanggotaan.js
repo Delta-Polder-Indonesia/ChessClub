@@ -20,6 +20,9 @@ export const keanggotaan = {
     lengkapiData: "Complete personal data on the website",
     sumber: "Member source:",
     sumberCatatan: "The public Chess.com roster refreshes at most every 12 hours.",
+    rosterDiperbarui: "Roster data updated {waktu}.",
+    rosterTertinggal: "Roster data may be behind — last updated {waktu}.",
+    muatUlang: "Reload",
     memuat: "Loading data from Chess.com…",
     menyegarkan: "Refreshing the member list from Chess.com…",
     fallbackCatatan:

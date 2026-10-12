@@ -174,24 +174,27 @@ export function daftarkanRute(router, { mulaiPada }) {
    * latar belakang (stale-while-revalidate).
    */
   router.get("/api/anggota", async (_req) => {
-    const { anggota, diperbaruiPada, segar } = await rosterAnggota();
+    const { anggota, diperbaruiPada, segar, umurDetik } = await rosterAnggota();
     return {
       status: 200,
       isi: anggota,
+      // Snapshot usang TIDAK boleh di-cache lama oleh browser/CDN, jika tidak
+      // pengunjung tetap melihat daftar lama walau server sudah menyegarkan.
       cache: segar ? CACHE_ANGGOTA : CACHE_ANGGOTA_USANG,
       kepala: {
         "X-Roster-Diperbarui": diperbaruiPada || "",
         "X-Roster-Segar": segar ? "1" : "0",
+        "X-Roster-Umur": String(Math.round(Number(umurDetik) || 0)),
       },
     };
   });
 
   /** Metadata snapshot roster — dipakai klien untuk tahu perlu memuat ulang. */
   router.get("/api/anggota/status", async () => {
-    const { anggota, diperbaruiPada, segar } = await rosterAnggota();
+    const { anggota, diperbaruiPada, segar, umurDetik } = await rosterAnggota();
     return {
       status: 200,
-      isi: { jumlah: anggota.length, diperbaruiPada, segar },
+      isi: { jumlah: anggota.length, diperbaruiPada, segar, umurDetik: Math.round(Number(umurDetik) || 0) },
       cache: "no-store",
     };
   });
@@ -853,11 +856,27 @@ export function daftarkanRute(router, { mulaiPada }) {
     return { status: 200, isi: { ok: true, username: admin?.username || "", role: admin?.role || peranPengurus(req) || "pengurus" } };
   });
 
-  /** Paksa susun ulang snapshot roster anggota dari Chess.com. */
+  /**
+   * Paksa susun ulang snapshot roster anggota dari Chess.com.
+   *
+   * `paksa: true` penting: tanpa itu penyusunan hanya mengulang cache daftar
+   * anggota klub (12 jam) dan cache profil (1 jam), sehingga tombol pengurus
+   * tampak "tidak melakukan apa-apa" padahal ada anggota baru yang belum
+   * masuk. Sekarang daftar anggota DAN profil benar-benar diambil ulang
+   * (dibatasi anggaran waktu + rotasi, lihat susunRosterAnggota).
+   */
   router.post("/api/pengurus/segarkan-roster", async (req) => {
     await pastikanAdmin(req);
-    const anggota = await segarkanRoster();
-    return { status: 200, isi: { jumlah: anggota.length, diperbaruiPada: new Date().toISOString() } };
+    const anggota = await segarkanRoster({ paksa: true });
+    const status = await rosterAnggota();
+    return {
+      status: 200,
+      isi: {
+        jumlah: anggota.length,
+        diperbaruiPada: status.diperbaruiPada,
+        segar: status.segar,
+      },
+    };
   });
 
   router.post("/api/pengurus/pindai", async (req) => {

@@ -66,7 +66,7 @@ export function pasangCors(req, res) {
   );
   res.setHeader("Access-Control-Max-Age", "86400");
   // Browser frontend dapat menyertakan ID ini saat melaporkan kegagalan.
-  res.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After, X-RateLimit-Remaining, X-Roster-Diperbarui, X-Roster-Segar");
+  res.setHeader("Access-Control-Expose-Headers", "X-Request-Id, Retry-After, X-RateLimit-Remaining, X-Roster-Diperbarui, X-Roster-Segar, X-Roster-Umur");
   return true;
 }
 

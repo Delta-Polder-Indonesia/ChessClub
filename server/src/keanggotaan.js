@@ -12,6 +12,7 @@ import { catatJejak } from "./audit.js";
 export { catatJejak };
 import { ambilProfil, ambilStatistik, ringkasRating, hapusCache } from "./chess.js";
 import { daftarAnggotaKlub, anggotaAdaDiKlub } from "./klub.js";
+import { teruskanSetelahRespons } from "./latar-belakang.js";
 import { periksaTiket, tandaiTiketDipakai } from "./oauth.js";
 import {
   statusPengajuan,
@@ -183,12 +184,17 @@ export function validasiPendaftaran(body) {
 
 /**
  * Lengkapi data anggota dengan profil & rating terkini dari Chess.com.
- * `cacheDetik` dipanjangkan saat memuat satu roster klub penuh agar satu
- * kunjungan halaman tidak membuat ratusan profil diambil berulang kali.
+ * `cacheDetik` memanjangkan umur cache profil agar satu kunjungan halaman
+ * tidak membuat ratusan profil diambil berulang kali; `paksa` melewati cache
+ * sama sekali (dipakai penyegaran manual pengurus).
  */
-export async function lengkapiAnggota(anggota, { cacheDetik } = {}) {
+export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {}) {
   const { username } = anggota;
-  const opsiCache = cacheDetik ? { cacheDetik } : undefined;
+  const opsiCache = paksa
+    ? { pakaiCache: false }
+    : cacheDetik
+      ? { cacheDetik }
+      : undefined;
   try {
     const [pRes, sRes] = await Promise.all([
       ambilProfil(username, opsiCache),
@@ -196,7 +202,14 @@ export async function lengkapiAnggota(anggota, { cacheDetik } = {}) {
     ]);
 
     if (!pRes.ada) {
-      return { ...anggota, nama: anggota.panggilan || username, hilang: true };
+      return {
+        ...anggota,
+        nama: anggota.panggilan || username,
+        hilang: true,
+        // Akun yang benar-benar 404 tetap dicap waktunya: pemeriksaan ulang
+        // terjadi lewat rotasi, bukan setiap kali roster disusun.
+        profilDiambilPada: new Date().toISOString(),
+      };
     }
 
     const profil = pRes.data;
@@ -217,8 +230,13 @@ export async function lengkapiAnggota(anggota, { cacheDetik } = {}) {
       ...(status.diblokir || status.ditutup
         ? { peringatan: status.keterangan, alasanStatus: status.alasan }
         : {}),
+      // Cap waktu data Chess.com: dipakai modul roster untuk tahu kapan
+      // profil ini boleh dipakai ulang dan kapan harus diambil ulang.
+      profilDiambilPada: new Date().toISOString(),
     };
   } catch {
+    // Gagal menghubungi Chess.com: TANPA cap waktu, supaya username ini
+    // dicoba lagi pada penyusunan roster berikutnya (bukan menunggu 1 jam).
     return { ...anggota, nama: anggota.panggilan || username, gagal: true };
   }
 }
@@ -251,14 +269,68 @@ function tanpaRahasia(anggota) {
   return aman;
 }
 
+/**
+ * Field yang berasal dari Chess.com dan karena itu boleh dipakai ulang dari
+ * snapshot sebelumnya (lihat `susunRosterAnggota`). Sengaja ALLOW-LIST:
+ * metadata situs, status verifikasi, dan penanda larangan selalu dihitung
+ * ulang supaya tidak ikut basi.
+ */
+const FIELD_CHESS = [
+  "nama",
+  "foto",
+  "url",
+  "statusChess",
+  "playerId",
+  "ratings",
+  "elo",
+  "kontrol",
+  "win",
+  "draw",
+  "loss",
+  "hilang",
+  "gagal",
+  "profilDiambilPada",
+];
+
+function bagianChess(sumber) {
+  const keluar = {};
+  for (const k of FIELD_CHESS) {
+    if (sumber?.[k] !== undefined) keluar[k] = sumber[k];
+  }
+  /* Peringatan status Chess dihitung ULANG dari `statusChess` (fungsi murni),
+     jadi akun yang ditutup/diblokir Chess.com tetap bertanda walau datanya
+     dipakai ulang — sementara `peringatan` dari daftar larangan komunitas
+     tetap ditulis oleh pemanggil. */
+  const status = evaluasiStatusChess(keluar.statusChess);
+  if (status.diblokir || status.ditutup) {
+    keluar.peringatan = status.keterangan;
+    keluar.alasanStatus = status.alasan;
+  }
+  return keluar;
+}
+
 /* ------------------------------------------------------------- layanan */
 
 /**
  * Susun roster lengkap dari sumbernya (Chess.com + data lokal).
- * Operasi ini MAHAL (ratusan permintaan profil), jadi hasilnya disimpan ke
- * snapshot oleh `segarkanRoster()` dan dipakai ulang oleh `daftarAnggota()`.
+ *
+ * Sebelumnya fungsi ini memanggil Chess.com untuk SELURUH anggota (dua
+ * permintaan per orang). Untuk klub berisi ratusan anggota itu jauh melebihi
+ * batas durasi function di serverless, sehingga penyegaran tidak pernah
+ * selesai dan snapshot roster tertinggal berhari-hari.
+ *
+ * Sekarang penyusunan bersifat INKREMENTAL dan BERANGGARAN WAKTU:
+ *   - data Chess.com pada snapshot sebelumnya dipakai ulang selama belum
+ *     kedaluwarsa (`profilCacheDetik`, bawaan 1 jam);
+ *   - hanya sebagian profil yang diambil ulang per penyusunan
+ *     (`profilSekaliSapu`), yang paling lama diambil didahulukan (rotasi);
+ *   - seluruh pengambilan profil berhenti di `pengayaanMs`, sehingga
+ *     penyusunan selalu selesai tepat waktu walau Chess.com lambat.
+ *
+ * `paksa: true` (tombol pengurus) mengabaikan cache profil DAN cache daftar
+ * anggota klub, jadi benar-benar mengambil keadaan terbaru dari Chess.com.
  */
-export async function susunRosterAnggota() {
+export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
   /*
    * Roster klub adalah sumber keanggotaan publik. data/anggota.json tetap
    * dipakai untuk metadata pendaftaran (panggilan, kota, verifikasi, dan
@@ -266,10 +338,11 @@ export async function susunRosterAnggota() {
    * Dengan begitu anggota yang baru bergabung di Chess.com langsung tampil
    * tanpa perlu mengisi formulir situs.
    */
-  const [dasar, dariKlub, hitam] = await Promise.all([
+  const [dasar, dariKlub, hitam, lamaSnapshot] = await Promise.all([
     repoAnggota.baca(),
-    daftarAnggotaKlub(),
+    daftarAnggotaKlub({ paksa }),
     repoHitam.baca(),
+    bacaSnapshotRoster(),
   ]);
   const lokalPerUsername = new Map(
     dasar.map((a) => [String(a.username || "").toLowerCase(), a])
@@ -277,40 +350,125 @@ export async function susunRosterAnggota() {
   const hitamPerUsername = new Map(
     hitam.map((a) => [String(a.username || "").toLowerCase(), a])
   );
-
-  const lengkap = await Promise.all(
-    dariKlub.map(async (anggotaKlub) => {
-      const lokal = lokalPerUsername.get(anggotaKlub.username);
-      const gabung = {
-        ...(lokal ? tanpaRahasia(lokal) : {}),
-        ...anggotaKlub,
-        // Menandai apakah anggota roster sudah melengkapi formulir data diri
-        // di situs. Nilai ini aman dipublikasikan; data pribadinya tetap rahasia.
-        dataSitusLengkap: Boolean(lokal),
-        // Sumber klub selalu berwenang untuk username dan tanggal bergabung.
-        username: anggotaKlub.username,
-        daftarPada: anggotaKlub.daftarPada,
-      };
-      const hasil = await lengkapiAnggota(gabung, {
-        cacheDetik: konfigurasi.chess.klub.profilCacheDetik,
-      });
-      const larangan = hitamPerUsername.get(anggotaKlub.username);
-
-      // Daftar larangan komunitas dapat berisi blokir manual, yang tidak
-      // selalu tercermin sebagai `closed:*` pada profil Chess.com.
-      if (!larangan) return hasil;
-      return {
-        ...hasil,
-        diblokirKomunitas: true,
-        sumberLarangan: larangan.sumber || (hasil.alasanStatus === "fair_play_violations" ? "otomatis" : "pengurus"),
-        alasanStatus: larangan.alasan || hasil.alasanStatus || null,
-        peringatan:
-          larangan.keterangan ||
-          hasil.peringatan ||
-          "Akun ini tidak dapat mengikuti kegiatan komunitas.",
-      };
-    })
+  const lamaPerUsername = new Map(
+    (lamaSnapshot.anggota || [])
+      .filter((a) => a?.username)
+      .map((a) => [a.username, a])
   );
+
+  /** Data dasar setiap anggota: metadata situs + data roster klub. */
+  const dasarGabung = new Map();
+  for (const anggotaKlub of dariKlub) {
+    const lokal = lokalPerUsername.get(anggotaKlub.username);
+    dasarGabung.set(anggotaKlub.username, {
+      ...(lokal ? tanpaRahasia(lokal) : {}),
+      ...anggotaKlub,
+      // Menandai apakah anggota roster sudah melengkapi formulir data diri
+      // di situs. Nilai ini aman dipublikasikan; data pribadinya tetap rahasia.
+      dataSitusLengkap: Boolean(lokal),
+      // Sumber klub selalu berwenang untuk username dan tanggal bergabung.
+      username: anggotaKlub.username,
+      daftarPada: anggotaKlub.daftarPada,
+    });
+  }
+
+  /* ------------------------------------------------- rencana pengambilan */
+  const sekarang = Date.now();
+  const kedaluwarsaSebelum =
+    sekarang - konfigurasi.chess.klub.profilCacheDetik * 1000;
+
+  const kandidat = dariKlub.map((anggotaKlub) => {
+    const lama = lamaPerUsername.get(anggotaKlub.username);
+    const cap = lama?.profilDiambilPada ? Date.parse(lama.profilDiambilPada) : 0;
+    const adaCap = Number.isFinite(cap) && cap > 0;
+    return {
+      anggotaKlub,
+      lama,
+      // Belum pernah diperkaya (0) selalu didahulukan.
+      urut: adaCap ? cap : 0,
+      perlu: paksa || !adaCap || cap <= kedaluwarsaSebelum,
+    };
+  });
+
+  const antre = kandidat.filter((k) => k.perlu).sort((a, b) => a.urut - b.urut);
+  const dipilih = paksa
+    ? antre
+    : antre.slice(0, konfigurasi.chess.klub.profilSekaliSapu);
+  const tenggat = sekarang + (batasWaktuMs ?? konfigurasi.chess.klub.pengayaanMs);
+
+  const hasilSegar = new Map();
+  const jalurKerja = [...dipilih];
+  const jumlahPekerja = Math.min(5, jalurKerja.length);
+  const pekerja = [];
+  for (let i = 0; i < jumlahPekerja; i++) {
+    pekerja.push(
+      (async () => {
+        while (jalurKerja.length) {
+          // Berhenti di anggaran waktu: sisanya memakai data lama dan
+          // disegarkan pada penyusunan berikutnya.
+          if (Date.now() >= tenggat) return;
+          const k = jalurKerja.shift();
+          const hasil = await lengkapiAnggota(
+            dasarGabung.get(k.anggotaKlub.username),
+            {
+              paksa,
+              // Umur cache profil disamakan dengan umur data di snapshot,
+              // supaya rotasi benar-benar mengambil data baru (bukan membaca
+              // cache lama) dan kunjungan halaman berikutnya tetap ringan.
+              cacheDetik: konfigurasi.chess.klub.profilCacheDetik,
+            }
+          );
+          hasilSegar.set(k.anggotaKlub.username, hasil);
+        }
+      })().catch(() => {})
+    );
+  }
+  // Batas keras: penyusunan tidak boleh menggantung karena Chess.com lambat.
+  await Promise.race([
+    Promise.all(pekerja),
+    new Promise((r) => setTimeout(r, Math.max(0, tenggat - Date.now()))),
+  ]);
+
+  /* -------------------------------------------------------- gabung hasil */
+  const lengkap = dariKlub.map((anggotaKlub) => {
+    const dasarAnggota = dasarGabung.get(anggotaKlub.username);
+    const lama = lamaPerUsername.get(anggotaKlub.username);
+    const segar = hasilSegar.get(anggotaKlub.username);
+
+    let hasil;
+    if (segar) {
+      hasil = segar;
+    } else if (lama) {
+      // Pakai data Chess.com dari snapshot sebelumnya; yang diambil HANYA
+      // field hasil Chess.com, supaya data lokal & penanda larangan selalu
+      // dihitung ulang (tidak ikut basi).
+      hasil = { ...dasarAnggota, ...bagianChess(lama), dipakaiUlang: true };
+    } else {
+      hasil = {
+        ...dasarAnggota,
+        nama: dasarAnggota.panggilan || anggotaKlub.username,
+        belumDiperkaya: true,
+      };
+    }
+
+    const larangan = hitamPerUsername.get(anggotaKlub.username);
+    if (!larangan) return hasil;
+
+    // Daftar larangan komunitas dapat berisi blokir manual, yang tidak
+    // selalu tercermin sebagai `closed:*` pada profil Chess.com.
+    return {
+      ...hasil,
+      diblokirKomunitas: true,
+      sumberLarangan:
+        larangan.sumber ||
+        (hasil.alasanStatus === "fair_play_violations" ? "otomatis" : "pengurus"),
+      alasanStatus: larangan.alasan || hasil.alasanStatus || null,
+      peringatan:
+        larangan.keterangan ||
+        hasil.peringatan ||
+        "Akun ini tidak dapat mengikuti kegiatan komunitas.",
+    };
+  });
 
   lengkap.sort((a, b) => (b.elo || 0) - (a.elo || 0));
   // Data pribadi (nama asli, HP/WA, DANA, email, tanggal lahir) TIDAK ikut
@@ -376,13 +534,25 @@ async function bacaSnapshotRoster() {
 /**
  * Susun ulang roster dari Chess.com dan simpan ke snapshot.
  * Panggilan serentak digabung menjadi satu penyegaran.
+ *
+ * `paksa: true` menerobos cache daftar anggota klub DAN cache profil, jadi
+ * tombol pengurus benar-benar menarik keadaan terbaru (bukan mengulang
+ * susunan dari data cache seperti sebelumnya).
  */
-export function segarkanRoster() {
-  if (penyegaranBerjalan) return penyegaranBerjalan;
+export function segarkanRoster({ paksa = false, batasWaktuMs } = {}) {
+  if (penyegaranBerjalan) {
+    if (!paksa) return penyegaranBerjalan;
+    /* Penyegaran ringan sedang berjalan; menunggunya saja akan mengembalikan
+       data cache yang sama. Rantai ke penyegaran paksa SETELAH itu selesai,
+       supaya permintaan pengurus tetap dijawab data terbaru. */
+    return penyegaranBerjalan
+      .catch(() => {})
+      .then(() => segarkanRoster({ paksa: true, batasWaktuMs }));
+  }
 
   const tandaiMulai = wajibSegar;
   penyegaranBerjalan = (async () => {
-    const anggota = await susunRosterAnggota();
+    const anggota = await susunRosterAnggota({ paksa, batasWaktuMs });
     if (tandaiMulai) wajibSegar = false;
     // Jangan pernah menimpa snapshot berisi dengan hasil kosong: itu hampir
     // selalu berarti Chess.com sedang bermasalah, bukan klub jadi kosong.
@@ -416,53 +586,62 @@ export function segarkanRoster() {
 /**
  * Daftar anggota untuk halaman publik.
  *
+ * Tiga jalur:
+ *  1. Snapshot masih segar → jawab langsung.
+ *  2. Snapshot usang tetapi belum terlalu tua → jawab snapshot SEKARANG dan
+ *     teruskan penyegaran ke latar belakang. Di serverless penyegaran itu
+ *     didaftarkan lewat `waitUntil` (latar-belakang.js) supaya tidak dibekukan
+ *     setelah respons terkirim — inilah yang dulu membuat daftar anggota
+ *     tertinggal berhari-hari.
+ *  3. Snapshot belum ada, sudah melewati `snapshotTungguDetik`, atau diminta
+ *     paksa → tunggu penyegaran (beranggaran waktu, jadi tidak menggantung).
+ *
  * @param {{paksa?: boolean}} opsi - `paksa: true` menunggu penyegaran penuh
- *        (dipakai tombol muat ulang pengurus), bukan menjawab dari snapshot.
- * @returns {Promise<{anggota: Array, diperbaruiPada: string|null, segar: boolean}>}
+ *        yang melewati cache (dipakai tombol pengurus).
+ * @returns {Promise<{anggota: Array, diperbaruiPada: string|null,
+ *                    segar: boolean, umurDetik: number}>}
  */
 export async function rosterAnggota({ paksa = false } = {}) {
-  if (paksa) {
-    const anggota = await segarkanRoster();
-    return {
-      anggota,
-      diperbaruiPada: rosterMemori?.diperbaruiPada || null,
-      segar: true,
-    };
-  }
-
-  if (wajibSegar) {
-    // Ada perubahan data yang belum masuk snapshot — tunggu penyegaran
-    // (biasanya sudah berjalan sejak perubahan terjadi, jadi tinggal sisanya).
-    const anggota = await segarkanRoster();
-    return {
-      anggota,
-      diperbaruiPada: rosterMemori?.diperbaruiPada || null,
-      segar: true,
-    };
-  }
-
   const snapshot = await bacaSnapshotRoster();
   const umur = umurDetik(snapshot.diperbaruiPada);
+  const hasil = (segar) => ({
+    anggota: segar && rosterMemori ? rosterMemori.anggota : snapshot.anggota,
+    diperbaruiPada: segar && rosterMemori ? rosterMemori.diperbaruiPada : snapshot.diperbaruiPada,
+    segar,
+    umurDetik: segar ? 0 : umur,
+  });
 
-  if (!snapshot.anggota.length) {
-    // Belum ada apa pun untuk ditampilkan — kali ini memang harus menunggu.
-    const anggota = await segarkanRoster();
+  const tungguPenyegaran = async () => {
+    const anggota = await segarkanRoster({ paksa });
     return {
       anggota,
       diperbaruiPada: rosterMemori?.diperbaruiPada || null,
       segar: true,
+      umurDetik: 0,
     };
+  };
+
+  if (!paksa && snapshot.anggota.length) {
+    if (umur <= konfigurasi.chess.klub.snapshotSegarDetik && !wajibSegar) {
+      return hasil(true);
+    }
+
+    if (umur <= konfigurasi.chess.klub.snapshotTungguDetik && !wajibSegar) {
+      // Tampilkan yang lama SEKARANG, perbarui di latar belakang dengan
+      // jaminan tetap hidup sampai selesai (bila runtime mendukung).
+      teruskanSetelahRespons(
+        segarkanRoster().catch((e) => {
+          console.warn(`[kci] penyegaran roster gagal: ${e?.message || e}`);
+        })
+      );
+      return hasil(false);
+    }
   }
 
-  const segar = umur <= konfigurasi.chess.klub.snapshotSegarDetik;
-  if (!segar) {
-    // Tampilkan yang lama SEKARANG, perbarui di latar belakang.
-    segarkanRoster().catch((e) => {
-      console.warn(`[kci] penyegaran roster gagal: ${e?.message || e}`);
-    });
-  }
-
-  return { anggota: snapshot.anggota, diperbaruiPada: snapshot.diperbaruiPada, segar };
+  /* Belum ada snapshot, sudah terlalu tua, atau diminta paksa: tunggu
+     penyegarannya. Penyusunan dibatasi `pengayaanMs` + rotasi, jadi
+     penantian ini berujung — bukan ratusan panggilan Chess.com. */
+  return tungguPenyegaran();
 }
 
 /** Daftar anggota (bentuk lama: array saja). */
@@ -479,9 +658,11 @@ export async function daftarAnggota(opsi) {
  */
 export function usangkanRoster() {
   wajibSegar = true;
-  segarkanRoster().catch((e) => {
-    console.warn(`[kci] penyegaran roster gagal: ${e?.message || e}`);
-  });
+  teruskanSetelahRespons(
+    segarkanRoster().catch((e) => {
+      console.warn(`[kci] penyegaran roster gagal: ${e?.message || e}`);
+    })
+  );
 }
 
 export async function daftarHitamPublik() {

@@ -20,6 +20,10 @@ export const keanggotaan = {
     lengkapiData: "Lengkapi data diri di situs",
     sumber: "Sumber anggota:",
     sumberCatatan: "Roster publik Chess.com diperbarui maksimal setiap 12 jam.",
+    rosterDiperbarui: "Data roster diperbarui {waktu}.",
+    rosterTertinggal:
+      "Data roster mungkin tertinggal — terakhir diperbarui {waktu}.",
+    muatUlang: "Muat ulang",
     memuat: "Memuat data dari Chess.com…",
     menyegarkan: "Menyegarkan daftar anggota dari Chess.com…",
     fallbackCatatan:
