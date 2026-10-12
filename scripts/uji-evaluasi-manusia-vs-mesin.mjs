@@ -301,14 +301,22 @@ async function partaiBaru(sebelumMulai) {
     return disorot(sq);
   };
   const tombolNavigasi = () => {
-    // `"⏮◀▶⏭".includes("")` bernilai true (string kosong = substring dari
-    // apa pun) — tanpa syarat panjang, tombol ikon lain yang teksnya kosong
-    // ikut lolos dan mengacaukan urutan kandidat.
-    const kandidat = [...wadah.querySelectorAll("button")].filter((b) => {
-      const teks = b.textContent.trim();
-      return teks.length === 1 && "⏮◀▶⏭".includes(teks);
-    });
-    return { keAwal: kandidat[0], mundur: kandidat[1], maju: kandidat[2], keAkhir: kandidat[3] };
+    // Tombol navigasi kini ikon SVG (ChevronLeft/Right, lihat TombolMundur.jsx
+    // & TombolMaju.jsx) — tidak ada teks glyph lagi, jadi dicocokkan lewat
+    // aria-label (bahasa Indonesia atau Inggris). Urutan tetap: awal, mundur,
+    // maju, akhir.
+    const cari = (label) => {
+      const set = label.map((l) => l.toLowerCase());
+      return [...wadah.querySelectorAll("button")].find((b) =>
+        set.includes((b.getAttribute("aria-label") || "").trim().toLowerCase())
+      );
+    };
+    return {
+      keAwal: cari(["Ke awal", "To start"]),
+      mundur: cari(["Mundur", "Back"]),
+      maju: cari(["Maju", "Forward"]),
+      keAkhir: cari(["Ke akhir", "To end"]),
+    };
   };
 
   return {
