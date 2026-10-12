@@ -112,7 +112,7 @@ export const papan = {
     pveMulai: "Main",
     pvePartaiBaru: "Partai baru",
     pveMenyerah: "Menyerah",
-    pveKonfirmasiMenyerah: "Yakin menyerah?",
+    pveKonfirmasiMenyerah: "Apakah Anda yakin ingin mengundurkan diri?",
     pveKonfirmasiMenyerahKet: "Partai ini langsung tercatat kalah untukmu.",
     pveYa: "Ya",
     pveTidak: "Tidak",

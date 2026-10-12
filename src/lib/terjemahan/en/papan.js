@@ -112,7 +112,7 @@ export const papan = {
     pveMulai: "Play",
     pvePartaiBaru: "New game",
     pveMenyerah: "Resign",
-    pveKonfirmasiMenyerah: "Resign this game?",
+    pveKonfirmasiMenyerah: "Are you sure you want to resign?",
     pveKonfirmasiMenyerahKet: "This game is immediately recorded as your loss.",
     pveYa: "Yes",
     pveTidak: "No",

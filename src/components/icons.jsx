@@ -383,3 +383,83 @@ export function SendIcon({ className = "" }) {
     </svg>
   );
 }
+
+export function ChevronStartIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="m6.07 22h-.13c-1.6 0-1.93-.33-1.93-1.93v-16.13c0-1.6.33-1.93 1.93-1.93h.13c1.6 0 1.93.33 1.93 1.93v16.13c0 1.6-.33 1.93-1.93 1.93zm13.86-.87-.07.07c-1.13 1.13-1.6 1.13-2.73 0l-6.4-6.37c-1.73-1.77-1.73-3.9 0-5.67l6.4-6.37c1.13-1.13 1.6-1.13 2.73 0l.07.07c1.13 1.13 1.13 1.6 0 2.73l-6.37 6.4 6.37 6.4c1.13 1.13 1.13 1.6 0 2.73zm0 0" />
+    </svg>
+  );
+}
+
+export function ChevronLeftIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="m16.27 21.13-.07.07c-1.13 1.13-1.6 1.13-2.73 0l-6.4-6.37c-1.73-1.77-1.73-3.9 0-5.67l6.4-6.37c1.13-1.13 1.6-1.13 2.73 0l.07.07c1.13 1.13 1.13 1.6 0 2.73l-6.37 6.4 6.37 6.4c1.13 1.13 1.13 1.6 0 2.73zm0 0" />
+    </svg>
+  );
+}
+
+export function ChevronRightIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="m7.73 2.87.07-.07c1.13-1.13 1.6-1.13 2.73 0l6.4 6.37c1.73 1.77 1.73 3.9 0 5.67l-6.4 6.37c-1.13 1.13-1.6 1.13-2.73 0l-.07-.07c-1.13-1.13-1.13-1.6 0-2.73l6.37-6.4-6.37-6.4c-1.13-1.13-1.13-1.6 0-2.73zm0 0" />
+    </svg>
+  );
+}
+
+export function ChevronEndIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="m17.93 2h.13c1.6 0 1.93.33 1.93 1.93v16.13c0 1.6-.33 1.93-1.93 1.93h-.13c-1.6 0-1.93-.33-1.93-1.93v-16.13c0-1.6.33-1.93 1.93-1.93zm-13.86.87.07-.07c1.13-1.13 1.6-1.13 2.73 0l6.4 6.37c1.73 1.77 1.73 3.9 0 5.67l-6.4 6.37c-1.13 1.13-1.6 1.13-2.73 0l-.07-.07c-1.13-1.13-1.13-1.6 0-2.73l6.37-6.4-6.37-6.4c-1.13-1.13-1.13-1.6 0-2.73zm0 0" />
+    </svg>
+  );
+}
+
+export function MagnifierCheckerIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="m11 18.33c4.15 0 7.33-3.19 7.33-7.33 0-4.15-3.19-7.33-7.33-7.33-4.15 0-7.33 3.19-7.33 7.33 0 4.15 3.19 7.33 7.33 7.33zm0 3c-5.79 0-10.33-4.55-10.33-10.33 0-5.79 4.55-10.33 10.33-10.33 5.79 0 10.33 4.55 10.33 10.33 0 5.79-4.55 10.33-10.33 10.33zm10.67 2.24c-.53 0-1.03-.2-1.8-1.07l-3.5-3.67 2.47-2.47 3.6 3.43c.93.8 1.13 1.33 1.13 1.87 0 1.03-.87 1.9-1.9 1.9zm-15.67-12.57c0-2.77 2.27-5 5-5v5zm5 5v-5h5c0 2.73-2.23 5-5 5zm0 0" />
+    </svg>
+  );
+}

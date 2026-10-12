@@ -336,8 +336,8 @@ export default function HubungiKami() {
           outline: none;
         }
         .input:focus {
-          border-color: #f13024;
-          box-shadow: 0 0 0 1px #f13024;
+          border-color: rgba(255, 255, 255, 0.6);
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
         }
         .textarea {
           width: 100%;
@@ -353,6 +353,11 @@ export default function HubungiKami() {
           outline: none;
         }
         .textarea:focus {
+          border-color: rgba(255, 255, 255, 0.6);
+          box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.6);
+        }
+        .input.border-red-500,
+        .textarea.border-red-500 {
           border-color: #f13024;
           box-shadow: 0 0 0 1px #f13024;
         }
@@ -773,7 +778,7 @@ export default function HubungiKami() {
                           type="text"
                           name="name"
                           placeholder="Name"
-                          className="input"
+                          className={`input ${fieldErrors.name ? "border-red-500" : ""}`}
                           value={form.name}
                           onChange={handleChange}
                           disabled={isLoading}
@@ -781,13 +786,7 @@ export default function HubungiKami() {
                           maxLength={80}
                           aria-label="Nama Lengkap"
                           aria-invalid={fieldErrors.name}
-                          aria-describedby={fieldErrors.name ? "name-error" : undefined}
                         />
-                        {fieldErrors.name && (
-                          <p id="name-error" className="mt-1 text-left text-sm text-accent" role="alert">
-                            Invalid Name
-                          </p>
-                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <label htmlFor="email-input" className="sr-only">Alamat Email</label>
@@ -796,7 +795,6 @@ export default function HubungiKami() {
                           type="email"
                           name="email"
                           placeholder="E-mail"
-                          className="input"
                           value={form.email}
                           onChange={handleChange}
                           disabled={isLoading}
@@ -804,13 +802,8 @@ export default function HubungiKami() {
                           maxLength={120}
                           aria-label="Alamat Email"
                           aria-invalid={fieldErrors.email}
-                          aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                          className={`input ${fieldErrors.email ? "border-red-500" : ""}`}
                         />
-                        {fieldErrors.email && (
-                          <p id="email-error" className="mt-1 text-left text-sm text-accent" role="alert">
-                            Invalid E-mail
-                          </p>
-                        )}
                       </div>
                     </div>
                     <div>
@@ -820,21 +813,15 @@ export default function HubungiKami() {
                         type="text"
                         name="subject"
                         placeholder="Subject"
-                        className="input"
+                        className={`input ${fieldErrors.subject ? "border-red-500" : ""}`}
                         value={form.subject}
                         onChange={handleChange}
                         disabled={isLoading}
                         aria-disabled={isLoading}
-maxLength={150}
-                          aria-label="Subjek Pesan"
+                        maxLength={150}
+                        aria-label="Subjek Pesan"
                         aria-invalid={fieldErrors.subject}
-                        aria-describedby={fieldErrors.subject ? "subject-error" : undefined}
                       />
-                      {fieldErrors.subject && (
-                        <p id="subject-error" className="mt-1 text-left text-sm text-accent" role="alert">
-                          Invalid Subject
-                        </p>
-                      )}
                     </div>
                     <div>
                       <label htmlFor="message-input" className="sr-only">Isi Pesan</label>
@@ -843,22 +830,16 @@ maxLength={150}
                         ref={messageRef}
                         name="message"
                         placeholder="Message..."
-                        className="textarea"
+                        className={`textarea ${fieldErrors.message ? "border-red-500" : ""}`}
                         rows={4}
                         value={form.message}
                         onChange={handleChange}
                         disabled={isLoading}
                         aria-disabled={isLoading}
-maxLength={5000}
-                          aria-label="Isi Pesan"
+                        maxLength={5000}
+                        aria-label="Isi Pesan"
                         aria-invalid={fieldErrors.message}
-                        aria-describedby={fieldErrors.message ? "message-error" : undefined}
                       />
-                      {fieldErrors.message && (
-                        <p id="message-error" className="mt-1 text-left text-sm text-accent" role="alert">
-                          Invalid Message
-                        </p>
-                      )}
                     </div>
 
                     {/* Agreement checkbox (discreet for repo requirements) */}
@@ -878,19 +859,13 @@ maxLength={5000}
                         }}
                         className="w-4 h-4 text-accent accent-[#f13024] focus:ring-accent"
                       />
-                      <label htmlFor="agreement" className="text-xs text-white/50 cursor-pointer">
+                      <label
+                        htmlFor="agreement"
+                        className={`text-xs cursor-pointer ${fieldErrors.agreement ? "text-red-500" : "text-white/50"}`}
+                      >
                         I agree to the terms and data privacy conditions.
                       </label>
                     </div>
-                    {fieldErrors.agreement && (
-                      <p
-                        id="agreement-error"
-                        className="mt-1 text-left text-sm text-accent"
-                        role="alert"
-                      >
-                        Invalid Agreement
-                      </p>
-                    )}
 
                     <Button
                       type="submit"

@@ -34,6 +34,10 @@ import {
   skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./konstanta.js";
+import TombolKeAwal from "./TombolKeAwal.jsx";
+import TombolMundur from "./TombolMundur.jsx";
+import TombolMaju from "./TombolMaju.jsx";
+import TombolKeAkhir from "./TombolKeAkhir.jsx";
 import {
   ekstrakFenDariPgn,
   fenDanSanDariKoordinat,
@@ -1784,46 +1788,26 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 {/* Panel Kontrol Bawah Navigasi — menyatu di dasar panel ala LayoutTekaTeki */}
                 <div className="mt-auto flex-shrink-0 space-y-3 rounded-b-lg border-t border-[#312e2b] bg-[#1e1c18] p-3">
                   <div className="flex items-center gap-1 rounded-lg border border-[#312e2b] bg-[#262421] p-1">
-                    <button
-                      type="button"
+                    <TombolKeAwal
                       onClick={keAwal}
                       disabled={!riwayat.length}
-                      title={t("papan.keAwal")}
-                      aria-label={t("papan.keAwal")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                    >
-                      ⏮
-                    </button>
-                    <button
-                      type="button"
+                      t={t}
+                    />
+                    <TombolMundur
                       onClick={undo}
                       disabled={!riwayat.length}
-                      title={t("papan.mundur")}
-                      aria-label={t("papan.mundur")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                    >
-                      ◀
-                    </button>
-                    <button
-                      type="button"
+                      t={t}
+                    />
+                    <TombolMaju
                       onClick={redo}
                       disabled={riwayat.length >= riwayatLengkap.length}
-                      title={t("papan.maju")}
-                      aria-label={t("papan.maju")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                    >
-                      ▶
-                    </button>
-                    <button
-                      type="button"
+                      t={t}
+                    />
+                    <TombolKeAkhir
                       onClick={keAkhir}
                       disabled={riwayat.length >= riwayatLengkap.length}
-                      title={t("papan.keAkhir")}
-                      aria-label={t("papan.keAkhir")}
-                      className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                    >
-                      ⏭
-                    </button>
+                      t={t}
+                    />
                   </div>
 
                   <div className="grid grid-cols-4 gap-2 text-xs font-semibold text-gray-300">
