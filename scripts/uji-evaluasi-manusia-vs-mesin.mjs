@@ -301,18 +301,21 @@ async function partaiBaru(sebelumMulai) {
     return disorot(sq);
   };
   const tombolNavigasi = () => {
-    // Pilih lewat `title`/`aria-label`, bukan teks glyph: keempat tombol kini
-    // memakai ikon SVG tanpa teks, dan kontrak yang stabil justru label
-    // aksesibelnya (`papan.keAwal` dst., bahasa Indonesia pada uji ini).
-    const cari = (label) =>
-      [...wadah.querySelectorAll("button")].find(
-        (b) => b.getAttribute("title") === label || b.getAttribute("aria-label") === label
+    // Tombol navigasi kini ikon SVG (ChevronLeft/Right, lihat TombolMundur.jsx
+    // & TombolMaju.jsx) — tidak ada teks glyph lagi, jadi dicocokkan lewat
+    // aria-label (bahasa Indonesia atau Inggris). Urutan tetap: awal, mundur,
+    // maju, akhir.
+    const cari = (label) => {
+      const set = label.map((l) => l.toLowerCase());
+      return [...wadah.querySelectorAll("button")].find((b) =>
+        set.includes((b.getAttribute("aria-label") || "").trim().toLowerCase())
       );
+    };
     return {
-      keAwal: cari("Ke awal"),
-      mundur: cari("Mundur"),
-      maju: cari("Maju"),
-      keAkhir: cari("Ke akhir"),
+      keAwal: cari(["Ke awal", "To start"]),
+      mundur: cari(["Mundur", "Back"]),
+      maju: cari(["Maju", "Forward"]),
+      keAkhir: cari(["Ke akhir", "To end"]),
     };
   };
 
