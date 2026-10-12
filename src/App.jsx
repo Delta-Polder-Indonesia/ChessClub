@@ -247,6 +247,7 @@ const RUTE_HALAMAN = [
   ["/ketentuan", Ketentuan],
 
   ["/hubungi-kami", HubungiKami],
+  ["/hubungi-kami/:tab", HubungiKami],
   ["/karir", Karir],
 ];
 

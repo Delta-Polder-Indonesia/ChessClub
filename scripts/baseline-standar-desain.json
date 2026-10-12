@@ -16,13 +16,9 @@
     "tombol-ad-hoc": 1
   },
   "src/halaman/HubungiKami/components/Header.jsx": {
-    "tombol-ad-hoc": 1
-  },
-  "src/halaman/HubungiKami/components/Nav.jsx": {
-    "ukuran-teks-arbitrary": 4,
-    "glassmorphism": 1,
+    "ukuran-teks-arbitrary": 5,
     "radius-berlebihan": 1,
-    "tombol-ad-hoc": 1
+    "tombol-ad-hoc": 2
   },
   "src/halaman/HubungiKami/components/ProjectsBtn.jsx": {
     "tombol-ad-hoc": 1

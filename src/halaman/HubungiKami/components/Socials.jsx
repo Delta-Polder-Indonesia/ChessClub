@@ -35,7 +35,7 @@ const socialData = [
   },
   {
     name: "Github",
-    link: "https://github.com/sanidhyy/modern-portfolio",
+    link: "https://github.com/Delta-Polder-Indonesia/ChessClub",
     Icon: RiGithubLine,
   },
 ];

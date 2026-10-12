@@ -1,4 +1,5 @@
 import { useState, useLayoutEffect, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
 import {
@@ -17,7 +18,6 @@ import Avatar from "./components/Avatar.jsx";
 import Bulb from "./components/Bulb.jsx";
 import Circles from "./components/Circles.jsx";
 import Header from "./components/Header.jsx";
-import Nav from "./components/Nav.jsx";
 import ParticlesContainer from "./components/ParticlesContainer.jsx";
 import ProjectsBtn from "./components/ProjectsBtn.jsx";
 import ServiceSlider from "./components/ServiceSlider.jsx";
@@ -108,22 +108,22 @@ const EMAIL_REGEX =
 
 const isValidContactName = (name) => {
   const trimmed = (name || "").trim();
-  return trimmed.length >= 3 && trimmed.length <= 200;
+  return trimmed.length >= 3 && trimmed.length <= 80;
 };
 
 const isValidContactEmail = (email) => {
   const trimmed = (email || "").trim();
-  return trimmed.length <= 100 && Boolean(trimmed.toLowerCase().match(EMAIL_REGEX));
+  return trimmed.length <= 120 && Boolean(trimmed.toLowerCase().match(EMAIL_REGEX));
 };
 
 const isValidContactSubject = (subject) => {
   const trimmed = (subject || "").trim();
-  return trimmed.length >= 3 && trimmed.length <= 200;
+  return trimmed.length >= 3 && trimmed.length <= 150;
 };
 
 const isValidContactMessage = (message) => {
   const trimmed = (message || "").trim();
-  return trimmed.length >= 5 && trimmed.length <= 500;
+  return trimmed.length >= 5 && trimmed.length <= 5000;
 };
 
 const FIELD_VALIDATORS = {
@@ -135,19 +135,12 @@ const FIELD_VALIDATORS = {
 
 /* ------------------------------------------------------- HubungiKami */
 
+const TAB_VALID = ["home", "about", "services", "work", "testimonials", "contact"];
+
 export default function HubungiKami() {
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window !== "undefined") {
-      const hash = window.location.hash.toLowerCase();
-      if (hash.includes("about")) return "about";
-      if (hash.includes("service")) return "services";
-      if (hash.includes("work")) return "work";
-      if (hash.includes("testi")) return "testimonials";
-      if (hash.includes("home")) return "home";
-      if (hash.includes("contact") || hash.includes("hubungi")) return "contact";
-    }
-    return "contact";
-  });
+  const { tab } = useParams();
+  const navigate = useNavigate();
+  const activeTab = TAB_VALID.includes(tab) ? tab : "contact";
 
   const [aboutIndex, setAboutIndex] = useState(0);
 
@@ -167,12 +160,13 @@ export default function HubungiKami() {
     email: false,
     subject: false,
     message: false,
+    agreement: false,
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [agreed, setAgreed] = useState(true);
+  const [agreed, setAgreed] = useState(false);
 
   useLayoutEffect(() => {
     const el = messageRef.current;
@@ -215,6 +209,7 @@ export default function HubungiKami() {
       email: !isValidContactEmail(form.email),
       subject: !isValidContactSubject(form.subject),
       message: !isValidContactMessage(form.message),
+      agreement: !agreed,
     };
 
     setFieldErrors(nextErrors);
@@ -223,7 +218,8 @@ export default function HubungiKami() {
       !nextErrors.name &&
       !nextErrors.email &&
       !nextErrors.subject &&
-      !nextErrors.message
+      !nextErrors.message &&
+      !nextErrors.agreement
     );
   };
 
@@ -237,6 +233,7 @@ export default function HubungiKami() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setIsSuccess(false);
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -262,6 +259,7 @@ export default function HubungiKami() {
         email: false,
         subject: false,
         message: false,
+        agreement: false,
       });
     } catch (error) {
       console.error(error);
@@ -272,10 +270,7 @@ export default function HubungiKami() {
   };
 
   const selectTab = (tab) => {
-    setActiveTab(tab);
-    if (typeof window !== "undefined" && window.history?.replaceState) {
-      window.history.replaceState(null, "", `#${tab}`);
-    }
+    navigate(`/hubungi-kami/${tab}`);
   };
 
   return (
@@ -388,11 +383,12 @@ export default function HubungiKami() {
       {/* Decorative Top Left Image */}
       <TopLeftImg />
 
-      {/* Floating Navigation */}
-      <Nav activeTab={activeTab} onSelectTab={selectTab} />
-
       {/* Header */}
-      <Header onLogoClick={() => selectTab("home")} />
+      <Header
+        activeTab={activeTab}
+        onSelectTab={selectTab}
+        onLogoClick={() => selectTab("home")}
+      />
 
       {/* Animated Views Container */}
       <AnimatePresence mode="wait">
@@ -468,7 +464,7 @@ export default function HubungiKami() {
 
           {/* =================================================== ABOUT */}
           {activeTab === "about" && (
-            <div className="h-full bg-primary/30 py-32 text-center xl:text-left overflow-y-auto">
+            <div className="h-full bg-primary/30 py-32 text-center xl:text-left overflow-y-auto overflow-x-hidden">
               <Circles />
 
               <motion.div
@@ -476,7 +472,7 @@ export default function HubungiKami() {
                 initial="hidden"
                 animate="show"
                 exit="hidden"
-                className="hidden xl:flex absolute bottom-0 -left-92.5"
+                className="hidden xl:flex absolute bottom-0 -left-92.5 z-[1]"
               >
                 <Avatar />
               </motion.div>
@@ -712,8 +708,8 @@ export default function HubungiKami() {
           {/* ================================================= CONTACT */}
           {activeTab === "contact" && (
             <div className="h-full bg-primary/30 overflow-y-auto" id="hubungi-kami">
-              <div className="container mx-auto py-32 text-center xl:text-left flex items-center justify-center h-full">
-                <div className="flex flex-col w-full max-w-[700px]">
+              <div className="container mx-auto py-8 xl:py-12 text-center xl:text-left flex min-h-full overflow-hidden">
+                <div className="flex flex-col w-full max-w-[700px] m-auto">
                   <motion.h2
                     variants={fadeIn("up", 0.2)}
                     initial="hidden"
@@ -756,7 +752,7 @@ export default function HubungiKami() {
                           onChange={handleChange}
                           disabled={isLoading}
                           aria-disabled={isLoading}
-                          maxLength={200}
+                          maxLength={80}
                           aria-label="Nama Lengkap"
                           aria-invalid={fieldErrors.name}
                           aria-describedby={fieldErrors.name ? "name-error" : undefined}
@@ -779,7 +775,7 @@ export default function HubungiKami() {
                           onChange={handleChange}
                           disabled={isLoading}
                           aria-disabled={isLoading}
-                          maxLength={100}
+                          maxLength={120}
                           aria-label="Alamat Email"
                           aria-invalid={fieldErrors.email}
                           aria-describedby={fieldErrors.email ? "email-error" : undefined}
@@ -803,8 +799,8 @@ export default function HubungiKami() {
                         onChange={handleChange}
                         disabled={isLoading}
                         aria-disabled={isLoading}
-                        maxLength={200}
-                        aria-label="Subjek Pesan"
+maxLength={150}
+                          aria-label="Subjek Pesan"
                         aria-invalid={fieldErrors.subject}
                         aria-describedby={fieldErrors.subject ? "subject-error" : undefined}
                       />
@@ -827,8 +823,8 @@ export default function HubungiKami() {
                         onChange={handleChange}
                         disabled={isLoading}
                         aria-disabled={isLoading}
-                        maxLength={500}
-                        aria-label="Isi Pesan"
+maxLength={5000}
+                          aria-label="Isi Pesan"
                         aria-invalid={fieldErrors.message}
                         aria-describedby={fieldErrors.message ? "message-error" : undefined}
                       />
@@ -846,13 +842,29 @@ export default function HubungiKami() {
                         id="agreement"
                         name="agreement"
                         checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
+                        onChange={(e) => {
+                          setAgreed(e.target.checked);
+                          if (e.target.checked) {
+                            setFieldErrors((prev) =>
+                              prev.agreement ? { ...prev, agreement: false } : prev
+                            );
+                          }
+                        }}
                         className="w-4 h-4 text-accent accent-[#f13024] focus:ring-accent"
                       />
                       <label htmlFor="agreement" className="text-xs text-white/50 cursor-pointer">
                         I agree to the terms and data privacy conditions.
                       </label>
                     </div>
+                    {fieldErrors.agreement && (
+                      <p
+                        id="agreement-error"
+                        className="mt-1 text-left text-sm text-accent"
+                        role="alert"
+                      >
+                        Invalid Agreement
+                      </p>
+                    )}
 
                     <button
                       type="submit"
@@ -878,9 +890,6 @@ export default function HubungiKami() {
                         />
                       )}
                     </button>
-                    <p className="mt-3 text-xs text-white/40">
-                      This site is protected by reCAPTCHA.
-                    </p>
                   </motion.form>
                 </div>
               </div>

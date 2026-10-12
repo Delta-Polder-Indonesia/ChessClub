@@ -13,22 +13,18 @@ const workSlides = {
         {
           title: "title",
           path: "/thumb1.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb2.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb3.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb4.jpg",
-          link: "http://example.com",
         },
       ],
     },
@@ -37,22 +33,18 @@ const workSlides = {
         {
           title: "title",
           path: "/thumb4.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb1.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb2.jpg",
-          link: "http://example.com",
         },
         {
           title: "title",
           path: "/thumb3.jpg",
-          link: "http://example.com",
         },
       ],
     },
@@ -91,12 +83,7 @@ const WorkSlider = () => {
                   />
 
                   <div className="absolute bottom-0 translate-y-full group-hover:-translate-y-10 group-hover:xl:-translate-y-20 transition-all duration-300">
-                    <a
-                      href={image.link}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                      className="flex items-center gap-x-2 text-[13px] tracking-[0.2em]"
-                    >
+                    <div className="flex items-center gap-x-2 text-[13px] tracking-[0.2em]">
                       <div className="delay-100">LIVE</div>
                       <div className="translate-y-[500%] group-hover:translate-y-0 transition-all duration-300 delay-150">
                         PROJECT
@@ -104,7 +91,7 @@ const WorkSlider = () => {
                       <div className="text-xl translate-y-[500%] group-hover:translate-y-0 transition-all duration-300 delay-150">
                         <BsArrowRight aria-hidden="true" />
                       </div>
-                    </a>
+                    </div>
                   </div>
                 </div>
               </div>
