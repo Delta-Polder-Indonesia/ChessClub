@@ -215,6 +215,13 @@ npm run salin:ort      # menyalin runtime ke public/engines/ort (19.5 MB)
 npm run dev            # atau npm run build — predev/prebuild menjalankan salin:ort
 ```
 
+`public/engines/ort/` adalah hasil salinan, bukan isi repo. Karena Vercel
+mengunggah repo menurut `.vercelignore`, folder `scripts/` **tidak** boleh
+diabaikan seluruhnya: `prebuild` menjalankan `scripts/salin-ort.mjs`, dan
+tanpa berkas itu build Vercel gagal dengan "Cannot find module" sementara
+build lokal dan CI tetap hijau (checkout-nya lengkap). `npm run uji:integritas-suite`
+menjaga hal itu.
+
 Lalu buka **Papan Interaktif → Manusia vs Mesin**, pilih level *Menengah —
 Maia*, dan mainkan satu langkah. Unduhan ~56 MB terjadi sekali (45 MB bobot
 + ~11 MB wasm SIMD). Bobotnya lalu disimpan di IndexedDB, jadi kunjungan

@@ -70,6 +70,35 @@ uji(
   lolosTanpaDependency.join(", ")
 );
 
+/*
+ * Vercel mengunggah repo menurut `.vercelignore`, sedangkan checkout lokal dan
+ * CI selalu lengkap. Perintah yang dijalankan npm saat build karena itu wajib
+ * menunjuk berkas yang IKUT diunggah: kalau tidak, build lokal dan CI tetap
+ * hijau sementara deployment Vercel gagal dengan "Cannot find module" — kelas
+ * kegagalan yang tidak bisa dilihat dari mesin pengembang. Ini pernah terjadi
+ * pada `scripts/salin-ort.mjs` yang dipanggil `prebuild`.
+ */
+const jalurVercel = path.join(ROOT, ".vercelignore");
+const polaAbaikan = (existsSync(jalurVercel) ? readFileSync(jalurVercel, "utf8") : "")
+  .split("\n")
+  .map((baris) => baris.trim())
+  .filter((baris) => baris && !baris.startsWith("#") && !baris.startsWith("!"));
+
+const berkasBuild = new Set();
+for (const nama of ["prebuild", "predev"]) {
+  for (const cocok of (paket.scripts[nama] ?? "").matchAll(/\b((?:scripts|tests|server|api)\/[\w./-]+|playwright\.config\.js)/g)) {
+    berkasBuild.add(cocok[1]);
+  }
+}
+const tercoret = [...berkasBuild].filter((berkas) =>
+  polaAbaikan.some((pola) => (pola.endsWith("/") ? berkas.startsWith(pola) : berkas === pola || berkas.startsWith(`${pola}/`)))
+);
+uji(
+  "berkas yang dipanggil perintah build ikut diunggah ke Vercel",
+  berkasBuild.size > 0 && tercoret.length === 0,
+  tercoret.length ? `dikecualikan .vercelignore: ${tercoret.join(", ")}` : `${berkasBuild.size} berkas diperiksa`
+);
+
 const rantaiUtama = paket.scripts.uji ?? "";
 uji(
   "audit integritas berjalan paling awal dalam npm run uji",
