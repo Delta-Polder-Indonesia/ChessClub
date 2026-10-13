@@ -36,7 +36,7 @@ jadi menambah angka lain di daftar sah-sah saja.
 | `src/lib/maia3.js` | Inti murni: penyandian FEN → token, dekode policy → UCI, vektor rating, pencerminan papan, `cpDariPeluang`. **Tidak mengimpor ORT**, jadi bisa diuji di Node. |
 | `src/lib/mesinMaia.js` | Sisi aplikasi: memanggil worker, mengubah bentuk tensor, memilih langkah. |
 | `src/lib/gunakanMesinMaia.js` | Kait React `useMesinMaia`. |
-| `scripts/uji-maia.mjs` | 116 uji, termasuk satu inferensi ONNX sungguhan dan penjaga "wasm satu utas". |
+| `scripts/uji-maia.mjs` | 130 uji, termasuk satu inferensi ONNX sungguhan, siklus hidup worker (pelepasan saat mode ditinggalkan), dan penjaga "wasm satu utas". |
 | `scripts/uji-maia-ort.mjs` | 17 uji "peramban tiruan": glue UMD + wasm dijalankan di sandbox `vm`, lengkap dengan penjaga "tidak ada memori bersama". Bila `public/engines/ort/` belum ada, uji ini menyalinnya sendiri lewat `scripts/salin-ort.mjs`; bila gagal, ia **gagal** — tidak pernah lolos diam-diam. |
 | `scripts/salin-ort.mjs` | Menyalin runtime ORT dari `node_modules` ke `public/`. |
 
@@ -93,6 +93,32 @@ dari `src/halaman/Analisa/mesin/peluang.js` (faktor yang sama persis,
 `-0.00368208`), dijepit ±1000 supaya bilah evaluasi tidak meledak. Maia
 sendiri tidak pernah mengeluarkan centipawn — angka ini hanya untuk gestur
 "lawan ragu" dan bilah evaluasi.
+
+---
+
+## Siklus hidup worker
+
+Sesi ONNX Maia memegang 45 MB bobot plus memori wasm-nya. Worker-nya hanya
+layak hidup selama mode Manusia vs Mesin terbuka:
+
+- **Dibuat saat dibutuhkan.** Worker baru dibuat ketika giliran mesin tiba di
+  level Maia — bukan saat halaman dibuka, dan bukan saat pemain memilih level.
+- **Dilepas saat mode ditinggalkan.** `ManusiaVsMesin.jsx` memanggil
+  `tamat()` di efek pembongkaran, sama seperti worker UCI Stockfish/sunfish di
+  sebelahnya. Sebelum ini, sesi Maia tidak punya pemilik yang melepasnya, jadi
+  memorinya tetap tergenggam setelah pemain berpindah mode.
+- **Bobot tidak ikut hilang.** `tamat()` hanya menghentikan worker;
+  `maia3_simplified.onnx` tetap di IndexedDB, jadi kembali ke mode ini
+  menyiapkan sesi dari cache, bukan mengunduh 45 MB lagi.
+- **Permintaan yang menggantung ditolak.** Bila mode ditinggalkan saat mesin
+  sedang berpikir, inferensi yang belum dijawab ditolak dengan pesan yang
+  menjelaskan, dan antreannya dikosongkan. Tanpa itu, permintaan itu
+  tertinggal di antrean tanpa penunggu dan galatnya baru muncul belakangan
+  sebagai unhandled rejection.
+
+Empat hal itu dijaga bagian 7 `scripts/uji-maia.mjs` (14 uji) dengan Worker
+palsu: pembuatan, pelepasan, penyiapan ulang dari cache, dan penolakan
+permintaan yang menggantung.
 
 ---
 
@@ -199,7 +225,8 @@ mengunduh, bukan macet.
 **Uji:**
 
 ```bash
-npm run uji:maia       # 133 uji: penyandian, pencerminan, inferensi ONNX,
+npm run uji:maia       # 147 uji: penyandian, pencerminan, inferensi ONNX,
+                       # siklus hidup worker,
                        # lalu glue UMD di sandbox "peramban tiruan" (uji-maia-ort)
 npm run uji:sunfish    # 49 uji: tangga lawan pemula tidak rusak
 npm run uji:i18n       # kamus id/en seimbang

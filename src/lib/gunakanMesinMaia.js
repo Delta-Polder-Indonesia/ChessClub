@@ -21,8 +21,9 @@ import { STATUS_MAIA, ambilMesinMaia } from "./mesinMaia.js";
  *   Maia 3 butuh rating lawan sebagai masukan, dan lawan sesama rating adalah
  *   keadaan yang paling masuk akal untuk partai latihan.
  * @returns {{status: string, progres: number, galat: string|null,
- *   dariCache: boolean, siap: boolean, sedangMemuat: boolean,
- *   siapkan: () => Promise<string>, mintaLangkah: (fen: string, opsi?: object) => Promise<object>}}
+ *   dariCache: boolean, siap: boolean, sedangMemuat: boolean, mengunduh: boolean,
+ *   siapkan: () => Promise<string>, mintaLangkah: (fen: string, opsi?: object) => Promise<object>,
+ *   tamat: () => void, hapusCache: () => void}}
  */
 export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) {
   const mesin = useMemo(() => ambilMesinMaia(), []);
@@ -33,6 +34,14 @@ export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) 
   const siapkan = useCallback(() => mesin.siapkan(), [mesin]);
 
   const hapusCache = useCallback(() => mesin.hapusCache(), [mesin]);
+
+  /**
+   * Lepaskan worker dan sesi ONNX. Dipanggil mode Manusia vs Mesin saat
+   * komponennya dibongkar — tanpa itu, memori model tetap tergenggam setelah
+   * pemain berpindah mode. Bobot di IndexedDB tidak ikut terhapus, jadi
+   * pemakaian berikutnya menyiapkan sesi dari cache, bukan mengunduh 45 MB.
+   */
+  const tamat = useCallback(() => mesin.tamat(), [mesin]);
 
   const mintaLangkah = useCallback(
     (fen, opsi = {}) =>
@@ -56,6 +65,7 @@ export function useMesinMaia({ rating = RATING_BAKU, ratingLawan = null } = {}) 
     mengunduh: STATUS_MAIA.MENGUNDUH === keadaan.status,
     siapkan,
     mintaLangkah,
+    tamat,
     hapusCache,
   };
 }

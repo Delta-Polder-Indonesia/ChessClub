@@ -207,23 +207,38 @@ export class MesinMaia {
     const oppo = Array.isArray(ratingLawan) ? ratingLawan : Array(daftarFen.length).fill(ratingLawan ?? rating);
     const berkas = susunBatch(daftarFen, self, oppo);
 
+    // `tamat()` bisa berjalan di antara `siapkan()` di atas dan baris ini —
+    // pemain berpindah mode tepat saat mesin sedang berpikir. Pekerja dibaca
+    // sekali di sini supaya permintaan tidak pernah masuk antrean tanpa
+    // pekerja yang bisa menjawabnya: janji terlantar seperti itu tidak ada
+    // yang menunggu, dan gema galatnya baru muncul jauh di kemudian hari.
+    const pekerja = this.pekerja;
+    if (!pekerja) throw new Error("mesin Maia sudah dilepas");
+
     const id = this.berikutId++;
     const janji = new Promise((selesai, gagal) => {
       this.antrean.push({ id, selesai, gagal });
     });
-    // ArrayBuffer dipindahkan (bukan disalin) supaya 45 MB bobot model tidak
-    // ikut digandakan di memori setiap kali giliran mesin.
-    this.pekerja.postMessage(
-      {
-        jenis: "inferensi",
-        id,
-        token: berkas.token.buffer,
-        eloSelf: berkas.self.buffer,
-        eloOppo: berkas.oppo.buffer,
-        jumlah: berkas.jumlah,
-      },
-      [berkas.token.buffer, berkas.self.buffer, berkas.oppo.buffer]
-    );
+    try {
+      // ArrayBuffer dipindahkan (bukan disalin) supaya 45 MB bobot model tidak
+      // ikut digandakan di memori setiap kali giliran mesin.
+      pekerja.postMessage(
+        {
+          jenis: "inferensi",
+          id,
+          token: berkas.token.buffer,
+          eloSelf: berkas.self.buffer,
+          eloOppo: berkas.oppo.buffer,
+          jumlah: berkas.jumlah,
+        },
+        [berkas.token.buffer, berkas.self.buffer, berkas.oppo.buffer]
+      );
+    } catch (galat) {
+      // Kiriman gagal: cabut permintaannya supaya tidak ada janji yang
+      // menggantung di antrean tanpa penjawab.
+      this.antrean = this.antrean.filter((p) => p.id !== id);
+      throw galat;
+    }
     const keluaran = await janji;
     return uraiBatch(keluaran.logitsLangkah, keluaran.logitsNilai, berkas.posisi);
   }
@@ -259,6 +274,9 @@ export class MesinMaia {
     this.progres = 0;
     this.janjiSiap = null;
     this.dariCache = false;
+    // Mesin yang sengaja dilepas bukan mesin yang gagal: tanpa dibersihkan,
+    // pemakaian berikutnya mewarisi pesan galat lama di `keadaan()`.
+    this.galat = null;
     this.beriTahu();
   }
 }

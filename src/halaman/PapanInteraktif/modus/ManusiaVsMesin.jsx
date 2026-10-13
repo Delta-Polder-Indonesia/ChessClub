@@ -400,7 +400,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   // `mintaLangkahMaia` sengaja dipisah: identitasnya stabil (useCallback),
   // sehingga efek giliran mesin tidak berulang setiap render.
   const maia = useMesinMaia({ rating: ratingMaia });
-  const { mintaLangkah: mintaLangkahMaia, mengunduh: maiaMengunduh, progres: progresMaia } = maia;
+  const { mintaLangkah: mintaLangkahMaia, tamat: tamatMaia, mengunduh: maiaMengunduh, progres: progresMaia } = maia;
   // Inisialisasi tampilan papan dari pengaturan bersama (bila ada);
   // dialog pengaturan permainan bisa menimpa lokal selama sesi.
   const [setBidak, setSetBidak] = useState(pp.bidak ?? "alpha");
@@ -708,9 +708,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     () => () => {
       mesinRef.current?.tamat();
       mesinRef.current = null;
+      // Worker Maia (sesi ONNX 45 MB) tidak diurus `mesinRef` karena ia bukan
+      // engine UCI. Mode ini satu-satunya pemakainya, jadi ia dilepas di sini
+      // juga — kalau tidak, memori model tetap tergenggam setelah pemain
+      // berpindah mode. Bobotnya tetap di IndexedDB, bukan unduh ulang.
+      tamatMaia();
       window.clearTimeout(timerSalinRef.current);
     },
-    []
+    [tamatMaia]
   );
 
   const bolehGerak = useMemo(() => {

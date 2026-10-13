@@ -403,7 +403,126 @@ console.log("\n6. Batch inferensi dan tangga level UI");
   );
 }
 
-/* ---------------- 7. Inferensi nyata ---------------- */
+/* ---------------- 7. Siklus hidup worker ---------------- */
+
+/**
+ * Worker Maia hanya boleh hidup selama mode Manusia vs Mesin terbuka. Bila
+ * ia tidak pernah dilepas, sesi ONNX 45 MB tetap tergenggam setelah pemain
+ * berpindah mode — di ponsel itu cukup untuk membuat tab dibunuh peramban.
+ * Yang diuji di sini adalah kontraknya, bukan sekadar keberadaan fungsinya:
+ * pelepasan menghentikan worker, mengosongkan keadaan, membuang galat lama,
+ * dan mesinnya tetap bisa disiapkan ulang dari cache tanpa unduh ulang.
+ */
+console.log("\n7. Siklus hidup worker (lepas saat mode ditinggalkan)");
+
+{
+  const { MesinMaia, STATUS_MAIA } = await import("../src/lib/mesinMaia.js");
+
+  const kelasPekerjaAsli = globalThis.Worker;
+  const catatan = { dibuat: 0, dihentikan: 0, diposting: [], balasInferensi: true, balasInit: true };
+
+  class PekerjaPalsu {
+    constructor(url) {
+      catatan.dibuat += 1;
+      catatan.url = url;
+    }
+    postMessage(pesan) {
+      catatan.diposting.push(pesan.jenis);
+      // Tirukan worker sungguhan: "init" menemukan bobot di IndexedDB dan
+      // langsung melapor siap.
+      if ("init" === pesan.jenis && catatan.balasInit) {
+        queueMicrotask(() =>
+          this.onmessage?.({ data: { jenis: "keadaan", status: STATUS_MAIA.SIAP, progres: 100, dariCache: true } })
+        );
+      }
+      if ("inferensi" === pesan.jenis && catatan.balasInferensi) {
+        queueMicrotask(() =>
+          this.onmessage?.({
+            data: {
+              jenis: "inferensi",
+              id: pesan.id,
+              logitsLangkah: new Float32Array(RUANG_LANGKAH),
+              logitsNilai: new Float32Array([0, 0, 0]),
+            },
+          })
+        );
+      }
+    }
+    terminate() {
+      catatan.dihentikan += 1;
+    }
+  }
+  globalThis.Worker = PekerjaPalsu;
+
+  try {
+    const mesin = new MesinMaia();
+    hasil("mesin mulai tanpa worker", null === mesin.pekerja && STATUS_MAIA.IDLE === mesin.status);
+
+    await mesin.siapkan();
+    hasil("siapkan membuat worker dan mencapai status siap", 1 === catatan.dibuat && STATUS_MAIA.SIAP === mesin.status);
+    hasil("pesan init dan jalur ORT dikirim ke worker", "init" === catatan.diposting[0], catatan.diposting.join(","));
+
+    mesin.tamat();
+    hasil("tamat menghentikan worker", 1 === catatan.dihentikan);
+    hasil("tamat melepas acuan worker", null === mesin.pekerja);
+    hasil("tamat mengembalikan keadaan ke idle", STATUS_MAIA.IDLE === mesin.status && 0 === mesin.progres);
+    // Galat lama akan muncul lagi di `keadaan()` pemakaian berikutnya —
+    // "mesin Maia dihentikan" bukan kegagalan bagi pemain berikutnya.
+    hasil("tamat membuang galat lama", null === mesin.galat, String(mesin.galat));
+
+    await mesin.siapkan();
+    hasil("mesin bisa disiapkan ulang setelah dilepas (dari cache)", 2 === catatan.dibuat && STATUS_MAIA.SIAP === mesin.status);
+
+    // Inferensi yang masih menggantung saat mode ditinggalkan harus ditolak,
+    // bukan dibiarkan menahan janji selamanya.
+    catatan.balasInferensi = false;
+    const menggantung = mesin.inferensi([STARTPOS]).then(
+      () => ({ hasil: "selesai" }),
+      (galat) => ({ hasil: "ditolak", pesan: galat.message })
+    );
+    mesin.tamat();
+    const nasib = await menggantung;
+    // Yang dijaga bukan sekadar "menolak", melainkan menolak dengan sebab
+    // yang menjelaskan: dulu jalur ini melempar TypeError karena pekerja
+    // sudah null, dan permintaannya tertinggal di antrean tanpa penunggu.
+    hasil(
+      "inferensi yang menggantung ditolak dengan sebab jelas saat dilepas",
+      "ditolak" === nasib.hasil && /dilepas|dihentikan/.test(nasib.pesan || ""),
+      `${nasib.hasil}: ${nasib.pesan}`
+    );
+    hasil("antrean bersih setelah pelepasan (tanpa permintaan terlantar)", 0 === mesin.antrean.length, `${mesin.antrean.length}`);
+
+    // Mode yang sama dipasang lagi setelah dibongkar: satu objek mesin, dua
+    // siklus penuh tanpa kebocoran worker.
+    catatan.balasInferensi = true;
+    await mesin.siapkan();
+    mesin.tamat();
+    // Invariannya bukan jumlah siklus (tamat dipanggil lebih dari sekali di
+    // sini), melainkan: tidak ada worker yang dibuat tanpa dihentikan.
+    hasil(
+      "setiap worker yang dibuat ikut dihentikan",
+      catatan.dihentikan === catatan.dibuat && null === mesin.pekerja,
+      `dibuat ${catatan.dibuat}, dihentikan ${catatan.dihentikan}`
+    );
+  } finally {
+    if (kelasPekerjaAsli) globalThis.Worker = kelasPekerjaAsli;
+    else delete globalThis.Worker;
+  }
+
+  // Sambungan ke UI: kaitnya wajib mengekspor pelepasan, dan mode Manusia vs
+  // Mesin wajib memanggilnya di efek pembongkaran. Tanpa keduanya, mesinnya
+  // benar tetapi tidak pernah dilepas oleh aplikasi.
+  const sumberKait = readFileSync(path.join(AKAR, "src/lib/gunakanMesinMaia.js"), "utf8");
+  const sumberMode = readFileSync(path.join(AKAR, "src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx"), "utf8");
+  hasil("kait useMesinMaia mengekspor tamat", /tamat,\s*$/m.test(sumberKait) && sumberKait.includes("useCallback(() => mesin.tamat()"));
+  hasil("mode Manusia vs Mesin memanggil tamatMaia()", /tamatMaia\(\)/.test(sumberMode));
+  hasil(
+    "pelepasan terjadi di dalam efek pembongkaran",
+    /useEffect\(\s*\(\) => \(\) => \{[\s\S]{0,400}tamatMaia\(\)/.test(sumberMode)
+  );
+}
+
+/* ---------------- 8. Inferensi nyata ---------------- */
 
 /**
  * Bagian ini menjalankan model 45 MB sungguhan di Node (onnxruntime-web
@@ -414,7 +533,7 @@ console.log("\n6. Batch inferensi dan tangga level UI");
  * Lewati dengan `--tanpa-model`.
  */
 async function ujiInferensi() {
-  console.log("\n7. Inferensi nyata (onnxruntime-web, backend wasm)");
+  console.log("\n8. Inferensi nyata (onnxruntime-web, backend wasm)");
   if (TANPA_MODEL) {
     console.log("  · dilewati (--tanpa-model)");
     return;
