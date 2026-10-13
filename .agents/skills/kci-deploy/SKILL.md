@@ -70,6 +70,27 @@ Daftar lengkap beserta komentarnya ada di `.env.contoh`.
 
 ## Commit dan push: jangan menghasilkan deployment yang diblokir
 
+### Perintah push resmi (wajib — aturan pemilik repo)
+
+Pemilik repo menetapkan SATU-SATUNYA urutan perintah push. Selain urutan ini, push tidak
+diizinkan:
+
+1. `git add .`
+2. `git commit -m "isi sesuai kebutuhan"`
+3. `git push origin main`
+
+Konsekuensinya:
+
+- **Semua perubahan di working tree wajib ikut ter-commit dan ter-push.** Termasuk berkas yang
+  diubah pemilik repo sendiri (mis. `package.json` saat instalasi) — jangan "menyisihkan" berkas
+  apa pun dengan alasan apa pun.
+- **Satu-satunya pengecualian adalah yang tertulis di `.gitignore`.** Bila ada berkas yang tidak
+  boleh masuk repo, pemilik repo yang menambahkannya ke `.gitignore`; agen tidak boleh membuat
+  daftar pengecualian sendiri.
+- Karena `git add .` menyapu seluruh working tree, pastikan tidak ada berkas/temporer tak sengaja
+  di area repo sebelum commit (berkas sementara wajib di `C:\Users\TRIANA~1\AppData\Local\Temp\opencode\`,
+  lihat `AGENTS.md`).
+
 Proyek Vercel `chess-club` terhubung langsung ke repo GitHub ini, jadi **setiap push ke cabang
 mana pun** (termasuk cabang kerja agen) memicu satu deployment. Vercel menolak deployment yang
 penulis commit-nya tidak bisa dicocokkan ke akun GitHub yang punya akses proyek. Hasilnya adalah

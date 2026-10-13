@@ -163,6 +163,7 @@
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
-    "esbuild@0.25.12": true
+    "esbuild@0.25.12": true,
+    "protobufjs@7.6.6": true
   }
 }
