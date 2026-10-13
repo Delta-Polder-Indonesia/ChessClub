@@ -61,3 +61,6 @@ icons-sample/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Runtime onnxruntime-web hasil salinan scripts/salin-ort.mjs (bukan isi repo)
+public/engines/ort/

@@ -12,8 +12,11 @@
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "clean": "rm -rf dist node_modules/.cache",
+    "salin:ort": "node scripts/salin-ort.mjs",
+    "predev": "node scripts/salin-ort.mjs",
+    "prebuild": "node scripts/salin-ort.mjs",
     "uji:rilis:v1": "npm audit --omit=dev --audit-level=moderate && npm run uji && npm run uji:backend && npm run uji:roster-segar && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz && npm run build",
-    "uji": "npm run uji:integritas-suite && npm run uji:impor-css && npm run uji:rute && npm run uji:desain && npm run uji:seo && npm run uji:i18n && npm run uji:tools && npm run uji:komentator && npm run uji:basisdata-awan && npm run uji:analisa && npm run uji:analisa-ui && npm run uji:engine && npm run uji:analisa-menyeluruh && npm run uji:suara && npm run uji:basisdata && npm run uji:akun-database && npm run uji:tarik-api && npm run uji:buku-analisa && npm run uji:lencana-skakmat && npm run uji:tanda-papan && npm run uji:animasi-bidak && npm run uji:glob-aset && npm run uji:render-bidak && npm run uji:gestur-lawan && npm run uji:evaluasi-manusia-vs-mesin && npm run uji:bantuan-langkah && npm run uji:repertoar && npm run uji:hand-brain && npm run uji:turing && npm run uji:wawasan-rating && npm run uji:sunfish && npm run uji:tekateki-solusi && npm run uji:tekateki-alur && npm run uji:tekateki-rute && npm run uji:rush && npm run uji:api-csrf && npm run uji:sesi-ebook && npm run uji:kerangka-penuh && npm run uji:quiz && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema && node scripts/uji-ebook.mjs && node scripts/uji-ebook-pembaca.mjs && node scripts/uji-nama-pembukaan.mjs && node scripts/uji-artikel-wikipedia.mjs && npm run uji:pendaftaran-ui",
+    "uji": "npm run uji:integritas-suite && npm run uji:impor-css && npm run uji:rute && npm run uji:desain && npm run uji:seo && npm run uji:i18n && npm run uji:tools && npm run uji:komentator && npm run uji:basisdata-awan && npm run uji:analisa && npm run uji:analisa-ui && npm run uji:engine && npm run uji:analisa-menyeluruh && npm run uji:suara && npm run uji:basisdata && npm run uji:akun-database && npm run uji:tarik-api && npm run uji:buku-analisa && npm run uji:lencana-skakmat && npm run uji:tanda-papan && npm run uji:animasi-bidak && npm run uji:glob-aset && npm run uji:render-bidak && npm run uji:gestur-lawan && npm run uji:evaluasi-manusia-vs-mesin && npm run uji:bantuan-langkah && npm run uji:repertoar && npm run uji:hand-brain && npm run uji:turing && npm run uji:wawasan-rating && npm run uji:maia && npm run uji:sunfish && npm run uji:tekateki-solusi && npm run uji:tekateki-alur && npm run uji:tekateki-rute && npm run uji:rush && npm run uji:api-csrf && npm run uji:sesi-ebook && npm run uji:kerangka-penuh && npm run uji:quiz && npm run uji:gambar && node scripts/uji-identitas.mjs && npm run uji:skema && node scripts/uji-ebook.mjs && node scripts/uji-ebook-pembaca.mjs && node scripts/uji-nama-pembukaan.mjs && node scripts/uji-artikel-wikipedia.mjs && npm run uji:pendaftaran-ui",
     "uji:tools": "node scripts/uji-tools.mjs",
     "uji:desain": "node scripts/uji-standar-desain.mjs",
     "desain:baseline": "node scripts/uji-standar-desain.mjs --tulis-baseline",
@@ -82,7 +85,8 @@
     "operasi:standarkan-pembukaan": "node scripts/standarkan-nama-buku-pembukaan.mjs",
     "operasi:standarkan-teka-teki": "node scripts/standarkan-nama-teka-teki.mjs",
     "uji:pendaftaran": "node server/uji/uji-pendaftaran.mjs",
-    "uji:pendaftaran-ui": "node scripts/uji-pendaftaran-ui.mjs"
+    "uji:pendaftaran-ui": "node scripts/uji-pendaftaran-ui.mjs",
+    "uji:maia": "node scripts/uji-maia.mjs && node scripts/uji-maia-ort.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -124,6 +128,7 @@
     "input-otp": "^1.5.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^1.39.0",
+    "onnxruntime-web": "1.18.0",
     "pdfjs-dist": "^4.10.38",
     "react": "^18.3.1",
     "react-countup": "^6.5.3",

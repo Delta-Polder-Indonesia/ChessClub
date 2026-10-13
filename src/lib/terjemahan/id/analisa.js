@@ -662,6 +662,9 @@ export const analisa = {
       engineOleh: "Distribusi stockfish.js (GPL-3.0) — berkas dijalankan dari folder /engines situs ini.",
       enginePemula: "Engine lawan pemula",
       enginePemulaOleh: "sunfish oleh Thomas Ahle, port JavaScript oleh foo123 (GPL-3.0). Berkas dijalankan dari folder /engines situs ini dan dimodifikasi agar penilaiannya bisa dilemahkan untuk level pemula; modifikasinya ikut berlisensi GPL-3.0 dan tersedia di repositori proyek.",
+      engineMenengah: "Engine lawan menengah (Maia 3)",
+      engineMenengahOleh:
+        "Bobot model maia3_simplified.onnx dari Maia Chess (CSSLab, University of Toronto) — kode GPL-3.0, bobot mengikuti ketentuan proyek Maia. Berkas dijalankan dari folder /engines situs ini; penyandian posisi dan dekode policy diimplementasikan sendiri di src/lib/maia3.js. Inferensi memakai onnxruntime-web (Microsoft, MIT).",
       kode: "Berkas yang dipindah",
       kodeOleh: "MIT — sumber: github.com/wdeloo/Brilliant-Chess.",
       desain: "Tata letak halaman",

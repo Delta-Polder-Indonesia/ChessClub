@@ -372,12 +372,20 @@ file-file yang disebut.
 
 ### Langkah berikutnya (urut prioritas)
 
-1. **Penyedia prediksi manusia (Maia) — satu-satunya bagian fase 3 yang
-   belum ada.** Metriknya sudah siap (`mesin/deviasiManusia.js`); yang
-   tersisa: host file model ONNX (40–90 MB — JANGAN masuk repo; Supabase
-   Storage/R2), loader `onnxruntime-web` + peta langkah, lalu pasang hasilnya
-   sebagai `Map<fen, {uci: prob}>` per partai. Lisensi bobot per model wajib
-   dicek (kode maia-chess GPL-3.0, setara Stockfish yang sudah di-bundle).
+1. **Penyedia prediksi manusia (Maia) — inti sudah tersedia, pemasangan ke
+   anti-cheat belum.** Mesin Maia sudah terpasang untuk Papan Interaktif:
+   `src/lib/maia3.js` (penyandian posisi + dekode policy, murni, bisa diuji di
+   Node), `src/lib/mesinMaia.js` (worker + `onnxruntime-web`), dan bobot
+   `public/engines/maia3/maia3_simplified.onnx` (45 MB) yang **memang
+   di-commit** di repo ini — keputusan pemilik proyek, meski bagian ini
+   menyarankan sebaliknya. Runtime ORT disalin ke `public/engines/ort/` oleh
+   `npm run salin:ort` (tidak di-commit). Yang tersisa untuk fase 3: pakai
+   `src/lib/maia3.js` untuk menghasilkan `Map<fen, {uci: prob}>` per partai
+   lalu umpan ke `mesin/deviasiManusia.js`. Rincian: `docs/MAIA3.md`. Uji
+   inti Maia: `npm run uji:maia`.
+   Catatan lisensi: kode maia-chess GPL-3.0, bobot model mengikuti ketentuan
+   proyek Maia; onnxruntime-web MIT. Atribusi sudah dicantumkan di halaman
+   Atribusi & lisensi.
 2. **Kalibrasi ulang tabel `KALIBRASI_RATING` dengan korpus lokal.** Kumpulkan
    distribusi metrik partai jujur per band 400-poin dari basis data kalian,
    ganti angka taksiran, dan pertimbangkan interpolasi halus antarband.

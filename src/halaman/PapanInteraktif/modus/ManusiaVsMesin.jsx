@@ -8,6 +8,7 @@ import { DAFTAR_SET } from "../../../components/chess/pemuatBidak.js";
 import { berkasPublik } from "../../../lib/asets.js";
 import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
 import { useEngineCatur } from "../../../lib/gunakanEngineCatur.js";
+import { useMesinMaia } from "../../../lib/gunakanMesinMaia.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { SUARA, useSuara } from "../../../lib/suara.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
@@ -24,7 +25,9 @@ import { fenDariLangkah, susunPgn } from "../utilPapan.js";
 import { dialogMesin } from "./dialogMesin.js";
 import {
   PILIHAN_LEVEL_MESIN,
+  PILIHAN_RATING_MAIA,
   PROFIL_SUNFISH,
+  RATING_MAIA_BAKU,
   langkahMesinSah,
   perintahProfilSunfish,
 } from "./mesinLemah.js";
@@ -384,10 +387,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const [orientasiPapan, setOrientasiPapan] = useState("w");
   const warnaMesin = warnaPemain === "w" ? "b" : "w";
   const [levelMesin, setLevelMesin] = useState("casual");
+  // Rating Maia dipisah dari `levelMesin` karena satu level menengah bisa
+  // dipakai untuk seluruh rentang 1100–1900 — Maia 3 menerima rating kontinu,
+  // jadi tidak perlu satu entri per kekuatan seperti Stockfish Skill Level.
+  const [ratingMaia, setRatingMaia] = useState(RATING_MAIA_BAKU);
   const tingkatAktif = useMemo(
     () => PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin) || PILIHAN_LEVEL_MESIN[1],
     [levelMesin]
   );
+  // Mesin Maia bersifat tunggal per tab (worker + sesi ONNX berat), jadi
+  // pengait ini hanya memantau keadaannya dan menyalurkan rating pilihan.
+  // `mintaLangkahMaia` sengaja dipisah: identitasnya stabil (useCallback),
+  // sehingga efek giliran mesin tidak berulang setiap render.
+  const maia = useMesinMaia({ rating: ratingMaia });
+  const { mintaLangkah: mintaLangkahMaia, mengunduh: maiaMengunduh, progres: progresMaia } = maia;
   // Inisialisasi tampilan papan dari pengaturan bersama (bila ada);
   // dialog pengaturan permainan bisa menimpa lokal selama sesi.
   const [setBidak, setSetBidak] = useState(pp.bidak ?? "alpha");
@@ -591,6 +604,39 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     if (game.isGameOver() || game.turn() !== warnaMesin) return undefined;
 
     let hidup = true;
+
+    // Maia 3 bukan engine UCI: ia model kebijakan manusia (ONNX) yang
+    // dijalankan onnxruntime-web di worker sendiri. Tidak ada `go depth`,
+    // tidak ada Skill Level — kekuatannya ditentukan oleh rating yang
+    // disuapkan ke model, dan satu inferensi cukup untuk satu langkah.
+    if ("maia" === tingkatAktif.mesin) {
+      setStatusMesin("memuat");
+      mintaLangkahMaia(fen)
+        .then((hasilMaia) => {
+          if (!hidup || fenRef.current !== fen) return;
+          if (!hasilMaia?.uci) return; // tidak ada langkah sah: partai selesai
+          setStatusMesin("mesin");
+          mainstreamkanLangkahLawan(
+            hasilMaia.uci.slice(0, 2),
+            hasilMaia.uci.slice(2, 4),
+            hasilMaia.uci[4],
+            // Maia tidak mengeluarkan centipawn — hanya policy dan WDL.
+            // Peluang menangnya dipetakan balik ke cp memakai kurva yang sama
+            // dengan bilah evaluasi, supaya gestur "mesin ragu" (yang
+            // menilai posisi tipis) tetap punya angka untuk dipakai.
+            { cp: hasilMaia.cp }
+          );
+        })
+        .catch(() => {
+          if (hidup) setStatusMesin("gagal");
+        });
+      return () => {
+        hidup = false;
+        tokenLawanRef.current += 1;
+        lawanKlikRef.current = null;
+      };
+    }
+
     const pakaiSunfish = "sunfish" === tingkatAktif.mesin;
     const engine = ambilEngine(mesinRef, jenisMesinRef, tingkatAktif.mesin);
     setStatusMesin("memuat");
@@ -647,7 +693,16 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       lawanKlikRef.current = null;
       engine.setop();
     };
-  }, [aktif, fen, warnaMesin, tingkatAktif, mainstreamkanLangkahLawan, riwayat.length, riwayatLengkap.length]);
+  }, [
+    aktif,
+    fen,
+    warnaMesin,
+    tingkatAktif,
+    mainstreamkanLangkahLawan,
+    mintaLangkahMaia,
+    riwayat.length,
+    riwayatLengkap.length,
+  ]);
 
   useEffect(
     () => () => {
@@ -890,9 +945,18 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       return t(hasil.pemenang === "w" ? "papan.pvePutihMenang" : "papan.pveHitamMenang");
     }
     if (!aktif) return t("papan.pveBelumMulai");
-    if (statusMesin === "memuat") return t("papan.pveMesinMemuat");
+    if (statusMesin === "memuat") {
+      // Mengunduh bobot Maia 45 MB terasa lama; persennya ditampilkan supaya
+      // pemain tahu ini memang sedang mengunduh, bukan macet.
+      return maiaMengunduh ? t("papan.pveMaiaMengunduh", { persen: progresMaia }) : t("papan.pveMesinMemuat");
+    }
     if (statusMesin === "mesin") return t("papan.pveMesinBerpikir");
-    if (statusMesin === "gagal") return t("papan.pveMesinGagal");
+    if (statusMesin === "gagal") {
+      // Maia bisa gagal karena alasan yang tidak dimiliki engine lain:
+      // peramban yang tidak mendukung WebAssembly SIMD, kuota penyimpanan
+      // penuh, atau unduhan bobot terputus. Katakan terus terang.
+      return "maia" === tingkatAktif.mesin ? t("papan.pveMaiaGagal") : t("papan.pveMesinGagal");
+    }
     return t("papan.pveGiliranPemain");
   }
 
@@ -1139,13 +1203,37 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                   ))}
                 </select>
               </label>
+
+              {/* Rating Maia hanya berarti untuk level menengah: Maia 3
+                  menyisipkan rating secara kontinu, jadi satu model melayani
+                  seluruh rentang menengah tanpa ganti berkas bobot. */}
+              {"maia" === tingkatAktif.mesin ? (
+                <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400 sm:col-span-2">
+                  {t("papan.pveRatingMaia")}
+                  <select
+                    value={ratingMaia}
+                    onChange={(event) => setRatingMaia(Number(event.target.value))}
+                    className="w-full rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
+                  >
+                    {PILIHAN_RATING_MAIA.map((rating) => (
+                      <option key={rating} value={rating}>
+                        {t("papan.pveRatingMaiaOpsi", { rating })}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
             </div>
             {/* Keterangan engine per level: yang dipakai berbeda, dan di level
-                sunfish penilaian memang sengaja dirusak — pemain berhak tahu. */}
+                sunfish penilaian memang sengaja dirusak — pemain berhak tahu.
+                Maia ditulis terang-terangan: ia mengunduh bobot 45 MB sekali,
+                jadi pemain perlu tahu sebelum menekan Mulai. */}
             <p className="text-[11px] leading-4 text-gray-500">
-              {lawanPakaiStockfish
-                ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
-                : t("papan.pveMesinSunfish")}
+              {"maia" === tingkatAktif.mesin
+                ? t("papan.pveMesinMaia", { rating: ratingMaia })
+                : lawanPakaiStockfish
+                  ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
+                  : t("papan.pveMesinSunfish")}
             </p>
           </section>
         ) : null}

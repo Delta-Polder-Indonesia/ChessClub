@@ -24,6 +24,7 @@ import { Chess } from "chess.js";
 import { BERKAS_SUNFISH, muatSunfish, muatSunfishWorker } from "./sunfish-node.mjs";
 import {
   PILIHAN_LEVEL_MESIN,
+  PILIHAN_RATING_MAIA,
   PROFIL_SUNFISH,
   langkahMesinSah,
   langkahSahUci,
@@ -248,8 +249,9 @@ console.log("\n6. Pemetaan level Manusia vs Mesin");
 const idLevel = PILIHAN_LEVEL_MESIN.map((level) => level.id);
 hasil("enam level tetap ada", 6 === PILIHAN_LEVEL_MESIN.length, idLevel.join(", "));
 hasil(
-  "level bawah memakai sunfish, level atas Stockfish",
-  ["beginner", "casual", "intermediate"].every((id) => "sunfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin) &&
+  "tangga lawan: sunfish pemula → Maia menengah → Stockfish atas",
+  ["beginner", "casual"].every((id) => "sunfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin) &&
+    "maia" === PILIHAN_LEVEL_MESIN.find((l) => "maia" === l.id)?.mesin &&
     ["advanced", "expert", "master"].every((id) => "stockfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin)
 );
 for (const level of PILIHAN_LEVEL_MESIN) {
@@ -259,21 +261,28 @@ for (const level of PILIHAN_LEVEL_MESIN) {
       `profil sunfish "${level.id}" lengkap`,
       Boolean(profil) && 1 <= profil.kedalaman && 0 <= profil.derau && 0 <= profil.terowongan && 1 >= profil.terowongan
     );
+  } else if ("maia" === level.mesin) {
+    // Maia tidak punya Skill Level: kekuatannya ditentukan rating yang
+    // disuapkan ke model, jadi yang diuji adalah ratingnya termasuk pilihan
+    // yang ditawarkan UI (bukan sembarang angka di luar rentang latihan).
+    hasil(
+      `level Maia "${level.id}" ratingnya ada di pilihan UI`,
+      PILIHAN_RATING_MAIA.includes(level.rating)
+    );
   } else {
     hasil(`level Stockfish "${level.id}" punya Skill Level`, Number.isInteger(level.keterampilan));
   }
 }
+// Dulu ada profil ketiga ("intermediate"); sejak Maia 3 mengisi level
+// menengah, sunfish cukup dua tingkat untuk pemula — urutannya tetap diuji.
 hasil(
   "profil bertingkat: kedalaman tidak pernah turun",
-  PROFIL_SUNFISH.beginner.kedalaman <= PROFIL_SUNFISH.casual.kedalaman &&
-    PROFIL_SUNFISH.casual.kedalaman <= PROFIL_SUNFISH.intermediate.kedalaman
+  PROFIL_SUNFISH.beginner.kedalaman <= PROFIL_SUNFISH.casual.kedalaman
 );
 hasil(
   "profil bertingkat: derau dan tunnel vision tidak pernah naik",
   PROFIL_SUNFISH.beginner.derau >= PROFIL_SUNFISH.casual.derau &&
-    PROFIL_SUNFISH.casual.derau >= PROFIL_SUNFISH.intermediate.derau &&
-    PROFIL_SUNFISH.beginner.terowongan >= PROFIL_SUNFISH.casual.terowongan &&
-    PROFIL_SUNFISH.casual.terowongan >= PROFIL_SUNFISH.intermediate.terowongan
+    PROFIL_SUNFISH.beginner.terowongan >= PROFIL_SUNFISH.casual.terowongan
 );
 hasil(
   "perintah profil memuat semua knob",
