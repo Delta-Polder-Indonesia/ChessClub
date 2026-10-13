@@ -54,11 +54,14 @@ export const URUT_BIDAK = ["P", "N", "B", "R", "Q", "K", "p", "n", "b", "r", "q"
 
 /**
  * Rentang rating yang dilayani model. Maia 3 dilatih pada ~1100–1900; di luar
- * rentang itu model masih berjalan tetapi tidak pernah divalidasi, jadi
- * rating dijepit (bukan ditolak) agar UI tidak pernah mengirim angka ngawur.
+ * rentang itu model tetap jalan tetapi hasilnya extrapolasi, bukan lagi
+ * kemampuan yang pernah divalidasi. Rating dijepit (bukan ditolak) supaya UI
+ * tidak pernah mengirim angka ngawur — rentang jepitan sengaja dilebar
+ * (600–2600) karena pemain boleh memilih di luar rentang latihan, dengan
+ * keterangan eksplisit di UI mode Manusia vs Mesin.
  */
-export const RATING_MIN = 1100;
-export const RATING_MAKS = 1900;
+export const RATING_MIN = 600;
+export const RATING_MAKS = 2600;
 
 /** Rating bawaan bila pemilih rating tidak dipakai. */
 export const RATING_BAKU = 1500;

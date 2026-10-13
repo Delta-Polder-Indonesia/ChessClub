@@ -26,6 +26,7 @@ import {
   PILIHAN_LEVEL_MESIN,
   PILIHAN_RATING_MAIA,
   PROFIL_SUNFISH,
+  TAB_LEVEL_MESIN,
   langkahMesinSah,
   langkahSahUci,
   perintahProfilSunfish,
@@ -247,16 +248,31 @@ hasil("tanpa langkah sah → null (partai selesai)", null === langkahMesinSah("7
 
 console.log("\n6. Pemetaan level Manusia vs Mesin");
 const idLevel = PILIHAN_LEVEL_MESIN.map((level) => level.id);
-hasil("enam level tetap ada", 6 === PILIHAN_LEVEL_MESIN.length, idLevel.join(", "));
+hasil("sebelas level menu tetap ada", 11 === PILIHAN_LEVEL_MESIN.length, idLevel.join(", "));
 hasil(
-  "tangga lawan: sunfish pemula → Maia menengah → Stockfish atas",
-  ["beginner", "casual"].every((id) => "sunfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin) &&
-    "maia" === PILIHAN_LEVEL_MESIN.find((l) => "maia" === l.id)?.mesin &&
-    ["advanced", "expert", "master"].every((id) => "stockfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin)
+  "dua tab: Stockfish memuat 100–3200, Maia terpisah",
+  TAB_LEVEL_MESIN.map((tab) => tab.id).join(",") === "stockfish,maia" &&
+    PILIHAN_LEVEL_MESIN.filter((l) => l.tab === "stockfish").length === 10 &&
+    "maia" === PILIHAN_LEVEL_MESIN.find((l) => l.tab === "maia")?.id
+);
+hasil(
+  "di bawah 2000 memakai sunfish, 2000 ke atas memakai Stockfish",
+  ["new-to-chess", "beginner", "novice", "intermediate", "intermediate-2", "advanced"].every(
+    (id) => "sunfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin
+  ) &&
+    ["expert", "master", "grandmaster", "maximum"].every(
+      (id) => "stockfish" === PILIHAN_LEVEL_MESIN.find((l) => l.id === id)?.mesin
+    )
+);
+hasil(
+  "setiap level sunfish memetakan ke profil PROFIL_SUNFISH yang sah",
+  PILIHAN_LEVEL_MESIN.filter((level) => "sunfish" === level.mesin).every(
+    (level) => Boolean(PROFIL_SUNFISH[level.profilSunfish])
+  )
 );
 for (const level of PILIHAN_LEVEL_MESIN) {
   if ("sunfish" === level.mesin) {
-    const profil = PROFIL_SUNFISH[level.id];
+    const profil = PROFIL_SUNFISH[level.profilSunfish];
     hasil(
       `profil sunfish "${level.id}" lengkap`,
       Boolean(profil) && 1 <= profil.kedalaman && 0 <= profil.derau && 0 <= profil.terowongan && 1 >= profil.terowongan

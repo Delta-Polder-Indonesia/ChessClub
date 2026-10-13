@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
+import Back from "../../Analisa/komponen/svg/back.jsx";
+import { BarisProfil } from "./ManusiaVsMesin.jsx";
 import { useI18n } from "../../../lib/i18n.jsx";
 import {
   buatKartuDariJalur,
@@ -66,6 +68,7 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
   const [statusLatihan, setStatusLatihan] = useState("menunggu");
   const [langkahSalah, setLangkahSalah] = useState(null);
   const [menyimpan, setMenyimpan] = useState(false);
+  const [tanda, setTanda] = useState({ panah: [], petak: {} });
 
   useEffect(() => {
     let aktif = true;
@@ -184,8 +187,30 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
     setSasaran([]);
     setLangkahSalah(null);
     setStatusLatihan("menunggu");
+    setTanda({ panah: [], petak: {} });
     setTampilan("latihan");
     setPesan("");
+  }
+
+  function tandaPetak(petak, warna) {
+    setTanda((lama) => {
+      if (lama.petak[petak]) return { panah: [], petak: {} };
+      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
+    });
+  }
+
+  function tandaPanah(from, to, warna) {
+    setTanda((lama) => {
+      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
+      const panah = ada
+        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
+        : [...lama.panah, { from, to, warna }];
+      return { ...lama, panah };
+    });
+  }
+
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
   }
 
   function pilihPetak(square) {
@@ -290,28 +315,81 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
 
   if (tampilan === "latihan") {
     return (
-      <div className="flex h-full min-h-0 flex-col overflow-y-auto p-4">
-        <header className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#312e2b] pb-3">
-          <div>
-            <h1 className="text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
-            <p className="mt-1 text-sm text-gray-400">{kartuAktif?.nama || t("papan.repertoarSesi")}</p>
+      <section
+        aria-label={t("papan.repertoarJudul")}
+        className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden"
+      >
+        <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
+          <div className="mb-2 flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setTampilan("koleksi");
+                setKartuAktif(null);
+                setJalurAktif(null);
+              }}
+              title={t("papan.repertoarKembali")}
+              aria-label={t("papan.repertoarKembali")}
+              className="shrink-0 rounded-md p-1.5 text-gray-400 transition hover:bg-[#312e2b] hover:text-white"
+            >
+              <Back />
+            </button>
+            <h1 className="truncate text-xl font-bold text-white">{t("papan.repertoarJudul")}</h1>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              setTampilan("koleksi");
-              setKartuAktif(null);
-              setJalurAktif(null);
-            }}
-            className="rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 hover:bg-[#312e2b]"
-          >
-            {t("papan.repertoarKembali")}
-          </button>
-        </header>
+          {kartuAktif && (
+            <BarisProfil
+              nama={kartuAktif.warna === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
+              putih={kartuAktif.warna === "b"}
+              tangkapan={[]}
+              setBidak={pp.bidak}
+              className="mb-2"
+            />
+          )}
+          <div className="flex w-full items-stretch justify-center gap-1.5">
+            <div aria-hidden="true" className="w-9 shrink-0" />
+            {kartuAktif ? (
+              <div className="aspect-square min-w-0 flex-1">
+                <PapanTekaTeki
+                  fen={fen}
+                  orientasi={kartuAktif.warna}
+                  gayaGeser="analisa"
+                  terpilih={terpilih}
+                  sasaran={sasaran}
+                  langkahAkhir={langkahAkhir}
+                  terkunci={statusLatihan !== "menunggu"}
+                  membeku={false}
+                  tanda={tanda}
+                  setBidak={pp.bidak}
+                  tema={pp.warnaPapan}
+                  onKlik={(square) => {
+                    if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
+                    else pilihPetak(square);
+                  }}
+                  onJatuh={jawabLangkah}
+                  onTandaPetak={tandaPetak}
+                  onTandaPanah={tandaPanah}
+                  onHapusTanda={hapusSemuaTanda}
+                />
+              </div>
+            ) : (
+              <p className="rounded-md bg-[#211f1c] p-4 text-sm text-gray-400">{t("papan.repertoarSesiSelesai")}</p>
+            )}
+          </div>
+          {kartuAktif && (
+            <BarisProfil
+              nama={t("papan.pveAnda")}
+              putih={kartuAktif.warna === "w"}
+              tangkapan={[]}
+              setBidak={pp.bidak}
+              namaDiBawah
+              className="mt-3"
+            />
+          )}
+        </div>
 
-        <div className="grid min-h-0 flex-1 grid-cols-1 gap-4 py-4 lg:grid-cols-[minmax(0,1fr)_300px]">
-          <section className="mx-auto flex w-full max-w-[620px] flex-col gap-3">
-            <div aria-live="polite" className="rounded-md border border-[#363431] bg-[#211f1c] px-3 py-2 text-sm text-gray-200">
+        <aside className="flex min-h-0 flex-col gap-3 self-stretch rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200">
+            <p className="truncate font-semibold text-white">{kartuAktif?.nama || t("papan.repertoarSesi")}</p>
+            <div aria-live="polite" className="rounded-md border border-[#363431] bg-[#262421] px-3 py-2 text-sm text-gray-200">
               {statusLatihan === "benar"
                 ? t("papan.repertoarJawabanBenar")
                 : statusLatihan === "salah"
@@ -326,32 +404,6 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
                 </p>
               )}
             </div>
-            {kartuAktif ? (
-              <div className="relative mx-auto aspect-square w-full">
-                <PapanTekaTeki
-                  fen={fen}
-                  orientasi={kartuAktif.warna}
-                  gayaGeser="analisa"
-                  terpilih={terpilih}
-                  sasaran={sasaran}
-                  langkahAkhir={langkahAkhir}
-                  terkunci={statusLatihan !== "menunggu"}
-                  membeku={statusLatihan !== "menunggu"}
-                  setBidak={pp.bidak}
-                  tema={pp.warnaPapan}
-                  onKlik={(square) => {
-                    if (terpilih && sasaran.includes(square)) jawabLangkah(terpilih, square);
-                    else pilihPetak(square);
-                  }}
-                  onJatuh={jawabLangkah}
-                />
-              </div>
-            ) : (
-              <p className="rounded-md bg-[#211f1c] p-4 text-sm text-gray-400">{t("papan.repertoarSesiSelesai")}</p>
-            )}
-          </section>
-
-          <aside className="flex min-h-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4">
             <div className="text-xs text-gray-400">
               {t("papan.repertoarPosisi")}: {kartuAktif ? kartuAktif.ply + 1 : "—"}
             </div>
@@ -398,8 +450,7 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
               {t("papan.repertoarJadwalLokal")}
             </p>
           </aside>
-        </div>
-      </div>
+      </section>
     );
   }
 

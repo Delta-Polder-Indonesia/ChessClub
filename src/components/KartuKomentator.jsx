@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquareText } from "lucide-react";
+import { Switch } from "./ui/switch.jsx";
 import RatingSVG from "../halaman/Analisa/komponen/svg/rating.jsx";
 import {
   AVATAR_BUKU,
@@ -119,23 +120,13 @@ export default function KartuKomentator({
     <section aria-label={t("papan.komentator.judul")} className={className}>
       {!sembunyikanKontrol && <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex min-w-0 items-center gap-2">
-          <button
-            type="button"
-            role="switch"
-            aria-checked={nyala}
-            onClick={() => setNyala(!nyala)}
-            className={`flex h-5 w-9 shrink-0 items-center rounded-full border transition ${
-              nyala ? "border-[#81b64c] bg-[#81b64c]" : "border-[#363431] bg-[#363431]"
-            }`}
+          <Switch
+            size="sm"
+            checked={nyala}
+            onCheckedChange={() => setNyala(!nyala)}
             aria-label={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
             title={nyala ? t("papan.komentator.matikan") : t("papan.komentator.nyalakan")}
-          >
-            <span
-              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                nyala ? "translate-x-4" : "translate-x-0.5"
-              }`}
-            />
-          </button>
+          />
           <p className="flex min-w-0 items-center gap-1.5 text-sm font-bold leading-none text-white">
             <MessageSquareText className="h-4 w-4 shrink-0 text-[#81b64c]" aria-hidden="true" />
             <span className="truncate">{t("papan.komentator.judul")}</span>

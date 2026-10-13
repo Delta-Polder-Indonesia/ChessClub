@@ -265,7 +265,7 @@ export const analisa = {
     papan: { balik: "Balik papan", pengaturan: "Pengaturan", promosi: "Pilih bidak promosi" },
     nav: {
       pengaturan: "Pengaturan",
-      play: "Bermain",
+      play: "Report Analisa",
       playKeterangan: "Kembali ke papan analisis",
       baru: "Baru",
       baruKeterangan: "Mulai analisis baru — papan dikosongkan",

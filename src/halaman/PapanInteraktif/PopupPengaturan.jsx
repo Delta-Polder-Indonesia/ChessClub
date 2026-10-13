@@ -1,6 +1,7 @@
 import { useId } from "react";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import KartuKomentator from "../../components/KartuKomentator.jsx";
+import { Switch } from "../../components/ui/switch.jsx";
 import { useDialog } from "./gunakanDialog.js";
 import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
 
@@ -65,53 +66,50 @@ export function IsiPengaturanPapan({
           </select>
         </div>
       </div>
-      <label className="flex cursor-pointer items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-foregroundGrey">
           {t("papan.suara")}
         </span>
-        <input
-          type="checkbox"
+        <Switch
+          size="sm"
           checked={suaraNyala}
-          onChange={(e) => setSuaraNyala(e.target.checked)}
-          className="h-4 w-4 accent-[#81b64c]"
+          onCheckedChange={setSuaraNyala}
+          aria-label={t("papan.suara")}
         />
-      </label>
-      <label className="flex cursor-pointer items-center justify-between gap-3">
+      </div>
+      <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-foregroundGrey">
           {t("papan.enginePanahToggle")}
         </span>
-        <input
-          type="checkbox"
+        <Switch
+          size="sm"
           checked={tampilPanahMesin}
-          onChange={(e) => setTampilPanahMesin(e.target.checked)}
+          onCheckedChange={setTampilPanahMesin}
           aria-label={t("papan.enginePanahToggle")}
-          className="h-4 w-4 accent-[#81b64c]"
         />
-      </label>
-      <label className="flex cursor-pointer items-center justify-between gap-3">
+      </div>
+      <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-foregroundGrey">
           {t("papan.bantuanToggle")}
         </span>
-        <input
-          type="checkbox"
+        <Switch
+          size="sm"
           checked={bantuanNyala}
-          onChange={(e) => setBantuanNyala(e.target.checked)}
+          onCheckedChange={setBantuanNyala}
           aria-label={t("papan.bantuanToggle")}
-          className="h-4 w-4 accent-[#81b64c]"
         />
-      </label>
-      <label className="flex cursor-pointer items-center justify-between gap-3">
+      </div>
+      <div className="flex items-center justify-between gap-3">
         <span className="text-xs font-bold text-foregroundGrey">
           {t("papan.awanTampilanPenuh")}
         </span>
-        <input
-          type="checkbox"
+        <Switch
+          size="sm"
           checked={awanTampilanPenuh}
-          onChange={(e) => setAwanTampilanPenuh(e.target.checked)}
+          onCheckedChange={setAwanTampilanPenuh}
           aria-label={t("papan.awanTampilanPenuh")}
-          className="h-4 w-4 accent-[#81b64c]"
         />
-      </label>
+      </div>
       <div className="border-t border-border pt-3">
         <KartuKomentator {...kartuKomentator} hanyaKontrol />
       </div>

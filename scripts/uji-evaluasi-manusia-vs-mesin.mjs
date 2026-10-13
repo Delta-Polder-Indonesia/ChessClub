@@ -256,7 +256,7 @@ async function tungguSampai(syarat, batas = 4000, langkah = 10) {
  * Mount partai baru dalam wadah baru (papan diklik "Main" otomatis).
  * `sebelumMulai(wadah)` (opsional) dipanggil SETELAH layar konfigurasi
  * pra-partai tampil tapi SEBELUM tombol "Main" diklik — dipakai mis. untuk
- * memilih warna pemain lewat elemen `<select>` bawaan.
+ * memilih warna pemain lewat tombol radio pemilih warna.
  * Mengembalikan handel `{ wadah, root, klik, labelBilah, adaEvaluasi,
  * tinggiPutih, tutup }` — `tutup()` WAJIB dipanggil sebelum mount berikutnya
  * supaya Worker palsu milik partai lama berhenti mencemari antrean job
@@ -749,9 +749,11 @@ console.log("\n8. skor selalu dari sudut pandang Putih, apa pun giliran/orientas
   // duluan) harus tetap tampil POSITIF di bilah walau papan berorientasi
   // Hitam.
   const p2 = await partaiBaru(async (wadah) => {
-    const pilih = wadah.querySelector("select");
-    pilih.value = "b";
-    pilih.dispatchEvent(new window.Event("change", { bubbles: true }));
+    // Pemilih warna kini tombol radio (aria-checked), bukan <select>.
+    const pilih = [...wadah.querySelectorAll('button[role="radio"]')].find(
+      (b) => b.getAttribute("aria-label") === "Hitam"
+    );
+    pilih?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await tunggu(10);
   });
   await tungguSampai(() => window.__evalJobs.length >= 1);

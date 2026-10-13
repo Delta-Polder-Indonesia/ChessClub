@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
+import { BarisProfil } from "./ManusiaVsMesin.jsx";
 import { EngineCatur } from "../../../lib/engineCatur.js";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
@@ -56,6 +57,7 @@ export default function TuringTest({ pengaturan = null }) {
   const [jawaban, setJawaban] = useState(null);
   const [skor, setSkor] = useState(skorAwal);
   const [pesan, setPesan] = useState("");
+  const [tanda, setTanda] = useState({ panah: [], petak: {} });
   const engineRef = useRef(null);
   const aktifRef = useRef(true);
 
@@ -124,6 +126,7 @@ export default function TuringTest({ pengaturan = null }) {
       setIndeks(0);
       setJawaban(null);
       setSkor(skorAwal());
+      setTanda({ panah: [], petak: {} });
       setFase("tebak");
     } catch {
       if (aktifRef.current) {
@@ -140,6 +143,27 @@ export default function TuringTest({ pengaturan = null }) {
     setSkor((s) => catatSkor(s, benar));
   }
 
+  function tandaPetak(petak, warna) {
+    setTanda((lama) => {
+      if (lama.petak[petak]) return { panah: [], petak: {} };
+      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
+    });
+  }
+
+  function tandaPanah(from, to, warna) {
+    setTanda((lama) => {
+      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
+      const panah = ada
+        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
+        : [...lama.panah, { from, to, warna }];
+      return { ...lama, panah };
+    });
+  }
+
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
+  }
+
   function lanjut() {
     if (indeks + 1 >= soal.length) {
       setFase("hasil");
@@ -147,6 +171,7 @@ export default function TuringTest({ pengaturan = null }) {
     }
     setIndeks(indeks + 1);
     setJawaban(null);
+    setTanda({ panah: [], petak: {} });
   }
 
   const aktif = fase === "tebak" ? soal[indeks] : null;
@@ -176,6 +201,13 @@ export default function TuringTest({ pengaturan = null }) {
     >
       <div className="mx-auto flex w-full max-w-[520px] min-w-0 flex-col sm:my-auto lg:w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
         <h1 className="mb-2 text-xl font-bold text-white">{t("papan.turingJudul")}</h1>
+        <BarisProfil
+          nama={t("papan.pveHitam")}
+          putih={false}
+          tangkapan={[]}
+          setBidak={pp.bidak}
+          className="mb-2"
+        />
         <div className="flex w-full items-stretch justify-center gap-1.5">
           <div aria-hidden="true" className="w-9 shrink-0" />
           <div className="aspect-square min-w-0 flex-1">
@@ -186,18 +218,30 @@ export default function TuringTest({ pengaturan = null }) {
                 gayaGeser="analisa"
                 langkahAkhir={langkahAkhir}
                 terkunci
-                membeku
+                membeku={false}
+                tanda={tanda}
                 setBidak={pp.bidak}
                 tema={pp.warnaPapan}
                 onKlik={() => {}}
                 onSelesaiSeret={() => {}}
+                onTandaPetak={tandaPetak}
+                onTandaPanah={tandaPanah}
+                onHapusTanda={hapusSemuaTanda}
               />
             </div>
           </div>
         </div>
+        <BarisProfil
+          nama={t("papan.pveAnda")}
+          putih
+          tangkapan={[]}
+          setBidak={pp.bidak}
+          namaDiBawah
+          className="mt-3"
+        />
       </div>
 
-      <aside className="flex min-h-0 flex-col gap-3 self-start rounded-md bg-[#211f1c] p-4 text-sm text-gray-200 lg:self-center">
+      <aside className="flex min-h-0 flex-col gap-3 self-stretch rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200">
         {fase === "input" && (
           <>
             <p className="text-[11px] leading-relaxed text-gray-400">{t("papan.turingDeskripsi")}</p>

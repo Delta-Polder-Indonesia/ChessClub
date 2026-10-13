@@ -14,16 +14,18 @@
  * divalidasi chess.js. Murni: tanpa React, DOM, atau jaringan — supaya skrip
  * uji Node bisa memakai tabel yang sama persis dengan yang dipakai UI.
  *
- * Tangga lawan sekarang TIGA engine, bukan dua:
- *   sunfish   → pemula total & pemula. Paling ringan (44 KB) dan penilaiannya
- *               dirusak dari dalam, jadi ia lemah secara meyakinkan.
+ * Tangga lawan sekarang TIGA engine, dibagi jadi tiga tab di UI:
+ *   sunfish   → pemula total & pemula. Cadangan untuk elo rendah: build
+ *               WebWorker Stockfish hanya menyisakan depth minimal 6 yang
+ *               setara ~2100+, jadi Stockfish tidak bisa melayani di bawah
+ *               itu. Paling ringan (44 KB) dan penilaiannya dirusak dari
+ *               dalam, jadi ia lemah secara meyakinkan.
  *   Maia 3    → menengah. Model yang justru dilatih untuk meniru MANUSIA
  *               (policy + WDL, tanpa pencarian), ratingnya bisa dipilih
- *               1100–1900 — lihat `src/lib/maia3.js` dan `lib/mesinMaia.js`.
- *   Stockfish → mahir/ahli/master. UCI_Elo-nya sudah pas untuk rentang atas.
- * Alasannya: Stockfish Skill Level 0 masih ~1320 Elo, jadi "menengah" paling
- * masuk akal diisi lawan yang memang meniru manusia rating itu — bukan mesin
- * yang dilemahkan, dan bukan mesin kuat yang disuruh pura-pura bodoh.
+ *               600–2600 — lihat `src/lib/maia3.js` dan `lib/mesinMaia.js`.
+ *   Stockfish → mahir/ahli/master/GM/maximum (2000 ke atas). Skill Level
+ *               0–20 dipetakan naik ke sana; di bawah 2000 pemain memakai
+ *               tab Sunfish, bukan Stockfish yang dipaksa lemah.
  */
 import { Chess } from "chess.js";
 
@@ -84,72 +86,139 @@ export function perintahProfilSunfish(profil, { benih = 1, petakLawan = null } =
 
 /**
  * Rating Maia yang bisa dipilih pemain. Maia 3 menerima rating kontinu, jadi
- * daftar ini hanya penanda yang enak dipilih — rentang 1100–1900 adalah
- * rentang yang dipakai saat model dilatih (lihat `batasRating` di maia3.js).
+ * daftar ini hanya penanda yang enak dipilih — di luar rentang latihan model
+ * (1100–1900) hasilnya extrapolasi dan sudah dijelaskan di keterangan UI.
  */
-export const PILIHAN_RATING_MAIA = [1100, 1300, 1500, 1700, 1900];
+export const PILIHAN_RATING_MAIA = [
+  600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600,
+  1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600,
+];
 
 /** Rating Maia bawaan — tengah rentang latihan model. */
 export const RATING_MAIA_BAKU = 1500;
 
 /**
- * Level lawan di UI Manusia vs Mesin.
+ * Level lawan di UI Manusia vs Mesin, dikelompokkan per tab (`tab`).
  *
- * Dua level terbawah memakai sunfish dengan profil di atas; level menengah
- * memakai Maia 3 (ratingnya dipilih terpisah lewat `PILIHAN_RATING_MAIA`);
- * level atas tetap Stockfish dengan Skill Level seperti sebelumnya (lantai
- * UCI_Elo Stockfish sudah pas untuk rentang rating itu). `keterampilan` hanya
- * berarti untuk Stockfish, `kedalaman` hanya untuk sunfish, dan `rating` hanya
- * untuk Maia.
+ * Dua tab di UI: Stockfish dan Maia-3. Tab Stockfish memuat SELURUH daftar
+ * elo 100–3200 ala Chess.com, tetapi di bawah 2000 engine yang dipakai
+ * tetap sunfish (build WebWorker Stockfish hanya menyisakan depth minimal 6
+ * yang setara ~2100+). Entri sunfish menentukan engine via `mesin`, dan
+ * `profilSunfish` memetakan ke PROFIL_SUNFISH — bukan ke `id`, karena id
+ * level sekarang mengikuti nama elo, bukan nama profil. `keterampilan`
+ * hanya berarti untuk Stockfish dan `rating` hanya untuk Maia.
  */
 export const PILIHAN_LEVEL_MESIN = [
   {
-    id: "beginner",
+    id: "new-to-chess",
+    tab: "stockfish",
     mesin: "sunfish",
+    profilSunfish: "beginner",
+    waktu: PROFIL_SUNFISH.beginner.waktu,
+    kedalaman: PROFIL_SUNFISH.beginner.kedalaman,
+    label: "papan.pveLevelNewToChess",
+    ringkas: "papan.pveLevelNewToChessRingkas",
+  },
+  {
+    id: "beginner",
+    tab: "stockfish",
+    mesin: "sunfish",
+    profilSunfish: "beginner",
     waktu: PROFIL_SUNFISH.beginner.waktu,
     kedalaman: PROFIL_SUNFISH.beginner.kedalaman,
     label: "papan.pveLevelBeginner",
     ringkas: "papan.pveLevelBeginnerRingkas",
   },
   {
-    id: "casual",
+    id: "novice",
+    tab: "stockfish",
     mesin: "sunfish",
-    waktu: PROFIL_SUNFISH.casual.waktu,
-    kedalaman: PROFIL_SUNFISH.casual.kedalaman,
-    label: "papan.pveLevelCasual",
-    ringkas: "papan.pveLevelCasualRingkas",
+    profilSunfish: "beginner",
+    waktu: PROFIL_SUNFISH.beginner.waktu,
+    kedalaman: PROFIL_SUNFISH.beginner.kedalaman,
+    label: "papan.pveLevelNovice",
+    ringkas: "papan.pveLevelNoviceRingkas",
   },
   {
-    id: "maia",
-    mesin: "maia",
-    rating: RATING_MAIA_BAKU,
-    label: "papan.pveLevelMaia",
-    ringkas: "papan.pveLevelMaiaRingkas",
+    id: "intermediate",
+    tab: "stockfish",
+    mesin: "sunfish",
+    profilSunfish: "casual",
+    waktu: PROFIL_SUNFISH.casual.waktu,
+    kedalaman: PROFIL_SUNFISH.casual.kedalaman,
+    label: "papan.pveLevelIntermediate",
+    ringkas: "papan.pveLevelIntermediateRingkas",
+  },
+  {
+    id: "intermediate-2",
+    tab: "stockfish",
+    mesin: "sunfish",
+    profilSunfish: "casual",
+    waktu: PROFIL_SUNFISH.casual.waktu,
+    kedalaman: PROFIL_SUNFISH.casual.kedalaman,
+    label: "papan.pveLevelIntermediate2",
+    ringkas: "papan.pveLevelIntermediate2Ringkas",
   },
   {
     id: "advanced",
-    mesin: "stockfish",
-    keterampilan: 12,
-    waktu: 700,
+    tab: "stockfish",
+    mesin: "sunfish",
+    profilSunfish: "casual",
+    waktu: PROFIL_SUNFISH.casual.waktu,
+    kedalaman: PROFIL_SUNFISH.casual.kedalaman,
     label: "papan.pveLevelAdvanced",
     ringkas: "papan.pveLevelAdvancedRingkas",
   },
   {
     id: "expert",
+    tab: "stockfish",
     mesin: "stockfish",
-    keterampilan: 16,
-    waktu: 1000,
+    keterampilan: 12,
+    waktu: 800,
     label: "papan.pveLevelExpert",
     ringkas: "papan.pveLevelExpertRingkas",
   },
   {
     id: "master",
+    tab: "stockfish",
     mesin: "stockfish",
-    keterampilan: 20,
-    waktu: 1400,
+    keterampilan: 16,
+    waktu: 1200,
     label: "papan.pveLevelMaster",
     ringkas: "papan.pveLevelMasterRingkas",
   },
+  {
+    id: "grandmaster",
+    tab: "stockfish",
+    mesin: "stockfish",
+    keterampilan: 18,
+    waktu: 1600,
+    label: "papan.pveLevelGrandmaster",
+    ringkas: "papan.pveLevelGrandmasterRingkas",
+  },
+  {
+    id: "maximum",
+    tab: "stockfish",
+    mesin: "stockfish",
+    keterampilan: 20,
+    waktu: 2500,
+    label: "papan.pveLevelMaximum",
+    ringkas: "papan.pveLevelMaximumRingkas",
+  },
+  {
+    id: "maia",
+    tab: "maia",
+    mesin: "maia",
+    rating: RATING_MAIA_BAKU,
+    label: "papan.pveLevelMaia",
+    ringkas: "papan.pveLevelMaiaRingkas",
+  },
+];
+
+/** Urutan tab level di UI. */
+export const TAB_LEVEL_MESIN = [
+  { id: "stockfish", judul: "papan.pveTabStockfish" },
+  { id: "maia", judul: "papan.pveTabMaia" },
 ];
 
 /** Semua langkah sah pada satu FEN dalam bentuk UCI (kosong bila partai usai). */

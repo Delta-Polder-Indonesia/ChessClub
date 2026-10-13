@@ -23,11 +23,15 @@ import TombolMaju from "../TombolMaju.jsx";
 import TombolKeAkhir from "../TombolKeAkhir.jsx";
 import { fenDariLangkah, susunPgn } from "../utilPapan.js";
 import { dialogMesin } from "./dialogMesin.js";
+import IkonPutih from "../../Analisa/komponen/play-side/white--sm.svg";
+import IkonHitam from "../../Analisa/komponen/play-side/black--sm.svg";
+import IkonAcak from "../../Analisa/komponen/play-side/random.svg";
 import {
   PILIHAN_LEVEL_MESIN,
   PILIHAN_RATING_MAIA,
   PROFIL_SUNFISH,
   RATING_MAIA_BAKU,
+  TAB_LEVEL_MESIN,
   langkahMesinSah,
   perintahProfilSunfish,
 } from "./mesinLemah.js";
@@ -116,7 +120,7 @@ function gameDenganHistoriPenuh(daftarSan) {
   return game;
 }
 
-function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
+export function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
   const labelNama = (
     <span
       className={`truncate text-sm font-bold text-[#fffaec] ${namaDiBawah ? "leading-tight" : ""}`}
@@ -385,14 +389,22 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const [sasaran, setSasaran] = useState([]);
   const [warnaPemain, setWarnaPemain] = useState("w");
   const [orientasiPapan, setOrientasiPapan] = useState("w");
+  // Pilihan pemilih warna: "w" | "b" | "acak". "acak" baru diresolusi jadi
+  // warna nyata saat Mulai ditekan, supaya papan pratinjau tetap masuk akal.
+  const [warnaPilihan, setWarnaPilihan] = useState("w");
   const warnaMesin = warnaPemain === "w" ? "b" : "w";
-  const [levelMesin, setLevelMesin] = useState("casual");
+  const [levelMesin, setLevelMesin] = useState("new-to-chess");
+  // Tab pemilih engine: "stockfish" (daftar elo 100–3200; di bawah 2000
+  // engine yang dipakai tetap sunfish) atau "maia" (rating pilih sendiri).
+  // Tab hanya mengubah daftar level yang tampil; level yang benar-benar
+  // dipakai tetap `levelMesin`.
+  const [tabLevel, setTabLevel] = useState("stockfish");
   // Rating Maia dipisah dari `levelMesin` karena satu level menengah bisa
-  // dipakai untuk seluruh rentang 1100–1900 — Maia 3 menerima rating kontinu,
+  // dipakai untuk seluruh rentang 600–2600 — Maia 3 menerima rating kontinu,
   // jadi tidak perlu satu entri per kekuatan seperti Stockfish Skill Level.
   const [ratingMaia, setRatingMaia] = useState(RATING_MAIA_BAKU);
   const tingkatAktif = useMemo(
-    () => PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin) || PILIHAN_LEVEL_MESIN[1],
+    () => PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin) || PILIHAN_LEVEL_MESIN[0],
     [levelMesin]
   );
   // Mesin Maia bersifat tunggal per tab (worker + sesi ONNX berat), jadi
@@ -647,7 +659,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         if (pakaiSunfish) {
           // Level bawah: kekuatan diatur dengan merusak penilaian engine dari
           // dalam (lihat mesinLemah.js), bukan dengan mengacak pilihan langkah.
-          const perintah = perintahProfilSunfish(PROFIL_SUNFISH[tingkatAktif.id], {
+          const perintah = perintahProfilSunfish(PROFIL_SUNFISH[tingkatAktif.profilSunfish], {
             benih: benihMesinRef.current,
             petakLawan: langkahAkhirRef.current?.to ?? null,
           });
@@ -818,11 +830,25 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setTampilDialogSelesai(false);
   }
 
+  function pilihWarna(id) {
+    setWarnaPilihan(id);
+    // "acak" baru dipilih saat Mulai; dua opsi lain langsung memutar papan.
+    if (id === "w" || id === "b") {
+      setWarnaPemain(id);
+      setOrientasiPapan(id);
+    }
+  }
+
   function mulaiPartai() {
     mesinRef.current?.tamat();
     mesinRef.current = null;
     jenisMesinRef.current = null;
     benihMesinRef.current = (Math.floor(Math.random() * 0xffffffff) >>> 0) || 1;
+    if (warnaPilihan === "acak") {
+      const hasilAcak = Math.random() < 0.5 ? "w" : "b";
+      setWarnaPemain(hasilAcak);
+      setOrientasiPapan(hasilAcak);
+    }
     bersihkanPartai();
     setTampilDialogSelesai(false);
     setAktif(true);
@@ -980,7 +1006,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     benih: riwayatLengkap.length,
     t,
   });
-  const lawanPakaiStockfish = "sunfish" !== tingkatAktif.mesin;
   // Worker aktif berarti mesin masih memuat atau menghitung. Ikon kembali ke
   // cip segera setelah giliran mesin selesai, gagal, atau partai berakhir.
   const IkonMesin = statusMesin === "memuat" || statusMesin === "mesin" ? Brain : Cpu;
@@ -1136,8 +1161,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         </div>
       </section>
 
-      <aside className="flex min-h-0 min-w-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-3 sm:p-4 lg:overflow-hidden">
-        <div className="flex items-center justify-between gap-3">
+      <aside className="flex min-h-0 min-w-0 flex-col gap-3 rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200 lg:overflow-hidden">
+        <div className="flex shrink-0 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-[#4a4742] bg-[#262421] text-[#a7cf73]">
               <IkonMesin className="h-4 w-4" aria-hidden="true" />
@@ -1158,7 +1183,10 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           </button>
         </div>
 
-        <section aria-label={t("papan.pveDialogMesin")} className="flex min-h-[88px] items-center gap-2 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:min-h-[104px] sm:gap-3 sm:p-3">
+        <section
+          aria-label={t("papan.pveDialogMesin")}
+          className="flex min-h-[88px] shrink-0 items-center gap-2 sm:gap-3"
+        >
           <img
             src={berkasPublik(`/engine_expressions/${dialog.gambar}`)}
             alt={t("papan.pveDialogAvatar")}
@@ -1166,80 +1194,155 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             width="64"
             height="64"
           />
-          <p className="min-w-0 text-[13px] leading-5 text-gray-200" aria-live="polite">
-            {dialog.teks}
-          </p>
+          <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
+            {/* Ekor bubble ala bot-speech-content-tip — menunjuk avatar di kiri. */}
+            <span
+              aria-hidden="true"
+              className="absolute -left-[5px] top-5 h-2.5 w-2.5 rotate-45 border-b border-l border-[#3b3935] bg-[#262421]"
+            />
+            <p className="text-[13px] leading-5 text-gray-200" aria-live="polite">
+              {dialog.teks}
+            </p>
+          </div>
         </section>
 
-        {/* Kartu konfigurasi hanya tampil sebelum partido berjalan. Saat itu
-           slot ini dipakai fitur pra-partai lain. */}
+        {/* Kartu konfigurasi hanya tampil sebelum partai berjalan. Baris atas
+            (tab engine sejajar pemilih warna) diam; hanya daftar level di
+            bawahnya yang di-scroll, sehingga tombol Main tetap menempel di
+            dasar sidebar walau daftar panjang. */}
         {!aktif ? (
-          <section aria-label={t("papan.pveKonfigurasi")} className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500">
-              {t("papan.pveKonfigurasi")}
-            </p>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
-                {t("papan.pveWarnaPemain")}
-                <select
-                  value={warnaPemain}
-                  onChange={(event) => {
-                    setWarnaPemain(event.target.value);
-                    setOrientasiPapan(event.target.value);
-                  }}
-                  className="w-full rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
+          <section
+            aria-label={t("papan.pveKonfigurasi")}
+            className="flex min-h-0 flex-1 flex-col gap-3"
+          >
+            {/* Baris atas diam (tidak ikut scroll): tab engine sejajar
+                dengan pemilih warna. */}
+            <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                  {t("papan.pveLevel")}
+                </p>
+                <div
+                  role="tablist"
+                  aria-label={t("papan.pveLevel")}
+                  className="flex gap-1 rounded-md border border-[#4a4742] bg-[#262421] p-1"
                 >
-                  <option value="w">{t("papan.pvePutih")}</option>
-                  <option value="b">{t("papan.pveHitam")}</option>
-                </select>
-              </label>
-
-              <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400">
-                {t("papan.pveLevel")}
-                <select
-                  value={levelMesin}
-                  onChange={(event) => setLevelMesin(event.target.value)}
-                  className="w-full rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
-                >
-                  {PILIHAN_LEVEL_MESIN.map((level) => (
-                    <option key={level.id} value={level.id}>
-                      {t(level.ringkas)}
-                    </option>
+                  {TAB_LEVEL_MESIN.map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={tabLevel === tab.id}
+                      onClick={() => {
+                        setTabLevel(tab.id);
+                        // Klik tab langsung memilih level pertama tab itu bila
+                        // level aktif bukan milik tab tersebut.
+                        const kini = PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin);
+                        if (kini?.tab !== tab.id) {
+                          const pertama = PILIHAN_LEVEL_MESIN.find((level) => level.tab === tab.id);
+                          if (pertama) setLevelMesin(pertama.id);
+                        }
+                      }}
+                      className={`flex-1 rounded px-2 py-1.5 text-xs font-semibold transition ${
+                        tabLevel === tab.id
+                          ? "bg-[#3a3633] text-white"
+                          : "text-gray-400 hover:text-white"
+                      }`}
+                    >
+                      {t(tab.judul)}
+                    </button>
                   ))}
-                </select>
-              </label>
+                </div>
+              </div>
 
-              {/* Rating Maia hanya berarti untuk level menengah: Maia 3
-                  menyisipkan rating secara kontinu, jadi satu model melayani
-                  seluruh rentang menengah tanpa ganti berkas bobot. */}
-              {"maia" === tingkatAktif.mesin ? (
-                <label className="flex min-w-0 flex-col gap-1.5 text-xs font-semibold text-gray-400 sm:col-span-2">
-                  {t("papan.pveRatingMaia")}
-                  <select
-                    value={ratingMaia}
-                    onChange={(event) => setRatingMaia(Number(event.target.value))}
-                    className="w-full rounded-md border border-[#4a4742] bg-[#262421] px-2.5 py-2 text-sm font-normal text-gray-200 outline-none focus:border-[#81b64c]"
-                  >
-                    {PILIHAN_RATING_MAIA.map((rating) => (
-                      <option key={rating} value={rating}>
-                        {t("papan.pveRatingMaiaOpsi", { rating })}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ) : null}
+              {/* Pemilih warna ala play-side-selector: tiga kotak berisi SVG
+                  dari Analisa/komponen/play-side (pion putih/hitam + ikon
+                  acak). "Acak" baru dipilih saat Mulai ditekan; sebelum itu
+                  papan tetap memakai warna terakhir. */}
+              <div>
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                  {t("papan.pveWarnaPemain")}
+                </p>
+                <div
+                  role="radiogroup"
+                  aria-label={t("papan.pveWarnaPemain")}
+                  className="flex items-center gap-2"
+                >
+                  {[
+                    { id: "w", label: t("papan.pvePutih"), gambar: IkonPutih },
+                    { id: "acak", label: t("papan.pveAcak"), gambar: IkonAcak },
+                    { id: "b", label: t("papan.pveHitam"), gambar: IkonHitam },
+                  ].map((opsi) => (
+                    <button
+                      key={opsi.id}
+                      type="button"
+                      role="radio"
+                      aria-checked={warnaPilihan === opsi.id}
+                      aria-label={opsi.label}
+                      title={opsi.label}
+                      onClick={() => pilihWarna(opsi.id)}
+                      className={`h-10 w-10 overflow-hidden rounded-md border-2 transition ${
+                        warnaPilihan === opsi.id
+                          ? "border-[#81b64c]"
+                          : "border-[#4a4742] hover:border-gray-500"
+                      }`}
+                    >
+                      <img src={opsi.gambar} alt="" className="h-full w-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
-            {/* Keterangan engine per level: yang dipakai berbeda, dan di level
-                sunfish penilaian memang sengaja dirusak — pemain berhak tahu.
-                Maia ditulis terang-terangan: ia mengunduh bobot 45 MB sekali,
-                jadi pemain perlu tahu sebelum menekan Mulai. */}
-            <p className="text-[11px] leading-4 text-gray-500">
-              {"maia" === tingkatAktif.mesin
-                ? t("papan.pveMesinMaia", { rating: ratingMaia })
-                : lawanPakaiStockfish
-                  ? t("papan.pveMesinStockfish", { nilai: tingkatAktif.keterampilan })
-                  : t("papan.pveMesinSunfish")}
-            </p>
+
+            {/* Daftar level — satu-satunya bagian yang di-scroll. Tab dan
+                pemilih warna di atas tidak ikut tergulir. */}
+            <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+              {/* Tab Maia menampilkan daftar rating sebagai tombol, bukan
+                  <select>: Maia menerima rating kontinu, jadi 21 penanda
+                  dipilih langsung tanpa dua langkah membuka menu. */}
+              {tabLevel === "maia" ? (
+                <ul className="grid grid-cols-3 gap-1.5">
+                  {PILIHAN_RATING_MAIA.map((rating) => (
+                    <li key={rating}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setLevelMesin("maia");
+                          setRatingMaia(rating);
+                        }}
+                        aria-pressed={levelMesin === "maia" && ratingMaia === rating}
+                        className={`w-full rounded-md border px-2 py-1.5 text-xs font-semibold transition ${
+                          levelMesin === "maia" && ratingMaia === rating
+                            ? "border-[#81b64c] bg-[#2c2926] text-white"
+                            : "border-[#4a4742] bg-[#262421] text-gray-300 hover:border-gray-500 hover:text-white"
+                        }`}
+                      >
+                        {rating}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <ul className="space-y-1.5">
+                  {PILIHAN_LEVEL_MESIN.filter((level) => level.tab === tabLevel).map((level) => (
+                    <li key={level.id}>
+                      <button
+                        type="button"
+                        onClick={() => setLevelMesin(level.id)}
+                        aria-pressed={levelMesin === level.id}
+                        className={`w-full rounded-md border px-3 py-2 text-left text-xs font-semibold transition ${
+                          levelMesin === level.id
+                            ? "border-[#81b64c] bg-[#2c2926] text-white"
+                            : "border-[#4a4742] bg-[#262421] text-gray-300 hover:border-gray-500 hover:text-white"
+                        }`}
+                      >
+                        {t(level.ringkas)}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </section>
         ) : null}
 
@@ -1346,7 +1449,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           <button
             type="button"
             onClick={mulaiPartai}
-            className="shrink-0 rounded-md bg-[#81b64c] px-4 py-2.5 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
+            className="w-full shrink-0 rounded-md bg-[#81b64c] px-4 py-3 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
           >
             {t("papan.pveMulai")}
           </button>

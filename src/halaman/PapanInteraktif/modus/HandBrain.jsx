@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
+import { BarisProfil } from "./ManusiaVsMesin.jsx";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
 import {
@@ -46,6 +47,7 @@ export default function HandBrain({ pengaturan = null }) {
   const [terpilih, setTerpilih] = useState(null);
   const [sasaran, setSasaran] = useState([]);
   const [pesan, setPesan] = useState("");
+  const [tanda, setTanda] = useState({ panah: [], petak: {} });
 
   const papan = useMemo(() => papanDariLangkah(partai.langkah), [partai.langkah]);
   const fen = papan.fen();
@@ -63,6 +65,27 @@ export default function HandBrain({ pengaturan = null }) {
   function bersihkanPilihan() {
     setTerpilih(null);
     setSasaran([]);
+  }
+
+  function tandaPetak(petak, warna) {
+    setTanda((lama) => {
+      if (lama.petak[petak]) return { panah: [], petak: {} };
+      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
+    });
+  }
+
+  function tandaPanah(from, to, warna) {
+    setTanda((lama) => {
+      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
+      const panah = ada
+        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
+        : [...lama.panah, { from, to, warna }];
+      return { ...lama, panah };
+    });
+  }
+
+  function hapusSemuaTanda() {
+    setTanda({ panah: [], petak: {} });
   }
 
   function pilihPetak(square) {
@@ -130,6 +153,7 @@ export default function HandBrain({ pengaturan = null }) {
     setPartai(buatPartai());
     bersihkanPilihan();
     setPesan("");
+    setTanda({ panah: [], petak: {} });
   }
 
   // Skakmat: pihak yang sedang bergiliran adalah yang di-mat, jadi pemenangnya lawannya.
@@ -150,6 +174,13 @@ export default function HandBrain({ pengaturan = null }) {
         <h1 className="mb-2 text-xl font-bold text-white">{t("papan.hbJudul")}</h1>
         {/* Spacer selebar bilah evaluasi (w-9 + gap-1.5) di Manusia vs Mesin:
             papan di sini berukuran sama persis dengan mode yang sudah berjalan. */}
+        <BarisProfil
+          nama={giliran === "w" ? t("papan.pveHitam") : t("papan.pvePutih")}
+          putih={giliran === "b"}
+          tangkapan={[]}
+          setBidak={pp.bidak}
+          className="mb-2"
+        />
         <div className="flex w-full items-stretch justify-center gap-1.5">
           <div aria-hidden="true" className="w-9 shrink-0" />
           <div className="aspect-square min-w-0 flex-1">
@@ -162,18 +193,30 @@ export default function HandBrain({ pengaturan = null }) {
             sasaran={sasaran}
             langkahAkhir={langkahAkhir}
             terkunci={selesai}
-            membeku={selesai}
+            membeku={false}
+            tanda={tanda}
             setBidak={pp.bidak}
             tema={pp.warnaPapan}
             onKlik={onKlik}
             onSelesaiSeret={onSelesaiSeret}
+            onTandaPetak={tandaPetak}
+            onTandaPanah={tandaPanah}
+            onHapusTanda={hapusSemuaTanda}
           />
           </div>
           </div>
         </div>
+        <BarisProfil
+          nama={t("papan.pveAnda")}
+          putih={giliran === "w"}
+          tangkapan={[]}
+          setBidak={pp.bidak}
+          namaDiBawah
+          className="mt-3"
+        />
       </div>
 
-      <aside className="flex min-h-0 flex-col gap-3 self-start rounded-md bg-[#211f1c] p-4 text-sm text-gray-200 lg:self-center">
+      <aside className="flex min-h-0 flex-col gap-3 self-stretch rounded-lg border border-[#312e2b] bg-[#211f1c] p-4 text-sm text-gray-200">
           {selesai ? (
             <p className="font-semibold text-white" role="status">
               {statusTeks}

@@ -51,12 +51,10 @@ import { Link } from "react-router-dom";
 import GitHub from "../svg/github.jsx";
 import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
-import Database from "../svg/database.jsx";
 import ShieldAlert from "../svg/shield-alert.jsx";
 import { Settings } from "lucide-react";
-import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
+import { MagnifierCheckerIcon } from "../../../../components/icons.jsx";import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
-import { berkasPublik } from "../../../../lib/asets.js";
 
 /** Repo upstream pemilik desain UI ini (atribusi MIT). */
 export const URL_REPO = "https://delta-polder-indonesia.github.io/BintangToba/";
@@ -80,6 +78,18 @@ function IkonBaru({ className }) {
       <path
         className={className}
         d="M4 3h10a1 1 0 0 1 0 2H5v14h14v-9a1 1 0 0 1 2 0v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm14 0a1 1 0 0 1 1 1v2h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0V8h-2a1 1 0 0 1 0-2h2V4a1 1 0 0 1 1-1z"
+      />
+    </svg>
+  );
+}
+
+/** Ikon "Basis Data" — folder arsip berisi papan catur (monokrom, ikut warna kelas fill). */
+function IkonDatabase({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden="true">
+      <path
+        className={className}
+        d="m2 3.43c0-1.03.4-1.43 1.43-1.43h13.13c1.03 0 1.43.4 1.43 1.43v6.57h-2v-3h-3v-3h-3v3h-3v-3h-3v3h3v1c-.03 0-.07 0-.1 0h-4.9zm8 3.57h3v3h-2.97zm9.9 15h-16.37c-1.03 0-1.5-.4-1.7-1.4l-1.77-9.3c-.13-.8.27-1.3 1.1-1.3h3.87c1.03 0 1.6.37 2 1.3l-.07-.17c.23.57.7.87 1.3.87h7.97c1.03 0 1.5.4 1.63 1.43l.83 6.57c.13.93 1.3.97 1.3-.33v-12.67h2.9c.83 0 1.23.5 1.07 1.3l-2.37 12.3c-.2 1-.67 1.4-1.7 1.4zm0 0"
       />
     </svg>
   );
@@ -127,18 +137,7 @@ export default function Nav() {
     {
       label: t("analisa.nav.play"),
       tampilan: TAMPILAN_ANALISA.BERMAIN,
-      icon: () => (
-        <img
-          src={berkasPublik("/images/color-icon/play-white.svg")}
-          alt=""
-          draggable="false"
-          width={18}
-          height={18}
-          loading="lazy"
-          decoding="async"
-          className="h-[18px] w-[18px] shrink-0"
-        />
-      ),
+      icon: () => <MagnifierCheckerIcon className="h-[18px] w-[18px] shrink-0" />,
       kunci: "play",
     },
     {
@@ -154,7 +153,7 @@ export default function Nav() {
     },
     {
       label: t("analisa.nav.database"),
-      icon: (props) => <Database width={18} height={18} class={props.className} />,
+      icon: (props) => <IkonDatabase className={props.className} />,
       tampilan: TAMPILAN_ANALISA.BASIS_DATA,
       kunci: "database",
     },
