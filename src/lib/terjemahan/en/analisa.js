@@ -665,6 +665,9 @@ export const analisa = {
       engineOleh: "stockfish.js distribution (GPL-3.0) — served from this site's /engines folder.",
       enginePemula: "Beginner opponent engine",
       enginePemulaOleh: "sunfish by Thomas Ahle, JavaScript port by foo123 (GPL-3.0). Served from this site's /engines folder and modified so its evaluation can be weakened for beginner levels; those modifications are likewise GPL-3.0 and available in the project repository.",
+      engineMenengah: "Intermediate opponent engine (Maia 3)",
+      engineMenengahOleh:
+        "Model weights maia3_simplified.onnx from Maia Chess (CSSLab, University of Toronto) — code GPL-3.0, weights under the Maia project's terms. Served from this site's /engines folder; position encoding and policy decoding are implemented in-house at src/lib/maia3.js. Inference uses onnxruntime-web (Microsoft, MIT).",
       kode: "Ported source",
       kodeOleh: "MIT — source: github.com/wdeloo/Brilliant-Chess.",
       desain: "Page layout",

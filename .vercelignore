@@ -8,8 +8,12 @@ node_modules/
 dist/
 .vercel/
 
-# Skrip & uji — tidak dipakai frontend maupun function
-scripts/
+# Skrip & uji — tidak dipakai frontend maupun function,
+# TETAPI `scripts/` tidak boleh diabaikan seluruhnya: npm menjalankan hook
+# `prebuild`/`predev` (`node scripts/salin-ort.mjs`) saat Vercel membangun
+# situs. Yang tidak ikut terunggah membuat build gagal dengan
+# "Cannot find module" hanya di Vercel — lokal dan CI tetap hijau karena
+# checkout-nya lengkap. Dijaga uji:integritas-suite.
 tests/
 playwright.config.js
 playwright-report/

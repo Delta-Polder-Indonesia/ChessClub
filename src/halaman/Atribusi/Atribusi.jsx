@@ -29,6 +29,7 @@ const TEKNOLOGI = [
   { nama: "Tailwind CSS", href: "https://tailwindcss.com/" },
   { nama: "Stockfish", href: "https://stockfishchess.org/" },
   { nama: "chess.js", href: "https://github.com/jhlywa/chess.js" },
+  { nama: "onnxruntime-web", href: "https://onnxruntime.ai/docs/tutorials/web/" },
   { nama: "Arena AI", href: "https://arena.ai/" },
   { nama: "OpenCode", href: "https://opencode.ai/" },
 ];
@@ -167,6 +168,35 @@ export default function Atribusi() {
           </li>
           <li>
             <Tautan href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</Tautan>
+          </li>
+        </>
+      ),
+    },
+    {
+      judul: t("analisa.atribusi.engineMenengah"),
+      ikon: null,
+      isi: (
+        <>
+          <li>
+            <img
+              src={berkasPublik("/images/color-icon/training.svg")}
+              alt=""
+              draggable="false"
+              width={90}
+              height={90}
+              decoding="async"
+              loading="lazy"
+              className="h-14 w-auto"
+            />
+          </li>
+          <li>{t("analisa.atribusi.engineMenengahOleh")}</li>
+          <li>
+            <Tautan href="https://github.com/CSSLab/maia-platform-frontend">CSSLab/maia-platform-frontend</Tautan> ·{" "}
+            <Tautan href="https://maiachess.com/">maiachess.com</Tautan>
+          </li>
+          <li>
+            <Tautan href="https://www.gnu.org/licenses/gpl-3.0.html">GPL-3.0</Tautan> ·{" "}
+            <Tautan href="https://github.com/onnx/onnx">onnxruntime-web (MIT)</Tautan>
           </li>
         </>
       ),

@@ -13,6 +13,17 @@
  * `public/engines/sunfish/sunfish.js`) dan menyediakan langkah cadangan yang
  * divalidasi chess.js. Murni: tanpa React, DOM, atau jaringan — supaya skrip
  * uji Node bisa memakai tabel yang sama persis dengan yang dipakai UI.
+ *
+ * Tangga lawan sekarang TIGA engine, bukan dua:
+ *   sunfish   → pemula total & pemula. Paling ringan (44 KB) dan penilaiannya
+ *               dirusak dari dalam, jadi ia lemah secara meyakinkan.
+ *   Maia 3    → menengah. Model yang justru dilatih untuk meniru MANUSIA
+ *               (policy + WDL, tanpa pencarian), ratingnya bisa dipilih
+ *               1100–1900 — lihat `src/lib/maia3.js` dan `lib/mesinMaia.js`.
+ *   Stockfish → mahir/ahli/master. UCI_Elo-nya sudah pas untuk rentang atas.
+ * Alasannya: Stockfish Skill Level 0 masih ~1320 Elo, jadi "menengah" paling
+ * masuk akal diisi lawan yang memang meniru manusia rating itu — bukan mesin
+ * yang dilemahkan, dan bukan mesin kuat yang disuruh pura-pura bodoh.
  */
 import { Chess } from "chess.js";
 
@@ -47,15 +58,6 @@ export const PROFIL_SUNFISH = {
     materiSaja: false,
     terowongan: 0.35,
   },
-  intermediate: {
-    kedalaman: 3,
-    waktu: 600,
-    qs: 40,
-    qsA: 140,
-    derau: 50,
-    materiSaja: false,
-    terowongan: 0.1,
-  },
 };
 
 /**
@@ -81,12 +83,24 @@ export function perintahProfilSunfish(profil, { benih = 1, petakLawan = null } =
 }
 
 /**
+ * Rating Maia yang bisa dipilih pemain. Maia 3 menerima rating kontinu, jadi
+ * daftar ini hanya penanda yang enak dipilih — rentang 1100–1900 adalah
+ * rentang yang dipakai saat model dilatih (lihat `batasRating` di maia3.js).
+ */
+export const PILIHAN_RATING_MAIA = [1100, 1300, 1500, 1700, 1900];
+
+/** Rating Maia bawaan — tengah rentang latihan model. */
+export const RATING_MAIA_BAKU = 1500;
+
+/**
  * Level lawan di UI Manusia vs Mesin.
  *
- * Level bawah memakai sunfish dengan profil di atas; level atas tetap
- * Stockfish dengan Skill Level seperti sebelumnya (lantai UCI_Elo Stockfish
- * sudah pas untuk rentang rating itu). `keterampilan` hanya berarti untuk
- * Stockfish, `kedalaman` hanya untuk sunfish.
+ * Dua level terbawah memakai sunfish dengan profil di atas; level menengah
+ * memakai Maia 3 (ratingnya dipilih terpisah lewat `PILIHAN_RATING_MAIA`);
+ * level atas tetap Stockfish dengan Skill Level seperti sebelumnya (lantai
+ * UCI_Elo Stockfish sudah pas untuk rentang rating itu). `keterampilan` hanya
+ * berarti untuk Stockfish, `kedalaman` hanya untuk sunfish, dan `rating` hanya
+ * untuk Maia.
  */
 export const PILIHAN_LEVEL_MESIN = [
   {
@@ -106,12 +120,11 @@ export const PILIHAN_LEVEL_MESIN = [
     ringkas: "papan.pveLevelCasualRingkas",
   },
   {
-    id: "intermediate",
-    mesin: "sunfish",
-    waktu: PROFIL_SUNFISH.intermediate.waktu,
-    kedalaman: PROFIL_SUNFISH.intermediate.kedalaman,
-    label: "papan.pveLevelIntermediate",
-    ringkas: "papan.pveLevelIntermediateRingkas",
+    id: "maia",
+    mesin: "maia",
+    rating: RATING_MAIA_BAKU,
+    label: "papan.pveLevelMaia",
+    ringkas: "papan.pveLevelMaiaRingkas",
   },
   {
     id: "advanced",

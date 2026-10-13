@@ -4,7 +4,7 @@
 
 **Sidebar tahap ini berisi tepat empat pilihan:**
 1. **Analisa** — mode papan bebas/Opening Book lama, langsung tampil saat `/papan-interaktif` dibuka; bukan tautan ke Report Analisa (`/program-kami/analisa`).
-2. **Manusia vs Mesin** — permainan melawan Stockfish lokal. Worker single-thread hanya dimulai saat mesin harus bergerak dan dihentikan saat mode/partai selesai.
+2. **Manusia vs Mesin** — permainan melawan mesin lokal dengan tiga tangga: sunfish yang dilemahkan (pemula–menengah), **Maia 3** (menengah–Maia, meniru gaya manusia, rating 1100–1900), lalu Stockfish (lanjut–master). Worker single-thread hanya dimulai saat mesin harus bergerak dan dihentikan saat mode/partai selesai. Rincian Maia ada di `docs/MAIA3.md`.
 3. **Latihan Repertoar** — tambahkan jalur pembukaan, latih langkah sisi pilihan, nilai tingkat kesulitan untuk jadwal pengulangan, dan simpan progres lokal di IndexedDB.
 4. **Hand & Brain** — varian lokal dua pemain di satu perangkat: tiap giliran sistem mengundi satu jenis bidak dari bidak yang punya langkah legal, dan pemain hanya boleh memindahkan bidak jenis itu. Aturan murni ada di `modus/handBrainLogika.js` (uji: `npm run uji:hand-brain`). Papan memakai `PapanTekaTeki`; klik bidak sendiri masuk lewat `onSelesaiSeret` karena papan menangkap pointer saat seret.
 5. **Turing test** — pemain menempel PGN partai manusia; tiap soal menampilkan dua langkah, satu dari partai manusia dan satu dari Stockfish (`EngineCatur.cari`, kedalaman 10) pada posisi yang sama. Pemain menebak langkah mana yang manusia. Logika murni di `modus/turingLogika.js` (uji: `npm run uji:turing`). Sumber partai: PGN tempel, atau impor akun Lichess lewat `modus/turingLichess.js` (endpoint dan parameter mengikuti `muatPartaiLichessInti`; uji: `npm run uji:turing`). Impor Lichess hanya bisa dicoba dari browser yang punya internet; e2e memakai `page.route`. Papan hanya untuk ditonton (`terkunci`).
@@ -20,4 +20,4 @@ Buku Pembukaan juga dapat dibuka melalui tombol **Jelajah Buku Pembukaan** di La
 
 **Jika pengguna meminta pemulihan:** [PR #146](https://github.com/Delta-Polder-Indonesia/ChessClub/pull/146) pada `arena/01a0d842-chessclub` adalah snapshot sebelum Papan Interaktif dimodifikasi. Riset/ambil snapshot itu sebagai acuan untuk mengembalikan **seluruh area Papan Interaktif** ke perilaku lama, bukan untuk menimpa fitur lain atau melakukan rollback otomatis. Lihat langkah dan batas persetujuan di skill lengkap.
 
-**Uji:** `npm run uji:repertoar`, `npm run uji:i18n`, `npm run uji:rute`, dan `npm run build`; lihat skill lengkap untuk uji regresi papan/engine.
+**Uji:** `npm run uji:repertoar`, `npm run uji:i18n`, `npm run uji:rute`, `npm run uji:maia`, `npm run uji:sunfish`, `npm run uji:evaluasi-manusia-vs-mesin`, dan `npm run build`; lihat skill lengkap untuk uji regresi papan/engine.
