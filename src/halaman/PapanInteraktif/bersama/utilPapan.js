@@ -3,7 +3,7 @@
  * langkah/FEN/PGN, dan format angka. Tanpa React, mudah diuji terpisah.
  */
 import { Chess } from "chess.js";
-import { standarkanNamaPembukaan } from "../../lib/namaPembukaan.js";
+import { standarkanNamaPembukaan } from "../../../lib/namaPembukaan.js";
 import { FEN_AWAL } from "./konstanta.js";
 
 /**

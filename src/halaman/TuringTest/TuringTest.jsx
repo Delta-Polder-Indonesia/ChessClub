@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Chess } from "chess.js";
-import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
-import { BarisProfil } from "./ManusiaVsMesin.jsx";
-import { EngineCatur } from "../../../lib/engineCatur.js";
-import { useI18n } from "../../../lib/i18n.jsx";
-import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
+import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
+import { EngineCatur } from "../../lib/engineCatur.js";
+import { useI18n } from "../../lib/i18n.jsx";
+import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
+import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import { GALAT_IMPOR, GalatImporLichess, ambilPgnLichess } from "./turingLichess.js";
 import {
   JUMLAH_SOAL,
@@ -44,7 +45,8 @@ function fenSetelahManusia(fen, uci) {
 export default function TuringTest({ pengaturan = null }) {
   const { t } = useI18n();
   const pengaturanLokal = usePengaturanPapan();
-  const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const pengaturanBersama = usePengaturanBersama();
+  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [teks, setTeks] = useState("");
   const [namaLichess, setNamaLichess] = useState("");

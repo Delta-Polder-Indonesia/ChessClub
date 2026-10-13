@@ -7,7 +7,7 @@ import {
   MAKS_PARTAI_IMPOR,
   ambilPgnLichess,
   urlPartaiLichess,
-} from "../src/halaman/PapanInteraktif/modus/turingLichess.js";
+} from "../src/halaman/TuringTest/turingLichess.js";
 
 let lulus = 0;
 async function periksa(nama, fungsi) {

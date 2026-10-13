@@ -145,8 +145,18 @@ const TekaTekiRush = lazy(() => import("./halaman/TekaTekiRush/TekaTekiRush.jsx"
 // Kuis Catur — pilihan ganda trivia, soal di halaman/QuizCatur/daftar.js.
 const QuizCatur = lazy(() => import("./halaman/QuizCatur/QuizCatur.jsx"));
 
-// Workspace Papan Interaktif: menu mode lazy, termasuk PvE, latihan repertoar, dan Buku Pembukaan.
-const PapanInteraktif = lazy(() => import("./halaman/PapanInteraktif/Workspace.jsx"));
+// Papan Interaktif: satu tata letak + satu halaman per mode. Tiap mode punya
+// rumah foldernya sendiri — ManusiaVsMesin, LatihanRepertoar, HandBrain,
+// TuringTest — sehingga bisa ditingkatkan tanpa menyentuh mode lain.
+const TataLetakPapan = lazy(() => import("./halaman/PapanInteraktif/Workspace.jsx"));
+const HalamanPapanBuku = lazy(() =>
+  import("./halaman/PapanInteraktif/Workspace.jsx").then((m) => ({ default: m.HalamanPapanBuku }))
+);
+const ManusiaVsMesin = lazy(() => import("./halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"));
+const LatihanRepertoar = lazy(() => import("./halaman/LatihanRepertoar/LatihanRepertoar.jsx"));
+const HandBrain = lazy(() => import("./halaman/HandBrain/HandBrain.jsx"));
+const TuringTest = lazy(() => import("./halaman/TuringTest/TuringTest.jsx"));
+const LayarPengaturan = lazy(() => import("./halaman/PapanInteraktif/LayarPengaturan.jsx"));
 
 // Analisis partai (port Brilliant-Chess) — engine memakai EngineCatur lokal.
 // /program-kami/analisa menampilkan halaman penjelasan; papan analisa
@@ -219,7 +229,6 @@ const RUTE_HALAMAN = [
   ["/teka-teki/:id", AlihTekaTekiLama],
   ["/teka-teki-rush", TekaTekiRush],
   ["/quiz-catur", QuizCatur],
-  ["/papan-interaktif", PapanInteraktif],
 
   ["/turnamen", Turnamen],
   ["/turnamen/turnamen-bulanan", TurnamenBulanan],
@@ -249,6 +258,19 @@ const RUTE_HALAMAN = [
   ["/hubungi-kami", HubungiKami],
   ["/hubungi-kami/:tab", HubungiKami],
   ["/karir", Karir],
+];
+
+/** Rute Papan Interaktif: satu halaman per mode di bawah satu tata letak.
+ *  Ditulis sebagai pasangan [jalur, Komponen] seperti tabel di atas supaya
+ *  pemindai rute (scripts/uji-rute.mjs) tetap menemukannya sebagai rute
+ *  absolut — dirender bersarang di bawah <TataLetakPapan /> pada <Routes>. */
+const RUTE_PAPAN = [
+  ["/papan-interaktif", HalamanPapanBuku],
+  ["/papan-interaktif/manusia-vs-mesin", ManusiaVsMesin],
+  ["/papan-interaktif/latihan-repertoar", LatihanRepertoar],
+  ["/papan-interaktif/hand-brain", HandBrain],
+  ["/papan-interaktif/turing-test", TuringTest],
+  ["/papan-interaktif/pengaturan", LayarPengaturan],
 ];
 
 /**
@@ -346,6 +368,15 @@ export default function App() {
           {RUTE_HALAMAN.map(([jalur, Komponen]) => (
             <Route key={jalur} path={jalur} element={<Komponen />} />
           ))}
+
+          {/* Halaman papan: rute absolut bersarang di bawah tata letak
+              tanpa-jalur — sidebar + pengaturan bersama tetap terpasang
+              saat berpindah antar mode. */}
+          <Route element={<TataLetakPapan />}>
+            {RUTE_PAPAN.map(([jalur, Komponen]) => (
+              <Route key={jalur} path={jalur} element={<Komponen />} />
+            ))}
+          </Route>
 
           {[...RUTE_REDIRECT].map(([dari, ke]) => (
             <Route

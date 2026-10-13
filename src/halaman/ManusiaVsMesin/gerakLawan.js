@@ -20,7 +20,7 @@
  * Latihan Repertoar memakai papan yang sama tetapi tidak memanggil modul ini.
  */
 import { Chess } from "chess.js";
-import { kurangiGerak } from "../../TekaTeki/animasiBidak.js";
+import { kurangiGerak } from "../TekaTeki/animasiBidak.js";
 
 /**
  * Tetapan waktu dan peluang gestur — satu tempat supaya mudah disetel dan

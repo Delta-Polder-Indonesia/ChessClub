@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDialog } from "./gunakanDialog.js";
+import { useDialog } from "./bersama/gunakanDialog.js";
 
 /** Dialog Review: tempel PGN atau FEN lalu muat ke papan. */
 export default function MasukanPgn({ onTerapkan, onTutup, t }) {

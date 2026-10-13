@@ -7,9 +7,9 @@ sudah diuji di sandbox, apa yang harus diuji di laptop, dan perintahnya.
 
 | Fitur | Berkas utama | Status di sandbox |
 |---|---|---|
-| Hand & Brain | `src/halaman/PapanInteraktif/modus/HandBrain.jsx`, `handBrainLogika.js` | Lulus (unit 18/18, e2e 4/4) |
-| Turing test (tempel PGN) | `modus/TuringTest.jsx`, `modus/turingLogika.js` | Lulus (unit 12/12, e2e 2/2) |
-| Turing test: impor Lichess | `modus/turingLichess.js` | Unit 10/10 dan e2e (dengan `page.route`) lulus. **Belum diuji ke Lichess asli.** |
+| Hand & Brain | `src/halaman/HandBrain/HandBrain.jsx`, `handBrainLogika.js` | Lulus (unit 18/18, e2e 4/4) |
+| Turing test (tempel PGN) | `TuringTest/TuringTest.jsx`, `TuringTest/turingLogika.js` | Lulus (unit 12/12, e2e 2/2) |
+| Turing test: impor Lichess | `TuringTest/turingLichess.js` | Unit 10/10 dan e2e (dengan `page.route`) lulus. **Belum diuji ke Lichess asli.** |
 | Rating insights (kartu Ringkasan) | `mesin/wawasanRating.js`, `summary/wawasanRating.jsx` | Unit 10/10, e2e 1/1 lulus. **Belum dilihat dengan mata.** |
 
 ## 2. Yang WAJIB diuji di laptop

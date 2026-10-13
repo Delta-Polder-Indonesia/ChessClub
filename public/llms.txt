@@ -17,6 +17,10 @@ Kontak: info@komunitascatur.or.id · Klub Chess.com:
 - [Program Kami](%%SITE_URL%%program-kami): kelas pelatihan, teka-teki, buku pembukaan, dan e-book panduan.
 - [Teka-Teki](%%SITE_URL%%teka-teki): bank soal skakmat interaktif dengan papan yang bisa digerakkan.
 - [Papan Interaktif](%%SITE_URL%%papan-interaktif): papan bebas, explorer buku pembukaan, dan analisis engine Stockfish (WebAssembly).
+- [Manusia vs Mesin](%%SITE_URL%%papan-interaktif/manusia-vs-mesin): bermain melawan mesin Sunfish, Maia, atau Stockfish.
+- [Latihan Repertoar](%%SITE_URL%%papan-interaktif/latihan-repertoar): hafalkan jalur pembukaan dengan pengulangan terjadwal.
+- [Hand & Brain](%%SITE_URL%%papan-interaktif/hand-brain): varian dua pemain, otak memilih bidak dan tangan melangkah.
+- [Turing Test](%%SITE_URL%%papan-interaktif/turing-test): tebak langkah manusia vs langkah mesin.
 - [E-Book & Panduan](%%SITE_URL%%program-kami/ebook-panduan): arsip PDF panduan catur yang bisa dibaca atau diunduh.
 
 ## Turnamen & peringkat

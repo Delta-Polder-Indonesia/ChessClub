@@ -402,7 +402,7 @@ await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1"
 /*
  * Mode Manusia vs Mesin memakai papan yang sama, tetapi alurnya sendiri:
  * langkah pemain lewat klik ATAU seret, dan langkah mesin dijalankan sebagai
- * "klik lawan" (src/halaman/PapanInteraktif/modus/gerakLawan.js) sebelum FEN
+ * "klik lawan" (src/halaman/ManusiaVsMesin/gerakLawan.js) sebelum FEN
  * berganti. Uji ini memasang mesin UCI palsu lalu memeriksa bidak benar-benar
  * meluncur di mode itu — termasuk aturan bahwa bidak yang DISERET pemain tidak
  * diluncurkan ulang, sementara balasan mesin tetap meluncur.
@@ -414,9 +414,9 @@ const MASUK_PVE = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
-import ManusiaVsMesin from "./src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx";
+import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
 
-export { GESTUR } from "./src/halaman/PapanInteraktif/modus/gerakLawan.js";
+export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
 
 export function mountPve(el) {
   return createRoot(el).render(

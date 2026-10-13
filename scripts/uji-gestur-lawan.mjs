@@ -6,7 +6,7 @@
  * mesin mengklik bidaknya (bidak bergoyang), diam 2-4 detik, dan pada posisi
  * yang dinilai sulit kadang melirik satu-dua bidak lain seperti bimbang.
  *
- * Yang dikunci uji ini (kontrak `src/halaman/PapanInteraktif/modus/gerakLawan.js`):
+ * Yang dikunci uji ini (kontrak `src/halaman/ManusiaVsMesin/gerakLawan.js`):
  *   1. `posisiSulit` hanya benar bila skor masih tipis DAN pilihan banyak;
  *      skakmat paksa serta info kosong tidak pernah sulit;
  *   2. `petakRagu` hanya mengembalikan petak bidak milik pihak yang melangkah
@@ -70,7 +70,7 @@ globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEv
 dom.window.matchMedia = globalThis.matchMedia;
 
 const { GESTUR, acakRentang, gesturLawan, goyangBidak, klikLawan, petakRagu, posisiSulit } =
-  await import("../src/halaman/PapanInteraktif/modus/gerakLawan.js");
+  await import("../src/halaman/ManusiaVsMesin/gerakLawan.js");
 
 const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 // Setelah 1.e4 e5 2.Nf3 — hitam melangkah, 29 langkah sah.
@@ -313,7 +313,7 @@ console.log("\n6. pemakaian terbatas");
   );
 
   const sumber = readFileSync(
-    path.join(ROOT, "src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx"),
+    path.join(ROOT, "src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"),
     "utf8"
   );
   uji("langkah yang dijalankan tetap hasil engine", sumber.includes("mainkanLangkah(from, to, promosi)"));

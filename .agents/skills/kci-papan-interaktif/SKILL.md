@@ -1,13 +1,13 @@
 ---
 name: kci-papan-interaktif
-description: Panduan halaman Papan Interaktif (/papan-interaktif) di src/halaman/PapanInteraktif/ sebagai workspace papan catur modular - Workspace.jsx dan sidebar empat pilihan (Analisa, Manusia vs Mesin, Latihan Repertoar, Pengaturan), modus/ManusiaVsMesin.jsx, modus/LatihanRepertoar.jsx beserta repertoarLogika.js dan repertoarStorage.js, Buku Pembukaan lama (PapanInteraktif.jsx, utilPapan.js), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
+description: Panduan halaman Papan Interaktif (/papan-interaktif/*) - Workspace.jsx sebagai tata letak rute dengan sidebar enam tautan (papan buku, Manusia vs Mesin, Latihan Repertoar, Hand & Brain, Turing test, Pengaturan), tiap mode di rumah foldernya sendiri (ManusiaVsMesin, LatihanRepertoar, HandBrain, TuringTest), komponen bersama di PapanInteraktif/bersama/, Buku Pembukaan (PapanInteraktif.jsx), worker Stockfish on-demand, dan penyimpanan latihan di IndexedDB. Batasnya adalah tidak menduplikasi Analisa/Teka-teki/Teka-teki Rush; En Croissant hanya referensi konsep. Use when editing /papan-interaktif/*, board practice modes, opening book explorer, or running npm run uji:repertoar and npm run uji:bantuan-langkah.
 metadata:
   project: chessclub-kci
   area: frontend
   halaman: papan-interaktif
 ---
 
-# Papan Interaktif — Workspace Modular
+# Papan Interaktif — Satu Tata Letak, Satu Halaman per Mode
 
 Ikuti protokol kerja di `AGENTS.md`: pikir dulu, diff terkecil, verifikasi, tanpa emoji.
 
@@ -17,7 +17,7 @@ Jalur berkas di dokumen ini relatif terhadap **akar repo**.
 
 `src/halaman/Analisa/komponen/` adalah satu pintu komponen visual untuk seluruh bagian catur, bukan hanya halaman Report Analisa. Sebelum membuat papan, bidak, jam, evaluasi, identitas pemain, indikator hasil, tombol langkah, atau SVG baru, cari implementasi di sana dan gunakan/perluas komponen tersebut.
 
-Folder `src/halaman/PapanInteraktif/` menyimpan workspace, pemilihan mode, state, dan logika yang khusus Papan Interaktif. Folder ini tidak menjadi design system catur kedua. Teka-teki, Quiz, dan Rush mengikuti batas yang sama: alur boleh khusus, komponen visual catur reusable tetap tinggal di `Analisa/komponen/`.
+Folder `src/halaman/PapanInteraktif/` menyimpan tata letak rute, halaman papan buku, halaman pengaturan, dan `bersama/` (komponen/state yang dipakai lintas mode). Tiap mode latihan punya rumah foldernya sendiri (`ManusiaVsMesin/`, `LatihanRepertoar/`, `HandBrain/`, `TuringTest/`) dan dilarang mengimpor dari rumah mode lain atau dari `Analisa/` — kebutuhan bersama diambil dari `PapanInteraktif/bersama/` (termasuk `bersama/ikon/`). Folder ini tidak menjadi design system catur kedua. Teka-teki, Quiz, dan Rush mengikuti batas yang sama: alur boleh khusus, komponen visual catur reusable tetap tinggal di `Analisa/komponen/`.
 
 Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya memakai bentuk halaman artikel.
 
@@ -25,23 +25,25 @@ Jangan memindahkan komponen catur ke `src/components/konten/` atau memaksanya me
 
 | Kebutuhan | Berkas |
 | --- | --- |
-| Shell rute dan sidebar empat pilihan | `src/halaman/PapanInteraktif/Workspace.jsx` |
-| Pengaturan papan & engine (state hidup di Workspace) | `src/halaman/PapanInteraktif/LayarPengaturan.jsx`, `gunakanPengaturanPapan.js` |
-| Mode yang ada | `src/halaman/PapanInteraktif/modus/{ManusiaVsMesin,LatihanRepertoar}.jsx` |
-| Logika dan penyimpanan repertoar | `src/halaman/PapanInteraktif/modus/repertoarLogika.js`, `repertoarStorage.js` |
-| Buku pembukaan (mode lama) | `src/halaman/PapanInteraktif/PapanInteraktif.jsx` |
-| Utilitas papan dan riwayat | `src/halaman/PapanInteraktif/utilPapan.js` |
+| Tata letak rute dan sidebar enam tautan | `src/halaman/PapanInteraktif/Workspace.jsx` (`TataLetakPapan` + `<Outlet/>`) |
+| Pengaturan papan & engine (konteks bersama di tata letak) | `src/halaman/PapanInteraktif/LayarPengaturan.jsx`, `bersama/gunakanPengaturanPapan.js`, `bersama/PengaturanKonteks.jsx` |
+| Mode yang ada (tiap mode satu rute + satu folder) | `src/halaman/{ManusiaVsMesin,LatihanRepertoar,HandBrain,TuringTest}/*.jsx` |
+| Logika dan penyimpanan repertoar | `src/halaman/LatihanRepertoar/{repertoarLogika,repertoarStorage}.js` |
+| Buku pembukaan (halaman `/papan-interaktif`) | `src/halaman/PapanInteraktif/PapanInteraktif.jsx` |
+| Utilitas papan/riwayat + komponen bersama | `src/halaman/PapanInteraktif/bersama/` (`utilPapan.js`, `BarisProfil.jsx`, tombol langkah, `BilahEvaluasi`, `TangkapanBidak`, `konstanta.js`, `ikon/`) |
 | Ringkasan halaman | `src/halaman/PapanInteraktif/SKILL.md` |
 
 ## Arah produk
 
-`/papan-interaktif` berkembang bertahap menjadi workspace papan catur modular. Untuk tahap ini, sidebar kiri dibatasi **tepat empat pilihan**:
-1. **Analisa** — mode papan bebas/Opening Book lama; tampil langsung saat halaman dibuka, bukan pintasan ke Report Analisa.
-2. **Manusia vs Mesin** — mode bermain baru yang terpisah; gunakan engine lokal situs secara on-demand.
-3. **Latihan Repertoar** — latihan mengingat jalur pembukaan dengan pengulangan terjadwal, bukan bank soal taktik kedua.
-4. **Pengaturan** — layar pengaturan papan (set bidak, warna papan, suara, panah engine, bantuan langkah, tampilan basis data awan, komentator) dan engine analisa (mesin, kedalaman, threads, hash, MultiPV, skill level). Nilainya terhubung langsung ke Papan Interaktif dan tetap ada saat berpindah tab.
+`/papan-interaktif/*` adalah area papan catur modular: satu tata letak dengan sidebar enam tautan, tiap mode adalah rute sendiri:
+1. **Analisa** (`/papan-interaktif`) — papan bebas/Opening Book; tampil langsung saat halaman dibuka, bukan pintasan ke Report Analisa.
+2. **Manusia vs Mesin** (`/papan-interaktif/manusia-vs-mesin`) — mode bermain yang terpisah; gunakan engine lokal situs secara on-demand.
+3. **Latihan Repertoar** (`/papan-interaktif/latihan-repertoar`) — latihan mengingat jalur pembukaan dengan pengulangan terjadwal, bukan bank soal taktik kedua.
+4. **Hand & Brain** (`/papan-interaktif/hand-brain`) — varian lokal dua pemain di satu perangkat.
+5. **Turing test** (`/papan-interaktif/turing-test`) — tebak langkah manusia vs langkah mesin.
+6. **Pengaturan** (`/papan-interaktif/pengaturan`) — layar pengaturan papan (set bidak, warna papan, suara, panah engine, bantuan langkah, tampilan basis data awan, komentator) dan engine analisa (mesin, kedalaman, threads, hash, MultiPV, skill level). Nilainya terhubung langsung ke Papan Interaktif dan tetap ada saat berpindah halaman mode.
 
-Jangan menambahkan item sidebar kelima tanpa permintaan terpisah. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
+Jangan menambahkan item sidebar ketujuh tanpa permintaan terpisah. Buku Pembukaan yang sudah ada tetap dipertahankan di mode Analisa, bukan item sidebar tersendiri. Tab `Analisa | Buku | Penjelajah | Partai` adalah tab detail panel kanan papan, bukan pilihan sidebar atau Report Analisa.
 
 Sebelum membangun tiap mode baru, bandingkan dengan halaman Report Analisa, Teka-teki, Teka-teki Rush, Database PGN, dan fitur yang sudah ada. Gunakan kembali bagian yang relevan tanpa menautkan sidebar Papan Interaktif ke fitur lain atau membuat salinannya. Daftar menu ini membatasi pilihan navigasi, bukan izin untuk mengimplementasikan semua perilaku mode sekaligus.
 
@@ -66,12 +68,12 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 ## Arsitektur
 
-- `Workspace.jsx` adalah shell rute: sidebar kiri dan satu mode aktif. `src/App.jsx` memuat shell ini secara lazy.
-- **State pengaturan hidup di `Workspace.jsx`** lewat `usePengaturanPapan()` (`gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah tab. Nilainya diteruskan sebagai prop `pengaturan` ke `PapanInteraktif.jsx` dan `LayarPengaturan.jsx` (`{ nilai, ubah }`). Jangan kembali menyimpan pengaturan ini sebagai state lokal di tab.
+- `Workspace.jsx` adalah tata letak rute: sidebar kiri (tautan `NavLink`) + `<Outlet/>`. `src/App.jsx` memuat tata letak dan tiap halaman mode secara lazy; daftar rutenya ada di `RUTE_PAPAN` (format pasangan `[jalur, Komponen]` agar terbaca `scripts/uji-rute.mjs`).
+- **State pengaturan disediakan tata letak** lewat `PenyediaPengaturanPapan` (`bersama/PengaturanKonteks.jsx`, memakai `usePengaturanPapan()` dari `bersama/gunakanPengaturanPapan.js`), sehingga tidak hilang saat berpindah halaman mode. Tiap halaman membacanya lewat `usePengaturanBersama()` (prop `pengaturan`/`{ nilai, ubah }` tetap didukung sebagai override). Jangan kembali menyimpan pengaturan ini sebagai state lokal di halaman mode.
 - Pengaturan engine diteruskan ke `useEngineCatur(fen, opsi)` (`src/lib/gunakanEngineCatur.js`): `url`, `hash`, `threads`, `skill` membuat ulang worker; `kedalaman` dan `multiPv` dipakai per analisis. Suara dan komentator tetap tersimpan di localStorage (`useSuara()`, `usePreferensiKomentator()`).
 - `Analisa` memilih papan Opening Book di area kerja; Report Analisa (`/program-kami/analisa`) tetap terpisah di menu Program Kami.
-- `modus/ManusiaVsMesin.jsx` dan `modus/LatihanRepertoar.jsx` dipisahkan sebagai chunk lazy. Jangan render atau memuat worker mode lain saat pengguna berpindah.
-- `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; muat saat masuk ke halaman sebagai mode bawaan atau saat pengguna memilih **Jelajah Buku Pembukaan** dari Latihan Repertoar. Jangan pasang teks pengantar atau bilah kembali di atas papan.
+- Tiap mode adalah chunk lazy sendiri (`ManusiaVsMesin/`, `LatihanRepertoar/`, `HandBrain/`, `TuringTest/`). Jangan render atau memuat worker mode lain saat pengguna berpindah halaman.
+- `PapanInteraktif.jsx` mempertahankan pengalaman Buku Pembukaan yang ada; ia adalah isi rute `/papan-interaktif` (dibungkus `HalamanPapanBuku`) dan tujuan tautan **Jelajah Buku Pembukaan** dari Latihan Repertoar. Jangan pasang teks pengantar atau bilah kembali di atas papan.
 - Panel kanan `analisa | books | explorer | games` tetap menjadi tab detail di tampilan Buku Pembukaan, bukan navigasi global.
 - State khusus tiap mode tetap terisolasi. Buat util bersama hanya bila benar-benar dipakai lebih dari satu mode dan kontraknya teruji.
 - Pertahankan papan React custom dan set bidak proyek sebagai pilihan awal. En Croissant boleh menjadi acuan interaksi, tetapi bukan alasan otomatis untuk mengganti papan ke Chessground atau menyalin board desktop.
@@ -100,7 +102,7 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 - Panel kanan: `analisa | books | explorer | games` (label ID/EN melalui `papan.*`).
 - `books`: daftar jalur/saran pembukaan; `explorer`: artikel pembukaan; `games`: statistik/kelanjutan buku atau basis data awan; `analisa`: panel posisi pembukaan yang sudah ada.
-- Sidebar kiri berisi tepat empat mode internal: Analisa (papan Opening Book lama, langsung tampil), Manusia vs Mesin, Latihan Repertoar, dan Pengaturan. Tombol Jelajah Buku Pembukaan di Repertoar kembali ke mode Analisa; tidak menambah item sidebar kelima atau tautan ke fitur lain.
+- Sidebar kiri berisi enam tautan rute: Analisa (papan Opening Book, langsung tampil), Manusia vs Mesin, Latihan Repertoar, Hand & Brain, Turing test, dan Pengaturan. Tautan Jelajah Buku Pembukaan di Repertoar kembali ke halaman Analisa; tidak menambah item sidebar ketujuh atau tautan ke fitur lain.
 - Pada laptop, papan dan panel tampil dalam satu layar tanpa scrollbar halaman/papan. Konten panjang pada tab panel kanan boleh digulir di dalam panel agar fiturnya tetap terjangkau.
 - Manusia vs Mesin mendukung pilihan warna, tingkat waktu Stockfish, partai baru, papan interaktif, dan riwayat langkah. Tidak menampilkan panah best-move saat pemain sedang bermain.
 - Latihan Repertoar mencari jalur dari buku CC0, membangun kartu hanya untuk warna yang dipilih, menilai lagi/sulit/baik/mudah, dan menyimpan jadwal lokal ke IndexedDB (dengan fallback browser).

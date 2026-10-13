@@ -33,11 +33,11 @@ import {
   saranAwanKomentator,
   skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
-import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./konstanta.js";
-import TombolKeAwal from "./TombolKeAwal.jsx";
-import TombolMundur from "./TombolMundur.jsx";
-import TombolMaju from "./TombolMaju.jsx";
-import TombolKeAkhir from "./TombolKeAkhir.jsx";
+import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./bersama/konstanta.js";
+import TombolKeAwal from "./bersama/TombolKeAwal.jsx";
+import TombolMundur from "./bersama/TombolMundur.jsx";
+import TombolMaju from "./bersama/TombolMaju.jsx";
+import TombolKeAkhir from "./bersama/TombolKeAkhir.jsx";
 import {
   ekstrakFenDariPgn,
   fenDanSanDariKoordinat,
@@ -51,19 +51,20 @@ import {
   statTurunan,
   susunKatalog,
   susunPgnDenganFen,
-} from "./utilPapan.js";
-import IkonTab from "./IkonTab.jsx";
+} from "./bersama/utilPapan.js";
+import IkonTab from "./bersama/IkonTab.jsx";
 import BukuPembukaan from "./BukuPembukaan.jsx";
 import KartuArtikelPembukaan from "./KartuArtikelPembukaan.jsx";
 import DaftarRiwayat from "./DaftarRiwayat.jsx";
-import BilahEvaluasi from "./BilahEvaluasi.jsx";
-import TangkapanBidak from "./TangkapanBidak.jsx";
-import { susunTangkapan } from "./TangkapanBidakData.js";
+import BilahEvaluasi from "./bersama/BilahEvaluasi.jsx";
+import TangkapanBidak from "./bersama/TangkapanBidak.jsx";
+import { susunTangkapan } from "./bersama/TangkapanBidakData.js";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
 import PanelBasisDataAwan from "./PanelBasisDataAwan.jsx";
 import PopupPengaturan from "./PopupPengaturan.jsx";
-import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
+import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
 
 /* ------------------------------------------------- analisis Stockfish */
@@ -82,10 +83,13 @@ function Kerangka() {
 
 export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null, pengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
-  // Pengaturan dari Workspace (hidup lintas tab). Bila tidak diberikan,
-  // pakai state lokal agar komponen tetap berdiri sendiri.
+  // Pengaturan dari tata letak /papan-interaktif/* (konteks bersama, hidup
+  // lintas halaman). Bila tidak ada, pakai state lokal agar komponen tetap
+  // berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
-  const { nilai: pp, ubah: ubahPengaturan } = pengaturan ?? pengaturanLokal;
+  const pengaturanBersama = usePengaturanBersama();
+  const { nilai: pp, ubah: ubahPengaturan } =
+    pengaturan ?? pengaturanBersama ?? pengaturanLokal;
   const setBidakPapan = useCallback((v) => ubahPengaturan("bidak", v), [ubahPengaturan]);
   const setWarnaPapan = useCallback((v) => ubahPengaturan("warnaPapan", v), [ubahPengaturan]);
   const setAwanTampilanPenuh = useCallback((v) => ubahPengaturan("awanTampilanPenuh", v), [ubahPengaturan]);
@@ -117,7 +121,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
   const [tanda, setTanda] = useState({ panah: [], petak: {} });
-  // Set bidak & warna papan kini dari Pengaturan (Workspace).
+  // Set bidak & warna papan kini dari Pengaturan (konteks bersama tata letak).
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
@@ -164,7 +168,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const batalArtikelRef = useRef(null);
 
   // Analisis Stockfish (opsional, dimuat saat pertama dinyalakan). Pengaturan
-  // Engine (Workspace) diteruskan ke sini: mesin, hash, threads, depth, MultiPV, skill.
+  // Pengaturan engine (konteks bersama tata letak) diteruskan ke sini: mesin, hash, threads, depth, MultiPV, skill.
   const opsiEngine = useMemo(
     () => ({
       url: cariEngine(pp.mesin).url,

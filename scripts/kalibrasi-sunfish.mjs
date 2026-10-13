@@ -2,7 +2,7 @@
  * Kalibrasi kekuatan profil sunfish (mode Manusia vs Mesin).
  *
  * Bukan uji penjaga — skrip riset yang dijalankan manual saat knob di
- * `src/halaman/PapanInteraktif/modus/mesinLemah.js` disetel. Tiap profil
+ * `src/halaman/ManusiaVsMesin/mesinLemah.js` disetel. Tiap profil
  * diadu dengan dua jangkar:
  *
  *   bawah : pemain acak murni (semua langkah sah berpeluang sama)
@@ -23,7 +23,7 @@
 import { Chess } from "chess.js";
 import { muatSunfish } from "./sunfish-node.mjs";
 import { DAFTAR_ENGINE_NODE, UciEngine } from "./engine-uci-node.mjs";
-import { PROFIL_SUNFISH, perintahProfilSunfish, langkahMesinSah } from "../src/halaman/PapanInteraktif/modus/mesinLemah.js";
+import { PROFIL_SUNFISH, perintahProfilSunfish, langkahMesinSah } from "../src/halaman/ManusiaVsMesin/mesinLemah.js";
 
 const argumen = new Map(
   process.argv.slice(2).map((a) => {

@@ -76,6 +76,31 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%papan-interaktif/manusia-vs-mesin</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%papan-interaktif/latihan-repertoar</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%papan-interaktif/hand-brain</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%papan-interaktif/turing-test</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
+    <loc>%%SITE_URL%%papan-interaktif/pengaturan</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>weekly</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%turnamen</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>

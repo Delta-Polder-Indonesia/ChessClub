@@ -3,7 +3,8 @@ import { DAFTAR_ENGINE } from "../../lib/engineCatur.js";
 import { gambar } from "../../lib/asets.js";
 import { usePreferensiKomentator } from "../../components/usePreferensiKomentator.js";
 import { IsiPengaturanPapan } from "./PopupPengaturan.jsx";
-import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
+import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
+import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { useSuara } from "../../lib/suara.js";
 import PanelLayar from "../Analisa/komponen/nav/PanelLayar.jsx";
 import SelectDaftar from "../Analisa/komponen/nav/SelectDaftar.jsx";
@@ -15,7 +16,7 @@ import "../Analisa/analisa.css";
  * layar Deteksi Engine: PanelLayar + dua kotak berdampingan; kiri pengaturan
  * engine (SelectDaftar bergaya deteksi), kanan pengaturan papan (IsiPengaturan
  * dibagikan dengan PopupPengaturan). Menggantikan popup: tombol gear di
- * samping papan langsung membuka layar ini lewat onBukaPengaturan Workspace.
+ * samping papan langsung membuka halaman ini lewat onBukaPengaturan.
  */
 
 /**
@@ -46,11 +47,13 @@ export default function LayarPengaturan({ pengaturan = null }) {
   // Suara papan: sakelarnya tersimpan di localStorage (dibagi dengan papan).
   const { nyala: suaraNyala, setNyala: setSuaraNyala } = useSuara();
 
-  // Pengaturan dari Workspace (hidup lintas tab). Tanpa prop → state lokal.
+  // Pengaturan dari tata letak /papan-interaktif/* (konteks bersama, hidup
+  // lintas halaman). Tanpa itu → state lokal.
   const pengaturanLokal = usePengaturanPapan();
-  const { nilai: pp, ubah } = pengaturan ?? pengaturanLokal;
+  const pengaturanBersama = usePengaturanBersama();
+  const { nilai: pp, ubah } = pengaturan ?? pengaturanBersama ?? pengaturanLokal;
 
-  // Pengaturan papan — langsung terhubung ke Papan Interaktif lewat Workspace.
+  // Pengaturan papan — langsung terhubung ke Papan Interaktif lewat konteks bersama.
   const bidak = pp.bidak;
   const setBidak = (v) => ubah("bidak", v);
   const tampilPanahMesin = pp.tampilPanahMesin;

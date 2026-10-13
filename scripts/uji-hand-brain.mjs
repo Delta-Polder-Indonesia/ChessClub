@@ -17,7 +17,7 @@ import {
   papanDariLangkah,
   statusPartai,
   undiJenis,
-} from "../src/halaman/PapanInteraktif/modus/handBrainLogika.js";
+} from "../src/halaman/HandBrain/handBrainLogika.js";
 
 let lulus = 0;
 function uji(nama, fn) {

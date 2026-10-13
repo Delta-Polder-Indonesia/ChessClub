@@ -13,7 +13,7 @@ import {
   sanDariUci,
   skorAwal,
   susunSoal,
-} from "../src/halaman/PapanInteraktif/modus/turingLogika.js";
+} from "../src/halaman/TuringTest/turingLogika.js";
 
 // mulberry32: PRNG deterministik untuk uji (bukan LCG naif yang macet).
 function mulberry32(benih) {

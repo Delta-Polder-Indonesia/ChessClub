@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Chess } from "chess.js";
-import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
-import Back from "../../Analisa/komponen/svg/back.jsx";
-import { BarisProfil } from "./ManusiaVsMesin.jsx";
-import { useI18n } from "../../../lib/i18n.jsx";
+import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import Back from "../PapanInteraktif/bersama/ikon/back.jsx";
+import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
+import { useI18n } from "../../lib/i18n.jsx";
 import {
   buatKartuDariJalur,
   idJalurPembukaan,
@@ -16,8 +16,10 @@ import {
   hapusJalurRepertoar,
   simpanKartuRepertoar,
 } from "./repertoarStorage.js";
-import { FEN_AWAL } from "../konstanta.js";
-import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
+import { FEN_AWAL } from "../PapanInteraktif/bersama/konstanta.js";
+import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
+import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import { Link } from "react-router-dom";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
@@ -40,12 +42,13 @@ function _tanggalRingkas(timestamp, bahasa) {
   }
 }
 
-export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
+export default function LatihanRepertoar({ pengaturan = null }) {
   const { t, bahasa: _bahasa } = useI18n();
-  // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
-  // komponen tetap berdiri sendiri (misal dipakai di halaman lain).
+  // Terima pengaturan dari tata letak /papan-interaktif/* (konteks bersama);
+  // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
-  const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const pengaturanBersama = usePengaturanBersama();
+  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [kartu, setKartu] = useState([]);
   const [memuatKartu, setMemuatKartu] = useState(true);
@@ -462,13 +465,12 @@ export default function LatihanRepertoar({ pengaturan = null, onJelajahBuku }) {
           <p className="mt-1 max-w-2xl text-sm text-gray-400">{t("papan.repertoarDeskripsi")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onJelajahBuku}
+          <Link
+            to="/papan-interaktif"
             className="rounded-md border border-[#363431] px-3 py-2 text-xs font-semibold text-gray-300 transition hover:bg-[#312e2b] hover:text-white"
           >
             {t("papan.repertoarJelajahBuku")}
-          </button>
+          </Link>
           <button
             type="button"
             onClick={bukaTambah}

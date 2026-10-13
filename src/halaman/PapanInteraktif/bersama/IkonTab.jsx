@@ -1,5 +1,5 @@
 /** Ikon kecil gaya stroke untuk tab panel kanan (mengikuti gaya icons.jsx). */
-import { MagnifierCheckerIcon } from "../../components/icons.jsx";
+import { MagnifierCheckerIcon } from "../../../components/icons.jsx";
 
 export default function IkonTab({ nama, className = "h-4 w-4" }) {
   const umum = {

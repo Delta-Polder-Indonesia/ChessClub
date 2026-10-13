@@ -1,11 +1,11 @@
 import { useCallback, useMemo, useState } from "react";
-import { ENGINE_BAKU } from "../../lib/engineCatur.js";
-import { bacaTampilanPanahMesin } from "../../lib/gunakanEngineCatur.js";
+import { ENGINE_BAKU } from "../../../lib/engineCatur.js";
+import { bacaTampilanPanahMesin } from "../../../lib/gunakanEngineCatur.js";
 
 /**
- * Pengaturan Papan Interaktif yang HIDUP di Workspace (bukan di dalam
- * komponen tab), agar nilainya tetap ada saat berpindah antar tab
- * Analisa / Manusia vs Mesin / Latihan Repertoar / Pengaturan.
+ * State pengaturan Papan Interaktif. Disediakan ke semua halaman
+ * /papan-interaktif/* lewat PengaturanKonteks (di tata letak Workspace),
+ * agar nilainya tetap ada saat berpindah antar halaman mode.
  *
  * Preferensi suara & komentator tidak ada di sini: keduanya sudah disimpan
  * di localStorage oleh useSuara() dan usePreferensiKomentator().

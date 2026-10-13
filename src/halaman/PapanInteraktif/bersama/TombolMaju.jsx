@@ -1,22 +1,22 @@
-import { ChevronEndIcon } from "../../components/icons.jsx";
+import { ChevronRightIcon } from "../../../components/icons.jsx";
 
 /**
- * Tombol "Ke Akhir" pada navigasi langkah. Dipakai mode Buku Pembukaan
+ * Tombol "Maju" pada navigasi langkah. Dipakai mode Buku Pembukaan
  * (PapanInteraktif.jsx) dan Manusia vs Mesin dengan tampilan identik:
- * ikon ChevronEndIcon, kelas hover/disabled sama persis seperti
+ * ikon ChevronRightIcon, kelas hover/disabled sama persis seperti
  * tombol di sebelahnya.
  */
-export default function TombolKeAkhir({ onClick, disabled, t }) {
+export default function TombolMaju({ onClick, disabled, t }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      title={t("papan.keAkhir")}
-      aria-label={t("papan.keAkhir")}
+      title={t("papan.maju")}
+      aria-label={t("papan.maju")}
       className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
     >
-      <ChevronEndIcon className="size-5" />
+      <ChevronRightIcon className="size-5" />
     </button>
   );
 }
