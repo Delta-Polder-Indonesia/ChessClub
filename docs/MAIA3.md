@@ -120,6 +120,67 @@ penyesuaian.
 
 ---
 
+## Bagaimana A.C.A.S. menjalankannya (dan mengapa kita tidak menirunya)
+
+`Psyyke/A.C.A.S.` (userscript catur) memakai Maia 3 di
+`app/assets/engines/Maia3/`. Diperiksa 13 Oktober 2026. Mesinnya sama persis
+dengan punya kita; yang berbeda cara menjalankannya — dan perbedaan itulah
+alasan kita tidak bisa menyalinnya begitu saja.
+
+| Aspek | A.C.A.S. | Kita |
+| --- | --- | --- |
+| Berkas bobot | `maia3_simplified.onnx`, md5 `3a2fe47a…` | **berkas identik** |
+| Peta langkah | `all_moves_maia3.json` (4352 entri) | dihitung `indeksLangkah` |
+| Ruang langkah | `asal*64+tujuan`, promosi 4096+ urut q,r,b,n | sama — **4352/4352 cocok** |
+| Pencerminan | balik pangkat saja, warna bidak ditukar | sama |
+| Runtime | `onnxruntime-web` **1.23.2**, glue varian *bundle* (modul) | **1.18.0**, glue UMD lewat `importScripts` |
+| Utas | minta banyak (`wasm: { threads: … }`) | 1 utas, eksplisit |
+| WebGPU | minta `['webgpu','wasm']` | tidak |
+| Isolasi lintas-origin | **COOP + COEP lewat `coi-serviceworker.js`** (service worker menyuntik header, lalu halaman dimuat ulang) | **tidak ada COEP** |
+| Penyimpanan bobot | IndexedDB, kunci = url + versi | sama |
+| Memilih langkah | argmax — selalu langkah paling mungkin | contoh acak dari distribusi |
+| Rentang rating | 600–2600 | 1100–1900 |
+
+Tiga hal yang terbukti saat memeriksanya:
+
+**1. Versi 1.23.2 menuntut memori bersama — untuk satu utas sekalipun.**
+Glue-nya memanggil `new WebAssembly.Memory({ initial: 256, maximum: 65536,
+shared: true })` di `ort-wasm-simd-threaded.mjs` baris 44, tanpa syarat. Bila
+peramban menolaknya (tanpa COEP), sesi mati dengan `no available backend
+found. ERR: [wasm] TypeError: …` — pesan yang sama sekali tidak menyebut COEP.
+A.C.A.S. bisa begitu karena halamannya **diisolasi lintas-origin lewat jasa
+service worker**; mereka memang butuh itu untuk Stockfish-SAB mereka. Kita
+memilih tidak (lihat bagian sebelumnya).
+
+**2. Opsi `threads` mereka tidak berpengaruh, dan WebGPU pun tidak.** Kata
+`threads` tidak ada di dalam berkas itu — namanya `numThreads`. Yang berlaku
+justru bawaan ORT: `min(4, ceil(hardwareConcurrency/2))`. Berkas
+`ort.wasm.bundle.min.js` juga tidak memuat EP WebGPU (itu ada di
+`ort.webgpu.*`), jadi `['webgpu','wasm']` selalu jatuh ke wasm dengan
+peringatan "backend not found". Kecepatan mereka karena itu datang dari utas,
+bukan dari versi ORT: dalam perbandingan gaya sama di Node (satu utas, 8
+posisi), 1.18.0 dan 1.23.2 hanya berbeda ~5% (131 vs 122 ms/posisi).
+
+**3. Peta langkah mereka memvalidasi rumus kita.** `all_moves_maia3.json`
+(4352 entri) dan versi terbaliknya dibandingkan dengan `indeksLangkah` /
+`langkahDariIndeks`: **0 ketidakcocokan di kedua arah**, termasuk 256 langkah
+promosi yang mulai di indeks 4096 dengan urutan q, r, b, n.
+
+Dua perbedaan yang bukan soal teknis, melainkan pilihan:
+
+* **Rentang rating.** Hulu (`maia-platform-frontend`) menyatakan skala Maia
+  600–2600 (`MAIA_MIN_RATING` / `MAIA_MAX_RATING`) dan memberi angka itu ke
+  model yang sama; di dalam grafnya sendiri masukan rating hanya dijepit
+  `Clip(0, 5000)`. Pilihan kita (1100–1900) jadi lebih sempit daripada yang
+  model dan hulunya dukung. Mempersempit itu sah — kalau Maia nanti ingin ikut
+  melayani pemula, angkanya bisa diturunkan tanpa mengganti apa pun.
+* **Cara memilih langkah.** A.C.A.S. selalu memainkan langkah dengan peluang
+  terbesar. Kita mencontoh dari seluruh distribusi (`contohLangkah`), jadi
+  posisi yang sama tidak dijawab identik dua kali — itu bagian dari "terasa
+  manusia" yang jadi alasan Maia dipasang.
+
+---
+
 ## Menjalankan
 
 ```bash
