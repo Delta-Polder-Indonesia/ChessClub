@@ -50,7 +50,7 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     await page.addInitScript((nilai) => localStorage.setItem("kci-bahasa", nilai), bahasa);
     await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
 
-    await page.getByRole("navigation", { name: t.navigasi }).getByRole("button", { name: t.menu, exact: true }).click();
+    await page.getByRole("navigation", { name: t.navigasi }).getByRole("link", { name: t.menu, exact: true }).click();
     await page.getByLabel(t.label).fill(PGN);
     await page.getByRole("button", { name: t.mulai, exact: true }).click();
 
@@ -83,7 +83,7 @@ test("turing test: ambil partai dari Lichess lalu mulai tebak (id)", async ({ pa
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
   await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
 
-  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("button", { name: "Turing test", exact: true }).click();
+  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("link", { name: "Turing test", exact: true }).click();
   await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("uji-pemain");
   await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
   await expect(page.getByLabel("PGN partai manusia")).toHaveValue(/\[Event "Uji A"\]/);
@@ -99,7 +99,7 @@ test("turing test: pengguna tidak ditemukan di Lichess menampilkan pesan galat (
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "id"));
   await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
 
-  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("button", { name: "Turing test", exact: true }).click();
+  await page.getByRole("navigation", { name: "Mode papan" }).getByRole("link", { name: "Turing test", exact: true }).click();
   await page.getByLabel("Atau ambil dari Lichess (nama pengguna)").fill("tidak-ada-kali");
   await page.getByRole("button", { name: "Ambil partai", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveText("Pengguna tidak ditemukan atau belum punya partai.");

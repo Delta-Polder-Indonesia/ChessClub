@@ -75,9 +75,12 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
 
     const menu = page.getByRole("navigation", { name: kamus.menuMode });
-    const analisa = menu.getByRole("button", { name: kamus.menuAnalisa, exact: true });
-    await expect(analisa).toHaveAttribute("aria-pressed", "true");
-    await expect(menu.getByRole("link")).toHaveCount(0);
+    const analisa = menu.getByRole("link", { name: kamus.menuAnalisa, exact: true });
+    await expect(analisa).toHaveAttribute("aria-current", "page");
+    // Sidebar adalah tautan rute: enam link internal, semuanya tetap di bawah /papan-interaktif.
+    await expect(menu.getByRole("link")).toHaveCount(6);
+    const hrefMenu = await menu.getByRole("link").evaluateAll((tautan) => tautan.map((a) => a.getAttribute("href")));
+    for (const href of hrefMenu) expect(href.startsWith("/papan-interaktif")).toBe(true);
     await expect(page.locator('a[href="/program-kami/analisa"]')).toHaveCount(0);
     await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 30_000 });
     await expect(page.getByRole("tab", { name: kamus.tabBuku })).toBeVisible();
@@ -115,18 +118,18 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.getByRole("tab", { name: kamus.tabBuku }).click();
     await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
 
-    await menu.getByRole("button", { name: kamus.menuLatihanRepertoar }).click();
+    await menu.getByRole("link", { name: kamus.menuLatihanRepertoar }).click();
     // Chunk Repertoar dimuat malas; di CI (vite dev, worker paralel) transform
     // dingin bisa melewati 15s bawaan — sama seperti papan di baris 82.
     await expect(page.getByRole("heading", { name: kamus.repertoarJudul })).toBeVisible({
       timeout: 30_000,
     });
-    await page.getByRole("button", { name: kamus.repertoarJelajahBuku }).click();
-    await expect(analisa).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("link", { name: kamus.repertoarJelajahBuku }).click();
+    await expect(analisa).toHaveAttribute("aria-current", "page");
     await expect(page.locator("[data-petak]")).toHaveCount(64);
     await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
 
-    await menu.getByRole("button", { name: kamus.menuManusiaMesin }).click();
+    await menu.getByRole("link", { name: kamus.menuManusiaMesin }).click();
     await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
 
     // Workspace, menu mode, eval bar, dan papan harus tetap berada di dalam
