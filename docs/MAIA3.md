@@ -14,7 +14,7 @@ Tangga lawan saat ini (lihat `PILIHAN_LEVEL_MESIN` di
 | Beginner / Pemula Total | sunfish | sengaja dilemahkan (kedalaman dangkal + derau) |
 | Casual / Pemula | sunfish | sengaja dilemahkan |
 | **Menengah — Maia** | **Maia 3** | gaya manusia; rating bebas dipilih |
-| Advanced / Menengah Atas | Stockfish | Skill Level 12, 700 ms |
+| Advanced / Mahir | Stockfish | Skill Level 12, 700 ms |
 | Expert / Ahli | Stockfish | Skill Level 16, 1000 ms |
 | Master | Stockfish | Skill Level 20, 1400 ms |
 
@@ -37,7 +37,7 @@ jadi menambah angka lain di daftar sah-sah saja.
 | `src/lib/mesinMaia.js` | Sisi aplikasi: memanggil worker, mengubah bentuk tensor, memilih langkah. |
 | `src/lib/gunakanMesinMaia.js` | Kait React `useMesinMaia`. |
 | `scripts/uji-maia.mjs` | 116 uji, termasuk satu inferensi ONNX sungguhan dan penjaga "wasm satu utas". |
-| `scripts/uji-maia-ort.mjs` | 15 uji "peramban tiruan": glue UMD + wasm dijalankan di sandbox `vm`, lengkap dengan penjaga "tidak ada memori bersama". |
+| `scripts/uji-maia-ort.mjs` | 17 uji "peramban tiruan": glue UMD + wasm dijalankan di sandbox `vm`, lengkap dengan penjaga "tidak ada memori bersama". Bila `public/engines/ort/` belum ada, uji ini menyalinnya sendiri lewat `scripts/salin-ort.mjs`; bila gagal, ia **gagal** — tidak pernah lolos diam-diam. |
 | `scripts/salin-ort.mjs` | Menyalin runtime ORT dari `node_modules` ke `public/`. |
 
 ---
@@ -199,7 +199,7 @@ mengunduh, bukan macet.
 **Uji:**
 
 ```bash
-npm run uji:maia       # 131 uji: penyandian, pencerminan, inferensi ONNX,
+npm run uji:maia       # 133 uji: penyandian, pencerminan, inferensi ONNX,
                        # lalu glue UMD di sandbox "peramban tiruan" (uji-maia-ort)
 npm run uji:sunfish    # 49 uji: tangga lawan pemula tidak rusak
 npm run uji:i18n       # kamus id/en seimbang
