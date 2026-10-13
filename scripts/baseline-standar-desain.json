@@ -87,11 +87,17 @@
   "src/halaman/MediaDanInformasi/Pengumuman.jsx": {
     "tombol-ad-hoc": 1
   },
-  "src/halaman/PapanInteraktif/IkonTab.jsx": {
-    "svg-inline-catur": 6
-  },
   "src/halaman/PapanInteraktif/PapanInteraktif.jsx": {
     "svg-inline-catur": 2
+  },
+  "src/halaman/PapanInteraktif/bersama/IkonTab.jsx": {
+    "svg-inline-catur": 6
+  },
+  "src/halaman/PapanInteraktif/bersama/ikon/back.jsx": {
+    "svg-inline-catur": 1
+  },
+  "src/halaman/PapanInteraktif/bersama/ikon/profile.jsx": {
+    "svg-inline-catur": 1
   },
   "src/halaman/QuizCatur/QuizCatur.jsx": {
     "svg-inline-catur": 2
