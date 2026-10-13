@@ -1,4 +1,4 @@
-import { formatAngka, formatPersen } from "./utilPapan.js";
+import { formatAngka, formatPersen } from "./bersama/utilPapan.js";
 
 export default function LangkahExplorer({ langkah, bahasa, onPilih, t }) {
   return (

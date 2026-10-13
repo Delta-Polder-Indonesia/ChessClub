@@ -2,8 +2,8 @@ import { useId } from "react";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import KartuKomentator from "../../components/KartuKomentator.jsx";
 import { Switch } from "../../components/ui/switch.jsx";
-import { useDialog } from "./gunakanDialog.js";
-import { PILIHAN_WARNA_PAPAN } from "./konstanta.js";
+import { useDialog } from "./bersama/gunakanDialog.js";
+import { PILIHAN_WARNA_PAPAN } from "./bersama/konstanta.js";
 
 /**
  * Isi pengaturan papan TANPA bingkai dialog — dipakai LayarPengaturan

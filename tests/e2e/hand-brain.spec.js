@@ -37,7 +37,7 @@ for (const [bahasa, t] of Object.entries(kamus)) {
     await page.goto("/papan-interaktif", { waitUntil: "domcontentloaded" });
 
     const menu = page.getByRole("navigation", { name: bahasa === "en" ? "Board modes" : "Mode papan" });
-    await menu.getByRole("button", { name: t.menu, exact: true }).click();
+    await menu.getByRole("link", { name: t.menu, exact: true }).click();
     await expect(page.getByRole("heading", { name: t.menu, exact: true })).toBeVisible();
     await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 60_000 });
 

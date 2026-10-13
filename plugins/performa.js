@@ -39,6 +39,11 @@ export const RUTE_LATAR_GELAP = [
   "/teka-teki-rush",
   "/quiz-catur",
   "/papan-interaktif",
+  "/papan-interaktif/manusia-vs-mesin",
+  "/papan-interaktif/latihan-repertoar",
+  "/papan-interaktif/hand-brain",
+  "/papan-interaktif/turing-test",
+  "/papan-interaktif/pengaturan",
 ];
 
 /**
@@ -71,6 +76,11 @@ export const RUTE_PUBLIK = [
   "/teka-teki-rush",
   "/quiz-catur",
   "/papan-interaktif",
+  "/papan-interaktif/manusia-vs-mesin",
+  "/papan-interaktif/latihan-repertoar",
+  "/papan-interaktif/hand-brain",
+  "/papan-interaktif/turing-test",
+  "/papan-interaktif/pengaturan",
   "/turnamen",
   "/turnamen/turnamen-bulanan",
   "/turnamen/liga-musiman",
@@ -227,6 +237,36 @@ export const META_RUTE = {
   "/papan-interaktif": {
     judulKey: "papan.judul",
     deskripsiKey: "papan.deskripsi",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/papan-interaktif/manusia-vs-mesin": {
+    judul: "Manusia vs Mesin",
+    deskripsi:
+      "Bermain catur melawan mesin: atur level Stockfish atau gaya manusia Maia, pilih warna, lalu asah taktikmu.",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/papan-interaktif/latihan-repertoar": {
+    judul: "Latihan Repertoar",
+    deskripsi:
+      "Hafalkan jalur pembukaan favoritmu dengan kartu pengulangan berjarak sampai mendarah daging.",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/papan-interaktif/hand-brain": {
+    judul: "Hand & Brain",
+    deskripsi:
+      "Varian seru dua pemain di satu perangkat: otak memilih jenis bidak, tangan mengeksekusi langkahnya.",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/papan-interaktif/turing-test": {
+    judul: "Turing Test",
+    deskripsi:
+      "Tebak langkah mana yang dimainkan manusia dan mana yang dipilih mesin dari partai sungguhan.",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/papan-interaktif/pengaturan": {
+    judul: "Pengaturan Papan",
+    deskripsi:
+      "Atur set bidak, warna papan, engine analisa, dan suara untuk seluruh mode papan interaktif.",
     akhir: AKHIR_KORPORAT,
   },
   "/turnamen": { judulKey: "turnamen.judul", deskripsiKey: "turnamen.deskripsi" },

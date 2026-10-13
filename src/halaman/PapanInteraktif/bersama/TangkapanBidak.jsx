@@ -1,4 +1,4 @@
-import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
 
 /** Ikon bidak yang ditangkap: satu ikon per jenis + pengali bila lebih dari satu. */
 export default function TangkapanBidak({ daftar, set }) {

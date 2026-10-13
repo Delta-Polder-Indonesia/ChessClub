@@ -90,7 +90,7 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   kembali hijau pada aset rusak. Delapan skrip ini ikut gagal kalau glob di `ChessPiece.jsx`
   berubah bentuk — itulah penjaganya di luar `uji:glob-aset`.
 - `npm run uji:gestur-lawan` — gestur "seperti manusia" mesin di mode Manusia vs Mesin
-  (`src/halaman/PapanInteraktif/modus/gerakLawan.js`): penilaian posisi sulit (skor tipis +
+  (`src/halaman/ManusiaVsMesin/gerakLawan.js`): penilaian posisi sulit (skor tipis +
   banyak langkah sah), pemilihan bidak yang dilirik saat bimbang, urutan klik (bidak lain dulu,
   petak asal terakhir), jeda 2-4 detik sebelum melangkah, goyangan bidak yang diklik, pembatalan
   di tengah gestur, serta penjagaan bahwa langkah yang dijalankan tetap hasil engine dan modul

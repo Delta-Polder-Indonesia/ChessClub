@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Chess } from "chess.js";
 import { formatSkorAwan } from "../../lib/basisDataAwan.js";
-import { sanDiPosisi } from "./utilPapan.js";
+import { sanDiPosisi } from "./bersama/utilPapan.js";
 
 /**
  * Panel basis data awan (Chess Cloud Database — chessdb.cn) untuk tab "Partai".

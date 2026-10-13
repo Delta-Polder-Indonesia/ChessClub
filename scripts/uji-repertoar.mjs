@@ -5,12 +5,12 @@ import {
   indeksJalurPembukaan,
   jadwalkanKartu,
   kartuBerikutnya,
-} from "../src/halaman/PapanInteraktif/modus/repertoarLogika.js";
+} from "../src/halaman/LatihanRepertoar/repertoarLogika.js";
 import {
   bacaKartuRepertoar,
   hapusJalurRepertoar,
   simpanKartuRepertoar,
-} from "../src/halaman/PapanInteraktif/modus/repertoarStorage.js";
+} from "../src/halaman/LatihanRepertoar/repertoarStorage.js";
 
 const sekarang = 1_700_000_000_000;
 const jalur = indeksJalurPembukaan([

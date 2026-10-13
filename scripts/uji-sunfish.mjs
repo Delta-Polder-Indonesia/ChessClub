@@ -1,6 +1,6 @@
 /**
  * Uji engine sunfish lawan level pemula (public/engines/sunfish/sunfish.js)
- * beserta pemetaan levelnya di src/halaman/PapanInteraktif/modus/mesinLemah.js.
+ * beserta pemetaan levelnya di src/halaman/ManusiaVsMesin/mesinLemah.js.
  *
  * Yang dijaga:
  *  1. Berkas engine tetap membawa lisensi GPL-3.0 dan atribusinya (Thomas
@@ -30,7 +30,7 @@ import {
   langkahMesinSah,
   langkahSahUci,
   perintahProfilSunfish,
-} from "../src/halaman/PapanInteraktif/modus/mesinLemah.js";
+} from "../src/halaman/ManusiaVsMesin/mesinLemah.js";
 
 const argumen = new Map(
   process.argv.slice(2).map((a) => {

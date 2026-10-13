@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Uji BILAH EVALUASI, PERGANTIAN POSISI, dan DETEKSI AKHIR PERMAINAN di mode
- * Manusia vs Mesin (`src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx`).
+ * Manusia vs Mesin (`src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx`).
  *
  * Mengapa perlu (bug yang dikunci uji ini):
  *
@@ -80,9 +80,9 @@ const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
-import ManusiaVsMesin from "./src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx";
+import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
 
-export { GESTUR } from "./src/halaman/PapanInteraktif/modus/gerakLawan.js";
+export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
 
 export function mountPve(el) {
   const root = createRoot(el);

@@ -1,14 +1,12 @@
-import { Suspense, lazy, useEffect, useState } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useI18n } from "../../lib/i18n.jsx";
-import IkonTab from "./IkonTab.jsx";
-import { usePengaturanPapan } from "./gunakanPengaturanPapan.js";
+import IkonTab from "./bersama/IkonTab.jsx";
+import { PenyediaPengaturanPapan } from "./bersama/PengaturanKonteks.jsx";
 
-const ManusiaVsMesin = lazy(() => import("./modus/ManusiaVsMesin.jsx"));
-const LatihanRepertoar = lazy(() => import("./modus/LatihanRepertoar.jsx"));
-const HandBrain = lazy(() => import("./modus/HandBrain.jsx"));
-const TuringTest = lazy(() => import("./modus/TuringTest.jsx"));
+// Papan buku dimuat malas seperti mode lain — tata letak ini hanya kerangka
+// (sidebar + outlet) sehingga chunk-nya tetap ringan.
 const PapanBuku = lazy(() => import("./PapanInteraktif.jsx"));
-const LayarPengaturan = lazy(() => import("./LayarPengaturan.jsx"));
 
 function KerangkaMode() {
   return (
@@ -20,132 +18,88 @@ function KerangkaMode() {
   );
 }
 
-export default function WorkspacePapanInteraktif() {
+/**
+ * Isi rute `/papan-interaktif` (papan buku/bebas). Tombol gear-nya membuka
+ * halaman pengaturan, bukan popup — perilaku yang sama seperti sebelum tiap
+ * mode menjadi rute sendiri.
+ */
+export function HalamanPapanBuku() {
+  const pergi = useNavigate();
+  return (
+    <Suspense fallback={<KerangkaMode />}>
+      <PapanBuku
+        tertanam
+        onBukaPengaturan={() => pergi("/papan-interaktif/pengaturan")}
+      />
+    </Suspense>
+  );
+}
+
+/** Menu mode papan — tiap mode kini rute sendiri, bukan tab state. */
+const MENU_PAPAN = [
+  { ke: "/papan-interaktif", akhir: true, ikon: "analisa", label: "papan.menuAnalisa" },
+  { ke: "/papan-interaktif/manusia-vs-mesin", ikon: "users", label: "papan.menuManusiaMesin" },
+  { ke: "/papan-interaktif/latihan-repertoar", ikon: "books", label: "papan.menuLatihanRepertoar" },
+  { ke: "/papan-interaktif/hand-brain", ikon: "games", label: "papan.menuHandBrain" },
+  { ke: "/papan-interaktif/turing-test", ikon: "users", label: "papan.menuTuring" },
+  { ke: "/papan-interaktif/pengaturan", ikon: "settings", label: "papan.pengaturan" },
+];
+
+/**
+ * Tata letak seluruh halaman di bawah `/papan-interaktif/*`: sidebar + outlet.
+ * Pengaturan papan disediakan lewat konteks sehingga nilainya tetap ada saat
+ * berpindah antar halaman mode (dulu ini state tab Workspace).
+ */
+export default function TataLetakPapan() {
   const { t } = useI18n();
-  const [mode, setMode] = useState("papan");
-  // State pengaturan hidup di sini (bukan di tab) agar tidak hilang saat
-  // berpindah tab; diteruskan ke Papan Interaktif dan layar Pengaturan.
-  const pengaturan = usePengaturanPapan();
+  const { pathname } = useLocation();
 
   useEffect(() => {
-    document.title = `${t("papan.judul")} | ${t("common.namaKomunitas")}`;
-  }, [t]);
-
-  function pilihMode(berikutnya) {
-    setMode(berikutnya);
-  }
+    const aktif = MENU_PAPAN.find((m) => pathname === m.ke);
+    document.title = `${t(aktif?.label ?? "papan.judul")} | ${t("common.namaKomunitas")}`;
+  }, [pathname, t]);
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#262421] font-sans text-gray-200 lg:flex-row">
-      <aside className="flex w-full shrink-0 flex-col justify-between border-b border-[#312e2b] bg-[#1e1c18] lg:w-[220px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:py-4">
-        <div>
-          <div className="flex items-center border-b border-[#312e2b] px-4 py-3 lg:mb-4 lg:px-5 lg:pb-4 lg:pt-0">
-            <span className="text-lg font-bold leading-none lg:text-[22px] tracking-tight text-white">
-              Blunder<span className="text-[#81b64c]">Skuad</span>
-            </span>
+    <PenyediaPengaturanPapan>
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#262421] font-sans text-gray-200 lg:flex-row">
+        <aside className="flex w-full shrink-0 flex-col justify-between border-b border-[#312e2b] bg-[#1e1c18] lg:w-[220px] lg:overflow-y-auto lg:border-b-0 lg:border-r lg:py-4">
+          <div>
+            <div className="flex items-center border-b border-[#312e2b] px-4 py-3 lg:mb-4 lg:px-5 lg:pb-4 lg:pt-0">
+              <span className="text-lg font-bold leading-none lg:text-[22px] tracking-tight text-white">
+                Blunder<span className="text-[#81b64c]">Skuad</span>
+              </span>
+            </div>
+
+            <nav
+              aria-label={t("papan.menuMode")}
+              className="grid w-full grid-cols-6 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
+            >
+              {MENU_PAPAN.map((item) => (
+                <NavLink
+                  key={item.ke}
+                  to={item.ke}
+                  end={item.akhir}
+                  className={({ isActive }) =>
+                    `flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
+                      isActive ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
+                    }`
+                  }
+                >
+                  <IkonTab nama={item.ikon} className="h-5 w-5 shrink-0" />
+                  <span className="max-w-full truncate">{t(item.label)}</span>
+                </NavLink>
+              ))}
+            </nav>
           </div>
 
-          <nav
-            aria-label={t("papan.menuMode")}
-            className="grid w-full grid-cols-6 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
-          >
-            <button
-              type="button"
-              aria-pressed={mode === "papan"}
-              onClick={() => pilihMode("papan")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "papan" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="analisa" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.menuAnalisa")}</span>
-            </button>
+        </aside>
 
-            <button
-              type="button"
-              aria-pressed={mode === "engine"}
-              onClick={() => pilihMode("engine")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "engine" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.menuManusiaMesin")}</span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === "repertoar"}
-              onClick={() => pilihMode("repertoar")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "repertoar" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="books" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.menuLatihanRepertoar")}</span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === "handbrain"}
-              onClick={() => pilihMode("handbrain")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "handbrain" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="games" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.menuHandBrain")}</span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === "turing"}
-              onClick={() => pilihMode("turing")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "turing" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="users" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.menuTuring")}</span>
-            </button>
-
-            <button
-              type="button"
-              aria-pressed={mode === "pengaturan"}
-              onClick={() => pilihMode("pengaturan")}
-              className={`flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-center text-[10px] font-semibold transition sm:text-xs lg:flex-none lg:flex-row lg:justify-start lg:gap-3 lg:px-3 lg:py-3 lg:text-left lg:text-sm ${
-                mode === "pengaturan" ? "text-[#a3d168]" : "text-gray-300 hover:text-white"
-              }`}
-            >
-              <IkonTab nama="settings" className="h-5 w-5 shrink-0" />
-              <span className="max-w-full truncate">{t("papan.pengaturan")}</span>
-            </button>
-          </nav>
-        </div>
-
-      </aside>
-
-      <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#262421]">
-        <Suspense fallback={<KerangkaMode />}>
-          {mode === "engine" ? (
-            <ManusiaVsMesin pengaturan={pengaturan} />
-          ) : mode === "repertoar" ? (
-            <LatihanRepertoar pengaturan={pengaturan} onJelajahBuku={() => pilihMode("papan")} />
-          ) : mode === "handbrain" ? (
-            <HandBrain pengaturan={pengaturan} />
-          ) : mode === "turing" ? (
-            <TuringTest pengaturan={pengaturan} />
-          ) : mode === "pengaturan" ? (
-            <LayarPengaturan pengaturan={pengaturan} />
-          ) : (
-            <PapanBuku
-              tertanam
-              pengaturan={pengaturan}
-              onBukaPengaturan={() => pilihMode("pengaturan")}
-            />
-          )}
-        </Suspense>
-      </main>
-    </div>
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[#262421]">
+          <Suspense fallback={<KerangkaMode />}>
+            <Outlet />
+          </Suspense>
+        </main>
+      </div>
+    </PenyediaPengaturanPapan>
   );
 }

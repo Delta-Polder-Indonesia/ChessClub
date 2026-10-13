@@ -7,7 +7,7 @@ memprediksi langkah yang *paling mungkin* dimainkan manusia berating
 Manusia vs Mesin**, tangga menengah.
 
 Tangga lawan saat ini (lihat `PILIHAN_LEVEL_MESIN` di
-`modus/mesinLemah.js`):
+`ManusiaVsMesin/mesinLemah.js`):
 
 | Level | Mesin | Catatan |
 | --- | --- | --- |
@@ -258,7 +258,7 @@ npm run build
 
 ## Mengubah tangga lawan
 
-Tangga ada di `src/halaman/PapanInteraktif/modus/mesinLemah.js` pada
+Tangga ada di `src/halaman/ManusiaVsMesin/mesinLemah.js` pada
 `PILIHAN_LEVEL_MESIN`. Tiap entri punya `mesin` (`"sunfish"`, `"maia"`, atau
 `"stockfish"`) lalu pengaturan untuk mesin itu:
 

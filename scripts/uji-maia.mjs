@@ -51,7 +51,7 @@ import {
   uraiBatch,
 } from "../src/lib/maia3.js";
 import { peluangMenang } from "../src/halaman/Analisa/mesin/peluang.js";
-import { PILIHAN_LEVEL_MESIN, PILIHAN_RATING_MAIA } from "../src/halaman/PapanInteraktif/modus/mesinLemah.js";
+import { PILIHAN_LEVEL_MESIN, PILIHAN_RATING_MAIA } from "../src/halaman/ManusiaVsMesin/mesinLemah.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const BERKAS_MODEL = path.join(AKAR, "public", "engines", "maia3", "maia3_simplified.onnx");
@@ -513,7 +513,7 @@ console.log("\n7. Siklus hidup worker (lepas saat mode ditinggalkan)");
   // Mesin wajib memanggilnya di efek pembongkaran. Tanpa keduanya, mesinnya
   // benar tetapi tidak pernah dilepas oleh aplikasi.
   const sumberKait = readFileSync(path.join(AKAR, "src/lib/gunakanMesinMaia.js"), "utf8");
-  const sumberMode = readFileSync(path.join(AKAR, "src/halaman/PapanInteraktif/modus/ManusiaVsMesin.jsx"), "utf8");
+  const sumberMode = readFileSync(path.join(AKAR, "src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"), "utf8");
   hasil("kait useMesinMaia mengekspor tamat", /tamat,\s*$/m.test(sumberKait) && sumberKait.includes("useCallback(() => mesin.tamat()"));
   hasil("mode Manusia vs Mesin memanggil tamatMaia()", /tamatMaia\(\)/.test(sumberMode));
   hasil(

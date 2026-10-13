@@ -1,31 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
-import Profile from "../../Analisa/komponen/svg/profile.jsx";
-import PapanTekaTeki from "../../TekaTeki/PapanTekaTeki.jsx";
-import { ChessPiece } from "../../../components/chess/ChessPiece.jsx";
-import { DAFTAR_SET } from "../../../components/chess/pemuatBidak.js";
-import { berkasPublik } from "../../../lib/asets.js";
-import { EngineCatur, URL_ENGINE_SUNFISH } from "../../../lib/engineCatur.js";
-import { useEngineCatur } from "../../../lib/gunakanEngineCatur.js";
-import { useMesinMaia } from "../../../lib/gunakanMesinMaia.js";
-import { useI18n } from "../../../lib/i18n.jsx";
-import { SUARA, useSuara } from "../../../lib/suara.js";
-import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, PILIHAN_WARNA_PAPAN } from "../konstanta.js";
-import { PENGATURAN_AWAL, usePengaturanPapan } from "../gunakanPengaturanPapan.js";
-import BilahEvaluasi from "../BilahEvaluasi.jsx";
-import TangkapanBidak from "../TangkapanBidak.jsx";
-import { susunTangkapan } from "../TangkapanBidakData.js";
-import { useDialog } from "../gunakanDialog.js";
-import TombolKeAwal from "../TombolKeAwal.jsx";
-import TombolMundur from "../TombolMundur.jsx";
-import TombolMaju from "../TombolMaju.jsx";
-import TombolKeAkhir from "../TombolKeAkhir.jsx";
-import { fenDariLangkah, susunPgn } from "../utilPapan.js";
+import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
+import { berkasPublik } from "../../lib/asets.js";
+import { EngineCatur, URL_ENGINE_SUNFISH } from "../../lib/engineCatur.js";
+import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
+import { useMesinMaia } from "../../lib/gunakanMesinMaia.js";
+import { useI18n } from "../../lib/i18n.jsx";
+import { SUARA, useSuara } from "../../lib/suara.js";
+import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, PILIHAN_WARNA_PAPAN } from "../PapanInteraktif/bersama/konstanta.js";
+import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
+import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
+import BilahEvaluasi from "../PapanInteraktif/bersama/BilahEvaluasi.jsx";
+import { BarisProfil } from "../PapanInteraktif/bersama/BarisProfil.jsx";
+import { susunTangkapan } from "../PapanInteraktif/bersama/TangkapanBidakData.js";
+import { useDialog } from "../PapanInteraktif/bersama/gunakanDialog.js";
+import TombolKeAwal from "../PapanInteraktif/bersama/TombolKeAwal.jsx";
+import TombolMundur from "../PapanInteraktif/bersama/TombolMundur.jsx";
+import TombolMaju from "../PapanInteraktif/bersama/TombolMaju.jsx";
+import TombolKeAkhir from "../PapanInteraktif/bersama/TombolKeAkhir.jsx";
+import { fenDariLangkah, susunPgn } from "../PapanInteraktif/bersama/utilPapan.js";
 import { dialogMesin } from "./dialogMesin.js";
-import IkonPutih from "../../Analisa/komponen/play-side/white--sm.svg";
-import IkonHitam from "../../Analisa/komponen/play-side/black--sm.svg";
-import IkonAcak from "../../Analisa/komponen/play-side/random.svg";
+import IkonPutih from "../PapanInteraktif/bersama/ikon/white--sm.svg";
+import IkonHitam from "../PapanInteraktif/bersama/ikon/black--sm.svg";
+import IkonAcak from "../PapanInteraktif/bersama/ikon/random.svg";
 import {
   PILIHAN_LEVEL_MESIN,
   PILIHAN_RATING_MAIA,
@@ -118,42 +118,6 @@ function gameDenganHistoriPenuh(daftarSan) {
     if (!pindah) return null;
   }
   return game;
-}
-
-export function BarisProfil({ nama, putih, tangkapan, setBidak, avatar, namaDiBawah = false, className = "" }) {
-  const labelNama = (
-    <span
-      className={`truncate text-sm font-bold text-[#fffaec] ${namaDiBawah ? "leading-tight" : ""}`}
-    >
-      {nama}
-    </span>
-  );
-  const labelTangkapan = (
-    <div className="flex min-h-[15px] items-center overflow-hidden">
-      <TangkapanBidak daftar={tangkapan} set={setBidak} />
-    </div>
-  );
-  return (
-    <div className={`flex items-center justify-between gap-3 pl-[42px] pr-1 ${className}`}>
-      <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div
-          className={`flex h-10 w-10 shrink-0 items-end justify-center overflow-hidden rounded-md shadow-md ${
-            putih ? "bg-[#dbd9d6]" : "bg-[#474542]"
-          }`}
-        >
-          {avatar ? (
-            <img src={avatar} alt="" width={32} height={32} className="h-8 w-8 object-contain" loading="lazy" />
-          ) : (
-            <Profile height={32} width={32} class={putih ? "fill-[#ffffff]" : "fill-[#1d1c1a]"} />
-          )}
-        </div>
-        <div className={`flex min-w-0 flex-col ${namaDiBawah ? "justify-end" : "justify-center"}`}>
-          {namaDiBawah ? labelTangkapan : labelNama}
-          {namaDiBawah ? labelNama : labelTangkapan}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function KonfirmasiMenyerah({ onTutup, onYa, t }) {
@@ -370,10 +334,11 @@ function PengaturanPermainan({
 
 export default function ManusiaVsMesin({ pengaturan = null }) {
   const { t } = useI18n();
-  // Terima pengaturan dari Workspace; tanpa prop buat state lokal agar
-  // komponen tetap berdiri sendiri.
+  // Terima pengaturan dari tata letak /papan-interaktif/* (konteks bersama);
+  // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
-  const pp = (pengaturan ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
+  const pengaturanBersama = usePengaturanBersama();
+  const pp = (pengaturan ?? pengaturanBersama ?? pengaturanLokal).nilai ?? PENGATURAN_AWAL;
 
   const [fen, setFen] = useState(FEN_AWAL);
   const fenRef = useRef(FEN_AWAL);
@@ -1042,7 +1007,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
 
   return (
     // Konten dibatasi 1280px + padding md:px-8 dan kolom papan maksimal 520px,
-    // sama seperti mode Analisa, sehingga lebar panel kanan ikut selalu sama.
+    // sama seperti halaman papan buku, sehingga lebar panel kanan ikut selalu sama.
     <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
       <section
         aria-label={t("papan.pveJudul")}
@@ -1256,7 +1221,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
               </div>
 
               {/* Pemilih warna ala play-side-selector: tiga kotak berisi SVG
-                  dari Analisa/komponen/play-side (pion putih/hitam + ikon
+                  dari bersama/ikon (pion putih/hitam + ikon
                   acak). "Acak" baru dipilih saat Mulai ditekan; sebelum itu
                   papan tetap memakai warna terakhir. */}
               <div>
