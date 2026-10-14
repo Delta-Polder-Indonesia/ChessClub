@@ -203,7 +203,9 @@ function titikKePoints(titik) {
  *  - Klik kanan pada petak = tandai petak dengan warna kuning.
  *  - Tahan klik kanan lalu seret = gambar panah oranye (lurus; siku untuk
  *    langkah kuda).
- *  - Klik kanan pada petak yang sudah bertanda = hapus SEMUA tanda & panah.
+ *  - Klik kanan pada petak yang sudah bertanda = hapus HANYA tanda itu (warna
+ *    sama); warna beda = ganti warna. Mengikuti isepic-chess-ui. Aturan ada di
+ *    src/lib/tandaBantu.js (satu pintu untuk semua halaman papan).
  *  - Klik kiri di mana pun pada papan = hapus SEMUA tanda & panah — termasuk
  *    saat yang ditekan bidak sendiri. Ini mengikuti Analisa
  *    (`komponen/game/board.jsx`: `cleanArrows()` pada mousedown), dan
@@ -682,7 +684,7 @@ export default function PapanTekaTeki({
         // Seret klik kanan → gambar/hapus panah (selalu warna bawaan/oranye).
         onTandaPanah?.(asal, tujuan, "bawaan");
       } else if (tujuan) {
-        // Klik kanan biasa → tandai petak (atau hapus semua tanda).
+        // Klik kanan biasa → tandai petak (atau hapus tanda itu saja).
         onTandaPetak?.(asal, warna);
       }
       // Dilepas di luar papan → dibatalkan, tidak membuat tanda apa pun.

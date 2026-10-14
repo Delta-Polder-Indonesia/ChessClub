@@ -20,6 +20,7 @@ import { FEN_AWAL } from "../PapanInteraktif/bersama/konstanta.js";
 import { PENGATURAN_AWAL, usePengaturanPapan } from "../PapanInteraktif/bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "../PapanInteraktif/bersama/PengaturanKonteks.jsx";
 import { Link } from "react-router-dom";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 function uciDariPindahan(pindah) {
   return `${pindah.from}${pindah.to}${pindah.promotion || ""}`;
@@ -71,7 +72,7 @@ export default function LatihanRepertoar({ pengaturan = null }) {
   const [statusLatihan, setStatusLatihan] = useState("menunggu");
   const [langkahSalah, setLangkahSalah] = useState(null);
   const [menyimpan, setMenyimpan] = useState(false);
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   useEffect(() => {
     let aktif = true;
@@ -190,30 +191,9 @@ export default function LatihanRepertoar({ pengaturan = null }) {
     setSasaran([]);
     setLangkahSalah(null);
     setStatusLatihan("menunggu");
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
     setTampilan("latihan");
     setPesan("");
-  }
-
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
-      const panah = ada
-        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
   }
 
   function pilihPetak(square) {

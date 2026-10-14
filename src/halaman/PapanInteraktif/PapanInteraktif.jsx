@@ -66,6 +66,7 @@ import PopupPengaturan from "./PopupPengaturan.jsx";
 import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 /* ------------------------------------------------- analisis Stockfish */
 // Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
@@ -120,7 +121,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [kesalahan, setKesalahan] = useState(null);
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
   // Set bidak & warna papan kini dari Pengaturan (konteks bersama tata letak).
   const setBidak = pp.bidak;
 
@@ -492,10 +493,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   /** Hapus semua tanda bantu pengguna (panah + mark petak) — satu pintu. */
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
-  }
-
   function klikPetak(petak) {
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
@@ -686,33 +683,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
   }, []);
 
-  /*
-   * Klik kanan pada petak — perilaku seperti isepic-chess-ui (`_addMarkerHelper`
-   * dengan is_toggle): mark dengan warna yang sama pada petak itu dihapus, hanya
-   * mark itu saja; warna berbeda menggantikan warna mark yang ada; petak kosong
-   * ditandai. Klik kiri tetap menghapus semua tanda (lihat PapanTekaTeki).
-   */
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak] === warna) {
-        const sisa = { ...lama.petak };
-        delete sisa[petak];
-        return { ...lama, petak: sisa };
-      }
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((p) => p.from === from && p.to === to);
-      const panah = ada
-        ? lama.panah.filter((p) => !(p.from === from && p.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
   /* ------------------------------------------------------ kontrol papan */
   function reset() {
     bunyikan(SUARA.mulai);
@@ -727,7 +697,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   function keAwal() {
@@ -740,7 +710,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   function undo() {
@@ -917,7 +887,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       setSasaran([]);
       setLangkahAkhir(null);
       setPromosi(null);
-      setTanda({ panah: [], petak: {} });
+      hapusSemuaTanda();
     };
     const ruas = isi.split(/\s+/);
     // FEN: ruas pertama memuat "/" dan teks punya ≥6 ruas.
@@ -1067,7 +1037,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   /* ------------------------------------------ ikon klasifikasi langkah */

@@ -36,6 +36,7 @@ import {
   perintahProfilSunfish,
 } from "./mesinLemah.js";
 import { GESTUR, gesturLawan, petakRagu, posisiSulit } from "./gerakLawan.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 const NAMA_MESIN = "Hikaru Nakamura";
 const AVATAR_MESIN = berkasPublik("/engine_expressions/hikaru.png");
@@ -349,7 +350,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const [riwayatLengkap, setRiwayatLengkap] = useState([]);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
   const [langkahDialog, setLangkahDialog] = useState(null);
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
   const [terpilih, setTerpilih] = useState(null);
   const [sasaran, setSasaran] = useState([]);
   const [warnaPemain, setWarnaPemain] = useState("w");
@@ -792,7 +793,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setRiwayatLengkap([]);
     setLangkahAkhir(null);
     setLangkahDialog(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
     setTerpilih(null);
     setSasaran([]);
     setHasil(null);
@@ -850,27 +851,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setAktif(false);
     setStatusMesin("idle");
     mainkan(SUARA.klik);
-  }
-
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
-      const panah = ada
-        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
   }
 
   /* ------------------------------------- navigasi langkah ala mode Buku */

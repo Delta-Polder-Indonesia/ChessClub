@@ -10,6 +10,7 @@ import {
   mainkanLangkah,
   papanDariLangkah,
 } from "./handBrainLogika.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 /** Pola petak papan yang sah (a1–h8). */
 const POLA_PETAK = /^[a-h][1-8]$/;
@@ -49,7 +50,7 @@ export default function HandBrain({ pengaturan = null }) {
   const [terpilih, setTerpilih] = useState(null);
   const [sasaran, setSasaran] = useState([]);
   const [pesan, setPesan] = useState("");
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   const papan = useMemo(() => papanDariLangkah(partai.langkah), [partai.langkah]);
   const fen = papan.fen();
@@ -67,27 +68,6 @@ export default function HandBrain({ pengaturan = null }) {
   function bersihkanPilihan() {
     setTerpilih(null);
     setSasaran([]);
-  }
-
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
-      const panah = ada
-        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
   }
 
   function pilihPetak(square) {
@@ -155,7 +135,7 @@ export default function HandBrain({ pengaturan = null }) {
     setPartai(buatPartai());
     bersihkanPilihan();
     setPesan("");
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   // Skakmat: pihak yang sedang bergiliran adalah yang di-mat, jadi pemenangnya lawannya.
