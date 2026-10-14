@@ -686,9 +686,19 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
   }, []);
 
+  /*
+   * Klik kanan pada petak — perilaku seperti isepic-chess-ui (`_addMarkerHelper`
+   * dengan is_toggle): mark dengan warna yang sama pada petak itu dihapus, hanya
+   * mark itu saja; warna berbeda menggantikan warna mark yang ada; petak kosong
+   * ditandai. Klik kiri tetap menghapus semua tanda (lihat PapanTekaTeki).
+   */
   function tandaPetak(petak, warna) {
     setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
+      if (lama.petak[petak] === warna) {
+        const sisa = { ...lama.petak };
+        delete sisa[petak];
+        return { ...lama, petak: sisa };
+      }
       return { ...lama, petak: { ...lama.petak, [petak]: warna } };
     });
   }
