@@ -7,22 +7,61 @@ memprediksi langkah yang *paling mungkin* dimainkan manusia berating
 Manusia vs Mesin**, tangga menengah.
 
 Tangga lawan saat ini (lihat `PILIHAN_LEVEL_MESIN` di
-`ManusiaVsMesin/mesinLemah.js`):
+`ManusiaVsMesin/mesinLemah.js`). Tab Stockfish memuat seluruh daftar elo
+100–3200; di bawah 2000 engine yang dipakai tetap sunfish karena lantai
+resmi `UCI_Elo` Stockfish adalah 1320:
 
-| Level | Mesin | Catatan |
+| Level (label UI) | Mesin | Catatan |
 | --- | --- | --- |
-| Beginner / Pemula Total | sunfish | sengaja dilemahkan (kedalaman dangkal + derau) |
-| Casual / Pemula | sunfish | sengaja dilemahkan |
-| **Menengah — Maia** | **Maia 3** | gaya manusia; rating bebas dipilih |
-| Advanced / Mahir | Stockfish | Skill Level 12, 700 ms |
-| Expert / Ahli | Stockfish | Skill Level 16, 1000 ms |
-| Master | Stockfish | Skill Level 20, 1400 ms |
+| New to Chess (100) | sunfish | profil sendiri `new-to-chess`: kedalaman 1, derau 1600, tunnel 0.95 |
+| Beginner (400) | sunfish | profil sendiri `beginner`: kedalaman 1, derau 600, tunnel 0.75 |
+| Novice (600) | sunfish | profil sendiri `novice`: kedalaman 2, derau 350, tunnel 0.6 |
+| Intermediate (900) | sunfish | profil sendiri `intermediate`: kedalaman 3, derau 220, tunnel 0.45 |
+| Intermediate II (1200) | sunfish | profil sendiri `intermediate-2`: kedalaman 3, derau 80, tunnel 0.15 |
+| Advanced (1600) | sunfish | profil sendiri `advanced`: kedalaman 4, derau 0, tanpa tunnel |
+| **Menengah — Maia** | **Maia 3** | gaya manusia; rating bebas dipilih 600–2600 |
+| Expert (2000) | Stockfish | `UCI_LimitStrength` + `UCI_Elo 2000`, 800 ms |
+| Master (2400) | Stockfish | `UCI_Elo 2400`, 1200 ms |
+| Grandmaster (2800) | Stockfish | `UCI_Elo 2800`, 1600 ms |
+| Maksimum (3200) | Stockfish | `UCI_Elo 3190` — batas atas resmi rentang 1320–3190, 2500 ms |
+
+Enam level sunfish masing-masing mempunyai **profil sendiri** di
+`PROFIL_SUNFISH` (satu kunci per `id` level — tidak ada dua label berbagi
+parameter). Urutan kekuatannya monoton (kedalaman tidak turun, derau dan
+tunnel tidak pernah naik) dan dijaga `scripts/uji-sunfish.mjs`; angka
+kekuatan terukur bisa diperiksa dengan `scripts/kalibrasi-sunfish.mjs`.
+Hasil kalibrasi terakhir (n = 12–40, margin ±95%):
+
+| Profil | vs jangkar acak (asumsi 400) | vs jangkar Stockfish 1320 |
+| --- | --- | --- |
+| `new-to-chess` | ≈ 603 ±139 (n=40) | — |
+| `beginner` | ≈ 558 ±127 (n=40) | — |
+| `novice` | ≈ 738 ±513 (n=20) | — |
+| `intermediate` | ≈ 945 ±452 (n=12) | ≈ 982 ±531 (n=12) |
+| `intermediate-2` | ≈ 945 ±452 (n=12) | ≈ 1262 ±231 (n=12) |
+| `advanced` | ≈ 680 ±556 (n=12) | ≈ 1440 ±265 (n=12) |
+
+Dua catatan kejujuran: (1) jangkar acak **tersaturasi** di lantai bawah —
+label 100 dan 400 tidak bisa dibedakan secara statistik oleh jangkar mana
+pun (pembeda nyatanya parameter profil dan perilakunya; uji head-to-head
+`new-to-chess` vs `beginner` pun hanya 51.3% — keduanya sudah di lantai
+fisik); (2) jangkar Stockfish 1320 adalah lantai resmi `UCI_Elo`, jadi ia
+penunjuk terbaik untuk kelompok menengah — di sana label 900/1200/1600
+semuanya berada di dalam margin ±95% dan titik ukurnya terurut naik.
+Head-to-head `intermediate-2` vs `advanced` (n=24) dimenangkan `advanced`
+6–0 pada partai decisive — pemisahan dua profil atas terbukti langsung.
+
+Level Stockfish memakai kalibrasi resmi protokol UCI — `UCI_LimitStrength`
++ `UCI_Elo` sesuai angka label (benar-by-construction) — bukan `Skill
+Level` manual.
 
 Satu-satunya level Maia memakai rating bawaan 1500 (`RATING_MAIA_BAKU`),
-dan ratingnya bisa dipilih dari `PILIHAN_RATING_MAIA` = 1100 / 1300 / 1500 /
-1700 / 1900 lewat pilihan **Rating Maia** yang muncul hanya untuk level ini.
-Daftar itu sekadar penanda yang enak dipilih: model menerima rating kontinu,
-jadi menambah angka lain di daftar sah-sah saja.
+dan ratingnya bisa dipilih dari `PILIHAN_RATING_MAIA` = 600 sampai 2600
+kelipatan 100 (21 penanda) lewat pilihan **Rating Maia** yang muncul hanya
+untuk level ini. Daftar itu sekadar penanda yang enak dipilih: model
+menerima rating kontinu, jadi menambah angka lain di daftar sah-sah saja.
+Catatan ekstrapolasi untuk rating di luar 1100–1900 ditampilkan di UI di
+bawah grid rating (kunci `pveMesinMaia`).
 
 ---
 
@@ -58,9 +97,11 @@ Maia. Semuanya diimplementasikan di `src/lib/maia3.js`.
 
 Rating dikirim sebagai angka kontinu, bukan kategori: Maia 3 menginterpolasi
 rating, jadi 1500 dan 1550 memang menghasilkan gaya yang berbeda. Nilai
-dijepit ke **1100–1900** oleh `batasRating` — rentang yang divalidasi
-pelatihannya. Di luar itu model masih berjalan, tetapi tidak pernah diuji,
-jadi UI tidak pernah mengirim angka ngawur.
+dijepit ke **600–2600** oleh `batasRating` — penjepit itu sengaja dilebar
+dari rentang latihan ±1100–1900; di luar rentang latihan model masih
+berjalan, tetapi hasilnya ekstrapolasi dan tidak pernah diuji. Keterangan
+ini ditampilkan eksplisit di UI (kunci `pveMesinMaia`, di bawah grid rating
+Maia), jadi pemain selalu tahu saat memilih rating di luar 1100–1900.
 
 **Keluaran** (dua tensor float32):
 
@@ -165,7 +206,7 @@ alasan kita tidak bisa menyalinnya begitu saja.
 | Isolasi lintas-origin | **COOP + COEP lewat `coi-serviceworker.js`** (service worker menyuntik header, lalu halaman dimuat ulang) | **tidak ada COEP** |
 | Penyimpanan bobot | IndexedDB, kunci = url + versi | sama |
 | Memilih langkah | argmax — selalu langkah paling mungkin | contoh acak dari distribusi |
-| Rentang rating | 600–2600 | 1100–1900 |
+| Rentang rating | 600–2600 | 600–2600 (penjepit sama; rentang latihan ±1100–1900 diketengahkan di UI) |
 
 Tiga hal yang terbukti saat memeriksanya:
 
@@ -197,9 +238,10 @@ Dua perbedaan yang bukan soal teknis, melainkan pilihan:
 * **Rentang rating.** Hulu (`maia-platform-frontend`) menyatakan skala Maia
   600–2600 (`MAIA_MIN_RATING` / `MAIA_MAX_RATING`) dan memberi angka itu ke
   model yang sama; di dalam grafnya sendiri masukan rating hanya dijepit
-  `Clip(0, 5000)`. Pilihan kita (1100–1900) jadi lebih sempit daripada yang
-  model dan hulunya dukung. Mempersempit itu sah — kalau Maia nanti ingin ikut
-  melayani pemula, angkanya bisa diturunkan tanpa mengganti apa pun.
+  `Clip(0, 5000)`. Kita dulu memakai penjepit 1100–1900 (rentang latihan);
+  sekarang penjepitnya **600–2600 — sama dengan hulu** — dan batas latihan
+  ±1100–1900 tidak dipakai sebagai penjepit, melainkan diketengahkan sebagai
+  batas ekstrapolasi yang dijelaskan di UI (`pveMesinMaia`).
 * **Cara memilih langkah.** A.C.A.S. selalu memainkan langkah dengan peluang
   terbesar. Kita mencontoh dari seluruh distribusi (`contohLangkah`), jadi
   posisi yang sama tidak dijawab identik dua kali — itu bagian dari "terasa
@@ -264,9 +306,14 @@ Tangga ada di `src/halaman/ManusiaVsMesin/mesinLemah.js` pada
 
 * `sunfish` — `waktu` dan `kedalaman`, diterjemahkan ke perintah UCI oleh
   `perintahProfilSunfish` (QS, QS_A, Eval Noise, Material Only, Tunnel
-  Vision, Random Seed).
+  Vision, Random Seed). Setiap level sunfish memakai **profilnya sendiri**
+  di `PROFIL_SUNFISH` (kunci = `id` level), sehingga beda label = beda
+  parameter.
 * `maia` — `rating`, dipakai apa adanya untuk `elo_self`/`elo_oppo`.
-* `stockfish` — `keterampilan` (Skill Level) dan `waktu`.
+* `stockfish` — `uciElo` (angka label rating, rentang resmi UCI 1320–3190)
+  dan `waktu`. Saat giliran mesin, UI mengirim `UCI_LimitStrength = true`
+  lalu `UCI_Elo = uciElo`, sehingga kekuatan riil bidik labelnya sendiri
+  (benar-by-construction). `Skill Level` manual sudah ditinggalkan.
 
 Kekuatan Maia datang dari rating, bukan dari pembatasan pencarian, jadi level
 Maia tidak butuh satu pun opsi pelemahan. Menambah level Maia kedua (misal

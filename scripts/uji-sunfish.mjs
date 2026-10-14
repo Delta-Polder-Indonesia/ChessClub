@@ -278,7 +278,7 @@ for (const level of PILIHAN_LEVEL_MESIN) {
       Boolean(profil) && 1 <= profil.kedalaman && 0 <= profil.derau && 0 <= profil.terowongan && 1 >= profil.terowongan
     );
   } else if ("maia" === level.mesin) {
-    // Maia tidak punya Skill Level: kekuatannya ditentukan rating yang
+    // Maia tidak punya opsi kekuatan UCI: kekuatannya ditentukan rating yang
     // disuapkan ke model, jadi yang diuji adalah ratingnya termasuk pilihan
     // yang ditawarkan UI (bukan sembarang angka di luar rentang latihan).
     hasil(
@@ -286,19 +286,46 @@ for (const level of PILIHAN_LEVEL_MESIN) {
       PILIHAN_RATING_MAIA.includes(level.rating)
     );
   } else {
-    hasil(`level Stockfish "${level.id}" punya Skill Level`, Number.isInteger(level.keterampilan));
+    hasil(
+      `level Stockfish "${level.id}" memakai uciElo resmi 1320–3190 (tanpa Skill Level manual)`,
+      Number.isInteger(level.uciElo) &&
+        level.uciElo >= 1320 &&
+        level.uciElo <= 3190 &&
+        level.keterampilan === undefined
+    );
   }
 }
-// Dulu ada profil ketiga ("intermediate"); sejak Maia 3 mengisi level
-// menengah, sunfish cukup dua tingkat untuk pemula — urutannya tetap diuji.
+// Enam label bawah = ENAM profil berbeda, satu per level (dulu dua profil
+// dipakai bersama oleh enam label — beda label dengan kekuatan identik).
+// Urutannya mengikuti daftar level (label terendah dulu) dan wajib monoton.
+const urutSunfish = PILIHAN_LEVEL_MESIN.filter((level) => "sunfish" === level.mesin);
+hasil(
+  "setiap level sunfish punya profilnya sendiri, tanpa duplikasi parameter",
+  urutSunfish.length === 6 &&
+    urutSunfish.every((level) => level.profilSunfish === level.id) &&
+    new Set(
+      urutSunfish.map((level) => JSON.stringify(PROFIL_SUNFISH[level.profilSunfish]))
+    ).size === urutSunfish.length
+);
 hasil(
   "profil bertingkat: kedalaman tidak pernah turun",
-  PROFIL_SUNFISH.beginner.kedalaman <= PROFIL_SUNFISH.casual.kedalaman
+  urutSunfish.every(
+    (level, i) =>
+      i === 0 ||
+      PROFIL_SUNFISH[urutSunfish[i - 1].profilSunfish].kedalaman <=
+        PROFIL_SUNFISH[level.profilSunfish].kedalaman
+  )
 );
 hasil(
   "profil bertingkat: derau dan tunnel vision tidak pernah naik",
-  PROFIL_SUNFISH.beginner.derau >= PROFIL_SUNFISH.casual.derau &&
-    PROFIL_SUNFISH.beginner.terowongan >= PROFIL_SUNFISH.casual.terowongan
+  urutSunfish.every(
+    (level, i) =>
+      i === 0 ||
+      (PROFIL_SUNFISH[urutSunfish[i - 1].profilSunfish].derau >=
+        PROFIL_SUNFISH[level.profilSunfish].derau &&
+        PROFIL_SUNFISH[urutSunfish[i - 1].profilSunfish].terowongan >=
+          PROFIL_SUNFISH[level.profilSunfish].terowongan)
+  )
 );
 hasil(
   "perintah profil memuat semua knob",

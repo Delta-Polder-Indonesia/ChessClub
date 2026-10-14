@@ -366,7 +366,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const [tabLevel, setTabLevel] = useState("stockfish");
   // Rating Maia dipisah dari `levelMesin` karena satu level menengah bisa
   // dipakai untuk seluruh rentang 600–2600 — Maia 3 menerima rating kontinu,
-  // jadi tidak perlu satu entri per kekuatan seperti Stockfish Skill Level.
+  // jadi tidak perlu satu entri per kekuatan seperti level Stockfish UCI_Elo
+  // atau profil sunfish.
   const [ratingMaia, setRatingMaia] = useState(RATING_MAIA_BAKU);
   const tingkatAktif = useMemo(
     () => PILIHAN_LEVEL_MESIN.find((level) => level.id === levelMesin) || PILIHAN_LEVEL_MESIN[0],
@@ -584,8 +585,9 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
 
     // Maia 3 bukan engine UCI: ia model kebijakan manusia (ONNX) yang
     // dijalankan onnxruntime-web di worker sendiri. Tidak ada `go depth`,
-    // tidak ada Skill Level — kekuatannya ditentukan oleh rating yang
-    // disuapkan ke model, dan satu inferensi cukup untuk satu langkah.
+    // tidak ada opsi kekuatan UCI (UCI_Elo/Skill Level) — kekuatannya
+    // ditentukan oleh rating yang disuapkan ke model, dan satu inferensi
+    // cukup untuk satu langkah.
     if ("maia" === tingkatAktif.mesin) {
       setStatusMesin("memuat");
       mintaLangkahMaia(fen)
@@ -630,9 +632,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           });
           for (const baris of perintah) engine.kirim(baris);
         } else {
-          // Skill Level adalah opsi resmi Stockfish dengan rentang 0 sampai 20.
-          // Label tingkat tetap memakai rentang rating pemain yang diminta UI.
-          engine.kirim(`setoption name Skill Level value ${tingkatAktif.keterampilan}`);
+          // Kekuatan Stockfish memakai kalibrasi resmi protokol UCI —
+          // UCI_LimitStrength + UCI_Elo — bukan Skill Level manual, supaya
+          // kekuatan riil BENAR-BY-CONSTRUCTION sama dengan angka label
+          // rating di UI. `uciElo` wajib berada di rentang resmi 1320–3190:
+          // nilai di luar rentang ditolak diam-diam oleh engine (dan akan
+          // diam ke lantai default 1320, level terlemah).
+          engine.kirim("setoption name UCI_LimitStrength value true");
+          engine.kirim(`setoption name UCI_Elo value ${tingkatAktif.uciElo}`);
         }
         setStatusMesin("mesin");
         engine.analisis(fen, {
@@ -1266,7 +1273,8 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                   <select>: Maia menerima rating kontinu, jadi 21 penanda
                   dipilih langsung tanpa dua langkah membuka menu. */}
               {tabLevel === "maia" ? (
-                <ul className="grid grid-cols-3 gap-1.5">
+                <>
+                  <ul className="grid grid-cols-3 gap-1.5">
                   {PILIHAN_RATING_MAIA.map((rating) => (
                     <li key={rating}>
                       <button
@@ -1286,7 +1294,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                       </button>
                     </li>
                   ))}
-                </ul>
+                  </ul>
+                  {/* Keterangan extrapolasi — kunci lama `pveMesinMaia` yang
+                      tadinya mati; rating di luar 1100–1900 bukan kekuatan
+                      tervalidasi pelatihan model. */}
+                  <p className="mt-2 text-[11px] leading-4 text-gray-500">
+                    {t("papan.pveMesinMaia", { rating: ratingMaia })}
+                  </p>
+                </>
               ) : (
                 <ul className="space-y-1.5">
                   {PILIHAN_LEVEL_MESIN.filter((level) => level.tab === tabLevel).map((level) => (
