@@ -33,6 +33,40 @@ export function fenDariLangkah(daftarSan, dasar = FEN_AWAL) {
   return game.fen();
 }
 
+/**
+ * Rincian tiap langkah (indeks i = langkah ke-i): FEN sesudah langkah itu
+ * serta petak asal & tujuan dari chess.js (rokade & en passant ikut benar).
+ * Dipakai pratinjau papan saat kursor diarahkan ke langkah di riwayat.
+ * Langkah yang tidak sah menghentikan replay: sisanya bernilai null.
+ */
+export function rincianTiapLangkah(daftarSan, dasar = FEN_AWAL) {
+  const hasil = [];
+  let game;
+  try {
+    game = new Chess(dasar);
+  } catch {
+    return daftarSan.map(() => ({ fen: null, dari: null, ke: null }));
+  }
+  let rusak = false;
+  for (const san of daftarSan) {
+    let pindah = null;
+    if (!rusak) {
+      try {
+        pindah = game.move(san);
+      } catch {
+        pindah = null;
+      }
+      if (!pindah) rusak = true;
+    }
+    hasil.push(
+      rusak
+        ? { fen: null, dari: null, ke: null }
+        : { fen: game.fen(), dari: pindah.from, ke: pindah.to }
+    );
+  }
+  return hasil;
+}
+
 /** Susun deret SAN menjadi teks PGN sederhana ("1. e4 e5 2. Nf3 …"). */
 export function susunPgn(daftarSan) {
   const bagian = [];

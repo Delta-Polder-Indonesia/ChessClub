@@ -45,6 +45,7 @@ import {
   kuciDariPindahan,
   modeDariPohon,
   pohonDariDaftar,
+  rincianTiapLangkah,
   ratingDariSnapshotEval,
   sanDariPgn,
   sanDiPosisi,
@@ -383,6 +384,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   // Bidak yang ditangkap tiap sisi (ikon di baris pemain), dihitung dari riwayat.
   const tangkapan = useMemo(() => susunTangkapan(riwayat, fenAwal), [riwayat, fenAwal]);
+  // FEN & petak asal-tujuan tiap langkah — untuk pratinjau papan di DaftarRiwayat.
+  const rincianLangkah = useMemo(() => rincianTiapLangkah(riwayatLengkap, fenAwal), [riwayatLengkap, fenAwal]);
 
   /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
       menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
@@ -1762,6 +1765,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                           rating={ratingRiwayat}
                           onPilih={keLangkah}
                           t={t}
+                          rincian={rincianLangkah}
+                          tema={warnaPapan}
+                          setBidak={setBidak}
                         />
                       </div>
 
