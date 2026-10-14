@@ -17,6 +17,7 @@ import {
   skorAwal,
   susunSoal,
 } from "./turingLogika.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 /** Kedalaman Stockfish untuk langkah mesin. Cukup untuk pilihan yang wajar. */
 const KEDALAMAN_MESIN = 10;
@@ -59,7 +60,7 @@ export default function TuringTest({ pengaturan = null }) {
   const [jawaban, setJawaban] = useState(null);
   const [skor, setSkor] = useState(skorAwal);
   const [pesan, setPesan] = useState("");
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
   const engineRef = useRef(null);
   const aktifRef = useRef(true);
 
@@ -128,7 +129,7 @@ export default function TuringTest({ pengaturan = null }) {
       setIndeks(0);
       setJawaban(null);
       setSkor(skorAwal());
-      setTanda({ panah: [], petak: {} });
+      hapusSemuaTanda();
       setFase("tebak");
     } catch {
       if (aktifRef.current) {
@@ -145,27 +146,6 @@ export default function TuringTest({ pengaturan = null }) {
     setSkor((s) => catatSkor(s, benar));
   }
 
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((panah) => panah.from === from && panah.to === to);
-      const panah = ada
-        ? lama.panah.filter((item) => !(item.from === from && item.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
-  }
-
   function lanjut() {
     if (indeks + 1 >= soal.length) {
       setFase("hasil");
@@ -173,7 +153,7 @@ export default function TuringTest({ pengaturan = null }) {
     }
     setIndeks(indeks + 1);
     setJawaban(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   const aktif = fase === "tebak" ? soal[indeks] : null;

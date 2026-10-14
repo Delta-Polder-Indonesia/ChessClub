@@ -27,6 +27,7 @@ import {
   apakahLangkahLegal,
   apakahLangkahSesuai,
 } from "../../lib/tekaTeki.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 const KUNCI_SELESAI = "kci-teka-teki-terpecahkan";
 const KUNCI_POSISI = "kci-teka-teki-posisi";
@@ -302,7 +303,7 @@ export default function TekaTeki() {
   const [selesai, setSelesai] = useState(false);
   const [terpecahkan, setTerpecahkan] = useState(bacaTerpecahkan);
 
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
 
   const [posisiTersimpan, setPosisiTersimpan] = useState(bacaPosisi);
   const [nomorSoal, setNomorSoal] = useState("");
@@ -730,14 +731,14 @@ export default function TekaTeki() {
       setSelesai(false);
     }
     setKomputer(false);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
     setSedangSeret(false);
     setPromosi(null);
     setSyzygy(null);
     setSyzygyMemuat(false);
     setSyzygyGagal(false);
     setKomentar({ tahap: "mulai", fakta: null, fen: m.fen });
-  }, []);
+  }, [hapusSemuaTanda]);
 
   const pindahSoal = useCallback(
     (indeksBaru) => {
@@ -1273,27 +1274,6 @@ export default function TekaTeki() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [masalah, komputer, selesai, fen, sisa, terpilih, sasaran]
   );
-
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((p) => p.from === from && p.to === to);
-      const panah = ada
-        ? lama.panah.filter((p) => !(p.from === from && p.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
-  }
 
   const _crumbs = [
     { label: t("common.home"), to: "/" },

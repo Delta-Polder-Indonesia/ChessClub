@@ -45,6 +45,7 @@ import {
   kuciDariPindahan,
   modeDariPohon,
   pohonDariDaftar,
+  rincianTiapLangkah,
   ratingDariSnapshotEval,
   sanDariPgn,
   sanDiPosisi,
@@ -66,6 +67,7 @@ import PopupPengaturan from "./PopupPengaturan.jsx";
 import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 /* ------------------------------------------------- analisis Stockfish */
 // Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
@@ -120,7 +122,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [kesalahan, setKesalahan] = useState(null);
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
-  const [tanda, setTanda] = useState({ panah: [], petak: {} });
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
   // Set bidak & warna papan kini dari Pengaturan (konteks bersama tata letak).
   const setBidak = pp.bidak;
 
@@ -382,6 +384,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   // Bidak yang ditangkap tiap sisi (ikon di baris pemain), dihitung dari riwayat.
   const tangkapan = useMemo(() => susunTangkapan(riwayat, fenAwal), [riwayat, fenAwal]);
+  // FEN & petak asal-tujuan tiap langkah — untuk pratinjau papan di DaftarRiwayat.
+  const rincianLangkah = useMemo(() => rincianTiapLangkah(riwayatLengkap, fenAwal), [riwayatLengkap, fenAwal]);
 
   /** Daftar untuk dropdown: satu wakil per nama (jalur terpendek), dikelompokkan
       menurut "keluarga" pembukaan (teks sebelum tanda titik dua, mis.
@@ -492,10 +496,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   /** Hapus semua tanda bantu pengguna (panah + mark petak) — satu pintu. */
-  function hapusSemuaTanda() {
-    setTanda({ panah: [], petak: {} });
-  }
-
   function klikPetak(petak) {
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
@@ -686,23 +686,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
   }, []);
 
-  function tandaPetak(petak, warna) {
-    setTanda((lama) => {
-      if (lama.petak[petak]) return { panah: [], petak: {} };
-      return { ...lama, petak: { ...lama.petak, [petak]: warna } };
-    });
-  }
-
-  function tandaPanah(from, to, warna) {
-    setTanda((lama) => {
-      const ada = lama.panah.some((p) => p.from === from && p.to === to);
-      const panah = ada
-        ? lama.panah.filter((p) => !(p.from === from && p.to === to))
-        : [...lama.panah, { from, to, warna }];
-      return { ...lama, panah };
-    });
-  }
-
   /* ------------------------------------------------------ kontrol papan */
   function reset() {
     bunyikan(SUARA.mulai);
@@ -717,7 +700,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   function keAwal() {
@@ -730,7 +713,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   function undo() {
@@ -907,7 +890,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       setSasaran([]);
       setLangkahAkhir(null);
       setPromosi(null);
-      setTanda({ panah: [], petak: {} });
+      hapusSemuaTanda();
     };
     const ruas = isi.split(/\s+/);
     // FEN: ruas pertama memuat "/" dan teks punya ≥6 ruas.
@@ -1057,7 +1040,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setSasaran([]);
     setLangkahAkhir(null);
     setPromosi(null);
-    setTanda({ panah: [], petak: {} });
+    hapusSemuaTanda();
   }
 
   /* ------------------------------------------ ikon klasifikasi langkah */
@@ -1782,6 +1765,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                           rating={ratingRiwayat}
                           onPilih={keLangkah}
                           t={t}
+                          rincian={rincianLangkah}
+                          tema={warnaPapan}
+                          setBidak={setBidak}
                         />
                       </div>
 

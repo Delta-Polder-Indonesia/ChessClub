@@ -18,7 +18,7 @@ export const tekaTeki = {
     caraMain:
       "Click or drag one of your pieces to a destination square. Find the move that leads to checkmate — the opponent will reply automatically with its best defense.",
     caraTanda:
-      "Analysis marks: right-click a square to mark it yellow; hold right-click and drag to draw an orange arrow; right-click a marked square (or left-click once on an empty square) to clear all marks. Hold Shift/Ctrl/Alt while marking for red/green/blue.",
+      "Analysis marks: right-click a square to mark it yellow; hold right-click and drag to draw an orange arrow; right-click a marked square to remove that mark (right-click with another color to change it). Left-click anywhere on the board to clear all marks. Hold Shift/Ctrl/Alt while marking for red/green/blue.",
     hapusSemuaTanda: "Clear All Marks",
     soal: "Puzzle #{n} of {total}",
     skakmat1: "Mate in One",

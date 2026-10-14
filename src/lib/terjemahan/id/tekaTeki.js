@@ -18,7 +18,7 @@ export const tekaTeki = {
     caraMain:
       "Klik atau seret bidak milikmu ke petak tujuan. Cari langkah yang berujung skakmat — lawan akan membalas otomatis sesuai pertahanan terbaiknya.",
     caraTanda:
-      "Tanda bantu analisis: klik kanan petak untuk menandainya dengan warna kuning; tahan klik kanan lalu seret untuk menggambar panah oranye; klik kanan pada petak yang sudah bertanda (atau klik kiri satu kali pada petak kosong) untuk menghapus semua tanda. Tahan Shift/Ctrl/Alt saat menandai untuk warna merah/hijau/biru.",
+      "Tanda bantu analisis: klik kanan petak untuk menandainya dengan warna kuning; tahan klik kanan lalu seret untuk menggambar panah oranye; klik kanan pada petak yang sudah bertanda untuk menghapus tanda itu saja (klik kanan dengan warna lain untuk mengganti warnanya); klik kiri di papan untuk menghapus semua tanda. Tahan Shift/Ctrl/Alt saat menandai untuk warna merah/hijau/biru.",
     hapusSemuaTanda: "Hapus Semua Tanda",
     soal: "Soal #{n} dari {total}",
     skakmat1: "Skakmat dalam 1 Langkah",
