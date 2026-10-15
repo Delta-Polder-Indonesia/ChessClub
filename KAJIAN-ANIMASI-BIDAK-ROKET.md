@@ -179,3 +179,65 @@ CHROME_EXE=/usr/bin/google-chrome node docs/riset-isepic/ukur-animasi-peramban.m
 Artefak pengukuran mentah: jalankan skrip §2 dengan `--json=hasil-animasi.json`
 di komputer Anda; di sandbox, angka di laporan ini datang dari run nyata yang
 sama.
+
+---
+
+## 8. Temuan baru: luncuran DIPOTONG saat posisi berubah lagi (diperbaiki)
+
+Setelah laporan di atas, keluhan berlanjut ("masih melesat, tidak halus"). Penelusuran
+lanjutan lewat perekaman di peramban menemukan cacat yang sebelumnya terlewat:
+
+**Kode lama** (`PapanTekaTeki.jsx`):
+
+```js
+// FEN benar-benar berubah: tidak boleh ada sisa klon dari langkah
+// sebelumnya (satu langkah = satu penerbangan, seperti isepic).
+if (fenLama !== fen) batalkanKlonTerbang();
+```
+
+Setiap perubahan posisi membuang **semua** klon yang sedang terbang dan
+langsung menampilkan bidak aslinya. Jadi begitu ada pembaruan posisi kedua
+(balasan mesin, langkah kedua, penyesuaian analisa) yang tiba **di tengah
+luncuran 300 ms**, luncuran itu dipotong dan bidak "dilempar" ke petak
+tujuannya — bagian paling halus dari kurva `ease` (pendaratan yang melandai)
+hilang. Terukur di peramban: luncuran yang seharusnya 300 ms hanya bertahan
+**184 ms** (≈41 fps terasa seperti lompatan).
+
+isepic tidak berperilaku begitu: klon-nya hidup di DOM dan menyelesaikan
+`_CFG.animationTime`-nya sendiri, tidak peduli render berikutnya.
+
+**Perbaikan:**
+
+- Klon yang sedang terbang **tidak lagi dipotong** oleh posisi baru.
+- Klon hanya diselesaikan lebih awal bila petak tujuannya kini berisi bidak
+  **lain** (bidaknya tertangkap/diganti) — supaya tidak mendarat di atas bidak
+  yang salah.
+- Bila posisi diganti sepenuhnya (soal baru / muat FEN, tanpa luncuran yang
+  sah), semua klon tetap dibuang seperti sebelumnya.
+- Bidak asli di petak tujuan disembunyikan ulang pada **setiap render** —
+  React bisa mengganti elemen bidak di tengah luncuran, dan elemen baru itu
+  harus ikut tersembunyi (kalau tidak, bidak tampak sudah "sampai" padahal
+  klonnya masih di udara).
+- Bila dua penerbangan menuju petak yang sama tumpang tindih, yang lama
+  diselesaikan lebih dulu.
+
+**Bukti:** uji baru di `scripts/uji-animasi-bidak.mjs` ("balasan cepat TIDAK
+memotong luncuran yang sedang berjalan") **gagal 2 pemeriksaan pada kode lama**
+dan lulus pada kode baru — jadi cacatnya nyata dan terjaga. Setelah perbaikan,
+perekaman di peramban (MutationObserver + `transitionend`) menunjukkan klon
+hidup **310 ms** penuh (tambah 363,8 ms → hapus 674,1 ms), bukan 184 ms.
+
+Timing rinci di mesin pengembangan (Chromium, /papan-interaktif):
+
+| Skenario | Sebelum | Sesudah |
+| --- | --- | --- |
+| Klik e2→e4, mesin mati | 288–303 ms (utuh) | 288–303 ms (utuh) |
+| Klik e2→e4, mesin nyala (posisi diperbarui lagi < 300 ms) | **184 ms (terpotong)** | **310 ms (utuh)** |
+| Uji jsdom "balasan cepat" | 2 gagal | 62 lulus, 0 gagal |
+
+Catatan jujur: pemotongan ini bergantung waktu (butuh pembaruan posisi kedua
+yang tiba < 300 ms). Kalau di peramban Anda luncuran **masih** terasa melesat
+saat mesin mati dan papan diam, penyebabnya bukan cacat ini — jalankan
+`docs/riset-isepic/cek-animasi-konsol.js` (lihat `VERIFIKASI-ANIMASI.md`) dan
+kirim tabelnya; itu memuat durasi, kurva, dan `prefers-reduced-motion` persis
+dari peramban Anda.

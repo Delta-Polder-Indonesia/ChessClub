@@ -68,6 +68,9 @@ console.log("A. penyimpul langkah dari selisih FEN");
 
 const AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+// 1. e4 e6 — dipakai untuk menguji balasan cepat (mesin/autoplay) yang tiba
+// saat luncuran pemain masih di udara.
+const SETELAH_E4_E6 = "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2";
 
 {
   const g = geseranDariFen(AWAL, SETELAH_E4);
@@ -510,6 +513,43 @@ await aturPosisi({ fen: SETELAH_E4, orientasi: "w", langkahAkhir: { from: "e2", 
   uji("setelah mendarat bidak asli tampil lagi", wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "");
 }
 
+// Balasan cepat (mesin/autoplay) TIDAK boleh memotong luncuran yang berjalan.
+// Dulu setiap perubahan FEN membuang SEMUA klon terbang: luncuran 300 ms
+// terpangkas di tengah (terukur di peramban sungguhan: 184 ms) sehingga bidak
+// terasa "melesat" dan pendaratan lembut kurva `ease` hilang. isepic membiarkan
+// tiap klon menyelesaikan 300 ms-nya sendiri.
+await aturPosisi({ fen: AWAL, orientasi: "w" });
+await aturPosisi({ fen: SETELAH_E4, orientasi: "w", langkahAkhir: { from: "e2", to: "e4" } });
+{
+  const klonE4 = klonTerbang(wadah);
+  uji("balasan cepat: luncuran e2→e4 sudah di udara", klonE4.length === 1, `${klonE4.length} klon`);
+  await tunggu(120); // balasan mesin tiba jauh sebelum 300 ms selesai
+  await aturPosisi({ fen: SETELAH_E4_E6, orientasi: "w", langkahAkhir: { from: "e7", to: "e6" } });
+  const sesudah = klonTerbang(wadah);
+  uji(
+    "balasan cepat TIDAK memotong luncuran yang sedang berjalan",
+    sesudah.includes(klonE4[0]),
+    `${sesudah.length} klon: ${sesudah.map((k) => k.getAttribute("data-klon-terbang")).join(",")}`
+  );
+  uji(
+    "balasan mesin ikut terbang (klon e7→e6)",
+    sesudah.some((k) => k.getAttribute("data-klon-terbang") === "e6"),
+    sesudah.map((k) => k.getAttribute("data-klon-terbang")).join(",")
+  );
+  uji(
+    "bidak asli di e4 dan e6 tetap tersembunyi selama kedua klon terbang",
+    wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "hidden" &&
+      wadah.querySelector('[data-petak="e6"] [data-bidak]')?.style?.visibility === "hidden"
+  );
+  daratkanKlon(wadah);
+  uji("setelah mendarat semua klon dibuang", klonTerbang(wadah).length === 0);
+  uji(
+    "setelah mendarat bidak asli tampil lagi (e4 dan e6)",
+    wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "" &&
+      wadah.querySelector('[data-petak="e6"] [data-bidak]')?.style?.visibility === ""
+  );
+}
+
 // Posisi diganti sepenuhnya (soal baru / muat FEN) → langsung, tanpa luncuran.
 await aturPosisi({ fen: "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1", orientasi: "w" });
 uji("ganti posisi tidak menganimasikan", klonTerbang(wadah).length === 0, `${klonTerbang(wadah).length} klon`);
@@ -709,9 +749,10 @@ petakPve("e4")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }))
 await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "e4"));
 {
   const klon = klonTerbang(wadahPve);
+  const klonE4 = klon.filter((k) => k.getAttribute("data-klon-terbang") === "e4");
   uji(
     "klik move pemain menerbangkan tepat satu klon ke e4",
-    klon.length === 1 && klon[0]?.getAttribute("data-klon-terbang") === "e4",
+    klonE4.length === 1,
     `${klon.length} klon: ${JSON.stringify(klon.map((k) => k.getAttribute("data-klon-terbang")))}`
   );
   uji(
