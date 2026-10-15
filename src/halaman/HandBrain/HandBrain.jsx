@@ -170,7 +170,6 @@ export default function HandBrain({ pengaturan = null }) {
           <PapanTekaTeki
             fen={fen}
             orientasi={giliran}
-            gayaGeser="analisa"
             terpilih={terpilih}
             sasaran={sasaran}
             langkahAkhir={langkahAkhir}

@@ -335,7 +335,6 @@ export default function LatihanRepertoar({ pengaturan = null }) {
                 <PapanTekaTeki
                   fen={fen}
                   orientasi={kartuAktif.warna}
-                  gayaGeser="analisa"
                   terpilih={terpilih}
                   sasaran={sasaran}
                   langkahAkhir={langkahAkhir}

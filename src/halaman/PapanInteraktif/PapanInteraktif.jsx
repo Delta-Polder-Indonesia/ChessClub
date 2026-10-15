@@ -1391,7 +1391,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   <PapanTekaTeki
                     fen={fen}
                     orientasi={orientasi}
-                    gayaGeser="analisa"
                     terpilih={terpilih}
                     sasaran={sasaran}
                     kesalahan={kesalahan}

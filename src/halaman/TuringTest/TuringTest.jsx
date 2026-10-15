@@ -197,7 +197,6 @@ export default function TuringTest({ pengaturan = null }) {
               <PapanTekaTeki
                 fen={fenTampil}
                 orientasi="w"
-                gayaGeser="analisa"
                 langkahAkhir={langkahAkhir}
                 terkunci
                 membeku={false}

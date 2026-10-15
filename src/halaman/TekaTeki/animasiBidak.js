@@ -16,12 +16,12 @@
 export const LAJUR = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 /**
- * Lama luncuran (ms). Sengaja lebih lambat daripada chess.com (~200 ms):
- * permintaan pemilik situs adalah gerakan yang "santai", bidak terlihat
- * benar-benar berjalan dari petak asal ke petak tujuan, bukan menyentak.
- * Ubah di SATU tempat ini — papan dan ujinya membaca tetapan yang sama.
+ * Lama luncuran (ms) — menyamai `animationTime` bawaan isepic-chess-ui
+ * (300 ms): cukup lama untuk diikuti mata dari petak asal ke tujuan, tanpa
+ * terasa menyentak. Ubah di SATU tempat ini — papan dan ujinya membaca
+ * tetapan yang sama.
  */
-export const DURASI_GESER = 320;
+export const DURASI_GESER = 300;
 
 /**
  * Lama luncuran saat sistem meminta pengurangan gerak
@@ -30,8 +30,13 @@ export const DURASI_GESER = 320;
  */
 export const DURASI_GESER_MINIM = 120;
 
-/** Kurva percepatan luncuran: berangkat halus, mendarat halus. */
-export const KURVA_GESER = "cubic-bezier(0.4, 0, 0.2, 1)";
+/**
+ * Kurva percepatan luncuran — `ease` bawaan transisi CSS yang dipakai
+ * isepic-chess-ui (transisinya tidak menetapkan timing-function):
+ * berangkat cepat, lalu melambat panjang saat mendarat. Kurva simetris
+ * (lambat di awal dan di akhir) terasa kaku untuk luncuran bidak.
+ */
+export const KURVA_GESER = "cubic-bezier(0.25, 0.1, 0.25, 1)";
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak ("e4" → "P"). */
 export function petaBidak(fen) {
@@ -186,6 +191,59 @@ export function geseranDariFen(fenLama, fenBaru) {
   return hasil;
 }
 
+/**
+ * Luncuran dengan petak asal-tujuan EKSPLISIT (konsep isepic-chess-ui:
+ * langkah selalu membawa `fromBos`/`toBos`, tidak ditebak). Papan menerima
+ * `langkahAkhir` {from, to} dari halaman induk — data itu kini menjadi
+ * sumber utama animasi, dan simpulan diff FEN (`geseranDariFen`) hanya
+ * menjadi cadangan sekaligus pemeriksa kewajaran:
+ *
+ * - eksplisit cocok dengan simpulan FEN → pakai simpulan (rokade sudah
+ *   memuat luncuran benteng pendampingnya);
+ * - eksplisit sah menurut peta FEN lama/baru tetapi simpulan memilih asal
+ *   lain → pakai asal eksplisit (bentuk langkah/promosi tetap diperiksa);
+ * - eksplisit basi/tidak cocok (mis. tertinggal dari langkah sebelumnya
+ *   saat posisi diganti atau dinavigasi) → pakai simpulan FEN apa adanya.
+ *
+ * @param {string} fenLama FEN sebelum perubahan
+ * @param {string} fenBaru FEN sesudah perubahan
+ * @param {{from: string, to: string} | null} langkah langkah eksplisit
+ * @returns {{dari: string, ke: string, bidak: string}[]} daftar luncuran
+ */
+export function geseranDenganAsalEksplisit(fenLama, fenBaru, langkah) {
+  const ditebak = geseranDariFen(fenLama, fenBaru);
+  if (!ditebak.length || !langkah?.from || !langkah?.to) return ditebak;
+  if (ditebak.some((g) => g.dari === langkah.from && g.ke === langkah.to)) return ditebak;
+
+  const lama = petaBidak(fenLama);
+  const baru = petaBidak(fenBaru);
+  const bidakAsal = lama[langkah.from];
+  const bidakTujuan = baru[langkah.to];
+  if (!bidakAsal || !bidakTujuan || warnaDari(bidakAsal) !== warnaDari(bidakTujuan)) {
+    return ditebak;
+  }
+  const cocok =
+    bidakAsal === bidakTujuan
+      ? bentukLangkahSah(bidakAsal, langkah.from, langkah.to)
+      : pasanganPromosi(bidakAsal, bidakTujuan, langkah.from, langkah.to);
+  if (!cocok) return ditebak;
+
+  const hasil = [{ dari: langkah.from, ke: langkah.to, bidak: bidakTujuan }];
+  // Rokade: raja eksplisit melompat dua petak — benteng pendampingnya dari
+  // simpulan FEN ikut diterbangkan (satu warna, bidak benteng).
+  const lompatanRaja =
+    bidakTujuan.toLowerCase() === "k" &&
+    Math.abs(LAJUR.indexOf(langkah.to[0]) - LAJUR.indexOf(langkah.from[0])) === 2;
+  if (lompatanRaja) {
+    for (const g of ditebak) {
+      if (g.ke !== langkah.to && g.bidak.toLowerCase() === "r" && warnaDari(g.bidak) === warnaDari(bidakTujuan)) {
+        hasil.push(g);
+      }
+    }
+  }
+  return hasil;
+}
+
 /** Pergeseran piksel satu luncuran di layar, sesuai orientasi & ukuran petak. */
 export function geseranPiksel(geseran, orientasi, ukuranPetak) {
   const a = posisiLayar(geseran.dari, orientasi);
@@ -199,8 +257,10 @@ export function geseranPiksel(geseran, orientasi, ukuranPetak) {
 /**
  * Gaya luncuran yang meniru `komponen/game/board.jsx` di Report Analisa
  * (`animateMove`): 150 ms, linear, tanpa efek pudar bidak yang dimakan.
- * Dipakai Papan Interaktif lewat prop `gayaGeser="analisa"`; papan lain tetap
- * memakai gaya bawaan di bawah.
+ * Dulu diteruskan mode bermain lewat prop `gayaGeser="analisa"`; kini semua
+ * langkah BERMAIN memakai profil bawaan isepic (300 ms, kurva `ease`) dan
+ * gaya ini dipertahankan hanya untuk kompatibilitas pemanggil/uji lama —
+ * profil navigasi Analisa sendiri tetap hidup di `board.jsx`, bukan di sini.
  */
 export const GAYA_ANALISA = Object.freeze({
   durasi: 150,
