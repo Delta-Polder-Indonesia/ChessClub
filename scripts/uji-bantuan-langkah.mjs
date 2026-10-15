@@ -68,6 +68,8 @@ const FEN_AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const FEN_E3 = "rnbqkbnr/pppppppp/8/8/8/4P3/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
 // chess.js baru hanya menulis petak "en passant" bila benar-benar bisa ditangkap.
 const FEN_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1";
+/** Pion Putih di a7 siap promosi — dipakai menguji bantuan langkah promosi. */
+const FEN_PROMO = "8/P6k/8/8/8/8/6K1/8 w - - 0 1";
 
 /* ------------------------------------------------------ 1. logika murni */
 
@@ -77,6 +79,7 @@ const {
   AMBANG_BANTUAN,
   balasanLawan,
   nilaiDariSudutPelangkah,
+  promosiLangkah,
   susunBantuan,
   susunFenHipotetis,
   warnaBantuan,
@@ -90,6 +93,11 @@ uji(
   "promosi memakai bidak yang diminta",
   susunFenHipotetis("8/P6k/8/8/8/8/6K1/8 w - - 0 1", "a7", "a8", "n") === "N7/7k/8/8/8/8/6K1/8 b - - 0 1"
 );
+
+uji("promosi dikenali pada pion baris terakhir", promosiLangkah(FEN_PROMO, "a7", "a8") === true);
+uji("langkah biasa bukan promosi", promosiLangkah(FEN_AWAL, "e2", "e4") === false);
+uji("langkah tidak sah bukan promosi", promosiLangkah(FEN_AWAL, "e2", "e5") === false);
+uji("FEN rusak → bukan promosi (tanpa melempar)", promosiLangkah("bukan-fen", "a7", "a8") === false);
 
 uji("sudut pandang Putih tidak dibalik", nilaiDariSudutPelangkah(120, "w") === 120);
 uji("sudut pandang Hitam dibalik", nilaiDariSudutPelangkah(120, "b") === -120);
@@ -416,6 +424,29 @@ uji(
   `terminate=${WorkerPalsu.catatan.terminate}`
 );
 uji("sakelar mati: bantuan tidak tampil", laporan.bantuan === null && laporan.petakBantuan === null);
+
+// PROMOSI: selama bidak promosinya belum dipilih (baru ditanya sesudah seret
+// dilepas), bantuan untuk petak baris terakhir DILEWATI — bukan dinilai dengan
+// posisi promosi menteri yang belum tentu dipakai pemain.
+modul.perbaruiBantuan({ aktif: true, fen: FEN_PROMO, nilaiTerbaik: 0, laporan, catatan });
+await tunggu(60);
+WorkerPalsu.reset();
+laporan.panggil({ dari: "a7", tujuan: "a8" });
+await tunggu(120);
+uji(
+  "promosi tanpa pilihan bidak: engine TIDAK dipanggil",
+  WorkerPalsu.catatan.go === 0,
+  `go=${WorkerPalsu.catatan.go}`
+);
+uji(
+  "promosi tanpa pilihan bidak: bantuan dilewati (tanpa warna/panah)",
+  laporan.bantuan === null && laporan.petakBantuan === null && laporan.status === "idle",
+  `bantuan=${JSON.stringify(laporan.bantuan)} status=${laporan.status}`
+);
+laporan.panggil({ dari: "a7", tujuan: "a8", promosi: "n" });
+uji("promosi dengan bidak yang dikirim: bantuan tetap dihitung", await tungguSampai(() => laporan.bantuan?.tujuan === "a8"));
+modul.perbaruiBantuan({ aktif: true, fen: FEN_AWAL, nilaiTerbaik: 0, laporan, catatan });
+await tunggu(40);
 
 console.log("\n3. Lapisan gambar papan (PapanTekaTeki)");
 const catatanPapan = { urut: [], seret: 0, selesai: 0 };

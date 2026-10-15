@@ -50,12 +50,12 @@ const WARNA_BANTUAN = {
   merah: "rgba(220, 50, 50, 0.55)",
 };
 
-/** Warna tanda berdasarkan tombol pengubah: default=merah, Shift=kuning, Ctrl=hijau, Alt=biru. */
+/** Warna tanda berdasarkan tombol pengubah: default=kuning, Shift=merah, Ctrl=hijau, Alt=biru. */
 function warnaDariPeristiwa(e) {
-  if (e.shiftKey) return "bawaan";
+  if (e.shiftKey) return "merah";
   if (e.ctrlKey || e.metaKey) return "hijau";
   if (e.altKey) return "biru";
-  return "merah";
+  return "bawaan";
 }
 
 /* `petaBidak` dipakai bersama dengan logika animasi geser (animasiBidak.js)
@@ -592,6 +592,12 @@ export default function PapanTekaTeki({
 
     function onPointerDown(e) {
       if (e.button === 2) saatKlikKanan(e);
+      // Kontak baru berarti niat baru. Klik sungguhan SELALU didahului
+      // `pointerdown`; klik "hantu" yang peramban teruskan sesudah seret
+      // berakhir tidak. Jadi penanda penelan dilepas di sini — kalau tidak,
+      // seret yang dibatalkan (mis. `pointercancel`) meninggalkan penanda
+      // hidup dan klik berikutnya di mana pun ikut hilang (BUG-3).
+      else abaikanKlikRef.current = false;
     }
     function onMouseDown(e) {
       if (e.button === 2) saatKlikKanan(e);
@@ -605,6 +611,12 @@ export default function PapanTekaTeki({
     function onClick(e) {
       if (!abaikanKlikRef.current) return;
       abaikanKlikRef.current = false;
+      // HANYA klik di dalam papan yang boleh ditelan. Klik "hantu" sesudah
+      // seret di-retarget peramban ke elemen penangkap pointer — akar papan —
+      // jadi masih lolos syarat ini. Klik pada tombol di luar papan (navigasi
+      // langkah, menu, soal berikutnya) TIDAK boleh ikut termakan; itulah
+      // gejala "klik pertama tidak bereaksi".
+      if (!akar.current?.contains?.(e.target)) return;
       e.preventDefault();
       e.stopPropagation();
     }
@@ -719,7 +731,19 @@ export default function PapanTekaTeki({
     }
   }, []);
 
-  /** Selesaikan satu penerbangan sekarang juga: buang klon, tampilkan bidak. */
+  /**
+   * Selesaikan satu penerbangan sekarang juga: buang klon, tampilkan bidak.
+   *
+   * Pendaratan dianggap BERHASIL hanya bila bidak yang dibawa penerbangan ini
+   * benar-benar ada di petak tujuan. Kalau tidak — langkahnya ditolak induk
+   * (salah/blunder), posisi dibatalkan, atau bidaknya sudah pindah lagi — maka
+   * SEMUA elemen yang disembunyikan untuk penerbangan ini harus ditampilkan
+   * kembali. Dulu pemulihan petak asal hanya terjadi bila klon belum mendarat
+   * (`fase !== "landas"`): langkah yang DITOLAK membuat klon "mendarat" di
+   * petak yang tidak akan pernah berisi bidak, lalu klonnya dibuang dan bidak
+   * aslinya tetap `visibility: hidden` — bidaknya hilang tanpa jejak sesudah
+   * salah langkah.
+   */
   const selesaikanKlon = useCallback(
     (entri) => {
       window.clearTimeout(entri.timer);
@@ -727,17 +751,21 @@ export default function PapanTekaTeki({
       entri.klon.remove?.();
       if (entri.intent) sembunyikanBantuPilih(false);
       const bidak = bidakDiPetak(entri.petak);
-      if (bidak) {
-        bidak.style.visibility = "";
-      } else if (entri.fase !== "landas" && entri.dari) {
-        // Batal SEBELUM mendarat dan petak tujuan masih kosong: langkahnya
-        // tidak jadi (klik yang ternyata bukan langkah, papan dibalik, dsb).
-        // Jangan tinggalkan bidak di petak asal dalam keadaan tersembunyi.
-        // Kalau klon sudah MENDARAT, bidak di petak asal memang sudah pindah —
-        // petak asal dibiarkan apa adanya.
-        const asal = bidakDiPetak(entri.dari);
-        if (asal) asal.style.visibility = "";
+      const mendarat =
+        !!bidak && (!entri.bidak || bidak.getAttribute("data-bidak") === entri.bidak);
+      // Petak tujuan selalu ditampilkan lagi: apa pun yang ada di sana bukan
+      // urusan penerbangan yang sudah berakhir ini.
+      if (bidak) bidak.style.visibility = "";
+      if (mendarat) return;
+      // Bidak yang disembunyikan penerbangan ini (sumber klon) ditampilkan
+      // kembali — kecuali ada penerbangan lain yang masih memakainya sebagai
+      // sumber (penerbangan itulah yang nanti menampilkannya).
+      const tersembunyi = entri.tersembunyi;
+      if (!tersembunyi || tersembunyi === bidak) return;
+      for (const lain of klonJalanRef.current) {
+        if (lain.tersembunyi === tersembunyi) return;
       }
+      tersembunyi.style.visibility = "";
     },
     [bidakDiPetak, sembunyikanBantuPilih]
   );
@@ -813,12 +841,16 @@ export default function PapanTekaTeki({
       const petakTujuanEl = wadahSekarang.querySelector(`[data-petak="${kePetak}"]`);
       if (!petakAsalEl || !petakTujuanEl) return false;
 
-      // Sumber klon: bidak di petak TUJUAN bila sudah ada (jalur FEN), kalau
-      // belum ada (jalur klik, posisi belum diperbarui) pakai bidak di petak
-      // asal. Elemen yang diklon itu juga yang disembunyikan sampai mendarat.
+      // Sumber klon: bidak di petak TUJUAN bila sudah ada (jalur FEN — posisi
+      // baru sudah dirender), kalau belum ada pakai bidak di petak asal.
+      // Jalur KLIK (`intent`) selalu memakai bidak di petak ASAL: posisinya
+      // belum diperbarui, jadi bidak yang benar-benar berpindah memang yang di
+      // petak asal. Dulu jalur ini memakai bidak di petak tujuan lebih dulu,
+      // sehingga pada langkah TANGKAP yang meluncur justru gambar bidak lawan
+      // (dan bidak kita diam di petak asal lalu melompat).
       const asliTujuan = petakTujuanEl.querySelector("[data-bidak]");
       const asliAsal = petakAsalEl.querySelector("[data-bidak]");
-      const asli = asliTujuan || asliAsal;
+      const asli = intent ? asliAsal || asliTujuan : asliTujuan || asliAsal;
       if (!asli || typeof asli.cloneNode !== "function") return false;
 
       const petakAsalRect = petakAsalEl.getBoundingClientRect();
@@ -866,12 +898,31 @@ export default function PapanTekaTeki({
         pointerEvents: "none",
         margin: "0",
         filter: "none",
+        // Klon WAJIB terlihat. Kalau elemen sumbernya sudah disembunyikan
+        // penerbangan lain yang belum selesai, `cloneNode` menyalin
+        // `visibility: hidden` miliknya dan bidak yang meluncur jadi tak
+        // terlihat sama sekali.
+        visibility: "",
       });
       for (const anak of klon.querySelectorAll?.("*") || []) anak.style.filter = "none";
       asli.style.visibility = "hidden";
       (document.body || wadahSekarang).appendChild(klon);
 
-      const entri = { klon, petak: kePetak, dari: dariPetak, bidak, intent, timer: 0, mulai: 0, fase: "terbang" };
+      // `tersembunyi` dicatat agar penyelesaian penerbangan bisa menampilkan
+      // kembali elemen YANG INI disembunyikan (sumber klon) — lihat
+      // `selesaikanKlon`; tanpa catatan ini pemulihan hanya bisa menebak dari
+      // petak asal/tujuan, dan bidak bisa tertinggal tersembunyi.
+      const entri = {
+        klon,
+        petak: kePetak,
+        dari: dariPetak,
+        bidak,
+        intent,
+        timer: 0,
+        mulai: 0,
+        fase: "terbang",
+        tersembunyi: asli,
+      };
       const selesai = () => selesaikanKlon(entri);
       klonJalanRef.current.add(entri);
       klon.addEventListener(
@@ -1084,6 +1135,24 @@ export default function PapanTekaTeki({
     sembunyikanBidakTerbang();
     rapikanKlonLandas();
   }, [sembunyikanBidakTerbang, rapikanKlonLandas]);
+
+  /*
+   * Langkah DITOLAK induk (`kesalahan` = { from, to }) — sinyal tercepat bahwa
+   * penerbangan pesanan klik untuk langkah itu tidak akan pernah mendarat:
+   * posisinya memang tidak berubah (langkah salah/blunder tidak diterapkan).
+   * Penerbangannya ditutup SEKARANG, bukan menunggu jaring pengaman 1,2 detik,
+   * supaya bidak langsung terlihat lagi di petak asal — sebarengan dengan
+   * kilatan merah penanda langkah salah. Tanpa ini, klon "mendarat" di petak
+   * yang tidak akan berisi bidak dan bidak asal tertinggal tersembunyi.
+   */
+  useEffect(() => {
+    if (!kesalahan || !kesalahan.from || !kesalahan.to) return;
+    for (const entri of [...klonJalanRef.current]) {
+      if (entri.intent && entri.dari === kesalahan.from && entri.petak === kesalahan.to) {
+        selesaikanKlon(entri);
+      }
+    }
+  }, [kesalahan, selesaikanKlon]);
 
   // Papan dilepas di tengah luncuran (pindah halaman, soal baru): buang
   // klon dan hentikan animasi pudar yang masih berjalan.

@@ -107,7 +107,7 @@ export function muatSet(set) {
     }
     // Set bawaan dicek lebih dulu (hasil glob eager, bukan fungsi); set lain
     // jatuh ke pemuat lazy. `muatSet` sudah menangani kedua bentuk nilai.
-    const pemuat = PEMUAT_MERIDA[jalur] ?? PEMUAT_ASET[jalur];
+    const pemuat = PEMUAT_BAWAAN[jalur] ?? PEMUAT_ASET[jalur];
     if (!pemuat) {
       console.warn(`[ChessPiece] Aset tidak ada di hasil glob: ${jalur}`);
       return [piece, null];
@@ -129,7 +129,22 @@ export function muatSet(set) {
       throw new Error(`[ChessPiece] Gagal memuat seluruh aset set "${id}"`);
     }
     syncCache.set(id, hasil);
+    // Hasil SEPARUH (ada aset yang tak ketemu di hasil glob — mis. nama chunk
+    // berubah setelah deploy baru) juga tidak dikunci: bidak yang berhasil
+    // tetap dipakai sekarang, dan pemanggilan berikutnya boleh mencoba lagi.
+    if (Object.keys(hasil).length < entri.length) cacheSet.delete(id);
     return hasil;
+  });
+  // Pelepasan cache untuk SETIAP penolakan, bukan hanya peta kosong di atas.
+  // `Promise.all` menolak begitu SATU chunk gagal diunduh — yaitu SEBELUM
+  // `.then` di atas berjalan — sehingga tanpa baris ini janji yang sudah
+  // ditolak tersimpan di `cacheSet` selamanya: percobaan ulang `ChessPiece`
+  // (yang mengandalkan "cache sudah dilepas oleh muatSet") selalu menerima
+  // janji yang sama, dan papan tetap kosong untuk set itu seumur sesi walau
+  // koneksi sudah pulih.
+  janji.catch(() => {
+    cacheSet.delete(id);
+    syncCache.delete(id);
   });
   cacheSet.set(id, janji);
   return janji;
@@ -154,9 +169,11 @@ export function ambilSumberBidak(set, piece) {
 const PEMUAT_ASET = import.meta.glob(
   [
     "../../asets/*/*.{svg,png}",
-    // Set merida diimpor statis di bawah; kecualikan dari glob lazy ini
-    // agar Vite tidak memperingatkan tumpang tindih (dynamic + static).
+    // Set bawaan (merida & alpha) diimpor statis di bawah; kecualikan dari
+    // glob lazy ini agar Vite tidak memperingatkan tumpang tindih
+    // (dynamic + static).
     "!../../asets/merida/*.{svg,png}",
+    "!../../asets/alpha/*.{svg,png}",
   ],
   {
     query: "?url",
@@ -165,16 +182,21 @@ const PEMUAT_ASET = import.meta.glob(
 );
 
 /**
- * Set bawaan "merida" diimpor STATIS (eager). Tanpa ini, 12 chunk kecil
- * `wK-*.js`/`bK-*.js` menjadi tingkatan tambahan dalam rantai request kritis
- * pemuatan halaman (elemen LCP rute teka-teki adalah SVG bidak — audit
- * PageSpeed Desktop mencatat rantai 2,5 detik sampai ke chunk ini). Dengan
- * `eager`, berkas ≤ assetsInlineLimit langsung jadi data-URL di chunk
- * ChessPiece dan sisanya URL aset — nol request chunk terpisah. Set lain
- * tetap lazy lewat PEMUAT_ASET di bawah.
+ * Dua set BAWAAN diimpor STATIS (eager): `merida` (bawaan halaman teka-teki)
+ * dan `alpha` (bawaan Papan Interaktif + Manusia vs Mesin). Tanpa ini, 12 chunk
+ * kecil `wK-*.js`/`bK-*.js` menjadi tingkatan tambahan dalam rantai request
+ * kritis pemuatan halaman (elemen LCP rute teka-teki adalah SVG bidak — audit
+ * PageSpeed Desktop mencatat rantai 2,5 detik sampai ke chunk ini), dan di
+ * Papan Interaktif bidak baru muncul setelah 12 chunk itu mendarat — render
+ * pertama terlihat sebagai papan kosong. Dengan `eager`, berkas ≤
+ * assetsInlineLimit langsung jadi data-URL di chunk ChessPiece dan sisanya URL
+ * aset — nol request chunk terpisah. Set lain tetap lazy lewat PEMUAT_ASET.
  */
-const PEMUAT_MERIDA = import.meta.glob("../../asets/merida/*.{svg,png}", {
-  query: "?url",
-  import: "default",
-  eager: true,
-});
+const PEMUAT_BAWAAN = import.meta.glob(
+  ["../../asets/merida/*.{svg,png}", "../../asets/alpha/*.{svg,png}"],
+  {
+    query: "?url",
+    import: "default",
+    eager: true,
+  },
+);

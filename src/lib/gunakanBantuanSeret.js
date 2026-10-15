@@ -19,12 +19,14 @@
  * - debounce: menyeret cepat melintasi banyak petak tidak membanjiri engine;
  * - cache per-FEN hipotetis: kembali ke petak yang sama = hasil instan;
  * - nomor permintaan: jawaban lambat dari petak lama dibuang, bukan ditampilkan;
+ * - promosi: petak baris terakhir dilewati selama pilihan bidak promosi belum
+ *   ada (lihat `promosiLangkah`), supaya label "aman" tidak salah bidak;
  * - `bersihkan()` dipanggil saat seret berakhir → pencarian dihentikan.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EngineCatur } from "./engineCatur.js";
 import { susunHasilEngine } from "./gunakanEngineCatur.js";
-import { susunBantuan, susunFenHipotetis } from "./bantuanSeret.js";
+import { promosiLangkah, susunBantuan, susunFenHipotetis } from "./bantuanSeret.js";
 
 /** Kedalaman maksimum pencarian kilat (berhenti pada batas pertama tercapai). */
 export const KEDALAMAN_BANTUAN = 8;
@@ -95,11 +97,21 @@ export function useBantuanSeret({ aktif, fen, nilaiTerbaik = null }) {
   /**
    * Minta bantuan untuk satu kandidat langkah (dipanggil saat petak tujuan
    * dilintasi selama seret).
+   *
+   * `promosi` opsional: bidak promosi BILA sudah diketahui pemanggil. Selama
+   * seret belum ada yang tahu (pemilih promosi baru muncul sesudah bidak
+   * dilepas), jadi petak promosi dilewati — menilai posisi hasil promosi
+   * menteri lalu menamai promosi kuda/gajah/benteng "aman" hanya menyesatkan.
    */
-  const panggil = useCallback(({ dari, tujuan }) => {
+  const panggil = useCallback(({ dari, tujuan, promosi }) => {
     if (!aktifRef.current || !fen || !dari || !tujuan || dari === tujuan) return;
+    if (promosiLangkah(fen, dari, tujuan) && !promosi) {
+      setBantuan(null);
+      setStatus("idle");
+      return;
+    }
 
-    const hipotetis = susunFenHipotetis(fen, dari, tujuan);
+    const hipotetis = susunFenHipotetis(fen, dari, tujuan, promosi || "q");
     if (!hipotetis) {
       setBantuan(null);
       return;
