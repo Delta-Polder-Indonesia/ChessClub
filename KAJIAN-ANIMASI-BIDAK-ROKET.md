@@ -308,3 +308,54 @@ tersisa (`cek-langkah-cepat.cjs`). Undo/redo juga tetap mulus.
   apa pun): kehalusan luncuran mengalah demi ketepatan langkah pemain.
 * Baris konsol `[kci] ErrorBoundary menangkap error:` dari sesi Anda masih
   belum bisa dilacak tanpa teks lengkap barisnya.
+
+## 10. "Dua move berulang" — satu langkah yang meluncur dua kali (diperbaiki)
+
+Keluhan lanjutan setelah §9: *"sekarang masalahnya 2, dua move berulang"*.
+Terbukti di peramban: pada versi §9, satu klik e2→e4 membuat **dua** penerbangan.
+
+### 10.1 Tiga sebab (semua terukur, bukan dugaan)
+
+1. **Efek FEN membersihkan klon yang sudah MENDARAT sebelum memeriksa
+   "langkah ini sudah diterbangkan?"** Jadi ketika posisi baru akhirnya
+   dirender, papan tidak menemukan jejak penerbangan itu lalu membuat klon
+   KEDUA untuk langkah yang sama.
+2. **Penjagaan lama bergantung pada klon yang masih hidup.** Klon punya jaring
+   pengaman `durasi + 250 ms`; kalau ia sudah dibersihkan sementara posisi baru
+   belum dirender (di perangkat lambat: render berat ditahan ±380-450 ms),
+   langkah yang sama diterbangkan lagi. Ini jalur yang paling mudah kena di
+   perangkat lemah — dan memang terukur 2 penerbangan di CPU 1x **dan** 6x.
+3. **Klik kedua saat langkah pertama masih menunggu diproses** ikut memproses
+   langkah (induk dipanggil dua kali untuk satu niat).
+
+### 10.2 Perbaikan
+
+| Sebab | Perbaikan |
+| --- | --- |
+| 1 | Klon yang mendarat dibersihkan SESUDAH pemeriksaan "sudah diterbangkan?" |
+| 2 | Catatan `penerbanganTerakhirRef` {dari, ke, fenAwal} yang **bertahan melewati pembersihan klon**; berlaku hanya selama fen yang ditampilkan papan masih `fenAwal`, dan sekali pakai (supaya redo/undo setelahnya tetap dianimasikan) |
+| 3 | Klik tambahan selama langkah masih menunggu diabaikan; klik ulang pada langkah yang sudah diterbangkan (props masih basi) diblokir |
+
+### 10.3 Bukti halaman asli `/papan-interaktif` (klon dihitung per penerbangan)
+
+| Skenario | Sebelum (versi §9) | Sesudah |
+| --- | --- | --- |
+| satu klik e2→e4 | **2** penerbangan (`e4, e4`) | **1** |
+| klik dobel di petak tujuan | **2** | **1** (daftar langkah tetap "1. e4") |
+| dua langkah wajar (e4 lalu e5) | **2 + 2** (`e4, e4, e5, e5`) | **1 + 1** (`e4, e5`) |
+
+Hasil sama di CPU 1x dan 6x. Keadaan papan benar (bidak di e4/e5, petak asal
+kosong), tanpa bidak tersembunyi, tanpa klon tersisa, konsol bersih, tanpa
+ErrorBoundary. Alat ukur: `cek-ganda.cjs` (MutationObserver menghitung klon yang
+DIBUAT, bukan yang tersisa).
+
+### 10.4 Catatan uji
+
+Uji lama tidak menangkap cacat ini karena hanya memeriksa "berapa klon yang ada
+sekarang": klon kedua sempat muncul lalu dibersihkan jaring pengaman, jadi
+pemeriksaan di satu titik waktu tetap hijau. Bagian F di
+`scripts/uji-animasi-bidak.mjs` sekarang menghitung **setiap** klon yang dibuat
+per petak tujuan, plus skenario klik-dobel. Harness "induk yang menunda
+penerapan langkah" juga diperbaiki (penundaan itu sebelumnya tidak pernah aktif
+karena operasi string yang gagal diterapkan, sehingga skenario props basi tidak
+benar-benar diuji). Hasil: `uji:animasi-bidak` 90/0.
