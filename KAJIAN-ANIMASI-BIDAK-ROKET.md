@@ -241,3 +241,70 @@ saat mesin mati dan papan diam, penyebabnya bukan cacat ini — jalankan
 `docs/riset-isepic/cek-animasi-konsol.js` (lihat `VERIFIKASI-ANIMASI.md`) dan
 kirim tabelnya; itu memuat durasi, kurva, dan `prefers-reduced-motion` persis
 dari peramban Anda.
+
+## 9. Akar "bling" (bidak seperti berkedip, tidak terlihat pindah) — terukur & diperbaiki
+
+Keluhan: *"e2 mau ke e4 itu seperti bling, kaya tidak seperti bidaknya pindah"*.
+Bukan soal durasi atau kurva (keduanya sudah 300 ms / `ease` persis isepic),
+melainkan **urutan kerja di main thread** saat klik.
+
+### 9.1 Rantai sebab (semua angka hasil ukur, bukan dugaan)
+
+Alat ukur baru (di `/tmp/browser`, tidak ikut ke repo):
+`ukur-klon.cjs` (mengikuti **satu** klon yang ditandai, mencatat juga
+`getAnimations().currentTime`), `jejak-klik.cjs` (trace DevTools),
+`profil-slice.cjs` (bagi waktu main thread per kelompok), dan `lihat-layar.cjs`
+(membaca **frame screencast dari compositor** — sumber kebenaran apa yang
+benar-benar terlihat di layar).
+
+1. **Jam transisi baru mulai pada frame pertama setelah gaya dipasang.**
+   Eksperimen kendali (`uji-komit.cjs`, halaman kosong, transisi 300 ms +
+   tugas sibuk 300 ms): setelah tugas selesai `currentTime` animasi masih **0**
+   — luncuran tidak berjalan selama tidak ada frame yang dicat.
+2. **Klik e2→e4 memicu tugas sinkron besar.** Trace DevTools CPU 1x:
+   `performWorkUntilDeadline` (React) **57 ms dalam satu potong**, plus
+   tata letak/cat halaman. Di CPU 6x potongan itu menjadi **287–416 ms**.
+   Pembagian waktu (CPU 1x, jendela 0–900 ms): native (layout/cat/GC) 80,8 ms,
+   React 48,9 ms, chess.js 30,7 ms, kode kita 15,8 ms.
+3. **Sebagian tugas itu dulu disebabkan kode kita sendiri:** `void offsetWidth`
+   (paksa-reflow) di `mulaiTerbang` memaksa browser menghitung ulang gaya +
+   tata letak SELURUH `/papan-interaktif` (~39 ms di CPU 1x). isepic memakai
+   trik itu di halaman yang sangat ringan; di halaman seberat ini ia justru
+   menjadi bagian terbesar dari tugas yang membekukan luncuran.
+4. **Akibatnya**: frame screencast CPU 6x menunjukkan bidak **beku total**
+   selama tugas 287 ms (0 frame berubah), baru bergerak setelah tugas selesai
+   — itulah yang mata baca sebagai "bling/kedip", bukan "pindah".
+
+### 9.2 Yang dihapus / diubah
+
+| Sebelum | Sesudah |
+| --- | --- |
+| `void klon.offsetWidth` (paksa-reflow seluruh halaman) di dalam handler klik | **dihapus**; klon dicat dulu di petak asal, gaya tujuan dipasang di frame berikutnya (dua `requestAnimationFrame`) |
+| Kerja berat halaman berjalan satu frame setelah klik | **tiga frame** (klon tercat + transisi berjalan & di-commit) baru induk dipersilakan bekerja |
+| Jaring pengaman dihitung dari klon dibuat | dihitung dari **saat gerak benar-benar mulai** (`+250 ms`), supaya tidak memotong luncuran yang tersendat |
+| Klon langsung dibuang saat `transitionend` | klon yang **mendarat** tetap tinggal di petak tujuan sampai bidak aslinya dirender (mencegah kedipan baru saat render ditahan) |
+| `/papan-interaktif`: render berat halaman berjalan di tengah luncuran | render **ditahan** (`tahanRenderSampaiRef`) + posisi **logis** (`fenLogisRef`) dipakai logika; state dirender setelah luncuran mendarat; interaksi apa pun melepas penahanan |
+
+### 9.3 Hasil ukur sesudahnya (klon yang sama, CPU dilambatkan)
+
+| Ukuran (CPU 6x) | Sebelum | Sesudah |
+| --- | --- | --- |
+| Frame klon terlihat (bergerak > 0,4 px) | 4 | **17** |
+| Celah antar frame maks | 232–370 ms | **47 ms** |
+| Tugas panjang di jendela luncuran | 160–416 ms **di tengah luncuran** | 340–530 ms **setelah luncuran** (≥ +456 ms) |
+| Frame screencast yang berubah **saat tugas panjang** | 0 | **6** |
+| Posisi akhir klon | `translate3d(0px, -119.5px, 0)` (petak e4) | sama |
+
+Bandingkan isepic pada alat yang sama (CPU 6x): 16 frame bergerak, celah
+sekitar 21 ms. Uji perilaku: pemain cepat (klik e2e4 lalu e7e5 dalam 120 ms)
+tetap benar — dua langkah masuk, tidak ada bidak tersembunyi, tidak ada klon
+tersisa (`cek-langkah-cepat.cjs`). Undo/redo juga tetap mulus.
+
+### 9.4 Batas yang masih ada (jujur)
+
+* Di ponsel/laptop yang sangat lambat, render berat halaman tetap ada — hanya
+  saja sekarang ia berjalan **setelah** luncuran mendarat, bukan di tengahnya.
+* Penahanan render dilepas begitu pemain menyentuh layar (klik/tekan
+  apa pun): kehalusan luncuran mengalah demi ketepatan langkah pemain.
+* Baris konsol `[kci] ErrorBoundary menangkap error:` dari sesi Anda masih
+  belum bisa dilacak tanpa teks lengkap barisnya.

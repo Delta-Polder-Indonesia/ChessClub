@@ -33,6 +33,7 @@ import {
   saranAwanKomentator,
   skorLangkahAwan,
 } from "../../lib/basisDataAwan.js";
+import { GESER_ISEPIC } from "../TekaTeki/animasiBidak.js";
 import { FEN_AWAL, KUCI_NAMA_PROMOSI, PILIHAN_PROMOSI, TAB_PANEL } from "./bersama/konstanta.js";
 import TombolKeAwal from "./bersama/TombolKeAwal.jsx";
 import TombolMundur from "./bersama/TombolMundur.jsx";
@@ -119,6 +120,132 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [terpilih, setTerpilih] = useState(null);
   const [sasaran, setSasaran] = useState([]);
   const [langkahAkhir, setLangkahAkhir] = useState(null);
+  /**
+   * Penahan RENDER (bukan penahan state).
+   *
+   * Papan memulai luncuran bidak SEKETIKA saat petak tujuan diklik. Render
+   * berat halaman ini kalau dijalankan bersamaan akan mendarat tepat di tengah
+   * luncuran: terukur satu tugas sinkron 65-85 ms di CPU 1x, dan ~290-360 ms
+   * saat CPU diperlambat 6x (React + tata letak seluruh halaman). Selama tugas
+   * itu tidak ada satu pun frame yang dicat — bidak berhenti di tempat, dan
+   * kalau tugasnya menelan seluruh durasi luncuran, yang terlihat hanya kedipan
+   * dari petak asal ke petak tujuan (keluhan "bling").
+   *
+   * Jadi selama luncuran berjalan, komponen ini mengembalikan pohon elemen
+   * render TERAKHIR (referensi yang sama) — React mengenali elemen identik lalu
+   * melewati seluruh sub-pohon tanpa kerja sama sekali, sehingga compositor
+   * bebas menggambar luncurannya. Setelah luncuran mendarat, state diterapkan
+   * seperti biasa (posisi barunya sudah "dipegang" klon yang mendarat).
+   */
+  const tahanRenderSampaiRef = useRef(0);
+  const pohonTerakhirRef = useRef(null);
+  const [, setVersiTampil] = useState(0);
+
+  /**
+   * Posisi LOGIS vs posisi yang DIRENDER.
+   *
+   * Saat langkah diklik, papan sudah menerbangkan bidaknya dan halaman ini
+   * menahan render berat sampai luncurannya mendarat (lihat `terapkanPosisi`).
+   * Karena itu state React bisa tertinggal satu langkah selama ~360 ms:
+   *   - LOGIKA (klik, seret, promosi, saran) membaca ref di bawah ini supaya
+   *     selalu memakai posisi terbaru — kalau tidak, pemain cepat bisa
+   *     memainkan dua langkah dari posisi yang sama;
+   *   - yang dilihat pemain tetap posisi lama sampai luncurannya mendarat,
+   *     lalu state diterapkan sekaligus.
+   */
+  const fenLogisRef = useRef(FEN_AWAL);
+  const riwayatLogisRef = useRef([]);
+  const riwayatLengkapLogisRef = useRef([]);
+  const jalurLogisRef = useRef([]);
+  const timerPosisiRef = useRef(0);
+  const tundaPosisiRef = useRef(false);
+
+  // Semua jalur di luar langkah-klik (undo, muat PGN, reset, katalog, …)
+  // menulis state seperti biasa; selama tidak ada render yang tertunda, ref
+  // logis cukup diselaraskan dari state.
+  useEffect(() => {
+    if (tundaPosisiRef.current) return;
+    fenLogisRef.current = fen;
+    riwayatLogisRef.current = riwayat;
+    riwayatLengkapLogisRef.current = riwayatLengkap;
+    jalurLogisRef.current = jalur;
+  }, [fen, riwayat, riwayatLengkap, jalur]);
+
+  /**
+   * Terapkan posisi baru.
+   *
+   * `tunda` > 0 menahan RENDER (state React menyusul setelah luncuran bidak
+   * mendarat) — satu tugas render halaman ini terukur 65-85 ms di CPU 1x dan
+   * ~290-360 ms saat CPU diperlambat 6x; kalau dijalankan sekarang, tugas itu
+   * mendarat tepat di tengah luncuran dan membekukan gambarnya (keluhan
+   * "bidaknya seperti bling, bukan pindah"). Posisi logisnya sendiri sudah
+   * mutakhir saat itu juga.
+   */
+  function terapkanPosisi(nilai, tunda = 0) {
+    if (nilai.fen !== undefined) fenLogisRef.current = nilai.fen;
+    if (nilai.riwayat !== undefined) riwayatLogisRef.current = nilai.riwayat;
+    if (nilai.riwayatLengkap !== undefined) riwayatLengkapLogisRef.current = nilai.riwayatLengkap;
+    if (nilai.jalur !== undefined) jalurLogisRef.current = nilai.jalur;
+    const pakai = () => {
+      tundaPosisiRef.current = false;
+      setFen(fenLogisRef.current);
+      setRiwayat(riwayatLogisRef.current);
+      setRiwayatLengkap(riwayatLengkapLogisRef.current);
+      setJalur(jalurLogisRef.current);
+    };
+    window.clearTimeout(timerPosisiRef.current);
+    if (tunda > 0) {
+      tundaPosisiRef.current = true;
+      timerPosisiRef.current = window.setTimeout(pakai, tunda);
+    } else {
+      pakai();
+    }
+  }
+
+  /**
+   * Interaksi apa pun (klik/tekan) seketika MELEPAS penahanan render.
+   *
+   * Selama render ditahan, prop yang diterima papan masih posisi lama —
+   * cukup untuk menonton satu luncuran, tetapi salah kalau pemain buru-buru
+   * menekan bidak berikutnya (pilih-lalu-klik bisa jatuh ke logika "batal
+   * pilih"). Karena itu begitu ada interaksi, penahanan dilepas dan halaman
+   * langsung render seperti biasa; kehalusan luncuran mengalah demi
+   * ketepatan langkah pemain.
+   */
+  useEffect(() => {
+    const lepas = () => {
+      if (!tahanRenderSampaiRef.current) return;
+      tahanRenderSampaiRef.current = 0;
+      setVersiTampil((v) => v + 1);
+    };
+    document.addEventListener("pointerdown", lepas, true);
+    document.addEventListener("keydown", lepas, true);
+    return () => {
+      document.removeEventListener("pointerdown", lepas, true);
+      document.removeEventListener("keydown", lepas, true);
+    };
+  }, []);
+
+  /**
+   * Batalkan render yang tertunda dan selaraskan posisi logis dengan state.
+   * Dipakai jalur yang menimpa posisi sepenuhnya (undo/redo/muat/reset): kalau
+   * render langkah-klik yang tertunda masih dilepas setelahnya, ia akan
+   * menimpa posisi baru itu.
+   */
+  function hentikanTundaPosisi() {
+    window.clearTimeout(timerPosisiRef.current);
+    timerPosisiRef.current = 0;
+    tundaPosisiRef.current = false;
+  }
+
+  function batalTundaPosisi() {
+    if (!tundaPosisiRef.current) return;
+    hentikanTundaPosisi();
+    fenLogisRef.current = fen;
+    riwayatLogisRef.current = riwayat;
+    riwayatLengkapLogisRef.current = riwayatLengkap;
+    jalurLogisRef.current = jalur;
+  }
   const [kesalahan, setKesalahan] = useState(null);
   const [promosi, setPromosi] = useState(null); // { from, to, warna }
 
@@ -482,8 +609,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /* ------------------------------------------------------ gerakan bidak */
   function pilihPetak(petak) {
-    if (!fen || promosi) return;
-    const game = new Chess(fen);
+    if (!fenLogisRef.current || promosi) return;
+    const game = new Chess(fenLogisRef.current);
     const bidak = game.get(petak);
     if (bidak && bidak.color === game.turn()) {
       const tujuan = game.moves({ square: petak, verbose: true }).map((m) => m.to);
@@ -505,9 +632,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     if (tanda.panah.length > 0 || Object.keys(tanda.petak).length > 0) {
       hapusSemuaTanda();
     }
-    if (!fen || promosi) return;
+    if (!fenLogisRef.current || promosi) return;
     if (terpilih && sasaran.includes(petak)) {
-      cobaLangkah(terpilih, petak);
+      cobaLangkah(terpilih, petak, undefined, { dariPapan: true });
       return;
     }
     if (terpilih === petak) {
@@ -518,8 +645,17 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     pilihPetak(petak);
   }
 
-  function cobaLangkah(from, to, promo) {
-    const game = new Chess(fen);
+  /**
+   * Tahan render selama `ms` (lihat catatan `tahanRenderSampaiRef`).
+   * Dipakai jalur KLIK yang memulai luncuran bidak.
+   */
+  function tahanRender(ms) {
+    tahanRenderSampaiRef.current = Date.now() + ms;
+    window.setTimeout(() => setVersiTampil((v) => v + 1), ms + 20);
+  }
+
+  function cobaLangkah(from, to, promo, { dariPapan = false } = {}) {
+    const game = new Chess(fenLogisRef.current);
 
     // Bidak menuju baris terakhir → wajib promosi.
     let butuhPromosi = false;
@@ -557,12 +693,26 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     }
 
     bunyikanLangkah(pindah, game);
-    setFen(game.fen());
-    setRiwayat((lama) => [...lama, pindah.san]);
     // Cabang baru: buang semua langkah "masa depan" setelah undo — kalau
     // tidak, redo bisa memainkan jalur lama yang sudah tidak relevan.
-    setRiwayatLengkap((lama) => [...lama.slice(0, riwayat.length), pindah.san]);
-    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
+    const posisiBaru = {
+      fen: game.fen(),
+      riwayat: [...riwayatLogisRef.current, pindah.san],
+      riwayatLengkap: [
+        ...riwayatLengkapLogisRef.current.slice(0, riwayatLogisRef.current.length),
+        pindah.san,
+      ],
+      jalur: [...jalurLogisRef.current, kuciDariPindahan(pindah, mode)],
+    };
+    // Langkah dari KLIK papan: papan sudah menerbangkan bidaknya saat itu juga,
+    // jadi render berat halaman ditahan sampai luncurannya mendarat (promosi
+    // tidak dianimasikan, jadi langsung saja).
+    if (dariPapan && !promo && !butuhPromosi) {
+      tahanRender(GESER_ISEPIC.durasi + 40);
+      terapkanPosisi(posisiBaru, GESER_ISEPIC.durasi + 80);
+    } else {
+      terapkanPosisi(posisiBaru);
+    }
     setLangkahAkhir({ from, to });
     setTerpilih(null);
     setSasaran([]);
@@ -572,7 +722,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /** Mainkan satu SAN (dipakai chip saran) — menangani promosi otomatis. */
   function mainkanSan(san) {
-    const game = new Chess(fen);
+    const game = new Chess(fenLogisRef.current);
     let pindah;
     try {
       pindah = game.move(san);
@@ -580,11 +730,16 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       return;
     }
     bunyikanLangkah(pindah, game);
-    setFen(game.fen());
-    setRiwayat((lama) => [...lama, pindah.san]);
     // Sama seperti cobaLangkah: langkah baru memangkas riwayat masa depan.
-    setRiwayatLengkap((lama) => [...lama.slice(0, riwayat.length), pindah.san]);
-    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
+    terapkanPosisi({
+      fen: game.fen(),
+      riwayat: [...riwayatLogisRef.current, pindah.san],
+      riwayatLengkap: [
+        ...riwayatLengkapLogisRef.current.slice(0, riwayatLogisRef.current.length),
+        pindah.san,
+      ],
+      jalur: [...jalurLogisRef.current, kuciDariPindahan(pindah, mode)],
+    });
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
     setSasaran([]);
@@ -627,8 +782,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   const mulaiSeret = useCallback(
     (petak) => {
-      if (!fen || promosi) return;
-      const game = new Chess(fen);
+      if (!fenLogisRef.current || promosi) return;
+      const game = new Chess(fenLogisRef.current);
       const bidak = game.get(petak);
       if (bidak && bidak.color === game.turn()) {
         abaikanKlikRef.current = false;
@@ -636,8 +791,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         pilihPetak(petak);
       }
     },
+    // Posisi dibaca dari `fenLogisRef` (selalu mutakhir) — bukan dari state
+    // `fen` yang bisa tertinggal selama luncuran bidak.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fen, promosi]
+    [promosi]
   );
 
   /**
@@ -664,7 +821,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     (from, to, klikUlang) => {
       seretDariRef.current = null;
       bersihkanBantuanRef.current();
-      if (!fen || promosi) return;
+      if (!fenLogisRef.current || promosi) return;
       if (klikUlang) {
         setTerpilih(null);
         setSasaran([]);
@@ -674,8 +831,9 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       abaikanKlikRef.current = true;
       cobaLangkah(from, to);
     },
+    // Posisi dibaca dari `fenLogisRef` (selalu mutakhir) — lihat mulaiSeret.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [fen, promosi]
+    [promosi]
   );
 
   const batalkanSeret = useCallback(() => {
@@ -688,6 +846,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /* ------------------------------------------------------ kontrol papan */
   function reset() {
+    batalTundaPosisi();
     bunyikan(SUARA.mulai);
     setFen(FEN_AWAL);
     setFenAwal(FEN_AWAL);
@@ -704,6 +863,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function keAwal() {
+    batalTundaPosisi();
     setFen(fenAwal);
     setRiwayat([]);
     setJalur([]);
@@ -717,24 +877,31 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function undo() {
-    if (!riwayat.length) return;
+    // Dibaca dari posisi LOGIS: kalau pemain menekan Mundur selagi luncuran
+    // langkah barusan masih berjalan (render-nya masih ditahan), yang dibatalkan
+    // harus langkah itu — bukan langkah sebelumnya.
+    const riwayatKini = riwayatLogisRef.current;
+    if (!riwayatKini.length) return;
+    hentikanTundaPosisi();
     // Bunyi langkah yang sedang dikembalikan — persis seperti Analisa:
     // makan/rokade/skak/langkah, bukan bunyi klik acak.
     let pindah = null;
     let game = null;
     try {
       const ulang = new Chess(fenAwal);
-      for (const san of riwayat) {
+      for (const san of riwayatKini) {
         pindah = ulang.move(san);
       }
       game = ulang;
     } catch { /* replay gagal — jatuh ke bunyi klik */ }
     if (pindah && game) bunyikanLangkah(pindah, game);
     else bunyikan(SUARA.klik);
-    const baru = riwayat.slice(0, -1);
-    setRiwayat(baru);
-    setJalur((lama) => lama.slice(0, -1));
-    setFen(fenDariLangkah(baru, fenAwal) || fenAwal);
+    const baru = riwayatKini.slice(0, -1);
+    terapkanPosisi({
+      fen: fenDariLangkah(baru, fenAwal) || fenAwal,
+      riwayat: baru,
+      jalur: jalurLogisRef.current.slice(0, -1),
+    });
     setTerpilih(null);
     setSasaran([]);
     setLangkahAkhir(null);
@@ -742,19 +909,24 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function redo() {
-    if (riwayat.length >= riwayatLengkap.length) return;
-    const langkahBerikutnya = riwayatLengkap[riwayat.length];
-    const game = new Chess(fen);
+    const riwayatKini = riwayatLogisRef.current;
+    const lengkapKini = riwayatLengkapLogisRef.current;
+    if (riwayatKini.length >= lengkapKini.length) return;
+    const langkahBerikutnya = lengkapKini[riwayatKini.length];
+    const game = new Chess(fenLogisRef.current);
     let pindah;
     try {
       pindah = game.move(langkahBerikutnya);
     } catch {
       return;
     }
+    hentikanTundaPosisi();
     bunyikanLangkah(pindah, game);
-    setFen(game.fen());
-    setRiwayat((lama) => [...lama, pindah.san]);
-    setJalur((lama) => [...lama, kuciDariPindahan(pindah, mode)]);
+    terapkanPosisi({
+      fen: game.fen(),
+      riwayat: [...riwayatKini, pindah.san],
+      jalur: [...jalurLogisRef.current, kuciDariPindahan(pindah, mode)],
+    });
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
     setTerpilih(null);
     setSasaran([]);
@@ -762,6 +934,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   function keAkhir() {
     if (!riwayatLengkap.length) return;
+    batalTundaPosisi();
     setRiwayat([...riwayatLengkap]);
     setJalur(() => {
       // Rebuild jalur dari riwayat lengkap
@@ -883,6 +1056,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   function terapkanTeks(teks) {
     const isi = String(teks || "").trim();
     if (!isi) return false;
+    batalTundaPosisi();
     const bersih = () => {
       setPilihan(-1);
       setOrientasi("w");
@@ -1018,6 +1192,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   function muatJalur(entri) {
+    batalTundaPosisi();
     // Katalog selalu berangkat dari posisi awal standar.
     setFenAwal(FEN_AWAL);
     if (mode === "koordinat") {
@@ -1331,7 +1506,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     /* abaikan */
   }
 
-  return (
+  const isi = (
     <div className={`flex flex-col ${tertanam ? "h-full w-full" : "min-h-screen lg:h-screen"} overflow-hidden bg-[#262421] text-gray-200 font-sans select-none`}>
       <div className="flex flex-col lg:flex-row flex-1 min-h-0">
 
@@ -1887,6 +2062,15 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       )}
     </div>
   );
+
+  // Lihat catatan `tahanRenderSampaiRef`: selama luncuran bidak berjalan,
+  // kembalikan pohon elemen render terakhir supaya React tidak melakukan
+  // kerja apa pun dan compositor bebas menggambar luncurannya.
+  if (Date.now() < tahanRenderSampaiRef.current && pohonTerakhirRef.current) {
+    return pohonTerakhirRef.current;
+  }
+  pohonTerakhirRef.current = isi;
+  return isi;
 }
 
 /** Buang sisa markup wiki (pranala [[…]], templat {{…}}, tanda petik '''…''',
