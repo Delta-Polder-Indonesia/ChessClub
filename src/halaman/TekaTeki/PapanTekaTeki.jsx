@@ -514,8 +514,28 @@ export default function PapanTekaTeki({
   const fenSebelumRef = useRef(fen);
   const orientasiSebelumRef = useRef(orientasi);
   const lewatiGeserRef = useRef(null); // { ke, waktu } — bidak yang baru dilepas dari seret
-  /** Ada pemrosesan langkah yang ditunda satu frame (menunggu klon tercat). */
-  const tundaKlikRef = useRef(false);
+  /** Petak tujuan langkah yang pemrosesannya ditunda (menunggu klon tercat).
+   *  Selama terisi, klik tambahan ke petak yang sah DIABAIKAN supaya satu niat
+   *  langkah tidak pernah diproses dua kali (klik dobel). */
+  const tundaKlikRef = useRef(null);
+
+  /**
+   * Catatan penerbangan TERAKHIR: { dari, ke, fenAwal, intent }.
+   *
+   * Dipakai mencegah langkah yang SAMA diterbangkan dua kali. Penjagaan lewat
+   * daftar klon yang masih hidup tidak cukup: klon bisa sudah dibersihkan
+   * (jaring pengaman habis, atau pendaratannya sudah dirapikan) padahal posisi
+   * barunya BELUM dirender — pada rentang itu efek FEN melihat langkah itu
+   * sebagai "belum pernah diterbangkan" lalu membuat klon KEDUA (terukur di
+   * jsdom: 2 penerbangan ke e4 untuk satu klik; di peramban terlihat sebagai
+   * langkah yang meluncur dua kali).
+   *
+   * Catatan hanya berlaku selama fen yang ditampilkan papan masih sama dengan
+   * `fenAwal` — yaitu selama langkah itu belum tercermin di props. Setelah
+   * dipakai sekali, catatannya dibuang supaya transisi FEN yang sama di lain
+   * waktu (mis. redo setelah undo) tetap dianimasikan.
+   */
+  const penerbanganTerakhirRef = useRef(null);
   const animasiJalanRef = useRef(new Set());
   // Klon bidak yang sedang terbang (pola isepic `_animatePiece`): dibuat
   // imperatif sebagai cloneNode dari elemen bidak asli di petak tujuan,
@@ -786,7 +806,7 @@ export default function PapanTekaTeki({
    * `ease` — sama dengan isepic.
    */
   const mulaiTerbang = useCallback(
-    (dariPetak, kePetak, { bidak = null, intent = false } = {}) => {
+    (dariPetak, kePetak, { bidak = null, intent = false, fenAwal = null } = {}) => {
       const wadahSekarang = akar.current;
       if (!wadahSekarang || !dariPetak || !kePetak || dariPetak === kePetak) return false;
       const petakAsalEl = wadahSekarang.querySelector(`[data-petak="${dariPetak}"]`);
@@ -832,6 +852,7 @@ export default function PapanTekaTeki({
       }
 
       const klon = asli.cloneNode(true);
+      penerbanganTerakhirRef.current = { dari: dariPetak, ke: kePetak, fenAwal, intent };
       klon.setAttribute("data-klon-terbang", kePetak);
       klon.setAttribute("data-papan-terbang", idPapanRef.current);
       klon.setAttribute("aria-hidden", "true");
@@ -946,8 +967,14 @@ export default function PapanTekaTeki({
     // Betapa pun posisinya, bidak yang klonnya masih terbang harus tetap
     // tersembunyi — termasuk kalau React baru saja mengganti elemennya.
     sembunyikanBidakTerbang();
-    rapikanKlonLandas();
-    if (!geseran.length) return;
+    if (!geseran.length) {
+      // Bukan langkah (soal baru / muat FEN / render ulang): tidak ada
+      // penerbangan yang sah, jadi klon yang sudah mendarat boleh dibersihkan
+      // dan catatan penerbangan terakhir tidak berlaku lagi.
+      penerbanganTerakhirRef.current = null;
+      rapikanKlonLandas();
+      return;
+    }
     const papanRect = wadah.getBoundingClientRect();
     if (!papanRect.width) return;
     const petaLama = petaBidak(fenLama);
@@ -1017,8 +1044,24 @@ export default function PapanTekaTeki({
         (e) => e.intent && e.petak === g.ke && e.dari === g.dari
       );
       if (sudahTerbang) continue;
-      mulaiTerbang(g.dari, g.ke, { bidak: g.bidak });
+      // Sudah pernah diterbangkan untuk transisi FEN INI (walau klonnya sudah
+      // dibersihkan) — jangan menerbangkan langkah yang sama dua kali.
+      const catatan = penerbanganTerakhirRef.current;
+      if (catatan && catatan.fenAwal === fenLama && catatan.dari === g.dari && catatan.ke === g.ke) {
+        penerbanganTerakhirRef.current = null; // sekali pakai
+        continue;
+      }
+      mulaiTerbang(g.dari, g.ke, { bidak: g.bidak, fenAwal: fenLama });
     }
+
+    // Klon yang sudah MENDARAT baru dibersihkan di sini — SESUDAH pemeriksaan
+    // "langkah ini sudah diterbangkan?".
+    //
+    // Urutannya penting dan sempat salah: kalau klon pesanan klik yang sudah
+    // mendarat dibersihkan lebih dulu, pemeriksaan di atas tidak menemukannya
+    // dan papan membuat klon KEDUA untuk langkah yang sama — bidaknya meluncur
+    // dua kali (terukur di jsdom: 2 penerbangan ke e4 untuk satu klik).
+    rapikanKlonLandas();
   }, [
     fen,
     orientasi,
@@ -1228,17 +1271,28 @@ export default function PapanTekaTeki({
     // berubah, sehingga kerja berat itu memakan jatah frame luncuran dan bidak
     // terlihat melompat. Hanya untuk klik yang jelas langkah sah; promosi
     // dilewati karena bidak hasil promosi belum ada (klon akan salah wujud).
-    if (
-      animasi &&
-      terpilih &&
-      sq !== terpilih &&
-      Array.isArray(sasaran) &&
-      sasaran.includes(sq) &&
-      !tundaKlikRef.current
-    ) {
+    if (animasi && terpilih && sq !== terpilih && Array.isArray(sasaran) && sasaran.includes(sq)) {
+      // Sudah ada langkah yang menunggu diproses (klik dobel / pemain tidak
+      // sabar): klik tambahan diabaikan. Kalau tidak, klik kedua ikut
+      // memproses langkah sementara yang pertama masih menunggu — satu niat
+      // langkah bisa jadi dua pemrosesan.
+      if (tundaKlikRef.current) return;
+      // Langkah (terpilih → sq) ini SUDAH diterbangkan dan hasilnya belum
+      // tercermin di props (posisi baru belum dirender, jadi `terpilih` &
+      // `sasaran` masih yang lama). Klik ulang pada rentang itu tidak boleh
+      // menerbangkanulang — kalau tidak, bidaknya meluncur DUA KALI untuk satu
+      // langkah (keluhan "dua move berulang"). Penjaga ini melepas begitu
+      // posisi baru dirender, karena klonnya sudah dibersihkan saat itu.
+      const sudahDiterbangkan = [...klonJalanRef.current].some(
+        (e) => e.dari === terpilih && e.petak === sq
+      );
+      if (sudahDiterbangkan) return;
       const bidakAsal = peta[terpilih];
       const promosi = (bidakAsal === "P" && sq[1] === "8") || (bidakAsal === "p" && sq[1] === "1");
-      if (!promosi && mulaiTerbang(terpilih, sq, { bidak: bidakAsal, intent: true })) {
+      if (
+        !promosi &&
+        mulaiTerbang(terpilih, sq, { bidak: bidakAsal, intent: true, fenAwal: fen })
+      ) {
         // Bidak sudah di udara — TAPI kalau pemrosesan langkah dijalankan di
         // tugas yang sama, browser baru mencat klon setelat selesainya kerja
         // berat itu, dan luncurannya baru mulai setelahnya (terukur: bidak
@@ -1247,9 +1301,9 @@ export default function PapanTekaTeki({
         // SATU frame lewat rAF+setTimeout: klon sempat dicat di petak asal
         // lebih dulu, lalu kerja berat berjalan sementara luncuran sudah
         // berjalan di compositor.
-        tundaKlikRef.current = true;
+        tundaKlikRef.current = sq;
         const lanjutkan = () => {
-          tundaKlikRef.current = false;
+          tundaKlikRef.current = null;
           onKlik?.(sq);
         };
         // TIGA frame, bukan satu: klon dicat di frame 1, gaya tujuan dipasang

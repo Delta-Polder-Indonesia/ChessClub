@@ -417,6 +417,35 @@ const klonTerbang = (wadahEl) => {
   if (!id) return [];
   return [...wadahEl.ownerDocument.querySelectorAll(`[data-papan-terbang="${id}"]`)];
 };
+/**
+ * Hitung setiap klon penerbangan yang DITAMBAHKAN ke dokumen, per petak tujuan.
+ *
+ * Uji lain hanya melihat "berapa klon yang ada sekarang" — cukup untuk
+ * memastikan tidak ada klon ganda SESUAI, tapi buta terhadap klon kedua yang
+ * muncul sesaat lalu hilang sendiri (mis. dibuat ulang saat posisi baru
+ * dirender, lalu dibersihkan jaring pengaman). Perilaku itu terlihat oleh
+ * pemain sebagai "langkahnya berulang dua kali", jadi harus dihitung.
+ */
+function hitungPenerbangan(wadahEl) {
+  const id = wadahEl.querySelector("[data-papan]")?.getAttribute("data-papan");
+  const catat = { total: 0, perPetak: {}, urut: [] };
+  const pengamat = new window.MutationObserver((daftar) => {
+    for (const mutasi of daftar) {
+      for (const simpul of mutasi.addedNodes) {
+        if (simpul.nodeType !== 1) continue;
+        const kePetak = simpul.getAttribute?.("data-klon-terbang");
+        if (!kePetak || simpul.getAttribute("data-papan-terbang") !== id) continue;
+        catat.total++;
+        catat.perPetak[kePetak] = (catat.perPetak[kePetak] || 0) + 1;
+        catat.urut.push(kePetak);
+      }
+    }
+  });
+  pengamat.observe(wadahEl.ownerDocument.body, { childList: true, subtree: false });
+  catat.hentikan = () => pengamat.disconnect();
+  return catat;
+}
+
 /** Paksa semua klon mendarat (transitionend) seperti transisi CSS selesai. */
 function daratkanKlon(wadahEl) {
   for (const klon of klonTerbang(wadahEl)) klon.dispatchEvent(new window.Event("transitionend"));
@@ -882,6 +911,7 @@ export function mountPapanKlik(el, { fen }) {
       window.__catatanKlik = window.__catatanKlik || [];
       window.__catatanKlik.push({
         sq,
+        t: Math.round(performance.now()),
         klon: document.querySelectorAll("[data-klon-terbang]").length,
         terpilih: pos.terpilih,
       });
@@ -919,48 +949,82 @@ export function mountPapanKlik(el, { fen }) {
 }
 `;
 
-const MASUK_TUNDA = MASUK_KLIK.replace(
-  "export function mountPapanKlik(el, { fen }) {",
-  "export function mountPapanKlik(el, { fen, tundaInduk = 0 }) {"
-).replace(
-  "    const klik = (sq) => {",
-  `    const terapkan = (sq) => {
-      if (pos.terpilih) {
-        const sah = game.moves({ square: pos.terpilih, verbose: true }).find((m) => m.to === sq);
-        if (sah) {
-          const m = game.move({ from: pos.terpilih, to: sq });
-          setPos({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: { from: m.from, to: m.to } });
-          return;
+const MASUK_TUNDA = `
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { Chess } from "chess.js";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
+import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
+
+/**
+ * Harness seperti HALAMAN BERAT (PapanInteraktif): klik papan langsung
+ * menerbangkan bidak, tetapi posisi barunya baru diterapkan ke props setelah
+ * jeda (\`tundaInduk\`) — selama jeda itu papan masih memegang props lama
+ * (petak terpilih & daftar sasaran yang sudah basi).
+ */
+export function mountPapanKlik(el, { fen, tundaInduk = 0 }) {
+  const game = new Chess(fen);
+  function Harness() {
+    const [pos, setPos] = React.useState({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: null });
+    // Ref: pemrosesan yang ditunda harus membaca posisi TERBARU, bukan posisi
+    // dari render saat klik terjadi.
+    const posRef = React.useRef(pos);
+    posRef.current = pos;
+
+    const klik = (sq) => {
+      window.__catatanKlik = window.__catatanKlik || [];
+      window.__catatanKlik.push({
+        sq,
+        t: Math.round(performance.now()),
+        tunda: tundaInduk,
+        klon: document.querySelectorAll("[data-klon-terbang]").length,
+        terpilih: posRef.current.terpilih,
+      });
+      const terapkan = () => {
+        const kini = posRef.current;
+        if (kini.terpilih) {
+          const sah = game.moves({ square: kini.terpilih, verbose: true }).find((m) => m.to === sq);
+          if (sah) {
+            const m = game.move({ from: kini.terpilih, to: sq });
+            setPos({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: { from: m.from, to: m.to } });
+            return;
+          }
         }
-      }
-      const bidak = game.get(sq);
-      if (bidak && bidak.color === game.turn()) {
-        setPos({ ...pos, terpilih: sq, sasaran: game.moves({ square: sq, verbose: true }).map((m) => m.to) });
-      } else {
-        setPos({ ...pos, terpilih: null, sasaran: [] });
-      }
+        const bidak = game.get(sq);
+        if (bidak && bidak.color === game.turn()) {
+          setPos({ ...kini, terpilih: sq, sasaran: game.moves({ square: sq, verbose: true }).map((m) => m.to) });
+        } else {
+          setPos({ ...kini, terpilih: null, sasaran: [] });
+        }
+      };
+      // Hanya PEMROSESAN LANGKAH yang ditunda (itu bagian berat di halaman
+      // asli: render panel + tata letak). Memilih bidak tetap seketika —
+      // persis seperti halaman asli.
+      const dipilih = posRef.current.terpilih;
+      const sebuahLangkah =
+        !!dipilih && game.moves({ square: dipilih, verbose: true }).some((m) => m.to === sq);
+      if (tundaInduk > 0 && sebuahLangkah) window.setTimeout(terapkan, tundaInduk);
+      else terapkan();
     };
-    const klik = (sq) => {`
-).replace(
-  `      if (pos.terpilih) {
-        const sah = game.moves({ square: pos.terpilih, verbose: true }).find((m) => m.to === sq);
-        if (sah) {
-          const m = game.move({ from: pos.terpilih, to: sq });
-          setPos({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: { from: m.from, to: m.to } });
-          return;
-        }
-      }
-      const bidak = game.get(sq);
-      if (bidak && bidak.color === game.turn()) {
-        setPos({ ...pos, terpilih: sq, sasaran: game.moves({ square: sq, verbose: true }).map((m) => m.to) });
-      } else {
-        setPos({ ...pos, terpilih: null, sasaran: [] });
-      }
-    };`,
-  `      if (tundaInduk > 0) window.setTimeout(() => terapkan(sq), tundaInduk);
-      else terapkan(sq);
-    };`
-);
+
+    return (
+      <PapanTekaTeki
+        fen={pos.fen}
+        orientasi="w"
+        terpilih={pos.terpilih}
+        sasaran={pos.sasaran}
+        langkahAkhir={pos.langkahAkhir}
+        onKlik={klik}
+      />
+    );
+  }
+  return createRoot(el).render(
+    <I18nProvider>
+      <Harness />
+    </I18nProvider>
+  );
+}
+`;
 
 const berkasKlik = path.join(tmpdir(), "kci-uji-animasi-klik.cjs");
 const berkasTunda = path.join(tmpdir(), "kci-uji-animasi-tunda.cjs");
@@ -1130,6 +1194,115 @@ await tungguSampai(() => klonTerbang(wadahTunda).some((k) => k.getAttribute("dat
     "tidak ada bidak tersembunyi yang tertinggal",
     [...wadahTunda.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
   );
+}
+
+/* ============ F. satu langkah = tepat SATU penerbangan ============
+ *
+ * Cacat yang dijaga: saat posisi baru akhirnya dirender (klon pesanan klik
+ * sudah mendarat), efek FEN sempat membersihkan klon yang mendarat LEBIH DULU
+ * sebelum memeriksa "langkah ini sudah diterbangkan?" — akibatnya papan
+ * membuat klon KEDUA untuk langkah yang sama: bidaknya meluncur dua kali.
+ *
+ * Bedanya dengan bagian E: di sini yang diuji bukan "berapa klon yang ada",
+ * melainkan "berapa kali papan MEMBUAT klon" selama satu langkah.
+ */
+
+console.log("\nF. satu langkah = tepat satu penerbangan (tanpa luncuran berulang)");
+
+const wadahHitung = window.document.createElement("div");
+window.document.body.appendChild(wadahHitung);
+const modulHitung = require(berkasTunda);
+modulHitung.mountPapanKlik(wadahHitung, { fen: AWAL, tundaInduk: 600 });
+await tungguSampai(() => wadahHitung.querySelectorAll("[data-petak]").length === 64);
+
+const hitung = hitungPenerbangan(wadahHitung);
+// Jejak: siapa & kapan membuat klon (untuk diagnosis bila ada ganda).
+const klikHitung = (sq) => {
+  const el = wadahHitung.querySelector(`[data-petak="${sq}"]`);
+  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+};
+
+klikHitung("e2");
+await tunggu(60);
+klikHitung("e4");
+await tungguSampai(() => hitung.perPetak.e4 === 1, 2000);
+{
+  // Klon pesanan klik mendarat dulu, baru posisi baru dirender oleh induk.
+  daratkanKlon(wadahHitung);
+  await tungguSampai(() => wadahHitung.querySelector('[data-petak="e4"] [data-bidak]'), 3000);
+  await tunggu(150); // beri kesempatan efek FEN membuat klon kedua bila memang cacat
+  uji(
+    "jalur klik: langkah e2→e4 diterbangkan tepat SATU kali",
+    hitung.perPetak.e4 === 1,
+    `${hitung.perPetak.e4 ?? 0} penerbangan ke e4 (urut: ${hitung.urut.join(", ")})`
+  );
+  uji(
+    "tidak ada penerbangan lain yang ikut tercipta",
+    hitung.total === 1,
+    `total penerbangan: ${hitung.total} (${hitung.urut.join(", ")})`
+  );
+  uji(
+    "bidak e4 tampil, tanpa bidak tersembunyi yang tertinggal",
+    wadahHitung.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "" &&
+      [...wadahHitung.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
+  );
+  hitung.hentikan();
+}
+
+// Klik DOBEL di petak tujuan (pemain tidak sabar): tetap satu langkah.
+{
+  const wadahDobel = window.document.createElement("div");
+  window.document.body.appendChild(wadahDobel);
+  const modulDobel = require(berkasTunda);
+  modulDobel.mountPapanKlik(wadahDobel, { fen: AWAL, tundaInduk: 600 });
+  await tungguSampai(() => wadahDobel.querySelectorAll("[data-petak]").length === 64);
+
+  const hitungDobel = hitungPenerbangan(wadahDobel);
+  // Penanda `__catatanKlik` dipakai bersama semua harness di berkas ini —
+  // nolkan supaya yang dihitung hanya pemanggilan induk pada skenario ini.
+  window.__catatanKlik = [];
+  const klikDobel = (sq) => {
+    const el = wadahDobel.querySelector(`[data-petak="${sq}"]`);
+    el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+  };
+  klikDobel("e2");
+  await tunggu(60);
+  klikDobel("e4");
+  await tunggu(60);
+  klikDobel("e4"); // klik kedua — jangan sampai memproses langkah kedua
+  await tungguSampai(() => wadahDobel.querySelector('[data-petak="e4"] [data-bidak]'), 3000);
+  await tunggu(200);
+
+  const panggilanE4 = (window.__catatanKlik || []).filter((c) => c.sq === "e4").length;
+  uji(
+    "klik dobel di petak tujuan: induk hanya dipanggil SEKALI untuk langkah itu",
+    panggilanE4 === 1,
+    `${panggilanE4} pemanggilan induk untuk e4 — induk: ${JSON.stringify(window.__catatanKlik)}`
+  );
+  uji(
+    "klik dobel di petak tujuan: tetap satu penerbangan",
+    hitungDobel.perPetak.e4 === 1,
+    `${hitungDobel.perPetak.e4 ?? 0} penerbangan ke e4 (urut: ${hitungDobel.urut.join(", ")})`
+  );
+  hitungDobel.hentikan();
+}
+
+// Lanjutan: langkah kedua yang datang dari LUAR (jalur FEN) juga satu penerbangan.
+{
+  const hitung2 = hitungPenerbangan(wadahHitung);
+  // e7→e5 lewat jalur FEN murni: klik petak e7 lalu e5 (induk menunda 600 ms).
+  klikHitung("e7");
+  await tunggu(60);
+  klikHitung("e5");
+  await tungguSampai(() => wadahHitung.querySelector('[data-petak="e5"] [data-bidak]'), 3000);
+  daratkanKlon(wadahHitung);
+  await tunggu(200);
+  uji(
+    "langkah kedua (hitam) juga tepat satu penerbangan ke e5",
+    hitung2.perPetak.e5 === 1,
+    `${hitung2.perPetak.e5 ?? 0} penerbangan ke e5 (urut: ${hitung2.urut.join(", ")})`
+  );
+  hitung2.hentikan();
 }
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);
