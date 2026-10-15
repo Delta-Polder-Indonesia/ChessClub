@@ -1,0 +1,338 @@
+{
+  "versi": {
+    "isepic-chess": "9.1.1",
+    "isepic-chess-ui": "5.2.0"
+  },
+  "hasil": [
+    {
+      "nama": "1. klik-move: tekan e2 → lepas e2 → TEKAN e4 → lepas e4",
+      "durasiMs": 119,
+      "getBoundingClientRect": 147,
+      "langkahTerjadiDi": "mousedown petak tujuan",
+      "fenAkhir": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "jejak": [
+        {
+          "tahap": "sebelum apa-apa",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 0
+        },
+        {
+          "tahap": "mousedown e2 (tekan bidak sendiri)",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 55
+        },
+        {
+          "tahap": "mouseup e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 108
+        },
+        {
+          "tahap": "mousedown e4 (tekan petak tujuan) — BELUM dilepas",
+          "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 147
+        },
+        {
+          "tahap": "mouseup e4",
+          "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 147
+        }
+      ]
+    },
+    {
+      "nama": "2. tekan e2 lalu tekan e4; lepas e4 DILUAR papan (tidak di-render)",
+      "durasiMs": 94,
+      "getBoundingClientRect": 147,
+      "langkahTerjadiDi": "tekan tujuan",
+      "fenAkhir": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "jejak": [
+        {
+          "tahap": "setelah memilih e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 255
+        },
+        {
+          "tahap": "mousedown e4",
+          "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 294
+        },
+        {
+          "tahap": "mouseup di luar papan",
+          "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 294
+        }
+      ]
+    },
+    {
+      "nama": "3. seret: tekan e2 → gerak ke e4 → lepas e4",
+      "durasiMs": 73,
+      "getBoundingClientRect": 92,
+      "langkahTerjadiDi": "mouseup petak tujuan",
+      "fenAkhir": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+      "jejak": [
+        {
+          "tahap": "mousedown e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 349
+        },
+        {
+          "tahap": "mousemove e4 (seret)",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 349
+        },
+        {
+          "tahap": "mouseup e4",
+          "fen": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 386
+        }
+      ]
+    },
+    {
+      "nama": "4. klik e2 → klik e2 lagi",
+      "durasiMs": 7,
+      "getBoundingClientRect": 161,
+      "terpilihAkhir": [],
+      "jejak": [
+        {
+          "tahap": "setelah klik pertama e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 494
+        },
+        {
+          "tahap": "setelah klik kedua e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 547
+        }
+      ]
+    },
+    {
+      "nama": "5. klik e2 → klik d2 (bidak sendiri lain)",
+      "durasiMs": 22,
+      "getBoundingClientRect": 214,
+      "terpilihAkhir": [
+        "d2"
+      ],
+      "disorot": [
+        "d3",
+        "d4"
+      ],
+      "jejak": [
+        {
+          "tahap": "setelah klik e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 655
+        },
+        {
+          "tahap": "setelah klik d2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "d2"
+          ],
+          "disorot": [
+            "d3",
+            "d4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 761
+        }
+      ]
+    },
+    {
+      "nama": "6. klik e2 → klik e5 (tidak sah, petak kosong)",
+      "durasiMs": 17,
+      "getBoundingClientRect": 137,
+      "langkah": false,
+      "terpilihAkhir": [],
+      "fenAkhir": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+      "jejak": [
+        {
+          "tahap": "setelah klik e2",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e2"
+          ],
+          "disorot": [
+            "e3",
+            "e4"
+          ],
+          "opsiPromosi": 0,
+          "calls": 869
+        },
+        {
+          "tahap": "setelah klik e5",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 898
+        }
+      ]
+    },
+    {
+      "nama": "7. klik e2 → klik e7 (bidak lawan, tidak sah)",
+      "durasiMs": 19,
+      "getBoundingClientRect": 136,
+      "langkah": false,
+      "terpilihAkhir": [
+        "e7"
+      ],
+      "jejak": [
+        {
+          "tahap": "setelah klik e7",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [
+            "e7"
+          ],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 1034
+        }
+      ]
+    },
+    {
+      "nama": "8. promosi: klik a7 → TEKAN a8 (belum dilepas)",
+      "durasiMs": 48,
+      "getBoundingClientRect": 23,
+      "overlayDiTekan": 4,
+      "langkahTerjadiDi": "menunggu pilihan promosi",
+      "fenAkhir": "8/P7/8/8/8/8/8/K6k",
+      "jejak": [
+        {
+          "tahap": "setelah klik a7 (pion)",
+          "fen": "8/P7/8/8/8/8/8/K6k",
+          "terpilih": [
+            "a7"
+          ],
+          "disorot": [
+            "a8"
+          ],
+          "opsiPromosi": 0,
+          "calls": 1054
+        },
+        {
+          "tahap": "mousedown a8",
+          "fen": "8/P7/8/8/8/8/8/K6k",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 4,
+          "calls": 1057
+        },
+        {
+          "tahap": "mouseup a8",
+          "fen": "8/P7/8/8/8/8/8/K6k",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 4,
+          "calls": 1057
+        }
+      ]
+    },
+    {
+      "nama": "9. total pembacaan getBoundingClientRect untuk 1 langkah klik-ke-klik",
+      "durasiMs": 56,
+      "getBoundingClientRect": 147,
+      "fenAkhir": "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR"
+    },
+    {
+      "nama": "10. klik kanan e4 (tanda petak)",
+      "durasiMs": 7,
+      "getBoundingClientRect": 43,
+      "markSebelumKanan": null,
+      "penandaSvg": 1,
+      "jejak": [
+        {
+          "tahap": "mousedown e4 tombol kanan",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 1244
+        },
+        {
+          "tahap": "mouseup e4 tombol kanan",
+          "fen": "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR",
+          "terpilih": [],
+          "disorot": [],
+          "opsiPromosi": 0,
+          "calls": 1247
+        }
+      ]
+    }
+  ]
+}
