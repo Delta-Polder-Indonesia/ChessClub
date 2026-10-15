@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { ambilSumberBidak } from "../../components/chess/pemuatBidak.js";
 import {
@@ -191,6 +191,234 @@ function titikKePoints(titik) {
     .join(" ");
 }
 
+/**
+ * Satu petak papan (tombol + isinya). Dimemoisasi: papan induk menghitung
+ * prop PRIMITIF per petak (bidak, penanda, ikon, …), sehingga langkah catur
+ * hanya me-render ulang petak yang benar-benar berubah — bukan seluruh 64
+ * petak. Ini yang membuat jeda klik→luncuran mendekati nol seperti papan
+ * referensi (isepic/chess.com); diff DOM yang mahal terjadi di dalam sini
+ * dan dilewati React untuk petak tak berubah.
+ */
+const Petak = memo(function Petak({
+  sq,
+  baris,
+  kolom,
+  bidak,
+  bisaSeret,
+  dipilih,
+  jadiSasaran,
+  jadiPetunjuk,
+  jadiSalah,
+  jadiAkhir,
+  sedangDiseret,
+  warnaMark,
+  bantuan,
+  ratingIkon,
+  mahkota,
+  skakmat,
+  resign,
+  warnaPapan,
+  setBidak,
+  onTekan,
+  onKlik,
+}) {
+  const { t } = useI18n();
+
+  /** Label lencana klasifikasi langkah; nilai di luar kamus ditampilkan apa adanya. */
+  const labelIkonLangkah = (rating) => {
+    const kunci = `papan.ikonLangkah.${rating}`;
+    const teks = t(kunci);
+    return teks === kunci ? rating : teks;
+  };
+
+  const terang = (baris + kolom) % 2 === 0;
+
+  return (
+    <button
+      type="button"
+      data-petak={sq}
+      aria-label={t(
+        bidak ? "tekaTeki.ariaPetakBidak" : "tekaTeki.ariaPetakKosong",
+        {
+          sq,
+          bidak: bidak
+            ? t(`tekaTeki.namaBidak.${bidak.toLowerCase()}`)
+            : "",
+          warna: bidak
+            ? t(
+                bidak === bidak.toUpperCase()
+                  ? "tekaTeki.warnaPutih"
+                  : "tekaTeki.warnaHitam"
+              )
+            : "",
+        }
+      )}
+      onPointerDown={(e) => onTekan(e, sq)}
+      onClick={() => onKlik(sq)}
+      style={{
+        backgroundColor: terang ? warnaPapan.terang : warnaPapan.gelap,
+        touchAction: bisaSeret ? "none" : undefined,
+      }}
+      className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${bisaSeret ? "cursor-grab" : ""}`}
+    >
+      {jadiAkhir && (
+        <span
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(205, 210, 106, 0.5)" }}
+          aria-hidden="true"
+        />
+      )}
+      {jadiPetunjuk && (
+        <span
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(0, 150, 80, 0.5)" }}
+          aria-hidden="true"
+        />
+      )}
+      {jadiSalah && (
+        <span
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(216, 60, 60, 0.55)" }}
+          aria-hidden="true"
+        />
+      )}
+      {dipilih && (
+        <span
+          className="absolute inset-0"
+          style={{ backgroundColor: "rgba(255, 255, 0, 0.45)" }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Tanda petak hasil klik kanan — di bawah bidak agar bidak tetap jelas. */}
+      {warnaMark && (
+        <span
+          className="absolute inset-0"
+          style={{ backgroundColor: WARNA_PETAK[warnaMark] }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Bantuan langkah (assisted play): hijau/kuning/merah pada petak
+          tujuan yang sedang dilintasi saat bidak diseret. */}
+      {bantuan && (
+        <span
+          data-bantuan={bantuan}
+          className="absolute inset-0"
+          style={{ backgroundColor: WARNA_BANTUAN[bantuan] }}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
+      {baris === 7 && (
+        <span
+          className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
+          style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
+        >
+          {sq[0]}
+        </span>
+      )}
+      {kolom === 0 && (
+        <span
+          className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
+          style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
+        >
+          {sq[1]}
+        </span>
+      )}
+
+      {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
+      {bidak && !sedangDiseret && (
+        <span
+          data-bidak={bidak}
+          className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none"
+        >
+          <ChessPiece piece={bidak} set={setBidak} className="h-full w-full" />
+        </span>
+      )}
+
+      {/* Penanda petak tujuan legal. */}
+      {jadiSasaran && !bidak && (
+        <span className="absolute z-10 h-[30%] w-[30%] rounded-full bg-black/15" aria-hidden="true" />
+      )}
+      {jadiSasaran && bidak && (
+        <span className="absolute inset-[3%] z-10 rounded-full border-4 border-black/30" aria-hidden="true" />
+      )}
+
+      {/* Ikon klasifikasi langkah (book/best/forced/blunder, …) di
+          pojok kanan-atas petak tujuan — meniru vladimirshefer/
+          chess-analysis: bundar ~50% petak, menjorok sedikit ke luar
+          sudut. Tetap berada di dalam papan (overflow-hidden), jadi
+          pada petak tepi (baris atas / kolom kanan layar) digeser
+          ke dalam agar tidak terpotong. */}
+      {ratingIkon && (
+        <RatingSVG
+          rating={ratingIkon}
+          size="100%"
+          title={labelIkonLangkah(ratingIkon)}
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
+      )}
+
+      {/* Lencana mahkota hijau — ikon "victory" (lingkaran hijau +
+          mahkota putih) dari set hasil Analisa, dipasang di pojok
+          kanan-atas petak raja PEMENANG saat posisi skakmat; posisi &
+          ukuran sama dengan ikon klasifikasi langkah agar serasi.
+          Tanpa rotasi, persis seperti board.jsx menandai pemenang. */}
+      {mahkota && (
+        <ResultSVG
+          result="victory"
+          size="100%"
+          title={t("papan.ikonMahkota")}
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
+      )}
+
+      {/* Lencana skakmat — ikon "defeat" (raja tumbang) dari set hasil
+          Analisa, diputar -90° persis seperti board.jsx menandai raja
+          yang kalah. Dipasang di pojok kanan-atas petak raja lawan yang
+          baru saja termat; posisi & ukuran sama dengan lencana lain. */}
+      {skakmat && (
+        <ResultSVG
+          result="defeat"
+          size="100%"
+          title={t("papan.ikonSkakmat")}
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+            transform: "rotate(-90deg)",
+          }}
+        />
+      )}
+
+      {/* Lencana resign — ikon bendera menyerah di atas raja yang
+          menyerah. Posisi & ukuran sama dengan lencana lain. */}
+      {resign && (
+        <ResultSVG
+          result="resign"
+          size="100%"
+          title={t("papan.ikonResign")}
+          className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
+          style={{
+            top: baris === 0 ? "2%" : "-8%",
+            right: kolom === 7 ? "2%" : "-8%",
+          }}
+        />
+      )}
+    </button>
+  );
+});
+
 export default function PapanTekaTeki({
   fen,
   orientasi = "w",
@@ -226,13 +454,6 @@ export default function PapanTekaTeki({
   onTandaPanah,
   onHapusTanda,
 }) {
-  const { t } = useI18n();
-  /** Label lencana klasifikasi langkah; nilai di luar kamus ditampilkan apa adanya. */
-  const labelIkonLangkah = (rating) => {
-    const kunci = `papan.ikonLangkah.${rating}`;
-    const teks = t(kunci);
-    return teks === kunci ? rating : teks;
-  };
   const peta = petaBidak(fen);
   const petak = daftarPetak(orientasi);
   const giliran = fen.split(" ")[1] || "w";
@@ -263,6 +484,15 @@ export default function PapanTekaTeki({
   const onLewatiPetakRef = useRef(onLewatiPetak);
   onLewatiPetakRef.current = onLewatiPetak;
   const batalkanSeretRef = useRef(() => {});
+
+  // Dispatcher stabil untuk <Petak> (memo): identitas fungsi TIDAK boleh
+  // berubah tiap render (memo gagal), sedangkan isi `padaTekan`/`padaKlikPetak`
+  // harus selalu versi terbaru. Solusinya: ref berisi fungsi terbaru,
+  // dispatcher useCallback([]) meneruskan panggilan ke ref.
+  const padaTekanRef = useRef(null);
+  const onTekanPetak = useCallback((e, sq) => padaTekanRef.current(e, sq), []);
+  const padaKlikPetakRef = useRef(null);
+  const onKlikPetak = useCallback((sq) => padaKlikPetakRef.current(sq), []);
 
   // Keadaan animasi geser bidak (lihat blok "animasi geser bidak" di bawah).
   const fenSebelumRef = useRef(fen);
@@ -688,15 +918,23 @@ export default function PapanTekaTeki({
     onKlik?.(sq);
   }
 
+  // Selalu teruskan versi terbaru ke dispatcher stabil di atas.
+  padaTekanRef.current = padaTekan;
+  padaKlikPetakRef.current = padaKlikPetak;
+
   /* -------------------------------------------------------------- tampilan */
 
-  const palet = TEMA_PAPAN[tema] || TEMA_PAPAN.hijau;
-  const warnaPapan = {
-    terang: palet.terang,
-    gelap: palet.gelap,
-    teksTerang: palet.gelap,
-    teksGelap: palet.terang,
-  };
+  // Di-memoisasi: identitas `warnaPapan` harus stabil antar render supaya
+  // memo <Petak> tidak gagal hanya karena objek warna dibuat ulang.
+  const warnaPapan = useMemo(() => {
+    const palet = TEMA_PAPAN[tema] || TEMA_PAPAN.hijau;
+    return {
+      terang: palet.terang,
+      gelap: palet.gelap,
+      teksTerang: palet.gelap,
+      teksGelap: palet.terang,
+    };
+  }, [tema]);
 
   return (
     <div
@@ -723,208 +961,38 @@ export default function PapanTekaTeki({
         {petak.map((sq, i) => {
           const baris = Math.floor(i / 8);
           const kolom = i % 8;
-          const terang = (baris + kolom) % 2 === 0;
           const bidak = peta[sq] || "";
           const warnaBidak = bidak
             ? bidak === bidak.toUpperCase()
               ? "w"
               : "b"
             : null;
-          const bisaSeret = bidak && warnaBidak === giliran && !terkunci;
-          const dipilih = terpilih === sq;
-          const jadiSasaran = sasaran.includes(sq);
-          const jadiPetunjuk = petunjuk && (petunjuk.from === sq || petunjuk.to === sq);
-          const jadiSalah = kesalahan && (kesalahan.from === sq || kesalahan.to === sq);
-          const jadiAkhir = langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq);
-          const sedangDiseret = seret && seret.from === sq;
-          const warnaMark = tanda.petak[sq];
 
           return (
-            <button
+            <Petak
               key={sq}
-              type="button"
-              data-petak={sq}
-              aria-label={t(
-                bidak ? "tekaTeki.ariaPetakBidak" : "tekaTeki.ariaPetakKosong",
-                {
-                  sq,
-                  bidak: bidak
-                    ? t(`tekaTeki.namaBidak.${bidak.toLowerCase()}`)
-                    : "",
-                  warna: bidak
-                    ? t(
-                        bidak === bidak.toUpperCase()
-                          ? "tekaTeki.warnaPutih"
-                          : "tekaTeki.warnaHitam"
-                      )
-                    : "",
-                }
-              )}
-              onPointerDown={(e) => padaTekan(e, sq)}
-              onClick={() => padaKlikPetak(sq)}
-              style={{
-                backgroundColor: terang ? warnaPapan.terang : warnaPapan.gelap,
-                touchAction: bisaSeret ? "none" : undefined,
-              }}
-              className={`relative flex items-center justify-center border-0 p-0 outline-none focus-visible:z-20 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-500 ${bisaSeret ? "cursor-grab" : ""}`}
-            >
-              {jadiAkhir && (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: "rgba(205, 210, 106, 0.5)" }}
-                  aria-hidden="true"
-                />
-              )}
-              {jadiPetunjuk && (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: "rgba(0, 150, 80, 0.5)" }}
-                  aria-hidden="true"
-                />
-              )}
-              {jadiSalah && (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: "rgba(216, 60, 60, 0.55)" }}
-                  aria-hidden="true"
-                />
-              )}
-              {dipilih && (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: "rgba(255, 255, 0, 0.45)" }}
-                  aria-hidden="true"
-                />
-              )}
-
-              {/* Tanda petak hasil klik kanan — di bawah bidak agar bidak tetap jelas. */}
-              {warnaMark && (
-                <span
-                  className="absolute inset-0"
-                  style={{ backgroundColor: WARNA_PETAK[warnaMark] }}
-                  aria-hidden="true"
-                />
-              )}
-
-              {/* Bantuan langkah (assisted play): hijau/kuning/merah pada petak
-                  tujuan yang sedang dilintasi saat bidak diseret. */}
-              {bantuanPetak?.[sq] && (
-                <span
-                  data-bantuan={bantuanPetak[sq]}
-                  className="absolute inset-0"
-                  style={{ backgroundColor: WARNA_BANTUAN[bantuanPetak[sq]] }}
-                  aria-hidden="true"
-                />
-              )}
-
-              {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
-              {baris === 7 && (
-                <span
-                  className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
-                >
-                  {sq[0]}
-                </span>
-              )}
-              {kolom === 0 && (
-                <span
-                  className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
-                  style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
-                >
-                  {sq[1]}
-                </span>
-              )}
-
-              {/* Bidak — disembunyikan dari petak asal saat sedang diseret. */}
-              {bidak && !sedangDiseret && (
-                <span
-                  data-bidak={bidak}
-                  className="relative z-10 flex h-[88%] w-[88%] items-center justify-center drop-shadow pointer-events-none"
-                >
-                  <ChessPiece piece={bidak} set={setBidak} className="h-full w-full" />
-                </span>
-              )}
-
-              {/* Penanda petak tujuan legal. */}
-              {jadiSasaran && !bidak && (
-                <span className="absolute z-10 h-[30%] w-[30%] rounded-full bg-black/15" aria-hidden="true" />
-              )}
-              {jadiSasaran && bidak && (
-                <span className="absolute inset-[3%] z-10 rounded-full border-4 border-black/30" aria-hidden="true" />
-              )}
-
-              {/* Ikon klasifikasi langkah (book/best/forced/blunder, …) di
-                  pojok kanan-atas petak tujuan — meniru vladimirshefer/
-                  chess-analysis: bundar ~50% petak, menjorok sedikit ke luar
-                  sudut. Tetap berada di dalam papan (overflow-hidden), jadi
-                  pada petak tepi (baris atas / kolom kanan layar) digeser
-                  ke dalam agar tidak terpotong. */}
-              {ikonLangkah && ikonLangkah.petak === sq && (
-                <RatingSVG
-                  rating={ikonLangkah.rating}
-                  size="100%"
-                  title={labelIkonLangkah(ikonLangkah.rating)}
-                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
-                  style={{
-                    top: baris === 0 ? "2%" : "-8%",
-                    right: kolom === 7 ? "2%" : "-8%",
-                  }}
-                />
-              )}
-
-              {/* Lencana mahkota hijau — ikon "victory" (lingkaran hijau +
-                  mahkota putih) dari set hasil Analisa, dipasang di pojok
-                  kanan-atas petak raja PEMENANG saat posisi skakmat; posisi &
-                  ukuran sama dengan ikon klasifikasi langkah agar serasi.
-                  Tanpa rotasi, persis seperti board.jsx menandai pemenang. */}
-              {ikonMahkota && ikonMahkota.petak === sq && (
-                <ResultSVG
-                  result="victory"
-                  size="100%"
-                  title={t("papan.ikonMahkota")}
-                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
-                  style={{
-                    top: baris === 0 ? "2%" : "-8%",
-                    right: kolom === 7 ? "2%" : "-8%",
-                  }}
-                />
-              )}
-
-              {/* Lencana skakmat — ikon "defeat" (raja tumbang) dari set hasil
-                  Analisa, diputar -90° persis seperti board.jsx menandai raja
-                  yang kalah. Dipasang di pojok kanan-atas petak raja lawan yang
-                  baru saja termat; posisi & ukuran sama dengan ikon klasifikasi
-                  langkah agar serasi. Petak raja tidak pernah sama dengan petak
-                  tujuan langkah, jadi keduanya tak pernah tabrakan. */}
-              {ikonSkakmat && ikonSkakmat.petak === sq && (
-                <ResultSVG
-                  result="defeat"
-                  size="100%"
-                  title={t("papan.ikonSkakmat")}
-                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
-                  style={{
-                    top: baris === 0 ? "2%" : "-8%",
-                    right: kolom === 7 ? "2%" : "-8%",
-                    transform: "rotate(-90deg)",
-                  }}
-                />
-              )}
-
-              {/* Lencana resign — ikon bendera menyerah di atas raja yang
-                  menyerah. Posisi & ukuran sama dengan lencana lain. */}
-              {ikonResign && ikonResign.petak === sq && (
-                <ResultSVG
-                  result="resign"
-                  size="100%"
-                  title={t("papan.ikonResign")}
-                  className="pointer-events-none absolute z-[60] aspect-square w-[46%]"
-                  style={{
-                    top: baris === 0 ? "2%" : "-8%",
-                    right: kolom === 7 ? "2%" : "-8%",
-                  }}
-                />
-              )}
-            </button>
+              sq={sq}
+              baris={baris}
+              kolom={kolom}
+              bidak={bidak}
+              bisaSeret={!!bidak && warnaBidak === giliran && !terkunci}
+              dipilih={terpilih === sq}
+              jadiSasaran={sasaran.includes(sq)}
+              jadiPetunjuk={!!petunjuk && (petunjuk.from === sq || petunjuk.to === sq)}
+              jadiSalah={!!kesalahan && (kesalahan.from === sq || kesalahan.to === sq)}
+              jadiAkhir={!!langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq)}
+              sedangDiseret={!!seret && seret.from === sq}
+              warnaMark={tanda.petak[sq] || null}
+              bantuan={bantuanPetak?.[sq] || null}
+              ratingIkon={ikonLangkah?.petak === sq ? ikonLangkah.rating : null}
+              mahkota={!!ikonMahkota && ikonMahkota.petak === sq}
+              skakmat={!!ikonSkakmat && ikonSkakmat.petak === sq}
+              resign={!!ikonResign && ikonResign.petak === sq}
+              warnaPapan={warnaPapan}
+              setBidak={setBidak}
+              onTekan={onTekanPetak}
+              onKlik={onKlikPetak}
+            />
           );
         })}
       </div>

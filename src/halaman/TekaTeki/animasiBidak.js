@@ -16,12 +16,12 @@
 export const LAJUR = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
 /**
- * Lama luncuran (ms). Sengaja lebih lambat daripada chess.com (~200 ms):
- * permintaan pemilik situs adalah gerakan yang "santai", bidak terlihat
- * benar-benar berjalan dari petak asal ke petak tujuan, bukan menyentak.
+ * Lama luncuran (ms). Disamakan PERSIS dengan referensi isepic-chess-ui
+ * (`_CFG.animationTime: 300`): bidak meluncur 300 ms lalu mendarat halus,
+ * bukan menyentak.
  * Ubah di SATU tempat ini — papan dan ujinya membaca tetapan yang sama.
  */
-export const DURASI_GESER = 320;
+export const DURASI_GESER = 300;
 
 /**
  * Lama luncuran saat sistem meminta pengurangan gerak
@@ -30,8 +30,12 @@ export const DURASI_GESER = 320;
  */
 export const DURASI_GESER_MINIM = 120;
 
-/** Kurva percepatan luncuran: berangkat halus, mendarat halus. */
-export const KURVA_GESER = "cubic-bezier(0.4, 0, 0.2, 1)";
+/**
+ * Kurva luncuran. `"ease"` = easing bawaan CSS — persis apa yang dipakai
+ * isepic-chess-ui (`transition: top 300ms, left 300ms` tanpa timing function):
+ * berangkat ringan, mendarat melandai.
+ */
+export const KURVA_GESER = "ease";
 
 /** Ubah bagian posisi FEN menjadi peta petak → huruf bidak ("e4" → "P"). */
 export function petaBidak(fen) {
@@ -199,8 +203,9 @@ export function geseranPiksel(geseran, orientasi, ukuranPetak) {
 /**
  * Gaya luncuran yang meniru `komponen/game/board.jsx` di Report Analisa
  * (`animateMove`): 150 ms, linear, tanpa efek pudar bidak yang dimakan.
- * Dipakai Papan Interaktif lewat prop `gayaGeser="analisa"`; papan lain tetap
- * memakai gaya bawaan di bawah.
+ * Tidak dipakai halaman mana pun saat ini — semua papan memakai gaya bawaan
+ * di bawah (lebih lambat & halus, seperti chess.com). Gaya ini disimpan lewat
+ * prop `gayaGeser="analisa"` bila diperlukan lagi.
  */
 export const GAYA_ANALISA = Object.freeze({
   durasi: 150,
@@ -211,11 +216,13 @@ export const GAYA_ANALISA = Object.freeze({
 /**
  * Konfigurasi luncuran untuk satu papan.
  * - `"analisa"`: persis gaya Report Analisa (`GAYA_ANALISA`).
- * - lainnya: gaya bawaan (durasi santai, kurva halus, pudar bidak dimakan).
+ * - lainnya: gaya bawaan — 300 ms `ease` TANPA pudar, sama persis dengan
+ *   isepic-chess-ui: bidak dimakan hilang seketika, bidak hasil langkah
+ *   muncul begitu meluncuran mendarat.
  */
 export function konfigurasiGeser(gaya) {
   if (gaya === "analisa") return { ...GAYA_ANALISA };
-  return { durasi: durasiGeser(), kurva: KURVA_GESER, pudar: true };
+  return { durasi: durasiGeser(), kurva: KURVA_GESER, pudar: false };
 }
 
 /** Pengguna meminta animasi dikurangi (setelan sistem)? */

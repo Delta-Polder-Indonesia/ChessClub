@@ -1021,7 +1021,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                 <PapanTekaTeki
                   fen={fen}
                   orientasi={orientasiPapan}
-                  gayaGeser="analisa"
                   terpilih={terpilih}
                   sasaran={sasaran}
                   langkahAkhir={langkahAkhir}
