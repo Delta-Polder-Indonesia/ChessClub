@@ -9,6 +9,9 @@ import PieceSVG from "../svg/piece.jsx";
 import RatingSVG from "../svg/rating.jsx";
 import ResultSVG from "../svg/result.jsx";
 import Image from "../Gambar.jsx";
+// Kecepatan luncuran bidak: SATU sumber untuk semua papan (lihat penjelasan
+// panjang di animasiBidak.js). Nilai isepic-chess-ui: 300 ms, kurva `ease`.
+import { GESER_ISEPIC } from "../../../TekaTeki/animasiBidak.js";
 const HIGHLIGHT_COLORS = {
   forced: "",
   brilliant: "var(--highlightBrilliant)",
@@ -327,7 +330,8 @@ function Piece(props) {
      * Port lama memakai jarak piksel dari TENGAH kotak (`|movement| <=
      * squareSize/2`) dengan `startPosition` dibaca dari
      * `getBoundingClientRect()` bidak. Rect itu bergeser selama animasi
-     * langkah (150 ms, `transform` WAAPI di `animateMove`), jadi klik kedua di
+     * langkah (`GESER_ISEPIC`: 300 ms ease, `transform` WAAPI di
+     * `animateMove`), jadi klik kedua di
      * tempat yang sama bisa terhitung "pindah" dan titik petunjuk tidak mati;
      * lepas di luar papan juga tidak pernah membatalkan pilihan. Membandingkan
      * KOTAK — bukan piksel — tidak bergantung pada rect bidak sama sekali.
@@ -573,7 +577,11 @@ function Board(props) {
         { transform: `translate(${forward2 ? -distance.x : 0}px, ${forward2 ? distance.y : 0}px)` },
         { transform: `translate(${!forward2 ? distance.x : 0}px, ${!forward2 ? -distance.y : 0}px)` }
       ],
-      { duration: 150, easing: "linear", direction: forward2 ? "normal" : "reverse" }
+      {
+        duration: GESER_ISEPIC.durasi,
+        easing: GESER_ISEPIC.kurva,
+        direction: forward2 ? "normal" : "reverse",
+      }
     );
     animasiLangkahRef.current.set(element, animation2);
     animation2.finished.then(resetElements).catch(resetElements);

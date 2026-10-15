@@ -1,0 +1,477 @@
+{
+  "komponen": "src/halaman/PapanInteraktif/PapanInteraktif.jsx + src/halaman/TekaTeki/PapanTekaTeki.jsx",
+  "catatan": "pointer capture diemulasi (retarget pointerup + click ala browser)",
+  "hasil": [
+    {
+      "nama": "1. klik-move: klik e2 → tekan e4 → lepas e4 → click e4",
+      "getBoundingClientRect": 2,
+      "elementFromPoint": 0,
+      "langkahTerjadiDi": "click tujuan",
+      "pindah": "e2-e4",
+      "jejak": [
+        {
+          "tahap": "sebelum apa-apa",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "pointerdown e2 (tekan bidak sendiri)",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "pointerup e2 (retarget ke papan karena capture)",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "click bawaan (di papan)",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "pointerdown e4 (tekan petak tujuan) — BELUM dilepas",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "pointerup e4 (belum ada click)",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "click e4 (target = tombol petak)",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        }
+      ]
+    },
+    {
+      "nama": "2. klik e2 → tekan e4 → lepas DI LUAR papan",
+      "getBoundingClientRect": 1,
+      "elementFromPoint": 0,
+      "pindah": "tidak (dibatalkan)",
+      "terpilihAkhir": [
+        "e2"
+      ],
+      "jejak": [
+        {
+          "tahap": "setelah klik e2",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "pointerdown e4",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "pointerup + click di luar papan",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "3. seret: tekan e2 → gerak ke e4 → lepas e4",
+      "getBoundingClientRect": 3,
+      "elementFromPoint": 2,
+      "pindah": "e2-e4",
+      "terpilihAkhir": [],
+      "jejak": [
+        {
+          "tahap": "pointerdown e2",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "pointermove ke e4 (bidak asal disembunyikan)",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "pointerup e4",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        },
+        {
+          "tahap": "click bawaan (di papan)",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        }
+      ]
+    },
+    {
+      "nama": "4. klik e2 → klik e2 lagi (batal pilih)",
+      "getBoundingClientRect": 2,
+      "elementFromPoint": 0,
+      "terpilihAkhir": [],
+      "sasaran": [],
+      "jejak": [
+        {
+          "tahap": "setelah klik pertama e2",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "setelah klik kedua e2",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "5. klik e2 → klik d2 (bidak sendiri lain)",
+      "getBoundingClientRect": 2,
+      "elementFromPoint": 0,
+      "terpilihAkhir": [
+        "d2"
+      ],
+      "sasaran": [
+        "d3",
+        "d4"
+      ],
+      "jejak": [
+        {
+          "tahap": "setelah klik e2",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "setelah klik d2",
+          "terpilih": [
+            "d2"
+          ],
+          "sasaran": [
+            "d3",
+            "d4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "6. klik e2 → klik e5 (tidak sah, petak kosong)",
+      "getBoundingClientRect": 1,
+      "elementFromPoint": 0,
+      "pindah": "tidak",
+      "terpilihAkhir": [],
+      "salah": [],
+      "jejak": [
+        {
+          "tahap": "setelah klik e2",
+          "terpilih": [
+            "e2"
+          ],
+          "sasaran": [
+            "e3",
+            "e4"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "setelah klik e5",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "7. klik e2 → klik e7 (bidak lawan, tidak sah)",
+      "getBoundingClientRect": 1,
+      "elementFromPoint": 0,
+      "pindah": "tidak",
+      "terpilihAkhir": [],
+      "salah": [],
+      "jejak": [
+        {
+          "tahap": "setelah klik e7",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "8. seret e2 → lepas di e5 (ilegal)",
+      "getBoundingClientRect": 2,
+      "elementFromPoint": 2,
+      "pindah": "tidak",
+      "salahSaatLepas": [
+        "e5",
+        "e2"
+      ],
+      "salahSetelah700ms": [],
+      "terpilihAkhir": [],
+      "jejak": [
+        {
+          "tahap": "pointerup di e5",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [
+            "e5",
+            "e2"
+          ],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        },
+        {
+          "tahap": "tepat setelah lepas (kesalahan 700 ms)",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [
+            "e5",
+            "e2"
+          ],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "9. promosi: klik a7 → tekan a8 → lepas a8 → click a8",
+      "getBoundingClientRect": 2,
+      "elementFromPoint": 0,
+      "fenTermuat": true,
+      "opsiDiTekan": 0,
+      "opsiDiLepas": 4,
+      "langkahTerjadiDi": "langsung",
+      "bidakA8": "Q",
+      "bidakA7": null,
+      "jejak": [
+        {
+          "tahap": "setelah klik a7 (pion)",
+          "terpilih": [
+            "a7"
+          ],
+          "sasaran": [
+            "a8"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "pointerdown a8",
+          "terpilih": [
+            "a7"
+          ],
+          "sasaran": [
+            "a8"
+          ],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "pointerup + click a8",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 4,
+          "e2": null,
+          "e4": null
+        },
+        {
+          "tahap": "setelah memilih bidak promosi",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": null
+        }
+      ]
+    },
+    {
+      "nama": "10. pointercancel saat menyeret → klik tombol Baru",
+      "getBoundingClientRect": 4,
+      "elementFromPoint": 0,
+      "klikPertamaTertelan": true,
+      "klikKeduaBerhasil": true,
+      "jejak": [
+        {
+          "tahap": "setelah 1.e4",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        },
+        {
+          "tahap": "setelah pointercancel",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        },
+        {
+          "tahap": "setelah klik Baru ke-1",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": null,
+          "e4": "P"
+        },
+        {
+          "tahap": "setelah klik Baru ke-2",
+          "terpilih": [],
+          "sasaran": [],
+          "salah": [],
+          "opsiPromosi": 0,
+          "e2": "P",
+          "e4": null
+        }
+      ]
+    }
+  ]
+}
