@@ -1082,7 +1082,12 @@ export default function TekaTeki() {
       bunyikanLangkah(g.history({ verbose: true }).slice(-1)[0], g);
       setFen(fenBaru);
       setSisa(langkahPenuh.slice(posisi + 1));
-      setJalurFen((l) => [...l.slice(0, posisi), fenBaru]);
+      // `jalurFen[i]` = posisi SETELAH langkah ke-i, jadi posisi baru harus
+      // ditambahkan SETELAH `jalurFen[posisi]` — bukan menggantikannya. Dulu
+      // `slice(0, posisi)` (tanpa +1) membuang posisi sebelumnya, sehingga
+      // indeks sesudahnya tergeser satu dan `mundurLangkah` mengembalikan
+      // papan ke posisi yang sedang tampil (tombol mundur "tidak jalan").
+      setJalurFen((l) => [...l.slice(0, posisi + 1), fenBaru]);
       setLangkahAkhir({ from: d.from, to: d.to });
       // Pertahankan status selesai = true agar tombol maju tetap aktif untuk review
       setKomputer(false);
@@ -1131,7 +1136,9 @@ export default function TekaTeki() {
     if (!fens.length) return;
     setFen(fens[fens.length - 1]);
     setSisa([]);
-    setJalurFen((l) => [...l.slice(0, posisi), ...fens]);
+    // Sama seperti `majuLangkah`: posisi-posisi baru menyambung SETELAH
+    // `jalurFen[posisi]` (lihat catatan di sana).
+    setJalurFen((l) => [...l.slice(0, posisi + 1), ...fens]);
     setLangkahAkhir(akhir);
     // Pertahankan selesai
     setKomputer(false);

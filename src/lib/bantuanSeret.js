@@ -21,6 +21,28 @@ import { Chess } from "chess.js";
 export const AMBANG_BANTUAN = { hijau: 50, kuning: 150 };
 
 /**
+ * Apakah langkah `from`→`to` pada `fen` adalah PROMOSI (pion mencapai baris
+ * terakhir)? Murni dan tanpa melempar — FEN/langkah tidak sah → `false`.
+ *
+ * Dipakai hook bantuan langkah: bantuan diwarnai untuk posisi HASIL langkah,
+ * jadi pion yang menuju baris akhir hanya boleh dinilai setelah bidak
+ * promosinya diketahui. Selama seret, pilihan itu belum ada (pemilih promosi
+ * baru muncul sesudah bidak dilepas) — karena itu bantuan untuk petak itu
+ * dilewati, bukan dinilai dengan menteri yang belum tentu dipilih.
+ */
+export function promosiLangkah(fen, from, to) {
+  if (!fen || !from || !to) return false;
+  try {
+    const game = new Chess(fen);
+    return game
+      .moves({ verbose: true })
+      .some((m) => m.from === from && m.to === to && (m.flags.includes("p") || m.promotion));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * FEN posisi setelah `from`→`to` dimainkan pada `fen`, atau `null` bila
  * langkahnya tidak sah. Promosi memakai menteri secara bawaan (`promosi`).
  *

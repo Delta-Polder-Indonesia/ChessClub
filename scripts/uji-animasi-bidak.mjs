@@ -1058,6 +1058,57 @@ await build({
   logLevel: "error",
 });
 
+const MASUK_DITOLAK = `
+import React from "react";
+import { createRoot } from "react-dom/client";
+import { Chess } from "chess.js";
+import { I18nProvider } from "./src/lib/I18nProvider.jsx";
+import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
+
+/**
+ * Induk tiruan yang MENOLAK langkah — persis cabang "salah" di halaman
+ * Teka-Teki: posisi TIDAK berubah, pilihan dibersihkan, dan (bila
+ * \`kabariKesalahan\`) petak asal+tujuan diberi tanda salah.
+ */
+export function mountPapanDitolak(el, { fen, kabariKesalahan = true }) {
+  function Harness() {
+    const [pos, setPos] = React.useState({ terpilih: null, sasaran: [], kesalahan: null });
+    const klik = (sq) => {
+      if (pos.terpilih) {
+        setPos({
+          terpilih: null,
+          sasaran: [],
+          kesalahan: kabariKesalahan ? { from: pos.terpilih, to: sq } : null,
+        });
+        return;
+      }
+      const game = new Chess(fen);
+      const bidak = game.get(sq);
+      if (bidak && bidak.color === game.turn()) {
+        setPos({ terpilih: sq, sasaran: game.moves({ square: sq, verbose: true }).map((m) => m.to), kesalahan: null });
+      } else {
+        setPos({ terpilih: null, sasaran: [], kesalahan: null });
+      }
+    };
+    return (
+      <PapanTekaTeki
+        fen={fen}
+        orientasi="w"
+        terpilih={pos.terpilih}
+        sasaran={pos.sasaran}
+        kesalahan={pos.kesalahan}
+        onKlik={klik}
+      />
+    );
+  }
+  return createRoot(el).render(
+    <I18nProvider>
+      <Harness />
+    </I18nProvider>
+  );
+}
+`;
+
 const wadahKlik = window.document.createElement("div");
 window.document.body.appendChild(wadahKlik);
 const modulKlik = require(berkasKlik);
@@ -1303,6 +1354,133 @@ await tungguSampai(() => hitung.perPetak.e4 === 1, 2000);
     `${hitung2.perPetak.e5 ?? 0} penerbangan ke e5 (urut: ${hitung2.urut.join(", ")})`
   );
   hitung2.hentikan();
+}
+
+/* ============ G. langkah DITOLAK induk (salah/blunder) ============
+ *
+ * Cacat yang dijaga: saat pemain salah langkah, induk menolaknya — posisi TIDAK
+ * berubah, jadi petak tujuan tidak akan pernah berisi bidak. Klon pesanan klik
+ * sudah terlanjur terbang dan "mendarat" di petak kosong itu; dulu klonnya
+ * dibuang TANPA menampilkan lagi bidak di petak asal (pemulihan hanya berlaku
+ * bila klon belum mendarat), sehingga bidaknya HILANG dari papan sampai soal
+ * dimuat ulang.
+ */
+console.log("\nG. langkah ditolak induk: bidak asal tidak boleh tertinggal tersembunyi");
+
+const berkasDitolak = path.join(tmpdir(), "uji-animasi-ditolak.cjs");
+await build({
+  stdin: { contents: MASUK_DITOLAK, resolveDir: ROOT, loader: "jsx", sourcefile: "uji-animasi-ditolak.jsx" },
+  bundle: true,
+  format: "cjs",
+  platform: "browser",
+  outfile: berkasDitolak,
+  loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "empty" },
+  plugins: [pluginGlobAset()],
+  define: {
+    "process.env.NODE_ENV": '"development"',
+    "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
+  },
+  logLevel: "error",
+});
+
+/**
+ * Jalankan satu siklus "klik bidak → klik tujuan → langkah ditolak".
+ * `kabariKesalahan=false` menguji jaring pengaman 1,2 detik (induk yang tidak
+ * pernah memberi kabar penolakan, mis. halaman lain pemakai papan ini).
+ */
+async function ujiLangkahDitolak(kabariKesalahan) {
+  const wadahDitolak = window.document.createElement("div");
+  window.document.body.appendChild(wadahDitolak);
+  const modulDitolak = require(berkasDitolak);
+  modulDitolak.mountPapanDitolak(wadahDitolak, { fen: AWAL, kabariKesalahan });
+  await tungguSampai(() => wadahDitolak.querySelectorAll("[data-petak]").length === 64);
+
+  const klikDitolak = (sq) => {
+    const el = wadahDitolak.querySelector(`[data-petak="${sq}"]`);
+    el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+  };
+  const bidakAsal = () => wadahDitolak.querySelector('[data-petak="e2"] [data-bidak]');
+
+  klikDitolak("e2");
+  await tunggu(60);
+  klikDitolak("e4");
+  uji(
+    `klik tujuan menerbangkan klon (${kabariKesalahan ? "kesalahan dikabarkan" : "tanpa kabar kesalahan"})`,
+    await tungguSampai(() => klonTerbang(wadahDitolak).length > 0, 1000)
+  );
+  // Transisi CSS 300 ms selesai: klon "mendarat" di petak yang tidak akan
+  // pernah berisi bidak.
+  daratkanKlon(wadahDitolak);
+  uji(
+    "klon penerbangan akhirnya dibuang",
+    await tungguSampai(() => klonTerbang(wadahDitolak).length === 0, 3000),
+    `sisa ${klonTerbang(wadahDitolak).length} klon`
+  );
+  uji(
+    "bidak di petak asal e2 terlihat lagi",
+    bidakAsal()?.style?.visibility === "",
+    bidakAsal() ? `visibility="${bidakAsal().style.visibility}"` : "elemen bidak hilang"
+  );
+  uji(
+    "tidak ada bidak tersembunyi yang tertinggal di papan",
+    [...wadahDitolak.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden"),
+    [...wadahDitolak.querySelectorAll("[data-bidak]")]
+      .filter((el) => el.style.visibility === "hidden")
+      .map((el) => el.getAttribute("data-bidak"))
+      .join(", ")
+  );
+}
+
+await ujiLangkahDitolak(true);
+await ujiLangkahDitolak(false);
+
+/* ============ H. langkah TANGKAP lewat KLIK: yang meluncur bidak kita ============
+ *
+ * Jalur klik memulai luncuran SEBELUM induk menerapkan posisi, jadi di petak
+ * tujuan masih terpampang bidak lawan. Dulu sumber klon dipilih "bidak di petak
+ * TUJUAN bila ada" — akibatnya pada langkah tangkap yang meluncur justru gambar
+ * bidak lawan, sementara bidak kita diam di petak asal lalu melompat.
+ */
+console.log("\nH. langkah tangkap lewat klik: klon adalah bidak yang berjalan");
+{
+  const FEN_TANGKAP = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w - - 0 2";
+  const wadahTangkap = window.document.createElement("div");
+  window.document.body.appendChild(wadahTangkap);
+  const modulTangkap = require(berkasKlik);
+  modulTangkap.mountPapanKlik(wadahTangkap, { fen: FEN_TANGKAP });
+  await tungguSampai(() => wadahTangkap.querySelectorAll("[data-petak]").length === 64);
+
+  const klikTangkap = (sq) => {
+    const el = wadahTangkap.querySelector(`[data-petak="${sq}"]`);
+    el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+  };
+  klikTangkap("e4");
+  await tunggu(60);
+  klikTangkap("d5");
+
+  const klon = klonTerbang(wadahTangkap);
+  uji(
+    "klik tangkap: klon yang meluncur adalah bidak KITA (P), bukan bidak lawan (p)",
+    klon.length === 1 && klon[0]?.getAttribute("data-bidak") === "P",
+    `${klon.length} klon, data-bidak=${klon[0]?.getAttribute("data-bidak")}`
+  );
+  await tungguSampai(
+    () => wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]')?.getAttribute("data-bidak") === "P",
+    2000
+  );
+  daratkanKlon(wadahTangkap);
+  await tungguSampai(() => {
+    const b = wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]');
+    return b && b.style.visibility === "";
+  });
+  uji(
+    "klik tangkap: bidak kita tampil di d5 setelah mendarat",
+    wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]')?.style?.visibility === ""
+  );
+  uji(
+    "klik tangkap: tidak ada bidak tersembunyi yang tertinggal",
+    [...wadahTangkap.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
+  );
 }
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);
