@@ -190,6 +190,59 @@ export function geseranDariFen(fenLama, fenBaru) {
   return hasil;
 }
 
+/**
+ * Luncuran dengan petak asal-tujuan EKSPLISIT (konsep isepic-chess-ui:
+ * langkah selalu membawa `fromBos`/`toBos`, tidak ditebak). Papan menerima
+ * `langkahAkhir` {from, to} dari halaman induk — data itu kini menjadi
+ * sumber utama animasi, dan simpulan diff FEN (`geseranDariFen`) hanya
+ * menjadi cadangan sekaligus pemeriksa kewajaran:
+ *
+ * - eksplisit cocok dengan simpulan FEN → pakai simpulan (rokade sudah
+ *   memuat luncuran benteng pendampingnya);
+ * - eksplisit sah menurut peta FEN lama/baru tetapi simpulan memilih asal
+ *   lain → pakai asal eksplisit (bentuk langkah/promosi tetap diperiksa);
+ * - eksplisit basi/tidak cocok (mis. tertinggal dari langkah sebelumnya
+ *   saat posisi diganti atau dinavigasi) → pakai simpulan FEN apa adanya.
+ *
+ * @param {string} fenLama FEN sebelum perubahan
+ * @param {string} fenBaru FEN sesudah perubahan
+ * @param {{from: string, to: string} | null} langkah langkah eksplisit
+ * @returns {{dari: string, ke: string, bidak: string}[]} daftar luncuran
+ */
+export function geseranDenganAsalEksplisit(fenLama, fenBaru, langkah) {
+  const ditebak = geseranDariFen(fenLama, fenBaru);
+  if (!ditebak.length || !langkah?.from || !langkah?.to) return ditebak;
+  if (ditebak.some((g) => g.dari === langkah.from && g.ke === langkah.to)) return ditebak;
+
+  const lama = petaBidak(fenLama);
+  const baru = petaBidak(fenBaru);
+  const bidakAsal = lama[langkah.from];
+  const bidakTujuan = baru[langkah.to];
+  if (!bidakAsal || !bidakTujuan || warnaDari(bidakAsal) !== warnaDari(bidakTujuan)) {
+    return ditebak;
+  }
+  const cocok =
+    bidakAsal === bidakTujuan
+      ? bentukLangkahSah(bidakAsal, langkah.from, langkah.to)
+      : pasanganPromosi(bidakAsal, bidakTujuan, langkah.from, langkah.to);
+  if (!cocok) return ditebak;
+
+  const hasil = [{ dari: langkah.from, ke: langkah.to, bidak: bidakTujuan }];
+  // Rokade: raja eksplisit melompat dua petak — benteng pendampingnya dari
+  // simpulan FEN ikut diterbangkan (satu warna, bidak benteng).
+  const lompatanRaja =
+    bidakTujuan.toLowerCase() === "k" &&
+    Math.abs(LAJUR.indexOf(langkah.to[0]) - LAJUR.indexOf(langkah.from[0])) === 2;
+  if (lompatanRaja) {
+    for (const g of ditebak) {
+      if (g.ke !== langkah.to && g.bidak.toLowerCase() === "r" && warnaDari(g.bidak) === warnaDari(bidakTujuan)) {
+        hasil.push(g);
+      }
+    }
+  }
+  return hasil;
+}
+
 /** Pergeseran piksel satu luncuran di layar, sesuai orientasi & ukuran petak. */
 export function geseranPiksel(geseran, orientasi, ukuranPetak) {
   const a = posisiLayar(geseran.dari, orientasi);
