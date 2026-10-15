@@ -167,14 +167,9 @@ const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 }
 
 {
-  // Profil gerak isepic-chess-ui: 300 ms, kurva `ease` bawaan transisi CSS
-  // (berangkat cepat, mendarat halus) — bukan lagi kurva simetris/durasi 320.
-  uji("durasi bawaan menyamai isepic (300 ms)", DURASI_GESER === 300, String(DURASI_GESER));
-  uji(
-    "kurva bawaan adalah ease isepic cubic-bezier(0.25, 0.1, 0.25, 1)",
-    KURVA_GESER === "cubic-bezier(0.25, 0.1, 0.25, 1)",
-    KURVA_GESER
-  );
+  // Kecepatan luncuran: persis referensi isepic-chess-ui (animationTime: 300).
+  uji("durasi bawaan persis isepic (300 ms)", DURASI_GESER === 300, String(DURASI_GESER));
+  uji("kurva bawaan = easing CSS bawaan (ease)", KURVA_GESER === "ease", KURVA_GESER);
   uji("tanpa setelan kurangi gerak: durasi penuh", durasiGeser() === DURASI_GESER);
   const matchMediaAsli = globalThis.matchMedia;
   globalThis.matchMedia = (media) => ({ matches: media.includes("reduced-motion"), media });
@@ -217,14 +212,17 @@ const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
 }
 
 {
-  // Gaya Report Analisa (board.jsx animateMove): 150 ms linear, tanpa pudar
-  // bidak dimakan. Dipertahankan sebagai profil warisan; mode bermain kini
-  // memakai gaya bawaan (profil isepic), bukan gaya ini lagi.
+  // Gaya analisa (Report Analisa): 150 ms linear, tanpa pudar — tetap tersedia
+  // lewat prop gayaGeser, tidak dipakai halaman mana pun.
   const analisa = konfigurasiGeser("analisa");
   uji("gaya analisa warisan: 150 ms linear tanpa pudar", analisa.durasi === 150 && analisa.kurva === "linear" && analisa.pudar === false, JSON.stringify(analisa));
   uji("gaya analisa cocok dengan konstanta GAYA_ANALISA", analisa.durasi === GAYA_ANALISA.durasi && analisa.kurva === GAYA_ANALISA.kurva);
   const bawaan = konfigurasiGeser("bawaan");
-  uji("gaya bawaan tetap santai dan memakai pudar", bawaan.durasi === DURASI_GESER && bawaan.pudar === true, JSON.stringify(bawaan));
+  uji(
+    "gaya bawaan persis isepic: 300 ms ease tanpa pudar",
+    bawaan.durasi === DURASI_GESER && bawaan.kurva === "ease" && bawaan.pudar === false,
+    JSON.stringify(bawaan)
+  );
 }
 
 /* ====================== B. papan sungguhan (jsdom) ====================== */

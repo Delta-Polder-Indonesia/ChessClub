@@ -89,14 +89,38 @@ function konteksAudio() {
   try {
     // AudioContext sengaja TIDAK dibuat saat pemanasan halaman: peramban
     // menolak memulainya tanpa user gesture dan menulis peringatan autoplay.
-    // Konteks diciptakan paling cepat pada pemutaran pertama — pada halaman
-    // papan berarti di dalam handler klik — lalu di-resume di `bunyikan`.
+    // Konteks dibuat pada GESTUR PERTAMA pemakai (lihat `pasangHangatAudio`)
+    // supaya pembuatan konteks + decode bunyi inti (±1 dtk) tidak lagi
+    // membebani klik langkah pertama; resume tetap di `bunyikan`.
     ctx ||= new AudioCtx();
   } catch {
     webAudioMati = true;
     return null;
   }
   return ctx;
+}
+
+/**
+ * Pasang pemanasan audio sekali di gestur pertama (pointerdown/keydown).
+ * Pembuatan konteks, `resume`, dan decode bunyi inti pindah ke sini —
+ * pekerjaan berat yang dulu berjalan di dalam handler klik langkah pertama
+ * (terukur ±1,1 detik blokir main thread) sehingga luncuran bidak tidak
+ * lagi menunggunya. Kebijakan autoplay tetap terpenuhi: semuanya terjadi
+ * di dalam gestur.
+ */
+function pasangHangatAudio() {
+  if (typeof window === "undefined" || window.__kciHangatAudio) return;
+  window.__kciHangatAudio = true;
+  const hangat = () => {
+    window.removeEventListener("pointerdown", hangat, true);
+    window.removeEventListener("keydown", hangat, true);
+    const audio = konteksAudio();
+    if (!audio) return;
+    if (audio.state === "suspended") audio.resume().catch(() => {});
+    for (const nama of INTI) muat(nama);
+  };
+  window.addEventListener("pointerdown", hangat, true);
+  window.addEventListener("keydown", hangat, true);
 }
 
 /**
@@ -295,6 +319,7 @@ export function useSuara() {
   // `muat` mengunduh on-demand lewat `unduh` bila byte belum ada.
   useEffect(() => {
     if (!nyala) return undefined;
+    pasangHangatAudio();
     const panas = () => panaskanSuara();
     if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
       const id = window.requestIdleCallback(panas, { timeout: 5000 });
