@@ -254,11 +254,14 @@ export function geseranPiksel(geseran, orientasi, ukuranPetak) {
 }
 
 /**
- * Gaya luncuran yang meniru `komponen/game/board.jsx` di Report Analisa
+ * Gaya luncuran lama dari `komponen/game/board.jsx` Report Analisa
  * (`animateMove`): 150 ms, linear, tanpa efek pudar bidak yang dimakan.
- * Tidak dipakai halaman mana pun saat ini — semua papan memakai gaya bawaan
- * di bawah (lebih lambat & halus, seperti chess.com). Gaya ini disimpan lewat
- * prop `gayaGeser="analisa"` bila diperlukan lagi.
+ *
+ * ⚠️ WARISAN — JANGAN dipakai untuk animasi langkah papan. Inilah gaya yang
+ * membuat bidak terasa "melesat seperti roket" pada regresi 8 Okt 2026
+ * (commit `ee2a3319`, dibalik 15 Okt 2026). Papan mana pun — termasuk Report
+ * Analisa sendiri — memakai `GESER_ISEPIC` di atas. Konstanta ini disimpan
+ * hanya sebagai rujukan gaya + dijaga uji; tidak ada pemanggil produksi.
  */
 export const GAYA_ANALISA = Object.freeze({
   durasi: 150,
@@ -267,8 +270,27 @@ export const GAYA_ANALISA = Object.freeze({
 });
 
 /**
+ * SATU-SATUNYA sumber kecepatan luncuran bidak untuk semua papan di situs.
+ *
+ * Nilai ini menyalin `_CFG.animationTime` isepic-chess-ui (300 ms) dengan
+ * kurva `ease` bawaan CSS — persis `transition: top 300ms, left 300ms` tanpa
+ * timing function di `_animatePiece` isepic.
+ *
+ * KENAPA DIKUNCI DI SINI: pada 8 Okt 2026 papan sempat memakai gaya Report
+ * Analisa (150 ms `linear`) sehingga bidak terasa "melesat seperti roket".
+ * Setiap papan yang menggerakkan bidak — `PapanTekaTeki` maupun
+ * `Analisa/komponen/game/board.jsx` — wajib membaca tetapan INI, dan
+ * `scripts/uji-animasi-bidak.mjs` menolak papan yang menyimpang.
+ */
+export const GESER_ISEPIC = Object.freeze({
+  durasi: DURASI_GESER,
+  kurva: KURVA_GESER,
+});
+
+/**
  * Konfigurasi luncuran untuk satu papan.
- * - `"analisa"`: persis gaya Report Analisa (`GAYA_ANALISA`).
+ * - `"analisa"`: gaya warisan Report Analisa (`GAYA_ANALISA`) — JANGAN dipakai
+ *   untuk animasi langkah papan.
  * - lainnya: gaya bawaan — 300 ms `ease` TANPA pudar, sama persis dengan
  *   isepic-chess-ui: bidak dimakan hilang seketika, bidak hasil langkah
  *   muncul begitu meluncuran mendarat.

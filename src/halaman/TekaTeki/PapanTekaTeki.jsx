@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { ambilSumberBidak } from "../../components/chess/pemuatBidak.js";
 import {
-  DURASI_GESER,
+  GESER_ISEPIC,
   geseranDenganAsalEksplisit,
   konfigurasiGeser,
   petaBidak,
@@ -780,18 +780,21 @@ export default function PapanTekaTeki({
         klon.remove?.();
         asli.style.visibility = "";
       };
-      entri.timer = window.setTimeout(selesai, DURASI_GESER + 80);
+      entri.timer = window.setTimeout(selesai, GESER_ISEPIC.durasi + 80);
       klonJalanRef.current.add(entri);
       klon.addEventListener("transitionend", selesai, { once: true });
 
       // Paksa reflow sebelum transisi dipasang (persis `void offsetWidth`
       // di isepic) supaya posisi awal sempat dicat satu frame.
-      // Durasi & kurva penerbangan dikunci persis isepic: 300 ms, transisi
-      // `top/left` TANPA timing-function (kurva `ease` bawaan CSS) — tidak
-      // dipangkas oleh setelan kurangi gerak, karena pemilik situs meminta
-      // gerak bidak sama persis dengan isepic-chess-ui.
+      // Durasi & kurva penerbangan diambil dari SATU sumber (`GESER_ISEPIC`),
+      // lalu ditulis EKSPLISIT di sini — sama dengan efek `top 300ms, left
+      // 300ms` + kurva `ease` bawaan CSS di isepic, sekaligus kebal terhadap
+      // perubahan CSS global (mis. setelan peramban/kurangi gerak) yang bisa
+      // memangkas atau mengubah kurvanya diam-diam.
       void klon.offsetWidth;
-      klon.style.transition = `top ${DURASI_GESER}ms, left ${DURASI_GESER}ms`;
+      klon.style.transition =
+        `top ${GESER_ISEPIC.durasi}ms ${GESER_ISEPIC.kurva}, ` +
+        `left ${GESER_ISEPIC.durasi}ms ${GESER_ISEPIC.kurva}`;
       klon.style.left = `${akhirKiri}px`;
       klon.style.top = `${akhirAtas}px`;
     }

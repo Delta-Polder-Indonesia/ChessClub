@@ -16,12 +16,16 @@
  *   B. Papan sungguhan di atas jsdom: `element.animate()` benar-benar
  *      dipanggil pada bidak di petak tujuan dengan pergeseran awal yang tepat,
  *      dan TIDAK dipanggil saat posisi diganti atau papan dibalik.
+ *   A2. Penjaga statis "anti-roket": setiap papan yang menggerakkan bidak wajib
+ *      membaca `GESER_ISEPIC` (300 ms, ease) dan tidak boleh memakai animasi
+ *      150 ms / kurva linear — gaya yang dulu membuat bidak melesat kaku.
  *
  * Bagian B gagal keras bila jsdom/esbuild tidak
  * terpasang — keduanya bukan dependensi runtime situs.
  *
  * Jalankan: node scripts/uji-animasi-bidak.mjs  |  npm run uji:animasi-bidak
  */
+import { readFileSync, readdirSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -32,6 +36,7 @@ import {
   DURASI_GESER,
   DURASI_GESER_MINIM,
   GAYA_ANALISA,
+  GESER_ISEPIC,
   KURVA_GESER,
   durasiGeser,
   geseranDariFen,
@@ -222,6 +227,72 @@ const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
     "gaya bawaan persis isepic: 300 ms ease tanpa pudar",
     bawaan.durasi === DURASI_GESER && bawaan.kurva === "ease" && bawaan.pudar === false,
     JSON.stringify(bawaan)
+  );
+  uji(
+    "GESER_ISEPIC (sumber tunggal semua papan): 300 ms ease",
+    GESER_ISEPIC.durasi === 300 && GESER_ISEPIC.kurva === "ease",
+    JSON.stringify(GESER_ISEPIC)
+  );
+}
+
+/* ============ A2. penjaga "roket": setiap papan wajib selambat isepic ========
+ *
+ * Latar: pada 8 Okt 2026 papan-papan diubah memakai gaya Report Analisa
+ * (150 ms `linear`) sehingga bidak terasa "melesat seperti roket, kaku".
+ * Gaya itu dibalik 15 Okt 2026, tetapi papan Report Analisa sendiri masih
+ * tertinggal di 150 ms sampai penjaga ini ditulis.
+ *
+ * Uji ini membaca SUMBER setiap papan yang menggerakkan bidak dan menolak:
+ *   1. animasi bidak dengan durasi < 300 ms;
+ *   2. kurva `linear` pada animasi bidak (kaku, tanpa melandai);
+ *   3. halaman yang memaksa prop `gayaGeser="analisa"` ke papan bersama.
+ * Penjaga STATIS ini melengkapi uji render di bawah: render membuktikan
+ * papan memakai transisi 300 ms `ease`, penjaga ini memastikan tidak ada
+ * papan lain yang menyimpang dari sumber tunggal `GESER_ISEPIC`.
+ */
+
+console.log("\nA2. penjaga kecepatan luncuran bidak (anti-roket)");
+
+/** Semua berkas papan yang menggerakkan bidak + halaman pemakainya. */
+const BERKAS_PAPAN = [
+  "src/halaman/TekaTeki/PapanTekaTeki.jsx",
+  "src/halaman/Analisa/komponen/game/board.jsx",
+];
+
+for (const berkas of BERKAS_PAPAN) {
+  const sumber = readFileSync(path.join(ROOT, berkas), "utf8");
+  const durasi150 = /duration:\s*150\b/.test(sumber);
+  const linear = /easing:\s*"linear"/.test(sumber);
+  uji(`${berkas}: tidak ada animasi bidak 150 ms`, !durasi150);
+  uji(`${berkas}: tidak ada animasi bidak berkurva linear`, !linear);
+  uji(
+    `${berkas}: membaca sumber tunggal GESER_ISEPIC`,
+    /GESER_ISEPIC/.test(sumber),
+    "konstanta GESER_ISEPIC tidak dipakai di berkas ini"
+  );
+}
+
+{
+  // Halaman mana pun yang memaksa gaya "analisa" ke papan bersama = roket.
+  const pemaksa = [];
+  const tumpuk = ["src"];
+  while (tumpuk.length) {
+    const dir = tumpuk.pop();
+    for (const isi of readdirSync(path.join(ROOT, dir), { withFileTypes: true })) {
+      const jalur = `${dir}/${isi.name}`;
+      if (isi.isDirectory()) {
+        tumpuk.push(jalur);
+        continue;
+      }
+      if (!/\.(jsx?|mjs)$/.test(isi.name)) continue;
+      const teks = readFileSync(path.join(ROOT, jalur), "utf8");
+      if (/gayaGeser\s*=\s*"analisa"/.test(teks)) pemaksa.push(jalur);
+    }
+  }
+  uji(
+    'tidak ada halaman yang memaksa gayaGeser="analisa" (gaya roket)',
+    pemaksa.length === 0,
+    pemaksa.join(", ")
   );
 }
 
