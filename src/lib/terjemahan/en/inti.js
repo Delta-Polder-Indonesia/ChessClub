@@ -41,6 +41,7 @@ export const nav = {
     tekaTekiRush: "Puzzle Rush",
     quizCatur: "Chess Quiz",
     pembukaan: "Openings",
+    lawanBot: "Vs Bot",
     eBookPanduan: "E-Books & Guides",
     turnamenBulanan: "Monthly Tournament",
     ligaMusiman: "Seasonal League",

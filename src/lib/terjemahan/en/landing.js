@@ -49,7 +49,7 @@ export const landing = {
     ajakanTombol: "Register Now",
     alatLatihanJudul: "Daily practice tools",
     alatLatihanDesk:
-      "Five practice tools for training calculation and reviewing your own play: tactical puzzles, rush mode, a knowledge quiz, an analysis report, and an opening book. All of them run in the browser, with nothing to install.",
+      "Six practice tools for training calculation and reviewing your own play: tactical puzzles, rush mode, a knowledge quiz, an analysis report, an opening book, and a match against the engine. All of them run in the browser, with nothing to install.",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5,486 mate puzzles of one to three moves from the Lichess puzzle database, each labelled with rating, theme, and the player it came from.",
@@ -70,6 +70,10 @@ export const landing = {
     alatPembukaanDesk:
       "18,713 opening lines with their names and ECO codes, wired straight into this site's interactive board.",
     alatPembukaanCta: "Browse openings",
+    alatManusiaVsMesinJudul: "Human vs Machine",
+    alatManusiaVsMesinDesk:
+      "Play chess against a local engine — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
+    alatManusiaVsMesinCta: "Start playing",
     tigaJalanJudul: "Pick the path that fits",
     tigaJalanJudulAccent: "your level",
     tigaJalanAkademiKicker: "Chess Academy",

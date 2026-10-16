@@ -38,6 +38,7 @@ export default function ProgramKami() {
     { kunci: "panduan", to: "/program-kami/ebook-panduan", label: t("nav.eBookPanduan") },
     { kunci: "simultan" },
     { kunci: "tekaTeki", to: "/program-kami/teka-teki", label: t("nav.tekaTeki") },
+    { kunci: "manusiaVsMesin", to: "/program-kami/manusia-vs-mesin", label: t("program.kartu.manusiaVsMesin.judul") },
   ];
 
   return (

@@ -42,6 +42,11 @@ export const program = {
         deskripsi:
           "Ribuan soal skakmat siap mengasah naluri taktik harian. Latihan singkat yang konsisten jauh lebih membangun daripada teori panjang tanpa praktik.",
       },
+      manusiaVsMesin: {
+        judul: "Manusia vs Mesin",
+        deskripsi:
+          "Bermain langsung melawan mesin catur lokal — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
+      },
     },
     h1: "Panduan dan Latihan Mandiri",
     p3a: "Bagi anggota yang ingin belajar atau mengulang dasar-dasar permainan, situs ini menyediakan halaman",
@@ -478,4 +483,19 @@ export const kuisLanding = {
     ctaIsi:
       "Pilih satu kategori favorit atau uji semuanya sekaligus, lalu buktikan pengetahuan catur Anda.",
     cta: "Mulai Kuis Catur",
+};
+
+
+export const manusiaVsMesinLanding = {
+    judul: "Manusia vs Mesin",
+    deskripsi:
+      "Bermain catur melawan mesin langsung di peramban — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
+    metaDeskripsi:
+      "Manusia vs Mesin Komunitas Catur Indonesia — bermain catur melawan mesin lokal (sunfish yang dilemahkan, Maia 3 peniru gaya manusia, dan Stockfish) langsung di peramban.",
+    introJudul: "Latih Insting Bermain Melawan Mesin",
+    intro1:
+      "Mode Manusia vs Mesin menghadirkan lawan catur yang berjalan langsung di peramban Anda — tanpa pendaftaran, tanpa koneksi ke server. Pilih warna, pilih tingkat, dan mulai bermain.",
+    intro2:
+      "Tiga tangga tersedia: sunfish yang dilemahkan untuk pemula–menengah, Maia 3 yang meniru gaya manusia untuk menengah–lanjut, serta Stockfish untuk pemain lanjut–master.",
+    cta: "Mulai Bermain",
 };

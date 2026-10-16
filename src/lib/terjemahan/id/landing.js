@@ -49,7 +49,7 @@ export const landing = {
     ajakanTombol: "Daftar Sekarang",
     alatLatihanJudul: "Alat latihan harian",
     alatLatihanDesk:
-      "Lima alat latihan untuk mengasah kalkulasi dan membaca ulang hasil sendiri: teka-teki taktis, mode rush, kuis pengetahuan, laporan analisis, dan buku pembukaan. Semuanya berjalan di peramban, tanpa pemasangan apa pun.",
+      "Enam alat latihan untuk mengasah kalkulasi dan membaca ulang hasil sendiri: teka-teki taktis, mode rush, kuis pengetahuan, laporan analisis, buku pembukaan, dan laga melawan mesin. Semuanya berjalan di peramban, tanpa pemasangan apa pun.",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
@@ -70,6 +70,10 @@ export const landing = {
     alatPembukaanDesk:
       "18.713 jalur pembukaan beserta nama dan kode ECO-nya, terhubung langsung ke papan interaktif situs ini.",
     alatPembukaanCta: "Jelajahi pembukaan",
+    alatManusiaVsMesinJudul: "Manusia vs Mesin",
+    alatManusiaVsMesinDesk:
+      "Bermain catur melawan mesin lokal — dari lawan lemah untuk pemula hingga Maia 3 dan Stockfish untuk pemain lanjut.",
+    alatManusiaVsMesinCta: "Mulai bermain",
     tigaJalanJudul: "Pilih jalur yang paling cocok",
     tigaJalanJudulAccent: "untuk jenjang Anda",
     tigaJalanAkademiKicker: "Akademi Catur",

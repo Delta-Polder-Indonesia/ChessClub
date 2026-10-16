@@ -79,6 +79,7 @@ const { JSDOM } = require("jsdom");
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
 
@@ -87,7 +88,12 @@ export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
 export function mountPve(el) {
   const root = createRoot(el);
   root.render(
-    React.createElement(I18nProvider, null, React.createElement(ManusiaVsMesin))
+    // MemoryRouter: sidebar halaman memakai <Link> React Router.
+    React.createElement(
+      MemoryRouter,
+      { initialEntries: ["/papan-interaktif/manusia-vs-mesin"] },
+      React.createElement(I18nProvider, null, React.createElement(ManusiaVsMesin))
+    )
   );
   return root;
 }

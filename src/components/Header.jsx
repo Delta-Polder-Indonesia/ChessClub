@@ -63,6 +63,12 @@ function useFokusDialog(terbuka, onTutup, pemicu) {
   return dialogRef;
 }
 
+/** Peta baris grid dropdown — kunci harus literal agar kebaca JIT Tailwind.
+ *  `grid-flow-col` mengisi kolom demi kolom: kolom kiri penuh dulu (N baris
+ *  ke bawah), sisanya di kolom kanan — susunan yang diminta untuk Program
+ *  Kami (4 + 3). */
+const GRID_BARIS = { 2: "grid-rows-2", 3: "grid-rows-3", 4: "grid-rows-4" };
+
 function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false }) {
   const { t } = useI18n();
   const aktif = menuAktif(item.path, pathname);
@@ -114,7 +120,11 @@ function NavItemDesktop({ item, onNavigate, scrolled, pathname, kanan = false })
       </Link>
       {item.children && (
         <ul
-className={`absolute w-[260px] top-10 rounded-lg flex flex-col py-4 bg-white shadow-xl transition-all duration-200 ease-in-out ${
+        className={`absolute top-10 rounded-lg py-4 bg-white shadow-xl transition-all duration-200 ease-in-out ${
+          item.kolom
+            ? `grid grid-flow-col w-[min(92vw,360px)] ${GRID_BARIS[item.kolom] ?? GRID_BARIS[4]}`
+            : "flex w-[260px] flex-col"
+        } ${
           kanan ? "right-0" : "left-0"
         } ${
           terbuka
@@ -127,7 +137,7 @@ className={`absolute w-[260px] top-10 rounded-lg flex flex-col py-4 bg-white sha
               key={child.title}
               className="relative group/item transition-all duration-200 ease-in-out text-[#64748B] hover:text-[#1E293B]"
             >
-              <div className="px-6 py-2 w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between gap-2">
+              <div className={`${item.kolom ? "px-4 py-2.5" : "px-6 py-2"} w-full border-0 border-l-4 border-solid border-white hover:border-primary transition-all duration-200 ease-in-out flex items-center justify-between gap-2`}>
                 <Link
                   to={child.path}
                   title={t(child.title)}

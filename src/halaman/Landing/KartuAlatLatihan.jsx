@@ -20,7 +20,7 @@
  */
 import { useI18n } from "../../lib/i18n.jsx";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, ListChecks, Puzzle, Timer } from "lucide-react";
+import { BookOpen, Brain, Cpu, ListChecks, Puzzle, Timer } from "lucide-react";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import {
   JUDUL_SEKSI,
@@ -62,11 +62,11 @@ function BarisAlat({ alat }) {
   );
 }
 
-/* Kelima kartu diarahkan ke halaman penjelasan masing-masing di
+/* Keenam kartu diarahkan ke halaman penjelasan masing-masing di
    /program-kami/*, bukan ke alatnya. Setiap halaman itu memuat cara kerja,
    contoh nyata, dan tombol ke alatnya; jadi satu klik dari Beranda selalu
    mendarat di halaman isi, dan masuk ke alat butuh klik kedua. */
-function limaAlat(t) {
+function enamAlat(t) {
   return [
     {
       to: "/program-kami/teka-teki",
@@ -103,6 +103,13 @@ function limaAlat(t) {
       desk: t("landing.alatPembukaanDesk"),
       cta: t("landing.alatPembukaanCta"),
     },
+    {
+      to: "/program-kami/manusia-vs-mesin",
+      ikon: Cpu,
+      judul: t("landing.alatManusiaVsMesinJudul"),
+      desk: t("landing.alatManusiaVsMesinDesk"),
+      cta: t("landing.alatManusiaVsMesinCta"),
+    },
   ];
 }
 
@@ -119,7 +126,7 @@ export function KartuAlatLatihan() {
         </div>
 
         <ul className="flex flex-col gap-3">
-          {limaAlat(t).map((alat) => (
+          {enamAlat(t).map((alat) => (
             <li key={alat.to}>
               <BarisAlat alat={alat} />
             </li>

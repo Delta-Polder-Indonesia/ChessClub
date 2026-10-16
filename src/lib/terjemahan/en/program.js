@@ -42,6 +42,11 @@ export const program = {
         deskripsi:
           "Thousands of checkmate puzzles to sharpen your daily tactical instincts. Short, consistent practice builds far more than long theory without application.",
       },
+      manusiaVsMesin: {
+        judul: "Human vs Machine",
+        deskripsi:
+          "Play directly against a local chess engine — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
+      },
     },
     h1: "Self-Study Guide and Practice",
     p3a: "For members who want to learn or revisit the fundamentals, the site provides the",
@@ -477,4 +482,19 @@ export const kuisLanding = {
     ctaIsi:
       "Choose a favourite category or test them all at once, then prove your chess knowledge.",
     cta: "Start Chess Quiz",
+};
+
+
+export const manusiaVsMesinLanding = {
+    judul: "Human vs Machine",
+    deskripsi:
+      "Play chess against an engine right in your browser — from weakened opponents for beginners to Maia 3 and Stockfish for advanced players.",
+    metaDeskripsi:
+      "Human vs Machine by Indonesian Chess Community — play chess against a local engine (weakened sunfish, Maia 3 human-style, and Stockfish) directly in the browser.",
+    introJudul: "Train Your Instincts Against an Engine",
+    intro1:
+      "Human vs Machine runs entirely in your browser — no registration, no server. Choose a colour, choose a level, and start playing.",
+    intro2:
+      "Three ladders are available: weakened sunfish for beginners–intermediate, Maia 3 that mimics human style for intermediate–advanced, and Stockfish for advanced–master.",
+    cta: "Start Playing",
 };

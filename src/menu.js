@@ -50,6 +50,10 @@ export const MENU_UTAMA = [
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
+    // Anak dropdown disusun dua kolom berisi 4 dan 3 item yang turun ke
+    // bawah (grid-flow-col), supaya daftar panjang tidak menjang ke bawah.
+    // Lihat NavItemDesktop di Header.jsx.
+    kolom: 4,
     children: [
       {
         title: "nav.tekaTeki",
@@ -80,6 +84,12 @@ export const MENU_UTAMA = [
         path: "/program-kami/pembukaan",
         folder: "ProgramKami",
         file: "Pembukaan.jsx",
+      },
+      {
+        title: "nav.lawanBot",
+        path: "/papan-interaktif/manusia-vs-mesin",
+        folder: "ManusiaVsMesin",
+        file: "ManusiaVsMesin.jsx",
       },
       {
         title: "nav.eBookPanduan",

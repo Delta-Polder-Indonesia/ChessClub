@@ -34,6 +34,7 @@ const ProgramKami = lazy(() => import("./halaman/ProgramKami/ProgramKami.jsx"));
 const TekaTekiKonten = lazy(() => import("./halaman/ProgramKami/TekaTekiKonten.jsx"));
 const RushTekaTekiLanding = lazy(() => import("./halaman/ProgramKami/RushTekaTekiLanding.jsx"));
 const KuisCaturLanding = lazy(() => import("./halaman/ProgramKami/KuisCaturLanding.jsx"));
+const ManusiaVsMesinLanding = lazy(() => import("./halaman/ProgramKami/ManusiaVsMesinLanding.jsx"));
 const Pembukaan = lazy(() => import("./halaman/ProgramKami/Pembukaan.jsx"));
 const EbookPanduan = lazy(() => import("./halaman/ProgramKami/EbookPanduan.jsx"));
 
@@ -207,6 +208,7 @@ const RUTE_HALAMAN = [
   ["/program-kami/teka-teki", TekaTekiKonten],
   ["/program-kami/rush-teka-teki", RushTekaTekiLanding],
   ["/program-kami/kuis-catur", KuisCaturLanding],
+  ["/program-kami/manusia-vs-mesin", ManusiaVsMesinLanding],
   ["/program-kami/pembukaan", Pembukaan],
   ["/program-kami/analisa", AnalisaLanding],
   ["/program-kami/analisa/papan", Analisa],
@@ -229,6 +231,11 @@ const RUTE_HALAMAN = [
   ["/teka-teki/:id", AlihTekaTekiLama],
   ["/teka-teki-rush", TekaTekiRush],
   ["/quiz-catur", QuizCatur],
+
+  // Manusia vs Mesin — satu keluarga papan-interaktif, tapi berdiri sendiri
+  // dengan sidebar miliknya sendiri (ala Teka-teki/Rush), bukan sidebar
+  // tata letak Workspace. Alamatnya tetap di bawah /papan-interaktif/*.
+  ["/papan-interaktif/manusia-vs-mesin", ManusiaVsMesin],
 
   ["/turnamen", Turnamen],
   ["/turnamen/turnamen-bulanan", TurnamenBulanan],
@@ -266,7 +273,6 @@ const RUTE_HALAMAN = [
  *  absolut — dirender bersarang di bawah <TataLetakPapan /> pada <Routes>. */
 const RUTE_PAPAN = [
   ["/papan-interaktif", HalamanPapanBuku],
-  ["/papan-interaktif/manusia-vs-mesin", ManusiaVsMesin],
   ["/papan-interaktif/latihan-repertoar", LatihanRepertoar],
   ["/papan-interaktif/hand-brain", HandBrain],
   ["/papan-interaktif/turing-test", TuringTest],

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { Bookmark, Brain, Cpu, Flag, FlipVertical2, Plus, Settings, Share2, Volume2, VolumeX, X } from "lucide-react";
 import { Chess } from "chess.js";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import License from "../Analisa/komponen/svg/license.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
 import { berkasPublik } from "../../lib/asets.js";
@@ -335,6 +337,11 @@ function PengaturanPermainan({
 
 export default function ManusiaVsMesin({ pengaturan = null }) {
   const { t } = useI18n();
+  // Halaman mandiri dengan sidebar miliknya sendiri (ala Teka-teki/Rush),
+  // jadi judul tab diatur di sini — bukan oleh tata letak Workspace.
+  useEffect(() => {
+    document.title = `${t("papan.menuManusiaMesin")} | ${t("common.namaKomunitas")}`;
+  }, [t]);
   // Terima pengaturan dari tata letak /papan-interaktif/* (konteks bersama);
   // tanpa itu buat state lokal agar komponen tetap berdiri sendiri.
   const pengaturanLokal = usePengaturanPapan();
@@ -993,9 +1000,48 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   });
 
   return (
-    // Konten dibatasi 1280px + padding md:px-8 dan kolom papan maksimal 520px,
-    // sama seperti halaman papan buku, sehingga lebar panel kanan ikut selalu sama.
-    <div className="mx-auto grid h-full min-h-0 w-full max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
+    <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#262421] font-sans text-gray-200 lg:flex-row">
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* SIDEBAR KIRI — milik mode ini sendiri, bukan sidebar    *)
+      {/* papan-interaktif (pola sama dengan Teka-teki & Rush).   */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <aside className="flex w-full shrink-0 flex-col justify-between border-b border-[#312e2b] bg-[#1e1c18] lg:w-[220px] lg:border-b-0 lg:border-r">
+        <div>
+          <div className="border-b border-[#312e2b] px-4 py-4">
+            <span className="text-[22px] font-bold leading-none text-white">
+              Blunder<span className="text-[#81b64c]">Skuad</span>
+            </span>
+            <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              {t("papan.menuManusiaMesin")}
+            </p>
+          </div>
+
+          <div className="space-y-1 px-5 py-2">
+            <button
+              type="button"
+              onClick={() => setTampilPengaturan(true)}
+              className="flex w-full items-center gap-2 py-1.5 text-left text-sm font-bold text-slate-300 transition hover:text-white"
+            >
+              <Settings size={20} className="shrink-0" aria-hidden="true" />
+              {t("papan.pengaturan")}
+            </button>
+          </div>
+        </div>
+
+        <div className="border-t border-[#312e2b] px-4 py-3">
+          <Link
+            to="/program-kami/atribusi"
+            className="flex items-center justify-center gap-1.5 text-xs text-gray-300 transition hover:text-white"
+          >
+            <License size={14} class="fill-current" />
+            {t("papan.menuAtribusi")}
+          </Link>
+        </div>
+      </aside>
+
+      {/* Konten dibatasi 1280px + padding md:px-8 dan kolom papan maksimal 520px,
+          sama seperti halaman papan buku, sehingga lebar panel kanan ikut selalu sama. */}
+      <div className="mx-auto grid h-full min-h-0 w-full flex-1 max-w-[1280px] grid-cols-1 gap-3 overflow-x-hidden overflow-y-auto p-2 sm:gap-4 sm:p-4 md:px-8 lg:grid-cols-[auto_minmax(0,1fr)] lg:overflow-hidden">
       <section
         aria-label={t("papan.pveJudul")}
         className="mx-auto flex min-h-0 w-full items-start justify-center sm:items-center lg:overflow-y-auto"
@@ -1450,6 +1496,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           onBalikPapan={() => setOrientasiPapan((orientasi) => (orientasi === "w" ? "b" : "w"))}
         />
       )}
+      </div>
     </div>
   );
 }

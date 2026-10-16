@@ -41,6 +41,7 @@ export const nav = {
     tekaTekiRush: "Rush Teka-teki",
     quizCatur: "Kuis Catur",
     pembukaan: "Pembukaan",
+    lawanBot: "Lawan Bot",
     eBookPanduan: "E-Book & Panduan",
     turnamenBulanan: "Turnamen Bulanan",
     ligaMusiman: "Liga Musiman",

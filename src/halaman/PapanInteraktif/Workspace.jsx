@@ -38,7 +38,6 @@ export function HalamanPapanBuku() {
 /** Menu mode papan — tiap mode kini rute sendiri, bukan tab state. */
 const MENU_PAPAN = [
   { ke: "/papan-interaktif", akhir: true, ikon: "analisa", label: "papan.menuAnalisa" },
-  { ke: "/papan-interaktif/manusia-vs-mesin", ikon: "users", label: "papan.menuManusiaMesin" },
   { ke: "/papan-interaktif/latihan-repertoar", ikon: "books", label: "papan.menuLatihanRepertoar" },
   { ke: "/papan-interaktif/hand-brain", ikon: "games", label: "papan.menuHandBrain" },
   { ke: "/papan-interaktif/turing-test", ikon: "users", label: "papan.menuTuring" },
@@ -72,7 +71,7 @@ export default function TataLetakPapan() {
 
             <nav
               aria-label={t("papan.menuMode")}
-              className="grid w-full grid-cols-6 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
+              className="grid w-full grid-cols-5 gap-1 px-1 py-1.5 lg:flex lg:flex-col lg:gap-1 lg:px-3 lg:pb-2 lg:pt-0"
             >
               {MENU_PAPAN.map((item) => (
                 <NavLink
