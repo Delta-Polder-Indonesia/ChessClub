@@ -661,6 +661,7 @@ console.log("\nC. mode Manusia vs Mesin");
 const MASUK_PVE = `
 import React from "react";
 import { createRoot } from "react-dom/client";
+import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
 
@@ -668,9 +669,12 @@ export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
 
 export function mountPve(el) {
   return createRoot(el).render(
-    <I18nProvider>
-      <ManusiaVsMesin />
-    </I18nProvider>
+    // MemoryRouter: sidebar halaman memakai <Link> React Router.
+    <MemoryRouter initialEntries={["/papan-interaktif/manusia-vs-mesin"]}>
+      <I18nProvider>
+        <ManusiaVsMesin />
+      </I18nProvider>
+    </MemoryRouter>
   );
 }
 `;
