@@ -188,11 +188,11 @@ vertikal (dapat di-scroll pengguna), persis pola empat halaman mode.
 
 ---
 
-## 6. Catatan / rekomendasi lanjutan (belum dikerjakan)
+## 6. Catatan / rekomendasi lanjutan
 
 | ID | Catatan |
 | --- | --- |
-| N-1 | `BilahEvaluasi` memakai `transition: height 1.5s` — terasa lambat; pemangkasan ke ±0,4 s akan lebih "hidup", tetapi durasi panjang mungkin disengaja untuk meredam kedip hasil engine sementara. Butuh keputusan UX, jadi tidak diubah. |
+| **N-1** | **SUDAH DIKERJAKAN (2026-10-17, diminta pengguna):** transisi bilah evaluasi `height 1.5s` → `0.4s` agar terasa lebih "hidup". Diterapkan pada `bersama/BilahEvaluasi.jsx` **dan** dua salinan pola yang sama demi konsistensi visual: `Analisa/komponen/game/evaluation.jsx` serta `TekaTeki/TekaTeki.jsx` (komentar di TekaTeki ikut diperbarui). Tidak ada tes yang bergantung pada durasi (jsdom mengabaikan transisi CSS) — `uji:evaluasi-manusia-vs-mesin`, `uji-mobile`, `uji-panel`, `uji:analisa-ui`, `uji:tekateki-alur`, `uji:tekateki-solusi` tetap lulus. |
 | N-2 | Beberapa teks lama `text-[10px]/[11px]` (baris profil, tabel, sidebar) kini tercatat di baseline standar desain; pertimbangkan menaikkan ke `text-xs` bertahap. |
 | N-3 | Baris `TangkapanBidak` memotong bila tangkapan sangat banyak (mirip chess.com) — diterima, tetapi bisa diberi `title` ringkasan nilai material. |
 | N-4 | Uji e2e browser tidak dapat dijalankan di lingkungan audit ini (unduhan browser Playwright diblokir); regresi U-1 divalidasi secara sintaks + logika dan menunggu jalannya CI/lokal. |

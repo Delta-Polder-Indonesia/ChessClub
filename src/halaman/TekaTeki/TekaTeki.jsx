@@ -1418,7 +1418,7 @@ export default function TekaTeki() {
 
   // Bar evaluasi re-usable untuk wadah gelap.
   // Meniru komponen Evaluation halaman Analisa (port Brilliant-Chess):
-  // background #403d39, bar putih #ffffff dengan transisi 1.5s,
+  // background #403d39, bar putih #ffffff dengan transisi 0.4s,
   // dua teks skor di atas & bawah bar, hanya yang menang yang tampil.
   const barEvaluasiWadah = (() => {
     const { teksSkor = "", cpPutih = 0, matePutih = null } =
@@ -1466,7 +1466,7 @@ export default function TekaTeki() {
           className="w-full bg-[#ffffff]"
           style={{
             height: `${percent}%`,
-            transition: "height 1.5s",
+            transition: "height 0.4s",
             willChange: "height",
           }}
         />

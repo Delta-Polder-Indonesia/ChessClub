@@ -55,7 +55,7 @@ export default function BilahEvaluasi({
         className="w-full bg-white"
         style={{
           height: `${persenPutih}%`,
-          transition: "height 1.5s",
+          transition: "height 0.4s",
           willChange: "height",
         }}
       />
