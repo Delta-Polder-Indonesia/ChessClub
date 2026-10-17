@@ -38,6 +38,7 @@ import {
   mintaKodeVerifikasi,
   periksaKodeVerifikasi,
 } from "../lib/api/anggota.js";
+import { teksGalat } from "../lib/api/core.js";
 import { periksaUsername } from "../lib/identitas.js";
 import { URL_PENGATURAN_PROFIL } from "../halaman/PendaftaranAnggota/komponen/pendaftaran.js";
 import { useI18n } from "../lib/i18n.jsx";
@@ -157,7 +158,7 @@ export default function VerifikasiAkun({
         if (galat?.name === "AbortError" || sinyal?.aborted) return;
         setKode("");
         setStatus(GAGAL);
-        setPesan(galat?.message || t("verifikasi.galatMintaKode"));
+        setPesan(teksGalat(galat, t, "verifikasi.galatMintaKode"));
       }
     },
     [terikat, usernameSah, t]
@@ -262,7 +263,7 @@ export default function VerifikasiAkun({
       }
       setStatus(GAGAL);
       setPercobaan((n) => n + 1);
-      setPesan(galat?.message || t("verifikasi.galatMemeriksa"));
+      setPesan(teksGalat(galat, t, "verifikasi.galatMemeriksa"));
     }
   };
 
@@ -291,7 +292,7 @@ export default function VerifikasiAkun({
     } catch (galat) {
       if (!aktifRef.current) return;
       setStatus(GAGAL);
-      setPesan(galat?.message || t("verifikasi.galatPengajuan"));
+      setPesan(teksGalat(galat, t, "verifikasi.galatPengajuan"));
     } finally {
       if (aktifRef.current) setMengirimPengajuan(false);
     }
@@ -307,7 +308,7 @@ export default function VerifikasiAkun({
     } catch (galat) {
       if (!aktifRef.current) return;
       setMengalihkan(false);
-      setPesan(galat?.message || t("verifikasi.galatOAuth"));
+      setPesan(teksGalat(galat, t, "verifikasi.galatOAuth"));
     }
   };
 

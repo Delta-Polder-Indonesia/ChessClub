@@ -4,6 +4,7 @@ import {
   ambilTurnamenPublik,
   ambilSatuTurnamen,
   ajukanPesertaTurnamen,
+  teksGalat,
 } from "../lib/api/index.js";
 import { useI18n } from "../lib/i18n.jsx";
 import { parseWaktuKomunitas } from "../lib/waktu.js";
@@ -227,6 +228,8 @@ function Klasemen({ id, k }) {
 }
 
 function KartuTurnamen({ t, k, bahasa }) {
+  // `t` di sini adalah prop turnamen — translator diambil terpisah.
+  const { t: terjemah } = useI18n();
   const [buka, setBuka] = useState(false);
   const [bukaDaftar, setBukaDaftar] = useState(false);
   const [username, setUsername] = useState("");
@@ -257,7 +260,7 @@ function KartuTurnamen({ t, k, bahasa }) {
       setPesanDaftar(k.pengajuanTerkirim);
       setUsername("");
     } catch (err) {
-      setGalatDaftar(err.message || "Pengajuan gagal.");
+      setGalatDaftar(teksGalat(err, terjemah));
       setHarusDaftarAnggota(Boolean(err.galat?.harusDaftarAnggota));
     } finally {
       setMengirim(false);

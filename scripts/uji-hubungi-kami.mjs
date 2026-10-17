@@ -10,6 +10,8 @@
  *   2. submit kosong ditolak lokal tanpa menyentuh jaringan;
  *   3. submit sukses menampilkan teks kamus `terkirimJudul`/`terkirimIsi`;
  *   4. galat server ditampilkan apa adanya dengan judul kamus `galatJudul`;
+ *      kegagalan tanpa `pesan` server memakai terjemahan `api.*` (standar
+ *      pesan galat lapisan API — lihat `src/lib/api/core.js`);
  *   5. pembongkaran komponen setelah submit tidak melempar (timer dibersihkan).
  */
 import "./lingkungan-jsdom.mjs";
@@ -25,6 +27,7 @@ const { default: HubungiKami } = await import(
   "../src/halaman/HubungiKami/HubungiKami.jsx"
 );
 const { hubungi } = await import("../src/lib/terjemahan/id/hubungi.js");
+const { api: kamusApi } = await import("../src/lib/terjemahan/id/api.js");
 
 const act = React.act ?? (await import("react-dom/test-utils")).act;
 
@@ -178,10 +181,10 @@ hasil(
   "teks hardcode masih tampil"
 );
 
-// 4. Galat → pesan server tampil apa adanya, judul dari kamus. (Pesan
-//    cadangan milik lapisan API — mis. "Gagal mengirim pesan." pada
-//    lib/api/pesan.js — adalah konvensi pesan ramah berbahasa Indonesia
-//    yang berlaku di seluruh modul API; diperlakukan sebagai konten.)
+// 4. Galat → pesan server tampil apa adanya, judul dari kamus. Standar
+//    pesan galat lapisan API (src/lib/api/core.js): `message` hanya diisi
+//    `pesan` milik server dan diperlakukan sebagai konten; kegagalan sisi
+//    klien dibawa sebagai `kodePesan` dan diterjemahkan lewat `teksGalat`.
 balasanFetch = {
   ok: false,
   status: 500,
@@ -201,6 +204,20 @@ hasil(
   "pesan galat server ditampilkan apa adanya",
   isiGalat.includes("Kuota pesan harian habis."),
   "pesan server tidak ditemukan"
+);
+
+// 4b. Kegagalan TANPA pesan server → teks dari kamus api.* (bukan string
+//     klien yang ditulis di lapisan API, yang kini sengaja dikosongkan).
+balasanFetch = { ok: false, status: 502, body: {} };
+await act(async () => {
+  isiFormValid();
+});
+await kirim();
+const isiGalatKlien = document.getElementById("root").textContent;
+hasil(
+  "kegagalan tanpa pesan server memakai terjemahan api.*",
+  isiGalatKlien.includes(kamusApi.kirimPesan),
+  "teks api.kirimPesan tidak ditemukan"
 );
 
 // 5. Unmount setelah submit (timer status masih hidup) harus bersih.

@@ -39,6 +39,20 @@ export const karir = {
     kirim:
       "Send your application to info@komunitascatur.or.id with the position as the subject.",
     nextJudul: "Contact Us",
+    blok1Eyebrow: "Who Are We?",
+    blok1Judul: "Indonesian Chess Community",
+    blok1Isi: "The Indonesian Chess Community is a home to play, learn, and grow for chess players from various regions. We run tournaments, classes, media, membership, and technology in one open ecosystem.",
+    blok2Eyebrow: "Join Us",
+    blok2Judul: "Ready to Be Part of the Journey",
+    blok2Isi: "Through volunteer, coach, media, and secretariat programs, everyone has room to develop their skills while making an impact on chess development in Indonesia.",
+    blok3Eyebrow: "Our Values",
+    blok3Judul: "Sportsmanship, Achievement, and Development",
+    blok3Isi: "We work with trustworthiness, competence, harmony, loyalty, adaptability, and collaboration. These values are the basis for decisions on the board and behind the scenes.",
+    pelajari: "Learn more",
+    tutupEyebrow: "Join Us",
+    tutupJudul: "Let's grow and contribute to Indonesian chess",
+    tutupIsi: "Choose a role that suits your abilities, prepare a short portfolio, then send it via the community's official email.",
+    tutupTombol: "Send Application",
   }
 
 export const pengadaan = {

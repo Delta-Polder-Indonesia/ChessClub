@@ -1,4 +1,4 @@
-import { urlApi } from "./core.js";
+import { GalatApi, urlApi } from "./core.js";
 import { ambilCsrfToken } from "./pengurus.js";
 
 /* ----------------------------------------- papan peringkat "Rush Teka-teki" */
@@ -24,9 +24,10 @@ export async function ambilPeringkatRush(durasiMenit) {
   );
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const e = new Error(data.pesan || "Gagal memuat papan peringkat Rush.");
-    e.status = res.status;
-    throw e;
+    throw new GalatApi(data.pesan || "", {
+      status: res.status,
+      kodePesan: data.pesan ? null : "papanPeringkatRush",
+    });
   }
   return data; // { durasi, peringkat }
 }
@@ -70,11 +71,10 @@ export async function kirimSkorRush({ username, skor, durasiMenit, tiketVerifika
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const e = new Error(
-      data.pesan || "Gagal menyimpan skor ke papan peringkat."
-    );
-    e.status = res.status;
-    throw e;
+    throw new GalatApi(data.pesan || "", {
+      status: res.status,
+      kodePesan: data.pesan ? null : "simpanSkorRush",
+    });
   }
   return data; // { hasil, peringkat }
 }

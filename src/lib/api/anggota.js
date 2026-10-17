@@ -39,7 +39,7 @@ async function ambilRosterPublikChess() {
   const res = await fetch(API_KLUB_CHESS, {
     headers: { Accept: "application/json" },
   });
-  if (!res.ok) throw new Error("Gagal memuat roster publik Chess.com.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "memuatRoster" });
 
   const data = await res.json();
   const unik = new Map();
@@ -91,9 +91,9 @@ export async function ambilAnggotaDenganSumber({ paksa = false } = {}) {
       "/api/anggota",
       paksa ? { cache: "no-store" } : undefined
     );
-    if (!res.ok) throw new Error(`API anggota menjawab ${res.status}.`);
+    if (!res.ok) throw new GalatApi("", { status: res.status, kodePesan: "responsTidakSah" });
     const data = await res.json();
-    if (!Array.isArray(data)) throw new Error("Format API anggota tidak sah.");
+    if (!Array.isArray(data)) throw new GalatApi("", { kodePesan: "formatTidakSah" });
     // Backend menjawab dari snapshot: header ini memberitahu seberapa baru.
     const diperbaruiPada = res.headers?.get?.("X-Roster-Diperbarui") || null;
     const segar = res.headers?.get?.("X-Roster-Segar");
@@ -116,13 +116,10 @@ export async function ambilAnggotaDenganSumber({ paksa = false } = {}) {
         diperbaruiPada: null,
         peringatan: "roster-publik",
         rosterSegar: false,
-        sebab: galatBackend?.message || String(galatBackend),
+        sebab: galatBackend?.kodePesan || galatBackend?.message || String(galatBackend),
       };
     } catch {
-      throw new Error(
-        "Daftar anggota belum dapat dimuat dari server maupun Chess.com.",
-        { cause: galatBackend }
-      );
+      throw new GalatApi("", { kodePesan: "memuatAnggota", cause: galatBackend });
     }
   }
 }
@@ -134,7 +131,7 @@ export async function ambilDaftarAnggota() {
 
 export async function ambilDaftarHitam() {
   const res = await fetch(urlApi("/api/daftar-hitam"));
-  if (!res.ok) throw new Error("Gagal memuat daftar larangan.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "memuatLarangan" });
   return res.json();
 }
 
@@ -151,7 +148,7 @@ export async function ambilDaftarHitam() {
 async function kirimDenganCsrf(
   jalur,
   bodi,
-  { pesanCadangan = "", metode = "POST", sinyal = undefined } = {}
+  { kodePesan = "umum", metode = "POST", sinyal = undefined } = {}
 ) {
   const lakukan = async (csrfToken) => {
     const res = await fetchApi(jalur, {
@@ -184,7 +181,7 @@ async function kirimDenganCsrf(
     ({ res, hasil } = await lakukan(csrfToken));
   }
 
-  if (!res.ok) throw galatDariRespons(res, hasil, pesanCadangan);
+  if (!res.ok) throw galatDariRespons(res, hasil, kodePesan);
   return hasil;
 }
 
@@ -192,7 +189,7 @@ async function kirimDenganCsrf(
 export async function ambilCaraVerifikasi() {
   const res = await fetchApi("/api/auth/cara");
   const data = await bacaJsonRespons(res);
-  if (!res.ok) throw galatDariRespons(res, data, "Konfigurasi verifikasi tidak dapat dimuat.");
+  if (!res.ok) throw galatDariRespons(res, data, "memuatCaraVerifikasi");
   const mode = ["off", "opsional", "wajib"].includes(data.mode) ? data.mode : "opsional";
   return {
     oauth: Boolean(data.oauth),
@@ -211,9 +208,9 @@ export async function mulaiLoginChessCom(kembaliKe = "/pendaftaran-anggota") {
     `/api/auth/chess/mulai?kembali=${encodeURIComponent(kembaliKe)}`
   );
   const data = await bacaJsonRespons(res);
-  if (!res.ok) throw galatDariRespons(res, data, "Login Chess.com tidak tersedia.");
+  if (!res.ok) throw galatDariRespons(res, data, "loginChesscom");
   if (typeof data.url !== "string" || !data.url.startsWith("https://")) {
-    throw new GalatApi("Respons login Chess.com tidak sah.", { status: res.status });
+    throw new GalatApi("", { status: res.status, kodePesan: "responsLogin" });
   }
   return data;
 }
@@ -227,7 +224,7 @@ export async function mintaKodeVerifikasi(username, { paksa = false, sinyal } = 
     "/api/auth/kode/minta",
     { username, paksa },
     {
-      pesanCadangan: "Kode verifikasi tidak dapat diminta. Coba lagi.",
+      kodePesan: "mintaKode",
       sinyal,
     }
   );
@@ -241,7 +238,7 @@ export async function periksaKodeVerifikasi(username, { sinyal } = {}) {
   return kirimDenganCsrf(
     "/api/auth/kode/periksa",
     { username },
-    { pesanCadangan: "Pemeriksaan kode gagal. Coba lagi.", sinyal }
+    { kodePesan: "periksaKode", sinyal }
   );
 }
 
@@ -253,7 +250,7 @@ export async function ajukanVerifikasiManual(username, catatan = "") {
   return kirimDenganCsrf(
     "/api/auth/pengajuan-manual",
     { username, catatan },
-    { pesanCadangan: "Pengajuan manual tidak dapat dikirim. Coba lagi." }
+    { kodePesan: "pengajuanManual" }
   );
 }
 
@@ -267,7 +264,7 @@ export async function ajukanVerifikasiManual(username, catatan = "") {
  */
 export async function daftarDenganChessCom(data) {
   return kirimDenganCsrf("/api/anggota", data, {
-    pesanCadangan: "Pendaftaran gagal.",
+    kodePesan: "pendaftaran",
   });
 }
 

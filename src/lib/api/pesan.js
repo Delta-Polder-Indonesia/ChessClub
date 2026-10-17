@@ -39,8 +39,9 @@ export async function kirimPesan(data) {
   }
 
   if (!res.ok) {
-    throw new GalatApi(hasil.pesan || "Gagal mengirim pesan.", {
+    throw new GalatApi(hasil.pesan || "", {
       status: res.status,
+      kodePesan: hasil.pesan ? null : "kirimPesan",
     });
   }
   return hasil;

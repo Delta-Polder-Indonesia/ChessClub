@@ -1,4 +1,4 @@
-import { fetchApi } from "./core.js";
+import { GalatApi, fetchApi } from "./core.js";
 
 /* ------------------------------------------------------------- konten */
 
@@ -7,23 +7,23 @@ import { fetchApi } from "./core.js";
  * JSON rusak — dibalas dengan pesan ramah yang sama supaya tidak pernah ada
  * pesan mentah browser yang bocor ke halaman.
  */
-async function ambilKontenPublik(jalur, pesanGagal) {
+async function ambilKontenPublik(jalur, kodePesan) {
   try {
     const res = await fetchApi(jalur);
     if (!res.ok) throw new Error();
     return await res.json();
-  } catch {
-    throw new Error(pesanGagal);
+  } catch (galat) {
+    throw new GalatApi("", { kodePesan, cause: galat });
   }
 }
 
 /** Berita komunitas yang sudah dipublikasikan. */
 export async function ambilBeritaPublik() {
-  return ambilKontenPublik("/api/berita", "Gagal memuat berita komunitas.");
+  return ambilKontenPublik("/api/berita", "memuatBerita");
 }
 
 /** Pengumuman yang sudah dipublikasikan. */
 export async function ambilPengumumanPublik() {
-  return ambilKontenPublik("/api/pengumuman", "Gagal memuat pengumuman.");
+  return ambilKontenPublik("/api/pengumuman", "memuatPengumuman");
 }
 

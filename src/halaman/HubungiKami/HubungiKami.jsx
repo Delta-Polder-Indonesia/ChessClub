@@ -32,7 +32,7 @@ import Transition from "./components/Transition.jsx";
 import WorkSlider from "./components/WorkSlider.jsx";
 import { fadeIn } from "./variants.js";
 import { Button } from "../../components/ui/button.jsx";
-import { kirimPesan } from "../../lib/api/index.js";
+import { kirimPesan, teksGalat } from "../../lib/api/index.js";
 import { useI18n } from "../../lib/i18n.jsx";
 
 /* ----------------------------------------------------------- aboutData */
@@ -282,7 +282,7 @@ export default function HubungiKami() {
     } catch (error) {
       console.error(error);
       setStatus("error");
-      setStatusError(error.message || t("hubungi.galatKirim"));
+      setStatusError(teksGalat(error, t, "hubungi.galatKirim"));
       if (timerStatus.current) clearTimeout(timerStatus.current);
       timerStatus.current = setTimeout(() => {
         timerStatus.current = null;
@@ -731,6 +731,13 @@ export default function HubungiKami() {
                   >
                     Let&apos;s <span className="text-accent">connect.</span>
                   </motion.h2>
+
+                  {/* Info sekretariat — data kontak nyata dari kamus hubungi.* */}
+                  <div className="mb-8 text-center">
+                    <p className="text-sm font-semibold text-white/80">{t("hubungi.sekretariat")}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/70">{t("hubungi.alamat")}</p>
+                    <p className="mt-1 text-xs leading-5 text-white/70">{t("hubungi.jam")}</p>
+                  </div>
 
                   {/* Overlay status kirim — terpusat, tidak menggeser tata letak */}
                   {status !== "idle" && (

@@ -10,6 +10,13 @@ export const urlApi = (jalur) => `${DASAR}${jalur}`;
  * generic one. `perluVerifikasi` is set by the backend whenever a member
  * registration was rejected because server-verified proof is missing,
  * expired, already used, or bound to another username.
+ *
+ * Standar pesan galat (berlaku untuk SEMUA modul di folder ini):
+ * - `message` hanya diisi dari `pesan` milik server (konten nyata);
+ *   pesan cadangan sisi klien TIDAK lagi ditulis dalam bahasa apa pun.
+ * - Kegagalan sisi klien (jaringan, format tak sah, dsb.) dibawa lewat
+ *   `kodePesan` — kunci terjemahan `api.<kodePesan>` — dan diterjemahkan
+ *   lapisan tampilan lewat `teksGalat(err, t)`.
  */
 export class GalatApi extends Error {
   constructor(
@@ -21,9 +28,12 @@ export class GalatApi extends Error {
       status = 0,
       kode = null,
       perluVerifikasi = false,
+      kodePesan = null,
+      cause = undefined,
     } = {}
   ) {
-    super(pesan);
+    super(pesan || "");
+    if (cause !== undefined) this.cause = cause;
     this.name = "GalatApi";
     this.galat = galat;
     this.diblokir = diblokir;
@@ -31,21 +41,47 @@ export class GalatApi extends Error {
     this.status = status;
     this.kode = kode;
     this.perluVerifikasi = perluVerifikasi;
+    this.kodePesan = kodePesan;
   }
+}
+
+/**
+ * Teks galat untuk tampilan, menurut urutan baku:
+ * 1. `err.message` — pesan milik server (konten nyata), ditampilkan apa adanya;
+ * 2. terjemahan `api.<kodePesan>` — kegagalan sisi klien (jaringan, dsb.);
+ * 3. `kunciCadangan` — kunci domain bila pemanggil memilikinya;
+ * 4. `api.umum` — cadangan terakhir.
+ */
+export function teksGalat(err, t, kunciCadangan = "") {
+  if (err?.message) return err.message;
+  const ganti = { status: err?.status ?? "" };
+  if (typeof t === "function") {
+    if (err?.kodePesan) {
+      const teks = t(`api.${err.kodePesan}`, ganti);
+      if (teks && teks !== `api.${err.kodePesan}`) return teks;
+    }
+    if (kunciCadangan) {
+      const cadangan = t(kunciCadangan, ganti);
+      if (cadangan && cadangan !== kunciCadangan) return cadangan;
+    }
+    const umum = t("api.umum", ganti);
+    if (umum && umum !== "api.umum") return umum;
+  }
+  return err?.message || "";
 }
 
 /**
  * Pesan baku untuk permintaan yang tidak pernah sampai ke server (offline,
  * CORS, DNS). fetch() asli melempar TypeError berbahasa Inggris ("Failed to
- * fetch") — tanpa pembungkus ini pesan teknis tersebut tampil mentah di
- * layar pengunjung.
+ * fetch") — jangan biarkan pesan teknis itu tampil mentah di layar pengunjung;
+ * kegagalan transport dibawa sebagai `kodePesan: "jaringan"` dan diterjemahkan
+ * lapisan tampilan (kunci `api.jaringan`).
  */
-export const PESAN_JARINGAN =
-  "Koneksi ke server gagal. Periksa internet Anda lalu coba lagi.";
+export const KODE_PESAN_JARINGAN = "jaringan";
 
 /**
  * fetch() ke jalur API dengan jaminan pesan ramah: hanya kegagalan
- * TRANSPORT (sebelum ada respons) yang diganti PESAN_JARINGAN. Galat HTTP
+ * TRANSPORT (sebelum ada respons) yang dibungkus kode "jaringan". Galat HTTP
  * (4xx/5xx) tetap dikembalikan sebagai respons agar pemanggil bisa membaca
  * pesan server dan statusnya.
  */
@@ -57,7 +93,7 @@ export async function fetchApi(jalur, opsi = {}) {
     // memang tidak menginginkan hasilnya lagi. Menyamarkannya sebagai
     // "koneksi gagal" hanya memunculkan pesan yang salah di layar.
     if (galat?.name === "AbortError") throw galat;
-    throw new GalatApi(PESAN_JARINGAN, { status: 0 });
+    throw new GalatApi("", { status: 0, kodePesan: KODE_PESAN_JARINGAN });
   }
 }
 
@@ -77,17 +113,19 @@ export async function bacaJsonRespons(res) {
 
 /**
  * Bangun GalatApi dari respons HTTP gagal beserta body yang sudah dibaca.
- * Pesan, rincian per-field, dan kode sebab dari server dipertahankan agar
- * layar bisa menampilkan penyebab yang sebenarnya, bukan pesan umum.
+ * `pesan` server dipertahankan apa adanya; bila tidak ada, kegagalan dibawa
+ * sebagai `kodePesan` (kunci `api.<kodePesan>`, default "umum") untuk
+ * diterjemahkan lapisan tampilan.
  */
-export function galatDariRespons(res, body, pesanCadangan = "Permintaan gagal.") {
-  return new GalatApi(String(body?.pesan || pesanCadangan), {
+export function galatDariRespons(res, body, kodePesan = "umum") {
+  return new GalatApi(String(body?.pesan || ""), {
     galat: body?.galat && typeof body.galat === "object" ? body.galat : {},
     diblokir: Boolean(body?.diblokir),
     alasan: body?.alasan ?? null,
     status: res?.status ?? 0,
     kode: body?.kodeVerifikasi ?? body?.kode ?? null,
     perluVerifikasi: Boolean(body?.perluVerifikasi),
+    kodePesan: body?.pesan ? null : kodePesan,
   });
 }
 

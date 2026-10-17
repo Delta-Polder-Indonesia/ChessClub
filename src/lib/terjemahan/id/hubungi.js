@@ -39,6 +39,20 @@ export const karir = {
     kirim:
       "Kirim lamaran ke info@komunitascatur.or.id dengan subjek sesuai posisi yang dituju.",
     nextJudul: "Hubungi Kami",
+    blok1Eyebrow: "Siapa Kami?",
+    blok1Judul: "Komunitas Catur Indonesia",
+    blok1Isi: "Komunitas Catur Indonesia adalah wadah bermain, belajar, dan bertumbuh bagi pecatur dari berbagai daerah. Kami menjalankan turnamen, kelas, media, keanggotaan, dan teknologi dalam satu ekosistem yang terbuka.",
+    blok2Eyebrow: "Bergabung Bersama Kami",
+    blok2Judul: "Siap Menjadi Bagian dari Perjalanan",
+    blok2Isi: "Melalui program relawan, pelatih, media, dan sekretariat, setiap orang memiliki ruang untuk mengembangkan kemampuan sekaligus memberi dampak bagi pembinaan catur Indonesia.",
+    blok3Eyebrow: "Nilai Kami",
+    blok3Judul: "Sportivitas, Prestasi, dan Pembinaan",
+    blok3Isi: "Kami bekerja dengan amanah, kompeten, harmonis, loyal, adaptif, dan kolaboratif. Nilai tersebut menjadi dasar dalam mengambil keputusan di papan permainan maupun di balik layar.",
+    pelajari: "Pelajari lebih lanjut",
+    tutupEyebrow: "Bergabung Bersama Kami",
+    tutupJudul: "Mari tumbuh dan berkontribusi untuk catur Indonesia",
+    tutupIsi: "Pilih peran yang sesuai dengan kemampuan Anda, siapkan portofolio singkat, lalu kirimkan melalui email resmi komunitas.",
+    tutupTombol: "Kirim Lamaran",
   }
 
 export const pengadaan = {

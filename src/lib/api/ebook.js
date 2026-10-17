@@ -37,8 +37,9 @@ export async function tebusUnduhanEbook(data) {
   }
 
   if (!res.ok) {
-    throw new GalatApi(hasil.pesan || "Kode akses tidak bisa ditebus.", {
+    throw new GalatApi(hasil.pesan || "", {
       status: res.status,
+      kodePesan: hasil.pesan ? null : "tebusKode",
     });
   }
   return hasil;
@@ -77,8 +78,9 @@ export async function ajukanMintaEbook(data) {
   }
 
   if (!res.ok) {
-    throw new GalatApi(hasil.pesan || "Permintaan tidak bisa dikirim.", {
+    throw new GalatApi(hasil.pesan || "", {
       status: res.status,
+      kodePesan: hasil.pesan ? null : "kirimPermintaanEbook",
     });
   }
   return hasil;

@@ -111,6 +111,8 @@ import {
   analisa,
 } from "./analisa.js";
 
+import { api } from "./api.js";
+
 export const EN = {
   common,
   nav,
@@ -170,4 +172,5 @@ export const EN = {
   quiz,
   papan,
   analisa,
+  api,
 };
