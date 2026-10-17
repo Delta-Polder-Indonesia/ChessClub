@@ -377,6 +377,8 @@ function Board(props) {
   // Kunci transisi yang SUDAH dianimasikan (lihat efek animasi) — menjaga
   // satu langkah tidak meluncur dua kali walau efek berjalan ulang.
   const kunciAnimasiRef = useRef(null);
+  // Kunci posisi yang SUDAH dibunyikan — satu perubahan posisi = satu bunyi.
+  const kunciSuaraRef = useRef(null);
   useEffect(() => () => clearTimeout(dragTimerRef.current), []);
   const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, kandidat, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
   const fen = props.fen;
@@ -465,6 +467,16 @@ function Board(props) {
   }, [fen, drag.id, drag.is, setDrag]);
   useEffect(() => {
     if (!props.fen) return;
+    /* "Satu perubahan posisi = satu bunyi." Gerakannya cukup `fen`: semua
+     * turunan di bawah (selfTurn, skakSekarang, capture/castle, gameEnded)
+     * berubah BERSAMAAN dengan fen saat transisi langkah. Kunci posisi
+     * mencegah bunyi terulang ketika render lain mengubah turunan itu tanpa
+     * ganti posisi — membalik orientasi papan (selfTurn ikut berubah),
+     * menyalakan setelan bunyi, atau streaming evaluasi engine. Penanda
+     * tetap dibuat walau bunyi sedang mati agar menyalakannya di posisi yang
+     * sama tidak memutar suara langkah palsu. */
+    if (kunciSuaraRef.current === fen) return;
+    kunciSuaraRef.current = fen;
     if (!boardSounds) return;
     if (soundCastleInstance) {
       castleSound.play();
