@@ -77,8 +77,9 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     const menu = page.getByRole("navigation", { name: kamus.menuMode });
     const analisa = menu.getByRole("link", { name: kamus.menuAnalisa, exact: true });
     await expect(analisa).toHaveAttribute("aria-current", "page");
-    // Sidebar adalah tautan rute: enam link internal, semuanya tetap di bawah /papan-interaktif.
-    await expect(menu.getByRole("link")).toHaveCount(6);
+    // Sidebar adalah tautan rute: lima link internal (Manusia vs Mesin kini rute
+    // mandiri dengan sidebar sendiri), semuanya tetap di bawah /papan-interaktif.
+    await expect(menu.getByRole("link")).toHaveCount(5);
     const hrefMenu = await menu.getByRole("link").evaluateAll((tautan) => tautan.map((a) => a.getAttribute("href")));
     for (const href of hrefMenu) expect(href.startsWith("/papan-interaktif")).toBe(true);
     await expect(page.locator('a[href="/program-kami/analisa"]')).toHaveCount(0);

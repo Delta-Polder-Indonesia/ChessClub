@@ -531,6 +531,7 @@ async function aturPosisi(posisi) {
 
 await aturPosisi({ fen: SETELAH_E4, orientasi: "w", langkahAkhir: { from: "e2", to: "e4" } });
 {
+  await tungguSampai(() => klonTerbang(wadah).length > 0 && (klonTerbang(wadah)[0]?.style?.transition || "").includes("300ms"), 1000);
   const klon = klonTerbang(wadah);
   const asliE4 = wadah.querySelector('[data-petak="e4"] [data-bidak]');
   uji("langkah e2-e4 membuat tepat satu klon terbang", klon.length === 1, `${klon.length} klon`);
@@ -1224,6 +1225,8 @@ await tungguSampai(() => klonTerbang(wadahTunda).some((k) => k.getAttribute("dat
 {
   const klonE4 = () => klonTerbang(wadahTunda).filter((k) => k.getAttribute("data-klon-terbang") === "e4");
   uji("langkah dalam penerbangan sebelum induk menerapkannya", klonE4().length === 1, `${klonE4().length} klon`);
+  // Pastikan gaya transform tujuan sudah terpasang oleh rAF sebelum klon dipaksa mendarat.
+  await tungguSampai(() => (klonE4()[0]?.style?.transform || "").includes("-160px"), 1000);
   // Klon mendarat, tetapi induk belum menerapkan langkahnya (belum ada bidak di e4).
   daratkanKlon(wadahTunda);
   await tunggu(40);

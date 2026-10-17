@@ -407,7 +407,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   } = useEngineCatur(fen);
   const [statusMesin, setStatusMesin] = useState("idle");
   const [hasil, setHasil] = useState(null);
-  const [, setPesan] = useState("");
   const [pgnTersalin, setPgnTersalin] = useState(false);
   const mesinRef = useRef(null);
   // Jenis binari yang sedang dimuat worker ("sunfish" atau "stockfish") dan
@@ -483,7 +482,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         pindah = null;
       }
       if (!pindah) {
-        setPesan(t("papan.pveLangkahTidakSah"));
         mainkan(SUARA.ilegal);
         return false;
       }
@@ -508,7 +506,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       });
       setTerpilih(null);
       setSasaran([]);
-      setPesan("");
       bunyikanLangkah(pindah, game, { lawan: pindah.color === warnaMesin });
       // Deteksi akhir permainan (termasuk threefold repetition) wajib memakai
       // histori penuh partai, bukan `game` (satu FEN + satu langkah): lihat
@@ -532,7 +529,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       }
       return true;
     },
-    [mainkan, bunyikanLangkah, t, warnaMesin]
+    [mainkan, bunyikanLangkah, warnaMesin]
   );
 
   /**
@@ -804,7 +801,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setTerpilih(null);
     setSasaran([]);
     setHasil(null);
-    setPesan("");
     setPgnTersalin(false);
     setPromosi(null);
     setTampilDialogSelesai(false);
@@ -824,15 +820,16 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     mesinRef.current = null;
     jenisMesinRef.current = null;
     benihMesinRef.current = (Math.floor(Math.random() * 0xffffffff) >>> 0) || 1;
+    let warnaFinal = warnaPilihan;
     if (warnaPilihan === "acak") {
-      const hasilAcak = Math.random() < 0.5 ? "w" : "b";
-      setWarnaPemain(hasilAcak);
-      setOrientasiPapan(hasilAcak);
+      warnaFinal = Math.random() < 0.5 ? "w" : "b";
+      setWarnaPemain(warnaFinal);
+      setOrientasiPapan(warnaFinal);
     }
     bersihkanPartai();
     setTampilDialogSelesai(false);
     setAktif(true);
-    setStatusMesin("pemain");
+    setStatusMesin(warnaFinal === "b" ? "memuat" : "pemain");
     mainkan(SUARA.mulai);
   }
 
@@ -868,6 +865,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     setFen(fenBaru);
     setRiwayat(daftarSan);
     setLangkahAkhir(null);
+    setLangkahDialog(null);
     setTerpilih(null);
     setSasaran([]);
     setPromosi(null);
@@ -972,7 +970,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   // Petak raja untuk lencana hasil: mahkota di pemenang, raja tumbang /
   // resign di yang kalah. Hanya dihitung saat partai benar-benar selesai.
   const lencanaHasil = useMemo(() => {
-    if (!hasil) return null;
+    if (!hasil || riwayat.length < riwayatLengkap.length) return null;
     if (hasil.jenis === "skakmat") {
       const kalah = hasil.pemenang === "w" ? "b" : "w";
       return {
@@ -990,7 +988,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
       };
     }
     return null; // remis tanpa lencana
-  }, [hasil, fen, warnaPemain, warnaMesin]);
+  }, [hasil, fen, warnaPemain, warnaMesin, riwayat.length, riwayatLengkap.length]);
   // Susunan profil tetap: mesin di atas, pemain di bawah, apa pun orientasi papan.
   const barisSisi = (sisi) => ({
     nama: sisi === warnaPemain ? t("papan.pveAnda") : NAMA_MESIN,
@@ -1033,7 +1031,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             to="/program-kami/atribusi"
             className="flex items-center justify-center gap-1.5 text-xs text-gray-300 transition hover:text-white"
           >
-            <License size={14} class="fill-current" />
+            <License size={14} className="fill-current" />
             {t("papan.menuAtribusi")}
           </Link>
         </div>
@@ -1085,7 +1083,11 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                     try {
                       const game = new Chess(fenRef.current);
                       const bidak = game.get(from);
-                      if (bidak?.type === "p" && (to.endsWith("1") || to.endsWith("8"))) {
+                      if (
+                        bidak?.type === "p" &&
+                        (to.endsWith("1") || to.endsWith("8")) &&
+                        tujuanLegal(from).includes(to)
+                      ) {
                         setPromosi({ from, to, warna: bidak.color });
                         setTerpilih(null);
                         setSasaran([]);
