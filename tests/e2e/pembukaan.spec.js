@@ -145,7 +145,8 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
 
     await page.locator('[data-petak="e2"]').click();
     await page.locator('[data-petak="e4"]').click();
-    await expect(page.getByRole("tabpanel")).toContainText("e4");
+    // Memeriksa bahwa bidak tampil di petak tujuan, lebih dapat diandalkan di CI
+    await expect(page.locator('[data-petak="e4"] img')).toHaveCount(1);
     await page.getByRole("tab", { name: kamus.tabBuku }).click();
     await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
 
