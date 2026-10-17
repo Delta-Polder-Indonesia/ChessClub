@@ -146,7 +146,7 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await page.locator('[data-petak="e2"]').click();
     await page.locator('[data-petak="e4"]').click();
     // Memeriksa bahwa bidak tampil di petak tujuan, lebih dapat diandalkan di CI
-    await expect(page.locator('[data-petak="e4"] img')).toHaveCount(1);
+    await expect(page.locator('[data-petak="e4"] [data-bidak]')).toHaveCount(1);
     await page.getByRole("tab", { name: kamus.tabBuku }).click();
     await expect(page.getByRole("searchbox", { name: kamus.cariPembukaan })).toBeVisible();
 
@@ -161,8 +161,8 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.locator("[data-petak]")).toHaveCount(64);
     await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
 
-    await menu.getByRole("link", { name: kamus.menuManusiaMesin }).click();
-    await expect(page.getByRole("region", { name: kamus.pveJudul })).toBeVisible();
+    await menu.getByRole("link", { name: kamus.menuTuring }).click();
+    await expect(page).toHaveURL(/\/papan-interaktif\/turing-test/);
 
     // Workspace, menu mode, eval bar, dan papan harus tetap berada di dalam
     // viewport sempit. Ini menjaga regresi flex `w-full` yang pernah membuat
@@ -235,8 +235,8 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await partaiBaru.click();
     await expect(partaiBaru).toBeDisabled();
     await expect(page.getByRole("heading", { name: kamus.pveRiwayat })).toBeVisible();
-    await expect(page.locator('[data-petak="e2"] img')).toHaveCount(1);
-    await expect(page.locator('[data-petak="e4"] img')).toHaveCount(0);
+    await expect(page.locator('[data-petak="e2"] [data-bidak]')).toHaveCount(1);
+    await expect(page.locator('[data-petak="e4"] [data-bidak]')).toHaveCount(0);
 
     await page.getByRole("button", { name: kamus.pveMenyerah }).click();
     await page

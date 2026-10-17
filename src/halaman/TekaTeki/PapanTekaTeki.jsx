@@ -1019,10 +1019,10 @@ export default function PapanTekaTeki({
     // tersembunyi — termasuk kalau React baru saja mengganti elemennya.
     sembunyikanBidakTerbang();
     if (!geseran.length) {
-      // Bukan langkah (soal baru / muat FEN / render ulang): tidak ada
-      // penerbangan yang sah, jadi klon yang sudah mendarat boleh dibersihkan
-      // dan catatan penerbangan terakhir tidak berlaku lagi.
-      penerbanganTerakhirRef.current = null;
+      if (fenLama !== fen) {
+        // Bukan langkah (soal baru / muat FEN): tidak ada penerbangan yang sah
+        penerbanganTerakhirRef.current = null;
+      }
       rapikanKlonLandas();
       return;
     }

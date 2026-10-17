@@ -37,6 +37,19 @@ function terapkan(tampil) {
 
   if (container) container.style.display = tampil ? "" : "none";
   if (dialog) dialog.style.display = tampil ? "" : "none";
+  
+  // Karena widget ini adalah skrip vanilla yang tidak didesain untuk SPA,
+  // menyembunyikan style tidak menghentikan loop requestAnimationFrame-nya.
+  // Pause/resume harus dipanggil secara eksplisit.
+    if (window.YbouanePeek) {
+      if (tampil) {
+        if (window.YbouanePeek.resume) window.YbouanePeek.resume();
+        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.resume?.();
+      } else {
+        if (window.YbouanePeek.pause) window.YbouanePeek.pause();
+        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.pause?.();
+      }
+    }
 }
 
 export default function KarakterAnomali() {
@@ -77,6 +90,16 @@ export default function KarakterAnomali() {
         "<p>Wadah bagi pecatur untuk bermain, belajar, dan bertumbuh bersama. Tantang mesin, analisa partai, dan ikuti turnamen rutin.</p>" +
         '<div class="actions"><a class="btn primary" href="/papan-interaktif">Mulai Bermain</a></div>',
     };
+
+    if (window.YbouanePeek) {
+      if (tampil) {
+        if (window.YbouanePeek.resume) window.YbouanePeek.resume();
+        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.resume?.();
+      } else {
+        if (window.YbouanePeek.pause) window.YbouanePeek.pause();
+        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.pause?.();
+      }
+    }
 
     const s = document.createElement("script");
     s.src = "/peeking-widget.js";
