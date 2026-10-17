@@ -37,7 +37,6 @@ import {
   langkahMesinSah,
   perintahProfilSunfish,
 } from "./mesinLemah.js";
-import { GESTUR, gesturLawan, petakRagu, posisiSulit } from "./gerakLawan.js";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
 
 const NAMA_MESIN = "Hikaru Nakamura";
@@ -415,12 +414,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   const jenisMesinRef = useRef(null);
   const benihMesinRef = useRef(1);
   const langkahAkhirRef = useRef(null);
-  const papanRef = useRef(null);
-  // Gestur klik lawan yang sedang berjalan: { dari, ke }. Berlaku hanya
-  // beberapa ratus milidetik; menaikkan token membatalkan gerakan yang
-  // sedang berjalan tanpa perlu menunggu Promise-nya.
-  const lawanKlikRef = useRef(null);
-  const tokenLawanRef = useRef(0);
   const timerSalinRef = useRef(null);
 
   useEffect(() => {
@@ -532,44 +525,9 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     [mainkan, bunyikanLangkah, warnaMesin]
   );
 
-  /**
-   * Langkah lawan memakai klik move: mesin mengklik bidaknya sendiri (sorotan
-   * petak, titik tujuan, dan bidaknya bergoyang), diam beberapa detik, baru
-   * melangkah. Di posisi yang dinilai sulit mesin kadang melirik satu-dua
-   * bidak lain lebih dulu seperti sedang bimbang — langkah yang dijalankan
-   * tetap hasil pencarian engine, gestur ini murni tampilan.
-   *
-   * Seluruh gesturnya ada di `gerakLawan.js` dan hanya dipakai mode ini.
-   */
-  const mainstreamkanLangkahLawan = useCallback(
-    async (from, to, promosi, info) => {
-      const token = (tokenLawanRef.current += 1);
-      let jumlahLangkah;
-      try {
-        jumlahLangkah = new Chess(fenRef.current).moves().length;
-      } catch {
-        jumlahLangkah = 0;
-      }
-      const ragu =
-        posisiSulit(info, jumlahLangkah) && Math.random() < GESTUR.peluangRagu
-          ? petakRagu(fenRef.current, warnaMesin, from)
-          : [];
-      // Petak yang boleh diproses selama jendela gestur: bidak yang dilirik
-      // dan bidak yang benar-benar akan dijalankan. Selain itu diabaikan,
-      // supaya klik pemain tidak menyelinap di tengah giliran mesin.
-      lawanKlikRef.current = { dari: from, ke: to, boleh: [...ragu, from] };
-      const selesai = await gesturLawan(papanRef.current, {
-        dari: from,
-        ragu,
-        padaKlik: () => mainkan(SUARA.klik),
-        masihBerlaku: () => token === tokenLawanRef.current,
-      });
-      if (!selesai || token !== tokenLawanRef.current) return;
-      lawanKlikRef.current = null;
-      mainkanLangkah(from, to, promosi);
-    },
-    [mainkan, mainkanLangkah, warnaMesin]
-  );
+  // Langkah mesin langsung dijalankan lewat `mainkanLangkah` begitu hasil
+  // pencarian selesai — tanpa gestur "seperti manusia" (klik + goyang + jeda
+  // 2-4 detik) yang dulu membuat langkah mesin terasa tertunda.
 
   // Worker hanya hidup selama mesin harus menjawab. Kekuatan dipasang lewat
   // opsi UCI sebelum pencarian dimulai, lalu worker dilepas saat mode ditutup.
@@ -600,15 +558,10 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           if (!hidup || fenRef.current !== fen) return;
           if (!hasilMaia?.uci) return; // tidak ada langkah sah: partai selesai
           setStatusMesin("mesin");
-          mainstreamkanLangkahLawan(
+          mainkanLangkah(
             hasilMaia.uci.slice(0, 2),
             hasilMaia.uci.slice(2, 4),
-            hasilMaia.uci[4],
-            // Maia tidak mengeluarkan centipawn — hanya policy dan WDL.
-            // Peluang menangnya dipetakan balik ke cp memakai kurva yang sama
-            // dengan bilah evaluasi, supaya gestur "mesin ragu" (yang
-            // menilai posisi tipis) tetap punya angka untuk dipakai.
-            { cp: hasilMaia.cp }
+            hasilMaia.uci[4]
           );
         })
         .catch(() => {
@@ -616,8 +569,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         });
       return () => {
         hidup = false;
-        tokenLawanRef.current += 1;
-        lawanKlikRef.current = null;
       };
     }
 
@@ -650,7 +601,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
         engine.analisis(fen, {
           movetime: tingkatAktif.waktu,
           kedalaman: tingkatAktif.kedalaman ?? null,
-          padaSelesai: (uci, info, error) => {
+          padaSelesai: (uci, _info, error) => {
             if (!hidup || fenRef.current !== fen) return;
             if (error) {
               setStatusMesin("gagal");
@@ -661,11 +612,11 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             // pemain: langkah sah acak menggantikannya.
             const pilihan = langkahMesinSah(fen, uci);
             if (!pilihan) return; // tidak ada langkah sah: partai memang selesai
-            mainstreamkanLangkahLawan(
+            // Langkah mesin langsung dijalankan — tanpa jeda/gestur tambahan.
+            mainkanLangkah(
               pilihan.uci.slice(0, 2),
               pilihan.uci.slice(2, 4),
-              pilihan.uci[4],
-              info
+              pilihan.uci[4]
             );
           },
         });
@@ -676,10 +627,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
 
     return () => {
       hidup = false;
-      // Gestur klik lawan yang masih menunggu jeda harus dibatalkan, kalau tidak
-      // bidaknya melangkah pada posisi yang sudah tidak berlaku.
-      tokenLawanRef.current += 1;
-      lawanKlikRef.current = null;
       engine.setop();
     };
   }, [
@@ -687,7 +634,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     fen,
     warnaMesin,
     tingkatAktif,
-    mainstreamkanLangkahLawan,
+    mainkanLangkah,
     mintaLangkahMaia,
     riwayat.length,
     riwayatLengkap.length,
@@ -727,16 +674,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     }
   }
 
-  function pilihPetak(square, warnaBoleh = warnaPemain) {
-    const jendelaLawan = lawanKlikRef.current;
-    if (!bolehGerak && !(jendelaLawan && (jendelaLawan.boleh || [jendelaLawan.dari]).includes(square)))
-      return;
+  function pilihPetak(square) {
+    if (!bolehGerak) return;
     if (terpilih === square) {
       setTerpilih(null);
       setSasaran([]);
       return;
     }
-    const targets = tujuanLegal(square, warnaBoleh);
+    const targets = tujuanLegal(square, warnaPemain);
     if (targets.length) {
       setTerpilih(square);
       setSasaran(targets);
@@ -747,14 +692,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   }
 
   function klikPetak(square) {
-    // Jendela klik lawan: hanya petak asalnya yang diproses, dan tetap bukan
-    // pemain yang memindahkan bidak — mesin melangkah sendiri setelah jeda.
-    const lawan = lawanKlikRef.current;
-    if (lawan) {
-      const boleh = lawan.boleh || [lawan.dari];
-      if (boleh.includes(square)) pilihPetak(square, warnaMesin);
-      return;
-    }
     if (!bolehGerak || promosi) return;
     if (terpilih && sasaran.includes(square)) {
       // Pion ke baris terakhir → buka dialog pemilihan bidak promosi.
@@ -788,8 +725,6 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   }
 
   function bersihkanPartai() {
-    tokenLawanRef.current += 1;
-    lawanKlikRef.current = null;
     fenRef.current = FEN_AWAL;
     setFen(FEN_AWAL);
     riwayatRef.current = [];
@@ -1060,7 +995,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
               label={t("papan.pveEvaluasi")}
               adaEvaluasi={Boolean(evaluasiAktif)}
             />
-            <div className="aspect-square min-w-0 flex-1" ref={papanRef}>
+            <div className="aspect-square min-w-0 flex-1">
               <div className="relative h-full w-full">
                 <PapanTekaTeki
                   fen={fen}

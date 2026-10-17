@@ -650,11 +650,11 @@ await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1"
 
 /*
  * Mode Manusia vs Mesin memakai papan yang sama, tetapi alurnya sendiri:
- * langkah pemain lewat klik ATAU seret, dan langkah mesin dijalankan sebagai
- * "klik lawan" (src/halaman/ManusiaVsMesin/gerakLawan.js) sebelum FEN
- * berganti. Uji ini memasang mesin UCI palsu lalu memeriksa bidak benar-benar
- * meluncur di mode itu — termasuk aturan bahwa bidak yang DISERET pemain tidak
- * diluncurkan ulang, sementara balasan mesin tetap meluncur.
+ * langkah pemain lewat klik ATAU seret, dan langkah mesin langsung dijalankan
+ * begitu hasil pencarian selesai (tanpa gestur/jeda "seperti manusia" — mode
+ * itu sudah dihapus). Uji ini memasang mesin UCI palsu lalu memeriksa bidak
+ * benar-benar meluncur di mode itu — termasuk aturan bahwa bidak yang DISERET
+ * pemain tidak diluncurkan ulang, sementara balasan mesin tetap meluncur.
  */
 
 console.log("\nC. mode Manusia vs Mesin");
@@ -665,8 +665,6 @@ import { createRoot } from "react-dom/client";
 import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
-
-export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
 
 export function mountPve(el) {
   return createRoot(el).render(
@@ -778,12 +776,8 @@ function kirimEvent(el, jenis, titik, tambahan = {}) {
 const wadahPve = window.document.createElement("div");
 window.document.body.appendChild(wadahPve);
 const modulPve = require(berkasPve);
-// Gestur "seperti manusia" milik mesin menunggu 2-4 detik sebelum melangkah.
-// Untuk uji, jeda itu dipangkas dan gestur ragu dimatikan supaya bagian ini
-// tetap mengukur animasi luncuran, bukan lamanya mesin berpikir.
-modulPve.GESTUR.jedaLangkah = [10, 10];
-modulPve.GESTUR.jedaRagu = [5, 5];
-modulPve.GESTUR.peluangRagu = 0;
+// Langkah mesin kini langsung dijalankan tanpa jeda gestur — bagian ini murni
+// mengukur animasi luncuran, bukan lamanya mesin berpikir.
 modulPve.mountPve(wadahPve);
 const cariMulai = () =>
   // Label tombol mulai mengikuti kamus `pveMulai` ("Main").
@@ -844,7 +838,7 @@ await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-
   daratkanKlon(wadahPve);
 }
 
-// 2. Balasan mesin (klik lawan + goyang + jeda "berpikir") juga meluncur.
+// 2. Balasan mesin (langsung, tanpa jeda gestur) juga meluncur.
 await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "e5"));
 {
   const klon = klonTerbang(wadahPve).filter((k) => k.getAttribute("data-klon-terbang") === "e5");
@@ -862,8 +856,8 @@ kirimEvent(petakPve("g1"), "pointerdown", titikPetak("g1"));
 await tunggu(20);
 kirimEvent(petakPve("f3"), "pointermove", titikPetak("f3"), { buttons: 1 });
 kirimEvent(petakPve("f3"), "pointerup", titikPetak("f3"));
-// Satu jendela pengamatan untuk seret DAN balasannya: dengan jeda gestur yang
-// dipangkas, mesin bisa menjawab sebelum jendela kedua sempat dibuka.
+// Satu jendela pengamatan untuk seret DAN balasannya: mesin kini menjawab
+// langsung setelah pencarian selesai, jadi keduanya bisa teramati berurutan.
 await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "c6"));
 {
   const diseret = klonTerbang(wadahPve).filter((k) => k.getAttribute("data-klon-terbang") === "f3");
