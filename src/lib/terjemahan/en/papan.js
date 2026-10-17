@@ -96,6 +96,7 @@ export const papan = {
     pveMesinSunfish: "The opponent uses a deliberately weakened sunfish — Stockfish's official UCI_Elo floor is 1320, so lower ratings use sunfish. The evaluation bar is calculated separately by Stockfish.",
     pveMesinMaia: "The opponent uses Maia 3 at rating {rating}: a model trained to imitate human play, not a weakened engine. Outside 1100–1900 the result is extrapolation, not validated strength. The 45 MB weights download once and are then kept in your browser.",
     pveMaiaMengunduh: "Downloading Maia {persen}%…",
+    pveMaiaMenyiapkan: "Preparing Maia…",
     pveMaiaGagal: "Maia failed to load. The 45 MB weight download can fail when storage is full or the browser lacks WebAssembly SIMD. Pick another level, or reload the page.",
     pveMesinStockfish: "The opponent uses Stockfish at UCI_Elo {nilai} (official calibration, range 1320–3190). The evaluation bar is calculated separately at full strength.",
     pveKonfigurasi: "Game setup",

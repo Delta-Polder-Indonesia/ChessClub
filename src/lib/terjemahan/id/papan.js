@@ -96,6 +96,7 @@ export const papan = {
     pveMesinSunfish: "Lawan memakai sunfish yang sengaja dilemahkan — lantai resmi Stockfish (UCI_Elo) adalah 1320, jadi untuk elo rendah memakai sunfish. Bilah evaluasi dihitung terpisah oleh Stockfish.",
     pveMesinMaia: "Lawan memakai Maia 3 rating {rating}: model yang meniru gaya manusia, bukan mesin yang dilemahkan. Di luar rentang 1100 – 1900 hasilnya extrapolasi, bukan kemampuan tervalidasi. Bobot 45 MB diunduh sekali, lalu disimpan di peramban.",
     pveMaiaMengunduh: "Mengunduh Maia {persen}%…",
+    pveMaiaMenyiapkan: "Menyiapkan Maia…",
     pveMaiaGagal: "Maia gagal dimuat. Unduhan bobot 45 MB bisa gagal karena kuota penyimpanan penuh atau peramban yang belum mendukung WebAssembly SIMD. Pilih level lain, atau muat ulang halaman.",
     pveMesinStockfish: "Lawan memakai Stockfish dengan UCI_Elo {nilai} (kalibrasi resmi, rentang 1320 – 3190). Bilah evaluasi dihitung terpisah dengan kekuatan penuh.",
     pveKonfigurasi: "Konfigurasi partai",

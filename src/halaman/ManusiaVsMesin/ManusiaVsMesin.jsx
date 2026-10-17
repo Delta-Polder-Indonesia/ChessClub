@@ -34,6 +34,7 @@ import {
   PROFIL_SUNFISH,
   RATING_MAIA_BAKU,
   TAB_LEVEL_MESIN,
+  jedaBerpikir,
   langkahMesinSah,
   perintahProfilSunfish,
 } from "./mesinLemah.js";
@@ -385,7 +386,20 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
   // `mintaLangkahMaia` sengaja dipisah: identitasnya stabil (useCallback),
   // sehingga efek giliran mesin tidak berulang setiap render.
   const maia = useMesinMaia({ rating: ratingMaia });
-  const { mintaLangkah: mintaLangkahMaia, tamat: tamatMaia, mengunduh: maiaMengunduh, progres: progresMaia } = maia;
+  const {
+    mintaLangkah: mintaLangkahMaia,
+    tamat: tamatMaia,
+    siapkan: siapkanMaia,
+    sedangMemuat: maiaSedangMemuat,
+    mengunduh: maiaMengunduh,
+    progres: progresMaia,
+  } = maia;
+  // Maia belum siap dipakai: worker sedang diinisialisasi atau
+  // unduhan bobot 45 MB masih berjalan. Dipakai menonaktifkan
+  // tombol "Main" (lihat bawah) — keadaan "gagal" sengaja
+  // TIDAK termasuk supaya pemain tetap bisa memulai dan
+  // `siapkan()` dicoba ulang dari awal.
+  const maiaBelumSiap = "maia" === tingkatAktif.mesin && maiaSedangMemuat;
   // Inisialisasi tampilan papan dari pengaturan bersama (bila ada);
   // dialog pengaturan permainan bisa menimpa lokal selama sesi.
   const [setBidak, setSetBidak] = useState(pp.bidak ?? "alpha");
@@ -459,6 +473,22 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     langkahAkhirRef.current = langkahAkhir;
   }, [langkahAkhir]);
 
+  // Memilih Maia langsung mengunduh bobot 45 MB di latar — jangan
+  // menunggu giliran pertama mesin. Tombol "Main" berubah jadi
+  // "Mengunduh…" selama proses berlangsung (lihat tombol di bawah),
+  // sehingga pemain tidak pernah menekan "Main" lalu macet di layar
+  // status "memuat" tanpa tahu kenapa. Dari cache (kunjungan kedua)
+  // `siapkan()` hanya butuh sekejap, jadi tombol hanya berkedip
+  // "Menyiapkan…" sebelum kembali ke "Main".
+  useEffect(() => {
+    if ("maia" !== tingkatAktif.mesin) return;
+    siapkanMaia().catch(() => {
+      // Gagal sengaja dibiarkan: status kembali ke "Main" dan
+      // memulai partai akan memanggil `siapkan()` lagi dari awal
+      // (janji yang gagal tidak lengket di dalam mesin Maia).
+    });
+  }, [tingkatAktif, siapkanMaia]);
+
   const mainkanLangkah = useCallback(
     (from, to, promotion) => {
       const game = new Chess(fenRef.current);
@@ -525,9 +555,14 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     [mainkan, bunyikanLangkah, warnaMesin]
   );
 
-  // Langkah mesin langsung dijalankan lewat `mainkanLangkah` begitu hasil
-  // pencarian selesai — tanpa gestur "seperti manusia" (klik + goyang + jeda
-  // 2-4 detik) yang dulu membuat langkah mesin terasa tertunda.
+  // Langkah mesin dijalankan lewat `mainkanLangkah` begitu hasil
+  // pencarian/inferensi selesai, DITAMBAH jeda "berpikir" manusiawi
+  // singkat (`jedaBerpikir`, lihat mesinLemah.js). Dulu langkah
+  // diterapkan seketika — level lemah (movetime 300 ms) menjawab
+  // sebelum luncuran bidak pemain (300 ms) selesai, sehingga mesin
+  // terasa menyerbu (mis. tepat saat rokade pemain masih meluncur).
+  // Gestur klik-goyang 2-4 detik yang lebih dulu lagi memang sudah
+  // dibuang: terasa tertunda. Jeda lantai inilah titik tengahnya.
 
   // Worker hanya hidup selama mesin harus menjawab. Kekuatan dipasang lewat
   // opsi UCI sebelum pencarian dimulai, lalu worker dilepas saat mode ditutup.
@@ -545,6 +580,11 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
     if (game.isGameOver() || game.turn() !== warnaMesin) return undefined;
 
     let hidup = true;
+    // Timer jeda "berpikir" sebelum langkah mesin diterapkan. Dibersihkan
+    // di cleanup efek supaya undo/navigasi riwayat/partai baru membatalkan
+    // balasan yang masih tertunda — mesin tidak pernah berjalan di posisi
+    // yang sudah tidak tampil.
+    let timerJeda = 0;
 
     // Maia 3 bukan engine UCI: ia model kebijakan manusia (ONNX) yang
     // dijalankan onnxruntime-web di worker sendiri. Tidak ada `go depth`,
@@ -558,17 +598,24 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           if (!hidup || fenRef.current !== fen) return;
           if (!hasilMaia?.uci) return; // tidak ada langkah sah: partai selesai
           setStatusMesin("mesin");
-          mainkanLangkah(
-            hasilMaia.uci.slice(0, 2),
-            hasilMaia.uci.slice(2, 4),
-            hasilMaia.uci[4]
-          );
+          // Inferensi Maia hanya sepersekian detik — jeda manusiawi
+          // di sini yang membuat balasannya terasa dibaca, bukan
+          // disemburkan mesin.
+          timerJeda = window.setTimeout(() => {
+            if (!hidup || fenRef.current !== fen) return;
+            mainkanLangkah(
+              hasilMaia.uci.slice(0, 2),
+              hasilMaia.uci.slice(2, 4),
+              hasilMaia.uci[4]
+            );
+          }, jedaBerpikir(tingkatAktif));
         })
         .catch(() => {
           if (hidup) setStatusMesin("gagal");
         });
       return () => {
         hidup = false;
+        window.clearTimeout(timerJeda);
       };
     }
 
@@ -612,12 +659,18 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             // pemain: langkah sah acak menggantikannya.
             const pilihan = langkahMesinSah(fen, uci);
             if (!pilihan) return; // tidak ada langkah sah: partai memang selesai
-            // Langkah mesin langsung dijalankan — tanpa jeda/gestur tambahan.
-            mainkanLangkah(
-              pilihan.uci.slice(0, 2),
-              pilihan.uci.slice(2, 4),
-              pilihan.uci[4]
-            );
+            // Jeda manusiawi singkat sebelum langkah diterapkan —
+            // tanpa ini level lemah (movetime 300 ms) menjawab sebelum
+            // luncuran langkah pemain sendiri selesai (300 ms), dan
+            // rokade/tangkapan pemain terlihat diserbu mesin.
+            timerJeda = window.setTimeout(() => {
+              if (!hidup || fenRef.current !== fen) return;
+              mainkanLangkah(
+                pilihan.uci.slice(0, 2),
+                pilihan.uci.slice(2, 4),
+                pilihan.uci[4]
+              );
+            }, jedaBerpikir(tingkatAktif));
           },
         });
       })
@@ -627,6 +680,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
 
     return () => {
       hidup = false;
+      window.clearTimeout(timerJeda);
       engine.setop();
     };
   }, [
@@ -1391,9 +1445,27 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
           <button
             type="button"
             onClick={mulaiPartai}
-            className="w-full shrink-0 rounded-md bg-[#81b64c] px-4 py-3 text-sm font-bold text-[#1e1c18] transition hover:bg-[#91c45a]"
+            // Maia butuh bobot 45 MB: selama belum siap,
+            // tombol berubah jadi unduhan (dinonaktifkan)
+            // supaya partai tidak dimulai sebelum lawan
+            // benar-benar bisa berjalan.
+            disabled={maiaBelumSiap}
+            title={
+              maiaBelumSiap
+                ? t("papan.pveMaiaMengunduh", { persen: progresMaia })
+                : undefined
+            }
+            className={`w-full shrink-0 rounded-md px-4 py-3 text-sm font-bold transition ${
+              maiaBelumSiap
+                ? "cursor-wait bg-[#3a3633] text-gray-400"
+                : "bg-[#81b64c] text-[#1e1c18] hover:bg-[#91c45a]"
+            }`}
           >
-            {t("papan.pveMulai")}
+            {maiaBelumSiap
+              ? maiaMengunduh
+                ? t("papan.pveMaiaMengunduh", { persen: progresMaia })
+                : t("papan.pveMaiaMenyiapkan")
+              : t("papan.pveMulai")}
           </button>
         )}
       </aside>

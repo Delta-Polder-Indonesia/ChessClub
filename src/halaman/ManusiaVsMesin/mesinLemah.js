@@ -163,6 +163,27 @@ export const RATING_MAIA_BAKU = 1500;
  * label, rentang resmi 1320–3190) yang dikirim ke `UCI_Elo` saat
  * `UCI_LimitStrength` aktif, dan `rating` hanya berarti untuk Maia.
  */
+/**
+ * Jeda "berpikir" manusiawi (ms) sebelum langkah mesin DITERAPKAN
+ * ke papan, per level `[min, maks]` — dicuplik acak tiap giliran.
+ *
+ * Mengapa ada: dulu langkah mesin diterapkan seketika begitu
+ * `bestmove`/inferensi keluar. Level lemah (sunfish, `movetime`
+ * 300 ms) menjawab dalam ~300–400 ms — LEBIH CEPAT dari luncuran
+ * bidak pemain (300 ms) — sehingga mesin terasa "menyerbu": balasan
+ * mendarat saat rokade/tangkapan pemain masih meluncur, dan pemain
+ * yang berpikir panjang pun disusul mesin tanpa jeda. Solusinya bukan
+ * gestur klik-goyang 2–4 detik yang dulu dibuang (terasa lambat),
+ * tapi LANTAIAN jeda minimum pendek yang diskalakan per level:
+ * lemah = lebih lama (pemain butuh waktu membaca posisi), kuat =
+ * lebih pendek (mesin sudah lama menghitung). Total respons tetap
+ * manusiawi: level pemula ~1–1,5 detik, GM/Maximum ~2,75–3 detik.
+ *
+ * Jeda ini TIDAK mengunci papan lebih lama dari biasanya: status
+ * tetap "mesin" (papan memang terkunci selama giliran lawan) dan
+ * dialog tetap "sedang berpikir" selama jeda, jadi terasa seperti
+ * lawan yang membaca langkah pemain — bukan mesin macet.
+ */
 export const PILIHAN_LEVEL_MESIN = [
   {
     id: "new-to-chess",
@@ -171,6 +192,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "new-to-chess",
     waktu: PROFIL_SUNFISH["new-to-chess"].waktu,
     kedalaman: PROFIL_SUNFISH["new-to-chess"].kedalaman,
+    jeda: [700, 1200],
     label: "papan.pveLevelNewToChess",
     ringkas: "papan.pveLevelNewToChessRingkas",
   },
@@ -181,6 +203,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "beginner",
     waktu: PROFIL_SUNFISH.beginner.waktu,
     kedalaman: PROFIL_SUNFISH.beginner.kedalaman,
+    jeda: [650, 1100],
     label: "papan.pveLevelBeginner",
     ringkas: "papan.pveLevelBeginnerRingkas",
   },
@@ -191,6 +214,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "novice",
     waktu: PROFIL_SUNFISH.novice.waktu,
     kedalaman: PROFIL_SUNFISH.novice.kedalaman,
+    jeda: [600, 1000],
     label: "papan.pveLevelNovice",
     ringkas: "papan.pveLevelNoviceRingkas",
   },
@@ -201,6 +225,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "intermediate",
     waktu: PROFIL_SUNFISH.intermediate.waktu,
     kedalaman: PROFIL_SUNFISH.intermediate.kedalaman,
+    jeda: [500, 850],
     label: "papan.pveLevelIntermediate",
     ringkas: "papan.pveLevelIntermediateRingkas",
   },
@@ -211,6 +236,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "intermediate-2",
     waktu: PROFIL_SUNFISH["intermediate-2"].waktu,
     kedalaman: PROFIL_SUNFISH["intermediate-2"].kedalaman,
+    jeda: [450, 750],
     label: "papan.pveLevelIntermediate2",
     ringkas: "papan.pveLevelIntermediate2Ringkas",
   },
@@ -221,6 +247,7 @@ export const PILIHAN_LEVEL_MESIN = [
     profilSunfish: "advanced",
     waktu: PROFIL_SUNFISH.advanced.waktu,
     kedalaman: PROFIL_SUNFISH.advanced.kedalaman,
+    jeda: [400, 650],
     label: "papan.pveLevelAdvanced",
     ringkas: "papan.pveLevelAdvancedRingkas",
   },
@@ -230,6 +257,7 @@ export const PILIHAN_LEVEL_MESIN = [
     mesin: "stockfish",
     uciElo: 2000,
     waktu: 800,
+    jeda: [300, 550],
     label: "papan.pveLevelExpert",
     ringkas: "papan.pveLevelExpertRingkas",
   },
@@ -239,6 +267,7 @@ export const PILIHAN_LEVEL_MESIN = [
     mesin: "stockfish",
     uciElo: 2400,
     waktu: 1200,
+    jeda: [300, 550],
     label: "papan.pveLevelMaster",
     ringkas: "papan.pveLevelMasterRingkas",
   },
@@ -248,6 +277,7 @@ export const PILIHAN_LEVEL_MESIN = [
     mesin: "stockfish",
     uciElo: 2800,
     waktu: 1600,
+    jeda: [250, 500],
     label: "papan.pveLevelGrandmaster",
     ringkas: "papan.pveLevelGrandmasterRingkas",
   },
@@ -257,6 +287,7 @@ export const PILIHAN_LEVEL_MESIN = [
     mesin: "stockfish",
     uciElo: 3190,
     waktu: 2500,
+    jeda: [250, 500],
     label: "papan.pveLevelMaximum",
     ringkas: "papan.pveLevelMaximumRingkas",
   },
@@ -265,6 +296,10 @@ export const PILIHAN_LEVEL_MESIN = [
     tab: "maia",
     mesin: "maia",
     rating: RATING_MAIA_BAKU,
+    // Maia 3 menjawab dalam satu inferensi (~sepersekian detik),
+    // jadi jedanya paling panjang di antara semua level — total
+    // respons barulah terasa manusiawi.
+    jeda: [550, 1000],
     label: "papan.pveLevelMaia",
     ringkas: "papan.pveLevelMaiaRingkas",
   },
@@ -290,6 +325,50 @@ export function langkahSahUci(fen) {
 }
 
 /**
+ * Normalisasi rokade gaya Chess960 ke bentuk standar chess.js.
+ *
+ * Beberapa engine (dan Stockfish dalam mode Chess960) melaporkan
+ * rokade sebagai RAJA KE PETAK BENTENG — "e1h1" / "e1c1" — bukan
+ * bentuk standar "e1g1" / "e1c1". chess.js (mode standar) hanya
+ * mengenal bentuk kedua, sehingga "e1h1" akan ditolak tidak sah
+ * dan `langkahMesinSah` akan mengambil langkah acak — rokade
+ * bisa berubah jadi langkah lain tanpa peringatan. en-croissant
+ * menormalisasi lewat shakmaty (`UciMove::from_move` +
+ * `CastlingMode`) sebelum memakai langkah engine; fungsi ini
+ * penutup celah yang sama untuk sisi KELUARAN engine di mode ini.
+ *
+ * Raja hanya pernah berpindah lebih dari satu petak secara
+ * horizontal pada rokade, jadi pemetaan ini tidak mungkin salah
+ * mengubah langkah biasa: selisih 2 petak sudah standar
+ * (dikembalikan apa adanya), selisih 3 petak (raja ke petak
+ * benteng) dipetakan ke dua petak ke arah yang sama.
+ *
+ * @param {string} fen posisi sebelum langkah engine
+ * @param {string} uci langkah UCI mentah dari engine
+ * @returns {string} UCI ternormalisasi (bentuk standar bila rokade)
+ */
+export function normalisasiUciRokade(fen, uci) {
+  const bersih = String(uci || "").trim().toLowerCase();
+  if (bersih.length !== 4) return bersih;
+  const dari = bersih.slice(0, 2);
+  const ke = bersih.slice(2, 4);
+  let game;
+  try {
+    game = new Chess(fen);
+  } catch {
+    return bersih;
+  }
+  if (game.get(dari)?.type !== "k") return bersih;
+  const fileDari = dari.charCodeAt(0);
+  const selisih = ke.charCodeAt(0) - fileDari;
+  // Raja tak pernah berpindah 3+ petak horizontal kecuali rokade:
+  // sisi raja = benteng di petak +3 (e1h1), sisi ratu = -4 (e1a1).
+  if (Math.abs(selisih) < 3) return bersih; // bukan bentuk ke benteng
+  const arah = Math.sign(selisih);
+  return `${dari}${String.fromCharCode(fileDari + 2 * arah)}${dari[1]}`;
+}
+
+/**
  * Langkah mesin yang dijamin sah.
  *
  * Sunfish adalah engine tangkap-raja: ia menganggap raja boleh dimakan, tidak
@@ -303,7 +382,9 @@ export function langkahSahUci(fen) {
 export function langkahMesinSah(fen, uci, acak = Math.random) {
   const daftar = langkahSahUci(fen);
   if (!daftar.length) return null;
-  const bersih = String(uci || "").trim().toLowerCase();
+  // Rokade gaya Chess960 ("e1h1") dinormalisasi dulu ke bentuk
+  // standar ("e1g1") sebelum dicek ke daftar langkah sah.
+  const bersih = normalisasiUciRokade(fen, uci);
   if (daftar.includes(bersih)) return { uci: bersih, cadangan: false };
   // Promosi tanpa huruf bidak: chess.js menuntutnya eksplisit, sunfish tidak
   // selalu mengirimnya. Diselesaikan jadi promosi menteri bila memang ada.
@@ -311,4 +392,21 @@ export function langkahMesinSah(fen, uci, acak = Math.random) {
     return { uci: `${bersih}q`, cadangan: false };
   }
   return { uci: daftar[Math.floor(acak() * daftar.length) % daftar.length], cadangan: true };
+}
+
+/**
+ * Lama jeda "berpikir" manusiawi untuk satu level, dalam ms.
+ * Dicuplik acak di dalam rentang `jeda` level supaya tidak
+ * metronom — lawan terasa membaca langkah, bukan membalas dengan
+ * timer. Dipakai efek giliran mesin Manusia vs Mesin SEBELUM
+ * menerapkan langkah ke papan (setelah `bestmove`/inferensi
+ * keluar), bukan menggantikan `movetime` pencarian engine.
+ *
+ * @param {object} tingkat entri `PILIHAN_LEVEL_MESIN` yang aktif
+ * @param {() => number} [acak] penyumbang acak (bisa dipalsukan uji)
+ * @returns {number} jeda dalam milidetik (dibulatkan)
+ */
+export function jedaBerpikir(tingkat, acak = Math.random) {
+  const [min, maks] = tingkat?.jeda ?? [300, 600];
+  return Math.round(min + acak() * (maks - min));
 }
