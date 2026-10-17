@@ -1,4 +1,4 @@
-import { useState, useLayoutEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import CountUp from "react-countup";
@@ -33,6 +33,7 @@ import WorkSlider from "./components/WorkSlider.jsx";
 import { fadeIn } from "./variants.js";
 import { Button } from "../../components/ui/button.jsx";
 import { kirimPesan } from "../../lib/api/index.js";
+import { useI18n } from "../../lib/i18n.jsx";
 
 /* ----------------------------------------------------------- aboutData */
 
@@ -144,6 +145,7 @@ const FIELD_VALIDATORS = {
 const TAB_VALID = ["home", "about", "services", "work", "testimonials", "contact"];
 
 export default function HubungiKami() {
+  const { t } = useI18n();
   const { tab } = useParams();
   const navigate = useNavigate();
   const activeTab = TAB_VALID.includes(tab) ? tab : "contact";
@@ -153,6 +155,11 @@ export default function HubungiKami() {
   // Form states
   const messageRef = useRef(null);
   const hasAttemptedSubmit = useRef(false);
+  /* Timer sembunyikan status kirim. Harus lewat ref + cleanup: timer submit
+     sebelumnya tidak boleh memaksa status kembali "idle" di tengah submit
+     berikutnya (banner sukses/galat terpotong lebih awal), dan tidak boleh
+     menyetel state setelah komponen dilepas. */
+  const timerStatus = useRef(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -173,6 +180,13 @@ export default function HubungiKami() {
   const [status, setStatus] = useState("idle");
   const [statusError, setStatusError] = useState("");
   const [agreed, setAgreed] = useState(false);
+
+  useEffect(() => {
+    return () => {
+      if (timerStatus.current) clearTimeout(timerStatus.current);
+      timerStatus.current = null;
+    };
+  }, []);
 
   useLayoutEffect(() => {
     const el = messageRef.current;
@@ -260,12 +274,20 @@ export default function HubungiKami() {
         message: false,
         agreement: false,
       });
-      setTimeout(() => setStatus("idle"), 3500);
+      if (timerStatus.current) clearTimeout(timerStatus.current);
+      timerStatus.current = setTimeout(() => {
+        timerStatus.current = null;
+        setStatus("idle");
+      }, 3500);
     } catch (error) {
       console.error(error);
       setStatus("error");
-      setStatusError(error.message || "Pesan gagal terkirim. Silakan coba lagi.");
-      setTimeout(() => setStatus("idle"), 5000);
+      setStatusError(error.message || t("hubungi.galatKirim"));
+      if (timerStatus.current) clearTimeout(timerStatus.current);
+      timerStatus.current = setTimeout(() => {
+        timerStatus.current = null;
+        setStatus("idle");
+      }, 5000);
     } finally {
       setIsLoading(false);
     }
@@ -740,19 +762,19 @@ export default function HubungiKami() {
                       )}
 
                       {status === "loading" && (
-                        <p className="text-sm font-medium text-white">Mengirim pesan...</p>
+                        <p className="text-sm font-medium text-white">{t("hubungi.mengirim")}</p>
                       )}
                       {status === "success" && (
                         <div className="text-center">
-                          <p className="font-semibold text-white">Pesan Anda berhasil dikirim!</p>
+                          <p className="font-semibold text-white">{t("hubungi.terkirimJudul")}</p>
                           <p className="text-xs text-white/70 mt-1">
-                            Terima kasih, kami akan segera membalas Anda.
+                            {t("hubungi.terkirimIsi")}
                           </p>
                         </div>
                       )}
                       {status === "error" && (
                         <div className="text-center max-w-md">
-                          <p className="font-semibold text-white">Pesan gagal terkirim.</p>
+                          <p className="font-semibold text-white">{t("hubungi.galatJudul")}</p>
                           <p className="text-xs text-white/70 mt-1">{statusError}</p>
                         </div>
                       )}
@@ -772,64 +794,64 @@ export default function HubungiKami() {
                   >
                     <div className="flex gap-x-6 w-full">
                       <div className="flex-1 min-w-0">
-                        <label htmlFor="name-input" className="sr-only">Nama Lengkap</label>
+                        <label htmlFor="name-input" className="sr-only">{t("hubungi.nama")}</label>
                         <input
                           id="name-input"
                           type="text"
                           name="name"
-                          placeholder="Name"
+                          placeholder={t("hubungi.nama")}
                           className={`input ${fieldErrors.name ? "border-red-500" : ""}`}
                           value={form.name}
                           onChange={handleChange}
                           disabled={isLoading}
                           aria-disabled={isLoading}
                           maxLength={80}
-                          aria-label="Nama Lengkap"
+                          aria-label={t("hubungi.nama")}
                           aria-invalid={fieldErrors.name}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <label htmlFor="email-input" className="sr-only">Alamat Email</label>
+                        <label htmlFor="email-input" className="sr-only">{t("hubungi.surel")}</label>
                         <input
                           id="email-input"
                           type="email"
                           name="email"
-                          placeholder="E-mail"
+                          placeholder={t("hubungi.surel")}
                           value={form.email}
                           onChange={handleChange}
                           disabled={isLoading}
                           aria-disabled={isLoading}
                           maxLength={120}
-                          aria-label="Alamat Email"
+                          aria-label={t("hubungi.surel")}
                           aria-invalid={fieldErrors.email}
                           className={`input ${fieldErrors.email ? "border-red-500" : ""}`}
                         />
                       </div>
                     </div>
                     <div>
-                      <label htmlFor="subject-input" className="sr-only">Subjek Pesan</label>
+                      <label htmlFor="subject-input" className="sr-only">{t("hubungi.subjek")}</label>
                       <input
                         id="subject-input"
                         type="text"
                         name="subject"
-                        placeholder="Subject"
+                        placeholder={t("hubungi.subjek")}
                         className={`input ${fieldErrors.subject ? "border-red-500" : ""}`}
                         value={form.subject}
                         onChange={handleChange}
                         disabled={isLoading}
                         aria-disabled={isLoading}
                         maxLength={150}
-                        aria-label="Subjek Pesan"
+                        aria-label={t("hubungi.subjek")}
                         aria-invalid={fieldErrors.subject}
                       />
                     </div>
                     <div>
-                      <label htmlFor="message-input" className="sr-only">Isi Pesan</label>
+                      <label htmlFor="message-input" className="sr-only">{t("hubungi.pesan")}</label>
                       <textarea
                         id="message-input"
                         ref={messageRef}
                         name="message"
-                        placeholder="Message..."
+                        placeholder={t("hubungi.pesan")}
                         className={`textarea ${fieldErrors.message ? "border-red-500" : ""}`}
                         rows={4}
                         value={form.message}
@@ -837,7 +859,7 @@ export default function HubungiKami() {
                         disabled={isLoading}
                         aria-disabled={isLoading}
                         maxLength={5000}
-                        aria-label="Isi Pesan"
+                        aria-label={t("hubungi.pesan")}
                         aria-invalid={fieldErrors.message}
                       />
                     </div>
@@ -863,20 +885,20 @@ export default function HubungiKami() {
                         htmlFor="agreement"
                         className={`text-xs cursor-pointer ${fieldErrors.agreement ? "text-red-500" : "text-white/50"}`}
                       >
-                        I agree to the terms and data privacy conditions.
+                        {t("hubungi.setuju")}
                       </label>
                     </div>
 
                     <Button
                       type="submit"
-                      aria-label="Kirim Pesan"
+                      aria-label={t("hubungi.kirimPesan")}
                       variant="default"
                       size="lg"
                       loading={isLoading}
                       className="max-w-42.5 border-white text-white hover:bg-white/10"
                     >
                       <SendIcon aria-hidden className="size-4" />
-                      Let&apos;s talk
+                      {t("hubungi.kirim")}
                     </Button>
                   </motion.form>
                 </div>

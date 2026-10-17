@@ -41,6 +41,10 @@ pasang("getComputedStyle", dom.window.getComputedStyle.bind(dom.window));
 pasang("MutationObserver", dom.window.MutationObserver);
 pasang("Event", dom.window.Event);
 pasang("CustomEvent", dom.window.CustomEvent);
+// framer-motion (halaman Hubungi Kami dkk.) memeriksa `instanceof SVGElement`
+// saat memasang node proyeksi — tanpa global ini render melempar
+// ReferenceError di lingkungan uji.
+pasang("SVGElement", dom.window.SVGElement);
 // jsdom tidak mengimplementasikan Element.prototype.scrollTo (digunakan
 // daftar langkah Moves untuk meluncur ke langkah aktif). Polyfill no-op.
 dom.window.Element.prototype.scrollTo = function scrollTo() {};

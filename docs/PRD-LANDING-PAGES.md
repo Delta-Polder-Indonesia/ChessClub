@@ -325,6 +325,7 @@ Perilaku di atas dikunci oleh suite berikut (jalankan via `npm run uji` / per su
 3. **Galeri** masih berisi foto sampel (`Galeri_sample/`), bukan dokumentasi kegiatan nyata (`PRODUCT.md`).
 4. **Gaya HubungiKami** (portofolio ekspresif: partikel, animasi, slider) berbeda dari kontrak editorial halaman lain — kondisi tercatat; penyelarasan adalah keputusan produk.
 5. Sumber konten **ID lebih kaya dari EN** untuk sebagian halaman.
+6. **Pesan galat lapisan API** (`src/lib/api/*`) memakai cadangan berbahasa Indonesia secara sistemik (mis. `PESAN_JARINGAN`, "Gagal mengirim pesan.") — konvensi "pesan ramah" yang disengaja; NFR-6 belum berlaku di lapisan ini dan perlu keputusan produk bila ingin di-i18n-kan.
 
 ## 11. Di Luar Cakupan Dokumen Ini
 

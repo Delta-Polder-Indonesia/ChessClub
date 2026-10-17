@@ -174,15 +174,26 @@ export function modeDariPohon(pohon) {
   return kunci.every((k) => POLA_KOORDINAT.test(k)) ? "koordinat" : "san";
 }
 
-/** Kunci pohon untuk satu pindahan: koordinat atau SAN, sesuai mode. */
+/** Kunci pohon untuk satu pindahan: koordinat atau SAN, sesuai mode.
+ *  Promosi ikut ditulis ("e7e8q") — format UCI standar yang sama dengan kunci
+ *  hasil `pohonDariDaftar`, supaya jalur ber-promosi tetap cocok dengan buku. */
 export function kuciDariPindahan(pindah, mode) {
-  return mode === "koordinat" ? `${pindah.from}${pindah.to}` : pindah.san;
+  return mode === "koordinat"
+    ? `${pindah.from}${pindah.to}${pindah.promotion ?? ""}`
+    : pindah.san;
+}
+
+/** Opsi `game.move` dari kunci koordinat (4 atau 5 karakter, "e7e8q"). */
+function opsiDariKoordinat(koordinat) {
+  const opsi = { from: koordinat.slice(0, 2), to: koordinat.slice(2, 4) };
+  if (koordinat[4]) opsi.promotion = koordinat[4];
+  return opsi;
 }
 
 /** Ubah satu langkah koordinat menjadi SAN pada posisi `game` (lalu undo). */
 export function sanDiPosisi(game, koordinat) {
   try {
-    const pindah = game.move({ from: koordinat.slice(0, 2), to: koordinat.slice(2, 4) });
+    const pindah = game.move(opsiDariKoordinat(koordinat));
     if (pindah) {
       game.undo();
       return pindah.san;
@@ -198,7 +209,7 @@ export function fenDanSanDariKoordinat(daftarKoordinat) {
   for (const k of daftarKoordinat) {
     let pindah;
     try {
-      pindah = game.move({ from: k.slice(0, 2), to: k.slice(2, 4) });
+      pindah = game.move(opsiDariKoordinat(k));
     } catch {
       pindah = null;
     }

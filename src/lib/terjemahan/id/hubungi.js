@@ -20,7 +20,9 @@ export const hubungi = {
     mengirim: "Mengirim...",
     nama: "Nama",
     surel: "Surel",
+    subjek: "Subjek",
     pesan: "Pesan",
+    setuju: "Saya setuju dengan syarat dan ketentuan privasi data.",
     kirim: "Kirim",
   }
 

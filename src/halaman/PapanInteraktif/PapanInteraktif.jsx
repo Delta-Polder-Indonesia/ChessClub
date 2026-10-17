@@ -638,14 +638,23 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   function cobaLangkah(from, to, promo, { dariPapan = false } = {}) {
     const game = new Chess(fenLogisRef.current);
 
-    // Bidak menuju baris terakhir → wajib promosi.
+    // Bidak menuju baris terakhir → wajib promosi. Tapi HANYA untuk langkah
+    // yang benar-benar legal: seret ilegal ke baris promosi (pion terhalang /
+    // bukan langkahnya) tidak boleh membuka dialog promosi — papan referensi
+    // (chessground/en-croissant) hanya menawarkan tujuan legal, sehingga
+    // dialog promosi mustahil muncul untuk langkah yang tidak sah.
     let butuhPromosi = false;
     let warnaPromosi = "w";
     try {
       const bidak = game.get(from);
       if (bidak && bidak.type === "p" && (to.endsWith("8") || to.endsWith("1"))) {
-        butuhPromosi = true;
-        warnaPromosi = bidak.color;
+        const sahKeTujuan = game
+          .moves({ square: from, verbose: true })
+          .some((m) => m.to === to);
+        if (sahKeTujuan) {
+          butuhPromosi = true;
+          warnaPromosi = bidak.color;
+        }
       }
     } catch { /* posisi rusak — deteksi promosi dilewati */ }
 

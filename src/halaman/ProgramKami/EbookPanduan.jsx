@@ -314,15 +314,22 @@ export default function EbookPanduan() {
   useEffect(() => {
     const id = bukuIdPath;
     if (!id) return;
+    // Timer sembunyikan sorotan harus ikut dibersihkan: tanpa ini, navigasi
+    // cepat ke buku lain (< 2,6 detik) membuat timer lama mematikan sorotan
+    // buku barunya lebih awal — dan setDisorot bisa berjalan setelah unmount.
+    let sorotTimer = 0;
     const timer = window.setTimeout(() => {
       const el = document.getElementById(id);
       if (el) {
         el.scrollIntoView({ behavior: "smooth", block: "center" });
         setDisorot(id);
-        window.setTimeout(() => setDisorot(null), 2600);
+        sorotTimer = window.setTimeout(() => setDisorot(null), 2600);
       }
     }, 120);
-    return () => window.clearTimeout(timer);
+    return () => {
+      window.clearTimeout(timer);
+      window.clearTimeout(sorotTimer);
+    };
   }, [bukuIdPath]);
 
   // Bila dibuka dengan /ebook-panduan/kategori/<slug>, pasang filter sesuai
