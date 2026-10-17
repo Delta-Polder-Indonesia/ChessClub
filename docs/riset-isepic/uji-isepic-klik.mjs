@@ -126,12 +126,6 @@ function jumlahOpsiPromosi() {
   return doc.querySelectorAll("#ic_ui_board .ic_promotion_option").length;
 }
 
-function jumlahPapan(papanEl) {
-  return [...doc.querySelectorAll("#ic_ui_board .ic_piece_holder")]
-    .filter((e) => /ic_(wp|wn|wb|wr|wq|wk|bp|bn|bb|br|bq|bk)\b/.test(e.className))
-    .length;
-}
-
 /** Catat langkah-langkah naratif selama satu interaksi. */
 function rekam(nama, langkah) {
   const jejak = [];

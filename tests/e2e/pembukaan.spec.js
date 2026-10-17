@@ -88,6 +88,36 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.getByText(kamus.workspacePilih)).toHaveCount(0);
     await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
 
+    // Kontrol dasar di dasar panel (navigasi langkah + tombol aksi) harus
+    // dapat dijangkau pengguna di viewport sempit: muat di layar, ATAU berada
+    // di dalam wadah yang menggulir secara pengguna (overflow-y auto/scroll).
+    // Regresi lama: seluruh rantai wadah memakai overflow-hidden sehingga isi
+    // yang lebih tinggi dari layar terpotong tanpa jalan menggulir.
+    const jangkauan = await page.evaluate((label) => {
+      const tombol = [...document.querySelectorAll("button")].find(
+        (b) => b.textContent.trim() === label
+      );
+      if (!tombol) return { ada: false, jangkau: false, mode: "hilang" };
+      const kotak = tombol.getBoundingClientRect();
+      if (kotak.top >= 0 && kotak.bottom <= window.innerHeight) {
+        return { ada: true, jangkau: true, mode: "muat" };
+      }
+      let el = tombol.parentElement;
+      while (el) {
+        if (el.scrollHeight > el.clientHeight + 1) {
+          const oy = getComputedStyle(el).overflowY;
+          return { ada: true, jangkau: oy === "auto" || oy === "scroll", mode: oy };
+        }
+        el = el.parentElement;
+      }
+      return { ada: true, jangkau: false, mode: "terpotong" };
+    }, kamus.baru);
+    expect(jangkauan.ada, "tombol aksi panel harus ada").toBe(true);
+    expect(jangkauan.jangkau, `tombol aksi panel harus dapat dijangkau (${jangkauan.mode})`).toBe(true);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true);
+
     if (testInfo.project.name === "desktop-chromium") {
       for (const [lebar, tinggi] of [[1366, 768], [1366, 600], [1024, 768]]) {
         await page.setViewportSize({ width: lebar, height: tinggi });

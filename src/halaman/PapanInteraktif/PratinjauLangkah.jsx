@@ -31,6 +31,7 @@ export default function PratinjauLangkah({
   tema = "hijau",
   setBidak = "merida",
   ukuran = 250,
+  label = "Pratinjau posisi setelah langkah",
 }) {
   const peta = petaBidak(fen);
   const palet = TEMA_PAPAN[tema] || TEMA_PAPAN.hijau;
@@ -47,7 +48,7 @@ export default function PratinjauLangkah({
   return (
     <div
       role="img"
-      aria-label="Pratinjau posisi setelah langkah"
+      aria-label={label}
       className="pointer-events-none grid grid-cols-8 grid-rows-8 overflow-hidden rounded shadow-lg ring-1 ring-black/40"
       style={{ width: ukuran, height: ukuran }}
     >

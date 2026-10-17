@@ -254,7 +254,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const setBidak = pp.bidak;
 
   const [pgnTersalin, setPgnTersalin] = useState(false);
-  const [, setFenTersalin] = useState(false);
   // Status tombol Bagikan: "idle" | "ok" | "gagal" (label tombol ikut berganti).
   const [statusBerbagi, setStatusBerbagi] = useState("idle");
   const [pilihan, setPilihan] = useState(-1); // id pembukaan terpilih di dropdown
@@ -488,24 +487,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
    * berpindah ke basis data awan.
    */
   const masihDiBuku = infoPembukaan.cocok && infoPembukaan.saran.length > 0;
-
-  /** Statistik posisi saat ini (diambil dari nama yang punya data statistik). */
-  const _statTampil = useMemo(() => {
-    const tuple = infoPembukaan.nama
-      ? infoPembukaan.nama.find(([, , s]) => s && typeof s.games === "number") ||
-        null
-      : null;
-    const s = tuple ? tuple[2] : null;
-    if (!s) return null;
-    const pecahan = (v) => (typeof v === "number" ? v : null);
-    return {
-      games: s.games,
-      rating: pecahan(s.rating),
-      putih: pecahan(s.whiteWin),
-      seri: pecahan(s.draw),
-      hitam: pecahan(s.blackWin),
-    };
-  }, [infoPembukaan.nama]);
 
   const katalog = useMemo(() => (pohon ? susunKatalog(pohon) : []), [pohon]);
 
@@ -1139,19 +1120,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     }
   }
 
-  function _salinFen() {
-    const selesai = () => {
-      setFenTersalin(true);
-      window.clearTimeout(timerSalin.current);
-      timerSalin.current = window.setTimeout(() => setFenTersalin(false), 1500);
-    };
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(fen).then(selesai).catch(selesai);
-    } else {
-      selesai();
-    }
-  }
-
   /** Bagikan partai: Web Share API bila tersedia, kalau tidak salin PGN/FEN. */
   async function bagikanPartai() {
     const teks = susunPgnDenganFen(riwayat, fenAwal) || fen;
@@ -1497,14 +1465,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   /* ------------------------------------------------------------ tampilan */
   const namaUtama = infoPembukaan.nama ? infoPembukaan.nama[0] : null;
-  const _jumlahNama = infoPembukaan.nama ? infoPembukaan.nama.length : 0;
-
-  let _giliranKini = "w";
-  try {
-    _giliranKini = new Chess(fen).turn();
-  } catch {
-    /* abaikan */
-  }
 
   const isi = (
     <div className={`flex flex-col ${tertanam ? "h-full w-full" : "min-h-screen lg:h-screen"} overflow-hidden bg-[#262421] text-gray-200 font-sans select-none`}>
@@ -1535,7 +1495,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
               <Kerangka />
             </div>
           ) : (
-            <div className="flex min-h-0 flex-1 flex-col gap-6 lg:flex-row lg:items-stretch lg:gap-3">
+            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── PROFIL HITAM (ATAS) ─── */}
                 <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mb-2">
@@ -1660,8 +1620,10 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
               </div>
 
-              {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki */}
-              <div className="flex flex-col items-center gap-2 pt-14 lg:-ml-3">
+              {/* Kolom kontrol papan (gear & flip) — di samping papan, ala LayoutTekaTeki.
+                  Layar sempit (<lg): bilah mendatar di bawah papan (hemat tinggi vertikal);
+                  desktop (lg+): kolom vertikal di samping papan seperti biasa. */}
+              <div className="flex flex-row items-center justify-center gap-2 lg:-ml-3 lg:flex-col lg:justify-start lg:pt-14">
                 <button
                   type="button"
                   onClick={() => (onBukaPengaturan ? onBukaPengaturan() : setTampilSetting(!tampilSetting))}
@@ -1756,14 +1718,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                       aria-controls={`panel-papan-${tab.id}`}
                       tabIndex={tabPanel === tab.id ? 0 : -1}
                       onClick={() => setTabPanel(tab.id)}
-                      className={`flex-1 py-3 flex items-center justify-center gap-2 text-xs font-bold border-b-2 transition-all ${
+                      className={`flex-1 min-w-0 py-3 flex items-center justify-center gap-2 text-xs font-bold border-b-2 transition-all ${
                         tabPanel === tab.id
                           ? "border-[#81b64c] text-white bg-[#262421]"
                           : "border-transparent text-gray-400 hover:text-gray-200 hover:bg-[#262421]"
                       }`}
                     >
-                      <IkonTab nama={tab.id} />
-                      {t(tab.labelKey)}
+                      <IkonTab nama={tab.id} className="h-4 w-4 shrink-0" />
+                      <span className="min-w-0 truncate">{t(tab.labelKey)}</span>
                     </button>
                   ))}
                 </div>

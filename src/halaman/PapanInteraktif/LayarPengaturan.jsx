@@ -119,7 +119,7 @@ export default function LayarPengaturan({ pengaturan = null }) {
 
                 <div className="flex flex-col gap-2">
                   <Pemisah teks={t("papan.pengaturanUmum")} />
-                  <div className="flex flex-row items-start gap-3">
+                  <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-start">
                     <div className="flex min-w-0 flex-1 flex-col gap-2">
                       <div className="flex flex-row gap-2">
                         <div className="flex min-w-0 flex-1 flex-col gap-1">

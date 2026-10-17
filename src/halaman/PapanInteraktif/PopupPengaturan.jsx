@@ -137,39 +137,41 @@ export default function PopupPengaturan({
   const refDialog = useDialog(onTutup);
   return (
     <div
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-                    onClick={onTutup}
-                  ><div ref={refDialog}
-                      tabIndex={-1}
-                      role="dialog"
-                      aria-modal="true"
-                      aria-label={t("papan.pengaturanPapan")}
-                      className="w-full max-w-sm rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <h3 className="text-lg font-bold text-white">{t("papan.pengaturanPapan")}</h3>
-                        <button
-                          type="button"
-                          onClick={onTutup}
-                          className="text-gray-400 transition hover:text-gray-200"
-                          title={t("papan.tutup")}
-                          aria-label={t("papan.tutup")}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                      <IsiPengaturanPapan t={t} {...sisa} />
-                      <div className="mt-5 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={onTutup}
-                          className="rounded-md border border-[#81b64c] bg-[#81b64c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a3d168]"
-                        >
-                          {t("papan.tutup")}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onClick={onTutup}
+    >
+      <div
+        ref={refDialog}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("papan.pengaturanPapan")}
+        className="max-h-[90dvh] w-full max-w-sm overflow-y-auto rounded-lg border border-[#312e2b] bg-[#1e1c18] p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h3 className="text-lg font-bold text-white">{t("papan.pengaturanPapan")}</h3>
+          <button
+            type="button"
+            onClick={onTutup}
+            className="text-gray-400 transition hover:text-gray-200"
+            title={t("papan.tutup")}
+            aria-label={t("papan.tutup")}
+          >
+            ✕
+          </button>
+        </div>
+        <IsiPengaturanPapan t={t} {...sisa} />
+        <div className="mt-5 flex justify-end">
+          <button
+            type="button"
+            onClick={onTutup}
+            className="rounded-md border border-[#81b64c] bg-[#81b64c] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#a3d168]"
+          >
+            {t("papan.tutup")}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
