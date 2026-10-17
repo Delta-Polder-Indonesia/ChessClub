@@ -115,9 +115,9 @@ export async function ambilCsrfToken() {
  */
 async function segarkanCsrfToken() {
   const res = await fetch(urlApi("/api/csrf-token"));
-  if (!res.ok) throw new Error("Gagal mengambil CSRF token.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "csrf" });
   const data = await res.json();
-  if (!data.token) throw new Error("Respons CSRF token tidak sah.");
+  if (!data.token) throw new GalatApi("", { kodePesan: "csrfTidakSah" });
   sessionStorage.setItem(KUNCI_CSRF, data.token);
   return data.token;
 }
@@ -206,9 +206,10 @@ export async function apiPengurus(jalur, { metode = "GET", bodi } = {}) {
   }
 
   if (!res.ok) {
-    throw new GalatApi(data.pesan || `Gagal (${res.status}).`, {
+    throw new GalatApi(data.pesan || "", {
       galat: data.galat,
       status: res.status,
+      kodePesan: data.pesan ? null : "gagalStatus",
     });
   }
   return data;
@@ -230,8 +231,9 @@ export async function loginAdmin(username, password) {
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new GalatApi(data.pesan || `Gagal login (${res.status}).`, {
+    throw new GalatApi(data.pesan || "", {
       status: res.status,
+      kodePesan: data.pesan ? null : "loginGagalStatus",
     });
   }
   return data;

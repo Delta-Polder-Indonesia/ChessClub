@@ -111,6 +111,8 @@ import {
   analisa,
 } from "./analisa.js";
 
+import { api } from "./api.js";
+
 export const ID = {
   common,
   nav,
@@ -170,4 +172,5 @@ export const ID = {
   quiz,
   papan,
   analisa,
+  api,
 };

@@ -1,10 +1,10 @@
-import { GalatPendaftaran, fetchApi } from "./core.js";
+import { GalatApi, GalatPendaftaran, fetchApi } from "./core.js";
 import { ambilCsrfToken } from "./pengurus.js";
 
 /** Daftar jenis turnamen & status yang dikenal server. */
 export async function jenisTurnamen() {
   const res = await fetchApi("/api/turnamen/jenis");
-  if (!res.ok) throw new Error("Gagal memuat jenis turnamen.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "memuatJenisTurnamen" });
   return res.json();
 }
 
@@ -12,7 +12,7 @@ export async function jenisTurnamen() {
 export async function ambilTurnamenPublik(jenis) {
   const q = jenis ? `?jenis=${encodeURIComponent(jenis)}` : "";
   const res = await fetchApi(`/api/turnamen${q}`);
-  if (!res.ok) throw new Error("Gagal memuat turnamen.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "memuatTurnamen" });
   return res.json();
 }
 
@@ -54,11 +54,12 @@ export async function ajukanPesertaTurnamen(id, username) {
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new GalatPendaftaran(data.pesan || "Pengajuan turnamen gagal.", {
+    throw new GalatPendaftaran(data.pesan || "", {
       diblokir: data.diblokir,
       alasan: data.alasan,
       status: res.status,
       galat: { harusDaftarAnggota: data.harusDaftarAnggota },
+      kodePesan: data.pesan ? null : "pengajuanTurnamen",
     });
   }
   return data;
@@ -67,7 +68,7 @@ export async function ajukanPesertaTurnamen(id, username) {
 /** Satu turnamen beserta klasemen. */
 export async function ambilSatuTurnamen(id) {
   const res = await fetchApi(`/api/turnamen/${encodeURIComponent(id)}`);
-  if (!res.ok) throw new Error("Turnamen tidak ditemukan.");
+  if (!res.ok) throw new GalatApi("", { kodePesan: "turnamenTidakDitemukan" });
   return res.json();
 }
 

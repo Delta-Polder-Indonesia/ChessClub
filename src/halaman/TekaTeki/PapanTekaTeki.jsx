@@ -1130,11 +1130,17 @@ export default function PapanTekaTeki({
   // Setiap render: bidak yang klonnya masih terbang harus tetap tersembunyi.
   // React bisa mengganti elemen bidak (petak yang sama, elemen baru) kapan
   // saja — tanpa penegasan ini, bidak asli muncul diam-diam di petak tujuan
-  // sementara klonnya masih meluncur, dan luncurannya tampak "melesat".
+  // sementara klonnya masih meluncur, dan luncurannya tampak "melesat" /
+  // bidak terlihat dua kali (klon + bidak asli = "bayangan").
+  //
+  // Sengaja TANPA daftar dependensi: kedua fungsi itu idempoten dan murah,
+  // dan tujuan efek ini memang "setelah SETIAP render" — daftar dependensi
+  // berisi callback yang stabil (useCallback) membuatnya dulu hanya berjalan
+  // saat mount, sehingga penggantian elemen di tengah luncuran lolos.
   useLayoutEffect(() => {
     sembunyikanBidakTerbang();
     rapikanKlonLandas();
-  }, [sembunyikanBidakTerbang, rapikanKlonLandas]);
+  });
 
   /*
    * Langkah DITOLAK induk (`kesalahan` = { from, to }) — sinyal tercepat bahwa

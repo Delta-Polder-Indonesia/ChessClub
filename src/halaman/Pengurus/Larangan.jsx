@@ -61,7 +61,7 @@ export default function PanelLarangan({
       });
       setHasilNomor(h);
     } catch (err) {
-      beriTahu(err.message, "galat");
+      beriTahu(err.message || "Permintaan gagal.", "galat");
     }
   };
 

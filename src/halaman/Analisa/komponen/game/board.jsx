@@ -35,6 +35,10 @@ const PIECES_VALUES = {
   q: 9,
   k: 0
 };
+/* Array kosong STABIL untuk `castleRookMove` ketika langkah bukan rokade —
+   dependensi efek animasi harus identik antar-render agar luncuran tidak
+   di-restart oleh render yang tidak berkaitan. */
+const KOSONG_TANPA_GESER = Object.freeze([]);
 /* Bunyi papan dibuat dengan Web Audio (lihat ../suaraPapan.js) — tanpa
    dependensi howler dan tanpa berkas MP3 berlisensi copyleft. */
 const moveSelfSound = buatSuara("move-self");
@@ -370,6 +374,11 @@ function Board(props) {
   const currentArrowRef = useRef([]);
   const dragTimerRef = useRef(0);
   const animasiLangkahRef = useRef(new WeakMap());
+  // Kunci transisi yang SUDAH dianimasikan (lihat efek animasi) — menjaga
+  // satu langkah tidak meluncur dua kali walau efek berjalan ulang.
+  const kunciAnimasiRef = useRef(null);
+  // Kunci posisi yang SUDAH dibunyikan — satu perubahan posisi = satu bunyi.
+  const kunciSuaraRef = useRef(null);
   useEffect(() => () => clearTimeout(dragTimerRef.current), []);
   const { drag, bestMoveSan, setDrag, pushArrow, cleanArrows, setMaterialAdvantage, setPlaying, analyzingMove, arrows, previousStaticEvals, kandidat, sacrifice, boardSize, bestMove, previousBestMove, moveRating: moveRating2, forward, white, animation, gameEnded, capture, nextCapture, castle, nextCastle, setAnimation, result: result2, analyzeMove } = props;
   const fen = props.fen;
@@ -398,11 +407,29 @@ function Board(props) {
   const whiteMoving = !(chess.turn() === "w");
   const castleRookFrom = getCastleRookFromSquare(forward ? castle : nextCastle, forward ? whiteMoving : !whiteMoving);
   const castleRookTo = getCastleRookToSquare(forward ? castle : nextCastle, forward ? whiteMoving : !whiteMoving);
-  const castleRookMove = useMemo(() => (castleRookFrom && castleRookTo ? [castleRookFrom, castleRookTo] : []), [castleRookFrom, castleRookTo]);
+  /* `castleRookFrom`/`castleRookTo` objek BARU tiap render — memakainya
+     sebagai dependensi `useMemo` membuat `castleRookMove` berganti identitas
+     tiap render, dan efek animasi di bawah ikut berjalan ulang: luncuran
+     di-cancel lalu dimulai lagi dari petak asal sehingga bidak "jalan 2x"
+     setiap ada render di tengah luncuran (update state engine saat analisis,
+     setDrag timer, dsb). Kuncinya pada nilai PRIMITIF (jenis rokade + sisi),
+     bukan pada objek geometri. */
+  const gerakanRokade = forward ? castle : nextCastle;
+  const sisiRokade = forward ? whiteMoving : !whiteMoving;
+  const castleRookMove = useMemo(() => {
+    const from = getCastleRookFromSquare(gerakanRokade, sisiRokade);
+    const to = getCastleRookToSquare(gerakanRokade, sisiRokade);
+    return from && to ? [from, to] : KOSONG_TANPA_GESER;
+  }, [gerakanRokade, sisiRokade]);
   const filteredHighlightStyle = filterHighlightStyle(HIGHLIGHT_COLORS);
   const highlightColor = highlightByRating ? filteredHighlightStyle[moveRating2]?.color || boardThemes[boardTheme].highlight : boardThemes[boardTheme].highlight;
   const highlightRating = filteredHighlightStyle[moveRating2]?.rating;
   // Sama seperti `chess` di atas: nextFen bisa kosong di langkah terakhir.
+  //
+  // Hanya TURUNAN PRIMITIF (boolean/string) yang boleh masuk dependensi efek
+  // suara di bawah. Instance Chess dibuat ulang tiap render — dulu ia ikut
+  // menjadi dependensi sehingga efek suara berjalan SETIAP render dan bunyi
+  // langkah terulang-ulang tanpa ada langkah baru ("langkah terdengar 2x").
   const soundChessInstance = forward
     ? chess
     : (() => {
@@ -415,6 +442,13 @@ function Board(props) {
   const soundCaptureInstance = forward ? capture : nextCapture;
   const soundCastleInstance = forward ? castle : nextCastle;
   const selfTurn = !(soundChessInstance.turn() === "w" ? white : !white);
+  const skakSekarang = (() => {
+    try {
+      return soundChessInstance.isCheck();
+    } catch {
+      return false;
+    }
+  })();
   useEffect(() => {
     if (drag.is) return;
     if (!drag.id) return;
@@ -427,15 +461,28 @@ function Board(props) {
       setDrag({ is: false, id: "" });
       return;
     }
-  }, [fen, chess, drag.id, drag.is, setDrag]);
+    // `chess` sengaja tidak dijadikan dependensi: ia objek baru tiap render,
+    // sedangkan nilainya murni turunan `fen` (sudah ada di daftar dependensi).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fen, drag.id, drag.is, setDrag]);
   useEffect(() => {
     if (!props.fen) return;
+    /* "Satu perubahan posisi = satu bunyi." Gerakannya cukup `fen`: semua
+     * turunan di bawah (selfTurn, skakSekarang, capture/castle, gameEnded)
+     * berubah BERSAMAAN dengan fen saat transisi langkah. Kunci posisi
+     * mencegah bunyi terulang ketika render lain mengubah turunan itu tanpa
+     * ganti posisi — membalik orientasi papan (selfTurn ikut berubah),
+     * menyalakan setelan bunyi, atau streaming evaluasi engine. Penanda
+     * tetap dibuat walau bunyi sedang mati agar menyalakannya di posisi yang
+     * sama tidak memutar suara langkah palsu. */
+    if (kunciSuaraRef.current === fen) return;
+    kunciSuaraRef.current = fen;
     if (!boardSounds) return;
     if (soundCastleInstance) {
       castleSound.play();
     } else if (soundCaptureInstance) {
       captureSound.play();
-    } else if (soundChessInstance.isCheck()) {
+    } else if (skakSekarang) {
       moveCheckSound.play();
     } else {
       if (selfTurn) {
@@ -447,13 +494,34 @@ function Board(props) {
     if (gameEnded) {
       gameEndSound.play();
     }
-  }, [fen, boardSounds, gameEnded, props.fen, selfTurn, soundCaptureInstance, soundCastleInstance, soundChessInstance]);
+    // Dependensi WAJIB primitif semua. `soundChessInstance` (objek Chess baru
+    // tiap render) pernah berada di sini sehingga efek ini berjalan setiap
+    // render — bunyi langkah berulang untuk satu langkah yang sama. Cukup
+    // `fen`/`props.fen` yang menggerakkan: satu perubahan posisi = satu bunyi.
+  }, [fen, boardSounds, gameEnded, props.fen, selfTurn, soundCaptureInstance, soundCastleInstance, skakSekarang]);
   useEffect(() => {
-    if (!animation) return;
-    if (!animateMoves) return;
-    if (pieceRef.current) animateMove(pieceRef.current, forward ? move : nextMove, 60, forward, white, squareSize);
+    if (!animation || !animateMoves) {
+      // Animasi tidak aktif — transisi berikutnya (mis. kembali ke langkah ini
+      // lewat navigasi) harus beranimasi lagi, jadi penanda dibersihkan.
+      kunciAnimasiRef.current = null;
+      return;
+    }
+    /* Satu transisi (posisi + arah + langkah) hanya boleh dianimasikan SEKALI.
+     *
+     * Efek ini dulu berjalan ulang setiap kali dependensi berganti identitas —
+     * termasuk `castleRookMove` yang objeknya dibuat ulang tiap render — dan
+     * `animateMove` selalu me-restart luncuran dari petak asal: saat engine
+     * menyala, update state di tengah 300 ms luncuran membuat bidak kembali ke
+     * petak asal lalu meluncur lagi ("bidak jalan 2x", tersisa artefak lapisan
+     * `willChange`). Kunci transisi menjamin render ulang apa pun tidak pernah
+     * memulai luncuran kedua untuk langkah yang sama. */
+    const gerakanAnimasi = forward ? move : nextMove;
+    const kunci = `${fen}|${forward ? "f" : "b"}|${JSON.stringify(gerakanAnimasi)}`;
+    if (kunciAnimasiRef.current === kunci) return;
+    kunciAnimasiRef.current = kunci;
+    if (pieceRef.current) animateMove(pieceRef.current, gerakanAnimasi, 60, forward, white, squareSize);
     if (castleRookRef.current) animateMove(castleRookRef.current, castleRookMove, 50, forward, white, squareSize);
-  }, [move, animation, animateMoves, castleRookMove, forward, nextMove, squareSize, white]);
+  }, [move, animation, animateMoves, castleRookMove, forward, nextMove, squareSize, white, fen]);
   let newMaterialAdvantage = 0;
   useEffect(() => setMaterialAdvantage(newMaterialAdvantage), [fen, newMaterialAdvantage, setMaterialAdvantage]);
   function startArrow(x, y) {
@@ -562,13 +630,12 @@ function Board(props) {
       x: (toElementPosition.left - fromElementPosition.left) * (white2 ? 1 : -1),
       y: (toElementPosition.bottom - fromElementPosition.bottom) * (white2 ? 1 : -1)
     };
-    function resetElements() {
-      if (!element) return;
-      element.style.zIndex = "";
-      element.style.willChange = "";
-    }
     // Navigasi cepat antar-langkah: animasi lama yang belum selesai dibatalkan
-    // dulu supaya handler `.finished`-nya tidak merobohkan reset animasi baru.
+    // dulu. Penyelesaiannya hanya boleh mereset gaya bila animasinya MASIH yang
+    // aktif untuk elemen ini — `.catch(resetElements)` animasi lama terpanggil
+    // sebagai microtask SETELAH animasi baru memasang zIndex/willChange, dan
+    // tanpa penjagaan itu ia merobohkan gaya animasi baru (bidak meluncur di
+    // bawah bidak lain, tersisa lapisan "bayangan").
     animasiLangkahRef.current.get(element)?.cancel();
     element.style.zIndex = String(zIndex);
     element.style.willChange = "transform";
@@ -584,6 +651,13 @@ function Board(props) {
       }
     );
     animasiLangkahRef.current.set(element, animation2);
+    const resetElements = () => {
+      if (!element) return;
+      if (animasiLangkahRef.current.get(element) !== animation2) return;
+      animasiLangkahRef.current.delete(element);
+      element.style.zIndex = "";
+      element.style.willChange = "";
+    };
     animation2.finished.then(resetElements).catch(resetElements);
     animation2.oncancel = resetElements;
   }

@@ -229,10 +229,15 @@ export function useEngineCatur(fen, opsi = {}) {
   /** Panah saran engine (biru) — terpisah dari tanda buatan pengguna. */
   const panahMesin = useMemo(() => {
     if (!engineNyala || !hasilEngine) return null;
+    // Hasil yang masih tampil bisa milik posisi SEBELUMNYA (analisis baru
+    // belum menjawab, efek pembersihannya berjalan sesudah paint). Panah dari
+    // posisi lama di atas papan baru adalah artefak menyesatkan — syaratkan
+    // `fen` hasil sama dengan posisi yang sedang tampil.
+    if (hasilEngine.fen && hasilEngine.fen !== fen) return null;
     const u = hasilEngine.bestUci || hasilEngine.pvUci?.[0];
     if (!u || u.length < 4) return null;
     return { from: u.slice(0, 2), to: u.slice(2, 4), warna: "biru" };
-  }, [engineNyala, hasilEngine]);
+  }, [engineNyala, hasilEngine, fen]);
 
   const nyalakanEngine = useCallback(() => {
     setEngineNyala(true);

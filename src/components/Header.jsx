@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
@@ -324,6 +324,11 @@ function MobileDrawer({ open, onClose, onNavigate, pemicu }) {
               </Link>
             </li>
           ))}
+          {/* Ganti bahasa harus ikut tersedia di menu mobile — tombol di
+              top-bar hanya untuk desktop dan tidak pernah terlihat di sini. */}
+          <li>
+            <TombolBahasa warna="text-slate-700" />
+          </li>
         </ul>
         <Link
           to="/pendaftaran-anggota"
@@ -434,22 +439,22 @@ function SearchOverlay({ open, onClose, onNavigate, pemicu }) {
   );
 }
 
-function TombolBahasa() {
+function TombolBahasa({ warna = "text-white" }) {
   const { bahasa, setBahasa, t } = useI18n();
   const Bendera = bahasa === "en" ? FlagENIcon : FlagIDIcon;
+  /* Berupa <button> polos (bukan <li>) supaya bisa dipakai di kluster tombol
+     header (div) maupun dibungkus <li> di dalam daftar menu mobile. */
   return (
-    <li className="hidden lg:block">
-      <button
-        type="button"
-        title={t("common.pilihBahasa")}
-        aria-label={t("common.pilihBahasa")}
-        onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
-        className="bg-transparent border-0 flex items-center gap-2 text-xs text-white cursor-pointer"
-      >
-        <span>{bahasa.toUpperCase()}</span>
-        <Bendera />
-      </button>
-    </li>
+    <button
+      type="button"
+      title={t("common.pilihBahasa")}
+      aria-label={t("common.pilihBahasa")}
+      onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
+      className={`bg-transparent border-0 flex items-center gap-2 text-xs ${warna} cursor-pointer`}
+    >
+      <span>{bahasa.toUpperCase()}</span>
+      <Bendera />
+    </button>
   );
 }
 
@@ -472,6 +477,12 @@ export default function Header() {
   const handleNavigate = () => {
     setMenuOpen(false);
   };
+  /* `onClose` dialog harus stabil (useCallback): identitas baru tiap render
+     membuat efek useFokusDialog berjalan ulang saat dialog terbuka — fokus
+     pengguna terampas ke tombol pemicu/penutup setiap Header render ulang
+     (mis. saat sakelar `scrolled` berubah atau bahasa diganti). */
+  const tutupMenu = useCallback(() => setMenuOpen(false), []);
+  const tutupCari = useCallback(() => setSearchOpen(false), []);
 
   return (
     <>
@@ -520,7 +531,6 @@ export default function Header() {
                   ))}
                 </ul>
               </li>
-              <TombolBahasa />
               <li>
                 <Link
                   to="/pendaftaran-anggota"
@@ -548,6 +558,11 @@ export default function Header() {
                   ))}
                 </ul>
               </nav>
+              {/* Sakelar bahasa menempel di kluster tombol yang selalu tampil
+                  (bukan lagi di top-bar yang disembunyikan saat header
+                  menempel) — akses ganti bahasa tidak boleh hilang saat
+                  scroll maupun di layar kecil. */}
+              <TombolBahasa warna={scrolled ? "text-slate-800" : "text-white"} />
               <button
                 ref={searchButtonRef}
                 type="button"
@@ -581,13 +596,13 @@ export default function Header() {
 
       <MobileDrawer
         open={menuOpen}
-        onClose={() => setMenuOpen(false)}
+        onClose={tutupMenu}
         onNavigate={handleNavigate}
         pemicu={menuButtonRef}
       />
       <SearchOverlay
         open={searchOpen}
-        onClose={() => setSearchOpen(false)}
+        onClose={tutupCari}
         onNavigate={handleNavigate}
         pemicu={searchButtonRef}
       />

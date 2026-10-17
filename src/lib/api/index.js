@@ -23,7 +23,7 @@ export {
   hitungUmur,
   kategoriUmur,
 } from "../identitas.js";
-export { GalatApi, GalatPendaftaran } from "./core.js";
+export { GalatApi, GalatPendaftaran, teksGalat } from "./core.js";
 export * from "./anggota.js";
 export * from "./pengurus.js";
 export * from "./turnamen.js";

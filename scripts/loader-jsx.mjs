@@ -283,5 +283,11 @@ export async function load(url, context, next) {
     }
     return { format: "module", source: shimEnvVite(shimGlobVite(source, url)), shortCircuit: true };
   }
+  // Impor CSS (termasuk dari node_modules, mis. swiper) tidak relevan untuk
+  // uji jsdom — kembalikan modul kosong agar rantai impor tidak putus dengan
+  // ERR_UNKNOWN_FILE_EXTENSION.
+  if (url.endsWith(".css")) {
+    return { format: "module", source: "export default {}", shortCircuit: true };
+  }
   return next(url, context);
 }

@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input.jsx";
 import { Label } from "@/components/ui/label.jsx";
 import { tebusUnduhanEbook, ajukanMintaEbook } from "../../lib/api/ebook.js";
+import { teksGalat } from "../../lib/api/core.js";
 import {
   ambilPemohonEbook,
   simpanPemohonEbook,
@@ -164,7 +165,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         taut.click();
         taut.remove();
       } catch (e2) {
-        setGalat(e2.message || t("unduhEbook.galatTebus"));
+        setGalat(teksGalat(e2, t, "unduhEbook.galatTebus"));
         setSalah(true);
       } finally {
         setSibuk(false);
@@ -189,7 +190,7 @@ export default function ModalUnduhEbook({ buku, onTutup }) {
         simpanPemohonEbook({ nama: nama.trim(), akun: akun.trim() });
         setMintaTerkirim(true);
       } catch (e2) {
-        setGalat(e2.message || t("unduhEbook.galatMinta"));
+        setGalat(teksGalat(e2, t, "unduhEbook.galatMinta"));
         setSalah(true);
       } finally {
         setSibuk(false);
