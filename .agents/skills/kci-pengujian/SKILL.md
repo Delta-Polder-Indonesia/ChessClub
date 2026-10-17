@@ -23,7 +23,7 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   `uji:analisa-ui`, `uji:engine`, `uji:analisa-menyeluruh`, `uji:suara`, `uji:basisdata`,
   `uji:akun-database`, `uji:tarik-api`, `uji:buku-analisa`, `uji:lencana-skakmat`, `uji:tanda-papan`,
   `uji:animasi-bidak`, `uji:glob-aset`, `uji:render-bidak`,
-  `uji:gestur-lawan`, `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
+  `uji:evaluasi-manusia-vs-mesin`, `uji:bantuan-langkah`,
   `uji:repertoar`, `uji:sunfish`, `uji:tekateki-solusi`, `uji:tekateki-alur`,
   `uji:tekateki-rute`, `uji:rush`,
   `uji:api-csrf`, `uji:sesi-ebook`, `uji:kerangka-penuh`, `uji:quiz`, `uji:gambar`,
@@ -72,7 +72,8 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   yang baru diseret). Bagian jsdom memeriksa `element.animate()` benar-benar dipanggil pada
   bidak di petak tujuan, termasuk mode Manusia vs Mesin dengan mesin UCI palsu: klik move
   pemain dan balasan mesin meluncur, sedangkan bidak yang diseret tidak diluncurkan ulang.
-  Entri PvE mengekspor `GESTUR` supaya uji memangkas jeda "berpikir" mesin (2-4 detik nyata).
+  Balasan mesin kini langsung dijalankan tanpa gestur/jeda "seperti manusia" (mode itu
+  sudah dihapus), jadi uji tinggal menunggu klip luncuran balasannya.
 - `npm run uji:glob-aset` — aset bidak lewat makro `import.meta.glob`. Glob ini compile-time Vite:
   kalau tidak ter-expand hasilnya `{}` dan seluruh papan tampil tanpa bidak TANPA galat — persis
   yang lolos di PR #167 (commit 85ddcfa membungkus `import.meta.glob` dengan guard `typeof`).
@@ -89,12 +90,6 @@ Rincian per area (frontend, analisa, backend, konten, e2e) ada di
   `define` menghapus seluruh jejak makro dari sumber sebelum dianalisis, sehingga skrip-butanya
   kembali hijau pada aset rusak. Delapan skrip ini ikut gagal kalau glob di `ChessPiece.jsx`
   berubah bentuk — itulah penjaganya di luar `uji:glob-aset`.
-- `npm run uji:gestur-lawan` — gestur "seperti manusia" mesin di mode Manusia vs Mesin
-  (`src/halaman/ManusiaVsMesin/gerakLawan.js`): penilaian posisi sulit (skor tipis +
-  banyak langkah sah), pemilihan bidak yang dilirik saat bimbang, urutan klik (bidak lain dulu,
-  petak asal terakhir), jeda 2-4 detik sebelum melangkah, goyangan bidak yang diklik, pembatalan
-  di tengah gestur, serta penjagaan bahwa langkah yang dijalankan tetap hasil engine dan modul
-  ini tidak dipakai mode lain (Teka-teki/Rush/Repertoar).
 - `npm run uji:evaluasi-manusia-vs-mesin` — bilah evaluasi, pergantian posisi, dan deteksi akhir
   partai di mode Manusia vs Mesin (`ManusiaVsMesin.jsx` + `gunakanEngineCatur.js`): evaluasi tidak
   boleh macet menampilkan skor posisi lama begitu posisi berganti (bug utama yang dikunci uji

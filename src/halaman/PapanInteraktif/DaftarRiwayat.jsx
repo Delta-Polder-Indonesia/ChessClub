@@ -139,6 +139,7 @@ export default function DaftarRiwayat({
               tema={tema}
               setBidak={setBidak}
               ukuran={UKURAN_PRATINJAU}
+              label={t ? t("papan.pratinjauLabel") : undefined}
             />
           </div>,
           document.body

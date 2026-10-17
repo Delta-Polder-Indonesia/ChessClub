@@ -83,8 +83,6 @@ import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import ManusiaVsMesin from "./src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx";
 
-export { GESTUR } from "./src/halaman/ManusiaVsMesin/gerakLawan.js";
-
 export function mountPve(el) {
   const root = createRoot(el);
   root.render(
@@ -240,11 +238,6 @@ window.Worker = MesinPalsu;
 globalThis.Worker = MesinPalsu;
 
 const modul = require(berkasBundel);
-// Jeda "berpikir seperti manusia" mesin lawan (2-4 detik nyata) dipangkas
-// dan gestur ragu dimatikan — uji ini menguji evaluasi/state, bukan gestur.
-modul.GESTUR.jedaLangkah = [1, 1];
-modul.GESTUR.jedaRagu = [1, 1];
-modul.GESTUR.peluangRagu = 0;
 
 const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
 
@@ -291,11 +284,10 @@ async function partaiBaru(sebelumMulai) {
   const klik = (sq) => petak(sq)?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   /**
    * Klik `sq` berulang sampai tersorot, bukan sekali lalu berharap. Dipakai
-   * saat sebelumnya ada gestur mesin lawan yang masih berjalan (goyang bidak
-   * + jeda async sebelum `mainkanLangkah` benar-benar dipanggil) — satu klik
-   * yang jatuh SEBELUM papan terbuka lagi untuk pemain akan diam-diam
-   * diabaikan (`bolehGerak` masih false), jadi klik tunggal saja tidak
-   * cukup untuk memastikan langkah benar-benar terpilih.
+   * saat mesin mungkin masih menjawab (status "mesin"): satu klik yang jatuh
+   * SEBELUM papan terbuka lagi untuk pemain akan diam-diam diabaikan
+   * (`bolehGerak` masih false), jadi klik tunggal saja tidak cukup untuk
+   * memastikan langkah benar-benar terpilih.
    */
   const klikSampaiTersorot = async (sq, batas = 6000) => {
     const tenggat = Date.now() + batas;
@@ -647,10 +639,9 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
 
   for (let i = 0; i < LANGKAH_MENUJU_MAT.length - 1; i++) {
     const { dari, ke } = LANGKAH_MENUJU_MAT[i];
-    // Langkah lawan sebelumnya bisa masih di tengah gestur async (goyang
-    // bidak + jeda sebelum `mainkanLangkah` benar-benar dipanggil) — klik
-    // tunggal yang jatuh sebelum papan terbuka lagi diam-diam diabaikan,
-    // jadi tunggu sambil coba klik berulang.
+    // Balasan lawan bisa masih dalam render setelah `rilis()` — klik tunggal
+    // yang jatuh sebelum papan terbuka lagi diam-diam diabaikan, jadi tunggu
+    // sambil coba klik berulang.
     await p.klikSampaiTersorot(dari);
     p.klik(ke);
     // Jika promosi, dialog muncul — pilih opsi pertama (menteri)
@@ -663,8 +654,8 @@ console.log("\n7. skakmat tidak boleh menyisakan evaluasi lama (posisi terminal)
   }
 
   // Pastikan posisi SUDAH benar-benar sampai di giliran pemain sebelum
-  // langkah mat (balasan Hitam terakhir bisa saja masih di tengah gestur
-  // async) — pilih dulu petak asal langkah mat, JANGAN langsung mainkan.
+  // langkah mat (balasan Hitam terakhir bisa saja masih dalam render) —
+  // pilih dulu petak asal langkah mat, JANGAN langsung mainkan.
   const { dari, ke } = LANGKAH_MENUJU_MAT[LANGKAH_MENUJU_MAT.length - 1];
   await p.klikSampaiTersorot(dari);
 
