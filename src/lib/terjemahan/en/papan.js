@@ -262,6 +262,8 @@ export const papan = {
     },
     ikonSkakmat: "Checkmate — the opposing king has no escape",
     ikonMahkota: "Victory — the winning king",
+    warnaPutih: "White",
+    warnaHitam: "Black",
     ikonResign: "Resigned — the king that resigned",
     suaraMati: "Sound off — click to unmute",
     setBidak: "Piece Set",

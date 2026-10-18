@@ -191,6 +191,18 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     expect(tataLetakResponsif.kananBilah).toBeLessThanOrEqual(tataLetakResponsif.kiriPapan);
     expect(tataLetakResponsif.menuMeluap).toBe(false);
 
+    // Tautan sidebar mengembalikan pengguna ke workspace Analisa tanpa
+    // meninggalkan /papan-interaktif (bukan tautan keluar + reload).
+    await analisa.click();
+    await expect(page.locator("[data-petak]")).toHaveCount(64);
+    await expect(page).toHaveURL(/\/papan-interaktif$/);
+
+    // Kartu konfigurasi pra-partai adalah milik rute Manusia vs Mesin. Turing
+    // Test (halaman yang sedang dibuka) sengaja tidak punya warna pemain /
+    // level mesin, jadi pindah dulu ke rute itu sebelum memeriksanya.
+    await page.goto("/papan-interaktif/manusia-vs-mesin", { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-petak]")).toHaveCount(64, { timeout: 30_000 });
+
     const warnaPemain = page.getByLabel(kamus.pveWarnaPemain);
     const levelMesin = page.getByLabel(kamus.pveLevel);
     await expect(warnaPemain).toBeEnabled();
@@ -267,9 +279,7 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
       expect(ukuran.bawahPapan).toBeLessThanOrEqual(ukuran.tinggiLayar);
       expect(ukuran.lajurBergulir).toBe(false);
     }
-    await analisa.click();
-    await expect(page.locator("[data-petak]")).toHaveCount(64);
-    await expect(page).toHaveURL(/\/papan-interaktif$/);
+    // Tidak ada galat halaman di seluruh alur (workspace -> mode -> PvE).
     expect(galat).toEqual([]);
   });
 }

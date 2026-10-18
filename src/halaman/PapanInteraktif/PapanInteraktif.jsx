@@ -8,7 +8,6 @@ import {
   Volume2,
   VolumeX,
 } from "lucide-react";
-import Profile from "../Analisa/komponen/svg/profile.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
@@ -59,7 +58,7 @@ import BukuPembukaan from "./BukuPembukaan.jsx";
 import KartuArtikelPembukaan from "./KartuArtikelPembukaan.jsx";
 import DaftarRiwayat from "./DaftarRiwayat.jsx";
 import BilahEvaluasi from "./bersama/BilahEvaluasi.jsx";
-import TangkapanBidak from "./bersama/TangkapanBidak.jsx";
+import { BarisProfil } from "./bersama/BarisProfil.jsx";
 import { susunTangkapan } from "./bersama/TangkapanBidakData.js";
 import MasukanPgn from "./MasukanPgn.jsx";
 import LangkahExplorer from "./LangkahExplorer.jsx";
@@ -83,6 +82,10 @@ function Kerangka() {
     </div>
   );
 }
+
+/** Keadaan seleksi tanpa apa pun terpilih. Referensinya tetap supaya
+ *  membersihkan seleksi tidak memicu render papan yang tidak perlu. */
+const SELEKSI_KOSONG = Object.freeze({ dari: null, tujuan: [], tangkap: [] });
 
 export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = null, pengaturan = null } = {}) {
   const { t, bahasa } = useI18n();
@@ -117,9 +120,22 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   const [jalur, setJalur] = useState([]); // kunci pohon, untuk menelusuri pembukaan
   const [orientasi, setOrientasi] = useState("w");
 
-  const [terpilih, setTerpilih] = useState(null);
-  const [sasaran, setSasaran] = useState([]);
+  /**
+   * Seleksi petak dalam SATU state: bidak terpilih, petak tujuan legal, dan
+   * petak tujuan yang berupa TANGKAPAN.
+   *
+   * Ketiganya sengaja tidak boleh punya state sendiri: penanda cincin
+   * (tangkapan) dulu disimpulkan papan semata dari "petak tujuan terisi", jadi
+   * en passant — satu-satunya tangkapan di petak kosong — ditandai sebagai
+   * langkah biasa, dan pengali bidak tertangkap di baris pemain bisa tertinggal
+   * satu langkah karena `sasaran` dibersihkan tanpa ikut menyetel ulang
+   * penanda tangkapan.
+   */
+  const [seleksi, setSeleksi] = useState(SELEKSI_KOSONG);
+  const terpilih = seleksi.dari;
+  const sasaran = seleksi.tujuan;
   const [langkahAkhir, setLangkahAkhir] = useState(null);
+
   /**
    * Penahan RENDER (bukan penahan state).
    *
@@ -203,7 +219,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }
 
   /**
-   * Interaksi apa pun (klik/tekan) seketika MELEPAS penahanan render.
+   * Interaksi apa pun (klik/tekan) seketika MELEPAS penahanan render — dan
+   * MENARIK POSISI YANG TERTUNDA masuk ke state.
    *
    * Selama render ditahan, prop yang diterima papan masih posisi lama —
    * cukup untuk menonton satu luncuran, tetapi salah kalau pemain buru-buru
@@ -211,12 +228,24 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
    * pilih"). Karena itu begitu ada interaksi, penahanan dilepas dan halaman
    * langsung render seperti biasa; kehalusan luncuran mengalah demi
    * ketepatan langkah pemain.
+   *
+   * Melepas penahan saja TIDAK CUKUP: `terapkanPosisi` menunda `setFen`
+   * ±340 ms lewat `timerPosisiRef`, jadi render hasil pelepasan ini tetap
+   * memakai FEN LAMA. Papan menyimpulkan giliran, wujud bidak, dan langkah
+   * yang sudah diterbangkan dari prop itu — sehingga langkah cepat tepat
+   * SETELAH sebuah tangkapan bisa terbuang diam-diam: bidak pemakan sudah
+   * mendarat di petak lawannya, tapi pilihan berikutnya dibaca papan sebagai
+   * langkah yang "sudah diterbangkan" sehingga riwayat tidak bertambah sama
+   * sekali. Karena itu interaksi apa pun menyedot posisi logis yang tertunda
+   * sebelum render berikutnya.
    */
+  const sedotPosisiRef = useRef(null);
   useEffect(() => {
     const lepas = () => {
-      if (!tahanRenderSampaiRef.current) return;
-      tahanRenderSampaiRef.current = 0;
-      setVersiTampil((v) => v + 1);
+      const adaTahanan = tahanRenderSampaiRef.current !== 0;
+      if (adaTahanan) tahanRenderSampaiRef.current = 0;
+      const tersedot = sedotPosisiRef.current?.() === true;
+      if (adaTahanan || tersedot) setVersiTampil((v) => v + 1);
     };
     document.addEventListener("pointerdown", lepas, true);
     document.addEventListener("keydown", lepas, true);
@@ -225,6 +254,21 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       document.removeEventListener("keydown", lepas, true);
     };
   }, []);
+
+  /**
+   * Terapkan SEKETIKA posisi logis yang masih menunggu luncuran selesai.
+   * @returns {boolean} true bila memang ada posisi tertunda yang ditarik.
+   */
+  function sedotPosisiTertunda() {
+    if (!tundaPosisiRef.current) return false;
+    hentikanTundaPosisi();
+    setFen(fenLogisRef.current);
+    setRiwayat(riwayatLogisRef.current);
+    setRiwayatLengkap(riwayatLengkapLogisRef.current);
+    setJalur(jalurLogisRef.current);
+    return true;
+  }
+  sedotPosisiRef.current = sedotPosisiTertunda;
 
   /**
    * Batalkan render yang tertunda dan selaraskan posisi logis dengan state.
@@ -492,6 +536,23 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   // Bidak yang ditangkap tiap sisi (ikon di baris pemain), dihitung dari riwayat.
   const tangkapan = useMemo(() => susunTangkapan(riwayat, fenAwal), [riwayat, fenAwal]);
+  /**
+   * Baris pemain di atas dan di bawah papan.
+   *
+   * Sengaja turunan dari `orientasi`, bukan tetap "Hitam di atas, Putih
+   * di bawah": baris itu menempel pada tepi papan, jadi setelah papan dibalik
+   * ia menyebut sisi yang salah — bidak yang baru saja dimakan Hitam muncul di
+   * baris Putih. (Mode lain mengikat barisnya ke "Anda"/"Mesin" sehingga tidak
+   * terpengaruh papan terbalik; halaman bebas ini memakai warna, jadi barisnya
+   * harus ikut berbalik.)
+   */
+  const barisSisi = (sisi) => ({
+    nama: sisi === "w" ? t("papan.warnaPutih") : t("papan.warnaHitam"),
+    putih: sisi === "w",
+    tangkapan: sisi === "w" ? tangkapan.olehPutih : tangkapan.olehHitam,
+  });
+  const barisAtas = barisSisi(orientasi === "w" ? "b" : "w");
+  const barisBawah = barisSisi(orientasi === "w" ? "w" : "b");
   // FEN & petak asal-tujuan tiap langkah — untuk pratinjau papan di DaftarRiwayat.
   const rincianLangkah = useMemo(() => rincianTiapLangkah(riwayatLengkap, fenAwal), [riwayatLengkap, fenAwal]);
 
@@ -589,17 +650,29 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   }, [namaArtikel, bahasa, riwayat, tabPanel]);
 
   /* ------------------------------------------------------ gerakan bidak */
+  /**
+   * Pilih bidak pada `petak`: daftar petak tujuan legal + daftar tujuan yang
+   * berupa TANGKAPAN.
+   *
+   * Daftar tangkapan dibaca dari `m.captured` hasil chess.js, BUKAN dari
+   * "petak tujuan terisi bidak lawan". Bedanya nyata pada en passant: satu-satunya
+   * langkah yang mengambil bidak di petak kosong, jadi dengan patokan "petak
+   * terisi" bidak itu ditandai sebagai langkah biasa (titik, bukan cincin)
+   * sementara baris pemain tetap mencatat bidaknya tertangkap.
+   */
   function pilihPetak(petak) {
     if (!fenLogisRef.current || promosi) return;
     const game = new Chess(fenLogisRef.current);
     const bidak = game.get(petak);
     if (bidak && bidak.color === game.turn()) {
-      const tujuan = game.moves({ square: petak, verbose: true }).map((m) => m.to);
-      setTerpilih(petak);
-      setSasaran(tujuan);
+      const langkah = game.moves({ square: petak, verbose: true });
+      setSeleksi({
+        dari: petak,
+        tujuan: langkah.map((m) => m.to),
+        tangkap: langkah.filter((m) => m.captured).map((m) => m.to),
+      });
     } else {
-      setTerpilih(null);
-      setSasaran([]);
+      setSeleksi(SELEKSI_KOSONG);
     }
   }
 
@@ -619,8 +692,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       return;
     }
     if (terpilih === petak) {
-      setTerpilih(null);
-      setSasaran([]);
+      setSeleksi(SELEKSI_KOSONG);
       return;
     }
     pilihPetak(petak);
@@ -660,8 +732,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
     if (butuhPromosi && !promo) {
       setPromosi({ from, to, warna: warnaPromosi });
-      setTerpilih(null);
-      setSasaran([]);
+      setSeleksi(SELEKSI_KOSONG);
       return;
     }
 
@@ -676,8 +747,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       window.clearTimeout(timerSalah.current);
       bunyikan(SUARA.ilegal);
       setKesalahan({ from, to });
-      setTerpilih(null);
-      setSasaran([]);
+      setSeleksi(SELEKSI_KOSONG);
       timerSalah.current = window.setTimeout(() => setKesalahan(null), 700);
       return;
     }
@@ -704,8 +774,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       terapkanPosisi(posisiBaru);
     }
     setLangkahAkhir({ from, to });
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setKesalahan(null);
     setPromosi(null);
   }
@@ -731,8 +800,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       jalur: [...jalurLogisRef.current, kuciDariPindahan(pindah, mode)],
     });
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
   }
 
   function pilihPromosi(bidakPromosi) {
@@ -744,8 +812,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
 
   function batalPromosi() {
     setPromosi(null);
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
   }
 
   useEffect(() => {
@@ -813,8 +880,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       bersihkanBantuanRef.current();
       if (!fenLogisRef.current || promosi) return;
       if (klikUlang) {
-        setTerpilih(null);
-        setSasaran([]);
+        setSeleksi(SELEKSI_KOSONG);
         return;
       }
       if (!to || from === to) return;
@@ -830,8 +896,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     seretDariRef.current = null;
     bersihkanBantuanRef.current();
     abaikanKlikRef.current = true;
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
   }, []);
 
   /* ------------------------------------------------------ kontrol papan */
@@ -845,8 +910,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setJalur([]);
     setPilihan(-1);
     setOrientasi("w");
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
     hapusSemuaTanda();
@@ -859,8 +923,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     setJalur([]);
     setPilihan(-1);
     setOrientasi("w");
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
     hapusSemuaTanda();
@@ -892,8 +955,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       riwayat: baru,
       jalur: jalurLogisRef.current.slice(0, -1),
     });
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
   }
@@ -918,8 +980,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       jalur: [...jalurLogisRef.current, kuciDariPindahan(pindah, mode)],
     });
     setLangkahAkhir({ from: pindah.from, to: pindah.to });
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
   }
 
   function keAkhir() {
@@ -948,8 +1009,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       return jalurBaru;
     });
     setFen(fenDariLangkah(riwayatLengkap, fenAwal) || fenAwal);
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
   }
@@ -979,8 +1039,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       return jalurBaru;
     });
     setFen(fenDariLangkah(baru, fenAwal) || fenAwal);
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
   }
@@ -1050,8 +1109,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     const bersih = () => {
       setPilihan(-1);
       setOrientasi("w");
-      setTerpilih(null);
-      setSasaran([]);
+      setSeleksi(SELEKSI_KOSONG);
       setLangkahAkhir(null);
       setPromosi(null);
       hapusSemuaTanda();
@@ -1188,8 +1246,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
       setFen(fenHasil);
     }
     setOrientasi("w");
-    setTerpilih(null);
-    setSasaran([]);
+    setSeleksi(SELEKSI_KOSONG);
     setLangkahAkhir(null);
     setPromosi(null);
     hapusSemuaTanda();
@@ -1506,20 +1563,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
           ) : (
             <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
-                {/* ─── PROFIL HITAM (ATAS) ─── */}
-                <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mb-2">
-                  <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
-                    <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#474542] rounded-md shadow-md overflow-hidden">
-                      <Profile height={32} width={32} class="fill-[#1d1c1a]" />
-                    </div>
-                    <div className="flex flex-col justify-center min-w-0">
-                      <span className="text-sm font-bold text-[#fffaec] truncate">Hitam</span>
-                      <div className="flex min-h-[15px] items-center overflow-hidden">
-                        <TangkapanBidak daftar={tangkapan.olehHitam} set={setBidak} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
+                <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
 
                 <div className="flex flex-col justify-center">
                 <div className="flex items-stretch gap-1.5">
@@ -1537,6 +1582,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     orientasi={orientasi}
                     terpilih={terpilih}
                     sasaran={sasaran}
+                    sasaranTangkap={seleksi.tangkap}
                     kesalahan={kesalahan}
                     langkahAkhir={langkahAkhir}
                     tanda={tanda}
@@ -1612,20 +1658,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 </div>
                 </div>
 
-                {/* ─── PROFIL PUTIH (BAWAH) ─── */}
-                <div className="flex flex-row justify-between items-center pl-[42px] pr-1 mt-3">
-                  <div className="flex flex-row items-center gap-3 min-w-0 flex-1">
-                    <div className="h-10 w-10 flex-shrink-0 flex flex-row justify-center items-end bg-[#dbd9d6] rounded-md shadow-md overflow-hidden">
-                      <Profile height={32} width={32} class="fill-[#ffffff]" />
-                    </div>
-                    <div className="flex flex-col justify-center min-w-0">
-                      <span className="text-sm font-bold text-[#fffaec] truncate">Putih</span>
-                      <div className="flex min-h-[15px] items-center overflow-hidden">
-                        <TangkapanBidak daftar={tangkapan.olehPutih} set={setBidak} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                {/* ─── BARIS PEMAIN BAWAH — mengikuti orientasi papan ─── */}
+                <BarisProfil {...barisBawah} setBidak={setBidak} namaDiBawah className="mt-3" />
 
               </div>
 
