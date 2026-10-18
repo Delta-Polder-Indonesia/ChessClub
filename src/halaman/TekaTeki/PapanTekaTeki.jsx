@@ -1,12 +1,7 @@
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { ambilSumberBidak } from "../../components/chess/pemuatBidak.js";
-import {
-  GESER_ISEPIC,
-  geseranDenganAsalEksplisit,
-  konfigurasiGeser,
-  petaBidak,
-} from "./animasiBidak.js";
+import { GESER_ISEPIC, geseranDenganAsalEksplisit, petaBidak } from "./animasiBidak.js";
 import { useI18n } from "../../lib/i18n.jsx";
 import { TEMA_PAPAN } from "./temaPapan.js";
 import RatingSVG from "../Analisa/komponen/svg/rating.jsx";
@@ -460,7 +455,6 @@ export default function PapanTekaTeki({
   setBidak = "merida",
   tema = "hijau",
   animasi = true, // luncurkan bidak saat posisi berganti (matikan bila perlu)
-  gayaGeser = "bawaan", // "analisa" = persis luncuran Report Analisa (lihat animasiBidak.js)
   onKlik,
   onPilih,
   onJatuh,
@@ -477,9 +471,8 @@ export default function PapanTekaTeki({
   const giliran = fen.split(" ")[1] || "w";
 
   const akar = useRef(null);
-  /** Penanda unik per instance papan. Klon penerbangan ditempel di `body`
-   *  (supaya `position: fixed` benar-benar relatif viewport dan tidak dipotong
-   *  `overflow`), jadi penanda ini yang menautkan klon ke papannya. */
+  /** Penanda unik per instance papan (`data-papan`) — dipakai uji/harness untuk
+   *  menautkan kueri DOM ke papan yang benar saat beberapa papan hidup. */
   const idPapanRef = useRef(null);
   if (idPapanRef.current === null) {
     idPapanRef.current = `papan-${Math.random().toString(36).slice(2, 9)}`;
@@ -523,34 +516,10 @@ export default function PapanTekaTeki({
   const fenSebelumRef = useRef(fen);
   const orientasiSebelumRef = useRef(orientasi);
   const lewatiGeserRef = useRef(null); // { ke, waktu } — bidak yang baru dilepas dari seret
-  /** Petak tujuan langkah yang pemrosesannya ditunda (menunggu klon tercat).
-   *  Selama terisi, klik tambahan ke petak yang sah DIABAIKAN supaya satu niat
-   *  langkah tidak pernah diproses dua kali (klik dobel). */
-  const tundaKlikRef = useRef(null);
-
-  /**
-   * Catatan penerbangan TERAKHIR: { dari, ke, fenAwal, intent }.
-   *
-   * Dipakai mencegah langkah yang SAMA diterbangkan dua kali. Penjagaan lewat
-   * daftar klon yang masih hidup tidak cukup: klon bisa sudah dibersihkan
-   * (jaring pengaman habis, atau pendaratannya sudah dirapikan) padahal posisi
-   * barunya BELUM dirender — pada rentang itu efek FEN melihat langkah itu
-   * sebagai "belum pernah diterbangkan" lalu membuat klon KEDUA (terukur di
-   * jsdom: 2 penerbangan ke e4 untuk satu klik; di peramban terlihat sebagai
-   * langkah yang meluncur dua kali).
-   *
-   * Catatan hanya berlaku selama fen yang ditampilkan papan masih sama dengan
-   * `fenAwal` — yaitu selama langkah itu belum tercermin di props. Setelah
-   * dipakai sekali, catatannya dibuang supaya transisi FEN yang sama di lain
-   * waktu (mis. redo setelah undo) tetap dianimasikan.
-   */
-  const penerbanganTerakhirRef = useRef(null);
-  const animasiJalanRef = useRef(new Set());
-  // Klon bidak yang sedang terbang (pola isepic `_animatePiece`): dibuat
-  // imperatif sebagai cloneNode dari elemen bidak asli di petak tujuan,
-  // diterbangkan di lapisan atas papan, dibuang saat transitionend.
-  // { klon, asli, timer } — `asli` disembunyikan selama klon terbang.
-  const klonJalanRef = useRef(new Set());
+  /** Animasi luncuran yang sedang berjalan: elemen bidak → objek `Animation`
+   *  Web Animations API. Dipakai membatalkan animasi lama untuk elemen yang
+   *  sama sebelum memasang yang baru (navigasi cepat antar-langkah). */
+  const animasiJalanRef = useRef(new Map());
 
   // Keadaan tanda klik kanan.
   const kananRef = useRef(null); // { petak, warna }
@@ -689,39 +658,26 @@ export default function PapanTekaTeki({
 
   /*
    * Papan dirender dari FEN, jadi tanpa bantuan apa pun bidak "berkedip":
-   * hilang di petak asal, muncul seketika di petak tujuan. Di sini bidak yang
-   * berpindah diterbangkan persis pola isepic-chess-ui (`_animatePiece`,
-   * js/isepic-chess-ui.js): elemen bidak ASLI yang sudah dirender React di
-   * petak tujuan di-cloneNode, klon ditempel di lapisan atas papan pada
-   * koordinat petak asal yang DIUKUR dari DOM, bidak asli disembunyikan,
-   * lalu klon digerakkan dengan transisi CSS `top/left` (300 ms) ke
-   * koordinat petak tujuan yang juga diukur dari elemen aslinya. Pada
-   * `transitionend` klon dibuang dan bidak asli ditampilkan lagi — jadi
-   * pendaratan selalu piksel-persis pada elemen yang sama. Satu perubahan
-   * FEN membuat paling banyak satu klon per bidak yang berpindah, dan klon
-   * lama selalu dibatalkan lebih dulu (seperti `_cancelAnimations` isepic).
-   * Petak asal-tujuan diambil EKSPLISIT dari prop `langkahAkhir` (cadangan:
-   * simpulan diff FEN) — lihat `geseranDenganAsalEksplisit`.
+   * hilang di petak asal, muncul seketika di petak tujuan. Luncuran di sini
+   * MENYALIN papan Report Analisa (`Analisa/komponen/game/board.jsx` →
+   * `animateMove`): elemen bidak ASLI yang sudah dirender React di petak
+   * tujuan digeser dengan Web Animations API (`element.animate`) dari
+   * koordinat petak asal (diukur dari DOM) ke posisinya sendiri, 300 ms
+   * `ease`, sambil dinaikkan sementara di atas bidak lain. Tidak ada klon,
+   * tidak ada bidak yang disembunyikan, tidak ada efek pudar — perilakunya
+   * sama dengan papan Analisa.
+   *
+   * Bidak yang DIMAKAN tetap ditampilkan di petak tujuan sebagai rangka
+   * sementara (`data-tertangkap`) selama penyerang meluncur, lalu dilepas tepat
+   * saat penyerang mendarat — supaya bidak lawan tidak "lenyap lebih dulu".
    *
    * Yang TIDAK dianimasikan (memang harus langsung):
    *   - posisi diganti (soal/partai baru, muat FEN/PGN, lompat beberapa
    *     langkah) — penyimpul mengembalikan daftar kosong;
    *   - papan dibalik (orientasi berubah);
    *   - bidak yang baru saja DISERET pengguna — bidaknya sudah dilepas di
-   *     petak tujuan, menerbangkannya lagi justru terlihat mundur.
-   *
-   * Penerbangan klon dikunci 300 ms persis isepic (tidak dipangkas setelan
-   * kurangi gerak — permintaan pemilik situs); efek pudar bidak tertangkap
-   * tetap mengikuti `durasiGeser`.
+   *     petak tujuan, meluncurkannya lagi justru terlihat mundur.
    */
-
-  /** Bidak asli di sebuah petak — dicari ULANG dari DOM setiap kali, supaya
-   *  tetap benar walau React mengganti elemen bidaknya di tengah luncuran.
-   *  Semua ref/stabil: aman dipakai di dalam efek tanpa memicu render ulang. */
-  const bidakDiPetak = useCallback(
-    (petak) => akar.current?.querySelector?.(`[data-petak="${petak}"] [data-bidak]`) || null,
-    []
-  );
 
   /**
    * Sorotan petak terpilih + titik sasaran disembunyikan selama bidak terbang.
@@ -741,249 +697,83 @@ export default function PapanTekaTeki({
   }, []);
 
   /**
-   * Selesaikan satu penerbangan sekarang juga: buang klon, tampilkan bidak.
+   * Luncurkan satu bidak ke petaknya — pola `animateMove` papan Report Analisa.
    *
-   * Pendaratan dianggap BERHASIL hanya bila bidak yang dibawa penerbangan ini
-   * benar-benar ada di petak tujuan. Kalau tidak — langkahnya ditolak induk
-   * (salah/blunder), posisi dibatalkan, atau bidaknya sudah pindah lagi — maka
-   * SEMUA elemen yang disembunyikan untuk penerbangan ini harus ditampilkan
-   * kembali. Dulu pemulihan petak asal hanya terjadi bila klon belum mendarat
-   * (`fase !== "landas"`): langkah yang DITOLAK membuat klon "mendarat" di
-   * petak yang tidak akan pernah berisi bidak, lalu klonnya dibuang dan bidak
-   * aslinya tetap `visibility: hidden` — bidaknya hilang tanpa jejak sesudah
-   * salah langkah.
+   * Elemen yang dianimasikan adalah elemen bidak ASLI yang sudah dirender React
+   * di petak tujuan; ia digeser dari koordinat petak asal (diukur dari DOM) ke
+   * posisinya sendiri dengan Web Animations API. Tidak ada klon dan tidak ada
+   * elemen yang disembunyikan, jadi tidak mungkin ada bidak yang tertinggal
+   * dalam keadaan tersembunyi. Animasi lama untuk elemen yang sama dibatalkan
+   * lebih dulu supaya tidak ada dua luncuran pada satu bidak.
    */
-  const selesaikanKlon = useCallback(
-    (entri) => {
-      window.clearTimeout(entri.timer);
-      klonJalanRef.current.delete(entri);
-      entri.klon.remove?.();
-      if (entri.intent) sembunyikanBantuPilih(false);
-      const bidak = bidakDiPetak(entri.petak);
-      const mendarat =
-        !!bidak && (!entri.bidak || bidak.getAttribute("data-bidak") === entri.bidak);
-      // Petak tujuan selalu ditampilkan lagi: apa pun yang ada di sana bukan
-      // urusan penerbangan yang sudah berakhir ini.
-      if (bidak) bidak.style.visibility = "";
-      if (mendarat) return;
-      // Bidak yang disembunyikan penerbangan ini (sumber klon) ditampilkan
-      // kembali — kecuali ada penerbangan lain yang masih memakainya sebagai
-      // sumber (penerbangan itulah yang nanti menampilkannya).
-      const tersembunyi = entri.tersembunyi;
-      if (!tersembunyi || tersembunyi === bidak) return;
-      for (const lain of klonJalanRef.current) {
-        if (lain.tersembunyi === tersembunyi) return;
+  const animasikanBidak = useCallback(
+    (el, dx, dy, ghostEl = null) => {
+      if (typeof el?.animate !== "function") {
+        ghostEl?.remove?.();
+        return false;
       }
-      tersembunyi.style.visibility = "";
-    },
-    [bidakDiPetak, sembunyikanBantuPilih]
-  );
-
-  /**
-   * Klon sudah sampai di petak tujuan, tetapi bidak asli di petak itu BELUM
-   * ada di DOM (posisi/FEN baru belum dirender — di jalur klik, render itu
-   * sengaja ditahan sampai luncuran selesai).
-   *
-   * Klonnya JANGAN dibuang dulu: ia sudah duduk piksel-persis di petak tujuan,
-   * dan dialah yang menjaga bidak tetap terlihat. Kalau dibuang sekarang,
-   * bidaknya "berkedip" — hilang sekejap dari e4 sebelum React merender posisi
-   * barunya. Klon dibersihkan di render berikutnya (setelah bidak aslinya
-   * muncul).
-   */
-  const rapikanKlonLandas = useCallback(() => {
-    for (const entri of [...klonJalanRef.current]) {
-      if (entri.fase !== "landas") continue;
-      const bidak = bidakDiPetak(entri.petak);
-      if (!bidak) continue; // FEN baru belum sampai — tunggu render berikutnya
-      window.clearTimeout(entri.timer);
-      klonJalanRef.current.delete(entri);
-      entri.klon.remove?.();
-      bidak.style.visibility = "";
-      if (entri.intent) sembunyikanBantuPilih(false);
-    }
-  }, [bidakDiPetak, sembunyikanBantuPilih]);
-
-  /** Buang semua klon terbang dan tampilkan lagi bidak aslinya. */
-  const batalkanKlonTerbang = useCallback(() => {
-    for (const entri of [...klonJalanRef.current]) selesaikanKlon(entri);
-  }, [selesaikanKlon]);
-
-  /** Bidak asli di petak tujuan disembunyikan selama klonnya belum mendarat.
-   *  Dipasang ulang pada setiap render: kalau React mengganti elemen bidak di
-   *  tengah luncuran, elemen baru itu harus ikut disembunyikan. */
-  const sembunyikanBidakTerbang = useCallback(() => {
-    for (const entri of klonJalanRef.current) {
-      if (entri.fase === "landas") continue; // sudah mendarat: biar bidak asli tampil
-      const bidak = bidakDiPetak(entri.petak);
-      if (bidak) bidak.style.visibility = "hidden";
-    }
-  }, [bidakDiPetak]);
-
-  /**
-   * Bikin satu penerbangan klon untuk luncuran `dari` → `ke`.
-   *
-   * Dipakai DUA jalur:
-   *   1. jalur FEN (efek di bawah) — langkah yang datang dari luar (navigasi
-   *      PGN, jawaban mesin tanpa klik, dsb);
-   *   2. jalur KLIK (`padaKlikPetak`) — luncuran dimulai SEKETIKA saat petak
-   *      tujuan diklik, SEBELUM pekerjaan berat halaman berjalan.
-   *
-   * Kenapa jalur klik penting (terukur): pada satu langkah, halaman
-   * `PapanInteraktif` menjalankan tugas sinkron ±200-240 ms (buku pembukaan,
-   * daftar langkah, analisa) TEPAT saat luncuran harus mulai. Dulu klon dibuat
-   * di efek FEN — artinya setelah tugas itu — sehingga 300 ms luncuran habis
-   * terpakai untuk kerja lain: rAF hanya kebagian 6-8 frame dengan lompatan
-   * 61-113 ms (CPU diperlambat 6x/10x) dan mata membacanya sebagai bidak
-   * MELOMPAT/teleport. isepic memulai animasinya di mousedown petak tujuan,
-   * sebelum kerja lain; sekarang kita sama.
-   *
-   * Klon: `position: fixed` di `body` (di luar kisi papan & tidak dipotong
-   * `overflow-hidden` papan), luncuran lewat `transform` (dijalankan compositor
-   * sehingga tetap mulus walau main thread sedang sibuk), durasi & kurva 300 ms
-   * `ease` — sama dengan isepic.
-   */
-  const mulaiTerbang = useCallback(
-    (dariPetak, kePetak, { bidak = null, intent = false, fenAwal = null } = {}) => {
-      const wadahSekarang = akar.current;
-      if (!wadahSekarang || !dariPetak || !kePetak || dariPetak === kePetak) return false;
-      const petakAsalEl = wadahSekarang.querySelector(`[data-petak="${dariPetak}"]`);
-      const petakTujuanEl = wadahSekarang.querySelector(`[data-petak="${kePetak}"]`);
-      if (!petakAsalEl || !petakTujuanEl) return false;
-
-      // Sumber klon: bidak di petak TUJUAN bila sudah ada (jalur FEN — posisi
-      // baru sudah dirender), kalau belum ada pakai bidak di petak asal.
-      // Jalur KLIK (`intent`) selalu memakai bidak di petak ASAL: posisinya
-      // belum diperbarui, jadi bidak yang benar-benar berpindah memang yang di
-      // petak asal. Dulu jalur ini memakai bidak di petak tujuan lebih dulu,
-      // sehingga pada langkah TANGKAP yang meluncur justru gambar bidak lawan
-      // (dan bidak kita diam di petak asal lalu melompat).
-      const asliTujuan = petakTujuanEl.querySelector("[data-bidak]");
-      const asliAsal = petakAsalEl.querySelector("[data-bidak]");
-      const asli = intent ? asliAsal || asliTujuan : asliTujuan || asliAsal;
-      if (!asli || typeof asli.cloneNode !== "function") return false;
-
-      const petakAsalRect = petakAsalEl.getBoundingClientRect();
-      const tujuanRect = petakTujuanEl.getBoundingClientRect();
-      const asliRect = asli.getBoundingClientRect();
-      if (!petakAsalRect.width || !tujuanRect.width || !asliRect.width) return false;
-
-      const lebar = asliRect.width;
-      const tinggi = asliRect.height || tujuanRect.height * 0.88;
-      // Mulai: terpusat di petak asal. Mendarat: tepat pada bidak asli di
-      // petak tujuan bila sudah ter-render, kalau belum dihitung dari petaknya
-      // (bidak selalu 88% petak dan terpusat).
-      const awalKiri = petakAsalRect.left + (petakAsalRect.width - lebar) / 2;
-      const awalAtas = petakAsalRect.top + (petakAsalRect.height - tinggi) / 2;
-      const asliTujuanRect = asliTujuan?.getBoundingClientRect?.();
-      const akhirKiri = asliTujuanRect?.width
-        ? asliTujuanRect.left
-        : tujuanRect.left + (tujuanRect.width - lebar) / 2;
-      const akhirAtas = asliTujuanRect?.width
-        ? asliTujuanRect.top
-        : tujuanRect.top + (tujuanRect.height - tinggi) / 2;
-      if (awalKiri === akhirKiri && awalAtas === akhirAtas) return false;
-
-      // Kalau sudah ada klon yang menuju petak yang sama dan bukan penerbangan
-      // pesanan klik yang cocok (posisi berganti dua kali sangat cepat),
-      // selesaikan yang lama dulu supaya tidak ada dua bidak terbang sekaligus.
-      for (const entriLama of [...klonJalanRef.current]) {
-        const sama = entriLama.petak === kePetak && entriLama.dari === dariPetak;
-        if (!sama) continue;
-        if (entriLama.intent === intent) selesaikanKlon(entriLama);
-      }
-
-      const klon = asli.cloneNode(true);
-      penerbanganTerakhirRef.current = { dari: dariPetak, ke: kePetak, fenAwal, intent };
-      klon.setAttribute("data-klon-terbang", kePetak);
-      klon.setAttribute("data-papan-terbang", idPapanRef.current);
-      klon.setAttribute("aria-hidden", "true");
-      Object.assign(klon.style, {
-        position: "fixed",
-        left: `${awalKiri}px`,
-        top: `${awalAtas}px`,
-        width: `${lebar}px`,
-        height: `${tinggi}px`,
-        zIndex: 1000,
-        pointerEvents: "none",
-        margin: "0",
-        filter: "none",
-        // Klon WAJIB terlihat. Kalau elemen sumbernya sudah disembunyikan
-        // penerbangan lain yang belum selesai, `cloneNode` menyalin
-        // `visibility: hidden` miliknya dan bidak yang meluncur jadi tak
-        // terlihat sama sekali.
-        visibility: "",
-      });
-      for (const anak of klon.querySelectorAll?.("*") || []) anak.style.filter = "none";
-      asli.style.visibility = "hidden";
-      (document.body || wadahSekarang).appendChild(klon);
-
-      // `tersembunyi` dicatat agar penyelesaian penerbangan bisa menampilkan
-      // kembali elemen YANG INI disembunyikan (sumber klon) — lihat
-      // `selesaikanKlon`; tanpa catatan ini pemulihan hanya bisa menebak dari
-      // petak asal/tujuan, dan bidak bisa tertinggal tersembunyi.
-      const entri = {
-        klon,
-        petak: kePetak,
-        dari: dariPetak,
-        bidak,
-        intent,
-        timer: 0,
-        mulai: 0,
-        fase: "terbang",
-        tersembunyi: asli,
-      };
-      const selesai = () => selesaikanKlon(entri);
-      klonJalanRef.current.add(entri);
-      klon.addEventListener(
-        "transitionend",
-        () => {
-          entri.fase = "landas";
-          rapikanKlonLandas();
-          // Jaring pengaman: kalau bidak aslinya tak pernah datang (posisi
-          // tidak jadi berubah), klon tetap harus dibersihkan.
-          window.clearTimeout(entri.timer);
-          entri.timer = window.setTimeout(selesai, 1200);
-        },
-        { once: true }
+      animasiJalanRef.current.get(el)?.cancel?.();
+      el.style.zIndex = "20";
+      el.style.willChange = "transform";
+      const gerak = el.animate(
+        [
+          { transform: `translate(${dx}px, ${dy}px)` },
+          { transform: "translate(0px, 0px)" },
+        ],
+        { duration: GESER_ISEPIC.durasi, easing: GESER_ISEPIC.kurva }
       );
-
-      // Klon DICAT DULU di petak asal, TANPA `void offsetWidth`.
-      //
-      // Paksa-reflow itu (yang dipakai isepic di halamannya yang ringan)
-      // memaksa browser menghitung ulang gaya + tata letak SELURUH halaman di
-      // tengah handler klik. Di `/papan-interaktif` biayanya terukur ~39 ms di
-      // CPU 1x (dan ~230 ms saat CPU diperlambat 6x) — tugas panjang itu
-      // mendarat tepat sebelum frame pertama luncuran, dan itulah yang
-      // membuat bidak "bling": tidak ada frame yang dicat selama luncuran,
-      // sehingga yang terlihat hanya kedipan dari petak asal ke petak tujuan.
-      //
-      // Gaya tujuan dipasang di frame BERIKUTNYA (dua rAF): posisi awal dan
-      // posisi tujuan berada di dua frame berbeda, jadi transisinya tetap
-      // pasti berjalan tanpa perlu paksa-reflow.
-      if (intent) sembunyikanBantuPilih(true);
-      klon.style.willChange = "transform";
-      klon.style.transform = "translate3d(0, 0, 0)";
-
-      const mulaiGerak = () => {
-        if (!klonJalanRef.current.has(entri)) return; // sudah dibatalkan
-        klon.style.transition = `transform ${GESER_ISEPIC.durasi}ms ${GESER_ISEPIC.kurva}`;
-        klon.style.transform = `translate3d(${akhirKiri - awalKiri}px, ${akhirAtas - awalAtas}px, 0)`;
-        entri.mulai = Date.now();
-        // Jaring pengaman digantung dari saat gerak BENAR-BENAR mulai, bukan
-        // dari saat klon dibuat: kalau main thread sempat tersendat, timer
-        // lama akan memotong luncuran yang baru berjalan separuh.
-        window.clearTimeout(entri.timer);
-        entri.timer = window.setTimeout(selesai, GESER_ISEPIC.durasi + 250);
+      animasiJalanRef.current.set(el, gerak);
+      const bersih = () => {
+        // Rangka bidak yang dimakan dilepas tepat saat penyerang mendarat.
+        ghostEl?.remove?.();
+        if (animasiJalanRef.current.get(el) !== gerak) return;
+        animasiJalanRef.current.delete(el);
+        el.style.zIndex = "";
+        el.style.willChange = "";
+        if (animasiJalanRef.current.size === 0) sembunyikanBantuPilih(false);
       };
-      if (typeof window.requestAnimationFrame === "function") {
-        window.requestAnimationFrame(() => window.requestAnimationFrame(mulaiGerak));
-      } else {
-        mulaiGerak();
-      }
+      gerak.oncancel = bersih;
+      if (gerak.finished?.then) gerak.finished.then(bersih).catch(bersih);
+      else bersih();
       return true;
     },
-    [selesaikanKlon, rapikanKlonLandas, sembunyikanBantuPilih]
+    [sembunyikanBantuPilih]
   );
+
+  /**
+   * Rangka sementara bidak yang dimakan, ditempel di petak tujuan dan dibuang
+   * saat penyerang mendarat (pola chess.com/lichess). Tanpa ini bidak lawan
+   * hilang begitu FEN baru dirender — jadi nampak "lenyap lebih dulu" sebelum
+   * penyerang sampai. Hanya dipakai pada luncuran yang benar-benar berjalan
+   * (lajur FEN/klik); langkah yang diseret tidak meluncur jadi tidak berangka.
+   */
+  const buatGhostTertangkap = useCallback(
+    (petakTujuanEl, kode) => {
+      const sumber = ambilSumberBidak(setBidak, kode);
+      if (!sumber || typeof document === "undefined") return null;
+      const span = document.createElement("span");
+      span.setAttribute("data-tertangkap", kode);
+      span.setAttribute("aria-hidden", "true");
+      span.className =
+        "absolute z-[5] flex h-[88%] w-[88%] items-center justify-center pointer-events-none";
+      const img = document.createElement("img");
+      img.src = sumber;
+      img.className = "h-full w-full";
+      img.draggable = false;
+      img.alt = "";
+      span.appendChild(img);
+      petakTujuanEl.appendChild(span);
+      return span;
+    },
+    [setBidak]
+  );
+
+  /** Batalkan semua luncuran yang sedang berjalan dan rapikan gaya sementaranya. */
+  const hentikanSemuaAnimasi = useCallback(() => {
+    for (const gerak of [...animasiJalanRef.current.values()]) gerak.cancel?.();
+    animasiJalanRef.current.clear();
+    sembunyikanBantuPilih(false);
+  }, [sembunyikanBantuPilih]);
 
   useLayoutEffect(() => {
     const fenLama = fenSebelumRef.current;
@@ -992,193 +782,52 @@ export default function PapanTekaTeki({
     orientasiSebelumRef.current = orientasi;
     if (!animasi) return;
     if (orientasiLama !== orientasi) {
-      // Papan dibalik: koordinat ukur berubah total — klon lama dibuang.
-      batalkanKlonTerbang();
+      // Papan dibalik: koordinat ukur berubah total — batalkan luncuran lama.
+      hentikanSemuaAnimasi();
       return;
     }
     const wadah = akar.current;
     if (!wadah) return;
     const geseran = geseranDenganAsalEksplisit(fenLama, fen, langkahAkhir);
-    if (fenLama !== fen) {
-      if (!geseran.length) {
-        // Bukan langkah (soal baru / muat FEN / reset papan): tidak ada
-        // luncuran yang sah, jadi tidak boleh ada klon tertinggal.
-        batalkanKlonTerbang();
-      } else {
-        // Langkah baru datang selagi klon lama masih di udara.
-        //
-        // Klon yang masih terbang JANGAN dipotong. Inilah yang dulu membuat
-        // bidak terasa "melesat, kaku, tidak halus": begitu balasan mesin
-        // (atau langkah kedua) tiba di tengah luncuran, SEMUA klon dibuang dan
-        // bidak melompat ke tujuannya — ekor kurva `ease` yang membuat
-        // pendaratannya lembut ikut terbuang (terukur di peramban: luncuran
-        // 300 ms terpangkas jadi 184 ms). isepic membiarkan tiap klon hidup di
-        // DOM dan menyelesaikan 300 ms-nya sendiri, tak peduli render berikut.
-        //
-        // Klon hanya diselesaikan lebih awal bila petak tujuannya kini berisi
-        // bidak LAIN (bidaknya tertangkap/diganti) — kalau dibiarkan, klon
-        // akan mendarat di atas bidak yang salah.
-        const petaBaru = petaBidak(fen);
-        for (const entri of [...klonJalanRef.current]) {
-          if (petaBaru[entri.petak] !== entri.bidak) selesaikanKlon(entri);
-        }
-      }
-    }
-    // Betapa pun posisinya, bidak yang klonnya masih terbang harus tetap
-    // tersembunyi — termasuk kalau React baru saja mengganti elemennya.
-    sembunyikanBidakTerbang();
     if (!geseran.length) {
-      if (fenLama !== fen) {
-        // Bukan langkah (soal baru / muat FEN): tidak ada penerbangan yang sah
-        penerbanganTerakhirRef.current = null;
-      }
-      rapikanKlonLandas();
+      // Bukan langkah (soal baru / muat FEN / reset papan), atau render ulang
+      // dengan FEN yang sama: tidak ada luncuran yang sah.
+      if (fenLama !== fen) hentikanSemuaAnimasi();
       return;
     }
     const papanRect = wadah.getBoundingClientRect();
     if (!papanRect.width) return;
-    const petaLama = petaBidak(fenLama);
-    const gaya = konfigurasiGeser(gayaGeser);
-    // Seret yang baru saja mendarat: dilewati sekali, dan hanya sebentar agar
-    // penanda basi tidak ikut mematikan animasi langkah berikutnya.
+    // Seret yang baru saja mendarat: dilewati sekali supaya bidak yang sudah
+    // dilepas pengguna di petak tujuan tidak meluncur lagi (terlihat mundur).
     const lewati = lewatiGeserRef.current;
     lewatiGeserRef.current = null;
-
-    // Penerbangan pesanan klik (`padaKlikPetak`, dimulai SEBELUM posisi
-    // berubah) dihormati: kalau klon dengan asal & tujuan yang sama sudah
-    // terbang, jangan bikin klon kedua. Kalau pesanannya tidak cocok dengan
-    // langkah yang sungguh terjadi, klon pesanan dibatalkan supaya tidak
-    // mendarat di petak yang salah.
-    for (const entriJalan of [...klonJalanRef.current]) {
-      if (!entriJalan.intent) continue;
-      const cocok = geseran.some((g) => g.dari === entriJalan.dari && g.ke === entriJalan.petak);
-      if (!cocok) selesaikanKlon(entriJalan);
-    }
-
+    const petaLama = petaBidak(fenLama);
+    let ada = false;
     for (const g of geseran) {
       if (lewati && lewati.ke === g.ke && (!lewati.dari || lewati.dari === g.dari) && Date.now() - lewati.waktu < 1500) continue;
-
-      // Efek fading bidak yang tertangkap (pola piece.fading ala @lichess-org/chessground).
-      // Gaya Analisa tidak punya efek ini, jadi dilewati.
-      const bidakTertangkap = petaLama[g.ke];
+      const petakAsalEl = wadah.querySelector(`[data-petak="${g.dari}"]`);
       const petakTujuanEl = wadah.querySelector(`[data-petak="${g.ke}"]`);
-      if (gaya.pudar && petakTujuanEl && bidakTertangkap && typeof petakTujuanEl.appendChild === "function") {
-        const sumberTertangkap = ambilSumberBidak(setBidak, bidakTertangkap);
-        if (sumberTertangkap) {
-          const pudarEl = document.createElement("span");
-          pudarEl.className =
-            "absolute z-[5] flex h-[88%] w-[88%] items-center justify-center pointer-events-none";
-          pudarEl.setAttribute("aria-hidden", "true");
-          const img = document.createElement("img");
-          img.src = sumberTertangkap;
-          img.className = "h-full w-full";
-          img.draggable = false;
-          pudarEl.appendChild(img);
-          petakTujuanEl.appendChild(pudarEl);
-
-          const gerakPudar =
-            typeof pudarEl.animate === "function"
-              ? pudarEl.animate(
-                  [
-                    { opacity: 0.6, transform: "scale(1)" },
-                    { opacity: 0, transform: "scale(0.85)" },
-                  ],
-                  { duration: gaya.durasi, easing: gaya.kurva }
-                )
-              : null;
-          const bersihkanPudar = () => {
-            pudarEl.remove?.();
-          };
-          if (gerakPudar) {
-            gerakPudar.finished?.then(bersihkanPudar).catch(bersihkanPudar);
-            gerakPudar.oncancel = bersihkanPudar;
-          } else {
-            bersihkanPudar();
-          }
-        }
-      }
-
-      // Penerbangan klon — satu fungsi `mulaiTerbang` dipakai jalur FEN ini
-      // maupun jalur klik (`padaKlikPetak`).
-      const sudahTerbang = [...klonJalanRef.current].some(
-        (e) => e.intent && e.petak === g.ke && e.dari === g.dari
-      );
-      if (sudahTerbang) continue;
-      // Sudah pernah diterbangkan untuk transisi FEN INI (walau klonnya sudah
-      // dibersihkan) — jangan menerbangkan langkah yang sama dua kali.
-      const catatan = penerbanganTerakhirRef.current;
-      if (catatan && catatan.fenAwal === fenLama && catatan.dari === g.dari && catatan.ke === g.ke) {
-        penerbanganTerakhirRef.current = null; // sekali pakai
-        continue;
-      }
-      mulaiTerbang(g.dari, g.ke, { bidak: g.bidak, fenAwal: fenLama });
+      const bidakEl = petakTujuanEl?.querySelector?.("[data-bidak]");
+      if (!petakAsalEl || !petakTujuanEl || !bidakEl) continue;
+      const rectAsal = petakAsalEl.getBoundingClientRect();
+      const rectTujuan = petakTujuanEl.getBoundingClientRect();
+      if (!rectAsal.width || !rectTujuan.width) continue;
+      const dx = rectAsal.left - rectTujuan.left;
+      const dy = rectAsal.top - rectTujuan.top;
+      if (!dx && !dy) continue;
+      // Bidak yang dimakan tetap tampil selama penyerang meluncur.
+      const tertangkap = petaLama[g.ke];
+      const ghostEl =
+        tertangkap && tertangkap !== g.bidak ? buatGhostTertangkap(petakTujuanEl, tertangkap) : null;
+      if (animasikanBidak(bidakEl, dx, dy, ghostEl)) ada = true;
+      else ghostEl?.remove?.();
     }
+    if (ada) sembunyikanBantuPilih(true);
+  }, [fen, orientasi, animasi, langkahAkhir, animasikanBidak, hentikanSemuaAnimasi, sembunyikanBantuPilih, buatGhostTertangkap]);
 
-    // Klon yang sudah MENDARAT baru dibersihkan di sini — SESUDAH pemeriksaan
-    // "langkah ini sudah diterbangkan?".
-    //
-    // Urutannya penting dan sempat salah: kalau klon pesanan klik yang sudah
-    // mendarat dibersihkan lebih dulu, pemeriksaan di atas tidak menemukannya
-    // dan papan membuat klon KEDUA untuk langkah yang sama — bidaknya meluncur
-    // dua kali (terukur di jsdom: 2 penerbangan ke e4 untuk satu klik).
-    rapikanKlonLandas();
-  }, [
-    fen,
-    orientasi,
-    animasi,
-    gayaGeser,
-    setBidak,
-    langkahAkhir,
-    batalkanKlonTerbang,
-    selesaikanKlon,
-    sembunyikanBidakTerbang,
-    rapikanKlonLandas,
-    mulaiTerbang,
-  ]);
-
-  // Setiap render: bidak yang klonnya masih terbang harus tetap tersembunyi.
-  // React bisa mengganti elemen bidak (petak yang sama, elemen baru) kapan
-  // saja — tanpa penegasan ini, bidak asli muncul diam-diam di petak tujuan
-  // sementara klonnya masih meluncur, dan luncurannya tampak "melesat" /
-  // bidak terlihat dua kali (klon + bidak asli = "bayangan").
-  //
-  // Sengaja TANPA daftar dependensi: kedua fungsi itu idempoten dan murah,
-  // dan tujuan efek ini memang "setelah SETIAP render" — daftar dependensi
-  // berisi callback yang stabil (useCallback) membuatnya dulu hanya berjalan
-  // saat mount, sehingga penggantian elemen di tengah luncuran lolos.
-  useLayoutEffect(() => {
-    sembunyikanBidakTerbang();
-    rapikanKlonLandas();
-  });
-
-  /*
-   * Langkah DITOLAK induk (`kesalahan` = { from, to }) — sinyal tercepat bahwa
-   * penerbangan pesanan klik untuk langkah itu tidak akan pernah mendarat:
-   * posisinya memang tidak berubah (langkah salah/blunder tidak diterapkan).
-   * Penerbangannya ditutup SEKARANG, bukan menunggu jaring pengaman 1,2 detik,
-   * supaya bidak langsung terlihat lagi di petak asal — sebarengan dengan
-   * kilatan merah penanda langkah salah. Tanpa ini, klon "mendarat" di petak
-   * yang tidak akan berisi bidak dan bidak asal tertinggal tersembunyi.
-   */
-  useEffect(() => {
-    if (!kesalahan || !kesalahan.from || !kesalahan.to) return;
-    for (const entri of [...klonJalanRef.current]) {
-      if (entri.intent && entri.dari === kesalahan.from && entri.petak === kesalahan.to) {
-        selesaikanKlon(entri);
-      }
-    }
-  }, [kesalahan, selesaikanKlon]);
-
-  // Papan dilepas di tengah luncuran (pindah halaman, soal baru): buang
-  // klon dan hentikan animasi pudar yang masih berjalan.
-  useEffect(
-    () => () => {
-      batalkanKlonTerbang();
-      for (const gerak of animasiJalanRef.current) gerak.cancel?.();
-      animasiJalanRef.current.clear();
-    },
-    [batalkanKlonTerbang]
-  );
+  // Papan dilepas di tengah luncuran (pindah halaman, soal baru): batalkan
+  // semua animasi supaya tidak ada gaya sementara yang tertinggal di DOM.
+  useEffect(() => () => hentikanSemuaAnimasi(), [hentikanSemuaAnimasi]);
 
   function mulaiSeret(e, petakAwal) {
     if (e.pointerType !== "touch") e.preventDefault();
@@ -1348,64 +997,6 @@ export default function PapanTekaTeki({
     if (abaikanKlikRef.current) {
       abaikanKlikRef.current = false;
       return;
-    }
-    // Luncuran dimulai SEKARANG — sebelum induk memproses langkah dan sebelum
-    // halaman menjalankan pekerjaan beratnya (buku/dafatar langkah/analisa,
-    // terukur ±200-240 ms di CPU lambat). Dulu klon baru dibuat setelah FEN
-    // berubah, sehingga kerja berat itu memakan jatah frame luncuran dan bidak
-    // terlihat melompat. Hanya untuk klik yang jelas langkah sah; promosi
-    // dilewati karena bidak hasil promosi belum ada (klon akan salah wujud).
-    if (animasi && terpilih && sq !== terpilih && Array.isArray(sasaran) && sasaran.includes(sq)) {
-      // Sudah ada langkah yang menunggu diproses (klik dobel / pemain tidak
-      // sabar): klik tambahan diabaikan. Kalau tidak, klik kedua ikut
-      // memproses langkah sementara yang pertama masih menunggu — satu niat
-      // langkah bisa jadi dua pemrosesan.
-      if (tundaKlikRef.current) return;
-      // Langkah (terpilih → sq) ini SUDAH diterbangkan dan hasilnya belum
-      // tercermin di props (posisi baru belum dirender, jadi `terpilih` &
-      // `sasaran` masih yang lama). Klik ulang pada rentang itu tidak boleh
-      // menerbangkanulang — kalau tidak, bidaknya meluncur DUA KALI untuk satu
-      // langkah (keluhan "dua move berulang"). Penjaga ini melepas begitu
-      // posisi baru dirender, karena klonnya sudah dibersihkan saat itu.
-      const sudahDiterbangkan = [...klonJalanRef.current].some(
-        (e) => e.dari === terpilih && e.petak === sq
-      );
-      if (sudahDiterbangkan) return;
-      const bidakAsal = peta[terpilih];
-      const promosi = (bidakAsal === "P" && sq[1] === "8") || (bidakAsal === "p" && sq[1] === "1");
-      if (
-        !promosi &&
-        mulaiTerbang(terpilih, sq, { bidak: bidakAsal, intent: true, fenAwal: fen })
-      ) {
-        // Bidak sudah di udara — TAPI kalau pemrosesan langkah dijalankan di
-        // tugas yang sama, browser baru mencat klon setelat selesainya kerja
-        // berat itu, dan luncurannya baru mulai setelahnya (terukur: bidak
-        // baru bergerak 301 ms setelah klik di CPU 6x — persis keluhan "bidak
-        // tidak pindah, cuma berkedip"). Karena itu pemrosesan langkah ditunda
-        // SATU frame lewat rAF+setTimeout: klon sempat dicat di petak asal
-        // lebih dulu, lalu kerja berat berjalan sementara luncuran sudah
-        // berjalan di compositor.
-        tundaKlikRef.current = sq;
-        const lanjutkan = () => {
-          tundaKlikRef.current = null;
-          onKlik?.(sq);
-        };
-        // TIGA frame, bukan satu: klon dicat di frame 1, gaya tujuan dipasang
-        // di frame 2 (transisi mulai berjalan & di-commit ke compositor), baru
-        // frame 3 mempersilakan kerja berat halaman berjalan. Dengan begitu
-        // luncuran sudah dipegang compositor sebelum main thread disibukkan
-        // render berat — inilah yang membuat luncurannya mulus seperti isepic.
-        if (typeof window.requestAnimationFrame === "function") {
-          window.requestAnimationFrame(() =>
-            window.requestAnimationFrame(() =>
-              window.requestAnimationFrame(() => window.setTimeout(lanjutkan, 0))
-            )
-          );
-        } else {
-          window.setTimeout(lanjutkan, 0);
-        }
-        return;
-      }
     }
     onKlik?.(sq);
   }

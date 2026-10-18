@@ -68,9 +68,6 @@ console.log("A. penyimpul langkah dari selisih FEN");
 
 const AWAL = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 const SETELAH_E4 = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
-// 1. e4 e6 — dipakai untuk menguji balasan cepat (mesin/autoplay) yang tiba
-// saat luncuran pemain masih di udara.
-const SETELAH_E4_E6 = "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2";
 
 {
   const g = geseranDariFen(AWAL, SETELAH_E4);
@@ -227,7 +224,7 @@ const SETELAH_E4_E6 = "rnbqkbnr/pppp1ppp/4p3/8/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 
   uji("gaya analisa cocok dengan konstanta GAYA_ANALISA", analisa.durasi === GAYA_ANALISA.durasi && analisa.kurva === GAYA_ANALISA.kurva);
   const bawaan = konfigurasiGeser("bawaan");
   uji(
-    "gaya bawaan persis isepic: 300 ms ease tanpa pudar",
+    "gaya bawaan: 300 ms ease tanpa pudar (pola Report Analisa)",
     bawaan.durasi === DURASI_GESER && bawaan.kurva === "ease" && bawaan.pudar === false,
     JSON.stringify(bawaan)
   );
@@ -312,8 +309,6 @@ function ada(nama) {
 
 if (!ada("jsdom") || !ada("esbuild")) {
   console.log("\nB. GAGAL — pasang `npm i -D jsdom esbuild` untuk menjalankannya.");
-  
-
   process.exit(1);
 }
 
@@ -363,9 +358,6 @@ await build({
   platform: "browser",
   outfile: berkasBundel,
   loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl" },
-  // `import.meta.glob` (dipakai ChessPiece) dipecah oleh shim yang sama dengan
-  // Node loader, bukan diganti fungsi kosong: `define` menghapus jejak makro dari
-  // sumber sehingga skrip ini buta terhadap bentuk yang tidak di-expand Vite.
   plugins: [pluginGlobAset()],
   define: {
     "process.env.NODE_ENV": '"development"',
@@ -389,7 +381,7 @@ const { window } = dom;
 const UKURAN = 640; // papan 640px → petak 80px
 // Rect per elemen dihitung dari petaknya: papan penuh 640px, petak 80px,
 // bidak ([data-bidak]) kotak 88% terpusat di dalam petaknya — supaya
-// pengukuran DOM pola isepic (asal/tujuan/elemen asli) bisa diperiksa.
+// pengukuran DOM pola `animateMove` (asal & tujuan) bisa diperiksa.
 window.Element.prototype.getBoundingClientRect = function getBoundingClientRect() {
   const petakEl = this.closest?.("[data-petak]");
   if (petakEl) {
@@ -405,62 +397,15 @@ window.Element.prototype.getBoundingClientRect = function getBoundingClientRect(
 };
 
 /**
- * Semua klon bidak terbang milik sebuah papan.
- *
- * Klon penerbangan sengaja ditempel di `document.body` (posisi `fixed`, pola
- * isepic: tidak ikut tata letak kisi papan) dan ditandai `data-papan-terbang`
- * dengan id papan pemiliknya — jadi di dokumen yang punya dua papan (ui utama
- * + Manusia vs Mesin) klon tidak tertukar.
+ * Catatan setiap pemanggilan `element.animate()` — mekanisme luncuran kini
+ * pola `animateMove` papan Report Analisa: elemen bidak ASLI yang sudah
+ * dirender React di petak TUJUAN digeser dengan Web Animations API, tanpa klon.
+ * `petak` = petak induk elemen bidak, `bidak` = huruf bidaknya.
  */
-const klonTerbang = (wadahEl) => {
-  const id = wadahEl.querySelector("[data-papan]")?.getAttribute("data-papan");
-  if (!id) return [];
-  return [...wadahEl.ownerDocument.querySelectorAll(`[data-papan-terbang="${id}"]`)];
-};
-/**
- * Hitung setiap klon penerbangan yang DITAMBAHKAN ke dokumen, per petak tujuan.
- *
- * Uji lain hanya melihat "berapa klon yang ada sekarang" — cukup untuk
- * memastikan tidak ada klon ganda SESUAI, tapi buta terhadap klon kedua yang
- * muncul sesaat lalu hilang sendiri (mis. dibuat ulang saat posisi baru
- * dirender, lalu dibersihkan jaring pengaman). Perilaku itu terlihat oleh
- * pemain sebagai "langkahnya berulang dua kali", jadi harus dihitung.
- */
-function hitungPenerbangan(wadahEl) {
-  const id = wadahEl.querySelector("[data-papan]")?.getAttribute("data-papan");
-  const catat = { total: 0, perPetak: {}, urut: [] };
-  const pengamat = new window.MutationObserver((daftar) => {
-    for (const mutasi of daftar) {
-      for (const simpul of mutasi.addedNodes) {
-        if (simpul.nodeType !== 1) continue;
-        const kePetak = simpul.getAttribute?.("data-klon-terbang");
-        if (!kePetak || simpul.getAttribute("data-papan-terbang") !== id) continue;
-        catat.total++;
-        catat.perPetak[kePetak] = (catat.perPetak[kePetak] || 0) + 1;
-        catat.urut.push(kePetak);
-      }
-    }
-  });
-  pengamat.observe(wadahEl.ownerDocument.body, { childList: true, subtree: false });
-  catat.hentikan = () => pengamat.disconnect();
-  return catat;
-}
-
-/** Paksa semua klon mendarat (transitionend) seperti transisi CSS selesai. */
-function daratkanKlon(wadahEl) {
-  for (const klon of klonTerbang(wadahEl)) klon.dispatchEvent(new window.Event("transitionend"));
-}
-
-/** Catatan setiap pemanggilan `element.animate()` beserta petak tujuannya.
- *  Bidak terbang kini klon di lapisan atas papan (pola isepic), jadi petak
- *  tujuannya dibaca dari `data-terbang-ke`, bukan dari petak induknya. */
 const catatan = [];
 window.Element.prototype.animate = function animate(keyframes, opsi) {
   catatan.push({
-    petak:
-      this.closest("[data-petak]")?.getAttribute("data-petak") ||
-      this.getAttribute("data-terbang-ke") ||
-      null,
+    petak: this.closest("[data-petak]")?.getAttribute("data-petak") || null,
     bidak: this.getAttribute("data-bidak"),
     keyframes,
     opsi,
@@ -502,9 +447,7 @@ const tunggu = (ms) => new Promise((selesai) => setTimeout(selesai, ms));
  * Tunggu sampai `syarat()` benar, paling lama `batas` ms.
  *
  * Dipakai untuk menunggu balasan mesin: waktunya tidak pasti (pencarian engine
- * palsu + gestur mesin + render React), dan runner CI jauh lebih lambat dari
- * mesin pengembang. `await tunggu(700)` yang tetap membuat uji ini kadang
- * gagal di GitHub Actions padahal lulus di lokal.
+ * palsu + render React), dan runner CI jauh lebih lambat dari mesin pengembang.
  */
 async function tungguSampai(syarat, batas = 8000, langkah = 25) {
   const tenggat = Date.now() + batas;
@@ -514,6 +457,10 @@ async function tungguSampai(syarat, batas = 8000, langkah = 25) {
   }
   return syarat();
 }
+
+/** Bidak yang saat ini disembunyikan di sebuah papan — harus selalu kosong. */
+const bidakTersembunyi = (wadahEl) =>
+  [...wadahEl.querySelectorAll("[data-bidak]")].filter((el) => el.style.visibility === "hidden");
 
 const wadah = window.document.getElementById("root");
 const kendali = {};
@@ -529,121 +476,70 @@ async function aturPosisi(posisi) {
   await tunggu(80);
 }
 
+// Langkah biasa (e2-e4): satu animasi pada bidak ASLI di petak tujuan.
 await aturPosisi({ fen: SETELAH_E4, orientasi: "w", langkahAkhir: { from: "e2", to: "e4" } });
 {
-  await tungguSampai(() => klonTerbang(wadah).length > 0 && (klonTerbang(wadah)[0]?.style?.transition || "").includes("300ms"), 1000);
-  const klon = klonTerbang(wadah);
-  const asliE4 = wadah.querySelector('[data-petak="e4"] [data-bidak]');
-  uji("langkah e2-e4 membuat tepat satu klon terbang", klon.length === 1, `${klon.length} klon`);
-  uji("klon menuju petak tujuan e4 (data eksplisit e2→e4)", klon[0]?.getAttribute("data-klon-terbang") === "e4", klon[0]?.getAttribute("data-klon-terbang") || "");
-  uji("klon adalah cloneNode bidak asli di e4 (huruf P)", klon[0]?.getAttribute("data-bidak") === "P", klon[0]?.getAttribute("data-bidak") || "");
-  uji("bidak asli di e4 disembunyikan selama klon terbang", asliE4?.style?.visibility === "hidden", asliE4?.style?.visibility || "");
+  uji("langkah e2-e4 membuat tepat satu animasi", catatan.length === 1, `${catatan.length} animasi`);
+  const a = catatan[0];
   uji(
-    "durasi & kurva klon sama dengan isepic (300 ms, ease)",
-    (klon[0]?.style?.transition || "").includes("300ms") &&
-      (klon[0]?.style?.transition || "").includes("ease") &&
-      !(klon[0]?.style?.transition || "").includes("linear"),
-    klon[0]?.style?.transition || ""
+    "animasi dijalankan pada bidak di petak tujuan e4 (huruf P)",
+    a?.petak === "e4" && a?.bidak === "P",
+    `${a?.petak}/${a?.bidak}`
   );
   uji(
-    "luncuran dijalankan lewat transform (compositor), bukan top/left",
-    (klon[0]?.style?.transition || "").startsWith("transform") &&
-      (klon[0]?.style?.willChange || "") === "transform",
-    `${klon[0]?.style?.transition} | will-change: ${klon[0]?.style?.willChange}`
+    "durasi & kurva = GESER_ISEPIC (300 ms, ease)",
+    a?.opsi?.duration === 300 && a?.opsi?.easing === "ease",
+    JSON.stringify(a?.opsi)
+  );
+  // Petak e2 = (320, 480) dan e4 = (320, 320): elemen di e4 digeser ke posisi e2.
+  uji(
+    "bidak mulai dari petak asal e2 (translate 0px, 160px)",
+    a?.keyframes?.[0]?.transform === "translate(0px, 160px)",
+    JSON.stringify(a?.keyframes?.[0])
   );
   uji(
-    "klon position fixed dan ditempel di body (di luar kisi papan)",
-    klon[0]?.style?.position === "fixed" && klon[0]?.parentElement === window.document.body,
-    `${klon[0]?.style?.position} @ ${klon[0]?.parentElement?.tagName}`
+    "bidak berakhir di posisinya sendiri (translate 0px, 0px)",
+    a?.keyframes?.[1]?.transform === "translate(0px, 0px)",
+    JSON.stringify(a?.keyframes?.[1])
   );
   uji(
-    "bayangan dibuang dari klon (mahal digambar ulang tiap frame)",
-    klon[0]?.style?.filter === "none",
-    klon[0]?.style?.filter || ""
+    "tidak ada elemen klon penerbangan (mekanisme lama sudah dibuang)",
+    window.document.querySelectorAll("[data-klon-terbang]").length === 0
   );
-  // Petak e2 = (320, 480) dan bidak berukuran 70,4 px terpusat → klon mulai di
-  // (324.8, 484.8); bidak asli di e4 berada di (324.8, 324.8), jadi luncurannya
-  // adalah translate3d(0, -160px).
+  uji("tidak ada bidak yang disembunyikan selama luncuran", bidakTersembunyi(wadah).length === 0);
   uji(
-    "klon mulai tepat di bidak petak asal e2 (324.8px, 484.8px)",
-    klon[0]?.style?.left === "324.8px" && klon[0]?.style?.top === "484.8px",
-    `${klon[0]?.style?.left}, ${klon[0]?.style?.top}`
-  );
-  uji(
-    "transform mengantar klon tepat ke bidak asli e4 (0, -160px)",
-    /^translate3d\(0px, -160px, 0(px)?\)$/.test(klon[0]?.style?.transform || ""),
-    klon[0]?.style?.transform || ""
-  );
-  daratkanKlon(wadah);
-  uji("setelah transitionend klon dibuang", klonTerbang(wadah).length === 0);
-  uji("setelah mendarat bidak asli tampil lagi", wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "");
-}
-
-// Balasan cepat (mesin/autoplay) TIDAK boleh memotong luncuran yang berjalan.
-// Dulu setiap perubahan FEN membuang SEMUA klon terbang: luncuran 300 ms
-// terpangkas di tengah (terukur di peramban sungguhan: 184 ms) sehingga bidak
-// terasa "melesat" dan pendaratan lembut kurva `ease` hilang. isepic membiarkan
-// tiap klon menyelesaikan 300 ms-nya sendiri.
-await aturPosisi({ fen: AWAL, orientasi: "w" });
-await aturPosisi({ fen: SETELAH_E4, orientasi: "w", langkahAkhir: { from: "e2", to: "e4" } });
-{
-  const klonE4 = klonTerbang(wadah);
-  uji("balasan cepat: luncuran e2→e4 sudah di udara", klonE4.length === 1, `${klonE4.length} klon`);
-  await tunggu(120); // balasan mesin tiba jauh sebelum 300 ms selesai
-  await aturPosisi({ fen: SETELAH_E4_E6, orientasi: "w", langkahAkhir: { from: "e7", to: "e6" } });
-  const sesudah = klonTerbang(wadah);
-  uji(
-    "balasan cepat TIDAK memotong luncuran yang sedang berjalan",
-    sesudah.includes(klonE4[0]),
-    `${sesudah.length} klon: ${sesudah.map((k) => k.getAttribute("data-klon-terbang")).join(",")}`
-  );
-  uji(
-    "balasan mesin ikut terbang (klon e7→e6)",
-    sesudah.some((k) => k.getAttribute("data-klon-terbang") === "e6"),
-    sesudah.map((k) => k.getAttribute("data-klon-terbang")).join(",")
-  );
-  uji(
-    "bidak asli di e4 dan e6 tetap tersembunyi selama kedua klon terbang",
-    wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "hidden" &&
-      wadah.querySelector('[data-petak="e6"] [data-bidak]')?.style?.visibility === "hidden"
-  );
-  daratkanKlon(wadah);
-  uji("setelah mendarat semua klon dibuang", klonTerbang(wadah).length === 0);
-  uji(
-    "setelah mendarat bidak asli tampil lagi (e4 dan e6)",
-    wadah.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "" &&
-      wadah.querySelector('[data-petak="e6"] [data-bidak]')?.style?.visibility === ""
+    "pion hanya ada di e4, tidak ada sisa di e2",
+    !!wadah.querySelector('[data-petak="e4"] [data-bidak]') && !wadah.querySelector('[data-petak="e2"] [data-bidak]')
   );
 }
 
 // Posisi diganti sepenuhnya (soal baru / muat FEN) → langsung, tanpa luncuran.
 await aturPosisi({ fen: "6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1", orientasi: "w" });
-uji("ganti posisi tidak menganimasikan", klonTerbang(wadah).length === 0, `${klonTerbang(wadah).length} klon`);
+uji("ganti posisi tidak menganimasikan", catatan.length === 0, `${catatan.length} animasi`);
 
 // Papan dibalik bersamaan dengan perubahan posisi → tidak menganimasikan.
 await aturPosisi({ fen: "6k1/5ppp/8/8/8/8/5PPP/1R4K1 b - - 1 1", orientasi: "b" });
-uji("papan dibalik tidak menganimasikan", klonTerbang(wadah).length === 0, `${klonTerbang(wadah).length} klon`);
+uji("papan dibalik tidak menganimasikan", catatan.length === 0, `${catatan.length} animasi`);
 
-// Setelah papan dibalik, langkah berikutnya meluncur lagi (arah ikut terbalik).
+// Setelah papan dibalik, langkah berikutnya tetap beranimasi.
 await aturPosisi({ fen: "6k1/5ppp/8/8/8/8/5PPP/1R4K1 b - - 1 1", orientasi: "b" });
 await aturPosisi({ fen: "5k2/5ppp/8/8/8/8/5PPP/1R4K1 w - - 2 2", orientasi: "b" });
-{
-  const klon = klonTerbang(wadah);
-  uji("langkah pada papan terbalik tetap meluncur", klon.length === 1 && klon[0]?.getAttribute("data-klon-terbang") === "f8");
-  daratkanKlon(wadah);
-}
+uji(
+  "langkah pada papan terbalik tetap beranimasi (tujuan f8)",
+  catatan.length === 1 && catatan[0]?.petak === "f8",
+  JSON.stringify(catatan.map((c) => c.petak))
+);
 
-// Rokade: dua bidak meluncur dalam satu perubahan FEN.
+// Rokade: dua bidak beranimasi dalam satu perubahan FEN.
 await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQK2R w KQkq - 0 1", orientasi: "w" });
 await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1", orientasi: "w" });
 {
-  const petak = klonTerbang(wadah).map((k) => k.getAttribute("data-klon-terbang")).sort();
+  const petak = catatan.map((c) => c.petak).sort();
   uji(
-    "rokade menerbangkan raja dan benteng (dua klon)",
+    "rokade menganimasikan raja dan benteng (dua animasi: f1 & g1)",
     petak.length === 2 && petak[0] === "f1" && petak[1] === "g1",
     JSON.stringify(petak)
   );
-  daratkanKlon(wadah);
 }
 
 /* =================== C. mode Manusia vs Mesin (jsdom) =================== */
@@ -651,10 +547,10 @@ await aturPosisi({ fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQ1RK1 b kq - 1 1"
 /*
  * Mode Manusia vs Mesin memakai papan yang sama, tetapi alurnya sendiri:
  * langkah pemain lewat klik ATAU seret, dan langkah mesin langsung dijalankan
- * begitu hasil pencarian selesai (tanpa gestur/jeda "seperti manusia" — mode
- * itu sudah dihapus). Uji ini memasang mesin UCI palsu lalu memeriksa bidak
- * benar-benar meluncur di mode itu — termasuk aturan bahwa bidak yang DISERET
- * pemain tidak diluncurkan ulang, sementara balasan mesin tetap meluncur.
+ * begitu hasil pencarian selesai. Uji ini memasang mesin UCI palsu lalu
+ * memeriksa bidak benar-benar meluncur di mode itu — termasuk aturan bahwa
+ * bidak yang DISERET pemain tidak diluncurkan ulang, sementara balasan mesin
+ * tetap meluncur.
  */
 
 console.log("\nC. mode Manusia vs Mesin");
@@ -691,7 +587,6 @@ await build({
   platform: "browser",
   outfile: berkasPve,
   loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "empty" },
-  // Shim glob yang sama dengan Node loader; lihat catatan build pertama.
   plugins: [pluginGlobAset()],
   define: {
     "process.env.NODE_ENV": '"development"',
@@ -776,7 +671,7 @@ function kirimEvent(el, jenis, titik, tambahan = {}) {
 const wadahPve = window.document.createElement("div");
 window.document.body.appendChild(wadahPve);
 const modulPve = require(berkasPve);
-// Langkah mesin kini langsung dijalankan tanpa jeda gestur — bagian ini murni
+// Langkah mesin langsung dijalankan tanpa jeda gestur — bagian ini murni
 // mengukur animasi luncuran, bukan lamanya mesin berpikir.
 modulPve.mountPve(wadahPve);
 const cariMulai = () =>
@@ -805,90 +700,69 @@ pasangElementFromPoint(wadahPve);
 
 const petakPve = (sq) => wadahPve.querySelector(`[data-petak="${sq}"]`);
 
-// 1. Langkah pemain lewat KLIK petak (keluhan asli: "klik move langsung blink").
+// 1. Langkah pemain lewat KLIK petak.
+catatan.length = 0;
 petakPve("e2")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
 // Tunggu sorotan kuning petak terpilih muncul, bukan menebak dengan jeda tetap.
 await tungguSampai(() => !!wadahPve.querySelector('[data-petak="e2"] span[style*="255, 255, 0"]'), 2000);
 petakPve("e4")?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "e4"));
+await tungguSampai(() => catatan.some((c) => c.petak === "e4"), 2000);
 {
-  const klon = klonTerbang(wadahPve);
-  const klonE4 = klon.filter((k) => k.getAttribute("data-klon-terbang") === "e4");
+  const animE4 = catatan.filter((c) => c.petak === "e4");
   uji(
-    "klik move pemain menerbangkan tepat satu klon ke e4",
-    klonE4.length === 1,
-    `${klon.length} klon: ${JSON.stringify(klon.map((k) => k.getAttribute("data-klon-terbang")))}`
+    "klik move pemain menganimasikan bidak ke e4",
+    animE4.length === 1,
+    JSON.stringify(catatan.map((c) => c.petak))
   );
-  // Luncuran baru dipasang di frame berikutnya (sengaja: klon dicat dulu di
-  // petak asal, tanpa paksa-reflow — lihat catatan di `mulaiTerbang`).
-  await tungguSampai(() => (klon[0]?.style?.transition || "").includes("300ms"), 1000);
+  uji("bidak yang dianimasikan adalah pion kita (P), bukan bidak lawan", animE4[0]?.bidak === "P", animE4[0]?.bidak);
   uji(
-    "klon pemain memakai luncuran transform 300 ms (durasi & kurva isepic)",
-    (klon[0]?.style?.transition || "").includes("transform") &&
-      (klon[0]?.style?.transition || "").includes("300ms") &&
-      (klon[0]?.style?.transition || "").includes("ease"),
-    klon[0]?.style?.transition || ""
+    "luncuran pemain 300 ms ease",
+    animE4[0]?.opsi?.duration === 300 && animE4[0]?.opsi?.easing === "ease",
+    JSON.stringify(animE4[0]?.opsi)
   );
-  uji(
-    "gaya tujuan baru dipasang setelah klon dicat (bukan di handler klik)",
-    (klon[0]?.style?.transform || "").includes("translate3d") &&
-      (klon[0]?.style?.transform || "") !== "translate3d(0, 0, 0)",
-    klon[0]?.style?.transform || ""
-  );
-  daratkanKlon(wadahPve);
 }
 
 // 2. Balasan mesin (langsung, tanpa jeda gestur) juga meluncur.
-await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "e5"));
+catatan.length = 0;
+await tungguSampai(() => catatan.some((c) => c.petak === "e5"), 4000);
 {
-  const klon = klonTerbang(wadahPve).filter((k) => k.getAttribute("data-klon-terbang") === "e5");
+  const animE5 = catatan.filter((c) => c.petak === "e5");
   uji(
-    "balasan mesin menerbangkan klon ke e5",
-    klon.length === 1,
-    `${klon.length} klon e5`
+    "balasan mesin menganimasikan bidak ke e5",
+    animE5.length === 1,
+    JSON.stringify(catatan.map((c) => c.petak))
   );
-  daratkanKlon(wadahPve);
+  uji("bidak mesin yang dianimasikan adalah pion hitam (p)", animE5[0]?.bidak === "p", animE5[0]?.bidak);
 }
 
 // 3. Langkah pemain lewat SERET: bidaknya sudah dilepas di petak tujuan, jadi
-//    tidak diterbangkan ulang — tetapi balasan mesin berikutnya tetap meluncur.
+//    tidak dianimasikan ulang — tetapi balasan mesin berikutnya tetap meluncur.
+catatan.length = 0;
 kirimEvent(petakPve("g1"), "pointerdown", titikPetak("g1"));
 await tunggu(20);
 kirimEvent(petakPve("f3"), "pointermove", titikPetak("f3"), { buttons: 1 });
 kirimEvent(petakPve("f3"), "pointerup", titikPetak("f3"));
-// Satu jendela pengamatan untuk seret DAN balasannya: mesin kini menjawab
-// langsung setelah pencarian selesai, jadi keduanya bisa teramati berurutan.
-await tungguSampai(() => klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "c6"));
+await tungguSampai(() => catatan.some((c) => c.petak === "c6"), 4000);
 {
-  const diseret = klonTerbang(wadahPve).filter((k) => k.getAttribute("data-klon-terbang") === "f3");
-  const pindah = wadahPve.querySelector('[data-petak="f3"] [data-bidak]');
-  uji("seret benar-benar menjalankan langkah (kuda sampai di f3)", !!pindah);
   uji(
-    "bidak yang diseret tidak diterbangkan ulang",
-    diseret.length === 0,
-    JSON.stringify(klonTerbang(wadahPve).map((k) => k.getAttribute("data-klon-terbang")))
+    "seret benar-benar menjalankan langkah (kuda sampai di f3)",
+    !!wadahPve.querySelector('[data-petak="f3"] [data-bidak]')
   );
   uji(
-    "balasan mesin setelah seret tetap meluncur (Nc6)",
-    klonTerbang(wadahPve).some((k) => k.getAttribute("data-klon-terbang") === "c6"),
-    JSON.stringify(klonTerbang(wadahPve).map((k) => k.getAttribute("data-klon-terbang")))
+    "bidak yang diseret tidak dianimasikan ulang (tanpa animasi ke f3)",
+    !catatan.some((c) => c.petak === "f3"),
+    JSON.stringify(catatan.map((c) => c.petak))
   );
-  daratkanKlon(wadahPve);
+  uji(
+    "balasan mesin setelah seret tetap beranimasi (Nc6)",
+    catatan.some((c) => c.petak === "c6"),
+    JSON.stringify(catatan.map((c) => c.petak))
+  );
 }
 
-/* ============ D. luncuran dimulai saat KLIK (sebelum induk memproses) ============
- *
- * Cacat yang dijaga di sini: dulu klon penerbangan baru dibuat di efek FEN,
- * yaitu SETELAH induk memproses langkah dan menjalankan pekerjaan beratnya
- * (buku pembukaan, daftar langkah, analisa). Terukur di peramban: satu tugas
- * sinkron ±200-240 ms mendarat tepat di awal luncuran, sehingga rAF hanya
- * kebagian 6-8 frame dengan lompatan 61-113 ms — mata membacanya sebagai bidak
- * MELOMPAT/teleport. isepic memulai animasinya saat mousedown petak tujuan.
- *
- * Uji ini membuktikan klon sudah ada pada saat handler induk dipanggil.
- */
+/* ============ D. lewat KLIK: tepat satu animasi per langkah ============ */
 
-console.log("\nD. luncuran mulai saat klik (harness seperti halaman asli)");
+console.log("\nD. jalur klik: satu langkah = tepat satu animasi");
 
 const MASUK_KLIK = `
 import React from "react";
@@ -903,17 +777,6 @@ export function mountPapanKlik(el, { fen }) {
   function Harness() {
     const [pos, setPos] = React.useState({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: null });
     const klik = (sq) => {
-      // Tanda bukti per klik: berapa klon yang sudah terbang SAAT induk mulai
-      // bekerja, dan petak apa yang induk lihat terpilih waktu itu. Daftar
-      // (bukan satu angka) supaya klik pertama — memilih bidak — tidak terbaca
-      // sebagai hasil klik langkah.
-      window.__catatanKlik = window.__catatanKlik || [];
-      window.__catatanKlik.push({
-        sq,
-        t: Math.round(performance.now()),
-        klon: document.querySelectorAll("[data-klon-terbang]").length,
-        terpilih: pos.terpilih,
-      });
       if (pos.terpilih) {
         const sah = game.moves({ square: pos.terpilih, verbose: true }).find((m) => m.to === sq);
         if (sah) {
@@ -948,85 +811,7 @@ export function mountPapanKlik(el, { fen }) {
 }
 `;
 
-const MASUK_TUNDA = `
-import React from "react";
-import { createRoot } from "react-dom/client";
-import { Chess } from "chess.js";
-import { I18nProvider } from "./src/lib/I18nProvider.jsx";
-import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
-
-/**
- * Harness seperti HALAMAN BERAT (PapanInteraktif): klik papan langsung
- * menerbangkan bidak, tetapi posisi barunya baru diterapkan ke props setelah
- * jeda (\`tundaInduk\`) — selama jeda itu papan masih memegang props lama
- * (petak terpilih & daftar sasaran yang sudah basi).
- */
-export function mountPapanKlik(el, { fen, tundaInduk = 0 }) {
-  const game = new Chess(fen);
-  function Harness() {
-    const [pos, setPos] = React.useState({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: null });
-    // Ref: pemrosesan yang ditunda harus membaca posisi TERBARU, bukan posisi
-    // dari render saat klik terjadi.
-    const posRef = React.useRef(pos);
-    posRef.current = pos;
-
-    const klik = (sq) => {
-      window.__catatanKlik = window.__catatanKlik || [];
-      window.__catatanKlik.push({
-        sq,
-        t: Math.round(performance.now()),
-        tunda: tundaInduk,
-        klon: document.querySelectorAll("[data-klon-terbang]").length,
-        terpilih: posRef.current.terpilih,
-      });
-      const terapkan = () => {
-        const kini = posRef.current;
-        if (kini.terpilih) {
-          const sah = game.moves({ square: kini.terpilih, verbose: true }).find((m) => m.to === sq);
-          if (sah) {
-            const m = game.move({ from: kini.terpilih, to: sq });
-            setPos({ fen: game.fen(), terpilih: null, sasaran: [], langkahAkhir: { from: m.from, to: m.to } });
-            return;
-          }
-        }
-        const bidak = game.get(sq);
-        if (bidak && bidak.color === game.turn()) {
-          setPos({ ...kini, terpilih: sq, sasaran: game.moves({ square: sq, verbose: true }).map((m) => m.to) });
-        } else {
-          setPos({ ...kini, terpilih: null, sasaran: [] });
-        }
-      };
-      // Hanya PEMROSESAN LANGKAH yang ditunda (itu bagian berat di halaman
-      // asli: render panel + tata letak). Memilih bidak tetap seketika —
-      // persis seperti halaman asli.
-      const dipilih = posRef.current.terpilih;
-      const sebuahLangkah =
-        !!dipilih && game.moves({ square: dipilih, verbose: true }).some((m) => m.to === sq);
-      if (tundaInduk > 0 && sebuahLangkah) window.setTimeout(terapkan, tundaInduk);
-      else terapkan();
-    };
-
-    return (
-      <PapanTekaTeki
-        fen={pos.fen}
-        orientasi="w"
-        terpilih={pos.terpilih}
-        sasaran={pos.sasaran}
-        langkahAkhir={pos.langkahAkhir}
-        onKlik={klik}
-      />
-    );
-  }
-  return createRoot(el).render(
-    <I18nProvider>
-      <Harness />
-    </I18nProvider>
-  );
-}
-`;
-
 const berkasKlik = path.join(tmpdir(), "kci-uji-animasi-klik.cjs");
-const berkasTunda = path.join(tmpdir(), "kci-uji-animasi-tunda.cjs");
 await build({
   stdin: { contents: MASUK_KLIK, resolveDir: ROOT, loader: "jsx", sourcefile: "uji-animasi-klik-entry.jsx" },
   bundle: true,
@@ -1042,20 +827,64 @@ await build({
   logLevel: "error",
 });
 
-await build({
-  stdin: { contents: MASUK_TUNDA, resolveDir: ROOT, loader: "jsx", sourcefile: "uji-animasi-tunda-entry.jsx" },
-  bundle: true,
-  format: "cjs",
-  platform: "browser",
-  outfile: berkasTunda,
-  loader: { ".css": "empty", ".svg": "text", ".png": "dataurl", ".webp": "dataurl", ".mp3": "empty" },
-  plugins: [pluginGlobAset()],
-  define: {
-    "process.env.NODE_ENV": '"development"',
-    "import.meta.env": JSON.stringify({ BASE_URL: "/", MODE: "test", DEV: true, PROD: false }),
-  },
-  logLevel: "error",
-});
+const wadahKlik = window.document.createElement("div");
+window.document.body.appendChild(wadahKlik);
+const modulKlik = require(berkasKlik);
+modulKlik.mountPapanKlik(wadahKlik, { fen: AWAL });
+await tungguSampai(() => wadahKlik.querySelectorAll("[data-petak]").length === 64);
+
+const klikPetak = (sq) => {
+  const el = wadahKlik.querySelector(`[data-petak="${sq}"]`);
+  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+};
+
+uji("harness klik ter-render (64 petak)", wadahKlik.querySelectorAll("[data-petak]").length === 64);
+
+// Klik e2 (pilih) lalu e4 (langkah): tepat satu animasi ke e4.
+catatan.length = 0;
+klikPetak("e2");
+await tunggu(60);
+uji("klik petak asal belum menganimasikan apa pun", catatan.length === 0, `${catatan.length} animasi`);
+klikPetak("e4");
+await tungguSampai(() => wadahKlik.querySelector('[data-petak="e4"] [data-bidak]'), 2000);
+{
+  uji(
+    "langkah lewat klik menganimasikan tepat satu kali ke e4",
+    catatan.filter((c) => c.petak === "e4").length === 1,
+    JSON.stringify(catatan.map((c) => c.petak))
+  );
+  uji("tidak ada bidak tersembunyi yang tertinggal", bidakTersembunyi(wadahKlik).length === 0);
+}
+
+// Klik DOBEL di petak tujuan: tetap satu langkah, tidak menambah animasi.
+{
+  catatan.length = 0;
+  klikPetak("e4"); // klik kedua — kini giliran hitam, jadi sekadar memilih-kosong
+  await tunggu(80);
+  uji(
+    "klik dobel di petak tujuan tidak menambah animasi langkah",
+    catatan.filter((c) => c.petak === "e4").length === 0,
+    JSON.stringify(catatan.map((c) => c.petak))
+  );
+}
+
+// Klik petak tak sah: tidak ada animasi, tidak ada bidak tersembunyi.
+catatan.length = 0;
+klikPetak("a1");
+await tunggu(60);
+uji("klik petak kosong tak sah tidak menganimasikan bidak", catatan.length === 0, `${catatan.length} animasi`);
+uji(
+  "bidak di a1 tetap tampil setelah klik tak sah",
+  wadahKlik.querySelector('[data-petak="a1"] [data-bidak]')?.style?.visibility !== "hidden"
+);
+
+/* ============ E. langkah DITOLAK induk (salah/blunder) ============
+ *
+ * Langkah ditolak berarti FEN TIDAK berubah, jadi tidak ada animasi sama sekali
+ * dan tidak boleh ada bidak yang tertinggal tersembunyi.
+ */
+
+console.log("\nE. langkah ditolak induk: tidak ada yang tertinggal");
 
 const MASUK_DITOLAK = `
 import React from "react";
@@ -1066,19 +895,15 @@ import PapanTekaTeki from "./src/halaman/TekaTeki/PapanTekaTeki.jsx";
 
 /**
  * Induk tiruan yang MENOLAK langkah — persis cabang "salah" di halaman
- * Teka-Teki: posisi TIDAK berubah, pilihan dibersihkan, dan (bila
- * \`kabariKesalahan\`) petak asal+tujuan diberi tanda salah.
+ * Teka-Teki: posisi TIDAK berubah, pilihan dibersihkan, petak asal+tujuan
+ * diberi tanda salah.
  */
-export function mountPapanDitolak(el, { fen, kabariKesalahan = true }) {
+export function mountPapanDitolak(el, { fen }) {
   function Harness() {
     const [pos, setPos] = React.useState({ terpilih: null, sasaran: [], kesalahan: null });
     const klik = (sq) => {
       if (pos.terpilih) {
-        setPos({
-          terpilih: null,
-          sasaran: [],
-          kesalahan: kabariKesalahan ? { from: pos.terpilih, to: sq } : null,
-        });
+        setPos({ terpilih: null, sasaran: [], kesalahan: { from: pos.terpilih, to: sq } });
         return;
       }
       const game = new Chess(fen);
@@ -1108,266 +933,6 @@ export function mountPapanDitolak(el, { fen, kabariKesalahan = true }) {
 }
 `;
 
-const wadahKlik = window.document.createElement("div");
-window.document.body.appendChild(wadahKlik);
-const modulKlik = require(berkasKlik);
-modulKlik.mountPapanKlik(wadahKlik, { fen: AWAL });
-await tungguSampai(() => wadahKlik.querySelectorAll("[data-petak]").length === 64);
-
-const klikPetak = (sq) => {
-  const el = wadahKlik.querySelector(`[data-petak="${sq}"]`);
-  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
-};
-
-uji("harness klik ter-render (64 petak)", wadahKlik.querySelectorAll("[data-petak]").length === 64);
-
-// 1) klik petak asal: memilih, belum ada penerbangan
-klikPetak("e2");
-await tunggu(60);
-uji("klik petak asal belum menerbangkan apa pun", klonTerbang(wadahKlik).length === 0);
-
-// 2) klik petak tujuan: klon HARUS sudah terbang SEBELUM induk memproses
-const sebelumKlik = (window.__catatanKlik || []).length;
-klikPetak("e4");
-{
-  // (a) bukti SINKRON: tepat setelah event klik selesai, klon sudah ada —
-  //     sementara induk BELUM dipanggil (pemrosesan langkah ditunda satu frame
-  //     supaya klon sempat dicat di petak asal lebih dulu; kalau induk langsung
-  //     bekerja, browser baru mencat klon setelah kerja beratnya selesai dan
-  //     bidak terlihat "berkedip" di tempat).
-  const klonSinkron = klonTerbang(wadahKlik).filter((k) => k.getAttribute("data-klon-terbang") === "e4");
-  uji(
-    "klon sudah terbang tepat saat klik diproses — induk belum jalan",
-    klonSinkron.length === 1 && (window.__catatanKlik || []).length === sebelumKlik,
-    `${klonSinkron.length} klon e4; pemanggilan induk: ${(window.__catatanKlik || []).length - sebelumKlik}`
-  );
-
-  // (b) induk menyusul di frame berikutnya, dan saat itu pun klon sudah ada.
-  await tungguSampai(() => (window.__catatanKlik || []).length > sebelumKlik);
-  const catatLangkah = (window.__catatanKlik || [])[sebelumKlik];
-  uji(
-    "induk dipanggil setelah klon terbang (luncuran tidak menunggu kerja induk)",
-    catatLangkah?.klon >= 1,
-    `klon saat induk dipanggil: ${catatLangkah?.klon}`
-  );
-  uji(
-    "induk melihat petak terpilih e2 saat memproses langkah",
-    catatLangkah?.terpilih === "e2",
-    `terpilih: ${JSON.stringify(catatLangkah?.terpilih)}`
-  );
-
-  const klon = klonTerbang(wadahKlik).filter((k) => k.getAttribute("data-klon-terbang") === "e4");
-  uji("tetap tepat satu klon menuju e4 (efek FEN tidak membuat klon kedua)", klon.length === 1, `${klon.length} klon e4`);
-  uji(
-    "klon menempuh jarak dari e2 (tidak mulai di tujuan)",
-    /^translate3d\(0px, -160px, 0(px)?\)$/.test(klon[0]?.style?.transform || ""),
-    klon[0]?.style?.transform || ""
-  );
-
-  // (c) biarkan induk merender FEN baru dulu (di halaman asli: ±16 ms, jauh
-  //     sebelum luncuran 300 ms berakhir), baru klonnya "mendarat" seperti
-  //     transisi CSS selesai.
-  await tungguSampai(() => wadahKlik.querySelector('[data-petak="e4"] [data-bidak]'));
-  daratkanKlon(wadahKlik);
-  await tungguSampai(() => {
-    const b = wadahKlik.querySelector('[data-petak="e4"] [data-bidak]');
-    return b && b.style.visibility === "";
-  });
-  uji(
-    "setelah mendarat, bidak di e4 tampil",
-    wadahKlik.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === ""
-  );
-  uji("tidak ada klon tersisa setelah mendarat", klonTerbang(wadahKlik).length === 0, `${klonTerbang(wadahKlik).length} klon`);
-}
-
-// 3) klik petak tidak sah: tidak ada penerbangan, dan tidak ada bidak tersembunyi
-klikPetak("a1");
-await tunggu(60);
-uji("klik petak kosong tak sah tidak menerbangkan bidak", klonTerbang(wadahKlik).length === 0);
-uji(
-  "bidak di a1 tetap tampil setelah klik tak sah",
-  wadahKlik.querySelector('[data-petak="a1"] [data-bidak]')?.style?.visibility !== "hidden"
-);
-
-
-/* ============ E. klon yang mendarat menunggu bidak aslinya ============
- *
- * Di halaman berat (PapanInteraktif) render posisi baru SENGAJA ditahan sampai
- * luncuran selesai, jadi saat klon mendarat belum ada bidak di petak tujuan.
- * Klon itu harus tetap tinggal di sana sebagai pengganti visualnya; kalau
- * langsung dibuang, bidaknya "berkedip" — hilang sekejap sebelum React
- * merender posisi barunya (keluhan "bling"). Uji ini mengunci urutan itu.
- */
-
-console.log("\nE. klon mendarat menunggu bidak asli (jalur render yang ditahan)");
-
-const wadahTunda = window.document.createElement("div");
-window.document.body.appendChild(wadahTunda);
-const modulTunda = require(berkasTunda);
-modulTunda.mountPapanKlik(wadahTunda, { fen: AWAL, tundaInduk: 600 });
-await tungguSampai(() => wadahTunda.querySelectorAll("[data-petak]").length === 64);
-
-const klikTunda = (sq) => {
-  const el = wadahTunda.querySelector(`[data-petak="${sq}"]`);
-  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
-};
-
-klikTunda("e2");
-await tunggu(60);
-klikTunda("e4");
-await tungguSampai(() => klonTerbang(wadahTunda).some((k) => k.getAttribute("data-klon-terbang") === "e4"));
-{
-  const klonE4 = () => klonTerbang(wadahTunda).filter((k) => k.getAttribute("data-klon-terbang") === "e4");
-  uji("langkah dalam penerbangan sebelum induk menerapkannya", klonE4().length === 1, `${klonE4().length} klon`);
-  // Pastikan gaya transform tujuan sudah terpasang oleh rAF sebelum klon dipaksa mendarat.
-  await tungguSampai(() => (klonE4()[0]?.style?.transform || "").includes("-160px"), 1000);
-  // Klon mendarat, tetapi induk belum menerapkan langkahnya (belum ada bidak di e4).
-  daratkanKlon(wadahTunda);
-  await tunggu(40);
-  uji(
-    "klon yang sudah mendarat TIDAK dicabut sebelum bidak aslinya muncul",
-    klonE4().length === 1 && !wadahTunda.querySelector('[data-petak="e4"] [data-bidak]'),
-    `${klonE4().length} klon; bidak e4: ${!!wadahTunda.querySelector('[data-petak="e4"] [data-bidak]')}`
-  );
-  uji(
-    "klon yang mendarat berhenti tepat di petak tujuan",
-    /^translate3d\(0px, -160px, 0(px)?\)$/.test(klonE4()[0]?.style?.transform || ""),
-    klonE4()[0]?.style?.transform || ""
-  );
-  // Induk akhirnya menerapkan posisi barunya.
-  await tungguSampai(() => wadahTunda.querySelector('[data-petak="e4"] [data-bidak]'), 2000);
-  await tungguSampai(() => klonE4().length === 0, 2000);
-  uji("setelah posisi baru dirender, klon dibersihkan", klonE4().length === 0, `${klonE4().length} klon`);
-  uji(
-    "bidak di e4 tampil (tidak tertinggal tersembunyi)",
-    wadahTunda.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === ""
-  );
-  uji(
-    "tidak ada bidak tersembunyi yang tertinggal",
-    [...wadahTunda.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
-  );
-}
-
-/* ============ F. satu langkah = tepat SATU penerbangan ============
- *
- * Cacat yang dijaga: saat posisi baru akhirnya dirender (klon pesanan klik
- * sudah mendarat), efek FEN sempat membersihkan klon yang mendarat LEBIH DULU
- * sebelum memeriksa "langkah ini sudah diterbangkan?" — akibatnya papan
- * membuat klon KEDUA untuk langkah yang sama: bidaknya meluncur dua kali.
- *
- * Bedanya dengan bagian E: di sini yang diuji bukan "berapa klon yang ada",
- * melainkan "berapa kali papan MEMBUAT klon" selama satu langkah.
- */
-
-console.log("\nF. satu langkah = tepat satu penerbangan (tanpa luncuran berulang)");
-
-const wadahHitung = window.document.createElement("div");
-window.document.body.appendChild(wadahHitung);
-const modulHitung = require(berkasTunda);
-modulHitung.mountPapanKlik(wadahHitung, { fen: AWAL, tundaInduk: 600 });
-await tungguSampai(() => wadahHitung.querySelectorAll("[data-petak]").length === 64);
-
-const hitung = hitungPenerbangan(wadahHitung);
-// Jejak: siapa & kapan membuat klon (untuk diagnosis bila ada ganda).
-const klikHitung = (sq) => {
-  const el = wadahHitung.querySelector(`[data-petak="${sq}"]`);
-  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
-};
-
-klikHitung("e2");
-await tunggu(60);
-klikHitung("e4");
-await tungguSampai(() => hitung.perPetak.e4 === 1, 2000);
-{
-  // Klon pesanan klik mendarat dulu, baru posisi baru dirender oleh induk.
-  daratkanKlon(wadahHitung);
-  await tungguSampai(() => wadahHitung.querySelector('[data-petak="e4"] [data-bidak]'), 3000);
-  await tunggu(150); // beri kesempatan efek FEN membuat klon kedua bila memang cacat
-  uji(
-    "jalur klik: langkah e2→e4 diterbangkan tepat SATU kali",
-    hitung.perPetak.e4 === 1,
-    `${hitung.perPetak.e4 ?? 0} penerbangan ke e4 (urut: ${hitung.urut.join(", ")})`
-  );
-  uji(
-    "tidak ada penerbangan lain yang ikut tercipta",
-    hitung.total === 1,
-    `total penerbangan: ${hitung.total} (${hitung.urut.join(", ")})`
-  );
-  uji(
-    "bidak e4 tampil, tanpa bidak tersembunyi yang tertinggal",
-    wadahHitung.querySelector('[data-petak="e4"] [data-bidak]')?.style?.visibility === "" &&
-      [...wadahHitung.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
-  );
-  hitung.hentikan();
-}
-
-// Klik DOBEL di petak tujuan (pemain tidak sabar): tetap satu langkah.
-{
-  const wadahDobel = window.document.createElement("div");
-  window.document.body.appendChild(wadahDobel);
-  const modulDobel = require(berkasTunda);
-  modulDobel.mountPapanKlik(wadahDobel, { fen: AWAL, tundaInduk: 600 });
-  await tungguSampai(() => wadahDobel.querySelectorAll("[data-petak]").length === 64);
-
-  const hitungDobel = hitungPenerbangan(wadahDobel);
-  // Penanda `__catatanKlik` dipakai bersama semua harness di berkas ini —
-  // nolkan supaya yang dihitung hanya pemanggilan induk pada skenario ini.
-  window.__catatanKlik = [];
-  const klikDobel = (sq) => {
-    const el = wadahDobel.querySelector(`[data-petak="${sq}"]`);
-    el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
-  };
-  klikDobel("e2");
-  await tunggu(60);
-  klikDobel("e4");
-  await tunggu(60);
-  klikDobel("e4"); // klik kedua — jangan sampai memproses langkah kedua
-  await tungguSampai(() => wadahDobel.querySelector('[data-petak="e4"] [data-bidak]'), 3000);
-  await tunggu(200);
-
-  const panggilanE4 = (window.__catatanKlik || []).filter((c) => c.sq === "e4").length;
-  uji(
-    "klik dobel di petak tujuan: induk hanya dipanggil SEKALI untuk langkah itu",
-    panggilanE4 === 1,
-    `${panggilanE4} pemanggilan induk untuk e4 — induk: ${JSON.stringify(window.__catatanKlik)}`
-  );
-  uji(
-    "klik dobel di petak tujuan: tetap satu penerbangan",
-    hitungDobel.perPetak.e4 === 1,
-    `${hitungDobel.perPetak.e4 ?? 0} penerbangan ke e4 (urut: ${hitungDobel.urut.join(", ")})`
-  );
-  hitungDobel.hentikan();
-}
-
-// Lanjutan: langkah kedua yang datang dari LUAR (jalur FEN) juga satu penerbangan.
-{
-  const hitung2 = hitungPenerbangan(wadahHitung);
-  // e7→e5 lewat jalur FEN murni: klik petak e7 lalu e5 (induk menunda 600 ms).
-  klikHitung("e7");
-  await tunggu(60);
-  klikHitung("e5");
-  await tungguSampai(() => wadahHitung.querySelector('[data-petak="e5"] [data-bidak]'), 3000);
-  daratkanKlon(wadahHitung);
-  await tunggu(200);
-  uji(
-    "langkah kedua (hitam) juga tepat satu penerbangan ke e5",
-    hitung2.perPetak.e5 === 1,
-    `${hitung2.perPetak.e5 ?? 0} penerbangan ke e5 (urut: ${hitung2.urut.join(", ")})`
-  );
-  hitung2.hentikan();
-}
-
-/* ============ G. langkah DITOLAK induk (salah/blunder) ============
- *
- * Cacat yang dijaga: saat pemain salah langkah, induk menolaknya — posisi TIDAK
- * berubah, jadi petak tujuan tidak akan pernah berisi bidak. Klon pesanan klik
- * sudah terlanjur terbang dan "mendarat" di petak kosong itu; dulu klonnya
- * dibuang TANPA menampilkan lagi bidak di petak asal (pemulihan hanya berlaku
- * bila klon belum mendarat), sehingga bidaknya HILANG dari papan sampai soal
- * dimuat ulang.
- */
-console.log("\nG. langkah ditolak induk: bidak asal tidak boleh tertinggal tersembunyi");
-
 const berkasDitolak = path.join(tmpdir(), "uji-animasi-ditolak.cjs");
 await build({
   stdin: { contents: MASUK_DITOLAK, resolveDir: ROOT, loader: "jsx", sourcefile: "uji-animasi-ditolak.jsx" },
@@ -1384,65 +949,44 @@ await build({
   logLevel: "error",
 });
 
-/**
- * Jalankan satu siklus "klik bidak → klik tujuan → langkah ditolak".
- * `kabariKesalahan=false` menguji jaring pengaman 1,2 detik (induk yang tidak
- * pernah memberi kabar penolakan, mis. halaman lain pemakai papan ini).
- */
-async function ujiLangkahDitolak(kabariKesalahan) {
-  const wadahDitolak = window.document.createElement("div");
-  window.document.body.appendChild(wadahDitolak);
-  const modulDitolak = require(berkasDitolak);
-  modulDitolak.mountPapanDitolak(wadahDitolak, { fen: AWAL, kabariKesalahan });
-  await tungguSampai(() => wadahDitolak.querySelectorAll("[data-petak]").length === 64);
+const wadahDitolak = window.document.createElement("div");
+window.document.body.appendChild(wadahDitolak);
+const modulDitolak = require(berkasDitolak);
+modulDitolak.mountPapanDitolak(wadahDitolak, { fen: AWAL });
+await tungguSampai(() => wadahDitolak.querySelectorAll("[data-petak]").length === 64);
 
-  const klikDitolak = (sq) => {
-    const el = wadahDitolak.querySelector(`[data-petak="${sq}"]`);
-    el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
-  };
-  const bidakAsal = () => wadahDitolak.querySelector('[data-petak="e2"] [data-bidak]');
+const klikDitolak = (sq) => {
+  const el = wadahDitolak.querySelector(`[data-petak="${sq}"]`);
+  el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+};
 
-  klikDitolak("e2");
-  await tunggu(60);
-  klikDitolak("e4");
-  uji(
-    `klik tujuan menerbangkan klon (${kabariKesalahan ? "kesalahan dikabarkan" : "tanpa kabar kesalahan"})`,
-    await tungguSampai(() => klonTerbang(wadahDitolak).length > 0, 1000)
-  );
-  // Transisi CSS 300 ms selesai: klon "mendarat" di petak yang tidak akan
-  // pernah berisi bidak.
-  daratkanKlon(wadahDitolak);
-  uji(
-    "klon penerbangan akhirnya dibuang",
-    await tungguSampai(() => klonTerbang(wadahDitolak).length === 0, 3000),
-    `sisa ${klonTerbang(wadahDitolak).length} klon`
-  );
-  uji(
-    "bidak di petak asal e2 terlihat lagi",
-    bidakAsal()?.style?.visibility === "",
-    bidakAsal() ? `visibility="${bidakAsal().style.visibility}"` : "elemen bidak hilang"
-  );
-  uji(
-    "tidak ada bidak tersembunyi yang tertinggal di papan",
-    [...wadahDitolak.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden"),
-    [...wadahDitolak.querySelectorAll("[data-bidak]")]
-      .filter((el) => el.style.visibility === "hidden")
-      .map((el) => el.getAttribute("data-bidak"))
-      .join(", ")
-  );
-}
+klikDitolak("e2");
+await tunggu(60);
+catatan.length = 0;
+klikDitolak("e4");
+await tunggu(80);
+uji("langkah ditolak tidak menganimasikan apa pun", catatan.length === 0, JSON.stringify(catatan.map((c) => c.petak)));
+uji(
+  "bidak di petak asal e2 terlihat lagi",
+  wadahDitolak.querySelector('[data-petak="e2"] [data-bidak]')?.style?.visibility === ""
+);
+uji(
+  "tidak ada bidak tersembunyi yang tertinggal di papan",
+  bidakTersembunyi(wadahDitolak).length === 0,
+  bidakTersembunyi(wadahDitolak).map((el) => el.getAttribute("data-bidak")).join(", ")
+);
 
-await ujiLangkahDitolak(true);
-await ujiLangkahDitolak(false);
-
-/* ============ H. langkah TANGKAP lewat KLIK: yang meluncur bidak kita ============
+/* ============ F. langkah TANGKAP: yang dianimasikan bidak kita ============
  *
- * Jalur klik memulai luncuran SEBELUM induk menerapkan posisi, jadi di petak
- * tujuan masih terpampang bidak lawan. Dulu sumber klon dipilih "bidak di petak
- * TUJUAN bila ada" — akibatnya pada langkah tangkap yang meluncur justru gambar
- * bidak lawan, sementara bidak kita diam di petak asal lalu melompat.
+ * Luncuran memakai elemen bidak ASLI di petak tujuan. Pada langkah tangkap,
+ * setelah FEN baru dirender petak tujuan berisi bidak KITA — jadi yang meluncur
+ * adalah bidak kita, bukan gambar bidak lawan yang baru saja dimakan. Bidak
+ * lawan tetap tampil sebagai rangka sementara (`data-tertangkap`) sampai
+ * penyerang mendarat.
  */
-console.log("\nH. langkah tangkap lewat klik: klon adalah bidak yang berjalan");
+
+console.log("\nF. langkah tangkap: yang dianimasikan bidak kita");
+
 {
   const FEN_TANGKAP = "rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w - - 0 2";
   const wadahTangkap = window.document.createElement("div");
@@ -1451,38 +995,78 @@ console.log("\nH. langkah tangkap lewat klik: klon adalah bidak yang berjalan");
   modulTangkap.mountPapanKlik(wadahTangkap, { fen: FEN_TANGKAP });
   await tungguSampai(() => wadahTangkap.querySelectorAll("[data-petak]").length === 64);
 
+  // Stub `animate` yang TIDAK langsung selesai, supaya keadaan "sedang meluncur"
+  // (rangka bidak termakan) bisa diperiksa sebelum penyerang mendarat.
+  const animateAsli = window.Element.prototype.animate;
+  const tertunda = [];
+  window.Element.prototype.animate = function animate(keyframes, opsi) {
+    catatan.push({
+      petak: this.closest("[data-petak]")?.getAttribute("data-petak") || null,
+      bidak: this.getAttribute("data-bidak"),
+      keyframes,
+      opsi,
+    });
+    let selesai = () => {};
+    const finished = new Promise((r) => {
+      selesai = r;
+    });
+    const obj = { finished, cancel() {}, set oncancel(_) {}, selesai };
+    tertunda.push(obj);
+    return obj;
+  };
+
   const klikTangkap = (sq) => {
     const el = wadahTangkap.querySelector(`[data-petak="${sq}"]`);
     el?.dispatchEvent(new window.MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
   };
+  catatan.length = 0;
   klikTangkap("e4");
   await tunggu(60);
   klikTangkap("d5");
-
-  const klon = klonTerbang(wadahTangkap);
-  uji(
-    "klik tangkap: klon yang meluncur adalah bidak KITA (P), bukan bidak lawan (p)",
-    klon.length === 1 && klon[0]?.getAttribute("data-bidak") === "P",
-    `${klon.length} klon, data-bidak=${klon[0]?.getAttribute("data-bidak")}`
-  );
   await tungguSampai(
     () => wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]')?.getAttribute("data-bidak") === "P",
     2000
   );
-  daratkanKlon(wadahTangkap);
-  await tungguSampai(() => {
-    const b = wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]');
-    return b && b.style.visibility === "";
-  });
+  {
+    const anim = catatan.filter((c) => c.petak === "d5");
+    const rangka = wadahTangkap.querySelector('[data-petak="d5"] [data-tertangkap]');
+    uji(
+      "tangkap: tepat satu animasi ke petak tujuan d5",
+      anim.length === 1,
+      JSON.stringify(catatan.map((c) => c.petak))
+    );
+    uji(
+      "tangkap: yang dianimasikan bidak KITA (P), bukan bidak lawan (p)",
+      anim[0]?.bidak === "P",
+      anim[0]?.bidak
+    );
+    uji("tangkap: bidak lawan tetap tampil selama penyerang meluncur", !!rangka);
+    uji(
+      "tangkap: rangka menampilkan bidak yang dimakan (p)",
+      rangka?.getAttribute("data-tertangkap") === "p",
+      rangka?.getAttribute("data-tertangkap")
+    );
+    uji(
+      "tangkap: bidak kita berakhir di d5",
+      wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]')?.getAttribute("data-bidak") === "P"
+    );
+  }
+
+  // Penyerang mendarat: rangka bidak lawan dilepas.
+  for (const obj of tertunda) obj.selesai();
+  await tunggu(60);
   uji(
-    "klik tangkap: bidak kita tampil di d5 setelah mendarat",
-    wadahTangkap.querySelector('[data-petak="d5"] [data-bidak]')?.style?.visibility === ""
+    "tangkap: rangka bidak lawan dilepas setelah penyerang mendarat",
+    !wadahTangkap.querySelector("[data-tertangkap]")
   );
   uji(
-    "klik tangkap: tidak ada bidak tersembunyi yang tertinggal",
-    [...wadahTangkap.querySelectorAll("[data-bidak]")].every((el) => el.style.visibility !== "hidden")
+    "tangkap: tidak ada bidak tersembunyi yang tertinggal",
+    bidakTersembunyi(wadahTangkap).length === 0
   );
+
+  window.Element.prototype.animate = animateAsli;
 }
 
 console.log(`\n${lulus} lulus, ${gagal} gagal`);
 process.exit(gagal ? 1 : 0);
+

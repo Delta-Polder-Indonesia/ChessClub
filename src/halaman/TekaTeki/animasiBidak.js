@@ -291,9 +291,10 @@ export const GESER_ISEPIC = Object.freeze({
  * Konfigurasi luncuran untuk satu papan.
  * - `"analisa"`: gaya warisan Report Analisa (`GAYA_ANALISA`) — JANGAN dipakai
  *   untuk animasi langkah papan.
- * - lainnya: gaya bawaan — 300 ms `ease` TANPA pudar, sama persis dengan
- *   isepic-chess-ui: bidak dimakan hilang seketika, bidak hasil langkah
- *   muncul begitu meluncuran mendarat.
+ * - lainnya: gaya bawaan — 300 ms `ease` TANPA pudar, sama seperti papan
+ *   Report Analisa (`Analisa/komponen/game/board.jsx`): bidak yang dimakan
+ *   hilang begitu posisi baru dirender dan bidak penyerang meluncur ke
+ *   petaknya, tanpa efek pudar.
  */
 export function konfigurasiGeser(gaya) {
   if (gaya === "analisa") return { ...GAYA_ANALISA };
