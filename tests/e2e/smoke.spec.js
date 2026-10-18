@@ -619,10 +619,13 @@ test("form Hubungi Kami mengirim pesan setelah persetujuan", async ({ page }) =>
   const periksaGalat = pantauGalatHalaman(page);
   await page.goto("/hubungi-kami");
 
-  await page.getByLabel("Nama Lengkap").fill("Pengunjung Uji");
-  await page.getByLabel("Alamat Email").fill("pengunjung@example.test");
-  await page.getByLabel("Subjek Pesan").fill("Pertanyaan fitur");
-  await page.getByLabel("Isi Pesan").fill("Mohon informasi kegiatan berikutnya.");
+  // Label lapangan diambil dari kamus (hubungi.nama/surel/subjek/pesan) sehingga
+  // teksnya bisa berubah dan berbeda per bahasa — `name` atribut adalah kontrak
+  // stabil antara formulir dan muatan POST /api/pesan, jadi itu yang dipakai.
+  await page.locator('input[name="name"]').fill("Pengunjung Uji");
+  await page.locator('input[name="email"]').fill("pengunjung@example.test");
+  await page.locator('input[name="subject"]').fill("Pertanyaan fitur");
+  await page.locator('textarea[name="message"]').fill("Mohon informasi kegiatan berikutnya.");
   await page.locator('input[name="agreement"]').check();
   // Pada viewport mobile ada tombol navigasi seksi berlabel sama; ambil
   // tombol kirim yang berada di dalam seksi formulirnya.

@@ -207,6 +207,7 @@ const Petak = memo(function Petak({
   bisaSeret,
   dipilih,
   jadiSasaran,
+  jadiTangkap,
   jadiPetunjuk,
   jadiSalah,
   jadiAkhir,
@@ -263,21 +264,21 @@ const Petak = memo(function Petak({
     >
       {jadiAkhir && (
         <span
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: "rgba(205, 210, 106, 0.5)" }}
           aria-hidden="true"
         />
       )}
       {jadiPetunjuk && (
         <span
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: "rgba(0, 150, 80, 0.5)" }}
           aria-hidden="true"
         />
       )}
       {jadiSalah && (
         <span
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: "rgba(216, 60, 60, 0.55)" }}
           aria-hidden="true"
         />
@@ -285,7 +286,7 @@ const Petak = memo(function Petak({
       {dipilih && (
         <span
           data-bantu-pilih="1"
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: "rgba(255, 255, 0, 0.45)" }}
           aria-hidden="true"
         />
@@ -294,7 +295,7 @@ const Petak = memo(function Petak({
       {/* Tanda petak hasil klik kanan — di bawah bidak agar bidak tetap jelas. */}
       {warnaMark && (
         <span
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: WARNA_PETAK[warnaMark] }}
           aria-hidden="true"
         />
@@ -305,7 +306,7 @@ const Petak = memo(function Petak({
       {bantuan && (
         <span
           data-bantuan={bantuan}
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: WARNA_BANTUAN[bantuan] }}
           aria-hidden="true"
         />
@@ -314,7 +315,7 @@ const Petak = memo(function Petak({
       {/* Koordinat: huruf lajur di baris bawah, angka baris di kolom kiri. */}
       {baris === 7 && (
         <span
-          className="absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
+          className="pointer-events-none absolute bottom-0.5 right-1 text-[9px] md:text-[10px] font-bold leading-none"
           style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
         >
           {sq[0]}
@@ -322,7 +323,7 @@ const Petak = memo(function Petak({
       )}
       {kolom === 0 && (
         <span
-          className="absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
+          className="pointer-events-none absolute top-0.5 left-1 text-[9px] md:text-[10px] font-bold leading-none"
           style={{ color: terang ? warnaPapan.teksTerang : warnaPapan.teksGelap }}
         >
           {sq[1]}
@@ -339,18 +340,22 @@ const Petak = memo(function Petak({
         </span>
       )}
 
-      {/* Penanda petak tujuan legal. */}
-      {jadiSasaran && !bidak && (
+      {/* Penanda petak tujuan legal: titik untuk petak kosong, CINCIN untuk
+          tangkapan. "Ada bidak di petak tujuan" saja tidak cukup — en passant
+          adalah satu-satunya langkah yang memakan bidak di petak kosong, jadi
+          daftarnya ikut dipakai saat induk menyuplainya. */}
+      {jadiSasaran && !bidak && !jadiTangkap && (
         <span
           data-bantu-sasaran="1"
-          className="absolute z-10 h-[30%] w-[30%] rounded-full bg-black/15"
+          className="pointer-events-none absolute z-10 h-[30%] w-[30%] rounded-full bg-black/15"
           aria-hidden="true"
         />
       )}
-      {jadiSasaran && bidak && (
+      {jadiSasaran && (bidak || jadiTangkap) && (
         <span
           data-bantu-sasaran="1"
-          className="absolute inset-[3%] z-10 rounded-full border-4 border-black/30"
+          data-tangkap={jadiTangkap ? "1" : undefined}
+          className="pointer-events-none absolute inset-[3%] z-10 rounded-full border-4 border-black/30"
           aria-hidden="true"
         />
       )}
@@ -433,6 +438,10 @@ export default function PapanTekaTeki({
   orientasi = "w",
   terpilih = null,
   sasaran = [],
+  // Petak tujuan yang berupa TANGKAPAN (dari `moves({verbose})` induk, yaitu
+  // langkah dengan `captured` terisi). Induk yang tidak mengirim daftar ini
+  // tetap memakai patokan lama: petak terisi = tangkapan.
+  sasaranTangkap = [],
   petunjuk = null,
   kesalahan = null,
   langkahAkhir = null,
@@ -1462,6 +1471,7 @@ export default function PapanTekaTeki({
               bisaSeret={!!bidak && warnaBidak === giliran && !terkunci}
               dipilih={terpilih === sq}
               jadiSasaran={sasaran.includes(sq)}
+              jadiTangkap={sasaranTangkap.includes(sq)}
               jadiPetunjuk={!!petunjuk && (petunjuk.from === sq || petunjuk.to === sq)}
               jadiSalah={!!kesalahan && (kesalahan.from === sq || kesalahan.to === sq)}
               jadiAkhir={!!langkahAkhir && (langkahAkhir.from === sq || langkahAkhir.to === sq)}

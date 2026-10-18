@@ -55,6 +55,12 @@ async function pastikanTidakTerpotong(grafik) {
 }
 
 test("grafik PGN berisi semua langkah sejak loading, tumbuh tanpa bergeser dan tetap di Ringkasan", async ({ page }, testInfo) => {
+  // Angka progres bergantung pada kecepatan mesin uji: worker tiruan baru
+  // menjawab ~80 ms per pencarian, dan pada runner CI (2 core, puluhan uji lain
+  // berjalan paralel) pencarian pertama bisa membutuhkan detik, bukan milidetik.
+  // Toleransinya dinaikkan supaya yang diuji tetap urutan grafik — bukan
+  // seberapa cepat mesin uji mampu meniru Stockfish.
+  test.setTimeout(150_000);
   await tiruMesin(page);
   await page.goto("/program-kami/analisa/papan");
   await page.locator('[data-uji="nav-impor"]').click();
@@ -65,7 +71,7 @@ test("grafik PGN berisi semua langkah sejak loading, tumbuh tanpa bergeser dan t
 
   const progres = page.locator('[data-uji="kartu-progres-analisa"]');
   const grafik = page.locator('[data-uji="grafik-analisa"] svg');
-  await expect(progres).toContainText("16.7%"); // 1 dari 6 langkah PGN
+  await expect(progres).toContainText("16.7%", { timeout: 90_000 }); // 1 dari 6 langkah PGN
   await expect(grafik).toHaveAttribute("role", "img");
   const pertama = titikGrafik(await grafik.locator('path[fill="#ffffff"]').getAttribute("d"), 7);
   expect(pertama).toHaveLength(7);

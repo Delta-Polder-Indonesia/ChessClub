@@ -262,6 +262,9 @@ export const papan = {
     },
     ikonSkakmat: "Skakmat — raja lawan tidak punya langkah lagi",
     ikonMahkota: "Menang — raja pemenang",
+    // Label baris pemain di samping papan — ikut orientasi papan (lihat `tangkapan`).
+    warnaPutih: "Putih",
+    warnaHitam: "Hitam",
     ikonResign: "Menyerah — raja yang menyerah",
     suaraMati: "Suara mati — klik untuk menghidupkan",
     setBidak: "Set Bidak",

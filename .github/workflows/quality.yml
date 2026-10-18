@@ -8,11 +8,22 @@ on:
 permissions:
   contents: read
 
+# Rantai uji dibagi menjadi dua job yang berjalan paralel.
+#
+# Mengapa: job tunggal ini dulu memakai `timeout-minutes: 15`, padahal gerbang
+# rilis (`npm run uji:rilis:v1`) sudah memakan ~8,5 menit. Sisa ~6,5 menit tidak
+# pernah cukup untuk 60 uji Playwright × 2 project (desktop + mobile) dengan
+# `retries: 2` di CI, sehingga tiap run berakhir `cancelled` di
+# 15m17s–15m22s — tanpa satu pun galat aplikasi. Memecah menjadi dua job membuat
+# anggaran waktunya masing-masing jujur dan umpan balik lebih cepat.
 jobs:
   test:
+    # Nama job sengaja dipertahankan: kalau `main` melindungi check bernama
+    # "Quality checks / Test and browser smoke checks", nama baru akan membuat
+    # PR menggantung selamanya di status "expected".
     name: Test and browser smoke checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -28,19 +39,48 @@ jobs:
         # Vite, and jsdom; never let a production NODE_ENV omit them.
         run: npm ci --include=dev
 
+      - name: Lint
+        # `eslint . --max-warnings 0` — bersih di seluruh repo, jadi jadikan
+        # gerbang: tanpa langkah ini gaya kode longgar lolos tanpa suara.
+        run: npm run lint
+
       - name: Run the v1 release gate
         run: npm run uji:rilis:v1
+
+  e2e:
+    name: Browser tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --include=dev
+
+      - name: Restore Chromium download cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: playwright-${{ runner.os }}-
 
       - name: Install Chromium for Playwright
         # `--with-deps` shells out to `apt-get update`, which stalls on
         # azure.archive.ubuntu.com (actions/runner-images#11347) and burns the
-        # job's 15-minute budget. ubuntu-latest already ships Chromium's system
+        # job's time budget. ubuntu-latest already ships Chromium's system
         # libraries, so only the browser download is needed. The step timeout
         # keeps a CDN hang from eating the rest of the job.
         timeout-minutes: 5
         run: npx playwright install chromium
 
-      - name: Run public browser smoke tests
+      - name: Run browser tests
         run: npm run uji:e2e
 
       - name: Upload Playwright report on failure

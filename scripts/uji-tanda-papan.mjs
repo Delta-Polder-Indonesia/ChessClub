@@ -352,26 +352,37 @@ console.log("\npemasangan di halaman:");
 }
 
 const halamanSeleksi = [
-  ["TekaTeki.jsx", "src/halaman/TekaTeki/TekaTeki.jsx"],
-  ["TekaTekiRush.jsx", "src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
-  ["PapanInteraktif.jsx", "src/halaman/PapanInteraktif/PapanInteraktif.jsx"],
+  ["TekaTeki.jsx", "src/halaman/TekaTeki/TekaTeki.jsx", ["setTerpilih(null);", "setSasaran([]);"], []],
+  ["TekaTekiRush.jsx", "src/halaman/TekaTekiRush/TekaTekiRush.jsx", ["setTerpilih(null);", "setSasaran([]);"], []],
+  // PapanInteraktif menyimpan `terpilih` + `sasaran` + `tangkap` sebagai SATU
+  // state, jadi pengosongan yang benar adalah mengganti state itu seluruhnya.
+  // Dua setter terpisah persis sumber bug tangkapan: `tangkap` bisa tertinggal
+  // dan petak kosong tetap ditandai cincin / langkah tetap dianggap makan.
+  [
+    "PapanInteraktif.jsx",
+    "src/halaman/PapanInteraktif/PapanInteraktif.jsx",
+    ["setSeleksi(SELEKSI_KOSONG);"],
+    ["setTerpilih(null);", "setSasaran([]);"],
+  ],
 ];
-for (const [nama, relatif] of halamanSeleksi) {
+for (const [nama, relatif, kosong, tolak] of halamanSeleksi) {
   const isi = readFileSync(path.join(ROOT, relatif), "utf8");
   const selesaiSeret = isi.split("const selesaiSeret = useCallback(")[1]?.split("\n  );")[0] ?? "";
   uji(
     `${nama} mengosongkan seleksi setelah klik ulang`,
     selesaiSeret.includes("(from, to, klikUlang) => {") &&
       selesaiSeret.includes("if (klikUlang) {") &&
-      selesaiSeret.includes("setTerpilih(null);") &&
-      selesaiSeret.includes("setSasaran([]);")
+      kosong.every((baris) => selesaiSeret.includes(baris)),
+    `perlu: ${kosong.join(" ")}`
   );
   uji(
     `${nama} mendukung batal seleksi lewat klik petak`,
-    isi.includes("terpilih === petak)") &&
-      isi.includes("setTerpilih(null);") &&
-      isi.includes("setSasaran([]);")
+    isi.includes("terpilih === petak)") && kosong.every((baris) => isi.includes(baris)),
+    `perlu: ${kosong.join(" ")}`
   );
+  for (const lama of tolak) {
+    uji(`${nama} tidak mengembalikan state seleksi yang terpecah (${lama})`, !isi.includes(lama));
+  }
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
