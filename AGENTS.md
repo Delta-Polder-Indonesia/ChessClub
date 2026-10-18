@@ -53,6 +53,8 @@ Skills provide guidance; they do not grant permission to change scope, rewrite u
 
 - Skills are scoped tools, not global instructions.
 - Use a skill only when its purpose directly matches the user's request.
+- Sebelum menyunting area yang terpetakan di "Peta area → skill pendamping" (bagian Skill proyek),
+  muat skill terkait lebih dulu lewat tool `skill`, lalu ikuti isinya.
 - Prefer explicit invocation for documentation, archival, recording, publishing, and other side-effect-heavy skills.
 - A skill must never be interpreted as permission to perform destructive or unrelated actions.
 - If a skill conflicts with this policy or the user's instruction, follow the higher-priority instruction and keep the scope minimal.
@@ -187,6 +189,46 @@ Skill panduan proyek ini ada di `.agents/skills/` dan diduplikasi ke `.opencode/
 
 Rincian alur uji per area ada di
 `.agents/skills/kci-pengujian/references/alur-uji-per-area.md`.
+
+### Peta area → skill pendamping (dimuat lebih dulu)
+
+Skill umum (bukan `kci-*`) yang dipasang di `.agents/skills/` dan `.opencode/skills/`.
+**Sebelum menyunting area di bawah, muat skill-nya lebih dulu** (panggil tool `skill`), baca, lalu
+ikuti isinya. Kolom tanda `+` berarti skill `kci-*` tetap dipakai bersama.
+
+| Area kerja di repo | Muat skill dulu |
+| ------------------ | --------------- |
+| Aksesibilitas semua halaman (kontras, fokus, ARIA, keyboard) | `accessibility-audit` |
+| Kinerja, Core Web Vitals, bundle & aset berat | `performance-optimization` |
+| SEO on-page (title, meta, H1, internal link, alt) | `seo-onpage` |
+| SEO teknis (robots, sitemap, canonical, JSON-LD, indexasi) | `seo-technical` |
+| Optimasi untuk AI search / AI overview / `llms.txt` | `seo-aeo-geo` |
+| Audit & penyegaran konten lama (kanibalisasi, decay, keep/update/hapus) | `seo-content-audit`, `seo-content-gap-audit` |
+| Riset kata kunci & celah kompetitor | `seo-keyword`, `seo-keyword-gap-audit` |
+| Analisis kompetitor (SERP, backlink) | `seo-competitor`, `seo-backlink-audit` |
+| Strategi konten, pilar topik, kalender editorial | `content-strategy`, `pillar-content-architecture` |
+| Menulis/menyunting artikel & teks antarmuka | `content-and-copy` |
+| Brief satu artikel sebelum ditulis | `content-brief-authoring` |
+| QA konten sebelum terbit | `editorial-qa` |
+| Struktur situs, navigasi, sitemap, taksonomi | `information-architecture` |
+| Terjemahan ID/EN, locale, hreflang | `internationalization` |
+| Formulir (HubungiKami, PendaftaranAnggota) | `form-strategy` |
+| Kuis (QuizCatur) | `quiz-and-assessment-design` |
+| Copy Landing/Beranda (konversi) | `landing-page-copy` |
+| Gambar/media/aset publik, format & pengiriman | `media-asset-management` |
+| Analytics, event/tracking, dashboard | `analytics-strategy`, `product-analytics-setup` |
+| Email transaksional/newsletter, deliverability | `email-sequences`, `email-deliverability` |
+| Keamanan (HTTPS, header, CSP, secret) | `security-baseline` |
+| Monitoring, uptime, alert, on-call | `monitoring-and-alerting` |
+| Backup & pemulihan bencana (RPO/RTO) | `backup-and-disaster-recovery` |
+| Launch/go-live, cutover, rollback | `launch-runbook` + `kci-deploy` |
+| Dependency, `npm audit`, upgrade paket | `dependency-management` |
+| Insiden produksi | `incident-response` |
+| Review kode web sebelum PR | `code-review-web` + `kci-standar-kode` |
+| QA/render sebelum rilis | `qa-testing` + `kci-pengujian` |
+
+Untuk area yang tidak ada di tabel ini, pilih skill dari daftar `<available_skills>` yang
+deskripsinya paling cocok dengan tugas, lalu muat sebelum menyunting.
 
 Cara opencode memuat skill (diverifikasi dari sumbernya, agar perubahan berikutnya tidak salah arah):
 

@@ -367,8 +367,8 @@ export const UKUR = {
     []
   ],
   "/images/tata-nilai.webp": [
-    1280,
-    714,
+    2172,
+    724,
     []
   ],
   "/images/tonggak-2015.webp": [

@@ -48,8 +48,6 @@ export const landing = {
       "Lengkapi data diri Anda dan mulailah mengikuti turnamen rutin, kelas pembinaan, serta sesi latihan papan interaktif bersama Komunitas Catur Indonesia.",
     ajakanTombol: "Daftar Sekarang",
     alatLatihanJudul: "Alat latihan harian",
-    alatLatihanDesk:
-      "Enam alat latihan untuk mengasah kalkulasi dan membaca ulang hasil sendiri: teka-teki taktis, mode rush, kuis pengetahuan, laporan analisis, buku pembukaan, dan laga melawan mesin. Semuanya berjalan di peramban, tanpa pemasangan apa pun.",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5.486 soal skakmat satu sampai tiga langkah dari basis data puzzle Lichess, tiap soal berlabel rating, tema, dan pemain asalnya.",
@@ -107,8 +105,6 @@ export const landing = {
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Anggota komunitas, peringkat 1890",
     arahJudul: "Pengurus blunder skuad",
-    arahLead:
-      "Enam pengurus perwakilan yang mengelola klub, mendampingi anggota, dan mengoordinasikan kegiatan BLUNDER SKUAD di Chess.com. Susunan lengkap beserta tanggal bergabung dan rating ada di halaman struktur grup catur.",
     arahAriaLabel: "Daftar pengurus BLUNDER SKUAD",
     arahPengurusAlt: "foto profil Chess.com pengurus",
     arahStatus: "Menampilkan 6 dari 8 pengurus.",

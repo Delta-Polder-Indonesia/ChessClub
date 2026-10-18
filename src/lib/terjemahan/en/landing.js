@@ -48,8 +48,6 @@ export const landing = {
       "Complete your personal data and start joining regular tournaments, coaching classes, and interactive board training sessions with the Indonesia Chess Community.",
     ajakanTombol: "Register Now",
     alatLatihanJudul: "Daily practice tools",
-    alatLatihanDesk:
-      "Six practice tools for training calculation and reviewing your own play: tactical puzzles, rush mode, a knowledge quiz, an analysis report, an opening book, and a match against the engine. All of them run in the browser, with nothing to install.",
     alatTekaTekiJudul: "Teka-teki Catur",
     alatTekaTekiDesk:
       "5,486 mate puzzles of one to three moves from the Lichess puzzle database, each labelled with rating, theme, and the player it came from.",
@@ -107,8 +105,6 @@ export const landing = {
     testimoniKutip2Nama: "Salim C.",
     testimoniKutip2Peran: "Community member, rated 1890",
     arahJudul: "BLUNDER SKUAD Staff",
-    arahLead:
-      "Six representative staff members who run the club, support its members, and coordinate BLUNDER SKUAD activities on Chess.com. The full roster with join dates and ratings lives on the group structure page.",
     arahAriaLabel: "BLUNDER SKUAD staff list",
     arahPengurusAlt: "Chess.com profile photo of a staff member",
     arahStatus: "Showing 6 of 8 staff members.",

@@ -20,14 +20,22 @@
  */
 import { useI18n } from "../../lib/i18n.jsx";
 import { Link } from "react-router-dom";
-import { BookOpen, Brain, Cpu, ListChecks, Puzzle, Timer } from "lucide-react";
+import { BookOpen, Brain, Cpu, ListChecks, Timer } from "lucide-react";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import {
   JUDUL_SEKSI,
-  LEAD_SEKSI,
   JUDUL_KARTU,
   DESKRIPSI_KARTU,
 } from "./gayaTeks.jsx";
+
+/** Ikon teka-teki catur (SVG kustom). */
+function IkonTekaTeki() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="currentColor">
+      <path d="M200-200h520v-184l45-22q16-8 25.5-22t9.5-32q0-17-9.5-31.5T765-514l-45-21v-185H528l-10-68q-3-22-19.5-37T460-840q-23 0-39.5 15T401-788l-10 68H200v86q56 21 88 68t32 106q0 60-32 107t-88 68v85Zm0 80q-34 0-57-23t-23-57v-152q48 0 84-30.5t36-77.5q0-46-36-76t-84-32v-152q0-33 23.5-56.5T200-800h122q7-51 46-85.5t92-34.5q52 0 91 34.5t47 85.5h122q33 0 56.5 23.5T800-720v134q36 18 58 52t22 74q0 41-22 75t-58 51v134q0 34-23.5 57T720-120H200Zm300-340Z" />
+    </svg>
+  );
+}
 
 /**
  * Satu baris alat: ikon, nama, satu kalimat penjelasan, dan panah tujuan.
@@ -40,10 +48,10 @@ function BarisAlat({ alat }) {
   return (
     <Link
       to={alat.to}
-      className="group flex items-center gap-4 rounded-lg border border-slate-200 bg-paper p-4 transition-colors hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+      className="group flex items-center gap-4 px-2 py-4 transition-colors hover:bg-grey-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
     >
-      <span className="flex size-10 flex-none items-center justify-center rounded border border-slate-200 text-primary">
-        <Ikon className="size-5" aria-hidden="true" />
+      <span className="flex size-10 flex-none items-center justify-center text-primary">
+        <Ikon className="size-10" aria-hidden="true" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-1">
         <span className={JUDUL_KARTU}>{alat.judul}</span>
@@ -70,7 +78,7 @@ function enamAlat(t) {
   return [
     {
       to: "/program-kami/teka-teki",
-      ikon: Puzzle,
+      ikon: IkonTekaTeki,
       judul: t("landing.alatTekaTekiJudul"),
       desk: t("landing.alatTekaTekiDesk"),
       cta: t("landing.alatTekaTekiCta"),
@@ -119,15 +127,15 @@ export function KartuAlatLatihan() {
 
   return (
     <section className="w-full px-6 md:px-8 xl:px-0 pb-12 md:pb-16 overflow-hidden">
-      <div className="mx-auto max-w-[1080px] xl:max-w-7xl grid gap-x-10 gap-y-8 md:grid-cols-[minmax(0,45%)_minmax(0,1fr)] items-start">
-        <div className="flex flex-col gap-4">
-          <h2 className={JUDUL_SEKSI}>{t("landing.alatLatihanJudul")}</h2>
-          <p className={LEAD_SEKSI}>{t("landing.alatLatihanDesk")}</p>
-        </div>
+      <div className="mx-auto max-w-[1080px] xl:max-w-7xl flex flex-col gap-8">
+        <h2 className={JUDUL_SEKSI}>{t("landing.alatLatihanJudul")}</h2>
 
-        <ul className="flex flex-col gap-3">
+        <ul className="grid grid-cols-1 gap-x-8 gap-y-0 sm:grid-cols-2">
           {enamAlat(t).map((alat) => (
-            <li key={alat.to}>
+            <li
+              key={alat.to}
+              className="border-b border-grey-200 [&:first-child]:border-t sm:[&:nth-child(-n+2)]:border-t"
+            >
               <BarisAlat alat={alat} />
             </li>
           ))}

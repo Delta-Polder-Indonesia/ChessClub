@@ -69,11 +69,11 @@ export const LEAD_SEKSI_TERANG =
  * — bukan angka karangan, tetap token resmi sumber, hanya peran yang berbeda.
  */
 export const LABEL_SEKSI =
-  "inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-primary";
+  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-primary";
 
 /** Varian di atas foto/latar gelap. */
 export const LABEL_SEKSI_TERANG =
-  "inline-flex items-center gap-2 font-mono text-xs uppercase tracking-[0.14em] text-white";
+  "inline-flex items-center gap-2 font-sans text-xs uppercase tracking-[0.14em] text-white";
 
 /**
  * Blok kepala seksi (judul + pengantar) — `.home-kinpaku .section-header` pada
@@ -105,7 +105,7 @@ export const KEPALA_SEKSI = "flex flex-col gap-3 mb-[34px]";
  * `text-wrap:balance` ke semua judulnya, antara lain lewat
  * `.home-kinpaku .why-panel-title`.
  */
-export const JUDUL_KARTU = "font-serif text-[1.0625rem] font-semibold leading-[1.35] text-balance text-grey-800";
+export const JUDUL_KARTU = "font-sans text-[1.0625rem] font-semibold leading-[1.35] text-balance text-grey-800";
 
 /**
  * Deskripsi kartu — token `--ks-type-small-size` (`.rule-card-desc`):
