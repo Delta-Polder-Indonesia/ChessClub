@@ -27,29 +27,21 @@ const RUTE = "/";
 function terapkan(tampil) {
   const widget = window.PeekingWidget;
   const container = widget && widget.container;
-  const dialog = document.querySelector("ybouane-peeking-dialog");
 
-  // Saat menyembunyikan, tutup dialog lewat API resmi widget, bukan dengan
-  // membongkar atribut DOM manual. closeDialog() membersihkan state internal
-  // (penanda dialog terbuka, listener keyboard, fokus) sehingga dialog bisa
-  // dibuka lagi setelah kembali ke halaman Landing.
+  // Saat menyembunyikan, tutup dialog lewat API resmi widget. closeDialog()
+  // membersihkan state internal (penanda dialog terbuka, listener keyboard,
+  // fokus) sehingga dialog bisa dibuka lagi setelah kembali ke Landing.
+  // Visibilitas dialog sendiri dikendalikan oleh CSS widget (data-open),
+  // jadi jangan override style.display-nya dari sini.
   if (!tampil) widget?.closeDialog?.();
 
   if (container) container.style.display = tampil ? "" : "none";
-  if (dialog) dialog.style.display = tampil ? "" : "none";
-  
-  // Karena widget ini adalah skrip vanilla yang tidak didesain untuk SPA,
-  // menyembunyikan style tidak menghentikan loop requestAnimationFrame-nya.
-  // Pause/resume harus dipanggil secara eksplisit.
-    if (window.YbouanePeek) {
-      if (tampil) {
-        if (window.YbouanePeek.resume) window.YbouanePeek.resume();
-        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.resume?.();
-      } else {
-        if (window.YbouanePeek.pause) window.YbouanePeek.pause();
-        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.pause?.();
-      }
-    }
+
+  // Menyembunyikan elemen tidak menghentikan loop requestAnimationFrame;
+  // API lokal pada peeking-widget menjeda loop saat berpindah dari Landing.
+  const animasi = window.PeekingWidget?.api;
+  if (tampil) animasi?.resume?.();
+  else animasi?.pause?.();
 }
 
 export default function KarakterAnomali() {
@@ -67,7 +59,7 @@ export default function KarakterAnomali() {
     // Muat script sekali. Penjaga ini juga mencegah StrictMode (yang
     // menjalankan efek dua kali) menyisipkan <script> ganda.
     const sudahDimuat =
-      window.PeekingWidget ||
+      window.PeekingWidget?.container ||
       document.querySelector('script[src="/peeking-widget.js"]');
     if (sudahDimuat) return undefined;
 
@@ -90,16 +82,6 @@ export default function KarakterAnomali() {
         "<p>Wadah bagi pecatur untuk bermain, belajar, dan bertumbuh bersama. Tantang mesin, analisa partai, dan ikuti turnamen rutin.</p>" +
         '<div class="actions"><a class="btn primary" href="/papan-interaktif">Mulai Bermain</a></div>',
     };
-
-    if (window.YbouanePeek) {
-      if (tampil) {
-        if (window.YbouanePeek.resume) window.YbouanePeek.resume();
-        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.resume?.();
-      } else {
-        if (window.YbouanePeek.pause) window.YbouanePeek.pause();
-        else if (window.PeekingWidget && window.PeekingWidget.api) window.PeekingWidget.api.pause?.();
-      }
-    }
 
     const s = document.createElement("script");
     s.src = "/peeking-widget.js";

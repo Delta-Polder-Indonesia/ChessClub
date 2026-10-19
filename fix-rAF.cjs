@@ -1,39 +1,77 @@
-const fs = require('fs');
+const fs = require("node:fs");
 
-let content = fs.readFileSync('public/peeking-widget.js', 'utf8');
+const path = "public/peeking-widget.js";
+let content = fs.readFileSync(path, "utf8");
+const marker = "var _peekingWidgetApi = {";
 
-// The file replaces requestAnimationFrame with a custom rAF
-// First, insert custom rAF implementation after `"use strict";`
-const customRAF = `var _rAF_paused = false;
+if (content.includes(marker)) {
+  console.log("Shim pause/resume peeking-widget sudah terpasang; tidak ada perubahan.");
+  process.exit(0);
+}
+
+const penutupStrict = content.indexOf('"use strict";');
+const awalKonfigurasi = content.indexOf('var e="ybouane-peeking";');
+if (penutupStrict < 0 || awalKonfigurasi < 0 || awalKonfigurasi < penutupStrict) {
+  throw new Error("Format peeking-widget.js tidak dikenali; berkas tidak diubah.");
+}
+
+const customRAF = `
+var _rAF_paused = false;
+var _rAF_pendingCb = null;
 var rAF = function(cb) {
   if (_rAF_paused) {
-    if (!window.PeekingWidget) window.PeekingWidget = {};
-    if (!window.PeekingWidget.api) window.PeekingWidget.api = {};
-    window.PeekingWidget.api._pendingCb = cb;
+    _rAF_pendingCb = cb;
     return;
   }
-  return window.requestAnimationFrame(cb);
+  return window.__KCI_REAL_RAF__(cb);
 };
-if (!window.PeekingWidget) window.PeekingWidget = {};
-if (!window.PeekingWidget.api) window.PeekingWidget.api = {};
-window.PeekingWidget.api.pause = function() { _rAF_paused = true; };
-window.PeekingWidget.api.resume = function() {
-  if (!_rAF_paused) return;
-  _rAF_paused = false;
-  if (window.PeekingWidget.api._pendingCb) {
-    var cb = window.PeekingWidget.api._pendingCb;
-    window.PeekingWidget.api._pendingCb = null;
-    window.requestAnimationFrame(cb);
+var _peekingWidgetApi = {
+  pause: function() { _rAF_paused = true; },
+  resume: function() {
+    if (!_rAF_paused) return;
+    _rAF_paused = false;
+    if (_rAF_pendingCb) {
+      var cb = _rAF_pendingCb;
+      _rAF_pendingCb = null;
+      window.__KCI_REAL_RAF__(cb);
+    }
   }
 };
 `;
 
-content = content.replace('"use strict";', '"use strict";' + customRAF);
+content =
+  content.slice(0, penutupStrict + '"use strict";'.length) +
+  customRAF +
+  content.slice(awalKonfigurasi);
 
-// Now replace all requestAnimationFrame with rAF except the one in customRAF
-content = content.replace(/requestAnimationFrame\(/g, 'rAF(');
+content = content.replace(/requestAnimationFrame\(/g, "rAF(");
+content = content.replace(/window\.__KCI_REAL_RAF__\(/g, "window.requestAnimationFrame(");
 
-// Fix the one inside our definition
-content = content.replace(/window\.rAF\(cb\)/g, 'window.requestAnimationFrame(cb)');
+const assignmentLama = "window.PeekingWidget={config:o,container:v,";
+const assignmentBaru = "window.PeekingWidget={api:_peekingWidgetApi,config:o,container:v,";
+if (!content.includes(assignmentBaru)) {
+  if (!content.includes(assignmentLama)) {
+    throw new Error("Titik inisialisasi PeekingWidget tidak ditemukan; berkas tidak diubah.");
+  }
+  content = content.replace(assignmentLama, assignmentBaru);
+}
 
-fs.writeFileSync('public/peeking-widget.js', content, 'utf8');
+const daftarOpsiLama = '"onClick"],r=document.currentScript';
+const daftarOpsiBaru = '"onClick","fileNameWebm","fileNameHevc"],r=document.currentScript';
+if (!content.includes(daftarOpsiBaru)) {
+  if (!content.includes(daftarOpsiLama)) {
+    throw new Error("Daftar opsi PeekingWidget tidak ditemukan; berkas tidak diubah.");
+  }
+  content = content.replace(daftarOpsiLama, daftarOpsiBaru);
+}
+const hevcLama = "o.hevcSrc=Ze(o.fileNameHevc)";
+const hevcBaru = "o.hevcSrc=o.fileNameHevc?Ze(o.fileNameHevc):o.webmSrc";
+if (!content.includes(hevcBaru)) {
+  if (!content.includes(hevcLama)) {
+    throw new Error("Pemilihan sumber video HEVC tidak ditemukan; berkas tidak diubah.");
+  }
+  content = content.replace(hevcLama, hevcBaru);
+}
+
+fs.writeFileSync(path, content, "utf8");
+console.log("Shim pause/resume peeking-widget berhasil dipasang.");
