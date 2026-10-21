@@ -158,44 +158,37 @@ export default function KartuKomentator({
       </div>}
 
       {!hanyaKontrol && nyala && (
-        <div
+        <section
           key={kunciAnimasi}
-          className="komentator-gelembung mt-3 flex items-start gap-2.5 rounded-lg border border-[#312e2b] bg-[#262421] px-3 py-2.5"
           aria-live="polite"
+          className="komentator-gelembung mt-3 flex min-h-[88px] shrink-0 items-center gap-2 sm:gap-3"
         >
-          {avatarBuku ? (
-            <span className="mt-0.5 flex h-9 w-10 shrink-0 items-center justify-center">
-              <RatingSVG rating="book" size={28} title={t("analisa.penilaian.book")} />
-            </span>
-          ) : (
-            <>
-              <span
-                className="mt-0.5 flex h-9 w-10 shrink-0 items-center justify-center"
-                aria-hidden="true"
-              >
-                <img
-                  src={gambarAvatar}
-                  alt=""
-                  width={36}
-                  height={36}
-                  className="max-h-9 max-w-full object-contain drop-shadow-md"
-                  loading="lazy"
-                />
+          <img
+            src="/engine_expressions/coachdavid.png"
+            alt=""
+            className="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-16 sm:w-16"
+            width="64"
+            height="64"
+            loading="lazy"
+          />
+          <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
+            <span
+              aria-hidden="true"
+              className="absolute -left-[5px] top-5 h-2.5 w-2.5 rotate-45 border-b border-l border-[#3b3935] bg-[#262421]"
+            />
+            {lencanaRating && !avatarBuku && (
+              <span className="mb-1 inline-block shrink-0" title={t(`analisa.penilaian.${lencanaRating}`)}>
+                <RatingSVG rating={lencanaRating} size={18} />
               </span>
-              {lencanaRating && (
-                <span className="mt-1 shrink-0" title={t(`analisa.penilaian.${lencanaRating}`)}>
-                  <RatingSVG rating={lencanaRating} size={18} />
-                </span>
-              )}
-            </>
-          )}
-          <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
-            {posisiAwal ? t("papan.komentator.posisiAwal") : kalimat || t("papan.komentator.menunggu")}
-            {!posisiAwal && engineMenilai && (
-              <span className="ml-1 text-xs italic text-gray-500">{t("papan.komentator.menilai")}</span>
             )}
-          </p>
-        </div>
+            <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
+              {posisiAwal ? t("papan.komentator.posisiAwal") : kalimat || t("papan.komentator.menunggu")}
+              {!posisiAwal && engineMenilai && (
+                <span className="ml-1 text-xs italic text-gray-500">{t("papan.komentator.menilai")}</span>
+              )}
+            </p>
+          </div>
+        </section>
       )}
     </section>
   );

@@ -37,6 +37,7 @@ import TombolKeAwal from "./bersama/TombolKeAwal.jsx";
 import TombolMundur from "./bersama/TombolMundur.jsx";
 import TombolMaju from "./bersama/TombolMaju.jsx";
 import TombolKeAkhir from "./bersama/TombolKeAkhir.jsx";
+import { Switch } from "../../components/ui/switch.jsx";
 import {
   ekstrakFenDariPgn,
   fenDanSanDariKoordinat,
@@ -1698,26 +1699,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     <>
                       {/* Toggle nyala/mati engine — pola baris "Analysis" di prompt.md */}
                       <div className="mb-3 flex shrink-0 items-center justify-between border-b border-[#312e2b] pb-3">
-                        <button
-                          type="button"
+                        <Switch
+                          size="sm"
                           id="sampel-toggle-engine"
-                          role="switch"
-                          aria-checked={engineNyala}
-                          onClick={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
-                          className={`flex h-5 w-9 items-center rounded-full border transition ${
-                            engineNyala
-                              ? "border-[#81b64c] bg-[#81b64c]"
-                              : "border-[#363431] bg-[#363431]"
-                          }`}
+                          checked={engineNyala}
+                          onCheckedChange={() => (engineNyala ? matikanEngine() : nyalakanEngine())}
                           aria-label={t("papan.engine")}
                           title={t("papan.engine")}
-                        >
-                          <span
-                            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                              engineNyala ? "translate-x-4" : "translate-x-0.5"
-                            }`}
-                          />
-                        </button>
+                        />
                         <p className="pl-3 text-sm font-bold leading-none text-white">
                           {t("papan.engine")}{" "}
                           <span className="ml-1 font-normal text-gray-500">{cariEngine(pp.mesin).label}</span>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import { Chess } from "chess.js";
-import { ArrowRightIcon } from "../../components/icons.jsx";
+import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, ChevronEndIcon } from "../../components/icons.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
@@ -2447,9 +2447,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 disabled={!bisaMundur}
                 title={t("papan.keAwal")}
                 aria-label={t("papan.keAwal")}
-                className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
-                ⏮
+                <ChevronStartIcon className="size-5" />
               </button>
               <button
                 type="button"
@@ -2457,9 +2457,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 disabled={!bisaMundur}
                 title={t("tekaTeki.mundurSatu")}
                 aria-label={t("tekaTeki.mundurSatu")}
-                className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
-                ◀
+                <ChevronLeftIcon className="size-5" />
               </button>
               <button
                 type="button"
@@ -2467,9 +2467,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 disabled={!bisaMaju}
                 title={t("tekaTeki.majuSatu")}
                 aria-label={t("tekaTeki.majuSatu")}
-                className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
-                ▶
+                <ChevronRightIcon className="size-5" />
               </button>
               <button
                 type="button"
@@ -2477,9 +2477,9 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 disabled={!bisaMaju}
                 title={t("papan.keAkhir")}
                 aria-label={t("papan.keAkhir")}
-                className="flex-1 py-2.5 flex justify-center items-center rounded text-gray-400 transition text-lg font-bold hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                className="flex flex-1 items-center justify-center rounded py-2.5 text-lg font-bold text-gray-400 transition hover:bg-[#363431] hover:text-white disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-gray-400"
               >
-                ⏭
+                <ChevronEndIcon className="size-5" />
               </button>
             </div>
 
