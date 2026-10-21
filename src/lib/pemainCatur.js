@@ -31,12 +31,10 @@ function normalisasiPlatform(platform) {
   return platform === "lichessOrg" ? "lichessOrg" : "chessCom";
 }
 
-/** Kode negara dua huruf ("id") → emoji bendera. */
+/** Kode negara dua huruf ("id") → kode lowercase untuk nama file SVG bendera. */
 function benderaNegara(kode) {
   if (!kode || kode.length !== 2) return null;
-  return kode
-    .toUpperCase()
-    .replace(/./g, (c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65));
+  return kode.toLowerCase();
 }
 
 function muatStorage(kunci) {
