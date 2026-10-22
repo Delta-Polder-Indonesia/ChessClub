@@ -10,13 +10,12 @@
  */
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
+import { hashPgn } from "../../../../lib/pgnRingan.js";
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
-import {
-  agregasiWawasan,
-  warnaPemain,
-} from "../../mesin/wawasan.js";
+import { agregasiWawasan } from "../../mesin/wawasan.js";
+import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
 import PanelLayar from "./PanelLayar.jsx";
 import SelectDaftar from "./SelectDaftar.jsx";
 
@@ -93,35 +92,71 @@ export default function LayarWawasan() {
     muatPartai();
   }, [muatPartai]);
 
+  /*
+   * Hasil analisis engine sesi ini (padanan prop `analysisMap` di acuan:
+   * `analysisMap={state.analysis.resultsByGameId ?? {}}`). Peta di modul
+   * `analisisTersimpan.js` dikunci dengan HASH TEKS PGN karena papan analisa
+   * hanya menerima teks PGN, bukan id basis data; di sini kunci itu
+   * diterjemahkan menjadi `p.id` supaya `hitungTaktikal` bisa memakai id
+   * partai seperti acuan memakai `game.id`.
+   *
+   * `petaSesi` diisi ulang oleh langganan: menganalisis satu partai di papan
+   * lalu kembali ke layar Wawasan harus langsung terlihat tanpa muat ulang.
+   */
+  const [petaSesi, setPetaSesi] = useState(ambilPetaAnalisis);
+  useEffect(() => langgananAnalisis(() => setPetaSesi(ambilPetaAnalisis())), []);
+
+  const petaAnalisis = useMemo(() => {
+    if (Object.keys(petaSesi).length === 0) return {};
+    const peta = {};
+    for (const p of partai) {
+      if (!p?.id || !p?.pgn) continue;
+      const hasil = petaSesi[hashPgn(p.pgn)];
+      if (hasil) peta[p.id] = hasil;
+    }
+    return peta;
+  }, [partai, petaSesi]);
+
   const filter = useMemo(() => ({
     timeClass: filterWaktu,
     color: filterWarna,
     dateRange: filterTanggal,
   }), [filterWaktu, filterWarna, filterTanggal]);
 
+  /* Label cadangan nama pembukaan diisi dari kamus, bukan hardcode: rantai
+     `[Opening] → [ECOUrl] → Opening <ECO> → tidak diketahui` milik acuan
+     memakai teks Inggris, di sini teksnya mengikuti bahasa antarmuka. */
+  const labelPembukaan = useMemo(() => ({
+    dariEco: (eco) => t("analisa.wawasan.pembukaan.dariEco", { eco }),
+    tidakDiketahui: t("analisa.wawasan.pembukaan.tidakDiketahui"),
+  }), [t]);
+
   const wawasan = useMemo(() => {
     if (!username || !partai.length) return null;
-    return agregasiWawasan(partai, username, filter);
-  }, [partai, username, filter]);
+    return agregasiWawasan(partai, username, filter, petaAnalisis, labelPembukaan);
+  }, [partai, username, filter, petaAnalisis, labelPembukaan]);
 
-  /* Filter warna diterapkan di sini — bukan di wawasan.js — karena
-     agregasiWawasan menghitung hasilUmum + per-warna sekaligus.
-     Warna hanya dipakai untuk membatasi data yang ditampilkan di
-     komponen DistribusiHasil dan Pembukaan. */
+  /*
+   * Filter warna diterapkan di sini — bukan di wawasan.js — karena
+   * agregasiWawasan menghitung hasilUmum + per-warna sekaligus. Yang ditukar
+   * hanya angka Distribusi Hasil: kartu Pembukaan tetap menampilkan kedua
+   * kolom "Sebagai Putih"/"Sebagai Hitam" (penyimpangan dari acuan yang
+   * memotong semua kartu lewat filterGames — dicatat di README).
+   *
+   * Blok ini pernah menghitung `partaiFilter` yang tidak pernah dipakai;
+   * variabel mati itu dihapus (error `no-unused-vars` yang membuat
+   * `npm run lint` merah).
+   */
   const wawasanTampil = useMemo(() => {
     if (!wawasan) return null;
     if (filterWarna === "all") return wawasan;
-    const partaiFilter = partai.filter((p) => {
-      const w = warnaPemain(p, username);
-      return w === filterWarna;
-    });
     return {
       ...wawasan,
       hasilUmum: filterWarna === "white" ? wawasan.sebagaiPutih : wawasan.sebagaiHitam,
       sebagaiPutih: filterWarna === "white" ? wawasan.sebagaiPutih : { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 },
       sebagaiHitam: filterWarna === "black" ? wawasan.sebagaiHitam : { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 },
     };
-  }, [wawasan, filterWarna, partai, username]);
+  }, [wawasan, filterWarna]);
 
   const daftarAkun = useMemo(() => {
     const unik = new Map();
@@ -260,7 +295,7 @@ export default function LayarWawasan() {
                   hitam={wawasanTampil.pembukaanHitam}
                   t={t}
                 />
-                <KartuAkurasi akurasi={wawasanTampil.akurasi} totalPartai={wawasanTampil.totalPartai} t={t} />
+                <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
               </div>
             </div>
           </>
@@ -282,7 +317,7 @@ function KpiGrid({ wawasan, t }) {
     { label: t("analisa.wawasan.kpi.totalPartai"), value: wawasan.totalPartai },
     { label: t("analisa.wawasan.kpi.winRate"), value: `${wawasan.hasilUmum.winRate}%`, accent: true },
     { label: t("analisa.wawasan.kpi.streak"), value: streakLabel },
-    { label: t("analisa.wawasan.kpi.akurasi"), value: wawasan.akurasi.avgAkurasi !== null ? `${wawasan.akurasi.avgAkurasi}%` : "N/A" },
+    { label: t("analisa.wawasan.kpi.akurasi"), value: wawasan.taktikal.avgAccuracy !== null ? `${wawasan.taktikal.avgAccuracy}%` : "N/A" },
     { label: t("analisa.wawasan.kpi.ratingPuncak"), value: wawasan.peakRating !== null ? String(wawasan.peakRating) : "N/A" },
   ];
 
@@ -479,6 +514,7 @@ function KartuPembukaanTeratas({ putih, hitam, t }) {
             <thead>
               <tr className="border-b border-border text-foregroundGrey">
                 <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
+                <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
                 <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
                 <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.winRate")}</th>
                 <th className="py-1.5 px-2 font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.hasil")}</th>
@@ -497,6 +533,7 @@ function KartuPembukaanTeratas({ putih, hitam, t }) {
                         <span className="font-semibold text-foreground">{op.name}</span>
                       </div>
                     </td>
+                    <td className="py-1.5 px-2 font-mono text-[10px] text-foregroundGrey whitespace-nowrap">{op.moves || "\u2014"}</td>
                     <td className="py-1.5 px-2 text-right font-mono text-foregroundGrey">{op.played}</td>
                     <td className="py-1.5 px-2 text-right font-mono font-bold text-highlightBest">{op.winRate}%</td>
                     <td className="py-1.5 px-2">
@@ -517,27 +554,81 @@ function KartuPembukaanTeratas({ putih, hitam, t }) {
   );
 }
 
-function KartuAkurasi({ akurasi, totalPartai, t }) {
+/**
+ * Kartu "Akurasi & Kesalahan Taktikal" — tiruan `TacticalMistakesCard.tsx`
+ * repo acuan ChessGameReviewer, baris demi baris:
+ *   1. header: judul + "<n> evaluated moves";
+ *   2. banner akurasi: label, angka (`avgAccuracy !== null ? "x%" : "No
+ *      evaluations yet"`), dan subteks sumber metode;
+ *   3. grid empat pil: Blunders (dengan "<x> / game"), Mistakes, Inaccuracies,
+ *      Misses.
+ *
+ * Angka-angkanya datang dari `hitungTaktikal` (padanan `computeTacticalStats`),
+ * jadi kartu ini TIDAK menghitung apa pun sendiri — persis seperti acuan yang
+ * hanya merender `TacticalMistakeSummary`.
+ */
+function KartuTaktikal({ taktikal, t }) {
+  const butir = [
+    { kunci: "blunder", nilai: taktikal.blunders, titik: "bg-highlightBlunder", laju: true },
+    { kunci: "mistake", nilai: taktikal.mistakes, titik: "bg-highlightMistake" },
+    { kunci: "inaccuracy", nilai: taktikal.inaccuracies, titik: "bg-highlightInaccuracy" },
+    { kunci: "miss", nilai: taktikal.misses, titik: "bg-highlightMiss" },
+  ];
+
   return (
     <div className="wawasan-card">
-      <h3 className="wawasan-card-title">{t("analisa.wawasan.akurasiJudul")}</h3>
-      <div className="mt-3 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3 flex flex-col gap-1">
-        <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.label")}</span>
-        <span className="text-2xl font-extrabold text-highlightBest font-mono">
-          {akurasi.avgAkurasi !== null ? `${akurasi.avgAkurasi}%` : "N/A"}
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="wawasan-card-title">{t("analisa.wawasan.taktikalJudul")}</h3>
+        <span className="text-xs text-foregroundGrey">
+          <strong className="text-foreground">{taktikal.totalEvaluatedMoves}</strong>{" "}
+          {t("analisa.wawasan.taktikal.langkahDinilai")}
         </span>
-        <span className="text-[10px] text-foregroundGrey">{t("analisa.wawasan.akurasi.keterangan")}</span>
       </div>
+
+      <div className="mt-3 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3 flex flex-col gap-1">
+        <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.taktikal.akurasiLabel")}</span>
+        <span className="text-2xl font-extrabold text-highlightBest font-mono">
+          {taktikal.avgAccuracy !== null
+            ? `${taktikal.avgAccuracy}%`
+            : t("analisa.wawasan.taktikal.belumAdaEvaluasi")}
+        </span>
+        <span className="text-[10px] text-foregroundGrey">{t("analisa.wawasan.taktikal.akurasiKet")}</span>
+      </div>
+
       <div className="mt-2 grid grid-cols-2 gap-2">
-        <div className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2">
-          <span className="text-[10px] font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.totalPartai")}</span>
-          <span className="text-lg font-bold font-mono text-foreground">{totalPartai}</span>
-        </div>
-        <div className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2">
-          <span className="text-[10px] font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.langkahDinilai")}</span>
-          <span className="text-lg font-bold font-mono text-foreground">{akurasi.totalLangkahDinilai}</span>
-        </div>
+        {butir.map((b) => (
+          <div
+            key={b.kunci}
+            className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2"
+          >
+            <span className="flex items-center gap-1.5 text-[10px] font-bold text-foregroundGrey">
+              <span className={`h-2 w-2 rounded-full ${b.titik}`} />
+              {t(`analisa.wawasan.taktikal.${b.kunci}`)}
+            </span>
+            <span className="text-lg font-bold font-mono text-foreground">{b.nilai}</span>
+            {b.laju ? (
+              <span className="text-[10px] font-mono text-foregroundGrey">
+                {taktikal.blundersPerGame > 0 ? `${taktikal.blundersPerGame}` : "0"}{" "}
+                {t("analisa.wawasan.taktikal.perPartai")}
+              </span>
+            ) : null}
+          </div>
+        ))}
       </div>
+
+      {/*
+       * Keterangan jumlah partai yang benar-benar menyumbang angka. Acuan
+       * menampilkan "No evaluations yet" tanpa rincian; baris ini tambahan
+       * repo ini supaya "kenapa N/A padahal data sudah ditarik" terjawab:
+       * akurasi hanya ada untuk partai yang dianalisis engine pada sesi ini
+       * atau yang dikirim platform bersama arsipnya.
+       */}
+      <p className="mt-2 text-[10px] leading-4 text-foregroundGrey">
+        {t("analisa.wawasan.taktikal.cakupan", {
+          dinilai: taktikal.accuracyCount,
+          dianalisis: taktikal.analyzedGamesCount,
+        })}
+      </p>
     </div>
   );
 }

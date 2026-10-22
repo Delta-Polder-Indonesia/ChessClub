@@ -13,6 +13,16 @@ import { Chess } from "chess.js";
  */
 import { isEndOpening, isEndMiddlegame } from "../../../../mesin/fase.js";
 import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
+/*
+ * Sumber angka baris Akurasi. Sebelumnya komponen ini punya peta label → poin
+ * tetap (best 100, excellent 90, good 70, inaccuracy 30, mistake 20, blunder 0)
+ * sehingga SATU partai bisa menampilkan DUA akurasi yang berbeda: baris ini
+ * memakai poin label, sedangkan kartu Deteksi Engine dan dashboard Wawasan
+ * memakai kurva win chance (`mesin/akurasi.js`). Peta itu dihapus — bukan
+ * dikalibrasi ulang — supaya satu partai punya satu angka akurasi.
+ * Lihat docs/PERBANDINGAN-METRIK-AKURASI.md bagian 5.
+ */
+import { akurasiMove, pemainDariEntri } from "../../../../mesin/akurasi.js";
 import { avg } from "./playersAccuracyData.js";
 
 /** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
@@ -36,48 +46,41 @@ function PlayersAccuracy(props) {
     const accuracies = { w: [], b: [] };
     const accuraciesPhases = { opening: { w: [], b: [] }, middlegame: { w: [], b: [] }, endgame: { w: [], b: [] } };
     let currentPhase = "opening";
-    for (const move2 of moves) {
-      if (!move2) continue;
+    // `moves[0]` adalah POSISI AWAL (tanpa `san` maupun eval), bukan langkah —
+    // `pemainDariEntri` mengembalikannya sebagai `null` dan entri itu lewat.
+    // Pelangkah dibaca dari `color` entri (pihak yang bergilir SESUDAH
+    // langkah), sama seperti `mover = parseFenSideToMove(ply.fenBefore)` di
+    // acuan; paritas indeks hanya cadangan untuk data tanpa `color`.
+    moves.forEach((move2, i) => {
+      if (!move2) return;
+      const color = pemainDariEntri(move2, i);
+      /*
+       * Akurasi TIDAK memerlukan papan: `akurasiMove` hanya membaca
+       * `previousStaticEvals`. FEN rusak (data lama, partai terpotong) jadi
+       * tidak lagi membuang akurasi langkah itu — yang hilang hanya catatan
+       * fasenya, karena fase memang ditentukan dari susunan papan.
+       */
+      const moveAccuracy = akurasiMove(move2);
+      if (color !== null && Number.isFinite(moveAccuracy)) {
+        pushAccuracy(accuracies, moveAccuracy, color);
+      }
+
       let board;
       try {
         board = new Chess(move2.fen).board();
       } catch {
-        continue;
+        return;
       }
-      const color = move2.color === "w" ? "b" : "w";
-      const rating = move2.moveRating;
-      // Langkah paksa tidak mencerminkan keputusan — dikeluarkan seperti
-      // warisan. Dulu labelnya "forced" sehingga lolos dari `switch` dan
-      // `continue` lewat NaN; kini kualitasnya terisi sehingga harus ditolak
-      // eksplisit (mencakup label warisan "forced" pada data lama).
-      if (langkahTerpaksa(move2)) continue;
-      let moveAccuracy = NaN;
-      switch (rating) {
-        case "brilliant":
-        case "great":
-        case "best":
-        case "book":
-          moveAccuracy = 100;
-          break;
-        case "excellent":
-          moveAccuracy = 90;
-          break;
-        case "good":
-          moveAccuracy = 70;
-          break;
-        case "inaccuracy":
-        case "miss":
-          moveAccuracy = 30;
-          break;
-        case "mistake":
-          moveAccuracy = 20;
-          break;
-        case "blunder":
-          moveAccuracy = 0;
-          break;
-      }
-      if (isNaN(moveAccuracy)) continue;
-      pushAccuracy(accuracies, moveAccuracy, color);
+      /*
+       * Langkah paksa tidak mencerminkan keputusan, jadi tidak ikut daftar
+       * fase (warisan perilaku lama). Namun ia TETAP ikut baris Akurasi di
+       * atas: `summarizeColor` acuan hanya menyaring `status === 'classified'`,
+       * dan langkah paksa tetap terklasifikasi. Menyaringnya di sini akan
+       * membuat angka Ringkasan berbeda dari angka Wawasan untuk partai yang
+       * sama.
+       */
+      if (langkahTerpaksa(move2)) return;
+      if (color === null || !Number.isFinite(moveAccuracy)) return;
       switch (currentPhase) {
         case "opening":
           pushAccuracyPhase(accuraciesPhases, moveAccuracy, "opening", color);
@@ -91,7 +94,7 @@ function PlayersAccuracy(props) {
           pushAccuracyPhase(accuraciesPhases, moveAccuracy, "endgame", color);
           break;
       }
-    }
+    });
     const newAccuracy = { w: avg(accuracies.w), b: avg(accuracies.b) };
     setAccuracy(newAccuracy);
     setAccuracyPhases(accuraciesPhases);
@@ -121,7 +124,7 @@ function PlayersAccuracy(props) {
                 </div>
             </div>
             <div className="flex flex-row w-full justify-between items-center">
-                <span className="text-sm font-semibold text-foregroundGrey">{t("analisa.ringkasan.akurasi")}</span>
+                <span className="text-sm font-semibold text-foregroundGrey" title={t("analisa.ringkasan.akurasiMetode")}>{t("analisa.ringkasan.akurasi")}</span>
                 <div className="flex flex-row reduceSummary:w-[262px] w-[160px] justify-between">
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0} white>{formatAkurasi(accuracy.w)}</RatingBox>
                     <RatingBox fontSize={props.reducedSummary ? 18 : void 0} width={props.reducedSummary ? 64 : void 0} paddingY={props.reducedSummary ? 4 : void 0}>{formatAkurasi(accuracy.b)}</RatingBox>

@@ -302,6 +302,8 @@ export const analisa = {
       judul: "Game summary",
       pemain: "Players",
       akurasi: "Accuracy",
+      akurasiMetode:
+        "Accuracy (win chance curve, arithmetic mean) — the same number as the Accuracy card in Insights",
       pembukaan: "Opening",
       menengah: "Middlegame",
       akhir: "Endgame",
@@ -464,9 +466,18 @@ export const analisa = {
       tanpaPembukaan: "No opening data available.",
       pembukaan: {
         nama: "Opening",
+        /* "Moves" column of `TopOpeningsCard.tsx`: length of the opening line. */
+        langkah: "Moves",
         main: "Played",
         winRate: "Win %",
         hasil: "Outcomes",
+        /*
+         * `aggregations.ts` line 145: opening name from the PGN tag, then
+         * `Opening ${eco}`, then "Unknown Opening". These two keys carry the
+         * same fallback wording.
+         */
+        dariEco: "Opening {eco}",
+        tidakDiketahui: "Unknown Opening",
       },
       taktikalJudul: "Accuracy",
       akurasiJudul: "Accuracy",
@@ -484,6 +495,15 @@ export const analisa = {
         langkahDinilai: "moves evaluated",
         akurasiLabel: "Average Move Accuracy",
         akurasiKet: "Based on Stockfish evaluations from analyzed games",
+        /* `TacticalMistakesCard.tsx`: 'No evaluations yet' and '{n} / game'. */
+        belumAdaEvaluasi: "No evaluations yet",
+        perPartai: "per game",
+        /*
+         * Local addition (the reference has no such line): spells out which
+         * games actually contribute to the accuracy number.
+         */
+        cakupan:
+          "Accuracy is computed from {dinilai} moves across {dianalisis} games with engine evaluations.",
       },
     },
     grafik: {

@@ -2,12 +2,14 @@
  * Uji AKURASI & RATING pemain fitur Analisa — komponen ASLI di atas jsdom:
  *
  *   1. `avg` (playersAccuracy.jsx): array kosong → NaN, rata-rata biasa.
- *   2. `PlayersAccuracy`: peta label → poin akurasi
- *        brilliant/great/best/book = 100, excellent = 90, good = 70,
- *        inaccuracy/miss = 30, mistake = 20, blunder = 0;
- *      kredit langkah ke pemain yang Bergerak (lawan entry.color);
- *      deteksi fase pembukaan → tengah → akhir (satu arah);
- *      label "forced" & FEN rusak tidak ikut dihitung;
+ *   2. `PlayersAccuracy`: akurasi KURVA WIN CHANCE (`mesin/akurasi.js`) atas
+ *      partai NYATA hasil `parsePGN()` + engine palsu deterministik;
+ *      kredit langkah ke pelangkah (lawan `entry.color`, lewat
+ *      `pemainDariEntri`); deteksi fase pembukaan → tengah → akhir (satu arah);
+ *      PARITAS dengan `ringkasWarna()` (sumber angka kartu Wawasan);
+ *      langkah paksa ikut Akurasi tapi tidak ikut fase; FEN rusak → akurasi
+ *      tetap dihitung, fase tidak; ply tanpa eval tidak dihitung;
+ *      label tak dikenal tidak mengubah angka;
  *      daftar kosong → akurasi NaN → tampil "-".
  *   3. `GameRating`: rumus rating nonlinear (akurasi 100 → 3000+, 40 → 300,
  *      70 → 550, 0 → 1100, NaN → 0) dan rating per fase (label oleh ambang
@@ -29,6 +31,14 @@ const { avg } = await import("../src/halaman/Analisa/komponen/menu/analysis/summ
 const { default: GameRating } = await import(
   "../src/halaman/Analisa/komponen/menu/analysis/summary/gameRating.jsx"
 );
+const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
+/*
+ * Sumber angka yang diharapkan seksi 2. Ekspektasinya DITURUNKAN dari fungsi
+ * produksi ini lalu di-pin: kalau `akurasiMove` berubah, PIN tidak lagi cocok
+ * dan uji gagal — bukan ekspektasinya yang ikut bergeser mengikuti kode.
+ */
+const { akurasiMove, pemainDariEntri } = await import("../src/halaman/Analisa/mesin/akurasi.js");
+const { ringkasWarna } = await import("../src/halaman/Analisa/mesin/ringkasanAnalisis.js");
 
 const act = React.act ?? (await import("react-dom/test-utils")).act;
 
@@ -70,41 +80,6 @@ function ProbePlayersAccuracy(props) {
   });
 }
 
-/* Rangkaian riil 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.Qe2 Qe7 (FEN via chess.js). */
-function fenSetengah() {
-  const c = new Chess();
-  const daftar = ["e4", "e5", "Nf3", "Nc6", "Bc4", "Bc5", "Qe2", "Qe7"];
-  const fen = [];
-  for (const san of daftar) fen.push(c.move(san).after);
-  return fen;
-}
-
-const FEN = fenSetengah();
-
-/* Entri 9-11: reduksi cepat ke akhirpartai (FEN sah, hasil `chess.js`). */
-const END1 = "4k3/8/8/8/8/8/1K6/R7 b - - 0 9";
-const END2 = "3k4/8/8/8/8/8/1K6/R7 w - - 0 9";
-const END3 = "3k4/8/8/8/8/8/2K5/R7 b - - 0 10";
-
-const MOVES = [
-  { fen: FEN[0], color: "b", moveRating: "best" }, // 1.e4 (putih)
-  { fen: FEN[1], color: "w", moveRating: "blunder" }, // 1...e5 (hitam)
-  { fen: FEN[2], color: "b", moveRating: "excellent" }, // 2.Nf3 (putih)
-  { fen: FEN[3], color: "w", moveRating: "mistake" }, // 2...Nc6 (hitam)
-  { fen: FEN[4], color: "b", moveRating: "good" }, // 3.Bc4 (putih)
-  { fen: FEN[5], color: "w", moveRating: "inaccuracy" }, // 3...Bc5 (hitam)
-  { fen: FEN[6], color: "b", moveRating: "brilliant" }, // 4.Qe2 (putih)
-  { fen: FEN[7], color: "w", moveRating: "great" }, // 4...Qe7 (hitam)
-  { fen: END1, color: "b", moveRating: "book" }, // 5.Rxa8 (putih, fiktif)
-  { fen: END2, color: "w", moveRating: "forced" }, // 5...Ke8 (hitam, fiktif)
-  { fen: END3, color: "b", moveRating: "excellent" }, // 6.Kc2 (putih, fiktif)
-  // Sampah: FEN rusak & label tak dikenal — keduanya harus diabaikan.
-  { fen: "bukan-fen", color: "w", moveRating: "best" },
-  { fen: FEN[0], color: "b", moveRating: "alien" },
-];
-
-const PLAYERS = [{ name: "Putih" }, { name: "Hitam" }];
-
 /* ------------------------- 1. avg ------------------------- */
 
 console.log("== avg ==");
@@ -114,7 +89,188 @@ hasil("avg([30]) = 30", avg([30]) === 30);
 
 /* ------------------------- 2. PlayersAccuracy ------------------------- */
 
-console.log("\n== PlayersAccuracy: peta poin, kredit warna, fase ==");
+/*
+ * PARTAI NYATA hasil `parsePGN()` + engine palsu deterministik — pola yang sama
+ * dengan `scripts/uji-hasil.mjs`. Sengaja bukan daftar entri buatan tangan:
+ * bentuk entri (`moves[0]` = posisi awal, `color` = pihak yang bergilir
+ * SESUDAH langkah, `previousStaticEvals` akumulatif) terlalu mudah salah
+ * ditiru, dan kalau salah yang rusak adalah kredit warna seluruh partai.
+ * Dengan partai asli, pemetaan indeks → pelangkah datang dari parser sungguhan.
+ *
+ * 73 langkah, ketiga fase terisi (pembukaan 14, menengah 39, akhir 20).
+ */
+const PGN_UJI = `[Event "Uji Akurasi"]
+[Site "localhost"]
+[Date "2026.10.22"]
+[White "Putih"]
+[Black "Hitam"]
+[Result "1-0"]
+
+1. e4 c5 2. Nf3 d6 3. d4 cxd4 4. Nxd4 Nf6 5. Nc3 a6 6. Be3 e5 7. Nb3 Be7 8. f3 Be6 9. Qd2 O-O 10. O-O-O Nbd7 11. g4 b5 12. g5 Nh5 13. Kb1 Nb6 14. Na5 Rc8 15. Bxb6 Qxb6 16. Nd5 Bxd5 17. exd5 Qxa5 18. Qxa5 Nf4 19. h4 Nxd5 20. Rxd5 Rxc2 21. Qd2 Rxd2 22. Rxd2 d5 23. Bd3 Rd8 24. Rc1 g6 25. Rc6 Kg7 26. Rxa6 Rd6 27. Rxd6 Bxd6 28. Bxb5 Bc5 29. Rxd5 Be3 30. Rd3 Bf4 31. a4 f6 32. a5 fxg5 33. hxg5 Bxg5 34. a6 Be7 35. Rd7 Kf6 36. a7 Bc5 37. b4`;
+
+/* FEN tiap posisi: indeks 0 = posisi awal, indeks k = sesudah ply k. */
+const caturUji = new Chess();
+const FEN_POSISI = [caturUji.fen()];
+for (const token of PGN_UJI.split(/\n\s*\n/).pop().split(/\s+/)) {
+  if (/^\d+\.+$/.test(token)) continue;
+  FEN_POSISI.push(caturUji.move(token).after);
+}
+
+/*
+ * Keunggulan putih (paskal) SESUDAH tiap ply. Dirancang supaya KEDUA pemain
+ * punya campuran rugi kecil (akurasi ~97-100), rugi sedang (~75) dan rugi
+ * besar (~44). Tanpa kerugian sama sekali setiap langkah menjadi 100 dan
+ * seksinya tidak membuktikan apa-apa; `peluangMenang` menjenuh di ±1000 cp
+ * jadi semua nilai dijauhkan dari plafon itu.
+ */
+const SKOR_PUTIH = [
+  0.30, 0.35, 0.25, 0.30, 0.20, 0.25, 0.15, 0.20, 0.30, 0.25,
+  0.35, 0.30, 0.40, 0.35, 0.45, 0.40, -0.30, -0.25, -0.35, -0.30,
+  -0.20, -0.25, -0.15, -0.20, -0.10, -0.15, -0.05, -0.10, 0.00, -0.05,
+  0.05, 0.00, 0.10, 0.05, 0.15, 0.10, 0.20, 0.15, 0.25, 0.20,
+  -0.50, -0.45, -0.35, -0.40, -0.30, -0.35, -0.25, -0.30, -0.20, -0.25,
+  -0.15, -0.20, -0.10, 2.00, 2.05, 1.30, 1.35, 0.60, 0.65, 0.70,
+  0.65, 2.85, 2.90, 2.95, 2.90, 3.00, 2.95, 3.05, 3.00, 3.10,
+  3.05, 3.15, 3.10, 3.20,
+];
+
+const kotakUji = (s) => formatSquare(s);
+function saranEngine(fen) {
+  const gerak = new Chess(fen).moves({ verbose: true });
+  const pilihan =
+    gerak.find((m) => m.from === "h2" && m.to === "h3") ??
+    gerak.find((m) => m.from === "h7" && m.to === "h6") ??
+    gerak[0];
+  return [kotakUji(pilihan.from), kotakUji(pilihan.to)];
+}
+
+/** Eval sudut PIHAK YANG BERGILIR di `fen` — persis kontrak Stockfish. */
+class EnginePalsu {
+  async siapkan() {}
+  async cari(fen, { kedalaman } = {}) {
+    const awal = fen === FEN_POSISI[0];
+    const i = awal ? 0 : FEN_POSISI.indexOf(fen) - 1;
+    const giliranPutih = i % 2 === 0;
+    const cp = Math.round((giliranPutih ? -SKOR_PUTIH[i] : SKOR_PUTIH[i]) * 100);
+    return {
+      staticEval: ["cp", String(cp)],
+      bestMove: saranEngine(fen),
+      bestMoveCoronation: undefined,
+      kedalamanTercapai: kedalaman,
+      pv: [],
+    };
+  }
+  gameBaru() {}
+  setop() {}
+  hancurkan() {}
+}
+
+const { moves: MOVES } = await parsePGN(new EnginePalsu(), PGN_UJI, 15, {}, () => {});
+
+/*
+ * Kasus tepi DITEMPELKAN ke partai nyata (bukan entri sintetis terpisah),
+ * supaya yang diuji tetap bentuk data yang dihasilkan `parsePGN`. Semua ply
+ * yang dipilih jauh dari batas fase — kalau tidak, satu entri rusak akan
+ * menggeser fase seluruh sisa partai dan uji jadi menguji hal lain.
+ */
+const PLY_PAKSA = 43; // Putih: ikut Akurasi, tidak ikut fase
+const PLY_FEN_RUSAK = 46; // Hitam: akurasi tetap dihitung, fase tidak
+const PLY_TANPA_EVAL = 61; // Putih: tidak dihitung di mana pun
+const PLY_LABEL_ASING = 64; // Hitam: tetap dihitung
+MOVES[PLY_PAKSA].isForced = true;
+/*
+ * Eval ply paksa DIKHAS-kan (rugi ~12 poin win chance → akurasi 82.29) supaya
+ * nilainya tidak sama dengan 100 yang dimiliki banyak langkah lain. Tanpa ini
+ * "tidak ikut fase" tidak bisa dibuktikan: nilai 100 tetap akan ditemukan di
+ * daftar fase, hanya berasal dari langkah yang berbeda.
+ */
+MOVES[PLY_PAKSA].previousStaticEvals = [["cp", "10"], ["cp", "40"]];
+MOVES[PLY_FEN_RUSAK].fen = "bukan-fen";
+MOVES[PLY_TANPA_EVAL].previousStaticEvals = [["cp", null]];
+MOVES[PLY_LABEL_ASING].moveRating = "alien";
+
+const PLAYERS = [{ name: "Putih" }, { name: "Hitam" }];
+
+/*
+ * EKSPEKTASI. `akurasi*` DITURUNKAN dari fixture lewat fungsi produksi
+ * `akurasiMove`, sedangkan `PIN_*` adalah salinan keluaran fungsi itu pada
+ * saat seksi ini ditulis. Keduanya diperiksa: kalau `akurasiMove` berubah,
+ * PIN tidak lagi cocok dan uji gagal — ekspektasinya tidak ikut bergeser
+ * diam-diam mengikuti kode.
+ */
+const PLY_PUTIH = [];
+const PLY_HITAM = [];
+for (let i = 1; i < MOVES.length; i++) {
+  const mover = pemainDariEntri(MOVES[i], i);
+  if (mover === "w") PLY_PUTIH.push(i);
+  else if (mover === "b") PLY_HITAM.push(i);
+}
+const acc = (i) => akurasiMove(MOVES[i]);
+const rata = (a) => a.reduce((x, y) => x + y, 0) / a.length;
+const sampelPutih = PLY_PUTIH.map(acc).filter(Number.isFinite);
+const sampelHitam = PLY_HITAM.map(acc).filter(Number.isFinite);
+/* Diukur 2026-10-22. Putih: 36 sampel (ply 61 tanpa eval). Hitam: 36 sampel. */
+const PIN_PUTIH = 97.75224649393323; // tampil "97.8"
+const PIN_HITAM = 96.43311589466; // tampil "96.4"
+/*
+ * Indeks fase DIUKUR, bukan dihitung dari panjang partai: batasnya ditentukan
+ * `isEndOpening`/`isEndMiddlegame` atas papan tiap langkah. Angka kedua adalah
+ * rata-rata akurasi fase pada saat seksi ini ditulis.
+ */
+const FASE = {
+  opening: { w: { n: 7, rata: 98.6952 }, b: { n: 7, rata: 99.4043 } },
+  middlegame: { w: { n: 19, rata: 97.2927 }, b: { n: 18, rata: 99.8271 } },
+  endgame: { w: { n: 9, rata: 99.7070 }, b: { n: 10, rata: 87.8875 } },
+};
+
+console.log("\n== PlayersAccuracy: akurasi kurva win chance, kredit warna, fase ==");
+hasil(
+  "partai nyata: 74 entri = posisi awal + 73 langkah",
+  MOVES.length === 74 && FEN_POSISI.length === 74 && SKOR_PUTIH.length === 74,
+  `moves=${MOVES.length} fen=${FEN_POSISI.length} skor=${SKOR_PUTIH.length}`
+);
+hasil(
+  "moves[0] = POSISI AWAL, bukan langkah (tanpa san/rating/akurasi)",
+  MOVES[0].san === undefined && MOVES[0].moveRating === undefined && acc(0) === null,
+  `san=${JSON.stringify(MOVES[0].san)} akurasi=${acc(0)}`
+);
+/* 73 langkah: Putih membuka, jadi Putih 37 ply (ganjil) dan Hitam 36 (genap). */
+hasil(
+  "kredit warna: Putih = 37 ply ganjil, Hitam = 36 ply genap",
+  PLY_PUTIH.length === 37 && PLY_HITAM.length === 36 &&
+    PLY_PUTIH.every((i) => i % 2 === 1) && PLY_HITAM.every((i) => i % 2 === 0),
+  `putih=${PLY_PUTIH.length} hitam=${PLY_HITAM.length}`
+);
+/*
+ * Bukti bahwa akurasi TIDAK lagi dibaca dari label. Dicari di data, bukan
+ * ditulis tangan: yang diuji adalah PROPERTI-nya (label sama → angka bisa
+ * berbeda), jadi assertion tidak ikut rusak bila skor engine diubah.
+ */
+const PLY_SEMPURNA = MOVES.findIndex(
+  (m, i) => i > 0 && m.moveRating === "excellent" && acc(i) === 100
+);
+hasil(
+  "label tidak menentukan angka: dua 'excellent' → 100 dan 96.96",
+  PLY_SEMPURNA > 0 && MOVES[3].moveRating === "excellent" &&
+    Math.abs(acc(3) - 96.959003) < 1e-6,
+  `ply sempurna=${PLY_SEMPURNA} acc(3)=${acc(3)}`
+);
+hasil(
+  'tidak ada lagi label "excellent" yang bernilai 90 poin tetap',
+  !MOVES.some((m, i) => i > 0 && m.moveRating === "excellent" && acc(i) === 90),
+  "masih ada excellent = 90"
+);
+hasil(
+  "label 'inaccuracy' (ply 54) → 43.85, bukan 30 poin tetap",
+  MOVES[54].moveRating === "inaccuracy" && Math.abs(acc(54) - 43.851748) < 1e-6,
+  `acc(54)=${acc(54)}`
+);
+hasil(
+  "ply paksa punya akurasi khas (bukan 100) supaya bisa dilacak",
+  acc(PLY_PAKSA) !== 100 && Number.isFinite(acc(PLY_PAKSA)),
+  `acc(${PLY_PAKSA})=${acc(PLY_PAKSA)}`
+);
+hasil("ply tanpa eval → akurasi null, bukan 0", acc(PLY_TANPA_EVAL) === null, String(acc(PLY_TANPA_EVAL)));
 {
   const kunci = { acc: null, phases: null };
   act(() => {
@@ -136,43 +292,92 @@ console.log("\n== PlayersAccuracy: peta poin, kredit warna, fase ==");
   const faseTerkunci = kunci.phases;
 
   hasil(
-    "akurasi putih = 91.666… (100,90,70,100,100,90)",
-    Math.abs(akurasiTerkunci?.w - 550 / 6) < 1e-9,
-    `dapat ${akurasiTerkunci?.w}`
+    "akurasi putih = rata-rata aritmetik 36 sampel (97.752…)",
+    Math.abs(akurasiTerkunci?.w - PIN_PUTIH) < 1e-9 &&
+      Math.abs(akurasiTerkunci?.w - rata(sampelPutih)) < 1e-9,
+    `dapat ${akurasiTerkunci?.w}, pin ${PIN_PUTIH}`
   );
   hasil(
-    "akurasi hitam = 37.5 (0,20,30,100)",
-    Math.abs(akurasiTerkunci?.b - 37.5) < 1e-9,
-    `dapat ${akurasiTerkunci?.b}`
+    "akurasi hitam = rata-rata aritmetik 36 sampel (96.433…)",
+    Math.abs(akurasiTerkunci?.b - PIN_HITAM) < 1e-9 &&
+      Math.abs(akurasiTerkunci?.b - rata(sampelHitam)) < 1e-9,
+    `dapat ${akurasiTerkunci?.b}, pin ${PIN_HITAM}`
+  );
+  /*
+   * PARITAS dengan dashboard Wawasan: baris Akurasi dan `ringkasWarna()` —
+   * dibaca `hitungTaktikal` lewat peta analisis sesi — HARUS sama persis untuk
+   * `moves` yang sama. Inilah inti perbaikan 2026-10-22: satu partai, satu
+   * angka akurasi, di Ringkasan maupun di Wawasan.
+   */
+  hasil(
+    "paritas dengan ringkasWarna (sumber angka kartu Wawasan) — putih",
+    akurasiTerkunci?.w === ringkasWarna(MOVES, "w").accuracyEstimate,
+    `${akurasiTerkunci?.w} vs ${ringkasWarna(MOVES, "w").accuracyEstimate}`
   );
   hasil(
-    "fase pembukaan: putih [100,90,70,100]",
-    JSON.stringify(faseTerkunci?.opening?.w) === JSON.stringify([100, 90, 70, 100]),
-    JSON.stringify(faseTerkunci?.opening?.w)
+    "paritas dengan ringkasWarna (sumber angka kartu Wawasan) — hitam",
+    akurasiTerkunci?.b === ringkasWarna(MOVES, "b").accuracyEstimate,
+    `${akurasiTerkunci?.b} vs ${ringkasWarna(MOVES, "b").accuracyEstimate}`
+  );
+  for (const fase of ["opening", "middlegame", "endgame"]) {
+    const w = faseTerkunci?.[fase]?.w ?? [];
+    const b = faseTerkunci?.[fase]?.b ?? [];
+    hasil(
+      `fase ${fase}: putih n=${FASE[fase].w.n} rata≈${FASE[fase].w.rata}, hitam n=${FASE[fase].b.n} rata≈${FASE[fase].b.rata}`,
+      w.length === FASE[fase].w.n && b.length === FASE[fase].b.n &&
+        Math.abs(rata(w) - FASE[fase].w.rata) < 5e-5 &&
+        Math.abs(rata(b) - FASE[fase].b.rata) < 5e-5,
+      `dapat w n=${w.length} rata=${w.length ? rata(w).toFixed(4) : "-"} b n=${b.length} rata=${b.length ? rata(b).toFixed(4) : "-"}`
+    );
+  }
+  /*
+   * Langkah paksa ikut baris Akurasi (mengikuti `summarizeColor` acuan, yang
+   * hanya menyaring `status === 'classified'`) tetapi tidak ikut daftar fase.
+   * Selisih sampel-vs-fase harus NYATA, kalau tidak pembeda itu bisa hilang
+   * tanpa terdeteksi.
+   */
+  const gabunganW = FASE.opening.w.n + FASE.middlegame.w.n + FASE.endgame.w.n;
+  const gabunganB = FASE.opening.b.n + FASE.middlegame.b.n + FASE.endgame.b.n;
+  hasil(
+    "langkah paksa & ply tanpa eval: putih 36 sampel Akurasi vs 35 di fase",
+    sampelPutih.length === 36 && gabunganW === 35,
+    `${sampelPutih.length} vs ${gabunganW}`
   );
   hasil(
-    "fase pembukaan: hitam [0,20,30] (berakhir setelah 4.Qe2 — 3 bidak putih & 2 hitam sudah keluar)",
-    JSON.stringify(faseTerkunci?.opening?.b) === JSON.stringify([0, 20, 30]),
-    JSON.stringify(faseTerkunci?.opening?.b)
+    "FEN rusak: hitam 36 sampel Akurasi vs 35 di fase",
+    sampelHitam.length === 36 && gabunganB === 35,
+    `${sampelHitam.length} vs ${gabunganB}`
   );
   hasil(
-    "fase tengah: putih [100], hitam [100] (label 'forced' tidak dihitung)",
-    JSON.stringify(faseTerkunci?.middlegame?.w) === JSON.stringify([100]) &&
-      JSON.stringify(faseTerkunci?.middlegame?.b) === JSON.stringify([100]),
-    JSON.stringify(faseTerkunci?.middlegame)
+    "ply paksa ikut baris Akurasi tapi tidak ikut fase",
+    Number.isFinite(acc(PLY_PAKSA)) &&
+      sampelPutih.includes(acc(PLY_PAKSA)) &&
+      ![...(faseTerkunci?.opening?.w ?? []), ...(faseTerkunci?.middlegame?.w ?? []), ...(faseTerkunci?.endgame?.w ?? [])].includes(acc(PLY_PAKSA)),
+    `acc(${PLY_PAKSA})=${acc(PLY_PAKSA)}`
   );
   hasil(
-    "fase akhir: putih [90], hitam []",
-    JSON.stringify(faseTerkunci?.endgame?.w) === JSON.stringify([90]) &&
-      JSON.stringify(faseTerkunci?.endgame?.b) === JSON.stringify([]),
-    JSON.stringify(faseTerkunci?.endgame)
+    "FEN rusak → akurasi tetap dihitung, hanya catatan fasenya yang hilang",
+    Number.isFinite(acc(PLY_FEN_RUSAK)) && sampelHitam.includes(acc(PLY_FEN_RUSAK)),
+    `acc(${PLY_FEN_RUSAK})=${acc(PLY_FEN_RUSAK)}`
+  );
+  hasil(
+    'label tak dikenal ("alien") tetap dihitung — akurasi tidak dibaca dari label',
+    Number.isFinite(acc(PLY_LABEL_ASING)) &&
+      sampelHitam.includes(acc(PLY_LABEL_ASING)) &&
+      MOVES[PLY_LABEL_ASING].moveRating === "alien",
+    `acc(${PLY_LABEL_ASING})=${acc(PLY_LABEL_ASING)}`
   );
   const teks = el.textContent;
-  hasil('tampilan akurasi putih "91.7"', teks.includes("91.7"), teks.slice(0, 80));
-  hasil('tampilan akurasi hitam "37.5"', teks.includes("37.5"));
+  hasil('tampilan akurasi putih "97.8"', teks.includes("97.8"), teks.slice(0, 90));
+  hasil('tampilan akurasi hitam "96.4"', teks.includes("96.4"), teks.slice(0, 90));
   hasil(
-    "FEN rusak & label asing tidak mengacaukan total (6 langkah putih dihitung)",
-    teks.includes("91.7") && !teks.includes("NaN")
+    "tanpa NaN di panel meski ada ply tanpa eval & FEN rusak",
+    teks.includes("97.8") && teks.includes("96.4") && !teks.includes("NaN")
+  );
+  hasil(
+    "label baris Akurasi menerangkan metodenya lewat title",
+    Boolean(el.querySelector('[title*="win chance"]')),
+    "title tidak memuat keterangan metode"
   );
 }
 

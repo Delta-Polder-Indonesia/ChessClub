@@ -250,13 +250,18 @@ tanpa blunder besar kedua ACPL identik.
 
 ## 5. Yang SENGAJA tidak disamakan
 
-1. **Panel "Akurasi" di Ringkasan** tetap memakai peta label port
-   Brilliant-Chess. Halaman Analisa berstatus FROZEN (v1) sejak 2026-09-10
-   (lihat `src/halaman/Analisa/README.md`), dan mengganti skala akurasi di
-   sana mengubah angka yang sudah dilihat pengguna selama ini plus rating
-   partai turunan (`gameRating.jsx`). Kalau memang mau disatukan, itu
-   keputusan produk tersendiri — tinggal memanggil `akurasiMove`/`rataHarmonik`
-   di `playersAccuracy.jsx`.
+1. **Panel "Akurasi" di Ringkasan** — DULU memakai peta label port
+   Brilliant-Chess (100/90/70/30/20/0), dan keputusan menyatukannya memang
+   ditunda sebagai "keputusan produk tersendiri" karena Halaman Analisa
+   berstatus FROZEN (v1) sejak 2026-09-10. Keputusan itu DIAMBIL pada
+   2026-10-22: peta label dihapus dari `playersAccuracy.jsx` dan baris
+   Akurasi kini memanggil `akurasiMove` (`mesin/akurasi.js`), kurva yang sama
+   dengan Deteksi Engine dan Wawasan. Konsekuensi yang diterima: akurasi
+   partai umumnya NAIK (label diskrit menghukum lebih keras daripada kurva),
+   dan rating turunan `gameRating.jsx` ikut naik. Yang TIDAK diubah:
+   `getRatingPhase` masih memakai ambang 95/90/80/60/40/20 yang dulu
+   dikalibrasi untuk nilai diskrit, sehingga ikon fase kini menumpuk di band
+   95–100. Mengkalibrasi ulang ambang itu adalah pekerjaan terpisah.
 2. **Skor kecurigaan 0–100 masih memakai ACPL lama.** `AMBANG.acplAcuan` (45)
    dan seluruh baris `KALIBRASI_RATING` dikalibrasi terhadap konvensi lama
    (clamp 1000 cp/langkah). Mengganti masukannya ke `acplBaku` tanpa
@@ -267,6 +272,33 @@ tanpa blunder besar kedua ACPL identik.
    NAG baru hidup berdampingan sebagai metrik tambahan, bukan pengganti.
 4. **Agregasi akurasi ala lichess 2025** (weighted mean berbobot volatilitas
    + harmonic mean) belum ditiru — en-croissant pun tidak.
+5. **Kartu Akurasi di layar Wawasan** (`komponen/nav/layarWawasan.jsx`) juga
+   TIDAK memakai harmonic mean. Sejak 2026-10-22 kartu itu menyalin
+   `computeTacticalStats` repo acuan ChessGameReviewer: akurasi per langkah
+   dari `akurasiLangkah` (kurva yang sama dengan di atas), tetapi dirangkum
+   dengan RATA-RATA ARITMETIK per partai, dan hanya untuk partai yang
+   dianalisis engine pada sesi itu — sisanya jatuh ke `accuracies` terbitan
+   chess.com/lichess.
+
+   Sejak 2026-10-22 baris Akurasi di Ringkasan memakai kurva dan ringkasan
+   yang SAMA dengan kartu Wawasan (lihat butir 1), jadi tiga angka akurasi
+   yang dulu berdampingan tinggal dua:
+
+   | Tempat | Per langkah | Ringkasan | Langkah paksa | Sumber |
+   | --- | --- | --- | --- | --- |
+   | Ringkasan → "Akurasi" DAN Wawasan → "Akurasi & Kesalahan Taktikal" | kurva win chance | rata-rata aritmetik | ikut dihitung | ChessGameReviewer |
+   | Deteksi Engine → "Akurasi (harmonic mean, metode lichess)" | kurva win chance | harmonic mean | dikeluarkan (juga `book`) | en-croissant/lichess |
+
+   Keduanya membaca `moves` yang sama, jadi paritas Ringkasan ↔ Wawasan
+   dikunci uji (`scripts/uji-akurasi.mjs` seksi 2: `ringkasWarna(moves, warna)`
+   harus sama persis dengan angka baris Akurasi). Yang masih berbeda adalah
+   Deteksi Engine, dan itu disengaja: `layakDinilai` (`mesin/antiCheat.js`)
+   mengecualikan langkah paksa dan langkah buku karena keduanya tidak
+   mengatakan apa pun tentang kekuatan pemain, sedangkan `summarizeColor`
+   acuan hanya menyaring langkah yang akurasinya tak-terhitung. Menyatukan
+   harmonic mean dengan rata-rata aritmetik adalah keputusan produk
+   tersendiri; sampai itu diambil, tabel ini yang menjelaskan kenapa dua
+   angka itu berbeda untuk partai yang sama.
 
 ---
 

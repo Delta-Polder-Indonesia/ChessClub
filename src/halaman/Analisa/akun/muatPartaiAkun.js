@@ -92,6 +92,57 @@ function olahPartaiChessCom(game) {
     timeClass: game.time_class ?? "unknown",
     plyCount: hitungPlyPgn(pgn),
     url: game.url ?? "",
+    /*
+     * Akurasi TERBITAN CHESS.COM. Arsip bulanan
+     * (`/pub/player/{u}/games/{YYYY}/{MM}`) sudah mengirim
+     * `accuracies: { white, black }` untuk partai yang pernah dihitung
+     * chess.com — sebelumnya field ini dibuang di sini, sehingga kartu Akurasi
+     * di layar Wawasan selalu "N/A" walau datanya sudah ditarik.
+     *
+     * Cara menyimpannya menyalin repo acuan ChessGameReviewer
+     * (`lib/api/chesscomSchemas.ts` → `cleanGame.accuracies`, lalu
+     * `features/ingestion/ingestionService.ts` → `...(raw.accuracies ? …)`):
+     * hanya angka yang finite yang diangkat, dan field-nya dihilangkan
+     * seluruhnya bila tidak ada, bukan diisi null.
+     */
+    ...(akurasiTerbitan(game) ? { accuracies: akurasiTerbitan(game) } : {}),
+  };
+}
+
+/**
+ * Angkat `accuracies` mentah API menjadi `{ white, black }` berisi angka sah
+ * saja — SALINAN blok validasi `chesscomSchemas.ts` acuan. Mengembalikan
+ * `undefined` bila tidak ada satu pun angka yang bisa dipakai.
+ */
+export function akurasiTerbitan(game) {
+  const mentah = game?.accuracies;
+  if (typeof mentah !== "object" || mentah === null || Array.isArray(mentah)) return undefined;
+  const putih =
+    typeof mentah.white === "number" && Number.isFinite(mentah.white) ? mentah.white : undefined;
+  const hitam =
+    typeof mentah.black === "number" && Number.isFinite(mentah.black) ? mentah.black : undefined;
+  if (putih === undefined && hitam === undefined) return undefined;
+  return {
+    ...(putih !== undefined ? { white: putih } : {}),
+    ...(hitam !== undefined ? { black: hitam } : {}),
+  };
+}
+
+/**
+ * Angkat akurasi terbitan Lichess (`players.white.accuracy` /
+ * `players.black.accuracy`, hanya ada bila partai itu pernah dianalisis
+ * lichess dan permintaan memakai `accuracy=true`) ke bentuk `{ white, black }`
+ * yang sama dengan Chess.com.
+ */
+export function akurasiTerbitanLichess(json) {
+  const putih = Number(json?.players?.white?.accuracy);
+  const hitam = Number(json?.players?.black?.accuracy);
+  const adaPutih = Number.isFinite(putih);
+  const adaHitam = Number.isFinite(hitam);
+  if (!adaPutih && !adaHitam) return undefined;
+  return {
+    ...(adaPutih ? { white: putih } : {}),
+    ...(adaHitam ? { black: hitam } : {}),
   };
 }
 
@@ -109,6 +160,7 @@ export function olahPartaiLichess(json) {
   if (json.winner === "white") hasil = "white";
   else if (json.winner === "black") hasil = "black";
   const id = typeof json.id === "string" && json.id ? json.id : "";
+  const akurasi = akurasiTerbitanLichess(json);
   return {
     pgn,
     whiteName: putih.user?.name ?? "Anonim",
@@ -120,6 +172,9 @@ export function olahPartaiLichess(json) {
     timeClass: json.speed ?? "unknown",
     plyCount: hitungPlyPgn(pgn),
     url: id ? `https://lichess.org/${id}` : "",
+    // Akurasi terbitan lichess; hanya ada untuk partai yang sudah dianalisis
+    // di sana. Bentuknya disamakan dengan Chess.com (`{ white, black }`).
+    ...(akurasi ? { accuracies: akurasi } : {}),
   };
 }
 
@@ -378,6 +433,15 @@ async function muatPartaiLichessInti(user, { onProgress, signal, periode = "semu
   const params = new URLSearchParams({
     pgnInJson: "true",
     opening: "true",
+    /*
+     * `accuracy=true` meminta persentase akurasi tiap pemain
+     * (`players.<warna>.accuracy`). Tanpa parameter ini lichess tidak
+     * mengirim angka akurasi sama sekali, sehingga kartu Akurasi di layar
+     * Wawasan tidak punya sumber untuk partai Lichess. Hanya partai yang
+     * pernah dianalisis di lichess yang punya nilainya — sisanya tetap
+     * kosong dan memang harus tampil kosong, bukan 0.
+     */
+    accuracy: "true",
     sort: "dateDesc",
     max: String(Math.max(1, Number(maks) || MAKS_PARTAI_LICHESS)),
   });
