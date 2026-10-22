@@ -1,22 +1,63 @@
 /**
- * Logika wawasan (Insights) profil pemain — adaptasi dari fitur Profile
- * Insights di ChessGameReviewer. Mengagregasi data partai tersimpan di
- * IndexedDB menjadi ringkasan performa: KPI, tren rating, distribusi hasil,
- * pembukaan teratas, dan ringkasan taktikal.
+ * Logika wawasan (Insights) profil pemain — agregasi performa dari partai
+ * tersimpan di IndexedDB.
  *
- * MURNI — tidak ada React, tidak ada DOM. Semua fungsi menerima array partai
- * dan mengembalikan objek data yang siap dirender.
+ * Data model partai (dari `normalisasiDataPartai` di basisData.js):
+ *   { id, whiteName, blackName, whiteElo, blackElo, result, timestamp,
+ *     timeClass, pgn, koleksiId, platform, ... }
  *
- * Data partai diambil dari basisData.js (ambilDaftarPartai); setiap partai
- * memiliki shape yang sudah dipakai deteksiEngine/antiCheatRiwayat:
- *   { id, pgn, white, black, result, timestamp, timeClass, ... }
+ * `result` sudah dinormalisasi ke "white" | "black" | "draw" oleh
+ * `normalisasiHasil()`. `timestamp` dalam milidetik. `whiteElo`/`blackElo`
+ * dalam angka (0 bila tidak ada).
+ *
+ * MURNI — tidak ada React, tidak ada DOM, tidak ada pemanggilan IndexedDB.
  */
 
 /**
- * Hitung jumlah menang/seri/kalah dari sudut pemain tertentu.
- * @param {Array} partai - daftar partai
- * @param {string} username - nama pemain
- * @returns {{ wins: number, losses: number, draws: number, total: number, winRate: number }}
+ * Ekstrak header PGN (tag pairs [Key "Value"]).
+ * Ringan: hanya regex pada teks, tanpa chess.js.
+ */
+export function ekstraksHeaderPgn(pgn) {
+  if (typeof pgn !== "string" || !pgn) return {};
+  const header = {};
+  const re = /\[(\w+)\s+"([^"]*)"\]/g;
+  let m;
+  while ((m = re.exec(pgn)) !== null) {
+    header[m[1]] = m[2];
+  }
+  return header;
+}
+
+/**
+ * Warna pemain dari data partai.
+ * @returns {"white"|"black"|null}
+ */
+export function warnaPemain(partai, username) {
+  if (!username) return null;
+  const uname = username.toLowerCase();
+  if (String(partai.whiteName || "").toLowerCase() === uname) return "white";
+  if (String(partai.blackName || "").toLowerCase() === uname) return "black";
+  return null;
+}
+
+/**
+ * Hasil dari sudut pemain: "win"|"loss"|"draw"|null.
+ *
+ * `partai.result` sudah dinormalisasi ke "white"|"black"|"draw" oleh
+ * `normalisasiHasil()` di basisData.js.
+ */
+function hasilPemain(partai, warna) {
+  const r = partai.result;
+  if (!r) return null;
+  if (r === "draw") return "draw";
+  if (r === warna) return "win";
+  // r adalah warna lawan → pemain kalah
+  if (r === "white" || r === "black") return "loss";
+  return null;
+}
+
+/**
+ * Hitung menang/seri/kalah.
  */
 export function hitungHasil(partai, username) {
   let wins = 0;
@@ -37,96 +78,53 @@ export function hitungHasil(partai, username) {
   return { wins, losses, draws, total, winRate };
 }
 
-/* hitungHasilPerWarna sudah dihitung di agregasiWawasan() — tidak perlu terpisah. */
-
 /**
- * Tentukan warna pemain dari data partai.
- */
-export function warnaPemain(partai, username) {
-  if (!username) return null;
-  const uname = username.toLowerCase();
-  const w = String(partai.white || "").toLowerCase();
-  const b = String(partai.black || "").toLowerCase();
-  if (w === uname) return "white";
-  if (b === uname) return "black";
-  return null;
-}
-
-/**
- * Hasil pemain dari data partai (win/loss/draw).
- * result biasanya "1-0", "0-1", "1/2-1/2", "*", atau teks seperti
- * "win", "agreed", "repetition", dll (Chess.com).
- */
-function hasilPemain(partai, warna) {
-  const result = String(partai.result || "").trim();
-  if (!result) return null;
-
-  // Format PGN standar
-  if (result === "1/2-1/2") return "draw";
-  if (result === "1-0") return warna === "white" ? "win" : "loss";
-  if (result === "0-1") return warna === "black" ? "win" : "loss";
-
-  // Format Chess.com / teks
-  const r = result.toLowerCase();
-  if (r === "win") return "win";
-  if (r === "loss" || r === "checkmated" || r === "timeout" || r === "resigned" || r === "abandoned") return "loss";
-  if (r === "agreed" || r === "repetition" || r === "stalemate" || r === "insufficient" || r === "50move" || r === "timevsinsufficient") return "draw";
-
-  return null;
-}
-
-/**
- * Tren rating dari riwayat partai. Setiap partai menjadi satu titik data.
+ * Tren rating — setiap partai menjadi satu titik data, diurut dari lama ke baru.
  */
 export function hitungTrenRating(partai, username) {
-  const denganRating = partai
-    .filter((p) => {
-      const warna = warnaPemain(p, username);
-      if (!warna) return false;
-      const rating = ambilRating(p, warna);
-      return Number.isFinite(rating) && rating > 0;
-    })
-    .map((p) => {
-      const warna = warnaPemain(p, username);
-      const rating = ambilRating(p, warna);
-      return {
-        date: p.timestamp ? Math.floor(new Date(p.timestamp).getTime() / 1000) : 0,
-        rating,
-        gameId: p.id,
-        result: hasilPemain(p, warna) || "draw",
-        timeClass: p.timeClass || "",
-      };
-    })
-    .sort((a, b) => a.date - b.date);
+  const titik = [];
 
-  return denganRating;
+  for (const p of partai) {
+    const warna = warnaPemain(p, username);
+    if (!warna) continue;
+    const rating = warna === "white" ? p.whiteElo : p.blackElo;
+    if (!Number.isFinite(rating) || rating <= 0) continue;
+
+    titik.push({
+      date: Math.floor((p.timestamp || 0) / 1000), // konversi ms → detik untuk tampilan
+      rating,
+      gameId: p.id,
+      result: hasilPemain(p, warna) || "draw",
+      timeClass: p.timeClass || "",
+    });
+  }
+
+  titik.sort((a, b) => a.date - b.date);
+  return titik;
 }
 
 /**
- * Hitung streak (rentetan) menang/kalah/seri terbaru.
+ * Streak (rentetan) menang/kalah/seri terbaru.
  */
 export function hitungStreak(partai, username) {
   if (!partai.length) return { type: "none", count: 0 };
 
-  const denganHasil = partai
+  // Urutkan terbaru dulu
+  const diurut = [...partai]
     .filter((p) => {
       const warna = warnaPemain(p, username);
       return warna && hasilPemain(p, warna);
     })
-    .sort((a, b) => {
-      const da = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const db = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return db - da; // terbaru dulu
-    });
+    .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
 
-  if (!denganHasil.length) return { type: "none", count: 0 };
+  if (!diurut.length) return { type: "none", count: 0 };
 
-  const warnaTerbaru = warnaPemain(denganHasil[0], username);
-  const hasilTerbaru = hasilPemain(denganHasil[0], warnaTerbaru);
+  const warnaTerbaru = warnaPemain(diurut[0], username);
+  const hasilTerbaru = hasilPemain(diurut[0], warnaTerbaru);
   if (!hasilTerbaru) return { type: "none", count: 0 };
 
   let count = 0;
-  for (const p of denganHasil) {
+  for (const p of diurut) {
     const warna = warnaPemain(p, username);
     const hasil = hasilPemain(p, warna);
     if (hasil === hasilTerbaru) count++;
@@ -137,20 +135,23 @@ export function hitungStreak(partai, username) {
 }
 
 /**
- * Statistik pembukaan teratas dari partai.
+ * Pembukaan teratas dari PGN headers [Opening] dan [ECO].
  */
 export function hitungPembukaanTeratas(partai, username, warna, batas = 5) {
   const partaiWarna = partai.filter((p) => warnaPemain(p, username) === warna);
   const peta = new Map();
 
   for (const p of partaiWarna) {
-    const nama = String(p.opening || p.ecoName || "Tidak diketahui").trim() || "Tidak diketahui";
-    const eco = p.eco || undefined;
+    const header = ekstraksHeaderPgn(p.pgn);
+    const nama = (header.Opening || "").trim() || "Tidak diketahui";
+    const eco = (header.ECO || "").trim() || undefined;
+
     let entri = peta.get(nama);
     if (!entri) {
-      entri = { name: nama, eco, moves: p.openingMoves || "", wins: 0, losses: 0, draws: 0 };
+      entri = { name: nama, eco, wins: 0, losses: 0, draws: 0 };
       peta.set(nama, entri);
     }
+
     const hasil = hasilPemain(p, warna);
     if (hasil === "win") entri.wins++;
     else if (hasil === "loss") entri.losses++;
@@ -168,77 +169,43 @@ export function hitungPembukaanTeratas(partai, username, warna, batas = 5) {
 }
 
 /**
- * Ringkasan taktikal dari hasil anti-cheat agregat (bila tersedia).
+ * Ringkasan akurasi dari partai — dihitung dari akurasi per-pemain jika
+ * tersedia di data (mis. dari analisis Stockfish sebelumnya). Saat ini
+ * IndexedDB belum menyimpan akurasi per partai, jadi ini mengembalikan
+ * placeholder yang jujur (null).
  */
-export function hitungTaktikal(hasilAntiCheat) {
-  if (!hasilAntiCheat?.agregat) {
-    return {
-      totalLangkahDinilai: 0,
-      avgAkurasi: null,
-      blunder: 0,
-      mistakes: 0,
-      inaccuracies: 0,
-      misses: 0,
-      blunderPerPartai: 0,
-    };
-  }
-
-  const agregat = hasilAntiCheat.agregat;
-  const jumlahPartai = agregat.jumlahPartai || 1;
-
-  return {
-    totalLangkahDinilai: agregat.jumlahLangkah || 0,
-    avgAkurasi: Number.isFinite(agregat.akurasi) ? Math.round(agregat.akurasi * 10) / 10 : null,
-    blunder: agregat.jumlahBlunder || 0,
-    mistakes: agregat.jumlahMistake || 0,
-    inaccuracies: agregat.jumlahInaccuracy || 0,
-    misses: agregat.jumlahMiss || 0,
-    blunderPerPartai: Math.round(((agregat.jumlahBlunder || 0) / jumlahPartai) * 100) / 100,
-  };
+export function hitungAkurasi(partai, username) {
+  // TODO: hubungkan ke hasil analisis Stockfish per partai bila sudah
+  // tersedia di IndexedDB (skor kecocokan, ACPL, dll dari antiCheat.js).
+  return { totalLangkahDinilai: 0, avgAkurasi: null };
 }
 
 /**
- * Ambil rating dari partai.
- */
-function ambilRating(partai, warna) {
-  if (warna === "white") {
-    return partai.whiteRating || partai.white_elo || partai.elo_white || null;
-  }
-  return partai.blackRating || partai.black_elo || partai.elo_black || null;
-}
-
-/**
- * Filter partai berdasarkan opsi.
+ * Filter partai berdasarkan waktu dan rentang tanggal.
  */
 export function filterPartaiWawasan(partai, filter, nowMs = Date.now()) {
-  const nowSec = Math.floor(nowMs / 1000);
-  let minDate = null;
-  if (filter.dateRange === "30d") minDate = nowSec - 30 * 86400;
-  else if (filter.dateRange === "90d") minDate = nowSec - 90 * 86400;
-  else if (filter.dateRange === "365d") minDate = nowSec - 365 * 86400;
+  let minTimestamp = null;
+  if (filter.dateRange === "30d") minTimestamp = nowMs - 30 * 86400000;
+  else if (filter.dateRange === "90d") minTimestamp = nowMs - 90 * 86400000;
+  else if (filter.dateRange === "365d") minTimestamp = nowMs - 365 * 86400000;
 
   return partai.filter((p) => {
+    // Filter kecepatan
     if (filter.timeClass !== "all" && p.timeClass !== filter.timeClass) return false;
-    if (filter.color !== "all") {
-      // color filter akan diterapkan di downstream; di sini hanya waktu
-    }
-    if (minDate !== null) {
-      const ts = p.timestamp ? Math.floor(new Date(p.timestamp).getTime() / 1000) : 0;
-      if (ts < minDate) return false;
-    }
+    // Filter rentang tanggal (timestamp dalam ms)
+    if (minTimestamp !== null && (p.timestamp || 0) < minTimestamp) return false;
     return true;
   });
 }
 
 /**
- * Agregasi seluruh wawasan dari daftar partai.
+ * Agregasi seluruh wawasan.
  */
-export function agregasiWawasan(partai, username, filter = {}, hasilAntiCheat = null) {
+export function agregasiWawasan(partai, username, filter = {}) {
   const difilter = filterPartaiWawasan(partai, filter);
 
   const hasilUmum = hitungHasil(difilter, username);
 
-  // Hasil per warna
   const partaiPutih = difilter.filter((p) => warnaPemain(p, username) === "white");
   const partaiHitam = difilter.filter((p) => warnaPemain(p, username) === "black");
   const sebagaiPutih = hitungHasil(partaiPutih, username);
@@ -253,7 +220,7 @@ export function agregasiWawasan(partai, username, filter = {}, hasilAntiCheat = 
 
   const pembukaPutih = hitungPembukaanTeratas(difilter, username, "white");
   const pembukaanHitam = hitungPembukaanTeratas(difilter, username, "black");
-  const taktikal = hitungTaktikal(hasilAntiCheat);
+  const akurasi = hitungAkurasi(difilter, username);
 
   return {
     totalPartai: difilter.length,
@@ -265,6 +232,6 @@ export function agregasiWawasan(partai, username, filter = {}, hasilAntiCheat = 
     peakRating,
     pembukaPutih,
     pembukaanHitam,
-    taktikal,
+    akurasi,
   };
 }

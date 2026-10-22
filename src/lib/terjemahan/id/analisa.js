@@ -469,7 +469,14 @@ export const analisa = {
         winRate: "Win %",
         hasil: "Hasil",
       },
-      taktikalJudul: "Akurasi Taktikal & Kesalahan",
+      taktikalJudul: "Akurasi",
+      akurasiJudul: "Akurasi",
+      akurasi: {
+        label: "Akurasi Langkah Rata-rata",
+        keterangan: "Metrik akurasi per langkah akan tersedia setelah analisis Stockfish per partai diintegrasikan ke basis data lokal.",
+        totalPartai: "Total Partai",
+        langkahDinilai: "Langkah Dinilai",
+      },
       taktikal: {
         blunder: "Blunder",
         mistake: "Kesalahan",

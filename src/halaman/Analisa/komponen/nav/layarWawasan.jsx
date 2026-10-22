@@ -1,14 +1,12 @@
 /**
- * Layar "Wawasan" — dashboard profil pemain adaptasi dari ChessGameReviewer.
+ * Layar "Wawasan" — dashboard profil pemain.
  *
- * Menampilkan ringkasan performa pemain: KPI (total partai, win rate,
- * streak, akurasi, rating puncak), grafik tren rating, distribusi hasil,
- * pembukaan teratas, dan ringkasan taktikal. Semua data diambil dari
- * IndexedDB partai tersimpan + agregasi anti-cheat.
+ * Menampilkan ringkasan performa: KPI, grafik tren rating, distribusi
+ * hasil, pembukaan teratas, dan ringkasan akurasi. Data diambil dari
+ * IndexedDB partai tersimpan via `ambilDaftarPartai`.
  *
- * Diadaptasi dari:
- *   https://github.com/SheyBoiCarti/ChessGameReviewer
- *   components/profile-insights/ProfileInsightsDashboard.tsx
+ * Adaptasi dari fitur Profile Insights ChessGameReviewer — semua logika
+ * agregasi ada di `mesin/wawasan.js`, komponen ini hanya merender.
  */
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
@@ -21,8 +19,6 @@ import {
 } from "../../mesin/wawasan.js";
 import PanelLayar from "./PanelLayar.jsx";
 import SelectDaftar from "./SelectDaftar.jsx";
-
-/* ----------------------------------------------------------- Konstanta */
 
 const OPSI_WAKTU = [
   { nilai: "all", label: "Semua" },
@@ -47,8 +43,6 @@ const OPSI_TANGGAL = [
 ];
 
 const BATAS_PARTAI_WAWASAN = 50;
-
-/* ----------------------------------------------------------- Komponen */
 
 export default function LayarWawasan() {
   const { t } = useI18n();
@@ -110,7 +104,25 @@ export default function LayarWawasan() {
     return agregasiWawasan(partai, username, filter);
   }, [partai, username, filter]);
 
-  /* Gabungkan akun dari berbagai sumber */
+  /* Filter warna diterapkan di sini — bukan di wawasan.js — karena
+     agregasiWawasan menghitung hasilUmum + per-warna sekaligus.
+     Warna hanya dipakai untuk membatasi data yang ditampilkan di
+     komponen DistribusiHasil dan Pembukaan. */
+  const wawasanTampil = useMemo(() => {
+    if (!wawasan) return null;
+    if (filterWarna === "all") return wawasan;
+    const partaiFilter = partai.filter((p) => {
+      const w = warnaPemain(p, username);
+      return w === filterWarna;
+    });
+    return {
+      ...wawasan,
+      hasilUmum: filterWarna === "white" ? wawasan.sebagaiPutih : wawasan.sebagaiHitam,
+      sebagaiPutih: filterWarna === "white" ? wawasan.sebagaiPutih : { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 },
+      sebagaiHitam: filterWarna === "black" ? wawasan.sebagaiHitam : { wins: 0, losses: 0, draws: 0, total: 0, winRate: 0 },
+    };
+  }, [wawasan, filterWarna, partai, username]);
+
   const daftarAkun = useMemo(() => {
     const unik = new Map();
     for (const a of [...akunTersimpan, ...koleksi, akun]) {
@@ -131,13 +143,11 @@ export default function LayarWawasan() {
   return (
     <PanelLayar>
       <div className="flex min-h-0 w-full flex-col gap-4 p-4">
-        {/* Header */}
         <div className="flex flex-col gap-2">
           <span className="text-xl font-bold text-foreground">{t("analisa.wawasan.judul")}</span>
           <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.wawasan.deskripsi")}</p>
         </div>
 
-        {/* Pilih Akun */}
         <div className="flex flex-wrap items-end gap-3">
           <div className="flex min-w-0 flex-1 flex-col gap-1">
             <label className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.pilihAkun")}</label>
@@ -156,7 +166,6 @@ export default function LayarWawasan() {
 
         {!username ? (
           <div className="flex flex-col items-center gap-2 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8">
-            <span className="text-3xl">📊</span>
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.pilihAkunPetunjuk")}</p>
           </div>
         ) : muat ? (
@@ -164,9 +173,8 @@ export default function LayarWawasan() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-foregroundGrey border-t-backgroundBoxBoxHighlighted" />
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.memuat")}</p>
           </div>
-        ) : !wawasan || wawasan.totalPartai === 0 ? (
+        ) : !wawasanTampil || wawasanTampil.totalPartai === 0 ? (
           <div className="flex flex-col items-center gap-2 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8">
-            <span className="text-3xl">♟️</span>
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaPartai")}</p>
           </div>
         ) : (
@@ -233,26 +241,26 @@ export default function LayarWawasan() {
             </div>
 
             {/* KPI Grid */}
-            <KpiGrid wawasan={wawasan} t={t} />
+            <KpiGrid wawasan={wawasanTampil} t={t} />
 
             {/* Dashboard 2 kolom */}
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="flex flex-col gap-4">
-                <GrafikTrenRating points={wawasan.trenRating} t={t} />
+                <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                 <DistribusiHasil
-                  umum={wawasan.hasilUmum}
-                  putih={wawasan.sebagaiPutih}
-                  hitam={wawasan.sebagaiHitam}
+                  umum={wawasanTampil.hasilUmum}
+                  putih={wawasanTampil.sebagaiPutih}
+                  hitam={wawasanTampil.sebagaiHitam}
                   t={t}
                 />
               </div>
               <div className="flex flex-col gap-4">
                 <KartuPembukaanTeratas
-                  putih={wawasan.pembukaPutih}
-                  hitam={wawasan.pembukaanHitam}
+                  putih={wawasanTampil.pembukaPutih}
+                  hitam={wawasanTampil.pembukaanHitam}
                   t={t}
                 />
-                <KartuTaktikal taktikal={wawasan.taktikal} t={t} />
+                <KartuAkurasi akurasi={wawasanTampil.akurasi} totalPartai={wawasanTampil.totalPartai} t={t} />
               </div>
             </div>
           </>
@@ -274,7 +282,7 @@ function KpiGrid({ wawasan, t }) {
     { label: t("analisa.wawasan.kpi.totalPartai"), value: wawasan.totalPartai },
     { label: t("analisa.wawasan.kpi.winRate"), value: `${wawasan.hasilUmum.winRate}%`, accent: true },
     { label: t("analisa.wawasan.kpi.streak"), value: streakLabel },
-    { label: t("analisa.wawasan.kpi.akurasi"), value: wawasan.taktikal.avgAkurasi !== null ? `${wawasan.taktikal.avgAkurasi}%` : "N/A" },
+    { label: t("analisa.wawasan.kpi.akurasi"), value: wawasan.akurasi.avgAkurasi !== null ? `${wawasan.akurasi.avgAkurasi}%` : "N/A" },
     { label: t("analisa.wawasan.kpi.ratingPuncak"), value: wawasan.peakRating !== null ? String(wawasan.peakRating) : "N/A" },
   ];
 
@@ -338,7 +346,7 @@ function GrafikTrenRating({ points, t }) {
 
   return (
     <div className="wawasan-card">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center gap-2 text-xs">
           <span className="text-foregroundGrey">
@@ -348,25 +356,25 @@ function GrafikTrenRating({ points, t }) {
         </div>
       </div>
       <div className="w-full overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label={`${firstRating} → ${lastRating}`}>
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label={`${firstRating} to ${lastRating}`}>
           <defs>
             <linearGradient id="wawasanAreaGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#81b64c" stopOpacity="0.35" />
               <stop offset="100%" stopColor="#81b64c" stopOpacity="0.02" />
             </linearGradient>
           </defs>
-          {/* Grid */}
+          {/* Grid lines */}
           <line x1={padLeft} y1={padTop} x2={width - padRight} y2={padTop} className="wawasan-grid" />
           <text x={padLeft - 8} y={padTop + 4} textAnchor="end" className="wawasan-axis-text">{yMax}</text>
           <line x1={padLeft} y1={padTop + plotH / 2} x2={width - padRight} y2={padTop + plotH / 2} className="wawasan-grid" />
           <text x={padLeft - 8} y={padTop + plotH / 2 + 4} textAnchor="end" className="wawasan-axis-text">{midRating}</text>
           <line x1={padLeft} y1={padTop + plotH} x2={width - padRight} y2={padTop + plotH} className="wawasan-grid" />
           <text x={padLeft - 8} y={padTop + plotH + 4} textAnchor="end" className="wawasan-axis-text">{yMin}</text>
-          {/* Area */}
+          {/* Area fill */}
           <polygon points={areaPoints} fill="url(#wawasanAreaGradient)" />
-          {/* Line */}
+          {/* Trend line */}
           <polyline points={polylinePoints} fill="none" stroke="#81b64c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          {/* Dots */}
+          {/* Data points */}
           {coords.map((c, i) => (
             <circle key={c.point.gameId || i} cx={c.x} cy={c.y} r={points.length > 50 ? 2 : 3.5} className="wawasan-dot">
               <title>{`${c.point.date ? new Date(c.point.date * 1000).toLocaleDateString() : ""}: ${c.point.rating} (${c.point.result})`}</title>
@@ -509,44 +517,26 @@ function KartuPembukaanTeratas({ putih, hitam, t }) {
   );
 }
 
-function KartuTaktikal({ taktikal, t }) {
-  const kesalahan = [
-    { key: "blunder", label: t("analisa.wawasan.taktikal.blunder"), count: taktikal.blunder, dot: "bg-highlightBlunder", rate: taktikal.blunderPerGame > 0 ? `${taktikal.blunderPerGame}/partai` : "0/partai" },
-    { key: "mistake", label: t("analisa.wawasan.taktikal.mistake"), count: taktikal.mistakes, dot: "bg-highlightMistake" },
-    { key: "inaccuracy", label: t("analisa.wawasan.taktikal.inaccuracy"), count: taktikal.inaccuracies, dot: "bg-highlightInaccuracy" },
-    { key: "miss", label: t("analisa.wawasan.taktikal.miss"), count: taktikal.misses, dot: "bg-highlightMiss" },
-  ];
-
+function KartuAkurasi({ akurasi, totalPartai, t }) {
   return (
     <div className="wawasan-card">
-      <div className="flex items-center justify-between">
-        <h3 className="wawasan-card-title">{t("analisa.wawasan.taktikalJudul")}</h3>
-        <span className="text-xs text-foregroundGrey">
-          <strong className="text-foreground">{taktikal.totalLangkahDinilai}</strong> {t("analisa.wawasan.taktikal.langkahDinilai")}
-        </span>
-      </div>
-
-      {/* Accuracy banner */}
+      <h3 className="wawasan-card-title">{t("analisa.wawasan.akurasiJudul")}</h3>
       <div className="mt-3 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3 flex flex-col gap-1">
-        <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.taktikal.akurasiLabel")}</span>
+        <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.label")}</span>
         <span className="text-2xl font-extrabold text-highlightBest font-mono">
-          {taktikal.avgAkurasi !== null ? `${taktikal.avgAkurasi}%` : "N/A"}
+          {akurasi.avgAkurasi !== null ? `${akurasi.avgAkurasi}%` : "N/A"}
         </span>
-        <span className="text-[10px] text-foregroundGrey">{t("analisa.wawasan.taktikal.akurasiKet")}</span>
+        <span className="text-[10px] text-foregroundGrey">{t("analisa.wawasan.akurasi.keterangan")}</span>
       </div>
-
-      {/* Mistake pills */}
-      <div className="grid grid-cols-2 gap-2 mt-3 md:grid-cols-4">
-        {kesalahan.map((k) => (
-          <div key={k.key} className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2">
-            <div className="flex items-center gap-1">
-              <span className={`h-2 w-2 rounded-full ${k.dot}`} />
-              <span className="text-[10px] font-bold text-foregroundGrey">{k.label}</span>
-            </div>
-            <span className="text-lg font-bold font-mono text-foreground">{k.count}</span>
-            {k.rate && <span className="text-[10px] text-foregroundGrey">{k.rate}</span>}
-          </div>
-        ))}
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2">
+          <span className="text-[10px] font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.totalPartai")}</span>
+          <span className="text-lg font-bold font-mono text-foreground">{totalPartai}</span>
+        </div>
+        <div className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBoxBox p-2">
+          <span className="text-[10px] font-bold text-foregroundGrey">{t("analisa.wawasan.akurasi.langkahDinilai")}</span>
+          <span className="text-lg font-bold font-mono text-foreground">{akurasi.totalLangkahDinilai}</span>
+        </div>
       </div>
     </div>
   );

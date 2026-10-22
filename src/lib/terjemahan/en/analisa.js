@@ -468,7 +468,14 @@ export const analisa = {
         winRate: "Win %",
         hasil: "Outcomes",
       },
-      taktikalJudul: "Tactical Accuracy & Mistakes",
+      taktikalJudul: "Accuracy",
+      akurasiJudul: "Accuracy",
+      akurasi: {
+        label: "Average Move Accuracy",
+        keterangan: "Per-game accuracy metrics will be available after Stockfish analysis results are integrated into the local database.",
+        totalPartai: "Total Games",
+        langkahDinilai: "Moves Evaluated",
+      },
       taktikal: {
         blunder: "Blunders",
         mistake: "Mistakes",
