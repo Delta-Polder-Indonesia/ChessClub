@@ -19,6 +19,9 @@ import { maxVertical, navTop } from "../../konstanta.js";
 import { ConfigContext } from "../../konteks/configKonteks.js";
 import GameButtons from "../menu/analysis/gameButtons.jsx";
 import { getMoves, getArrows, getCustomResult, formatPlayerLabel } from "./getMoves.js";
+import { hashPgn } from "../../../../lib/pgnRingan.js";
+import { ringkasAnalisis } from "../../mesin/ringkasanAnalisis.js";
+import { catatAnalisis } from "../../mesin/analisisTersimpan.js";
 
 function Game({ wadah }) {
   const [boardSize, setBoardSize] = useState(750);
@@ -338,6 +341,20 @@ function Game({ wadah }) {
       setTime(metadata.time);
       setPlayers(metadata.players.map((p) => ({ name: p.name || t("analisa.pemain.anonim"), elo: p.elo })));
       setGame(moves);
+      /*
+       * Daftarkan hasil partai ini ke peta analisis sesi — padanan case
+       * `analysis/terminal` di acuan (`features/workspace/reducer.ts`):
+       * `{ ...resultsByGameId, [gameId]: result }` hanya untuk status
+       * `complete`. Peta itu yang dibaca layar Wawasan sebagai `analysisMap`,
+       * persis `ChessWorkspace.tsx` meneruskan `state.analysis.resultsByGameId`.
+       *
+       * Kuncinya HASH TEKS PGN, bukan id basis data: di titik ini papan hanya
+       * memegang teks PGN (layar Database/Impor melempar `{ format, string }`
+       * tanpa id). Layar Wawasan menerjemahkan hash itu kembali ke `p.id`
+       * lewat `hashPgn(p.pgn)`, jadi kedua sisi bertemu tanpa perlu mengubah
+       * alur data partai.
+       */
+      catatAnalisis(hashPgn(pgn), ringkasAnalisis(moves));
       setResult(metadata.result);
       setAnimation(false);
       setArrows(createArrowsObject(moves.length));

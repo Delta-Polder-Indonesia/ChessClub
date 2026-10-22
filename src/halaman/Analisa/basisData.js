@@ -310,6 +310,23 @@ export function normalisasiDataPartai(p, platform = "chessCom", username = "") {
     // menampilkan ukuran penyimpanan koleksi tanpa membuka teks PGN penuh
     // ribuan partai (yang dulu menumpuk di memori tiap popup dibuka).
     ukuranPgn: typeof pgn === "string" ? pgn.length : 0,
+    /*
+     * Akurasi terbitan platform (`{ white, black }`) — angka yang dikirim
+     * chess.com/lichess bersama partainya, BUKAN hasil hitungan engine kita.
+     * Disimpan apa adanya saat tarik data supaya layar Wawasan bisa langsung
+     * menampilkan akurasi tanpa menganalisis ulang ribuan partai.
+     *
+     * Polanya menyalin repo acuan ChessGameReviewer
+     * (`features/ingestion/ingestionService.ts`: `...(raw.accuracies ? {
+     * accuracies: raw.accuracies } : {})`): field-nya HILANG bila tidak ada,
+     * bukan diisi null — sehingga `p.accuracies` yang falsy berarti
+     * "platform tidak mengirim angka", dan UI tidak boleh menampilkannya
+     * sebagai 0%. Partai lama yang terlanjur tersimpan tanpa field ini tetap
+     * terbaca normal (tambahan murni, tidak perlu naik versi DB).
+     */
+    ...(p.accuracies && typeof p.accuracies === "object"
+      ? { accuracies: p.accuracies }
+      : {}),
     disimpanPada: p.disimpanPada || Date.now(),
   };
 }

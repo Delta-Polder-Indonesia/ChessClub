@@ -15,18 +15,31 @@
 
 /**
  * Ekstrak header PGN (tag pairs [Key "Value"]).
- * Ringan: hanya regex pada teks, tanpa chess.js.
+ *
+ * SALINAN `parsePgnHeaders` repo acuan ChessGameReviewer
+ * (`lib/chess/pgnHeaders.ts`), termasuk regex-nya: nilai yang mengandung
+ * kutipan/ garis-miring-terbalik yang di-escape (`\"`, `\\`) tetap terbaca,
+ * sesuatu yang dilewatkan regex sederhana `\["([^"]*)"\]`.
  */
-export function ekstraksHeaderPgn(pgn) {
-  if (typeof pgn !== "string" || !pgn) return {};
+const REGEX_HEADER_PGN = /^\[([A-Za-z0-9_]+)\s+"((?:[^"\\]|\\.)*)"\]/gm;
+
+export function parsePgnHeaders(pgn) {
   const header = {};
-  const re = /\[(\w+)\s+"([^"]*)"\]/g;
-  let m;
-  while ((m = re.exec(pgn)) !== null) {
-    header[m[1]] = m[2];
+  if (!pgn || typeof pgn !== "string") return header;
+  let cocok;
+  REGEX_HEADER_PGN.lastIndex = 0;
+  while ((cocok = REGEX_HEADER_PGN.exec(pgn)) !== null) {
+    const kunci = cocok[1];
+    const nilai = cocok[2];
+    if (kunci && nilai !== undefined) {
+      header[kunci] = nilai.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+    }
   }
   return header;
 }
+
+/** Nama lama fungsi di atas; dipertahankan agar pemanggil lama tidak berubah. */
+export const ekstraksHeaderPgn = parsePgnHeaders;
 
 /**
  * Warna pemain dari data partai.
@@ -135,50 +148,228 @@ export function hitungStreak(partai, username) {
 }
 
 /**
- * Pembukaan teratas dari PGN headers [Opening] dan [ECO].
+ * Nama pembukaan dari slug `[ECOUrl]` — SALINAN `formatEcoUrlName` acuan
+ * (`features/profile-insights/aggregations.ts`): ambil segmen terakhir path,
+ * `decodeURIComponent`, lalu ubah `-`/`_` menjadi spasi. Bila URL-nya tidak
+ * sah, acuan tetap mencoba memotong string mentahnya — jalur cadangan itu
+ * ikut disalin supaya hasilnya sama untuk header yang rusak.
  */
-export function hitungPembukaanTeratas(partai, username, warna, batas = 5) {
-  const partaiWarna = partai.filter((p) => warnaPemain(p, username) === warna);
+export function formatEcoUrlName(ecoUrl) {
+  if (!ecoUrl) return undefined;
+  try {
+    const url = new URL(ecoUrl);
+    const bagian = url.pathname.split("/").filter(Boolean);
+    const slug = bagian[bagian.length - 1];
+    if (!slug) return undefined;
+    return decodeURIComponent(slug).replace(/[-_]+/g, " ").trim();
+  } catch {
+    const bagian = ecoUrl.split("/");
+    const slug = bagian[bagian.length - 1];
+    return slug ? slug.replace(/[-_]+/g, " ").trim() : undefined;
+  }
+}
+
+/**
+ * Delapan token pertama movetext — SALINAN `extractFirstMovesFromPgn` acuan.
+ *
+ * Perhatikan apa yang SENGAJA tidak dilakukan acuan (dan karena itu tidak
+ * dilakukan di sini juga): nomor langkah ("1.", "2.") TIDAK dibuang, dan
+ * anotasi clock `{[%clk …]}` hanya bersih bila kurung kurawalnya tidak
+ * bersarang. Uji acuan (`tests/profile-insights/aggregations.test.ts`)
+ * mengunci keluarannya sebagai `"1. e4 d5 2. exd5 Qxd5"` — angka itulah yang
+ * dijadikan acuan di sini, bukan tafsiran sendiri.
+ */
+export function extractFirstMovesFromPgn(pgn) {
+  if (!pgn) return "";
+  const isi = pgn
+    .replace(/^\[[^\]]*\]/gm, "")
+    .replace(/\{[^}]*\}/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  const token = isi.split(" ").filter(Boolean);
+  const langkah = [];
+  for (const t of token) {
+    if (t === "1-0" || t === "0-1" || t === "1/2-1/2" || t === "*") break;
+    langkah.push(t);
+    if (langkah.length >= 8) break;
+  }
+  return langkah.join(" ");
+}
+
+/** Label cadangan bawaan — teks Inggris persis milik acuan. */
+export const LABEL_PEMBUKAAN = Object.freeze({
+  dariEco: (eco) => `Opening ${eco}`,
+  tidakDiketahui: "Unknown Opening",
+});
+
+/**
+ * Pembukaan teratas per warna — SALINAN `computeOpeningStats` acuan.
+ *
+ * Rantai nama inilah yang membuat kartunya tidak lagi penuh "Tidak diketahui"
+ * untuk partai Chess.com: PGN Chess.com TIDAK punya tag `[Opening]`, hanya
+ * `[ECO]` + `[ECOUrl]`, sementara versi lama fungsi ini cuma membaca
+ * `[Opening]`. Urutan cadangannya mengikuti acuan:
+ *   1. `[Opening]`
+ *   2. slug `[ECOUrl]` (mis. `.../Sicilian-Defense` → "Sicilian Defense")
+ *   3. `Opening <ECO>` bila hanya `[ECO]` yang ada
+ *   4. label "tidak diketahui"
+ *
+ * Pengelompokan per nama, hitungan hasil, `winRate` (1 desimal), urutan
+ * (jumlah partai desc lalu winRate desc), dan potongan `batas` semuanya
+ * mengikuti acuan apa adanya.
+ *
+ * @param {object[]} partai daftar partai (butuh `pgn`, `whiteName`/`blackName`, `result`)
+ * @param {"white"|"black"} warna
+ * @param {number} [batas=5]
+ * @param {{ dariEco?: Function, tidakDiketahui?: string }} [label] teks
+ *   cadangan; di UI diisi dari kamus i18n, di uji dibiarkan bawaan acuan.
+ */
+export function hitungPembukaanTeratas(partai, username, warna, batas = 5, label = LABEL_PEMBUKAAN) {
+  const labelEco = typeof label?.dariEco === "function" ? label.dariEco : LABEL_PEMBUKAAN.dariEco;
+  const labelTidakDiketahui = label?.tidakDiketahui || LABEL_PEMBUKAAN.tidakDiketahui;
+
+  const partaiWarna = (Array.isArray(partai) ? partai : []).filter(
+    (p) => warnaPemain(p, username) === warna
+  );
   const peta = new Map();
 
   for (const p of partaiWarna) {
-    const header = ekstraksHeaderPgn(p.pgn);
-    const nama = (header.Opening || "").trim() || "Tidak diketahui";
+    const header = parsePgnHeaders(p.pgn);
     const eco = (header.ECO || "").trim() || undefined;
+    const nama =
+      (header.Opening || "").trim() ||
+      formatEcoUrlName(header.ECOUrl) ||
+      (eco ? labelEco(eco) : labelTidakDiketahui);
 
     let entri = peta.get(nama);
     if (!entri) {
-      entri = { name: nama, eco, wins: 0, losses: 0, draws: 0 };
+      entri = {
+        eco,
+        name: nama,
+        moves: extractFirstMovesFromPgn(p.pgn),
+        wins: 0,
+        losses: 0,
+        draws: 0,
+      };
       peta.set(nama, entri);
     }
 
     const hasil = hasilPemain(p, warna);
-    if (hasil === "win") entri.wins++;
-    else if (hasil === "loss") entri.losses++;
-    else if (hasil === "draw") entri.draws++;
+    if (hasil === "win") entri.wins += 1;
+    else if (hasil === "loss") entri.losses += 1;
+    else if (hasil === "draw") entri.draws += 1;
   }
 
-  const hasil = Array.from(peta.values()).map((item) => {
+  const daftar = Array.from(peta.values()).map((item) => {
     const played = item.wins + item.losses + item.draws;
     const winRate = played > 0 ? Math.round((item.wins / played) * 1000) / 10 : 0;
     return { ...item, played, winRate };
   });
 
-  hasil.sort((a, b) => b.played !== a.played ? b.played - a.played : b.winRate - a.winRate);
-  return hasil.slice(0, batas);
+  daftar.sort((a, b) => (b.played !== a.played ? b.played - a.played : b.winRate - a.winRate));
+  return daftar.slice(0, batas);
 }
 
 /**
- * Ringkasan akurasi dari partai — dihitung dari akurasi per-pemain jika
- * tersedia di data (mis. dari analisis Stockfish sebelumnya). Saat ini
- * IndexedDB belum menyimpan akurasi per partai, jadi ini mengembalikan
- * placeholder yang jujur (null).
+ * Ringkasan akurasi + kesalahan taktikal — SALINAN `computeTacticalStats`
+ * repo acuan ChessGameReviewer (`features/profile-insights/aggregations.ts`).
+ *
+ * Dua tingkat sumber, PERSIS seperti acuan (bukan karangan sendiri):
+ *
+ *   1. `analysisMap[game.id]` — hasil analisis engine partai itu. Bila ada dan
+ *      `summary`-nya lengkap, yang diambil adalah ringkasan warna pemain
+ *      (`eligibleMoves`, `accuracyEstimate`, dan `breakdown` blunder/mistake/
+ *      inaccuracy/miss), lalu `analyzedGamesCount` ditambah satu.
+ *   2. `else if (game.accuracies)` — akurasi TERBITAN PLATFORM yang ikut
+ *      tersimpan saat tarik data (Chess.com mengirim `accuracies.white/black`
+ *      di arsip bulanannya; lihat `akun/muatPartaiAkun.js`). Hanya akurasinya
+ *      yang ikut; hitungan kesalahan tidak, karena platform tidak mengirimnya.
+ *
+ * Aturan agregasinya juga disalin apa adanya, termasuk dua hal yang mudah
+ * "diperbaiki" sendiri dan justru membuat angkanya menyimpang dari acuan:
+ *   - `avgAccuracy` adalah rata-rata ARITMETIK per PARTAI (bukan berbobot
+ *     jumlah langkah, bukan harmonic mean), dibulatkan 1 desimal;
+ *   - `blundersPerGame` dibagi `analyzedGamesCount` (hanya partai yang
+ *     dianalisis engine), sehingga 0 bila tidak ada satu pun.
+ *
+ * `null` untuk `avgAccuracy` berarti "belum ada evaluasi" — itu keadaan jujur,
+ * bukan galat: acuan pun menampilkannya sebagai "No evaluations yet".
+ *
+ * BENTUK MASUKAN juga disamakan dengan acuan supaya tidak ada tafsiran kedua:
+ * setiap partai harus membawa `id`, `userColor` ("white"/"black"), dan
+ * `accuracies` ({ white, black }). `agregasiWawasan` yang menyesuaikan record
+ * repo ini ke bentuk itu — fungsi ini tidak menebak-nebak nama field.
+ *
+ * @param {object[]} partai daftar partai berbentuk acuan
+ * @param {Object<string, object>} analysisMap id partai → hasil `ringkasAnalisis`
  */
-export function hitungAkurasi(partai, username) {
-  // TODO: hubungkan ke hasil analisis Stockfish per partai bila sudah
-  // tersedia di IndexedDB (skor kecocokan, ACPL, dll dari antiCheat.js).
-  return { totalLangkahDinilai: 0, avgAkurasi: null };
+export function hitungTaktikal(partai, analysisMap = {}) {
+  let totalEvaluatedMoves = 0;
+  let blunders = 0;
+  let mistakes = 0;
+  let inaccuracies = 0;
+  let misses = 0;
+  let analyzedGamesCount = 0;
+
+  let accuracySum = 0;
+  let accuracyCount = 0;
+
+  for (const game of Array.isArray(partai) ? partai : []) {
+    const analysis = analysisMap?.[game?.id];
+
+    if (analysis && analysis.summary) {
+      analyzedGamesCount += 1;
+      // `analysis.summary[game.userColor]` di acuan. Ringkasan repo ini
+      // dikunci "w"/"b" (lihat ./ringkasanAnalisis.js), jadi keduanya dicoba.
+      const sisi = game.userColor === "black" ? "b" : "w";
+      const colorSummary = analysis.summary[game.userColor] ?? analysis.summary[sisi];
+      if (colorSummary) {
+        totalEvaluatedMoves += colorSummary.eligibleMoves ?? 0;
+        if (
+          colorSummary.accuracyEstimate !== null &&
+          Number.isFinite(colorSummary.accuracyEstimate)
+        ) {
+          accuracySum += colorSummary.accuracyEstimate;
+          accuracyCount += 1;
+        }
+        if (colorSummary.breakdown) {
+          blunders += colorSummary.breakdown.blunder ?? 0;
+          mistakes += colorSummary.breakdown.mistake ?? 0;
+          inaccuracies += colorSummary.breakdown.inaccuracy ?? 0;
+          misses += colorSummary.breakdown.miss ?? 0;
+        }
+      }
+    } else if (game?.accuracies) {
+      const acc = game.accuracies[game.userColor];
+      if (typeof acc === "number" && Number.isFinite(acc)) {
+        accuracySum += acc;
+        accuracyCount += 1;
+      }
+    }
+  }
+
+  const avgAccuracy = accuracyCount > 0 ? Math.round((accuracySum / accuracyCount) * 10) / 10 : null;
+  const blundersPerGame =
+    analyzedGamesCount > 0 ? Math.round((blunders / analyzedGamesCount) * 100) / 100 : 0;
+
+  return {
+    totalEvaluatedMoves,
+    avgAccuracy,
+    blunders,
+    mistakes,
+    inaccuracies,
+    misses,
+    blundersPerGame,
+    /*
+     * Tambahan di luar acuan, khusus untuk teks UI yang jujur: berapa partai
+     * yang ikut menyumbang angka akurasi, supaya pertanyaan "kenapa belum
+     * semua partai terhitung" terjawab tanpa harus menebak.
+     */
+    analyzedGamesCount,
+    accuracyCount,
+  };
 }
+
 
 /**
  * Filter partai berdasarkan waktu dan rentang tanggal.
@@ -199,9 +390,22 @@ export function filterPartaiWawasan(partai, filter, nowMs = Date.now()) {
 }
 
 /**
- * Agregasi seluruh wawasan.
+ * Agregasi seluruh wawasan — SALINAN `aggregateAllInsights` acuan.
+ *
+ * Bedanya hanya bentuk masukan, karena data partai repo ini menyimpan nama
+ * kedua pemain + hasil dari sudut putih ("white"/"black"/"draw"), bukan
+ * `userColor`/`result` siap pakai milik acuan: warna pemain diturunkan dari
+ * `username` lewat `warnaPemain`, dan hasil pemain lewat `hasilPemain`.
+ *
+ * @param {object[]} partai
+ * @param {string} username
+ * @param {object} filter lihat `filterPartaiWawasan`
+ * @param {Object<string, object>} analysisMap id partai → hasil analisis
+ *   engine sesi ini (./analisisTersimpan.js). Tanpa peta ini kartu Akurasi
+ *   tetap bisa terisi dari akurasi terbitan platform.
+ * @param {object} [label] teks cadangan nama pembukaan (i18n)
  */
-export function agregasiWawasan(partai, username, filter = {}) {
+export function agregasiWawasan(partai, username, filter = {}, analysisMap = {}, label) {
   const difilter = filterPartaiWawasan(partai, filter);
 
   const hasilUmum = hitungHasil(difilter, username);
@@ -218,9 +422,21 @@ export function agregasiWawasan(partai, username, filter = {}) {
     ? Math.max(...trenRating.map((p) => p.rating))
     : null;
 
-  const pembukaPutih = hitungPembukaanTeratas(difilter, username, "white");
-  const pembukaanHitam = hitungPembukaanTeratas(difilter, username, "black");
-  const akurasi = hitungAkurasi(difilter, username);
+  const pembukaPutih = hitungPembukaanTeratas(difilter, username, "white", 5, label);
+  const pembukaanHitam = hitungPembukaanTeratas(difilter, username, "black", 5, label);
+
+  /*
+   * `computeTacticalStats(filtered, analysisMap)` di acuan — dua argumen,
+   * tanpa opsi. Yang dikerjakan di sini hanyalah MENYESUAIKAN BENTUK record:
+   * partai repo ini menyimpan nama kedua pemain + hasil dari sudut putih,
+   * bukan `userColor` siap pakai, dan akurasi terbitan platform disimpan
+   * sebagai `accuracies` (nama field acuan, `lib/db/schema.ts`).
+   */
+  const bentukAcuan = difilter.map((p) => ({
+    ...p,
+    userColor: warnaPemain(p, username),
+  }));
+  const taktikal = hitungTaktikal(bentukAcuan, analysisMap);
 
   return {
     totalPartai: difilter.length,
@@ -232,6 +448,6 @@ export function agregasiWawasan(partai, username, filter = {}) {
     peakRating,
     pembukaPutih,
     pembukaanHitam,
-    akurasi,
+    taktikal,
   };
 }
