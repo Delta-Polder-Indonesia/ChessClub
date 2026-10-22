@@ -153,3 +153,43 @@
 .analisa-root .analisa-tanpa-animasi * {
   transition: none !important;
 }
+
+/* ===== Wawasan (Insights) Dashboard ===== */
+.analisa-root .wawasan-card {
+  background: var(--analisa-backgroundBox);
+  border: 1px solid var(--analisa-border);
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.analisa-root .wawasan-card-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--analisa-foreground);
+}
+
+.analisa-root .wawasan-grid {
+  stroke: var(--analisa-border);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.analisa-root .wawasan-axis-text {
+  fill: var(--analisa-foregroundGrey);
+  font-size: 11px;
+  font-family: monospace;
+}
+
+.analisa-root .wawasan-dot {
+  fill: var(--analisa-backgroundBoxBoxHighlighted);
+  stroke: var(--analisa-backgroundBox);
+  stroke-width: 1.5;
+  transition: r 0.15s ease;
+  cursor: pointer;
+}
+
+.analisa-root .wawasan-dot:hover {
+  r: 5.5;
+}

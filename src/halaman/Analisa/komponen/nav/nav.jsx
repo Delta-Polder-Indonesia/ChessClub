@@ -52,7 +52,7 @@ import GitHub from "../svg/github.jsx";
 import Lisensi from "../svg/license.jsx";
 import Profile from "../svg/profile.jsx";
 import ShieldAlert from "../svg/shield-alert.jsx";
-import { Settings } from "lucide-react";
+import { Settings, BarChart3 } from "lucide-react";
 import { MagnifierCheckerIcon } from "../../../../components/icons.jsx";import { AnalyzeContext, TAMPILAN_ANALISA } from "../../konteks/analyzeKonteks.js";
 import { useI18n } from "../../../../lib/i18n.jsx";
 
@@ -168,6 +168,12 @@ export default function Nav() {
       icon: () => <ShieldAlert className="h-[18px] w-[18px] shrink-0" />,
       tampilan: TAMPILAN_ANALISA.DETEKSI_ENGINE,
       kunci: "deteksi-engine",
+    },
+    {
+      label: t("analisa.nav.wawasan"),
+      icon: () => <BarChart3 className="h-[18px] w-[18px] shrink-0" />,
+      tampilan: TAMPILAN_ANALISA.WAWASAN,
+      kunci: "wawasan",
     },
     {
       label: t("analisa.nav.pengaturan"),
