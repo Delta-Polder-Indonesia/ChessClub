@@ -9,6 +9,7 @@ export const TAMPILAN_ANALISA = Object.freeze({
   BERMAIN: "bermain",
   AKUN: "akun",
   DETEKSI_ENGINE: "deteksi-engine",
+  WAWASAN: "wawasan",
   PENGATURAN: "pengaturan",
   BASIS_DATA: "database",
   IMPOR: "impor",
