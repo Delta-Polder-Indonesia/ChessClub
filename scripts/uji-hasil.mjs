@@ -3,16 +3,16 @@
  * di atas jsdom, diberi partai hasil `parsePGN()` asli dengan engine PALSU
  * deterministik:
  *
- *   Skenario skor (sudut pandang putih):
- *     1.e4 best(100)  1...e5 excellent(90)  2.Nf3 excellent(90)  2...Nc6 excellent(90)
- *     3.Bc4 BLUNDER(0) 3...Bc5 excellent(90) 4.O-O excellent(90)  4...Nf6 excellent(90)
- *     5.d3 excellent(90) 5...O-O excellent(90)
+ *   Skenario skor (sudut pandang putih, dalam paskal): 0.3 0.3 0.5 0.5 lalu
+ *   jatuh ke -5.0 pada 3.Bc4 dan terus merosot — jadi 3.Bc4 blunder Putih dan
+ *   semua langkah Hitam sesudahnya tidak pernah kehilangan peluang menang.
  *
  *   Diperiksa dari DOM hasil render:
- *     - nama pemain + akurasi keseluruhan: Putih 74.0, Hitam 90.0
+ *     - nama pemain + akurasi keseluruhan, DITURUNKAN dari `akurasiMove`
+ *       (kurva win chance) — bukan lagi peta label → poin tetap
  *     - RatingCount per label (best w=1; excellent w=3 b=5; blunder w=1)
- *     - rating partai (rumus getRating: 74 → 700, 90 → 2250)
- *     - ikon fase: pembukaan ada (good/excellent), menengah & akhir "-"
+ *     - rating partai (rumus getRating, dari akurasi turunan)
+ *     - ikon fase: pembukaan ada, menengah & akhir "-" (<3 langkah)
  *     - grafik evaluasi (GameChart): bar SVG + lingkaran highlightBlunder
  *     - interaksi grafik: hover + klik memindahkan moveNumber/forward
  *
@@ -28,6 +28,15 @@ const { createRoot } = await import("react-dom/client");
 const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
 const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
+/*
+ * Ekspektasi akurasi DITURUNKAN dari fungsi produksi yang sama dengan yang
+ * dipakai panel Ringkasan (`akurasiMove`), bukan dari peta label → poin tetap.
+ * Peta itu sudah dihapus dari `playersAccuracy.jsx` pada 2026-10-22 supaya satu
+ * partai punya satu angka akurasi — lihat docs/PERBANDINGAN-METRIK-AKURASI.md.
+ */
+const { akurasiMove, pemainDariEntri } = await import("../src/halaman/Analisa/mesin/akurasi.js");
+const { isEndOpening, isEndMiddlegame } = await import("../src/halaman/Analisa/mesin/fase.js");
+const { langkahTerpaksa } = await import("../src/halaman/Analisa/mesin/evaluasi.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
 const { default: Summary } = await import(
   "../src/halaman/Analisa/komponen/menu/analysis/summary/summary.jsx"
@@ -151,17 +160,40 @@ function ratingDariAkurasi(akurasi) {
   return Number.isNaN(dibulatkan) ? 0 : dibulatkan > 3000 ? "3000+" : String(dibulatkan);
 }
 
-const PETA_AKURASI = { brilliant: 100, great: 100, best: 100, book: 100, excellent: 90, good: 70, inaccuracy: 30, miss: 30, mistake: 20, blunder: 0 };
 const akurasiPutih = [];
 const akurasiHitam = [];
-for (let i = 1; i < moves.length; i++) {
-  const nilai = PETA_AKURASI[moves[i].moveRating];
-  if (moves[i].color === "b") akurasiPutih.push(nilai);
-  else akurasiHitam.push(nilai);
+const fasePutih = { opening: [], middlegame: [], endgame: [] };
+const faseHitam = { opening: [], middlegame: [], endgame: [] };
+{
+  /*
+   * Pemindaian fase ditulis ULANG di sini dari kontraknya (langkah dicatat ke
+   * fase yang sedang aktif, baru fasenya dimajukan; langkah paksa tidak ikut
+   * fase; FEN rusak tidak ikut fase dan tidak memajukannya) supaya judul fase
+   * yang diharapkan bukan angka yang disalin dari keluaran komponen.
+   */
+  let fase = "opening";
+  for (let i = 1; i < moves.length; i++) {
+    const mover = pemainDariEntri(moves[i], i);
+    const nilai = akurasiMove(moves[i]);
+    if (mover === null || !Number.isFinite(nilai)) continue;
+    (mover === "w" ? akurasiPutih : akurasiHitam).push(nilai);
+    let papan;
+    try {
+      papan = new Chess(moves[i].fen).board();
+    } catch {
+      continue;
+    }
+    if (langkahTerpaksa(moves[i])) continue;
+    (mover === "w" ? fasePutih : faseHitam)[fase].push(nilai);
+    if (fase === "opening" && isEndOpening(papan)) fase = "middlegame";
+    else if (fase === "middlegame" && isEndMiddlegame(papan)) fase = "endgame";
+  }
 }
 const rata = (arr) => arr.reduce((a, b) => a + b, 0) / arr.length;
-const AKURASI_W = rata(akurasiPutih); // 74
-const AKURASI_B = rata(akurasiHitam); // 90
+const AKURASI_W = rata(akurasiPutih);
+const AKURASI_B = rata(akurasiHitam);
+const FASE_W = { opening: rata(fasePutih.opening), middlegame: fasePutih.middlegame, endgame: fasePutih.endgame };
+const FASE_B = { opening: rata(faseHitam.opening), middlegame: faseHitam.middlegame, endgame: faseHitam.endgame };
 
 /* ------------------------- render Grafik + Summary seperti di Menu ------------------------- */
 
@@ -229,11 +261,10 @@ hasil(`rating Hitam = ${ratingDariAkurasi(AKURASI_B)}`, teksSetelah().includes(r
 
 /*
  * Fase (isEndOpening): pembukaan berakhir setelah 4...Nf6 (hitam sudah
- * mengembangkan 3 bidak, putih 2). Jadi:
- *   opening.w  = [e4:100, Nf3:90, Bc4:0, O-O:90]  → rata 70.0
- *   opening.b  = [e5:90, Nc6:90, Bc5:100, Nf6:90] → rata 92.5
- *   middlegame = [d3:90] / [O-O:90]  → kurang 3 langkah → "-"
- *   endgame    = kosong               → "-"
+ * mengembangkan 3 bidak, putih 2), jadi tiap sisi punya 4 langkah pembukaan
+ * dan 1 langkah menengah — kurang dari 3 untuk menengah & akhir → "-".
+ * Angka akurasinya kini dari kurva win chance (FASE_W/FASE_B di atas), bukan
+ * poin label 70.0/92.5 seperti sebelum 2026-10-22.
  */
 const barisFase = (namaT) => {
   const spans = Array.from(el.querySelectorAll("span.text-sm.font-semibold.text-foregroundGrey"));
@@ -255,8 +286,8 @@ const fMenengahP = isiSelFase(barisFase("analisa.ringkasan.menengah"), 0);
 const fMenengahH = isiSelFase(barisFase("analisa.ringkasan.menengah"), 1);
 const fAkhirP = isiSelFase(barisFase("analisa.ringkasan.akhir"), 0);
 const fAkhirH = isiSelFase(barisFase("analisa.ringkasan.akhir"), 1);
-hasil("pembukaan Putih: ikon ada + judul memuat akurasi 70.0", fPembukaan?.adaIkon === true && fPembukaan.judul?.includes("70.0"), JSON.stringify(fPembukaan));
-hasil("pembukaan Hitam: ikon ada + judul memuat akurasi 92.5", fPembukaanH?.adaIkon === true && fPembukaanH.judul?.includes("92.5"), JSON.stringify(fPembukaanH));
+hasil(`pembukaan Putih: ikon ada + judul memuat akurasi ${FASE_W.opening.toFixed(1)}`, fPembukaan?.adaIkon === true && fPembukaan.judul?.includes(FASE_W.opening.toFixed(1)), JSON.stringify(fPembukaan));
+hasil(`pembukaan Hitam: ikon ada + judul memuat akurasi ${FASE_B.opening.toFixed(1)}`, fPembukaanH?.adaIkon === true && fPembukaanH.judul?.includes(FASE_B.opening.toFixed(1)), JSON.stringify(fPembukaanH));
 hasil("menengah Putih: '-' (kurang dari 3 langkah)", fMenengahP?.adaIkon === false && fMenengahP.strip === "-", JSON.stringify(fMenengahP));
 hasil("menengah Hitam: '-'", fMenengahH?.adaIkon === false && fMenengahH.strip === "-", JSON.stringify(fMenengahH));
 hasil("akhir Putih: '-'", fAkhirP?.adaIkon === false && fAkhirP.strip === "-", JSON.stringify(fAkhirP));

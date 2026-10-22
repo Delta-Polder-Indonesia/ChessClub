@@ -653,8 +653,9 @@ di bagian ini.
   `skorKecurigaan` karena `AMBANG.acplAcuan` dan seluruh
   `KALIBRASI_RATING` dikalibrasi terhadap konvensi itu; menukarnya tanpa
   kalibrasi ulang akan menggeser semua skor. Akurasi panel Ringkasan
-  (`summary/playersAccuracy.jsx`, peta label port Brilliant-Chess) juga tidak
-  disentuh — halaman ini beku, dan angka itu sudah lama dilihat pengguna.
+  (`summary/playersAccuracy.jsx`) pada saat itu juga tidak disentuh — halaman
+  ini beku, dan angka itu sudah lama dilihat pengguna. (Peta labelnya baru
+  dihapus pada 2026-10-22; lihat seksi "Satu angka akurasi" di bawah.)
 - **en-croissant tidak punya model skor kecurangan.** Panel "Report" mereka
   hanya menampilkan ACPL + akurasi + hitungan anotasi + eval chart; metrik
   kecocokan top-1/top-3, peringkat MultiPV, konsistensi jam, korelasi
@@ -910,3 +911,231 @@ sudah tergambar di kartu selagi analisa berjalan, plus uji satuan
 `persenProgres`, markup bar (lebar isian, penjepitan 0–100, atribut ARIA), dan
 geometri kurva (skala ±400 cp, jepitan, skakmat, jalur sah tanpa `NaN`, titik
 bertambah seiring langkah masuk).
+
+## Wawasan Profil: pembukaan dari header + akurasi dua tingkat (2026-10-22)
+
+Layar **Wawasan** (`komponen/nav/layarWawasan.jsx`) adalah adaptasi fitur
+Profile Insights milik repo **SheyBoiCarti/ChessGameReviewer**. Dua kartunya
+tidak berfungsi sebagaimana mestinya:
+
+1. **Pembukaan Teratas** penuh "Tidak diketahui" untuk akun Chess.com —
+   `hitungPembukaanTeratas` hanya membaca tag `[Opening]`, sedangkan PGN
+   chess.com **tidak punya tag itu** (hanya `[ECO]` + `[ECOUrl]`).
+2. **Akurasi** selalu "N/A" walau data sudah ditarik — `hitungAkurasi`
+   memang stub ber-`TODO` yang mengembalikan `{ totalLangkahDinilai: 0,
+   avgAkurasi: null }`.
+
+Keduanya diperbaiki dengan MENYALIN logika acuan, bukan menulis rumus sendiri.
+Berkas acuan yang dibaca dan dipetakan 1:1:
+
+| Acuan (ChessGameReviewer) | Di repo ini |
+| --- | --- |
+| `lib/chess/pgnHeaders.ts` → `parsePgnHeaders` | `mesin/wawasan.js` → `parsePgnHeaders` (regex sama, termasuk nilai ter-escape; `ekstraksHeaderPgn` jadi alias) |
+| `aggregations.ts` → `formatEcoUrlName` | `mesin/wawasan.js` → `formatEcoUrlName` (termasuk jalur `catch` pemotong string mentah) |
+| `aggregations.ts` → `extractFirstMovesFromPgn` | `mesin/wawasan.js` → `extractFirstMovesFromPgn` (8 token, berhenti di penanda hasil; nomor langkah TIDAK dibuang — itu perilaku acuan) |
+| `aggregations.ts` → `computeOpeningStats` | `mesin/wawasan.js` → `hitungPembukaanTeratas` |
+| `aggregations.ts` → `computeTacticalStats` | `mesin/wawasan.js` → `hitungTaktikal` (dua argumen, tanpa opsi) |
+| `aggregations.ts` → `aggregateAllInsights` | `mesin/wawasan.js` → `agregasiWawasan` |
+| `analyzeGame.ts` → `summarizeColor` | `mesin/ringkasanAnalisis.js` → `ringkasWarna` / `ringkasAnalisis` |
+| `workspace/reducer.ts` → `analysis.resultsByGameId` | `mesin/analisisTersimpan.js` (peta sesi + langganan) |
+| `chesscomSchemas.ts` + `ingestionService.ts` → `accuracies` | `akun/muatPartaiAkun.js` + `basisData.js` → field `accuracies` |
+| `TacticalMistakesCard.tsx` | `layarWawasan.jsx` → `KartuTaktikal` |
+| `TopOpeningsCard.tsx` (kolom Moves) | `layarWawasan.jsx` → `KartuPembukaanTeratas` |
+
+### Rantai nama pembukaan (acuan)
+
+`[Opening]` → slug `[ECOUrl]` → `Opening <ECO>` → label "tidak diketahui".
+Dua label terakhir di UI diisi dari kamus i18n (`analisa.wawasan.pembukaan.
+dariEco` / `.tidakDiketahui`); bawaan fungsinya tetap teks Inggris acuan
+supaya uji bisa mengunci nilai asli mereka.
+
+Buku pembukaan situs (`public/data/buku-analisa.json`) SENGAJA tidak dipakai
+di kartu ini: acuan tidak melakukan pencocokan posisi, dan menambahkannya
+berarti mengarang logika di luar acuan. Buku itu tetap dipakai halaman
+Analisa untuk label `book` lewat `mesin/buku.js`.
+
+### Akurasi dua tingkat (acuan)
+
+`hitungTaktikal` memakai sumber pertama yang tersedia per partai:
+
+1. **Hasil analisis engine sesi ini.** `game.jsx` memanggil
+   `catatAnalisis(hashPgn(pgn), ringkasAnalisis(moves))` setelah `parsePGN`
+   selesai — padanan case `analysis/terminal` acuan yang hanya menyimpan
+   status `complete`. `layarWawasan.jsx` menerjemahkan kunci hash itu kembali
+   ke `p.id` lewat `hashPgn(p.pgn)`, karena papan hanya memegang teks PGN
+   (layar Database/Impor melempar `{ format, string }` tanpa id).
+2. **`accuracies` terbitan platform** (cabang `else if` acuan). Chess.com
+   mengirim `accuracies: { white, black }` di arsip bulanan yang memang sudah
+   kita unduh; Lichess mengirim `players.<warna>.accuracy` bila permintaan
+   memakai `accuracy=true` (parameter itu kini ikut diminta) dan partainya
+   pernah dianalisis di sana.
+
+Aturan agregasi disalin apa adanya, termasuk dua hal yang mudah "dirapikan"
+sendiri dan justru menggeser angka: `avgAccuracy` adalah rata-rata ARITMETIK
+per partai (bukan berbobot jumlah langkah, bukan harmonic mean), dan
+`blundersPerGame` dibagi `analyzedGamesCount`. Harmonic mean tetap milik
+panel Deteksi Engine (`mesin/antiCheat.js`) — lihat
+`docs/PERBANDINGAN-METRIK-AKURASI.md`.
+
+`accuracies` adalah field TAMBAHAN di record partai: partai lama yang
+terlanjur tersimpan tanpa field itu tetap terbaca, jadi versi IndexedDB tidak
+naik. Yang belum ada: pengisian balik (backfill) partai lama — akurasi mereka
+baru terisi saat tarik data diulang atau partainya dibuka di papan.
+
+Peta analisis hidup SESI SAJA seperti acuan (tidak dipersistenkan); menutup
+halaman mengosongkannya lagi.
+
+**Penyimpangan dari acuan yang DIPERTAHANKAN (perilaku lama layar ini):**
+di acuan, filter warna masuk ke `filterGames` sehingga memotong SEMUA kartu
+(KPI, tren rating, pembukaan, taktikal). Di sini filter warna hanya dipakai
+`wawasanTampil` untuk menukar angka Distribusi Hasil, sehingga memilih "Hitam"
+tidak mengosongkan kolom "Sebagai Putih" pada kartu Pembukaan. Mengikutkan
+filter warna ke `filterPartaiWawasan` berarti mengubah perilaku kartu lain
+yang sudah ada — keputusan tersendiri, bukan bagian dari perbaikan ini.
+
+Memo `wawasanTampil` dulu juga menghitung `partaiFilter` (partai yang cocok
+dengan filter warna) yang tidak pernah dibaca. Variabel mati itu dihapus
+beserta impor `warnaPemain` yang menjadi yatim — ini satu-satunya alasan
+`npm run lint` merah di HEAD, dan penghapusannya tidak mengubah perilaku.
+
+### Uji
+
+`scripts/uji-wawasan-profil.mjs` (`npm run uji:wawasan-profil`, ikut dirangkai
+di ujung `uji:analisa-menyeluruh`). Angka emasnya diambil dari suite uji acuan
+`tests/profile-insights/aggregations.test.ts`, bukan dikarang:
+
+- 3 Scandinavian + 1 French → `played 3`, `winRate 66.7`, `eco B01`,
+  `moves "1. e4 d5 2. exd5 Qxd5"`;
+- tanpa `[Opening]` → jatuh ke slug `[ECOUrl]` ("Sicilian Defense");
+- `computeTacticalStats` dua partai → blunder 3, mistake 3, inaccuracy 5,
+  miss 1, `totalEvaluatedMoves 45`, `blundersPerGame 1.5`, `avgAccuracy 80.5`;
+- tanpa analisis → `avgAccuracy null`, semua hitungan 0;
+- `akurasiLangkah(0, -500) ≈ 19.07` untuk fixture `ringkasWarna` (nilai emas
+  en-croissant yang juga dikunci `uji-anticheat.mjs` seksi 14);
+- seam kunci: `catatAnalisis(hashPgn(pgn), …)` → `agregasiWawasan(partai, …,
+  peta)` benar-benar mengisi kartu.
+
+Status verifikasi: 41 lulus / 0 gagal; `uji:analisa-menyeluruh` (18 skrip),
+`uji:analisa` (32), `uji:analisa-ui` (101), `uji:anticheat` (384),
+`uji:tarik-api` (7), `uji:basisdata` (34), `uji:akun-database` (15),
+`uji:i18n` (2800 kunci ID = EN), `uji:integritas-suite` (9), dan `npm run
+build` semuanya hijau. Jalur jaringan chess.com/lichess TIDAK diverifikasi
+live — sandbox agent hanya mengizinkan github/npm/pypi, jadi `accuracies`
+diverifikasi lewat bentuk respons yang didokumentasikan API keduanya.
+
+## Satu angka akurasi: panel Ringkasan ikut kurva win chance (2026-10-22)
+
+Sampai perubahan ini, SATU partai bisa menampilkan dua akurasi yang berbeda di
+halaman yang sama:
+
+- **Ringkasan → baris "Akurasi"** (`summary/playersAccuracy.jsx`) memakai peta
+  label → poin tetap warisan Brilliant-Chess: `brilliant/great/best/book` 100,
+  `excellent` 90, `good` 70, `inaccuracy/miss` 30, `mistake` 20, `blunder` 0,
+  lalu dirata-rata biasa.
+- **Ringkasan → Deteksi Engine** dan **Wawasan → Akurasi** memakai kurva win
+  chance (`mesin/akurasi.js`).
+
+Itu sebab panel Ringkasan terasa membingungkan: dua angka berdampingan, keduanya
+disebut "akurasi", keduanya masuk akal, dan tidak ada keterangan yang
+menjelaskan bedanya. `docs/PERBANDINGAN-METRIK-AKURASI.md` bagian 5 mencatatnya
+sebagai keputusan produk yang ditunda — Halaman Analisa berstatus beku (v1)
+sejak 2026-09-10, dan mengganti skala akurasi di sana menggeser angka yang
+sudah lama dilihat pengguna plus rating partai turunan.
+
+Keputusan itu diambil pada 2026-10-22: **peta label dihapus**, bukan
+dikalibrasi ulang. Baris Akurasi kini memanggil `akurasiMove(move)` untuk tiap
+entri, dan kredit pelangkah lewat `pemainDariEntri(move, i)`.
+
+### Yang berubah di `playersAccuracy.jsx`
+
+| Sebelum | Sesudah |
+| --- | --- |
+| `switch (moveRating)` → poin tetap | `akurasiMove(move)` → kurva win chance |
+| `const color = move2.color === "w" ? "b" : "w"` | `pemainDariEntri(move2, i)` (aturan sama + cadangan paritas untuk data tanpa `color`) |
+| FEN rusak → `continue` di awal, akurasi langkah itu HILANG | FEN rusak → akurasi tetap dihitung (tidak butuh papan), hanya catatan fasenya yang hilang |
+| `langkahTerpaksa` → `continue`, tidak ikut Akurasi maupun fase | `langkahTerpaksa` → tetap ikut Akurasi, hanya dikeluarkan dari daftar fase |
+| `for…of` | `forEach((move2, i))` karena `pemainDariEntri` butuh indeks |
+
+Urutan pemindaian fase TIDAK berubah: langkah dicatat ke fase yang sedang aktif,
+baru fasenya dimajukan — kontrak yang sama dengan `antiCheat.js` dan dikunci
+`scripts/uji-evaluasi.mjs`.
+
+Langkah paksa ikut baris Akurasi karena `summarizeColor` acuan
+(`ChessGameReviewer/features/stockfish-analysis/analyzeGame.ts`) hanya menyaring
+`accuracy.status === 'classified'`, dan langkah paksa tetap terklasifikasi.
+Mengecualikannya di sini akan membuat angka Ringkasan berbeda dari angka Wawasan
+untuk partai yang sama — persis masalah yang mau ditutup. Konsekuensinya:
+**rata-rata ketiga fase tidak lagi sama dengan baris Akurasi** bila partainya
+punya langkah paksa (ikut Akurasi, tidak ikut fase). Itu disengaja dan dikunci
+uji.
+
+Label baris Akurasi sekarang punya `title` (`analisa.ringkasan.akurasiMetode`,
+ID+EN) yang menyebutkan metodenya, supaya dua angka yang tersisa di halaman itu
+(Ringkasan/Wawasan vs Deteksi Engine) bisa dibedakan tanpa membaca dokumentasi.
+
+### Konsekuensi yang diterima
+
+1. **Akurasi partai umumnya naik.** Label diskrit menghukum jauh lebih keras
+   daripada kurva: satu `excellent` bernilai 90 walau kerugian peluang menangnya
+   nol, dan satu `inaccuracy` bernilai 30 walau kerugiannya hanya 6 poin.
+2. **Rating partai (`gameRating.jsx`) ikut naik**, karena `getRating` adalah
+   fungsi dari akurasi.
+3. **Ikon fase menumpuk di band 95–100.** `getRatingPhase` memakai ambang
+   95/90/80/60/40/20 yang dulu dikalibrasi untuk nilai diskrit. Ambang itu
+   TIDAK diubah di sini — mengkalibrasi ulangnya pekerjaan terpisah.
+
+### Yang tetap berbeda (dan kenapa)
+
+Deteksi Engine masih memakai **harmonic mean** dan masih mengecualikan langkah
+paksa serta `book`, karena `layakDinilai` (`mesin/antiCheat.js`) menyaring
+langkah yang tidak mengatakan apa pun tentang kekuatan pemain. `ringkasWarna`
+(mesin/ringkasanAnalisis.js) hanya mengecualikan yang akurasinya tak-terhitung.
+Jadi dua angka yang tersisa di situs ini memang dua ringkasan berbeda dari kurva
+per-langkah yang sama — tabelnya di `docs/PERBANDINGAN-METRIK-AKURASI.md`
+bagian 5 butir 5.
+
+### Uji
+
+`scripts/uji-akurasi.mjs` seksi 2 **ditulis ulang** memakai partai NYATA hasil
+`parsePGN()` + engine palsu deterministik (pola `scripts/uji-hasil.mjs`), bukan
+daftar entri buatan tangan. Alasannya: bentuk entri `parsePGN` mudah salah
+ditiru, dan kalau salah yang rusak adalah kredit warna seluruh partai. Yang
+perlu diketahui tentang bentuk itu:
+
+- `moves[0]` adalah **POSISI AWAL** (`{ fen: riwayat[0].before,
+  color: riwayat[0].color }` dari `engine.js`), bukan langkah. Ia tidak punya
+  `san`/`moveRating`/eval, jadi `pemainDariEntri` → `null` dan akurasinya `null`.
+- Ply ke-i Putih ada di `moves[i]` dengan i GANJIL; Hitam di i GENAP. `color`
+  menyimpan pihak yang bergilir SESUDAH langkah, jadi pelangkah = kebalikannya —
+  padanan `mover = parseFenSideToMove(ply.fenBefore)` di acuan.
+
+Partainya 73 langkah supaya ketiga fase terisi (pembukaan 14, menengah 39,
+akhir 20; ambang `mesin/fase.js`). Empat kasus tepi DITEMPELKAN ke partai nyata
+itu, bukan dibuat sebagai entri terpisah: ply 43 dijadikan paksa (eval-nya
+dikhaskan ke akurasi 82.29 supaya bisa dilacak — dengan 100, "tidak ikut fase"
+tidak bisa dibedakan dari langkah lain yang juga 100), ply 46 diberi FEN rusak,
+ply 61 diberi `[["cp", null]]`, ply 64 diberi label `"alien"`. Semuanya jauh
+dari batas fase supaya satu entri rusak tidak menggeser fase seluruh sisa
+partai.
+
+Ekspektasi DITURUNKAN dari `akurasiMove` lalu di-pin (`PIN_PUTIH`
+97.75224649393323, `PIN_HITAM` 96.43311589466): kalau `akurasiMove` berubah,
+pin tidak lagi cocok dan uji gagal — ekspektasinya tidak ikut bergeser
+diam-diam mengikuti kode. Assertion kuncinya adalah **paritas**: baris Akurasi
+harus sama PERSIS dengan `ringkasWarna(moves, warna)`, yaitu angka yang dibaca
+kartu Wawasan lewat peta analisis sesi.
+
+`scripts/uji-hasil.mjs` ikut diperbarui: blok `PETA_AKURASI` (yang menyalin peta
+label lama) diganti turunan `akurasiMove`, dan ekspektasi judul fase kini
+dihitung dari pemindaian fase yang ditulis ulang dari kontraknya — bukan angka
+yang disalin dari keluaran komponen. Partai ujinya tidak berubah; akurasinya
+bergeser dari 74.0/92.0 ke nilai kurva.
+
+Status verifikasi: `uji:akurasi` 46/0, `uji-hasil` 27/0, `uji-evaluasi` 90/0,
+`uji-anticheat` 384/0, `uji-wawasan-profil` 41/0, `uji-analisa-ui` 101/0,
+`uji-analisa` 32/0, `uji-wawasan-rating` 10/0, `uji-klasifikasi` 63/0,
+`uji-parser-pgn` 36/0, `uji-langkah-kritis` 54/0, `uji-i18n` (2801 kunci
+ID = EN), `uji-integritas-suite` 9/0, `npm run lint` bersih, `npm run build` OK.
+**Tampilan panel Ringkasan belum diverifikasi visual** — `localhost` tidak
+terjangkau dari sandbox agent, jadi semua klaim di atas berasal dari uji di atas
+jsdom, bukan dari melihat halamannya.

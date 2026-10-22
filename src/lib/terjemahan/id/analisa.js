@@ -303,6 +303,8 @@ export const analisa = {
       judul: "Ringkasan permainan",
       pemain: "Pemain",
       akurasi: "Akurasi",
+      akurasiMetode:
+        "Akurasi (kurva win chance, rata-rata aritmetik) — angka yang sama dengan kartu Akurasi di Wawasan",
       pembukaan: "Pembukaan",
       menengah: "Menengah",
       akhir: "Akhir",
@@ -465,9 +467,18 @@ export const analisa = {
       tanpaPembukaan: "Belum ada data pembukaan.",
       pembukaan: {
         nama: "Pembukaan",
+        /* Kolom "Moves" `TopOpeningsCard.tsx`: panjang varian pembukaan. */
+        langkah: "Langkah",
         main: "Dimainkan",
         winRate: "Win %",
         hasil: "Hasil",
+        /*
+         * `aggregations.ts` baris 145: nama pembukaan dibaca dari tag PGN,
+         * lalu `Opening ${eco}`, lalu "Unknown Opening". Dua kunci ini adalah
+         * teks Indonesia untuk dua cadangan itu.
+         */
+        dariEco: "Pembukaan {eco}",
+        tidakDiketahui: "Pembukaan Tidak Diketahui",
       },
       taktikalJudul: "Akurasi",
       akurasiJudul: "Akurasi",
@@ -485,6 +496,16 @@ export const analisa = {
         langkahDinilai: "langkah dinilai",
         akurasiLabel: "Akurasi Langkah Rata-rata",
         akurasiKet: "Berdasarkan evaluasi Stockfish dari partai yang dianalisis",
+        /* `TacticalMistakesCard.tsx`: 'No evaluations yet' dan '{n} / game'. */
+        belumAdaEvaluasi: "Belum ada evaluasi",
+        perPartai: "per partai",
+        /*
+         * Tambahan repo ini (acuan tidak punya): menerangkan partai mana yang
+         * benar-benar menyumbang angka akurasi, supaya "N/A padahal data sudah
+         * ditarik" terjawab.
+         */
+        cakupan:
+          "Akurasi dihitung dari {dinilai} langkah pada {dianalisis} partai yang punya evaluasi engine.",
       },
     },
     grafik: {
