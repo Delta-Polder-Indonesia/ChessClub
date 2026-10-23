@@ -998,6 +998,49 @@ dengan filter warna) yang tidak pernah dibaca. Variabel mati itu dihapus
 beserta impor `warnaPemain` yang menjadi yatim — ini satu-satunya alasan
 `npm run lint` merah di HEAD, dan penghapusannya tidak mengubah perilaku.
 
+### Filter kosong dan label filter (2026-10-22)
+
+Sebelumnya seluruh bilah filter ikut hilang begitu `totalPartai` bernilai 0,
+sehingga pengguna yang memilih kecepatan atau rentang tanpa hasil tidak bisa
+mengembalikan filter. Sekarang bilah filter tetap dirender selama masih ada
+partai tersimpan atau filter kecepatan/rentang aktif, dan dua keadaan kosong
+dibedakan seperti acuan:
+
+- belum ada partai tersimpan → pesan `tanpaPartai`, tanpa tombol atur ulang;
+- filter tidak menemukan partai → `tanpaHasilFilter` + tombol `aturUlangFilter`
+  yang mengembalikan ketiga filter ke `all`.
+
+Label opsi "Semua", warna, dan rentang kini berasal dari kamus i18n (sebelumnya
+hardcode Indonesia; nama kecepatan seperti Bullet/Blitz tetap apa adanya), dan
+tiap kelompok filter memakai `role="radiogroup"` + `role="radio"` /
+`aria-checked` mengikuti `InsightsFilterBar.tsx` acuan. Filter warna tetap tidak
+memotong daftar partai; hanya kecepatan dan rentang tanggal yang bisa
+mengosongkan hasil.
+
+### Kartu profil pemain (2026-10-22)
+
+Di atas bilah filter kini ada kartu profil yang mengadaptasi
+`components/profile-insights/ProfileHeaderCard.tsx`: avatar (huruf awal bila
+tidak tersedia), nama tampilan, gelar, `@username`, kode negara, tanggal
+bergabung, status akun, dan empat pil rating Rapid/Blitz/Bullet/Daily beserta
+rating puncaknya. Bendera SVG dari `komponen/flags` tampil di samping kode
+negara; kode subdivisi seperti `GB-ENG` didukung, dan kode teks tetap menjadi
+cadangan bila aset bendera tidak tersedia. Tombol muat ulang memanggil
+`segarkanKartuPemain`, yang membuang cache sesi + localStorage lebih dulu lalu
+mengambil ulang dari API.
+
+Sumber datanya `src/lib/pemainCatur.js` yang juga dipakai kartu akun. Modul itu
+diperluas secara backward-compatible: field lama tetap ada, ditambah `country`,
+`joined`, `status`, `ratings.daily/classical`, dan `peak`. Prefiks cache naik ke
+`kci-analisa-pemain-v2-` supaya entri lama yang tidak punya field baru tidak
+dibaca sebagai kartu kosong. Untuk Lichess, Daily memakai rating
+`correspondence`; avatar, kode negara, dan rating puncak tidak disediakan API
+publik sehingga bagian itu tidak dirender.
+
+Kartu ini membaca profil langsung dari API, bukan dari 50 partai terbaru yang
+dipakai agregasi Wawasan, jadi rating dan tanggal bergabung tidak terpotong
+oleh `BATAS_PARTAI_WAWASAN`.
+
 ### Uji
 
 `scripts/uji-wawasan-profil.mjs` (`npm run uji:wawasan-profil`, ikut dirangkai

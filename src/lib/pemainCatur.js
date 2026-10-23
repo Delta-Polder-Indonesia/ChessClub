@@ -1,11 +1,12 @@
 /**
  * Kartu profil pemain dari API publik chess.com / lichess.org (tanpa autentikasi).
  *
- * Ambil nama tampilan, gelar (title), avatar, bendera negara, dan rating
- * Bullet/Blitz/Rapid untuk ditampilkan di dekat papan & pada ringkasan —
- * persis seperti kartu profil pada referensi. Semua hasil di-`cache` per
- * (platform, username) (Map + localStorage) supaya membuka partai lain jadi
- * instan dan tidak membanjiri API.
+ * Ambil nama tampilan, gelar (title), avatar, bendera negara, tanggal
+ * bergabung, status akun, serta rating Bullet/Blitz/Rapid/Daily (beserta
+ * puncaknya bila tersedia) untuk ditampilkan di dekat papan, pada ringkasan,
+ * dan pada kartu profil Wawasan. Semua hasil di-`cache` per (platform,
+ * username) (Map + localStorage) supaya membuka partai lain jadi instan dan
+ * tidak membanjiri API. `segarkanKartuPemain` membuang cache itu lebih dulu.
  *
  * PENTING: platform wajib diteruskan untuk akun yang sudah diketahui
  * situsnya (kartu akun di layar Akun). Tanpa platform, nama akun Lichess
@@ -16,7 +17,12 @@ import { useEffect, useState } from "react";
 
 const BASE_CHESSCOM = "https://api.chess.com/pub";
 const BASE_LICHESS = "https://lichess.org/api";
-const KUNCI_CACHE = "kci-analisa-pemain-";
+/*
+ * Prefiks v2: kartu lama tidak menyimpan `joined`/`status`/`peak`/`daily`,
+ * sehingga dibiarkan terbaca akan menampilkan kolom kosong tanpa alasan.
+ * Naikkan versi agar entri lama diabaikan, bukan dihapus paksa.
+ */
+const KUNCI_CACHE = "kci-analisa-pemain-v2-";
 
 const cache = new Map();
 
@@ -31,10 +37,11 @@ function normalisasiPlatform(platform) {
   return platform === "lichessOrg" ? "lichessOrg" : "chessCom";
 }
 
-/** Kode negara dua huruf ("id") → kode lowercase untuk nama file SVG bendera. */
+/** Kode negara ("id", "gb-eng") → kode lowercase untuk nama file SVG bendera. */
 function benderaNegara(kode) {
-  if (!kode || kode.length !== 2) return null;
-  return kode.toLowerCase();
+  if (!kode) return null;
+  const normal = String(kode).trim().toLowerCase();
+  return /^[a-z]{2}(?:-[a-z]{3})?$/.test(normal) ? normal : null;
 }
 
 function muatStorage(kunci) {
@@ -68,9 +75,10 @@ async function ambilDariChessCom(username) {
   if (!profil) return null;
 
   const kodeNegara = profil.country ? profil.country.split("/").pop() : null;
+  const bendera = benderaNegara(kodeNegara);
   // Total partai = jumlah menang + kalah + seri seluruh kelas waktu (untuk
   // menampilkan "Games terunduh / total" pada kartu akun seperti En Croissant).
-  const totalGame = ["chess_bullet", "chess_blitz", "chess_rapid", "chess_classical"].reduce(
+  const totalGame = ["chess_bullet", "chess_blitz", "chess_rapid", "chess_classical", "chess_daily"].reduce(
     (s, k) => {
       const c = statistik?.[k]?.record;
       return s + (c ? (c.win + c.loss + c.draw) : 0);
@@ -83,13 +91,25 @@ async function ambilDariChessCom(username) {
     name: profil.name || null,
     title: profil.title || null,
     avatar: profil.avatar || null,
-    flag: benderaNegara(kodeNegara),
+    flag: bendera,
+    country: bendera ? bendera.toUpperCase() : null,
+    joined: Number.isFinite(profil.joined) ? profil.joined : null,
+    status: profil.status || null,
     url: profil.url || `https://www.chess.com/member/${username}`,
     total: totalGame || null,
     ratings: {
       bullet: statistik?.chess_bullet?.last?.rating ?? null,
       blitz: statistik?.chess_blitz?.last?.rating ?? null,
       rapid: statistik?.chess_rapid?.last?.rating ?? null,
+      daily: statistik?.chess_daily?.last?.rating ?? null,
+      classical: statistik?.chess_classical?.last?.rating ?? null,
+    },
+    peak: {
+      bullet: statistik?.chess_bullet?.best?.rating ?? null,
+      blitz: statistik?.chess_blitz?.best?.rating ?? null,
+      rapid: statistik?.chess_rapid?.best?.rating ?? null,
+      daily: statistik?.chess_daily?.best?.rating ?? null,
+      classical: statistik?.chess_classical?.best?.rating ?? null,
     },
   };
 }
@@ -119,12 +139,24 @@ async function ambilDariLichess(username) {
     title: data.title || null,
     avatar: null,
     flag: null,
+    country: null,
+    joined: Number.isFinite(data.createdAt) ? Math.floor(data.createdAt / 1000) : null,
+    status: null,
     url: data.url || `https://lichess.org/@/${username}`,
     total: Number(data.count?.all) || null,
     ratings: {
       bullet: perfs.bullet?.rating ?? null,
       blitz: perfs.blitz?.rating ?? null,
       rapid: perfs.rapid?.rating ?? null,
+      daily: perfs.correspondence?.rating ?? null,
+      classical: perfs.classical?.rating ?? null,
+    },
+    peak: {
+      bullet: null,
+      blitz: null,
+      rapid: null,
+      daily: null,
+      classical: null,
     },
   };
 }
@@ -156,6 +188,28 @@ export async function ambilKartuPemain(username, platform = "chessCom") {
   cache.set(kunci, kartu);
   if (kartu) simpanStorage(kunci, kartu);
   return kartu;
+}
+
+/**
+ * Buang cache (Map + localStorage) satu pemain lalu ambil ulang dari API.
+ * Dipakai tombol "Muat ulang profil"; kegagalan jaringan tetap menghasilkan
+ * `null` seperti `ambilKartuPemain`.
+ *
+ * @param {string} username
+ * @param {string} [platform="chessCom"] "chessCom" | "lichessOrg"
+ * @returns {Promise<object|null>}
+ */
+export async function segarkanKartuPemain(username, platform = "chessCom") {
+  const nama = String(username ?? "").trim().toLowerCase();
+  if (NAMA_SKIP.has(nama)) return null;
+  const kunci = `${normalisasiPlatform(platform)}:${nama}`;
+  cache.delete(kunci);
+  try {
+    localStorage.removeItem(KUNCI_CACHE + kunci);
+  } catch {
+    /* cache bersifat best-effort */
+  }
+  return ambilKartuPemain(username, platform);
 }
 
 /**

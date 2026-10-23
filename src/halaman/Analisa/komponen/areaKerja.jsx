@@ -134,7 +134,7 @@ export default function AreaKerja() {
           tabIndex={-1}
           data-uji={`layar-${tampilan}`}
           data-layar={tampilan}
-          className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden"
+          className="absolute inset-0 z-[900] min-h-0 overflow-y-auto overflow-x-hidden bg-backgroundBoxDarker"
         >
           {tampilan === TAMPILAN_ANALISA.AKUN ? (
             <Suspense fallback={<div className="h-full min-h-0 w-full bg-backgroundBox" />}>

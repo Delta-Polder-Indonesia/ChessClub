@@ -8,19 +8,27 @@
  * Adaptasi dari fitur Profile Insights ChessGameReviewer — semua logika
  * agregasi ada di `mesin/wawasan.js`, komponen ini hanya merender.
  */
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { hashPgn } from "../../../../lib/pgnRingan.js";
+import { segarkanKartuPemain, useKartuPemain } from "../../../../lib/pemainCatur.js";
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import { agregasiWawasan } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
+import Refresh from "../svg/refresh.jsx";
 import PanelLayar from "./PanelLayar.jsx";
 import SelectDaftar from "./SelectDaftar.jsx";
 
+const BENDERA = import.meta.glob("../flags/*.svg", {
+  eager: true,
+  query: "?url",
+  import: "default",
+});
+
 const OPSI_WAKTU = [
-  { nilai: "all", label: "Semua" },
+  { nilai: "all", kunci: "analisa.wawasan.filterSemua" },
   { nilai: "bullet", label: "Bullet" },
   { nilai: "blitz", label: "Blitz" },
   { nilai: "rapid", label: "Rapid" },
@@ -29,22 +37,29 @@ const OPSI_WAKTU = [
 ];
 
 const OPSI_WARNA = [
-  { nilai: "all", label: "Kedua warna" },
-  { nilai: "white", label: "Putih" },
-  { nilai: "black", label: "Hitam" },
+  { nilai: "all", kunci: "analisa.wawasan.filterKeduaWarna" },
+  { nilai: "white", kunci: "analisa.wawasan.sebagaiPutih" },
+  { nilai: "black", kunci: "analisa.wawasan.sebagaiHitam" },
 ];
 
 const OPSI_TANGGAL = [
-  { nilai: "all", label: "Semua waktu" },
-  { nilai: "30d", label: "30 hari" },
-  { nilai: "90d", label: "90 hari" },
-  { nilai: "365d", label: "1 tahun" },
+  { nilai: "all", kunci: "analisa.wawasan.filterSemuaWaktu" },
+  { nilai: "30d", kunci: "analisa.wawasan.filter30Hari" },
+  { nilai: "90d", kunci: "analisa.wawasan.filter90Hari" },
+  { nilai: "365d", kunci: "analisa.wawasan.filter1Tahun" },
 ];
 
 const BATAS_PARTAI_WAWASAN = 50;
 
+const KELAS_RATING = [
+  { kunci: "rapid", label: "Rapid" },
+  { kunci: "blitz", label: "Blitz" },
+  { kunci: "bullet", label: "Bullet" },
+  { kunci: "daily", label: "Daily" },
+];
+
 export default function LayarWawasan() {
-  const { t } = useI18n();
+  const { t, bahasa: locale } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
   const [akun] = analyzeContext.akun;
   const platform = akun?.platform === "lichessOrg" ? "lichessOrg" : "chessCom";
@@ -158,6 +173,20 @@ export default function LayarWawasan() {
     };
   }, [wawasan, filterWarna]);
 
+  /*
+   * Hanya kecepatan dan rentang tanggal yang bisa mengosongkan hasil —
+   * filter warna tidak memotong daftar partai (lihat catatan wawasanTampil).
+   * Dipakai untuk membedakan "belum ada partai tersimpan" dari "filter tidak
+   * menemukan partai", persis dua keadaan kosong yang dibedakan acuan.
+   */
+  const filterMenyempit = filterWaktu !== "all" || filterTanggal !== "all";
+
+  function aturUlangFilter() {
+    setFilterWaktu("all");
+    setFilterWarna("all");
+    setFilterTanggal("all");
+  }
+
   const daftarAkun = useMemo(() => {
     const unik = new Map();
     for (const a of [...akunTersimpan, ...koleksi, akun]) {
@@ -199,6 +228,16 @@ export default function LayarWawasan() {
           </div>
         </div>
 
+        {username ? (
+          <KartuProfilWawasan
+            key={`${platform}:${username.toLowerCase()}`}
+            username={username}
+            platform={platform}
+            t={t}
+            locale={locale}
+          />
+        ) : null}
+
         {!username ? (
           <div className="flex flex-col items-center gap-2 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8">
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.pilihAkunPetunjuk")}</p>
@@ -208,96 +247,64 @@ export default function LayarWawasan() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-foregroundGrey border-t-backgroundBoxBoxHighlighted" />
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.memuat")}</p>
           </div>
-        ) : !wawasanTampil || wawasanTampil.totalPartai === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8">
-            <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaPartai")}</p>
-          </div>
         ) : (
           <>
-            {/* Filter Bar */}
-            <div className="flex flex-wrap items-center gap-3 rounded-borderRoundness border border-border bg-backgroundBox px-4 py-2">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.filterKecepatan")}:</span>
-                <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5">
-                  {OPSI_WAKTU.map((o) => (
-                    <button
-                      key={o.nilai}
-                      type="button"
-                      onClick={() => setFilterWaktu(o.nilai)}
-                      className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
-                        filterWaktu === o.nilai
-                          ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold"
-                          : "text-foregroundGrey hover:text-foreground"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.filterWarna")}:</span>
-                <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5">
-                  {OPSI_WARNA.map((o) => (
-                    <button
-                      key={o.nilai}
-                      type="button"
-                      onClick={() => setFilterWarna(o.nilai)}
-                      className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
-                        filterWarna === o.nilai
-                          ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold"
-                          : "text-foregroundGrey hover:text-foreground"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.filterRentang")}:</span>
-                <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5">
-                  {OPSI_TANGGAL.map((o) => (
-                    <button
-                      key={o.nilai}
-                      type="button"
-                      onClick={() => setFilterTanggal(o.nilai)}
-                      className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
-                        filterTanggal === o.nilai
-                          ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold"
-                          : "text-foregroundGrey hover:text-foreground"
-                      }`}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            {partai.length > 0 || filterMenyempit ? (
+              <FilterBar
+                filterWaktu={filterWaktu}
+                filterWarna={filterWarna}
+                filterTanggal={filterTanggal}
+                onWaktu={setFilterWaktu}
+                onWarna={setFilterWarna}
+                onTanggal={setFilterTanggal}
+                t={t}
+              />
+            ) : null}
 
-            {/* KPI Grid */}
-            <KpiGrid wawasan={wawasanTampil} t={t} />
+            {!wawasanTampil || wawasanTampil.totalPartai === 0 ? (
+              <div className="flex flex-col items-center gap-3 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8">
+                <p className="text-sm text-foregroundGrey">
+                  {filterMenyempit
+                    ? t("analisa.wawasan.tanpaHasilFilter")
+                    : t("analisa.wawasan.tanpaPartai")}
+                </p>
+                {filterMenyempit ? (
+                  <button
+                    type="button"
+                    onClick={aturUlangFilter}
+                    className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted hover:text-foregroundBlackDark"
+                  >
+                    {t("analisa.wawasan.aturUlangFilter")}
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <>
+                {/* KPI Grid */}
+                <KpiGrid wawasan={wawasanTampil} t={t} />
 
-            {/* Dashboard 2 kolom */}
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              <div className="flex flex-col gap-4">
-                <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
-                <DistribusiHasil
-                  umum={wawasanTampil.hasilUmum}
-                  putih={wawasanTampil.sebagaiPutih}
-                  hitam={wawasanTampil.sebagaiHitam}
-                  t={t}
-                />
-              </div>
-              <div className="flex flex-col gap-4">
-                <KartuPembukaanTeratas
-                  putih={wawasanTampil.pembukaPutih}
-                  hitam={wawasanTampil.pembukaanHitam}
-                  t={t}
-                />
-                <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
-              </div>
-            </div>
+                {/* Dashboard 2 kolom */}
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                  <div className="flex flex-col gap-4">
+                    <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
+                    <DistribusiHasil
+                      umum={wawasanTampil.hasilUmum}
+                      putih={wawasanTampil.sebagaiPutih}
+                      hitam={wawasanTampil.sebagaiHitam}
+                      t={t}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-4">
+                    <KartuPembukaanTeratas
+                      putih={wawasanTampil.pembukaPutih}
+                      hitam={wawasanTampil.pembukaanHitam}
+                      t={t}
+                    />
+                    <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
+                  </div>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>
@@ -306,6 +313,214 @@ export default function LayarWawasan() {
 }
 
 /* ============================================================ Sub-komponen */
+
+function formatTanggalGabung(detik, locale) {
+  if (!Number.isFinite(detik) || detik <= 0) return null;
+  try {
+    return new Intl.DateTimeFormat(locale, { month: "short", year: "numeric" })
+      .format(new Date(detik * 1000));
+  } catch {
+    return null;
+  }
+}
+
+function KartuProfilWawasan({ username, platform, t, locale }) {
+  const kartuApi = useKartuPemain(username, !!username, platform);
+  /*
+   * Hasil muat ulang disimpan terpisah agar tidak ditimpa respons awal hook
+   * yang mungkin baru tiba setelah refresh. `undefined` = belum ada override.
+   */
+  const [kartuUlang, setKartuUlang] = useState(undefined);
+  const [memuat, setMemuat] = useState(false);
+  const hidup = useRef(true);
+
+  useEffect(() => () => {
+    hidup.current = false;
+  }, []);
+
+  async function muatUlang() {
+    if (!username || memuat) return;
+    setMemuat(true);
+    try {
+      const baru = await segarkanKartuPemain(username, platform);
+      /* Ikuti acuan: kegagalan fetch mempertahankan profil yang sudah ada. */
+      if (hidup.current && baru) setKartuUlang(baru);
+    } catch {
+      /* pertahankan kartu lama; API publik bisa gagal sementara */
+    } finally {
+      if (hidup.current) setMemuat(false);
+    }
+  }
+
+  const kartu = kartuUlang !== undefined ? kartuUlang : kartuApi;
+  const nama = String(kartu?.name || username).trim();
+  const inisial = (nama || "?").slice(0, 1).toUpperCase();
+  const negara = kartu?.country || (kartu?.flag ? kartu.flag.toUpperCase() : null);
+  const kodeBendera = String(kartu?.flag || negara || "").trim().toLowerCase();
+  const sumberBendera = kodeBendera ? BENDERA[`../flags/${kodeBendera}.svg`] : null;
+  const srcBendera = typeof sumberBendera === "string" ? sumberBendera : null;
+  const bergabung = formatTanggalGabung(kartu?.joined, locale);
+
+  return (
+    <section
+      className="wawasan-card flex flex-col gap-4"
+      data-uji="wawasan-profil"
+      aria-label={t("analisa.wawasan.profilJudul")}
+    >
+      <div className="flex flex-wrap items-start gap-3">
+        <span className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-backgroundBoxBox">
+          {kartu?.avatar ? (
+            <img
+              className="h-full w-full object-cover"
+              width={56}
+              height={56}
+              src={kartu.avatar}
+              alt=""
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+          ) : (
+            <span aria-hidden="true" className="text-lg font-bold text-foregroundGrey">{inisial}</span>
+          )}
+        </span>
+
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="truncate text-lg font-bold text-foreground">{nama}</span>
+            {kartu?.title ? (
+              <span className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-1.5 py-0.5 font-mono text-[0.65rem] font-bold text-backgroundBoxBoxHighlighted">
+                {kartu.title}
+              </span>
+            ) : null}
+          </div>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-foregroundGrey">
+            <span className="truncate font-mono">@{username}</span>
+            {negara ? (
+              <span className="inline-flex items-center gap-1.5 rounded-borderRoundness border border-border px-1.5 py-0.5 font-mono text-[0.65rem] font-bold">
+                {srcBendera ? (
+                  <img
+                    src={srcBendera}
+                    alt=""
+                    width={16}
+                    height={12}
+                    className="h-3 w-4 shrink-0 rounded-[2px] object-cover ring-1 ring-black/20"
+                    loading="lazy"
+                  />
+                ) : null}
+                {negara}
+              </span>
+            ) : null}
+            {bergabung ? (
+              <span>{t("analisa.wawasan.profilBergabung", { tanggal: bergabung })}</span>
+            ) : null}
+            {kartu?.status ? (
+              <span className="rounded-borderRoundness border border-border px-1.5 py-0.5 text-[0.65rem] font-bold capitalize">
+                {kartu.status}
+              </span>
+            ) : null}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={muatUlang}
+          disabled={memuat}
+          aria-label={t("analisa.wawasan.profilMuatUlang")}
+          title={memuat ? t("analisa.wawasan.profilMemuat") : t("analisa.wawasan.profilMuatUlang")}
+          aria-busy={memuat}
+          data-uji="wawasan-profil-refresh"
+          className="ml-auto grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-borderRoundness border border-border text-foregroundGrey transition-colors hover:border-borderHighlighted hover:text-foregroundHighlighted disabled:cursor-wait disabled:opacity-60"
+        >
+          <Refresh className={`h-4 w-4 ${memuat ? "animate-spin" : ""}`} />
+        </button>
+      </div>
+
+      <div
+        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        role="group"
+        aria-label={t("analisa.wawasan.profilRating")}
+      >
+        {KELAS_RATING.map(({ kunci, label }) => {
+          const nilai = kartu?.ratings?.[kunci];
+          const puncak = kartu?.peak?.[kunci];
+          return (
+            <div
+              key={kunci}
+              className="flex flex-col gap-0.5 rounded-borderRoundness border border-border bg-backgroundBox px-3 py-2"
+              data-uji={`wawasan-rating-${kunci}`}
+            >
+              <span className="text-[0.65rem] font-bold uppercase tracking-wide text-foregroundGrey">{label}</span>
+              <span className="font-mono text-lg font-bold tabular-nums text-foreground">{nilai ?? "—"}</span>
+              {puncak != null ? (
+                <span className="font-mono text-[0.65rem] text-foregroundGrey">
+                  {t("analisa.wawasan.profilPuncak", { rating: puncak })}
+                </span>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+function FilterBar({ filterWaktu, filterWarna, filterTanggal, onWaktu, onWarna, onTanggal, t }) {
+  const grup = [
+    {
+      kunci: "waktu",
+      judul: t("analisa.wawasan.filterKecepatan"),
+      opsi: OPSI_WAKTU,
+      nilai: filterWaktu,
+      onPilih: onWaktu,
+    },
+    {
+      kunci: "warna",
+      judul: t("analisa.wawasan.filterWarna"),
+      opsi: OPSI_WARNA,
+      nilai: filterWarna,
+      onPilih: onWarna,
+    },
+    {
+      kunci: "tanggal",
+      judul: t("analisa.wawasan.filterRentang"),
+      opsi: OPSI_TANGGAL,
+      nilai: filterTanggal,
+      onPilih: onTanggal,
+    },
+  ];
+
+  return (
+    <div
+      className="flex flex-wrap items-center gap-3 rounded-borderRoundness border border-border bg-backgroundBox px-4 py-2"
+      role="toolbar"
+      aria-label={t("analisa.wawasan.filterJudul")}
+    >
+      {grup.map((g) => (
+        <div key={g.kunci} className="flex items-center gap-2" role="radiogroup" aria-label={g.judul}>
+          <span className="text-xs font-bold text-foregroundGrey">{g.judul}:</span>
+          <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5">
+            {g.opsi.map((o) => (
+              <button
+                key={o.nilai}
+                type="button"
+                role="radio"
+                aria-checked={g.nilai === o.nilai}
+                onClick={() => g.onPilih(o.nilai)}
+                className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
+                  g.nilai === o.nilai
+                    ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold"
+                    : "text-foregroundGrey hover:text-foreground"
+                }`}
+              >
+                {o.kunci ? t(o.kunci) : o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
 
 function KpiGrid({ wawasan, t }) {
   const streak = wawasan.streak;

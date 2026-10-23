@@ -234,7 +234,9 @@ globalThis.fetch = async (url) => {
       username: "hikaru",
       url: "https://www.chess.com/member/Hikaru",
       avatar: "https://avatar/contoh.png",
-      country: "https://api.chess.com/pub/country/US",
+      country: alamat.includes("/subdiv")
+        ? "https://api.chess.com/pub/country/GB-ENG"
+        : "https://api.chess.com/pub/country/US",
     }),
   };
 };
@@ -259,7 +261,16 @@ await uji("kartu chess.com tetap memakai API chess.com", async () => {
   assert.ok(kartu);
   assert.equal(kartu.ratings.bullet, 3000);
   assert.equal(kartu.total, 6);
+  assert.equal(kartu.flag, "us");
+  assert.equal(kartu.country, "US");
   assert.equal(hitungFetch, 2); // profil + statistik
+});
+
+await uji("kode negara subdivisi dipetakan ke nama berkas bendera", async () => {
+  const kartu = await ambilKartuPemain("Subdiv", "chessCom");
+  assert.ok(kartu);
+  assert.equal(kartu.flag, "gb-eng");
+  assert.equal(kartu.country, "GB-ENG");
 });
 
 await uji("cache per platform: panggilan kedua tanpa fetch", async () => {

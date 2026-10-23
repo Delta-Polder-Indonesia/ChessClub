@@ -198,14 +198,14 @@ export default function Nav() {
    * lebar bilah yang sedang menyusut dan sesaat terpotong overflow.
    */
   // min-h-10 (40px) hanya di mode ponsel: target sentuh minimum yang nyaman
-  // (audit Lighthouse "touch targets"); di bilah tegak desktop tinggi tetap h-8.
-  const kelasTombol = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer navTop:w-full`;
+  // (audit Lighthouse "touch targets"); di bilah tegak desktop tinggi tetap h-9.
+  const kelasTombol = `flex flex-row gap-2.5 h-full min-h-10 navTop:min-h-0 navTop:h-9 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors cursor-pointer navTop:w-full`;
 
   /**
    * Label menu yang bisa menciut (max-width/opacity) saat bilah ditutup —
    * persis perilaku sidebar Pengurus: ikon diam, label menyusut.
    */
-  const kelasLabelNav = `overflow-hidden whitespace-nowrap transform-gpu transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block text-sm font-bold ${
+  const kelasLabelNav = `overflow-hidden whitespace-nowrap transform-gpu transition-[max-width,opacity,margin] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hidden navTop:block text-[15px] leading-5 font-bold ${
     navTerbuka ? "navTop:max-w-[140px] navTop:opacity-100" : "navTop:max-w-0 navTop:opacity-0"
   }`;
 
@@ -310,7 +310,7 @@ export default function Nav() {
             </Link>
           </div>
           <hr className="border-border mx-2 navTop:mx-0 my-1 navTop:block hidden" />
-          <div className="flex navTop:flex-col flex-row">
+          <div className="flex navTop:flex-col flex-row navTop:gap-1">
             {menu.map((item) => {
               // Layar yang sedang tampil ditandai di bilah, persis seperti
               // sidebar dashboard Pengurus menandai tab aktifnya.
@@ -362,11 +362,11 @@ export default function Nav() {
           </div>
         </div>
         <div className="flex navTop:flex-col flex-row text-sm font-bold navTop:w-full navTop:h-fit">
-          <div className="flex navTop:flex-col flex-row">
+          <div className="flex navTop:flex-col flex-row navTop:gap-1">
             {botLinks.map((link, i) => {
               // Kelas yang sama dengan tombol menu: selalu `navTop:w-full`,
               // ikon diam saat bilah menciut (lihat kelasTombol).
-              const kelas = `flex flex-row gap-2 h-full min-h-10 navTop:min-h-0 navTop:h-8 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors navTop:w-full`;
+              const kelas = `flex flex-row gap-2.5 h-full min-h-10 navTop:min-h-0 navTop:h-9 navTop:px-2 navTop:justify-start justify-center items-center navTop:py-0 p-2 group hover:bg-backgroundBoxHover text-foregroundGrey hover:text-foregroundHighlighted transition-colors navTop:w-full`;
               // Label teksnya `hidden` di mode ponsel — aria-label wajib ada
               // supaya tautan tetap bernama bagi pembaca layar (audit
               // Lighthouse "links do not have a discernible name").
