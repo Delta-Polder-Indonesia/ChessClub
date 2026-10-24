@@ -364,8 +364,8 @@ export default function LayarWawasan() {
                 <KpiGrid wawasan={wawasanTampil} t={t} />
 
                 {/* Dashboard 2 kolom */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                  <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                     <DistribusiHasil
                       umum={wawasanTampil.hasilUmum}
@@ -375,7 +375,7 @@ export default function LayarWawasan() {
                     />
                     <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
-                  <div className="flex h-full min-h-0 min-w-0 flex-col gap-4">
+                  <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <DashboardAkun
                       platform={platform}
                       username={username}
