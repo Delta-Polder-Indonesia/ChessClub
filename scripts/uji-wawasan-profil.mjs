@@ -411,6 +411,19 @@ uji("sisi accuracies yang dibaca mengikuti userColor", () => {
   assert.equal(hitungTaktikal(partai, {}).avgAccuracy, 71);
 });
 
+uji("ringkasan analisis tanpa sisi pemain jatuh ke akurasi platform", () => {
+  const partai = [partaiAcuan({
+    id: "p1",
+    userColor: "white",
+    accuracies: { white: 76.4 },
+  })];
+  const stats = hitungTaktikal(partai, { p1: { summary: { black: { eligibleMoves: 8, accuracyEstimate: 90, breakdown: {} } } } });
+  assert.equal(stats.avgAccuracy, 76.4);
+  assert.equal(stats.accuracyCount, 1);
+  assert.equal(stats.analyzedGamesCount, 0);
+  assert.equal(stats.blundersPerGame, 0);
+});
+
 uji("partai punya analisis TIDAK dihitung dua kali dari accuracies platform", () => {
   const g1 = partaiAcuan({ accuracies: { white: 12.3 } });
   const stats = hitungTaktikal([g1], { g1: ANALISIS_1 });
@@ -621,6 +634,22 @@ uji("filter waktu parsial tetap menerima semua rentang tanggal", () => {
 uji("filter aman ketika masukan partai bukan array", () => {
   assert.deepEqual(filterPartaiWawasan(null, {}), []);
 });
+
+uji("filter tanggal menolak timestamp rusak dan tanggal masa depan", () => {
+  const sekarang = 1700000000000;
+  const partai = [
+    buatPartai({ id: "valid", timestamp: sekarang - 5 * 86400000, timeClass: "rapid" }),
+    buatPartai({ id: "rusak", timestamp: "bukan-tanggal", timeClass: "rapid" }),
+    buatPartai({ id: "masa-depan", timestamp: sekarang + 86400000, timeClass: "rapid" }),
+    null,
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { dateRange: "30d" }, sekarang).map((p) => p.id),
+    ["valid"],
+  );
+});
+
+
 
 /* ------------------------------------------------- 8. agregasiWawasan utuh */
 

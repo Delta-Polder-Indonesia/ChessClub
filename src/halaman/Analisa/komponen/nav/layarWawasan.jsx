@@ -17,7 +17,6 @@ import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import DaftarPembukaanAkun, { BarHasil } from "../../akun/DaftarPembukaanAkun.jsx";
-import { rekapPembukaan } from "../../akun/statsAkun.js";
 import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
 import Refresh from "../svg/refresh.jsx";
@@ -183,10 +182,25 @@ export default function LayarWawasan() {
     if (!username || !partaiAkunDifilter.length) {
       return { rekapAkun: { putih: [], hitam: [] }, putih: [], hitam: [] };
     }
+
+    const putih = hitungPembukaanTeratas(partaiAkunDifilter, username, "white", Infinity, labelPembukaan);
+    const hitam = hitungPembukaanTeratas(partaiAkunDifilter, username, "black", Infinity, labelPembukaan);
+    const keRekapAkun = (daftar) => {
+      const total = daftar.reduce((jumlah, pembukaan) => jumlah + pembukaan.played, 0);
+      return daftar.map((pembukaan) => ({
+        nama: pembukaan.name,
+        jumlah: pembukaan.played,
+        persen: total > 0 ? Math.round((pembukaan.played / total) * 1000) / 10 : 0,
+        w: pembukaan.wins,
+        d: pembukaan.draws,
+        l: pembukaan.losses,
+      }));
+    };
+
     return {
-      rekapAkun: rekapPembukaan(partaiAkunDifilter, username),
-      putih: hitungPembukaanTeratas(partaiAkunDifilter, username, "white", Infinity, labelPembukaan),
-      hitam: hitungPembukaanTeratas(partaiAkunDifilter, username, "black", Infinity, labelPembukaan),
+      rekapAkun: { putih: keRekapAkun(putih), hitam: keRekapAkun(hitam) },
+      putih,
+      hitam,
     };
   }, [partaiAkunDifilter, username, labelPembukaan]);
 
