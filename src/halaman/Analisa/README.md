@@ -1041,6 +1041,21 @@ Kartu ini membaca profil langsung dari API, bukan dari 50 partai terbaru yang
 dipakai agregasi Wawasan, jadi rating dan tanggal bergabung tidak terpotong
 oleh `BATAS_PARTAI_WAWASAN`.
 
+Kartu **Ringkasan & Peringkat Akun** (`DashboardAkun` dengan `daftarTab:
+["overview", "ratings"]`, `sebagaiKartu`, dan `partaiLuar`) dirender di samping
+**Tren Rating** tanpa judul nama akun berulang maupun dropdown **Situs/Kontrol
+waktu** dan rentang ganda di dalam kartu: pemilih **Situs** ditempatkan satu
+baris dengan **Pilih akun** di bagian atas layar Wawasan, sedangkan filter
+kecepatan dan rentang waktu mengikuti bilah filter Wawasan secara terpadu.
+
+Kartu **Pembukaan Teratas** (`KartuPembukaanTeratas`) memuat seluruh partai
+akun yang tersimpan di basis data (`limit: 0`, selaras dengan tab Pembukaan di
+layar Akun) dan menyediakan tiga tab — **Semua** (bawaan, merender tampilan
+2 kolom Putih & Hitam `DaftarPembukaanAkun` yang sama dengan bagian Pembukaan di
+layar Akun), **Putih**, dan **Hitam** — tanpa pemotongan 5 baris teratas, dengan
+kontainer berbatas tinggi (`max-h-72 overflow-y-auto`) agar kartu tidak
+memanjang ke bawah saat daftar pembukaan banyak.
+
 ### Uji
 
 `scripts/uji-wawasan-profil.mjs` (`npm run uji:wawasan-profil`, ikut dirangkai

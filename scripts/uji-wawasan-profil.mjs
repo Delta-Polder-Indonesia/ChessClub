@@ -289,6 +289,48 @@ uji("warna pemain memisahkan daftar putih dan hitam", () => {
   assert.equal(hitungPembukaanTeratas(partai, "testuser", "black").length, 0);
 });
 
+uji("warna 'all' menggabungkan putih dan hitam tanpa memotong saat batas Infinity", () => {
+  const partai = [
+    buatPartai({
+      id: "w1",
+      pgn: '[ECO "B01"]\n[Opening "Scandinavian Defense"]\n\n1. e4 d5 1-0',
+      result: "white",
+    }),
+    buatPartai({
+      id: "b1",
+      whiteName: "opponent",
+      blackName: "testuser",
+      pgn: '[Opening "Scandinavian Defense"]\n\n1. e4 d5 0-1',
+      result: "black",
+    }),
+    buatPartai({
+      id: "b2",
+      whiteName: "opponent",
+      blackName: "testuser",
+      pgn: '[ECO "B01"]\n[Opening "Scandinavian Defense"]\n\n1. e4 d5 1/2-1/2',
+      result: "draw",
+    }),
+  ];
+  for (let i = 0; i < 6; i++) {
+    partai.push(
+      buatPartai({
+        id: `extra-${i}`,
+        pgn: `[ECO "C0${i}"]\n[Opening "Pembukaan Uji ${i}"]\n\n1. e4 e5 1-0`,
+        result: "white",
+      }),
+    );
+  }
+  const semua = hitungPembukaanTeratas(partai, "testuser", "all", Infinity);
+  assert.equal(semua.length, 7);
+  assert.equal(semua[0].name, "Scandinavian Defense");
+  assert.equal(semua[0].eco, "B01");
+  assert.equal(semua[0].played, 3);
+  assert.equal(semua[0].wins, 2);
+  assert.equal(semua[0].draws, 1);
+  assert.equal(semua[0].losses, 0);
+  assert.equal(semua[0].winRate, 66.7);
+});
+
 /* ------------------------------------------------------- 5. hitungTaktikal */
 
 console.log("\n5. hitungTaktikal — kunci emas computeTacticalStats acuan");
@@ -573,7 +615,35 @@ uji("field taktikal selalu ada walau daftar partai kosong", () => {
   const hasil = agregasiWawasan([], "testuser", FILTER_SEMUA);
   assert.equal(hasil.totalPartai, 0);
   assert.equal(hasil.taktikal.avgAccuracy, null);
+  assert.deepEqual(hasil.pembukaanSemua, []);
   assert.deepEqual(hasil.pembukaPutih, []);
+  assert.deepEqual(hasil.pembukaanHitam, []);
+});
+
+uji("agregasiWawasan mengembalikan semua pembukaan tanpa batas 5 untuk semua, putih, dan hitam", () => {
+  const partai = [];
+  for (let i = 0; i < 7; i++) {
+    partai.push(
+      buatPartai({
+        id: `pw-${i}`,
+        pgn: `[ECO "A0${i}"]\n[Opening "Putih ${i}"]\n\n1. e4 e5 1-0`,
+        result: "white",
+      }),
+    );
+    partai.push(
+      buatPartai({
+        id: `pb-${i}`,
+        whiteName: "opponent",
+        blackName: "testuser",
+        pgn: `[ECO "B0${i}"]\n[Opening "Hitam ${i}"]\n\n1. d4 d5 0-1`,
+        result: "black",
+      }),
+    );
+  }
+  const hasil = agregasiWawasan(partai, "testuser", FILTER_SEMUA);
+  assert.equal(hasil.pembukaPutih.length, 7);
+  assert.equal(hasil.pembukaanHitam.length, 7);
+  assert.equal(hasil.pembukaanSemua.length, 14);
 });
 
 /* ------------------------------------ 9. seam kunci hash PGN → id partai */

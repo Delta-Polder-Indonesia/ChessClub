@@ -219,21 +219,25 @@ export const LABEL_PEMBUKAAN = Object.freeze({
  * mengikuti acuan apa adanya.
  *
  * @param {object[]} partai daftar partai (butuh `pgn`, `whiteName`/`blackName`, `result`)
- * @param {"white"|"black"} warna
- * @param {number} [batas=5]
+ * @param {"all"|"white"|"black"} warna
+ * @param {number|null} [batas=5] batas jumlah baris (`Infinity`/`null` = semua)
  * @param {{ dariEco?: Function, tidakDiketahui?: string }} [label] teks
  *   cadangan; di UI diisi dari kamus i18n, di uji dibiarkan bawaan acuan.
  */
 export function hitungPembukaanTeratas(partai, username, warna, batas = 5, label = LABEL_PEMBUKAAN) {
   const labelEco = typeof label?.dariEco === "function" ? label.dariEco : LABEL_PEMBUKAAN.dariEco;
   const labelTidakDiketahui = label?.tidakDiketahui || LABEL_PEMBUKAAN.tidakDiketahui;
+  const semuaWarna = warna === "all";
 
-  const partaiWarna = (Array.isArray(partai) ? partai : []).filter(
-    (p) => warnaPemain(p, username) === warna
-  );
+  const partaiWarna = (Array.isArray(partai) ? partai : []).filter((p) => {
+    const sisi = warnaPemain(p, username);
+    return semuaWarna ? Boolean(sisi) : sisi === warna;
+  });
   const peta = new Map();
 
   for (const p of partaiWarna) {
+    const sisi = semuaWarna ? warnaPemain(p, username) : warna;
+    if (!sisi) continue;
     const header = parsePgnHeaders(p.pgn);
     const eco = (header.ECO || "").trim() || undefined;
     const nama =
@@ -252,9 +256,11 @@ export function hitungPembukaanTeratas(partai, username, warna, batas = 5, label
         draws: 0,
       };
       peta.set(nama, entri);
+    } else if (!entri.eco && eco) {
+      entri.eco = eco;
     }
 
-    const hasil = hasilPemain(p, warna);
+    const hasil = hasilPemain(p, sisi);
     if (hasil === "win") entri.wins += 1;
     else if (hasil === "loss") entri.losses += 1;
     else if (hasil === "draw") entri.draws += 1;
@@ -267,7 +273,7 @@ export function hitungPembukaanTeratas(partai, username, warna, batas = 5, label
   });
 
   daftar.sort((a, b) => (b.played !== a.played ? b.played - a.played : b.winRate - a.winRate));
-  return daftar.slice(0, batas);
+  return batas == null || !Number.isFinite(batas) ? daftar : daftar.slice(0, batas);
 }
 
 /**
@@ -422,8 +428,9 @@ export function agregasiWawasan(partai, username, filter = {}, analysisMap = {},
     ? Math.max(...trenRating.map((p) => p.rating))
     : null;
 
-  const pembukaPutih = hitungPembukaanTeratas(difilter, username, "white", 5, label);
-  const pembukaanHitam = hitungPembukaanTeratas(difilter, username, "black", 5, label);
+  const pembukaanSemua = hitungPembukaanTeratas(difilter, username, "all", Infinity, label);
+  const pembukaPutih = hitungPembukaanTeratas(difilter, username, "white", Infinity, label);
+  const pembukaanHitam = hitungPembukaanTeratas(difilter, username, "black", Infinity, label);
 
   /*
    * `computeTacticalStats(filtered, analysisMap)` di acuan — dua argumen,
@@ -446,6 +453,7 @@ export function agregasiWawasan(partai, username, filter = {}, analysisMap = {},
     trenRating,
     streak,
     peakRating,
+    pembukaanSemua,
     pembukaPutih,
     pembukaanHitam,
     taktikal,

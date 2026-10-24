@@ -8,38 +8,13 @@ import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
+import DaftarPembukaanAkun, { BarHasil } from "./DaftarPembukaanAkun.jsx";
 import Database from "../komponen/svg/database.jsx";
 import DualRingSpinner from "../komponen/loading/DualRingSpinner.jsx";
 
 const BIRU = "#4a9dd9";
 
 const cachePartai = new Map();
-
-function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
-  const total = w + d + l || 1;
-  const seg = (nilai, warna) => {
-    const pct = (nilai / total) * 100;
-    return { pct, warna, tampil: pct > 15 };
-  };
-  const win = seg(w, "var(--analisa-winGreen)");
-  const draw = seg(d, "var(--analisa-foregroundGrey)");
-  const loss = seg(l, "var(--analisa-lossRed)");
-  return (
-    <div className="flex w-full overflow-hidden rounded-md" style={{ height: tinggi }}>
-      {[win, draw, loss].map((s, i) => (
-        <div
-          key={i}
-          className="flex h-full items-center justify-center overflow-hidden"
-          style={{ width: `${s.pct}%`, backgroundColor: s.warna }}
-        >
-          {s.tampil ? (
-            <span className="px-1 text-[0.7rem] font-bold leading-none text-white/90">{s.pct.toFixed(1)}%</span>
-          ) : null}
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function GrafikTahunan({ data }) {
   const [tahun] = useState(null);
@@ -144,18 +119,6 @@ function GrafikRiwayat({ poin }) {
   );
 }
 
-function BarisPembukaan({ e }) {
-  return (
-    <div className="flex flex-col gap-2 px-1 py-3">
-      <div className="flex items-center justify-between gap-2 text-[13px]">
-        <span className="truncate font-semibold text-foreground">{e.nama}</span>
-        <span className="shrink-0 font-bold text-foregroundGrey">{e.persen}%</span>
-      </div>
-      <BarHasil w={e.w} d={e.d} l={e.l} tinggi="1rem" />
-    </div>
-  );
-}
-
 function MuatNegara({ isi }) {
   return (
     <div className="flex flex-col items-center gap-4 py-14 text-center">
@@ -177,18 +140,27 @@ function KosongState({ isi, sub }) {
   );
 }
 
-export default function DashboardAkun({ platform, username }) {
+const SEMUA_TAB_AKUN = ["overview", "ratings", "openings"];
+
+export default function DashboardAkun({
+  platform,
+  username,
+  daftarTab = SEMUA_TAB_AKUN,
+  sebagaiKartu = false,
+  partaiLuar = null,
+}) {
   const { t } = useI18n();
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(() => daftarTab[0] || "overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
+  const pakaiPartaiLuar = Array.isArray(partaiLuar);
   const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
   const bacaCachePartai = (id) => {
     const entri = cachePartai.get(id);
     return entri && entri.revisi === bacaRevisiBasis() ? entri.daftar : null;
   };
-  const [games, setGames] = useState(() => bacaCachePartai(koleksiIdAwal));
+  const [games, setGames] = useState(() => (pakaiPartaiLuar ? partaiLuar : bacaCachePartai(koleksiIdAwal)));
   const [gamesPgn, setGamesPgn] = useState(null);
   // `true` = muat terakhir GAGAL (bukan "akun kosong") — tampilkan kabar
   // galat, bukan panel kosong yang menuduh pengguna belum punya data.
@@ -200,13 +172,14 @@ export default function DashboardAkun({ platform, username }) {
    * menunggu efek), supaya statistik akun sebelumnya tidak tampil sejenak
    * di bawah nama akun baru. */
   const koleksiIdRef = useRef(koleksiIdAwal);
-  if (koleksiIdRef.current !== koleksiIdAwal) {
+  if (!pakaiPartaiLuar && koleksiIdRef.current !== koleksiIdAwal) {
     koleksiIdRef.current = koleksiIdAwal;
     setGames(bacaCachePartai(koleksiIdAwal));
     setGamesPgn(null);
   }
 
   const muatData = useCallback(async () => {
+    if (pakaiPartaiLuar) return;
     const token = ++tokenMuat.current;
     const koleksiId = `${platform}:${user.toLowerCase()}`;
     const entri = cachePartai.get(koleksiId);
@@ -229,11 +202,11 @@ export default function DashboardAkun({ platform, username }) {
       setGalatBasis(true);
       setGames([]);
     }
-  }, [platform, user]);
+  }, [pakaiPartaiLuar, platform, user]);
 
   useEffect(() => {
-    if (user) muatData();
-  }, [user, muatData]);
+    if (user && !pakaiPartaiLuar) muatData();
+  }, [user, pakaiPartaiLuar, muatData]);
 
   useEffect(() => setSitus(platform), [platform]);
 
@@ -242,7 +215,7 @@ export default function DashboardAkun({ platform, username }) {
   }, [platform, user]);
 
   useEffect(() => {
-    if (tab !== "openings" || !user) {
+    if (pakaiPartaiLuar || tab !== "openings" || !user) {
       setGamesPgn(null);
       return undefined;
     }
@@ -260,32 +233,49 @@ export default function DashboardAkun({ platform, username }) {
     return () => {
       hidup = false;
     };
-  }, [tab, platform, user]);
+  }, [pakaiPartaiLuar, tab, platform, user]);
 
-  const gamesEfektif = tab === "openings" ? gamesPgn : games;
-  const filteredGames = useMemo(() => (gamesEfektif ? gamesEfektif.filter((p) => p.platform === situs) : gamesEfektif), [gamesEfektif, situs]);
-  const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }), [rentang, waktu, tab]);
+  const sumberPartai = pakaiPartaiLuar ? partaiLuar : (tab === "openings" ? gamesPgn : games);
+  const filteredGames = useMemo(
+    () => (pakaiPartaiLuar ? partaiLuar : (sumberPartai ? sumberPartai.filter((p) => p.platform === situs) : sumberPartai)),
+    [pakaiPartaiLuar, partaiLuar, sumberPartai, situs],
+  );
+  const opsi = useMemo(
+    () => (pakaiPartaiLuar ? { rentang: "all", timeClass: "any" } : { rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }),
+    [pakaiPartaiLuar, rentang, waktu, tab],
+  );
+  const opsiRating = useMemo(
+    () => ({ rentang: pakaiPartaiLuar ? "all" : rentang }),
+    [pakaiPartaiLuar, rentang],
+  );
 
   const overview = useMemo(() => (filteredGames ? ringkasanOverview(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
-  const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, { rentang }) : null), [filteredGames, user, rentang]);
+  const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, opsiRating) : null), [filteredGames, user, opsiRating]);
   const openings = useMemo(() => (filteredGames ? rekapPembukaan(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
 
-  const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => games?.some((p) => p.timeClass === k));
+  const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => sumberPartai?.some((p) => p.timeClass === k));
 
   const tabKunci = [
     { k: "overview", label: t("analisa.statistik.overview") },
     { k: "ratings", label: t("analisa.statistik.ratings") },
     { k: "openings", label: t("analisa.statistik.openings") },
-  ];
+  ].filter((x) => daftarTab.includes(x.k));
+  const tabAktif = tabKunci.some((x) => x.k === tab) ? tab : (tabKunci[0]?.k || "overview");
 
-
-  const totalPutih = openings?.putih.reduce((s, e) => s + e.jumlah, 0) || 0;
-  const totalHitam = openings?.hitam.reduce((s, e) => s + e.jumlah, 0) || 0;
+  const kelasPembungkus = sebagaiKartu
+    ? "flex w-full flex-col"
+    : "flex h-full w-full flex-col p-1";
+  const kelasKartu = sebagaiKartu
+    ? "flex flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
+    : "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox";
+  const kelasIsi = sebagaiKartu
+    ? "px-4 pb-4"
+    : "min-h-0 flex-1 overflow-y-auto px-4 pb-4";
 
   if (!user) {
     return (
-      <div className="flex h-full w-full flex-col p-1">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
+      <div className={kelasPembungkus} data-uji="dashboard-akun">
+        <div className={kelasKartu}>
           <KosongState isi={t("analisa.akun.kosongJudul")} sub={t("analisa.akun.kosongIsi")} />
         </div>
       </div>
@@ -293,12 +283,14 @@ export default function DashboardAkun({ platform, username }) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col p-1">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
-        <div className="relative px-4 pt-4">
-          <span className="block text-center text-xl font-bold text-foreground">{user}</span>
-          <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
-        </div>
+    <div className={kelasPembungkus} data-uji="dashboard-akun">
+      <div className={kelasKartu}>
+        {!sebagaiKartu ? (
+          <div className="relative px-4 pt-4">
+            <span className="block text-center text-xl font-bold text-foreground">{user}</span>
+            <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
+          </div>
+        ) : null}
 
         {/* Tab membungkus agar tidak meluber di panel sempit. */}
         <div className="flex flex-wrap border-b border-border px-4 pt-2">
@@ -306,9 +298,10 @@ export default function DashboardAkun({ platform, username }) {
             <button
               key={x.k}
               type="button"
+              data-uji={`dashboard-akun-tab-${x.k}`}
               onClick={() => setTab(x.k)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-bold transition-colors ${
-                tab === x.k ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] text-foreground" : "border-transparent text-foregroundGrey hover:text-foregroundHighlighted"
+                tabAktif === x.k ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] text-foreground" : "border-transparent text-foregroundGrey hover:text-foregroundHighlighted"
               }`}
             >
               {x.label}
@@ -316,26 +309,28 @@ export default function DashboardAkun({ platform, username }) {
           ))}
         </div>
 
-        <div className="flex flex-wrap items-end gap-2 px-4 pt-3">
-          <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
-            {t("analisa.statistik.situs")}
-            <select value={situs} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
-              <option value="chessCom">Chess.com</option>
-              <option value="lichessOrg">Lichess.org</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
-            {t("analisa.statistik.waktu")}
-            <select value={waktu} onChange={(e) => setWaktu(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
-              <option value="any">{t("analisa.statistik.semuaWaktu")}</option>
-              {pilihanWaktu.map((k) => (
-                <option key={k} value={k}>{k}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {!sebagaiKartu ? (
+          <div className="flex flex-wrap items-end gap-2 px-4 pt-3">
+            <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
+              {t("analisa.statistik.situs")}
+              <select value={situs} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
+                <option value="chessCom">Chess.com</option>
+                <option value="lichessOrg">Lichess.org</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
+              {t("analisa.statistik.waktu")}
+              <select value={waktu} onChange={(e) => setWaktu(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
+                <option value="any">{t("analisa.statistik.semuaWaktu")}</option>
+                {pilihanWaktu.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
 
-        {tab === "ratings" ? (
+        {!sebagaiKartu && tabAktif === "ratings" ? (
           <div className="flex items-center justify-center gap-1 px-4 pt-3">
             {["7d", "30d", "90d", "1y", "all"].map((r) => (
               <button
@@ -352,30 +347,30 @@ export default function DashboardAkun({ platform, username }) {
           </div>
         ) : null}
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          {games == null || (tab === "openings" && gamesPgn == null) ? (
+        <div className={kelasIsi}>
+          {!pakaiPartaiLuar && (games == null || (tabAktif === "openings" && gamesPgn == null)) ? (
             <MuatNegara isi={t("analisa.statistik.memuat")} />
-          ) : games.length === 0 ? (
-            galatBasis ? (
+          ) : (filteredGames?.length ?? 0) === 0 ? (
+            !pakaiPartaiLuar && galatBasis ? (
               <KosongState isi={t("analisa.statistik.galatBasis")} sub={t("analisa.statistik.galatBasisSub")} />
             ) : (
               <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
             )
-          ) : tab === "overview" && overview ? (
-            <div className="flex min-h-full flex-col gap-3">
+          ) : tabAktif === "overview" && overview ? (
+            <div className="flex min-h-full flex-col gap-3" data-uji="dashboard-akun-overview">
               <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>
               {overview.total > 0 ? <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" /> : null}
               <div className="mt-auto">
                 <GrafikTahunan data={overview.tahunan} />
               </div>
             </div>
-          ) : tab === "ratings" && ratings ? (
-            <div className="flex flex-col gap-6 pt-2">
+          ) : tabAktif === "ratings" && ratings ? (
+            <div className={`flex flex-col ${sebagaiKartu ? "gap-3 pt-4" : "gap-6 pt-2"}`} data-uji="dashboard-akun-ratings">
               <div className="text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
               {ratings.total > 0 ? (
                 <div className="flex flex-col gap-4">
                   <BarHasil w={ratings.poin.filter((p) => p.outcome === "win").length} d={ratings.poin.filter((p) => p.outcome === "draw").length} l={ratings.poin.filter((p) => p.outcome === "loss").length} tinggi="2rem" />
-                  <div className="mt-10">
+                  <div className={sebagaiKartu ? "mt-1" : "mt-10"}>
                     <GrafikRiwayat poin={ratings.poin} min={ratings.min} max={ratings.max} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-foregroundGrey pt-2">
@@ -385,17 +380,8 @@ export default function DashboardAkun({ platform, username }) {
                 </div>
               ) : null}
             </div>
-          ) : tab === "openings" && openings ? (
-            <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-              <div>
-                <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">{t("analisa.statistik.putih")}</div>
-                {openings.putih.length ? openings.putih.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} totalWarna={totalPutih} />) : <p className="py-4 text-center text-sm text-foregroundGrey">—</p>}
-              </div>
-              <div>
-                <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">{t("analisa.statistik.hitam")}</div>
-                {openings.hitam.length ? openings.hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} totalWarna={totalHitam} />) : <p className="py-4 text-center text-sm text-foregroundGrey">—</p>}
-              </div>
-            </div>
+          ) : tabAktif === "openings" && openings ? (
+            <DaftarPembukaanAkun putih={openings.putih} hitam={openings.hitam} />
           ) : null}
         </div>
       </div>
