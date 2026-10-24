@@ -34,7 +34,6 @@ const OPSI_WAKTU = [
   { nilai: "bullet", label: "Bullet" },
   { nilai: "blitz", label: "Blitz" },
   { nilai: "rapid", label: "Rapid" },
-  { nilai: "classical", label: "Classical" },
   { nilai: "daily", label: "Daily" },
 ];
 
