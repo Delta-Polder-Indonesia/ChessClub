@@ -31,6 +31,7 @@ const BENDERA = import.meta.glob("../flags/*.svg", {
 
 const OPSI_WAKTU = [
   { nilai: "all", kunci: "analisa.wawasan.filterSemua" },
+  { nilai: "ultraBullet", label: "UltraBullet" },
   { nilai: "bullet", label: "Bullet" },
   { nilai: "blitz", label: "Blitz" },
   { nilai: "rapid", label: "Rapid" },
@@ -57,6 +58,7 @@ const KELAS_RATING = [
   { kunci: "rapid", label: "Rapid" },
   { kunci: "blitz", label: "Blitz" },
   { kunci: "bullet", label: "Bullet" },
+  { kunci: "classical", label: "Classical" },
   { kunci: "daily", label: "Daily" },
 ];
 
@@ -103,7 +105,9 @@ export default function LayarWawasan() {
     try {
       const { partai: daftar } = await ambilDaftarPartai({
         koleksiId: `${platform}:${username.toLowerCase()}`,
-        timeClass: filterWaktu === "all" ? "" : filterWaktu,
+        // Daily mencakup juga "correspondence" dari Lichess, jadi
+        // kueri IndexedDB tidak boleh memangkasnya sebelum filter domain berjalan.
+        timeClass: filterWaktu === "all" || filterWaktu === "daily" ? "" : filterWaktu,
         limit: 0,
         sertakanPgn: true,
         urut: "tanggal",
@@ -530,7 +534,7 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
       </div>
 
       <div
-        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
         role="group"
         aria-label={t("analisa.wawasan.profilRating")}
       >

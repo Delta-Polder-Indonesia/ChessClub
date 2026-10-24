@@ -635,6 +635,18 @@ uji("filter aman ketika masukan partai bukan array", () => {
   assert.deepEqual(filterPartaiWawasan(null, {}), []);
 });
 
+uji("filter Daily mencakup daily Chess.com dan correspondence Lichess", () => {
+  const partai = [
+    buatPartai({ id: "chesscom-daily", timeClass: "daily" }),
+    buatPartai({ id: "lichess-correspondence", timeClass: "correspondence" }),
+    buatPartai({ id: "rapid", timeClass: "rapid" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { timeClass: "daily" }).map((p) => p.id),
+    ["chesscom-daily", "lichess-correspondence"],
+  );
+});
+
 uji("filter tanggal menolak timestamp rusak dan tanggal masa depan", () => {
   const sekarang = 1700000000000;
   const partai = [

@@ -392,8 +392,16 @@ export function filterPartaiWawasan(partai, filter = {}, nowMs = Date.now()) {
   const daftar = Array.isArray(partai) ? partai : [];
   return daftar.filter((p) => {
     if (!p || typeof p !== "object") return false;
-    // Filter kecepatan
-    if (timeClass !== "all" && p.timeClass !== timeClass) return false;
+    // Lichess menyimpan permainan korespondensi sebagai "correspondence",
+    // sedangkan Chess.com menggunakan "daily". Keduanya satu kelas UI.
+    if (timeClass !== "all") {
+      const kelasPartai = String(p.timeClass || "").toLowerCase();
+      const kelasFilter = String(timeClass).toLowerCase();
+      const cocok = kelasFilter === "daily"
+        ? kelasPartai === "daily" || kelasPartai === "correspondence"
+        : kelasPartai === kelasFilter;
+      if (!cocok) return false;
+    }
     // Filter rentang tanggal (timestamp dalam ms). Timestamp invalid dan
     // tanggal masa depan tidak boleh diam-diam lolos sebagai partai terbaru.
     if (minTimestamp !== null) {
