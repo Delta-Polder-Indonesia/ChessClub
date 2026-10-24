@@ -878,8 +878,8 @@ export function KartuPembukaanTeratas({
                     <td className="min-w-0 overflow-hidden py-1.5 px-1 font-mono text-[10px] text-foregroundGrey"><span className="block truncate" title={op.moves || "\u2014"}>{op.moves || "\u2014"}</span></td>
                     <td className="py-1 px-0.5 text-right font-mono text-foregroundGrey" title={`${op.played} kali dimainkan`}>{op.played}</td>
                     <td className="py-1 px-0.5 text-right font-mono font-bold text-highlightBest" title={`Win rate: ${op.winRate}%`}>{op.winRate}%</td>
-                    <td className="py-1.5 px-2">
-                      <div className="flex h-2 w-16 overflow-hidden rounded-sm bg-backgroundBoxBox">
+                    <td className="min-w-0 py-1 px-1">
+                      <div className="flex h-2 w-full max-w-16 overflow-hidden rounded-sm bg-backgroundBoxBox" title={`Menang ${op.wins}, seri ${op.draws}, kalah ${op.losses}`}>
                         {winPct > 0 && <div className="h-full bg-highlightBest" style={{ width: `${winPct}%` }} />}
                         {drawPct > 0 && <div className="h-full bg-foregroundGrey" style={{ width: `${drawPct}%` }} />}
                         {lossPct > 0 && <div className="h-full bg-highlightBlunder" style={{ width: `${lossPct}%` }} />}
