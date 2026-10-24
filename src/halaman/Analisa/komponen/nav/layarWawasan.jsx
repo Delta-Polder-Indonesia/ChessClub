@@ -850,16 +850,16 @@ export function KartuPembukaanTeratas({
       ) : (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-[34rem] min-h-0 flex-1 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
+          className="mt-2 max-h-[34rem] min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]"
         >
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full table-fixed text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-backgroundBoxDarker shadow-[inset_0_-1px_0_0_var(--analisa-border)]">
               <tr className="text-foregroundGrey">
-                <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
-                <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
-                <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
-                <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.winRate")}</th>
-                <th className="py-1.5 px-2 font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.hasil")}</th>
+                <th className="w-[34%] py-1.5 px-1.5 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
+                <th className="w-[31%] py-1.5 px-1.5 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
+                <th className="w-[13%] py-1.5 px-1 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
+                <th className="w-[12%] py-1.5 px-1 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.winRate")}</th>
+                <th className="w-[10%] py-1.5 px-1 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.hasil")}</th>
               </tr>
             </thead>
             <tbody>
@@ -869,15 +869,15 @@ export function KartuPembukaanTeratas({
                 const lossPct = op.played > 0 ? (op.losses / op.played) * 100 : 0;
                 return (
                   <tr key={`${op.name}-${idx}`} className="border-b border-border/30">
-                    <td className="py-1.5 px-2">
-                      <div className="flex items-center gap-1.5">
+                    <td className="min-w-0 overflow-hidden py-1.5 px-1.5">
+                      <div className="flex min-w-0 items-center gap-1">
                         {op.eco && <span className="rounded border border-border bg-backgroundBoxBox px-1 py-0.5 font-mono text-[10px] text-highlightBest font-bold">{op.eco}</span>}
-                        <span className="font-semibold text-foreground">{op.name}</span>
+                        <span className="min-w-0 truncate font-semibold text-foreground" title={op.name}>{op.name}</span>
                       </div>
                     </td>
                     <td className="py-1.5 px-2 font-mono text-[10px] text-foregroundGrey whitespace-nowrap">{op.moves || "\u2014"}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-foregroundGrey">{op.played}</td>
-                    <td className="py-1.5 px-2 text-right font-mono font-bold text-highlightBest">{op.winRate}%</td>
+                    <td className="py-1.5 px-1 text-right font-mono text-foregroundGrey">{op.played}</td>
+                    <td className="py-1.5 px-1 text-right font-mono font-bold text-highlightBest">{op.winRate}%</td>
                     <td className="py-1.5 px-2">
                       <div className="flex h-2 w-16 overflow-hidden rounded-sm bg-backgroundBoxBox">
                         {winPct > 0 && <div className="h-full bg-highlightBest" style={{ width: `${winPct}%` }} />}
