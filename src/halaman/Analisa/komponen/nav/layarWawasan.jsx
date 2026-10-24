@@ -15,6 +15,7 @@ import { segarkanKartuPemain, useKartuPemain } from "../../../../lib/pemainCatur
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
+import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import DaftarPembukaanAkun from "../../akun/DaftarPembukaanAkun.jsx";
 import { rekapPembukaan } from "../../akun/statsAkun.js";
 import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
@@ -52,6 +53,7 @@ const OPSI_TANGGAL = [
 ];
 
 const BATAS_PARTAI_WAWASAN = 50;
+const TAB_RINGKASAN_PERINGKAT_AKUN = ["overview", "ratings"];
 
 const KELAS_RATING = [
   { kunci: "rapid", label: "Rapid" },
@@ -323,15 +325,21 @@ export default function LayarWawasan() {
                       hitam={wawasanTampil.sebagaiHitam}
                       t={t}
                     />
+                    <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
                   <div className="flex flex-col gap-4">
+                    <DashboardAkun
+                      platform={platform}
+                      username={username}
+                      daftarTab={TAB_RINGKASAN_PERINGKAT_AKUN}
+                      sebagaiKartu
+                    />
                     <KartuPembukaanTeratas
                       rekapAkun={pembukaanAkun.rekapAkun}
                       putih={pembukaanAkun.putih}
                       hitam={pembukaanAkun.hitam}
                       t={t}
                     />
-                    <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
                 </div>
               </>

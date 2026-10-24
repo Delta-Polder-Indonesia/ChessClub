@@ -140,9 +140,16 @@ function KosongState({ isi, sub }) {
   );
 }
 
-export default function DashboardAkun({ platform, username }) {
+const SEMUA_TAB_AKUN = ["overview", "ratings", "openings"];
+
+export default function DashboardAkun({
+  platform,
+  username,
+  daftarTab = SEMUA_TAB_AKUN,
+  sebagaiKartu = false,
+}) {
   const { t } = useI18n();
-  const [tab, setTab] = useState("overview");
+  const [tab, setTab] = useState(() => daftarTab[0] || "overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
@@ -239,12 +246,23 @@ export default function DashboardAkun({ platform, username }) {
     { k: "overview", label: t("analisa.statistik.overview") },
     { k: "ratings", label: t("analisa.statistik.ratings") },
     { k: "openings", label: t("analisa.statistik.openings") },
-  ];
+  ].filter((x) => daftarTab.includes(x.k));
+  const tabAktif = tabKunci.some((x) => x.k === tab) ? tab : (tabKunci[0]?.k || "overview");
+
+  const kelasPembungkus = sebagaiKartu
+    ? "flex w-full flex-col"
+    : "flex h-full w-full flex-col p-1";
+  const kelasKartu = sebagaiKartu
+    ? "flex flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
+    : "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox";
+  const kelasIsi = sebagaiKartu
+    ? "px-4 pb-4"
+    : "min-h-0 flex-1 overflow-y-auto px-4 pb-4";
 
   if (!user) {
     return (
-      <div className="flex h-full w-full flex-col p-1">
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
+      <div className={kelasPembungkus} data-uji="dashboard-akun">
+        <div className={kelasKartu}>
           <KosongState isi={t("analisa.akun.kosongJudul")} sub={t("analisa.akun.kosongIsi")} />
         </div>
       </div>
@@ -252,8 +270,8 @@ export default function DashboardAkun({ platform, username }) {
   }
 
   return (
-    <div className="flex h-full w-full flex-col p-1">
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
+    <div className={kelasPembungkus} data-uji="dashboard-akun">
+      <div className={kelasKartu}>
         <div className="relative px-4 pt-4">
           <span className="block text-center text-xl font-bold text-foreground">{user}</span>
           <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
@@ -265,9 +283,10 @@ export default function DashboardAkun({ platform, username }) {
             <button
               key={x.k}
               type="button"
+              data-uji={`dashboard-akun-tab-${x.k}`}
               onClick={() => setTab(x.k)}
               className={`-mb-px cursor-pointer border-b-2 px-4 py-2 text-sm font-bold transition-colors ${
-                tab === x.k ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] text-foreground" : "border-transparent text-foregroundGrey hover:text-foregroundHighlighted"
+                tabAktif === x.k ? "border-[var(--analisa-backgroundBoxBoxHighlighted)] text-foreground" : "border-transparent text-foregroundGrey hover:text-foregroundHighlighted"
               }`}
             >
               {x.label}
@@ -294,7 +313,7 @@ export default function DashboardAkun({ platform, username }) {
           </label>
         </div>
 
-        {tab === "ratings" ? (
+        {tabAktif === "ratings" ? (
           <div className="flex items-center justify-center gap-1 px-4 pt-3">
             {["7d", "30d", "90d", "1y", "all"].map((r) => (
               <button
@@ -311,8 +330,8 @@ export default function DashboardAkun({ platform, username }) {
           </div>
         ) : null}
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-          {games == null || (tab === "openings" && gamesPgn == null) ? (
+        <div className={kelasIsi}>
+          {games == null || (tabAktif === "openings" && gamesPgn == null) ? (
             <MuatNegara isi={t("analisa.statistik.memuat")} />
           ) : games.length === 0 ? (
             galatBasis ? (
@@ -320,16 +339,16 @@ export default function DashboardAkun({ platform, username }) {
             ) : (
               <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
             )
-          ) : tab === "overview" && overview ? (
-            <div className="flex min-h-full flex-col gap-3">
+          ) : tabAktif === "overview" && overview ? (
+            <div className="flex min-h-full flex-col gap-3" data-uji="dashboard-akun-overview">
               <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>
               {overview.total > 0 ? <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" /> : null}
               <div className="mt-auto">
                 <GrafikTahunan data={overview.tahunan} />
               </div>
             </div>
-          ) : tab === "ratings" && ratings ? (
-            <div className="flex flex-col gap-6 pt-2">
+          ) : tabAktif === "ratings" && ratings ? (
+            <div className="flex flex-col gap-6 pt-2" data-uji="dashboard-akun-ratings">
               <div className="text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
               {ratings.total > 0 ? (
                 <div className="flex flex-col gap-4">
@@ -344,7 +363,7 @@ export default function DashboardAkun({ platform, username }) {
                 </div>
               ) : null}
             </div>
-          ) : tab === "openings" && openings ? (
+          ) : tabAktif === "openings" && openings ? (
             <DaftarPembukaanAkun putih={openings.putih} hitam={openings.hitam} />
           ) : null}
         </div>

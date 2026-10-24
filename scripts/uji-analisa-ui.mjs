@@ -1085,7 +1085,37 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     const wadahWawasan = domSiap.createElement("div");
     domSiap.body.appendChild(wadahWawasan);
     const rootWawasan = modul.mountWawasan(wadahWawasan, "chessCom", "AkunWawasan");
-    await tungguSampai(() => !!wadahWawasan.querySelector('[data-uji="wawasan-pembukaan"]'), 2000);
+    await tungguSampai(
+      () =>
+        !!wadahWawasan.querySelector('[data-uji="wawasan-pembukaan"]')
+        && !!wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]'),
+      2000,
+    );
+
+    const kartuAkun = wadahWawasan.querySelector('[data-uji="dashboard-akun"]');
+    const tabAkunRingkasan = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-overview"]');
+    const tabAkunPeringkat = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-ratings"]');
+    const tabAkunPembukaan = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-openings"]');
+
+    uji(
+      "wawasan kartu akun: menampilkan kartu Ringkasan & Peringkat Akun di samping Tren Rating",
+      !!kartuAkun
+        && !!tabAkunRingkasan
+        && !!tabAkunPeringkat
+        && !tabAkunPembukaan
+        && /60 partai/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]')?.textContent ?? ""),
+    );
+
+    if (tabAkunPeringkat) {
+      tabAkunPeringkat.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+      await tunggu(50);
+      uji(
+        "wawasan kartu akun: tab Peringkat menampilkan grafik riwayat dan batas Terendah/Tertinggi",
+        !!wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')
+          && /Terendah/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')?.textContent ?? "")
+          && /Tertinggi/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')?.textContent ?? ""),
+      );
+    }
 
     const tabSemua = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-tab-all"]');
     const tabPutih = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-tab-white"]');

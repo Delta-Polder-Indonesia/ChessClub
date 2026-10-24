@@ -1041,6 +1041,11 @@ Kartu ini membaca profil langsung dari API, bukan dari 50 partai terbaru yang
 dipakai agregasi Wawasan, jadi rating dan tanggal bergabung tidak terpotong
 oleh `BATAS_PARTAI_WAWASAN`.
 
+Kartu **Ringkasan & Peringkat Akun** (`DashboardAkun` dengan `daftarTab:
+["overview", "ratings"]` dan `sebagaiKartu`) dirender di samping **Tren Rating**
+dengan tampilan dan kontrol yang sama persis seperti kartu statistik di layar
+Akun.
+
 Kartu **Pembukaan Teratas** (`KartuPembukaanTeratas`) memuat seluruh partai
 akun yang tersimpan di basis data (`limit: 0`, selaras dengan tab Pembukaan di
 layar Akun) dan menyediakan tiga tab — **Semua** (bawaan, merender tampilan
