@@ -1,10 +1,9 @@
 /*
- * Layar "Akun" — daftar akun + statistik, responsive mobile.
+ * Layar "Akun" — daftar akun + kartu kanan kosong (disiapkan untuk konten lain), responsive mobile.
  */
 import { useContext, useEffect, useState } from "react";
 import PanelLayar from "./PanelLayar.jsx";
 import DaftarAkun from "../../akun/DaftarAkun.jsx";
-import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
 import { hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
@@ -84,10 +83,12 @@ export default function LayarAkun({ onTutup }) {
           />
         </div>
 
-        {/* Kolom kanan: dashboard statistik */}
+        {/* Kolom kanan: kartu dibiarkan kosong untuk konten berikutnya */}
         <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 lg:w-1/2 overflow-y-auto">
           <div className="min-h-0 min-w-0 flex-1 flex flex-col">
-            <DashboardAkun platform={username?.platform} username={username?.username} />
+            <div className="flex h-full w-full flex-col p-1" data-uji="akun-kartu-kanan">
+              <div className="flex min-h-48 lg:min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox" />
+            </div>
           </div>
         </div>
       </div>

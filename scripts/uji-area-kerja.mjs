@@ -114,7 +114,11 @@ await act(async () => ctx.akun[1]({ platform: "chessCom", username: "ujiakun" })
 await keTampilan("akun");
 const tombolAkun = Array.from(lapisan().querySelectorAll("button"));
 hasil("layar Akun tidak memiliki pintasan Deteksi engine", !tombolAkun.some((b) => b.textContent.trim() === "Deteksi engine"));
-hasil("ketiga tab statistik Akun tetap tersedia", ["Ringkasan", "Peringkat", "Pembukaan"].every((label) => tombolAkun.some((b) => b.textContent.trim() === label)));
+hasil(
+  "kartu kanan layar Akun tetap ada dalam keadaan kosong tanpa tab Ringkasan/Peringkat/Pembukaan",
+  Boolean(lapisan()?.querySelector('[data-uji="akun-kartu-kanan"]'))
+    && !["Ringkasan", "Peringkat", "Pembukaan"].some((label) => tombolAkun.some((b) => b.textContent.trim() === label)),
+);
 hasil("layar Akun tetap aktif saat dibuka", ctx.tampilan[0] === "akun");
 await keTampilan("deteksi-engine");
 hasil("layar Deteksi engine tetap bisa dibuka terpisah", lapisan()?.getAttribute("data-layar") === "deteksi-engine");
