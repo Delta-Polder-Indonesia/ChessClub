@@ -431,6 +431,8 @@ export const analisa = {
       pilihAkun: "Pilih akun",
       pilihAkunPetunjuk: "Pilih akun dari daftar untuk melihat wawasan performa.",
       memuat: "Memuat partai…",
+      galatMuatPartai: "Partai gagal dimuat dari basis data lokal. Data tidak dihapus; coba lagi.",
+      cobaMuatLagi: "Coba lagi memuat partai",
       profilJudul: "Profil pemain",
       profilBergabung: "Bergabung {tanggal}",
       profilRating: "Rating resmi",

@@ -23,6 +23,7 @@ import assert from "node:assert/strict";
 
 import {
   agregasiWawasan,
+  filterPartaiWawasan,
   extractFirstMovesFromPgn,
   formatEcoUrlName,
   hitungPembukaanTeratas,
@@ -580,6 +581,45 @@ uji("snapshot selalu objek baru supaya useMemo pemanggil melihat perubahan", () 
   catatAnalisis("a", ringkasAnalisis(MOVES));
   assert.notEqual(ambilPetaAnalisis(), ambilPetaAnalisis());
   bersihkanAnalisis();
+});
+
+/* -------------------------------------------------- 7. filter wawasan */
+
+console.log("\n7. filterPartaiWawasan — default dan filter parsial");
+
+uji("filter kosong menggunakan semua kelas waktu dan rentang tanggal", () => {
+  const partai = [
+    buatPartai({ id: "lama", timestamp: 1000, timeClass: "rapid" }),
+    buatPartai({ id: "baru", timestamp: 1700000000000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(filterPartaiWawasan(partai, {}).map((p) => p.id), ["lama", "baru"]);
+});
+
+uji("filter parsial tanggal tidak menolak kelas waktu yang tidak ditentukan", () => {
+  const sekarang = 1700000000000;
+  const partai = [
+    buatPartai({ id: "dalam-rentang", timestamp: sekarang - 5 * 86400000, timeClass: "rapid" }),
+    buatPartai({ id: "di-luar-rentang", timestamp: sekarang - 40 * 86400000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { dateRange: "30d" }, sekarang).map((p) => p.id),
+    ["dalam-rentang"],
+  );
+});
+
+uji("filter waktu parsial tetap menerima semua rentang tanggal", () => {
+  const partai = [
+    buatPartai({ id: "rapid-lama", timestamp: 1000, timeClass: "rapid" }),
+    buatPartai({ id: "blitz-baru", timestamp: 1700000000000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { timeClass: "rapid" }).map((p) => p.id),
+    ["rapid-lama"],
+  );
+});
+
+uji("filter aman ketika masukan partai bukan array", () => {
+  assert.deepEqual(filterPartaiWawasan(null, {}), []);
 });
 
 /* ------------------------------------------------- 8. agregasiWawasan utuh */

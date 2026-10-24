@@ -75,6 +75,8 @@ export default function LayarWawasan() {
   const [filterWarna, setFilterWarna] = useState("all");
   const [filterTanggal, setFilterTanggal] = useState("all");
   const [muat, setMuat] = useState(false);
+  const [galatMuat, setGalatMuat] = useState(false);
+  const permintaanPartai = useRef(0);
 
   const partai = semuaPartai;
 
@@ -89,11 +91,16 @@ export default function LayarWawasan() {
   }, []);
 
   const muatPartai = useCallback(async () => {
+    const idPermintaan = ++permintaanPartai.current;
     if (!username) {
       setSemuaPartai([]);
+      setGalatMuat(false);
+      setMuat(false);
       return;
     }
+
     setMuat(true);
+    setGalatMuat(false);
     try {
       const { partai: daftar } = await ambilDaftarPartai({
         koleksiId: `${platform}:${username.toLowerCase()}`,
@@ -103,11 +110,13 @@ export default function LayarWawasan() {
         urut: "tanggal",
         arah: "desc",
       });
-      setSemuaPartai(daftar || []);
+      if (idPermintaan === permintaanPartai.current) {
+        setSemuaPartai(Array.isArray(daftar) ? daftar : []);
+      }
     } catch {
-      setSemuaPartai([]);
+      if (idPermintaan === permintaanPartai.current) setGalatMuat(true);
     } finally {
-      setMuat(false);
+      if (idPermintaan === permintaanPartai.current) setMuat(false);
     }
   }, [username, platform, filterWaktu]);
 
@@ -296,6 +305,17 @@ export default function LayarWawasan() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-foregroundGrey border-t-backgroundBoxBoxHighlighted" />
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.memuat")}</p>
           </div>
+        ) : galatMuat ? (
+          <div className="flex flex-col items-center gap-3 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8" role="alert">
+            <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.galatMuatPartai")}</p>
+            <button
+              type="button"
+              onClick={muatPartai}
+              className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted hover:text-foregroundBlackDark"
+            >
+              {t("analisa.wawasan.cobaMuatLagi")}
+            </button>
+          </div>
         ) : (
           <>
             {partai.length > 0 || filterMenyempit ? (
@@ -391,8 +411,11 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
   const [memuat, setMemuat] = useState(false);
   const hidup = useRef(true);
 
-  useEffect(() => () => {
-    hidup.current = false;
+  useEffect(() => {
+    hidup.current = true;
+    return () => {
+      hidup.current = false;
+    };
   }, []);
 
   async function muatUlang() {

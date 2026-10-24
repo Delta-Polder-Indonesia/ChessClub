@@ -430,6 +430,8 @@ export const analisa = {
       pilihAkun: "Select account",
       pilihAkunPetunjuk: "Select an account from the list to view performance insights.",
       memuat: "Loading games…",
+      galatMuatPartai: "Games could not be loaded from the local database. Your data was not deleted; try again.",
+      cobaMuatLagi: "Retry loading games",
       profilJudul: "Player profile",
       profilBergabung: "Joined {tanggal}",
       profilRating: "Official ratings",

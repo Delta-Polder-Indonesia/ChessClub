@@ -380,15 +380,20 @@ export function hitungTaktikal(partai, analysisMap = {}) {
 /**
  * Filter partai berdasarkan waktu dan rentang tanggal.
  */
-export function filterPartaiWawasan(partai, filter, nowMs = Date.now()) {
+export function filterPartaiWawasan(partai, filter = {}, nowMs = Date.now()) {
+  const opsi = filter && typeof filter === "object" ? filter : {};
+  const timeClass = opsi.timeClass || "all";
+  const dateRange = opsi.dateRange || "all";
   let minTimestamp = null;
-  if (filter.dateRange === "30d") minTimestamp = nowMs - 30 * 86400000;
-  else if (filter.dateRange === "90d") minTimestamp = nowMs - 90 * 86400000;
-  else if (filter.dateRange === "365d") minTimestamp = nowMs - 365 * 86400000;
 
-  return partai.filter((p) => {
+  if (dateRange === "30d") minTimestamp = nowMs - 30 * 86400000;
+  else if (dateRange === "90d") minTimestamp = nowMs - 90 * 86400000;
+  else if (dateRange === "365d") minTimestamp = nowMs - 365 * 86400000;
+
+  const daftar = Array.isArray(partai) ? partai : [];
+  return daftar.filter((p) => {
     // Filter kecepatan
-    if (filter.timeClass !== "all" && p.timeClass !== filter.timeClass) return false;
+    if (timeClass !== "all" && p.timeClass !== timeClass) return false;
     // Filter rentang tanggal (timestamp dalam ms)
     if (minTimestamp !== null && (p.timestamp || 0) < minTimestamp) return false;
     return true;
