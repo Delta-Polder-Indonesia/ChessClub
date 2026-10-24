@@ -275,7 +275,7 @@ export default function DashboardAkun({
     ? "flex h-[380px] min-h-[380px] flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox"
     : "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox";
   const kelasIsi = sebagaiKartu
-    ? "min-h-0 flex-1 px-4 pb-4"
+    ? "min-h-0 flex-1 overflow-y-auto px-4 pb-4"
     : "min-h-0 flex-1 overflow-y-auto px-4 pb-4";
 
   if (!user) {
