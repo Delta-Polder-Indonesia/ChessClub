@@ -411,6 +411,23 @@ uji("sisi accuracies yang dibaca mengikuti userColor", () => {
   assert.equal(hitungTaktikal(partai, {}).avgAccuracy, 71);
 });
 
+uji("partai tanpa warna pemain yang valid tidak menyumbang statistik taktik", () => {
+  const partai = [partaiAcuan({
+    id: "p-tanpa-sisi",
+    userColor: null,
+    accuracies: { white: 99.9, black: 1.0 },
+  })];
+  const stats = hitungTaktikal(partai, {
+    "p-tanpa-sisi": {
+      summary: { white: { eligibleMoves: 20, accuracyEstimate: 99.9, breakdown: { blunder: 0 } } },
+    },
+  });
+  assert.equal(stats.avgAccuracy, null);
+  assert.equal(stats.accuracyCount, 0);
+  assert.equal(stats.analyzedGamesCount, 0);
+  assert.equal(stats.totalEvaluatedMoves, 0);
+});
+
 uji("ringkasan analisis tanpa sisi pemain jatuh ke akurasi platform", () => {
   const partai = [partaiAcuan({
     id: "p1",

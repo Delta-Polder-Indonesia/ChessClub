@@ -321,7 +321,10 @@ export function hitungTaktikal(partai, analysisMap = {}) {
   let accuracyCount = 0;
 
   for (const game of Array.isArray(partai) ? partai : []) {
-    const analysis = analysisMap?.[game?.id];
+    // Jangan mengasumsikan Putih jika identitas sisi pemain tidak diketahui.
+    // Itu dapat membaca akurasi/blunder lawan sebagai statistik akun.
+    if (game?.userColor !== "white" && game?.userColor !== "black") continue;
+    const analysis = analysisMap?.[game.id];
 
     // Ringkasan harus tersedia untuk warna pemain ini; keberadaan objek
     // analysis.summary saja belum membuktikan bahwa sisi pemain ikut dianalisis.
