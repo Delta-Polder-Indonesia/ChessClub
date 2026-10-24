@@ -364,7 +364,7 @@ export default function LayarWawasan() {
                 <KpiGrid wawasan={wawasanTampil} t={t} />
 
                 {/* Dashboard 2 kolom */}
-                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   <div className="flex flex-col gap-4">
                     <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                     <DistribusiHasil
@@ -805,7 +805,7 @@ export function KartuPembukaanTeratas({
   const kosong = modeSemua ? jumlahSemua === 0 : openings.length === 0;
 
   return (
-    <div className="wawasan-card" data-uji="wawasan-pembukaan">
+    <div className="wawasan-card flex min-h-0 flex-1 flex-col" data-uji="wawasan-pembukaan">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.pembukaanJudul")}</h3>
         <div
