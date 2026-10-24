@@ -1092,17 +1092,26 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       2000,
     );
 
+    const barisAkun = wadahWawasan.querySelector('[data-uji="wawasan-baris-akun"]');
     const kartuAkun = wadahWawasan.querySelector('[data-uji="dashboard-akun"]');
     const tabAkunRingkasan = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-overview"]');
     const tabAkunPeringkat = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-ratings"]');
     const tabAkunPembukaan = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-openings"]');
 
     uji(
-      "wawasan kartu akun: menampilkan kartu Ringkasan & Peringkat Akun di samping Tren Rating",
+      "wawasan baris atas: pemilih Situs berada satu baris dengan Pilih akun",
+      !!barisAkun
+        && !!barisAkun.querySelector('[data-uji="wawasan-situs"]')
+        && !!barisAkun.querySelector('[data-uji="wawasan-akun"]'),
+    );
+    uji(
+      "wawasan kartu akun: menampilkan kartu Ringkasan & Peringkat tanpa judul nama akun maupun kontrol Situs/Waktu sendiri",
       !!kartuAkun
         && !!tabAkunRingkasan
         && !!tabAkunPeringkat
         && !tabAkunPembukaan
+        && kartuAkun.querySelectorAll("select").length === 0
+        && !/AkunWawasan/.test(kartuAkun.textContent ?? "")
         && /60 partai/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]')?.textContent ?? ""),
     );
 
@@ -1110,8 +1119,9 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       tabAkunPeringkat.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
       await tunggu(50);
       uji(
-        "wawasan kartu akun: tab Peringkat menampilkan grafik riwayat dan batas Terendah/Tertinggi",
+        "wawasan kartu akun: tab Peringkat menampilkan grafik riwayat dan batas Terendah/Tertinggi tanpa tombol rentang ganda",
         !!wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')
+          && kartuAkun.querySelectorAll("button").length === 2
           && /Terendah/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')?.textContent ?? "")
           && /Tertinggi/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-ratings"]')?.textContent ?? ""),
       );

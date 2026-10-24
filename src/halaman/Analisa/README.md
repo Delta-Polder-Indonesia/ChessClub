@@ -1042,9 +1042,11 @@ dipakai agregasi Wawasan, jadi rating dan tanggal bergabung tidak terpotong
 oleh `BATAS_PARTAI_WAWASAN`.
 
 Kartu **Ringkasan & Peringkat Akun** (`DashboardAkun` dengan `daftarTab:
-["overview", "ratings"]` dan `sebagaiKartu`) dirender di samping **Tren Rating**
-dengan tampilan dan kontrol yang sama persis seperti kartu statistik di layar
-Akun.
+["overview", "ratings"]`, `sebagaiKartu`, dan `partaiLuar`) dirender di samping
+**Tren Rating** tanpa judul nama akun berulang maupun dropdown **Situs/Kontrol
+waktu** dan rentang ganda di dalam kartu: pemilih **Situs** ditempatkan satu
+baris dengan **Pilih akun** di bagian atas layar Wawasan, sedangkan filter
+kecepatan dan rentang waktu mengikuti bilah filter Wawasan secara terpadu.
 
 Kartu **Pembukaan Teratas** (`KartuPembukaanTeratas`) memuat seluruh partai
 akun yang tersimpan di basis data (`limit: 0`, selaras dengan tab Pembukaan di

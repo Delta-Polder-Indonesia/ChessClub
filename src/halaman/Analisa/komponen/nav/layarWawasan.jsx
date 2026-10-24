@@ -164,24 +164,26 @@ export default function LayarWawasan() {
   }, [partai, username, filter, petaAnalisis, labelPembukaan]);
 
   /*
-   * Pembukaan Teratas memuat seluruh partai akun yang tersimpan di basis data
-   * (`semuaPartai`, setara bagian Pembukaan di Akun), bukan hanya potongan
-   * `BATAS_PARTAI_WAWASAN`, serta menampilkan semua pembukaan tanpa batas 5.
-   * Tab "Semua" merender tampilan Pembukaan dari layar Akun (`rekapPembukaan`
-   * + `DaftarPembukaanAkun`), sedangkan tab "Putih" dan "Hitam" merender tabel
-   * rincian pembukaan per warna.
+   * Seluruh partai akun tersimpan yang lolos filter Kecepatan + Rentang Wawasan.
+   * Dipakai bersama oleh kartu Ringkasan & Peringkat (`DashboardAkun`) serta
+   * Pembukaan Teratas (`KartuPembukaanTeratas`) agar seluruh kartu terintegrasi
+   * dengan satu bilah filter Wawasan tanpa kontrol waktu/rentang terpisah.
    */
+  const partaiAkunDifilter = useMemo(() => {
+    if (!username || !semuaPartai.length) return [];
+    return filterPartaiWawasan(semuaPartai, filter);
+  }, [semuaPartai, username, filter]);
+
   const pembukaanAkun = useMemo(() => {
-    if (!username || !semuaPartai.length) {
+    if (!username || !partaiAkunDifilter.length) {
       return { rekapAkun: { putih: [], hitam: [] }, putih: [], hitam: [] };
     }
-    const difilter = filterPartaiWawasan(semuaPartai, filter);
     return {
-      rekapAkun: rekapPembukaan(difilter, username),
-      putih: hitungPembukaanTeratas(difilter, username, "white", Infinity, labelPembukaan),
-      hitam: hitungPembukaanTeratas(difilter, username, "black", Infinity, labelPembukaan),
+      rekapAkun: rekapPembukaan(partaiAkunDifilter, username),
+      putih: hitungPembukaanTeratas(partaiAkunDifilter, username, "white", Infinity, labelPembukaan),
+      hitam: hitungPembukaanTeratas(partaiAkunDifilter, username, "black", Infinity, labelPembukaan),
     };
-  }, [semuaPartai, username, filter, labelPembukaan]);
+  }, [partaiAkunDifilter, username, labelPembukaan]);
 
   /*
    * Filter warna diterapkan di sini — bukan di wawasan.js — karena
@@ -231,8 +233,14 @@ export default function LayarWawasan() {
 
   const akunSitus = daftarAkun.filter((a) => a.platform === platform);
 
+  function pilihSitus(situsBaru) {
+    const pertama = daftarAkun.find((a) => a.platform === situsBaru);
+    analyzeContext.akun[1]({ platform: situsBaru, username: pertama?.username || "" });
+  }
+
   function pilihAkun(kunci) {
-    const pilihan = akunSitus.find((a) => a.username.toLowerCase() === kunci);
+    const kunciKecil = String(kunci || "").toLowerCase();
+    const pilihan = akunSitus.find((a) => a.username.toLowerCase() === kunciKecil);
     analyzeContext.akun[1]({ platform, username: pilihan?.username || "" });
   }
 
@@ -244,8 +252,21 @@ export default function LayarWawasan() {
           <p className="text-xs leading-4 text-foregroundGrey">{t("analisa.wawasan.deskripsi")}</p>
         </div>
 
-        <div className="flex flex-wrap items-end gap-3">
-          <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2" data-uji="wawasan-baris-akun">
+          <div className="flex min-w-0 flex-col gap-1">
+            <label className="text-xs font-bold text-foregroundGrey">{t("analisa.statistik.situs")}</label>
+            <SelectDaftar
+              labelTeks={t("analisa.statistik.situs")}
+              dataUji="wawasan-situs"
+              nilai={platform}
+              opsi={[
+                { nilai: "chessCom", label: "Chess.com" },
+                { nilai: "lichessOrg", label: "Lichess.org" },
+              ]}
+              onPilih={pilihSitus}
+            />
+          </div>
+          <div className="flex min-w-0 flex-col gap-1">
             <label className="text-xs font-bold text-foregroundGrey">{t("analisa.wawasan.pilihAkun")}</label>
             <SelectDaftar
               labelTeks={t("analisa.wawasan.pilihAkun")}
@@ -333,6 +354,7 @@ export default function LayarWawasan() {
                       username={username}
                       daftarTab={TAB_RINGKASAN_PERINGKAT_AKUN}
                       sebagaiKartu
+                      partaiLuar={partaiAkunDifilter}
                     />
                     <KartuPembukaanTeratas
                       rekapAkun={pembukaanAkun.rekapAkun}

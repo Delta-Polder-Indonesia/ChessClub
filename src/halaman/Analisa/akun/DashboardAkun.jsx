@@ -147,18 +147,20 @@ export default function DashboardAkun({
   username,
   daftarTab = SEMUA_TAB_AKUN,
   sebagaiKartu = false,
+  partaiLuar = null,
 }) {
   const { t } = useI18n();
   const [tab, setTab] = useState(() => daftarTab[0] || "overview");
   const [situs, setSitus] = useState(platform);
   const [waktu, setWaktu] = useState("any");
   const [rentang, setRentang] = useState("all");
+  const pakaiPartaiLuar = Array.isArray(partaiLuar);
   const koleksiIdAwal = `${platform}:${String(username || "").trim().toLowerCase()}`;
   const bacaCachePartai = (id) => {
     const entri = cachePartai.get(id);
     return entri && entri.revisi === bacaRevisiBasis() ? entri.daftar : null;
   };
-  const [games, setGames] = useState(() => bacaCachePartai(koleksiIdAwal));
+  const [games, setGames] = useState(() => (pakaiPartaiLuar ? partaiLuar : bacaCachePartai(koleksiIdAwal)));
   const [gamesPgn, setGamesPgn] = useState(null);
   // `true` = muat terakhir GAGAL (bukan "akun kosong") — tampilkan kabar
   // galat, bukan panel kosong yang menuduh pengguna belum punya data.
@@ -170,13 +172,14 @@ export default function DashboardAkun({
    * menunggu efek), supaya statistik akun sebelumnya tidak tampil sejenak
    * di bawah nama akun baru. */
   const koleksiIdRef = useRef(koleksiIdAwal);
-  if (koleksiIdRef.current !== koleksiIdAwal) {
+  if (!pakaiPartaiLuar && koleksiIdRef.current !== koleksiIdAwal) {
     koleksiIdRef.current = koleksiIdAwal;
     setGames(bacaCachePartai(koleksiIdAwal));
     setGamesPgn(null);
   }
 
   const muatData = useCallback(async () => {
+    if (pakaiPartaiLuar) return;
     const token = ++tokenMuat.current;
     const koleksiId = `${platform}:${user.toLowerCase()}`;
     const entri = cachePartai.get(koleksiId);
@@ -199,11 +202,11 @@ export default function DashboardAkun({
       setGalatBasis(true);
       setGames([]);
     }
-  }, [platform, user]);
+  }, [pakaiPartaiLuar, platform, user]);
 
   useEffect(() => {
-    if (user) muatData();
-  }, [user, muatData]);
+    if (user && !pakaiPartaiLuar) muatData();
+  }, [user, pakaiPartaiLuar, muatData]);
 
   useEffect(() => setSitus(platform), [platform]);
 
@@ -212,7 +215,7 @@ export default function DashboardAkun({
   }, [platform, user]);
 
   useEffect(() => {
-    if (tab !== "openings" || !user) {
+    if (pakaiPartaiLuar || tab !== "openings" || !user) {
       setGamesPgn(null);
       return undefined;
     }
@@ -230,17 +233,27 @@ export default function DashboardAkun({
     return () => {
       hidup = false;
     };
-  }, [tab, platform, user]);
+  }, [pakaiPartaiLuar, tab, platform, user]);
 
-  const gamesEfektif = tab === "openings" ? gamesPgn : games;
-  const filteredGames = useMemo(() => (gamesEfektif ? gamesEfektif.filter((p) => p.platform === situs) : gamesEfektif), [gamesEfektif, situs]);
-  const opsi = useMemo(() => ({ rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }), [rentang, waktu, tab]);
+  const sumberPartai = pakaiPartaiLuar ? partaiLuar : (tab === "openings" ? gamesPgn : games);
+  const filteredGames = useMemo(
+    () => (pakaiPartaiLuar ? partaiLuar : (sumberPartai ? sumberPartai.filter((p) => p.platform === situs) : sumberPartai)),
+    [pakaiPartaiLuar, partaiLuar, sumberPartai, situs],
+  );
+  const opsi = useMemo(
+    () => (pakaiPartaiLuar ? { rentang: "all", timeClass: "any" } : { rentang: tab === "ratings" ? rentang : "all", timeClass: waktu }),
+    [pakaiPartaiLuar, rentang, waktu, tab],
+  );
+  const opsiRating = useMemo(
+    () => ({ rentang: pakaiPartaiLuar ? "all" : rentang }),
+    [pakaiPartaiLuar, rentang],
+  );
 
   const overview = useMemo(() => (filteredGames ? ringkasanOverview(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
-  const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, { rentang }) : null), [filteredGames, user, rentang]);
+  const ratings = useMemo(() => (filteredGames ? riwayatRating(filteredGames, user, opsiRating) : null), [filteredGames, user, opsiRating]);
   const openings = useMemo(() => (filteredGames ? rekapPembukaan(filteredGames, user, opsi) : null), [filteredGames, user, opsi]);
 
-  const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => games?.some((p) => p.timeClass === k));
+  const pilihanWaktu = ["any", "bullet", "blitz", "rapid", "classical"].filter((k) => sumberPartai?.some((p) => p.timeClass === k));
 
   const tabKunci = [
     { k: "overview", label: t("analisa.statistik.overview") },
@@ -272,10 +285,12 @@ export default function DashboardAkun({
   return (
     <div className={kelasPembungkus} data-uji="dashboard-akun">
       <div className={kelasKartu}>
-        <div className="relative px-4 pt-4">
-          <span className="block text-center text-xl font-bold text-foreground">{user}</span>
-          <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
-        </div>
+        {!sebagaiKartu ? (
+          <div className="relative px-4 pt-4">
+            <span className="block text-center text-xl font-bold text-foreground">{user}</span>
+            <span className="absolute right-3 top-3 text-xs text-foregroundGrey">ⓘ</span>
+          </div>
+        ) : null}
 
         {/* Tab membungkus agar tidak meluber di panel sempit. */}
         <div className="flex flex-wrap border-b border-border px-4 pt-2">
@@ -294,26 +309,28 @@ export default function DashboardAkun({
           ))}
         </div>
 
-        <div className="flex flex-wrap items-end gap-2 px-4 pt-3">
-          <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
-            {t("analisa.statistik.situs")}
-            <select value={situs} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
-              <option value="chessCom">Chess.com</option>
-              <option value="lichessOrg">Lichess.org</option>
-            </select>
-          </label>
-          <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
-            {t("analisa.statistik.waktu")}
-            <select value={waktu} onChange={(e) => setWaktu(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
-              <option value="any">{t("analisa.statistik.semuaWaktu")}</option>
-              {pilihanWaktu.map((k) => (
-                <option key={k} value={k}>{k}</option>
-              ))}
-            </select>
-          </label>
-        </div>
+        {!sebagaiKartu ? (
+          <div className="flex flex-wrap items-end gap-2 px-4 pt-3">
+            <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
+              {t("analisa.statistik.situs")}
+              <select value={situs} onChange={(e) => setSitus(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
+                <option value="chessCom">Chess.com</option>
+                <option value="lichessOrg">Lichess.org</option>
+              </select>
+            </label>
+            <label className="flex flex-col gap-1 text-xs font-bold text-foregroundGrey">
+              {t("analisa.statistik.waktu")}
+              <select value={waktu} onChange={(e) => setWaktu(e.target.value)} className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-2 py-1 text-sm text-foreground outline-none">
+                <option value="any">{t("analisa.statistik.semuaWaktu")}</option>
+                {pilihanWaktu.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+        ) : null}
 
-        {tabAktif === "ratings" ? (
+        {!sebagaiKartu && tabAktif === "ratings" ? (
           <div className="flex items-center justify-center gap-1 px-4 pt-3">
             {["7d", "30d", "90d", "1y", "all"].map((r) => (
               <button
@@ -331,10 +348,10 @@ export default function DashboardAkun({
         ) : null}
 
         <div className={kelasIsi}>
-          {games == null || (tabAktif === "openings" && gamesPgn == null) ? (
+          {!pakaiPartaiLuar && (games == null || (tabAktif === "openings" && gamesPgn == null)) ? (
             <MuatNegara isi={t("analisa.statistik.memuat")} />
-          ) : games.length === 0 ? (
-            galatBasis ? (
+          ) : (filteredGames?.length ?? 0) === 0 ? (
+            !pakaiPartaiLuar && galatBasis ? (
               <KosongState isi={t("analisa.statistik.galatBasis")} sub={t("analisa.statistik.galatBasisSub")} />
             ) : (
               <KosongState isi={t("analisa.statistik.belumAdaData")} sub="Buka menu Database untuk tarik data dengan filter minggu/bulan/tahun." />
@@ -348,12 +365,12 @@ export default function DashboardAkun({
               </div>
             </div>
           ) : tabAktif === "ratings" && ratings ? (
-            <div className="flex flex-col gap-6 pt-2" data-uji="dashboard-akun-ratings">
+            <div className={`flex flex-col ${sebagaiKartu ? "gap-3 pt-4" : "gap-6 pt-2"}`} data-uji="dashboard-akun-ratings">
               <div className="text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
               {ratings.total > 0 ? (
                 <div className="flex flex-col gap-4">
                   <BarHasil w={ratings.poin.filter((p) => p.outcome === "win").length} d={ratings.poin.filter((p) => p.outcome === "draw").length} l={ratings.poin.filter((p) => p.outcome === "loss").length} tinggi="2rem" />
-                  <div className="mt-10">
+                  <div className={sebagaiKartu ? "mt-1" : "mt-10"}>
                     <GrafikRiwayat poin={ratings.poin} min={ratings.min} max={ratings.max} />
                   </div>
                   <div className="flex items-center justify-between text-xs text-foregroundGrey pt-2">
