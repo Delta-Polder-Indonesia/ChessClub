@@ -644,7 +644,7 @@ function KpiGrid({ wawasan, t }) {
 function GrafikTrenRating({ points, t }) {
   if (!points || points.length === 0) {
     return (
-      <div className="wawasan-card flex min-h-[380px] flex-col">
+      <div className="wawasan-card flex h-[300px] min-h-[300px] flex-col">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center justify-center p-6">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaDataRating")}</p>
@@ -686,7 +686,7 @@ function GrafikTrenRating({ points, t }) {
   const midRating = Math.round((yMin + yMax) / 2);
 
   return (
-    <div className="wawasan-card flex min-h-[380px] flex-col">
+    <div className="wawasan-card flex h-[300px] min-h-[300px] flex-col">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center gap-2 text-xs">
