@@ -375,7 +375,7 @@ export default function LayarWawasan() {
                     />
                     <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
-                  <div className="flex flex-col gap-4">
+                  <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <DashboardAkun
                       platform={platform}
                       username={username}
