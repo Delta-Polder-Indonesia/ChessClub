@@ -16,7 +16,7 @@ import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
-import DaftarPembukaanAkun from "../../akun/DaftarPembukaanAkun.jsx";
+import DaftarPembukaanAkun, { BarHasil } from "../../akun/DaftarPembukaanAkun.jsx";
 import { rekapPembukaan } from "../../akun/statsAkun.js";
 import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
@@ -52,7 +52,6 @@ const OPSI_TANGGAL = [
   { nilai: "365d", kunci: "analisa.wawasan.filter1Tahun" },
 ];
 
-const BATAS_PARTAI_WAWASAN = 50;
 const TAB_RINGKASAN_PERINGKAT_AKUN = ["overview", "ratings"];
 
 const KELAS_RATING = [
@@ -77,10 +76,7 @@ export default function LayarWawasan() {
   const [filterTanggal, setFilterTanggal] = useState("all");
   const [muat, setMuat] = useState(false);
 
-  const partai = useMemo(
-    () => semuaPartai.slice(0, BATAS_PARTAI_WAWASAN),
-    [semuaPartai],
-  );
+  const partai = semuaPartai;
 
   useEffect(() => {
     let hidup = true;
@@ -686,12 +682,12 @@ function GrafikTrenRating({ points, t }) {
           {/* Trend line */}
           <polyline points={polylinePoints} fill="none" stroke="#81b64c" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
           {/* Data points */}
-          {coords.map((c, i) => (
-            <circle key={c.point.gameId || i} cx={c.x} cy={c.y} r={points.length > 50 ? 2 : 3.5} className="wawasan-dot">
-              <title>{`${c.point.date ? new Date(c.point.date * 1000).toLocaleDateString() : ""}: ${c.point.rating} (${c.point.result})`}</title>
-            </circle>
-          ))}
-        </svg>
+           {coords.map((c, i) => (
+             <circle key={c.point.gameId || i} cx={c.x} cy={c.y} r={points.length > 50 ? 2 : 3.5} className="wawasan-dot">
+               <title>{`${c.point.date ? new Date(c.point.date * 1000).toLocaleDateString() : ""}: ${c.point.rating} (${c.point.result})`}</title>
+             </circle>
+           ))}
+         </svg>
       </div>
     </div>
   );
@@ -707,6 +703,10 @@ function DistribusiHasil({ umum, putih, hitam, t }) {
   return (
     <div className="wawasan-card">
       <h3 className="wawasan-card-title">{t("analisa.wawasan.distribusiJudul")}</h3>
+      <p className="text-xs text-foregroundGrey">{t("analisa.statistik.totalGame", { total: umum.total })}</p>
+      <div className="pt-2">
+        <BarHasil w={umum.wins} d={umum.draws} l={umum.losses} tinggi="1.6rem" />
+      </div>
       <div className="flex flex-col gap-3 pt-2">
         {baris.map((b) => (
           <BarisHasil key={b.label} label={b.label} counts={b.counts} />

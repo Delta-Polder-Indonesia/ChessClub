@@ -66,11 +66,11 @@ export function bacaPembukaan(pgn) {
   return e && e[1] ? e[1].trim() : "";
 }
 
-/** Ringkasan tab Overview: total, menang/seri/kalah, dan partai per tahun. */
+/** Ringkasan tab Overview: total, menang/seri/kalah, dan partai per bulan. */
 export function ringkasanOverview(games, username, { rentang = "all", timeClass = "any" } = {}) {
   const batas = RANGE[rentang] ?? Infinity;
   const sekarang = Date.now();
-  const tahunan = new Map();
+  const bulanan = new Map();
   let w = 0;
   let d = 0;
   let l = 0;
@@ -82,17 +82,17 @@ export function ringkasanOverview(games, username, { rentang = "all", timeClass 
     if (rentang !== "all" && !(info.timestamp >= sekarang - batas)) continue;
     if (timeClass && timeClass !== "any" && info.timeClass !== timeClass) continue;
     _cocok++;
-    const tahun = info.timestamp ? new Date(info.timestamp).getFullYear() : 0;
-    tahunan.set(tahun, (tahunan.get(tahun) || 0) + 1);
+    const kunci = info.timestamp ? new Date(info.timestamp).toISOString().slice(0, 7) : "0000-00";
+    bulanan.set(kunci, (bulanan.get(kunci) || 0) + 1);
     if (info.outcome === "win") w++;
     else if (info.outcome === "loss") l++;
     else d++;
   }
 
-  const daftarTahun = Array.from(tahunan.entries())
-    .filter(([y]) => y > 0)
-    .sort((a, b) => a[0] - b[0])
-    .map(([y, n]) => ({ tahun: String(y), jumlah: n }));
+  const daftarBulan = Array.from(bulanan.entries())
+    .filter(([k]) => k !== "0000-00")
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([k, n]) => ({ bulan: k, jumlah: n }));
   const totalCocok = w + d + l;
   const persen = (x) => (totalCocok ? Math.round((x / totalCocok) * 1000) / 10 : 0);
 
@@ -104,7 +104,7 @@ export function ringkasanOverview(games, username, { rentang = "all", timeClass 
     persenW: persen(w),
     persenD: persen(d),
     persenL: persen(l),
-    tahunan: daftarTahun,
+    bulanan: daftarBulan,
   };
 }
 

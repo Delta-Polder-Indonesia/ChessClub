@@ -4,11 +4,11 @@
  * dengan filter periode (mingguan/bulanan/tahunan/semua).
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Area, AreaChart, CartesianGrid, XAxis, Tooltip } from "recharts";
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis, Tooltip } from "recharts";
 import { useI18n } from "../../../lib/i18n.jsx";
 import { ambilDaftarPartai, bacaRevisiBasis } from "../basisData.js";
 import { ringkasanOverview, riwayatRating, rekapPembukaan } from "./statsAkun.js";
-import DaftarPembukaanAkun, { BarHasil } from "./DaftarPembukaanAkun.jsx";
+import DaftarPembukaanAkun from "./DaftarPembukaanAkun.jsx";
 import Database from "../komponen/svg/database.jsx";
 import DualRingSpinner from "../komponen/loading/DualRingSpinner.jsx";
 
@@ -16,43 +16,49 @@ const BIRU = "#4a9dd9";
 
 const cachePartai = new Map();
 
-function GrafikTahunan({ data }) {
-  const [tahun] = useState(null);
-  const bars = tahun ? data.filter((x) => x.tahun === tahun) : data;
-  const max = Math.max(1, ...data.map((x) => x.jumlah));
+function GrafikBulanan({ data }) {
+  if (!data || data.length === 0) {
+    return <div className="grid h-48 place-items-center text-sm text-foregroundGrey">—</div>;
+  }
   return (
-    <div className="relative">
-      <svg viewBox="0 0 560 210" preserveAspectRatio="none" className="h-48 w-full">
-        {[0, 0.25, 0.5, 0.75, 1].map((f) => {
-          const y = 200 - f * 200;
-          return <line key={f} x1={0} y1={y} x2={560} y2={y} stroke="var(--analisa-foregroundGrey)" strokeOpacity="0.2" strokeDasharray="3 3" />;
-        })}
-        {bars.map((x, i) => {
-          const bw = bars.length ? (560 / bars.length) * 0.7 : 40;
-          const cx = bars.length === 1 ? 280 : (i + 0.5) * (560 / bars.length);
-          const h = (x.jumlah / max) * 200;
-          return (
-            <rect
-              key={x.tahun}
-              x={cx - bw / 2}
-              y={200 - h}
-              width={bw}
-              height={h}
-              rx="3"
-              fill={tahun && x.tahun === tahun ? BIRU : "var(--analisa-foregroundGrey)"}
-              opacity={tahun && x.tahun !== tahun ? 0.4 : 1}
-            />
-          );
-        })}
-        {bars.map((x, i) => {
-          const cx = bars.length === 1 ? 280 : (i + 0.5) * (560 / bars.length);
-          return (
-            <text key={x.tahun} x={cx} y={196} textAnchor="middle" fontSize="12" fill="var(--analisa-foregroundGrey)">
-              {x.tahun}
-            </text>
-          );
-        })}
-      </svg>
+    <div className="h-48 w-full">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 10, right: 12, left: 0, bottom: 0 }}>
+          <CartesianGrid vertical={false} strokeDasharray="3 3" strokeOpacity={0.2} />
+          <XAxis
+            dataKey="bulan"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            minTickGap={24}
+            tickFormatter={(v) => {
+              if (!v) return "";
+              const [y, m] = String(v).split("-");
+              const d = new Date(Number(y), Number(m) - 1, 1);
+              return isNaN(d.getTime()) ? v : d.toLocaleDateString("id-ID", { month: "short", year: "2-digit" });
+            }}
+            stroke="currentColor"
+            className="text-xs text-foregroundGrey"
+          />
+          <YAxis allowDecimals={false} stroke="currentColor" className="text-xs text-foregroundGrey" />
+          <Tooltip
+            cursor={{ fill: "transparent" }}
+            content={({ active, payload, label }) => {
+              if (!active || !payload || !payload.length) return null;
+              const [y, m] = String(label).split("-");
+              const d = new Date(Number(y), Number(m) - 1, 1);
+              const nama = isNaN(d.getTime()) ? label : d.toLocaleDateString("id-ID", { month: "long", year: "numeric" });
+              return (
+                <div className="rounded-lg border border-border bg-white p-2.5 text-xs text-black shadow-sm">
+                  <div className="font-bold">{nama}</div>
+                  <div>Partai: <span className="font-semibold">{payload[0].value}</span></div>
+                </div>
+              );
+            }}
+          />
+          <Bar dataKey="jumlah" fill={BIRU} radius={[3, 3, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
@@ -266,7 +272,7 @@ export default function DashboardAkun({
     ? "flex w-full flex-col"
     : "flex h-full w-full flex-col p-1";
   const kelasKartu = sebagaiKartu
-    ? "flex flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox shadow-[0_4px_16px_rgba(0,0,0,0.2)]"
+    ? "flex flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox"
     : "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox";
   const kelasIsi = sebagaiKartu
     ? "px-4 pb-4"
@@ -358,18 +364,14 @@ export default function DashboardAkun({
             )
           ) : tabAktif === "overview" && overview ? (
             <div className="flex min-h-full flex-col gap-3" data-uji="dashboard-akun-overview">
-              <div className="pt-4 text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: overview.total })}</div>
-              {overview.total > 0 ? <BarHasil w={overview.w} d={overview.d} l={overview.l} tinggi="2rem" /> : null}
               <div className="mt-auto">
-                <GrafikTahunan data={overview.tahunan} />
-              </div>
+                    <GrafikBulanan data={overview.bulanan} />
+                  </div>
             </div>
-          ) : tabAktif === "ratings" && ratings ? (
+          )           : tabAktif === "ratings" && ratings ? (
             <div className={`flex flex-col ${sebagaiKartu ? "gap-3 pt-4" : "gap-6 pt-2"}`} data-uji="dashboard-akun-ratings">
-              <div className="text-center text-lg font-bold text-foreground">{t("analisa.statistik.totalGame", { total: ratings.total })}</div>
               {ratings.total > 0 ? (
                 <div className="flex flex-col gap-4">
-                  <BarHasil w={ratings.poin.filter((p) => p.outcome === "win").length} d={ratings.poin.filter((p) => p.outcome === "draw").length} l={ratings.poin.filter((p) => p.outcome === "loss").length} tinggi="2rem" />
                   <div className={sebagaiKartu ? "mt-1" : "mt-10"}>
                     <GrafikRiwayat poin={ratings.poin} min={ratings.min} max={ratings.max} />
                   </div>

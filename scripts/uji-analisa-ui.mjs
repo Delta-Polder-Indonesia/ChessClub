@@ -1112,7 +1112,7 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
         && !tabAkunPembukaan
         && kartuAkun.querySelectorAll("select").length === 0
         && !/AkunWawasan/.test(kartuAkun.textContent ?? "")
-        && /60 partai/.test(wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]')?.textContent ?? ""),
+        && /60 partai/.test(wadahWawasan.textContent ?? ""),
     );
 
     if (tabAkunPeringkat) {
