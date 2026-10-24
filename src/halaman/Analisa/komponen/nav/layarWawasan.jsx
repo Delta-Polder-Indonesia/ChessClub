@@ -869,15 +869,15 @@ export function KartuPembukaanTeratas({
                 const lossPct = op.played > 0 ? (op.losses / op.played) * 100 : 0;
                 return (
                   <tr key={`${op.name}-${idx}`} className="border-b border-border/30">
-                    <td className="min-w-0 overflow-hidden py-1.5 px-1.5">
+                    <td className="min-w-0 overflow-hidden py-1 px-1">
                       <div className="flex min-w-0 items-center gap-1">
                         {op.eco && <span className="rounded border border-border bg-backgroundBoxBox px-1 py-0.5 font-mono text-[10px] text-highlightBest font-bold">{op.eco}</span>}
                         <span className="min-w-0 truncate font-semibold text-foreground" title={op.name}>{op.name}</span>
                       </div>
                     </td>
-                    <td className="py-1.5 px-2 font-mono text-[10px] text-foregroundGrey whitespace-nowrap">{op.moves || "\u2014"}</td>
-                    <td className="py-1.5 px-1 text-right font-mono text-foregroundGrey">{op.played}</td>
-                    <td className="py-1.5 px-1 text-right font-mono font-bold text-highlightBest">{op.winRate}%</td>
+                    <td className="min-w-0 overflow-hidden py-1.5 px-1 font-mono text-[10px] text-foregroundGrey"><span className="block truncate" title={op.moves || "\u2014"}>{op.moves || "\u2014"}</span></td>
+                    <td className="py-1 px-0.5 text-right font-mono text-foregroundGrey" title={`${op.played} kali dimainkan`}>{op.played}</td>
+                    <td className="py-1 px-0.5 text-right font-mono font-bold text-highlightBest" title={`Win rate: ${op.winRate}%`}>{op.winRate}%</td>
                     <td className="py-1.5 px-2">
                       <div className="flex h-2 w-16 overflow-hidden rounded-sm bg-backgroundBoxBox">
                         {winPct > 0 && <div className="h-full bg-highlightBest" style={{ width: `${winPct}%` }} />}
