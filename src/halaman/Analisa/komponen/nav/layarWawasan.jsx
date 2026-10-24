@@ -843,7 +843,7 @@ export function KartuPembukaanTeratas({
       ) : modeSemua ? (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-[36rem] min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-gutter:stable]"
+          className="mt-2 min-h-0 flex-1"
         >
           <DaftarPembukaanAkun putih={daftarAkunPutih} hitam={daftarAkunHitam} />
         </div>
