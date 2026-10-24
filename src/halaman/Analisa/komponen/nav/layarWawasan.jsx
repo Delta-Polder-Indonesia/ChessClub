@@ -850,7 +850,7 @@ export function KartuPembukaanTeratas({
       ) : (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-[36rem] min-h-0 flex-1 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
+          className="mt-2 max-h-[34rem] min-h-0 flex-1 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
         >
           <table className="w-full text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-backgroundBoxDarker shadow-[inset_0_-1px_0_0_var(--analisa-border)]">
