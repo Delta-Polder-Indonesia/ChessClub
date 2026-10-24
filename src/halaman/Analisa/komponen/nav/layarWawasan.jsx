@@ -364,7 +364,7 @@ export default function LayarWawasan() {
                 <KpiGrid wawasan={wawasanTampil} t={t} />
 
                 {/* Dashboard 2 kolom */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 lg:auto-rows-fr">
                   <div className="flex flex-col gap-4">
                     <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                     <DistribusiHasil
@@ -644,7 +644,7 @@ function KpiGrid({ wawasan, t }) {
 function GrafikTrenRating({ points, t }) {
   if (!points || points.length === 0) {
     return (
-      <div className="wawasan-card">
+      <div className="wawasan-card flex min-h-[380px] flex-col">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center justify-center p-6">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaDataRating")}</p>
@@ -686,7 +686,7 @@ function GrafikTrenRating({ points, t }) {
   const midRating = Math.round((yMin + yMax) / 2);
 
   return (
-    <div className="wawasan-card">
+    <div className="wawasan-card flex min-h-[380px] flex-col">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center gap-2 text-xs">
@@ -696,8 +696,8 @@ function GrafikTrenRating({ points, t }) {
           <span className={`font-bold font-mono ${deltaClass}`}>{deltaStr}</span>
         </div>
       </div>
-      <div className="w-full overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label={`${firstRating} to ${lastRating}`}>
+      <div className="flex min-h-0 flex-1 items-center overflow-hidden pt-3">
+        <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={`${firstRating} to ${lastRating}`}>
           <defs>
             <linearGradient id="wawasanAreaGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#81b64c" stopOpacity="0.35" />
