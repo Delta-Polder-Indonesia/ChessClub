@@ -837,20 +837,20 @@ export function KartuPembukaanTeratas({
       </div>
 
       {kosong ? (
-        <div className="flex items-center justify-center p-4">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaPembukaan")}</p>
         </div>
       ) : modeSemua ? (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-72 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-gutter:stable]"
+          className="mt-2 min-h-0 flex-1 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-gutter:stable]"
         >
           <DaftarPembukaanAkun putih={daftarAkunPutih} hitam={daftarAkunHitam} />
         </div>
       ) : (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-72 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
+          className="mt-2 min-h-0 flex-1 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
         >
           <table className="w-full text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-backgroundBoxDarker shadow-[inset_0_-1px_0_0_var(--analisa-border)]">
