@@ -364,7 +364,7 @@ export default function LayarWawasan() {
                 <KpiGrid wawasan={wawasanTampil} t={t} />
 
                 {/* Dashboard 2 kolom */}
-                <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2 lg:auto-rows-fr">
+                <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
                   <div className="flex flex-col gap-4">
                     <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                     <DistribusiHasil
