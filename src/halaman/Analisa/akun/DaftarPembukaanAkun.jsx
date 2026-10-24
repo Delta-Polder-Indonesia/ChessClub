@@ -41,26 +41,30 @@ export function BarisPembukaan({ e }) {
 export default function DaftarPembukaanAkun({ putih = [], hitam = [] }) {
   const { t } = useI18n();
   return (
-    <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2" data-uji="pembukaan-akun-grid">
-      <div data-uji="pembukaan-akun-kolom-putih">
+    <div className="grid min-h-0 grid-cols-1 gap-x-4 sm:grid-cols-2" data-uji="pembukaan-akun-grid">
+      <div className="flex min-h-0 flex-col" data-uji="pembukaan-akun-kolom-putih">
         <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">
           {t("analisa.statistik.putih")}
         </div>
-        {putih.length ? (
-          putih.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
-        ) : (
-          <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
-        )}
+        <div className="max-h-[36rem] min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
+          {putih.length ? (
+            putih.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
+          ) : (
+            <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
+          )}
+        </div>
       </div>
-      <div data-uji="pembukaan-akun-kolom-hitam">
+      <div className="flex min-h-0 flex-col" data-uji="pembukaan-akun-kolom-hitam">
         <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">
           {t("analisa.statistik.hitam")}
         </div>
-        {hitam.length ? (
-          hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
-        ) : (
-          <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
-        )}
+        <div className="max-h-[36rem] min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
+          {hitam.length ? (
+            hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
+          ) : (
+            <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
+          )}
+        </div>
       </div>
     </div>
   );
