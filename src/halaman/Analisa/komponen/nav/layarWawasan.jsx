@@ -31,7 +31,6 @@ const BENDERA = import.meta.glob("../flags/*.svg", {
 
 const OPSI_WAKTU = [
   { nilai: "all", kunci: "analisa.wawasan.filterSemua" },
-  { nilai: "ultraBullet", label: "UltraBullet" },
   { nilai: "bullet", label: "Bullet" },
   { nilai: "blitz", label: "Blitz" },
   { nilai: "rapid", label: "Rapid" },
