@@ -440,7 +440,7 @@ export const analisa = {
       profilMemuat: "Loading profile…",
       tanpaPartai: "No stored games found for this account. Pull data from the Database menu first.",
       filterKecepatan: "Speed",
-      filterWarna: "Color",
+      filterWarna: "Result side",
       filterRentang: "Range",
       filterJudul: "Insights filters",
       filterSemua: "All",

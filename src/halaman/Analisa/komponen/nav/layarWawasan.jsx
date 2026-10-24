@@ -209,15 +209,10 @@ export default function LayarWawasan() {
   }, [partaiAkunDifilter, username, labelPembukaan]);
 
   /*
-   * Filter warna diterapkan di sini — bukan di wawasan.js — karena
-   * agregasiWawasan menghitung hasilUmum + per-warna sekaligus. Yang ditukar
-   * hanya angka Distribusi Hasil: kartu Pembukaan tetap menampilkan kedua
-   * kolom "Sebagai Putih"/"Sebagai Hitam" (penyimpangan dari acuan yang
-   * memotong semua kartu lewat filterGames — dicatat di README).
-   *
-   * Blok ini pernah menghitung `partaiFilter` yang tidak pernah dipakai;
-   * variabel mati itu dihapus (error `no-unused-vars` yang membuat
-   * `npm run lint` merah).
+   * Cakupan filter warna memang terbatas pada KPI win rate + distribusi hasil.
+   * Tren rating, akurasi/taktik, total partai, dan tab pembukaan tetap
+   * memakai kedua warna. Label UI menyebut "Warna hasil" agar kontrol ini
+   * tidak memberi kesan bahwa semua metrik ikut terfilter.
    */
   const wawasanTampil = useMemo(() => {
     if (!wawasan) return null;

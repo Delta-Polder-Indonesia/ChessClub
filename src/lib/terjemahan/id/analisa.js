@@ -441,7 +441,7 @@ export const analisa = {
       profilMemuat: "Memuat profil…",
       tanpaPartai: "Belum ada partai tersimpan untuk akun ini. Tarik data dari menu Database terlebih dahulu.",
       filterKecepatan: "Kecepatan",
-      filterWarna: "Warna",
+      filterWarna: "Warna hasil",
       filterRentang: "Rentang",
       filterJudul: "Filter wawasan",
       filterSemua: "Semua",
