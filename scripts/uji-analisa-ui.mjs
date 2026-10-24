@@ -62,6 +62,7 @@ import * as basisData from "./src/halaman/Analisa/basisData.js";
 import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
 import LoadingBar from "./src/halaman/Analisa/komponen/menu/loading/loadingBar.jsx";
 import { persenProgres } from "./src/halaman/Analisa/komponen/menu/loading/persenProgres.js";
+import LayarWawasan from "./src/halaman/Analisa/komponen/nav/layarWawasan.jsx";
 import { renderToStaticMarkup } from "react-dom/server";
 
 export { basisData, persenProgres };
@@ -142,6 +143,39 @@ export function mountGameDenganPemainKosong(el) {
 }
 
 export { formatPlayerLabel, normalisasiPemain };
+
+function WawasanDenganAkun({ platform, username }) {
+  const nilaiBawaan = React.useContext(AnalyzeContext);
+  const nilai = {
+    ...nilaiBawaan,
+    akun: [{ platform, username }, () => {}],
+  };
+  return (
+    <AnalyzeContext.Provider value={nilai}>
+      <LayarWawasan />
+    </AnalyzeContext.Provider>
+  );
+}
+
+export function mountWawasan(el, platform, username) {
+  const root = createRoot(el);
+  root.render(
+    <HelmetProvider>
+      <MemoryRouter initialEntries={["/program-kami/analisa/papan"]}>
+        <I18nProvider>
+          <ConfigContextProvider>
+            <ErrorsContextProvider>
+              <AnalyzeContextProvider>
+                <WawasanDenganAkun platform={platform} username={username} />
+              </AnalyzeContextProvider>
+            </ErrorsContextProvider>
+          </ConfigContextProvider>
+        </I18nProvider>
+      </MemoryRouter>
+    </HelmetProvider>,
+  );
+  return root;
+}
 
 export function mount(el) {
   return createRoot(el).render(
@@ -735,28 +769,9 @@ if (tabLangkah) {
   );
 }
 
-/* --- tombol "Baru": mengosongkan papan, tapi minta konfirmasi dulu ---
- * Pasangan dari tombol Bermain. Karena aksinya merusak (analisis dibuang),
- * klik pertama hanya bertanya; hanya klik kedua yang benar-benar mereset.
- */
+/* --- tombol "Baru" tidak lagi ada di daftar menu bilah navigasi --- */
 {
-  const sebelum = teksBagus();
-  const masihAda = () => /Ringkasan/.test(teksBagus()) && !/Belum ada data permainan/.test(teksBagus());
-  uji("prasyarat: analisis aktif sebelum tombol Baru", /Ringkasan/.test(sebelum));
-
-  klik(domSiap.querySelector('[data-uji="nav-baru"]'));
-  await tunggu(250);
-  uji("klik pertama tombol Baru belum menghapus analisis", masihAda());
-  uji(
-    "klik pertama tombol Baru meminta konfirmasi",
-    /Yakin/.test(domSiap.querySelector('[data-uji="nav-baru"]')?.textContent ?? "")
-  );
-
-  klik(domSiap.querySelector('[data-uji="nav-baru"]'));
-  await tunggu(400);
-  const sesudah = teksBagus();
-  uji("klik kedua tombol Baru mengosongkan papan", /Belum ada data permainan/.test(sesudah));
-  uji("halaman tetap hidup setelah reset", !!domSiap.querySelector(".analisa-root"));
+  uji("nav Baru tidak ada di daftar menu", !domSiap.querySelector('[data-uji="nav-baru"]'));
 }
 
 /* --- alur kedua: analisis posisi FEN lewat popup Impor --- */
@@ -1038,6 +1053,87 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 
     const pgnTeks = await basisData.eksporPgnKoleksi({ platform: "chessCom", username: "pemaina" });
     uji("basisData: eksporPgnKoleksi memuat PGN lengkap", pgnTeks.includes("PemainA") && pgnTeks.includes("1. e4"));
+
+    /* --- Wawasan → Pembukaan Teratas: tab Semua/Putih/Hitam, tanpa batas 5, semua partai akun, ber-scrollbar --- */
+    const daftarPartaiWawasan = [];
+    for (let i = 0; i < 60; i++) {
+      const sebagaiPutih = i % 2 === 0;
+      const urutanWarna = Math.floor(i / 2); // 0..29 untuk Putih maupun Hitam
+      const indeksPembukaan = urutanWarna < 26 ? (urutanWarna % 6) : 6 + (urutanWarna % 2); // indeks 6 & 7 hanya di partai ke-53..60 (>50)
+      const namaPembukaan = indeksPembukaan === 0
+        ? "Scandinavian Defense"
+        : (sebagaiPutih ? `Pembukaan Putih ${indeksPembukaan}` : `Pembukaan Hitam ${indeksPembukaan}`);
+      const kodeEco = indeksPembukaan === 0
+        ? "B01"
+        : (sebagaiPutih ? `C0${indeksPembukaan}` : `B0${indeksPembukaan}`);
+      daftarPartaiWawasan.push({
+        pgn: `[Event "Uji Wawasan ${i}"]\n[White "${sebagaiPutih ? "AkunWawasan" : "Lawan"}"]\n[Black "${sebagaiPutih ? "Lawan" : "AkunWawasan"}"]\n[Result "1-0"]\n[ECO "${kodeEco}"]\n[Opening "${namaPembukaan}"]\n\n1. e4 e5 2. Nf3 Nc6 ${i + 3}. Bc4 Bc5 1-0`,
+        whiteName: sebagaiPutih ? "AkunWawasan" : "Lawan",
+        blackName: sebagaiPutih ? "Lawan" : "AkunWawasan",
+        whiteElo: 1600,
+        blackElo: 1580,
+        result: "white",
+        timestamp: 1730000000000 - i * 60_000,
+        timeClass: "rapid",
+      });
+    }
+    await basisData.simpanBanyakPartai(daftarPartaiWawasan, {
+      platform: "chessCom",
+      username: "akunwawasan",
+    });
+
+    const wadahWawasan = domSiap.createElement("div");
+    domSiap.body.appendChild(wadahWawasan);
+    const rootWawasan = modul.mountWawasan(wadahWawasan, "chessCom", "AkunWawasan");
+    await tungguSampai(() => !!wadahWawasan.querySelector('[data-uji="wawasan-pembukaan"]'), 2000);
+
+    const tabSemua = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-tab-all"]');
+    const tabPutih = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-tab-white"]');
+    const tabHitam = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-tab-black"]');
+    const kotakDaftar = wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-daftar"]');
+
+    uji(
+      "wawasan pembukaan: menampilkan tab Semua, Putih, dan Hitam dengan Semua aktif bawaan",
+      !!tabSemua
+        && !!tabPutih
+        && !!tabHitam
+        && tabSemua.getAttribute("aria-selected") === "true",
+    );
+    uji(
+      "wawasan pembukaan: tab Semua menampilkan tampilan Pembukaan Akun 2 kolom (Putih & Hitam) untuk seluruh partai akun (8 + 8 = 16 baris)",
+      !!wadahWawasan.querySelector('[data-uji="pembukaan-akun-grid"]')
+        && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-putih"] [data-uji="pembukaan-akun-baris"]').length === 8
+        && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-hitam"] [data-uji="pembukaan-akun-baris"]').length === 8,
+    );
+    uji(
+      "wawasan pembukaan: kontainer daftar dibatasi tingginya dan memiliki scrollbar vertikal",
+      !!kotakDaftar
+        && kotakDaftar.className.includes("max-h-72")
+        && kotakDaftar.className.includes("overflow-y-auto"),
+    );
+
+    if (tabPutih) {
+      tabPutih.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+      await tunggu(50);
+      uji(
+        "wawasan pembukaan: tab Putih menampilkan semua 8 pembukaan Putih tanpa dipotong 5",
+        tabPutih.getAttribute("aria-selected") === "true"
+          && wadahWawasan.querySelectorAll('[data-uji="wawasan-pembukaan"] tbody tr').length === 8,
+      );
+    }
+
+    if (tabHitam) {
+      tabHitam.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+      await tunggu(50);
+      uji(
+        "wawasan pembukaan: tab Hitam menampilkan semua 8 pembukaan Hitam tanpa dipotong 5",
+        tabHitam.getAttribute("aria-selected") === "true"
+          && wadahWawasan.querySelectorAll('[data-uji="wawasan-pembukaan"] tbody tr').length === 8,
+      );
+    }
+
+    rootWawasan.unmount();
+    wadahWawasan.remove();
   }
 }
 

@@ -2,7 +2,7 @@
  * Port dari Brilliant-Chess (MIT, © 2025 Delo) — src/components/nav/nav.tsx.
  *
  * Bilah navigasi kiri: logo + wordmark di atas, lalu menu area kerja
- * (Bermain / Baru / Akun / Basis Data / Impor), diikuti tautan Source Code
+ * (Bermain / Akun / Basis Data / Impor), diikuti tautan Source Code
  * dan Atribusi di dasar bilah.
  *
  * PERUBAHAN BESAR dari upstream (dan dari versi port sebelumnya):
@@ -45,7 +45,7 @@
  *    burger tinggal sendiri di tengah lajur;
  *  - `title`/`aria-label` tiap tombol sudah menjadi pengganti tooltip.
  */
-import { useContext, useEffect, useRef, useState } from "react";
+import { useContext, useState } from "react";
 import { Link } from "react-router-dom";
 
 import GitHub from "../svg/github.jsx";
@@ -71,18 +71,6 @@ function IkonImpor({ className }) {
   );
 }
 
-/** Ikon "Baru" — papan kosong dengan tanda plus (monokrom, ikut fill). */
-function IkonBaru({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden="true">
-      <path
-        className={className}
-        d="M4 3h10a1 1 0 0 1 0 2H5v14h14v-9a1 1 0 0 1 2 0v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1zm14 0a1 1 0 0 1 1 1v2h2a1 1 0 0 1 0 2h-2v2a1 1 0 0 1-2 0V8h-2a1 1 0 0 1 0-2h2V4a1 1 0 0 1 1-1z"
-      />
-    </svg>
-  );
-}
-
 /** Ikon "Basis Data" — folder arsip berisi papan catur (monokrom, ikut warna kelas fill). */
 function IkonDatabase({ className }) {
   return (
@@ -99,20 +87,7 @@ export default function Nav() {
   const { t } = useI18n();
   const analyzeContext = useContext(AnalyzeContext);
   const [tampilan, setTampilan] = analyzeContext.tampilan;
-  const setAkun = analyzeContext.akun[1];
-  const setData = analyzeContext.data[1];
-  const setPlaying = analyzeContext.playing[1];
-  const setPageState = analyzeContext.pageState[1];
-  const [game] = analyzeContext.game;
-  const [pageState] = analyzeContext.pageState;
-
-  // Konfirmasi dua langkah untuk tombol "Baru": klik pertama bertanya,
-  // klik kedua benar-benar mengosongkan papan. Mencegah analisis panjang
-  // hilang hanya karena salah tekan.
-  const [konfirmasiBaru, setKonfirmasiBaru] = useState(false);
   const [navTerbuka, setNavTerbuka] = useState(true);
-  const timerKonfirmasi = useRef(null);
-  useEffect(() => () => window.clearTimeout(timerKonfirmasi.current), []);
 
   const botLinks = [
     {
@@ -129,9 +104,7 @@ export default function Nav() {
 
   /*
    * `kunci` adalah penanda menu yang stabil (dipakai data-uji), sedangkan
-   * `tampilan` adalah layar yang dipilihnya. Sengaja dipisah: tombol
-   * "Bermain" memilih layar papan, tapi tombol "Baru" bukan layar — ia
-   * aksi yang mengosongkan papan lalu kembali ke layar papan.
+   * `tampilan` adalah layar yang dipilihnya.
    */
   const menu = [
     {
@@ -139,11 +112,6 @@ export default function Nav() {
       tampilan: TAMPILAN_ANALISA.BERMAIN,
       icon: () => <MagnifierCheckerIcon className="h-[18px] w-[18px] shrink-0" />,
       kunci: "play",
-    },
-    {
-      label: t("analisa.nav.baru"),
-      icon: (props) => <IkonBaru className={props.className} />,
-      kunci: "baru",
     },
     {
       label: t("analisa.nav.akun"),
@@ -210,47 +178,12 @@ export default function Nav() {
   }`;
 
   /**
-   * Tombol "Bermain" = memilih layar papan. Ia TIDAK lagi mengosongkan
+   * Tombol "Bermain" = memilih layar papan. Ia TIDAK mengosongkan
    * `data`, `akun`, dan `pageState`: karena papan tidak pernah dilepas,
    * berpindah layar tidak boleh membuang analisis yang sedang direview.
-   * Pengosongan papan adalah urutan tombol "Baru".
    */
   function kePapan() {
-    setKonfirmasiBaru(false);
     setTampilan(TAMPILAN_ANALISA.BERMAIN);
-  }
-
-  /* Ada hasil analisis yang akan hilang bila papan dikosongkan. */
-  const adaAnalisa =
-    game.length > 0 ||
-    pageState === "analyze" ||
-    pageState === "analyzeCustom" ||
-    pageState === "loading";
-
-  /** Kosongkan papan dan kembali ke layar papan. */
-  function kosongkanPapan() {
-    window.clearTimeout(timerKonfirmasi.current);
-    setKonfirmasiBaru(false);
-    setData({ format: "fen", string: "" });
-    setAkun({ platform: "", username: "" });
-    setPlaying(false);
-    setPageState("default");
-    setTampilan(TAMPILAN_ANALISA.BERMAIN);
-  }
-
-  /**
-   * Tombol "Baru" = buang analisis yang ada dan mulai dari posisi awal.
-   * Klik pertama hanya bertanya (bila memang ada yang akan hilang); klik
-   * kedua baru menjalankannya. Papan kosong tidak perlu ditanya.
-   */
-  function mulaiBaru() {
-    if (!adaAnalisa || konfirmasiBaru) {
-      kosongkanPapan();
-      return;
-    }
-    setKonfirmasiBaru(true);
-    window.clearTimeout(timerKonfirmasi.current);
-    timerKonfirmasi.current = window.setTimeout(() => setKonfirmasiBaru(false), 4000);
   }
 
   return (
@@ -315,24 +248,10 @@ export default function Nav() {
               // Layar yang sedang tampil ditandai di bilah, persis seperti
               // sidebar dashboard Pengurus menandai tab aktifnya.
               const aktif = Boolean(item.tampilan) && tampilan === item.tampilan;
-              // "Baru" menunggu konfirmasi kedua sebelum benar-benar mereset.
-              const menungguKonfirmasi = item.kunci === "baru" && konfirmasiBaru;
-              const label = menungguKonfirmasi ? t("analisa.nav.baruKonfirmasi") : item.label;
               const keterangan =
-                item.kunci === "play"
-                  ? t("analisa.nav.playKeterangan")
-                  : item.kunci === "baru"
-                    ? t("analisa.nav.baruKeterangan")
-                    : item.label;
+                item.kunci === "play" ? t("analisa.nav.playKeterangan") : item.label;
               const aksi =
-                item.kunci === "baru"
-                  ? mulaiBaru
-                  : item.kunci === "play"
-                    ? kePapan
-                    : () => {
-                        setKonfirmasiBaru(false);
-                        setTampilan(item.tampilan);
-                      };
+                item.kunci === "play" ? kePapan : () => setTampilan(item.tampilan);
               return (
                 <button
                   key={item.kunci}
@@ -342,9 +261,7 @@ export default function Nav() {
                   aria-label={keterangan}
                   aria-current={aktif ? "true" : undefined}
                   onClick={aksi}
-                  className={`${kelasTombol}${aktif ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}${
-                    menungguKonfirmasi ? " bg-backgroundBoxHover text-lossRed" : ""
-                  }`}
+                  className={`${kelasTombol}${aktif ? " bg-backgroundBoxHover text-foregroundHighlighted" : ""}`}
                 >
                   {/*
                     Ikon dibungkus span `shrink-0`: UA stylesheet menyetel
@@ -355,7 +272,7 @@ export default function Nav() {
                   <span className="flex shrink-0">
                     {item.icon({ className: `transition-colors group-hover:fill-foregroundHighlighted ${aktif ? "fill-foregroundHighlighted" : "fill-foregroundGrey"}` })}
                   </span>
-                  <span className={kelasLabelNav}>{label}</span>
+                  <span className={kelasLabelNav}>{item.label}</span>
                 </button>
               );
             })}

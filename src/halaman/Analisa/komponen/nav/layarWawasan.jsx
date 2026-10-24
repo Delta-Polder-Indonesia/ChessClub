@@ -15,7 +15,9 @@ import { segarkanKartuPemain, useKartuPemain } from "../../../../lib/pemainCatur
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
-import { agregasiWawasan } from "../../mesin/wawasan.js";
+import DaftarPembukaanAkun from "../../akun/DaftarPembukaanAkun.jsx";
+import { rekapPembukaan } from "../../akun/statsAkun.js";
+import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
 import Refresh from "../svg/refresh.jsx";
 import PanelLayar from "./PanelLayar.jsx";
@@ -67,11 +69,16 @@ export default function LayarWawasan() {
 
   const [akunTersimpan] = useState(bacaDaftarAkun);
   const [koleksi, setKoleksi] = useState([]);
-  const [partai, setPartai] = useState([]);
+  const [semuaPartai, setSemuaPartai] = useState([]);
   const [filterWaktu, setFilterWaktu] = useState("all");
   const [filterWarna, setFilterWarna] = useState("all");
   const [filterTanggal, setFilterTanggal] = useState("all");
   const [muat, setMuat] = useState(false);
+
+  const partai = useMemo(
+    () => semuaPartai.slice(0, BATAS_PARTAI_WAWASAN),
+    [semuaPartai],
+  );
 
   useEffect(() => {
     let hidup = true;
@@ -84,20 +91,23 @@ export default function LayarWawasan() {
   }, []);
 
   const muatPartai = useCallback(async () => {
-    if (!username) return;
+    if (!username) {
+      setSemuaPartai([]);
+      return;
+    }
     setMuat(true);
     try {
       const { partai: daftar } = await ambilDaftarPartai({
         koleksiId: `${platform}:${username.toLowerCase()}`,
         timeClass: filterWaktu === "all" ? "" : filterWaktu,
-        limit: BATAS_PARTAI_WAWASAN,
+        limit: 0,
         sertakanPgn: true,
         urut: "tanggal",
         arah: "desc",
       });
-      setPartai(daftar || []);
+      setSemuaPartai(daftar || []);
     } catch {
-      setPartai([]);
+      setSemuaPartai([]);
     } finally {
       setMuat(false);
     }
@@ -150,6 +160,26 @@ export default function LayarWawasan() {
     if (!username || !partai.length) return null;
     return agregasiWawasan(partai, username, filter, petaAnalisis, labelPembukaan);
   }, [partai, username, filter, petaAnalisis, labelPembukaan]);
+
+  /*
+   * Pembukaan Teratas memuat seluruh partai akun yang tersimpan di basis data
+   * (`semuaPartai`, setara bagian Pembukaan di Akun), bukan hanya potongan
+   * `BATAS_PARTAI_WAWASAN`, serta menampilkan semua pembukaan tanpa batas 5.
+   * Tab "Semua" merender tampilan Pembukaan dari layar Akun (`rekapPembukaan`
+   * + `DaftarPembukaanAkun`), sedangkan tab "Putih" dan "Hitam" merender tabel
+   * rincian pembukaan per warna.
+   */
+  const pembukaanAkun = useMemo(() => {
+    if (!username || !semuaPartai.length) {
+      return { rekapAkun: { putih: [], hitam: [] }, putih: [], hitam: [] };
+    }
+    const difilter = filterPartaiWawasan(semuaPartai, filter);
+    return {
+      rekapAkun: rekapPembukaan(difilter, username),
+      putih: hitungPembukaanTeratas(difilter, username, "white", Infinity, labelPembukaan),
+      hitam: hitungPembukaanTeratas(difilter, username, "black", Infinity, labelPembukaan),
+    };
+  }, [semuaPartai, username, filter, labelPembukaan]);
 
   /*
    * Filter warna diterapkan di sini — bukan di wawasan.js — karena
@@ -296,8 +326,9 @@ export default function LayarWawasan() {
                   </div>
                   <div className="flex flex-col gap-4">
                     <KartuPembukaanTeratas
-                      putih={wawasanTampil.pembukaPutih}
-                      hitam={wawasanTampil.pembukaanHitam}
+                      rekapAkun={pembukaanAkun.rekapAkun}
+                      putih={pembukaanAkun.putih}
+                      hitam={pembukaanAkun.hitam}
                       t={t}
                     />
                     <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
@@ -689,45 +720,77 @@ function BarisHasil({ label, counts }) {
   );
 }
 
-function KartuPembukaanTeratas({ putih, hitam, t }) {
-  const [warna, setWarna] = useState("white");
-  const openings = warna === "white" ? putih : hitam;
+export function KartuPembukaanTeratas({
+  rekapAkun = { putih: [], hitam: [] },
+  putih = [],
+  hitam = [],
+  t,
+}) {
+  const [warna, setWarna] = useState("all");
+  const daftarAkunPutih = rekapAkun?.putih || [];
+  const daftarAkunHitam = rekapAkun?.hitam || [];
+  const jumlahSemua = daftarAkunPutih.length + daftarAkunHitam.length;
+  const daftarTab = [
+    { kunci: "all", label: t("analisa.wawasan.filterSemua"), jumlah: jumlahSemua },
+    { kunci: "white", label: t("analisa.wawasan.sebagaiPutih"), jumlah: putih.length, daftar: putih },
+    { kunci: "black", label: t("analisa.wawasan.sebagaiHitam"), jumlah: hitam.length, daftar: hitam },
+  ];
+  const aktif = daftarTab.find((item) => item.kunci === warna) || daftarTab[0];
+  const modeSemua = aktif.kunci === "all";
+  const openings = modeSemua ? [] : aktif.daftar;
+  const kosong = modeSemua ? jumlahSemua === 0 : openings.length === 0;
 
   return (
-    <div className="wawasan-card">
+    <div className="wawasan-card" data-uji="wawasan-pembukaan">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.pembukaanJudul")}</h3>
-        <div className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5">
-          <button
-            type="button"
-            onClick={() => setWarna("white")}
-            className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
-              warna === "white" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold" : "text-foregroundGrey hover:text-foreground"
-            }`}
-          >
-            {t("analisa.wawasan.sebagaiPutih")} ({putih.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setWarna("black")}
-            className={`rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
-              warna === "black" ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold" : "text-foregroundGrey hover:text-foreground"
-            }`}
-          >
-            {t("analisa.wawasan.sebagaiHitam")} ({hitam.length})
-          </button>
+        <div
+          className="flex rounded-borderRoundness bg-backgroundBoxBox p-0.5"
+          role="tablist"
+          aria-label={t("analisa.wawasan.pembukaanJudul")}
+        >
+          {daftarTab.map((tab) => {
+            const terpilih = aktif.kunci === tab.kunci;
+            return (
+              <button
+                key={tab.kunci}
+                type="button"
+                role="tab"
+                data-uji={`wawasan-pembukaan-tab-${tab.kunci}`}
+                aria-selected={terpilih}
+                onClick={() => setWarna(tab.kunci)}
+                className={`cursor-pointer rounded-borderRoundness px-2 py-1 text-xs font-medium transition-colors ${
+                  terpilih
+                    ? "bg-backgroundBoxBoxHighlighted text-foregroundBlackDark font-bold"
+                    : "text-foregroundGrey hover:text-foreground"
+                }`}
+              >
+                {tab.label} ({tab.jumlah})
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {openings.length === 0 ? (
+      {kosong ? (
         <div className="flex items-center justify-center p-4">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaPembukaan")}</p>
         </div>
+      ) : modeSemua ? (
+        <div
+          data-uji="wawasan-pembukaan-daftar"
+          className="mt-2 max-h-72 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-gutter:stable]"
+        >
+          <DaftarPembukaanAkun putih={daftarAkunPutih} hitam={daftarAkunHitam} />
+        </div>
       ) : (
-        <div className="overflow-x-auto mt-2">
+        <div
+          data-uji="wawasan-pembukaan-daftar"
+          className="mt-2 max-h-72 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
+        >
           <table className="w-full text-xs border-collapse">
-            <thead>
-              <tr className="border-b border-border text-foregroundGrey">
+            <thead className="sticky top-0 z-10 bg-backgroundBoxDarker shadow-[inset_0_-1px_0_0_var(--analisa-border)]">
+              <tr className="text-foregroundGrey">
                 <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
                 <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
                 <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
