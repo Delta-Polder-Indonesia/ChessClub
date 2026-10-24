@@ -269,10 +269,10 @@ export default function DashboardAkun({
   const tabAktif = tabKunci.some((x) => x.k === tab) ? tab : (tabKunci[0]?.k || "overview");
 
   const kelasPembungkus = sebagaiKartu
-    ? "flex h-full min-w-0 flex-col"
+    ? "flex min-w-0 flex-col"
     : "flex h-full w-full flex-col p-1";
   const kelasKartu = sebagaiKartu
-    ? "flex h-full min-h-[380px] flex-1 flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox"
+    ? "flex h-[380px] min-h-[380px] flex-col overflow-hidden rounded-[0.5rem] border border-border bg-backgroundBox"
     : "flex min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox";
   const kelasIsi = sebagaiKartu
     ? "min-h-0 flex-1 px-4 pb-4"
