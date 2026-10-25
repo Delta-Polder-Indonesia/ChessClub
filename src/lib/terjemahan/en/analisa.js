@@ -408,7 +408,7 @@ export const analisa = {
         cache: "Games already analyzed are read from the session cache.",
         partaiDianalisis: "{partai} games · {langkah} moves evaluated",
         andal: "Based on {partai} games and {langkah} moves — enough for a first picture.",
-        tidakAndal: "Limited data ({partai} games, {langkah} moves). These numbers do not describe anything yet.",
+        tidakAndal: "Limited data ({partai} games, {langkah} moves). The score and level are provisional; do not draw conclusions from them.",
         tren: "Score trend across games",
         arah: {
           naik: "Rising",
