@@ -395,9 +395,9 @@ export function pemainLangkah(move, indeks) {
 /**
  * Waktu pikir (detik) untuk langkah pada `moves[indeks]`, dibaca dari
  * `move.clock` ({ white, black }) yang ditempel `parsePGN`.
- * `null` bila jam tidak tersedia (`clock` null) atau selisihnya negatif —
- * selisih negatif terjadi bila increment lebih besar dari waktu pikir (umum
- * di bullet dengan premove) atau jam melompat karena data PGN tidak lengkap.
+ * `null` bila jam tidak tersedia, increment tidak diketahui pada data
+ * PGN terstruktur, atau selisih terkoreksi tetap negatif (jam melompat/data
+ * tidak lengkap). Increment yang diketahui ditambahkan kembali ke selisih jam.
  */
 export function waktuBerpikir(moves, indeks, warna) {
   const kunci = warna === "w" ? "white" : "black";
