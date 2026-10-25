@@ -592,13 +592,22 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   const metrikAktif = Object.keys(komponenSkor).filter((kunci) => komponenSkor[kunci] !== null);
   const sampelMetrik = { ...hitungan };
   const jumlahMetrikAktif = metrikAktif.length;
-  const cakupanTerbatas = jumlahMetrikAktif < 2;
+  // Top-1 dan peringkat MultiPV sama-sama mengukur pemilihan langkah; jangan
+  // menyebut keduanya sebagai dua domain bukti berbeda. Domain yang dilaporkan:
+  // pemilihan langkah, kualitas langkah (ACPL), dan perilaku waktu.
+  const domainBukti = [
+    ...(komponenSkor.kecocokan !== null || komponenSkor.peringkat !== null ? ["pemilihan"] : []),
+    ...(komponenSkor.acpl !== null ? ["kualitas"] : []),
+    ...(komponenSkor.waktu !== null ? ["waktu"] : []),
+  ];
+  const jumlahDomainBukti = domainBukti.length;
+  const cakupanTerbatas = jumlahDomainBukti < 2;
 
   // Cakupan dilaporkan terpisah dari skor: renormalisasi bobot yang tersedia
   // memang membuat skor tetap dapat dihitung, tetapi satu metrik bukan bukti
   // lintas-metrik. Ini bukan probabilitas terkalibrasi.
   if (!bobotTerpakai) {
-    return { skor: null, level: null, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
+    return { skor: null, level: null, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas };
   }
 
   // Setiap komponen sudah divalidasi terhadap jumlah sampelnya sendiri.
@@ -609,7 +618,7 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   // tersedia: skor numerik tetap informatif, tetapi levelnya masih sementara.
   const level = cakupanTerbatas ? LEVEL_SEMENTARA : tingkatDariSkor(skor);
 
-  return { skor, level, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
+  return { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas };
 }
 
 /* ------------------------------------------------------- tingkat per partai */
@@ -789,7 +798,7 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   const engineMatchRateSkor = sampelKecocokanSkor
     ? (cocokKecocokanSkor / sampelKecocokanSkor) * 100
     : null;
-  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas } = skorKecurigaan({
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas } = skorKecurigaan({
     engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
@@ -814,6 +823,8 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
     level,
     metrikAktif,
     jumlahMetrikAktif,
+    domainBukti,
+    jumlahDomainBukti,
     sampelMetrik,
     cakupanTerbatas,
   };
@@ -1451,6 +1462,8 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     level,
     metrikAktif,
     jumlahMetrikAktif,
+    domainBukti,
+    jumlahDomainBukti,
     sampelMetrik,
     cakupanTerbatas,
     perFase,
