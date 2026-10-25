@@ -159,7 +159,7 @@ hasil("incrementDariPgn: format bertahap tidak ditebak", incrementDariPgn({ Time
       tanpaKontrol.daftarClock[2].black === 294.25
   );
   const jamTidakLengkap = bacaPartaiPGN(
-    '[Event "Incomplete clocks"]\\n[White "A"]\\n[Black "B"]\\n1. e4 {[%clk 0:04:55]} e5 2. Nf3 {[%clk 0:04:40]} *'
+    '[Event "Incomplete clocks"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 0:04:55]} e5 2. Nf3 {[%clk 0:04:40]} *'
   );
   hasil(
     "komentar clock hilang tidak menggeser jam ke warna/langkah lain",
