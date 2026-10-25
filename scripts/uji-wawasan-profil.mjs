@@ -23,6 +23,7 @@ import assert from "node:assert/strict";
 
 import {
   agregasiWawasan,
+  filterPartaiWawasan,
   extractFirstMovesFromPgn,
   formatEcoUrlName,
   hitungPembukaanTeratas,
@@ -410,6 +411,36 @@ uji("sisi accuracies yang dibaca mengikuti userColor", () => {
   assert.equal(hitungTaktikal(partai, {}).avgAccuracy, 71);
 });
 
+uji("partai tanpa warna pemain yang valid tidak menyumbang statistik taktik", () => {
+  const partai = [partaiAcuan({
+    id: "p-tanpa-sisi",
+    userColor: null,
+    accuracies: { white: 99.9, black: 1.0 },
+  })];
+  const stats = hitungTaktikal(partai, {
+    "p-tanpa-sisi": {
+      summary: { white: { eligibleMoves: 20, accuracyEstimate: 99.9, breakdown: { blunder: 0 } } },
+    },
+  });
+  assert.equal(stats.avgAccuracy, null);
+  assert.equal(stats.accuracyCount, 0);
+  assert.equal(stats.analyzedGamesCount, 0);
+  assert.equal(stats.totalEvaluatedMoves, 0);
+});
+
+uji("ringkasan analisis tanpa sisi pemain jatuh ke akurasi platform", () => {
+  const partai = [partaiAcuan({
+    id: "p1",
+    userColor: "white",
+    accuracies: { white: 76.4 },
+  })];
+  const stats = hitungTaktikal(partai, { p1: { summary: { black: { eligibleMoves: 8, accuracyEstimate: 90, breakdown: {} } } } });
+  assert.equal(stats.avgAccuracy, 76.4);
+  assert.equal(stats.accuracyCount, 1);
+  assert.equal(stats.analyzedGamesCount, 0);
+  assert.equal(stats.blundersPerGame, 0);
+});
+
 uji("partai punya analisis TIDAK dihitung dua kali dari accuracies platform", () => {
   const g1 = partaiAcuan({ accuracies: { white: 12.3 } });
   const stats = hitungTaktikal([g1], { g1: ANALISIS_1 });
@@ -581,6 +612,73 @@ uji("snapshot selalu objek baru supaya useMemo pemanggil melihat perubahan", () 
   assert.notEqual(ambilPetaAnalisis(), ambilPetaAnalisis());
   bersihkanAnalisis();
 });
+
+/* -------------------------------------------------- 7. filter wawasan */
+
+console.log("\n7. filterPartaiWawasan — default dan filter parsial");
+
+uji("filter kosong menggunakan semua kelas waktu dan rentang tanggal", () => {
+  const partai = [
+    buatPartai({ id: "lama", timestamp: 1000, timeClass: "rapid" }),
+    buatPartai({ id: "baru", timestamp: 1700000000000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(filterPartaiWawasan(partai, {}).map((p) => p.id), ["lama", "baru"]);
+});
+
+uji("filter parsial tanggal tidak menolak kelas waktu yang tidak ditentukan", () => {
+  const sekarang = 1700000000000;
+  const partai = [
+    buatPartai({ id: "dalam-rentang", timestamp: sekarang - 5 * 86400000, timeClass: "rapid" }),
+    buatPartai({ id: "di-luar-rentang", timestamp: sekarang - 40 * 86400000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { dateRange: "30d" }, sekarang).map((p) => p.id),
+    ["dalam-rentang"],
+  );
+});
+
+uji("filter waktu parsial tetap menerima semua rentang tanggal", () => {
+  const partai = [
+    buatPartai({ id: "rapid-lama", timestamp: 1000, timeClass: "rapid" }),
+    buatPartai({ id: "blitz-baru", timestamp: 1700000000000, timeClass: "blitz" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { timeClass: "rapid" }).map((p) => p.id),
+    ["rapid-lama"],
+  );
+});
+
+uji("filter aman ketika masukan partai bukan array", () => {
+  assert.deepEqual(filterPartaiWawasan(null, {}), []);
+});
+
+uji("filter Daily mencakup daily Chess.com dan correspondence Lichess", () => {
+  const partai = [
+    buatPartai({ id: "chesscom-daily", timeClass: "daily" }),
+    buatPartai({ id: "lichess-correspondence", timeClass: "correspondence" }),
+    buatPartai({ id: "rapid", timeClass: "rapid" }),
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { timeClass: "daily" }).map((p) => p.id),
+    ["chesscom-daily", "lichess-correspondence"],
+  );
+});
+
+uji("filter tanggal menolak timestamp rusak dan tanggal masa depan", () => {
+  const sekarang = 1700000000000;
+  const partai = [
+    buatPartai({ id: "valid", timestamp: sekarang - 5 * 86400000, timeClass: "rapid" }),
+    buatPartai({ id: "rusak", timestamp: "bukan-tanggal", timeClass: "rapid" }),
+    buatPartai({ id: "masa-depan", timestamp: sekarang + 86400000, timeClass: "rapid" }),
+    null,
+  ];
+  assert.deepEqual(
+    filterPartaiWawasan(partai, { dateRange: "30d" }, sekarang).map((p) => p.id),
+    ["valid"],
+  );
+});
+
+
 
 /* ------------------------------------------------- 8. agregasiWawasan utuh */
 

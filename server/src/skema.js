@@ -6,7 +6,7 @@
  * (keanggotaan, turnamen) tetap memakai fungsi mereka — skema ini
  * menjadi kontrak bersama dan dipakai di endpoint baru / query.
  */
-import { z } from "zod";
+import { z } from "zod/v3";
 import { POLA_USERNAME } from "../../src/lib/identitas.js";
 
 /**

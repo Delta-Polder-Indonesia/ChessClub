@@ -17,7 +17,6 @@ import { ambilDaftarPartai, ambilSemuaKoleksi } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
 import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import DaftarPembukaanAkun, { BarHasil } from "../../akun/DaftarPembukaanAkun.jsx";
-import { rekapPembukaan } from "../../akun/statsAkun.js";
 import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
 import Refresh from "../svg/refresh.jsx";
@@ -35,7 +34,6 @@ const OPSI_WAKTU = [
   { nilai: "bullet", label: "Bullet" },
   { nilai: "blitz", label: "Blitz" },
   { nilai: "rapid", label: "Rapid" },
-  { nilai: "classical", label: "Classical" },
   { nilai: "daily", label: "Daily" },
 ];
 
@@ -58,6 +56,7 @@ const KELAS_RATING = [
   { kunci: "rapid", label: "Rapid" },
   { kunci: "blitz", label: "Blitz" },
   { kunci: "bullet", label: "Bullet" },
+  { kunci: "classical", label: "Classical" },
   { kunci: "daily", label: "Daily" },
 ];
 
@@ -75,6 +74,8 @@ export default function LayarWawasan() {
   const [filterWarna, setFilterWarna] = useState("all");
   const [filterTanggal, setFilterTanggal] = useState("all");
   const [muat, setMuat] = useState(false);
+  const [galatMuat, setGalatMuat] = useState(false);
+  const permintaanPartai = useRef(0);
 
   const partai = semuaPartai;
 
@@ -89,25 +90,34 @@ export default function LayarWawasan() {
   }, []);
 
   const muatPartai = useCallback(async () => {
+    const idPermintaan = ++permintaanPartai.current;
     if (!username) {
       setSemuaPartai([]);
+      setGalatMuat(false);
+      setMuat(false);
       return;
     }
+
     setMuat(true);
+    setGalatMuat(false);
     try {
       const { partai: daftar } = await ambilDaftarPartai({
         koleksiId: `${platform}:${username.toLowerCase()}`,
-        timeClass: filterWaktu === "all" ? "" : filterWaktu,
+        // Daily mencakup juga "correspondence" dari Lichess, jadi
+        // kueri IndexedDB tidak boleh memangkasnya sebelum filter domain berjalan.
+        timeClass: filterWaktu === "all" || filterWaktu === "daily" ? "" : filterWaktu,
         limit: 0,
         sertakanPgn: true,
         urut: "tanggal",
         arah: "desc",
       });
-      setSemuaPartai(daftar || []);
+      if (idPermintaan === permintaanPartai.current) {
+        setSemuaPartai(Array.isArray(daftar) ? daftar : []);
+      }
     } catch {
-      setSemuaPartai([]);
+      if (idPermintaan === permintaanPartai.current) setGalatMuat(true);
     } finally {
-      setMuat(false);
+      if (idPermintaan === permintaanPartai.current) setMuat(false);
     }
   }, [username, platform, filterWaktu]);
 
@@ -174,23 +184,33 @@ export default function LayarWawasan() {
     if (!username || !partaiAkunDifilter.length) {
       return { rekapAkun: { putih: [], hitam: [] }, putih: [], hitam: [] };
     }
+
+    const putih = hitungPembukaanTeratas(partaiAkunDifilter, username, "white", Infinity, labelPembukaan);
+    const hitam = hitungPembukaanTeratas(partaiAkunDifilter, username, "black", Infinity, labelPembukaan);
+    const keRekapAkun = (daftar) => {
+      const total = daftar.reduce((jumlah, pembukaan) => jumlah + pembukaan.played, 0);
+      return daftar.map((pembukaan) => ({
+        nama: pembukaan.name,
+        jumlah: pembukaan.played,
+        persen: total > 0 ? Math.round((pembukaan.played / total) * 1000) / 10 : 0,
+        w: pembukaan.wins,
+        d: pembukaan.draws,
+        l: pembukaan.losses,
+      }));
+    };
+
     return {
-      rekapAkun: rekapPembukaan(partaiAkunDifilter, username),
-      putih: hitungPembukaanTeratas(partaiAkunDifilter, username, "white", Infinity, labelPembukaan),
-      hitam: hitungPembukaanTeratas(partaiAkunDifilter, username, "black", Infinity, labelPembukaan),
+      rekapAkun: { putih: keRekapAkun(putih), hitam: keRekapAkun(hitam) },
+      putih,
+      hitam,
     };
   }, [partaiAkunDifilter, username, labelPembukaan]);
 
   /*
-   * Filter warna diterapkan di sini — bukan di wawasan.js — karena
-   * agregasiWawasan menghitung hasilUmum + per-warna sekaligus. Yang ditukar
-   * hanya angka Distribusi Hasil: kartu Pembukaan tetap menampilkan kedua
-   * kolom "Sebagai Putih"/"Sebagai Hitam" (penyimpangan dari acuan yang
-   * memotong semua kartu lewat filterGames — dicatat di README).
-   *
-   * Blok ini pernah menghitung `partaiFilter` yang tidak pernah dipakai;
-   * variabel mati itu dihapus (error `no-unused-vars` yang membuat
-   * `npm run lint` merah).
+   * Cakupan filter warna memang terbatas pada KPI win rate + distribusi hasil.
+   * Tren rating, akurasi/taktik, total partai, dan tab pembukaan tetap
+   * memakai kedua warna. Label UI menyebut "Warna hasil" agar kontrol ini
+   * tidak memberi kesan bahwa semua metrik ikut terfilter.
    */
   const wawasanTampil = useMemo(() => {
     if (!wawasan) return null;
@@ -296,6 +316,17 @@ export default function LayarWawasan() {
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-foregroundGrey border-t-backgroundBoxBoxHighlighted" />
             <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.memuat")}</p>
           </div>
+        ) : galatMuat ? (
+          <div className="flex flex-col items-center gap-3 rounded-borderRoundness border border-dashed border-border bg-backgroundBox p-8" role="alert">
+            <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.galatMuatPartai")}</p>
+            <button
+              type="button"
+              onClick={muatPartai}
+              className="rounded-borderRoundness border border-border bg-backgroundBoxBox px-3 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-backgroundBoxBoxHighlighted hover:text-foregroundBlackDark"
+            >
+              {t("analisa.wawasan.cobaMuatLagi")}
+            </button>
+          </div>
         ) : (
           <>
             {partai.length > 0 || filterMenyempit ? (
@@ -333,8 +364,8 @@ export default function LayarWawasan() {
                 <KpiGrid wawasan={wawasanTampil} t={t} />
 
                 {/* Dashboard 2 kolom */}
-                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  <div className="flex flex-col gap-4">
+                <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
+                  <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <GrafikTrenRating points={wawasanTampil.trenRating} t={t} />
                     <DistribusiHasil
                       umum={wawasanTampil.hasilUmum}
@@ -344,7 +375,7 @@ export default function LayarWawasan() {
                     />
                     <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
-                  <div className="flex flex-col gap-4">
+                  <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <DashboardAkun
                       platform={platform}
                       username={username}
@@ -391,8 +422,11 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
   const [memuat, setMemuat] = useState(false);
   const hidup = useRef(true);
 
-  useEffect(() => () => {
-    hidup.current = false;
+  useEffect(() => {
+    hidup.current = true;
+    return () => {
+      hidup.current = false;
+    };
   }, []);
 
   async function muatUlang() {
@@ -493,7 +527,7 @@ function KartuProfilWawasan({ username, platform, t, locale }) {
       </div>
 
       <div
-        className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
         role="group"
         aria-label={t("analisa.wawasan.profilRating")}
       >
@@ -610,7 +644,7 @@ function KpiGrid({ wawasan, t }) {
 function GrafikTrenRating({ points, t }) {
   if (!points || points.length === 0) {
     return (
-      <div className="wawasan-card">
+      <div className="wawasan-card flex h-[300px] min-h-[300px] flex-col">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center justify-center p-6">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaDataRating")}</p>
@@ -652,7 +686,7 @@ function GrafikTrenRating({ points, t }) {
   const midRating = Math.round((yMin + yMax) / 2);
 
   return (
-    <div className="wawasan-card">
+    <div className="wawasan-card flex h-[300px] min-h-[300px] flex-col">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.trenJudul")}</h3>
         <div className="flex items-center gap-2 text-xs">
@@ -662,8 +696,8 @@ function GrafikTrenRating({ points, t }) {
           <span className={`font-bold font-mono ${deltaClass}`}>{deltaStr}</span>
         </div>
       </div>
-      <div className="w-full overflow-hidden">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" role="img" aria-label={`${firstRating} to ${lastRating}`}>
+      <div className="flex min-h-0 flex-1 items-center overflow-hidden pt-3">
+        <svg viewBox={`0 0 ${width} ${height}`} className="h-auto w-full" role="img" aria-label={`${firstRating} to ${lastRating}`}>
           <defs>
             <linearGradient id="wawasanAreaGradient" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#81b64c" stopOpacity="0.35" />
@@ -771,7 +805,7 @@ export function KartuPembukaanTeratas({
   const kosong = modeSemua ? jumlahSemua === 0 : openings.length === 0;
 
   return (
-    <div className="wawasan-card" data-uji="wawasan-pembukaan">
+    <div className="wawasan-card flex min-h-0 flex-1 flex-col" data-uji="wawasan-pembukaan">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="wawasan-card-title">{t("analisa.wawasan.pembukaanJudul")}</h3>
         <div
@@ -803,29 +837,29 @@ export function KartuPembukaanTeratas({
       </div>
 
       {kosong ? (
-        <div className="flex items-center justify-center p-4">
+        <div className="flex min-h-0 flex-1 items-center justify-center p-4">
           <p className="text-sm text-foregroundGrey">{t("analisa.wawasan.tanpaPembukaan")}</p>
         </div>
       ) : modeSemua ? (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-72 overflow-y-auto overflow-x-hidden pr-1 [scrollbar-gutter:stable]"
+          className="mt-2 min-h-0 flex-1"
         >
           <DaftarPembukaanAkun putih={daftarAkunPutih} hitam={daftarAkunHitam} />
         </div>
       ) : (
         <div
           data-uji="wawasan-pembukaan-daftar"
-          className="mt-2 max-h-72 overflow-y-auto overflow-x-auto [scrollbar-gutter:stable]"
+          className="mt-2 max-h-[34rem] min-h-0 flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]"
         >
-          <table className="w-full text-xs border-collapse">
+          <table className="w-full table-fixed text-xs border-collapse">
             <thead className="sticky top-0 z-10 bg-backgroundBoxDarker shadow-[inset_0_-1px_0_0_var(--analisa-border)]">
               <tr className="text-foregroundGrey">
-                <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
-                <th className="py-1.5 px-2 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
-                <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
-                <th className="py-1.5 px-2 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.winRate")}</th>
-                <th className="py-1.5 px-2 font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.hasil")}</th>
+                <th className="w-[32%] py-1.5 px-1 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.nama")}</th>
+                <th className="w-[35%] py-1.5 px-1 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.langkah")}</th>
+                <th className="w-[11%] py-1.5 px-0.5 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.main")}</th>
+                <th className="w-[12%] py-1.5 px-1 text-right font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.winRate")}</th>
+                <th className="w-[10%] py-1.5 px-1 text-left font-bold uppercase tracking-wide text-[10px]">{t("analisa.wawasan.pembukaan.hasil")}</th>
               </tr>
             </thead>
             <tbody>
@@ -835,17 +869,17 @@ export function KartuPembukaanTeratas({
                 const lossPct = op.played > 0 ? (op.losses / op.played) * 100 : 0;
                 return (
                   <tr key={`${op.name}-${idx}`} className="border-b border-border/30">
-                    <td className="py-1.5 px-2">
-                      <div className="flex items-center gap-1.5">
+                    <td className="min-w-0 overflow-hidden py-1 px-1">
+                      <div className="flex min-w-0 items-center gap-1">
                         {op.eco && <span className="rounded border border-border bg-backgroundBoxBox px-1 py-0.5 font-mono text-[10px] text-highlightBest font-bold">{op.eco}</span>}
-                        <span className="font-semibold text-foreground">{op.name}</span>
+                        <span className="min-w-0 truncate font-semibold text-foreground" title={op.name}>{op.name}</span>
                       </div>
                     </td>
-                    <td className="py-1.5 px-2 font-mono text-[10px] text-foregroundGrey whitespace-nowrap">{op.moves || "\u2014"}</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-foregroundGrey">{op.played}</td>
-                    <td className="py-1.5 px-2 text-right font-mono font-bold text-highlightBest">{op.winRate}%</td>
-                    <td className="py-1.5 px-2">
-                      <div className="flex h-2 w-16 overflow-hidden rounded-sm bg-backgroundBoxBox">
+                    <td className="min-w-0 overflow-hidden py-1.5 px-1 font-mono text-[10px] text-foregroundGrey"><span className="block truncate" title={op.moves || "\u2014"}>{op.moves || "\u2014"}</span></td>
+                    <td className="py-1 px-0.5 text-right font-mono text-foregroundGrey" title={`${op.played} kali dimainkan`}>{op.played}</td>
+                    <td className="py-1 px-0.5 text-right font-mono font-bold text-highlightBest" title={`Win rate: ${op.winRate}%`}>{op.winRate}%</td>
+                    <td className="min-w-0 py-1 px-1">
+                      <div className="flex h-2 w-full max-w-16 overflow-hidden rounded-sm bg-backgroundBoxBox" title={`Menang ${op.wins}, seri ${op.draws}, kalah ${op.losses}`}>
                         {winPct > 0 && <div className="h-full bg-highlightBest" style={{ width: `${winPct}%` }} />}
                         {drawPct > 0 && <div className="h-full bg-foregroundGrey" style={{ width: `${drawPct}%` }} />}
                         {lossPct > 0 && <div className="h-full bg-highlightBlunder" style={{ width: `${lossPct}%` }} />}

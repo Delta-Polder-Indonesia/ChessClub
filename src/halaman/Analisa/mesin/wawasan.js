@@ -321,29 +321,31 @@ export function hitungTaktikal(partai, analysisMap = {}) {
   let accuracyCount = 0;
 
   for (const game of Array.isArray(partai) ? partai : []) {
-    const analysis = analysisMap?.[game?.id];
+    // Jangan mengasumsikan Putih jika identitas sisi pemain tidak diketahui.
+    // Itu dapat membaca akurasi/blunder lawan sebagai statistik akun.
+    if (game?.userColor !== "white" && game?.userColor !== "black") continue;
+    const analysis = analysisMap?.[game.id];
 
-    if (analysis && analysis.summary) {
+    // Ringkasan harus tersedia untuk warna pemain ini; keberadaan objek
+    // analysis.summary saja belum membuktikan bahwa sisi pemain ikut dianalisis.
+    const sisi = game?.userColor === "black" ? "b" : "w";
+    const colorSummary = analysis?.summary?.[game?.userColor] ?? analysis?.summary?.[sisi];
+
+    if (colorSummary && typeof colorSummary === "object") {
       analyzedGamesCount += 1;
-      // `analysis.summary[game.userColor]` di acuan. Ringkasan repo ini
-      // dikunci "w"/"b" (lihat ./ringkasanAnalisis.js), jadi keduanya dicoba.
-      const sisi = game.userColor === "black" ? "b" : "w";
-      const colorSummary = analysis.summary[game.userColor] ?? analysis.summary[sisi];
-      if (colorSummary) {
-        totalEvaluatedMoves += colorSummary.eligibleMoves ?? 0;
-        if (
-          colorSummary.accuracyEstimate !== null &&
-          Number.isFinite(colorSummary.accuracyEstimate)
-        ) {
-          accuracySum += colorSummary.accuracyEstimate;
-          accuracyCount += 1;
-        }
-        if (colorSummary.breakdown) {
-          blunders += colorSummary.breakdown.blunder ?? 0;
-          mistakes += colorSummary.breakdown.mistake ?? 0;
-          inaccuracies += colorSummary.breakdown.inaccuracy ?? 0;
-          misses += colorSummary.breakdown.miss ?? 0;
-        }
+      totalEvaluatedMoves += colorSummary.eligibleMoves ?? 0;
+      if (
+        colorSummary.accuracyEstimate !== null &&
+        Number.isFinite(colorSummary.accuracyEstimate)
+      ) {
+        accuracySum += colorSummary.accuracyEstimate;
+        accuracyCount += 1;
+      }
+      if (colorSummary.breakdown) {
+        blunders += colorSummary.breakdown.blunder ?? 0;
+        mistakes += colorSummary.breakdown.mistake ?? 0;
+        inaccuracies += colorSummary.breakdown.inaccuracy ?? 0;
+        misses += colorSummary.breakdown.miss ?? 0;
       }
     } else if (game?.accuracies) {
       const acc = game.accuracies[game.userColor];
@@ -380,17 +382,35 @@ export function hitungTaktikal(partai, analysisMap = {}) {
 /**
  * Filter partai berdasarkan waktu dan rentang tanggal.
  */
-export function filterPartaiWawasan(partai, filter, nowMs = Date.now()) {
+export function filterPartaiWawasan(partai, filter = {}, nowMs = Date.now()) {
+  const opsi = filter && typeof filter === "object" ? filter : {};
+  const timeClass = opsi.timeClass || "all";
+  const dateRange = opsi.dateRange || "all";
   let minTimestamp = null;
-  if (filter.dateRange === "30d") minTimestamp = nowMs - 30 * 86400000;
-  else if (filter.dateRange === "90d") minTimestamp = nowMs - 90 * 86400000;
-  else if (filter.dateRange === "365d") minTimestamp = nowMs - 365 * 86400000;
 
-  return partai.filter((p) => {
-    // Filter kecepatan
-    if (filter.timeClass !== "all" && p.timeClass !== filter.timeClass) return false;
-    // Filter rentang tanggal (timestamp dalam ms)
-    if (minTimestamp !== null && (p.timestamp || 0) < minTimestamp) return false;
+  if (dateRange === "30d") minTimestamp = nowMs - 30 * 86400000;
+  else if (dateRange === "90d") minTimestamp = nowMs - 90 * 86400000;
+  else if (dateRange === "365d") minTimestamp = nowMs - 365 * 86400000;
+
+  const daftar = Array.isArray(partai) ? partai : [];
+  return daftar.filter((p) => {
+    if (!p || typeof p !== "object") return false;
+    // Lichess menyimpan permainan korespondensi sebagai "correspondence",
+    // sedangkan Chess.com menggunakan "daily". Keduanya satu kelas UI.
+    if (timeClass !== "all") {
+      const kelasPartai = String(p.timeClass || "").toLowerCase();
+      const kelasFilter = String(timeClass).toLowerCase();
+      const cocok = kelasFilter === "daily"
+        ? kelasPartai === "daily" || kelasPartai === "correspondence"
+        : kelasPartai === kelasFilter;
+      if (!cocok) return false;
+    }
+    // Filter rentang tanggal (timestamp dalam ms). Timestamp invalid dan
+    // tanggal masa depan tidak boleh diam-diam lolos sebagai partai terbaru.
+    if (minTimestamp !== null) {
+      const timestamp = Number(p.timestamp);
+      if (!Number.isFinite(timestamp) || timestamp < minTimestamp || timestamp > nowMs) return false;
+    }
     return true;
   });
 }
