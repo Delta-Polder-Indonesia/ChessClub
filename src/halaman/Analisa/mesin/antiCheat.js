@@ -558,8 +558,14 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   }
   if (!bobotTerpakai) return { skor: null, level: null, komponen };
 
+  // Tanpa sampel langkah yang valid, skor 0 akan salah terbaca sebagai
+  // "rendah" padahal metrik masukan tidak punya denominator yang sah.
+  if (!Number.isFinite(jumlahLangkah) || jumlahLangkah <= 0) {
+    return { skor: null, level: null, komponen };
+  }
+
   const gabungan = jumlahBerbobot / bobotTerpakai;
-  const langkah = Number.isFinite(jumlahLangkah) ? Math.max(0, jumlahLangkah) : 0;
+  const langkah = jumlahLangkah;
   const faktorSampel = langkah / (langkah + AMBANG.penyusutanLangkah);
   const skor = Math.round(gabungan * faktorSampel);
 
