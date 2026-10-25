@@ -1703,6 +1703,27 @@ hasil("agregat: baris membawa rating", agregatRating.partai.every((b) => b.ratin
 const agregatTanpaRating = ac.agregatSkorPemain([{ id: "r1", timestamp: 1, warna: "w", hasil: mini }], "budi");
 hasil("agregat: tanpa metadata → rating null (tanpa kalibrasi)", agregatTanpaRating.rating === null);
 
+/* Partai tanpa bestMove/top-1 tetap masuk agregat jika ACPL-nya valid. */
+const agregatHanyaAcpl = ac.agregatSkorPemain([
+  {
+    id: "acpl-only",
+    timestamp: 3,
+    warna: "w",
+    hasil: {
+      w: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 12, totalKerugian: 120, kandidatSampel: 0 },
+      b: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 0, totalKerugian: 0, kandidatSampel: 0 },
+    },
+  },
+], "budi");
+hasil(
+  "agregat tidak membuang partai tanpa top-1 jika ACPL valid",
+  agregatHanyaAcpl.jumlahPartai === 1 &&
+    agregatHanyaAcpl.partai[0].langkahAcpl === 12 &&
+    Number.isFinite(agregatHanyaAcpl.skor),
+  `partai ${agregatHanyaAcpl.jumlahPartai}, ACPL sampel ${agregatHanyaAcpl.partai[0]?.langkahAcpl}, skor ${agregatHanyaAcpl.skor}`
+);
+
+
 /* ============ 12. laporan peninjauan ============ */
 
 console.log("\n== laporan peninjauan pengurus ==");
