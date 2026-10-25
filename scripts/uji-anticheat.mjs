@@ -254,6 +254,32 @@ hasil(
     duaMetrikSatuDomain.level === "sementara",
   JSON.stringify({ metrik: duaMetrikSatuDomain.jumlahMetrikAktif, domain: duaMetrikSatuDomain.domainBukti, level: duaMetrikSatuDomain.level })
 );
+const domainKeduaSampelTipis = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  jumlahLangkah: 100,
+  sampel: { kecocokan: 100, acpl: 1, peringkat: 0, waktu: 0 },
+});
+hasil(
+  "domain kedua dengan satu sampel tidak membuka level kategoris",
+  domainKeduaSampelTipis.jumlahDomainBukti === 1 &&
+    domainKeduaSampelTipis.cakupanTerbatas === true &&
+    domainKeduaSampelTipis.level === "sementara",
+  JSON.stringify({ domain: domainKeduaSampelTipis.domainBukti, level: domainKeduaSampelTipis.level })
+);
+const duaDomainSampelMemadai = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 12, acpl: 12, peringkat: 0, waktu: 0 },
+});
+hasil(
+  "dua domain dengan sampel minimal membuka level heuristik",
+  duaDomainSampelMemadai.jumlahDomainBukti === 2 &&
+    duaDomainSampelMemadai.cakupanTerbatas === false &&
+    duaDomainSampelMemadai.level !== "sementara",
+  JSON.stringify({ domain: duaDomainSampelMemadai.domainBukti, level: duaDomainSampelMemadai.level })
+);
 const sampelMultiPvJarang = ac.skorKecurigaan({
   engineMatchRate: 100,
   acpl: 0,
