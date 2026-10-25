@@ -596,6 +596,8 @@ function kumpulBaru() {
   return {
     langkahDinilai: 0,
     langkahCocok: 0,
+    langkahDinilaiTanpaPeringkat: 0,
+    langkahCocokTanpaPeringkat: 0,
     langkahAcpl: 0,
     totalKerugian: 0,
     detik: [],
@@ -646,6 +648,10 @@ function catat(target, {
   if (cocok !== null) {
     target.langkahDinilai++;
     if (cocok) target.langkahCocok++;
+    if (peringkat === null) {
+      target.langkahDinilaiTanpaPeringkat++;
+      if (cocok) target.langkahCocokTanpaPeringkat++;
+    }
   }
   if (kerugian !== null) {
     target.langkahAcpl++;
@@ -701,6 +707,8 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   const ringkas = {
     langkahDinilai: kumpul.langkahDinilai,
     langkahCocok: kumpul.langkahCocok,
+    langkahDinilaiTanpaPeringkat: kumpul.langkahDinilaiTanpaPeringkat,
+    langkahCocokTanpaPeringkat: kumpul.langkahCocokTanpaPeringkat,
     engineMatchRate: bulat1(engineMatchRate),
     langkahAcpl: kumpul.langkahAcpl,
     // Jumlah mentah ikut dibawa supaya agregat lintas partai bisa menjumlah
@@ -748,15 +756,26 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   if (!denganSkor) return ringkas;
 
   const waktu = statistikWaktu(kumpul.detik);
+  // Avoid double-counting positions represented by both top-1 and MultiPV rank.
+  // If this game has no usable rank samples, retain all valid top-1 evidence.
+  const sampelKecocokanSkor = kumpul.kandidatSampel > 0
+    ? kumpul.langkahDinilaiTanpaPeringkat
+    : kumpul.langkahDinilai;
+  const cocokKecocokanSkor = kumpul.kandidatSampel > 0
+    ? kumpul.langkahCocokTanpaPeringkat
+    : kumpul.langkahCocok;
+  const engineMatchRateSkor = sampelKecocokanSkor
+    ? (cocokKecocokanSkor / sampelKecocokanSkor) * 100
+    : null;
   const { skor, level, komponen } = skorKecurigaan({
-    engineMatchRate,
+    engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
     konsistensiWaktu: waktu?.konsistensi ?? null,
     jumlahLangkah: kumpul.langkahDinilai,
     ratingPemain: rating,
     sampel: {
-      kecocokan: kumpul.langkahDinilai,
+      kecocokan: sampelKecocokanSkor,
       peringkat: kumpul.kandidatSampel,
       acpl: kumpul.langkahAcpl,
       waktu: kumpul.detik.length,
@@ -970,6 +989,8 @@ function barisPartai(item, username) {
     timeClass: item.timeClass ? String(item.timeClass) : "",
     langkahDinilai: ringkas.langkahDinilai,
     langkahCocok: ringkas.langkahCocok,
+    langkahDinilaiTanpaPeringkat: ringkas.langkahDinilaiTanpaPeringkat ?? ringkas.langkahDinilai,
+    langkahCocokTanpaPeringkat: ringkas.langkahCocokTanpaPeringkat ?? ringkas.langkahCocok,
     engineMatchRate: ringkas.engineMatchRate,
     langkahAcpl: ringkas.langkahAcpl,
     totalKerugian: ringkas.totalKerugian,
@@ -1041,6 +1062,14 @@ function arahTren(kemiringan) {
   return "stabil";
 }
 
+function totalPartaiTanpaPeringkatDinilai(partai) {
+  return partai.reduce((total, baris) => total + (baris.langkahDinilaiTanpaPeringkat || 0), 0);
+}
+
+function totalPartaiTanpaPeringkatCocok(partai) {
+  return partai.reduce((total, baris) => total + (baris.langkahCocokTanpaPeringkat || 0), 0);
+}
+
 function hasilKosong(username) {
   return {
     username: String(username ?? ""),
@@ -1048,6 +1077,8 @@ function hasilKosong(username) {
     jumlahLangkah: 0,
     andal: false,
     engineMatchRate: null,
+    langkahDinilaiTanpaPeringkat: 0,
+    langkahCocokTanpaPeringkat: 0,
     acpl: null,
     rating: null,
     kandidatSampel: 0,
@@ -1138,6 +1169,8 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
    */
   let totalLangkahDinilai = 0;
   let totalLangkahCocok = 0;
+  let totalKecocokanSkorDinilai = 0;
+  let totalKecocokanSkorCocok = 0;
   let totalLangkahAcpl = 0;
   let totalKerugian = 0;
   let bobotWaktu = 0;
@@ -1191,6 +1224,14 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   for (const baris of partai) {
     totalLangkahDinilai += baris.langkahDinilai || 0;
     totalLangkahCocok += baris.langkahCocok || 0;
+    // Across history, use top-1 only where a valid MultiPV rank is absent.
+    if ((baris.kandidatSampel || 0) > 0) {
+      totalKecocokanSkorDinilai += baris.langkahDinilaiTanpaPeringkat || 0;
+      totalKecocokanSkorCocok += baris.langkahCocokTanpaPeringkat || 0;
+    } else {
+      totalKecocokanSkorDinilai += baris.langkahDinilai || 0;
+      totalKecocokanSkorCocok += baris.langkahCocok || 0;
+    }
     totalLangkahAcpl += baris.langkahAcpl || 0;
     totalKerugian += Number.isFinite(baris.totalKerugian) ? baris.totalKerugian : 0;
     totalKandidatSampel += baris.kandidatSampel || 0;
@@ -1253,6 +1294,9 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   }
 
   const engineMatchRate = totalLangkahDinilai ? (totalLangkahCocok / totalLangkahDinilai) * 100 : null;
+  const engineMatchRateSkor = totalKecocokanSkorDinilai
+    ? (totalKecocokanSkorCocok / totalKecocokanSkorDinilai) * 100
+    : null;
   const acpl = totalLangkahAcpl ? totalKerugian / totalLangkahAcpl : null;
   const rataPeringkat = totalKandidatSampel ? totalPeringkatJumlah / totalKandidatSampel : null;
   const konsistensiWaktu = bobotWaktu ? jumlahWaktu / bobotWaktu : null;
@@ -1296,14 +1340,14 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   }
 
   const { skor, level, komponen } = skorKecurigaan({
-    engineMatchRate,
+    engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
     konsistensiWaktu,
     jumlahLangkah: totalLangkahDinilai,
     ratingPemain: ratingMedan,
     sampel: {
-      kecocokan: totalLangkahDinilai,
+      kecocokan: totalKecocokanSkorDinilai,
       peringkat: totalKandidatSampel,
       acpl: totalLangkahAcpl,
       waktu: bobotWaktu,
@@ -1335,6 +1379,8 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     jumlahLangkah: totalLangkahDinilai,
     andal: partai.length >= MIN_PARTAI_AGGREGAT && totalLangkahDinilai >= MIN_LANGKAH_AGGREGAT,
     engineMatchRate: bulat1(engineMatchRate),
+    langkahDinilaiTanpaPeringkat: totalPartaiTanpaPeringkatDinilai(partai),
+    langkahCocokTanpaPeringkat: totalPartaiTanpaPeringkatCocok(partai),
     acpl: bulat1(acpl),
     rating: ratingMedan,
     /*
