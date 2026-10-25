@@ -88,6 +88,9 @@ export default function DeteksiEngine({ moves }) {
     return aktif.length ? Math.min(...aktif) : Number.POSITIVE_INFINITY;
   });
   const sampelTersedikit = Math.min(...sampelTersedikitPerPemain);
+  const jumlahMetrikAktifTersedikit = Math.min(
+    ...[putih, hitam].filter((p) => Number.isFinite(p.skor)).map((p) => p.jumlahMetrikAktif ?? 0)
+  );
 
   return (
     <div className="flex w-[85%] flex-col gap-3 pr-[26px] reduceSummary:pr-[35px]">
@@ -209,6 +212,11 @@ export default function DeteksiEngine({ moves }) {
           {Number.isFinite(sampelTersedikit) && sampelTersedikit < 20 ? (
             <p className="text-xs leading-4 text-foregroundGrey">
               {t("analisa.antiCheat.sampelKecil", { n: sampelTersedikit })}
+            </p>
+          ) : null}
+          {Number.isFinite(jumlahMetrikAktifTersedikit) && jumlahMetrikAktifTersedikit < 2 ? (
+            <p className="text-xs leading-4 text-foregroundGrey">
+              {t("analisa.antiCheat.cakupanTerbatas", { n: jumlahMetrikAktifTersedikit })}
             </p>
           ) : null}
           {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
