@@ -51,7 +51,6 @@ import {
   pastikanKoleksi,
 } from "../../basisData.js";
 import { bacaDaftarAkun } from "../../akun/daftarAkun.js";
-import { muatPartaiChessCom, muatPartaiLichess } from "../../akun/muatPartaiAkun.js";
 
 /* ── Konstanta ─────────────────────────────────────────────────────── */
 
@@ -111,12 +110,6 @@ function formatTanggal(timestamp, locale = "id") {
   } catch {
     return "";
   }
-}
-
-function formatTanggalKustom(tgl) {
-  const b = String(tgl || "").split("-");
-  if (b.length !== 3) return tgl;
-  return `${Number(b[2])}/${Number(b[1])}/${b[0]}`;
 }
 
 function daftarHalaman(aktif, total) {
@@ -345,7 +338,7 @@ function BarisSkeleton() {
   return (
     <tr className="h-[56px] border-b border-border/50">
       {/* Pemain — struktur sama persis dengan BarisPartai */}
-      <td className="py-2 pl-4 pr-2 w-[38%] min-w-44 overflow-hidden">
+      <td className="py-2 pl-4 pr-2 overflow-hidden">
         <div className="grid h-5 grid-cols-2 items-center gap-x-2 text-[13px] leading-5">
           <span className="h-2.5 w-20 rounded-sm bg-foregroundGrey/15" />
           <span className="h-2.5 w-24 rounded-sm bg-foregroundGrey/15" />
@@ -354,7 +347,7 @@ function BarisSkeleton() {
 
       {/* Hasil */}
       <td className="py-2 px-2 whitespace-nowrap">
-        <div className="flex h-5 items-center gap-1.5">
+        <div className="flex h-5 items-center justify-center gap-1.5">
           <span className="h-2.5 w-9 rounded-sm bg-foregroundGrey/15" />
           <span className="h-3.5 w-3.5 rounded-sm bg-foregroundGrey/10" />
         </div>
@@ -379,8 +372,8 @@ function BarisSkeleton() {
       </td>
 
       {/* Situs */}
-      <td className="py-2 px-2 whitespace-nowrap">
-        <span className="block h-2.5 w-12 rounded-sm bg-foregroundGrey/10" />
+      <td className="py-2 px-2 text-right whitespace-nowrap">
+        <span className="ml-auto block h-2.5 w-12 rounded-sm bg-foregroundGrey/10" />
       </td>
 
     </tr>
@@ -404,7 +397,7 @@ function HeaderTabel({ urut, ubahUrut, t }) {
     {
       kunci: "hasil",
       label: t("analisa.basisData.hasilTabel"),
-      align: "text-left",
+      align: "text-center",
       padding: "py-2 px-2",
     },
     {
@@ -430,7 +423,7 @@ function HeaderTabel({ urut, ubahUrut, t }) {
     {
       kunci: "situs",
       label: "Situs",
-      align: "text-left",
+      align: "text-right",
       padding: "py-2 px-2 hidden lg:table-cell",
       tanpaSort: true,
       kelasTh: "hidden lg:table-cell",
@@ -438,12 +431,12 @@ function HeaderTabel({ urut, ubahUrut, t }) {
   ];
 
   return (
-    <thead className="sticky top-0 bg-backgroundBox border-b border-border z-10 select-none">
+    <thead className="sticky top-0 bg-backgroundBoxDarker border-b border-border z-10 select-none">
       <tr>
         {kolom.map((k) => (
           <th
             key={k.kunci}
-            className={`${k.padding} ${k.align} text-xs font-semibold uppercase tracking-wide text-foregroundGrey ${k.kelasTh || ""}`}
+            className={`${k.padding} ${k.align} bg-backgroundBoxDarker text-xs font-semibold uppercase tracking-wide text-foregroundGrey ${k.kelasTh || ""}`}
           >
             {k.subKolom ? (
               <div className="grid grid-cols-2 gap-x-2">
@@ -510,7 +503,7 @@ function BarisPartai({ game, locale, tanganiAnalisa, perspectiveUser }) {
       className={`cursor-pointer select-none border-b border-border/50 transition-colors hover:bg-backgroundBoxHover group ${TINGGI_BARIS}`}
     >
       {/* Pemain — putih di kiri, hitam di kanan, nama di atas ELO di bawah */}
-      <td className="py-2 pl-4 pr-2 w-[38%] min-w-44 overflow-hidden">
+      <td className="py-2 pl-4 pr-2 overflow-hidden">
         <div className="grid grid-cols-2 items-center gap-x-2 text-[13px] leading-5">
           <div className="min-w-0">
             <div className="truncate font-medium">{game.whiteName || "Putih"}</div>
@@ -528,8 +521,8 @@ function BarisPartai({ game, locale, tanganiAnalisa, perspectiveUser }) {
       </td>
 
       {/* Hasil */}
-      <td className="py-2 px-2 whitespace-nowrap">
-        <div className="flex flex-row items-center gap-1.5">
+      <td className="py-2 px-2 text-center whitespace-nowrap">
+        <div className="flex flex-row items-center justify-center gap-1.5">
           <span className="font-semibold text-xs font-mono text-foregroundGrey">
             {whiteWon ? "1 - 0" : blackWon ? "0 - 1" : "½ - ½"}
           </span>
@@ -545,7 +538,7 @@ function BarisPartai({ game, locale, tanganiAnalisa, perspectiveUser }) {
 
       {/* Event - hidden on mobile */}
       <td className="px-2 py-2 whitespace-nowrap text-xs text-foregroundGrey hidden sm:table-cell">
-        <div className="truncate max-w-[120px]">{game.event || "—"}</div>
+        <div className="truncate">{game.event || "—"}</div>
       </td>
 
       {/* Tanggal */}
@@ -562,8 +555,8 @@ function BarisPartai({ game, locale, tanganiAnalisa, perspectiveUser }) {
       </td>
 
       {/* Situs - hidden on mobile/tablet */}
-      <td className="py-2 px-2 whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75 hidden lg:table-cell">
-        <div className="truncate max-w-[100px]">{game.site || game.url || ""}</div>
+      <td className="py-2 px-2 text-right whitespace-nowrap text-[10px] uppercase tracking-wider text-foregroundGrey/75 hidden lg:table-cell">
+        <div className="truncate">{game.site || game.url || ""}</div>
       </td>
 
     </tr>
@@ -682,7 +675,7 @@ function MenuKolom({ t, nilai, onPilih }) {
   );
 }
 
-function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
+function TabelRingkasan({ koleksiId, t, locale, revisi, username, tanganiAnalisa }) {
   /* null = masih memuat; [] = sudah dimuat tapi kosong */
   const [daftar, setDaftar] = useState(null);
   const [periode, setPeriode] = useState("semua");
@@ -850,17 +843,6 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col gap-3">
-      {/*
-       * Overlay tarik data: muncul di tengah tabel saat unduhan berjalan,
-       * tabelnya sendiri tetap terlihat di baliknya (bukan diganti).
-       * `overlay` berisi spinner + progres dari LayarDatabase.
-       */}
-      {overlay ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 rounded-borderRoundness bg-backgroundBox/80">
-          <DualRingSpinner color={BIRU} />
-          {overlay}
-        </div>
-      ) : null}
       {/* Toolbar: pencarian + filter periode pada tombol Kolom - responsive */}
       <div className="flex shrink-0 flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-between gap-2">
         <div className="relative w-full sm:w-56">
@@ -895,8 +877,8 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
         </div>
       ) : (
         <>
-          <div className="relative min-h-0 w-full flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
-            <table className="w-full min-w-[640px] sm:min-w-[820px] table-fixed border-collapse text-sm">
+          <div className="relative min-h-0 flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
+            <table className="w-full min-w-[640px] sm:min-w-0 table-fixed border-collapse text-sm">
               <colgroup>
                 <col style={{ width: "5%" }} />
                 <col style={{ width: "14%" }} />
@@ -904,15 +886,17 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
                 <col style={{ width: "9%" }} />
                 <col style={{ width: "16%" }} />
                 <col style={{ width: "14%" }} />
-                <col style={{ width: "8%" }} />
-                <col style={{ width: "20%" }} />
+                <col style={{ width: "15%" }} />
+                <col style={{ width: "13%" }} />
               </colgroup>
               <thead className="sticky top-0 z-10 select-none border-b border-border bg-backgroundBox">
                 <tr>
                   {tabel.getHeaderGroups()[0].headers.map((h) => (
                     <th
                       key={h.id}
-                      className="px-2 py-2 text-left text-xs font-semibold uppercase tracking-wide text-foregroundGrey"
+                      className={`px-2 py-2 text-xs font-semibold uppercase tracking-wide text-foregroundGrey ${
+                        h.id === "site" ? "text-right" : "text-left"
+                      }`}
                     >
                       <HeaderKolom kolom={h} t={t} />
                     </th>
@@ -923,7 +907,8 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
                 {tabel.getRowModel().rows.map((r) => (
                   <tr
                     key={r.id}
-                    className="border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
+                    onClick={() => tanganiAnalisa(r.original)}
+                    className="cursor-pointer select-none border-b border-border/50 transition-colors hover:bg-backgroundBoxHover"
                   >
                     {r.getVisibleCells().map((c) => (
                       <td
@@ -931,7 +916,7 @@ function TabelRingkasan({ koleksiId, t, locale, overlay, revisi, username }) {
                         className={`px-2 py-2 align-middle ${
                           c.column.id === "nomor"
                             ? "whitespace-nowrap text-xs tabular-nums text-foregroundGrey"
-                            : c.column.id === "langkah"
+                            : c.column.id === "langkah" || c.column.id === "site"
                               ? "text-right"
                               : ""
                         }`}
@@ -1014,7 +999,6 @@ export default function LayarDatabase({
   const [, setSalinSuksesId] = useState(null);
   const [notifikasi, setNotifikasi] = useState(null);
   const notifikasiTimer = useRef(null);
-  const [dialogTarikBesar, setDialogTarikBesar] = useState(false);
   const [dialogEksporKosong, setDialogEksporKosong] = useState(false);
   const [dialogHapusPartai, setDialogHapusPartai] = useState(false);
   const [targetHapusPartai, setTargetHapusPartai] = useState(null);
@@ -1023,10 +1007,8 @@ export default function LayarDatabase({
 
   // Mode panel kanan: "data" (ringkasan + tools) atau "tabel" (browse/analisa).
   const [mode, setMode] = useState(modeTersimpan);
-  // Revisi basis saat terakhir tabel ringkasan ditarik. Dinaikkan tiap selesai
-  // tarik data agar TabelRingkasan ikut refetch (di luar itu cukup dependen
-  // pada koleksiId).
-  const [revisiRingkasan, setRevisiRingkasan] = useState(bacaRevisiBasis);
+  // Revisi basis saat tabel ringkasan dirender agar ikut refetch setelah basis berubah.
+  const revisiRingkasan = bacaRevisiBasis();
   // Statistik per koleksi (jumlah/pemain/event/ukuran) — di-cache di sini.
   const [statMap, setStatMap] = useState({});
 
@@ -1036,12 +1018,6 @@ export default function LayarDatabase({
   const [rekapEvent, setRekapEvent] = useState([]);
   const [memuatPemain, setMemuatPemain] = useState(false);
   const [memuatEvent, setMemuatEvent] = useState(false);
-
-  /* ── State Tarik Data dengan filter periode (minggu/bulan/tahun) ── */
-  const [tarikPeriode, setTarikPeriode] = useState("bulanan");
-  const [kustomTanggal, setKustomTanggal] = useState("");
-  const [sedangTarik, setSedangTarik] = useState(false);
-  const [progresTarik, setProgresTarik] = useState({ current: 0, total: 0, bulan: null });
 
   /* Simpan pilihan mode & tab agar bertahan saat layar dilepas lalu dibuka lagi. */
   useEffect(() => {
@@ -1617,59 +1593,6 @@ export default function LayarDatabase({
     else tampilkanNotif("Gagal mengosongkan basis data.", "gagal");
   }
 
-  /* ── Tarik data dengan filter periode (Chess.com & Lichess.org) ── */
-  async function tanganiTarikData() {
-    if (!koleksi) {
-      tampilkanNotif("Pilih koleksi dulu.", "info");
-      return;
-    }
-    if (koleksi.platform !== "chessCom" && koleksi.platform !== "lichessOrg") {
-      tampilkanNotif("Koleksi hasil impor tidak bisa ditarik ulang dari API.", "info");
-      return;
-    }
-    if (sedangTarik) return;
-    if (!kustomTanggal && (tarikPeriode === "tahunan" || tarikPeriode === "semua")) {
-      setDialogTarikBesar(true);
-      return;
-    }
-    await mulaiTarikData();
-  }
-
-  async function mulaiTarikData() {
-    if (!koleksi || sedangTarik) return;
-    setSedangTarik(true);
-    setProgresTarik({ current: 0, total: 0, bulan: null });
-    try {
-      const username = koleksi.username;
-      const situs = koleksi.platform === "lichessOrg" ? "Lichess.org" : "Chess.com";
-      const muat = koleksi.platform === "lichessOrg" ? muatPartaiLichess : muatPartaiChessCom;
-      const hasil = await muat(username, {
-        periode: tarikPeriode,
-        tanggal: kustomTanggal || undefined,
-        paksa: true,
-        onProgress: (cur, tot, bulan) => {
-          setProgresTarik({ current: cur, total: tot, bulan });
-        },
-      });
-      // refresh cache ringkasan
-      cacheRingkasan = null;
-      await muatMetadata();
-      await muatPartai();
-      // Tabel ringkasan (mode data) ikut ditarik ulang dengan data terbaru.
-      setRevisiRingkasan(bacaRevisiBasis());
-      tampilkanNotif(`Berhasil tarik ${hasil.length} partai ${situs} (${kustomTanggal ? formatTanggalKustom(kustomTanggal) : tarikPeriode}).`);
-    } catch (e) {
-      if (e?.cooldown) {
-        tampilkanNotif("Terlalu sering, coba lagi 1 menit.", "gagal");
-      } else {
-        tampilkanNotif(`Gagal tarik: ${e?.message || "unknown"}`, "gagal");
-      }
-    } finally {
-      setSedangTarik(false);
-      setProgresTarik({ current: 0, total: 0, bulan: null });
-    }
-  }
-
   function ubahUrut(kolom) {
     setUrut((lama) =>
       lama.kolom === kolom
@@ -1815,6 +1738,16 @@ export default function LayarDatabase({
             </Alert>
           ) : null}
           {toolbarTabel}
+          {mode === "data" ? (
+            <button
+              type="button"
+              onClick={() => setMode("tabel")}
+              className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover sm:ml-0"
+            >
+              <span>{t("analisa.basisData.explore")}</span>
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : null}
         </>
       }
     >
@@ -1975,79 +1908,8 @@ export default function LayarDatabase({
                       locale={locale}
                       revisi={revisiRingkasan}
                       username={koleksi?.username || ""}
-                      overlay={
-                        sedangTarik ? (
-                          <div className="flex flex-col items-center gap-1.5 text-center">
-                            <p className="text-xs font-bold text-foreground">Menarik data…</p>
-                            {progresTarik.total > 0 ? (
-                              <p className="text-xs tabular-nums text-foregroundGrey">
-                                {progresTarik.current}/{progresTarik.total}
-                                {progresTarik.bulan ? ` ${progresTarik.bulan.tahun}-${progresTarik.bulan.bulan}` : ""}
-                              </p>
-                            ) : progresTarik.current > 0 ? (
-                              <p className="text-xs tabular-nums text-foregroundGrey">
-                                {progresTarik.current} partai…
-                              </p>
-                            ) : null}
-                          </div>
-                        ) : undefined
-                      }
+                      tanganiAnalisa={tanganiAnalisa}
                     />
-
-                    {/* ── Panel Tarik Data dengan Filter Periode - responsive */}
-                    <div className="shrink-0 rounded-borderRoundness border border-border bg-backgroundBoxBox p-3">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2">
-                        <div className="text-xs font-bold uppercase tracking-wide text-foregroundGrey">Tarik Data</div>
-                        <span className="text-[10px] text-foregroundGrey/70 leading-3">Filter: minggu / bulan / tahun agar tidak stag 1jt game</span>
-                      </div>
-                      <div className="mt-3 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2">
-                        <DropdownPilih
-                          ariaLabel="Periode tarik"
-                          nilai={tarikPeriode}
-                          onPilih={(nilai) => {
-                            setTarikPeriode(nilai);
-                            setKustomTanggal("");
-                          }}
-                          keAtas
-                          labelKhusus={kustomTanggal ? formatTanggalKustom(kustomTanggal) : undefined}
-                          kontenAtas={
-                            <label className="flex flex-col gap-1">
-                              <span className="text-[10px] font-bold uppercase tracking-wide text-foregroundGrey">Cari tanggal</span>
-                              <input
-                                type="date"
-                                value={kustomTanggal}
-                                onChange={(e) => setKustomTanggal(e.target.value)}
-                                aria-label="Cari tanggal"
-                                className="w-full rounded-borderRoundness border border-border bg-backgroundBoxBox px-2.5 py-1.5 text-xs text-foreground outline-none transition-colors hover:border-borderHighlighted focus:border-borderHighlighted [color-scheme:dark]"
-                              />
-                            </label>
-                          }
-                          opsi={[
-                            { nilai: "mingguan", label: "Mingguan (7 hari)" },
-                            { nilai: "bulanan", label: "Bulanan (31 hari)" },
-                            { nilai: "tahunan", label: "Tahunan (366 hari)" },
-                            { nilai: "semua", label: "Semua" },
-                          ]}
-                        />
-                        <button
-                          type="button"
-                          disabled={sedangTarik || !koleksi}
-                          onClick={tanganiTarikData}
-                          className="inline-flex items-center gap-1.5 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                        >
-                          <Download className="h-3.5 w-3.5 shrink-0" />
-                          <span>Tarik Data</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMode("tabel")}
-                          className="inline-flex items-center justify-center gap-2 rounded-borderRoundness bg-backgroundBoxBoxHighlighted px-3 py-1.5 text-xs font-bold text-foregroundBlackDark transition-colors hover:bg-backgroundBoxBoxHighlightedHover cursor-pointer sm:ml-auto"
-                        >
-                          <span>{t("analisa.basisData.explore")}</span>
-                          <span aria-hidden="true">→</span>
-                        </button>
-                      </div>
-                    </div>
 
                     {!koleksiTerpilih && totalPartai > 0 ? (
                       <>
@@ -2129,12 +1991,12 @@ export default function LayarDatabase({
       <div className="relative w-full min-h-0 flex-1 overflow-y-auto overflow-x-auto border border-border rounded-borderRoundness bg-backgroundBox [scrollbar-gutter:stable] -mx-3 sm:mx-0 w-[calc(100%+1.5rem)] sm:w-full">
         <table className="w-full h-full min-w-[600px] sm:min-w-[760px] table-fixed border-collapse text-sm">
           <colgroup>
-            <col style={{ width: "16.6%" }} />
-            <col style={{ width: "16.6%" }} />
-            <col style={{ width: "16.6%" }} />
-            <col style={{ width: "16.6%" }} />
-            <col style={{ width: "16.6%" }} />
+            <col style={{ width: "36%" }} />
+            <col style={{ width: "10%" }} />
             <col style={{ width: "17%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "11%" }} />
           </colgroup>
 
           <HeaderTabel urut={urut} ubahUrut={ubahUrut} t={t} />
@@ -2375,30 +2237,6 @@ export default function LayarDatabase({
       </div>
       </div>
 
-      {/* ── Peringatan unduhan partai dalam jumlah besar ── */}
-      <AlertDialog open={dialogTarikBesar} onOpenChange={setDialogTarikBesar}>
-        <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">
-              {tarikPeriode === "semua"
-                ? "Unduhan seluruh arsip"
-                : "Unduhan partai satu tahun"}
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#939291]">
-              Unduhan ini memuat ribuan partai sekaligus dan bisa membuat browser
-              kewalahan. Sebaiknya gunakan periode Mingguan, Bulanan, atau pilih
-              satu tanggal untuk menarik sebagian data saja.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel className="bg-[#2a2a2a] border-[#5d5d5d] text-[#dedede] hover:bg-[#3a3a3a] hover:text-white">Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={mulaiTarikData} className="bg-[#81b64c] hover:bg-[#8bc550] text-black font-bold">
-              Lanjut Unduh
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
       <AlertDialog open={dialogEksporKosong} onOpenChange={setDialogEksporKosong}>
         <AlertDialogContent container={wadahDialog} className="bg-[#1e1d1c] border-[#5d5d5d] text-[#dedede] shadow-2xl">
           <AlertDialogHeader>
@@ -2406,8 +2244,8 @@ export default function LayarDatabase({
               Tidak ada partai untuk diekspor
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[#939291]">
-              Tarik data terlebih dahulu di bagian bawah untuk mendapatkan data
-              pemain yang kamu cari.
+              Tarik data terlebih dahulu di layar Akun untuk mendapatkan partai
+              yang ingin diekspor.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

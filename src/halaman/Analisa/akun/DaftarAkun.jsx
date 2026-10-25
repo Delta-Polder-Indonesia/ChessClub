@@ -7,7 +7,7 @@ import KartuAkun from "./KartuAkun.jsx";
 import FormulirAkun from "./FormulirAkun.jsx";
 import Profile from "../komponen/svg/profile.jsx";
 
-export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah }) {
+export default function DaftarAkun({ daftar, aktif, revisi = 0, onPilih, onHapus, onTambah }) {
   const { t } = useI18n();
   const [buka, setBuka] = useState(false);
   const list = daftar || [];
@@ -54,7 +54,7 @@ export default function DaftarAkun({ daftar, aktif, onPilih, onHapus, onTambah }
           </div>
           <div className="flex min-h-0 flex-1 flex-col sm:flex-wrap sm:flex-row content-start justify-start gap-2 sm:gap-3 overflow-y-auto pb-1">
             {list.map((a) => (
-              <div key={`${a.platform}:${a.username}`} className="min-w-0 w-full sm:max-w-[300px]">
+              <div key={`${a.platform}:${a.username}:${revisi}`} className="min-w-0 w-full sm:max-w-[300px]">
                 <KartuAkun
                   platform={a.platform}
                   username={a.username}

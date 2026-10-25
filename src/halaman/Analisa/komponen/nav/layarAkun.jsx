@@ -1,17 +1,19 @@
 /*
- * Layar "Akun" — daftar akun + kartu kanan kosong (disiapkan untuk konten lain), responsive mobile.
+ * Layar "Akun" — daftar akun di kiri, panel tarik partai di kanan.
  */
 import { useContext, useEffect, useState } from "react";
 import PanelLayar from "./PanelLayar.jsx";
 import DaftarAkun from "../../akun/DaftarAkun.jsx";
+import PanelTarikPartai from "../../akun/PanelTarikPartai.jsx";
 import { bacaDaftarAkun, tambahKeDaftar, hapusDariDaftar } from "../../akun/daftarAkun.js";
-import { hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
+import { bacaRevisiBasis, hapusKoleksi, pastikanKoleksi } from "../../basisData.js";
 import { AnalyzeContext } from "../../konteks/analyzeKonteks.js";
 
 export default function LayarAkun({ onTutup }) {
   const analyzeContext = useContext(AnalyzeContext);
   const [username, setUsername] = analyzeContext.akun;
   const [daftar, setDaftar] = useState(() => bacaDaftarAkun());
+  const [revisiBasis, setRevisiBasis] = useState(() => bacaRevisiBasis());
 
   useEffect(() => {
     const list = bacaDaftarAkun();
@@ -72,6 +74,7 @@ export default function LayarAkun({ onTutup }) {
           <DaftarAkun
             daftar={daftar}
             aktif={username}
+            revisi={revisiBasis}
             onPilih={(p, u) => {
               const updated = tambahKeDaftar({ platform: p, username: u });
               setDaftar(updated);
@@ -83,11 +86,16 @@ export default function LayarAkun({ onTutup }) {
           />
         </div>
 
-        {/* Kolom kanan: kartu dibiarkan kosong untuk konten berikutnya */}
+        {/* Kolom kanan: tarik partai akun aktif */}
         <div className="flex min-h-0 min-w-0 w-full flex-1 flex-col gap-2 lg:w-1/2 overflow-y-auto">
           <div className="min-h-0 min-w-0 flex-1 flex flex-col">
             <div className="flex h-full w-full flex-col p-1" data-uji="akun-kartu-kanan">
-              <div className="flex min-h-48 lg:min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox" />
+              <div className="flex min-h-48 lg:min-h-0 flex-1 flex-col overflow-hidden rounded-[0.4rem] border border-border bg-backgroundBox">
+                <PanelTarikPartai
+                  akun={username}
+                  onSelesai={() => setRevisiBasis(bacaRevisiBasis())}
+                />
+              </div>
             </div>
           </div>
         </div>

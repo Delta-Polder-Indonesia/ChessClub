@@ -410,9 +410,17 @@ function uji(nama, kondisi) {
 }
 
 const domSiap = dom.window.document;
+const layarAwalAkun = await tungguSampai(
+  () => domSiap.querySelector("[data-layar]")?.getAttribute("data-layar") === "akun"
+);
 const awal = teksBagus();
 
 uji("kerangka halaman terpasang", !!domSiap.querySelector(".analisa-root"));
+uji("layar awal adalah Akun, bukan papan", layarAwalAkun);
+uji(
+  "menu Akun ditandai aktif di awal",
+  domSiap.querySelector('[data-uji="nav-akun"]')?.getAttribute("aria-current") === "true"
+);
 uji("judul terpasang di dokumen", domSiap.title.includes("Analisis") || !!domSiap.querySelector(".analisa-root"));
 uji(
   "papan boleh diindeks (index, follow)",

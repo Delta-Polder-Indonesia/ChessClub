@@ -88,7 +88,7 @@ export const AnalyzeContext = createContext({
    * lapisan lain — sehingga analisis yang sedang berjalan dan panah yang
    * sudah digambar tetap utuh saat pengguna berpindah layar.
    */
-  tampilan: ["bermain", () => {
+  tampilan: ["akun", () => {
   }],
   gameController: { back: () => {
   }, forward: () => {

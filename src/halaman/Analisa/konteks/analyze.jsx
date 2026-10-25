@@ -43,7 +43,7 @@ function AnalyzeContextProvider(props) {
    * jadi pilihan pengguna selalu kembali ke 13 setiap kali halaman dibuka.
    */
   const [akun, setAkun] = useState({ platform: "chessCom", username: "" });
-  const [tampilan, setTampilan] = useState(TAMPILAN_ANALISA.BERMAIN);
+  const [tampilan, setTampilan] = useState(TAMPILAN_ANALISA.AKUN);
   const [depth, setDepth] = useState(() => {
     const tersimpan = bacaAngka("kedalaman", 13);
     return tersimpan >= 1 ? tersimpan : 13;

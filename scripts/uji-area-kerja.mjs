@@ -80,8 +80,16 @@ act(() => {
 const lapisan = () => el.querySelector("[data-uji^='layar-']");
 
 console.log("== mount awal ==");
-hasil('tampilan awal "bermain"', ctx.tampilan[0] === "bermain", ctx.tampilan[0]);
-hasil("tanpa lapisan overlay", lapisan() === null);
+{
+  const tenggat = Date.now() + 2000;
+  while (!lapisan()?.querySelector("button") && Date.now() < tenggat) {
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+  }
+}
+hasil('tampilan awal "akun"', ctx.tampilan[0] === "akun", ctx.tampilan[0]);
+hasil("lapisan Akun langsung tampil", lapisan()?.getAttribute("data-layar") === "akun", lapisan()?.getAttribute("data-layar"));
 hasil("fokus TIDAK dicuri (tetap body)", document.activeElement === document.body, document.activeElement?.tagName);
 
 async function keTampilan(nama) {
