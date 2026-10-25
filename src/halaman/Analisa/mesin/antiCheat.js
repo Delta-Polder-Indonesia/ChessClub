@@ -539,14 +539,35 @@ export function tingkatDariSkor(skor) {
  * menyusutkan skor (`n / (n + 12)`): sepuluh langkah sempurna jauh lebih lemah
  * buktinya daripada delapan puluh langkah sempurna.
  */
-export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, ratingPemain }) {
+export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, ratingPemain, sampel }) {
   const kal = pilihKalibrasi(ratingPemain);
-  const komponen = {
+  const komponenMentah = {
     kecocokan: komponenKecocokan(engineMatchRate, kal.kecocokanDasar),
     peringkat: komponenPeringkat(rataPeringkat),
     acpl: komponenAcpl(acpl, kal.acplAcuan),
     waktu: komponenWaktu(konsistensiWaktu),
   };
+
+  // Penyusutan memakai denominator milik metrik itu sendiri, bukan jumlah
+  // semua langkah yang layak. Dua sampel MultiPV dari 80 langkah tidak boleh
+  // terlihat seolah didukung oleh 80 sampel.
+  // sampel opsional demi kompatibilitas pemanggil lama; jalur produksi
+  // selalu memasok hitungan mentah masing-masing metrik.
+  const hitungan = {};
+  for (const kunci of Object.keys(BOBOT)) {
+    const nilai = sampel?.[kunci];
+    hitungan[kunci] = Number.isFinite(nilai)
+      ? Math.max(0, nilai)
+      : Number.isFinite(jumlahLangkah) ? Math.max(0, jumlahLangkah) : 0;
+  }
+  const komponen = {};
+  for (const kunci of Object.keys(BOBOT)) {
+    const nilai = komponenMentah[kunci];
+    const n = hitungan[kunci];
+    komponen[kunci] = nilai === null || n <= 0
+      ? null
+      : Math.round(nilai * (n / (n + AMBANG.penyusutanLangkah)));
+  }
 
   let bobotTerpakai = 0;
   let jumlahBerbobot = 0;
@@ -564,10 +585,7 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
     return { skor: null, level: null, komponen };
   }
 
-  const gabungan = jumlahBerbobot / bobotTerpakai;
-  const langkah = jumlahLangkah;
-  const faktorSampel = langkah / (langkah + AMBANG.penyusutanLangkah);
-  const skor = Math.round(gabungan * faktorSampel);
+  const skor = Math.round(jumlahBerbobot / bobotTerpakai);
 
   return { skor, level: tingkatDariSkor(skor), komponen };
 }
@@ -737,6 +755,12 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
     konsistensiWaktu: waktu?.konsistensi ?? null,
     jumlahLangkah: kumpul.langkahDinilai,
     ratingPemain: rating,
+    sampel: {
+      kecocokan: kumpul.langkahDinilai,
+      peringkat: kumpul.kandidatSampel,
+      acpl: kumpul.langkahAcpl,
+      waktu: kumpul.detik.length,
+    },
   });
   return {
     ...ringkas,
