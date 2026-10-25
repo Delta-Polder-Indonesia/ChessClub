@@ -586,10 +586,13 @@ export default function TekaTeki() {
               : Math.floor(Math.random() * daftar.length);
         }
 
-        // URL/posisi terakhir tidak boleh menghidupkan kembali soal yang sudah
-        // terpecahkan. Jika ID yang diminta sudah selesai, cari soal belum
-        // terpecahkan berikutnya. Ini berlaku untuk semua filter.
-        const awal = cariIndeksBelumTerpecahkan(daftar, awalDiminta, terpecahkan);
+        // Deep-link bernomor adalah permintaan eksplisit dan tetap bisa dipakai
+        // untuk meninjau soal tertentu. Pemulihan posisi/soal acak, sebaliknya,
+        // harus melewati soal yang sudah terpecahkan.
+        const awal =
+          idParam >= 1 && idParam <= daftar.length
+            ? awalDiminta
+            : cariIndeksBelumTerpecahkan(daftar, awalDiminta, terpecahkan);
         setSemuaSoal(daftar);
         if (awal === -1) {
           setIndeks(-1);
@@ -771,10 +774,15 @@ export default function TekaTeki() {
   }, [hapusSemuaTanda]);
 
   const pindahSoal = useCallback(
-    (indeksBaru) => {
+    (indeksBaru, izinkanTerpecahkan = false) => {
       if (!soal || !soal.length) return;
-      // Lewati semua soal yang sudah terpecahkan, termasuk saat filter aktif.
-      const idx = cariIndeksBelumTerpecahkan(soal, indeksBaru, terpecahkan);
+      // Navigasi biasa melewati soal terpecahkan. Permintaan eksplisit lewat
+      // input nomor boleh membuka ulang soal untuk ditinjau.
+      const total = soal.length;
+      const diminta = ((indeksBaru % total) + total) % total;
+      const idx = izinkanTerpecahkan
+        ? diminta
+        : cariIndeksBelumTerpecahkan(soal, diminta, terpecahkan);
       window.clearTimeout(timerOtomatis.current);
       if (idx === -1) {
         setIndeks(-1);
@@ -1272,7 +1280,7 @@ export default function TekaTeki() {
     }
     setGalatNomor(null);
     setNomorSoal("");
-    pindahSoal(n - 1);
+    pindahSoal(n - 1, true);
   }
 
   // Klik kanan saat drag → bidak kembali ke petak asal (perilaku chess.com).
