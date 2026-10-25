@@ -1158,6 +1158,27 @@ hasil("peringkatLangkahDalam: di luar daftar = jenuh", ac.peringkatLangkahDalam(
 hasil("peringkatLangkahDalam: tanpa kandidat = null", ac.peringkatLangkahDalam("e2e4", []) === null && ac.peringkatLangkahDalam("e2e4", undefined) === null);
 hasil("peringkatLangkahDalam: daftar MultiPV parsial tidak dianggap peringkat terburuk", ac.peringkatLangkahDalam("a2a3", KANDIDAT.slice(0, 2)) === null);
 hasil("peringkatLangkahDalam: daftar kandidat rusak → null", ac.peringkatLangkahDalam("a2a3", [{ uci: "e2e4", peringkat: 1 }, { uci: null, peringkat: 2 }]) === null);
+hasil(
+  "peringkatLangkahDalam: rank duplikat/berlubang → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 4 ? { ...k, peringkat: 4 } : k))
+  ) === null
+);
+hasil(
+  "peringkatLangkahDalam: UCI duplikat → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "e2e4" } : k))
+  ) === null
+);
+hasil(
+  "peringkatLangkahDalam: rank pecahan → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 2 ? { ...k, peringkat: 2.5 } : k))
+  ) === null
+);
 hasil("kerugianKandidatCp: rank 4 rugi 20 cp", ac.kerugianKandidatCp("c2c4", KANDIDAT) === 20, `${ac.kerugianKandidatCp("c2c4", KANDIDAT)}`);
 hasil("kerugianKandidatCp: rank 1 rugi 0", ac.kerugianKandidatCp("e2e4", KANDIDAT) === 0);
 hasil("kerugianKandidatCp: di luar daftar = null", ac.kerugianKandidatCp("a2a3", KANDIDAT) === null);
