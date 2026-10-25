@@ -1386,6 +1386,11 @@ hasil("peringkatLangkahDalam: tanpa kandidat = null", ac.peringkatLangkahDalam("
 hasil("peringkatLangkahDalam: daftar MultiPV parsial tidak dianggap peringkat terburuk", ac.peringkatLangkahDalam("a2a3", KANDIDAT.slice(0, 2)) === null);
 hasil("peringkatLangkahDalam: daftar kandidat rusak → null", ac.peringkatLangkahDalam("a2a3", [{ uci: "e2e4", peringkat: 1 }, { uci: null, peringkat: 2 }]) === null);
 hasil(
+  "MultiPV menolak UCI dengan bentuk sintaks tidak valid",
+  ac.peringkatLangkahDalam("a2a3", KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "zzzz" } : k))) === null &&
+    ac.peringkatLangkahDalam("a2a3", KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "e2e4x" } : k))) === null,
+);
+hasil(
   "peringkatLangkahDalam: rank duplikat/berlubang → null",
   ac.peringkatLangkahDalam(
     "a2a3",
