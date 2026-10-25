@@ -255,8 +255,16 @@ export function cpKandidat(entri) {
  */
 export function peringkatLangkahDalam(uci, kandidat) {
   if (!uci || !Array.isArray(kandidat) || !kandidat.length) return null;
-  const indeks = kandidat.findIndex((k) => k?.uci === uci);
-  if (indeks >= 0) return kandidat[indeks]?.peringkat ?? indeks + 1;
+  const valid = kandidat.every(
+    (k) => typeof k?.uci === "string" && k.uci.length >= 4 && Number.isFinite(k?.peringkat)
+  );
+  if (!valid) return null;
+  const indeks = kandidat.findIndex((k) => k.uci === uci);
+  if (indeks >= 0) return kandidat[indeks].peringkat;
+  // Hanya simpulkan "di luar kandidat" bila daftar memang lengkap sampai
+  // jumlah MultiPV yang diminta. Daftar parsial tidak cukup untuk memberi
+  // peringkat terburuk; misalnya pencarian dibatalkan atau posisi terminal.
+  if (kandidat.length < MULTI_PV) return null;
   return MULTI_PV + 1;
 }
 
@@ -396,9 +404,10 @@ export function statistikWaktu(daftar) {
   const sampel = (Array.isArray(daftar) ? daftar : []).filter((n) => Number.isFinite(n) && n >= 0);
   if (sampel.length < SAMPEL_WAKTU_MINIMUM) return null;
   const rata = rataRata(sampel);
-  if (!(rata > 0)) {
-    return { jumlahSampel: sampel.length, rataRata: 0, deviasiBaku: 0, koefisienVariasi: 0, konsistensi: 1 };
-  }
+  // Semua nilai nol tidak menunjukkan waktu pikir yang seragam secara bermakna:
+  // ini bisa berasal dari pembulatan clock/premove atau metadata PGN yang kasar.
+  // Jangan mengubah data waktu yang tidak informatif menjadi bukti kecurigaan.
+  if (!(rata > 0)) return null;
   const varian = rataRata(sampel.map((n) => (n - rata) ** 2));
   const deviasiBaku = Math.sqrt(Math.max(0, varian));
   const koefisienVariasi = deviasiBaku / rata;
