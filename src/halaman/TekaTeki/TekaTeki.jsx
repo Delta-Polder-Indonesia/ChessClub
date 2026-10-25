@@ -1584,7 +1584,10 @@ export default function TekaTeki() {
               bukaPengaturan={bukaPengaturan}
               onGantiPengaturan={setBukaPengaturan}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
-              jumlahLangkah={langkahPenuh.length}
+              // langkahPenuh menyimpan setengah-langkah (ply), sedangkan label
+              // "Skak dalam N langkah" harus menghitung langkah pihak yang
+              // mencari skakmat: mate-in-3 = 5 ply solusi, bukan 5 langkah.
+              jumlahLangkah={Math.ceil(langkahPenuh.length / 2)}
               syzygy={syzygy}
               syzygyMemuat={syzygyMemuat}
               syzygyGagal={syzygyGagal}
