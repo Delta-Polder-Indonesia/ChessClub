@@ -228,6 +228,19 @@ hasil(
   sedikit.skor === 50,
   `dapat ${sedikit.skor}, faktor 12/(12+${ac.AMBANG.penyusutanLangkah})`
 );
+const satuMetrik = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  jumlahLangkah: 30,
+  sampel: { kecocokan: 30 },
+});
+hasil(
+  "satu metrik saja tidak diberi level kategoris",
+  satuMetrik.jumlahMetrikAktif === 1 &&
+    satuMetrik.cakupanTerbatas === true &&
+    satuMetrik.skor >= ac.AMBANG.tinggi &&
+    satuMetrik.level === "sementara",
+  JSON.stringify({ skor: satuMetrik.skor, level: satuMetrik.level, metrik: satuMetrik.jumlahMetrikAktif })
+);
 const sampelMultiPvJarang = ac.skorKecurigaan({
   engineMatchRate: 100,
   acpl: 0,
@@ -957,6 +970,12 @@ hasil(
     !teks().includes(tID("analisa.antiCheat.tanpaData")) &&
     teks().includes(tID("analisa.antiCheat.metrik.acpl")),
   `top-1 ${hasilHanyaAcpl.w.langkahDinilai}, sampel ACPL ${hasilHanyaAcpl.w.langkahAcpl}`
+);
+hasil(
+  "UI menandai level satu-metrik sebagai sementara",
+  hasilHanyaAcpl.w.level === "sementara" &&
+    teks().includes(tID("analisa.antiCheat.level.sementara")) &&
+    teks().includes(tID("analisa.antiCheat.cakupanTerbatas", { n: 1 }))
 );
 const movesAcplSampelKecil = movesHanyaAcpl.slice(0, 8);
 const hasilAcplSampelKecil = ac.hitungSkorKecurigaan(movesAcplSampelKecil);
@@ -1769,6 +1788,32 @@ hasil(
     agregatHanyaAcpl.partai[0].langkahAcpl === 12 &&
     Number.isFinite(agregatHanyaAcpl.skor),
   `partai ${agregatHanyaAcpl.jumlahPartai}, ACPL sampel ${agregatHanyaAcpl.partai[0]?.langkahAcpl}, skor ${agregatHanyaAcpl.skor}`
+);
+const agregatAcplCukup = ac.agregatSkorPemain(
+  [1, 2, 3].map((id) => ({
+    id: `acpl-${id}`,
+    timestamp: id,
+    warna: "w",
+    hasil: {
+      w: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 20, totalKerugian: 200, kandidatSampel: 0 },
+      b: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 0, totalKerugian: 0, kandidatSampel: 0 },
+    },
+  })),
+  "budi"
+);
+hasil(
+  "agregat ACPL-only: keandalan mengikuti sampel metrik, level tetap sementara",
+  agregatAcplCukup.andal === true &&
+    agregatAcplCukup.jumlahLangkah === 0 &&
+    agregatAcplCukup.sampelMetrik.acpl === 60 &&
+    agregatAcplCukup.jumlahMetrikAktif === 1 &&
+    agregatAcplCukup.level === "sementara",
+  JSON.stringify({
+    andal: agregatAcplCukup.andal,
+    top1: agregatAcplCukup.jumlahLangkah,
+    sampel: agregatAcplCukup.sampelMetrik,
+    level: agregatAcplCukup.level,
+  })
 );
 
 
