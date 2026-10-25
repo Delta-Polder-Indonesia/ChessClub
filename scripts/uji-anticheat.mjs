@@ -258,6 +258,15 @@ hasil(
     sampel: { kecocokan: 0, acpl: 0, peringkat: 0, waktu: 0 },
   }).skor === null
 );
+hasil(
+  "ACPL valid dinilai meski kecocokan top-1 tidak tersedia",
+  Number.isFinite(ac.skorKecurigaan({
+    engineMatchRate: null,
+    acpl: 0,
+    jumlahLangkah: 0,
+    sampel: { kecocokan: 0, acpl: 12, peringkat: 0, waktu: 0 },
+  }).skor)
+);
 
 /* =============== 3. pengecualian langkah forced & book =============== */
 
