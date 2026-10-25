@@ -551,6 +551,10 @@ async function ujiInferensi() {
     return;
   }
 
+  // Runner CI dapat melaporkan 4 core; ONNX Runtime Web 1.18 lalu memilih 2 utas,
+  // yang tidak didukung pada jalur inferensi Node.js ini. Kunci ke satu utas.
+  ort.env.wasm.numThreads = 1;
+
   const mulai = Date.now();
   const sesi = await ort.InferenceSession.create(BERKAS_MODEL, {
     executionProviders: ["wasm"],
