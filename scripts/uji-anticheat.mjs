@@ -1400,6 +1400,23 @@ hasil("kerugianKandidatCp: kandidat tunggal = null", ac.kerugianKandidatCp("e2e4
 hasil("cpKandidat: mate dihitung CP_MATE", ac.cpKandidat({ cp: null, mate: 2 }) === ac.CP_MATE);
 hasil("kehilanganMenangPermille: rank 4 kehilangan 60 permille", ac.kehilanganMenangPermille("c2c4", KANDIDAT) === 60, `${ac.kehilanganMenangPermille("c2c4", KANDIDAT)}`);
 hasil("kehilanganMenangPermille: tanpa WDL = null", ac.kehilanganMenangPermille("c2c4", KANDIDAT.map(({ wdl, ...k }) => k)) === null);
+const kandidatAcak = [...KANDIDAT].reverse();
+hasil(
+  "MultiPV teracak: rank, rugi cp, WDL, dan ketajaman mengikuti peringkat eksplisit",
+  ac.peringkatLangkahDalam("c2c4", kandidatAcak) === 4 &&
+    ac.kerugianKandidatCp("c2c4", kandidatAcak) === 20 &&
+    ac.kehilanganMenangPermille("c2c4", kandidatAcak) === 60 &&
+    ac.ketajamanKandidat(kandidatAcak) === 12
+);
+hasil(
+  "MultiPV rusak tidak dipakai untuk rugi cp atau ketajaman",
+  ac.kerugianKandidatCp("e2e4", [{ ...KANDIDAT[0], peringkat: 2 }, { ...KANDIDAT[1], peringkat: 2 }]) === null &&
+    ac.ketajamanKandidat([{ ...KANDIDAT[0], peringkat: 2 }, { ...KANDIDAT[1], peringkat: 2 }]) === null
+);
+hasil(
+  "WDL rusak tidak dianggap kehilangan nol",
+  ac.kehilanganMenangPermille("c2c4", KANDIDAT.map((k) => ({ ...k, wdl: [undefined, 500, 500] }))) === null
+);
 
 /* Partai mini: Putih selalu rank 1, Hitam selalu rank 4 → skor Putih > Hitam. */
 const KAND = [
