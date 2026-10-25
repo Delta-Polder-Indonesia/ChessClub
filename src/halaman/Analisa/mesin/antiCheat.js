@@ -1305,6 +1305,12 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     konsistensiWaktu,
     jumlahLangkah: totalLangkahDinilai,
     ratingPemain: ratingMedan,
+    sampel: {
+      kecocokan: totalLangkahDinilai,
+      peringkat: totalKandidatSampel,
+      acpl: totalLangkahAcpl,
+      waktu: bobotWaktu,
+    },
   });
 
   const tren = {
