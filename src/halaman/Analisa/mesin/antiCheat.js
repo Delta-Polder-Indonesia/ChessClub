@@ -111,6 +111,7 @@ export const SAMPEL_WAKTU_MINIMUM = 8;
 export const LEVEL_RENDAH = "rendah";
 export const LEVEL_SEDANG = "sedang";
 export const LEVEL_TINGGI = "tinggi";
+export const LEVEL_SEMENTARA = "sementara";
 
 export const AMBANG = Object.freeze({
   /** Kecocokan engine (%) di bawah angka ini tidak menyumbang skor. */
@@ -598,8 +599,11 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   // Jangan mewajibkan sampel kecocokan top-1: ACPL atau MultiPV masih bisa
   // punya data sah meski saran bestMove tidak tersedia.
   const skor = Math.round(jumlahBerbobot / bobotTerpakai);
+  // Jangan memberi label rendah/sedang/tinggi ketika hanya satu komponen
+  // tersedia: skor numerik tetap informatif, tetapi levelnya masih sementara.
+  const level = cakupanTerbatas ? LEVEL_SEMENTARA : tingkatDariSkor(skor);
 
-  return { skor, level: tingkatDariSkor(skor), komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
+  return { skor, level, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
 }
 
 /* ------------------------------------------------------- tingkat per partai */
