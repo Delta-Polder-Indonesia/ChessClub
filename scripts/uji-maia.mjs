@@ -551,6 +551,12 @@ async function ujiInferensi() {
     return;
   }
 
+  // Kunci 1 utas: pada mesin >= 4 core (mis. runner GitHub Actions ubuntu-latest
+  // dengan navigator.hardwareConcurrency = 4), onnxruntime-web 1.18.0 menimpa
+  // numThreads bawaan menjadi Math.ceil(4 / 2) = 2, padahal multi-thread wasm
+  // tidak didukung di Node.js dan memicu LinkError WebAssembly.Memory.
+  ort.env.wasm.numThreads = 1;
+
   const mulai = Date.now();
   const sesi = await ort.InferenceSession.create(BERKAS_MODEL, {
     executionProviders: ["wasm"],

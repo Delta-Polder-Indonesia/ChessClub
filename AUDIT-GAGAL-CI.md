@@ -94,11 +94,51 @@ skenario yang dimaksud:
    satu-domain dibuat eksplisit dengan mengosongkan `clock`; hasilnya `['kualitas']` → level
    `sementara` dan peringatan `cakupanTerbatas` tampil seperti yang diharapkan.
 
+### 3c. `uji:maia` gagal pada runner GitHub Actions 4-core (`scripts/uji-maia.mjs`)
+
+Setelah kuota Actions pulih dan PR #203 (`3fe10ea0`) digabung ke `feat/deteksi-engine-audit-upgrade`,
+run `40166594395` (`run_attempt: 3`) masih gagal pada langkah `Run the v1 release gate` di menit
+`1m48s` (`scripts/uji-maia.mjs:555`) dengan galat:
+
+```text
+env.wasm.numThreads is set to 2, however, currently onnxruntime-web does not support multi-threads in Node.js.
+failed to asynchronously prepare wasm: LinkError: WebAssembly.instantiate(): Import #46 module="a" function="a": memory import must be a WebAssembly.Memory object
+Error: no available backend found. ERR: [wasm] RuntimeError: Aborted(LinkError: ...)
+```
+
+**Penyebab:** Di Node 21+, `globalThis.navigator.hardwareConcurrency` tersedia secara global.
+Pada mesin 2-core (`hardwareConcurrency = 2`), `onnxruntime-web@1.18.0` menghitung
+`Math.ceil(2 / 2) = 1` sehingga `uji-maia.mjs` lulus. Namun pada runner GitHub Actions
+`ubuntu-latest` 4-core (`hardwareConcurrency = 4`), `onnxruntime-web@1.18.0` menimpa
+`ort.env.wasm.numThreads` menjadi `Math.ceil(4 / 2) = 2` lalu mencoba memuat binari WASM
+multi-utas di Node.js dan gagal dengan `LinkError`. Berbeda dari `scripts/uji-maia-ort.mjs` dan
+`public/engines/maia3/maia-pekerja.js` yang sudah menyetel `ort.env.wasm.numThreads = 1`,
+`scripts/uji-maia.mjs` belum menyetelnya sebelum `ort.InferenceSession.create(...)`.
+
+**Perbaikan:** Setel `ort.env.wasm.numThreads = 1` secara eksplisit di `scripts/uji-maia.mjs`
+sebelum membuat sesi ONNX.
+
+### 3d. Balapan pemuatan buku pembukaan di `<Game>` & `<Suspense>` di `uji-area-kerja.mjs`
+
+1. **`src/halaman/Analisa/komponen/game/game.jsx`**: Fungsi pencari buku pembukaan disimpan di
+   state `openings2` dan dimasukkan ke daftar dependensi `useCallback` `handlePGN`. Ketika timer
+   tunda 1500 ms (`setTimeout(muat, 1500)` / `requestIdleCallback`) selesai saat analisis atau
+   pengujian sedang berjalan, `setOpenings` menciptakan ulang `handlePGN`, yang memicu ulang
+   `useEffect([data, depth, handleFEN, handlePGN, ...])` — membatalkan analisis yang sedang
+   berjalan serta menghasilkan >2.000 baris peringatan React `act(...)` di suite uji Analisa.
+   **Perbaikan:** Simpan di `openingsRef` (`useRef`) dan panggil `id?.unref?.()` pada timer tunda.
+2. **`scripts/uji-area-kerja.mjs`**: `keTampilan` sebelumnya hanya menunggu `setTimeout(20)`
+   tunggal, yang berpacu dengan pemuatan `React.lazy` (`LayarAkun`, `LayarDeteksiEngine`) di
+   dalam `<Suspense>`. **Perbaikan:** Tunggu di dalam `act(...)` hingga isi komponen malas
+   terpasang di DOM.
+3. **`.github/workflows/quality.yml`**: Ditambahkan `workflow_dispatch` dan pelaporan anotasi
+   `::error::` otomatis apabila langkah `uji:rilis:v1` atau `uji:e2e` gagal.
+
 ---
 
 ## 4. Status setelah perbaikan
 
-Dijalankan lokal pada `arena/7d07f3a4-chessclub`:
+Dijalankan lokal dan di GitHub Actions pada `arena/0518b6c4-chessclub`:
 
 | Langkah CI | Hasil |
 |------------|-------|
