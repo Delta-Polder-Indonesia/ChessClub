@@ -401,10 +401,21 @@ export function pemainLangkah(move, indeks) {
  */
 export function waktuBerpikir(moves, indeks, warna) {
   const kunci = warna === "w" ? "white" : "black";
-  const sesudah = moves[indeks]?.clock?.[kunci];
-  const sebelum = indeks > 0 ? moves[indeks - 1]?.clock?.[kunci] : null;
+  const clockKini = moves[indeks]?.clock;
+  const clockSebelum = indeks > 0 ? moves[indeks - 1]?.clock : null;
+  const sesudah = clockKini?.[kunci];
+  const sebelum = clockSebelum?.[kunci];
   if (!Number.isFinite(sebelum) || !Number.isFinite(sesudah)) return null;
-  const selisih = sebelum - sesudah;
+
+  // Parser PGN menandai increment yang tidak diketahui dengan null. Dalam
+  // kasus itu selisih jam tidak bisa diterjemahkan aman menjadi waktu pikir:
+  // jangan memasukkannya sebagai bukti, terutama bila ada increment/stage.
+  const incrementDiketahui = clockKini && Object.hasOwn(clockKini, "incrementSeconds");
+  if (incrementDiketahui && (!Number.isFinite(clockKini.incrementSeconds) || clockKini.incrementSeconds < 0)) {
+    return null;
+  }
+  const increment = incrementDiketahui ? clockKini.incrementSeconds : 0;
+  const selisih = sebelum - sesudah + increment;
   return selisih < 0 ? null : selisih;
 }
 
