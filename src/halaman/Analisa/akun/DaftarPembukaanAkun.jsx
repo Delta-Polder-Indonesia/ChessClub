@@ -28,9 +28,9 @@ export function BarHasil({ w, d, l, tinggi = "1.4rem" }) {
 
 export function BarisPembukaan({ e }) {
   return (
-    <div className="flex flex-col gap-2 px-1 py-3" data-uji="pembukaan-akun-baris">
-      <div className="flex items-center justify-between gap-2 text-[13px]">
-        <span className="truncate font-semibold text-foreground">{e.nama}</span>
+    <div className="flex min-w-0 flex-col gap-2 overflow-hidden px-1 py-3" data-uji="pembukaan-akun-baris">
+      <div className="flex min-w-0 items-center justify-between gap-2 text-[13px]">
+        <span className="min-w-0 truncate font-semibold text-foreground">{e.nama}</span>
         <span className="shrink-0 font-bold text-foregroundGrey">{e.persen}%</span>
       </div>
       <BarHasil w={e.w} d={e.d} l={e.l} tinggi="1rem" />
@@ -41,26 +41,32 @@ export function BarisPembukaan({ e }) {
 export default function DaftarPembukaanAkun({ putih = [], hitam = [] }) {
   const { t } = useI18n();
   return (
-    <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2" data-uji="pembukaan-akun-grid">
-      <div data-uji="pembukaan-akun-kolom-putih">
+    <div className="min-h-0 min-w-0 overflow-x-hidden" data-uji="pembukaan-akun-grid">
+      <div className="grid min-w-0 grid-cols-1 gap-x-4 sm:grid-cols-2">
         <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">
           {t("analisa.statistik.putih")}
         </div>
-        {putih.length ? (
-          putih.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
-        ) : (
-          <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
-        )}
-      </div>
-      <div data-uji="pembukaan-akun-kolom-hitam">
         <div className="border-b border-border py-3 text-center text-sm font-bold text-foreground">
           {t("analisa.statistik.hitam")}
         </div>
-        {hitam.length ? (
-          hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
-        ) : (
-          <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
-        )}
+      </div>
+      <div className="max-h-[34rem] min-h-0 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable]">
+        <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+          <div className="min-w-0 overflow-hidden" data-uji="pembukaan-akun-kolom-putih">
+            {putih.length ? (
+              putih.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
+            ) : (
+              <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
+            )}
+          </div>
+          <div className="min-w-0 overflow-hidden" data-uji="pembukaan-akun-kolom-hitam">
+            {hitam.length ? (
+              hitam.map((e, i) => <BarisPembukaan key={e.nama + i} e={e} />)
+            ) : (
+              <p className="py-4 text-center text-sm text-foregroundGrey">—</p>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

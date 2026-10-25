@@ -1066,8 +1066,15 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       const kodeEco = indeksPembukaan === 0
         ? "B01"
         : (sebagaiPutih ? `C0${indeksPembukaan}` : `B0${indeksPembukaan}`);
+      // Partai ke-2 sengaja tanpa [Opening] untuk menguji fallback [ECOUrl].
+      // ECOUrl menunjuk nama pembukaan yang sama dengan partai lain berkode C01,
+      // sehingga fixture tetap punya 8 pembukaan unik per warna, bukan 9 label
+      // akibat metadata tidak lengkap yang sebenarnya merujuk pembukaan sama.
+      const tagOpening = i === 2
+        ? '[ECOUrl "https://www.chess.com/openings/Pembukaan-Putih-1"]\n'
+        : `[Opening "${namaPembukaan}"]\n`;
       daftarPartaiWawasan.push({
-        pgn: `[Event "Uji Wawasan ${i}"]\n[White "${sebagaiPutih ? "AkunWawasan" : "Lawan"}"]\n[Black "${sebagaiPutih ? "Lawan" : "AkunWawasan"}"]\n[Result "1-0"]\n[ECO "${kodeEco}"]\n[Opening "${namaPembukaan}"]\n\n1. e4 e5 2. Nf3 Nc6 ${i + 3}. Bc4 Bc5 1-0`,
+        pgn: `[Event "Uji Wawasan ${i}"]\n[White "${sebagaiPutih ? "AkunWawasan" : "Lawan"}"]\n[Black "${sebagaiPutih ? "Lawan" : "AkunWawasan"}"]\n[Result "1-0"]\n[ECO "${kodeEco}"]\n${tagOpening}\n1. e4 e5 2. Nf3 Nc6 ${i + 3}. Bc4 Bc5 1-0`,
         whiteName: sebagaiPutih ? "AkunWawasan" : "Lawan",
         blackName: sebagaiPutih ? "Lawan" : "AkunWawasan",
         whiteElo: 1600,
@@ -1093,6 +1100,12 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     );
 
     const barisAkun = wadahWawasan.querySelector('[data-uji="wawasan-baris-akun"]');
+    const profilWawasan = wadahWawasan.querySelector('[data-uji="wawasan-profil"]');
+    uji(
+      "wawasan profil menampilkan rating Classical yang tersedia dari API",
+      !!profilWawasan && /Classical/.test(profilWawasan.textContent ?? ""),
+    );
+
     const kartuAkun = wadahWawasan.querySelector('[data-uji="dashboard-akun"]');
     const tabAkunRingkasan = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-overview"]');
     const tabAkunPeringkat = wadahWawasan.querySelector('[data-uji="dashboard-akun-tab-ratings"]');
@@ -1143,13 +1156,23 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       "wawasan pembukaan: tab Semua menampilkan tampilan Pembukaan Akun 2 kolom (Putih & Hitam) untuk seluruh partai akun (8 + 8 = 16 baris)",
       !!wadahWawasan.querySelector('[data-uji="pembukaan-akun-grid"]')
         && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-putih"] [data-uji="pembukaan-akun-baris"]').length === 8
-        && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-hitam"] [data-uji="pembukaan-akun-baris"]').length === 8,
+        && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-hitam"] [data-uji="pembukaan-akun-baris"]').length === 8
+        && /Pembukaan Putih 1/.test(wadahWawasan.querySelector('[data-uji="pembukaan-akun-grid"]')?.textContent ?? ""),
     );
+    const kontainerGulirPembukaan = kotakDaftar?.querySelector(".overflow-y-auto");
+
     uji(
       "wawasan pembukaan: kontainer daftar dibatasi tingginya dan memiliki scrollbar vertikal",
       !!kotakDaftar
-        && kotakDaftar.className.includes("max-h-72")
-        && kotakDaftar.className.includes("overflow-y-auto"),
+        && (
+          // Tampilan Semua memakai daftar dua kolom dengan area gulir internal.
+          (!!kontainerGulirPembukaan
+            && kontainerGulirPembukaan.className.includes("max-h-[34rem]")
+            && kontainerGulirPembukaan.className.includes("overflow-y-auto"))
+          // Tampilan satu warna mempertahankan tabel dengan area gulir sendiri.
+          || (kotakDaftar.className.includes("max-h-[34rem]")
+            && kotakDaftar.className.includes("overflow-y-auto"))
+        ),
     );
 
     if (tabPutih) {
@@ -1158,7 +1181,8 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
       uji(
         "wawasan pembukaan: tab Putih menampilkan semua 8 pembukaan Putih tanpa dipotong 5",
         tabPutih.getAttribute("aria-selected") === "true"
-          && wadahWawasan.querySelectorAll('[data-uji="wawasan-pembukaan"] tbody tr').length === 8,
+          && wadahWawasan.querySelectorAll('[data-uji="wawasan-pembukaan"] tbody tr').length === 8
+          && /Pembukaan Putih 1/.test(wadahWawasan.querySelector('[data-uji="wawasan-pembukaan-daftar"]')?.textContent ?? ""),
       );
     }
 

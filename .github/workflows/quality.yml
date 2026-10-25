@@ -44,6 +44,11 @@ jobs:
         # gerbang: tanpa langkah ini gaya kode longgar lolos tanpa suara.
         run: npm run lint
 
+      - name: Run Wawasan regression tests
+        # Run the focused logic and mounted-UI tests before the release gate.
+        # This keeps Wawasan regressions visible even if npm audit blocks the gate.
+        run: npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs
+
       - name: Run the v1 release gate
         run: npm run uji:rilis:v1
 
