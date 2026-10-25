@@ -248,6 +248,28 @@ export function cpKandidat(entri) {
 }
 
 /**
+ * Daftar MultiPV sah bila UCI dan peringkat unik serta peringkatnya kontigu.
+ * Urutan array tidak dijadikan asumsi: data harus selalu dipilih berdasarkan
+ * `peringkat`, bukan posisi indeks yang kebetulan datang dari engine/cache.
+ */
+function daftarKandidatValid(kandidat) {
+  if (!Array.isArray(kandidat) || !kandidat.length || kandidat.length > MULTI_PV) return false;
+  const peringkat = kandidat.map((k) => k?.peringkat);
+  return kandidat.every(
+    (k) =>
+      typeof k?.uci === "string" &&
+      k.uci.length >= 4 &&
+      Number.isInteger(k?.peringkat) &&
+      k.peringkat >= 1 &&
+      k.peringkat <= MULTI_PV
+  ) &&
+    new Set(kandidat.map((k) => k.uci)).size === kandidat.length &&
+    new Set(peringkat).size === kandidat.length &&
+    peringkat.every((rank) => rank <= kandidat.length) &&
+    Array.from({ length: kandidat.length }, (_, i) => i + 1).every((rank) => peringkat.includes(rank));
+}
+
+/**
  * Peringkat langkah `uci` (string UCI) di antara `kandidat` MultiPV posisi
  * sebelumnya — 1-based, mengikuti `entri.peringkat` dari engine.
  *
@@ -257,25 +279,7 @@ export function cpKandidat(entri) {
  * kandidat memang tidak ada (analisis tanpa MultiPV / cache lama).
  */
 export function peringkatLangkahDalam(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || !kandidat.length) return null;
-  const peringkat = kandidat.map((k) => k?.peringkat);
-  const valid =
-    kandidat.length <= MULTI_PV &&
-    kandidat.every(
-      (k) =>
-        typeof k?.uci === "string" &&
-        k.uci.length >= 4 &&
-        Number.isInteger(k?.peringkat) &&
-        k.peringkat >= 1 &&
-        k.peringkat <= MULTI_PV
-    ) &&
-    // Kandidat tidak boleh mengulang langkah atau peringkat. Peringkat yang
-    // hilang/berlubang membuat daftar tidak layak dipakai sebagai bukti.
-    new Set(kandidat.map((k) => k.uci)).size === kandidat.length &&
-    new Set(peringkat).size === kandidat.length &&
-    peringkat.every((rank) => rank <= kandidat.length) &&
-    Array.from({ length: kandidat.length }, (_, i) => i + 1).every((rank) => peringkat.includes(rank));
-  if (!valid) return null;
+  if (!uci || !daftarKandidatValid(kandidat)) return null;
   const indeks = kandidat.findIndex((k) => k.uci === uci);
   if (indeks >= 0) return kandidat[indeks].peringkat;
   // Hanya simpulkan "di luar kandidat" bila daftar memang lengkap sampai
@@ -292,8 +296,8 @@ export function peringkatLangkahDalam(uci, kandidat) {
  * `null` bila langkah tidak ada di kandidat atau skornya tidak terbaca.
  */
 export function kerugianKandidatCp(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const terbaik = cpKandidat(kandidat[0]);
+  if (!uci || !daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const terbaik = cpKandidat(kandidat.find((k) => k.peringkat === 1));
   const entri = kandidat.find((k) => k?.uci === uci);
   const dipilih = cpKandidat(entri);
   if (terbaik === null || dipilih === null) return null;
@@ -307,12 +311,14 @@ export function kerugianKandidatCp(uci, kandidat) {
  * skor. `null` bila WDL tidak tersedia (engine tanpa UCI_ShowWDL).
  */
 export function kehilanganMenangPermille(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const wdlTerbaik = kandidat[0]?.wdl;
+  if (!uci || !daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const wdlTerbaik = kandidat.find((k) => k.peringkat === 1)?.wdl;
   const entri = kandidat.find((k) => k?.uci === uci);
   const wdlDipilih = entri?.wdl;
-  if (!Array.isArray(wdlTerbaik) || !Array.isArray(wdlDipilih)) return null;
-  const selisih = (wdlTerbaik[0] ?? 0) - (wdlDipilih[0] ?? 0);
+  const wdlValid = (wdl) =>
+    Array.isArray(wdl) && wdl.length >= 3 && wdl.every((n) => Number.isFinite(n) && n >= 0);
+  if (!wdlValid(wdlTerbaik) || !wdlValid(wdlDipilih)) return null;
+  const selisih = wdlTerbaik[0] - wdlDipilih[0];
   return Number.isFinite(selisih) ? Math.max(0, selisih) : null;
 }
 
@@ -324,9 +330,9 @@ export function kehilanganMenangPermille(uci, kandidat) {
  * `null` bila kandidat tidak bisa dibandingkan.
  */
 export function ketajamanKandidat(kandidat) {
-  if (!Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const terbaik = cpKandidat(kandidat[0]);
-  const pembanding = cpKandidat(kandidat[Math.min(2, kandidat.length - 1)]);
+  if (!daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const terbaik = cpKandidat(kandidat.find((k) => k.peringkat === 1));
+  const pembanding = cpKandidat(kandidat.find((k) => k.peringkat === Math.min(3, kandidat.length)));
   if (terbaik === null || pembanding === null) return null;
   return Math.max(0, terbaik - pembanding);
 }
