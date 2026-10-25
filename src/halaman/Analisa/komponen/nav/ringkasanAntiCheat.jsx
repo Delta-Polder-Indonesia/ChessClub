@@ -53,9 +53,9 @@ export default function RingkasanAntiCheat({ agregat }) {
           ? t("analisa.antiCheat.riwayat.andal", { partai: agregat.jumlahPartai, langkah: jumlahBuktiTerbanyak })
           : t("analisa.antiCheat.riwayat.tidakAndal", { partai: agregat.jumlahPartai, langkah: jumlahBuktiTerbanyak })}
       </p>
-      {Number.isFinite(agregat.skor) && (agregat.jumlahMetrikAktif ?? 0) < 2 ? (
+      {Number.isFinite(agregat.skor) && (agregat.jumlahDomainBukti ?? 0) < 2 ? (
         <p className="text-xs leading-4 text-foregroundGrey">
-          {t("analisa.antiCheat.cakupanTerbatas", { n: agregat.jumlahMetrikAktif ?? 0 })}
+          {t("analisa.antiCheat.cakupanTerbatas", { n: agregat.jumlahDomainBukti ?? 0 })}
         </p>
       ) : null}
 
