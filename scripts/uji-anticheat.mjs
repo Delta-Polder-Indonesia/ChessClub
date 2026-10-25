@@ -241,6 +241,19 @@ hasil(
     satuMetrik.level === "sementara",
   JSON.stringify({ skor: satuMetrik.skor, level: satuMetrik.level, metrik: satuMetrik.jumlahMetrikAktif })
 );
+const duaMetrikSatuDomain = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  rataPeringkat: 1,
+  jumlahLangkah: 30,
+  sampel: { kecocokan: 30, peringkat: 30 },
+});
+hasil(
+  "top-1 dan peringkat MultiPV tidak dianggap dua domain bukti",
+  duaMetrikSatuDomain.jumlahMetrikAktif === 2 &&
+    duaMetrikSatuDomain.jumlahDomainBukti === 1 &&
+    duaMetrikSatuDomain.level === "sementara",
+  JSON.stringify({ metrik: duaMetrikSatuDomain.jumlahMetrikAktif, domain: duaMetrikSatuDomain.domainBukti, level: duaMetrikSatuDomain.level })
+);
 const sampelMultiPvJarang = ac.skorKecurigaan({
   engineMatchRate: 100,
   acpl: 0,
