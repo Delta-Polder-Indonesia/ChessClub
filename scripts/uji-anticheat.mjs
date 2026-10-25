@@ -577,9 +577,15 @@ hasil(
   `match ${tanpaPeringkat.w.engineMatchRate}, sampel ${tanpaPeringkat.w.langkahDinilaiTanpaPeringkat}/${tanpaPeringkat.w.langkahDinilai}, komponen ${tanpaPeringkat.w.komponen.kecocokan}`
 );
 
+// Skenario campuran: sebagian posisi punya peringkat MultiPV, sebagian tidak.
+// Hapus kandidat hanya pada separuh posisi milik Putih (indeks genap). Kalau
+// seluruh posisi satu warna dihapus, hasilnya bukan campuran lagi: top-1
+// memang menutup semua posisi dan rasio 30/30 tidak menguji apa pun.
 const movesPeringkatCampur = JSON.parse(JSON.stringify(movesSemuaPeringkat));
-for (let i = 1; i < movesPeringkatCampur.length; i += 2) {
-  delete movesPeringkatCampur[i - 1].kandidat;
+let nomorPosisiPutih = 0;
+for (let i = 0; i < movesPeringkatCampur.length; i += 2) {
+  if (nomorPosisiPutih % 2 === 0) delete movesPeringkatCampur[i].kandidat;
+  nomorPosisiPutih++;
 }
 const campurPeringkat = ac.hitungSkorKecurigaan(movesPeringkatCampur);
 hasil(
@@ -1010,11 +1016,24 @@ hasil(
     teks().includes(tID("analisa.antiCheat.metrik.acpl")),
   `top-1 ${hasilHanyaAcpl.w.langkahDinilai}, sampel ACPL ${hasilHanyaAcpl.w.langkahAcpl}`
 );
+/* Level kategoris hanya boleh keluar ketika minimal dua domain bukti
+ * (pemilihan, kualitas/ACPL, waktu) punya sampel memadai. Fixture ACPL di atas
+ * masih membawa data jam, jadi domain "waktu" ikut aktif — dua domain, bukan
+ * satu. Untuk menguji jalur "sementara" secara benar, jam harus dihapus dulu;
+ * kalau tidak, uji ini hanya akan membuktikan bahwa dua domain memang cukup.
+ */
+const movesSatuDomain = movesHanyaAcpl.map((langkah) => ({ ...langkah, clock: null }));
+const hasilSatuDomain = ac.hitungSkorKecurigaan(movesSatuDomain);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesSatuDomain })));
+});
 hasil(
   "UI menandai level satu-metrik sebagai sementara",
-  hasilHanyaAcpl.w.level === "sementara" &&
+  hasilSatuDomain.w.level === "sementara" &&
+    hasilSatuDomain.w.domainBukti.length === 1 &&
     teks().includes(tID("analisa.antiCheat.level.sementara")) &&
-    teks().includes(tID("analisa.antiCheat.cakupanTerbatas", { n: 1 }))
+    teks().includes(tID("analisa.antiCheat.cakupanTerbatas", { n: 1 })),
+  `domain ${hasilSatuDomain.w.domainBukti.join("+")}, level ${hasilSatuDomain.w.level}`
 );
 const movesAcplSampelKecil = movesHanyaAcpl.slice(0, 8);
 const hasilAcplSampelKecil = ac.hitungSkorKecurigaan(movesAcplSampelKecil);
