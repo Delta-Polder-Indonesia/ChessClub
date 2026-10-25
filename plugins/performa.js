@@ -276,6 +276,7 @@ export const META_RUTE = {
     deskripsi:
       "Atur set bidak, warna papan, engine analisa, dan suara untuk seluruh mode papan interaktif.",
     akhir: AKHIR_KORPORAT,
+    robots: "noindex, follow",
   },
   "/turnamen": { judulKey: "turnamen.judul", deskripsiKey: "turnamen.deskripsi" },
   "/turnamen/turnamen-bulanan": {
