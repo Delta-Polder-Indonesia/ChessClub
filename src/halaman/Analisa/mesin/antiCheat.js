@@ -31,7 +31,9 @@
  * langkah, mate = 10000), jadi menggantinya diam-diam akan menggeser semua
  * skor tanpa kalibrasi ulang. Lihat `docs/PERBANDINGAN-METRIK-AKURASI.md`.
  *
- * Keluarannya PROBABILISTIK: angka untuk dibaca manusia (pengurus/turnamen),
+ * Keluarannya adalah SKOR HEURISTIK, bukan probabilitas empiris: belum ada
+ * korpus berlabel yang membuktikan bahwa skor tertentu berarti peluang
+ * kecurangan tertentu. Angka ini hanya petunjuk untuk peninjauan manusia,
  * BUKAN vonis. Kecocokan langkah dengan engine naik secara alami seiring
  * kekuatan pemain, kontrol waktu yang panjang, dan fase akhirpartai yang
  * sederhana; semua itu membuat pemain jujur bisa tampak "mirip engine".
