@@ -502,6 +502,17 @@ hasil(
   semuaPeringkat.w.langkahDinilaiTanpaPeringkat === 0 && semuaPeringkat.w.komponen.kecocokan === null,
   `sampel tanpa peringkat ${semuaPeringkat.w.langkahDinilaiTanpaPeringkat}, komponen ${semuaPeringkat.w.komponen.kecocokan}`
 );
+const agregatSemuaPeringkat = ac.agregatSkorPemain([
+  { id: "rank-only", timestamp: 1, warna: "w", hasil: semuaPeringkat },
+], "budi");
+hasil(
+  "agregat: top-1 publik tidak hilang, tetapi tidak dihitung ganda dengan MultiPV",
+  agregatSemuaPeringkat.engineMatchRate === 100 &&
+    agregatSemuaPeringkat.langkahDinilaiTanpaPeringkat === 0 &&
+    agregatSemuaPeringkat.komponen.kecocokan === null,
+  `match publik ${agregatSemuaPeringkat.engineMatchRate}, komponen ${agregatSemuaPeringkat.komponen.kecocokan}`
+);
+
 
 const movesTanpaPeringkat = JSON.parse(JSON.stringify(hasilMesin.moves));
 for (const langkah of movesTanpaPeringkat) delete langkah.kandidat;
