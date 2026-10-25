@@ -1691,7 +1691,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   // Simulasi SESI BARU: buang isi Map memori secara langsung lalu pastikan
   // bacaCachePartai memuat ulang dari localStorage.
   const kunci = riwayat.kunciCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
-  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}");
+  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v3") ?? "{}");
   hasil("cache: tersimpan di localStorage", Boolean(diSimpanan[kunci]));
   riwayat.bersihkanCacheAntiCheat?.tampak === undefined; // no-op, jaga bentuk
   // Muat ulang: bacaCachePartai setelah Map dibersihkan harus mengambil dari localStorage.
@@ -1699,7 +1699,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   hasil("cache: baca ulang lintas-sesi dari localStorage", Boolean(hasilBaca) && Boolean(hasilBaca.hasil?.w), `${Boolean(hasilBaca)}`);
   hasil("cache: bersihkan menghapus localStorage", (() => {
     riwayat.bersihkanCacheAntiCheat();
-    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}")[kunci];
+    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v3") ?? "{}")[kunci];
   })());
 }
 
