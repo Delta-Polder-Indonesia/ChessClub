@@ -1803,6 +1803,7 @@ const agregatRatingEksplisitKosong = ac.agregatSkorPemain(
   [
     { id: "rating-null", timestamp: 4, warna: "w", rating: null, metadata: metadataRating, hasil: mini },
     { id: "rating-kosong", timestamp: 5, warna: "w", rating: "", metadata: metadataRating, hasil: mini },
+    { id: "rating-nol", timestamp: 6, warna: "w", rating: 0, metadata: metadataRating, hasil: mini },
   ],
   "budi"
 );
