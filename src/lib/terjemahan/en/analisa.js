@@ -360,7 +360,7 @@ export const analisa = {
       },
       tanpaData: "No move can be evaluated yet — forced and book moves are not counted.",
       sampelKecil: "Only {n} moves could be evaluated on one side; a sample this small proves nothing.",
-      cakupanTerbatas: "The score is supported by only {n} evidence domain; signals within one domain may be correlated. Interpret cautiously.",
+      cakupanTerbatas: "Adequate samples are available in only {n} evidence domains; signals within one domain may be correlated. This is not a validated statistical threshold. Interpret cautiously.",
       tanpaJam: "This PGN carries no clock data ([%clk]), so the think-time metric is skipped.",
       catatanMetrikBaku:
         "Accuracy and standard ACPL use the lichess/en-croissant formulas: win-chance curve, evals clamped to ±1000 cp (mate = ±1000), harmonic mean. These are the numbers comparable with a lichess report; neither feeds the suspicion score above, which still uses the between-position ACPL.",
