@@ -60,6 +60,8 @@ export const tekaTeki = {
     pengaturan: "Pengaturan",
     tidakAdaSoal:
       "Tidak ada soal yang cocok dengan kombinasi Level, Langkah, Tema, dan Giliran saat ini. Longgarkan salah satu saringan di Pengaturan.",
+    semuaTerpecahkan:
+      "Semua teka-teki pada saringan ini sudah terpecahkan. Ubah filter untuk mencoba teka-teki lain.",
     lanjutOtomatis: "Lanjut otomatis",
     otomatisNyalakan: "Aktifkan lanjut otomatis",
     otomatisMatikan: "Nonaktifkan lanjut otomatis",
