@@ -938,6 +938,27 @@ act(() => {
 });
 hasil("moves kosong → pesan tanpa data", teks().includes(tID("analisa.antiCheat.tanpaData")), teks().slice(0, 80));
 hasil("moves kosong tetap menampilkan sanggahan", teks().includes(tID("analisa.antiCheat.disclaimer")));
+/* ACPL tetap bisa valid ketika bestMove/top-1 hilang. UI harus menampilkan
+ * metrik yang tersedia, bukan menyembunyikan seluruh laporan.
+ */
+const movesHanyaAcpl = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (const langkah of movesHanyaAcpl) {
+  delete langkah.bestMoveSan;
+  delete langkah.kandidat;
+}
+const hasilHanyaAcpl = ac.hitungSkorKecurigaan(movesHanyaAcpl);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesHanyaAcpl })));
+});
+hasil(
+  "UI menampilkan laporan saat ACPL valid tetapi top-1 tidak tersedia",
+  hasilHanyaAcpl.w.langkahDinilai === 0 &&
+    hasilHanyaAcpl.w.langkahAcpl > 0 &&
+    !teks().includes(tID("analisa.antiCheat.tanpaData")) &&
+    teks().includes(tID("analisa.antiCheat.metrik.acpl")),
+  `top-1 ${hasilHanyaAcpl.w.langkahDinilai}, sampel ACPL ${hasilHanyaAcpl.w.langkahAcpl}`
+);
+
 
 /* ============================ 8. modul fase bersama ============================ */
 
