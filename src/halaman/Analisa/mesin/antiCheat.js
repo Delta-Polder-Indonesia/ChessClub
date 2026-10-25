@@ -255,10 +255,11 @@ export function cpKandidat(entri) {
 function daftarKandidatValid(kandidat) {
   if (!Array.isArray(kandidat) || !kandidat.length || kandidat.length > MULTI_PV) return false;
   const peringkat = kandidat.map((k) => k?.peringkat);
+  const uciValid = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
   return kandidat.every(
     (k) =>
       typeof k?.uci === "string" &&
-      k.uci.length >= 4 &&
+      uciValid.test(k.uci) &&
       Number.isInteger(k?.peringkat) &&
       k.peringkat >= 1 &&
       k.peringkat <= MULTI_PV
