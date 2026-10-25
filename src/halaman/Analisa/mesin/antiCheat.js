@@ -594,12 +594,20 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   const sampelMetrik = { ...hitungan };
   const jumlahMetrikAktif = metrikAktif.length;
   // Top-1 dan peringkat MultiPV sama-sama mengukur pemilihan langkah; jangan
-  // menyebut keduanya sebagai dua domain bukti berbeda. Domain yang dilaporkan:
-  // pemilihan langkah, kualitas langkah (ACPL), dan perilaku waktu.
+  // menyebut keduanya sebagai dua domain bukti berbeda. Hitungan pemilihan
+  // produksi berasal dari partisi tanpa-peringkat + berperingkat yang terpisah.
+  const sampelPemilihan =
+    Number.isFinite(sampel?.kecocokan) && Number.isFinite(sampel?.peringkat)
+      ? Math.max(0, sampel.kecocokan) + Math.max(0, sampel.peringkat)
+      : Math.max(hitungan.kecocokan, hitungan.peringkat);
+  // Domain baru dihitung sebagai cakupan memadai bila sampelnya setidaknya
+  // sebesar skala penyusutan (12). Ini guard konservatif agar satu sampel tipis
+  // tidak membuka level kategoris; bukan ambang signifikansi statistik.
   const domainBukti = [
-    ...(komponenSkor.kecocokan !== null || komponenSkor.peringkat !== null ? ["pemilihan"] : []),
-    ...(komponenSkor.acpl !== null ? ["kualitas"] : []),
-    ...(komponenSkor.waktu !== null ? ["waktu"] : []),
+    ...((komponenSkor.kecocokan !== null || komponenSkor.peringkat !== null) &&
+      sampelPemilihan >= AMBANG.penyusutanLangkah ? ["pemilihan"] : []),
+    ...(komponenSkor.acpl !== null && hitungan.acpl >= AMBANG.penyusutanLangkah ? ["kualitas"] : []),
+    ...(komponenSkor.waktu !== null && hitungan.waktu >= AMBANG.penyusutanLangkah ? ["waktu"] : []),
   ];
   const jumlahDomainBukti = domainBukti.length;
   const cakupanTerbatas = jumlahDomainBukti < 2;
