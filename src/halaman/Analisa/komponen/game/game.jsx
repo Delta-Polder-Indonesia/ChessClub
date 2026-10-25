@@ -29,7 +29,7 @@ function Game({ wadah }) {
   const [captured, setCaptured] = useState({ white: [], black: [] });
   const [arrows, setArrows] = useState({ 0: [] });
   const [gap, setGap] = useState(10);
-  const [openings2, setOpenings] = useState(null);
+  const openingsRef = useRef(null);
   const [drag2, setDrag] = useState({ is: false, id: "" });
   const [isNavTop, setIsNavTop] = useState(false);
   const analyzeContext = useContext(AnalyzeContext);
@@ -113,7 +113,7 @@ function Game({ wadah }) {
     let hidup = true;
     const muat = () =>
       cariNamaPembukaan().then((pencari) => {
-        if (hidup) setOpenings(() => pencari);
+        if (hidup) openingsRef.current = pencari;
       });
     if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
       const id = window.requestIdleCallback(muat, { timeout: 5000 });
@@ -123,6 +123,7 @@ function Game({ wadah }) {
       };
     }
     const id = setTimeout(muat, 1500);
+    id?.unref?.();
     return () => {
       hidup = false;
       clearTimeout(id);
@@ -315,8 +316,8 @@ function Game({ wadah }) {
       setLangkahSementara(partai.kerangka);
 
       // Buku pembukaan diunduh bersamaan dengan penyiapan engine.
-      const janjiBuku = openings2
-        ? Promise.resolve(openings2)
+      const janjiBuku = openingsRef.current
+        ? Promise.resolve(openingsRef.current)
         : cariNamaPembukaan().catch(() => ({}));
       const mesin = await siapkan().catch(() => {
         throw new Error(signal.aborted ? "canceled" : "mesin");
@@ -386,7 +387,7 @@ function Game({ wadah }) {
         setMoveNumber(0);
       }
     }
-  }, [t, openings2, siapkan, boardSounds, setErrors, setAnalyzeController, setPageState, setTab, setProgress, setLangkahSementara, setTime, setPlayers, setGame, setResult, setAnimation, setArrows, setCustomLine, setAnalyzingMove, setMoveNumber]);
+  }, [t, siapkan, boardSounds, setErrors, setAnalyzeController, setPageState, setTab, setProgress, setLangkahSementara, setTime, setPlayers, setGame, setResult, setAnimation, setArrows, setCustomLine, setAnalyzingMove, setMoveNumber]);
   const handleFEN = useCallback(async (fen, terkini, sinyal) => {
     let move3;
     try {
@@ -654,8 +655,8 @@ function Game({ wadah }) {
       const signal = controllerRef.current.signal;
       // Lihat catatan balapan buku di handlePGN: langkah manual pun menunggu
       // tabel buku yang sama (berselang dengan penyiapan engine) sebelum dinilai.
-      const janjiBuku = openings2
-        ? Promise.resolve(openings2)
+      const janjiBuku = openingsRef.current
+        ? Promise.resolve(openingsRef.current)
         : cariNamaPembukaan().catch(() => ({}));
       const mesin = ambilMesin() ?? (await siapkan().catch(() => null));
       const buku = await janjiBuku;

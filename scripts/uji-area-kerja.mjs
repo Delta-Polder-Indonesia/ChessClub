@@ -87,8 +87,13 @@ hasil("fokus TIDAK dicuri (tetap body)", document.activeElement === document.bod
 async function keTampilan(nama) {
   await act(async () => {
     ctx.tampilan[1](nama);
-    await new Promise((r) => setTimeout(r, 20));
   });
+  const tenggat = Date.now() + 2000;
+  do {
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 20));
+    });
+  } while (!lapisan()?.querySelector("button") && Date.now() < tenggat);
 }
 
 async function tekanEscape() {
