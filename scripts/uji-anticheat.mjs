@@ -1566,8 +1566,8 @@ hasil("ketajamanKandidat: kosong = null", ac.ketajamanKandidat([]) === null && a
 hasil(
   "ketajamanKandidat: mate dihitung CP_MATE",
   ac.ketajamanKandidat([
-    { peringkat: 1, uci: "x", cp: null, mate: 1 },
-    { peringkat: 2, uci: "y", cp: 50, mate: null },
+    { peringkat: 1, uci: "e2e4", cp: null, mate: 1 },
+    { peringkat: 2, uci: "d2d4", cp: 50, mate: null },
   ]) === ac.CP_MATE - 50
 );
 
