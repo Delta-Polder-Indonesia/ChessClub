@@ -1391,7 +1391,7 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     acpl: totalLangkahAcpl,
     waktu: bobotWaktu,
   };
-  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, cakupanTerbatas } = skorKecurigaan({
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, cakupanTerbatas } = skorKecurigaan({
     engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
