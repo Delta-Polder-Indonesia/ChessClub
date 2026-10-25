@@ -1017,7 +1017,13 @@ function barisPartai(item, username) {
 
   // Rating pemain pada partai ini: eksplisit dari pemanggil, atau dibaca
   // dari metadata PGN sesuai warna. Non-finite → null (tanpa kalibrasi).
-  let rating = Number(item.rating);
+  // null, undefined, dan string kosong berarti rating tidak diketahui.
+  // Number(null) / Number("") menghasilkan 0, yang keliru mengaktifkan band Elo terendah.
+  const nilaiRating = item.rating;
+  let rating =
+    nilaiRating == null || (typeof nilaiRating === "string" && !nilaiRating.trim())
+      ? null
+      : Number(nilaiRating);
   if (!Number.isFinite(rating)) {
     const dariMetadata = ratingDariMetadata(item.metadata);
     rating = warna === "w" ? dariMetadata.w : dariMetadata.b;
