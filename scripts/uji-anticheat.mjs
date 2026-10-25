@@ -1799,6 +1799,18 @@ hasil("agregat: rating median = 1225", agregatRating.rating === 1225, `${agregat
 hasil("agregat: baris membawa rating", agregatRating.partai.every((b) => b.rating === 1200 || b.rating === 1250));
 const agregatTanpaRating = ac.agregatSkorPemain([{ id: "r1", timestamp: 1, warna: "w", hasil: mini }], "budi");
 hasil("agregat: tanpa metadata → rating null (tanpa kalibrasi)", agregatTanpaRating.rating === null);
+const agregatRatingEksplisitKosong = ac.agregatSkorPemain(
+  [
+    { id: "rating-null", timestamp: 4, warna: "w", rating: null, metadata: metadataRating, hasil: mini },
+    { id: "rating-kosong", timestamp: 5, warna: "w", rating: "", metadata: metadataRating, hasil: mini },
+  ],
+  "budi"
+);
+hasil(
+  "rating null/string kosong fallback ke metadata, bukan Elo 0",
+  agregatRatingEksplisitKosong.rating === 1200,
+  `${agregatRatingEksplisitKosong.rating}`,
+);
 
 /* Partai tanpa bestMove/top-1 tetap masuk agregat jika ACPL-nya valid. */
 const agregatHanyaAcpl = ac.agregatSkorPemain([
