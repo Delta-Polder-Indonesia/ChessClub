@@ -22,8 +22,8 @@
  *   9. METRIK KONDISIONAL (fase 2): keranjang posisi sulit/mudah dari
  *      ketajaman kandidat, rentetan langkah terbaik beruntun, dan korelasi
  *      Spearman waktu pikir ↔ peringkat kandidat.
- *  10. KALIBRASI PER RATING: band KALIBRASI_RATING, pilihKalibrasi,
- *      ratingDariMetadata, median rating agregat, arah pengaruhnya ke skor.
+ *  10. KEBIJAKAN PUKUL RATA: rating/identitas tidak mengubah skor deteksi;
+ *      rating tetap dapat dibaca sebagai metadata laporan.
  *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
  *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
  *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
@@ -1803,7 +1803,7 @@ hasil(
 
 /* ============ 11. kalibrasi per rating ============ */
 
-console.log("\n== kalibrasi ambang per rating ==");
+console.log("\n== metadata rating dan kebijakan skor pukul rata ==");
 hasil("pilihKalibrasi(null) = ambang global", ac.pilihKalibrasi(null).kecocokanDasar === ac.AMBANG.kecocokanDasar);
 hasil("pilihKalibrasi(NaN) = ambang global", ac.pilihKalibrasi(NaN).acplAcuan === ac.AMBANG.acplAcuan);
 hasil("pilihKalibrasi(700) → band 40/70", ac.pilihKalibrasi(700).kecocokanDasar === 40 && ac.pilihKalibrasi(700).acplAcuan === 70);
@@ -1821,20 +1821,28 @@ hasil(
 );
 hasil("ratingDariMetadata: elo 0/negatif → null", ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).w === null && ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).b === null);
 
-/* Arah kalibrasi: metrik sama, pemain lemah yang cocok 70% → skor lebih
- * tinggi daripada pemain kuat (70% itu biasa di 2400+). */
+/* Metrik identik harus menghasilkan skor identik, berapa pun ratingnya. */
 const metrikSama = { engineMatchRate: 70, acpl: 30, konsistensiWaktu: 0.5, rataPeringkat: 2, jumlahLangkah: 80 };
-const skorLemah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
-const skorKuat = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
-hasil("kalibrasi: skor pemain 800 > skor pemain 2600 pada metrik sama", skorLemah.skor > skorKuat.skor, `${skorLemah.skor} vs ${skorKuat.skor}`);
+const skorRatingRendah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
+const skorRatingTinggi = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
+const skorTanpaRating = ac.skorKecurigaan({ ...metrikSama, ratingPemain: null });
 hasil(
-  "kalibrasi: tanpa rating = ambang global (perilaku lama utuh)",
-  JSON.stringify(ac.skorKecurigaan(metrikSama)) === JSON.stringify(ac.skorKecurigaan({ ...metrikSama, ratingPemain: null }))
+  "pukul rata: rating 800, 2600, dan tanpa rating menghasilkan skor identik",
+  skorRatingRendah.skor === skorRatingTinggi.skor &&
+    skorRatingRendah.skor === skorTanpaRating.skor,
+  `${skorRatingRendah.skor} / ${skorRatingTinggi.skor} / ${skorTanpaRating.skor}`
 );
 
-/* hitungSkorKecurigaan menerima rating per warna. */
+/* Rating per warna tetap diterima untuk kompatibilitas, tetapi tidak mengubah skor. */
 const miniRating = ac.hitungSkorKecurigaan(daftarMini, { rating: { w: 800, b: 2600 } });
-hasil("kalibrasi per warna: diterapkan tanpa galat", Number.isFinite(miniRating.w.skor) && Number.isFinite(miniRating.b.skor));
+const miniTanpaRating = ac.hitungSkorKecurigaan(daftarMini);
+hasil(
+  "pukul rata per warna: rating tidak mengubah skor Putih maupun Hitam",
+  Number.isFinite(miniRating.w.skor) &&
+    Number.isFinite(miniRating.b.skor) &&
+    miniRating.w.skor === miniTanpaRating.w.skor &&
+    miniRating.b.skor === miniTanpaRating.b.skor
+);
 
 /* barisPartai membaca rating dari metadata; agregat memakai median. */
 const metadataRating = { players: [{ name: "budi", elo: 1200 }, { name: "lawan", elo: 1250 }] };
