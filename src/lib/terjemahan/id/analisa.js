@@ -361,7 +361,7 @@ export const analisa = {
       },
       tanpaData: "Belum ada langkah yang dapat dinilai — langkah paksa dan langkah buku tidak dihitung.",
       sampelKecil: "Hanya {n} langkah yang dinilai pada salah satu sisi; sampel sekecil ini belum bisa disimpulkan.",
-      cakupanTerbatas: "Skor hanya didukung {n} domain bukti; sinyal dalam satu domain dapat saling berkorelasi. Tafsirkan dengan hati-hati.",
+      cakupanTerbatas: "Sampel memadai hanya tersedia pada {n} domain bukti; sinyal dalam satu domain dapat saling berkorelasi. Ini bukan ambang statistik tervalidasi. Tafsirkan dengan hati-hati.",
       tanpaJam: "PGN ini tidak memuat data jam ([%clk]), jadi metrik waktu pikir dilewati.",
       catatanMetrikBaku:
         "Akurasi dan ACPL baku memakai rumus lichess/en-croissant: kurva win chance, eval dipotong ±1000 cp (mate = ±1000), dan harmonic mean. Angka inilah yang bisa disandingkan dengan laporan lichess; keduanya bukan masukan skor kecurigaan di atas, yang tetap memakai ACPL antarposisi.",
