@@ -212,6 +212,16 @@ hasil(
   ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, konsistensiWaktu: null, jumlahLangkah: 1000 }).skor === 99
 );
 hasil("tidak ada metrik → skor null", ac.skorKecurigaan({}).skor === null);
+hasil(
+  "metrik tanpa jumlah langkah → skor dan level null",
+  ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0 }).skor === null &&
+    ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0 }).level === null
+);
+hasil(
+  "jumlah langkah nol/negatif → skor dan level null",
+  ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, jumlahLangkah: 0 }).skor === null &&
+    ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, jumlahLangkah: -2 }).level === null
+);
 const sedikit = ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, konsistensiWaktu: 1, jumlahLangkah: 12 });
 hasil(
   "penyusutan sampel: 12 langkah → 50",
