@@ -75,10 +75,19 @@ export default function DeteksiEngine({ moves }) {
   const adaData = [putih, hitam].some((p) =>
     p.langkahDinilai > 0 || p.langkahAcpl > 0 || p.kandidatSampel > 0
   );
-  const langkahTop1Tersedikit = Math.min(
-    putih.langkahDinilai || Number.POSITIVE_INFINITY,
-    hitam.langkahDinilai || Number.POSITIVE_INFINITY
-  );
+  // Peringatan sampel harus mengikuti metrik yang benar-benar tersedia,
+  // bukan hanya top-1; jika skor bertumpu pada ACPL/MultiPV, hitungannya juga
+  // harus memicu peringatan ketika jumlah posisinya kecil.
+  const hitunganSampelAktif = (p) => [
+    p.langkahDinilai,
+    p.langkahAcpl,
+    p.kandidatSampel,
+  ].filter((n) => Number.isFinite(n) && n > 0);
+  const sampelTersedikitPerPemain = [putih, hitam].map((p) => {
+    const aktif = hitunganSampelAktif(p);
+    return aktif.length ? Math.min(...aktif) : Number.POSITIVE_INFINITY;
+  });
+  const sampelTersedikit = Math.min(...sampelTersedikitPerPemain);
 
   return (
     <div className="flex w-[85%] flex-col gap-3 pr-[26px] reduceSummary:pr-[35px]">
@@ -197,9 +206,9 @@ export default function DeteksiEngine({ moves }) {
             ))}
           </div>
 
-          {Number.isFinite(langkahTop1Tersedikit) && langkahTop1Tersedikit < 20 ? (
+          {Number.isFinite(sampelTersedikit) && sampelTersedikit < 20 ? (
             <p className="text-xs leading-4 text-foregroundGrey">
-              {t("analisa.antiCheat.sampelKecil", { n: langkahTop1Tersedikit })}
+              {t("analisa.antiCheat.sampelKecil", { n: sampelTersedikit })}
             </p>
           ) : null}
           {putih.kandidatSampel > 0 || hitam.kandidatSampel > 0 ? (
