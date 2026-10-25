@@ -245,28 +245,43 @@ export function waktuDariPgn(headers) {
 
 /**
  * Uraikan tag [%clk H:MM:SS] atau [%clk MM:SS] menjadi detik.
+ * Pecahan detik dipertahankan agar data jam tidak kehilangan presisi.
  */
 export function parseClockString(str) {
   if (!str) return null;
   const match = str.match(/\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/i);
   if (!match) return null;
   const parts = match[1].split(":").map(Number);
-  if (parts.some(Number.isNaN)) return null;
+  if (parts.some((n) => !Number.isFinite(n))) return null;
   if (parts.length === 3) {
     const [h, m, s] = parts;
-    return Math.round(h * 3600 + m * 60 + s);
+    return h * 3600 + m * 60 + s;
   }
   if (parts.length === 2) {
     const [m, s] = parts;
-    return Math.round(m * 60 + s);
+    return m * 60 + s;
   }
   return null;
 }
 
 /**
+ * Increment hanya dianggap diketahui untuk kontrol waktu satu tahap yang
+ * eksplisit (mis. "300+3"). Format bertahap/kompleks sengaja mengembalikan
+ * null: memakai satu increment untuk seluruh partai bisa salah setelah
+ * pergantian tahap dan membuat metrik waktu menyesatkan.
+ */
+export function incrementDariPgn(headers) {
+  const kontrol = String(headers?.TimeControl ?? "").trim();
+  if (!kontrol || kontrol === "-") return null;
+  if (/^\d+(?:\.\d+)?$/.test(kontrol)) return 0;
+  const cocok = kontrol.match(/^\d+(?:\.\d+)?\+(\d+(?:\.\d+)?)$/);
+  return cocok ? Number(cocok[1]) : null;
+}
+
+/**
  * Ekstrak sisa waktu jam (detik) untuk Putih & Hitam pada setiap posisi/langkah partai.
  */
-export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0) {
+export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0, incrementSeconds = null) {
   const mapKomentar = new Map();
   try {
     const daftarKomentar = typeof chess.getComments === "function" ? chess.getComments() : [];
@@ -281,20 +296,21 @@ export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0) {
   } catch { /* PGN tanpa komentar jam — lanjut tanpa mapKomentar */ }
 
   const sequentialClocks = [];
-  const regexClk = /\[%clk\s+([0-9]+(?::[0-9]+)+(?:\.[0-9]+)?)\]/gi;
+  const regexClk = /\[%clk\s+[0-9]+(?::[0-9]+)+(?:\.[0-9]+)?\]/gi;
   let match;
   while ((match = regexClk.exec(rawPgn)) !== null) {
-    const parts = match[1].split(":").map(Number);
-    let sec = null;
-    if (parts.length === 3) sec = Math.round(parts[0] * 3600 + parts[1] * 60 + parts[2]);
-    else if (parts.length === 2) sec = Math.round(parts[0] * 60 + parts[1]);
-    if (sec !== null) sequentialClocks.push(sec);
+    const detik = parseClockString(match[0]);
+    if (detik !== null) sequentialClocks.push(detik);
   }
 
-  let curWhite = waktuDasar || (sequentialClocks[0] ?? null);
-  let curBlack = waktuDasar || (sequentialClocks[1] ?? curWhite);
+  // Jam pada komentar adalah sisa waktu SETELAH langkah. Jangan menebak jam
+  // awal dari komentar pertama/kedua: itu membuat langkah pertama tiap warna
+  // terlihat memakan 0 detik dan mencemari statistik konsistensi.
+  let curWhite = waktuDasar > 0 ? waktuDasar : null;
+  let curBlack = waktuDasar > 0 ? waktuDasar : null;
+  const buatClock = () => ({ white: curWhite, black: curBlack, incrementSeconds });
 
-  const hasil = [{ white: curWhite, black: curBlack }];
+  const hasil = [buatClock()];
 
   for (let i = 0; i < riwayat.length; i++) {
     const m = riwayat[i];
@@ -313,7 +329,7 @@ export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0) {
       if (clk !== null) curBlack = clk;
     }
 
-    hasil.push({ white: curWhite, black: curBlack });
+    hasil.push(buatClock());
   }
 
   return hasil;
@@ -580,9 +596,10 @@ export function bacaPartaiPGN(rawPgn) {
   const metadata = {
     players: getPlayers(headers),
     time: waktuDariPgn(headers),
+    timeIncrement: incrementDariPgn(headers),
     result: getResult(headers, pgn),
   };
-  const daftarClock = ekstrakDaftarClock(chess, pertama, riwayat, metadata.time);
+  const daftarClock = ekstrakDaftarClock(chess, pertama, riwayat, metadata.time, metadata.timeIncrement);
   const kerangka = [
     { fen: riwayat[0].before, color: riwayat[0].color },
     ...riwayat.map((langkah) => ({
