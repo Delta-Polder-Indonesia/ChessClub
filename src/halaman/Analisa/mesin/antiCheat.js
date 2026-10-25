@@ -546,7 +546,7 @@ export function tingkatDariSkor(skor) {
  * menyusutkan skor (`n / (n + 12)`): sepuluh langkah sempurna jauh lebih lemah
  * buktinya daripada delapan puluh langkah sempurna.
  */
-export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, ratingPemain, sampel }) {
+export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, sampel }) {
   // Kebijakan pukul rata: rating/gelar/identitas tidak memengaruhi skor.
   // Parameter ratingPemain dipertahankan agar pemanggil lama tetap kompatibel.
   const kal = { kecocokanDasar: AMBANG.kecocokanDasar, acplAcuan: AMBANG.acplAcuan };
