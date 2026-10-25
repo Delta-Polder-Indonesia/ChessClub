@@ -44,7 +44,7 @@ const { createRoot } = await import("react-dom/client");
 const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
-const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
+const { bacaPartaiPGN, formatSquare, incrementDariPgn, parseClockString, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { EngineCatur } = await import("../src/lib/engineCatur.js");
 const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
 const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
@@ -127,6 +127,47 @@ hasil("waktuBerpikir hitam = 10 detik", ac.waktuBerpikir(MOVES_JAM, 2, "b") === 
 hasil("waktuBerpikir negatif → null", ac.waktuBerpikir(MOVES_JAM, 3, "w") === null);
 hasil("clock null → null", ac.waktuBerpikir(MOVES_JAM, 4, "b") === null);
 hasil("waktuBerpikir tanpa entri sebelumnya → null", ac.waktuBerpikir(MOVES_JAM, 0, "w") === null);
+hasil(
+  "waktuBerpikir mengoreksi increment 3 detik (300 → 298 = 5 detik berpikir)",
+  ac.waktuBerpikir(
+    [{ clock: { white: 300, black: 300, incrementSeconds: 3 } }, { clock: { white: 298, black: 300, incrementSeconds: 3 } }],
+    1,
+    "w"
+  ) === 5
+);
+hasil(
+  "waktuBerpikir tidak menebak saat increment tidak diketahui",
+  ac.waktuBerpikir(
+    [{ clock: { white: 300, black: 300, incrementSeconds: null } }, { clock: { white: 298, black: 300, incrementSeconds: null } }],
+    1,
+    "w"
+  ) === null
+);
+hasil("parseClockString mempertahankan pecahan detik", parseClockString("{[%clk 0:04:55.5]}") === 295.5);
+hasil("incrementDariPgn: kontrol sederhana tanpa increment = 0", incrementDariPgn({ TimeControl: "300" }) === 0);
+hasil("incrementDariPgn: 300+3 = 3 detik", incrementDariPgn({ TimeControl: "300+3" }) === 3);
+hasil("incrementDariPgn: format bertahap tidak ditebak", incrementDariPgn({ TimeControl: "40/7200:3600+30" }) === null);
+{
+  const tanpaKontrol = bacaPartaiPGN(
+    '[Event "Clock test"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 0:04:55.5]} e5 {[%clk 0:04:54.25]} *'
+  );
+  hasil(
+    "PGN tanpa TimeControl tidak memakai clock sesudah langkah sebagai baseline",
+    tanpaKontrol.daftarClock[0].white === null &&
+      tanpaKontrol.daftarClock[0].black === null &&
+      tanpaKontrol.daftarClock[1].white === 295.5 &&
+      tanpaKontrol.daftarClock[2].black === 294.25
+  );
+  const denganIncrement = bacaPartaiPGN(
+    '[Event "Clock test"]\n[TimeControl "300+3"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 4:58]} e5 {[%clk 4:59]} *'
+  );
+  hasil(
+    "PGN TimeControl increment terbawa ke clock tiap posisi",
+    denganIncrement.metadata.timeIncrement === 3 &&
+      denganIncrement.daftarClock[0].incrementSeconds === 3 &&
+      denganIncrement.daftarClock[1].white === 298
+  );
+}
 
 hasil(
   `statistikWaktu: < ${ac.SAMPEL_WAKTU_MINIMUM} sampel → null`,
