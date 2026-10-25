@@ -1004,6 +1004,41 @@ judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
   }
 }
 
+judul("pemulihan soal selesai vs deep-link eksplisit");
+{
+  // Skenario 1: URL masih menunjuk posisi tersimpan yang sudah selesai.
+  // Ini adalah pemulihan sesi; soal selesai harus dilewati.
+  pasangDomBaru();
+  window.localStorage.setItem("kci-teka-teki-terpecahkan", JSON.stringify([1]));
+  window.localStorage.setItem("kci-teka-teki-posisi", "1");
+  delete require.cache[berkasBundel];
+  const modPemulihan = require(berkasBundel);
+  modPemulihan.mount(dok.getElementById("root"));
+  const pulih = await tungguSampai(
+    () => [...problems].some((p) => !terpecahkan().includes(p.problemid) && papanSama(p.fen)),
+    6000
+  );
+  const soalPulih = problems.find((p) => papanSama(p.fen));
+  uji(
+    "pemulihan melewati soal terakhir yang sudah selesai",
+    pulih && !!soalPulih && soalPulih.problemid !== 1 && !terpecahkan().includes(soalPulih.problemid),
+    soalPulih ? `soal aktif #${soalPulih.problemid}` : "papan aktif tidak cocok dengan dataset"
+  );
+
+  // Skenario 2: deep-link /1 berbeda dari posisi tersimpan #2.
+  // Soal yang diminta secara eksplisit tetap boleh dibuka untuk review.
+  pasangDomBaru();
+  window.localStorage.setItem("kci-teka-teki-terpecahkan", JSON.stringify([2]));
+  window.localStorage.setItem("kci-teka-teki-posisi", "2");
+  delete require.cache[berkasBundel];
+  const modTautan = require(berkasBundel);
+  modTautan.mount(dok.getElementById("root"));
+  uji(
+    "deep-link berbeda dari posisi tersimpan tetap membuka soal yang diminta",
+    await tungguSampai(() => papanSama(problems[0].fen), 6000)
+  );
+}
+
 /* ------------------------------------------------------------------ hasil */
 
 const galatBersih = galatRender.filter((p) => !/not wrapped in act/i.test(p));
