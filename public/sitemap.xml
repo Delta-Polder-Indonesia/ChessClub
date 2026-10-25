@@ -101,11 +101,6 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
-    <loc>%%SITE_URL%%papan-interaktif/pengaturan</loc>
-    <lastmod>%%LASTMOD%%</lastmod>
-    <changefreq>weekly</changefreq>
-</url>
-<url>
     <loc>%%SITE_URL%%turnamen</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>
