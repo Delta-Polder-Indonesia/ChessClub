@@ -66,7 +66,7 @@ export function kunciCachePartai(id, kedalaman) {
 
 /*
  * Lapisan localStorage — cache lintas kunjungan. Kunci simpanan menyertakan
- * penanda versi (`v2`) karena bentuk hasil ikut berubah saat metrik baru
+ * penanda versi (`v3`) karena bentuk hasil ikut berubah saat metrik baru
  * ditambahkan; hasil lama yang tidak punya field baru TIDAK boleh tercampur.
  * Semua akses dibungkus try/catch: localStorage bisa penuh, dinonaktifkan,
  * atau tidak ada (SSR/uji) — cache itu optimalisasi, bukan kebutuhan benar.
