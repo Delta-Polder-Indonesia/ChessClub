@@ -1024,7 +1024,7 @@ function barisPartai(item, username) {
     nilaiRating == null || (typeof nilaiRating === "string" && !nilaiRating.trim())
       ? null
       : Number(nilaiRating);
-  if (!Number.isFinite(rating)) {
+  if (!Number.isFinite(rating) || rating <= 0) {
     const dariMetadata = ratingDariMetadata(item.metadata);
     rating = warna === "w" ? dariMetadata.w : dariMetadata.b;
   }
