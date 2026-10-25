@@ -71,7 +71,7 @@ export function kunciCachePartai(id, kedalaman) {
  * Semua akses dibungkus try/catch: localStorage bisa penuh, dinonaktifkan,
  * atau tidak ada (SSR/uji) — cache itu optimalisasi, bukan kebutuhan benar.
  */
-const KUNCI_SIMPANAN_CACHE = "kci-anticheat-cache-v5";
+const KUNCI_SIMPANAN_CACHE = "kci-anticheat-cache-v6";
 
 function bacaSimpananCache() {
   try {
