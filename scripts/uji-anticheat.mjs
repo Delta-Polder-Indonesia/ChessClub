@@ -958,6 +958,22 @@ hasil(
     teks().includes(tID("analisa.antiCheat.metrik.acpl")),
   `top-1 ${hasilHanyaAcpl.w.langkahDinilai}, sampel ACPL ${hasilHanyaAcpl.w.langkahAcpl}`
 );
+const movesAcplSampelKecil = movesHanyaAcpl.slice(0, 8);
+const hasilAcplSampelKecil = ac.hitungSkorKecurigaan(movesAcplSampelKecil);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesAcplSampelKecil })));
+});
+hasil(
+  "UI memberi peringatan sampel kecil untuk ACPL tanpa top-1",
+  hasilAcplSampelKecil.w.langkahDinilai === 0 &&
+    hasilAcplSampelKecil.w.langkahAcpl > 0 &&
+    teks().includes(tID("analisa.antiCheat.sampelKecil", { n: Math.min(
+      hasilAcplSampelKecil.w.langkahAcpl,
+      hasilAcplSampelKecil.b.langkahAcpl || Number.POSITIVE_INFINITY
+    ) })),
+  `sampel ACPL putih/hitam ${hasilAcplSampelKecil.w.langkahAcpl}/${hasilAcplSampelKecil.b.langkahAcpl}`
+);
+
 
 
 /* ============================ 8. modul fase bersama ============================ */
