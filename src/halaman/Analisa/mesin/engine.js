@@ -319,9 +319,11 @@ export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0, incre
       clk = sequentialClocks[i];
     } else if (mapKomentar.has(m.after)) {
       clk = mapKomentar.get(m.after);
-    } else if (i < sequentialClocks.length) {
-      clk = sequentialClocks[i];
     }
+    // Bila daftar komentar tidak lengkap, jangan memasangkan komentar yang
+    // tersisa berdasarkan indeks: satu komentar hilang akan menggeser semua
+    // jam berikutnya ke langkah/warna yang salah. Tanpa FEN yang cocok,
+    // waktu langkah ini memang tidak diketahui.
 
     if (m.color === "w") {
       if (clk !== null) curWhite = clk;
