@@ -89,7 +89,7 @@ export default function DeteksiEngine({ moves }) {
   });
   const sampelTersedikit = Math.min(...sampelTersedikitPerPemain);
   const jumlahMetrikAktifTersedikit = Math.min(
-    ...[putih, hitam].filter((p) => Number.isFinite(p.skor)).map((p) => p.jumlahMetrikAktif ?? 0)
+    ...[putih, hitam].filter((p) => Number.isFinite(p.skor)).map((p) => p.jumlahDomainBukti ?? 0)
   );
 
   return (
