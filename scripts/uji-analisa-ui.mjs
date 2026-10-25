@@ -1159,11 +1159,20 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
         && wadahWawasan.querySelectorAll('[data-uji="pembukaan-akun-kolom-hitam"] [data-uji="pembukaan-akun-baris"]').length === 8
         && /Pembukaan Putih 1/.test(wadahWawasan.querySelector('[data-uji="pembukaan-akun-grid"]')?.textContent ?? ""),
     );
+    const kontainerGulirPembukaan = kotakDaftar?.querySelector(".overflow-y-auto");
+
     uji(
       "wawasan pembukaan: kontainer daftar dibatasi tingginya dan memiliki scrollbar vertikal",
       !!kotakDaftar
-        && kotakDaftar.className.includes("max-h-72")
-        && kotakDaftar.className.includes("overflow-y-auto"),
+        && (
+          // Tampilan Semua memakai daftar dua kolom dengan area gulir internal.
+          (!!kontainerGulirPembukaan
+            && kontainerGulirPembukaan.className.includes("max-h-[34rem]")
+            && kontainerGulirPembukaan.className.includes("overflow-y-auto"))
+          // Tampilan satu warna mempertahankan tabel dengan area gulir sendiri.
+          || (kotakDaftar.className.includes("max-h-[34rem]")
+            && kotakDaftar.className.includes("overflow-y-auto"))
+        ),
     );
 
     if (tabPutih) {
