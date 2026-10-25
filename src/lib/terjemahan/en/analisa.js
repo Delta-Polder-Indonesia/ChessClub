@@ -334,6 +334,7 @@ export const analisa = {
         rendah: "Low",
         sedang: "Medium",
         tinggi: "High",
+        sementara: "Provisional",
         tidakAda: "No data",
       },
       metrik: {
