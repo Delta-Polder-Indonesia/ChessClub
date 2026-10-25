@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -50,7 +51,16 @@ jobs:
         run: npm run uji:wawasan-profil && node scripts/uji-analisa-ui.mjs
 
       - name: Run the v1 release gate
-        run: npm run uji:rilis:v1
+        run: |
+          set -o pipefail
+          if ! npm run uji:rilis:v1 2>&1 | tee /tmp/rilis-v1.log; then
+            SKRIP_TERAKHIR=$(grep -E "^> komunitas-catur@" /tmp/rilis-v1.log | tail -n 3 | tr '\n' ' ' | sed 's/::/ /g')
+            RINGKASAN=$(grep -E "✗|❌|GAGAL|FAIL|Error:|AssertionError|ELIFECYCLE|npm error" /tmp/rilis-v1.log | tail -n 25 | tr '\n' ' ' | sed 's/::/ /g')
+            EKOR=$(tail -n 30 /tmp/rilis-v1.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:rilis:v1 gagal (${SKRIP_TERAKHIR})::${RINGKASAN}"
+            echo "::error title=uji:rilis:v1 ekor log::${EKOR}"
+            exit 1
+          fi
 
   e2e:
     name: Browser tests (Playwright)
@@ -86,7 +96,13 @@ jobs:
         run: npx playwright install chromium
 
       - name: Run browser tests
-        run: npm run uji:e2e
+        run: |
+          set -o pipefail
+          if ! npm run uji:e2e 2>&1 | tee /tmp/e2e.log; then
+            EKOR=$(tail -n 35 /tmp/e2e.log | tr '\n' ' ' | sed 's/::/ /g')
+            echo "::error title=uji:e2e gagal::${EKOR}"
+            exit 1
+          fi
 
       - name: Upload Playwright report on failure
         if: failure()
