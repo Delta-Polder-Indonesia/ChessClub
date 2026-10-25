@@ -478,6 +478,55 @@ hasil("partai engine: kecocokan langkah 100% untuk Hitam", skorMesin.b.engineMat
 hasil("partai engine: ACPL 0 kedua warna", skorMesin.w.acpl === 0 && skorMesin.b.acpl === 0, `${skorMesin.w.acpl}/${skorMesin.b.acpl}`);
 hasil("partai engine: jam seragam → konsistensi 1", skorMesin.w.konsistensiWaktu === 1, `${skorMesin.w.konsistensiWaktu}`);
 hasil("partai engine: level tinggi", skorMesin.w.level === "tinggi" && skorMesin.b.level === "tinggi", `${skorMesin.w.level}/${skorMesin.b.level}`);
+/* Top-1 dan MultiPV pada posisi sama adalah bukti yang tumpang tindih:
+ * metrik tampilan tetap penuh, tetapi skor hanya memakai top-1 tanpa peringkat.
+ */
+const movesSemuaPeringkat = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (let i = 1; i < movesSemuaPeringkat.length; i++) {
+  const langkah = movesSemuaPeringkat[i];
+  const calon = [langkah.uci, ...["e2e4", "d2d4", "g1f3", "c2c4", "b1c3", "f2f3", "g2g3"].filter((uci) => uci !== langkah.uci)]
+    .slice(0, ac.MULTI_PV);
+  movesSemuaPeringkat[i - 1].kandidat = calon.map((uci, indeks) => ({
+    uci,
+    peringkat: indeks + 1,
+    cp: 100 - indeks * 10,
+  }));
+}
+const semuaPeringkat = ac.hitungSkorKecurigaan(movesSemuaPeringkat);
+hasil(
+  "top-1 publik tetap penuh saat semua posisi punya peringkat",
+  semuaPeringkat.w.engineMatchRate === 100 && semuaPeringkat.w.kandidatSampel > 0
+);
+hasil(
+  "posisi berperingkat tidak dihitung ulang sebagai komponen top-1",
+  semuaPeringkat.w.langkahDinilaiTanpaPeringkat === 0 && semuaPeringkat.w.komponen.kecocokan === null,
+  `sampel tanpa peringkat ${semuaPeringkat.w.langkahDinilaiTanpaPeringkat}, komponen ${semuaPeringkat.w.komponen.kecocokan}`
+);
+
+const movesTanpaPeringkat = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (const langkah of movesTanpaPeringkat) delete langkah.kandidat;
+const tanpaPeringkat = ac.hitungSkorKecurigaan(movesTanpaPeringkat);
+hasil(
+  "tanpa MultiPV, top-1 tetap menjadi bukti skor",
+  tanpaPeringkat.w.engineMatchRate === 100 &&
+    tanpaPeringkat.w.langkahDinilaiTanpaPeringkat === tanpaPeringkat.w.langkahDinilai &&
+    tanpaPeringkat.w.komponen.kecocokan === 100,
+  `match ${tanpaPeringkat.w.engineMatchRate}, sampel ${tanpaPeringkat.w.langkahDinilaiTanpaPeringkat}/${tanpaPeringkat.w.langkahDinilai}, komponen ${tanpaPeringkat.w.komponen.kecocokan}`
+);
+
+const movesPeringkatCampur = JSON.parse(JSON.stringify(movesSemuaPeringkat));
+for (let i = 1; i < movesPeringkatCampur.length; i += 2) {
+  delete movesPeringkatCampur[i - 1].kandidat;
+}
+const campurPeringkat = ac.hitungSkorKecurigaan(movesPeringkatCampur);
+hasil(
+  "MultiPV campuran: top-1 hanya menghitung posisi tanpa peringkat valid",
+  campurPeringkat.w.langkahDinilaiTanpaPeringkat > 0 &&
+    campurPeringkat.w.langkahDinilaiTanpaPeringkat < campurPeringkat.w.langkahDinilai &&
+    campurPeringkat.w.engineMatchRate === 100,
+  `${campurPeringkat.w.langkahDinilaiTanpaPeringkat}/${campurPeringkat.w.langkahDinilai}, match publik ${campurPeringkat.w.engineMatchRate}`
+);
+
 
 hasil("partai jujur: kecocokan jauh di bawah 100%", skorJujur.w.engineMatchRate < 60, `${skorJujur.w.engineMatchRate}`);
 hasil("partai jujur: ACPL = 50 cp untuk Putih", hampir(skorJujur.w.acpl, GIGI, 0.5), `${skorJujur.w.acpl}`);
@@ -1748,7 +1797,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   // Simulasi SESI BARU: buang isi Map memori secara langsung lalu pastikan
   // bacaCachePartai memuat ulang dari localStorage.
   const kunci = riwayat.kunciCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
-  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v4") ?? "{}");
+  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v5") ?? "{}");
   hasil("cache: tersimpan di localStorage", Boolean(diSimpanan[kunci]));
   riwayat.bersihkanCacheAntiCheat?.tampak === undefined; // no-op, jaga bentuk
   // Muat ulang: bacaCachePartai setelah Map dibersihkan harus mengambil dari localStorage.
@@ -1756,7 +1805,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   hasil("cache: baca ulang lintas-sesi dari localStorage", Boolean(hasilBaca) && Boolean(hasilBaca.hasil?.w), `${Boolean(hasilBaca)}`);
   hasil("cache: bersihkan menghapus localStorage", (() => {
     riwayat.bersihkanCacheAntiCheat();
-    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v4") ?? "{}")[kunci];
+    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v5") ?? "{}")[kunci];
   })());
 }
 
