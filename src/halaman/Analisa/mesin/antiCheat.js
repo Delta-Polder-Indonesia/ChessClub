@@ -779,7 +779,7 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   const engineMatchRateSkor = sampelKecocokanSkor
     ? (cocokKecocokanSkor / sampelKecocokanSkor) * 100
     : null;
-  const { skor, level, komponen } = skorKecurigaan({
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas } = skorKecurigaan({
     engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
