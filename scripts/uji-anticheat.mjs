@@ -525,6 +525,17 @@ const trenTurun = ac.agregatSkorPemain(
   "budi"
 );
 hasil("tren menurun terdeteksi", trenTurun.tren.arah === "turun");
+
+hasil(
+  "tren mengabaikan skor hilang tanpa mengubahnya menjadi nol",
+  hampir(ac.kemiringanTren([10, null, 30, undefined, 50]), 10, 1e-6),
+  `${ac.kemiringanTren([10, null, 30, undefined, 50])}`
+);
+hasil(
+  "tren dengan kurang dari 3 skor valid → null",
+  ac.kemiringanTren([10, null, undefined, NaN, 50]) === null
+);
+hasil("tren input bukan array → null", ac.kemiringanTren(null) === null);
 hasil(
   "skor stabil → 'stabil'",
   ac.agregatSkorPemain(
