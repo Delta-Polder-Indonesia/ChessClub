@@ -133,7 +133,8 @@ hasil(
   ac.statistikWaktu([1, 1, 1]) === null
 );
 const waktuSeragam = ac.statistikWaktu(Array(10).fill(3));
-hasil("jam seragam → konsistensi 1", waktuSeragam?.konsistensi === 1 && waktuSeragam.koefisienVariasi === 0);
+hasil("jam seragam positif → konsistensi 1", waktuSeragam?.konsistensi === 1 && waktuSeragam.koefisienVariasi === 0);
+hasil("semua clock nol → waktu tidak informatif (null)", ac.statistikWaktu(Array(10).fill(0)) === null);
 const waktuAcak = ac.statistikWaktu([1, 20, 2, 30, 1, 25, 3, 18, 2, 22, 1, 19]);
 hasil("jam bervariasi → konsistensi 0", waktuAcak?.konsistensi === 0);
 
@@ -1144,6 +1145,8 @@ hasil("peringkatLangkahDalam: rank 1 terbaca", ac.peringkatLangkahDalam("e2e4", 
 hasil("peringkatLangkahDalam: rank 4 terbaca", ac.peringkatLangkahDalam("c2c4", KANDIDAT) === 4);
 hasil("peringkatLangkahDalam: di luar daftar = jenuh", ac.peringkatLangkahDalam("a2a3", KANDIDAT) === ac.MULTI_PV + 1, `${ac.peringkatLangkahDalam("a2a3", KANDIDAT)}`);
 hasil("peringkatLangkahDalam: tanpa kandidat = null", ac.peringkatLangkahDalam("e2e4", []) === null && ac.peringkatLangkahDalam("e2e4", undefined) === null);
+hasil("peringkatLangkahDalam: daftar MultiPV parsial tidak dianggap peringkat terburuk", ac.peringkatLangkahDalam("a2a3", KANDIDAT.slice(0, 2)) === null);
+hasil("peringkatLangkahDalam: daftar kandidat rusak → null", ac.peringkatLangkahDalam("a2a3", [{ uci: "e2e4", peringkat: 1 }, { uci: null, peringkat: 2 }]) === null);
 hasil("kerugianKandidatCp: rank 4 rugi 20 cp", ac.kerugianKandidatCp("c2c4", KANDIDAT) === 20, `${ac.kerugianKandidatCp("c2c4", KANDIDAT)}`);
 hasil("kerugianKandidatCp: rank 1 rugi 0", ac.kerugianKandidatCp("e2e4", KANDIDAT) === 0);
 hasil("kerugianKandidatCp: di luar daftar = null", ac.kerugianKandidatCp("a2a3", KANDIDAT) === null);
