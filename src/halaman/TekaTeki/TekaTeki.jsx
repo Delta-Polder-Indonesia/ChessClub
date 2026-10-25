@@ -586,11 +586,19 @@ export default function TekaTeki() {
               : Math.floor(Math.random() * daftar.length);
         }
 
-        // Deep-link bernomor adalah permintaan eksplisit dan tetap bisa dipakai
-        // untuk meninjau soal tertentu. Pemulihan posisi/soal acak, sebaliknya,
-        // harus melewati soal yang sudah terpecahkan.
+        // URL bernomor juga ditulis aplikasi saat berpindah soal. Jika URL
+        // menunjuk tepat ke posisi terakhir yang tersimpan dan soal itu sudah
+        // selesai, perlakukan sebagai pemulihan sesi — bukan permintaan review.
+        // Deep-link bernomor yang berbeda dari posisi tersimpan tetap dapat
+        // dibuka secara eksplisit untuk meninjau soal tertentu.
+        const idValid = idParam >= 1 && idParam <= daftar.length;
+        const idTersimpan = ingatPosisi ? bacaPosisi() : null;
+        const sedangMemulihkanSoalSelesai =
+          idValid &&
+          idTersimpan === idParam &&
+          terpecahkan.has(daftar[idParam - 1]?.problemid);
         const awal =
-          idParam >= 1 && idParam <= daftar.length
+          idValid && !sedangMemulihkanSoalSelesai
             ? awalDiminta
             : cariIndeksBelumTerpecahkan(daftar, awalDiminta, terpecahkan);
         setSemuaSoal(daftar);
