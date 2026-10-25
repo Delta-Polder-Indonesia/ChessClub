@@ -560,19 +560,22 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
       ? Math.max(0, nilai)
       : Number.isFinite(jumlahLangkah) ? Math.max(0, jumlahLangkah) : 0;
   }
-  const komponen = {};
+  // Komponen publik tetap menunjukkan metrik mentah (0–100). Penyusutan
+  // hanya memengaruhi skor gabungan, agar UI tidak menyamarkan nilai metrik.
+  const komponen = { ...komponenMentah };
+  const komponenSkor = {};
   for (const kunci of Object.keys(BOBOT)) {
     const nilai = komponenMentah[kunci];
     const n = hitungan[kunci];
-    komponen[kunci] = nilai === null || n <= 0
+    komponenSkor[kunci] = nilai === null || n <= 0
       ? null
-      : Math.round(nilai * (n / (n + AMBANG.penyusutanLangkah)));
+      : nilai * (n / (n + AMBANG.penyusutanLangkah));
   }
 
   let bobotTerpakai = 0;
   let jumlahBerbobot = 0;
   for (const kunci of Object.keys(BOBOT)) {
-    const nilai = komponen[kunci];
+    const nilai = komponenSkor[kunci];
     if (nilai === null) continue;
     bobotTerpakai += BOBOT[kunci];
     jumlahBerbobot += BOBOT[kunci] * nilai;
