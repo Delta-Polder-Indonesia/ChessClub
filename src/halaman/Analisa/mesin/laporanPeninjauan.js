@@ -35,7 +35,7 @@ const KATA_BAKU = Object.freeze({
   acplBaku: "ACPL baku (eval dipotong ±1000, mate = ±1000)",
   anotasi: "Anotasi NAG",
   catatanMetrik:
-    "Metrik berlabel 'metode lichess/en-croissant' memakai kurva win chance dan harmonic mean sehingga bisa disandingkan dengan angka lichess; ACPL antarposisi memakai konvensi lama modul ini (clamp 1000 cp/langkah, mate 10000) dan tetap menjadi masukan skor kecurigaan.",
+    "Skor gabungan adalah heuristik, bukan probabilitas kecurangan yang terkalibrasi; bobot dan ambang masih perlu diuji pada korpus partai berlabel. Untuk skor, kecocokan top-1 hanya dihitung pada posisi tanpa peringkat MultiPV valid agar satu keputusan tidak dihitung dua kali; persentase top-1 yang ditampilkan tetap memakai seluruh sampel valid. Metrik berlabel 'metode lichess/en-croissant' memakai kurva win chance dan harmonic mean sehingga bisa disandingkan dengan angka lichess; ACPL antarposisi memakai konvensi lama modul ini (clamp 1000 cp/langkah, mate 10000) dan tetap menjadi masukan skor kecurigaan.",
   kehilanganMenang: "Rata kehilangan peluang menang (WDL, permille)",
   konsistensi: "Konsistensi waktu pikir",
   korelasi: "Korelasi waktu pikir ↔ kualitas (Spearman)",

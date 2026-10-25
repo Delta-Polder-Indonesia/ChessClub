@@ -60,6 +60,8 @@ export const tekaTeki = {
     pengaturan: "Settings",
     tidakAdaSoal:
       "No puzzles match the current Level, Moves, Theme, and Side combination. Loosen one of the filters in Settings.",
+    semuaTerpecahkan:
+      "All puzzles in this filter have been solved. Change a filter to try other puzzles.",
     lanjutOtomatis: "Auto-advance",
     otomatisNyalakan: "Enable auto-advance",
     otomatisMatikan: "Disable auto-advance",

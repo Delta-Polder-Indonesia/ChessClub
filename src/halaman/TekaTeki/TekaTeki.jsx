@@ -192,6 +192,21 @@ function bacaTerpecahkan() {
   return new Set(Array.isArray(simpan) ? simpan : []);
 }
 
+/**
+ * Cari indeks soal yang belum terpecahkan, mulai dari indeks yang diminta
+ * lalu melingkar satu kali. Mengembalikan -1 bila semua soal pada saringan
+ * sudah terpecahkan.
+ */
+function cariIndeksBelumTerpecahkan(daftar, mulai, terpecahkan) {
+  if (!Array.isArray(daftar) || daftar.length === 0) return -1;
+  const awal = ((Math.trunc(Number(mulai) || 0) % daftar.length) + daftar.length) % daftar.length;
+  for (let langkah = 0; langkah < daftar.length; langkah += 1) {
+    const indeks = (awal + langkah) % daftar.length;
+    if (!terpecahkan.has(daftar[indeks]?.problemid)) return indeks;
+  }
+  return -1;
+}
+
 function bacaPosisi() {
   const n = Number(
     coba(() => localStorage.getItem(KUNCI_POSISI), "baca posisi terakhir")
@@ -554,10 +569,10 @@ export default function TekaTeki() {
             : item
         );
         const idParam = Number(idPath);
-        let awal;
+        let awalDiminta;
         let idTidakDitemukan = false;
         if (idParam >= 1 && idParam <= daftar.length) {
-          awal = idParam - 1;
+          awalDiminta = idParam - 1;
         } else {
           // Tandai bahwa ID dari URL tidak sah hanya bila segmen terakhir
           // BUKAN "problem" (URL kanonik `/teka-teki/problem`) dan ada isinya.
@@ -565,16 +580,36 @@ export default function TekaTeki() {
           // Posisi tersimpan hanya dipulihkan bila pemain masih mengaktifkan
           // "Ingat posisi" (lihat preferensi di panel pengaturan).
           const tersimpan = ingatPosisi ? bacaPosisi() : 0;
-          awal =
+          awalDiminta =
             tersimpan >= 1 && tersimpan <= daftar.length
               ? tersimpan - 1
               : Math.floor(Math.random() * daftar.length);
         }
+
+        // URL bernomor juga ditulis aplikasi saat berpindah soal. Jika URL
+        // menunjuk tepat ke posisi terakhir yang tersimpan dan soal itu sudah
+        // selesai, perlakukan sebagai pemulihan sesi — bukan permintaan review.
+        // Deep-link bernomor yang berbeda dari posisi tersimpan tetap dapat
+        // dibuka secara eksplisit untuk meninjau soal tertentu.
+        const idValid = idParam >= 1 && idParam <= daftar.length;
+        const idTersimpan = ingatPosisi ? bacaPosisi() : null;
+        const sedangMemulihkanSoalSelesai =
+          idValid &&
+          idTersimpan === idParam &&
+          terpecahkan.has(daftar[idParam - 1]?.problemid);
+        const awal =
+          idValid && !sedangMemulihkanSoalSelesai
+            ? awalDiminta
+            : cariIndeksBelumTerpecahkan(daftar, awalDiminta, terpecahkan);
         setSemuaSoal(daftar);
-        setIndeks(awal);
-        terapkanSoal(daftar[awal]);
-        perbaruiUrlSoal(daftar[awal].problemid);
-        simpanPosisi(daftar[awal].problemid);
+        if (awal === -1) {
+          setIndeks(-1);
+        } else {
+          setIndeks(awal);
+          terapkanSoal(daftar[awal]);
+          perbaruiUrlSoal(daftar[awal].problemid);
+          simpanPosisi(daftar[awal].problemid);
+        }
         if (idTidakDitemukan) {
           setPesan({
             jenis: "peringatan",
@@ -598,18 +633,24 @@ export default function TekaTeki() {
   }, [percobaan]);
 
   useEffect(() => {
-    if (!soal?.length) return;
-    const safeIdx = Math.min(indeks, soal.length - 1);
-    if (safeIdx !== indeks) {
-      setIndeks(safeIdx);
+    if (!soal?.length) {
+      setIndeks(-1);
+      return;
     }
+    const awalDiminta = Math.max(0, indeks);
+    const safeIdx = cariIndeksBelumTerpecahkan(soal, awalDiminta, terpecahkan);
+    if (safeIdx === -1) {
+      setIndeks(-1);
+      return;
+    }
+    setIndeks(safeIdx);
     terapkanSoal(soal[safeIdx]);
     perbaruiUrlSoal(soal[safeIdx].problemid);
     simpanPosisi(soal[safeIdx].problemid);
-    // Dependensi yang sengaja dilepas: soal, indeks, terapkanSoal,
+    // Dependensi yang sengaja dilepas: soal, indeks, terpecahkan, terapkanSoal,
     // perbaruiUrlSoal, dan simpanPosisi. Efek ini khusus re-filter: kalau
     // soal/indeks ikut dipantau, tiap pindah soal posisi yang sama akan
-    // dipasang ulang.
+    // dipasang ulang. Riwayat dibaca saat filter berubah.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterTipe, filterLevel, filterTema, filterGiliran]);
 
@@ -741,24 +782,41 @@ export default function TekaTeki() {
   }, [hapusSemuaTanda]);
 
   const pindahSoal = useCallback(
-    (indeksBaru) => {
+    (indeksBaru, izinkanTerpecahkan = false) => {
       if (!soal || !soal.length) return;
+      // Navigasi biasa melewati soal terpecahkan. Permintaan eksplisit lewat
+      // input nomor boleh membuka ulang soal untuk ditinjau.
       const total = soal.length;
-      const idx = ((indeksBaru % total) + total) % total;
-      const m = soal[idx];
-      // Timer dari soal sebelumnya tidak boleh menimpa navigasi manual.
+      const diminta = ((indeksBaru % total) + total) % total;
+      const idx = izinkanTerpecahkan
+        ? diminta
+        : cariIndeksBelumTerpecahkan(soal, diminta, terpecahkan);
       window.clearTimeout(timerOtomatis.current);
+      if (idx === -1) {
+        setIndeks(-1);
+        return;
+      }
+      const m = soal[idx];
       setIndeks(idx);
       terapkanSoal(m);
       perbaruiUrlSoal(m.problemid);
       simpanPosisi(m.problemid);
       bunyikan(SUARA.mulai);
     },
-    [soal, terapkanSoal, perbaruiUrlSoal, simpanPosisi, bunyikan]
+    [soal, terpecahkan, terapkanSoal, perbaruiUrlSoal, simpanPosisi, bunyikan]
   );
 
-  const pilihAcak = () =>
-    pindahSoal(Math.floor(Math.random() * (soal?.length || 1)));
+  const pilihAcak = () => {
+    const tersedia = (soal || [])
+      .map((m, indeks) => ({ m, indeks }))
+      .filter(({ m }) => !terpecahkan.has(m.problemid));
+    if (!tersedia.length) {
+      setIndeks(-1);
+      return;
+    }
+    const pilihan = tersedia[Math.floor(Math.random() * tersedia.length)];
+    pindahSoal(pilihan.indeks);
+  };
 
   function pilihPetak(petak) {
     if (!masalah || komputer || selesai || !fen) return;
@@ -1230,7 +1288,7 @@ export default function TekaTeki() {
     }
     setGalatNomor(null);
     setNomorSoal("");
-    pindahSoal(n - 1);
+    pindahSoal(n - 1, true);
   }
 
   // Klik kanan saat drag → bidak kembali ke petak asal (perilaku chess.com).
@@ -1519,7 +1577,9 @@ export default function TekaTeki() {
         <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
           {semuaSoal ? (
             <p className="max-w-md rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm leading-6 text-amber-300">
-              {t("tekaTeki.tidakAdaSoal")}
+              {soal?.length && soal.every((m) => terpecahkan.has(m.problemid))
+                ? t("tekaTeki.semuaTerpecahkan")
+                : t("tekaTeki.tidakAdaSoal")}
             </p>
           ) : (
             <p className="animate-pulse text-sm text-gray-400">{t("tekaTeki.memuat")}</p>
@@ -1532,7 +1592,10 @@ export default function TekaTeki() {
               bukaPengaturan={bukaPengaturan}
               onGantiPengaturan={setBukaPengaturan}
               giliran={(fen && fen.split(" ")[1] === "b") ? "hitam" : "putih"}
-              jumlahLangkah={langkahPenuh.length}
+              // langkahPenuh menyimpan setengah-langkah (ply), sedangkan label
+              // "Skak dalam N langkah" harus menghitung langkah pihak yang
+              // mencari skakmat: mate-in-3 = 5 ply solusi, bukan 5 langkah.
+              jumlahLangkah={Math.ceil(langkahPenuh.length / 2)}
               syzygy={syzygy}
               syzygyMemuat={syzygyMemuat}
               syzygyGagal={syzygyGagal}

@@ -29,6 +29,10 @@ export default function RingkasanAntiCheat({ agregat }) {
   const rasio = (n) => (Number.isFinite(n) ? `${Math.round(n * 100)}%` : "-");
   const level = agregat.level ?? "tidakAda";
   const arah = agregat.tren?.arah ?? "tidakAda";
+  const jumlahBuktiTerbanyak = Math.max(
+    0,
+    ...Object.values(agregat.sampelMetrik ?? { kecocokan: agregat.jumlahLangkah }).filter(Number.isFinite)
+  );
 
   return (
     <div className="flex flex-col gap-3 pt-2">
@@ -46,9 +50,14 @@ export default function RingkasanAntiCheat({ agregat }) {
 
       <p className="text-xs leading-4 text-foregroundGrey">
         {agregat.andal
-          ? t("analisa.antiCheat.riwayat.andal", { partai: agregat.jumlahPartai, langkah: agregat.jumlahLangkah })
-          : t("analisa.antiCheat.riwayat.tidakAndal", { partai: agregat.jumlahPartai, langkah: agregat.jumlahLangkah })}
+          ? t("analisa.antiCheat.riwayat.andal", { partai: agregat.jumlahPartai, langkah: jumlahBuktiTerbanyak })
+          : t("analisa.antiCheat.riwayat.tidakAndal", { partai: agregat.jumlahPartai, langkah: jumlahBuktiTerbanyak })}
       </p>
+      {Number.isFinite(agregat.skor) && (agregat.jumlahDomainBukti ?? 0) < 2 ? (
+        <p className="text-xs leading-4 text-foregroundGrey">
+          {t("analisa.antiCheat.cakupanTerbatas", { n: agregat.jumlahDomainBukti ?? 0 })}
+        </p>
+      ) : null}
 
       {Number.isFinite(agregat.rating) ? (
         <p className="text-xs leading-4 text-foregroundGrey">

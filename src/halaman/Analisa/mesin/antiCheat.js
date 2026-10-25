@@ -26,12 +26,14 @@
  * `anotasi` NAG (`??` `?` `?!` `!!` `!` `!?`). Angka-angka inilah yang bisa
  * disandingkan dengan yang tampil di lichess/en-croissant. Yang LAMA
  * (`acpl`, dan akurasi label di `summary/playersAccuracy.jsx`) tetap ada dan
- * tetap menjadi masukan `skorKecurigaan` — ambang `AMBANG.acplAcuan` serta
- * `KALIBRASI_RATING` dikalibrasi terhadap konvensi lama (clamp 1000 cp per
- * langkah, mate = 10000), jadi menggantinya diam-diam akan menggeser semua
- * skor tanpa kalibrasi ulang. Lihat `docs/PERBANDINGAN-METRIK-AKURASI.md`.
+ * tetap menjadi masukan `skorKecurigaan`. Skor memakai ambang global yang
+ * sama untuk semua pemain; rating hanya boleh ditampilkan sebagai metadata,
+ * bukan dipakai untuk memberi kelonggaran/penalti. Lihat
+ * `docs/PERBANDINGAN-METRIK-AKURASI.md`.
  *
- * Keluarannya PROBABILISTIK: angka untuk dibaca manusia (pengurus/turnamen),
+ * Keluarannya adalah SKOR HEURISTIK, bukan probabilitas empiris: belum ada
+ * korpus berlabel yang membuktikan bahwa skor tertentu berarti peluang
+ * kecurangan tertentu. Angka ini hanya petunjuk untuk peninjauan manusia,
  * BUKAN vonis. Kecocokan langkah dengan engine naik secara alami seiring
  * kekuatan pemain, kontrol waktu yang panjang, dan fase akhirpartai yang
  * sederhana; semua itu membuat pemain jujur bisa tampak "mirip engine".
@@ -109,6 +111,7 @@ export const SAMPEL_WAKTU_MINIMUM = 8;
 export const LEVEL_RENDAH = "rendah";
 export const LEVEL_SEDANG = "sedang";
 export const LEVEL_TINGGI = "tinggi";
+export const LEVEL_SEMENTARA = "sementara";
 
 export const AMBANG = Object.freeze({
   /** Kecocokan engine (%) di bawah angka ini tidak menyumbang skor. */
@@ -245,6 +248,29 @@ export function cpKandidat(entri) {
 }
 
 /**
+ * Daftar MultiPV sah bila UCI dan peringkat unik serta peringkatnya kontigu.
+ * Urutan array tidak dijadikan asumsi: data harus selalu dipilih berdasarkan
+ * `peringkat`, bukan posisi indeks yang kebetulan datang dari engine/cache.
+ */
+function daftarKandidatValid(kandidat) {
+  if (!Array.isArray(kandidat) || !kandidat.length || kandidat.length > MULTI_PV) return false;
+  const peringkat = kandidat.map((k) => k?.peringkat);
+  const uciValid = /^[a-h][1-8][a-h][1-8][qrbn]?$/;
+  return kandidat.every(
+    (k) =>
+      typeof k?.uci === "string" &&
+      uciValid.test(k.uci) &&
+      Number.isInteger(k?.peringkat) &&
+      k.peringkat >= 1 &&
+      k.peringkat <= MULTI_PV
+  ) &&
+    new Set(kandidat.map((k) => k.uci)).size === kandidat.length &&
+    new Set(peringkat).size === kandidat.length &&
+    peringkat.every((rank) => rank <= kandidat.length) &&
+    Array.from({ length: kandidat.length }, (_, i) => i + 1).every((rank) => peringkat.includes(rank));
+}
+
+/**
  * Peringkat langkah `uci` (string UCI) di antara `kandidat` MultiPV posisi
  * sebelumnya — 1-based, mengikuti `entri.peringkat` dari engine.
  *
@@ -254,9 +280,13 @@ export function cpKandidat(entri) {
  * kandidat memang tidak ada (analisis tanpa MultiPV / cache lama).
  */
 export function peringkatLangkahDalam(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || !kandidat.length) return null;
-  const indeks = kandidat.findIndex((k) => k?.uci === uci);
-  if (indeks >= 0) return kandidat[indeks]?.peringkat ?? indeks + 1;
+  if (!uci || !daftarKandidatValid(kandidat)) return null;
+  const indeks = kandidat.findIndex((k) => k.uci === uci);
+  if (indeks >= 0) return kandidat[indeks].peringkat;
+  // Hanya simpulkan "di luar kandidat" bila daftar memang lengkap sampai
+  // jumlah MultiPV yang diminta. Daftar parsial tidak cukup untuk memberi
+  // peringkat terburuk; misalnya pencarian dibatalkan atau posisi terminal.
+  if (kandidat.length < MULTI_PV) return null;
   return MULTI_PV + 1;
 }
 
@@ -267,8 +297,8 @@ export function peringkatLangkahDalam(uci, kandidat) {
  * `null` bila langkah tidak ada di kandidat atau skornya tidak terbaca.
  */
 export function kerugianKandidatCp(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const terbaik = cpKandidat(kandidat[0]);
+  if (!uci || !daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const terbaik = cpKandidat(kandidat.find((k) => k.peringkat === 1));
   const entri = kandidat.find((k) => k?.uci === uci);
   const dipilih = cpKandidat(entri);
   if (terbaik === null || dipilih === null) return null;
@@ -282,12 +312,14 @@ export function kerugianKandidatCp(uci, kandidat) {
  * skor. `null` bila WDL tidak tersedia (engine tanpa UCI_ShowWDL).
  */
 export function kehilanganMenangPermille(uci, kandidat) {
-  if (!uci || !Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const wdlTerbaik = kandidat[0]?.wdl;
+  if (!uci || !daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const wdlTerbaik = kandidat.find((k) => k.peringkat === 1)?.wdl;
   const entri = kandidat.find((k) => k?.uci === uci);
   const wdlDipilih = entri?.wdl;
-  if (!Array.isArray(wdlTerbaik) || !Array.isArray(wdlDipilih)) return null;
-  const selisih = (wdlTerbaik[0] ?? 0) - (wdlDipilih[0] ?? 0);
+  const wdlValid = (wdl) =>
+    Array.isArray(wdl) && wdl.length >= 3 && wdl.every((n) => Number.isFinite(n) && n >= 0);
+  if (!wdlValid(wdlTerbaik) || !wdlValid(wdlDipilih)) return null;
+  const selisih = wdlTerbaik[0] - wdlDipilih[0];
   return Number.isFinite(selisih) ? Math.max(0, selisih) : null;
 }
 
@@ -299,9 +331,9 @@ export function kehilanganMenangPermille(uci, kandidat) {
  * `null` bila kandidat tidak bisa dibandingkan.
  */
 export function ketajamanKandidat(kandidat) {
-  if (!Array.isArray(kandidat) || kandidat.length < 2) return null;
-  const terbaik = cpKandidat(kandidat[0]);
-  const pembanding = cpKandidat(kandidat[Math.min(2, kandidat.length - 1)]);
+  if (!daftarKandidatValid(kandidat) || kandidat.length < 2) return null;
+  const terbaik = cpKandidat(kandidat.find((k) => k.peringkat === 1));
+  const pembanding = cpKandidat(kandidat.find((k) => k.peringkat === Math.min(3, kandidat.length)));
   if (terbaik === null || pembanding === null) return null;
   return Math.max(0, terbaik - pembanding);
 }
@@ -373,16 +405,27 @@ export function pemainLangkah(move, indeks) {
 /**
  * Waktu pikir (detik) untuk langkah pada `moves[indeks]`, dibaca dari
  * `move.clock` ({ white, black }) yang ditempel `parsePGN`.
- * `null` bila jam tidak tersedia (`clock` null) atau selisihnya negatif —
- * selisih negatif terjadi bila increment lebih besar dari waktu pikir (umum
- * di bullet dengan premove) atau jam melompat karena data PGN tidak lengkap.
+ * `null` bila jam tidak tersedia, increment tidak diketahui pada data
+ * PGN terstruktur, atau selisih terkoreksi tetap negatif (jam melompat/data
+ * tidak lengkap). Increment yang diketahui ditambahkan kembali ke selisih jam.
  */
 export function waktuBerpikir(moves, indeks, warna) {
   const kunci = warna === "w" ? "white" : "black";
-  const sesudah = moves[indeks]?.clock?.[kunci];
-  const sebelum = indeks > 0 ? moves[indeks - 1]?.clock?.[kunci] : null;
+  const clockKini = moves[indeks]?.clock;
+  const clockSebelum = indeks > 0 ? moves[indeks - 1]?.clock : null;
+  const sesudah = clockKini?.[kunci];
+  const sebelum = clockSebelum?.[kunci];
   if (!Number.isFinite(sebelum) || !Number.isFinite(sesudah)) return null;
-  const selisih = sebelum - sesudah;
+
+  // Parser PGN menandai increment yang tidak diketahui dengan null. Dalam
+  // kasus itu selisih jam tidak bisa diterjemahkan aman menjadi waktu pikir:
+  // jangan memasukkannya sebagai bukti, terutama bila ada increment/stage.
+  const incrementDiketahui = clockKini && Object.hasOwn(clockKini, "incrementSeconds");
+  if (incrementDiketahui && (!Number.isFinite(clockKini.incrementSeconds) || clockKini.incrementSeconds < 0)) {
+    return null;
+  }
+  const increment = incrementDiketahui ? clockKini.incrementSeconds : 0;
+  const selisih = sebelum - sesudah + increment;
   return selisih < 0 ? null : selisih;
 }
 
@@ -396,9 +439,10 @@ export function statistikWaktu(daftar) {
   const sampel = (Array.isArray(daftar) ? daftar : []).filter((n) => Number.isFinite(n) && n >= 0);
   if (sampel.length < SAMPEL_WAKTU_MINIMUM) return null;
   const rata = rataRata(sampel);
-  if (!(rata > 0)) {
-    return { jumlahSampel: sampel.length, rataRata: 0, deviasiBaku: 0, koefisienVariasi: 0, konsistensi: 1 };
-  }
+  // Semua nilai nol tidak menunjukkan waktu pikir yang seragam secara bermakna:
+  // ini bisa berasal dari pembulatan clock/premove atau metadata PGN yang kasar.
+  // Jangan mengubah data waktu yang tidak informatif menjadi bukti kecurigaan.
+  if (!(rata > 0)) return null;
   const varian = rataRata(sampel.map((n) => (n - rata) ** 2));
   const deviasiBaku = Math.sqrt(Math.max(0, varian));
   const koefisienVariasi = deviasiBaku / rata;
@@ -416,14 +460,11 @@ export function statistikWaktu(daftar) {
 /**
  * Kalibrasi ambang per rentang rating (Elo).
  *
- * Kecocokan engine dan ACPL yang "normal" SANGAT bergantung kekuatan pemain:
- * pemain 800 dengan kecocokan 70% itu sangat mencurigakan, pemain 2400 dengan
- * 70% itu biasa saja. Tabel ini menggeser `kecocokanDasar` dan `acplAcuan`
- * (dua ambang komponen skor) sesuai band rating. Angkanya TAKSIRAN acuan
- * dari agregat publik (Lichess/chess.com) dan WAJIB dikalibrasi ulang dengan
- * korpus partai lokal sebelum dipakai untuk keputusan serius — lihat seksi
- * roadmap di README. Rating tidak diketahui → memakai ambang global `AMBANG`
- * (perilaku lama, tanpa kalibrasi).
+ * Tabel ini dipertahankan hanya untuk kompatibilitas data/laporan lama dan
+ * tidak digunakan oleh skor deteksi. Kebijakan deteksi saat ini pukul rata:
+ * rating, gelar, nama, atau identitas tidak mengubah ambang skor. Setiap partai
+ * dinilai dengan ambang global `AMBANG`; kalibrasi empiris tetap diperlukan
+ * sebelum skor dipakai sebagai bukti keputusan turnamen.
  */
 export const KALIBRASI_RATING = Object.freeze([
   { batas: 800, kecocokanDasar: 40, acplAcuan: 70 },
@@ -505,31 +546,87 @@ export function tingkatDariSkor(skor) {
  * menyusutkan skor (`n / (n + 12)`): sepuluh langkah sempurna jauh lebih lemah
  * buktinya daripada delapan puluh langkah sempurna.
  */
-export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, ratingPemain }) {
-  const kal = pilihKalibrasi(ratingPemain);
-  const komponen = {
+export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, sampel }) {
+  // Kebijakan pukul rata: rating/gelar/identitas tidak memengaruhi skor.
+  // Parameter ratingPemain dipertahankan agar pemanggil lama tetap kompatibel.
+  const kal = { kecocokanDasar: AMBANG.kecocokanDasar, acplAcuan: AMBANG.acplAcuan };
+  const komponenMentah = {
     kecocokan: komponenKecocokan(engineMatchRate, kal.kecocokanDasar),
     peringkat: komponenPeringkat(rataPeringkat),
     acpl: komponenAcpl(acpl, kal.acplAcuan),
     waktu: komponenWaktu(konsistensiWaktu),
   };
 
+  // Penyusutan memakai denominator milik metrik itu sendiri, bukan jumlah
+  // semua langkah yang layak. Dua sampel MultiPV dari 80 langkah tidak boleh
+  // terlihat seolah didukung oleh 80 sampel.
+  // sampel opsional demi kompatibilitas pemanggil lama; jalur produksi
+  // selalu memasok hitungan mentah masing-masing metrik.
+  const hitungan = {};
+  for (const kunci of Object.keys(BOBOT)) {
+    const nilai = sampel?.[kunci];
+    hitungan[kunci] = Number.isFinite(nilai)
+      ? Math.max(0, nilai)
+      : Number.isFinite(jumlahLangkah) ? Math.max(0, jumlahLangkah) : 0;
+  }
+  // Komponen publik tetap menunjukkan metrik mentah (0–100). Penyusutan
+  // hanya memengaruhi skor gabungan, agar UI tidak menyamarkan nilai metrik.
+  const komponen = { ...komponenMentah };
+  const komponenSkor = {};
+  for (const kunci of Object.keys(BOBOT)) {
+    const nilai = komponenMentah[kunci];
+    const n = hitungan[kunci];
+    komponenSkor[kunci] = nilai === null || n <= 0
+      ? null
+      : nilai * (n / (n + AMBANG.penyusutanLangkah));
+  }
+
   let bobotTerpakai = 0;
   let jumlahBerbobot = 0;
   for (const kunci of Object.keys(BOBOT)) {
-    const nilai = komponen[kunci];
+    const nilai = komponenSkor[kunci];
     if (nilai === null) continue;
     bobotTerpakai += BOBOT[kunci];
     jumlahBerbobot += BOBOT[kunci] * nilai;
   }
-  if (!bobotTerpakai) return { skor: null, level: null, komponen };
+  const metrikAktif = Object.keys(komponenSkor).filter((kunci) => komponenSkor[kunci] !== null);
+  const sampelMetrik = { ...hitungan };
+  const jumlahMetrikAktif = metrikAktif.length;
+  // Top-1 dan peringkat MultiPV sama-sama mengukur pemilihan langkah; jangan
+  // menyebut keduanya sebagai dua domain bukti berbeda. Hitungan pemilihan
+  // produksi berasal dari partisi tanpa-peringkat + berperingkat yang terpisah.
+  const sampelPemilihan =
+    Number.isFinite(sampel?.kecocokan) && Number.isFinite(sampel?.peringkat)
+      ? Math.max(0, sampel.kecocokan) + Math.max(0, sampel.peringkat)
+      : Math.max(hitungan.kecocokan, hitungan.peringkat);
+  // Domain baru dihitung sebagai cakupan memadai bila sampelnya setidaknya
+  // sebesar skala penyusutan (12). Ini guard konservatif agar satu sampel tipis
+  // tidak membuka level kategoris; bukan ambang signifikansi statistik.
+  const domainBukti = [
+    ...((komponenSkor.kecocokan !== null || komponenSkor.peringkat !== null) &&
+      sampelPemilihan >= AMBANG.penyusutanLangkah ? ["pemilihan"] : []),
+    ...(komponenSkor.acpl !== null && hitungan.acpl >= AMBANG.penyusutanLangkah ? ["kualitas"] : []),
+    ...(komponenSkor.waktu !== null && hitungan.waktu >= AMBANG.penyusutanLangkah ? ["waktu"] : []),
+  ];
+  const jumlahDomainBukti = domainBukti.length;
+  const cakupanTerbatas = jumlahDomainBukti < 2;
 
-  const gabungan = jumlahBerbobot / bobotTerpakai;
-  const langkah = Number.isFinite(jumlahLangkah) ? Math.max(0, jumlahLangkah) : 0;
-  const faktorSampel = langkah / (langkah + AMBANG.penyusutanLangkah);
-  const skor = Math.round(gabungan * faktorSampel);
+  // Cakupan dilaporkan terpisah dari skor: renormalisasi bobot yang tersedia
+  // memang membuat skor tetap dapat dihitung, tetapi satu metrik bukan bukti
+  // lintas-metrik. Ini bukan probabilitas terkalibrasi.
+  if (!bobotTerpakai) {
+    return { skor: null, level: null, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas };
+  }
 
-  return { skor, level: tingkatDariSkor(skor), komponen };
+  // Setiap komponen sudah divalidasi terhadap jumlah sampelnya sendiri.
+  // Jangan mewajibkan sampel kecocokan top-1: ACPL atau MultiPV masih bisa
+  // punya data sah meski saran bestMove tidak tersedia.
+  const skor = Math.round(jumlahBerbobot / bobotTerpakai);
+  // Jangan memberi label rendah/sedang/tinggi ketika hanya satu komponen
+  // tersedia: skor numerik tetap informatif, tetapi levelnya masih sementara.
+  const level = cakupanTerbatas ? LEVEL_SEMENTARA : tingkatDariSkor(skor);
+
+  return { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas };
 }
 
 /* ------------------------------------------------------- tingkat per partai */
@@ -538,6 +635,8 @@ function kumpulBaru() {
   return {
     langkahDinilai: 0,
     langkahCocok: 0,
+    langkahDinilaiTanpaPeringkat: 0,
+    langkahCocokTanpaPeringkat: 0,
     langkahAcpl: 0,
     totalKerugian: 0,
     detik: [],
@@ -588,6 +687,10 @@ function catat(target, {
   if (cocok !== null) {
     target.langkahDinilai++;
     if (cocok) target.langkahCocok++;
+    if (peringkat === null) {
+      target.langkahDinilaiTanpaPeringkat++;
+      if (cocok) target.langkahCocokTanpaPeringkat++;
+    }
   }
   if (kerugian !== null) {
     target.langkahAcpl++;
@@ -643,6 +746,8 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   const ringkas = {
     langkahDinilai: kumpul.langkahDinilai,
     langkahCocok: kumpul.langkahCocok,
+    langkahDinilaiTanpaPeringkat: kumpul.langkahDinilaiTanpaPeringkat,
+    langkahCocokTanpaPeringkat: kumpul.langkahCocokTanpaPeringkat,
     engineMatchRate: bulat1(engineMatchRate),
     langkahAcpl: kumpul.langkahAcpl,
     // Jumlah mentah ikut dibawa supaya agregat lintas partai bisa menjumlah
@@ -690,13 +795,30 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
   if (!denganSkor) return ringkas;
 
   const waktu = statistikWaktu(kumpul.detik);
-  const { skor, level, komponen } = skorKecurigaan({
-    engineMatchRate,
+  // Avoid double-counting positions represented by both top-1 and MultiPV rank.
+  // If this game has no usable rank samples, retain all valid top-1 evidence.
+  const sampelKecocokanSkor = kumpul.kandidatSampel > 0
+    ? kumpul.langkahDinilaiTanpaPeringkat
+    : kumpul.langkahDinilai;
+  const cocokKecocokanSkor = kumpul.kandidatSampel > 0
+    ? kumpul.langkahCocokTanpaPeringkat
+    : kumpul.langkahCocok;
+  const engineMatchRateSkor = sampelKecocokanSkor
+    ? (cocokKecocokanSkor / sampelKecocokanSkor) * 100
+    : null;
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, sampelMetrik, cakupanTerbatas } = skorKecurigaan({
+    engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
     konsistensiWaktu: waktu?.konsistensi ?? null,
     jumlahLangkah: kumpul.langkahDinilai,
     ratingPemain: rating,
+    sampel: {
+      kecocokan: sampelKecocokanSkor,
+      peringkat: kumpul.kandidatSampel,
+      acpl: kumpul.langkahAcpl,
+      waktu: kumpul.detik.length,
+    },
   });
   return {
     ...ringkas,
@@ -707,6 +829,12 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
     komponen,
     skor,
     level,
+    metrikAktif,
+    jumlahMetrikAktif,
+    domainBukti,
+    jumlahDomainBukti,
+    sampelMetrik,
+    cakupanTerbatas,
   };
 }
 
@@ -888,12 +1016,23 @@ function barisPartai(item, username) {
       : warnaPemainDariMetadata(item.metadata, username) ?? warnaDariMoves(item.moves);
   if (warna !== "w" && warna !== "b") return null;
   const ringkas = hasil[warna];
-  if (!ringkas || !ringkas.langkahDinilai) return null;
+  // Jangan buang partai hanya karena bestMove/top-1 tidak tersedia:
+  // ACPL atau peringkat MultiPV tetap bisa menjadi bukti statistik yang sah.
+  if (
+    !ringkas ||
+    !(ringkas.langkahDinilai || ringkas.langkahAcpl || ringkas.kandidatSampel)
+  ) return null;
 
   // Rating pemain pada partai ini: eksplisit dari pemanggil, atau dibaca
   // dari metadata PGN sesuai warna. Non-finite → null (tanpa kalibrasi).
-  let rating = Number(item.rating);
-  if (!Number.isFinite(rating)) {
+  // null, undefined, dan string kosong berarti rating tidak diketahui.
+  // Number(null) / Number("") menghasilkan 0, yang keliru mengaktifkan band Elo terendah.
+  const nilaiRating = item.rating;
+  let rating =
+    nilaiRating == null || (typeof nilaiRating === "string" && !nilaiRating.trim())
+      ? null
+      : Number(nilaiRating);
+  if (!Number.isFinite(rating) || rating <= 0) {
     const dariMetadata = ratingDariMetadata(item.metadata);
     rating = warna === "w" ? dariMetadata.w : dariMetadata.b;
   }
@@ -906,6 +1045,8 @@ function barisPartai(item, username) {
     timeClass: item.timeClass ? String(item.timeClass) : "",
     langkahDinilai: ringkas.langkahDinilai,
     langkahCocok: ringkas.langkahCocok,
+    langkahDinilaiTanpaPeringkat: ringkas.langkahDinilaiTanpaPeringkat ?? ringkas.langkahDinilai,
+    langkahCocokTanpaPeringkat: ringkas.langkahCocokTanpaPeringkat ?? ringkas.langkahCocok,
     engineMatchRate: ringkas.engineMatchRate,
     langkahAcpl: ringkas.langkahAcpl,
     totalKerugian: ringkas.totalKerugian,
@@ -949,16 +1090,23 @@ function barisPartai(item, username) {
 
 /** Kemiringan garis regresi paling sederhana: poin skor per partai. */
 export function kemiringanTren(daftarSkor) {
-  const nilai = daftarSkor.map((s) => (Number.isFinite(s) ? s : 0));
+  if (!Array.isArray(daftarSkor)) return null;
+
+  // Skor yang hilang bukan nol. Pertahankan indeks partai asli agar kemiringan
+  // tetap dihitung per posisi waktu, tanpa mengarang nilai untuk data kosong.
+  const nilai = daftarSkor
+    .map((skor, indeks) => ({ x: indeks, y: skor }))
+    .filter(({ y }) => Number.isFinite(y));
   const n = nilai.length;
   if (n < MIN_PARTAI_AGGREGAT) return null;
-  const rataX = (n - 1) / 2;
-  const rataY = rataRata(nilai);
+
+  const rataX = rataRata(nilai.map(({ x }) => x));
+  const rataY = rataRata(nilai.map(({ y }) => y));
   let pembilang = 0;
   let penyebut = 0;
-  for (let i = 0; i < n; i++) {
-    pembilang += (i - rataX) * (nilai[i] - rataY);
-    penyebut += (i - rataX) ** 2;
+  for (const { x, y } of nilai) {
+    pembilang += (x - rataX) * (y - rataY);
+    penyebut += (x - rataX) ** 2;
   }
   return penyebut ? pembilang / penyebut : null;
 }
@@ -970,6 +1118,14 @@ function arahTren(kemiringan) {
   return "stabil";
 }
 
+function totalPartaiTanpaPeringkatDinilai(partai) {
+  return partai.reduce((total, baris) => total + (baris.langkahDinilaiTanpaPeringkat || 0), 0);
+}
+
+function totalPartaiTanpaPeringkatCocok(partai) {
+  return partai.reduce((total, baris) => total + (baris.langkahCocokTanpaPeringkat || 0), 0);
+}
+
 function hasilKosong(username) {
   return {
     username: String(username ?? ""),
@@ -977,6 +1133,8 @@ function hasilKosong(username) {
     jumlahLangkah: 0,
     andal: false,
     engineMatchRate: null,
+    langkahDinilaiTanpaPeringkat: 0,
+    langkahCocokTanpaPeringkat: 0,
     acpl: null,
     rating: null,
     kandidatSampel: 0,
@@ -1005,6 +1163,10 @@ function hasilKosong(username) {
     acplBaku: null,
     anotasi: petaAnotasiKosong(),
     komponen: { kecocokan: null, peringkat: null, acpl: null, waktu: null },
+    metrikAktif: [],
+    jumlahMetrikAktif: 0,
+    sampelMetrik: { kecocokan: 0, peringkat: 0, acpl: 0, waktu: 0 },
+    cakupanTerbatas: true,
     skor: null,
     level: null,
     perFase: Object.fromEntries(
@@ -1067,6 +1229,8 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
    */
   let totalLangkahDinilai = 0;
   let totalLangkahCocok = 0;
+  let totalKecocokanSkorDinilai = 0;
+  let totalKecocokanSkorCocok = 0;
   let totalLangkahAcpl = 0;
   let totalKerugian = 0;
   let bobotWaktu = 0;
@@ -1120,6 +1284,14 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   for (const baris of partai) {
     totalLangkahDinilai += baris.langkahDinilai || 0;
     totalLangkahCocok += baris.langkahCocok || 0;
+    // Across history, use top-1 only where a valid MultiPV rank is absent.
+    if ((baris.kandidatSampel || 0) > 0) {
+      totalKecocokanSkorDinilai += baris.langkahDinilaiTanpaPeringkat || 0;
+      totalKecocokanSkorCocok += baris.langkahCocokTanpaPeringkat || 0;
+    } else {
+      totalKecocokanSkorDinilai += baris.langkahDinilai || 0;
+      totalKecocokanSkorCocok += baris.langkahCocok || 0;
+    }
     totalLangkahAcpl += baris.langkahAcpl || 0;
     totalKerugian += Number.isFinite(baris.totalKerugian) ? baris.totalKerugian : 0;
     totalKandidatSampel += baris.kandidatSampel || 0;
@@ -1182,6 +1354,9 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
   }
 
   const engineMatchRate = totalLangkahDinilai ? (totalLangkahCocok / totalLangkahDinilai) * 100 : null;
+  const engineMatchRateSkor = totalKecocokanSkorDinilai
+    ? (totalKecocokanSkorCocok / totalKecocokanSkorDinilai) * 100
+    : null;
   const acpl = totalLangkahAcpl ? totalKerugian / totalLangkahAcpl : null;
   const rataPeringkat = totalKandidatSampel ? totalPeringkatJumlah / totalKandidatSampel : null;
   const konsistensiWaktu = bobotWaktu ? jumlahWaktu / bobotWaktu : null;
@@ -1224,13 +1399,20 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     };
   }
 
-  const { skor, level, komponen } = skorKecurigaan({
-    engineMatchRate,
+  const sampelMetrik = {
+    kecocokan: totalKecocokanSkorDinilai,
+    peringkat: totalKandidatSampel,
+    acpl: totalLangkahAcpl,
+    waktu: bobotWaktu,
+  };
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, domainBukti, jumlahDomainBukti, cakupanTerbatas } = skorKecurigaan({
+    engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
     konsistensiWaktu,
     jumlahLangkah: totalLangkahDinilai,
     ratingPemain: ratingMedan,
+    sampel: sampelMetrik,
   });
 
   const tren = {
@@ -1256,8 +1438,13 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     username: String(username ?? ""),
     jumlahPartai: partai.length,
     jumlahLangkah: totalLangkahDinilai,
-    andal: partai.length >= MIN_PARTAI_AGGREGAT && totalLangkahDinilai >= MIN_LANGKAH_AGGREGAT,
+    // Keandalan jumlah data mengikuti metrik skor dengan sampel terbanyak,
+    // bukan hanya top-1. Maksimum menghindari penghitungan ganda pada posisi
+    // yang dapat menyumbang ke lebih dari satu metrik.
+    andal: partai.length >= MIN_PARTAI_AGGREGAT && Math.max(...Object.values(sampelMetrik)) >= MIN_LANGKAH_AGGREGAT,
     engineMatchRate: bulat1(engineMatchRate),
+    langkahDinilaiTanpaPeringkat: totalPartaiTanpaPeringkatDinilai(partai),
+    langkahCocokTanpaPeringkat: totalPartaiTanpaPeringkatCocok(partai),
     acpl: bulat1(acpl),
     rating: ratingMedan,
     /*
@@ -1287,6 +1474,12 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     komponen,
     skor,
     level,
+    metrikAktif,
+    jumlahMetrikAktif,
+    domainBukti,
+    jumlahDomainBukti,
+    sampelMetrik,
+    cakupanTerbatas,
     perFase,
     tren,
     partai,

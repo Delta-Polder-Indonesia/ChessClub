@@ -22,8 +22,8 @@
  *   9. METRIK KONDISIONAL (fase 2): keranjang posisi sulit/mudah dari
  *      ketajaman kandidat, rentetan langkah terbaik beruntun, dan korelasi
  *      Spearman waktu pikir ↔ peringkat kandidat.
- *  10. KALIBRASI PER RATING: band KALIBRASI_RATING, pilihKalibrasi,
- *      ratingDariMetadata, median rating agregat, arah pengaruhnya ke skor.
+ *  10. KEBIJAKAN PUKUL RATA: rating/identitas tidak mengubah skor deteksi;
+ *      rating tetap dapat dibaca sebagai metadata laporan.
  *  11. LAPORAN PENINJAUAN: teks + JSON + sanggahan wajib.
  *  12. DEVIASI MANUSIA (siap-Maia): kejutan bit & peringkat distribusi.
  *  13. ORKESTRATOR LANJUTAN: durasi per partai + cache localStorage
@@ -44,7 +44,7 @@ const { createRoot } = await import("react-dom/client");
 const { I18nProvider } = await import("../src/lib/I18nProvider.jsx");
 const { Chess } = await import("chess.js");
 const { ID } = await import("../src/lib/terjemahan/id/index.js");
-const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
+const { bacaPartaiPGN, formatSquare, incrementDariPgn, parseClockString, parsePGN } = await import("../src/halaman/Analisa/mesin/engine.js");
 const { EngineCatur } = await import("../src/lib/engineCatur.js");
 const laporan = await import("../src/halaman/Analisa/mesin/laporanPeninjauan.js");
 const deviasi = await import("../src/halaman/Analisa/mesin/deviasiManusia.js");
@@ -127,13 +127,63 @@ hasil("waktuBerpikir hitam = 10 detik", ac.waktuBerpikir(MOVES_JAM, 2, "b") === 
 hasil("waktuBerpikir negatif → null", ac.waktuBerpikir(MOVES_JAM, 3, "w") === null);
 hasil("clock null → null", ac.waktuBerpikir(MOVES_JAM, 4, "b") === null);
 hasil("waktuBerpikir tanpa entri sebelumnya → null", ac.waktuBerpikir(MOVES_JAM, 0, "w") === null);
+hasil(
+  "waktuBerpikir mengoreksi increment 3 detik (300 → 298 = 5 detik berpikir)",
+  ac.waktuBerpikir(
+    [{ clock: { white: 300, black: 300, incrementSeconds: 3 } }, { clock: { white: 298, black: 300, incrementSeconds: 3 } }],
+    1,
+    "w"
+  ) === 5
+);
+hasil(
+  "waktuBerpikir tidak menebak saat increment tidak diketahui",
+  ac.waktuBerpikir(
+    [{ clock: { white: 300, black: 300, incrementSeconds: null } }, { clock: { white: 298, black: 300, incrementSeconds: null } }],
+    1,
+    "w"
+  ) === null
+);
+hasil("parseClockString mempertahankan pecahan detik", parseClockString("{[%clk 0:04:55.5]}") === 295.5);
+hasil("incrementDariPgn: kontrol sederhana tanpa increment = 0", incrementDariPgn({ TimeControl: "300" }) === 0);
+hasil("incrementDariPgn: 300+3 = 3 detik", incrementDariPgn({ TimeControl: "300+3" }) === 3);
+hasil("incrementDariPgn: format bertahap tidak ditebak", incrementDariPgn({ TimeControl: "40/7200:3600+30" }) === null);
+{
+  const tanpaKontrol = bacaPartaiPGN(
+    '[Event "Clock test"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 0:04:55.5]} e5 {[%clk 0:04:54.25]} *'
+  );
+  hasil(
+    "PGN tanpa TimeControl tidak memakai clock sesudah langkah sebagai baseline",
+    tanpaKontrol.daftarClock[0].white === null &&
+      tanpaKontrol.daftarClock[0].black === null &&
+      tanpaKontrol.daftarClock[1].white === 295.5 &&
+      tanpaKontrol.daftarClock[2].black === 294.25
+  );
+  const jamTidakLengkap = bacaPartaiPGN(
+    '[Event "Incomplete clocks"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 0:04:55]} e5 2. Nf3 {[%clk 0:04:40]} *'
+  );
+  hasil(
+    "komentar clock hilang tidak menggeser jam ke warna/langkah lain",
+    jamTidakLengkap.daftarClock[2].black === null &&
+      jamTidakLengkap.daftarClock[3].white === 280
+  );
+  const denganIncrement = bacaPartaiPGN(
+    '[Event "Clock test"]\n[TimeControl "300+3"]\n[White "A"]\n[Black "B"]\n1. e4 {[%clk 4:58]} e5 {[%clk 4:59]} *'
+  );
+  hasil(
+    "PGN TimeControl increment terbawa ke clock tiap posisi",
+    denganIncrement.metadata.timeIncrement === 3 &&
+      denganIncrement.daftarClock[0].incrementSeconds === 3 &&
+      denganIncrement.daftarClock[1].white === 298
+  );
+}
 
 hasil(
   `statistikWaktu: < ${ac.SAMPEL_WAKTU_MINIMUM} sampel → null`,
   ac.statistikWaktu([1, 1, 1]) === null
 );
 const waktuSeragam = ac.statistikWaktu(Array(10).fill(3));
-hasil("jam seragam → konsistensi 1", waktuSeragam?.konsistensi === 1 && waktuSeragam.koefisienVariasi === 0);
+hasil("jam seragam positif → konsistensi 1", waktuSeragam?.konsistensi === 1 && waktuSeragam.koefisienVariasi === 0);
+hasil("semua clock nol → waktu tidak informatif (null)", ac.statistikWaktu(Array(10).fill(0)) === null);
 const waktuAcak = ac.statistikWaktu([1, 20, 2, 30, 1, 25, 3, 18, 2, 22, 1, 19]);
 hasil("jam bervariasi → konsistensi 0", waktuAcak?.konsistensi === 0);
 
@@ -162,11 +212,112 @@ hasil(
   ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, konsistensiWaktu: null, jumlahLangkah: 1000 }).skor === 99
 );
 hasil("tidak ada metrik → skor null", ac.skorKecurigaan({}).skor === null);
+hasil(
+  "metrik tanpa jumlah langkah → skor dan level null",
+  ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0 }).skor === null &&
+    ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0 }).level === null
+);
+hasil(
+  "jumlah langkah nol/negatif → skor dan level null",
+  ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, jumlahLangkah: 0 }).skor === null &&
+    ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, jumlahLangkah: -2 }).level === null
+);
 const sedikit = ac.skorKecurigaan({ engineMatchRate: 100, acpl: 0, konsistensiWaktu: 1, jumlahLangkah: 12 });
 hasil(
   "penyusutan sampel: 12 langkah → 50",
   sedikit.skor === 50,
   `dapat ${sedikit.skor}, faktor 12/(12+${ac.AMBANG.penyusutanLangkah})`
+);
+const satuMetrik = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  jumlahLangkah: 30,
+  sampel: { kecocokan: 30 },
+});
+hasil(
+  "satu metrik saja tidak diberi level kategoris",
+  satuMetrik.jumlahMetrikAktif === 1 &&
+    satuMetrik.cakupanTerbatas === true &&
+    satuMetrik.skor >= ac.AMBANG.tinggi &&
+    satuMetrik.level === "sementara",
+  JSON.stringify({ skor: satuMetrik.skor, level: satuMetrik.level, metrik: satuMetrik.jumlahMetrikAktif })
+);
+const duaMetrikSatuDomain = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  rataPeringkat: 1,
+  jumlahLangkah: 30,
+  sampel: { kecocokan: 30, peringkat: 30 },
+});
+hasil(
+  "top-1 dan peringkat MultiPV tidak dianggap dua domain bukti",
+  duaMetrikSatuDomain.jumlahMetrikAktif === 2 &&
+    duaMetrikSatuDomain.jumlahDomainBukti === 1 &&
+    duaMetrikSatuDomain.level === "sementara",
+  JSON.stringify({ metrik: duaMetrikSatuDomain.jumlahMetrikAktif, domain: duaMetrikSatuDomain.domainBukti, level: duaMetrikSatuDomain.level })
+);
+const domainKeduaSampelTipis = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  jumlahLangkah: 100,
+  sampel: { kecocokan: 100, acpl: 1, peringkat: 0, waktu: 0 },
+});
+hasil(
+  "domain kedua dengan satu sampel tidak membuka level kategoris",
+  domainKeduaSampelTipis.jumlahDomainBukti === 1 &&
+    domainKeduaSampelTipis.cakupanTerbatas === true &&
+    domainKeduaSampelTipis.level === "sementara",
+  JSON.stringify({ domain: domainKeduaSampelTipis.domainBukti, level: domainKeduaSampelTipis.level })
+);
+const duaDomainSampelMemadai = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 12, acpl: 12, peringkat: 0, waktu: 0 },
+});
+hasil(
+  "dua domain dengan sampel minimal membuka level heuristik",
+  duaDomainSampelMemadai.jumlahDomainBukti === 2 &&
+    duaDomainSampelMemadai.cakupanTerbatas === false &&
+    duaDomainSampelMemadai.level !== "sementara",
+  JSON.stringify({ domain: duaDomainSampelMemadai.domainBukti, level: duaDomainSampelMemadai.level })
+);
+const sampelMultiPvJarang = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  rataPeringkat: 1,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 80, acpl: 80, peringkat: 2, waktu: 0 },
+});
+const sampelMultiPvPenuh = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  rataPeringkat: 1,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 80, acpl: 80, peringkat: 80, waktu: 0 },
+});
+hasil(
+  "skor menyusut menurut sampel MultiPV aktual, bukan jumlah langkah umum",
+  sampelMultiPvJarang.skor < sampelMultiPvPenuh.skor &&
+    sampelMultiPvJarang.komponen.peringkat === 100,
+  `${sampelMultiPvJarang.skor} vs ${sampelMultiPvPenuh.skor}`
+);
+hasil(
+  "metrik tanpa sampel tidak ikut skor gabungan",
+  ac.skorKecurigaan({
+    engineMatchRate: 100,
+    acpl: 0,
+    rataPeringkat: 1,
+    jumlahLangkah: 80,
+    sampel: { kecocokan: 0, acpl: 0, peringkat: 0, waktu: 0 },
+  }).skor === null
+);
+hasil(
+  "ACPL valid dinilai meski kecocokan top-1 tidak tersedia",
+  Number.isFinite(ac.skorKecurigaan({
+    engineMatchRate: null,
+    acpl: 0,
+    jumlahLangkah: 0,
+    sampel: { kecocokan: 0, acpl: 12, peringkat: 0, waktu: 0 },
+  }).skor)
 );
 
 /* =============== 3. pengecualian langkah forced & book =============== */
@@ -379,6 +530,72 @@ hasil("partai engine: kecocokan langkah 100% untuk Hitam", skorMesin.b.engineMat
 hasil("partai engine: ACPL 0 kedua warna", skorMesin.w.acpl === 0 && skorMesin.b.acpl === 0, `${skorMesin.w.acpl}/${skorMesin.b.acpl}`);
 hasil("partai engine: jam seragam → konsistensi 1", skorMesin.w.konsistensiWaktu === 1, `${skorMesin.w.konsistensiWaktu}`);
 hasil("partai engine: level tinggi", skorMesin.w.level === "tinggi" && skorMesin.b.level === "tinggi", `${skorMesin.w.level}/${skorMesin.b.level}`);
+/* Top-1 dan MultiPV pada posisi sama adalah bukti yang tumpang tindih:
+ * metrik tampilan tetap penuh, tetapi skor hanya memakai top-1 tanpa peringkat.
+ */
+const movesSemuaPeringkat = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (let i = 1; i < movesSemuaPeringkat.length; i++) {
+  const langkah = movesSemuaPeringkat[i];
+  const calon = [langkah.uci, ...["e2e4", "d2d4", "g1f3", "c2c4", "b1c3", "f2f3", "g2g3"].filter((uci) => uci !== langkah.uci)]
+    .slice(0, ac.MULTI_PV);
+  movesSemuaPeringkat[i - 1].kandidat = calon.map((uci, indeks) => ({
+    uci,
+    peringkat: indeks + 1,
+    cp: 100 - indeks * 10,
+  }));
+}
+const semuaPeringkat = ac.hitungSkorKecurigaan(movesSemuaPeringkat);
+hasil(
+  "top-1 publik tetap penuh saat semua posisi punya peringkat",
+  semuaPeringkat.w.engineMatchRate === 100 && semuaPeringkat.w.kandidatSampel > 0
+);
+hasil(
+  "posisi berperingkat tidak dihitung ulang sebagai komponen top-1",
+  semuaPeringkat.w.langkahDinilaiTanpaPeringkat === 0 && semuaPeringkat.w.komponen.kecocokan === null,
+  `sampel tanpa peringkat ${semuaPeringkat.w.langkahDinilaiTanpaPeringkat}, komponen ${semuaPeringkat.w.komponen.kecocokan}`
+);
+const agregatSemuaPeringkat = ac.agregatSkorPemain([
+  { id: "rank-only", timestamp: 1, warna: "w", hasil: semuaPeringkat },
+], "budi");
+hasil(
+  "agregat: top-1 publik tidak hilang, tetapi tidak dihitung ganda dengan MultiPV",
+  agregatSemuaPeringkat.engineMatchRate === 100 &&
+    agregatSemuaPeringkat.langkahDinilaiTanpaPeringkat === 0 &&
+    agregatSemuaPeringkat.komponen.kecocokan === null,
+  `match publik ${agregatSemuaPeringkat.engineMatchRate}, komponen ${agregatSemuaPeringkat.komponen.kecocokan}`
+);
+
+
+const movesTanpaPeringkat = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (const langkah of movesTanpaPeringkat) delete langkah.kandidat;
+const tanpaPeringkat = ac.hitungSkorKecurigaan(movesTanpaPeringkat);
+hasil(
+  "tanpa MultiPV, top-1 tetap menjadi bukti skor",
+  tanpaPeringkat.w.engineMatchRate === 100 &&
+    tanpaPeringkat.w.langkahDinilaiTanpaPeringkat === tanpaPeringkat.w.langkahDinilai &&
+    tanpaPeringkat.w.komponen.kecocokan === 100,
+  `match ${tanpaPeringkat.w.engineMatchRate}, sampel ${tanpaPeringkat.w.langkahDinilaiTanpaPeringkat}/${tanpaPeringkat.w.langkahDinilai}, komponen ${tanpaPeringkat.w.komponen.kecocokan}`
+);
+
+// Skenario campuran: sebagian posisi punya peringkat MultiPV, sebagian tidak.
+// Hapus kandidat hanya pada separuh posisi milik Putih (indeks genap). Kalau
+// seluruh posisi satu warna dihapus, hasilnya bukan campuran lagi: top-1
+// memang menutup semua posisi dan rasio 30/30 tidak menguji apa pun.
+const movesPeringkatCampur = JSON.parse(JSON.stringify(movesSemuaPeringkat));
+let nomorPosisiPutih = 0;
+for (let i = 0; i < movesPeringkatCampur.length; i += 2) {
+  if (nomorPosisiPutih % 2 === 0) delete movesPeringkatCampur[i].kandidat;
+  nomorPosisiPutih++;
+}
+const campurPeringkat = ac.hitungSkorKecurigaan(movesPeringkatCampur);
+hasil(
+  "MultiPV campuran: top-1 hanya menghitung posisi tanpa peringkat valid",
+  campurPeringkat.w.langkahDinilaiTanpaPeringkat > 0 &&
+    campurPeringkat.w.langkahDinilaiTanpaPeringkat < campurPeringkat.w.langkahDinilai &&
+    campurPeringkat.w.engineMatchRate === 100,
+  `${campurPeringkat.w.langkahDinilaiTanpaPeringkat}/${campurPeringkat.w.langkahDinilai}, match publik ${campurPeringkat.w.engineMatchRate}`
+);
+
 
 hasil("partai jujur: kecocokan jauh di bawah 100%", skorJujur.w.engineMatchRate < 60, `${skorJujur.w.engineMatchRate}`);
 hasil("partai jujur: ACPL = 50 cp untuk Putih", hampir(skorJujur.w.acpl, GIGI, 0.5), `${skorJujur.w.acpl}`);
@@ -524,6 +741,17 @@ const trenTurun = ac.agregatSkorPemain(
   "budi"
 );
 hasil("tren menurun terdeteksi", trenTurun.tren.arah === "turun");
+
+hasil(
+  "tren mengabaikan skor hilang tanpa mengubahnya menjadi nol",
+  hampir(ac.kemiringanTren([10, null, 30, undefined, 50]), 10, 1e-6),
+  `${ac.kemiringanTren([10, null, 30, undefined, 50])}`
+);
+hasil(
+  "tren dengan kurang dari 3 skor valid → null",
+  ac.kemiringanTren([10, null, undefined, NaN, 50]) === null
+);
+hasil("tren input bukan array → null", ac.kemiringanTren(null) === null);
 hasil(
   "skor stabil → 'stabil'",
   ac.agregatSkorPemain(
@@ -768,6 +996,62 @@ act(() => {
 });
 hasil("moves kosong → pesan tanpa data", teks().includes(tID("analisa.antiCheat.tanpaData")), teks().slice(0, 80));
 hasil("moves kosong tetap menampilkan sanggahan", teks().includes(tID("analisa.antiCheat.disclaimer")));
+/* ACPL tetap bisa valid ketika bestMove/top-1 hilang. UI harus menampilkan
+ * metrik yang tersedia, bukan menyembunyikan seluruh laporan.
+ */
+const movesHanyaAcpl = JSON.parse(JSON.stringify(hasilMesin.moves));
+for (const langkah of movesHanyaAcpl) {
+  delete langkah.bestMoveSan;
+  delete langkah.kandidat;
+}
+const hasilHanyaAcpl = ac.hitungSkorKecurigaan(movesHanyaAcpl);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesHanyaAcpl })));
+});
+hasil(
+  "UI menampilkan laporan saat ACPL valid tetapi top-1 tidak tersedia",
+  hasilHanyaAcpl.w.langkahDinilai === 0 &&
+    hasilHanyaAcpl.w.langkahAcpl > 0 &&
+    !teks().includes(tID("analisa.antiCheat.tanpaData")) &&
+    teks().includes(tID("analisa.antiCheat.metrik.acpl")),
+  `top-1 ${hasilHanyaAcpl.w.langkahDinilai}, sampel ACPL ${hasilHanyaAcpl.w.langkahAcpl}`
+);
+/* Level kategoris hanya boleh keluar ketika minimal dua domain bukti
+ * (pemilihan, kualitas/ACPL, waktu) punya sampel memadai. Fixture ACPL di atas
+ * masih membawa data jam, jadi domain "waktu" ikut aktif — dua domain, bukan
+ * satu. Untuk menguji jalur "sementara" secara benar, jam harus dihapus dulu;
+ * kalau tidak, uji ini hanya akan membuktikan bahwa dua domain memang cukup.
+ */
+const movesSatuDomain = movesHanyaAcpl.map((langkah) => ({ ...langkah, clock: null }));
+const hasilSatuDomain = ac.hitungSkorKecurigaan(movesSatuDomain);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesSatuDomain })));
+});
+hasil(
+  "UI menandai level satu-metrik sebagai sementara",
+  hasilSatuDomain.w.level === "sementara" &&
+    hasilSatuDomain.w.domainBukti.length === 1 &&
+    teks().includes(tID("analisa.antiCheat.level.sementara")) &&
+    teks().includes(tID("analisa.antiCheat.cakupanTerbatas", { n: 1 })),
+  `domain ${hasilSatuDomain.w.domainBukti.join("+")}, level ${hasilSatuDomain.w.level}`
+);
+const movesAcplSampelKecil = movesHanyaAcpl.slice(0, 8);
+const hasilAcplSampelKecil = ac.hitungSkorKecurigaan(movesAcplSampelKecil);
+act(() => {
+  root.render(React.createElement(I18nProvider, null, React.createElement(DeteksiEngine, { moves: movesAcplSampelKecil })));
+});
+hasil(
+  "UI memberi peringatan sampel kecil untuk ACPL tanpa top-1",
+  hasilAcplSampelKecil.w.langkahDinilai === 0 &&
+    hasilAcplSampelKecil.w.langkahAcpl > 0 &&
+    teks().includes(tID("analisa.antiCheat.sampelKecil", { n: Math.min(
+      hasilAcplSampelKecil.w.langkahAcpl,
+      hasilAcplSampelKecil.b.langkahAcpl || Number.POSITIVE_INFINITY
+    ) })),
+  `sampel ACPL putih/hitam ${hasilAcplSampelKecil.w.langkahAcpl}/${hasilAcplSampelKecil.b.langkahAcpl}`
+);
+
+
 
 /* ============================ 8. modul fase bersama ============================ */
 
@@ -1144,6 +1428,34 @@ hasil("peringkatLangkahDalam: rank 1 terbaca", ac.peringkatLangkahDalam("e2e4", 
 hasil("peringkatLangkahDalam: rank 4 terbaca", ac.peringkatLangkahDalam("c2c4", KANDIDAT) === 4);
 hasil("peringkatLangkahDalam: di luar daftar = jenuh", ac.peringkatLangkahDalam("a2a3", KANDIDAT) === ac.MULTI_PV + 1, `${ac.peringkatLangkahDalam("a2a3", KANDIDAT)}`);
 hasil("peringkatLangkahDalam: tanpa kandidat = null", ac.peringkatLangkahDalam("e2e4", []) === null && ac.peringkatLangkahDalam("e2e4", undefined) === null);
+hasil("peringkatLangkahDalam: daftar MultiPV parsial tidak dianggap peringkat terburuk", ac.peringkatLangkahDalam("a2a3", KANDIDAT.slice(0, 2)) === null);
+hasil("peringkatLangkahDalam: daftar kandidat rusak → null", ac.peringkatLangkahDalam("a2a3", [{ uci: "e2e4", peringkat: 1 }, { uci: null, peringkat: 2 }]) === null);
+hasil(
+  "MultiPV menolak UCI dengan bentuk sintaks tidak valid",
+  ac.peringkatLangkahDalam("a2a3", KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "zzzz" } : k))) === null &&
+    ac.peringkatLangkahDalam("a2a3", KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "e2e4x" } : k))) === null,
+);
+hasil(
+  "peringkatLangkahDalam: rank duplikat/berlubang → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 4 ? { ...k, peringkat: 4 } : k))
+  ) === null
+);
+hasil(
+  "peringkatLangkahDalam: UCI duplikat → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 4 ? { ...k, uci: "e2e4" } : k))
+  ) === null
+);
+hasil(
+  "peringkatLangkahDalam: rank pecahan → null",
+  ac.peringkatLangkahDalam(
+    "a2a3",
+    KANDIDAT.map((k, i) => (i === 2 ? { ...k, peringkat: 2.5 } : k))
+  ) === null
+);
 hasil("kerugianKandidatCp: rank 4 rugi 20 cp", ac.kerugianKandidatCp("c2c4", KANDIDAT) === 20, `${ac.kerugianKandidatCp("c2c4", KANDIDAT)}`);
 hasil("kerugianKandidatCp: rank 1 rugi 0", ac.kerugianKandidatCp("e2e4", KANDIDAT) === 0);
 hasil("kerugianKandidatCp: di luar daftar = null", ac.kerugianKandidatCp("a2a3", KANDIDAT) === null);
@@ -1151,6 +1463,23 @@ hasil("kerugianKandidatCp: kandidat tunggal = null", ac.kerugianKandidatCp("e2e4
 hasil("cpKandidat: mate dihitung CP_MATE", ac.cpKandidat({ cp: null, mate: 2 }) === ac.CP_MATE);
 hasil("kehilanganMenangPermille: rank 4 kehilangan 60 permille", ac.kehilanganMenangPermille("c2c4", KANDIDAT) === 60, `${ac.kehilanganMenangPermille("c2c4", KANDIDAT)}`);
 hasil("kehilanganMenangPermille: tanpa WDL = null", ac.kehilanganMenangPermille("c2c4", KANDIDAT.map(({ wdl, ...k }) => k)) === null);
+const kandidatAcak = [...KANDIDAT].reverse();
+hasil(
+  "MultiPV teracak: rank, rugi cp, WDL, dan ketajaman mengikuti peringkat eksplisit",
+  ac.peringkatLangkahDalam("c2c4", kandidatAcak) === 4 &&
+    ac.kerugianKandidatCp("c2c4", kandidatAcak) === 20 &&
+    ac.kehilanganMenangPermille("c2c4", kandidatAcak) === 60 &&
+    ac.ketajamanKandidat(kandidatAcak) === 12
+);
+hasil(
+  "MultiPV rusak tidak dipakai untuk rugi cp atau ketajaman",
+  ac.kerugianKandidatCp("e2e4", [{ ...KANDIDAT[0], peringkat: 2 }, { ...KANDIDAT[1], peringkat: 2 }]) === null &&
+    ac.ketajamanKandidat([{ ...KANDIDAT[0], peringkat: 2 }, { ...KANDIDAT[1], peringkat: 2 }]) === null
+);
+hasil(
+  "WDL rusak tidak dianggap kehilangan nol",
+  ac.kehilanganMenangPermille("c2c4", KANDIDAT.map((k) => ({ ...k, wdl: [undefined, 500, 500] }))) === null
+);
 
 /* Partai mini: Putih selalu rank 1, Hitam selalu rank 4 → skor Putih > Hitam. */
 const KAND = [
@@ -1300,8 +1629,8 @@ hasil("ketajamanKandidat: kosong = null", ac.ketajamanKandidat([]) === null && a
 hasil(
   "ketajamanKandidat: mate dihitung CP_MATE",
   ac.ketajamanKandidat([
-    { peringkat: 1, uci: "x", cp: null, mate: 1 },
-    { peringkat: 2, uci: "y", cp: 50, mate: null },
+    { peringkat: 1, uci: "e2e4", cp: null, mate: 1 },
+    { peringkat: 2, uci: "d2d4", cp: 50, mate: null },
   ]) === ac.CP_MATE - 50
 );
 
@@ -1474,7 +1803,7 @@ hasil(
 
 /* ============ 11. kalibrasi per rating ============ */
 
-console.log("\n== kalibrasi ambang per rating ==");
+console.log("\n== metadata rating dan kebijakan skor pukul rata ==");
 hasil("pilihKalibrasi(null) = ambang global", ac.pilihKalibrasi(null).kecocokanDasar === ac.AMBANG.kecocokanDasar);
 hasil("pilihKalibrasi(NaN) = ambang global", ac.pilihKalibrasi(NaN).acplAcuan === ac.AMBANG.acplAcuan);
 hasil("pilihKalibrasi(700) → band 40/70", ac.pilihKalibrasi(700).kecocokanDasar === 40 && ac.pilihKalibrasi(700).acplAcuan === 70);
@@ -1492,20 +1821,28 @@ hasil(
 );
 hasil("ratingDariMetadata: elo 0/negatif → null", ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).w === null && ac.ratingDariMetadata({ players: [{ elo: 0 }, { elo: -3 }] }).b === null);
 
-/* Arah kalibrasi: metrik sama, pemain lemah yang cocok 70% → skor lebih
- * tinggi daripada pemain kuat (70% itu biasa di 2400+). */
+/* Metrik identik harus menghasilkan skor identik, berapa pun ratingnya. */
 const metrikSama = { engineMatchRate: 70, acpl: 30, konsistensiWaktu: 0.5, rataPeringkat: 2, jumlahLangkah: 80 };
-const skorLemah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
-const skorKuat = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
-hasil("kalibrasi: skor pemain 800 > skor pemain 2600 pada metrik sama", skorLemah.skor > skorKuat.skor, `${skorLemah.skor} vs ${skorKuat.skor}`);
+const skorRatingRendah = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 800 });
+const skorRatingTinggi = ac.skorKecurigaan({ ...metrikSama, ratingPemain: 2600 });
+const skorTanpaRating = ac.skorKecurigaan({ ...metrikSama, ratingPemain: null });
 hasil(
-  "kalibrasi: tanpa rating = ambang global (perilaku lama utuh)",
-  JSON.stringify(ac.skorKecurigaan(metrikSama)) === JSON.stringify(ac.skorKecurigaan({ ...metrikSama, ratingPemain: null }))
+  "pukul rata: rating 800, 2600, dan tanpa rating menghasilkan skor identik",
+  skorRatingRendah.skor === skorRatingTinggi.skor &&
+    skorRatingRendah.skor === skorTanpaRating.skor,
+  `${skorRatingRendah.skor} / ${skorRatingTinggi.skor} / ${skorTanpaRating.skor}`
 );
 
-/* hitungSkorKecurigaan menerima rating per warna. */
+/* Rating per warna tetap diterima untuk kompatibilitas, tetapi tidak mengubah skor. */
 const miniRating = ac.hitungSkorKecurigaan(daftarMini, { rating: { w: 800, b: 2600 } });
-hasil("kalibrasi per warna: diterapkan tanpa galat", Number.isFinite(miniRating.w.skor) && Number.isFinite(miniRating.b.skor));
+const miniTanpaRating = ac.hitungSkorKecurigaan(daftarMini);
+hasil(
+  "pukul rata per warna: rating tidak mengubah skor Putih maupun Hitam",
+  Number.isFinite(miniRating.w.skor) &&
+    Number.isFinite(miniRating.b.skor) &&
+    miniRating.w.skor === miniTanpaRating.w.skor &&
+    miniRating.b.skor === miniTanpaRating.b.skor
+);
 
 /* barisPartai membaca rating dari metadata; agregat memakai median. */
 const metadataRating = { players: [{ name: "budi", elo: 1200 }, { name: "lawan", elo: 1250 }] };
@@ -1520,6 +1857,66 @@ hasil("agregat: rating median = 1225", agregatRating.rating === 1225, `${agregat
 hasil("agregat: baris membawa rating", agregatRating.partai.every((b) => b.rating === 1200 || b.rating === 1250));
 const agregatTanpaRating = ac.agregatSkorPemain([{ id: "r1", timestamp: 1, warna: "w", hasil: mini }], "budi");
 hasil("agregat: tanpa metadata → rating null (tanpa kalibrasi)", agregatTanpaRating.rating === null);
+const agregatRatingEksplisitKosong = ac.agregatSkorPemain(
+  [
+    { id: "rating-null", timestamp: 4, warna: "w", rating: null, metadata: metadataRating, hasil: mini },
+    { id: "rating-kosong", timestamp: 5, warna: "w", rating: "", metadata: metadataRating, hasil: mini },
+    { id: "rating-nol", timestamp: 6, warna: "w", rating: 0, metadata: metadataRating, hasil: mini },
+  ],
+  "budi"
+);
+hasil(
+  "rating null/string kosong fallback ke metadata, bukan Elo 0",
+  agregatRatingEksplisitKosong.rating === 1200,
+  `${agregatRatingEksplisitKosong.rating}`,
+);
+
+/* Partai tanpa bestMove/top-1 tetap masuk agregat jika ACPL-nya valid. */
+const agregatHanyaAcpl = ac.agregatSkorPemain([
+  {
+    id: "acpl-only",
+    timestamp: 3,
+    warna: "w",
+    hasil: {
+      w: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 12, totalKerugian: 120, kandidatSampel: 0 },
+      b: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 0, totalKerugian: 0, kandidatSampel: 0 },
+    },
+  },
+], "budi");
+hasil(
+  "agregat tidak membuang partai tanpa top-1 jika ACPL valid",
+  agregatHanyaAcpl.jumlahPartai === 1 &&
+    agregatHanyaAcpl.partai[0].langkahAcpl === 12 &&
+    Number.isFinite(agregatHanyaAcpl.skor),
+  `partai ${agregatHanyaAcpl.jumlahPartai}, ACPL sampel ${agregatHanyaAcpl.partai[0]?.langkahAcpl}, skor ${agregatHanyaAcpl.skor}`
+);
+const agregatAcplCukup = ac.agregatSkorPemain(
+  [1, 2, 3].map((id) => ({
+    id: `acpl-${id}`,
+    timestamp: id,
+    warna: "w",
+    hasil: {
+      w: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 20, totalKerugian: 200, kandidatSampel: 0 },
+      b: { langkahDinilai: 0, langkahCocok: 0, langkahAcpl: 0, totalKerugian: 0, kandidatSampel: 0 },
+    },
+  })),
+  "budi"
+);
+hasil(
+  "agregat ACPL-only: keandalan mengikuti sampel metrik, level tetap sementara",
+  agregatAcplCukup.andal === true &&
+    agregatAcplCukup.jumlahLangkah === 0 &&
+    agregatAcplCukup.sampelMetrik.acpl === 60 &&
+    agregatAcplCukup.jumlahMetrikAktif === 1 &&
+    agregatAcplCukup.level === "sementara",
+  JSON.stringify({
+    andal: agregatAcplCukup.andal,
+    top1: agregatAcplCukup.jumlahLangkah,
+    sampel: agregatAcplCukup.sampelMetrik,
+    level: agregatAcplCukup.level,
+  })
+);
+
 
 /* ============ 12. laporan peninjauan ============ */
 
@@ -1535,6 +1932,8 @@ console.log("\n== laporan peninjauan pengurus ==");
   hasil("laporan memuat ACPL baku", teks.includes("ACPL baku (eval dipotong"));
   hasil("laporan memuat hitungan anotasi NAG", teks.includes("Anotasi NAG:"));
   hasil("laporan memuat catatan metode", teks.includes("CATATAN METODE:"));
+  hasil("laporan menjelaskan skor heuristik dan pemisahan bukti", teks.includes("bukan probabilitas kecurangan yang terkalibrasi") && teks.includes("tidak dihitung dua kali"));
+
   hasil("laporan agregat kosong tetap berbentuk", laporan.buatLaporanPeninjauan(null).includes("Tidak ada partai"));
   const json = JSON.parse(laporan.buatLaporanJson(agregatRating, { username: "budi" }));
   hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 3);
@@ -1615,7 +2014,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   // Simulasi SESI BARU: buang isi Map memori secara langsung lalu pastikan
   // bacaCachePartai memuat ulang dari localStorage.
   const kunci = riwayat.kunciCachePartai("dur-1", riwayat.KEDALAMAN_AGGREGAT);
-  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}");
+  const diSimpanan = JSON.parse(localStorage.getItem("kci-anticheat-cache-v6") ?? "{}");
   hasil("cache: tersimpan di localStorage", Boolean(diSimpanan[kunci]));
   riwayat.bersihkanCacheAntiCheat?.tampak === undefined; // no-op, jaga bentuk
   // Muat ulang: bacaCachePartai setelah Map dibersihkan harus mengambil dari localStorage.
@@ -1623,7 +2022,7 @@ console.log("\n== orkestrator: durasi & cache lintas-sesi ==");
   hasil("cache: baca ulang lintas-sesi dari localStorage", Boolean(hasilBaca) && Boolean(hasilBaca.hasil?.w), `${Boolean(hasilBaca)}`);
   hasil("cache: bersihkan menghapus localStorage", (() => {
     riwayat.bersihkanCacheAntiCheat();
-    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v2") ?? "{}")[kunci];
+    return !JSON.parse(localStorage.getItem("kci-anticheat-cache-v6") ?? "{}")[kunci];
   })());
 }
 

@@ -334,6 +334,7 @@ export const analisa = {
         rendah: "Low",
         sedang: "Medium",
         tinggi: "High",
+        sementara: "Provisional",
         tidakAda: "No data",
       },
       metrik: {
@@ -359,6 +360,7 @@ export const analisa = {
       },
       tanpaData: "No move can be evaluated yet — forced and book moves are not counted.",
       sampelKecil: "Only {n} moves could be evaluated on one side; a sample this small proves nothing.",
+      cakupanTerbatas: "Adequate samples are available in only {n} evidence domains; signals within one domain may be correlated. This is not a validated statistical threshold. Interpret cautiously.",
       tanpaJam: "This PGN carries no clock data ([%clk]), so the think-time metric is skipped.",
       catatanMetrikBaku:
         "Accuracy and standard ACPL use the lichess/en-croissant formulas: win-chance curve, evals clamped to ±1000 cp (mate = ±1000), harmonic mean. These are the numbers comparable with a lichess report; neither feeds the suspicion score above, which still uses the between-position ACPL.",
@@ -408,7 +410,7 @@ export const analisa = {
         cache: "Games already analyzed are read from the session cache.",
         partaiDianalisis: "{partai} games · {langkah} moves evaluated",
         andal: "Based on {partai} games and {langkah} moves — enough for a first picture.",
-        tidakAndal: "Limited data ({partai} games, {langkah} moves). These numbers do not describe anything yet.",
+        tidakAndal: "Limited data ({partai} games, {langkah} moves). The score and level are provisional; do not draw conclusions from them.",
         tren: "Score trend across games",
         arah: {
           naik: "Rising",

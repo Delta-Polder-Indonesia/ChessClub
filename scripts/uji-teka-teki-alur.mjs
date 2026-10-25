@@ -630,22 +630,35 @@ judul("saringan & input nomor");
 
 judul("tombol Lewati / Acak / Baru");
 {
-  await bukaNomor(problems[0].problemid);
+  const sudah = terpecahkan();
+  const idSudah = sudah[0] ?? problems[0].problemid;
+  await bukaNomor(idSudah);
   const lewati = tombolTeks(kamus.lewati) || tombolTeks(kamus.selanjutnya);
   if (lewati) {
     klikEl(lewati);
-    await tungguSampai(() => !papanSama(problems[0].fen), 2000);
-    uji("Lewati memuat soal lain", !papanSama(problems[0].fen));
+    await tungguSampai(() => {
+      const aktif = problems.find((p) => papanSama(p.fen));
+      return !!aktif && !terpecahkan().includes(aktif.problemid);
+    }, 2000);
+    const aktif = problems.find((p) => papanSama(p.fen));
+    uji(
+      "Lewati melewati soal yang sudah terpecahkan",
+      !!aktif && !terpecahkan().includes(aktif.problemid),
+      aktif ? `soal #${aktif.problemid}` : "soal aktif tidak dikenali"
+    );
   } else {
     uji("tombol Lewati ada", false);
   }
   const acak = tombolTeks(kamus.acak);
   if (acak) {
-    const sebelum = papanSama(problems[0].fen);
     klikEl(acak);
     await tunggu(200);
-    uji("Acak tetap menampilkan papan yang sah", dok.querySelectorAll("[data-petak]").length === 64);
-    void sebelum;
+    const aktif = problems.find((p) => papanSama(p.fen));
+    uji(
+      "Acak memilih soal yang belum terpecahkan",
+      !!aktif && !terpecahkan().includes(aktif.problemid),
+      aktif ? `soal #${aktif.problemid}` : "soal aktif tidak dikenali"
+    );
   }
 }
 
@@ -989,6 +1002,41 @@ judul("skakmat alternatif: skakmat sah di luar solusi diberi pesan khusus");
       uji("soal belum ditandai selesai", langkahTersisa > 0);
     }
   }
+}
+
+judul("pemulihan soal selesai vs deep-link eksplisit");
+{
+  // Skenario 1: URL masih menunjuk posisi tersimpan yang sudah selesai.
+  // Ini adalah pemulihan sesi; soal selesai harus dilewati.
+  pasangDomBaru();
+  window.localStorage.setItem("kci-teka-teki-terpecahkan", JSON.stringify([1]));
+  window.localStorage.setItem("kci-teka-teki-posisi", "1");
+  delete require.cache[berkasBundel];
+  const modPemulihan = require(berkasBundel);
+  modPemulihan.mount(dok.getElementById("root"));
+  const pulih = await tungguSampai(
+    () => [...problems].some((p) => !terpecahkan().includes(p.problemid) && papanSama(p.fen)),
+    6000
+  );
+  const soalPulih = problems.find((p) => papanSama(p.fen));
+  uji(
+    "pemulihan melewati soal terakhir yang sudah selesai",
+    pulih && !!soalPulih && soalPulih.problemid !== 1 && !terpecahkan().includes(soalPulih.problemid),
+    soalPulih ? `soal aktif #${soalPulih.problemid}` : "papan aktif tidak cocok dengan dataset"
+  );
+
+  // Skenario 2: deep-link /1 berbeda dari posisi tersimpan #2.
+  // Soal yang diminta secara eksplisit tetap boleh dibuka untuk review.
+  pasangDomBaru();
+  window.localStorage.setItem("kci-teka-teki-terpecahkan", JSON.stringify([2]));
+  window.localStorage.setItem("kci-teka-teki-posisi", "2");
+  delete require.cache[berkasBundel];
+  const modTautan = require(berkasBundel);
+  modTautan.mount(dok.getElementById("root"));
+  uji(
+    "deep-link berbeda dari posisi tersimpan tetap membuka soal yang diminta",
+    await tungguSampai(() => papanSama(problems[0].fen), 6000)
+  );
 }
 
 /* ------------------------------------------------------------------ hasil */

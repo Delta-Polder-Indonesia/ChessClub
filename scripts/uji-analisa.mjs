@@ -127,11 +127,15 @@ await uji("kontrol waktu PGN → detik", () => {
   assert.equal(waktuDariPgn({ TimeControl: "10:60" }), 0); // format tak dikenal → tanpa jam
 });
 
-await uji("parseClockString membaca format tag %clk", () => {
-  assert.equal(parseClockString("{ [%clk 0:02:59.9] }"), 180);
+await uji("parseClockString membaca format tag %clk dan mempertahankan pecahan detik", () => {
+  // Presisi pecahan sengaja dipertahankan (bukan dibulatkan): data jam dipakai
+  // metrik waktu pikir anti-cheat, dan pembulatan per langkah menghapus
+  // selisih sub-detik yang masih bermakna. Pembulatan untuk tampilan dilakukan
+  // di `formatTime` komponen papan.
+  assert.equal(parseClockString("{ [%clk 0:02:59.9] }"), 179.9);
   assert.equal(parseClockString("{ [%clk 0:05:00] }"), 300);
   assert.equal(parseClockString("{ [%clk 1:30:00] }"), 5400);
-  assert.equal(parseClockString("{ [%clk 0:00:04.2] }"), 4);
+  assert.equal(parseClockString("{ [%clk 0:00:04.2] }"), 4.2);
   assert.equal(parseClockString("{ [%clk 0:15] }"), 15);
   assert.equal(parseClockString("tanpa tag"), null);
 });
@@ -145,13 +149,54 @@ await uji("ekstrakDaftarClock melacak sisa waktu Putih & Hitam per langkah", () 
   const c = new Chess();
   c.loadPgn(pgnClock);
   const r = c.history({ verbose: true });
-  const clocks = ekstrakDaftarClock(c, pgnClock, r, 180);
+  // `incrementSeconds` ikut ditempel pada setiap posisi supaya anti-cheat bisa
+  // menambahkan kembali increment sebelum menghitung waktu pikir.
+  const clocks = ekstrakDaftarClock(c, pgnClock, r, 180, 2);
   assert.equal(clocks.length, 5);
-  assert.deepEqual(clocks[0], { white: 180, black: 180 }); // posisi awal
-  assert.deepEqual(clocks[1], { white: 179, black: 180 }); // setelah 1. e4
-  assert.deepEqual(clocks[2], { white: 179, black: 178 }); // setelah 1... e5
-  assert.deepEqual(clocks[3], { white: 175, black: 178 }); // setelah 2. Nf3
-  assert.deepEqual(clocks[4], { white: 175, black: 174 }); // setelah 2... Nc6
+  assert.deepEqual(clocks[0], { white: 180, black: 180, incrementSeconds: 2 }); // posisi awal
+  assert.deepEqual(clocks[1], { white: 179, black: 180, incrementSeconds: 2 }); // setelah 1. e4
+  assert.deepEqual(clocks[2], { white: 179, black: 178, incrementSeconds: 2 }); // setelah 1... e5
+  assert.deepEqual(clocks[3], { white: 175, black: 178, incrementSeconds: 2 }); // setelah 2. Nf3
+  assert.deepEqual(clocks[4], { white: 175, black: 174, incrementSeconds: 2 }); // setelah 2... Nc6
+
+  // Tanpa increment yang diketahui, nilainya harus tetap `null` — bukan 0 —
+  // agar konsumen membedakan "tanpa increment" dari "increment 0".
+  assert.equal(ekstrakDaftarClock(c, pgnClock, r, 180)[0].incrementSeconds, null);
+});
+
+await uji("ekstrakDaftarClock tidak mengarang jam saat komentar hilang", () => {
+  // Komentar jam di langkah 2... Nc6 sengaja dihapus. Jam langkah yang hilang
+  // harus dibiarkan apa adanya; jangan menggeser jam langkah berikutnya ke
+  // warna/langkah yang salah.
+  const pgnClock = [
+    '[TimeControl "180+2"]',
+    "",
+    "1. e4 { [%clk 0:02:59] } 1... e5 { [%clk 0:02:58] } 2. Nf3 { [%clk 0:02:55] } 2... Nc6",
+  ].join("\n");
+  const c = new Chess();
+  c.loadPgn(pgnClock);
+  const r = c.history({ verbose: true });
+  const clocks = ekstrakDaftarClock(c, pgnClock, r, 180, 2);
+  assert.equal(clocks.length, 5);
+  // Tanpa jam untuk 2... Nc6, Hitam tetap memakai jam terakhir yang diketahui.
+  assert.deepEqual(clocks[4], { white: 175, black: 178, incrementSeconds: 2 });
+});
+
+await uji("ekstrakDaftarClock tanpa waktu dasar tidak menebak jam awal", () => {
+  // Jam pada komentar adalah sisa waktu SETELAH langkah. Menebaknya sebagai jam
+  // awal membuat langkah pertama tiap warna tampak memakan 0 detik.
+  const pgnClock = [
+    '[TimeControl "180+2"]',
+    "",
+    "1. e4 { [%clk 0:02:59] } 1... e5 { [%clk 0:02:58] }",
+  ].join("\n");
+  const c = new Chess();
+  c.loadPgn(pgnClock);
+  const r = c.history({ verbose: true });
+  const clocks = ekstrakDaftarClock(c, pgnClock, r, 0, 2);
+  assert.deepEqual(clocks[0], { white: null, black: null, incrementSeconds: 2 });
+  assert.deepEqual(clocks[1], { white: 179, black: null, incrementSeconds: 2 });
+  assert.deepEqual(clocks[2], { white: 179, black: 178, incrementSeconds: 2 });
 });
 
 await uji("kerangka PGN menyediakan semua posisi sebelum evaluasi", () => {
@@ -276,11 +321,13 @@ await uji("parsePGN dengan tag clock menghasilkan waktu per langkah", async () =
   const mesin = engineTiruan();
   const { moves } = await parsePGN(mesin, pgn, 8, {}, () => {}, null);
   assert.equal(moves.length, 5);
-  assert.deepEqual(moves[0].clock, { white: 180, black: 180 });
-  assert.deepEqual(moves[1].clock, { white: 179, black: 180 });
-  assert.deepEqual(moves[2].clock, { white: 179, black: 178 });
-  assert.deepEqual(moves[3].clock, { white: 175, black: 178 });
-  assert.deepEqual(moves[4].clock, { white: 175, black: 174 });
+  // TimeControl "180+2" harus terbawa ke setiap posisi sebagai increment 2,
+  // supaya anti-cheat bisa mengoreksi waktu pikir.
+  assert.deepEqual(moves[0].clock, { white: 180, black: 180, incrementSeconds: 2 });
+  assert.deepEqual(moves[1].clock, { white: 179, black: 180, incrementSeconds: 2 });
+  assert.deepEqual(moves[2].clock, { white: 179, black: 178, incrementSeconds: 2 });
+  assert.deepEqual(moves[3].clock, { white: 175, black: 178, incrementSeconds: 2 });
+  assert.deepEqual(moves[4].clock, { white: 175, black: 174, incrementSeconds: 2 });
 });
 
 await uji("parsePGN menolak PGN rusak / tanpa langkah", async () => {
