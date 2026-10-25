@@ -315,10 +315,13 @@ export function ekstrakDaftarClock(chess, rawPgn, riwayat, waktuDasar = 0, incre
   for (let i = 0; i < riwayat.length; i++) {
     const m = riwayat[i];
     let clk = null;
-    if (sequentialClocks.length === riwayat.length) {
-      clk = sequentialClocks[i];
-    } else if (mapKomentar.has(m.after)) {
+    if (mapKomentar.has(m.after)) {
+      // FEN mengikat jam ke posisi yang tepat, termasuk bila ada komentar
+      // ganda/hilang pada langkah lain.
       clk = mapKomentar.get(m.after);
+    } else if (sequentialClocks.length === riwayat.length) {
+      // Cadangan berurutan hanya aman bila jumlah tag tepat satu per langkah.
+      clk = sequentialClocks[i];
     }
     // Bila daftar komentar tidak lengkap, jangan memasangkan komentar yang
     // tersisa berdasarkan indeks: satu komentar hilang akan menggeser semua
