@@ -1738,6 +1738,8 @@ console.log("\n== laporan peninjauan pengurus ==");
   hasil("laporan memuat ACPL baku", teks.includes("ACPL baku (eval dipotong"));
   hasil("laporan memuat hitungan anotasi NAG", teks.includes("Anotasi NAG:"));
   hasil("laporan memuat catatan metode", teks.includes("CATATAN METODE:"));
+  hasil("laporan menjelaskan skor heuristik dan pemisahan bukti", teks.includes("bukan probabilitas kecurangan yang terkalibrasi") && teks.includes("tidak dihitung dua kali"));
+
   hasil("laporan agregat kosong tetap berbentuk", laporan.buatLaporanPeninjauan(null).includes("Tidak ada partai"));
   const json = JSON.parse(laporan.buatLaporanJson(agregatRating, { username: "budi" }));
   hasil("laporan JSON: versi & jenis benar", json.jenis === "laporan-peninjauan-anticheat" && json.versi === 3);
