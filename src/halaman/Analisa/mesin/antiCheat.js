@@ -582,14 +582,24 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
     bobotTerpakai += BOBOT[kunci];
     jumlahBerbobot += BOBOT[kunci] * nilai;
   }
-  if (!bobotTerpakai) return { skor: null, level: null, komponen };
+  const metrikAktif = Object.keys(komponenSkor).filter((kunci) => komponenSkor[kunci] !== null);
+  const sampelMetrik = { ...hitungan };
+  const jumlahMetrikAktif = metrikAktif.length;
+  const cakupanTerbatas = jumlahMetrikAktif < 2;
+
+  // Cakupan dilaporkan terpisah dari skor: renormalisasi bobot yang tersedia
+  // memang membuat skor tetap dapat dihitung, tetapi satu metrik bukan bukti
+  // lintas-metrik. Ini bukan probabilitas terkalibrasi.
+  if (!bobotTerpakai) {
+    return { skor: null, level: null, komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
+  }
 
   // Setiap komponen sudah divalidasi terhadap jumlah sampelnya sendiri.
   // Jangan mewajibkan sampel kecocokan top-1: ACPL atau MultiPV masih bisa
   // punya data sah meski saran bestMove tidak tersedia.
   const skor = Math.round(jumlahBerbobot / bobotTerpakai);
 
-  return { skor, level: tingkatDariSkor(skor), komponen };
+  return { skor, level: tingkatDariSkor(skor), komponen, metrikAktif, jumlahMetrikAktif, sampelMetrik, cakupanTerbatas };
 }
 
 /* ------------------------------------------------------- tingkat per partai */
@@ -792,6 +802,10 @@ function rampingkan(kumpul, { denganSkor = true, rating = null } = {}) {
     komponen,
     skor,
     level,
+    metrikAktif,
+    jumlahMetrikAktif,
+    sampelMetrik,
+    cakupanTerbatas,
   };
 }
 
@@ -1114,6 +1128,10 @@ function hasilKosong(username) {
     acplBaku: null,
     anotasi: petaAnotasiKosong(),
     komponen: { kecocokan: null, peringkat: null, acpl: null, waktu: null },
+    metrikAktif: [],
+    jumlahMetrikAktif: 0,
+    sampelMetrik: { kecocokan: 0, peringkat: 0, acpl: 0, waktu: 0 },
+    cakupanTerbatas: true,
     skor: null,
     level: null,
     perFase: Object.fromEntries(
@@ -1346,19 +1364,20 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     };
   }
 
-  const { skor, level, komponen } = skorKecurigaan({
+  const sampelMetrik = {
+    kecocokan: totalKecocokanSkorDinilai,
+    peringkat: totalKandidatSampel,
+    acpl: totalLangkahAcpl,
+    waktu: bobotWaktu,
+  };
+  const { skor, level, komponen, metrikAktif, jumlahMetrikAktif, cakupanTerbatas } = skorKecurigaan({
     engineMatchRate: engineMatchRateSkor,
     acpl,
     rataPeringkat,
     konsistensiWaktu,
     jumlahLangkah: totalLangkahDinilai,
     ratingPemain: ratingMedan,
-    sampel: {
-      kecocokan: totalKecocokanSkorDinilai,
-      peringkat: totalKandidatSampel,
-      acpl: totalLangkahAcpl,
-      waktu: bobotWaktu,
-    },
+    sampel: sampelMetrik,
   });
 
   const tren = {
@@ -1384,7 +1403,10 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     username: String(username ?? ""),
     jumlahPartai: partai.length,
     jumlahLangkah: totalLangkahDinilai,
-    andal: partai.length >= MIN_PARTAI_AGGREGAT && totalLangkahDinilai >= MIN_LANGKAH_AGGREGAT,
+    // Keandalan jumlah data mengikuti metrik skor dengan sampel terbanyak,
+    // bukan hanya top-1. Maksimum menghindari penghitungan ganda pada posisi
+    // yang dapat menyumbang ke lebih dari satu metrik.
+    andal: partai.length >= MIN_PARTAI_AGGREGAT && Math.max(...Object.values(sampelMetrik)) >= MIN_LANGKAH_AGGREGAT,
     engineMatchRate: bulat1(engineMatchRate),
     langkahDinilaiTanpaPeringkat: totalPartaiTanpaPeringkatDinilai(partai),
     langkahCocokTanpaPeringkat: totalPartaiTanpaPeringkatCocok(partai),
@@ -1417,6 +1439,10 @@ export function agregatSkorPemain(daftarHasilPartai, username = "") {
     komponen,
     skor,
     level,
+    metrikAktif,
+    jumlahMetrikAktif,
+    sampelMetrik,
+    cakupanTerbatas,
     perFase,
     tren,
     partai,
