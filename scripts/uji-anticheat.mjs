@@ -228,6 +228,36 @@ hasil(
   sedikit.skor === 50,
   `dapat ${sedikit.skor}, faktor 12/(12+${ac.AMBANG.penyusutanLangkah})`
 );
+const sampelMultiPvJarang = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  rataPeringkat: 1,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 80, acpl: 80, peringkat: 2, waktu: 0 },
+});
+const sampelMultiPvPenuh = ac.skorKecurigaan({
+  engineMatchRate: 100,
+  acpl: 0,
+  rataPeringkat: 1,
+  jumlahLangkah: 80,
+  sampel: { kecocokan: 80, acpl: 80, peringkat: 80, waktu: 0 },
+});
+hasil(
+  "skor menyusut menurut sampel MultiPV aktual, bukan jumlah langkah umum",
+  sampelMultiPvJarang.skor < sampelMultiPvPenuh.skor &&
+    sampelMultiPvJarang.komponen.peringkat === 100,
+  `${sampelMultiPvJarang.skor} vs ${sampelMultiPvPenuh.skor}`
+);
+hasil(
+  "metrik tanpa sampel tidak ikut skor gabungan",
+  ac.skorKecurigaan({
+    engineMatchRate: 100,
+    acpl: 0,
+    rataPeringkat: 1,
+    jumlahLangkah: 80,
+    sampel: { kecocokan: 0, acpl: 0, peringkat: 0, waktu: 0 },
+  }).skor === null
+);
 
 /* =============== 3. pengecualian langkah forced & book =============== */
 
