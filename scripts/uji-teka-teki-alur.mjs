@@ -630,22 +630,35 @@ judul("saringan & input nomor");
 
 judul("tombol Lewati / Acak / Baru");
 {
-  await bukaNomor(problems[0].problemid);
+  const sudah = terpecahkan();
+  const idSudah = sudah[0] ?? problems[0].problemid;
+  await bukaNomor(idSudah);
   const lewati = tombolTeks(kamus.lewati) || tombolTeks(kamus.selanjutnya);
   if (lewati) {
     klikEl(lewati);
-    await tungguSampai(() => !papanSama(problems[0].fen), 2000);
-    uji("Lewati memuat soal lain", !papanSama(problems[0].fen));
+    await tungguSampai(() => {
+      const aktif = problems.find((p) => papanSama(p.fen));
+      return !!aktif && !terpecahkan().includes(aktif.problemid);
+    }, 2000);
+    const aktif = problems.find((p) => papanSama(p.fen));
+    uji(
+      "Lewati melewati soal yang sudah terpecahkan",
+      !!aktif && !terpecahkan().includes(aktif.problemid),
+      aktif ? `soal #${aktif.problemid}` : "soal aktif tidak dikenali"
+    );
   } else {
     uji("tombol Lewati ada", false);
   }
   const acak = tombolTeks(kamus.acak);
   if (acak) {
-    const sebelum = papanSama(problems[0].fen);
     klikEl(acak);
     await tunggu(200);
-    uji("Acak tetap menampilkan papan yang sah", dok.querySelectorAll("[data-petak]").length === 64);
-    void sebelum;
+    const aktif = problems.find((p) => papanSama(p.fen));
+    uji(
+      "Acak memilih soal yang belum terpecahkan",
+      !!aktif && !terpecahkan().includes(aktif.problemid),
+      aktif ? `soal #${aktif.problemid}` : "soal aktif tidak dikenali"
+    );
   }
 }
 
