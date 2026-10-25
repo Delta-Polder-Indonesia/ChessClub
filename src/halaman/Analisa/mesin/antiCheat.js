@@ -26,10 +26,10 @@
  * `anotasi` NAG (`??` `?` `?!` `!!` `!` `!?`). Angka-angka inilah yang bisa
  * disandingkan dengan yang tampil di lichess/en-croissant. Yang LAMA
  * (`acpl`, dan akurasi label di `summary/playersAccuracy.jsx`) tetap ada dan
- * tetap menjadi masukan `skorKecurigaan` — ambang `AMBANG.acplAcuan` serta
- * `KALIBRASI_RATING` dikalibrasi terhadap konvensi lama (clamp 1000 cp per
- * langkah, mate = 10000), jadi menggantinya diam-diam akan menggeser semua
- * skor tanpa kalibrasi ulang. Lihat `docs/PERBANDINGAN-METRIK-AKURASI.md`.
+ * tetap menjadi masukan `skorKecurigaan`. Skor memakai ambang global yang
+ * sama untuk semua pemain; rating hanya boleh ditampilkan sebagai metadata,
+ * bukan dipakai untuk memberi kelonggaran/penalti. Lihat
+ * `docs/PERBANDINGAN-METRIK-AKURASI.md`.
  *
  * Keluarannya adalah SKOR HEURISTIK, bukan probabilitas empiris: belum ada
  * korpus berlabel yang membuktikan bahwa skor tertentu berarti peluang
@@ -460,14 +460,11 @@ export function statistikWaktu(daftar) {
 /**
  * Kalibrasi ambang per rentang rating (Elo).
  *
- * Kecocokan engine dan ACPL yang "normal" SANGAT bergantung kekuatan pemain:
- * pemain 800 dengan kecocokan 70% itu sangat mencurigakan, pemain 2400 dengan
- * 70% itu biasa saja. Tabel ini menggeser `kecocokanDasar` dan `acplAcuan`
- * (dua ambang komponen skor) sesuai band rating. Angkanya TAKSIRAN acuan
- * dari agregat publik (Lichess/chess.com) dan WAJIB dikalibrasi ulang dengan
- * korpus partai lokal sebelum dipakai untuk keputusan serius — lihat seksi
- * roadmap di README. Rating tidak diketahui → memakai ambang global `AMBANG`
- * (perilaku lama, tanpa kalibrasi).
+ * Tabel ini dipertahankan hanya untuk kompatibilitas data/laporan lama dan
+ * tidak digunakan oleh skor deteksi. Kebijakan deteksi saat ini pukul rata:
+ * rating, gelar, nama, atau identitas tidak mengubah ambang skor. Setiap partai
+ * dinilai dengan ambang global `AMBANG`; kalibrasi empiris tetap diperlukan
+ * sebelum skor dipakai sebagai bukti keputusan turnamen.
  */
 export const KALIBRASI_RATING = Object.freeze([
   { batas: 800, kecocokanDasar: 40, acplAcuan: 70 },
@@ -550,7 +547,9 @@ export function tingkatDariSkor(skor) {
  * buktinya daripada delapan puluh langkah sempurna.
  */
 export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPeringkat, jumlahLangkah, ratingPemain, sampel }) {
-  const kal = pilihKalibrasi(ratingPemain);
+  // Kebijakan pukul rata: rating/gelar/identitas tidak memengaruhi skor.
+  // Parameter ratingPemain dipertahankan agar pemanggil lama tetap kompatibel.
+  const kal = { kecocokanDasar: AMBANG.kecocokanDasar, acplAcuan: AMBANG.acplAcuan };
   const komponenMentah = {
     kecocokan: komponenKecocokan(engineMatchRate, kal.kecocokanDasar),
     peringkat: komponenPeringkat(rataPeringkat),
