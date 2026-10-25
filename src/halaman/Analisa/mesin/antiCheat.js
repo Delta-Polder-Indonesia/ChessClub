@@ -971,7 +971,12 @@ function barisPartai(item, username) {
       : warnaPemainDariMetadata(item.metadata, username) ?? warnaDariMoves(item.moves);
   if (warna !== "w" && warna !== "b") return null;
   const ringkas = hasil[warna];
-  if (!ringkas || !ringkas.langkahDinilai) return null;
+  // Jangan buang partai hanya karena bestMove/top-1 tidak tersedia:
+  // ACPL atau peringkat MultiPV tetap bisa menjadi bukti statistik yang sah.
+  if (
+    !ringkas ||
+    !(ringkas.langkahDinilai || ringkas.langkahAcpl || ringkas.kandidatSampel)
+  ) return null;
 
   // Rating pemain pada partai ini: eksplisit dari pemanggil, atau dibaca
   // dari metadata PGN sesuai warna. Non-finite → null (tanpa kalibrasi).
