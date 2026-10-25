@@ -65,6 +65,7 @@
     "uji:tekateki-solusi": "node scripts/uji-tekateki-solusi.mjs",
     "uji:tekateki-alur": "node scripts/uji-teka-teki-alur.mjs",
     "uji:tekateki-rute": "node scripts/uji-teka-teki-rute.mjs",
+    "uji:integritas-data-teka-teki": "node scripts/uji-integritas-data-teka-teki.mjs",
     "uji:kerangka-penuh": "node scripts/uji-kerangka-layar-penuh.mjs",
     "uji:i18n": "node scripts/uji-i18n.mjs",
     "uji:komentator": "node scripts/uji-komentator.mjs",
