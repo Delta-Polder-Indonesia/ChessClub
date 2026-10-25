@@ -100,7 +100,12 @@ for (let i = 0; i < problems.length; i += 1) {
     }
     const [, from, to, promotion] = match;
     const piece = chess.get(from);
-    const result = chess.move({ from, to, ...(promotion ? { promotion } : {}) });
+    let result = null;
+    try {
+      result = chess.move({ from, to, ...(promotion ? { promotion } : {}) });
+    } catch {
+      result = null;
+    }
     if (!result) {
       fail.push(`${label}: langkah #${j + 1} ilegal: ${tokens[j]}`);
       legal = false;
