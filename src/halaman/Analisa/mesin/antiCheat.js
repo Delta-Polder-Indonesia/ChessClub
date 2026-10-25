@@ -958,16 +958,23 @@ function barisPartai(item, username) {
 
 /** Kemiringan garis regresi paling sederhana: poin skor per partai. */
 export function kemiringanTren(daftarSkor) {
-  const nilai = daftarSkor.map((s) => (Number.isFinite(s) ? s : 0));
+  if (!Array.isArray(daftarSkor)) return null;
+
+  // Skor yang hilang bukan nol. Pertahankan indeks partai asli agar kemiringan
+  // tetap dihitung per posisi waktu, tanpa mengarang nilai untuk data kosong.
+  const nilai = daftarSkor
+    .map((skor, indeks) => ({ x: indeks, y: skor }))
+    .filter(({ y }) => Number.isFinite(y));
   const n = nilai.length;
   if (n < MIN_PARTAI_AGGREGAT) return null;
-  const rataX = (n - 1) / 2;
-  const rataY = rataRata(nilai);
+
+  const rataX = rataRata(nilai.map(({ x }) => x));
+  const rataY = rataRata(nilai.map(({ y }) => y));
   let pembilang = 0;
   let penyebut = 0;
-  for (let i = 0; i < n; i++) {
-    pembilang += (i - rataX) * (nilai[i] - rataY);
-    penyebut += (i - rataX) ** 2;
+  for (const { x, y } of nilai) {
+    pembilang += (x - rataX) * (y - rataY);
+    penyebut += (x - rataX) ** 2;
   }
   return penyebut ? pembilang / penyebut : null;
 }
