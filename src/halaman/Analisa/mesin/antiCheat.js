@@ -582,12 +582,9 @@ export function skorKecurigaan({ engineMatchRate, acpl, konsistensiWaktu, rataPe
   }
   if (!bobotTerpakai) return { skor: null, level: null, komponen };
 
-  // Tanpa sampel langkah yang valid, skor 0 akan salah terbaca sebagai
-  // "rendah" padahal metrik masukan tidak punya denominator yang sah.
-  if (!Number.isFinite(jumlahLangkah) || jumlahLangkah <= 0) {
-    return { skor: null, level: null, komponen };
-  }
-
+  // Setiap komponen sudah divalidasi terhadap jumlah sampelnya sendiri.
+  // Jangan mewajibkan sampel kecocokan top-1: ACPL atau MultiPV masih bisa
+  // punya data sah meski saran bestMove tidak tersedia.
   const skor = Math.round(jumlahBerbobot / bobotTerpakai);
 
   return { skor, level: tingkatDariSkor(skor), komponen };
