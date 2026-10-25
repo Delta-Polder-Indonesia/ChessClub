@@ -409,7 +409,7 @@ export const analisa = {
         cache: "Partai yang sudah pernah dianalisis dibaca dari cache sesi.",
         partaiDianalisis: "{partai} partai · {langkah} langkah dinilai",
         andal: "Berdasarkan {partai} partai dan {langkah} langkah — cukup untuk gambaran awal.",
-        tidakAndal: "Data terbatas ({partai} partai, {langkah} langkah). Angka ini belum menggambarkan apa pun.",
+        tidakAndal: "Data terbatas ({partai} partai, {langkah} langkah). Skor dan level masih sementara; jangan gunakan untuk mengambil kesimpulan.",
         tren: "Tren skor antarpartai",
         arah: {
           naik: "Menaik",
