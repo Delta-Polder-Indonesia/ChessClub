@@ -255,9 +255,23 @@ export function cpKandidat(entri) {
  */
 export function peringkatLangkahDalam(uci, kandidat) {
   if (!uci || !Array.isArray(kandidat) || !kandidat.length) return null;
-  const valid = kandidat.every(
-    (k) => typeof k?.uci === "string" && k.uci.length >= 4 && Number.isFinite(k?.peringkat)
-  );
+  const peringkat = kandidat.map((k) => k?.peringkat);
+  const valid =
+    kandidat.length <= MULTI_PV &&
+    kandidat.every(
+      (k) =>
+        typeof k?.uci === "string" &&
+        k.uci.length >= 4 &&
+        Number.isInteger(k?.peringkat) &&
+        k.peringkat >= 1 &&
+        k.peringkat <= MULTI_PV
+    ) &&
+    // Kandidat tidak boleh mengulang langkah atau peringkat. Peringkat yang
+    // hilang/berlubang membuat daftar tidak layak dipakai sebagai bukti.
+    new Set(kandidat.map((k) => k.uci)).size === kandidat.length &&
+    new Set(peringkat).size === kandidat.length &&
+    peringkat.every((rank) => rank <= kandidat.length) &&
+    Array.from({ length: kandidat.length }, (_, i) => i + 1).every((rank) => peringkat.includes(rank));
   if (!valid) return null;
   const indeks = kandidat.findIndex((k) => k.uci === uci);
   if (indeks >= 0) return kandidat[indeks].peringkat;
