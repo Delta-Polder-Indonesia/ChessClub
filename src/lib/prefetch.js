@@ -22,6 +22,8 @@
  * sama; browser tidak mengunduh berkas dua kali.
  */
 
+import { antrekanLatar } from "./waktuSenggang.js";
+
 const PEMUAT_RUTE = new Map([
   ["/", () => import("../halaman/Landing/Landing.jsx")],
   ["/tentang-kami", () => import("../halaman/TentangKami/TentangKami.jsx")],
@@ -229,8 +231,12 @@ export function mulaiPrefetchRute() {
     pemantau.observe(document.body, { childList: true, subtree: true });
   };
 
-  if (document.readyState === "complete") mulai();
-  else window.addEventListener("load", mulai, { once: true });
+  // Penghangatan otomatis baru dipasang setelah halaman TENANG (lihat
+  // src/lib/waktuSenggang.js). Dulu blok ini menempel pada `load`: pada audit
+  // PageSpeed /papan-interaktif rantai permintaan kritisnya justru berisi
+  // chunk rute tetangga (LatihanRepertoar → HandBrain → TuringTest →
+  // LayarPengaturan) yang diunduh satu per satu selagi elemen LCP belum dicat.
+  antrekanLatar(mulai);
 
   // (1) Interaksi: hover / fokus / sentuh pada tautan internal mana pun —
   //     ini tetap jalan di semua kondisi jaringan karena atas inisiatif

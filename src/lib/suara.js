@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { berkasPublik } from "./asets.js";
+import { antrekanLatar } from "./waktuSenggang.js";
 
 /** Kunci localStorage untuk sakelar suara (dipakai bersama semua papan). */
 const KUNCI_SIMPAN = "kci-suara-papan";
@@ -313,20 +314,16 @@ export function useSuara() {
     }
   }, [nyala]);
 
-  // Berkas dipanaskan hanya bila suara memang dipakai — dan ditunda ke waktu
-  // senggang: 6 MP3 inti di jalur kritis pemuatan muncul sebagai rantai
-  // request kritis di audit PageSpeed. Pemutaran pertama tetap aman karena
-  // `muat` mengunduh on-demand lewat `unduh` bila byte belum ada.
+  // Berkas dipanaskan hanya bila suara memang dipakai — lewat penjadwal latar
+  // bersama, bukan `requestIdleCallback` sendiri: enam MP3 inti yang menyala
+  // 5 dtk setelah `load` berebut bandwidth dengan chunk yang menahan LCP pada
+  // audit PageSpeed /papan-interaktif. Pemutaran pertama tetap aman karena
+  // `muat` mengunduh on-demand lewat `unduh` bila byte belum ada, dan
+  // `pasangHangatAudio` sudah memanaskan set inti pada gestur pertama.
   useEffect(() => {
     if (!nyala) return undefined;
     pasangHangatAudio();
-    const panas = () => panaskanSuara();
-    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(panas, { timeout: 5000 });
-      return () => window.cancelIdleCallback?.(id);
-    }
-    const id = setTimeout(panas, 1500);
-    return () => clearTimeout(id);
+    return antrekanLatar(() => panaskanSuara());
   }, [nyala]);
 
   const mainkan = useCallback(
