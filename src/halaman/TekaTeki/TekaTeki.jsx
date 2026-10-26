@@ -5,6 +5,7 @@ import { ArrowRightIcon, ChevronStartIcon, ChevronLeftIcon, ChevronRightIcon, Ch
 import { useI18n } from "../../lib/i18n.jsx";
 import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
 import { DAFTAR_SET } from "../../components/chess/pemuatBidak.js";
+import { antrekanLatar } from "../../lib/waktuSenggang.js";
 import PapanTekaTeki from "./PapanTekaTeki.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { useEngineCatur } from "../../lib/gunakanEngineCatur.js";
@@ -410,17 +411,10 @@ export default function TekaTeki() {
           }
         })
         .catch(() => {});
-    if (typeof window !== "undefined" && typeof window.requestIdleCallback === "function") {
-      const id = window.requestIdleCallback(muat, { timeout: 5000 });
-      return () => {
-        aktif = false;
-        window.cancelIdleCallback?.(id);
-      };
-    }
-    const id = setTimeout(muat, 1500);
+    const batalMuat = antrekanLatar(muat);
     return () => {
       aktif = false;
-      clearTimeout(id);
+      batalMuat();
     };
   }, []);
 
@@ -1574,17 +1568,24 @@ export default function TekaTeki() {
           </button>
         </div>
       ) : !masalah ? (
-        <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
-          {semuaSoal ? (
+        semuaSoal ? (
+          <div className="flex min-h-screen items-center justify-center bg-[#262421] px-6 py-10">
             <p className="max-w-md rounded-md border border-amber-900 bg-amber-950/40 px-4 py-3 text-sm leading-6 text-amber-300">
               {soal?.length && soal.every((m) => terpecahkan.has(m.problemid))
                 ? t("tekaTeki.semuaTerpecahkan")
                 : t("tekaTeki.tidakAdaSoal")}
             </p>
-          ) : (
-            <p className="animate-pulse text-sm text-gray-400">{t("tekaTeki.memuat")}</p>
-          )}
-        </div>
+          </div>
+        ) : (
+          /* Kerangka layar penuh selama `teka-teki.json` (±558 KiB) diunduh.
+             Dulu cabang ini hanya teks "Memuat…" sehingga seluruh tata letak —
+             termasuk judul merek yang menjadi elemen LCP rute ini — baru dicat
+             setelah data mendarat (PageSpeed: LCP 7,2 dtk). Tata letaknya
+             dirender lebih dulu tanpa data: papan memakai versi contoh
+             (prop `papan` kosong), jadi ukurannya identik dan tidak ada
+             pergeseran tata letak saat soal asli masuk. */
+          <LayoutTekaTeki nilaiTotalSoal={0} />
+        )
       ) : (
         <LayoutTekaTeki
               papan={papanWadah}
