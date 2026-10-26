@@ -40,6 +40,9 @@ const gagal = (pesan) => GALAT.push(pesan);
 
 const baca = (rel) => readFile(path.resolve(rel), "utf8");
 const html = await baca("index.html");
+/** HTML hasil build untuk satu rute (dipakai pagar modulepreload). */
+const bacaDist = (rute) =>
+  baca(path.join("dist", rute === "/" ? "" : rute.replace(/^\/+/, ""), "index.html"));
 const situs = "https://chess-club-weld.vercel.app/";
 
 /* ------------------------------------------------ 1. tabel metadata rute */
@@ -152,6 +155,37 @@ for (const rute of ["/", "/program-kami/teka-teki", "/turnamen"]) {
   // kerangka sekaligus = kedipan ganda.
   if (!hasil.includes('<div id="boot-shell" aria-hidden="true" hidden>')) {
     gagal(`Rute ${rute}: #boot-shell ikut aktif — seharusnya tetap hidden.`);
+  }
+}
+
+/* --------------- 2b-2. modulepreload chunk halaman (manifest) ------------- */
+
+/*
+ * Chunk halaman hanya ditemukan setelah bundel utama dijalankan (React.lazy),
+ * sehingga muncul rangkaian round trip tambahan di jalur kritis. Pagar:
+ * rute berat WAJIB mempreload chunk halamannya sendiri dari HTML, rute ringan
+ * TIDAK boleh ikut mengunduhnya, dan tidak boleh ada tautan ganda.
+ */
+for (const [rute, pola] of [
+  ["/teka-teki/problem", /modulepreload[^>]*href="[^"]*\/TekaTeki-[^"]*"/],
+  ["/papan-interaktif", /modulepreload[^>]*href="[^"]*\/PapanInteraktif-[^"]*"/],
+  ["/quiz-catur", /modulepreload[^>]*href="[^"]*\/QuizCatur-[^"]*"/],
+]) {
+  const hasil = await bacaDist(rute);
+  if (!pola.test(hasil)) {
+    gagal(`Rute ${rute}: chunk halaman tidak di-modulepreload dari HTML.`);
+  }
+  const href = [...hasil.matchAll(/<link rel="modulepreload"[^>]*href="([^"]+)"/g)].map(
+    (m) => m[1],
+  );
+  if (new Set(href).size !== href.length) {
+    gagal(`Rute ${rute}: ada modulepreload ganda (${href.length} tautan).`);
+  }
+}
+for (const rute of ["/turnamen", "/bantuan", "/"]) {
+  const hasil = await bacaDist(rute);
+  if (/modulepreload[^>]*href="[^"]*\/(TekaTeki|PapanInteraktif|QuizCatur)-[^"]*"/.test(hasil)) {
+    gagal(`Rute ${rute}: mempreload chunk halaman lain — request terbuang.`);
   }
 }
 

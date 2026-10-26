@@ -457,6 +457,62 @@ export function metadataRute(html, rute, siteUrl) {
 }
 
 /**
+ * Modul halaman yang PASTI dibutuhkan sebuah rute — dipakai menyisipkan
+ * `<link rel="modulepreload">` ke HTML pra-render.
+ *
+ * Tanpa ini, chunk halaman baru ditemukan SETELAH bundel utama dijalankan dan
+ * React.lazy memanggil import()-nya: satu rangkaian round trip tambahan
+ * (audit PageSpeed: TekaTeki 254 ms → chess 250 ms → ChessPiece 231 ms →
+ * pemuatBidak 241 ms, semuanya setelah chunk index). Dengan modulepreload,
+ * unduhannya mulai bersamaan dengan parse HTML.
+ *
+ * Hanya rute yang chunk halamannya pasti dipakai yang didaftarkan: menambah
+ * entri di sini berarti pengunjung rute itu mengunduh lebih awal. Rute ringan
+ * (halaman teks) sengaja dibiarkan mengandalkan prefetch saat tautannya
+ * terlihat (src/lib/prefetch.js).
+ *
+ * Satu modul boleh menyeret chunk bersama (mis. PapanInteraktif juga menarik
+ * chunk Workspace); daftar preload mengikuti `imports` manifest rekursif.
+ */
+const MODUL_RUTE = {
+  "/teka-teki/problem": ["src/halaman/TekaTeki/TekaTeki.jsx"],
+  "/teka-teki-rush": ["src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
+  "/quiz-catur": ["src/halaman/QuizCatur/QuizCatur.jsx"],
+  "/papan-interaktif": ["src/halaman/PapanInteraktif/PapanInteraktif.jsx"],
+  "/papan-interaktif/manusia-vs-mesin": ["src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"],
+  "/papan-interaktif/latihan-repertoar": ["src/halaman/LatihanRepertoar/LatihanRepertoar.jsx"],
+  "/papan-interaktif/hand-brain": ["src/halaman/HandBrain/HandBrain.jsx"],
+  "/papan-interaktif/turing-test": ["src/halaman/TuringTest/TuringTest.jsx"],
+  "/papan-interaktif/pengaturan": ["src/halaman/PapanInteraktif/LayarPengaturan.jsx"],
+};
+
+/** Berkas (relatif dist) yang harus diunduh untuk satu entri manifest,
+ *  termasuk seluruh `imports`-nya secara rekursif. Entri semu `index.html`
+ *  (bundel utama) dilewati: berkas itu sudah dimuat lewat <script type=module>. */
+function berkasModul(manifest, kunci, hasil = new Set()) {
+  if (kunci === "index.html") return hasil;
+  const entri = manifest[kunci];
+  if (!entri) return hasil;
+  if (entri.file && !entri.file.endsWith(".css")) hasil.add(entri.file);
+  for (const impor of entri.imports || []) berkasModul(manifest, impor, hasil);
+  return hasil;
+}
+
+/** Tag modulepreload untuk satu rute (string kosong bila tidak ada).
+ *  `html` dipakai menyaring berkas yang sudah dipreload Vite (vendor-react). */
+function modulePreloadRute(manifest, rute, html) {
+  const modul = MODUL_RUTE[rute];
+  if (!manifest || !modul) return "";
+  const dasar = process.env.VITE_BASE_PUBLIC || "/";
+  const berkas = new Set();
+  for (const m of modul) for (const f of berkasModul(manifest, m)) berkas.add(f);
+  return [...berkas]
+    .filter((f) => !html.includes(`href="${dasar}${f}"`))
+    .map((f) => `    <link rel="modulepreload" crossorigin href="${dasar}${f}" />`)
+    .join("\n");
+}
+
+/**
  * Sesuaikan "kerangka" HTML rute berlatar gelap: buang sisa shell beranda
  * (`<link rel=preload>` gambar hero + `<div id=boot-hero>`) dan pasang latar
  * gelap inline pada `<body>`.
@@ -582,6 +638,18 @@ export function performaHalaman({ siteUrl } = {}) {
       } catch {
         return;
       }
+      // Manifest build (vite.config.js: build.manifest) — dipakai menambahkan
+      // modulepreload chunk halaman ke HTML tiap rute.
+      let manifest;
+      try {
+        manifest = JSON.parse(
+          await readFile(path.join(dist, ".vite", "manifest.json"), "utf8")
+        );
+      } catch {
+        // Tanpa manifest (mis. manifest dimatikan) preload halaman dilewati;
+        // HTML rute tetap ditulis seperti biasa.
+        manifest = undefined;
+      }
 
       // Beranda: tulis ulang metadata dari siteUrl agar canonical, og:url, dan
       // og:image mengikuti alamat situs (VITE_SITE_URL / domain kustom), bukan
@@ -596,7 +664,12 @@ export function performaHalaman({ siteUrl } = {}) {
       for (const rute of RUTE_PUBLIK) {
         const bersih = rute.replace(/^\/+|\/+$/g, "");
         if (!bersih) continue;
-        const htmlRute = kerangkaRute(metadataRute(html, rute, siteUrl), rute);
+        const praMuat = modulePreloadRute(manifest, rute, html);
+        const htmlDasar = kerangkaRute(metadataRute(html, rute, siteUrl), rute);
+        // Sisipkan sebelum </head>: entry + vendor-react sudah dimuat Vite.
+        const htmlRute = praMuat
+          ? htmlDasar.replace("</head>", `${praMuat}\n  </head>`)
+          : htmlDasar;
         const berkas = path.join(dist, `${bersih}.html`);
         await mkdir(path.dirname(berkas), { recursive: true });
         await writeFile(berkas, htmlRute);

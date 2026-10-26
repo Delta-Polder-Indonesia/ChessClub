@@ -135,6 +135,9 @@ export default defineConfig({
   },
   build: {
     modulePreload: { polyfill: false },
+    // Manifest dipakai plugins/performa.js untuk menyisipkan <link rel=modulepreload>
+    // chunk halaman ke HTML tiap rute pra-render (lihat catatan di plugin).
+    manifest: true,
     cssCodeSplit: false,
     // "hidden": berkas .map TETAP dibuat di dist untuk debug/Sentry, tetapi
     // komentar `//# sourceMappingURL=` tidak disisipkan ke bundle — browser
