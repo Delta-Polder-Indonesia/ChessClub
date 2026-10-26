@@ -169,7 +169,8 @@ export default function KartuKomentator({
             className="h-12 w-12 shrink-0 object-contain drop-shadow-md sm:h-16 sm:w-16"
             width="64"
             height="64"
-            loading="lazy"
+            loading="eager"
+            fetchpriority="high"
           />
           <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
             <span
