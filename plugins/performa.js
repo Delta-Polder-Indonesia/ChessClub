@@ -474,7 +474,7 @@ export function metadataRute(html, rute, siteUrl) {
  * Satu modul boleh menyeret chunk bersama (mis. PapanInteraktif juga menarik
  * chunk Workspace); daftar preload mengikuti `imports` manifest rekursif.
  */
-const MODUL_RUTE = {
+export const MODUL_RUTE = {
   "/teka-teki/problem": ["src/halaman/TekaTeki/TekaTeki.jsx"],
   "/teka-teki-rush": ["src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
   "/quiz-catur": ["src/halaman/QuizCatur/QuizCatur.jsx"],
@@ -500,7 +500,7 @@ function berkasModul(manifest, kunci, hasil = new Set()) {
 
 /** Tag modulepreload untuk satu rute (string kosong bila tidak ada).
  *  `html` dipakai menyaring berkas yang sudah dipreload Vite (vendor-react). */
-function modulePreloadRute(manifest, rute, html) {
+export function modulePreloadRute(manifest, rute, html) {
   const modul = MODUL_RUTE[rute];
   if (!manifest || !modul) return "";
   const dasar = process.env.VITE_BASE_PUBLIC || "/";

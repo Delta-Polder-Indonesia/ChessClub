@@ -31,6 +31,8 @@ import {
   metadataRute,
   metadataUntukRute,
   kerangkaRute,
+  MODUL_RUTE,
+  modulePreloadRute,
 } from "../plugins/performa.js";
 
 const SEMUA_RUTE_BANGUN = ["/", ...RUTE_PUBLIK];
@@ -40,9 +42,6 @@ const gagal = (pesan) => GALAT.push(pesan);
 
 const baca = (rel) => readFile(path.resolve(rel), "utf8");
 const html = await baca("index.html");
-/** HTML hasil build untuk satu rute (dipakai pagar modulepreload). */
-const bacaDist = (rute) =>
-  baca(path.join("dist", rute === "/" ? "" : rute.replace(/^\/+/, ""), "index.html"));
 const situs = "https://chess-club-weld.vercel.app/";
 
 /* ------------------------------------------------ 1. tabel metadata rute */
@@ -162,31 +161,72 @@ for (const rute of ["/", "/program-kami/teka-teki", "/turnamen"]) {
 
 /*
  * Chunk halaman hanya ditemukan setelah bundel utama dijalankan (React.lazy),
- * sehingga muncul rangkaian round trip tambahan di jalur kritis. Pagar:
- * rute berat WAJIB mempreload chunk halamannya sendiri dari HTML, rute ringan
- * TIDAK boleh ikut mengunduhnya, dan tidak boleh ada tautan ganda.
+ * sehingga muncul rangkaian round trip tambahan di jalur kritis. Pagar di
+ * sini menguji FUNGSI yang dipakai closeBundle dengan manifest tiruan —
+ * sengaja tidak membaca dist/: di gerbang rilis CI (`uji:rilis:v1`) uji ini
+ * berjalan SEBELUM `npm run build`, jadi dist/ belum ada dan pagar berbasis
+ * dist akan gagal dengan ENOENT (pernah terjadi, 26 Okt 2026).
  */
-for (const [rute, pola] of [
-  ["/teka-teki/problem", /modulepreload[^>]*href="[^"]*\/TekaTeki-[^"]*"/],
-  ["/papan-interaktif", /modulepreload[^>]*href="[^"]*\/PapanInteraktif-[^"]*"/],
-  ["/quiz-catur", /modulepreload[^>]*href="[^"]*\/QuizCatur-[^"]*"/],
-]) {
-  const hasil = await bacaDist(rute);
-  if (!pola.test(hasil)) {
-    gagal(`Rute ${rute}: chunk halaman tidak di-modulepreload dari HTML.`);
-  }
-  const href = [...hasil.matchAll(/<link rel="modulepreload"[^>]*href="([^"]+)"/g)].map(
-    (m) => m[1],
-  );
-  if (new Set(href).size !== href.length) {
-    gagal(`Rute ${rute}: ada modulepreload ganda (${href.length} tautan).`);
+const manifestTiruan = {
+  "src/main.jsx": { file: "assets/index-uji.js", isEntry: true, imports: [] },
+  "index.html": { file: "assets/index-uji.js", isEntry: true, imports: ["src/main.jsx"] },
+  "src/halaman/TekaTeki/TekaTeki.jsx": {
+    file: "assets/TekaTeki-uji.js",
+    imports: ["index.html", "_chess-uji.js", "_bersama-uji.js"],
+  },
+  "_chess-uji.js": { file: "assets/chess-uji.js", imports: [] },
+  "_bersama-uji.js": { file: "assets/bersama-uji.js", imports: ["_dalam-uji.js"] },
+  "_dalam-uji.js": { file: "assets/dalam-uji.js", imports: [] },
+};
+const htmlTiruan = '<head>\n    <link rel="modulepreload" crossorigin href="/assets/vendor-react-uji.js" />\n  </head>';
+
+// Setiap rute di MODUL_RUTE harus rute publik yang benar-benar dibangun.
+for (const rute of Object.keys(MODUL_RUTE)) {
+  if (!RUTE_PUBLIK.includes(rute)) {
+    gagal(`MODUL_RUTE memuat rute yang tidak dipra-render: ${rute}.`);
   }
 }
-for (const rute of ["/turnamen", "/bantuan", "/"]) {
-  const hasil = await bacaDist(rute);
-  if (/modulepreload[^>]*href="[^"]*\/(TekaTeki|PapanInteraktif|QuizCatur)-[^"]*"/.test(hasil)) {
-    gagal(`Rute ${rute}: mempreload chunk halaman lain — request terbuang.`);
+// build.manifest WAJIB menyala: tanpa manifest, modulepreload tidak pernah ditulis.
+if (!/manifest:\s*true/.test(await baca("vite.config.js"))) {
+  gagal("vite.config.js: build.manifest bukan true — modulepreload rute tidak akan ditulis.");
+}
+// Halaman dengan modul terdaftar: chunk halaman + imports rekursif ikut.
+const preloadUji = modulePreloadRute(manifestTiruan, "/teka-teki/problem", htmlTiruan);
+for (const berkas of [
+  "assets/TekaTeki-uji.js",
+  "assets/chess-uji.js",
+  "assets/bersama-uji.js",
+  "assets/dalam-uji.js",
+]) {
+  if (!preloadUji.includes(berkas)) {
+    gagal(`modulePreloadRute tidak menyertakan ${berkas} (imports rekursif rusak).`);
   }
+}
+// Bundel utama tidak boleh dipreload ganda (sudah dimuat lewat <script type=module>).
+if (preloadUji.includes("assets/index-uji.js")) {
+  gagal("modulePreloadRute mempreload bundel utama (index.html) — request ganda.");
+}
+// Berkas yang sudah ada di HTML (vendor-react dari Vite) tidak boleh diduplikasi.
+if (preloadUji.includes("vendor-react-uji.js")) {
+  gagal("modulePreloadRute menduplikasi berkas yang sudah dipreload HTML.");
+}
+// Rute ringan tidak boleh mendapat preload halaman.
+for (const rute of ["/turnamen", "/bantuan", "/"]) {
+  if (modulePreloadRute(manifestTiruan, rute, htmlTiruan) !== "") {
+    gagal(`Rute ${rute}: mendapat modulepreload chunk halaman — request terbuang.`);
+  }
+}
+// Setiap modul di MODUL_RUTE harus benar-benar ada di manifest build sungguhan
+// saat dist tersedia (nama berkas modul bisa berubah saat refactor).
+try {
+  const manifestAsli = JSON.parse(await baca("dist/.vite/manifest.json"));
+  for (const [rute, modul] of Object.entries(MODUL_RUTE)) {
+    for (const m of modul) {
+      if (!manifestAsli[m]) gagal(`Rute ${rute}: modul ${m} tidak ada di manifest build.`);
+    }
+  }
+} catch {
+  // dist/ belum dibangun (jalur CI) — pemeriksaan silang dilewati, bukan gagal.
 }
 
 /* ------------------------- 2c. preload JSON rute teka-teki ---------------- */
