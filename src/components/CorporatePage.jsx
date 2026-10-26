@@ -42,10 +42,10 @@ export function CorporatePage({
         crumbs={crumbs}
         image={image}
       />
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4 xl:gap-6 max-w-[1080px] xl:max-w-[1280px] relative w-full mx-auto pt-0 pb-12 lg:pt-20 lg:pb-20 px-6 md:px-8 xl:px-0">
+      <main className="grid grid-cols-1 lg:grid-cols-[220px_1fr] gap-4 xl:gap-6 max-w-[1080px] xl:max-w-[1280px] relative w-full mx-auto pt-0 pb-12 lg:pt-20 lg:pb-20 px-6 md:px-8 xl:px-0">
         <CorporateSidebar title={title} items={sidebar} />
         <div className="relative w-full min-w-0">{children}</div>
-      </div>
+      </main>
       {next && <CorporateNext to={next.to} title={next.title} />}
     </>
   );
@@ -155,7 +155,7 @@ function SidebarItem({ item, aktif, onPilih, desktop = false }) {
     "flex w-full py-2 pr-1 pl-4 transition-all duration-300 ease-in-out";
   const kelasAktif = aktif
     ? "text-[#0B2F9F] after:w-1 after:h-full after:bg-[#0B2F9F] after:absolute after:left-[-1px] after:top-0 after:z-1 font-bold"
-    : "text-slate-500 hover:text-slate-600";
+    : "text-[#5b6b83] hover:text-slate-700";
   const className = `${desktop ? kelasDesktop : kelasMobile} ${kelasAktif}`;
 
   if (internal) {

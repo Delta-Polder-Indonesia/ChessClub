@@ -448,7 +448,7 @@ function TombolBahasa({ warna = "text-white" }) {
     <button
       type="button"
       title={t("common.pilihBahasa")}
-      aria-label={t("common.pilihBahasa")}
+      aria-label={`${t("common.pilihBahasa")}, ${bahasa.toUpperCase()}`}
       onClick={() => setBahasa(bahasa === "en" ? "id" : "en")}
       className={`bg-transparent border-0 flex items-center gap-2 text-xs ${warna} cursor-pointer`}
     >

@@ -52,7 +52,7 @@ await act(async () => {
 //    top-bar yang hilang saat scroll). Tombolnya satu-satunya dengan
 //    aria-label "Pilih bahasa" di header utama.
 const semuaSakelar = () =>
-  [...document.querySelectorAll('button[aria-label="Pilih bahasa"]')];
+  [...document.querySelectorAll('button[aria-label^="Pilih bahasa,"]')];
 hasil(
   "sakelar bahasa tampil di kerangka header",
   semuaSakelar().length >= 1,
@@ -69,16 +69,16 @@ const drawer = document.getElementById("drawer-navigasi");
 hasil("drawer navigasi terbuka", Boolean(drawer));
 hasil(
   "sakelar bahasa ada di drawer mobile",
-  Boolean(drawer?.querySelector('button[aria-label="Pilih bahasa"]')),
+  Boolean(drawer?.querySelector('button[aria-label^="Pilih bahasa,"]')),
   "tidak ditemukan di drawer"
 );
 
 // 3. Klik sakelar di drawer → bahasa berubah ke EN (teks tombol "EN").
-const sakelarDrawer = drawer.querySelector('button[aria-label="Pilih bahasa"]');
+const sakelarDrawer = drawer.querySelector('button[aria-label^="Pilih bahasa,"]');
 await act(async () => {
   sakelarDrawer.click();
 });
-const labelEn = [...document.querySelectorAll('button[aria-label="Choose language"]')];
+const labelEn = [...document.querySelectorAll('button[aria-label^="Choose language,"]')];
 const labelEnAlt = [...document.querySelectorAll("button")].filter((b) =>
   b.textContent.trim() === "EN"
 );
