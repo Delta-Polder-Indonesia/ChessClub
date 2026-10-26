@@ -9,9 +9,12 @@ import { antrekanLatar } from "../../lib/waktuSenggang.js";
 // bersamaan dengan chunk yang menahan LCP. Set bawaan "merida"/"alpha" sudah
 // dibawa glob eager (nol chunk), dan ChessPiece tetap memuat setnya sendiri
 // lewat effect di bawah bila pengguna memilih set lain sebelum pemanasan jalan.
-antrekanLatar(() => {
+antrekanLatar(async () => {
+  // Satu set (12 bidak) pada satu waktu, bukan tiga set (36 permintaan chunk
+  // kecil) sekaligus — itu deretan request yang dulu berebut jalur dengan
+  // LCP. Janji dikembalikan supaya penjadwal baru lanjut setelah benar selesai.
   for (const s of ["alpha", "bidak", "chesscom"]) {
-    muatSet(s).catch(() => {
+    await muatSet(s).catch(() => {
       /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
     });
   }

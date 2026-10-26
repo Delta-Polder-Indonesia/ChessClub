@@ -247,8 +247,12 @@ export function mainkanSuara(nama, { volume } = {}) {
  * sehingga peramban tidak memblokir / memperingatkan soal kebijakan autoplay.
  */
 export function panaskanSuara(daftar = INTI) {
-  if (typeof window === "undefined") return;
-  for (const nama of daftar) unduh(nama);
+  if (typeof window === "undefined") return Promise.resolve();
+  // Janji unduhan dikembalikan supaya penjadwal latar (`antrekanLatar`) tahu
+  // kapan pemanasan benar-benar selesai. Kalau fungsi ini mengembalikan
+  // undefined, antrean menganggapnya selesai seketika dan pemanasan set bidak
+  // ikut berjalan bersamaan — puluhan permintaan yang berebut bandwidth.
+  return Promise.all(daftar.map((nama) => unduh(nama)));
 }
 
 /**

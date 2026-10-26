@@ -355,7 +355,11 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
     // memakai `requestIdleCallback({ timeout: 1200 })` yang praktis menyala
     // seketika. `paksa: true` karena buku adalah data inti halaman, bukan
     // spekulasi: pada jaringan hemat data pun ia tetap dimuat.
-    const muatBuku = () => {
+    // Janji fetch WAJIB dikembalikan: penjadwal latar menandai pekerjaan
+    // selesai saat janjinya selesai. Tanpa `return`, antrean mengira buku
+    // 454 KiB sudah termuat dan langsung memulai pemanasan berikutnya —
+    // unduhan bertabrakan tepat saat panel engine menunggu data.
+    const muatBuku = () =>
       fetch(`${import.meta.env.BASE_URL}data/buku-pembukaan.json`, {
         priority: "low",
       })
@@ -379,7 +383,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         .catch(() => {
           if (aktif) setGagal(true);
         });
-    };
 
     const batalMuat = antrekanLatar(muatBuku, { paksa: true });
 

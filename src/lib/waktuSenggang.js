@@ -14,8 +14,17 @@
  *   1. Tidak ada yang berjalan sebelum halaman selesai `load` + jeda tenang.
  *   2. Hanya SATU pekerjaan berjalan pada satu waktu, dan hanya saat browser
  *      menganggur — pekerjaan latar tidak pernah mendahului render.
+ *      "Selesai" berarti JANJI pekerjaan itu selesai, bukan sekadar fungsinya
+ *      dipanggil: pemanggil yang hanya memicu unduhan wajib mengembalikan
+ *      janji unduhan tersebut, kalau tidak antrean lanjut lebih awal dan
+ *      puluhan permintaan berjalan bersamaan.
  *   3. Pengguna hemat data / jaringan 2G–3G tidak diunduhkan apa pun, kecuali
  *      pemanggil menyatakan datanya memang wajib (`paksa: true`).
+ *   4. `paksa: true` juga berarti PRIORITAS: data inti halaman didahulukan
+ *      atas pekerjaan spekulatif yang terlanjur masuk antrean lebih dulu
+ *      (mis. pemanasan set bidak yang didaftarkan saat modul diimpor).
+ *   5. Pekerjaan yang menggantung tidak boleh mengunci antrean selamanya —
+ *      ada penjaga `BATAS_TUGAS_MS`.
  */
 
 /** Jeda setelah `load` sebelum pekerjaan latar boleh dijadwalkan. */
@@ -26,6 +35,18 @@ const BATAS_IDLE_MS = 3000;
 
 /** Jaring pengaman bila `load` tertahan lama (mis. gambar yang lambat). */
 const BATAS_TUNGGU_LOAD_MS = 12000;
+
+/**
+ * Batas satu pekerjaan boleh memegang antrean.
+ *
+ * Jaring pengaman, bukan target: unduhan buku pembukaan 454 KiB di 3G bisa
+ * wajar memakan 10–15 dtk. Tetapi `fetch` yang menggantung (koneksi putus di
+ * tengah jalan, captive portal) tidak pernah menolak janjinya — tanpa batas
+ * ini seluruh antrean berhenti selamanya dan prefetch/pemanasan mati diam-diam
+ * sampai halaman dimuat ulang. Saat batas tercapai, antrean lanjut; pekerjaan
+ * yang lambat tetap berjalan sendiri sampai selesai.
+ */
+export const BATAS_TUGAS_MS = 20000;
 
 function saatIdle(fn) {
   if (typeof window.requestIdleCallback === "function") {
@@ -76,20 +97,37 @@ let berjalan = false;
 
 function jalankanAntrean() {
   if (berjalan) return;
-  const indeks = antre.findIndex((tugas) => !tugas.batal);
-  if (indeks === -1) return;
-  const [tugas] = antre.splice(indeks, 1);
+  // Buang pekerjaan yang dibatalkan supaya tidak menumpuk di memori.
+  for (let i = antre.length - 1; i >= 0; i -= 1) {
+    if (antre[i].batal) antre.splice(i, 1);
+  }
+  const tugas = antre.shift();
+  if (!tugas) return;
   berjalan = true;
   saatIdle(() => {
-    Promise.resolve()
-      .then(tugas.kerja)
-      .catch(() => {
-        /* pekerjaan latar tidak boleh merusak halaman */
-      })
-      .then(() => {
-        berjalan = false;
-        jalankanAntrean();
-      });
+    // Bisa dibatalkan SELAMA menunggu idle (jendela sampai beberapa detik):
+    // komponen sudah dilepas / data tidak lagi dibutuhkan.
+    if (tugas.batal) {
+      berjalan = false;
+      jalankanAntrean();
+      return;
+    }
+    let penjaga = null;
+    const batas = new Promise((selesai) => {
+      penjaga = setTimeout(selesai, BATAS_TUGAS_MS);
+    });
+    Promise.race([
+      Promise.resolve()
+        .then(tugas.kerja)
+        .catch(() => {
+          /* pekerjaan latar tidak boleh merusak halaman */
+        }),
+      batas,
+    ]).then(() => {
+      clearTimeout(penjaga);
+      berjalan = false;
+      jalankanAntrean();
+    });
   });
 }
 
@@ -106,12 +144,18 @@ export function antrekanLatar(kerja, { paksa = false } = {}) {
   if (typeof window === "undefined" || typeof kerja !== "function") {
     return () => {};
   }
-  const tugas = { kerja, batal: false };
+  const tugas = { kerja, batal: false, paksa };
   if (!paksa && !jaringanLatarBoleh()) {
     tugas.batal = true;
     return () => {};
   }
-  antre.push(tugas);
+  // Pekerjaan `paksa` (data inti halaman) menyelip di depan pekerjaan
+  // spekulatif, tetapi tetap di belakang sesama `paksa` agar urutannya adil.
+  const sebelumSpekulatif = paksa
+    ? antre.findIndex((t) => !t.paksa)
+    : -1;
+  if (sebelumSpekulatif === -1) antre.push(tugas);
+  else antre.splice(sebelumSpekulatif, 0, tugas);
   halamanTenang().then(jalankanAntrean);
   return () => {
     tugas.batal = true;
