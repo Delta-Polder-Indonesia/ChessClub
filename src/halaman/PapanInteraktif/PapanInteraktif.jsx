@@ -324,30 +324,51 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
     let aktif = true;
+    let timer = 0;
+    let idleId = null;
     setGagal(false);
-    fetch(`${import.meta.env.BASE_URL}data/buku-pembukaan.json`)
-      .then((respon) => {
-        if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
-        return respon.json();
+
+    // Buku pembukaan cukup besar (~870 KiB tidak terkompresi). Beri browser
+    // kesempatan menyelesaikan render awal papan sebelum mulai mengunduh dan
+    // mem-parse katalog; fitur buku tetap dimuat otomatis sesudahnya.
+    const muatBuku = () => {
+      fetch(`${import.meta.env.BASE_URL}data/buku-pembukaan.json`, {
+        priority: "low",
       })
-      .then((data) => {
-        if (!aktif) return;
-        // Daftar rata (format Lichess) → bangun pohon koordinat di tempat.
-        // Objek pohon → pakai langsung (dukung kunci SAN lama maupun koordinat).
-        if (Array.isArray(data)) {
-          setPohon(pohonDariDaftar(data));
-          setMode("koordinat");
-        } else {
-          const pohonBaku = normalkanPohonPembukaan(data);
-          setPohon(pohonBaku);
-          setMode(modeDariPohon(pohonBaku));
-        }
-      })
-      .catch(() => {
-        if (aktif) setGagal(true);
-      });
+        .then((respon) => {
+          if (!respon.ok) throw new Error(`HTTP ${respon.status}`);
+          return respon.json();
+        })
+        .then((data) => {
+          if (!aktif) return;
+          // Daftar rata (format Lichess) → bangun pohon koordinat di tempat.
+          // Objek pohon → pakai langsung (dukung kunci SAN lama maupun koordinat).
+          if (Array.isArray(data)) {
+            setPohon(pohonDariDaftar(data));
+            setMode("koordinat");
+          } else {
+            const pohonBaku = normalkanPohonPembukaan(data);
+            setPohon(pohonBaku);
+            setMode(modeDariPohon(pohonBaku));
+          }
+        })
+        .catch(() => {
+          if (aktif) setGagal(true);
+        });
+    };
+
+    if ("requestIdleCallback" in window) {
+      idleId = window.requestIdleCallback(muatBuku, { timeout: 1200 });
+    } else {
+      timer = window.setTimeout(muatBuku, 250);
+    }
+
     return () => {
       aktif = false;
+      window.clearTimeout(timer);
+      if (idleId !== null && "cancelIdleCallback" in window) {
+        window.cancelIdleCallback(idleId);
+      }
     };
   }, [percobaan]);
 
