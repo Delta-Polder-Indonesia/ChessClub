@@ -163,6 +163,11 @@ export default function KartuKomentator({
           aria-live="polite"
           className="komentator-gelembung mt-3 flex min-h-[88px] shrink-0 items-center gap-2 sm:gap-3"
         >
+          {/* Avatar komentator: 160×160 (asetnya sudah diperkecil dari 600×600,
+              ±27 KiB → ±6,6 KiB) untuk tampilan 48–64 px. Sengaja TANPA
+              `fetchpriority="high"`: elemen LCP panel ini adalah teks judul
+              engine, dan prioritas tinggi pada gambar kecil membuat audit
+              PageSpeed menandainya sebagai pengiriman gambar yang boros. */}
           <img
             src="/engine_expressions/coachdavid.png"
             alt=""
@@ -170,7 +175,7 @@ export default function KartuKomentator({
             width="64"
             height="64"
             loading="eager"
-            fetchpriority="high"
+            decoding="async"
           />
           <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
             <span

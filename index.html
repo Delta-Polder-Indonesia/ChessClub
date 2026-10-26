@@ -85,6 +85,61 @@
       #boot-hero { position: absolute; inset: 0 0 auto 0; height: 650px; background: #021624; overflow: hidden; z-index: 0; pointer-events: none; }
       #boot-hero img { width: 100%; height: 100%; object-fit: cover; }
       #root { position: relative; z-index: 1; }
+
+      /* ---------------------------------------------------------- boot shell
+         Kerangka statis untuk rute layar penuh berlatar gelap (teka-teki,
+         papan interaktif, kuis). Sebelumnya HTML rute itu hanya berupa kanvas
+         gelap kosong: pengunjung menatap persegi gelap sampai bundel React +
+         data siap (± 2 dtk pada 4G lambat). Pola yang dipakai situs
+         produksi: kerangka tata letak dicat dari HTML/CSS (tanpa JS) lalu
+         diganti konten asli pada frame yang sama — bukan layar kosong.
+         Dimensi & warnanya meniru tata letak akhir (sidebar 220 px, papan
+         persegi, panel kanan) supaya pergantiannya tidak terasa melompat.
+         Hanya diaktifkan oleh plugins/performa.js pada rute gelap; rute lain
+         membiarkannya `hidden`. Dibuang React lewat <BersihkanBootHero/>. */
+      #boot-shell {
+        position: fixed; inset: 0; z-index: 0; display: flex; overflow: hidden;
+        background: #262421; color: #e5e7eb; pointer-events: none;
+        font-family: "Geist Variable", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      #boot-shell[hidden] { display: none; }
+      #boot-shell .bs-side {
+        flex: 0 0 220px; width: 220px; background: #1e1c18;
+        border-right: 1px solid #312e2b; padding: 16px 20px;
+        display: flex; flex-direction: column; gap: 14px;
+      }
+      #boot-shell .bs-brand { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; color: #fff; }
+      #boot-shell .bs-brand span { color: #81b64c; }
+      #boot-shell .bs-line { height: 34px; border-radius: 6px; background: #262421; border: 1px solid #312e2b; }
+      #boot-shell .bs-main { flex: 1 1 auto; min-width: 0; display: flex; gap: 12px; padding: 24px 32px; }
+      #boot-shell .bs-col { flex: 0 1 520px; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+      #boot-shell .bs-bar { height: 40px; border-radius: 6px; background: #1e1c18; }
+      #boot-shell .bs-bar.bs-bar-rendah { height: 56px; }
+      #boot-shell .bs-board {
+        width: 100%; aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden;
+        background-color: #2f2d2a;
+        background-image: conic-gradient(#3a3733 90deg, #2f2d2a 90deg 180deg, #3a3733 180deg 270deg, #2f2d2a 270deg);
+        background-size: 25% 25%;
+      }
+      #boot-shell .bs-panel { flex: 1 1 340px; min-width: 0; border-radius: 8px; background: #211f1c; border: 1px solid #312e2b; }
+      @media (max-width: 1023px) {
+        #boot-shell { flex-direction: column; }
+        #boot-shell .bs-side {
+          flex: 0 0 auto; width: auto; border-right: 0; border-bottom: 1px solid #312e2b; padding: 12px 16px;
+        }
+        /* Di layar sempit sidebar asli jadi bilah atas berisi merek saja. */
+        #boot-shell .bs-line { display: none; }
+        #boot-shell .bs-main { flex-direction: column; padding: 16px; }
+        #boot-shell .bs-panel { display: none; }
+        #boot-shell .bs-col { flex: 1 1 auto; width: 100%; max-width: 520px; margin: 0 auto; }
+      }
+      @keyframes bs-pudar { 0%, 100% { opacity: 0.55; } 50% { opacity: 1; } }
+      @media (prefers-reduced-motion: no-preference) {
+        #boot-shell .bs-line,
+        #boot-shell .bs-bar,
+        #boot-shell .bs-board,
+        #boot-shell .bs-panel { animation: bs-pudar 1.6s ease-in-out infinite; }
+      }
     </style>
   </head>
   <body>
@@ -92,6 +147,28 @@
     <div id="boot-hero" aria-hidden="true">
       <img src="/images/tonggak-2015.webp" alt="" width="828" height="462" fetchpriority="high" decoding="async" />
     </div>
+    <div id="boot-shell" aria-hidden="true" hidden>
+      <div class="bs-side">
+        <div class="bs-brand">Blunder<span>Skuad</span></div>
+        <div class="bs-line"></div>
+        <div class="bs-line"></div>
+        <div class="bs-line"></div>
+        <div class="bs-line"></div>
+      </div>
+      <div class="bs-main">
+        <div class="bs-col">
+          <div class="bs-bar"></div>
+          <div class="bs-board"></div>
+          <div class="bs-bar bs-bar-rendah"></div>
+        </div>
+        <div class="bs-panel"></div>
+      </div>
+    </div>
+    <noscript>
+      <div style="position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:#262421;color:#e5e7eb;font-family:system-ui,sans-serif;font-size:15px;line-height:1.6;padding:24px;text-align:center">
+        Blunder Skuad memerlukan JavaScript. Aktifkan JavaScript di peramban Anda, lalu muat ulang halaman ini.
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

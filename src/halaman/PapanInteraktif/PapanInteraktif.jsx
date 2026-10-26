@@ -68,17 +68,39 @@ import { usePengaturanPapan } from "./bersama/gunakanPengaturanPapan.js";
 import { usePengaturanBersama } from "./bersama/PengaturanKonteks.jsx";
 import { cariEngine } from "../../lib/engineCatur.js";
 import { useTandaBantu } from "../../lib/tandaBantu.js";
+import { antrekanLatar } from "../../lib/waktuSenggang.js";
 
 /* ------------------------------------------------- analisis Stockfish */
 // Logika & panelnya berbagi pakai dengan halaman Teka-Teki:
 // lihat src/lib/gunakanEngineCatur.js dan src/components/PanelEngine.jsx.
 
 
-function Kerangka() {
+/**
+ * Status buku pembukaan di dalam panel kanan. Dulu satu kegagalan/penundaan
+ * buku mengosongkan SELURUH area papan (gerbang `!pohon` di area utama);
+ * sekarang hanya tab yang memang butuh buku (Buku/Penjelajah/Partai) yang
+ * menampilkan status ini, sementara papan tetap bisa dipakai.
+ */
+function StatusBuku({ gagal, onUlang, t }) {
+  if (!gagal) {
+    return (
+      <p className="mt-1.5 text-sm font-medium text-gray-400">
+        {t("papan.memuat")}
+      </p>
+    );
+  }
   return (
-    <div aria-hidden="true" className="animate-pulse">
-      <div className="h-40 rounded-lg bg-[#312e2b]" />
-      <div className="mt-4 h-4 w-56 rounded bg-[#312e2b]" />
+    <div className="flex flex-col items-start gap-3">
+      <p className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
+        {t("papan.gagalMuat")}
+      </p>
+      <button
+        type="button"
+        onClick={onUlang}
+        className="rounded-full border border-red-800 px-5 py-2 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/60"
+      >
+        {t("common.cobaLagi")}
+      </button>
     </div>
   );
 }
@@ -324,14 +346,20 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
   /* ----------------------------------------------------- muat data pohon */
   useEffect(() => {
     let aktif = true;
-    let timer = 0;
-    let idleId = null;
     setGagal(false);
 
-    // Buku pembukaan cukup besar (~870 KiB tidak terkompresi). Beri browser
-    // kesempatan menyelesaikan render awal papan sebelum mulai mengunduh dan
-    // mem-parse katalog; fitur buku tetap dimuat otomatis sesudahnya.
-    const muatBuku = () => {
+    // Buku pembukaan besar (4,6 MB mentah / ±506 KiB terkirim). Dimuat lewat
+    // penjadwal latar bersama (src/lib/waktuSenggang.js): menunggu halaman
+    // `load` + tenang dan berjalan satu-satunya, sehingga unduhan ini tidak
+    // lagi berebut bandwidth dengan chunk yang menahan LCP — dulu efek ini
+    // memakai `requestIdleCallback({ timeout: 1200 })` yang praktis menyala
+    // seketika. `paksa: true` karena buku adalah data inti halaman, bukan
+    // spekulasi: pada jaringan hemat data pun ia tetap dimuat.
+    // Janji fetch WAJIB dikembalikan: penjadwal latar menandai pekerjaan
+    // selesai saat janjinya selesai. Tanpa `return`, antrean mengira buku
+    // 454 KiB sudah termuat dan langsung memulai pemanasan berikutnya —
+    // unduhan bertabrakan tepat saat panel engine menunggu data.
+    const muatBuku = () =>
       fetch(`${import.meta.env.BASE_URL}data/buku-pembukaan.json`, {
         priority: "low",
       })
@@ -355,20 +383,12 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         .catch(() => {
           if (aktif) setGagal(true);
         });
-    };
 
-    if ("requestIdleCallback" in window) {
-      idleId = window.requestIdleCallback(muatBuku, { timeout: 1200 });
-    } else {
-      timer = window.setTimeout(muatBuku, 250);
-    }
+    const batalMuat = antrekanLatar(muatBuku, { paksa: true });
 
     return () => {
       aktif = false;
-      window.clearTimeout(timer);
-      if (idleId !== null && "cancelIdleCallback" in window) {
-        window.cancelIdleCallback(idleId);
-      }
+      batalMuat();
     };
   }, [percobaan]);
 
@@ -1422,26 +1442,14 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
         {/* ═══════════════════════════════════════════════════════ */}
         <main className="flex-1 flex items-center justify-center bg-[#262421] min-w-0 overflow-hidden">
           <div className="flex h-full w-full max-w-[1280px] min-h-0 flex-col px-4 py-6 md:px-8">
-          {gagal ? (
-            <div className="flex flex-col items-start gap-3">
-              <p className="rounded-md border border-red-900 bg-red-950/40 px-4 py-3 text-sm text-red-300">
-                {t("papan.gagalMuat")}
-              </p>
-              <button
-                type="button"
-                onClick={() => setPercobaan((n) => n + 1)}
-                className="rounded-full border border-red-800 px-5 py-2 text-sm font-semibold text-red-300 transition-colors hover:bg-red-950/60"
-              >
-                {t("common.cobaLagi")}
-              </button>
-            </div>
-          ) : !pohon ? (
-            <div className="mx-auto max-w-[560px]">
-              <p className="mb-6 text-sm text-slate-400">{t("papan.memuat")}</p>
-              <Kerangka />
-            </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
+          {/* Papan & panel SELALU dirender, tanpa menunggu buku pembukaan.
+              Dulu seluruh isi area ini digerbangi `!pohon` sehingga papan dan
+              panel kanan (termasuk elemen LCP "Analisis Engine") baru dicat
+              setelah 506 KiB buku pembukaan selesai diunduh — audit PageSpeed
+              mencatat LCP 6,7 dtk (render delay 4.320 ms) dan CLS 0,071 saat
+              kerangka diganti tata letak asli. Bagian yang memang butuh buku
+              (tab Buku/Penjelajah/Partai) menampilkan statusnya sendiri. */}
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-x-hidden overflow-y-auto lg:flex-row lg:items-stretch lg:gap-3 lg:overflow-hidden">
               <div className="mx-auto flex w-full max-w-[520px] shrink-0 flex-col justify-center overflow-y-auto lg:mx-0 lg:max-w-[min(520px,calc(100dvh-140px),calc(100vw-634px))]">
                 {/* ─── BARIS PEMAIN ATAS — mengikuti orientasi papan ─── */}
                 <BarisProfil {...barisAtas} setBidak={setBidak} className="mb-2" />
@@ -1663,20 +1671,34 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                   }`}
                 >
                   {tabPanel === "books" ? (
-                    <BukuPembukaan
-                      kelompok={daftarPilih.kelompok}
-                      idDari={daftarPilih.idDari}
-                      terpilihId={pilihan}
-                      onPilih={(entri, id) => {
-                        setPilihan(id);
-                        muatJalur(entri);
-                      }}
-                      t={t}
-                    />
+                    !pohon ? (
+                      <StatusBuku
+                        gagal={gagal}
+                        onUlang={() => setPercobaan((n) => n + 1)}
+                        t={t}
+                      />
+                    ) : (
+                      <BukuPembukaan
+                        kelompok={daftarPilih.kelompok}
+                        idDari={daftarPilih.idDari}
+                        terpilihId={pilihan}
+                        onPilih={(entri, id) => {
+                          setPilihan(id);
+                          muatJalur(entri);
+                        }}
+                        t={t}
+                      />
+                    )
                   ) : tabPanel === "explorer" ? (
                     // Penjelajah = artikel pembukaan saja (daftar langkah
                     // pembukuan kini tampil di tab Partai).
-                    namaUtama ? (
+                    !pohon ? (
+                      <StatusBuku
+                        gagal={gagal}
+                        onUlang={() => setPercobaan((n) => n + 1)}
+                        t={t}
+                      />
+                    ) : namaUtama ? (
                       <KartuArtikelPembukaan
                         artikel={artikelPembukaan}
                         t={t}
@@ -1696,11 +1718,17 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                     // buku selesai (langkah keluar buku ATAU jalur buku habis)
                     // tabel itu digantikan daftar langkah basis data awan
                     // (chessdb.cn) dengan judul yang sama-sama "Daftar Langkah".
-                    masihDiBuku ? (
+                    !pohon ? (
+                      <StatusBuku
+                        gagal={gagal}
+                        onUlang={() => setPercobaan((n) => n + 1)}
+                        t={t}
+                      />
+                    ) : masihDiBuku ? (
                       <div>
                         <div className="mb-2 flex items-center justify-between">
                           <p className="text-sm font-bold text-gray-100">{t("papan.daftarLangkah")}</p>
-                          <span className="text-xs text-gray-500">{t("papan.basisData")}</span>
+                          <span className="text-xs text-gray-400">{t("papan.basisData")}</span>
                         </div>
                         <LangkahExplorer langkah={infoPembukaan.saran} bahasa={bahasa} onPilih={mainkanSan} t={t} />
                       </div>
@@ -1730,7 +1758,7 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                         />
                         <p className="pl-3 text-sm font-bold leading-none text-white">
                           {t("papan.engine")}{" "}
-                          <span className="ml-1 font-normal text-gray-500">{cariEngine(pp.mesin).label}</span>
+                          <span className="ml-1 font-normal text-gray-400">{cariEngine(pp.mesin).label}</span>
                         </p>
                       </div>
 
@@ -1895,7 +1923,6 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                 </div>
               </div>
             </div>
-          )}
         </div>
       </main>
       </div>

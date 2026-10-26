@@ -1,34 +1,24 @@
 import { useEffect, useRef, useState } from "react";
 import { ambilSumberBidak, muatSet } from "./pemuatBidak.js";
+import { antrekanLatar } from "../../lib/waktuSenggang.js";
 
-// Pre-load set lain di WAKTU SENGGANG SETELAH `load` (bukan saat modul
-// dievaluasi). Empat set × 12 bidak = ±48 request chunk kecil berdesakan di
-// jalur kritis pemuatan halaman (Lighthouse mobile: deretan request detik
-// 1,3–1,6 pada 4G lambat). Kini: set bawaan "merida" sudah dibawa oleh glob
-// eager di atas (nol chunk), dan tiga set sisanya menunggu acara `load` lebih
-// dulu supaya tidak bersaing dengan kebutuhan LCP. ChessPiece yang terlanjur
-// tampil memuat setnya sendiri lewat effect di bawah (cache sama-sama dipakai).
-if (typeof window !== "undefined") {
-  const panaskanSet = () => {
-    for (const s of ["alpha", "bidak", "chesscom"]) {
-      muatSet(s).catch(() => {
-        /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
-      });
-    }
-  };
-  const jadwalkanPemanasan = () => {
-    if (typeof window.requestIdleCallback === "function") {
-      window.requestIdleCallback(panaskanSet, { timeout: 4000 });
-    } else {
-      window.setTimeout(panaskanSet, 2000);
-    }
-  };
-  if (document.readyState === "complete") {
-    jadwalkanPemanasan();
-  } else {
-    window.addEventListener("load", jadwalkanPemanasan, { once: true });
+// Pemanasan set lain dijadwalkan lewat penjadwal latar bersama: setelah
+// halaman `load` + tenang, satu pekerjaan pada satu waktu, dan dilewati pada
+// jaringan hemat/2G–3G. Sebelumnya blok ini menyala sendiri 4 dtk setelah
+// `load`; pada audit PageSpeed /papan-interaktif 36 chunk bidak itu mendarat
+// bersamaan dengan chunk yang menahan LCP. Set bawaan "merida"/"alpha" sudah
+// dibawa glob eager (nol chunk), dan ChessPiece tetap memuat setnya sendiri
+// lewat effect di bawah bila pengguna memilih set lain sebelum pemanasan jalan.
+antrekanLatar(async () => {
+  // Satu set (12 bidak) pada satu waktu, bukan tiga set (36 permintaan chunk
+  // kecil) sekaligus — itu deretan request yang dulu berebut jalur dengan
+  // LCP. Janji dikembalikan supaya penjadwal baru lanjut setelah benar selesai.
+  for (const s of ["alpha", "bidak", "chesscom"]) {
+    await muatSet(s).catch(() => {
+      /* diabaikan di sini; ChessPiece akan mencoba ulang sendiri */
+    });
   }
-}
+});
 
 export function ChessPiece({ piece, set = "merida", className = "w-full h-full" }) {
   const [peta, setPeta] = useState(() => undefined);

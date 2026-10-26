@@ -12,7 +12,9 @@ export function LoadingSpinner({ label = "Memuat…", className = "" }) {
 }
 
 /**
- * Buang #boot-hero (gambar pramuat dari index.html).
+ * Buang #boot-hero (gambar pramuat dari index.html) dan #boot-shell (kerangka
+ * statis rute gelap). Keduanya elemen HTML yang dicat sebelum React jalan;
+ * setelah konten asli ter-render keduanya tidak boleh tertinggal di belakang.
  *
  * Komponen ini dipasang DI DALAM <Suspense> sebagai saudara <Outlet />,
  * sehingga efeknya baru berjalan SETELAH konten halaman pertama
@@ -25,6 +27,7 @@ export function LoadingSpinner({ label = "Memuat…", className = "" }) {
 export function BersihkanBootHero() {
   useLayoutEffect(() => {
     document.getElementById("boot-hero")?.remove();
+    document.getElementById("boot-shell")?.remove();
   }, []);
   return null;
 }
@@ -47,6 +50,14 @@ export function PlaceholderHalaman() {
   const bootMasihAda =
     typeof document !== "undefined" &&
     document.getElementById("boot-hero") !== null;
+  // Rute layar penuh gelap tidak memakai #boot-hero, melainkan #boot-shell.
+  // Selama kerangka itu masih terpasang, jangan tambahkan spinner di atasnya —
+  // dua indikator memuat sekaligus terlihat seperti halaman yang gagal.
+  const kerangkaMasihAda =
+    typeof document !== "undefined" &&
+    document.getElementById("boot-shell") !== null;
+
+  if (kerangkaMasihAda) return <div aria-hidden="true" className="min-h-screen w-full" />;
 
   if (bootMasihAda) {
     return <div aria-hidden="true" className="h-[650px] w-full" />;
