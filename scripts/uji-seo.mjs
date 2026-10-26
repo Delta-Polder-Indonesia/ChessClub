@@ -129,8 +129,17 @@ for (const rute of RUTE_LATAR_GELAP) {
   if (hasil.includes("/images/tonggak-2015.webp")) {
     gagal(`Rute gelap ${rute}: preload gambar hero beranda masih ada.`);
   }
-  if (!hasil.includes('<body style="background-color:#262421">')) {
+  // Periksa TAG body yang sebenarnya (sesudah </head> lalu diikuti #root),
+  // bukan sekadar keberadaan teksnya di mana pun — teks `<body style=…>` bisa
+  // muncul di komentar CSS <head> dan membuat pemeriksaan lama lolos padahal
+  // tag aslinya tanpa latar.
+  if (!/(<\/head>[\s\S]*?)<body style="background-color:#262421">\s*<div id="root">/.test(hasil)) {
     gagal(`Rute gelap ${rute}: <body> tanpa latar gelap inline #262421.`);
+  }
+  // Kerangka statis wajib AKTIF di rute gelap (bukan `hidden`) supaya tidak
+  // ada layar kosong sebelum React siap.
+  if (!hasil.includes('<div id="boot-shell" aria-hidden="true">')) {
+    gagal(`Rute gelap ${rute}: #boot-shell tidak aktif di HTML hasil build.`);
   }
 }
 // Rute ber-kerangka (dan beranda) WAJIB mempertahankan boot-hero untuk LCP.
@@ -138,6 +147,11 @@ for (const rute of ["/", "/program-kami/teka-teki", "/turnamen"]) {
   const hasil = metadataRute(html, rute, situs);
   if (!hasil.includes('id="boot-hero"')) {
     gagal(`Rute ${rute}: #boot-hero hilang — LCP beranda ikut rusak.`);
+  }
+  // Kerangka rute gelap tidak boleh ikut tampil di rute ber-kerangka: dua
+  // kerangka sekaligus = kedipan ganda.
+  if (!hasil.includes('<div id="boot-shell" aria-hidden="true" hidden>')) {
+    gagal(`Rute ${rute}: #boot-shell ikut aktif — seharusnya tetap hidden.`);
   }
 }
 

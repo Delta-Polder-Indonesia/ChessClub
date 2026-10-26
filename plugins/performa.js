@@ -484,7 +484,27 @@ export function kerangkaRute(html, rute) {
       "",
     )
     .replace(/\s*<div id="boot-hero"[\s\S]*?<\/div>/, "")
-    .replace("<body>", '<body style="background-color:#262421">');
+    // Anchor ke `</head>`: tag body ASLI selalu sesudahnya. Tanpa anchor,
+    // `.replace("<body>", …)` bisa mengenai teks `<body>` di komentar CSS pada
+    // <head> — latar gelap menempel ke komentar, tag aslinya tetap tanpa latar,
+    // dan kedipan putih kembali. (Pernah terjadi; lihat uji-seo 2b.)
+    .replace(
+      /(<\/head>[\s\S]*?)<body>/,
+      '$1<body style="background-color:#262421">',
+    )
+    // Kerangka statis (lihat #boot-shell di index.html): rute gelap tidak lagi
+    // berupa persegi gelap kosong sebelum React siap. `hidden` dilepas hanya di
+    // sini — rute ber-kerangka tetap memakai #boot-hero dan tidak pernah
+    // menampilkan kerangka ini.
+    .replace(
+      '<div id="boot-shell" aria-hidden="true" hidden>',
+      '<div id="boot-shell" aria-hidden="true">',
+    )
+    // Warna chrome peramban (address bar Android/iOS) mengikuti latar halaman.
+    .replace(
+      "</head>",
+      '  <meta name="theme-color" content="#262421" />\n    <meta name="color-scheme" content="dark" />\n  </head>',
+    );
   const json = PRELOAD_JSON_RUTE[rute];
   if (!json) return hasil;
   const dasar = process.env.VITE_BASE_PUBLIC || "/";
