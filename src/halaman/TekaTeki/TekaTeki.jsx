@@ -1386,6 +1386,18 @@ export default function TekaTeki() {
   }
 
   // Papan re-usable untuk ditempatkan di wadah gelap.
+  /** Label tema dari kamus — dipakai keadaan memuat DAN keadaan siap supaya
+   *  daftar tema tidak sempat tampil dalam bahasa Inggris bawaan
+   *  (OPSI_TEMA_BAWAAN) lalu berganti bahasa saat data soal tiba. */
+  const opsiTemaKamus = useMemo(
+    () =>
+      DAFTAR_TEMA.map((g) => ({
+        grup: t(g.grup),
+        isi: g.isi.map(([nilai, kunci]) => [nilai, t(kunci)]),
+      })),
+    [t]
+  );
+
   const papanWadah = (
     <div className="relative h-full w-full">
       <PapanTekaTeki
@@ -1584,7 +1596,11 @@ export default function TekaTeki() {
              dirender lebih dulu tanpa data: papan memakai versi contoh
              (prop `papan` kosong), jadi ukurannya identik dan tidak ada
              pergeseran tata letak saat soal asli masuk. */
-          <LayoutTekaTeki nilaiTotalSoal={0} />
+          <LayoutTekaTeki
+            memuat
+            nilaiTotalSoal={0}
+            opsiTema={opsiTemaKamus}
+          />
         )
       ) : (
         <LayoutTekaTeki
@@ -1664,10 +1680,7 @@ export default function TekaTeki() {
               }
               nilaiTema={filterTema}
               onGantiTema={setFilterTema}
-              opsiTema={DAFTAR_TEMA.map((g) => ({
-                grup: t(g.grup),
-                isi: g.isi.map(([nilai, kunci]) => [nilai, t(kunci)]),
-              }))}
+              opsiTema={opsiTemaKamus}
               nilaiGiliran={filterGiliran}
               onGantiGiliran={setFilterGiliran}
               nilaiNomorSoal={nomorSoal}
@@ -1743,6 +1756,43 @@ function papanSampel() {
   return papan;
 }
 
+/**
+ * Kerangka papan selama data soal belum ada.
+ *
+ * Sebelumnya cabang "memuat" memakai papan contoh (`papanSampel`) yang
+ * menggambar bidak sebagai GLIF UNICODE — pengguna melihat papan bergaya lain
+ * (bukan set bidak SVG), plus "Skak dalam 1 langkah" dan rating 1500 palsu,
+ * lalu semuanya berganti saat data tiba. Sekarang: 64 petak kosong di wadah
+ * aspect-square yang sama, tanpa bidak dan tanpa angka palsu — tidak ada yang
+ * "salah" untuk dilihat, dan ukurannya identik dengan papan asli.
+ */
+function KerangkaPapan() {
+  return (
+    <div aria-hidden="true" className="grid h-full w-full grid-cols-8 grid-rows-8 animate-pulse">
+      {Array.from({ length: 64 }, (_, i) => {
+        const r = Math.floor(i / 8);
+        const c = i % 8;
+        return (
+          <div
+            key={i}
+            className={(r + c) % 2 === 0 ? "bg-[#3a3733]" : "bg-[#2f2d2a]"}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+/** Bilah evaluasi netral untuk keadaan memuat (bukan "+0.3" palsu). */
+function KerangkaBilahEvaluasi() {
+  return (
+    <div
+      aria-hidden="true"
+      className="h-full w-[30px] flex-shrink-0 animate-pulse rounded-md bg-[#312e2b]"
+    />
+  );
+}
+
 const TAB = [
   {
     kunci: "tekaTeki.tabAtribusi",
@@ -1757,7 +1807,7 @@ const OPSI_TEMA_BAWAAN = [
   { grup: "Karakteristik", isi: [["endgame", "Endgame"], ["middlegame", "Middlegame"], ["opening", "Opening"]] },
 ];
 
-function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, syzygyMemuat = false, syzygyGagal = false, teksSyzygyMemuat = "", teksSyzygyGagal = "", fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false }) {
+function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = false, onGantiPengaturan = null, onFlip = null, giliran = "putih", jumlahLangkah = 1, syzygy = null, syzygyMemuat = false, syzygyGagal = false, teksSyzygyMemuat = "", teksSyzygyGagal = "", fen = "", teksKategoriSyzygy = null, PETA_KELAS_SYZYGY = null, syzygyJudul = "", syzygyDidukung = "", syzygyDetail = "", syzygyCatatan = "", teksSoal = "", teksTingkat = "", teksTipe = "", teksTerpecahkan = "", teksCekmat = "", teksSudah = "", daftarSet = [], nilaiSetBidak = "merida", onGantiSetBidak = null, pilihanWarnaPapan = [], nilaiWarnaPapan = "green", onGantiWarnaPapan = null, nilaiSuara = true, onGantiSuara = null, onAcak = null, onLewati = null, nilaiOtomatis = false, onGantiOtomatis = null, engineNyala = false, onGantiEngine = null, tampilPanahMesin = true, onGantiPanahMesin = null, teksPanahMesin = "", nilaiLevel = "semua", onGantiLevel = null, nilaiLangkah = "semua", onGantiLangkah = null, nilaiTema = "semua", opsiTema = [], onGantiTema = null, nilaiGiliran = "semua", onGantiGiliran = null, nilaiNomorSoal = "", nilaiTotalSoal = 0, onGantiNomorSoal = null, nilaiIngatPosisi = true, onGantiIngatPosisi = null, teksPosisiTersimpan = "", teksIngatNonaktif = "", teksGalatNomor = "", onBukaNomor = null, bisaHint = false, onHint = null, teksSalah = "", teksPeringatan = "", kartuKomentator = null, kecepatanEngine = 800, opsiKecepatan = [], onGantiKecepatan = null, pvSanEngine = [], onMainkanSaran = null, onKeAwal = null, onMundur = null, onMaju = null, onKeAkhir = null, bisaMundur = false, bisaMaju = false, onPertama = null, eloSoal = 1500, namaHitam = "", eloHitam = 0, namaPutih = "", eloPutih = 0, teksPembukaan = "", komentatorNyala = false, memuat = false }) {
   const { t } = useI18n();
   // Default prop sengaja kosong: teksnya selalu dari kamus.
   const labelPanahMesin = teksPanahMesin || t("papan.enginePanahToggle");
@@ -1960,7 +2010,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                     </div>
                     <div className="flex flex-row items-center gap-1.5 mt-0.5">
                       <span className="text-[11px] text-gray-400 font-medium truncate">
-                        {t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
+                        {memuat ? "—" : t("tekaTeki.skakDalamN", { n: jumlahLangkah })}
                       </span>
                     </div>
                   </div>
@@ -1986,6 +2036,10 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                   <div className="self-stretch flex items-center justify-center">
                     {barEvaluasi}
                   </div>
+                ) : memuat ? (
+                  <div className="self-stretch flex items-center justify-center">
+                    <KerangkaBilahEvaluasi />
+                  </div>
                 ) : (
                   <div className="w-[30px] flex-shrink-0 rounded-md overflow-hidden relative bg-[#ffffff] shadow-inner">
                     {/* Bagian putih (atas) */}
@@ -2008,6 +2062,8 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 <div className="flex-1 aspect-square shadow-2xl rounded-md overflow-hidden relative">
                   {papan ? (
                     papan
+                  ) : memuat ? (
+                    <KerangkaPapan />
                   ) : (
                     <div className="grid grid-cols-8 grid-rows-8 relative h-full w-full">
                       {papanStatic.map((row, r) =>
@@ -2117,7 +2173,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
                 <div className="flex flex-row items-center gap-2 flex-shrink-0">
                   <span className="text-[11px] text-gray-400 font-medium whitespace-nowrap">{t("tekaTeki.ratingSoal")}</span>
                   <div className="flex text-nowrap justify-center items-center h-10 min-w-[100px] px-3 rounded-md bg-[#f0f0f0] text-[#1e1d1c] text-lg font-mono font-bold shadow border border-[#81b64c] ring-2 ring-[#81b64c]/40">
-                    {eloSoal}
+                    {memuat ? "—" : eloSoal}
                   </div>
                 </div>
               </div>
@@ -2385,11 +2441,16 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
           {/* Baris: giliran */}
           <div className="flex-shrink-0 px-4 py-2.5 border-b border-[#312e2b] bg-[#1e1c18] flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-0">
-              <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
-              <span className={giliran === "putih" ? "text-white" : "text-gray-300"}>
-                {giliran === "putih"
-                  ? t("tekaTeki.giliranPutih")
-                  : t("tekaTeki.giliranHitam")}
+              <div className={`h-3 w-3 rounded-sm flex-shrink-0 ${!memuat && giliran === "putih" ? "bg-white border border-gray-400" : "bg-[#312e2b] border border-gray-600"}`}></div>
+              {/* Saat data belum ada, sisi yang melangkah belum diketahui —
+                  jangan tampilkan "Putih melangkah" yang bisa keliru untuk
+                  soal Black-to-move. */}
+              <span className={!memuat && giliran === "putih" ? "text-white" : "text-gray-300"}>
+                {memuat
+                  ? "—"
+                  : giliran === "putih"
+                    ? t("tekaTeki.giliranPutih")
+                    : t("tekaTeki.giliranHitam")}
               </span>
             </div>
           </div>
@@ -2418,7 +2479,7 @@ function LayoutTekaTeki({ papan = null, barEvaluasi = null, bukaPengaturan = fal
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-              {syzygyMemuat && !syzygy ? (
+              {(memuat || syzygyMemuat) && !syzygy ? (
                 <span className="animate-pulse text-xs font-semibold text-gray-400">
                   {teksSyzygyMemuat}
                 </span>
