@@ -175,6 +175,7 @@ export default function KartuKomentator({
             width="64"
             height="64"
             loading="eager"
+            fetchpriority="high"
             decoding="async"
           />
           <div className="relative min-w-0 flex-1 rounded-md border border-[#3b3935] bg-[#262421] p-2.5 sm:p-3">
