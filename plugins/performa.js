@@ -562,12 +562,21 @@ export function kerangkaRute(html, rute) {
       '  <meta name="theme-color" content="#262421" />\n    <meta name="color-scheme" content="dark" />\n  </head>',
     );
   const json = PRELOAD_JSON_RUTE[rute];
-  if (!json) return hasil;
   const dasar = process.env.VITE_BASE_PUBLIC || "/";
-  return hasil.replace(
-    "<head>",
-    `<head>\n    <link rel="preload" as="fetch" href="${dasar}${json}" crossorigin />`,
-  );
+  // PageSpeed mengidentifikasi avatar komentator sebagai LCP pada halaman
+  // teka-teki. Karena komponennya dirender oleh React setelah JavaScript,
+  // browser tidak menemukannya dari HTML awal. Batasi preload ke rute ini
+  // agar tidak mengunduh gambar yang tidak diperlukan di halaman lain.
+  const preloadAvatar =
+    rute === "/teka-teki/problem"
+      ? `    <link rel="preload" as="image" href="${dasar}engine_expressions/coachdavid.png" fetchpriority="high" />`
+      : "";
+  if (!json && !preloadAvatar) return hasil;
+  const preloads = [
+    json ? `    <link rel="preload" as="fetch" href="${dasar}${json}" crossorigin />` : "",
+    preloadAvatar,
+  ].filter(Boolean);
+  return hasil.replace("<head>", `<head>\n${preloads.join("\n")}`);
 }
 
 /** Ganti meta robots HTML menjadi noindex (dipakai salinan 404.html). */
