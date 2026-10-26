@@ -15,7 +15,7 @@ Skema keluaran (kompatibel dengan TekaTeki.jsx):
   fen        : posisi awal SETELAH langkah persiapan pihak lawan
   moves      : "e2-e4;d7-d5;..." — langkah pemain & balasan lawan bergantian,
                dipisah ";", promosi ditulis menempel (c7-c8q)
-  + metadata tambahan: rating, tema, sumberId, linkPartai, pemain/elo, pembukaan
+  + metadata tambahan: rating, tema, sumberId, pemain/elo, pembukaan
 
 Pemakaian:
   pip install chess
@@ -117,7 +117,6 @@ def olah_baris(baris: str):
         "rating": int(p["Rating"]),
         "tema": " ".join(tema),
         "sumberId": p["PuzzleId"],
-        "linkPartai": p.get("GameUrl", ""),
         "pemainPutih": meta["putih"],
         "pemainHitam": meta["hitam"],
         "eloPutih": int(meta["eloPutih"]) if meta["eloPutih"].isdigit() else None,
