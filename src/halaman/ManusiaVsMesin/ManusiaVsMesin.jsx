@@ -1157,7 +1157,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
             </span>
             <div className="min-w-0">
               <p className="truncate text-sm font-bold text-white">{NAMA_MESIN}</p>
-              <p className="text-[11px] text-gray-500">{statusTeks()}</p>
+              <p className="text-[11px] text-gray-300">{statusTeks()}</p>
             </div>
           </div>
           <button
@@ -1207,7 +1207,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                 dengan pemilih warna. */}
             <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-300">
                   {t("papan.pveLevel")}
                 </p>
                 <div
@@ -1248,7 +1248,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                   acak). "Acak" baru dipilih saat Mulai ditekan; sebelum itu
                   papan tetap memakai warna terakhir. */}
               <div>
-                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+                <p className="mb-1.5 text-[11px] font-bold uppercase tracking-wide text-gray-300">
                   {t("papan.pveWarnaPemain")}
                 </p>
                 <div
@@ -1314,7 +1314,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                   {/* Keterangan extrapolasi — kunci lama `pveMesinMaia` yang
                       tadinya mati; rating di luar 1100–1900 bukan kekuatan
                       tervalidasi pelatihan model. */}
-                  <p className="mt-2 text-[11px] leading-4 text-gray-500">
+                  <p className="mt-2 text-[11px] leading-4 text-gray-300">
                     {t("papan.pveMesinMaia", { rating: ratingMaia })}
                   </p>
                 </>
@@ -1354,7 +1354,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                 <ol className="space-y-1">
                   {giliranPenuh.map((row, index) => (
                     <li key={row.nomor} className="grid grid-cols-[2rem_1fr_1fr] gap-2 text-gray-200">
-                      <span className="text-gray-500">{row.nomor}.</span>
+                      <span className="text-gray-300">{row.nomor}.</span>
                       <span className={index * 2 < riwayat.length ? undefined : "text-gray-600"}>
                         {row.putih}
                       </span>
@@ -1365,7 +1365,7 @@ export default function ManusiaVsMesin({ pengaturan = null }) {
                   ))}
                 </ol>
               ) : (
-                <p className="text-xs text-gray-500">{t("papan.pveRiwayatKosong")}</p>
+                <p className="text-xs text-gray-300">{t("papan.pveRiwayatKosong")}</p>
               )}
             </div>
           </section>
