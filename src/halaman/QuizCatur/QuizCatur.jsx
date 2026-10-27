@@ -260,7 +260,7 @@ export default function QuizCatur() {
 
   /* ------------------------------------------------------- label kecil */
   const MikroLabel = ({ children }) => (
-    <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+    <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-300">
       {children}
     </span>
   );
@@ -276,7 +276,7 @@ export default function QuizCatur() {
             <MikroLabel>{t("quiz.peringkatHeading")}</MikroLabel>
             <div className="mt-1 flex flex-col divide-y divide-[#312e2b]">
               {peringkat.length === 0 ? (
-                <p className="py-2 text-sm text-slate-500">
+                <p className="py-2 text-sm text-slate-300">
                   {t("quiz.peringkatKosong")}
                 </p>
               ) : (
@@ -288,7 +288,7 @@ export default function QuizCatur() {
                     <span className="flex min-w-0 items-center gap-2">
                       <span
                         className={`w-5 shrink-0 text-right tabular-nums ${
-                          i === 0 ? "font-bold text-[#81b64c]" : "text-slate-500"
+                          i === 0 ? "font-bold text-[#81b64c]" : "text-slate-300"
                         }`}
                       >
                         {i + 1}
@@ -324,7 +324,7 @@ export default function QuizCatur() {
               />
               <span className="truncate">{t("quiz.semua")}</span>
             </span>
-            <span className="text-xs tabular-nums text-slate-500">
+            <span className="text-xs tabular-nums text-slate-300">
               {SOAL_CATUR.length}
             </span>
           </button>
@@ -347,7 +347,7 @@ export default function QuizCatur() {
                 />
                 <span className="truncate">{t(`quiz.kategori.${k}`)}</span>
               </span>
-              <span className="text-xs tabular-nums text-slate-500">
+              <span className="text-xs tabular-nums text-slate-300">
                 {hitungPerKategori[k] || 0}
               </span>
             </button>
@@ -358,12 +358,12 @@ export default function QuizCatur() {
         <div className="mt-auto pt-4">
           <Link
             to="/program-kami/atribusi"
-            className="flex items-center gap-1.5 text-xs text-slate-500 transition hover:text-white"
+            className="flex items-center gap-1.5 text-xs text-slate-300 transition hover:text-white"
           >
             <License size={14} class="fill-current" />
             {t("papan.menuAtribusi")}
           </Link>
-          <p className="mt-2 text-[11px] text-slate-600">{t("quiz.versi")}</p>
+          <p className="mt-2 text-[11px] text-slate-400">{t("quiz.versi")}</p>
         </div>
       </div>
     </aside>
@@ -399,7 +399,7 @@ export default function QuizCatur() {
         <div className="mt-4 grid grid-cols-5 gap-1.5">
           {lampau.map((b, i) => (
             <div key={i} className="flex flex-col items-center gap-1">
-              <span className="text-[10px] font-semibold tabular-nums text-slate-500">
+              <span className="text-[10px] font-semibold tabular-nums text-slate-300">
                 {i + 1}
               </span>
               <span className="flex h-9 w-full items-center justify-center">
@@ -427,7 +427,7 @@ export default function QuizCatur() {
           </p>
           <div className="mt-4 text-7xl font-black tabular-nums text-[#fffaec]">
             {benar}
-            <span className="text-3xl text-slate-500">/{lampau.length}</span>
+            <span className="text-3xl text-slate-300">/{lampau.length}</span>
           </div>
           <p className="mt-3 text-base font-semibold text-[#81b64c]">
             {t("quiz.hasil", { benar, total: lampau.length })}
@@ -471,7 +471,7 @@ export default function QuizCatur() {
               if (cobaMulai) setCobaMulai(false);
             }}
             placeholder={t("quiz.usernamePlaceholder")}
-            className={`mt-8 w-full border-0 border-b-2 bg-transparent px-1 py-2 text-left text-base text-white outline-none transition-colors duration-200 placeholder:text-slate-500 ${
+            className={`mt-8 w-full border-0 border-b-2 bg-transparent px-1 py-2 text-left text-base text-white outline-none transition-colors duration-200 placeholder:text-slate-300 ${
               cobaMulai && !username.trim()
                 ? "border-red-400"
                 : "border-[#9b9b9b] focus:border-[#81b64c]"
@@ -481,7 +481,7 @@ export default function QuizCatur() {
             <p className="mt-2 text-xs text-red-400">{t("quiz.usernameKosong")}</p>
           )}
           <div className="mt-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-300">
               {t("quiz.batasSalah")}
             </p>
             <div className="mt-2 flex gap-3">
@@ -618,7 +618,7 @@ export default function QuizCatur() {
                       : t("quiz.lanjut")}
                   </button>
                 ) : (
-                  <p className="text-center text-xs text-slate-500">
+                  <p className="text-center text-xs text-slate-300">
                     {t("quiz.pilihJawaban")}
                   </p>
                 )}
