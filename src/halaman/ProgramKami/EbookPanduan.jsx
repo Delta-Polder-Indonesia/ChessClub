@@ -163,7 +163,7 @@ function KartuEbook({ buku, disorot, terbalik, padaBalik, padaBaca, padaUnduh })
               {buku.kategori}
             </span>
             <p className="m-0 line-clamp-2 text-[12px] font-semibold leading-4 text-slate-900">{buku.judul}</p>
-            <p className="m-0 text-[11px] text-slate-500">{buku.ukuran}</p>
+            <p className="m-0 text-[11px] text-slate-700">{buku.ukuran}</p>
             {buku.tersedia ? (
               <div className="mx-auto flex w-full max-w-[160px] flex-row items-stretch justify-center gap-1.5">
                 <button
@@ -361,7 +361,7 @@ export default function EbookPanduan() {
       >
         <div className="relative w-full mx-auto max-w-[1280px] flex flex-col">
 <div className="prose-kci mb-10">
-            <h3>{t("ebookPanduan.tentangJudul")}</h3>
+            <h2>{t("ebookPanduan.tentangJudul")}</h2>
             <p>
               {t("ebookPanduan.tentangP1")}
             </p>
@@ -394,7 +394,7 @@ export default function EbookPanduan() {
                 })}
               </div>
             </div>
-            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-500">{t("ebookPanduan.dokumenCount", { n: daftarTampil.length })}</span>
+            <span className="ml-auto whitespace-nowrap text-[12px] text-slate-700">{t("ebookPanduan.dokumenCount", { n: daftarTampil.length })}</span>
           </div>
     
           <div
@@ -444,7 +444,7 @@ export default function EbookPanduan() {
                     </span>
                     <h2 className="truncate text-[14px] font-semibold text-slate-900">{pdfAktif.judul}</h2>
                   </div>
-                  <p className="mt-0.5 hidden text-[11px] text-slate-500 md:block">
+                  <p className="mt-0.5 hidden text-[11px] text-slate-700 md:block">
                     {t("ebookPanduan.info", {
                       kategori: pdfAktif.kategori,
                       ukuran: pdfAktif.ukuran,
