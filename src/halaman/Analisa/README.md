@@ -207,7 +207,7 @@ tidak ada logika engine baru:
 
 | Tingkat | Berkas | Isi |
 | --- | --- | --- |
-| Per partai | `mesin/antiCheat.js` → `hitungSkorKecurigaan(moves)` | metrik + skor 0–100 per warna, dirender kartu `summary/deteksiEngine.jsx` di panel Ringkasan |
+| Per partai | `mesin/antiCheat.js` → `hitungSkorKecurigaan(moves)` | perhitungan metrik + skor 0–100 per warna; kartu hasil per partai tidak ditampilkan di Ringkasan |
 | Agregat riwayat | `mesin/antiCheat.js` → `agregatSkorPemain(…)` | gabungan lintas partai, dirender layar **Deteksi engine** pada `komponen/nav/layarDeteksiEngine.jsx` + `ringkasanAntiCheat.jsx` |
 
 Menu **Deteksi engine** adalah layar internal di `/program-kami/analisa/papan`,
@@ -486,14 +486,13 @@ Aturan saat beku:
 - Suite berikut adalah **uji regresi hidup** perilaku v1 — bila perilaku
   memang sengaja diubah, ekspektasi di berkasnya diperbarui dalam perubahan
   yang sama (jangan dilewati/dimatikan).
-- **Kartu tambahan di `summary/summary.jsx` wajib dipasang paling bawah.**
-  Dua kartu tambahan saat ini: `deteksiEngine.jsx` lalu `eksporPgn.jsx`.
+- Komponen tambahan di `summary/summary.jsx` harus memperhatikan urutan DOM.
   `uji-hasil.mjs` mencari baris Ringkasan lewat teks labelnya
   (`spans.find(s => s.textContent === …)`) sehingga baris PERTAMA yang cocok
-  yang menang; kartu baru yang menyisip di tengah — atau yang memakai ulang
-  label "Pembukaan"/"Menengah"/"Akhir" — akan membajak pencarian itu. Itulah
-  alasan `deteksiEngine.jsx` berada setelah `GameRating` dan memakai label
-  fase sendiri (`analisa.antiCheat.fase.*`, "Kecocokan pembukaan", …).
+  yang menang; komponen baru yang memakai ulang label "Pembukaan"/"Menengah"/
+  "Akhir" dapat membajak pencarian itu. Kartu Deteksi engine per partai sudah
+  dihapus dari Ringkasan; analisis anti-cheat tetap tersedia melalui layar
+  **Deteksi engine** tersendiri di sidebar.
 
 | Suite | Cakupan | Pemeriksaan |
 | --- | --- | --- |
