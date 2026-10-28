@@ -373,7 +373,6 @@ export default function LayarWawasan() {
                       hitam={wawasanTampil.sebagaiHitam}
                       t={t}
                     />
-                    <KartuTaktikal taktikal={wawasanTampil.taktikal} t={t} />
                   </div>
                   <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <DashboardAkun
