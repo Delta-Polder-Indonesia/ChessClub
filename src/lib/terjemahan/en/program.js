@@ -430,16 +430,16 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Puzzle Rush",
     deskripsi:
-      "A timed tactics workout: solve a streak of increasingly hard checkmates before the clock runs out or you lose three lives.",
+      "A timed chess-puzzle mode with 3- or 5-minute sessions. Solve positions one by one; the session ends when time runs out or all three lives are used.",
     metaDeskripsi:
-      "Indonesian Chess Community Puzzle Rush — a fast-paced tactics mode. Solve back-to-back checkmate puzzles within a 3- or 5-minute limit with three lives.",
+      "Puzzle Rush is a timed chess-training mode with 3- or 5-minute sessions and three lives. Session scores can be compared on the available leaderboard.",
     introJudul: "A Race to Spot the Checkmate",
     intro1:
-      "Puzzle Rush is a timed practice mode: you solve checkmate puzzles one after another, and each solved puzzle unlocks a slightly harder one. The goal is simple — score as high as you can before time runs out.",
+      "Puzzle Rush is a timed practice mode. Solve chess puzzles in sequence and earn as much score as you can before the session ends. Choose a 3- or 5-minute session.",
     intro2:
-      "The format trains pattern recognition as a reflex. Instead of long calculation, you learn to instantly recognise recurring tactical motifs — forks, pins, double attacks, and classic mating patterns — so that in real games your eye catches chances faster.",
+      "Each position asks you to find a move that fits the puzzle. Use the session to practise reading threats, calculating variations, and choosing moves carefully under time pressure.",
     introGambarAlt:
-      "Infographic on the benefits of puzzle training: sharpens tactical vision, improves calculation skills, and boosts pattern recognition.",
+      "Illustration of a chessboard and stopwatch representing timed chess-puzzle practice.",
     caraJudul: "How to play",
     langkah1: "Enter your Chess.com username, then choose a session length: 3 minutes or 5 minutes.",
     langkah2: "Solve each checkmate puzzle — click or drag your piece to the target square before your opponent replies.",
@@ -448,16 +448,16 @@ export const rushLanding = {
     fiturJudul: "What makes it work",
     fitur1Judul: "Rising difficulty",
     fitur1Isi:
-      "Puzzles start easy and step up gradually with your performance, so there is always a challenge without frustrating you from the start.",
+      "Solve the puzzles presented in sequence. Focus on the current position and find the move that fits.",
     fitur2Judul: "Time pressure",
     fitur2Isi:
-      "The 3- or 5-minute limit forces quick decisions — sharpening the tactical intuition you need in rapid and blitz play.",
+      "Choose a 3- or 5-minute session. The time limit asks you to manage your pace without ignoring move accuracy.",
     fitur3Judul: "Leaderboard",
     fitur3Isi:
-      "Your best score is saved and measured against fellow community members, adding motivation to keep beating your personal record.",
+      "Scores can appear on the Rush leaderboard. Compare your session result with the scores listed there.",
     ctaJudul: "Ready to race the clock?",
     ctaIsi:
-      "Pick a length, start a session, and see how many checkmates you can solve without stopping.",
+      "Choose a session length, solve puzzles one by one, and aim for your best score before time runs out or all three lives are used.",
     cta: "Start Puzzle Rush",
 };
 
