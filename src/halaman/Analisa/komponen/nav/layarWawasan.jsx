@@ -914,6 +914,7 @@ export function KartuPembukaanTeratas({
 
 function KartuAkurasiPartai({ moves, players }) {
   const [mode, setMode] = useState("cp");
+  const [titikAktif, setTitikAktif] = useState(null);
   const idGrafik = useId().replace(/:/g, "");
   const data = useMemo(() => {
     const langkah = (Array.isArray(moves) ? moves : []).map((move, index) => {
@@ -1033,9 +1034,24 @@ function KartuAkurasiPartai({ moves, players }) {
             <path d={area} fill="#34383d" fillOpacity=".96" clipPath={`url(#${idGrafik}-bawah)`} />
             <path d={pathLine} fill="none" stroke="#b9bdc2" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
             {coords.map((p) => (
-              <circle key={p.index} cx={p.x} cy={p.y} r="0" fill="none">
+              <circle
+                key={p.index}
+                cx={p.x}
+                cy={p.y}
+                r={titikAktif?.index === p.index ? 4 : 2.5}
+                fill={titikAktif?.index === p.index ? "#f8fafc" : "#b9bdc2"}
+                stroke="#1b1c1e"
+                strokeWidth="1"
+                tabIndex="0"
+                role="button"
+                aria-label={`Langkah ${p.index}: ${p.san || "posisi"}`}
+                onMouseEnter={() => setTitikAktif(p)}
+                onMouseLeave={() => setTitikAktif(null)}
+                onFocus={() => setTitikAktif(p)}
+                onBlur={() => setTitikAktif(null)}
+              >
                 <title>{mode === "wdl"
-                  ? `Langkah ${p.index}: ${p.san || "posisi"} · Menang ${p.wdlPutih[0]}‰, Remis ${p.wdlPutih[1]}‰, Kalah ${p.wdlPutih[2]}‰`
+                  ? `Langkah ${p.index}: ${p.san || "posisi"} · Menang ${p.wdlPutih?.[0] ?? "—"}‰, Remis ${p.wdlPutih?.[1] ?? "—"}‰, Kalah ${p.wdlPutih?.[2] ?? "—"}‰`
                   : `Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title>
               </circle>
             ))}
