@@ -1055,6 +1055,17 @@ function KartuAkurasiPartai({ moves, players }) {
                   : `Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title>
               </circle>
             ))}
+            {titikAktif && (
+              <g pointerEvents="none">
+                <rect x={Math.max(left, Math.min(width - 188, titikAktif.x + 8))} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40))} width="180" height="40" rx="5" fill="#111214" stroke="#55585d" />
+                <text x={Math.max(left, Math.min(width - 188, titikAktif.x + 8)) + 9} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40)) + 15} fill="#f3f4f6" fontSize="11" fontWeight="600">{titikAktif.index + ". " + (titikAktif.san || "Posisi")}</text>
+                <text x={Math.max(left, Math.min(width - 188, titikAktif.x + 8)) + 9} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40)) + 30} fill="#d1d5db" fontSize="10">
+                  {mode === "wdl" && titikAktif.wdlPutih
+                    ? "Menang " + format(titikAktif.wdlPutih[0] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "% · Remis " + format(titikAktif.wdlPutih[1] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "%"
+                    : "Evaluasi " + (titikAktif.cpPutih > 0 ? "+" : "") + (titikAktif.cpPutih / 100).toFixed(2) + " pion"}
+                </text>
+              </g>
+            )}
           </svg>
         ) : (
           <div className="flex h-36 items-center justify-center px-4 text-center text-xs text-white/55">
