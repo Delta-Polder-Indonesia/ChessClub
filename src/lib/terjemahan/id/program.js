@@ -431,16 +431,16 @@ export const analisaLanding = {
 export const rushLanding = {
     judul: "Rush Teka-teki",
     deskripsi:
-      "Latihan taktik berjangka waktu: pecahkan skakmat beruntun yang makin sulit sebelum waktu habis atau tiga nyawa hilang.",
+      "Mode latihan teka-teki catur dengan pilihan sesi 3 atau 5 menit. Selesaikan posisi satu per satu; sesi berakhir saat waktu habis atau tiga nyawa terpakai.",
     metaDeskripsi:
-      "Rush Teka-teki Komunitas Catur Indonesia — mode latihan taktik kilat ala PuzzleDash. Pecahkan skakmat beruntun dalam batas waktu 3 atau 5 menit dengan tiga nyawa.",
+      "Rush Teka-Teki adalah latihan catur berjangka waktu 3 atau 5 menit dengan tiga nyawa. Skor sesi dapat dibandingkan melalui papan peringkat yang tersedia.",
     introJudul: "Adu Cepat Melihat Skakmat",
     intro1:
-      "Rush Teka-teki adalah mode latihan berjangka waktu: Anda menyelesaikan soal skakmat satu demi satu, dan setiap soal yang tuntas membuka soal berikutnya yang sedikit lebih sulit. Tujuannya sederhana — kumpulkan skor setinggi mungkin sebelum waktu habis.",
+      "Rush Teka-Teki adalah mode latihan dengan batas waktu. Selesaikan teka-teki catur secara berurutan dan kumpulkan skor sebanyak mungkin sebelum sesi berakhir. Anda dapat memilih durasi 3 atau 5 menit.",
     intro2:
-      "Format ini melatih pengenalan pola secara refleks. Alih-alih menghitung panjang, Anda dibiasakan langsung mengenali motif taktik yang berulang — garpu, sula, serangan ganda, hingga pola skakmat khas — sehingga saat bertanding, mata Anda lebih cepat menangkap peluang.",
+      "Setiap posisi meminta Anda menemukan langkah yang sesuai dengan teka-teki. Gunakan kesempatan ini untuk berlatih membaca ancaman, menghitung variasi, dan memilih langkah dengan cermat meskipun waktu terbatas.",
     introGambarAlt:
-      "Infografis manfaat latihan puzzle: mempertajam visi taktik, meningkatkan keterampilan menghitung, dan memperkuat pengenalan pola.",
+      "Ilustrasi papan catur dan stopwatch untuk menggambarkan latihan teka-teki catur dengan batas waktu.",
     caraJudul: "Cara bermain",
     langkah1: "Masukkan username Chess.com Anda, lalu pilih durasi permainan: 3 menit atau 5 menit.",
     langkah2: "Pecahkan setiap soal skakmat — klik atau seret bidak ke petak tujuan sebelum lawan membalas.",
@@ -449,16 +449,16 @@ export const rushLanding = {
     fiturJudul: "Yang membuatnya melatih",
     fitur1Judul: "Kesulitan menaik",
     fitur1Isi:
-      "Soal dimulai dari yang mudah lalu naik bertahap mengikuti performa Anda, sehingga selalu ada tantangan tanpa membuat frustrasi sejak awal.",
+      "Selesaikan teka-teki yang disajikan secara berurutan. Fokus pada posisi yang sedang dihadapi dan temukan langkah yang tepat.",
     fitur2Judul: "Tekanan waktu",
     fitur2Isi:
-      "Batas 3 atau 5 menit memaksa keputusan cepat — melatih intuisi taktis yang berguna dalam permainan kilat dan blitz.",
+      "Pilih sesi 3 atau 5 menit. Batas waktu membuat Anda perlu mengatur tempo tanpa mengabaikan ketepatan langkah.",
     fitur3Judul: "Papan peringkat",
     fitur3Isi:
-      "Skor terbaik tersimpan dan diadu dengan sesama anggota komunitas, menambah motivasi untuk terus memecahkan rekor pribadi.",
+      "Skor dapat ditampilkan pada papan peringkat Rush. Bandingkan hasil sesi Anda dengan skor yang tercatat di sana.",
     ctaJudul: "Siap mengadu kecepatan?",
     ctaIsi:
-      "Pilih durasi, mulai sesi, dan lihat berapa banyak skakmat yang bisa Anda pecahkan tanpa henti.",
+      "Pilih durasi sesi, selesaikan teka-teki satu per satu, dan usahakan memperoleh skor terbaik sebelum waktu habis atau tiga nyawa terpakai.",
     cta: "Mulai Rush Teka-teki",
 };
 
