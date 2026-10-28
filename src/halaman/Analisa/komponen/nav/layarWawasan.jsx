@@ -920,23 +920,10 @@ function KartuAkurasiPartai({ moves, players }) {
       if (index === 0 || !Array.isArray(evaluasi)) return null;
       const cp = cpBaku(evaluasi);
       if (!Number.isFinite(cp)) return null;
-      // previousStaticEvals[0] memakai perspektif pihak yang mendapat giliran
-      // setelah langkah. Ubah menjadi perspektif Putih untuk seluruh grafik.
       const cpPutih = index % 2 === 1 ? -cp : cp;
-      return {
-        index,
-        color: pemainDariEntri(move, index),
-        cpPutih: Math.max(-1000, Math.min(1000, cpPutih)),
-        accuracy: akurasiMove(move),
-        acpl: kerugianMove(move),
-        san: move.san || move.move || "",
-      };
+      return { index, color: pemainDariEntri(move, index), cpPutih: Math.max(-1000, Math.min(1000, cpPutih)), accuracy: akurasiMove(move), acpl: kerugianMove(move), san: move.san || move.move || "" };
     }).filter(Boolean);
-    return {
-      langkah,
-      putih: langkah.filter((item) => item.color === "w"),
-      hitam: langkah.filter((item) => item.color === "b"),
-    };
+    return { langkah, putih: langkah.filter((item) => item.color === "w"), hitam: langkah.filter((item) => item.color === "b") };
   }, [moves]);
 
   const points = data.langkah;
@@ -945,139 +932,56 @@ function KartuAkurasiPartai({ moves, players }) {
     return nilai.length ? nilai.reduce((jumlah, angka) => jumlah + angka, 0) / nilai.length : null;
   };
   const format = (nilai) => Number.isFinite(nilai) ? nilai.toFixed(1) : "—";
-  const lebar = 720;
-  const tinggi = 230;
-  const kiri = 42, kanan = 16, atas = 20, bawah = 28;
-  const plotW = lebar - kiri - kanan;
-  const plotH = tinggi - atas - bawah;
-  const nilaiY = (cp) => {
-    if (mode === "wdl") return (1 - (2 / (1 + Math.exp(-0.004 * cp)) - 1)) / 2;
-    return (1000 - cp) / 2000;
-  };
-  const coords = points.map((point, index) => ({
-    ...point,
-    x: points.length <= 1 ? kiri + plotW / 2 : kiri + (index / (points.length - 1)) * plotW,
-    y: atas + nilaiY(point.cpPutih) * plotH,
-  }));
-  const kurva = coords.reduce((path, point, index) => {
-    if (index === 0) return `M ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
-    const sebelumnya = coords[index - 1];
-    const tengah = (sebelumnya.x + point.x) / 2;
-    return `${path} C ${tengah.toFixed(2)} ${sebelumnya.y.toFixed(2)}, ${tengah.toFixed(2)} ${point.y.toFixed(2)}, ${point.x.toFixed(2)} ${point.y.toFixed(2)}`;
-  }, "");
-  const nolY = atas + plotH / 2;
-  const areaAtas = coords.length ? `${kurva} L ${coords[coords.length - 1].x} ${nolY} L ${coords[0].x} ${nolY} Z` : "";
+  const width = 720, height = 190, left = 8, right = 8, top = 8, bottom = 8;
+  const plotW = width - left - right, plotH = height - top - bottom;
+  const coords = points.map((p, i) => ({ ...p, x: points.length < 2 ? width / 2 : left + i / (points.length - 1) * plotW, y: top + (1000 - p.cpPutih) / 2000 * plotH }));
+  const pathLine = coords.map((p, i) => `${i ? "L" : "M"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+  const zero = top + plotH / 2;
+  const upper = coords.length ? `M ${coords[0].x} ${zero} ` + coords.map(p => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ") + ` L ${coords[coords.length - 1].x} ${zero} Z` : "";
+  const lower = coords.length ? `M ${coords[0].x} ${zero} ` + coords.map(p => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ") + ` L ${coords[coords.length - 1].x} ${zero} Z` : "";
 
   return (
-    <section className="wawasan-card flex flex-col gap-4" data-uji="wawasan-akurasi-partai">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="wawasan-card-title">Akurasi partai</h3>
-          <p className="mt-1 text-xs text-foregroundGrey">Statistik dihitung dari langkah yang memiliki evaluasi engine.</p>
-        </div>
-        <span className="rounded-full border border-border px-2.5 py-1 font-mono text-xs tabular-nums text-foregroundGrey">
-          {points.length} / {Math.max(0, (Array.isArray(moves) ? moves.length : 0) - 1)} langkah
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <section className="wawasan-card flex flex-col gap-3" data-uji="wawasan-akurasi-partai">
+      <h3 className="wawasan-card-title">Akurasi</h3>
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {[
-          { warna: "w", nama: players?.[0]?.name || "Putih", statistik: data.putih, token: "bg-[#e8e8e8]" },
-          { warna: "b", nama: players?.[1]?.name || "Hitam", statistik: data.hitam, token: "bg-[#6b7280]" },
-        ].map(({ warna, nama, statistik, token }) => (
-          <div key={warna} className="relative overflow-hidden rounded-xl border border-border bg-backgroundBox p-4">
-            <div className="mb-4 flex items-center gap-2.5">
-              <span className={`h-3.5 w-3.5 rounded-full border border-black/20 ${token}`} aria-hidden="true" />
-              <span className="min-w-0 truncate text-sm font-semibold text-foreground">{nama}</span>
+          { key: "w", name: players?.[0]?.name || "Putih", stats: data.putih },
+          { key: "b", name: players?.[1]?.name || "Hitam", stats: data.hitam },
+        ].map(({ key, name, stats }) => (
+          <div key={key} className="flex items-center justify-between gap-3 rounded-md border border-border bg-backgroundBox px-3 py-2.5">
+            <div className="min-w-0">
+              <div className="truncate text-xs uppercase tracking-wide text-foregroundGrey">{name}</div>
+              <div className="mt-1 font-mono text-xs tabular-nums text-foregroundGrey">{format(rata(stats, "acpl"))} ACPL</div>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-foregroundGrey">Akurasi</div>
-                <div className="mt-1 font-mono text-2xl font-semibold tracking-tight text-foreground tabular-nums">
-                  {format(rataHarmonik(statistik.map((item) => item.accuracy).filter(Number.isFinite)))}<span className="ml-0.5 text-sm text-foregroundGrey">%</span>
-                </div>
-              </div>
-              <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-foregroundGrey">ACPL</div>
-                <div className="mt-1 font-mono text-2xl font-semibold tracking-tight text-foreground tabular-nums">
-                  {format(rata(statistik, "acpl"))}<span className="ml-1 text-xs font-medium text-foregroundGrey">cp</span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4 h-1 overflow-hidden rounded-full bg-backgroundBoxBox">
-              <div className={`h-full rounded-full ${warna === "w" ? "bg-[#9ca3af]" : "bg-[#4b5563]"}`} style={{ width: `${Math.max(0, Math.min(100, rataHarmonik(statistik.map((item) => item.accuracy).filter(Number.isFinite)) || 0))}%` }} />
+            <div className="text-right">
+              <div className="font-mono text-xl font-medium leading-none tabular-nums text-foreground">{format(rataHarmonik(stats.map(item => item.accuracy).filter(Number.isFinite)))}%</div>
+              <div className="mt-1 text-xs text-foregroundGrey">Akurasi</div>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-backgroundBox">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-          <div>
-            <h4 className="text-sm font-semibold text-foreground">Grafik evaluasi</h4>
-            <p className="mt-0.5 text-xs text-foregroundGrey">Keunggulan dari perspektif Putih · langkah demi langkah</p>
+      <div className="overflow-hidden rounded-md border border-border bg-[#1b1c1e]">
+        <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
+          <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label="Jenis evaluasi">
+            <button type="button" aria-pressed={mode === "cp"} onClick={() => setMode("cp")} className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "cp" ? "bg-[#383a3d] text-white" : "text-white/55 hover:text-white"}`}>CP</button>
+            <button type="button" disabled aria-disabled="true" title="WDL asli belum tersedia pada data analisis ini" className="cursor-not-allowed rounded px-2 py-1 text-[11px] font-semibold text-white/30">WDL</button>
           </div>
-          <div className="inline-flex rounded-lg border border-border bg-backgroundBoxBox p-1" role="group" aria-label="Skala grafik">
-            {[
-              { id: "cp", label: "Centipawn" },
-              { id: "wdl", label: "Peluang menang" },
-            ].map((opsi) => (
-              <button key={opsi.id} type="button" aria-pressed={mode === opsi.id} onClick={() => setMode(opsi.id)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${mode === opsi.id ? "bg-backgroundBoxBoxHighlighted text-foreground" : "text-foregroundGrey hover:text-foreground"}`}>
-                {opsi.label}
-              </button>
-            ))}
-          </div>
+          <span className="text-[10px] tabular-nums text-white/45">{points.length} evaluasi</span>
         </div>
-
-        {points.length >= 2 ? (
-          <div className="px-2 pb-2 pt-4 sm:px-4">
-            <svg viewBox={`0 0 ${lebar} ${tinggi}`} role="img" aria-label={mode === "cp" ? "Grafik centipawn dari perspektif Putih" : "Grafik peluang menang Putih berdasarkan centipawn"} className="block h-auto w-full overflow-visible">
-              <defs>
-                <linearGradient id="wawasanAkurasiArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#81b64c" stopOpacity="0.22" />
-                  <stop offset="50%" stopColor="#9ca3af" stopOpacity="0.05" />
-                  <stop offset="100%" stopColor="#b45353" stopOpacity="0.18" />
-                </linearGradient>
-                <linearGradient id="wawasanAkurasiGaris" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#81b64c" />
-                  <stop offset="50%" stopColor="#a3a3a3" />
-                  <stop offset="100%" stopColor="#b45353" />
-                </linearGradient>
-              </defs>
-              {[0, 0.25, 0.5, 0.75, 1].map((rasio) => {
-                const y = atas + plotH * rasio;
-                const label = mode === "cp" ? Math.round(1000 - rasio * 2000) : Math.round((1 - rasio) * 100);
-                return <g key={rasio}>
-                  <line x1={kiri} y1={y} x2={lebar - kanan} y2={y} stroke="currentColor" strokeOpacity={rasio === 0.5 ? 0.28 : 0.1} strokeDasharray={rasio === 0.5 ? "4 4" : "2 5"} />
-                  <text x={kiri - 9} y={y + 4} textAnchor="end" fill="currentColor" opacity="0.58" fontSize="11">{mode === "cp" && label > 0 ? `+${label}` : label}</text>
-                </g>;
-              })}
-              <path d={`${areaAtas} L ${coords[coords.length - 1].x} ${atas + plotH} L ${coords[0].x} ${atas + plotH} Z`} fill="url(#wawasanAkurasiArea)" />
-              <path d={kurva} fill="none" stroke="url(#wawasanAkurasiGaris)" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
-              {coords.map((point) => (
-                <circle key={point.index} cx={point.x} cy={point.y} r="3" fill={point.color === "w" ? "#f3f4f6" : "#6b7280"} stroke="currentColor" strokeOpacity="0.45" strokeWidth="1">
-                  <title>{`Langkah ${point.index}: ${point.san || "evaluasi"} · ${point.cpPutih > 0 ? "+" : ""}${point.cpPutih} cp`}</title>
-                </circle>
-              ))}
-              <text x={kiri} y={tinggi - 7} fill="currentColor" opacity="0.58" fontSize="11">Awal</text>
-              <text x={lebar - kanan} y={tinggi - 7} textAnchor="end" fill="currentColor" opacity="0.58" fontSize="11">Akhir</text>
-            </svg>
-            <div className="mt-1 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-foregroundGrey">
-              <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#81b64c]" /> Putih unggul</span>
-              <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#9ca3af]" /> Seimbang</span>
-              <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#b45353]" /> Hitam unggul</span>
-            </div>
-          </div>
+        {coords.length >= 2 ? (
+          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Grafik evaluasi CP dari perspektif Putih" className="block h-auto w-full">
+            {[0, .5, 1].map(r => <line key={r} x1={left} y1={top + plotH * r} x2={width-right} y2={top + plotH * r} stroke="#85898d" strokeOpacity={r === .5 ? .35 : .12} strokeDasharray={r === .5 ? "3 4" : "none"} />)}
+            <path d={upper} fill="#e5e7eb" fillOpacity=".88" />
+            <path d={lower} fill="#34383d" fillOpacity=".96" />
+            <path d={pathLine} fill="none" stroke="#b9bdc2" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
+            {coords.map(p => <circle key={p.index} cx={p.x} cy={p.y} r="0" fill="none"><title>{`Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title></circle>)}
+          </svg>
         ) : (
-          <div className="flex min-h-40 flex-col items-center justify-center px-6 py-8 text-center">
-            <p className="text-sm font-semibold text-foreground">Belum ada grafik evaluasi</p>
-            <p className="mt-1 max-w-sm text-xs leading-5 text-foregroundGrey">Grafik akan muncul setelah setidaknya dua langkah partai memiliki evaluasi engine yang valid.</p>
-          </div>
+          <div className="flex h-36 items-center justify-center px-4 text-center text-xs text-white/55">Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine.</div>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-[11px] text-foregroundGrey">
-          <span>Skor CP dinormalisasi secara eksponensial, mengikuti pendekatan En Croissant.</span>
-          <span>WDL asli tidak tersedia pada data ini.</span>
+        <div className="flex justify-between border-t border-white/10 px-3 py-1.5 text-[10px] text-white/45">
+          <span>Keunggulan Putih ↑</span><span>Keunggulan Hitam ↓</span>
         </div>
       </div>
     </section>
