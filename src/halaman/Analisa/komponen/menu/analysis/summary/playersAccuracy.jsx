@@ -1,6 +1,6 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
 import Profile from "../../../svg/profile.jsx";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useI18n } from "../../../../../../lib/i18n.jsx";
 import { useKartuPemain } from "../../../../../../lib/pemainCatur.js";
 import RatingBox from "./ratingBox.jsx";
@@ -24,7 +24,7 @@ import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
  */
 import { akurasiMove, kerugianMove, pemainDariEntri, cpBaku, peluangMenang } from "../../../../mesin/akurasi.js";
 import { avg } from "./playersAccuracyData.js";
-import { useMemo, useState } from "react";
+
 
 /** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
 function formatAkurasi(nilai) {
