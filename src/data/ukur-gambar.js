@@ -275,11 +275,6 @@ export const UKUR = {
       828
     ]
   ],
-  "/images/RushPuzzle.webp": [
-    452,
-    678,
-    []
-  ],
   "/images/Turnamen/chairs.webp": [
     60,
     57,
