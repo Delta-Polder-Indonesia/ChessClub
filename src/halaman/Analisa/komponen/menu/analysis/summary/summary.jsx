@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import RatingCount from "./ratingCount.jsx";
 import PlayersAccuracy from "./playersAccuracy.jsx";
 import GameRating from "./gameRating.jsx";
-import EksporPgn from "./eksporPgn.jsx";
 import { reduceSummary } from "../../../../konstanta.js";
 function Summary(props) {
   const { moves, players: players2 } = props;
@@ -34,7 +33,6 @@ function Summary(props) {
             <hr className="border-neutral-600 w-[85%]" />
             <GameRating reducedSummary={reducedSummary} accuracy={accuracy} accuracyPhases={accuracyPhases2} />
             <hr className="border-neutral-600 w-[85%]" />
-            <EksporPgn moves={moves} />
         </div>;
 }
 export {
