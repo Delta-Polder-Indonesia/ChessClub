@@ -8,7 +8,7 @@
  * Adaptasi dari fitur Profile Insights ChessGameReviewer — semua logika
  * agregasi ada di `mesin/wawasan.js`, komponen ini hanya merender.
  */
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useContext, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useI18n } from "../../../../lib/i18n.jsx";
 import { hashPgn } from "../../../../lib/pgnRingan.js";
 import { segarkanKartuPemain, useKartuPemain } from "../../../../lib/pemainCatur.js";
@@ -914,19 +914,52 @@ export function KartuPembukaanTeratas({
 
 function KartuAkurasiPartai({ moves, players }) {
   const [mode, setMode] = useState("cp");
+  const idGrafik = useId().replace(/:/g, "");
   const data = useMemo(() => {
     const langkah = (Array.isArray(moves) ? moves : []).map((move, index) => {
       const evaluasi = move?.previousStaticEvals?.[0];
       if (index === 0 || !Array.isArray(evaluasi)) return null;
       const cp = cpBaku(evaluasi);
       if (!Number.isFinite(cp)) return null;
-      const cpPutih = index % 2 === 1 ? -cp : cp;
-      return { index, color: pemainDariEntri(move, index), cpPutih: Math.max(-1000, Math.min(1000, cpPutih)), accuracy: akurasiMove(move), acpl: kerugianMove(move), san: move.san || move.move || "" };
+
+      // Evaluasi UCI dan WDL adalah dari sisi pemain yang sedang jalan pada
+      // posisi setelah langkah. 'color' di entri parseMove adalah sisi lawan
+      // yang akan jalan; konversi eksplisit ini menjaga orientasi Putih.
+      const sisiJalan = move?.color === "w" || move?.color === "b"
+        ? move.color
+        : (index % 2 === 0 ? "w" : "b");
+      const cpPutih = sisiJalan === "w" ? cp : -cp;
+      const wdlMentah = move?.kandidat?.find((item) => item?.peringkat === 1)?.wdl
+        ?? move?.kandidat?.[0]?.wdl;
+      const wdlValid = Array.isArray(wdlMentah)
+        && wdlMentah.length === 3
+        && wdlMentah.every((nilai) => Number.isFinite(nilai) && nilai >= 0)
+        && wdlMentah.reduce((jumlah, nilai) => jumlah + nilai, 0) > 0;
+      const wdlPutih = wdlValid
+        ? (sisiJalan === "w"
+          ? wdlMentah
+          : [wdlMentah[2], wdlMentah[1], wdlMentah[0]])
+        : null;
+      return {
+        index,
+        color: pemainDariEntri(move, index),
+        cpPutih: Math.max(-1000, Math.min(1000, cpPutih)),
+        wdlPutih,
+        accuracy: akurasiMove(move),
+        acpl: kerugianMove(move),
+        san: move.san || move.move || "",
+      };
     }).filter(Boolean);
-    return { langkah, putih: langkah.filter((item) => item.color === "w"), hitam: langkah.filter((item) => item.color === "b") };
+    return {
+      langkah,
+      putih: langkah.filter((item) => item.color === "w"),
+      hitam: langkah.filter((item) => item.color === "b"),
+    };
   }, [moves]);
 
   const points = data.langkah;
+  const titikWdl = points.filter((p) => p.wdlPutih);
+  const wdlTersedia = titikWdl.length >= 2;
   const rata = (daftar, kunci) => {
     const nilai = daftar.map((item) => item[kunci]).filter(Number.isFinite);
     return nilai.length ? nilai.reduce((jumlah, angka) => jumlah + angka, 0) / nilai.length : null;
@@ -934,11 +967,22 @@ function KartuAkurasiPartai({ moves, players }) {
   const format = (nilai) => Number.isFinite(nilai) ? nilai.toFixed(1) : "—";
   const width = 720, height = 190, left = 8, right = 8, top = 8, bottom = 8;
   const plotW = width - left - right, plotH = height - top - bottom;
-  const coords = points.map((p, i) => ({ ...p, x: points.length < 2 ? width / 2 : left + i / (points.length - 1) * plotW, y: top + (1000 - p.cpPutih) / 2000 * plotH }));
+  const nilaiGrafik = mode === "wdl"
+    ? titikWdl.map((p) => ({
+      ...p,
+      nilai: ((p.wdlPutih[0] + p.wdlPutih[1] / 2) / p.wdlPutih.reduce((a, b) => a + b, 0) - 0.5) * 2,
+    }))
+    : points.map((p) => ({ ...p, nilai: p.cpPutih / 1000 }));
+  const coords = nilaiGrafik.map((p, i) => ({
+    ...p,
+    x: nilaiGrafik.length < 2 ? width / 2 : left + i / (nilaiGrafik.length - 1) * plotW,
+    y: top + (1 - Math.max(-1, Math.min(1, p.nilai))) / 2 * plotH,
+  }));
   const pathLine = coords.map((p, i) => `${i ? "L" : "M"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
   const zero = top + plotH / 2;
-  const upper = coords.length ? `M ${coords[0].x} ${zero} ` + coords.map(p => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ") + ` L ${coords[coords.length - 1].x} ${zero} Z` : "";
-  const lower = coords.length ? `M ${coords[0].x} ${zero} ` + coords.map(p => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ") + ` L ${coords[coords.length - 1].x} ${zero} Z` : "";
+  const area = coords.length
+    ? `M ${coords[0].x.toFixed(2)} ${zero} ${coords.map((p) => `L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ")} L ${coords[coords.length - 1].x.toFixed(2)} ${zero} Z`
+    : "";
 
   return (
     <section className="wawasan-card flex flex-col gap-3" data-uji="wawasan-akurasi-partai">
@@ -954,7 +998,7 @@ function KartuAkurasiPartai({ moves, players }) {
               <div className="mt-1 font-mono text-xs tabular-nums text-foregroundGrey">{format(rata(stats, "acpl"))} ACPL</div>
             </div>
             <div className="text-right">
-              <div className="font-mono text-xl font-medium leading-none tabular-nums text-foreground">{format(rataHarmonik(stats.map(item => item.accuracy).filter(Number.isFinite)))}%</div>
+              <div className="font-mono text-xl font-medium leading-none tabular-nums text-foreground">{format(rataHarmonik(stats.map((item) => item.accuracy).filter(Number.isFinite)))}%</div>
               <div className="mt-1 text-xs text-foregroundGrey">Akurasi</div>
             </div>
           </div>
@@ -965,23 +1009,47 @@ function KartuAkurasiPartai({ moves, players }) {
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label="Jenis evaluasi">
             <button type="button" aria-pressed={mode === "cp"} onClick={() => setMode("cp")} className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "cp" ? "bg-[#383a3d] text-white" : "text-white/55 hover:text-white"}`}>CP</button>
-            <button type="button" disabled aria-disabled="true" title="WDL asli belum tersedia pada data analisis ini" className="cursor-not-allowed rounded px-2 py-1 text-[11px] font-semibold text-white/30">WDL</button>
+            <button
+              type="button"
+              aria-pressed={mode === "wdl"}
+              disabled={!wdlTersedia}
+              title={wdlTersedia ? "Tampilkan estimasi WDL dari Stockfish" : "WDL belum tersedia pada cukup posisi yang dianalisis"}
+              onClick={() => setMode("wdl")}
+              className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "wdl" ? "bg-[#383a3d] text-white" : wdlTersedia ? "text-white/55 hover:text-white" : "cursor-not-allowed text-white/30"}`}
+            >WDL</button>
           </div>
-          <span className="text-[10px] tabular-nums text-white/45">{points.length} evaluasi</span>
+          <span className="text-[10px] tabular-nums text-white/45">
+            {mode === "wdl" ? `${coords.length} posisi WDL` : `${coords.length} evaluasi`}
+          </span>
         </div>
         {coords.length >= 2 ? (
-          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Grafik evaluasi CP dari perspektif Putih" className="block h-auto w-full">
-            {[0, .5, 1].map(r => <line key={r} x1={left} y1={top + plotH * r} x2={width-right} y2={top + plotH * r} stroke="#85898d" strokeOpacity={r === .5 ? .35 : .12} strokeDasharray={r === .5 ? "3 4" : "none"} />)}
-            <path d={upper} fill="#e5e7eb" fillOpacity=".88" />
-            <path d={lower} fill="#34383d" fillOpacity=".96" />
+          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={mode === "wdl" ? "Grafik keunggulan berdasarkan WDL Stockfish dari perspektif Putih" : "Grafik evaluasi CP dari perspektif Putih"} className="block h-auto w-full">
+            <defs>
+              <clipPath id={`${idGrafik}-atas`}><rect x={left} y={top} width={plotW} height={plotH / 2} /></clipPath>
+              <clipPath id={`${idGrafik}-bawah`}><rect x={left} y={zero} width={plotW} height={plotH / 2} /></clipPath>
+            </defs>
+            {[0, .5, 1].map((r) => <line key={r} x1={left} y1={top + plotH * r} x2={width-right} y2={top + plotH * r} stroke="#85898d" strokeOpacity={r === .5 ? .35 : .12} strokeDasharray={r === .5 ? "3 4" : "none"} />)}
+            <path d={area} fill="#e5e7eb" fillOpacity=".88" clipPath={`url(#${idGrafik}-atas)`} />
+            <path d={area} fill="#34383d" fillOpacity=".96" clipPath={`url(#${idGrafik}-bawah)`} />
             <path d={pathLine} fill="none" stroke="#b9bdc2" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
-            {coords.map(p => <circle key={p.index} cx={p.x} cy={p.y} r="0" fill="none"><title>{`Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title></circle>)}
+            {coords.map((p) => (
+              <circle key={p.index} cx={p.x} cy={p.y} r="0" fill="none">
+                <title>{mode === "wdl"
+                  ? `Langkah ${p.index}: ${p.san || "posisi"} · Menang ${p.wdlPutih[0]}‰, Remis ${p.wdlPutih[1]}‰, Kalah ${p.wdlPutih[2]}‰`
+                  : `Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title>
+              </circle>
+            ))}
           </svg>
         ) : (
-          <div className="flex h-36 items-center justify-center px-4 text-center text-xs text-white/55">Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine.</div>
+          <div className="flex h-36 items-center justify-center px-4 text-center text-xs text-white/55">
+            {mode === "wdl"
+              ? "Grafik WDL memerlukan sedikitnya dua posisi dengan data WDL dari engine."
+              : "Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine."}
+          </div>
         )}
         <div className="flex justify-between border-t border-white/10 px-3 py-1.5 text-[10px] text-white/45">
-          <span>Keunggulan Putih ↑</span><span>Keunggulan Hitam ↓</span>
+          <span>{mode === "wdl" ? "Peluang Putih ↑" : "Keunggulan Putih ↑"}</span>
+          <span>{mode === "wdl" ? "Peluang Hitam ↓" : "Keunggulan Hitam ↓"}</span>
         </div>
       </div>
     </section>
