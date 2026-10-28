@@ -1,7 +1,7 @@
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { TombolConten } from "../../components/TombolConten.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
-import { gambar, sumberGambar } from "../../lib/asets.js";
+import { gambar } from "../../lib/asets.js";
 
 /**
  * Halaman landing "Rush Teka-teki" (/program-kami/rush-teka-teki).
@@ -23,7 +23,6 @@ export default function RushTekaTekiLanding() {
     { judul: t("rushLanding.fitur3Judul"), isi: t("rushLanding.fitur3Isi") },
   ];
 
-  const gambarRush = sumberGambar("/images/RushPuzzle.webp");
 
   return (
     <HalamanIsi
@@ -47,6 +46,7 @@ export default function RushTekaTekiLanding() {
             </h2>
             <div className="mt-8 grid gap-y-10 md:grid-cols-2 md:items-start md:gap-x-12">
               <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
+                <p className="m-0">{t("rushLanding.intro1")}</p>
                 <p className="m-0">{t("rushLanding.intro2")}</p>
                 <div className="mt-3">
                   <TombolConten to={RUTE_ALAT}>{t("rushLanding.cta")}</TombolConten>
@@ -55,8 +55,10 @@ export default function RushTekaTekiLanding() {
 
               <div className="w-full">
                 <img
-                  {...gambarRush}
+                  src={gambar("/images/ProgramKami/rush-teka-teki-illustration.svg")}
                   alt={t("rushLanding.introGambarAlt")}
+                  width="1200"
+                  height="760"
                   loading="lazy"
                   decoding="async"
                   className="w-full rounded border border-slate-300"
