@@ -1049,19 +1049,15 @@ function KartuAkurasiPartai({ moves, players }) {
                 onMouseLeave={() => setTitikAktif(null)}
                 onFocus={() => setTitikAktif(p)}
                 onBlur={() => setTitikAktif(null)}
-              >
-                <title>{mode === "wdl"
-                  ? `Langkah ${p.index}: ${p.san || "posisi"} · Menang ${p.wdlPutih?.[0] ?? "—"}‰, Remis ${p.wdlPutih?.[1] ?? "—"}‰, Kalah ${p.wdlPutih?.[2] ?? "—"}‰`
-                  : `Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title>
-              </circle>
+              />
             ))}
             {titikAktif && (
               <g pointerEvents="none">
-                <rect x={Math.max(left, Math.min(width - 188, titikAktif.x + 8))} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40))} width="180" height="40" rx="5" fill="#111214" stroke="#55585d" />
-                <text x={Math.max(left, Math.min(width - 188, titikAktif.x + 8)) + 9} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40)) + 15} fill="#f3f4f6" fontSize="11" fontWeight="600">{titikAktif.index + ". " + (titikAktif.san || "Posisi")}</text>
-                <text x={Math.max(left, Math.min(width - 188, titikAktif.x + 8)) + 9} y={Math.max(top, Math.min(height - 48, titikAktif.y - 40)) + 30} fill="#d1d5db" fontSize="10">
+                <rect x={Math.max(left, Math.min(width - 224, titikAktif.x + 8))} y={Math.max(top, Math.min(height - 58, titikAktif.y - 48))} width="216" height="50" rx="6" fill="#111214" stroke="#55585d" />
+                <text x={Math.max(left, Math.min(width - 224, titikAktif.x + 8)) + 12} y={Math.max(top, Math.min(height - 58, titikAktif.y - 48)) + 19} fill="#f3f4f6" fontSize="13" fontWeight="600">{titikAktif.index + ". " + (titikAktif.san || "Posisi")}</text>
+                <text x={Math.max(left, Math.min(width - 224, titikAktif.x + 8)) + 12} y={Math.max(top, Math.min(height - 58, titikAktif.y - 48)) + 37} fill="#d1d5db" fontSize="12">
                   {mode === "wdl" && titikAktif.wdlPutih
-                    ? "Menang " + format(titikAktif.wdlPutih[0] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "% · Remis " + format(titikAktif.wdlPutih[1] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "%"
+                    ? "M " + format(titikAktif.wdlPutih[0] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "% · S " + format(titikAktif.wdlPutih[1] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "% · K " + format(titikAktif.wdlPutih[2] / titikAktif.wdlPutih.reduce((a, b) => a + b, 0) * 100) + "%"
                     : "Evaluasi " + (titikAktif.cpPutih > 0 ? "+" : "") + (titikAktif.cpPutih / 100).toFixed(2) + " pion"}
                 </text>
               </g>
