@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">Ilustrasi Rush Teka-Teki</title>
+  <desc id="desc">Papan catur dengan kuda yang disorot, bidak catur, dan stopwatch untuk melambangkan latihan taktik dalam batas waktu.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef6ff"/><stop offset="1" stop-color="#dce9fa"/></linearGradient>
+    <linearGradient id="board" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#334c70"/><stop offset="1" stop-color="#17263e"/></linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#4d9cf5"/><stop offset="1" stop-color="#2456cb"/></linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#20395d" flood-opacity=".2"/></filter>
+  </defs>
+  <rect width="1200" height="760" rx="32" fill="url(#bg)"/>
+  <circle cx="960" cy="150" r="160" fill="#c9e3ff" opacity=".55"/>
+  <path d="M740 80h370M790 110h300M820 140h260" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity=".65"/>
+  <g filter="url(#shadow)">
+    <circle cx="900" cy="205" r="100" fill="#14243d"/>
+    <circle cx="900" cy="205" r="78" fill="#f8fbff" stroke="#9cb5d5" stroke-width="8"/>
+    <path d="M900 144v13M900 253v13M839 205h13M948 205h13" stroke="#7087a6" stroke-width="7" stroke-linecap="round"/>
+    <path d="M900 205l43-35" stroke="#2673dd" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="900" cy="205" r="9" fill="#2673dd"/>
+    <rect x="881" y="84" width="38" height="20" rx="7" fill="#17263e"/>
+    <rect x="890" y="67" width="20" height="23" rx="6" fill="#17263e"/>
+  </g>
+  <g transform="translate(600 280) rotate(-9 260 190)" filter="url(#shadow)">
+    <rect x="0" y="0" width="520" height="400" rx="22" fill="url(#board)" stroke="#6f88aa" stroke-width="5"/>
+    <g transform="translate(28 28)">
+      <rect width="464" height="344" rx="4" fill="#e5eef9"/>
+      <rect x="0" y="0" width="58" height="43" fill="#dce8f6"/><rect x="58" y="0" width="58" height="43" fill="#45648a"/><rect x="116" y="0" width="58" height="43" fill="#dce8f6"/><rect x="174" y="0" width="58" height="43" fill="#45648a"/><rect x="232" y="0" width="58" height="43" fill="#dce8f6"/><rect x="290" y="0" width="58" height="43" fill="#45648a"/><rect x="348" y="0" width="58" height="43" fill="#dce8f6"/><rect x="406" y="0" width="58" height="43" fill="#45648a"/><rect x="0" y="43" width="58" height="43" fill="#45648a"/><rect x="58" y="43" width="58" height="43" fill="#dce8f6"/><rect x="116" y="43" width="58" height="43" fill="#45648a"/><rect x="174" y="43" width="58" height="43" fill="#dce8f6"/><rect x="232" y="43" width="58" height="43" fill="#45648a"/><rect x="290" y="43" width="58" height="43" fill="#dce8f6"/><rect x="348" y="43" width="58" height="43" fill="#45648a"/><rect x="406" y="43" width="58" height="43" fill="#dce8f6"/><rect x="0" y="86" width="58" height="43" fill="#dce8f6"/><rect x="58" y="86" width="58" height="43" fill="#45648a"/><rect x="116" y="86" width="58" height="43" fill="#dce8f6"/><rect x="174" y="86" width="58" height="43" fill="#45648a"/><rect x="232" y="86" width="58" height="43" fill="#dce8f6"/><rect x="290" y="86" width="58" height="43" fill="#45648a"/><rect x="348" y="86" width="58" height="43" fill="#dce8f6"/><rect x="406" y="86" width="58" height="43" fill="#45648a"/><rect x="0" y="129" width="58" height="43" fill="#45648a"/><rect x="58" y="129" width="58" height="43" fill="#dce8f6"/><rect x="116" y="129" width="58" height="43" fill="#45648a"/><rect x="174" y="129" width="58" height="43" fill="#dce8f6"/><rect x="232" y="129" width="58" height="43" fill="#45648a"/><rect x="290" y="129" width="58" height="43" fill="#dce8f6"/><rect x="348" y="129" width="58" height="43" fill="#45648a"/><rect x="406" y="129" width="58" height="43" fill="#dce8f6"/><rect x="0" y="172" width="58" height="43" fill="#dce8f6"/><rect x="58" y="172" width="58" height="43" fill="#45648a"/><rect x="116" y="172" width="58" height="43" fill="#dce8f6"/><rect x="174" y="172" width="58" height="43" fill="#45648a"/><rect x="232" y="172" width="58" height="43" fill="#dce8f6"/><rect x="290" y="172" width="58" height="43" fill="#45648a"/><rect x="348" y="172" width="58" height="43" fill="#dce8f6"/><rect x="406" y="172" width="58" height="43" fill="#45648a"/><rect x="0" y="215" width="58" height="43" fill="#45648a"/><rect x="58" y="215" width="58" height="43" fill="#dce8f6"/><rect x="116" y="215" width="58" height="43" fill="#45648a"/><rect x="174" y="215" width="58" height="43" fill="#dce8f6"/><rect x="232" y="215" width="58" height="43" fill="#45648a"/><rect x="290" y="215" width="58" height="43" fill="#dce8f6"/><rect x="348" y="215" width="58" height="43" fill="#45648a"/><rect x="406" y="215" width="58" height="43" fill="#dce8f6"/><rect x="0" y="258" width="58" height="43" fill="#dce8f6"/><rect x="58" y="258" width="58" height="43" fill="#45648a"/><rect x="116" y="258" width="58" height="43" fill="#dce8f6"/><rect x="174" y="258" width="58" height="43" fill="#45648a"/><rect x="232" y="258" width="58" height="43" fill="#dce8f6"/><rect x="290" y="258" width="58" height="43" fill="#45648a"/><rect x="348" y="258" width="58" height="43" fill="#dce8f6"/><rect x="406" y="258" width="58" height="43" fill="#45648a"/><rect x="0" y="301" width="58" height="43" fill="#45648a"/><rect x="58" y="301" width="58" height="43" fill="#dce8f6"/><rect x="116" y="301" width="58" height="43" fill="#45648a"/><rect x="174" y="301" width="58" height="43" fill="#dce8f6"/><rect x="232" y="301" width="58" height="43" fill="#45648a"/><rect x="290" y="301" width="58" height="43" fill="#dce8f6"/><rect x="348" y="301" width="58" height="43" fill="#45648a"/><rect x="406" y="301" width="58" height="43" fill="#dce8f6"/>
+      <rect x="174" y="129" width="58" height="43" fill="#58d5a3" opacity=".85"/>
+      <rect x="232" y="86" width="58" height="43" fill="#58d5a3" opacity=".65"/>
+      <path d="M204 150L258 104" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="8 10"/>
+      <g transform="translate(185 118)">
+        <path d="M4 48L0 39 7 31 5 22 14 7 27 0 40 6 48 18 42 27 35 28 31 38 37 48Z" fill="#fff" stroke="#1c3556" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="30" cy="14" r="3" fill="#1c3556"/>
+        <path d="M4 48h39" stroke="#1c3556" stroke-width="5" stroke-linecap="round"/>
+      </g>
+      <g transform="translate(61 220)" fill="#18263b"><circle cx="17" cy="0" r="13"/><path d="M5 13h24l7 15-4 7H2l-4-7Z"/><path d="M-4 35h43l8 9H-12Z"/></g>
+      <g transform="translate(360 55)" fill="#18263b"><path d="M14 0h18l-2 12 9 9-4 15H9L5 21l10-9Z"/><path d="M4 36h37l5 8H-1Z"/></g>
+    </g>
+  </g>
+  <g transform="translate(92 130)">
+    <rect width="218" height="58" rx="29" fill="#d7eaff"/>
+    <path d="M32 17l-11 19h12l-4 16 20-25H36l5-10Z" fill="#256bd6"/>
+    <text x="62" y="37" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700" fill="#2456a6">RUSH TEKA-TEKI</text>
+  </g>
+  <g transform="translate(100 260)">
+    <path d="M0 0h300" stroke="#9bb9e3" stroke-width="3" stroke-linecap="round"/>
+    <text x="0" y="54" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#182a45">Berpikir cepat,</text>
+    <text x="0" y="100" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" fill="#256bd6">pilih langkah tepat.</text>
+    <text x="0" y="145" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#4b607d">Selesaikan teka-teki catur</text>
+    <text x="0" y="175" font-family="Arial, Helvetica, sans-serif" font-size="21" fill="#4b607d">sebelum waktu berakhir.</text>
+    <g transform="translate(0 230)">
+      <circle cx="20" cy="20" r="20" fill="#2e78df"/><path d="M22 7L12 22h9l-3 12 12-17h-9l3-10Z" fill="#fff"/>
+      <text x="55" y="17" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#203b60">Durasi 3 atau 5 menit</text>
+      <text x="55" y="43" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5c718e">Pilih batas waktu sesi latihan.</text>
+    </g>
+    <g transform="translate(0 315)">
+      <circle cx="20" cy="20" r="20" fill="#1fae83"/><path d="M11 20l6 6 13-14" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="55" y="17" font-family="Arial, Helvetica, sans-serif" font-size="19" font-weight="700" fill="#203b60">Tiga nyawa per sesi</text>
+      <text x="55" y="43" font-family="Arial, Helvetica, sans-serif" font-size="16" fill="#5c718e">Langkah keliru mengurangi nyawa.</text>
+    </g>
+  </g>
+</svg>
