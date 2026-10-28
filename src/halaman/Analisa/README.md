@@ -721,6 +721,8 @@ tetapi belum pernah dipakai untuk label.
 
 ### 2. Kartu "Ekspor PGN beranotasi" (`summary/eksporPgn.jsx`)
 
+> Status UI (2026-10-28): kartu ini sudah dilepas dari panel Ringkasan atas permintaan pengguna. Catatan di bawah menjelaskan implementasi historis; modul dan pengujian terkait tidak dihapus.
+
 Sebelumnya satu-satunya jalan membawa hasil keluar halaman adalah PGN
 **mentah** dari panel Basis Data — dan panel itu memang hanya menyimpan teks
 PGN, bukan labelnya. Kartu ini menyusun ulang PGN dari `moves` hasil analisis:
