@@ -8,10 +8,10 @@
  * partai diunduh. Kartu ini menyusun ulang PGN dari `moves` hasil analisis
  * (NAG + `[%eval]`) lewat modul murni ../../../../mesin/pgnAnotasi.js.
  *
- * WAJIB: kartu ini dipasang PALING BAWAH di `summary.jsx`. Suite beku
- * scripts/uji-hasil.mjs mencari baris Ringkasan berdasarkan URUTAN DOM
- * (baris pertama yang cocok menang), jadi kartu baru tidak boleh menyisip di
- * tengah — aturan yang sama sudah membuat deteksiEngine.jsx ada di bawah.
+ * Kartu ini dipasang setelah Wawasan Rating di `summary.jsx`. Jangan
+ * menyisipkan komponen lain yang memakai ulang label fase sebelum komponen
+ * yang dicari oleh scripts/uji-hasil.mjs, karena suite tersebut mencari baris
+ * Ringkasan berdasarkan teks label dan urutan DOM.
  */
 import { useContext, useMemo, useState } from "react";
 import { AnalyzeContext } from "../../../../konteks/analyzeKonteks.js";

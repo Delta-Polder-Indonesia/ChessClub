@@ -566,20 +566,12 @@ if (tabRingkasan) {
     "ringkasan: tidak ada baris label 'Kritis' (critical tampil sebagai Terbaik)",
     /Terbaik/.test(ringkasan) && !/\bKritis\b/.test(ringkasan)
   );
-  uji("ringkasan: kartu ekspor PGN beranotasi ada", /Ekspor PGN beranotasi/.test(ringkasan));
+  uji(
+    "ringkasan: kartu ekspor PGN beranotasi tidak ditampilkan",
+    !/Ekspor PGN beranotasi/.test(ringkasan)
+  );
   const tombolEkspor = [...domSiap.querySelectorAll("button")].find((b) => /Unduh \.pgn/.test(b.textContent ?? ""));
-  uji("ringkasan: tombol unduh PGN ada", !!tombolEkspor);
-  if (tombolEkspor) {
-    let melempar = null;
-    try {
-      tombolEkspor.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
-    } catch (e) {
-      melempar = e;
-    }
-    await tunggu(50);
-    uji("ringkasan: klik tombol unduh tidak melempar", melempar === null, String(melempar?.message ?? ""));
-    uji("ringkasan: halaman tetap terpasang setelah klik", !!domSiap.querySelector(".analisa-root"));
-  }
+  uji("ringkasan: tombol unduh PGN tidak ditampilkan", !tombolEkspor);
 }
 
 /* --- ikon label: `critical` = `best`, bukan ikon baru --- */
