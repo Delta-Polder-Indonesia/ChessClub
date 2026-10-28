@@ -25,7 +25,6 @@ import { langkahTerpaksa } from "../../../../mesin/evaluasi.js";
 import { akurasiMove, kerugianMove, pemainDariEntri, cpBaku, peluangMenang } from "../../../../mesin/akurasi.js";
 import { avg } from "./playersAccuracyData.js";
 
-
 /** Akurasi siap tampil; "-" bila belum ada langkah yang bisa dinilai. */
 function formatAkurasi(nilai) {
   return Number.isFinite(nilai) ? nilai.toFixed(1) : "-";
@@ -46,7 +45,7 @@ function buatTitikEvaluasi(moves, mode) {
     return [{ x: i, y: mode === "wdl" ? peluangMenang(cpPutih) : cpPutih / 100 }];
   });
 }
-function GrafikEvaluasi({ moves, t }) {
+function GrafikEvaluasi({ moves }) {
   const [mode, setMode] = useState("cp");
   const titik = useMemo(() => buatTitikEvaluasi(moves, mode), [moves, mode]);
   if (titik.length < 2) return <p className="text-xs text-foregroundGrey">Grafik tersedia setelah evaluasi langkah tersimpan.</p>;
@@ -164,7 +163,7 @@ function PlayersAccuracy(props) {
                 </div>
               ))}
             </div>
-            <div className="w-full"><GrafikEvaluasi moves={moves} t={t} /></div>
+            <div className="w-full"><GrafikEvaluasi moves={moves} /></div>
             <div className="reduceSummary:w-[262px] w-[160px] flex flex-row justify-between font-semibold text-sm">
                 <div className="reduceSummary:w-20 w-16 flex flex-row justify-center whitespace-nowrap overflow-visible"><span>{players2[0].name}</span></div>
                 <div className="reduceSummary:w-20 w-16 flex flex-row justify-center whitespace-nowrap overflow-visible"><span>{players2[1].name}</span></div>
