@@ -19,6 +19,7 @@ import DashboardAkun from "../../akun/DashboardAkun.jsx";
 import DaftarPembukaanAkun, { BarHasil } from "../../akun/DaftarPembukaanAkun.jsx";
 import { agregasiWawasan, filterPartaiWawasan, hitungPembukaanTeratas } from "../../mesin/wawasan.js";
 import { ambilPetaAnalisis, langgananAnalisis } from "../../mesin/analisisTersimpan.js";
+import { akurasiMove, kerugianMove, pemainDariEntri, rataHarmonik, cpBaku, peluangMenang } from "../../mesin/akurasi.js";
 import Refresh from "../svg/refresh.jsx";
 import PanelLayar from "./PanelLayar.jsx";
 import SelectDaftar from "./SelectDaftar.jsx";
@@ -373,6 +374,7 @@ export default function LayarWawasan() {
                       hitam={wawasanTampil.sebagaiHitam}
                       t={t}
                     />
+                    <KartuAkurasiPartai moves={analyzeContext.game[0]} players={analyzeContext.players[0]} />
                   </div>
                   <div className="flex min-h-0 min-w-0 flex-col gap-4">
                     <DashboardAkun
@@ -908,3 +910,30 @@ export function KartuPembukaanTeratas({
  * jadi kartu ini TIDAK menghitung apa pun sendiri — persis seperti acuan yang
  * hanya merender `TacticalMistakeSummary`.
  */
+
+
+function KartuAkurasiPartai({ moves, players }) {
+  const [mode, setMode] = useState("cp");
+  const data = useMemo(() => {
+    const langkah = (Array.isArray(moves) ? moves : []).map((move, index) => {
+      if (!move || index === 0 || !Array.isArray(move.previousStaticEvals?.[0])) return null;
+      const cpMentah = cpBaku(move.previousStaticEvals[0]);
+      if (!Number.isFinite(cpMentah)) return null;
+      return { index, color: pemainDariEntri(move, index), cp: -cpMentah, accuracy: akurasiMove(move), acpl: kerugianMove(move) };
+    }).filter(Boolean);
+    return { langkah, putih: langkah.filter(x => x.color === "w"), hitam: langkah.filter(x => x.color === "b") };
+  }, [moves]);
+  const rata = (arr, key) => { const a = arr.map(x => x[key]).filter(Number.isFinite); return a.length ? a.reduce((s, x) => s + x, 0) / a.length : null; };
+  const format = n => Number.isFinite(n) ? n.toFixed(1) : "—";
+  const points = data.langkah;
+  const values = points.map(p => mode === "cp" ? Math.max(-1000, Math.min(1000, p.cp)) : peluangMenang(p.cp) * 100);
+  const min = mode === "cp" ? -1000 : 0, max = mode === "cp" ? 1000 : 100;
+  const coords = values.map((v, i) => ({ x: points.length < 2 ? 8 : 8 + i * 484 / (points.length - 1), y: 84 - (v - min) * 68 / (max - min) }));
+  const path = coords.map((p, i) => (i ? "L" : "M") + " " + p.x + " " + p.y).join(" ");
+  return <section className="wawasan-card flex flex-col gap-3" data-uji="wawasan-akurasi-partai">
+    <div className="flex items-center justify-between gap-2"><h3 className="wawasan-card-title">Akurasi</h3><span className="text-xs text-foregroundGrey">{points.length} langkah dievaluasi</span></div>
+    <div className="grid grid-cols-2 gap-2">{[["w", players?.[0]?.name || "Putih"], ["b", players?.[1]?.name || "Hitam"]].map(([color, name]) => { const arr = color === "w" ? data.putih : data.hitam; return <div key={color} className="rounded-borderRoundness border border-border bg-backgroundBoxBox p-3"><div className="mb-2 truncate text-xs font-bold text-foregroundGrey">{name}</div><div className="flex items-end justify-between gap-2"><div><div className="text-xs text-foregroundGrey">ACPL</div><div className="text-lg font-bold text-foreground">{format(rata(arr, "acpl"))} cp</div></div><div className="text-right"><div className="text-xs text-foregroundGrey">Akurasi</div><div className="text-xl font-bold text-highlightBest">{format(rata(arr, "accuracy"))}%</div></div></div></div>; })}</div>
+    <div className="rounded-borderRoundness border border-border bg-backgroundBoxBox p-3"><div className="mb-2 flex items-center justify-between"><span className="text-sm font-semibold text-foreground">Evaluasi sepanjang partai</span><div className="flex rounded-borderRoundness bg-background p-0.5">{["cp", "wdl"].map(m => <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)} className={"rounded px-2 py-1 text-xs font-bold " + (mode === m ? "bg-backgroundBoxBoxHighlighted text-foreground" : "text-foregroundGrey")}>{m.toUpperCase()}</button>)}</div></div>
+    {points.length > 1 ? <svg viewBox="0 0 500 100" role="img" aria-label={"Grafik evaluasi " + mode.toUpperCase()} className="h-36 w-full"><line x1="8" y1={mode === "cp" ? 50 : 84} x2="492" y2={mode === "cp" ? 50 : 84} stroke="currentColor" strokeOpacity=".25" strokeDasharray="3 3"/><path d={path} fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/>{coords.map((p, i) => <circle key={points[i].index} cx={p.x} cy={p.y} r="2" fill={points[i].color === "w" ? "#e5e7eb" : "#6b7280"}/>)}</svg> : <p className="py-8 text-center text-sm text-foregroundGrey">Grafik belum tersedia: evaluasi langkah partai belum cukup.</p>}
+    <div className="flex justify-between text-[11px] text-foregroundGrey"><span>Langkah 1</span><span>Evaluasi partai</span><span>Langkah {points.length}</span></div></div></section>;
+}
