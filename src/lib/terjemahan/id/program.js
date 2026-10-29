@@ -125,7 +125,7 @@ export const tipsTekaTeki = {
     intro1:
       "Koleksi ini berisi 5.486 soal skakmat satu, dua, atau tiga langkah dari basis data puzzle Lichess. Setiap soal memiliki rating dan tema taktik; informasi partai asal juga tersedia jika tercantum dalam data.",
     intro2:
-      "Pilih level, tema, atau warna yang melangkah untuk menyaring soal. Gerakkan bidak dengan mengeklik atau menyeretnya. Jika buntu, gunakan petunjuk untuk melihat petak asal dan tujuan langkah pertama. Progres tersimpan di peramban Anda."
+      "Pilih level, tema, atau warna yang melangkah untuk menyaring soal. Gerakkan bidak dengan mengeklik atau menyeretnya. Jika buntu, gunakan petunjuk untuk melihat petak asal dan tujuan langkah pertama. Progres tersimpan di peramban Anda.",
     ctaUtama: "Mulai Latihan Teka-teki",
     ctaRush: "Rush Teka-teki — mode berjangka waktu",
     demoJudul: "Satu soal, diperlihatkan utuh",
