@@ -475,19 +475,6 @@ export default function Pembukaan() {
         </div>
       </section>
 
-      {/* ═══ Penutup — satu langkah berikutnya yang jelas ═══ */}
-      <section className="w-full border-t border-grey-200 bg-paper">
-        <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
-          <div className="max-w-3xl">
-            <h2 className="m-0 font-serif font-light text-[clamp(2rem,3.2vw,3rem)] leading-[1.08] text-grey-800">
-              {t("bukuPembukaan.penutupJudul")}
-            </h2>
-            <p className="m-0 mt-4 max-w-2xl font-serif text-base leading-[1.8] text-pretty text-grey-600">
-              {t("bukuPembukaan.penutupIsi")}
-            </p>
-          </div>
-        </div>
-      </section>
     </HalamanIsi>
   );
 }
