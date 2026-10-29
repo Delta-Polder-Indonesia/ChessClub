@@ -561,13 +561,6 @@ export default function Header() {
                   ))}
                 </ul>
               </nav>
-              {/* Sakelar bahasa menempel di kluster tombol yang selalu tampil
-                  (bukan lagi di top-bar yang disembunyikan saat header
-                  menempel) — akses ganti bahasa tidak boleh hilang saat
-                  scroll maupun di layar kecil. */}
-              <span className={scrolled ? "" : "lg:hidden"}>
-                <TombolBahasa warna={scrolled ? "text-slate-800" : "text-white"} />
-              </span>
               <button
                 ref={searchButtonRef}
                 type="button"
