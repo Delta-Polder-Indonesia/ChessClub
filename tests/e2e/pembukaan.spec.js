@@ -59,7 +59,10 @@ for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
     await expect(barisKatalog).toHaveCount(72);
 
     // CTA menuju papan interaktif, kini berada di bawah paragraf pembuka.
-    await expect(page.getByRole("link", { name: kamus.ctaUtama, exact: true })).toHaveAttribute("href", "/papan-interaktif");
+    await expect(
+      page.locator("section").filter({ has: page.getByRole("heading", { name: kamus.introJudul, exact: true }) })
+        .getByRole("link", { name: kamus.ctaUtama, exact: true })
+    ).toHaveAttribute("href", "/papan-interaktif");
 
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     expect(galat).toEqual([]);
