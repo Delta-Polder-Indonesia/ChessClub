@@ -135,6 +135,12 @@ tooltip saat label hilang.
   Chess.com lewat callback publik yang moveList-nya berformat TCN
   (diterjemahkan ke SAN memakai chess.js). Layar Basis Data =
   `komponen/nav/layarDatabase.jsx`.
+- **Batas impor dan validasi (2026-10-29):** tautan harus HTTPS dan host
+  tepat `lichess.org`, `chess.com`, atau `www.chess.com`; redirect ditolak.
+  PGN dan respons jaringan dibatasi 1 MiB, FEN 256 byte, dan satu partai
+  dibatasi 500 ply. PGN/FEN divalidasi sebelum disimpan atau dikirim ke papan;
+  fetch online timeout pada 12 detik, dibatalkan saat layar Impor ditutup,
+  dan respons/header TCN yang tidak valid ditolak.
   Karena menu ini memicu konteks data, `AnalyzeContextProvider` membungkus
   seluruh `.analisa-root` (termasuk Nav) dan state "akun" hidup di konteks.
   CSP harus mengizinkan `https://www.chess.com` selain

@@ -288,9 +288,16 @@ export const analisa = {
       ambil: "Fetch & analyze",
       analisa: "Analyze",
       memuat: "Fetching PGN…",
-      galatTautan: "Unrecognized link. Use a Chess.com or Lichess game link.",
+      galatTautan: "Unrecognized link. Use an official HTTPS game link from Chess.com or Lichess.",
       galatAmbil: "Could not fetch the PGN from that link. Check your connection or paste the PGN directly.",
-    },    muat: {
+      galatTimeout: "The request timed out. Check your connection and try again.",
+      galatRespons: "The site's response is invalid or could not be read.",
+      galatPgn: "The PGN is invalid or contains no analyzable moves.",
+      galatFen: "The FEN is invalid. Check the position and FEN format.",
+      galatUkuran: "The input is too large. The PGN size limit is {byteMaks} KiB.",
+      galatLangkah: "The game is too long. The limit is {plyMaks} half-moves (plies).",
+    },
+    muat: {
       menganalisa: "Processing",
       menganalisaPartai: "Analyzing",
       petunjukLama: "If this takes a while, try lowering the engine depth in the settings.",

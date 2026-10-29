@@ -63,9 +63,10 @@ import RatingSVG from "./src/halaman/Analisa/komponen/svg/rating.jsx";
 import LoadingBar from "./src/halaman/Analisa/komponen/menu/loading/loadingBar.jsx";
 import { persenProgres } from "./src/halaman/Analisa/komponen/menu/loading/persenProgres.js";
 import LayarWawasan from "./src/halaman/Analisa/komponen/nav/layarWawasan.jsx";
+import { BATAS_IMPOR, ambilPgn, susunPgnDariTcn, uraikanTautanPartai, validasiFen, validasiPgn } from "./src/halaman/Analisa/komponen/nav/validasiImpor.js";
 import { renderToStaticMarkup } from "react-dom/server";
 
-export { basisData, persenProgres };
+export { basisData, persenProgres, BATAS_IMPOR, ambilPgn, susunPgnDariTcn, uraikanTautanPartai, validasiFen, validasiPgn };
 
 /** Geometri grafik eval yang tetap terpasang selama loading dan Ringkasan. */
 export { jalurGrafik, tinggiEval, xGrafik } from "./src/halaman/Analisa/komponen/menu/analysis/grafikEval.js";
@@ -409,6 +410,92 @@ function uji(nama, kondisi) {
   }
 }
 
+/* --- batas impor dan allowlist URL --- */
+{
+  const { BATAS_IMPOR, ambilPgn, susunPgnDariTcn, uraikanTautanPartai, validasiFen, validasiPgn } = modul;
+  const tangkapKode = (aksi) => {
+    try {
+      aksi();
+      return null;
+    } catch (e) {
+      return e?.code ?? null;
+    }
+  };
+  const lichess = uraikanTautanPartai("https://lichess.org/abcdefgh/white");
+  const chesscom = uraikanTautanPartai("https://www.chess.com/game/live/12345678");
+  uji("URL resmi Lichess dikenali dan hanya mengekstrak ID game", lichess.platform === "lichess" && lichess.id === "abcdefgh");
+  uji("URL resmi Chess.com dikenali", chesscom.platform === "chesscom" && chesscom.tipe === "live" && chesscom.id === "12345678");
+  uji("URL Chess.com tanpa tipe game memakai live", uraikanTautanPartai("https://chess.com/game/123").tipe === "live");
+  uji("tautan HTTP ditolak", tangkapKode(() => uraikanTautanPartai("http://lichess.org/abcdefgh")) === "tautan");
+  uji("domain tiruan Lichess ditolak", tangkapKode(() => uraikanTautanPartai("https://lichess.org.attacker.example/abcdefgh")) === "tautan");
+  uji("host lain dengan teks chess.com di path ditolak", tangkapKode(() => uraikanTautanPartai("https://attacker.example/chess.com/game/123")) === "tautan");
+  uji("URL dengan userinfo ditolak", tangkapKode(() => uraikanTautanPartai("https://lichess.org@attacker.example/abcdefgh")) === "tautan");
+  uji("URL permainan di port alternatif ditolak", tangkapKode(() => uraikanTautanPartai("https://lichess.org:8443/abcdefgh")) === "tautan");
+  uji("PGN valid diterima oleh parser analisis", validasiPgn(PGN_UJI).riwayat.length === 6);
+  uji("PGN rusak ditolak sebelum analisis", tangkapKode(() => validasiPgn("teks yang bukan PGN")) === "pgn");
+  uji("PGN melebihi 1 MiB ditolak", tangkapKode(() => validasiPgn("x".repeat(BATAS_IMPOR.bytePGN + 1))) === "ukuran");
+  const caturPanjang = new Chess();
+  const sanPanjang = [];
+  for (let i = 0; i < BATAS_IMPOR.ply + 1; i++) {
+    const san = caturPanjang.move(["Nf3", "Nf6", "Ng1", "Ng8"][i % 4]).san;
+    sanPanjang.push(i % 2 === 0 ? `${Math.floor(i / 2) + 1}. ${san}` : san);
+  }
+  uji("PGN melebihi batas 500 ply ditolak sebelum analisis engine", tangkapKode(() => validasiPgn(`${sanPanjang.join(" ")} *`)) === "langkah");
+  uji("FEN awal diterima",  validasiFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1").includes(" w "));
+  uji("FEN rusak ditolak", tangkapKode(() => validasiFen("bukan-fen")) === "fen");
+  const pgnTCN = susunPgnDariTcn({ White: "Andini", Black: "Bagas", Result: "1-0" }, "mC0K");
+  uji("TCN Chess.com dikonversi menjadi langkah PGN yang sah", pgnTCN.includes("1. e4 e5") && validasiPgn(pgnTCN).riwayat.length === 2);
+  uji("TCN ganjil/rusak ditolak", tangkapKode(() => susunPgnDariTcn({}, "m")) === "tcn");
+  uji("TCN di atas batas ply ditolak sebelum decoding", tangkapKode(() => susunPgnDariTcn({}, "mC".repeat(BATAS_IMPOR.ply + 1))) === "langkah");
+  uji("nama header yang dapat menyuntik format PGN ditolak", tangkapKode(() => susunPgnDariTcn({ "White]\\n[Result": "1-0" }, "mC")) === "respons");
+  uji("baris baru pada nilai header ditolak", tangkapKode(() => susunPgnDariTcn({ White: "Andini\n[Result 0-1]" }, "mC")) === "respons");
+
+  const fetchAsli = globalThis.fetch;
+  let alamatDiminta = "";
+  let opsiDiminta;
+  globalThis.fetch = async (alamat, opsi) => {
+    alamatDiminta = String(alamat);
+    opsiDiminta = opsi;
+    return {
+      ok: true,
+      headers: { get: () => null },
+      text: async () => PGN_UJI,
+    };
+  };
+  try {
+    const hasil = await ambilPgn("https://lichess.org/abcdefgh", { signal: new AbortController().signal });
+    uji("permintaan impor dibangun ke endpoint resmi Lichess", alamatDiminta === "https://lichess.org/game/export/abcdefgh");
+    uji("permintaan impor meneruskan sinyal dan menolak redirect", !!opsiDiminta?.signal && opsiDiminta.redirect === "error");
+    uji("PGN hasil fetch dibatasi dan dikembalikan", hasil === PGN_UJI);
+
+    globalThis.fetch = async () => ({
+      ok: true,
+      headers: { get: (nama) => nama === "content-length" ? String(BATAS_IMPOR.byteRespons + 1) : null },
+      text: async () => { throw new Error("body tidak boleh dibaca bila Content-Length sudah melewati batas"); },
+    });
+    let kodeUkuranRespons = null;
+    try { await ambilPgn("https://lichess.org/abcdefgh"); } catch (e) { kodeUkuranRespons = e?.code; }
+    uji("respons online yang ukurannya melewati batas ditolak sebelum dibaca", kodeUkuranRespons === "ukuran");
+
+    let alamatChessCom = "";
+    globalThis.fetch = async (alamat) => {
+      alamatChessCom = String(alamat);
+      return {
+        ok: true,
+        headers: { get: () => null },
+        text: async () => JSON.stringify({ game: {
+          pgnHeaders: { White: "Andini", Black: "Bagas", Result: "1-0" },
+          moveList: "mC0K",
+        } }),
+      };
+    };
+    const hasilChessCom = await ambilPgn("https://www.chess.com/game/live/12345678");
+    uji("Chess.com hanya diminta melalui callback resmi dan TCN lolos validasi", alamatChessCom === "https://www.chess.com/callback/live/game/12345678" && hasilChessCom.includes("1. e4 e5") && validasiPgn(hasilChessCom).riwayat.length === 2);
+  } finally {
+    globalThis.fetch = fetchAsli;
+  }
+}
+
 const domSiap = dom.window.document;
 const layarAwalAkun = await tungguSampai(
   () => domSiap.querySelector("[data-layar]")?.getAttribute("data-layar") === "akun"
@@ -476,6 +563,21 @@ const kotakPgn = domSiap.querySelector('[data-uji="impor-pgn"]');
 uji("area tempel PGN tersedia", !!kotakPgn);
 let grafikSelamaMuat = null;
 if (kotakPgn) {
+  pengeset.call(kotakPgn, "x".repeat(modul.BATAS_IMPOR.bytePGN + 1));
+  kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(60);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  await tunggu(60);
+  uji("PGN terlalu besar ditolak dengan pesan terlokalisasi", /terlalu besar/i.test(domSiap.querySelector('[data-uji="galat-impor"]')?.textContent ?? ""));
+  uji("galat impor diumumkan sebagai alert", domSiap.querySelector('[data-uji="galat-impor"]')?.getAttribute("role") === "alert");
+
+  pengeset.call(kotakPgn, "bukan PGN");
+  kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(40);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  await tunggu(60);
+  uji("PGN rusak ditolak sebelum papan/engine berpindah", /PGN tidak valid/i.test(domSiap.querySelector('[data-uji="galat-impor"]')?.textContent ?? "") && layarAktif() === "impor");
+
   pengeset.call(kotakPgn, PGN_UJI);
   kotakPgn.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
   await tunggu(200);
@@ -785,6 +887,13 @@ if (tabLangkah) {
     const kotakFen = domSiap.querySelector('[data-uji="impor-fen"]');
     uji("isi FEN tersedia", !!kotakFen);
     if (kotakFen) {
+      pengeset.call(kotakFen, "bukan-FEN");
+      kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+      await tunggu(60);
+      klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+      await tunggu(60);
+      uji("FEN rusak ditolak dan pengguna tetap di layar Impor", /FEN tidak valid/i.test(domSiap.querySelector('[data-uji="galat-impor"]')?.textContent ?? "") && layarAktif() === "impor");
+
       pengeset.call(kotakFen, "8/8/8/4k3/8/4K3/5P2/8 w - - 0 1");
       kotakFen.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
       await tunggu(150);
@@ -969,16 +1078,25 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   uji("isian tautan Online tersedia", !!kotakOnline);
 
   if (kotakOnline) {
-    // stub: ekspor Lichess mengembalikan PGN contoh
+    // Stub ekspor Lichess; URL tidak resmi harus ditolak sebelum fetch dipanggil.
     const fetchAsli2 = globalThis.fetch;
+    let jumlahFetch = 0;
     globalThis.fetch = (url, opts) => {
       const u = String(url);
-      if (u.includes("lichess.org/game/export")) {
-        return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(PGN_UJI) });
+      if (u === "https://lichess.org/game/export/abcdefgh") {
+        jumlahFetch++;
+        return Promise.resolve({ ok: true, status: 200, headers: { get: () => null }, text: () => Promise.resolve(PGN_UJI) });
       }
       return fetchAsli2(url, opts);
     };
     const pengesetInput = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value").set;
+    pengesetInput.call(kotakOnline, "https://lichess.org.attacker.example/abcdefgh");
+    kotakOnline.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+    await tunggu(80);
+    klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+    await tunggu(80);
+    uji("tautan domain tiruan ditolak sebelum permintaan jaringan", jumlahFetch === 0 && /tautan HTTPS/i.test(domSiap.querySelector('[data-uji="galat-impor"]')?.textContent ?? ""));
+
     pengesetInput.call(kotakOnline, "https://lichess.org/abcdefgh");
     kotakOnline.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
     await tunggu(120);
@@ -988,12 +1106,70 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     const setelahImpor = teksBagus();
     uji(
       "impor Online (Lichess) langsung menganalisis partai",
+      jumlahFetch === 1 &&
       /Ringkasan/.test(setelahImpor) &&
       /Andini/.test(setelahImpor) &&
       // impor sukses = papan langsung mengambil alih area kerja
       !domSiap.querySelector("[data-layar]")
     );
   }
+}
+
+/* --- permintaan online dapat dibatalkan saat layar Impor ditutup --- */
+{
+  await bukaImpor();
+  klik([...domSiap.querySelectorAll('button[aria-pressed]')][1]);
+  await tunggu(80);
+  const input = domSiap.querySelector('[data-uji="impor-online"]');
+  const inputSetter = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value").set;
+  let signalPermintaan = null;
+  const fetchAsli = globalThis.fetch;
+  globalThis.fetch = (_url, opsi) => new Promise((_resolve, reject) => {
+    signalPermintaan = opsi.signal;
+    signalPermintaan.addEventListener("abort", () => reject(new DOMException("AbortError", "AbortError")), { once: true });
+  });
+  inputSetter.call(input, "https://lichess.org/abcdefgh");
+  input.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(50);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  await tunggu(50);
+  const batal = [...domSiap.querySelectorAll('[data-layar="impor"] button')].find((b) => b.textContent.trim() === "Batal");
+  klik(batal);
+  await tunggu(100);
+  uji("menutup layar Impor membatalkan fetch aktif", !!signalPermintaan?.aborted && !domSiap.querySelector('[data-layar="impor"]'));
+  globalThis.fetch = fetchAsli;
+}
+
+/* --- timeout fetch ditampilkan sebagai galat yang dapat dipulihkan --- */
+{
+  await bukaImpor();
+  klik([...domSiap.querySelectorAll('button[aria-pressed]')][1]);
+  await tunggu(80);
+  const input = domSiap.querySelector('[data-uji="impor-online"]');
+  const inputSetter = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value").set;
+  const fetchAsli = globalThis.fetch;
+  const setTimeoutAsli = dom.window.setTimeout.bind(dom.window);
+  globalThis.fetch = (_url, opsi) => new Promise((_resolve, reject) => {
+    opsi.signal.addEventListener("abort", () => reject(new DOMException("AbortError", "AbortError")), { once: true });
+  });
+  dom.window.setTimeout = (callback, delay, ...args) =>
+    delay === modul.BATAS_IMPOR.waktuMs
+      ? setTimeoutAsli(callback, 0, ...args)
+      : setTimeoutAsli(callback, delay, ...args);
+  inputSetter.call(input, "https://lichess.org/abcdefgh");
+  input.dispatchEvent(new dom.window.Event("input", { bubbles: true }));
+  await tunggu(50);
+  klik(domSiap.querySelector('[data-uji="kirim-impor"]'));
+  const timeoutTampil = await tungguSampai(
+    () => /melewati batas waktu/i.test(domSiap.querySelector('[data-uji="galat-impor"]')?.textContent ?? ""),
+    1000,
+    10,
+  );
+  uji("timeout fetch menghentikan permintaan dan menampilkan galat khusus", timeoutTampil && layarAktif() === "impor");
+  dom.window.setTimeout = setTimeoutAsli;
+  globalThis.fetch = fetchAsli;
+  klik([...domSiap.querySelectorAll('[data-layar="impor"] button')].find((b) => b.textContent.trim() === "Batal"));
+  await tunggu(80);
 }
 
 /* --- membatalkan evaluasi menghapus grafik dan mencegah hasil tertunda --- */
