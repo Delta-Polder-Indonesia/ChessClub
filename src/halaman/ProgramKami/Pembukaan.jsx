@@ -155,8 +155,8 @@ const POSISI_MINI = [
 /** Papan utama 408px, orientasi hitam. */
 const POSISI_UTAMA =
   "R2KQBNR/PPP2PPP/2N1P3/3P1B2/3p4/2n2n2/ppp1pppp/r1bkqb1r";
-/** 36 sel grid 6×6: lima posisi berulang 0,1,2,3,4,… sebanyak 36 kotak. */
-const URUT_MINI = Array.from({ length: 36 }, (_, i) => i % 5);
+/** 16 sel grid 4×4: variasi visual yang lebih ringan untuk halaman landing. */
+const URUT_MINI = Array.from({ length: 16 }, (_, i) => i % 5);
 
 const NAMA_JENIS = {
   K: "king",
@@ -206,11 +206,11 @@ function PapanCg({ papan }) {
   );
 }
 
-/** Blok papan: kisi 6×6 berisi 36 papan mini + papan utama di kanan bawah. */
+/** Blok papan: kisi 4×4 berisi 16 papan mini + papan utama di kanan bawah. */
 function PapanMaia() {
   return (
-    <div className="relative flex aspect-square w-[544px] max-w-full items-center justify-center">
-      <div className="absolute left-0 top-0 grid h-3/4 w-3/4 grid-cols-6 grid-rows-6 gap-0.5 bg-transparent">
+    <div className="relative flex aspect-square w-[440px] max-w-full items-center justify-center">
+      <div className="absolute left-0 top-0 grid h-3/4 w-3/4 grid-cols-4 grid-rows-4 gap-0.5 bg-transparent">
         {URUT_MINI.map((idx, i) => (
           <div key={i} className="relative">
             <div className="h-full w-full">
@@ -470,6 +470,25 @@ export default function Pembukaan() {
             </div>
             <div className="lg:col-span-8">
               <KatalogBuku t={t} angka={angka} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══ Penutup — satu langkah berikutnya yang jelas ═══ */}
+      <section className="w-full border-t border-grey-200 bg-paper">
+        <div className="mx-auto max-w-6xl px-6 py-14 md:px-8 md:py-16">
+          <div className="max-w-3xl">
+            <h2 className="m-0 font-serif font-light text-[clamp(2rem,3.2vw,3rem)] leading-[1.08] text-grey-800">
+              {t("bukuPembukaan.penutupJudul")}
+            </h2>
+            <p className="m-0 mt-4 max-w-2xl font-serif text-base leading-[1.8] text-pretty text-grey-600">
+              {t("bukuPembukaan.penutupIsi")}
+            </p>
+            <div className="mt-6">
+              <TombolConten to="/papan-interaktif">
+                {t("bukuPembukaan.ctaUtama")}
+              </TombolConten>
             </div>
           </div>
         </div>
