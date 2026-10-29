@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Logo from "./Logo.jsx";
 import {
@@ -519,18 +519,22 @@ export default function Header() {
               <li className="relative">
                 <ul className="flex items-center gap-x-6 gap-y-4 text-white">
                   {MENU_ATAS.map((l) => (
-                    <li key={l.title} className="py-2">
+                    <Fragment key={l.title}>
                       {l.title === "nav.hubungiKami" && (
-                        <TombolBahasa warna="text-white" />
+                        <li className="py-2">
+                          <TombolBahasa warna="text-white" />
+                        </li>
                       )}
-                      <Link
-                        to={l.path}
-                        title={t(l.title)}
-                        className="text-sm hover:text-blue-400 transition-colors duration-200"
-                      >
-                        {t(l.title)}
-                      </Link>
-                    </li>
+                      <li className="py-2">
+                        <Link
+                          to={l.path}
+                          title={t(l.title)}
+                          className="text-sm hover:text-blue-400 transition-colors duration-200"
+                        >
+                          {t(l.title)}
+                        </Link>
+                      </li>
+                    </Fragment>
                   ))}
                 </ul>
               </li>
