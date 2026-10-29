@@ -518,11 +518,6 @@ export default function Header() {
             >
               {MENU_ATAS.map((l) => (
                 <Fragment key={l.title}>
-                  {l.title === "nav.hubungiKami" && (
-                    <li className="py-2">
-                      <TombolBahasa warna="text-white" />
-                    </li>
-                  )}
                   <li className="py-2">
                     <Link
                       to={l.path}
@@ -532,6 +527,11 @@ export default function Header() {
                       {t(l.title)}
                     </Link>
                   </li>
+                  {l.title === "nav.hubungiKami" && (
+                    <li className="py-2">
+                      <TombolBahasa warna="text-white" />
+                    </li>
+                  )}
                 </Fragment>
               ))}
               <li>
