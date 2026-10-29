@@ -520,6 +520,9 @@ export default function Header() {
                 <ul className="flex items-center gap-x-6 gap-y-4 text-white">
                   {MENU_ATAS.map((l) => (
                     <li key={l.title} className="py-2">
+                      {l.title === "nav.hubungiKami" && (
+                        <TombolBahasa warna="text-white" />
+                      )}
                       <Link
                         to={l.path}
                         title={t(l.title)}
@@ -558,11 +561,6 @@ export default function Header() {
                   ))}
                 </ul>
               </nav>
-              {/* Sakelar bahasa menempel di kluster tombol yang selalu tampil
-                  (bukan lagi di top-bar yang disembunyikan saat header
-                  menempel) — akses ganti bahasa tidak boleh hilang saat
-                  scroll maupun di layar kecil. */}
-              <TombolBahasa warna={scrolled ? "text-slate-800" : "text-white"} />
               <button
                 ref={searchButtonRef}
                 type="button"
