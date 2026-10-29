@@ -914,6 +914,7 @@ export function KartuPembukaanTeratas({
 
 function KartuAkurasiPartai({ moves, players }) {
   const [mode, setMode] = useState("cp");
+  const [hoverIndex, setHoverIndex] = useState(null);
   const idGrafik = useId().replace(/:/g, "");
   const data = useMemo(() => {
     const daftarMoves = Array.isArray(moves) ? moves : [];
@@ -928,6 +929,8 @@ function KartuAkurasiPartai({ moves, players }) {
         index,
         color,
         cpPutih: null,
+        skorCpPutih: null,
+        tipeSkor: null,
         nilaiCpGrafik: null,
         wdlPutih: null,
         accuracy: null,
@@ -967,6 +970,8 @@ function KartuAkurasiPartai({ moves, players }) {
       return {
         ...kosong,
         cpPutih: Math.max(-1000, Math.min(1000, cpPutih)),
+        skorCpPutih: evaluasi[0] === "mate" ? (sisiJalan === "w" ? Number(evaluasi[1]) : -Number(evaluasi[1])) : cpMentahPutih,
+        tipeSkor: evaluasi[0],
         nilaiCpGrafik: nilaiGrafikCp(cpUntukGrafik),
         wdlPutih,
         accuracy: akurasiMove(move),
@@ -1027,6 +1032,15 @@ function KartuAkurasiPartai({ moves, players }) {
   ).join(" ");
   const coordsValid = coords.filter((p) => Number.isFinite(p.y));
   const jumlahEvaluasi = coords.filter((p) => Number.isFinite(p.nilaiCpGrafik)).length;
+  const titikAktif = coordsValid.find((p) => p.index === hoverIndex) ?? null;
+  const judulTitik = (point) => `${Math.ceil(point.index / 2)}.${point.index % 2 === 0 ? ".." : ""} ${point.san}`;
+  const skorTitik = (point) => {
+    const nilai = point.skorCpPutih;
+    const tanda = nilai > 0 ? "+" : nilai < 0 ? "-" : "";
+    if (point.tipeSkor === "mate") return `${tanda}M${Math.abs(nilai)}`;
+    return `${tanda}${(Math.abs(nilai) / 100).toFixed(2)}`;
+  };
+  const wdlTitik = (point) => `White: ${point.wdlPutih[0] / 10}% · Draw: ${point.wdlPutih[1] / 10}% · Black: ${point.wdlPutih[2] / 10}%`;
 
   return (
     <section className="wawasan-card flex flex-col gap-3" data-uji="wawasan-akurasi-partai">
@@ -1049,7 +1063,7 @@ function KartuAkurasiPartai({ moves, players }) {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-md border border-border bg-[#1b1c1e]">
+      <div className="relative overflow-hidden rounded-md border border-border bg-[#1b1c1e]">
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
           <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label="Jenis evaluasi">
             <button type="button" aria-pressed={mode === "cp"} onClick={() => setMode("cp")} className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "cp" ? "bg-[#383a3d] text-white" : "text-white/55 hover:text-white"}`}>CP</button>
@@ -1077,10 +1091,23 @@ function KartuAkurasiPartai({ moves, players }) {
             <path d={area} fill="#34383d" fillOpacity=".96" clipPath={`url(#${idGrafik}-bawah)`} />
             <path d={pathLine} fill="none" stroke="#b9bdc2" strokeWidth="1.25" vectorEffect="non-scaling-stroke" />
             {coordsValid.map((p) => (
-              <circle key={p.index} cx={p.x} cy={p.y} r="0" fill="none">
-                <title>{mode === "wdl"
-                  ? `Langkah ${p.index}: ${p.san || "posisi"} · Menang ${p.wdlPutih[0]}‰, Remis ${p.wdlPutih[1]}‰, Kalah ${p.wdlPutih[2]}‰`
-                  : `Langkah ${p.index}: ${p.san || "evaluasi"} · ${p.cpPutih > 0 ? "+" : ""}${p.cpPutih} cp`}</title>
+              <circle
+                key={p.index}
+                cx={p.x}
+                cy={p.y}
+                r="7"
+                fill="transparent"
+                stroke="transparent"
+                pointerEvents="all"
+                tabIndex={0}
+                role="img"
+                aria-label={mode === "wdl" ? `${judulTitik(p)} · ${wdlTitik(p)}` : `${judulTitik(p)} · Advantage: ${skorTitik(p)}`}
+                onMouseEnter={() => setHoverIndex(p.index)}
+                onMouseLeave={() => setHoverIndex(null)}
+                onFocus={() => setHoverIndex(p.index)}
+                onBlur={() => setHoverIndex(null)}
+              >
+                <title>{mode === "wdl" ? `${judulTitik(p)} · ${wdlTitik(p)}` : `${judulTitik(p)} · Advantage: ${skorTitik(p)}`}</title>
               </circle>
             ))}
           </svg>
@@ -1089,6 +1116,14 @@ function KartuAkurasiPartai({ moves, players }) {
             {mode === "wdl"
               ? "Grafik WDL memerlukan sedikitnya dua posisi dengan data WDL dari engine."
               : "Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine."}
+          </div>
+        )}
+        {titikAktif && (
+          <div role="tooltip" className="pointer-events-none absolute left-3 top-12 z-20 max-w-[calc(100%-1.5rem)] rounded-md border border-white/15 bg-[#111315]/95 px-3 py-2 text-xs text-white shadow-lg">
+            <div className="font-semibold">{judulTitik(titikAktif)}</div>
+            <div className="mt-1 whitespace-pre-line text-white/75">
+              {mode === "wdl" ? wdlTitik(titikAktif) : `Advantage: ${skorTitik(titikAktif)}`}
+            </div>
           </div>
         )}
         <div className="flex justify-between border-t border-white/10 px-3 py-1.5 text-[10px] text-white/45">

@@ -145,11 +145,13 @@ export function mountGameDenganPemainKosong(el) {
 
 export { formatPlayerLabel, normalisasiPemain };
 
-function WawasanDenganAkun({ platform, username }) {
+function WawasanDenganAkun({ platform, username, gameMoves }) {
   const nilaiBawaan = React.useContext(AnalyzeContext);
   const nilai = {
     ...nilaiBawaan,
     akun: [{ platform, username }, () => {}],
+    game: [gameMoves ?? nilaiBawaan.game[0], () => {}],
+    players: [[{ name: "AkunWawasan" }, { name: "Lawan" }], () => {}],
   };
   return (
     <AnalyzeContext.Provider value={nilai}>
@@ -158,7 +160,7 @@ function WawasanDenganAkun({ platform, username }) {
   );
 }
 
-export function mountWawasan(el, platform, username) {
+export function mountWawasan(el, platform, username, gameMoves) {
   const root = createRoot(el);
   root.render(
     <HelmetProvider>
@@ -167,7 +169,7 @@ export function mountWawasan(el, platform, username) {
           <ConfigContextProvider>
             <ErrorsContextProvider>
               <AnalyzeContextProvider>
-                <WawasanDenganAkun platform={platform} username={username} />
+                <WawasanDenganAkun platform={platform} username={username} gameMoves={gameMoves} />
               </AnalyzeContextProvider>
             </ErrorsContextProvider>
           </ConfigContextProvider>
@@ -1267,12 +1269,38 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
 
     const wadahWawasan = domSiap.createElement("div");
     domSiap.body.appendChild(wadahWawasan);
-    const rootWawasan = modul.mountWawasan(wadahWawasan, "chessCom", "AkunWawasan");
+    const movesTooltipWawasan = [
+      { color: "w" },
+      {
+        color: "b",
+        san: "e4",
+        previousStaticEvals: [["cp", "-100"], ["cp", "0"]],
+        kandidat: [{ peringkat: 1, wdl: [600, 300, 100] }],
+      },
+      {
+        color: "w",
+        san: "e5",
+        previousStaticEvals: [["cp", "20"], ["cp", "100"]],
+        kandidat: [{ peringkat: 1, wdl: [100, 800, 100] }],
+      },
+    ];
+    const rootWawasan = modul.mountWawasan(wadahWawasan, "chessCom", "AkunWawasan", movesTooltipWawasan);
     await tungguSampai(
       () =>
         !!wadahWawasan.querySelector('[data-uji="wawasan-pembukaan"]')
-        && !!wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]'),
+        && !!wadahWawasan.querySelector('[data-uji="dashboard-akun-overview"]')
+        && !!wadahWawasan.querySelector('[data-uji="wawasan-akurasi-partai"]'),
       2000,
+    );
+
+    const kartuAkurasiPartai = wadahWawasan.querySelector('[data-uji="wawasan-akurasi-partai"]');
+    const titikAkurasi = kartuAkurasiPartai?.querySelector('circle[tabindex="0"]');
+    titikAkurasi?.dispatchEvent(new dom.window.MouseEvent("mouseover", { bubbles: true }));
+    await tunggu(0);
+    uji(
+      "wawasan grafik CP menampilkan tooltip langkah/evaluasi saat diarahkan",
+      /1\. e4/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? "")
+        && /Advantage: \+1\.00/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? ""),
     );
 
     const barisAkun = wadahWawasan.querySelector('[data-uji="wawasan-baris-akun"]');
