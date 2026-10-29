@@ -49,8 +49,12 @@ test("tautan Lichess resmi diimpor, request dibatasi, dan UI kembali ke papan", 
       postMessage(perintah) {
         if (perintah === "uci") queueMicrotask(() => this.onmessage?.({ data: "uciok" }));
         if (perintah === "isready") queueMicrotask(() => this.onmessage?.({ data: "readyok" }));
-        // Cari sengaja ditahan: tes memverifikasi integrasi impor dan loading,
-        // bukan kecepatan engine atau mutu eval.
+        if (perintah.startsWith("go ")) setTimeout(() => {
+          this.onmessage?.({ data: "info depth 1 multipv 1 score cp 0" });
+          this.onmessage?.({ data: "bestmove (none)" });
+        }, 30);
+        // Engine palsu memberi skor deterministik agar alur parse selesai;
+        // tes memvalidasi hasil impor, bukan mutu eval Stockfish.
       }
       terminate() { this.dihentikan = true; }
     };
