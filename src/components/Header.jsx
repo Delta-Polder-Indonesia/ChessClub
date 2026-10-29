@@ -516,28 +516,24 @@ export default function Header() {
                 scrolled ? "hidden" : "hidden lg:flex"
               } flex-col lg:flex-row items-center justify-start lg:justify-end gap-x-6 gap-y-4 mb-4 lg:mb-2 lg:mt-0`}
             >
-              <li className="relative">
-                <ul className="flex items-center gap-x-6 gap-y-4 text-white">
-                  {MENU_ATAS.map((l) => (
-                    <Fragment key={l.title}>
-                      {l.title === "nav.hubungiKami" && (
-                        <li className="py-2">
-                          <TombolBahasa warna="text-white" />
-                        </li>
-                      )}
-                      <li className="py-2">
-                        <Link
-                          to={l.path}
-                          title={t(l.title)}
-                          className="text-sm hover:text-blue-400 transition-colors duration-200"
-                        >
-                          {t(l.title)}
-                        </Link>
-                      </li>
-                    </Fragment>
-                  ))}
-                </ul>
-              </li>
+              {MENU_ATAS.map((l) => (
+                <Fragment key={l.title}>
+                  {l.title === "nav.hubungiKami" && (
+                    <li className="py-2">
+                      <TombolBahasa warna="text-white" />
+                    </li>
+                  )}
+                  <li className="py-2">
+                    <Link
+                      to={l.path}
+                      title={t(l.title)}
+                      className="text-sm hover:text-blue-400 transition-colors duration-200"
+                    >
+                      {t(l.title)}
+                    </Link>
+                  </li>
+                </Fragment>
+              ))}
               <li>
                 <Link
                   to="/pendaftaran-anggota"
