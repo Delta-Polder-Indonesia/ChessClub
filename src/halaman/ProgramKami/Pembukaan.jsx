@@ -485,11 +485,6 @@ export default function Pembukaan() {
             <p className="m-0 mt-4 max-w-2xl font-serif text-base leading-[1.8] text-pretty text-grey-600">
               {t("bukuPembukaan.penutupIsi")}
             </p>
-            <div className="mt-6">
-              <TombolConten to="/papan-interaktif">
-                {t("bukuPembukaan.ctaUtama")}
-              </TombolConten>
-            </div>
           </div>
         </div>
       </section>
