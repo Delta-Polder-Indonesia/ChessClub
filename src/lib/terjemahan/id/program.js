@@ -205,11 +205,11 @@ export const bukuPembukaan = {
       "Peta pembukaan dari data nyata: 18.713 jalur, 3.196 nama, 349 kode ECO — semuanya terhubung ke papan interaktif situs ini.",
     metaDeskripsi:
       "Jelajahi pembukaan catur lewat data: 18.713 jalur dari lichess-org/chess-openings, pohon langkah pertama, dan katalog keluarga pembukaan yang bisa dicari.",
-    introJudul: "Setiap pembukaan punya nama.",
+    introJudul: "Kenali pembukaan dari langkah pertama.",
     introP1:
-      "Mainkan 1. e4 e5 2. Nf3 Nc6 3. Bb5, dan posisinya punya nama: Ruy Lopez, kode C60. Buku pembukaan situs ini menyimpan 18.713 jalur seperti itu — hasil olahan data lichess-org/chess-openings (CC0) — dan terpasang langsung di papan interaktif: mainkan langkah apa pun, nama dan kode ECO posisinya dikenali otomatis.",
+      "Contohnya, 1. e4 e5 2. Nf3 Nc6 3. Bb5 membawa ke Ruy Lopez (ECO C60). Buku ini memuat 18.713 jalur dari data lichess-org/chess-openings berlisensi CC0. Di papan interaktif, nama pembukaan dan kode ECO akan dikenali saat Anda memainkan langkah.",
     introP2:
-      "Angka-angka di halaman ini bukan perkiraan. Jumlah jalur, partai, dan persentase kemenangan semuanya dihitung langsung dari berkas buku pembukaan yang dipakai situs ini.",
+      "Gunakan katalog di bawah untuk mencari keluarga pembukaan berdasarkan nama atau kode ECO. Angka partai dan hasil putih–seri–hitam merujuk pada data yang tersedia di buku ini, bukan prediksi hasil pertandingan.",
     statJalur: "jalur pembukaan",
     statNama: "nama pembukaan",
     statKeluarga: "keluarga pembukaan",
@@ -242,7 +242,7 @@ export const bukuPembukaan = {
     kelZukertort: "Pembukaan Zukertort",
     katalogJudul: "Katalog yang bisa dicari",
     katalogPengantar:
-      "72 keluarga pembukaan dengan partai terbanyak di buku — satu baris teratas per keluarga. Ketik untuk menyaringnya; katalog lengkapnya ada di tab Buku papan interaktif.",
+      "Berikut 72 keluarga dengan jumlah partai terbanyak dalam buku ini, masing-masing diwakili satu jalur. Cari nama atau kode ECO, lalu urutkan kolom untuk membandingkan jumlah partai dan hasilnya.",
     katalogPlaceholder: "Cari nama pembukaan atau kode ECO…",
     katalogCta: "Buka katalog lengkap di papan interaktif",
     katalogJumlah: "Menampilkan {n} dari {total} keluarga teratas",
