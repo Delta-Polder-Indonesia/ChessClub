@@ -545,7 +545,7 @@ export default function Header() {
               </li>
             </ul>
 
-            <div className={`flex items-center gap-2 ${scrolled ? "" : "lg:hidden"}`}>
+            <div className="flex items-center gap-2">
               {/* Nav utama */}
               <nav className="relative bg-transparent min-h-[48px] hidden lg:block">
                 <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 font-semibold">
@@ -565,7 +565,9 @@ export default function Header() {
                   (bukan lagi di top-bar yang disembunyikan saat header
                   menempel) — akses ganti bahasa tidak boleh hilang saat
                   scroll maupun di layar kecil. */}
-              <TombolBahasa warna={scrolled ? "text-slate-800" : "text-white"} />
+              <span className={scrolled ? "" : "lg:hidden"}>
+                <TombolBahasa warna={scrolled ? "text-slate-800" : "text-white"} />
+              </span>
               <button
                 ref={searchButtonRef}
                 type="button"
