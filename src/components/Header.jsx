@@ -514,7 +514,7 @@ export default function Header() {
             <ul
               className={`top-bar ${
                 scrolled ? "hidden" : "hidden lg:flex"
-              } flex-col lg:flex-row items-center justify-start lg:justify-end gap-x-6 gap-y-4 mb-4 lg:mb-2 lg:mt-0`}
+              } text-white flex-col lg:flex-row items-center justify-start lg:justify-end gap-x-6 gap-y-4 mb-4 lg:mb-2 lg:mt-0`}
             >
               {MENU_ATAS.map((l) => (
                 <Fragment key={l.title}>
