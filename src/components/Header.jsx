@@ -527,11 +527,6 @@ export default function Header() {
                       {t(l.title)}
                     </Link>
                   </li>
-                  {l.title === "nav.hubungiKami" && (
-                    <li className="py-2">
-                      <TombolBahasa warna="text-white" />
-                    </li>
-                  )}
                 </Fragment>
               ))}
               <li>
@@ -561,6 +556,7 @@ export default function Header() {
                   ))}
                 </ul>
               </nav>
+              <TombolBahasa warna={scrolled ? "text-slate-700" : "text-white"} />
               <button
                 ref={searchButtonRef}
                 type="button"
