@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Rush Teka-teki: latihan catur dengan batas waktu</title>
+  <desc id="desc">Ilustrasi papan catur dengan posisi skakmat, penghitung waktu tiga menit, dan tiga penanda nyawa.</desc>
+  <rect width="1200" height="760" rx="18" fill="#F7F6F2"/>
+  <circle cx="1010" cy="120" r="86" fill="#E7EDF5"/>
+  <circle cx="168" cy="630" r="112" fill="#E9ECE8"/>
+  <rect x="74" y="66" width="1052" height="628" rx="20" fill="#FFFFFF" stroke="#D9DEE5" stroke-width="2"/>
+  <text x="116" y="125" fill="#24364B" font-family="Georgia,serif" font-size="28">RUSH TEKA-TEKI</text>
+  <text x="116" y="158" fill="#62748E" font-family="Arial,sans-serif" font-size="16" letter-spacing="2">LATIHAN TAKTIK BERJANGKA WAKTU</text>
+  <rect x="116" y="192" width="472" height="472" rx="8" fill="#E8E2D6"/>
+  <g transform="translate(132 208)">
+    <rect width="440" height="440" fill="#F2EDE3"/>
+    <g fill="#8A9BAE">
+      <path d="M55 0h55v55H55zM165 0h55v55h-55zM275 0h55v55h-55zM385 0h55v55h-55z"/>
+      <path d="M0 55h55v55H0zM110 55h55v55h-55zM220 55h55v55h-55zM330 55h55v55h-55z"/>
+      <path d="M55 110h55v55H55zM165 110h55v55h-55zM275 110h55v55h-55zM385 110h55v55h-55z"/>
+      <path d="M0 165h55v55H0zM110 165h55v55h-55zM220 165h55v55h-55zM330 165h55v55h-55z"/>
+      <path d="M55 220h55v55H55zM165 220h55v55h-55zM275 220h55v55h-55zM385 220h55v55h-55z"/>
+      <path d="M0 275h55v55H0zM110 275h55v55h-55zM220 275h55v55h-55zM330 275h55v55h-55z"/>
+      <path d="M55 330h55v55H55zM165 330h55v55h-55zM275 330h55v55h-55zM385 330h55v55h-55z"/>
+      <path d="M0 385h55v55H0zM110 385h55v55h-55zM220 385h55v55h-55zM330 385h55v55h-55z"/>
+    </g>
+    <rect x="275" y="110" width="55" height="55" fill="#D9B65D" fill-opacity=".7"/>
+    <rect x="330" y="55" width="55" height="55" fill="#D9B65D" fill-opacity=".7"/>
+    <g font-family="Georgia,serif" font-size="47" text-anchor="middle">
+      <text x="302" y="151" fill="#26364A">♚</text>
+      <text x="357" y="96" fill="#26364A">♟</text>
+      <text x="247" y="206" fill="#26364A">♜</text>
+      <text x="137" y="426" fill="#FFFFFF" stroke="#24364B" stroke-width=".8">♔</text>
+      <text x="192" y="371" fill="#FFFFFF" stroke="#24364B" stroke-width=".8">♕</text>
+      <text x="82" y="316" fill="#FFFFFF" stroke="#24364B" stroke-width=".8">♙</text>
+    </g>
+    <path d="M204 354 274 214" stroke="#C48C2F" stroke-width="5" stroke-linecap="round" stroke-dasharray="8 11"/>
+    <path d="m256 221 19-14-1 24" stroke="#C48C2F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <g transform="translate(638 212)">
+    <text x="0" y="22" fill="#62748E" font-family="Arial,sans-serif" font-size="16" letter-spacing="2">WAKTU TERSISA</text>
+    <rect y="42" width="446" height="132" rx="14" fill="#F7F6F2" stroke="#D9DEE5" stroke-width="2"/>
+    <circle cx="68" cy="108" r="30" stroke="#355B82" stroke-width="5"/>
+    <path d="M68 89v20l14 9" stroke="#355B82" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="119" y="126" fill="#24364B" font-family="Arial,sans-serif" font-size="54" font-weight="700">03:00</text>
+    <text x="0" y="229" fill="#62748E" font-family="Arial,sans-serif" font-size="16" letter-spacing="2">NYAWA</text>
+    <g transform="translate(0 250)">
+      <circle cx="26" cy="24" r="22" fill="#E7EDF5" stroke="#9AAEC3" stroke-width="2"/>
+      <circle cx="86" cy="24" r="22" fill="#E7EDF5" stroke="#9AAEC3" stroke-width="2"/>
+      <circle cx="146" cy="24" r="22" fill="#E7EDF5" stroke="#9AAEC3" stroke-width="2"/>
+      <path d="M26 37s-15-9-15-19c0-10 12-13 15-3 4-10 15-7 15 3 0 10-15 19-15 19ZM86 37s-15-9-15-19c0-10 12-13 15-3 4-10 15-7 15 3 0 10-15 19-15 19ZM146 37s-15-9-15-19c0-10 12-13 15-3 4-10 15-7 15 3 0 10-15 19-15 19Z" fill="#355B82"/>
+    </g>
+    <path d="M0 338H446" stroke="#D9DEE5" stroke-width="2"/>
+    <text x="0" y="377" fill="#24364B" font-family="Georgia,serif" font-size="24">Temukan langkah terbaik.</text>
+    <text x="0" y="408" fill="#62748E" font-family="Arial,sans-serif" font-size="17">Jaga ketepatan di bawah tekanan waktu.</text>
+  </g>
+</svg>
