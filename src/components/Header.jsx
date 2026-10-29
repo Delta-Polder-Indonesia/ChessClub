@@ -529,6 +529,9 @@ export default function Header() {
                       </Link>
                     </li>
                   ))}
+                  <li className="py-2">
+                    <TombolBahasa warna="text-white" />
+                  </li>
                 </ul>
               </li>
               <li>
@@ -542,7 +545,7 @@ export default function Header() {
               </li>
             </ul>
 
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${scrolled ? "" : "lg:hidden"}`}>
               {/* Nav utama */}
               <nav className="relative bg-transparent min-h-[48px] hidden lg:block">
                 <ul className="flex flex-col md:flex-row items-start md:items-center gap-6 font-semibold">
