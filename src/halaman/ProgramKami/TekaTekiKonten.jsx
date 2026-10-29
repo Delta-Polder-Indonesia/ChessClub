@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-import { Link } from "react-router-dom";
 import { Chess } from "chess.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { TombolConten } from "../../components/TombolConten.jsx";
@@ -25,7 +24,6 @@ import { gambar } from "../../lib/asets.js";
  * pencari dan pemain tidak melewati satu pengalihan.
  */
 const RUTE_ALAT = "/teka-teki/problem";
-const RUTE_RUSH = "/program-kami/rush-teka-teki";
 const HERO_IMAGE = "/images/ProgramKami/teka-teki-hero.webp";
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANK = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -126,7 +124,6 @@ export default function TekaTekiKonten() {
       imageWidth={1672}
       imageHeight={941}
       heroImage={HERO_IMAGE}
-      next={{ to: RUTE_RUSH, judul: t("nav.tekaTekiRush") }}
     >
       <div className="font-serif">
         {/* ═══ Pengantar — kiri: judul, narasi & CTA; kanan: papan statis ═══ */}
@@ -141,12 +138,6 @@ export default function TekaTekiKonten() {
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-4 font-sans">
                   <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
-                  <Link
-                    to={RUTE_RUSH}
-                    className="text-sm font-semibold text-grey-700 underline decoration-grey-400 underline-offset-4 hover:text-grey-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-grey-700"
-                  >
-                    {t("tipsTekaTeki.ctaRush")}
-                  </Link>
                 </div>
               </div>
 
