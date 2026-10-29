@@ -118,14 +118,14 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Teka-teki & Tips",
     deskripsi:
-      "Latihan taktik dengan 5.486 soal skakmat dari partai nyata di basis data puzzle Lichess — saring menurut level dan tema, kerjakan langsung di peramban.",
+      "Latihan taktik dengan 5.486 soal skakmat dari basis data puzzle Lichess. Pilih level, tema, atau warna yang melangkah, lalu selesaikan soal langsung di peramban.",
     metaDeskripsi:
-      "Alat latihan teka-teki skakmat Komunitas Catur Indonesia: 5.486 soal skakmat 1–3 langkah dari partai nyata basis data puzzle Lichess, dengan saringan level, tema, dan petunjuk.",
-    introJudul: "Kuasai Taktik Catur dengan Puzzle dari Partai Turnamen Sungguhan",
+      "Latihan catur gratis dengan 5.486 soal skakmat satu hingga tiga langkah dari basis data puzzle Lichess. Tersedia filter level, tema, warna yang melangkah, dan petunjuk.",
+    introJudul: "Latihan taktik dari partai nyata",
     intro1:
-      "Teka-teki & Tips adalah halaman pengantar alat latihan taktik Komunitas Catur Indonesia. Koleksinya memuat 5.486 soal skakmat satu sampai tiga langkah yang diambil dari partai nyata di basis data puzzle Lichess. Setiap soal menyertakan rating, penanda tema, serta nama pemain dan pembukaan partai asalnya.",
+      "Koleksi ini berisi 5.486 soal skakmat satu, dua, atau tiga langkah dari basis data puzzle Lichess. Setiap soal memiliki rating dan tema taktik; informasi partai asal juga tersedia jika tercantum dalam data.",
     intro2:
-      "Latihan berjalan langsung di peramban tanpa perlu membuat akun. Saring soal menurut level, tema taktik, atau warna yang melangkah; bila buntu, tombol petunjuk menyoroti petak asal dan tujuan langkah pertama. Kemajuan tersimpan otomatis di perangkat Anda.",
+      "Pilih level, tema, atau warna yang melangkah untuk menyaring soal. Gerakkan bidak dengan mengeklik atau menyeretnya. Jika buntu, gunakan petunjuk untuk melihat petak asal dan tujuan langkah pertama. Progres tersimpan di peramban Anda."
     ctaUtama: "Mulai Latihan Teka-teki",
     ctaRush: "Rush Teka-teki — mode berjangka waktu",
     demoJudul: "Satu soal, diperlihatkan utuh",
