@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { Chess } from "chess.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { TombolConten } from "../../components/TombolConten.jsx";
@@ -138,8 +139,14 @@ export default function TekaTekiKonten() {
               <div className="flex max-w-[62ch] flex-col gap-y-5 font-serif text-[1rem] leading-[1.8] text-pretty text-grey-600">
                 <p className="m-0">{t("tipsTekaTeki.intro1")}</p>
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
-                <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4 font-sans">
+                <div className="mt-3 flex flex-wrap items-center gap-x-6 gap-y-4 font-sans">
                   <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
+                  <Link
+                    to={RUTE_RUSH}
+                    className="text-sm font-semibold text-grey-700 underline decoration-grey-400 underline-offset-4 hover:text-grey-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-grey-700"
+                  >
+                    {t("tipsTekaTeki.ctaRush")}
+                  </Link>
                 </div>
               </div>
 
