@@ -206,11 +206,11 @@ export const bukuPembukaan = {
       "A map of the openings built on real data: 18,713 lines, 3,196 names, 349 ECO codes — all wired into this site's interactive board.",
     metaDeskripsi:
       "Explore chess openings through data: 18,713 lines from lichess-org/chess-openings, a first-move tree, and a searchable catalog of opening families.",
-    introJudul: "Every opening has a name.",
+    introJudul: "Identify an opening from its first moves.",
     introP1:
-      "Play 1. e4 e5 2. Nf3 Nc6 3. Bb5, and the position has a name: the Ruy Lopez, code C60. This site's opening book holds 18,713 such lines — processed from lichess-org/chess-openings data (CC0) — and it is built into the interactive board: play any move and the position's name and ECO code are recognized automatically.",
+      "For example, 1. e4 e5 2. Nf3 Nc6 3. Bb5 leads to the Ruy Lopez (ECO C60). This book contains 18,713 lines processed from the CC0-licensed lichess-org/chess-openings data. On the interactive board, the opening name and ECO code are recognized as you play.",
     introP2:
-      "The numbers on this page are not estimates. Line, game, and win-rate figures are all counted directly from the opening book file this site uses.",
+      "Use the catalog below to search opening families by name or ECO code. Game counts and white–draw–black results reflect the data in this book; they are not predictions of future game results.",
     statJalur: "opening lines",
     statNama: "opening names",
     statKeluarga: "opening families",
@@ -243,7 +243,7 @@ export const bukuPembukaan = {
     kelZukertort: "Zukertort Opening",
     katalogJudul: "A catalog you can search",
     katalogPengantar:
-      "The 72 opening families with the most games in the book — one top line per family. Type to filter them; the full catalog lives in the Books tab of the interactive board.",
+      "These are the 72 families with the most games in the book, represented by one line each. Search by name or ECO code, then sort columns to compare game counts and results.",
     katalogPlaceholder: "Search an opening name or ECO code…",
     katalogCta: "Open the full catalog on the interactive board",
     katalogJumlah: "Showing {n} of {total} top families",
