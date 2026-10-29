@@ -123,7 +123,7 @@ export const tipsTekaTeki = {
     intro1:
       "This collection contains 5,486 mate-in-one, mate-in-two, and mate-in-three puzzles from the Lichess puzzle database. Each puzzle has a rating and tactical themes; source-game details are available where included in the data.",
     intro2:
-      "Filter by level, theme, or side to move. Make a move by clicking or dragging a piece. If you get stuck, use the hint to reveal the first move's starting and destination squares. Your progress is saved in your browser."
+      "Filter by level, theme, or side to move. Make a move by clicking or dragging a piece. If you get stuck, use the hint to reveal the first move's starting and destination squares. Your progress is saved in your browser.",
     ctaUtama: "Start Puzzle Training",
     ctaRush: "Puzzle Rush — the timed mode",
     demoJudul: "One puzzle, shown in full",
