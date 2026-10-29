@@ -116,15 +116,14 @@ export const bermainCatur = {
 export const tipsTekaTeki = {
     judul: "Chess Puzzles & Tips",
     deskripsi:
-      "Tactics training with 5,486 checkmate puzzles from real games in the Lichess puzzle database — filter by level and theme, and solve them right in your browser.",
+      "Practice tactics with 5,486 checkmate puzzles from the Lichess puzzle database. Filter by level, theme, or side to move, and solve them in your browser.",
     metaDeskripsi:
-      "The chess puzzle trainer of Komunitas Catur Indonesia: 5,486 mate-in-1 to mate-in-3 puzzles from real games in the Lichess puzzle database, with level and theme filters plus hints.",
-    introJudul:
-      "Master chess tactics with puzzles from real tournament games",
+      "Free chess tactics practice with 5,486 mate-in-one to mate-in-three puzzles from the Lichess puzzle database. Includes level, theme, and side-to-move filters plus hints.",
+    introJudul: "Tactics puzzles from real games",
     intro1:
-      "Chess Puzzles & Tips introduces the tactics trainer of Komunitas Catur Indonesia. The collection holds 5,486 puzzles asking for mate in one to three moves, all taken from real games in the Lichess puzzle database. Each puzzle carries a rating, theme tags, and the players and opening of its source game.",
+      "This collection contains 5,486 mate-in-one, mate-in-two, and mate-in-three puzzles from the Lichess puzzle database. Each puzzle has a rating and tactical themes; source-game details are available where included in the data.",
     intro2:
-      "Training runs directly in the browser, with no account required. Filter puzzles by level, tactical theme, or the side to move; when you are stuck, the hint button highlights the first move's origin and destination squares. Your progress is saved automatically on your device.",
+      "Filter by level, theme, or side to move. Make a move by clicking or dragging a piece. If you get stuck, use the hint to reveal the first move's starting and destination squares. Your progress is saved in your browser."
     ctaUtama: "Start Puzzle Training",
     ctaRush: "Puzzle Rush — the timed mode",
     demoJudul: "One puzzle, shown in full",
