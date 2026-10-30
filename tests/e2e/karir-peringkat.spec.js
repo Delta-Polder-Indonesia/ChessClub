@@ -45,7 +45,7 @@ test("halaman Karir menampilkan papan peringkat anggota dari roster bersama", as
   await page.goto("/karir");
 
   await expect(page.getByRole("heading", { name: "Karir" })).toBeVisible();
-  await expect(page.locator('img[fetchpriority="high"]')).toBeVisible();
+  await expect(page.getByRole("img", { name: "Karir" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Peringkat Anggota" })).toBeVisible();
   await expect(page.getByText("Rapid Star").first()).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(3);

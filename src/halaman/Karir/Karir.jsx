@@ -2,6 +2,15 @@ import { useMemo, useState } from "react";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
+import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
+import {
+  BadanTabelKonten,
+  BarisTabelKonten,
+  KepalaTabelKonten,
+  JudulKolomKonten,
+  SelTabelKonten,
+  TabelKonten,
+} from "../../components/konten/TabelKonten.jsx";
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
@@ -115,7 +124,7 @@ export default function Karir() {
   const deskripsi = t("beranda.peringkatKlubDeskripsi");
 
   return (
-    <div className="min-h-screen bg-[#f4f6f9] text-slate-900">
+    <div className="min-h-screen bg-paper text-slate-900">
       <MetaHalaman title={judul} description={deskripsi} image={gambar("/images/hero-about.jpg")} />
       <BreadcrumbJsonLd items={[{ label: t("common.home"), to: "/" }, { label: t("karir.judul") }]} />
       <Hero
@@ -128,32 +137,26 @@ export default function Karir() {
         image={gambar("/images/hero-about.jpg")}
       />
 
-      <main className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-8 sm:px-6 lg:px-10">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">{t("beranda.peringkatKlubEyebrow")}</p>
-            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{judul}</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{deskripsi}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-blue-700">{t("beranda.peringkatKlubEyebrow")}</p>
+            <h2 className="mt-2 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-slate-900">{judul}</h2>
+            <p className="mt-2 max-w-3xl text-base leading-relaxed text-slate-600">{deskripsi}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
             {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
             <TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} />
-            <button
-              type="button"
-              onClick={muatUlang}
-              disabled={menyegarkan}
-              className="rounded-full border border-slate-300 bg-white px-4 py-2 font-semibold text-slate-700 transition hover:border-blue-400 hover:text-blue-700 disabled:cursor-wait disabled:opacity-60"
-            >
+            <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>
               {menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}
-            </button>
+            </AksiKonten>
           </div>
         </div>
 
-        <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="relative isolate overflow-hidden rounded-2xl bg-gradient-to-br from-[#101b33] via-[#172746] to-[#243d63] p-5 text-white shadow-xl sm:p-8">
-          <div aria-hidden="true" className="absolute -right-16 -top-24 -z-10 h-72 w-72 rounded-full bg-blue-400/10 blur-3xl" />
+        <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="relative overflow-hidden rounded-lg bg-grey-800 p-5 text-white shadow-sm sm:p-8">
           <div className="grid gap-7 lg:grid-cols-[minmax(0,1.45fr)_minmax(280px,0.75fr)] lg:items-center">
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-blue-200">
+              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-blue-200">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-amber-300/15 text-amber-200" aria-hidden="true">♔</span>
                 {t("beranda.peringkatKlubPemainTeratas")}
               </div>
@@ -172,7 +175,7 @@ export default function Karir() {
                     {pemainTeratas.username && <p className="mt-1 truncate text-sm text-blue-200">@{pemainTeratas.username}</p>}
                   </div>
                   <div className="shrink-0 border-l border-white/15 pl-4 text-right sm:pl-7">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-200">{t("beranda.peringkatKlubRatingTeratas")}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-blue-200">{t("beranda.peringkatKlubRatingTeratas")}</p>
                     <p className="mt-1 font-mono text-3xl font-bold tabular-nums sm:text-4xl">{pemainTeratas.ratingAktif}</p>
                   </div>
                 </div>
@@ -188,11 +191,11 @@ export default function Karir() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 lg:border-l lg:border-white/15 lg:pl-7">
-              <div className="rounded-xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="rounded-lg border border-white/20 bg-white/10 p-4">
                 <p className="text-xs text-blue-200">{t("beranda.peringkatKlubJumlahAnggota")}</p>
                 <p className="mt-2 font-mono text-2xl font-bold tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/[0.06] p-4">
+              <div className="rounded-lg border border-white/20 bg-white/10 p-4">
                 <p className="text-xs text-blue-200">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
                 <p className="mt-2 font-mono text-2xl font-bold tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
@@ -201,7 +204,7 @@ export default function Karir() {
           </div>
         </section>
 
-        <section className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm" aria-label={judul}>
+        <section className="mt-7 rounded-lg border border-slate-200 bg-white shadow-sm" aria-label={judul}>
           <div className="border-b border-slate-200 p-4 sm:p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
@@ -222,18 +225,18 @@ export default function Karir() {
 
             <div className="mt-5 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
-                <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.13em] text-slate-500">{t("beranda.peringkatKlubPilihKontrol")}</p>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">{t("beranda.peringkatKlubPilihKontrol")}</p>
                 <div className="flex flex-wrap gap-2" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
                   {OPSI_RATING.map((opsi) => (
-                    <button
+                    <AksiKonten
                       key={opsi}
-                      type="button"
+                      variant={kontrol === opsi ? "utama" : "sekunder"}
                       aria-pressed={kontrol === opsi}
                       onClick={() => setKontrol(opsi)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${kontrol === opsi ? "bg-slate-900 text-white shadow-sm" : "bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900"}`}
+                      className="min-h-10 px-3"
                     >
                       {namaKontrol(opsi)}
-                    </button>
+                    </AksiKonten>
                   ))}
                 </div>
               </div>
@@ -242,15 +245,15 @@ export default function Karir() {
                   ["semua", t("beranda.peringkatKlubSemua")],
                   ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
                 ].map(([id, label]) => (
-                  <button
+                  <AksiKonten
                     key={id}
-                    type="button"
+                    variant={cakupan === id ? "utama" : "sekunder"}
                     aria-pressed={cakupan === id}
                     onClick={() => setCakupan(id)}
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${cakupan === id ? "border-blue-700 bg-blue-50 text-blue-800" : "border-slate-200 text-slate-600 hover:border-slate-400"}`}
+                    className="min-h-10 px-3"
                   >
                     {label}
-                  </button>
+                  </AksiKonten>
                 ))}
               </div>
             </div>
@@ -262,7 +265,7 @@ export default function Karir() {
           {status === "gagal" && anggota.length === 0 ? (
             <div className="p-6 text-sm text-rose-700">
               <p>{t("beranda.peringkatGagal")}</p>
-              <button type="button" onClick={muatUlang} className="mt-2 font-semibold underline">{t("common.cobaLagi")}</button>
+              <AksiKonten variant="teks" onClick={muatUlang} className="mt-2">{t("common.cobaLagi")}</AksiKonten>
             </div>
           ) : null}
           {status === "siap" && anggota.length === 0 ? (
@@ -273,25 +276,25 @@ export default function Karir() {
           ) : null}
 
           {hasil.length > 0 && (
-            <div className="max-h-[min(70vh,780px)] overflow-auto rounded-b-2xl">
-              <table className="w-full min-w-[680px] border-collapse text-left text-sm">
-                <thead className="sticky top-0 z-10 bg-slate-50 text-[11px] uppercase tracking-wide text-slate-500 shadow-[0_1px_0_0_rgba(15,23,42,0.08)]">
+            <div className="max-h-[min(70vh,780px)] overflow-auto rounded-b-lg">
+              <TabelKonten className="min-w-[680px] text-left font-sans text-sm text-slate-900">
+                <KepalaTabelKonten className="sticky top-0 z-10 bg-slate-50 text-xs uppercase tracking-wide text-slate-500 shadow-sm">
                   <tr>
-                    <th scope="col" className="w-20 px-4 py-3 text-right">#</th>
-                    <th scope="col" className="px-4 py-3">{t("beranda.peringkatKlubKolPemain")}</th>
-                    <th scope="col" className="w-36 px-4 py-3 text-right">{t("beranda.peringkatKlubKolRating", { kontrol: namaKontrol(kontrol) })}</th>
-                    <th scope="col" className="w-36 px-4 py-3 text-right">{t("beranda.peringkatKlubKolRekor")}</th>
-                    <th scope="col" className="w-28 px-4 py-3 text-right">Chess.com</th>
+                    <JudulKolomKonten scope="col" className="w-20 text-right">#</JudulKolomKonten>
+                    <JudulKolomKonten scope="col">{t("beranda.peringkatKlubKolPemain")}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-36 text-right">{t("beranda.peringkatKlubKolRating", { kontrol: namaKontrol(kontrol) })}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-36 text-right">{t("beranda.peringkatKlubKolRekor")}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-28 text-right">Chess.com</JudulKolomKonten>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
+                </KepalaTabelKonten>
+                <BadanTabelKonten className="divide-y divide-slate-100">
                   {hasil.map((a) => {
                     const dataKontrol = opsiKontrol(a).find((opsi) => opsi.id === (kontrol === "utama" ? "all" : kontrol));
                     const hasError = a.hilang || a.gagal;
                     return (
-                      <tr key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-blue-50/60">
-                        <td className="px-4 py-3 text-right font-mono text-xs tabular-nums text-slate-500">{a.peringkatKontrol ? `#${a.peringkatKontrol}` : "—"}</td>
-                        <td className="px-4 py-3">
+                      <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-blue-50/60">
+                        <SelTabelKonten className="text-right font-mono text-xs tabular-nums text-slate-500">{a.peringkatKontrol ? `#${a.peringkatKontrol}` : "—"}</SelTabelKonten>
+                        <SelTabelKonten>
                           <div className="flex min-w-0 items-center gap-3">
                             {avatar(a, "h-10 w-10")}
                             <div className="min-w-0">
@@ -303,15 +306,15 @@ export default function Karir() {
                               <p className="mt-0.5 truncate text-xs text-slate-500">{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
                             </div>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold tabular-nums text-slate-900">{a.ratingAktif ?? <span className="font-sans text-xs font-normal text-slate-400">{hasError ? t("beranda.peringkatKlubDataTidakTersedia") : t("beranda.peringkatKlubBelumAdaRating")}</span>}</td>
-                        <td className="px-4 py-3 text-right font-mono text-xs tabular-nums text-slate-600">{dataKontrol?.ada ? `${dataKontrol.win} / ${dataKontrol.draw} / ${dataKontrol.loss}` : "—"}</td>
-                        <td className="px-4 py-3 text-right">{a.username ? <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" className="text-xs font-semibold text-blue-700 hover:underline">{t("beranda.peringkatKlubProfil")}</a> : "—"}</td>
-                      </tr>
+                        </SelTabelKonten>
+                        <SelTabelKonten className="text-right font-mono font-bold tabular-nums text-slate-900">{a.ratingAktif ?? <span className="font-sans text-xs font-normal text-slate-400">{hasError ? t("beranda.peringkatKlubDataTidakTersedia") : t("beranda.peringkatKlubBelumAdaRating")}</span>}</SelTabelKonten>
+                        <SelTabelKonten className="text-right font-mono text-xs tabular-nums text-slate-600">{dataKontrol?.ada ? `${dataKontrol.win} / ${dataKontrol.draw} / ${dataKontrol.loss}` : "—"}</SelTabelKonten>
+                        <SelTabelKonten className="text-right">{a.username ? <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" className="text-xs font-semibold text-blue-700 hover:underline">{t("beranda.peringkatKlubProfil")}</a> : "—"}</SelTabelKonten>
+                      </BarisTabelKonten>
                     );
                   })}
-                </tbody>
-              </table>
+                </BadanTabelKonten>
+              </TabelKonten>
             </div>
           )}
         </section>
