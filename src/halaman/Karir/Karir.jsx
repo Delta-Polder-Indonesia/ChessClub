@@ -159,11 +159,11 @@ export default function Karir() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4 lg:gap-x-5">
               <div className="min-w-0">
                 <p className="text-sm text-grey-600">Jumlah anggota</p>
-                <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="mt-1 font-sans text-[40px] font-light leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-grey-600">Punya rating</p>
-                <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="mt-1 font-sans text-[40px] font-light leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
                 <p className="text-sm text-grey-600">Kontrol</p>
