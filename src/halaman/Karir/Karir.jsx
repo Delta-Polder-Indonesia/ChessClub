@@ -23,7 +23,6 @@ import {
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
 const URUTAN_KONTROL = ["Rapid", "Blitz", "Bullet", "Daily"];
-const OPSI_RATING = ["utama", ...URUTAN_KONTROL];
 
 function ratingKontrol(anggota, kontrol) {
   if (anggota?.hilang || anggota?.gagal) return null;
@@ -58,7 +57,7 @@ function avatar(anggota, kelas = "h-12 w-12") {
   );
 }
 
-function LabelPemain({ anggota, gelap = false }) {
+function LabelPemain({ anggota }) {
   return (
     <span className={`inline-flex min-w-0 items-center gap-1.5 text-grey-800`}>
       <span className="truncate">{namaTampil(anggota)}</span>
@@ -120,7 +119,6 @@ export default function Karir() {
   });
 
   const namaKontrol = (id) => id === "utama" ? t("beranda.peringkatKlubUtama") : id;
-  const jumlahPemain = t("beranda.peringkatJumlah", { jumlah: hasil.length });
   const judul = t("beranda.peringkatKlubJudul");
   const deskripsi = t("beranda.peringkatKlubDeskripsi");
 
