@@ -537,6 +537,23 @@ export const analisa = {
       sebagaiHitam: "Hitam",
       pembukaanJudul: "Pembukaan Teratas",
       tanpaPembukaan: "Belum ada data pembukaan.",
+      grafikAkurasi: {
+        jenisEvaluasi: "Jenis evaluasi",
+        tersediaWdl: "Tampilkan estimasi WDL dari Stockfish",
+        belumWdl: "WDL belum tersedia pada cukup posisi yang dianalisis",
+        jumlahWdl: "{n} posisi WDL",
+        jumlahEvaluasi: "{n} evaluasi",
+        judulWdl: "Grafik keunggulan berdasarkan WDL Stockfish dari perspektif Putih",
+        judulCp: "Grafik evaluasi CP dari perspektif Putih",
+        tooltipKeunggulan: "Keunggulan: {skor}",
+        tooltipWdl: "{putih}: {peluangPutih}% · {seri}: {peluangSeri}% · {hitam}: {peluangHitam}%",
+        kosongWdl: "Grafik WDL memerlukan sedikitnya dua posisi dengan data WDL dari engine.",
+        kosongCp: "Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine.",
+        keunggulanPutih: "Keunggulan Putih ↑",
+        keunggulanHitam: "Keunggulan Hitam ↓",
+        peluangPutih: "Peluang Putih ↑",
+        peluangHitam: "Peluang Hitam ↓",
+      },
       pembukaan: {
         nama: "Pembukaan",
         /* Kolom "Moves" `TopOpeningsCard.tsx`: panjang varian pembukaan. */

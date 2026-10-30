@@ -93,16 +93,17 @@ export function markupIkon(rating, size = 18) {
  * pernah melempar ReferenceError ("platform is not defined") sehingga
  * seluruh halaman mati begitu pengguna menekan "Daftar partai".
  */
-export function mountPemilih(el, platform) {
+export function mountPemilih(el, platform, stopSelecting = () => {}) {
   const Pemilih = platform === "lichessOrg" ? SelectLichessOrgGame : SelectChessComGame;
-  return createRoot(el).render(
+  const root = createRoot(el);
+  root.render(
     <HelmetProvider>
       <MemoryRouter initialEntries={["/program-kami/analisa"]}>
         <I18nProvider>
           <ConfigContextProvider>
             <ErrorsContextProvider>
               <AnalyzeContextProvider>
-                <Pemilih username="contoh" depth={10} stopSelecting={() => {}} />
+                <Pemilih username="contoh" depth={10} stopSelecting={stopSelecting} />
               </AnalyzeContextProvider>
             </ErrorsContextProvider>
           </ConfigContextProvider>
@@ -110,6 +111,7 @@ export function mountPemilih(el, platform) {
       </MemoryRouter>
     </HelmetProvider>
   );
+  return root;
 }
 
 function GameDenganPemainKosong() {
@@ -160,7 +162,8 @@ function WawasanDenganAkun({ platform, username, gameMoves }) {
   );
 }
 
-export function mountWawasan(el, platform, username, gameMoves) {
+export function mountWawasan(el, platform, username, gameMoves, bahasa = "id") {
+  localStorage.setItem("kci-bahasa", bahasa);
   const root = createRoot(el);
   root.render(
     <HelmetProvider>
@@ -1019,6 +1022,67 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
   );
 }
 
+/* --- permintaan Lichess dibatalkan saat pemilih ditutup --- */
+{
+  const wadah = domSiap.createElement("div");
+  domSiap.body.appendChild(wadah);
+  const fetchSebelum = globalThis.fetch;
+  let signalLichess;
+  let jumlahTutup = 0;
+  const fetchLichessTertahan = (url, opsi = {}) => {
+    if (String(url).includes("lichess.org/api/games/user/contoh?sort=dateAsc")) {
+      signalLichess = opsi.signal;
+      return new Promise((_, tolak) => {
+        signalLichess?.addEventListener("abort", () => tolak(new DOMException("Aborted", "AbortError")), { once: true });
+      });
+    }
+    return fetchSebelum(url, opsi);
+  };
+  dom.window.fetch = fetchLichessTertahan;
+  globalThis.fetch = fetchLichessTertahan;
+  const root = modul.mountPemilih(wadah, "lichessOrg", () => { jumlahTutup++; });
+  await tungguSampai(() => !!signalLichess);
+  root.unmount();
+  await tunggu(0);
+  dom.window.fetch = fetchSebelum;
+  globalThis.fetch = fetchSebelum;
+  uji(
+    "menutup pemilih Lichess membatalkan fetch dan tidak memicu galat basi",
+    !!signalLichess?.aborted && jumlahTutup === 0,
+  );
+
+  const wadahPartai = domSiap.createElement("div");
+  domSiap.body.appendChild(wadahPartai);
+  let signalArsip;
+  const fetchArsipTertahan = (url, opsi = {}) => {
+    const alamat = String(url);
+    if (alamat.includes("sort=dateAsc") || alamat.includes("sort=dateDesc")) {
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({ createdAt: Date.UTC(2026, 0, 1) }) });
+    }
+    if (alamat.includes("lichess.org/api/games/user/contoh?since=")) {
+      signalArsip = opsi.signal;
+      return new Promise((_, tolak) => {
+        signalArsip?.addEventListener("abort", () => tolak(new DOMException("Aborted", "AbortError")), { once: true });
+      });
+    }
+    return fetchSebelum(url, opsi);
+  };
+  dom.window.fetch = fetchArsipTertahan;
+  globalThis.fetch = fetchArsipTertahan;
+  const rootPartai = modul.mountPemilih(wadahPartai, "lichessOrg", () => { jumlahTutup++; });
+  await tungguSampai(() => [...wadahPartai.querySelectorAll("button")].some((tombol) => tombol.textContent.includes("2026")));
+  [...wadahPartai.querySelectorAll("button")].find((tombol) => tombol.textContent.includes("2026"))?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
+  await tungguSampai(() => !!signalArsip);
+  rootPartai.unmount();
+  await tunggu(0);
+  dom.window.fetch = fetchSebelum;
+  globalThis.fetch = fetchSebelum;
+  uji(
+    "menutup pemilih Lichess membatalkan fetch daftar partai yang sedang dipilih",
+    !!signalArsip?.aborted && jumlahTutup === 0,
+  );
+}
+
 /* --- layar Akun, Deteksi engine, Database & Impor menggantikan area kerja --- */
 {
   const klik = (el) => el?.dispatchEvent(new dom.window.MouseEvent("click", { bubbles: true }));
@@ -1300,8 +1364,40 @@ uji("navigasi papan ketik tidak merobohkan halaman", !!domSiap.querySelector(".a
     uji(
       "wawasan grafik CP menampilkan tooltip langkah/evaluasi saat diarahkan",
       /1\. e4/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? "")
-        && /Advantage: \+1\.00/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? ""),
+        && /Keunggulan: \+1\.00/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? ""),
     );
+
+    const svgAkurasi = kartuAkurasiPartai?.querySelector("svg");
+    if (svgAkurasi) {
+      svgAkurasi.getBoundingClientRect = () => ({ left: 0, top: 0, width: 720, height: 190, right: 720, bottom: 190 });
+      const sentuh = new dom.window.MouseEvent("pointerdown", { bubbles: true, clientX: 712, clientY: 95 });
+      Object.defineProperty(sentuh, "pointerType", { value: "touch" });
+      svgAkurasi.dispatchEvent(sentuh);
+      await tunggu(0);
+    }
+    uji(
+      "wawasan grafik memilih langkah terdekat dengan pointer sentuh",
+      /1\.\.\. e5/.test(kartuAkurasiPartai?.querySelector('[role="tooltip"]')?.textContent ?? ""),
+    );
+
+    const wadahWawasanEn = domSiap.createElement("div");
+    domSiap.body.appendChild(wadahWawasanEn);
+    modul.mountWawasan(wadahWawasanEn, "chessCom", "AkunWawasan", movesTooltipWawasan, "en");
+    await tungguSampai(() => {
+      const kartuEn = wadahWawasanEn.querySelector('[data-uji="wawasan-akurasi-partai"]');
+      return /Accuracy/.test(kartuEn?.querySelector("h3")?.textContent ?? "");
+    }, 3000);
+    const kartuAkurasiEn = wadahWawasanEn.querySelector('[data-uji="wawasan-akurasi-partai"]');
+    kartuAkurasiEn?.querySelector('circle[tabindex="0"]')?.dispatchEvent(new dom.window.MouseEvent("mouseover", { bubbles: true }));
+    await tunggu(0);
+    uji(
+      "wawasan kartu akurasi dan tooltip mengikuti bahasa Inggris",
+      /Accuracy/.test(kartuAkurasiEn?.querySelector("h3")?.textContent ?? "")
+        && /Evaluation type/.test(kartuAkurasiEn?.querySelector('[role="group"]')?.getAttribute("aria-label") ?? "")
+        && /Advantage: \+1\.00/.test(kartuAkurasiEn?.querySelector('[role="tooltip"]')?.textContent ?? "")
+        && /White advantage/.test(kartuAkurasiEn?.textContent ?? ""),
+    );
+    localStorage.setItem("kci-bahasa", "id");
 
     const barisAkun = wadahWawasan.querySelector('[data-uji="wawasan-baris-akun"]');
     const profilWawasan = wadahWawasan.querySelector('[data-uji="wawasan-profil"]');

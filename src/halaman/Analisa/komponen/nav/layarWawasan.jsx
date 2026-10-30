@@ -913,8 +913,10 @@ export function KartuPembukaanTeratas({
 
 
 function KartuAkurasiPartai({ moves, players }) {
+  const { t } = useI18n();
   const [mode, setMode] = useState("cp");
   const [hoverIndex, setHoverIndex] = useState(null);
+  const svgRef = useRef(null);
   const idGrafik = useId().replace(/:/g, "");
   const data = useMemo(() => {
     const daftarMoves = Array.isArray(moves) ? moves : [];
@@ -1040,15 +1042,35 @@ function KartuAkurasiPartai({ moves, players }) {
     if (point.tipeSkor === "mate") return `${tanda}M${Math.abs(nilai)}`;
     return `${tanda}${(Math.abs(nilai) / 100).toFixed(2)}`;
   };
-  const wdlTitik = (point) => `White: ${point.wdlPutih[0] / 10}% · Draw: ${point.wdlPutih[1] / 10}% · Black: ${point.wdlPutih[2] / 10}%`;
+  const wdlTitik = (point) => t("analisa.wawasan.grafikAkurasi.tooltipWdl", {
+    putih: t("analisa.pemain.putih"),
+    peluangPutih: point.wdlPutih[0] / 10,
+    seri: t("analisa.wawasan.hasil.seri"),
+    peluangSeri: point.wdlPutih[1] / 10,
+    hitam: t("analisa.pemain.hitam"),
+    peluangHitam: point.wdlPutih[2] / 10,
+  });
+  const pilihTitikDariPointer = (event) => {
+    const svg = svgRef.current;
+    const batas = svg?.getBoundingClientRect();
+    if (!batas?.width || !batas?.height || coordsValid.length === 0) return null;
+    const x = (event.clientX - batas.left) / batas.width * width;
+    return coordsValid.reduce((terdekat, point) =>
+      Math.abs(point.x - x) < Math.abs(terdekat.x - x) ? point : terdekat,
+    ).index;
+  };
+  const perbaruiTitikPointer = (event) => {
+    const index = pilihTitikDariPointer(event);
+    if (index !== null) setHoverIndex(index);
+  };
 
   return (
     <section className="wawasan-card flex flex-col gap-3" data-uji="wawasan-akurasi-partai">
-      <h3 className="wawasan-card-title">Akurasi</h3>
+      <h3 className="wawasan-card-title">{t("analisa.wawasan.akurasiJudul")}</h3>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {[
-          { key: "w", name: players?.[0]?.name || "Putih", stats: data.putih },
-          { key: "b", name: players?.[1]?.name || "Hitam", stats: data.hitam },
+          { key: "w", name: players?.[0]?.name || t("analisa.pemain.putih"), stats: data.putih },
+          { key: "b", name: players?.[1]?.name || t("analisa.pemain.hitam"), stats: data.hitam },
         ].map(({ key, name, stats }) => (
           <div key={key} className="flex items-center justify-between gap-3 rounded-md border border-border bg-backgroundBox px-3 py-2.5">
             <div className="min-w-0">
@@ -1057,7 +1079,7 @@ function KartuAkurasiPartai({ moves, players }) {
             </div>
             <div className="text-right">
               <div className="font-mono text-xl font-medium leading-none tabular-nums text-foreground">{format(rataHarmonik(stats.map((item) => item.accuracy).filter(Number.isFinite)))}%</div>
-              <div className="mt-1 text-xs text-foregroundGrey">Akurasi</div>
+              <div className="mt-1 text-xs text-foregroundGrey">{t("analisa.wawasan.akurasiJudul")}</div>
             </div>
           </div>
         ))}
@@ -1065,27 +1087,41 @@ function KartuAkurasiPartai({ moves, players }) {
 
       <div className="relative overflow-hidden rounded-md border border-border bg-[#1b1c1e]">
         <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
-          <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label="Jenis evaluasi">
+          <div className="inline-flex items-center gap-0.5 rounded bg-black/40 p-0.5" role="group" aria-label={t("analisa.wawasan.grafikAkurasi.jenisEvaluasi")}>
             <button type="button" aria-pressed={mode === "cp"} onClick={() => setMode("cp")} className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "cp" ? "bg-[#383a3d] text-white" : "text-white/55 hover:text-white"}`}>CP</button>
             <button
               type="button"
               aria-pressed={mode === "wdl"}
               disabled={!wdlTersedia}
-              title={wdlTersedia ? "Tampilkan estimasi WDL dari Stockfish" : "WDL belum tersedia pada cukup posisi yang dianalisis"}
+              title={t(wdlTersedia ? "analisa.wawasan.grafikAkurasi.tersediaWdl" : "analisa.wawasan.grafikAkurasi.belumWdl")}
               onClick={() => setMode("wdl")}
               className={`rounded px-2 py-1 text-[11px] font-semibold ${mode === "wdl" ? "bg-[#383a3d] text-white" : wdlTersedia ? "text-white/55 hover:text-white" : "cursor-not-allowed text-white/30"}`}
             >WDL</button>
           </div>
           <span className="text-[10px] tabular-nums text-white/45">
-            {mode === "wdl" ? `${titikWdl.length} posisi WDL` : `${jumlahEvaluasi} evaluasi`}
+            {mode === "wdl"
+              ? t("analisa.wawasan.grafikAkurasi.jumlahWdl", { n: titikWdl.length })
+              : t("analisa.wawasan.grafikAkurasi.jumlahEvaluasi", { n: jumlahEvaluasi })}
           </span>
         </div>
         {coordsValid.length >= 2 ? (
-          <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={mode === "wdl" ? "Grafik keunggulan berdasarkan WDL Stockfish dari perspektif Putih" : "Grafik evaluasi CP dari perspektif Putih"} className="block h-auto w-full">
+          <svg
+            ref={svgRef}
+            viewBox={`0 0 ${width} ${height}`}
+            role="img"
+            aria-label={t(mode === "wdl" ? "analisa.wawasan.grafikAkurasi.judulWdl" : "analisa.wawasan.grafikAkurasi.judulCp")}
+            onPointerMove={perbaruiTitikPointer}
+            onPointerDown={perbaruiTitikPointer}
+            onPointerLeave={(event) => {
+              if (event.pointerType !== "touch") setHoverIndex(null);
+            }}
+            className="block h-auto w-full"
+          >
             <defs>
               <clipPath id={`${idGrafik}-atas`}><rect x={left} y={top} width={plotW} height={plotH / 2} /></clipPath>
               <clipPath id={`${idGrafik}-bawah`}><rect x={left} y={zero} width={plotW} height={plotH / 2} /></clipPath>
             </defs>
+            <rect x={left} y={top} width={plotW} height={plotH} fill="transparent" pointerEvents="all" />
             {[0, .5, 1].map((r) => <line key={r} x1={left} y1={top + plotH * r} x2={width-right} y2={top + plotH * r} stroke="#85898d" strokeOpacity={r === .5 ? .35 : .12} strokeDasharray={r === .5 ? "3 4" : "none"} />)}
             <path d={area} fill="#e5e7eb" fillOpacity=".88" clipPath={`url(#${idGrafik}-atas)`} />
             <path d={area} fill="#34383d" fillOpacity=".96" clipPath={`url(#${idGrafik}-bawah)`} />
@@ -1095,40 +1131,40 @@ function KartuAkurasiPartai({ moves, players }) {
                 key={p.index}
                 cx={p.x}
                 cy={p.y}
-                r="7"
+                r="14"
                 fill="transparent"
                 stroke="transparent"
                 pointerEvents="all"
                 tabIndex={0}
                 role="img"
-                aria-label={mode === "wdl" ? `${judulTitik(p)} · ${wdlTitik(p)}` : `${judulTitik(p)} · Advantage: ${skorTitik(p)}`}
+                aria-label={`${judulTitik(p)} · ${mode === "wdl" ? wdlTitik(p) : t("analisa.wawasan.grafikAkurasi.tooltipKeunggulan", { skor: skorTitik(p) })}`}
                 onMouseEnter={() => setHoverIndex(p.index)}
                 onMouseLeave={() => setHoverIndex(null)}
                 onFocus={() => setHoverIndex(p.index)}
                 onBlur={() => setHoverIndex(null)}
               >
-                <title>{mode === "wdl" ? `${judulTitik(p)} · ${wdlTitik(p)}` : `${judulTitik(p)} · Advantage: ${skorTitik(p)}`}</title>
+                <title>{`${judulTitik(p)} · ${mode === "wdl" ? wdlTitik(p) : t("analisa.wawasan.grafikAkurasi.tooltipKeunggulan", { skor: skorTitik(p) })}`}</title>
               </circle>
             ))}
           </svg>
         ) : (
           <div className="flex h-36 items-center justify-center px-4 text-center text-xs text-white/55">
-            {mode === "wdl"
-              ? "Grafik WDL memerlukan sedikitnya dua posisi dengan data WDL dari engine."
-              : "Grafik akan tersedia setelah setidaknya dua langkah memiliki evaluasi engine."}
+            {t(mode === "wdl" ? "analisa.wawasan.grafikAkurasi.kosongWdl" : "analisa.wawasan.grafikAkurasi.kosongCp")}
           </div>
         )}
         {titikAktif && (
           <div role="tooltip" className="pointer-events-none absolute left-3 top-12 z-20 max-w-[calc(100%-1.5rem)] rounded-md border border-white/15 bg-[#111315]/95 px-3 py-2 text-xs text-white shadow-lg">
             <div className="font-semibold">{judulTitik(titikAktif)}</div>
             <div className="mt-1 whitespace-pre-line text-white/75">
-              {mode === "wdl" ? wdlTitik(titikAktif) : `Advantage: ${skorTitik(titikAktif)}`}
+              {mode === "wdl"
+                ? wdlTitik(titikAktif)
+                : t("analisa.wawasan.grafikAkurasi.tooltipKeunggulan", { skor: skorTitik(titikAktif) })}
             </div>
           </div>
         )}
         <div className="flex justify-between border-t border-white/10 px-3 py-1.5 text-[10px] text-white/45">
-          <span>{mode === "wdl" ? "Peluang Putih ↑" : "Keunggulan Putih ↑"}</span>
-          <span>{mode === "wdl" ? "Peluang Hitam ↓" : "Keunggulan Hitam ↓"}</span>
+          <span>{t(mode === "wdl" ? "analisa.wawasan.grafikAkurasi.peluangPutih" : "analisa.wawasan.grafikAkurasi.keunggulanPutih")}</span>
+          <span>{t(mode === "wdl" ? "analisa.wawasan.grafikAkurasi.peluangHitam" : "analisa.wawasan.grafikAkurasi.keunggulanHitam")}</span>
         </div>
       </div>
     </section>

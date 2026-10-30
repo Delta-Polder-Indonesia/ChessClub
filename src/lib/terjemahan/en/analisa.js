@@ -537,6 +537,23 @@ export const analisa = {
       sebagaiHitam: "Black",
       pembukaanJudul: "Top Openings",
       tanpaPembukaan: "No opening data available.",
+      grafikAkurasi: {
+        jenisEvaluasi: "Evaluation type",
+        tersediaWdl: "Show Stockfish WDL estimates",
+        belumWdl: "WDL is not available for enough analyzed positions",
+        jumlahWdl: "{n} WDL positions",
+        jumlahEvaluasi: "{n} evaluations",
+        judulWdl: "Stockfish WDL advantage chart from White's perspective",
+        judulCp: "CP evaluation chart from White's perspective",
+        tooltipKeunggulan: "Advantage: {skor}",
+        tooltipWdl: "{putih}: {peluangPutih}% · {seri}: {peluangSeri}% · {hitam}: {peluangHitam}%",
+        kosongWdl: "The WDL chart requires at least two positions with engine WDL data.",
+        kosongCp: "The chart will be available after at least two moves have engine evaluations.",
+        keunggulanPutih: "White advantage ↑",
+        keunggulanHitam: "Black advantage ↓",
+        peluangPutih: "White chances ↑",
+        peluangHitam: "Black chances ↓",
+      },
       pembukaan: {
         nama: "Opening",
         /* "Moves" column of `TopOpeningsCard.tsx`: length of the opening line. */

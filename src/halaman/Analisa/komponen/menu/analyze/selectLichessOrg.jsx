@@ -1,5 +1,5 @@
 /* Port dari Brilliant-Chess (MIT, © 2025 Delo) — jangan sunting massal tanpa cek README. */
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Arrow from "../../svg/arrow.jsx";
 import { AnalyzeContext } from "../../../konteks/analyzeKonteks.js";
 import { pushPageError, pushPageWarning } from "../../errors/pushPageError.js";
@@ -20,13 +20,19 @@ function Games(props) {
   const errorsContext = useContext(ErrorsContext);
   const setData = analyzeContext.data[1];
   const setErrors = errorsContext.errors[1];
+  const callbacksRef = useRef({ t, unSelect });
+  callbacksRef.current = { t, unSelect };
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
     (async () => {
       try {
         setLoading(true);
-        const res = await fetch(url, { headers: { Accept: "application/x-ndjson" } });
+        const res = await fetch(url, { headers: { Accept: "application/x-ndjson" }, signal });
+        if (signal.aborted) return;
         if (!res.ok) throw new Error(String(res.status));
         const text = await res.text();
+        if (signal.aborted) return;
         const jsonArr = text.split("\n").map((text2) => {
           try {
             return JSON.parse(text2);
@@ -36,9 +42,9 @@ function Games(props) {
         }).filter((obj) => obj);
         const newGamesInfo = jsonArr.map((json) => {
           // pemain anonim/bot tidak punya objek `user` di balasan Lichess
-          const whiteName = json.players.white.user?.name ?? t("analisa.pemain.anonim");
+          const whiteName = json.players.white.user?.name ?? callbacksRef.current.t("analisa.pemain.anonim");
           const whiteElo = json.players.white.rating;
-          const blackName = json.players.black.user?.name ?? t("analisa.pemain.anonim");
+          const blackName = json.players.black.user?.name ?? callbacksRef.current.t("analisa.pemain.anonim");
           const blackElo = json.players.black.rating;
           const result = json.winner;
           const timestamp = json.createdAt;
@@ -54,23 +60,25 @@ function Games(props) {
           gameInfo.plyCount = ply;
           return true;
         });
+        if (signal.aborted) return;
         setLoading(false);
         setGamesInfo(newGamesInfo);
         if (newGamesInfo.length > 0) {
           simpanBanyakPartai(newGamesInfo, { platform: "lichessOrg", username }).catch(() => {});
         }
       } catch {
+        if (signal.aborted) return;
         setLoading(false);
         setGamesInfo([]);
-        unSelect();
-        await pushPageError(setErrors, t(GAMES_ERROR[0]), t(GAMES_ERROR[1]));
-        await pushPageWarning(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
+        callbacksRef.current.unSelect();
+        await pushPageError(setErrors, callbacksRef.current.t(GAMES_ERROR[0]), callbacksRef.current.t(GAMES_ERROR[1]));
+        if (!signal.aborted) await pushPageWarning(setErrors, callbacksRef.current.t(API_BLOCKING_ERROR[0]), callbacksRef.current.t(API_BLOCKING_ERROR[1]));
       }
     })();
-    // Mount-once: unduhan arsip Lichess hanya dijalankan sekali saat komponen
-    // dipasang; url/username dijamin stabil selama sesi pemilih partai ini.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // URL/username menentukan arsip yang dimuat. Callback dan bahasa dibaca
+    // lewat ref agar perubahan identitas fungsi tidak memulai fetch ulang.
+    return () => controller.abort();
+  }, [url, username, setErrors]);
   if (gamesInfo.length === 0 && !loading) {
     return <div className="text-center text-sm text-foregroundGrey py-8">{t("analisa.partai.tidakAda")}</div>;
   }
@@ -85,20 +93,28 @@ function SelectLichessOrgGame(props) {
   const [loading, setLoading] = useState(true);
   const errorsContext = useContext(ErrorsContext);
   const setErrors = errorsContext.errors[1];
+  const callbacksRef = useRef({ t, stopSelecting });
+  callbacksRef.current = { t, stopSelecting };
   const toggleSelected = (number) => {
     setSelected((prev) => prev === number ? NaN : number);
   };
   useEffect(() => {
+    const controller = new AbortController();
+    const { signal } = controller;
     (async () => {
       try {
         setLoading(true);
-        const resFirstGame = await fetch(`https://lichess.org/api/games/user/${username}?sort=dateAsc&max=1`, { headers: { Accept: "application/x-ndjson" } });
+        const resFirstGame = await fetch(`https://lichess.org/api/games/user/${username}?sort=dateAsc&max=1`, { headers: { Accept: "application/x-ndjson" }, signal });
+        if (signal.aborted) return;
         if (!resFirstGame.ok) throw new Error(String(resFirstGame.status));
         const jsonFirstGame = await resFirstGame.json();
+        if (signal.aborted) return;
         const dateFirstGame = new Date(jsonFirstGame.createdAt);
-        const resLastGame = await fetch(`https://lichess.org/api/games/user/${username}?sort=dateDesc&max=1`, { headers: { Accept: "application/x-ndjson" } });
+        const resLastGame = await fetch(`https://lichess.org/api/games/user/${username}?sort=dateDesc&max=1`, { headers: { Accept: "application/x-ndjson" }, signal });
+        if (signal.aborted) return;
         if (!resLastGame.ok) throw new Error(String(resLastGame.status));
         const jsonLastGame = await resLastGame.json();
+        if (signal.aborted) return;
         const dateLastGame = new Date(jsonLastGame.createdAt);
         const currentDate = new Date(dateFirstGame);
         const newDates = [];
@@ -111,19 +127,21 @@ function SelectLichessOrgGame(props) {
           newDates.push({ month: month + 1, year, url: `https://lichess.org/api/games/user/${username}?since=${sinceDate.getTime()}&until=${untilDate.getTime()}&pgnInJson=true` });
           currentDate.setMonth(currentDate.getMonth() + 1);
         }
+        if (signal.aborted) return;
         setLoading(false);
         setDates(newDates.toReversed());
       } catch {
+        if (signal.aborted) return;
         setLoading(false);
-        stopSelecting();
-        await pushPageError(setErrors, t(USER_ERROR[0]), t(USER_ERROR[1]));
-        await pushPageWarning(setErrors, t(API_BLOCKING_ERROR[0]), t(API_BLOCKING_ERROR[1]));
+        callbacksRef.current.stopSelecting();
+        await pushPageError(setErrors, callbacksRef.current.t(USER_ERROR[0]), callbacksRef.current.t(USER_ERROR[1]));
+        if (!signal.aborted) await pushPageWarning(setErrors, callbacksRef.current.t(API_BLOCKING_ERROR[0]), callbacksRef.current.t(API_BLOCKING_ERROR[1]));
       }
     })();
-    // Mount-once: daftar bulan diambil sekali saat username dimuat; locale
-    // hanya dipakai untuk menampilkan nama bulan di render, bukan di effect.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+    // Akun menentukan daftar bulan; callback dan bahasa dibaca lewat ref agar
+    // perubahan locale/fungsi induk tidak memulai ulang permintaan.
+    return () => controller.abort();
+  }, [username, setErrors]);
   return <div className={`overflow-x-hidden overflow-y-auto ${loading ? " flex flex-col justify-center flex-grow" : ""}`}>
             <div style={{ display: loading ? "none" : "" }} className="py-3 px-8 sticky top-0 bg-backgroundBox z-10 flex flex-row items-center justify-between gap-3">
               <h1 className="text-lg text-foreground min-w-0"><a target="_blank" href={`${PLAYER_URL}${username}`} className="hover:underline text-foregroundHighlighted text-xl font-bold">{username}</a> <span className="text-foregroundGrey">&middot; {t("analisa.partai.judul", { platform: PLATFORM })}</span></h1>
