@@ -215,8 +215,13 @@ export async function luncurkanServerUji({ tanpaToken = false, chessDasar, env =
     }
   };
 
+  const tungguBerhenti = () => {
+    if (anak.exitCode !== null || anak.signalCode !== null) return Promise.resolve();
+    return new Promise((selesai) => anak.once("exit", selesai));
+  };
+
   for (let i = 0; i < 100; i++) {
-    if (await serverHidup(dasar)) return { dasar, token, hentikan, chessTiruan: Boolean(peniru), dirData };
+    if (await serverHidup(dasar)) return { dasar, token, hentikan, tungguBerhenti, chessTiruan: Boolean(peniru), dirData };
     if (anak.exitCode !== null) {
       hentikan();
       throw new Error("Server uji mati saat dinyalakan.");
