@@ -139,51 +139,54 @@ export default function Karir() {
       />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
-        <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="border-y border-grey-200 py-6 text-grey-800 sm:py-7">
-          <div className="grid gap-y-7 lg:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))] lg:items-center lg:gap-x-0">
-            <div className="grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-x-4 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-x-5 lg:pr-7">
-              <div className="row-span-2 flex min-w-0 flex-col items-center">
-                {pemainTeratas ? avatar(pemainTeratas, "h-20 w-20 sm:h-24 sm:w-24") : <span className="h-20 w-20 rounded-full border border-grey-200 sm:h-24 sm:w-24" aria-hidden="true" />}
-                {pemainTeratas && <span className="mt-2 max-w-full truncate text-center text-sm font-medium">{namaTampil(pemainTeratas)}</span>}
+        <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="mt-8 text-grey-800">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
+            <div className="min-w-0">
+              <p className="mb-2 text-sm text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
+              <div className="flex min-w-0 items-end gap-3 sm:gap-4">
+                <div className="flex w-24 shrink-0 flex-col items-center sm:w-[108px]">
+                  {pemainTeratas ? avatar(pemainTeratas, "h-20 w-20 sm:h-[108px] sm:w-[108px]") : <span className="h-20 w-20 rounded-full border border-grey-200 sm:h-[108px] sm:w-[108px]" aria-hidden="true" />}
+                  {pemainTeratas && <span className="mt-2 max-w-full truncate text-center text-sm">{namaTampil(pemainTeratas)}</span>}
+                </div>
+                <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-2">
+                  <span className="font-sans text-[clamp(4.5rem,7vw,6.5rem)] font-light leading-[0.82] tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</span>
+                  <div className="pb-1 text-xs leading-4 text-grey-600">
+                    {URUTAN_KONTROL.filter((id) => ratingKontrol(pemainTeratas, id) !== null && id !== kontrol).map((id) => (
+                      <p key={id}>{namaKontrol(id)} <span className="font-semibold text-grey-800">{ratingKontrol(pemainTeratas, id)}</span></p>
+                    ))}
+                  </div>
+                </div>
               </div>
-              <p className="self-end text-sm text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
-              <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-2 self-start">
-                <span className="font-sans text-[clamp(3.5rem,6vw,6.25rem)] font-light leading-[0.88] tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</span>
-                <span className="min-w-0 text-xs leading-4 text-grey-600">
-                  {URUTAN_KONTROL.filter((id) => ratingKontrol(pemainTeratas, id) !== null).map((id) => (
-                    <span key={id} className="block">{id} <strong className="font-semibold text-grey-800">{ratingKontrol(pemainTeratas, id)}</strong></span>
-                  ))}
-                </span>
+            </div>
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4 lg:gap-x-5">
+              <div className="min-w-0">
+                <p className="text-sm text-grey-600">Jumlah anggota</p>
+                <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
-            </div>
-            <div className="border-t border-grey-200 pt-4 lg:border-l lg:border-t-0 lg:px-5 lg:py-1">
-              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
-              <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums sm:text-5xl">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-              <p className="mt-2 text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p>
-            </div>
-            <div className="border-t border-grey-200 pt-4 lg:border-l lg:border-t-0 lg:px-5 lg:py-1">
-              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
-              <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums sm:text-5xl">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-              <p className="mt-2 text-sm text-grey-600">{namaKontrol(kontrol)}</p>
-            </div>
-            <div className="border-t border-grey-200 pt-4 lg:border-l lg:border-t-0 lg:px-5 lg:py-1">
-              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPapanJudul")}</p>
-              <p className="mt-2 text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
-              <p className="mt-2 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")}</p>
+              <div className="min-w-0">
+                <p className="text-sm text-grey-600">Punya rating</p>
+                <p className="mt-1 font-sans text-4xl font-light leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-grey-600">Kontrol</p>
+                <p className="mt-1 text-base">{namaKontrol(kontrol)}</p>
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm text-grey-600">Diperbarui</p>
+                <p className="mt-1 text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="mb-7 mt-8 flex flex-wrap items-end justify-between gap-4">
+        <div className="mb-0 mt-10 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-grey-600">{t("beranda.peringkatKlubPapanJudul")} · {anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")} {t("beranda.peringkatKlubJumlahAnggota").toLocaleLowerCase()}</p>
+            <h1 className="font-sans font-normal text-[clamp(2.2rem,3.5vw,3rem)] leading-tight text-grey-800">{judul}</h1>
+            <p className="mt-1 text-sm text-grey-600">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")} {t("beranda.peringkatKlubJumlahAnggota").toLocaleLowerCase()}</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-grey-600">
+          <div className="flex items-center gap-3 text-sm text-grey-600">
             {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
-            <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>
-              {menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}
-            </AksiKonten>
+            <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>{menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}</AksiKonten>
           </div>
         </div>
         <section className="mt-8 border-t border-grey-200" aria-label={judul}>
