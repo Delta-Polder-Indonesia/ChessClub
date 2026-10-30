@@ -43,11 +43,15 @@ export const beranda = {
     peringkatKlubCari: "Cari pemain",
     peringkatKlubCariPlaceholder: "Nama atau username",
     peringkatKlubPilihKontrol: "Kontrol waktu",
+    peringkatKlubKontrolLainnya: "Lainnya",
+    peringkatKlubDiperbaruiJudul: "Diperbarui",
+    peringkatKlubTanpaRating: "Tanpa rating",
     peringkatKlubPilihCakupan: "Cakupan anggota",
     peringkatKlubUtama: "Utama",
     peringkatKlubSemua: "Semua anggota",
     peringkatKlubHanyaRating: "Punya rating",
     peringkatKlubTidakAdaHasil: "Tidak ada anggota yang cocok dengan pencarian ini.",
+    peringkatKlubKolUrutanRating: "Peringkat dan rating",
     peringkatKlubKolPemain: "Pemain",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Menang / seri / kalah",
@@ -58,7 +62,7 @@ export const beranda = {
     peringkatKlubLihatProfil: "Lihat profil Chess.com {username}",
     peringkatKlubLihatChessCom: "Lihat profil pemain di Chess.com",
     peringkatKlubDiperbarui: "Roster diperbarui {tanggal}",
-    peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L menampilkan gabungan hasil semua kontrol waktu. Riwayat perubahan rating tidak tersedia pada data anggota ini.",
+    peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L mengikuti kontrol terpilih, dan menjadi gabungan semua kontrol saat Utama dipilih. Riwayat perubahan rating tidak tersedia pada data anggota ini.",
   }
 
 export const sticky = {

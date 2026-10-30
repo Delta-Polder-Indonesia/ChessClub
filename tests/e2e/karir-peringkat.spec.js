@@ -50,14 +50,22 @@ test("halaman Karir menampilkan papan peringkat anggota dari roster bersama", as
   await expect(page.getByText("Rapid Star").first()).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(3);
   await expect(page.locator("tbody tr").nth(0)).toContainText("Rapid Star");
+  await expect(page.locator("tbody tr").nth(0)).toContainText("18 / 4 / 5");
   await expect(page.locator("tbody tr").nth(1)).toContainText("Blitz Star");
   await expect(page.locator("tbody tr").nth(2)).toContainText("New Member");
 
   await page.getByRole("button", { name: "Blitz", exact: true }).click();
   await expect(page.getByText("Blitz Star").first()).toBeVisible();
   await expect(page.locator("tbody tr").nth(0)).toContainText("Blitz Star");
+  await expect(page.locator("tbody tr").nth(0)).toContainText("31 / 5 / 12");
 
-  await page.getByRole("searchbox", { name: "Cari pemain" }).fill("rapid");
+  const cariPemain = page.getByRole("searchbox", { name: "Cari pemain" });
+  await cariPemain.fill("rapid");
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await expect(page.locator("tbody tr").first()).toContainText("Rapid Star");
+
+  await cariPemain.clear();
+  await page.getByRole("button", { name: "Tanpa rating" }).click();
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await expect(page.locator("tbody tr").first()).toContainText("New Member");
 });

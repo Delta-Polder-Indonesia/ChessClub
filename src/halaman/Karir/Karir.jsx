@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
+import { Search } from "lucide-react";
 import { AksiKonten } from "../../components/konten/AksiKonten.jsx";
 import {
   BadanTabelKonten,
@@ -158,21 +159,19 @@ export default function Karir() {
             </div>
             <div className="grid min-w-0 grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4 lg:gap-x-7">
               <div className="min-w-0">
-                <p className="font-sans text-sm leading-5 text-grey-600">Jumlah anggota</p>
-                <p className="mt-1 font-sans text-[40px] font-normal leading-[1.05] tracking-[-0.035em] tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-                <p className="mt-1 font-sans text-sm leading-5 text-grey-600">anggota klub</p>
+                <p className="font-sans text-sm leading-5 text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
+                <p className="mt-1 font-sans text-4xl font-normal leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
-                <p className="font-sans text-sm leading-5 text-grey-600">Punya rating</p>
-                <p className="mt-1 font-sans text-[40px] font-normal leading-[1.05] tracking-[-0.035em] tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-                <p className="mt-1 font-sans text-sm leading-5 text-grey-600">anggota</p>
+                <p className="font-sans text-sm leading-5 text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
+                <p className="mt-1 font-sans text-4xl font-normal leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
-                <p className="font-sans text-sm leading-5 text-grey-600">Kontrol</p>
+                <p className="font-sans text-sm leading-5 text-grey-600">{t("beranda.peringkatKlubPilihKontrol")}</p>
                 <p className="mt-1 font-sans text-base leading-5">{namaKontrol(kontrol)}</p>
               </div>
               <div className="min-w-0">
-                <p className="font-sans text-sm leading-5 text-grey-600">Diperbarui</p>
+                <p className="font-sans text-sm leading-5 text-grey-600">{t("beranda.peringkatKlubDiperbaruiJudul")}</p>
                 <p className="mt-1 font-sans text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
               </div>
             </div>
@@ -181,8 +180,8 @@ export default function Karir() {
 
         <div className="mb-0 mt-10 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="font-sans font-normal text-[clamp(2.2rem,3.5vw,3rem)] leading-tight text-grey-800">{judul}</h1>
-            <p className="mt-1 text-sm text-grey-600">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")} {t("beranda.peringkatKlubJumlahAnggota").toLocaleLowerCase()}</p>
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
+            <p className="mt-2 text-sm text-grey-600">{t("beranda.peringkatJumlah", { jumlah: hasil.length })}</p>
           </div>
           <div className="flex items-center gap-3 text-sm text-grey-600">
             {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
@@ -193,36 +192,45 @@ export default function Karir() {
           <div className="border-y border-grey-200 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 flex-wrap items-center gap-3">
-                <div className="inline-flex border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
+                <div className="flex flex-wrap gap-2" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
                   {["Blitz", "Rapid", "utama"].map((opsi) => (
-                    <button key={opsi} type="button" aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className={`min-h-10 border-r border-grey-400 px-4 text-sm last:border-r-0 ${kontrol === opsi ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
+                    <AksiKonten
+                      key={opsi}
+                      variant={kontrol === opsi ? "utama" : "sekunder"}
+                      aria-pressed={kontrol === opsi}
+                      onClick={() => setKontrol(opsi)}
+                      className="min-h-10 px-3"
+                    >
                       {namaKontrol(opsi)}
-                    </button>
+                    </AksiKonten>
                   ))}
                 </div>
-                <select aria-label="Kontrol rating lainnya" value={["Bullet", "Daily"].includes(kontrol) ? kontrol : ""} onChange={(event) => event.target.value && setKontrol(event.target.value)} className="h-10 w-[132px] border border-grey-400 bg-transparent px-3 text-sm text-grey-800">
-                  <option value="">Lainnya</option>
+                <select aria-label={t("beranda.peringkatKlubPilihKontrol")} value={["Bullet", "Daily"].includes(kontrol) ? kontrol : ""} onChange={(event) => event.target.value && setKontrol(event.target.value)} className="h-10 w-[132px] border border-grey-400 bg-transparent px-3 text-sm text-grey-800">
+                  <option value="">{t("beranda.peringkatKlubKontrolLainnya")}</option>
                   <option value="Bullet">Bullet</option>
                   <option value="Daily">Daily</option>
                 </select>
-                <div className="inline-flex border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
+                <div className="flex flex-wrap gap-2" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
                   {[
                     ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
-                    ["tanpa-rating", "Tanpa rating"],
+                    ["tanpa-rating", t("beranda.peringkatKlubTanpaRating")],
                     ["semua", t("beranda.peringkatKlubSemua")],
                   ].map(([id, label]) => (
-                    <button key={id} type="button" aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className={`min-h-10 border-r border-grey-400 px-3 text-sm last:border-r-0 ${cakupan === id ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
+                    <AksiKonten
+                      key={id}
+                      variant={cakupan === id ? "utama" : "sekunder"}
+                      aria-pressed={cakupan === id}
+                      onClick={() => setCakupan(id)}
+                      className="min-h-10 px-3"
+                    >
                       {label}
-                    </button>
+                    </AksiKonten>
                   ))}
                 </div>
-                <select aria-label="Federasi" disabled className="h-10 w-[200px] border border-grey-400 bg-transparent px-3 text-sm text-grey-600 disabled:cursor-not-allowed disabled:opacity-100">
-                  <option>Semua federasi</option>
-                </select>
               </div>
               <label className="flex h-10 w-full items-center gap-3 border border-grey-400 px-3 sm:w-60 xl:w-60">
                 <input type="search" value={cari} onChange={(event) => setCari(event.target.value)} placeholder={t("beranda.peringkatKlubCariPlaceholder")} className="h-full min-w-0 flex-1 border-0 bg-transparent px-0 text-sm text-grey-800 outline-none placeholder:text-grey-600 focus:ring-0" />
-                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-none stroke-current" strokeWidth="1.7"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></svg>
+                <Search aria-hidden="true" className="h-4 w-4 shrink-0" />
                 <span className="sr-only">{t("beranda.peringkatKlubCari")}</span>
               </label>
             </div>
@@ -249,15 +257,15 @@ export default function Karir() {
               <TabelKonten className="min-w-[760px] text-left font-sans text-sm text-grey-800">
                 <KepalaTabelKonten className="border-b border-grey-200 bg-transparent text-sm font-normal text-grey-600">
                   <tr>
-                    <JudulKolomKonten scope="col" className="w-[19rem]">Peringkat dan rating</JudulKolomKonten>
-                    <JudulKolomKonten scope="col">Pemain</JudulKolomKonten>
-                    <JudulKolomKonten scope="col" className="w-[19rem]">Pertandingan terakhir</JudulKolomKonten>
-                    <JudulKolomKonten scope="col" className="w-24 text-right">Puncak</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-64">{t("beranda.peringkatKlubKolUrutanRating")}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col">{t("beranda.peringkatKlubKolPemain")}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-48 text-right">{t("beranda.peringkatKlubKolRekor")}</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-24 text-right">{t("beranda.peringkatKlubProfil")}</JudulKolomKonten>
                   </tr>
                 </KepalaTabelKonten>
                 <BadanTabelKonten className="divide-y divide-grey-200">
                   {hasil.map((a) => {
-                    const hasError = a.hilang || a.gagal;
+                    const dataKontrol = opsiKontrol(a).find((opsi) => opsi.id === (kontrol === "utama" ? "all" : kontrol));
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
                         <SelTabelKonten>
@@ -279,8 +287,8 @@ export default function Karir() {
                             </div>
                           </div>
                         </SelTabelKonten>
-                        <SelTabelKonten className="text-sm text-grey-600">—</SelTabelKonten>
-                        <SelTabelKonten className="text-right font-mono tabular-nums">{hasError ? "—" : "—"}</SelTabelKonten>
+                        <SelTabelKonten className="text-right font-mono text-sm tabular-nums text-grey-600">{dataKontrol?.ada ? `${dataKontrol.win} / ${dataKontrol.draw} / ${dataKontrol.loss}` : "—"}</SelTabelKonten>
+                        <SelTabelKonten className="text-right">{a.username ? <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" className="font-semibold text-primary hover:underline">{t("beranda.peringkatKlubProfil")}</a> : "—"}</SelTabelKonten>
                       </BarisTabelKonten>
                     );
                   })}

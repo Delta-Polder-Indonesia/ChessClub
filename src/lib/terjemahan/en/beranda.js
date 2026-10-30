@@ -43,11 +43,15 @@ export const beranda = {
     peringkatKlubCari: "Search players",
     peringkatKlubCariPlaceholder: "Name or username",
     peringkatKlubPilihKontrol: "Time control",
+    peringkatKlubKontrolLainnya: "Other controls",
+    peringkatKlubDiperbaruiJudul: "Updated",
+    peringkatKlubTanpaRating: "Unrated",
     peringkatKlubPilihCakupan: "Member scope",
     peringkatKlubUtama: "Primary",
     peringkatKlubSemua: "All members",
     peringkatKlubHanyaRating: "Rated only",
     peringkatKlubTidakAdaHasil: "No members match this search.",
+    peringkatKlubKolUrutanRating: "Rank and rating",
     peringkatKlubKolPemain: "Player",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Win / draw / loss",
@@ -58,7 +62,7 @@ export const beranda = {
     peringkatKlubLihatProfil: "View Chess.com profile for {username}",
     peringkatKlubLihatChessCom: "View player profile on Chess.com",
     peringkatKlubDiperbarui: "Roster updated {tanggal}",
-    peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L shows combined results across all time controls. Rating-change history is not available in this member data.",
+    peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L follows the selected control and combines all controls when Primary is selected. Rating-change history is not available in this member data.",
   }
 
 export const sticky = {
