@@ -190,20 +190,25 @@ export default function Karir() {
           <div className="border-y border-grey-200 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div className="flex min-w-0 flex-wrap items-center gap-3">
-                <div className="inline-flex flex-wrap border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
-                  {OPSI_RATING.map((opsi) => (
+                <div className="inline-flex border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
+                  {["Blitz", "Rapid", "utama"].map((opsi) => (
                     <button key={opsi} type="button" aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className={`min-h-10 border-r border-grey-400 px-4 text-sm last:border-r-0 ${kontrol === opsi ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
                       {namaKontrol(opsi)}
                     </button>
                   ))}
                 </div>
-                <div className="inline-flex flex-wrap border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
+                <select aria-label="Kontrol rating lainnya" value={["Bullet", "Daily"].includes(kontrol) ? kontrol : ""} onChange={(event) => event.target.value && setKontrol(event.target.value)} className="h-10 w-[132px] border border-grey-400 bg-transparent px-3 text-sm text-grey-800">
+                  <option value="">Lainnya</option>
+                  <option value="Bullet">Bullet</option>
+                  <option value="Daily">Daily</option>
+                </select>
+                <div className="inline-flex border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
                   {[
                     ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
                     ["tanpa-rating", "Tanpa rating"],
                     ["semua", t("beranda.peringkatKlubSemua")],
                   ].map(([id, label]) => (
-                    <button key={id} type="button" aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className={`min-h-10 border-r border-grey-400 px-4 text-sm last:border-r-0 ${cakupan === id ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
+                    <button key={id} type="button" aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className={`min-h-10 border-r border-grey-400 px-3 text-sm last:border-r-0 ${cakupan === id ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
                       {label}
                     </button>
                   ))}
