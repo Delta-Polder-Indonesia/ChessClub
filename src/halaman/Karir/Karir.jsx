@@ -113,6 +113,7 @@ export default function Karir() {
   const kunciCari = cari.trim().toLocaleLowerCase();
   const hasil = daftarPeringkat.filter((a) => {
     if (cakupan === "berperingkat" && a.ratingAktif === null) return false;
+    if (cakupan === "tanpa-rating" && a.ratingAktif !== null) return false;
     if (!kunciCari) return true;
     return namaTampil(a).toLocaleLowerCase().includes(kunciCari)
       || String(a.username || "").toLocaleLowerCase().includes(kunciCari);
@@ -195,28 +196,32 @@ export default function Karir() {
         <section className="mt-8 border-t border-grey-200" aria-label={judul}>
           <div className="border-y border-grey-200 py-4">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-              <div className="flex flex-wrap items-center gap-4">
-                <div className="flex flex-wrap items-center gap-0 border border-grey-600" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
+              <div className="flex min-w-0 flex-wrap items-center gap-3">
+                <div className="inline-flex flex-wrap border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
                   {OPSI_RATING.map((opsi) => (
-                    <AksiKonten key={opsi} variant={kontrol === opsi ? "utama" : "sekunder"} aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className="min-h-10 rounded-none border-0 px-4">
+                    <button key={opsi} type="button" aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className={`min-h-10 border-r border-grey-400 px-4 text-sm last:border-r-0 ${kontrol === opsi ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
                       {namaKontrol(opsi)}
-                    </AksiKonten>
+                    </button>
                   ))}
                 </div>
-                <div className="flex flex-wrap items-center gap-0 border border-grey-600" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
+                <div className="inline-flex flex-wrap border border-grey-400" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
                   {[
                     ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
+                    ["tanpa-rating", "Tanpa rating"],
                     ["semua", t("beranda.peringkatKlubSemua")],
                   ].map(([id, label]) => (
-                    <AksiKonten key={id} variant={cakupan === id ? "utama" : "sekunder"} aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className="min-h-10 rounded-none border-0 px-4">
+                    <button key={id} type="button" aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className={`min-h-10 border-r border-grey-400 px-4 text-sm last:border-r-0 ${cakupan === id ? "bg-primary text-white" : "text-grey-800 hover:bg-grey-100"}`}>
                       {label}
-                    </AksiKonten>
+                    </button>
                   ))}
                 </div>
+                <select aria-label="Federasi" disabled className="h-10 w-[200px] border border-grey-400 bg-transparent px-3 text-sm text-grey-600 disabled:cursor-not-allowed disabled:opacity-100">
+                  <option>Semua federasi</option>
+                </select>
               </div>
-              <label className="flex w-full max-w-sm items-center gap-3 border border-grey-600 px-3 sm:w-60 xl:w-64">
-                <input type="search" value={cari} onChange={(event) => setCari(event.target.value)} placeholder={t("beranda.peringkatKlubCariPlaceholder")} className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm text-grey-800 outline-none placeholder:text-grey-600 focus:ring-0" />
-                <span aria-hidden="true" className="text-lg leading-none">⌕</span>
+              <label className="flex h-10 w-full items-center gap-3 border border-grey-400 px-3 sm:w-60 xl:w-60">
+                <input type="search" value={cari} onChange={(event) => setCari(event.target.value)} placeholder={t("beranda.peringkatKlubCariPlaceholder")} className="h-full min-w-0 flex-1 border-0 bg-transparent px-0 text-sm text-grey-800 outline-none placeholder:text-grey-600 focus:ring-0" />
+                <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 shrink-0 fill-none stroke-current" strokeWidth="1.7"><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></svg>
                 <span className="sr-only">{t("beranda.peringkatKlubCari")}</span>
               </label>
             </div>
