@@ -158,20 +158,20 @@ export default function Karir() {
             </div>
             <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4 lg:gap-x-5">
               <div className="min-w-0">
-                <p className="text-sm text-grey-600">Jumlah anggota</p>
-                <p className="mt-1 font-sans text-[40px] font-light leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="font-sans text-sm text-grey-600">Jumlah anggota</p>
+                <p className="mt-1 font-sans text-[48px] font-light leading-none tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
-                <p className="text-sm text-grey-600">Punya rating</p>
-                <p className="mt-1 font-sans text-[40px] font-light leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="font-sans text-sm text-grey-600">Punya rating</p>
+                <p className="mt-1 font-sans text-[48px] font-light leading-none tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="min-w-0">
-                <p className="text-sm text-grey-600">Kontrol</p>
-                <p className="mt-1 text-base">{namaKontrol(kontrol)}</p>
+                <p className="font-sans text-sm text-grey-600">Kontrol</p>
+                <p className="mt-1 font-sans text-base">{namaKontrol(kontrol)}</p>
               </div>
               <div className="min-w-0">
-                <p className="text-sm text-grey-600">Diperbarui</p>
-                <p className="mt-1 text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
+                <p className="font-sans text-sm text-grey-600">Diperbarui</p>
+                <p className="mt-1 font-sans text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
               </div>
             </div>
           </div>
