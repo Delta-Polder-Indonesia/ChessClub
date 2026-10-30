@@ -138,23 +138,8 @@ export default function Karir() {
       />
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-primary">{t("beranda.peringkatKlubEyebrow")}</p>
-            <h2 className="mt-2 font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
-            <p className="mt-2 max-w-3xl text-base leading-relaxed text-grey-600">{deskripsi}</p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-grey-600">
-            {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
-            <TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} />
-            <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>
-              {menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}
-            </AksiKonten>
-          </div>
-        </div>
-
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="border-y border-grey-200 py-6 text-grey-800 sm:py-8">
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-center">
+          <div className="grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.45fr)_repeat(4,minmax(0,1fr))] lg:items-center">
             <div className="min-w-0">
               <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-grey-600">
                 <span className="grid h-7 w-7 place-items-center rounded-full border border-grey-200 text-grey-800" aria-hidden="true">♔</span>
@@ -190,7 +175,7 @@ export default function Karir() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 lg:border-l lg:border-grey-200 lg:pl-7">
+            <div className="grid grid-cols-2 gap-x-5 gap-y-3 lg:contents">
               <div className="border-b border-grey-200 pb-3">
                 <p className="text-sm text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
                 <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
@@ -199,10 +184,25 @@ export default function Karir() {
                 <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
                 <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
-              <p className="col-span-2 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubSumber")}</p>
+              <div className="col-span-2 border-b border-grey-200 pb-3 lg:border-l lg:pl-5"><p className="text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p></div>
             </div>
           </div>
         </section>
+
+        <div className="mb-6 mt-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            
+            <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
+            <p className="mt-2 max-w-3xl text-base leading-relaxed text-grey-600">{deskripsi}</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3 text-sm text-grey-600">
+            {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
+            <TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} />
+            <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>
+              {menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}
+            </AksiKonten>
+          </div>
+        </div>
 
         <section className="mt-8 border-t border-grey-200" aria-label={judul}>
           <div className="border-b border-grey-200 py-5">
