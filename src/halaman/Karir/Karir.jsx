@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
+import Hero from "../../components/Hero.jsx";
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
+import { gambar } from "../../lib/asets.js";
 import {
   kenaBan,
   namaTampil,
@@ -114,21 +115,24 @@ export default function Karir() {
   const deskripsi = t("beranda.peringkatKlubDeskripsi");
 
   return (
-    <div className="min-h-[70vh] bg-[#f4f6f9] text-slate-900">
-      <MetaHalaman title={judul} description={deskripsi} image="/images/sekilas.jpg" />
-      <BreadcrumbJsonLd items={[{ label: t("common.home"), to: "/" }, { label: judul }]} />
+    <div className="min-h-screen bg-[#f4f6f9] text-slate-900">
+      <MetaHalaman title={judul} description={deskripsi} image={gambar("/images/hero-about.jpg")} />
+      <BreadcrumbJsonLd items={[{ label: t("common.home"), to: "/" }, { label: t("karir.judul") }]} />
+      <Hero
+        title={t("karir.judul")}
+        description={t("karir.deskripsi")}
+        crumbs={[
+          { label: t("common.home"), to: "/" },
+          { label: t("karir.judul") },
+        ]}
+        image={gambar("/images/hero-about.jpg")}
+      />
 
-      <main className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-6 sm:px-6 lg:px-10">
-        <nav aria-label={judul} className="mb-5 text-xs text-slate-500">
-          <Link to="/" className="transition hover:text-slate-900">{t("common.home")}</Link>
-          <span className="px-2" aria-hidden="true">/</span>
-          <span aria-current="page" className="text-slate-700">{judul}</span>
-        </nav>
-
+      <main className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">{t("beranda.peringkatKlubEyebrow")}</p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{judul}</h1>
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">{judul}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{deskripsi}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
