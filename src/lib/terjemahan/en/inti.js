@@ -55,7 +55,7 @@ export const nav = {
     kodeEtik: "Community Code of Ethics",
     pertanyaanUmum: "Frequently Asked Questions",
     hubungiKami: "Contact Us",
-    karir: "Careers",
+    karir: "Member Ratings",
     beranda: "Home",
     peringkat: "Ratings",
     pengadaan: "Procurement",

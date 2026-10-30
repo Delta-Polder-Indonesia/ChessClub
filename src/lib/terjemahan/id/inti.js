@@ -55,7 +55,7 @@ export const nav = {
     kodeEtik: "Kode Etik Komunitas",
     pertanyaanUmum: "Pertanyaan Umum",
     hubungiKami: "Hubungi Kami",
-    karir: "Karir",
+    karir: "Peringkat Anggota",
     beranda: "Beranda",
     peringkat: "Peringkat",
     pengadaan: "Pengadaan",

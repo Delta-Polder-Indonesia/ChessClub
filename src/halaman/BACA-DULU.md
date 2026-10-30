@@ -55,7 +55,7 @@ src/halaman/
 │   ├── TataLetakBeranda.jsx
 │   └── sidebar.js
 │
-├── Karir/                                     ← menu atas: Karir
+├── Karir/                                     ← menu atas: Peringkat Anggota (/karir)
 │   └── Karir.jsx
 │
 ├── HubungiKami/                               ← menu atas: Hubungi Kami
