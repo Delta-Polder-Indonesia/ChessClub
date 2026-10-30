@@ -139,123 +139,82 @@ export default function Karir() {
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="border-y border-grey-200 py-6 text-grey-800 sm:py-8">
-          <div className="grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1.45fr)_repeat(4,minmax(0,1fr))] lg:items-center">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-grey-600">
-                <span className="grid h-7 w-7 place-items-center rounded-full border border-grey-200 text-grey-800" aria-hidden="true">♔</span>
-                {t("beranda.peringkatKlubPemainTeratas")}
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center">
+            <div className="grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-2 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-x-5">
+              <div className="row-span-2 flex flex-col items-center self-center">
+                {pemainTeratas ? avatar(pemainTeratas, "h-20 w-20 sm:h-24 sm:w-24") : <span className="h-20 w-20 rounded-full border border-grey-200 sm:h-24 sm:w-24" aria-hidden="true" />}
+                {pemainTeratas && <span className="mt-2 max-w-full truncate text-center text-sm font-medium">{namaTampil(pemainTeratas)}</span>}
               </div>
-              {pemainTeratas ? (
-                <div className="mt-5 flex min-w-0 items-center gap-4 sm:gap-6">
-                  {avatar(pemainTeratas, "h-16 w-16 sm:h-20 sm:w-20")}
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm text-grey-600">{t("beranda.peringkatKlubTeratasDalam", { kontrol: namaKontrol(kontrol) })}</p>
-                    {pemainTeratas.username ? (
-                      <a href={pemainTeratas.url || `https://www.chess.com/member/${pemainTeratas.username}`} target="_blank" rel="noreferrer noopener" className="mt-1 block text-xl font-bold tracking-tight text-grey-800 hover:underline sm:text-2xl">
-                        <LabelPemain anggota={pemainTeratas} gelap />
-                      </a>
-                    ) : (
-                      <h2 className="mt-1 text-xl font-semibold tracking-tight sm:text-2xl"><LabelPemain anggota={pemainTeratas} gelap /></h2>
-                    )}
-                    {pemainTeratas.username && <p className="mt-1 truncate text-sm text-grey-600">@{pemainTeratas.username}</p>}
-                  </div>
-                  <div className="shrink-0 border-l border-grey-200 pl-4 text-right sm:pl-7">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-grey-600">{t("beranda.peringkatKlubRatingTeratas")}</p>
-                    <p className="mt-1 font-mono text-3xl font-bold tabular-nums sm:text-4xl">{pemainTeratas.ratingAktif}</p>
+              <div className="min-w-0 self-end">
+                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubTeratasDalam", { kontrol: namaKontrol(kontrol) })}</p>
+                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                  <p className="font-sans text-[clamp(3.5rem,6vw,6.5rem)] font-light leading-none tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</p>
+                  <div className="text-xs leading-4 text-grey-600">
+                    <p>{t("beranda.peringkatKlubRatingTeratas")} <span className="font-semibold text-grey-800">{pemainTeratas?.ratingAktif ?? "—"}</span></p>
+                    <p>{namaKontrol(kontrol)}</p>
                   </div>
                 </div>
-              ) : (
-                <p className="mt-5 text-sm text-grey-600">{t(status === "memuat" ? "beranda.peringkatMemuat" : "beranda.peringkatKlubBelumAdaRating")}</p>
-              )}
-              {pemainTeratas?.username && (
-                <a href={pemainTeratas.url || `https://www.chess.com/member/${pemainTeratas.username}`} target="_blank" rel="noreferrer noopener" className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-grey-600 transition hover:text-white">
-                  {t("beranda.peringkatKlubLihatChessCom")}
-                  <span aria-hidden="true">↗</span>
-                </a>
-              )}
+              </div>
+              <div className="min-w-0 self-start text-xs text-grey-600">
+                {pemainTeratas?.username ? <a href={pemainTeratas.url || `https://www.chess.com/member/${pemainTeratas.username}`} target="_blank" rel="noreferrer noopener" className="font-semibold hover:underline">{t("beranda.peringkatKlubLihatChessCom")} ↗</a> : t("beranda.peringkatKlubBelumAdaRating")}
+              </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-x-5 gap-y-3 lg:contents">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-3">
               <div className="border-b border-grey-200 pb-3">
                 <p className="text-sm text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
-                <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="mt-1 font-sans text-3xl font-light leading-none tabular-nums sm:text-4xl">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
               <div className="border-b border-grey-200 pb-3">
                 <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
-                <p className="mt-1 font-mono text-2xl font-semibold tabular-nums">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+                <p className="mt-1 font-sans text-3xl font-light leading-none tabular-nums sm:text-4xl">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
               </div>
-              <div className="col-span-2 border-b border-grey-200 pb-3 lg:border-l lg:pl-5"><p className="text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p></div>
+              <div className="col-span-2 border-b border-grey-200 pb-3 sm:col-span-1">
+                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p>
+                <p className="mt-2 text-xs leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="mb-6 mt-8 flex flex-wrap items-end justify-between gap-4">
-          <div>
-            
+        <div className="mb-7 mt-8 flex flex-wrap items-end justify-between gap-4">
+          <div className="min-w-0">
             <h2 className="font-serif font-light text-[clamp(2.4rem,3.6vw,3.4rem)] leading-[1.04] text-balance text-grey-800">{judul}</h2>
-            <p className="mt-2 max-w-3xl text-base leading-relaxed text-grey-600">{deskripsi}</p>
+            <p className="mt-2 text-sm leading-relaxed text-grey-600">{t("beranda.peringkatKlubPapanJudul")} · {anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")} {t("beranda.peringkatKlubJumlahAnggota").toLocaleLowerCase()}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm text-grey-600">
             {menyegarkan && <span role="status">{t("beranda.peringkatMenyegarkan")}</span>}
-            <TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} />
             <AksiKonten variant="sekunder" onClick={muatUlang} disabled={menyegarkan}>
               {menyegarkan ? t("beranda.peringkatMenyegarkan") : t("beranda.muatUlang")}
             </AksiKonten>
           </div>
         </div>
-
         <section className="mt-8 border-t border-grey-200" aria-label={judul}>
-          <div className="border-b border-grey-200 py-5">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-grey-800">{t("beranda.peringkatKlubPapanJudul")}</h2>
-                <p className="mt-1 text-sm text-grey-600">{jumlahPemain}</p>
-              </div>
-              <label className="flex w-full max-w-sm flex-col gap-1.5 text-sm font-semibold text-grey-800 sm:w-auto">
-                {t("beranda.peringkatKlubCari")}
-                <input
-                  type="search"
-                  value={cari}
-                  onChange={(event) => setCari(event.target.value)}
-                  placeholder={t("beranda.peringkatKlubCariPlaceholder")}
-                  className="h-10 rounded-none border-0 border-b border-grey-600 bg-white px-1 text-sm font-normal text-grey-800 outline-none placeholder:text-grey-600 focus:border-primary focus:ring-0"
-                />
-              </label>
-            </div>
-
-            <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-grey-600">{t("beranda.peringkatKlubPilihKontrol")}</p>
-                <div className="flex flex-wrap gap-2" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
+          <div className="border-y border-grey-200 py-4">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+              <div className="flex flex-wrap items-center gap-4">
+                <div className="flex flex-wrap items-center gap-0 border border-grey-600" role="group" aria-label={t("beranda.peringkatKlubPilihKontrol")}>
                   {OPSI_RATING.map((opsi) => (
-                    <AksiKonten
-                      key={opsi}
-                      variant={kontrol === opsi ? "utama" : "sekunder"}
-                      aria-pressed={kontrol === opsi}
-                      onClick={() => setKontrol(opsi)}
-                      className="min-h-10 px-3"
-                    >
+                    <AksiKonten key={opsi} variant={kontrol === opsi ? "utama" : "sekunder"} aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className="min-h-10 rounded-none border-0 px-4">
                       {namaKontrol(opsi)}
                     </AksiKonten>
                   ))}
                 </div>
+                <div className="flex flex-wrap items-center gap-0 border border-grey-600" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
+                  {[
+                    ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
+                    ["semua", t("beranda.peringkatKlubSemua")],
+                  ].map(([id, label]) => (
+                    <AksiKonten key={id} variant={cakupan === id ? "utama" : "sekunder"} aria-pressed={cakupan === id} onClick={() => setCakupan(id)} className="min-h-10 rounded-none border-0 px-4">
+                      {label}
+                    </AksiKonten>
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-2" role="group" aria-label={t("beranda.peringkatKlubPilihCakupan")}>
-                {[
-                  ["semua", t("beranda.peringkatKlubSemua")],
-                  ["berperingkat", t("beranda.peringkatKlubHanyaRating")],
-                ].map(([id, label]) => (
-                  <AksiKonten
-                    key={id}
-                    variant={cakupan === id ? "utama" : "sekunder"}
-                    aria-pressed={cakupan === id}
-                    onClick={() => setCakupan(id)}
-                    className="min-h-10 px-3"
-                  >
-                    {label}
-                  </AksiKonten>
-                ))}
-              </div>
+              <label className="flex w-full max-w-sm items-center gap-3 border border-grey-600 px-3 sm:w-60 xl:w-64">
+                <input type="search" value={cari} onChange={(event) => setCari(event.target.value)} placeholder={t("beranda.peringkatKlubCariPlaceholder")} className="h-10 min-w-0 flex-1 border-0 bg-transparent px-0 text-sm text-grey-800 outline-none placeholder:text-grey-600 focus:ring-0" />
+                <span aria-hidden="true" className="text-lg leading-none">⌕</span>
+                <span className="sr-only">{t("beranda.peringkatKlubCari")}</span>
+              </label>
             </div>
           </div>
 
@@ -276,27 +235,30 @@ export default function Karir() {
           ) : null}
 
           {hasil.length > 0 && (
-            <div className="max-h-[min(70vh,780px)] overflow-auto">
-              <TabelKonten className="min-w-[680px] text-left font-sans text-sm text-grey-800">
-                <KepalaTabelKonten className="sticky top-0 z-10 bg-white text-xs uppercase tracking-wide text-grey-600">
+            <div className="overflow-x-auto">
+              <TabelKonten className="min-w-[760px] text-left font-sans text-sm text-grey-800">
+                <KepalaTabelKonten className="border-b border-grey-200 bg-transparent text-sm font-normal text-grey-600">
                   <tr>
-                    <JudulKolomKonten scope="col" className="w-20 text-right">#</JudulKolomKonten>
-                    <JudulKolomKonten scope="col">{t("beranda.peringkatKlubKolPemain")}</JudulKolomKonten>
-                    <JudulKolomKonten scope="col" className="w-36 text-right">{t("beranda.peringkatKlubKolRating", { kontrol: namaKontrol(kontrol) })}</JudulKolomKonten>
-                    <JudulKolomKonten scope="col" className="w-36 text-right">{t("beranda.peringkatKlubKolRekor")}</JudulKolomKonten>
-                    <JudulKolomKonten scope="col" className="w-28 text-right">Chess.com</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-[19rem]">Peringkat dan rating</JudulKolomKonten>
+                    <JudulKolomKonten scope="col">Pemain</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-[19rem]">Pertandingan terakhir</JudulKolomKonten>
+                    <JudulKolomKonten scope="col" className="w-24 text-right">Puncak</JudulKolomKonten>
                   </tr>
                 </KepalaTabelKonten>
                 <BadanTabelKonten className="divide-y divide-grey-200">
                   {hasil.map((a) => {
-                    const dataKontrol = opsiKontrol(a).find((opsi) => opsi.id === (kontrol === "utama" ? "all" : kontrol));
                     const hasError = a.hilang || a.gagal;
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
-                        <SelTabelKonten className="text-right font-mono text-xs tabular-nums text-grey-600">{a.peringkatKontrol ? `#${a.peringkatKontrol}` : "—"}</SelTabelKonten>
+                        <SelTabelKonten>
+                          <div className="flex items-center gap-4">
+                            <span className="w-6 shrink-0 text-right font-mono text-xs tabular-nums text-grey-600">{a.peringkatKontrol ?? "—"}</span>
+                            <span className="font-sans text-2xl font-light tabular-nums">{a.ratingAktif ?? "—"}</span>
+                          </div>
+                        </SelTabelKonten>
                         <SelTabelKonten>
                           <div className="flex min-w-0 items-center gap-3">
-                            {avatar(a, "h-10 w-10")}
+                            {avatar(a, "h-12 w-12")}
                             <div className="min-w-0">
                               {a.username ? (
                                 <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="font-semibold hover:text-primary hover:underline">
@@ -307,9 +269,8 @@ export default function Karir() {
                             </div>
                           </div>
                         </SelTabelKonten>
-                        <SelTabelKonten className="text-right font-mono font-semibold tabular-nums text-grey-800">{a.ratingAktif ?? <span className="font-sans text-xs font-normal text-grey-600">{hasError ? t("beranda.peringkatKlubDataTidakTersedia") : t("beranda.peringkatKlubBelumAdaRating")}</span>}</SelTabelKonten>
-                        <SelTabelKonten className="text-right font-mono text-xs tabular-nums text-grey-600">{dataKontrol?.ada ? `${dataKontrol.win} / ${dataKontrol.draw} / ${dataKontrol.loss}` : "—"}</SelTabelKonten>
-                        <SelTabelKonten className="text-right">{a.username ? <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" className="text-xs font-semibold text-primary hover:underline">{t("beranda.peringkatKlubProfil")}</a> : "—"}</SelTabelKonten>
+                        <SelTabelKonten className="text-sm text-grey-600">—</SelTabelKonten>
+                        <SelTabelKonten className="text-right font-mono tabular-nums">{hasError ? "—" : "—"}</SelTabelKonten>
                       </BarisTabelKonten>
                     );
                   })}
@@ -318,7 +279,6 @@ export default function Karir() {
             </div>
           )}
         </section>
-
         <p className="mt-4 border-t border-grey-200 pt-4 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")}</p>
       </main>
     </div>
