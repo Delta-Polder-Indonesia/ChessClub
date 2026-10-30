@@ -37,14 +37,14 @@ function ratingKontrol(anggota, kontrol) {
   return Number.isFinite(rating) ? rating : null;
 }
 
-function avatar(anggota, kelas = "h-12 w-12") {
+function avatar(anggota, kelas = "h-12 w-12", ukuran = 48) {
   if (anggota.foto) {
     return (
       <img
         src={anggota.foto}
         alt={namaTampil(anggota)}
-        width="48"
-        height="48"
+        width={ukuran}
+        height={ukuran}
         loading="lazy"
         className={`${kelas} rounded-full object-cover ring-1 ring-grey-200`}
       />
@@ -140,19 +140,19 @@ export default function Karir() {
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="mt-8 text-grey-800">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-start">
             <div className="min-w-0">
-              <p className="mb-2 text-sm text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
-              <div className="flex min-w-0 items-end gap-3 sm:gap-4">
-                <div className="flex w-24 shrink-0 flex-col items-center sm:w-[108px]">
-                  {pemainTeratas ? avatar(pemainTeratas, "h-20 w-20 sm:h-[108px] sm:w-[108px]") : <span className="h-20 w-20 rounded-full border border-grey-200 sm:h-[108px] sm:w-[108px]" aria-hidden="true" />}
-                  {pemainTeratas && <span className="mt-2 max-w-full truncate text-center text-sm">{namaTampil(pemainTeratas)}</span>}
+              <p className="mb-3 text-sm text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
+              <div className="flex min-w-0 items-start gap-5 sm:gap-6">
+                <div className="flex w-[108px] shrink-0 flex-col items-center">
+                  {pemainTeratas ? avatar(pemainTeratas, "h-[108px] w-[108px]", 108) : <span className="h-[108px] w-[108px] rounded-full border border-grey-200" aria-hidden="true" />}
+                  <span className="mt-2 font-sans text-3xl font-light leading-none tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</span>
                 </div>
-                <div className="flex min-w-0 flex-wrap items-end gap-x-4 gap-y-2">
-                  <span className="font-sans text-[clamp(4.5rem,7vw,6.5rem)] font-light leading-[0.82] tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</span>
-                  <div className="pb-1 text-xs leading-4 text-grey-600">
-                    {URUTAN_KONTROL.filter((id) => ratingKontrol(pemainTeratas, id) !== null && id !== kontrol).map((id) => (
-                      <p key={id}>{namaKontrol(id)} <span className="font-semibold text-grey-800">{ratingKontrol(pemainTeratas, id)}</span></p>
+                <div className="min-w-0 pt-1">
+                  <div className="space-y-2 text-sm leading-5">
+                    {URUTAN_KONTROL.filter((id) => ratingKontrol(pemainTeratas, id) !== null).map((id) => (
+                      <p key={id}><span className="text-grey-600">{namaKontrol(id)}</span> <span className="font-semibold tabular-nums text-grey-800">{ratingKontrol(pemainTeratas, id)}</span></p>
                     ))}
                   </div>
+                  {pemainTeratas && <p className="mt-4 break-words text-base font-semibold">{namaTampil(pemainTeratas)}</p>}
                 </div>
               </div>
             </div>
