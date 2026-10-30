@@ -139,38 +139,42 @@ export default function Karir() {
 
       <main className="mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6 lg:px-10">
         <section aria-label={t("beranda.peringkatKlubPemainTeratas")} className="border-y border-grey-200 py-6 text-grey-800 sm:py-8">
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] lg:items-center">
-            <div className="grid min-w-0 grid-cols-[6.5rem_minmax(0,1fr)] items-center gap-x-4 gap-y-2 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-x-5">
-              <div className="row-span-2 flex flex-col items-center self-center">
+          <div className="grid gap-x-8 gap-y-8 lg:grid-cols-[minmax(0,1.45fr)_repeat(3,minmax(0,1fr))] lg:items-center">
+            <div className="grid min-w-0 grid-cols-[6.75rem_minmax(0,1fr)] items-center gap-x-4 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-x-5">
+              <div className="row-span-2 flex min-w-0 flex-col items-center">
                 {pemainTeratas ? avatar(pemainTeratas, "h-20 w-20 sm:h-24 sm:w-24") : <span className="h-20 w-20 rounded-full border border-grey-200 sm:h-24 sm:w-24" aria-hidden="true" />}
                 {pemainTeratas && <span className="mt-2 max-w-full truncate text-center text-sm font-medium">{namaTampil(pemainTeratas)}</span>}
               </div>
-              <div className="min-w-0 self-end">
-                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubTeratasDalam", { kontrol: namaKontrol(kontrol) })}</p>
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <p className="font-sans text-[clamp(3.5rem,6vw,6.5rem)] font-light leading-none tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</p>
-                  <div className="text-xs leading-4 text-grey-600">
-                    <p>{t("beranda.peringkatKlubRatingTeratas")} <span className="font-semibold text-grey-800">{pemainTeratas?.ratingAktif ?? "—"}</span></p>
-                    <p>{namaKontrol(kontrol)}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="min-w-0 self-start text-xs text-grey-600">
-                {pemainTeratas?.username ? <a href={pemainTeratas.url || `https://www.chess.com/member/${pemainTeratas.username}`} target="_blank" rel="noreferrer noopener" className="font-semibold hover:underline">{t("beranda.peringkatKlubLihatChessCom")} ↗</a> : t("beranda.peringkatKlubBelumAdaRating")}
+              <p className="self-end text-sm text-grey-600">{t("beranda.peringkatKlubPemainTeratas")}</p>
+              <div className="flex min-w-0 flex-wrap items-baseline gap-x-3 gap-y-2 self-start">
+                <span className="font-sans text-[clamp(3.5rem,6vw,6.25rem)] font-light leading-[0.9] tracking-tight tabular-nums">{pemainTeratas?.ratingAktif ?? "—"}</span>
+                <span className="min-w-0 text-xs leading-4 text-grey-600">
+                  {URUTAN_KONTROL.filter((id) => ratingKontrol(pemainTeratas, id) !== null).map((id) => (
+                    <span key={id} className="block">{id} <strong className="font-semibold text-grey-800">{ratingKontrol(pemainTeratas, id)}</strong></span>
+                  ))}
+                  {pemainTeratas?.username && <a href={pemainTeratas.url || `https://www.chess.com/member/${pemainTeratas.username}`} target="_blank" rel="noreferrer noopener" className="mt-1 block font-semibold hover:underline">{t("beranda.peringkatKlubLihatChessCom")} ↗</a>}
+                </span>
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-3">
-              <div className="border-b border-grey-200 pb-3">
-                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
-                <p className="mt-1 font-sans text-3xl font-light leading-none tabular-nums sm:text-4xl">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-              </div>
-              <div className="border-b border-grey-200 pb-3">
-                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
-                <p className="mt-1 font-sans text-3xl font-light leading-none tabular-nums sm:text-4xl">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
-              </div>
-              <div className="col-span-2 border-b border-grey-200 pb-3 sm:col-span-1">
-                <p className="text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p>
-                <p className="mt-2 text-xs leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
+            <div className="min-w-0 border-l border-grey-200 pl-5">
+              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPunyaRating", { kontrol: namaKontrol(kontrol) })}</p>
+              <p className="mt-2 font-sans text-4xl font-light leading-none tabular-nums sm:text-5xl">{jumlahBerperingkat.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+              <p className="mt-2 text-sm text-grey-600">{t("beranda.peringkatKlubJumlahAnggota")}</p>
+              <p className="mt-1 text-lg tabular-nums">{anggota.length.toLocaleString(locale === "en" ? "en-US" : "id-ID")}</p>
+            </div>
+            <div className="min-w-0 border-l border-grey-200 pl-5">
+              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubSumber")}</p>
+              <p className="mt-2 text-sm leading-5 text-grey-600"><TanggalRoster tanggal={rosterDiperbaruiPada} locale={locale} t={t} /></p>
+              <p className="mt-2 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")}</p>
+            </div>
+            <div className="min-w-0 border-l border-grey-200 pl-5">
+              <p className="text-sm text-grey-600">{t("beranda.peringkatKlubPilihKontrol")}</p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {OPSI_RATING.map((opsi) => (
+                  <button key={opsi} type="button" aria-pressed={kontrol === opsi} onClick={() => setKontrol(opsi)} className={`border px-2 py-1 text-xs transition-colors ${kontrol === opsi ? "border-primary bg-primary text-white" : "border-grey-300 text-grey-700 hover:border-grey-500"}`}>
+                    {namaKontrol(opsi)}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
