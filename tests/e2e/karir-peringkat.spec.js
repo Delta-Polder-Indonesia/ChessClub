@@ -50,7 +50,7 @@ test("halaman Karir menampilkan papan peringkat anggota dari roster bersama", as
   await expect(page.getByText("Rapid Star").first()).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(3);
   await expect(page.locator("tbody tr").nth(0)).toContainText("Rapid Star");
-  await expect(page.locator("tbody tr").nth(0)).toContainText("18 / 4 / 5");
+  await expect(page.locator("tbody tr").nth(0)).toContainText("26 / 6 / 9");
   await expect(page.locator("tbody tr").nth(1)).toContainText("Blitz Star");
   await expect(page.locator("tbody tr").nth(2)).toContainText("New Member");
 
