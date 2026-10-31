@@ -197,6 +197,7 @@ export function ringkasRating(stats) {
     if (blok?.last?.rating) {
       ratings[label] = {
         elo: blok.last.rating,
+        puncak: blok.best?.rating ?? null,
         win: blok.record?.win ?? 0,
         draw: blok.record?.draw ?? 0,
         loss: blok.record?.loss ?? 0,

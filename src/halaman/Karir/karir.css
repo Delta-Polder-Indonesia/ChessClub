@@ -1,0 +1,17 @@
+.angka-utama-peringkat {
+  font-size: 100px;
+  line-height: 72px;
+}
+
+.angka-fakta-peringkat,
+.angka-rating-tabel {
+  font-size: 40px;
+  line-height: 40px;
+}
+
+@media (min-width: 980px) {
+  .angka-utama-peringkat {
+    font-size: 140px;
+    line-height: 100px;
+  }
+}

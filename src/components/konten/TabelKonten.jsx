@@ -6,7 +6,7 @@ export const TabelKonten = forwardRef(function TabelKonten({ className, ...props
     <div className="w-full overflow-x-auto">
       <table
         ref={ref}
-        className={cn("w-full border-collapse font-serif text-base text-grey-600", className)}
+        className={cn("w-full border-collapse font-sans text-base font-light text-grey-800", className)}
         {...props}
       />
     </div>
@@ -41,7 +41,7 @@ export const JudulKolomKonten = forwardRef(function JudulKolomKonten(
   return (
     <th
       ref={ref}
-      className={cn("bg-grey-100 px-4 py-3 text-left font-sans text-sm font-semibold text-grey-800", className)}
+      className={cn("bg-transparent py-2 pl-5 pr-0 text-left font-sans text-base font-light text-grey-600 [&:first-child]:pl-0", className)}
       {...props}
     />
   );
@@ -51,7 +51,7 @@ export const SelTabelKonten = forwardRef(function SelTabelKonten(
   { className, ...props },
   ref,
 ) {
-  return <td ref={ref} className={cn("px-4 py-3 align-top", className)} {...props} />;
+  return <td ref={ref} className={cn("py-2 pl-5 pr-0 align-middle [&:first-child]:pl-0", className)} {...props} />;
 });
 
 export const CaptionTabelKonten = forwardRef(function CaptionTabelKonten(

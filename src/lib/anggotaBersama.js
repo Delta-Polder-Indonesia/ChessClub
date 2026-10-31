@@ -359,18 +359,24 @@ export function opsiKontrol(a) {
   let win = 0;
   let draw = 0;
   let loss = 0;
+  let puncak = null;
   for (const nama of KONTROL) {
     const r = ratings[nama];
     if (!r) continue;
     win += r.win ?? 0;
     draw += r.draw ?? 0;
     loss += r.loss ?? 0;
+    const nilaiPuncak = Number(r.puncak);
+    if (r.puncak != null && Number.isFinite(nilaiPuncak)) {
+      puncak = puncak === null ? nilaiPuncak : Math.max(puncak, nilaiPuncak);
+    }
   }
 
   const semua = {
     id: "all",
     label: "All Games",
     elo: eloAnggota(a),
+    puncak,
     win,
     draw,
     loss,
@@ -380,10 +386,12 @@ export function opsiKontrol(a) {
 
   const rinci = KONTROL.map((nama) => {
     const r = ratings[nama];
+    const puncakKontrol = r?.puncak == null ? null : Number(r.puncak);
     return {
       id: nama,
       label: nama,
       elo: r?.elo ?? null,
+      puncak: Number.isFinite(puncakKontrol) ? puncakKontrol : null,
       win: r?.win ?? 0,
       draw: r?.draw ?? 0,
       loss: r?.loss ?? 0,
