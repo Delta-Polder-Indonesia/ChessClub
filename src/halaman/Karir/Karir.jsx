@@ -288,7 +288,9 @@ export default function Karir() {
                         </SelTabelKonten>
                         <SelTabelKonten className={paddingPemain}>
                           <div className="flex min-w-0 items-center gap-2">
-                            {avatar(a, kelasAvatar, ukuranAvatar)}
+                            <span className="flex w-24 shrink-0 justify-center">
+                              {avatar(a, kelasAvatar, ukuranAvatar)}
+                            </span>
                             <div className="min-w-0">
                               {a.username ? (
                                 <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="font-light hover:text-primary hover:underline">
