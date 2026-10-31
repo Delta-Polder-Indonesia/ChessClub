@@ -128,6 +128,16 @@ export function kerugianLangkah(sebelumCp, sesudahCp) {
   return Math.max(0, sebelumCp - sesudahCp);
 }
 
+/**
+ * Pemetaan centipawn ke sumbu grafik CP en-croissant (`EvalChart.getYValue`).
+ * Berbeda dari kurva peluang menang yang dipakai untuk akurasi: grafik memakai
+ * faktor 0.004, dan mate ±Infinity harus tepat berada di tepi ±1.
+ */
+export function nilaiGrafikCp(cp) {
+  if (typeof cp !== "number" || Number.isNaN(cp)) return null;
+  return 2 / (1 + Math.exp(-0.004 * cp)) - 1;
+}
+
 /** Pasangan (sebelum, sesudah) cp baku dari satu entri `parsePGN`. */
 export function pasanganCpMove(move) {
   const riwayat = move?.previousStaticEvals;

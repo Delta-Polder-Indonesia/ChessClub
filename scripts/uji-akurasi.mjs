@@ -37,7 +37,7 @@ const { formatSquare, parsePGN } = await import("../src/halaman/Analisa/mesin/en
  * produksi ini lalu di-pin: kalau `akurasiMove` berubah, PIN tidak lagi cocok
  * dan uji gagal — bukan ekspektasinya yang ikut bergeser mengikuti kode.
  */
-const { akurasiMove, pemainDariEntri } = await import("../src/halaman/Analisa/mesin/akurasi.js");
+const { akurasiMove, pemainDariEntri, nilaiGrafikCp } = await import("../src/halaman/Analisa/mesin/akurasi.js");
 const { ringkasWarna } = await import("../src/halaman/Analisa/mesin/ringkasanAnalisis.js");
 
 const act = React.act ?? (await import("react-dom/test-utils")).act;
@@ -86,6 +86,13 @@ console.log("== avg ==");
 hasil("avg([]) = NaN", Number.isNaN(avg([])));
 hasil("avg([100, 0]) = 50", avg([100, 0]) === 50);
 hasil("avg([30]) = 30", avg([30]) === 30);
+
+/* --------------------- grafik CP en-croissant --------------------- */
+console.log("\n== grafik CP en-croissant ==");
+hasil("CP 0 dipetakan ke tengah grafik", nilaiGrafikCp(0) === 0);
+hasil("CP +100 dipetakan dengan sigmoid 0.004", Math.abs(nilaiGrafikCp(100) - (2 / (1 + Math.exp(-0.4)) - 1)) < 1e-12);
+hasil("CP tak terbatas mencapai tepi grafik", nilaiGrafikCp(Infinity) === 1 && nilaiGrafikCp(-Infinity) === -1);
+hasil("CP NaN tidak menghasilkan titik grafik", nilaiGrafikCp(NaN) === null);
 
 /* ------------------------- 2. PlayersAccuracy ------------------------- */
 

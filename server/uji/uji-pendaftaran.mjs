@@ -79,6 +79,12 @@ async function serverUji({ dirData = DIRENDE, env = {} } = {}) {
       hasil.hentikan();
       peniru.server.close();
     },
+    hentikanDanTunggu: async () => {
+      const keluar = hasil.tungguBerhenti();
+      hasil.hentikan();
+      peniru.server.close();
+      await keluar;
+    },
   };
 }
 
@@ -422,7 +428,9 @@ console.log("\nPendaftaran — mode `wajib` (tiket benar-benar dipaksa)");
     setelahRestart.status === 201,
     JSON.stringify(setelahRestart.data)?.slice(0, 200)
   );
-  serverBaru.hentikan();
+  // Tunggu child server benar-benar keluar sebelum menghapus direktori data
+  // eksternal yang dipakainya; SIGTERM async + rm langsung memicu ENOTEMPTY.
+  await serverBaru.hentikanDanTunggu();
   fs.rmSync(DIR_WAJIB, { recursive: true, force: true });
 }
 
