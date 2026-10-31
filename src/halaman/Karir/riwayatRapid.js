@@ -1,6 +1,7 @@
-/** Riwayat Rapid publik untuk grafik kecil papan peringkat. */
+/** Riwayat rating publik untuk grafik kecil papan peringkat. */
 const DASAR_CHESS = "https://api.chess.com/pub/player";
-const KUNCI_CACHE = "kci-peringkat-riwayat-rapid-v1-";
+const KUNCI_CACHE = "kci-peringkat-riwayat-";
+const KONTROL_DIDUKUNG = new Set(["rapid", "blitz", "bullet", "daily"]);
 const UMUR_CACHE_MS = 60 * 60 * 1000;
 const BATAS_PARTAI = 20;
 const BATAS_WAKTU_MS = 12_000;
@@ -15,11 +16,16 @@ function namaSah(username) {
   return /^[a-z0-9_-]{3,25}$/.test(nama) ? nama : "";
 }
 
-function bacaCache(nama) {
-  let entri = cache.get(nama);
+function kunciCache(nama, jenis) {
+  return `${KUNCI_CACHE}${jenis}-v1-${nama}`;
+}
+
+function bacaCache(nama, jenis) {
+  const kunci = kunciCache(nama, jenis);
+  let entri = cache.get(kunci);
   if (!entri) {
     try {
-      const tersimpan = localStorage.getItem(KUNCI_CACHE + nama);
+      const tersimpan = localStorage.getItem(kunci);
       entri = tersimpan ? JSON.parse(tersimpan) : null;
     } catch {
       return null;
@@ -31,15 +37,16 @@ function bacaCache(nama) {
     || !entri.nilai.every((titik) => Number.isFinite(titik?.waktu) && titik.waktu > 0
       && Number.isFinite(new Date(titik.waktu * 1000).getTime())
       && Number.isSafeInteger(titik?.rating) && titik.rating > 0)) return null;
-  cache.set(nama, entri);
+  cache.set(kunci, entri);
   return entri.nilai;
 }
 
-function simpanCache(nama, nilai) {
+function simpanCache(nama, jenis, nilai) {
   const entri = { disimpanPada: Date.now(), nilai };
-  cache.set(nama, entri);
+  const kunci = kunciCache(nama, jenis);
+  cache.set(kunci, entri);
   try {
-    localStorage.setItem(KUNCI_CACHE + nama, JSON.stringify(entri));
+    localStorage.setItem(kunci, JSON.stringify(entri));
   } catch {
     /* Penyimpanan mungkin penuh atau tidak tersedia; cache memori tetap dipakai. */
   }
@@ -80,8 +87,8 @@ function awalRentang(akhir) {
   return Math.floor(bulanAwal.getTime() / 1000);
 }
 
-function titikDariPartai(partai, nama, awal, akhir) {
-  if (partai?.rated !== true || partai?.time_class !== "rapid" || partai?.rules !== "chess") return null;
+function titikDariPartai(partai, nama, jenis, awal, akhir) {
+  if (partai?.rated !== true || partai?.time_class !== jenis || partai?.rules !== "chess") return null;
   const waktu = partai.end_time;
   if (!Number.isFinite(waktu) || waktu < awal || waktu > akhir) return null;
   const pemain = [partai.white, partai.black].find((sisi) => String(sisi?.username ?? "").toLowerCase() === nama);
@@ -89,10 +96,10 @@ function titikDariPartai(partai, nama, awal, akhir) {
   return { waktu, rating: pemain.rating };
 }
 
-async function ambilRiwayat(nama, signal) {
+async function ambilRiwayat(nama, jenis, signal) {
   const dasar = `${DASAR_CHESS}/${encodeURIComponent(nama)}`;
   const statistik = await ambilJson(`${dasar}/stats`, signal);
-  const akhir = statistik?.chess_rapid?.last?.date;
+  const akhir = statistik?.[`chess_${jenis}`]?.last?.date;
   if (!Number.isFinite(akhir) || akhir <= 0 || !Number.isFinite(new Date(akhir * 1000).getTime())) return [];
 
   const awal = awalRentang(akhir);
@@ -109,7 +116,7 @@ async function ambilRiwayat(nama, signal) {
     const arsip = await ambilJson(`${dasar}/games/${tahun}/${nomorBulan}`, signal, true);
     if (!Array.isArray(arsip?.games)) throw new Error("Arsip Chess.com tidak sah");
     for (const partai of arsip.games) {
-      const titik = titikDariPartai(partai, nama, awal, akhir);
+      const titik = titikDariPartai(partai, nama, jenis, awal, akhir);
       if (titik) nilai.push(titik);
     }
     bulan.setUTCMonth(bulan.getUTCMonth() - 1);
@@ -121,22 +128,28 @@ async function ambilRiwayat(nama, signal) {
  * Serialisasi semua pengambilan grafik: Chess.com dapat membatasi permintaan
  * paralel. Pekerjaan dalam antrean yang sudah dibatalkan tidak mengakses API.
  */
-export function muatRiwayatRapid(username, { signal } = {}) {
+export function muatRiwayatRating(username, { kontrol = "Rapid", signal } = {}) {
   const nama = namaSah(username);
-  if (!nama) return Promise.resolve([]);
+  const jenis = String(kontrol ?? "").toLowerCase();
+  if (!nama || !KONTROL_DIDUKUNG.has(jenis)) return Promise.resolve([]);
   if (signal?.aborted) return Promise.reject(galatBatal());
-  const tersimpan = bacaCache(nama);
+  const tersimpan = bacaCache(nama, jenis);
   if (tersimpan) return Promise.resolve(tersimpan);
 
   const pekerjaan = antrean.then(async () => {
     if (signal?.aborted) throw galatBatal();
-    const sebelumnya = bacaCache(nama);
+    const sebelumnya = bacaCache(nama, jenis);
     if (sebelumnya) return sebelumnya;
-    const nilai = await ambilRiwayat(nama, signal);
+    const nilai = await ambilRiwayat(nama, jenis, signal);
     if (signal?.aborted) throw galatBatal();
-    simpanCache(nama, nilai);
+    simpanCache(nama, jenis, nilai);
     return nilai;
   });
   antrean = pekerjaan.then(() => undefined, () => undefined);
   return pekerjaan;
+}
+
+// Panggilan Rapid yang sudah ada tetap memakai kunci cache dan perilaku semula.
+export function muatRiwayatRapid(username, { signal } = {}) {
+  return muatRiwayatRating(username, { kontrol: "Rapid", signal });
 }

@@ -24,7 +24,7 @@ import {
 } from "../../lib/anggotaBersama.js";
 import { useKartuPemain } from "../../lib/pemainCatur.js";
 import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
-import { muatRiwayatRapid } from "./riwayatRapid.js";
+import { muatRiwayatRating } from "./riwayatRapid.js";
 import "./karir.css";
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
@@ -135,12 +135,12 @@ function amatiGrafik(elemen, ubahTerlihat) {
   };
 }
 
-function GrafikRapid({ username, nama, locale, t }) {
+function GrafikRating({ username, jenis, nama, locale, t }) {
   const tempat = useRef(null);
-  const [riwayat, setRiwayat] = useState(() => ({ status: username ? "menunggu" : "kosong", nilai: [] }));
+  const [riwayat, setRiwayat] = useState(() => ({ status: username && jenis ? "menunggu" : "kosong", nilai: [] }));
 
   useEffect(() => {
-    if (!username || !tempat.current) return undefined;
+    if (!username || !jenis || !tempat.current) return undefined;
     let aktif = true;
     let selesai = false;
     let kontrol = null;
@@ -155,7 +155,7 @@ function GrafikRapid({ username, nama, locale, t }) {
       const giliran = new AbortController();
       kontrol = giliran;
       setRiwayat({ status: "memuat", nilai: [] });
-      muatRiwayatRapid(username, { signal: giliran.signal })
+      muatRiwayatRating(username, { kontrol: jenis, signal: giliran.signal })
         .then((nilai) => {
           if (!aktif || giliran.signal.aborted) return;
           selesai = true;
@@ -177,18 +177,20 @@ function GrafikRapid({ username, nama, locale, t }) {
       berhentiMengamati();
       kontrol?.abort();
     };
-  }, [username]);
+  }, [username, jenis]);
 
-  let label = t("beranda.peringkatKlubGrafikRapidMemuat", { nama });
-  if (riwayat.status === "kosong") label = t("beranda.peringkatKlubGrafikRapidKosong", { nama });
-  if (riwayat.status === "gagal") label = t("beranda.peringkatKlubGrafikRapidGagal", { nama });
+  const kontrolLabel = jenis || t("beranda.peringkatKlubUtama");
+  let label = t("beranda.peringkatKlubGrafikRatingMemuat", { nama, kontrol: kontrolLabel });
+  if (riwayat.status === "kosong") label = t("beranda.peringkatKlubGrafikRatingKosong", { nama, kontrol: kontrolLabel });
+  if (riwayat.status === "gagal") label = t("beranda.peringkatKlubGrafikRatingGagal", { nama, kontrol: kontrolLabel });
 
   if (riwayat.status === "siap") {
     const formatTanggal = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", { dateStyle: "medium" });
     const pertama = riwayat.nilai[0];
     const terakhir = riwayat.nilai.at(-1);
-    label = t("beranda.peringkatKlubGrafikRapid", {
+    label = t("beranda.peringkatKlubGrafikRating", {
       nama,
+      kontrol: kontrolLabel,
       jumlah: riwayat.nilai.length,
       dari: formatTanggal.format(new Date(pertama.waktu * 1000)),
       sampai: formatTanggal.format(new Date(terakhir.waktu * 1000)),
@@ -200,8 +202,8 @@ function GrafikRapid({ username, nama, locale, t }) {
   return (
     <span ref={tempat} className="inline-flex h-9 w-20 shrink-0 items-center justify-center text-grey-600" title={label}>
       {riwayat.status === "siap" ? (
-        <GrafikMiniRating dataUji="grafik-rapid" nilai={riwayat.nilai.map(({ rating }) => rating)} label={label} className="h-9 w-20" />
-      ) : <span data-uji="grafik-rapid-status" role="img" aria-label={label}>—</span>}
+        <GrafikMiniRating dataUji={`grafik-${jenis.toLowerCase()}`} nilai={riwayat.nilai.map(({ rating }) => rating)} label={label} className="h-9 w-20" />
+      ) : <span data-uji={`grafik-${(jenis || "utama").toLowerCase()}-status`} role="img" aria-label={label}>—</span>}
     </span>
   );
 }
@@ -402,6 +404,8 @@ export default function Karir() {
                     const dataKontrol = opsi.find((item) => item.id === (kontrol === "utama" ? "all" : kontrol));
                     const kontrolPuncakBaris = kontrol === "utama" ? (a.kontrol || "Rapid") : kontrol;
                     const dataPuncak = opsi.find((item) => item.id === kontrolPuncakBaris);
+                    const kontrolGrafik = kontrol === "utama" ? a.kontrol : kontrol;
+                    const jenisGrafik = URUTAN_KONTROL.find((jenis) => jenis.toLowerCase() === String(kontrolGrafik || "").toLowerCase()) ?? null;
                     const ukuranAvatar = UKURAN_AVATAR_PERINGKAT[indeks] ?? 40;
                     const kelasAvatar = KELAS_AVATAR_PERINGKAT[indeks] ?? "h-10 w-10";
                     const paddingPemain = indeks === 0 ? "pt-5 pb-5" : indeks < 3 ? "pt-3 pb-3" : "py-2";
@@ -414,17 +418,16 @@ export default function Karir() {
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
                         <SelTabelKonten>
-                          <div className={`flex items-end ${kontrol === "Rapid" ? "gap-3" : "gap-4"}`}>
+                          <div className="flex items-end gap-3">
                             <span className="w-6 shrink-0 text-right font-sans text-base font-light tabular-nums text-grey-600">{a.peringkatKontrol ?? "—"}</span>
-                            {kontrol === "Rapid" && (
-                              <GrafikRapid
-                                key={a.ratingAktif === null ? "kosong" : a.username || "kosong"}
-                                username={a.ratingAktif === null ? null : a.username}
-                                nama={namaTampil(a)}
-                                locale={locale}
-                                t={t}
-                              />
-                            )}
+                            <GrafikRating
+                              key={`${a.username || ""}:${a.ratingAktif === null ? "kosong" : jenisGrafik || "kosong"}`}
+                              username={a.ratingAktif === null ? null : a.username}
+                              jenis={jenisGrafik}
+                              nama={namaTampil(a)}
+                              locale={locale}
+                              t={t}
+                            />
                             <span className="angka-rating-tabel font-sans font-light tabular-nums">{a.ratingAktif ?? "—"}</span>
                           </div>
                         </SelTabelKonten>

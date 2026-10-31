@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { muatRiwayatRapid } from "../../src/halaman/Karir/riwayatRapid.js";
+import { muatRiwayatRapid, muatRiwayatRating } from "../../src/halaman/Karir/riwayatRapid.js";
 
 const unix = (tanggal) => Date.parse(tanggal) / 1000;
 
@@ -351,7 +351,6 @@ test("grafik Rapid memakai partai rated dan tersimpan saat kembali ke tab atau m
   });
 
   await page.goto("/karir");
-  await expect(page.locator('[data-uji="grafik-rapid"]')).toHaveCount(0);
   await page.getByRole("button", { name: "Rapid", exact: true }).click();
   const baris = page.locator("tbody tr").first();
   await baris.scrollIntoViewIfNeeded();
@@ -404,7 +403,7 @@ test("grafik membedakan riwayat tidak cukup dan galat API tanpa membuat garis pa
   await baris.first().scrollIntoViewIfNeeded();
   await expect(baris.first().getByRole("img", { name: "Riwayat Rapid Rapid Star tidak cukup untuk grafik" })).toBeVisible();
   await baris.nth(1).scrollIntoViewIfNeeded();
-  await expect(baris.nth(1).getByRole("img", { name: "Riwayat rating Rapid Blitz Star tidak dapat dimuat; buka ulang tab Rapid untuk mencoba lagi" })).toBeVisible();
+  await expect(baris.nth(1).getByRole("img", { name: "Riwayat rating Rapid Blitz Star tidak dapat dimuat; pindah kontrol lalu kembali untuk mencoba lagi" })).toBeVisible();
   await expect(baris.nth(2).getByRole("img", { name: "Riwayat Rapid New Member tidak cukup untuk grafik" })).toBeVisible();
   await expect(page.locator('[data-uji="grafik-rapid"]')).toHaveCount(0);
   expect(permintaan.some((url) => url.includes("/newmember/games/"))).toBe(false);
@@ -613,17 +612,19 @@ test("galat Chess.com tidak disimpan sebagai riwayat kosong", async () => {
   }
 });
 
-test("grafik Rapid bernilai tetap memiliki garis datar dan label bahasa Inggris", async ({ page }) => {
+test("grafik Rapid datar dan grafik Blitz memiliki label bahasa Inggris", async ({ page }) => {
   const akhir = unix("2026-10-16T08:41:34Z");
   await page.addInitScript(() => localStorage.setItem("kci-bahasa", "en"));
   await page.route("https://api.chess.com/pub/player/**", (route) => {
     const url = new URL(route.request().url());
-    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } } } });
+    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } }, chess_blitz: { last: { date: akhir } } } });
     if (url.pathname.includes("/games/")) {
       const username = url.pathname.split("/")[3];
       const games = url.pathname.endsWith("/2026/10") ? [
         partaiRapid(username, 1500, akhir - 60),
         partaiRapid(username, 1500, akhir, { hitam: true }),
+        partaiRapid(username, 1520, akhir - 60, { time_class: "blitz" }),
+        partaiRapid(username, 1530, akhir, { time_class: "blitz", hitam: true }),
       ] : [];
       return route.fulfill({ json: { games } });
     }
@@ -637,6 +638,10 @@ test("grafik Rapid bernilai tetap memiliki garis datar dan label bahasa Inggris"
   await expect(grafik).toBeVisible();
   await expect(grafik).toHaveAttribute("aria-label", /2 games.*rating 1500 to 1500/);
   await expect(grafik.locator("polyline")).toHaveAttribute("points", "2.0,18.0 78.0,18.0");
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  const barisBlitz = page.locator("tbody tr").first();
+  await barisBlitz.locator("td").first().scrollIntoViewIfNeeded();
+  await expect(barisBlitz.getByRole("img", { name: /Blitz rating chart for Blitz Star: 2 games.*rating 1520 to 1530/ })).toBeVisible();
 });
 
 test("arsip bulanan 404 dilewati tanpa menganggap data yang lain gagal", async () => {
@@ -730,4 +735,239 @@ test("membatalkan permintaan aktif membebaskan antrean untuk pemain lain", async
   } finally {
     globalThis.fetch = asli;
   }
+});
+
+test("setiap kontrol memakai partai dan cache miliknya sendiri", async () => {
+  const fetchAsli = globalThis.fetch;
+  const storageAsli = globalThis.localStorage;
+  const tersimpan = new Map();
+  const panggilan = [];
+  const akhir = {
+    rapid: unix("2026-10-16T08:00:00Z"),
+    blitz: unix("2026-09-15T08:00:00Z"),
+    bullet: unix("2026-08-14T08:00:00Z"),
+    daily: unix("2026-07-13T08:00:00Z"),
+  };
+  const dasar = { rapid: 1000, blitz: 1500, bullet: 2000, daily: 2500 };
+  globalThis.localStorage = {
+    getItem: (kunci) => tersimpan.get(kunci) ?? null,
+    setItem: (kunci, isi) => tersimpan.set(kunci, isi),
+  };
+  globalThis.fetch = async (alamat) => {
+    const url = String(alamat);
+    panggilan.push(url);
+    if (url.endsWith("/stats")) {
+      return Response.json(Object.fromEntries(Object.entries(akhir).map(([jenis, waktu]) => [`chess_${jenis}`, { last: { date: waktu } }])));
+    }
+    const bulan = url.slice(-7);
+    const games = Object.entries(akhir).flatMap(([jenis, waktu]) => {
+      const kunciBulan = new Date(waktu * 1000).toISOString().slice(0, 7).replace("-", "/");
+      if (bulan !== kunciBulan) return [];
+      return [
+        ...Array.from({ length: 25 }, (_, i) => partaiRapid("ujisemua", dasar[jenis] + i, waktu - (24 - i) * 60, { time_class: jenis, hitam: i % 2 === 0 })),
+        partaiRapid("ujisemua", 9990, waktu, { time_class: jenis, rated: false }),
+        partaiRapid("ujisemua", 9991, waktu, { time_class: jenis, rules: "chess960" }),
+        partaiRapid("ujisemua", 9992, waktu + 1, { time_class: jenis }),
+        partaiRapid("pemainlain", 9993, waktu, { time_class: jenis }),
+      ];
+    });
+    return Response.json({ games });
+  };
+  try {
+    for (const [jenis, waktu] of Object.entries(akhir)) {
+      const riwayat = await muatRiwayatRating("UjiSemua", { kontrol: jenis });
+      expect(riwayat).toHaveLength(20);
+      expect(riwayat[0]).toEqual({ waktu: waktu - 19 * 60, rating: dasar[jenis] + 5 });
+      expect(riwayat.at(-1)).toEqual({ waktu, rating: dasar[jenis] + 24 });
+      expect(tersimpan.has(`kci-peringkat-riwayat-${jenis}-v1-ujisemua`)).toBe(true);
+    }
+    expect(panggilan).toHaveLength(8);
+    for (const jenis of Object.keys(akhir)) {
+      expect(await muatRiwayatRating("ujisemua", { kontrol: jenis.toUpperCase() })).toHaveLength(20);
+    }
+    expect(await muatRiwayatRapid("ujisemua")).toHaveLength(20);
+    expect(await muatRiwayatRating("ujisemua", { kontrol: "utama" })).toEqual([]);
+    expect(panggilan).toHaveLength(8);
+  } finally {
+    globalThis.fetch = fetchAsli;
+    if (storageAsli === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = storageAsli;
+  }
+});
+
+test("Daily memakai batas tiga bulan dari partai Daily terakhir", async () => {
+  const fetchAsli = globalThis.fetch;
+  const akhir = unix("2026-05-31T12:00:00Z");
+  const batas = unix("2026-02-28T12:00:00Z");
+  const panggilan = [];
+  globalThis.fetch = async (alamat) => {
+    const url = String(alamat);
+    panggilan.push(url);
+    if (url.endsWith("/stats")) return Response.json({ chess_daily: { last: { date: akhir } } });
+    const arsip = {
+      "2026/05": [partaiRapid("ujidaily", 1800, akhir, { time_class: "daily", hitam: true })],
+      "2026/04": [partaiRapid("ujidaily", 9000, akhir - 100, { time_class: "rapid" })],
+      "2026/03": [partaiRapid("ujidaily", 1600, unix("2026-03-10T00:00:00Z"), { time_class: "daily" })],
+      "2026/02": [
+        partaiRapid("ujidaily", 1500, batas, { time_class: "daily" }),
+        partaiRapid("ujidaily", 9999, batas - 1, { time_class: "daily" }),
+      ],
+    };
+    return Response.json({ games: arsip[url.slice(-7)] ?? [] });
+  };
+  try {
+    const riwayat = await muatRiwayatRating("ujidaily", { kontrol: "Daily" });
+    expect(riwayat.map((titik) => titik.rating)).toEqual([1500, 1600, 1800]);
+    expect(panggilan.filter((url) => url.includes("/games/")).map((url) => url.slice(-7)))
+      .toEqual(["2026/05", "2026/04", "2026/03", "2026/02"]);
+  } finally {
+    globalThis.fetch = fetchAsli;
+  }
+});
+
+test("grafik mengikuti kontrol terpilih dan kontrol utama tiap pemain", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  const hasil = (elo) => ({ elo, puncak: elo + 20, win: 2, draw: 0, loss: 1 });
+  const anggota = [
+    { username: "rapidplayer", nama: "Rapid Player", foto: "", elo: 1840, kontrol: "Rapid", ratings: { Rapid: hasil(1840), Blitz: hasil(1820), Bullet: hasil(1780), Daily: hasil(1760) } },
+    { username: "blitzplayer", nama: "Blitz Player", foto: "", elo: 1830, kontrol: "Blitz", ratings: { Blitz: hasil(1830), Bullet: hasil(1720), Daily: hasil(1740) } },
+    { username: "dailyplayer", nama: "Daily Player", foto: "", elo: 1900, kontrol: "Daily", ratings: { Daily: hasil(1900) } },
+  ];
+  const nilai = {
+    rapidplayer: { rapid: [1000, 1010], blitz: [1100, 1110], bullet: [1200, 1210], daily: [1300, 1310] },
+    blitzplayer: { blitz: [1400, 1415], bullet: [1500, 1515], daily: [1600, 1615] },
+    dailyplayer: { daily: [1700, 1720] },
+  };
+  const arsip = [];
+  await page.route("**/api/anggota", (route) => route.fulfill({ json: anggota }));
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    const username = url.pathname.split("/")[3];
+    const seri = nilai[username] ?? {};
+    if (url.pathname.endsWith("/stats")) {
+      return route.fulfill({ json: Object.fromEntries(Object.entries(seri).map(([jenis, ratings]) => [`chess_${jenis}`, { last: { date: akhir, rating: ratings.at(-1) } }])) });
+    }
+    if (url.pathname.includes("/games/")) {
+      arsip.push(url.pathname);
+      const games = url.pathname.endsWith("/2026/10")
+        ? Object.entries(seri).flatMap(([jenis, ratings]) => ratings.map((rating, i) => partaiRapid(username, rating, akhir - (ratings.length - i - 1) * 60, { time_class: jenis, hitam: i === 1 })))
+        : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username } });
+  });
+  await page.goto("/karir");
+  const baris = (nama) => page.locator("tbody tr").filter({ hasText: nama });
+  const cekGrafik = async (nama, jenis, awal, terakhir) => {
+    const barisPemain = baris(nama);
+    await barisPemain.locator("td").first().scrollIntoViewIfNeeded();
+    const grafik = barisPemain.locator(`[data-uji="grafik-${jenis.toLowerCase()}"]`);
+    await expect(grafik).toBeVisible();
+    await expect(grafik).toHaveAttribute("aria-label", new RegExp(`Grafik rating ${jenis} ${nama}: 2 partai.*rating ${awal} ke ${terakhir}`));
+  };
+
+  // Utama mengikuti kontrol utama setiap pemain, bukan mencampur semua jenis.
+  await cekGrafik("Daily Player", "Daily", 1700, 1720);
+  await cekGrafik("Blitz Player", "Blitz", 1400, 1415);
+  await cekGrafik("Rapid Player", "Rapid", 1000, 1010);
+
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  await expect(page.locator("tbody tr").first()).toContainText("Blitz Player");
+  await cekGrafik("Blitz Player", "Blitz", 1400, 1415);
+  await cekGrafik("Rapid Player", "Blitz", 1100, 1110);
+  await expect(baris("Daily Player").getByRole("img", { name: "Riwayat Blitz Daily Player tidak cukup untuk grafik" })).toBeVisible();
+
+  await page.getByRole("combobox", { name: "Kontrol waktu" }).selectOption("Bullet");
+  await expect(page.locator("tbody tr").first()).toContainText("Rapid Player");
+  await cekGrafik("Rapid Player", "Bullet", 1200, 1210);
+  await cekGrafik("Blitz Player", "Bullet", 1500, 1515);
+
+  await page.getByRole("combobox", { name: "Kontrol waktu" }).selectOption("Daily");
+  await expect(page.locator("tbody tr").first()).toContainText("Daily Player");
+  await cekGrafik("Daily Player", "Daily", 1700, 1720);
+  await cekGrafik("Rapid Player", "Daily", 1300, 1310);
+  await cekGrafik("Blitz Player", "Daily", 1600, 1615);
+
+  const sebelum = arsip.length;
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  await cekGrafik("Rapid Player", "Rapid", 1000, 1010);
+  await page.getByRole("button", { name: "Utama", exact: true }).click();
+  await cekGrafik("Daily Player", "Daily", 1700, 1720);
+  await cekGrafik("Blitz Player", "Blitz", 1400, 1415);
+  await cekGrafik("Rapid Player", "Rapid", 1000, 1010);
+  expect(arsip).toHaveLength(sebelum);
+
+  await page.reload();
+  await page.getByRole("combobox", { name: "Kontrol waktu" }).selectOption("Bullet");
+  await cekGrafik("Rapid Player", "Bullet", 1200, 1210);
+  await cekGrafik("Blitz Player", "Bullet", 1500, 1515);
+  await page.getByRole("combobox", { name: "Kontrol waktu" }).selectOption("Daily");
+  await cekGrafik("Daily Player", "Daily", 1700, 1720);
+  await cekGrafik("Rapid Player", "Daily", 1300, 1310);
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  await cekGrafik("Blitz Player", "Blitz", 1400, 1415);
+  await cekGrafik("Rapid Player", "Blitz", 1100, 1110);
+  expect(arsip).toHaveLength(sebelum);
+});
+
+test("Utama tidak menebak jenis grafik jika kontrol pemain tidak diketahui", async ({ page }) => {
+  const arsip = [];
+  await page.route("**/api/anggota", (route) => route.fulfill({ json: [
+    { username: "tanpakontrol", nama: "Tanpa Kontrol", foto: "", elo: 1500, kontrol: null, ratings: {} },
+  ] }));
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.includes("/games/")) arsip.push(url.pathname);
+    return route.fulfill({ json: url.pathname.endsWith("/stats") ? { chess_rapid: { last: { date: unix("2026-10-16T00:00:00Z") } } } : {} });
+  });
+  await page.goto("/karir");
+  const baris = page.locator("tbody tr").first();
+  await baris.locator("td").first().scrollIntoViewIfNeeded();
+  await expect(baris.getByRole("img", { name: "Riwayat Utama Tanpa Kontrol tidak cukup untuk grafik" })).toBeVisible();
+  await expect(baris.locator("svg")).toHaveCount(0);
+  expect(arsip).toHaveLength(0);
+});
+
+test("Daily tanpa dua partai dan galat Blitz menampilkan tanda pisah", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  const hasil = (elo) => ({ elo, puncak: elo + 20, win: 1, draw: 0, loss: 0 });
+  const anggota = [
+    { username: "gagalblitz", nama: "Gagal Blitz", foto: "", elo: 1900, kontrol: "Rapid", ratings: { Rapid: hasil(1900), Blitz: hasil(2000) } },
+    { username: "satudaily", nama: "Satu Daily", foto: "", elo: 1800, kontrol: "Daily", ratings: { Daily: hasil(1800) } },
+  ];
+  let gagal = true;
+  await page.route("**/api/anggota", (route) => route.fulfill({ json: anggota }));
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    const username = url.pathname.split("/")[3];
+    if (url.pathname.endsWith("/stats")) {
+      if (username === "gagalblitz" && gagal) return route.fulfill({ status: 500, body: "error" });
+      return route.fulfill({ json: { chess_rapid: { last: { date: akhir } }, chess_blitz: { last: { date: akhir } }, chess_daily: { last: { date: akhir } } } });
+    }
+    if (url.pathname.includes("/games/")) {
+      const games = url.pathname.endsWith("/2026/10")
+        ? username === "satudaily"
+          ? [partaiRapid(username, 1800, akhir, { time_class: "daily" })]
+          : [partaiRapid(username, 1980, akhir - 60, { time_class: "blitz" }), partaiRapid(username, 2000, akhir, { time_class: "blitz" })]
+        : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username } });
+  });
+  await page.goto("/karir");
+  await page.getByRole("combobox", { name: "Kontrol waktu" }).selectOption("Daily");
+  const daily = page.locator("tbody tr").filter({ hasText: "Satu Daily" });
+  await daily.locator("td").first().scrollIntoViewIfNeeded();
+  await expect(daily.getByRole("img", { name: "Riwayat Daily Satu Daily tidak cukup untuk grafik" })).toHaveText("—");
+  await expect(daily.locator("svg")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  const blitz = page.locator("tbody tr").filter({ hasText: "Gagal Blitz" });
+  await blitz.locator("td").first().scrollIntoViewIfNeeded();
+  await expect(blitz.getByRole("img", { name: "Riwayat rating Blitz Gagal Blitz tidak dapat dimuat; pindah kontrol lalu kembali untuk mencoba lagi" })).toHaveText("—");
+  gagal = false;
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  await blitz.locator("td").first().scrollIntoViewIfNeeded();
+  await expect(blitz.getByRole("img", { name: /Grafik rating Blitz Gagal Blitz: 2 partai.*rating 1980 ke 2000/ })).toBeVisible();
 });
