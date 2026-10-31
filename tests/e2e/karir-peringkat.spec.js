@@ -121,7 +121,7 @@ test("bendera, kode negara, dan umur kosong mengikuti tiap pemain", async ({ pag
   const posisi = await baris.evaluateAll((rows) => rows.map((row) => {
     const sel = row.querySelector("td:nth-child(2)");
     const gambar = sel.querySelector(":scope > div > span > *").getBoundingClientRect();
-    const nama = sel.querySelector(":scope > div > div > a").getBoundingClientRect();
+    const nama = sel.querySelector("a").getBoundingClientRect();
     return { lebar: gambar.width, tengah: gambar.left + gambar.width / 2, awalNama: nama.left };
   }));
   expect(posisi.map((item) => item.lebar)).toEqual([96, 64, 48]);
@@ -132,6 +132,104 @@ test("bendera, kode negara, dan umur kosong mengikuti tiap pemain", async ({ pag
   await expect(baris.first()).toContainText("Blitz Star");
   await expect(baris.first().getByRole("img", { name: "Bendera Amerika Serikat" })).toBeVisible();
   await expect(baris.nth(1).getByRole("img", { name: "Bendera Indonesia" })).toBeVisible();
+});
+
+test("nama, bendera, dan umur tetap sejajar pada setiap baris", async ({ page }) => {
+  const anggota = [
+    { ...anggotaUji[0], nama: "A" },
+    {
+      ...anggotaUji[1],
+      nama: "Pemain dengan Nama yang Sangat Panjang dan Tidak Boleh Menimpa Kolom Negara",
+      username: "blitzstar_pemain_panjang",
+      terverifikasi: true,
+      statusChess: "closed:fair_play_violations",
+    },
+    { ...anggotaUji[2], nama: "Nama Sedang" },
+    { ...anggotaUji[2], nama: "Tanpa Username", username: null, negara: "GB-ENG" },
+  ];
+  await page.route("**/api/anggota", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(anggota),
+  }));
+  await page.goto("/karir");
+  const baris = page.locator("tbody tr");
+  await expect(baris).toHaveCount(anggota.length);
+
+  const posisi = [];
+  for (let i = 0; i < anggota.length; i++) {
+    const sel = baris.nth(i).locator("td").nth(1);
+    const negara = anggota[i].negara
+      ? sel.getByRole("img", { name: /Bendera/ })
+      : sel.getByText("—", { exact: true });
+    const nama = anggota[i].username
+      ? sel.locator("a").first()
+      : sel.getByText(anggota[i].nama, { exact: true });
+    const username = anggota[i].username
+      ? `@${anggota[i].username}`
+      : "Tidak ada username Chess.com";
+    posisi.push({
+      nama: await nama.boundingBox(),
+      username: await sel.getByText(username, { exact: true }).boundingBox(),
+      negara: await negara.boundingBox(),
+      umur: await sel.getByText("Umur: —", { exact: true }).boundingBox(),
+    });
+  }
+
+  const tengahY = (kotak) => kotak.y + kotak.height / 2;
+  const bedaX = (kotak) => Math.max(...kotak.map((item) => item.x)) - Math.min(...kotak.map((item) => item.x));
+  expect(bedaX(posisi.map((item) => item.nama))).toBeLessThan(1);
+  expect(bedaX(posisi.map((item) => item.negara))).toBeLessThan(1);
+  expect(bedaX(posisi.map((item) => item.umur))).toBeLessThan(1);
+  for (const { nama, username, negara, umur } of posisi) {
+    expect(negara.x).toBeGreaterThanOrEqual(nama.x + nama.width + 8);
+    expect(Math.abs(negara.x - umur.x)).toBeLessThan(1);
+    expect(Math.abs(tengahY(nama) - tengahY(negara))).toBeLessThan(2);
+    expect(Math.abs(tengahY(username) - tengahY(umur))).toBeLessThan(2);
+  }
+  const namaPanjang = baris.nth(1).locator("td").nth(1).locator("a > span > span").first();
+  const lebarNama = await namaPanjang.evaluate((el) => ({ isi: el.scrollWidth, tersedia: el.clientWidth }));
+  expect(lebarNama.isi).toBeGreaterThan(lebarNama.tersedia);
+  await expect(namaPanjang).toHaveAttribute("title", anggota[1].nama);
+  await expect(baris.nth(1).getByText(`@${anggota[1].username}`, { exact: true })).toHaveAttribute("title", `@${anggota[1].username}`);
+  const lencanaVerifikasi = baris.nth(1).getByRole("img", { name: "terverifikasi" });
+  const lencanaBan = baris.nth(1).getByRole("img", { name: "kena ban fair play" });
+  expect((await lencanaVerifikasi.boundingBox()).width).toBe(16);
+  expect((await lencanaBan.boundingBox()).width).toBe(16);
+
+  const benderaIndonesia = baris.first().getByRole("img", { name: "Bendera Indonesia" });
+  await benderaIndonesia.scrollIntoViewIfNeeded();
+  await expect(benderaIndonesia).toBeInViewport();
+  const lebarHalaman = await page.evaluate(() => ({
+    isi: document.documentElement.scrollWidth,
+    layar: document.documentElement.clientWidth,
+  }));
+  expect(lebarHalaman.isi).toBeLessThanOrEqual(lebarHalaman.layar);
+});
+
+test("nama dan negara dapat terlihat bersama saat tabel digeser di layar sempit", async ({ page }) => {
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.goto("/karir");
+  const baris = page.locator("tbody tr").first();
+  await expect(baris).toContainText("Rapid Star");
+  const pembungkus = page.locator("table").locator("..");
+  const nama = baris.locator("td").nth(1).locator("a");
+  const bendera = baris.getByRole("img", { name: "Bendera Indonesia" });
+  const kode = baris.getByText("INA", { exact: true });
+  const umur = baris.getByText("Umur: —", { exact: true });
+
+  const geser = await pembungkus.evaluate((el) => {
+    const namaPemain = el.querySelector("tbody tr td:nth-child(2) a");
+    el.scrollLeft += namaPemain.getBoundingClientRect().left - el.getBoundingClientRect().left - 8;
+    return el.scrollLeft;
+  });
+  expect(geser).toBeGreaterThan(0);
+  const batas = await pembungkus.boundingBox();
+  for (const elemen of [nama, bendera, kode, umur]) {
+    const kotak = await elemen.boundingBox();
+    expect(kotak.x).toBeGreaterThanOrEqual(batas.x);
+    expect(kotak.x + kotak.width).toBeLessThanOrEqual(batas.x + batas.width);
+  }
 });
 
 test("wilayah, kode tidak dikenal, dan umur kosong aman dalam bahasa Inggris", async ({ page }) => {

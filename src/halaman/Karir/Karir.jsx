@@ -71,10 +71,10 @@ function avatar(anggota, kelas = "h-12 w-12", ukuran = 48) {
 
 function LabelPemain({ anggota }) {
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1.5 text-grey-800`}>
-      <span className="truncate">{namaTampil(anggota)}</span>
-      {anggota.terverifikasi && <CentangBiru />}
-      {kenaBan(anggota) && <LencanaBan />}
+    <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-grey-800">
+      <span className="truncate" title={namaTampil(anggota)}>{namaTampil(anggota)}</span>
+      {anggota.terverifikasi && <span className="inline-flex shrink-0"><CentangBiru /></span>}
+      {kenaBan(anggota) && <span className="inline-flex shrink-0"><LencanaBan /></span>}
     </span>
   );
 }
@@ -304,25 +304,28 @@ export default function Karir() {
                           </div>
                         </SelTabelKonten>
                         <SelTabelKonten className={paddingPemain}>
-                          <div className="flex min-w-0 items-center gap-2">
+                          <div className="flex min-w-96 items-center gap-2">
                             <span className="flex w-24 shrink-0 justify-center">
                               {avatar(a, kelasAvatar, ukuranAvatar)}
                             </span>
-                            <div className="min-w-0">
-                              {a.username ? (
-                                <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="font-light hover:text-primary hover:underline">
-                                  <LabelPemain anggota={a} />
-                                </a>
-                              ) : <LabelPemain anggota={a} />}
-                              <p className="truncate text-sm leading-4 text-grey-600">{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
-                              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-4 text-grey-600">
-                                <span className="inline-flex items-center gap-1">
+                            <div className="flex min-w-0 flex-1 items-start gap-4">
+                              <div className="min-w-0 max-w-40 flex-1 sm:max-w-64">
+                                {a.username ? (
+                                  <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="block h-6 font-light hover:text-primary hover:underline">
+                                    <LabelPemain anggota={a} />
+                                  </a>
+                                ) : <LabelPemain anggota={a} />}
+                                <p className="truncate text-sm leading-4 text-grey-600" title={a.username ? `@${a.username}` : undefined}>{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
+                              </div>
+                              <div className="w-24 shrink-0 text-sm leading-4 text-grey-600">
+                                {/* Menahan label pembaca layar di dalam area gulir tabel. */}
+                                <p className="relative flex h-6 items-center gap-1">
                                   <span className="sr-only">{t("beranda.peringkatKlubNegara")}: </span>
                                   {bendera && <img src={bendera} alt={t("beranda.peringkatKlubBendera", { negara: namaNegara })} width={24} height={16} loading="lazy" className="h-4 w-6 shrink-0 object-contain ring-1 ring-grey-200" />}
                                   <span>{kodeTampil || "—"}</span>
-                                </span>
-                                <span>{t("beranda.peringkatKlubUmur")}: —</span>
-                              </p>
+                                </p>
+                                <p>{t("beranda.peringkatKlubUmur")}: —</p>
+                              </div>
                             </div>
                           </div>
                         </SelTabelKonten>
