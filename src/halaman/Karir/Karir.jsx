@@ -15,6 +15,7 @@ import {
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
+import { kodeNegaraTampilan } from "../../lib/kodeNegara.js";
 import {
   kenaBan,
   namaTampil,
@@ -28,6 +29,12 @@ const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
 const URUTAN_KONTROL = ["Rapid", "Blitz", "Bullet", "Daily"];
 const UKURAN_AVATAR_PERINGKAT = [96, 64, 48];
 const KELAS_AVATAR_PERINGKAT = ["h-24 w-24", "h-16 w-16", "h-12 w-12"];
+// Hanya bendera yang ditampilkan yang diunduh; SVG kecil tidak di-inline ke JS.
+const BENDERA_NEGARA = import.meta.glob("../Analisa/komponen/flags/*.svg", {
+  eager: true,
+  query: "?url&no-inline",
+  import: "default",
+});
 
 function ratingKontrol(anggota, kontrol) {
   if (anggota?.hilang || anggota?.gagal) return null;
@@ -86,6 +93,10 @@ function TanggalRoster({ tanggal, locale, t }) {
 export default function Karir() {
   const { anggota, status, menyegarkan, rosterDiperbaruiPada, muatUlang } = useAnggota();
   const { t, bahasa: locale } = useI18n();
+  const namaWilayah = useMemo(
+    () => typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames([locale], { type: "region" }) : null,
+    [locale],
+  );
   const [kontrol, setKontrol] = useState("utama");
   const [cari, setCari] = useState("");
   const [cakupan, setCakupan] = useState("semua");
@@ -278,6 +289,12 @@ export default function Karir() {
                     const ukuranAvatar = UKURAN_AVATAR_PERINGKAT[indeks] ?? 40;
                     const kelasAvatar = KELAS_AVATAR_PERINGKAT[indeks] ?? "h-10 w-10";
                     const paddingPemain = indeks === 0 ? "pt-5 pb-5" : indeks < 3 ? "pt-3 pb-3" : "py-2";
+                    const kodeNegara = typeof a.negara === "string" ? a.negara.trim().toUpperCase() : "";
+                    const kodeTampil = kodeNegaraTampilan(kodeNegara);
+                    const bendera = kodeTampil && BENDERA_NEGARA[`../Analisa/komponen/flags/${kodeNegara.toLowerCase()}.svg`];
+                    const namaNegara = kodeTampil && !kodeNegara.includes("-")
+                      ? namaWilayah?.of(kodeNegara) || kodeTampil
+                      : kodeTampil;
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
                         <SelTabelKonten>
@@ -298,6 +315,14 @@ export default function Karir() {
                                 </a>
                               ) : <LabelPemain anggota={a} />}
                               <p className="truncate text-sm leading-4 text-grey-600">{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
+                              <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-4 text-grey-600">
+                                <span className="inline-flex items-center gap-1">
+                                  <span className="sr-only">{t("beranda.peringkatKlubNegara")}: </span>
+                                  {bendera && <img src={bendera} alt={t("beranda.peringkatKlubBendera", { negara: namaNegara })} width={24} height={16} loading="lazy" className="h-4 w-6 shrink-0 object-contain ring-1 ring-grey-200" />}
+                                  <span>{kodeTampil || "—"}</span>
+                                </span>
+                                <span>{t("beranda.peringkatKlubUmur")}: —</span>
+                              </p>
                             </div>
                           </div>
                         </SelTabelKonten>
@@ -311,7 +336,7 @@ export default function Karir() {
             </div>
           )}
         </section>
-        <p className="mt-4 border-t border-grey-200 pt-4 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")}</p>
+        <p className="mt-4 border-t border-grey-200 pt-4 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")} {t("beranda.peringkatKlubCatatanNegara")}</p>
       </main>
     </div>
   );

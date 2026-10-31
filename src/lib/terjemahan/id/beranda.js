@@ -54,6 +54,9 @@ export const beranda = {
     peringkatKlubTidakAdaHasil: "Tidak ada anggota yang cocok dengan pencarian ini.",
     peringkatKlubKolUrutanRating: "Peringkat dan rating",
     peringkatKlubKolPemain: "Pemain",
+    peringkatKlubNegara: "Negara profil Chess.com",
+    peringkatKlubBendera: "Bendera {negara}",
+    peringkatKlubUmur: "Umur",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Menang / seri / kalah",
     peringkatKlubKolPuncak: "Puncak",
@@ -65,6 +68,7 @@ export const beranda = {
     peringkatKlubLihatChessCom: "Lihat profil pemain di Chess.com",
     peringkatKlubDiperbarui: "Roster diperbarui {tanggal}",
     peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L mengikuti kontrol terpilih, dan menjadi gabungan semua kontrol saat Utama dipilih. Riwayat perubahan rating tidak tersedia pada data anggota ini.",
+    peringkatKlubCatatanNegara: "Bendera dan kode negara mengikuti pilihan profil Chess.com; umur belum tersedia.",
   }
 
 export const sticky = {

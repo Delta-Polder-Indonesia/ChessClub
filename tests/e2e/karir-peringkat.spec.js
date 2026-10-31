@@ -5,6 +5,7 @@ const anggotaUji = [
     username: "rapidstar",
     nama: "Rapid Star",
     foto: "",
+    negara: "ID",
     elo: 1840,
     kontrol: "Rapid",
     ratings: {
@@ -17,6 +18,7 @@ const anggotaUji = [
     username: "blitzstar",
     nama: "Blitz Star",
     foto: "",
+    negara: "US",
     elo: 1770,
     kontrol: "Rapid",
     ratings: {
@@ -28,6 +30,7 @@ const anggotaUji = [
     username: "newmember",
     nama: "New Member",
     foto: "",
+    negara: null,
     elo: null,
     ratings: {},
   },
@@ -88,6 +91,82 @@ test("halaman Karir menampilkan papan peringkat anggota dari roster bersama", as
   await page.getByRole("button", { name: "Tanpa rating" }).click();
   await expect(page.locator("tbody tr")).toHaveCount(1);
   await expect(page.locator("tbody tr").first()).toContainText("New Member");
+});
+
+test("bendera, kode negara, dan umur kosong mengikuti tiap pemain", async ({ page }) => {
+  await page.goto("/karir");
+  const baris = page.locator("tbody tr");
+  await expect(baris).toHaveCount(3);
+
+  const indonesia = baris.nth(0).locator("td").nth(1);
+  const benderaIndonesia = indonesia.getByRole("img", { name: "Bendera Indonesia" });
+  await expect(benderaIndonesia).toBeVisible();
+  await benderaIndonesia.scrollIntoViewIfNeeded();
+  await expect.poll(() => benderaIndonesia.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  const sumberBendera = await benderaIndonesia.getAttribute("src");
+  expect(new URL(sumberBendera, page.url()).origin).toBe(new URL(page.url()).origin);
+  await expect(indonesia).toContainText("INA");
+  await expect(indonesia).toContainText("Umur: —");
+
+  const amerika = baris.nth(1).locator("td").nth(1);
+  await expect(amerika.getByRole("img", { name: "Bendera Amerika Serikat" })).toBeVisible();
+  await expect(amerika).toContainText("USA");
+  await expect(amerika).toContainText("Umur: —");
+
+  const tidakAda = baris.nth(2).locator("td").nth(1);
+  await expect(tidakAda.getByText("—", { exact: true })).toBeVisible();
+  await expect(tidakAda).toContainText("Umur: —");
+  await expect(tidakAda.locator("img")).toHaveCount(0);
+
+  const posisi = await baris.evaluateAll((rows) => rows.map((row) => {
+    const sel = row.querySelector("td:nth-child(2)");
+    const gambar = sel.querySelector(":scope > div > span > *").getBoundingClientRect();
+    const nama = sel.querySelector(":scope > div > div > a").getBoundingClientRect();
+    return { lebar: gambar.width, tengah: gambar.left + gambar.width / 2, awalNama: nama.left };
+  }));
+  expect(posisi.map((item) => item.lebar)).toEqual([96, 64, 48]);
+  expect(Math.max(...posisi.map((item) => item.tengah)) - Math.min(...posisi.map((item) => item.tengah))).toBeLessThan(1);
+  expect(Math.max(...posisi.map((item) => item.awalNama)) - Math.min(...posisi.map((item) => item.awalNama))).toBeLessThan(1);
+
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  await expect(baris.first()).toContainText("Blitz Star");
+  await expect(baris.first().getByRole("img", { name: "Bendera Amerika Serikat" })).toBeVisible();
+  await expect(baris.nth(1).getByRole("img", { name: "Bendera Indonesia" })).toBeVisible();
+});
+
+test("wilayah, kode tidak dikenal, dan umur kosong aman dalam bahasa Inggris", async ({ page }) => {
+  const anggota = [
+    { ...anggotaUji[0], negara: "GB-ENG", tanggalLahir: "1990-01-01" },
+    { ...anggotaUji[1], negara: "ZZ" },
+    { ...anggotaUji[2], negara: "../../id.svg" },
+  ];
+  await page.route("**/api/anggota", (route) => route.fulfill({
+    status: 200,
+    contentType: "application/json",
+    body: JSON.stringify(anggota),
+  }));
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "en"));
+  await page.goto("/karir");
+  const baris = page.locator("tbody tr");
+  await expect(baris).toHaveCount(3);
+
+  const inggris = baris.nth(0).locator("td").nth(1);
+  const benderaInggris = inggris.getByRole("img", { name: "Flag of ENG" });
+  await expect(benderaInggris).toBeVisible();
+  await benderaInggris.scrollIntoViewIfNeeded();
+  await expect.poll(() => benderaInggris.evaluate((img) => img.complete && img.naturalWidth > 0)).toBe(true);
+  await expect(inggris).toContainText("ENG");
+  await expect(inggris).toContainText("Age: —");
+  await expect(inggris).not.toContainText("1990");
+
+  const tidakDikenal = baris.nth(1).locator("td").nth(1);
+  await expect(tidakDikenal).toContainText("ZZ");
+  await expect(tidakDikenal.locator("img")).toHaveCount(0);
+  const tidakValid = baris.nth(2).locator("td").nth(1);
+  await expect(tidakValid.getByText("—", { exact: true })).toBeVisible();
+  await expect(tidakValid).toContainText("Age: —");
+  await expect(tidakValid.locator("img")).toHaveCount(0);
+  await expect(page.getByText(/Flags and country codes follow/)).toBeVisible();
 });
 
 test("Puncak Utama mengikuti kontrol utama masing-masing pemain", async ({ page }) => {

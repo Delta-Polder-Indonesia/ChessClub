@@ -54,6 +54,9 @@ export const beranda = {
     peringkatKlubTidakAdaHasil: "No members match this search.",
     peringkatKlubKolUrutanRating: "Rank and rating",
     peringkatKlubKolPemain: "Player",
+    peringkatKlubNegara: "Chess.com profile country",
+    peringkatKlubBendera: "Flag of {negara}",
+    peringkatKlubUmur: "Age",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Win / draw / loss",
     peringkatKlubKolPuncak: "Peak",
@@ -65,6 +68,7 @@ export const beranda = {
     peringkatKlubLihatChessCom: "View player profile on Chess.com",
     peringkatKlubDiperbarui: "Roster updated {tanggal}",
     peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L follows the selected control and combines all controls when Primary is selected. Rating-change history is not available in this member data.",
+    peringkatKlubCatatanNegara: "Flags and country codes follow each Chess.com profile's selection; ages are not available.",
   }
 
 export const sticky = {

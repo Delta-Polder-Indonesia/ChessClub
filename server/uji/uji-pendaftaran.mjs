@@ -150,9 +150,17 @@ console.log("\nPendaftaran — mode default `opsional` (server A)");
     sah.data &&
       !("hp" in sah.data) &&
       !("email" in sah.data) &&
+      !("tanggalLahir" in sah.data) &&
+      !("umur" in sah.data) &&
       !("identitas" in sah.data) &&
       !("sidikPepper" in sah.data),
     JSON.stringify(sah.data)?.slice(0, 200)
+  );
+  const rosterPublik = await (await fetch(`${server.dasar}/api/anggota`)).json();
+  const hikaruPublik = Array.isArray(rosterPublik) ? rosterPublik.find((anggota) => anggota.username === "hikaru") : null;
+  cek(
+    "roster tidak mempublikasikan tanggal lahir formulir atau umur hasil hitungannya",
+    Boolean(hikaruPublik) && !("tanggalLahir" in hikaruPublik) && !("umur" in hikaruPublik)
   );
 
   /* Field "keamanan" dari browser harus diabaikan sama sekali. */

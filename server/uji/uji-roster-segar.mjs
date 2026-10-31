@@ -53,6 +53,7 @@ const klubTiruan = {
 };
 
 let versiFoto = 1;
+let negaraMagnus = "NO";
 const tiruan = await nyalakanPeniruChess(
   {
     magnuscarlsen: { ...undefined, avatar: "" },
@@ -66,6 +67,8 @@ const tiruan = await nyalakanPeniruChess(
         status: "premium",
         joined: 1262051374,
         name: "Magnus Carlsen",
+        country: `https://api.chess.com/pub/country/${negaraMagnus}`,
+        birthday: "1990-01-01",
         avatar: `https://images.chesscomfiles.com/uploads/v1/user/111.versi-${versiFoto}.jpg`,
         url: "https://www.chess.com/member/magnuscarlsen",
         stats: {
@@ -123,6 +126,9 @@ try {
   cek("snapshot segar saat baru dibuat", awal.segar === "1", `segar=${awal.segar}`);
   cek("cap waktu snapshot dilaporkan", Boolean(awal.diperbaruiPada), awal.diperbaruiPada);
   cek("foto profil ikut tersimpan di snapshot", foto(awal.data, "magnuscarlsen").includes("versi-1"), foto(awal.data, "magnuscarlsen"));
+  const magnus = awal.data.find((anggota) => anggota.username === "magnuscarlsen");
+  cek("API publik memuat kode negara dari profil Chess.com", magnus?.negara === "NO");
+  cek("API publik tidak memuat tanggal lahir", !Object.hasOwn(magnus || {}, "birthday") && !Object.hasOwn(magnus || {}, "tanggalLahir"));
 
   const status = await (await fetch(`${srv.dasar}/api/anggota/status`)).json();
   cek(
@@ -134,6 +140,7 @@ try {
   /* ------------------------------------------ penyegaran latar belakang */
   console.log("\nPenyegaran latar belakang (stale-while-revalidate)");
   versiFoto = 2;
+  negaraMagnus = "US";
   klubTiruan.all_time.push({ username: "anggota_baru", joined: 1770000000 });
   await tidur(2400); // melewati batas segar (1 dtk) DAN umur cache profil (2 dtk)
 
@@ -155,6 +162,10 @@ try {
     "foto profil ikut diperbarui oleh penyegaran latar belakang",
     foto(sesudahLatar.data, "magnuscarlsen").includes("versi-2"),
     foto(sesudahLatar.data, "magnuscarlsen")
+  );
+  cek(
+    "negara mengikuti perubahan profil setelah penyegaran",
+    sesudahLatar.data.find((anggota) => anggota.username === "magnuscarlsen")?.negara === "US"
   );
   cek(
     "cap waktu snapshot ikut maju setelah penyegaran",
@@ -240,8 +251,13 @@ const anggotaLama = (username, elo, umurMs) => ({
   nama: username,
   elo,
   kontrol: "Rapid",
+  negara: null,
   ratings: { Rapid: ratingLama(elo) },
   profilDiambilPada: cap(umurMs),
+});
+const anggotaUntukNegara = (username, elo, umurMs) => ({
+  ...anggotaLama(username, elo, umurMs),
+  ratings: { Rapid: { ...ratingLama(elo), puncak: elo + 100 } },
 });
 const snapshotPuncak = {
   diperbaruiPada: cap(65_000),
@@ -249,6 +265,7 @@ const snapshotPuncak = {
   anggota: [
     {
       ...anggotaLama("legacy_a", 1800, 50_000),
+      negara: undefined,
       ratings: {
         Rapid: ratingLama(1800),
         Blitz: ratingLama(1500),
@@ -266,7 +283,12 @@ const snapshotPuncak = {
       ...anggotaLama("tanpa_best", 1300, 5_000),
       ratings: { Rapid: { ...ratingLama(1300), puncak: null } },
     },
-    { username: "tanpa_rating", elo: null, ratings: {}, profilDiambilPada: cap(5_000) },
+    { username: "tanpa_rating", elo: null, negara: null, ratings: {}, profilDiambilPada: cap(5_000) },
+    anggotaUntukNegara("negara_gagal", 1400, 90_000),
+    anggotaUntukNegara("negara_usa", 1350, 40_000),
+    anggotaUntukNegara("negara_kosong", 1250, 20_000),
+    anggotaUntukNegara("negara_subdivisi", 1150, 10_000),
+    anggotaUntukNegara("negara_invalid", 1050, 5_000),
   ],
 };
 fs.writeFileSync(path.join(dirPuncak, "roster-anggota.json"), JSON.stringify(snapshotPuncak));
@@ -285,9 +307,22 @@ const statistikPemain = {
   tanpa_best: { chess_rapid: { last: { rating: 1300 } } },
   tanpa_rating: {},
   pendatang: {},
+  negara_gagal: { chess_rapid: { last: { rating: 1400 }, best: { rating: 1500 } } },
+  negara_usa: { chess_rapid: { last: { rating: 1350 }, best: { rating: 1450 } } },
+  negara_kosong: { chess_rapid: { last: { rating: 1250 }, best: { rating: 1350 } } },
+  negara_subdivisi: { chess_rapid: { last: { rating: 1150 }, best: { rating: 1250 } } },
+  negara_invalid: { chess_rapid: { last: { rating: 1050 }, best: { rating: 1150 } } },
 };
 let statistikGagal = true;
 let profilGagal = true;
+let profilNegaraGagal = true;
+const negaraProfil = {
+  legacy_a: "https://api.chess.com/pub/country/ID",
+  negara_gagal: "https://api.chess.com/pub/country/ID",
+  negara_usa: "https://api.chess.com/pub/country/US",
+  negara_subdivisi: "https://api.chess.com/pub/country/gb-eng",
+  negara_invalid: "https://tidak-tepercaya.test/country/ID",
+};
 const permintaanStatistik = [];
 const json = (data, status = 200) => new Response(JSON.stringify(data), {
   status,
@@ -304,11 +339,19 @@ globalThis.fetch = async (url) => {
   const [, username, stats] = cocok;
   if (stats) {
     permintaanStatistik.push(username);
-    if (username === "legacy_b" && statistikGagal) return json({}, 503);
+    if ((username === "legacy_b" && statistikGagal) || username === "negara_usa") return json({}, 503);
     return json(statistikPemain[username]);
   }
-  if (username === "gagal_profil" && profilGagal) return json({}, 503);
-  return json({ username, status: "basic", url: `https://www.chess.com/member/${username}` });
+  if ((username === "gagal_profil" && profilGagal) || (username === "negara_gagal" && profilNegaraGagal)) {
+    return json({}, 503);
+  }
+  return json({
+    username,
+    status: "basic",
+    url: `https://www.chess.com/member/${username}`,
+    country: negaraProfil[username],
+    birthday: "1990-01-01",
+  });
 };
 Object.defineProperty(globalThis, simbolKonteks, {
   configurable: true,
@@ -353,6 +396,8 @@ try {
   cek("profil lama tanpa puncak didahulukan meski cap profil masih baru", a?.ratings.Rapid.puncak === 1910, JSON.stringify(a?.ratings));
   cek("puncak mengikuti kontrol waktu", a?.ratings.Blitz.puncak === 1555);
   cek("best yang tidak disediakan Chess.com tetap null", a?.ratings.Daily.puncak === null);
+  cek("negara publik Chess.com ikut tersimpan saat migrasi puncak", a?.negara === "ID", JSON.stringify(a));
+  cek("tanggal lahir profil tidak ikut dipublikasikan", !Object.hasOwn(a || {}, "birthday") && !Object.hasOwn(a || {}, "tanggalLahir"));
   cek("profil yang sudah punya puncak tidak mendahului profil lama", !permintaanStatistik.includes("sudah_lengkap"));
 
   await segarkanRoster();
@@ -386,11 +431,67 @@ try {
   cek("statistik yang sempat gagal berhasil diperbarui", daftar.find((a) => a.username === "legacy_b")?.ratings.Rapid.puncak === 1755);
   cek("puncak null dan rating kosong tidak ikut diambil ulang", !permintaanStatistik.includes("tanpa_best") && !permintaanStatistik.includes("tanpa_rating"));
 
+  console.log("\nNegara pada snapshot lama");
+  // Simulasikan snapshot lama yang sudah memiliki puncak, tetapi belum negara.
+  for (const item of daftar.filter((anggota) => anggota.username.startsWith("negara_"))) {
+    delete item.negara;
+  }
   const waktuAsli = Date.now;
   try {
     Date.now = () => waktuAsli() + 120_000;
     await rosterAnggota();
-    cek("puncak null tidak memicu migrasi ulang setelah jeda", pekerjaanLatar.length === 0);
+    cek("snapshot segar tanpa negara menjadwalkan migrasi latar", pekerjaanLatar.length === 1);
+    await Promise.all(pekerjaanLatar.splice(0));
+  } finally {
+    Date.now = waktuAsli;
+  }
+  daftar = (await rosterAnggota()).anggota;
+  const gagalNegara = daftar.find((item) => item.username === "negara_gagal");
+  cek("profil negara yang gagal tetap mempertahankan rating lama", gagalNegara?.elo === 1400 && !gagalNegara.gagal && !Object.hasOwn(gagalNegara, "negara"));
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  const usa = daftar.find((item) => item.username === "negara_usa");
+  cek("profil gagal tidak menghalangi negara pemain lain", usa?.negara === "US");
+  cek("kegagalan statistik saat migrasi negara menjaga rating lama", usa?.elo === 1350 && usa.ratings?.Rapid?.puncak === 1450);
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("negara yang tidak tersedia disimpan sebagai null", daftar.find((item) => item.username === "negara_kosong")?.negara === null);
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("kode negara subdivisi dinormalisasi", daftar.find((item) => item.username === "negara_subdivisi")?.negara === "GB-ENG");
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("sumber negara tidak tepercaya tidak dipakai", daftar.find((item) => item.username === "negara_invalid")?.negara === null);
+
+  profilNegaraGagal = false;
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("negara yang sempat gagal berhasil dicoba ulang", daftar.find((item) => item.username === "negara_gagal")?.negara === "ID");
+  cek("negara dari snapshot tetap ada saat profil digunakan ulang", daftar.find((item) => item.username === "negara_usa")?.negara === "US");
+
+  const { hapusCache } = await import("../src/chess.js");
+  delete daftar.find((item) => item.username === "legacy_b").ratings.Rapid.puncak;
+  delete daftar.find((item) => item.username === "negara_usa").negara;
+  statistikGagal = true;
+  hapusCache("legacy_b");
+  await segarkanRoster();
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("puncak yang gagal tidak menghalangi migrasi negara", daftar.find((item) => item.username === "negara_usa")?.negara === "US");
+  statistikGagal = false;
+  hapusCache("legacy_b");
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("puncak yang tertunda tetap dicoba kembali", daftar.find((item) => item.username === "legacy_b")?.ratings.Rapid.puncak === 1755);
+
+  try {
+    Date.now = () => waktuAsli() + 240_000;
+    await rosterAnggota();
+    cek("negara null dan puncak null tidak memicu migrasi ulang", pekerjaanLatar.length === 0);
     await Promise.all(pekerjaanLatar.splice(0));
   } finally {
     Date.now = waktuAsli;
