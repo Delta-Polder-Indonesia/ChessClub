@@ -17,6 +17,9 @@
  * Jalankan: node server/uji/uji-roster-segar.mjs
  * Tanpa internet: Chess.com ditiru server lokal (lihat alat-uji.mjs).
  */
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { nyalakanPeniruChess, luncurkanServerUji, ambilTokenCsrf } from "./alat-uji.mjs";
 
 let lulus = 0;
@@ -220,6 +223,187 @@ try {
   );
 } finally {
   srv.hentikan();
+}
+
+/* ----------------------------------------- migrasi puncak snapshot lama */
+console.log("\nPuncak rating pada snapshot lama");
+const dirPuncak = fs.mkdtempSync(path.join(os.tmpdir(), "kci-uji-puncak-"));
+const fetchAsli = globalThis.fetch;
+const simbolKonteks = Symbol.for("@vercel/request-context");
+const konteksAsli = Object.getOwnPropertyDescriptor(globalThis, simbolKonteks);
+const pekerjaanLatar = [];
+const sekarang = Date.now();
+const cap = (umurMs) => new Date(sekarang - umurMs).toISOString();
+const ratingLama = (elo) => ({ elo, win: 4, draw: 1, loss: 2 });
+const anggotaLama = (username, elo, umurMs) => ({
+  username,
+  nama: username,
+  elo,
+  kontrol: "Rapid",
+  ratings: { Rapid: ratingLama(elo) },
+  profilDiambilPada: cap(umurMs),
+});
+const snapshotPuncak = {
+  diperbaruiPada: cap(65_000),
+  klubChess: "blunder-skuad",
+  anggota: [
+    {
+      ...anggotaLama("legacy_a", 1800, 50_000),
+      ratings: {
+        Rapid: ratingLama(1800),
+        Blitz: ratingLama(1500),
+        Daily: ratingLama(1200),
+      },
+    },
+    anggotaLama("legacy_b", 1700, 30_000),
+    anggotaLama("gagal_profil", 1600, 10_000),
+    anggotaLama("legacy_c", 1500, 5_000),
+    {
+      ...anggotaLama("sudah_lengkap", 2100, 7_200_000),
+      ratings: { Rapid: { ...ratingLama(2100), puncak: 2200 } },
+    },
+    {
+      ...anggotaLama("tanpa_best", 1300, 5_000),
+      ratings: { Rapid: { ...ratingLama(1300), puncak: null } },
+    },
+    { username: "tanpa_rating", elo: null, ratings: {}, profilDiambilPada: cap(5_000) },
+  ],
+};
+fs.writeFileSync(path.join(dirPuncak, "roster-anggota.json"), JSON.stringify(snapshotPuncak));
+
+const namaKlub = [...snapshotPuncak.anggota.map((a) => a.username), "pendatang"];
+const statistikPemain = {
+  legacy_a: {
+    chess_rapid: { last: { rating: 1800 }, best: { rating: 1910 }, record: { win: 4, draw: 1, loss: 2 } },
+    chess_blitz: { last: { rating: 1500 }, best: { rating: 1555 }, record: { win: 4, draw: 1, loss: 2 } },
+    chess_daily: { last: { rating: 1200 }, record: { win: 4, draw: 1, loss: 2 } },
+  },
+  legacy_b: { chess_rapid: { last: { rating: 1700 }, best: { rating: 1755 } } },
+  gagal_profil: { chess_rapid: { last: { rating: 1600 }, best: { rating: 1655 } } },
+  legacy_c: { chess_rapid: { last: { rating: 1500 }, best: { rating: 1555 } } },
+  sudah_lengkap: { chess_rapid: { last: { rating: 2100 }, best: { rating: 2200 } } },
+  tanpa_best: { chess_rapid: { last: { rating: 1300 } } },
+  tanpa_rating: {},
+  pendatang: {},
+};
+let statistikGagal = true;
+let profilGagal = true;
+const permintaanStatistik = [];
+const json = (data, status = 200) => new Response(JSON.stringify(data), {
+  status,
+  headers: { "Content-Type": "application/json" },
+});
+
+globalThis.fetch = async (url) => {
+  const jalur = new URL(url).pathname;
+  if (jalur === "/club/blunder-skuad/members") {
+    return json({ all_time: namaKlub.map((username) => ({ username })) });
+  }
+  const cocok = /^\/player\/([^/]+)(\/stats)?$/.exec(jalur);
+  if (!cocok || !Object.hasOwn(statistikPemain, cocok[1])) return json({}, 404);
+  const [, username, stats] = cocok;
+  if (stats) {
+    permintaanStatistik.push(username);
+    if (username === "legacy_b" && statistikGagal) return json({}, 503);
+    return json(statistikPemain[username]);
+  }
+  if (username === "gagal_profil" && profilGagal) return json({}, 503);
+  return json({ username, status: "basic", url: `https://www.chess.com/member/${username}` });
+};
+Object.defineProperty(globalThis, simbolKonteks, {
+  configurable: true,
+  value: { get: () => ({ waitUntil: (janji) => pekerjaanLatar.push(janji) }) },
+});
+
+const envPuncak = {
+  KCI_DIR_DATA: dirPuncak,
+  KCI_CHESS_DASAR: "https://chess-tiruan.test",
+  KCI_CHESS_KLUB: "blunder-skuad",
+  KCI_CHESS_KLUB_CACHE: "3600",
+  KCI_CHESS_KLUB_PROFILE_CACHE: "3600",
+  KCI_CHESS_KLUB_SNAPSHOT_SEGAR: "900",
+  KCI_CHESS_KLUB_SNAPSHOT_TUNGGU: "7200",
+  KCI_CHESS_KLUB_SAPU: "1",
+  KCI_CHESS_KLUB_PENGAYAAN_MS: "3000",
+  KCI_CHESS_RETRY: "1",
+  SUPABASE_URL: "",
+  KCI_SUPABASE_URL: "",
+};
+const envAsli = Object.fromEntries(Object.keys(envPuncak).map((k) => [k, process.env[k]]));
+Object.assign(process.env, envPuncak);
+
+try {
+  const { rosterAnggota, segarkanRoster } = await import("../src/keanggotaan.js");
+  const awal = await rosterAnggota();
+  cek(
+    "snapshot lama tetap langsung dikirim tanpa menunggu migrasi",
+    awal.anggota.find((a) => a.username === "legacy_a")?.ratings.Rapid.puncak === undefined
+  );
+  cek("snapshot segar yang belum punya puncak menjadwalkan penyegaran latar", pekerjaanLatar.length === 1);
+  await Promise.all(pekerjaanLatar.splice(0));
+
+  let daftar = (await rosterAnggota()).anggota;
+  cek("anggota baru tanpa profil tetap didahulukan", daftar.some((a) => a.username === "pendatang" && a.profilDiambilPada));
+  cek("jumlah profil per penyegaran mengikuti batas", permintaanStatistik.length === 1 && permintaanStatistik[0] === "pendatang", permintaanStatistik.join(", "));
+  cek("permintaan berikutnya tidak langsung mengulang penyegaran", pekerjaanLatar.length === 0);
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  const a = daftar.find((item) => item.username === "legacy_a");
+  cek("profil lama tanpa puncak didahulukan meski cap profil masih baru", a?.ratings.Rapid.puncak === 1910, JSON.stringify(a?.ratings));
+  cek("puncak mengikuti kontrol waktu", a?.ratings.Blitz.puncak === 1555);
+  cek("best yang tidak disediakan Chess.com tetap null", a?.ratings.Daily.puncak === null);
+  cek("profil yang sudah punya puncak tidak mendahului profil lama", !permintaanStatistik.includes("sudah_lengkap"));
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  const b = daftar.find((item) => item.username === "legacy_b");
+  cek(
+    "gangguan statistik tidak menghapus rating lama atau menandai migrasi selesai",
+    b?.elo === 1700 && b.ratings?.Rapid?.elo === 1700 && !Object.hasOwn(b.ratings.Rapid, "puncak"),
+    JSON.stringify(b)
+  );
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  const gagal = daftar.find((item) => item.username === "gagal_profil");
+  cek(
+    "gangguan profil mempertahankan data lama untuk dicoba kembali",
+    gagal?.elo === 1600 && gagal.ratings?.Rapid?.elo === 1600 && !gagal.gagal,
+    JSON.stringify(gagal)
+  );
+
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("profil yang gagal tidak menghalangi migrasi pemain lain", daftar.find((a) => a.username === "legacy_c")?.ratings.Rapid.puncak === 1555);
+
+  profilGagal = false;
+  statistikGagal = false;
+  await segarkanRoster();
+  await segarkanRoster();
+  daftar = (await rosterAnggota()).anggota;
+  cek("profil yang sempat gagal berhasil diperbarui", daftar.find((a) => a.username === "gagal_profil")?.ratings.Rapid.puncak === 1655);
+  cek("statistik yang sempat gagal berhasil diperbarui", daftar.find((a) => a.username === "legacy_b")?.ratings.Rapid.puncak === 1755);
+  cek("puncak null dan rating kosong tidak ikut diambil ulang", !permintaanStatistik.includes("tanpa_best") && !permintaanStatistik.includes("tanpa_rating"));
+
+  const waktuAsli = Date.now;
+  try {
+    Date.now = () => waktuAsli() + 120_000;
+    await rosterAnggota();
+    cek("puncak null tidak memicu migrasi ulang setelah jeda", pekerjaanLatar.length === 0);
+    await Promise.all(pekerjaanLatar.splice(0));
+  } finally {
+    Date.now = waktuAsli;
+  }
+} finally {
+  globalThis.fetch = fetchAsli;
+  if (konteksAsli) Object.defineProperty(globalThis, simbolKonteks, konteksAsli);
+  else delete globalThis[simbolKonteks];
+  for (const [k, nilai] of Object.entries(envAsli)) {
+    if (nilai === undefined) delete process.env[k];
+    else process.env[k] = nilai;
+  }
+  fs.rmSync(dirPuncak, { recursive: true, force: true });
 }
 
 /* -------------------------------------------------------------- ringkasan */

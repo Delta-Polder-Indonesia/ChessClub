@@ -186,9 +186,10 @@ export function validasiPendaftaran(body) {
  * Lengkapi data anggota dengan profil & rating terkini dari Chess.com.
  * `cacheDetik` memanjangkan umur cache profil agar satu kunjungan halaman
  * tidak membuat ratusan profil diambil berulang kali; `paksa` melewati cache
- * sama sekali (dipakai penyegaran manual pengurus).
+ * sama sekali (dipakai penyegaran manual pengurus). `cadanganRating` menjaga
+ * rating snapshot lama jika statistik sementara tidak dapat diambil.
  */
-export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {}) {
+export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false, cadanganRating } = {}) {
   const { username } = anggota;
   const opsiCache = paksa
     ? { pakaiCache: false }
@@ -213,7 +214,7 @@ export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {
     }
 
     const profil = pRes.data;
-    const rating = ringkasRating(sRes.ada ? sRes.data : {});
+    const rating = sRes.ada ? ringkasRating(sRes.data) : (cadanganRating || ringkasRating({}));
     const namaAsli = profil.name || profil.username || username;
     const nama = profil.title ? `${profil.title} ${namaAsli}` : namaAsli;
     const status = evaluasiStatusChess(profil.status);
@@ -311,6 +312,16 @@ function bagianChess(sumber) {
 
 /* ------------------------------------------------------------- layanan */
 
+// Profil yang gagal dipindah ke belakang antrean tanpa mengubah cap snapshot.
+const percobaanPuncakGagal = new Map();
+
+/** `null` berarti Chess.com tidak menyediakan puncak, bukan snapshot lama. */
+function belumAdaDataPuncak(anggota) {
+  return Object.values(anggota?.ratings || {}).some(
+    (rating) => rating && typeof rating === "object" && !Object.hasOwn(rating, "puncak")
+  );
+}
+
 /**
  * Susun roster lengkap dari sumbernya (Chess.com + data lokal).
  *
@@ -371,6 +382,9 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
       daftarPada: anggotaKlub.daftarPada,
     });
   }
+  for (const username of percobaanPuncakGagal.keys()) {
+    if (!dasarGabung.has(username)) percobaanPuncakGagal.delete(username);
+  }
 
   /* ------------------------------------------------- rencana pengambilan */
   const sekarang = Date.now();
@@ -381,16 +395,22 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
     const lama = lamaPerUsername.get(anggotaKlub.username);
     const cap = lama?.profilDiambilPada ? Date.parse(lama.profilDiambilPada) : 0;
     const adaCap = Number.isFinite(cap) && cap > 0;
+    const belumPuncak = belumAdaDataPuncak(lama);
     return {
       anggotaKlub,
       lama,
-      // Belum pernah diperkaya (0) selalu didahulukan.
-      urut: adaCap ? cap : 0,
-      perlu: paksa || !adaCap || cap <= kedaluwarsaSebelum,
+      belumPuncak,
+      // Belum pernah diperkaya (0) didahulukan, kecuali baru gagal dicoba.
+      urut: Math.max(adaCap ? cap : 0, percobaanPuncakGagal.get(anggotaKlub.username) || 0),
+      perlu: paksa || belumPuncak || !adaCap || cap <= kedaluwarsaSebelum,
     };
   });
 
-  const antre = kandidat.filter((k) => k.perlu).sort((a, b) => a.urut - b.urut);
+  const antre = kandidat.filter((k) => k.perlu).sort((a, b) => {
+    if (!a.urut || !b.urut) return a.urut - b.urut;
+    if (a.belumPuncak !== b.belumPuncak) return a.belumPuncak ? -1 : 1;
+    return a.urut - b.urut;
+  });
   const dipilih = paksa
     ? antre
     : antre.slice(0, konfigurasi.chess.klub.profilSekaliSapu);
@@ -416,8 +436,22 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
               // supaya rotasi benar-benar mengambil data baru (bukan membaca
               // cache lama) dan kunjungan halaman berikutnya tetap ringan.
               cacheDetik: konfigurasi.chess.klub.profilCacheDetik,
+              cadanganRating: k.belumPuncak ? {
+                ratings: k.lama.ratings,
+                elo: k.lama.elo,
+                kontrol: k.lama.kontrol,
+                win: k.lama.win,
+                draw: k.lama.draw,
+                loss: k.lama.loss,
+              } : undefined,
             }
           );
+          // Saat migrasi gagal, snapshot lama tetap dipakai dan dicoba lagi.
+          if (hasil.gagal && k.belumPuncak) {
+            percobaanPuncakGagal.set(k.anggotaKlub.username, Date.now());
+            continue;
+          }
+          percobaanPuncakGagal.delete(k.anggotaKlub.username);
           hasilSegar.set(k.anggotaKlub.username, hasil);
         }
       })().catch(() => {})
@@ -498,6 +532,8 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
 /** Cache memori agar tidak membaca berkas/Supabase tiap permintaan. */
 let rosterMemori = null; // { diperbaruiPada, anggota }
 let penyegaranBerjalan = null;
+const JEDA_PUNCAK_DETIK = 60;
+let terakhirCobaPuncak = 0;
 /** Snapshot diketahui tertinggal dari data terbaru (mis. baru ada pendaftaran). */
 let wajibSegar = false;
 
@@ -623,6 +659,20 @@ export async function rosterAnggota({ paksa = false } = {}) {
 
   if (!paksa && snapshot.anggota.length) {
     if (umur <= konfigurasi.chess.klub.snapshotSegarDetik && !wajibSegar) {
+      // Snapshot yang baru disusun dapat berisi profil lama tanpa `puncak`.
+      // Migrasikan bertahap, dengan jeda agar kunjungan tidak membanjiri API.
+      if (
+        umur >= JEDA_PUNCAK_DETIK &&
+        Date.now() - terakhirCobaPuncak >= JEDA_PUNCAK_DETIK * 1000 &&
+        snapshot.anggota.some(belumAdaDataPuncak)
+      ) {
+        terakhirCobaPuncak = Date.now();
+        teruskanSetelahRespons(
+          segarkanRoster().catch((e) => {
+            console.warn(`[kci] penyegaran puncak rating gagal: ${e?.message || e}`);
+          })
+        );
+      }
       return hasil(true);
     }
 
