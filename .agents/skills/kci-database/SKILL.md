@@ -44,7 +44,8 @@ tidak menyentuh Supabase. Jangan memakai salah satunya sebagai bukti bahwa jalur
   pemilik data. Selama proyek belum memakai Supabase Auth (bagian 4), pemilik berarti "backend
   setelah identitas diverifikasi", bukan klien.
 - **Klien peramban tidak pernah bicara ke tabel atau bucket PDF.** E-book dilayani
-  melalui `/api/ebook-preview` setelah tiket redemption; bucket `ebooks-private` hanya
+  melalui `/api/ebook-preview`: membaca/pratinjau bebas tiket, sedangkan unduhan (`unduh=1`)
+  memerlukan tiket hasil tebus kode pengurus. Bucket `ebooks-private` hanya
   dibaca backend memakai service role. `npm run ebook:unggah` mengunggah ke bucket privat
   dan tidak menulis URL storage ke bundle frontend. Origin storage privat tidak perlu
   dimasukkan ke CSP browser.

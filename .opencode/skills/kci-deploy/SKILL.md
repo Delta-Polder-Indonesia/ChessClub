@@ -70,26 +70,16 @@ Daftar lengkap beserta komentarnya ada di `.env.contoh`.
 
 ## Commit dan push: jangan menghasilkan deployment yang diblokir
 
-### Perintah push resmi (wajib — aturan pemilik repo)
+### Alur branch dan pull request
 
-Pemilik repo menetapkan SATU-SATUNYA urutan perintah push. Selain urutan ini, push tidak
-diizinkan:
+Kerjakan perubahan di cabang kerja (untuk agen, cabang sesi) dan ajukan PR dari cabang itu;
+jangan commit atau push langsung ke `main`. Commit, push, dan pembuatan PR mengikuti permintaan
+pengguna dan aturan `AGENTS.md`; **jangan push tanpa perintah eksplisit**.
 
-1. `git add .`
-2. `git commit -m "isi sesuai kebutuhan"`
-3. `git push origin main`
-
-Konsekuensinya:
-
-- **Semua perubahan di working tree wajib ikut ter-commit dan ter-push.** Termasuk berkas yang
-  diubah pemilik repo sendiri (mis. `package.json` saat instalasi) — jangan "menyisihkan" berkas
-  apa pun dengan alasan apa pun.
-- **Satu-satunya pengecualian adalah yang tertulis di `.gitignore`.** Bila ada berkas yang tidak
-  boleh masuk repo, pemilik repo yang menambahkannya ke `.gitignore`; agen tidak boleh membuat
-  daftar pengecualian sendiri.
-- Karena `git add .` menyapu seluruh working tree, pastikan tidak ada berkas/temporer tak sengaja
-  di area repo sebelum commit (berkas sementara wajib di `C:\Users\TRIANA~1\AppData\Local\Temp\opencode\`,
-  lihat `AGENTS.md`).
+Sebelum commit, periksa `git status` dan diff. Stage hanya berkas yang termasuk tugas dengan
+`git add -- <jalur>`; jangan memakai `git add .` secara membabi buta atau memasukkan perubahan
+pengguna yang tidak terkait. Periksa `git diff --cached` sebelum commit. Jika ada perubahan
+pengguna yang terkait tetapi cakupannya tidak jelas, tanyakan sebelum menyertakannya.
 
 Proyek Vercel `chess-club` terhubung langsung ke repo GitHub ini, jadi **setiap push ke cabang
 mana pun** (termasuk cabang kerja agen) memicu satu deployment. Vercel menolak deployment yang

@@ -150,12 +150,11 @@ Sebagian area tidak boleh hanya mengandalkan uji lain yang kebetulan menyentuhny
 
 ## Prosedur sebelum PR
 
-1. Jalankan rantai yang relevan sampai hijau di lokal: `npm run uji` (atau uji topik) + `npm run build`,
-   dan `npm run uji:e2e` bila perubahan menyentuh halaman publik.
-2. Repo ini **tidak punya linter**: tidak ada ESLint/Prettier/Biome, tidak ada skrip `lint`, dan CI tidak
-   menjalankan lint. Jangan menulis "jalankan linter" di catatan PR, dan jangan menambah tooling lint
-   sebagai bagian dari tugas lain tanpa persetujuan pengguna. Kebersihan kode dijaga lewat aturan di
-   `kci-standar-kode` dan lewat uji.
+1. Jalankan pemeriksaan yang relevan secara lokal: `npm run lint`, `npm run uji` (atau uji topik)
+   dan `npm run build`; jalankan `npm run uji:e2e` bila perubahan menyentuh halaman publik.
+2. ESLint dikonfigurasi di `eslint.config.js`; `npm run lint` menjalankan `eslint . --max-warnings 0`
+   dan juga menjadi gerbang CI. Untuk pemeriksaan menyeluruh gunakan `npm run uji:rilis:v1` sesuai
+   kebutuhan dan laporkan setiap pemeriksaan yang belum dijalankan.
 3. Uji yang melewati dirinya sendiri (`esbuild` atau `fake-indexeddb` tidak terpasang, `uji:supabase`
    tanpa kredensial) laporkan apa adanya — jangan mengklaim lulus padahal bagian itu dilewati.
 4. Uji merah diperbaiki di cabang kerja sebelum meminta tinjauan. Menghapus, melewati, atau melemahkan
@@ -163,12 +162,12 @@ Sebagian area tidak boleh hanya mengandalkan uji lain yang kebetulan menyentuhny
 
 ## Samakan dengan CI
 
-`.github/workflows/quality.yml` (berjalan pada setiap PR dan push ke `main`, Node 22, checkout
-biasa tanpa `lfs: true`) menjalankan berurutan:
+`.github/workflows/quality.yml` berjalan pada PR, push ke `main`, dan pemicu manual, memakai
+Node 22 dan checkout tanpa `lfs: true`. Dua job berjalan paralel setelah `npm ci --include=dev`:
 
-1. "Run logic and backend tests": `npm run uji && npm run uji:backend && npm run uji:verifikasi && npm run uji:pendaftaran && npm run uji:konfigurasi-keamanan && npm run uji:auth-jwt && npm run uji:klasemen && npm run uji:quiz`
-2. "Build production bundle": `npm run build`
-3. "Install Chromium for Playwright": `npx playwright install --with-deps chromium`
-4. "Run public browser smoke tests": `npm run uji:e2e`
+1. **Test and browser smoke checks**: `npm run lint`, `npm run uji:wawasan-profil`,
+   `node scripts/uji-analisa-ui.mjs`, lalu gerbang `npm run uji:rilis:v1`.
+2. **Browser tests (Playwright)**: pulihkan cache Chromium, `npx playwright install chromium`,
+   lalu `npm run uji:e2e`; laporan Playwright diunggah jika job gagal.
 
-Pekerjaan belum selesai sebelum langkah-langkah yang relevan lulus secara lokal.
+Jalankan pemeriksaan lokal yang relevan dan laporkan jika ada yang tidak dijalankan atau dilewati.
