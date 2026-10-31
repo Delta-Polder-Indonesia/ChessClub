@@ -81,7 +81,11 @@ Bank soal taktik/skakmat, filter, alur menyelesaikan teka-teki, dan Rush sudah a
 
 ## Batas performa dan penyimpanan
 
-- **Engine hanya berjalan saat dibutuhkan.** Mode Manusia vs Mesin memakai worker Stockfish lokal single-thread; unduh/start saat engine benar-benar mendapat giliran, batalkan pencarian saat posisi berubah, dan hentikan worker saat partai selesai atau mode ditinggalkan. Jangan menyalakan worker analisis dan worker permainan bersamaan tanpa kebutuhan yang terukur.
+- **Engine hanya berjalan saat dibutuhkan.** Mode Manusia vs Mesin menyediakan lawan Sunfish,
+  Maia 3, dan Stockfish sesuai konfigurasi level di `ManusiaVsMesin/mesinLemah.js`. Stockfish
+  memakai worker lokal single-thread; mulai saat dibutuhkan, batalkan pencarian saat posisi berubah,
+  dan hentikan worker saat partai selesai atau mode ditinggalkan. Jangan menyalakan worker analisis
+  dan worker permainan bersamaan tanpa kebutuhan yang terukur.
 - Gunakan engine single-thread yang sudah disediakan. Jangan menambah installer multi-engine, binary engine besar, COOP/COEP, atau multi-thread WASM sebagai bagian default tanpa kajian dan persetujuan terpisah.
 - Untuk latihan repertoar dan koleksi, simpan metadata/posisi yang diperlukan di IndexedDB yang sudah dipakai proyek. Jangan menyalin ulang seluruh PGN atau engine ke setiap kartu latihan; jangan memakai cookie untuk data latihan.
 - Pencarian posisi dibatasi ke koleksi lokal/yang diimpor terlebih dahulu. Jangan memuat seluruh PGN atau korpus besar ke memori sekaligus; rancang indeks, paginasi, dan pemuatan bertahap bila fitur disetujui.

@@ -78,7 +78,9 @@ Tiga lapis, jangan dicampur:
 ## 3. Alur review
 
 1. **Lewat pull request.** Perubahan tidak di-commit langsung ke `main`; kerjakan di cabang
-   (sesi agen memakai cabang sesi) lalu ajukan PR dari cabang itu.
+   (sesi agen memakai cabang sesi) lalu ajukan PR dari cabang itu sesuai permintaan pengguna.
+   Periksa status dan diff, stage hanya jalur terkait dengan `git add -- <jalur>`, lalu periksa
+   `git diff --cached`. Jangan push tanpa perintah eksplisit; lihat `AGENTS.md` dan `kci-deploy`.
 2. **Audit performa dan aksesibilitas** untuk setiap perubahan web: jamin `npm run build` lulus
    dan jangan menurunkan target Lighthouse 100 di keempat kategori (`kci-frontend`; laporan
    rujukan terakhir ada di `audit-vercel.json`). Penurunan skor atau perilaku yang butuh
