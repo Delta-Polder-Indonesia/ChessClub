@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
@@ -23,6 +23,8 @@ import {
   useAnggota,
 } from "../../lib/anggotaBersama.js";
 import { useKartuPemain } from "../../lib/pemainCatur.js";
+import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
+import { muatRiwayatRapid } from "./riwayatRapid.js";
 import "./karir.css";
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
@@ -88,6 +90,120 @@ function TanggalRoster({ tanggal, locale, t }) {
     timeStyle: "short",
   }).format(nilai);
   return <span>{t("beranda.peringkatKlubDiperbarui", { tanggal: teks })}</span>;
+}
+
+// Satu pengamat dipakai seluruh baris, bukan satu IntersectionObserver per anggota.
+const pemantauGrafik = new Map();
+let pengamatGrafik;
+
+function terlihatTanpaPengamat(elemen) {
+  const kotak = elemen.getBoundingClientRect();
+  const pembungkusTabel = elemen.closest("table")?.parentElement?.getBoundingClientRect();
+  return kotak.bottom > 0 && kotak.top < window.innerHeight && kotak.right > 0 && kotak.left < window.innerWidth
+    && (!pembungkusTabel || (kotak.right > pembungkusTabel.left && kotak.left < pembungkusTabel.right));
+}
+
+function periksaGrafik() {
+  for (const [elemen, ubahTerlihat] of pemantauGrafik) ubahTerlihat(terlihatTanpaPengamat(elemen));
+}
+
+function amatiGrafik(elemen, ubahTerlihat) {
+  pemantauGrafik.set(elemen, ubahTerlihat);
+  if (typeof IntersectionObserver === "undefined") {
+    if (pemantauGrafik.size === 1) {
+      window.addEventListener("scroll", periksaGrafik, true);
+      window.addEventListener("resize", periksaGrafik);
+    }
+    ubahTerlihat(terlihatTanpaPengamat(elemen));
+    return () => {
+      pemantauGrafik.delete(elemen);
+      if (!pemantauGrafik.size) {
+        window.removeEventListener("scroll", periksaGrafik, true);
+        window.removeEventListener("resize", periksaGrafik);
+      }
+    };
+  }
+  if (!pengamatGrafik) {
+    pengamatGrafik = new IntersectionObserver((entri) => {
+      for (const item of entri) pemantauGrafik.get(item.target)?.(item.isIntersecting);
+    });
+  }
+  pengamatGrafik.observe(elemen);
+  return () => {
+    pemantauGrafik.delete(elemen);
+    pengamatGrafik.unobserve(elemen);
+  };
+}
+
+function GrafikRapid({ username, nama, locale, t }) {
+  const tempat = useRef(null);
+  const [riwayat, setRiwayat] = useState(() => ({ status: username ? "menunggu" : "kosong", nilai: [] }));
+
+  useEffect(() => {
+    if (!username || !tempat.current) return undefined;
+    let aktif = true;
+    let selesai = false;
+    let kontrol = null;
+    let berhentiMengamati = () => {};
+    berhentiMengamati = amatiGrafik(tempat.current, (terlihat) => {
+      if (!terlihat) {
+        kontrol?.abort();
+        kontrol = null;
+        return;
+      }
+      if (kontrol || selesai) return;
+      const giliran = new AbortController();
+      kontrol = giliran;
+      setRiwayat({ status: "memuat", nilai: [] });
+      muatRiwayatRapid(username, { signal: giliran.signal })
+        .then((nilai) => {
+          if (!aktif || giliran.signal.aborted) return;
+          selesai = true;
+          berhentiMengamati();
+          setRiwayat({ status: nilai.length >= 2 ? "siap" : "kosong", nilai });
+        })
+        .catch(() => {
+          if (!aktif || giliran.signal.aborted) return;
+          selesai = true;
+          berhentiMengamati();
+          setRiwayat({ status: "gagal", nilai: [] });
+        })
+        .finally(() => {
+          if (kontrol === giliran) kontrol = null;
+        });
+    });
+    return () => {
+      aktif = false;
+      berhentiMengamati();
+      kontrol?.abort();
+    };
+  }, [username]);
+
+  let label = t("beranda.peringkatKlubGrafikRapidMemuat", { nama });
+  if (riwayat.status === "kosong") label = t("beranda.peringkatKlubGrafikRapidKosong", { nama });
+  if (riwayat.status === "gagal") label = t("beranda.peringkatKlubGrafikRapidGagal", { nama });
+
+  if (riwayat.status === "siap") {
+    const formatTanggal = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", { dateStyle: "medium" });
+    const pertama = riwayat.nilai[0];
+    const terakhir = riwayat.nilai.at(-1);
+    label = t("beranda.peringkatKlubGrafikRapid", {
+      nama,
+      jumlah: riwayat.nilai.length,
+      dari: formatTanggal.format(new Date(pertama.waktu * 1000)),
+      sampai: formatTanggal.format(new Date(terakhir.waktu * 1000)),
+      awal: pertama.rating,
+      akhir: terakhir.rating,
+    });
+  }
+
+  return (
+    <span ref={tempat} className="inline-flex h-9 w-20 shrink-0 items-center justify-center text-grey-600" title={label}>
+      {riwayat.status === "siap" ? (
+        <GrafikMiniRating dataUji="grafik-rapid" nilai={riwayat.nilai.map(({ rating }) => rating)} label={label} className="h-9 w-20" />
+      ) : <span data-uji="grafik-rapid-status" role="img" aria-label={label}>—</span>}
+    </span>
+  );
 }
 
 export default function Karir() {
@@ -298,8 +414,17 @@ export default function Karir() {
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
                         <SelTabelKonten>
-                          <div className="flex items-end gap-4">
+                          <div className={`flex items-end ${kontrol === "Rapid" ? "gap-3" : "gap-4"}`}>
                             <span className="w-6 shrink-0 text-right font-sans text-base font-light tabular-nums text-grey-600">{a.peringkatKontrol ?? "—"}</span>
+                            {kontrol === "Rapid" && (
+                              <GrafikRapid
+                                key={a.ratingAktif === null ? "kosong" : a.username || "kosong"}
+                                username={a.ratingAktif === null ? null : a.username}
+                                nama={namaTampil(a)}
+                                locale={locale}
+                                t={t}
+                              />
+                            )}
                             <span className="angka-rating-tabel font-sans font-light tabular-nums">{a.ratingAktif ?? "—"}</span>
                           </div>
                         </SelTabelKonten>

@@ -1,4 +1,19 @@
 import { expect, test } from "@playwright/test";
+import { muatRiwayatRapid } from "../../src/halaman/Karir/riwayatRapid.js";
+
+const unix = (tanggal) => Date.parse(tanggal) / 1000;
+
+function partaiRapid(username, rating, waktu, { hitam = false, ...perubahan } = {}) {
+  return {
+    end_time: waktu,
+    rated: true,
+    time_class: "rapid",
+    rules: "chess",
+    white: { username: hitam ? "lawan" : username, rating: hitam ? 1300 : rating },
+    black: { username: hitam ? username.toUpperCase() : "lawan", rating: hitam ? rating : 1300 },
+    ...perubahan,
+  };
+}
 
 const anggotaUji = [
   {
@@ -308,4 +323,411 @@ test("Puncak muncul setelah roster lama disegarkan", async ({ page }) => {
   await page.getByRole("button", { name: "Muat ulang" }).click();
   await expect(puncak).toHaveText("1910");
   expect(jumlahPermintaan).toBe(2);
+});
+
+test("grafik Rapid memakai partai rated dan tersimpan saat kembali ke tab atau memuat ulang", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  const permintaan = [];
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    permintaan.push(url.pathname);
+    let data = { username: "pemain" };
+    if (url.pathname.endsWith("/stats")) {
+      data = { chess_rapid: { last: { date: akhir } } };
+    } else if (url.pathname.includes("/games/")) {
+      const games = url.pathname.includes("/rapidstar/games/2026/10") ? [
+        partaiRapid("RapidStar", 1640, akhir, { hitam: true }),
+        partaiRapid("rapidstar", 1600, akhir - 300),
+        partaiRapid("rapidstar", 1680, akhir - 200, { hitam: true }),
+        partaiRapid("rapidstar", 3000, akhir - 100, { rated: false }),
+        partaiRapid("rapidstar", 3001, akhir - 100, { time_class: "blitz" }),
+        partaiRapid("rapidstar", 3002, akhir - 100, { rules: "chess960" }),
+        partaiRapid("bukanrapidstar", 3003, akhir - 100),
+        partaiRapid("rapidstar", null, akhir - 100),
+      ] : [];
+      data = { games };
+    }
+    return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(data) });
+  });
+
+  await page.goto("/karir");
+  await expect(page.locator('[data-uji="grafik-rapid"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  const baris = page.locator("tbody tr").first();
+  await baris.scrollIntoViewIfNeeded();
+  const grafik = baris.getByRole("img", { name: /Grafik rating Rapid Rapid Star/ });
+  await expect(grafik).toBeVisible();
+  await expect(grafik).toHaveAttribute("aria-label", /3 partai.*rating 1600 ke 1640/);
+  await expect(grafik.locator("polyline")).toHaveAttribute("points", "2.0,34.0 40.0,2.0 78.0,18.0");
+  const [peringkat, kotakGrafik, rating, avatar] = await Promise.all([
+    baris.locator("td").first().locator("div > span").first().boundingBox(),
+    grafik.boundingBox(),
+    baris.locator(".angka-rating-tabel").boundingBox(),
+    baris.locator("td").nth(1).locator(":scope > div > span > *").boundingBox(),
+  ]);
+  expect(peringkat.x + peringkat.width).toBeLessThan(kotakGrafik.x);
+  expect(kotakGrafik.x + kotakGrafik.width).toBeLessThan(rating.x);
+  expect(avatar.width).toBe(96);
+
+  const jumlahArsip = () => permintaan.filter((url) => url.includes("/rapidstar/games/")).length;
+  expect(jumlahArsip()).toBe(4);
+  await page.getByRole("button", { name: "Blitz", exact: true }).click();
+  await expect(page.locator('[data-uji="grafik-rapid"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  await baris.scrollIntoViewIfNeeded();
+  await expect(grafik).toBeVisible();
+  expect(jumlahArsip()).toBe(4);
+  await page.reload();
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  await baris.scrollIntoViewIfNeeded();
+  await expect(grafik).toBeVisible();
+  expect(jumlahArsip()).toBe(4);
+});
+
+test("grafik membedakan riwayat tidak cukup dan galat API tanpa membuat garis palsu", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  const permintaan = [];
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    permintaan.push(url.pathname);
+    if (url.pathname.endsWith("/blitzstar/stats")) return route.fulfill({ status: 500, body: "error" });
+    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } } } });
+    if (url.pathname.includes("/games/")) {
+      const games = url.pathname.endsWith("/2026/10") ? [partaiRapid("rapidstar", 1700, akhir)] : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username: "pemain" } });
+  });
+  await page.goto("/karir");
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  const baris = page.locator("tbody tr");
+  await baris.first().scrollIntoViewIfNeeded();
+  await expect(baris.first().getByRole("img", { name: "Riwayat Rapid Rapid Star tidak cukup untuk grafik" })).toBeVisible();
+  await baris.nth(1).scrollIntoViewIfNeeded();
+  await expect(baris.nth(1).getByRole("img", { name: "Riwayat rating Rapid Blitz Star tidak dapat dimuat; buka ulang tab Rapid untuk mencoba lagi" })).toBeVisible();
+  await expect(baris.nth(2).getByRole("img", { name: "Riwayat Rapid New Member tidak cukup untuk grafik" })).toBeVisible();
+  await expect(page.locator('[data-uji="grafik-rapid"]')).toHaveCount(0);
+  expect(permintaan.some((url) => url.includes("/newmember/games/"))).toBe(false);
+  expect(permintaan.some((url) => url.endsWith("/newmember/stats"))).toBe(false);
+});
+
+for (const tanpaPengamat of [false, true]) test(`grafik dimuat hanya ketika baris terlihat${tanpaPengamat ? " tanpa IntersectionObserver" : ""}, termasuk setelah menggulir`, async ({ page }) => {
+  if (tanpaPengamat) await page.addInitScript(() => { window.IntersectionObserver = undefined; });
+  const akhir = unix("2026-10-16T08:41:34Z");
+  const daftar = Array.from({ length: 30 }, (_, i) => ({
+    username: `pemain_${String(i).padStart(2, "0")}`,
+    nama: `Pemain ${i}`,
+    foto: "",
+    elo: 2000 - i,
+    kontrol: "Rapid",
+    ratings: { Rapid: { elo: 2000 - i, puncak: 2000, win: 1, draw: 0, loss: 1 } },
+  }));
+  const arsip = [];
+  await page.route("**/api/anggota", (route) => route.fulfill({ json: daftar }));
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } } } });
+    if (url.pathname.includes("/games/")) {
+      const username = url.pathname.split("/")[3];
+      arsip.push(username);
+      const games = url.pathname.endsWith("/2026/10") ? [
+        partaiRapid(username, 1500, akhir - 60),
+        partaiRapid(username, 1510, akhir),
+      ] : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username: "pemain" } });
+  });
+  await page.goto("/karir");
+  await expect(page.locator("tbody tr")).toHaveCount(30);
+  expect(arsip).toHaveLength(0);
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  const pertama = page.locator("tbody tr").first();
+  await pertama.scrollIntoViewIfNeeded();
+  await expect(pertama.locator('[data-uji="grafik-rapid"]')).toBeVisible();
+  expect(arsip).not.toContain("pemain_29");
+
+  const terakhir = page.locator("tbody tr").last();
+  await terakhir.scrollIntoViewIfNeeded();
+  await expect(terakhir.locator('[data-uji="grafik-rapid"]')).toBeVisible();
+  expect(arsip).toContain("pemain_29");
+});
+
+test("grafik Rapid tetap terbaca dan kolom pemain dapat digeser pada layar sempit", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  await page.setViewportSize({ width: 320, height: 720 });
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } } } });
+    if (url.pathname.includes("/games/")) {
+      const username = url.pathname.split("/")[3];
+      const games = url.pathname.endsWith("/2026/10") ? [
+        partaiRapid(username, 1500, akhir - 60),
+        partaiRapid(username, 1510, akhir),
+      ] : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username: "pemain" } });
+  });
+  await page.goto("/karir");
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  const baris = page.locator("tbody tr").first();
+  await baris.scrollIntoViewIfNeeded();
+  const grafik = baris.locator('[data-uji="grafik-rapid"]');
+  await expect(grafik).toBeVisible();
+  const pembungkus = page.locator("table").locator("..");
+  const [batas, kotakGrafik, kotakRating] = await Promise.all([
+    pembungkus.boundingBox(), grafik.boundingBox(), baris.locator(".angka-rating-tabel").boundingBox(),
+  ]);
+  expect(kotakGrafik.x).toBeGreaterThanOrEqual(batas.x);
+  expect(kotakRating.x + kotakRating.width).toBeLessThanOrEqual(batas.x + batas.width);
+
+  const nama = baris.locator("td").nth(1).locator("a");
+  await pembungkus.evaluate((el) => {
+    const namaPemain = el.querySelector("tbody tr td:nth-child(2) a");
+    el.scrollLeft += namaPemain.getBoundingClientRect().left - el.getBoundingClientRect().left - 8;
+  });
+  for (const elemen of [nama, baris.getByRole("img", { name: "Bendera Indonesia" }), baris.getByText("Umur: —")]) {
+    const kotak = await elemen.boundingBox();
+    expect(kotak.x).toBeGreaterThanOrEqual(batas.x);
+    expect(kotak.x + kotak.width).toBeLessThanOrEqual(batas.x + batas.width);
+  }
+});
+
+test("pengambilan Rapid memfilter warna, jenis, waktu, dan batas tiga bulan lintas tahun", async () => {
+  const akhir = unix("2026-01-31T12:00:00Z");
+  const panggilan = [];
+  const asli = globalThis.fetch;
+  globalThis.fetch = async (alamat) => {
+    const url = String(alamat);
+    panggilan.push(url);
+    if (url.endsWith("/stats")) return Response.json({ chess_rapid: { last: { date: akhir } } });
+    const bulan = url.slice(-7);
+    const arsip = {
+      "2026/01": [
+        partaiRapid("ujirentang", 1060, akhir, { hitam: true }),
+        partaiRapid("ujirentang", 1050, unix("2026-01-15T10:00:00Z")),
+        partaiRapid("ujirentang", 9999, akhir + 1),
+        partaiRapid("ujirentang", 9998, akhir - 10, { time_class: "blitz" }),
+        partaiRapid("ujirentang", 9997, akhir - 20, { rated: false }),
+        partaiRapid("ujirentang", 9996, akhir - 30, { rules: "chess960" }),
+        partaiRapid("oranglain", 9995, akhir - 40),
+        partaiRapid("ujirentang", "9994", akhir - 50),
+      ],
+      "2025/12": [partaiRapid("ujirentang", 1020, unix("2025-12-10T08:00:00Z"), { hitam: true })],
+      "2025/11": [partaiRapid("ujirentang", 1010, unix("2025-11-05T08:00:00Z"))],
+      "2025/10": [
+        partaiRapid("ujirentang", 1000, unix("2025-10-31T12:00:00Z")),
+        partaiRapid("ujirentang", 900, unix("2025-10-31T11:59:59Z")),
+      ],
+    };
+    return Response.json({ games: arsip[bulan] || [] });
+  };
+  try {
+    const hasil = await muatRiwayatRapid("UjiRentang");
+    expect(hasil.map((titik) => titik.rating)).toEqual([1000, 1010, 1020, 1050, 1060]);
+    expect(panggilan.map((url) => url.split("/").slice(-2).join("/"))).toEqual([
+      "ujirentang/stats", "2026/01", "2025/12", "2025/11", "2025/10",
+    ]);
+    expect(await muatRiwayatRapid("../../invalid")).toEqual([]);
+    expect(panggilan).toHaveLength(5);
+  } finally {
+    globalThis.fetch = asli;
+  }
+});
+
+test("riwayat dibatasi 20 partai terbaru, berhenti lebih awal, dan cache kedaluwarsa", async () => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  let sekarang = Date.now();
+  const waktuAsli = Date.now;
+  const fetchAsli = globalThis.fetch;
+  const panggilan = [];
+  Date.now = () => sekarang;
+  globalThis.fetch = async (alamat) => {
+    const url = String(alamat);
+    panggilan.push(url);
+    if (url.endsWith("/stats")) return Response.json({ chess_rapid: { last: { date: akhir } } });
+    const games = Array.from({ length: 25 }, (_, i) => partaiRapid("ujibatas", 1000 + i, akhir - (24 - i) * 10)).reverse();
+    return Response.json({ games });
+  };
+  try {
+    const hasil = await muatRiwayatRapid("UjiBatas");
+    expect(hasil.map((titik) => titik.rating)).toEqual(Array.from({ length: 20 }, (_, i) => 1005 + i));
+    expect(panggilan).toHaveLength(2);
+    expect(panggilan[1]).toMatch(/\/games\/2026\/10$/);
+    expect(await muatRiwayatRapid("UJIBATAS")).toEqual(hasil);
+    expect(panggilan).toHaveLength(2);
+    sekarang += 60 * 60 * 1000 + 1;
+    expect(await muatRiwayatRapid("ujibatas")).toEqual(hasil);
+    expect(panggilan).toHaveLength(4);
+  } finally {
+    Date.now = waktuAsli;
+    globalThis.fetch = fetchAsli;
+  }
+});
+
+test("permintaan grafik berjalan berurutan dan antrean batal tidak menghubungi API", async () => {
+  const asli = globalThis.fetch;
+  const panggilan = [];
+  let lepas;
+  let mulai;
+  const gerbang = new Promise((resolve) => { lepas = resolve; });
+  const sudahMulai = new Promise((resolve) => { mulai = resolve; });
+  globalThis.fetch = async (alamat) => {
+    panggilan.push(String(alamat));
+    mulai();
+    await gerbang;
+    return Response.json({});
+  };
+  try {
+    const pertama = muatRiwayatRapid("ujiantria");
+    await sudahMulai;
+    const kontrol = new AbortController();
+    const kedua = muatRiwayatRapid("ujiantrib", { signal: kontrol.signal })
+      .then(() => "berhasil", (galat) => galat.name);
+    expect(panggilan).toHaveLength(1);
+    kontrol.abort();
+    lepas();
+    expect(await pertama).toEqual([]);
+    expect(await kedua).toBe("AbortError");
+    expect(panggilan).toHaveLength(1);
+  } finally {
+    lepas?.();
+    globalThis.fetch = asli;
+  }
+});
+
+test("galat Chess.com tidak disimpan sebagai riwayat kosong", async () => {
+  const asli = globalThis.fetch;
+  let panggilan = 0;
+  globalThis.fetch = async () => {
+    panggilan++;
+    return panggilan === 1 ? new Response("error", { status: 500 }) : Response.json({});
+  };
+  try {
+    await expect(muatRiwayatRapid("ujigagal")).rejects.toThrow("Chess.com menjawab 500");
+    expect(await muatRiwayatRapid("ujigagal")).toEqual([]);
+    expect(panggilan).toBe(2);
+  } finally {
+    globalThis.fetch = asli;
+  }
+});
+
+test("grafik Rapid bernilai tetap memiliki garis datar dan label bahasa Inggris", async ({ page }) => {
+  const akhir = unix("2026-10-16T08:41:34Z");
+  await page.addInitScript(() => localStorage.setItem("kci-bahasa", "en"));
+  await page.route("https://api.chess.com/pub/player/**", (route) => {
+    const url = new URL(route.request().url());
+    if (url.pathname.endsWith("/stats")) return route.fulfill({ json: { chess_rapid: { last: { date: akhir } } } });
+    if (url.pathname.includes("/games/")) {
+      const username = url.pathname.split("/")[3];
+      const games = url.pathname.endsWith("/2026/10") ? [
+        partaiRapid(username, 1500, akhir - 60),
+        partaiRapid(username, 1500, akhir, { hitam: true }),
+      ] : [];
+      return route.fulfill({ json: { games } });
+    }
+    return route.fulfill({ json: { username: "pemain" } });
+  });
+  await page.goto("/karir");
+  await page.getByRole("button", { name: "Rapid", exact: true }).click();
+  const baris = page.locator("tbody tr").first();
+  await baris.scrollIntoViewIfNeeded();
+  const grafik = baris.getByRole("img", { name: /Rapid rating chart for Rapid Star/ });
+  await expect(grafik).toBeVisible();
+  await expect(grafik).toHaveAttribute("aria-label", /2 games.*rating 1500 to 1500/);
+  await expect(grafik.locator("polyline")).toHaveAttribute("points", "2.0,18.0 78.0,18.0");
+});
+
+test("arsip bulanan 404 dilewati tanpa menganggap data yang lain gagal", async () => {
+  const akhir = unix("2026-03-31T12:00:00Z");
+  const asli = globalThis.fetch;
+  const panggilan = [];
+  globalThis.fetch = async (alamat) => {
+    const url = String(alamat);
+    panggilan.push(url);
+    if (url.endsWith("/stats")) return Response.json({ chess_rapid: { last: { date: akhir } } });
+    if (url.endsWith("/2026/03") || url.endsWith("/2026/01")) return new Response("not found", { status: 404 });
+    if (url.endsWith("/2026/02")) return Response.json({ games: [partaiRapid("uji404", 1550, unix("2026-02-12T00:00:00Z"))] });
+    return Response.json({ games: [partaiRapid("uji404", 1500, unix("2025-12-31T12:00:00Z"))] });
+  };
+  try {
+    expect((await muatRiwayatRapid("uji404")).map((titik) => titik.rating)).toEqual([1500, 1550]);
+    expect(panggilan).toHaveLength(5);
+  } finally {
+    globalThis.fetch = asli;
+  }
+});
+
+test("cache yang rusak diabaikan dan penyimpanan yang gagal tidak merusak grafik", async () => {
+  const fetchAsli = globalThis.fetch;
+  const storageAsli = globalThis.localStorage;
+  let panggilan = 0;
+  globalThis.localStorage = {
+    getItem: () => JSON.stringify({ disimpanPada: Date.now(), nilai: [{ waktu: 1e30, rating: 1500 }] }),
+    setItem: () => { throw new Error("penuh"); },
+  };
+  globalThis.fetch = async () => {
+    panggilan++;
+    return Response.json({});
+  };
+  try {
+    expect(await muatRiwayatRapid("ujicache")).toEqual([]);
+    expect(await muatRiwayatRapid("ujicache")).toEqual([]);
+    expect(panggilan).toBe(1);
+  } finally {
+    globalThis.fetch = fetchAsli;
+    if (storageAsli === undefined) delete globalThis.localStorage;
+    else globalThis.localStorage = storageAsli;
+  }
+});
+
+test("respons 429 menunda permintaan grafik berikutnya dan dapat dicoba setelah jeda", async () => {
+  const fetchAsli = globalThis.fetch;
+  const waktuAsli = Date.now;
+  let sekarang = waktuAsli() - 120_000;
+  let panggilan = 0;
+  Date.now = () => sekarang;
+  globalThis.fetch = async () => {
+    panggilan++;
+    return panggilan === 1 ? new Response("terlalu banyak", { status: 429 }) : Response.json({});
+  };
+  try {
+    await expect(muatRiwayatRapid("ujibatashit")).rejects.toThrow("Chess.com menjawab 429");
+    await expect(muatRiwayatRapid("ujibatashit")).rejects.toThrow("Chess.com sedang membatasi permintaan");
+    expect(panggilan).toBe(1);
+    sekarang += 60_001;
+    expect(await muatRiwayatRapid("ujibatashit")).toEqual([]);
+    expect(panggilan).toBe(2);
+  } finally {
+    Date.now = waktuAsli;
+    globalThis.fetch = fetchAsli;
+  }
+});
+
+test("membatalkan permintaan aktif membebaskan antrean untuk pemain lain", async () => {
+  const asli = globalThis.fetch;
+  let mulai;
+  const sudahMulai = new Promise((resolve) => { mulai = resolve; });
+  globalThis.fetch = (alamat, { signal } = {}) => {
+    if (String(alamat).includes("ujibatalaktif")) {
+      return new Promise((resolve, reject) => {
+        signal.addEventListener("abort", () => reject(new DOMException("Batal", "AbortError")), { once: true });
+        mulai();
+      });
+    }
+    return Promise.resolve(Response.json({}));
+  };
+  try {
+    const kontrol = new AbortController();
+    const pertama = muatRiwayatRapid("ujibatalaktif", { signal: kontrol.signal })
+      .then(() => "berhasil", (galat) => galat.name);
+    await sudahMulai;
+    const kedua = muatRiwayatRapid("ujiberikut");
+    kontrol.abort();
+    expect(await pertama).toBe("AbortError");
+    expect(await kedua).toEqual([]);
+  } finally {
+    globalThis.fetch = asli;
+  }
 });

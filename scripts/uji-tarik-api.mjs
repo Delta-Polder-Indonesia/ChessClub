@@ -39,6 +39,8 @@ async function uji(nama, jalan) {
 
 const SEKARANG = Date.now();
 const SEJAM = 3600 * 1000;
+// Arsip harus mengikuti tanggal partai tiruan agar uji tetap berlaku setiap bulan.
+const BULAN_ARSIP_CHESS = new Date(SEKARANG - 3 * SEJAM).toISOString().slice(0, 7).replace("-", "/");
 
 function pgn(white, black, hasil = "1-0") {
   return [
@@ -139,9 +141,9 @@ globalThis.fetch = async (url, opsi) => {
     return { ok: true, status: 200, body: null, text: async () => ndjsonLichess() };
   }
   if (alamat.endsWith("/games/archives")) {
-    return { ok: true, status: 200, json: async () => ({ archives: ["https://api.chess.com/pub/player/x/games/2026/09"] }) };
+    return { ok: true, status: 200, json: async () => ({ archives: [`https://api.chess.com/pub/player/x/games/${BULAN_ARSIP_CHESS}`] }) };
   }
-  if (alamat.includes("/games/2026/09")) {
+  if (alamat.endsWith(`/games/${BULAN_ARSIP_CHESS}`)) {
     return { ok: true, status: 200, json: async () => arsipChessCom() };
   }
   return { ok: false, status: 404 };
