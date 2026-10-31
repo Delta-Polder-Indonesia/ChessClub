@@ -182,13 +182,22 @@ export function validasiPendaftaran(body) {
 
 /* ---------------------------------------------------------- pengayaan */
 
+/** Ambil kode negara dari URL profil publik Chess.com, atau null bila tidak ada. */
+function kodeNegaraChess(nilai) {
+  const cocok = typeof nilai === "string"
+    ? /^https:\/\/api\.chess\.com\/pub\/country\/([a-z]{2}(?:-[a-z]{3})?)\/?$/i.exec(nilai)
+    : null;
+  return cocok ? cocok[1].toUpperCase() : null;
+}
+
 /**
  * Lengkapi data anggota dengan profil & rating terkini dari Chess.com.
  * `cacheDetik` memanjangkan umur cache profil agar satu kunjungan halaman
  * tidak membuat ratusan profil diambil berulang kali; `paksa` melewati cache
- * sama sekali (dipakai penyegaran manual pengurus).
+ * sama sekali (dipakai penyegaran manual pengurus). `cadanganRating` menjaga
+ * rating snapshot lama jika statistik sementara tidak dapat diambil.
  */
-export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {}) {
+export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false, cadanganRating } = {}) {
   const { username } = anggota;
   const opsiCache = paksa
     ? { pakaiCache: false }
@@ -205,6 +214,7 @@ export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {
       return {
         ...anggota,
         nama: anggota.panggilan || username,
+        negara: null,
         hilang: true,
         // Akun yang benar-benar 404 tetap dicap waktunya: pemeriksaan ulang
         // terjadi lewat rotasi, bukan setiap kali roster disusun.
@@ -213,7 +223,7 @@ export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {
     }
 
     const profil = pRes.data;
-    const rating = ringkasRating(sRes.ada ? sRes.data : {});
+    const rating = sRes.ada ? ringkasRating(sRes.data) : (cadanganRating || ringkasRating({}));
     const namaAsli = profil.name || profil.username || username;
     const nama = profil.title ? `${profil.title} ${namaAsli}` : namaAsli;
     const status = evaluasiStatusChess(profil.status);
@@ -224,6 +234,7 @@ export async function lengkapiAnggota(anggota, { cacheDetik, paksa = false } = {
       playerId: profil.player_id ?? anggota.playerId ?? null,
       nama,
       foto: profil.avatar || "",
+      negara: kodeNegaraChess(profil.country),
       url: profil.url || `https://www.chess.com/member/${username}`,
       statusChess: profil.status || null,
       ...rating,
@@ -278,6 +289,7 @@ function tanpaRahasia(anggota) {
 const FIELD_CHESS = [
   "nama",
   "foto",
+  "negara",
   "url",
   "statusChess",
   "playerId",
@@ -310,6 +322,25 @@ function bagianChess(sumber) {
 }
 
 /* ------------------------------------------------------------- layanan */
+
+// Profil yang gagal dipindah ke belakang antrean tanpa mengubah cap snapshot.
+const percobaanMigrasiGagal = new Map();
+
+/** `null` berarti Chess.com tidak menyediakan puncak, bukan snapshot lama. */
+function belumAdaDataPuncak(anggota) {
+  return Object.values(anggota?.ratings || {}).some(
+    (rating) => rating && typeof rating === "object" && !Object.hasOwn(rating, "puncak")
+  );
+}
+
+/** Negara null menandakan profil sudah diperiksa, tetapi negaranya tidak ada. */
+function belumAdaDataNegara(anggota) {
+  return Boolean(anggota && !Object.hasOwn(anggota, "negara"));
+}
+
+function perluMigrasiProfil(anggota) {
+  return belumAdaDataPuncak(anggota) || belumAdaDataNegara(anggota);
+}
 
 /**
  * Susun roster lengkap dari sumbernya (Chess.com + data lokal).
@@ -371,6 +402,9 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
       daftarPada: anggotaKlub.daftarPada,
     });
   }
+  for (const username of percobaanMigrasiGagal.keys()) {
+    if (!dasarGabung.has(username)) percobaanMigrasiGagal.delete(username);
+  }
 
   /* ------------------------------------------------- rencana pengambilan */
   const sekarang = Date.now();
@@ -381,16 +415,37 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
     const lama = lamaPerUsername.get(anggotaKlub.username);
     const cap = lama?.profilDiambilPada ? Date.parse(lama.profilDiambilPada) : 0;
     const adaCap = Number.isFinite(cap) && cap > 0;
+    const belumPuncak = belumAdaDataPuncak(lama);
+    const belumNegara = belumAdaDataNegara(lama);
+    const gagalMigrasi = percobaanMigrasiGagal.get(anggotaKlub.username) || 0;
     return {
       anggotaKlub,
       lama,
-      // Belum pernah diperkaya (0) selalu didahulukan.
-      urut: adaCap ? cap : 0,
-      perlu: paksa || !adaCap || cap <= kedaluwarsaSebelum,
+      belumPuncak,
+      belumNegara,
+      gagalMigrasi,
+      // Belum pernah diperkaya (0) didahulukan, kecuali baru gagal dicoba.
+      urut: Math.max(adaCap ? cap : 0, gagalMigrasi),
+      perlu: paksa || belumPuncak || belumNegara || !adaCap || cap <= kedaluwarsaSebelum,
     };
   });
 
-  const antre = kandidat.filter((k) => k.perlu).sort((a, b) => a.urut - b.urut);
+  const antre = kandidat.filter((k) => k.perlu).sort((a, b) => {
+    if (!a.urut || !b.urut) return a.urut - b.urut;
+    // Migrasi didahulukan, tetapi profil yang gagal bergilir di belakang
+    // migrasi lain agar puncak atau negara tidak saling menghalangi.
+    const aMigrasi = a.belumPuncak || a.belumNegara;
+    const bMigrasi = b.belumPuncak || b.belumNegara;
+    if (aMigrasi !== bMigrasi) return aMigrasi ? -1 : 1;
+    if (a.gagalMigrasi || b.gagalMigrasi) {
+      if (!a.gagalMigrasi) return -1;
+      if (!b.gagalMigrasi) return 1;
+      return a.gagalMigrasi - b.gagalMigrasi;
+    }
+    if (a.belumPuncak !== b.belumPuncak) return a.belumPuncak ? -1 : 1;
+    if (a.belumNegara !== b.belumNegara) return a.belumNegara ? -1 : 1;
+    return a.urut - b.urut;
+  });
   const dipilih = paksa
     ? antre
     : antre.slice(0, konfigurasi.chess.klub.profilSekaliSapu);
@@ -416,8 +471,26 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
               // supaya rotasi benar-benar mengambil data baru (bukan membaca
               // cache lama) dan kunjungan halaman berikutnya tetap ringan.
               cacheDetik: konfigurasi.chess.klub.profilCacheDetik,
+              cadanganRating: (k.belumPuncak || k.belumNegara) && k.lama ? {
+                ratings: k.lama.ratings,
+                elo: k.lama.elo,
+                kontrol: k.lama.kontrol,
+                win: k.lama.win,
+                draw: k.lama.draw,
+                loss: k.lama.loss,
+              } : undefined,
             }
           );
+          // Saat migrasi gagal, snapshot lama tetap dipakai dan dicoba lagi.
+          if (hasil.gagal && (k.belumPuncak || k.belumNegara)) {
+            percobaanMigrasiGagal.set(k.anggotaKlub.username, Date.now());
+            continue;
+          }
+          if ((k.belumPuncak || k.belumNegara) && perluMigrasiProfil(hasil)) {
+            percobaanMigrasiGagal.set(k.anggotaKlub.username, Date.now());
+          } else {
+            percobaanMigrasiGagal.delete(k.anggotaKlub.username);
+          }
           hasilSegar.set(k.anggotaKlub.username, hasil);
         }
       })().catch(() => {})
@@ -498,6 +571,8 @@ export async function susunRosterAnggota({ paksa = false, batasWaktuMs } = {}) {
 /** Cache memori agar tidak membaca berkas/Supabase tiap permintaan. */
 let rosterMemori = null; // { diperbaruiPada, anggota }
 let penyegaranBerjalan = null;
+const JEDA_MIGRASI_DETIK = 60;
+let terakhirCobaMigrasi = 0;
 /** Snapshot diketahui tertinggal dari data terbaru (mis. baru ada pendaftaran). */
 let wajibSegar = false;
 
@@ -623,6 +698,20 @@ export async function rosterAnggota({ paksa = false } = {}) {
 
   if (!paksa && snapshot.anggota.length) {
     if (umur <= konfigurasi.chess.klub.snapshotSegarDetik && !wajibSegar) {
+      // Snapshot segar masih bisa berisi profil lama tanpa puncak atau negara.
+      // Migrasikan bertahap, dengan jeda agar kunjungan tidak membanjiri API.
+      if (
+        umur >= JEDA_MIGRASI_DETIK &&
+        Date.now() - terakhirCobaMigrasi >= JEDA_MIGRASI_DETIK * 1000 &&
+        snapshot.anggota.some(perluMigrasiProfil)
+      ) {
+        terakhirCobaMigrasi = Date.now();
+        teruskanSetelahRespons(
+          segarkanRoster().catch((e) => {
+            console.warn(`[kci] migrasi profil roster gagal: ${e?.message || e}`);
+          })
+        );
+      }
       return hasil(true);
     }
 

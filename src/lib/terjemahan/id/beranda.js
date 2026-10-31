@@ -53,7 +53,18 @@ export const beranda = {
     peringkatKlubHanyaRating: "Punya rating",
     peringkatKlubTidakAdaHasil: "Tidak ada anggota yang cocok dengan pencarian ini.",
     peringkatKlubKolUrutanRating: "Peringkat dan rating",
+    peringkatKlubGrafikRapid: "Grafik rating Rapid {nama}: {jumlah} partai, {dari} sampai {sampai}, rating {awal} ke {akhir}.",
+    peringkatKlubGrafikRapidMemuat: "Memuat riwayat rating Rapid {nama}",
+    peringkatKlubGrafikRapidKosong: "Riwayat Rapid {nama} tidak cukup untuk grafik",
+    peringkatKlubGrafikRapidGagal: "Riwayat rating Rapid {nama} tidak dapat dimuat; buka ulang tab Rapid untuk mencoba lagi",
+    peringkatKlubGrafikRating: "Grafik rating {kontrol} {nama}: {jumlah} partai, {dari} sampai {sampai}, rating {awal} ke {akhir}.",
+    peringkatKlubGrafikRatingMemuat: "Memuat riwayat rating {kontrol} {nama}",
+    peringkatKlubGrafikRatingKosong: "Riwayat {kontrol} {nama} tidak cukup untuk grafik",
+    peringkatKlubGrafikRatingGagal: "Riwayat rating {kontrol} {nama} tidak dapat dimuat; pindah kontrol lalu kembali untuk mencoba lagi",
     peringkatKlubKolPemain: "Pemain",
+    peringkatKlubNegara: "Negara profil Chess.com",
+    peringkatKlubBendera: "Bendera {negara}",
+    peringkatKlubUmur: "Umur",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Menang / seri / kalah",
     peringkatKlubKolPuncak: "Puncak",
@@ -64,7 +75,8 @@ export const beranda = {
     peringkatKlubLihatProfil: "Lihat profil Chess.com {username}",
     peringkatKlubLihatChessCom: "Lihat profil pemain di Chess.com",
     peringkatKlubDiperbarui: "Roster diperbarui {tanggal}",
-    peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L mengikuti kontrol terpilih, dan menjadi gabungan semua kontrol saat Utama dipilih. Riwayat perubahan rating tidak tersedia pada data anggota ini.",
+    peringkatKlubCatatanRating: "Pemain diurutkan berdasarkan rating pada kontrol terpilih. Utama memakai rating utama yang tersedia; W/D/L mengikuti kontrol terpilih, dan menjadi gabungan semua kontrol saat Utama dipilih. Grafik memakai hingga 20 partai ber-rating dalam tiga bulan sampai partai terakhir pada kontrol tersebut. Pada Utama, grafik mengikuti kontrol utama tiap pemain. Titik menunjukkan urutan partai dan skala mengikuti rating pemain. Grafik dan roster dapat berbeda karena diperbarui terpisah. Tanda — berarti riwayat tidak cukup atau gagal dimuat.",
+    peringkatKlubCatatanNegara: "Bendera dan kode negara mengikuti pilihan profil Chess.com; umur belum tersedia.",
   }
 
 export const sticky = {

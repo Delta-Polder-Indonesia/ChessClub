@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { BreadcrumbJsonLd } from "../../components/JsonLd.jsx";
 import Hero from "../../components/Hero.jsx";
@@ -15,6 +15,7 @@ import {
 import { CentangBiru, LencanaBan } from "../../components/Lencana.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
+import { kodeNegaraTampilan } from "../../lib/kodeNegara.js";
 import {
   kenaBan,
   namaTampil,
@@ -22,12 +23,20 @@ import {
   useAnggota,
 } from "../../lib/anggotaBersama.js";
 import { useKartuPemain } from "../../lib/pemainCatur.js";
+import GrafikMiniRating from "../Analisa/komponen/GrafikMiniRating.jsx";
+import { muatRiwayatRating } from "./riwayatRapid.js";
 import "./karir.css";
 
 const URL_KLUB = "https://www.chess.com/club/blunder-skuad";
 const URUTAN_KONTROL = ["Rapid", "Blitz", "Bullet", "Daily"];
 const UKURAN_AVATAR_PERINGKAT = [96, 64, 48];
 const KELAS_AVATAR_PERINGKAT = ["h-24 w-24", "h-16 w-16", "h-12 w-12"];
+// Hanya bendera yang ditampilkan yang diunduh; SVG kecil tidak di-inline ke JS.
+const BENDERA_NEGARA = import.meta.glob("../Analisa/komponen/flags/*.svg", {
+  eager: true,
+  query: "?url&no-inline",
+  import: "default",
+});
 
 function ratingKontrol(anggota, kontrol) {
   if (anggota?.hilang || anggota?.gagal) return null;
@@ -64,10 +73,10 @@ function avatar(anggota, kelas = "h-12 w-12", ukuran = 48) {
 
 function LabelPemain({ anggota }) {
   return (
-    <span className={`inline-flex min-w-0 items-center gap-1.5 text-grey-800`}>
-      <span className="truncate">{namaTampil(anggota)}</span>
-      {anggota.terverifikasi && <CentangBiru />}
-      {kenaBan(anggota) && <LencanaBan />}
+    <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 text-grey-800">
+      <span className="truncate" title={namaTampil(anggota)}>{namaTampil(anggota)}</span>
+      {anggota.terverifikasi && <span className="inline-flex shrink-0"><CentangBiru /></span>}
+      {kenaBan(anggota) && <span className="inline-flex shrink-0"><LencanaBan /></span>}
     </span>
   );
 }
@@ -83,9 +92,129 @@ function TanggalRoster({ tanggal, locale, t }) {
   return <span>{t("beranda.peringkatKlubDiperbarui", { tanggal: teks })}</span>;
 }
 
+// Satu pengamat dipakai seluruh baris, bukan satu IntersectionObserver per anggota.
+const pemantauGrafik = new Map();
+let pengamatGrafik;
+
+function terlihatTanpaPengamat(elemen) {
+  const kotak = elemen.getBoundingClientRect();
+  const pembungkusTabel = elemen.closest("table")?.parentElement?.getBoundingClientRect();
+  return kotak.bottom > 0 && kotak.top < window.innerHeight && kotak.right > 0 && kotak.left < window.innerWidth
+    && (!pembungkusTabel || (kotak.right > pembungkusTabel.left && kotak.left < pembungkusTabel.right));
+}
+
+function periksaGrafik() {
+  for (const [elemen, ubahTerlihat] of pemantauGrafik) ubahTerlihat(terlihatTanpaPengamat(elemen));
+}
+
+function amatiGrafik(elemen, ubahTerlihat) {
+  pemantauGrafik.set(elemen, ubahTerlihat);
+  if (typeof IntersectionObserver === "undefined") {
+    if (pemantauGrafik.size === 1) {
+      window.addEventListener("scroll", periksaGrafik, true);
+      window.addEventListener("resize", periksaGrafik);
+    }
+    ubahTerlihat(terlihatTanpaPengamat(elemen));
+    return () => {
+      pemantauGrafik.delete(elemen);
+      if (!pemantauGrafik.size) {
+        window.removeEventListener("scroll", periksaGrafik, true);
+        window.removeEventListener("resize", periksaGrafik);
+      }
+    };
+  }
+  if (!pengamatGrafik) {
+    pengamatGrafik = new IntersectionObserver((entri) => {
+      for (const item of entri) pemantauGrafik.get(item.target)?.(item.isIntersecting);
+    });
+  }
+  pengamatGrafik.observe(elemen);
+  return () => {
+    pemantauGrafik.delete(elemen);
+    pengamatGrafik.unobserve(elemen);
+  };
+}
+
+function GrafikRating({ username, jenis, nama, locale, t }) {
+  const tempat = useRef(null);
+  const [riwayat, setRiwayat] = useState(() => ({ status: username && jenis ? "menunggu" : "kosong", nilai: [] }));
+
+  useEffect(() => {
+    if (!username || !jenis || !tempat.current) return undefined;
+    let aktif = true;
+    let selesai = false;
+    let kontrol = null;
+    let berhentiMengamati = () => {};
+    berhentiMengamati = amatiGrafik(tempat.current, (terlihat) => {
+      if (!terlihat) {
+        kontrol?.abort();
+        kontrol = null;
+        return;
+      }
+      if (kontrol || selesai) return;
+      const giliran = new AbortController();
+      kontrol = giliran;
+      setRiwayat({ status: "memuat", nilai: [] });
+      muatRiwayatRating(username, { kontrol: jenis, signal: giliran.signal })
+        .then((nilai) => {
+          if (!aktif || giliran.signal.aborted) return;
+          selesai = true;
+          berhentiMengamati();
+          setRiwayat({ status: nilai.length >= 2 ? "siap" : "kosong", nilai });
+        })
+        .catch(() => {
+          if (!aktif || giliran.signal.aborted) return;
+          selesai = true;
+          berhentiMengamati();
+          setRiwayat({ status: "gagal", nilai: [] });
+        })
+        .finally(() => {
+          if (kontrol === giliran) kontrol = null;
+        });
+    });
+    return () => {
+      aktif = false;
+      berhentiMengamati();
+      kontrol?.abort();
+    };
+  }, [username, jenis]);
+
+  const kontrolLabel = jenis || t("beranda.peringkatKlubUtama");
+  let label = t("beranda.peringkatKlubGrafikRatingMemuat", { nama, kontrol: kontrolLabel });
+  if (riwayat.status === "kosong") label = t("beranda.peringkatKlubGrafikRatingKosong", { nama, kontrol: kontrolLabel });
+  if (riwayat.status === "gagal") label = t("beranda.peringkatKlubGrafikRatingGagal", { nama, kontrol: kontrolLabel });
+
+  if (riwayat.status === "siap") {
+    const formatTanggal = new Intl.DateTimeFormat(locale === "en" ? "en-US" : "id-ID", { dateStyle: "medium" });
+    const pertama = riwayat.nilai[0];
+    const terakhir = riwayat.nilai.at(-1);
+    label = t("beranda.peringkatKlubGrafikRating", {
+      nama,
+      kontrol: kontrolLabel,
+      jumlah: riwayat.nilai.length,
+      dari: formatTanggal.format(new Date(pertama.waktu * 1000)),
+      sampai: formatTanggal.format(new Date(terakhir.waktu * 1000)),
+      awal: pertama.rating,
+      akhir: terakhir.rating,
+    });
+  }
+
+  return (
+    <span ref={tempat} className="inline-flex h-9 w-20 shrink-0 items-center justify-center text-grey-600" title={label}>
+      {riwayat.status === "siap" ? (
+        <GrafikMiniRating dataUji={`grafik-${jenis.toLowerCase()}`} nilai={riwayat.nilai.map(({ rating }) => rating)} label={label} className="h-9 w-20" />
+      ) : <span data-uji={`grafik-${(jenis || "utama").toLowerCase()}-status`} role="img" aria-label={label}>—</span>}
+    </span>
+  );
+}
+
 export default function Karir() {
   const { anggota, status, menyegarkan, rosterDiperbaruiPada, muatUlang } = useAnggota();
   const { t, bahasa: locale } = useI18n();
+  const namaWilayah = useMemo(
+    () => typeof Intl.DisplayNames === "function" ? new Intl.DisplayNames([locale], { type: "region" }) : null,
+    [locale],
+  );
   const [kontrol, setKontrol] = useState("utama");
   const [cari, setCari] = useState("");
   const [cakupan, setCakupan] = useState("semua");
@@ -275,27 +404,56 @@ export default function Karir() {
                     const dataKontrol = opsi.find((item) => item.id === (kontrol === "utama" ? "all" : kontrol));
                     const kontrolPuncakBaris = kontrol === "utama" ? (a.kontrol || "Rapid") : kontrol;
                     const dataPuncak = opsi.find((item) => item.id === kontrolPuncakBaris);
+                    const kontrolGrafik = kontrol === "utama" ? a.kontrol : kontrol;
+                    const jenisGrafik = URUTAN_KONTROL.find((jenis) => jenis.toLowerCase() === String(kontrolGrafik || "").toLowerCase()) ?? null;
                     const ukuranAvatar = UKURAN_AVATAR_PERINGKAT[indeks] ?? 40;
                     const kelasAvatar = KELAS_AVATAR_PERINGKAT[indeks] ?? "h-10 w-10";
                     const paddingPemain = indeks === 0 ? "pt-5 pb-5" : indeks < 3 ? "pt-3 pb-3" : "py-2";
+                    const kodeNegara = typeof a.negara === "string" ? a.negara.trim().toUpperCase() : "";
+                    const kodeTampil = kodeNegaraTampilan(kodeNegara);
+                    const bendera = kodeTampil && BENDERA_NEGARA[`../Analisa/komponen/flags/${kodeNegara.toLowerCase()}.svg`];
+                    const namaNegara = kodeTampil && !kodeNegara.includes("-")
+                      ? namaWilayah?.of(kodeNegara) || kodeTampil
+                      : kodeTampil;
                     return (
                       <BarisTabelKonten key={a.username || a.playerId || namaTampil(a)} className="transition-colors hover:bg-grey-100">
                         <SelTabelKonten>
-                          <div className="flex items-end gap-4">
+                          <div className="flex items-end gap-3">
                             <span className="w-6 shrink-0 text-right font-sans text-base font-light tabular-nums text-grey-600">{a.peringkatKontrol ?? "—"}</span>
+                            <GrafikRating
+                              key={`${a.username || ""}:${a.ratingAktif === null ? "kosong" : jenisGrafik || "kosong"}`}
+                              username={a.ratingAktif === null ? null : a.username}
+                              jenis={jenisGrafik}
+                              nama={namaTampil(a)}
+                              locale={locale}
+                              t={t}
+                            />
                             <span className="angka-rating-tabel font-sans font-light tabular-nums">{a.ratingAktif ?? "—"}</span>
                           </div>
                         </SelTabelKonten>
                         <SelTabelKonten className={paddingPemain}>
-                          <div className="flex min-w-0 items-center gap-2">
-                            {avatar(a, kelasAvatar, ukuranAvatar)}
-                            <div className="min-w-0">
-                              {a.username ? (
-                                <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="font-light hover:text-primary hover:underline">
-                                  <LabelPemain anggota={a} />
-                                </a>
-                              ) : <LabelPemain anggota={a} />}
-                              <p className="truncate text-sm leading-4 text-grey-600">{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
+                          <div className="flex min-w-96 items-center gap-2">
+                            <span className="flex w-24 shrink-0 justify-center">
+                              {avatar(a, kelasAvatar, ukuranAvatar)}
+                            </span>
+                            <div className="flex min-w-0 flex-1 items-start gap-4">
+                              <div className="min-w-0 max-w-40 flex-1 sm:max-w-64">
+                                {a.username ? (
+                                  <a href={a.url || `https://www.chess.com/member/${a.username}`} target="_blank" rel="noreferrer noopener" aria-label={t("beranda.peringkatKlubLihatProfil", { username: namaTampil(a) })} className="block h-6 font-light hover:text-primary hover:underline">
+                                    <LabelPemain anggota={a} />
+                                  </a>
+                                ) : <LabelPemain anggota={a} />}
+                                <p className="truncate text-sm leading-4 text-grey-600" title={a.username ? `@${a.username}` : undefined}>{a.username ? `@${a.username}` : t("beranda.peringkatKlubTanpaUsername")}</p>
+                              </div>
+                              <div className="w-24 shrink-0 text-sm leading-4 text-grey-600">
+                                {/* Menahan label pembaca layar di dalam area gulir tabel. */}
+                                <p className="relative flex h-6 items-center gap-1">
+                                  <span className="sr-only">{t("beranda.peringkatKlubNegara")}: </span>
+                                  {bendera && <img src={bendera} alt={t("beranda.peringkatKlubBendera", { negara: namaNegara })} width={24} height={16} loading="lazy" className="h-4 w-6 shrink-0 object-contain ring-1 ring-grey-200" />}
+                                  <span>{kodeTampil || "—"}</span>
+                                </p>
+                                <p>{t("beranda.peringkatKlubUmur")}: —</p>
+                              </div>
                             </div>
                           </div>
                         </SelTabelKonten>
@@ -309,7 +467,7 @@ export default function Karir() {
             </div>
           )}
         </section>
-        <p className="mt-4 border-t border-grey-200 pt-4 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")}</p>
+        <p className="mt-4 border-t border-grey-200 pt-4 text-xs leading-5 text-grey-600">{t("beranda.peringkatKlubCatatanRating")} {t("beranda.peringkatKlubCatatanNegara")}</p>
       </main>
     </div>
   );

@@ -53,7 +53,18 @@ export const beranda = {
     peringkatKlubHanyaRating: "Rated only",
     peringkatKlubTidakAdaHasil: "No members match this search.",
     peringkatKlubKolUrutanRating: "Rank and rating",
+    peringkatKlubGrafikRapid: "Rapid rating chart for {nama}: {jumlah} games, {dari} to {sampai}, rating {awal} to {akhir}.",
+    peringkatKlubGrafikRapidMemuat: "Loading Rapid rating history for {nama}",
+    peringkatKlubGrafikRapidKosong: "Not enough Rapid history for a chart for {nama}",
+    peringkatKlubGrafikRapidGagal: "Rapid rating history for {nama} could not be loaded; reopen the Rapid tab to try again",
+    peringkatKlubGrafikRating: "{kontrol} rating chart for {nama}: {jumlah} games, {dari} to {sampai}, rating {awal} to {akhir}.",
+    peringkatKlubGrafikRatingMemuat: "Loading {kontrol} rating history for {nama}",
+    peringkatKlubGrafikRatingKosong: "Not enough {kontrol} history for a chart for {nama}",
+    peringkatKlubGrafikRatingGagal: "{kontrol} rating history for {nama} could not be loaded; switch controls and back to try again",
     peringkatKlubKolPemain: "Player",
+    peringkatKlubNegara: "Chess.com profile country",
+    peringkatKlubBendera: "Flag of {negara}",
+    peringkatKlubUmur: "Age",
     peringkatKlubKolRating: "Rating · {kontrol}",
     peringkatKlubKolRekor: "Win / draw / loss",
     peringkatKlubKolPuncak: "Peak",
@@ -64,7 +75,8 @@ export const beranda = {
     peringkatKlubLihatProfil: "View Chess.com profile for {username}",
     peringkatKlubLihatChessCom: "View player profile on Chess.com",
     peringkatKlubDiperbarui: "Roster updated {tanggal}",
-    peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L follows the selected control and combines all controls when Primary is selected. Rating-change history is not available in this member data.",
+    peringkatKlubCatatanRating: "Players are ranked by the selected time-control rating. Primary uses the main rating available; W/D/L follows the selected control and combines all controls when Primary is selected. The chart uses up to 20 rated games from the three months ending with the last game in that time control. On Primary, each chart follows the player's main control. Points follow game order and the scale adjusts to each player's rating. Chart and roster values may differ because they are updated separately. A dash means there is insufficient history or loading failed.",
+    peringkatKlubCatatanNegara: "Flags and country codes follow each Chess.com profile's selection; ages are not available.",
   }
 
 export const sticky = {
