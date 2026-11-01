@@ -124,6 +124,11 @@ import { FilterAuditSchema } from "./skema.js";
 import { VERSI_API_KANONIK } from "./jalur-api.js";
 import { kesehatanSupabase } from "./storage-supabase.js";
 import { tanyaAwan } from "./basisDataAwan.js";
+import {
+  ambilTekaTekiHarian,
+  tanggalHariIni,
+  tanggalSah,
+} from "./teka-teki-harian.js";
 
 // Kirim skor Rush dibatasi lebih ketat daripada batas umum (anti-spam).
 const BATAS_REKOR_RUSH = 30;
@@ -242,6 +247,66 @@ export function daftarkanRute(router, { mulaiPada }) {
     },
     { batas: konfigurasi.batas.maksDaftar }
   );
+
+  /* ------------------------------------------------ teka-teki harian */
+  /**
+   * Teka-teki harian Chess.com untuk satu tanggal (bawaan: hari ini, UTC).
+   *
+   * Data berasal dari API publik resmi Chess.com lewat server ini — bukan
+   * arsip salinan di repo. Tiga hasil yang mungkin:
+   *   200 `{ tersedia: true, … }`     → soal ada
+   *   200 `{ tersedia: false, alasan }` → belum ada / tanggal masa depan
+   *   502                              → Chess.com tidak bisa dihubungi
+   *
+   * Cache dibedakan: soal hari ini masih bisa berubah (10 menit), sedangkan
+   * arsip satu tanggal sudah final (sehari). Klien memakai cache itu saat
+   * berpindah tanggal bolak-balik.
+   */
+  router.get("/api/teka-teki-harian", async (req) => {
+    const url = new URL(req.url || "", "http://x");
+    const mentah = url.searchParams.get("tanggal");
+    // Parameter kosong = hari ini. Parameter yang ADA tetapi tidak sah
+    // ditolak 400 — menganggapnya "hari ini" akan diam-diam menampilkan soal
+    // yang salah untuk tautan yang rusak.
+    if (mentah !== null && mentah !== "" && !tanggalSah(mentah)) {
+      return {
+        status: 400,
+        isi: {
+          pesan: "Tanggal harus berformat YYYY-MM-DD dan ada di kalender.",
+          kode: "tanggal-tidak-sah",
+        },
+        cache: "no-store",
+      };
+    }
+    const tanggal = tanggalSah(mentah) || tanggalHariIni();
+    try {
+      const soal = await ambilTekaTekiHarian({ tanggal });
+      return {
+        status: 200,
+        isi: soal,
+        cache:
+          soal.tersedia && soal.tanggal !== tanggalHariIni()
+            ? "public, max-age=86400"
+            : "public, max-age=600",
+      };
+    } catch (e) {
+      console.warn(`[kci] teka-teki harian gagal: ${e?.message || e}`);
+      return {
+        status: 502,
+        isi: {
+          tersedia: false,
+          tanggal,
+          alasan: "galat",
+          pesan:
+            "Chess.com tidak dapat dihubungi untuk sementara. Coba lagi beberapa saat lagi.",
+          kode: "chess-tidak-terjangkau",
+        },
+        // Jangan simpan kegagalan sementara; permintaan berikutnya harus
+        // mencoba lagi ke Chess.com.
+        cache: "no-store",
+      };
+    }
+  });
 
   /* --------------------------------------------- papan peringkat Rush */
   /** Peringkat "Rush Teka-teki" untuk satu durasi (bawaan 5 menit). */

@@ -68,6 +68,14 @@ export const MENU_UTAMA = [
         file: "RushTekaTekiLanding.jsx",
       },
       {
+        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
+        // /teka-teki/problem dan /teka-teki-rush.
+        title: "nav.tekaTekiHarian",
+        path: "/teka-teki-harian",
+        folder: "TekaTekiHarian",
+        file: "TekaTekiHarian.jsx",
+      },
+      {
         title: "nav.quizCatur",
         path: "/program-kami/kuis-catur",
         folder: "ProgramKami",

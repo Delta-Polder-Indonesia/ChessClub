@@ -127,6 +127,7 @@ export const tipsTekaTeki = {
     intro2:
       "Latihan berjalan langsung di peramban tanpa perlu membuat akun. Saring soal menurut level, tema taktik, atau warna yang melangkah; bila buntu, tombol petunjuk menyoroti petak asal dan tujuan langkah pertama. Kemajuan tersimpan otomatis di perangkat Anda.",
     ctaUtama: "Mulai Latihan Teka-teki",
+    ctaHarian: "Teka-teki Harian",
     ctaRush: "Rush Teka-teki — mode berjangka waktu",
     demoJudul: "Satu soal, diperlihatkan utuh",
     demoPengantar:

@@ -851,6 +851,9 @@ export const analisa = {
       logo: "Logo situs",
       logoOleh:
         "Merek dagang milik pemiliknya (Chess.com, LLC dan lichess.org); dipakai hanya untuk identifikasi lewat tautan situs resmi.",
+      tekaTekiHarian: "Teka-teki harian",
+      tekaTekiHarianOleh:
+        "Soal, judul, dan langkah solusi teka-teki harian berasal dari API publik Chess.com (api.chess.com). Situs ini menampilkannya ulang saat halaman dibuka, tidak menyalin arsip soal, dan selalu menautkan halaman aslinya.",
       teknologi: "Teknologi",
       teknologiOleh:
         "Proyek ini dibangun dan dijalankan dengan layanan serta pustaka berikut. Terima kasih kepada masing-masing tim atas karya mereka.",

@@ -34,6 +34,7 @@ export const api = {
   papanPeringkatRush: "Failed to load the Rush leaderboard.",
   simpanSkorRush: "Failed to save the score to the leaderboard.",
   memuatJenisTurnamen: "Failed to load tournament categories.",
+  tekaTekiHarian: "The daily puzzle could not be loaded.",
   memuatTurnamen: "Failed to load tournaments.",
   pengajuanTurnamen: "Tournament application failed.",
   turnamenTidakDitemukan: "Tournament not found.",

@@ -25,6 +25,8 @@ import { gambar } from "../../lib/asets.js";
  */
 const RUTE_ALAT = "/teka-teki/problem";
 const RUTE_RUSH = "/program-kami/rush-teka-teki";
+/** Teka-teki harian resmi Chess.com — soal baru setiap hari. */
+const RUTE_HARIAN = "/teka-teki-harian";
 const HERO_IMAGE = "/images/ProgramKami/teka-teki-hero.webp";
 const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
 const RANK = ["8", "7", "6", "5", "4", "3", "2", "1"];
@@ -140,6 +142,9 @@ export default function TekaTekiKonten() {
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4 font-sans">
                   <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
+                  <TombolConten to={RUTE_HARIAN}>
+                    {t("tipsTekaTeki.ctaHarian")}
+                  </TombolConten>
                 </div>
               </div>
 

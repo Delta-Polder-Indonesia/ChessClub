@@ -17,6 +17,10 @@ lewat pull request, dan ikut menjaga kualitas melalui gerbang uji otomatis.
   (Stockfish lokal / Sunfish), dan Latihan Repertoar tersimpan di IndexedDB.
 - **Teka-teki catur, Quiz, dan Teka-teki Rush** — latihan taktik dengan tingkat
   kesulitan bertingkat dan progres tersimpan lokal.
+- **Teka-teki Harian** (`/teka-teki-harian`) — soal harian resmi Chess.com
+  beserta arsip per tanggal, dimainkan di papan situs ini. Datanya diambil
+  lewat API publik Chess.com dari server (bukan arsip salinan), dengan
+  atribusi dan tautan ke halaman aslinya.
 - **Analisa posisi** — evaluasi engine di dalam browser (Web Worker), grafik
   evaluasi, dan bilah skor.
 - **Keanggotaan otomatis dari Chess.com** — backend mengambil roster publik

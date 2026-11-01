@@ -35,6 +35,7 @@ export const api = {
   simpanSkorRush: "Gagal menyimpan skor ke papan peringkat.",
   memuatJenisTurnamen: "Gagal memuat jenis turnamen.",
   memuatTurnamen: "Gagal memuat turnamen.",
+  tekaTekiHarian: "Teka-teki harian gagal dimuat.",
   pengajuanTurnamen: "Pengajuan turnamen gagal.",
   turnamenTidakDitemukan: "Turnamen tidak ditemukan.",
 };

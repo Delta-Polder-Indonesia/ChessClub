@@ -38,6 +38,7 @@ export const nav = {
     pengurus: "Board",
     strukturOrganisasiCatur: "Organization Structure",
     tekaTeki: "Chess Puzzles",
+    tekaTekiHarian: "Daily Puzzle",
     tekaTekiRush: "Puzzle Rush",
     quizCatur: "Chess Quiz",
     pembukaan: "Openings",

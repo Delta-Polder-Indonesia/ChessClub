@@ -26,6 +26,7 @@ const TANPA_KERANGKA = [
   "/program-kami/analisa/papan",
   "/teka-teki",
   "/teka-teki-rush",
+  "/teka-teki-harian",
   "/quiz-catur",
   "/papan-interaktif",
   "/hubungi-kami",

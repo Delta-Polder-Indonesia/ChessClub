@@ -143,6 +143,10 @@ function AlihTekaTekiLama() {
 // Rush Teka-teki (mode berjangka ala PuzzleDash) — memakai data & papan yang sama.
 const TekaTekiRush = lazy(() => import("./halaman/TekaTekiRush/TekaTekiRush.jsx"));
 
+/** Teka-teki harian resmi Chess.com (diambil lewat server kita, lihat
+ *  `server/src/teka-teki-harian.js`). */
+const TekaTekiHarian = lazy(() => import("./halaman/TekaTekiHarian/TekaTekiHarian.jsx"));
+
 // Kuis Catur — pilihan ganda trivia, soal di halaman/QuizCatur/daftar.js.
 const QuizCatur = lazy(() => import("./halaman/QuizCatur/QuizCatur.jsx"));
 
@@ -230,6 +234,7 @@ const RUTE_HALAMAN = [
   ["/teka-teki/problem/:id?", RuteTekaTeki],
   ["/teka-teki/:id", AlihTekaTekiLama],
   ["/teka-teki-rush", TekaTekiRush],
+  ["/teka-teki-harian", TekaTekiHarian],
   ["/quiz-catur", QuizCatur],
 
   // Manusia vs Mesin — satu keluarga papan-interaktif, tapi berdiri sendiri

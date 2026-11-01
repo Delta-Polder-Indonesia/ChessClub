@@ -46,11 +46,20 @@ atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / storage ekster
 | GET | `/api/turnamen/jenis` | Empat jenis turnamen + aturannya |
 | GET | `/api/turnamen?jenis=&status=` | Turnamen terpublikasi (status `draf` disaring) |
 | GET | `/api/turnamen/:id` | Satu turnamen + klasemen (draf → 404) |
+| GET | `/api/teka-teki-harian?tanggal=YYYY-MM-DD` | Teka-teki harian resmi Chess.com untuk satu tanggal (bawaan: hari ini UTC); `tersedia: false` bila belum terbit, `502` bila Chess.com tak terjangkau |
 
 > **CSRF:** semua request `POST` harus menyertakan header
 > `X-CSRF-Token: <token>` dengan token dari `GET /api/csrf-token`.
 > Tanpa itu server menjawab `403`. Token berlaku 24 jam dan tidak terikat
 > sesi, jadi satu token boleh dipakai ulang sampai kedaluwarsa.
+
+> **Sumber teka-teki harian:** `GET /api/teka-teki-harian` meneruskan
+> `https://api.chess.com/pub/puzzle` (hari ini) atau
+> `https://api.chess.com/pub/puzzle/YYYY-MM-DD` (arsip). Soal, judul, dan
+> tautan tetap milik Chess.com; server hanya meneruskan dan mencache sebentar
+> (10 menit untuk hari ini, sehari untuk arsip) — tidak ada arsip soal yang
+> disimpan di repo. Atur `KCI_CHESS_DASAR` ke `scripts/mock-chess.mjs` untuk
+> mencoba tanpa Chess.com.
 
 > **Sumber anggota:** `GET /api/anggota` mengambil
 > `https://api.chess.com/pub/club/blunder-skuad/members`, lalu menambah profil,
