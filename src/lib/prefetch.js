@@ -10,7 +10,8 @@
  *     halaman tujuan langsung diunduh di latar belakang (umumnya selesai
  *     sebelum jari sempat menekan klik).
  *  2. Visibilitas — chunk rute dihangatkan saat tautannya benar-benar
- *     terlihat (IntersectionObserver), satu per satu di waktu luang
+ *     terlihat (IntersectionObserver) setelah interaksi pertama pengguna,
+ *     satu per satu di waktu luang
  *     browser. Dulu semua rute publik diunduh sekaligus setelah halaman
  *     pertama tampil: ± 45 berkas yang bersaing dengan gambar LCP dan
  *     membuat PageSpeed mencatat rantai permintaan kritis 1,2 detik.
@@ -165,7 +166,8 @@ function buatAntrean(kerjakan) {
  * halaman yang belum tentu dikunjungi.
  *
  * Sekarang yang dihangatkan hanya rute yang TAUTANNYA PERNAH TERLIHAT
- * (IntersectionObserver pada <a>) plus rute yang disentuh pointer. Pindah
+ * (IntersectionObserver pada <a>) setelah interaksi pertama, plus rute yang
+ * disentuh pointer. Pindah
  * halaman tetap terasa instan untuk jelajah wajar, tetapi pengunjung yang
  * hanya membaca satu halaman tidak diunduhkan seluruh situs.
  */
@@ -231,12 +233,21 @@ export function mulaiPrefetchRute() {
     pemantau.observe(document.body, { childList: true, subtree: true });
   };
 
-  // Penghangatan otomatis baru dipasang setelah halaman TENANG (lihat
-  // src/lib/waktuSenggang.js). Dulu blok ini menempel pada `load`: pada audit
-  // PageSpeed /papan-interaktif rantai permintaan kritisnya justru berisi
-  // chunk rute tetangga (LatihanRepertoar → HandBrain → TuringTest →
-  // LayarPengaturan) yang diunduh satu per satu selagi elemen LCP belum dicat.
-  antrekanLatar(mulai);
+  // Jangan mengevaluasi modul rute lain pada kunjungan tanpa interaksi.
+  // Setelah interaksi pertama, penjadwal tetap menunggu halaman tenang.
+  const pemicuOtomatis = ["pointerdown", "keydown", "touchstart", "wheel"];
+  const saatMulaiInteraksi = (event) => {
+    if (!event.isTrusted) return;
+    for (const nama of pemicuOtomatis) {
+      window.removeEventListener(nama, saatMulaiInteraksi);
+    }
+    antrekanLatar(mulai);
+  };
+  if (hangatOtomatis && observasi) {
+    for (const nama of pemicuOtomatis) {
+      window.addEventListener(nama, saatMulaiInteraksi, { passive: true });
+    }
+  }
 
   // (1) Interaksi: hover / fokus / sentuh pada tautan internal mana pun —
   //     ini tetap jalan di semua kondisi jaringan karena atas inisiatif
