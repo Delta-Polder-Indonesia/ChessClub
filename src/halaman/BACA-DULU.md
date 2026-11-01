@@ -95,6 +95,11 @@ Daftar menu dan pemetaan folder berada di `src/menu.js`. Routing berada di `src/
 - `TekaTekiHarian/` — halaman penuh `/teka-teki-harian` (pemutar langkah).
   Sumbernya **API** `GET /api/teka-teki-harian` (server meneruskan Chess.com);
   bila API gagal ia jatuh ke snapshot lokal dan menandai soalnya dari arsip.
+  Halaman ini **berdiri sendiri** sebagai alat papan: memakai kerangka keluarga
+  papan interaktif (sidebar sendiri seperti Teka-teki/Rush/Manusia vs Mesin,
+  tanpa bilah "Kembali ke Teka-teki Catur"), dan di menu ia berada di grup
+  **Alat Papan** di dalam dropdown Program Kami, bukan sebaris dengan
+  Teka-teki Catur.
 - `Landing/TekaTekiHarianLanding.jsx` — widget **bisa dimainkan** di halaman
   depan, memakai **arsip lokal** `public/data/teka-teki-harian/terbaru.json`
   (tanpa API). Dibatasi 5 soal selesai per hari (progres di `localStorage`,

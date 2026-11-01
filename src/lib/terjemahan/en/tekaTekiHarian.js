@@ -52,5 +52,4 @@ export const tekaTekiHarian = {
   bukaDiChessCom: "Open the original page on Chess.com",
   sumber:
     "The daily puzzle comes from Chess.com's official daily puzzle. This site keeps a compact copy (position + solution moves) so the puzzle stays playable even when Chess.com is unreachable; titles, authors, and media are not copied, and a link to the original page is always provided.",
-  kembali: "Back to Chess Puzzles",
 };

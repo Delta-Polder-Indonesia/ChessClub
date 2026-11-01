@@ -443,32 +443,185 @@ export default function TekaTekiHarian() {
         path="/teka-teki-harian"
       />
 
-      <div className="flex min-h-screen flex-col bg-[#262421] text-gray-200">
-        {/* Bar atas: jalan kembali, judul, dan tautan ke halaman asli. */}
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b border-[#312e2b] bg-[#211f1c] px-4 py-3">
-          <Link
-            to="/teka-teki/problem"
-            className="text-xs font-bold uppercase tracking-wider text-gray-300 transition hover:text-white"
-          >
-            ← {t("tekaTekiHarian.kembali")}
-          </Link>
-          <h1 className="text-sm font-bold uppercase tracking-wider text-white">
-            {t("tekaTekiHarian.judul")}
-          </h1>
-          <a
-            href={soal?.url || URL_CHESSCOM}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-semibold text-emerald-300 underline-offset-4 transition hover:text-emerald-200 hover:underline"
-          >
-            Chess.com ↗
-          </a>
-        </header>
+      {/*
+       * Kerangka halaman mengikuti POLA KELUARGA PAPAN INTERAKTIF: sidebar
+       * milik halaman ini sendiri (brand BlunderSkuad + label mode + kontrol
+       * halaman + Lisensi di bawah), papan di area utama, panel keterangan di
+       * kanan — sama seperti Teka-teki, Teka-teki Rush, dan Manusia vs Mesin.
+       *
+       * Halaman ini TIDAK lagi bernaung di bawah Teka-teki Catur: tidak ada
+       * lagi bilah "Kembali ke Teka-teki Catur" di atas, karena ia adalah alat
+       * papan yang berdiri sendiri. Yang dibagi dengan keluarga itu adalah
+       * kerangka, tema gelap, dan `PapanTekaTeki` — bukan navigasinya.
+       */}
+      <div className="flex h-dvh min-h-0 flex-col overflow-hidden bg-[#262421] font-sans text-gray-200 lg:flex-row">
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* SIDEBAR KIRI — milik mode ini sendiri                   */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <aside className="flex w-full shrink-0 flex-col justify-between overflow-y-auto border-b border-[#312e2b] bg-[#1e1c18] lg:w-[240px] lg:border-b-0 lg:border-r">
+          <div>
+            <div className="border-b border-[#312e2b] px-4 py-4">
+              <Link
+                to="/"
+                className="text-[22px] font-bold leading-none text-white transition hover:text-white"
+              >
+                Blunder<span className="text-[#81b64c]">Skuad</span>
+              </Link>
+              <p className="mt-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                {t("tekaTekiHarian.judul")}
+              </p>
+            </div>
 
-        <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 lg:flex-row lg:items-start">
-          {/* ---------------------------------------------------- papan */}
-          <section className="order-2 w-full lg:order-1 lg:flex-1">
-            <div className="relative mx-auto w-full max-w-[min(92vw,620px)]">
+            <div className="flex flex-col gap-4 px-4 py-4">
+              {/* Edisi: hari ini atau arsip */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                  {tanggal === hariIni
+                    ? t("tekaTekiHarian.hariIni")
+                    : t("tekaTekiHarian.arsip")}{" "}
+                  · {tanggalTerbaca(soal?.tanggal || tanggal, locale)}
+                </span>
+                {sudahSelesaiSebelumnya && !selesai && (
+                  <span className="w-fit rounded bg-[#26331c] px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
+                    {t("tekaTekiHarian.sudahSelesai")}
+                  </span>
+                )}
+                {dariArsip && (
+                  <p className="rounded bg-[#312e2b] px-2 py-1 text-[11px] font-semibold leading-snug text-amber-300">
+                    {t("tekaTekiHarian.dariArsip")}
+                  </p>
+                )}
+              </div>
+
+              {/* Navigasi tanggal */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  {t("tekaTekiHarian.pilihTanggal")}
+                </span>
+                <div className="flex items-stretch gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => pilihTanggal(geserTanggal(tanggal, -1))}
+                    disabled={!bisaMundur}
+                    aria-label={t("tekaTekiHarian.geserSebelumnya")}
+                    className="rounded-md bg-[#312e2b] px-2.5 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    ←
+                  </button>
+                  <input
+                    type="date"
+                    value={tanggal}
+                    max={batasAkhir}
+                    min={batasAwal}
+                    aria-label={t("tekaTekiHarian.pilihTanggal")}
+                    onChange={(e) => pilihTanggal(e.target.value)}
+                    className="min-w-0 flex-1 rounded-md border border-[#363431] bg-[#262421] px-2 py-2 text-sm text-gray-200 outline-none focus:border-[#81b64c]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => pilihTanggal(geserTanggal(tanggal, 1))}
+                    disabled={!bisaMaju}
+                    aria-label={t("tekaTekiHarian.geserBerikutnya")}
+                    className="rounded-md bg-[#312e2b] px-2.5 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    →
+                  </button>
+                </div>
+                {tanggal !== hariIni && (
+                  <button
+                    type="button"
+                    onClick={() => pilihTanggal(hariIni)}
+                    className="w-full rounded-md bg-[#312e2b] px-2 py-1.5 text-xs font-bold text-gray-100 transition hover:bg-[#3d3a37]"
+                  >
+                    {t("tekaTekiHarian.keHariIni")}
+                  </button>
+                )}
+              </div>
+
+              {/* Status permainan */}
+              {status === "siap" && solusi.length > 0 && (
+                <div className="flex flex-col gap-2 rounded-md bg-[#262421] p-3 ring-1 ring-[#312e2b]">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
+                      <span
+                        className={`h-3 w-3 rounded-sm border ${
+                          orientasi === "w"
+                            ? "border-gray-400 bg-white"
+                            : "border-gray-600 bg-[#1e1c18]"
+                        }`}
+                      />
+                      {t("tekaTekiHarian.giliranMelangkah")}
+                    </span>
+                    <span className="text-[11px] font-semibold text-gray-300">
+                      {selesai
+                        ? t("tekaTekiHarian.terpecahkan")
+                        : jumlahLangkah === 1
+                          ? t("tekaTekiHarian.satuLangkah")
+                          : t("tekaTekiHarian.langkahTersisa", {
+                              n: jumlahLangkah,
+                            })}
+                    </span>
+                  </div>
+                  <p
+                    aria-live="polite"
+                    className={`min-h-[1.25rem] text-sm font-semibold ${
+                      selesai
+                        ? "text-emerald-300"
+                        : pesan?.jenis === "salah"
+                          ? "text-red-400"
+                          : "text-gray-200"
+                    }`}
+                  >
+                    {teksPesan}
+                  </p>
+                  {selesai && (
+                    <p className="text-[11px] text-gray-400">
+                      {t("tekaTekiHarian.terpecahkanCatatan")}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Aksi */}
+              {status === "siap" && solusi.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={tampilkanPetunjuk}
+                    disabled={selesai || menungguLawan}
+                    className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    {t("tekaTekiHarian.petunjuk")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={mulaiUlang}
+                    className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37]"
+                  >
+                    {t("tekaTekiHarian.ulangi")}
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-[#312e2b] px-4 py-3">
+            <Link
+              to="/program-kami/atribusi"
+              className="flex items-center justify-center gap-1.5 text-xs text-gray-300 transition hover:text-white"
+            >
+              <License size={14} class="fill-current" />
+              {t("papan.menuAtribusi")}
+            </Link>
+          </div>
+        </aside>
+
+        {/* ═══════════════════════════════════════════════════════ */}
+        {/* AREA UTAMA: PAPAN + PANEL KETERANGAN                    */}
+        {/* ═══════════════════════════════════════════════════════ */}
+        <div className="mx-auto grid h-full min-h-0 w-full flex-1 max-w-[1280px] grid-cols-1 gap-4 overflow-x-hidden overflow-y-auto p-3 sm:p-4 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)] lg:overflow-hidden">
+          <section className="mx-auto flex min-h-0 w-full items-start justify-center sm:items-center lg:overflow-y-auto">
+            <div className="relative mx-auto w-full max-w-[min(92vw,620px)] min-w-0">
               {status === "memuat" && (
                 <div className="flex aspect-square w-full items-center justify-center rounded bg-[#211f1c] ring-1 ring-[#312e2b]">
                   <p className="text-sm font-semibold text-gray-400">
@@ -546,7 +699,7 @@ export default function TekaTekiHarian() {
                     role="dialog"
                     aria-modal="true"
                     aria-label={t("tekaTekiHarian.promosiJudul")}
-                    className="flex flex-col items-center gap-3 rounded-lg bg-[#262421] p-4 ring-1 ring-[#3d3a37]"
+                    className="flex flex-col items-center gap-3 rounded-lg border border-[#3b3935] bg-[#1e1c18] p-4 shadow-xl"
                     onClick={(e) => e.stopPropagation()}
                   >
                     <p className="text-sm font-bold text-white">
@@ -590,130 +743,19 @@ export default function TekaTekiHarian() {
             </div>
           </section>
 
-          {/* --------------------------------------------------- panel */}
-          <aside className="order-1 flex w-full flex-col gap-4 rounded-lg bg-[#211f1c] p-4 ring-1 ring-[#312e2b] lg:order-2 lg:w-[380px]">
+          {/* Panel kanan: keterangan soal, riwayat langkah, sumber. */}
+          <aside className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto rounded-lg bg-[#211f1c] p-4 ring-1 ring-[#312e2b]">
             <div className="flex flex-col gap-1">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
-                {tanggal === hariIni
-                  ? t("tekaTekiHarian.hariIni")
-                  : t("tekaTekiHarian.arsip")}{" "}
-                · {tanggalTerbaca(soal?.tanggal || tanggal, locale)}
-              </span>
-              <h2 className="text-lg font-bold text-white">
+              <h1 className="text-lg font-bold text-white">
                 {soal?.judul || t("tekaTekiHarian.judul")}
-              </h2>
-              {sudahSelesaiSebelumnya && !selesai && (
-                <span className="w-fit rounded bg-[#26331c] px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                  {t("tekaTekiHarian.sudahSelesai")}
-                </span>
-              )}
+              </h1>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400">
+                {tanggalTerbaca(soal?.tanggal || tanggal, locale)}
+              </p>
               <p className="text-xs leading-relaxed text-gray-400">
                 {t("tekaTekiHarian.pembuka")}
               </p>
-              {dariArsip && (
-                <p className="rounded bg-[#312e2b] px-2 py-1 text-[11px] font-semibold text-amber-300">
-                  {t("tekaTekiHarian.dariArsip")}
-                </p>
-              )}
             </div>
-
-            {/* Navigasi tanggal. */}
-            <div className="flex items-end gap-2">
-              <button
-                type="button"
-                onClick={() => pilihTanggal(geserTanggal(tanggal, -1))}
-                disabled={!bisaMundur}
-                aria-label={t("tekaTekiHarian.geserSebelumnya")}
-                className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                ←
-              </button>
-              <label className="flex flex-1 flex-col gap-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">
-                {t("tekaTekiHarian.pilihTanggal")}
-                <input
-                  type="date"
-                  value={tanggal}
-                  max={batasAkhir}
-                  min={batasAwal}
-                  onChange={(e) => pilihTanggal(e.target.value)}
-                  className="rounded-md border border-[#363431] bg-[#262421] px-2 py-1.5 text-sm font-normal normal-case tracking-normal text-gray-200 outline-none focus:border-[#81b64c]"
-                />
-              </label>
-              <button
-                type="button"
-                onClick={() => pilihTanggal(geserTanggal(tanggal, 1))}
-                disabled={!bisaMaju}
-                aria-label={t("tekaTekiHarian.geserBerikutnya")}
-                className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                →
-              </button>
-            </div>
-
-            {/* Status permainan. */}
-            {status === "siap" && solusi.length > 0 && (
-              <div className="flex flex-col gap-2 rounded-md bg-[#262421] p-3 ring-1 ring-[#312e2b]">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                    <span
-                      className={`h-3 w-3 rounded-sm border ${
-                        orientasi === "w"
-                          ? "border-gray-400 bg-white"
-                          : "border-gray-600 bg-[#1e1c18]"
-                      }`}
-                    />
-                    {t("tekaTekiHarian.giliranMelangkah")}
-                  </span>
-                  <span className="text-[11px] font-semibold text-gray-300">
-                    {selesai
-                      ? t("tekaTekiHarian.terpecahkan")
-                      : jumlahLangkah === 1
-                        ? t("tekaTekiHarian.satuLangkah")
-                        : t("tekaTekiHarian.langkahTersisa", {
-                            n: jumlahLangkah,
-                          })}
-                  </span>
-                </div>
-                <p
-                  aria-live="polite"
-                  className={`min-h-[1.25rem] text-sm font-semibold ${
-                    selesai
-                      ? "text-emerald-300"
-                      : pesan?.jenis === "salah"
-                        ? "text-red-400"
-                        : "text-gray-200"
-                  }`}
-                >
-                  {teksPesan}
-                </p>
-                {selesai && (
-                  <p className="text-[11px] text-gray-400">
-                    {t("tekaTekiHarian.terpecahkanCatatan")}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Aksi. */}
-            {status === "siap" && solusi.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={tampilkanPetunjuk}
-                  disabled={selesai || menungguLawan}
-                  className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {t("tekaTekiHarian.petunjuk")}
-                </button>
-                <button
-                  type="button"
-                  onClick={mulaiUlang}
-                  className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37]"
-                >
-                  {t("tekaTekiHarian.ulangi")}
-                </button>
-              </div>
-            )}
 
             {/* Riwayat langkah (solusi yang sudah dimainkan). */}
             {riwayat.length > 0 && (
@@ -745,23 +787,14 @@ export default function TekaTekiHarian() {
               <p className="text-[11px] leading-relaxed text-gray-500">
                 {t("tekaTekiHarian.sumber")}
               </p>
-              <div className="flex flex-wrap items-center gap-3">
-                <a
-                  href={soal?.url || URL_CHESSCOM}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs font-semibold text-emerald-300 underline-offset-4 transition hover:underline"
-                >
-                  {t("tekaTekiHarian.bukaDiChessCom")}
-                </a>
-                <Link
-                  to="/program-kami/atribusi"
-                  className="flex items-center gap-1 text-xs font-semibold text-gray-400 transition hover:text-white"
-                >
-                  <License size={12} class="fill-current" />
-                  {t("papan.menuAtribusi")}
-                </Link>
-              </div>
+              <a
+                href={soal?.url || URL_CHESSCOM}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-semibold text-emerald-300 underline-offset-4 transition hover:underline"
+              >
+                {t("tekaTekiHarian.bukaDiChessCom")}
+              </a>
             </div>
           </aside>
         </div>

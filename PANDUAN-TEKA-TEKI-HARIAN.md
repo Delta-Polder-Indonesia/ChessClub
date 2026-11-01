@@ -38,6 +38,26 @@ cadangan**: halaman membaca snapshot lokal untuk tanggal yang sama dan
 menampilkan penanda *“Chess.com sedang tidak bisa dihubungi — soal ini
 dilayani dari arsip lokal situs.”* Jadi halaman tidak pernah mati.
 
+## 1b. Kedudukan halaman: alat papan yang berdiri sendiri
+
+`/teka-teki-harian` **bukan** sub-halaman Teka-teki Catur. Ia alat papan yang
+berdiri sendiri dan memakai **kerangka keluarga papan interaktif** yang sama
+dengan Teka-teki, Teka-teki Rush, dan Manusia vs Mesin:
+
+- sidebar sendiri (brand BlunderSkuad + label mode + navigasi tanggal + status
+  permainan + Petunjuk/Ulangi, Lisensi di bagian bawah), papan di area utama,
+  dan panel keterangan di kanan;
+- tema gelap `#262421` yang sama;
+- tidak ada lagi bilah "Kembali ke Teka-teki Catur" di atas halaman.
+
+Di navigasi, ia tidak lagi sebaris dengan "Teka-teki Catur" di dropdown Program
+Kami. Ia berada di grup **Alat Papan** (`nav.alatPapan`, menuju
+`/papan-interaktif`) bersama **Lawan Bot** — keduanya alat papan, bukan halaman
+konten. Grup itu dibuka lewat tombol panah di dalam dropdown Program Kami.
+
+Yang dibagi dengan keluarga papan hanyalah kerangka, tema, dan komponen
+`PapanTekaTeki` — bukan navigasi atau alur halamannya.
+
 ## 2. Widget halaman depan memakai arsip lokal, bisa dimainkan
 
 Widget **tidak** memanggil API sama sekali (dijaga oleh uji). Ia membaca

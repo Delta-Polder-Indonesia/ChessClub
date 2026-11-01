@@ -88,6 +88,57 @@ hasil(
   "label EN tidak ditemukan"
 );
 
+// 4. Navigasi: "Teka-teki Harian" tidak lagi anak langsung Program Kami
+//    (dulu ia terdaftar sebaris dengan "Teka-teki Catur"), melainkan berada
+//    di grup "Alat Papan" bersama Lawan Bot — satu keluarga alat papan.
+const { MENU_UTAMA } = await import("../src/menu.js");
+const programKami = MENU_UTAMA.find((m) => m.title === "nav.programKami");
+const anakLangsung = (programKami?.children || [])
+  .filter((c) => !c.children)
+  .map((c) => c.path);
+const grupAlat = (programKami?.children || []).find(
+  (c) => c.title === "nav.alatPapan"
+);
+const jalurGrup = (grupAlat?.children || []).map((c) => c.path);
+hasil(
+  "Teka-teki Harian bukan lagi anak langsung Program Kami",
+  !anakLangsung.includes("/teka-teki-harian"),
+  `anak langsung: ${anakLangsung.join(", ")}`
+);
+hasil(
+  "Teka-teki Harian ada di grup Alat Papan",
+  jalurGrup.includes("/teka-teki-harian"),
+  `isi grup: ${jalurGrup.join(", ") || "(kosong)"}`
+);
+hasil(
+  "grup Alat Papan juga memuat Lawan Bot",
+  jalurGrup.includes("/papan-interaktif/manusia-vs-mesin")
+);
+hasil(
+  "grup Alat Papan menuju /papan-interaktif",
+  grupAlat?.path === "/papan-interaktif"
+);
+
+// 5. Submenu grup benar-benar bisa dibuka di DOM: tombol panah di samping
+//    tautan grup memperlihatkan tautan Teka-teki Harian.
+const liGrup = [...document.querySelectorAll("li")].find(
+  (li) =>
+    li.querySelector('a[href="/papan-interaktif"]') &&
+    li.querySelector("button[aria-expanded]")
+);
+const tombolSub = liGrup?.querySelector("button[aria-expanded]");
+hasil("tombol pembuka submenu Alat Papan ada", Boolean(tombolSub));
+if (tombolSub) {
+  await act(async () => {
+    tombolSub.click();
+  });
+}
+hasil(
+  "submenu Alat Papan memuat tautan Teka-teki Harian",
+  Boolean(document.querySelector('a[href="/teka-teki-harian"]')),
+  "tautan /teka-teki-harian tidak tampil setelah submenu dibuka"
+);
+
 // Bersih-bersih: tutup drawer (Escape lewat handler dialog) tidak wajib —
 // unmount cukup.
 await act(async () => {

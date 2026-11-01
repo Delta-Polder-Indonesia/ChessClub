@@ -545,6 +545,25 @@ uji(
   "tidak ada peringatan \"dilayani dari arsip\" saat API sehat",
   !teksHalaman().includes(kamus.dariArsip)
 );
+/* Halaman ini berdiri sendiri sebagai alat papan: sidebar sendiri dengan
+ * brand + label mode, dan TIDAK lagi bernaung di bawah Teka-teki Catur. */
+uji(
+  "memakai kerangka keluarga papan (brand BlunderSkuad di sidebar)",
+  teksHalaman().includes("BlunderSkuad")
+);
+uji(
+  "label mode tampil sebagai judul halaman di sidebar",
+  Boolean(dok.querySelector("h1")) &&
+    teksHalaman().includes(kamus.judul)
+);
+uji(
+  "tidak ada lagi tautan kembali ke Teka-teki Catur",
+  !dok.querySelector('a[href="/teka-teki/problem"]')
+);
+uji(
+  "hanya satu papan (papan milik halaman ini sendiri)",
+  dok.querySelectorAll("[data-petak]").length === 64
+);
 uji(
   "jumlah langkah tersisa dilaporkan",
   teksHalaman().includes(

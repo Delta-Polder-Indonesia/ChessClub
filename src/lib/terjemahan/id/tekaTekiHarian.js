@@ -52,5 +52,4 @@ export const tekaTekiHarian = {
   bukaDiChessCom: "Buka halaman aslinya di Chess.com",
   sumber:
     "Soal harian berasal dari teka-teki harian resmi Chess.com. Situs ini menyimpan salinan ringkas (posisi + langkah solusi) agar teka-teki tetap bisa dimainkan walau Chess.com tidak terjangkau; judul, penulis, dan media tidak disalin, dan tautan ke halaman aslinya selalu disediakan.",
-  kembali: "Kembali ke Teka-teki Catur",
 };

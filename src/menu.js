@@ -68,12 +68,37 @@ export const MENU_UTAMA = [
         file: "RushTekaTekiLanding.jsx",
       },
       {
-        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
-        // /teka-teki/problem dan /teka-teki-rush.
-        title: "nav.tekaTekiHarian",
-        path: "/teka-teki-harian",
-        folder: "TekaTekiHarian",
-        file: "TekaTekiHarian.jsx",
+        /*
+         * "Alat papan" — satu keluarga papan yang bisa DIMAINKAN, sengaja
+         * dipisahkan dari halaman konten Teka-teki Catur di atasnya.
+         * Teka-teki Harian tinggal di sini supaya ia tidak lagi terbaca
+         * sebagai bagian dari Teka-teki Catur: ia alat papan yang berdiri
+         * sendiri (kerangka sidebar + papan sendiri), sefamili dengan
+         * Manusia vs Mesin dan alat papan lain di /papan-interaktif.
+         * Anak dropdown dibuka lewat tanda panah (Header merender
+         * `children` bersarang sebagai submenu).
+         */
+        title: "nav.alatPapan",
+        path: "/papan-interaktif",
+        folder: "PapanInteraktif",
+        file: "Workspace.jsx",
+        children: [
+          {
+            // Alamatnya sejajar dengan /teka-teki/problem dan /teka-teki-rush.
+            title: "nav.tekaTekiHarian",
+            path: "/teka-teki-harian",
+            folder: "TekaTekiHarian",
+            file: "TekaTekiHarian.jsx",
+          },
+          {
+            // Tinggal di grup yang sama dengan Teka-teki Harian: keduanya
+            // alat papan, bukan halaman konten Program Kami.
+            title: "nav.lawanBot",
+            path: "/papan-interaktif/manusia-vs-mesin",
+            folder: "ManusiaVsMesin",
+            file: "ManusiaVsMesin.jsx",
+          },
+        ],
       },
       {
         title: "nav.quizCatur",
@@ -92,12 +117,6 @@ export const MENU_UTAMA = [
         path: "/program-kami/pembukaan",
         folder: "ProgramKami",
         file: "Pembukaan.jsx",
-      },
-      {
-        title: "nav.lawanBot",
-        path: "/papan-interaktif/manusia-vs-mesin",
-        folder: "ManusiaVsMesin",
-        file: "ManusiaVsMesin.jsx",
       },
       {
         title: "nav.eBookPanduan",
