@@ -70,13 +70,19 @@ perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
   (`min(100%, 640px, calc(100dvh - 96px))`) sehingga muat tanpa menggulir di
   desktop, dan tetap penuh di layar sempit.
 - **Panel kanan setinggi papan** (336px) berisi tiga tab:
-  1. **Main** — judul soal dari Chess.com, indikator giliran (♙/♟ + "Giliran
-     putih/hitam"), tanggal edisi, strip kalender **tujuh hari** menuju tanggal
-     yang dibuka (titik hijau = tanggal yang sudah diselesaikan di peramban
-     ini), tautan "Cara kerja teka-teki harian", tombol **Petunjuk** dengan dua
-     ikon (Ulangi, Balik papan), dan baris kontrol langkah **⏮ ◀ ▶ ⏭** untuk
-     meninjau langkah yang sudah dimainkan, plus menu **⋯** (Salin FEN, buka di
-     Chess.com).
+  1. **Main** — urutannya meniru rangka panel rujukan, dari atas ke bawah:
+     1. judul soal dari Chess.com;
+     2. **baris status**: ikon pion ♙/♟ + "Giliran putih/hitam", tanggal edisi
+        ("1 November · Hari ini/Arsip"), dan lencana sisa langkah;
+     3. **strip kalender tujuh hari** menuju tanggal yang dibuka (titik hijau =
+        tanggal yang sudah diselesaikan di peramban ini) dengan kepala strip
+        berisi nama bulan + tautan "Kalender lengkap", lalu tautan "Cara kerja
+        teka-teki harian";
+     4. **aksi**: satu tombol lebar **Petunjuk** + dua tombol ikon bulat
+        (Ulangi, Salin FEN);
+     5. **baris navigasi** tiga kelompok: Balik papan sendirian di kiri,
+        **⏮ ◀ ▶ ⏭** di tengah untuk meninjau langkah yang sudah dimainkan, dan
+        menu **⋯** (Cara kerja, buka di Chess.com) di kanan.
   2. **Kalender** — kalender bulan penuh; hari yang sudah diselesaikan
      bertanda, tanggal setelah hari ini tidak bisa dibuka, klik tanggal untuk
      membuka soal arsipnya.

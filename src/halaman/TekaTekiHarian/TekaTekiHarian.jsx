@@ -76,16 +76,6 @@ function IkonUlang({ className = "" }) {
   );
 }
 
-function IkonUndo({ className = "" }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
-      <path d="M9 14 4 9l5-5" />
-      <path d="M4 9h10a6 6 0 0 1 0 12h-1" />
-    </svg>
-  );
-}
-
 function IkonBalik({ className = "" }) {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -94,6 +84,16 @@ function IkonBalik({ className = "" }) {
       <path d="M21 3 8 16" />
       <path d="M8 21H3v-5" />
       <path d="m3 21 13-13" />
+    </svg>
+  );
+}
+
+function IkonSalin({ className = "" }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15V5a2 2 0 0 1 2-2h8" />
     </svg>
   );
 }
@@ -1054,40 +1054,43 @@ export default function TekaTekiHarian() {
                     </p>
                   )}
 
-                  {/* Indikator giliran */}
-                  <div className="flex flex-col items-center gap-1 py-2 text-center">
+                  {/* Status: sisi yang melangkah + edisi (baris, seperti panel
+                      "status with-side" pada rujukan). */}
+                  <div className="flex items-center gap-3 border-b border-[#312e2b] pb-3">
                     <span
                       aria-hidden="true"
-                      className="flex h-14 w-14 items-center justify-center rounded-full bg-[#312e2b] text-3xl leading-none text-gray-100"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#312e2b] text-2xl leading-none text-gray-100"
                     >
                       {orientasi === "w" ? "♙" : "♟"}
                     </span>
-                    <p className="mt-1 text-base font-bold text-white">
-                      {t(
-                        orientasi === "w"
-                          ? "tekaTekiHarian.giliranPutih"
-                          : "tekaTekiHarian.giliranHitam"
-                      )}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      {tanggalTerbaca(soal?.tanggal || tanggal, locale)} ·{" "}
-                      {tanggal === hariIni
-                        ? t("tekaTekiHarian.hariIni")
-                        : t("tekaTekiHarian.arsip")}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-white">
+                        {t(
+                          orientasi === "w"
+                            ? "tekaTekiHarian.giliranPutih"
+                            : "tekaTekiHarian.giliranHitam"
+                        )}
+                      </p>
+                      <p className="truncate text-[11px] text-gray-400">
+                        {tanggalTerbaca(soal?.tanggal || tanggal, locale)} ·{" "}
+                        {tanggal === hariIni
+                          ? t("tekaTekiHarian.hariIni")
+                          : t("tekaTekiHarian.arsip")}
+                      </p>
+                    </div>
                     {status === "siap" && solusi.length > 0 && (
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-500">
+                      <span className="shrink-0 rounded bg-[#312e2b] px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-300">
                         {selesai
                           ? t("tekaTekiHarian.terpecahkan")
                           : jumlahLangkah === 1
                             ? t("tekaTekiHarian.satuLangkah")
                             : t("tekaTekiHarian.langkahTersisa", { n: jumlahLangkah })}
-                      </p>
+                      </span>
                     )}
                   </div>
 
                   {/* Strip kalender tujuh hari */}
-                  <div className="flex flex-col gap-2 border-t border-[#312e2b] pt-3">
+                  <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-2 text-[11px] font-semibold text-gray-400">
                       <span>{namaBulan(tanggal, locale)}</span>
                       <button
@@ -1179,30 +1182,52 @@ export default function TekaTekiHarian() {
                       title={t("tekaTekiHarian.ulangi")}
                       className={gayaTombolIkon}
                     >
-                      <IkonUndo className="h-4 w-4" />
+                      <IkonUlang className="h-4 w-4" />
                     </button>
+                    <button
+                      type="button"
+                      onClick={salinFen}
+                      aria-label={t("tekaTekiHarian.salinFen")}
+                      title={
+                        tersalin
+                          ? t("tekaTekiHarian.salinFenBerhasil")
+                          : t("tekaTekiHarian.salinFen")
+                      }
+                      className={`${gayaTombolIkon} ${
+                        tersalin ? "text-emerald-300" : ""
+                      }`}
+                    >
+                      {tersalin ? (
+                        <svg
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                        >
+                          <path d="m5 13 4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <IkonSalin className="h-4 w-4" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Baris navigasi: [balik papan] [⏮ ◀ ▶ ⏭] [⋯] — tiga
+                      kelompok seperti panel rujukan. */}
+                  <div className="mt-auto flex items-center justify-between border-t border-[#312e2b] pt-2">
                     <button
                       type="button"
                       onClick={() => setBalik((b) => !b)}
                       aria-label={t("tekaTekiHarian.balikPapan")}
                       aria-pressed={balik}
                       title={t("tekaTekiHarian.balikPapan")}
-                      className={gayaTombolIkon}
-                    >
-                      <IkonBalik className="h-4 w-4" />
-                    </button>
-                  </div>
-
-                  {/* Baris kontrol langkah */}
-                  <div className="mt-auto flex items-center justify-between border-t border-[#312e2b] pt-2">
-                    <button
-                      type="button"
-                      onClick={mulaiUlang}
-                      aria-label={t("tekaTekiHarian.mulaiUlangSoal")}
-                      title={t("tekaTekiHarian.mulaiUlangSoal")}
                       className="flex h-9 w-9 items-center justify-center rounded-md text-gray-400 transition hover:bg-[#2b2825] hover:text-white"
                     >
-                      <IkonUlang className="h-4 w-4" />
+                      <IkonBalik className="h-4 w-4" />
                     </button>
 
                     <div className="flex items-center gap-0.5">
@@ -1262,15 +1287,16 @@ export default function TekaTekiHarian() {
                         <IkonTitik className="h-4 w-4" />
                       </button>
                       {aksiTerbuka && (
-                        <div className="absolute bottom-full right-0 z-20 mb-1 w-48 rounded-md border border-[#3b3935] bg-[#2b2825] p-1 text-xs shadow-xl">
+                        <div className="absolute bottom-full right-0 z-20 mb-1 w-52 rounded-md border border-[#3b3935] bg-[#2b2825] p-1 text-xs shadow-xl">
                           <button
                             type="button"
-                            onClick={salinFen}
+                            onClick={() => {
+                              setAksiTerbuka(false);
+                              setTab("info");
+                            }}
                             className="block w-full rounded px-2 py-1.5 text-left text-gray-200 transition hover:bg-[#3d3a37]"
                           >
-                            {tersalin
-                              ? t("tekaTekiHarian.salinFenBerhasil")
-                              : t("tekaTekiHarian.salinFen")}
+                            {t("tekaTekiHarian.caraKerja")}
                           </button>
                           <a
                             href={soal?.url || URL_CHESSCOM}

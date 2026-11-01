@@ -74,7 +74,6 @@ export const tekaTekiHarian = {
   caraKerjaPoin3:
     "Progres tanggal yang sudah selesai disimpan di peramban ini, dan dipakai kalender di panel kanan sebagai penanda.",
   balikPapan: "Balik papan",
-  mulaiUlangSoal: "Mulai ulang soal",
   langkahPertama: "Ke posisi awal",
   langkahSebelumnya: "Langkah sebelumnya",
   langkahBerikutnya: "Langkah berikutnya",

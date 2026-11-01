@@ -74,7 +74,6 @@ export const tekaTekiHarian = {
   caraKerjaPoin3:
     "Dates you have solved are stored in this browser, and the calendar in the right panel uses them as markers.",
   balikPapan: "Flip board",
-  mulaiUlangSoal: "Restart puzzle",
   langkahPertama: "Back to starting position",
   langkahSebelumnya: "Previous move",
   langkahBerikutnya: "Next move",
