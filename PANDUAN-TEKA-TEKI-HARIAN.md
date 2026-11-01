@@ -102,6 +102,18 @@ perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
   ini"), kartu "Giliran melangkah / Sisa N langkah", dan tombol Petunjuk serta
   Ulangi.
 
+Tanda bantu papan (sama dengan `/teka-teki/problem/<nomor>`) memakai pintu
+tunggal `src/lib/tandaBantu.js`:
+
+- **klik bidak** → bidak terpilih (cincin) dan petak sasaran legal ditandai;
+  klik bidak yang sama lagi membatalkan pilihan;
+- **klik kanan petak kosong** → mark kotak (klik kanan lagi menghapusnya);
+- **seret klik kanan** dari satu petak ke petak lain → panah (seret pada
+  pasangan yang sama menghapus panahnya);
+- **klik kiri di papan** menghapus semua mark dan panah.
+
+Tanda dibersihkan saat tanggal soal berganti dan saat **Ulangi** ditekan.
+
 Perbaikan yang ikut menyertai penyusunan ulang ini:
 
 - **"Balik papan" hanya memutar tampilan.** Indikator giliran di panel kanan
@@ -219,7 +231,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 109 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
+npm run uji:teka-teki-harian-ui   # 117 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):

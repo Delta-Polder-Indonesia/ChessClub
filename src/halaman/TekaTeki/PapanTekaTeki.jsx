@@ -290,6 +290,7 @@ const Petak = memo(function Petak({
       {/* Tanda petak hasil klik kanan — di bawah bidak agar bidak tetap jelas. */}
       {warnaMark && (
         <span
+          data-tanda-petak={warnaMark}
           className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: WARNA_PETAK[warnaMark] }}
           aria-hidden="true"

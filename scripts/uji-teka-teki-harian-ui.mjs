@@ -381,6 +381,15 @@ const permintaanApi = [];
 siapkanGlobal();
 
 const dok = window.document;
+
+/*
+ * jsdom tidak menyediakan `document.elementFromPoint`, padahal papan memakainya
+ * untuk mencari petak di bawah kursor. Uji mengarahkan "kursor" lewat variabel
+ * ini: `kursorPetak` berisi petak yang dianggap berada di bawah pointer.
+ */
+let kursorPetak = null;
+dok.elementFromPoint = () =>
+  (kursorPetak ? dok.querySelector(`[data-petak="${kursorPetak}"]`) : null);
 const pesanGalat = [];
 const consoleErrorAsli = console.error;
 console.error = (...args) => {
@@ -1347,6 +1356,102 @@ if (soalHitam) {
   akarL.remove();
 } else {
   console.log("  (dilewati: snapshot tidak punya soal giliran hitam)");
+}
+
+/* E7 — klik bidak, panah seret klik kanan, dan mark petak kosong */
+console.log("\nE7. klik bidak, panah, dan mark petak:");
+{
+  stubApi = () => jawabanApi(paketTerbaru, "Uji harian dari API");
+  const akarM = akarBaru();
+  const rootM = mount(akarM, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000);
+
+  const petakEl = (sq) => akarM.querySelector(`[data-petak="${sq}"]`);
+  const jumlah = (sel) => akarM.querySelectorAll(sel).length;
+
+  /** Tekan/lepas tombol pointer pada satu petak (jsdom tidak punya PointerEvent). */
+  async function pointer(sq, tipe, { button = 0, buttons = 0 } = {}) {
+    kursorPetak = sq;
+    petakEl(sq)?.dispatchEvent(
+      new window.MouseEvent(tipe, {
+        bubbles: true,
+        button,
+        buttons,
+        clientX: 0,
+        clientY: 0,
+      })
+    );
+    await tunggu(60);
+  }
+
+  /* 1. Klik bidak → bidak terpilih & petak sasaran ditandai. */
+  const asal = parseLangkah(paketTerbaru.langkah[0]).from;
+  await klikPetak(asal);
+  await tunggu(120);
+  uji(
+    "klik bidak memilih bidak itu",
+    Boolean(petakEl(asal)?.querySelector("[data-bantu-pilih]"))
+  );
+  uji("klik bidak memunculkan petak sasaran", jumlah("[data-bantu-sasaran]") > 0);
+
+  await klikPetak(asal);
+  await tunggu(120);
+  uji(
+    "klik ulang bidak yang sama membatalkan pilihan",
+    jumlah("[data-bantu-pilih]") === 0 && jumlah("[data-bantu-sasaran]") === 0
+  );
+
+  /* 2. Klik kanan petak kosong → mark; klik kanan lagi → mark hilang. */
+  const kosong = "d5";
+  uji("prasyarat: d5 kosong", !petakEl(kosong)?.querySelector("[data-bidak]"));
+  await pointer(kosong, "pointerdown", { button: 2 });
+  await pointer(kosong, "pointerup", { button: 2 });
+  await tunggu(120);
+  uji(
+    "klik kanan petak kosong memberi mark",
+    Boolean(petakEl(kosong)?.querySelector("[data-tanda-petak]"))
+  );
+
+  await pointer(kosong, "pointerdown", { button: 2 });
+  await pointer(kosong, "pointerup", { button: 2 });
+  await tunggu(120);
+  uji(
+    "klik kanan lagi menghapus mark itu",
+    !petakEl(kosong)?.querySelector("[data-tanda-petak]")
+  );
+
+  /* 3. Seret klik kanan → panah antar petak. */
+  const asalPanah = "d4";
+  const ujungPanah = "e5";
+  await pointer(asalPanah, "pointerdown", { button: 2 });
+  petakEl(asalPanah)?.dispatchEvent(
+    new window.MouseEvent("pointermove", {
+      bubbles: true,
+      buttons: 2,
+      clientX: 10,
+      clientY: 10,
+    })
+  );
+  await tunggu(60);
+  await pointer(ujungPanah, "pointerup", { button: 2 });
+  await tunggu(150);
+  uji(
+    "seret klik kanan menggambar panah",
+    Boolean(akarM.querySelector(`[data-arrow="${asalPanah}${ujungPanah}"]`))
+  );
+
+  /* 4. Klik kiri di papan membersihkan panah & mark. Papan membersihkannya
+        pada `pointerdown` kiri (perilaku chess.com), jadi tekan-lepas nyata. */
+  await pointer(ujungPanah, "pointerdown", { button: 0, buttons: 1 });
+  await pointer(ujungPanah, "pointerup", { button: 0 });
+  await tunggu(150);
+  uji(
+    "klik kiri membersihkan panah dan mark",
+    jumlah("[data-arrow]") === 0 && jumlah("[data-tanda-petak]") === 0
+  );
+
+  rootM.unmount();
+  akarM.remove();
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));

@@ -15,6 +15,7 @@ import {
 } from "../../components/icons.jsx";
 import { ambilTekaTekiHarian } from "../../lib/api/tekaTekiHarian.js";
 import { teksGalat } from "../../lib/api/core.js";
+import { useTandaBantu } from "../../lib/tandaBantu.js";
 import {
   apakahLangkahLegal,
   apakahLangkahSesuai,
@@ -224,6 +225,13 @@ export default function TekaTekiHarian() {
   const [aksiTerbuka, setAksiTerbuka] = useState(false);
   const [tersalin, setTersalin] = useState(false);
 
+  /*
+   * Tanda bantu papan (mark petak & panah) memakai pintu tunggal yang sama
+   * dengan Teka-teki Catur, Papan Interaktif, dan halaman papan lain — jadi
+   * aturan klik kanan tidak ditulis ulang di sini.
+   */
+  const { tanda, tandaPetak, tandaPanah, hapusSemuaTanda } = useTandaBantu();
+
   const jamLawan = useRef(null);
   const jamKesalahan = useRef(null);
   const jamSalin = useRef(null);
@@ -251,6 +259,14 @@ export default function TekaTekiHarian() {
    * "Balik papan" hanya memutar tampilan, giliran bermain tidak berubah.
    */
   const giliranMain = warnaGiliran(fenTampil || posisiAwal);
+
+  /*
+   * Tanda bantu (mark & panah) milik satu soal. Begitu tanggal berganti, gambar
+   * buatan pengguna dibuang supaya tidak terbawa ke posisi soal lain.
+   */
+  useEffect(() => {
+    hapusSemuaTanda();
+  }, [tanggal, hapusSemuaTanda]);
 
   /* ------------------------------------------------------------ pemuatan */
 
@@ -461,6 +477,7 @@ export default function TekaTekiHarian() {
     setPetunjuk(null);
     setPromosi(null);
     setPesan(null);
+    hapusSemuaTanda();
   }
 
   function pilihPetak(petak) {
@@ -876,6 +893,10 @@ export default function TekaTekiHarian() {
                       onKlik={klikPetak}
                       onPilih={pilihPetak}
                       onJatuh={cobaLangkah}
+                      tanda={tanda}
+                      onTandaPetak={tandaPetak}
+                      onTandaPanah={tandaPanah}
+                      onHapusTanda={hapusSemuaTanda}
                     />
                   )}
 
