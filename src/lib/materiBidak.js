@@ -96,6 +96,15 @@ export function hitungMateriBidak(fen) {
     selisih: nilaiPutih - nilaiHitam,
     nilaiPutih,
     nilaiHitam,
+    // Bidak lawan yang tertangkap ditampilkan di sisi pemain yang menangkapnya.
+    kepingPutih: hitamTertangkap.map((jenis) => ({
+      bidak: jenis,
+      nilai: NILAI_BIDAK[jenis],
+    })),
+    kepingHitam: putihTertangkap.map((jenis) => ({
+      bidak: jenis.toUpperCase(),
+      nilai: NILAI_BIDAK[jenis],
+    })),
     keping,
     adaTertangkap: keping.length > 0,
   };
