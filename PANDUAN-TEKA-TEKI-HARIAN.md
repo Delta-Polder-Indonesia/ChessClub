@@ -104,6 +104,11 @@ perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
 
 Perbaikan yang ikut menyertai penyusunan ulang ini:
 
+- **"Balik papan" hanya memutar tampilan.** Indikator giliran di panel kanan
+  kini dihitung dari sisi yang benar-benar melangkah pada posisi yang sedang
+  ditampilkan (`giliranMain`), bukan dari orientasi layar. Sebelumnya tombol itu
+  ikut mengubah tulisan "Giliran hitam" menjadi "Giliran putih" pada soal yang
+  sebenarnya giliran hitam.
 - **Orientasi papan tidak lagi berputar** setiap langkah. Sebelumnya orientasi
   diturunkan dari posisi terkini, jadi papan berbalik setiap kali langkah
   dimainkan; kini dipakai sisi yang melangkah di **posisi pembuka** (ditambah
@@ -214,7 +219,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 97 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
+npm run uji:teka-teki-harian-ui   # 109 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):

@@ -1148,10 +1148,28 @@ console.log("\nE3. kontrol langkah, orientasi, dan Ulangi:");
     akarG.querySelectorAll("[data-petak]").length === 64
   );
 
+  const giliranSebelumBalik =
+    warnaGiliran(paketTerbaru.fen) === "w"
+      ? kamus.giliranPutih
+      : kamus.giliranHitam;
+  uji(
+    "sebelum dibalik, indikator giliran sesuai soal",
+    teksHalaman().includes(giliranSebelumBalik)
+  );
+
   await klikTombol(kamus.balikPapan);
   uji(
     "tombol Balik papan membalik orientasi",
     akarG.querySelector("[data-petak]")?.getAttribute("data-petak") === "h1"
+  );
+  uji(
+    "Balik papan TIDAK mengubah indikator giliran",
+    teksHalaman().includes(giliranSebelumBalik) &&
+      !teksHalaman().includes(
+        giliranSebelumBalik === kamus.giliranPutih
+          ? kamus.giliranHitam
+          : kamus.giliranPutih
+      )
   );
 
   rootG.unmount();
@@ -1278,6 +1296,57 @@ console.log("\nE5. selisih materi di samping papan:");
   );
   rootJ.unmount();
   akarJ.remove();
+}
+
+/* E6 — regresi: "Balik papan" dulu mengubah giliran bermain */
+console.log("\nE6. balik papan pada soal giliran hitam:");
+if (soalHitam) {
+  const paketHitam = urai(soalHitam);
+  stubApi = () => jawabanApi(paketHitam, "Soal hitam dari API");
+  const akarL = akarBaru();
+  const rootL = mount(akarL, `/teka-teki-harian?tanggal=${paketHitam.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketHitam.fen), 6000);
+
+  const petakPertama = () =>
+    akarL.querySelector("[data-petak]")?.getAttribute("data-petak");
+
+  uji("soal ini memang giliran hitam", warnaGiliran(paketHitam.fen) === "b");
+  uji(
+    "giliran hitam: papan hitam di bawah",
+    petakPertama() === "h1",
+    `dapat ${petakPertama()}`
+  );
+  uji(
+    "indikator menulis \"Giliran hitam\" sebelum dibalik",
+    teksHalaman().includes(kamus.giliranHitam)
+  );
+
+  akarL
+    .querySelector(`button[aria-label="${kamus.balikPapan}"]`)
+    ?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(150);
+
+  uji(
+    "setelah dibalik: putih di bawah",
+    petakPertama() === "a8",
+    `dapat ${petakPertama()}`
+  );
+  uji(
+    "setelah dibalik: giliran TETAP hitam",
+    teksHalaman().includes(kamus.giliranHitam) &&
+      !teksHalaman().includes(kamus.giliranPutih)
+  );
+  uji(
+    "aria-pressed tombol Balik papan menyala",
+    akarL
+      .querySelector(`button[aria-label="${kamus.balikPapan}"]`)
+      ?.getAttribute("aria-pressed") === "true"
+  );
+
+  rootL.unmount();
+  akarL.remove();
+} else {
+  console.log("  (dilewati: snapshot tidak punya soal giliran hitam)");
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));

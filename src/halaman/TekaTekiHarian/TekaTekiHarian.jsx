@@ -245,6 +245,13 @@ export default function TekaTekiHarian() {
     return jejak[tinjau - 1]?.fen || posisiAwal;
   }, [tinjau, posisi, posisiAwal, jejak]);
 
+  /**
+   * Sisi yang benar-benar melangkah pada posisi yang sedang ditampilkan
+   * (menghormati mode tinjauan). Ini TERPISAH dari `orientasi`: menekan
+   * "Balik papan" hanya memutar tampilan, giliran bermain tidak berubah.
+   */
+  const giliranMain = warnaGiliran(fenTampil || posisiAwal);
+
   /* ------------------------------------------------------------ pemuatan */
 
   useEffect(() => {
@@ -976,12 +983,12 @@ export default function TekaTekiHarian() {
                       aria-hidden="true"
                       className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#312e2b] text-2xl leading-none text-gray-100"
                     >
-                      {orientasi === "w" ? "♙" : "♟"}
+                      {giliranMain === "w" ? "♙" : "♟"}
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold text-white">
                         {t(
-                          orientasi === "w"
+                          giliranMain === "w"
                             ? "tekaTekiHarian.giliranPutih"
                             : "tekaTekiHarian.giliranHitam"
                         )}
