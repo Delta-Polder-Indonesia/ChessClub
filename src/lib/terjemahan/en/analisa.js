@@ -854,6 +854,9 @@ export const analisa = {
       logo: "Site logos",
       logoOleh:
         "Trademarks of their respective owners (Chess.com, LLC and lichess.org); used here only to identify accounts via links to the official sites.",
+      tekaTekiHarian: "Daily puzzle",
+      tekaTekiHarianOleh:
+        "The daily puzzle's position, title, and solution moves come from Chess.com's public API (api.chess.com). This site replays them when the page is opened, does not copy the puzzle archive, and always links to the original page.",
       teknologi: "Technology",
       teknologiOleh:
         "This project is built and run using the following services and libraries. Thanks to each team for their work.",

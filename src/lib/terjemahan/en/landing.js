@@ -4,6 +4,30 @@
  */
 
 export const landing = {
+  harianLabel: "Today's puzzle",
+  harianJudul: "One move before you close the tab",
+  harianDesk:
+    "The five latest Chess.com puzzles are playable right here on this board — no account, nothing to download. Solve all five, then keep training with Blunder Skuad.",
+  harianEdisi: "{tanggal} edition",
+  harianCta: "Open the puzzle page",
+  harianSumber: "View on Chess.com",
+  harianGiliranPutih: "White to move — find the best move.",
+  harianGiliranHitam: "Black to move — find the best move.",
+  harianKemajuan: "{n}/{total} puzzles played today",
+  harianNomorSoal: "Puzzle {n} of {total}",
+  harianPetunjuk: "Hint",
+  harianUlangi: "Restart",
+  harianBenar: "Correct! Your opponent replies…",
+  harianSalah: "Not quite — try another move.",
+  harianSelesai: "Correct! Puzzle solved.",
+  harianTerkunciJudul: "Your {total} puzzles for today are used up",
+  harianTerkunciDesk:
+    "Thanks for playing. A fresh set unlocks tomorrow — or join Blunder Skuad now and keep playing on the daily puzzle page.",
+  harianGabung: "Join Blunder Skuad",
+  harianDialogJudul: "{total} puzzles, one step further",
+  harianDialogDesk:
+    "You have solved {total} puzzles today. Join Blunder Skuad to save your progress, enter tournaments, and learn alongside other members — free.",
+  harianDialogNanti: "Maybe later",
     sekilasLabel: "Blunder Skuad at a Glance",
     sekilasDesk:
       "For more than a decade, we have provided a place to play and learn for chess players from every corner of the country.",

@@ -65,10 +65,39 @@ function kirim(res, status, isi) {
   res.end(teks);
 }
 
+/* ---------------------------------------------- teka-teki harian (puzzle) */
+
+/*
+ * Dua soal contoh untuk menguji halaman /teka-teki-harian tanpa Chess.com.
+ * Datanya sengaja memakai bentuk jawaban API publik Chess.com
+ * (`title`, `pgn`, `fen`, `url`, `publish_time`, `image`).
+ */
+const PUZZLE_HARI_INI = {
+  title: "A New Beginning",
+  url: "https://www.chess.com/daily-chess-puzzle/2026-01-01",
+  publish_time: 1767225600,
+  fen: "r5bk/q1p2p2/1pn4p/2nP2p1/4N3/PPN3PP/K1B2R2/B1r5 w - - 0 1",
+  pgn: '[White "kehall41"]\r\n[Black "Daily Puzzle Inspiration"]\r\n[Result "1-0"]\r\n[FEN "r5bk/q1p2p2/1pn4p/2nP2p1/4N3/PPN3PP/K1B2R2/B1r5 w - - 0 1"]\r\n\r\n1. Nb1+ Nd4 2. Bxd4+ f6 3. Bxf6+ Kh7 4. Nxg5# 1-0',
+  image: "https://images.chesscomfiles.com/uploads/v1/puzzle/1.jpg",
+};
+
+/* Soal berpihak HITAM — memastikan orientasi papan dan penomoran riwayat
+ * mengikuti pihak yang melangkah, bukan selalu putih. */
+const PUZZLE_ARSIP = {
+  title: "Hitam Menyerang Lebih Dulu",
+  url: "https://www.chess.com/daily-chess-puzzle/2025-12-31",
+  publish_time: 1767139200,
+  fen: "6k1/5ppp/8/8/8/8/6PP/1q5K b - - 0 1",
+  pgn: '[Result "0-1"]\r\n[FEN "6k1/5ppp/8/8/8/8/6PP/1q5K b - - 0 1"]\r\n\r\n1... Qf1# 0-1',
+  image: null,
+};
+
 const PORT = Number(process.env.MOCK_PORT || 8790);
 http
   .createServer((req, res) => {
     const jalur = decodeURIComponent((req.url || "").split("?")[0]);
+    if (jalur === "/puzzle") return kirim(res, 200, PUZZLE_HARI_INI);
+    if (jalur === "/puzzle/2025-12-31") return kirim(res, 200, PUZZLE_ARSIP);
     const klub = /^\/club\/([^/]+)\/members$/.exec(jalur);
     if (klub) return kirim(res, 200, ANGGOTA);
     const pemain = /^\/player\/([^/]+?)(\/stats)?$/.exec(jalur);

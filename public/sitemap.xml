@@ -71,6 +71,11 @@
     <changefreq>weekly</changefreq>
 </url>
 <url>
+    <loc>%%SITE_URL%%teka-teki-harian</loc>
+    <lastmod>%%LASTMOD%%</lastmod>
+    <changefreq>daily</changefreq>
+</url>
+<url>
     <loc>%%SITE_URL%%quiz-catur</loc>
     <lastmod>%%LASTMOD%%</lastmod>
     <changefreq>weekly</changefreq>

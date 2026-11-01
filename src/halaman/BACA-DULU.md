@@ -89,3 +89,21 @@ src/halaman/
 Keanggotaan tidak memiliki halaman induk tersendiri. Route lama `/keanggotaan` dan `/tentang-kami/keanggotaan` diarahkan otomatis ke tab Keanggotaan di Struktur Grup Catur. Route lama pendaftaran diarahkan ke `/pendaftaran-anggota`.
 
 Daftar menu dan pemetaan folder berada di `src/menu.js`. Routing berada di `src/App.jsx`.
+
+## Teka-teki harian
+
+- `TekaTekiHarian/` — halaman penuh `/teka-teki-harian` (pemutar langkah).
+  Sumbernya **API** `GET /api/teka-teki-harian` (server meneruskan Chess.com);
+  bila API gagal ia jatuh ke snapshot lokal dan menandai soalnya dari arsip.
+  Halaman ini **berdiri sendiri** sebagai alat papan: memakai kerangka keluarga
+  papan interaktif (sidebar sendiri seperti Teka-teki/Rush/Manusia vs Mesin,
+  tanpa bilah "Kembali ke Teka-teki Catur"). Di menu, dropdown Program Kami
+  tetap **daftar datar** (tanpa submenu bertingkat) dan Teka-teki Harian
+  menjadi salah satu barisnya.
+- `Landing/TekaTekiHarianLanding.jsx` — widget **bisa dimainkan** di halaman
+  depan, memakai **arsip lokal** `public/data/teka-teki-harian/terbaru.json`
+  (tanpa API). Dibatasi 5 soal selesai per hari (progres di `localStorage`,
+  kunci `kci-harian-landing`), lalu muncul dialog ajakan bergabung ke Blunder
+  Skuad (`/pendaftaran-anggota`).
+- Arsip snapshot dibuat oleh `scripts/ambil-teka-teki-harian.mjs`. Rincian:
+  `PANDUAN-TEKA-TEKI-HARIAN.md` di akar repo.

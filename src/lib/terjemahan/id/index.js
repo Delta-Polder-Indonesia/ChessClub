@@ -100,6 +100,10 @@ import {
 } from "./tekaTekiRush.js";
 
 import {
+  tekaTekiHarian,
+} from "./tekaTekiHarian.js";
+
+import {
   quiz,
 } from "./quiz.js";
 
@@ -169,6 +173,7 @@ export const ID = {
   landing,
   tekaTeki,
   tekaTekiRush,
+  tekaTekiHarian,
   quiz,
   papan,
   analisa,

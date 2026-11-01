@@ -1,8 +1,6 @@
-import { useMemo } from "react";
-import { Chess } from "chess.js";
 import { HalamanIsi } from "../../components/PageBagian.jsx";
 import { TombolConten } from "../../components/TombolConten.jsx";
-import { ChessPiece } from "../../components/chess/ChessPiece.jsx";
+import PapanStatis from "../../components/PapanStatis.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
 import { gambar } from "../../lib/asets.js";
 
@@ -25,16 +23,9 @@ import { gambar } from "../../lib/asets.js";
  */
 const RUTE_ALAT = "/teka-teki/problem";
 const RUTE_RUSH = "/program-kami/rush-teka-teki";
+/** Teka-teki harian resmi Chess.com — soal baru setiap hari. */
+const RUTE_HARIAN = "/teka-teki-harian";
 const HERO_IMAGE = "/images/ProgramKami/teka-teki-hero.webp";
-const FILE = ["a", "b", "c", "d", "e", "f", "g", "h"];
-const RANK = ["8", "7", "6", "5", "4", "3", "2", "1"];
-
-/* Warna petak = tema papan bawaan alat latihan ("hijau", lihat PapanTekaTeki). */
-const PETAK_TERANG = "#ebecd0";
-const PETAK_GELAP = "#779556";
-/* Tanda langkah terakhir — tint kuning datar ala lichess; bukan pendar. */
-const TINTA_LANGKAH = "rgba(255, 213, 79, 0.55)";
-
 /**
  * Papan pengantar — posisi statis soal #1927 dari public/data/teka-teki.json
  * ("Mate in Two", rating 1095). Hiasan kolom kanan, tanpa pemutar langkah.
@@ -42,77 +33,8 @@ const TINTA_LANGKAH = "rgba(255, 213, 79, 0.55)";
 const PAPAN_PENGENAL =
   "r2qrbk1/pb1n1pp1/1p1p1n1p/2pP2N1/2P5/2NBB3/PPQ2PPP/4RRK1 w - - 0 14";
 
-/** Papan statis — render saja, tanpa interaksi. */
-function PapanContoh({ papan, terakhir, ariaLabel }) {
-  const { t } = useI18n();
-
-  return (
-    <div
-      role="img"
-      aria-label={ariaLabel ?? t("tipsTekaTeki.demoAriaPapan")}
-      className="w-full max-w-[420px] select-none"
-    >
-      <div className="grid aspect-square w-full grid-cols-8 overflow-hidden rounded border border-slate-300">
-        {RANK.map((rank, baris) =>
-          FILE.map((lajur, kolom) => {
-            const terang = (baris + kolom) % 2 === 0;
-            const petak = `${lajur}${rank}`;
-            const bidak = papan[baris][kolom];
-            const ditandai =
-              terakhir && (petak === terakhir.from || petak === terakhir.to);
-            return (
-              <div
-                key={petak}
-                className="relative flex items-center justify-center"
-                style={{ backgroundColor: terang ? PETAK_TERANG : PETAK_GELAP }}
-              >
-                {ditandai && (
-                  <span
-                    className="absolute inset-0"
-                    style={{ backgroundColor: TINTA_LANGKAH }}
-                  />
-                )}
-                {baris === 7 && (
-                  <span
-                    className="absolute bottom-0.5 right-1 font-mono text-[8px] font-bold leading-none"
-                    style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
-                  >
-                    {lajur}
-                  </span>
-                )}
-                {kolom === 0 && (
-                  <span
-                    className="absolute left-1 top-0.5 font-mono text-[8px] font-bold leading-none"
-                    style={{ color: terang ? PETAK_GELAP : PETAK_TERANG }}
-                  >
-                    {rank}
-                  </span>
-                )}
-                {bidak && (
-                  <div className="relative z-[1] flex h-[84%] w-[84%] items-center justify-center">
-                    <ChessPiece
-                      piece={
-                        bidak.color === "w"
-                          ? bidak.type.toUpperCase()
-                          : bidak.type
-                      }
-                      set="merida"
-                    />
-                  </div>
-                )}
-              </div>
-            );
-          }),
-        )}
-      </div>
-    </div>
-  );
-}
-
 export default function TekaTekiKonten() {
   const { t } = useI18n();
-
-  const papanPengantar = useMemo(() => new Chess(PAPAN_PENGENAL).board(), []);
 
   return (
     <HalamanIsi
@@ -140,12 +62,15 @@ export default function TekaTekiKonten() {
                 <p className="m-0">{t("tipsTekaTeki.intro2")}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-4 font-sans">
                   <TombolConten to={RUTE_ALAT}>{t("tipsTekaTeki.ctaUtama")}</TombolConten>
+                  <TombolConten to={RUTE_HARIAN}>
+                    {t("tipsTekaTeki.ctaHarian")}
+                  </TombolConten>
                 </div>
               </div>
 
               <div className="w-full">
-                <PapanContoh
-                  papan={papanPengantar}
+                <PapanStatis
+                  fen={PAPAN_PENGENAL}
                   terakhir={null}
                   ariaLabel={t("tipsTekaTeki.pengantarAriaPapan")}
                 />

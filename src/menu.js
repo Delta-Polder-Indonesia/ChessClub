@@ -50,7 +50,7 @@ export const MENU_UTAMA = [
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
-    // Anak dropdown disusun dua kolom berisi 4 dan 3 item yang turun ke
+    // Anak dropdown disusun dua kolom berisi 4 dan 4 item yang turun ke
     // bawah (grid-flow-col), supaya daftar panjang tidak menjang ke bawah.
     // Lihat NavItemDesktop di Header.jsx.
     kolom: 4,
@@ -66,6 +66,21 @@ export const MENU_UTAMA = [
         path: "/program-kami/rush-teka-teki",
         folder: "ProgramKami",
         file: "RushTekaTekiLanding.jsx",
+      },
+      {
+        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
+        // /teka-teki/problem dan /teka-teki-rush.
+        //
+        // Catatan: halaman ini BERDIRI SENDIRI (kerangka sidebar sendiri,
+        // sefamili papan interaktif) — lihat
+        // `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx`. Ia tetap
+        // didaftarkan di sini sebagai satu baris datar supaya dropdown
+        // Program Kami TIDAK memakai submenu bertingkat: bentuk daftar lama
+        // (dua kolom berisi 4 + 4 baris) yang sudah dikenal pengunjung.
+        title: "nav.tekaTekiHarian",
+        path: "/teka-teki-harian",
+        folder: "TekaTekiHarian",
+        file: "TekaTekiHarian.jsx",
       },
       {
         title: "nav.quizCatur",

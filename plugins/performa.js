@@ -37,6 +37,7 @@ export const RUTE_ALIH = {
 export const RUTE_LATAR_GELAP = [
   "/teka-teki/problem",
   "/teka-teki-rush",
+  "/teka-teki-harian",
   "/quiz-catur",
   "/papan-interaktif",
   "/papan-interaktif/manusia-vs-mesin",
@@ -75,6 +76,7 @@ export const RUTE_PUBLIK = [
   "/program-kami/manusia-vs-mesin",
   "/teka-teki/problem",
   "/teka-teki-rush",
+  "/teka-teki-harian",
   "/quiz-catur",
   "/papan-interaktif",
   "/papan-interaktif/manusia-vs-mesin",
@@ -235,6 +237,11 @@ export const META_RUTE = {
   "/teka-teki-rush": {
     judulKey: "tekaTekiRush.judul",
     deskripsiKey: "tekaTekiRush.metaDeskripsi",
+    akhir: AKHIR_KORPORAT,
+  },
+  "/teka-teki-harian": {
+    judulKey: "tekaTekiHarian.judul",
+    deskripsiKey: "tekaTekiHarian.metaDeskripsi",
     akhir: AKHIR_KORPORAT,
   },
   "/quiz-catur": {
@@ -477,6 +484,7 @@ export function metadataRute(html, rute, siteUrl) {
 export const MODUL_RUTE = {
   "/teka-teki/problem": ["src/halaman/TekaTeki/TekaTeki.jsx"],
   "/teka-teki-rush": ["src/halaman/TekaTekiRush/TekaTekiRush.jsx"],
+  "/teka-teki-harian": ["src/halaman/TekaTekiHarian/TekaTekiHarian.jsx"],
   "/quiz-catur": ["src/halaman/QuizCatur/QuizCatur.jsx"],
   "/papan-interaktif": ["src/halaman/PapanInteraktif/PapanInteraktif.jsx"],
   "/papan-interaktif/manusia-vs-mesin": ["src/halaman/ManusiaVsMesin/ManusiaVsMesin.jsx"],

@@ -296,6 +296,23 @@ export default function Atribusi() {
       ),
     },
     {
+      judul: t("analisa.atribusi.tekaTekiHarian"),
+      ikon: null,
+      isi: (
+        <>
+          <li className="flex flex-row items-center gap-3">
+            <ChessComLogo className="h-[26px] w-auto fill-current" />
+          </li>
+          <li>{t("analisa.atribusi.tekaTekiHarianOleh")}</li>
+          <li>
+            <Tautan href="https://www.chess.com/daily-chess-puzzle">
+              Chess.com
+            </Tautan>
+          </li>
+        </>
+      ),
+    },
+    {
       judul: t("analisa.atribusi.teknologi"),
       ikon: null,
       isi: (

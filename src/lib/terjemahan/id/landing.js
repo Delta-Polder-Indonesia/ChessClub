@@ -4,6 +4,30 @@
  */
 
 export const landing = {
+  harianLabel: "Teka-teki hari ini",
+  harianJudul: "Satu langkah sebelum menutup tab",
+  harianDesk:
+    "Lima teka-teki terbaru Chess.com bisa langsung kamu mainkan di papan ini — tanpa akun, tanpa unduhan. Selesaikan kelimanya, lalu lanjutkan latihanmu bersama Blunder Skuad.",
+  harianEdisi: "Edisi {tanggal}",
+  harianCta: "Buka halaman teka-teki",
+  harianSumber: "Lihat di Chess.com",
+  harianGiliranPutih: "Putih melangkah — temukan langkah terbaiknya.",
+  harianGiliranHitam: "Hitam melangkah — temukan langkah terbaiknya.",
+  harianKemajuan: "{n}/{total} soal dimainkan hari ini",
+  harianNomorSoal: "Soal {n} dari {total}",
+  harianPetunjuk: "Petunjuk",
+  harianUlangi: "Ulangi",
+  harianBenar: "Tepat! Lawan membalas…",
+  harianSalah: "Belum tepat — coba langkah lain.",
+  harianSelesai: "Tepat! Soal ini selesai.",
+  harianTerkunciJudul: "Jatah {total} soal hari ini sudah habis",
+  harianTerkunciDesk:
+    "Terima kasih sudah bermain. Jatah baru dibuka besok — atau gabung Blunder Skuad sekarang dan lanjut bermain di halaman teka-teki harian.",
+  harianGabung: "Gabung Blunder Skuad",
+  harianDialogJudul: "{total} soal, satu langkah lagi",
+  harianDialogDesk:
+    "Kamu sudah menyelesaikan {total} teka-teki hari ini. Gabung Blunder Skuad untuk menyimpan progres, ikut turnamen, dan belajar bersama anggota lain — gratis.",
+  harianDialogNanti: "Nanti saja",
     sekilasLabel: "Sekilas Blunder Skuad",
     sekilasDesk:
       "Selama lebih dari satu dekade, kami menyediakan wadah bermain dan belajar bagi pecatur dari seluruh penjuru negeri.",

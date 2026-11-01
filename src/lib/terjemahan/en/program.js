@@ -126,6 +126,7 @@ export const tipsTekaTeki = {
     intro2:
       "Training runs directly in the browser, with no account required. Filter puzzles by level, tactical theme, or the side to move; when you are stuck, the hint button highlights the first move's origin and destination squares. Your progress is saved automatically on your device.",
     ctaUtama: "Start Puzzle Training",
+    ctaHarian: "Daily Puzzle",
     ctaRush: "Puzzle Rush — the timed mode",
     demoJudul: "One puzzle, shown in full",
     demoPengantar:

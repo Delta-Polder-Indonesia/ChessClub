@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
 import { cn } from "@/lib/utils.js";
 
@@ -46,15 +47,25 @@ function AlertDialogPortal(props) {
   );
 }
 
-function AlertDialogOverlay({ className, ...props }) {
+/*
+ * Overlay WAJIB meneruskan ref: Radix membungkus isi `Portal` dengan `Presence`
+ * yang menyalin elemen anak sambil menyisipkan ref (untuk animasi keluar/masuk).
+ * Sebelum ini komponennya fungsi biasa, sehingga React memperingatkan
+ * "Function components cannot be given refs" setiap dialog dibuka.
+ */
+const AlertDialogOverlay = forwardRef(function AlertDialogOverlay(
+  { className, ...props },
+  ref
+) {
   return (
     <AlertDialogPrimitive.Overlay
+      ref={ref}
       data-slot="alert-dialog-overlay"
       className={cn("fixed inset-0 z-50 bg-slate-900/40", className)}
       {...props}
     />
   );
-}
+});
 
 function AlertDialogContent({ className, ...props }) {
   return (
