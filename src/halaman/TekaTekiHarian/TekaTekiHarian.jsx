@@ -5,6 +5,7 @@ import { useI18n } from "../../lib/i18n.jsx";
 import { SUARA, useSuara } from "../../lib/suara.js";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
+import { SelisihMateri } from "./SelisihMateri.jsx";
 import License from "../Analisa/komponen/svg/license.jsx";
 import {
   ChevronStartIcon,
@@ -782,7 +783,7 @@ export default function TekaTekiHarian() {
         <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto lg:overflow-hidden">
           <div className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-3 p-3 sm:p-4 md:px-6 lg:flex-row lg:items-stretch lg:gap-4">
             {/* ------------------------------------------------ papan */}
-            <section className="flex min-h-0 min-w-0 flex-1 items-center justify-center">
+            <section className="flex min-h-0 min-w-0 flex-1 flex-col items-center justify-center gap-2 lg:flex-row lg:gap-3">
               <div
                 className="relative w-full"
                 style={{ maxWidth: "min(100%, 640px, calc(100dvh - 96px))" }}
@@ -917,6 +918,10 @@ export default function TekaTekiHarian() {
                   )}
                 </div>
               </div>
+
+              {/* Selisih materi: rel sempit di kanan papan (turun ke bawah
+                  papan pada layar sempit). */}
+              <SelisihMateri fen={status === "siap" ? fenTampil : ""} />
             </section>
 
             {/* ------------------------------------ panel kanan (ChessCompass) */}

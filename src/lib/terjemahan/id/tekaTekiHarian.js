@@ -82,4 +82,8 @@ export const tekaTekiHarian = {
   aksiLain: "Aksi lain",
   salinFen: "Salin FEN posisi",
   salinFenBerhasil: "FEN tersalin",
+  materiAria: "Selisih materi: {teks}",
+  materiSeimbang: "Materi seimbang",
+  materiPutihUnggul: "Putih unggul {n}",
+  materiHitamUnggul: "Hitam unggul {n}",
 };

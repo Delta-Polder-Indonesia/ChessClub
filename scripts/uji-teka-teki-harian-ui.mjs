@@ -31,6 +31,7 @@ import { tekaTeki as kamusPapan } from "../src/lib/terjemahan/id/tekaTeki.js";
 import { papan as kamusAtribusi } from "../src/lib/terjemahan/id/papan.js";
 import { tekaTekiHarian as kamus } from "../src/lib/terjemahan/id/tekaTekiHarian.js";
 import { geserTanggal, tanggalHariIni, warnaGiliran } from "../src/lib/tekaTekiHarian.js";
+import { hitungMateriBidak } from "../src/lib/materiBidak.js";
 import { landing as kamusLanding } from "../src/lib/terjemahan/id/landing.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -1198,6 +1199,65 @@ console.log("\nE4. panel kiri tanpa duplikasi panel kanan:");
 
   rootH.unmount();
   akarH.remove();
+}
+
+/* E5 — panel selisih materi di samping papan */
+console.log("\nE5. selisih materi di samping papan:");
+{
+  stubApi = () => jawabanApi(paketTerbaru, "Uji harian dari API");
+  const akarI = akarBaru();
+  const rootI = mount(akarI, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000);
+
+  const rel = akarI.querySelector("[data-selisih]");
+  uji("panel selisih materi tampil", Boolean(rel));
+  const dihitung = hitungMateriBidak(paketTerbaru.fen);
+  uji(
+    "nilainya mengikuti FEN yang ditampilkan",
+    rel?.getAttribute("data-selisih") === String(dihitung.selisih)
+  );
+  uji(
+    "daftar bidak tertangkap ikut ditampilkan",
+    rel?.getAttribute("data-keping") === dihitung.keping.map((k) => k.bidak).join("")
+  );
+  uji(
+    "panel berada di sebelah papan, bukan di panel kanan",
+    rel?.parentElement?.tagName === "SECTION" &&
+      (rel.parentElement.querySelectorAll("[data-petak]").length === 64 ||
+        papanSamaData(paketTerbaru.fen)) &&
+      !rel.closest("aside")
+  );
+  uji(
+    "punya label aksesibel selisih materi",
+    (rel?.getAttribute("aria-label") || "").startsWith(
+      kamus.materiAria.split("{teks}")[0].trim()
+    )
+  );
+  rootI.unmount();
+  akarI.remove();
+}
+{
+  // Posisi buatan: putih punya ratu lebih, jadi angkanya harus +9 — membuktikan
+  // nilainya dihitung dari papan, bukan angka tetap.
+  const paketRatu = {
+    tanggal: paketTerbaru.tanggal,
+    fen: "4k3/8/8/8/8/8/8/4KQ2 w - - 0 1",
+    langkah: ["f1-f7", "e8-d8", "f7-f8"],
+  };
+  stubApi = () => jawabanApi(paketRatu, "Soal ratu lebih");
+  const akarJ = akarBaru();
+  const rootJ = mount(akarJ, `/teka-teki-harian?tanggal=${paketRatu.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketRatu.fen), 6000);
+  const rel = akarJ.querySelector("[data-selisih]");
+  uji("posisi ratu lebih: hitungan +9", rel?.getAttribute("data-selisih") === "9");
+  uji(
+    "label menyebut putih unggul 9",
+    (rel?.getAttribute("aria-label") || "").includes(
+      kamus.materiPutihUnggul.replace("{n}", "9")
+    )
+  );
+  rootJ.unmount();
+  akarJ.remove();
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));

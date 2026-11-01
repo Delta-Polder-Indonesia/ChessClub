@@ -23,6 +23,7 @@ import { mkdtemp, writeFile, mkdir, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
 import { parseLangkah } from "../src/lib/tekaTeki.js";
+import { hitungMateriBidak } from "../src/lib/materiBidak.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const jalankan = promisify(execFile);
@@ -610,6 +611,56 @@ console.log("\n== 9. Skrip pengumpul snapshot ==");
   sama(adaBerkas, false, "--kering tidak menulis berkas");
 
   await rm(tmp, { recursive: true, force: true });
+}
+
+console.log("\n== 10. Selisih materi di samping papan ==");
+{
+  const awal = hitungMateriBidak(
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  );
+  sama(awal.selisih, 0, "posisi awal: materi seimbang");
+  sama(awal.keping.length, 0, "posisi awal: belum ada bidak tertangkap");
+
+  // Hitam kehilangan satu kuda di g8.
+  const contoh = hitungMateriBidak(
+    "rnbqkbr1/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  );
+  sama(contoh.selisih, 3, "kuda hitam hilang: putih unggul 3");
+  sama(contoh.keping.map((k) => k.bidak), ["n"], "bidak tertangkap diberi nama FEN");
+
+  // Hitam utuh, putih kehilangan dua pion → hitam unggul 2.
+  const unggulHitam = hitungMateriBidak(
+    "rnbqkbnr/pppppppp/8/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1"
+  );
+  sama(unggulHitam.selisih, -2, "putih kurang dua pion: hitam unggul 2");
+
+  const duaPionPutih = hitungMateriBidak(
+    "rnbqqkbr/pppppppp/8/8/8/8/PPPPPP2/RNBQKBNR w KQkq - 0 1"
+  );
+  benar(
+    duaPionPutih.keping.filter((k) => k.bidak === "P").length >= 2,
+    "pion putih yang hilang terhitung"
+  );
+
+  const urutan = hitungMateriBidak(
+    "4k3/8/8/8/8/8/8/4K3 w - - 0 1"
+  );
+  const nilaiTurun = urutan.keping.every(
+    (k, i) => i === 0 || urutan.keping[i - 1].nilai >= k.nilai
+  );
+  benar(nilaiTurun, "bidak tertangkap diurutkan dari yang paling berharga");
+  sama(urutan.selisih, 0, "hanya dua raja tersisa: materi seimbang");
+
+  // Promosi: ratu tambahan tidak boleh dilaporkan sebagai pion yang tertangkap.
+  const promosi = hitungMateriBidak("4k3/8/8/8/8/8/PPPPPPP1/4K1QQ w - - 0 1");
+  sama(
+    promosi.keping.filter((k) => k.bidak === "P").length,
+    0,
+    "pion yang berpromosi tidak dihitung tertangkap"
+  );
+  benar(promosi.selisih > 15, "ratu tambahan menambah nilai materi putih");
+
+  sama(hitungMateriBidak("").selisih, 0, "FEN kosong: selisih 0 tanpa galat");
 }
 
 peladen.close();

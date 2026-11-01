@@ -66,6 +66,13 @@ Yang dibagi dengan keluarga papan hanyalah kerangka, tema, dan komponen
 Area kerja mengikuti susunan panel teka-teki harian ChessCompass, dengan dua
 perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
 
+- **Panel selisih materi** menempel di sisi kanan papan: deretan bidak yang
+  sudah tertangkap (warna aslinya, urut dari yang paling berharga) plus angka
+  keunggulan — `+3` berarti putih unggul satu kuda, `=` berarti seimbang. Angka
+  dan daftar bidak dihitung dari FEN posisi yang sedang ditampilkan
+  (`src/lib/materiBidak.js`), jadi ikut berubah saat meninjau langkah. Bidak
+  hasil promosi tidak dilaporkan sebagai pion yang tertangkap. Di layar sempit
+  panel ini turun ke bawah papan.
 - **Papan besar persegi** di tengah; ukurannya dibatasi tinggi layar
   (`min(100%, 640px, calc(100dvh - 96px))`) sehingga muat tanpa menggulir di
   desktop, dan tetap penuh di layar sempit.
@@ -207,7 +214,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 90 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
+npm run uji:teka-teki-harian-ui   # 97 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):

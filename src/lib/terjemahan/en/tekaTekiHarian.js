@@ -82,4 +82,8 @@ export const tekaTekiHarian = {
   aksiLain: "More actions",
   salinFen: "Copy position FEN",
   salinFenBerhasil: "FEN copied",
+  materiAria: "Material balance: {teks}",
+  materiSeimbang: "Material is even",
+  materiPutihUnggul: "White is up {n}",
+  materiHitamUnggul: "Black is up {n}",
 };
