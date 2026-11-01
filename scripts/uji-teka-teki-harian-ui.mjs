@@ -1266,6 +1266,11 @@ console.log("\nE5. selisih materi di samping papan:");
   const rel = akarJ.querySelector("[data-selisih]");
   uji("posisi ratu lebih: hitungan +9", rel?.getAttribute("data-selisih") === "9");
   uji(
+    "skor +9 berada di sisi putih",
+    rel?.querySelector('[data-sisi="w"]')?.textContent.includes("+9") &&
+      !rel?.querySelector('[data-sisi="b"]')?.textContent.includes("+9")
+  );
+  uji(
     "label menyebut putih unggul 9",
     (rel?.getAttribute("aria-label") || "").includes(
       kamus.materiPutihUnggul.replace("{n}", "9")
