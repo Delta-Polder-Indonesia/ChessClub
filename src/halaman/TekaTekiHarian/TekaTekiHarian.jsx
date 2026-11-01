@@ -76,14 +76,19 @@ function IkonUlang({ className = "" }) {
   );
 }
 
+// Ikon balik papan: dua panah melingkar bertukar arah (path dari desainer).
 function IkonBalik({ className = "" }) {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>
-      <path d="M16 3h5v5" />
-      <path d="M21 3 8 16" />
-      <path d="M8 21H3v-5" />
-      <path d="m3 21 13-13" />
+    <svg
+      viewBox="-240 -1200 1440 1440"
+      fill="currentColor"
+      stroke="currentColor"
+      strokeWidth="20"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M204-318q-22-38-33-78t-11-82q0-134 93-228t227-94h7l-64-64 56-56 160 160-160 160-56-56 64-64h-7q-100 0-170 70.5T240-478q0 26 6 51t18 49l-60 60ZM481-40 321-200l160-160 56 56-64 64h7q100 0 170-70.5T720-482q0-26-6-51t-18-49l60-60q22 38 33 78t11 82q0 134-93 228t-227 94h-7l64 64-56 56Z" />
     </svg>
   );
 }
