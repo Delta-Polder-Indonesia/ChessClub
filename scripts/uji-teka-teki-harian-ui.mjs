@@ -2,8 +2,9 @@
  * Uji halaman Teka-teki Harian di jsdom (tanpa jaringan sungguhan).
  *
  * Yang dijaga:
- *  1. Halaman memuat soal dari SNAPSHOT STATIS `data/teka-teki-harian/…`
- *     (tanpa API) dan memasang papan 64 petak dengan posisi persis FEN-nya.
+ *  1. Halaman memuat soal dari RUTE API (`/api/teka-teki-harian`), dan saat API
+ *     tidak terjangkau ia jatuh ke SNAPSHOT STATIS `data/teka-teki-harian/…`
+ *     sambil memberi tahu bahwa soalnya dari arsip; papan tetap 64 petak.
  *  2. Langkah benar diterima, lawan membalas otomatis, dan langkah salah tidak
  *     mengubah posisi serta memberi pesan.
  *  3. Menyelesaikan seluruh solusi menandai tanggal itu di localStorage.
@@ -11,8 +12,9 @@
  *     penomoran riwayat yang benar (bukan asumsi "putih selalu mulai").
  *  5. Tanggal yang tidak ada di snapshot menampilkan keadaan kosong, bukan papan
  *     kosong atau galat.
- *  6. Widget "Teka-teki Hari Ini" di landing merender papan soal terbaru dan
- *     tautan ke halaman penuh.
+ *  6. Widget "Teka-teki Hari Ini" di landing BISA DIMAINKAN memakai arsip lokal
+ *     (tanpa API), dibatasi 5 soal per hari, lalu memunculkan dialog ajakan
+ *     bergabung ke Blunder Skuad yang menuju `/pendaftaran-anggota`.
  *  7. Tidak ada galat render React.
  *
  * Jalankan: node scripts/uji-teka-teki-harian-ui.mjs
@@ -27,6 +29,7 @@ import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
 import { tekaTeki as kamusPapan } from "../src/lib/terjemahan/id/tekaTeki.js";
 import { tekaTekiHarian as kamus } from "../src/lib/terjemahan/id/tekaTekiHarian.js";
+import { tanggalHariIni } from "../src/lib/tekaTekiHarian.js";
 import { landing as kamusLanding } from "../src/lib/terjemahan/id/landing.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -99,6 +102,35 @@ const urai = (catatan) => ({
 
 const paketTerbaru = urai(soalTerbaru);
 
+/**
+ * PGN solusi untuk satu soal, diturunkan dari snapshot (urutannya sama).
+ * Sengaja dibungkus seperti balasan server: header `[FEN "…"]` + SAN + hasil
+ * partai, supaya parser halaman benar-benar diuji membuang bagian non-langkah.
+ */
+function pgnDariPaket(paket) {
+  const game = new Chess(paket.fen);
+  const san = paket.langkah.map((uci) => {
+    const { from, to, promo } = parseLangkah(uci);
+    return game.move({ from, to, promotion: promo || undefined }).san;
+  });
+  return `[FEN "${paket.fen}"]\n\n${san.join(" ")} 1-0`;
+}
+
+/** Balasan `GET /api/teka-teki-harian` yang sehat, untuk satu paket soal. */
+function jawabanApi(paket, judul = "Uji harian dari API") {
+  return {
+    status: 200,
+    body: {
+      tersedia: true,
+      tanggal: paket.tanggal,
+      judul,
+      fen: paket.fen,
+      pgn: pgnDariPaket(paket),
+      url: `https://www.chess.com/daily-chess-puzzle/${paket.tanggal}`,
+    },
+  };
+}
+
 /** FEN setelah `n` langkah solusi pertama. */
 function fenSetelah(fenAwal, langkah, n) {
   let fen = fenAwal;
@@ -111,7 +143,7 @@ function fenSetelah(fenAwal, langkah, n) {
 const MASUK = `
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { MemoryRouter } from "react-router-dom";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import { HelmetProvider } from "react-helmet-async";
 import TekaTekiHarian from "./src/halaman/TekaTekiHarian/TekaTekiHarian.jsx";
@@ -136,6 +168,25 @@ export function mount(el, awal) {
 /** Widget "Teka-teki Hari Ini" pada halaman Landing. */
 export function mountWidget(el) {
   return bungkus(el, "/", <TekaTekiHarianLanding />);
+}
+
+/**
+ * Widget yang sama, tetapi di dalam tabel rute: dipakai membuktikan tombol
+ * "Gabung Blunder Skuad" benar-benar berpindah ke /pendaftaran-anggota.
+ * Penanda data-uji sengaja bukan teks kamus supaya uji tidak rapuh.
+ */
+export function mountWidgetRute(el) {
+  return bungkus(
+    el,
+    "/",
+    <Routes>
+      <Route path="/" element={<TekaTekiHarianLanding />} />
+      <Route
+        path="/pendaftaran-anggota"
+        element={<p data-uji="rute-gabung">daftar anggota</p>}
+      />
+    </Routes>
+  );
 }
 `;
 
@@ -246,6 +297,11 @@ function siapkanGlobal() {
   globalThis.localStorage = window.localStorage;
   if (!globalThis.navigator) globalThis.navigator = window.navigator;
   globalThis.ResizeObserver = PengamatPalsu;
+  // Radix (dialog ajakan bergabung) memanggil getComputedStyle tanpa awalan
+  // `window`; di jsdom fungsi itu tidak diekspor ke globalThis.
+  globalThis.getComputedStyle = window.getComputedStyle.bind(window);
+  // Radix juga mengamati perubahan DOM untuk mengunci fokus di dalam dialog.
+  globalThis.MutationObserver = window.MutationObserver;
   globalThis.IntersectionObserver = PengamatPalsu;
   globalThis.AudioContext = AudioContextPalsu;
   globalThis.requestAnimationFrame = window.requestAnimationFrame;
@@ -265,13 +321,32 @@ function siapkanGlobal() {
   }
 
   /*
-   * Semua data situs berasal dari berkas statis di `public/` — persis seperti
-   * di produksi. Tidak ada mock API: `fetch` membaca dari disk.
+   * Dua jalur data, persis seperti di produksi:
+   *  - berkas statis `public/` dibaca dari disk (snapshot widget & cadangan);
+   *  - `/api/teka-teki-harian` dilayani `stubApi` yang diatur tiap bagian uji.
+   *    Bila `stubApi` kosong, permintaan API DITOLAK (mensimulasikan Chess.com
+   *    / server tidak terjangkau) sehingga jalur cadangan ikut teruji.
    */
-  window.fetch = (url) => {
-    const relatif = String(url)
-      .replace(/^https?:\/\/[^/]+/, "")
-      .replace(/^\//, "");
+  window.fetch = (url, opsi) => {
+    const alamat = String(url).replace(/^https?:\/\/[^/]+/, "");
+    if (alamat.includes("/api/teka-teki-harian")) {
+      permintaanApi.push(alamat);
+      if (!stubApi) return Promise.reject(new Error("jaringan mati"));
+      let hasil;
+      try {
+        hasil = stubApi(alamat, opsi);
+      } catch (galat) {
+        return Promise.reject(galat);
+      }
+      const isi = JSON.stringify(hasil?.body ?? {});
+      return Promise.resolve({
+        ok: (hasil?.status ?? 200) < 400,
+        status: hasil?.status ?? 200,
+        text: () => Promise.resolve(isi),
+        json: () => Promise.resolve(JSON.parse(isi)),
+      });
+    }
+    const relatif = alamat.replace(/^\//, "");
     try {
       const isi = readFileSync(path.join(ROOT, "public", relatif), "utf8");
       return Promise.resolve({
@@ -291,6 +366,15 @@ function siapkanGlobal() {
   };
   globalThis.fetch = window.fetch;
 }
+
+/**
+ * Stub rute API teka-teki harian. `null` = API dianggap TIDAK terjangkau
+ * (permintaan ditolak), sehingga halaman harus jatuh ke snapshot lokal.
+ * Setiap bagian uji mengatur sendiri nilai ini sebelum memasang komponen.
+ */
+let stubApi = null;
+/** Alamat API yang diminta — dipakai memastikan halaman benar-benar ke API. */
+const permintaanApi = [];
 
 siapkanGlobal();
 
@@ -390,7 +474,7 @@ function arsipSelesai() {
 
 /* ------------------------------------------------------------------ uji */
 
-const { mount, mountWidget } = require(berkasBundel);
+const { mount, mountWidget, mountWidgetRute } = require(berkasBundel);
 
 /** Akar React baru di dalam body — supaya beberapa kasus tidak berebut #root. */
 function akarBaru() {
@@ -415,7 +499,13 @@ function papanSamaData(fen) {
           ? bidak.type.toUpperCase()
           : bidak.type
         : "";
-      if (el.getAttribute("data-bidak") !== harapBidak) return false;
+      // PapanTekTeki menaruh `data-bidak` pada elemen bidak di dalam petak
+      // (PapanStatis menaruhnya langsung pada petak) — dukung keduanya.
+      const nilai =
+        el.getAttribute("data-bidak") ??
+        el.querySelector("[data-bidak]")?.getAttribute("data-bidak") ??
+        "";
+      if (nilai !== harapBidak) return false;
     }
   }
   return true;
@@ -434,7 +524,9 @@ function cariLangkahSalah(fen, diharapkan) {
 
 /* ------------------------------------------------- A. soal terbaru (snapshot) */
 
-console.log(`\nA. soal terbaru snapshot (${paketTerbaru.tanggal}):`);
+console.log(`\nA. soal terbaru lewat API (${paketTerbaru.tanggal}):`);
+stubApi = () => jawabanApi(paketTerbaru);
+permintaanApi.length = 0;
 const akarA = akarBaru();
 const rootA = mount(akarA, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
 
@@ -442,7 +534,17 @@ uji(
   "papan 64 petak tampil",
   await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64)
 );
-uji("posisi awal sesuai FEN snapshot", papanSama(paketTerbaru.fen));
+uji("posisi awal sesuai FEN yang dikirim API", papanSama(paketTerbaru.fen));
+uji("halaman meminta rute API (bukan langsung ke berkas arsip)", permintaanApi.length > 0);
+uji(
+  "tanggal dikirim sebagai kueri ke API",
+  permintaanApi.some((a) => a.includes(`tanggal=${paketTerbaru.tanggal}`))
+);
+uji("judul dari API tampil di panel", teksHalaman().includes("Uji harian dari API"));
+uji(
+  "tidak ada peringatan \"dilayani dari arsip\" saat API sehat",
+  !teksHalaman().includes(kamus.dariArsip)
+);
 uji(
   "jumlah langkah tersisa dilaporkan",
   teksHalaman().includes(
@@ -514,7 +616,11 @@ akarA.remove();
 
 /* ----------------------------------------------------- B. arsip berpihak hitam */
 
-console.log("\nB. arsip tahun pertama (berpihak hitam):");
+console.log("\nB. API tidak terjangkau → cadangan snapshot (soal berpihak hitam):");
+// `stubApi = null` membuat permintaan API DITOLAK: halaman wajib jatuh ke
+// snapshot lokal, menampilkan papan, dan memberi tahu bahwa soalnya dari arsip.
+stubApi = null;
+permintaanApi.length = 0;
 if (soalHitam) {
   const paketHitam = urai(soalHitam);
   const akarB = akarBaru();
@@ -523,8 +629,17 @@ if (soalHitam) {
     `/teka-teki-harian?tanggal=${paketHitam.tanggal}`
   );
   uji(
-    "soal arsip termuat",
+    "soal arsip termuat setelah API gagal",
     await tungguSampai(() => papanSama(paketHitam.fen))
+  );
+  uji("API memang dicoba lebih dulu", permintaanApi.length > 0);
+  uji(
+    "peringatan \"dilayani dari arsip lokal\" tampil",
+    teksHalaman().includes(kamus.dariArsip)
+  );
+  uji(
+    "halaman tidak menampilkan keadaan galat",
+    !teksHalaman().includes(kamus.coba)
   );
   uji(
     "orientasi papan mengikuti hitam (h1 di kiri atas)",
@@ -557,8 +672,14 @@ if (soalHitam) {
 
 /* ------------------------------------------- C. tanggal di luar snapshot */
 
-console.log("\nC. tanggal yang tidak ada di snapshot:");
+console.log("\nC. tanggal yang tidak ada (API: tersedia:false):");
 {
+  // Jawaban sah tetapi soalnya memang belum terbit — BUKAN kegagalan jaringan,
+  // jadi halaman tidak boleh jatuh ke snapshot maupun menampilkan tombol ulang.
+  stubApi = () => ({
+    status: 200,
+    body: { tersedia: false, tanggal: "2007-05-07", alasan: "tidak-ada" },
+  });
   const akarC = akarBaru();
   const rootC = mount(akarC, "/teka-teki-harian?tanggal=2007-05-07");
   uji(
@@ -570,8 +691,12 @@ console.log("\nC. tanggal yang tidak ada di snapshot:");
     dok.querySelectorAll("[data-petak]").length === 0
   );
   uji(
-    "tombol ke tanggal terbaru ditawarkan",
-    teksHalaman().includes(kamus.keTerbaru.split("{tanggal}")[0].trim())
+    "tombol kembali ke hari ini ditawarkan",
+    teksHalaman().includes(kamus.keHariIni)
+  );
+  uji(
+    "tidak ada peringatan arsip (API menjawab, bukan gagal)",
+    !teksHalaman().includes(kamus.dariArsip)
   );
   rootC.unmount();
   akarC.remove();
@@ -579,30 +704,223 @@ console.log("\nC. tanggal yang tidak ada di snapshot:");
 
 /* ------------------------------------------- D. widget landing */
 
-console.log("\nD. widget \"Teka-teki Hari Ini\" di landing:");
+console.log("\nD. widget landing: bisa dimainkan, dibatasi 5 soal:");
+
+/** Kunci progres harian widget (lihat `KUNCI_PROGRES` di komponennya). */
+const KUNCI_PROGRES = "kci-harian-landing";
+const hariIni = tanggalHariIni();
+/** Soal yang dipakai widget: snapshot terbaru, urut terbaru-dulu, maksimal 5. */
+const daftarWidget = [...terbaruSnapshot.soal].reverse().slice(0, 5);
+
+function progresWidget() {
+  try {
+    return JSON.parse(window.localStorage.getItem(KUNCI_PROGRES) || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function setProgresWidget(selesai) {
+  window.localStorage.setItem(
+    KUNCI_PROGRES,
+    JSON.stringify({ tanggal: hariIni, selesai })
+  );
+}
+
+/** Teks kamus dengan placeholder `{n}`/`{total}` sudah diisi. */
+const teksNomorSoal = (n, total = 5) =>
+  kamusLanding.harianNomorSoal.replace("{n}", String(n)).replace("{total}", String(total));
+const teksKemajuan = (n, total = 5) =>
+  kamusLanding.harianKemajuan.replace("{n}", String(n)).replace("{total}", String(total));
+const teksTerkunci = (total = 5) =>
+  kamusLanding.harianTerkunciJudul.replace("{total}", String(total));
+const teksDialog = (total = 5) =>
+  kamusLanding.harianDialogJudul.replace("{total}", String(total));
+
+/** Klik tombol berdasarkan teksnya (dipakai untuk pemilih promosi & dialog). */
+async function klikTombolTeks(teks) {
+  const tombol = [...dok.querySelectorAll("button")].filter((b) =>
+    (b.textContent || "").includes(teks)
+  );
+  const el = tombol.at(-1);
+  if (!el) throw new Error(`tombol "${teks}" tidak ada`);
+  el.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+}
+
+/**
+ * Selesaikan satu soal widget: mainkan setiap langkah pemain (indeks genap),
+ * pilih promosi bila diminta, dan tunggu balasan lawan.
+ */
+async function selesaikanSoalWidget(catatan) {
+  const paket = urai(catatan);
+  const langkahPemain = paket.langkah.filter((_, i) => i % 2 === 0);
+  for (const uci of langkahPemain) {
+    const { from, to, promo } = parseLangkah(uci);
+    await mainkan(from, to);
+    if (promo) {
+      await tunggu(120);
+      await klikTombolTeks(kamus.promosiMenteri);
+    }
+    await tunggu(700);
+  }
+}
+
+/* D1 — kunjungan pertama */
 {
+  window.localStorage.removeItem(KUNCI_PROGRES);
+  // Widget WAJIB memakai arsip lokal: API dibiarkan mati sepanjang bagian ini.
+  stubApi = null;
+  permintaanApi.length = 0;
+
   const akarD = akarBaru();
   const rootD = mountWidget(akarD);
+  const paketPertama = urai(daftarWidget[0]);
+
   uji(
-    "widget memasang papan soal terbaru",
-    await tungguSampai(() => papanSamaData(soalTerbaru.fen), 5000)
+    "papan soal terbaru dari arsip dipasang",
+    await tungguSampai(() => papanSamaData(paketPertama.fen), 5000)
   );
-  uji(
-    "judul seksi dari kamus tampil",
-    teksHalaman().includes(kamusLanding.harianJudul)
-  );
+  uji("widget tidak memanggil API sama sekali", permintaanApi.length === 0);
+  uji("judul seksi dari kamus tampil", teksHalaman().includes(kamusLanding.harianJudul));
   uji(
     "edisi menyebut tanggal soal terbaru",
-    teksHalaman().includes(soalTerbaru.tanggal)
+    teksHalaman().includes(daftarWidget[0].tanggal)
   );
+  uji("penomoran \"Soal 1 dari 5\"", teksHalaman().includes(teksNomorSoal(1)));
+  uji("jatah harian 0/5 ditampilkan", teksHalaman().includes(teksKemajuan(0)));
   const tautan = [...dok.querySelectorAll("a")].map((a) => a.getAttribute("href"));
   uji("ada tautan ke halaman teka-teki harian", tautan.includes("/teka-teki-harian"));
   uji(
     "ada tautan ke halaman asli Chess.com",
     tautan.some((h) => h && h.includes("chess.com/daily-chess-puzzle"))
   );
+
+  /* D2 — langkah salah lalu langkah benar */
+  console.log("\nD2. langkah salah, lalu langkah benar:");
+  const langkahPertama = parseLangkah(paketPertama.langkah[0]);
+  const salah = cariLangkahSalah(paketPertama.fen, langkahPertama);
+  if (salah) {
+    await mainkan(salah.from, salah.to);
+    await tunggu(400);
+    uji("posisi tidak berubah setelah langkah salah", papanSamaData(paketPertama.fen));
+    uji("pesan \"belum tepat\" tampil", teksHalaman().includes(kamusLanding.harianSalah));
+  } else {
+    uji("(posisi hanya punya satu langkah legal — kasus salah dilewati)", true);
+  }
+
+  await mainkan(langkahPertama.from, langkahPertama.to);
+  if (paketPertama.langkah.length > 1) {
+    uji(
+      "lawan membalas otomatis setelah langkah benar",
+      await tungguSampai(
+        () => papanSamaData(fenSetelah(paketPertama.fen, paketPertama.langkah, 2)),
+        4000
+      )
+    );
+  } else {
+    uji("(soal satu langkah — balasan lawan tidak ada)", true);
+  }
+  uji(
+    "jatah belum berkurang sebelum soal tuntas",
+    progresWidget().selesai === 0 || progresWidget().selesai === undefined
+  );
+
   rootD.unmount();
   akarD.remove();
+}
+
+/* D3 — soal kelima menutup jatah lalu memunculkan ajakan bergabung */
+{
+  console.log("\nD3. menyelesaikan soal kelima:");
+  // Empat soal sebelumnya dianggap sudah dimainkan hari ini.
+  setProgresWidget(4);
+  const akarE = akarBaru();
+  const rootE = mountWidget(akarE);
+  const paketKelima = urai(daftarWidget[4]);
+
+  uji(
+    "widget melanjutkan dari soal kelima",
+    await tungguSampai(() => teksHalaman().includes(teksNomorSoal(5)), 5000)
+  );
+  uji(
+    "papan soal kelima dipasang",
+    await tungguSampai(() => papanSamaData(paketKelima.fen), 5000)
+  );
+  uji("jatah 4/5 ditampilkan", teksHalaman().includes(teksKemajuan(4)));
+  uji("dialog ajakan belum muncul", !teksHalaman().includes(teksDialog()));
+
+  await selesaikanSoalWidget(daftarWidget[4]);
+
+  uji(
+    "progres tersimpan 5/5 setelah soal kelima selesai",
+    await tungguSampai(() => progresWidget().selesai === 5, 8000)
+  );
+  uji(
+    "dialog ajakan bergabung muncul",
+    await tungguSampai(() => teksHalaman().includes(teksDialog()), 6000)
+  );
+  uji(
+    "dialog menyebut tombol gabung Blunder Skuad",
+    teksHalaman().includes(kamusLanding.harianGabung)
+  );
+  uji(
+    "dialog menyediakan pilihan \"nanti saja\"",
+    teksHalaman().includes(kamusLanding.harianDialogNanti)
+  );
+  uji("tidak lanjut ke soal keenam", !teksHalaman().includes(teksNomorSoal(6)));
+
+  // Menutup dialog → panel jatah habis (bukan papan yang bisa dimainkan).
+  await klikTombolTeks(kamusLanding.harianDialogNanti);
+  await tunggu(300);
+  uji(
+    "setelah dialog ditutup muncul panel jatah habis",
+    await tungguSampai(() => teksHalaman().includes(teksTerkunci()), 4000)
+  );
+  uji("papan dilepas saat jatah habis", dok.querySelectorAll("[data-petak]").length === 0);
+
+  rootE.unmount();
+  akarE.remove();
+}
+
+/* D4 — kunjungan ulang hari yang sama */
+{
+  console.log("\nD4. kunjungan ulang setelah jatah habis:");
+  const akarF = akarBaru();
+  const rootF = mountWidget(akarF);
+  uji(
+    "jatah habis tetap berlaku setelah halaman dimuat ulang",
+    await tungguSampai(() => teksHalaman().includes(teksTerkunci()), 5000)
+  );
+  uji("tidak ada papan yang bisa dimainkan", dok.querySelectorAll("[data-petak]").length === 0);
+  uji(
+    "jatah terpakai dilaporkan 5/5",
+    teksHalaman().includes(teksKemajuan(5))
+  );
+  rootF.unmount();
+  akarF.remove();
+}
+
+/* D5 — tombol gabung menuju pendaftaran anggota */
+{
+  console.log("\nD5. tombol gabung diarahkan ke pendaftaran anggota:");
+  const akarG = akarBaru();
+  const rootG = mountWidgetRute(akarG);
+  uji(
+    "panel jatah habis tampil",
+    await tungguSampai(() => teksHalaman().includes(teksTerkunci()), 5000)
+  );
+  await klikTombolTeks(kamusLanding.harianGabung); // buka dialog dari panel
+  uji(
+    "dialog terbuka dari panel jatah habis",
+    await tungguSampai(() => teksHalaman().includes(teksDialog()), 4000)
+  );
+  await klikTombolTeks(kamusLanding.harianGabung); // aksi di dalam dialog
+  uji(
+    "aksi dialog berpindah ke /pendaftaran-anggota",
+    await tungguSampai(() => Boolean(dok.querySelector('[data-uji="rute-gabung"]')), 4000)
+  );
+  rootG.unmount();
+  akarG.remove();
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));

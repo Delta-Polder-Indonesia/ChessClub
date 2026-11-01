@@ -6,6 +6,7 @@ import { SUARA, useSuara } from "../../lib/suara.js";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import PapanTekaTeki from "../TekaTeki/PapanTekaTeki.jsx";
 import License from "../Analisa/komponen/svg/license.jsx";
+import { ambilTekaTekiHarian } from "../../lib/api/tekaTekiHarian.js";
 import { teksGalat } from "../../lib/api/core.js";
 import {
   apakahLangkahLegal,
@@ -15,9 +16,9 @@ import {
   terapkan,
 } from "../../lib/tekaTeki.js";
 import {
-  ambilIndeksSnapshot,
   ambilSoalTanggal,
   geserTanggal,
+  parsePgnTekaTeki,
   pasanganLangkah,
   tanggalHariIni,
   tanggalSah,
@@ -28,10 +29,14 @@ import {
 /**
  * Halaman Teka-teki Harian.
  *
- * Sumber soal: SNAPSHOT STATIS `public/data/teka-teki-harian/` yang dibuat
- * `scripts/ambil-teka-teki-harian.mjs`. Halaman ini TIDAK memanggil Chess.com
- * saat dibuka — pengunjung hanya mengunduh satu berkas tahun (±40 KB) dari
- * domain sendiri, jadi tetap jalan walau Chess.com lambat atau down.
+ * Sumber soal: RUTE API `GET /api/teka-teki-harian` (server meneruskan API
+ * publik resmi Chess.com, `server/src/teka-teki-harian.js`) — jadi halaman ini
+ * SELALU memuat soal terbaru, termasuk hari ini, tanpa perlu di-update.
+ *
+ * Bila API/Chess.com sedang tidak terjangkau, halaman TIDAK mati: ia jatuh ke
+ * snapshot statis `public/data/teka-teki-harian/` (berkas yang sama yang
+ * dipakai widget di landing) dan menandai bahwa soalnya dari arsip. Dengan
+ * begitu pengunjung tetap bisa bermain walau layanan pihak ketiga bermasalah.
  *
  * Snapshot hanya berisi `tanggal`, `fen`, dan langkah solusi; judul/penulis/
  * media milik Chess.com tidak disimpan (lihat catatan di skrip pengumpul).
@@ -93,9 +98,8 @@ export default function TekaTekiHarian() {
   /** Penghitung percobaan muat — "Coba lagi" menaikkannya agar efek muat
    *  berjalan ulang walau tanggalnya sama. */
   const [percobaan, setPercobaan] = useState(0);
-  /** Indeks snapshot (rentang tanggal yang tersedia) — untuk membatasi
-   *  pemilih tanggal dan memberi tahu pengunjung batas arsipnya. */
-  const [indeks, setIndeks] = useState(null);
+  /** `true` bila soal dilayani dari snapshot lokal karena API gagal. */
+  const [dariArsip, setDariArsip] = useState(false);
 
   const jamLawan = useRef(null);
   const jamKesalahan = useRef(null);
@@ -123,66 +127,96 @@ export default function TekaTekiHarian() {
     setPetunjuk(null);
     setPromosi(null);
     setPesan(null);
+    setDariArsip(false);
 
-    ambilSoalTanggal(tanggal)
-      .then((data) => {
+    /*
+     * Urutan sumber: API dulu (soal terbaru, termasuk hari ini), lalu snapshot
+     * lokal sebagai jaring pengaman. Snapshot TIDAK dipakai selama API sehat —
+     * ia hanya menolong saat Chess.com lambat, limit, atau sedang down.
+     */
+    (async () => {
+      const pakaiApi = async () => {
+        const data = await ambilTekaTekiHarian(
+          tanggal === hariIni ? undefined : tanggal
+        );
+        if (!data?.tersedia) {
+          return {
+            kosong: true,
+            tanggal: data?.tanggal || tanggal,
+            alasan: data?.alasan || "tidak-ada",
+          };
+        }
+        const hasil = parsePgnTekaTeki(data.pgn, { fen: data.fen });
+        if (!hasil.langkah.length) {
+          return { kosong: true, tanggal, alasan: "data-tidak-lengkap" };
+        }
+        return {
+          soal: {
+            tanggal: data.tanggal || tanggal,
+            url: data.url || `${URL_CHESSCOM}/${tanggal}`,
+            judul: data.judul || "",
+          },
+          fen: hasil.fen,
+          langkah: hasil.langkah,
+          dariArsip: false,
+        };
+      };
+
+      const pakaiSnapshot = async () => {
+        const data = await ambilSoalTanggal(tanggal);
+        if (!data) return null;
+        return {
+          soal: { tanggal: data.tanggal, url: data.url, judul: "" },
+          fen: data.fen,
+          langkah: data.langkah,
+          dariArsip: true,
+        };
+      };
+
+      try {
+        const hasil = await pakaiApi();
         if (!hidup) return;
-        if (!data) {
-          // Tanggal itu tidak ada di snapshot (belum terkumpul atau memang
-          // tidak pernah terbit). Bukan galat: tampilkan keadaan kosong.
-          setSoal({ tanggal, url: `${URL_CHESSCOM}/${tanggal}` });
+        if (hasil.kosong) {
+          setSoal({ tanggal: hasil.tanggal, url: `${URL_CHESSCOM}/${hasil.tanggal}` });
           setSolusi([]);
           setSisa([]);
           setPosisi(null);
-          setAlasan(tanggal > hariIni ? "masa-depan" : "tidak-ada");
+          setAlasan(hasil.alasan);
           setStatus("kosong");
           return;
         }
-        setSoal(data);
-        setSolusi(data.langkah);
-        setPosisi(data.fen);
-        setSisa(data.langkah.slice());
-        setStatus("siap");
-      })
-      .catch((e) => {
+        terapkanHasil(hasil);
+      } catch (e) {
+        // API gagal → coba snapshot sebelum menyerah.
+        try {
+          const cadangan = await pakaiSnapshot();
+          if (!hidup) return;
+          if (cadangan) {
+            terapkanHasil(cadangan);
+            return;
+          }
+        } catch {
+          /* snapshot juga tidak ada — jatuh ke keadaan galat di bawah */
+        }
         if (!hidup) return;
         setGalat(e);
         setStatus("galat");
-      });
+      }
+    })();
+
+    function terapkanHasil(hasil) {
+      setSoal(hasil.soal);
+      setSolusi(hasil.langkah);
+      setPosisi(hasil.fen);
+      setSisa(hasil.langkah.slice());
+      setDariArsip(hasil.dariArsip);
+      setStatus("siap");
+    }
 
     return () => {
       hidup = false;
     };
   }, [tanggal, hariIni, percobaan]);
-
-  // Indeks snapshot dimuat sekali: rentang yang tersedia jarang berubah.
-  useEffect(() => {
-    let hidup = true;
-    ambilIndeksSnapshot()
-      .then((data) => {
-        if (hidup) setIndeks(data);
-      })
-      .catch(() => {});
-    return () => {
-      hidup = false;
-    };
-  }, []);
-
-  /*
-   * Snapshot biasanya tertinggal beberapa hari dari kalender (ia dibuat oleh
-   * skrip pengumpul, bukan live). Pengunjung yang membuka alamat tanpa
-   * `?tanggal=` sebaiknya langsung mendapat soal yang BISA dimainkan, bukan
-   * layar "belum tersedia" — jadi bila hari ini belum terkumpul, alamat
-   * diarahkan (replace, tanpa menambah riwayat) ke tanggal terbaru snapshot.
-   */
-  useEffect(() => {
-    if (!indeks?.terbaru) return;
-    if (tanggalSah(parameterTanggal)) return; // pengunjung memilih tanggal sendiri
-    if (indeks.terbaru >= hariIni) return;
-    const berikut = new URLSearchParams(parameter);
-    berikut.set("tanggal", indeks.terbaru);
-    setParameter(berikut, { replace: true });
-  }, [indeks, parameterTanggal, hariIni, parameter, setParameter]);
 
   // Bersihkan timer saat halaman ditinggalkan.
   useEffect(
@@ -392,8 +426,10 @@ export default function TekaTekiHarian() {
   const teksPesan = pesan ? pesan.teks || t(pesan.kunci) : "";
 
   const jumlahLangkah = sisa.length;
-  const batasAwal = indeks?.terlama || "2007-05-08";
-  const batasAkhir = indeks?.terbaru && indeks.terbaru < hariIni ? indeks.terbaru : hariIni;
+  // Arsip teka-teki harian Chess.com dimulai 8 Mei 2007; tanggal ke depan
+  // tidak mungkin punya soal, jadi "hari ini" adalah batas atasnya.
+  const batasAwal = "2007-05-08";
+  const batasAkhir = hariIni;
   const bisaMundur = tanggal > batasAwal;
   const bisaMaju = tanggal < batasAkhir;
   const sudahSelesaiSebelumnya = !!arsipSelesai[soal?.tanggal || tanggal];
@@ -471,20 +507,6 @@ export default function TekaTekiHarian() {
                           : "tekaTekiHarian.tidakTersedia"
                     )}
                   </p>
-                  {/* Snapshot bisa tertinggal beberapa hari dari kalender.
-                      Tawarkan tanggal terbaru yang BENAR-BENAR ada, bukan
-                      "hari ini" yang mungkin belum terkumpul. */}
-                  {indeks?.terbaru && indeks.terbaru !== tanggal && (
-                    <button
-                      type="button"
-                      onClick={() => pilihTanggal(indeks.terbaru)}
-                      className="rounded-md bg-[#81b64c] px-4 py-2 text-sm font-bold text-white transition hover:bg-[#6d9c3f]"
-                    >
-                      {t("tekaTekiHarian.keTerbaru", {
-                        tanggal: tanggalTerbaca(indeks.terbaru, locale),
-                      })}
-                    </button>
-                  )}
                   {tanggal !== hariIni && (
                     <button
                       type="button"
@@ -588,6 +610,11 @@ export default function TekaTekiHarian() {
               <p className="text-xs leading-relaxed text-gray-400">
                 {t("tekaTekiHarian.pembuka")}
               </p>
+              {dariArsip && (
+                <p className="rounded bg-[#312e2b] px-2 py-1 text-[11px] font-semibold text-amber-300">
+                  {t("tekaTekiHarian.dariArsip")}
+                </p>
+              )}
             </div>
 
             {/* Navigasi tanggal. */}

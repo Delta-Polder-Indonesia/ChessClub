@@ -197,22 +197,25 @@ export function pasanganLangkah(langkah = [], warnaPertama = "w") {
 }
 
 /* ====================================================================== */
-/* Snapshot statis (tanpa API)                                            */
+/* Snapshot statis lokal                                                  */
 /* ====================================================================== */
 
 /*
- * Situs ini TIDAK memanggil Chess.com setiap kali halaman dibuka. Snapshot
- * dibuat oleh `scripts/ambil-teka-teki-harian.mjs` dan disajikan sebagai
- * berkas statis:
+ * Snapshot dibuat oleh `scripts/ambil-teka-teki-harian.mjs` dan disajikan
+ * sebagai berkas statis dari domain sendiri:
  *
  *   public/data/teka-teki-harian/indeks.json      daftar tahun + rentang
  *   public/data/teka-teki-harian/terbaru.json     7 soal terakhir (widget)
  *   public/data/teka-teki-harian/<tahun>.json     semua soal tahun itu
  *
+ * Perannya berbeda per permukaan:
+ *   - widget halaman depan MEMAKAI snapshot ini sebagai sumber utama (tanpa
+ *     API sama sekali) — lihat `Landing/TekaTekiHarianLanding.jsx`;
+ *   - halaman `/teka-teki-harian` memakai API (`/api/teka-teki-harian`) dan
+ *     hanya jatuh ke sini bila API/Chess.com tidak terjangkau.
+ *
  * Isi satu soal hanya `{ tanggal, fen, langkah }` — tanpa judul, penulis,
- * atau media. Dengan begitu halaman tetap hidup walau Chess.com sedang
- * gangguan, dan tidak ada permintaan ke pihak ketiga saat pengunjung memakai
- * situs.
+ * atau media.
  */
 
 /** Ubah `"e2-e4;e7-e5"` → `["e2-e4", "e7-e5"]`. */

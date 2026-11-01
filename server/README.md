@@ -53,11 +53,13 @@ atau pasang Postgres relasional penuh (`DATABASE-MIGRATION.md`) / storage ekster
 > Tanpa itu server menjawab `403`. Token berlaku 24 jam dan tidak terikat
 > sesi, jadi satu token boleh dipakai ulang sampai kedaluwarsa.
 
-> **Sumber teka-teki harian:** rute ini **tidak dipakai frontend**. Halaman
-> `/teka-teki-harian` dan widget di landing membaca snapshot statis
-> `public/data/teka-teki-harian/` (lihat `PANDUAN-TEKA-TEKI-HARIAN.md`), jadi
-> situs tetap jalan tanpa Chess.com. Rute di bawah disediakan untuk pemakaian
-> langsung (bot/administrasi). Ia meneruskan
+> **Sumber teka-teki harian:** rute ini **dipakai frontend** oleh halaman
+> `/teka-teki-harian` (`src/lib/api/tekaTekiHarian.js`), sehingga halaman itu
+> selalu menampilkan soal terbaru. Bila Chess.com tidak terjangkau, halaman
+> jatuh ke snapshot statis `public/data/teka-teki-harian/` dan memberi tahu
+> bahwa soalnya dari arsip. Widget di halaman depan **tidak** memakai rute ini:
+> ia membaca snapshot lokal (dibatasi 5 soal per hari) — lihat
+> `PANDUAN-TEKA-TEKI-HARIAN.md`. Rute ini meneruskan
 > `https://api.chess.com/pub/puzzle` (hari ini) atau
 > `https://api.chess.com/pub/puzzle/YYYY-MM-DD` (arsip). Soal, judul, dan
 > tautan tetap milik Chess.com; server hanya meneruskan dan mencache sebentar

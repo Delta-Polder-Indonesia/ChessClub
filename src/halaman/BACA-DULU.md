@@ -93,7 +93,12 @@ Daftar menu dan pemetaan folder berada di `src/menu.js`. Routing berada di `src/
 ## Teka-teki harian
 
 - `TekaTekiHarian/` — halaman penuh `/teka-teki-harian` (pemutar langkah).
-- `Landing/TekaTekiHarianLanding.jsx` — widget papan statis di halaman depan.
-- Data: snapshot statis `public/data/teka-teki-harian/`, dibuat oleh
-  `scripts/ambil-teka-teki-harian.mjs`. Tidak ada panggilan ke Chess.com saat
-  halaman dibuka. Rincian: `PANDUAN-TEKA-TEKI-HARIAN.md` di akar repo.
+  Sumbernya **API** `GET /api/teka-teki-harian` (server meneruskan Chess.com);
+  bila API gagal ia jatuh ke snapshot lokal dan menandai soalnya dari arsip.
+- `Landing/TekaTekiHarianLanding.jsx` — widget **bisa dimainkan** di halaman
+  depan, memakai **arsip lokal** `public/data/teka-teki-harian/terbaru.json`
+  (tanpa API). Dibatasi 5 soal selesai per hari (progres di `localStorage`,
+  kunci `kci-harian-landing`), lalu muncul dialog ajakan bergabung ke Blunder
+  Skuad (`/pendaftaran-anggota`).
+- Arsip snapshot dibuat oleh `scripts/ambil-teka-teki-harian.mjs`. Rincian:
+  `PANDUAN-TEKA-TEKI-HARIAN.md` di akar repo.

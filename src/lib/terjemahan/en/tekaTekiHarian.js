@@ -20,7 +20,8 @@ export const tekaTekiHarian = {
   solusiTidakAda:
     "This date's puzzle is shown, but its solution moves are not available from Chess.com yet. Open the original page to finish it.",
   masaDepan: "That date hasn't arrived — the puzzle isn't out yet.",
-  keTerbaru: "Open the newest puzzle ({tanggal})",
+  dariArsip:
+    "Chess.com is unreachable right now — this puzzle is served from the site's local archive.",
   keHariIni: "Back to today",
   pilihTanggal: "Pick a puzzle date",
   geserSebelumnya: "Previous date",

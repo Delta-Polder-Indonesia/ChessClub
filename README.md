@@ -17,11 +17,14 @@ lewat pull request, dan ikut menjaga kualitas melalui gerbang uji otomatis.
   (Stockfish lokal / Sunfish), dan Latihan Repertoar tersimpan di IndexedDB.
 - **Teka-teki catur, Quiz, dan Teka-teki Rush** — latihan taktik dengan tingkat
   kesulitan bertingkat dan progres tersimpan lokal.
-- **Teka-teki Harian** — soal harian resmi Chess.com di halaman depan (widget
-  "Teka-teki Hari Ini") dan di `/teka-teki-harian` beserta arsip per tanggal.
-  Disajikan dari **snapshot statis** di `public/data/teka-teki-harian/`, jadi
-  tetap bisa dimainkan tanpa memanggil Chess.com saat halaman dibuka. Cara
-  memperbarui data: `PANDUAN-TEKA-TEKI-HARIAN.md`.
+- **Teka-teki Harian** — soal harian resmi Chess.com di dua tempat dengan dua
+  sumber berbeda. `/teka-teki-harian` mengambil dari **API** server
+  (`GET /api/teka-teki-harian`, meneruskan Chess.com) sehingga selalu soal
+  terbaru, dengan snapshot lokal sebagai cadangan bila Chess.com bermasalah.
+  Widget "Teka-teki Hari Ini" di halaman depan memakai **arsip lokal**
+  `public/data/teka-teki-harian/` supaya ringan dan selalu hidup: papannya bisa
+  dimainkan, dibatasi **5 soal per hari**, lalu muncul ajakan bergabung ke
+  Blunder Skuad. Cara memperbarui arsip: `PANDUAN-TEKA-TEKI-HARIAN.md`.
 - **Analisa posisi** — evaluasi engine di dalam browser (Web Worker), grafik
   evaluasi, dan bilah skor.
 - **Keanggotaan otomatis dari Chess.com** — backend mengambil roster publik

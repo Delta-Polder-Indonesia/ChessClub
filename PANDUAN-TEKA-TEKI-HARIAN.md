@@ -1,16 +1,63 @@
 # Teka-teki Harian — data, pembaruan, dan batasannya
 
-Fitur ini menampilkan **teka-teki harian resmi Chess.com** di dua tempat:
+Fitur ini menampilkan **teka-teki harian resmi Chess.com** di dua tempat, dengan
+**dua sumber data yang sengaja berbeda**:
 
-| Tempat | Berkas | Data yang dipakai |
-| --- | --- | --- |
-| Widget di halaman depan | `src/halaman/Landing/TekaTekiHarianLanding.jsx` | `terbaru.json` (±2 KB, 7 soal) |
-| Halaman penuh `/teka-teki-harian` | `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx` | `terbaru.json` → `<tahun>.json` |
+| Tempat | Berkas | Sumber data | Perilaku |
+| --- | --- | --- | --- |
+| Halaman penuh `/teka-teki-harian` | `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx` | **API** `GET /api/teka-teki-harian` (server meneruskan Chess.com) | selalu soal terbaru, termasuk hari ini; snapshot lokal hanya jaring pengaman |
+| Widget di halaman depan | `src/halaman/Landing/TekaTekiHarianLanding.jsx` | **arsip lokal** `public/data/teka-teki-harian/terbaru.json` | cepat & tanpa pihak ketiga, **bisa dimainkan**, dibatasi **5 soal/hari** lalu dialog ajakan bergabung |
 
-## Tidak ada panggilan ke Chess.com saat pengunjung membuka situs
+Alasannya sederhana: halaman depan harus ringan, selalu hidup, dan jadi pemikat
+(orang boleh langsung bermain tanpa akun); halaman penuh boleh bergantung pada
+API karena di situ pengunjung memang mencari soal terbaru.
 
-Situs **tidak** memanggil API siapa pun saat halaman dibuka. Semua posisi
-disajikan sebagai berkas statis dari domain sendiri:
+## 1. Halaman penuh memakai API
+
+```text
+GET /api/teka-teki-harian                 → soal hari ini (UTC, menurut server)
+GET /api/teka-teki-harian?tanggal=2026-10-20
+```
+
+Implementasi server: `server/src/teka-teki-harian.js`, meneruskan
+`https://api.chess.com/pub/puzzle/YYYY-MM-DD` dengan cache memori
+(10 menit untuk hari ini, sehari untuk arsip). Frontend memanggilnya lewat
+`src/lib/api/tekaTekiHarian.js` (`ambilTekaTekiHarian`), lalu mengubah PGN
+menjadi langkah `from-to` dengan `parsePgnTekaTeki()`.
+
+Bentuk jawaban:
+
+```json
+{ "tersedia": true, "tanggal": "2026-10-20", "judul": "…",
+  "fen": "…", "pgn": "…", "url": "https://www.chess.com/…", "gambar": "…" }
+```
+
+`{"tersedia": false, "alasan": "…"}` berarti tanggal itu memang belum punya soal
+(bukan kegagalan). Kegagalan transport (Chess.com lambat/down) memicu **jalur
+cadangan**: halaman membaca snapshot lokal untuk tanggal yang sama dan
+menampilkan penanda *“Chess.com sedang tidak bisa dihubungi — soal ini
+dilayani dari arsip lokal situs.”* Jadi halaman tidak pernah mati.
+
+## 2. Widget halaman depan memakai arsip lokal, bisa dimainkan
+
+Widget **tidak** memanggil API sama sekali (dijaga oleh uji). Ia membaca
+`terbaru.json`, mengambil **5 soal terbaru**, lalu memasangnya satu per satu di
+papan interaktif (`PapanTekaTeki`): pemain melangkah, lawan membalas otomatis,
+ada tombol **Petunjuk** dan **Ulangi**, serta pemilih bidak promosi.
+
+Batas harian:
+
+- maksimal **5 soal selesai per hari** (`BATAS_HARIAN = 5`);
+- progres disimpan di `localStorage` dengan kunci `kci-harian-landing`
+  berisi `{ tanggal, selesai }` — berganti hari berarti jatah baru;
+- setelah soal kelima selesai, muncul **dialog Radix** mengajak bergabung ke
+  **Blunder Skuad**; aksinya menuju `/pendaftaran-anggota`;
+- bila jatah habis, panel papan diganti keterangan jatah habis + tombol gabung,
+  sehingga memuat ulang halaman tidak menambah jatah.
+
+Salinan Indonesia dan Inggris keduanya wajib ada (`npm run uji:i18n`).
+
+## 3. Snapshot arsip
 
 ```text
 public/data/teka-teki-harian/
@@ -31,11 +78,11 @@ Judul, nama/avatar penulis, video, dan hitungan komentar **tidak** disimpan.
 `langkah` memakai notasi `from-to` yang sama dengan basis data teka-teki situs
 (`src/lib/tekaTeki.js`), dipisah titik koma.
 
-Konsekuensi yang disengaja: teka-teki tetap bisa dimainkan walau Chess.com
-lambat atau tidak terjangkau, dan pengunjung tidak diarahkan ke pihak ketiga
-saat membuka halaman.
+Karena widget mengambil dari snapshot, **kesegaran snapshot = kesegaran widget**.
+Perbarui minimal sekali sehari (lihat di bawah) supaya lima soal yang dimainkan
+pengunjung memang soal terbaru.
 
-## Memperbarui snapshot
+## 4. Memperbarui snapshot
 
 ### Cara utama — API publik resmi Chess.com
 
@@ -78,47 +125,43 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 > (`/callback/puzzles/daily`), bukan API publik resmi. Memakainya berarti
 > menyimpan ulang data milik Chess.com di repo ini. Bila pemilik repo ingin
 > risiko nol, hapus `public/data/teka-teki-harian/` dan pakai cara utama;
-> widget di landing otomatis **tidak tampil** dan halaman menampilkan keadaan
-> kosong yang jelas — tidak ada galat.
+> widget di landing otomatis **tidak tampil** dan halaman penuh tetap berjalan
+> dari API — tidak ada galat.
 
-## Batas tanggal yang ditampilkan
+## 5. Batas tanggal
 
-- Arsip teka-teki harian Chess.com dimulai **8 Mei 2007**.
-- Pemilih tanggal di halaman dibatasi `indeks.terlama … indeks.terbaru`.
-- Bila snapshot tertinggal beberapa hari dari kalender, pengunjung yang membuka
-  `/teka-teki-harian` tanpa `?tanggal=` otomatis diarahkan ke tanggal terbaru
-  yang tersedia (bukan layar "belum tersedia").
+- Arsip teka-teki harian Chess.com dimulai **8 Mei 2007**; tanggal ke depan
+  tidak mungkin punya soal.
+- Pemilih tanggal di halaman penuh dibatasi `2007-05-08 … hari ini` (soal
+  terbaru selalu datang dari API, jadi tidak bergantung pada snapshot).
+- Widget hanya menampilkan soal yang ada di `terbaru.json` (maksimal 5 dari 7).
 
-## Status server (`/api/teka-teki-harian`)
-
-Rute ini **opsional** dan tidak dipakai halaman mana pun. Ia tetap ada untuk
-kebutuhan lain (mis. bot/administrasi atau pengambilan satu tanggal live):
-
-```bash
-curl "http://localhost:8787/api/teka-teki-harian?tanggal=2026-10-20"
-```
-
-Bila Anda tidak memerlukannya, rute itu tidak mengganggu apa pun — ia hanya
-memakai cache memori 10 menit (hari ini) / sehari (arsip) dan tidak pernah
-dipanggil oleh frontend.
-
-## Uji
+## 6. Uji
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 21 pemeriksaan jsdom: halaman + widget landing
+npm run uji:teka-teki-harian-ui   # 53 pemeriksaan jsdom: halaman (API + cadangan) + widget
 ```
 
-Pemeriksaan penting yang dijaga:
+Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):
 
-- setiap soal di snapshot **hanya** punya kolom `tanggal`, `fen`, `langkah`
-  (tidak ada judul/penulis/media yang menyelinap masuk);
-- seluruh langkah solusi legal bila dimainkan berurutan;
-- skrip pengumpul membuang kolom lain dan tidak meminta ulang tanggal yang
-  sudah tersimpan;
-- widget landing memasang papan soal terbaru dan menautkan halaman aslinya.
+- halaman memakai rute API dan mengirim `?tanggal=` saat membuka tanggal arsip;
+- saat API **ditolak**, halaman jatuh ke snapshot, tetap menampilkan papan, dan
+  memunculkan penanda “dilayani dari arsip lokal” (bukan layar galat);
+- saat API menjawab `tersedia:false`, halaman menampilkan keadaan kosong yang
+  jelas tanpa tombol coba-ulang dan tanpa penanda arsip;
+- widget landing **tidak** memanggil API, papannya bisa dimainkan (langkah salah
+  ditolak, langkah benar dibalas lawan), jatah naik 0 → 4 → 5;
+- soal kelima memunculkan dialog ajakan gabung, tidak lanjut ke soal keenam, dan
+  aksi dialog berpindah ke `/pendaftaran-anggota`;
+- memuat ulang setelah jatah habis tetap menampilkan panel jatah habis.
 
-## Atribusi
+Selain itu `scripts/uji-teka-teki-harian.mjs` menjaga agar setiap soal di
+snapshot **hanya** punya kolom `tanggal`, `fen`, `langkah` — tidak ada
+judul/penulis/media yang menyelinap masuk — dan seluruh langkah solusinya legal
+bila dimainkan berurutan.
+
+## 7. Atribusi
 
 Soal, posisi, dan langkah solusi adalah milik Chess.com. Atribusi dan tautan ke
 halaman asli tersedia di widget landing, di halaman `/teka-teki-harian`, dan di

@@ -20,7 +20,8 @@ export const tekaTekiHarian = {
   solusiTidakAda:
     "Teka-teki tanggal ini tampil, tetapi langkah solusinya belum tersedia dari Chess.com. Buka halaman aslinya untuk menyelesaikannya.",
   masaDepan: "Tanggal itu belum tiba — teka-tekinya belum terbit.",
-  keTerbaru: "Buka teka-teki terbaru ({tanggal})",
+  dariArsip:
+    "Chess.com sedang tidak bisa dihubungi — soal ini dilayani dari arsip lokal situs.",
   keHariIni: "Ke hari ini",
   pilihTanggal: "Pilih tanggal teka-teki",
   geserSebelumnya: "Tanggal sebelumnya",
