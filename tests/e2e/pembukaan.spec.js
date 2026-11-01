@@ -7,6 +7,30 @@ import { papan as papanEn } from "../../src/lib/terjemahan/en/papan.js";
 /** Ganti token {kunci} pada teks kamus, sama seperti fungsi t() aplikasi. */
 const ganti = (teks, nilai) => teks.replace(/\{(\w+)\}/g, (_, kunci) => nilai[kunci]);
 
+/**
+ * Ukuran papan, bilah evaluasi, dan sidebar mode dari DOM yang sedang tampil.
+ * Nilai `-1`/`lebarLayar + 1` menandai elemen yang tidak ditemukan, supaya
+ * pemeriksaan batas tetap gagal (bukan lulus diam-diam).
+ */
+const ukurTataLetak = (page) =>
+  page.evaluate(() => {
+    const petak = document.querySelector('[data-petak="e2"]');
+    const papan = petak?.parentElement?.parentElement;
+    const bilahEvaluasi = document.querySelector("[data-bilah-evaluasi]");
+    const menuMode = document.querySelector('nav[aria-label]');
+    const batasPapan = papan?.getBoundingClientRect();
+    const batasBilah = bilahEvaluasi?.getBoundingClientRect();
+    return {
+      lebarDokumen: document.documentElement.scrollWidth,
+      lebarLayar: window.innerWidth,
+      kiriPapan: batasPapan?.left ?? -1,
+      kananPapan: batasPapan?.right ?? window.innerWidth + 1,
+      bilahTerlihat: Boolean(batasBilah?.width && batasBilah?.height),
+      kananBilah: batasBilah?.right ?? window.innerWidth + 1,
+      menuMeluap: menuMode ? menuMode.scrollWidth > menuMode.clientWidth + 1 : true,
+    };
+  });
+
 for (const [bahasa, kamus] of [["id", id], ["en", en]]) {
   test(`landing pembukaan: masthead dan katalog pencarian (${bahasa})`, async ({ page }) => {
     // Muatan pertama menanggung kompilasi graph modul Vite pada mesin dingin.
@@ -161,35 +185,37 @@ for (const [bahasa, kamus] of [["id", papanId], ["en", papanEn]]) {
     await expect(page.locator("[data-petak]")).toHaveCount(64);
     await expect(page.getByRole("button", { name: kamus.workspaceKembali })).toHaveCount(0);
 
+    // Workspace Analisa, menu mode, dan bilah evaluasi harus tetap berada di
+    // dalam viewport sempit. Ini menjaga regresi flex `w-full` yang pernah
+    // membuat papan melebar melebihi layar ketika eval bar dipasang di kiri.
+    // Diukur di sini, bukan setelah pindah mode: hanya workspace Analisa yang
+    // merender [data-bilah-evaluasi] — mode lain memakai spacer selebar bilah.
+    const tataLetakWorkspace = await ukurTataLetak(page);
+    expect(tataLetakWorkspace.lebarDokumen).toBeLessThanOrEqual(tataLetakWorkspace.lebarLayar);
+    expect(tataLetakWorkspace.kiriPapan).toBeGreaterThanOrEqual(0);
+    expect(tataLetakWorkspace.kananPapan).toBeLessThanOrEqual(tataLetakWorkspace.lebarLayar);
+    expect(tataLetakWorkspace.bilahTerlihat).toBe(true);
+    expect(tataLetakWorkspace.kananBilah).toBeLessThanOrEqual(tataLetakWorkspace.kiriPapan);
+    expect(tataLetakWorkspace.menuMeluap).toBe(false);
+
     await menu.getByRole("link", { name: kamus.menuTuring }).click();
     await expect(page).toHaveURL(/\/papan-interaktif\/turing-test/);
-
-    // Workspace, menu mode, eval bar, dan papan harus tetap berada di dalam
-    // viewport sempit. Ini menjaga regresi flex `w-full` yang pernah membuat
-    // papan melebar melebihi layar ketika eval bar dipasang di sebelah kiri.
-    const tataLetakResponsif = await page.evaluate(() => {
-      const petak = document.querySelector('[data-petak="e2"]');
-      const papan = petak?.parentElement?.parentElement;
-      const bilahEvaluasi = document.querySelector("[data-bilah-evaluasi]");
-      const menuMode = document.querySelector('nav[aria-label]');
-      const batasPapan = papan?.getBoundingClientRect();
-      const batasBilah = bilahEvaluasi?.getBoundingClientRect();
-      return {
-        lebarDokumen: document.documentElement.scrollWidth,
-        lebarLayar: window.innerWidth,
-        kiriPapan: batasPapan?.left ?? -1,
-        kananPapan: batasPapan?.right ?? window.innerWidth + 1,
-        bilahTerlihat: Boolean(batasBilah?.width && batasBilah?.height),
-        kananBilah: batasBilah?.right ?? window.innerWidth + 1,
-        menuMeluap: menuMode ? menuMode.scrollWidth > menuMode.clientWidth + 1 : true,
-      };
+    // Chunk Turing dimuat malas. Tanpa penantian ini pemeriksaan di bawah bisa
+    // membaca DOM workspace Analisa yang masih terpasang (bilah evaluasinya
+    // masih ada) — itulah sumber hasil yang bergantung pada kecepatan chunk.
+    await expect(page.getByRole("heading", { name: kamus.turingJudul })).toBeVisible({
+      timeout: 30_000,
     });
-    expect(tataLetakResponsif.lebarDokumen).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
-    expect(tataLetakResponsif.kiriPapan).toBeGreaterThanOrEqual(0);
-    expect(tataLetakResponsif.kananPapan).toBeLessThanOrEqual(tataLetakResponsif.lebarLayar);
-    expect(tataLetakResponsif.bilahTerlihat).toBe(true);
-    expect(tataLetakResponsif.kananBilah).toBeLessThanOrEqual(tataLetakResponsif.kiriPapan);
-    expect(tataLetakResponsif.menuMeluap).toBe(false);
+
+    // Papan mode juga harus muat di viewport sempit. Halaman Turing sengaja
+    // tidak punya bilah evaluasi (papan hanya ditonton); kolom kirinya memakai
+    // spacer `w-9` agar papan tetap sejajar dengan mode lain.
+    const tataLetakTuring = await ukurTataLetak(page);
+    expect(tataLetakTuring.lebarDokumen).toBeLessThanOrEqual(tataLetakTuring.lebarLayar);
+    expect(tataLetakTuring.kiriPapan).toBeGreaterThanOrEqual(0);
+    expect(tataLetakTuring.kananPapan).toBeLessThanOrEqual(tataLetakTuring.lebarLayar);
+    expect(tataLetakTuring.bilahTerlihat).toBe(false);
+    expect(tataLetakTuring.menuMeluap).toBe(false);
 
     // Tautan sidebar mengembalikan pengguna ke workspace Analisa tanpa
     // meninggalkan /papan-interaktif (bukan tautan keluar + reload).
