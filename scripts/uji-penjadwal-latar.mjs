@@ -322,6 +322,92 @@ console.log("\n9) Pemanasan audio nyata: janji dikembalikan, tanpa AudioContext,
   uji("janji selesai setelah unduhan selesai", selesai);
 }
 
+// Prefetch: gunakan pemuat rute tiruan agar uji tidak mengunduh halaman lain.
+{
+  const hasil = await build({
+    entryPoints: [path.join(ROOT, "src/lib/prefetch.js")],
+    bundle: true,
+    write: false,
+    format: "iife",
+    globalName: "PrefetchUji",
+    define: { "import.meta.env.BASE_URL": JSON.stringify("/") },
+    plugins: [{
+      name: "prefetch-tiruan",
+      setup(b) {
+        b.onResolve({ filter: /\.jsx$/ }, (args) => ({ path: args.path, namespace: "rute-tiruan" }));
+        b.onLoad({ filter: /.*/, namespace: "rute-tiruan" }, (args) => ({
+          contents: `window.unduhan.push(${JSON.stringify(args.path)}); export default {};`,
+        }));
+        b.onResolve({ filter: /waktuSenggang\.js$/ }, () => ({ path: "latar", namespace: "latar-tiruan" }));
+        b.onLoad({ filter: /.*/, namespace: "latar-tiruan" }, () => ({
+          contents: "export const antrekanLatar = (fn) => window.antrean.push(fn);",
+        }));
+      },
+    }],
+  });
+  for (const hemat of [false, true]) {
+    const dom = new JSDOM('<a href="/">Beranda</a><a href="/karir">Karir</a>', {
+      url: "https://contoh.test/karir", runScripts: "outside-only",
+    });
+    const w = dom.window;
+    w.unduhan = [];
+    w.antrean = [];
+    Object.defineProperty(w.navigator, "connection", { value: { saveData: hemat } });
+    const pendengar = new Map();
+    w.addEventListener = (nama, fn) => {
+      if (!pendengar.has(nama)) pendengar.set(nama, new Set());
+      pendengar.get(nama).add(fn);
+    };
+    w.removeEventListener = (nama, fn) => pendengar.get(nama)?.delete(fn);
+    const kirim = (nama, target, isTrusted = true) => {
+      for (const fn of [...(pendengar.get(nama) || [])]) fn({ target, isTrusted });
+    };
+    const pemantauMutasi = [];
+    const PemantauAsli = w.MutationObserver;
+    w.MutationObserver = class extends PemantauAsli {
+      constructor(fn) {
+        super(fn);
+        pemantauMutasi.push(this);
+      }
+    };
+    let jumlahAmati = 0;
+    let saatTerlihat;
+    w.IntersectionObserver = class {
+      constructor(fn) { saatTerlihat = fn; }
+      observe() { jumlahAmati++; }
+      unobserve() {}
+    };
+    w.requestIdleCallback = (fn) => { fn(); return 1; };
+    w.eval(hasil.outputFiles[0].text);
+    w.PrefetchUji.mulaiPrefetchRute();
+    w.PrefetchUji.mulaiPrefetchRute();
+    uji(`prefetch tanpa interaksi tidak dijadwalkan (hemat=${hemat})`,
+      w.antrean.length === 0 && w.unduhan.length === 0 && jumlahAmati === 0);
+    kirim("pointerdown", w.document.body, false);
+    uji("interaksi sintetis tidak mengaktifkan prefetch otomatis", w.antrean.length === 0);
+    for (const nama of ["pointerdown", "keydown", "touchstart", "wheel"]) kirim(nama, w.document.body);
+    uji("prefetch otomatis hanya dijadwalkan sekali dan menghormati hemat data",
+      w.antrean.length === (hemat ? 0 : 1));
+    if (!hemat) {
+      uji("observasi tetap menunggu penjadwal latar", jumlahAmati === 0);
+      w.antrean.shift()();
+      uji("tautan diamati setelah interaksi dan halaman tenang", jumlahAmati === 2);
+      saatTerlihat([{ isIntersecting: true, target: w.document.querySelector("a") }]);
+      await tunggu(0);
+      uji("tautan terlihat memuat rute sesudah gerbang dibuka", w.unduhan.length === 1);
+    }
+    // Ketiga jalur interaksi langsung tetap bekerja, termasuk saat hemat data.
+    for (const nama of ["mouseover", "focusin", "touchstart"]) {
+      kirim(nama, w.document.querySelector('a[href="/karir"]'));
+    }
+    await tunggu(0);
+    uji("hover/fokus/sentuh tetap memuat tujuan tanpa duplikasi",
+      w.unduhan.filter((p) => p.includes("Karir.jsx")).length === 1);
+    pemantauMutasi.forEach((pemantau) => pemantau.disconnect());
+    dom.window.close();
+  }
+}
+
 console.log(
   `\n${gagal === 0 ? "OK" : "GAGAL"} — penjadwal latar: ${lulus} lulus, ${gagal} gagal.`
 );
