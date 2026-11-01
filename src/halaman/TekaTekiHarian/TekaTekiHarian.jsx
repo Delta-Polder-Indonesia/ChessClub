@@ -789,6 +789,12 @@ export default function TekaTekiHarian() {
                 style={{ maxWidth: "min(100%, 640px, calc(100dvh - 96px))" }}
               >
                 <div className="relative aspect-square w-full">
+                  {status === "siap" && fenTampil && solusi.length > 0 && (
+                    <SelisihMateri
+                      fen={fenTampil}
+                      orientasi={orientasi}
+                    />
+                  )}
                   {status === "memuat" && (
                     <div className="flex h-full w-full items-center justify-center rounded bg-[#211f1c] ring-1 ring-[#312e2b]">
                       <p className="text-sm font-semibold text-gray-400">
@@ -919,9 +925,7 @@ export default function TekaTekiHarian() {
                 </div>
               </div>
 
-              {/* Selisih materi: rel sempit di kanan papan (turun ke bawah
-                  papan pada layar sempit). */}
-              <SelisihMateri fen={status === "siap" ? fenTampil : ""} />
+              {/* Selisih materi berada di sudut atas/bawah sesuai sisi papan. */}
             </section>
 
             {/* ------------------------------------ panel kanan (ChessCompass) */}
