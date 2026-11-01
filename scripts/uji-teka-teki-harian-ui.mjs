@@ -1237,10 +1237,9 @@ console.log("\nE5. selisih materi di samping papan:");
     rel?.getAttribute("data-keping") === dihitung.keping.map((k) => k.bidak).join("")
   );
   uji(
-    "panel berada di sebelah papan, bukan di panel kanan",
-    rel?.parentElement?.tagName === "SECTION" &&
-      (rel.parentElement.querySelectorAll("[data-petak]").length === 64 ||
-        papanSamaData(paketTerbaru.fen)) &&
+    "indikator materi menempel pada area papan, bukan panel kanan",
+    Boolean(rel?.closest(".aspect-square")) &&
+      papanSamaData(paketTerbaru.fen) &&
       !rel.closest("aside")
   );
   uji(
