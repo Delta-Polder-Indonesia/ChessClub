@@ -28,6 +28,7 @@ import { pluginGlobAset } from "./loader-jsx.mjs";
 import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
 import { tekaTeki as kamusPapan } from "../src/lib/terjemahan/id/tekaTeki.js";
+import { papan as kamusAtribusi } from "../src/lib/terjemahan/id/papan.js";
 import { tekaTekiHarian as kamus } from "../src/lib/terjemahan/id/tekaTekiHarian.js";
 import { geserTanggal, tanggalHariIni, warnaGiliran } from "../src/lib/tekaTekiHarian.js";
 import { landing as kamusLanding } from "../src/lib/terjemahan/id/landing.js";
@@ -1062,9 +1063,14 @@ console.log("\nE2. memilih tanggal dari strip kalender:");
     permintaanApi.some((a) => a.includes(`tanggal=${kemarin}`)),
     permintaanApi.join(", ")
   );
+  // Panel kiri tidak lagi memuat pemilih tanggal (dihapus atas permintaan,
+  // karena panel kanan sudah mewakilinya) — jadi perubahan tanggal dibuktikan
+  // lewat penanda aria-current di strip.
   uji(
-    "kolom tanggal di panel kiri ikut berubah",
-    akarF.querySelector('input[type="date"]')?.value === kemarin
+    "hari yang baru dibuka ditandai aria-current di strip",
+    akarF
+      .querySelector(`[data-hari="${kemarin}"]`)
+      ?.getAttribute("aria-current") === "date"
   );
 
   rootF.unmount();
@@ -1149,6 +1155,49 @@ console.log("\nE3. kontrol langkah, orientasi, dan Ulangi:");
 
   rootG.unmount();
   akarG.remove();
+}
+
+/* E4 — panel kiri tidak lagi menduplikasi isi panel kanan */
+console.log("\nE4. panel kiri tanpa duplikasi panel kanan:");
+{
+  stubApi = () => jawabanApi(paketTerbaru, "Uji harian dari API");
+  const akarH = akarBaru();
+  const rootH = mount(akarH, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000);
+
+  const sidebar = akarH.querySelectorAll("aside")[0];
+  uji("sidebar kiri tetap ada", Boolean(sidebar));
+  const teksSidebar = sidebar?.textContent || "";
+  uji(
+    "tidak ada lagi pemilih tanggal di panel kiri",
+    !sidebar?.querySelector('input[type="date"]') &&
+      !teksSidebar.includes(kamus.pilihTanggal)
+  );
+  uji(
+    "tidak ada lagi label Hari ini · tanggal di panel kiri",
+    !teksSidebar.includes(kamus.hariIni)
+  );
+  uji(
+    "tidak ada lagi indikator giliran di panel kiri",
+    !teksSidebar.includes(kamus.giliranMelangkah)
+  );
+  uji(
+    "tidak ada lagi tombol Petunjuk di panel kiri",
+    !Array.from(sidebar?.querySelectorAll("button") || []).some(
+      (b) => (b.textContent || "").trim() === kamus.petunjuk
+    )
+  );
+  uji(
+    "umpan balik langkah (aria-live) tetap ada di panel kiri",
+    Boolean(sidebar?.querySelector('[aria-live="polite"]'))
+  );
+  uji(
+    "Lisensi tetap ada di kaki panel kiri",
+    (sidebar?.textContent || "").includes(kamusAtribusi.menuAtribusi)
+  );
+
+  rootH.unmount();
+  akarH.remove();
 }
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));

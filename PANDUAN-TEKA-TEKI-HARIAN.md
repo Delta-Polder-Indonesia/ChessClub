@@ -87,9 +87,13 @@ perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
      bertanda, tanggal setelah hari ini tidak bisa dibuka, klik tanggal untuk
      membuka soal arsipnya.
   3. **Info** — cara kerja teka-teki harian, sumber, dan tautan ke Chess.com.
-- **Panel kiri tetap dipertahankan** sesuai permintaan: label mode, navigasi
-  tanggal, kartu status permainan, tombol Petunjuk/Ulangi, riwayat langkah, dan
-  Lisensi.
+- **Panel kiri tetap ada tetapi tidak lagi menduplikasi panel kanan.** Label
+  mode (judul halaman), umpan balik langkah (`aria-live`), peringatan "dari
+  arsip", riwayat langkah, dan Lisensi tetap di sana. Yang **dihapus** karena
+  sudah diwakili panel kanan: baris "Hari ini · <tanggal>" dan lencana "sudah
+  selesai", pemilih tanggal (`input[type=date]` dengan ← → serta tombol "Ke hari
+  ini"), kartu "Giliran melangkah / Sisa N langkah", dan tombol Petunjuk serta
+  Ulangi.
 
 Perbaikan yang ikut menyertai penyusunan ulang ini:
 
@@ -203,7 +207,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 83 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, widget
+npm run uji:teka-teki-harian-ui   # 90 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):

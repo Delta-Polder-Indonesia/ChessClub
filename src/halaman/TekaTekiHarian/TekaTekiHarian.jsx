@@ -579,9 +579,6 @@ export default function TekaTekiHarian() {
   // tidak mungkin punya soal, jadi "hari ini" adalah batas atasnya.
   const batasAwal = "2007-05-08";
   const batasAkhir = hariIni;
-  const bisaMundur = tanggal > batasAwal;
-  const bisaMaju = tanggal < batasAkhir;
-  const sudahSelesaiSebelumnya = !!arsipSelesai[soal?.tanggal || tanggal];
 
   /* -------------------------------------------------------- panel kanan */
 
@@ -712,93 +709,18 @@ export default function TekaTekiHarian() {
               </h1>
             </div>
 
+            {/* Panel kanan sudah menampilkan tanggal edisi, indikator giliran,
+                pemilih tanggal, tombol Petunjuk, dan Ulangi; jadi sidebar kiri
+                hanya menyisakan umpan balik langkah, riwayat, dan Lisensi. */}
             <div className="flex flex-col gap-4 px-4 py-4">
-              <div className="flex flex-col gap-1">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
-                  {tanggal === hariIni
-                    ? t("tekaTekiHarian.hariIni")
-                    : t("tekaTekiHarian.arsip")}{" "}
-                  · {tanggalTerbaca(soal?.tanggal || tanggal, locale)}
-                </span>
-                {sudahSelesaiSebelumnya && !selesai && (
-                  <span className="w-fit rounded bg-[#26331c] px-2 py-0.5 text-[11px] font-semibold text-emerald-300">
-                    {t("tekaTekiHarian.sudahSelesai")}
-                  </span>
-                )}
-                {dariArsip && (
-                  <p className="rounded bg-[#312e2b] px-2 py-1 text-[11px] font-semibold leading-snug text-amber-300">
-                    {t("tekaTekiHarian.dariArsip")}
-                  </p>
-                )}
-              </div>
-
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  {t("tekaTekiHarian.pilihTanggal")}
-                </span>
-                <div className="flex items-stretch gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => pilihTanggal(geserTanggal(tanggal, -1))}
-                    disabled={!bisaMundur}
-                    aria-label={t("tekaTekiHarian.geserSebelumnya")}
-                    className="rounded-md bg-[#312e2b] px-2.5 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    ←
-                  </button>
-                  <input
-                    type="date"
-                    value={tanggal}
-                    max={batasAkhir}
-                    min={batasAwal}
-                    aria-label={t("tekaTekiHarian.pilihTanggal")}
-                    onChange={(e) => pilihTanggal(e.target.value)}
-                    className="min-w-0 flex-1 rounded-md border border-[#363431] bg-[#262421] px-2 py-2 text-sm text-gray-200 outline-none focus:border-[#81b64c]"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => pilihTanggal(geserTanggal(tanggal, 1))}
-                    disabled={!bisaMaju}
-                    aria-label={t("tekaTekiHarian.geserBerikutnya")}
-                    className="rounded-md bg-[#312e2b] px-2.5 text-sm font-bold text-gray-200 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    →
-                  </button>
-                </div>
-                {tanggal !== hariIni && (
-                  <button
-                    type="button"
-                    onClick={() => pilihTanggal(hariIni)}
-                    className="w-full rounded-md bg-[#312e2b] px-2 py-1.5 text-xs font-bold text-gray-100 transition hover:bg-[#3d3a37]"
-                  >
-                    {t("tekaTekiHarian.keHariIni")}
-                  </button>
-                )}
-              </div>
+              {dariArsip && (
+                <p className="rounded bg-[#312e2b] px-2 py-1 text-[11px] font-semibold leading-snug text-amber-300">
+                  {t("tekaTekiHarian.dariArsip")}
+                </p>
+              )}
 
               {status === "siap" && solusi.length > 0 && (
-                <div className="flex flex-col gap-2 rounded-md bg-[#262421] p-3 ring-1 ring-[#312e2b]">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-                      <span
-                        className={`h-3 w-3 rounded-sm border ${
-                          orientasi === "w"
-                            ? "border-gray-400 bg-white"
-                            : "border-gray-600 bg-[#1e1c18]"
-                        }`}
-                      />
-                      {t("tekaTekiHarian.giliranMelangkah")}
-                    </span>
-                    <span className="text-[11px] font-semibold text-gray-300">
-                      {selesai
-                        ? t("tekaTekiHarian.terpecahkan")
-                        : jumlahLangkah === 1
-                          ? t("tekaTekiHarian.satuLangkah")
-                          : t("tekaTekiHarian.langkahTersisa", {
-                              n: jumlahLangkah,
-                            })}
-                    </span>
-                  </div>
+                <div className="flex flex-col gap-1.5">
                   <p
                     aria-live="polite"
                     className={`min-h-[1.25rem] text-sm font-semibold ${
@@ -816,26 +738,6 @@ export default function TekaTekiHarian() {
                       {t("tekaTekiHarian.terpecahkanCatatan")}
                     </p>
                   )}
-                </div>
-              )}
-
-              {status === "siap" && solusi.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <button
-                    type="button"
-                    onClick={tampilkanPetunjuk}
-                    disabled={selesai || menungguLawan}
-                    className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37] disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    {t("tekaTekiHarian.petunjuk")}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={mulaiUlang}
-                    className="rounded-md bg-[#312e2b] px-3 py-2 text-sm font-bold text-gray-100 transition hover:bg-[#3d3a37]"
-                  >
-                    {t("tekaTekiHarian.ulangi")}
-                  </button>
                 </div>
               )}
 
