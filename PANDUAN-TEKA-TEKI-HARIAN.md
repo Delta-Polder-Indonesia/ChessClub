@@ -61,6 +61,40 @@ submenu bertingkat di dalam dropdown Program Kami, dan tautan
 Yang dibagi dengan keluarga papan hanyalah kerangka, tema, dan komponen
 `PapanTekaTeki` — bukan navigasi atau alur halamannya.
 
+## 1c. Susunan halaman: papan besar + panel kanan
+
+Area kerja mengikuti susunan panel teka-teki harian ChessCompass, dengan dua
+perbedaan yang disengaja (tema gelap keluarga papan dan data milik situs ini):
+
+- **Papan besar persegi** di tengah; ukurannya dibatasi tinggi layar
+  (`min(100%, 640px, calc(100dvh - 96px))`) sehingga muat tanpa menggulir di
+  desktop, dan tetap penuh di layar sempit.
+- **Panel kanan setinggi papan** (336px) berisi tiga tab:
+  1. **Main** — judul soal dari Chess.com, indikator giliran (♙/♟ + "Giliran
+     putih/hitam"), tanggal edisi, strip kalender **tujuh hari** menuju tanggal
+     yang dibuka (titik hijau = tanggal yang sudah diselesaikan di peramban
+     ini), tautan "Cara kerja teka-teki harian", tombol **Petunjuk** dengan dua
+     ikon (Ulangi, Balik papan), dan baris kontrol langkah **⏮ ◀ ▶ ⏭** untuk
+     meninjau langkah yang sudah dimainkan, plus menu **⋯** (Salin FEN, buka di
+     Chess.com).
+  2. **Kalender** — kalender bulan penuh; hari yang sudah diselesaikan
+     bertanda, tanggal setelah hari ini tidak bisa dibuka, klik tanggal untuk
+     membuka soal arsipnya.
+  3. **Info** — cara kerja teka-teki harian, sumber, dan tautan ke Chess.com.
+- **Panel kiri tetap dipertahankan** sesuai permintaan: label mode, navigasi
+  tanggal, kartu status permainan, tombol Petunjuk/Ulangi, riwayat langkah, dan
+  Lisensi.
+
+Perbaikan yang ikut menyertai penyusunan ulang ini:
+
+- **Orientasi papan tidak lagi berputar** setiap langkah. Sebelumnya orientasi
+  diturunkan dari posisi terkini, jadi papan berbalik setiap kali langkah
+  dimainkan; kini dipakai sisi yang melangkah di **posisi pembuka** (ditambah
+  tombol Balik papan).
+- **"Ulangi" tidak lagi mengosongkan papan.** Fungsi itu membaca `soal.fen`
+  yang tidak pernah ada (FEN hidup di state `posisi`), sehingga papan hilang
+  setelah ditekan. Kini FEN pembuka disimpan di `posisiAwal`.
+
 ## 2. Widget halaman depan memakai arsip lokal, bisa dimainkan
 
 Widget **tidak** memanggil API sama sekali (dijaga oleh uji). Ia membaca
@@ -163,7 +197,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 53 pemeriksaan jsdom: halaman (API + cadangan) + widget
+npm run uji:teka-teki-harian-ui   # 83 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):
@@ -177,7 +211,12 @@ Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):
   ditolak, langkah benar dibalas lawan), jatah naik 0 → 4 → 5;
 - soal kelima memunculkan dialog ajakan gabung, tidak lanjut ke soal keenam, dan
   aksi dialog berpindah ke `/pendaftaran-anggota`;
-- memuat ulang setelah jatah habis tetap menampilkan panel jatah habis.
+- memuat ulang setelah jatah habis tetap menampilkan panel jatah habis;
+- panel kanan: tiga tab (Main/Kalender/Info), strip tujuh hari yang berpindah
+  tanggal lewat API, kalender bulan penuh dengan hari mendatang dinonaktifkan,
+  kontrol ⏮ ◀ ▶ ⏭ yang benar-benar berpindah posisi dan mengunci papan saat
+  meninjau, serta orientasi yang tidak berputar dan "Ulangi" yang tidak
+  mengosongkan papan.
 
 Selain itu `scripts/uji-teka-teki-harian.mjs` menjaga agar setiap soal di
 snapshot **hanya** punya kolom `tanggal`, `fen`, `langkah` — tidak ada

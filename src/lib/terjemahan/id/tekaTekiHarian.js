@@ -52,4 +52,35 @@ export const tekaTekiHarian = {
   bukaDiChessCom: "Buka halaman aslinya di Chess.com",
   sumber:
     "Soal harian berasal dari teka-teki harian resmi Chess.com. Situs ini menyimpan salinan ringkas (posisi + langkah solusi) agar teka-teki tetap bisa dimainkan walau Chess.com tidak terjangkau; judul, penulis, dan media tidak disalin, dan tautan ke halaman aslinya selalu disediakan.",
+  /* --- panel kanan (susunan mengikuti panel teka-teki harian ChessCompass) --- */
+  panelAria: "Panel teka-teki harian",
+  panelUtama: "Main",
+  panelKalender: "Kalender",
+  panelInfo: "Info",
+  giliranPutih: "Giliran putih",
+  giliranHitam: "Giliran hitam",
+  kalenderLengkap: "Kalender lengkap",
+  kalenderAriaHari: "{tanggal} — {status}",
+  statusSelesai: "sudah diselesaikan",
+  statusBelum: "belum dimainkan",
+  kalenderCatatan:
+    "Hari bertanda titik sudah kamu selesaikan di peramban ini. Pilih tanggal mana pun untuk membuka soal arsipnya.",
+  caraKerja: "Cara kerja teka-teki harian",
+  caraKerjaJudul: "Cara kerja teka-teki harian",
+  caraKerjaPoin1:
+    "Soal diambil dari teka-teki harian resmi Chess.com, satu soal untuk setiap tanggal. Lawan akan membalas otomatis dengan pertahanan terbaiknya.",
+  caraKerjaPoin2:
+    "Hanya langkah solusi yang diterima. Kamu bisa memakai Petunjuk untuk melihat langkah berikutnya, atau Ulangi untuk mengembalikan posisi ke awal.",
+  caraKerjaPoin3:
+    "Progres tanggal yang sudah selesai disimpan di peramban ini, dan dipakai kalender di panel kanan sebagai penanda.",
+  balikPapan: "Balik papan",
+  mulaiUlangSoal: "Mulai ulang soal",
+  langkahPertama: "Ke posisi awal",
+  langkahSebelumnya: "Langkah sebelumnya",
+  langkahBerikutnya: "Langkah berikutnya",
+  langkahTerakhir: "Ke posisi terakhir",
+  tinjauLangkah: "Meninjau langkah {n} dari {total}",
+  aksiLain: "Aksi lain",
+  salinFen: "Salin FEN posisi",
+  salinFenBerhasil: "FEN tersalin",
 };

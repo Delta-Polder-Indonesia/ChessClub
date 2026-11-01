@@ -29,7 +29,7 @@ import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
 import { tekaTeki as kamusPapan } from "../src/lib/terjemahan/id/tekaTeki.js";
 import { tekaTekiHarian as kamus } from "../src/lib/terjemahan/id/tekaTekiHarian.js";
-import { tanggalHariIni } from "../src/lib/tekaTekiHarian.js";
+import { geserTanggal, tanggalHariIni, warnaGiliran } from "../src/lib/tekaTekiHarian.js";
 import { landing as kamusLanding } from "../src/lib/terjemahan/id/landing.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -938,6 +938,215 @@ async function selesaikanSoalWidget(catatan) {
     "aksi dialog berpindah ke /pendaftaran-anggota",
     await tungguSampai(() => Boolean(dok.querySelector('[data-uji="rute-gabung"]')), 4000)
   );
+  rootG.unmount();
+  akarG.remove();
+}
+
+/* --------------------------------- E. panel kanan & kontrol langkah */
+
+console.log("\nE1. panel kanan (susunan ChessCompass):");
+{
+  stubApi = () => jawabanApi(paketTerbaru);
+  const akarE = akarBaru();
+  const rootE = mount(akarE, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+
+  uji(
+    "panel kanan dimuat bersama papan",
+    await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000)
+  );
+
+  const tab = [...akarE.querySelectorAll('[role="tab"]')];
+  uji("panel punya tiga tab", tab.length === 3);
+  uji(
+    "tab Main aktif secara bawaan",
+    akarE.querySelector('[role="tab"][data-tab="utama"]')?.getAttribute("aria-selected") ===
+      "true"
+  );
+
+  const strip = [...akarE.querySelectorAll("[data-hari]")];
+  uji("strip kalender berisi tujuh hari", strip.length === 7);
+  uji(
+    "hari terakhir strip adalah tanggal yang sedang dibuka",
+    strip.at(-1)?.getAttribute("data-hari") === paketTerbaru.tanggal
+  );
+  uji(
+    "hari yang sedang dibuka ditandai aria-current",
+    akarE
+      .querySelector(`[data-hari="${paketTerbaru.tanggal}"]`)
+      ?.getAttribute("aria-current") === "date"
+  );
+  uji(
+    "indikator giliran memakai sisi yang melangkah",
+    teksHalaman().includes(
+      warnaGiliran(paketTerbaru.fen) === "w"
+        ? kamus.giliranPutih
+        : kamus.giliranHitam
+    )
+  );
+  uji(
+    "tombol aksi utama + dua ikon tersedia",
+    Boolean(akarE.querySelector(`button[aria-label="${kamus.ulangi}"]`)) &&
+      Boolean(akarE.querySelector(`button[aria-label="${kamus.balikPapan}"]`))
+  );
+  uji(
+    "baris kontrol langkah lengkap (⏮ ◀ ▶ ⏭)",
+    [
+      kamus.langkahPertama,
+      kamus.langkahSebelumnya,
+      kamus.langkahBerikutnya,
+      kamus.langkahTerakhir,
+    ].every((label) => Boolean(akarE.querySelector(`button[aria-label="${label}"]`)))
+  );
+  uji(
+    "kontrol langkah nonaktif selama belum ada langkah",
+    akarE
+      .querySelector(`button[aria-label="${kamus.langkahSebelumnya}"]`)
+      ?.hasAttribute("disabled")
+  );
+
+  // Tab kalender
+  const tabKalender = akarE.querySelector('[role="tab"][data-tab="kalender"]');
+  tabKalender.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(120);
+  const selKalender = [...akarE.querySelectorAll("[data-kalender-hari]")];
+  const jumlahHari = new Date(
+    Date.UTC(
+      Number(paketTerbaru.tanggal.slice(0, 4)),
+      Number(paketTerbaru.tanggal.slice(5, 7)),
+      0
+    )
+  ).getUTCDate();
+  uji(
+    "tab Kalender menampilkan seluruh hari pada bulan itu",
+    selKalender.length === jumlahHari,
+    `${selKalender.length} sel, seharusnya ${jumlahHari}`
+  );
+  uji(
+    "tanggal setelah hari ini tidak bisa dibuka",
+    [...selKalender]
+      .filter((el) => el.getAttribute("data-kalender-hari") > hariIni)
+      .every((el) => el.hasAttribute("disabled"))
+  );
+
+  // Tab info
+  akarE
+    .querySelector('[role="tab"][data-tab="info"]')
+    .dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(120);
+  uji(
+    "tab Info menjelaskan cara kerja teka-teki",
+    teksHalaman().includes(kamus.caraKerjaPoin1)
+  );
+
+  rootE.unmount();
+  akarE.remove();
+}
+
+/* E2 — strip kalender benar-benar berpindah tanggal */
+console.log("\nE2. memilih tanggal dari strip kalender:");
+{
+  stubApi = () => jawabanApi(paketTerbaru, "Uji harian dari API");
+  permintaanApi.length = 0;
+  const akarF = akarBaru();
+  const rootF = mount(akarF, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000);
+
+  const kemarin = geserTanggal(paketTerbaru.tanggal, -1);
+  const tombolHari = akarF.querySelector(`[data-hari="${kemarin}"]`);
+  uji("hari kemarin ada di strip", Boolean(tombolHari));
+  permintaanApi.length = 0;
+  tombolHari?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  await tunggu(250);
+  uji(
+    "halaman meminta tanggal hasil klik ke API",
+    permintaanApi.some((a) => a.includes(`tanggal=${kemarin}`)),
+    permintaanApi.join(", ")
+  );
+  uji(
+    "kolom tanggal di panel kiri ikut berubah",
+    akarF.querySelector('input[type="date"]')?.value === kemarin
+  );
+
+  rootF.unmount();
+  akarF.remove();
+}
+
+/* E3 — tinjauan langkah, orientasi tetap, dan Ulangi */
+console.log("\nE3. kontrol langkah, orientasi, dan Ulangi:");
+{
+  stubApi = () => jawabanApi(paketTerbaru);
+  const akarG = akarBaru();
+  const rootG = mount(akarG, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+  await tungguSampai(() => papanSamaData(paketTerbaru.fen), 6000);
+
+  const petakPertama = () =>
+    akarG.querySelector("[data-petak]")?.getAttribute("data-petak");
+  uji("orientasi awal mengikuti sisi yang melangkah", petakPertama() === "a8");
+
+  // Satu langkah pemain (+ balasan lawan) — dua setengah-langkah.
+  const langkahSatu = parseLangkah(paketTerbaru.langkah[0]);
+  await mainkan(langkahSatu.from, langkahSatu.to);
+  const harapDua =
+    paketTerbaru.langkah.length > 1
+      ? fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 2)
+      : fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 1);
+  await tungguSampai(() => papanSamaData(harapDua), 4000);
+
+  uji(
+    "orientasi papan TIDAK berputar setelah langkah dimainkan",
+    petakPertama() === "a8"
+  );
+
+  const klikTombol = async (label) => {
+    akarG
+      .querySelector(`button[aria-label="${label}"]`)
+      ?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await tunggu(150);
+  };
+
+  await klikTombol(kamus.langkahPertama);
+  uji(
+    "tombol ⏮ mengembalikan papan ke posisi awal",
+    papanSamaData(paketTerbaru.fen)
+  );
+  uji(
+    "pesan tinjauan menampilkan nomor langkah",
+    teksHalaman().includes(
+      kamus.tinjauLangkah.replace("{n}", "0").replace("{total}", paketTerbaru.langkah.length > 1 ? "2" : "1")
+    )
+  );
+
+  // Saat meninjau, papan terkunci: klik bidak tidak memunculkan pilihan.
+  await klikPetak(parseLangkah(paketTerbaru.langkah[0]).from);
+  await tunggu(120);
+  uji(
+    "papan terkunci selama meninjau (tidak ada bidak terpilih)",
+    akarG.querySelectorAll("[data-bantu-pilih]").length === 0
+  );
+
+  await klikTombol(kamus.langkahBerikutnya);
+  uji("tombol ▶ maju satu langkah", papanSamaData(fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 1)));
+
+  await klikTombol(kamus.langkahTerakhir);
+  uji("tombol ⏭ kembali ke posisi terkini", papanSamaData(harapDua));
+
+  // Regresi: dulu "Ulangi" menghapus papan karena membaca `soal.fen` yang kosong.
+  await klikTombol(kamus.ulangi);
+  uji(
+    "Ulangi mengembalikan posisi ke awal (papan tidak hilang)",
+    papanSamaData(paketTerbaru.fen)
+  );
+  uji(
+    "papan tetap terpasang setelah Ulangi",
+    akarG.querySelectorAll("[data-petak]").length === 64
+  );
+
+  await klikTombol(kamus.balikPapan);
+  uji(
+    "tombol Balik papan membalik orientasi",
+    akarG.querySelector("[data-petak]")?.getAttribute("data-petak") === "h1"
+  );
+
   rootG.unmount();
   akarG.remove();
 }

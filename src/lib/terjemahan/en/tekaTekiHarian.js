@@ -52,4 +52,35 @@ export const tekaTekiHarian = {
   bukaDiChessCom: "Open the original page on Chess.com",
   sumber:
     "The daily puzzle comes from Chess.com's official daily puzzle. This site keeps a compact copy (position + solution moves) so the puzzle stays playable even when Chess.com is unreachable; titles, authors, and media are not copied, and a link to the original page is always provided.",
+  /* --- right panel (layout follows the ChessCompass daily puzzle panel) --- */
+  panelAria: "Daily puzzle panel",
+  panelUtama: "Play",
+  panelKalender: "Calendar",
+  panelInfo: "Info",
+  giliranPutih: "White to move",
+  giliranHitam: "Black to move",
+  kalenderLengkap: "Full calendar",
+  kalenderAriaHari: "{tanggal} — {status}",
+  statusSelesai: "already solved",
+  statusBelum: "not played yet",
+  kalenderCatatan:
+    "Days with a dot are ones you have solved in this browser. Pick any date to open its archive puzzle.",
+  caraKerja: "How the daily puzzle works",
+  caraKerjaJudul: "How the daily puzzle works",
+  caraKerjaPoin1:
+    "Puzzles come from Chess.com's official daily puzzle, one for every date. Your opponent replies automatically with their best defence.",
+  caraKerjaPoin2:
+    "Only the solution move is accepted. Use Hint to reveal the next move, or Restart to return the position to the start.",
+  caraKerjaPoin3:
+    "Dates you have solved are stored in this browser, and the calendar in the right panel uses them as markers.",
+  balikPapan: "Flip board",
+  mulaiUlangSoal: "Restart puzzle",
+  langkahPertama: "Back to starting position",
+  langkahSebelumnya: "Previous move",
+  langkahBerikutnya: "Next move",
+  langkahTerakhir: "Jump to latest position",
+  tinjauLangkah: "Reviewing move {n} of {total}",
+  aksiLain: "More actions",
+  salinFen: "Copy position FEN",
+  salinFenBerhasil: "FEN copied",
 };
