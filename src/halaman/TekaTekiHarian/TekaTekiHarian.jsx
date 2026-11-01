@@ -925,7 +925,6 @@ export default function TekaTekiHarian() {
                 </div>
               </div>
 
-              {/* Selisih materi berada di sudut atas/bawah sesuai sisi papan. */}
             </section>
 
             {/* ------------------------------------ panel kanan (ChessCompass) */}
