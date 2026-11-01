@@ -1212,16 +1212,20 @@ console.log("\nE5. selisih materi di samping papan:");
   const rel = akarI.querySelector("[data-selisih]");
   uji("panel selisih materi tampil", Boolean(rel));
   uji(
-    "indikator memakai tata letak vertikal tanpa kartu dekoratif",
-    rel?.className.includes("flex-col") &&
+    "indikator berada di dalam pembungkus papan",
+    Boolean(rel?.closest(".aspect-square"))
+  );
+  uji(
+    "indikator memisahkan sisi putih dan hitam",
+    Boolean(rel?.querySelector('[data-sisi="w"]') || rel?.querySelector('[data-sisi="b"]'))
+  );
+  uji(
+    "indikator memakai sudut vertikal tanpa kartu dekoratif",
+    rel?.className.includes("absolute") &&
+      rel?.className.includes("justify-between") &&
       !rel?.className.includes("bg-") &&
       !rel?.className.includes("ring-") &&
       !rel?.className.includes("rounded-md")
-  );
-  uji(
-    "angka keunggulan tidak memakai badge berlatar",
-    !rel?.querySelector("span span") ||
-      !rel.querySelector("span span")?.className.includes("bg-")
   );
   const dihitung = hitungMateriBidak(paketTerbaru.fen);
   uji(
