@@ -50,7 +50,7 @@ export const MENU_UTAMA = [
     folder: "ProgramKami",
     path: "/program-kami",
     file: "ProgramKami.jsx",
-    // Anak dropdown disusun dua kolom berisi 4 dan 3 item yang turun ke
+    // Anak dropdown disusun dua kolom berisi 4 dan 4 item yang turun ke
     // bawah (grid-flow-col), supaya daftar panjang tidak menjang ke bawah.
     // Lihat NavItemDesktop di Header.jsx.
     kolom: 4,
@@ -68,37 +68,19 @@ export const MENU_UTAMA = [
         file: "RushTekaTekiLanding.jsx",
       },
       {
-        /*
-         * "Alat papan" — satu keluarga papan yang bisa DIMAINKAN, sengaja
-         * dipisahkan dari halaman konten Teka-teki Catur di atasnya.
-         * Teka-teki Harian tinggal di sini supaya ia tidak lagi terbaca
-         * sebagai bagian dari Teka-teki Catur: ia alat papan yang berdiri
-         * sendiri (kerangka sidebar + papan sendiri), sefamili dengan
-         * Manusia vs Mesin dan alat papan lain di /papan-interaktif.
-         * Anak dropdown dibuka lewat tanda panah (Header merender
-         * `children` bersarang sebagai submenu).
-         */
-        title: "nav.alatPapan",
-        path: "/papan-interaktif",
-        folder: "PapanInteraktif",
-        file: "Workspace.jsx",
-        children: [
-          {
-            // Alamatnya sejajar dengan /teka-teki/problem dan /teka-teki-rush.
-            title: "nav.tekaTekiHarian",
-            path: "/teka-teki-harian",
-            folder: "TekaTekiHarian",
-            file: "TekaTekiHarian.jsx",
-          },
-          {
-            // Tinggal di grup yang sama dengan Teka-teki Harian: keduanya
-            // alat papan, bukan halaman konten Program Kami.
-            title: "nav.lawanBot",
-            path: "/papan-interaktif/manusia-vs-mesin",
-            folder: "ManusiaVsMesin",
-            file: "ManusiaVsMesin.jsx",
-          },
-        ],
+        // Halaman alat, bukan halaman konten: alamatnya sejajar dengan
+        // /teka-teki/problem dan /teka-teki-rush.
+        //
+        // Catatan: halaman ini BERDIRI SENDIRI (kerangka sidebar sendiri,
+        // sefamili papan interaktif) — lihat
+        // `src/halaman/TekaTekiHarian/TekaTekiHarian.jsx`. Ia tetap
+        // didaftarkan di sini sebagai satu baris datar supaya dropdown
+        // Program Kami TIDAK memakai submenu bertingkat: bentuk daftar lama
+        // (dua kolom berisi 4 + 4 baris) yang sudah dikenal pengunjung.
+        title: "nav.tekaTekiHarian",
+        path: "/teka-teki-harian",
+        folder: "TekaTekiHarian",
+        file: "TekaTekiHarian.jsx",
       },
       {
         title: "nav.quizCatur",
@@ -117,6 +99,12 @@ export const MENU_UTAMA = [
         path: "/program-kami/pembukaan",
         folder: "ProgramKami",
         file: "Pembukaan.jsx",
+      },
+      {
+        title: "nav.lawanBot",
+        path: "/papan-interaktif/manusia-vs-mesin",
+        folder: "ManusiaVsMesin",
+        file: "ManusiaVsMesin.jsx",
       },
       {
         title: "nav.eBookPanduan",

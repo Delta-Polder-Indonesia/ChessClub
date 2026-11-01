@@ -38,7 +38,6 @@ export const nav = {
     pengurus: "Pengurus",
     strukturOrganisasiCatur: "Struktur Organisasi Catur",
     tekaTeki: "Teka-teki Catur",
-    alatPapan: "Alat Papan",
     tekaTekiHarian: "Teka-teki Harian",
     tekaTekiRush: "Rush Teka-teki",
     quizCatur: "Kuis Catur",

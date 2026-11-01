@@ -50,10 +50,13 @@ dengan Teka-teki, Teka-teki Rush, dan Manusia vs Mesin:
 - tema gelap `#262421` yang sama;
 - tidak ada lagi bilah "Kembali ke Teka-teki Catur" di atas halaman.
 
-Di navigasi, ia tidak lagi sebaris dengan "Teka-teki Catur" di dropdown Program
-Kami. Ia berada di grup **Alat Papan** (`nav.alatPapan`, menuju
-`/papan-interaktif`) bersama **Lawan Bot** — keduanya alat papan, bukan halaman
-konten. Grup itu dibuka lewat tombol panah di dalam dropdown Program Kami.
+Di menu, dropdown **Program Kami tetap berbentuk daftar datar seperti semula**
+(dua kolom, tanpa submenu bertingkat): "Teka-teki Harian" menjadi satu baris di
+sana. Kedudukan "berdiri sendiri" diwujudkan oleh **halamannya** (kerangka
+sidebar sendiri, tanpa bilah kembali ke Teka-teki Catur) — bukan oleh menu
+bertingkat. Uji `scripts/uji-header.mjs` mengunci hal ini: tidak boleh ada
+submenu bertingkat di dalam dropdown Program Kami, dan tautan
+`/teka-teki-harian` harus langsung terlihat saat dropdown dibuka.
 
 Yang dibagi dengan keluarga papan hanyalah kerangka, tema, dan komponen
 `PapanTekaTeki` — bukan navigasi atau alur halamannya.

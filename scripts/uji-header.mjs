@@ -88,55 +88,54 @@ hasil(
   "label EN tidak ditemukan"
 );
 
-// 4. Navigasi: "Teka-teki Harian" tidak lagi anak langsung Program Kami
-//    (dulu ia terdaftar sebaris dengan "Teka-teki Catur"), melainkan berada
-//    di grup "Alat Papan" bersama Lawan Bot — satu keluarga alat papan.
+// 4. Navigasi Program Kami: TETAP daftar datar (tanpa submenu bertingkat).
+//    Bentuk collapse lama dipertahankan — pengunjung menyukainya, dan submenu
+//    panah di dalam dropdown terasa janggal. Teka-teki Harian berdiri sendiri
+//    di halamannya (kerangka sidebar sendiri), bukan lewat menu bertingkat.
 const { MENU_UTAMA } = await import("../src/menu.js");
 const programKami = MENU_UTAMA.find((m) => m.title === "nav.programKami");
-const anakLangsung = (programKami?.children || [])
-  .filter((c) => !c.children)
-  .map((c) => c.path);
-const grupAlat = (programKami?.children || []).find(
-  (c) => c.title === "nav.alatPapan"
-);
-const jalurGrup = (grupAlat?.children || []).map((c) => c.path);
+const anak = programKami?.children || [];
+const bersarang = anak.filter((c) => Array.isArray(c.children));
 hasil(
-  "Teka-teki Harian bukan lagi anak langsung Program Kami",
-  !anakLangsung.includes("/teka-teki-harian"),
-  `anak langsung: ${anakLangsung.join(", ")}`
+  "dropdown Program Kami tidak memakai submenu bertingkat",
+  bersarang.length === 0,
+  `grup bersarang: ${bersarang.map((c) => c.title).join(", ")}`
 );
 hasil(
-  "Teka-teki Harian ada di grup Alat Papan",
-  jalurGrup.includes("/teka-teki-harian"),
-  `isi grup: ${jalurGrup.join(", ") || "(kosong)"}`
+  "Teka-teki Harian tetap satu baris di dropdown Program Kami",
+  anak.some((c) => c.path === "/teka-teki-harian")
 );
 hasil(
-  "grup Alat Papan juga memuat Lawan Bot",
-  jalurGrup.includes("/papan-interaktif/manusia-vs-mesin")
+  "Lawan Bot tetap satu baris (bukan di dalam grup)",
+  anak.some((c) => c.path === "/papan-interaktif/manusia-vs-mesin")
 );
 hasil(
-  "grup Alat Papan menuju /papan-interaktif",
-  grupAlat?.path === "/papan-interaktif"
+  "seluruh isi dropdown berupa tautan langsung",
+  anak.every((c) => typeof c.path === "string" && !c.children)
+);
+hasil(
+  "jumlah baris dropdown sama seperti bentuk lama",
+  anak.length === 8,
+  `jumlah: ${anak.length}`
 );
 
-// 5. Submenu grup benar-benar bisa dibuka di DOM: tombol panah di samping
-//    tautan grup memperlihatkan tautan Teka-teki Harian.
-const liGrup = [...document.querySelectorAll("li")].find(
-  (li) =>
-    li.querySelector('a[href="/papan-interaktif"]') &&
-    li.querySelector("button[aria-expanded]")
+// 5. Di DOM: tautan Teka-teki Harian harus langsung terlihat saat dropdown
+//    Program Kami dibuka — tanpa perlu menekan panah submenu.
+const liProgram = [...document.querySelectorAll("li")].find((li) =>
+  li.querySelector('a[href="/program-kami/teka-teki"]')
 );
-const tombolSub = liGrup?.querySelector("button[aria-expanded]");
-hasil("tombol pembuka submenu Alat Papan ada", Boolean(tombolSub));
-if (tombolSub) {
-  await act(async () => {
-    tombolSub.click();
-  });
-}
+await act(async () => {
+  liProgram?.dispatchEvent(new window.MouseEvent("mouseenter", { bubbles: true }));
+});
 hasil(
-  "submenu Alat Papan memuat tautan Teka-teki Harian",
+  "tautan Teka-teki Harian langsung tampil di dropdown",
   Boolean(document.querySelector('a[href="/teka-teki-harian"]')),
-  "tautan /teka-teki-harian tidak tampil setelah submenu dibuka"
+  "tautan /teka-teki-harian tidak tampil"
+);
+hasil(
+  "tidak ada tombol panah submenu di dropdown Program Kami",
+  !liProgram?.querySelector("button[aria-expanded]"),
+  "masih ada tombol pembuka submenu"
 );
 
 // Bersih-bersih: tutup drawer (Escape lewat handler dialog) tidak wajib —
