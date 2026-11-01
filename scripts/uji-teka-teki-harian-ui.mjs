@@ -1401,6 +1401,28 @@ console.log("\nE7. klik bidak, panah, dan mark petak:");
     jumlah("[data-bantu-pilih]") === 0 && jumlah("[data-bantu-sasaran]") === 0
   );
 
+  /*
+   * Regresi: di peramban sungguhan klik bidak sendiri memulai seret +
+   * `setPointerCapture` pada elemen papan, sehingga event `click` tidak pernah
+   * mendarat di tombol petak. Tanpa jalur `onSelesaiSeret`/`klikUlang`,
+   * penanda langkah tetap menyala setelah klik kedua.
+   */
+  await pointer(asal, "pointerdown", { button: 0, buttons: 1 });
+  await pointer(asal, "pointerup", { button: 0 });
+  await tunggu(150);
+  uji(
+    "tekan-lepas pada bidak (jalur seret) memilih bidak",
+    Boolean(petakEl(asal)?.querySelector("[data-bantu-pilih]"))
+  );
+
+  await pointer(asal, "pointerdown", { button: 0, buttons: 1 });
+  await pointer(asal, "pointerup", { button: 0 });
+  await tunggu(150);
+  uji(
+    "tekan-lepas kedua pada bidak yang sama menghapus penanda langkah",
+    jumlah("[data-bantu-pilih]") === 0 && jumlah("[data-bantu-sasaran]") === 0
+  );
+
   /* 2. Klik kanan petak kosong → mark; klik kanan lagi → mark hilang. */
   const kosong = "d5";
   uji("prasyarat: d5 kosong", !petakEl(kosong)?.querySelector("[data-bidak]"));
@@ -1448,6 +1470,28 @@ console.log("\nE7. klik bidak, panah, dan mark petak:");
   uji(
     "klik kiri membersihkan panah dan mark",
     jumlah("[data-arrow]") === 0 && jumlah("[data-tanda-petak]") === 0
+  );
+
+  /* 5. Seret bidak ke petak tujuan tetap menjalankan langkah. */
+  const langkahSeret = parseLangkah(paketTerbaru.langkah[0]);
+  await pointer(langkahSeret.from, "pointerdown", { button: 0, buttons: 1 });
+  petakEl(langkahSeret.from)?.dispatchEvent(
+    new window.MouseEvent("pointermove", {
+      bubbles: true,
+      buttons: 1,
+      clientX: 10,
+      clientY: 10,
+    })
+  );
+  await tunggu(60);
+  await pointer(langkahSeret.to, "pointerup", { button: 0 });
+  const setelahSeret =
+    paketTerbaru.langkah.length > 1
+      ? fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 2)
+      : fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 1);
+  uji(
+    "seret bidak ke petak tujuan menjalankan langkah",
+    await tungguSampai(() => papanSamaData(setelahSeret), 4000)
   );
 
   rootM.unmount();

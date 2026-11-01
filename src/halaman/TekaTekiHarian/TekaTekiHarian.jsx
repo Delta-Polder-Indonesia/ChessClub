@@ -511,6 +511,32 @@ export default function TekaTekiHarian() {
     pilihPetak(petak);
   }
 
+  /**
+   * Awal seret / tekan pada bidak sendiri. Dipisahkan dari `klikPetak` karena
+   * peramban memegang pointer capture di elemen papan selama seret, sehingga
+   * event `click` pada petak TIDAK selalu datang — jalur inilah yang dipakai
+   * halaman Teka-teki Catur.
+   */
+  function mulaiSeret(petak) {
+    pilihPetak(petak);
+  }
+
+  /**
+   * Akhir seret. `klikUlang` = bidak ditekan lalu dilepas di petak yang sama
+   * saat bidak itu memang sudah terpilih: penanda langkahnya harus hilang
+   * (klik pertama memilih, klik kedua membatalkan) — sama seperti
+   * `/teka-teki/problem/<nomor>`.
+   */
+  function selesaiSeret(from, to, klikUlang) {
+    if (klikUlang) {
+      setTerpilih(null);
+      setSasaran([]);
+      return;
+    }
+    if (!to || from === to) return;
+    cobaLangkah(from, to);
+  }
+
   function cobaLangkah(from, to, promo) {
     if (!posisi || selesai || menungguLawan || !sisa.length || tinjau !== null)
       return;
@@ -892,7 +918,8 @@ export default function TekaTekiHarian() {
                       membeku={menungguLawan}
                       onKlik={klikPetak}
                       onPilih={pilihPetak}
-                      onJatuh={cobaLangkah}
+                      onMulaiSeret={mulaiSeret}
+                      onSelesaiSeret={selesaiSeret}
                       tanda={tanda}
                       onTandaPetak={tandaPetak}
                       onTandaPanah={tandaPanah}

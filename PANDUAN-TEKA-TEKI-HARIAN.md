@@ -106,7 +106,10 @@ Tanda bantu papan (sama dengan `/teka-teki/problem/<nomor>`) memakai pintu
 tunggal `src/lib/tandaBantu.js`:
 
 - **klik bidak** → bidak terpilih (cincin) dan petak sasaran legal ditandai;
-  klik bidak yang sama lagi membatalkan pilihan;
+  klik bidak yang sama lagi menghapus penanda langkahnya. Jalur ini memakai
+  `onMulaiSeret`/`onSelesaiSeret` (`klikUlang`), bukan `onClick` petak, karena
+  peramban memegang pointer capture di papan selama bidak ditekan — `click`
+  pada petak tidak selalu datang. Bidak juga tetap bisa diseret ke petak tujuan;
 - **klik kanan petak kosong** → mark kotak (klik kanan lagi menghapusnya);
 - **seret klik kanan** dari satu petak ke petak lain → panah (seret pada
   pasangan yang sama menghapus panahnya);
@@ -231,7 +234,7 @@ Skrip hanya mengambil `date`, FEN, dan langkah solusi — sisanya dibuang.
 
 ```bash
 npm run uji:teka-teki-harian      # 117 pemeriksaan: PGN, snapshot, skrip pengumpul, server
-npm run uji:teka-teki-harian-ui   # 117 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
+npm run uji:teka-teki-harian-ui   # 120 pemeriksaan jsdom: halaman (API + cadangan), panel kanan, panel kiri, widget
 ```
 
 Yang dijaga oleh uji UI (`scripts/uji-teka-teki-harian-ui.mjs`):
