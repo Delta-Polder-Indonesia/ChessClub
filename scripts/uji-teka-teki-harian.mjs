@@ -15,13 +15,18 @@
  * Jalankan: node scripts/uji-teka-teki-harian.mjs
  */
 import http from "node:http";
+import os from "node:os";
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+import { mkdtemp, writeFile, mkdir, readFile, rm } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { Chess } from "chess.js";
 import { parseLangkah } from "../src/lib/tekaTeki.js";
 
 const AKAR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const jalankan = promisify(execFile);
+const SKRIP_PENGUMPUL = path.join(AKAR, "scripts/ambil-teka-teki-harian.mjs");
 
 let lolos = 0;
 let gagal = 0;
@@ -45,10 +50,15 @@ const benar = (nilai, pesan) => {
 /* --------------------------------------------------------------- klien */
 
 const {
+  ambilIndeksSnapshot,
+  ambilSoalTanggal,
+  ambilSoalTerbaru,
   geserTanggal,
+  langkahDariTeks,
   parsePgnTekaTeki,
   pasanganLangkah,
   sanDariPgn,
+  soalDariCatatan,
   tanggalHariIni,
   tanggalSah,
   tanggalTerbaca,
@@ -187,6 +197,146 @@ console.log("\n== 6. Pengelompokan langkah & giliran ==");
   sama(warnaGiliran(""), "w", "FEN kosong dianggap putih");
 }
 
+console.log("\n== 6b. Snapshot statis (tanpa API) ==");
+{
+  sama(langkahDariTeks("e2-e4;e7-e5"), ["e2-e4", "e7-e5"], "teks langkah → daftar");
+  sama(langkahDariTeks(""), [], "teks kosong → daftar kosong");
+  sama(langkahDariTeks(["a2-a3"]), ["a2-a3"], "array diteruskan");
+
+  const soal = soalDariCatatan({
+    tanggal: "2026-01-01",
+    fen: FEN_CONTOH,
+    langkah: "c3-b1;c6-d4",
+  });
+  sama(soal.tanggal, "2026-01-01", "tanggal terbawa");
+  sama(soal.langkah, ["c3-b1", "c6-d4"], "langkah dipecah dari teks");
+  sama(soal.orientasi, "w", "orientasi dari FEN");
+  benar(/daily-chess-puzzle\/2026-01-01$/.test(soal.url), "tautan asli disusun dari tanggal");
+  sama(soalDariCatatan({ tanggal: "2026-01-01", fen: FEN_CONTOH }), null, "tanpa langkah → null");
+  sama(soalDariCatatan({ tanggal: "2026-13-40", fen: FEN_CONTOH, langkah: "a2-a3" }), null, "tanggal rusak → null");
+  sama(soalDariCatatan({ tanggal: "2026-01-01", fen: "", langkah: "a2-a3" }), null, "tanpa FEN → null");
+
+  // `muat` disuntikkan supaya uji tidak butuh fetch/DOM.
+  const berkas = new Map([
+    [
+      "data/teka-teki-harian/terbaru.json",
+      { soal: [{ tanggal: "2026-01-01", fen: FEN_CONTOH, langkah: "c3-b1" }] },
+    ],
+    [
+      "data/teka-teki-harian/2007.json",
+      {
+        soal: [
+          { tanggal: "2007-05-08", fen: FEN_CONTOH, langkah: "c3-b1;c6-d4" },
+        ],
+      },
+    ],
+  ]);
+  const muat = (jalur) => {
+    if (!berkas.has(jalur)) return Promise.reject(new Error(`tidak ada: ${jalur}`));
+    return Promise.resolve(berkas.get(jalur));
+  };
+
+  const dariTerbaru = await ambilSoalTanggal("2026-01-01", { muat });
+  sama(dariTerbaru?.tanggal, "2026-01-01", "tanggal hari ini dilayani terbaru.json");
+
+  const dariTahun = await ambilSoalTanggal("2007-05-08", { muat });
+  sama(dariTahun?.langkah.length, 2, "tanggal lama dilayani berkas tahun");
+  const dibaca = [];
+  await ambilSoalTanggal("2007-05-08", {
+    muat: (jalur) => {
+      dibaca.push(jalur);
+      return muat(jalur);
+    },
+  });
+  sama(
+    dibaca,
+    ["data/teka-teki-harian/terbaru.json", "data/teka-teki-harian/2007.json"],
+    "berkas tahun hanya diunduh bila tanggal tidak ada di terbaru.json"
+  );
+
+  sama(await ambilSoalTanggal("1999-01-01", { muat }), null, "tanggal tanpa data → null");
+  sama(await ambilSoalTanggal("bukan-tanggal", { muat }), null, "tanggal tidak sah → null");
+
+  const terbaru = await ambilSoalTerbaru({ muat });
+  sama(terbaru.length, 1, "daftar terbaru terbaca");
+  sama(
+    await ambilSoalTerbaru({ muat: () => Promise.reject(new Error("offline")) }),
+    [],
+    "snapshot hilang → daftar kosong (bukan galat)"
+  );
+  sama(
+    await ambilIndeksSnapshot({ muat }),
+    null,
+    "indeks hilang → null (halaman memakai batas bawaan)"
+  );
+}
+
+console.log("\n== 6c. Berkas snapshot di public/ ==");
+{
+  const indeks = JSON.parse(
+    await readFile(path.join(AKAR, "public/data/teka-teki-harian/indeks.json"), "utf8")
+  );
+  benar(indeks.jumlah > 0, `indeks memuat ${indeks.jumlah} soal`);
+  benar(tanggalSah(indeks.terlama) && tanggalSah(indeks.terbaru), "rentang tanggal indeks sah");
+  benar(
+    !JSON.stringify(indeks).includes("@") && !("judul" in indeks),
+    "indeks tidak membawa judul/penulis"
+  );
+
+  // Setiap soal di setiap berkas tahun: field hanya tanggal/fen/langkah dan
+  // SEMUA langkah legal bila dimainkan berurutan.
+  let total = 0;
+  let rusak = 0;
+  let tidakMate = 0;
+  for (const t of indeks.tahun) {
+    const isi = JSON.parse(
+      await readFile(path.join(AKAR, "public/data/teka-teki-harian", t.berkas), "utf8")
+    );
+    for (const catatan of isi.soal || []) {
+      total++;
+      const kunci = Object.keys(catatan).sort();
+      if (kunci.join(",") !== "fen,langkah,tanggal") {
+        rusak++;
+        continue;
+      }
+      const soal = soalDariCatatan(catatan);
+      if (!soal) {
+        rusak++;
+        continue;
+      }
+      const game = new Chess(soal.fen);
+      let legal = true;
+      for (const uci of soal.langkah) {
+        const { from, to, promo } = parseLangkah(uci);
+        try {
+          game.move({ from, to, promotion: promo || undefined });
+        } catch {
+          legal = false;
+          break;
+        }
+      }
+      if (!legal) rusak++;
+      else if (!game.isCheckmate()) tidakMate++;
+    }
+  }
+  sama(total, indeks.jumlah, "jumlah soal di berkas tahun = jumlah di indeks");
+  sama(rusak, 0, "tidak ada catatan rusak / berisi kolom tambahan");
+  /*
+   * Bukan semua teka-teki harian berakhir skakmat: banyak yang berupa
+   * keuntungan materi. Karena itu halaman TIDAK mensyaratkan mate sebagai
+   * syarat selesai (cukup seluruh langkah solusi dimainkan) — pagar di sini
+   * memastikan kedua jenis soal memang ada, bukan menganggap semuanya mate.
+   */
+  benar(tidakMate > 0, `${total - tidakMate} soal berakhir skakmat, ${tidakMate} berakhir bukan mate`);
+  benar(total - tidakMate > 0 && total - tidakMate < total, "kedua jenis soal (mate & non-mate) ada di snapshot");
+
+  const terbaru = JSON.parse(
+    await readFile(path.join(AKAR, "public/data/teka-teki-harian/terbaru.json"), "utf8")
+  );
+  sama(terbaru.soal.length, 7, "terbaru.json memuat 7 soal untuk widget landing");
+  sama(terbaru.soal.at(-1).tanggal, indeks.terbaru, "entri terakhir = tanggal terbaru");
+}
+
 /* -------------------------------------------------------------- server */
 
 /*
@@ -198,6 +348,7 @@ console.log("\n== 7. Modul server dengan Chess.com tiruan ==");
 
 let jumlahPermintaan = 0;
 const permintaanTerakhir = [];
+const permintaanSemua = [];
 const soalTiruan = {
   title: "A New Beginning 🥳",
   url: "https://www.chess.com/daily-chess-puzzle/2026-01-01",
@@ -210,6 +361,7 @@ const soalTiruan = {
 const peladen = http.createServer((req, res) => {
   jumlahPermintaan++;
   permintaanTerakhir.push(req.url);
+  permintaanSemua.push(req.url);
   const kirim = (status, isi) => {
     res.writeHead(status, { "Content-Type": "application/json" });
     res.end(JSON.stringify(isi));
@@ -303,8 +455,6 @@ const {
   benar(melempar, "kegagalan sementara dilempar sebagai galat");
 }
 
-peladen.close();
-
 console.log("\n== 8. Rute API terdaftar ==");
 {
   const rute = await readFile(path.join(AKAR, "server/src/rute.js"), "utf8");
@@ -330,6 +480,139 @@ async function ambilTekaHarianAman(tanggal, sekarang, { lempar = false } = {}) {
     return { tersedia: false, galat: e.message };
   }
 }
+
+console.log("\n== 9. Skrip pengumpul snapshot ==");
+{
+  const tmp = await mkdtemp(path.join(os.tmpdir(), "kci-harian-uji-"));
+
+  // (a) Mode impor arsip lokal: PGN dipakai, kolom lain dibuang.
+  const folderArsip = path.join(tmp, "arsip", "2020");
+  await mkdir(folderArsip, { recursive: true });
+  await writeFile(
+    path.join(folderArsip, "2020-01.json"),
+    JSON.stringify([
+      {
+        id: 1,
+        date: "2020-01-01",
+        title: "Judul yang tidak boleh ikut tersimpan",
+        pgn: PGN_CONTOH,
+        author: { name: "Orang", avatar_url: "https://contoh/x.jpg" },
+        video: { url: "https://contoh/v.mp4" },
+      },
+      { id: 2, date: "2020-01-02", pgn: "", author: { name: "Tanpa FEN" } },
+      { id: 3, date: "bukan-tanggal", pgn: PGN_CONTOH },
+    ]),
+    "utf8"
+  );
+
+  const keluaranArsip = path.join(tmp, "keluaran-arsip");
+  const hasilImpor = await jalankan(process.execPath, [
+    SKRIP_PENGUMPUL,
+    "--dari-arsip",
+    path.join(tmp, "arsip"),
+    "--keluaran",
+    keluaranArsip,
+  ]);
+  benar(/1 soal terbaca/.test(hasilImpor.stdout), "arsip: satu catatan sah terbaca");
+
+  const indeksImpor = JSON.parse(
+    await readFile(path.join(keluaranArsip, "indeks.json"), "utf8")
+  );
+  sama(indeksImpor.jumlah, 1, "arsip: satu soal tersimpan");
+  sama(indeksImpor.terbaru, "2020-01-01", "arsip: tanggal benar");
+  benar(
+    !JSON.stringify(indeksImpor).includes("Judul yang tidak boleh") &&
+      !JSON.stringify(indeksImpor).includes("contoh/x.jpg") &&
+      !JSON.stringify(indeksImpor).includes("contoh/v.mp4"),
+    "arsip: judul, avatar, dan video TIDAK ikut tersimpan"
+  );
+  const berkas2020 = JSON.parse(
+    await readFile(path.join(keluaranArsip, "2020.json"), "utf8")
+  );
+  sama(Object.keys(berkas2020.soal[0]).sort(), ["fen", "langkah", "tanggal"], "arsip: hanya tiga kolom");
+  sama(
+    berkas2020.soal[0].langkah,
+    "c3-b1;c6-d4;a1-d4;f7-f6;d4-f6;h8-h7;e4-g5",
+    "arsip: langkah solusi tersimpan (notasi from-to)"
+  );
+
+  // (b) Mode API: terhadap Chess.com tiruan, dan inkremental pada jalannya kedua.
+  const keluaranApi = path.join(tmp, "keluaran-api");
+  const argumenApi = [
+    SKRIP_PENGUMPUL,
+    "--dasar",
+    `http://127.0.0.1:${port}`,
+    "--dari",
+    "2025-12-30",
+    "--sampai",
+    "2025-12-31",
+    "--keluaran",
+    keluaranApi,
+  ];
+  const hitung = (jalur) =>
+    permintaanSemua.filter((u) => u === jalur).length;
+  // Bagian 7 sudah memakai kedua tanggal ini; hitung SELISIHNYA, bukan total.
+  const awal3112 = hitung("/puzzle/2025-12-31");
+  const awal3012 = hitung("/puzzle/2025-12-30");
+  const pertama = await jalankan(process.execPath, argumenApi);
+  sama(hitung("/puzzle/2025-12-31") - awal3112, 1, "api: tanggal bersoal diminta sekali");
+  sama(hitung("/puzzle/2025-12-30") - awal3012, 1, "api: tanggal kosong tetap dicoba");
+  benar(
+    /1 baru/.test(pertama.stdout.replace(/\s+/g, " ")),
+    "api: tanggal bersoal diambil, tanggal tanpa data dilewati"
+  );
+  const indeksApi = JSON.parse(
+    await readFile(path.join(keluaranApi, "indeks.json"), "utf8")
+  );
+  sama(indeksApi.jumlah, 1, "api: hanya tanggal bersoal yang disimpan (2025-12-31)");
+  sama(indeksApi.terbaru, "2025-12-31", "api: tanggal tersimpan benar");
+  const berkasApi = JSON.parse(
+    await readFile(path.join(keluaranApi, "2025.json"), "utf8")
+  );
+  sama(berkasApi.soal[0].langkah.split(";").length, 7, "api: seluruh langkah solusi tersimpan");
+  const kedua = await jalankan(process.execPath, argumenApi);
+  /*
+   * Tanggal yang SUDAH tersimpan tidak boleh diambil ulang. Tanggal yang
+   * kosong (belum terbit saat itu) memang dicoba lagi — ia bisa muncul
+   * belakangan, jadi bukan sesuatu yang boleh di-cache selamanya.
+   */
+  sama(
+    hitung("/puzzle/2025-12-31") - awal3112,
+    1,
+    "api: tanggal yang sudah tersimpan tidak diminta ulang"
+  );
+  sama(
+    hitung("/puzzle/2025-12-30") - awal3012,
+    2,
+    "api: tanggal kosong dicoba lagi pada jalan berikutnya"
+  );
+  sama(
+    JSON.parse(await readFile(path.join(keluaranApi, "indeks.json"), "utf8")).jumlah,
+    1,
+    "api: jalan kedua tidak menggandakan data"
+  );
+  benar(/dilewati/.test(kedua.stdout), "api: tanggal lama dilewati (inkremental)");
+
+  // (c) `--kering` tidak menulis berkas apa pun.
+  const keluaranKering = path.join(tmp, "keluaran-kering");
+  await jalankan(process.execPath, [
+    ...argumenApi.slice(0, -2),
+    "--keluaran",
+    keluaranKering,
+    "--kering",
+  ]);
+  let adaBerkas = true;
+  try {
+    await readFile(path.join(keluaranKering, "indeks.json"));
+  } catch {
+    adaBerkas = false;
+  }
+  sama(adaBerkas, false, "--kering tidak menulis berkas");
+
+  await rm(tmp, { recursive: true, force: true });
+}
+
+peladen.close();
 
 console.log(
   `\n${gagal ? "GAGAL" : "OK"} — ${lolos} lulus, ${gagal} gagal.`

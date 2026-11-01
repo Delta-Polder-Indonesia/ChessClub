@@ -22,7 +22,7 @@
  * `.agents/skills/kci-frontend/references/standar-galeri.md` §2b. Skala ini
  * TIDAK berlaku untuk halaman lain dan TIDAK PERNAH untuk komponen catur.
  */
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, lazy, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Tombol } from "../../components/Tombol.jsx";
 import { useI18n } from "../../lib/i18n.jsx";
@@ -31,6 +31,14 @@ import { COVER, DAFTAR_EBOOK } from "../Beranda/ebook-data.js";
 import { ArrowRightIcon } from "../../components/icons.jsx";
 import MetaHalaman from "../../components/MetaHalaman.jsx";
 import { KartuAlatLatihan } from "./KartuAlatLatihan.jsx";
+
+/*
+ * Seksi "Teka-teki Hari Ini" dimuat lazy: ia menarik `PapanStatis` → chunk
+ * bidak (±126 KB) yang tidak dibutuhkan elemen LCP halaman depan. Dengan
+ * `lazy`, pengunjung yang langsung menggulir tetap melihat seksi ini, tetapi
+ * gambar hero tidak lagi bersaing dengan potongan JS tersebut.
+ */
+const TekaTekiHarianLanding = lazy(() => import("./TekaTekiHarianLanding.jsx"));
 import MaestroEdision from "./MaestroEdision.jsx";
 import Testimoni from "./Testimoni.jsx";
 import {
@@ -596,6 +604,9 @@ export default function Landing() {
           disediakan tersembunyi untuk pembaca layar & mesin pencari. */}
       <h1 className="sr-only font-serif">{t("common.namaKomunitas")}</h1>
       <LandingHero t={t} />
+      <Suspense fallback={null}>
+        <TekaTekiHarianLanding />
+      </Suspense>
       <MaestroEdision />
       <Testimoni />
 

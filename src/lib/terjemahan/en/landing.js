@@ -4,6 +4,16 @@
  */
 
 export const landing = {
+  harianLabel: "Today's puzzle",
+  harianJudul: "One move before you close the tab",
+  harianDesk:
+    "Chess.com's official daily puzzle now lives on the Blunder Skuad board. Today's position is ready — find the best move right here, with no account and nothing to download.",
+  harianEdisi: "{tanggal} edition",
+  harianCta: "Play today's puzzle",
+  harianSumber: "View on Chess.com",
+  harianAriaPapan: "Daily puzzle position for {tanggal}",
+  harianGiliranPutih: "White to move — find the best move.",
+  harianGiliranHitam: "Black to move — find the best move.",
     sekilasLabel: "Blunder Skuad at a Glance",
     sekilasDesk:
       "For more than a decade, we have provided a place to play and learn for chess players from every corner of the country.",

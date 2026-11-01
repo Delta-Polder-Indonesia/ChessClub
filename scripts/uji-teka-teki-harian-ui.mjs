@@ -2,14 +2,18 @@
  * Uji halaman Teka-teki Harian di jsdom (tanpa jaringan sungguhan).
  *
  * Yang dijaga:
- *  1. Halaman memuat soal dari `/api/teka-teki-harian` dan memasang papan 64
- *     petak dengan posisi persis FEN dari server.
+ *  1. Halaman memuat soal dari SNAPSHOT STATIS `data/teka-teki-harian/…`
+ *     (tanpa API) dan memasang papan 64 petak dengan posisi persis FEN-nya.
  *  2. Langkah benar diterima, lawan membalas otomatis, dan langkah salah tidak
  *     mengubah posisi serta memberi pesan.
  *  3. Menyelesaikan seluruh solusi menandai tanggal itu di localStorage.
  *  4. Tanggal arsip yang berpihak HITAM dipasang dengan orientasi hitam dan
  *     penomoran riwayat yang benar (bukan asumsi "putih selalu mulai").
- *  5. Tidak ada galat render React.
+ *  5. Tanggal yang tidak ada di snapshot menampilkan keadaan kosong, bukan papan
+ *     kosong atau galat.
+ *  6. Widget "Teka-teki Hari Ini" di landing merender papan soal terbaru dan
+ *     tautan ke halaman penuh.
+ *  7. Tidak ada galat render React.
  *
  * Jalankan: node scripts/uji-teka-teki-harian-ui.mjs
  */
@@ -21,9 +25,9 @@ import { fileURLToPath } from "node:url";
 import { pluginGlobAset } from "./loader-jsx.mjs";
 import { Chess } from "chess.js";
 import { parseLangkah, terapkan } from "../src/lib/tekaTeki.js";
-import { parsePgnTekaTeki } from "../src/lib/tekaTekiHarian.js";
 import { tekaTeki as kamusPapan } from "../src/lib/terjemahan/id/tekaTeki.js";
 import { tekaTekiHarian as kamus } from "../src/lib/terjemahan/id/tekaTekiHarian.js";
+import { landing as kamusLanding } from "../src/lib/terjemahan/id/landing.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(path.join(ROOT, "noop.js"));
@@ -61,21 +65,39 @@ function uji(nama, kondisi) {
 
 /* --------------------------------------------------------------- data uji */
 
-const FEN_PUTIH = "r5bk/q1p2p2/1pn4p/2nP2p1/4N3/PPN3PP/K1B2R2/B1r5 w - - 0 1";
-const PGN_PUTIH =
-  '[White "kehall41"]\r\n[Black "Daily Puzzle Inspiration"]\r\n[Result "1-0"]\r\n' +
-  `[FEN "${FEN_PUTIH}"]\r\n\r\n1. Nb1+ Nd4 2. Bxd4+ f6 3. Bxf6+ Kh7 4. Nxg5# 1-0`;
+/*
+ * Soal diambil dari SNAPSHOT yang benar-benar dipakai situs
+ * (`public/data/teka-teki-harian/`), bukan fixture tertanam: uji ini ikut
+ * gagal kalau snapshot hilang, tanggalnya bergeser, atau langkahnya rusak.
+ */
+const folderSnapshot = path.join(ROOT, "public", "data", "teka-teki-harian");
+const indeksSnapshot = JSON.parse(
+  readFileSync(path.join(folderSnapshot, "indeks.json"), "utf8")
+);
+const terbaruSnapshot = JSON.parse(
+  readFileSync(path.join(folderSnapshot, "terbaru.json"), "utf8")
+);
 
-const FEN_HITAM = "6k1/5ppp/8/8/8/8/6PP/1q5K b - - 0 1";
-const PGN_HITAM =
-  '[Result "0-1"]\r\n' + `[FEN "${FEN_HITAM}"]\r\n\r\n1... Qf1# 0-1`;
+/** Soal terbaru (dipakai widget landing & kasus utama halaman). */
+const soalTerbaru = terbaruSnapshot.soal.at(-1);
+/** Soal lama dari tahun pertama arsip — untuk menguji pemuatan per tahun. */
+const berkasTahunAwal = JSON.parse(
+  readFileSync(
+    path.join(folderSnapshot, `${indeksSnapshot.tahun[0].tahun}.json`),
+    "utf8"
+  )
+);
+/** Soal yang berpihak HITAM (bila ada) — menguji orientasi papan. */
+const soalHitam =
+  berkasTahunAwal.soal.find((s) => s.fen.split(" ")[1] === "b") || null;
 
-const soalHariIni = parsePgnTekaTeki(PGN_PUTIH, { fen: FEN_PUTIH });
-const soalArsip = parsePgnTekaTeki(PGN_HITAM, { fen: FEN_HITAM });
-if (!soalHariIni.utuh || !soalArsip.utuh) {
-  console.log("GAGAL: data uji tidak bisa diurai menjadi langkah legal.");
-  process.exit(1);
-}
+const urai = (catatan) => ({
+  tanggal: catatan.tanggal,
+  fen: catatan.fen,
+  langkah: catatan.langkah.split(";"),
+});
+
+const paketTerbaru = urai(soalTerbaru);
 
 /** FEN setelah `n` langkah solusi pertama. */
 function fenSetelah(fenAwal, langkah, n) {
@@ -83,8 +105,6 @@ function fenSetelah(fenAwal, langkah, n) {
   for (const uci of langkah.slice(0, n)) fen = terapkan(fen, parseLangkah(uci)).fen();
   return fen;
 }
-
-const FEN_SETELAH_SATU_PASANG = fenSetelah(FEN_PUTIH, soalHariIni.langkah, 2);
 
 /* ------------------------------------------------- bundel halaman (esbuild) */
 
@@ -95,17 +115,27 @@ import { MemoryRouter } from "react-router-dom";
 import { I18nProvider } from "./src/lib/I18nProvider.jsx";
 import { HelmetProvider } from "react-helmet-async";
 import TekaTekiHarian from "./src/halaman/TekaTekiHarian/TekaTekiHarian.jsx";
+import TekaTekiHarianLanding from "./src/halaman/Landing/TekaTekiHarianLanding.jsx";
 
-export function mount(el, awal) {
+function bungkus(el, awal, isi) {
   const root = createRoot(el);
   root.render(
     <HelmetProvider>
       <MemoryRouter initialEntries={[awal]}>
-        <I18nProvider><TekaTekiHarian /></I18nProvider>
+        <I18nProvider>{isi}</I18nProvider>
       </MemoryRouter>
     </HelmetProvider>
   );
   return root;
+}
+
+export function mount(el, awal) {
+  return bungkus(el, awal, <TekaTekiHarian />);
+}
+
+/** Widget "Teka-teki Hari Ini" pada halaman Landing. */
+export function mountWidget(el) {
+  return bungkus(el, "/", <TekaTekiHarianLanding />);
 }
 `;
 
@@ -235,54 +265,11 @@ function siapkanGlobal() {
   }
 
   /*
-   * Tiruan rute server: hanya `/api/teka-teki-harian` yang dilayani, dan
-   * jawabannya ditentukan oleh parameter `tanggal`.
+   * Semua data situs berasal dari berkas statis di `public/` — persis seperti
+   * di produksi. Tidak ada mock API: `fetch` membaca dari disk.
    */
-  const jawab = (isi) => ({
-    ok: true,
-    status: 200,
-    json: () => Promise.resolve(isi),
-    text: () => Promise.resolve(JSON.stringify(isi)),
-  });
-
   window.fetch = (url) => {
-    const semua = String(url);
-    if (semua.includes("/api/teka-teki-harian")) {
-      const tanggal = new URL(semua, "https://uji.test").searchParams.get("tanggal");
-      if (!tanggal) {
-        return Promise.resolve(
-          jawab({
-            tersedia: true,
-            tanggal: "2026-11-01",
-            judul: "A New Beginning",
-            fen: FEN_PUTIH,
-            pgn: PGN_PUTIH,
-            url: "https://www.chess.com/daily-chess-puzzle",
-            gambar: null,
-            terbitPada: null,
-            sumber: "chess.com",
-          })
-        );
-      }
-      if (tanggal === "2025-12-31") {
-        return Promise.resolve(
-          jawab({
-            tersedia: true,
-            tanggal,
-            judul: "Hitam Menyerang Lebih Dulu",
-            fen: FEN_HITAM,
-            pgn: PGN_HITAM,
-            url: "https://www.chess.com/daily-chess-puzzle/2025-12-31",
-            gambar: null,
-            terbitPada: null,
-            sumber: "chess.com",
-          })
-        );
-      }
-      return Promise.resolve(jawab({ tersedia: false, tanggal, alasan: "tidak-ada" }));
-    }
-    // Berkas statis lain (data/…) dibaca dari public/ seperti uji teka-teki.
-    const relatif = semua
+    const relatif = String(url)
       .replace(/^https?:\/\/[^/]+/, "")
       .replace(/^\//, "");
     try {
@@ -294,7 +281,12 @@ function siapkanGlobal() {
         json: () => Promise.resolve(JSON.parse(isi)),
       });
     } catch {
-      return Promise.reject(new Error(`tidak ada: ${relatif}`));
+      return Promise.resolve({
+        ok: false,
+        status: 404,
+        text: () => Promise.resolve(""),
+        json: () => Promise.reject(new Error(`tidak ada: ${relatif}`)),
+      });
     }
   };
   globalThis.fetch = window.fetch;
@@ -398,79 +390,220 @@ function arsipSelesai() {
 
 /* ------------------------------------------------------------------ uji */
 
-const { mount } = require(berkasBundel);
-const akar = mount(dok.getElementById("root"), "/teka-teki-harian");
+const { mount, mountWidget } = require(berkasBundel);
 
-console.log("\npemuatan halaman:");
+/** Akar React baru di dalam body — supaya beberapa kasus tidak berebut #root. */
+function akarBaru() {
+  const el = dok.createElement("div");
+  dok.body.appendChild(el);
+  return el;
+}
+
+/** Posisi papan = FEN ini? (membaca `data-petak`/`data-bidak` milik PapanStatis). */
+function papanSamaData(fen) {
+  const harap = new Chess(fen).board();
+  const baris = ["8", "7", "6", "5", "4", "3", "2", "1"];
+  const lajur = ["a", "b", "c", "d", "e", "f", "g", "h"];
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      const petak = `${lajur[j]}${baris[i]}`;
+      const el = [...dok.querySelectorAll(`[data-petak="${petak}"]`)].at(-1);
+      if (!el) return false;
+      const bidak = harap[i][j];
+      const harapBidak = bidak
+        ? bidak.color === "w"
+          ? bidak.type.toUpperCase()
+          : bidak.type
+        : "";
+      if (el.getAttribute("data-bidak") !== harapBidak) return false;
+    }
+  }
+  return true;
+}
+
+/** Cari langkah legal yang BUKAN langkah solusi berikutnya. */
+function cariLangkahSalah(fen, diharapkan) {
+  const game = new Chess(fen);
+  for (const m of game.moves({ verbose: true })) {
+    if (m.promotion) continue;
+    if (m.from === diharapkan.from && m.to === diharapkan.to) continue;
+    return { from: m.from, to: m.to };
+  }
+  return null;
+}
+
+/* ------------------------------------------------- A. soal terbaru (snapshot) */
+
+console.log(`\nA. soal terbaru snapshot (${paketTerbaru.tanggal}):`);
+const akarA = akarBaru();
+const rootA = mount(akarA, `/teka-teki-harian?tanggal=${paketTerbaru.tanggal}`);
+
 uji(
   "papan 64 petak tampil",
   await tungguSampai(() => dok.querySelectorAll("[data-petak]").length === 64)
 );
-uji("posisi awal sesuai FEN server", papanSama(FEN_PUTIH));
-uji("judul soal dari Chess.com tampil", teksHalaman().includes("A New Beginning"));
+uji("posisi awal sesuai FEN snapshot", papanSama(paketTerbaru.fen));
 uji(
-  "sisa langkah dilaporkan",
-  teksHalaman().includes(kamus.langkahTersisa.replace("{n}", "7"))
+  "jumlah langkah tersisa dilaporkan",
+  teksHalaman().includes(
+    paketTerbaru.langkah.length === 1
+      ? kamus.satuLangkah
+      : kamus.langkahTersisa.replace("{n}", String(paketTerbaru.langkah.length))
+  )
+);
+uji(
+  "tanggal edisi tampil di panel",
+  teksHalaman().includes(kamus.hariIni) || teksHalaman().includes(kamus.arsip)
 );
 
-console.log("\nlangkah pemain + balasan otomatis:");
-await mainkan("c3", "b1"); // Nb1+
-uji(
-  "lawan membalas dan posisi maju dua setengah-langkah",
-  await tungguSampai(() => papanSama(FEN_SETELAH_SATU_PASANG), 4000)
-);
-
-console.log("\nlangkah salah tidak mengubah posisi:");
-await mainkan("f2", "f3"); // legal, tetapi bukan solusi
-await tunggu(400);
-uji("posisi tidak berubah", papanSama(FEN_SETELAH_SATU_PASANG));
-uji("pesan 'belum tepat' tampil", teksHalaman().includes(kamus.salah));
-
-console.log("\nmenyelesaikan seluruh solusi:");
-// Sisa langkah pemain diambil dari daftar solusi agar tidak salah tebak.
-const sisaPemain = soalHariIni.langkah
-  .map((uci, i) => ({ uci, i }))
-  .filter(({ i }) => i % 2 === 0)
-  .slice(1);
-for (const { uci } of sisaPemain) {
-  const { from, to } = parseLangkah(uci);
-  await mainkan(from, to);
-  await tunggu(900);
+console.log("\nA2. langkah pemain + balasan otomatis:");
+const langkahSatu = parseLangkah(paketTerbaru.langkah[0]);
+await mainkan(langkahSatu.from, langkahSatu.to);
+if (paketTerbaru.langkah.length > 1) {
+  const harap = fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 2);
+  uji(
+    "lawan membalas otomatis (dua setengah-langkah maju)",
+    await tungguSampai(() => papanSama(harap), 4000)
+  );
+} else {
+  uji(
+    "soal satu langkah langsung ditandai selesai",
+    await tungguSampai(
+      () => Boolean(arsipSelesai()[paketTerbaru.tanggal]),
+      4000
+    )
+  );
 }
 
+console.log("\nA3. langkah salah tidak mengubah posisi:");
+if (paketTerbaru.langkah.length > 1) {
+  const posisiKini = fenSetelah(paketTerbaru.fen, paketTerbaru.langkah, 2);
+  const salah = cariLangkahSalah(posisiKini, parseLangkah(paketTerbaru.langkah[2]));
+  if (salah) {
+    await mainkan(salah.from, salah.to);
+    await tunggu(400);
+    uji("posisi tidak berubah", papanSama(posisiKini));
+    uji("pesan 'belum tepat' tampil", teksHalaman().includes(kamus.salah));
+  } else {
+    uji("ada langkah legal lain untuk diuji (dilewati: posisi hanya punya solusi)", true);
+  }
+} else {
+  uji("(soal satu langkah — bagian langkah salah dilewati)", true);
+}
+
+console.log("\nA4. menyelesaikan seluruh solusi:");
+if (paketTerbaru.langkah.length > 1) {
+  // Langkah pemain = indeks genap; indeks 0 sudah dimainkan di A2.
+  for (const uci of paketTerbaru.langkah.filter((_, i) => i % 2 === 0).slice(1)) {
+    const { from, to } = parseLangkah(uci);
+    await mainkan(from, to);
+    await tunggu(900);
+  }
+}
 uji(
-  "tanggal hari ini tercatat selesai",
-  await tungguSampai(() => Boolean(arsipSelesai()["2026-11-01"]), 3000)
-);
-uji(
-  "papan berakhir pada posisi skakmat",
-  papanSama(new Chess(FEN_PUTIH).fen()) || teksHalaman().includes(kamus.terpecahkan)
+  "tanggal ini tercatat selesai di localStorage",
+  await tungguSampai(
+    () => Boolean(arsipSelesai()[paketTerbaru.tanggal]),
+    4000
+  )
 );
 uji("pesan selesai tampil", teksHalaman().includes(kamus.terpecahkan));
 
-console.log("\narsip berpihak hitam:");
-// Halaman dipasang ulang pada akar React yang sama — `unmount()` dulu supaya
-// tidak ada dua pohon yang berebut #root.
-akar.unmount();
-dom.window.history.pushState({}, "", "/teka-teki-harian?tanggal=2025-12-31");
-mount(dok.getElementById("root"), "/teka-teki-harian?tanggal=2025-12-31");
+rootA.unmount();
+akarA.remove();
 
-uji(
-  "soal arsip termuat",
-  await tungguSampai(() => teksHalaman().includes("Hitam Menyerang Lebih Dulu"))
-);
-uji(
-  "orientasi papan mengikuti hitam (h1 di kiri atas)",
-  await tungguSampai(() => {
-    const pertama = dok.querySelector("[data-petak]");
-    return pertama?.getAttribute("data-petak") === "h1";
-  })
-);
-await mainkan("b1", "f1"); // Qf1# (ratu hitam dari b1)
-uji(
-  "sekakmat satu langkah menuntaskan soal hitam",
-  await tungguSampai(() => Boolean(arsipSelesai()["2025-12-31"]), 4000)
-);
+/* ----------------------------------------------------- B. arsip berpihak hitam */
+
+console.log("\nB. arsip tahun pertama (berpihak hitam):");
+if (soalHitam) {
+  const paketHitam = urai(soalHitam);
+  const akarB = akarBaru();
+  const rootB = mount(
+    akarB,
+    `/teka-teki-harian?tanggal=${paketHitam.tanggal}`
+  );
+  uji(
+    "soal arsip termuat",
+    await tungguSampai(() => papanSama(paketHitam.fen))
+  );
+  uji(
+    "orientasi papan mengikuti hitam (h1 di kiri atas)",
+    dok.querySelector("[data-petak]")?.getAttribute("data-petak") === "h1"
+  );
+  const langkahHitam = parseLangkah(paketHitam.langkah[0]);
+  await mainkan(langkahHitam.from, langkahHitam.to);
+  if (paketHitam.langkah.length > 1) {
+    uji(
+      "balasan otomatis ikut bergerak",
+      await tungguSampai(
+        () => papanSama(fenSetelah(paketHitam.fen, paketHitam.langkah, 2)),
+        4000
+      )
+    );
+  } else {
+    uji(
+      "langkah tunggal menuntaskan soal hitam",
+      await tungguSampai(
+        () => Boolean(arsipSelesai()[paketHitam.tanggal]),
+        4000
+      )
+    );
+  }
+  rootB.unmount();
+  akarB.remove();
+} else {
+  uji("snapshot punya soal berpihak hitam", false);
+}
+
+/* ------------------------------------------- C. tanggal di luar snapshot */
+
+console.log("\nC. tanggal yang tidak ada di snapshot:");
+{
+  const akarC = akarBaru();
+  const rootC = mount(akarC, "/teka-teki-harian?tanggal=2007-05-07");
+  uji(
+    "keadaan kosong dijelaskan (bukan papan kosong)",
+    await tungguSampai(() => teksHalaman().includes(kamus.tidakTersedia), 4000)
+  );
+  uji(
+    "tidak ada papan yang dipasang",
+    dok.querySelectorAll("[data-petak]").length === 0
+  );
+  uji(
+    "tombol ke tanggal terbaru ditawarkan",
+    teksHalaman().includes(kamus.keTerbaru.split("{tanggal}")[0].trim())
+  );
+  rootC.unmount();
+  akarC.remove();
+}
+
+/* ------------------------------------------- D. widget landing */
+
+console.log("\nD. widget \"Teka-teki Hari Ini\" di landing:");
+{
+  const akarD = akarBaru();
+  const rootD = mountWidget(akarD);
+  uji(
+    "widget memasang papan soal terbaru",
+    await tungguSampai(() => papanSamaData(soalTerbaru.fen), 5000)
+  );
+  uji(
+    "judul seksi dari kamus tampil",
+    teksHalaman().includes(kamusLanding.harianJudul)
+  );
+  uji(
+    "edisi menyebut tanggal soal terbaru",
+    teksHalaman().includes(soalTerbaru.tanggal)
+  );
+  const tautan = [...dok.querySelectorAll("a")].map((a) => a.getAttribute("href"));
+  uji("ada tautan ke halaman teka-teki harian", tautan.includes("/teka-teki-harian"));
+  uji(
+    "ada tautan ke halaman asli Chess.com",
+    tautan.some((h) => h && h.includes("chess.com/daily-chess-puzzle"))
+  );
+  rootD.unmount();
+  akarD.remove();
+}
 
 const galatRender = pesanGalat.filter((p) => !/not wrapped in act/i.test(p));
 uji("tidak ada galat render React", galatRender.length === 0);

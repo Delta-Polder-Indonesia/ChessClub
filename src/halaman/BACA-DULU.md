@@ -89,3 +89,11 @@ src/halaman/
 Keanggotaan tidak memiliki halaman induk tersendiri. Route lama `/keanggotaan` dan `/tentang-kami/keanggotaan` diarahkan otomatis ke tab Keanggotaan di Struktur Grup Catur. Route lama pendaftaran diarahkan ke `/pendaftaran-anggota`.
 
 Daftar menu dan pemetaan folder berada di `src/menu.js`. Routing berada di `src/App.jsx`.
+
+## Teka-teki harian
+
+- `TekaTekiHarian/` — halaman penuh `/teka-teki-harian` (pemutar langkah).
+- `Landing/TekaTekiHarianLanding.jsx` — widget papan statis di halaman depan.
+- Data: snapshot statis `public/data/teka-teki-harian/`, dibuat oleh
+  `scripts/ambil-teka-teki-harian.mjs`. Tidak ada panggilan ke Chess.com saat
+  halaman dibuka. Rincian: `PANDUAN-TEKA-TEKI-HARIAN.md` di akar repo.

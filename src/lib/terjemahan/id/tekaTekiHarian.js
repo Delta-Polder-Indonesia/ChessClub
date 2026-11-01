@@ -20,6 +20,7 @@ export const tekaTekiHarian = {
   solusiTidakAda:
     "Teka-teki tanggal ini tampil, tetapi langkah solusinya belum tersedia dari Chess.com. Buka halaman aslinya untuk menyelesaikannya.",
   masaDepan: "Tanggal itu belum tiba — teka-tekinya belum terbit.",
+  keTerbaru: "Buka teka-teki terbaru ({tanggal})",
   keHariIni: "Ke hari ini",
   pilihTanggal: "Pilih tanggal teka-teki",
   geserSebelumnya: "Tanggal sebelumnya",
@@ -49,6 +50,6 @@ export const tekaTekiHarian = {
   promosiBatal: "Batal",
   bukaDiChessCom: "Buka halaman aslinya di Chess.com",
   sumber:
-    "Soal, judul, dan tautan milik Chess.com. Blunder Skuad hanya menampilkan ulang lewat API publik mereka tanpa menyalin arsip soal.",
+    "Soal harian berasal dari teka-teki harian resmi Chess.com. Situs ini menyimpan salinan ringkas (posisi + langkah solusi) agar teka-teki tetap bisa dimainkan walau Chess.com tidak terjangkau; judul, penulis, dan media tidak disalin, dan tautan ke halaman aslinya selalu disediakan.",
   kembali: "Kembali ke Teka-teki Catur",
 };

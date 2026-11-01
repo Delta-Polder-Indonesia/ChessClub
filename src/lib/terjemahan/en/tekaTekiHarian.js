@@ -20,6 +20,7 @@ export const tekaTekiHarian = {
   solusiTidakAda:
     "This date's puzzle is shown, but its solution moves are not available from Chess.com yet. Open the original page to finish it.",
   masaDepan: "That date hasn't arrived — the puzzle isn't out yet.",
+  keTerbaru: "Open the newest puzzle ({tanggal})",
   keHariIni: "Back to today",
   pilihTanggal: "Pick a puzzle date",
   geserSebelumnya: "Previous date",
@@ -49,6 +50,6 @@ export const tekaTekiHarian = {
   promosiBatal: "Cancel",
   bukaDiChessCom: "Open the original page on Chess.com",
   sumber:
-    "Puzzle, title, and link belong to Chess.com. Blunder Skuad only replays them through their public API, without copying the puzzle archive.",
+    "The daily puzzle comes from Chess.com's official daily puzzle. This site keeps a compact copy (position + solution moves) so the puzzle stays playable even when Chess.com is unreachable; titles, authors, and media are not copied, and a link to the original page is always provided.",
   kembali: "Back to Chess Puzzles",
 };

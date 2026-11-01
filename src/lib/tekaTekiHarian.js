@@ -196,6 +196,111 @@ export function pasanganLangkah(langkah = [], warnaPertama = "w") {
   return baris;
 }
 
+/* ====================================================================== */
+/* Snapshot statis (tanpa API)                                            */
+/* ====================================================================== */
+
+/*
+ * Situs ini TIDAK memanggil Chess.com setiap kali halaman dibuka. Snapshot
+ * dibuat oleh `scripts/ambil-teka-teki-harian.mjs` dan disajikan sebagai
+ * berkas statis:
+ *
+ *   public/data/teka-teki-harian/indeks.json      daftar tahun + rentang
+ *   public/data/teka-teki-harian/terbaru.json     7 soal terakhir (widget)
+ *   public/data/teka-teki-harian/<tahun>.json     semua soal tahun itu
+ *
+ * Isi satu soal hanya `{ tanggal, fen, langkah }` — tanpa judul, penulis,
+ * atau media. Dengan begitu halaman tetap hidup walau Chess.com sedang
+ * gangguan, dan tidak ada permintaan ke pihak ketiga saat pengunjung memakai
+ * situs.
+ */
+
+/** Ubah `"e2-e4;e7-e5"` → `["e2-e4", "e7-e5"]`. */
+export function langkahDariTeks(teks) {
+  if (Array.isArray(teks)) return teks.filter(Boolean);
+  return String(teks || "")
+    .split(";")
+    .map((t) => t.trim())
+    .filter(Boolean);
+}
+
+/** Samakan satu catatan snapshot menjadi bentuk yang dipakai halaman. */
+export function soalDariCatatan(catatan) {
+  const tanggal = tanggalSah(catatan?.tanggal) ? catatan.tanggal : null;
+  const fen = typeof catatan?.fen === "string" ? catatan.fen.trim() : "";
+  if (!tanggal || !fen) return null;
+  const langkah = langkahDariTeks(catatan?.langkah);
+  if (!langkah.length) return null;
+  return {
+    tanggal,
+    fen,
+    langkah,
+    orientasi: warnaGiliran(fen),
+    url: `https://www.chess.com/daily-chess-puzzle/${tanggal}`,
+    sumber: "chess.com",
+  };
+}
+
+/**
+ * Pilih soal untuk satu tanggal dari snapshot tahunan.
+ *
+ * Penelusuran arsip sengaja bertingkat supaya tidak mengunduh 20 berkas
+ * sekaligus:
+ *  1. `terbaru.json` (±2 KB) → cukup untuk hari ini dan beberapa hari terakhir;
+ *  2. berkas tahun tanggal itu (±40 KB) → untuk tanggal yang lebih lama.
+ *
+ * @returns {Promise<object|null>} soal atau `null` bila tanggal itu tidak ada.
+ */
+export async function ambilSoalTanggal(tanggal, { muat } = {}) {
+  if (!tanggalSah(tanggal)) return null;
+  const baca = muat || muatJson;
+
+  const terbaru = await baca("data/teka-teki-harian/terbaru.json").catch(() => null);
+  const dariTerbaru = (terbaru?.soal || [])
+    .map(soalDariCatatan)
+    .find((s) => s && s.tanggal === tanggal);
+  if (dariTerbaru) return dariTerbaru;
+
+  const tahun = tanggal.slice(0, 4);
+  const berkasTahun = await baca(`data/teka-teki-harian/${tahun}.json`).catch(
+    () => null
+  );
+  return (
+    (berkasTahun?.soal || [])
+      .map(soalDariCatatan)
+      .find((s) => s && s.tanggal === tanggal) || null
+  );
+}
+
+/** Indeks snapshot: tahun mana saja yang tersedia, rentang, dan jumlah soal. */
+export async function ambilIndeksSnapshot({ muat } = {}) {
+  const baca = muat || muatJson;
+  const indeks = await baca("data/teka-teki-harian/indeks.json").catch(() => null);
+  if (!indeks || !Array.isArray(indeks.tahun)) return null;
+  return indeks;
+}
+
+/** Soal terbaru (7 buah) — dipakai widget di halaman Landing. */
+export async function ambilSoalTerbaru({ muat } = {}) {
+  const baca = muat || muatJson;
+  const terbaru = await baca("data/teka-teki-harian/terbaru.json").catch(() => null);
+  return (terbaru?.soal || []).map(soalDariCatatan).filter(Boolean).reverse();
+}
+
+/**
+ * `fetch` JSON relatif terhadap akar situs. Dipisah sebagai parameter
+ * (`muat`) supaya uji bisa menyuntikkan pembaca palsu tanpa DOM.
+ */
+async function muatJson(jalur) {
+  const dasar =
+    (typeof import.meta !== "undefined" && import.meta.env?.BASE_URL) || "/";
+  const res = await fetch(`${dasar}${String(jalur).replace(/^\//, "")}`, {
+    headers: { Accept: "application/json" },
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status} untuk ${jalur}`);
+  return res.json();
+}
+
 /** Warna pemain yang harus melangkah pada FEN ini (sama dengan `fen.split`). */
 export function warnaGiliran(fen) {
   const bagian = String(fen || "").split(/\s+/);

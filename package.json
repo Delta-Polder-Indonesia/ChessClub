@@ -28,6 +28,7 @@
     "uji:api-csrf": "node scripts/uji-api-csrf.mjs",
     "uji:sesi-ebook": "node scripts/uji-sesi-ebook.mjs",
     "uji:rush": "node server/uji/uji-rekor-rush.mjs && node scripts/uji-rush-waktu.mjs",
+    "data:teka-teki-harian": "node scripts/ambil-teka-teki-harian.mjs",
     "uji:teka-teki-harian": "node scripts/uji-teka-teki-harian.mjs",
     "uji:teka-teki-harian-ui": "node scripts/uji-teka-teki-harian-ui.mjs",
     "uji:quiz": "node scripts/uji-quiz.mjs",

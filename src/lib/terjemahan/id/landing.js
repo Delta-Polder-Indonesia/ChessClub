@@ -4,6 +4,16 @@
  */
 
 export const landing = {
+  harianLabel: "Teka-teki hari ini",
+  harianJudul: "Satu langkah sebelum menutup tab",
+  harianDesk:
+    "Teka-teki harian resmi Chess.com hadir di papan Blunder Skuad. Posisi hari ini sudah tersedia — temukan langkah terbaiknya langsung di sini, tanpa perlu akun dan tanpa unduhan.",
+  harianEdisi: "Edisi {tanggal}",
+  harianCta: "Mainkan teka-teki hari ini",
+  harianSumber: "Lihat di Chess.com",
+  harianAriaPapan: "Posisi teka-teki harian edisi {tanggal}",
+  harianGiliranPutih: "Putih melangkah — temukan langkah terbaiknya.",
+  harianGiliranHitam: "Hitam melangkah — temukan langkah terbaiknya.",
     sekilasLabel: "Sekilas Blunder Skuad",
     sekilasDesk:
       "Selama lebih dari satu dekade, kami menyediakan wadah bermain dan belajar bagi pecatur dari seluruh penjuru negeri.",
