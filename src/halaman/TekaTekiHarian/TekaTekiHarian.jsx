@@ -1067,7 +1067,7 @@ export default function TekaTekiHarian() {
                   </div>
 
                   {/* Aksi utama + dua ikon */}
-                  <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2 border-t border-[#312e2b] pt-3">
+                  <div className="mt-auto grid grid-cols-[minmax(0,1fr)_auto_auto] gap-2">
                     <button
                       type="button"
                       onClick={tampilkanPetunjuk}
@@ -1133,7 +1133,7 @@ export default function TekaTekiHarian() {
 
                   {/* Baris navigasi: [balik papan] [⏮ ◀ ▶ ⏭] [⋯] — tiga
                       kelompok seperti panel rujukan. */}
-                  <div className="mt-auto flex items-center justify-between border-t border-[#312e2b] pt-2">
+                  <div className="flex items-center justify-between border-t border-[#312e2b] pt-2">
                     <button
                       type="button"
                       onClick={() => setBalik((b) => !b)}
