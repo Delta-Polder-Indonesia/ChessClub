@@ -343,6 +343,121 @@ function cacatPion(game, warna) {
   return cacat;
 }
 
+/** Apakah dorongan pion ke `petak` langsung menantang pion lawan di pusat/semi-pusat. */
+function pionMenantangPusat(game, petak, warna) {
+  const petakPusat = new Set(["c4", "d4", "e4", "f4", "c5", "d5", "e5", "f5"]);
+  if (!petakPusat.has(petak)) return false;
+  const lawan = warna === "w" ? "b" : "w";
+  const arah = warna === "w" ? 1 : -1;
+  const kol = petak.charCodeAt(0);
+  const bar = Number(petak[1]) + arah;
+  if (bar < 1 || bar > 8) return false;
+  for (const dKol of [-1, 1]) {
+    const k = kol + dKol;
+    if (k < 97 || k > 104) continue;
+    const isi = game.get(`${String.fromCharCode(k)}${bar}`);
+    if (isi && isi.color === lawan && isi.type === "p") return true;
+  }
+  return false;
+}
+
+/** Apakah kuda di `petak` menempati pos terdepan (dijaga pion sendiri & bebas usiran pion lawan). */
+function adalahKudaPosTerdepan(game, petak, warna) {
+  const kol = petak.charCodeAt(0) - 97;
+  const bar = Number(petak[1]);
+  if (kol < 2 || kol > 5) return false;
+  if (warna === "w" ? bar !== 5 && bar !== 6 : bar !== 4 && bar !== 3) return false;
+  const lawan = warna === "w" ? "b" : "w";
+  const barPenjaga = warna === "w" ? bar - 1 : bar + 1;
+  let dijagaPion = false;
+  for (const dKol of [-1, 1]) {
+    const k = kol + dKol;
+    if (k < 0 || k > 7) continue;
+    const penjaga = game.get(`${String.fromCharCode(97 + k)}${barPenjaga}`);
+    if (penjaga && penjaga.color === warna && penjaga.type === "p") dijagaPion = true;
+    if (warna === "w") {
+      for (let r = bar + 1; r <= 7; r += 1) {
+        const pengusir = game.get(`${String.fromCharCode(97 + k)}${r}`);
+        if (pengusir && pengusir.color === lawan && pengusir.type === "p") return false;
+      }
+    } else {
+      for (let r = bar - 1; r >= 2; r -= 1) {
+        const pengusir = game.get(`${String.fromCharCode(97 + k)}${r}`);
+        if (pengusir && pengusir.color === lawan && pengusir.type === "p") return false;
+      }
+    }
+  }
+  return dijagaPion;
+}
+
+/** Apakah lajur `hurufLajur` bebas dari pion milik `warna` (lajur terbuka / setengah terbuka). */
+function lajurTanpaPionSendiri(game, hurufLajur, warna) {
+  for (let r = 2; r <= 7; r += 1) {
+    const isi = game.get(`${hurufLajur}${r}`);
+    if (isi && isi.color === warna && isi.type === "p") return false;
+  }
+  return true;
+}
+
+/** Apakah pion milik `warna` di `petak` sudah menjadi pion bebas yang maju jauh. */
+function adalahPionBebasMaju(game, petak, warna) {
+  const kol = petak.charCodeAt(0) - 97;
+  const bar = Number(petak[1]);
+  if (warna === "w" ? bar < 5 : bar > 4) return false;
+  const lawan = warna === "w" ? "b" : "w";
+  for (const dKol of [-1, 0, 1]) {
+    const k = kol + dKol;
+    if (k < 0 || k > 7) continue;
+    const huruf = String.fromCharCode(97 + k);
+    if (warna === "w") {
+      for (let r = bar + 1; r <= 7; r += 1) {
+        const isi = game.get(`${huruf}${r}`);
+        if (isi && isi.color === lawan && isi.type === "p") return false;
+      }
+    } else {
+      for (let r = bar - 1; r >= 2; r -= 1) {
+        const isi = game.get(`${huruf}${r}`);
+        if (isi && isi.color === lawan && isi.type === "p") return false;
+      }
+    }
+  }
+  return true;
+}
+
+/** Apakah posisi sudah memasuki babak akhir tanpa menteri dengan perwira terbatas. */
+function adalahFaseAkhir(game) {
+  let nilaiNonPion = 0;
+  for (const baris of game.board()) {
+    for (const kotak of baris) {
+      if (!kotak || kotak.type === "p" || kotak.type === "k") continue;
+      if (kotak.type === "q") return false;
+      nilaiNonPion += NILAI_BIDAK[kotak.type];
+    }
+  }
+  return nilaiNonPion <= 20;
+}
+
+/**
+ * Motif posisional/strategis nyata pada langkah tenang (tanpa tangkapan/skak):
+ * mengadopsi konsep ulasan komentator manusia (fianchetto, dobrakan pusat,
+ * pos terdepan kuda, benteng di lajur terbuka / baris ketujuh, pion bebas,
+ * profilaksis sayap, pengembangan awal, hingga aktivasi raja babak akhir)
+ * agar tidak jatuh ke kalimat generik `biasa`.
+ */
+function motifPosisional(fakta) {
+  if (fakta.bentengBarisTujuh) return { kunci: "bentengBarisTujuh", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.kudaPosTerdepan) return { kunci: "kudaPosTerdepan", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.pionBebas) return { kunci: "pionBebas", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.bentengLajurTerbuka) return { kunci: "bentengLajurTerbuka", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.dobrakPusat) return { kunci: "dobrakPusat", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.fianchetto) return { kunci: "fianchetto", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.rajaAktifAkhir) return { kunci: "rajaAktifAkhir", n: 2, ganti: {}, kuatSaatEngine: true };
+  if (fakta.menteriDini) return { kunci: "menteriDini", n: 2, ganti: {}, kuatSaatEngine: false };
+  if (fakta.profilaksisSayap) return { kunci: "profilaksisSayap", n: 2, ganti: {}, kuatSaatEngine: false };
+  if (fakta.kembangPerwira) return { kunci: "kembangPerwira", n: 3, ganti: {}, kuatSaatEngine: false };
+  return null;
+}
+
 /**
  * Peristiwa taktis "besar" yang lebih menarik dari peristiwa struktural
  * (tangkapan/promosi/rokade): skak bayangan lebih dulu, lalu fork. Pin
@@ -419,6 +534,19 @@ export function faktaLangkah(fenSebelum, san) {
     lawanTerpaku: [],
     strukturUnggul: false,
     posisiTajam: false,
+    // Motif posisional & pertukaran strategis (diadopsi dari pola komentator master):
+    tukarMenteri: false,
+    tukarGajahKuda: false,
+    fianchetto: false,
+    dobrakPusat: false,
+    kudaPosTerdepan: false,
+    bentengLajurTerbuka: false,
+    bentengBarisTujuh: false,
+    pionBebas: false,
+    profilaksisSayap: false,
+    menteriDini: false,
+    kembangPerwira: false,
+    rajaAktifAkhir: false,
   };
 
   // --- Fork: bidak yang baru bergerak menyerang >=2 perwira lawan. ---
@@ -524,6 +652,62 @@ export function faktaLangkah(fenSebelum, san) {
   fakta.strukturUnggul =
     cacatPion(game, lawan) - cacatPion(game, warna) >= 2 || selisihRuang >= 10;
 
+  // --- Motif posisional & pertukaran strategis ---
+  fakta.tukarMenteri = Boolean(
+    pindah.piece === "q" && pindah.captured === "q" && fakta.bisaDirebut
+  );
+  fakta.tukarGajahKuda = Boolean(
+    pindah.piece === "b" && pindah.captured === "n" && fakta.bisaDirebut
+  );
+  fakta.fianchetto = Boolean(
+    pindah.piece === "b" &&
+      !pindah.captured &&
+      ((warna === "w" && (pindah.to === "g2" || pindah.to === "b2")) ||
+        (warna === "b" && (pindah.to === "g7" || pindah.to === "b7")))
+  );
+  fakta.dobrakPusat = Boolean(
+    pindah.piece === "p" && !pindah.captured && pionMenantangPusat(game, pindah.to, warna)
+  );
+  fakta.kudaPosTerdepan = Boolean(
+    pindah.piece === "n" && adalahKudaPosTerdepan(game, pindah.to, warna)
+  );
+  fakta.bentengBarisTujuh = Boolean(
+    pindah.piece === "r" &&
+      !pindah.captured &&
+      ((warna === "w" && pindah.to[1] === "7") || (warna === "b" && pindah.to[1] === "2"))
+  );
+  fakta.bentengLajurTerbuka = Boolean(
+    pindah.piece === "r" &&
+      !pindah.captured &&
+      pindah.from[1] === pindah.to[1] &&
+      lajurTanpaPionSendiri(game, pindah.to[0], warna)
+  );
+  fakta.pionBebas = Boolean(
+    pindah.piece === "p" &&
+      !pindah.promotion &&
+      !pindah.captured &&
+      adalahPionBebasMaju(game, pindah.to, warna)
+  );
+  fakta.profilaksisSayap = Boolean(
+    pindah.piece === "p" &&
+      !pindah.captured &&
+      ((warna === "w" && (pindah.to === "h3" || pindah.to === "a3") && pindah.from[1] === "2") ||
+        (warna === "b" && (pindah.to === "h6" || pindah.to === "a6") && pindah.from[1] === "7"))
+  );
+  fakta.menteriDini = Boolean(
+    pindah.piece === "q" && !pindah.captured && !fakta.skak && fakta.ply <= 8
+  );
+  fakta.kembangPerwira = Boolean(
+    (pindah.piece === "n" || pindah.piece === "b") &&
+      !pindah.captured &&
+      !fakta.skak &&
+      fakta.ply <= 16 &&
+      ((warna === "w" && pindah.from[1] === "1") || (warna === "b" && pindah.from[1] === "8"))
+  );
+  fakta.rajaAktifAkhir = Boolean(
+    pindah.piece === "k" && !fakta.rokade && !fakta.skak && adalahFaseAkhir(game)
+  );
+
   return fakta;
 }
 
@@ -570,6 +754,8 @@ function peristiwaUtama(fakta) {
   }
   if (fakta.enPassant) return { kunci: "enPassant", n: 2, ganti: {} };
   if (fakta.tangkap) {
+    if (fakta.tukarMenteri) return { kunci: "tukarMenteri", n: 2, ganti: {} };
+    if (fakta.tukarGajahKuda) return { kunci: "tukarGajahKuda", n: 2, ganti: {} };
     const korban = `{{bidak:${fakta.tangkap}}}`;
     const untung = NILAI_BIDAK[fakta.tangkap] - NILAI_BIDAK[fakta.bidak];
     if (fakta.tangkap === "q") return { kunci: "tangkapMenteri", n: 2, ganti: { korban } };
@@ -680,7 +866,10 @@ export function susunKomentar({
   /* ---- 2. Kalimat pembuka: peristiwa utama langkah ini. ---- */
   const utama = peristiwaUtama(fakta);
   const taktis = peristiwaTaktis(fakta);
-  if (taktis) {
+  const motif = motifPosisional(fakta);
+  if (fakta.tukarMenteri && utama) {
+    tambah(utama.kunci, utama.n, utama.ganti, 1);
+  } else if (taktis) {
     tambah(taktis.kunci, taktis.n, taktis.ganti, 1);
   } else if (utama) {
     tambah(utama.kunci, utama.n, utama.ganti, 1);
@@ -694,6 +883,11 @@ export function susunKomentar({
     // (hindari "langkah tenang… Blunder.").
     tambah(kunciRating, 3, {}, 1);
     ratingSudah = true;
+    if (motif && motif.kuatSaatEngine) {
+      tambah(motif.kunci, motif.n, motif.ganti, 3);
+    }
+  } else if (motif) {
+    tambah(motif.kunci, motif.n, motif.ganti, 1);
   } else {
     tambah("biasa", 4, {}, 1);
   }

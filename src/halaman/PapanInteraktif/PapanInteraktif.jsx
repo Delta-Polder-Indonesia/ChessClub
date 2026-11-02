@@ -27,6 +27,11 @@ import KartuKomentator from "../../components/KartuKomentator.jsx";
 import { usePreferensiKomentator } from "../../components/usePreferensiKomentator.js";
 import { ekspresiDariSkorAwan, faktaLangkah, statusTerminalFen } from "../../lib/komentator.js";
 import {
+  cariCatatanMaster,
+  intipKorpusMaster,
+  muatKorpusMaster,
+} from "../../lib/korpusKomentarMaster.js";
+import {
   ambilBasisDataAwan,
   intipBasisDataAwan,
   saranAwanKomentator,
@@ -1289,12 +1294,29 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
    * dengan ikon di petak, sehingga komentar & ikon selalu sejalan).
    */
   const preferensiKomentator = usePreferensiKomentator();
+  const [korpusMaster, setKorpusMaster] = useState(() => intipKorpusMaster());
+  useEffect(() => {
+    if (!preferensiKomentator.nyala || korpusMaster) return undefined;
+    let aktif = true;
+    muatKorpusMaster().then((peta) => {
+      if (aktif && peta) setKorpusMaster(peta);
+    });
+    return () => {
+      aktif = false;
+    };
+  }, [preferensiKomentator.nyala, korpusMaster]);
   const faktaKomentator = useMemo(() => {
     if (!riwayat.length) return null;
     const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
     if (!fenSebelum) return null;
     return faktaLangkah(fenSebelum, riwayat[riwayat.length - 1]);
   }, [riwayat, fenAwal]);
+  const catatanMaster = useMemo(() => {
+    if (!korpusMaster || !riwayat.length) return null;
+    const fenSebelum = fenDariLangkah(riwayat.slice(0, -1), fenAwal);
+    if (!fenSebelum) return null;
+    return cariCatatanMaster(korpusMaster, fenSebelum, riwayat[riwayat.length - 1]);
+  }, [korpusMaster, riwayat, fenAwal]);
   const dataKomentator = useMemo(() => {
     if (!riwayat.length) {
       return { evalSesudah: null, saranTerbaik: null, engineMenilai: false };
@@ -1781,6 +1803,8 @@ export default function PapanInteraktif({ tertanam = false, onBukaPengaturan = n
                             saranTerbaik={dataKomentator.saranTerbaik}
                             saranAwan={saranAwan}
                             ekspresiAwan={tinjauanAwan?.ekspresi ?? null}
+                            catatanMaster={catatanMaster}
+                            bahasa={bahasa}
                             engineNyala={engineNyala}
                             engineMenilai={dataKomentator.engineMenilai}
                             posisiAwal={riwayat.length === 0 && !posisiKustom}

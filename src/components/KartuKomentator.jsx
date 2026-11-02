@@ -59,6 +59,8 @@ export default function KartuKomentator({
   posisiAwal = false,
   saranAwan = null,
   ekspresiAwan = null,
+  catatanMaster = null,
+  bahasa = "id",
   nyala,
   setNyala,
   gaya,
@@ -89,12 +91,34 @@ export default function KartuKomentator({
     );
   }, [nyala, segmen, fakta, gaya, rating, evalSesudah, namaPembukaan, saranTerbaik, engineNyala, saranAwan, t]);
 
+  const infoMaster = useMemo(() => {
+    if (!nyala || posisiAwal || segmen || !catatanMaster) return null;
+    const kutipan = bahasa === "en" ? catatanMaster.en : catatanMaster.id;
+    const labelLencana = catatanMaster.duelMesin
+      ? t("papan.komentator.labelDuelMesin")
+      : t("papan.komentator.labelArsipMaster");
+    const atribusi = [
+      catatanMaster.partai,
+      catatanMaster.komentator
+        ? t("papan.komentator.olehKomentator", { komentator: catatanMaster.komentator })
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    return {
+      kutipan,
+      labelLencana,
+      atribusi,
+      partai: catatanMaster.partai,
+    };
+  }, [nyala, posisiAwal, segmen, catatanMaster, bahasa, t]);
+
   // Animasi "muncul" ringan tiap kalimat berganti — cukup memberi kesan hidup
   // tanpa memindahkan tata letak.
   const [kunciAnimasi, setKunciAnimasi] = useState(0);
   useEffect(() => {
     setKunciAnimasi((k) => k + 1);
-  }, [kalimat]);
+  }, [kalimat, catatanMaster?.kunci, bahasa]);
 
   const ikonRating = ikon || (rating && rating !== "forced" ? rating : null);
   // Avatar karakter: engine mati → Fritz berkonsentrasi, KECUALI bila ada
@@ -189,11 +213,48 @@ export default function KartuKomentator({
               </span>
             )}
             <p className="m-0 min-w-0 text-[13px] leading-5 text-gray-200">
-              {posisiAwal ? t("papan.komentator.posisiAwal") : kalimat || t("papan.komentator.menunggu")}
+              {posisiAwal
+                ? t("papan.komentator.posisiAwal")
+                : !engineNyala && infoMaster?.kutipan
+                ? infoMaster.kutipan
+                : kalimat || t("papan.komentator.menunggu")}
               {!posisiAwal && engineMenilai && (
                 <span className="ml-1 text-xs italic text-gray-500">{t("papan.komentator.menilai")}</span>
               )}
             </p>
+            {infoMaster && (
+              <div className="mt-1.5 border-t border-[#34312d] pt-1.5 text-[11px] leading-4 text-gray-400">
+                {engineNyala && infoMaster.kutipan ? (
+                  <>
+                    <span className="mr-1.5 inline-block rounded bg-[#312e2b] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                      {infoMaster.labelLencana}
+                    </span>
+                    <span className="text-gray-300">{infoMaster.kutipan}</span>
+                    {infoMaster.atribusi && (
+                      <p className="m-0 mt-0.5 truncate text-[10.5px] text-gray-500">
+                        {infoMaster.atribusi}
+                      </p>
+                    )}
+                  </>
+                ) : infoMaster.kutipan ? (
+                  <p className="m-0 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] text-gray-400">
+                    <span className="rounded bg-[#312e2b] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-300">
+                      {infoMaster.labelLencana}
+                    </span>
+                    {infoMaster.atribusi && <span className="truncate">{infoMaster.atribusi}</span>}
+                  </p>
+                ) : infoMaster.partai ? (
+                  <p className="m-0 truncate text-[11px] text-gray-400">
+                    <span className="font-semibold text-amber-300/90">
+                      {t("papan.komentator.jejakPartaiMaster", { partai: infoMaster.partai })}
+                    </span>
+                    {catatanMaster?.komentator
+                      ? ` · ${t("papan.komentator.olehKomentator", { komentator: catatanMaster.komentator })}`
+                      : ""}
+                  </p>
+                ) : null}
+              </div>
+            )}
           </div>
         </section>
       )}

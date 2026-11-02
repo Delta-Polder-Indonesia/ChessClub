@@ -37,6 +37,8 @@ import {
   GAYA_KOMENTATOR,
   TEMA_DISEBUT,
 } from "../src/lib/komentator.js";
+import { cariCatatanMaster, hashPosisiLangkah } from "../src/lib/korpusKomentarMaster.js";
+import { dialogMesin } from "../src/halaman/ManusiaVsMesin/dialogMesin.js";
 
 let gagal = 0;
 let lulus = 0;
@@ -112,9 +114,21 @@ const skenarioKunci = [
   [faktaDasar("4k3/8/8/1r1q4/8/8/4N3/4K3 w - - 0 1", "Nc3"), {}], // fork: benteng b5 + menteri d5
   [faktaDasar("4k3/8/8/8/8/8/4N3/4R1K1 w - - 0 1", "Ng3"), {}], // skak bayangan: benteng e1 terbuka
   [faktaDasar("6k1/5n2/8/8/8/1B6/8/3NK3 w - - 0 1", "Nf2"), {}], // kuda f7 terpaku oleh gajah b3
-  [faktaDasar("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2"), {}], // unggul struktur pion
+  [faktaDasar("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2"), {}], // unggul struktur pion + raja aktif akhir
   [faktaDasar("4k3/8/8/8/8/8/6qn/4K2R w - - 0 1", "Rxh2"), {}], // posisi tajam (tangkapan + banyak skak)
   [faktaDasar("4k3/8/8/8/8/8/8/4K1RR w - - 0 1", "Rg2"), {}], // seimbang dinamis + unggul mobilitas
+  // 12 motif posisional & strategis master baru
+  [faktaDasar("rnbqkbnr/ppp2ppp/8/8/8/8/PPP2PPP/RNBQKBNR w KQkq - 0 3", "Qxd8+"), {}], // tukarMenteri
+  [faktaDasar("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 4", "Bxc6"), {}], // tukarGajahKuda
+  [faktaDasar("rnbqkbnr/pppppp1p/6p1/8/3P4/6P1/PPP1PP1P/RNBQKBNR w KQkq - 0 3", "Bg2"), {}], // fianchetto
+  [faktaDasar("rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", "c4"), {}], // dobrakPusat
+  [faktaDasar("4k3/pp3ppp/8/8/4P3/2N5/PP3PPP/4K3 w - - 0 12", "Nd5"), {}], // kudaPosTerdepan
+  [faktaDasar("4k3/ppp2ppp/8/8/8/8/PPP2PPP/R3K3 w Q - 0 12", "Rd1"), {}], // bentengLajurTerbuka
+  [faktaDasar("6k1/p4ppp/8/8/8/8/P4PPP/3R2K1 w - - 0 20", "Rd7"), {}], // bentengBarisTujuh
+  [faktaDasar("6k1/p5pp/8/8/3P4/8/P5PP/6K1 w - - 0 22", "d5"), {}], // pionBebas
+  [faktaDasar("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3", "h3"), {}], // profilaksisSayap
+  [faktaDasar("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Qf3"), {}], // menteriDini
+  [faktaDasar("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Nf3"), {}], // kembangPerwira
 ];
 for (const [f, opsi] of skenarioKunci) {
   for (const gaya of GAYA_KOMENTATOR) {
@@ -204,8 +218,26 @@ for (const nama of ["remisUlang", "remisMaterial", "remis"]) diminta.set(nama, 2
 for (const nama of ["rokadePendek", "rokadePanjang"]) diminta.set(nama, 2);
 // Kunci taktis & posisi baru (dipilih lewat peristiwaTaktis()/fakta papan,
 // jadi tidak muncul sebagai literal tambah() di sumber).
-for (const nama of ["fork", "skakBayangan", "terpaku", "unggulStruktur", "posisiTajam"])
+for (const nama of [
+  "fork",
+  "skakBayangan",
+  "terpaku",
+  "unggulStruktur",
+  "posisiTajam",
+  "tukarMenteri",
+  "tukarGajahKuda",
+  "fianchetto",
+  "dobrakPusat",
+  "kudaPosTerdepan",
+  "bentengLajurTerbuka",
+  "bentengBarisTujuh",
+  "pionBebas",
+  "profilaksisSayap",
+  "menteriDini",
+  "rajaAktifAkhir",
+])
   diminta.set(nama, 2);
+diminta.set("kembangPerwira", 3);
 diminta.set("seimbangDinamis", 4);
 
 ok(diminta.size >= 30, `jumlah peristiwa terdeteksi dari sumber: ${diminta.size} (harap ≥ 30)`);
@@ -964,6 +996,189 @@ console.log("\n8) Status terminal FEN");
   ok(
     statusTerminalFen("bukan-fen") === null && statusTerminalFen(null) === null && statusTerminalFen("") === null,
     "FEN rusak/null → null"
+  );
+}
+
+/* ---------------- 9. 12 motif posisional & strategis master */
+console.log("\n9) Motif posisional & strategis master (12 motif)");
+{
+  const punyaMotif = (fen, san, kunciHarap) => {
+    const f = faktaDasar(fen, san);
+    const d = susunKomentar({ fakta: f, gaya: "formal" });
+    return Boolean(f?.[kunciHarap]) && d.some((s) => s.kunci.includes(`.${kunciHarap}.`));
+  };
+
+  ok(
+    punyaMotif("rnbqkbnr/ppp2ppp/8/8/8/8/PPP2PPP/RNBQKBNR w KQkq - 0 3", "Qxd8+", "tukarMenteri"),
+    "Qxd8+ yang bisa direbut balik → tukarMenteri"
+  );
+  ok(
+    punyaMotif("r1bqkbnr/pppp1ppp/2n5/1B2p3/4P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 2 4", "Bxc6", "tukarGajahKuda"),
+    "Ruy Lopez Bxc6 → tukarGajahKuda"
+  );
+  ok(
+    punyaMotif("rnbqkbnr/pppppp1p/6p1/8/3P4/6P1/PPP1PP1P/RNBQKBNR w KQkq - 0 3", "Bg2", "fianchetto"),
+    "Bg2 → fianchetto"
+  );
+  ok(
+    punyaMotif("rnbqkbnr/ppp1pppp/8/3p4/3P4/8/PPP1PPPP/RNBQKBNR w KQkq - 0 2", "c4", "dobrakPusat"),
+    "1.d4 d5 2.c4 → dobrakPusat"
+  );
+  ok(
+    !faktaDasar(AWAL, "e4")?.dobrakPusat,
+    "1.e4 di papan kosong tidak salah diklaim sebagai dobrakPusat"
+  );
+  ok(
+    punyaMotif("4k3/pp3ppp/8/8/4P3/2N5/PP3PPP/4K3 w - - 0 12", "Nd5", "kudaPosTerdepan"),
+    "Nd5 dijaga e4 tanpa pion c/e lawan → kudaPosTerdepan"
+  );
+  ok(
+    punyaMotif("4k3/ppp2ppp/8/8/8/8/PPP2PPP/R3K3 w Q - 0 12", "Rd1", "bentengLajurTerbuka"),
+    "Rd1 di lajur bebas pion sendiri → bentengLajurTerbuka"
+  );
+  ok(
+    punyaMotif("6k1/p4ppp/8/8/8/8/P4PPP/3R2K1 w - - 0 20", "Rd7", "bentengBarisTujuh"),
+    "Rd7 → bentengBarisTujuh"
+  );
+  ok(
+    punyaMotif("6k1/p5pp/8/8/3P4/8/P5PP/6K1 w - - 0 22", "d5", "pionBebas"),
+    "d5 tanpa pion penghalang → pionBebas"
+  );
+  ok(
+    punyaMotif("r1bqkbnr/pppp1ppp/2n5/4p3/4P3/5N2/PPPP1PPP/RNBQKB1R w KQkq - 2 3", "h3", "profilaksisSayap"),
+    "h3 → profilaksisSayap"
+  );
+  ok(
+    punyaMotif("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Qf3", "menteriDini"),
+    "2.Qf3 → menteriDini"
+  );
+  ok(
+    punyaMotif("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Nf3", "kembangPerwira"),
+    "2.Nf3 → kembangPerwira"
+  );
+  ok(
+    punyaMotif("4k3/p6p/7p/8/8/8/PP6/4K3 w - - 0 1", "Kd2", "rajaAktifAkhir"),
+    "Kd2 tanpa menteri → rajaAktifAkhir"
+  );
+}
+
+/* ---------------- 10. korpus komentar master (ValdemarOrn/Chess) */
+console.log("\n10) Korpus komentar master (public/data/komentator-master.json)");
+{
+  const jalurKorpus = path.join(AKAR, "public/data/komentator-master.json");
+  ok(existsSync(jalurKorpus), "berkas public/data/komentator-master.json tersedia");
+  const korpus = JSON.parse(readFileSync(jalurKorpus, "utf8"));
+  const entri = Object.entries(korpus);
+  ok(entri.length >= 2000, `jumlah posisi master >= 2000 (ada ${entri.length})`);
+
+  let jumlahDwibahasa = 0;
+  let jumlahDuelMesin = 0;
+  let artefakBuruk = 0;
+  for (const [kunci, nilai] of entri) {
+    if (!/^[0-9a-f]{16}$/.test(kunci) || !Array.isArray(nilai)) artefakBuruk++;
+    const [partai, , en, id, hvc] = nilai;
+    if (!partai || !en) artefakBuruk++;
+    if (/\bW[1-9]\b|\bB[1-9]\b|Bereits|:\)|;\)/.test(`${partai} ${en} ${id || ""}`)) {
+      artefakBuruk++;
+    }
+    if (id && id.length > 15) jumlahDwibahasa++;
+    if (hvc === 1) jumlahDuelMesin++;
+  }
+  ok(artefakBuruk === 0, `korpus master bersih dari artefak (temuan: ${artefakBuruk})`);
+  ok(jumlahDwibahasa >= 50, `minimal 50 jalur pembukaan/tabiya dwibahasa (ada ${jumlahDwibahasa})`);
+  ok(jumlahDuelMesin >= 150, `minimal 150 posisi HumansVsComputers (ada ${jumlahDuelMesin})`);
+
+  const catE4 = cariCatatanMaster(korpus, AWAL, "e4");
+  ok(
+    Boolean(catE4 && catE4.en && catE4.id && catE4.partai),
+    "1.e4 memiliki catatan master dwibahasa lengkap"
+  );
+  const gSisilia = new Chess();
+  gSisilia.move("e4");
+  const catC5 = cariCatatanMaster(korpus, gSisilia.fen(), "c5");
+  ok(Boolean(catC5 && catC5.id.includes("Sisilia")), "1.e4 c5 memuat ulasan Sisilia bahasa Indonesia");
+  ok(hashPosisiLangkah(AWAL, "e4") === catE4?.kunci, "hashPosisiLangkah konsisten dengan kunci korpus");
+}
+
+/* ---------------- 11. dialog Manusia vs Mesin berbasis fakta papan & arsip */
+console.log("\n11) Dialog Manusia vs Mesin berbasis fakta papan & arsip master");
+{
+  const korpus = JSON.parse(
+    readFileSync(path.join(AKAR, "public/data/komentator-master.json"), "utf8")
+  );
+  const fTukarSeimbang = faktaDasar(
+    "rnbqkbnr/ppp1pppp/8/3P4/8/8/PPPP1PPP/RNBQKBNR b KQkq - 0 2",
+    "Qxd5"
+  );
+  // Sebentar: di 1.e4 d5 2.exd5 Qxd5, Qxd5 tidak langsung bisa direbut pion, tapi coba 1.e4 e5 2.Nf3 Nc6 3.d4 exd4:
+  const fScotch = faktaDasar(
+    "r1bqkbnr/pppp1ppp/2n5/4p3/3PP3/5N2/PPP2PPP/RNBQKB1R b KQkq - 0 3",
+    "exd4"
+  );
+  const dScotch = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "exd4", oleh: "mesin", tangkap: true, skak: false, rokade: false, promosi: false, petak: "d4" },
+    fakta: fScotch,
+    benih: 6,
+    t: tId,
+  });
+  ok(
+    dScotch.teks.includes("exd4") && dScotch.teks.includes("d4") && !polaSisa.test(dScotch.teks),
+    "pertukaran seimbang 3...exd4 memakai jawabTukar tanpa placeholder sisa"
+  );
+
+  // Tangkapan materi gratis harus memakai jawabMakan
+  const fMakanGratis = faktaDasar("4k3/8/8/8/3N4/8/8/3rK3 b - - 0 10", "Rxd4");
+  const dMakan = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "Rxd4", oleh: "mesin", tangkap: true, skak: false, rokade: false, promosi: false, petak: "d4" },
+    fakta: fMakanGratis,
+    benih: 3,
+    t: tEn,
+  });
+  ok(
+    dMakan.teks.includes("Rxd4") && !polaSisa.test(dMakan.teks),
+    "tangkapan perwira gratis memakai jawabMakan bersih"
+  );
+  void fTukarSeimbang;
+
+  // Catatan master terlampir saat cocok dan tidak membocorkan EN ke bahasa ID
+  const catE4 = cariCatatanMaster(korpus, AWAL, "e4");
+  const dMasterId = dialogMesin({
+    statusMesin: "mesin",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "e4", oleh: "pemain", tangkap: false, skak: false, rokade: false, promosi: false, petak: "e4" },
+    fakta: faktaDasar(AWAL, "e4"),
+    catatanMaster: catE4,
+    namaPembukaan: "King's Pawn Game",
+    bahasa: "id",
+    benih: 1,
+    t: tId,
+  });
+  ok(
+    Boolean(dMasterId.infoMaster?.kutipan && dMasterId.infoMaster.kutipan === catE4.id),
+    "dialogMesin menyertakan kutipan master bahasa Indonesia pada 1.e4"
+  );
+
+  // Mode tinjau riwayat (sedangTinjau) mengulas langkah, bukan menyuruh pemain jalan
+  const dTinjau = dialogMesin({
+    statusMesin: "pemain",
+    hasil: null,
+    warnaMesin: "b",
+    langkahDialog: { san: "Nf3", oleh: "pemain", tangkap: false, skak: false, rokade: false, promosi: false, petak: "f3" },
+    fakta: faktaDasar("rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2", "Nf3"),
+    sedangTinjau: true,
+    benih: 3,
+    t: tId,
+  });
+  ok(
+    dTinjau.teks.includes("Nf3") && !polaSisa.test(dTinjau.teks),
+    "mode tinjau riwayat mengulas langkah aktif Nf3 dengan bersih"
   );
 }
 
